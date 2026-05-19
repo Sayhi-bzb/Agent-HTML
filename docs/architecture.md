@@ -62,3 +62,6 @@
 - preview
 - build
 - portable artifact
+
+## 组件资料层
+- `docs/components.md`: 组件盘点和家族分类
