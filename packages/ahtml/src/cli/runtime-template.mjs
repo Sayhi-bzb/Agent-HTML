@@ -16,6 +16,7 @@ import { promisify } from "node:util"
 
 import { supportedRuntimeBase } from "../config/render-capabilities.mjs"
 import {
+  createManagedRuntimeCapability,
   createRuntimeContract,
   createRuntimeVerificationState,
 } from "../config/runtime-contract.mjs"
@@ -366,9 +367,11 @@ async function writeRuntimeVerificationState({
   setup,
   runtimeSurface,
 }) {
+  const runtimeCapability = createManagedRuntimeCapability({ runtimeContract })
   const runtimeVerificationState = createRuntimeVerificationState({
     components: setup.components,
     runtimeBase: supportedRuntimeBase,
+    runtimeCapability,
     runtimeContract,
     runtimeSurface,
     version: 1,

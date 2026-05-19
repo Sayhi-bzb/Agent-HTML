@@ -482,6 +482,37 @@ describe("agent-html CLI contracts", () => {
     await removeTempDir(tempDir)
   })
 
+  it("uses the current runtime style for validate when the document omits style-ref", async () => {
+    const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
+    const runtimeHome = path.join(tempDir, ".ahtml")
+    const inputPath = path.join(tempDir, "runtime-default.agent.html")
+
+    await writeCustomStyleProfile(runtimeHome)
+    await writeCurrentStyleProfileState(runtimeHome, "team-ops")
+    await writeFile(
+      inputPath,
+      '<page title="Runtime Default"><card title="Summary">Current style.</card></page>',
+    )
+
+    const validation = await runCliWithServer(
+      ["validate", "--input", inputPath, "--format", "json"],
+      { AHTML_HOME: runtimeHome },
+      tempDir,
+    )
+    const parsedValidation = parseJson<{
+      ok: boolean
+      inspection?: {
+        config: { documentStyleConfigReference: string }
+      }
+    }>(validation.stdout)
+
+    expect(parsedValidation.ok).toBe(true)
+    expect(parsedValidation.inspection?.config.documentStyleConfigReference).toBe(
+      "team-ops",
+    )
+    await removeTempDir(tempDir)
+  })
+
   it("accepts representative agent-html fixtures", async () => {
     const { validateAgentHtmlSource } = await importValidateModule()
 
@@ -509,6 +540,31 @@ async function writeCustomStyleProfile(runtimeHome: string) {
   await writeFile(
     profilePath,
     `${JSON.stringify(createCustomStyleProfile(), null, 2)}\n`,
+  )
+}
+
+async function writeCurrentStyleProfileState(
+  runtimeHome: string,
+  currentStyleProfileId: string,
+) {
+  const statePath = path.join(
+    runtimeHome,
+    "config",
+    "style-profile-state.json",
+  )
+
+  await mkdir(path.dirname(statePath), { recursive: true })
+  await writeFile(
+    statePath,
+    `${JSON.stringify(
+      {
+        kind: "ahtml-style-profile-state",
+        version: 1,
+        currentStyleProfileId,
+      },
+      null,
+      2,
+    )}\n`,
   )
 }
 

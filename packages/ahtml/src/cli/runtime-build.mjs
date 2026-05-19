@@ -12,10 +12,8 @@ import { promisify } from "node:util"
 import { parse, parseFragment, serialize } from "parse5"
 
 import { getRuntimePaths, runtimePackageRoot } from "./runtime-paths.mjs"
-import {
-  ensureRuntimeBuildConfig,
-  resolveRuntimeDependencies,
-} from "./runtime-template.mjs"
+import { getRuntimeStatus } from "./runtime-status.mjs"
+import { resolveRuntimeDependencies } from "./runtime-template.mjs"
 
 const execFileAsync = promisify(execFile)
 
@@ -24,11 +22,28 @@ export async function buildRuntimeArtifact({
   packageRoot = runtimePackageRoot,
   paths = getRuntimePaths(),
 }) {
+  const status = await getRuntimeStatus({
+    outputDir,
+    paths,
+  })
+
+  if (!status.ready) {
+    throw new Error(
+      [
+        `Managed runtime is not ready at ${paths.runtimeRoot}.`,
+        status.manifestError ? `Manifest: ${status.manifestError}` : "",
+        status.runtimeDetail ? `Detail: ${status.runtimeDetail}` : "",
+        "Run ahtml setup or ahtml doctor to repair the managed runtime before build.",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    )
+  }
+
   await rm(outputDir, { force: true, recursive: true })
   await mkdir(outputDir, { recursive: true })
 
   const { viteBin } = resolveRuntimeDependencies(packageRoot)
-  await ensureRuntimeBuildConfig({ packageRoot, paths })
   await execFileAsync(
     process.execPath,
     [

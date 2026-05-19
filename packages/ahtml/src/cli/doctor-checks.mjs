@@ -29,7 +29,7 @@ import {
   readRuntimeVerificationState,
 } from "./runtime-renderability.mjs"
 import { checkForPackageUpdate } from "./update-check.mjs"
-import { readRuntimeManifest } from "./runtime-status.mjs"
+import { getRuntimeStatus, readRuntimeManifest } from "./runtime-status.mjs"
 
 export async function runDoctorCommand({
   defaultOutputDir,
@@ -40,7 +40,31 @@ export async function runDoctorCommand({
   runtimePaths,
 }) {
   const packageVersion = await readPackageVersion()
-  await ensureManagedRuntime(packageVersion)
+  let runtimeStatus = await getRuntimeStatus({
+    packageVersion,
+    outputDir: defaultOutputDir,
+    paths: runtimePaths,
+  })
+
+  if (!runtimeStatus.ready) {
+    await ensureManagedRuntime(packageVersion)
+    runtimeStatus = await getRuntimeStatus({
+      packageVersion,
+      outputDir: defaultOutputDir,
+      paths: runtimePaths,
+    })
+  }
+
+  let cachedManifest = runtimeStatus.manifest
+  async function getManifest() {
+    if (cachedManifest) {
+      return cachedManifest
+    }
+
+    cachedManifest = await readRuntimeManifest(runtimePaths)
+    return cachedManifest
+  }
+
   const checks = []
 
   checks.push(
@@ -60,13 +84,13 @@ export async function runDoctorCommand({
   )
   checks.push(
     await runDoctorCheck("runtime", "manifest", async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
       return `${manifest.renderer} v${manifest.version} ${manifest.uiLibrary}/${manifest.componentSource}/${manifest.preset}`
     }),
   )
   checks.push(
     await runDoctorCheck("runtime", "base", async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
 
       if (manifest.runtimeBase !== supportedRuntimeBase) {
         throw new Error(
@@ -84,7 +108,7 @@ export async function runDoctorCommand({
   )
   checks.push(
     await runDoctorCheck("runtime", "schema-renderer-parity", async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
       const schema = await getCliSchemaOutput()
       const runtimeContract = createRuntimeContractFromSchema(schema)
 
@@ -108,45 +132,45 @@ export async function runDoctorCommand({
   )
   checks.push(
     await runDoctorCheck("runtime", "components-json", async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
       return assertRuntimeComponentsJson({ manifest, paths: runtimePaths })
     }),
   )
   checks.push(
     await runDoctorCheck("runtime", "shadcn-css-entry", async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
       return assertRuntimeCssEntry({ manifest, paths: runtimePaths })
     }),
   )
   checks.push(
     await runDoctorCheck("runtime", "shadcn-css-imports", async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
       return assertRuntimeCssImports({ manifest, paths: runtimePaths })
     }),
   )
   checks.push(
     await runDoctorCheck("runtime", "shadcn-css-base", async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
       return assertRuntimeCssBase({ manifest, paths: runtimePaths })
     }),
   )
   checks.push(
     await runDoctorCheck("runtime", "shadcn-surface", async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
       await assertRuntimeSurface({ manifest, paths: runtimePaths })
       return formatShadcnRuntimeSurface(manifest.shadcnRuntimeSurface)
     }),
   )
   checks.push(
     await runDoctorProvenanceCheck(async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
       await assertRuntimeSurface({ manifest, paths: runtimePaths })
       return getShadcnRuntimeProvenanceState(manifest.shadcnRuntimeSurface)
     }),
   )
   checks.push(
     await runDoctorCheck("runtime", "shadcn-components", async () => {
-      const manifest = await readRuntimeManifest(runtimePaths)
+      const manifest = await getManifest()
       const componentPaths = manifest.installedUiComponents.map((component) =>
         path.join(runtimePaths.runtimeComponentsDir, `${component}.tsx`),
       )
@@ -175,8 +199,13 @@ export async function runDoctorCommand({
   )
   checks.push(
     await runDoctorCheck("runtime", "verification-data", async () => {
-      await stat(runtimePaths.runtimeVerificationPath)
-      return runtimePaths.runtimeVerificationPath
+      const manifest = await getManifest()
+
+      if (!manifest.runtimeCapability?.verificationData) {
+        throw new Error("Runtime manifest does not record verification data.")
+      }
+
+      return `${runtimePaths.manifestPath}#runtimeCapability.verificationData`
     }),
   )
   checks.push(

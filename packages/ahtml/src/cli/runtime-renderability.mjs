@@ -1,12 +1,10 @@
-import { readFile } from "node:fs/promises"
-
 import {
   collectRendererSpecComponentIssues,
   structuralAgentComponents,
   supportedRendererKinds,
 } from "../config/render-capabilities.mjs"
 import { createRuntimeContractFromSchema } from "../config/runtime-contract.mjs"
-import { parseJson } from "./cli-io.mjs"
+import { readRuntimeManifest } from "./runtime-status.mjs"
 
 const rendererSpecScalarFields = [
   "source",
@@ -68,10 +66,14 @@ const rendererSpecStructuredFields = [
 ]
 
 export async function readRuntimeVerificationState(paths) {
-  return parseJson(
-    await readFile(paths.runtimeVerificationPath, "utf8"),
-    "render-verification.generated.json must be valid JSON.",
-  )
+  const manifest = await readRuntimeManifest(paths)
+
+  return {
+    renderableAgentComponents:
+      manifest.runtimeCapability.renderableAgentComponents,
+    rendererMapping: manifest.runtimeCapability.rendererMapping,
+    verificationData: manifest.runtimeCapability.verificationData,
+  }
 }
 
 export async function getRuntimeRenderDiagnostics({

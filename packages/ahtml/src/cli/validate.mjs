@@ -9,11 +9,7 @@ export async function validateAgentHtmlSource(source, runtimeContext) {
   const renderConfigResolvers = await loadStyleProfileResolvers(
     runtimeContext,
   )
-  const normalizedSource = await ensureDefaultStyleRefHeader(
-    source,
-    runtimeContext,
-  )
-  const result = sanitizeAgentHtml(normalizedSource, renderConfigResolvers)
+  const result = sanitizeAgentHtml(source, renderConfigResolvers)
 
   return { diagnostics: result.diagnostics, document: result.document }
 }
@@ -59,22 +55,5 @@ function isRuntimePaths(value) {
     Boolean(value) &&
     typeof value === "object" &&
     typeof value.userStyleProfilesDir === "string"
-  )
-}
-
-async function ensureDefaultStyleRefHeader(source, runtimeContext) {
-  if (
-    !isRuntimePaths(runtimeContext) ||
-    /<meta-agent\b/i.test(source)
-  ) {
-    return source
-  }
-
-  const currentStyleReference = await readCurrentStyleProfileReference(
-    runtimeContext,
-  )
-
-  return [`<meta-agent style-ref="${currentStyleReference}" />`, source].join(
-    "\n\n",
   )
 }

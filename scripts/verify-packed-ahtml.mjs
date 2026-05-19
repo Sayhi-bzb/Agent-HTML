@@ -365,16 +365,22 @@ async function expectPreview(inputPath, outputDir) {
 }
 
 async function expectInstalledConformance(coreModule) {
+  await writeCurrentStyleProfileState("ops-compact")
+
   for (const fixture of createConformanceFixtures()) {
     const inputPath = await writeTempFile(
       consumerDir,
       `${fixture.name.replaceAll(/[^a-z0-9]+/gi, "-").toLowerCase()}.agent.html`,
       fixture.source,
     )
-    const coreResult = normalizeConformanceResult({
-      ok: true,
-      ...toCoreConformanceResult(coreModule.sanitizeAgentHtml(fixture.source)),
-    })
+    const coreResult = normalizeConformanceResult(
+      toCoreConformanceResult(
+        coreModule.sanitizeAgentHtml(fixture.source, {
+          resolveDefaultStyleProfileReference: () =>
+            coreModule.BUILTIN_STYLE_PROFILES_BY_REFERENCE["ops-compact"],
+        }),
+      ),
+    )
     const cliResult = await runInstalledValidateJson(inputPath)
 
     assertConformanceResultMatchesFixture(fixture.expect, coreResult)
@@ -425,6 +431,28 @@ async function runInstalledValidateJson(inputPath) {
       diagnosticCodes: (parsed.diagnostics ?? []).map((diagnostic) => diagnostic.code),
     })
   }
+}
+
+async function writeCurrentStyleProfileState(currentStyleProfileId) {
+  const statePath = path.join(
+    runtimeHome,
+    "config",
+    "style-profile-state.json",
+  )
+
+  await mkdir(path.dirname(statePath), { recursive: true })
+  await writeFile(
+    statePath,
+    `${JSON.stringify(
+      {
+        kind: "ahtml-style-profile-state",
+        version: 1,
+        currentStyleProfileId,
+      },
+      null,
+      2,
+    )}\n`,
+  )
 }
 
 function createInspectionCounts(nodes, counts = {}) {

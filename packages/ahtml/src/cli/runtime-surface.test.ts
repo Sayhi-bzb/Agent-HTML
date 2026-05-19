@@ -75,6 +75,19 @@ type LoadedModules = {
     readonly uiLibrary: string
     readonly version: number
   }) => RuntimeManifest
+  readonly createManagedRuntimeCapability: (input: {
+    readonly runtimeContract: {
+      readonly renderableAgentComponents: readonly string[]
+      readonly verificationData: unknown
+      readonly rendererMapping: unknown
+    }
+    readonly version?: number
+  }) => {
+    readonly version: number
+    readonly renderableAgentComponents: readonly string[]
+    readonly verificationData: unknown
+    readonly rendererMapping: unknown
+  }
   readonly createAhtmlGlueProof: (paths: RuntimePaths) => Promise<{
     readonly algorithm: string
     readonly files: Record<string, string>
@@ -96,6 +109,12 @@ type LoadedModules = {
   readonly createRuntimeVerificationState: (input: {
     readonly components: readonly string[]
     readonly runtimeBase: string
+    readonly runtimeCapability?: {
+      readonly version: number
+      readonly renderableAgentComponents: readonly string[]
+      readonly verificationData: unknown
+      readonly rendererMapping: unknown
+    }
     readonly runtimeContract: {
       readonly renderableAgentComponents: readonly string[]
       readonly verificationData: unknown
@@ -161,6 +180,12 @@ type RuntimeManifest = {
   readonly uiLibrary: string
   readonly componentSource: string
   readonly runtimeBase: string
+  readonly runtimeCapability: {
+    readonly version: number
+    readonly renderableAgentComponents: readonly string[]
+    readonly verificationData: unknown
+    readonly rendererMapping: unknown
+  }
   readonly shadcnRuntimeSurface: Record<string, unknown>
   readonly installMode: string
   readonly preset: string
@@ -422,6 +447,7 @@ async function createRuntimeFixture({
   const {
     createShadcnBaseLayerExpectation,
     createManagedRuntimeManifest,
+    createManagedRuntimeCapability,
     createRuntimeContract,
     createRuntimeVerificationState,
     requiredShadcnRuntimeExports,
@@ -441,6 +467,9 @@ async function createRuntimeFixture({
   const runtimePaths = getRuntimePaths({ AHTML_HOME: runtimeRoot })
   const schema = await getCliSchemaOutput(process.cwd())
   const runtimeContract = createRuntimeContract(schema.components)
+  const runtimeCapability = createManagedRuntimeCapability({
+    runtimeContract,
+  })
   const promptUiManifest = createPromptUiManifest({
     packageVersion: "0.0.0",
     setup: nativeRuntimeSetup,
@@ -630,6 +659,7 @@ async function createRuntimeFixture({
   const runtimeVerificationState = createRuntimeVerificationState({
     components: [...nativeRuntimeSetup.components],
     runtimeBase: supportedRuntimeBase,
+    runtimeCapability,
     runtimeContract,
     runtimeSurface: shadcnRuntimeSurface,
     version: 1,
@@ -877,6 +907,8 @@ async function loadModules(): Promise<LoadedModules> {
     createPromptUiManifest: runtimeSetupModule.createPromptUiManifest,
     createManagedRuntimeManifest:
       runtimeContractModule.createManagedRuntimeManifest,
+    createManagedRuntimeCapability:
+      runtimeContractModule.createManagedRuntimeCapability,
     createAhtmlGlueProof: runtimeSurfaceModule.createAhtmlGlueProof,
     createManagedRuntimeUiProof: runtimeManagedUiModule.createManagedRuntimeUiProof,
     createRuntimeVerificationState:

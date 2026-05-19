@@ -4,11 +4,11 @@ import { pathToFileURL } from "node:url"
 export function createConformanceFixtures() {
   return [
     {
-      name: "default profile without meta-agent",
+      name: "runtime current default without meta-agent",
       source: '<page title="Fallback"><card title="Summary">Default profile.</card></page>',
       expect: {
         ok: true,
-        documentStyleConfigReference: "report-default",
+        documentStyleConfigReference: "ops-compact",
         components: [
           { name: "card", count: 1 },
           { name: "page", count: 1 },
@@ -116,7 +116,10 @@ export function assertConformanceResultMatchesFixture(expect, actual) {
 
 export async function runCoreConformanceFixture(root, fixture) {
   const coreModule = await importCoreModule(root)
-  const result = coreModule.sanitizeAgentHtml(fixture.source)
+  const result = coreModule.sanitizeAgentHtml(fixture.source, {
+    resolveDefaultStyleProfileReference: () =>
+      coreModule.BUILTIN_STYLE_PROFILES_BY_REFERENCE["ops-compact"],
+  })
 
   return normalizeConformanceResult({
     ok: result.diagnostics.length === 0,

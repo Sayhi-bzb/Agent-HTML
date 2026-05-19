@@ -29,6 +29,40 @@ export function createRuntimeContractFromSchema(schema) {
   return createRuntimeContract(schema?.components)
 }
 
+export function createManagedRuntimeCapability({
+  runtimeContract,
+  version = 1,
+}) {
+  if (!runtimeContract) {
+    throw new Error("Runtime capability requires a runtime contract.")
+  }
+
+  return {
+    version,
+    renderableAgentComponents: runtimeContract.renderableAgentComponents,
+    verificationData: runtimeContract.verificationData,
+    rendererMapping: runtimeContract.rendererMapping,
+  }
+}
+
+export function readManagedRuntimeCapability(manifest) {
+  const runtimeCapability = manifest?.runtimeCapability
+
+  if (!runtimeCapability || typeof runtimeCapability !== "object") {
+    throw new Error("Runtime manifest does not record runtime capability.")
+  }
+
+  return {
+    version: runtimeCapability.version ?? 1,
+    renderableAgentComponents:
+      runtimeCapability.renderableAgentComponents ??
+      manifest?.renderableAgentComponents ??
+      [],
+    verificationData: runtimeCapability.verificationData,
+    rendererMapping: runtimeCapability.rendererMapping,
+  }
+}
+
 export function createManagedRuntimeManifest({
   componentSource,
   packageVersion = "0.0.0",
@@ -43,6 +77,8 @@ export function createManagedRuntimeManifest({
   components = [],
   installMode,
 }) {
+  const runtimeCapability = createManagedRuntimeCapability({ runtimeContract })
+
   return {
     kind: "ahtml-managed-runtime",
     version,
@@ -51,12 +87,13 @@ export function createManagedRuntimeManifest({
     uiLibrary,
     componentSource,
     runtimeBase,
+    runtimeCapability,
     shadcnRuntimeSurface: runtimeSurface,
     installMode,
     preset,
     components,
     installedUiComponents: components,
-    renderableAgentComponents: runtimeContract.renderableAgentComponents,
+    renderableAgentComponents: runtimeCapability.renderableAgentComponents,
     paths: {
       runtime: paths.runtimeDir,
       cache: paths.cacheDir,
@@ -73,6 +110,7 @@ export function createManagedRuntimeManifest({
 export function createRuntimeVerificationState({
   components = [],
   runtimeBase,
+  runtimeCapability = createManagedRuntimeCapability({ runtimeContract }),
   runtimeContract,
   runtimeSurface,
   version = 1,
@@ -83,9 +121,9 @@ export function createRuntimeVerificationState({
     runtimeBase,
     shadcnRuntimeSurface: runtimeSurface,
     installedUiComponents: components,
-    renderableAgentComponents: runtimeContract.renderableAgentComponents,
-    verificationData: runtimeContract.verificationData,
-    rendererMapping: runtimeContract.rendererMapping,
+    renderableAgentComponents: runtimeCapability.renderableAgentComponents,
+    verificationData: runtimeCapability.verificationData,
+    rendererMapping: runtimeCapability.rendererMapping,
   }
 }
 

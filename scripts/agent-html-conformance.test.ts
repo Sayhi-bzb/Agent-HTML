@@ -69,7 +69,7 @@ async function writeStyleProfileState(styleProfileStatePath: string) {
       {
         kind: "ahtml-style-profile-state",
         version: 1,
-        currentStyleProfileId: "report-default",
+        currentStyleProfileId: "ops-compact",
       },
       null,
       2,

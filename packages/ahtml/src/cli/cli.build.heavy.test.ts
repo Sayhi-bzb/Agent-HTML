@@ -119,7 +119,7 @@ describe("agent-html CLI heavy build flows", () => {
     )
     await expectFile(
       path.join(outputDir, "index.html"),
-      "max-w-4xl gap-6 px-4 py-10 sm:px-6 items-stretch",
+      'class="ahtml-document-shell"',
     )
     await expectFile(
       path.join(outputDir, "index.html"),
@@ -267,7 +267,7 @@ describe("agent-html CLI heavy build flows", () => {
     )
     await expectFile(
       path.join(outputDir, "index.html"),
-      "max-w-4xl gap-6 px-4 py-10 sm:px-6 items-stretch",
+      'class="ahtml-document-shell"',
     )
     await expectFile(
       path.join(outputDir, "index.html"),
@@ -284,16 +284,42 @@ describe("agent-html CLI heavy build flows", () => {
     await removeTempDir(tempDir)
   }, 120000)
 
+  it("builds with the current runtime style when the document omits style-ref", async () => {
+    const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
+    const runtimeHome = path.join(tempDir, ".ahtml")
+    const inputPath = path.join(tempDir, "runtime-default.agent.html")
+    const outputDir = path.join(tempDir, "html")
+
+    await writeCustomStyleProfile(runtimeHome)
+    await writeCurrentStyleProfileState(runtimeHome, "team-ops")
+    await writeFile(
+      inputPath,
+      '<page title="Runtime Default"><card title="Summary">Current style.</card></page>',
+    )
+
+    await runCliWithServer(
+      ["build", inputPath, "--out", outputDir],
+      { AHTML_HOME: runtimeHome },
+      tempDir,
+    )
+
+    await expectFile(
+      path.join(outputDir, "agent-html.inspect.json"),
+      '"documentStyleConfigReference": "team-ops"',
+    )
+    await expectFile(
+      path.join(outputDir, "index.html"),
+      'data-style-profile="team-ops"',
+    )
+    await removeTempDir(tempDir)
+  }, 120000)
+
   it("fails build when runtime renderer mapping drifts from verification data", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, "runtime-home")
     const inputPath = path.join(tempDir, "artifact.agent.html")
     const outputDir = path.join(tempDir, "html")
-    const verificationPath = path.join(
-      runtimeHome,
-      "runtime",
-      "render-verification.generated.json",
-    )
+    const manifestPath = path.join(runtimeHome, "config", "runtime.json")
 
     await runCliWithServer(["doctor"], { AHTML_HOME: runtimeHome }, tempDir)
     await writeFile(
@@ -301,21 +327,17 @@ describe("agent-html CLI heavy build flows", () => {
       '<page title="Drift"><card title="Summary">Slot drift.</card></page>',
     )
 
-    const runtimeVerificationState = parseJson<{
-      rendererMapping: {
-        components: {
-          name: string
-          kind: string
-        }[]
+    const manifest = parseJson<{
+      runtimeCapability: {
+        rendererMapping: {
+          components: {
+            name: string
+            kind: string
+          }[]
+        }
       }
-      rendererSpec: {
-        components: {
-          name: string
-          kind: string
-        }[]
-      }
-    }>(await readFile(verificationPath, "utf8"))
-    const card = runtimeVerificationState.rendererMapping.components.find(
+    }>(await readFile(manifestPath, "utf8"))
+    const card = manifest.runtimeCapability.rendererMapping.components.find(
       (component) => component.name === "card",
     )
 
@@ -324,10 +346,7 @@ describe("agent-html CLI heavy build flows", () => {
     }
 
     card.kind = "primitive"
-    await writeFile(
-      verificationPath,
-      `${JSON.stringify(runtimeVerificationState, null, 2)}\n`,
-    )
+    await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
 
     await expectCliFailure(
       runCliWithServer(
@@ -470,6 +489,31 @@ async function writeCustomStyleProfile(runtimeHome: string) {
   await writeFile(
     profilePath,
     `${JSON.stringify(createCustomStyleProfile(), null, 2)}\n`,
+  )
+}
+
+async function writeCurrentStyleProfileState(
+  runtimeHome: string,
+  currentStyleProfileId: string,
+) {
+  const statePath = path.join(
+    runtimeHome,
+    "config",
+    "style-profile-state.json",
+  )
+
+  await mkdir(path.dirname(statePath), { recursive: true })
+  await writeFile(
+    statePath,
+    `${JSON.stringify(
+      {
+        kind: "ahtml-style-profile-state",
+        version: 1,
+        currentStyleProfileId,
+      },
+      null,
+      2,
+    )}\n`,
   )
 }
 

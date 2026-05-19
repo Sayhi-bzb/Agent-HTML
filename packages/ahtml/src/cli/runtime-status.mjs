@@ -11,6 +11,7 @@ import path from "node:path"
 import {
   createManagedRuntimeManifest,
   createRuntimeContractFromSchema,
+  readManagedRuntimeCapability,
 } from "../config/runtime-contract.mjs"
 import {
   getRuntimePaths,
@@ -98,21 +99,22 @@ export async function readRuntimeManifest(paths = getRuntimePaths()) {
     throw new Error(`${runtimeManifestName} was not written by ahtml.`)
   }
 
+  const runtimeCapability = readManagedRuntimeCapability(manifest)
+
   return {
     ...manifest,
+    runtimeCapability,
     runtimeBase: manifest.runtimeBase ?? supportedRuntimeBase,
     installedUiComponents:
       manifest.installedUiComponents ?? manifest.components,
     renderableAgentComponents:
-      manifest.renderableAgentComponents ?? manifest.components,
+      runtimeCapability.renderableAgentComponents ??
+      manifest.renderableAgentComponents ??
+      manifest.components,
   }
 }
 
-export async function getRuntimeStatus({
-  packageVersion = "0.0.0",
-  outputDir,
-  paths = getRuntimePaths(),
-} = {}) {
+export async function readManagedRuntimeSnapshot(paths = getRuntimePaths()) {
   const checks = {
     root: await pathExists(paths.runtimeRoot),
     runtime: await pathExists(paths.runtimeDir),
@@ -197,10 +199,23 @@ export async function getRuntimeStatus({
     )
   }
 
-  if (outputDir) {
-    checks.outputWritable = await probeOutputPath(outputDir)
+  return {
+    checks,
+    manifest,
+    manifestError,
+    paths,
+    ready: false,
+    runtimeDetail,
   }
+}
 
+export function assessManagedRuntimeSnapshot({
+  outputDir,
+  snapshot,
+}) {
+  const checks = {
+    ...snapshot.checks,
+  }
   const ready =
     checks.root &&
     checks.runtime &&
@@ -220,16 +235,34 @@ export async function getRuntimeStatus({
     checks.shadcnSurface &&
     checks.promptUiManifest &&
     checks.runtimeVerification &&
-    checks.viteConfig
+    checks.viteConfig &&
+    (typeof outputDir === "undefined" || checks.outputWritable)
 
   return {
-    ready,
+    ...snapshot,
     checks,
-    manifest,
-    manifestError,
-    runtimeDetail,
+    outputDir,
+    ready,
+  }
+}
+
+export async function getRuntimeStatus({
+  packageVersion = "0.0.0",
+  outputDir,
+  paths = getRuntimePaths(),
+} = {}) {
+  const snapshot = await readManagedRuntimeSnapshot(paths)
+
+  if (outputDir) {
+    snapshot.checks.outputWritable = await probeOutputPath(outputDir)
+  }
+
+  return {
+    ...assessManagedRuntimeSnapshot({
+      outputDir,
+      snapshot,
+    }),
     packageVersion,
-    paths,
   }
 }
 

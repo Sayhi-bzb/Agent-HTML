@@ -6,7 +6,7 @@ export const runtimeManifestName = "runtime.json"
 export const styleProfileManifestName = "style-profiles.manifest.json"
 export const styleProfileStateName = "style-profile-state.json"
 export const runtimeRenderer = "shadcn-runtime"
-export const runtimeVersion = 1
+export const runtimeVersion = 2
 export const runtimePackageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",

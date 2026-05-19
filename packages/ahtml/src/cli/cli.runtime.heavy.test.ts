@@ -45,6 +45,10 @@ describe("agent-html CLI heavy runtime flows", () => {
     expect(doctor.stdout).toContain("ok runtime:verification-data")
     await expectFile(
       path.join(runtimeHome, "config", "runtime.json"),
+      '"runtimeCapability"',
+    )
+    await expectFile(
+      path.join(runtimeHome, "config", "runtime.json"),
       "ahtml-managed-runtime",
     )
     await expectFile(
@@ -298,37 +302,32 @@ describe("agent-html CLI heavy runtime flows", () => {
   it("fails doctor when runtime capabilities drift from schema", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
-    const verificationPath = path.join(
-      runtimeHome,
-      "runtime",
-      "render-verification.generated.json",
-    )
+    const manifestPath = path.join(runtimeHome, "config", "runtime.json")
 
     await runCliWithServer(["doctor"], { AHTML_HOME: runtimeHome }, tempDir)
 
-    const runtimeVerificationState = parseJson<{
-      verificationData: {
-        components: {
-          name: string
-          slots: { name: string; children: string[] }[]
-        }[]
+    const manifest = parseJson<{
+      runtimeCapability: {
+        verificationData: {
+          components: {
+            name: string
+            slots: { name: string; children: string[] }[]
+          }[]
+        }
       }
-    }>(await readFile(verificationPath, "utf8"))
-    const card = runtimeVerificationState.verificationData.components.find(
+    }>(await readFile(manifestPath, "utf8"))
+    const card = manifest.runtimeCapability.verificationData.components.find(
       (component) => component.name === "card",
     )
 
     if (!card) {
       throw new Error(
-        "Expected card verification entry in runtime verification data.",
+        "Expected card verification entry in runtime manifest capability.",
       )
     }
 
     card.slots.push({ name: "actions", children: [] })
-    await writeFile(
-      verificationPath,
-      `${JSON.stringify(runtimeVerificationState, null, 2)}\n`,
-    )
+    await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
 
     await expectCliFailure(
       runCliWithServer(["doctor"], { AHTML_HOME: runtimeHome }, tempDir),
@@ -340,23 +339,21 @@ describe("agent-html CLI heavy runtime flows", () => {
   it("fails doctor when runtime renderer mapping drifts from schema", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
-    const verificationPath = path.join(
-      runtimeHome,
-      "runtime",
-      "render-verification.generated.json",
-    )
+    const manifestPath = path.join(runtimeHome, "config", "runtime.json")
 
     await runCliWithServer(["doctor"], { AHTML_HOME: runtimeHome }, tempDir)
 
-    const runtimeVerificationState = parseJson<{
-      rendererMapping: {
-        components: {
-          name: string
-          slots: { name: string; children: string[] }[]
-        }[]
+    const manifest = parseJson<{
+      runtimeCapability: {
+        rendererMapping: {
+          components: {
+            name: string
+            slots: { name: string; children: string[] }[]
+          }[]
+        }
       }
-    }>(await readFile(verificationPath, "utf8"))
-    const card = runtimeVerificationState.rendererMapping.components.find(
+    }>(await readFile(manifestPath, "utf8"))
+    const card = manifest.runtimeCapability.rendererMapping.components.find(
       (component) => component.name === "card",
     )
 
@@ -365,10 +362,7 @@ describe("agent-html CLI heavy runtime flows", () => {
     }
 
     card.slots.push({ name: "actions", children: [] })
-    await writeFile(
-      verificationPath,
-      `${JSON.stringify(runtimeVerificationState, null, 2)}\n`,
-    )
+    await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
 
     await expectCliFailure(
       runCliWithServer(["doctor"], { AHTML_HOME: runtimeHome }, tempDir),
