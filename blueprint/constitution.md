@@ -8,7 +8,7 @@ agent-html 存在的原因是让 agent 用 HTML artifact 替代冗长 Markdown �
 
 agent 应写 AI-native 的语义结构，人应收到稳定、可读、可分享、可归档，并能回到 agent 工作流的 HTML artifact。
 
-安全、schema、sanitize、managed runtime 和 renderer 约束都服务这个产品目标；它们不是产品本体。
+安全、schema、sanitize、runtime host 和 renderer 约束都服务这个产品目标；它们不是产品本体。
 
 ## 1. Human-readable First
 
@@ -50,29 +50,33 @@ artifact 应支持人的反馈、选择和修改重新进入 agent 工作流。
 
 系统应优先建设通用 schema 抽取、通用适配器和通用 renderer，而不是为每个组件手写一条特殊路径。
 
-当 shadcn registry、组件源码、`data-slot`、exports、variants 或安全 props 能支撑通用方案时，禁止新增逐组件手搓 adapter。例外只能作为明确记录的临时兼容层存在，并必须说明为什么通用机制无法覆盖以及移除条件。
+当组件事实、slot 结构和安全映射规则足以支撑通用路径时，不应新增逐组件特判主路径。
 
-## 8. shadcn-native Runtime Base
+## 8. Runtime Host Boundary
 
-managed runtime 的 UI surface 必须以 shadcn template / init / registry 为 source of truth。
+runtime host 是渲染执行边界，不是页面模板中心。
 
-ahtml 不维护一套平行的 shadcn UI kit、global CSS、base layer、component copy 或 pseudo template。artifact build 仍然存在，但 build project 必须来自 shadcn-native managed runtime；ahtml 只注入 renderer app、sanitized document、verification data 和构建胶水。
+runtime host 承载 React、Vite、Tailwind 和 shadcn 等实现依赖；core、schema 和 sanitize 不反向依赖这些实现层。
 
-当 shadcn 官方 template / init / registry 能提供完整组件、CSS、theme、base layer、依赖和配置时，禁止用 ahtml 手搓 CSS、截断 CSS、复制组件文件或 `apply --only theme` + `add` 组合伪装成完整初始化。例外只能是显式、短期、可删除的兼容层，并必须在 spec 中记录风险和退出条件。
+## 9. Configuration Owns Realization
 
-## 9. Lightweight
+配置层负责视觉和布局的具体实现方式。
+
+agent-facing 层只表达稳定语义，不承担实现参数选择题。
+
+## 10. Lightweight
 
 系统应保持轻量，优先服务于生成、理解和协作。
 
 应避免为 artifact 引入不必要的应用复杂度。
 
-## 10. Constrained Freedom
+## 11. Constrained Freedom
 
 系统应为 agent 保留表达空间，同时限制低价值或高风险的自由度。
 
 应避免在完全自由和完全僵化之间走向任一极端。
 
-## 11. Inspectable and Safe
+## 12. Inspectable and Safe
 
 artifact 应易于检查、理解和信任。
 

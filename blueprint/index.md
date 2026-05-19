@@ -1,21 +1,17 @@
 # Blueprint Index
 
-本索引用于路由 agent-html 的 blueprint 上下文。
+本索引用于路由 agent-html 的顶层设计文档。
 
 ## Documents
 
-- `constitution.md`: 项目原则。
+- `constitution.md`: 长期产品原则与架构原则。
 - `blueprint_rule.md`: blueprint 写作规则。
-- `architecture-design/index.md`: architecture 设计入口。
-
-## Related Specs
-
-- `../spec/map.md`: 当前 rendering chain 施工状态图。blueprint 是目标架构权威，map 只记录当前链路缺口和验收状态。
+- `architecture-design/index.md`: 新架构入口。
 
 ## Reading Order
 
-项目原则：`constitution.md`。
+项目原则：`constitution.md`
 
-写作约束：`blueprint_rule.md`。
+写作约束：`blueprint_rule.md`
 
-架构理解：`architecture-design/index.md`。
+架构理解：`architecture-design/index.md`

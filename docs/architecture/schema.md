@@ -7,29 +7,35 @@
 - 原厂层：shadcn / Radix / React 组件本来就有的 prop
 - 对外层：我们手工包装后暴露给 agent 的 public 字段
 
-过去主要依赖 hand-written overlay、隐藏字段和少量白名单来控制 agent 能看到什么。
-这套方式的问题是：
-
-- prop 是否能暴露给 agent，缺少统一、可计算的状态模型
-- schema、prompt、renderer 的暴露规则容易分叉
-- 下一位 agent 很难判断某个 prop 是“永远不能公开”，还是“只是这次被手工藏起来”
-
-这份文档的目标不是继续扩充语义包装词，而是把 prop 暴露规则收敛成一个明确机制。
+这份文档的目标不是继续扩充语义包装词，而是把 prop 暴露规则收敛成一个明确机制，并与 `blueprint/architecture-design/type-surface.md` 中的稳定对象对齐。
 
 ## 目标
 
 给每个原厂 prop 一个状态，并让这个状态一路接到：
 
+- `ComponentFacts`
 - schema 生成
 - agent prompt 输出
 
 结果应该是：
 
 - `blocked` 的 prop 永远不进入 agent-facing schema，也不进入 prompt
-- `raw-candidate` 的 prop 先进入“可配置候选池”，再由 style-ref / 组件映射配置决定是否真正公开
+- `raw-candidate` 的 prop 先进入“可配置候选池”，再由组件配置决定是否真正公开
 - agent 最终只会看到当前配置明确放开的 prop，而不是看到全部原厂 prop
+- 文档级配置选择入口仍然可以存在，但不再作为 agent prompt 的严格中心要求
 
-这意味着未来不再依赖“手写公开白名单”作为主机制，而是依赖 prop 状态 + 配置决策。
+这意味着公开面主机制依赖 prop 状态 + 配置决策。
+
+## 对齐对象
+
+这份文档里的核心对象与 `blueprint` 对齐如下：
+
+- `ComponentFacts`：提供原厂 prop 名、类型和组件归属
+- `PropExposureState`：规定 prop 是 `blocked` 还是 `raw-candidate`
+- `ComponentSchema`：承接最终对外公开的组件定义
+- `ComponentPropSchema`：承接最终对外公开的 prop
+- `SemanticNode`：包含 UI node 与 layout node
+- `RenderConfig`：承接配置选择被解析后的结果
 
 ## 状态模型
 
@@ -40,7 +46,7 @@
   - 适用：样式逃逸、结构逃逸、事件接线、运行时状态接线、DOM/form 接线、强行为语义 prop
 
 - `raw-candidate`
-  - 含义：允许进入公开候选池，但是否真正暴露，取决于 style-ref / 组件映射配置
+  - 含义：允许进入公开候选池，但是否真正暴露，取决于组件配置
   - 适用：纯视觉 recipe 轴，和少量轻度布局轴
 
 当前保守结论：
@@ -53,11 +59,11 @@
 
 prop 状态需要接到 agent prompt schema，链路如下：
 
-1. 组件原厂 facts 提供 prop 名、类型和组件归属
-2. 每个原厂 prop 被标记为 `blocked` 或 `raw-candidate`
+1. `ComponentFacts` 提供 prop 名、类型和组件归属
+2. 每个原厂 prop 被标记为 `PropExposureState`
 3. schema 生成阶段：
    - `blocked` prop 不进入公开组件 contract
-   - `raw-candidate` prop 再看 style-ref / 组件映射配置是否锁住
+   - `raw-candidate` prop 再看组件配置是否锁住
 4. prompt 输出阶段：
    - 只有最终进入公开 schema 的 prop，才出现在 agent prompt 中
    - 被锁住的 prop 不出现在 prompt 中，组件按默认实现值渲染
@@ -65,8 +71,8 @@ prop 状态需要接到 agent prompt schema，链路如下：
 例子：
 
 - `badge.variant`
-  - 如果它是 `raw-candidate`，并且当前 style-ref 没锁住它，那么 schema 和 prompt 都会出现 `variant`
-  - 如果当前 style-ref 锁住它，那么 schema 和 prompt 都不会出现 `variant`，agent 使用 badge 时直接落默认样式
+  - 如果它是 `raw-candidate`，并且当前组件配置没锁住它，那么 schema 和 prompt 都会出现 `variant`
+  - 如果当前组件配置锁住它，那么 schema 和 prompt 都不会出现 `variant`，agent 使用 badge 时直接落默认样式
 
 ## 两张表的角色
 
@@ -76,6 +82,8 @@ prop 状态需要接到 agent prompt schema，链路如下：
 - 现有公开字段去留表：定义当前历史对外字段的迁移方向
 
 ### 原厂 prop 状态表
+
+这张表同时包含稳定候选和观察候选。进入 `raw-candidate` 表示“允许进入公开候选池”，不等于当前版本默认公开。
 
 | 参数名 | 是什么东西 | 状态 | 备注 |
 |---|---|---|---|
@@ -103,7 +111,7 @@ prop 状态需要接到 agent prompt schema，链路如下：
 | placeholder | 输入框里没填值时的提示字 | blocked | 实现细节/交互文案接线 |
 | required | 是否必填 | blocked | 运行时约束接线 |
 | script | 直接注入脚本 | blocked | 安全/行为逃逸口 |
-| side | 从哪一边出来，比如 left/right/top/bottom | blocked | 对 overlay/容器来说更像空间与行为策略，不宜通开 |
+| side | 从哪一边出来，比如 left/right/top/bottom | blocked | 对浮层/容器来说更像空间与行为策略，不宜通开 |
 | size | 组件自己的尺寸档位，比如 sm / lg / icon | raw-candidate | 典型视觉 recipe 轴 |
 | spacing | 某些组件内部的间距实现参数 | blocked | 应由 layout/style 配置层控制 |
 | step | 每次增减的步长 | blocked | 改的是数值语义，不只是视觉选择 |
@@ -133,14 +141,16 @@ prop 状态需要接到 agent prompt schema，链路如下：
 - 语义层 `value` / `checked` 作为内容字段暂时保留
 - `tone`、`default`、`mode`、`kind` 从主公开 contract 中退出
 - `list.variant` 继续视为历史例外，不构成开放原厂 `variant` 的先例
+- layout node 进入 `SemanticNode` 的正式范围，但 layout 的数值型实现参数继续留在配置层
 
 ## 实现验收口径
 
 后续实现完成后，至少应满足以下规则：
 
+- 当前文档定义的是暴露机制和默认实施边界，不要求一次把所有 `raw-candidate` 都接入公开 schema。
 - `blocked` prop 不出现在 CLI schema 输出中
 - `blocked` prop 不出现在 agent prompt 中
-- `raw-candidate` prop 若被 style-ref 锁住，不出现在公开 schema 和 prompt 中
-- `raw-candidate` prop 若未被 style-ref 锁住，则进入公开 schema，并在 prompt 中可见
+- `raw-candidate` prop 若被组件配置锁住，不出现在公开 schema 和 prompt 中
+- `raw-candidate` prop 若未被组件配置锁住，则进入公开 schema，并在 prompt 中可见
 - `className`、`style`、`asChild`、`open`、原厂 `value` / `checked` / `defaultValue` / `defaultChecked` 必须始终不可见
 - 被清理的旧语义字段不再作为主公开 contract 的新增方向

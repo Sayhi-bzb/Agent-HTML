@@ -4,102 +4,106 @@
 
 ## 1. core engine is framework-independent
 
-ahtml core 不依赖 Vite、React、shadcn/ui、Tailwind、renderer adapter 或 managed runtime 构建配置。
+ahtml core 不依赖 Vite、React、shadcn、Tailwind、renderer adapter 或 runtime host 构建配置。
 
-这些依赖只能出现在 managed runtime、renderer adapter、template 或 sandbox 中。
+这些依赖只能出现在 runtime host 或渲染实现层中。
 
-## 2. shadcn/ui is the implementation base
+## 2. UI and layout are parallel semantic primitives
 
-项目直接使用 shadcn/ui 作为 UI 实现底座。
+UI 组件表达对象语义，layout 组件表达空间关系。
 
-项目不维护一套独立 UI 底座来替代 shadcn/ui。
+二者都属于语义使用层。
 
-## 3. shadcn lives in managed runtime
+## 3. shadcn lives in the runtime host
 
-shadcn components、theme、CSS variables 和 Tailwind 配置若被采用，只能属于 managed runtime。
+shadcn components、theme、CSS variables 和 Tailwind 配置若被采用，只能属于 runtime host。
 
-ahtml 可以编排 runtime bootstrap，但不把 shadcn 源码或样式作为 core 内置协议。
+ahtml 可以编排 runtime bootstrap，但不把 shadcn 源码或样式作为 core 协议。
 
-## 4. agent-facing components are standardized semantic components
+## 4. semantic nodes have fixed meaning boundaries
 
-agent-facing 组件必须是固定结构、固定语义用途、固定组合边界的标准组件。
+agent-facing 节点必须有固定语义用途和清晰组合边界。
 
-agent 可以填写语义 props 和 slots，不可以改内部结构、间距、布局规则或样式实现。
+agent 可以填写内容字段和受控公开 props，不可以改内部实现结构。
 
-## 5. semantic props are the agent-facing authority
+## 5. prop exposure is policy-driven
 
-props schema / tokens 是 agent-facing 组件能力入口。
+原厂 props 必须先经过 exposure policy，才能进入公开 schema。
 
-## 6. configuration layer owns visual choice
+`blocked` 和 `raw-candidate` 是公开 prop 暴露的内部状态基础。
 
-视觉选择必须先收束为已批准的 document style config reference。
+## 6. configuration layer owns realization
 
-独立配置层必须细分为全局样式层和组件样式层。全局样式层负责主题 token、light/dark 结构、字体、radius、spacing、shadow 和 semantic colors，并遵循 shadcn 官方 theming token convention；组件样式层负责受控组件视觉映射。
+视觉与布局的具体实现属于配置层。
 
-全局样式层可参考 `tweakcn` 的主题 token 建模与生成逻辑，但不维护另一套独立于 shadcn 官方 theming convention 的平行全局主题体系。
+配置层至少包含：
 
-agent-facing 主接口默认只暴露 style config reference，而不是完整视觉参数集、全局主题 token 或组件样式细节。
+- 全局 style
+- 全局 layout
+- 组件配置
 
-## 7. implementation props stay internal
+## 7. layout usage stays structural
+
+layout 使用层只表达关系，不表达数值实现参数。
+
+## 8. implementation props stay internal
 
 Tailwind class、`className`、完整 shadcn/ui props、Radix props 和组件源码结构不作为 agent-facing 主接口。
 
 它们属于组件实现层。
 
-## 8. parse / sanitize gates renderer adapter
+## 9. parse / sanitize gates renderer adapter
 
 agent-html 进入 renderer adapter 前必须经过 parse / sanitize。
 
 renderer adapter 不接收未检查的 agent 输出。
 
-## 9. scripts are disabled by default
+## 10. scripts are disabled by default
 
 agent 输出中的脚本默认不执行。
 
 交互能力应由受控标准组件提供。
 
-## 10. artifact targets static sharing
+## 11. artifact targets static sharing
 
 artifact 默认面向静态分享。
 
 默认交付物是包含 `index.html`、CSS / JS bundle 和 assets 的 static artifact directory。
 
-## 10.1. current directory is not the runtime
+## 12. current directory is not the runtime
 
 当前工作目录默认只承载输入和输出。
 
-Vite、React、Tailwind、shadcn/ui、renderer adapter 和 generated runtime files 默认收纳在用户级 managed runtime。
+Vite、React、Tailwind、shadcn、renderer adapter 和 generated runtime files 默认收纳在用户级 runtime root。
 
-## 11. dev preview shares the renderer adapter
+## 13. dev preview shares the renderer path
 
-dev preview 不得成为独立渲染路径。
+dev preview 与 final artifact 必须共用同一条语义到渲染链路。
 
-dev preview 和 final artifact 必须共用 renderer adapter、ComponentSchema、RenderConfig 和样式系统。
+## 14. renderer uses registered semantic nodes
 
-## 12. renderer adapter uses registered components
-
-renderer adapter 只渲染已注册标准组件。
+renderer 只渲染已注册语义节点。
 
 未知标签不得绕过安全边界执行。
 
-## 13. public surface changes are synchronized
+## 15. public surface changes are synchronized
 
-公共类型表面变更必须同步 contracts、schema 和 tests。
+公共类型表面变更必须同步 blueprint、schema 和 tests。
 
-## 14. examples must not leak implementation
+## 16. examples must not leak implementation
 
 agent-facing 示例不得泄漏组件内部实现。
 
 示例不应诱导 agent 写 `className`、Tailwind class、完整 shadcn/ui props、Radix props 或内部结构。
 
-## 15. raw escape hatch is explicit
+## 17. raw escape hatch is explicit
 
 raw escape hatch 必须显式标记，并经过安全边界。
 
 自由 HTML 不应成为默认路径。
 
-## 16. render config selects approved visual configs only
+## 18. render config only carries controlled configuration
 
-render config header 只能选择已批准的 document style config reference。
+render config 只能承载受控配置结果。
 
 它不得成为 CSS、Tailwind class、shadcn props、script、style 或外部资源的逃逸口。
