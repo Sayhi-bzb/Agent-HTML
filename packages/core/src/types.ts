@@ -20,6 +20,44 @@ export type ComponentSchema = {
   readonly allowedChildren?: readonly string[]
 }
 
+export type PropExposureState = "blocked" | "raw-candidate"
+
+export type SemanticPropOrigin = "content" | "structure" | "legacy"
+
+export type ComponentSemanticPropSchema = ComponentPropSchema & {
+  readonly origin?: SemanticPropOrigin
+}
+
+export type ComponentSemanticContract = {
+  readonly name: string
+  readonly description: string
+  readonly expose: boolean
+  readonly sourceComponents: readonly string[]
+  readonly semanticProps?: readonly ComponentSemanticPropSchema[]
+  readonly allowedChildren?: readonly string[]
+}
+
+export type ComponentExposurePolicy = {
+  readonly component: string
+  readonly blocked?: readonly string[]
+  readonly rawCandidates?: readonly string[]
+  readonly openedRawCandidates?: readonly string[]
+  readonly lockedRawCandidates?: readonly string[]
+}
+
+export type ResolvedRawPropSchema = ComponentPropSchema & {
+  readonly exposureState: PropExposureState
+  readonly exposed: boolean
+}
+
+export type ResolvedComponentSchema = ComponentSchema & {
+  readonly semanticProps: readonly ComponentSemanticPropSchema[]
+  readonly legacyPublicProps?: readonly ComponentSemanticPropSchema[]
+  readonly rawCandidateProps?: readonly ResolvedRawPropSchema[]
+  readonly exposedRawProps?: readonly ComponentPropSchema[]
+  readonly blockedPropNames?: readonly string[]
+}
+
 export type ComponentSchemaOverlay = {
   readonly name: string
   readonly description: string

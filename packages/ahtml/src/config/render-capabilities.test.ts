@@ -345,6 +345,12 @@ describe("createRuntimeElementRegistrySpec", () => {
       (component) => component.name === "table",
     )
     expect(table?.kindProp).toBe("kind")
+    expect(table?.legacyBridges?.structuralRole).toEqual([
+      expect.objectContaining({
+        sourceProp: "kind",
+        headerValue: "header",
+      }),
+    ])
 
     for (const component of rendererMapping.components) {
       expect(collectRendererSpecComponentIssues(component)).toEqual([])
@@ -368,7 +374,11 @@ describe("createRuntimeElementRegistrySpec", () => {
         name: "alert",
         props: [
           { name: "title", valueKind: "string" },
-          { name: "tone", valueKind: "enum", enumValues: ["neutral"] },
+          {
+            name: "variant",
+            valueKind: "enum",
+            enumValues: ["default", "destructive"],
+          },
         ],
         allowedChildren: ["#text"],
       },
@@ -410,5 +420,83 @@ describe("createRuntimeElementRegistrySpec", () => {
       badge: "prose",
       list: "prose",
     })
+  })
+
+  it("keeps alert and badge renderer mappings compatible with variant while preserving tone bridge", () => {
+    const rendererMapping = createRendererMapping([
+      {
+        name: "alert",
+        props: [
+          { name: "title", valueKind: "string" },
+          {
+            name: "variant",
+            valueKind: "enum",
+            enumValues: ["default", "destructive"],
+          },
+        ],
+        allowedChildren: ["#text"],
+      },
+      {
+        name: "badge",
+        props: [
+          {
+            name: "variant",
+            valueKind: "enum",
+            enumValues: [
+              "default",
+              "secondary",
+              "destructive",
+              "outline",
+              "ghost",
+              "link",
+            ],
+          },
+        ],
+        allowedChildren: ["#text"],
+      },
+    ])
+    const alert = rendererMapping.components.find(
+      (component) => component.name === "alert",
+    )
+    const badge = rendererMapping.components.find(
+      (component) => component.name === "badge",
+    )
+
+    expect(alert?.propMappings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          prop: "tone",
+          target: "variant",
+        }),
+        expect.objectContaining({
+          prop: "variant",
+          target: "variant",
+        }),
+      ]),
+    )
+    expect(alert?.legacyBridges?.variant).toEqual([
+      expect.objectContaining({
+        sourceProp: "tone",
+        targetProp: "variant",
+      }),
+    ])
+    expect(badge?.propMappings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          prop: "tone",
+          target: "variant",
+        }),
+        expect.objectContaining({
+          prop: "variant",
+          target: "variant",
+        }),
+      ]),
+    )
+    expect(badge?.legacyBridges?.variant).toEqual([
+      expect.objectContaining({
+        sourceProp: "tone",
+        targetProp: "variant",
+      }),
+    ])
   })
 })

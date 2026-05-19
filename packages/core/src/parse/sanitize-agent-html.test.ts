@@ -492,27 +492,27 @@ describe("sanitizeAgentHtml", () => {
     )
   })
 
-  it("rejects removed profile render config header values", () => {
+  it("falls back to the default profile for removed profile render config header values", () => {
     const result = sanitizeAgentHtml(`
       <meta-agent profile="report-default" />
       <page title="Payment Review" />
     `)
 
-    expect(result.document).toBeUndefined()
-    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
-      "invalid-render-config",
+    expect(result.diagnostics).toEqual([])
+    expect(result.document?.meta.documentStyleConfigReference).toBe(
+      "report-default",
     )
   })
 
-  it("rejects legacy free-form render config header values", () => {
+  it("falls back to the default profile for legacy free-form render config header values", () => {
     const result = sanitizeAgentHtml(`
       <meta-agent theme="neutral" density="compact" tone="color:red" width="article" />
       <page title="Payment Review" />
     `)
 
-    expect(result.document).toBeUndefined()
-    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
-      "invalid-render-config",
+    expect(result.diagnostics).toEqual([])
+    expect(result.document?.meta.documentStyleConfigReference).toBe(
+      "report-default",
     )
   })
 
@@ -602,6 +602,227 @@ describe("sanitizeAgentHtml", () => {
         },
       ],
     })
+  })
+
+  it("accepts stack and cluster through the standard parse and validate path", () => {
+    const result = sanitizeAgentHtml(`
+      <page title="Layout Workbench">
+        <stack>
+          <card title="Summary">
+            <cluster>
+              <badge tone="success">Ready</badge>
+              <badge tone="warning">Queued</badge>
+            </cluster>
+          </card>
+          <stack>
+            <alert title="Note">Layout stays semantic.</alert>
+          </stack>
+        </stack>
+      </page>
+    `)
+
+    expect(result.diagnostics).toEqual([])
+    expect(result.document?.components[0]).toMatchObject({
+      type: "component",
+      name: "page",
+      props: {
+        title: "Layout Workbench",
+      },
+      children: [
+        {
+          type: "component",
+          name: "stack",
+          props: {},
+          children: [
+            {
+              type: "component",
+              name: "card",
+              props: {
+                title: "Summary",
+              },
+              children: [
+                {
+                  type: "component",
+                  name: "cluster",
+                  props: {},
+                  children: [
+                    {
+                      type: "component",
+                      name: "badge",
+                      props: {
+                        tone: "success",
+                      },
+                    },
+                    {
+                      type: "component",
+                      name: "badge",
+                      props: {
+                        tone: "warning",
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "component",
+              name: "stack",
+              props: {},
+              children: [
+                {
+                  type: "component",
+                  name: "alert",
+                  props: {
+                    title: "Note",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+  })
+
+  it("rejects implementation props on stack and cluster", () => {
+    const result = sanitizeAgentHtml(`
+      <page title="Layout Workbench">
+        <stack gap="12">
+          <cluster columns="3" breakpoint="md">
+            <badge tone="success">Ready</badge>
+          </cluster>
+        </stack>
+      </page>
+    `)
+
+    expect(result.document).toBeUndefined()
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"gap" is not an allowed agent-facing attribute on <stack>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"columns" is not an allowed agent-facing attribute on <cluster>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"breakpoint" is not an allowed agent-facing attribute on <cluster>.',
+        }),
+      ]),
+    )
+  })
+
+  it("accepts deferred layout primitives once the runtime projection slice starts", () => {
+    const result = sanitizeAgentHtml(`
+      <page title="Deferred Layout">
+        <frame>
+          <stack>
+            <split>
+              <card title="Primary">Alpha</card>
+              <card title="Secondary">Beta</card>
+            </split>
+            <grid>
+              <card title="Grid A">One</card>
+              <card title="Grid B">Two</card>
+            </grid>
+            <switcher>
+              <badge tone="success">Ready</badge>
+              <badge tone="warning">Queued</badge>
+            </switcher>
+          </stack>
+        </frame>
+      </page>
+    `)
+
+    expect(result.diagnostics).toEqual([])
+    expect(result.document?.components[0]).toMatchObject({
+      type: "component",
+      name: "page",
+      props: {
+        title: "Deferred Layout",
+      },
+      children: [
+        {
+          type: "component",
+          name: "frame",
+          props: {},
+          children: [
+            {
+              type: "component",
+              name: "stack",
+              props: {},
+              children: [
+                {
+                  type: "component",
+                  name: "split",
+                  props: {},
+                },
+                {
+                  type: "component",
+                  name: "grid",
+                  props: {},
+                },
+                {
+                  type: "component",
+                  name: "switcher",
+                  props: {},
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+  })
+
+  it("rejects implementation props on deferred layout primitives", () => {
+    const result = sanitizeAgentHtml(`
+      <page title="Deferred Layout">
+        <frame max-width="80ch">
+          <split ratio="70/30">
+            <card title="Primary">Alpha</card>
+            <card title="Secondary">Beta</card>
+          </split>
+          <grid columns="3">
+            <card title="Grid A">One</card>
+          </grid>
+          <switcher breakpoint="md">
+            <badge tone="success">Ready</badge>
+          </switcher>
+        </frame>
+      </page>
+    `)
+
+    expect(result.document).toBeUndefined()
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"max-width" is not an allowed agent-facing attribute on <frame>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"ratio" is not an allowed agent-facing attribute on <split>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"columns" is not an allowed agent-facing attribute on <grid>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"breakpoint" is not an allowed agent-facing attribute on <switcher>.',
+        }),
+      ]),
+    )
   })
 
   it("accepts text field controls inside supported content containers", () => {

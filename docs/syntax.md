@@ -2,6 +2,16 @@
 
 ## 目标
 
+本文描述的是新的 agent-html syntax 目标 contract，不等于当前 parser / validator / sanitize 已经完整支持这些节点。
+
+当前实现落差、真实入口文件和阶段化接入顺序，应以：
+
+- `docs/architecture/phase-3-implementation-draft.md`
+- `docs/architecture/execution-checklist.md`
+- `docs/architecture/phase-completion-criteria.md`
+
+为准。
+
 新的 agent-html 语法需要同时承载两类语义积木：
 
 - UI 积木：表达“这是什么东西”
@@ -43,5 +53,5 @@
 ## 当前实现方向
 
 - 文档级配置选择入口仍然可写，但它不属于语义节点本体，也不再默认作为 agent prompt 的严格必写项
-- layout primitive 作为正式 vocabulary 接入语法层
+- layout primitive 的目标方向是作为正式 vocabulary 接入语法层
 - 具体 grammar、parser、validate、sanitize 变更应以后续实现为准

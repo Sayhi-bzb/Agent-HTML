@@ -2,10 +2,15 @@ import { describe, expect, it } from "vitest"
 
 import type {
   ComponentSchema,
+  ComponentExposurePolicy,
   ComponentSchemaOverlay,
+  ComponentSemanticContract,
+  ComponentSemanticPropSchema,
   DocumentStyleConfigReference,
   GeneratedShadcnIntrospection,
+  PropExposureState,
   RenderConfig,
+  ResolvedComponentSchema,
   SanitizedAgentHtml,
 } from "./types"
 
@@ -187,5 +192,58 @@ describe("agent-html public types", () => {
 
     expect(introspection.variantProps?.variant).toContain("default")
     expect(overlay.hiddenProps).toContain("className")
+  })
+
+  it("separates semantic contracts, exposure policy, and resolved schema types", () => {
+    const exposureState = "raw-candidate" satisfies PropExposureState
+    const semanticProp = {
+      name: "tone",
+      valueKind: "enum",
+      enumValues: ["neutral", "danger"],
+      origin: "legacy",
+    } satisfies ComponentSemanticPropSchema
+    const semanticContract = {
+      name: "alert",
+      description: "Important callout or warning.",
+      expose: true,
+      sourceComponents: ["Alert"],
+      semanticProps: [
+        {
+          name: "title",
+          valueKind: "string",
+          origin: "content",
+        },
+        semanticProp,
+      ],
+      allowedChildren: ["#text"],
+    } satisfies ComponentSemanticContract
+    const exposurePolicy = {
+      component: "alert",
+      rawCandidates: ["variant"],
+      lockedRawCandidates: ["variant"],
+    } satisfies ComponentExposurePolicy
+    const resolvedSchema = {
+      name: "alert",
+      description: "Important callout or warning.",
+      props: [
+        {
+          name: "title",
+          valueKind: "string",
+        },
+        {
+          name: "tone",
+          valueKind: "enum",
+          enumValues: ["neutral", "danger"],
+        },
+      ],
+      allowedChildren: ["#text"],
+      semanticProps: semanticContract.semanticProps ?? [],
+      exposedRawProps: [],
+    } satisfies ResolvedComponentSchema
+
+    expect(exposureState).toBe("raw-candidate")
+    expect(semanticContract.semanticProps?.[1]?.origin).toBe("legacy")
+    expect(exposurePolicy.lockedRawCandidates).toContain("variant")
+    expect(resolvedSchema.semanticProps[0]?.origin).toBe("content")
   })
 })

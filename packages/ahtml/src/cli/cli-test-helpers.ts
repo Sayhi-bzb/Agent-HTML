@@ -29,6 +29,18 @@ export const validAgentHtmlFixtures = [
     '<page title="Dashboard"><card title="Queue">Ready.</card></page>',
   ].join("\n"),
   [
+    '<page title="Layout Fixture">',
+    "  <stack>",
+    '    <card title="Summary">',
+    "      <cluster>",
+    '        <badge tone="success">Ready</badge>',
+    '        <badge tone="warning">Queued</badge>',
+    "      </cluster>",
+    "    </card>",
+    "  </stack>",
+    "</page>",
+  ].join("\n"),
+  [
     '<page title="Review Form">',
     '  <card title="Decision">',
     '    <checkbox label="Ship now" checked="true" description="Boolean field." />',

@@ -1,6 +1,53 @@
-import type { ComponentSchemaOverlay } from "./types"
+import type { ComponentSchemaOverlay, ComponentSemanticContract } from "./types"
 
 const TEXT_CHILD = "#text"
+
+const LEGACY_PUBLIC_PROP_KEYS = new Set([
+  "accordion.default",
+  "accordion.mode",
+  "alert.tone",
+  "badge.tone",
+  "row.kind",
+  "tabs.default",
+])
+
+const STRUCTURAL_PROP_KEYS = new Set([
+  "accordion-item.value",
+  "option.value",
+  "tab.value",
+])
+
+const LAYOUT_COMPONENT_NAMES = [
+  "stack",
+  "cluster",
+  "split",
+  "grid",
+  "switcher",
+  "frame",
+] as const
+
+const LAYOUT_ALLOWED_CHILDREN = [
+  "alert",
+  "badge",
+  "card",
+  "separator",
+  "progress",
+  "input",
+  "textarea",
+  "checkbox",
+  "switch",
+  "slider",
+  "radio-group",
+  "toggle-group",
+  "select",
+  "combobox",
+  "table",
+  "list",
+  "tabs",
+  "accordion",
+  ...LAYOUT_COMPONENT_NAMES,
+  TEXT_CHILD,
+] as const
 
 export const COMPONENT_SCHEMA_OVERLAYS = [
   {
@@ -17,6 +64,8 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
       },
     ],
     allowedChildren: [
+      "stack",
+      "frame",
       "alert",
       "card",
       "separator",
@@ -25,6 +74,54 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
       "tabs",
       "accordion",
     ],
+  },
+  {
+    name: "stack",
+    description: "Vertical content stack.",
+    expose: true,
+    sourceComponents: [],
+    props: [],
+    allowedChildren: [...LAYOUT_ALLOWED_CHILDREN],
+  },
+  {
+    name: "cluster",
+    description: "Wrapping horizontal content cluster.",
+    expose: true,
+    sourceComponents: [],
+    props: [],
+    allowedChildren: [...LAYOUT_ALLOWED_CHILDREN],
+  },
+  {
+    name: "split",
+    description: "Split layout wrapper for paired content regions.",
+    expose: true,
+    sourceComponents: [],
+    props: [],
+    allowedChildren: [...LAYOUT_ALLOWED_CHILDREN],
+  },
+  {
+    name: "grid",
+    description: "Grid layout wrapper for repeated content regions.",
+    expose: true,
+    sourceComponents: [],
+    props: [],
+    allowedChildren: [...LAYOUT_ALLOWED_CHILDREN],
+  },
+  {
+    name: "switcher",
+    description: "Responsive layout wrapper that can switch arrangement.",
+    expose: true,
+    sourceComponents: [],
+    props: [],
+    allowedChildren: [...LAYOUT_ALLOWED_CHILDREN],
+  },
+  {
+    name: "frame",
+    description: "Frame layout wrapper for page and reading boundaries.",
+    expose: true,
+    sourceComponents: [],
+    props: [],
+    allowedChildren: [...LAYOUT_ALLOWED_CHILDREN],
   },
   {
     name: "alert",
@@ -77,6 +174,7 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
       "list",
       "tabs",
       "accordion",
+      ...LAYOUT_COMPONENT_NAMES,
       TEXT_CHILD,
     ],
     hiddenProps: ["size"],
@@ -505,6 +603,7 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
       "toggle-group",
       "list",
       "accordion",
+      ...LAYOUT_COMPONENT_NAMES,
     ],
     hiddenProps: ["value"],
   },
@@ -564,8 +663,35 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
       "textarea",
       "toggle-group",
       "list",
+      ...LAYOUT_COMPONENT_NAMES,
       TEXT_CHILD,
     ],
     hiddenProps: ["value"],
   },
 ] as const satisfies readonly ComponentSchemaOverlay[]
+
+export const COMPONENT_SEMANTIC_CONTRACTS =
+  COMPONENT_SCHEMA_OVERLAYS.map(({ hiddenProps: _hiddenProps, props, ...item }) => ({
+    ...item,
+    semanticProps: props?.map((prop) => ({
+      ...prop,
+      origin: inferSemanticPropOrigin(item.name, prop.name),
+    })),
+  })) as readonly ComponentSemanticContract[]
+
+function inferSemanticPropOrigin(
+  componentName: string,
+  propName: string,
+): "content" | "structure" | "legacy" {
+  const key = `${componentName}.${propName}`
+
+  if (LEGACY_PUBLIC_PROP_KEYS.has(key)) {
+    return "legacy"
+  }
+
+  if (STRUCTURAL_PROP_KEYS.has(key)) {
+    return "structure"
+  }
+
+  return "content"
+}

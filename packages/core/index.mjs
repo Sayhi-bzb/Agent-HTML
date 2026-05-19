@@ -27,12 +27,16 @@ export const BLOCKED_AGENT_FACING_PROP_NAMES =
 export const getAllowedPropNames = core.getAllowedPropNames
 export const getComponentPropSchema = core.getComponentPropSchema
 export const getComponentSchema = core.getComponentSchema
+export const RESOLVED_STANDARD_COMPONENT_SCHEMAS =
+  core.RESOLVED_STANDARD_COMPONENT_SCHEMAS
 export const isStandardComponentName = core.isStandardComponentName
 export const STANDARD_COMPONENT_NAMES = core.STANDARD_COMPONENT_NAMES
 export const STANDARD_COMPONENT_SCHEMAS = core.STANDARD_COMPONENT_SCHEMAS
 export const TEXT_CHILD = core.TEXT_CHILD
 export const VALIDATED_STANDARD_COMPONENT_SCHEMAS =
   core.VALIDATED_STANDARD_COMPONENT_SCHEMAS
+export const COMPONENT_EXPOSURE_POLICIES = core.COMPONENT_EXPOSURE_POLICIES
+export const COMPONENT_SEMANTIC_CONTRACTS = core.COMPONENT_SEMANTIC_CONTRACTS
 export const createPublicAgentContract = core.createPublicAgentContract
 export const createPublicRenderConfigContract =
   core.createPublicRenderConfigContract

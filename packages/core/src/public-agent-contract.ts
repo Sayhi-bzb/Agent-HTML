@@ -1,6 +1,6 @@
 import {
   BLOCKED_AGENT_FACING_PROP_NAMES,
-  VALIDATED_STANDARD_COMPONENT_SCHEMAS,
+  RESOLVED_STANDARD_COMPONENT_SCHEMAS,
 } from "./component-schema"
 import {
   DEFAULT_RENDER_CONFIG,
@@ -10,9 +10,11 @@ import {
   RENDER_CONFIG_VALUES,
 } from "./render-config"
 import type {
+  ComponentSchema,
   PublicAgentContract,
   PublicRenderConfigContract,
   PublicSafetyPolicy,
+  ResolvedComponentSchema,
 } from "./types"
 
 const safetyForbiddenCategories = [
@@ -25,6 +27,15 @@ const safetyForbiddenCategories = [
   "unknown tags",
   "unknown attrs",
 ] as const
+
+const LEGACY_PUBLIC_PROP_REPLACEMENTS = {
+  alert: {
+    tone: "variant",
+  },
+  badge: {
+    tone: "variant",
+  },
+} as const
 
 export function createPublicRenderConfigContract(): PublicRenderConfigContract {
   return {
@@ -56,7 +67,7 @@ export function createPublicAgentContract(): PublicAgentContract {
   const safetyPolicy = createPublicSafetyPolicy()
 
   return {
-    components: VALIDATED_STANDARD_COMPONENT_SCHEMAS,
+    components: createPublicComponentSchemas(),
     renderConfig: createPublicRenderConfigContract(),
     safetyPolicy,
     forbidden: safetyPolicy.forbidden,
@@ -65,4 +76,33 @@ export function createPublicAgentContract(): PublicAgentContract {
 
 export function formatForbiddenPolicy(blockedNames: readonly string[]): string {
   return [...blockedNames, ...safetyForbiddenCategories].join("/")
+}
+
+function createPublicComponentSchemas(): readonly ComponentSchema[] {
+  return RESOLVED_STANDARD_COMPONENT_SCHEMAS.map(projectPublicComponentSchema)
+}
+
+function projectPublicComponentSchema(
+  schema: ResolvedComponentSchema,
+): ComponentSchema {
+  const replacementEntries = Object.entries(
+    LEGACY_PUBLIC_PROP_REPLACEMENTS[
+      schema.name as keyof typeof LEGACY_PUBLIC_PROP_REPLACEMENTS
+    ] ?? {},
+  )
+  const exposedRawPropNames = new Set(
+    schema.exposedRawProps?.map((prop) => prop.name) ?? [],
+  )
+  const replacedLegacyPropNames = new Set(
+    replacementEntries
+      .filter(([, rawPropName]) => exposedRawPropNames.has(rawPropName))
+      .map(([legacyPropName]) => legacyPropName),
+  )
+
+  return {
+    name: schema.name,
+    description: schema.description,
+    props: schema.props.filter((prop) => !replacedLegacyPropNames.has(prop.name)),
+    allowedChildren: schema.allowedChildren,
+  }
 }

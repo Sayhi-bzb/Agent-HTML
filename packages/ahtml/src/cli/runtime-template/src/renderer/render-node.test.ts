@@ -168,6 +168,7 @@ vi.mock("./elements", () => {
 })
 
 import { createRendererNode } from "./render-node"
+import { createRendererMapping } from "../../../../config/render-capabilities.mjs"
 
 describe("createRendererNode", () => {
   it("uses shared slot childNames metadata when selecting structured children", () => {
@@ -281,6 +282,15 @@ describe("createRendererNode", () => {
           content: "TabsContent",
           itemSlot: "entry",
           defaultProp: "default",
+          legacyBridges: {
+            state: [
+              {
+                kind: "state",
+                stateKind: "tabs-default",
+                defaultProp: "default",
+              },
+            ],
+          },
           itemValueProp: "slug",
           itemHeadingProp: "heading",
           fallback: true,
@@ -1010,6 +1020,18 @@ describe("createRendererNode", () => {
           modeProp: "mode",
           defaultProp: "default",
           defaultMode: "multiple",
+          legacyBridges: {
+            state: [
+              {
+                kind: "state",
+                stateKind: "accordion-state",
+                modeProp: "mode",
+                defaultProp: "default",
+                defaultMode: "multiple",
+                multiValueDelimiter: ",",
+              },
+            ],
+          },
           fallback: true,
         },
       ],
@@ -1068,6 +1090,18 @@ describe("createRendererNode", () => {
           modeProp: "mode",
           defaultProp: "default",
           defaultMode: "multiple",
+          legacyBridges: {
+            state: [
+              {
+                kind: "state",
+                stateKind: "accordion-state",
+                modeProp: "mode",
+                defaultProp: "default",
+                defaultMode: "multiple",
+                multiValueDelimiter: ",",
+              },
+            ],
+          },
         },
       ],
     ])
@@ -1104,5 +1138,165 @@ describe("createRendererNode", () => {
     expect(markup).toContain(
       '&quot;defaultValue&quot;:[&quot;details&quot;,&quot;audit&quot;]',
     )
+  })
+
+  it("renders layout primitives through the runtime capability mapping", () => {
+    const rendererSpecByName = new Map(
+      createRendererMapping([
+        {
+          name: "page",
+          description: "Document root component.",
+          props: [{ name: "title", valueKind: "string", required: true }],
+          allowedChildren: ["frame", "stack"],
+        },
+        {
+          name: "frame",
+          description: "Frame layout wrapper for page and reading boundaries.",
+          props: [],
+          allowedChildren: ["stack", "split", "grid", "switcher", "#text"],
+        },
+        {
+          name: "stack",
+          description: "Vertical content stack.",
+          props: [],
+          allowedChildren: ["split", "grid", "switcher", "cluster", "#text"],
+        },
+        {
+          name: "cluster",
+          description: "Wrapping horizontal content cluster.",
+          props: [],
+          allowedChildren: ["badge", "#text"],
+        },
+        {
+          name: "split",
+          description: "Split layout wrapper for paired content regions.",
+          props: [],
+          allowedChildren: ["card", "#text"],
+        },
+        {
+          name: "grid",
+          description: "Grid layout wrapper for repeated content regions.",
+          props: [],
+          allowedChildren: ["card", "#text"],
+        },
+        {
+          name: "switcher",
+          description: "Responsive layout wrapper that can switch arrangement.",
+          props: [],
+          allowedChildren: ["cluster", "badge", "#text"],
+        },
+        {
+          name: "card",
+          description: "Content grouping component.",
+          props: [{ name: "title", valueKind: "string" }],
+          allowedChildren: ["#text"],
+        },
+        {
+          name: "badge",
+          description: "Short status label.",
+          props: [{ name: "tone", valueKind: "enum", enumValues: ["success"] }],
+          allowedChildren: ["#text"],
+        },
+      ]).components.map((component) => [component.name, component]),
+    )
+
+    const RendererNode = createRendererNode(rendererSpecByName)
+    const markup = renderToStaticMarkup(
+      React.createElement(RendererNode, {
+        node: {
+          type: "component",
+          name: "page",
+          props: {
+            title: "Layout Runtime",
+          },
+          children: [
+            {
+              type: "component",
+              name: "frame",
+              props: {},
+              children: [
+                {
+                  type: "component",
+                  name: "stack",
+                  props: {},
+                  children: [
+                    {
+                      type: "component",
+                      name: "split",
+                      props: {},
+                      children: [
+                        {
+                          type: "component",
+                          name: "card",
+                          props: { title: "Primary" },
+                          children: [{ type: "text", value: "Alpha" }],
+                        },
+                        {
+                          type: "component",
+                          name: "card",
+                          props: { title: "Secondary" },
+                          children: [{ type: "text", value: "Beta" }],
+                        },
+                      ],
+                    },
+                    {
+                      type: "component",
+                      name: "grid",
+                      props: {},
+                      children: [
+                        {
+                          type: "component",
+                          name: "card",
+                          props: { title: "Grid A" },
+                          children: [{ type: "text", value: "One" }],
+                        },
+                        {
+                          type: "component",
+                          name: "card",
+                          props: { title: "Grid B" },
+                          children: [{ type: "text", value: "Two" }],
+                        },
+                      ],
+                    },
+                    {
+                      type: "component",
+                      name: "switcher",
+                      props: {},
+                      children: [
+                        {
+                          type: "component",
+                          name: "cluster",
+                          props: {},
+                          children: [
+                            {
+                              type: "component",
+                              name: "badge",
+                              props: { tone: "success" },
+                              children: [{ type: "text", value: "Ready" }],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    )
+
+    expect(markup).toContain('data-agent-html-component="frame"')
+    expect(markup).toContain('data-agent-html-component="stack"')
+    expect(markup).toContain('data-agent-html-component="split"')
+    expect(markup).toContain('data-agent-html-component="grid"')
+    expect(markup).toContain('data-agent-html-component="switcher"')
+    expect(markup).toContain('data-agent-html-component="cluster"')
+    expect(markup).toContain('class="mx-auto w-full max-w-4xl"')
+    expect(markup).toContain('class="grid gap-4 md:grid-cols-2"')
+    expect(markup).toContain('class="grid gap-4 sm:grid-cols-2"')
+    expect(markup).toContain('class="flex flex-wrap items-start gap-4"')
+    expect(markup).toContain('class="flex flex-wrap items-start gap-3"')
   })
 })

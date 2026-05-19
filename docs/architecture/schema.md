@@ -9,6 +9,14 @@
 
 这份文档的目标不是继续扩充语义包装词，而是把 prop 暴露规则收敛成一个明确机制，并与 `blueprint/architecture-design/type-surface.md` 中的稳定对象对齐。
 
+它定义的是目标机制和当前保守边界，不等于当前工作树已经完整实现了这条机制链。当前真实实现与这份目标之间的差距，应以：
+
+- `docs/details/current-contract-audit.md`
+- `docs/details/current-contract-component-matrix.md`
+- `docs/architecture/phase-2-implementation-draft.md`
+
+为准。
+
 ## 目标
 
 给每个原厂 prop 一个状态，并让这个状态一路接到：
@@ -51,8 +59,8 @@
 
 当前保守结论：
 
-- 稳定的 `raw-candidate` 主样本：`variant`、`size`
-- 观察候选：`align`、`orientation`
+- 当前有较硬工作树证据、适合用来做 `Phase 2` 首批或次级试点的样本仍集中在 `variant`、`size`
+- `align`、`orientation` 先保留为设计观察项，不作为当前 phase 已确认试点
 - 其余 prop 默认不进入公开候选池
 
 ## 数据流
@@ -83,7 +91,7 @@ prop 状态需要接到 agent prompt schema，链路如下：
 
 ### 原厂 prop 状态表
 
-这张表同时包含稳定候选和观察候选。进入 `raw-candidate` 表示“允许进入公开候选池”，不等于当前版本默认公开。
+这张表同时包含稳定候选和观察候选。进入 `raw-candidate` 表示“允许进入公开候选池”，不等于当前版本默认公开，也不等于当前工作树已经提供了完整运行时支持。
 
 | 参数名 | 是什么东西 | 状态 | 备注 |
 |---|---|---|---|
@@ -139,9 +147,9 @@ prop 状态需要接到 agent prompt schema，链路如下：
 
 - 原厂 `value` / `checked` 继续 blocked
 - 语义层 `value` / `checked` 作为内容字段暂时保留
-- `tone`、`default`、`mode`、`kind` 从主公开 contract 中退出
+- `tone`、`default`、`mode`、`kind` 的目标方向是从主公开 contract 中退出；当前工作树里它们仍在部分主路径上存在
 - `list.variant` 继续视为历史例外，不构成开放原厂 `variant` 的先例
-- layout node 进入 `SemanticNode` 的正式范围，但 layout 的数值型实现参数继续留在配置层
+- layout node 的目标方向是进入 `SemanticNode` 的正式范围，但 layout 的数值型实现参数继续留在配置层
 
 ## 实现验收口径
 

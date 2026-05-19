@@ -5,6 +5,8 @@ import type { RendererKind } from "./kinds"
 import type {
   AgentComponentNode,
   AgentNode,
+  RendererLegacyStateBridge,
+  RendererLegacyStructuralRoleBridge,
   RendererPropMapping,
   RendererPropValue,
   RendererSpecComponent,
@@ -97,7 +99,7 @@ export function createRendererNode(
     const Component = resolveElement(rendererSpec.component)
     const props = {
       ...getComponentMetadataProps(node, rendererSpec),
-      ...applyPropMappings(node.props, rendererSpec.propMappings),
+      ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
     }
     const children =
       rendererSpec.childMode === "inline"
@@ -120,7 +122,7 @@ export function createRendererNode(
     const Content = resolveElement(rendererSpec.content)
     const props = {
       ...getComponentMetadataProps(node, rendererSpec),
-      ...applyPropMappings(node.props, rendererSpec.propMappings),
+      ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
     }
     const title = renderCompoundTitle(node, rendererSpec, Title)
     const contentClassName = mergeClassNames(
@@ -142,6 +144,24 @@ export function createRendererNode(
         {Content ? <Content className={contentClassName}>{content}</Content> : content}
       </Root>
     )
+  }
+
+  function renderLayoutComponent(
+    node: AgentComponentNode,
+    rendererSpec: RendererSpecComponent,
+    path: RendererPath,
+  ) {
+    const Root = resolveElement(rendererSpec.root)
+    const props = {
+      ...getComponentMetadataProps(node, rendererSpec),
+      ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
+    }
+    const children =
+      rendererSpec.childMode === "inline"
+        ? renderInlineChildren(node, path, rendererSpec.textMode)
+        : renderChildren(node, path, rendererSpec.textMode)
+
+    return <Root {...props}>{children}</Root>
   }
 
   function renderTextFieldComponent(
@@ -172,7 +192,7 @@ export function createRendererNode(
     })
     const controlProps = {
       ...rendererSpec.staticProps,
-      ...applyPropMappings(node.props, rendererSpec.propMappings),
+      ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
       ...getFieldControlProps(fieldSemantics),
     }
 
@@ -234,7 +254,7 @@ export function createRendererNode(
     })
     const controlProps = {
       ...rendererSpec.staticProps,
-      ...applyPropMappings(node.props, rendererSpec.propMappings),
+      ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
       ...getFieldControlProps(fieldSemantics),
     }
 
@@ -300,7 +320,7 @@ export function createRendererNode(
     })
     const controlProps = {
       ...rendererSpec.staticProps,
-      ...applyPropMappings(node.props, rendererSpec.propMappings),
+      ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
       controlId: fieldSemantics.controlId,
       labelId: fieldSemantics.labelId,
       descriptionId: fieldSemantics.descriptionId,
@@ -739,7 +759,7 @@ export function createRendererNode(
     const Item = resolveElement(rendererSpec.item)
     const rootProps = {
       ...getComponentMetadataProps(node, rendererSpec),
-      ...applyPropMappings(node.props, rendererSpec.propMappings),
+      ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
     }
 
     return (
@@ -773,14 +793,10 @@ export function createRendererNode(
     const Body = resolveElement(rendererSpec.body)
     const rowSlot = requireRendererSpecField(rendererSpec, "rowSlot")
     const cellSlot = requireRendererSpecField(rendererSpec, "cellSlot")
-    const kindProp = requireRendererSpecField(rendererSpec, "kindProp")
-    const headerKind = requireRendererSpecField(rendererSpec, "headerKind")
     const rows = getSlotChildren(node, rowSlot)
-    const headerRows = rows.filter(
-      (row) => getConfiguredPropValue(row, kindProp) === headerKind,
-    )
-    const bodyRows = rows.filter(
-      (row) => getConfiguredPropValue(row, kindProp) !== headerKind,
+    const { headerRows, bodyRows } = partitionTableRowsByLegacyRole(
+      rows,
+      rendererSpec,
     )
 
     return (
@@ -857,17 +873,8 @@ export function createRendererNode(
       rendererSpec,
       "itemHeadingProp",
     )
-    const modeProp = requireRendererSpecField(rendererSpec, "modeProp")
-    const defaultProp = requireRendererSpecField(rendererSpec, "defaultProp")
     const items = getStructuredItemsForNode(node, itemSlot)
-    const mode = resolveAccordionMode({
-      explicitMode: node.props[modeProp],
-      fallbackMode: rendererSpec.defaultMode,
-    })
-    const defaultValue = resolveAccordionDefaultValue({
-      defaultPropValue: node.props[defaultProp],
-      mode,
-    })
+    const { mode, defaultValue } = resolveAccordionLegacyState(node, rendererSpec)
     const rootProps = {
       ...getComponentMetadataProps(node, rendererSpec),
       type: mode,
@@ -921,17 +928,17 @@ export function createRendererNode(
       rendererSpec,
       "itemHeadingProp",
     )
-    const defaultProp = requireRendererSpecField(rendererSpec, "defaultProp")
     const tabs = getStructuredItemsForNode(node, itemSlot)
 
     if (tabs.length === 0) {
       return null
     }
 
-    const defaultValue = getStructuredDefaultValue({
-      explicitValue: node.props[defaultProp],
+    const defaultValue = resolveTabsLegacyDefaultValue({
       items: tabs,
       itemValueProp,
+      node,
+      rendererSpec,
     })
 
     return (
@@ -1208,6 +1215,12 @@ export function createRendererNode(
     "choice-inline": renderChoiceInlineComponent,
     "combobox-input": renderComboboxInputComponent,
     compound: renderCompoundComponent,
+    "layout-stack": renderLayoutComponent,
+    "layout-cluster": renderLayoutComponent,
+    "layout-split": renderLayoutComponent,
+    "layout-grid": renderLayoutComponent,
+    "layout-switcher": renderLayoutComponent,
+    "layout-frame": renderLayoutComponent,
     collection: renderCollectionComponent,
     table: renderTableComponent,
     accordion: renderAccordionComponent,
@@ -1397,6 +1410,123 @@ function getStructuredDefaultValue({
   return explicitValue || getStructuredItemValue(items[0], itemValueProp)
 }
 
+function getRendererPropMappings(rendererSpec: RendererSpecComponent) {
+  return [
+    ...getLegacyVariantPropMappings(rendererSpec),
+    ...(rendererSpec.propMappings ?? []),
+  ]
+}
+
+function getLegacyVariantPropMappings(rendererSpec: RendererSpecComponent) {
+  return (rendererSpec.legacyBridges?.variant ?? []).map(
+    (bridge): RendererPropMapping => ({
+      prop: bridge.sourceProp,
+      target: bridge.targetProp,
+      ...(bridge.map ? { map: bridge.map } : {}),
+      ...(bridge.default !== undefined ? { default: bridge.default } : {}),
+    }),
+  )
+}
+
+function getLegacyTabsDefaultBridge(rendererSpec: RendererSpecComponent) {
+  return (
+    rendererSpec.legacyBridges?.state?.find(
+      (bridge): bridge is RendererLegacyStateBridge =>
+        bridge.stateKind === "tabs-default",
+    ) ?? {
+      kind: "state",
+      stateKind: "tabs-default",
+      defaultProp: requireRendererSpecField(rendererSpec, "defaultProp"),
+    }
+  )
+}
+
+function getLegacyAccordionStateBridge(rendererSpec: RendererSpecComponent) {
+  return (
+    rendererSpec.legacyBridges?.state?.find(
+      (bridge): bridge is RendererLegacyStateBridge =>
+        bridge.stateKind === "accordion-state",
+    ) ?? {
+      kind: "state",
+      stateKind: "accordion-state",
+      modeProp: requireRendererSpecField(rendererSpec, "modeProp"),
+      defaultProp: requireRendererSpecField(rendererSpec, "defaultProp"),
+      defaultMode: rendererSpec.defaultMode,
+    }
+  )
+}
+
+function getLegacyTableRoleBridge(rendererSpec: RendererSpecComponent) {
+  return (
+    rendererSpec.legacyBridges?.structuralRole?.find(
+      (bridge): bridge is RendererLegacyStructuralRoleBridge =>
+        bridge.roleKind === "table-row-kind",
+    ) ?? {
+      kind: "structural-role",
+      roleKind: "table-row-kind",
+      sourceProp: requireRendererSpecField(rendererSpec, "kindProp"),
+      headerValue: requireRendererSpecField(rendererSpec, "headerKind"),
+    }
+  )
+}
+
+function resolveTabsLegacyDefaultValue({
+  items,
+  itemValueProp,
+  node,
+  rendererSpec,
+}: {
+  items: AgentComponentNode[]
+  itemValueProp: string
+  node: AgentComponentNode
+  rendererSpec: RendererSpecComponent
+}) {
+  const bridge = getLegacyTabsDefaultBridge(rendererSpec)
+
+  return getStructuredDefaultValue({
+    explicitValue: node.props[bridge.defaultProp],
+    items,
+    itemValueProp,
+  })
+}
+
+function resolveAccordionLegacyState(
+  node: AgentComponentNode,
+  rendererSpec: RendererSpecComponent,
+) {
+  const bridge = getLegacyAccordionStateBridge(rendererSpec)
+  const mode = resolveAccordionMode({
+    explicitMode: bridge.modeProp ? node.props[bridge.modeProp] : undefined,
+    fallbackMode: bridge.defaultMode,
+  })
+  const defaultValue = resolveAccordionDefaultValue({
+    defaultPropValue: node.props[bridge.defaultProp],
+    delimiter: bridge.multiValueDelimiter,
+    mode,
+  })
+
+  return {
+    defaultValue,
+    mode,
+  }
+}
+
+function partitionTableRowsByLegacyRole(
+  rows: AgentComponentNode[],
+  rendererSpec: RendererSpecComponent,
+) {
+  const bridge = getLegacyTableRoleBridge(rendererSpec)
+
+  return {
+    headerRows: rows.filter(
+      (row) => getConfiguredPropValue(row, bridge.sourceProp) === bridge.headerValue,
+    ),
+    bodyRows: rows.filter(
+      (row) => getConfiguredPropValue(row, bridge.sourceProp) !== bridge.headerValue,
+    ),
+  }
+}
+
 function resolveAccordionMode({
   explicitMode,
   fallbackMode,
@@ -1413,9 +1543,11 @@ function resolveAccordionMode({
 
 function resolveAccordionDefaultValue({
   defaultPropValue,
+  delimiter = ",",
   mode,
 }: {
   defaultPropValue?: string
+  delimiter?: string
   mode: "single" | "multiple"
 }) {
   if (!defaultPropValue) {
@@ -1423,7 +1555,7 @@ function resolveAccordionDefaultValue({
   }
 
   const values = defaultPropValue
-    .split(",")
+    .split(delimiter)
     .map((value) => value.trim())
     .filter(Boolean)
 
@@ -1473,7 +1605,7 @@ function getRendererProps(
 ) {
   return {
     ...(rendererSpec.staticProps ?? {}),
-    ...applyPropMappings(props, rendererSpec.propMappings),
+    ...applyPropMappings(props, getRendererPropMappings(rendererSpec)),
   }
 }
 

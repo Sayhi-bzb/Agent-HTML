@@ -184,6 +184,24 @@ const uiProtocolDefinitions = {
       },
     ],
   },
+  stack: {
+    promptOrder: 19,
+  },
+  cluster: {
+    promptOrder: 20,
+  },
+  split: {
+    promptOrder: 21,
+  },
+  grid: {
+    promptOrder: 22,
+  },
+  switcher: {
+    promptOrder: 23,
+  },
+  frame: {
+    promptOrder: 24,
+  },
 }
 
 export const componentCapabilityDefinitions = {
@@ -203,6 +221,78 @@ export const componentCapabilityDefinitions = {
       textMode: "prose",
     },
   },
+  stack: {
+    source: "ahtml-layout",
+    renderKind: "layout-stack",
+    uiProtocol: uiProtocolDefinitions.stack,
+    renderer: {
+      kind: "layout-stack",
+      root: "section",
+      rootClassName: "grid gap-4",
+      childMode: "block",
+      textMode: "prose",
+    },
+  },
+  cluster: {
+    source: "ahtml-layout",
+    renderKind: "layout-cluster",
+    uiProtocol: uiProtocolDefinitions.cluster,
+    renderer: {
+      kind: "layout-cluster",
+      root: "div",
+      rootClassName: "flex flex-wrap items-start gap-3",
+      childMode: "inline",
+      textMode: "prose",
+    },
+  },
+  split: {
+    source: "ahtml-layout",
+    renderKind: "layout-split",
+    uiProtocol: uiProtocolDefinitions.split,
+    renderer: {
+      kind: "layout-split",
+      root: "section",
+      rootClassName: "grid gap-4 md:grid-cols-2",
+      childMode: "block",
+      textMode: "prose",
+    },
+  },
+  grid: {
+    source: "ahtml-layout",
+    renderKind: "layout-grid",
+    uiProtocol: uiProtocolDefinitions.grid,
+    renderer: {
+      kind: "layout-grid",
+      root: "section",
+      rootClassName: "grid gap-4 sm:grid-cols-2",
+      childMode: "block",
+      textMode: "prose",
+    },
+  },
+  switcher: {
+    source: "ahtml-layout",
+    renderKind: "layout-switcher",
+    uiProtocol: uiProtocolDefinitions.switcher,
+    renderer: {
+      kind: "layout-switcher",
+      root: "section",
+      rootClassName: "flex flex-wrap items-start gap-4",
+      childMode: "block",
+      textMode: "prose",
+    },
+  },
+  frame: {
+    source: "ahtml-layout",
+    renderKind: "layout-frame",
+    uiProtocol: uiProtocolDefinitions.frame,
+    renderer: {
+      kind: "layout-frame",
+      root: "section",
+      rootClassName: "mx-auto w-full max-w-4xl",
+      childMode: "block",
+      textMode: "prose",
+    },
+  },
   alert: {
     source: "shadcn",
     renderKind: "compound",
@@ -217,6 +307,19 @@ export const componentCapabilityDefinitions = {
       titleProp: "title",
       childMode: "block",
       textMode: "prose",
+      legacyBridges: {
+        variant: [
+          {
+            kind: "variant",
+            sourceProp: "tone",
+            targetProp: "variant",
+            map: {
+              danger: "destructive",
+              neutral: "default",
+            },
+          },
+        ],
+      },
       propMappings: [
         {
           prop: "tone",
@@ -225,6 +328,10 @@ export const componentCapabilityDefinitions = {
             danger: "destructive",
             neutral: "default",
           },
+        },
+        {
+          prop: "variant",
+          target: "variant",
         },
       ],
     },
@@ -269,6 +376,21 @@ export const componentCapabilityDefinitions = {
       component: "Badge",
       childMode: "inline",
       textMode: "prose",
+      legacyBridges: {
+        variant: [
+          {
+            kind: "variant",
+            sourceProp: "tone",
+            targetProp: "variant",
+            map: {
+              danger: "destructive",
+              neutral: "default",
+              success: "secondary",
+              warning: "secondary",
+            },
+          },
+        ],
+      },
       propMappings: [
         {
           prop: "tone",
@@ -279,6 +401,10 @@ export const componentCapabilityDefinitions = {
             success: "secondary",
             warning: "secondary",
           },
+        },
+        {
+          prop: "variant",
+          target: "variant",
         },
       ],
     },
@@ -609,6 +735,16 @@ export const componentCapabilityDefinitions = {
       bodyCell: "TableCell",
       headerKind: "header",
       kindProp: "kind",
+      legacyBridges: {
+        structuralRole: [
+          {
+            kind: "structural-role",
+            roleKind: "table-row-kind",
+            sourceProp: "kind",
+            headerValue: "header",
+          },
+        ],
+      },
       rowSlot: "row",
       cellSlot: "cell",
     },
@@ -651,6 +787,15 @@ export const componentCapabilityDefinitions = {
       itemValueProp: "value",
       itemHeadingProp: "label",
       defaultProp: "default",
+      legacyBridges: {
+        state: [
+          {
+            kind: "state",
+            stateKind: "tabs-default",
+            defaultProp: "default",
+          },
+        ],
+      },
       fallback: true,
       slotMode: "standard-children",
     },
@@ -686,6 +831,18 @@ export const componentCapabilityDefinitions = {
       modeProp: "mode",
       defaultProp: "default",
       defaultMode: "multiple",
+      legacyBridges: {
+        state: [
+          {
+            kind: "state",
+            stateKind: "accordion-state",
+            modeProp: "mode",
+            defaultProp: "default",
+            defaultMode: "multiple",
+            multiValueDelimiter: ",",
+          },
+        ],
+      },
       fallback: true,
     },
   },

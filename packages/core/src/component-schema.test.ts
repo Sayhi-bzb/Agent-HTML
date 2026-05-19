@@ -9,6 +9,7 @@ import {
   getComponentPropSchema,
   getComponentSchema,
   isStandardComponentName,
+  RESOLVED_STANDARD_COMPONENT_SCHEMAS,
   STANDARD_COMPONENT_NAMES,
   STANDARD_COMPONENT_SCHEMAS,
   TEXT_CHILD,
@@ -19,6 +20,12 @@ describe("standard component schema", () => {
   it("includes exactly the MVP standard components", () => {
     expect(STANDARD_COMPONENT_NAMES).toEqual([
       "page",
+      "stack",
+      "cluster",
+      "split",
+      "grid",
+      "switcher",
+      "frame",
       "alert",
       "card",
       "separator",
@@ -44,10 +51,10 @@ describe("standard component schema", () => {
       "accordion",
       "accordion-item",
     ])
-    expect(VALIDATED_STANDARD_COMPONENT_SCHEMAS).toHaveLength(25)
+    expect(VALIDATED_STANDARD_COMPONENT_SCHEMAS).toHaveLength(31)
   })
 
-  it("keeps schema components aligned with runtime verification data", async () => {
+  it("keeps runtime verification data aligned for current runtime-defined components", async () => {
     const runtimeContractModule = (await import(
       pathToFileURL(
         path.join(
@@ -75,10 +82,40 @@ describe("standard component schema", () => {
     const runtimeContract = runtimeContractModule.createRuntimeContract(
       STANDARD_COMPONENT_SCHEMAS,
     )
-
-    expect([...STANDARD_COMPONENT_NAMES].sort()).toEqual(
-      [...runtimeContract.renderableAgentComponents].sort(),
+    const runtimeVerificationNames = runtimeContract.verificationData.components.map(
+      (component) => component.name,
     )
+
+    expect([...runtimeContract.renderableAgentComponents].sort()).toEqual(
+      [...STANDARD_COMPONENT_NAMES].sort(),
+    )
+    expect(runtimeVerificationNames).toEqual([
+      "page",
+      "stack",
+      "cluster",
+      "split",
+      "grid",
+      "switcher",
+      "frame",
+      "alert",
+      "card",
+      "separator",
+      "badge",
+      "progress",
+      "input",
+      "textarea",
+      "checkbox",
+      "switch",
+      "slider",
+      "radio-group",
+      "toggle-group",
+      "select",
+      "combobox",
+      "table",
+      "list",
+      "tabs",
+      "accordion",
+    ])
     expect(
       Object.fromEntries(
         runtimeContract.verificationData.components.map((component) => [
@@ -87,6 +124,12 @@ describe("standard component schema", () => {
         ]),
       ),
     ).toEqual({
+      cluster: ["children"],
+      frame: ["children"],
+      grid: ["children"],
+      split: ["children"],
+      stack: ["children"],
+      switcher: ["children"],
       accordion: ["accordion-item"],
       alert: ["children"],
       badge: ["children"],
@@ -115,6 +158,12 @@ describe("standard component schema", () => {
         ]),
       ),
     ).toEqual({
+      cluster: "structural",
+      frame: "structural",
+      grid: "structural",
+      split: "structural",
+      stack: "structural",
+      switcher: "structural",
       accordion: "accordion",
       alert: "compound",
       badge: "primitive",
@@ -180,6 +229,53 @@ describe("standard component schema", () => {
     expect(cardFacts?.slots).toContain("card-header")
   })
 
+  it("keeps resolved schema metadata separate from the public component surface", () => {
+    const alertResolved = RESOLVED_STANDARD_COMPONENT_SCHEMAS.find(
+      (item) => item.name === "alert",
+    )
+    const selectResolved = RESOLVED_STANDARD_COMPONENT_SCHEMAS.find(
+      (item) => item.name === "select",
+    )
+
+    expect(alertResolved?.semanticProps.map((prop) => prop.name)).toEqual([
+      "title",
+      "tone",
+    ])
+    expect(alertResolved?.legacyPublicProps?.map((prop) => prop.name)).toEqual([
+      "tone",
+    ])
+    expect(alertResolved?.rawCandidateProps).toEqual([
+      {
+        name: "variant",
+        valueKind: "enum",
+        description: "Raw candidate prop from shadcn component facts.",
+        enumValues: ["default", "destructive"],
+        exposureState: "raw-candidate",
+        exposed: true,
+      },
+    ])
+    expect(alertResolved?.blockedPropNames).toContain("className")
+    expect(selectResolved?.rawCandidateProps).toEqual([
+      {
+        name: "size",
+        valueKind: "enum",
+        description: "Raw candidate prop from shadcn component facts.",
+        enumValues: ["sm", "default"],
+        exposureState: "raw-candidate",
+        exposed: false,
+      },
+    ])
+    expect(getComponentSchema("badge")?.props.map((prop) => prop.name)).toEqual([
+      "tone",
+      "variant",
+    ])
+    expect(selectResolved?.props.map((prop) => prop.name)).toEqual([
+      "label",
+      "value",
+      "description",
+    ])
+  })
+
   it("describes agent-facing props without implementation leakage", () => {
     const allPropNames = STANDARD_COMPONENT_SCHEMAS.flatMap((item) =>
       item.props.map((prop) => prop.name),
@@ -189,8 +285,10 @@ describe("standard component schema", () => {
       "title",
       "title",
       "tone",
+      "variant",
       "title",
       "tone",
+      "variant",
       "value",
       "label",
       "value",
@@ -239,6 +337,8 @@ describe("standard component schema", () => {
 
   it("defines the MVP component nesting constraints", () => {
     expect(getComponentSchema("page")?.allowedChildren).toEqual([
+      "stack",
+      "frame",
       "alert",
       "card",
       "separator",
@@ -246,6 +346,39 @@ describe("standard component schema", () => {
       "list",
       "tabs",
       "accordion",
+    ])
+    expect(getComponentSchema("stack")?.props).toEqual([])
+    expect(getComponentSchema("cluster")?.props).toEqual([])
+    expect(getComponentSchema("split")?.props).toEqual([])
+    expect(getComponentSchema("grid")?.props).toEqual([])
+    expect(getComponentSchema("switcher")?.props).toEqual([])
+    expect(getComponentSchema("frame")?.props).toEqual([])
+    expect(getComponentSchema("stack")?.allowedChildren).toEqual([
+      "alert",
+      "badge",
+      "card",
+      "separator",
+      "progress",
+      "input",
+      "textarea",
+      "checkbox",
+      "switch",
+      "slider",
+      "radio-group",
+      "toggle-group",
+      "select",
+      "combobox",
+      "table",
+      "list",
+      "tabs",
+      "accordion",
+      "stack",
+      "cluster",
+      "split",
+      "grid",
+      "switcher",
+      "frame",
+      TEXT_CHILD,
     ])
     expect(getComponentSchema("alert")?.allowedChildren).toEqual([TEXT_CHILD])
     expect(getComponentSchema("card")?.allowedChildren).toEqual([
@@ -266,6 +399,12 @@ describe("standard component schema", () => {
       "list",
       "tabs",
       "accordion",
+      "stack",
+      "cluster",
+      "split",
+      "grid",
+      "switcher",
+      "frame",
       TEXT_CHILD,
     ])
     expect(getComponentSchema("separator")?.allowedChildren).toEqual([])
@@ -307,6 +446,12 @@ describe("standard component schema", () => {
       "toggle-group",
       "list",
       "accordion",
+      "stack",
+      "cluster",
+      "split",
+      "grid",
+      "switcher",
+      "frame",
     ])
     expect(getComponentSchema("accordion")?.allowedChildren).toEqual([
       "accordion-item",
@@ -326,8 +471,38 @@ describe("standard component schema", () => {
       "textarea",
       "toggle-group",
       "list",
+      "stack",
+      "cluster",
+      "split",
+      "grid",
+      "switcher",
+      "frame",
       TEXT_CHILD,
     ])
+    for (const layoutName of [
+      "stack",
+      "cluster",
+      "split",
+      "grid",
+      "switcher",
+      "frame",
+    ] as const) {
+      expect(getAllowedPropNames(getComponentSchema(layoutName)!)).not.toContain(
+        "gap",
+      )
+      expect(getAllowedPropNames(getComponentSchema(layoutName)!)).not.toContain(
+        "ratio",
+      )
+      expect(getAllowedPropNames(getComponentSchema(layoutName)!)).not.toContain(
+        "columns",
+      )
+      expect(getAllowedPropNames(getComponentSchema(layoutName)!)).not.toContain(
+        "breakpoint",
+      )
+      expect(getAllowedPropNames(getComponentSchema(layoutName)!)).not.toContain(
+        "max-width",
+      )
+    }
     expect(getComponentSchema("choice-group")).toBeUndefined()
   })
 

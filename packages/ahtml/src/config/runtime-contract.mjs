@@ -110,11 +110,17 @@ export function createManagedRuntimeManifest({
 export function createRuntimeVerificationState({
   components = [],
   runtimeBase,
-  runtimeCapability = createManagedRuntimeCapability({ runtimeContract }),
   runtimeContract,
+  runtimeCapability = runtimeContract
+    ? createManagedRuntimeCapability({ runtimeContract })
+    : undefined,
   runtimeSurface,
   version = 1,
 }) {
+  if (!runtimeCapability) {
+    throw new Error("Runtime verification state requires a runtime contract.")
+  }
+
   return {
     kind: "ahtml-runtime-render-verification",
     version,

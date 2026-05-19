@@ -141,6 +141,24 @@ export const rendererKindDefinitions = {
       title: ["titleProp"],
     },
   },
+  "layout-stack": {
+    requiredFields: ["root"],
+  },
+  "layout-cluster": {
+    requiredFields: ["root"],
+  },
+  "layout-split": {
+    requiredFields: ["root"],
+  },
+  "layout-grid": {
+    requiredFields: ["root"],
+  },
+  "layout-switcher": {
+    requiredFields: ["root"],
+  },
+  "layout-frame": {
+    requiredFields: ["root"],
+  },
   collection: {
     requiredFields: ["item", "itemSlot", "childMode"],
     requiredAnyOf: [["root", "rootByProp"]],

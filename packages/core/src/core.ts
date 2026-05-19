@@ -3,6 +3,7 @@ export {
   getAllowedPropNames,
   getComponentPropSchema,
   getComponentSchema,
+  RESOLVED_STANDARD_COMPONENT_SCHEMAS,
   isStandardComponentName,
   STANDARD_COMPONENT_NAMES,
   STANDARD_COMPONENT_SCHEMAS,
@@ -32,6 +33,8 @@ export {
   STYLE_PROFILE_STORAGE_VERSION,
 } from "./render-config"
 export { sanitizeAgentHtml } from "./parse/sanitize-agent-html"
+export { COMPONENT_EXPOSURE_POLICIES } from "./prop-exposure-policy"
+export { COMPONENT_SEMANTIC_CONTRACTS } from "./schema-overlays"
 export type {
   AgentHtmlDiagnostic,
   AgentHtmlDiagnosticSeverity,
@@ -42,7 +45,14 @@ export type {
 } from "./parse/parse-agent-html"
 export type {
   ComponentPropSchema,
+  ComponentExposurePolicy,
+  ComponentSemanticContract,
+  ComponentSemanticPropSchema,
   ComponentSchema,
+  PropExposureState,
+  ResolvedComponentSchema,
+  ResolvedRawPropSchema,
+  SemanticPropOrigin,
   BuiltinDocumentStyleConfigReference,
   DocumentStyleConfigReference,
   PublicAgentContract,

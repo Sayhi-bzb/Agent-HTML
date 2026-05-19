@@ -2,9 +2,14 @@ import { z } from "zod"
 
 import {
   GENERATED_SHADCN_INTROSPECTIONS,
+  GENERATED_RESOLVED_COMPONENT_SCHEMAS,
   GENERATED_STANDARD_COMPONENT_SCHEMAS,
 } from "./generated/component-schema.generated"
-import type { ComponentPropSchema, ComponentSchema } from "./types"
+import type {
+  ComponentPropSchema,
+  ComponentSchema,
+  ResolvedComponentSchema,
+} from "./types"
 
 export const TEXT_CHILD = "#text"
 
@@ -76,7 +81,20 @@ const ComponentSchemaListValidator = z
 
 export const GENERATED_COMPONENT_SCHEMA_FACTS = GENERATED_SHADCN_INTROSPECTIONS
 
-export const STANDARD_COMPONENT_SCHEMAS = GENERATED_STANDARD_COMPONENT_SCHEMAS
+export const RESOLVED_STANDARD_COMPONENT_SCHEMAS =
+  GENERATED_RESOLVED_COMPONENT_SCHEMAS ??
+  GENERATED_STANDARD_COMPONENT_SCHEMAS.map((schema) => ({
+    ...schema,
+    props: schema.props ?? [],
+    semanticProps: (schema.props ?? []).map((prop) => ({
+      ...prop,
+      origin: "content" as const,
+    })),
+  }))
+
+export const STANDARD_COMPONENT_SCHEMAS = RESOLVED_STANDARD_COMPONENT_SCHEMAS.map(
+  toPublicComponentSchema,
+) satisfies readonly ComponentSchema[]
 
 export const STANDARD_COMPONENT_NAMES = STANDARD_COMPONENT_SCHEMAS.map(
   (item) => item.name,
@@ -108,4 +126,15 @@ export function getComponentPropSchema(
 
 export function getAllowedPropNames(item: ComponentSchema): readonly string[] {
   return item.props.map((prop) => prop.name)
+}
+
+function toPublicComponentSchema(
+  schema: ResolvedComponentSchema,
+): ComponentSchema {
+  return {
+    name: schema.name,
+    description: schema.description,
+    props: schema.props ?? [],
+    allowedChildren: schema.allowedChildren,
+  }
 }

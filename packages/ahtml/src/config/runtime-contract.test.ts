@@ -5,18 +5,26 @@ import path from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { describe, expect, it } from "vitest"
-import { VALIDATED_STANDARD_COMPONENT_SCHEMAS } from "@agent-html/core"
+import {
+  VALIDATED_STANDARD_COMPONENT_SCHEMAS,
+  createPublicAgentContract,
+} from "@agent-html/core"
 
 describe("runtime contract", () => {
   it("derives verification, mapping, and renderer registry views from one source", async () => {
     const { createRuntimeContract, VALIDATED_STANDARD_COMPONENT_SCHEMAS } =
       await importRuntimeContract()
-    const runtimeContract = createRuntimeContract(
-      VALIDATED_STANDARD_COMPONENT_SCHEMAS,
+    const publicComponents = createPublicAgentContract().components
+    const runtimeContract = createRuntimeContract(publicComponents)
+    const alertVerification = runtimeContract.verificationData.components.find(
+      (component) => component.name === "alert",
+    )
+    const badgeVerification = runtimeContract.verificationData.components.find(
+      (component) => component.name === "badge",
     )
 
     expect(runtimeContract.renderableAgentComponents).toEqual(
-      VALIDATED_STANDARD_COMPONENT_SCHEMAS.map((component) => component.name),
+      publicComponents.map((component) => component.name),
     )
     expect(
       runtimeContract.verificationData.components.map(
@@ -35,6 +43,10 @@ describe("runtime contract", () => {
       ]),
     )
     expect(runtimeContract.rendererKindSpec.kinds).toContain("tabs")
+    expect(alertVerification?.props).toContain("variant")
+    expect(badgeVerification?.props).toContain("variant")
+    expect(alertVerification?.props).not.toContain("tone")
+    expect(badgeVerification?.props).not.toContain("tone")
   })
 
   it("builds managed runtime manifest and verification state from the same contract", async () => {

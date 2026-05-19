@@ -21,6 +21,13 @@ const overlayPath = path.join(
   "src",
   "schema-overlays.ts",
 )
+const exposurePolicyPath = path.join(
+  root,
+  "packages",
+  "core",
+  "src",
+  "prop-exposure-policy.ts",
+)
 const registryNames = [
   "accordion",
   "alert",
@@ -45,7 +52,8 @@ const registryNames = [
 ]
 const blockedPropCandidates = ["asChild", "class", "className", "style"]
 
-const overlays = await loadOverlays()
+const { overlays, semanticContracts } = await loadOverlays()
+const exposurePolicies = await loadExposurePolicies()
 const registryItems = await getRegistryItems(
   registryNames.map((name) => `@shadcn/${name}`),
   { useCache: true },
@@ -53,16 +61,23 @@ const registryItems = await getRegistryItems(
 const introspections = registryItems
   .map(createIntrospection)
   .sort((left, right) => left.registryName.localeCompare(right.registryName))
-const schemas = overlays
-  .filter((overlay) => overlay.expose)
-  .map((overlay) => ({
-    name: overlay.name,
-    description: overlay.description,
-    props: overlay.props,
-    allowedChildren: overlay.allowedChildren,
-  }))
+const resolvedSchemas = semanticContracts
+  .filter((contract) => contract.expose)
+  .map((contract) =>
+    buildResolvedSchema({
+      contract,
+      exposurePolicy: exposurePolicies.find(
+        (policy) => policy.component === contract.name,
+      ),
+      introspection: findMatchingIntrospection(contract, introspections),
+    }),
+  )
+const schemas = resolvedSchemas.map(toPublicSchema)
 
-await writeFile(generatedPath, formatGeneratedFile({ introspections, schemas }))
+await writeFile(
+  generatedPath,
+  formatGeneratedFile({ introspections, resolvedSchemas, schemas }),
+)
 
 async function loadOverlays() {
   const source = await readFile(overlayPath, "utf8")
@@ -78,7 +93,27 @@ async function loadOverlays() {
   await mkdir(path.dirname(modulePath), { recursive: true })
   await writeFile(modulePath, js)
   const module = await import(pathToFileURL(modulePath).href)
-  return module.COMPONENT_SCHEMA_OVERLAYS
+  return {
+    overlays: module.COMPONENT_SCHEMA_OVERLAYS,
+    semanticContracts: module.COMPONENT_SEMANTIC_CONTRACTS,
+  }
+}
+
+async function loadExposurePolicies() {
+  const source = await readFile(exposurePolicyPath, "utf8")
+  const js = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ES2022,
+      target: ts.ScriptTarget.ES2022,
+      verbatimModuleSyntax: false,
+    },
+  }).outputText
+  const modulePath = path.join(root, ".cache", "prop-exposure-policy.generated.mjs")
+
+  await mkdir(path.dirname(modulePath), { recursive: true })
+  await writeFile(modulePath, js)
+  const module = await import(pathToFileURL(modulePath).href)
+  return module.COMPONENT_EXPOSURE_POLICIES
 }
 
 function createIntrospection(item) {
@@ -111,6 +146,92 @@ function createIntrospection(item) {
     dependencies: item.dependencies ?? [],
     registryDependencies: item.registryDependencies ?? [],
   })
+}
+
+function buildResolvedSchema({ contract, exposurePolicy, introspection }) {
+  const semanticProps = contract.semanticProps ?? []
+  const legacyPublicProps = semanticProps.filter(
+    (prop) => prop.origin === "legacy",
+  )
+  const blockedPropNames = unique([
+    ...(introspection?.blockedProps ?? []),
+    ...(exposurePolicy?.blocked ?? []),
+  ])
+  const rawCandidatePropNames = unique([
+    ...(exposurePolicy?.rawCandidates ?? []),
+    ...(exposurePolicy?.openedRawCandidates ?? []),
+    ...(exposurePolicy?.lockedRawCandidates ?? []),
+  ])
+  const rawCandidateProps = rawCandidatePropNames
+    .map((propName) =>
+      createRawCandidatePropSchema({
+        propName,
+        exposurePolicy,
+        introspection,
+      }),
+    )
+    .filter(Boolean)
+  const exposedRawProps = rawCandidateProps
+    .filter((prop) => prop.exposed)
+    .map(({ exposureState: _exposureState, exposed: _exposed, ...prop }) => prop)
+
+  return {
+    name: contract.name,
+    description: contract.description,
+    props: [...semanticProps, ...exposedRawProps].map(stripSemanticPropOrigin),
+    semanticProps,
+    legacyPublicProps: legacyPublicProps.length > 0 ? legacyPublicProps : undefined,
+    rawCandidateProps: rawCandidateProps.length > 0 ? rawCandidateProps : undefined,
+    exposedRawProps: exposedRawProps.length > 0 ? exposedRawProps : undefined,
+    blockedPropNames: blockedPropNames.length > 0 ? blockedPropNames : undefined,
+    allowedChildren: contract.allowedChildren,
+  }
+}
+
+function findMatchingIntrospection(contract, introspections) {
+  const sourceComponentNames = new Set(contract.sourceComponents)
+
+  return introspections.find(
+    (item) =>
+      item.registryName === contract.name ||
+      sourceComponentNames.has(item.componentName),
+  )
+}
+
+function createRawCandidatePropSchema({
+  propName,
+  exposurePolicy,
+  introspection,
+}) {
+  const enumValues =
+    introspection?.variantProps?.[propName] ?? introspection?.unionProps?.[propName]
+
+  if (!enumValues?.length) {
+    return undefined
+  }
+
+  return {
+    name: propName,
+    valueKind: "enum",
+    description: "Raw candidate prop from shadcn component facts.",
+    enumValues,
+    exposureState: "raw-candidate",
+    exposed: Boolean(exposurePolicy?.openedRawCandidates?.includes(propName)),
+  }
+}
+
+function stripSemanticPropOrigin(prop) {
+  const { origin: _origin, ...publicProp } = prop
+  return publicProp
+}
+
+function toPublicSchema(schema) {
+  return {
+    name: schema.name,
+    description: schema.description,
+    props: schema.props,
+    allowedChildren: schema.allowedChildren,
+  }
 }
 
 function extractExports(sourceFile) {
@@ -339,10 +460,12 @@ function toPascalCase(value) {
     .join("")
 }
 
-function formatGeneratedFile({ introspections, schemas }) {
-  return `import type { ComponentSchema, GeneratedShadcnIntrospection } from "../types"
+function formatGeneratedFile({ introspections, resolvedSchemas, schemas }) {
+  return `import type { ComponentSchema, GeneratedShadcnIntrospection, ResolvedComponentSchema } from "../types"
 
 export const GENERATED_SHADCN_INTROSPECTIONS = ${JSON.stringify(introspections, null, 2)} as const satisfies readonly GeneratedShadcnIntrospection[]
+
+export const GENERATED_RESOLVED_COMPONENT_SCHEMAS = ${JSON.stringify(resolvedSchemas, null, 2)} as const satisfies readonly ResolvedComponentSchema[]
 
 export const GENERATED_STANDARD_COMPONENT_SCHEMAS = ${JSON.stringify(schemas, null, 2)} as const satisfies readonly ComponentSchema[]
 `

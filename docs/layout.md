@@ -1,5 +1,19 @@
 # Layout Primitives
 
+本文定义的是 layout primitive 的目标 contract 和保守暴露边界，不等于当前工作树已经完整支持这些节点。
+
+如果要判断：
+
+- 当前 parser / validator / sanitize 是否已经接受这些节点
+- 当前 runtime 是否已经能投影这些节点
+- 当前 phase 应先接哪一组 layout
+
+应同时参考：
+
+- `docs/architecture/phase-3-implementation-draft.md`
+- `docs/architecture/execution-checklist.md`
+- `docs/architecture/phase-completion-criteria.md`
+
 ## Layout 的角色
 
 UI 组件主要表达“这是什么东西”，比如 `button`、`badge`、`card`。layout 组件主要表达“这些东西怎么排”，比如纵向堆叠、横向聚类、分栏、网格、宽度约束。
@@ -45,7 +59,7 @@ UI 组件主要表达“这是什么东西”，比如 `button`、`badge`、`car
 ## 允许少量结构 Props 的 Layout
 
 以下 layout 可以允许极少量结构 props，但这些 props 只能补充结构关系，不能暴露实现参数。
-本节定义的是允许边界，不等于当前版本必须把这些 props 全部开放到 agent-facing schema。
+本节定义的是允许边界，不等于当前版本必须把这些 props 全部开放到 agent-facing schema，也不等于当前代码已经支持它们。
 
 ### `split`
 

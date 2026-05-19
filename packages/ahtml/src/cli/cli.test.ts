@@ -36,8 +36,13 @@ describe("agent-html CLI contracts", () => {
     expect(prompt).toContain('<meta-agent style-ref="')
     expect(prompt).not.toContain('theme="')
     expect(prompt).not.toContain('density="')
-    expect(prompt).not.toContain('tone="')
     expect(prompt).not.toContain('width="')
+    expect(prompt).toContain("alert(title? variant?=default|destructive)")
+    expect(prompt).toContain(
+      "badge(variant?=default|secondary|destructive|outline|ghost|link)",
+    )
+    expect(prompt).not.toContain("alert(title? tone?")
+    expect(prompt).not.toContain("badge(tone?")
   })
 
   it("prints global and command help for the managed runtime workflow", async () => {
@@ -78,6 +83,9 @@ describe("agent-html CLI contracts", () => {
     const { stdout } = await runCliWithServer(["prompt", "--format", "json"])
     const schema = parseJson<CliSchemaOutput>(stdout)
     const serializedComponents = JSON.stringify(schema.components)
+    const alert = schema.components.find((item) => item.name === "alert")
+    const badge = schema.components.find((item) => item.name === "badge")
+    const select = schema.components.find((item) => item.name === "select")
 
     expect(schema.kind).toBe("agent-html-cli-schema")
     expect(schema.components.some((item) => item.name === "page")).toBe(true)
@@ -125,6 +133,9 @@ describe("agent-html CLI contracts", () => {
     )
     expect(serializedComponents).not.toContain('"className"')
     expect(serializedComponents).not.toContain('"style"')
+    expect(alert?.props.map((prop) => prop.name)).toEqual(["title", "variant"])
+    expect(badge?.props.map((prop) => prop.name)).toEqual(["variant"])
+    expect(select?.props.map((prop) => prop.name)).not.toContain("size")
     expect(schema.safetyPolicy.blockedNames).toContain("className")
     expect(schema.forbidden).toBe(schema.safetyPolicy.forbidden)
   })
