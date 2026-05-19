@@ -17,11 +17,16 @@
 
 ### 组件配置
 #### UI组件：各标准UI组件的视觉映射
+- UI组件配置不仅定义视觉映射，也定义原厂 props 的 exposure policy：哪些 prop 是 `blocked`，哪些是 `raw-candidate`，以及哪些候选 prop 在当前 `style-ref` 下对 agent prompt schema 可见。
+- 这意味着 prop 暴露不是 renderer 临时决定，也不是 engine 内核自由推断，而是先由配置层的 UI 组件配置给出规则，再由 schema / prompt 消费。
+- 详见 [schema.md](./schema.md)。
 #### layout组件：各标准layout组件怎么排
 - stack:measure/rhythm/density
 - cluster:rhythm/density/reflow
 - split:frame/partition/reflow/density
 - switcher:partition/reflow/density
+- grid: frame / partition / rhythm / reflow / density
+- frame: frame / measure / density
 
 ## 语义使用层
 ### UI组件
@@ -36,6 +41,8 @@
 - cluster
 - split
 - switcher
+- grid
+- frame
 
 ## engine 层	
 - ComponentSchema:积木说明书
