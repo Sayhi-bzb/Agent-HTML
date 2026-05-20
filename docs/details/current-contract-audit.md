@@ -33,7 +33,7 @@
 - runtime spec 顶层已经不再把 `kindProp`、`modeProp`、`defaultProp`、`defaultMode` 作为 `RendererSpecComponent` 常规字段；兼容桥当前通过 `legacyBridges` 和 `behavior.stateBridge` 保留。
 - parser / validate / sanitize 已经正式接受 layout primitive；layout 不再只是文档目标。
 - runtime renderer 已完成 dispatcher / UI projection / layout projection 分层。
-- runtime host、document artifact shell、gallery shell 已拆开；`ahtml-document-shell` 仍存在，但当前是 artifact shell，而不是 host 默认页面骨架真相。
+- runtime host、artifact root、document layout policy、gallery shell 已拆开；`ahtml-document-shell` 当前仍作为兼容 class 保留，但 width / padding / prose / section spacing 这类文档型默认值已经下沉到独立 document layout policy。
 
 ## 1. 当前 schema 的真实生成链路
 
@@ -163,7 +163,7 @@ schema-overlays.ts
   - 不再直接保存 `modeProp/defaultProp/defaultMode`
   - 改成显式 `stateBridge`
 
-`packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx` 当前负责兼容桥解释：
+`packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx` 当前继续消费兼容桥；兼容 helper 已抽到独立 compatibility helper：
 
 - `resolveTabsLegacyDefaultValue()`
 - `resolveAccordionLegacyState()`
@@ -221,8 +221,8 @@ schema-overlays.ts
 `packages/ahtml/src/cli/runtime-template/src/app.tsx` 当前的真实边界是：
 
 - `DocumentArtifactShell`
-  - 仍输出 `ahtml-document-shell`
-  - 但它当前是 artifact/document shell
+  - 当前输出 artifact root，并继续附带兼容 class `ahtml-document-shell`
+  - width、padding、prose measure、`ahtml-section-stack` 和 card content 邻接规则已从单一 shell CSS 拆成 document layout policy
 - runtime host 样式
   - 由 `createRuntimeHostCss()` 提供
 - gallery shell
@@ -231,14 +231,15 @@ schema-overlays.ts
 当前最准确的判断不是“document shell 已消失”，而是：
 
 - `ahtml-document-shell` 仍存在
-- 但它不再是 host 默认补出来的页面结构真相
+- 它已经与 runtime host / gallery shell 分层
+- 当前文档型排版默认值主要由 document layout policy 承载，而不是由 host 本身承载
 - `cli.build.heavy.test.ts` / `cli.preview.heavy.test.ts` 当前主宿主断言已经切到：
   - `class="ahtml-runtime-host ahtml-runtime-document"`
 
 当前判断：
 
-- host / document / gallery shell 分层已经落地。
-- heavy gate 主宿主断言已经不再把 `ahtml-document-shell` 当默认真相。
+- host / artifact root / document layout policy / gallery shell 分层已经落地。
+- 但 document layout policy 仍明显带有文档页面预设，当前还不能把 runtime 写成完全 template-free。
 
 ## 8. 当前验证口径
 

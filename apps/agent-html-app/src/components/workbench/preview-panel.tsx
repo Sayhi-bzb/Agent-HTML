@@ -53,83 +53,90 @@ export function PreviewPanel({
       <ContextMenuTrigger asChild>
         <div className="panel-menu-shell" ref={previewMenuRef}>
           <SurfaceCard className="preview-panel" variant="workbench">
-            <SurfaceCardBody className="preview-panel-body">
-              <div className="preview-header-actions preview-toolbar">
-                <span className="inline-meta">
-                  {getPreviewHeaderMeta(build, lastBuildAt)}
-                </span>
-                <div className="preview-toolbar-actions">
-                  <ToggleGroup
-                    aria-label="Preview viewport"
-                    className="preview-viewport-toggle"
-                    onValueChange={(value) => {
-                      if (
-                        value === "desktop" ||
-                        value === "tablet" ||
-                        value === "focus"
-                      ) {
-                        setViewport(value)
-                      }
-                    }}
-                    type="single"
-                    value={viewport}
-                    variant="outline"
-                  >
-                    <ToggleGroupItem size="sm" value="desktop">
-                      Desktop
-                    </ToggleGroupItem>
-                    <ToggleGroupItem size="sm" value="tablet">
-                      Tablet
-                    </ToggleGroupItem>
-                    <ToggleGroupItem size="sm" value="focus">
-                      Focus
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                  <Button
-                    aria-label="Preview actions"
-                    className="panel-card-more"
-                    onClick={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      openPreviewContextMenu(previewMenuRef.current)
-                    }}
-                    size="icon-xs"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <MoreHorizontalIcon />
-                  </Button>
+            <SurfaceCardBody className="preview-panel-body preview-panel-body-compact">
+              <div className="preview-worksurface">
+                <div className="preview-header-actions preview-toolbar">
+                  <span className="inline-meta">
+                    {getPreviewHeaderMeta(build, lastBuildAt)}
+                  </span>
+                  <div className="preview-toolbar-actions">
+                    <ToggleGroup
+                      aria-label="Preview viewport"
+                      className="preview-viewport-toggle"
+                      onValueChange={(value) => {
+                        if (
+                          value === "desktop" ||
+                          value === "tablet" ||
+                          value === "focus"
+                        ) {
+                          setViewport(value)
+                        }
+                      }}
+                      type="single"
+                      value={viewport}
+                      variant="outline"
+                    >
+                      <ToggleGroupItem size="sm" value="desktop">
+                        Desktop
+                      </ToggleGroupItem>
+                      <ToggleGroupItem size="sm" value="tablet">
+                        Tablet
+                      </ToggleGroupItem>
+                      <ToggleGroupItem size="sm" value="focus">
+                        Focus
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                    <Button
+                      aria-label="Preview actions"
+                      className="panel-card-more"
+                      onClick={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        openPreviewContextMenu(previewMenuRef.current)
+                      }}
+                      size="icon-xs"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <MoreHorizontalIcon />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              <div className="preview-surface">
-                {previewHtml ? (
-                  <div
-                    className={`preview-frame-shell preview-frame-shell-${viewport}`}
+                <div className="preview-surface">
+                  {previewHtml ? (
+                    <div
+                      className={`preview-frame-shell preview-frame-shell-${viewport}`}
+                    >
+                      <div className="preview-frame-track">
+                        <iframe
+                          className="preview-frame"
+                          srcDoc={previewHtml}
+                          title={`${title} preview`}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="artifact-sheet preview-empty-state">
+                      <StatusBadge>No preview</StatusBadge>
+                      {lastBuildAt ? (
+                        <span className="inline-meta">Build output missing</span>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+                <div className="preview-footer">
+                  <span
+                    className={`shell-inline-status preview-inline-status ${previewInlineStatusClassName(
+                      build.status,
+                      Boolean(previewHtml),
+                    )}`}
                   >
-                    <iframe
-                      className="preview-frame"
-                      srcDoc={previewHtml}
-                      title={`${title} preview`}
-                    />
-                  </div>
-                ) : (
-                  <div className="artifact-sheet preview-empty-state">
-                    <StatusBadge>No preview</StatusBadge>
-                    {lastBuildAt ? (
-                      <span className="inline-meta">Build output missing</span>
-                    ) : null}
-                  </div>
-                )}
-              </div>
-              <div className="preview-footer">
-                <StatusBadge
-                  tone={previewStatusTone(build.status, Boolean(previewHtml))}
-                >
-                  {previewStatusLabel}
-                </StatusBadge>
-                <span className="inline-meta preview-artifact-summary">
-                  {previewPath ? "Artifact ready" : "No artifact"}
-                </span>
+                    {previewStatusLabel}
+                  </span>
+                  <span className="inline-meta preview-artifact-summary">
+                    {previewPath ? "Artifact ready" : "No artifact"}
+                  </span>
+                </div>
               </div>
             </SurfaceCardBody>
           </SurfaceCard>
@@ -210,6 +217,23 @@ function previewStatusTone(
   }
 
   return "default"
+}
+
+function previewInlineStatusClassName(
+  status: BuildRunSummary["status"],
+  hasPreview: boolean,
+) {
+  const tone = previewStatusTone(status, hasPreview)
+  switch (tone) {
+    case "ready":
+      return "status-ready"
+    case "dirty":
+      return "status-dirty"
+    case "error":
+      return "status-error"
+    default:
+      return ""
+  }
 }
 
 function openPreviewContextMenu(element: HTMLElement | null) {

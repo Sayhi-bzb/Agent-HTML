@@ -492,7 +492,7 @@ export function AgentShell({
         <div className="shell-header-row">
           <div className="agent-shell-header-copy">
             <strong>Review lane</strong>
-            <span className="inline-meta">{reviewLaneSummary}</span>
+            <p className="agent-shell-summary-line">{reviewLaneSummary}</p>
             <div className="proposal-meta-row">
               {latestProposal ? (
                 <span className="inline-meta">
@@ -502,14 +502,16 @@ export function AgentShell({
                 <span className="inline-meta">No proposal</span>
               )}
               {latestProposalIsStale ? (
-                <StatusBadge tone="dirty">Stale</StatusBadge>
+                <span className="agent-shell-inline-status status-dirty">
+                  Stale
+                </span>
               ) : null}
               {currentStageItem ? (
-                <StatusBadge
-                  tone={statusToneForClassName(currentStageItem.pillClassName)}
+                <span
+                  className={`agent-shell-inline-status ${currentStageItem.pillClassName}`}
                 >
                   {currentStageItem.statusLabel}
-                </StatusBadge>
+                </span>
               ) : null}
             </div>
           </div>
@@ -528,32 +530,25 @@ export function AgentShell({
         </div>
       </PanelShellHeader>
 
-      <SurfaceCard className="proposal-starter-card proposal-hub-card" variant="context">
-        <SurfaceCardBody className="proposal-hub-body" padding="compact">
+      <section className="proposal-starter-card proposal-hub-flow">
+        <div className="proposal-hub-body">
           <div className="proposal-hub-topline">
             <div className="proposal-hub-copy">
               <div className="proposal-meta-row">
-                <StatusBadge
-                  tone={statusToneForClassName(
-                    proposalReadinessView.pillClassName,
-                  )}
+                <span
+                  className={`agent-shell-inline-status ${proposalReadinessView.pillClassName}`}
                 >
                   {proposalReadinessView.label}
-                </StatusBadge>
-                {latestProposalHasDraftDelta && proposalComparison ? (
-                  <StatusBadge
-                    tone={
-                      proposalComparison.changedLineCount ? "dirty" : "ready"
-                    }
-                  >
-                    {proposalComparison.changedLineCount} line drift
-                  </StatusBadge>
+                </span>
+                {compactReadinessItems.length > 0 ? (
+                  <span className="inline-meta">{compactReadinessSummary}</span>
                 ) : null}
               </div>
-              <h4>{currentStageItem?.label ?? "Proposal readiness"}</h4>
               <p className="proposal-hub-summary">
-                {currentStageItem?.summary ??
-                  "Track proposal readiness, drift, and review flow here."}
+                {latestProposalHasDraftDelta && proposalComparison
+                  ? `${currentStageItem?.summary ?? "Track proposal readiness, drift, and review flow here."} ${proposalComparison.changedLineCount} line drift from the latest proposal snapshot.`
+                  : currentStageItem?.summary ??
+                    "Track proposal readiness, drift, and review flow here."}
               </p>
             </div>
             {currentStageAction ? (
@@ -568,15 +563,6 @@ export function AgentShell({
               </Button>
             ) : null}
           </div>
-
-          {compactReadinessItems.length > 0 ? (
-            <div className="proposal-hub-section">
-              <p className="eyebrow">Open</p>
-              <p className="proposal-readiness-summary">
-                {compactReadinessSummary}
-              </p>
-            </div>
-          ) : null}
 
           {latestProposalHasDraftDelta && proposalComparison ? (
             <div className="proposal-hub-section proposal-hub-section-accent">
@@ -602,57 +588,66 @@ export function AgentShell({
               </div>
             </div>
           ) : null}
-        </SurfaceCardBody>
-      </SurfaceCard>
+        </div>
+      </section>
 
       {showCompareCard && activeComparison ? (
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <div className="panel-menu-shell">
-              <SurfaceCard
-                className="draft-compare-card rail-compare-card"
-                variant="context"
-              >
-                <SurfaceCardHeader
-                  eyebrow="Draft compare"
-                  title={comparisonLabels.cardTitle}
-                >
-                  <Button
-                    aria-label={`${comparisonLabels.cardTitle} actions`}
-                    className="panel-card-more"
-                    onClick={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      openContextMenuAtElement(
-                        event.currentTarget.closest(
-                          ".panel-menu-shell",
-                        ) as HTMLElement | null,
-                      )
-                    }}
-                    size="icon-xs"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <MoreHorizontalIcon />
-                  </Button>
-                </SurfaceCardHeader>
-                <SurfaceCardBody className="grid gap-4">
-                  <dl className="key-value-grid compact">
-                    <dt>Changed lines</dt>
-                    <dd>{activeComparison.changedLineCount}</dd>
-                    <dt>{comparisonLabels.baseLabel}</dt>
-                    <dd>{activeComparison.savedLineCount} lines</dd>
-                    <dt>{comparisonLabels.currentLabel}</dt>
-                    <dd>{activeComparison.draftLineCount} lines</dd>
-                    <dt>First change</dt>
-                    <dd>
+              <div className="draft-compare-card rail-compare-flow">
+                <div className="rail-summary-body rail-compare-body">
+                  <div className="message-topline">
+                    <div className="rail-summary-copy">
+                      <span className="agent-shell-message-kind">
+                        {comparisonLabels.cardTitle}
+                      </span>
+                      <p className="proposal-readiness-summary">
+                        {activeComparison.changedLineCount} changed line(s)
+                        across {comparisonLabels.baseLabel.toLowerCase()} and{" "}
+                        {comparisonLabels.currentLabel.toLowerCase()}.
+                      </p>
+                    </div>
+                    <Button
+                      aria-label={`${comparisonLabels.cardTitle} actions`}
+                      className="panel-card-more"
+                      onClick={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        openContextMenuAtElement(
+                          event.currentTarget.closest(
+                            ".panel-menu-shell",
+                          ) as HTMLElement | null,
+                        )
+                      }}
+                      size="icon-xs"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <MoreHorizontalIcon />
+                    </Button>
+                  </div>
+                  <div className="rail-summary-meta">
+                    <span className="inline-meta">
+                      {comparisonLabels.baseLabel} {activeComparison.savedLineCount}
+                    </span>
+                    <span className="inline-meta">
+                      {comparisonLabels.currentLabel}{" "}
+                      {activeComparison.draftLineCount}
+                    </span>
+                    <span className="inline-meta">
                       {activeComparison.firstChangedLine
-                        ? `Line ${activeComparison.firstChangedLine}`
-                        : "n/a"}
-                    </dd>
-                  </dl>
+                        ? `First change line ${activeComparison.firstChangedLine}`
+                        : "No line anchor"}
+                    </span>
+                  </div>
                   {activeComparison.previewGroups.length > 0 ? (
-                    <div className="draft-preview-footer">
+                    <div className="draft-preview-footer rail-summary-footer">
+                      <span className="inline-meta">
+                        {focusedPreviewGroups?.length
+                          ? `${focusedComparison?.label ?? "Compare focus"} · ${focusedPreviewGroups.length} group(s)`
+                          : "No focus"}
+                      </span>
                       <Button
                         disabled={isProposalActionBusy}
                         onClick={() => {
@@ -665,15 +660,10 @@ export function AgentShell({
                       >
                         Review in Source
                       </Button>
-                      <span className="inline-meta">
-                        {focusedPreviewGroups?.length
-                          ? `${focusedComparison?.label ?? "Compare focus"} · ${focusedPreviewGroups.length} group(s)`
-                          : "No focus"}
-                      </span>
                     </div>
                   ) : null}
-                </SurfaceCardBody>
-              </SurfaceCard>
+                </div>
+              </div>
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent className="session-context-menu" sideOffset={10}>
@@ -730,8 +720,8 @@ export function AgentShell({
       ) : null}
 
       {latestStoredNote ? (
-        <SurfaceCard className="proposal-starter-card latest-note-card" variant="inset">
-          <SurfaceCardBody className="latest-note-body" padding="compact">
+        <section className="proposal-starter-card latest-note-flow">
+          <div className="latest-note-body">
             <div className="message-topline">
               <p className="eyebrow">Latest note</p>
               <span className="inline-meta">
@@ -739,8 +729,8 @@ export function AgentShell({
               </span>
             </div>
             <p>{latestStoredNote.text}</p>
-          </SurfaceCardBody>
-        </SurfaceCard>
+          </div>
+        </section>
       ) : null}
 
       <ScrollArea className="message-list-scroll">
@@ -852,6 +842,21 @@ function parseProposalMessage(text: string) {
   return parseProposalChecklist(text)
 }
 
+function statusClassNameForCompare(className?: string) {
+  switch (className) {
+    case "status-ready":
+      return "status-ready"
+    case "status-dirty":
+      return "status-dirty"
+    case "status-error":
+      return "status-error"
+    case "status-building":
+      return "status-building"
+    default:
+      return ""
+  }
+}
+
 function AgentShellMessageCard({
   message,
   session,
@@ -943,15 +948,13 @@ function AgentShellMessageCard({
             variant="message"
           >
             <div className="message-topline">
-              <StatusBadge
-                tone={isProposal ? "accent" : "default"}
-              >
+              <span className="agent-shell-message-kind">
                 {isProposal
                   ? "proposal"
                   : isContextCard
                     ? "context"
                     : message.role}
-              </StatusBadge>
+              </span>
               <div className="panel-card-meta">
                 <span className="inline-meta">
                   {formatTimestampLabel(message.createdAt)}
@@ -979,14 +982,11 @@ function AgentShellMessageCard({
                 <h4>{proposalView.title}</h4>
                 {proposalView.decision ? (
                   <div className="proposal-decision-row">
-                    <StatusBadge tone="accent">Decision</StatusBadge>
-                    <StatusBadge
-                      tone={statusToneForClassName(
-                        proposalView.decision.pillClassName,
-                      )}
+                    <span
+                      className={`agent-shell-inline-status ${proposalView.decision.pillClassName}`}
                     >
                       {proposalView.decision.label}
-                    </StatusBadge>
+                    </span>
                   </div>
                 ) : null}
                 {proposalView.staleNote ? (
@@ -995,25 +995,21 @@ function AgentShellMessageCard({
                   </p>
                 ) : null}
                 {proposalView.compare ? (
-                  <SurfaceCard
-                    className="proposal-compare-panel"
-                    variant="inset"
-                  >
-                    <SurfaceCardBody className="grid gap-3" padding="compact">
-                      <div className="message-topline">
-                        <p className="eyebrow">Proposal Compare</p>
-                        <StatusBadge
-                          tone={statusToneForClassName(
-                            proposalView.compare.pillClassName,
-                          )}
-                        >
-                          {proposalView.compare.changedLineCount} changed
-                          line(s)
-                        </StatusBadge>
-                      </div>
-                      <p className="proposal-compare-summary">
-                        {proposalView.compare.summary}
-                      </p>
+                  <div className="proposal-compare-panel">
+                    <div className="message-topline">
+                      <span className="agent-shell-message-kind">compare</span>
+                      <span
+                        className={`agent-shell-inline-status ${statusClassNameForCompare(
+                          proposalView.compare.pillClassName,
+                        )}`}
+                      >
+                        {proposalView.compare.changedLineCount} changed line(s)
+                      </span>
+                    </div>
+                    <p className="proposal-compare-summary">
+                      {proposalView.compare.summary}
+                    </p>
+                    <div className="proposal-actions proposal-actions-inline">
                       <Button
                         disabled={
                           isProposalActionBusy ||
@@ -1028,8 +1024,8 @@ function AgentShellMessageCard({
                       >
                         {proposalView.compare.action.label}
                       </Button>
-                    </SurfaceCardBody>
-                  </SurfaceCard>
+                    </div>
+                  </div>
                 ) : null}
                 {proposalView.checklistItems.length > 0 ? (
                   <ul className="proposal-list proposal-list-compact">
@@ -1171,11 +1167,11 @@ function ProposalChecklistItemRow({
           </div>
           <span className="proposal-checklist-actions proposal-checklist-actions-compact">
             {item.status ? (
-              <StatusBadge
-                tone={statusToneForClassName(item.status.pillClassName)}
+              <span
+                className={`agent-shell-inline-status ${item.status.pillClassName}`}
               >
                 {item.status.label}
-              </StatusBadge>
+              </span>
             ) : null}
             {item.focusCompare || item.action || sourceTarget ? (
               <Button

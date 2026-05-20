@@ -23,6 +23,10 @@ export class ArtifactWorkflowValidationError extends Error {
   }
 }
 
+function hasErrorDiagnostics(diagnostics = []) {
+  return diagnostics.some((diagnostic) => diagnostic.severity === "error")
+}
+
 export function createArtifactWorkflow({
   userRoot,
   defaultOutputDir,
@@ -36,7 +40,7 @@ export function createArtifactWorkflow({
     const source = await readFile(inputFilePath, "utf8")
     const validation = await validateAgentHtmlSource(source, runtimePaths)
 
-    if (validation.diagnostics.length > 0) {
+    if (hasErrorDiagnostics(validation.diagnostics)) {
       if (options.printDiagnostics !== false) {
         printDiagnostics(validation.diagnostics)
       }
@@ -90,6 +94,7 @@ export function createArtifactWorkflow({
     const inspectionPath = path.join(outputDir, "agent-html.inspect.json")
     await writeJsonFile(inspectionPath, inspection)
     return createBuildResult({
+      diagnostics: validation.diagnostics,
       inputPath: inputFilePath,
       inspection,
       inspectionPath,
@@ -131,7 +136,7 @@ export function createArtifactWorkflow({
     const source = await readFile(path.resolve(userRoot, inputPath), "utf8")
     const validation = await validateAgentHtmlSource(source, runtimePaths)
 
-    if (validation.diagnostics.length > 0) {
+    if (hasErrorDiagnostics(validation.diagnostics)) {
       throw new ArtifactWorkflowValidationError(
         "Cannot inspect an invalid agent-html document.",
         validation.diagnostics,
@@ -155,7 +160,7 @@ export function createArtifactWorkflow({
     const source = await readFile(inputFilePath, "utf8")
     const validation = await validateAgentHtmlSource(source, runtimePaths)
 
-    if (validation.diagnostics.length > 0) {
+    if (hasErrorDiagnostics(validation.diagnostics)) {
       if (options.printDiagnostics !== false) {
         printDiagnostics(validation.diagnostics)
       }
@@ -167,6 +172,7 @@ export function createArtifactWorkflow({
     }
 
     return createValidationResult({
+      diagnostics: validation.diagnostics,
       inputPath: inputFilePath,
       inspection: createInspection(validation.document),
       ok: true,

@@ -7,6 +7,7 @@
   "globs": [
     "README.md",
     "blueprint/**/*.md",
+    "docs/**/*.md",
     "spec/**/*.md",
     "!node_modules",
     "!dist",

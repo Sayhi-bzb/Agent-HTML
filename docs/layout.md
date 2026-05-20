@@ -48,7 +48,7 @@ layout 组件表达“这些东西怎么排”，例如：
 - `split`
 - `grid`
 
-因此当前页面结构应由 UI 和 layout 节点共同表达，而不是由 runtime host 预设文档骨架反推出来。
+因此当前页面主结构应由 UI 和 layout 节点共同表达；但最终 artifact 当前仍会叠加 document layout policy 的全局文档型 framing 与 prose 默认值。
 
 ## 当前公开边界
 
@@ -104,6 +104,7 @@ layout 组件表达“这些东西怎么排”，例如：
 
 - layout 节点可以嵌套 UI 节点
 - layout 节点可以嵌套 layout 节点
-- runtime host 不再被当成 layout 语义的默认来源
+- runtime host 不负责决定 layout primitive 的节点类型
+- artifact root 当前仍会挂接 document layout policy；兼容 class `ahtml-document-shell` 之上仍会追加 width / padding / prose measure / section spacing 这类文档型默认值
 
-`ahtml-document-shell` 仍然存在于 artifact/document shell 侧，但它不再定义 layout primitive 的主语义。
+因此当前实现已经摆脱“靠文档组件反推布局”的阶段，但还没有做到完全 template-free 的 layout host。

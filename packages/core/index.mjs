@@ -50,6 +50,7 @@ export const DEFAULT_STYLE_PROFILE_REFERENCE =
 export const DEFAULT_RENDER_CONFIG = core.DEFAULT_RENDER_CONFIG
 export const formatForbiddenPolicy = core.formatForbiddenPolicy
 export const parseRenderConfig = core.parseRenderConfig
+export const resolveRenderConfig = core.resolveRenderConfig
 export const PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES =
   core.PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES
 export const PUBLIC_RENDER_CONFIG_KEY = core.PUBLIC_RENDER_CONFIG_KEY

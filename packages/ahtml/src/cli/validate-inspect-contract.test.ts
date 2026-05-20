@@ -75,12 +75,14 @@ describe("validate and inspect contracts", () => {
     }>(invalidStdout)
     expect(parsedInvalidResult.kind).toBe("agent-html-validation-result")
     expect(parsedInvalidResult.ok).toBe(false)
-    expect(parsedInvalidResult.diagnostics).toEqual([
-      expect.objectContaining({
-        code: "unknown-attr",
-        severity: "error",
-      }),
-    ])
+    expect(parsedInvalidResult.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "unknown-attr",
+          severity: "error",
+        }),
+      ]),
+    )
     await expectPathMissing(path.join(runtimeHome, "config", "runtime.json"))
   })
 
@@ -178,6 +180,7 @@ describe("validate and inspect contracts", () => {
     )
     const parsedValidation = parseJson<{
       ok: boolean
+      diagnostics?: Array<{ code: string; severity: string; message?: string }>
       inspection?: {
         config: { documentStyleConfigReference: string }
       }
@@ -187,6 +190,12 @@ describe("validate and inspect contracts", () => {
     expect(parsedValidation.inspection?.config.documentStyleConfigReference).toBe(
       "report-default",
     )
+    expect(parsedValidation.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "unknown-style-ref",
+        severity: "warning",
+      }),
+    ])
     expect(validation.stdout).not.toContain("resolvedDocumentStyleTokens")
     await expectPathMissing(path.join(runtimeHome, "config", "runtime.json"))
   })
@@ -210,6 +219,7 @@ describe("validate and inspect contracts", () => {
     )
     const parsedValidation = parseJson<{
       ok: boolean
+      diagnostics?: Array<{ code: string; severity: string; message?: string }>
       inspection?: {
         config: { documentStyleConfigReference: string }
       }
@@ -219,6 +229,12 @@ describe("validate and inspect contracts", () => {
     expect(parsedValidation.inspection?.config.documentStyleConfigReference).toBe(
       "team-ops",
     )
+    expect(parsedValidation.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "missing-style-ref",
+        severity: "warning",
+      }),
+    ])
   })
 
   it("accepts representative agent-html fixtures", async () => {
@@ -228,7 +244,9 @@ describe("validate and inspect contracts", () => {
       const validation = await validateAgentHtmlSource(source, root)
 
       expect(
-        validation.diagnostics.map((diagnostic) => diagnostic.message),
+        validation.diagnostics.filter(
+          (diagnostic: { severity: string }) => diagnostic.severity === "error",
+        ),
         source,
       ).toEqual([])
     }

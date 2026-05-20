@@ -1,6 +1,8 @@
 # Component Facts
 
-Generated from `docs/components.md` and shadcn registry/source introspection.
+This file is a component fact inventory compiled from shadcn registry/source introspection plus current family grouping.
+
+It is not the current runtime support matrix, and it does not define the public agent contract.
 
 ## primitive controls
 

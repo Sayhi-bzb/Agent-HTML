@@ -96,7 +96,7 @@ function DocumentApp({ document }: { document: AgentDocument }) {
         className="ahtml-runtime-host ahtml-runtime-document"
         data-style-profile={document.meta.styleProfile.id}
       >
-        <DocumentArtifactShell>
+        <DocumentArtifactShell layoutPolicy="document">
           {document.components.map((node, index) => (
             <RendererNode key={index} node={node} path={[index]} />
           ))}
@@ -644,7 +644,8 @@ function RuntimeStyleElements({
   return (
     <>
       <style>{createRuntimeHostCss()}</style>
-      <style>{createDocumentArtifactShellCss()}</style>
+      <style>{createArtifactShellCss()}</style>
+      <style>{createDocumentLayoutPolicyCss()}</style>
       {includeGalleryShell ? <style>{createGalleryShellCss()}</style> : null}
       <style>{documentStyleCss}</style>
     </>
@@ -654,14 +655,21 @@ function RuntimeStyleElements({
 function DocumentArtifactShell({
   children,
   className,
+  layoutPolicy = "document",
 }: React.PropsWithChildren<{
   className?: string
+  layoutPolicy?: "document"
 }>) {
-  return (
-    <div className={className ? `ahtml-document-shell ${className}` : "ahtml-document-shell"}>
-      {children}
-    </div>
-  )
+  const classes = [
+    "ahtml-artifact-root",
+    "ahtml-document-shell",
+    layoutPolicy === "document" ? "ahtml-layout-policy-document" : undefined,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+  return <div className={classes}>{children}</div>
 }
 
 function TokenEditor({
@@ -1014,36 +1022,43 @@ function createRuntimeHostCss() {
   `
 }
 
-function createDocumentArtifactShellCss() {
+function createArtifactShellCss() {
   return `
-    .ahtml-document-shell {
+    .ahtml-artifact-root {
+      box-sizing: border-box;
+      display: grid;
+    }
+    .ahtml-artifact-root > * {
+      min-width: 0;
+    }
+    .ahtml-artifact-root [data-agent-html-component="page"] > * {
+      min-width: 0;
+    }
+  `
+}
+
+function createDocumentLayoutPolicyCss() {
+  return `
+    .ahtml-layout-policy-document {
       width: min(100%, 72rem);
       margin: 0 auto;
       padding: 4rem 1.25rem 5rem;
-      box-sizing: border-box;
-      display: grid;
       gap: 2rem;
     }
-    .ahtml-document-shell > * {
-      min-width: 0;
-    }
-    .ahtml-document-shell [data-agent-html-component="page"] > * {
-      min-width: 0;
-    }
-    .ahtml-document-shell .ahtml-prose-block {
+    .ahtml-layout-policy-document .ahtml-prose-block {
       max-width: 68ch;
     }
-    .ahtml-document-shell .ahtml-prose-block > p {
+    .ahtml-layout-policy-document .ahtml-prose-block > p {
       line-height: 1.75;
     }
-    .ahtml-document-shell .ahtml-prose-inline {
+    .ahtml-layout-policy-document .ahtml-prose-inline {
       line-height: 1.65;
     }
-    .ahtml-document-shell .ahtml-section-stack {
+    .ahtml-layout-policy-document .ahtml-section-stack {
       display: grid;
       gap: 1.35rem;
     }
-    .ahtml-document-shell [data-slot="card-content"].ahtml-section-stack > :where(
+    .ahtml-layout-policy-document [data-slot="card-content"].ahtml-section-stack > :where(
       [data-agent-html-component="alert"],
       [data-agent-html-component="table"],
       [data-agent-html-component="list"],
@@ -1083,14 +1098,14 @@ function createDocumentArtifactShellCss() {
       margin-top: 0;
     }
     @media (max-width: 1100px) {
-      .ahtml-document-shell {
+      .ahtml-layout-policy-document {
         width: min(100%, 60rem);
         padding: 2.75rem 1rem 3.5rem;
         gap: 1.5rem;
       }
     }
     @media (min-width: 1200px) {
-      .ahtml-document-shell {
+      .ahtml-layout-policy-document {
         width: min(100%, 76rem);
         padding-top: 4.5rem;
       }

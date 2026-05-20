@@ -2,16 +2,18 @@ import { parseFragment, type DefaultTreeAdapterMap } from "parse5"
 
 import { STANDARD_COMPONENT_NAMES } from "../component-schema"
 
-export type AgentHtmlDiagnosticSeverity = "error"
+export type AgentHtmlDiagnosticSeverity = "error" | "warning"
 
 export type AgentHtmlDiagnostic = {
   readonly code:
     | "duplicate-meta-agent"
     | "invalid-child"
-    | "invalid-render-config"
+    | "invalid-style-ref-shape"
     | "missing-required-attr"
+    | "missing-style-ref"
     | "missing-root"
     | "multiple-roots"
+    | "unknown-style-ref"
     | "unsupported-node"
     | "unknown-attr"
     | "unknown-component"

@@ -275,6 +275,19 @@ describe("createRendererNode", () => {
     expect(markup).toContain('class="ahtml-section-stack ahtml-prose-block"')
   })
 
+  it("allows artifact root and document layout policy classes to coexist", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement("div", {
+        className:
+          "ahtml-artifact-root ahtml-document-shell ahtml-layout-policy-document",
+      }),
+    )
+
+    expect(markup).toContain("ahtml-artifact-root")
+    expect(markup).toContain("ahtml-document-shell")
+    expect(markup).toContain("ahtml-layout-policy-document")
+  })
+
   it("uses renderer spec prop names for tabs content and labels", () => {
     const rendererSpecByName = new Map([
       [

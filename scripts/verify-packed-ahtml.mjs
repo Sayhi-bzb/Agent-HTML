@@ -396,7 +396,7 @@ async function expectInstalledConformance(coreModule) {
 
 function toCoreConformanceResult(result) {
   return {
-    ok: result.diagnostics.length === 0,
+    ok: !result.diagnostics.some((diagnostic) => diagnostic.severity === "error"),
     documentStyleConfigReference:
       result.document?.meta.documentStyleConfigReference,
     components: createInspectionCounts(result.document?.components ?? []),

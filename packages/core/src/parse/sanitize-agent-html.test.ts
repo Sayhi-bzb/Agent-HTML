@@ -89,6 +89,14 @@ function createCustomStyleProfile(
   }
 }
 
+function expectNoErrorDiagnostics(
+  diagnostics: ReadonlyArray<{ severity: string }>,
+) {
+  expect(diagnostics.filter((diagnostic) => diagnostic.severity === "error")).toEqual(
+    [],
+  )
+}
+
 describe("sanitizeAgentHtml", () => {
   it("produces SanitizedAgentHtml for valid MVP agent-html", () => {
     const result = sanitizeAgentHtml(`
@@ -115,7 +123,7 @@ describe("sanitizeAgentHtml", () => {
       </page>
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document).toEqual({
       meta: {
         documentStyleConfigReference: "report-default",
@@ -285,7 +293,7 @@ describe("sanitizeAgentHtml", () => {
       </page>
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.meta).toEqual({
       documentStyleConfigReference: "report-default",
       styleProfile: {
@@ -324,6 +332,12 @@ describe("sanitizeAgentHtml", () => {
         },
       },
     })
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "missing-style-ref",
+        severity: "warning",
+      }),
+    ])
   })
 
   it("resolves runtime style profiles through sanitize options", () => {
@@ -340,7 +354,7 @@ describe("sanitizeAgentHtml", () => {
       },
     )
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.meta).toMatchObject({
       documentStyleConfigReference: "team-ops",
       styleProfile: {
@@ -374,7 +388,7 @@ describe("sanitizeAgentHtml", () => {
       </page>
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.meta.documentStyleConfigReference).toBe(
       "report-default",
     )
@@ -382,6 +396,12 @@ describe("sanitizeAgentHtml", () => {
     expect(result.document?.meta.styleProfile.componentStyle.treatments.card).toBe(
       "report-card",
     )
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "unknown-style-ref",
+        severity: "warning",
+      }),
+    ])
   })
 
   it("keeps the page root after a self-closing meta-agent header", () => {
@@ -390,7 +410,7 @@ describe("sanitizeAgentHtml", () => {
       <page title="Payment Review" />
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.components[0]?.name).toBe("page")
   })
 
@@ -412,7 +432,7 @@ describe("sanitizeAgentHtml", () => {
 
     const table = result.document?.components[0]?.children[0]
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(table?.type).toBe("component")
 
     if (table?.type !== "component") {
@@ -448,7 +468,7 @@ describe("sanitizeAgentHtml", () => {
 
     const table = result.document?.components[0]?.children[0]
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(table?.type).toBe("component")
 
     if (table?.type !== "component") {
@@ -498,7 +518,12 @@ describe("sanitizeAgentHtml", () => {
       <page title="Payment Review" />
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "invalid-style-ref-shape",
+        severity: "warning",
+      }),
+    ])
     expect(result.document?.meta.documentStyleConfigReference).toBe(
       "report-default",
     )
@@ -510,7 +535,12 @@ describe("sanitizeAgentHtml", () => {
       <page title="Payment Review" />
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "invalid-style-ref-shape",
+        severity: "warning",
+      }),
+    ])
     expect(result.document?.meta.documentStyleConfigReference).toBe(
       "report-default",
     )
@@ -531,7 +561,7 @@ describe("sanitizeAgentHtml", () => {
   it("accepts a representative semantic report", () => {
     const result = sanitizeAgentHtml(semanticReportSource)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.components[0]).toMatchObject({
       type: "component",
       name: "page",
@@ -571,7 +601,7 @@ describe("sanitizeAgentHtml", () => {
       </page>
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.components[0]?.children[0]).toMatchObject({
       type: "component",
       name: "tabs",
@@ -587,7 +617,7 @@ describe("sanitizeAgentHtml", () => {
       </page>
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.components[0]?.children[0]).toMatchObject({
       type: "component",
       name: "card",
@@ -621,7 +651,7 @@ describe("sanitizeAgentHtml", () => {
       </page>
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.components[0]).toMatchObject({
       type: "component",
       name: "page",
@@ -739,7 +769,7 @@ describe("sanitizeAgentHtml", () => {
       </page>
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.components[0]).toMatchObject({
       type: "component",
       name: "page",
@@ -835,7 +865,7 @@ describe("sanitizeAgentHtml", () => {
       </page>
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.components[0]?.children[0]).toMatchObject({
       type: "component",
       name: "card",
@@ -891,7 +921,7 @@ describe("sanitizeAgentHtml", () => {
       </page>
     `)
 
-    expect(result.diagnostics).toEqual([])
+    expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.components[0]?.children[0]).toMatchObject({
       type: "component",
       name: "card",

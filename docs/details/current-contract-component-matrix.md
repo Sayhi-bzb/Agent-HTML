@@ -23,7 +23,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | `page` | `title` | `title` | 无 | `titleProp: "title"`，root 为 `article` | `compound` | 唯一根节点仍是强约束 |
 | `alert` | `title`, `tone`, `variant` | `title`, `variant` | `tone` 仍保留在 semantic compatibility layer | `legacyBridges.variant` + `variant` 直通 | `compound` | `tone` 已退出公开主路径，但兼容桥仍在 |
-| `card` | `title` | `title` | 无 | `titleProp: "title"`，`CardHeader/CardContent` 由 renderer 固定拼装 | `compound` | `size` 仍保持隐藏 raw candidate |
+| `card` | `title` | `title` | 无 | `titleProp: "title"`，`CardHeader/CardContent` 由 renderer 固定拼装 | `compound` | `size` 当前仍停留在 overlay `hiddenProps`，没有进入 raw-candidate 链 |
 | `separator` | 无 | 无 | 无 | 直接映射到 `Separator` | `primitive` | 低风险基线组件 |
 | `badge` | `tone`, `variant` | `variant` | `tone` 仍保留在 semantic compatibility layer | `legacyBridges.variant` + `variant` 直通 | `primitive` | 与 `alert` 相同，是 variant 试点 + legacy compat 样本 |
 | `progress` | `value` | `value` | 无 | `value -> value`，并带 `determinate-progress` 行为模型 | `primitive` | 语义值直接进入 runtime 的对照组 |

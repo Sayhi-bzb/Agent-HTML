@@ -34,7 +34,8 @@
 
 - `tabs` / `accordion` / `table` 的 compat bridge 仍是当前最需要持续关注的行为边界。
 - 兼容桥仍保留在 authoring 接受面和 runtime bridge 中，因此后续若继续压缩，需要同步看 schema、renderer 和 heavy gates。
+- `DocumentArtifactShell` 仍硬编码了文档型 width / padding / prose measure / section spacing。当前虽然 host 分层已经成立，但 runtime 还不能被写成完全 template-free。
 
 ## 当前事项
 
-当前无具体未完成事项。
+- 见 `todo.md`。

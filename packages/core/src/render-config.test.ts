@@ -9,6 +9,7 @@ import {
   RENDER_CONFIG_KEYS,
   RENDER_CONFIG_VALUES,
   RenderConfigSchema,
+  resolveRenderConfig,
 } from "./render-config"
 
 describe("document-style-config render config", () => {
@@ -158,39 +159,65 @@ describe("document-style-config render config", () => {
     ).toThrow()
   })
 
-  it("rejects unknown keys and CSS-like values", () => {
-    expect(() =>
+  it("falls back to the default profile for invalid or legacy render config input", () => {
+    expect(
       parseRenderConfig({
         className: "text-red-500",
       }),
-    ).toThrow("Invalid document-style-config render config.")
+    ).toEqual(DEFAULT_RENDER_CONFIG)
 
-    expect(() =>
+    expect(
       parseRenderConfig({
         "style-ref": "color:red",
       }),
-    ).toThrow("Invalid document-style-config render config.")
+    ).toEqual(DEFAULT_RENDER_CONFIG)
 
-    expect(() =>
+    expect(
       parseRenderConfig({
         profile: "ops-compact",
       }),
-    ).toThrow("Invalid document-style-config render config.")
+    ).toEqual(DEFAULT_RENDER_CONFIG)
 
-    expect(() =>
+    expect(
       parseRenderConfig({
         theme: "neutral",
         density: "compact",
         tone: "dashboard",
         width: "dashboard",
       }),
-    ).toThrow("Invalid document-style-config render config.")
+    ).toEqual(DEFAULT_RENDER_CONFIG)
   })
 
   it("falls back to the default profile for unresolved but well-formed style references", () => {
     expect(parseRenderConfig({ "style-ref": "team-missing" })).toEqual(
       DEFAULT_RENDER_CONFIG,
     )
+  })
+
+  it("reports explicit resolution reasons for style-ref parsing outcomes", () => {
+    expect(resolveRenderConfig({ "style-ref": "ops-compact" })).toMatchObject({
+      reason: "explicit-style-ref",
+      requestedStyleRef: "ops-compact",
+      config: {
+        documentStyleConfigReference: "ops-compact",
+      },
+    })
+
+    expect(resolveRenderConfig({ profile: "ops-compact" })).toMatchObject({
+      reason: "invalid-style-ref-shape",
+      config: DEFAULT_RENDER_CONFIG,
+    })
+
+    expect(resolveRenderConfig(undefined)).toMatchObject({
+      reason: "missing-style-ref",
+      config: DEFAULT_RENDER_CONFIG,
+    })
+
+    expect(resolveRenderConfig({ "style-ref": "team-missing" })).toMatchObject({
+      reason: "unknown-style-ref",
+      requestedStyleRef: "team-missing",
+      config: DEFAULT_RENDER_CONFIG,
+    })
   })
 
   it("exposes only the public render config keys", () => {

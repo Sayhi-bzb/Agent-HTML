@@ -15,8 +15,11 @@ export function sanitizeAgentHtml(
 ): SanitizeAgentHtmlResult {
   const parsed = parseAgentHtml(source)
   const validated = validateAgentHtml(parsed, options)
+  const errorDiagnostics = validated.diagnostics.filter(
+    (diagnostic) => diagnostic.severity === "error",
+  )
 
-  if (validated.diagnostics.length > 0) {
+  if (errorDiagnostics.length > 0) {
     return {
       diagnostics: validated.diagnostics,
     }
@@ -27,6 +30,6 @@ export function sanitizeAgentHtml(
       meta: validated.meta,
       components: validated.components,
     },
-    diagnostics: [],
+    diagnostics: validated.diagnostics,
   }
 }

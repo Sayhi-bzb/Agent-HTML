@@ -116,7 +116,11 @@ type ValidateModule = {
     source: string,
     root?: string,
   ) => Promise<{
-    readonly diagnostics: readonly { readonly message: string }[]
+    readonly diagnostics: readonly {
+      readonly message: string
+      readonly severity: string
+      readonly code?: string
+    }[]
   }>
 }
 

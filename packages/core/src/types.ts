@@ -175,6 +175,19 @@ export type RenderConfig = {
   readonly styleProfile: StyleProfile
 }
 
+export type RenderConfigResolutionReason =
+  | "explicit-style-ref"
+  | "resolved-custom-style-ref"
+  | "missing-style-ref"
+  | "invalid-style-ref-shape"
+  | "unknown-style-ref"
+
+export type ResolvedRenderConfig = {
+  readonly config: RenderConfig
+  readonly reason: RenderConfigResolutionReason
+  readonly requestedStyleRef?: string
+}
+
 export type PublicRenderConfigModel = "document-style-config-reference"
 
 export type PublicRenderConfigContract = {

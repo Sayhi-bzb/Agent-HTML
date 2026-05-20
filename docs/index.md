@@ -52,11 +52,14 @@
   - 当前能力状态、验证基线和仍需关注的风险。
 - `todo.md`
   - 当前未完成事项。
+- `spec/todo.md`
+  - compat 专项清理计划。
 
 回答的问题：
 
 - 当前能力状态是什么
 - 当前还有没有未完成事项
+- compat 清理现在按什么顺序推进
 
 ## 最短路径
 
@@ -65,8 +68,9 @@
 1. `docs/index.md`
 2. `docs/roadmap.md`
 3. `docs/todo.md`
-4. `docs/details/current-contract-audit.md`
-5. `docs/details/high-risk-runtime-bridges.md`
+4. `docs/spec/todo.md`
+5. `docs/details/current-contract-audit.md`
+6. `docs/details/high-risk-runtime-bridges.md`
 
 ### 路径 B：要改实现但不想读背景说明
 
@@ -102,5 +106,6 @@
 ## 阅读边界
 
 - `roadmap.md` 和 `todo.md` 只描述当前状态与当前事项。
+- `spec/todo.md` 只记录 compat 专项清理顺序。
 - `details/*` 记录现实，不负责定义目标架构。
 - `architecture/*`、`layout.md`、`syntax.md` 解释稳定边界，不负责实现过程说明。

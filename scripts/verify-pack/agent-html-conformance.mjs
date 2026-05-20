@@ -114,6 +114,10 @@ export function assertConformanceResultMatchesFixture(expect, actual) {
   }
 }
 
+function hasErrorDiagnostics(diagnostics = []) {
+  return diagnostics.some((diagnostic) => diagnostic.severity === "error")
+}
+
 export async function runCoreConformanceFixture(root, fixture) {
   const coreModule = await importCoreModule(root)
   const result = coreModule.sanitizeAgentHtml(fixture.source, {
@@ -122,7 +126,7 @@ export async function runCoreConformanceFixture(root, fixture) {
   })
 
   return normalizeConformanceResult({
-    ok: result.diagnostics.length === 0,
+    ok: !hasErrorDiagnostics(result.diagnostics),
     documentStyleConfigReference:
       result.document?.meta.documentStyleConfigReference,
     components: createInspectionCounts(result.document?.components ?? []),
@@ -138,7 +142,7 @@ export async function runAhtmlConformanceFixture(root, fixture, runtimePaths) {
   )
 
   return normalizeConformanceResult({
-    ok: result.diagnostics.length === 0,
+    ok: !hasErrorDiagnostics(result.diagnostics),
     documentStyleConfigReference:
       result.document?.meta.documentStyleConfigReference,
     components: createInspectionCounts(result.document?.components ?? []),

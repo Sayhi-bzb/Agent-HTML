@@ -1,6 +1,8 @@
 # Component Facts Details
 
-Secondary facts generated from `docs/components.md` and shadcn registry/source introspection.
+Secondary component facts compiled from shadcn registry/source introspection and the current inventory in `docs/components.md`.
+
+It is a reference layer for source facts and risk review, not the current runtime support matrix.
 
 ## primitive controls
 

@@ -4,7 +4,10 @@ import {
   getComponentSchema,
   TEXT_CHILD,
 } from "../component-schema"
-import { DEFAULT_RENDER_CONFIG, parseRenderConfig } from "../render-config"
+import {
+  DEFAULT_RENDER_CONFIG,
+  resolveRenderConfig,
+} from "../render-config"
 import type { ParseRenderConfigOptions } from "../render-config"
 import type { RenderConfig, SanitizedNode, StandardAgentNode } from "../types"
 import type {
@@ -45,6 +48,10 @@ function validateRenderConfig(
   options: ParseRenderConfigOptions,
 ): RenderConfig {
   if (!attrs) {
+    pushRenderConfigFallbackDiagnostic({
+      diagnostics,
+      reason: "missing-style-ref",
+    })
     const defaultStyleProfile = options.resolveDefaultStyleProfileReference?.()
 
     if (defaultStyleProfile) {
@@ -57,21 +64,14 @@ function validateRenderConfig(
     return DEFAULT_RENDER_CONFIG
   }
 
-  try {
-    return parseRenderConfig(attrs, options)
-  } catch {
-    // fall through to structured diagnostics
-  }
-
-  diagnostics.push({
-    code: "invalid-render-config",
-    message:
-      'The <meta-agent /> header must use an approved document style config choice via style-ref="...".',
-    path: "/meta-agent",
-    severity: "error",
+  const resolved = resolveRenderConfig(attrs, options)
+  pushRenderConfigFallbackDiagnostic({
+    diagnostics,
+    reason: resolved.reason,
+    requestedStyleRef: resolved.requestedStyleRef,
   })
 
-  return DEFAULT_RENDER_CONFIG
+  return resolved.config
 }
 
 function validateRootNodes(
@@ -306,4 +306,54 @@ function isParsedElementNode(
   node: ParsedAgentHtmlNode,
 ): node is ParsedAgentHtmlElementNode {
   return node.type === "element"
+}
+
+function pushRenderConfigFallbackDiagnostic({
+  diagnostics,
+  reason,
+  requestedStyleRef,
+}: {
+  diagnostics: AgentHtmlDiagnostic[]
+  reason:
+    | "explicit-style-ref"
+    | "resolved-custom-style-ref"
+    | "missing-style-ref"
+    | "invalid-style-ref-shape"
+    | "unknown-style-ref"
+  requestedStyleRef?: string
+}) {
+  if (reason === "explicit-style-ref" || reason === "resolved-custom-style-ref") {
+    return
+  }
+
+  if (reason === "missing-style-ref") {
+    diagnostics.push({
+      code: "missing-style-ref",
+      message:
+        'No <meta-agent style-ref="..." /> header was provided. Falling back to the current runtime style or the default builtin profile.',
+      path: "/meta-agent",
+      severity: "warning",
+    })
+    return
+  }
+
+  if (reason === "invalid-style-ref-shape") {
+    diagnostics.push({
+      code: "invalid-style-ref-shape",
+      message:
+        'The <meta-agent /> header did not match the supported style-ref shape. Falling back to the current runtime style or the default builtin profile.',
+      path: "/meta-agent",
+      severity: "warning",
+    })
+    return
+  }
+
+  diagnostics.push({
+    code: "unknown-style-ref",
+    message: requestedStyleRef
+      ? `The style-ref "${requestedStyleRef}" could not be resolved. Falling back to the current runtime style or the default builtin profile.`
+      : "The selected style-ref could not be resolved. Falling back to the current runtime style or the default builtin profile.",
+    path: "/meta-agent",
+    severity: "warning",
+  })
 }

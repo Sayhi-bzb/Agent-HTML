@@ -7,6 +7,7 @@ import type {
   GlobalStyleProfile,
   RadiusScale,
   RenderConfig,
+  ResolvedRenderConfig,
   SemanticColorTokenSet,
   StyleProfile,
   TypographyProfile,
@@ -317,16 +318,35 @@ export function parseRenderConfig(
   input: unknown,
   options: ParseRenderConfigOptions = {},
 ): RenderConfig {
+  return resolveRenderConfig(input, options).config
+}
+
+export function resolveRenderConfig(
+  input: unknown,
+  options: ParseRenderConfigOptions = {},
+): ResolvedRenderConfig {
   const styleRefInput = StyleRefRenderConfigInputSchema.safeParse(input)
 
   if (!styleRefInput.success) {
     const defaultStyleProfile = options.resolveDefaultStyleProfileReference?.()
 
     if (defaultStyleProfile) {
-      return createRenderConfigFromStyleProfile(defaultStyleProfile)
+      return {
+        config: createRenderConfigFromStyleProfile(defaultStyleProfile),
+        reason:
+          input && typeof input === "object" && !Array.isArray(input)
+            ? "invalid-style-ref-shape"
+            : "missing-style-ref",
+      }
     }
 
-    return DEFAULT_RENDER_CONFIG
+    return {
+      config: DEFAULT_RENDER_CONFIG,
+      reason:
+        input && typeof input === "object" && !Array.isArray(input)
+          ? "invalid-style-ref-shape"
+          : "missing-style-ref",
+    }
   }
 
   const documentStyleConfigReference =
@@ -334,7 +354,11 @@ export function parseRenderConfig(
   const builtinConfig = resolveBuiltinRenderConfig(documentStyleConfigReference)
 
   if (builtinConfig) {
-    return builtinConfig
+    return {
+      config: builtinConfig,
+      reason: "explicit-style-ref",
+      requestedStyleRef: documentStyleConfigReference,
+    }
   }
 
   const styleProfile = options.resolveStyleProfileReference?.(
@@ -342,10 +366,18 @@ export function parseRenderConfig(
   )
 
   if (styleProfile) {
-    return createRenderConfigFromStyleProfile(styleProfile)
+    return {
+      config: createRenderConfigFromStyleProfile(styleProfile),
+      reason: "resolved-custom-style-ref",
+      requestedStyleRef: documentStyleConfigReference,
+    }
   }
 
-  return DEFAULT_RENDER_CONFIG
+  return {
+    config: DEFAULT_RENDER_CONFIG,
+    reason: "unknown-style-ref",
+    requestedStyleRef: documentStyleConfigReference,
+  }
 }
 
 export function createRenderConfigFromStyleProfile(

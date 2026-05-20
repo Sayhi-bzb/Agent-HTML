@@ -1560,9 +1560,11 @@ export function App() {
             >
               {commandState.runningDoctor ? "Checking..." : "Doctor"}
             </Button>
-            <StatusBadge>{isTauriRuntime() ? "Tauri" : "Mock"}</StatusBadge>
+            <span className="shell-inline-status">
+              {isTauriRuntime() ? "Tauri" : "Mock"}
+            </span>
             {commandState.error ? (
-              <StatusBadge tone="error">Error</StatusBadge>
+              <span className="shell-inline-status status-error">Error</span>
             ) : null}
           </div>
         </div>
@@ -1589,13 +1591,14 @@ export function App() {
         <SurfaceCardBody className="stage-banner-body" padding="compact">
           <div className="stage-banner-copy">
             <div className="stage-banner-headline">
+              <span className="eyebrow stage-eyebrow">Flow</span>
               <strong>{currentStageItem?.label ?? "Current stage"}</strong>
               <div className="stage-banner-meta">
-                <StatusBadge
-                  tone={statusToneForStage(currentStageItem?.pillClassName)}
+                <span
+                  className={`shell-inline-status ${currentStageItem?.pillClassName ?? ""}`}
                 >
                   {currentStageItem?.statusLabel ?? "Current"}
-                </StatusBadge>
+                </span>
                 <span className="inline-meta">View {activeView}</span>
               </div>
             </div>
@@ -1614,16 +1617,6 @@ export function App() {
                 {currentStageAction.label}
               </Button>
             ) : null}
-            <Button
-              onClick={() => {
-                void copyText(appState.currentSession.sourcePath)
-              }}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              Copy source path
-            </Button>
           </div>
         </SurfaceCardBody>
       </SurfaceCard>

@@ -90,49 +90,51 @@ const previewHtml = `<!doctype html>
         margin: 0;
         min-height: 100vh;
         background:
-          radial-gradient(circle at top, rgba(255, 122, 26, 0.1), transparent 28%),
-          linear-gradient(180deg, #0f141b 0%, #10161f 100%);
-        padding: 32px;
+          radial-gradient(circle at top, rgba(255, 122, 26, 0.08), transparent 22%),
+          linear-gradient(180deg, #0d1218 0%, #10151c 100%);
+        padding: 0;
       }
       main {
-        max-width: 920px;
+        max-width: 980px;
         margin: 0 auto;
         display: grid;
-        gap: 18px;
+        gap: 0;
+        min-height: 100vh;
+        padding: 32px 36px 40px;
       }
-      .hero,
-      .card {
-        border: 1px solid rgba(145, 167, 199, 0.14);
-        border-radius: 18px;
-        background: rgba(18, 25, 34, 0.88);
-      }
-      .hero {
-        padding: 28px;
+      .review-shell {
         display: grid;
-        gap: 14px;
+        gap: 28px;
       }
-      .eyebrow {
-        width: fit-content;
-        border: 1px solid rgba(255, 122, 26, 0.22);
-        border-radius: 999px;
-        background: rgba(255, 122, 26, 0.1);
-        color: #ffb06b;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        padding: 6px 10px;
+      .topline {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #90a0b8;
+        font-size: 12px;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
+      }
+      .status {
+        color: #ffbf7f;
+        font-weight: 600;
       }
       h1 {
         margin: 0;
-        font-size: 34px;
-        line-height: 1.08;
-        letter-spacing: -0.04em;
+        max-width: 14ch;
+        font-size: 44px;
+        line-height: 1.02;
+        letter-spacing: -0.05em;
       }
       p {
         margin: 0;
         color: #9aabc4;
         line-height: 1.6;
+      }
+      .summary {
+        max-width: 60ch;
+        font-size: 18px;
+        color: #a8b7cc;
       }
       .meta {
         display: flex;
@@ -140,49 +142,73 @@ const previewHtml = `<!doctype html>
         gap: 10px;
       }
       .chip {
-        border: 1px solid rgba(145, 167, 199, 0.14);
+        border: 1px solid rgba(145, 167, 199, 0.1);
         border-radius: 999px;
-        padding: 6px 10px;
-        color: #d8e1ee;
-        font-size: 13px;
+        padding: 5px 10px;
+        color: #cfd8e5;
+        font-size: 12px;
       }
-      .card {
-        padding: 22px;
+      .divider {
+        height: 1px;
+        background: rgba(145, 167, 199, 0.12);
+      }
+      .notes {
         display: grid;
-        gap: 14px;
+        gap: 16px;
       }
-      .card h2 {
+      .notes-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .notes h2 {
         margin: 0;
         font-size: 15px;
+        letter-spacing: -0.02em;
+      }
+      .notes-meta {
+        color: #76849b;
+        font-size: 13px;
       }
       ul {
         margin: 0;
-        padding-left: 18px;
-        color: #d8e1ee;
+        padding-left: 20px;
+        color: #dbe4ef;
         display: grid;
-        gap: 10px;
+        gap: 12px;
+      }
+      li::marker {
+        color: #6c7b92;
       }
     </style>
   </head>
   <body>
     <main>
-      <section class="hero">
-        <span class="eyebrow">Recommendation</span>
+      <section class="review-shell">
+        <div class="topline">
+          <span>Vendor decision</span>
+          <span class="status">Recommendation</span>
+        </div>
         <h1>Choose Vendor A for the initial rollout.</h1>
-        <p>Lower migration risk and faster delivery make Vendor A the safest launch path, with targeted monitoring after release.</p>
+        <p class="summary">Lower migration risk and faster delivery make Vendor A the safest launch path, with targeted monitoring after release.</p>
         <div class="meta">
           <span class="chip">Lower migration risk</span>
           <span class="chip">Faster initial rollout</span>
           <span class="chip">Needs post-launch monitoring</span>
         </div>
-      </section>
-      <section class="card">
-        <h2>Decision Notes</h2>
-        <ul>
-          <li>Migration complexity stays inside the current delivery window.</li>
-          <li>Support load is lower during the initial release phase.</li>
-          <li>Observability and rollback playbooks still need to be finalized.</li>
-        </ul>
+        <div class="divider"></div>
+        <section class="notes">
+          <div class="notes-head">
+            <h2>Decision notes</h2>
+            <span class="notes-meta">Review before publish</span>
+          </div>
+          <ul>
+            <li>Migration complexity stays inside the current delivery window.</li>
+            <li>Support load is lower during the initial release phase.</li>
+            <li>Observability and rollback playbooks still need to be finalized.</li>
+          </ul>
+        </section>
       </section>
     </main>
   </body>

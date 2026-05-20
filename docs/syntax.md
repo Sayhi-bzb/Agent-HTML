@@ -16,7 +16,7 @@
 
 1. 头部配置
    - 当前规范写法仍是 `<meta-agent style-ref="..." />`
-   - `style-ref` 在 parse / runtime 层允许 fallback，但在当前 CLI prompt 主路径里仍是规范入口
+   - `style-ref` 在 parse / runtime 层允许 fallback，并会产出显式 warning；但在当前 CLI prompt 主路径里仍是规范入口
 2. 正式语义节点
    - UI 节点
    - layout 节点
@@ -38,7 +38,7 @@
 - layout 嵌套 UI
 - layout 嵌套 layout
 
-页面结构不再依赖 runtime host 预设模板推断。
+页面的节点结构不再依赖 runtime host 反推；但最终 artifact 仍会叠加 document shell 的全局文档排版默认值。
 
 ## 公开 prompt 与完整 authoring 的区别
 
@@ -88,4 +88,4 @@
 - 语义节点负责页面与组件关系
 - runtime host 消费语义节点和配置结果
 - 当前稳定配置结果仍主要承载 `style-ref -> styleProfile`
-- host 不再补出“页面本来就该长这样”的默认结构真相
+- host 不再替 authoring surface 补 layout primitive 节点，但当前仍会通过 document shell 追加文档型 framing / prose 默认值
