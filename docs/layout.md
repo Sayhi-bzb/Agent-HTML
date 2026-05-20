@@ -91,6 +91,8 @@ layout 组件表达“这些东西怎么排”，例如：
 - breakpoint
 - density 变化下的具体空间实现
 
+这些项目当前只是配置层职责边界与未来 realization 方向，不代表它们已经作为独立 `RenderConfig` 数据结构落地。
+
 原则仍然是：
 
 - 使用层回答“关系类型”

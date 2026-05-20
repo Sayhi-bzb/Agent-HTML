@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process"
-import type { ChildProcessByStdio } from "node:child_process"
+import type { ChildProcess, ChildProcessByStdio } from "node:child_process"
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises"
 import { createServer } from "node:http"
 import { tmpdir } from "node:os"
@@ -7,11 +7,11 @@ import path from "node:path"
 import type { Readable } from "node:stream"
 import { setTimeout as delay } from "node:timers/promises"
 import { pathToFileURL } from "node:url"
-import { promisify } from "node:util"
 
 import { afterAll, afterEach, beforeAll, expect } from "vitest"
 
-const execFileAsync = promisify(execFile)
+const cliCommandTimeoutMs = 90000
+const previewShutdownTimeoutMs = 5000
 
 export const root = process.cwd()
 export const cliPath = path.join(root, "packages", "ahtml", "bin", "ahtml.mjs")
@@ -189,9 +189,10 @@ export function runCli(
   cwd = root,
   registryUrl?: string,
 ) {
-  return execFileAsync(process.execPath, [cliPath, ...args], {
+  return execFileWithProcessTreeCleanup(process.execPath, [cliPath, ...args], {
     cwd,
     env: createCliEnv(env, registryUrl),
+    timeout: cliCommandTimeoutMs,
   })
 }
 
@@ -479,6 +480,7 @@ export async function waitForPreviewUrl(
     let stdout = ""
     let stderr = ""
     const timeout = setTimeout(() => {
+      void terminateProcessTree(child)
       reject(new Error(`Timed out waiting for preview URL. ${stderr}`))
     }, timeoutMs)
 
@@ -498,6 +500,7 @@ export async function waitForPreviewUrl(
     })
     child.on("error", (error) => {
       clearTimeout(timeout)
+      void terminateProcessTree(child)
       reject(error)
     })
     child.on("exit", (code) => {
@@ -516,6 +519,91 @@ export async function waitForProcessExit(child: PreviewProcess) {
 
   await new Promise<void>((resolve) => {
     child.on("exit", () => resolve())
+    setTimeout(() => {
+      void terminateProcessTree(child, "SIGKILL").finally(resolve)
+    }, previewShutdownTimeoutMs).unref()
+  })
+}
+
+function execFileWithProcessTreeCleanup(
+  file: string,
+  args: readonly string[],
+  options: {
+    readonly cwd?: string
+    readonly env?: NodeJS.ProcessEnv
+    readonly timeout: number
+  },
+) {
+  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+    let timedOut = false
+    const child = execFile(
+      file,
+      [...args],
+      {
+        cwd: options.cwd,
+        env: options.env,
+        windowsHide: true,
+      },
+      (error, stdout, stderr) => {
+        clearTimeout(timeout)
+
+        if (error) {
+          const commandError =
+            error instanceof Error
+              ? error
+              : new Error(
+                  typeof error === "string"
+                    ? error
+                    : "CLI command failed with a non-Error rejection.",
+                )
+          Object.assign(commandError, {
+            stdout,
+            stderr,
+          })
+          reject(commandError)
+          return
+        }
+
+        resolve({ stdout, stderr })
+      },
+    )
+    const timeout = setTimeout(() => {
+      timedOut = true
+      void terminateProcessTree(child).finally(() => {
+        const error = new Error(
+          `CLI command timed out after ${options.timeout}ms.`,
+        )
+        Object.assign(error, {
+          stdout: "",
+          stderr: "",
+          timedOut,
+        })
+        reject(error)
+      })
+    }, options.timeout)
+  })
+}
+
+async function terminateProcessTree(
+  child: ChildProcess,
+  signal: NodeJS.Signals = "SIGTERM",
+) {
+  if (child.exitCode !== null) {
+    return
+  }
+
+  if (process.platform !== "win32" || child.pid === undefined) {
+    child.kill(signal)
+    return
+  }
+
+  await new Promise<void>((resolve) => {
+    execFile(
+      "taskkill",
+      ["/pid", String(child.pid), "/t", "/f"],
+      { windowsHide: true },
+      () => resolve(),
+    )
   })
 }
 

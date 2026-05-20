@@ -118,8 +118,8 @@ body,
 body {
   margin: 0;
   background:
-    radial-gradient(circle at top, rgba(255, 122, 26, 0.08), transparent 28%),
-    linear-gradient(180deg, #0b0f15 0%, #0d1117 45%, #0b1016 100%);
+    radial-gradient(circle at top, rgba(255, 122, 26, 0.045), transparent 24%),
+    linear-gradient(180deg, #0a0e14 0%, #0c1118 48%, #0b1016 100%);
   color: var(--foreground);
   font-family: var(--font-sans);
 }
@@ -143,8 +143,8 @@ button:disabled {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px;
+  gap: 8px;
+  padding: 8px;
 }
 
 .app-root::before {
@@ -153,11 +153,11 @@ button:disabled {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
-  background-size: 24px 24px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 68%);
-  opacity: 0.4;
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.14), transparent 56%);
+  opacity: 0.14;
 }
 
 .topbar,
@@ -167,12 +167,12 @@ button:disabled {
   position: relative;
   z-index: 1;
   border: 1px solid var(--hairline-strong);
-  border-radius: 12px;
+  border-radius: 11px;
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.03),
-      rgba(255, 255, 255, 0.012)
+      rgba(255, 255, 255, 0.025),
+      rgba(255, 255, 255, 0.008)
     ),
     var(--card);
   box-shadow: none;
@@ -180,11 +180,11 @@ button:disabled {
 
 .topbar {
   display: flex;
-  min-height: 42px;
+  min-height: 40px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 7px 11px;
 }
 
 .topbar-brand,
@@ -201,12 +201,12 @@ button:disabled {
 }
 
 .topbar-mark {
-  height: 10px;
-  width: 10px;
+  height: 8px;
+  width: 8px;
   flex: 0 0 auto;
   border-radius: 999px;
   background: linear-gradient(180deg, #ff8d3c, #ff6900);
-  box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.12);
+  box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.1);
 }
 
 .topbar-copy {
@@ -293,18 +293,18 @@ button:disabled {
 }
 
 .stage-strip {
-  border-color: var(--hairline-strong);
+  border-color: rgba(255, 255, 255, 0.08);
   background:
-    linear-gradient(90deg, rgba(255, 122, 26, 0.025), transparent 28%),
-    rgba(255, 255, 255, 0.012);
+    linear-gradient(90deg, rgba(255, 122, 26, 0.014), transparent 18%),
+    rgba(255, 255, 255, 0.006);
 }
 
 .stage-banner-body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  min-height: 44px;
+  gap: 10px;
+  min-height: 34px;
 }
 
 .stage-banner-copy,
@@ -317,12 +317,12 @@ button:disabled {
 .stage-banner-copy {
   min-width: 0;
   flex: 1;
-  gap: 12px;
+  gap: 10px;
 }
 
 .stage-banner-headline strong {
   color: var(--foreground);
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: -0.015em;
 }
@@ -340,7 +340,7 @@ button:disabled {
 
 .stage-banner-body p {
   color: var(--body);
-  font-size: 0.79rem;
+  font-size: 0.76rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -352,7 +352,7 @@ button:disabled {
   flex: 1;
   min-height: 0;
   border: 1px solid var(--hairline-strong);
-  border-radius: 14px;
+  border-radius: 13px;
   background: var(--card);
   box-shadow: var(--panel-shadow);
 }
@@ -403,7 +403,7 @@ button:disabled {
 }
 
 .sidebar {
-  background: linear-gradient(180deg, #111720 0%, #0f141c 100%);
+  background: linear-gradient(180deg, #10161f 0%, #0d131b 100%);
 }
 
 .workbench-shell {
@@ -411,7 +411,7 @@ button:disabled {
 }
 
 .agent-shell {
-  background: linear-gradient(180deg, #11161f 0%, #0d131b 100%);
+  background: linear-gradient(180deg, #10151d 0%, #0d1219 100%);
 }
 
 .panel-header,
@@ -423,10 +423,10 @@ button:disabled {
 }
 
 .panel-header {
-  min-height: 42px;
-  padding: 8px 10px;
+  min-height: 40px;
+  padding: 7px 10px;
   border-bottom: 1px solid var(--hairline);
-  background: rgba(255, 255, 255, 0.018);
+  background: rgba(255, 255, 255, 0.014);
 }
 
 .panel-header-compact {
@@ -546,20 +546,20 @@ button:disabled {
 }
 
 .workbench-tabs [data-slot="tabs-trigger"] {
-  height: 30px;
+  height: 28px;
   flex: 0 0 auto;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
   color: var(--body);
-  padding-inline: 10px;
-  font-size: 0.8rem;
+  padding-inline: 9px;
+  font-size: 0.78rem;
   font-weight: 500;
 }
 
 .workbench-tabs [data-slot="tabs-trigger"][data-state="active"] {
-  border-color: var(--hairline);
-  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.038);
   color: var(--foreground);
 }
 
@@ -603,11 +603,11 @@ button:disabled {
 }
 
 .session-list-scroll {
-  padding: 10px 12px 12px;
+  padding: 8px 10px 10px;
 }
 
 .message-list-scroll {
-  padding: 0 10px 10px;
+  padding: 0 10px 8px;
 }
 
 .session-groups,
@@ -623,19 +623,19 @@ button:disabled {
 }
 
 .session-groups {
-  gap: 10px;
+  gap: 8px;
 }
 
 .session-group-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2px;
-  padding-inline: 2px;
+  margin-bottom: 1px;
+  padding-inline: 4px;
   color: var(--body);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -693,11 +693,11 @@ button:disabled {
 }
 
 .sidebar .panel-header {
-  padding-inline: 12px;
+  padding-inline: 10px;
 }
 
 .sidebar .session-list {
-  gap: 4px;
+  gap: 2px;
 }
 
 .session-card-shell,
@@ -715,22 +715,22 @@ button:disabled {
 }
 
 .session-card.active {
-  border-color: rgba(255, 122, 26, 0.2);
+  border-color: rgba(255, 122, 26, 0.16);
   background:
-    linear-gradient(90deg, rgba(255, 122, 26, 0.11), rgba(255, 122, 26, 0)),
-    rgba(255, 255, 255, 0.022);
-  box-shadow: inset 2px 0 0 var(--primary);
+    linear-gradient(90deg, rgba(255, 122, 26, 0.08), rgba(255, 122, 26, 0)),
+    rgba(255, 255, 255, 0.018);
+  box-shadow: inset 1px 0 0 var(--primary);
 }
 
 .session-card.active:hover,
 .session-card.active:focus-visible {
-  border-color: rgba(255, 122, 26, 0.34);
+  border-color: rgba(255, 122, 26, 0.26);
 }
 
 .session-card-compact {
-  padding: 9px 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.012);
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: transparent;
 }
 
 .session-card-topline-compact {
@@ -753,7 +753,7 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--foreground);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   line-height: 1.25;
 }
@@ -761,14 +761,42 @@ button:disabled {
 .session-meta-row-compact {
   justify-content: flex-start;
   flex-wrap: nowrap;
-  gap: 6px;
+  gap: 7px;
 }
 
 .session-preview-meta {
   flex: 1;
   min-width: 0;
   color: var(--body);
-  font-size: 0.76rem;
+  font-size: 0.74rem;
+}
+
+.session-status-text {
+  flex: 0 0 auto;
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.session-status-draft {
+  color: var(--body);
+}
+
+.session-status-dirty {
+  color: var(--warn-ink);
+}
+
+.session-status-building {
+  color: var(--info-ink);
+}
+
+.session-status-error {
+  color: var(--danger-ink);
+}
+
+.session-status-ready {
+  color: var(--success-ink);
 }
 
 .session-pin-indicator {
@@ -803,8 +831,8 @@ button:disabled {
 
 .sidebar .session-card-shell:hover .session-card,
 .sidebar .session-card-shell:focus-visible .session-card {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.022);
+  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .preview-header-actions {
@@ -899,7 +927,7 @@ button:disabled {
   min-height: 100%;
   grid-template-rows: auto auto minmax(0, 1fr);
   border: 1px solid var(--hairline);
-  border-radius: 12px;
+  border-radius: 11px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
     rgba(9, 13, 19, 0.5);
@@ -909,8 +937,8 @@ button:disabled {
 .source-toolbar-shell {
   border-bottom: 1px solid var(--hairline);
   border-radius: 0;
-  background: rgba(255, 255, 255, 0.018);
-  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.014);
+  padding: 9px 11px;
 }
 
 .source-toolbar-copy {
@@ -935,7 +963,7 @@ button:disabled {
 .source-focus-strip {
   border-width: 0 0 1px;
   border-radius: 0;
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .source-validation-strip-body,
@@ -989,8 +1017,8 @@ button:disabled {
 
 .source-focus-strip {
   background:
-    linear-gradient(180deg, rgba(255, 122, 26, 0.04), rgba(255, 122, 26, 0)),
-    rgba(255, 255, 255, 0.02);
+    linear-gradient(180deg, rgba(255, 122, 26, 0.03), rgba(255, 122, 26, 0)),
+    rgba(255, 255, 255, 0.018);
 }
 
 .source-editor-shell {
@@ -1347,14 +1375,15 @@ button:disabled {
 .proposal-hub-topline,
 .proposal-hub-copy,
 .proposal-hub-section,
-.proposal-hub-actions {
+.proposal-hub-actions,
+.composer-topline {
   display: grid;
   gap: 8px;
 }
 
 .agent-shell-header {
   border-bottom: 1px solid var(--hairline);
-  background: rgba(255, 255, 255, 0.018);
+  background: rgba(255, 255, 255, 0.012);
 }
 
 .agent-shell-header .shell-header-row {
@@ -1380,8 +1409,8 @@ button:disabled {
 
 .proposal-hub-card {
   background:
-    linear-gradient(180deg, rgba(255, 122, 26, 0.05), rgba(255, 122, 26, 0)),
-    rgba(255, 255, 255, 0.018);
+    linear-gradient(180deg, rgba(255, 122, 26, 0.032), rgba(255, 122, 26, 0)),
+    rgba(255, 255, 255, 0.014);
 }
 
 .proposal-hub-topline {
@@ -1406,10 +1435,10 @@ button:disabled {
 }
 
 .proposal-hub-section-accent {
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid var(--hairline);
-  border-radius: 10px;
-  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.012);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 9px;
+  padding: 9px 11px;
 }
 
 .proposal-hub-actions {
@@ -1418,24 +1447,22 @@ button:disabled {
 }
 
 .agent-shell .review-log-list {
-  gap: 6px;
+  gap: 0;
 }
 
 .agent-shell .message-card {
-  padding: 8px 10px;
-  border-radius: 12px;
-  border-color: rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.014);
+  padding: 6px 0;
+  border-radius: 0;
+  border-color: transparent;
+  background: transparent;
 }
 
 .agent-shell .proposal-card {
-  background:
-    linear-gradient(180deg, rgba(255, 122, 26, 0.038), rgba(255, 122, 26, 0)),
-    rgba(255, 255, 255, 0.015);
+  background: transparent;
 }
 
 .agent-shell .context-message-card {
-  background: rgba(255, 255, 255, 0.012);
+  background: transparent;
 }
 
 .agent-shell .proposal-body h4 {
@@ -1443,13 +1470,78 @@ button:disabled {
   font-size: 0.84rem;
 }
 
+.agent-shell .proposal-body > p,
+.agent-shell .proposal-stale-note {
+  color: var(--body);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
 .agent-shell .proposal-checklist-item-compact {
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.022);
+  padding: 6px 0;
+  background: transparent;
+  border-color: transparent;
+  border-radius: 0;
 }
 
 .agent-shell .proposal-actions {
   margin-top: 2px;
+}
+
+.rail-compare-card,
+.latest-note-card {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.latest-note-body,
+.agent-shell-message-stream {
+  display: grid;
+  gap: 0;
+}
+
+.agent-shell .draft-compare-card .surface-card-header,
+.latest-note-card {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.agent-shell .message-list-scroll {
+  padding: 0 10px 8px;
+}
+
+.agent-shell-message-stream > .panel-menu-shell {
+  border-radius: 0;
+}
+
+.agent-shell-message-stream > .panel-menu-shell + .panel-menu-shell {
+  border-top: 1px solid rgba(255, 255, 255, 0.045);
+  padding-top: 4px;
+}
+
+.agent-shell-message-stream .message-card {
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.agent-shell-message-stream .proposal-card,
+.agent-shell-message-stream .context-message-card {
+  background: transparent;
+}
+
+.agent-shell-message-stream .proposal-body {
+  gap: 6px;
+}
+
+.agent-shell-message-stream .proposal-list-compact,
+.agent-shell-message-stream .proposal-list {
+  gap: 0;
+}
+
+.agent-shell-message-stream .proposal-checklist-item + .proposal-checklist-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.045);
+  padding-top: 6px;
+  margin-top: 6px;
 }
 
 .composer-shell {
@@ -1457,12 +1549,19 @@ button:disabled {
   gap: 8px;
   margin-top: auto;
   border-top: 1px solid var(--hairline);
-  background: rgba(255, 255, 255, 0.015);
-  padding: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.014), rgba(255, 255, 255, 0)),
+    rgba(255, 255, 255, 0.01);
+  padding: 9px 10px 10px;
+}
+
+.composer-topline {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
 }
 
 .composer-shell textarea {
-  min-height: 84px;
+  min-height: 72px;
   resize: vertical;
 }
 
@@ -1566,7 +1665,8 @@ button:disabled {
 
   .proposal-hub-topline,
   .proposal-hub-actions,
-  .agent-shell-header .shell-header-row {
+  .agent-shell-header .shell-header-row,
+  .composer-topline {
     grid-template-columns: 1fr;
   }
 

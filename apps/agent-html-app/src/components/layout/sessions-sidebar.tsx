@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/context-menu"
 import { PanelShell, PanelShellHeader } from "../ui/panel-shell"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { StatusBadge } from "@/components/ui/status-badge"
 import { SurfaceCard } from "../ui/surface-card"
 import type { SessionSummary } from "../../lib/types"
 import { getSessionPreviewStatusText } from "../../lib/preview-state"
@@ -296,23 +295,6 @@ export function SessionsSidebar({
   )
 }
 
-function statusTone(
-  status: SessionSummary["status"],
-): "dirty" | "building" | "error" | "ready" | "default" {
-  switch (status) {
-    case "dirty":
-      return "dirty"
-    case "building":
-      return "building"
-    case "error":
-      return "error"
-    case "ready":
-      return "ready"
-    default:
-      return "default"
-  }
-}
-
 function SessionSidebarItem({
   session,
   active,
@@ -397,9 +379,11 @@ function SessionSidebarItem({
               </Button>
             </div>
             <div className="session-meta-row session-meta-row-compact">
-              <StatusBadge tone={statusTone(session.status)}>
+              <span
+                className={`session-status-text session-status-${session.status}`}
+              >
                 {statusLabel[session.status]}
-              </StatusBadge>
+              </span>
               <span className="session-preview-meta">
                 {getSessionPreviewStatusText(session)}
               </span>

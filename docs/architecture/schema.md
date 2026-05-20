@@ -30,9 +30,9 @@
 当前主公开面遵守下面几条规则：
 
 - `blocked` prop 不进入公开 contract，也不进入 prompt。
-- `raw-candidate` prop 只有在组件配置明确放开时，才进入公开 contract。
+- `raw-candidate` prop 只有在当前 exposure policy 生成结果中被显式打开时，才进入公开 contract。
 - legacy semantic props 可以继续留在兼容 authoring 层，但不再是公开主入口。
-- 文档级配置选择入口仍然存在，但不再把 agent prompt 绑死在“必须先写某个实现配置”上。
+- `style-ref` 在 parse / runtime 层不是唯一成功前提，但在当前 CLI prompt 主路径里仍是规范入口。
 
 ## 当前公开主路径
 
@@ -44,7 +44,7 @@
   - 公开 `variant`
 - `list`
   - 公开 `variant`
-  - 这是历史公开例外，不构成任意开放原厂 `variant` 的先例
+  - 这是当前保留的公开特例，不构成任意开放原厂 `variant` 的先例
 - 表单与内容字段
   - 继续公开 `title`、`label`、`description`
   - 继续公开语义 `value`、语义 `checked`
@@ -85,9 +85,9 @@
 - `blocked`
   - 永远不进入公开 schema，也不进入 prompt
 - `raw-candidate`
-  - 允许进入公开候选池，但是否真正公开取决于组件配置
+  - 允许进入公开候选池，但是否真正公开取决于当前 exposure policy 与生成结果
 
-这个状态模型的职责是回答“原厂 prop 能不能进入公开 contract”，不是回答“历史包装字段还删没删完”。
+这个状态模型的职责是回答“原厂 prop 能不能进入公开 contract”，不是回答兼容字段何时退出运行时。
 
 ## 当前应继续 blocked 的类别
 

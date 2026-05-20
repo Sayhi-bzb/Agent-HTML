@@ -16,13 +16,11 @@ export const docsDisciplineRules = {
     "details/high-risk-runtime-bridges.md",
     "index.md",
     "layout.md",
-    "reading-map.md",
     "roadmap.md",
     "syntax.md",
     "todo.md",
   ]),
-  stageSummaryAllowedFiles: new Set(["roadmap.md", "todo.md"]),
-  stageSummaryPatterns: [
+  bannedEverywherePatterns: [
     {
       label: "phase summary label",
       regex: /\bPhase\s+\d(?:[A-Z])?\b/g,
@@ -39,8 +37,6 @@ export const docsDisciplineRules = {
       label: "post-phase cleanup label",
       regex: /post-phase cleanup/gi,
     },
-  ],
-  bannedEverywherePatterns: [
     {
       label: "legacy stage heading",
       regex: /阶段含义/g,
@@ -62,8 +58,6 @@ export function collectDocsDisciplineViolations(files) {
   for (const file of files) {
     const relativePath = normalizeDocsPath(file.relativePath)
     const content = file.content
-    const stageSummaryAllowed =
-      docsDisciplineRules.stageSummaryAllowedFiles.has(relativePath)
 
     if (!docsDisciplineRules.allowedDocPaths.has(relativePath)) {
       violations.push({
@@ -84,22 +78,6 @@ export function collectDocsDisciplineViolations(files) {
           label: pattern.label,
           match: match[0],
           message: `"${match[0]}" is no longer allowed in docs/.`,
-        })
-      }
-    }
-
-    if (stageSummaryAllowed) {
-      continue
-    }
-
-    for (const pattern of docsDisciplineRules.stageSummaryPatterns) {
-      for (const match of iteratePatternMatches(content, pattern.regex)) {
-        violations.push({
-          relativePath,
-          line: listLineNumber(content, match.index ?? 0),
-          label: pattern.label,
-          match: match[0],
-          message: `"${match[0]}" is only allowed in docs/roadmap.md and docs/todo.md.`,
         })
       }
     }

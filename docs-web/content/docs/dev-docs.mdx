@@ -28,11 +28,9 @@ Local check levels:
 npm run build
 npm run test:run -- <file-or-pattern>
 npm run test:run:cli-heavy
-npm run check:package
-npm run check:package:release
+npm run verify:pack
 npm run check:docs:ci
-npm run check:docs
-npm run check:all
+npm run release:check
 ```
 
 Follow `AGENTS.md` for verification cadence. This page lists available gates; it does not redefine when to run them.
@@ -44,10 +42,8 @@ While editing, prefer the narrowest useful check:
 - `npm run docs:lint` covers markdownlint for the existing docs surface plus the repository `docs/` discipline guard.
 - For ordinary CLI/runtime code changes, run `npm run build` once, then `npm run test:run -- <affected test file or -t pattern>`.
 - Run `npm run test:run:cli-heavy` only when changes touch setup, doctor, prompt output, build, preview, or runtime rendering.
-- Use `npm run check:package` as the package CI gate, not as the default edit loop.
-- Use `npm run check:package:release` only for release-boundary validation. It adds `verify:pack` on top of the package CI checks.
-
-`dev:check`, `check:quick`, and `check:ready` remain broad compatibility aliases in `package.json`, but they are not the preferred day-to-day edit loop.
+- Use `npm run verify:pack` only for installed-package boundary validation.
+- Use `npm run release:check` only for release-boundary validation.
 
 ## Integrate with an app [#integrate-with-an-app]
 

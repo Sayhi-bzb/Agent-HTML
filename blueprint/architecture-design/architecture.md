@@ -1,6 +1,7 @@
 # agent-html Architecture
 
 本文记录 agent-html 的目标架构主干。
+当前工作树里的实现事实以 `docs/` 和代码为准。
 
 ## Product Shape
 

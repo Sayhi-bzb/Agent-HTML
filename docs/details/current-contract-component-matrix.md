@@ -13,9 +13,9 @@
 
 - `完整 authoring schema`：当前 parse / validate / sanitize 会接受的字段。
 - `最终公开 contract`：当前 CLI schema / prompt 会公开给 agent 的字段。
-- `legacy/compat bridge`：当前仍保留、但已经不是主公开入口的旧语义字段或 runtime 兼容桥。
+- `legacy/compat bridge`：当前仍保留、但已经不是主公开入口的兼容语义字段或 runtime 兼容桥。
 - `runtime bridge`：runtime 当前如何消费字段，或如何把当前字段映射到底层实现。
-- `当前判断`：对当前收口工作的直接影响，不是新规则。
+- `当前判断`：对当前实现状态的直接影响，不是新规则。
 
 ## 文档与内容容器
 
@@ -28,7 +28,7 @@
 | `badge` | `tone`, `variant` | `variant` | `tone` 仍保留在 semantic compatibility layer | `legacyBridges.variant` + `variant` 直通 | `primitive` | 与 `alert` 相同，是 variant 试点 + legacy compat 样本 |
 | `progress` | `value` | `value` | 无 | `value -> value`，并带 `determinate-progress` 行为模型 | `primitive` | 语义值直接进入 runtime 的对照组 |
 | `table` | 无 | 无 | `row.kind` 仍存在于完整 schema，但不在公开 contract | 结构由 `row` / `cell` children 决定；table 自身通过 `legacyBridges.structuralRole` 兼容旧结构角色 | `table` | table 自身无 props，风险集中在结构 child |
-| `list` | `variant` | `variant` | 无 | `variant` 决定根标签 `ol/ul`，默认 `ul` | `collection` | 这是历史公开例外，不构成任意开放原厂 `variant` 的先例 |
+| `list` | `variant` | `variant` | 无 | `variant` 决定根标签 `ol/ul`，默认 `ul` | `collection` | 这是当前保留的公开特例，不构成任意开放原厂 `variant` 的先例 |
 | `tabs` | `default` | 无 | `default` 仍保留在完整 schema compatibility layer | `legacyBridges.state` 决定默认选中项 | `tabs` | 公开主路径已收口，但默认状态 compat 仍在 runtime |
 | `accordion` | `mode`, `default` | 无 | `mode/default` 仍保留在完整 schema compatibility layer | `legacyBridges.state` + `behavior.stateBridge` | `accordion` | runtime compat 最深的状态桥样本 |
 
@@ -100,14 +100,14 @@
 - 旧字段已经退出主公开 contract / prompt
 - 但仍作为显式 compatibility semantic layer + runtime bridge 保留
 
-## 对下一步工作的直接帮助
+## 当前使用价值
 
 这份矩阵可以直接支撑：
 
-- 当前收口验收
+- 当前 contract 核对
   - 哪些东西已经退出主公开 contract
   - 哪些东西只是退到 compatibility layer
-- 后续 docs 审计
+- 当前 docs 审计
   - 哪些文档若还说“当前公开 props = tone/default/kind/mode”，就是过期事实
-- 后续真正的 compat 清理
-  - 如果未来要继续压缩 compatibility layer，这份矩阵能直接指出剩余桥接点
+- 当前 compat 风险盘点
+  - 如果未来继续压缩 compatibility layer，这份矩阵能直接指出剩余桥接点

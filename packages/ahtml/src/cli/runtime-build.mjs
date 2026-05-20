@@ -1,4 +1,4 @@
-import { execFile } from "node:child_process"
+import { execFile, spawn } from "node:child_process"
 import {
   copyFile,
   mkdir,
@@ -8,14 +8,14 @@ import {
   writeFile,
 } from "node:fs/promises"
 import path from "node:path"
-import { promisify } from "node:util"
 import { parse, parseFragment, serialize } from "parse5"
 
 import { getRuntimePaths, runtimePackageRoot } from "./runtime-paths.mjs"
 import { getRuntimeStatus } from "./runtime-status.mjs"
 import { resolveRuntimeDependencies } from "./runtime-template.mjs"
 
-const execFileAsync = promisify(execFile)
+const viteBuildTimeoutMs = 90000
+const ssrRenderTimeoutMs = 30000
 
 export async function buildRuntimeArtifact({
   outputDir,
@@ -44,7 +44,7 @@ export async function buildRuntimeArtifact({
   await mkdir(outputDir, { recursive: true })
 
   const { viteBin } = resolveRuntimeDependencies(packageRoot)
-  await execFileAsync(
+  await execFileWithTimeout(
     process.execPath,
     [
       viteBin,
@@ -60,10 +60,11 @@ export async function buildRuntimeArtifact({
         ...process.env,
         AHTML_RUNTIME_PACKAGE_ROOT: packageRoot,
       },
+      timeout: resolveChildProcessTimeout(viteBuildTimeoutMs),
     },
   )
   await rm(paths.runtimeSsrDir, { force: true, recursive: true })
-  await execFileAsync(
+  await execFileWithTimeout(
     process.execPath,
     [
       viteBin,
@@ -81,10 +82,11 @@ export async function buildRuntimeArtifact({
         ...process.env,
         AHTML_RUNTIME_PACKAGE_ROOT: packageRoot,
       },
+      timeout: resolveChildProcessTimeout(viteBuildTimeoutMs),
     },
   )
 
-  const ssr = await execFileAsync(
+  const ssr = await execFileWithTimeout(
     process.execPath,
     [await findSsrEntrypoint(paths.runtimeSsrDir)],
     {
@@ -93,6 +95,7 @@ export async function buildRuntimeArtifact({
         ...process.env,
         AHTML_RUNTIME_PACKAGE_ROOT: packageRoot,
       },
+      timeout: resolveChildProcessTimeout(ssrRenderTimeoutMs),
     },
   )
   await patchBuiltIndexHtml({
@@ -100,6 +103,147 @@ export async function buildRuntimeArtifact({
     outputDir,
   })
   await copyDefaultBrandIcon({ outputDir, packageRoot })
+}
+
+async function execFileWithTimeout(file, args, options) {
+  try {
+    return await execFileWithProcessTreeCleanup(file, args, options)
+  } catch (error) {
+    const command = [file, ...args].join(" ")
+    const detail =
+      error instanceof Error && typeof error.message === "string"
+        ? error.message
+        : String(error)
+    const stdout =
+      typeof error?.stdout === "string" && error.stdout.trim().length > 0
+        ? ` stdout: ${error.stdout.trim()}`
+        : ""
+    const stderr =
+      typeof error?.stderr === "string" && error.stderr.trim().length > 0
+        ? ` stderr: ${error.stderr.trim()}`
+        : ""
+
+    throw new Error(
+      `Runtime build command failed or timed out: ${command}. ${detail}${stdout}${stderr}`,
+    )
+  }
+}
+
+function resolveChildProcessTimeout(defaultTimeoutMs) {
+  const override = Number(process.env.AHTML_CHILD_PROCESS_TIMEOUT_MS)
+
+  if (Number.isInteger(override) && override > 0) {
+    return override
+  }
+
+  return defaultTimeoutMs
+}
+
+function execFileWithProcessTreeCleanup(file, args, options) {
+  return new Promise((resolve, reject) => {
+    let stdout = ""
+    let stderr = ""
+    let settled = false
+    const child = spawn(
+      file,
+      args,
+      {
+        cwd: options.cwd,
+        env: options.env,
+        stdio: ["ignore", "pipe", "pipe"],
+        windowsHide: true,
+      },
+    )
+    const timeout = setTimeout(() => {
+      if (settled) {
+        return
+      }
+
+      settled = true
+      void terminateProcessTree(child).finally(() => {
+        reject(
+          Object.assign(
+            new Error(`Command timed out after ${options.timeout}ms.`),
+            {
+              stdout,
+              stderr,
+            },
+          ),
+        )
+      })
+    }, options.timeout)
+
+    child.stdout.setEncoding("utf8")
+    child.stderr.setEncoding("utf8")
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk
+    })
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk
+    })
+    child.on("error", (error) => {
+      if (settled) {
+        return
+      }
+
+      clearTimeout(timeout)
+      settled = true
+      reject(
+        Object.assign(error, {
+          stdout,
+          stderr,
+        }),
+      )
+    })
+    child.on("exit", (code, signal) => {
+        if (settled) {
+          return
+        }
+
+        clearTimeout(timeout)
+        settled = true
+
+        if (code !== 0) {
+          reject(
+            Object.assign(
+              new Error(
+                `Command exited with code ${String(code)} signal ${String(signal)}.`,
+              ),
+              {
+                code,
+                signal,
+              stdout,
+              stderr,
+              },
+            ),
+          )
+          return
+        }
+
+        resolve({ stdout, stderr })
+      },
+    )
+  })
+}
+
+async function terminateProcessTree(child) {
+  if (child.exitCode !== null) {
+    return
+  }
+
+  if (process.platform !== "win32" || child.pid === undefined) {
+    child.kill("SIGTERM")
+    return
+  }
+
+  await new Promise((resolve) => {
+    execFile(
+      "taskkill",
+      ["/pid", String(child.pid), "/t", "/f"],
+      { windowsHide: true },
+      () => resolve(),
+    )
+  })
 }
 
 export async function patchBuiltIndexHtml({ html, outputDir }) {

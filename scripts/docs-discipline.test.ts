@@ -6,49 +6,43 @@ import { describe, expect, it } from "vitest"
 import { collectDocsDisciplineViolations } from "./docs-discipline.mjs"
 
 describe("docs discipline", () => {
-  it("allows phase summary wording in roadmap and todo", () => {
+  it("rejects phase summary wording everywhere", () => {
     expect(
       collectDocsDisciplineViolations([
         {
           relativePath: "roadmap.md",
-          content: "`Phase 5` 已完成，进入 post-phase cleanup。",
+          content: "`Phase 5` 已完成。",
         },
         {
           relativePath: "todo.md",
-          content: "`Phase 5A/5B` 的主线收口已完成。",
-        },
-      ]),
-    ).toEqual([])
-  })
-
-  it("rejects phase summary wording outside roadmap and todo", () => {
-    expect(
-      collectDocsDisciplineViolations([
-        {
-          relativePath: "details/current-contract-audit.md",
-          content: "当前主线已经完成 `Phase 5` 收口。",
+          content: "`Phase 5A/5B` 的主线已完成。",
         },
       ]),
     ).toMatchObject([
       {
-        relativePath: "details/current-contract-audit.md",
+        relativePath: "roadmap.md",
         label: "phase summary label",
         match: "Phase 5",
+      },
+      {
+        relativePath: "todo.md",
+        label: "phase summary label",
+        match: "Phase 5A",
       },
     ])
   })
 
-  it("rejects post-phase cleanup wording outside roadmap and todo", () => {
+  it("rejects post-phase cleanup wording everywhere", () => {
     expect(
       collectDocsDisciplineViolations([
         {
-          relativePath: "reading-map.md",
+          relativePath: "index.md",
           content: "还剩哪些 post-phase cleanup 欠账",
         },
       ]),
     ).toMatchObject([
       {
-        relativePath: "reading-map.md",
+        relativePath: "index.md",
         label: "post-phase cleanup label",
         match: "post-phase cleanup",
       },

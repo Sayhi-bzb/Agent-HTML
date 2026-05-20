@@ -298,6 +298,9 @@ export function AgentShell({
   const showCompareCard = Boolean(activeComparison)
   const compactReadinessItems = proposalReadinessView.items.slice(0, 2)
   const compactReadinessSummary = compactReadinessItems.join(" ")
+  const reviewLaneSummary = latestProposal
+    ? currentStageItem?.summary ?? "Review the latest proposal and current drift."
+    : "Draft a proposal after the current source and artifact are in sync."
   const comparisonLabels =
     comparisonMode === "proposal"
       ? {
@@ -488,7 +491,8 @@ export function AgentShell({
       <PanelShellHeader className="panel-header-compact agent-shell-header">
         <div className="shell-header-row">
           <div className="agent-shell-header-copy">
-            <strong>{currentStageItem?.label ?? "Proposal lane"}</strong>
+            <strong>Review lane</strong>
+            <span className="inline-meta">{reviewLaneSummary}</span>
             <div className="proposal-meta-row">
               {latestProposal ? (
                 <span className="inline-meta">
@@ -604,7 +608,10 @@ export function AgentShell({
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <div className="panel-menu-shell">
-              <SurfaceCard className="draft-compare-card" variant="context">
+              <SurfaceCard
+                className="draft-compare-card rail-compare-card"
+                variant="context"
+              >
                 <SurfaceCardHeader
                   eyebrow="Draft compare"
                   title={comparisonLabels.cardTitle}
@@ -722,19 +729,21 @@ export function AgentShell({
       ) : null}
 
       {latestStoredNote ? (
-        <SurfaceCard className="proposal-starter-card" variant="inset">
-          <SurfaceCardHeader padding="compact" title="Latest note" />
-          <SurfaceCardBody className="grid gap-2" padding="compact">
+        <SurfaceCard className="proposal-starter-card latest-note-card" variant="inset">
+          <SurfaceCardBody className="latest-note-body" padding="compact">
+            <div className="message-topline">
+              <p className="eyebrow">Latest note</p>
+              <span className="inline-meta">
+                {formatTimestampLabel(latestStoredNote.createdAt)}
+              </span>
+            </div>
             <p>{latestStoredNote.text}</p>
-            <span className="inline-meta">
-              {formatTimestampLabel(latestStoredNote.createdAt)}
-            </span>
           </SurfaceCardBody>
         </SurfaceCard>
       ) : null}
 
       <ScrollArea className="message-list-scroll">
-        <div className="message-list review-log-list">
+        <div className="message-list review-log-list agent-shell-message-stream">
           {visibleMessages.map((message) => (
             <AgentShellMessageCard
               activeView={activeView}
@@ -784,18 +793,26 @@ export function AgentShell({
           void handleSubmit(event)
         }}
       >
+        <div className="composer-topline">
+          <p className="eyebrow">Note</p>
+          <Button
+            disabled={isSending || !draft.trim()}
+            size="sm"
+            type="submit"
+            variant="outline"
+          >
+            {isSending ? "Saving..." : "Store"}
+          </Button>
+        </div>
         <label className="sr-only" htmlFor="agent-input">
           Future prompt
         </label>
         <Textarea
           id="agent-input"
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="Note"
+          placeholder="Add a session note"
           value={draft}
         />
-        <Button disabled={isSending || !draft.trim()} type="submit">
-          {isSending ? "Saving..." : "Store"}
-        </Button>
       </form>
     </PanelShell>
   )
@@ -926,7 +943,7 @@ function AgentShellMessageCard({
           >
             <div className="message-topline">
               <StatusBadge
-                tone={isProposal || isContextCard ? "accent" : "default"}
+                tone={isProposal ? "accent" : "default"}
               >
                 {isProposal
                   ? "proposal"

@@ -1,6 +1,7 @@
 # Architecture
 
-本文是 `blueprint/architecture-design/architecture.md` 的工程化解释稿。
+本文解释的是当前工作树里可由代码证据支撑的架构边界。  
+`blueprint/architecture-design/architecture.md` 记录目标架构，不等于当前实现完成度。
 
 ## Product Shape
 
@@ -22,36 +23,33 @@ agent 负责表达内容、关系和结构；系统负责把这些语义节点�
 
 ## 1. Configuration Layer
 
-- `gallery` 是配置层的场所，用来配置和预览 style / layout / component config。
+- 当前稳定的配置选择入口仍是 `style-ref`。
+- `gallery` 当前用于配置和预览 style profile，不属于语义使用层，也不是 runtime host 本身。
 - `gallery` 不属于语义使用层，不是 agent authoring contract 本身，也不是 runtime host 本身。
 
 ### 全局style
-- typography:包括字体家族、标题和正文字重、字号层级、行高、字距
-- radius:圆角风格
-- spacing scale:间距单位表
-- shadow scale:阴影层级
-- semantic colors:语义颜色系统
+- typography:当前稳定实现里包含 `fontSans` / `fontHeading`
+- radius:当前稳定实现里包含 `radiusScale`
+- semantic colors:当前稳定实现里通过 light / dark token sets 提供
+- `spacing scale` 与 `shadow scale` 仍是设计词汇，当前还没有写入稳定 `styleProfile`
 ### 全局layout
-- frame:负责页面和区域“站多大、摆在哪”
-- measure:负责正文“读起来舒服的行宽”
-- rhythm:负责纵向节奏
-- density posture:负责整体是紧凑还是舒展
-- partition:负责并列区域怎么分空间
-- reflow:负责空间不够时怎么变形
+- `frame`、`measure`、`rhythm`、`density posture`、`partition`、`reflow`
+- 这些仍是当前设计词汇，用来解释未来 layout realization 应该落在哪一层。
+- 它们当前还没有作为独立 `RenderConfig` 结构写入稳定实现。
 
 ### 组件配置
-组件配置分成两部分：
+当前稳定实现里的组件配置仍只有 `componentStyle.treatments`。
 
-- UI 组件配置：定义视觉映射和 prop exposure policy
-- layout 组件配置：定义每个 layout primitive 消费哪些 layout 配置轴
+- 它承载组件 treatment 映射。
+- layout 组件配置与 prop exposure config 目前仍未作为独立运行时配置结构落地。
 
 #### UI组件：页面的名词积木
-- UI组件配置不仅定义视觉映射，也定义原厂 props 的 exposure policy：哪些 prop 是 `blocked`，哪些是 `raw-candidate`，以及哪些候选 prop 在当前配置下对 agent prompt schema 可见。
-- 文档级配置选择入口可以存在，但它不是总架构中心，也不是 agent 必须显式书写的严格 authoring 指令。
-- 这意味着 prop 暴露不是 renderer 临时决定，也不是 engine 内核自由推断，而是先由配置层的 UI 组件配置给出规则，再由 schema / prompt 消费。
+- 当前原厂 props 的 exposure policy 仍由静态 schema 生成链路决定，而不是由 gallery 或 runtime config 临时决定。
+- `blocked` / `raw-candidate` 的当前来源是 exposure policy 与 generated schema。
+- `style-ref` 在 parse / runtime 层允许 fallback，但在当前 CLI prompt 主路径中仍是规范写法。
 - 详见 [schema.md](./schema.md)。
 #### layout组件：页面的关系积木
-- 下面的 `stack:measure/rhythm/density` 这类记号表示“该 layout primitive 消费哪些配置轴”，不是公开 props 清单。
+- 下面的 `stack:measure/rhythm/density` 这类记号当前只表示目标配置分工，不是已经实现的公开 props 或稳定 config 结构。
 - stack:measure/rhythm/density
 - cluster:rhythm/density/reflow
 - split:frame/partition/reflow/density
@@ -129,3 +127,4 @@ schema 只暴露稳定语义，不暴露实现细节。agent 可以看到的能�
 - 内容字段
 - slots / children 边界
 - 受控公开 props
+- 当前公开配置选择入口仍是 `style-ref`。
