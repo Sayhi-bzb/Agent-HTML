@@ -132,7 +132,6 @@ const uiProtocolDefinitions = {
     slots: [
       {
         name: "row",
-        props: ["kind"],
         children: ["cell"],
       },
       {
@@ -143,9 +142,6 @@ const uiProtocolDefinitions = {
   },
   tabs: {
     promptOrder: 17,
-    attrAliases: {
-      default: "default-value",
-    },
     normalization: {
       kind: "tabs",
       triggerSlotName: "tabs-trigger",
@@ -307,28 +303,7 @@ export const componentCapabilityDefinitions = {
       titleProp: "title",
       childMode: "block",
       textMode: "prose",
-      legacyBridges: {
-        variant: [
-          {
-            kind: "variant",
-            sourceProp: "tone",
-            targetProp: "variant",
-            map: {
-              danger: "destructive",
-              neutral: "default",
-            },
-          },
-        ],
-      },
       propMappings: [
-        {
-          prop: "tone",
-          target: "variant",
-          map: {
-            danger: "destructive",
-            neutral: "default",
-          },
-        },
         {
           prop: "variant",
           target: "variant",
@@ -376,32 +351,7 @@ export const componentCapabilityDefinitions = {
       component: "Badge",
       childMode: "inline",
       textMode: "prose",
-      legacyBridges: {
-        variant: [
-          {
-            kind: "variant",
-            sourceProp: "tone",
-            targetProp: "variant",
-            map: {
-              danger: "destructive",
-              neutral: "default",
-              success: "secondary",
-              warning: "secondary",
-            },
-          },
-        ],
-      },
       propMappings: [
-        {
-          prop: "tone",
-          target: "variant",
-          map: {
-            danger: "destructive",
-            neutral: "default",
-            success: "secondary",
-            warning: "secondary",
-          },
-        },
         {
           prop: "variant",
           target: "variant",
@@ -733,16 +683,6 @@ export const componentCapabilityDefinitions = {
       row: "TableRow",
       headerCell: "TableHead",
       bodyCell: "TableCell",
-      legacyBridges: {
-        structuralRole: [
-          {
-            kind: "structural-role",
-            roleKind: "table-row-kind",
-            sourceProp: "kind",
-            headerValue: "header",
-          },
-        ],
-      },
       rowSlot: "row",
       cellSlot: "cell",
     },
@@ -784,15 +724,6 @@ export const componentCapabilityDefinitions = {
       itemSlot: "tab",
       itemValueProp: "value",
       itemHeadingProp: "label",
-      legacyBridges: {
-        state: [
-          {
-            kind: "state",
-            stateKind: "tabs-default",
-            defaultProp: "default",
-          },
-        ],
-      },
       fallback: true,
       slotMode: "standard-children",
     },
@@ -801,10 +732,8 @@ export const componentCapabilityDefinitions = {
     source: "shadcn",
     renderKind: "accordion",
     behavior: {
-      model: "explicit-default-state",
+      model: "fixed-multiple-state",
       runtimeOwner: "renderer",
-      stateBridge: "accordion-state",
-      multiValueDelimiter: ",",
     },
     uiProtocol: uiProtocolDefinitions.accordion,
     requiredRegistryItem: "accordion",
@@ -823,17 +752,8 @@ export const componentCapabilityDefinitions = {
       itemSlot: "accordion-item",
       itemValueProp: "value",
       itemHeadingProp: "title",
-      legacyBridges: {
-        state: [
-          {
-            kind: "state",
-            stateKind: "accordion-state",
-            modeProp: "mode",
-            defaultProp: "default",
-            defaultMode: "multiple",
-            multiValueDelimiter: ",",
-          },
-        ],
+      staticProps: {
+        type: "multiple",
       },
       fallback: true,
     },

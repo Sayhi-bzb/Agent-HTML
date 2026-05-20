@@ -5,10 +5,7 @@ import type { RendererKind } from "./kinds"
 import {
   applyPropMappings,
   getRendererPropMappings,
-  partitionTableRowsByLegacyRole,
-  resolveAccordionLegacyState,
-  resolveTabsLegacyDefaultValue,
-} from "./legacy-compat"
+} from "./renderer-props"
 import type {
   AgentComponentNode,
   AgentNode,
@@ -727,10 +724,8 @@ export function createUiRenderer(context: UiRendererContext) {
     const rowSlot = requireRendererSpecField(rendererSpec, "rowSlot")
     const cellSlot = requireRendererSpecField(rendererSpec, "cellSlot")
     const rows = getSlotChildren(node, rowSlot)
-    const { headerRows, bodyRows } = partitionTableRowsByLegacyRole(
-      rows,
-      rendererSpec,
-    )
+    const headerRows = rows.length > 1 ? rows.slice(0, 1) : []
+    const bodyRows = rows.length > 1 ? rows.slice(1) : rows
 
     return (
       <Root {...context.getComponentMetadataProps(node, rendererSpec)}>
@@ -811,11 +806,9 @@ export function createUiRenderer(context: UiRendererContext) {
       "itemHeadingProp",
     )
     const items = getStructuredItemsForNode(node, itemSlot)
-    const { mode, defaultValue } = resolveAccordionLegacyState(node, rendererSpec)
     const rootProps = {
       ...context.getComponentMetadataProps(node, rendererSpec),
-      type: mode,
-      ...(defaultValue !== undefined ? { defaultValue } : {}),
+      ...(rendererSpec.staticProps ?? {}),
     }
 
     return (
@@ -872,11 +865,9 @@ export function createUiRenderer(context: UiRendererContext) {
       return null
     }
 
-    const defaultValue = resolveTabsLegacyDefaultValue({
+    const defaultValue = getStructuredDefaultValue({
       items: tabs,
       itemValueProp,
-      node,
-      rendererSpec,
     })
 
     return (
@@ -1307,15 +1298,13 @@ function getStructuredItemHeading(
 }
 
 function getStructuredDefaultValue({
-  explicitValue,
   items,
   itemValueProp,
 }: {
-  explicitValue?: string
   items: AgentComponentNode[]
   itemValueProp: string
 }) {
-  return explicitValue || getStructuredItemValue(items[0], itemValueProp)
+  return getStructuredItemValue(items[0], itemValueProp)
 }
 
 function getRendererProps(

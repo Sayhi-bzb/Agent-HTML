@@ -662,7 +662,6 @@ function DocumentArtifactShell({
 }>) {
   const classes = [
     "ahtml-artifact-root",
-    "ahtml-document-shell",
     layoutPolicy === "document" ? "ahtml-layout-policy-document" : undefined,
     className,
   ]
@@ -772,10 +771,10 @@ function createGalleryPreviewDocument(styleProfile: StyleProfile): AgentDocument
           textNode(
             "Alerts, badges, and progress indicators reveal contrast, treatment, and emphasis quickly.",
           ),
-          componentNode("badge", { tone: "success" }, [textNode("healthy")]),
+          componentNode("badge", { variant: "secondary" }, [textNode("healthy")]),
           componentNode(
             "alert",
-            { title: "Review block", tone: "danger" },
+            { title: "Review block", variant: "destructive" },
             [textNode("A destructive state should remain distinct under both themes.")],
           ),
           componentNode("progress", { value: "68" }, []),
@@ -795,10 +794,10 @@ function createGalleryPreviewDocument(styleProfile: StyleProfile): AgentDocument
         ]),
         createCard("Table", [
           componentNode("table", {}, [
-            rowNode("header", "Surface", "Signal"),
-            rowNode("body", "Card", styleProfile.componentStyle.treatments.card ?? "none"),
-            rowNode("body", "Tabs", styleProfile.componentStyle.treatments.tabs ?? "none"),
-            rowNode("body", "Radius", styleProfile.globalStyle.radiusScale.base),
+            rowNode("Surface", "Signal"),
+            rowNode("Card", styleProfile.componentStyle.treatments.card ?? "none"),
+            rowNode("Tabs", styleProfile.componentStyle.treatments.tabs ?? "none"),
+            rowNode("Radius", styleProfile.globalStyle.radiusScale.base),
           ]),
         ]),
       ]),
@@ -887,7 +886,7 @@ function createGalleryPreviewDocument(styleProfile: StyleProfile): AgentDocument
         ]),
       ]),
       createPageSection("Disclosure", [
-        componentNode("tabs", { default: "summary" }, [
+        componentNode("tabs", {}, [
           componentNode("tab", { value: "summary", label: "Summary" }, [
             createCard("Tabs", [
               textNode(
@@ -932,8 +931,8 @@ function itemNode(value: string) {
   return componentNode("item", {}, [textNode(value)])
 }
 
-function rowNode(kind: "header" | "body", left: string, right: string) {
-  return componentNode("row", { kind }, [
+function rowNode(left: string, right: string) {
+  return componentNode("row", {}, [
     componentNode("cell", {}, [textNode(left)]),
     componentNode("cell", {}, [textNode(right)]),
   ])

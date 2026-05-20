@@ -2,11 +2,13 @@ import React from "react"
 
 import { resolveElement } from "./elements"
 import type { RendererKind } from "./kinds"
+import {
+  applyPropMappings,
+  getRendererPropMappings,
+} from "./renderer-props"
 import type {
   AgentComponentNode,
   RendererPath,
-  RendererPropMapping,
-  RendererPropValue,
   RendererSpecComponent,
   RendererTextMode,
 } from "./types"
@@ -43,7 +45,7 @@ export function createLayoutRenderer(context: LayoutRendererContext) {
     const Root = resolveElement(rendererSpec.root)
     const props = {
       ...context.getComponentMetadataProps(node, rendererSpec),
-      ...applyPropMappings(node.props, rendererSpec.propMappings),
+      ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
     }
     const children =
       rendererSpec.childMode === "inline"
@@ -61,52 +63,4 @@ export function createLayoutRenderer(context: LayoutRendererContext) {
     "layout-switcher": renderLayoutComponent,
     "layout-frame": renderLayoutComponent,
   } satisfies Partial<Record<RendererKind, LayoutRenderer>>
-}
-
-function applyPropMappings(
-  props: Record<string, string>,
-  propMappings?: RendererPropMapping[],
-) {
-  const mapped: Record<string, RendererPropValue> = {}
-
-  for (const mapping of propMappings ?? []) {
-    const value = props[mapping.prop]
-
-    if (value === undefined) {
-      continue
-    }
-
-    if (mapping.map) {
-      const targetValue = mapping.map[value] ?? mapping.default
-
-      if (targetValue !== undefined) {
-        mapped[mapping.target] = targetValue
-      }
-      continue
-    }
-
-    if (mapping.coerce) {
-      mapped[mapping.target] = coercePropValue(value, mapping.coerce)
-      continue
-    }
-
-    mapped[mapping.target] = value
-  }
-
-  return mapped
-}
-
-function coercePropValue(
-  value: string,
-  kind: NonNullable<RendererPropMapping["coerce"]>,
-) {
-  if (kind === "boolean") {
-    return value === "true"
-  }
-
-  if (kind === "number-array") {
-    return [Number(value)]
-  }
-
-  return Number(value)
 }

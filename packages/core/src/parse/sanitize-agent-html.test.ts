@@ -8,14 +8,14 @@ const semanticReportSource = `
   <page title="Semantic Report">
     <alert title="Thesis">HTML artifacts can stay readable without exposing implementation details.</alert>
     <card title="Executive Summary">
-      <badge tone="success">Readable</badge>
+      <badge variant="secondary">Readable</badge>
       <list>
         <item>Agents use semantic components.</item>
         <item>Renderer details stay internal.</item>
       </list>
     </card>
     <table>
-      <row kind="header">
+      <row>
         <cell>Use Case</cell>
         <cell>Component</cell>
       </row>
@@ -30,7 +30,7 @@ const semanticReportSource = `
 const collaborationWorkbenchSource = `
   <meta-agent style-ref="ops-compact" />
   <page title="Human Agent Collaboration Workbench">
-    <tabs default="decide">
+    <tabs>
       <tab value="explore" label="Explore">
         <accordion>
           <accordion-item value="review" title="Review Console">
@@ -43,7 +43,7 @@ const collaborationWorkbenchSource = `
       <tab value="decide" label="Decide">
         <alert title="Decision">Ship the current direction.</alert>
         <table>
-          <row kind="header">
+          <row>
             <cell>Signal</cell>
             <cell>Status</cell>
           </row>
@@ -103,13 +103,13 @@ describe("sanitizeAgentHtml", () => {
       <meta-agent style-ref="report-default" />
       <page title="Payment Review">
         <card title="High Risk">
-          <badge tone="danger">Missing finance role check</badge>
+          <badge variant="destructive">Missing finance role check</badge>
           <list>
             <item>Add role check before refund mutation</item>
           </list>
         </card>
         <table>
-          <row kind="header">
+          <row>
             <cell>file</cell>
             <cell>line</cell>
             <cell>evidence</cell>
@@ -182,7 +182,7 @@ describe("sanitizeAgentHtml", () => {
                   type: "component",
                   name: "badge",
                   props: {
-                    tone: "danger",
+                    variant: "destructive",
                   },
                   children: [
                     {
@@ -219,9 +219,7 @@ describe("sanitizeAgentHtml", () => {
                 {
                   type: "component",
                   name: "row",
-                  props: {
-                    kind: "header",
-                  },
+                  props: {},
                   children: [
                     {
                       type: "component",
@@ -418,7 +416,7 @@ describe("sanitizeAgentHtml", () => {
     const result = sanitizeAgentHtml(`
       <page title="Payment Review">
         <table>
-          <row kind="header">
+          <row>
             <cell>file</cell>
             <cell>line</cell>
           </row>
@@ -574,7 +572,7 @@ describe("sanitizeAgentHtml", () => {
   it("accepts first-pass interactive structure components", () => {
     const result = sanitizeAgentHtml(`
       <page title="Interactive Workbench">
-        <tabs default="decide">
+        <tabs>
           <tab value="explore" label="Explore">
             <accordion>
               <accordion-item value="review" title="Review Console">
@@ -587,7 +585,7 @@ describe("sanitizeAgentHtml", () => {
           <tab value="decide" label="Decide">
             <alert title="Decision">Ship the current direction.</alert>
             <table>
-              <row kind="header">
+              <row>
                 <cell>Signal</cell>
                 <cell>Status</cell>
               </row>
@@ -640,8 +638,8 @@ describe("sanitizeAgentHtml", () => {
         <stack>
           <card title="Summary">
             <cluster>
-              <badge tone="success">Ready</badge>
-              <badge tone="warning">Queued</badge>
+              <badge variant="secondary">Ready</badge>
+              <badge variant="outline">Queued</badge>
             </cluster>
           </card>
           <stack>
@@ -680,14 +678,14 @@ describe("sanitizeAgentHtml", () => {
                       type: "component",
                       name: "badge",
                       props: {
-                        tone: "success",
+                        variant: "secondary",
                       },
                     },
                     {
                       type: "component",
                       name: "badge",
                       props: {
-                        tone: "warning",
+                        variant: "outline",
                       },
                     },
                   ],
@@ -719,7 +717,7 @@ describe("sanitizeAgentHtml", () => {
       <page title="Layout Workbench">
         <stack gap="12">
           <cluster columns="3" breakpoint="md">
-            <badge tone="success">Ready</badge>
+            <badge variant="secondary">Ready</badge>
           </cluster>
         </stack>
       </page>
@@ -761,8 +759,8 @@ describe("sanitizeAgentHtml", () => {
               <card title="Grid B">Two</card>
             </grid>
             <switcher>
-              <badge tone="success">Ready</badge>
-              <badge tone="warning">Queued</badge>
+              <badge variant="secondary">Ready</badge>
+              <badge variant="outline">Queued</badge>
             </switcher>
           </stack>
         </frame>
@@ -822,7 +820,7 @@ describe("sanitizeAgentHtml", () => {
             <card title="Grid A">One</card>
           </grid>
           <switcher breakpoint="md">
-            <badge tone="success">Ready</badge>
+            <badge variant="secondary">Ready</badge>
           </switcher>
         </frame>
       </page>
@@ -1087,7 +1085,7 @@ describe("sanitizeAgentHtml", () => {
   it("rejects removed custom controls", () => {
     const result = sanitizeAgentHtml(`
       <page title="Removed Controls">
-        <choice-group title="Direction" mode="single" default="ship">
+        <choice-group title="Direction">
           <choice value="ship" label="Ship">Use the current direction.</choice>
         </choice-group>
         <slider-control label="Review strictness" value="70" />

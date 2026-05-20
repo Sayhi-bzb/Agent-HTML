@@ -192,10 +192,8 @@ describe("standard component schema", () => {
       ),
     ).toEqual({
       accordion: {
-        model: "explicit-default-state",
+        model: "fixed-multiple-state",
         runtimeOwner: "renderer",
-        stateBridge: "accordion-state",
-        multiValueDelimiter: ",",
       },
       progress: {
         model: "determinate-progress",
@@ -237,10 +235,6 @@ describe("standard component schema", () => {
 
     expect(alertResolved?.semanticProps.map((prop) => prop.name)).toEqual([
       "title",
-      "tone",
-    ])
-    expect(alertResolved?.legacyPublicProps?.map((prop) => prop.name)).toEqual([
-      "tone",
     ])
     expect(alertResolved?.rawCandidateProps).toEqual([
       {
@@ -264,7 +258,6 @@ describe("standard component schema", () => {
       },
     ])
     expect(getComponentSchema("badge")?.props.map((prop) => prop.name)).toEqual([
-      "tone",
       "variant",
     ])
     expect(selectResolved?.props.map((prop) => prop.name)).toEqual([
@@ -282,10 +275,8 @@ describe("standard component schema", () => {
     expect(allPropNames).toEqual([
       "title",
       "title",
-      "tone",
       "variant",
       "title",
-      "tone",
       "variant",
       "value",
       "label",
@@ -317,13 +308,9 @@ describe("standard component schema", () => {
       "description",
       "value",
       "label",
-      "kind",
       "variant",
-      "default",
       "value",
       "label",
-      "mode",
-      "default",
       "value",
       "title",
     ])
@@ -511,11 +498,8 @@ describe("standard component schema", () => {
     expect(isStandardComponentName("script")).toBe(false)
     expect(isStandardComponentName("option")).toBe(true)
     expect(row).toBeDefined()
-    expect(row ? getAllowedPropNames(row) : []).toEqual(["kind"])
-    expect(row ? getComponentPropSchema(row, "kind")?.enumValues : []).toEqual([
-      "header",
-      "body",
-    ])
+    expect(row ? getAllowedPropNames(row) : []).toEqual([])
+    expect(row ? getComponentPropSchema(row, "kind") : undefined).toBeUndefined()
     expect(getComponentSchema("slider-control")).toBeUndefined()
   })
 })

@@ -278,13 +278,11 @@ describe("createRendererNode", () => {
   it("allows artifact root and document layout policy classes to coexist", () => {
     const markup = renderToStaticMarkup(
       React.createElement("div", {
-        className:
-          "ahtml-artifact-root ahtml-document-shell ahtml-layout-policy-document",
+        className: "ahtml-artifact-root ahtml-layout-policy-document",
       }),
     )
 
     expect(markup).toContain("ahtml-artifact-root")
-    expect(markup).toContain("ahtml-document-shell")
     expect(markup).toContain("ahtml-layout-policy-document")
   })
 
@@ -308,15 +306,6 @@ describe("createRendererNode", () => {
           trigger: "TabsTrigger",
           content: "TabsContent",
           itemSlot: "entry",
-          legacyBridges: {
-            state: [
-              {
-                kind: "state",
-                stateKind: "tabs-default",
-                defaultProp: "default",
-              },
-            ],
-          },
           itemValueProp: "slug",
           itemHeadingProp: "heading",
           fallback: true,
@@ -348,70 +337,8 @@ describe("createRendererNode", () => {
     expect(markup).toContain(
       '<h2 class="m-0 text-lg font-medium leading-7">Alpha</h2>',
     )
-  })
-
-  it("uses the tabs legacy state bridge to resolve explicit default selection", () => {
-    const rendererSpecByName = new Map([
-      [
-        "tabs",
-        {
-          name: "tabs",
-          kind: "tabs",
-          renderKind: "tabs",
-          slots: [
-            {
-              name: "entry",
-              childNames: ["entry"],
-              children: ["text"],
-            },
-          ],
-          root: "Tabs",
-          list: "TabsList",
-          trigger: "TabsTrigger",
-          content: "TabsContent",
-          itemSlot: "entry",
-          legacyBridges: {
-            state: [
-              {
-                kind: "state",
-                stateKind: "tabs-default",
-                defaultProp: "default",
-              },
-            ],
-          },
-          itemValueProp: "slug",
-          itemHeadingProp: "heading",
-        },
-      ],
-    ])
-
-    const RendererNode = createRendererNode(rendererSpecByName)
-    const markup = renderToStaticMarkup(
-      React.createElement(RendererNode, {
-        node: {
-          type: "component",
-          name: "tabs",
-          props: { default: "beta" },
-          children: [
-            {
-              type: "component",
-              name: "entry",
-              props: { slug: "alpha", heading: "Alpha" },
-              children: [{ type: "text", value: "First" }],
-            },
-            {
-              type: "component",
-              name: "entry",
-              props: { slug: "beta", heading: "Beta" },
-              children: [{ type: "text", value: "Second" }],
-            },
-          ],
-        },
-      }),
-    )
-
     expect(markup).toContain(
-      'data-tabs-props="{&quot;data-agent-html-component&quot;:&quot;tabs&quot;,&quot;defaultValue&quot;:&quot;beta&quot;}"',
+      'data-tabs-props="{&quot;data-agent-html-component&quot;:&quot;tabs&quot;,&quot;defaultValue&quot;:&quot;alpha&quot;}"',
     )
   })
 
@@ -1108,17 +1035,8 @@ describe("createRendererNode", () => {
           itemSlot: "accordion-item",
           itemValueProp: "slug",
           itemHeadingProp: "heading",
-          legacyBridges: {
-            state: [
-              {
-                kind: "state",
-                stateKind: "accordion-state",
-                modeProp: "mode",
-                defaultProp: "default",
-                defaultMode: "multiple",
-                multiValueDelimiter: ",",
-              },
-            ],
+          staticProps: {
+            type: "multiple",
           },
           fallback: true,
         },
@@ -1153,79 +1071,7 @@ describe("createRendererNode", () => {
     expect(markup).toContain("<noscript>")
   })
 
-  it("parses explicit accordion default state instead of opening every item", () => {
-    const rendererSpecByName = new Map([
-      [
-        "accordion",
-        {
-          name: "accordion",
-          kind: "accordion",
-          renderKind: "accordion",
-          slots: [
-            {
-              name: "accordion-item",
-              childNames: ["accordion-item"],
-              children: ["text"],
-            },
-          ],
-          root: "Accordion",
-          item: "AccordionItem",
-          trigger: "AccordionTrigger",
-          content: "AccordionContent",
-          itemSlot: "accordion-item",
-          itemValueProp: "slug",
-          itemHeadingProp: "heading",
-          legacyBridges: {
-            state: [
-              {
-                kind: "state",
-                stateKind: "accordion-state",
-                modeProp: "mode",
-                defaultProp: "default",
-                defaultMode: "multiple",
-                multiValueDelimiter: ",",
-              },
-            ],
-          },
-        },
-      ],
-    ])
-
-    const RendererNode = createRendererNode(rendererSpecByName)
-    const markup = renderToStaticMarkup(
-      React.createElement(RendererNode, {
-        node: {
-          type: "component",
-          name: "accordion",
-          props: {
-            mode: "multiple",
-            default: "details, audit",
-          },
-          children: [
-            {
-              type: "component",
-              name: "accordion-item",
-              props: { slug: "details", heading: "Details" },
-              children: [{ type: "text", value: "Accordion content" }],
-            },
-            {
-              type: "component",
-              name: "accordion-item",
-              props: { slug: "audit", heading: "Audit" },
-              children: [{ type: "text", value: "Audit content" }],
-            },
-          ],
-        },
-      }),
-    )
-
-    expect(markup).toContain('&quot;type&quot;:&quot;multiple&quot;')
-    expect(markup).toContain(
-      '&quot;defaultValue&quot;:[&quot;details&quot;,&quot;audit&quot;]',
-    )
-  })
-
-  it("uses the table legacy structural role bridge to split header and body rows", () => {
+  it("uses the first table row as header and the remaining rows as body", () => {
     const rendererSpecByName = new Map([
       [
         "table",
@@ -1253,16 +1099,6 @@ describe("createRendererNode", () => {
               children: ["text"],
             },
           ],
-          legacyBridges: {
-            structuralRole: [
-              {
-                kind: "structural-role",
-                roleKind: "table-row-kind",
-                sourceProp: "kind",
-                headerValue: "header",
-              },
-            ],
-          },
         },
       ],
     ])
@@ -1278,7 +1114,7 @@ describe("createRendererNode", () => {
             {
               type: "component",
               name: "row",
-              props: { kind: "header" },
+              props: {},
               children: [
                 {
                   type: "component",
@@ -1370,7 +1206,13 @@ describe("createRendererNode", () => {
         {
           name: "badge",
           description: "Short status label.",
-          props: [{ name: "tone", valueKind: "enum", enumValues: ["success"] }],
+          props: [
+            {
+              name: "variant",
+              valueKind: "enum",
+              enumValues: ["secondary"],
+            },
+          ],
           allowedChildren: ["#text"],
         },
       ]).components.map((component) => [component.name, component]),
@@ -1447,7 +1289,7 @@ describe("createRendererNode", () => {
                             {
                               type: "component",
                               name: "badge",
-                              props: { tone: "success" },
+                              props: { variant: "secondary" },
                               children: [{ type: "text", value: "Ready" }],
                             },
                           ],

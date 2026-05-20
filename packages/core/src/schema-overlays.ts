@@ -2,15 +2,6 @@ import type { ComponentSchemaOverlay, ComponentSemanticContract } from "./types"
 
 const TEXT_CHILD = "#text"
 
-const LEGACY_PUBLIC_PROP_KEYS = new Set([
-  "accordion.default",
-  "accordion.mode",
-  "alert.tone",
-  "badge.tone",
-  "row.kind",
-  "tabs.default",
-])
-
 const STRUCTURAL_PROP_KEYS = new Set([
   "accordion-item.value",
   "option.value",
@@ -134,12 +125,6 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
         valueKind: "string",
         description: "Callout heading.",
       },
-      {
-        name: "tone",
-        valueKind: "enum",
-        description: "Alert semantic tone.",
-        enumValues: ["neutral", "danger"],
-      },
     ],
     allowedChildren: [TEXT_CHILD],
     hiddenProps: ["variant"],
@@ -192,14 +177,7 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
     description: "Short status label.",
     expose: true,
     sourceComponents: ["Badge"],
-    props: [
-      {
-        name: "tone",
-        valueKind: "enum",
-        description: "Badge semantic tone.",
-        enumValues: ["neutral", "success", "warning", "danger"],
-      },
-    ],
+    props: [],
     allowedChildren: [TEXT_CHILD],
     hiddenProps: ["variant"],
   },
@@ -511,14 +489,7 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
     description: "Table row values.",
     expose: true,
     sourceComponents: ["TableRow"],
-    props: [
-      {
-        name: "kind",
-        valueKind: "enum",
-        description: "Table row role.",
-        enumValues: ["header", "body"],
-      },
-    ],
+    props: [],
     allowedChildren: ["cell"],
   },
   {
@@ -557,13 +528,7 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
     description: "Interactive view switcher.",
     expose: true,
     sourceComponents: ["Tabs"],
-    props: [
-      {
-        name: "default",
-        valueKind: "string",
-        description: "Initially selected tab value.",
-      },
-    ],
+    props: [],
     allowedChildren: ["tab"],
     hiddenProps: ["defaultValue", "value"],
   },
@@ -612,20 +577,7 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
     description: "Expandable section group.",
     expose: true,
     sourceComponents: ["Accordion"],
-    props: [
-      {
-        name: "mode",
-        valueKind: "enum",
-        description: "Whether one or multiple sections may stay open.",
-        enumValues: ["single", "multiple"],
-      },
-      {
-        name: "default",
-        valueKind: "text",
-        description:
-          'Initially open accordion item value, or a comma-separated list when mode is "multiple".',
-      },
-    ],
+    props: [],
     allowedChildren: ["accordion-item"],
     hiddenProps: ["type", "collapsible", "defaultValue", "value"],
   },
@@ -684,12 +636,8 @@ export const COMPONENT_SEMANTIC_CONTRACTS =
 function inferSemanticPropOrigin(
   componentName: string,
   propName: string,
-): "content" | "structure" | "legacy" {
+): "content" | "structure" {
   const key = `${componentName}.${propName}`
-
-  if (LEGACY_PUBLIC_PROP_KEYS.has(key)) {
-    return "legacy"
-  }
 
   if (STRUCTURAL_PROP_KEYS.has(key)) {
     return "structure"

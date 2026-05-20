@@ -29,15 +29,6 @@ const safetyForbiddenCategories = [
   "unknown attrs",
 ] as const
 
-const LEGACY_PUBLIC_PROP_REPLACEMENTS = {
-  alert: {
-    tone: "variant",
-  },
-  badge: {
-    tone: "variant",
-  },
-} as const
-
 export function createPublicRenderConfigContract(): PublicRenderConfigContract {
   return {
     defaults: PUBLIC_RENDER_CONFIG_DEFAULTS ?? DEFAULT_RENDER_CONFIG,
@@ -101,29 +92,5 @@ function projectPublicComponentSchema(
 function getPublicSemanticProps(
   schema: ResolvedComponentSchema,
 ): readonly ComponentSemanticPropSchema[] {
-  return (schema.semanticProps ?? []).filter(
-    (prop) =>
-      prop.origin !== "legacy" &&
-      !isLegacyPropReplacedByExposedRawProp(schema, prop.name),
-  )
-}
-
-function isLegacyPropReplacedByExposedRawProp(
-  schema: ResolvedComponentSchema,
-  legacyPropName: string,
-): boolean {
-  const replacementEntries = Object.entries(
-    LEGACY_PUBLIC_PROP_REPLACEMENTS[
-      schema.name as keyof typeof LEGACY_PUBLIC_PROP_REPLACEMENTS
-    ] ?? {},
-  )
-  const exposedRawPropNames = new Set(
-    schema.exposedRawProps?.map((prop) => prop.name) ?? [],
-  )
-
-  return replacementEntries.some(
-    ([candidateLegacyPropName, rawPropName]) =>
-      candidateLegacyPropName === legacyPropName &&
-      exposedRawPropNames.has(rawPropName),
-  )
+  return schema.semanticProps ?? []
 }

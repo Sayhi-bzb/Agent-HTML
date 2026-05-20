@@ -292,7 +292,7 @@ describe("createRuntimeElementRegistrySpec", () => {
       },
       {
         name: "tabs",
-        props: [{ name: "default", valueKind: "string" }],
+        props: [],
         allowedChildren: ["tab"],
       },
       {
@@ -302,7 +302,7 @@ describe("createRuntimeElementRegistrySpec", () => {
       },
       {
         name: "row",
-        props: [{ name: "kind", valueKind: "enum", enumValues: ["header"] }],
+        props: [],
         allowedChildren: ["cell"],
       },
       {
@@ -353,39 +353,17 @@ describe("createRuntimeElementRegistrySpec", () => {
     expect(tabSlot?.children).toEqual(["card"])
     expect(tabs?.itemValueProp).toBe("value")
     expect(tabs?.itemHeadingProp).toBe("label")
-    expect(tabs?.defaultProp).toBeUndefined()
-    expect(tabs?.legacyBridges?.state).toEqual([
-      expect.objectContaining({
-        stateKind: "tabs-default",
-        defaultProp: "default",
-      }),
-    ])
+    expect(tabs?.staticProps).toBeUndefined()
 
     const table = rendererMapping.components.find(
       (component) => component.name === "table",
     )
-    expect(table?.kindProp).toBeUndefined()
-    expect(table?.legacyBridges?.structuralRole).toEqual([
-      expect.objectContaining({
-        sourceProp: "kind",
-        headerValue: "header",
-      }),
-    ])
+    expect(table?.staticProps).toBeUndefined()
 
     const accordion = rendererMapping.components.find(
       (component) => component.name === "accordion",
     )
-    expect(accordion?.modeProp).toBeUndefined()
-    expect(accordion?.defaultProp).toBeUndefined()
-    expect(accordion?.defaultMode).toBeUndefined()
-    expect(accordion?.legacyBridges?.state).toEqual([
-      expect.objectContaining({
-        stateKind: "accordion-state",
-        modeProp: "mode",
-        defaultProp: "default",
-        defaultMode: "multiple",
-      }),
-    ])
+    expect(accordion?.staticProps).toEqual({ type: "multiple" })
 
     for (const component of rendererMapping.components) {
       expect(collectRendererSpecComponentIssues(component)).toEqual([])
@@ -457,7 +435,7 @@ describe("createRuntimeElementRegistrySpec", () => {
     })
   })
 
-  it("keeps alert and badge renderer mappings compatible with variant while preserving tone bridge", () => {
+  it("keeps alert and badge renderer mappings aligned to variant-only runtime props", () => {
     const rendererMapping = createRendererMapping([
       {
         name: "alert",
@@ -500,38 +478,18 @@ describe("createRuntimeElementRegistrySpec", () => {
     expect(alert?.propMappings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          prop: "tone",
-          target: "variant",
-        }),
-        expect.objectContaining({
           prop: "variant",
           target: "variant",
         }),
       ]),
     )
-    expect(alert?.legacyBridges?.variant).toEqual([
-      expect.objectContaining({
-        sourceProp: "tone",
-        targetProp: "variant",
-      }),
-    ])
     expect(badge?.propMappings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          prop: "tone",
-          target: "variant",
-        }),
-        expect.objectContaining({
           prop: "variant",
           target: "variant",
         }),
       ]),
     )
-    expect(badge?.legacyBridges?.variant).toEqual([
-      expect.objectContaining({
-        sourceProp: "tone",
-        targetProp: "variant",
-      }),
-    ])
   })
 })

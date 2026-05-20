@@ -102,7 +102,7 @@ describe("createRuntimeRenderDiagnostics", () => {
             {
               name: "tabs",
               renderKind: "tabs",
-              props: ["default"],
+              props: [],
               slots: [{ name: "tab", children: ["text"] }],
             },
           ],
@@ -121,15 +121,6 @@ describe("createRuntimeRenderDiagnostics", () => {
               itemSlot: "tab",
               itemValueProp: "slug",
               itemHeadingProp: "heading",
-              legacyBridges: {
-                state: [
-                  {
-                    kind: "state",
-                    stateKind: "tabs-default",
-                    defaultProp: "default",
-                  },
-                ],
-              },
               slots: [{ name: "tab", children: ["text"] }],
             },
           ],
@@ -141,7 +132,7 @@ describe("createRuntimeRenderDiagnostics", () => {
             {
               name: "tabs",
               renderKind: "tabs",
-              props: ["default"],
+              props: [],
               slots: [{ name: "tab", children: ["text"] }],
             },
           ],
@@ -159,15 +150,6 @@ describe("createRuntimeRenderDiagnostics", () => {
               itemSlot: "tab",
               itemValueProp: "value",
               itemHeadingProp: "label",
-              legacyBridges: {
-                state: [
-                  {
-                    kind: "state",
-                    stateKind: "tabs-default",
-                    defaultProp: "default",
-                  },
-                ],
-              },
               slots: [{ name: "tab", children: ["text"] }],
             },
           ],
@@ -199,7 +181,7 @@ describe("createRuntimeRenderDiagnostics", () => {
             {
               name: "tabs",
               renderKind: "tabs",
-              props: ["default"],
+              props: [],
               slots: [{ name: "tab", children: ["text"] }],
             },
           ],
@@ -217,15 +199,6 @@ describe("createRuntimeRenderDiagnostics", () => {
               content: "TabsContent",
               itemSlot: "tab",
               itemLabelProp: "label",
-              legacyBridges: {
-                state: [
-                  {
-                    kind: "state",
-                    stateKind: "tabs-default",
-                    defaultProp: "default",
-                  },
-                ],
-              },
               slots: [{ name: "tab", children: ["text"] }],
             },
           ],
@@ -237,7 +210,7 @@ describe("createRuntimeRenderDiagnostics", () => {
             {
               name: "tabs",
               renderKind: "tabs",
-              props: ["default"],
+              props: [],
               slots: [{ name: "tab", children: ["text"] }],
             },
           ],
@@ -255,15 +228,6 @@ describe("createRuntimeRenderDiagnostics", () => {
               itemSlot: "tab",
               itemValueProp: "value",
               itemHeadingProp: "label",
-              legacyBridges: {
-                state: [
-                  {
-                    kind: "state",
-                    stateKind: "tabs-default",
-                    defaultProp: "default",
-                  },
-                ],
-              },
               slots: [{ name: "tab", children: ["text"] }],
             },
           ],
@@ -298,7 +262,7 @@ describe("createRuntimeRenderDiagnostics", () => {
               {
                 type: "component",
                 name: "row",
-                props: { kind: "header" },
+                props: {},
                 children: [
                   {
                     type: "component",
@@ -357,16 +321,6 @@ describe("createRuntimeRenderDiagnostics", () => {
               bodyCell: "TableCell",
               rowSlot: "row",
               cellSlot: "cell",
-              legacyBridges: {
-                structuralRole: [
-                  {
-                    kind: "structural-role",
-                    roleKind: "table-row-kind",
-                    sourceProp: "kind",
-                    headerValue: "header",
-                  },
-                ],
-              },
               slots: [{ name: "row", children: ["cell"] }],
             },
             {
@@ -413,16 +367,6 @@ describe("createRuntimeRenderDiagnostics", () => {
               bodyCell: "TableCell",
               rowSlot: "row",
               cellSlot: "cell",
-              legacyBridges: {
-                structuralRole: [
-                  {
-                    kind: "structural-role",
-                    roleKind: "table-row-kind",
-                    sourceProp: "kind",
-                    headerValue: "header",
-                  },
-                ],
-              },
               slots: [{ name: "row", children: ["cell"] }],
             },
             {

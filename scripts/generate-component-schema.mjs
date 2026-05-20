@@ -150,9 +150,6 @@ function createIntrospection(item) {
 
 function buildResolvedSchema({ contract, exposurePolicy, introspection }) {
   const semanticProps = contract.semanticProps ?? []
-  const legacyPublicProps = semanticProps.filter(
-    (prop) => prop.origin === "legacy",
-  )
   const blockedPropNames = unique([
     ...(introspection?.blockedProps ?? []),
     ...(exposurePolicy?.blocked ?? []),
@@ -180,7 +177,6 @@ function buildResolvedSchema({ contract, exposurePolicy, introspection }) {
     description: contract.description,
     props: [...semanticProps, ...exposedRawProps].map(stripSemanticPropOrigin),
     semanticProps,
-    legacyPublicProps: legacyPublicProps.length > 0 ? legacyPublicProps : undefined,
     rawCandidateProps: rawCandidateProps.length > 0 ? rawCandidateProps : undefined,
     exposedRawProps: exposedRawProps.length > 0 ? exposedRawProps : undefined,
     blockedPropNames: blockedPropNames.length > 0 ? blockedPropNames : undefined,

@@ -5,7 +5,6 @@ import type {
   ComponentExposurePolicy,
   ComponentSchemaOverlay,
   ComponentSemanticContract,
-  ComponentSemanticPropSchema,
   DocumentStyleConfigReference,
   GeneratedShadcnIntrospection,
   PropExposureState,
@@ -196,12 +195,6 @@ describe("agent-html public types", () => {
 
   it("separates semantic contracts, exposure policy, and resolved schema types", () => {
     const exposureState = "raw-candidate" satisfies PropExposureState
-    const semanticProp = {
-      name: "tone",
-      valueKind: "enum",
-      enumValues: ["neutral", "danger"],
-      origin: "legacy",
-    } satisfies ComponentSemanticPropSchema
     const semanticContract = {
       name: "alert",
       description: "Important callout or warning.",
@@ -213,7 +206,6 @@ describe("agent-html public types", () => {
           valueKind: "string",
           origin: "content",
         },
-        semanticProp,
       ],
       allowedChildren: ["#text"],
     } satisfies ComponentSemanticContract
@@ -231,18 +223,24 @@ describe("agent-html public types", () => {
           valueKind: "string",
         },
         {
-          name: "tone",
+          name: "variant",
           valueKind: "enum",
-          enumValues: ["neutral", "danger"],
+          enumValues: ["default", "destructive"],
         },
       ],
       allowedChildren: ["#text"],
       semanticProps: semanticContract.semanticProps ?? [],
-      exposedRawProps: [],
+      exposedRawProps: [
+        {
+          name: "variant",
+          valueKind: "enum",
+          enumValues: ["default", "destructive"],
+        },
+      ],
     } satisfies ResolvedComponentSchema
 
     expect(exposureState).toBe("raw-candidate")
-    expect(semanticContract.semanticProps?.[1]?.origin).toBe("legacy")
+    expect(semanticContract.semanticProps?.[0]?.origin).toBe("content")
     expect(exposurePolicy.lockedRawCandidates).toContain("variant")
     expect(resolvedSchema.semanticProps[0]?.origin).toBe("content")
   })

@@ -123,19 +123,19 @@ export function createStyleGalleryDocument(styleProfile) {
     components: [
       component("page", { title: `${styleProfile.id} showcase canvas` }, [
         component("card", { title: "Feedback" }, [
-          component("alert", { title: "Status surfaces", tone: "success" }, [
+          component("alert", { title: "Status surfaces", variant: "default" }, [
             text("Showcase canvas surfaces contrast and treatment changes immediately."),
           ]),
-          component("badge", { tone: "success" }, [text("Current profile")]),
+          component("badge", { variant: "secondary" }, [text("Current profile")]),
           component("progress", { value: "68" }),
         ]),
         component("card", { title: "Content" }, [
           text("Tables, cards, and lists are stitched together into one continuous preview."),
           component("table", {}, [
-            headerRow("Signal", "Value"),
-            bodyRow("font sans", styleProfile.globalStyle.typography.fontSans),
-            bodyRow("radius base", styleProfile.globalStyle.radiusScale.base),
-            bodyRow("card treatment", styleProfile.componentStyle.treatments.card ?? "none"),
+            row("Signal", "Value"),
+            row("font sans", styleProfile.globalStyle.typography.fontSans),
+            row("radius base", styleProfile.globalStyle.radiusScale.base),
+            row("card treatment", styleProfile.componentStyle.treatments.card ?? "none"),
           ]),
           component("list", {}, [
             item("Showcase canvas"),
@@ -187,7 +187,7 @@ export function createStyleGalleryDocument(styleProfile) {
           ),
         ]),
         component("card", { title: "Disclosure" }, [
-          component("tabs", { default: "summary" }, [
+          component("tabs", {}, [
             component("tab", { value: "summary", label: "Summary" }, [
               component("card", { title: "Canvas" }, [
                 text("All scenes stay on one continuous showcase surface."),
@@ -261,14 +261,7 @@ function createTreatmentRows(treatments) {
     )
 }
 
-function headerRow(left, right) {
-  return component("row", { kind: "header" }, [
-    component("cell", {}, [text(left)]),
-    component("cell", {}, [text(right)]),
-  ])
-}
-
-function bodyRow(left, right) {
+function row(left, right) {
   return component("row", {}, [
     component("cell", {}, [text(left)]),
     component("cell", {}, [text(right)]),

@@ -136,36 +136,6 @@ export type RendererRootByProp = {
 
 export type RendererTextMode = "prose" | "preformatted"
 
-export type RendererLegacyVariantBridge = {
-  kind: "variant"
-  sourceProp: string
-  targetProp: string
-  map?: Record<string, RendererPropValue>
-  default?: RendererPropValue
-}
-
-export type RendererLegacyStateBridge = {
-  kind: "state"
-  stateKind: "tabs-default" | "accordion-state"
-  defaultProp: string
-  modeProp?: string
-  defaultMode?: string
-  multiValueDelimiter?: string
-}
-
-export type RendererLegacyStructuralRoleBridge = {
-  kind: "structural-role"
-  roleKind: "table-row-kind"
-  sourceProp: string
-  headerValue: string
-}
-
-export type RendererLegacyBridgeSet = {
-  variant?: RendererLegacyVariantBridge[]
-  state?: RendererLegacyStateBridge[]
-  structuralRole?: RendererLegacyStructuralRoleBridge[]
-}
-
 export type RendererSpecComponent = {
   name: string
   source?: string
@@ -214,7 +184,6 @@ export type RendererSpecComponent = {
   descriptionProp?: string
   titleProp?: string
   fallback?: boolean
-  mode?: string
   itemValueProp?: string
   itemHeadingProp?: string
   valueProp?: string
@@ -222,7 +191,6 @@ export type RendererSpecComponent = {
   emptyText?: string
   rootByProp?: RendererRootByProp
   propMappings?: RendererPropMapping[]
-  legacyBridges?: RendererLegacyBridgeSet
   staticProps?: Record<string, RendererPropValue>
 }
 
@@ -236,8 +204,6 @@ export type RuntimeVerificationState = {
         runtimeOwner: string
         forwardedProps?: string[]
         visualStateProp?: string
-        stateBridge?: string
-        multiValueDelimiter?: string
       }
       slots?: RendererSlot[]
     }[]

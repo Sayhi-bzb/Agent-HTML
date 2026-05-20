@@ -742,15 +742,6 @@ export const GENERATED_RESOLVED_COMPONENT_SCHEMAS = [
         "description": "Callout heading."
       },
       {
-        "name": "tone",
-        "valueKind": "enum",
-        "description": "Alert semantic tone.",
-        "enumValues": [
-          "neutral",
-          "danger"
-        ]
-      },
-      {
         "name": "variant",
         "valueKind": "enum",
         "description": "Raw candidate prop from shadcn component facts.",
@@ -766,28 +757,6 @@ export const GENERATED_RESOLVED_COMPONENT_SCHEMAS = [
         "valueKind": "string",
         "description": "Callout heading.",
         "origin": "content"
-      },
-      {
-        "name": "tone",
-        "valueKind": "enum",
-        "description": "Alert semantic tone.",
-        "enumValues": [
-          "neutral",
-          "danger"
-        ],
-        "origin": "legacy"
-      }
-    ],
-    "legacyPublicProps": [
-      {
-        "name": "tone",
-        "valueKind": "enum",
-        "description": "Alert semantic tone.",
-        "enumValues": [
-          "neutral",
-          "danger"
-        ],
-        "origin": "legacy"
       }
     ],
     "rawCandidateProps": [
@@ -884,17 +853,6 @@ export const GENERATED_RESOLVED_COMPONENT_SCHEMAS = [
     "description": "Short status label.",
     "props": [
       {
-        "name": "tone",
-        "valueKind": "enum",
-        "description": "Badge semantic tone.",
-        "enumValues": [
-          "neutral",
-          "success",
-          "warning",
-          "danger"
-        ]
-      },
-      {
         "name": "variant",
         "valueKind": "enum",
         "description": "Raw candidate prop from shadcn component facts.",
@@ -908,34 +866,7 @@ export const GENERATED_RESOLVED_COMPONENT_SCHEMAS = [
         ]
       }
     ],
-    "semanticProps": [
-      {
-        "name": "tone",
-        "valueKind": "enum",
-        "description": "Badge semantic tone.",
-        "enumValues": [
-          "neutral",
-          "success",
-          "warning",
-          "danger"
-        ],
-        "origin": "legacy"
-      }
-    ],
-    "legacyPublicProps": [
-      {
-        "name": "tone",
-        "valueKind": "enum",
-        "description": "Badge semantic tone.",
-        "enumValues": [
-          "neutral",
-          "success",
-          "warning",
-          "danger"
-        ],
-        "origin": "legacy"
-      }
-    ],
+    "semanticProps": [],
     "rawCandidateProps": [
       {
         "name": "variant",
@@ -1516,41 +1447,8 @@ export const GENERATED_RESOLVED_COMPONENT_SCHEMAS = [
   {
     "name": "row",
     "description": "Table row values.",
-    "props": [
-      {
-        "name": "kind",
-        "valueKind": "enum",
-        "description": "Table row role.",
-        "enumValues": [
-          "header",
-          "body"
-        ]
-      }
-    ],
-    "semanticProps": [
-      {
-        "name": "kind",
-        "valueKind": "enum",
-        "description": "Table row role.",
-        "enumValues": [
-          "header",
-          "body"
-        ],
-        "origin": "legacy"
-      }
-    ],
-    "legacyPublicProps": [
-      {
-        "name": "kind",
-        "valueKind": "enum",
-        "description": "Table row role.",
-        "enumValues": [
-          "header",
-          "body"
-        ],
-        "origin": "legacy"
-      }
-    ],
+    "props": [],
+    "semanticProps": [],
     "allowedChildren": [
       "cell"
     ]
@@ -1606,29 +1504,8 @@ export const GENERATED_RESOLVED_COMPONENT_SCHEMAS = [
   {
     "name": "tabs",
     "description": "Interactive view switcher.",
-    "props": [
-      {
-        "name": "default",
-        "valueKind": "string",
-        "description": "Initially selected tab value."
-      }
-    ],
-    "semanticProps": [
-      {
-        "name": "default",
-        "valueKind": "string",
-        "description": "Initially selected tab value.",
-        "origin": "legacy"
-      }
-    ],
-    "legacyPublicProps": [
-      {
-        "name": "default",
-        "valueKind": "string",
-        "description": "Initially selected tab value.",
-        "origin": "legacy"
-      }
-    ],
+    "props": [],
+    "semanticProps": [],
     "blockedPropNames": [
       "className"
     ],
@@ -1697,58 +1574,8 @@ export const GENERATED_RESOLVED_COMPONENT_SCHEMAS = [
   {
     "name": "accordion",
     "description": "Expandable section group.",
-    "props": [
-      {
-        "name": "mode",
-        "valueKind": "enum",
-        "description": "Whether one or multiple sections may stay open.",
-        "enumValues": [
-          "single",
-          "multiple"
-        ]
-      },
-      {
-        "name": "default",
-        "valueKind": "text",
-        "description": "Initially open accordion item value, or a comma-separated list when mode is \"multiple\"."
-      }
-    ],
-    "semanticProps": [
-      {
-        "name": "mode",
-        "valueKind": "enum",
-        "description": "Whether one or multiple sections may stay open.",
-        "enumValues": [
-          "single",
-          "multiple"
-        ],
-        "origin": "legacy"
-      },
-      {
-        "name": "default",
-        "valueKind": "text",
-        "description": "Initially open accordion item value, or a comma-separated list when mode is \"multiple\".",
-        "origin": "legacy"
-      }
-    ],
-    "legacyPublicProps": [
-      {
-        "name": "mode",
-        "valueKind": "enum",
-        "description": "Whether one or multiple sections may stay open.",
-        "enumValues": [
-          "single",
-          "multiple"
-        ],
-        "origin": "legacy"
-      },
-      {
-        "name": "default",
-        "valueKind": "text",
-        "description": "Initially open accordion item value, or a comma-separated list when mode is \"multiple\".",
-        "origin": "legacy"
-      }
-    ],
+    "props": [],
+    "semanticProps": [],
     "blockedPropNames": [
       "className"
     ],
@@ -2041,15 +1868,6 @@ export const GENERATED_STANDARD_COMPONENT_SCHEMAS = [
         "description": "Callout heading."
       },
       {
-        "name": "tone",
-        "valueKind": "enum",
-        "description": "Alert semantic tone.",
-        "enumValues": [
-          "neutral",
-          "danger"
-        ]
-      },
-      {
         "name": "variant",
         "valueKind": "enum",
         "description": "Raw candidate prop from shadcn component facts.",
@@ -2110,17 +1928,6 @@ export const GENERATED_STANDARD_COMPONENT_SCHEMAS = [
     "name": "badge",
     "description": "Short status label.",
     "props": [
-      {
-        "name": "tone",
-        "valueKind": "enum",
-        "description": "Badge semantic tone.",
-        "enumValues": [
-          "neutral",
-          "success",
-          "warning",
-          "danger"
-        ]
-      },
       {
         "name": "variant",
         "valueKind": "enum",
@@ -2400,17 +2207,7 @@ export const GENERATED_STANDARD_COMPONENT_SCHEMAS = [
   {
     "name": "row",
     "description": "Table row values.",
-    "props": [
-      {
-        "name": "kind",
-        "valueKind": "enum",
-        "description": "Table row role.",
-        "enumValues": [
-          "header",
-          "body"
-        ]
-      }
-    ],
+    "props": [],
     "allowedChildren": [
       "cell"
     ]
@@ -2452,13 +2249,7 @@ export const GENERATED_STANDARD_COMPONENT_SCHEMAS = [
   {
     "name": "tabs",
     "description": "Interactive view switcher.",
-    "props": [
-      {
-        "name": "default",
-        "valueKind": "string",
-        "description": "Initially selected tab value."
-      }
-    ],
+    "props": [],
     "allowedChildren": [
       "tab"
     ]
@@ -2508,22 +2299,7 @@ export const GENERATED_STANDARD_COMPONENT_SCHEMAS = [
   {
     "name": "accordion",
     "description": "Expandable section group.",
-    "props": [
-      {
-        "name": "mode",
-        "valueKind": "enum",
-        "description": "Whether one or multiple sections may stay open.",
-        "enumValues": [
-          "single",
-          "multiple"
-        ]
-      },
-      {
-        "name": "default",
-        "valueKind": "text",
-        "description": "Initially open accordion item value, or a comma-separated list when mode is \"multiple\"."
-      }
-    ],
+    "props": [],
     "allowedChildren": [
       "accordion-item"
     ]

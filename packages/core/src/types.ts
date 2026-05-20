@@ -22,7 +22,7 @@ export type ComponentSchema = {
 
 export type PropExposureState = "blocked" | "raw-candidate"
 
-export type SemanticPropOrigin = "content" | "structure" | "legacy"
+export type SemanticPropOrigin = "content" | "structure"
 
 export type ComponentSemanticPropSchema = ComponentPropSchema & {
   readonly origin?: SemanticPropOrigin
@@ -52,7 +52,6 @@ export type ResolvedRawPropSchema = ComponentPropSchema & {
 
 export type ResolvedComponentSchema = ComponentSchema & {
   readonly semanticProps: readonly ComponentSemanticPropSchema[]
-  readonly legacyPublicProps?: readonly ComponentSemanticPropSchema[]
   readonly rawCandidateProps?: readonly ResolvedRawPropSchema[]
   readonly exposedRawProps?: readonly ComponentPropSchema[]
   readonly blockedPropNames?: readonly string[]
