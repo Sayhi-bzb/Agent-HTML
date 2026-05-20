@@ -20,7 +20,6 @@ export const shadcnTemplateFixtureDir = path.join(
   "scripts",
   "shadcn-test-fixtures",
   "template",
-  "shadcn-template",
 )
 export const validAgentHtmlFixtures = [
   '<page title="Fixture"><card title="Summary">Valid text.</card></page>',
@@ -65,7 +64,12 @@ export const validAgentHtmlFixtures = [
 
 export type CliSchemaOutput = {
   readonly kind: string
-  readonly components: readonly { readonly name: string }[]
+  readonly components: readonly {
+    readonly name: string
+    readonly props: readonly {
+      readonly name: string
+    }[]
+  }[]
   readonly verificationData: {
     readonly components: readonly {
       readonly name: string

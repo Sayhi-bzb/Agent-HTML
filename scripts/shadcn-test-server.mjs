@@ -28,6 +28,9 @@ export async function startShadcnTestServer() {
       const rootIndexMatch = url.pathname === "/r/index.json"
       const baseColorMatch = url.pathname === "/r/colors/neutral.json"
       const styleIndexMatch = url.pathname === "/r/styles/index.json"
+      const styleRegistryMatch = url.pathname.match(
+        /^\/r\/styles\/([^/]+)\/registry\.json$/,
+      )
       const styleComponentIndexMatch = url.pathname.match(
         /^\/r\/styles\/([^/]+)\/index\.json$/,
       )
@@ -60,6 +63,11 @@ export async function startShadcnTestServer() {
 
       if (baseColorMatch) {
         respondJson(response, 200, createNeutralBaseColor())
+        return
+      }
+
+      if (styleRegistryMatch) {
+        respondJson(response, 200, createStyleRegistry(fixtures))
         return
       }
 
@@ -117,12 +125,7 @@ export async function startShadcnTestServer() {
 
 async function loadFixtures() {
   const componentsDir = path.join(fixtureRoot, "components", "ui")
-  const templateViteAppDir = path.join(
-    fixtureRoot,
-    "template",
-    "shadcn-template",
-    "vite-app",
-  )
+  const templateViteAppDir = path.join(fixtureRoot, "template", "vite-app")
   const availableComponentNames = (await readdir(componentsDir))
     .filter((name) => name.endsWith(".tsx"))
     .map((name) => name.replace(/\.tsx$/, ""))
@@ -256,6 +259,18 @@ function createStyleComponentIndex(fixtures) {
       type: "registry:ui",
       title: name,
     }))
+}
+
+function createStyleRegistry(fixtures) {
+  return {
+    name: "ahtml-shadcn-test-registry",
+    homepage: "https://example.com/ahtml-shadcn-test-registry",
+    items: Object.entries(fixtures.components)
+      .sort(([leftName], [rightName]) => leftName.localeCompare(rightName))
+      .map(([componentName, componentSource]) =>
+        createComponentItem({ componentName, componentSource }),
+      ),
+  }
 }
 
 function collectUiRegistryDependencies(componentSource) {

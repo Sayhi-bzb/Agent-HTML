@@ -44,8 +44,8 @@
 
 回答的问题：
 
-- 已完成的阶段现在怎么验收描述
-- 还剩哪些 post-phase cleanup 欠账
+- 当前收口结论是什么
+- 还剩哪些当前收尾项
 
 ## 最短路径
 
@@ -57,7 +57,7 @@
 4. `docs/details/current-contract-audit.md`
 5. `docs/details/high-risk-runtime-bridges.md`
 
-### 路径 B：要改实现但不想背迁移文档
+### 路径 B：要改实现但不想读历史背景
 
 1. `docs/architecture/architecture.md`
 2. `docs/architecture/schema.md`
@@ -77,7 +77,7 @@
 
 - phase 实施稿与设计稿
 - slice 执行卡、issue 草稿与配套消费地图
-- 覆盖审计、完成证明和迁移 checklist
-- `tabs` / `accordion` / `table` 的旧 migration card
+- 覆盖审计、完成证明和历史 checklist
+- `tabs` / `accordion` / `table` 的旧单组件专篇
 
 如果只是判断当前现实或剩余收尾，不需要再找这些资料。

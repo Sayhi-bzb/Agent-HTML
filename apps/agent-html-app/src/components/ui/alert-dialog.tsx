@@ -51,7 +51,7 @@ function AlertDialogContent({
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-[min(92vw,30rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl border border-black/10 bg-white p-6 shadow-[0_24px_60px_rgba(23,32,51,0.18)] outline-none",
+          "fixed top-1/2 left-1/2 z-50 grid w-[min(92vw,30rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl border border-[color:var(--hairline-strong)] bg-[color:var(--card)] p-6 text-[color:var(--foreground)] shadow-[0_28px_80px_rgba(0,0,0,0.46)] outline-none",
           className,
         )}
         data-slot="alert-dialog-content"
@@ -95,7 +95,7 @@ function AlertDialogTitle({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Title>) {
   return (
     <AlertDialogPrimitive.Title
-      className={cn("text-base font-semibold text-slate-900", className)}
+      className={cn("text-base font-semibold text-[color:var(--foreground)]", className)}
       data-slot="alert-dialog-title"
       {...props}
     />
@@ -108,7 +108,7 @@ function AlertDialogDescription({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Description>) {
   return (
     <AlertDialogPrimitive.Description
-      className={cn("text-sm text-slate-600", className)}
+      className={cn("text-sm text-[color:var(--body)]", className)}
       data-slot="alert-dialog-description"
       {...props}
     />

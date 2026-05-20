@@ -5,7 +5,6 @@ import type {
   DiagnosticItem,
   InspectSnapshot,
   LogSnapshot,
-  RuntimeReport,
   SessionDetail,
   SessionSummary,
 } from "./types"
@@ -73,6 +72,122 @@ const currentBuild: BuildRunSummary = {
   previewPath: currentSession.previewPath,
 }
 
+const previewHtml = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vendor Decision</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Inter", system-ui, sans-serif;
+        background: #0f141b;
+        color: #eef3fb;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top, rgba(255, 122, 26, 0.1), transparent 28%),
+          linear-gradient(180deg, #0f141b 0%, #10161f 100%);
+        padding: 32px;
+      }
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        display: grid;
+        gap: 18px;
+      }
+      .hero,
+      .card {
+        border: 1px solid rgba(145, 167, 199, 0.14);
+        border-radius: 18px;
+        background: rgba(18, 25, 34, 0.88);
+      }
+      .hero {
+        padding: 28px;
+        display: grid;
+        gap: 14px;
+      }
+      .eyebrow {
+        width: fit-content;
+        border: 1px solid rgba(255, 122, 26, 0.22);
+        border-radius: 999px;
+        background: rgba(255, 122, 26, 0.1);
+        color: #ffb06b;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        padding: 6px 10px;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.08;
+        letter-spacing: -0.04em;
+      }
+      p {
+        margin: 0;
+        color: #9aabc4;
+        line-height: 1.6;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .chip {
+        border: 1px solid rgba(145, 167, 199, 0.14);
+        border-radius: 999px;
+        padding: 6px 10px;
+        color: #d8e1ee;
+        font-size: 13px;
+      }
+      .card {
+        padding: 22px;
+        display: grid;
+        gap: 14px;
+      }
+      .card h2 {
+        margin: 0;
+        font-size: 15px;
+      }
+      ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #d8e1ee;
+        display: grid;
+        gap: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <span class="eyebrow">Recommendation</span>
+        <h1>Choose Vendor A for the initial rollout.</h1>
+        <p>Lower migration risk and faster delivery make Vendor A the safest launch path, with targeted monitoring after release.</p>
+        <div class="meta">
+          <span class="chip">Lower migration risk</span>
+          <span class="chip">Faster initial rollout</span>
+          <span class="chip">Needs post-launch monitoring</span>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Decision Notes</h2>
+        <ul>
+          <li>Migration complexity stays inside the current delivery window.</li>
+          <li>Support load is lower during the initial release phase.</li>
+          <li>Observability and rollback playbooks still need to be finalized.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>`
+
 const currentInspect: InspectSnapshot = {
   sessionId: currentSession.summary.id,
   generatedAt: now,
@@ -112,35 +227,13 @@ const currentLogs: LogSnapshot = {
   stderr: "",
 }
 
-const runtimeReport: RuntimeReport = {
-  kind: "agent-html-doctor-report",
-  version: 1,
-  status: "ok",
-  packageVersion: "0.1.0",
-  runtimeRoot: "D:/Users/demo/.agent-html-app/ahtml-home/runtime",
-  outputDir: "D:/Users/demo/.agent-html-app/sessions/vendor-decision/build",
-  counts: {
-    ok: 18,
-    warn: 1,
-    skip: 0,
-    fail: 0,
-  },
-  checks: [
-    {
-      category: "runtime",
-      name: "root",
-      status: "ok",
-      detail: "Isolated runtime available.",
-    },
-  ],
-}
-
 export const mockAppState: AppState = {
   sessions,
   currentSession,
   currentInspect,
   currentBuild,
   currentLogs,
-  runtimeReport,
   chat,
 }
+
+export const mockPreviewHtml = previewHtml

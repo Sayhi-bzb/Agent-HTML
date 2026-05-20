@@ -70,7 +70,7 @@ import {
   deriveInspectSnapshotFromSession,
   syncInspectSnapshotWithBuild,
 } from "./lib/session-build"
-import { mockAppState } from "./lib/mock-data"
+import { mockAppState, mockPreviewHtml } from "./lib/mock-data"
 import {
   appendChatMessage,
   checkRuntime,
@@ -143,11 +143,11 @@ type PanelLayoutState = {
   shell: number
 }
 
-const panelLayoutStorageKey = "agent-html-app:panel-layout:v1"
+const panelLayoutStorageKey = "agent-html-app:panel-layout:v3"
 const defaultPanelLayout: PanelLayoutState = {
-  sessions: 18,
-  workbench: 52,
-  shell: 30,
+  sessions: 15,
+  workbench: 63,
+  shell: 22,
 }
 
 export function App() {
@@ -171,7 +171,9 @@ export function App() {
   const [activeView, setActiveView] = useState<WorkbenchView>(
     mockAppState.currentSession.currentView,
   )
-  const [previewHtml, setPreviewHtml] = useState<string | undefined>(undefined)
+  const [previewHtml, setPreviewHtml] = useState<string | undefined>(
+    isTauriRuntime() ? undefined : mockPreviewHtml,
+  )
   const [commandState, setCommandState] =
     useState<CommandState>(initialCommandState)
   const currentDraftSource =
@@ -1584,21 +1586,21 @@ export function App() {
       ) : null}
 
       <SurfaceCard className="stage-banner stage-strip" variant="banner">
-        <SurfaceCardHeader
-          padding="compact"
-          title={currentStageItem?.label ?? "Current stage"}
-        >
-          <div className="stage-banner-meta">
-            <StatusBadge
-              tone={statusToneForStage(currentStageItem?.pillClassName)}
-            >
-              {currentStageItem?.statusLabel ?? "Current"}
-            </StatusBadge>
-            <span className="inline-meta">View {activeView}</span>
-          </div>
-        </SurfaceCardHeader>
         <SurfaceCardBody className="stage-banner-body" padding="compact">
-          <p>{currentStageItem?.summary}</p>
+          <div className="stage-banner-copy">
+            <div className="stage-banner-headline">
+              <strong>{currentStageItem?.label ?? "Current stage"}</strong>
+              <div className="stage-banner-meta">
+                <StatusBadge
+                  tone={statusToneForStage(currentStageItem?.pillClassName)}
+                >
+                  {currentStageItem?.statusLabel ?? "Current"}
+                </StatusBadge>
+                <span className="inline-meta">View {activeView}</span>
+              </div>
+            </div>
+            <p>{currentStageItem?.summary}</p>
+          </div>
           <div className="stage-banner-actions">
             {currentStageAction ? (
               <Button
@@ -1849,7 +1851,11 @@ function createLocalChatMessage(
 function RuntimeBanner({ report }: { report: RuntimeReport }) {
   return (
     <SurfaceCard className="runtime-banner" variant="banner">
-      <SurfaceCardHeader title="Runtime">
+      <SurfaceCardHeader
+        className="runtime-banner-header"
+        padding="compact"
+        title="Runtime"
+      >
         <div className="runtime-banner-meta">
           <StatusBadge>ok {report.counts.ok}</StatusBadge>
           <StatusBadge tone="dirty">warn {report.counts.warn}</StatusBadge>

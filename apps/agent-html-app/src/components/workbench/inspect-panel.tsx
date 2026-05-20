@@ -102,19 +102,53 @@ export function InspectPanel({
     sourceValidation,
   })
 
+  const handleOpenValidation = () => {
+    if (
+      sourceValidationView.primaryAction === "focus-first-issue" &&
+      sourceValidationView.primaryDiagnostic
+    ) {
+      const target = createSourceFocusTargetFromDiagnostic({
+        diagnostic: sourceValidationView.primaryDiagnostic,
+      })
+      if (target) {
+        onOpenSourceFocus(target)
+      }
+      return
+    }
+
+    void onRunReviewAction("openSource")
+  }
+
+  const handleOpenInspectDiagnostics = () => {
+    if (
+      inspectDiagnosticsView.primaryAction === "focus-first-issue" &&
+      inspectDiagnosticsView.primaryDiagnostic
+    ) {
+      const target = createSourceFocusTargetFromDiagnostic({
+        diagnostic: inspectDiagnosticsView.primaryDiagnostic,
+      })
+      if (target) {
+        onOpenSourceFocus(target)
+      }
+      return
+    }
+
+    void onRunReviewAction("openInspect")
+  }
+
   return (
     <SurfaceCard className="inspect-panel" variant="workbench">
-      <SurfaceCardBody className="inspect-panel-body">
+      <SurfaceCardBody className="inspect-panel-body inspect-panel-body-compact">
         <SurfaceCard className="inspect-audit-card" variant="context">
-          <SurfaceCardBody className="grid gap-4">
-            <div className="message-topline">
-              <div>
+          <SurfaceCardBody className="inspect-audit-body">
+            <div className="inspect-audit-topline">
+              <div className="inspect-audit-copy">
                 <h4>{reviewAudit.stageLabel}</h4>
-              </div>
-              <div className="inspect-audit-meta">
                 <span className="inline-meta">
                   Generated {formatTimestampLabel(inspect.generatedAt)}
                 </span>
+              </div>
+              <div className="inspect-audit-meta">
                 <StatusBadge
                   tone={statusToneForClassName(reviewAudit.stagePillClassName)}
                 >
@@ -127,22 +161,21 @@ export function InspectPanel({
                 >
                   {reviewAudit.readiness.label}
                 </StatusBadge>
+                {reviewAudit.currentAction ? (
+                  <Button
+                    disabled={isActionBusy}
+                    onClick={() =>
+                      void onRunReviewAction(reviewAudit.currentAction!.handler)
+                    }
+                    size="sm"
+                    type="button"
+                  >
+                    {reviewAudit.currentAction.label}
+                  </Button>
+                ) : null}
               </div>
             </div>
-            {reviewAudit.currentAction ? (
-              <div className="inspect-audit-actions">
-                <Button
-                  disabled={isActionBusy}
-                  onClick={() =>
-                    void onRunReviewAction(reviewAudit.currentAction!.handler)
-                  }
-                  size="sm"
-                  type="button"
-                >
-                  {reviewAudit.currentAction.label}
-                </Button>
-              </div>
-            ) : null}
+
             {activeReviewFocus || availableReviewFocusTargets.length > 0 ? (
               <ContextMenu>
                 <ContextMenuTrigger asChild>
@@ -151,7 +184,10 @@ export function InspectPanel({
                       className="inspect-linked-review"
                       variant="inset"
                     >
-                      <SurfaceCardBody className="grid gap-3" padding="compact">
+                      <SurfaceCardBody
+                        className="inspect-linked-review-body"
+                        padding="compact"
+                      >
                         <div className="message-topline">
                           <div>
                             <h5>
@@ -253,7 +289,8 @@ export function InspectPanel({
                 </ContextMenuContent>
               </ContextMenu>
             ) : null}
-            <div className="inspect-audit-grid">
+
+            <div className="inspect-primary-grid">
               <SurfaceCard className="inspect-audit-block" variant="inset">
                 <SurfaceCardHeader padding="compact" title="Next" />
                 <SurfaceCardBody className="grid gap-3" padding="compact">
@@ -316,8 +353,8 @@ export function InspectPanel({
           </SurfaceCardBody>
         </SurfaceCard>
 
-        <div className="inspect-summary-grid">
-          <SurfaceCard variant="summary">
+        <div className="inspect-status-strip">
+          <SurfaceCard className="inspect-status-card" variant="summary">
             <SurfaceCardHeader eyebrow="Validation" padding="compact">
               <StatusBadge
                 tone={statusToneForClassName(
@@ -341,23 +378,7 @@ export function InspectPanel({
               <div className="inspect-summary-actions">
                 <Button
                   disabled={isActionBusy}
-                  onClick={() => {
-                    if (
-                      sourceValidationView.primaryAction ===
-                        "focus-first-issue" &&
-                      sourceValidationView.primaryDiagnostic
-                    ) {
-                      const target = createSourceFocusTargetFromDiagnostic({
-                        diagnostic: sourceValidationView.primaryDiagnostic,
-                      })
-                      if (target) {
-                        onOpenSourceFocus(target)
-                      }
-                      return
-                    }
-
-                    void onRunReviewAction("openSource")
-                  }}
+                  onClick={handleOpenValidation}
                   size="sm"
                   type="button"
                   variant="outline"
@@ -369,7 +390,8 @@ export function InspectPanel({
               </div>
             </SurfaceCardBody>
           </SurfaceCard>
-          <SurfaceCard variant="summary">
+
+          <SurfaceCard className="inspect-status-card" variant="summary">
             <SurfaceCardHeader eyebrow="Artifact" padding="compact" />
             <SurfaceCardBody className="grid gap-3" padding="compact">
               <h4>{artifactHeadline(inspect)}</h4>
@@ -385,7 +407,7 @@ export function InspectPanel({
             </SurfaceCardBody>
           </SurfaceCard>
 
-          <SurfaceCard variant="summary">
+          <SurfaceCard className="inspect-status-card" variant="summary">
             <SurfaceCardHeader eyebrow="Diagnostics" padding="compact">
               <StatusBadge
                 tone={statusToneForClassName(
@@ -403,23 +425,7 @@ export function InspectPanel({
               <div className="inspect-summary-actions">
                 <Button
                   disabled={isActionBusy}
-                  onClick={() => {
-                    if (
-                      inspectDiagnosticsView.primaryAction ===
-                        "focus-first-issue" &&
-                      inspectDiagnosticsView.primaryDiagnostic
-                    ) {
-                      const target = createSourceFocusTargetFromDiagnostic({
-                        diagnostic: inspectDiagnosticsView.primaryDiagnostic,
-                      })
-                      if (target) {
-                        onOpenSourceFocus(target)
-                      }
-                      return
-                    }
-
-                    void onRunReviewAction("openInspect")
-                  }}
+                  onClick={handleOpenInspectDiagnostics}
                   size="sm"
                   type="button"
                   variant="outline"
@@ -433,17 +439,17 @@ export function InspectPanel({
           </SurfaceCard>
         </div>
 
-        <div className="inspect-grid">
-          <SurfaceCard variant="summary">
-            <SurfaceCardHeader eyebrow="Structure" padding="compact" />
-            <SurfaceCardBody padding="compact">
-              <p>{inspect.structureSummary}</p>
-            </SurfaceCardBody>
-          </SurfaceCard>
-
-          <SurfaceCard variant="summary">
-            <SurfaceCardHeader eyebrow="Diagnostics" padding="compact" />
-            <SurfaceCardBody padding="compact">
+        <div className="inspect-secondary-grid">
+          <SurfaceCard
+            className="inspect-secondary-card inspect-diagnostics-card"
+            variant="summary"
+          >
+            <SurfaceCardHeader
+              eyebrow="Diagnostics and structure"
+              padding="compact"
+            />
+            <SurfaceCardBody className="inspect-diagnostics-stack" padding="compact">
+              <p className="inspect-summary-detail">{inspect.structureSummary}</p>
               {inspect.diagnostics.length > 0 ? (
                 <ul className="diagnostic-list">
                   {inspect.diagnostics.map((diagnostic) => (
@@ -456,14 +462,14 @@ export function InspectPanel({
                   ))}
                 </ul>
               ) : (
-                <p className="validation-empty">Clear</p>
+                <p className="validation-empty">No inspect diagnostics remain.</p>
               )}
             </SurfaceCardBody>
           </SurfaceCard>
 
-          <SurfaceCard variant="summary">
+          <SurfaceCard className="inspect-secondary-card" variant="summary">
             <SurfaceCardHeader eyebrow="Logs" padding="compact" />
-            <SurfaceCardBody className="grid gap-4" padding="compact">
+            <SurfaceCardBody className="inspect-log-body" padding="compact">
               <div className="inspect-summary-issue-list">
                 {logInsight.streams.map((stream) => (
                   <div className="inspect-step-item" key={stream.id}>
@@ -499,7 +505,7 @@ export function InspectPanel({
           <ContextMenu>
             <ContextMenuTrigger asChild>
               <div className="panel-menu-shell" ref={sessionFilesRef}>
-                <SurfaceCard variant="summary">
+                <SurfaceCard className="inspect-secondary-card" variant="summary">
                   <SurfaceCardHeader eyebrow="Session files" padding="compact">
                     <Button
                       aria-label="Session file actions"

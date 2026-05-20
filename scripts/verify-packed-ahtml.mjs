@@ -530,7 +530,6 @@ function getAhtmlEnv() {
       "scripts",
       "shadcn-test-fixtures",
       "template",
-      "shadcn-template",
     ),
     REGISTRY_URL: shadcnTestServer.registryUrl,
   }

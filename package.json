@@ -31,7 +31,7 @@
     "test:run:cli-heavy:gallery": "vitest run --config vitest.heavy.config.ts packages/ahtml/src/cli/cli.gallery.heavy.test.ts",
     "test:run:cli-heavy": "npm run test:run:cli-heavy:runtime && npm run test:run:cli-heavy:build && npm run test:run:cli-heavy:preview && npm run test:run:cli-heavy:gallery",
     "test:run:full": "npm run test:run && npm run test:run:cli-heavy",
-    "docs:lint": "markdownlint-cli2",
+    "docs:lint": "markdownlint-cli2 && node scripts/docs-discipline.mjs",
     "docs:web:typecheck": "npm --prefix docs-web run types:check",
     "docs:web:build": "npm --prefix docs-web run build",
     "docs:web:dev": "npm --prefix docs-web run dev",

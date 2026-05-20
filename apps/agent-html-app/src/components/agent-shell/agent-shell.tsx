@@ -297,6 +297,7 @@ export function AgentShell({
   )
   const showCompareCard = Boolean(activeComparison)
   const compactReadinessItems = proposalReadinessView.items.slice(0, 2)
+  const compactReadinessSummary = compactReadinessItems.join(" ")
   const comparisonLabels =
     comparisonMode === "proposal"
       ? {
@@ -484,26 +485,29 @@ export function AgentShell({
 
   return (
     <PanelShell as="aside" variant="agent-shell">
-      <PanelShellHeader className="panel-header-compact">
+      <PanelShellHeader className="panel-header-compact agent-shell-header">
         <div className="shell-header-row">
-          <div className="proposal-meta-row">
-            {latestProposal ? (
-              <span className="inline-meta">
-                {formatTimestampLabel(latestProposal.createdAt)}
-              </span>
-            ) : (
-              <span className="inline-meta">No proposal</span>
-            )}
-            {latestProposalIsStale ? (
-              <StatusBadge tone="dirty">Stale</StatusBadge>
-            ) : null}
-            {currentStageItem ? (
-              <StatusBadge
-                tone={statusToneForClassName(currentStageItem.pillClassName)}
-              >
-                {currentStageItem.statusLabel}
-              </StatusBadge>
-            ) : null}
+          <div className="agent-shell-header-copy">
+            <strong>{currentStageItem?.label ?? "Proposal lane"}</strong>
+            <div className="proposal-meta-row">
+              {latestProposal ? (
+                <span className="inline-meta">
+                  {formatTimestampLabel(latestProposal.createdAt)}
+                </span>
+              ) : (
+                <span className="inline-meta">No proposal</span>
+              )}
+              {latestProposalIsStale ? (
+                <StatusBadge tone="dirty">Stale</StatusBadge>
+              ) : null}
+              {currentStageItem ? (
+                <StatusBadge
+                  tone={statusToneForClassName(currentStageItem.pillClassName)}
+                >
+                  {currentStageItem.statusLabel}
+                </StatusBadge>
+              ) : null}
+            </div>
           </div>
           <Button
             disabled={isProposalActionBusy}
@@ -519,64 +523,65 @@ export function AgentShell({
         </div>
       </PanelShellHeader>
 
-      <SurfaceCard className="proposal-starter-card" variant="context">
-        <SurfaceCardBody className="grid gap-4">
-          <div className="proposal-meta-row">
-            <StatusBadge
-              tone={statusToneForClassName(proposalReadinessView.pillClassName)}
-            >
-              {proposalReadinessView.label}
-            </StatusBadge>
-          </div>
-
-          <SurfaceCard className="proposal-entry-panel" variant="inset">
-            <SurfaceCardBody className="grid gap-3" padding="compact">
-              <div className="message-topline">
-                <div>
-                  <h4>{currentStageItem?.label ?? "Proposal readiness"}</h4>
-                </div>
-                {currentStageAction ? (
-                  <Button
-                    disabled={isProposalActionBusy}
-                    onClick={() =>
-                      runWorkflowAction(currentStageAction.handler)
-                    }
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    {currentStageAction.label}
-                  </Button>
-                ) : null}
-              </div>
-            </SurfaceCardBody>
-          </SurfaceCard>
-
-          {compactReadinessItems.length > 0 ? (
-            <SurfaceCard className="proposal-readiness" variant="inset">
-              <SurfaceCardBody className="grid gap-3" padding="compact">
-                <div className="message-topline">
-                  <h4>Open</h4>
-                </div>
-                <p className="proposal-readiness-summary">
-                  {compactReadinessItems.join(" ")}
-                </p>
-              </SurfaceCardBody>
-            </SurfaceCard>
-          ) : null}
-
-          {latestProposalHasDraftDelta && proposalComparison ? (
-            <SurfaceCard className="proposal-compare-panel" variant="inset">
-              <SurfaceCardBody className="grid gap-3" padding="compact">
-                <div className="message-topline">
-                  <h4>Drift</h4>
+      <SurfaceCard className="proposal-starter-card proposal-hub-card" variant="context">
+        <SurfaceCardBody className="proposal-hub-body" padding="compact">
+          <div className="proposal-hub-topline">
+            <div className="proposal-hub-copy">
+              <div className="proposal-meta-row">
+                <StatusBadge
+                  tone={statusToneForClassName(
+                    proposalReadinessView.pillClassName,
+                  )}
+                >
+                  {proposalReadinessView.label}
+                </StatusBadge>
+                {latestProposalHasDraftDelta && proposalComparison ? (
                   <StatusBadge
                     tone={
                       proposalComparison.changedLineCount ? "dirty" : "ready"
                     }
                   >
-                    {proposalComparison.changedLineCount} changed line(s)
+                    {proposalComparison.changedLineCount} line drift
                   </StatusBadge>
+                ) : null}
+              </div>
+              <h4>{currentStageItem?.label ?? "Proposal readiness"}</h4>
+              <p className="proposal-hub-summary">
+                {currentStageItem?.summary ??
+                  "Track proposal readiness, drift, and review flow here."}
+              </p>
+            </div>
+            {currentStageAction ? (
+              <Button
+                disabled={isProposalActionBusy}
+                onClick={() => runWorkflowAction(currentStageAction.handler)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                {currentStageAction.label}
+              </Button>
+            ) : null}
+          </div>
+
+          {compactReadinessItems.length > 0 ? (
+            <div className="proposal-hub-section">
+              <p className="eyebrow">Open</p>
+              <p className="proposal-readiness-summary">
+                {compactReadinessSummary}
+              </p>
+            </div>
+          ) : null}
+
+          {latestProposalHasDraftDelta && proposalComparison ? (
+            <div className="proposal-hub-section proposal-hub-section-accent">
+              <div className="proposal-hub-actions">
+                <div className="proposal-hub-copy">
+                  <p className="eyebrow">Drift</p>
+                  <p className="proposal-compare-summary">
+                    Proposal snapshot no longer matches the current working
+                    source.
+                  </p>
                 </div>
                 <Button
                   disabled={isProposalActionBusy}
@@ -589,8 +594,8 @@ export function AgentShell({
                 >
                   Review diff
                 </Button>
-              </SurfaceCardBody>
-            </SurfaceCard>
+              </div>
+            </div>
           ) : null}
         </SurfaceCardBody>
       </SurfaceCard>

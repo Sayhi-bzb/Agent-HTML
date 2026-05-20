@@ -311,7 +311,12 @@ function normalizeComponents(
 }
 
 function withRequiredRuntimeComponents(components) {
-  return [...new Set([...components, ...requiredShadcnRuntimeComponents])]
+  const selectedComponents = [...new Set(components)]
+  const extraComponents = selectedComponents.filter(
+    (component) => !requiredShadcnRuntimeComponents.includes(component),
+  )
+
+  return [...requiredShadcnRuntimeComponents, ...extraComponents]
 }
 
 export function resolveManagedRuntimeComponentSet({

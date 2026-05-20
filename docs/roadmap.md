@@ -2,15 +2,7 @@
 
 ## 目的
 
-这份 `roadmap` 不再回放完整 `Phase 1-5` 迁移剧本。  
-它现在只记录三件事：
-
-- 当前实现已经落到哪里
-- 哪些阶段可以视为已完成验收
-- 剩余收尾工作还差什么
-
-历史迁移稿、切片卡和独立 completion proof 已经从 `docs/` 移除。  
-完成状态摘要现在只保留在这里。
+这份 `roadmap` 只记录当前主线状态、本轮复验结论和仍值得继续观察的方向。
 
 ## 当前状态
 
@@ -23,8 +15,8 @@
 - 旧公开字段 `kind` / `mode` / `default` 已不再作为主公开 contract 的新增入口
 - runtime spec 主路径已不再把 `kindProp` / `modeProp` / `defaultProp` / `defaultMode` 当作常规顶层字段
 
-当前项目不再处于“如何拆 `2A-5B`”或“`5C` 能不能收官”的阶段。  
-当前主线已经完成 `Phase 5` 收口，进入 post-phase cleanup。
+旧实施稿、切片卡和独立 completion proof 已经从 `docs/` 移除。  
+当前 `docs/` 只保留当前事实入口、当前验证口径和仍存在的 compat 现实。
 
 ## 已完成验收结论
 
@@ -47,36 +39,28 @@
   - 已完成。
   - public contract、runtime spec、host shell、doctor、heavy gates、主 docs 入口已经收成同一条最终主路径。
 
-## 当前剩余工作
-
-当前剩余工作已经不再是 `Phase 5` blocker，而是后续整理项：
-
-- CLI tests 里仍有一些过渡期重复 helper 和命名层级混杂的问题，需要做低风险结构收口
-- heavy/test 脚本与 fixtures 仍有可继续压缩的依赖面
-- docs 入口已经收紧，但后续仍需要继续维持“只写当前现实”的边界，避免旧阶段文档回流
-
 ## 当前验证基线
 
-本轮 cleanup 直接复核通过的 focused gates：
+本轮直接复核通过：
 
-- `npm run test:run -- packages/ahtml/src/cli/cli.test.ts`
+- `npm run build`
+- `npm run test:run -- packages/ahtml/src/cli/prompt-schema.test.ts packages/ahtml/src/cli/cli-surface.test.ts packages/ahtml/src/cli/runtime-setup-contract.test.ts packages/ahtml/src/cli/validate-inspect-contract.test.ts`
+- `npm run test:run -- packages/ahtml/src/cli/runtime-template.test.ts`
+- `node scripts/verify-packed-ahtml.mjs`
 - `npm run docs:lint`
-
-本轮 cleanup 直接复核通过的 heavy gates：
-
+  - 当前同时覆盖既有 markdownlint 入口与 `docs/` 的 discipline guard
+- `cli.build.heavy.test.ts`
+- `cli.runtime.heavy.test.ts`
 - `cli.preview.heavy.test.ts`
 - `cli.gallery.heavy.test.ts`
 
-本轮没有重新跑完的 gate：
+## 当前剩余工作
 
-- `cli.build.heavy.test.ts`
-- `cli.runtime.heavy.test.ts`
+当前没有新的具体收尾项。  
+如果未来继续推进，只剩两类事情值得单独开工：
 
-## 现在的优先顺序
-
-1. 清理测试和脚本中的重复 helper、过渡命名和低价值残留。
-2. 继续保持主 docs 的现实入口地位，避免历史迁移资料回流成默认导航。
-3. 只在未来真正压缩 compat bridge 时，重新打开新的阶段性实现工作。
+1. 压缩 `tabs` / `accordion` / `table` 的 compat bridge。
+2. 在新工作出现时继续维持 `docs/` 只记录当前现实，不恢复历史迁移稿。
 
 ## 完成标准
 

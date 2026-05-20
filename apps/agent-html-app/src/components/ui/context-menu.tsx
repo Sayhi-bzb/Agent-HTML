@@ -83,7 +83,7 @@ function ContextMenuSubContent({
     <ContextMenuPrimitive.SubContent
       data-slot="context-menu-sub-content"
       className={cn(
-        "z-50 min-w-[12rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md",
+        "z-50 min-w-[12rem] overflow-hidden rounded-xl border border-[color:var(--hairline-strong)] bg-[color:var(--card)] p-1.5 text-[color:var(--foreground)] shadow-[0_20px_60px_rgba(0,0,0,0.44)]",
         className,
       )}
       {...props}
@@ -102,7 +102,7 @@ function ContextMenuContent({
       <ContextMenuPrimitive.Content
         data-slot="context-menu-content"
         className={cn(
-          "z-50 min-w-[14rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md",
+          "z-50 min-w-[14rem] overflow-hidden rounded-xl border border-[color:var(--hairline-strong)] bg-[color:var(--card)] p-1.5 text-[color:var(--foreground)] shadow-[0_20px_60px_rgba(0,0,0,0.44)]",
           className,
         )}
         {...props}
@@ -122,7 +122,7 @@ function ContextMenuItem({
     <ContextMenuPrimitive.Item
       data-slot="context-menu-item"
       className={cn(
-        "relative flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none select-none focus:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "relative flex cursor-default items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none select-none focus:bg-[color:rgba(255,255,255,0.06)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         inset && "pl-8",
         className,
       )}
@@ -192,7 +192,7 @@ function ContextMenuLabel({
     <ContextMenuPrimitive.Label
       data-slot="context-menu-label"
       className={cn(
-        "px-2 py-1.5 text-sm font-medium",
+        "px-2.5 py-1.5 text-[0.7rem] font-medium tracking-[0.08em] text-[color:var(--body)] uppercase",
         inset && "pl-8",
         className,
       )}

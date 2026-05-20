@@ -671,13 +671,15 @@ export const COMPONENT_SCHEMA_OVERLAYS = [
 ] as const satisfies readonly ComponentSchemaOverlay[]
 
 export const COMPONENT_SEMANTIC_CONTRACTS =
-  COMPONENT_SCHEMA_OVERLAYS.map(({ hiddenProps: _hiddenProps, props, ...item }) => ({
-    ...item,
-    semanticProps: props?.map((prop) => ({
-      ...prop,
-      origin: inferSemanticPropOrigin(item.name, prop.name),
-    })),
-  })) as readonly ComponentSemanticContract[]
+  (COMPONENT_SCHEMA_OVERLAYS as readonly ComponentSchemaOverlay[]).map(
+    ({ hiddenProps: _hiddenProps, props, ...item }) => ({
+      ...item,
+      semanticProps: props?.map((prop) => ({
+        ...prop,
+        origin: inferSemanticPropOrigin(item.name, prop.name),
+      })),
+    }),
+  ) as readonly ComponentSemanticContract[]
 
 function inferSemanticPropOrigin(
   componentName: string,

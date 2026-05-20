@@ -9,4 +9,4 @@
 - `high-risk-runtime-bridges.md`
   - 当前仍需重点关注的 `tabs` / `accordion` / `table` 兼容桥现实。
 
-`details/` 不再保留迁移卡或历史专篇；这里只留当前还能指导实现和验收的现实文档。
+`details/` 不再保留旧阶段卡或历史专篇；这里只留当前还能指导实现和验收的现实文档。

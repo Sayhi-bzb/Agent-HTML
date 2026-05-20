@@ -17,7 +17,6 @@ import {
 import {
   SurfaceCard,
   SurfaceCardBody,
-  SurfaceCardHeader,
 } from "../ui/surface-card"
 import { StatusBadge } from "../ui/status-badge"
 import {
@@ -76,6 +75,7 @@ export function SourcePanel({
   const sourceValidationView = getSourceValidationViewModel(sourceValidation)
   const primaryValidationDiagnostic = sourceValidationView.primaryDiagnostic
   const hasUnsavedChanges = draftSource !== source
+  const hasValidationDiagnostics = sourceValidation.diagnostics.length > 0
   const sourceFocusSelection = activeSourceFocus
     ? {
         requestKey: activeSourceFocus.requestKey,
@@ -96,286 +96,323 @@ export function SourcePanel({
 
   return (
     <SurfaceCard className="source-panel" variant="workbench">
-      <SurfaceCardBody className="source-panel-body">
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <div
-              className="source-toolbar panel-menu-shell"
-              ref={toolbarMenuRef}
-            >
-              <div className="header-actions">
-                {hasUnsavedChanges ? (
-                  <StatusBadge tone="dirty">Unsaved</StatusBadge>
-                ) : (
-                  <StatusBadge>Saved</StatusBadge>
-                )}
-              </div>
-              <div className="source-toolbar-actions">
-                <Button
-                  aria-label="Source file actions"
-                  className="panel-card-more"
-                  onClick={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    openSourceContextMenu(toolbarMenuRef.current)
-                  }}
-                  size="icon-xs"
-                  type="button"
-                  variant="ghost"
-                >
-                  <MoreHorizontalIcon />
-                </Button>
-                <Button
-                  disabled={isSaving || draftSource === source}
-                  onClick={() => onSave(draftSource)}
-                  size="sm"
-                  type="button"
-                >
-                  {isSaving ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            </div>
-          </ContextMenuTrigger>
-          <ContextMenuContent className="session-context-menu" sideOffset={10}>
-            <ContextMenuGroup>
-              <ContextMenuItem
-                onSelect={() => {
-                  void copyText(sourcePath).then((copied) => {
-                    if (copied) {
-                      setCopiedKey("source-path")
-                    }
-                  })
-                }}
+      <SurfaceCardBody className="source-panel-body source-panel-body-compact">
+        <div className="source-worksurface">
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <div
+                className="source-toolbar panel-menu-shell source-toolbar-shell"
+                ref={toolbarMenuRef}
               >
-                {copiedKey === "source-path"
-                  ? "Copied source path"
-                  : "Copy source path"}
-              </ContextMenuItem>
-            </ContextMenuGroup>
-            <ContextMenuSeparator />
-            <ContextMenuItem className="session-context-detail" disabled>
-              <span className="session-context-detail-label">File</span>
-              <span className="session-context-detail-value">
-                source.agent.html
-              </span>
-            </ContextMenuItem>
-            <ContextMenuItem className="session-context-detail" disabled>
-              <span className="session-context-detail-label">Path</span>
-              <span className="session-context-detail-value">{sourcePath}</span>
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
-
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <div className="panel-menu-shell" ref={validationMenuRef}>
-              <SurfaceCard variant="validation">
-                <SurfaceCardHeader
-                  className="validation-topline"
-                  eyebrow="Validation"
-                  padding="compact"
-                  title={sourceValidationView.headline}
-                >
-                  <div className="validation-topline-actions">
-                    <StatusBadge
-                      tone={statusToneForClassName(
-                        sourceValidationView.pill.className,
-                      )}
-                    >
-                      {sourceValidationView.pill.label}
-                    </StatusBadge>
-                    {sourceValidationView.primaryAction ===
-                      "focus-first-issue" && primaryValidationDiagnostic ? (
-                      <Button
-                        aria-label="Validation actions"
-                        className="panel-card-more"
-                        onClick={(event) => {
-                          event.preventDefault()
-                          event.stopPropagation()
-                          openSourceContextMenu(validationMenuRef.current)
-                        }}
-                        size="icon-xs"
-                        type="button"
-                        variant="ghost"
-                      >
-                        <MoreHorizontalIcon />
-                      </Button>
-                    ) : null}
-                  </div>
-                </SurfaceCardHeader>
-                <SurfaceCardBody className="grid gap-3" padding="compact">
-                  <div className="validation-meta">
-                    <span className="inline-meta">
-                      {sourceValidationView.validatedAt
-                        ? `Last checked ${formatTimestampLabel(sourceValidationView.validatedAt)}`
-                        : "No validation run yet"}
-                    </span>
-                    <span className="inline-meta">
-                      {sourceValidationView.diagnosticsCount} diagnostic(s)
+                <div className="source-toolbar-copy">
+                  <div className="header-actions">
+                    {hasUnsavedChanges ? (
+                      <StatusBadge tone="dirty">Unsaved</StatusBadge>
+                    ) : (
+                      <StatusBadge>Saved</StatusBadge>
+                    )}
+                    <span className="inline-meta source-toolbar-file">
+                      source.agent.html
                     </span>
                   </div>
-                  {sourceValidation.diagnostics.length > 0 ? (
-                    <ul className="diagnostic-list">
-                      {sourceValidation.diagnostics.map((diagnostic) => (
-                        <SourceDiagnosticRow
-                          diagnostic={diagnostic}
-                          key={diagnostic.id}
-                          onOpenSourceFocus={onOpenSourceFocus}
-                        />
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="validation-empty">Clear</p>
-                  )}
-                </SurfaceCardBody>
-              </SurfaceCard>
-            </div>
-          </ContextMenuTrigger>
-          {sourceValidationView.primaryAction === "focus-first-issue" &&
-          primaryValidationDiagnostic ? (
-            <ContextMenuContent
-              className="session-context-menu"
-              sideOffset={10}
-            >
+                  <span className="inline-meta source-toolbar-path">
+                    {sourcePath}
+                  </span>
+                </div>
+                <div className="source-toolbar-actions">
+                  <Button
+                    aria-label="Source file actions"
+                    className="panel-card-more"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      openSourceContextMenu(toolbarMenuRef.current)
+                    }}
+                    size="icon-xs"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <MoreHorizontalIcon />
+                  </Button>
+                  <Button
+                    disabled={isSaving || draftSource === source}
+                    onClick={() => onSave(draftSource)}
+                    size="sm"
+                    type="button"
+                  >
+                    {isSaving ? "Saving..." : "Save"}
+                  </Button>
+                </div>
+              </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent className="session-context-menu" sideOffset={10}>
               <ContextMenuGroup>
                 <ContextMenuItem
                   onSelect={() => {
-                    const target = createSourceFocusTargetFromDiagnostic({
-                      diagnostic: primaryValidationDiagnostic,
+                    void copyText(sourcePath).then((copied) => {
+                      if (copied) {
+                        setCopiedKey("source-path")
+                      }
                     })
-                    if (target) {
-                      onOpenSourceFocus(target)
-                    }
                   }}
                 >
-                  Focus first issue
+                  {copiedKey === "source-path"
+                    ? "Copied source path"
+                    : "Copy source path"}
                 </ContextMenuItem>
               </ContextMenuGroup>
-            </ContextMenuContent>
-          ) : null}
-        </ContextMenu>
-
-        {activeSourceFocus ? (
-          <ContextMenu>
-            <ContextMenuTrigger asChild>
-              <div className="panel-menu-shell" ref={focusMenuRef}>
-                <SurfaceCard className="source-focus-banner" variant="inset">
-                  <SurfaceCardBody
-                    className="source-focus-banner-body"
-                    padding="compact"
-                  >
-                    <div>
-                      <h4>
-                        {sourceFocusView?.label ?? activeSourceFocus.label}
-                      </h4>
-                      {sourceFocusView?.originLabel ||
-                      sourceFocusView?.reviewOriginLabel ? (
-                        <div className="proposal-meta-row">
-                          {sourceFocusView?.originLabel ? (
-                            <StatusBadge tone="accent">
-                              {sourceFocusView.originLabel}
-                            </StatusBadge>
-                          ) : null}
-                          <StatusBadge>
-                            {sourceFocusView?.selectionLabel}
-                          </StatusBadge>
-                          {sourceFocusView?.reviewOriginLabel ? (
-                            <span className="inline-meta">
-                              From {sourceFocusView.reviewOriginLabel}
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : null}
-                      {sourceFocusView?.summary ? (
-                        <div className="proposal-meta-row">
-                          {sourceFocusView.statusPill ? (
-                            <StatusBadge
-                              tone={statusToneForClassName(
-                                sourceFocusView.statusPill.className,
-                              )}
-                            >
-                              {sourceFocusView.statusPill.label}
-                            </StatusBadge>
-                          ) : null}
-                          <span className="inline-meta">
-                            {sourceFocusView.summary}
-                          </span>
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="source-focus-actions">
-                      {primaryFocusAction ? (
-                        <Button
-                          onClick={primaryFocusAction.onSelect}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          {primaryFocusAction.label}
-                        </Button>
-                      ) : null}
-                      <Button
-                        aria-label="Source focus actions"
-                        className="panel-card-more"
-                        onClick={(event) => {
-                          event.preventDefault()
-                          event.stopPropagation()
-                          openSourceContextMenu(focusMenuRef.current)
-                        }}
-                        size="icon-xs"
-                        type="button"
-                        variant="ghost"
-                      >
-                        <MoreHorizontalIcon />
-                      </Button>
-                    </div>
-                  </SurfaceCardBody>
-                </SurfaceCard>
-              </div>
-            </ContextMenuTrigger>
-            <ContextMenuContent
-              className="session-context-menu"
-              sideOffset={10}
-            >
-              <ContextMenuGroup>
-                {sourceFocusView?.actions.canRevealSourceOrigin &&
-                primaryFocusAction?.label !== "Origin" ? (
-                  <ContextMenuItem onSelect={onRevealReviewTarget}>
-                    Origin
-                  </ContextMenuItem>
-                ) : null}
-                {sourceFocusView?.actions.canRefreshFocus &&
-                primaryFocusAction?.label !== "Refresh" ? (
-                  <ContextMenuItem onSelect={onRefreshSourceFocus}>
-                    Refresh
-                  </ContextMenuItem>
-                ) : null}
-                <ContextMenuItem onSelect={onClearSourceFocus}>
-                  Clear
-                </ContextMenuItem>
-              </ContextMenuGroup>
-              {sourceFocusView?.originReference ? (
-                <>
-                  <ContextMenuSeparator />
-                  <ContextMenuItem className="session-context-detail" disabled>
-                    <span className="session-context-detail-label">
-                      Reference
-                    </span>
-                    <span className="session-context-detail-value">
-                      {sourceFocusView.originReference}
-                    </span>
-                  </ContextMenuItem>
-                </>
-              ) : null}
+              <ContextMenuSeparator />
+              <ContextMenuItem className="session-context-detail" disabled>
+                <span className="session-context-detail-label">File</span>
+                <span className="session-context-detail-value">
+                  source.agent.html
+                </span>
+              </ContextMenuItem>
+              <ContextMenuItem className="session-context-detail" disabled>
+                <span className="session-context-detail-label">Path</span>
+                <span className="session-context-detail-value">
+                  {sourcePath}
+                </span>
+              </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
-        ) : null}
 
-        <SourceEditor
-          focusSelection={sourceFocusSelection}
-          onChange={onDraftChange}
-          value={draftSource}
-        />
+          <div className="source-status-stack">
+            <ContextMenu>
+              <ContextMenuTrigger asChild>
+                <div className="panel-menu-shell" ref={validationMenuRef}>
+                  <SurfaceCard
+                    className="source-validation-strip"
+                    variant="validation"
+                  >
+                    <SurfaceCardBody
+                      className="source-validation-strip-body"
+                      padding="compact"
+                    >
+                      <div className="source-validation-topline">
+                        <div className="source-validation-copy">
+                          <div className="proposal-meta-row">
+                            <p className="eyebrow">Validation</p>
+                            <StatusBadge
+                              tone={statusToneForClassName(
+                                sourceValidationView.pill.className,
+                              )}
+                            >
+                              {sourceValidationView.pill.label}
+                            </StatusBadge>
+                          </div>
+                          <p className="source-validation-headline">
+                            {sourceValidationView.headline}
+                          </p>
+                        </div>
+                        <div className="source-validation-actions">
+                          <span className="inline-meta">
+                            {sourceValidationView.validatedAt
+                              ? `Last checked ${formatTimestampLabel(sourceValidationView.validatedAt)}`
+                              : "No validation run yet"}
+                          </span>
+                          <span className="inline-meta">
+                            {sourceValidationView.diagnosticsCount} diagnostic(s)
+                          </span>
+                          {sourceValidationView.primaryAction ===
+                            "focus-first-issue" && primaryValidationDiagnostic ? (
+                            <Button
+                              aria-label="Validation actions"
+                              className="panel-card-more"
+                              onClick={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                openSourceContextMenu(validationMenuRef.current)
+                              }}
+                              size="icon-xs"
+                              type="button"
+                              variant="ghost"
+                            >
+                              <MoreHorizontalIcon />
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                      {hasValidationDiagnostics ? (
+                        <ul className="diagnostic-list source-validation-list">
+                          {sourceValidation.diagnostics.map((diagnostic) => (
+                            <SourceDiagnosticRow
+                              diagnostic={diagnostic}
+                              key={diagnostic.id}
+                              onOpenSourceFocus={onOpenSourceFocus}
+                            />
+                          ))}
+                        </ul>
+                      ) : null}
+                    </SurfaceCardBody>
+                  </SurfaceCard>
+                </div>
+              </ContextMenuTrigger>
+              {sourceValidationView.primaryAction === "focus-first-issue" &&
+              primaryValidationDiagnostic ? (
+                <ContextMenuContent
+                  className="session-context-menu"
+                  sideOffset={10}
+                >
+                  <ContextMenuGroup>
+                    <ContextMenuItem
+                      onSelect={() => {
+                        const target = createSourceFocusTargetFromDiagnostic({
+                          diagnostic: primaryValidationDiagnostic,
+                        })
+                        if (target) {
+                          onOpenSourceFocus(target)
+                        }
+                      }}
+                    >
+                      Focus first issue
+                    </ContextMenuItem>
+                  </ContextMenuGroup>
+                </ContextMenuContent>
+              ) : null}
+            </ContextMenu>
+
+            {activeSourceFocus ? (
+              <ContextMenu>
+                <ContextMenuTrigger asChild>
+                  <div className="panel-menu-shell" ref={focusMenuRef}>
+                    <SurfaceCard
+                      className="source-focus-banner source-focus-strip"
+                      variant="inset"
+                    >
+                      <SurfaceCardBody
+                        className="source-focus-banner-body"
+                        padding="compact"
+                      >
+                        <div>
+                          <h4>
+                            {sourceFocusView?.label ?? activeSourceFocus.label}
+                          </h4>
+                          {sourceFocusView?.originLabel ||
+                          sourceFocusView?.reviewOriginLabel ? (
+                            <div className="proposal-meta-row">
+                              {sourceFocusView?.originLabel ? (
+                                <StatusBadge tone="accent">
+                                  {sourceFocusView.originLabel}
+                                </StatusBadge>
+                              ) : null}
+                              <StatusBadge>
+                                {sourceFocusView?.selectionLabel}
+                              </StatusBadge>
+                              {sourceFocusView?.reviewOriginLabel ? (
+                                <span className="inline-meta">
+                                  From {sourceFocusView.reviewOriginLabel}
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : null}
+                          {sourceFocusView?.summary ? (
+                            <div className="proposal-meta-row">
+                              {sourceFocusView.statusPill ? (
+                                <StatusBadge
+                                  tone={statusToneForClassName(
+                                    sourceFocusView.statusPill.className,
+                                  )}
+                                >
+                                  {sourceFocusView.statusPill.label}
+                                </StatusBadge>
+                              ) : null}
+                              <span className="inline-meta">
+                                {sourceFocusView.summary}
+                              </span>
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="source-focus-actions">
+                          {primaryFocusAction ? (
+                            <Button
+                              onClick={primaryFocusAction.onSelect}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              {primaryFocusAction.label}
+                            </Button>
+                          ) : null}
+                          <Button
+                            aria-label="Source focus actions"
+                            className="panel-card-more"
+                            onClick={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              openSourceContextMenu(focusMenuRef.current)
+                            }}
+                            size="icon-xs"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <MoreHorizontalIcon />
+                          </Button>
+                        </div>
+                      </SurfaceCardBody>
+                    </SurfaceCard>
+                  </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent
+                  className="session-context-menu"
+                  sideOffset={10}
+                >
+                  <ContextMenuGroup>
+                    {sourceFocusView?.actions.canRevealSourceOrigin &&
+                    primaryFocusAction?.label !== "Origin" ? (
+                      <ContextMenuItem onSelect={onRevealReviewTarget}>
+                        Origin
+                      </ContextMenuItem>
+                    ) : null}
+                    {sourceFocusView?.actions.canRefreshFocus &&
+                    primaryFocusAction?.label !== "Refresh" ? (
+                      <ContextMenuItem onSelect={onRefreshSourceFocus}>
+                        Refresh
+                      </ContextMenuItem>
+                    ) : null}
+                    <ContextMenuItem onSelect={onClearSourceFocus}>
+                      Clear
+                    </ContextMenuItem>
+                  </ContextMenuGroup>
+                  {sourceFocusView?.originReference ? (
+                    <>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem className="session-context-detail" disabled>
+                        <span className="session-context-detail-label">
+                          Reference
+                        </span>
+                        <span className="session-context-detail-value">
+                          {sourceFocusView.originReference}
+                        </span>
+                      </ContextMenuItem>
+                    </>
+                  ) : null}
+                </ContextMenuContent>
+              </ContextMenu>
+            ) : null}
+          </div>
+
+          <div className="source-editor-shell">
+            <div className="source-editor-topline">
+              <div className="source-editor-copy">
+                <p className="eyebrow">Editor</p>
+                <span className="inline-meta">
+                  Working copy stays local until you save it back to the session.
+                </span>
+              </div>
+              {sourceFocusView?.selectionLabel ? (
+                <StatusBadge>{sourceFocusView.selectionLabel}</StatusBadge>
+              ) : (
+                <span className="inline-meta">Draft surface</span>
+              )}
+            </div>
+            <SourceEditor
+              focusSelection={sourceFocusSelection}
+              onChange={onDraftChange}
+              value={draftSource}
+            />
+          </div>
+        </div>
       </SurfaceCardBody>
     </SurfaceCard>
   )

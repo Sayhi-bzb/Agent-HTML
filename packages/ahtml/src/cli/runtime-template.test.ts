@@ -24,7 +24,7 @@ afterEach(() => {
 describe("runtime template override guard", () => {
   it("ignores template overrides unless explicitly allowed", async () => {
     const { resolveShadcnTemplateDir } = await importRuntimeTemplateModule()
-    process.env.AHTML_SHADCN_TEMPLATE_DIR = "fixtures/shadcn-template"
+    process.env.AHTML_SHADCN_TEMPLATE_DIR = "fixtures/template"
     process.env.REGISTRY_URL = "http://127.0.0.1:4312/r"
     delete process.env.AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE
 
@@ -37,7 +37,7 @@ describe("runtime template override guard", () => {
 
   it("ignores template overrides outside local registry flows", async () => {
     const { resolveShadcnTemplateDir } = await importRuntimeTemplateModule()
-    process.env.AHTML_SHADCN_TEMPLATE_DIR = "fixtures/shadcn-template"
+    process.env.AHTML_SHADCN_TEMPLATE_DIR = "fixtures/template"
     process.env.AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE = "1"
     process.env.REGISTRY_URL = "https://registry.example.com/r"
 

@@ -5,12 +5,13 @@ import { Toggle as TogglePrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const toggleVariants = cva(
-  "group/toggle inline-flex items-center justify-center gap-1 rounded-lg text-sm font-medium whitespace-nowrap transition-all outline-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-pressed:bg-muted data-[state=on]:bg-muted dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/toggle inline-flex items-center justify-center gap-1 rounded-lg border border-transparent text-sm font-medium whitespace-nowrap text-[color:var(--body)] transition-colors outline-none hover:border-[color:var(--hairline)] hover:bg-[color:rgba(255,255,255,0.035)] hover:text-[color:var(--foreground)] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-pressed:border-[color:var(--hairline)] aria-pressed:bg-[color:rgba(255,255,255,0.04)] aria-pressed:text-[color:var(--foreground)] data-[state=on]:border-[color:var(--hairline)] data-[state=on]:bg-[color:rgba(255,255,255,0.05)] data-[state=on]:text-[color:var(--foreground)] dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default: "bg-transparent",
-        outline: "border border-input bg-transparent hover:bg-muted",
+        outline:
+          "border-[color:var(--hairline-strong)] bg-[color:rgba(255,255,255,0.02)] hover:border-[color:var(--hairline-strong)] hover:bg-[color:rgba(255,255,255,0.04)]",
       },
       size: {
         default:

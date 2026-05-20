@@ -15,12 +15,12 @@
 - `最终公开 contract`：当前 CLI schema / prompt 会公开给 agent 的字段。
 - `legacy/compat bridge`：当前仍保留、但已经不是主公开入口的旧语义字段或 runtime 兼容桥。
 - `runtime bridge`：runtime 当前如何消费字段，或如何把当前字段映射到底层实现。
-- `阶段含义`：对当前收口工作的直接影响，不是新规则。
+- `当前判断`：对当前收口工作的直接影响，不是新规则。
 
 ## 文档与内容容器
 
-| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 阶段含义 |
-|---|---|---|---|---|---|---|
+| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 当前判断 |
+| --- | --- | --- | --- | --- | --- | --- |
 | `page` | `title` | `title` | 无 | `titleProp: "title"`，root 为 `article` | `compound` | 唯一根节点仍是强约束 |
 | `alert` | `title`, `tone`, `variant` | `title`, `variant` | `tone` 仍保留在 semantic compatibility layer | `legacyBridges.variant` + `variant` 直通 | `compound` | `tone` 已退出公开主路径，但兼容桥仍在 |
 | `card` | `title` | `title` | 无 | `titleProp: "title"`，`CardHeader/CardContent` 由 renderer 固定拼装 | `compound` | `size` 仍保持隐藏 raw candidate |
@@ -34,8 +34,8 @@
 
 ## 字段与选择控件
 
-| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 阶段含义 |
-|---|---|---|---|---|---|---|
+| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 当前判断 |
+| --- | --- | --- | --- | --- | --- | --- |
 | `input` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue` | `text-field` | `value` 仍是语义字段，不等于原厂受控值 |
 | `textarea` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue` | `text-field` | 与 `input` 同类 |
 | `checkbox` | `label`, `checked`, `description` | `label`, `checked`, `description` | 无 | `checked -> defaultChecked` | `toggle-field` | 语义 `checked` 与原厂受控 `checked` 已分离 |
@@ -48,8 +48,8 @@
 
 ## 结构子节点
 
-| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 阶段含义 |
-|---|---|---|---|---|---|---|
+| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 当前判断 |
+| --- | --- | --- | --- | --- | --- | --- |
 | `option` | `value`, `label` | `value`, `label` | 无 | 供 `radio-group` / `toggle-group` / `select` / `combobox` slots 消费 | `structural` | 结构节点，风险主要在 parent contract |
 | `row` | `kind` | 无 | `kind` 仍保留在完整 schema compatibility layer | `table` 通过 `legacyBridges.structuralRole` 解释其结构角色 | `structural` | 结构节点也受 legacy compat 影响 |
 | `cell` | 无 | 无 | 无 | 由 `row` / `table` 结构消费 | `structural` | 低风险 |
@@ -59,8 +59,8 @@
 
 ## layout primitive
 
-| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 阶段含义 |
-|---|---|---|---|---|---|---|
+| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 当前判断 |
+| --- | --- | --- | --- | --- | --- | --- |
 | `stack` | 无 | 无 | 无 | layout projection | `layout-stack` | 已进入正式 surface |
 | `cluster` | 无 | 无 | 无 | layout projection | `layout-cluster` | 已进入正式 surface |
 | `split` | 无 | 无 | 无 | layout projection | `layout-split` | 当前仍保持零 props |
@@ -104,7 +104,7 @@
 
 这份矩阵可以直接支撑：
 
-- `Phase 5` 总验收
+- 当前收口验收
   - 哪些东西已经退出主公开 contract
   - 哪些东西只是退到 compatibility layer
 - 后续 docs 审计

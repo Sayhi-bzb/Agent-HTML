@@ -41,6 +41,7 @@ While editing, prefer the narrowest useful check:
 
 - For pure governance docs or ordinary copy edits, inspect the final diff only.
 - For docs changes that alter MDX structure, examples, routes, generated output, or docs build behavior, run the smallest relevant docs gate.
+- `npm run docs:lint` covers markdownlint for the existing docs surface plus the repository `docs/` discipline guard.
 - For ordinary CLI/runtime code changes, run `npm run build` once, then `npm run test:run -- <affected test file or -t pattern>`.
 - Run `npm run test:run:cli-heavy` only when changes touch setup, doctor, prompt output, build, preview, or runtime rendering.
 - Use `npm run check:package` as the package CI gate, not as the default edit loop.

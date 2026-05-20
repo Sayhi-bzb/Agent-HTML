@@ -12,8 +12,7 @@ import {
 
 describe("runtime contract", () => {
   it("derives verification, mapping, and renderer registry views from one source", async () => {
-    const { createRuntimeContract, VALIDATED_STANDARD_COMPONENT_SCHEMAS } =
-      await importRuntimeContract()
+    const { createRuntimeContract } = await importRuntimeContract()
     const publicComponents = createPublicAgentContract().components
     const runtimeContract = createRuntimeContract(publicComponents)
     const alertVerification = runtimeContract.verificationData.components.find(
@@ -146,7 +145,10 @@ async function importRuntimeContract() {
     ) => {
       readonly renderableAgentComponents: readonly string[]
       readonly verificationData: {
-        readonly components: readonly { readonly name: string }[]
+        readonly components: readonly {
+          readonly name: string
+          readonly props: readonly string[]
+        }[]
       }
       readonly rendererMapping: {
         readonly components: readonly { readonly name: string }[]

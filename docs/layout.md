@@ -16,7 +16,7 @@
 
 ## 当前定位
 
-layout primitive 现在已经是正式语义节点，不再只是迁移目标。
+layout primitive 现在已经是正式语义节点。
 
 当前稳定集合是：
 
