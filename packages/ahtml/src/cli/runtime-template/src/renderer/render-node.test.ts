@@ -1,21 +1,89 @@
-// @ts-nocheck
-
 import React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it, vi } from "vitest"
+import { pathToFileURL } from "node:url"
+import { beforeAll, describe, expect, it, vi } from "vitest"
+
+import { importCliModule, resolveRepoPath } from "../../../cli-test-helpers"
+import type { ComponentSchema } from "@agent-html/core"
+import type {
+  AgentNode,
+  RendererPath,
+  RendererSpecComponent,
+  RendererTextMode,
+} from "./types"
+
+type RendererNodeModule = {
+  readonly createRendererNode: (
+    rendererSpecByName: Map<string, RendererSpecComponent>,
+    componentTreatments?: Record<string, string>,
+  ) => React.ComponentType<{
+    node: AgentNode
+    path?: RendererPath
+    textMode?: RendererTextMode
+  }>
+}
+
+type RenderCapabilitiesModule = {
+  readonly createRendererMapping: (
+    components: readonly ComponentSchema[],
+  ) => {
+    readonly components: RendererSpecComponent[]
+  }
+}
+
+type ComboboxCollectionRenderer = (
+  item: unknown,
+  index: number,
+) => React.ReactNode
+
+let createRendererNode: RendererNodeModule["createRendererNode"]
+let createRendererMapping: RenderCapabilitiesModule["createRendererMapping"]
+
+async function importRenderNodeModule(): Promise<RendererNodeModule> {
+  return importCliModule<RendererNodeModule>(
+    "runtime-template",
+    "src",
+    "renderer",
+    "render-node.tsx",
+  )
+}
+
+async function importRenderCapabilitiesModule(): Promise<RenderCapabilitiesModule> {
+  return import(
+    pathToFileURL(
+      resolveRepoPath(
+        "packages",
+        "ahtml",
+        "src",
+        "config",
+        "render-capabilities.mjs",
+      ),
+    ).href
+  ) as Promise<RenderCapabilitiesModule>
+}
+
+beforeAll(async () => {
+  ;({ createRendererNode } = await importRenderNodeModule())
+  ;({ createRendererMapping } = await importRenderCapabilitiesModule())
+})
+
+function createRendererSpecByName(
+  entries: Iterable<readonly [string, RendererSpecComponent]>,
+) {
+  return new Map<string, RendererSpecComponent>(entries)
+}
 
 vi.mock("./elements", () => {
   const ComboboxItemsContext = React.createContext<unknown[]>([])
   const ComboboxSelectedItemContext = React.createContext<unknown>(undefined)
 
   return {
-    resolveElement(name) {
-    if (name === "ComboboxInput") {
-      return ({
-        children,
-        ...props
-      }: React.PropsWithChildren<Record<string, unknown>>) =>
-        {
+    resolveElement(name: string | undefined) {
+      if (name === "ComboboxInput") {
+        return ({
+          children,
+          ...props
+        }: React.PropsWithChildren<Record<string, unknown>>) => {
           const selectedItem = React.useContext(ComboboxSelectedItemContext)
           const selectedLabel =
             selectedItem &&
@@ -36,37 +104,37 @@ vi.mock("./elements", () => {
             children,
           )
         }
-    }
+      }
 
-    if (name === "Input") {
-      return "input"
-    }
+      if (name === "Input") {
+        return "input"
+      }
 
-    if (name === "Switch") {
-      return "input"
-    }
+      if (name === "Switch") {
+        return "input"
+      }
 
-    if (name === "Slider") {
-      return ({
-        controlId,
-        defaultValue,
-        descriptionId,
-        labelId,
-      }: Record<string, unknown>) =>
-        React.createElement(
-          "div",
-          {
-            "data-slot": "slider",
-            "data-default-value": JSON.stringify(defaultValue),
-          },
-          React.createElement("span", {
-            id: controlId,
-            role: "slider",
-            "aria-labelledby": labelId,
-            "aria-describedby": descriptionId,
-          }),
-        )
-    }
+      if (name === "Slider") {
+        return ({
+          controlId,
+          defaultValue,
+          descriptionId,
+          labelId,
+        }: Record<string, unknown>) =>
+          React.createElement(
+            "div",
+            {
+              "data-slot": "slider",
+              "data-default-value": JSON.stringify(defaultValue),
+            },
+            React.createElement("span", {
+              id: controlId,
+              role: "slider",
+              "aria-labelledby": labelId,
+              "aria-describedby": descriptionId,
+            }),
+          )
+      }
 
     if (name === "Field") {
       return "div"
@@ -150,43 +218,43 @@ vi.mock("./elements", () => {
       return "div"
     }
 
-    if (name === "ComboboxCollection") {
-      return ({
-        children,
-      }: React.PropsWithChildren<Record<string, unknown>>) => {
-        if (typeof children !== "function") {
-          throw new TypeError("ComboboxCollection children must be a function.")
+      if (name === "ComboboxCollection") {
+        return ({
+          children,
+        }: React.PropsWithChildren<Record<string, unknown>>) => {
+          if (typeof children !== "function") {
+            throw new TypeError(
+              "ComboboxCollection children must be a function.",
+            )
+          }
+
+          const items = React.useContext(ComboboxItemsContext)
+          const renderChild = children as ComboboxCollectionRenderer
+
+          return React.createElement(
+            React.Fragment,
+            null,
+            items.map((item, index) => renderChild(item, index)),
+          )
         }
-
-        const items = React.useContext(ComboboxItemsContext)
-
-        return React.createElement(
-          React.Fragment,
-          null,
-          items.map((item, index) => children(item, index)),
-        )
       }
-    }
 
-    if (name === "ComboboxItem") {
-      return "div"
-    }
+      if (name === "ComboboxItem") {
+        return "div"
+      }
 
-    if (name === "SelectGroup") {
-      return "div"
-    }
+      if (name === "SelectGroup") {
+        return "div"
+      }
 
-    return name ?? React.Fragment
+      return name ?? React.Fragment
     },
   }
 })
 
-import { createRendererNode } from "./render-node"
-import { createRendererMapping } from "../../../../config/render-capabilities.mjs"
-
 describe("createRendererNode", () => {
   it("uses shared slot childNames metadata when selecting structured children", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "list",
         {
@@ -239,7 +307,7 @@ describe("createRendererNode", () => {
   })
 
   it("applies builtin component treatment metadata and classes internally", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "card",
         {
@@ -287,7 +355,7 @@ describe("createRendererNode", () => {
   })
 
   it("uses renderer spec prop names for tabs content and labels", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "tabs",
         {
@@ -343,7 +411,7 @@ describe("createRendererNode", () => {
   })
 
   it("passes through primitive props without enum mapping and keeps zero values", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "progress",
         {
@@ -375,7 +443,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders text-field components with visible labels and default values", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "textarea",
         {
@@ -424,7 +492,7 @@ describe("createRendererNode", () => {
   })
 
   it("collapses multiline prose text in compound components instead of preserving source indentation", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "alert",
         {
@@ -467,7 +535,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders checkbox toggle-field components with boolean prop coercion", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "checkbox",
         {
@@ -517,7 +585,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders switch toggle-field components with boolean prop coercion", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "switch",
         {
@@ -567,7 +635,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders slider range-field components with numeric coercion and fallback", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "slider",
         {
@@ -618,7 +686,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders radio-group choice-group components with option children", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "radio-group",
         {
@@ -691,7 +759,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders toggle-group choice-inline components with static props and option children", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "toggle-group",
         {
@@ -773,7 +841,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders select select-overlay components with trigger/content structure and fallback", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "select",
         {
@@ -858,7 +926,7 @@ describe("createRendererNode", () => {
   })
 
   it("collapses multiline option descriptions in select fallback and item text", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "select",
         {
@@ -928,7 +996,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders combobox combobox-input components with collection and empty-state composition", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "combobox",
         {
@@ -1014,7 +1082,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders a no-script fallback for accordion items when configured", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "accordion",
         {
@@ -1072,7 +1140,7 @@ describe("createRendererNode", () => {
   })
 
   it("uses the first table row as header and the remaining rows as body", () => {
-    const rendererSpecByName = new Map([
+    const rendererSpecByName = createRendererSpecByName([
       [
         "table",
         {
@@ -1153,7 +1221,7 @@ describe("createRendererNode", () => {
   })
 
   it("renders layout primitives through the runtime capability mapping", () => {
-    const rendererSpecByName = new Map(
+    const rendererSpecByName = createRendererSpecByName(
       createRendererMapping([
         {
           name: "page",

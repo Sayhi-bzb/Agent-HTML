@@ -269,7 +269,8 @@ describe("agent-html CLI heavy runtime flows", () => {
     expect(
       report.checks.some(
         (check) =>
-          check.category === "runtime" && check.name === "style-profile-manifest",
+          check.category === "runtime" &&
+          check.name === "style-profile-manifest",
       ),
     ).toBe(true)
     expect(
@@ -331,7 +332,7 @@ describe("agent-html CLI heavy runtime flows", () => {
 
     await expectCliFailure(
       runCliWithServer(["doctor"], { AHTML_HOME: runtimeHome }, tempDir),
-      "fail runtime:verification-data-parity runtime verification data card slots does not match schema runtime contract verification data card slots.",
+      "fail runtime:verification-data-parity runtime verification data card slots does not match schema verification data card slots. Extra: actions",
     )
     await removeTempDir(tempDir)
   }, 120000)
@@ -366,7 +367,7 @@ describe("agent-html CLI heavy runtime flows", () => {
 
     await expectCliFailure(
       runCliWithServer(["doctor"], { AHTML_HOME: runtimeHome }, tempDir),
-      "fail runtime:renderer-mapping-parity runtime renderer verification mapping card slots does not match schema runtime contract renderer mapping card slots.",
+      "fail runtime:renderer-mapping-parity runtime renderer verification mapping card slots does not match schema renderer mapping card slots. Extra: actions",
     )
     await removeTempDir(tempDir)
   }, 60000)

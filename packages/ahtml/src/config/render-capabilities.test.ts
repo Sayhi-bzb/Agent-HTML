@@ -1,17 +1,108 @@
-// @ts-nocheck
-
 import { describe, expect, it } from "vitest"
 
-import {
-  collectRendererSpecComponentIssues,
-  createRendererMapping,
-  createRuntimeElementRegistrySpec,
-  createRuntimeRendererKindSpec,
-} from "./render-capabilities.mjs"
+import { importCliModule } from "../cli/cli-test-helpers"
 import { runtimeRendererKinds } from "../cli/runtime-template/src/renderer/kinds"
 
+type RenderCapabilitiesModule = {
+  readonly collectRendererSpecComponentIssues: (
+    component: RendererMappingComponent,
+  ) => string[]
+  readonly createRendererMapping: (
+    components: readonly ComponentSchemaInput[],
+  ) => {
+    readonly version: 1
+    readonly components: RendererMappingComponent[]
+  }
+  readonly createRuntimeElementRegistrySpec: (rendererMapping: {
+    readonly components: readonly RuntimeElementRegistryComponent[]
+  }) => {
+    readonly version: 1
+    readonly nativeElements: string[]
+    readonly modules: Array<{
+      readonly registryItem: string
+      readonly exports: string[]
+    }>
+  }
+  readonly createRuntimeRendererKindSpec: () => {
+    readonly version: 1
+    readonly kinds: string[]
+  }
+}
+
+type RendererMappingComponent = {
+  readonly name: string
+  readonly kind: string
+  readonly renderKind: string
+  readonly props?: readonly { readonly name: string }[]
+  readonly slots: Array<{
+    readonly name: string
+    readonly childNames?: string[]
+    readonly children?: string[]
+  }>
+  readonly textMode?: string
+  readonly staticProps?: Record<string, string>
+  readonly propMappings?: Array<{
+    readonly prop: string
+    readonly target: string
+  }>
+  readonly root?: string
+  readonly title?: string
+  readonly requiredRegistryItem?: string
+  readonly requiredExports?: string[]
+  readonly requiredRegistryModules?: Array<{
+    readonly registryItem: string
+    readonly exports: string[]
+  }>
+  readonly label?: string
+  readonly control?: string
+  readonly description?: string
+  readonly valueProp?: string
+  readonly rootByProp?: {
+    readonly prop: string
+    readonly target: "tag"
+    readonly map: Record<string, string>
+    readonly default: string
+  }
+  readonly list?: string
+  readonly trigger?: string
+  readonly content?: string
+  readonly titleContainer?: string
+  readonly item?: string
+  readonly itemContainer?: string
+  readonly controlTrigger?: string
+  readonly controlValue?: string
+  readonly controlContent?: string
+  readonly controlRoot?: string
+  readonly controlEmpty?: string
+  readonly controlList?: string
+  readonly itemSlot?: string
+  readonly itemValueProp?: string
+  readonly itemHeadingProp?: string
+}
+
+type ComponentPropInput = {
+  readonly name: string
+  readonly valueKind: "boolean" | "enum" | "number" | "string" | "text"
+  readonly required?: boolean
+  readonly enumValues?: readonly string[]
+}
+
+type ComponentSchemaInput = {
+  readonly name: string
+  readonly description?: string
+  readonly props: readonly ComponentPropInput[]
+  readonly allowedChildren?: readonly string[]
+}
+
+type RuntimeElementRegistryComponent = Partial<RendererMappingComponent> & {
+  readonly name: string
+  readonly kind: string
+}
+
 describe("createRuntimeElementRegistrySpec", () => {
-  it("derives native tags and shadcn exports from renderer mapping", () => {
+  it("derives native tags and shadcn exports from renderer mapping", async () => {
+    const { createRuntimeElementRegistrySpec } =
+      await importRenderCapabilitiesModule()
     const registrySpec = createRuntimeElementRegistrySpec({
       components: [
         {
@@ -255,7 +346,9 @@ describe("createRuntimeElementRegistrySpec", () => {
     })
   })
 
-  it("fails when renderer mapping references an unbacked shadcn export", () => {
+  it("fails when renderer mapping references an unbacked shadcn export", async () => {
+    const { createRuntimeElementRegistrySpec } =
+      await importRenderCapabilitiesModule()
     expect(() =>
       createRuntimeElementRegistrySpec({
         components: [
@@ -276,7 +369,9 @@ describe("createRuntimeElementRegistrySpec", () => {
     )
   })
 
-  it("adds explicit childNames for renderer slot selection", () => {
+  it("adds explicit childNames for renderer slot selection", async () => {
+    const { collectRendererSpecComponentIssues, createRendererMapping } =
+      await importRenderCapabilitiesModule()
     const rendererMapping = createRendererMapping([
       {
         name: "list",
@@ -370,13 +465,15 @@ describe("createRuntimeElementRegistrySpec", () => {
     }
   })
 
-  it("keeps runtime renderer kind template in sync with shared kind definitions", () => {
+  it("keeps runtime renderer kind template in sync with shared kind definitions", async () => {
+    const { createRuntimeRendererKindSpec } = await importRenderCapabilitiesModule()
     expect(createRuntimeRendererKindSpec().kinds).toEqual(
       [...runtimeRendererKinds].sort(),
     )
   })
 
-  it("carries explicit prose text semantics for multiline content renderers", () => {
+  it("carries explicit prose text semantics for multiline content renderers", async () => {
+    const { createRendererMapping } = await importRenderCapabilitiesModule()
     const rendererMapping = createRendererMapping([
       {
         name: "page",
@@ -435,7 +532,8 @@ describe("createRuntimeElementRegistrySpec", () => {
     })
   })
 
-  it("keeps alert and badge renderer mappings aligned to variant-only runtime props", () => {
+  it("keeps alert and badge renderer mappings aligned to variant-only runtime props", async () => {
+    const { createRendererMapping } = await importRenderCapabilitiesModule()
     const rendererMapping = createRendererMapping([
       {
         name: "alert",
@@ -493,3 +591,7 @@ describe("createRuntimeElementRegistrySpec", () => {
     )
   })
 })
+
+async function importRenderCapabilitiesModule(): Promise<RenderCapabilitiesModule> {
+  return importCliModule<RenderCapabilitiesModule>("..", "config", "render-capabilities.mjs")
+}

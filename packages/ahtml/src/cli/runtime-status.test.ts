@@ -123,7 +123,7 @@ describe("withRuntimeBuildLock", () => {
           packageVersion,
         }
       })
-    const guardedBootstrap = (label: string, delayMs: number) =>
+    const guardedBootstrap = (label: string) =>
       runtimeStatusModule.bootstrapManagedRuntimeWithLock({
         bootstrap: bootstrapSpy,
         packageRoot: process.cwd(),
@@ -138,8 +138,8 @@ describe("withRuntimeBuildLock", () => {
       })
 
     await Promise.all([
-      guardedBootstrap("first", 120),
-      guardedBootstrap("second", 0),
+      guardedBootstrap("first"),
+      guardedBootstrap("second"),
     ])
 
     expect(bootstrapSpy).toHaveBeenCalledTimes(2)

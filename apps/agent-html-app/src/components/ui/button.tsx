@@ -5,32 +5,27 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-[8px] border bg-clip-padding text-sm font-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/20 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default:
-          "border-[color:rgba(255,122,26,0.22)] bg-[color:var(--primary)] text-[#12161d] shadow-none hover:brightness-105",
-        outline:
-          "border-[color:rgba(255,255,255,0.08)] bg-[color:rgba(255,255,255,0.018)] text-[color:var(--foreground)] shadow-none hover:bg-[color:rgba(255,255,255,0.03)]",
-        secondary:
-          "border-[color:var(--hairline)] bg-[color:var(--canvas-soft)] text-[color:var(--foreground)] shadow-none hover:bg-[color:var(--card)]",
-        ghost:
-          "border-transparent bg-transparent text-[color:var(--body)] shadow-none hover:bg-[color:var(--canvas-soft)] hover:text-[color:var(--foreground)]",
+        default: "bg-primary text-primary-foreground hover:opacity-90",
         destructive:
-          "border-destructive/30 bg-destructive/10 text-destructive focus-visible:border-destructive/40 focus-visible:ring-destructive/20",
-        link: "border-transparent bg-transparent px-0 text-[color:var(--body)] underline-offset-4 hover:text-[color:var(--foreground)] hover:underline",
+          "bg-destructive text-white hover:opacity-90 focus-visible:ring-destructive/20",
+        outline: "border bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:opacity-90",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default:
-          "h-9 gap-1.5 px-4 text-[0.84rem] has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4",
-        xs: "h-7 gap-1 px-2.5 text-xs has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7.5 gap-1.5 px-3 text-[0.79rem] has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-11 gap-1.5 px-5 text-[0.875rem] has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4",
-        icon: "size-10",
-        "icon-xs": "size-7 [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-8 [&_svg:not([class*='size-'])]:size-3.5",
-        "icon-lg": "size-11",
+        default: "h-9 px-4 py-2",
+        xs: "h-7 px-2.5 text-xs",
+        sm: "h-8 px-3 text-xs",
+        lg: "h-10 px-6",
+        icon: "size-9",
+        "icon-xs": "size-7",
+        "icon-sm": "size-8",
+        "icon-lg": "size-10",
       },
     },
     defaultVariants: {
@@ -42,8 +37,8 @@ const buttonVariants = cva(
 
 function Button({
   className,
-  variant = "default",
-  size = "default",
+  variant,
+  size,
   asChild = false,
   ...props
 }: React.ComponentProps<"button"> &
@@ -55,8 +50,6 @@ function Button({
   return (
     <Comp
       data-slot="button"
-      data-variant={variant}
-      data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

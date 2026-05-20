@@ -1,21 +1,25 @@
 /// <reference types="node" />
 // @vitest-environment node
-// @ts-nocheck
 
 import { mkdtemp, readFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
+import { StyleProfileSchema } from "@agent-html/core"
 import { afterEach, describe, expect, it } from "vitest"
 
-import { getRuntimePaths } from "./runtime-paths.mjs"
-import {
-  deleteStyleProfile,
-  loadUserStyleProfilesById,
-  readCurrentStyleProfileReference,
-  saveUserStyleProfile,
-  writeCurrentStyleProfileReference,
-} from "./style-profile-storage.mjs"
+import { importCliModule } from "./cli-test-helpers"
+
+type RuntimePaths = {
+  readonly runtimeRoot: string
+  readonly styleProfilesDir: string
+  readonly builtinStyleProfilesDir: string
+  readonly userStyleProfilesDir: string
+  readonly styleProfileManifestPath: string
+  readonly styleProfileStatePath: string
+}
+
+type StyleProfile = ReturnType<typeof StyleProfileSchema.parse>
 
 const tempDirs: string[] = []
 
@@ -31,6 +35,11 @@ afterEach(async () => {
 describe("style profile storage", () => {
   it("saves and overwrites user profiles", async () => {
     const runtimeHome = await createRuntimeHome()
+    const { getRuntimePaths } = await importRuntimePathsModule()
+    const {
+      loadUserStyleProfilesById,
+      saveUserStyleProfile,
+    } = await importStyleProfileStorageModule()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
     const firstProfile = createProfile("team-ops", "#0f766e")
 
@@ -59,6 +68,13 @@ describe("style profile storage", () => {
 
   it("persists and falls back current style ids", async () => {
     const runtimeHome = await createRuntimeHome()
+    const { getRuntimePaths } = await importRuntimePathsModule()
+    const {
+      deleteStyleProfile,
+      readCurrentStyleProfileReference,
+      saveUserStyleProfile,
+      writeCurrentStyleProfileReference,
+    } = await importStyleProfileStorageModule()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
 
     await writeCurrentStyleProfileReference(paths, "report-default")
@@ -78,6 +94,8 @@ describe("style profile storage", () => {
 
   it("rejects invalid ids", async () => {
     const runtimeHome = await createRuntimeHome()
+    const { getRuntimePaths } = await importRuntimePathsModule()
+    const { saveUserStyleProfile } = await importStyleProfileStorageModule()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
 
     await expect(
@@ -87,6 +105,9 @@ describe("style profile storage", () => {
 
   it("rejects save and delete mutations for built-in style profiles", async () => {
     const runtimeHome = await createRuntimeHome()
+    const { getRuntimePaths } = await importRuntimePathsModule()
+    const { deleteStyleProfile, saveUserStyleProfile } =
+      await importStyleProfileStorageModule()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
 
     await expect(
@@ -101,13 +122,13 @@ describe("style profile storage", () => {
   })
 })
 
-async function createRuntimeHome() {
+async function createRuntimeHome(): Promise<string> {
   const directory = await mkdtemp(path.join(tmpdir(), "ahtml-style-profiles-"))
   tempDirs.push(directory)
   return directory
 }
 
-function createProfile(id: string, primary: string) {
+function createProfile(id: string, primary: string): StyleProfile {
   return {
     id,
     globalStyle: {
@@ -204,4 +225,42 @@ function createProfile(id: string, primary: string) {
       },
     },
   }
+}
+
+async function importRuntimePathsModule() {
+  return importCliModule<{
+    readonly getRuntimePaths: (env?: NodeJS.ProcessEnv) => RuntimePaths
+  }>("runtime-paths.mjs")
+}
+
+async function importStyleProfileStorageModule() {
+  return importCliModule<{
+    readonly deleteStyleProfile: (
+      paths: RuntimePaths,
+      styleReference: string,
+    ) => Promise<{
+      readonly deleted: boolean
+      readonly currentStyleProfileId: string
+    }>
+    readonly loadUserStyleProfilesById: (
+      paths: RuntimePaths,
+    ) => Promise<Map<string, StyleProfile>>
+    readonly readCurrentStyleProfileReference: (
+      paths: RuntimePaths,
+    ) => Promise<string>
+    readonly saveUserStyleProfile: (
+      paths: RuntimePaths,
+      profile: StyleProfile,
+      options?: {
+        readonly overwrite?: boolean
+      },
+    ) => Promise<{
+      readonly overwritten: boolean
+      readonly path: string
+    }>
+    readonly writeCurrentStyleProfileReference: (
+      paths: RuntimePaths,
+      styleReference: string,
+    ) => Promise<string>
+  }>("style-profile-storage.mjs")
 }

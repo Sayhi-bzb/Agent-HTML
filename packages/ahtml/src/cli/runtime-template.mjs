@@ -94,6 +94,7 @@ export async function writeRuntimeTemplate({
 export function resolveRuntimeDependencies(packageRoot) {
   const packageRequire = createRequire(path.join(packageRoot, "package.json"))
   const viteRoot = resolvePackageRoot("vite", packageRequire)
+  const agentHtmlCoreRoot = resolvePackageRoot("@agent-html/core", packageRequire)
   const reactRoot = resolvePackageRoot("react", packageRequire)
   const reactDomRoot = resolvePackageRoot("react-dom", packageRequire)
   const baseUiReactRoot = resolvePackageRoot("@base-ui/react", packageRequire)
@@ -104,6 +105,7 @@ export function resolveRuntimeDependencies(packageRoot) {
     viteBin: path.join(viteRoot, "bin", "vite.js"),
     viteModule: packageRequire.resolve("vite"),
     viteReactPlugin: packageRequire.resolve("@vitejs/plugin-react"),
+    agentHtmlCoreEntry: path.join(agentHtmlCoreRoot, "src", "core.ts"),
     reactRoot,
     reactJsxRuntime: packageRequire.resolve("react/jsx-runtime"),
     reactDomRoot,

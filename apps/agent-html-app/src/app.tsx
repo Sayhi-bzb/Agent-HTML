@@ -1,75 +1,45 @@
-import { startTransition, useEffect, useRef, useState } from "react"
+import { startTransition, useEffect, useMemo, useState } from "react"
+import {
+  BotIcon,
+  FileCode2Icon,
+  EyeIcon,
+  HammerIcon,
+  InspectIcon,
+  LoaderCircleIcon,
+  PlusIcon,
+  SearchIcon,
+  Settings2Icon,
+  SparklesIcon,
+  TerminalSquareIcon,
+  Trash2Icon,
+} from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
 import {
-  SurfaceCard,
-  SurfaceCardBody,
-  SurfaceCardHeader,
-} from "@/components/ui/surface-card"
-import { StatusBadge } from "@/components/ui/status-badge"
-import { AgentShell } from "./components/agent-shell/agent-shell"
-import { SessionsSidebar } from "./components/layout/sessions-sidebar"
-import { Workbench } from "./components/workbench/workbench"
-import {
-  getAvailableReviewFocusTargets,
-  isSameReviewFocusTarget,
-  type ReviewFocusIntent,
-  type ReviewFocusTarget,
-} from "./lib/review-focus"
-import {
-  findLatestProposalDecision,
-  findRecentProposalDecisions,
-  getCurrentReviewStage,
-  getProposalDecisionTrend,
-  getReviewTimeline,
-  getReviewTimelineActionConfig,
-  type ReviewTimelineActionConfig,
-} from "./lib/review-flow"
-import {
-  createSourceFocusTargetFromDiagnostic,
-  createSourceFocusTargetFromGroup,
-  getSourceFocusReviewStatus,
-  getSourceFocusRevealTarget,
-  type SourceFocusTarget,
-} from "./lib/source-focus"
-import {
-  getLatestProposalComparisonSummary,
-  getSourceComparisonSummary,
-} from "./lib/source-comparison"
-import { formatAppError } from "./lib/app-error"
-import { hydrateDiagnosticPositions } from "./lib/diagnostic-position"
-import {
-  createMockBuildArtifacts,
-  createMockInspectArtifacts,
-  createMockValidationSnapshot,
-} from "./lib/mock-runtime"
-import {
-  sortSessionSummaries,
-  upsertSessionSummary,
-} from "./lib/session-summary"
-import {
-  buildEventMessage,
-  buildLocalProposalText,
-  buildSourceSavedEventMessage,
-  inspectEventMessage,
-} from "./lib/session-messages"
-import {
-  beginBuildRun,
-  applyBuildCommandFailure,
-  applyCommandFailureToSession,
-  applyBuildResultToSession,
-  applyInspectResultToSession,
-  applySourceSaveToSession,
-  deriveBuildSummaryFromSession,
-  deriveInspectSnapshotFromSession,
-  syncInspectSnapshotWithBuild,
-} from "./lib/session-build"
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { formatTimestampLabel } from "@/lib/time"
 import { mockAppState, mockPreviewHtml } from "./lib/mock-data"
 import {
   appendChatMessage,
@@ -80,14 +50,12 @@ import {
   isTauriRuntime,
   listSessions,
   openSession,
-  renameSession,
   readChat,
-  readPreviewHtml,
   readLogs,
+  readPreviewHtml,
   runBuild,
   runInspect,
   saveSource,
-  setSessionPinned,
   setSessionView,
   validateSource,
 } from "./lib/tauri"
@@ -96,44 +64,29 @@ import type {
   AppState,
   BuildRunSummary,
   InspectSnapshot,
-  SourceValidationSnapshot,
-  SourceValidationState,
-  SessionDetail,
+  LogSnapshot,
   RuntimeReport,
+  SessionDetail,
+  SessionSummary,
+  SourceValidationSnapshot,
   WorkbenchView,
 } from "./lib/types"
-import { copyText } from "./lib/utils"
 
 type CommandState = {
   loading: boolean
-  savingSource: boolean
-  sendingMessage: boolean
-  draftingProposal: boolean
-  runningBuild: boolean
-  runningInspect: boolean
-  runningDoctor: boolean
+  saving: boolean
+  building: boolean
+  inspecting: boolean
+  sending: boolean
+  drafting: boolean
+  checking: boolean
   error?: string
-}
-
-const initialCommandState: CommandState = {
-  loading: true,
-  savingSource: false,
-  sendingMessage: false,
-  draftingProposal: false,
-  runningBuild: false,
-  runningInspect: false,
-  runningDoctor: false,
-}
-
-const initialSourceValidationState: SourceValidationState = {
-  status: "idle",
-  diagnostics: [],
 }
 
 type HydratedSessionState = {
   session: SessionDetail
-  chat: AppState["chat"]
-  logs: AppState["currentLogs"]
+  chat: AgentShellMessage[]
+  logs: LogSnapshot
   previewHtml?: string
 }
 
@@ -143,378 +96,104 @@ type PanelLayoutState = {
   shell: number
 }
 
-const panelLayoutStorageKey = "agent-html-app:panel-layout:v3"
+const panelLayoutStorageKey = "agent-html-app:panel-layout:v4-minimal"
 const defaultPanelLayout: PanelLayoutState = {
-  sessions: 15,
-  workbench: 63,
-  shell: 22,
+  sessions: 18,
+  workbench: 56,
+  shell: 26,
+}
+
+const initialCommandState: CommandState = {
+  loading: true,
+  saving: false,
+  building: false,
+  inspecting: false,
+  sending: false,
+  drafting: false,
+  checking: false,
 }
 
 export function App() {
   const [appState, setAppState] = useState<AppState>(mockAppState)
-  const [sessionDrafts, setSessionDrafts] = useState<Record<string, string>>({})
-  const [sessionSearchFocusKey, setSessionSearchFocusKey] = useState<string>()
-  const [panelLayout, setPanelLayout] = useState<PanelLayoutState>(() =>
-    readStoredPanelLayout(),
-  )
-  const [agentShellReviewIntent, setAgentShellReviewIntent] =
-    useState<ReviewFocusIntent>()
-  const [agentShellClearReviewFocusKey, setAgentShellClearReviewFocusKey] =
-    useState<string>()
-  const [agentShellReviewFocus, setAgentShellReviewFocus] =
-    useState<ReviewFocusTarget>()
-  const [activeSourceFocus, setActiveSourceFocus] =
-    useState<SourceFocusTarget>()
-  const [currentSourceValidation, setCurrentSourceValidation] =
-    useState<SourceValidationState>(initialSourceValidationState)
-  const sourceValidationRequestId = useRef(0)
-  const [activeView, setActiveView] = useState<WorkbenchView>(
-    mockAppState.currentSession.currentView,
-  )
   const [previewHtml, setPreviewHtml] = useState<string | undefined>(
     isTauriRuntime() ? undefined : mockPreviewHtml,
   )
+  const [activeView, setActiveView] = useState<WorkbenchView>(
+    mockAppState.currentSession.currentView,
+  )
+  const [draftSource, setDraftSource] = useState(mockAppState.currentSession.source)
+  const [messageDraft, setMessageDraft] = useState("")
+  const [validation, setValidation] = useState<SourceValidationSnapshot>()
+  const [runtimeReport, setRuntimeReport] = useState<RuntimeReport>()
   const [commandState, setCommandState] =
     useState<CommandState>(initialCommandState)
-  const currentDraftSource =
-    sessionDrafts[appState.currentSession.summary.id] ??
-    appState.currentSession.source
-  const hasUnsavedSourceChanges =
-    currentDraftSource !== appState.currentSession.source
-  const draftComparison = getSourceComparisonSummary(
-    appState.currentSession.source,
-    currentDraftSource,
+  const [panelLayout, setPanelLayout] = useState<PanelLayoutState>(() =>
+    readStoredPanelLayout(),
   )
-  const proposalComparison = getLatestProposalComparisonSummary(
-    appState.chat,
-    currentDraftSource,
+
+  const currentSession = appState.currentSession
+  const currentBuild = appState.currentBuild
+  const currentInspect = appState.currentInspect
+  const currentLogs = appState.currentLogs
+  const messages = appState.chat
+  const hasUnsavedChanges = draftSource !== currentSession.source
+
+  const filteredMessages = useMemo(
+    () =>
+      messages.filter(
+        (message) =>
+          message.kind === "proposal-placeholder" ||
+          message.kind === "context-card" ||
+          message.role !== "system",
+      ),
+    [messages],
   )
-  const latestProposal = [...appState.chat]
-    .reverse()
-    .find((message) => message.kind === "proposal-placeholder")
-  const latestProposalText = latestProposal?.text
-  const latestProposalDecision = findLatestProposalDecision(appState.chat)
-  const recentProposalDecisions = findRecentProposalDecisions(appState.chat)
-  const proposalDecisionTrend = getProposalDecisionTrend(
-    recentProposalDecisions,
-  )
-  const latestProposalIsStale = latestProposal
-    ? appState.currentSession.summary.updatedAt > latestProposal.createdAt
-    : false
-  const currentReviewStage = getCurrentReviewStage({
-    build: appState.currentBuild,
-    hasUnsavedSourceChanges,
-    inspect: appState.currentInspect,
-    latestProposalExists: Boolean(latestProposal),
-    latestProposalIsStale,
-    proposalComparison,
-    session: appState.currentSession,
-    sourceValidation: currentSourceValidation,
-  })
-  const reviewTimeline = getReviewTimeline({
-    build: appState.currentBuild,
-    hasUnsavedSourceChanges,
-    inspect: appState.currentInspect,
-    latestProposal,
-    latestProposalDecision,
-    proposalDecisionTrend,
-    latestProposalIsStale,
-    messages: appState.chat,
-    proposalComparison,
-    session: appState.currentSession,
-    sourceValidation: currentSourceValidation,
-  })
-  const currentStageItem =
-    reviewTimeline.find((item) => item.id === currentReviewStage) ??
-    reviewTimeline[0]
-  const currentStageAction = getReviewTimelineActionConfig({
-    stage: currentReviewStage,
-    activeView,
-    build: appState.currentBuild,
-    hasUnsavedSourceChanges,
-    inspect: appState.currentInspect,
-    latestProposalExists: Boolean(latestProposal),
-    latestProposalDecision,
-    latestProposalIsStale,
-    proposalComparison,
-    sessionHasPreview: appState.currentSession.summary.hasPreview,
-    sourceValidation: currentSourceValidation,
-  })
-  const availableReviewFocusTargets = getAvailableReviewFocusTargets({
-    proposalText: latestProposalText,
-    build: appState.currentBuild,
-    hasUnsavedSourceChanges,
-    inspect: appState.currentInspect,
-    draftComparison,
-    proposalComparison,
-  })
-  const sourceFocusRevealTarget = getSourceFocusRevealTarget({
-    sourceFocus: activeSourceFocus,
-    availableReviewFocusTargets,
-    draftComparison,
-    proposalComparison,
-  })
-  const canRevealSourceOrigin = Boolean(sourceFocusRevealTarget)
-  const sourceFocusReviewStatus = getSourceFocusReviewStatus({
-    sourceFocus: activeSourceFocus,
-    availableReviewFocusTargets,
-    draftComparison,
-    inspectDiagnostics: appState.currentInspect.diagnostics,
-    proposalComparison,
-    validationDiagnostics: currentSourceValidation.diagnostics,
-  })
-  const isWorkbenchActionBusy =
-    commandState.savingSource ||
-    commandState.runningBuild ||
-    commandState.runningInspect ||
-    commandState.draftingProposal
-  const isSidebarBusy =
-    commandState.loading ||
-    commandState.savingSource ||
-    commandState.sendingMessage ||
-    commandState.draftingProposal ||
-    commandState.runningBuild ||
-    commandState.runningInspect ||
-    commandState.runningDoctor
 
   useEffect(() => {
     void bootstrap()
   }, [])
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
-    const syncTheme = () => {
-      document.documentElement.classList.toggle("dark", mediaQuery.matches)
-    }
-
-    syncTheme()
-    mediaQuery.addEventListener("change", syncTheme)
-
-    return () => {
-      mediaQuery.removeEventListener("change", syncTheme)
-    }
-  }, [])
-
-  useEffect(() => {
-    const handleKeydown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented) {
-        return
-      }
-
-      const modifier = event.metaKey || event.ctrlKey
-      if (!modifier) {
-        return
-      }
-
-      const key = event.key.toLowerCase()
-
-      switch (key) {
-        case "k":
-          event.preventDefault()
-          setSessionSearchFocusKey(`search-${Date.now()}`)
-          break
-        case "s":
-          if (!hasUnsavedSourceChanges || commandState.savingSource) {
-            return
-          }
-          event.preventDefault()
-          void handleSaveSource(currentDraftSource)
-          break
-        case "enter":
-          if (commandState.runningBuild) {
-            return
-          }
-          event.preventDefault()
-          void handleBuild()
-          break
-        case "i":
-          if (!event.shiftKey || commandState.runningInspect) {
-            return
-          }
-          event.preventDefault()
-          void handleInspect()
-          break
-        case "1":
-          event.preventDefault()
-          void handleViewChange("preview")
-          break
-        case "2":
-          event.preventDefault()
-          void handleViewChange("source")
-          break
-        case "3":
-          event.preventDefault()
-          void handleViewChange("inspect")
-          break
-      }
-    }
-
-    window.addEventListener("keydown", handleKeydown)
-    return () => {
-      window.removeEventListener("keydown", handleKeydown)
-    }
-  }, [
-    commandState.runningBuild,
-    commandState.runningInspect,
-    commandState.savingSource,
-    currentDraftSource,
-    hasUnsavedSourceChanges,
-  ])
-
-  useEffect(() => {
-    setAgentShellReviewIntent(undefined)
-    setAgentShellClearReviewFocusKey(undefined)
-    setAgentShellReviewFocus(undefined)
-    setActiveSourceFocus(undefined)
-    setCurrentSourceValidation(initialSourceValidationState)
-  }, [appState.currentSession.summary.id])
-
-  useEffect(() => {
-    if (commandState.loading) {
-      return
-    }
-
-    const requestId = sourceValidationRequestId.current + 1
-    sourceValidationRequestId.current = requestId
-    let cancelled = false
-
-    setCurrentSourceValidation((current) => ({
-      ...current,
-      status: "running",
-    }))
-
-    const timeout = window.setTimeout(() => {
-      void handleValidateSource(currentDraftSource)
-        .then((result) => {
-          if (cancelled || sourceValidationRequestId.current !== requestId) {
-            return
-          }
-
-          setCurrentSourceValidation({
-            status: result.status,
-            validatedAt: result.validatedAt,
-            diagnostics: hydrateDiagnosticPositions(
-              result.diagnostics,
-              currentDraftSource,
-            ),
-            structureSummary: result.structureSummary,
-          })
-        })
-        .catch((error: unknown) => {
-          if (cancelled || sourceValidationRequestId.current !== requestId) {
-            return
-          }
-
-          setCurrentSourceValidation({
-            status: "invalid",
-            validatedAt: new Date().toISOString(),
-            diagnostics: [
-              {
-                id: `validation-error-${requestId}`,
-                severity: "error",
-                message: formatError(error),
-                source: "validation",
-              },
-            ],
-            structureSummary: "Validation could not complete.",
-          })
-        })
-    }, 400)
-
-    return () => {
-      cancelled = true
-      window.clearTimeout(timeout)
-    }
-  }, [
-    appState.currentSession.summary.id,
-    commandState.loading,
-    currentDraftSource,
-  ])
+    setDraftSource(currentSession.source)
+    setValidation(undefined)
+    setRuntimeReport(undefined)
+  }, [currentSession.summary.id, currentSession.source])
 
   async function bootstrap() {
     if (!isTauriRuntime()) {
-      setCommandState({ ...initialCommandState, loading: false })
-      return
-    }
-
-    try {
-      const sessions = await listSessions()
-      if (sessions.length === 0) {
-        const nextState = await hydrateSessionState(
-          await createSession({ name: "First Session" }),
-        )
-        startTransition(() => {
-          setAppState((current) => ({
-            ...current,
-            sessions: [nextState.session.summary],
-            chat: nextState.chat,
-            currentBuild: deriveBuildSummary(nextState.session),
-            currentInspect: deriveInspectSnapshot(nextState.session),
-            currentSession: nextState.session,
-            currentLogs: nextState.logs,
-          }))
-          setPreviewHtml(nextState.previewHtml)
-          setActiveView(nextState.session.currentView)
-          setCommandState({ ...initialCommandState, loading: false })
-        })
-        return
-      }
-
-      const nextState = await loadSessionState(sessions[0].id)
-      startTransition(() => {
-        setAppState((current) => ({
-          ...current,
-          sessions,
-          chat: nextState.chat,
-          currentBuild: deriveBuildSummary(nextState.session),
-          currentInspect: deriveInspectSnapshot(nextState.session),
-          currentSession: nextState.session,
-          currentLogs: nextState.logs,
-        }))
-        setPreviewHtml(nextState.previewHtml)
-        setActiveView(nextState.session.currentView)
-        setCommandState({ ...initialCommandState, loading: false })
-      })
-    } catch (error) {
-      setCommandState({
-        ...initialCommandState,
-        loading: false,
-        error: formatError(error),
-      })
-    }
-  }
-
-  async function handleCreateSession() {
-    if (!isTauriRuntime()) {
+      setCommandState((current) => ({ ...current, loading: false }))
       return
     }
 
     setCommandState((current) => ({
       ...current,
-      error: undefined,
       loading: true,
+      error: undefined,
     }))
+
     try {
-      const nextState = await hydrateSessionState(
-        await createSession({
-          name: `Session ${appState.sessions.length + 1}`,
-        }),
-      )
+      const sessions = await listSessions()
+      let session = sessions[0]
+
+      if (!session) {
+        session = (await createSession({ name: "First Session" })).summary
+      }
+
+      const nextState = await loadSessionState(session.id)
+
       startTransition(() => {
         setAppState((current) => ({
           ...current,
-          sessions: sortSessionSummaries([
-            nextState.session.summary,
-            ...current.sessions,
-          ]),
-          chat: nextState.chat,
+          sessions: sessions.length > 0 ? sessions : [nextState.session.summary],
+          currentSession: nextState.session,
           currentBuild: deriveBuildSummary(nextState.session),
           currentInspect: deriveInspectSnapshot(nextState.session),
-          currentSession: nextState.session,
           currentLogs: nextState.logs,
+          chat: nextState.chat,
         }))
         setPreviewHtml(nextState.previewHtml)
         setActiveView(nextState.session.currentView)
+        setDraftSource(nextState.session.source)
         setCommandState((current) => ({ ...current, loading: false }))
       })
     } catch (error) {
@@ -528,27 +207,43 @@ export function App() {
 
   async function handleOpenSession(sessionId: string) {
     if (!isTauriRuntime()) {
+      const nextSession = appState.sessions.find((session) => session.id === sessionId)
+      if (!nextSession) {
+        return
+      }
+
+      startTransition(() => {
+        setAppState((current) => ({
+          ...current,
+          currentSession:
+            current.currentSession.summary.id === sessionId
+              ? current.currentSession
+              : current.currentSession,
+        }))
+      })
       return
     }
 
     setCommandState((current) => ({
       ...current,
-      error: undefined,
       loading: true,
+      error: undefined,
     }))
+
     try {
       const nextState = await loadSessionState(sessionId)
       startTransition(() => {
         setAppState((current) => ({
           ...current,
-          chat: nextState.chat,
+          currentSession: nextState.session,
           currentBuild: deriveBuildSummary(nextState.session),
           currentInspect: deriveInspectSnapshot(nextState.session),
-          currentSession: nextState.session,
           currentLogs: nextState.logs,
+          chat: nextState.chat,
         }))
         setPreviewHtml(nextState.previewHtml)
         setActiveView(nextState.session.currentView)
+        setDraftSource(nextState.session.source)
         setCommandState((current) => ({ ...current, loading: false }))
       })
     } catch (error) {
@@ -560,29 +255,38 @@ export function App() {
     }
   }
 
-  async function handleRenameSession(sessionId: string, name: string) {
+  async function handleCreateSession() {
     if (!isTauriRuntime()) {
       return
     }
 
     setCommandState((current) => ({
       ...current,
-      error: undefined,
       loading: true,
+      error: undefined,
     }))
+
     try {
-      const updatedSession = await renameSession(sessionId, { name })
+      const created = await createSession({
+        name: `Session ${appState.sessions.length + 1}`,
+      })
+      const nextState = await hydrateSessionState(created)
       const sessions = await listSessions()
 
       startTransition(() => {
         setAppState((current) => ({
           ...current,
           sessions,
-          currentSession:
-            current.currentSession.summary.id === sessionId
-              ? updatedSession
-              : current.currentSession,
+          currentSession: nextState.session,
+          currentBuild: deriveBuildSummary(nextState.session),
+          currentInspect: deriveInspectSnapshot(nextState.session),
+          currentLogs: nextState.logs,
+          chat: nextState.chat,
         }))
+        setPreviewHtml(nextState.previewHtml)
+        setActiveView(nextState.session.currentView)
+        setDraftSource(nextState.session.source)
+        setCommandState((current) => ({ ...current, loading: false }))
       })
     } catch (error) {
       setCommandState((current) => ({
@@ -590,46 +294,7 @@ export function App() {
         loading: false,
         error: formatError(error),
       }))
-      return
     }
-
-    setCommandState((current) => ({ ...current, loading: false }))
-  }
-
-  async function handleToggleSessionPin(sessionId: string, pinned: boolean) {
-    if (!isTauriRuntime()) {
-      return
-    }
-
-    setCommandState((current) => ({
-      ...current,
-      error: undefined,
-      loading: true,
-    }))
-    try {
-      const updatedSession = await setSessionPinned(sessionId, { pinned })
-      const sessions = await listSessions()
-
-      startTransition(() => {
-        setAppState((current) => ({
-          ...current,
-          sessions,
-          currentSession:
-            current.currentSession.summary.id === sessionId
-              ? updatedSession
-              : current.currentSession,
-        }))
-      })
-    } catch (error) {
-      setCommandState((current) => ({
-        ...current,
-        loading: false,
-        error: formatError(error),
-      }))
-      return
-    }
-
-    setCommandState((current) => ({ ...current, loading: false }))
   }
 
   async function handleDeleteSession(sessionId: string) {
@@ -639,1115 +304,880 @@ export function App() {
 
     setCommandState((current) => ({
       ...current,
-      error: undefined,
       loading: true,
+      error: undefined,
     }))
+
     try {
       await deleteSession(sessionId)
       const sessions = await listSessions()
 
       if (sessions.length === 0) {
-        const nextState = await hydrateSessionState(
-          await createSession({ name: "First Session" }),
-        )
+        const created = await createSession({ name: "First Session" })
+        const nextState = await hydrateSessionState(created)
         startTransition(() => {
           setAppState((current) => ({
             ...current,
             sessions: [nextState.session.summary],
-            chat: nextState.chat,
+            currentSession: nextState.session,
             currentBuild: deriveBuildSummary(nextState.session),
             currentInspect: deriveInspectSnapshot(nextState.session),
-            currentSession: nextState.session,
             currentLogs: nextState.logs,
+            chat: nextState.chat,
           }))
           setPreviewHtml(nextState.previewHtml)
           setActiveView(nextState.session.currentView)
+          setDraftSource(nextState.session.source)
+          setCommandState((current) => ({ ...current, loading: false }))
         })
-        setSessionDrafts((current) => removeSessionDraft(current, sessionId))
-      } else if (sessionId === appState.currentSession.summary.id) {
-        const nextState = await loadSessionState(sessions[0].id)
-        startTransition(() => {
-          setAppState((current) => ({
-            ...current,
-            sessions,
-            chat: nextState.chat,
-            currentBuild: deriveBuildSummary(nextState.session),
-            currentInspect: deriveInspectSnapshot(nextState.session),
-            currentSession: nextState.session,
-            currentLogs: nextState.logs,
-          }))
-          setPreviewHtml(nextState.previewHtml)
-          setActiveView(nextState.session.currentView)
-        })
-        setSessionDrafts((current) => removeSessionDraft(current, sessionId))
-      } else {
-        startTransition(() => {
-          setAppState((current) => ({
-            ...current,
-            sessions,
-          }))
-        })
-        setSessionDrafts((current) => removeSessionDraft(current, sessionId))
+        return
       }
+
+      const fallbackId =
+        sessionId === currentSession.summary.id ? sessions[0]?.id : currentSession.summary.id
+      const nextState = await loadSessionState(fallbackId)
+
+      startTransition(() => {
+        setAppState((current) => ({
+          ...current,
+          sessions,
+          currentSession: nextState.session,
+          currentBuild: deriveBuildSummary(nextState.session),
+          currentInspect: deriveInspectSnapshot(nextState.session),
+          currentLogs: nextState.logs,
+          chat: nextState.chat,
+        }))
+        setPreviewHtml(nextState.previewHtml)
+        setActiveView(nextState.session.currentView)
+        setDraftSource(nextState.session.source)
+        setCommandState((current) => ({ ...current, loading: false }))
+      })
     } catch (error) {
       setCommandState((current) => ({
         ...current,
         loading: false,
         error: formatError(error),
       }))
+    }
+  }
+
+  async function handleViewChange(view: WorkbenchView) {
+    setActiveView(view)
+
+    if (!isTauriRuntime()) {
       return
     }
 
-    setCommandState((current) => ({ ...current, loading: false }))
+    try {
+      const session = await setSessionView(currentSession.summary.id, { view })
+      startTransition(() => {
+        setAppState((current) => ({
+          ...current,
+          currentSession: session,
+          sessions: current.sessions.map((item) =>
+            item.id === session.summary.id ? session.summary : item,
+          ),
+        }))
+      })
+    } catch (error) {
+      setCommandState((current) => ({
+        ...current,
+        error: formatError(error),
+      }))
+    }
   }
 
-  async function handleSaveSource(nextSource: string) {
-    const sessionId = appState.currentSession.summary.id
-    const comparison = getSourceComparisonSummary(
-      appState.currentSession.source,
-      nextSource,
-    )
+  async function handleSaveSource() {
+    if (!hasUnsavedChanges) {
+      return
+    }
 
     if (!isTauriRuntime()) {
       startTransition(() => {
-        setAppState((current) => {
-          const savedAt = new Date().toISOString()
-          const nextSession = applySourceSaveToSession(
-            current.currentSession,
-            nextSource,
-            savedAt,
-          )
-
-          return {
-            ...current,
-            chat: [
-              ...current.chat,
-              createLocalChatMessage(
-                "system",
-                buildSourceSavedEventMessage(nextSource, comparison),
-                "context-card",
-              ),
-            ],
-            currentSession: nextSession,
-            sessions: upsertSessionSummary(
-              current.sessions,
-              nextSession.summary,
-            ),
-          }
-        })
+        setAppState((current) => ({
+          ...current,
+          currentSession: {
+            ...current.currentSession,
+            source: draftSource,
+          },
+        }))
       })
-      setSessionDrafts((current) => removeSessionDraft(current, sessionId))
       return
     }
 
     setCommandState((current) => ({
       ...current,
+      saving: true,
       error: undefined,
-      savingSource: true,
     }))
-    try {
-      const session = await saveSource(sessionId, nextSource)
-      let nextChat = appState.chat
-      try {
-        nextChat = await appendChatMessage(sessionId, {
-          role: "system",
-          text: buildSourceSavedEventMessage(nextSource, comparison),
-          kind: "context-card",
-        })
-      } catch (chatError) {
-        setCommandState((current) => ({
-          ...current,
-          error: `Source was saved, but the session event note could not be saved. ${formatError(chatError)}`,
-        }))
-      }
-      replaceCurrentSession(session, nextChat)
-      setSessionDrafts((current) => removeSessionDraft(current, sessionId))
-    } catch (error) {
-      setCommandState((current) => ({
-        ...current,
-        savingSource: false,
-        error: formatError(error),
-      }))
-      return
-    }
-
-    setCommandState((current) => ({ ...current, savingSource: false }))
-  }
-
-  function handleDraftSourceChange(nextSource: string) {
-    const sessionId = appState.currentSession.summary.id
-    const savedSource = appState.currentSession.source
-
-    setSessionDrafts((current) => {
-      if (nextSource === savedSource) {
-        return removeSessionDraft(current, sessionId)
-      }
-
-      return {
-        ...current,
-        [sessionId]: nextSource,
-      }
-    })
-  }
-
-  async function handleValidateSource(
-    nextSource: string,
-  ): Promise<SourceValidationSnapshot> {
-    if (!isTauriRuntime()) {
-      return createMockValidationSnapshot(
-        appState.currentSession.summary.id,
-        nextSource,
-      )
-    }
-
-    return validateSource(appState.currentSession.summary.id, nextSource)
-  }
-
-  async function persistCurrentDraftIfNeeded() {
-    const sessionId = appState.currentSession.summary.id
-
-    if (currentDraftSource === appState.currentSession.source) {
-      return
-    }
-
-    const comparison = getSourceComparisonSummary(
-      appState.currentSession.source,
-      currentDraftSource,
-    )
-
-    if (!isTauriRuntime()) {
-      startTransition(() => {
-        setAppState((current) => {
-          const savedAt = new Date().toISOString()
-          const nextSession = applySourceSaveToSession(
-            current.currentSession,
-            currentDraftSource,
-            savedAt,
-          )
-
-          return {
-            ...current,
-            chat: [
-              ...current.chat,
-              createLocalChatMessage(
-                "system",
-                buildSourceSavedEventMessage(currentDraftSource, comparison),
-                "context-card",
-              ),
-            ],
-            currentSession: nextSession,
-            sessions: upsertSessionSummary(
-              current.sessions,
-              nextSession.summary,
-            ),
-          }
-        })
-      })
-      setSessionDrafts((current) => removeSessionDraft(current, sessionId))
-      return
-    }
-
-    setCommandState((current) => ({ ...current, savingSource: true }))
-    try {
-      const session = await saveSource(sessionId, currentDraftSource)
-      let nextChat = appState.chat
-      try {
-        nextChat = await appendChatMessage(sessionId, {
-          role: "system",
-          text: buildSourceSavedEventMessage(currentDraftSource, comparison),
-          kind: "context-card",
-        })
-      } catch (chatError) {
-        setCommandState((current) => ({
-          ...current,
-          error: `Source was saved, but the session event note could not be saved. ${formatError(chatError)}`,
-        }))
-      }
-      replaceCurrentSession(session, nextChat)
-      setSessionDrafts((current) => removeSessionDraft(current, sessionId))
-    } finally {
-      setCommandState((current) => ({ ...current, savingSource: false }))
-    }
-  }
-
-  async function handleViewChange(nextView: WorkbenchView) {
-    const previousView = appState.currentSession.currentView
-
-    startTransition(() => {
-      setActiveView(nextView)
-      setAppState((current) => ({
-        ...current,
-        currentSession: {
-          ...current.currentSession,
-          currentView: nextView,
-        },
-      }))
-    })
-
-    if (!isTauriRuntime()) {
-      return
-    }
 
     try {
-      const session = await setSessionView(appState.currentSession.summary.id, {
-        view: nextView,
-      })
+      const session = await saveSource(currentSession.summary.id, draftSource)
       startTransition(() => {
         setAppState((current) => ({
           ...current,
           currentSession: session,
+          sessions: current.sessions.map((item) =>
+            item.id === session.summary.id ? session.summary : item,
+          ),
         }))
       })
     } catch (error) {
-      startTransition(() => {
-        setActiveView(previousView)
-        setAppState((current) => ({
-          ...current,
-          currentSession: {
-            ...current.currentSession,
-            currentView: previousView,
-          },
-        }))
-      })
       setCommandState((current) => ({
         ...current,
         error: formatError(error),
       }))
+    } finally {
+      setCommandState((current) => ({ ...current, saving: false }))
     }
   }
 
   async function handleBuild() {
     if (!isTauriRuntime()) {
-      const sourceForRun = currentDraftSource
-      await persistCurrentDraftIfNeeded()
-      const {
-        build,
-        logs,
-        previewHtml: nextPreviewHtml,
-      } = createMockBuildArtifacts({
-        session: {
-          ...appState.currentSession,
-          source: sourceForRun,
-        },
-        source: sourceForRun,
-      })
-
-      startTransition(() => {
-        setAppState((current) => {
-          const nextSession = applyBuildResultToSession(
-            {
-              ...current.currentSession,
-              source: sourceForRun,
-            },
-            build,
-          )
-
-          return {
-            ...current,
-            chat: [
-              ...current.chat,
-              createLocalChatMessage(
-                "system",
-                buildEventMessage(build),
-                "context-card",
-              ),
-            ],
-            currentBuild: build,
-            currentLogs: logs,
-            currentSession: nextSession,
-            sessions: upsertSessionSummary(
-              current.sessions,
-              nextSession.summary,
-            ),
-          }
-        })
-        setPreviewHtml(
-          build.status === "succeeded" ? nextPreviewHtml : previewHtml,
-        )
-      })
-      setActiveView(build.status === "succeeded" ? "preview" : "inspect")
       return
     }
 
     setCommandState((current) => ({
       ...current,
+      building: true,
       error: undefined,
-      runningBuild: true,
     }))
-    try {
-      await persistCurrentDraftIfNeeded()
-    } catch (error) {
-      setCommandState((current) => ({
-        ...current,
-        runningBuild: false,
-        error: formatError(error),
-      }))
-      return
-    }
-    startTransition(() => {
-      setAppState((current) => {
-        const startedAt = new Date().toISOString()
-        const nextRun = beginBuildRun(
-          current.currentSession,
-          startedAt,
-          `build-pending-${Date.now()}`,
-        )
 
-        return {
-          ...current,
-          currentBuild: nextRun.build,
-          currentInspect: syncInspectSnapshotWithBuild(
-            current.currentInspect,
-            nextRun.build,
-          ),
-          currentSession: nextRun.session,
-          sessions: upsertSessionSummary(
-            current.sessions,
-            nextRun.session.summary,
-          ),
-        }
-      })
-    })
     try {
-      const build = await runBuild(appState.currentSession.summary.id)
-      const nextPreviewHtml = await safeReadPreviewHtml(
-        appState.currentSession.summary.id,
-      )
-      const nextLogs = await safeReadLogs(appState.currentSession.summary.id)
-      let nextChat = appState.chat
-      try {
-        nextChat = await appendChatMessage(appState.currentSession.summary.id, {
-          role: "system",
-          text: buildEventMessage(build),
-          kind: "context-card",
-        })
-      } catch (chatError) {
-        setCommandState((current) => ({
-          ...current,
-          error: `Build completed, but the session event note could not be saved. ${formatError(chatError)}`,
-        }))
+      if (hasUnsavedChanges) {
+        await handleSaveSource()
       }
-      startTransition(() => {
-        setAppState((current) => {
-          const nextSession = applyBuildResultToSession(
-            current.currentSession,
-            build,
-          )
 
-          return {
-            ...current,
-            chat: nextChat,
-            currentBuild: build,
-            currentInspect: syncInspectSnapshotWithBuild(
-              current.currentInspect,
-              build,
-            ),
-            currentLogs: nextLogs,
-            currentSession: nextSession,
-            sessions: upsertSessionSummary(
-              current.sessions,
-              nextSession.summary,
-            ),
-          }
-        })
-        setPreviewHtml(nextPreviewHtml)
-        setActiveView(build.status === "succeeded" ? "preview" : "inspect")
+      const build = await runBuild(currentSession.summary.id)
+      const html = await safeReadPreviewHtml(currentSession.summary.id)
+      const session = await openSession(currentSession.summary.id)
+      const chat = await safeReadChat(currentSession.summary.id)
+
+      startTransition(() => {
+        setAppState((current) => ({
+          ...current,
+          currentSession: session,
+          currentBuild: build,
+          currentInspect: current.currentInspect,
+          sessions: current.sessions.map((item) =>
+            item.id === session.summary.id ? session.summary : item,
+          ),
+          chat,
+        }))
+        setPreviewHtml(html)
       })
     } catch (error) {
-      const failedAt = new Date().toISOString()
-      startTransition(() => {
-        setAppState((current) => {
-          const nextBuild = applyBuildCommandFailure(
-            current.currentBuild,
-            failedAt,
-          )
-          const nextSession = applyCommandFailureToSession(
-            current.currentSession,
-            failedAt,
-            {
-              lastBuild: nextBuild,
-            },
-          )
-
-          return {
-            ...current,
-            currentBuild: nextBuild,
-            currentInspect: syncInspectSnapshotWithBuild(
-              current.currentInspect,
-              nextBuild,
-            ),
-            currentSession: nextSession,
-            sessions: upsertSessionSummary(
-              current.sessions,
-              nextSession.summary,
-            ),
-          }
-        })
-        setActiveView("inspect")
-      })
       setCommandState((current) => ({
         ...current,
-        runningBuild: false,
         error: formatError(error),
       }))
-      return
+    } finally {
+      setCommandState((current) => ({ ...current, building: false }))
     }
-
-    setCommandState((current) => ({ ...current, runningBuild: false }))
   }
 
   async function handleInspect() {
     if (!isTauriRuntime()) {
-      const sourceForRun = currentDraftSource
-      await persistCurrentDraftIfNeeded()
-      const { inspect, logs } = createMockInspectArtifacts({
-        build: appState.currentBuild,
-        session: {
-          ...appState.currentSession,
-          source: sourceForRun,
-        },
-        source: sourceForRun,
-      })
-
-      startTransition(() => {
-        setAppState((current) => {
-          const nextSession = applyInspectResultToSession(
-            {
-              ...current.currentSession,
-              source: sourceForRun,
-            },
-            inspect,
-            inspect.lastBuild ?? current.currentBuild,
-          )
-
-          return {
-            ...current,
-            chat: [
-              ...current.chat,
-              createLocalChatMessage(
-                "system",
-                inspectEventMessage(inspect),
-                "context-card",
-              ),
-            ],
-            currentInspect: inspect,
-            currentLogs: logs,
-            currentSession: nextSession,
-            sessions: upsertSessionSummary(
-              current.sessions,
-              nextSession.summary,
-            ),
-          }
-        })
-      })
-      setActiveView("inspect")
       return
     }
 
     setCommandState((current) => ({
       ...current,
+      inspecting: true,
       error: undefined,
-      runningInspect: true,
     }))
+
     try {
-      await persistCurrentDraftIfNeeded()
-    } catch (error) {
-      setCommandState((current) => ({
-        ...current,
-        runningInspect: false,
-        error: formatError(error),
-      }))
-      return
-    }
-    try {
-      const inspect = await runInspect(appState.currentSession.summary.id)
-      const hydratedInspect = {
-        ...inspect,
-        diagnostics: hydrateDiagnosticPositions(
-          inspect.diagnostics,
-          appState.currentSession.source,
-        ),
-      }
-      const nextPreviewHtml = await safeReadPreviewHtml(
-        appState.currentSession.summary.id,
-      )
-      const nextLogs = await safeReadLogs(appState.currentSession.summary.id)
-      let nextChat = appState.chat
-      try {
-        nextChat = await appendChatMessage(appState.currentSession.summary.id, {
-          role: "system",
-          text: inspectEventMessage(hydratedInspect),
-          kind: "context-card",
-        })
-      } catch (chatError) {
-        setCommandState((current) => ({
+      const inspect = await runInspect(currentSession.summary.id)
+      const logs = await safeReadLogs(currentSession.summary.id)
+      const html = await safeReadPreviewHtml(currentSession.summary.id)
+      const chat = await safeReadChat(currentSession.summary.id)
+
+      startTransition(() => {
+        setAppState((current) => ({
           ...current,
-          error: `Inspect completed, but the session event note could not be saved. ${formatError(chatError)}`,
+          currentInspect: inspect,
+          currentLogs: logs,
+          chat,
         }))
-      }
-      startTransition(() => {
-        setAppState((current) => {
-          const build = hydratedInspect.lastBuild ?? current.currentBuild
-          const nextSession = applyInspectResultToSession(
-            current.currentSession,
-            hydratedInspect,
-            build,
-          )
-
-          return {
-            ...current,
-            chat: nextChat,
-            currentBuild: build,
-            currentInspect: hydratedInspect,
-            currentLogs: nextLogs,
-            currentSession: nextSession,
-            sessions: upsertSessionSummary(
-              current.sessions,
-              nextSession.summary,
-            ),
-          }
-        })
-        setPreviewHtml(nextPreviewHtml)
-        setActiveView("inspect")
+        setPreviewHtml(html)
       })
     } catch (error) {
-      const failedAt = new Date().toISOString()
-      startTransition(() => {
-        setAppState((current) => {
-          const nextSession = applyCommandFailureToSession(
-            current.currentSession,
-            failedAt,
-          )
-
-          return {
-            ...current,
-            currentSession: nextSession,
-            sessions: upsertSessionSummary(
-              current.sessions,
-              nextSession.summary,
-            ),
-          }
-        })
-        setActiveView("inspect")
-      })
       setCommandState((current) => ({
         ...current,
-        runningInspect: false,
         error: formatError(error),
       }))
-      return
+    } finally {
+      setCommandState((current) => ({ ...current, inspecting: false }))
     }
-
-    setCommandState((current) => ({ ...current, runningInspect: false }))
   }
 
-  async function handleDoctor() {
+  async function handleValidate() {
+    setCommandState((current) => ({
+      ...current,
+      error: undefined,
+    }))
+
+    try {
+      const result = await validateSource(currentSession.summary.id, draftSource)
+      setValidation(result)
+    } catch (error) {
+      setCommandState((current) => ({
+        ...current,
+        error: formatError(error),
+      }))
+    }
+  }
+
+  async function handleRuntimeCheck() {
     if (!isTauriRuntime()) {
       return
     }
 
     setCommandState((current) => ({
       ...current,
+      checking: true,
       error: undefined,
-      runningDoctor: true,
     }))
+
     try {
       const report = await checkRuntime()
-      startTransition(() => {
-        setAppState((current) => ({
-          ...current,
-          runtimeReport: report,
-        }))
-      })
+      setRuntimeReport(report)
     } catch (error) {
       setCommandState((current) => ({
         ...current,
-        runningDoctor: false,
         error: formatError(error),
       }))
-      return
+    } finally {
+      setCommandState((current) => ({ ...current, checking: false }))
     }
-
-    setCommandState((current) => ({ ...current, runningDoctor: false }))
-  }
-
-  async function handleSendMessage(text: string) {
-    const trimmed = text.trim()
-    if (!trimmed) {
-      return
-    }
-
-    if (!isTauriRuntime()) {
-      startTransition(() => {
-        setAppState((current) => ({
-          ...current,
-          chat: [
-            ...current.chat,
-            createLocalChatMessage("user", trimmed, "message"),
-          ],
-        }))
-      })
-      return
-    }
-
-    setCommandState((current) => ({
-      ...current,
-      error: undefined,
-      sendingMessage: true,
-    }))
-    try {
-      const updated = await appendChatMessage(
-        appState.currentSession.summary.id,
-        {
-          role: "user",
-          text: trimmed,
-          kind: "message",
-        },
-      )
-      startTransition(() => {
-        setAppState((current) => ({
-          ...current,
-          chat: updated,
-        }))
-      })
-    } catch (error) {
-      setCommandState((current) => ({
-        ...current,
-        sendingMessage: false,
-        error: formatError(error),
-      }))
-      return
-    }
-
-    setCommandState((current) => ({ ...current, sendingMessage: false }))
   }
 
   async function handleDraftProposal() {
-    if (isTauriRuntime()) {
-      try {
-        await persistCurrentDraftIfNeeded()
-      } catch (error) {
-        setCommandState((current) => ({
-          ...current,
-          draftingProposal: false,
-          error: formatError(error),
-        }))
-        return
-      }
-    }
-
     if (!isTauriRuntime()) {
-      startTransition(() => {
-        setAppState((current) => ({
-          ...current,
-          chat: [
-            ...current.chat,
-            createLocalChatMessage(
-              "placeholder",
-              buildLocalProposalText(
-                current.currentSession,
-                current.currentBuild,
-                current.currentInspect,
-                current.currentLogs,
-                currentDraftSource,
-              ),
-              "proposal-placeholder",
-              {
-                lineCount: currentDraftSource.split(/\r?\n/).length,
-                source: currentDraftSource,
-              },
-            ),
-          ],
-        }))
-      })
       return
     }
 
     setCommandState((current) => ({
       ...current,
+      drafting: true,
       error: undefined,
-      draftingProposal: true,
     }))
+
     try {
-      const updated = await generateSessionProposal(
-        appState.currentSession.summary.id,
-      )
+      const chat = await generateSessionProposal(currentSession.summary.id)
       startTransition(() => {
         setAppState((current) => ({
           ...current,
-          chat: updated,
+          chat,
         }))
       })
     } catch (error) {
       setCommandState((current) => ({
         ...current,
-        draftingProposal: false,
         error: formatError(error),
       }))
+    } finally {
+      setCommandState((current) => ({ ...current, drafting: false }))
+    }
+  }
+
+  async function handleSendMessage() {
+    const trimmed = messageDraft.trim()
+    if (!trimmed || !isTauriRuntime()) {
       return
     }
 
-    setCommandState((current) => ({ ...current, draftingProposal: false }))
-  }
+    setCommandState((current) => ({
+      ...current,
+      sending: true,
+      error: undefined,
+    }))
 
-  async function handleSaveDraftForWorkflow() {
     try {
-      await persistCurrentDraftIfNeeded()
+      const chat = await appendChatMessage(currentSession.summary.id, {
+        role: "user",
+        text: trimmed,
+        kind: "message",
+      })
+      startTransition(() => {
+        setAppState((current) => ({
+          ...current,
+          chat,
+        }))
+        setMessageDraft("")
+      })
     } catch (error) {
       setCommandState((current) => ({
         ...current,
         error: formatError(error),
       }))
+    } finally {
+      setCommandState((current) => ({ ...current, sending: false }))
     }
-  }
-
-  function queueAgentShellReviewIntent(target: ReviewFocusTarget) {
-    setAgentShellReviewIntent({
-      ...target,
-      requestKey: `${target.mode}-${Date.now()}`,
-    })
-  }
-
-  async function handleRunReviewAction(
-    handler: ReviewTimelineActionConfig["handler"],
-  ) {
-    switch (handler) {
-      case "save":
-        await handleSaveDraftForWorkflow()
-        break
-      case "build":
-        await handleBuild()
-        break
-      case "inspect":
-        await handleInspect()
-        break
-      case "openSource":
-        await handleViewChange("source")
-        break
-      case "openInspect":
-        await handleViewChange("inspect")
-        break
-      case "openPreview":
-        await handleViewChange("preview")
-        break
-      case "draftProposal":
-        await handleDraftProposal()
-        break
-      case "reviewDiff": {
-        const defaultTarget = availableReviewFocusTargets[0]
-        if (defaultTarget) {
-          queueAgentShellReviewIntent(defaultTarget)
-        }
-        break
-      }
-    }
-  }
-
-  function handleSelectReviewFocus(target: ReviewFocusTarget) {
-    queueAgentShellReviewIntent(target)
-  }
-
-  function handleRevisitReviewFocus() {
-    if (!agentShellReviewFocus) {
-      return
-    }
-
-    queueAgentShellReviewIntent(agentShellReviewFocus)
-  }
-
-  function handleClearReviewFocus() {
-    setAgentShellReviewIntent(undefined)
-    setAgentShellClearReviewFocusKey(`clear-${Date.now()}`)
-    setAgentShellReviewFocus(undefined)
-  }
-
-  function handleOpenSourceFocus(target: SourceFocusTarget) {
-    setActiveSourceFocus(target)
-    void handleViewChange("source")
-  }
-
-  function handleClearSourceFocus() {
-    setActiveSourceFocus(undefined)
-  }
-
-  function handleRevealSourceReviewTarget() {
-    if (sourceFocusRevealTarget) {
-      queueAgentShellReviewIntent(sourceFocusRevealTarget)
-    }
-  }
-
-  function handleRefreshSourceFocus() {
-    if (
-      sourceFocusReviewStatus?.currentGroup &&
-      sourceFocusReviewStatus.currentReviewTarget
-    ) {
-      setActiveSourceFocus(
-        createSourceFocusTargetFromGroup({
-          label: sourceFocusReviewStatus.currentReviewTarget.label,
-          group: sourceFocusReviewStatus.currentGroup,
-          reviewTarget: sourceFocusReviewStatus.currentReviewTarget,
-        }),
-      )
-      return
-    }
-
-    if (sourceFocusReviewStatus?.currentDiagnostic) {
-      const nextTarget = createSourceFocusTargetFromDiagnostic({
-        diagnostic: sourceFocusReviewStatus.currentDiagnostic,
-      })
-      if (nextTarget) {
-        setActiveSourceFocus(nextTarget)
-      }
-    }
-  }
-
-  function handleReviewFocusChange(focus?: ReviewFocusTarget) {
-    setAgentShellReviewFocus((current) => {
-      if (!current && !focus) {
-        return current
-      }
-
-      if (isSameReviewFocusTarget(current, focus)) {
-        return current
-      }
-
-      return focus
-    })
-  }
-
-  function replaceCurrentSession(
-    session: SessionDetail,
-    nextChat?: AppState["chat"],
-  ) {
-    startTransition(() => {
-      setAppState((current) => ({
-        ...current,
-        ...(nextChat !== undefined ? { chat: nextChat } : {}),
-        currentSession: session,
-        sessions: upsertSessionSummary(current.sessions, session.summary),
-      }))
-    })
   }
 
   return (
-    <div className="app-root">
-      <header className="topbar">
-        <div className="topbar-brand">
-          <span aria-hidden="true" className="topbar-mark" />
-          <div className="topbar-copy">
-            <strong>agent-html</strong>
-            <span className="inline-meta topbar-path">
-              {appState.currentSession.summary.directory}
-            </span>
-          </div>
-        </div>
-        <div className="topbar-status">
-          <div className="topbar-session">
-            <span className="topbar-session-name">
-              {appState.currentSession.summary.name}
-            </span>
-            <span className="inline-meta">Workbench · {activeView}</span>
-          </div>
-          <div className="topbar-meta">
-            <Button
-              disabled={commandState.runningDoctor}
-              onClick={() => {
-                void handleDoctor()
-              }}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              {commandState.runningDoctor ? "Checking..." : "Doctor"}
-            </Button>
-            <span className="shell-inline-status">
-              {isTauriRuntime() ? "Tauri" : "Mock"}
-            </span>
-            {commandState.error ? (
-              <span className="shell-inline-status status-error">Error</span>
-            ) : null}
-          </div>
-        </div>
-      </header>
-
-      {commandState.error ? (
-        <SurfaceCard className="error-banner" variant="banner">
-          <SurfaceCardBody className="py-4" padding="compact">
-            <Alert
-              className="border-none bg-transparent p-0 shadow-none"
-              variant="destructive"
-            >
-              <AlertTitle>Command error</AlertTitle>
-              <AlertDescription>{commandState.error}</AlertDescription>
-            </Alert>
-          </SurfaceCardBody>
-        </SurfaceCard>
-      ) : null}
-      {appState.runtimeReport ? (
-        <RuntimeBanner report={appState.runtimeReport} />
-      ) : null}
-
-      <SurfaceCard className="stage-banner stage-strip" variant="banner">
-        <SurfaceCardBody className="stage-banner-body" padding="compact">
-          <div className="stage-banner-copy">
-            <div className="stage-banner-headline">
-              <span className="eyebrow stage-eyebrow">Flow</span>
-              <strong>{currentStageItem?.label ?? "Current stage"}</strong>
-              <div className="stage-banner-meta">
-                <span
-                  className={`shell-inline-status ${currentStageItem?.pillClassName ?? ""}`}
-                >
-                  {currentStageItem?.statusLabel ?? "Current"}
-                </span>
-                <span className="inline-meta">View {activeView}</span>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="flex min-h-screen flex-col">
+        <header className="border-b">
+          <div className="flex h-14 items-center justify-between px-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex size-8 items-center justify-center rounded-md border bg-muted">
+                <FileCode2Icon className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">agent-html</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {currentSession.summary.directory}
+                </p>
               </div>
             </div>
-            <p>{currentStageItem?.summary}</p>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">{isTauriRuntime() ? "tauri" : "mock"}</Badge>
+              <Badge variant="secondary">{activeView}</Badge>
+              {commandState.error ? <Badge variant="destructive">error</Badge> : null}
+            </div>
           </div>
-          <div className="stage-banner-actions">
-            {currentStageAction ? (
-              <Button
-                onClick={() => {
-                  void handleRunReviewAction(currentStageAction.handler)
-                }}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                {currentStageAction.label}
-              </Button>
-            ) : null}
-          </div>
-        </SurfaceCardBody>
-      </SurfaceCard>
+        </header>
 
-      <ResizablePanelGroup
-        className="app-shell"
-        defaultLayout={toGroupLayout(panelLayout)}
-        onLayoutChanged={(layout) => {
-          const nextLayout = normalizePanelLayout(layout)
-          setPanelLayout(nextLayout)
-          persistPanelLayout(nextLayout)
-        }}
-        orientation="horizontal"
-      >
-        <ResizablePanel
-          className="app-pane"
-          defaultSize={panelLayout.sessions}
-          id="sessions"
-          minSize={14}
-        >
-          <SessionsSidebar
-            activeSessionId={appState.currentSession.summary.id}
-            focusSearchKey={sessionSearchFocusKey}
-            isBusy={isSidebarBusy}
-            onCreateSession={() => {
-              void handleCreateSession()
+        {commandState.error ? (
+          <div className="border-b px-4 py-2 text-xs text-destructive">
+            {commandState.error}
+          </div>
+        ) : null}
+
+        <div className="flex-1 overflow-hidden">
+          <ResizablePanelGroup
+            className="h-full"
+            onLayoutChanged={(layout) => {
+              const nextLayout = normalizePanelLayout(layout)
+              setPanelLayout(nextLayout)
+              persistPanelLayout(nextLayout)
             }}
-            onDeleteSession={(sessionId) => {
-              void handleDeleteSession(sessionId)
-            }}
-            onOpenSession={(sessionId) => {
-              void handleOpenSession(sessionId)
-            }}
-            onRenameSession={(sessionId, name) => {
-              void handleRenameSession(sessionId, name)
-            }}
-            onTogglePinSession={(sessionId, pinned) => {
-              void handleToggleSessionPin(sessionId, pinned)
-            }}
-            sessions={appState.sessions}
-          />
-        </ResizablePanel>
-        <ResizableHandle className="app-shell-handle" withHandle />
-        <ResizablePanel
-          className="app-pane"
-          defaultSize={panelLayout.workbench}
-          id="workbench"
-          minSize={34}
-        >
-          <Workbench
-            activeView={activeView}
-            activeReviewFocus={agentShellReviewFocus}
-            activeSourceFocus={activeSourceFocus}
-            activeSourceFocusReviewStatus={sourceFocusReviewStatus}
-            availableReviewFocusTargets={availableReviewFocusTargets}
-            build={appState.currentBuild}
-            draftComparison={draftComparison}
-            draftSource={currentDraftSource}
-            hasUnsavedSourceChanges={hasUnsavedSourceChanges}
-            inspect={appState.currentInspect}
-            isActionBusy={isWorkbenchActionBusy}
-            isRunningBuild={commandState.runningBuild}
-            isRunningInspect={commandState.runningInspect}
-            isSavingSource={commandState.savingSource}
-            logs={appState.currentLogs}
-            messages={appState.chat}
-            sourceValidation={currentSourceValidation}
-            onBuild={handleBuild}
-            canRevealSourceOrigin={canRevealSourceOrigin}
-            onClearReviewFocus={handleClearReviewFocus}
-            onClearSourceFocus={handleClearSourceFocus}
-            onDraftSourceChange={handleDraftSourceChange}
-            onInspect={handleInspect}
-            onOpenSourceFocus={handleOpenSourceFocus}
-            onRefreshSourceFocus={handleRefreshSourceFocus}
-            onRevealSourceReviewTarget={handleRevealSourceReviewTarget}
-            onRevisitReviewFocus={handleRevisitReviewFocus}
-            onRunReviewAction={handleRunReviewAction}
-            onSelectReviewFocus={handleSelectReviewFocus}
-            onSaveSource={handleSaveSource}
-            onViewChange={(view) => {
-              void handleViewChange(view)
-            }}
-            previewHtml={previewHtml}
-            proposalComparison={proposalComparison}
-            session={appState.currentSession}
-          />
-        </ResizablePanel>
-        <ResizableHandle className="app-shell-handle" withHandle />
-        <ResizablePanel
-          className="app-pane"
-          defaultSize={panelLayout.shell}
-          id="shell"
-          minSize={20}
-        >
-          <AgentShell
-            activeView={activeView}
-            activeSourceFocusReviewStatus={sourceFocusReviewStatus}
-            build={appState.currentBuild}
-            sourceValidation={currentSourceValidation}
-            draftComparison={draftComparison}
-            hasUnsavedSourceChanges={hasUnsavedSourceChanges}
-            inspect={appState.currentInspect}
-            isRunningBuild={commandState.runningBuild}
-            isRunningInspect={commandState.runningInspect}
-            isSavingSource={commandState.savingSource}
-            onBuild={handleBuild}
-            onInspect={handleInspect}
-            onOpenView={handleViewChange}
-            onOpenSourceFocus={handleOpenSourceFocus}
-            onSaveDraft={handleSaveDraftForWorkflow}
-            isDraftingProposal={commandState.draftingProposal}
-            isSending={commandState.sendingMessage}
-            messages={appState.chat}
-            onDraftProposal={handleDraftProposal}
-            clearReviewFocusKey={agentShellClearReviewFocusKey}
-            proposalComparison={proposalComparison}
-            onReviewFocusChange={handleReviewFocusChange}
-            reviewIntent={agentShellReviewIntent}
-            onSend={handleSendMessage}
-            session={appState.currentSession}
-          />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+            orientation="horizontal"
+          >
+            <ResizablePanel
+              defaultSize={panelLayout.sessions}
+              id="sessions"
+              minSize={16}
+            >
+              <SessionRail
+                activeSessionId={currentSession.summary.id}
+                loading={commandState.loading}
+                onCreateSession={() => {
+                  void handleCreateSession()
+                }}
+                onDeleteSession={(sessionId) => {
+                  void handleDeleteSession(sessionId)
+                }}
+                onOpenSession={(sessionId) => {
+                  void handleOpenSession(sessionId)
+                }}
+                sessions={appState.sessions}
+              />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize={panelLayout.workbench}
+              id="workbench"
+              minSize={38}
+            >
+              <WorkbenchPane
+                activeView={activeView}
+                build={currentBuild}
+                draftSource={draftSource}
+                hasUnsavedChanges={hasUnsavedChanges}
+                inspect={currentInspect}
+                logs={currentLogs}
+                onBuild={() => {
+                  void handleBuild()
+                }}
+                onDraftSourceChange={setDraftSource}
+                onInspect={() => {
+                  void handleInspect()
+                }}
+                onSaveSource={() => {
+                  void handleSaveSource()
+                }}
+                onValidate={() => {
+                  void handleValidate()
+                }}
+                onViewChange={(view) => {
+                  void handleViewChange(view)
+                }}
+                previewHtml={previewHtml}
+                saving={commandState.saving}
+                session={currentSession}
+                validating={false}
+                validation={validation}
+              />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={panelLayout.shell} id="shell" minSize={22}>
+              <ShellPane
+                checking={commandState.checking}
+                drafting={commandState.drafting}
+                messages={filteredMessages}
+                messageDraft={messageDraft}
+                onDraftChange={setMessageDraft}
+                onDraftProposal={() => {
+                  void handleDraftProposal()
+                }}
+                onRuntimeCheck={() => {
+                  void handleRuntimeCheck()
+                }}
+                onSend={() => {
+                  void handleSendMessage()
+                }}
+                runtimeReport={runtimeReport}
+                sending={commandState.sending}
+              />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+      </div>
     </div>
   )
 }
 
-async function loadSessionState(
-  sessionId: string,
-): Promise<HydratedSessionState> {
+type SessionRailProps = {
+  sessions: SessionSummary[]
+  activeSessionId: string
+  loading: boolean
+  onCreateSession: () => void
+  onDeleteSession: (sessionId: string) => void
+  onOpenSession: (sessionId: string) => void
+}
+
+function SessionRail({
+  sessions,
+  activeSessionId,
+  loading,
+  onCreateSession,
+  onDeleteSession,
+  onOpenSession,
+}: SessionRailProps) {
+  const [query, setQuery] = useState("")
+  const filtered = sessions.filter((session) => {
+    const normalized = query.trim().toLowerCase()
+    if (!normalized) {
+      return true
+    }
+
+    return (
+      session.name.toLowerCase().includes(normalized) ||
+      session.directory.toLowerCase().includes(normalized)
+    )
+  })
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="border-b p-3">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-8"
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search"
+              value={query}
+            />
+          </div>
+          <Button onClick={onCreateSession} size="icon-sm" type="button" variant="outline">
+            <PlusIcon />
+          </Button>
+        </div>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="grid gap-2 p-3">
+          {filtered.map((session) => {
+            const active = session.id === activeSessionId
+            return (
+              <button
+                className="text-left"
+                key={session.id}
+                onClick={() => onOpenSession(session.id)}
+                type="button"
+              >
+                <Card className={active ? "border-primary" : ""} size="sm">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="truncate">{session.name}</CardTitle>
+                      <Badge variant={active ? "default" : "outline"}>
+                        {session.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardFooter className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      {formatTimestampLabel(session.updatedAt)}
+                    </span>
+                    <Button
+                      aria-label="Delete session"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onDeleteSession(session.id)
+                      }}
+                      size="icon-xs"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <Trash2Icon />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </button>
+            )
+          })}
+          {filtered.length === 0 ? (
+            <Card size="sm">
+              <CardContent className="py-6 text-xs text-muted-foreground">
+                No sessions
+              </CardContent>
+            </Card>
+          ) : null}
+          {loading ? (
+            <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
+              <LoaderCircleIcon className="size-3.5 animate-spin" />
+              Loading
+            </div>
+          ) : null}
+        </div>
+      </ScrollArea>
+      <div className="border-t p-3">
+        <Button size="icon-sm" type="button" variant="ghost">
+          <Settings2Icon />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+type WorkbenchPaneProps = {
+  session: SessionDetail
+  activeView: WorkbenchView
+  previewHtml?: string
+  build: BuildRunSummary
+  inspect: InspectSnapshot
+  logs: LogSnapshot
+  draftSource: string
+  hasUnsavedChanges: boolean
+  saving: boolean
+  validating: boolean
+  validation?: SourceValidationSnapshot
+  onViewChange: (view: WorkbenchView) => void
+  onBuild: () => void
+  onInspect: () => void
+  onSaveSource: () => void
+  onValidate: () => void
+  onDraftSourceChange: (source: string) => void
+}
+
+function WorkbenchPane({
+  session,
+  activeView,
+  previewHtml,
+  build,
+  inspect,
+  logs,
+  draftSource,
+  hasUnsavedChanges,
+  saving,
+  validating,
+  validation,
+  onViewChange,
+  onBuild,
+  onInspect,
+  onSaveSource,
+  onValidate,
+  onDraftSourceChange,
+}: WorkbenchPaneProps) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="border-b px-3 py-2">
+        <div className="flex items-center justify-between gap-3">
+          <Tabs onValueChange={(value) => onViewChange(value as WorkbenchView)} value={activeView}>
+            <TabsList>
+              <TabsTrigger value="preview">
+                <EyeIcon data-icon="inline-start" />
+                Preview
+              </TabsTrigger>
+              <TabsTrigger value="source">
+                <FileCode2Icon data-icon="inline-start" />
+                Source
+              </TabsTrigger>
+              <TabsTrigger value="inspect">
+                <InspectIcon data-icon="inline-start" />
+                Inspect
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="flex items-center gap-2">
+            <Button onClick={onBuild} size="sm" type="button" variant="outline">
+              <HammerIcon data-icon="inline-start" />
+              Build
+            </Button>
+            <Button onClick={onInspect} size="sm" type="button" variant="outline">
+              <InspectIcon data-icon="inline-start" />
+              Inspect
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-hidden p-3">
+        <Tabs className="h-full" value={activeView}>
+          <TabsContent className="h-full" value="preview">
+            <Card className="h-full">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <CardTitle>{session.summary.name}</CardTitle>
+                    <CardDescription>{session.previewPath ?? "preview"}</CardDescription>
+                  </div>
+                  <Badge variant={build.status === "succeeded" ? "default" : "outline"}>
+                    {build.status}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="flex h-full min-h-0 flex-col gap-4">
+                <div className="min-h-0 flex-1 overflow-hidden rounded-lg border">
+                  {previewHtml ? (
+                    <iframe
+                      className="size-full bg-background"
+                      srcDoc={previewHtml}
+                      title={`${session.summary.name} preview`}
+                    />
+                  ) : (
+                    <div className="flex size-full items-center justify-center text-sm text-muted-foreground">
+                      Empty
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent className="h-full" value="source">
+            <Card className="h-full">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <CardTitle>Source</CardTitle>
+                    <CardDescription>{session.sourcePath}</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {hasUnsavedChanges ? <Badge variant="outline">dirty</Badge> : null}
+                    <Button onClick={onValidate} size="sm" type="button" variant="outline">
+                      Validate
+                    </Button>
+                    <Button
+                      disabled={!hasUnsavedChanges || saving}
+                      onClick={onSaveSource}
+                      size="sm"
+                      type="button"
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="flex h-full min-h-0 flex-col gap-4">
+                <Textarea
+                  className="min-h-0 flex-1 resize-none font-mono"
+                  onChange={(event) => onDraftSourceChange(event.target.value)}
+                  value={draftSource}
+                />
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  {validating ? (
+                    <>
+                      <LoaderCircleIcon className="size-3.5 animate-spin" />
+                      Validating
+                    </>
+                  ) : validation ? (
+                    <>
+                      <Badge
+                        variant={
+                          validation.status === "valid" ? "default" : "destructive"
+                        }
+                      >
+                        {validation.status}
+                      </Badge>
+                      <span>{validation.structureSummary}</span>
+                    </>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent className="h-full" value="inspect">
+            <Card className="h-full">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <CardTitle>Inspect</CardTitle>
+                    <CardDescription>{inspect.generatedAt}</CardDescription>
+                  </div>
+                  <Badge variant="outline">{inspect.diagnostics.length} items</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="flex h-full min-h-0 flex-col gap-4">
+                <div className="grid gap-2">
+                  {inspect.diagnostics.map((item) => (
+                    <div
+                      className="rounded-lg border px-3 py-2 text-sm"
+                      key={item.id}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span>{item.message}</span>
+                        <Badge
+                          variant={
+                            item.severity === "error"
+                              ? "destructive"
+                              : item.severity === "warning"
+                                ? "outline"
+                                : "secondary"
+                          }
+                        >
+                          {item.severity}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Separator />
+                <div className="grid min-h-0 flex-1 gap-2">
+                  <p className="text-xs uppercase text-muted-foreground">stdout</p>
+                  <pre className="min-h-0 overflow-auto rounded-lg border bg-muted p-3 text-xs">
+                    {logs.stdout || "n/a"}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+}
+
+type ShellPaneProps = {
+  messages: AgentShellMessage[]
+  messageDraft: string
+  runtimeReport?: RuntimeReport
+  sending: boolean
+  drafting: boolean
+  checking: boolean
+  onDraftChange: (value: string) => void
+  onSend: () => void
+  onDraftProposal: () => void
+  onRuntimeCheck: () => void
+}
+
+function ShellPane({
+  messages,
+  messageDraft,
+  runtimeReport,
+  sending,
+  drafting,
+  checking,
+  onDraftChange,
+  onSend,
+  onDraftProposal,
+  onRuntimeCheck,
+}: ShellPaneProps) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="border-b px-3 py-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <BotIcon className="size-4" />
+            <span className="text-sm font-medium">Shell</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={onDraftProposal} size="sm" type="button" variant="outline">
+              <SparklesIcon data-icon="inline-start" />
+              Proposal
+            </Button>
+            <Button onClick={onRuntimeCheck} size="sm" type="button" variant="outline">
+              <TerminalSquareIcon data-icon="inline-start" />
+              Doctor
+            </Button>
+          </div>
+        </div>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="grid gap-3 p-3">
+          {runtimeReport ? (
+            <Card size="sm">
+              <CardHeader>
+                <CardTitle>Doctor</CardTitle>
+                <CardDescription>{runtimeReport.status}</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span>ok</span>
+                  <span>{runtimeReport.counts.ok}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>warn</span>
+                  <span>{runtimeReport.counts.warn}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>fail</span>
+                  <span>{runtimeReport.counts.fail}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {messages.map((message) => (
+            <Card key={message.id} size="sm">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-sm">{message.kind}</CardTitle>
+                  <Badge variant="outline">{message.role}</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-wrap text-sm leading-6">{message.text}</p>
+              </CardContent>
+            </Card>
+          ))}
+
+          {messages.length === 0 ? (
+            <Card size="sm">
+              <CardContent className="py-6 text-sm text-muted-foreground">
+                Empty
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
+      </ScrollArea>
+      <div className="border-t p-3">
+        <div className="grid gap-2">
+          <Textarea
+            onChange={(event) => onDraftChange(event.target.value)}
+            placeholder="..."
+            value={messageDraft}
+          />
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs text-muted-foreground">
+              {sending ? "Sending" : drafting ? "Drafting" : checking ? "Checking" : ""}
+            </div>
+            <Button disabled={!messageDraft.trim() || sending} onClick={onSend} type="button">
+              Send
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+async function loadSessionState(sessionId: string): Promise<HydratedSessionState> {
   return hydrateSessionState(await openSession(sessionId))
 }
 
@@ -1769,10 +1199,6 @@ async function hydrateSessionState(
 }
 
 async function safeReadPreviewHtml(sessionId: string) {
-  if (!isTauriRuntime()) {
-    return undefined
-  }
-
   try {
     return await readPreviewHtml(sessionId)
   } catch {
@@ -1781,88 +1207,40 @@ async function safeReadPreviewHtml(sessionId: string) {
 }
 
 async function safeReadLogs(sessionId: string) {
-  if (!isTauriRuntime()) {
-    return { stdout: "", stderr: "" }
-  }
-
   try {
     return await readLogs(sessionId)
   } catch {
-    return { stdout: "", stderr: "" }
+    return {}
   }
 }
 
 async function safeReadChat(sessionId: string) {
-  if (!isTauriRuntime()) {
-    return mockAppState.chat
-  }
-
   try {
     return await readChat(sessionId)
   } catch {
-    return []
+    return mockAppState.chat
   }
-}
-
-function formatError(error: unknown) {
-  return formatAppError(error)
 }
 
 function deriveBuildSummary(session: SessionDetail): BuildRunSummary {
-  return deriveBuildSummaryFromSession(session)
+  return (
+    session.lastBuild ?? {
+      runId: "idle",
+      sessionId: session.summary.id,
+      startedAt: session.summary.updatedAt,
+      status: "idle",
+    }
+  )
 }
 
 function deriveInspectSnapshot(session: SessionDetail): InspectSnapshot {
-  return deriveInspectSnapshotFromSession(session)
-}
-
-function removeSessionDraft(drafts: Record<string, string>, sessionId: string) {
-  if (!(sessionId in drafts)) {
-    return drafts
-  }
-
-  const nextDrafts = { ...drafts }
-  delete nextDrafts[sessionId]
-  return nextDrafts
-}
-
-function createLocalChatMessage(
-  role: "system" | "user" | "placeholder",
-  text: string,
-  kind: "message" | "context-card" | "proposal-placeholder",
-  proposalSnapshot?: AgentShellMessage["proposalSnapshot"],
-) {
   return {
-    id: `chat-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
-    role,
-    createdAt: new Date().toISOString(),
-    text,
-    kind,
-    proposalSnapshot,
+    sessionId: session.summary.id,
+    generatedAt: session.summary.updatedAt,
+    diagnostics: [],
+    structureSummary: "No inspect data",
+    lastBuild: session.lastBuild,
   }
-}
-
-function RuntimeBanner({ report }: { report: RuntimeReport }) {
-  return (
-    <SurfaceCard className="runtime-banner" variant="banner">
-      <SurfaceCardHeader
-        className="runtime-banner-header"
-        padding="compact"
-        title="Runtime"
-      >
-        <div className="runtime-banner-meta">
-          <StatusBadge>ok {report.counts.ok}</StatusBadge>
-          <StatusBadge tone="dirty">warn {report.counts.warn}</StatusBadge>
-          <StatusBadge tone="error">fail {report.counts.fail}</StatusBadge>
-          <span className="inline-meta">v{report.packageVersion}</span>
-        </div>
-      </SurfaceCardHeader>
-      <SurfaceCardBody className="runtime-banner-body" padding="compact">
-        <span className="inline-meta">{report.runtimeRoot}</span>
-        <span className="inline-meta">{report.outputDir}</span>
-      </SurfaceCardBody>
-    </SurfaceCard>
-  )
 }
 
 function readStoredPanelLayout(): PanelLayoutState {
@@ -1878,21 +1256,41 @@ function readStoredPanelLayout(): PanelLayoutState {
 
     const parsed = JSON.parse(raw) as Partial<PanelLayoutState>
     if (
-      typeof parsed.sessions === "number" &&
-      typeof parsed.workbench === "number" &&
-      typeof parsed.shell === "number"
+      typeof parsed.sessions !== "number" ||
+      typeof parsed.workbench !== "number" ||
+      typeof parsed.shell !== "number"
     ) {
-      return {
-        sessions: parsed.sessions,
-        workbench: parsed.workbench,
-        shell: parsed.shell,
-      }
+      return defaultPanelLayout
     }
+
+    return normalizePanelLayout([parsed.sessions, parsed.workbench, parsed.shell])
   } catch {
     return defaultPanelLayout
   }
+}
 
-  return defaultPanelLayout
+function normalizePanelLayout(
+  layout: number[] | Record<string, number>,
+): PanelLayoutState {
+  if (Array.isArray(layout)) {
+    const [
+      sessions = defaultPanelLayout.sessions,
+      workbench = defaultPanelLayout.workbench,
+      shell = defaultPanelLayout.shell,
+    ] = layout
+
+    return {
+      sessions,
+      workbench,
+      shell,
+    }
+  }
+
+  return {
+    sessions: layout.sessions ?? defaultPanelLayout.sessions,
+    workbench: layout.workbench ?? defaultPanelLayout.workbench,
+    shell: layout.shell ?? defaultPanelLayout.shell,
+  }
 }
 
 function persistPanelLayout(layout: PanelLayoutState) {
@@ -1903,39 +1301,14 @@ function persistPanelLayout(layout: PanelLayoutState) {
   window.localStorage.setItem(panelLayoutStorageKey, JSON.stringify(layout))
 }
 
-function normalizePanelLayout(
-  layout: Record<string, number>,
-): PanelLayoutState {
-  return {
-    sessions: layout.sessions ?? defaultPanelLayout.sessions,
-    workbench: layout.workbench ?? defaultPanelLayout.workbench,
-    shell: layout.shell ?? defaultPanelLayout.shell,
+function formatError(error: unknown) {
+  if (error instanceof Error) {
+    return error.message
   }
-}
 
-function toGroupLayout(layout: PanelLayoutState) {
-  return {
-    sessions: layout.sessions,
-    workbench: layout.workbench,
-    shell: layout.shell,
+  if (typeof error === "string") {
+    return error
   }
-}
 
-function statusToneForStage(
-  className?: string,
-): "default" | "accent" | "ready" | "dirty" | "error" | "building" {
-  switch (className) {
-    case "status-ready":
-      return "ready"
-    case "status-dirty":
-      return "dirty"
-    case "status-error":
-      return "error"
-    case "status-building":
-      return "building"
-    case "accent":
-      return "accent"
-    default:
-      return "default"
-  }
+  return "Unknown error"
 }

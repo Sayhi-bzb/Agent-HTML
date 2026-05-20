@@ -1,73 +1,86 @@
-// @ts-nocheck
-
+import type { ComponentSchema } from "@agent-html/core"
 import { describe, expect, it } from "vitest"
 
-import { createRuntimeRenderDiagnostics } from "./runtime-renderability.mjs"
+import { importCliModule } from "./cli-test-helpers"
+import type {
+  AgentDocument,
+  RendererSpecComponent,
+  RuntimeVerificationState,
+} from "./runtime-template/src/renderer/types"
+
+type RuntimeVerificationDataComponent = {
+  name: string
+  renderKind?: string
+  props?: string[]
+  slots?: Array<{
+    name: string
+    props?: string[]
+    children?: string[]
+    childNames?: string[]
+  }>
+}
+
+type RuntimeRenderSchema = {
+  components?: readonly ComponentSchema[]
+  verificationData?: {
+    components: RuntimeVerificationDataComponent[]
+  }
+  rendererMapping?: {
+    components: RendererSpecComponent[]
+  }
+}
+
+type AgentComponentNode = Extract<AgentDocument["components"][number], { type: "component" }>
+type AgentTextNode = Extract<AgentComponentNode["children"][number], { type: "text" }>
 
 describe("createRuntimeRenderDiagnostics", () => {
-  it("returns structured diagnostics for runtime renderer drift before SSR", () => {
+  it("returns structured diagnostics for runtime renderer drift before SSR", async () => {
+    const { createRuntimeRenderDiagnostics } =
+      await importRuntimeRenderabilityModule()
     const diagnostics = createRuntimeRenderDiagnostics({
-      document: {
-        meta: {
-          documentStyleConfigReference: "report-default",
-        },
-        components: [
-          {
-            type: "component",
-            name: "card",
-            props: { title: "Summary" },
-            children: [{ type: "text", value: "Body" }],
-          },
-        ],
-      },
-      runtimeVerificationState: {
+      document: createDocument([
+        componentNode("card", { title: "Summary" }, [textNode("Body")]),
+      ]),
+      runtimeVerificationState: createRuntimeVerificationState({
         verificationData: {
           components: [
-            {
-              name: "card",
-              renderKind: "compound",
-              props: ["title"],
-              slots: [{ name: "children", children: ["text"] }],
-            },
+            verificationComponent("card", "compound", ["title"], [
+              slot("children", ["text"]),
+            ]),
           ],
         },
         rendererMapping: {
           version: 1,
           components: [
-            {
-              name: "card",
+            rendererComponent("card", {
               kind: "primitive",
               renderKind: "compound",
               component: "Card",
               root: "Card",
-              slots: [{ name: "children", children: ["text"] }],
-            },
+              slots: [slot("children", ["text"])],
+            }),
           ],
         },
-      },
-      schema: {
+      }),
+      schema: createSchema({
         verificationData: {
           components: [
-            {
-              name: "card",
-              renderKind: "compound",
-              props: ["title"],
-              slots: [{ name: "children", children: ["text"] }],
-            },
+            verificationComponent("card", "compound", ["title"], [
+              slot("children", ["text"]),
+            ]),
           ],
         },
         rendererMapping: {
           components: [
-            {
-              name: "card",
+            rendererComponent("card", {
               kind: "compound",
               renderKind: "compound",
               root: "Card",
-              slots: [{ name: "children", children: ["text"] }],
-            },
+              slots: [slot("children", ["text"])],
+            }),
           ],
         },
-      },
+      }),
     })
 
     expect(diagnostics).toEqual([
@@ -88,30 +101,21 @@ describe("createRuntimeRenderDiagnostics", () => {
     ])
   })
 
-  it("returns structured diagnostics for renderer mapping field drift", () => {
+  it("returns structured diagnostics for renderer mapping field drift", async () => {
+    const { createRuntimeRenderDiagnostics } =
+      await importRuntimeRenderabilityModule()
     const diagnostics = createRuntimeRenderDiagnostics({
-      document: {
-        meta: {
-          documentStyleConfigReference: "report-default",
-        },
-        components: [],
-      },
-      runtimeVerificationState: {
+      document: createDocument([]),
+      runtimeVerificationState: createRuntimeVerificationState({
         verificationData: {
           components: [
-            {
-              name: "tabs",
-              renderKind: "tabs",
-              props: [],
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+            verificationComponent("tabs", "tabs", [], [slot("tab", ["text"])]),
           ],
         },
         rendererMapping: {
           version: 1,
           components: [
-            {
-              name: "tabs",
+            rendererComponent("tabs", {
               kind: "tabs",
               renderKind: "tabs",
               root: "Tabs",
@@ -121,26 +125,20 @@ describe("createRuntimeRenderDiagnostics", () => {
               itemSlot: "tab",
               itemValueProp: "slug",
               itemHeadingProp: "heading",
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+              slots: [slot("tab", ["text"])],
+            }),
           ],
         },
-      },
-      schema: {
+      }),
+      schema: createSchema({
         verificationData: {
           components: [
-            {
-              name: "tabs",
-              renderKind: "tabs",
-              props: [],
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+            verificationComponent("tabs", "tabs", [], [slot("tab", ["text"])]),
           ],
         },
         rendererMapping: {
           components: [
-            {
-              name: "tabs",
+            rendererComponent("tabs", {
               kind: "tabs",
               renderKind: "tabs",
               root: "Tabs",
@@ -150,11 +148,11 @@ describe("createRuntimeRenderDiagnostics", () => {
               itemSlot: "tab",
               itemValueProp: "value",
               itemHeadingProp: "label",
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+              slots: [slot("tab", ["text"])],
+            }),
           ],
         },
-      },
+      }),
     })
 
     expect(diagnostics).toEqual([
@@ -167,30 +165,21 @@ describe("createRuntimeRenderDiagnostics", () => {
     ])
   })
 
-  it("returns structured diagnostics for missing kind-required renderer mapping fields", () => {
+  it("returns structured diagnostics for missing kind-required renderer mapping fields", async () => {
+    const { createRuntimeRenderDiagnostics } =
+      await importRuntimeRenderabilityModule()
     const diagnostics = createRuntimeRenderDiagnostics({
-      document: {
-        meta: {
-          documentStyleConfigReference: "report-default",
-        },
-        components: [],
-      },
-      runtimeVerificationState: {
+      document: createDocument([]),
+      runtimeVerificationState: createRuntimeVerificationState({
         verificationData: {
           components: [
-            {
-              name: "tabs",
-              renderKind: "tabs",
-              props: [],
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+            verificationComponent("tabs", "tabs", [], [slot("tab", ["text"])]),
           ],
         },
         rendererMapping: {
           version: 1,
           components: [
-            {
-              name: "tabs",
+            rendererComponent("tabs", {
               kind: "tabs",
               renderKind: "tabs",
               root: "Tabs",
@@ -198,27 +187,21 @@ describe("createRuntimeRenderDiagnostics", () => {
               trigger: "TabsTrigger",
               content: "TabsContent",
               itemSlot: "tab",
-              itemLabelProp: "label",
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+              itemHeadingProp: "label",
+              slots: [slot("tab", ["text"])],
+            }),
           ],
         },
-      },
-      schema: {
+      }),
+      schema: createSchema({
         verificationData: {
           components: [
-            {
-              name: "tabs",
-              renderKind: "tabs",
-              props: [],
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+            verificationComponent("tabs", "tabs", [], [slot("tab", ["text"])]),
           ],
         },
         rendererMapping: {
           components: [
-            {
-              name: "tabs",
+            rendererComponent("tabs", {
               kind: "tabs",
               renderKind: "tabs",
               root: "Tabs",
@@ -228,11 +211,11 @@ describe("createRuntimeRenderDiagnostics", () => {
               itemSlot: "tab",
               itemValueProp: "value",
               itemHeadingProp: "label",
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+              slots: [slot("tab", ["text"])],
+            }),
           ],
         },
-      },
+      }),
     })
 
     expect(diagnostics).toEqual([
@@ -247,30 +230,21 @@ describe("createRuntimeRenderDiagnostics", () => {
     ])
   })
 
-  it("treats schema verification data as the canonical expected snapshot", () => {
+  it("treats schema verification data as the canonical expected snapshot", async () => {
+    const { createRuntimeRenderDiagnostics } =
+      await importRuntimeRenderabilityModule()
     const diagnostics = createRuntimeRenderDiagnostics({
-      document: {
-        meta: {
-          documentStyleConfigReference: "report-default",
-        },
-        components: [],
-      },
-      runtimeVerificationState: {
+      document: createDocument([]),
+      runtimeVerificationState: createRuntimeVerificationState({
         verificationData: {
           components: [
-            {
-              name: "tabs",
-              renderKind: "tabs",
-              props: [],
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+            verificationComponent("tabs", "tabs", [], [slot("tab", ["text"])]),
           ],
         },
         rendererMapping: {
           version: 1,
           components: [
-            {
-              name: "tabs",
+            rendererComponent("tabs", {
               kind: "tabs",
               renderKind: "tabs",
               root: "Tabs",
@@ -280,12 +254,12 @@ describe("createRuntimeRenderDiagnostics", () => {
               itemSlot: "tab",
               itemValueProp: "value",
               itemHeadingProp: "label",
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+              slots: [slot("tab", ["text"])],
+            }),
           ],
         },
-      },
-      schema: {
+      }),
+      schema: createSchema({
         components: [
           {
             name: "tabs",
@@ -296,18 +270,14 @@ describe("createRuntimeRenderDiagnostics", () => {
         ],
         verificationData: {
           components: [
-            {
-              name: "tabs",
-              renderKind: "tabs",
-              props: ["default"],
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+            verificationComponent("tabs", "tabs", ["default"], [
+              slot("tab", ["text"]),
+            ]),
           ],
         },
         rendererMapping: {
           components: [
-            {
-              name: "tabs",
+            rendererComponent("tabs", {
               kind: "tabs",
               renderKind: "tabs",
               root: "Tabs",
@@ -317,11 +287,11 @@ describe("createRuntimeRenderDiagnostics", () => {
               itemSlot: "tab",
               itemValueProp: "value",
               itemHeadingProp: "label",
-              slots: [{ name: "tab", children: ["text"] }],
-            },
+              slots: [slot("tab", ["text"])],
+            }),
           ],
         },
-      },
+      }),
     })
 
     expect(diagnostics).toEqual([
@@ -334,67 +304,56 @@ describe("createRuntimeRenderDiagnostics", () => {
     ])
   })
 
-  it("returns structured diagnostics for slot metadata drift beyond slot names", () => {
+  it("returns structured diagnostics for slot metadata drift beyond slot names", async () => {
+    const { createRuntimeRenderDiagnostics } =
+      await importRuntimeRenderabilityModule()
     const diagnostics = createRuntimeRenderDiagnostics({
-      document: {
-        meta: {
-          documentStyleConfigReference: "report-default",
-        },
-        components: [],
-      },
-      runtimeVerificationState: {
+      document: createDocument([]),
+      runtimeVerificationState: createRuntimeVerificationState({
         verificationData: {
           components: [
-            {
-              name: "list",
-              renderKind: "collection",
-              props: [],
-              slots: [{ name: "item", children: ["text"] }],
-            },
+            verificationComponent("list", "collection", [], [
+              slot("item", ["text"]),
+            ]),
           ],
         },
         rendererMapping: {
           version: 1,
           components: [
-            {
-              name: "list",
+            rendererComponent("list", {
               kind: "collection",
               renderKind: "collection",
               root: "ul",
               item: "li",
               itemSlot: "item",
               childMode: "inline",
-              slots: [{ name: "item", childNames: ["entry"], children: ["text"] }],
-            },
+              slots: [slot("item", ["text"], ["entry"])],
+            }),
           ],
         },
-      },
-      schema: {
+      }),
+      schema: createSchema({
         verificationData: {
           components: [
-            {
-              name: "list",
-              renderKind: "collection",
-              props: [],
-              slots: [{ name: "item", children: ["text"] }],
-            },
+            verificationComponent("list", "collection", [], [
+              slot("item", ["text"]),
+            ]),
           ],
         },
         rendererMapping: {
           components: [
-            {
-              name: "list",
+            rendererComponent("list", {
               kind: "collection",
               renderKind: "collection",
               root: "ul",
               item: "li",
               itemSlot: "item",
               childMode: "inline",
-              slots: [{ name: "item", children: ["text"] }],
-            },
+              slots: [slot("item", ["text"])],
+            }),
           ],
         },
-      },
+      }),
     })
 
     expect(diagnostics).toEqual([
@@ -407,30 +366,23 @@ describe("createRuntimeRenderDiagnostics", () => {
     ])
   })
 
-  it("returns structured diagnostics for renderer scalar field drift such as textMode", () => {
+  it("returns structured diagnostics for renderer scalar field drift such as textMode", async () => {
+    const { createRuntimeRenderDiagnostics } =
+      await importRuntimeRenderabilityModule()
     const diagnostics = createRuntimeRenderDiagnostics({
-      document: {
-        meta: {
-          documentStyleConfigReference: "report-default",
-        },
-        components: [],
-      },
-      runtimeVerificationState: {
+      document: createDocument([]),
+      runtimeVerificationState: createRuntimeVerificationState({
         verificationData: {
           components: [
-            {
-              name: "card",
-              renderKind: "compound",
-              props: ["title"],
-              slots: [{ name: "children", children: ["text"] }],
-            },
+            verificationComponent("card", "compound", ["title"], [
+              slot("children", ["text"]),
+            ]),
           ],
         },
         rendererMapping: {
           version: 1,
           components: [
-            {
-              name: "card",
+            rendererComponent("card", {
               kind: "compound",
               renderKind: "compound",
               root: "Card",
@@ -439,26 +391,22 @@ describe("createRuntimeRenderDiagnostics", () => {
               content: "CardContent",
               childMode: "block",
               textMode: "preformatted",
-              slots: [{ name: "children", children: ["text"] }],
-            },
+              slots: [slot("children", ["text"])],
+            }),
           ],
         },
-      },
-      schema: {
+      }),
+      schema: createSchema({
         verificationData: {
           components: [
-            {
-              name: "card",
-              renderKind: "compound",
-              props: ["title"],
-              slots: [{ name: "children", children: ["text"] }],
-            },
+            verificationComponent("card", "compound", ["title"], [
+              slot("children", ["text"]),
+            ]),
           ],
         },
         rendererMapping: {
           components: [
-            {
-              name: "card",
+            rendererComponent("card", {
               kind: "compound",
               renderKind: "compound",
               root: "Card",
@@ -467,11 +415,11 @@ describe("createRuntimeRenderDiagnostics", () => {
               content: "CardContent",
               childMode: "block",
               textMode: "prose",
-              slots: [{ name: "children", children: ["text"] }],
-            },
+              slots: [slot("children", ["text"])],
+            }),
           ],
         },
-      },
+      }),
     })
 
     expect(diagnostics).toEqual([
@@ -484,70 +432,33 @@ describe("createRuntimeRenderDiagnostics", () => {
     ])
   })
 
-  it("does not report structural slot children as missing renderer components", () => {
+  it("does not report structural slot children as missing renderer components", async () => {
+    const { createRuntimeRenderDiagnostics } =
+      await importRuntimeRenderabilityModule()
     const diagnostics = createRuntimeRenderDiagnostics({
-      document: {
-        meta: {
-          documentStyleConfigReference: "report-default",
-        },
-        components: [
-          {
-            type: "component",
-            name: "table",
-            props: {},
-            children: [
-              {
-                type: "component",
-                name: "row",
-                props: {},
-                children: [
-                  {
-                    type: "component",
-                    name: "cell",
-                    props: {},
-                    children: [{ type: "text", value: "Name" }],
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            type: "component",
-            name: "list",
-            props: {},
-            children: [
-              {
-                type: "component",
-                name: "item",
-                props: {},
-                children: [{ type: "text", value: "First" }],
-              },
-            ],
-          },
-        ],
-      },
-      runtimeVerificationState: {
+      document: createDocument([
+        componentNode("table", {}, [
+          componentNode("row", {}, [
+            componentNode("cell", {}, [textNode("Name")]),
+          ]),
+        ]),
+        componentNode("list", {}, [
+          componentNode("item", {}, [textNode("First")]),
+        ]),
+      ]),
+      runtimeVerificationState: createRuntimeVerificationState({
         verificationData: {
           components: [
-            {
-              name: "table",
-              renderKind: "table",
-              props: [],
-              slots: [{ name: "row", children: ["cell"] }],
-            },
-            {
-              name: "list",
-              renderKind: "collection",
-              props: [],
-              slots: [{ name: "item", children: ["text"] }],
-            },
+            verificationComponent("table", "table", [], [slot("row", ["cell"])]),
+            verificationComponent("list", "collection", [], [
+              slot("item", ["text"]),
+            ]),
           ],
         },
         rendererMapping: {
           version: 1,
           components: [
-            {
-              name: "table",
+            rendererComponent("table", {
               kind: "table",
               renderKind: "table",
               root: "Table",
@@ -558,42 +469,32 @@ describe("createRuntimeRenderDiagnostics", () => {
               bodyCell: "TableCell",
               rowSlot: "row",
               cellSlot: "cell",
-              slots: [{ name: "row", children: ["cell"] }],
-            },
-            {
-              name: "list",
+              slots: [slot("row", ["cell"])],
+            }),
+            rendererComponent("list", {
               kind: "collection",
               renderKind: "collection",
               root: "ul",
               item: "li",
               itemSlot: "item",
               childMode: "inline",
-              slots: [{ name: "item", children: ["text"] }],
-            },
+              slots: [slot("item", ["text"])],
+            }),
           ],
         },
-      },
-      schema: {
+      }),
+      schema: createSchema({
         verificationData: {
           components: [
-            {
-              name: "table",
-              renderKind: "table",
-              props: [],
-              slots: [{ name: "row", children: ["cell"] }],
-            },
-            {
-              name: "list",
-              renderKind: "collection",
-              props: [],
-              slots: [{ name: "item", children: ["text"] }],
-            },
+            verificationComponent("table", "table", [], [slot("row", ["cell"])]),
+            verificationComponent("list", "collection", [], [
+              slot("item", ["text"]),
+            ]),
           ],
         },
         rendererMapping: {
           components: [
-            {
-              name: "table",
+            rendererComponent("table", {
               kind: "table",
               renderKind: "table",
               root: "Table",
@@ -604,23 +505,196 @@ describe("createRuntimeRenderDiagnostics", () => {
               bodyCell: "TableCell",
               rowSlot: "row",
               cellSlot: "cell",
-              slots: [{ name: "row", children: ["cell"] }],
-            },
-            {
-              name: "list",
+              slots: [slot("row", ["cell"])],
+            }),
+            rendererComponent("list", {
               kind: "collection",
               renderKind: "collection",
               root: "ul",
               item: "li",
               itemSlot: "item",
               childMode: "inline",
-              slots: [{ name: "item", children: ["text"] }],
-            },
+              slots: [slot("item", ["text"])],
+            }),
           ],
         },
-      },
+      }),
     })
 
     expect(diagnostics).toEqual([])
   })
 })
+
+function createDocument(components: AgentDocument["components"]): AgentDocument {
+  return {
+    meta: {
+      documentStyleConfigReference: "report-default",
+      styleProfile: {
+        id: "report-default",
+        globalStyle: {
+          tokenSets: {
+            light: emptyColorTokenSet(),
+            dark: emptyColorTokenSet(),
+          },
+          radiusScale: {
+            base: "",
+            sm: "",
+            md: "",
+            lg: "",
+            xl: "",
+            "2xl": "",
+            "3xl": "",
+            "4xl": "",
+          },
+          typography: {
+            fontSans: "",
+            fontHeading: "",
+          },
+          cssVariableMap: {
+            background: "",
+            foreground: "",
+            card: "",
+            cardForeground: "",
+            popover: "",
+            popoverForeground: "",
+            primary: "",
+            primaryForeground: "",
+            secondary: "",
+            secondaryForeground: "",
+            muted: "",
+            mutedForeground: "",
+            accent: "",
+            accentForeground: "",
+            destructive: "",
+            border: "",
+            input: "",
+            ring: "",
+            radius: "",
+            fontSans: "",
+            fontHeading: "",
+          },
+        },
+        componentStyle: {
+          treatments: {},
+        },
+      },
+    },
+    components,
+  }
+}
+
+function emptyColorTokenSet() {
+  return {
+    background: "",
+    foreground: "",
+    card: "",
+    cardForeground: "",
+    popover: "",
+    popoverForeground: "",
+    primary: "",
+    primaryForeground: "",
+    secondary: "",
+    secondaryForeground: "",
+    muted: "",
+    mutedForeground: "",
+    accent: "",
+    accentForeground: "",
+    destructive: "",
+    border: "",
+    input: "",
+    ring: "",
+  }
+}
+
+function textNode(value: string): AgentTextNode {
+  return {
+    type: "text",
+    value,
+  }
+}
+
+function componentNode(
+  name: string,
+  props: Record<string, string>,
+  children: Array<AgentComponentNode | AgentTextNode>,
+): AgentComponentNode {
+  return {
+    type: "component",
+    name,
+    props,
+    children,
+  }
+}
+
+function slot(
+  name: string,
+  children: string[],
+  childNames?: string[],
+): NonNullable<RuntimeVerificationDataComponent["slots"]>[number] &
+  RendererSpecComponent["slots"][number] {
+  return {
+    name,
+    children,
+    ...(childNames ? { childNames } : {}),
+  }
+}
+
+function verificationComponent(
+  name: string,
+  renderKind: string,
+  props: string[],
+  slots: NonNullable<RuntimeVerificationDataComponent["slots"]>,
+): RuntimeVerificationDataComponent {
+  return {
+    name,
+    renderKind,
+    props,
+    slots,
+  }
+}
+
+function rendererComponent(
+  name: string,
+  component: Omit<RendererSpecComponent, "name">,
+): RendererSpecComponent {
+  return {
+    name,
+    ...component,
+  }
+}
+
+function createRuntimeVerificationState(input: {
+  verificationData: {
+    components: RuntimeVerificationDataComponent[]
+  }
+  rendererMapping: RuntimeVerificationState["rendererMapping"]
+}): RuntimeVerificationState & {
+  verificationData: {
+    components: RuntimeVerificationDataComponent[]
+  }
+} {
+  return input
+}
+
+function createSchema(input: RuntimeRenderSchema): RuntimeRenderSchema {
+  return input
+}
+
+async function importRuntimeRenderabilityModule() {
+  return importCliModule<{
+    readonly createRuntimeRenderDiagnostics: (input: {
+      readonly document: AgentDocument
+      readonly runtimeVerificationState: RuntimeVerificationState & {
+        verificationData: {
+          components: RuntimeVerificationDataComponent[]
+        }
+      }
+      readonly schema: RuntimeRenderSchema
+    }) => Array<{
+      readonly code: string
+      readonly path: string
+      readonly severity: string
+      readonly message: string
+    }>
+  }>("runtime-renderability.mjs")
+}
