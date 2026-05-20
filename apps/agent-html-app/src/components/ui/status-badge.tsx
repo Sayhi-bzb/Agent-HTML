@@ -18,13 +18,18 @@ type StatusBadgeProps = {
 }
 
 const toneClassName: Record<StatusBadgeTone, string> = {
-  default: "border-border bg-secondary text-foreground hover:bg-secondary",
-  accent: "border-border bg-secondary text-foreground hover:bg-secondary",
-  ready: "border-border bg-secondary text-foreground hover:bg-secondary",
-  dirty: "border-border bg-secondary text-foreground hover:bg-secondary",
+  default:
+    "border-[color:var(--hairline)] bg-[color:var(--card)] text-[color:var(--body)] hover:bg-[color:var(--card)]",
+  accent:
+    "border-[color:rgba(255,122,26,0.24)] bg-[color:rgba(255,122,26,0.12)] text-[color:var(--foreground)] hover:bg-[color:rgba(255,122,26,0.12)]",
+  ready:
+    "border-[color:rgba(91,184,128,0.24)] bg-[color:rgba(91,184,128,0.12)] text-[color:var(--success-ink)] hover:bg-[color:rgba(91,184,128,0.12)]",
+  dirty:
+    "border-[color:rgba(255,193,90,0.24)] bg-[color:rgba(255,193,90,0.12)] text-[color:var(--warn-ink)] hover:bg-[color:rgba(255,193,90,0.12)]",
   error:
-    "border-destructive bg-destructive/10 text-destructive hover:bg-destructive/10",
-  building: "border-border bg-secondary text-foreground hover:bg-secondary",
+    "border-[color:rgba(255,107,107,0.24)] bg-[color:rgba(255,107,107,0.12)] text-[color:var(--danger-ink)] hover:bg-[color:rgba(255,107,107,0.12)]",
+  building:
+    "border-[color:rgba(112,153,255,0.24)] bg-[color:rgba(112,153,255,0.12)] text-[color:var(--info-ink)] hover:bg-[color:rgba(112,153,255,0.12)]",
 }
 
 export function StatusBadge({
@@ -35,7 +40,7 @@ export function StatusBadge({
   return (
     <Badge
       className={cn(
-        "rounded-full px-2.5 py-1 text-[0.78rem] font-medium",
+        "rounded-full px-2.5 py-[0.3rem] text-[0.72rem] font-medium tracking-[0.01em]",
         toneClassName[tone],
         className,
       )}

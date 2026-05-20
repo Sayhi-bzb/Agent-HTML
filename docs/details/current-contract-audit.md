@@ -2,7 +2,7 @@
 
 本文记录当前工作树里 agent-html 公共 contract、schema 生成链路、runtime 消费点和 layout/runtime shell 状态的**当前事实**。
 
-它不定义新架构目标；它的作用是给 `docs/roadmap.md`、`docs/architecture/schema.md` 和 `docs/architecture/phase-completion-criteria.md` 提供可追踪到代码的现状证据。
+它不定义新架构目标；它的作用是给 `docs/roadmap.md` 和 `docs/architecture/schema.md` 提供可追踪到代码的现状证据。
 
 ## 范围
 
@@ -238,87 +238,27 @@ schema-overlays.ts
 - `Phase 4C` 已完成“host/document/gallery shell 分层”
 - `Phase 5C` 已完成“heavy gate 不再把 `ahtml-document-shell` 当宿主主断言”
 
-## 8. 当前工作树的额外事实
+## 8. 当前验证口径
 
-- 仓库根目录当前没有 `spec/` 目录，因此任何依赖 `spec/map.md` 或 `spec/roadmap.md` 的执行计划都无法直接在这份工作树里核验。
-- 当前 `.git/index.lock` 不存在，`git status` 已可正常使用。
+当前最关键的现实不是“还有没有旧 phase 文档”，而是这条链路仍由代码和测试共同保护：
 
-这些事实不改变架构方向，但会影响执行节奏和验证方式。
-
-## 9. 当前 gate 证据
-
-当前 `Phase 5` 最关键的 gate 已经至少拿到下面这些直接证据：
-
-- focused gates
+- public contract
+  - `packages/core/src/public-agent-contract.ts`
   - `packages/core/src/public-agent-contract.test.ts`
+  - `packages/ahtml/src/cli/schema.mjs`
   - `packages/ahtml/src/cli/cli.test.ts`
+- runtime contract / capability mapping
+  - `packages/ahtml/src/config/component-capabilities.mjs`
+  - `packages/ahtml/src/config/render-capabilities.mjs`
+  - `packages/ahtml/src/config/runtime-contract.mjs`
   - `packages/ahtml/src/config/render-capabilities.test.ts`
   - `packages/ahtml/src/config/runtime-contract.test.ts`
+- renderer / runtime shell
   - `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.test.ts`
   - `packages/ahtml/src/cli/runtime-template.test.ts`
   - `packages/ahtml/src/cli/runtime-surface.test.ts`
-  - `packages/ahtml/src/cli/gallery-workflow.test.ts`
-  - 最近实跑均通过
-- heavy gates
-  - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
   - `packages/ahtml/src/cli/cli.preview.heavy.test.ts`
-  - `packages/ahtml/src/cli/cli.runtime.heavy.test.ts`
   - `packages/ahtml/src/cli/cli.gallery.heavy.test.ts`
-  - 当前轮全文件已直接通过
-- doctor 成功路径
-  - `runs managed runtime doctor checks`
-  - `prints machine-readable doctor reports for app integrations`
-- doctor 漂移失败路径
-  - `fails doctor when runtime capabilities drift from schema`
-  - `fails doctor when runtime renderer mapping drifts from schema`
 
-这些证据当前能直接支持的判断是：
-
-- `doctor-checks.mjs` 不只是“能跑”，而且会对 verification data parity、renderer mapping parity、renderer registry parity 做真实失败保护
-- `runtime-template.test.ts` 和 `runtime-surface.test.ts` 仍在保护模板、runtime surface、doctor 输出与 contract 的同源链
-- heavy build / preview / runtime gates 当前已经切到最终 authoring / host 口径，不再把 `tone`、`kind`、`default` 或 `ahtml-document-shell` 当主断言
-
-这些证据当前已经足够支持：
-
-- `Phase 5` 正式完成
-- `docs/phase-5-completion-proof.md` 从“最后一轮审计”转为“完成证明”
-- 后续剩余工作只再属于测试组织和脚本整理，不再属于主线 contract/runtime 收口
-
-## 10. 对各阶段的直接影响
-
-### Phase 1
-
-`Phase 1` 的事实审计工作已经不再是当前主线；它的结论已下沉到：
-
-- 当前公开 contract 与兼容语义层分离
-- 当前 renderer/runtime host 已有明确分层
-
-### Phase 2
-
-`Phase 2` 的主链切换已完成。当前更值得盯住的是：
-
-- 是否还有文档仍把 legacy 字段误写成“当前公开主路径”
-
-### Phase 3
-
-layout 已进入正式公共能力。当前不应再把“layout 仍停留在文档目标阶段”写成现状。
-
-### Phase 4
-
-runtime 解耦的核心实现已完成；当前遗留主要是文档与总验收，而不是 renderer ownership 本身。
-
-### Phase 5
-
-`Phase 5` 当前已经完成。后续最值得继续推进的是：
-
-- CLI tests / helpers 的重复收口
-- 测试命名与职责边界的后续整理
-- 仅在未来需要真实压缩 compat bridge 时，再开启新的实现阶段
-
-## 推荐下一步
-
-如果继续沿这条线推进，最值得优先做的是：
-
-1. 把 CLI tests 中重复的 style-profile fixture helper 收到公共 helper
-2. 复核 `artifact-workflow.test.ts`、`gallery-workflow.test.ts`、`runtime-build.test.ts`、`command-contract.test.ts`、`governance-sync.test.ts` 的职责边界
-3. 复核 `scripts/shadcn-test-server.mjs` 与 `scripts/shadcn-test-fixtures/` 的真实依赖面
+本轮文档清理只直接复核了 `cli.test.ts`、`cli.preview.heavy.test.ts`、`cli.gallery.heavy.test.ts` 和文档 lint。  
+因此本文记录的是当前代码事实与保护这些事实的测试位置，不把每个 gate 都写成“本轮已重跑通过”。

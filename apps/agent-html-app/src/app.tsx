@@ -1531,24 +1531,38 @@ export function App() {
     <div className="app-root">
       <header className="topbar">
         <div className="topbar-brand">
-          <strong>agent-html</strong>
+          <span aria-hidden="true" className="topbar-mark" />
+          <div className="topbar-copy">
+            <strong>agent-html</strong>
+            <span className="inline-meta topbar-path">
+              {appState.currentSession.summary.directory}
+            </span>
+          </div>
         </div>
-        <div className="topbar-meta">
-          <Button
-            disabled={commandState.runningDoctor}
-            onClick={() => {
-              void handleDoctor()
-            }}
-            size="sm"
-            type="button"
-            variant="outline"
-          >
-            {commandState.runningDoctor ? "Checking..." : "Doctor"}
-          </Button>
-          <StatusBadge>{isTauriRuntime() ? "Tauri" : "Mock"}</StatusBadge>
-          {commandState.error ? (
-            <StatusBadge tone="error">Error</StatusBadge>
-          ) : null}
+        <div className="topbar-status">
+          <div className="topbar-session">
+            <span className="topbar-session-name">
+              {appState.currentSession.summary.name}
+            </span>
+            <span className="inline-meta">Workbench · {activeView}</span>
+          </div>
+          <div className="topbar-meta">
+            <Button
+              disabled={commandState.runningDoctor}
+              onClick={() => {
+                void handleDoctor()
+              }}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              {commandState.runningDoctor ? "Checking..." : "Doctor"}
+            </Button>
+            <StatusBadge>{isTauriRuntime() ? "Tauri" : "Mock"}</StatusBadge>
+            {commandState.error ? (
+              <StatusBadge tone="error">Error</StatusBadge>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -1569,8 +1583,11 @@ export function App() {
         <RuntimeBanner report={appState.runtimeReport} />
       ) : null}
 
-      <SurfaceCard className="stage-banner" variant="banner">
-        <SurfaceCardHeader title={currentStageItem?.label ?? "Current stage"}>
+      <SurfaceCard className="stage-banner stage-strip" variant="banner">
+        <SurfaceCardHeader
+          padding="compact"
+          title={currentStageItem?.label ?? "Current stage"}
+        >
           <div className="stage-banner-meta">
             <StatusBadge
               tone={statusToneForStage(currentStageItem?.pillClassName)}

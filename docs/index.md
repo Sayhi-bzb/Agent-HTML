@@ -1,6 +1,8 @@
 # Docs Index
 
-`docs/` 现在只承担三件事：
+`docs/` 现在只保留当前事实，不再保留迁移期草稿、切片卡、完成证明或历史导航。
+
+它只承担三件事：
 
 - 解释当前稳定架构边界
 - 记录当前工作树的真实实现状态
@@ -21,8 +23,6 @@
   - 当前 contract、schema、runtime 主链的现实基线。
 - `details/high-risk-runtime-bridges.md`
   - 当前仍需重点关注的兼容桥和 heavy gate 风险点。
-- `phase-5-completion-proof.md`
-  - 当前 `Phase 5` 总验收的证据汇总与剩余缺口。
 
 ## 稳定解释文档
 
@@ -44,14 +44,14 @@
 - `details/component-details.md`
   - 更细的底层实现事实与风险点。
 
-## 历史资料
+## 清理原则
 
-历史迁移实施稿、切片卡、issue 草稿和覆盖审计已经退出主入口。  
-需要追溯时统一从 [history.md](./history.md) 进入。
+- 已完成的 phase/slice/migration 文档已经从仓库移除，不再在 `docs/` 中堆积。
+- `docs/` 只记录当前代码事实、当前验证口径和仍未完成的收尾项。
+- 如果未来需要新的实施计划，应新写针对当下问题的文档，而不是恢复旧迁移稿。
 
 ## 阅读边界
 
 - `roadmap.md` 和 `todo.md` 现在描述的是“当前还差什么”，不是完整迁移剧本。
 - `details/*` 记录现实，不负责定义目标架构。
 - `architecture/*`、`layout.md`、`syntax.md` 解释稳定边界，不负责回放每个阶段怎么落地。
-- 历史迁移资料保留只是为了追溯，不再是默认开发入口。

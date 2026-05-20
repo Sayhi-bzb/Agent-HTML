@@ -3,6 +3,8 @@ import { readdir, readFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { requiredShadcnRuntimeComponents } from "../packages/ahtml/src/config/render-capabilities.mjs"
+
 const fixtureRoot = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "shadcn-test-fixtures",
@@ -121,12 +123,19 @@ async function loadFixtures() {
     "shadcn-template",
     "vite-app",
   )
-  const componentNames = (await readdir(componentsDir))
+  const availableComponentNames = (await readdir(componentsDir))
     .filter((name) => name.endsWith(".tsx"))
     .map((name) => name.replace(/\.tsx$/, ""))
     .sort()
+  const componentPaths = new Map(
+    availableComponentNames.map((name) => [
+      name,
+      path.join(componentsDir, `${name}.tsx`),
+    ]),
+  )
+  const componentNames = await collectFixtureComponentClosure(componentPaths)
   const [baseCss, utilsSource, componentEntries] = await Promise.all([
-    readFile(path.join(fixtureRoot, "base", "index.css"), "utf8"),
+    readFile(path.join(templateViteAppDir, "src", "index.css"), "utf8"),
     readFile(path.join(templateViteAppDir, "src", "lib", "utils.ts"), "utf8"),
     Promise.all(
       componentNames.map(async (name) => [
@@ -141,6 +150,38 @@ async function loadFixtures() {
     utilsSource,
     components: Object.fromEntries(componentEntries),
   }
+}
+
+async function collectFixtureComponentClosure(componentPaths) {
+  const resolvedNames = new Set()
+  const pendingNames = [...requiredShadcnRuntimeComponents]
+
+  while (pendingNames.length > 0) {
+    const componentName = pendingNames.pop()
+
+    if (!componentName || resolvedNames.has(componentName)) {
+      continue
+    }
+
+    const componentPath = componentPaths.get(componentName)
+
+    if (!componentPath) {
+      throw new Error(
+        `Missing shadcn test fixture for runtime component "${componentName}".`,
+      )
+    }
+
+    resolvedNames.add(componentName)
+    const componentSource = await readFile(componentPath, "utf8")
+
+    for (const dependencyName of collectUiRegistryDependencies(componentSource)) {
+      if (!resolvedNames.has(dependencyName)) {
+        pendingNames.push(dependencyName)
+      }
+    }
+  }
+
+  return [...resolvedNames].sort()
 }
 
 function createPresetItem({ fixtures, style }) {

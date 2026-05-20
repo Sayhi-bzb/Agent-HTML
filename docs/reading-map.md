@@ -1,11 +1,10 @@
 # Reading Map
 
-本文只回答两个问题：
+本文只回答一个问题：
 
 - 现在先看哪几篇
-- 哪些资料已经不该再当作当前主入口
 
-## 现在的四层
+## 现在的三层
 
 ### 1. 架构层
 
@@ -42,25 +41,11 @@
 
 - `docs/roadmap.md`
 - `docs/todo.md`
-- `docs/phase-5-completion-proof.md`
 
 回答的问题：
 
 - 已完成的阶段现在怎么验收描述
-- `Phase 5` 为什么已经可以正式视为完成
 - 还剩哪些 post-phase cleanup 欠账
-
-### 4. 历史层
-
-只在需要追溯时看：
-
-- `docs/history.md`
-
-回答的问题：
-
-- 当时为什么按 `Phase 2-5` 拆
-- 某个切片卡或 issue 草稿当时怎么写
-- 某条兼容桥最初是怎么迁移设计的
 
 ## 最短路径
 
@@ -69,9 +54,8 @@
 1. `docs/reading-map.md`
 2. `docs/roadmap.md`
 3. `docs/todo.md`
-4. `docs/phase-5-completion-proof.md`
-5. `docs/details/current-contract-audit.md`
-6. `docs/details/high-risk-runtime-bridges.md`
+4. `docs/details/current-contract-audit.md`
+5. `docs/details/high-risk-runtime-bridges.md`
 
 ### 路径 B：要改实现但不想背迁移文档
 
@@ -81,23 +65,19 @@
 4. `docs/details/current-contract-component-matrix.md`
 5. `docs/roadmap.md`
 
-### 路径 C：要追溯历史决策
+### 路径 C：只想看 compat 风险
 
-1. `docs/history.md`
-2. 对应 `phase-*` implementation draft
-3. 对应 `slice-*` execution card 或 issue draft
+1. `docs/details/high-risk-runtime-bridges.md`
+2. `docs/details/current-contract-component-matrix.md`
+3. `docs/details/component-details.md`
 
-## 不再作为主入口的资料
+## 已清理出仓库的资料类型
 
-以下资料仍可追溯，但不再是默认阅读路径：
+以下资料已经删除，不再作为默认阅读路径，也不再在 `docs/` 内保留：
 
-- `phase-*-implementation-draft.md`
-- `implementation-slices.md`
-- `execution-checklist.md`
-- `phase-completion-criteria.md`
-- `slice-*-execution-card.md`
-- `slice-*-issue-draft.md`
-- `coverage-audit.md`
-- `tabs/accordion/table migration card`
+- phase 实施稿与设计稿
+- slice 执行卡、issue 草稿与配套消费地图
+- 覆盖审计、完成证明和迁移 checklist
+- `tabs` / `accordion` / `table` 的旧 migration card
 
-如果只是判断当前现实或剩余收尾，不要先读这些。
+如果只是判断当前现实或剩余收尾，不需要再找这些资料。

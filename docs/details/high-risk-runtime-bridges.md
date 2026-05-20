@@ -6,13 +6,7 @@
 - `accordion`
 - `table`
 
-如果要追溯迁移期的单组件专篇，请补看：
-
-- `docs/details/tabs-migration-card.md`
-- `docs/details/accordion-migration-card.md`
-- `docs/details/table-migration-card.md`
-
-这些专篇现在只作为历史追溯资料保留，不再是当前主导航入口。
+迁移期的单组件专篇已经移除；当前 bridge 现实统一收在本文。
 
 本文只回答当前现实里的三个问题：
 
@@ -213,13 +207,8 @@ schema-overlays.ts
 
 ## 6. 当前使用方式
 
-如果现在只是判断现实或收尾优先级，先看本文即可。
-
-只有在需要追溯历史实施顺序时，才回到：
-
-- `tabs-migration-card.md`
-- `accordion-migration-card.md`
-- `table-migration-card.md`
+如果现在只是判断现实或收尾优先级，直接看本文即可。  
+这里已经替代旧的单组件迁移卡入口。
 
 ## 7. 当前总判断
 

@@ -9,9 +9,8 @@
 - 哪些阶段可以视为已完成验收
 - 剩余收尾工作还差什么
 
-如果需要追溯历史切片、实施稿和旧验收口径，请转到：
-
-- `docs/history.md`
+历史迁移稿、切片卡和独立 completion proof 已经从 `docs/` 移除。  
+完成状态摘要现在只保留在这里。
 
 ## 当前状态
 
@@ -54,44 +53,24 @@
 
 - CLI tests 里仍有一些过渡期重复 helper 和命名层级混杂的问题，需要做低风险结构收口
 - heavy/test 脚本与 fixtures 仍有可继续压缩的依赖面
-- CLI tests 里仍有一些过渡期重复 helper 和命名层级混杂的问题，需要做低风险结构收口
+- docs 入口已经收紧，但后续仍需要继续维持“只写当前现实”的边界，避免旧阶段文档回流
 
 ## 当前验证基线
 
-本轮已直接确认通过的 focused gates：
+本轮 cleanup 直接复核通过的 focused gates：
 
-- `npm run test:run -- packages/core/src/component-schema.test.ts`
-- `npm run test:run -- packages/core/src/public-agent-contract.test.ts`
-- `npm run test:run -- packages/core/src/parse/sanitize-agent-html.test.ts`
 - `npm run test:run -- packages/ahtml/src/cli/cli.test.ts`
-- `npm run test:run -- packages/ahtml/src/cli/runtime-template/src/renderer/render-node.test.ts`
-- `npm run test:run -- packages/ahtml/src/config/render-capabilities.test.ts`
-- `npm run test:run -- packages/ahtml/src/config/runtime-contract.test.ts`
-- `npm run test:run -- packages/ahtml/src/cli/runtime-renderability.test.ts`
-- `npm run test:run -- packages/ahtml/src/cli/runtime-template.test.ts`
-- `npm run test:run -- packages/ahtml/src/cli/runtime-surface.test.ts`
-- `npm run test:run -- packages/ahtml/src/cli/gallery-workflow.test.ts`
+- `npm run docs:lint`
 
-本轮已直接确认通过的关键 gates：
+本轮 cleanup 直接复核通过的 heavy gates：
 
-- `doctor-checks.mjs`
-- `runtime-template.test.ts`
-- `runtime-surface.test.ts`
-- `cli.build.heavy.test.ts`
 - `cli.preview.heavy.test.ts`
-- `cli.runtime.heavy.test.ts`
 - `cli.gallery.heavy.test.ts`
 
-当前 completion proof 已单列在：
+本轮没有重新跑完的 gate：
 
-- `docs/phase-5-completion-proof.md`
-
-本轮直接补齐的 `doctor` 证据包括：
-
-- `runs managed runtime doctor checks`
-- `prints machine-readable doctor reports for app integrations`
-- `fails doctor when runtime capabilities drift from schema`
-- `fails doctor when runtime renderer mapping drifts from schema`
+- `cli.build.heavy.test.ts`
+- `cli.runtime.heavy.test.ts`
 
 ## 现在的优先顺序
 
