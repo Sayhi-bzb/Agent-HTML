@@ -102,9 +102,23 @@ export type SemanticColorTokenSet = {
   readonly accent: string
   readonly accentForeground: string
   readonly destructive: string
+  readonly destructiveForeground: string
   readonly border: string
   readonly input: string
   readonly ring: string
+  readonly chart1: string
+  readonly chart2: string
+  readonly chart3: string
+  readonly chart4: string
+  readonly chart5: string
+  readonly sidebar: string
+  readonly sidebarForeground: string
+  readonly sidebarPrimary: string
+  readonly sidebarPrimaryForeground: string
+  readonly sidebarAccent: string
+  readonly sidebarAccentForeground: string
+  readonly sidebarBorder: string
+  readonly sidebarRing: string
 }
 
 export type GlobalStyleTokenSets = {
@@ -126,6 +140,16 @@ export type RadiusScale = {
 export type TypographyProfile = {
   readonly fontSans: string
   readonly fontHeading: string
+  readonly fontSerif: string
+  readonly fontMono: string
+  readonly letterSpacing: string
+  readonly spacing: string
+  readonly shadowColor: string
+  readonly shadowOpacity: string
+  readonly shadowBlur: string
+  readonly shadowSpread: string
+  readonly shadowOffsetX: string
+  readonly shadowOffsetY: string
 }
 
 export type CssVariableMap = {
@@ -144,12 +168,36 @@ export type CssVariableMap = {
   readonly accent: "--accent"
   readonly accentForeground: "--accent-foreground"
   readonly destructive: "--destructive"
+  readonly destructiveForeground: "--destructive-foreground"
   readonly border: "--border"
   readonly input: "--input"
   readonly ring: "--ring"
+  readonly chart1: "--chart-1"
+  readonly chart2: "--chart-2"
+  readonly chart3: "--chart-3"
+  readonly chart4: "--chart-4"
+  readonly chart5: "--chart-5"
+  readonly sidebar: "--sidebar"
+  readonly sidebarForeground: "--sidebar-foreground"
+  readonly sidebarPrimary: "--sidebar-primary"
+  readonly sidebarPrimaryForeground: "--sidebar-primary-foreground"
+  readonly sidebarAccent: "--sidebar-accent"
+  readonly sidebarAccentForeground: "--sidebar-accent-foreground"
+  readonly sidebarBorder: "--sidebar-border"
+  readonly sidebarRing: "--sidebar-ring"
   readonly radius: "--radius"
   readonly fontSans: "--font-sans"
   readonly fontHeading: "--font-heading"
+  readonly fontSerif: "--font-serif"
+  readonly fontMono: "--font-mono"
+  readonly letterSpacing: "--letter-spacing"
+  readonly spacing: "--spacing"
+  readonly shadowColor: "--shadow-color"
+  readonly shadowOpacity: "--shadow-opacity"
+  readonly shadowBlur: "--shadow-blur"
+  readonly shadowSpread: "--shadow-spread"
+  readonly shadowOffsetX: "--shadow-offset-x"
+  readonly shadowOffsetY: "--shadow-offset-y"
 }
 
 export type GlobalStyleProfile = {

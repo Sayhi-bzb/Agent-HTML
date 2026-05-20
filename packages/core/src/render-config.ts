@@ -42,9 +42,23 @@ const neutralLightSemanticTokens: SemanticColorTokenSet = {
   accent: "#fafaf7",
   accentForeground: "#26251e",
   destructive: "#cf2d56",
+  destructiveForeground: "#ffffff",
   border: "#e6e5e0",
   input: "#cfcdc4",
   ring: "#f54e00",
+  chart1: "oklch(0.81 0.1 252)",
+  chart2: "oklch(0.62 0.19 260)",
+  chart3: "oklch(0.55 0.22 263)",
+  chart4: "oklch(0.49 0.22 264)",
+  chart5: "oklch(0.42 0.18 266)",
+  sidebar: "oklch(0.985 0 0)",
+  sidebarForeground: "#26251e",
+  sidebarPrimary: "#26251e",
+  sidebarPrimaryForeground: "oklch(0.985 0 0)",
+  sidebarAccent: "#fafaf7",
+  sidebarAccentForeground: "#26251e",
+  sidebarBorder: "#e6e5e0",
+  sidebarRing: "oklch(0.708 0 0)",
 }
 
 const neutralDarkSemanticTokens: SemanticColorTokenSet = {
@@ -63,9 +77,23 @@ const neutralDarkSemanticTokens: SemanticColorTokenSet = {
   accent: "oklch(0.269 0 0)",
   accentForeground: "oklch(0.985 0 0)",
   destructive: "oklch(0.704 0.191 22.216)",
+  destructiveForeground: "oklch(0.985 0 0)",
   border: "oklch(1 0 0 / 10%)",
   input: "oklch(1 0 0 / 15%)",
   ring: "oklch(0.556 0 0)",
+  chart1: "oklch(0.81 0.1 252)",
+  chart2: "oklch(0.62 0.19 260)",
+  chart3: "oklch(0.55 0.22 263)",
+  chart4: "oklch(0.49 0.22 264)",
+  chart5: "oklch(0.42 0.18 266)",
+  sidebar: "oklch(0.205 0 0)",
+  sidebarForeground: "oklch(0.985 0 0)",
+  sidebarPrimary: "oklch(0.488 0.243 264.376)",
+  sidebarPrimaryForeground: "oklch(0.985 0 0)",
+  sidebarAccent: "oklch(0.269 0 0)",
+  sidebarAccentForeground: "oklch(0.985 0 0)",
+  sidebarBorder: "oklch(0.275 0 0)",
+  sidebarRing: "oklch(0.439 0 0)",
 }
 
 const defaultRadiusScale: RadiusScale = {
@@ -83,6 +111,17 @@ const defaultTypographyProfile: TypographyProfile = {
   fontSans:
     '"Inter Variable", system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif',
   fontHeading: "var(--font-sans)",
+  fontSerif: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
+  fontMono:
+    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+  letterSpacing: "0em",
+  spacing: "0.25rem",
+  shadowColor: "oklch(0 0 0)",
+  shadowOpacity: "0.1",
+  shadowBlur: "3px",
+  shadowSpread: "0px",
+  shadowOffsetX: "0px",
+  shadowOffsetY: "1px",
 }
 
 const defaultCssVariableMap: CssVariableMap = {
@@ -101,12 +140,36 @@ const defaultCssVariableMap: CssVariableMap = {
   accent: "--accent",
   accentForeground: "--accent-foreground",
   destructive: "--destructive",
+  destructiveForeground: "--destructive-foreground",
   border: "--border",
   input: "--input",
   ring: "--ring",
+  chart1: "--chart-1",
+  chart2: "--chart-2",
+  chart3: "--chart-3",
+  chart4: "--chart-4",
+  chart5: "--chart-5",
+  sidebar: "--sidebar",
+  sidebarForeground: "--sidebar-foreground",
+  sidebarPrimary: "--sidebar-primary",
+  sidebarPrimaryForeground: "--sidebar-primary-foreground",
+  sidebarAccent: "--sidebar-accent",
+  sidebarAccentForeground: "--sidebar-accent-foreground",
+  sidebarBorder: "--sidebar-border",
+  sidebarRing: "--sidebar-ring",
   radius: "--radius",
   fontSans: "--font-sans",
   fontHeading: "--font-heading",
+  fontSerif: "--font-serif",
+  fontMono: "--font-mono",
+  letterSpacing: "--letter-spacing",
+  spacing: "--spacing",
+  shadowColor: "--shadow-color",
+  shadowOpacity: "--shadow-opacity",
+  shadowBlur: "--shadow-blur",
+  shadowSpread: "--shadow-spread",
+  shadowOffsetX: "--shadow-offset-x",
+  shadowOffsetY: "--shadow-offset-y",
 }
 
 const BUILTIN_COMPONENT_TREATMENTS_BY_REFERENCE = {
@@ -168,9 +231,23 @@ const SemanticColorTokenSetSchema = z
     accent: z.string(),
     accentForeground: z.string(),
     destructive: z.string(),
+    destructiveForeground: z.string(),
     border: z.string(),
     input: z.string(),
     ring: z.string(),
+    chart1: z.string(),
+    chart2: z.string(),
+    chart3: z.string(),
+    chart4: z.string(),
+    chart5: z.string(),
+    sidebar: z.string(),
+    sidebarForeground: z.string(),
+    sidebarPrimary: z.string(),
+    sidebarPrimaryForeground: z.string(),
+    sidebarAccent: z.string(),
+    sidebarAccentForeground: z.string(),
+    sidebarBorder: z.string(),
+    sidebarRing: z.string(),
   })
   .strict()
 
@@ -191,6 +268,16 @@ const TypographyProfileSchema = z
   .object({
     fontSans: z.string(),
     fontHeading: z.string(),
+    fontSerif: z.string(),
+    fontMono: z.string(),
+    letterSpacing: z.string(),
+    spacing: z.string(),
+    shadowColor: z.string(),
+    shadowOpacity: z.string(),
+    shadowBlur: z.string(),
+    shadowSpread: z.string(),
+    shadowOffsetX: z.string(),
+    shadowOffsetY: z.string(),
   })
   .strict()
 
@@ -211,12 +298,40 @@ const CssVariableMapSchema = z
     accent: z.literal(defaultCssVariableMap.accent),
     accentForeground: z.literal(defaultCssVariableMap.accentForeground),
     destructive: z.literal(defaultCssVariableMap.destructive),
+    destructiveForeground: z.literal(defaultCssVariableMap.destructiveForeground),
     border: z.literal(defaultCssVariableMap.border),
     input: z.literal(defaultCssVariableMap.input),
     ring: z.literal(defaultCssVariableMap.ring),
+    chart1: z.literal(defaultCssVariableMap.chart1),
+    chart2: z.literal(defaultCssVariableMap.chart2),
+    chart3: z.literal(defaultCssVariableMap.chart3),
+    chart4: z.literal(defaultCssVariableMap.chart4),
+    chart5: z.literal(defaultCssVariableMap.chart5),
+    sidebar: z.literal(defaultCssVariableMap.sidebar),
+    sidebarForeground: z.literal(defaultCssVariableMap.sidebarForeground),
+    sidebarPrimary: z.literal(defaultCssVariableMap.sidebarPrimary),
+    sidebarPrimaryForeground: z.literal(
+      defaultCssVariableMap.sidebarPrimaryForeground,
+    ),
+    sidebarAccent: z.literal(defaultCssVariableMap.sidebarAccent),
+    sidebarAccentForeground: z.literal(
+      defaultCssVariableMap.sidebarAccentForeground,
+    ),
+    sidebarBorder: z.literal(defaultCssVariableMap.sidebarBorder),
+    sidebarRing: z.literal(defaultCssVariableMap.sidebarRing),
     radius: z.literal(defaultCssVariableMap.radius),
     fontSans: z.literal(defaultCssVariableMap.fontSans),
     fontHeading: z.literal(defaultCssVariableMap.fontHeading),
+    fontSerif: z.literal(defaultCssVariableMap.fontSerif),
+    fontMono: z.literal(defaultCssVariableMap.fontMono),
+    letterSpacing: z.literal(defaultCssVariableMap.letterSpacing),
+    spacing: z.literal(defaultCssVariableMap.spacing),
+    shadowColor: z.literal(defaultCssVariableMap.shadowColor),
+    shadowOpacity: z.literal(defaultCssVariableMap.shadowOpacity),
+    shadowBlur: z.literal(defaultCssVariableMap.shadowBlur),
+    shadowSpread: z.literal(defaultCssVariableMap.shadowSpread),
+    shadowOffsetX: z.literal(defaultCssVariableMap.shadowOffsetX),
+    shadowOffsetY: z.literal(defaultCssVariableMap.shadowOffsetY),
   })
   .strict()
 
@@ -383,11 +498,62 @@ export function resolveRenderConfig(
 export function createRenderConfigFromStyleProfile(
   styleProfile: StyleProfile,
 ): RenderConfig {
-  const parsedStyleProfile = StyleProfileSchema.parse(styleProfile)
+  const parsedStyleProfile = StyleProfileSchema.parse(
+    normalizeStyleProfile(styleProfile),
+  )
 
   return {
     documentStyleConfigReference: parsedStyleProfile.id,
     styleProfile: parsedStyleProfile,
+  }
+}
+
+export function normalizeStyleProfile(styleProfile: unknown): StyleProfile {
+  const input = (styleProfile ?? {}) as Partial<StyleProfile> & {
+    globalStyle?: Partial<GlobalStyleProfile> & {
+      tokenSets?: {
+        light?: Partial<SemanticColorTokenSet>
+        dark?: Partial<SemanticColorTokenSet>
+      }
+      typography?: Partial<TypographyProfile>
+      cssVariableMap?: Partial<CssVariableMap>
+    }
+  }
+
+  return {
+    id:
+      typeof input.id === "string" && input.id.length > 0
+        ? input.id
+        : DEFAULT_STYLE_PROFILE_REFERENCE,
+    globalStyle: {
+      tokenSets: {
+        light: {
+          ...neutralLightSemanticTokens,
+          ...input.globalStyle?.tokenSets?.light,
+        },
+        dark: {
+          ...neutralDarkSemanticTokens,
+          ...input.globalStyle?.tokenSets?.dark,
+        },
+      },
+      radiusScale: {
+        ...defaultRadiusScale,
+        ...input.globalStyle?.radiusScale,
+      },
+      typography: {
+        ...defaultTypographyProfile,
+        ...input.globalStyle?.typography,
+      },
+      cssVariableMap: {
+        ...defaultCssVariableMap,
+        ...input.globalStyle?.cssVariableMap,
+      },
+    },
+    componentStyle: {
+      treatments: {
+        ...(input.componentStyle?.treatments ?? {}),
+      },
+    },
   }
 }
 

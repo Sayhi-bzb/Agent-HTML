@@ -5,7 +5,7 @@ import {
   select,
   spinner,
 } from "@clack/prompts"
-import { StyleProfileSchema } from "@agent-html/core"
+import { normalizeStyleProfile, StyleProfileSchema } from "@agent-html/core"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -544,7 +544,9 @@ function createGalleryRequestHandler() {
     ) {
       try {
         const body = await readJsonBody(request)
-        const profileInput = StyleProfileSchema.parse(body.styleProfile)
+        const profileInput = StyleProfileSchema.parse(
+          normalizeStyleProfile(body.styleProfile),
+        )
         const saved = await saveUserStyleProfile(runtimePaths, profileInput, {
           overwrite: true,
         })

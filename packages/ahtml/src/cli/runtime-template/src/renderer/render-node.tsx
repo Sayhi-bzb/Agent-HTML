@@ -72,6 +72,7 @@ export function createRendererNode(
   function getComponentMetadataProps(
     node: AgentComponentNode,
     rendererSpec: RendererSpecComponent,
+    path: RendererPath,
   ) {
     const treatment = componentTreatments[node.name]
     const className = mergeClassNames(
@@ -81,6 +82,9 @@ export function createRendererNode(
 
     return {
       "data-agent-html-component": node.name,
+      "data-ahtml-render-kind": rendererSpec.renderKind,
+      ...(rendererSpec.source ? { "data-ahtml-source": rendererSpec.source } : {}),
+      "data-ahtml-path": path.map(String).join("."),
       ...(treatment ? { "data-ahtml-treatment": treatment } : {}),
       ...(className ? { className } : {}),
     }

@@ -19,6 +19,7 @@ type UiRendererContext = {
   getComponentMetadataProps: (
     node: AgentComponentNode,
     rendererSpec: RendererSpecComponent,
+    path: RendererPath,
   ) => Record<string, string>
   renderChildren: (
     node: AgentComponentNode,
@@ -59,7 +60,7 @@ export function createUiRenderer(context: UiRendererContext) {
   ) {
     const Component = resolveElement(rendererSpec.component)
     const props = {
-      ...context.getComponentMetadataProps(node, rendererSpec),
+      ...context.getComponentMetadataProps(node, rendererSpec, path),
       ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
     }
     const children =
@@ -82,7 +83,7 @@ export function createUiRenderer(context: UiRendererContext) {
     const TitleContainer = resolveElement(rendererSpec.titleContainer)
     const Content = resolveElement(rendererSpec.content)
     const props = {
-      ...context.getComponentMetadataProps(node, rendererSpec),
+      ...context.getComponentMetadataProps(node, rendererSpec, path),
       ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
     }
     const title = renderCompoundTitle(node, rendererSpec, Title)
@@ -141,7 +142,7 @@ export function createUiRenderer(context: UiRendererContext) {
 
     return (
       <>
-        <Root {...context.getComponentMetadataProps(node, rendererSpec)}>
+        <Root {...context.getComponentMetadataProps(node, rendererSpec, path)}>
           {label ? (
             <Label
               {...getFieldLabelProps(fieldSemantics, true)}
@@ -203,7 +204,7 @@ export function createUiRenderer(context: UiRendererContext) {
 
     return (
       <Root
-        {...context.getComponentMetadataProps(node, rendererSpec)}
+        {...context.getComponentMetadataProps(node, rendererSpec, path)}
         orientation="horizontal"
       >
         <Control {...controlProps} />
@@ -271,7 +272,7 @@ export function createUiRenderer(context: UiRendererContext) {
 
     return (
       <>
-        <Root {...context.getComponentMetadataProps(node, rendererSpec)}>
+        <Root {...context.getComponentMetadataProps(node, rendererSpec, path)}>
           {label ? (
             <Label
               {...getFieldLabelProps(fieldSemantics, false)}
@@ -340,7 +341,7 @@ export function createUiRenderer(context: UiRendererContext) {
     }
 
     return (
-      <Root {...context.getComponentMetadataProps(node, rendererSpec)}>
+      <Root {...context.getComponentMetadataProps(node, rendererSpec, path)}>
         {label ? (
           <GroupLabel
             {...getFieldLabelProps(fieldSemantics, false)}
@@ -443,7 +444,7 @@ export function createUiRenderer(context: UiRendererContext) {
     }
 
     return (
-      <Root {...context.getComponentMetadataProps(node, rendererSpec)}>
+      <Root {...context.getComponentMetadataProps(node, rendererSpec, path)}>
         {label ? (
           <Label
             {...getFieldLabelProps(fieldSemantics, false)}
@@ -531,7 +532,7 @@ export function createUiRenderer(context: UiRendererContext) {
 
     return (
       <>
-        <Root {...context.getComponentMetadataProps(node, rendererSpec)}>
+        <Root {...context.getComponentMetadataProps(node, rendererSpec, path)}>
           {label ? (
             <Label
               {...getFieldLabelProps(fieldSemantics, false)}
@@ -618,7 +619,7 @@ export function createUiRenderer(context: UiRendererContext) {
 
     return (
       <>
-        <Root {...context.getComponentMetadataProps(node, rendererSpec)}>
+        <Root {...context.getComponentMetadataProps(node, rendererSpec, path)}>
           {label ? (
             <Label
               {...getFieldLabelProps(fieldSemantics, false)}
@@ -688,7 +689,7 @@ export function createUiRenderer(context: UiRendererContext) {
     )
     const Item = resolveElement(rendererSpec.item)
     const rootProps = {
-      ...context.getComponentMetadataProps(node, rendererSpec),
+      ...context.getComponentMetadataProps(node, rendererSpec, path),
       ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
     }
 
@@ -728,7 +729,7 @@ export function createUiRenderer(context: UiRendererContext) {
     const bodyRows = rows.length > 1 ? rows.slice(1) : rows
 
     return (
-      <Root {...context.getComponentMetadataProps(node, rendererSpec)}>
+      <Root {...context.getComponentMetadataProps(node, rendererSpec, path)}>
         {headerRows.length > 0 ? (
           <Header>
             {headerRows.map((row, index) =>
@@ -807,7 +808,7 @@ export function createUiRenderer(context: UiRendererContext) {
     )
     const items = getStructuredItemsForNode(node, itemSlot)
     const rootProps = {
-      ...context.getComponentMetadataProps(node, rendererSpec),
+      ...context.getComponentMetadataProps(node, rendererSpec, path),
       ...(rendererSpec.staticProps ?? {}),
     }
 
@@ -873,7 +874,7 @@ export function createUiRenderer(context: UiRendererContext) {
     return (
       <>
         <Root
-          {...context.getComponentMetadataProps(node, rendererSpec)}
+          {...context.getComponentMetadataProps(node, rendererSpec, path)}
           defaultValue={defaultValue}
         >
           <List>

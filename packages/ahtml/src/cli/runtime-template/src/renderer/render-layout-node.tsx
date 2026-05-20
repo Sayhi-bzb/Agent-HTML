@@ -17,6 +17,7 @@ type LayoutRendererContext = {
   getComponentMetadataProps: (
     node: AgentComponentNode,
     rendererSpec: RendererSpecComponent,
+    path: RendererPath,
   ) => Record<string, string>
   renderChildren: (
     node: AgentComponentNode,
@@ -44,7 +45,7 @@ export function createLayoutRenderer(context: LayoutRendererContext) {
   ) {
     const Root = resolveElement(rendererSpec.root)
     const props = {
-      ...context.getComponentMetadataProps(node, rendererSpec),
+      ...context.getComponentMetadataProps(node, rendererSpec, path),
       ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
     }
     const children =

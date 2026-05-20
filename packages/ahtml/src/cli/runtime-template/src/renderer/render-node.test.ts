@@ -343,6 +343,45 @@ describe("createRendererNode", () => {
     expect(markup).toContain('class="ahtml-section-stack ahtml-prose-block"')
   })
 
+  it("exposes renderer metadata needed by the gallery inspector overlay", () => {
+    const rendererSpecByName = createRendererSpecByName([
+      [
+        "card",
+        {
+          name: "card",
+          source: "shadcn",
+          kind: "compound",
+          renderKind: "compound",
+          slots: [{ name: "children", children: [] }],
+          root: "section",
+          title: "h2",
+          titleProp: "title",
+          content: "div",
+          childMode: "block",
+        },
+      ],
+    ])
+
+    const RendererNode = createRendererNode(rendererSpecByName, {
+      card: "report-card",
+    })
+    const markup = renderToStaticMarkup(
+      React.createElement(RendererNode, {
+        node: {
+          type: "component",
+          name: "card",
+          props: { title: "Inspector Target" },
+          children: [{ type: "text", value: "Trace this node." }],
+        },
+        path: [3, "body", 1],
+      }),
+    )
+
+    expect(markup).toContain('data-ahtml-render-kind="compound"')
+    expect(markup).toContain('data-ahtml-source="shadcn"')
+    expect(markup).toContain('data-ahtml-path="3.body.1"')
+  })
+
   it("allows artifact root and document layout policy classes to coexist", () => {
     const markup = renderToStaticMarkup(
       React.createElement("div", {
@@ -406,7 +445,7 @@ describe("createRendererNode", () => {
       '<h2 class="m-0 text-lg font-medium leading-7">Alpha</h2>',
     )
     expect(markup).toContain(
-      'data-tabs-props="{&quot;data-agent-html-component&quot;:&quot;tabs&quot;,&quot;defaultValue&quot;:&quot;alpha&quot;}"',
+      'data-tabs-props="{&quot;data-agent-html-component&quot;:&quot;tabs&quot;,&quot;data-ahtml-render-kind&quot;:&quot;tabs&quot;,&quot;data-ahtml-path&quot;:&quot;0&quot;,&quot;defaultValue&quot;:&quot;alpha&quot;}"',
     )
   })
 

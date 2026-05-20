@@ -38,11 +38,14 @@ describe("document-style-config render config", () => {
           typography: expect.objectContaining({
             fontSans: expect.stringContaining("Inter Variable"),
             fontHeading: "var(--font-sans)",
+            spacing: "0.25rem",
+            shadowOpacity: "0.1",
           }),
           cssVariableMap: expect.objectContaining({
             background: "--background",
             foreground: "--foreground",
             radius: "--radius",
+            spacing: "--spacing",
           }),
         },
         componentStyle: {
@@ -80,10 +83,12 @@ describe("document-style-config render config", () => {
           }),
           typography: expect.objectContaining({
             fontHeading: "var(--font-sans)",
+            shadowBlur: "3px",
           }),
           cssVariableMap: expect.objectContaining({
             primary: "--primary",
             fontHeading: "--font-heading",
+            shadowColor: "--shadow-color",
           }),
         },
         componentStyle: {

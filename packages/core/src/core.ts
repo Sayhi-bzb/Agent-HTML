@@ -21,6 +21,7 @@ export {
   createRenderConfigFromStyleProfile,
   DEFAULT_STYLE_PROFILE_REFERENCE,
   DEFAULT_RENDER_CONFIG,
+  normalizeStyleProfile,
   parseRenderConfig,
   resolveRenderConfig,
   PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES,

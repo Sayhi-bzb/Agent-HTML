@@ -1,6 +1,7 @@
 import {
   BUILTIN_STYLE_PROFILES_BY_REFERENCE,
   DEFAULT_STYLE_PROFILE_REFERENCE,
+  normalizeStyleProfile,
   StyleProfileSchema,
   STYLE_PROFILE_STORAGE_VERSION,
 } from "@agent-html/core"
@@ -159,7 +160,9 @@ export async function loadUserStyleProfilesById(paths) {
 
     try {
       const source = await readFile(profilePath, "utf8")
-      const parsedProfile = StyleProfileSchema.safeParse(JSON.parse(source))
+      const parsedProfile = StyleProfileSchema.safeParse(
+        normalizeStyleProfile(JSON.parse(source)),
+      )
 
       if (!parsedProfile.success || parsedProfile.data.id !== profileId) {
         continue
@@ -187,7 +190,7 @@ export async function saveUserStyleProfile(paths, profile, options = {}) {
     throw new BuiltinStyleProfileMutationError("save", profileId)
   }
 
-  const parsedProfile = StyleProfileSchema.parse(profile)
+  const parsedProfile = StyleProfileSchema.parse(normalizeStyleProfile(profile))
   const existingProfile = (await loadUserStyleProfilesById(paths)).get(profileId)
   const exists = Boolean(existingProfile)
   const targetPath = path.join(paths.userStyleProfilesDir, `${profileId}.json`)
