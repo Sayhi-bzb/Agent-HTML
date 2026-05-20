@@ -26,7 +26,27 @@ export function createRuntimeContract(components) {
 }
 
 export function createRuntimeContractFromSchema(schema) {
-  return createRuntimeContract(schema?.components)
+  const normalizedComponents = normalizeRuntimeContractComponents(
+    schema?.components,
+  )
+  const verificationData = hasRuntimeVerificationDataSnapshot(schema)
+    ? schema.verificationData
+    : createRuntimeVerificationData(normalizedComponents)
+  const rendererMapping = hasRendererMappingSnapshot(schema)
+    ? schema.rendererMapping
+    : createRendererMapping(normalizedComponents)
+
+  return {
+    version: 1,
+    components: normalizedComponents,
+    renderableAgentComponents: normalizedComponents.map(
+      (component) => component.name,
+    ),
+    verificationData,
+    rendererMapping,
+    elementRegistrySpec: createRuntimeElementRegistrySpec(rendererMapping),
+    rendererKindSpec: createRuntimeRendererKindSpec(),
+  }
 }
 
 export function createManagedRuntimeCapability({
@@ -139,4 +159,12 @@ function normalizeRuntimeContractComponents(components) {
   }
 
   return VALIDATED_STANDARD_COMPONENT_SCHEMAS
+}
+
+function hasRuntimeVerificationDataSnapshot(schema) {
+  return Array.isArray(schema?.verificationData?.components)
+}
+
+function hasRendererMappingSnapshot(schema) {
+  return Array.isArray(schema?.rendererMapping?.components)
 }

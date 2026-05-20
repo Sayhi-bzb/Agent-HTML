@@ -6,7 +6,9 @@ import { getCliSchemaOutput } from "./schema.mjs"
 import { buildRuntimeArtifact } from "./runtime-build.mjs"
 import {
   bootstrapManagedRuntime,
+  ensureRuntimeBuildLock,
   getRuntimeStatus,
+  withRuntimeBuildLock,
   writeGeneratedDocument,
   writeGeneratedRuntimeState,
 } from "./runtime-status.mjs"
@@ -20,6 +22,13 @@ export class ArtifactWorkflowValidationError extends Error {
     super(message)
     this.name = "ArtifactWorkflowValidationError"
     this.diagnostics = diagnostics
+  }
+}
+
+export class ArtifactWorkflowOutputPathError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = "ArtifactWorkflowOutputPathError"
   }
 }
 
@@ -37,6 +46,11 @@ export function createArtifactWorkflow({
   async function buildArtifact(inputPath, outputPath, options = {}) {
     const inputFilePath = path.resolve(userRoot, inputPath)
     const outputDir = path.resolve(userRoot, outputPath ?? defaultOutputDir)
+    assertSafeOutputDirectory({
+      inputFilePath,
+      outputDir,
+      userRoot,
+    })
     const source = await readFile(inputFilePath, "utf8")
     const validation = await validateAgentHtmlSource(source, runtimePaths)
 
@@ -75,20 +89,22 @@ export function createArtifactWorkflow({
       })
     }
 
-    await writeGeneratedDocument(validation.document, runtimePaths)
-    await writeGeneratedRuntimeState(
-      {
-        kind: "ahtml-runtime-state",
-        version: 1,
-        mode: "document",
-      },
-      runtimePaths,
-    )
+    await withRuntimeBuildLock(runtimePaths, async () => {
+      await writeGeneratedDocument(validation.document, runtimePaths)
+      await writeGeneratedRuntimeState(
+        {
+          kind: "ahtml-runtime-state",
+          version: 1,
+          mode: "document",
+        },
+        runtimePaths,
+      )
 
-    await buildRuntimeArtifact({
-      outputDir,
-      packageRoot,
-      paths: runtimePaths,
+      await buildRuntimeArtifact({
+        outputDir,
+        packageRoot,
+        paths: runtimePaths,
+      })
     })
     const inspection = createInspection(validation.document)
     const inspectionPath = path.join(outputDir, "agent-html.inspect.json")
@@ -114,21 +130,33 @@ export function createArtifactWorkflow({
       return
     }
 
-    await bootstrapManagedRuntime({
-      packageRoot,
-      packageVersion,
-      paths: runtimePaths,
-      setup: await resolveRuntimeSetup({
-        options: {
-          ui: nativeRuntimeSetup.uiLibrary,
-          "component-source": nativeRuntimeSetup.componentSource,
-          preset: nativeRuntimeSetup.preset,
-          components: nativeRuntimeSetup.components,
-          yes: true,
-        },
-        interactive: false,
-      }),
-      schema: schema ?? (await getCliSchemaOutput()),
+    await ensureRuntimeBuildLock(runtimePaths, async () => {
+      const refreshedStatus = await getRuntimeStatus({
+        packageVersion,
+        outputDir: defaultOutputDir,
+        paths: runtimePaths,
+      })
+
+      if (refreshedStatus.ready) {
+        return
+      }
+
+      await bootstrapManagedRuntime({
+        packageRoot,
+        packageVersion,
+        paths: runtimePaths,
+        setup: await resolveRuntimeSetup({
+          options: {
+            ui: nativeRuntimeSetup.uiLibrary,
+            "component-source": nativeRuntimeSetup.componentSource,
+            preset: nativeRuntimeSetup.preset,
+            components: nativeRuntimeSetup.components,
+            yes: true,
+          },
+          interactive: false,
+        }),
+        schema: schema ?? (await getCliSchemaOutput()),
+      })
     })
   }
 
@@ -281,4 +309,57 @@ function countComponents(nodes, counts = {}) {
 
 export function getDefaultOutputDir(userRoot) {
   return path.join(userRoot, ...cliDefaults.outputDir.split("/"))
+}
+
+export function assertSafeOutputDirectory({
+  inputFilePath,
+  outputDir,
+  userRoot,
+}) {
+  const resolvedUserRoot = path.resolve(userRoot)
+  const resolvedOutputDir = path.resolve(outputDir)
+  const resolvedInputFilePath = path.resolve(inputFilePath)
+  const inputParentDir = path.dirname(resolvedInputFilePath)
+  const filesystemRoot = path.parse(resolvedOutputDir).root
+
+  if (resolvedOutputDir === filesystemRoot) {
+    throw new ArtifactWorkflowOutputPathError(
+      `Refusing to use filesystem root as build output: ${resolvedOutputDir}. Choose a dedicated child directory.`,
+    )
+  }
+
+  if (resolvedOutputDir === resolvedUserRoot) {
+    throw new ArtifactWorkflowOutputPathError(
+      `Refusing to use project root as build output: ${resolvedOutputDir}. Choose a child directory such as "${cliDefaults.outputDir}".`,
+    )
+  }
+
+  if (resolvedOutputDir === resolvedInputFilePath) {
+    throw new ArtifactWorkflowOutputPathError(
+      `Refusing to use the source document path as build output: ${resolvedOutputDir}. Choose a dedicated child directory such as "${cliDefaults.outputDir}".`,
+    )
+  }
+
+  if (resolvedOutputDir === inputParentDir) {
+    throw new ArtifactWorkflowOutputPathError(
+      `Refusing to use the source document directory as build output: ${resolvedOutputDir}. Choose a dedicated child directory such as "${cliDefaults.outputDir}".`,
+    )
+  }
+
+  if (isParentDirectory(resolvedOutputDir, resolvedUserRoot)) {
+    throw new ArtifactWorkflowOutputPathError(
+      `Refusing to use a parent directory outside the project as build output: ${resolvedOutputDir}. Choose a child directory under ${resolvedUserRoot}.`,
+    )
+  }
+}
+
+function isParentDirectory(candidate, child) {
+  const relative = path.relative(candidate, child)
+
+  return (
+    relative.length > 0 &&
+    relative !== "." &&
+    !relative.startsWith("..") &&
+    !path.isAbsolute(relative)
+  )
 }

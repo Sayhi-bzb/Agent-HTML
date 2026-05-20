@@ -6,7 +6,7 @@
 
 - 解释当前稳定架构边界
 - 记录当前工作树的真实实现状态
-- 记录当前验证口径和仍存在的兼容边界
+- 记录当前验证口径和仍需重点关注的行为边界
 
 `blueprint/` 记录目标架构设计；`docs/` 记录当前工作树事实。  
 
@@ -34,15 +34,15 @@
 - `details/current-contract-audit.md`
   - 当前 contract、schema、runtime 主链的现实基线。
 - `details/current-contract-component-matrix.md`
-  - 逐组件查看公开 props、兼容字段和 runtime bridge。
+  - 逐组件查看公开 props、固定行为和 runtime 投影。
 - `details/high-risk-runtime-bridges.md`
-  - 当前仍需重点关注的兼容桥和 heavy gate 风险点。
+  - 当前仍需重点关注的固定行为边界和 heavy gate 风险点。
 
 回答的问题：
 
 - 当前 public contract 真正从哪里生成
-- 哪些旧兼容桥还在
-- 哪些 heavy gate 仍在保护这些桥
+- 哪些旧兼容桥已经退出
+- 哪些 heavy gate 仍在保护现行行为边界
 
 ### 3. 状态层
 
@@ -53,13 +53,13 @@
 - `todo.md`
   - 当前未完成事项。
 - `spec/todo.md`
-  - compat 专项清理计划。
+  - compat 专项清理的收尾顺序与核对项。
 
 回答的问题：
 
 - 当前能力状态是什么
 - 当前还有没有未完成事项
-- compat 清理现在按什么顺序推进
+- compat 清理已经做到哪一步、还剩哪些收尾项
 
 ## 最短路径
 
@@ -80,7 +80,7 @@
 4. `docs/details/current-contract-component-matrix.md`
 5. `docs/roadmap.md`
 
-### 路径 C：只想看 compat 风险
+### 路径 C：只想看当前高风险行为边界
 
 1. `docs/details/high-risk-runtime-bridges.md`
 2. `docs/details/current-contract-component-matrix.md`
@@ -101,11 +101,11 @@
   - `current-contract-component-matrix.md` 看组件级事实。
 - `high-*`
   - 当前高风险专题文档，回答“现在最需要盯什么”。
-  - `high-risk-runtime-bridges.md` 专门盯 `tabs` / `accordion` / `table` 的 compat bridge。
+  - `high-risk-runtime-bridges.md` 专门盯 `tabs` / `accordion` / `table` 的固定 renderer 行为边界。
 
 ## 阅读边界
 
 - `roadmap.md` 和 `todo.md` 只描述当前状态与当前事项。
-- `spec/todo.md` 只记录 compat 专项清理顺序。
+- `spec/todo.md` 只记录 compat 专项清理的收尾顺序与核对项。
 - `details/*` 记录现实，不负责定义目标架构。
 - `architecture/*`、`layout.md`、`syntax.md` 解释稳定边界，不负责实现过程说明。

@@ -32,6 +32,7 @@ agent 负责表达内容、关系和结构；系统负责把这些语义节点�
 - 组件配置：UI 组件视觉映射与 prop exposure policy；layout 组件的配置消费规则
 
 `gallery` 属于配置层，用来配置和预览 style、layout 和 component config。
+当前产品形态是左侧配置页与右侧组件画廊预览；它服务配置选择，不承担语义 authoring。
 
 ### 2. Semantic Usage Layer
 

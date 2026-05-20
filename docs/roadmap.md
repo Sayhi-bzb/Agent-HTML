@@ -12,8 +12,8 @@
 - layout primitives 已进入正式 schema / parse / validate / 最小 runtime projection
 - runtime renderer 已把 UI projection / layout projection 从主 dispatcher 分离
 - runtime host、document artifact shell、gallery shell 已拆开
-- 旧公开字段 `kind` / `mode` / `default` 已不再作为主公开 contract 的新增入口
-- runtime spec 主路径已不再把 `kindProp` / `modeProp` / `defaultProp` / `defaultMode` 当作 `RendererSpecComponent` 常规顶层字段
+- compat authoring props `tone` / `kind` / `mode` / `default` 已退出当前 schema 接受面
+- runtime spec 与 renderer 已移除 `legacyBridges`、`stateBridge` 及相关 legacy payload 类型
 
 ## 当前验证基线
 
@@ -32,8 +32,7 @@
 
 ## 当前风险与后续关注点
 
-- `tabs` / `accordion` / `table` 的 compat bridge 仍是当前最需要持续关注的行为边界。
-- 兼容桥仍保留在 authoring 接受面和 runtime bridge 中，因此后续若继续压缩，需要同步看 schema、renderer 和 heavy gates。
+- `tabs` / `accordion` / `table` 仍是当前最需要持续关注的行为边界，但风险已经从 compat bridge 转成固定 renderer 规则。
 - `DocumentArtifactShell` 仍硬编码了文档型 width / padding / prose measure / section spacing。当前虽然 host 分层已经成立，但 runtime 还不能被写成完全 template-free。
 
 ## 当前事项

@@ -1,0 +1,354 @@
+```
+╭───────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│<panel-left><right>|tab 1|tab 2|<+>icon                                                       <min><max><close>│
+│panel-header───────────────────────────────────────────────────────────────────────────────────────────────────│
+│new session      │                                                              │                              │
+│search           │                                                              │                              │
+│panel-content─── │                                                              │                              │
+│<session 1>button│                                                              │                              │
+│<session 2>button│                                                              │                              │
+│ ...             │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│         resiable│                                                              │                              │
+│               ->│                    preview / source / inspect                 │         agent shell          │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│                 │                                                              │                              │
+│panel-footer─────│                                                              │                              │
+│<setting>icon    │                                                              │                              │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+**三栏工作台布局**：左侧是 Session rail，中间是 `Workbench` 主工作区，右侧是 `Agent Shell` 审查与提案区；上方是全局状态栏，不是传统浏览器 tab 栏。
+
+## 1. 页面整体结构
+
+```text
+AppShell
+├── TopBar
+│   ├── Brand / Workspace identity
+│   ├── Current session summary
+│   └── Active workbench view + runtime status
+│
+├── MainLayout
+│   ├── SessionsSidebar
+│   │   ├── PanelHeader
+│   │   │   ├── New Session
+│   │   │   └── Search
+│   │   ├── SessionGroups
+│   │   │   ├── Current
+│   │   │   ├── Pinned
+│   │   │   ├── Needs attention
+│   │   │   └── Recent
+│   │   └── ResizeHandle
+│   │
+│   ├── Workbench
+│   │   ├── WorkbenchHeader
+│   │   │   ├── ViewTabs: Preview / Source / Inspect
+│   │   │   ├── Build
+│   │   │   └── Inspect
+│   │   └── ActiveViewPanel
+│   │       ├── PreviewPanel
+│   │       ├── SourcePanel
+│   │       └── InspectPanel
+│   │
+│   └── AgentShell
+│       ├── Review timeline / readiness
+│       ├── Proposal and context cards
+│       └── Message composer / session chat
+```
+
+## 2. 区域职责
+
+### 顶部栏
+
+顶部栏主要承担 **当前工作上下文展示 + 会话状态摘要**，不是传统意义上的 tab 管理器。
+
+在当前项目里，它更接近：
+
+```text
+TopBar
+├── TopbarMark
+├── ProductLabel: agent-html-app
+├── SessionPath
+├── CurrentSessionName
+├── ActiveViewLabel: Workbench · preview/source/inspect
+└── StatusMeta
+```
+
+其中：
+
+* 左侧标识当前产品与工作路径
+* 中间展示当前 session 名称
+* 右侧展示当前 workbench 视图与状态摘要
+* 当前实现里没有浏览器式 tab、多窗口控制、也没有顶部新增 tab 按钮
+
+因此，草图里的这些占位符在我们项目中应理解为：
+
+| 草图占位 | 项目内对应语义 |
+| --- | --- |
+| `panel-left` | 左侧 `SessionsSidebar` 所在的会话轨道 |
+| `right` | 右侧 `Agent Shell` 所在的审查轨道 |
+| `tab 1 / tab 2` | 中间 `Workbench` 的视图切换：`Preview / Source / Inspect` |
+| `<+>icon` | 不对应顶部新增 tab；当前 app 的创建入口是左侧 `New Session` |
+| `<min><max><close>` | 不属于当前前端信息架构；窗口级操作由 Tauri 容器负责 |
+
+---
+
+## 3. 左侧面板
+
+左侧面板是 **Session 管理区**，实际是一个 session rail，而不是通用文件导航栏。
+
+```text
+SessionsSidebar
+├── Header
+│   ├── SessionSearch
+│   └── New Session
+├── SessionGroups
+│   ├── Current
+│   ├── Pinned
+│   ├── Needs attention
+│   └── Recent
+├── SessionCards
+│   ├── Open session
+│   ├── Rename
+│   ├── Pin / unpin
+│   └── Delete
+└── Resize Handle
+```
+
+### 建议功能
+
+| 模块 | 在本项目中的作用 |
+| --- | --- |
+| `New Session` | 创建新的 `ahtml` 会话 |
+| `Search` | 按 session 名称或目录过滤历史会话 |
+| `Session Groups` | 按 `Current / Pinned / Needs attention / Recent` 分组 |
+| `Session Item` | 打开、重命名、置顶、删除某个 session |
+| `Resize Handle` | 拖拽调整左侧 rail 宽度 |
+
+这里的 `resiable ->` 应该是 `resizable ->`，表示左侧栏右边界可以拖拽调整宽度。
+
+左侧面板当前使用的状态语义是：
+
+```text
+draft | dirty | building | error | ready
+```
+
+这些状态直接服务于 session 工作流，而不是通用文档列表。
+
+---
+
+## 4. 中间 Workbench
+
+中间不是单一 `Live Page`，而是 **三视图工作台**。
+
+```text
+Workbench
+├── WorkbenchHeader
+│   ├── ViewTabs
+│   │   ├── Preview
+│   │   ├── Source
+│   │   └── Inspect
+│   ├── Build
+│   └── Inspect
+└── ActiveViewPanel
+    ├── PreviewPanel
+    ├── SourcePanel
+    └── InspectPanel
+```
+
+它承担的不是泛化的“页面实时预览”，而是围绕 `ahtml session` 的核心制作与审查循环：
+
+* `Preview`：显示 build 后的静态产物预览
+* `Source`：编辑与校验当前 session 的源文档
+* `Inspect`：查看 diagnostics、review focus、proposal 对比和检查结果
+
+建议把中间区域理解为 **主制作区 / 主审查区**，而不是单一 viewer：
+
+```text
+flex: 1
+min-width: 0
+```
+
+这样左右两侧轨道调整宽度时，中间 workbench 可以自动伸缩。
+
+---
+
+## 5. 右侧 Agent Shell
+
+右侧也不是普通 terminal，而是 **Agent Shell 审查面板**。
+
+```text
+AgentShell
+├── ShellHeader
+├── Review Timeline
+├── Readiness / proposal cards
+├── Context / comparison cards
+└── Composer
+```
+
+它的主要职责包括：
+
+* 展示 session 级消息流
+* 展示 proposal、decision、context-card
+* 提供 review timeline 与 readiness 提示
+* 驱动从 proposal 到 `Preview / Source / Inspect` 的跳转
+* 作为 agent 协作入口，而不是裸 CLI 输入框
+
+它会和中间 `Workbench` 双向联动：
+
+* 从 `Agent Shell` 跳到 `Source` 查看焦点片段
+* 从 `Agent Shell` 跳到 `Inspect` 继续 review
+* 根据 build / inspect / validation 结果更新 proposal readiness
+
+因此草图中的 `terminal`，在本项目中更准确的名称应为：
+
+```text
+Agent Shell / Review Rail / Proposal Rail
+```
+
+---
+
+## 6. 推荐的布局模型
+
+这个页面最适合用 **App Shell + Resizable Three-Pane Workspace** 来实现。
+
+概念上可以是：
+
+```text
+height: 100vh
+display: flex
+flex-direction: column
+```
+
+顶部栏固定高度：
+
+```text
+TopBar: compact utility/status bar
+```
+
+主体区域占满剩余空间：
+
+```text
+MainLayout:
+display: flex
+flex: 1
+overflow: hidden
+```
+
+当前项目的三栏宽度语义更接近：
+
+```text
+SessionsSidebar: 15
+Workbench: 63
+AgentShell: 22
+```
+
+这是当前默认布局权重，而不是固定像素值。布局重点是：
+
+* 左侧会话 rail 保持紧凑
+* 中间 workbench 拿到主要空间
+* 右侧 agent shell 保持可读的审查宽度
+
+---
+
+## 7. 组件命名建议
+
+如果按当前项目语义来表达，推荐使用现有命名，而不是再引入通用 IDE 占位名：
+
+```text
+App
+├── TopBar
+├── SessionsSidebar
+├── Workbench
+│   ├── PreviewPanel
+│   ├── SourcePanel
+│   └── InspectPanel
+├── ResizableHandle
+└── AgentShell
+```
+
+如果是 React 结构，可以概括成：
+
+```tsx
+<App>
+  <TopBar />
+
+  <ResizablePanelGroup direction="horizontal">
+    <SessionsSidebar />
+    <Workbench />
+    <AgentShell />
+  </ResizablePanelGroup>
+</App>
+```
+
+这种表达和项目里的真实组件树一致，也不会误导成浏览器 tab + terminal 的传统 IDE 模型。
+
+---
+
+## 8. 交互逻辑
+
+这个页面核心交互在当前项目里可以归纳为：
+
+| 交互 | 行为 |
+| --- | --- |
+| 点击 `New Session` | 创建新的 `ahtml` session，并加入左侧列表 |
+| 点击 `Session Item` | 切换当前 session |
+| 搜索 `Session` | 过滤左侧 session 列表 |
+| 拖拽左侧边界 | 调整 `SessionsSidebar` 宽度 |
+| 点击 `Preview / Source / Inspect` | 切换中间 workbench 视图 |
+| 点击 `Build` | 运行当前 session 的构建流程并刷新 preview |
+| 点击 `Inspect` | 运行 inspect 流程并更新诊断与审查信息 |
+| 在 `Source` 中编辑 | 更新 session draft，并触发轻量校验 |
+| 保存 source | 将草稿写回 session 源文件 |
+| 在 `Agent Shell` 中选择 review focus | 定位到相关 `Source` 或 `Inspect` 内容 |
+| 拖拽右侧边界 | 调整 `AgentShell` 宽度 |
+
+键盘语义也已经存在明确映射：
+
+```text
+Cmd/Ctrl+K  聚焦 session 搜索
+Cmd/Ctrl+S  保存 source
+Cmd/Ctrl+Enter  Build
+Cmd/Ctrl+Shift+I  Inspect
+Cmd/Ctrl+1/2/3  切换 Preview / Source / Inspect
+```
+
+---
+
+## 9. 信息架构总结
+
+这个 Page 在本项目中更准确的定义是：
+
+> 一个围绕 `ahtml` session 的本地优先桌面工作台，用来管理会话、编辑 source、构建 preview，并在 agent shell 中完成审查与提案闭环。
+
+更具体一点：
+
+```text
+页面类型：Local-first desktop workbench
+核心对象：Session、Preview、Source、Inspect、Agent Shell
+主要目标：围绕单个 session 完成编辑、构建、检查、审查
+布局方式：顶部状态栏 + 左侧 session rail + 中间 workbench + 右侧 agent shell
+```
+
+比较推荐把它定义为：
+
+```text
+Workbench / Review Studio / Session Workspace
+```
+
+而不是普通单页，也不是传统意义上的浏览器 tab + terminal IDE。它更像一个 **围绕 `ahtml` session 生命周期组织的审查型工作台外壳页面**。

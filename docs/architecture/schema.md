@@ -14,11 +14,11 @@
 
 - `完整 authoring schema`
   - 供 parse / validate / sanitize 使用。
-  - 会保留显式兼容语义字段和已开放的 raw props。
+  - 当前与最终公开 contract 在组件 props 上已经一致，只额外承载结构节点约束与运行时校验所需的完整组件集合。
 - `最终公开 contract`
   - 供 CLI schema / prompt 使用。
   - 由 `createPublicAgentContract()` 投影得到。
-  - 会过滤 legacy semantic props，并隐藏已被正式 raw prop 取代的旧包装字段。
+  - 当前与完整 authoring schema 一致，不再承担 compat 过滤职责。
 
 这不是“两套公开 contract 并存”，而是：
 
@@ -31,7 +31,6 @@
 
 - `blocked` prop 不进入公开 contract，也不进入 prompt。
 - `raw-candidate` prop 只有在当前 exposure policy 生成结果中被显式打开时，才进入公开 contract。
-- legacy semantic props 可以继续留在兼容 authoring 层，但不再是公开主入口。
 - `style-ref` 在 parse / runtime 层不是唯一成功前提，但在当前 CLI prompt 主路径里仍是规范入口。
 
 ## 当前公开主路径
@@ -49,34 +48,27 @@
   - 继续公开 `title`、`label`、`description`
   - 继续公开语义 `value`、语义 `checked`
 
-当前不应再把下面这些字段写成“默认公开主路径事实”：
+当前不应再把下面这些字段写成“当前可接受 schema 事实”：
 
 - `tone`
 - `kind`
 - `mode`
 - `default`
 
-## 当前兼容边界
+## 当前边界
 
-兼容层仍然存在，但位置已经明确收紧：
+这批旧字段已经退出当前代码：
 
-- authoring 兼容层
-  - `alert.tone`
-  - `badge.tone`
-  - `row.kind`
-  - `tabs.default`
-  - `accordion.mode`
-  - `accordion.default`
-- runtime 兼容层
-  - `legacyBridges.variant`
-  - `legacyBridges.state`
-  - `legacyBridges.structuralRole`
-  - `behavior.stateBridge`
-
-因此更准确的当前判断是：
-
-- 旧字段已经退出公开 contract / prompt 主路径
-- 但它们仍作为显式兼容 authoring 输入和 runtime bridge 保留
+- `alert.tone`
+- `badge.tone`
+- `row.kind`
+- `tabs.default`
+- `accordion.mode`
+- `accordion.default`
+- `legacyBridges.variant`
+- `legacyBridges.state`
+- `legacyBridges.structuralRole`
+- `behavior.stateBridge`
 
 ## 暴露状态模型
 
@@ -117,5 +109,4 @@
 ## 当前应怎样读这份文档
 
 - 如果你关心“agent 现在会被公开鼓励写什么”，看最终公开 contract。
-- 如果你关心“旧输入为什么还没完全失效”，看兼容 authoring 层和 runtime bridge。
 - 如果你关心“某个字段到底在哪里被过滤或保留”，回到 `current-contract-audit.md` 和组件矩阵核对代码证据。

@@ -2,7 +2,9 @@ import {
   access,
   constants,
   mkdir,
+  open,
   readFile,
+  rm,
   stat,
   writeFile,
 } from "node:fs/promises"
@@ -284,6 +286,91 @@ export async function writeGeneratedRuntimeState(
   await writeJsonFile(paths.generatedRuntimeStatePath, runtimeState)
 }
 
+export async function withRuntimeBuildLock(
+  paths = getRuntimePaths(),
+  action,
+) {
+  const lockPath = path.join(paths.runtimeRoot, "runtime-build.lock")
+  const staleAfterMs = 5 * 60 * 1000
+  const retryDelayMs = 50
+  const startedAt = Date.now()
+
+  await mkdir(path.dirname(lockPath), { recursive: true })
+
+  while (true) {
+    let handle
+
+    try {
+      handle = await open(lockPath, "wx")
+      await handle.writeFile(
+        JSON.stringify(
+          {
+            pid: process.pid,
+            startedAt: new Date().toISOString(),
+          },
+          null,
+          2,
+        ),
+      )
+
+      try {
+        return await action()
+      } finally {
+        await handle.close()
+        await writeFile(lockPath, "", { flag: "w" }).catch(() => {})
+        await rm(lockPath, { force: true })
+      }
+    } catch (error) {
+      if (handle) {
+        await handle.close().catch(() => {})
+      }
+
+      if (error?.code !== "EEXIST") {
+        throw error
+      }
+
+      const released = await tryReleaseStaleRuntimeBuildLock({
+        lockPath,
+        staleAfterMs,
+      })
+
+      if (!released && Date.now() - startedAt >= staleAfterMs) {
+        throw new Error(
+          `Timed out waiting for runtime build lock at ${lockPath}.`,
+        )
+      }
+
+      await sleep(retryDelayMs)
+    }
+  }
+}
+
+export async function ensureRuntimeBuildLock(
+  paths = getRuntimePaths(),
+  action,
+) {
+  if (typeof action !== "function") {
+    throw new TypeError("ensureRuntimeBuildLock requires an async action.")
+  }
+
+  return withRuntimeBuildLock(paths, action)
+}
+
+export async function bootstrapManagedRuntimeWithLock(
+  options = {},
+) {
+  const {
+    bootstrap = bootstrapManagedRuntime,
+    paths = getRuntimePaths(),
+  } = options
+  return ensureRuntimeBuildLock(paths, async () =>
+    bootstrap({
+      ...options,
+      paths,
+    }),
+  )
+}
+
 async function probeWritableDirectory(directory) {
   try {
     await mkdir(directory, { recursive: true })
@@ -324,6 +411,29 @@ async function findExistingAncestor(directory) {
   }
 
   return current
+}
+
+async function tryReleaseStaleRuntimeBuildLock({ lockPath, staleAfterMs }) {
+  try {
+    const lockStat = await stat(lockPath)
+
+    if (Date.now() - lockStat.mtimeMs < staleAfterMs) {
+      return false
+    }
+
+    await rm(lockPath, { force: true })
+    return true
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return true
+    }
+
+    throw error
+  }
+}
+
+function sleep(durationMs) {
+  return new Promise((resolve) => setTimeout(resolve, durationMs))
 }
 
 async function pathExists(filePath) {

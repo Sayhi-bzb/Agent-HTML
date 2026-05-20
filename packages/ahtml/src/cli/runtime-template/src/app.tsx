@@ -4,15 +4,45 @@ import generatedDocument from "../document.generated.json"
 import runtimeStateSource from "../runtime-state.generated.json"
 import runtimeVerificationState from "../render-verification.generated.json"
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
+import {
   assertRendererRegistryParity,
   createRendererSpecMap,
 } from "./renderer/parity"
 import { createRendererNode } from "./renderer/render-node"
-import type {
-  AgentComponentNode,
-  AgentDocument,
-  RuntimeVerificationState,
-} from "./renderer/types"
+import { createGalleryPreviewSections } from "./gallery-preview-document.mjs"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldTitle,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { AgentDocument, RuntimeVerificationState } from "./renderer/types"
 
 type StyleProfile = AgentDocument["meta"]["styleProfile"]
 type RuntimeState = {
@@ -48,9 +78,18 @@ type GalleryEditorState = {
   error: string
   isDirty: boolean
   isSaving: boolean
+  persistedProfile: StyleProfile
   status: string
   styleReference: string
 }
+
+type GalleryControlTab = "profile" | "tokens" | "typography" | "treatments"
+type GalleryPreviewMode =
+  | "components"
+  | "forms"
+  | "disclosure"
+  | "typography"
+  | "full"
 
 const agentDocument = generatedDocument as AgentDocument
 const runtimeState = runtimeStateSource as RuntimeState
@@ -122,9 +161,17 @@ function GalleryApp({
     error: "",
     isDirty: false,
     isSaving: false,
+    persistedProfile: initialProfile,
     status: "Style gallery ready.",
     styleReference,
   })
+  const [controlTab, setControlTab] =
+    React.useState<GalleryControlTab>("profile")
+  const [previewMode, setPreviewMode] =
+    React.useState<GalleryPreviewMode>("components")
+  const [mobileTab, setMobileTab] = React.useState<"controls" | "preview">(
+    "controls",
+  )
 
   React.useEffect(() => {
     let cancelled = false
@@ -137,8 +184,11 @@ function GalleryApp({
       setEditorState((current) => ({
         ...current,
         availableStyleReferences: nextState.availableStyleReferences,
-        draftProfile: current.isDirty ? current.draftProfile : nextState.styleProfile,
+        draftProfile: current.isDirty
+          ? current.draftProfile
+          : nextState.styleProfile,
         error: "",
+        persistedProfile: nextState.styleProfile,
         status: current.isDirty ? current.status : "Style gallery ready.",
         styleReference: current.isDirty
           ? current.styleReference
@@ -151,10 +201,6 @@ function GalleryApp({
     }
   }, [])
 
-  const previewDocument = React.useMemo(
-    () => createGalleryPreviewDocument(editorState.draftProfile),
-    [editorState.draftProfile],
-  )
   const RendererNode = React.useMemo(
     () =>
       createRendererNode(
@@ -166,6 +212,17 @@ function GalleryApp({
   const documentStyleCss = React.useMemo(
     () => createDocumentStyleCss(editorState.draftProfile),
     [editorState.draftProfile],
+  )
+  const previewSections = React.useMemo(
+    () => createGalleryPreviewSections(editorState.draftProfile),
+    [editorState.draftProfile],
+  )
+  const visiblePreviewSections = React.useMemo(
+    () =>
+      previewMode === "full"
+        ? previewSections
+        : previewSections.filter((section) => section.mode === previewMode),
+    [previewMode, previewSections],
   )
 
   const updateDraftProfile = React.useCallback(
@@ -181,53 +238,56 @@ function GalleryApp({
     [],
   )
 
-  const saveProfile = React.useCallback(
-    async () => {
+  const saveProfile = React.useCallback(async () => {
+    setEditorState((current) => ({
+      ...current,
+      error: "",
+      isSaving: true,
+      status: "Saving style profile...",
+    }))
+
+    try {
+      const response = await fetch("/__ahtml/gallery/save", {
+        body: JSON.stringify({
+          styleProfile: editorState.draftProfile,
+        }),
+        headers: {
+          "content-type": "application/json",
+        },
+        method: "POST",
+      })
+      const result = (await response.json()) as GalleryMutationResponse
+
+      if (
+        !response.ok ||
+        !result.ok ||
+        !result.styleProfile ||
+        !result.styleReference
+      ) {
+        throw new Error(result.error ?? "Unable to save gallery style profile.")
+      }
+
       setEditorState((current) => ({
         ...current,
+        availableStyleReferences:
+          result.availableStyleReferences ?? current.availableStyleReferences,
+        draftProfile: result.styleProfile!,
         error: "",
-        isSaving: true,
-        status: "Saving style profile...",
+        isDirty: false,
+        isSaving: false,
+        persistedProfile: result.styleProfile!,
+        status: `Saved ${result.styleReference}.`,
+        styleReference: result.styleReference!,
       }))
-
-      try {
-        const response = await fetch("/__ahtml/gallery/save", {
-          body: JSON.stringify({
-            styleProfile: editorState.draftProfile,
-          }),
-          headers: {
-            "content-type": "application/json",
-          },
-          method: "POST",
-        })
-        const result = (await response.json()) as GalleryMutationResponse
-
-        if (!response.ok || !result.ok || !result.styleProfile || !result.styleReference) {
-          throw new Error(result.error ?? "Unable to save gallery style profile.")
-        }
-
-        setEditorState((current) => ({
-          ...current,
-          availableStyleReferences:
-            result.availableStyleReferences ?? current.availableStyleReferences,
-          draftProfile: result.styleProfile!,
-          error: "",
-          isDirty: false,
-          isSaving: false,
-          status: `Saved ${result.styleReference}.`,
-          styleReference: result.styleReference!,
-        }))
-      } catch (error) {
-        setEditorState((current) => ({
-          ...current,
-          error: error instanceof Error ? error.message : String(error),
-          isSaving: false,
-          status: "Save failed.",
-        }))
-      }
-    },
-    [editorState],
-  )
+    } catch (error) {
+      setEditorState((current) => ({
+        ...current,
+        error: error instanceof Error ? error.message : String(error),
+        isSaving: false,
+        status: "Save failed.",
+      }))
+    }
+  }, [editorState])
 
   const selectStyleReference = React.useCallback(
     async (nextStyleReference: string) => {
@@ -249,7 +309,12 @@ function GalleryApp({
         })
         const result = (await response.json()) as GalleryMutationResponse
 
-        if (!response.ok || !result.ok || !result.styleProfile || !result.styleReference) {
+        if (
+          !response.ok ||
+          !result.ok ||
+          !result.styleProfile ||
+          !result.styleReference
+        ) {
           throw new Error(result.error ?? "Unable to switch style profile.")
         }
 
@@ -260,6 +325,7 @@ function GalleryApp({
           draftProfile: result.styleProfile!,
           error: "",
           isDirty: false,
+          persistedProfile: result.styleProfile!,
           status: `Selected ${result.styleReference}.`,
           styleReference: result.styleReference!,
         }))
@@ -304,7 +370,12 @@ function GalleryApp({
       })
       const result = (await response.json()) as GalleryMutationResponse
 
-      if (!response.ok || !result.ok || !result.styleProfile || !result.styleReference) {
+      if (
+        !response.ok ||
+        !result.ok ||
+        !result.styleProfile ||
+        !result.styleReference
+      ) {
         throw new Error(result.error ?? "Unable to create style profile.")
       }
 
@@ -317,6 +388,7 @@ function GalleryApp({
         error: "",
         isDirty: false,
         isSaving: false,
+        persistedProfile: result.styleProfile!,
         status: `Created ${result.styleReference}.`,
         styleReference: result.styleReference!,
       }))
@@ -350,7 +422,12 @@ function GalleryApp({
       })
       const result = (await response.json()) as GalleryMutationResponse
 
-      if (!response.ok || !result.ok || !result.styleProfile || !result.styleReference) {
+      if (
+        !response.ok ||
+        !result.ok ||
+        !result.styleProfile ||
+        !result.styleReference
+      ) {
         throw new Error(result.error ?? "Unable to delete style profile.")
       }
 
@@ -362,6 +439,7 @@ function GalleryApp({
         error: "",
         isDirty: false,
         isSaving: false,
+        persistedProfile: result.styleProfile!,
         status: `Deleted style. Current is ${result.styleReference}.`,
         styleReference: result.styleReference!,
       }))
@@ -375,6 +453,16 @@ function GalleryApp({
     }
   }, [editorState.styleReference])
 
+  const resetDraft = React.useCallback(() => {
+    setEditorState((current) => ({
+      ...current,
+      draftProfile: current.persistedProfile,
+      error: "",
+      isDirty: false,
+      status: `Reset ${current.styleReference}.`,
+    }))
+  }, [])
+
   return (
     <>
       <RuntimeStyleElements
@@ -385,250 +473,542 @@ function GalleryApp({
         className="ahtml-runtime-host ahtml-gallery-shell"
         data-style-profile={editorState.draftProfile.id}
       >
-        <aside className="ahtml-gallery-sidebar">
-          <div className="ahtml-gallery-sidebar-inner">
-            <header className="ahtml-gallery-hero">
-              <p className="ahtml-gallery-kicker">AHTML Gallery</p>
-              <h1>{editorState.draftProfile.id}</h1>
-              <p className="ahtml-gallery-meta">
-                Create-style customizer on the left, full semantic preview on the
-                right.
-              </p>
-            </header>
-
-            <section className="ahtml-gallery-panel">
-              <div className="ahtml-gallery-panel-header">
-                <h2>Style Id</h2>
-                <span>global</span>
-              </div>
-              <div className="ahtml-gallery-stack">
-                <label className="ahtml-gallery-field">
-                  <span>Current style id</span>
-                  <select
-                    onChange={(event) => void selectStyleReference(event.target.value)}
-                    value={editorState.styleReference}
-                  >
-                    {editorState.availableStyleReferences.map((styleId) => (
-                      <option key={styleId} value={styleId}>
-                        {styleId}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <FieldRow
-                  label="Available ids"
-                  value={editorState.availableStyleReferences.join(", ")}
-                  multiline
-                />
-                <div className="ahtml-gallery-actions">
-                  <button
-                    className="ahtml-gallery-button"
-                    disabled={editorState.isSaving}
-                    onClick={() => void createStyleReference()}
-                    type="button"
-                  >
-                    New Id
-                  </button>
-                  <button
-                    className="ahtml-gallery-button"
-                    disabled={editorState.isSaving}
-                    onClick={() => void deleteCurrentStyleReference()}
-                    type="button"
-                  >
-                    Delete Id
-                  </button>
-                </div>
-                <LabeledInput
-                  label="New Style Id"
-                  value={editorState.createId}
-                  onChange={(value) =>
-                    setEditorState((current) => ({
-                      ...current,
-                      createId: value,
-                    }))
-                  }
-                />
-                <p className="ahtml-gallery-status">{editorState.status}</p>
-                {editorState.error ? (
-                  <p className="ahtml-gallery-error">{editorState.error}</p>
-                ) : null}
-              </div>
-            </section>
-
-            <section className="ahtml-gallery-panel">
-              <div className="ahtml-gallery-panel-header">
-                <h2>Typography</h2>
-                <span>global</span>
-              </div>
-              <div className="ahtml-gallery-stack">
-                <LabeledInput
-                  label="Font Sans"
-                  value={editorState.draftProfile.globalStyle.typography.fontSans}
-                  onChange={(value) =>
-                    updateDraftProfile((draft) => ({
-                      ...draft,
-                      globalStyle: {
-                        ...draft.globalStyle,
-                        typography: {
-                          ...draft.globalStyle.typography,
-                          fontSans: value,
-                        },
-                      },
-                    }))
-                  }
-                />
-                <LabeledInput
-                  label="Font Heading"
-                  value={editorState.draftProfile.globalStyle.typography.fontHeading}
-                  onChange={(value) =>
-                    updateDraftProfile((draft) => ({
-                      ...draft,
-                      globalStyle: {
-                        ...draft.globalStyle,
-                        typography: {
-                          ...draft.globalStyle.typography,
-                          fontHeading: value,
-                        },
-                      },
-                    }))
-                  }
-                />
-                <LabeledInput
-                  label="Radius Base"
-                  value={editorState.draftProfile.globalStyle.radiusScale.base}
-                  onChange={(value) =>
-                    updateDraftProfile((draft) => ({
-                      ...draft,
-                      globalStyle: {
-                        ...draft.globalStyle,
-                        radiusScale: {
-                          ...draft.globalStyle.radiusScale,
-                          base: value,
-                        },
-                      },
-                    }))
-                  }
-                />
-              </div>
-            </section>
-
-            <section className="ahtml-gallery-panel">
-              <div className="ahtml-gallery-panel-header">
-                <h2>Light Tokens</h2>
-                <span>semantic</span>
-              </div>
-              <TokenEditor
-                tokens={editorState.draftProfile.globalStyle.tokenSets.light}
-                onChange={(tokenName, value) =>
-                  updateDraftProfile((draft) => ({
-                    ...draft,
-                    globalStyle: {
-                      ...draft.globalStyle,
-                      tokenSets: {
-                        ...draft.globalStyle.tokenSets,
-                        light: {
-                          ...draft.globalStyle.tokenSets.light,
-                          [tokenName]: value,
-                        },
-                      },
-                    },
-                  }))
-                }
-              />
-            </section>
-
-            <section className="ahtml-gallery-panel">
-              <div className="ahtml-gallery-panel-header">
-                <h2>Dark Tokens</h2>
-                <span>semantic</span>
-              </div>
-              <TokenEditor
-                tokens={editorState.draftProfile.globalStyle.tokenSets.dark}
-                onChange={(tokenName, value) =>
-                  updateDraftProfile((draft) => ({
-                    ...draft,
-                    globalStyle: {
-                      ...draft.globalStyle,
-                      tokenSets: {
-                        ...draft.globalStyle.tokenSets,
-                        dark: {
-                          ...draft.globalStyle.tokenSets.dark,
-                          [tokenName]: value,
-                        },
-                      },
-                    },
-                  }))
-                }
-              />
-            </section>
-
-            <section className="ahtml-gallery-panel">
-              <div className="ahtml-gallery-panel-header">
-                <h2>Treatments</h2>
-                <span>components</span>
-              </div>
-              <div className="ahtml-gallery-stack">
-                {Object.entries(editorState.draftProfile.componentStyle.treatments)
-                  .sort(([left], [right]) => left.localeCompare(right))
-                  .map(([componentName, treatment]) => (
-                    <LabeledInput
-                      key={componentName}
-                      label={componentName}
-                      value={treatment}
-                      onChange={(value) =>
-                        updateDraftProfile((draft) => ({
-                          ...draft,
-                          componentStyle: {
-                            ...draft.componentStyle,
-                            treatments: {
-                              ...draft.componentStyle.treatments,
-                              [componentName]: value,
-                            },
-                          },
-                        }))
-                      }
-                    />
-                  ))}
-              </div>
-            </section>
-
-            <section className="ahtml-gallery-panel">
-              <div className="ahtml-gallery-panel-header">
-                <h2>Persist</h2>
-                <span>config</span>
-              </div>
-              <div className="ahtml-gallery-stack">
-                <button
-                  className="ahtml-gallery-button ahtml-gallery-button-primary"
-                  disabled={editorState.isSaving}
-                  onClick={() => void saveProfile()}
-                  type="button"
+        <header
+          className="ahtml-gallery-page-header"
+          data-gallery-frame="header"
+        >
+          <div className="ahtml-gallery-page-brand">
+            <strong>agent-html</strong>
+            <span>AHTML Gallery Editor</span>
+          </div>
+          <div className="ahtml-gallery-header-actions">
+            <Badge variant="secondary">{editorState.styleReference}</Badge>
+            <Button asChild size="sm" variant="ghost">
+              <a
+                href="https://github.com/Sayhi-bzb/Agent-HTML"
+                rel="noreferrer"
+                target="_blank"
+              >
+                GitHub
+              </a>
+            </Button>
+          </div>
+        </header>
+        <Tabs
+          className="ahtml-gallery-mobile-tabs"
+          onValueChange={(value) =>
+            setMobileTab(value as "controls" | "preview")
+          }
+          value={mobileTab}
+        >
+          <TabsList className="ahtml-gallery-mobile-tabs-list">
+            <TabsTrigger value="controls">Controls</TabsTrigger>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <div className="ahtml-gallery-main">
+          <ResizablePanelGroup
+            className="ahtml-gallery-workbench"
+            direction="horizontal"
+          >
+            <ResizablePanel
+              className="ahtml-gallery-sidebar"
+              data-gallery-frame="controls"
+              data-mobile-panel={mobileTab === "controls" ? "active" : "hidden"}
+              defaultSize={30}
+              minSize={22}
+              maxSize={42}
+            >
+              <div className="ahtml-gallery-sidebar-inner">
+                <div
+                  className="ahtml-gallery-sidebar-header"
+                  data-gallery-frame="hero"
                 >
-                  Save Current Style
-                </button>
-              </div>
-            </section>
-          </div>
-        </aside>
+                  <div className="ahtml-gallery-hero-copy">
+                    <Badge
+                      className="ahtml-gallery-kicker-badge"
+                      variant="outline"
+                    >
+                      Gallery customizer
+                    </Badge>
+                    <h1 className="ahtml-gallery-hero-title">
+                      {editorState.draftProfile.id}
+                    </h1>
+                    <p className="ahtml-gallery-meta">
+                      Compact controls on the left, live preview workbench on
+                      the right.
+                    </p>
+                  </div>
+                  <div className="ahtml-gallery-sidebar-status">
+                    <FieldRow
+                      label="Active style"
+                      value={editorState.styleReference}
+                    />
+                    <FieldRow
+                      label="Draft"
+                      value={editorState.isDirty ? "unsaved" : "synced"}
+                    />
+                  </div>
+                </div>
 
-        <section className="ahtml-gallery-preview">
-          <div className="ahtml-gallery-preview-header">
-            <div>
-              <p className="ahtml-gallery-kicker">Preview</p>
-              <h2>Showcase canvas</h2>
-            </div>
-            <p className="ahtml-gallery-preview-note">
-              All components are stitched into one continuous semantic preview surface.
-            </p>
-          </div>
-          <div className="ahtml-gallery-preview-surface">
-            <DocumentArtifactShell className="ahtml-gallery-preview-document">
-              {previewDocument.components.map((node, index) => (
-                <RendererNode key={index} node={node} path={[index]} />
-              ))}
-            </DocumentArtifactShell>
-          </div>
-        </section>
+                <Tabs
+                  className="ahtml-gallery-control-tabs"
+                  onValueChange={(value) =>
+                    setControlTab(value as GalleryControlTab)
+                  }
+                  value={controlTab}
+                >
+                  <div className="ahtml-gallery-toolbar ahtml-gallery-toolbar-border">
+                    <TabsList className="ahtml-gallery-pill-tabs">
+                      <TabsTrigger value="profile">Profile</TabsTrigger>
+                      <TabsTrigger value="tokens">Tokens</TabsTrigger>
+                      <TabsTrigger value="typography">Typography</TabsTrigger>
+                      <TabsTrigger value="treatments">Treatments</TabsTrigger>
+                    </TabsList>
+                  </div>
+
+                  <ScrollArea className="ahtml-gallery-control-scroll">
+                    <div className="ahtml-gallery-control-body">
+                      <TabsContent
+                        className="ahtml-gallery-tab-panel"
+                        value="profile"
+                      >
+                        <Accordion
+                          className="ahtml-gallery-control-sections"
+                          defaultValue={["style-id", "persist"]}
+                          type="multiple"
+                        >
+                          <AccordionItem value="style-id">
+                            <AccordionTrigger>Style profile</AccordionTrigger>
+                            <AccordionContent>
+                              <GalleryPanelBody>
+                                <Field>
+                                  <FieldLabel>Current style id</FieldLabel>
+                                  <Select
+                                    onValueChange={(value) =>
+                                      void selectStyleReference(value)
+                                    }
+                                    value={editorState.styleReference}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a style id" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectGroup>
+                                        {editorState.availableStyleReferences.map(
+                                          (styleId) => (
+                                            <SelectItem
+                                              key={styleId}
+                                              value={styleId}
+                                            >
+                                              {styleId}
+                                            </SelectItem>
+                                          ),
+                                        )}
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
+                                  <FieldDescription>
+                                    Switch the preview to another saved style
+                                    profile.
+                                  </FieldDescription>
+                                </Field>
+                                <FieldRow
+                                  label="Available ids"
+                                  multiline
+                                  value={editorState.availableStyleReferences.join(
+                                    ", ",
+                                  )}
+                                />
+                                <div className="ahtml-gallery-actions">
+                                  <Button
+                                    disabled={editorState.isSaving}
+                                    onClick={() => void createStyleReference()}
+                                    size="sm"
+                                    type="button"
+                                    variant="outline"
+                                  >
+                                    New Id
+                                  </Button>
+                                  <Button
+                                    disabled={editorState.isSaving}
+                                    onClick={() =>
+                                      void deleteCurrentStyleReference()
+                                    }
+                                    size="sm"
+                                    type="button"
+                                    variant="outline"
+                                  >
+                                    Delete Id
+                                  </Button>
+                                </div>
+                                <LabeledInput
+                                  label="New Style Id"
+                                  value={editorState.createId}
+                                  onChange={(value) =>
+                                    setEditorState((current) => ({
+                                      ...current,
+                                      createId: value,
+                                    }))
+                                  }
+                                />
+                                {editorState.error ? (
+                                  <Field data-invalid>
+                                    <FieldLabel>Error</FieldLabel>
+                                    <FieldDescription className="ahtml-gallery-error">
+                                      {editorState.error}
+                                    </FieldDescription>
+                                  </Field>
+                                ) : null}
+                              </GalleryPanelBody>
+                            </AccordionContent>
+                          </AccordionItem>
+
+                          <AccordionItem value="persist">
+                            <AccordionTrigger>Persist</AccordionTrigger>
+                            <AccordionContent>
+                              <GalleryPanelBody>
+                                <FieldRow
+                                  label="Status"
+                                  value={editorState.status}
+                                />
+                                <FieldRow
+                                  label="Preview mode"
+                                  value={
+                                    previewMode === "full"
+                                      ? "component-gallery"
+                                      : previewMode
+                                  }
+                                />
+                              </GalleryPanelBody>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </TabsContent>
+
+                      <TabsContent
+                        className="ahtml-gallery-tab-panel"
+                        value="tokens"
+                      >
+                        <Accordion
+                          className="ahtml-gallery-control-sections"
+                          defaultValue={["light-tokens"]}
+                          type="multiple"
+                        >
+                          <AccordionItem value="light-tokens">
+                            <AccordionTrigger>Light tokens</AccordionTrigger>
+                            <AccordionContent>
+                              <GalleryPanelBody>
+                                <TokenEditor
+                                  tokens={
+                                    editorState.draftProfile.globalStyle
+                                      .tokenSets.light
+                                  }
+                                  onChange={(tokenName, value) =>
+                                    updateDraftProfile((draft) => ({
+                                      ...draft,
+                                      globalStyle: {
+                                        ...draft.globalStyle,
+                                        tokenSets: {
+                                          ...draft.globalStyle.tokenSets,
+                                          light: {
+                                            ...draft.globalStyle.tokenSets
+                                              .light,
+                                            [tokenName]: value,
+                                          },
+                                        },
+                                      },
+                                    }))
+                                  }
+                                />
+                              </GalleryPanelBody>
+                            </AccordionContent>
+                          </AccordionItem>
+
+                          <AccordionItem value="dark-tokens">
+                            <AccordionTrigger>Dark tokens</AccordionTrigger>
+                            <AccordionContent>
+                              <GalleryPanelBody>
+                                <TokenEditor
+                                  tokens={
+                                    editorState.draftProfile.globalStyle
+                                      .tokenSets.dark
+                                  }
+                                  onChange={(tokenName, value) =>
+                                    updateDraftProfile((draft) => ({
+                                      ...draft,
+                                      globalStyle: {
+                                        ...draft.globalStyle,
+                                        tokenSets: {
+                                          ...draft.globalStyle.tokenSets,
+                                          dark: {
+                                            ...draft.globalStyle.tokenSets.dark,
+                                            [tokenName]: value,
+                                          },
+                                        },
+                                      },
+                                    }))
+                                  }
+                                />
+                              </GalleryPanelBody>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </TabsContent>
+
+                      <TabsContent
+                        className="ahtml-gallery-tab-panel"
+                        value="typography"
+                      >
+                        <Accordion
+                          className="ahtml-gallery-control-sections"
+                          defaultValue={["fonts", "geometry"]}
+                          type="multiple"
+                        >
+                          <AccordionItem value="fonts">
+                            <AccordionTrigger>Font family</AccordionTrigger>
+                            <AccordionContent>
+                              <GalleryPanelBody>
+                                <LabeledInput
+                                  label="Font Sans"
+                                  value={
+                                    editorState.draftProfile.globalStyle
+                                      .typography.fontSans
+                                  }
+                                  onChange={(value) =>
+                                    updateDraftProfile((draft) => ({
+                                      ...draft,
+                                      globalStyle: {
+                                        ...draft.globalStyle,
+                                        typography: {
+                                          ...draft.globalStyle.typography,
+                                          fontSans: value,
+                                        },
+                                      },
+                                    }))
+                                  }
+                                />
+                                <LabeledInput
+                                  label="Font Heading"
+                                  value={
+                                    editorState.draftProfile.globalStyle
+                                      .typography.fontHeading
+                                  }
+                                  onChange={(value) =>
+                                    updateDraftProfile((draft) => ({
+                                      ...draft,
+                                      globalStyle: {
+                                        ...draft.globalStyle,
+                                        typography: {
+                                          ...draft.globalStyle.typography,
+                                          fontHeading: value,
+                                        },
+                                      },
+                                    }))
+                                  }
+                                />
+                              </GalleryPanelBody>
+                            </AccordionContent>
+                          </AccordionItem>
+                          <AccordionItem value="geometry">
+                            <AccordionTrigger>Geometry</AccordionTrigger>
+                            <AccordionContent>
+                              <GalleryPanelBody>
+                                <LabeledInput
+                                  label="Radius Base"
+                                  value={
+                                    editorState.draftProfile.globalStyle
+                                      .radiusScale.base
+                                  }
+                                  onChange={(value) =>
+                                    updateDraftProfile((draft) => ({
+                                      ...draft,
+                                      globalStyle: {
+                                        ...draft.globalStyle,
+                                        radiusScale: {
+                                          ...draft.globalStyle.radiusScale,
+                                          base: value,
+                                        },
+                                      },
+                                    }))
+                                  }
+                                />
+                              </GalleryPanelBody>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </TabsContent>
+
+                      <TabsContent
+                        className="ahtml-gallery-tab-panel"
+                        value="treatments"
+                      >
+                        <Accordion
+                          className="ahtml-gallery-control-sections"
+                          defaultValue={["component-treatments"]}
+                          type="multiple"
+                        >
+                          <AccordionItem value="component-treatments">
+                            <AccordionTrigger>
+                              Component treatments
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <GalleryPanelBody>
+                                {Object.entries(
+                                  editorState.draftProfile.componentStyle
+                                    .treatments,
+                                )
+                                  .sort(([left], [right]) =>
+                                    left.localeCompare(right),
+                                  )
+                                  .map(([componentName, treatment]) => (
+                                    <LabeledInput
+                                      key={componentName}
+                                      label={componentName}
+                                      value={treatment}
+                                      onChange={(value) =>
+                                        updateDraftProfile((draft) => ({
+                                          ...draft,
+                                          componentStyle: {
+                                            ...draft.componentStyle,
+                                            treatments: {
+                                              ...draft.componentStyle
+                                                .treatments,
+                                              [componentName]: value,
+                                            },
+                                          },
+                                        }))
+                                      }
+                                    />
+                                  ))}
+                              </GalleryPanelBody>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </TabsContent>
+                    </div>
+                  </ScrollArea>
+                </Tabs>
+              </div>
+            </ResizablePanel>
+
+            <ResizableHandle className="ahtml-gallery-divider" withHandle />
+
+            <ResizablePanel
+              className="ahtml-gallery-preview"
+              data-gallery-frame="preview"
+              data-mobile-panel={mobileTab === "preview" ? "active" : "hidden"}
+              defaultSize={70}
+              minSize={58}
+            >
+              <div className="ahtml-gallery-preview-shell">
+                <div className="ahtml-gallery-toolbar ahtml-gallery-toolbar-border">
+                  <div className="ahtml-gallery-preview-toolbar">
+                    <Button
+                      disabled={editorState.isSaving || !editorState.isDirty}
+                      onClick={resetDraft}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      Reset Draft
+                    </Button>
+                    <Button
+                      disabled={editorState.isSaving}
+                      onClick={() => void saveProfile()}
+                      size="sm"
+                      type="button"
+                    >
+                      Save Current Style
+                    </Button>
+                  </div>
+                </div>
+                <Tabs
+                  className="ahtml-gallery-preview-tabs"
+                  onValueChange={(value) =>
+                    setPreviewMode(value as GalleryPreviewMode)
+                  }
+                  value={previewMode}
+                >
+                  <div className="ahtml-gallery-preview-shell">
+                    <div className="ahtml-gallery-preview-headline">
+                      <div className="ahtml-gallery-preview-title-block">
+                        <Badge
+                          className="ahtml-gallery-kicker-badge"
+                          variant="outline"
+                        >
+                          Preview
+                        </Badge>
+                        <CardTitle>Component gallery workbench</CardTitle>
+                        <FieldDescription className="ahtml-gallery-preview-note">
+                          Compare component families, forms, disclosure
+                          patterns, and global typography inside one work
+                          surface.
+                        </FieldDescription>
+                      </div>
+                      <div className="ahtml-gallery-preview-meta-rail">
+                        <GalleryPreviewMeta
+                          label="Style"
+                          value={editorState.styleReference}
+                        />
+                        <GalleryPreviewMeta
+                          label="Draft"
+                          value={editorState.isDirty ? "unsaved" : "synced"}
+                        />
+                        <GalleryPreviewMeta
+                          label="Mode"
+                          value={
+                            previewMode === "full"
+                              ? "component-gallery"
+                              : previewMode
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="ahtml-gallery-toolbar ahtml-gallery-preview-modebar">
+                      <TabsList className="ahtml-gallery-pill-tabs">
+                        <TabsTrigger value="components">Components</TabsTrigger>
+                        <TabsTrigger value="forms">Forms</TabsTrigger>
+                        <TabsTrigger value="disclosure">Disclosure</TabsTrigger>
+                        <TabsTrigger value="typography">Typography</TabsTrigger>
+                        <TabsTrigger value="full">Full</TabsTrigger>
+                      </TabsList>
+                    </div>
+
+                    <ScrollArea className="ahtml-gallery-preview-canvas">
+                      <TabsContent
+                        className="ahtml-gallery-preview-panel"
+                        value={previewMode}
+                      >
+                        <div className="ahtml-gallery-stage-frame">
+                          {previewMode === "typography" ? (
+                            <GalleryTypographyPanel
+                              profile={editorState.draftProfile}
+                            />
+                          ) : (
+                            <DocumentArtifactShell
+                              className="ahtml-gallery-preview-document"
+                              layoutPolicy="gallery"
+                            >
+                              {visiblePreviewSections.map((section, index) => (
+                                <RendererNode
+                                  key={`${section.mode}-${index}`}
+                                  node={section.node}
+                                  path={[index]}
+                                />
+                              ))}
+                            </DocumentArtifactShell>
+                          )}
+                        </div>
+                      </TabsContent>
+                    </ScrollArea>
+                  </div>
+                </Tabs>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
       </main>
     </>
   )
@@ -646,6 +1026,7 @@ function RuntimeStyleElements({
       <style>{createRuntimeHostCss()}</style>
       <style>{createArtifactShellCss()}</style>
       <style>{createDocumentLayoutPolicyCss()}</style>
+      <style>{createGalleryLayoutPolicyCss()}</style>
       {includeGalleryShell ? <style>{createGalleryShellCss()}</style> : null}
       <style>{documentStyleCss}</style>
     </>
@@ -658,11 +1039,13 @@ function DocumentArtifactShell({
   layoutPolicy = "document",
 }: React.PropsWithChildren<{
   className?: string
-  layoutPolicy?: "document"
+  layoutPolicy?: "document" | "gallery"
 }>) {
   const classes = [
     "ahtml-artifact-root",
-    layoutPolicy === "document" ? "ahtml-layout-policy-document" : undefined,
+    layoutPolicy === "document"
+      ? "ahtml-layout-policy-document"
+      : "ahtml-layout-policy-gallery",
     className,
   ]
     .filter(Boolean)
@@ -718,10 +1101,14 @@ function LabeledInput({
   const id = React.useId()
 
   return (
-    <label className="ahtml-gallery-field" htmlFor={id}>
-      <span>{label}</span>
-      <input id={id} onChange={(event) => onChange(event.target.value)} value={value} />
-    </label>
+    <Field>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input
+        id={id}
+        onChange={(event) => onChange(event.target.value)}
+        value={value}
+      />
+    </Field>
   )
 }
 
@@ -735,9 +1122,36 @@ function FieldRow({
   value: string
 }) {
   return (
-    <div className="ahtml-gallery-field-row">
+    <Field className="ahtml-gallery-field-row">
+      <FieldTitle>{label}</FieldTitle>
+      <FieldContent>
+        <strong className={multiline ? "ahtml-gallery-wrap" : undefined}>
+          {value}
+        </strong>
+      </FieldContent>
+    </Field>
+  )
+}
+
+function GalleryPanelBody({ children }: React.PropsWithChildren) {
+  return (
+    <div className="ahtml-gallery-stack ahtml-gallery-panel-body">
+      {children}
+    </div>
+  )
+}
+
+function GalleryPreviewMeta({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div className="ahtml-gallery-preview-meta">
       <span>{label}</span>
-      <strong className={multiline ? "ahtml-gallery-wrap" : undefined}>{value}</strong>
+      <strong>{value}</strong>
     </div>
   )
 }
@@ -758,208 +1172,49 @@ function fetchGalleryState() {
     .catch(() => null)
 }
 
-function createGalleryPreviewDocument(styleProfile: StyleProfile): AgentDocument {
-  return {
-    meta: {
-      ...agentDocument.meta,
-      documentStyleConfigReference: styleProfile.id,
-      styleProfile,
-    },
-    components: [
-      createPageSection("Feedback", [
-        createCard("Status surfaces", [
-          textNode(
-            "Alerts, badges, and progress indicators reveal contrast, treatment, and emphasis quickly.",
-          ),
-          componentNode("badge", { variant: "secondary" }, [textNode("healthy")]),
-          componentNode(
-            "alert",
-            { title: "Review block", variant: "destructive" },
-            [textNode("A destructive state should remain distinct under both themes.")],
-          ),
-          componentNode("progress", { value: "68" }, []),
-        ]),
-      ]),
-      createPageSection("Content", [
-        createCard("Cards and lists", [
-          textNode(
-            "Card shells, separators, and list rhythm make typography and spacing drift obvious.",
-          ),
-          componentNode("separator", {}, []),
-          componentNode("list", {}, [
-            itemNode("Operations review summary"),
-            itemNode("Release checklist copy density"),
-            itemNode("Portable artifact reading comfort"),
-          ]),
-        ]),
-        createCard("Table", [
-          componentNode("table", {}, [
-            rowNode("Surface", "Signal"),
-            rowNode("Card", styleProfile.componentStyle.treatments.card ?? "none"),
-            rowNode("Tabs", styleProfile.componentStyle.treatments.tabs ?? "none"),
-            rowNode("Radius", styleProfile.globalStyle.radiusScale.base),
-          ]),
-        ]),
-      ]),
-      createPageSection("Forms", [
-        createCard("Inputs", [
-          componentNode("input", {
-            label: "Owner",
-            value: "Platform reviewer",
-            description: "Single-line control.",
-          }, []),
-          componentNode("textarea", {
-            label: "Notes",
-            value: "Preview should reflect changes immediately without changing the authoring surface.",
-            description: "Long-form control.",
-          }, []),
-          componentNode("slider", {
-            label: "Density",
-            value: "72",
-            description: "Read-only slider preview.",
-          }, []),
-        ]),
-        createCard("Selections", [
-          componentNode("checkbox", {
-            label: "Ship to runtime",
-            checked: "true",
-            description: "Checkbox state.",
-          }, []),
-          componentNode("switch", {
-            label: "Sync preview",
-            checked: "true",
-            description: "Switch state.",
-          }, []),
-          componentNode(
-            "radio-group",
-            {
-              label: "Direction",
-              value: "stable",
-              description: "Radio group density.",
-            },
-            [
-              optionNode("stable", "Stable", "Favor predictability."),
-              optionNode("fast", "Fast", "Favor speed."),
-            ],
-          ),
-          componentNode(
-            "toggle-group",
-            {
-              label: "Mode",
-              value: "editor",
-              description: "Inline option set.",
-            },
-            [
-              optionNode("editor", "Editor", "Edit shell"),
-              optionNode("gallery", "Gallery", "Preview grid"),
-            ],
-          ),
-        ]),
-      ]),
-      createPageSection("Selection", [
-        createCard("Overlay controls", [
-          componentNode(
-            "select",
-            {
-              label: "Profile family",
-              value: styleProfile.id,
-              description: "Select trigger, content, and item treatment.",
-            },
-            [
-              optionNode("report-default", "report-default", "Builtin"),
-              optionNode("ops-compact", "ops-compact", "Builtin"),
-              optionNode("review-dense", "review-dense", "Builtin"),
-            ],
-          ),
-          componentNode(
-            "combobox",
-            {
-              label: "Style ref",
-              value: styleProfile.id,
-              description: "Combobox trigger and option body.",
-            },
-            [
-              optionNode(styleProfile.id, styleProfile.id, "Current profile"),
-              optionNode("team-ops", "team-ops", "User profile sample"),
-            ],
-          ),
-        ]),
-      ]),
-      createPageSection("Disclosure", [
-        componentNode("tabs", {}, [
-          componentNode("tab", { value: "summary", label: "Summary" }, [
-            createCard("Tabs", [
-              textNode(
-                "Tabs preview trigger contrast, content spacing, and nested card treatment.",
-              ),
-            ]),
-          ]),
-          componentNode("tab", { value: "details", label: "Details" }, [
-            createCard("Accordion", [
-              componentNode("accordion", {}, [
-                componentNode(
-                  "accordion-item",
-                  { value: "palette", title: "Palette tokens" },
-                  [textNode("Expanded disclosure spacing should remain balanced.")],
-                ),
-                componentNode(
-                  "accordion-item",
-                  { value: "typography", title: "Typography" },
-                  [textNode("Heading and body font assignments surface here.")],
-                ),
-              ]),
-            ]),
-          ]),
-        ]),
-      ]),
-    ],
-  }
-}
-
-function createPageSection(
-  title: string,
-  children: AgentComponentNode[],
-): AgentComponentNode {
-  return componentNode("card", { title }, children)
-}
-
-function createCard(title: string, children: (AgentComponentNode | { type: "text"; value: string })[]) {
-  return componentNode("card", { title }, children)
-}
-
-function itemNode(value: string) {
-  return componentNode("item", {}, [textNode(value)])
-}
-
-function rowNode(left: string, right: string) {
-  return componentNode("row", {}, [
-    componentNode("cell", {}, [textNode(left)]),
-    componentNode("cell", {}, [textNode(right)]),
-  ])
-}
-
-function optionNode(value: string, label: string, content: string) {
-  return componentNode("option", { value, label }, [textNode(content)])
-}
-
-function componentNode(
-  name: string,
-  props: Record<string, string>,
-  children: (AgentComponentNode | { type: "text"; value: string })[],
-): AgentComponentNode {
-  return {
-    type: "component",
-    name,
-    props,
-    children,
-  }
-}
-
-function textNode(value: string) {
-  return {
-    type: "text" as const,
-    value,
-  }
+function GalleryTypographyPanel({ profile }: { profile: StyleProfile }) {
+  return (
+    <Card className="ahtml-gallery-typography-panel">
+      <CardHeader>
+        <CardTitle>Typography system</CardTitle>
+        <FieldDescription>
+          Mirror tweakcn&apos;s type check: headline, body, annotation, and
+          token channels in one dense reading surface.
+        </FieldDescription>
+      </CardHeader>
+      <CardContent className="ahtml-gallery-typography-content">
+        <div className="ahtml-gallery-typography-sample">
+          <p className="ahtml-gallery-typography-kicker">Heading</p>
+          <h2>{profile.globalStyle.typography.fontHeading}</h2>
+          <p>
+            Review rhythm, line length, and contrast before shipping a style
+            profile into preview artifacts.
+          </p>
+        </div>
+        <Separator />
+        <div className="ahtml-gallery-typography-grid">
+          <FieldRow
+            label="Font Sans"
+            multiline
+            value={profile.globalStyle.typography.fontSans}
+          />
+          <FieldRow
+            label="Font Heading"
+            multiline
+            value={profile.globalStyle.typography.fontHeading}
+          />
+          <FieldRow
+            label="Radius Base"
+            value={profile.globalStyle.radiusScale.base}
+          />
+        </div>
+        <div className="ahtml-gallery-typography-token">
+          <code>{`--font-sans: ${profile.globalStyle.typography.fontSans};`}</code>
+          <code>{`--font-heading: ${profile.globalStyle.typography.fontHeading};`}</code>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 function createDocumentStyleCss(styleProfile: StyleProfile) {
@@ -1112,109 +1367,186 @@ function createDocumentLayoutPolicyCss() {
   `
 }
 
+function createGalleryLayoutPolicyCss() {
+  return `
+    .ahtml-layout-policy-gallery {
+      width: 100%;
+      padding: 0;
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+      gap: 1.25rem;
+      align-items: start;
+    }
+    .ahtml-layout-policy-gallery > * {
+      min-width: 0;
+    }
+  `
+}
+
 function createGalleryShellCss() {
   return `
     .ahtml-gallery-shell {
       display: grid;
-      grid-template-columns: minmax(20rem, 26rem) minmax(0, 1fr);
       min-height: 100vh;
-      gap: 1.5rem;
-      padding: 1.5rem;
+      grid-template-rows: auto auto minmax(0, 1fr);
       box-sizing: border-box;
+      background: var(--background);
+    }
+    .ahtml-gallery-page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 3.5rem;
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+    }
+    .ahtml-gallery-page-brand {
+      display: grid;
+      gap: 0.2rem;
+    }
+    .ahtml-gallery-page-brand strong {
+      font-family: var(--font-heading);
+      letter-spacing: -0.03em;
+    }
+    .ahtml-gallery-page-brand span {
+      color: var(--muted-foreground);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .ahtml-gallery-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .ahtml-gallery-mobile-tabs {
+      display: none;
+      padding: 0.6rem 1rem 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    }
+    .ahtml-gallery-mobile-tabs-list {
+      width: 100%;
+      border-radius: 0;
+    }
+    .ahtml-gallery-main {
+      display: flex;
+      min-height: 0;
+      min-width: 0;
+      position: relative;
     }
     .ahtml-gallery-sidebar {
-      position: sticky;
-      top: 0;
-      align-self: start;
-      height: calc(100vh - 3rem);
+      width: min(31rem, 33vw);
+      min-width: 20rem;
       overflow: hidden;
+    }
+    .ahtml-gallery-divider {
+      width: 0.75rem;
+      flex: none;
+      border-left: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+      border-right: 1px solid color-mix(in srgb, var(--background) 96%, var(--muted) 4%);
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--background) 94%, var(--muted) 6%),
+          color-mix(in srgb, var(--background) 98%, var(--muted) 2%)
+        );
+      cursor: col-resize;
     }
     .ahtml-gallery-sidebar-inner {
       height: 100%;
-      overflow: auto;
-      border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
-      background: color-mix(in srgb, var(--card) 92%, transparent);
-      border-radius: calc(var(--radius) * 1.8);
-      box-shadow: 0 24px 80px color-mix(in srgb, var(--foreground) 10%, transparent);
-      backdrop-filter: blur(18px);
-      padding: 1.25rem;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
       box-sizing: border-box;
     }
+    .ahtml-gallery-sidebar-header {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+      background: color-mix(in srgb, var(--background) 94%, var(--muted) 6%);
+    }
+    .ahtml-gallery-hero-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .ahtml-gallery-sidebar-status {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .ahtml-gallery-kicker-badge {
+      width: fit-content;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .ahtml-gallery-hero-title,
     .ahtml-gallery-hero h1,
     .ahtml-gallery-preview-header h2 {
       margin: 0;
       font-family: var(--font-heading);
       letter-spacing: -0.04em;
     }
-    .ahtml-gallery-kicker {
-      margin: 0 0 0.35rem;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--muted-foreground);
-    }
     .ahtml-gallery-meta,
-    .ahtml-gallery-preview-note,
-    .ahtml-gallery-status {
+    .ahtml-gallery-preview-note {
       margin: 0;
       color: var(--muted-foreground);
       line-height: 1.5;
     }
-    .ahtml-gallery-panel {
-      margin-top: 1rem;
-      padding: 1rem;
-      border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-      background: color-mix(in srgb, var(--card) 96%, transparent);
-      border-radius: calc(var(--radius) * 1.4);
-    }
-    .ahtml-gallery-panel-header {
+    .ahtml-gallery-control-tabs {
       display: flex;
-      align-items: baseline;
+      min-height: 0;
+      flex: 1;
+      flex-direction: column;
+    }
+    .ahtml-gallery-toolbar {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 0.8rem;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
     }
-    .ahtml-gallery-panel-header h2 {
-      margin: 0;
-      font-size: 0.95rem;
-      font-family: var(--font-heading);
+    .ahtml-gallery-toolbar-border {
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
     }
-    .ahtml-gallery-panel-header span,
-    .ahtml-gallery-field span,
-    .ahtml-gallery-field-row span {
-      color: var(--muted-foreground);
-      font-size: 0.78rem;
-      text-transform: uppercase;
+    .ahtml-gallery-pill-tabs {
+      width: fit-content;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--background) 86%, var(--muted) 14%);
+    }
+    .ahtml-gallery-control-body {
+      min-height: 0;
+      flex: 1;
+      overflow: auto;
+    }
+    .ahtml-gallery-tab-panel {
+      margin-top: 0;
+      height: 100%;
+    }
+    .ahtml-gallery-control-sections {
+      display: grid;
+      gap: 0;
+      padding: 0 1rem 1rem;
+    }
+    .ahtml-gallery-control-sections [data-slot="accordion-item"] {
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    }
+    .ahtml-gallery-control-sections [data-slot="accordion-trigger"] {
+      font-size: 0.76rem;
       letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+    }
+    .ahtml-gallery-panel-body {
+      padding: 0.15rem 0 0.8rem;
     }
     .ahtml-gallery-stack {
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 0.8rem;
-    }
-    .ahtml-gallery-field {
-      display: grid;
-      gap: 0.45rem;
-    }
-    .ahtml-gallery-field input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 0.72rem 0.85rem;
-      border-radius: calc(var(--radius) * 1.1);
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--background) 90%, var(--card) 10%);
-      color: var(--foreground);
-      font: inherit;
-    }
-    .ahtml-gallery-field select {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 0.72rem 0.85rem;
-      border-radius: calc(var(--radius) * 1.1);
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--background) 90%, var(--card) 10%);
-      color: var(--foreground);
-      font: inherit;
     }
     .ahtml-gallery-token-row {
       display: grid;
@@ -1231,29 +1563,15 @@ function createGalleryShellCss() {
     }
     .ahtml-gallery-actions {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.75rem;
-    }
-    .ahtml-gallery-button {
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--secondary) 88%, var(--card) 12%);
-      color: var(--secondary-foreground);
-      padding: 0.72rem 1rem;
-      border-radius: calc(var(--radius) * 1.15);
-      font: inherit;
-      cursor: pointer;
-    }
-    .ahtml-gallery-button:disabled {
-      cursor: not-allowed;
-      opacity: 0.55;
-    }
-    .ahtml-gallery-button-primary {
-      background: var(--primary);
-      color: var(--primary-foreground);
-      border-color: color-mix(in srgb, var(--primary) 65%, black 35%);
     }
     .ahtml-gallery-field-row {
       display: grid;
       gap: 0.28rem;
+      padding: 0.75rem;
+      border-radius: calc(var(--radius) * 1);
+      background: color-mix(in srgb, var(--muted) 60%, transparent);
     }
     .ahtml-gallery-field-row strong {
       font-weight: 600;
@@ -1268,39 +1586,192 @@ function createGalleryShellCss() {
       line-height: 1.4;
     }
     .ahtml-gallery-preview {
-      min-width: 0;
-      padding: 1rem 0 2rem;
-    }
-    .ahtml-gallery-preview-header {
       display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+      min-height: 0;
+      flex: 1;
+      flex-direction: column;
+      min-width: 0;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--background) 98%, var(--muted) 2%),
+          var(--background)
+        );
     }
-    .ahtml-gallery-preview-surface {
-      display: grid;
+    .ahtml-gallery-preview-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      width: 100%;
+    }
+    .ahtml-gallery-preview-tabs {
+      min-height: 0;
+      flex: 1;
+    }
+    .ahtml-gallery-preview-shell {
+      display: flex;
+      min-height: 0;
+      height: 100%;
+      flex-direction: column;
+    }
+    .ahtml-gallery-preview-headline {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
       gap: 1.25rem;
+      padding: 1rem 1rem 0.75rem;
+    }
+    .ahtml-gallery-preview-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .ahtml-gallery-preview-meta-rail {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0.65rem;
+      min-width: min(26rem, 44%);
+    }
+    .ahtml-gallery-preview-meta {
+      display: grid;
+      gap: 0.15rem;
+      min-width: 7.5rem;
+      padding: 0.7rem 0.85rem;
+      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+      border-radius: calc(var(--radius) * 1.2);
+      background: color-mix(in srgb, var(--background) 88%, var(--muted) 12%);
+    }
+    .ahtml-gallery-preview-meta span {
+      color: var(--muted-foreground);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .ahtml-gallery-preview-meta strong {
+      line-height: 1.35;
+      word-break: break-word;
+    }
+    .ahtml-gallery-preview-canvas {
+      min-height: 0;
+      flex: 1;
+      overflow: auto;
+      padding: 0 1rem 1rem;
+    }
+    .ahtml-gallery-preview-modebar {
+      padding-top: 0;
+    }
+    .ahtml-gallery-preview-panel {
+      margin-top: 0;
+      min-height: 100%;
+    }
+    .ahtml-gallery-stage-frame {
+      min-height: 100%;
+      border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+      border-radius: calc(var(--radius) * 1.6);
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--background) 98%, var(--muted) 2%),
+          color-mix(in srgb, var(--background) 93%, var(--muted) 7%)
+        );
+      box-sizing: border-box;
+      padding: 1rem;
     }
     .ahtml-gallery-preview-document {
       width: 100%;
       padding: 0;
       min-height: auto;
+      align-content: start;
+    }
+    .ahtml-gallery-typography-panel {
+      max-width: 68rem;
+    }
+    .ahtml-gallery-typography-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .ahtml-gallery-typography-sample {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .ahtml-gallery-typography-sample h2 {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: -0.04em;
+    }
+    .ahtml-gallery-typography-kicker {
+      margin: 0;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+    }
+    .ahtml-gallery-typography-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+      gap: 0.75rem;
+    }
+    .ahtml-gallery-typography-token {
+      display: grid;
+      gap: 0.5rem;
+      padding: 1rem;
+      border-radius: calc(var(--radius) * 1.1);
+      background: color-mix(in srgb, var(--muted) 56%, transparent);
+      font-family: monospace;
+      font-size: 0.86rem;
     }
     @media (max-width: 1100px) {
       .ahtml-gallery-shell {
-        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto minmax(0, 1fr);
       }
       .ahtml-gallery-sidebar {
-        position: static;
-        height: auto;
+        width: 100%;
+        min-width: 0;
+        border-right: 0;
       }
-      .ahtml-gallery-sidebar-inner {
-        overflow: visible;
+      .ahtml-gallery-mobile-tabs {
+        display: block;
       }
-      .ahtml-gallery-preview-header {
+      .ahtml-gallery-main {
+        flex-direction: column;
+      }
+      .ahtml-gallery-divider {
+        display: none;
+      }
+      .ahtml-gallery-sidebar,
+      .ahtml-gallery-preview {
+        min-height: 0;
+      }
+      .ahtml-gallery-sidebar[data-mobile-panel="hidden"],
+      .ahtml-gallery-preview[data-mobile-panel="hidden"] {
+        display: none;
+      }
+      .ahtml-gallery-preview-headline {
         align-items: start;
         flex-direction: column;
+      }
+      .ahtml-gallery-page-header {
+        align-items: start;
+        flex-direction: column;
+      }
+      .ahtml-gallery-sidebar-status {
+        grid-template-columns: 1fr;
+        min-width: 0;
+      }
+      .ahtml-gallery-preview-meta-rail {
+        justify-content: start;
+        min-width: 0;
+      }
+      .ahtml-gallery-stage-frame {
+        border-radius: calc(var(--radius) * 1.2);
+        padding: 0.85rem;
       }
     }
   `

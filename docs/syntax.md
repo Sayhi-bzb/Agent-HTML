@@ -20,8 +20,6 @@
 2. 正式语义节点
    - UI 节点
    - layout 节点
-3. 显式兼容输入
-   - 仍被 parse / validate 接受，但已退出公开 prompt 主路径的旧语义字段
 
 ## UI 与 Layout
 
@@ -48,18 +46,12 @@
   - 只公开最终 public contract
   - 不再主动推荐 `tone`、`kind`、`mode`、`default`
 - `完整 authoring surface`
-  - 仍可接受显式兼容字段
-  - 例如：
-    - `alert.tone`
-    - `badge.tone`
-    - `row.kind`
-    - `tabs.default`
-    - `accordion.mode/default`
+  - 当前与最终公开 prompt 在组件 props 上已经一致
 
 因此现在更准确的说法是：
 
-- “旧字段仍可被接受”是兼容事实
 - “旧字段仍是主写法”已经不是当前事实
+- “旧字段仍可被接受”也已经不是当前实现事实
 
 ## 结构子节点
 
@@ -88,4 +80,4 @@
 - 语义节点负责页面与组件关系
 - runtime host 消费语义节点和配置结果
 - 当前稳定配置结果仍主要承载 `style-ref -> styleProfile`
-- host 不再替 authoring surface 补 layout primitive 节点，但当前仍会通过 document shell 追加文档型 framing / prose 默认值
+- host 不再替 authoring surface 补 layout primitive 节点，但当前仍会通过 document layout policy 追加文档型 framing / prose 默认值

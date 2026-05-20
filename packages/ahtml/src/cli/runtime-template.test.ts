@@ -105,7 +105,7 @@ describe("checked-in runtime templates", () => {
       await importRuntimeTemplateModule()
     const [
       { getCliSchemaOutput },
-      { createRuntimeContract },
+      { createRuntimeContractFromSchema },
       { createRuntimeRendererKindSource },
     ] = await Promise.all([
       import(
@@ -115,6 +115,8 @@ describe("checked-in runtime templates", () => {
       ) as Promise<{
         readonly getCliSchemaOutput: (root?: string) => Promise<{
           readonly components: readonly { readonly name: string }[]
+          readonly verificationData: unknown
+          readonly rendererMapping: unknown
         }>
       }>,
       import(
@@ -129,9 +131,11 @@ describe("checked-in runtime templates", () => {
           ),
         ).href
       ) as Promise<{
-        readonly createRuntimeContract: (
-          components: readonly { readonly name: string }[],
-        ) => {
+        readonly createRuntimeContractFromSchema: (schema: {
+          readonly components: readonly { readonly name: string }[]
+          readonly verificationData: unknown
+          readonly rendererMapping: unknown
+        }) => {
           readonly elementRegistrySpec: unknown
           readonly rendererKindSpec: unknown
         }
@@ -139,7 +143,7 @@ describe("checked-in runtime templates", () => {
       importRuntimeTemplateModule(),
     ])
     const schema = await getCliSchemaOutput(root)
-    const runtimeContract = createRuntimeContract(schema.components)
+    const runtimeContract = createRuntimeContractFromSchema(schema)
     const expected = createRuntimeElementRegistrySource(
       runtimeContract.elementRegistrySpec,
     )

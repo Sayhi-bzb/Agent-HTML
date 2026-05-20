@@ -247,6 +247,243 @@ describe("createRuntimeRenderDiagnostics", () => {
     ])
   })
 
+  it("treats schema verification data as the canonical expected snapshot", () => {
+    const diagnostics = createRuntimeRenderDiagnostics({
+      document: {
+        meta: {
+          documentStyleConfigReference: "report-default",
+        },
+        components: [],
+      },
+      runtimeVerificationState: {
+        verificationData: {
+          components: [
+            {
+              name: "tabs",
+              renderKind: "tabs",
+              props: [],
+              slots: [{ name: "tab", children: ["text"] }],
+            },
+          ],
+        },
+        rendererMapping: {
+          version: 1,
+          components: [
+            {
+              name: "tabs",
+              kind: "tabs",
+              renderKind: "tabs",
+              root: "Tabs",
+              list: "TabsList",
+              trigger: "TabsTrigger",
+              content: "TabsContent",
+              itemSlot: "tab",
+              itemValueProp: "value",
+              itemHeadingProp: "label",
+              slots: [{ name: "tab", children: ["text"] }],
+            },
+          ],
+        },
+      },
+      schema: {
+        components: [
+          {
+            name: "tabs",
+            description: "Tabs",
+            props: [],
+            allowedChildren: ["tab"],
+          },
+        ],
+        verificationData: {
+          components: [
+            {
+              name: "tabs",
+              renderKind: "tabs",
+              props: ["default"],
+              slots: [{ name: "tab", children: ["text"] }],
+            },
+          ],
+        },
+        rendererMapping: {
+          components: [
+            {
+              name: "tabs",
+              kind: "tabs",
+              renderKind: "tabs",
+              root: "Tabs",
+              list: "TabsList",
+              trigger: "TabsTrigger",
+              content: "TabsContent",
+              itemSlot: "tab",
+              itemValueProp: "value",
+              itemHeadingProp: "label",
+              slots: [{ name: "tab", children: ["text"] }],
+            },
+          ],
+        },
+      },
+    })
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        code: "runtime-verification-data-parity",
+        path: "/runtime",
+        severity: "error",
+        message: expect.stringContaining("tabs props"),
+      }),
+    ])
+  })
+
+  it("returns structured diagnostics for slot metadata drift beyond slot names", () => {
+    const diagnostics = createRuntimeRenderDiagnostics({
+      document: {
+        meta: {
+          documentStyleConfigReference: "report-default",
+        },
+        components: [],
+      },
+      runtimeVerificationState: {
+        verificationData: {
+          components: [
+            {
+              name: "list",
+              renderKind: "collection",
+              props: [],
+              slots: [{ name: "item", children: ["text"] }],
+            },
+          ],
+        },
+        rendererMapping: {
+          version: 1,
+          components: [
+            {
+              name: "list",
+              kind: "collection",
+              renderKind: "collection",
+              root: "ul",
+              item: "li",
+              itemSlot: "item",
+              childMode: "inline",
+              slots: [{ name: "item", childNames: ["entry"], children: ["text"] }],
+            },
+          ],
+        },
+      },
+      schema: {
+        verificationData: {
+          components: [
+            {
+              name: "list",
+              renderKind: "collection",
+              props: [],
+              slots: [{ name: "item", children: ["text"] }],
+            },
+          ],
+        },
+        rendererMapping: {
+          components: [
+            {
+              name: "list",
+              kind: "collection",
+              renderKind: "collection",
+              root: "ul",
+              item: "li",
+              itemSlot: "item",
+              childMode: "inline",
+              slots: [{ name: "item", children: ["text"] }],
+            },
+          ],
+        },
+      },
+    })
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        code: "runtime-renderer-mapping-parity",
+        path: "/runtime",
+        severity: "error",
+        message: expect.stringContaining('"childNames":["entry"]'),
+      }),
+    ])
+  })
+
+  it("returns structured diagnostics for renderer scalar field drift such as textMode", () => {
+    const diagnostics = createRuntimeRenderDiagnostics({
+      document: {
+        meta: {
+          documentStyleConfigReference: "report-default",
+        },
+        components: [],
+      },
+      runtimeVerificationState: {
+        verificationData: {
+          components: [
+            {
+              name: "card",
+              renderKind: "compound",
+              props: ["title"],
+              slots: [{ name: "children", children: ["text"] }],
+            },
+          ],
+        },
+        rendererMapping: {
+          version: 1,
+          components: [
+            {
+              name: "card",
+              kind: "compound",
+              renderKind: "compound",
+              root: "Card",
+              title: "CardTitle",
+              titleProp: "title",
+              content: "CardContent",
+              childMode: "block",
+              textMode: "preformatted",
+              slots: [{ name: "children", children: ["text"] }],
+            },
+          ],
+        },
+      },
+      schema: {
+        verificationData: {
+          components: [
+            {
+              name: "card",
+              renderKind: "compound",
+              props: ["title"],
+              slots: [{ name: "children", children: ["text"] }],
+            },
+          ],
+        },
+        rendererMapping: {
+          components: [
+            {
+              name: "card",
+              kind: "compound",
+              renderKind: "compound",
+              root: "Card",
+              title: "CardTitle",
+              titleProp: "title",
+              content: "CardContent",
+              childMode: "block",
+              textMode: "prose",
+              slots: [{ name: "children", children: ["text"] }],
+            },
+          ],
+        },
+      },
+    })
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        code: "runtime-renderer-mapping-parity",
+        path: "/runtime",
+        severity: "error",
+        message: expect.stringContaining("textMode"),
+      }),
+    ])
+  })
+
   it("does not report structural slot children as missing renderer components", () => {
     const diagnostics = createRuntimeRenderDiagnostics({
       document: {

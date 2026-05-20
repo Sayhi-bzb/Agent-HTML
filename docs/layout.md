@@ -105,6 +105,6 @@ layout 组件表达“这些东西怎么排”，例如：
 - layout 节点可以嵌套 UI 节点
 - layout 节点可以嵌套 layout 节点
 - runtime host 不负责决定 layout primitive 的节点类型
-- artifact root 当前仍会挂接 document layout policy；兼容 class `ahtml-document-shell` 之上仍会追加 width / padding / prose measure / section spacing 这类文档型默认值
+- artifact root 当前仍会挂接 document layout policy，并追加 width / padding / prose measure / section spacing 这类文档型默认值
 
 因此当前实现已经摆脱“靠文档组件反推布局”的阶段，但还没有做到完全 template-free 的 layout host。

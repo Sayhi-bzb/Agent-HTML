@@ -29,11 +29,11 @@
 ## 结论概览
 
 - 当前公开 schema / prompt 的真实上游已经不再直接暴露 `tone`、`kind`、`mode`、`default` 这类 legacy 字段。
-- `schema-overlays.ts` 里仍保留 legacy 语义字段定义，但它们当前属于显式兼容语义层，不再等于主公开 contract。
-- runtime spec 顶层已经不再把 `kindProp`、`modeProp`、`defaultProp`、`defaultMode` 作为 `RendererSpecComponent` 常规字段；兼容桥当前通过 `legacyBridges` 和 `behavior.stateBridge` 保留。
+- `schema-overlays.ts` 已移除 `alert.tone`、`badge.tone`、`row.kind`、`tabs.default`、`accordion.mode/default`。
+- runtime spec 与 renderer 已移除 `legacyBridges`、`behavior.stateBridge` 及相关 legacy payload 类型。
 - parser / validate / sanitize 已经正式接受 layout primitive；layout 不再只是文档目标。
 - runtime renderer 已完成 dispatcher / UI projection / layout projection 分层。
-- runtime host、artifact root、document layout policy、gallery shell 已拆开；`ahtml-document-shell` 当前仍作为兼容 class 保留，但 width / padding / prose / section spacing 这类文档型默认值已经下沉到独立 document layout policy。
+- runtime host、artifact root、document layout policy、gallery shell 已拆开；`ahtml-document-shell` 兼容 class 已移除，文档型默认值只由 document layout policy 承载。
 
 ## 1. 当前 schema 的真实生成链路
 
@@ -58,20 +58,15 @@ schema-overlays.ts
     - shadcn introspection
   - 生成结果已经带：
     - `semanticProps`
-    - `legacyPublicProps`
     - `rawCandidateProps`
     - `exposedRawProps`
     - `blockedPropNames`
 - `packages/core/src/component-schema.ts`
   - `RESOLVED_STANDARD_COMPONENT_SCHEMAS` 直接消费 generated resolved schemas
-  - `STANDARD_COMPONENT_SCHEMAS` 仍保留“完整 agent-facing schema”视角，因此会同时看到：
-    - legacy semantic props
-    - opened raw candidate props
+  - `STANDARD_COMPONENT_SCHEMAS` 当前直接反映现行 authoring schema 与已公开 raw props
 - `packages/core/src/public-agent-contract.ts`
-  - 公开主路径不再直接透传 `STANDARD_COMPONENT_SCHEMAS`
-  - 当前会过滤：
-    - `origin === "legacy"` 的 semantic props
-    - 被 opened raw candidate 替代掉的 legacy 包装 prop
+  - 公开主路径仍通过投影函数生成
+  - 当前不再承担 legacy prop 过滤职责
 - `packages/ahtml/src/cli/schema.mjs`
   - prompt 直接消费 `createPublicAgentContract()`
   - 当前 prompt 已不再把 `tone` / `kind` / `mode` / `default` 当公开主入口
@@ -81,9 +76,9 @@ schema-overlays.ts
 - 公开 schema / prompt 主链已经切到当前生成链路。
 - 当前不能再把“公开 contract 仍直接来自 overlay 原始 props”写成现状。
 
-## 2. 当前公开 contract 与兼容语义层已经分开
+## 2. 当前公开 contract 与 authoring schema 已重新对齐
 
-`schema-overlays.ts` 里仍保留这些 legacy 语义字段定义：
+当前已经移除这些 legacy 字段：
 
 - `alert.tone`
 - `badge.tone`
@@ -106,15 +101,10 @@ schema-overlays.ts
     - `row(kind?`
     - `accordion(mode?`
 
-因此更准确的表述应是：
-
-- legacy 语义字段仍保留在 resolved semantic layer / compatibility layer
-- 但它们已经退出主公开 contract / prompt 主路径
-
 当前判断：
 
-- 主公开 contract 已与兼容层分开。
-- 当前仍保留 compatibility bridge，但它不在主公开路径中。
+- 主公开 contract 与 authoring schema 在 props 级别已经重新对齐。
+- 当前不再保留 compat props 的额外接受面。
 
 ## 3. 当前仍同时保留两类 core 视图
 
@@ -122,10 +112,10 @@ schema-overlays.ts
 
 - `STANDARD_COMPONENT_SCHEMAS`
   - 面向 parse / validate / sanitize 的完整 agent-facing schema
-  - 当前仍会看到 legacy semantic props 与 opened raw candidates 并存
+  - 当前不再含 legacy semantic props
 - `createPublicAgentContract()`
   - 面向 CLI schema / prompt 的最终公开 contract
-  - 当前会过滤掉 legacy semantic props，只保留最终公开字段
+  - 当前主要负责稳定输出格式，而不是兼容收口
 
 这不是“旧公开 contract 和新公开 contract 并存”，而是：
 
@@ -136,44 +126,39 @@ schema-overlays.ts
 
 - 当前若继续审计“是否仍维护两套公开 contract”，应回答：
   - **主公开 contract 没有双轨**
-  - 但 parse/validate 仍保留显式兼容 authoring surface
+  - parse/validate 也不再保留 compat props 接受面
 
-## 4. runtime compatibility bridge 仍保留，主 runtime spec 已收紧
+## 4. runtime spec 与 renderer 已完成 compat 拆除
 
-`packages/ahtml/src/config/component-capabilities.mjs` 当前仍明确保留 compatibility bridge：
+当前已经移除：
 
-- `alert` / `badge`
-  - `legacyBridges.variant`
-- `table`
-  - `legacyBridges.structuralRole`
-- `tabs`
-  - `legacyBridges.state`
-- `accordion`
-  - `legacyBridges.state`
-  - `behavior.stateBridge = "accordion-state"`
+- `alert` / `badge` 的 `legacyBridges.variant`
+- `table` 的 `legacyBridges.structuralRole`
+- `tabs` 的 `legacyBridges.state`
+- `accordion` 的 `legacyBridges.state`
+- `accordion.behavior.stateBridge`
 
 `packages/ahtml/src/cli/runtime-template/src/renderer/types.ts` 当前的主 spec 形状已经是：
 
 - `RendererSpecComponent`
   - 不再顶层声明 `kindProp` / `modeProp` / `defaultProp` / `defaultMode`
-  - 统一通过 `legacyBridges` 保存兼容桥
-- `RendererLegacyStateBridge`
-  - 仍正式保留 `defaultProp` / `modeProp` / `defaultMode`
+  - 也不再保留 `legacyBridges`
 - `RuntimeVerificationState.behavior`
-  - 不再直接保存 `modeProp/defaultProp/defaultMode`
-  - 改成显式 `stateBridge`
+  - 不再保留 `stateBridge`
 
-`packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx` 当前继续消费兼容桥；兼容 helper 已抽到独立 compatibility helper：
+`packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx` 当前已切到新行为来源：
 
-- `resolveTabsLegacyDefaultValue()`
-- `resolveAccordionLegacyState()`
-- `partitionTableRowsByLegacyRole()`
-- `getLegacyVariantPropMappings()`
+- `tabs`
+  - 默认选中第一个 tab
+- `accordion`
+  - 固定 `type="multiple"`
+- `table`
+  - 多行时首行作为 header
 
 当前判断：
 
-- runtime spec 顶层主路径已经切到当前结构。
-- 当前 legacy bridge 仍深入运行时行为，但它们已经收进 legacy bridge payload，而不是顶层正式 spec 成员。
+- runtime bridge metadata 和相关 helper 已退出当前实现。
+- 当前风险点已转成新固定行为是否满足边界预期。
 
 ## 5. parser / validate / sanitize 已经接受 layout primitive
 
@@ -207,7 +192,7 @@ schema-overlays.ts
 - `render-node.tsx`
   - 负责 dispatcher、文本渲染、路径/元数据/children 通用逻辑
 - `render-ui-node.tsx`
-  - 负责 UI projection、compatibility bridge、fallback、structured slot/state logic
+  - 负责 UI projection、fallback、structured slot/state logic
 - `render-layout-node.tsx`
   - 负责 layout projection
 
@@ -221,18 +206,17 @@ schema-overlays.ts
 `packages/ahtml/src/cli/runtime-template/src/app.tsx` 当前的真实边界是：
 
 - `DocumentArtifactShell`
-  - 当前输出 artifact root，并继续附带兼容 class `ahtml-document-shell`
+  - 当前输出 artifact root 与 layout policy class
   - width、padding、prose measure、`ahtml-section-stack` 和 card content 邻接规则已从单一 shell CSS 拆成 document layout policy
 - runtime host 样式
   - 由 `createRuntimeHostCss()` 提供
 - gallery shell
   - 由 `createGalleryShellCss()` 与 gallery preview surface 负责
 
-当前最准确的判断不是“document shell 已消失”，而是：
+当前最准确的判断是：
 
-- `ahtml-document-shell` 仍存在
-- 它已经与 runtime host / gallery shell 分层
-- 当前文档型排版默认值主要由 document layout policy 承载，而不是由 host 本身承载
+- artifact root / runtime host / gallery shell 已明确分层
+- 当前文档型排版默认值只由 document layout policy 承载
 - `cli.build.heavy.test.ts` / `cli.preview.heavy.test.ts` 当前主宿主断言已经切到：
   - `class="ahtml-runtime-host ahtml-runtime-document"`
 

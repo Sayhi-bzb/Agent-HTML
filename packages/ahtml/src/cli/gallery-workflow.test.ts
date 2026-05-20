@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest"
 import { importCliModule } from "./cli-test-helpers"
 
 describe("gallery workflow", () => {
-  it("creates a continuous showcase document from a style profile", async () => {
+  it("creates a component gallery document from a style profile", async () => {
     const { createStyleGalleryDocument } = await importGalleryWorkflowModule()
     const styleProfile = parseRenderConfig({
       "style-ref": "ops-compact",
@@ -21,22 +21,26 @@ describe("gallery workflow", () => {
       type: "component",
       name: "page",
       props: {
-        title: "ops-compact showcase canvas",
+        title: "ops-compact component gallery",
       },
     })
 
     const serialized = JSON.stringify(document)
 
-    expect(serialized).toContain('"title":"Feedback"')
-    expect(serialized).toContain('"title":"Content"')
-    expect(serialized).toContain('"title":"Forms"')
-    expect(serialized).toContain('"title":"Selection"')
-    expect(serialized).toContain('"title":"Disclosure"')
+    expect(serialized).toContain('"title":"Feedback Gallery"')
+    expect(serialized).toContain('"title":"Content Gallery"')
+    expect(serialized).toContain('"title":"Form Gallery"')
+    expect(serialized).toContain('"title":"Overlay Gallery"')
+    expect(serialized).toContain('"title":"Disclosure Gallery"')
+    expect(serialized).toContain('"name":"separator"')
+    expect(serialized).toContain('"name":"checkbox"')
+    expect(serialized).toContain('"name":"radio-group"')
+    expect(serialized).toContain('"name":"toggle-group"')
     expect(serialized).toContain(
       styleProfile.globalStyle.tokenSets.light.background,
     )
     expect(serialized).toContain(styleProfile.componentStyle.treatments.card)
-    expect(serialized).toContain("Showcase canvas")
+    expect(serialized).toContain("Operations review summary")
     expect(serialized).toContain("Current profile")
   })
 })

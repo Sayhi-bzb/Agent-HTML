@@ -6,7 +6,6 @@ import {
   requiredShadcnRuntimeExports,
   supportedRuntimeBase,
 } from "../config/render-capabilities.mjs"
-import { createRuntimeContractFromSchema } from "../config/runtime-contract.mjs"
 import { getCliSchemaOutput } from "./schema.mjs"
 import {
   assertBuiltArtifactCss,
@@ -110,12 +109,11 @@ export async function runDoctorCommand({
     await runDoctorCheck("runtime", "schema-renderer-parity", async () => {
       const manifest = await getManifest()
       const schema = await getCliSchemaOutput()
-      const runtimeContract = createRuntimeContractFromSchema(schema)
 
       assertSameStringSet({
         actual: manifest.renderableAgentComponents,
         actualName: "runtime manifest renderableAgentComponents",
-        expected: runtimeContract.renderableAgentComponents,
+        expected: schema.components.map((component) => component.name),
         expectedName: "schema renderableAgentComponents",
       })
 
@@ -211,15 +209,14 @@ export async function runDoctorCommand({
   checks.push(
     await runDoctorCheck("runtime", "verification-data-parity", async () => {
       const schema = await getCliSchemaOutput()
-      const runtimeContract = createRuntimeContractFromSchema(schema)
       const runtimeVerificationState =
         await readRuntimeVerificationState(runtimePaths)
 
       assertVerificationDataParity({
         actual: runtimeVerificationState.verificationData,
         actualName: "runtime verification data",
-        expected: runtimeContract.verificationData,
-        expectedName: "schema runtime contract verification data",
+        expected: schema.verificationData,
+        expectedName: "schema verification data",
       })
 
       return `${runtimeVerificationState.verificationData.components.length} verification entries`
@@ -228,15 +225,14 @@ export async function runDoctorCommand({
   checks.push(
     await runDoctorCheck("runtime", "renderer-mapping-parity", async () => {
       const schema = await getCliSchemaOutput()
-      const runtimeContract = createRuntimeContractFromSchema(schema)
       const runtimeVerificationState =
         await readRuntimeVerificationState(runtimePaths)
 
       assertRendererSpecParity({
         actual: runtimeVerificationState.rendererMapping,
         actualName: "runtime renderer verification mapping",
-        expected: runtimeContract.rendererMapping,
-        expectedName: "schema runtime contract renderer mapping",
+        expected: schema.rendererMapping,
+        expectedName: "schema renderer mapping",
       })
 
       return `${runtimeVerificationState.rendererMapping.components.length} renderer mapping entries`

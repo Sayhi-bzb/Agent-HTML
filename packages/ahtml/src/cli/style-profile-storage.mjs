@@ -12,6 +12,17 @@ export const styleProfileGeneratorKind = "ahtml-style-profile-registry"
 export const styleProfileStateKind = "ahtml-style-profile-state"
 const styleProfileIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
+export class BuiltinStyleProfileMutationError extends Error {
+  constructor(action, styleReference) {
+    super(
+      `Cannot ${action} built-in style profile "${styleReference}". Built-in style profiles are read-only.`,
+    )
+    this.name = "BuiltinStyleProfileMutationError"
+    this.action = action
+    this.styleReference = styleReference
+  }
+}
+
 export function createStyleProfileStorageManifest(paths) {
   return {
     kind: styleProfileManifestKind,
@@ -93,8 +104,11 @@ export async function createStyleProfileResolver(paths) {
 
   return (documentStyleConfigReference) =>
     documentStyleConfigReference
-      ? userProfilesById.get(documentStyleConfigReference)
-      : userProfilesById.get(currentStyleReference)
+      ? resolveStoredStyleProfileReference(
+          documentStyleConfigReference,
+          userProfilesById,
+        )
+      : resolveStoredStyleProfileReference(currentStyleReference, userProfilesById)
 }
 
 export async function resolveStyleProfileByReference(paths, styleReference) {
@@ -169,12 +183,14 @@ export async function saveUserStyleProfile(paths, profile, options = {}) {
     )
   }
 
+  if (isBuiltinStyleProfileReference(profileId)) {
+    throw new BuiltinStyleProfileMutationError("save", profileId)
+  }
+
   const parsedProfile = StyleProfileSchema.parse(profile)
-  const existingProfile = await resolveStyleProfileByReference(paths, profileId)
+  const existingProfile = (await loadUserStyleProfilesById(paths)).get(profileId)
   const exists = Boolean(existingProfile)
-  const targetPath = isBuiltinStyleProfileReference(profileId)
-    ? path.join(paths.builtinStyleProfilesDir, `${profileId}.json`)
-    : path.join(paths.userStyleProfilesDir, `${profileId}.json`)
+  const targetPath = path.join(paths.userStyleProfilesDir, `${profileId}.json`)
 
   if (exists && options.overwrite !== true) {
     throw new Error(
@@ -229,9 +245,11 @@ export async function writeCurrentStyleProfileReference(paths, styleReference) {
 }
 
 export async function deleteStyleProfile(paths, styleReference) {
-  const targetPath = isBuiltinStyleProfileReference(styleReference)
-    ? path.join(paths.builtinStyleProfilesDir, `${styleReference}.json`)
-    : path.join(paths.userStyleProfilesDir, `${styleReference}.json`)
+  if (isBuiltinStyleProfileReference(styleReference)) {
+    throw new BuiltinStyleProfileMutationError("delete", styleReference)
+  }
+
+  const targetPath = path.join(paths.userStyleProfilesDir, `${styleReference}.json`)
 
   try {
     const { unlink } = await import("node:fs/promises")
@@ -278,4 +296,16 @@ async function pathExists(filePath) {
 async function writeJsonFile(filePath, value) {
   await mkdir(path.dirname(filePath), { recursive: true })
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`)
+}
+
+function resolveStoredStyleProfileReference(styleReference, userProfilesById) {
+  if (!styleReference) {
+    return undefined
+  }
+
+  if (BUILTIN_STYLE_PROFILES_BY_REFERENCE[styleReference]) {
+    return BUILTIN_STYLE_PROFILES_BY_REFERENCE[styleReference]
+  }
+
+  return userProfilesById.get(styleReference)
 }

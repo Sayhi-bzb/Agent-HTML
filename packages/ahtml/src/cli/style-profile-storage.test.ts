@@ -61,9 +61,6 @@ describe("style profile storage", () => {
     const runtimeHome = await createRuntimeHome()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
 
-    await saveUserStyleProfile(paths, createProfile("report-default", "#0f766e"), {
-      overwrite: true,
-    })
     await writeCurrentStyleProfileReference(paths, "report-default")
 
     expect(await readCurrentStyleProfileReference(paths)).toBe("report-default")
@@ -86,6 +83,21 @@ describe("style profile storage", () => {
     await expect(
       saveUserStyleProfile(paths, createProfile("TeamOps", "#0f766e")),
     ).rejects.toThrow("style profile ids must use lowercase kebab-case")
+  })
+
+  it("rejects save and delete mutations for built-in style profiles", async () => {
+    const runtimeHome = await createRuntimeHome()
+    const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
+
+    await expect(
+      saveUserStyleProfile(paths, createProfile("report-default", "#0f766e"), {
+        overwrite: true,
+      }),
+    ).rejects.toThrow('Cannot save built-in style profile "report-default"')
+
+    await expect(deleteStyleProfile(paths, "report-default")).rejects.toThrow(
+      'Cannot delete built-in style profile "report-default"',
+    )
   })
 })
 

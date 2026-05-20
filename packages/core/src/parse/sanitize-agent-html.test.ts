@@ -606,6 +606,67 @@ describe("sanitizeAgentHtml", () => {
     })
   })
 
+  it("rejects removed compat props on components", () => {
+    const result = sanitizeAgentHtml(`
+      <page title="Compat Fields">
+        <stack>
+          <alert title="State" tone="danger">Legacy alert tone.</alert>
+          <badge tone="success">Legacy badge tone.</badge>
+          <tabs default="summary">
+            <tab value="summary" label="Summary">
+              <table>
+                <row kind="header">
+                  <cell>Name</cell>
+                </row>
+                <row>
+                  <cell>Ready</cell>
+                </row>
+              </table>
+            </tab>
+          </tabs>
+          <accordion mode="multiple" default="details">
+            <accordion-item value="details" title="Details">
+              Removed compat props should fail.
+            </accordion-item>
+          </accordion>
+        </stack>
+      </page>
+    `)
+
+    expect(result.document).toBeUndefined()
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "unknown-attr",
+          message: '"tone" is not an allowed agent-facing attribute on <alert>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message: '"tone" is not an allowed agent-facing attribute on <badge>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"default" is not an allowed agent-facing attribute on <tabs>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message: '"kind" is not an allowed agent-facing attribute on <row>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"mode" is not an allowed agent-facing attribute on <accordion>.',
+        }),
+        expect.objectContaining({
+          code: "unknown-attr",
+          message:
+            '"default" is not an allowed agent-facing attribute on <accordion>.',
+        }),
+      ]),
+    )
+  })
+
   it("accepts progress inside supported content containers", () => {
     const result = sanitizeAgentHtml(`
       <page title="Delivery Readiness">

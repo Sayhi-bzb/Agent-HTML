@@ -38,7 +38,10 @@ import {
   resolveRuntimeSetup,
   RuntimeSetupCancelledError,
 } from "./runtime-setup.mjs"
-import { bootstrapManagedRuntime, getRuntimeStatus } from "./runtime-status.mjs"
+import {
+  bootstrapManagedRuntimeWithLock,
+  getRuntimeStatus,
+} from "./runtime-status.mjs"
 import {
   parsePort,
   readJsonBody,
@@ -46,7 +49,9 @@ import {
   writeJsonResponse,
 } from "./preview-server.mjs"
 import {
+  BuiltinStyleProfileMutationError,
   deleteStyleProfile,
+  isBuiltinStyleProfileReference,
   listStyleProfileReferences,
   readCurrentStyleProfileReference,
   resolveStyleProfileByReference,
@@ -239,12 +244,12 @@ async function runSetup(options) {
   progress?.start("Preparing managed runtime...")
   let manifest
   try {
-    manifest = await bootstrapManagedRuntime({
+    manifest = await bootstrapManagedRuntimeWithLock({
       packageRoot,
       packageVersion,
       paths: runtimePaths,
-      setup,
       schema,
+      setup,
     })
     progress?.stop("Runtime ready.")
   } catch (error) {
@@ -495,6 +500,10 @@ function createGalleryRequestHandler() {
 
         if (!styleReference) {
           throw new Error("styleReference is required.")
+        }
+
+        if (isBuiltinStyleProfileReference(styleReference)) {
+          throw new BuiltinStyleProfileMutationError("create", styleReference)
         }
 
         const existingProfile = await resolveStyleProfileByReference(

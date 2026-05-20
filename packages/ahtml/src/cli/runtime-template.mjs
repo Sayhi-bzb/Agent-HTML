@@ -16,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 import { supportedRuntimeBase } from "../config/render-capabilities.mjs"
 import {
   createManagedRuntimeCapability,
-  createRuntimeContract,
+  createRuntimeContractFromSchema,
   createRuntimeVerificationState,
 } from "../config/runtime-contract.mjs"
 import {
@@ -44,7 +44,7 @@ export async function writeRuntimeTemplate({
     ? "shadcn-template-override"
     : "shadcn-official-template"
   const dependencies = resolveRuntimeDependencies(packageRoot)
-  const runtimeContract = createRuntimeContract(schema?.components)
+  const runtimeContract = createRuntimeContractFromSchema(schema)
 
   await rm(paths.runtimeDir, { force: true, recursive: true })
   await initShadcnRuntime({
@@ -109,6 +109,7 @@ export function resolveRuntimeDependencies(packageRoot) {
     reactDomRoot,
     reactDomClient: packageRequire.resolve("react-dom/client"),
     reactDomServer: packageRequire.resolve("react-dom/server"),
+    reactResizablePanelsRoot: packageRequire.resolve("react-resizable-panels"),
     baseUiReactRoot,
     classVarianceAuthorityRoot: packageRequire.resolve(
       "class-variance-authority",
@@ -246,6 +247,10 @@ async function injectRendererFiles({ paths, runtimeContract, runtimeSurface }) {
   await cp(
     path.join(rendererSourceDir, "app.tsx"),
     path.join(paths.runtimeSrcDir, "app.tsx"),
+  )
+  await cp(
+    path.join(rendererSourceDir, "gallery-preview-document.mjs"),
+    path.join(paths.runtimeSrcDir, "gallery-preview-document.mjs"),
   )
   await cp(
     path.join(rendererSourceDir, "ssr.tsx"),

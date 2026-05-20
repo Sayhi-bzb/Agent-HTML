@@ -794,6 +794,7 @@ export const requiredShadcnRuntimeComponents = [
           (module) => module.registryItem,
         ),
       )
+      .concat(["resizable", "scroll-area"])
       .filter(Boolean),
   ),
 ]

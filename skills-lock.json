@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "design-md": {
+      "source": "google-labs-code/stitch-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/stitch-utilities/skills/design-md/SKILL.md",
+      "computedHash": "44af3e6e89a42a765d9cebf943f1e2ff3cdf43d1958341eb43fb7b74116f6691"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",

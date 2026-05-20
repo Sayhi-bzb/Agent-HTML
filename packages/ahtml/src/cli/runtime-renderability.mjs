@@ -3,7 +3,6 @@ import {
   structuralAgentComponents,
   supportedRendererKinds,
 } from "../config/render-capabilities.mjs"
-import { createRuntimeContractFromSchema } from "../config/runtime-contract.mjs"
 import { readRuntimeManifest } from "./runtime-status.mjs"
 
 const rendererSpecScalarFields = [
@@ -44,6 +43,7 @@ const rendererSpecScalarFields = [
   "descriptionProp",
   "titleProp",
   "fallback",
+  "textMode",
   "itemValueProp",
   "itemHeadingProp",
   "valueProp",
@@ -90,16 +90,10 @@ export function createRuntimeRenderDiagnostics({
   schema,
 }) {
   const diagnostics = []
-  const runtimeContract =
-    Array.isArray(schema?.components) && schema.components.length > 0
-      ? createRuntimeContractFromSchema(schema)
-      : undefined
   const runtimeVerificationData = runtimeVerificationState.verificationData
-  const schemaVerificationData =
-    runtimeContract?.verificationData ?? schema?.verificationData
+  const schemaVerificationData = schema?.verificationData
   const runtimeRendererMapping = runtimeVerificationState.rendererMapping
-  const schemaRendererMapping =
-    runtimeContract?.rendererMapping ?? schema?.rendererMapping
+  const schemaRendererMapping = schema?.rendererMapping
 
   pushRuntimeCheckDiagnostic({
     actual: runtimeVerificationData,
@@ -270,6 +264,23 @@ export function assertRendererSpecParity({
       expected: (expectedComponent.slots ?? []).map((slot) => slot.name),
       expectedName: `${expectedName} ${expectedComponent.name} slots`,
     })
+
+    for (const expectedSlot of expectedComponent.slots ?? []) {
+      const actualSlot = (actualComponent.slots ?? []).find(
+        (slot) => slot.name === expectedSlot.name,
+      )
+
+      if (!actualSlot) {
+        continue
+      }
+
+      assertSameSerializedValue({
+        actual: actualSlot,
+        actualName: `${actualName} ${expectedComponent.name}.${expectedSlot.name} slot`,
+        expected: expectedSlot,
+        expectedName: `${expectedName} ${expectedComponent.name}.${expectedSlot.name} slot`,
+      })
+    }
   }
 }
 

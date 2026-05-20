@@ -1,7 +1,7 @@
-import { createRenderConfigFromStyleProfile } from "@agent-html/core"
 import path from "node:path"
 import { buildRuntimeArtifact } from "./runtime-build.mjs"
 import {
+  withRuntimeBuildLock,
   writeGeneratedDocument,
   writeGeneratedRuntimeState,
 } from "./runtime-status.mjs"
@@ -14,6 +14,7 @@ import {
 } from "./style-profile-storage.mjs"
 import { printDiagnostics, writeJsonFile } from "./cli-io.mjs"
 import { createInspection } from "./artifact-workflow.mjs"
+import { createGalleryPreviewDocument } from "./runtime-template/src/gallery-preview-document.mjs"
 
 export class StyleGalleryProfileNotFoundError extends Error {
   constructor(styleReference, availableReferences) {
@@ -88,12 +89,14 @@ export function createGalleryWorkflow({
       })
     }
 
-    await writeGeneratedDocument(document, runtimePaths)
-    await writeGeneratedRuntimeState(runtimeState, runtimePaths)
-    await buildRuntimeArtifact({
-      outputDir,
-      packageRoot,
-      paths: runtimePaths,
+    await withRuntimeBuildLock(runtimePaths, async () => {
+      await writeGeneratedDocument(document, runtimePaths)
+      await writeGeneratedRuntimeState(runtimeState, runtimePaths)
+      await buildRuntimeArtifact({
+        outputDir,
+        packageRoot,
+        paths: runtimePaths,
+      })
     })
 
     const inspection = createInspection(document)
@@ -116,98 +119,7 @@ export function createGalleryWorkflow({
 }
 
 export function createStyleGalleryDocument(styleProfile) {
-  const renderConfig = createRenderConfigFromStyleProfile(styleProfile)
-
-  return {
-    meta: renderConfig,
-    components: [
-      component("page", { title: `${styleProfile.id} showcase canvas` }, [
-        component("card", { title: "Feedback" }, [
-          component("alert", { title: "Status surfaces", variant: "default" }, [
-            text("Showcase canvas surfaces contrast and treatment changes immediately."),
-          ]),
-          component("badge", { variant: "secondary" }, [text("Current profile")]),
-          component("progress", { value: "68" }),
-        ]),
-        component("card", { title: "Content" }, [
-          text("Tables, cards, and lists are stitched together into one continuous preview."),
-          component("table", {}, [
-            row("Signal", "Value"),
-            row("font sans", styleProfile.globalStyle.typography.fontSans),
-            row("radius base", styleProfile.globalStyle.radiusScale.base),
-            row("card treatment", styleProfile.componentStyle.treatments.card ?? "none"),
-          ]),
-          component("list", {}, [
-            item("Showcase canvas"),
-            item("Current profile"),
-            item("Continuous preview"),
-          ]),
-        ]),
-        component("card", { title: "Forms" }, [
-          component("input", {
-            label: "Owner",
-            value: "Ops reviewer",
-            description: "Single-line field.",
-          }),
-          component("textarea", {
-            label: "Notes",
-            value: "Preview all components under one style id.",
-            description: "Long-form field.",
-          }),
-          component("slider", {
-            label: "Review strictness",
-            value: "70",
-            description: "Read-only numeric field.",
-          }),
-        ]),
-        component("card", { title: "Selection" }, [
-          component(
-            "select",
-            {
-              label: "Style Profile",
-              value: styleProfile.id,
-              description: "Overlay controls should inherit the active style.",
-            },
-            [
-              option(styleProfile.id, styleProfile.id, "Current profile"),
-              option("review-dense", "review-dense", "Builtin"),
-            ],
-          ),
-          component(
-            "combobox",
-            {
-              label: "Current style id",
-              value: styleProfile.id,
-              description: "Canvas should update from one selected style id.",
-            },
-            [
-              option(styleProfile.id, styleProfile.id, "Current profile"),
-              option("team-ops", "team-ops", "User profile"),
-            ],
-          ),
-        ]),
-        component("card", { title: "Disclosure" }, [
-          component("tabs", {}, [
-            component("tab", { value: "summary", label: "Summary" }, [
-              component("card", { title: "Canvas" }, [
-                text("All scenes stay on one continuous showcase surface."),
-              ]),
-            ]),
-            component("tab", { value: "details", label: "Details" }, [
-              component("accordion", {}, [
-                component("accordion-item", {
-                  value: "tokens",
-                  title: "Token strategy",
-                }, [
-                  text("Palette, radius, and typography changes should remain obvious."),
-                ]),
-              ]),
-            ]),
-          ]),
-        ]),
-      ]),
-    ],
-  }
+  return createGalleryPreviewDocument(styleProfile)
 }
 
 export function createGalleryRuntimeState({
@@ -247,47 +159,3 @@ function createGalleryResult({
   }
 }
 
-function createTokenRows(tokenSet) {
-  return Object.entries(tokenSet).map(([tokenName, tokenValue]) =>
-    bodyRow(tokenName, tokenValue),
-  )
-}
-
-function createTreatmentRows(treatments) {
-  return Object.entries(treatments)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([componentName, treatmentName]) =>
-      bodyRow(componentName, treatmentName),
-    )
-}
-
-function row(left, right) {
-  return component("row", {}, [
-    component("cell", {}, [text(left)]),
-    component("cell", {}, [text(right)]),
-  ])
-}
-
-function item(value) {
-  return component("item", {}, [text(value)])
-}
-
-function option(value, label, description) {
-  return component("option", { value, label }, [text(description)])
-}
-
-function component(name, props = {}, children = []) {
-  return {
-    type: "component",
-    name,
-    props,
-    children,
-  }
-}
-
-function text(value) {
-  return {
-    type: "text",
-    value,
-  }
-}

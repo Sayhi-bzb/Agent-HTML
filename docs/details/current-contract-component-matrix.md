@@ -13,28 +13,28 @@
 
 - `完整 authoring schema`：当前 parse / validate / sanitize 会接受的字段。
 - `最终公开 contract`：当前 CLI schema / prompt 会公开给 agent 的字段。
-- `legacy/compat bridge`：当前仍保留、但已经不是主公开入口的兼容语义字段或 runtime 兼容桥。
+- `legacy/compat bridge`：历史 compat 桥在当前代码里的现状；这份表当前应全部为 `无`。
 - `runtime bridge`：runtime 当前如何消费字段，或如何把当前字段映射到底层实现。
 - `当前判断`：对当前实现状态的直接影响，不是新规则。
 
 ## 文档与内容容器
 
-| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 当前判断 |
+| Component | 完整 authoring schema | 最终公开 contract | 历史 compat 状态 | runtime bridge | render kind | 当前判断 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `page` | `title` | `title` | 无 | `titleProp: "title"`，root 为 `article` | `compound` | 唯一根节点仍是强约束 |
-| `alert` | `title`, `tone`, `variant` | `title`, `variant` | `tone` 仍保留在 semantic compatibility layer | `legacyBridges.variant` + `variant` 直通 | `compound` | `tone` 已退出公开主路径，但兼容桥仍在 |
+| `alert` | `title`, `variant` | `title`, `variant` | 无 | `variant` 直通 | `compound` | compat `tone` 已移除 |
 | `card` | `title` | `title` | 无 | `titleProp: "title"`，`CardHeader/CardContent` 由 renderer 固定拼装 | `compound` | `size` 当前仍停留在 overlay `hiddenProps`，没有进入 raw-candidate 链 |
 | `separator` | 无 | 无 | 无 | 直接映射到 `Separator` | `primitive` | 低风险基线组件 |
-| `badge` | `tone`, `variant` | `variant` | `tone` 仍保留在 semantic compatibility layer | `legacyBridges.variant` + `variant` 直通 | `primitive` | 与 `alert` 相同，是 variant 试点 + legacy compat 样本 |
+| `badge` | `variant` | `variant` | 无 | `variant` 直通 | `primitive` | compat `tone` 已移除 |
 | `progress` | `value` | `value` | 无 | `value -> value`，并带 `determinate-progress` 行为模型 | `primitive` | 语义值直接进入 runtime 的对照组 |
-| `table` | 无 | 无 | `row.kind` 仍存在于完整 schema，但不在公开 contract | 结构由 `row` / `cell` children 决定；table 自身通过 `legacyBridges.structuralRole` 兼容旧结构角色 | `table` | table 自身无 props，风险集中在结构 child |
+| `table` | 无 | 无 | 无 | 结构由 `row` / `cell` children 决定；多行时首行固定为 header | `table` | table 自身无 props，风险集中在固定结构规则 |
 | `list` | `variant` | `variant` | 无 | `variant` 决定根标签 `ol/ul`，默认 `ul` | `collection` | 这是当前保留的公开特例，不构成任意开放原厂 `variant` 的先例 |
-| `tabs` | `default` | 无 | `default` 仍保留在完整 schema compatibility layer | `legacyBridges.state` 决定默认选中项 | `tabs` | 公开主路径已收口，但默认状态 compat 仍在 runtime |
-| `accordion` | `mode`, `default` | 无 | `mode/default` 仍保留在完整 schema compatibility layer | `legacyBridges.state` + `behavior.stateBridge` | `accordion` | runtime compat 最深的状态桥样本 |
+| `tabs` | 无 | 无 | 无 | 默认选中项固定来自第一个 `tab` | `tabs` | compat `default` 已移除 |
+| `accordion` | 无 | 无 | 无 | 固定 `type="multiple"` | `accordion` | compat `mode/default` 已移除 |
 
 ## 字段与选择控件
 
-| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 当前判断 |
+| Component | 完整 authoring schema | 最终公开 contract | 历史 compat 状态 | runtime bridge | render kind | 当前判断 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `input` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue` | `text-field` | `value` 仍是语义字段，不等于原厂受控值 |
 | `textarea` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue` | `text-field` | 与 `input` 同类 |
@@ -48,18 +48,18 @@
 
 ## 结构子节点
 
-| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 当前判断 |
+| Component | 完整 authoring schema | 最终公开 contract | 历史 compat 状态 | runtime bridge | render kind | 当前判断 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `option` | `value`, `label` | `value`, `label` | 无 | 供 `radio-group` / `toggle-group` / `select` / `combobox` slots 消费 | `structural` | 结构节点，风险主要在 parent contract |
-| `row` | `kind` | 无 | `kind` 仍保留在完整 schema compatibility layer | `table` 通过 `legacyBridges.structuralRole` 解释其结构角色 | `structural` | 结构节点也受 legacy compat 影响 |
+| `row` | 无 | 无 | 无 | 由 `table` 结构消费 | `structural` | 不再携带结构角色字段 |
 | `cell` | 无 | 无 | 无 | 由 `row` / `table` 结构消费 | `structural` | 低风险 |
 | `item` | 无 | 无 | 无 | 由 `list` 的 `itemSlot` 消费 | `structural` | 低风险 |
-| `tab` | `value`, `label` | `value`, `label` | 无 | 由 `tabs` 的 `itemValueProp` / `itemHeadingProp` 消费 | `structural` | `value` 是稳定结构标识，不等于 `tabs.default` 那类旧状态桥 |
-| `accordion-item` | `value`, `title` | `value`, `title` | 无 | 由 `accordion` 的 `itemValueProp` / `itemHeadingProp` 消费 | `structural` | 子节点结构稳定，风险集中在父节点旧状态模型 |
+| `tab` | `value`, `label` | `value`, `label` | 无 | 由 `tabs` 的 `itemValueProp` / `itemHeadingProp` 消费 | `structural` | `value` 是稳定结构标识 |
+| `accordion-item` | `value`, `title` | `value`, `title` | 无 | 由 `accordion` 的 `itemValueProp` / `itemHeadingProp` 消费 | `structural` | 子节点结构稳定 |
 
 ## layout primitive
 
-| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 当前判断 |
+| Component | 完整 authoring schema | 最终公开 contract | 历史 compat 状态 | runtime bridge | render kind | 当前判断 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `stack` | 无 | 无 | 无 | layout projection | `layout-stack` | 已进入正式 surface |
 | `cluster` | 无 | 无 | 无 | layout projection | `layout-cluster` | 已进入正式 surface |
@@ -70,7 +70,7 @@
 
 ## 当前模式汇总
 
-从当前代码看，系统同时保留四种不同模式：
+从当前代码看，系统当前保留三种不同模式：
 
 - 最终公开 contract 字段：
   - `alert.variant`
@@ -79,35 +79,28 @@
   - `label`
   - 语义 `value`
   - 语义 `checked`
-- 完整 authoring schema 中仍保留的 compatibility semantic fields：
-  - `alert.tone`
-  - `badge.tone`
-  - `row.kind`
-  - `tabs.default`
-  - `accordion.mode/default`
-- runtime compatibility bridge：
-  - `legacyBridges.variant`
-  - `legacyBridges.state`
-  - `legacyBridges.structuralRole`
-  - `behavior.stateBridge`
 - 结构节点 props：
   - `tab.value`
   - `accordion-item.value`
   - `option.value`
+- 固定 renderer 规则：
+  - `table` 首行 header
+  - `tabs` 默认首项
+  - `accordion` 固定 `multiple`
 
-这也是为什么当前更准确的总判断不是“旧字段已经完全不存在”，而是：
+这也是为什么当前更准确的总判断是：
 
-- 旧字段已经退出主公开 contract / prompt
-- 但仍作为显式 compatibility semantic layer + runtime bridge 保留
+- 旧字段已经退出当前 schema、runtime 与 renderer
+- 当前风险点已经转成固定行为规则是否稳定
 
 ## 当前使用价值
 
 这份矩阵可以直接支撑：
 
 - 当前 contract 核对
-  - 哪些东西已经退出主公开 contract
-  - 哪些东西只是退到 compatibility layer
+  - 哪些东西已经退出当前 schema
+  - 哪些行为已经固定化
 - 当前 docs 审计
   - 哪些文档若还说“当前公开 props = tone/default/kind/mode”，就是过期事实
-- 当前 compat 风险盘点
-  - 如果未来继续压缩 compatibility layer，这份矩阵能直接指出剩余桥接点
+- 当前 compat 清理核对
+  - 可以直接确认 compat bridge 已经退出当前代码

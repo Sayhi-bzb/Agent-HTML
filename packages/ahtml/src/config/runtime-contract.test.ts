@@ -100,6 +100,60 @@ describe("runtime contract", () => {
       runtimeContract.rendererMapping,
     )
   })
+
+  it("preserves schema verification and renderer snapshots instead of recomputing them", async () => {
+    const { createRuntimeContractFromSchema } = await importRuntimeContract()
+    const schema = {
+      components: [
+        {
+          name: "card",
+          description: "Card",
+          props: [],
+          allowedChildren: ["#text"],
+        },
+      ],
+      verificationData: {
+        components: [
+          {
+            name: "card",
+            renderKind: "compound",
+            props: ["title"],
+            slots: [{ name: "children", children: ["text"] }],
+          },
+        ],
+      },
+      rendererMapping: {
+        components: [
+          {
+            name: "card",
+            kind: "compound",
+            renderKind: "compound",
+            requiredRegistryItem: "card",
+            requiredExports: ["Card", "CardContent", "CardTitle"],
+            root: "Card",
+            title: "CardTitle",
+            titleProp: "title",
+            content: "CardContent",
+            childMode: "block",
+            textMode: "preformatted",
+            slots: [{ name: "children", children: ["text"] }],
+          },
+        ],
+      },
+    }
+
+    const runtimeContract = createRuntimeContractFromSchema(schema)
+
+    expect(runtimeContract.renderableAgentComponents).toEqual(["card"])
+    expect(runtimeContract.verificationData).toBe(schema.verificationData)
+    expect(runtimeContract.rendererMapping).toBe(schema.rendererMapping)
+    expect(runtimeContract.verificationData.components[0]?.props).toEqual([
+      "title",
+    ])
+    expect(
+      runtimeContract.rendererMapping.components[0]?.textMode,
+    ).toBe("preformatted")
+  })
 })
 
 async function importRuntimeContract() {
@@ -160,6 +214,55 @@ async function importRuntimeContract() {
         readonly kinds: readonly string[]
       }
     },
+    createRuntimeContractFromSchema:
+      runtimeContractModule.createRuntimeContractFromSchema as (schema: {
+        readonly components?: readonly {
+          readonly name: string
+          readonly description: string
+          readonly props: readonly unknown[]
+          readonly allowedChildren?: readonly string[]
+        }[]
+        readonly verificationData?: {
+          readonly components: readonly {
+            readonly name: string
+            readonly renderKind: string
+            readonly props: readonly string[]
+            readonly slots: readonly {
+              readonly name: string
+              readonly children: readonly string[]
+            }[]
+          }[]
+        }
+        readonly rendererMapping?: {
+          readonly components: readonly {
+            readonly name: string
+            readonly kind: string
+            readonly renderKind: string
+            readonly root: string
+            readonly title?: string
+            readonly titleProp?: string
+            readonly content?: string
+            readonly childMode?: string
+            readonly textMode?: string
+            readonly slots: readonly {
+              readonly name: string
+              readonly children: readonly string[]
+            }[]
+          }[]
+        }
+      }) => {
+        readonly renderableAgentComponents: readonly string[]
+        readonly verificationData: {
+          readonly components: readonly {
+            readonly props: readonly string[]
+          }[]
+        }
+        readonly rendererMapping: {
+          readonly components: readonly {
+            readonly textMode?: string
+          }[]
+        }
+      },
     createRuntimeVerificationState:
       runtimeContractModule.createRuntimeVerificationState as (input: {
         components: readonly string[]
