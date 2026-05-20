@@ -15,7 +15,8 @@
 当前 authoring surface 由三层组成：
 
 1. 头部配置
-   - 例如 `<meta-agent style-ref="..." />`
+   - 当前规范写法仍是 `<meta-agent style-ref="..." />`
+   - `style-ref` 在 parse / runtime 层允许 fallback，但在当前 CLI prompt 主路径里仍是规范入口
 2. 正式语义节点
    - UI 节点
    - layout 节点
@@ -86,4 +87,5 @@
 - 头部配置负责 style / document config 选择
 - 语义节点负责页面与组件关系
 - runtime host 消费语义节点和配置结果
+- 当前稳定配置结果仍主要承载 `style-ref -> styleProfile`
 - host 不再补出“页面本来就该长这样”的默认结构真相

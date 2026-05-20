@@ -145,6 +145,7 @@ export function Workbench({
                 }}
                 size="sm"
                 type="button"
+                variant="outline"
               >
                 {isRunningInspect ? "Inspecting..." : "Inspect"}
               </Button>

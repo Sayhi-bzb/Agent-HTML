@@ -9,9 +9,9 @@ import {
   assertConformanceResultMatchesFixture,
   createConformanceFixtures,
   normalizeConformanceResult,
-} from "./agent-html-conformance.mjs"
-import { assertPackBoundary } from "./package-boundaries.mjs"
-import { startShadcnTestServer } from "./shadcn-test-server.mjs"
+} from "./verify-pack/agent-html-conformance.mjs"
+import { assertPackBoundary } from "./verify-pack/package-boundaries.mjs"
+import { startShadcnTestServer } from "./verify-pack/shadcn-test-server.mjs"
 
 const execFileAsync = promisify(execFile)
 const root = process.cwd()
@@ -528,6 +528,7 @@ function getAhtmlEnv() {
     AHTML_SHADCN_TEMPLATE_DIR: path.join(
       root,
       "scripts",
+      "verify-pack",
       "shadcn-test-fixtures",
       "template",
     ),

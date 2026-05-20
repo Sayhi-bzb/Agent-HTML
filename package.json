@@ -24,7 +24,7 @@
     "knip": "knip",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:run:conformance": "vitest run scripts/agent-html-conformance.test.ts",
+    "test:run:conformance": "vitest run scripts/verify-pack/agent-html-conformance.test.ts",
     "test:run:cli-heavy:runtime": "vitest run --config vitest.heavy.config.ts packages/ahtml/src/cli/cli.runtime.heavy.test.ts",
     "test:run:cli-heavy:build": "vitest run --config vitest.heavy.config.ts packages/ahtml/src/cli/cli.build.heavy.test.ts",
     "test:run:cli-heavy:preview": "vitest run --config vitest.heavy.config.ts packages/ahtml/src/cli/cli.preview.heavy.test.ts",

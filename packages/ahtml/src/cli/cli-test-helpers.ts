@@ -18,6 +18,7 @@ export const cliPath = path.join(root, "packages", "ahtml", "bin", "ahtml.mjs")
 export const shadcnTemplateFixtureDir = path.join(
   root,
   "scripts",
+  "verify-pack",
   "shadcn-test-fixtures",
   "template",
 )
@@ -273,7 +274,9 @@ export async function importShadcnApiModule(): Promise<ShadcnApiModule> {
 
 export async function startShadcnTestServer(): Promise<ShadcnTestServer> {
   const { startShadcnTestServer: startServer } = (await import(
-    pathToFileURL(path.join(root, "scripts", "shadcn-test-server.mjs")).href
+    pathToFileURL(
+      path.join(root, "scripts", "verify-pack", "shadcn-test-server.mjs"),
+    ).href
   )) as ShadcnTestServerModule
 
   return startServer()

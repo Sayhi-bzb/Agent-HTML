@@ -23,7 +23,7 @@
 
 当前更准确的总判断是：
 
-- 风险已经不在顶层 `kindProp` / `modeProp` / `defaultProp` / `defaultMode` 主 spec
+- 风险已经不在 `RendererSpecComponent` 顶层 `kindProp` / `modeProp` / `defaultProp` / `defaultMode` 主 spec
 - 风险已经收进兼容 bridge payload、自定义状态解析和相关测试里
 
 ## 1. 当前共同模式
@@ -109,7 +109,7 @@ schema-overlays.ts
 
 `tabs.default` 已经不是公开主写法，但默认选中项的来源仍走兼容 state bridge。
 
-当前风险不在“顶层还有没有 `defaultProp` 字段”，而在：
+当前风险不在“`RendererSpecComponent` 顶层还有没有 `defaultProp` 字段”，而在：
 
 - `legacyBridges.state` 的 payload 仍定义默认状态来源
 - `render-ui-node.tsx` 仍依赖这层 bridge 计算默认 tab

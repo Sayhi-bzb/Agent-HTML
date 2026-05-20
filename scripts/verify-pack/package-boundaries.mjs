@@ -14,7 +14,7 @@ export const packageBoundaryChecks = {
       "dist/",
       "build/",
       "coverage/",
-      "scripts/shadcn-test-fixtures/",
+      "scripts/verify-pack/",
     ],
     forbiddenFiles: [
       "agent-html.config.json",

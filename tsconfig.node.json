@@ -14,5 +14,5 @@
     "packages/**/*.tsx",
     "scripts/**/*.test.ts"
   ],
-  "exclude": ["scripts/shadcn-test-fixtures/template/**/*"]
+  "exclude": ["scripts/verify-pack/shadcn-test-fixtures/template/**/*"]
 }

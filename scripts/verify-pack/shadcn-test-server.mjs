@@ -3,7 +3,7 @@ import { readdir, readFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { requiredShadcnRuntimeComponents } from "../packages/ahtml/src/config/render-capabilities.mjs"
+import { requiredShadcnRuntimeComponents } from "../../packages/ahtml/src/config/render-capabilities.mjs"
 
 const fixtureRoot = path.join(
   path.dirname(fileURLToPath(import.meta.url)),

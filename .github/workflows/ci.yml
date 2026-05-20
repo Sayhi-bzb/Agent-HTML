@@ -63,8 +63,7 @@ jobs:
               - "packages/ahtml/src/cli/**"
               - "packages/ahtml/src/config/**"
               - "packages/core/**"
-              - "scripts/shadcn-test-fixtures/**"
-              - "scripts/shadcn-test-server.mjs"
+              - "scripts/verify-pack/**"
               - "vitest.heavy.config.ts"
 
   package-verify:

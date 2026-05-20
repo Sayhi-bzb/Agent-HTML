@@ -1609,6 +1609,7 @@ export function App() {
                 }}
                 size="sm"
                 type="button"
+                variant="outline"
               >
                 {currentStageAction.label}
               </Button>

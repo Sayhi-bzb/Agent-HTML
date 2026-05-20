@@ -12,7 +12,7 @@ export default tseslint.config(
       ".gitnexus",
       ".claude",
       "docs-web",
-      "scripts/shadcn-test-fixtures",
+      "scripts/verify-pack/shadcn-test-fixtures",
     ],
   },
   js.configs.recommended,

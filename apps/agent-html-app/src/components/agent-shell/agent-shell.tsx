@@ -517,6 +517,7 @@ export function AgentShell({
             disabled={isProposalActionBusy}
             onClick={() => void onDraftProposal()}
             type="button"
+            variant="outline"
           >
             {isDraftingProposal
               ? "Drafting..."
