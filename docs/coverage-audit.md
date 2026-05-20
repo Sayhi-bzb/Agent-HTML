@@ -1,5 +1,8 @@
 # Coverage Audit
 
+> 历史资料。本文审计的是“迁移执行文档体系是否足够完整”，不再是当前主 docs 入口。
+> 当前阅读路径请先看 `docs/index.md`、`docs/reading-map.md`、`docs/roadmap.md`。
+
 本文审计当前这套调研与执行文档，回答的问题不是“下一刀改什么”，而是：
 
 - 这轮目标已经覆盖了哪些要求
@@ -61,7 +64,7 @@
 ## 覆盖矩阵
 
 | 要求 | 当前证据 | 结论 | 剩余缺口 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 调研项目代码架构 | `current-contract-audit.md`、`current-contract-component-matrix.md`、`execution-map.md`、`architecture.md` | 已覆盖 | 仍未把所有组件逐个再扩成更细 execution hotspot 索引，但主链已足够清楚 |
 | 诚实化当前状态 | `current-contract-audit.md`、`schema.md`、`syntax.md`、`layout.md`、`phase-2-design.md` 的收紧修正 | 已覆盖 | 仍依赖人工回读，而不是自动 drift check；但对文档目标来说已足够 |
 | 细化 Phase 1-5 节奏 | `roadmap.md`、`todo.md` | 已覆盖 | `Phase 1` 主要是审计型完成，已足够；无明显缺口 |

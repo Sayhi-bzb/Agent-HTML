@@ -406,19 +406,23 @@
 
 当前状态：
 
-- 这一步未完成。
-- 当前工作树只新增了 `packages/ahtml/src/cli/runtime-template/src/renderer/render-layout-node.tsx` 草稿。
-- `packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx` 还不存在。
-- `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.tsx` 仍保留大量 UI / layout / fallback / structured child extraction 细节，所以还不能算 dispatcher。
+- 这一步已经完成。
+- 当前工作树中：
+  - `packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx` 已存在并承接 UI projection
+  - `packages/ahtml/src/cli/runtime-template/src/renderer/render-layout-node.tsx` 已接线承接 layout projection
+  - `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.tsx` 已退回 dispatcher
+- focused gate 已跑过并通过：
+  - `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.test.ts`
+  - `packages/ahtml/src/config/runtime-contract.test.ts`
 
 给下一个开发者的直接入口：
 
-1. 先让 `render-node.tsx` 只保留：
-   - text node 渲染
-   - spec 查找
-   - UI / layout 分发
-2. 把现有 UI projection 连同 structured slot extraction 和 fallback 一起迁入 `render-ui-node.tsx`
-3. 让 `render-layout-node.tsx` 只承接 layout kinds，并避免继续复用以 `tabs` / `select` / `table` 为中心的 UI helper
+1. 当前下一刀不是回头重做 `4B`，而是继续 `5C` 的 doctor / heavy gate / docs 收口。
+2. 如果 `5C` 过程中出现 projection ownership 回退，再回到：
+   - `render-node.tsx`
+   - `render-ui-node.tsx`
+   - `render-layout-node.tsx`
+   复核模块边界，而不是先改 shell 或 contract。
 
 ### `4C` runtime host / document shell / gallery 边界清理
 

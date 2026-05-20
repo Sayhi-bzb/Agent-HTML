@@ -1,28 +1,13 @@
 # Reading Map
 
-本文是 `docs/` 的压缩导航页。
+本文只回答两个问题：
 
-它不重复每篇文档的细节，只回答两个问题：
+- 现在先看哪几篇
+- 哪些资料已经不该再当作当前主入口
 
-- 你现在应该先看哪一层文档
-- 你不该把哪些文档混成同一种“真相来源”
+## 现在的四层
 
-如果只想快速进入当前这轮重构，请先记住下面四层：
-
-1. 目标层
-   - 项目想变成什么
-2. 现实层
-   - 当前工作树真实长什么样
-3. 开工层
-   - 下一刀先改什么、做到哪一步该停
-4. 完工层
-   - 什么时候才算真的完成
-
-## 四层文档
-
-### 1. 目标层
-
-这层定义目标 contract 和职责边界，不等于当前代码已经做到。
+### 1. 架构层
 
 先看：
 
@@ -33,167 +18,86 @@
 
 回答的问题：
 
-- 配置层、语义层、renderer、runtime host 应该怎么分工
-- prop exposure 的目标机制是什么
-- layout primitive 的目标边界是什么
-- syntax 的目标 surface 是什么
-
-不要误读：
-
-- 这层描述的是目标方向和保守边界
-- 不是当前代码事实表
+- 配置层、语义层、renderer、runtime host 现在按什么边界解释
+- 哪些公开能力是稳定的
+- 哪些实现参数仍留在配置层或内部层
 
 ### 2. 现实层
-
-这层定义当前工作树真实状态，是后续所有 phase 的落地基线。
 
 先看：
 
 - `docs/details/current-contract-audit.md`
 - `docs/details/current-contract-component-matrix.md`
-- `docs/architecture/execution-map.md`
-
-必要时补看：
-
-- `docs/components.md`
-- `docs/details/component-details.md`
+- `docs/details/high-risk-runtime-bridges.md`
 
 回答的问题：
 
 - 当前 public contract 真正从哪里生成
-- 哪些旧字段还在主路径上
-- 哪些 runtime bridge 还没退出
-- 当前代码链路和测试闸口分别落在哪
+- 哪些旧兼容桥还在
+- 哪些 heavy gate 仍在保护这些桥
 
-不要误读：
-
-- 这层不是目标设计
-- 这层也不直接告诉你“下一刀怎么切”
-
-### 3. 开工层
-
-这层定义阶段顺序、切片顺序和每刀的入口文件与停手边界。
+### 3. 收尾层
 
 先看：
 
 - `docs/roadmap.md`
-- `docs/architecture/implementation-slices.md`
-- `docs/architecture/execution-checklist.md`
-
-按 phase 深入：
-
-- `docs/architecture/phase-2-design.md`
-- `docs/architecture/phase-2-implementation-draft.md`
-- `docs/architecture/phase-3-implementation-draft.md`
-- `docs/architecture/phase-4-implementation-draft.md`
-- `docs/architecture/phase-5-implementation-draft.md`
-
-补充：
-
 - `docs/todo.md`
+- `docs/phase-5-completion-proof.md`
 
 回答的问题：
 
-- 当前应该先做哪个 phase / slice
-- 这一刀先改哪些文件
-- 这一刀不要混入什么
-- 跑哪个最窄 gate 才够
+- 已完成的阶段现在怎么验收描述
+- `Phase 5` 为什么已经可以正式视为完成
+- 还剩哪些 post-phase cleanup 欠账
 
-不要误读：
+### 4. 历史层
 
-- `todo.md` 不是架构结论文档
-- `execution-checklist.md` 不是阶段完成证明
+只在需要追溯时看：
 
-### 4. 完工层
-
-这层定义“什么时候才算完成”，防止把局部进展说成 phase 完成。
-
-先看：
-
-- `docs/architecture/phase-completion-criteria.md`
+- `docs/history.md`
 
 回答的问题：
 
-- 每个 phase 的最低完成证据是什么
-- 哪些测试至少要过
-- 哪些看起来像进展但其实不够
+- 当时为什么按 `Phase 2-5` 拆
+- 某个切片卡或 issue 草稿当时怎么写
+- 某条兼容桥最初是怎么迁移设计的
 
-不要误读：
+## 最短路径
 
-- 这层不是开工清单
-- 它是完成声明的最低证据要求
-
-## 三条最短阅读路径
-
-### 路径 A：第一次接手这轮重构
-
-按这个顺序读：
+### 路径 A：要判断现在项目到哪了
 
 1. `docs/reading-map.md`
-2. `docs/architecture/architecture.md`
+2. `docs/roadmap.md`
+3. `docs/todo.md`
+4. `docs/phase-5-completion-proof.md`
+5. `docs/details/current-contract-audit.md`
+6. `docs/details/high-risk-runtime-bridges.md`
+
+### 路径 B：要改实现但不想背迁移文档
+
+1. `docs/architecture/architecture.md`
+2. `docs/architecture/schema.md`
 3. `docs/details/current-contract-audit.md`
-4. `docs/roadmap.md`
-5. 对应 phase 的 implementation draft
-6. `docs/architecture/execution-checklist.md`
+4. `docs/details/current-contract-component-matrix.md`
+5. `docs/roadmap.md`
 
-适合：
+### 路径 C：要追溯历史决策
 
-- 刚接手这轮架构收口的人
-- 需要先建立全局图，再落到当前 phase 的人
+1. `docs/history.md`
+2. 对应 `phase-*` implementation draft
+3. 对应 `slice-*` execution card 或 issue draft
 
-### 路径 B：已经知道 phase，只想开工
+## 不再作为主入口的资料
 
-按这个顺序读：
+以下资料仍可追溯，但不再是默认阅读路径：
 
-1. `docs/roadmap.md`
-2. 对应 phase 的 implementation draft
-3. `docs/architecture/implementation-slices.md`
-4. `docs/architecture/execution-checklist.md`
-5. 必要时回看 `docs/architecture/execution-map.md`
+- `phase-*-implementation-draft.md`
+- `implementation-slices.md`
+- `execution-checklist.md`
+- `phase-completion-criteria.md`
+- `slice-*-execution-card.md`
+- `slice-*-issue-draft.md`
+- `coverage-audit.md`
+- `tabs/accordion/table migration card`
 
-适合：
-
-- 已经知道自己要做 `Phase 2/3/4/5`
-- 只想知道下一刀入口文件和 gate 的人
-
-### 路径 C：要审核“某个 phase 已完成”这句话
-
-按这个顺序读：
-
-1. `docs/architecture/phase-completion-criteria.md`
-2. 对应 phase 的 implementation draft
-3. `docs/architecture/execution-checklist.md`
-4. 当前代码和对应测试入口
-
-适合：
-
-- 做收尾审计
-- 判断“完成”是不是只是文档口头完成
-
-## 最容易混淆的几组文档
-
-- `architecture.md` vs `current-contract-audit.md`
-  - 前者讲目标分层
-  - 后者讲当前代码现实
-
-- `roadmap.md` vs `implementation-slices.md`
-  - 前者讲阶段节奏
-  - 后者讲切片顺序
-
-- `execution-checklist.md` vs `phase-completion-criteria.md`
-  - 前者讲怎么开工和何时停手
-  - 后者讲什么时候才算完成
-
-- `todo.md` vs 以上所有文档
-  - `todo.md` 只是当前待办清单
-  - 不负责定义目标、现实或完成标准
-
-## 当前推荐入口
-
-如果只能先读 5 篇，当前最划算的是：
-
-1. `docs/reading-map.md`
-2. `docs/details/current-contract-audit.md`
-3. `docs/roadmap.md`
-4. `docs/architecture/execution-checklist.md`
-5. 当前 phase 对应的 implementation draft
+如果只是判断当前现实或剩余收尾，不要先读这些。

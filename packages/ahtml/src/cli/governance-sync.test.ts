@@ -1,11 +1,9 @@
 /// <reference types="node" />
 // @vitest-environment node
 
-import { readFile } from "node:fs/promises"
-import path from "node:path"
-import { pathToFileURL } from "node:url"
-
 import { describe, expect, it } from "vitest"
+
+import { importCliModule, readRepoSource } from "./cli-test-helpers"
 
 const coreBoundaryEntrypoints = [
   "packages/ahtml/src/cli/schema.mjs",
@@ -29,10 +27,7 @@ const forbiddenCoreBoundaryPatterns = [
 describe("code governance sync blocks", () => {
   it("keeps schema and validate on the published core boundary", async () => {
     for (const relativePath of coreBoundaryEntrypoints) {
-      const source = await readFile(
-        path.join(process.cwd(), relativePath),
-        "utf8",
-      )
+      const source = await readRepoSource(relativePath)
 
       expect(source).toContain("@agent-html/core")
       expect(source).not.toContain("../config/internal-core-bridge.mjs")
@@ -46,24 +41,13 @@ describe("code governance sync blocks", () => {
   })
 
   it("keeps managed runtime logic out of project-local scaffold mode", async () => {
-    const commandModule = (await import(
-      pathToFileURL(
-        path.join(
-          process.cwd(),
-          "packages",
-          "ahtml",
-          "src",
-          "cli",
-          "command-contract.mjs",
-        ),
-      ).href
-    )) as {
+    const commandModule = await importCliModule<{
       readonly commandMetadata: Record<string, { readonly usage: string }>
-    }
+    }>("command-contract.mjs")
     const managedRuntimeSource = (
       await Promise.all(
         managedRuntimeSourcePaths.map((relativePath) =>
-          readFile(path.join(process.cwd(), relativePath), "utf8"),
+          readRepoSource(relativePath),
         ),
       )
     ).join("\n")
@@ -90,9 +74,7 @@ describe("code governance sync blocks", () => {
     ]
     const publicDocsSource = (
       await Promise.all(
-        publicDocsPaths.map((relativePath) =>
-          readFile(path.join(process.cwd(), relativePath), "utf8"),
-        ),
+        publicDocsPaths.map((relativePath) => readRepoSource(relativePath)),
       )
     ).join("\n")
 
@@ -105,7 +87,7 @@ describe("code governance sync blocks", () => {
     const runtimeModuleSource = (
       await Promise.all(
         managedRuntimeSourcePaths.map((relativePath) =>
-          readFile(path.join(process.cwd(), relativePath), "utf8"),
+          readRepoSource(relativePath),
         ),
       )
     ).join("\n")

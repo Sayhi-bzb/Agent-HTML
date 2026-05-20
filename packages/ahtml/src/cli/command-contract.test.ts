@@ -1,10 +1,9 @@
 /// <reference types="node" />
 // @vitest-environment node
 
-import path from "node:path"
-import { pathToFileURL } from "node:url"
-
 import { describe, expect, it } from "vitest"
+
+import { importCliModule } from "./cli-test-helpers"
 
 describe("command contract", () => {
   it("defines shared formats for commands that expose --format", async () => {
@@ -39,18 +38,7 @@ describe("command contract", () => {
 })
 
 async function importCommandContract() {
-  const moduleUrl = pathToFileURL(
-    path.join(
-      process.cwd(),
-      "packages",
-      "ahtml",
-      "src",
-      "cli",
-      "command-contract.mjs",
-    ),
-  ).href
-
-  return import(moduleUrl) as Promise<{
+  return importCliModule<{
     readonly commandMetadata: {
       readonly prompt: {
         readonly formats?: {
@@ -88,5 +76,5 @@ async function importCommandContract() {
       },
       value: string | undefined,
     ) => string
-  }>
+  }>("command-contract.mjs")
 }

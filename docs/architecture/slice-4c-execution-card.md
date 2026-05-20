@@ -76,7 +76,7 @@
   - `packages/ahtml/src/cli/runtime-surface.test.ts`
     - 锁 surface completeness / glue proof / shell 相关断言
   - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
-    - 仍直接断言 `class="ahtml-document-shell"`
+    - 当前主宿主断言已切到 `class="ahtml-runtime-host ahtml-runtime-document"`
 - 对应审计文档:
   - `docs/architecture/execution-checklist.md`
   - `docs/architecture/phase-4-implementation-draft.md`

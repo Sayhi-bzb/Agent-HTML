@@ -213,13 +213,8 @@ export type RendererSpecComponent = {
   labelProp?: string
   descriptionProp?: string
   titleProp?: string
-  defaultProp?: string
   fallback?: boolean
   mode?: string
-  modeProp?: string
-  defaultMode?: string
-  headerKind?: string
-  kindProp?: string
   itemValueProp?: string
   itemHeadingProp?: string
   valueProp?: string
@@ -241,9 +236,7 @@ export type RuntimeVerificationState = {
         runtimeOwner: string
         forwardedProps?: string[]
         visualStateProp?: string
-        modeProp?: string
-        defaultProp?: string
-        defaultMode?: string
+        stateBridge?: string
         multiValueDelimiter?: string
       }
       slots?: RendererSlot[]

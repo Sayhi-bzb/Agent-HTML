@@ -1,5 +1,8 @@
 # Table Migration Card
 
+> 历史资料。本文记录的是迁移执行期对 `table` 兼容桥的拆分方式，不再是当前主 docs 入口。
+> 当前现实说明请优先看 `docs/details/high-risk-runtime-bridges.md`。
+
 本文只聚焦 `table` 这一个高风险样本。
 
 它不解释全局架构，也不重复组件资料。它只回答更具体的执行问题：
@@ -57,7 +60,7 @@ schema-overlays.ts
   - `renderTableComponent()` 直接读取 `kindProp`
   - 按 `row.props[kindProp] === headerKind` 分流 header rows 和 body rows
 - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
-  - 两个 build 场景仍直接使用 `<row kind="header">`
+  - happy-path build 场景已切到标准 `<table><row>...`，不再把 `<row kind="header">` 当主路径输入
 
 ## 2. 为什么 `table` 比看起来更危险
 
@@ -88,7 +91,7 @@ schema-overlays.ts
 目前可以诚实确认的是：
 
 - heavy build fixture 继续使用 `<row kind="header">`
-  - 是
+  - 否，happy-path 已切到标准 `<table><row>...`
 - `render-node.tsx` 明确按 `kindProp` 分流 header/body
   - 是
 - `render-node.test.ts` 有专门断言 table header/body 分流
@@ -120,7 +123,7 @@ schema-overlays.ts
   - `renderTableComponent()`
   - `renderTableRow()`
 - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
-  - 两个 build 场景里的 `<row kind="header">`
+  - 当前更该关注的是：happy-path 已切到标准 table 输入，但 artifact 级 header/body 结构断言仍偏弱
 
 如果没有替代路径就删这些点，table 仍然也许能 render 出一些行，但 header/body 结构语义会先变得不可解释。
 
@@ -236,7 +239,7 @@ schema-overlays.ts
 - `render-node.test.ts`
   - 需要增加 focused table 结构断言，明确证明 header/body 仍正确分流
 - `cli.build.heavy.test.ts`
-  - 不能继续只证明 table 出现在 artifact 里
+  - happy-path fixture 已切到标准 `<table><row>...` authoring，但仍不能只证明 table 出现在 artifact 里
 - docs
   - 不能继续把 `row.kind` 写成当前主路径事实
 

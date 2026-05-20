@@ -115,13 +115,19 @@ export async function startShadcnTestServer() {
 
 async function loadFixtures() {
   const componentsDir = path.join(fixtureRoot, "components", "ui")
+  const templateViteAppDir = path.join(
+    fixtureRoot,
+    "template",
+    "shadcn-template",
+    "vite-app",
+  )
   const componentNames = (await readdir(componentsDir))
     .filter((name) => name.endsWith(".tsx"))
     .map((name) => name.replace(/\.tsx$/, ""))
     .sort()
   const [baseCss, utilsSource, componentEntries] = await Promise.all([
     readFile(path.join(fixtureRoot, "base", "index.css"), "utf8"),
-    readFile(path.join(fixtureRoot, "lib", "utils.ts"), "utf8"),
+    readFile(path.join(templateViteAppDir, "src", "lib", "utils.ts"), "utf8"),
     Promise.all(
       componentNames.map(async (name) => [
         name,

@@ -1,98 +1,113 @@
 # Current Contract Component Matrix
 
-本文把当前 public contract 审计继续细化到组件级别。
+本文把当前 contract 审计继续细化到组件级别。
 
 它只描述当前工作树事实，不提前替未来重构做决定。所有字段都来自当前代码：
 
 - `packages/core/src/schema-overlays.ts`
 - `packages/core/src/generated/component-schema.generated.ts`
+- `packages/core/src/public-agent-contract.ts`
 - `packages/ahtml/src/config/component-capabilities.mjs`
 
 ## 读法
 
-- `当前公开 props`：当前 schema / prompt 会看到的 props。
-- `历史包装 props`：当前仍公开、但 roadmap 目标中应逐步退出主 contract 的字段。
-- `hiddenProps`：overlay 当前隐藏的原厂 prop。
-- `runtime bridge`：runtime 当前如何消费公开 props，或如何把公开 props/内部默认值映射到底层实现。
-- `阶段含义`：对 Phase 1/2/3/4 的直接影响，不是新规则。
+- `完整 authoring schema`：当前 parse / validate / sanitize 会接受的字段。
+- `最终公开 contract`：当前 CLI schema / prompt 会公开给 agent 的字段。
+- `legacy/compat bridge`：当前仍保留、但已经不是主公开入口的旧语义字段或 runtime 兼容桥。
+- `runtime bridge`：runtime 当前如何消费字段，或如何把当前字段映射到底层实现。
+- `阶段含义`：对当前收口工作的直接影响，不是新规则。
 
 ## 文档与内容容器
 
-| Component | 当前公开 props | 历史包装 props | hiddenProps | runtime bridge | render kind | 阶段含义 |
+| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 阶段含义 |
 |---|---|---|---|---|---|---|
-| `page` | `title` | 无 | 无 | `titleProp: "title"`，root 为 `article`，默认 `grid gap-5` 文档布局 | `compound` | 仍是唯一根节点，且 runtime 默认按文档页排版；layout 落地前是强约束 |
-| `alert` | `title`, `tone` | `tone` | `variant` | `tone -> variant` (`danger -> destructive`, `neutral -> default`) | `compound` | `tone` 是典型旧包装字段，Phase 2/4 都要处理 |
-| `card` | `title` | 无 | `size` | `titleProp: "title"`，`CardHeader/CardContent` 由 renderer 固定拼装 | `compound` | `size` 已被隐藏但当前未进入 runtime bridge，适合作为后续 exposure-state 对照样本 |
+| `page` | `title` | `title` | 无 | `titleProp: "title"`，root 为 `article` | `compound` | 唯一根节点仍是强约束 |
+| `alert` | `title`, `tone`, `variant` | `title`, `variant` | `tone` 仍保留在 semantic compatibility layer | `legacyBridges.variant` + `variant` 直通 | `compound` | `tone` 已退出公开主路径，但兼容桥仍在 |
+| `card` | `title` | `title` | 无 | `titleProp: "title"`，`CardHeader/CardContent` 由 renderer 固定拼装 | `compound` | `size` 仍保持隐藏 raw candidate |
 | `separator` | 无 | 无 | 无 | 直接映射到 `Separator` | `primitive` | 低风险基线组件 |
-| `badge` | `tone` | `tone` | `variant` | `tone -> variant` (`danger/neutral/success/warning`) | `primitive` | 和 `alert` 一样，说明旧包装字段不只存在一处 |
-| `progress` | `value` | 无 | 无 | `value -> value`，并带 `determinate-progress` 行为模型 | `primitive` | 是“公开语义值直接进入 runtime”的对照组 |
-| `table` | 无 | 无 | 无 | 结构由 `row`/`cell` children 决定 | `table` | 表格自身不暴露 props，但对子节点 `row.kind` 有依赖 |
-| `list` | `variant` | 无 | 无 | `variant` 决定根标签 `ol/ul`，默认 `ul` | `collection` | 当前 `variant` 是公开特例，不应被误当成“所有原厂 variant 都能放开”的先例 |
-| `tabs` | `default` | `default` | `defaultValue`, `value` | `attrAliases.default -> "default-value"`；`defaultProp: "default"`；默认项由 renderer 计算 | `tabs` | 是旧字段已进入 schema、uiProtocol、renderer spec、render function 的完整样本 |
-| `accordion` | `mode`, `default` | `mode`, `default` | `type`, `collapsible`, `defaultValue`, `value` | `modeProp: "mode"`、`defaultProp: "default"`、`defaultMode: "multiple"` | `accordion` | 旧 contract 穿透最深的组件之一；Phase 2 改 schema 后，Phase 4 还要清 runtime |
+| `badge` | `tone`, `variant` | `variant` | `tone` 仍保留在 semantic compatibility layer | `legacyBridges.variant` + `variant` 直通 | `primitive` | 与 `alert` 相同，是 variant 试点 + legacy compat 样本 |
+| `progress` | `value` | `value` | 无 | `value -> value`，并带 `determinate-progress` 行为模型 | `primitive` | 语义值直接进入 runtime 的对照组 |
+| `table` | 无 | 无 | `row.kind` 仍存在于完整 schema，但不在公开 contract | 结构由 `row` / `cell` children 决定；table 自身通过 `legacyBridges.structuralRole` 兼容旧结构角色 | `table` | table 自身无 props，风险集中在结构 child |
+| `list` | `variant` | `variant` | 无 | `variant` 决定根标签 `ol/ul`，默认 `ul` | `collection` | 这是历史公开例外，不构成任意开放原厂 `variant` 的先例 |
+| `tabs` | `default` | 无 | `default` 仍保留在完整 schema compatibility layer | `legacyBridges.state` 决定默认选中项 | `tabs` | 公开主路径已收口，但默认状态 compat 仍在 runtime |
+| `accordion` | `mode`, `default` | 无 | `mode/default` 仍保留在完整 schema compatibility layer | `legacyBridges.state` + `behavior.stateBridge` | `accordion` | runtime compat 最深的状态桥样本 |
 
 ## 字段与选择控件
 
-| Component | 当前公开 props | 历史包装 props | hiddenProps | runtime bridge | render kind | 阶段含义 |
+| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 阶段含义 |
 |---|---|---|---|---|---|---|
-| `input` | `label`, `value`, `description` | 无 | `defaultValue`, `placeholder`, `type` | `value -> defaultValue` | `text-field` | 公开 `value` 实际代表初始值，Phase 2 需要把“语义字段”和原厂受控值语义分开描述 |
-| `textarea` | `label`, `value`, `description` | 无 | `defaultValue`, `placeholder` | `value -> defaultValue` | `text-field` | 与 `input` 同类 |
-| `checkbox` | `label`, `checked`, `description` | 无 | `defaultChecked` | `checked -> defaultChecked` | `toggle-field` | 公开 `checked` 是语义字段，不等于原厂受控 `checked` |
-| `switch` | `label`, `checked`, `description` | 无 | `defaultChecked` | `checked -> defaultChecked` | `toggle-field` | 与 `checkbox` 同类 |
-| `slider` | `label`, `value`, `description` | 无 | `defaultValue`, `max`, `min`, `step` | `value -> defaultValue`（number-array），同时有 `visualStateProp: "value"` | `slider-field` | 公开 `value` 同时参与初始值和视觉状态，是后续 contract 收口时的重点样本 |
-| `radio-group` | `label`, `value`, `description` | 无 | `defaultValue` | `value -> defaultValue` | `choice-group` | 语义 `value` 当前主要表示初始选中项 |
-| `toggle-group` | `label`, `value`, `description` | 无 | `defaultValue`, `type`, `variant`, `size`, `spacing` | `value -> defaultValue`，并强制 `type: "single"` | `choice-inline` | 当前把多个原厂实现参数收在内部，适合作为 exposure-state 边界样本 |
-| `select` | `label`, `value`, `description` | 无 | `defaultValue`, `open`, `dir`, `name`, `disabled`, `required` | `value -> defaultValue`，并带 noscript fallback | `select-overlay` | overlay 已隐藏大量运行时控制面，但公开 `value` 仍走旧“初始值”路径 |
-| `combobox` | `label`, `value`, `description` | 无 | `defaultValue`, `disabled`, `list`, `placeholder`, `required` | `node.props.value` 直接参与默认选项匹配；fallback 也读当前 `value` | `combobox-input` | 不是通过 `propMappings`，而是 renderer 直接解释公开 `value`；重构时要单独处理 |
+| `input` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue` | `text-field` | `value` 仍是语义字段，不等于原厂受控值 |
+| `textarea` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue` | `text-field` | 与 `input` 同类 |
+| `checkbox` | `label`, `checked`, `description` | `label`, `checked`, `description` | 无 | `checked -> defaultChecked` | `toggle-field` | 语义 `checked` 与原厂受控 `checked` 已分离 |
+| `switch` | `label`, `checked`, `description` | `label`, `checked`, `description` | 无 | `checked -> defaultChecked` | `toggle-field` | 与 `checkbox` 同类 |
+| `slider` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue`，同时有 `visualStateProp: "value"` | `slider-field` | 语义值同时参与初始值和视觉状态 |
+| `radio-group` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue` | `choice-group` | 当前语义 `value` 主要表示初始选中项 |
+| `toggle-group` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue`，并强制 `type: "single"` | `choice-inline` | 多个原厂实现参数仍收在内部 |
+| `select` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | `value -> defaultValue`，并带 noscript fallback | `select-overlay` | 大量运行时控制面仍保持隐藏 |
+| `combobox` | `label`, `value`, `description` | `label`, `value`, `description` | 无 | renderer 直接解释公开 `value` 做默认选项匹配 | `combobox-input` | 不是 `propMappings`，而是 renderer 直接解释语义值 |
 
 ## 结构子节点
 
-| Component | 当前公开 props | 历史包装 props | hiddenProps | runtime bridge | render kind | 阶段含义 |
+| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 阶段含义 |
 |---|---|---|---|---|---|---|
-| `option` | `value`, `label` | 无 | 无 | 供 `radio-group` / `toggle-group` / `select` / `combobox` slots 消费 | `structural` | 结构节点，主要风险在 parent contract 而不是自身 props |
-| `row` | `kind` | `kind` | 无 | `kindProp: "kind"` 决定进入 header 还是 body | `structural` | 是结构节点也带旧包装字段，说明“结构 child”也受旧 contract 影响 |
-| `cell` | 无 | 无 | 无 | 由 `row`/`table` 结构消费 | `structural` | 低风险 |
+| `option` | `value`, `label` | `value`, `label` | 无 | 供 `radio-group` / `toggle-group` / `select` / `combobox` slots 消费 | `structural` | 结构节点，风险主要在 parent contract |
+| `row` | `kind` | 无 | `kind` 仍保留在完整 schema compatibility layer | `table` 通过 `legacyBridges.structuralRole` 解释其结构角色 | `structural` | 结构节点也受 legacy compat 影响 |
+| `cell` | 无 | 无 | 无 | 由 `row` / `table` 结构消费 | `structural` | 低风险 |
 | `item` | 无 | 无 | 无 | 由 `list` 的 `itemSlot` 消费 | `structural` | 低风险 |
-| `tab` | `value`, `label` | 无 | `value` | 由 `tabs` 的 `itemValueProp` / `itemHeadingProp` 消费 | `structural` | 子节点 `value` 是必须保留的稳定结构标识，不应和 `tabs.default` 混为一类 |
-| `accordion-item` | `value`, `title` | 无 | `value` | 由 `accordion` 的 `itemValueProp` / `itemHeadingProp` 消费 | `structural` | 子节点结构稳定，父节点 `mode/default` 才是旧包装债务核心 |
+| `tab` | `value`, `label` | `value`, `label` | 无 | 由 `tabs` 的 `itemValueProp` / `itemHeadingProp` 消费 | `structural` | `value` 是稳定结构标识，不等于 `tabs.default` 那类旧状态桥 |
+| `accordion-item` | `value`, `title` | `value`, `title` | 无 | 由 `accordion` 的 `itemValueProp` / `itemHeadingProp` 消费 | `structural` | 子节点结构稳定，风险集中在父节点旧状态模型 |
+
+## layout primitive
+
+| Component | 完整 authoring schema | 最终公开 contract | legacy/compat bridge | runtime bridge | render kind | 阶段含义 |
+|---|---|---|---|---|---|---|
+| `stack` | 无 | 无 | 无 | layout projection | `layout-stack` | 已进入正式 surface |
+| `cluster` | 无 | 无 | 无 | layout projection | `layout-cluster` | 已进入正式 surface |
+| `split` | 无 | 无 | 无 | layout projection | `layout-split` | 当前仍保持零 props |
+| `grid` | 无 | 无 | 无 | layout projection | `layout-grid` | 当前仍保持零 props |
+| `switcher` | 无 | 无 | 无 | layout projection | `layout-switcher` | 当前仍保持零 props |
+| `frame` | 无 | 无 | 无 | layout projection | `layout-frame` | 当前仍保持零 props |
 
 ## 当前模式汇总
 
-从组件级事实看，当前系统有四种并行模式：
+从当前代码看，系统同时保留四种不同模式：
 
-- 纯内容字段：
-  - `page.title`
-  - `card.title`
-  - `option.label`
-- 语义字段映射到原厂初始值：
-  - `input.value -> defaultValue`
-  - `checkbox.checked -> defaultChecked`
-  - `select.value -> defaultValue`
-- 历史包装字段映射到底层实现：
-  - `alert.tone -> variant`
-  - `badge.tone -> variant`
-  - `row.kind -> header/body`
-  - `tabs.default -> defaultValue`
-  - `accordion.mode/default -> type/defaultValue`
+- 最终公开 contract 字段：
+  - `alert.variant`
+  - `badge.variant`
+  - `title`
+  - `label`
+  - 语义 `value`
+  - 语义 `checked`
+- 完整 authoring schema 中仍保留的 compatibility semantic fields：
+  - `alert.tone`
+  - `badge.tone`
+  - `row.kind`
+  - `tabs.default`
+  - `accordion.mode/default`
+- runtime compatibility bridge：
+  - `legacyBridges.variant`
+  - `legacyBridges.state`
+  - `legacyBridges.structuralRole`
+  - `behavior.stateBridge`
 - 结构节点 props：
   - `tab.value`
   - `accordion-item.value`
   - `option.value`
 
-这也是为什么 Phase 2 不能只做“blocked/raw-candidate 接线”：
+这也是为什么当前更准确的总判断不是“旧字段已经完全不存在”，而是：
 
-- 先要把内容字段、结构字段、历史包装字段、原厂 prop 暴露规则分开。
+- 旧字段已经退出主公开 contract / prompt
+- 但仍作为显式 compatibility semantic layer + runtime bridge 保留
 
 ## 对下一步工作的直接帮助
 
 这份矩阵可以直接支撑：
 
-- Phase 1
-  - 组件级 public contract 事实表
-  - 旧字段位置盘点
-- Phase 2
-  - 首批试点组件选择
-  - 哪些字段可以直接迁到 exposure-state
-  - 哪些字段需要保留短期兼容桥
-- Phase 4
-  - 哪些 runtime kind 仍然直接解释旧字段
+- `Phase 5` 总验收
+  - 哪些东西已经退出主公开 contract
+  - 哪些东西只是退到 compatibility layer
+- 后续 docs 审计
+  - 哪些文档若还说“当前公开 props = tone/default/kind/mode”，就是过期事实
+- 后续真正的 compat 清理
+  - 如果未来要继续压缩 compatibility layer，这份矩阵能直接指出剩余桥接点

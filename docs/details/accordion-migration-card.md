@@ -1,5 +1,8 @@
 # Accordion Migration Card
 
+> 历史资料。本文记录的是迁移执行期对 `accordion` 兼容桥的拆分方式，不再是当前主 docs 入口。
+> 当前现实说明请优先看 `docs/details/high-risk-runtime-bridges.md`。
+
 本文只聚焦 `accordion` 这一个高风险样本。
 
 它不是组件说明书，也不是全局架构文档。它只回答更具体的执行问题：

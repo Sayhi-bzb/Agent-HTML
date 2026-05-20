@@ -606,6 +606,14 @@ async function createRuntimeFixture({
     "export function createRendererNode() { return null }\n",
   )
   await writeFile(
+    path.join(runtimePaths.runtimeSrcDir, "renderer", "render-layout-node.tsx"),
+    "export function createLayoutRenderer() { return {} }\n",
+  )
+  await writeFile(
+    path.join(runtimePaths.runtimeSrcDir, "renderer", "render-ui-node.tsx"),
+    "export function createUiRenderer() { return {} }\n",
+  )
+  await writeFile(
     path.join(runtimePaths.runtimeSrcDir, "renderer", "types.ts"),
     "export type RendererSpecComponent = {}\n",
   )

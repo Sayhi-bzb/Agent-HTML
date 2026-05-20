@@ -1,7 +1,7 @@
 /// <reference types="node" />
 // @vitest-environment node
 
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises"
+import { mkdtemp, readFile, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
@@ -22,6 +22,8 @@ import {
   root,
   useShadcnCliHarness,
   validAgentHtmlFixtures,
+  writeCurrentStyleProfileState,
+  writeCustomStyleProfile,
 } from "./cli-test-helpers"
 
 const { runCliWithServer } = useShadcnCliHarness()
@@ -41,8 +43,15 @@ describe("agent-html CLI contracts", () => {
     expect(prompt).toContain(
       "badge(variant?=default|secondary|destructive|outline|ghost|link)",
     )
+    expect(prompt).toContain("tabs -> tab")
+    expect(prompt).toContain("row -> cell")
+    expect(prompt).toContain("accordion -> accordion-item")
     expect(prompt).not.toContain("alert(title? tone?")
     expect(prompt).not.toContain("badge(tone?")
+    expect(prompt).not.toContain("tabs(default?")
+    expect(prompt).not.toContain("row(kind?")
+    expect(prompt).not.toContain("accordion(mode?")
+    expect(prompt).not.toContain("default?")
   })
 
   it("prints global and command help for the managed runtime workflow", async () => {
@@ -85,6 +94,9 @@ describe("agent-html CLI contracts", () => {
     const serializedComponents = JSON.stringify(schema.components)
     const alert = schema.components.find((item) => item.name === "alert")
     const badge = schema.components.find((item) => item.name === "badge")
+    const row = schema.components.find((item) => item.name === "row")
+    const tabs = schema.components.find((item) => item.name === "tabs")
+    const accordion = schema.components.find((item) => item.name === "accordion")
     const select = schema.components.find((item) => item.name === "select")
 
     expect(schema.kind).toBe("agent-html-cli-schema")
@@ -135,6 +147,9 @@ describe("agent-html CLI contracts", () => {
     expect(serializedComponents).not.toContain('"style"')
     expect(alert?.props.map((prop) => prop.name)).toEqual(["title", "variant"])
     expect(badge?.props.map((prop) => prop.name)).toEqual(["variant"])
+    expect(row?.props).toEqual([])
+    expect(tabs?.props).toEqual([])
+    expect(accordion?.props).toEqual([])
     expect(select?.props.map((prop) => prop.name)).not.toContain("size")
     expect(schema.safetyPolicy.blockedNames).toContain("className")
     expect(schema.forbidden).toBe(schema.safetyPolicy.forbidden)
@@ -538,142 +553,3 @@ describe("agent-html CLI contracts", () => {
   })
 })
 
-async function writeCustomStyleProfile(runtimeHome: string) {
-  const profileDir = path.join(
-    runtimeHome,
-    "config",
-    "style-profiles",
-    "user",
-  )
-  const profilePath = path.join(profileDir, "team-ops.json")
-
-  await mkdir(profileDir, { recursive: true })
-  await writeFile(
-    profilePath,
-    `${JSON.stringify(createCustomStyleProfile(), null, 2)}\n`,
-  )
-}
-
-async function writeCurrentStyleProfileState(
-  runtimeHome: string,
-  currentStyleProfileId: string,
-) {
-  const statePath = path.join(
-    runtimeHome,
-    "config",
-    "style-profile-state.json",
-  )
-
-  await mkdir(path.dirname(statePath), { recursive: true })
-  await writeFile(
-    statePath,
-    `${JSON.stringify(
-      {
-        kind: "ahtml-style-profile-state",
-        version: 1,
-        currentStyleProfileId,
-      },
-      null,
-      2,
-    )}\n`,
-  )
-}
-
-function createCustomStyleProfile() {
-  return {
-    id: "team-ops",
-    globalStyle: {
-      tokenSets: {
-        light: {
-          background: "#fcfbf8",
-          foreground: "#1f2933",
-          card: "#ffffff",
-          cardForeground: "#1f2933",
-          popover: "#ffffff",
-          popoverForeground: "#1f2933",
-          primary: "#0f766e",
-          primaryForeground: "#f8fafc",
-          secondary: "#f2f7f6",
-          secondaryForeground: "#1f2933",
-          muted: "#eef4f3",
-          mutedForeground: "#52606d",
-          accent: "#dff5f2",
-          accentForeground: "#134e4a",
-          destructive: "#be123c",
-          border: "#d9e2ec",
-          input: "#bcccdc",
-          ring: "#0f766e",
-        },
-        dark: {
-          background: "oklch(0.18 0.02 190)",
-          foreground: "oklch(0.96 0.01 190)",
-          card: "oklch(0.24 0.02 190)",
-          cardForeground: "oklch(0.96 0.01 190)",
-          popover: "oklch(0.24 0.02 190)",
-          popoverForeground: "oklch(0.96 0.01 190)",
-          primary: "oklch(0.74 0.11 190)",
-          primaryForeground: "oklch(0.2 0.02 190)",
-          secondary: "oklch(0.3 0.02 190)",
-          secondaryForeground: "oklch(0.96 0.01 190)",
-          muted: "oklch(0.28 0.02 190)",
-          mutedForeground: "oklch(0.78 0.01 190)",
-          accent: "oklch(0.32 0.03 190)",
-          accentForeground: "oklch(0.96 0.01 190)",
-          destructive: "oklch(0.62 0.2 20)",
-          border: "oklch(1 0 0 / 12%)",
-          input: "oklch(1 0 0 / 18%)",
-          ring: "oklch(0.74 0.11 190)",
-        },
-      },
-      radiusScale: {
-        base: "0.9rem",
-        sm: "calc(var(--radius) * 0.6)",
-        md: "calc(var(--radius) * 0.8)",
-        lg: "var(--radius)",
-        xl: "calc(var(--radius) * 1.4)",
-        "2xl": "calc(var(--radius) * 1.8)",
-        "3xl": "calc(var(--radius) * 2.2)",
-        "4xl": "calc(var(--radius) * 2.6)",
-      },
-      typography: {
-        fontSans:
-          '"Inter Variable", system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif',
-        fontHeading: "var(--font-sans)",
-      },
-      cssVariableMap: {
-        background: "--background",
-        foreground: "--foreground",
-        card: "--card",
-        cardForeground: "--card-foreground",
-        popover: "--popover",
-        popoverForeground: "--popover-foreground",
-        primary: "--primary",
-        primaryForeground: "--primary-foreground",
-        secondary: "--secondary",
-        secondaryForeground: "--secondary-foreground",
-        muted: "--muted",
-        mutedForeground: "--muted-foreground",
-        accent: "--accent",
-        accentForeground: "--accent-foreground",
-        destructive: "--destructive",
-        border: "--border",
-        input: "--input",
-        ring: "--ring",
-        radius: "--radius",
-        fontSans: "--font-sans",
-        fontHeading: "--font-heading",
-      },
-    },
-    componentStyle: {
-      treatments: {
-        alert: "ops-alert",
-        badge: "ops-badge",
-        card: "review-card",
-        input: "ops-field",
-        table: "ops-table",
-        tabs: "ops-tabs",
-        textarea: "ops-field",
-      },
-    },
-  }
-}

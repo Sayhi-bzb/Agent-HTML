@@ -124,6 +124,20 @@ vi.mock("./elements", () => {
         )
     }
 
+    if (name === "Tabs") {
+      return ({
+        children,
+        ...props
+      }: React.PropsWithChildren<Record<string, unknown>>) =>
+        React.createElement(
+          "div",
+          {
+            "data-tabs-props": JSON.stringify(props),
+          },
+          children,
+        )
+    }
+
     if (name === "ComboboxContent") {
       return "section"
     }
@@ -281,7 +295,6 @@ describe("createRendererNode", () => {
           trigger: "TabsTrigger",
           content: "TabsContent",
           itemSlot: "entry",
-          defaultProp: "default",
           legacyBridges: {
             state: [
               {
@@ -321,6 +334,71 @@ describe("createRendererNode", () => {
     expect(markup).toContain(">Alpha</TabsTrigger>")
     expect(markup).toContain(
       '<h2 class="m-0 text-lg font-medium leading-7">Alpha</h2>',
+    )
+  })
+
+  it("uses the tabs legacy state bridge to resolve explicit default selection", () => {
+    const rendererSpecByName = new Map([
+      [
+        "tabs",
+        {
+          name: "tabs",
+          kind: "tabs",
+          renderKind: "tabs",
+          slots: [
+            {
+              name: "entry",
+              childNames: ["entry"],
+              children: ["text"],
+            },
+          ],
+          root: "Tabs",
+          list: "TabsList",
+          trigger: "TabsTrigger",
+          content: "TabsContent",
+          itemSlot: "entry",
+          legacyBridges: {
+            state: [
+              {
+                kind: "state",
+                stateKind: "tabs-default",
+                defaultProp: "default",
+              },
+            ],
+          },
+          itemValueProp: "slug",
+          itemHeadingProp: "heading",
+        },
+      ],
+    ])
+
+    const RendererNode = createRendererNode(rendererSpecByName)
+    const markup = renderToStaticMarkup(
+      React.createElement(RendererNode, {
+        node: {
+          type: "component",
+          name: "tabs",
+          props: { default: "beta" },
+          children: [
+            {
+              type: "component",
+              name: "entry",
+              props: { slug: "alpha", heading: "Alpha" },
+              children: [{ type: "text", value: "First" }],
+            },
+            {
+              type: "component",
+              name: "entry",
+              props: { slug: "beta", heading: "Beta" },
+              children: [{ type: "text", value: "Second" }],
+            },
+          ],
+        },
+      }),
+    )
+
+    expect(markup).toContain(
+      'data-tabs-props="{&quot;data-agent-html-component&quot;:&quot;tabs&quot;,&quot;defaultValue&quot;:&quot;beta&quot;}"',
     )
   })
 
@@ -1017,9 +1095,6 @@ describe("createRendererNode", () => {
           itemSlot: "accordion-item",
           itemValueProp: "slug",
           itemHeadingProp: "heading",
-          modeProp: "mode",
-          defaultProp: "default",
-          defaultMode: "multiple",
           legacyBridges: {
             state: [
               {
@@ -1087,9 +1162,6 @@ describe("createRendererNode", () => {
           itemSlot: "accordion-item",
           itemValueProp: "slug",
           itemHeadingProp: "heading",
-          modeProp: "mode",
-          defaultProp: "default",
-          defaultMode: "multiple",
           legacyBridges: {
             state: [
               {
@@ -1137,6 +1209,97 @@ describe("createRendererNode", () => {
     expect(markup).toContain('&quot;type&quot;:&quot;multiple&quot;')
     expect(markup).toContain(
       '&quot;defaultValue&quot;:[&quot;details&quot;,&quot;audit&quot;]',
+    )
+  })
+
+  it("uses the table legacy structural role bridge to split header and body rows", () => {
+    const rendererSpecByName = new Map([
+      [
+        "table",
+        {
+          name: "table",
+          kind: "table",
+          renderKind: "table",
+          root: "Table",
+          header: "TableHeader",
+          body: "TableBody",
+          row: "TableRow",
+          headerCell: "TableHead",
+          bodyCell: "TableCell",
+          rowSlot: "row",
+          cellSlot: "cell",
+          slots: [
+            {
+              name: "row",
+              childNames: ["row"],
+              children: ["cell"],
+            },
+            {
+              name: "cell",
+              childNames: ["cell"],
+              children: ["text"],
+            },
+          ],
+          legacyBridges: {
+            structuralRole: [
+              {
+                kind: "structural-role",
+                roleKind: "table-row-kind",
+                sourceProp: "kind",
+                headerValue: "header",
+              },
+            ],
+          },
+        },
+      ],
+    ])
+
+    const RendererNode = createRendererNode(rendererSpecByName)
+    const markup = renderToStaticMarkup(
+      React.createElement(RendererNode, {
+        node: {
+          type: "component",
+          name: "table",
+          props: {},
+          children: [
+            {
+              type: "component",
+              name: "row",
+              props: { kind: "header" },
+              children: [
+                {
+                  type: "component",
+                  name: "cell",
+                  props: {},
+                  children: [{ type: "text", value: "Name" }],
+                },
+              ],
+            },
+            {
+              type: "component",
+              name: "row",
+              props: {},
+              children: [
+                {
+                  type: "component",
+                  name: "cell",
+                  props: {},
+                  children: [{ type: "text", value: "Alice" }],
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    )
+
+    expect(markup).toContain("<TableHeader>")
+    expect(markup).toContain(
+      '<TableHead data-agent-html-component="cell">Name</TableHead>',
+    )
+    expect(markup).toContain("<TableBody>")
+    expect(markup).toContain(
+      '<TableCell data-agent-html-component="cell">Alice</TableCell>',
     )
   })
 

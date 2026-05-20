@@ -2,56 +2,88 @@
 
 ## 目标
 
-本文描述的是新的 agent-html syntax 目标 contract，不等于当前 parser / validator / sanitize 已经完整支持这些节点。
+本文描述的是 agent-html authoring surface 的当前稳定边界。
 
-当前实现落差、真实入口文件和阶段化接入顺序，应以：
+如果要核对 parser / validator / sanitize / runtime 的现实支持面，请优先看：
 
-- `docs/architecture/phase-3-implementation-draft.md`
-- `docs/architecture/execution-checklist.md`
-- `docs/architecture/phase-completion-criteria.md`
+- `docs/details/current-contract-audit.md`
+- `docs/details/current-contract-component-matrix.md`
+- `docs/roadmap.md`
 
-为准。
+## 当前 authoring surface
 
-新的 agent-html 语法需要同时承载两类语义积木：
+当前 authoring surface 由三层组成：
 
-- UI 积木：表达“这是什么东西”
-- layout 积木：表达“这些东西怎么排”
+1. 头部配置
+   - 例如 `<meta-agent style-ref="..." />`
+2. 正式语义节点
+   - UI 节点
+   - layout 节点
+3. 显式兼容输入
+   - 仍被 parse / validate 接受，但已退出公开 prompt 主路径的旧语义字段
 
-这意味着语法层不再只围绕 UI 组件组织，而是直接承载 `SemanticNode`。
+## UI 与 Layout
 
-## 基本方向
+当前语法层已经正式承载两类语义积木：
 
-- UI 和 layout 都是正式语义节点
-- 它们都应能直接出现在 agent-html authoring surface 中
-- 页面结构应由语义节点嵌套表达，而不是由 runtime host 预设结构推断
+- UI 节点
+  - 表达“这是什么东西”
+- layout 节点
+  - 表达“这些东西怎么排”
 
-## UI 与 Layout 的分工
+这意味着 authoring surface 当前允许：
 
-- UI 节点主要表达对象语义，例如 `button`、`card`、`input`
-- layout 节点主要表达关系语义，例如 `stack`、`split`、`grid`
+- UI 嵌套 UI
+- layout 嵌套 UI
+- layout 嵌套 layout
 
-因此，新语法要允许：
+页面结构不再依赖 runtime host 预设模板推断。
 
-- UI 节点嵌套 UI 节点
-- layout 节点嵌套 UI 节点
-- layout 节点嵌套 layout 节点
+## 公开 prompt 与完整 authoring 的区别
+
+当前最容易混淆的不是 grammar，而是两层输入面：
+
+- `最终公开 prompt`
+  - 只公开最终 public contract
+  - 不再主动推荐 `tone`、`kind`、`mode`、`default`
+- `完整 authoring surface`
+  - 仍可接受显式兼容字段
+  - 例如：
+    - `alert.tone`
+    - `badge.tone`
+    - `row.kind`
+    - `tabs.default`
+    - `accordion.mode/default`
+
+因此现在更准确的说法是：
+
+- “旧字段仍可被接受”是兼容事实
+- “旧字段仍是主写法”已经不是当前事实
+
+## 结构子节点
+
+当前结构子节点仍然是正式 vocabulary 的一部分：
+
+- `option`
+- `row`
+- `cell`
+- `item`
+- `tab`
+- `accordion-item`
+
+这些节点的风险主要来自父节点 contract 和 runtime bridge，而不是它们自己是不是正式语法成员。
 
 ## Props 边界
 
 语法层继续遵守当前 contract：
 
-- UI 组件的原厂 props 通过 `blocked` / `raw-candidate` 机制决定是否公开
-- layout 组件默认少 props，优先靠节点名称表达语义
-- layout 若允许少量结构 props，也只表达结构关系，不表达实现层数值参数
+- UI 原厂 props 由 `blocked` / `raw-candidate` 机制控制是否公开
+- layout 节点当前保持零 props 主路径
+- layout 若未来补少量结构 props，也只应表达结构关系，不应暴露数值实现参数
 
 ## 与配置层的关系
 
-- 配置层决定 style / layout / component config
-- 语法层表达语义节点关系
-- runtime host 消费语义节点和配置层结果，不预设页面必须服从某个模板结构
-
-## 当前实现方向
-
-- 文档级配置选择入口仍然可写，但它不属于语义节点本体，也不再默认作为 agent prompt 的严格必写项
-- layout primitive 的目标方向是作为正式 vocabulary 接入语法层
-- 具体 grammar、parser、validate、sanitize 变更应以后续实现为准
+- 头部配置负责 style / document config 选择
+- 语义节点负责页面与组件关系
+- runtime host 消费语义节点和配置结果
+- host 不再补出“页面本来就该长这样”的默认结构真相

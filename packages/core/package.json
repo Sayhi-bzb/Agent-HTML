@@ -18,8 +18,7 @@
     "index.mjs",
     "src/",
     "!src/**/*.test.ts",
-    "!src/examples/",
-    "!src/schema-overlays.ts"
+    "!src/examples/"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json"

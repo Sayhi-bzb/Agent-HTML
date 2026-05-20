@@ -319,6 +319,19 @@ describe("createRuntimeElementRegistrySpec", () => {
         allowedChildren: ["card"],
       },
       {
+        name: "accordion",
+        props: [],
+        allowedChildren: ["accordion-item"],
+      },
+      {
+        name: "accordion-item",
+        props: [
+          { name: "value", valueKind: "string", required: true },
+          { name: "title", valueKind: "string", required: true },
+        ],
+        allowedChildren: ["#text"],
+      },
+      {
         name: "card",
         props: [{ name: "title", valueKind: "string" }],
         allowedChildren: ["#text"],
@@ -340,15 +353,37 @@ describe("createRuntimeElementRegistrySpec", () => {
     expect(tabSlot?.children).toEqual(["card"])
     expect(tabs?.itemValueProp).toBe("value")
     expect(tabs?.itemHeadingProp).toBe("label")
+    expect(tabs?.defaultProp).toBeUndefined()
+    expect(tabs?.legacyBridges?.state).toEqual([
+      expect.objectContaining({
+        stateKind: "tabs-default",
+        defaultProp: "default",
+      }),
+    ])
 
     const table = rendererMapping.components.find(
       (component) => component.name === "table",
     )
-    expect(table?.kindProp).toBe("kind")
+    expect(table?.kindProp).toBeUndefined()
     expect(table?.legacyBridges?.structuralRole).toEqual([
       expect.objectContaining({
         sourceProp: "kind",
         headerValue: "header",
+      }),
+    ])
+
+    const accordion = rendererMapping.components.find(
+      (component) => component.name === "accordion",
+    )
+    expect(accordion?.modeProp).toBeUndefined()
+    expect(accordion?.defaultProp).toBeUndefined()
+    expect(accordion?.defaultMode).toBeUndefined()
+    expect(accordion?.legacyBridges?.state).toEqual([
+      expect.objectContaining({
+        stateKind: "accordion-state",
+        modeProp: "mode",
+        defaultProp: "default",
+        defaultMode: "multiple",
       }),
     ])
 

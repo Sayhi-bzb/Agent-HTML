@@ -49,21 +49,13 @@
   - `3B`
   - `3C`
   - `4A`
-- 当前正在进行但未完成：
-  - `4B`
+- `4B`
+- `4C`
+- `5A`
+- `5B`
+- `5C`
 
-`4B` 当前停手点：
-
-- 已新增 `packages/ahtml/src/cli/runtime-template/src/renderer/render-layout-node.tsx` 草稿文件。
-- `render-layout-node.tsx` 目前还没有接入 `render-node.tsx`。
-- `render-ui-node.tsx` 还不存在。
-- `render-node.tsx` 仍然保留 UI projection、layout projection、structured child extraction、fallback 和递归调度的主体实现。
-
-因此当前不能宣称：
-
-- `render-node.tsx` 已退回 dispatcher
-- UI / layout projection ownership 已成立
-- `4B` 已完成
+当前最自然的下一步不是继续做切片实现，而是按 `Phase 5` 完成判据做总验收和残留资料审计。
 
 最近一轮 focused 验证已确认通过：
 
@@ -73,6 +65,15 @@
 - `packages/ahtml/src/cli/cli.test.ts`
 - `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.test.ts`
 - `packages/ahtml/src/config/render-capabilities.test.ts`
+- `packages/ahtml/src/config/runtime-contract.test.ts`
+- `packages/ahtml/src/cli/runtime-template.test.ts`
+- `packages/ahtml/src/cli/runtime-surface.test.ts`
+
+最近一轮 heavy gate 已确认通过：
+
+- `npm run test:run:cli-heavy:preview`
+- `npm run test:run:cli-heavy:runtime`
+- `npm run test:run:cli-heavy:build`
 
 ## Phase 2 Slices
 

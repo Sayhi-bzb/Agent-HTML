@@ -71,8 +71,8 @@
     - `tabs` 只证明 spec prop names 与基础内容投影，默认状态保护偏弱
     - `table` 缺少聚焦 header/body 分流断言的证据
   - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
-    - 仍直接使用 `<tabs default="summary">`
-    - 仍直接使用 `<row kind="header">`
+    - happy-path 已切到结构化 tabs / 标准 table 输入
+    - 但 tabs 默认状态和 table header/body 的 focused artifact 断言仍偏弱
     - 仍继续覆盖 `accordion`
 - 对应审计文档:
   - `docs/architecture/execution-checklist.md`

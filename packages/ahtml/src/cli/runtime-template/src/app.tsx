@@ -91,15 +91,16 @@ function DocumentApp({ document }: { document: AgentDocument }) {
 
   return (
     <>
-      <style>{createSharedShellCss()}</style>
-      <style>{documentStyleCss}</style>
+      <RuntimeStyleElements documentStyleCss={documentStyleCss} />
       <main
-        className="ahtml-document-shell"
+        className="ahtml-runtime-host ahtml-runtime-document"
         data-style-profile={document.meta.styleProfile.id}
       >
-        {document.components.map((node, index) => (
-          <RendererNode key={index} node={node} path={[index]} />
-        ))}
+        <DocumentArtifactShell>
+          {document.components.map((node, index) => (
+            <RendererNode key={index} node={node} path={[index]} />
+          ))}
+        </DocumentArtifactShell>
       </main>
     </>
   )
@@ -376,10 +377,12 @@ function GalleryApp({
 
   return (
     <>
-      <style>{createSharedShellCss()}</style>
-      <style>{documentStyleCss}</style>
+      <RuntimeStyleElements
+        documentStyleCss={documentStyleCss}
+        includeGalleryShell
+      />
       <main
-        className="ahtml-gallery-shell"
+        className="ahtml-runtime-host ahtml-gallery-shell"
         data-style-profile={editorState.draftProfile.id}
       >
         <aside className="ahtml-gallery-sidebar">
@@ -619,13 +622,45 @@ function GalleryApp({
             </p>
           </div>
           <div className="ahtml-gallery-preview-surface">
-            {previewDocument.components.map((node, index) => (
-              <RendererNode key={index} node={node} path={[index]} />
-            ))}
+            <DocumentArtifactShell className="ahtml-gallery-preview-document">
+              {previewDocument.components.map((node, index) => (
+                <RendererNode key={index} node={node} path={[index]} />
+              ))}
+            </DocumentArtifactShell>
           </div>
         </section>
       </main>
     </>
+  )
+}
+
+function RuntimeStyleElements({
+  documentStyleCss,
+  includeGalleryShell = false,
+}: {
+  documentStyleCss: string
+  includeGalleryShell?: boolean
+}) {
+  return (
+    <>
+      <style>{createRuntimeHostCss()}</style>
+      <style>{createDocumentArtifactShellCss()}</style>
+      {includeGalleryShell ? <style>{createGalleryShellCss()}</style> : null}
+      <style>{documentStyleCss}</style>
+    </>
+  )
+}
+
+function DocumentArtifactShell({
+  children,
+  className,
+}: React.PropsWithChildren<{
+  className?: string
+}>) {
+  return (
+    <div className={className ? `ahtml-document-shell ${className}` : "ahtml-document-shell"}>
+      {children}
+    </div>
   )
 }
 
@@ -962,7 +997,7 @@ function createGlobalStyleDeclarations(
   ].join("")
 }
 
-function createSharedShellCss() {
+function createRuntimeHostCss() {
   return `
     body {
       margin: 0;
@@ -972,9 +1007,17 @@ function createSharedShellCss() {
       color: var(--foreground);
       font-family: var(--font-sans);
     }
+    .ahtml-runtime-host {
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+  `
+}
+
+function createDocumentArtifactShellCss() {
+  return `
     .ahtml-document-shell {
       width: min(100%, 72rem);
-      min-height: 100vh;
       margin: 0 auto;
       padding: 4rem 1.25rem 5rem;
       box-sizing: border-box;
@@ -983,10 +1026,6 @@ function createSharedShellCss() {
     }
     .ahtml-document-shell > * {
       min-width: 0;
-    }
-    .ahtml-document-shell [data-agent-html-component="page"] {
-      display: grid;
-      gap: 2rem;
     }
     .ahtml-document-shell [data-agent-html-component="page"] > * {
       min-width: 0;
@@ -1043,6 +1082,24 @@ function createSharedShellCss() {
     ) {
       margin-top: 0;
     }
+    @media (max-width: 1100px) {
+      .ahtml-document-shell {
+        width: min(100%, 60rem);
+        padding: 2.75rem 1rem 3.5rem;
+        gap: 1.5rem;
+      }
+    }
+    @media (min-width: 1200px) {
+      .ahtml-document-shell {
+        width: min(100%, 76rem);
+        padding-top: 4.5rem;
+      }
+    }
+  `
+}
+
+function createGalleryShellCss() {
+  return `
     .ahtml-gallery-shell {
       display: grid;
       grid-template-columns: minmax(20rem, 26rem) minmax(0, 1fr);
@@ -1211,15 +1268,12 @@ function createSharedShellCss() {
       display: grid;
       gap: 1.25rem;
     }
+    .ahtml-gallery-preview-document {
+      width: 100%;
+      padding: 0;
+      min-height: auto;
+    }
     @media (max-width: 1100px) {
-      .ahtml-document-shell {
-        width: min(100%, 60rem);
-        padding: 2.75rem 1rem 3.5rem;
-        gap: 1.5rem;
-      }
-      .ahtml-document-shell [data-agent-html-component="page"] {
-        gap: 1.5rem;
-      }
       .ahtml-gallery-shell {
         grid-template-columns: 1fr;
       }
@@ -1233,12 +1287,6 @@ function createSharedShellCss() {
       .ahtml-gallery-preview-header {
         align-items: start;
         flex-direction: column;
-      }
-    }
-    @media (min-width: 1200px) {
-      .ahtml-document-shell {
-        width: min(100%, 76rem);
-        padding-top: 4.5rem;
       }
     }
   `

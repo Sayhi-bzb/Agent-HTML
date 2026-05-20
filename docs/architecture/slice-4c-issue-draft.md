@@ -40,7 +40,7 @@
 - `packages/ahtml/src/cli/runtime-surface.test.ts`
   - 当前锁定 shell/base layer completeness、glue proof / managed UI proof drift、doctor 在 surface 缺口下的失败形态。
 - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
-  - 当前仍直接断言 `class="ahtml-document-shell"`。
+  - 当前主宿主断言已切到 `class="ahtml-runtime-host ahtml-runtime-document"`。
 
 ## 目标
 

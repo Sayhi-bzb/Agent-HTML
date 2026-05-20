@@ -11,7 +11,7 @@
 ## 为什么现在做这一刀
 
 - `5A` 和 `5B` 收的是 contract 与 runtime spec；`5C` 收的是最终 gate。如果不把 gate 一起切到最终口径，前两刀即便做完，heavy tests 和 doctor 仍会把旧路径重新钉回主线。
-- 当前 `cli.build.heavy.test.ts` 仍直接使用 `tone`、`kind`、`default`，并直接断言 `ahtml-document-shell`；这不是中性历史遗留，而是仍在把旧 authoring surface 和旧 shell 假设当成“当前正确行为”。
+- 当前 `cli.build.heavy.test.ts` 的 happy-path fixtures 已经切到 `variant` / 结构化 `tabs` / 标准 `table` authoring，并把主壳断言切到 `ahtml-runtime-host ahtml-runtime-document`；但 full heavy `build` / `runtime` gate 还没有在一轮完整命令里重新证明，preview heavy 的保护面也仍偏轻。
 - `doctor-checks.mjs`、`runtime-template.test.ts`、`runtime-surface.test.ts` 当前已经是 runtime 最终 gate 的真实骨架，所以 `5C` 不是“顺手改文档”，而是要把这些 gate 的验证对象从迁移中状态切到最终单路径。
 
 ## 这刀要证明什么
@@ -57,21 +57,23 @@
     - `runtime:shadcn-surface`
   - 这说明 `5C` 必须收 doctor 口径，而不是只收页面输出。
 - build heavy 当前真实旧路径:
-  - `cli.build.heavy.test.ts` 当前输入仍直接使用：
-    - `<alert ... tone="danger">`
-    - `<badge tone="success">`
-    - `<row kind="header">`
-    - `<tabs default="summary">`
-  - 当前输出仍直接断言：
-    - `class="ahtml-document-shell"`
+  - `cli.build.heavy.test.ts` 当前 happy-path 输入已经切到：
+    - `<alert ... variant="destructive">`
+    - `<badge variant="secondary">`
+    - `<table><row>...`
+    - `<tabs><tab ...`
+  - 当前输出当前至少显式保护：
+    - `class="ahtml-runtime-host ahtml-runtime-document"`
+    - `tone="` / `kind="` / `default="` 不再出现在 artifact 中
     - accordion 的 noscript fallback 结构
     - tabs / table / accordion 的 runtime slot 存在
 - preview heavy 当前真实保护面:
   - `cli.preview.heavy.test.ts` 目前只证明：
     - preview server 能启动
     - 输出 HTML 可访问
+    - 代表性的最终 semantic syntax 可渲染
     - style profile 能影响页面
-  - 它当前几乎不证明最终 authoring contract 是否已经替换 legacy 输入。
+  - 但它相对 build/runtime heavy 仍是较轻的保护面。
 - runtime heavy 当前真实保护面:
   - `cli.runtime.heavy.test.ts` 当前锁定：
     - doctor 输出项存在
@@ -96,10 +98,10 @@
 ## 计划改动
 
 1. 先改 heavy build fixtures 和 expectations：
-   - 把 legacy authoring 输入替换成最终输入
-   - 把 `ahtml-document-shell` 这类旧壳默认值从“自然 contract”断言里拿掉
+   - 保持 happy-path build fixtures 停留在最终输入
+   - 不再把 `ahtml-document-shell` 这类 artifact shell 视为自然宿主 contract 断言
 2. 再改 preview / runtime heavy tests：
-   - preview 至少要证明最终输出仍可访问且不回退到旧输入依赖
+   - preview 至少要证明最终输出仍可访问、能渲染代表性最终 syntax，且不回退到旧输入依赖
    - runtime heavy 继续证明 doctor/parity/surface，但断言语气不能默许旧桥仍是合法主路径
 3. 再改 doctor / runtime surface 相关口径：
    - 保留 parity / proof 检查
@@ -128,7 +130,7 @@
 
 - 一旦出现以下信号就先停:
   - heavy build fixtures 仍只能写 legacy 输入，说明 `5A/5B` 并未真的完成
-  - preview/build 仍必须断言 `ahtml-document-shell` 才能通过，说明 `4C` 边界还没站稳
+  - preview/build 重新依赖 `ahtml-document-shell` 作为自然宿主主断言，说明 `4C` 边界还没站稳
   - 为了让 doctor 通过，开始重新放宽已经收紧的 runtime spec 或公开 contract
   - 开始在这一刀里设计新的语义节点或新的 layout 参数面
 - 这说明已经混入了哪个上一阶段问题:
@@ -167,8 +169,8 @@
 ## 回退判断
 
 - 如果这刀失败，最可能是哪个 gate 还在保护旧路径:
-  - `cli.build.heavy.test.ts` 仍继续要求 legacy 输入
-  - `cli.build.heavy.test.ts` 仍继续要求 document shell 默认值
+  - `cli.build.heavy.test.ts` 或 `cli.preview.heavy.test.ts` 仍继续要求 legacy 输入
+  - `cli.build.heavy.test.ts` 或 `cli.preview.heavy.test.ts` 重新把 document shell 当作自然宿主默认值
   - `doctor-checks.mjs` 仍把旧 runtime capability 形状当合法事实
 - 如果测试爆炸，先看哪一层:
   - 先看 `cli.runtime.heavy.test.ts` 是否因为 doctor/parity 口径切换而暴露 manifest/runtimeVerificationState 仍是旧数据
@@ -180,7 +182,7 @@
 - 下一步最自然的承接工作:
   - 做 Phase 5 的总验收清单和剩余缺口审计
 - 当前不能误判为“已经完成”的地方:
-  - 只是 doctor 还绿，但 heavy fixtures 仍是旧输入
+  - 只是 doctor 还绿，但 full heavy `build` / `runtime` 命令还没被完整证明
   - 只是 heavy tests 改了输入，但 docs 仍在描述旧桥为当前路径
   - 只是 docs 改了，但 `runtime-template.test.ts` / `runtime-surface.test.ts` 没有重新证明最终 gate
 - 当前最需要额外盯住的点:

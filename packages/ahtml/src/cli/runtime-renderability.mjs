@@ -43,13 +43,8 @@ const rendererSpecScalarFields = [
   "labelProp",
   "descriptionProp",
   "titleProp",
-  "defaultProp",
   "fallback",
   "mode",
-  "modeProp",
-  "defaultMode",
-  "headerKind",
-  "kindProp",
   "itemValueProp",
   "itemHeadingProp",
   "valueProp",
@@ -62,6 +57,7 @@ const rendererSpecStructuredFields = [
   "requiredExports",
   "rootByProp",
   "propMappings",
+  "legacyBridges",
   "staticProps",
 ]
 

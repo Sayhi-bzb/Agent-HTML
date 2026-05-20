@@ -11,6 +11,7 @@ import {
 } from "./render-config"
 import type {
   ComponentSchema,
+  ComponentSemanticPropSchema,
   PublicAgentContract,
   PublicRenderConfigContract,
   PublicSafetyPolicy,
@@ -85,6 +86,32 @@ function createPublicComponentSchemas(): readonly ComponentSchema[] {
 function projectPublicComponentSchema(
   schema: ResolvedComponentSchema,
 ): ComponentSchema {
+  const publicSemanticProps = getPublicSemanticProps(schema)
+  const publicRawProps = schema.exposedRawProps ?? []
+  const publicProps = [...publicSemanticProps, ...publicRawProps]
+
+  return {
+    name: schema.name,
+    description: schema.description,
+    props: publicProps,
+    allowedChildren: schema.allowedChildren,
+  }
+}
+
+function getPublicSemanticProps(
+  schema: ResolvedComponentSchema,
+): readonly ComponentSemanticPropSchema[] {
+  return (schema.semanticProps ?? []).filter(
+    (prop) =>
+      prop.origin !== "legacy" &&
+      !isLegacyPropReplacedByExposedRawProp(schema, prop.name),
+  )
+}
+
+function isLegacyPropReplacedByExposedRawProp(
+  schema: ResolvedComponentSchema,
+  legacyPropName: string,
+): boolean {
   const replacementEntries = Object.entries(
     LEGACY_PUBLIC_PROP_REPLACEMENTS[
       schema.name as keyof typeof LEGACY_PUBLIC_PROP_REPLACEMENTS
@@ -93,16 +120,10 @@ function projectPublicComponentSchema(
   const exposedRawPropNames = new Set(
     schema.exposedRawProps?.map((prop) => prop.name) ?? [],
   )
-  const replacedLegacyPropNames = new Set(
-    replacementEntries
-      .filter(([, rawPropName]) => exposedRawPropNames.has(rawPropName))
-      .map(([legacyPropName]) => legacyPropName),
-  )
 
-  return {
-    name: schema.name,
-    description: schema.description,
-    props: schema.props.filter((prop) => !replacedLegacyPropNames.has(prop.name)),
-    allowedChildren: schema.allowedChildren,
-  }
+  return replacementEntries.some(
+    ([candidateLegacyPropName, rawPropName]) =>
+      candidateLegacyPropName === legacyPropName &&
+      exposedRawPropNames.has(rawPropName),
+  )
 }

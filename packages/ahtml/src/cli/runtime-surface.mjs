@@ -28,7 +28,9 @@ const ahtmlGlueFiles = [
   "src/renderer/elements.tsx",
   "src/renderer/kinds.ts",
   "src/renderer/parity.ts",
+  "src/renderer/render-layout-node.tsx",
   "src/renderer/render-node.tsx",
+  "src/renderer/render-ui-node.tsx",
   "src/renderer/types.ts",
 ]
 

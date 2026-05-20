@@ -1,8 +1,8 @@
 # Current Contract Audit
 
-本文记录当前工作树里 agent-html 公共 contract、schema 生成链路、runtime 消费点和 layout 缺口的基线事实。
+本文记录当前工作树里 agent-html 公共 contract、schema 生成链路、runtime 消费点和 layout/runtime shell 状态的**当前事实**。
 
-它不定义新架构目标；它的作用是给 `docs/roadmap.md` 的 Phase 1 和 Phase 2 提供可追踪到代码的当前状态证据。
+它不定义新架构目标；它的作用是给 `docs/roadmap.md`、`docs/architecture/schema.md` 和 `docs/architecture/phase-completion-criteria.md` 提供可追踪到代码的现状证据。
 
 ## 范围
 
@@ -22,15 +22,18 @@
 - `packages/ahtml/src/config/runtime-contract.mjs`
 - `packages/ahtml/src/cli/runtime-template/src/renderer/types.ts`
 - `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.tsx`
+- `packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx`
+- `packages/ahtml/src/cli/runtime-template/src/renderer/render-layout-node.tsx`
 - `packages/ahtml/src/cli/runtime-template/src/app.tsx`
 
 ## 结论概览
 
-- 当前公开 schema 的真实源头不是运行时，而是 `schema-overlays.ts` 经过生成脚本写入 `component-schema.generated.ts` 后，再由 core 导出。
-- 历史字段 `tone`、`kind`、`mode`、`default` 不是纯文档残留；它们已经进入生成后的公共 schema，并继续被 runtime mapping 消费。
-- runtime spec 类型面已经把 `kindProp`、`modeProp`、`defaultProp`、`defaultMode` 写成正式字段，说明旧 contract 已跨过 schema 层进入 renderer 契约。
-- 当前 parser / validate / sanitize 还没有 UI node 与 layout node 并列的模型；layout 仍停留在文档目标阶段。
-- runtime shell 仍带有明显 document-shell 与 preview-grid 假设，Phase 4 不能只改 render function，必须连同 `app.tsx` 一起处理。
+- 当前公开 schema / prompt 的真实上游已经不再直接暴露 `tone`、`kind`、`mode`、`default` 这类 legacy 字段。
+- `schema-overlays.ts` 里仍保留 legacy 语义字段定义，但它们当前属于显式兼容语义层，不再等于主公开 contract。
+- runtime spec 顶层已经不再正式承认 `kindProp`、`modeProp`、`defaultProp`、`defaultMode`；兼容桥当前通过 `legacyBridges` 和 `behavior.stateBridge` 保留。
+- parser / validate / sanitize 已经正式接受 layout primitive；layout 不再只是文档目标。
+- runtime renderer 已完成 dispatcher / UI projection / layout projection 分层。
+- runtime host、document artifact shell、gallery shell 已拆开；`ahtml-document-shell` 仍存在，但当前是 artifact shell，而不是 host 默认页面骨架真相。
 
 ## 1. 当前 schema 的真实生成链路
 
@@ -38,6 +41,7 @@
 
 ```txt
 schema-overlays.ts
+  -> COMPONENT_SEMANTIC_CONTRACTS
   -> scripts/generate-component-schema.mjs
   -> generated/component-schema.generated.ts
   -> component-schema.ts
@@ -45,33 +49,41 @@ schema-overlays.ts
   -> ahtml cli schema.mjs
 ```
 
-证据：
+关键事实：
 
 - `scripts/generate-component-schema.mjs`
-  - 读取 `packages/core/src/schema-overlays.ts`
-  - 生成 `packages/core/src/generated/component-schema.generated.ts`
-  - 输出的 `schemas` 直接来自 overlay 的 `name`、`description`、`props`、`allowedChildren`
+  - 当前会同时读取：
+    - `COMPONENT_SEMANTIC_CONTRACTS`
+    - `prop-exposure-policy.ts`
+    - shadcn introspection
+  - 生成结果已经带：
+    - `semanticProps`
+    - `legacyPublicProps`
+    - `rawCandidateProps`
+    - `exposedRawProps`
+    - `blockedPropNames`
 - `packages/core/src/component-schema.ts`
-  - `STANDARD_COMPONENT_SCHEMAS` 直接等于 `GENERATED_STANDARD_COMPONENT_SCHEMAS`
-  - `VALIDATED_STANDARD_COMPONENT_SCHEMAS` 只是对 generated 结果做校验
+  - `RESOLVED_STANDARD_COMPONENT_SCHEMAS` 直接消费 generated resolved schemas
+  - `STANDARD_COMPONENT_SCHEMAS` 仍保留“完整 agent-facing schema”视角，因此会同时看到：
+    - legacy semantic props
+    - opened raw candidate props
 - `packages/core/src/public-agent-contract.ts`
-  - `createPublicAgentContract()` 直接返回 `VALIDATED_STANDARD_COMPONENT_SCHEMAS`
+  - 公开主路径不再直接透传 `STANDARD_COMPONENT_SCHEMAS`
+  - 当前会过滤：
+    - `origin === "legacy"` 的 semantic props
+    - 被 opened raw candidate 替代掉的 legacy 包装 prop
 - `packages/ahtml/src/cli/schema.mjs`
-  - `getCliSchemaOutput()` 直接消费 `createPublicAgentContract()`
-  - `formatPrompt()` 遍历 `schema.components` 输出 agent prompt
+  - prompt 直接消费 `createPublicAgentContract()`
+  - 当前 prompt 已不再把 `tone` / `kind` / `mode` / `default` 当公开主入口
 
 阶段含义：
 
-- Phase 2 如果要改 schema / prompt，不能只在 `schema.mjs` 打补丁。
-- 真正要动的上游是：
-  - `schema-overlays.ts`
-  - 生成脚本
-  - `component-schema.ts`
-  - `public-agent-contract.ts`
+- `Phase 2` 的主链切换已经完成。
+- 当前不能再把“公开 contract 仍直接来自 overlay 原始 props”写成现状。
 
-## 2. 当前公共 schema 仍包含历史包装字段
+## 2. 当前公开 contract 与兼容语义层已经分开
 
-`schema-overlays.ts` 仍把历史包装字段写进公开 props：
+`schema-overlays.ts` 里仍保留这些 legacy 语义字段定义：
 
 - `alert.tone`
 - `badge.tone`
@@ -80,201 +92,233 @@ schema-overlays.ts
 - `accordion.mode`
 - `accordion.default`
 
-生成后的 `packages/core/src/generated/component-schema.generated.ts` 中也能看到这些字段，说明它们已经进入当前 public schema，而不是只存在于源 overlay 中。
+但当前代码真相已经是：
 
-同时，overlay 继续用 `hiddenProps` 表达“原厂 prop 不直接公开”的手工规则，例如：
+- `packages/core/src/public-agent-contract.test.ts`
+  - `alert` 公开 props 为 `title`, `variant`
+  - `badge` 公开 props 为 `variant`
+  - `row` / `tabs` / `accordion` 公开 props 当前都为空
+- `packages/ahtml/src/cli/cli.test.ts`
+  - prompt 明确不再输出：
+    - `alert(title? tone?`
+    - `badge(tone?`
+    - `tabs(default?`
+    - `row(kind?`
+    - `accordion(mode?`
 
-- `alert` 隐藏 `variant`
-- `card` 隐藏 `size`
-- 输入类组件隐藏 `defaultValue`
-- 选择类组件隐藏 `defaultValue` / `type` / `variant` / `size` / `spacing`
+因此更准确的表述应是：
 
-阶段含义：
-
-- 当前 schema 同时混合了三类信息：
-  - 内容字段
-  - 历史包装字段
-  - 原厂 prop 隐藏规则
-- Phase 2 的第一步不是“再加 exposure state”，而是先把这三类职责拆开。
-
-## 3. blocked 名单和 introspection 已存在，但公开 prop 决策主链还没切通
-
-当前 core 已经具备两类基础材料：
-
-- `packages/core/src/generated/component-schema.generated.ts`
-  - 保存由 shadcn introspection 得到的 `variantProps`、`blockedProps` 等实现事实
-- `packages/core/src/component-schema.ts`
-  - 定义全局 blocked 名单：
-    - `asChild`
-    - `class`
-    - `className`
-    - `css`
-    - `dangerouslySetInnerHTML`
-    - `onClick`
-    - `onclick`
-    - `script`
-    - `style`
-同时，`packages/core/src/types.ts` 现在其实已经有一批 `2A` 脚手架类型：
-
-- `PropExposureState`
-- `ComponentSemanticPropSchema`
-- `ComponentSemanticContract`
-- `ComponentExposurePolicy`
-- `ResolvedComponentSchema`
-
-`packages/core/src/schema-overlays.ts` 也已经额外导出：
-
-- `COMPONENT_SEMANTIC_CONTRACTS`
-
-并且 `packages/core/src/prop-exposure-policy.ts` 已经单独存在。
-
-但这些脚手架还没有把公开 prop 决策主链真正切通：
-
-- `scripts/generate-component-schema.mjs` 仍直接读取 `COMPONENT_SCHEMA_OVERLAYS`
-- `GENERATED_STANDARD_COMPONENT_SCHEMAS` 仍只反映 overlay 的 `props`
-- `public-agent-contract.ts` 仍直接公开 `VALIDATED_STANDARD_COMPONENT_SCHEMAS`
+- legacy 语义字段仍保留在 resolved semantic layer / compatibility layer
+- 但它们已经退出主公开 contract / prompt 主路径
 
 阶段含义：
 
-- 项目已经不再是“完全没有 exposure-state 类型脚手架”。
-- 更准确的现状是：
-  - 类型面和 policy 文件已经部分落位
-  - 但“实现事实 + blocked 名单 + exposure policy”还没有接成统一的 public prop 决策链
-- Phase 2 不需要从零发明原始数据，但仍需要重构生成链路和职责边界。
+- `Phase 5A` 已完成“主公开 contract 收口”
+- 当前仍可继续保留 compatibility bridge，不等于双轨公开 contract 仍在主路径
 
-## 4. runtime 仍在直接消费旧字段
+## 3. 当前仍同时保留两类 core 视图
 
-`packages/ahtml/src/config/component-capabilities.mjs` 中的运行时定义仍显式依赖旧字段：
+当前 core 有两种不同用途的 schema 视图：
 
-- `tabs` 使用 `attrAliases.default -> "default-value"`
-- `alert` 和 `badge` 通过 `propMappings` 把 `tone` 映射到原厂 `variant`
-- `table` 使用 `kindProp: "kind"`
-- `tabs` 使用 `defaultProp: "default"`
-- `accordion` 使用：
-  - `modeProp: "mode"`
-  - `defaultProp: "default"`
-  - `defaultMode: "multiple"`
+- `STANDARD_COMPONENT_SCHEMAS`
+  - 面向 parse / validate / sanitize 的完整 agent-facing schema
+  - 当前仍会看到 legacy semantic props 与 opened raw candidates 并存
+- `createPublicAgentContract()`
+  - 面向 CLI schema / prompt 的最终公开 contract
+  - 当前会过滤掉 legacy semantic props，只保留最终公开字段
 
-`packages/ahtml/src/config/render-capabilities.mjs` 进一步把这些字段写成 renderer kind 的必填要求：
+这不是“旧公开 contract 和新公开 contract 并存”，而是：
 
-- `table` kind 要求 `kindProp`
-- `accordion` kind 要求 `modeProp`、`defaultProp`
-- `tabs` kind 要求 `defaultProp`
-
-`packages/ahtml/src/cli/runtime-template/src/renderer/types.ts` 也把这些字段纳入正式类型：
-
-- `kindProp?: string`
-- `modeProp?: string`
-- `defaultProp?: string`
-- `defaultMode?: string`
-
-`packages/ahtml/src/cli/runtime-template/src/renderer/render-node.tsx` 则在主渲染路径里直接读取这些字段：
-
-- 读取 `kindProp` 决定表格 header/body 行分流
-- 读取 `modeProp` / `defaultProp` / `defaultMode` 计算 accordion 默认展开状态
-- 读取 `defaultProp` 计算 tabs 默认项
+- 一个完整 authoring validation surface
+- 一个最终 agent-facing public contract
 
 阶段含义：
 
-- 历史字段并不只存在于 schema。
-- 它们已经跨入：
-  - runtime capability definition
-  - renderer kind contract
-  - runtime render function
-- 所以 Phase 2 完成后，Phase 4 才能真正下线这些字段；两者不能被误认为独立问题。
+- 当前若继续审计“是否仍维护两套公开 contract”，应回答：
+  - **主公开 contract 没有双轨**
+  - 但 parse/validate 仍保留显式兼容 authoring surface
 
-## 5. parser / validate / sanitize 还没有 layout 语义模型
+## 4. runtime compatibility bridge 仍保留，但主 runtime spec 已收紧
 
-`packages/core/src/parse/parse-agent-html.ts` 当前只围绕 `STANDARD_COMPONENT_NAMES` 构造正则：
+`packages/ahtml/src/config/component-capabilities.mjs` 当前仍明确保留 compatibility bridge：
 
-- `AGENT_COMPONENT_NAME_PATTERN`
-- `SELF_CLOSING_AGENT_COMPONENT_PATTERN`
-- `AGENT_COMPONENT_TAG_PATTERN`
+- `alert` / `badge`
+  - `legacyBridges.variant`
+- `table`
+  - `legacyBridges.structuralRole`
+- `tabs`
+  - `legacyBridges.state`
+- `accordion`
+  - `legacyBridges.state`
+  - `behavior.stateBridge = "accordion-state"`
 
-这意味着 parser 只认识“当前标准组件集合”，并没有单独的 layout node 集合。
+`packages/ahtml/src/cli/runtime-template/src/renderer/types.ts` 当前的主 spec 形状已经是：
 
-`packages/core/src/parse/validate-agent-html.ts` 的约束也完全建立在当前 `ComponentSchema` 上：
+- `RendererSpecComponent`
+  - 不再顶层声明 `kindProp` / `modeProp` / `defaultProp` / `defaultMode`
+  - 统一通过 `legacyBridges` 保存兼容桥
+- `RuntimeVerificationState.behavior`
+  - 不再直接保存 `modeProp/defaultProp/defaultMode`
+  - 改成显式 `stateBridge`
 
-- 顶层要求唯一 `<page>`
-- 节点合法性取决于 `getComponentSchema(node.name)`
-- 子节点合法性取决于 `allowedChildren`
-- 属性合法性取决于 `componentSchema.props`
+`packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx` 当前负责兼容桥解释：
 
-`packages/core/src/parse/sanitize-agent-html.ts` 当前只是 parse + validate 的薄封装，并没有额外的 layout 归一化步骤。
-
-阶段含义：
-
-- Phase 3 不能只在 renderer 增加 `stack` / `grid` 的渲染分支。
-- layout 真正接入时至少要同步改：
-  - parser 的标准节点识别
-  - schema/type surface
-  - validate 的 children contract
-  - sanitize 的结构整理职责
-
-## 6. runtime template 仍有 document-shell 假设
-
-`packages/ahtml/src/cli/runtime-template/src/renderer/render-node.tsx` 当前仍在渲染过程中写入默认文档型结构类名：
-
-- `ahtml-section-stack`
-- `ahtml-prose-block`
-
-同一个文件里也能看到写死的结构样式片段，例如：
-
-- `grid gap-3`
-
-`packages/ahtml/src/cli/runtime-template/src/app.tsx` 继续把 artifact 展示包在 document-shell 语义里：
-
-- 根部存在 `ahtml-document-shell`
-- 多处存在 `ahtml-gallery-stack`
-- UI 中直接出现 `Preview grid`
-- CSS 中有大量 `.ahtml-document-shell ...` 规则
+- `resolveTabsLegacyDefaultValue()`
+- `resolveAccordionLegacyState()`
+- `partitionTableRowsByLegacyRole()`
+- `getLegacyVariantPropMappings()`
 
 阶段含义：
 
-- Phase 4 不只是拆 `render-node.tsx`。
-- `app.tsx` 里的 shell、gallery、preview 样式结构也属于 runtime host 假设的一部分。
+- `Phase 5B` 已完成“runtime spec 顶层主路径收口”
+- 当前 legacy bridge 仍深入运行时行为，但它们已经是显式兼容层，而不是顶层正式 spec 成员
 
-## 7. 当前工作树的额外事实
+## 5. parser / validate / sanitize 已经接受 layout primitive
 
-- 当前仓库根目录没有 `spec/` 目录，因此任何依赖 `spec/map.md` 或 `spec/roadmap.md` 的执行计划都无法直接在这份工作树里核验。
-- 当前 `.git/index.lock` 存在，并且会干扰 `git status`；提交前的工作树确认需要先处理锁文件状态。
+当前 parser / validate / sanitize 的事实与早期审计已不同：
+
+- `packages/core/src/parse/parse-agent-html.ts`
+  - 仍只围绕 `STANDARD_COMPONENT_NAMES` 识别节点
+  - 但 `STANDARD_COMPONENT_NAMES` 当前已经包含：
+    - `stack`
+    - `cluster`
+    - `split`
+    - `grid`
+    - `switcher`
+    - `frame`
+- `packages/core/src/parse/validate-agent-html.ts`
+  - 当前继续依赖 `ComponentSchema.allowedChildren`
+  - layout primitive 已能作为正式节点被 validate 接受
+- `packages/core/src/parse/sanitize-agent-html.ts`
+  - 仍是薄封装
+  - 但不再意味着“layout 仍停留在文档目标阶段”
+
+阶段含义：
+
+- `Phase 3` 已完成“layout primitive 进入正式 surface 并打通 parse/validate/runtime 最小投影”
+- 当前剩余问题不再是“layout 是否存在”，而是后续是否还需要更强的结构归一化与测试覆盖
+
+## 6. renderer 已完成 ownership 分层
+
+当前 renderer 不再是单文件集中实现：
+
+- `render-node.tsx`
+  - 负责 dispatcher、文本渲染、路径/元数据/children 通用逻辑
+- `render-ui-node.tsx`
+  - 负责 UI projection、compatibility bridge、fallback、structured slot/state logic
+- `render-layout-node.tsx`
+  - 负责 layout projection
+
+阶段含义：
+
+- `Phase 4B` 已完成
+- 当前不能再把“render-node.tsx 仍集中承载 UI/layout/fallback 全部分支”写成现状
+
+## 7. runtime host / document shell / gallery shell 的当前关系
+
+`packages/ahtml/src/cli/runtime-template/src/app.tsx` 当前的真实边界是：
+
+- `DocumentArtifactShell`
+  - 仍输出 `ahtml-document-shell`
+  - 但它当前是 artifact/document shell
+- runtime host 样式
+  - 由 `createRuntimeHostCss()` 提供
+- gallery shell
+  - 由 `createGalleryShellCss()` 与 gallery preview surface 负责
+
+当前最准确的判断不是“document shell 已消失”，而是：
+
+- `ahtml-document-shell` 仍存在
+- 但它不再是 host 默认补出来的页面结构真相
+- `cli.build.heavy.test.ts` / `cli.preview.heavy.test.ts` 当前主宿主断言已经切到：
+  - `class="ahtml-runtime-host ahtml-runtime-document"`
+
+阶段含义：
+
+- `Phase 4C` 已完成“host/document/gallery shell 分层”
+- `Phase 5C` 已完成“heavy gate 不再把 `ahtml-document-shell` 当宿主主断言”
+
+## 8. 当前工作树的额外事实
+
+- 仓库根目录当前没有 `spec/` 目录，因此任何依赖 `spec/map.md` 或 `spec/roadmap.md` 的执行计划都无法直接在这份工作树里核验。
+- 当前 `.git/index.lock` 不存在，`git status` 已可正常使用。
 
 这些事实不改变架构方向，但会影响执行节奏和验证方式。
 
-## 8. 对各阶段的直接影响
+## 9. 当前 gate 证据
+
+当前 `Phase 5` 最关键的 gate 已经至少拿到下面这些直接证据：
+
+- focused gates
+  - `packages/core/src/public-agent-contract.test.ts`
+  - `packages/ahtml/src/cli/cli.test.ts`
+  - `packages/ahtml/src/config/render-capabilities.test.ts`
+  - `packages/ahtml/src/config/runtime-contract.test.ts`
+  - `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.test.ts`
+  - `packages/ahtml/src/cli/runtime-template.test.ts`
+  - `packages/ahtml/src/cli/runtime-surface.test.ts`
+  - `packages/ahtml/src/cli/gallery-workflow.test.ts`
+  - 最近实跑均通过
+- heavy gates
+  - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
+  - `packages/ahtml/src/cli/cli.preview.heavy.test.ts`
+  - `packages/ahtml/src/cli/cli.runtime.heavy.test.ts`
+  - `packages/ahtml/src/cli/cli.gallery.heavy.test.ts`
+  - 当前轮全文件已直接通过
+- doctor 成功路径
+  - `runs managed runtime doctor checks`
+  - `prints machine-readable doctor reports for app integrations`
+- doctor 漂移失败路径
+  - `fails doctor when runtime capabilities drift from schema`
+  - `fails doctor when runtime renderer mapping drifts from schema`
+
+这些证据当前能直接支持的判断是：
+
+- `doctor-checks.mjs` 不只是“能跑”，而且会对 verification data parity、renderer mapping parity、renderer registry parity 做真实失败保护
+- `runtime-template.test.ts` 和 `runtime-surface.test.ts` 仍在保护模板、runtime surface、doctor 输出与 contract 的同源链
+- heavy build / preview / runtime gates 当前已经切到最终 authoring / host 口径，不再把 `tone`、`kind`、`default` 或 `ahtml-document-shell` 当主断言
+
+这些证据当前已经足够支持：
+
+- `Phase 5` 正式完成
+- `docs/phase-5-completion-proof.md` 从“最后一轮审计”转为“完成证明”
+- 后续剩余工作只再属于测试组织和脚本整理，不再属于主线 contract/runtime 收口
+
+## 10. 对各阶段的直接影响
 
 ### Phase 1
 
-当前最重要的不是继续补方向文档，而是把这份审计继续细化为组件级事实表：
+`Phase 1` 的事实审计工作已经不再是当前主线；它的结论已下沉到：
 
-- 每个组件当前公开哪些 props
-- 哪些 props 是内容字段
-- 哪些 props 是历史包装字段
-- 哪些原厂 props 被隐藏但仍在 runtime 映射中
+- 当前公开 contract 与兼容语义层分离
+- 当前 renderer/runtime host 已有明确分层
 
 ### Phase 2
 
-最先要拆的是 `schema-overlays.ts` 的混合职责，而不是先改 renderer：
+`Phase 2` 的主链切换已完成。当前更值得盯住的是：
 
-- 内容字段定义
-- 历史包装字段
-- 原厂 prop 暴露规则
+- 是否还有文档仍把 legacy 字段误写成“当前公开主路径”
 
 ### Phase 3
 
-layout 若要进入公共能力，必须从 `ComponentSchema` / parser / validate 开始接入；不能先在 runtime 偷跑。
+layout 已进入正式公共能力。当前不应再把“layout 仍停留在文档目标阶段”写成现状。
 
 ### Phase 4
 
-runtime 解耦的实质工作是：
-
-- 把 renderer 从旧字段解释器改成 projection consumer
-- 把 `app.tsx` 从 document shell / preview shell 中拆出真正的 runtime host 职责
+runtime 解耦的核心实现已完成；当前遗留主要是文档与总验收，而不是 renderer ownership 本身。
 
 ### Phase 5
 
-只有当 schema、runtime mapping、render function、heavy tests 都不再把旧字段当主路径时，才算真正下线双轨 contract。
+`Phase 5` 当前已经完成。后续最值得继续推进的是：
+
+- CLI tests / helpers 的重复收口
+- 测试命名与职责边界的后续整理
+- 仅在未来需要真实压缩 compat bridge 时，再开启新的实现阶段
 
 ## 推荐下一步
 
-如果继续沿这条线推进，下一份应优先参考 [current-contract-component-matrix.md](./current-contract-component-matrix.md) 中的组件级事实表，再决定 Phase 2 的首批试点组件和兼容桥位置。
+如果继续沿这条线推进，最值得优先做的是：
+
+1. 把 CLI tests 中重复的 style-profile fixture helper 收到公共 helper
+2. 复核 `artifact-workflow.test.ts`、`gallery-workflow.test.ts`、`runtime-build.test.ts`、`command-contract.test.ts`、`governance-sync.test.ts` 的职责边界
+3. 复核 `scripts/shadcn-test-server.mjs` 与 `scripts/shadcn-test-fixtures/` 的真实依赖面

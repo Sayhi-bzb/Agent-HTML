@@ -1,5 +1,8 @@
 # Tabs Migration Card
 
+> 历史资料。本文记录的是迁移执行期对 `tabs` 兼容桥的拆分方式，不再是当前主 docs 入口。
+> 当前现实说明请优先看 `docs/details/high-risk-runtime-bridges.md`。
+
 本文只聚焦 `tabs` 这一个高风险样本。
 
 它不解释全局架构，也不重复组件资料。它只回答更具体的执行问题：
@@ -58,7 +61,7 @@ schema-overlays.ts
 - `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.test.ts`
   - tabs 样例仍直接构造 `defaultProp: "default"` 的 spec
 - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
-  - 两个 build 场景仍直接使用 `<tabs default="summary">`
+  - happy-path build 场景已切到 `<tabs><tab ...`，不再把 `<tabs default="summary">` 当主路径输入
 
 ## 2. 为什么 `tabs` 危险但又没有 `accordion` 那么“显眼”
 
@@ -81,8 +84,8 @@ schema-overlays.ts
   - 确实构造了 `defaultProp`
   - 但没有显式断言 `<tabs default="...">` 的旧输入如何改变最终默认选中状态
 - `cli.build.heavy.test.ts`
-  - 确实继续使用 `<tabs default="summary">`
-  - 但当前主要断言的是 slot 和总体输出存在，不是默认选中行为本身
+  - happy-path 已不再继续使用 `<tabs default="summary">`
+  - 但当前主要断言仍偏向 slot 和总体输出存在，不是默认选中行为本身
 
 这意味着：
 
@@ -109,7 +112,7 @@ schema-overlays.ts
 - `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.test.ts`
   - `uses renderer spec prop names for tabs content and labels`
 - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
-  - 两个 build 场景里的 `<tabs default="summary">`
+  - 当前更该关注的是：happy-path 已切到结构化 tabs 输入，但默认选中行为的直接断言仍偏弱
 
 如果没有替代路径就删这些点，tabs 不一定会完全炸掉，但默认状态语义会先失真，随后又很可能因为测试保护不足而悄悄滑过去。
 
@@ -238,7 +241,7 @@ schema-overlays.ts
 - `render-node.test.ts`
   - 需要增加或改成能真正断言默认状态行为的新测试
 - `cli.build.heavy.test.ts`
-  - 不能继续只放 `<tabs default="summary">` 旧输入，却不证明默认状态是否正确
+  - happy-path fixture 已切到 `<tabs><tab ...`，但仍需要更直接地证明默认状态行为是否正确
 - docs
   - 不能继续把 `default` 写成当前有效主路径
 

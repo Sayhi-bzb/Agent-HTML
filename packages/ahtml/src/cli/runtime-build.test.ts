@@ -7,7 +7,10 @@ import { pathToFileURL } from "node:url"
 
 import { describe, expect, it } from "vitest"
 
-import { useTemporaryDirectories } from "./cli-test-helpers"
+import {
+  importCliModule,
+  useTemporaryDirectories,
+} from "./cli-test-helpers"
 
 const temporaryDirectories = useTemporaryDirectories()
 
@@ -88,21 +91,10 @@ describe("runtime build html patching", () => {
 })
 
 async function importRuntimeBuildModule() {
-  const moduleUrl = pathToFileURL(
-    path.join(
-      process.cwd(),
-      "packages",
-      "ahtml",
-      "src",
-      "cli",
-      "runtime-build.mjs",
-    ),
-  ).href
-
-  return import(moduleUrl) as Promise<{
+  return importCliModule<{
     readonly patchBuiltIndexHtml: (input: {
       readonly html: string
       readonly outputDir: string
     }) => Promise<void>
-  }>
+  }>("runtime-build.mjs")
 }

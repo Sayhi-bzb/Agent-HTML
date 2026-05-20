@@ -7,11 +7,7 @@
 ## 为什么现在开这张单
 
 - `5A` 收 contract，`5B` 收 runtime spec；`5C` 收的是最后的 gate。如果这一刀不做，前两刀即便逻辑上完成，doctor 和 heavy tests 仍会把旧路径重新钉回主线。
-- 当前 `cli.build.heavy.test.ts` 仍直接使用：
-  - `tone`
-  - `kind`
-  - `default`
-  - `ahtml-document-shell`
+- 当前 `cli.build.heavy.test.ts` 的 happy-path fixtures 已经切到 `variant` / 结构化 `tabs` / 标准 `table` authoring，并把主壳断言切到 `ahtml-runtime-host ahtml-runtime-document`；但 full heavy `build` / `runtime` gate 还没有在一轮完整命令里重新证明，preview heavy 的保护面也仍偏轻。
 - 当前 `doctor-checks.mjs`、`runtime-template.test.ts`、`runtime-surface.test.ts` 已经是 runtime 最终 gate 的真实骨架，所以这刀不是“顺手改 docs”，而是收最后的证明体系。
 
 ## 当前现实
@@ -37,11 +33,12 @@
     - `runtime:renderer-registry-parity`
     - `runtime:shadcn-surface`
 - `cli.build.heavy.test.ts`
-  - 当前仍直接保护 legacy authoring 输入和旧 shell 断言
+  - 当前 happy-path 已保护最终 authoring 输入，并保护 `ahtml-runtime-host ahtml-runtime-document`
+  - 但 full heavy `build` 命令还没有在一轮完整命令里重新证明
 - `cli.preview.heavy.test.ts`
-  - 当前保护面较轻
-  - 主要证明 preview server 可访问、style profile 生效
-  - 几乎不证明最终 authoring contract 是否已经替换 legacy 输入
+  - 当前保护面仍较轻
+  - 主要证明 preview server 可访问、代表性最终 syntax 可渲染、style profile 生效
+  - 但相对 build/runtime heavy 仍缺少更完整的 gate 证明
 - `cli.runtime.heavy.test.ts`
   - 当前更偏：
     - doctor 输出
@@ -84,10 +81,10 @@
 建议交付内容：
 
 1. 改 heavy build fixtures 和 expectations：
-   - 把 legacy authoring 输入替换成最终输入
-   - 把 `ahtml-document-shell` 这类旧壳默认值从自然 contract 断言里拿掉
+   - 保持 happy-path build fixtures 停留在最终输入
+   - 不再把 `ahtml-document-shell` 这类 artifact shell 视为自然宿主 contract 断言
 2. 改 preview / runtime heavy tests：
-   - preview 至少能证明最终输出仍可访问且不回退到旧输入依赖
+   - preview 至少能证明最终输出仍可访问、能渲染代表性最终 syntax，且不回退到旧输入依赖
    - runtime heavy 继续证明 doctor/parity/surface，但不能默许旧桥仍是主路径
 3. 改 doctor / runtime surface 相关口径：
    - 保留 parity / proof 检查
@@ -122,7 +119,7 @@
 
 下面这些不足以支持“完成”：
 
-- 只是 doctor 还绿，但 heavy fixtures 仍是旧输入
+- 只是 doctor 还绿，但 full heavy `build` / `runtime` 命令还没被完整证明
 - 只是 heavy tests 改了输入，但 docs 仍在描述旧桥为当前路径
 - 只是 docs 改了，但 `runtime-template.test.ts` / `runtime-surface.test.ts` 没有重新证明最终 gate
 
@@ -146,7 +143,7 @@
 出现下面任一信号就应停手并重新切片：
 
 - heavy build fixtures 仍只能写 legacy 输入
-- preview/build 仍必须断言 `ahtml-document-shell` 才能通过
+- preview/build 重新依赖 `ahtml-document-shell` 作为自然宿主主断言
 - 为了让 doctor 通过，开始重新放宽已经收紧的 runtime spec 或公开 contract
 - 开始在这张单里设计新的语义节点或新的 layout 参数面
 

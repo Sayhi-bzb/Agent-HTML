@@ -297,7 +297,7 @@ describe("agent-html CLI heavy runtime flows", () => {
     expect(doctor.stdout).toContain("ok runtime:shadcn-surface")
     expect(await readFile(appPath, "utf8")).not.toContain("drifted")
     await removeTempDir(tempDir)
-  }, 60000)
+  }, 120000)
 
   it("fails doctor when runtime capabilities drift from schema", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))

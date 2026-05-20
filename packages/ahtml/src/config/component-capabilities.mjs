@@ -733,8 +733,6 @@ export const componentCapabilityDefinitions = {
       row: "TableRow",
       headerCell: "TableHead",
       bodyCell: "TableCell",
-      headerKind: "header",
-      kindProp: "kind",
       legacyBridges: {
         structuralRole: [
           {
@@ -786,7 +784,6 @@ export const componentCapabilityDefinitions = {
       itemSlot: "tab",
       itemValueProp: "value",
       itemHeadingProp: "label",
-      defaultProp: "default",
       legacyBridges: {
         state: [
           {
@@ -806,9 +803,7 @@ export const componentCapabilityDefinitions = {
     behavior: {
       model: "explicit-default-state",
       runtimeOwner: "renderer",
-      modeProp: "mode",
-      defaultProp: "default",
-      defaultMode: "multiple",
+      stateBridge: "accordion-state",
       multiValueDelimiter: ",",
     },
     uiProtocol: uiProtocolDefinitions.accordion,
@@ -828,9 +823,6 @@ export const componentCapabilityDefinitions = {
       itemSlot: "accordion-item",
       itemValueProp: "value",
       itemHeadingProp: "title",
-      modeProp: "mode",
-      defaultProp: "default",
-      defaultMode: "multiple",
       legacyBridges: {
         state: [
           {

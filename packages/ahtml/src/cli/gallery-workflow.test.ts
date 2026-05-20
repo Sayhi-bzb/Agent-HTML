@@ -1,11 +1,10 @@
 /// <reference types="node" />
 // @vitest-environment node
 
-import path from "node:path"
-import { pathToFileURL } from "node:url"
-
 import { parseRenderConfig } from "@agent-html/core"
 import { describe, expect, it } from "vitest"
+
+import { importCliModule } from "./cli-test-helpers"
 
 describe("gallery workflow", () => {
   it("creates a continuous showcase document from a style profile", async () => {
@@ -43,18 +42,7 @@ describe("gallery workflow", () => {
 })
 
 async function importGalleryWorkflowModule() {
-  const moduleUrl = pathToFileURL(
-    path.join(
-      process.cwd(),
-      "packages",
-      "ahtml",
-      "src",
-      "cli",
-      "gallery-workflow.mjs",
-    ),
-  ).href
-
-  return import(moduleUrl) as Promise<{
+  return importCliModule<{
     readonly createStyleGalleryDocument: (styleProfile: {
       readonly id: string
       readonly globalStyle: {
@@ -80,5 +68,5 @@ async function importGalleryWorkflowModule() {
         readonly props: Record<string, string>
       }[]
     }
-  }>
+  }>("gallery-workflow.mjs")
 }

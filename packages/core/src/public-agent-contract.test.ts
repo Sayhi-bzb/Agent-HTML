@@ -17,6 +17,11 @@ describe("public agent contract", () => {
     const badge = contract.components.find((component) => component.name === "badge")
     const stack = contract.components.find((component) => component.name === "stack")
     const frame = contract.components.find((component) => component.name === "frame")
+    const row = contract.components.find((component) => component.name === "row")
+    const tabs = contract.components.find((component) => component.name === "tabs")
+    const accordion = contract.components.find(
+      (component) => component.name === "accordion",
+    )
     const select = contract.components.find(
       (component) => component.name === "select",
     )
@@ -32,6 +37,9 @@ describe("public agent contract", () => {
     expect(badge?.props.map((prop) => prop.name)).toEqual(["variant"])
     expect(stack?.props).toEqual([])
     expect(frame?.props).toEqual([])
+    expect(row?.props).toEqual([])
+    expect(tabs?.props).toEqual([])
+    expect(accordion?.props).toEqual([])
     expect(stack?.allowedChildren).toContain("cluster")
     expect(frame?.allowedChildren).toContain("card")
     expect(select?.props.map((prop) => prop.name)).not.toContain("size")

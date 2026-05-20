@@ -1,164 +1,121 @@
-# Schema Prop Exposure Plan
+# Schema Prop Exposure
 
-## 背景
+本文定义的是当前稳定的 prop 暴露机制，不再回放 `Phase 2` 的实施顺序。
 
-当前项目同时存在两层 prop 语义：
-
-- 原厂层：shadcn / Radix / React 组件本来就有的 prop
-- 对外层：我们手工包装后暴露给 agent 的 public 字段
-
-这份文档的目标不是继续扩充语义包装词，而是把 prop 暴露规则收敛成一个明确机制，并与 `blueprint/architecture-design/type-surface.md` 中的稳定对象对齐。
-
-它定义的是目标机制和当前保守边界，不等于当前工作树已经完整实现了这条机制链。当前真实实现与这份目标之间的差距，应以：
+如果要核对当前工作树里的现实证据，请优先看：
 
 - `docs/details/current-contract-audit.md`
 - `docs/details/current-contract-component-matrix.md`
-- `docs/architecture/phase-2-implementation-draft.md`
+- `docs/details/high-risk-runtime-bridges.md`
 
-为准。
+## 两个 schema 视图
 
-## 目标
+当前代码里同时保留两种不同用途的 schema 视图：
 
-给每个原厂 prop 一个状态，并让这个状态一路接到：
+- `完整 authoring schema`
+  - 供 parse / validate / sanitize 使用。
+  - 会保留显式兼容语义字段和已开放的 raw props。
+- `最终公开 contract`
+  - 供 CLI schema / prompt 使用。
+  - 由 `createPublicAgentContract()` 投影得到。
+  - 会过滤 legacy semantic props，并隐藏已被正式 raw prop 取代的旧包装字段。
 
-- `ComponentFacts`
-- schema 生成
-- agent prompt 输出
+这不是“两套公开 contract 并存”，而是：
 
-结果应该是：
+- 一套完整 authoring 接受面
+- 一套最终公开给 agent 的主路径 contract
 
-- `blocked` 的 prop 永远不进入 agent-facing schema，也不进入 prompt
-- `raw-candidate` 的 prop 先进入“可配置候选池”，再由组件配置决定是否真正公开
-- agent 最终只会看到当前配置明确放开的 prop，而不是看到全部原厂 prop
-- 文档级配置选择入口仍然可以存在，但不再作为 agent prompt 的严格中心要求
+## 当前公开面规则
 
-这意味着公开面主机制依赖 prop 状态 + 配置决策。
+当前主公开面遵守下面几条规则：
 
-## 对齐对象
+- `blocked` prop 不进入公开 contract，也不进入 prompt。
+- `raw-candidate` prop 只有在组件配置明确放开时，才进入公开 contract。
+- legacy semantic props 可以继续留在兼容 authoring 层，但不再是公开主入口。
+- 文档级配置选择入口仍然存在，但不再把 agent prompt 绑死在“必须先写某个实现配置”上。
 
-这份文档里的核心对象与 `blueprint` 对齐如下：
+## 当前公开主路径
 
-- `ComponentFacts`：提供原厂 prop 名、类型和组件归属
-- `PropExposureState`：规定 prop 是 `blocked` 还是 `raw-candidate`
-- `ComponentSchema`：承接最终对外公开的组件定义
-- `ComponentPropSchema`：承接最终对外公开的 prop
-- `SemanticNode`：包含 UI node 与 layout node
-- `RenderConfig`：承接配置选择被解析后的结果
+当前公开 contract 的代表性结果是：
 
-## 状态模型
+- `alert`
+  - 公开 `title`、`variant`
+- `badge`
+  - 公开 `variant`
+- `list`
+  - 公开 `variant`
+  - 这是历史公开例外，不构成任意开放原厂 `variant` 的先例
+- 表单与内容字段
+  - 继续公开 `title`、`label`、`description`
+  - 继续公开语义 `value`、语义 `checked`
 
-每个原厂 prop 需要先被标记一个内部状态：
+当前不应再把下面这些字段写成“默认公开主路径事实”：
+
+- `tone`
+- `kind`
+- `mode`
+- `default`
+
+## 当前兼容边界
+
+兼容层仍然存在，但位置已经明确收紧：
+
+- authoring 兼容层
+  - `alert.tone`
+  - `badge.tone`
+  - `row.kind`
+  - `tabs.default`
+  - `accordion.mode`
+  - `accordion.default`
+- runtime 兼容层
+  - `legacyBridges.variant`
+  - `legacyBridges.state`
+  - `legacyBridges.structuralRole`
+  - `behavior.stateBridge`
+
+因此更准确的当前判断是：
+
+- 旧字段已经退出公开 contract / prompt 主路径
+- 但它们仍作为显式兼容 authoring 输入和 runtime bridge 保留
+
+## 暴露状态模型
+
+当前稳定的内部状态仍然只有两类：
 
 - `blocked`
-  - 含义：永远不能进入公开 schema，也不能进入 prompt
-  - 适用：样式逃逸、结构逃逸、事件接线、运行时状态接线、DOM/form 接线、强行为语义 prop
-
+  - 永远不进入公开 schema，也不进入 prompt
 - `raw-candidate`
-  - 含义：允许进入公开候选池，但是否真正暴露，取决于组件配置
-  - 适用：纯视觉 recipe 轴，和少量轻度布局轴
+  - 允许进入公开候选池，但是否真正公开取决于组件配置
 
-当前保守结论：
+这个状态模型的职责是回答“原厂 prop 能不能进入公开 contract”，不是回答“历史包装字段还删没删完”。
 
-- 当前有较硬工作树证据、适合用来做 `Phase 2` 首批或次级试点的样本仍集中在 `variant`、`size`
-- `align`、`orientation` 先保留为设计观察项，不作为当前 phase 已确认试点
-- 其余 prop 默认不进入公开候选池
+## 当前应继续 blocked 的类别
 
-## 数据流
+下面这些类别当前仍应保持隐藏：
 
-prop 状态需要接到 agent prompt schema，链路如下：
+- 样式逃逸
+  - `class`
+  - `className`
+  - `style`
+  - `css`
+- 结构逃逸
+  - `asChild`
+  - `dangerouslySetInnerHTML`
+- 事件与运行时接线
+  - `onClick`
+  - `open`
+  - 原厂受控 `value` / `checked`
+  - `defaultValue`
+  - `defaultChecked`
+- 实现层布局参数
+  - gap
+  - columns
+  - ratio
+  - breakpoint
+  - max width
 
-1. `ComponentFacts` 提供 prop 名、类型和组件归属
-2. 每个原厂 prop 被标记为 `PropExposureState`
-3. schema 生成阶段：
-   - `blocked` prop 不进入公开组件 contract
-   - `raw-candidate` prop 再看组件配置是否锁住
-4. prompt 输出阶段：
-   - 只有最终进入公开 schema 的 prop，才出现在 agent prompt 中
-   - 被锁住的 prop 不出现在 prompt 中，组件按默认实现值渲染
+## 当前应怎样读这份文档
 
-例子：
-
-- `badge.variant`
-  - 如果它是 `raw-candidate`，并且当前组件配置没锁住它，那么 schema 和 prompt 都会出现 `variant`
-  - 如果当前组件配置锁住它，那么 schema 和 prompt 都不会出现 `variant`，agent 使用 badge 时直接落默认样式
-
-## 两张表的角色
-
-下面两张表解决的是两个不同问题，不能混读：
-
-- 原厂 prop 状态表：定义未来原厂 prop 的暴露机制
-- 现有公开字段去留表：定义当前历史对外字段的迁移方向
-
-### 原厂 prop 状态表
-
-这张表同时包含稳定候选和观察候选。进入 `raw-candidate` 表示“允许进入公开候选池”，不等于当前版本默认公开，也不等于当前工作树已经提供了完整运行时支持。
-
-| 参数名 | 是什么东西 | 状态 | 备注 |
-|---|---|---|---|
-| align | addon/内容贴左贴右、贴上贴下之类对齐方式 | raw-candidate | 轻度布局轴，但默认仍建议锁住 |
-| asChild | 换掉组件根节点实现 | blocked | 结构逃逸口 |
-| checked | 受控勾选状态 | blocked | 指原厂受控 prop，不是对外语义字段 |
-| class | 直接塞 HTML class | blocked | 样式逃逸口 |
-| className | 直接塞 CSS class | blocked | 样式逃逸口 |
-| collapsible | 可不可以折叠、怎么折叠 | blocked | 已经进入行为模型，不应按视觉轴开放 |
-| css | 直接注入样式 | blocked | 样式逃逸口 |
-| dangerouslySetInnerHTML | 直接插原始 HTML | blocked | 结构/安全逃逸口 |
-| defaultChecked | 初始勾选状态 | blocked | 原厂非受控状态接线 |
-| defaultValue | 初始值，只在第一次渲染时生效 | blocked | 原厂非受控状态接线 |
-| dir | 文字方向，LTR / RTL | blocked | DOM/运行时接线 |
-| disabled | 是否禁用 | blocked | 运行时约束接线 |
-| indicator | 图表/提示指示器样式，比如 dot / line | blocked | 不只是通用视觉轴，组件私有语义过强 |
-| list | 选项源/集合绑定这类内部接线参数 | blocked | 数据/结构接线 |
-| max | 最大值 | blocked | 改的是值域语义，不只是视觉选择 |
-| min | 最小值 | blocked | 改的是值域语义，不只是视觉选择 |
-| name | 原生表单字段名 | blocked | DOM/form 接线 |
-| onClick | 直接绑点击事件 | blocked | 事件/行为接线 |
-| onclick | HTML 事件属性版本 | blocked | 事件/行为接线 |
-| open | 浮层是否打开，比如 dialog / popover / select | blocked | 运行时交互控制面 |
-| orientation | 横向还是纵向排列 | raw-candidate | 轻度布局轴，但默认仍建议锁住 |
-| placeholder | 输入框里没填值时的提示字 | blocked | 实现细节/交互文案接线 |
-| required | 是否必填 | blocked | 运行时约束接线 |
-| script | 直接注入脚本 | blocked | 安全/行为逃逸口 |
-| side | 从哪一边出来，比如 left/right/top/bottom | blocked | 对浮层/容器来说更像空间与行为策略，不宜通开 |
-| size | 组件自己的尺寸档位，比如 sm / lg / icon | raw-candidate | 典型视觉 recipe 轴 |
-| spacing | 某些组件内部的间距实现参数 | blocked | 应由 layout/style 配置层控制 |
-| step | 每次增减的步长 | blocked | 改的是数值语义，不只是视觉选择 |
-| style | 直接写内联样式 | blocked | 样式逃逸口 |
-| type | 组件行为模式，比如 input 类型、accordion single/multiple | blocked | 行为模型，不应直接开放 |
-| value | 受控值，组件当前值 | blocked | 指原厂受控 prop，不是对外语义字段 |
-| variant | 组件自己的视觉款式开关，比如 default / destructive / outline | raw-candidate | 典型视觉 recipe 轴 |
-
-### 现有公开字段去留表
-
-| 参数名 | 是什么东西 | 处理 | 备注 |
-|---|---|---|---|
-| title | 标题、块头、章节名 | 保留 | 内容字段，不是原厂实现 prop |
-| tone | 语义语气，比如中性、警告、危险 | 清理 | 属于旧语义包装，升级后可退场 |
-| label | 给控件看的名字 | 保留 | 内容字段，不是原厂实现 prop |
-| value | 这个组件表达的值 | 保留 | 这里是语义字段，不等于原厂受控 `value` |
-| description | 补充说明、小字说明 | 保留 | 内容字段，不是原厂实现 prop |
-| checked | 是否勾选/开启 | 保留 | 这里是语义字段，不等于原厂受控 `checked` |
-| default | 初始打开/初始选中的项 | 清理 | 属于旧语义包装，原本用于包裹 `defaultValue` |
-| mode | 行为模式 | 清理 | 属于旧语义包装 |
-| kind | 结构角色 | 清理 | 属于旧语义包装 |
-| variant | 这里只有一个公开例外：列表类型 | 待定 | 这是历史例外，不应自动类推到 shadcn `variant` 全面开放 |
-
-## 当前迁移结论
-
-- 原厂 `value` / `checked` 继续 blocked
-- 语义层 `value` / `checked` 作为内容字段暂时保留
-- `tone`、`default`、`mode`、`kind` 的目标方向是从主公开 contract 中退出；当前工作树里它们仍在部分主路径上存在
-- `list.variant` 继续视为历史例外，不构成开放原厂 `variant` 的先例
-- layout node 的目标方向是进入 `SemanticNode` 的正式范围，但 layout 的数值型实现参数继续留在配置层
-
-## 实现验收口径
-
-后续实现完成后，至少应满足以下规则：
-
-- 当前文档定义的是暴露机制和默认实施边界，不要求一次把所有 `raw-candidate` 都接入公开 schema。
-- `blocked` prop 不出现在 CLI schema 输出中
-- `blocked` prop 不出现在 agent prompt 中
-- `raw-candidate` prop 若被组件配置锁住，不出现在公开 schema 和 prompt 中
-- `raw-candidate` prop 若未被组件配置锁住，则进入公开 schema，并在 prompt 中可见
-- `className`、`style`、`asChild`、`open`、原厂 `value` / `checked` / `defaultValue` / `defaultChecked` 必须始终不可见
-- 被清理的旧语义字段不再作为主公开 contract 的新增方向
+- 如果你关心“agent 现在会被公开鼓励写什么”，看最终公开 contract。
+- 如果你关心“旧输入为什么还没完全失效”，看兼容 authoring 层和 runtime bridge。
+- 如果你关心“某个字段到底在哪里被过滤或保留”，回到 `current-contract-audit.md` 和组件矩阵核对代码证据。

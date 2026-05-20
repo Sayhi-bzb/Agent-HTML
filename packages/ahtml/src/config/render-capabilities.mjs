@@ -173,8 +173,6 @@ export const rendererKindDefinitions = {
       "bodyCell",
       "rowSlot",
       "cellSlot",
-      "kindProp",
-      "headerKind",
     ],
   },
   accordion: {
@@ -186,8 +184,6 @@ export const rendererKindDefinitions = {
       "itemSlot",
       "itemValueProp",
       "itemHeadingProp",
-      "modeProp",
-      "defaultProp",
     ],
   },
   tabs: {
@@ -199,7 +195,6 @@ export const rendererKindDefinitions = {
       "itemSlot",
       "itemValueProp",
       "itemHeadingProp",
-      "defaultProp",
     ],
   },
 }

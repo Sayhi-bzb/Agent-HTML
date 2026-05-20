@@ -11,11 +11,11 @@
 
 ## 1. 当前真实基线
 
-到当前工作树为止，旧机制仍然残留在至少四类地方：
+到当前工作树为止，旧机制仍然还保留在若干显式兼容层和迁移资料里，但主公开 contract、主 runtime spec 和 heavy happy-path 已经完成了大部分收口。
 
-### 1.1 旧公开字段仍在主 contract 中
+### 1.1 旧公开字段仍保留在兼容语义层，不再是主公开 contract
 
-`packages/core/src/schema-overlays.ts` 仍然直接定义并公开：
+`packages/core/src/schema-overlays.ts` 仍然定义：
 
 - `alert.tone`
 - `badge.tone`
@@ -24,24 +24,37 @@
 - `accordion.mode`
 - `accordion.default`
 
+但当前代码真相已经变成：
+
+- `packages/core/src/public-agent-contract.ts`
+  - 公开主路径会过滤 `origin === "legacy"` 的 semantic props
+- `packages/ahtml/src/cli/schema.mjs`
+  - prompt 只消费过滤后的公开 contract
+- `packages/core/src/public-agent-contract.test.ts`
+  - 已明确保护 `row` / `tabs` / `accordion` 在公开 contract 中不再暴露这些旧字段
+
 这意味着：
 
-- 它们不是“仅兼容解析”
-- 而是当前 schema / prompt 的正式输入来源之一
+- 这些字段仍是显式兼容语义层的一部分
+- 但已经不再是当前 schema / prompt 的主公开输入来源
 
-### 1.2 runtime spec 仍显式携带旧桥接字段
+### 1.2 runtime spec 主路径已收紧，旧桥通过 `legacyBridges` 保留
 
 `packages/ahtml/src/config/component-capabilities.mjs` 和
 `packages/ahtml/src/cli/runtime-template/src/renderer/types.ts` / `render-node.tsx`
-仍然显式依赖：
+当前兼容桥仍显式记录：
 
-- `kindProp`
-- `modeProp`
-- `defaultProp`
-- `defaultMode`
-- `tone -> variant` propMappings
+- `legacyBridges.state`
+- `legacyBridges.structuralRole`
+- `legacyBridges.variant`
 
-所以旧机制并没有被限制在上游 contract，它仍然深入运行时行为。
+而当前主路径已经改成：
+
+- `RendererSpecComponent` 顶层不再正式承认 `kindProp` / `modeProp` / `defaultProp` / `defaultMode`
+- `RuntimeVerificationState.behavior` 已改成显式 `stateBridge`
+- `render-ui-node.tsx` / `render-capabilities.test.ts` 直接保护“兼容桥存在，但不再是主 spec 形状”
+
+所以旧机制仍然深入运行时行为，但已经不再是 runtime spec 的顶层主路径。
 
 ### 1.3 shell 仍然默认提供结构语义
 
@@ -55,20 +68,23 @@
 
 ### 1.4 测试也还在把旧路径当成“当前正确行为”
 
-当前 heavy tests 明确断言或使用了旧路径：
+此前这条是 `Phase 5` 的主要阻塞点；当前已经不是。
 
 - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
-  - 输入里直接用：
-    - `tone`
-    - `kind`
-    - `default`
-  - 输出里直接断言：
-    - `class="ahtml-document-shell"`
-    - tabs / accordion 的旧行为
+  - happy-path 输入已切到：
+    - `variant`
+    - 标准 `<table><row>...`
+    - 结构化 `<tabs><tab ...`
+  - 输出当前保护：
+    - `class="ahtml-runtime-host ahtml-runtime-document"`
+    - `tone="` / `kind="` / `default="` 不重新出现在 artifact
+    - tabs / accordion / table 的运行时行为仍成立
 - `packages/ahtml/src/cli/cli.test.ts`
-  - 当前仍主要证明旧字段“不再出现在 renderConfig”，但尚未推进到“旧组件字段已从主 contract 退出”
+  - 当前已直接保护 prompt 和公开 contract 不再把旧字段作为主公开入口
 - `packages/ahtml/src/cli/cli.runtime.heavy.test.ts`
-  - 重点锁定 doctor / runtime parity / renderableAgentComponents 链路
+  - 当前 full heavy gate 已证明 doctor / runtime parity / renderableAgentComponents 链路可过
+- `packages/ahtml/src/cli/cli.preview.heavy.test.ts`
+  - 当前已补到能证明代表性最终 syntax 可渲染，且不回退到旧输入依赖
 
 这意味着 `Phase 5` 的一个核心工作不是“改实现”，而是同步更新验证口径，让测试从“保护旧路径”转成“证明最终单一路径”。
 
@@ -296,8 +312,8 @@ Phase 5 目标：
 
 这是当前最现实的工作，因为：
 
-- `cli.build.heavy.test.ts` 还直接用 `tone` / `kind` / `default`
-- 还直接断言 `ahtml-document-shell`
+- `cli.build.heavy.test.ts` 的 happy-path 之前还直接用 `tone` / `kind` / `default`
+- 之前还直接断言 `ahtml-document-shell`
 
 如果这些不改，最终代码即便收口，heavy tests 也会继续保护旧路径。
 
