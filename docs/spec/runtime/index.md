@@ -217,6 +217,8 @@ runtime shell
   - artifact shell baseline
 - `gallery` 的 header / tabs / sidebar / divider / preview toolbar / stage toolbar 这类 shell 或 frame 级结构，应优先由 `host-styles.tsx` 持有。
 - `preset chooser`、`font picker`、`token editor`、`inspector` 这类 gallery editor 通用壳层，也应优先由 `host-styles.tsx` 持有。
+- `features/gallery/preview.tsx` 应只保留 preview shell、mode bar 与 scene orchestration。
+- 各个 preview scene 面板应下沉到 `features/gallery/preview/*` 独立模块，不再回流到单一巨型 `preview.tsx`。
 - feature 不应继续扩张并列的页面壳层体系。
 - 若 feature 需要附加样式，应限定为：
   - 局部组件状态

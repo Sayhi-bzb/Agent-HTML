@@ -43,14 +43,8 @@ export function createArtifactWorkflow({
   runtimePaths,
   readPackageVersion,
 }) {
-  async function buildArtifact(inputPath, outputPath, options = {}) {
+  async function prepareDocumentRuntime(inputPath, options = {}) {
     const inputFilePath = path.resolve(userRoot, inputPath)
-    const outputDir = path.resolve(userRoot, outputPath ?? defaultOutputDir)
-    assertSafeOutputDirectory({
-      inputFilePath,
-      outputDir,
-      userRoot,
-    })
     const source = await readFile(inputFilePath, "utf8")
     const validation = await validateAgentHtmlSource(source, runtimePaths)
 
@@ -58,11 +52,10 @@ export function createArtifactWorkflow({
       if (options.printDiagnostics !== false) {
         printDiagnostics(validation.diagnostics)
       }
-      return createBuildResult({
+      return createRuntimePreparationResult({
         diagnostics: validation.diagnostics,
         inputPath: inputFilePath,
         ok: false,
-        outputDir,
         stage: "validation",
       })
     }
@@ -80,23 +73,47 @@ export function createArtifactWorkflow({
       if (options.printDiagnostics !== false) {
         printDiagnostics(runtimeDiagnostics)
       }
-      return createBuildResult({
+      return createRuntimePreparationResult({
         diagnostics: runtimeDiagnostics,
         inputPath: inputFilePath,
         ok: false,
-        outputDir,
         stage: "runtime-renderability",
       })
     }
 
+    return createRuntimePreparationResult({
+      diagnostics: validation.diagnostics,
+      inputPath: inputFilePath,
+      inspection: createInspection(validation.document),
+      document: validation.document,
+      ok: true,
+    })
+  }
+
+  async function buildArtifact(inputPath, outputPath, options = {}) {
+    const inputFilePath = path.resolve(userRoot, inputPath)
+    const outputDir = path.resolve(userRoot, outputPath ?? defaultOutputDir)
+    assertSafeOutputDirectory({
+      inputFilePath,
+      outputDir,
+      userRoot,
+    })
+    const prepared = await prepareDocumentRuntime(inputPath, options)
+
+    if (!prepared.ok) {
+      return createBuildResult({
+        diagnostics: prepared.diagnostics,
+        inputPath: prepared.inputPath,
+        ok: false,
+        outputDir,
+        stage: prepared.stage,
+      })
+    }
+
     await withRuntimeBuildLock(runtimePaths, async () => {
-      await writeGeneratedDocument(validation.document, runtimePaths)
+      await writeGeneratedDocument(prepared.document, runtimePaths)
       await writeGeneratedRuntimeState(
-        {
-          kind: "ahtml-runtime-state",
-          version: 1,
-          mode: "document",
-        },
+        createDocumentRuntimeState(prepared.document),
         runtimePaths,
       )
 
@@ -106,12 +123,12 @@ export function createArtifactWorkflow({
         paths: runtimePaths,
       })
     })
-    const inspection = createInspection(validation.document)
+    const inspection = prepared.inspection
     const inspectionPath = path.join(outputDir, "agent-html.inspect.json")
     await writeJsonFile(inspectionPath, inspection)
     return createBuildResult({
-      diagnostics: validation.diagnostics,
-      inputPath: inputFilePath,
+      diagnostics: prepared.diagnostics,
+      inputPath: prepared.inputPath,
       inspection,
       inspectionPath,
       ok: true,
@@ -212,7 +229,19 @@ export function createArtifactWorkflow({
     ensureManagedRuntime,
     inspectArtifactDir,
     inspectDocument,
+    prepareDocumentRuntime,
     validateDocument,
+  }
+}
+
+export function createDocumentRuntimeState(document) {
+  return {
+    kind: "ahtml-runtime-state",
+    version: 1,
+    mode: "document",
+    artifactProfileReference: document.meta.artifactProfileReference,
+    artifactProfile: document.meta.artifactProfile,
+    document,
   }
 }
 
@@ -266,6 +295,25 @@ function createValidationResult({
     inputPath,
     ...(inspection ? { inspection } : {}),
     ...(diagnostics.length > 0 ? { diagnostics } : {}),
+  }
+}
+
+function createRuntimePreparationResult({
+  diagnostics = [],
+  document,
+  inputPath,
+  inspection,
+  ok,
+  stage,
+}) {
+  return {
+    kind: "agent-html-runtime-preparation",
+    version: 1,
+    ok,
+    inputPath,
+    ...(document ? { document, inspection } : {}),
+    ...(diagnostics.length > 0 ? { diagnostics } : {}),
+    ...(stage ? { stage } : {}),
   }
 }
 

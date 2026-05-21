@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs"
 import { createRequire } from "node:module"
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises"
+import { cp, copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
@@ -197,6 +197,10 @@ async function provisionRuntimeShell({ packageRoot, paths, setup }) {
     `${viteConfig}\n`,
   )
   await writeFile(path.join(paths.runtimeDir, "index.html"), `${indexHtml}\n`)
+  await copyFile(
+    path.join(packageRoot, "assets", "ghost.svg"),
+    path.join(paths.runtimeDir, "ghost.svg"),
+  )
   await writeFile(
     path.join(paths.runtimeDir, "components.json"),
     `${JSON.stringify(componentsJson, null, 2)}\n`,
@@ -249,6 +253,10 @@ async function injectRuntimeHostFiles({
   await cp(
     path.join(runtimeHostSourceDir, "ssr.tsx"),
     path.join(paths.runtimeSrcDir, "ssr.tsx"),
+  )
+  await cp(
+    path.join(runtimeHostSourceDir, "render-ssr.tsx"),
+    path.join(paths.runtimeSrcDir, "render-ssr.tsx"),
   )
   await cp(
     path.join(runtimeHostSourceDir, "artifact-shell.tsx"),
@@ -348,6 +356,7 @@ function createRuntimeIndexHtmlSource() {
     '    <meta charset="UTF-8" />',
     '    <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
     "    <title>agent-html runtime</title>",
+    '    <link rel="icon" type="image/svg+xml" href="./ghost.svg" />',
     "  </head>",
     "  <body>",
     '    <div id="root"></div>',

@@ -13,6 +13,7 @@ import {
   createCliEnv,
   removeTempDir,
   useShadcnCliHarness,
+  waitForPreviewBodyContains,
   waitForPreviewUrl,
   waitForProcessExit,
   writeCustomArtifactProfile,
@@ -21,7 +22,7 @@ import {
 const { getRegistryUrl } = useShadcnCliHarness()
 
 describe("agent-html CLI heavy preview flows", () => {
-  it("serves a preview from the generated static output", async () => {
+  it("serves a realtime preview session for a source document", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "artifact.agent.html")
@@ -65,8 +66,7 @@ describe("agent-html CLI heavy preview flows", () => {
 
     try {
       const url = await waitForPreviewUrl(preview)
-      const response = await fetch(url)
-      const body = await response.text()
+      const body = await waitForPreviewBodyContains(url, "Preview by CLI")
 
       expect(body).toContain("Preview by CLI")
       expect(body).toContain("Overview")
@@ -121,13 +121,119 @@ describe("agent-html CLI heavy preview flows", () => {
 
     try {
       const url = await waitForPreviewUrl(preview)
-      const response = await fetch(url)
-      const body = await response.text()
+      const body = await waitForPreviewBodyContains(url, "Team Preview")
 
       expect(body).toContain("Team Preview")
       expect(body).toContain('data-artifact-profile="team-ops"')
       expect(body).toContain('class="ahtml-runtime-host ahtml-runtime-document"')
       expect(body).toContain(":root{--background:#fcfbf8;--foreground:#1f2933;")
+    } finally {
+      preview.kill("SIGTERM")
+      await waitForProcessExit(preview)
+      await removeTempDir(tempDir)
+    }
+  }, 120000)
+
+  it("refreshes the running preview when the source document changes", async () => {
+    const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
+    const runtimeHome = path.join(tempDir, ".ahtml")
+    const inputPath = path.join(tempDir, "artifact.agent.html")
+
+    await writeFile(
+      inputPath,
+      [
+        '<meta-agent profile-ref="report-default" />',
+        '<page title="Live Preview">',
+        '  <card title="Overview">First render.</card>',
+        "</page>",
+      ].join("\n"),
+    )
+
+    const preview = spawn(
+      process.execPath,
+      [cliPath, "preview", inputPath, "--port", "0"],
+      {
+        cwd: tempDir,
+        env: createCliEnv(
+          {
+            AHTML_HOME: runtimeHome,
+          },
+          getRegistryUrl(),
+        ),
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    )
+
+    try {
+      const url = await waitForPreviewUrl(preview)
+      await waitForPreviewBodyContains(url, "First render.")
+
+      await writeFile(
+        inputPath,
+        [
+          '<meta-agent profile-ref="report-default" />',
+          '<page title="Live Preview">',
+          '  <card title="Overview">Second render.</card>',
+          "</page>",
+        ].join("\n"),
+      )
+
+      const body = await waitForPreviewBodyContains(url, "Second render.")
+      expect(body).toContain("Live Preview")
+    } finally {
+      preview.kill("SIGTERM")
+      await waitForProcessExit(preview)
+      await removeTempDir(tempDir)
+    }
+  }, 120000)
+
+  it("keeps preview alive on invalid input and recovers after the document is fixed", async () => {
+    const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
+    const runtimeHome = path.join(tempDir, ".ahtml")
+    const inputPath = path.join(tempDir, "artifact.agent.html")
+
+    await writeFile(
+      inputPath,
+      '<page title="Bad"><card className="x" /></page>',
+    )
+
+    const preview = spawn(
+      process.execPath,
+      [cliPath, "preview", inputPath, "--port", "0"],
+      {
+        cwd: tempDir,
+        env: createCliEnv(
+          {
+            AHTML_HOME: runtimeHome,
+          },
+          getRegistryUrl(),
+        ),
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    )
+
+    try {
+      const url = await waitForPreviewUrl(preview)
+      const diagnosticsBody = await waitForPreviewBodyContains(
+        url,
+        "Preview Diagnostics",
+      )
+
+      expect(diagnosticsBody).toContain("unknown-attr")
+
+      await writeFile(
+        inputPath,
+        [
+          '<meta-agent profile-ref="review-dense" />',
+          '<page title="Recovered"><card title="Summary">Recovered preview.</card></page>',
+        ].join("\n"),
+      )
+
+      const recoveredBody = await waitForPreviewBodyContains(
+        url,
+        "Recovered preview.",
+      )
+      expect(recoveredBody).toContain("Recovered")
     } finally {
       preview.kill("SIGTERM")
       await waitForProcessExit(preview)

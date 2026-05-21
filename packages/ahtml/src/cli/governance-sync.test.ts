@@ -36,11 +36,32 @@ const gallerySceneStylePaths = [
   "packages/ahtml/src/cli/runtime-host/features/gallery/styles/responsive.ts",
   "packages/ahtml/src/cli/runtime-host/features/gallery/styles/typography.ts",
 ]
+const galleryPreviewScenePaths = [
+  "packages/ahtml/src/cli/runtime-host/features/gallery/preview.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/preview/cards.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/preview/colors.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/preview/custom.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/preview/dashboard.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/preview/mail.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/preview/pricing.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/preview/typography.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/preview/types.ts",
+]
 
 async function readGallerySceneStyleSource() {
   return (
     await Promise.all(
       gallerySceneStylePaths.map((relativePath) =>
+        readRepoSource(relativePath),
+      ),
+    )
+  ).join("\n")
+}
+
+async function readGalleryPreviewSceneSource() {
+  return (
+    await Promise.all(
+      galleryPreviewScenePaths.map((relativePath) =>
         readRepoSource(relativePath),
       ),
     )
@@ -165,7 +186,10 @@ describe("code governance sync blocks", () => {
     ])
 
     expect(runtimeHostSliderSource).toContain("controlId")
-    expect(runtimeManagedUiSource).toContain('"scripts",')
+    expect(runtimeManagedUiSource).toContain(
+      "const managedRuntimeUiBundleSourceDir = path.join(",
+    )
+    expect(runtimeManagedUiSource).toContain('"verify-pack",')
     expect(runtimeManagedUiSource).toContain('"shadcn-test-fixtures",')
     expect(runtimeManagedUiSource).toContain(
       '"runtime-host/components/ui override registry must match explicit managed overrides only."',
@@ -340,5 +364,61 @@ describe("code governance sync blocks", () => {
         new RegExp(`(^|\\n)\\s*\\${selector}\\s*\\{`),
       )
     }
+  })
+
+  it("keeps gallery preview.tsx as an orchestrator while preview scenes live in preview modules", async () => {
+    const [previewSource, previewSceneSource] = await Promise.all([
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "features",
+        "gallery",
+        "preview.tsx",
+      ),
+      readGalleryPreviewSceneSource(),
+    ])
+
+    expect(previewSource).toContain('from "./preview/cards"')
+    expect(previewSource).toContain('from "./preview/colors"')
+    expect(previewSource).toContain('from "./preview/custom"')
+    expect(previewSource).toContain('from "./preview/dashboard"')
+    expect(previewSource).toContain('from "./preview/mail"')
+    expect(previewSource).toContain('from "./preview/pricing"')
+    expect(previewSource).toContain('from "./preview/typography"')
+    expect(previewSource).not.toContain("function GalleryTypographyPanel(")
+    expect(previewSource).not.toContain("function GalleryColorPreviewPanel(")
+    expect(previewSource).not.toContain("function GalleryCustomPreviewPanel(")
+    expect(previewSource).not.toContain("function GalleryCardsWorkbenchPanel(")
+    expect(previewSource).not.toContain(
+      "function GalleryDashboardWorkbenchPanel(",
+    )
+    expect(previewSource).not.toContain("function GalleryMailWorkbenchPanel(")
+    expect(previewSource).not.toContain(
+      "function GalleryPricingWorkbenchPanel(",
+    )
+    expect(previewSceneSource).toContain(
+      "export function GalleryTypographyPanel",
+    )
+    expect(previewSceneSource).toContain(
+      "export function GalleryColorPreviewPanel",
+    )
+    expect(previewSceneSource).toContain(
+      "export function GalleryCustomPreviewPanel",
+    )
+    expect(previewSceneSource).toContain(
+      "export function GalleryCardsWorkbenchPanel",
+    )
+    expect(previewSceneSource).toContain(
+      "export function GalleryDashboardWorkbenchPanel",
+    )
+    expect(previewSceneSource).toContain(
+      "export function GalleryMailWorkbenchPanel",
+    )
+    expect(previewSceneSource).toContain(
+      "export function GalleryPricingWorkbenchPanel",
+    )
   })
 })

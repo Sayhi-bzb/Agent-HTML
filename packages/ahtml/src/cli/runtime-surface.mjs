@@ -26,6 +26,7 @@ const ahtmlGlueFiles = [
   "src/app.tsx",
   "src/lib/utils.ts",
   "src/main.tsx",
+  "src/render-ssr.tsx",
   "src/ssr.tsx",
   "src/renderer/elements.tsx",
   "src/renderer/kinds.ts",

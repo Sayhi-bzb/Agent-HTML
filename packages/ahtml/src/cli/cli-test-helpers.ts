@@ -504,6 +504,32 @@ export async function waitForPreviewUrl(
   })
 }
 
+export async function waitForPreviewBodyContains(
+  url: string,
+  expected: string,
+  timeoutMs = 15000,
+) {
+  const startedAt = Date.now()
+  let lastBody = ""
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(url)
+      lastBody = await response.text()
+
+      if (lastBody.includes(expected)) {
+        return lastBody
+      }
+    } catch {}
+
+    await delay(200)
+  }
+
+  throw new Error(
+    `Timed out waiting for preview body to contain "${expected}". Last body snippet: ${lastBody.slice(0, 400)}`,
+  )
+}
+
 export async function waitForProcessExit(child: PreviewProcess) {
   if (child.exitCode !== null) {
     return

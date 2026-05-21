@@ -120,8 +120,9 @@ export const commandMetadata = {
     },
   },
   preview: {
-    summary: "Build and preview a static HTML artifact.",
-    purpose: "Build and serve the same static artifact output used by build.",
+    summary: "Open a realtime preview session for an agent-html document.",
+    purpose:
+      "Validate the source, start a long-lived runtime preview session, and live-refresh document rendering as the source changes.",
     usage: "ahtml preview [<input>] [--out <dir>] [--port <port>]",
     options: [
       {
@@ -132,7 +133,8 @@ export const commandMetadata = {
       },
       {
         name: "out",
-        description: `Output directory. Defaults to ${cliDefaults.outputDir}.`,
+        description:
+          "Reserved for compatibility. Preview no longer materializes build output into this directory.",
         value: true,
       },
       {
@@ -144,7 +146,7 @@ export const commandMetadata = {
     example: `ahtml preview ${cliDefaults.documentPath}`,
     interactiveAction: {
       label: `Preview ${cliDefaults.documentPath}`,
-      hint: `Build and serve on port ${cliDefaults.previewPort}`,
+      hint: `Start a live preview session on port ${cliDefaults.previewPort}`,
     },
   },
   gallery: {

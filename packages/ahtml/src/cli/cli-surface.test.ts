@@ -107,10 +107,6 @@ describe("cli surface contracts", () => {
       'build --format must be "text" or "json".',
     )
     await expectCliFailure(
-      runCliWithServer(["preview", inputPath], {}, tempDir),
-      "unknown-attr",
-    )
-    await expectCliFailure(
       runCliWithServer(["gallery", "extra"], {}, tempDir),
       'Unexpected argument "extra".',
     )

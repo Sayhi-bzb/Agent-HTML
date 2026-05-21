@@ -47,6 +47,7 @@ import {
   serveDirectory,
   writeJsonResponse,
 } from "./preview-server.mjs"
+import { runRuntimePreviewSession } from "./runtime-preview.mjs"
 import {
   BuiltinArtifactProfileMutationError,
   deleteArtifactProfile,
@@ -80,6 +81,7 @@ const {
   ensureManagedRuntime,
   inspectArtifactDir,
   inspectDocument,
+  prepareDocumentRuntime,
   validateDocument,
 } = createArtifactWorkflow({
   userRoot,
@@ -338,14 +340,17 @@ async function previewCommand(commandArgs, definition) {
   }
 
   const port = parsePort(options.port ?? cliDefaults.previewPort, "preview")
-
-  const result = await buildArtifact(inputPath, options.out)
-  if (!result?.ok) {
-    process.exitCode = 1
-    return
-  }
-
-  await serveDirectory(result.outputDir, port)
+  const packageVersion = await readPackageVersion()
+  const schema = await getCliSchemaOutput()
+  await ensureManagedRuntime(packageVersion, schema)
+  await runRuntimePreviewSession({
+    absoluteInputPath: path.resolve(userRoot, inputPath),
+    inputPath,
+    packageRoot,
+    paths: runtimePaths,
+    port,
+    prepareDocumentRuntime,
+  })
 }
 
 async function galleryCommand(commandArgs, definition) {

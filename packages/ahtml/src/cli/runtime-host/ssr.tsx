@@ -1,4 +1,3 @@
-import { renderToStaticMarkup } from "react-dom/server"
-import { App } from "./app"
+import { renderRuntimeAppToHtml } from "./render-ssr"
 
-process.stdout.write(renderToStaticMarkup(<App />))
+process.stdout.write(renderRuntimeAppToHtml())
