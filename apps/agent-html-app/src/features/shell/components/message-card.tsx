@@ -84,7 +84,10 @@ export function MessageCard({ message }: MessageCardProps) {
           <ShellStatusBadge label={getMessageLabel(message)} variant="outline" />
         )}
       </div>
-      <MessageBody items={getMessageItems(message)} text={getMessageText(message)} />
+      <MessageBody
+        items={getMessageItems(message)}
+        text={getMessageText(message)}
+      />
     </section>
   )
 }

@@ -22,9 +22,7 @@ export function TopBar({
     <header className="app-shell-topbar">
       <div className="app-shell-topbar-row">
         <div className="app-shell-topbar-group">
-          <div className="app-shell-panel-icon">
-            <FileCode2Icon className="app-shell-inline-icon" />
-          </div>
+          <FileCode2Icon className="app-shell-inline-icon app-shell-brand-icon" />
           <div className="app-shell-topbar-brand">
             <span className="app-shell-topbar-copy">agent-html</span>
             <span className="app-shell-panel-title">review studio</span>

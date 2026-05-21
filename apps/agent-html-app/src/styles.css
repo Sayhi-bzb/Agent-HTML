@@ -160,6 +160,10 @@
     inline-size: var(--shell-panel-icon-size);
   }
 
+  .app-shell-brand-icon {
+    @apply text-muted-foreground;
+  }
+
   .app-shell-inline-icon {
     @apply size-4;
   }
@@ -339,6 +343,11 @@
     @apply text-[13px] leading-5 text-muted-foreground;
   }
 
+  .app-shell-body-item::before {
+    content: "\2014";
+    @apply mr-2 text-muted-foreground;
+  }
+
   .app-shell-surface-item {
     @apply border bg-transparent text-sm;
     padding-inline: var(--shell-header-padding-inline);
@@ -364,13 +373,13 @@
   }
 
   .app-shell-composer-row {
-    @apply flex items-center;
+    @apply flex items-end;
     gap: var(--shell-gap-base);
   }
 
   .app-shell-composer-input-shell {
     @apply flex min-w-0 flex-1 items-center border-b;
-    padding-block: 0.375rem;
+    padding-block: 0.25rem;
   }
 
   .app-shell-empty-canvas {
@@ -439,7 +448,7 @@
   }
 
   .app-shell-session-card-active {
-    @apply bg-muted/30;
+    @apply bg-transparent;
   }
 
   .app-shell-session-card-trigger {
@@ -553,20 +562,30 @@
   }
 
   .app-shell-proposal-card {
-    @apply grid gap-3 border-b;
-    padding-block: 1rem;
+    @apply grid gap-4 border-b;
+    padding-block: 1.25rem;
   }
 
   .app-shell-proposal-card .app-shell-message-heading {
+    @apply text-lg tracking-[-0.02em];
     font-family: var(--font-heading);
   }
 
   .app-shell-proposal-card .app-shell-body-list {
-    @apply gap-3;
+    @apply gap-4;
   }
 
   .app-shell-proposal-card .app-shell-body-item {
-    @apply text-foreground;
+    @apply text-sm leading-6 text-foreground;
+  }
+
+  .app-shell-proposal-card .app-shell-kicker {
+    @apply text-foreground/72;
+  }
+
+  .app-shell-proposal-card .app-shell-body-item::before {
+    content: "";
+    @apply mr-0;
   }
 
   .app-shell-message-kicker {
