@@ -157,11 +157,13 @@ async function createRuntimePreviewServer({ packageRoot, paths, port }) {
     pathToFileURL(resolveRuntimeDependencies(packageRoot).viteModule).href
   )
   const templatePath = path.join(paths.runtimeDir, "index.html")
+  const runtimeTemplateViteConfigPath = path.join(paths.runtimeDir, "vite.config.ts")
   const httpServer = http.createServer()
   const viteServer = await vite.createServer({
     appType: "custom",
     clearScreen: false,
-    configFile: paths.runtimeViteConfigPath,
+    configFile: runtimeTemplateViteConfigPath,
+    root: paths.runtimeDir,
     server: {
       host: "127.0.0.1",
       hmr: {

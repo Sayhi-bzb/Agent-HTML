@@ -24,7 +24,6 @@ import { Slider } from "@/components/ui/slider"
 import { extractFontName, formatThemeTokenLabel } from "../helpers"
 import type {
   ArtifactProfile,
-  FocusedThemeToken,
   FontPickerOption,
   ThemeTokenName,
 } from "../types"

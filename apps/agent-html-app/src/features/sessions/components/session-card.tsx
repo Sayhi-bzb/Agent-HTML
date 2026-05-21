@@ -1,14 +1,26 @@
-import { Trash2Icon } from "lucide-react"
+import { EllipsisIcon, Trash2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
-  ShellActionGroup,
-  ShellIconButton,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
   ShellMetaRow,
   ShellSessionStatusBadge,
   ShellSplitRow,
 } from "@/features/app-shell/components/shell-content"
-import { formatSessionTimestampLabel } from "@/lib/time"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
+  formatSessionTimestampLabel,
+  formatTimestampLabel,
+} from "@/lib/time"
 import type { SessionSummary } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -27,6 +39,9 @@ export function SessionCard({
   onDelete,
   onOpen,
 }: SessionCardProps) {
+  const shortTimestamp = formatSessionTimestampLabel(session.updatedAt)
+  const fullTimestamp = formatTimestampLabel(session.updatedAt)
+
   return (
     <section
       className={cn(
@@ -56,22 +71,37 @@ export function SessionCard({
         </ShellSplitRow>
         <ShellMetaRow
           action={
-            <ShellActionGroup>
-              {!active ? (
-                <ShellIconButton
-                  ariaLabel="Delete session"
-                  className="app-shell-session-card-action"
-                  disabled={disabled}
-                  onClick={() => onDelete(session.id)}
-                  size="icon-xs"
-                  variant="ghost"
-                >
-                  <Trash2Icon data-icon="inline-start" />
-                </ShellIconButton>
-              ) : null}
-            </ShellActionGroup>
+            !active ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    aria-label="Session actions"
+                    className="app-shell-session-card-action"
+                    disabled={disabled}
+                    size="icon-xs"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <EllipsisIcon data-icon="inline-start" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onDelete(session.id)}>
+                    <Trash2Icon />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null
           }
-          copy={formatSessionTimestampLabel(session.updatedAt)}
+          copy={
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>{shortTimestamp}</span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{fullTimestamp}</TooltipContent>
+            </Tooltip>
+          }
         />
       </div>
     </section>

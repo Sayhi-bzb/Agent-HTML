@@ -27,6 +27,19 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-shell-app-surface: var(--shell-color-app-surface);
+  --color-shell-pane-surface: var(--shell-color-pane-surface);
+  --color-shell-pane-card: var(--shell-color-pane-card);
+  --color-shell-text-primary: var(--shell-color-text-primary);
+  --color-shell-text-secondary: var(--shell-color-text-secondary);
+  --color-shell-text-emphasis: var(--shell-color-text-emphasis);
+  --color-shell-text-subtle: var(--shell-color-text-subtle);
+  --color-shell-text-danger: var(--shell-color-text-danger);
+  --color-shell-border-default: var(--shell-color-border-default);
+  --color-shell-border-strong: var(--shell-color-border-strong);
+  --color-shell-border-active: var(--shell-color-border-active);
+  --color-shell-focus-ring: var(--shell-color-focus-ring);
+  --color-shell-status-danger-surface: var(--shell-color-status-danger-surface);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -55,6 +68,35 @@
   --border: oklch(0.87 0.003 95);
   --input: oklch(0.87 0.003 95);
   --ring: oklch(0.66 0.01 95);
+  --shell-color-app-surface: var(--background);
+  --shell-color-pane-surface: var(--background);
+  --shell-color-pane-card: var(--card);
+  --shell-color-text-primary: var(--foreground);
+  --shell-color-text-secondary: var(--muted-foreground);
+  --shell-color-text-emphasis: color-mix(
+    in oklch,
+    var(--foreground) 86%,
+    transparent
+  );
+  --shell-color-text-subtle: color-mix(
+    in oklch,
+    var(--foreground) 72%,
+    transparent
+  );
+  --shell-color-text-danger: var(--destructive);
+  --shell-color-border-default: var(--border);
+  --shell-color-border-strong: color-mix(
+    in oklch,
+    var(--foreground) 40%,
+    transparent
+  );
+  --shell-color-border-active: var(--foreground);
+  --shell-color-focus-ring: color-mix(in oklch, var(--ring) 50%, transparent);
+  --shell-color-status-danger-surface: color-mix(
+    in oklch,
+    var(--destructive) 5%,
+    transparent
+  );
   --radius: 0.5rem;
   --shell-topbar-height: 3.25rem;
   --shell-topbar-padding-inline: 1rem;
@@ -117,7 +159,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-shell-border-default;
   }
 
   html,
@@ -128,22 +170,22 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-shell-app-surface text-shell-text-primary antialiased;
     font-family: var(--font-sans);
   }
 }
 
 @layer components {
   .app-shell {
-    @apply h-full min-h-screen bg-background text-foreground;
+    @apply h-full min-h-screen bg-shell-app-surface text-shell-text-primary;
   }
 
   .app-shell-frame {
-    @apply flex h-full min-h-screen flex-col bg-background;
+    @apply flex h-full min-h-screen flex-col bg-shell-app-surface;
   }
 
   .app-shell-topbar {
-    @apply border-b bg-background;
+    @apply border-b bg-shell-pane-surface;
   }
 
   .app-shell-topbar-row {
@@ -164,7 +206,7 @@
   }
 
   .app-shell-topbar-copy {
-    @apply uppercase text-muted-foreground;
+    @apply uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-kicker);
   }
@@ -175,7 +217,7 @@
   }
 
   .app-shell-session-title {
-    @apply truncate text-lg text-foreground;
+    @apply truncate text-lg text-shell-text-primary;
     font-family: var(--font-heading);
     letter-spacing: var(--shell-tracking-heading);
   }
@@ -186,13 +228,26 @@
   }
 
   .app-shell-panel-icon {
-    @apply flex items-center justify-center border bg-transparent text-muted-foreground;
+    @apply flex items-center justify-center border bg-transparent text-shell-text-secondary;
     block-size: var(--shell-panel-icon-size);
     inline-size: var(--shell-panel-icon-size);
   }
 
   .app-shell-brand-icon {
-    @apply text-muted-foreground;
+    @apply text-shell-text-secondary;
+  }
+
+  .app-shell-topbar-meta-icon {
+    @apply inline-flex size-7 items-center justify-center border text-shell-text-secondary;
+  }
+
+  .app-shell-topbar-meta-icon-error {
+    border-color: color-mix(
+      in oklch,
+      var(--shell-color-text-danger) 30%,
+      transparent
+    );
+    color: var(--shell-color-text-danger);
   }
 
   .app-shell-inline-icon {
@@ -215,13 +270,13 @@
   }
 
   .app-shell-pane-label-copy {
-    @apply uppercase text-muted-foreground;
+    @apply uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-label);
   }
 
   .app-shell-error-banner {
-    @apply border-b bg-destructive/5 text-destructive;
+    @apply border-b bg-shell-status-danger-surface text-shell-text-danger;
     font-size: var(--shell-text-control-size);
     line-height: var(--shell-text-body-line-height);
     padding-inline: var(--shell-topbar-padding-inline);
@@ -241,13 +296,13 @@
   }
 
   .app-shell-pane-header {
-    @apply border-b bg-background;
+    @apply border-b bg-shell-pane-surface;
     padding-inline: var(--shell-header-padding-inline);
     padding-block: var(--shell-header-padding-block);
   }
 
   .app-shell-pane-footer {
-    @apply border-t bg-background;
+    @apply border-t bg-shell-pane-surface;
     padding: var(--shell-section-padding);
   }
 
@@ -257,7 +312,7 @@
   }
 
   .app-shell-fill-card {
-    @apply h-full border bg-card;
+    @apply h-full border bg-shell-pane-card;
   }
 
   .app-shell-workbench-surface {
@@ -293,7 +348,7 @@
   }
 
   .app-shell-search-icon {
-    @apply pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground;
+    @apply pointer-events-none absolute top-1/2 -translate-y-1/2 text-shell-text-secondary;
     inset-inline-start: var(--shell-space-icon-offset-inline);
     block-size: var(--shell-control-icon-sm);
     inline-size: var(--shell-control-icon-sm);
@@ -340,7 +395,7 @@
   }
 
   .app-shell-card-active {
-    @apply border-foreground/40;
+    @apply border-shell-border-strong;
   }
 
   .app-shell-content-stack {
@@ -349,7 +404,7 @@
   }
 
   .app-shell-card-heading {
-    @apply font-medium uppercase text-muted-foreground;
+    @apply font-medium uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-label);
   }
@@ -367,7 +422,7 @@
   }
 
   .app-shell-card-description {
-    @apply text-muted-foreground;
+    @apply text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
   }
 
@@ -387,14 +442,14 @@
   }
 
   .app-shell-body-item {
-    @apply text-muted-foreground;
+    @apply text-shell-text-secondary;
     font-size: var(--shell-text-body-size);
     line-height: var(--shell-text-body-line-height);
   }
 
   .app-shell-body-item::before {
     content: "\2014";
-    @apply text-muted-foreground;
+    @apply text-shell-text-secondary;
     margin-inline-end: var(--shell-space-control-inline-sm);
   }
 
@@ -409,7 +464,7 @@
   }
 
   .app-shell-preview-canvas {
-    @apply size-full bg-background;
+    @apply size-full bg-shell-app-surface;
   }
 
   .app-shell-editor-field {
@@ -437,20 +492,20 @@
   }
 
   .app-shell-empty-canvas {
-    @apply flex size-full items-center justify-center uppercase text-muted-foreground;
+    @apply flex size-full items-center justify-center uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-kicker);
   }
 
   .app-shell-empty-state {
-    @apply text-center uppercase text-muted-foreground;
+    @apply text-center uppercase text-shell-text-secondary;
     padding-block: var(--shell-space-state-block);
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-kicker);
   }
 
   .app-shell-supporting-copy {
-    @apply text-muted-foreground;
+    @apply text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
   }
 
@@ -461,13 +516,13 @@
   }
 
   .app-shell-metric-label {
-    @apply uppercase text-muted-foreground;
+    @apply uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-label);
   }
 
   .app-shell-metric-value {
-    @apply text-sm font-medium text-foreground;
+    @apply text-sm font-medium text-shell-text-primary;
   }
 
   .app-shell-metric-strip {
@@ -477,14 +532,14 @@
   }
 
   .app-shell-status-row {
-    @apply flex flex-wrap items-center uppercase text-muted-foreground;
+    @apply flex flex-wrap items-center uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-label);
     gap: var(--shell-gap-compact);
   }
 
   .app-shell-loading-row {
-    @apply flex items-center uppercase text-muted-foreground;
+    @apply flex items-center uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-label);
     gap: var(--shell-gap-compact);
@@ -498,7 +553,7 @@
   }
 
   .app-shell-kicker {
-    @apply uppercase text-muted-foreground;
+    @apply uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-kicker);
   }
@@ -515,7 +570,7 @@
   }
 
   .app-shell-session-card-title {
-    @apply min-w-0 flex-1 truncate text-sm tracking-tight text-foreground/86;
+    @apply min-w-0 flex-1 truncate text-sm tracking-tight text-shell-text-emphasis;
     font-family: var(--font-heading);
   }
 
@@ -524,7 +579,7 @@
   }
 
   .app-shell-session-card-trigger {
-    @apply absolute inset-0 z-10 rounded-none bg-transparent p-0 opacity-0 outline-none hover:bg-transparent focus-visible:opacity-100 focus-visible:ring-[3px] focus-visible:ring-ring/50;
+    @apply absolute inset-0 z-10 rounded-none bg-transparent p-0 opacity-0 outline-none hover:bg-transparent focus-visible:opacity-100 focus-visible:ring-[3px] focus-visible:ring-shell-focus-ring;
   }
 
   .app-shell-session-card-action {
@@ -553,7 +608,7 @@
   }
 
   .app-shell-message-card-agent {
-    @apply border-border;
+    @apply border-shell-border-default;
   }
 
   .app-shell-message-card-user {
@@ -569,20 +624,25 @@
   }
 
   .app-shell-tabs-trigger {
-    @apply rounded-none border-x-0 border-t-0 border-b border-transparent text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none;
+    @apply rounded-none border-x-0 border-t-0 border-b border-transparent text-shell-text-secondary data-[state=active]:border-shell-border-active data-[state=active]:bg-transparent data-[state=active]:text-shell-text-primary data-[state=active]:shadow-none;
     padding-inline: var(--shell-space-control-inline-md);
     font-size: var(--shell-text-control-size);
   }
 
   .app-shell-plain-action {
-    @apply uppercase text-muted-foreground hover:text-foreground;
+    @apply uppercase text-shell-text-secondary hover:text-shell-text-primary;
     block-size: var(--shell-control-height-sm);
     padding-inline: var(--shell-space-control-inline-sm);
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-label);
   }
 
+  .app-shell-plain-icon {
+    @apply text-shell-text-secondary hover:text-shell-text-primary;
+  }
+
   .app-shell-composer-send {
+    @apply shrink-0;
     padding-inline: var(--shell-space-control-inline-xs);
   }
 
@@ -631,7 +691,7 @@
   }
 
   .app-shell-structure-list {
-    @apply divide-y divide-border;
+    @apply divide-y divide-shell-border-default;
   }
 
   .app-shell-diagnostic-row {
@@ -663,11 +723,11 @@
   }
 
   .app-shell-proposal-card .app-shell-body-item {
-    @apply text-sm leading-6 text-foreground;
+    @apply text-sm leading-6 text-shell-text-primary;
   }
 
   .app-shell-proposal-card .app-shell-kicker {
-    @apply text-foreground/72;
+    @apply text-shell-text-subtle;
   }
 
   .app-shell-proposal-card .app-shell-body-item::before {
@@ -676,7 +736,7 @@
   }
 
   .app-shell-message-kicker {
-    @apply uppercase text-muted-foreground;
+    @apply uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-kicker);
   }
@@ -685,8 +745,12 @@
     @apply text-sm font-medium tracking-tight;
   }
 
+  .app-shell-message-marker {
+    @apply inline-flex size-6 items-center justify-center text-shell-text-secondary;
+  }
+
   .app-shell-status-count {
-    @apply uppercase text-muted-foreground;
+    @apply uppercase text-shell-text-secondary;
     font-size: var(--shell-text-kicker-size);
     letter-spacing: var(--shell-tracking-label);
   }

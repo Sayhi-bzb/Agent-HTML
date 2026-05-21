@@ -40,6 +40,7 @@ export function SessionRailHeader({
           className="border-0"
           disabled={disabled}
           onClick={onCreateSession}
+          tooltip="New session"
         >
           <PlusIcon data-icon="inline-start" />
         </ShellIconButton>

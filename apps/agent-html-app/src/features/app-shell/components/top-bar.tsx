@@ -1,9 +1,17 @@
-import { FileCode2Icon } from "lucide-react"
+import {
+  FileCode2Icon,
+  MonitorIcon,
+  TriangleAlertIcon,
+} from "lucide-react"
 
 import {
   ShellStatusBadge,
-  ShellSectionLabel,
 } from "@/features/app-shell/components/shell-content"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { isTauriRuntime } from "@/lib/tauri"
 import type { WorkbenchView } from "@/lib/types"
 
@@ -22,22 +30,47 @@ export function TopBar({
     <header className="app-shell-topbar">
       <div className="app-shell-topbar-row">
         <div className="app-shell-topbar-group">
-          <FileCode2Icon className="app-shell-inline-icon app-shell-brand-icon" />
-          <div className="app-shell-topbar-brand">
-            <span className="app-shell-topbar-copy">agent-html</span>
-            <span className="app-shell-panel-title">review studio</span>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="app-shell-topbar-brand">
+                <FileCode2Icon className="app-shell-inline-icon app-shell-brand-icon" />
+                <span className="app-shell-topbar-copy">agent-html</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">review studio</TooltipContent>
+          </Tooltip>
         </div>
         <div className="app-shell-topbar-center">
           <p className="app-shell-session-title">{sessionName}</p>
         </div>
         <div className="app-shell-status-group">
-          <ShellStatusBadge
-            label={isTauriRuntime() ? "desktop" : "local"}
-            variant="outline"
-          />
-          <ShellSectionLabel>{activeView}</ShellSectionLabel>
-          {hasError ? <ShellStatusBadge label="error" variant="destructive" /> : null}
+          <ShellStatusBadge label={activeView} variant="outline" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                aria-label={isTauriRuntime() ? "Desktop runtime" : "Local runtime"}
+                className="app-shell-topbar-meta-icon"
+              >
+                <MonitorIcon className="app-shell-inline-icon" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {isTauriRuntime() ? "desktop runtime" : "local runtime"}
+            </TooltipContent>
+          </Tooltip>
+          {hasError ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  aria-label="Error"
+                  className="app-shell-topbar-meta-icon app-shell-topbar-meta-icon-error"
+                >
+                  <TriangleAlertIcon className="app-shell-inline-icon" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">error</TooltipContent>
+            </Tooltip>
+          ) : null}
         </div>
       </div>
     </header>

@@ -1,6 +1,14 @@
 import { existsSync } from "node:fs"
 import { createRequire } from "node:module"
-import { cp, copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises"
+import {
+  cp,
+  copyFile,
+  mkdir,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
@@ -46,6 +54,7 @@ export async function writeRuntimeHost({ packageRoot, paths, schema, setup }) {
 
   await rm(paths.runtimeDir, { force: true, recursive: true })
   await provisionRuntimeShell({
+    dependencies,
     packageRoot,
     paths,
     setup: normalizedSetup,
@@ -97,6 +106,7 @@ export function resolveRuntimeDependencies(packageRoot) {
     viteReactPlugin: packageRequire.resolve("@vitejs/plugin-react"),
     agentHtmlCoreEntry: packageRequire.resolve("@agent-html/core"),
     reactRoot,
+    workspaceNodeModulesRoot: path.dirname(reactRoot),
     reactJsxRuntime: packageRequire.resolve("react/jsx-runtime"),
     reactJsxDevRuntime: packageRequire.resolve("react/jsx-dev-runtime"),
     reactDomRoot,
@@ -175,7 +185,7 @@ function resolvePackageSearchPathAsset({
   )
 }
 
-async function provisionRuntimeShell({ packageRoot, paths, setup }) {
+async function provisionRuntimeShell({ dependencies, packageRoot, paths, setup }) {
   const runtimePackageJson = await createRuntimePackageJson({ packageRoot })
   const tsconfig = createRuntimeTsconfigSource()
   const viteConfig = createManagedRuntimeTemplateViteConfigSource()
@@ -187,6 +197,10 @@ async function provisionRuntimeShell({ packageRoot, paths, setup }) {
   await mkdir(paths.runtimeDir, { recursive: true })
   await mkdir(paths.runtimeSrcDir, { recursive: true })
   await mkdir(path.join(paths.runtimeSrcDir, "lib"), { recursive: true })
+  await ensureRuntimeNodeModulesLink({
+    nodeModulesRoot: dependencies.workspaceNodeModulesRoot,
+    paths,
+  })
 
   await writeFile(
     path.join(paths.runtimeDir, "package.json"),
@@ -218,6 +232,14 @@ async function provisionRuntimeShell({ packageRoot, paths, setup }) {
   await writeFile(
     path.join(paths.runtimeSrcDir, "app.tsx"),
     "export function App() { return null }\n",
+  )
+}
+
+async function ensureRuntimeNodeModulesLink({ nodeModulesRoot, paths }) {
+  await symlink(
+    nodeModulesRoot,
+    path.join(paths.runtimeDir, "node_modules"),
+    process.platform === "win32" ? "junction" : "dir",
   )
 }
 

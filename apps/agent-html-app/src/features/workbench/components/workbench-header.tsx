@@ -2,7 +2,7 @@ import { EyeIcon, FileCode2Icon, HammerIcon, InspectIcon } from "lucide-react"
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  ShellActionButton,
+  ShellIconButton,
   ShellPaneHeader,
 } from "@/features/app-shell/components/shell-content"
 import type { WorkbenchView } from "@/lib/types"
@@ -45,26 +45,26 @@ export function WorkbenchHeader({
       }
       trailing={
         <>
-          <ShellActionButton
+          <ShellIconButton
             ariaLabel="Build preview"
-            className="app-shell-plain-action"
+            className="app-shell-plain-icon"
             disabled={interactionLocked}
             onClick={onBuild}
+            tooltip="Build"
             variant="ghost"
           >
             <HammerIcon data-icon="inline-start" />
-            Build
-          </ShellActionButton>
-          <ShellActionButton
+          </ShellIconButton>
+          <ShellIconButton
             ariaLabel="Open inspect review"
-            className="app-shell-plain-action"
+            className="app-shell-plain-icon"
             disabled={interactionLocked}
             onClick={onInspect}
+            tooltip="Inspect"
             variant="ghost"
           >
             <InspectIcon data-icon="inline-start" />
-            Review
-          </ShellActionButton>
+          </ShellIconButton>
         </>
       }
     />

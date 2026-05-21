@@ -60,6 +60,7 @@
 具体要求：
 
 - `Button`、`Input`、`Textarea`、`Tabs`、`Badge`、`Card`、`ScrollArea` 等交互 primitive 直接使用 shadcn 生成的组件。
+- `Tooltip`、`DropdownMenu`、`ContextMenu`、`Popover` 等收纳型 primitive 也优先使用 shadcn / Radix 入口，把低频操作和解释性内容收纳起来。
 - 不复制一份自制基础控件来替代 shadcn。
 - 需要变化时，优先通过 token、variant、组合方式、语义 wrapper 调整。
 - feature 层允许封装 `ShellActionButton`、`ShellPaneHeader` 这类语义组件，但底层 primitive 仍应来自 shadcn。
@@ -357,6 +358,7 @@ header 默认只包含：
 - 页面层不新增解释性 `description`、caption、help copy
 - 标题优先用名词或短动作
 - 状态优先用短标签
+- 冗余说明、低频动作、实现细节优先移入 `tooltip`、`dropdown menu`、`context menu`，不常驻上屏
 - 文案必须看起来像产品语言，而不是实现日志
 
 ### 7.2 不应作为主内容的信息

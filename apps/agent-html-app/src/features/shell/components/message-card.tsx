@@ -1,9 +1,15 @@
+import { BotIcon, UserIcon } from "lucide-react"
+
 import type { AgentShellMessage } from "@/lib/types"
 
 import {
   ShellSectionLabel,
-  ShellStatusBadge,
 } from "@/features/app-shell/components/shell-content"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { MessageBody } from "./message-body"
 
@@ -14,23 +20,11 @@ function getMessageLines(message: AgentShellMessage): string[] {
     .filter(Boolean)
 }
 
-function getMessageLabel(message: AgentShellMessage): string {
-  if (message.role === "user") {
-    return "You"
-  }
-
-  if (message.proposalSnapshot) {
-    return "Proposal"
-  }
-
-  return "Review"
-}
-
 function getMessageTone(message: AgentShellMessage): "default" | "secondary" {
   return message.role === "user" ? "secondary" : "default"
 }
 
-function getMessageTitle(message: AgentShellMessage): string {
+function getMessageTitle(message: AgentShellMessage): string | undefined {
   if (message.proposalSnapshot) {
     return getMessageLines(message)[0] ?? "Proposal"
   }
@@ -39,7 +33,7 @@ function getMessageTitle(message: AgentShellMessage): string {
     return "Context"
   }
 
-  return "Note"
+  return undefined
 }
 
 function getMessageItems(message: AgentShellMessage): string[] {
@@ -64,6 +58,12 @@ type MessageCardProps = {
 
 export function MessageCard({ message }: MessageCardProps) {
   const proposal = Boolean(message.proposalSnapshot)
+  const title = getMessageTitle(message)
+  const genericMessage = !proposal && !title
+  const markerIcon = message.role === "user"
+    ? <UserIcon className="app-shell-inline-icon" />
+    : <BotIcon className="app-shell-inline-icon" />
+  const markerLabel = message.role === "user" ? "Your note" : "Review note"
 
   return (
     <section
@@ -76,14 +76,21 @@ export function MessageCard({ message }: MessageCardProps) {
             : "app-shell-message-card app-shell-message-card-agent",
       )}
     >
-      <div className="app-shell-split-row">
-        <p className="app-shell-message-heading">{getMessageTitle(message)}</p>
-        {proposal ? (
-          <ShellSectionLabel>Proposal</ShellSectionLabel>
-        ) : (
-          <ShellStatusBadge label={getMessageLabel(message)} variant="outline" />
-        )}
-      </div>
+      {!genericMessage ? (
+        <div className="app-shell-split-row">
+          <p className="app-shell-message-heading">{title}</p>
+          {proposal ? <ShellSectionLabel>Proposal</ShellSectionLabel> : null}
+        </div>
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div aria-label={markerLabel} className="app-shell-message-marker">
+              {markerIcon}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right">{markerLabel}</TooltipContent>
+        </Tooltip>
+      )}
       <MessageBody
         items={getMessageItems(message)}
         text={getMessageText(message)}

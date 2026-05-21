@@ -1,7 +1,7 @@
 import { BotIcon, SparklesIcon, WaypointsIcon } from "lucide-react"
 
 import {
-  ShellActionButton,
+  ShellIconButton,
   ShellPaneHeader,
   ShellPaneLabel,
 } from "@/features/app-shell/components/shell-content"
@@ -29,26 +29,26 @@ export function ShellHeader({
       }
       trailing={
         <>
-          <ShellActionButton
+          <ShellIconButton
             ariaLabel="Draft proposal"
-            className="app-shell-plain-action"
+            className="app-shell-plain-icon"
             disabled={proposalLocked}
             onClick={onDraftProposal}
+            tooltip="Draft proposal"
             variant="ghost"
           >
             <SparklesIcon data-icon="inline-start" />
-            Draft
-          </ShellActionButton>
-          <ShellActionButton
+          </ShellIconButton>
+          <ShellIconButton
             ariaLabel="Run review check"
-            className="app-shell-plain-action"
+            className="app-shell-plain-icon"
             disabled={runtimeCheckLocked}
             onClick={onRuntimeCheck}
+            tooltip="Run check"
             variant="ghost"
           >
             <WaypointsIcon data-icon="inline-start" />
-            Check
-          </ShellActionButton>
+          </ShellIconButton>
         </>
       }
     />

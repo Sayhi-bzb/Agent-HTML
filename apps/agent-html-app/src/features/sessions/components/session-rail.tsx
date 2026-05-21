@@ -1,11 +1,9 @@
 import { useMemo, useState } from "react"
-import { Settings2Icon } from "lucide-react"
 
 import type { SessionSummary } from "@/lib/types"
 
 import {
   ShellEmptyCard,
-  ShellIconButton,
   ShellLoadingRow,
   ShellSectionLabel,
   ShellPaneScaffold,
@@ -103,15 +101,6 @@ export function SessionRail({
           {filtered.length === 0 ? <ShellEmptyCard className="app-shell-flat-card">None</ShellEmptyCard> : null}
           {loading ? <ShellLoadingRow>Load</ShellLoadingRow> : null}
         </ShellScrollSurface>
-      }
-      footer={
-        <ShellIconButton
-          ariaLabel="Session settings"
-          disabled={disabled}
-          variant="ghost"
-        >
-          <Settings2Icon data-icon="inline-start" />
-        </ShellIconButton>
       }
     />
   )

@@ -1,5 +1,7 @@
+import { SendHorizontalIcon } from "lucide-react"
+
 import {
-  ShellActionButton,
+  ShellIconButton,
   ShellStatusBadge,
 } from "@/features/app-shell/components/shell-content"
 import { ComposerField } from "./composer-field"
@@ -28,18 +30,20 @@ export function ShellComposer({
         <ComposerField
           disabled={interactionLocked}
           onChange={(event) => onDraftChange(event.target.value)}
-          placeholder="Note"
+          placeholder="Reply"
           value={draft}
         />
       </div>
-      <ShellActionButton
-        className="app-shell-plain-action app-shell-composer-send"
+      <ShellIconButton
+        ariaLabel="Send note"
+        className="app-shell-plain-icon app-shell-composer-send"
         disabled={!draft.trim() || interactionLocked}
         onClick={onSend}
+        tooltip="Send"
         variant="ghost"
       >
-        Send
-      </ShellActionButton>
+        <SendHorizontalIcon data-icon="inline-start" />
+      </ShellIconButton>
     </div>
   )
 }

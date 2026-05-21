@@ -7,8 +7,6 @@ const DropdownMenu = DropdownMenuPrimitive.Root
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 const DropdownMenuGroup = DropdownMenuPrimitive.Group
 const DropdownMenuPortal = DropdownMenuPrimitive.Portal
-const DropdownMenuSeparator = DropdownMenuPrimitive.Separator
-const DropdownMenuLabel = DropdownMenuPrimitive.Label
 
 function DropdownMenuContent({
   className,
@@ -98,7 +96,6 @@ export {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 }
