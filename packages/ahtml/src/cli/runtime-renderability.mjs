@@ -3,7 +3,9 @@ import {
   structuralAgentComponents,
   supportedRendererKinds,
 } from "../config/render-capabilities.mjs"
-import { readRuntimeManifest } from "./runtime-status.mjs"
+import { readFile } from "node:fs/promises"
+
+import { parseJson } from "./cli-io.mjs"
 
 const rendererSpecScalarFields = [
   "source",
@@ -43,6 +45,7 @@ const rendererSpecScalarFields = [
   "descriptionProp",
   "titleProp",
   "fallback",
+  "contentLayout",
   "textMode",
   "itemValueProp",
   "itemHeadingProp",
@@ -60,13 +63,17 @@ const rendererSpecStructuredFields = [
 ]
 
 export async function readRuntimeVerificationState(paths) {
-  const manifest = await readRuntimeManifest(paths)
+  const source = await readFile(paths.runtimeVerificationPath, "utf8")
+  const runtimeVerificationState = parseJson(
+    source,
+    "Runtime render verification file must be valid JSON.",
+  )
 
   return {
     renderableAgentComponents:
-      manifest.runtimeCapability.renderableAgentComponents,
-    rendererMapping: manifest.runtimeCapability.rendererMapping,
-    verificationData: manifest.runtimeCapability.verificationData,
+      runtimeVerificationState.renderableAgentComponents,
+    rendererMapping: runtimeVerificationState.rendererMapping,
+    verificationData: runtimeVerificationState.verificationData,
   }
 }
 

@@ -341,6 +341,107 @@ describe("createRendererNode", () => {
     expect(markup).toContain('data-ahtml-path="3.body.1"')
   })
 
+  it("keeps compound card content neutral unless content layout is explicitly requested", () => {
+    const rendererSpecByName = createRendererSpecByName([
+      [
+        "card",
+        {
+          name: "card",
+          source: "shadcn",
+          kind: "compound",
+          renderKind: "compound",
+          slots: [{ name: "children", children: [] }],
+          root: "section",
+          title: "h2",
+          titleProp: "title",
+          titleContainer: "header",
+          content: "div",
+          childMode: "block",
+          textMode: "prose",
+          contentLayout: "default",
+        },
+      ],
+      [
+        "alert",
+        {
+          name: "alert",
+          source: "shadcn",
+          kind: "compound",
+          renderKind: "compound",
+          slots: [{ name: "children", children: [] }],
+          root: "aside",
+          title: "h3",
+          titleProp: "title",
+          content: "div",
+          childMode: "block",
+          textMode: "prose",
+          contentLayout: "prose",
+        },
+      ],
+    ])
+
+    const RendererNode = createRendererNode(rendererSpecByName)
+    const markup = renderToStaticMarkup(
+      React.createElement(RendererNode, {
+        node: {
+          type: "component",
+          name: "card",
+          props: { title: "Summary" },
+          children: [
+            {
+              type: "component",
+              name: "alert",
+              props: { title: "Status" },
+              children: [{ type: "text", value: "Ready" }],
+            },
+          ],
+        },
+      }),
+    )
+
+    expect(markup).toContain("<div><aside")
+    expect(markup).toContain("<header><h2>Summary</h2></header><div><aside")
+    expect(markup).not.toContain('<header><h2>Summary</h2></header><div class="ahtml-section-stack')
+    expect(markup).not.toContain('<header><h2>Summary</h2></header><div class="ahtml-prose-block')
+    expect(markup).toContain('class="ahtml-prose-block"><p class="m-0 whitespace-normal">Ready</p>')
+  })
+
+  it("allows document-style compound content when the renderer spec opts in", () => {
+    const rendererSpecByName = createRendererSpecByName([
+      [
+        "page",
+        {
+          name: "page",
+          source: "ahtml-standard",
+          kind: "compound",
+          renderKind: "compound",
+          slots: [{ name: "children", children: [] }],
+          root: "article",
+          title: "h1",
+          titleProp: "title",
+          content: "section",
+          childMode: "block",
+          textMode: "prose",
+          contentLayout: "stack-prose",
+        },
+      ],
+    ])
+
+    const RendererNode = createRendererNode(rendererSpecByName)
+    const markup = renderToStaticMarkup(
+      React.createElement(RendererNode, {
+        node: {
+          type: "component",
+          name: "page",
+          props: { title: "Report" },
+          children: [{ type: "text", value: "Paragraph text" }],
+        },
+      }),
+    )
+
+    expect(markup).toContain('class="ahtml-section-stack ahtml-prose-block"')
+  })
+
   it("allows artifact root and document layout policy classes to coexist", () => {
     const markup = renderToStaticMarkup(
       React.createElement("div", {

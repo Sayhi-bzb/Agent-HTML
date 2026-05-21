@@ -54,7 +54,7 @@ export function GalleryMailWorkbenchPanel({
             <span className="ahtml-gallery-mail-nav-label">Queues</span>
             <div className="ahtml-gallery-mail-nav-links">
               <span>Needs review 5</span>
-              <span>Launches 3</span>
+              <span>Releases 3</span>
               <span>Partner replies 7</span>
             </div>
           </div>
@@ -92,21 +92,21 @@ export function GalleryMailWorkbenchPanel({
           <div className="ahtml-gallery-mail-list-toolbar">
             <Badge variant="secondary">Focused</Badge>
             <Badge variant="outline">Today</Badge>
-            <Badge variant="outline">Launch ops</Badge>
+            <Badge variant="outline">Release ops</Badge>
           </div>
           {[
             [
               "Mia Chen",
-              "Launch checklist for Tuesday",
+              "Release checklist for Tuesday",
               "Needs reply",
-              "Please confirm final copy, token lock, and delivery window before the launch handoff closes.",
+              "Please confirm final copy, token lock, and delivery window before the release handoff closes.",
               "09:12",
             ],
             [
               "Alicia Gomez",
               "Palette approval received",
               "Unread",
-              "Dark mode navigation and composer colors are locked for the launch bundle.",
+              "Dark mode navigation and composer colors are locked for the release bundle.",
               "08:41",
             ],
             [
@@ -161,7 +161,7 @@ export function GalleryMailWorkbenchPanel({
               <span className="ahtml-gallery-stage-panel-kicker">
                 Mail preview
               </span>
-              <h4>Launch checklist for Tuesday</h4>
+              <h4>Release checklist for Tuesday</h4>
               <p>From Mia Chen · Theme {profile.id}</p>
             </div>
             <div className="ahtml-gallery-stage-toolbar-meta">
@@ -180,14 +180,14 @@ export function GalleryMailWorkbenchPanel({
           </div>
           <div className="ahtml-gallery-mail-thread-summary ahtml-gallery-workbench-summary-grid">
             <FieldRow label="Participants" value="Mia, Alicia, Noah" />
-            <FieldRow label="Queue" value="Launch ops" />
+            <FieldRow label="Queue" value="Release ops" />
             <FieldRow label="Last action" value="09:12" />
           </div>
           <div className="ahtml-gallery-mail-display-body">
             <p>
-              Team review is complete for the launch surface. We only need
+              Team review is complete for the release surface. We only need
               final confirmation on copy lock, token freeze, and outbound
-              timing before the campaign moves to scheduled send.
+              timing before the release moves to scheduled send.
             </p>
             <p>
               Please reply with the final subject line, confirm the partner
@@ -204,7 +204,7 @@ export function GalleryMailWorkbenchPanel({
             </div>
             <div className="ahtml-gallery-mail-attachments">
               <div className="ahtml-gallery-mail-attachment-card">
-                <strong>launch-brief.pdf</strong>
+                <strong>release-brief.pdf</strong>
                 <span>Approved messaging</span>
               </div>
               <div className="ahtml-gallery-mail-attachment-card">

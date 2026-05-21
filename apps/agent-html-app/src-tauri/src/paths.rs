@@ -7,7 +7,6 @@ use crate::{error::BackendError, models::AppError};
 
 pub(crate) const SOURCE_FILE_NAME: &str = "source.agent.html";
 pub(crate) const SESSION_FILE_NAME: &str = "session.json";
-pub(crate) const CHAT_FILE_NAME: &str = "chat.jsonl";
 pub(crate) const BUILD_DIR_NAME: &str = "build";
 pub(crate) const LOGS_DIR_NAME: &str = "logs";
 

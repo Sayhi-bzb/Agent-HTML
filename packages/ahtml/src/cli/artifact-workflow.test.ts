@@ -1,3 +1,5 @@
+import { mkdtemp, mkdir, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
 import path from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -96,6 +98,143 @@ describe("artifact workflow inspection", () => {
       }),
     ).not.toThrow()
   })
+
+  it("marks managed runtime stale when renderer mapping drifts from current schema", async () => {
+    const { isRuntimeVerificationCurrent } = await importArtifactWorkflowModule()
+
+    expect(() =>
+      isRuntimeVerificationCurrent({
+        schema: {
+          rendererMapping: {
+            components: [
+              {
+                name: "card",
+                renderKind: "compound",
+                kind: "compound",
+                root: "Card",
+                slots: [],
+              },
+            ],
+          },
+          verificationData: {
+            components: [
+              {
+                name: "card",
+                renderKind: "compound",
+                props: [],
+                slots: [],
+              },
+            ],
+          },
+        },
+        runtimeVerificationState: {
+          rendererMapping: {
+            components: [
+              {
+                name: "card",
+                renderKind: "compound",
+                kind: "compound",
+                root: "Card",
+                contentLayout: "default",
+                slots: [],
+              },
+            ],
+          },
+          verificationData: {
+            components: [
+              {
+                name: "card",
+                renderKind: "compound",
+                props: [],
+                slots: [],
+              },
+            ],
+          },
+        },
+      }),
+    ).toThrow(/contentLayout|renderer mapping/i)
+  })
+
+  it("reads runtime verification from the generated runtime file instead of manifest capability snapshots", async () => {
+    const { isRuntimeVerificationCurrent } = await importArtifactWorkflowModule()
+    const { readRuntimeVerificationState } =
+      await importRuntimeRenderabilityModule()
+    const runtimeRoot = await mkdtemp(path.join(tmpdir(), "ahtml-runtime-state-"))
+    const runtimeVerificationPath = path.join(
+      runtimeRoot,
+      "runtime",
+      "render-verification.generated.json",
+    )
+
+    await mkdir(path.dirname(runtimeVerificationPath), { recursive: true })
+    await writeFile(
+      runtimeVerificationPath,
+      `${JSON.stringify(
+        {
+          kind: "ahtml-runtime-render-verification",
+          version: 1,
+          renderableAgentComponents: ["page", "card"],
+          verificationData: {
+            components: [
+              {
+                name: "card",
+                renderKind: "compound",
+                props: [],
+                slots: [],
+              },
+            ],
+          },
+          rendererMapping: {
+            components: [
+              {
+                name: "card",
+                renderKind: "compound",
+                kind: "compound",
+                root: "Card",
+                slots: [],
+              },
+            ],
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    )
+
+    const runtimeVerificationState = await readRuntimeVerificationState({
+      runtimeVerificationPath,
+    })
+
+    expect(() =>
+      isRuntimeVerificationCurrent({
+        schema: {
+          rendererMapping: {
+            components: [
+              {
+                name: "card",
+                renderKind: "compound",
+                kind: "compound",
+                root: "Card",
+                contentLayout: "default",
+                slots: [],
+              },
+            ],
+          },
+          verificationData: {
+            components: [
+              {
+                name: "card",
+                renderKind: "compound",
+                props: [],
+                slots: [],
+              },
+            ],
+          },
+        },
+        runtimeVerificationState,
+      }),
+    ).toThrow(/contentLayout|renderer mapping/i)
+  })
 })
 
 async function importArtifactWorkflowModule() {
@@ -115,5 +254,18 @@ async function importArtifactWorkflowModule() {
         readonly count: number
       }[]
     }) => string
+    readonly isManagedRuntimeCurrent: (schema: unknown) => Promise<boolean>
+    readonly isRuntimeVerificationCurrent: (input: {
+      readonly schema: unknown
+      readonly runtimeVerificationState: unknown
+    }) => boolean
   }>("artifact-workflow.mjs")
+}
+
+async function importRuntimeRenderabilityModule() {
+  return importCliModule<{
+    readonly readRuntimeVerificationState: (paths: {
+      readonly runtimeVerificationPath: string
+    }) => Promise<unknown>
+  }>("runtime-renderability.mjs")
 }

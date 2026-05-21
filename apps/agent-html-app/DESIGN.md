@@ -189,11 +189,10 @@
 
 ### 4.1 顶部栏
 
-顶部栏是紧凑状态栏，不是浏览器 tab 栏。
+顶部栏是 `chrome-like custom titlebar`，不是品牌栏，也不是额外叠一层工具栏。
 
 它的职责是：
 
-- 展示产品标识
 - 承载 session tabs
 - 承载左右 panel controls
 - 提供新建 session 入口
@@ -202,8 +201,12 @@
 设计要求：
 
 - session tabs 是主信息。
-- 品牌与 workspace identity 是次级信息。
+- 左侧结构固定为：`panel-left`、`panel-right`、`session tabs`、`new session`。
+- 右侧结构固定为：`minimize`、`maximize`、`close`。
+- 顶部是纯 shell titlebar，不单独保留 logo 或 product text。
 - 顶部不承载 `Preview / Source / Inspect` 主视图切换。
+- 分组关系通过间距表达，不通过额外品牌块或可见分割线表达。
+- 非 Tauri 的浏览器预览中也保留右侧窗口控制占位，但以 disabled 状态呈现，用来维持 titlebar 结构一致性。
 - 路径、时间戳、实现术语不能占据主位。
 
 ### 4.2 左侧 Sessions Rail
@@ -219,9 +222,12 @@
 设计要求：
 
 - rail 更接近 session manager / explorer panel，不承担主视图切换。
+- 左 rail 的结构基准直接采用 shadcn sidebar primitives，而不是再手写一套近似 sidebar 的局部实现。
+- 左 rail 的 header、search、item、action、footer 视觉也应完整镜像 sidebar 语法，不保留旧 shell 的方角与下划线输入残留。
 - rail 强调列表结构，不强调每条 session 的独立组件感。
 - 当前 session 在结构上应清楚可见。
-- 搜索与新建入口保持极简。
+- searchbar 保持为独立工具控件。
+- `new session` 应作为扁平 item 进入 rail 结构，而不是悬浮的 header CTA。
 - resize handle 是工作台结构的一部分，应有明确语义。
 
 ### 4.3 中间 Workbench
@@ -319,7 +325,10 @@ session item 的设计目标是结构清楚，不是组件可爱。
 
 规则：
 
-- 默认只保留名称、状态、更新时间三类必要信息
+- 默认使用扁平单栏 row：左侧标题，右侧 `more` icon
+- session item、`new session`、settings footer 应统一消费 sidebar item contract
+- 左 rail 主列表不常驻展示状态、更新时间等次级信息
+- current session 只通过轻背景和文字强调表达，不额外引入重边框或左侧强调条
 - 辅助操作保持极简
 - 不通过额外帮助文字解释 session
 - 更接近平面 strip / row，而不是装饰性小卡片集合

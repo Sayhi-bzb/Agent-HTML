@@ -28,27 +28,8 @@ pub(crate) struct SessionDetail {
     pub(crate) preview_path: Option<String>,
     pub(crate) last_build: Option<BuildRunSummary>,
     pub(crate) log_directory: String,
-    pub(crate) chat_path: String,
     pub(crate) current_view: String,
     pub(crate) source: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct ProposalSnapshot {
-    pub(crate) source: String,
-    pub(crate) line_count: usize,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct AgentShellMessage {
-    pub(crate) id: String,
-    pub(crate) role: String,
-    pub(crate) created_at: String,
-    pub(crate) text: String,
-    pub(crate) kind: String,
-    pub(crate) proposal_snapshot: Option<ProposalSnapshot>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

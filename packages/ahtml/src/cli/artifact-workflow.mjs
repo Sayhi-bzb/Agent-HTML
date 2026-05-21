@@ -13,7 +13,12 @@ import {
   writeGeneratedRuntimeState,
 } from "./runtime-status.mjs"
 import { nativeRuntimeSetup, resolveRuntimeSetup } from "./runtime-setup.mjs"
-import { getRuntimeRenderDiagnostics } from "./runtime-renderability.mjs"
+import {
+  assertRendererSpecParity,
+  assertVerificationDataParity,
+  getRuntimeRenderDiagnostics,
+  readRuntimeVerificationState,
+} from "./runtime-renderability.mjs"
 import { validateAgentHtmlSource } from "./validate.mjs"
 import { parseJson, printDiagnostics, writeJsonFile } from "./cli-io.mjs"
 
@@ -34,6 +39,26 @@ export class ArtifactWorkflowOutputPathError extends Error {
 
 function hasErrorDiagnostics(diagnostics = []) {
   return diagnostics.some((diagnostic) => diagnostic.severity === "error")
+}
+
+export function isRuntimeVerificationCurrent({
+  runtimeVerificationState,
+  schema,
+}) {
+  assertVerificationDataParity({
+    actual: runtimeVerificationState.verificationData,
+    actualName: "runtime verification data",
+    expected: schema.verificationData,
+    expectedName: "schema verification data",
+  })
+  assertRendererSpecParity({
+    actual: runtimeVerificationState.rendererMapping,
+    actualName: "runtime renderer verification mapping",
+    expected: schema.rendererMapping,
+    expectedName: "schema renderer mapping",
+  })
+
+  return true
 }
 
 export function createArtifactWorkflow({
@@ -143,7 +168,7 @@ export function createArtifactWorkflow({
       paths: runtimePaths,
     })
 
-    if (status.ready) {
+    if (status.ready && (await isManagedRuntimeCurrent(schema))) {
       return
     }
 
@@ -154,7 +179,10 @@ export function createArtifactWorkflow({
         paths: runtimePaths,
       })
 
-      if (refreshedStatus.ready) {
+      if (
+        refreshedStatus.ready &&
+        (await isManagedRuntimeCurrent(schema))
+      ) {
         return
       }
 
@@ -175,6 +203,19 @@ export function createArtifactWorkflow({
         schema: schema ?? (await getCliSchemaOutput()),
       })
     })
+  }
+
+  async function isManagedRuntimeCurrent(schema) {
+    try {
+      const runtimeVerificationState =
+        await readRuntimeVerificationState(runtimePaths)
+      return isRuntimeVerificationCurrent({
+        runtimeVerificationState,
+        schema,
+      })
+    } catch {
+      return false
+    }
   }
 
   async function inspectDocument(inputPath) {
@@ -227,6 +268,7 @@ export function createArtifactWorkflow({
   return {
     buildArtifact,
     ensureManagedRuntime,
+    isManagedRuntimeCurrent,
     inspectArtifactDir,
     inspectDocument,
     prepareDocumentRuntime,

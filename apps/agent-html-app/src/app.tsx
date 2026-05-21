@@ -29,19 +29,15 @@ export function App() {
     previewHtml,
     activeView,
     draftSource,
-    messageDraft,
     validation,
-    runtimeReport,
     commandState,
     currentSession,
     currentBuild,
     currentInspect,
     currentLogs,
     hasUnsavedChanges,
-    filteredMessages,
     openSessionTabs,
     setDraftSource,
-    setMessageDraft,
     actions,
   } = useWorkbenchApp()
   const [panelLayout, setPanelLayout] = useState<PanelLayoutState>(
@@ -132,27 +128,7 @@ export function App() {
             />
           }
           shell={
-            <ShellPane
-              checking={commandState.checking}
-              drafting={commandState.drafting}
-              interactionLocked={commandLocks.shellComposeLocked}
-              messages={filteredMessages}
-              messageDraft={messageDraft}
-              onDraftChange={setMessageDraft}
-              onDraftProposal={() => {
-                void actions.draftProposal()
-              }}
-              onRuntimeCheck={() => {
-                void actions.checkCurrentRuntime()
-              }}
-              onSend={() => {
-                void actions.sendMessage()
-              }}
-              proposalLocked={commandLocks.proposalLocked}
-              runtimeCheckLocked={commandLocks.runtimeCheckLocked}
-              runtimeReport={runtimeReport}
-              sending={commandState.sending}
-            />
+            <ShellPane />
           }
           workbench={
             <WorkbenchPane

@@ -62,8 +62,8 @@
   - 当前稳定编辑面包含 typography、radius、light/dark token sets。
 - `globalLayout`
   - 当前稳定配置模型中正式存在，但本页不要求同步提供独立 layout 编辑器。
-- `componentStyle.treatments`
-  - 当前稳定组件配置编辑面。
+- `componentStyle`
+  - 当前稳定配置模型中保留为空对象，不提供独立编辑面。
 - `componentLayout`
   - 当前稳定配置模型中正式存在，由 renderer projection 消费。
 
@@ -89,7 +89,6 @@
   - Radius
   - Light Tokens
   - Dark Tokens
-  - Component Treatments
 - 底部展示 persist actions 与状态反馈。
 
 ### Right Gallery Container

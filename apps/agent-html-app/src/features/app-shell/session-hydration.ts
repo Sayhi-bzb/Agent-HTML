@@ -1,7 +1,5 @@
-import { mockAppState } from "@/lib/mock-data"
-import { openSession, readChat, readLogs, readPreviewHtml } from "@/lib/tauri"
+import { openSession, readLogs, readPreviewHtml } from "@/lib/tauri"
 import type {
-  AgentShellMessage,
   BuildRunSummary,
   InspectSnapshot,
   LogSnapshot,
@@ -19,15 +17,13 @@ export async function loadSessionState(
 export async function hydrateSessionState(
   session: SessionDetail,
 ): Promise<HydratedSessionState> {
-  const [chat, previewHtml, logs] = await Promise.all([
-    safeReadChat(session.id),
+  const [previewHtml, logs] = await Promise.all([
     safeReadPreviewHtml(session.id),
     safeReadLogs(session.id),
   ])
 
   return {
     session,
-    chat,
     logs,
     previewHtml,
   }
@@ -48,16 +44,6 @@ export async function safeReadLogs(sessionId: string): Promise<LogSnapshot> {
     return await readLogs(sessionId)
   } catch {
     return {}
-  }
-}
-
-export async function safeReadChat(
-  sessionId: string,
-): Promise<AgentShellMessage[]> {
-  try {
-    return await readChat(sessionId)
-  } catch {
-    return mockAppState.chat
   }
 }
 

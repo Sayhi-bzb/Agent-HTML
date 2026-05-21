@@ -96,7 +96,6 @@ export function createGallerySurfaceShadow(artifactProfile: ArtifactProfile) {
 
 type InspectorTarget = {
   dataset: {
-    ahtmlTreatment?: string
     ahtmlSource?: string
     ahtmlRenderKind?: string
     slot?: string
@@ -106,7 +105,6 @@ type InspectorTarget = {
 
 export function collectInspectorSourceTokens(target: InspectorTarget) {
   const values = [
-    target.dataset.ahtmlTreatment,
     target.dataset.ahtmlSource,
     target.dataset.ahtmlRenderKind,
     target.dataset.slot,

@@ -2,11 +2,9 @@ import { invoke } from "@tauri-apps/api/core"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 
 import type {
-  AgentShellMessage,
   BuildRunSummary,
   InspectSnapshot,
   LogSnapshot,
-  RuntimeReport,
   SessionDetail,
   SessionSummary,
   SourceValidationSnapshot,
@@ -58,33 +56,12 @@ export async function validateSource(
   return invoke("validate_source", { sessionId, source })
 }
 
-export async function checkRuntime(): Promise<RuntimeReport> {
-  return invoke("check_runtime")
-}
-
 export async function readPreviewHtml(sessionId: string): Promise<string> {
   return invoke("read_preview_html", { sessionId })
 }
 
 export async function readLogs(sessionId: string): Promise<LogSnapshot> {
   return invoke("read_logs", { sessionId })
-}
-
-export async function readChat(sessionId: string): Promise<AgentShellMessage[]> {
-  return invoke("read_chat", { sessionId })
-}
-
-export async function appendChatMessage(
-  sessionId: string,
-  role: AgentShellMessage["role"],
-  text: string,
-  kind: AgentShellMessage["kind"],
-): Promise<AgentShellMessage[]> {
-  return invoke("append_chat_message", { sessionId, role, text, kind })
-}
-
-export async function generateSessionProposal(sessionId: string): Promise<AgentShellMessage[]> {
-  return invoke("generate_session_proposal", { sessionId })
 }
 
 export function isTauriRuntime(): boolean {

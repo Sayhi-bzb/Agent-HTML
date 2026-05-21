@@ -207,7 +207,7 @@ export type AgentDocument = {
         }
       }
       componentStyle: {
-        treatments: Record<string, string>
+        [key: string]: never
       }
       componentLayout: {
         page: {
@@ -284,6 +284,7 @@ export type RendererSpecComponent = {
   source?: string
   kind: RendererKind | "structural"
   renderKind: string
+  contentLayout?: "default" | "stack" | "prose" | "stack-prose"
   requiredRegistryModules?: {
     registryItem: string
     exports: string[]

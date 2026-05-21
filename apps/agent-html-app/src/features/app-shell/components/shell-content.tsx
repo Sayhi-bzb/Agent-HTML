@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react"
+import type { ReactElement, ReactNode } from "react"
 import { LoaderCircleIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Tooltip,
@@ -20,7 +19,6 @@ import {
 import type {
   BuildRunSummary,
   DiagnosticSeverity,
-  RuntimeReport,
   SessionStatus,
   SourceValidationSnapshot,
 } from "@/lib/types"
@@ -85,20 +83,6 @@ function ShellCardHeader({
         </CardAction>
       ) : null}
     </CardHeader>
-  )
-}
-
-type ShellPaneLabelProps = {
-  icon: ReactNode
-  title: ReactNode
-}
-
-export function ShellPaneLabel({ icon, title }: ShellPaneLabelProps) {
-  return (
-    <div className="app-shell-pane-label">
-      {icon}
-      <span className="app-shell-panel-title">{title}</span>
-    </div>
   )
 }
 
@@ -209,41 +193,6 @@ export function ShellIconButton({
   return withTooltip(button, tooltip, disabled, tooltipSide)
 }
 
-type ShellSearchFieldProps = {
-  icon: ReactElement<{ className?: string }>
-  value: string
-  disabled?: boolean
-  placeholder?: string
-  onChange: (value: string) => void
-}
-
-export function ShellSearchField({
-  icon,
-  value,
-  disabled = false,
-  placeholder = "Search",
-  onChange,
-}: ShellSearchFieldProps) {
-  const searchIcon = isValidElement(icon)
-    ? cloneElement(icon, {
-        className: cn("app-shell-search-icon", icon.props.className),
-      })
-    : icon
-
-  return (
-    <div className="app-shell-search-field">
-      {searchIcon}
-      <Input
-        className="app-shell-search-input"
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        value={value}
-      />
-    </div>
-  )
-}
-
 type ShellSplitRowProps = {
   children: ReactNode
   gap?: "compact" | "base"
@@ -337,28 +286,6 @@ type ShellEmptyCanvasProps = {
 
 export function ShellEmptyCanvas({ children }: ShellEmptyCanvasProps) {
   return <div className="app-shell-empty-canvas">{children}</div>
-}
-
-type ShellMetricListProps = {
-  items: Array<{
-    key: string
-    label: ReactNode
-    value: ReactNode
-  }>
-  className?: string
-}
-
-export function ShellMetricList({ items, className }: ShellMetricListProps) {
-  return (
-    <CardContent className={cn("app-shell-metric-strip app-shell-card-body", className)}>
-      {items.map((item) => (
-        <div className="app-shell-metric-row" key={item.key}>
-          <span className="app-shell-metric-label">{item.label}</span>
-          <span className="app-shell-metric-value">{item.value}</span>
-        </div>
-      ))}
-    </CardContent>
-  )
 }
 
 type ShellPaneScaffoldProps = {
@@ -503,16 +430,6 @@ function getBuildStatusLabel(status: BuildRunSummary["status"]): string {
   return "idle"
 }
 
-function getRuntimeStatusBadgeVariant(
-  status: RuntimeReport["status"],
-): ShellStatusBadgeVariant {
-  return status === "ok" ? "outline" : "destructive"
-}
-
-function getRuntimeStatusLabel(status: RuntimeReport["status"]): string {
-  return status === "ok" ? "ready" : "issue"
-}
-
 function getDiagnosticStatusBadgeVariant(
   severity: DiagnosticSeverity,
 ): ShellStatusBadgeVariant {
@@ -544,38 +461,12 @@ export function ShellStatusBadge({ label, variant }: ShellStatusBadgeProps) {
   return <Badge variant={variant}>{label}</Badge>
 }
 
-type ShellSessionStatusBadgeProps = {
-  status: SessionStatus
-}
-
-export function ShellSessionStatusBadge({ status }: ShellSessionStatusBadgeProps) {
-  return <ShellStatusBadge label={getSessionStatusLabel(status)} variant={getSessionStatusBadgeVariant(status)} />
-}
-
-type ShellValidationStatusBadgeProps = {
-  status: SourceValidationSnapshot["status"]
-}
-
-function ShellValidationStatusBadge({
-  status,
-}: ShellValidationStatusBadgeProps) {
-  return <ShellStatusBadge label={getValidationStatusLabel(status)} variant={getValidationStatusBadgeVariant(status)} />
-}
-
 type ShellBuildStatusBadgeProps = {
   status: BuildRunSummary["status"]
 }
 
 export function ShellBuildStatusBadge({ status }: ShellBuildStatusBadgeProps) {
   return <ShellStatusBadge label={getBuildStatusLabel(status)} variant={getBuildStatusBadgeVariant(status)} />
-}
-
-type ShellRuntimeStatusBadgeProps = {
-  status: RuntimeReport["status"]
-}
-
-export function ShellRuntimeStatusBadge({ status }: ShellRuntimeStatusBadgeProps) {
-  return <ShellStatusBadge label={getRuntimeStatusLabel(status)} variant={getRuntimeStatusBadgeVariant(status)} />
 }
 
 type ShellDiagnosticStatusBadgeProps = {

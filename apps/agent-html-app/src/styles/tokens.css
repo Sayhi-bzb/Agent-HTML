@@ -46,6 +46,19 @@
     var(--destructive) 5%,
     transparent
   );
+  --shell-color-surface-subtle: color-mix(
+    in oklch,
+    var(--foreground) 4%,
+    transparent
+  );
+  --sidebar: var(--shell-color-pane-surface);
+  --sidebar-foreground: var(--shell-color-text-primary);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--shell-color-text-primary);
+  --sidebar-border: var(--shell-color-border-default);
+  --sidebar-ring: var(--ring);
   --space-0_5: 0.125rem;
   --space-1: 0.25rem;
   --space-1_5: 0.375rem;
@@ -65,7 +78,9 @@
   --leading-tight: 1.25rem;
   --leading-normal: 1.5rem;
   --radius: 0.5rem;
-  --shell-topbar-height: 2.875rem;
+  --shell-topbar-height: calc(
+    var(--shell-control-height-sm) + (var(--shell-pane-chrome-padding-block) * 2)
+  );
   --shell-topbar-padding-inline: var(--space-4);
   --shell-pane-chrome-padding-inline: var(--space-3);
   --shell-pane-chrome-padding-block: var(--space-1_5);
@@ -112,4 +127,9 @@
   --border: oklch(1 0 0 / 14%);
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.62 0.01 95);
+  --shell-color-surface-subtle: color-mix(
+    in oklch,
+    var(--foreground) 7%,
+    transparent
+  );
 }

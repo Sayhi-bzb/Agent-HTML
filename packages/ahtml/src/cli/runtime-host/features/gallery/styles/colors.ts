@@ -24,13 +24,13 @@ export function createGalleryColorsWorkbenchCss() {
       display: grid;
       gap: var(--ahtml-gallery-layout-gap-relaxed);
       padding: var(--ahtml-gallery-content-card-padding-relaxed);
-      border: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
-      border-radius: calc(var(--radius) * 1.05);
-      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
     }
     .ahtml-gallery-color-mode-panel.is-active {
-      border-color: color-mix(in srgb, var(--ring) 58%, transparent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 12%, transparent);
+      border-color: var(--ring);
+      box-shadow: none;
     }
     .ahtml-gallery-color-mode-header {
       display: flex;
@@ -59,28 +59,23 @@ export function createGalleryColorsWorkbenchCss() {
       gap: var(--ahtml-space-lg);
       width: 100%;
       padding: var(--ahtml-gallery-content-card-padding-relaxed);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 1.05);
-      background: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
       color: inherit;
       text-align: left;
       cursor: pointer;
-      transition:
-        border-color 140ms ease,
-        background 140ms ease,
-        box-shadow 140ms ease;
     }
     .ahtml-gallery-color-card:hover {
-      border-color: color-mix(in srgb, var(--border) 82%, transparent);
-      background: color-mix(in srgb, var(--accent) 10%, transparent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 10%, transparent);
+      border-color: var(--border);
+      background: var(--accent);
     }
     .ahtml-gallery-color-card-swatch {
       display: block;
       width: 100%;
       min-height: 4.25rem;
-      border-radius: calc(var(--radius) * 0.9);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
     }
     .ahtml-gallery-color-card-copy {
       display: grid;

@@ -71,7 +71,7 @@ export function GalleryTypographyTab({
                 value={editorState.draftProfile.globalStyle.typography.fontHeading}
               />
               <FontPickerField
-                description="Serif companion used in richer editorial or marketing surfaces."
+                description="Serif companion used in richer editorial or presentation surfaces."
                 focused={focusedEditorField === "fontSerif"}
                 label="Font Serif"
                 onChange={(value) =>

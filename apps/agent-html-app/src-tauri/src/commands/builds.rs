@@ -11,12 +11,11 @@ use crate::{
     },
     models::{AppError, BuildRunSummary, InspectSnapshot, LogSnapshot, SourceValidationSnapshot},
     paths::{
-        ensure_ahtml_home, ensure_support_root, path_to_string, preview_path, session_dir,
-        BUILD_DIR_NAME, LOGS_DIR_NAME, SOURCE_FILE_NAME,
+        ensure_ahtml_home, path_to_string, preview_path, session_dir, BUILD_DIR_NAME,
+        LOGS_DIR_NAME, SOURCE_FILE_NAME,
     },
-    proposal::build_run_summary_from_record,
     runtime_cli::{run_ahtml_json, run_validation_command},
-    session_store::{read_session_record, write_session_record},
+    session_store::{build_run_summary_from_record, read_session_record, write_session_record},
     support::{now_epoch_millis, now_iso_stub, read_latest_log},
 };
 
@@ -151,37 +150,6 @@ pub(crate) fn validate_source(
         status: status.into(),
         diagnostics,
         structure_summary: structure_summary_from_validation_payload(&payload),
-    })
-}
-
-#[tauri::command]
-pub(crate) fn check_runtime(app: AppHandle) -> Result<Value, AppError> {
-    let _span = info_span!("check_runtime").entered();
-    let logs_dir = ensure_support_root(&app)?.join(LOGS_DIR_NAME);
-    let ahtml_home = ensure_ahtml_home(&app)?;
-    fs::create_dir_all(&logs_dir).map_err(|error| {
-        AppError::from(BackendError::session_io(
-            "Unable to prepare runtime log directory.",
-            error,
-        ))
-    })?;
-
-    let execution = run_ahtml_json(
-        &ahtml_home,
-        &logs_dir,
-        &format!("doctor-{}", now_epoch_millis()),
-        &["doctor".into(), "--format".into(), "json".into()],
-    )?;
-
-    execution.json.ok_or_else(|| {
-        AppError::from(BackendError::message(
-            "cli-launch",
-            "ahtml doctor did not return valid JSON.",
-        ))
-        .with_details(format!(
-            "stdout log: {}; stderr log: {}",
-            execution.stdout_path, execution.stderr_path
-        ))
     })
 }
 

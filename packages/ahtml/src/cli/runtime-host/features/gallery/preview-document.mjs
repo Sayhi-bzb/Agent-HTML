@@ -142,13 +142,13 @@ function createPricingPreview(artifactProfile) {
           componentNode("list", {}, [
             itemNode("Theme tokens"),
             itemNode("Gallery preview"),
-            itemNode("Single workspace"),
+            itemNode("Single surface"),
           ]),
         ]),
         createCard("Team", [
           componentNode("badge", { variant: "secondary" }, [textNode("popular")]),
           textNode(
-            "Mid-tier cards need stronger emphasis without becoming a marketing page.",
+            "Mid-tier cards need stronger emphasis without becoming a custom showcase shell.",
           ),
           componentNode("list", {}, [
             itemNode("Shared presets"),
@@ -224,7 +224,7 @@ function createMailPreview(artifactProfile) {
               label: "Reply draft",
               value:
                 "Preview shell is aligned. Remaining work is matching the denser work-app rhythm from tweakcn.",
-              description: "Composer density and nested field treatment.",
+              description: "Composer density and nested field emphasis.",
             },
             [],
           ),
@@ -319,7 +319,7 @@ function createSelectionPreview(artifactProfile) {
             {
               label: "Profile family",
               value: artifactProfile.id,
-              description: "Select trigger, content, and item treatment.",
+              description: "Select trigger, content, and item emphasis.",
             },
             [
               optionNode("shadcn-default", "shadcn-default", "Builtin"),
@@ -382,7 +382,7 @@ function createDisclosurePreview() {
             componentNode("tab", { value: "summary", label: "Summary" }, [
               createCard("Tabs Summary", [
                 textNode(
-                  "Tabs preview trigger contrast, content spacing, and nested card treatment.",
+                  "Tabs preview trigger contrast, content spacing, and nested card emphasis.",
                 ),
               ]),
             ]),

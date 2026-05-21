@@ -894,9 +894,7 @@ function createArtifactProfile(
 function createComponentStyleProfile(
   _id: BuiltinArtifactProfileReference,
 ): ComponentStyleProfile {
-  return {
-    treatments: {},
-  }
+  return {}
 }
 
 function createGlobalStyleProfile(): GlobalStyleProfile {

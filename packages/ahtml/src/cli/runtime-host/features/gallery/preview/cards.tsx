@@ -61,7 +61,7 @@ export function GalleryCardsWorkbenchPanel({
             </span>
             <h4>Metrics, editorial summaries, and surface language</h4>
             <p>
-              High-signal cards should expose hierarchy, density, and treatment
+              High-signal cards should expose hierarchy, density, and spacing
               shifts immediately.
             </p>
           </div>
@@ -151,8 +151,8 @@ export function GalleryCardsWorkbenchPanel({
             </span>
             <h4>Entry flows, issue capture, and conversion surfaces</h4>
             <p>
-              Form cards should let radius, spacing, and treatment changes show
-              up without extra explanation.
+              Form cards should let radius, spacing, and control density show up
+              without extra explanation.
             </p>
           </div>
           <div className="ahtml-gallery-cards-grid ahtml-gallery-cards-grid-forms">
@@ -338,7 +338,7 @@ export function GalleryCardsWorkbenchPanel({
               <CardContent className="ahtml-gallery-chat-thread">
                 <div>
                   <strong>Mia</strong>
-                  <p>Can we ship the updated launch board before noon?</p>
+                  <p>Can we ship the updated review board before noon?</p>
                 </div>
                 <div className="is-reply">
                   <strong>You</strong>

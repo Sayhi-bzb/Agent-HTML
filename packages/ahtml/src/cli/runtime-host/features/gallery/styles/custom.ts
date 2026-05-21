@@ -9,10 +9,10 @@ export function createGalleryCustomWorkbenchCss() {
       display: grid;
       gap: 0;
       overflow: hidden;
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 1.25);
-      background: color-mix(in srgb, var(--background) 99%, var(--muted) 1%);
-      box-shadow: 0 12px 30px color-mix(in srgb, var(--foreground) 7%, transparent);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
+      box-shadow: none;
     }
     .ahtml-gallery-custom-preview-toolbar {
       display: flex;
@@ -22,8 +22,8 @@ export function createGalleryCustomWorkbenchCss() {
       padding:
         var(--ahtml-gallery-tight-toolbar-padding-block)
         var(--ahtml-gallery-compact-panel-padding-inline);
-      border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      background: color-mix(in srgb, var(--muted) 54%, transparent);
+      border-bottom: 1px solid var(--border);
+      background: var(--muted);
       flex-wrap: wrap;
     }
     .ahtml-gallery-custom-preview-input {
@@ -102,9 +102,7 @@ export function createGalleryCustomWorkbenchCss() {
       display: grid;
       gap: var(--ahtml-gallery-layout-gap);
       padding: 0;
-      background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 32%),
-        linear-gradient(180deg, color-mix(in srgb, var(--background) 99%, var(--muted) 1%), color-mix(in srgb, var(--background) 95%, var(--muted) 5%));
+      background: var(--background);
     }
     .ahtml-gallery-custom-surface-shell {
       display: grid;
@@ -125,9 +123,9 @@ export function createGalleryCustomWorkbenchCss() {
       justify-content: center;
       width: 2.75rem;
       height: 2.75rem;
-      border-radius: calc(var(--radius) * 0.95);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      background: color-mix(in srgb, var(--background) 96%, var(--muted) 4%);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card);
     }
     .ahtml-gallery-custom-preview-empty-separator {
       color: var(--muted-foreground);
@@ -145,9 +143,9 @@ export function createGalleryCustomWorkbenchCss() {
       padding:
         var(--ahtml-gallery-custom-preview-empty-padding-block)
         var(--ahtml-gallery-layout-block-padding);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 1.1);
-      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
     }
     .ahtml-gallery-custom-preview-callout-copy {
       display: grid;
@@ -174,9 +172,9 @@ export function createGalleryCustomWorkbenchCss() {
       padding:
         var(--ahtml-gallery-pill-padding-block)
         var(--ahtml-gallery-pill-padding-inline);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: var(--ahtml-gallery-radius-full);
-      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--background);
       color: var(--foreground);
       font: inherit;
     }
@@ -188,17 +186,17 @@ export function createGalleryCustomWorkbenchCss() {
       padding:
         var(--ahtml-gallery-compact-panel-padding-block)
         var(--ahtml-gallery-compact-panel-padding-inline);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 0.95);
-      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
       flex-wrap: wrap;
     }
     .ahtml-gallery-custom-connection-indicator {
       width: 0.7rem;
       height: 0.7rem;
       border-radius: var(--ahtml-gallery-radius-full);
-      background: color-mix(in srgb, var(--primary) 88%, white 12%);
-      box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 12%, transparent);
+      background: var(--primary);
+      box-shadow: none;
     }
     .ahtml-gallery-custom-connection-label {
       flex: 1;
@@ -213,9 +211,9 @@ export function createGalleryCustomWorkbenchCss() {
       align-items: center;
       gap: var(--ahtml-gallery-layout-gap-relaxed);
       padding: var(--ahtml-gallery-layout-block-padding);
-      border-radius: calc(var(--radius) * 1.05);
-      border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card);
     }
     .ahtml-gallery-custom-site-brand {
       display: grid;
@@ -252,10 +250,9 @@ export function createGalleryCustomWorkbenchCss() {
     .ahtml-gallery-custom-hero {
       display: grid;
       padding: var(--ahtml-gallery-custom-hero-padding);
-      border-radius: calc(var(--radius) * 1.2);
-      background:
-        linear-gradient(135deg, color-mix(in srgb, var(--card) 96%, white 4%), color-mix(in srgb, var(--accent) 10%, var(--card) 90%));
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--border);
     }
     .ahtml-gallery-custom-hero-copy {
       display: grid;
@@ -291,9 +288,9 @@ export function createGalleryCustomWorkbenchCss() {
       padding:
         var(--ahtml-gallery-compact-panel-padding-block)
         var(--ahtml-gallery-compact-panel-padding-inline);
-      border-radius: calc(var(--radius) * 0.95);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      background: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--background);
     }
     .ahtml-gallery-custom-stat span {
       color: var(--muted-foreground);
@@ -375,7 +372,7 @@ export function createGalleryCustomWorkbenchCss() {
       margin-top: var(--ahtml-space-2xs);
       border-radius: var(--ahtml-gallery-radius-full);
       background: var(--primary);
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 14%, transparent);
+      box-shadow: none;
     }
   `
 }

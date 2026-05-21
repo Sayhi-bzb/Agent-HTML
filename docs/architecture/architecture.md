@@ -44,8 +44,8 @@ agent 负责表达内容、关系和结构；系统负责把这些语义节点�
 
 当前稳定实现里的组件配置分成两类：
 
-- `componentStyle.treatments`
-  - 承载 UI 组件 treatment 映射。
+- `componentStyle`
+  - 当前稳定实现中保留为空对象，为后续组件级配置预留协议位置。
 - `componentLayout`
   - 承载 layout primitive 的 realization 配置。
 

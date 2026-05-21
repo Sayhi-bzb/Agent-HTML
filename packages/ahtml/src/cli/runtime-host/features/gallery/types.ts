@@ -37,7 +37,6 @@ export type GalleryControlTab =
   | "darkTokens"
   | "typography"
   | "radius"
-  | "treatments"
 
 export type GalleryPreviewMode =
   | "components"
@@ -91,7 +90,6 @@ export type GalleryInspectorState = {
   source: string
   tagName: string
   top: number
-  treatment: string
   width: number
   height: number
 }

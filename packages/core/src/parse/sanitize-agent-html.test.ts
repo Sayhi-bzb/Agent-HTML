@@ -145,9 +145,7 @@ describe("sanitizeAgentHtml", () => {
               border: "--border",
             }),
           },
-          componentStyle: {
-            treatments: {},
-          },
+          componentStyle: {},
         },
       },
       components: [
@@ -304,9 +302,7 @@ describe("sanitizeAgentHtml", () => {
             radius: "--radius",
           }),
         },
-        componentStyle: {
-          treatments: {},
-        },
+        componentStyle: {},
       },
     })
     expect(result.diagnostics).toEqual([

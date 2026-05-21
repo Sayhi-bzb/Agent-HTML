@@ -61,27 +61,13 @@ export function createGalleryCardsWorkbenchCss() {
     .ahtml-gallery-cards-card {
       min-width: 0;
       height: 100%;
-      border-color: color-mix(in srgb, var(--border) 70%, transparent);
-      background:
-        linear-gradient(
-          180deg,
-          color-mix(in srgb, var(--background) 99%, var(--muted) 1%),
-          color-mix(in srgb, var(--background) 96%, var(--muted) 4%)
-        );
-      box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 34%, transparent),
-        0 12px 24px color-mix(in srgb, var(--foreground) 4%, transparent);
+      border-color: var(--border);
+      background: var(--card);
+      box-shadow: none;
     }
     .ahtml-gallery-cards-card-feature {
-      background:
-        linear-gradient(
-          135deg,
-          color-mix(in srgb, var(--card) 97%, white 3%),
-          color-mix(in srgb, var(--accent) 10%, var(--card) 90%)
-        );
-      box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 38%, transparent),
-        0 16px 34px color-mix(in srgb, var(--foreground) 6%, transparent);
+      background: var(--card);
+      box-shadow: none;
     }
     .ahtml-gallery-cards-card [data-slot="card-header"] {
       padding-bottom: var(--ahtml-space-sm);
@@ -92,7 +78,7 @@ export function createGalleryCardsWorkbenchCss() {
     }
     .ahtml-gallery-cards-grid-content .ahtml-gallery-cards-card:nth-child(2),
     .ahtml-gallery-cards-grid-forms .ahtml-gallery-cards-card:nth-child(3) {
-      transform: translateY(var(--ahtml-space-sm));
+      transform: none;
     }
     .ahtml-gallery-mini-calendar {
       display: grid;
@@ -134,11 +120,12 @@ export function createGalleryCardsWorkbenchCss() {
       display: grid;
       gap: var(--ahtml-space-2xs);
       padding: var(--ahtml-gallery-layout-gap-compact);
-      border-radius: calc(var(--radius) * 0.95);
-      background: color-mix(in srgb, var(--muted) 48%, transparent);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card);
     }
     .ahtml-gallery-chat-thread > div.is-reply {
-      background: color-mix(in srgb, var(--secondary) 72%, transparent);
+      background: var(--muted);
     }
     .ahtml-gallery-chat-thread p {
       margin: 0;

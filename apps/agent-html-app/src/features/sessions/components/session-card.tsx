@@ -11,19 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
-  ShellMetaRow,
-  ShellSessionStatusBadge,
-  ShellSplitRow,
-} from "@/features/app-shell/components/shell-content"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-  formatSessionTimestampLabel,
-  formatTimestampLabel,
-} from "@/lib/time"
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
 import type { SessionSummary } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -47,8 +38,6 @@ export function SessionCard({
   const [renaming, setRenaming] = useState(false)
   const [draftName, setDraftName] = useState(session.name)
   const inputRef = useRef<HTMLInputElement>(null)
-  const shortTimestamp = formatSessionTimestampLabel(session.updatedAt)
-  const fullTimestamp = formatTimestampLabel(session.updatedAt)
 
   useEffect(() => {
     setDraftName(session.name)
@@ -81,22 +70,21 @@ export function SessionCard({
   }
 
   return (
-    <section
+    <SidebarMenuItem
       className={cn(
         "group/session app-shell-session-card",
         active && "app-shell-session-card-active",
       )}
     >
-      <Button
-        aria-label={`Open session ${session.name}`}
-        className="app-shell-session-card-trigger"
-        disabled={disabled}
-        onClick={() => onOpen(session.id)}
-        type="button"
-        variant="ghost"
-      />
       <div className="app-shell-session-card-body">
-        <ShellSplitRow className="w-full">
+        <SidebarMenuButton
+          aria-label={`Open session ${session.name}`}
+          className="app-shell-session-card-row"
+          disabled={disabled}
+          isActive={active}
+          onClick={() => onOpen(session.id)}
+          type="button"
+        >
           {renaming ? (
             <Input
               aria-label={`Rename session ${session.name}`}
@@ -122,72 +110,58 @@ export function SessionCard({
             <p
               className={cn(
                 "app-shell-session-card-title",
-                active && "text-foreground",
+                active && "text-shell-text-primary",
               )}
             >
               {session.name}
             </p>
           )}
-          <ShellSessionStatusBadge status={session.status} />
-        </ShellSplitRow>
-        <ShellMetaRow
-          action={
-            !renaming ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    aria-label="Session actions"
-                    className="app-shell-session-card-action"
-                    disabled={disabled}
-                    size="icon-xs"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <EllipsisIcon data-icon="inline-start" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    disabled={disabled}
-                    onClick={() => {
-                      setDraftName(session.name)
-                      setRenaming(true)
-                    }}
-                  >
-                    <SquarePenIcon />
-                    Rename
-                  </DropdownMenuItem>
-                  <DropdownMenuDivider />
-                  <DropdownMenuItem onClick={() => onDelete(session.id)}>
-                    <Trash2Icon />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button
-                aria-label="Confirm rename"
+        </SidebarMenuButton>
+        {!renaming ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuAction
+                aria-label="Session actions"
                 className="app-shell-session-card-action"
                 disabled={disabled}
-                onClick={submitRename}
-                size="icon-xs"
+                showOnHover
                 type="button"
-                variant="ghost"
               >
-                <CheckIcon data-icon="inline-start" />
-              </Button>
-            )
-          }
-          copy={
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>{shortTimestamp}</span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">{fullTimestamp}</TooltipContent>
-            </Tooltip>
-          }
-        />
+                <EllipsisIcon data-icon="inline-start" />
+              </SidebarMenuAction>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                disabled={disabled}
+                onClick={() => {
+                  setDraftName(session.name)
+                  setRenaming(true)
+                }}
+              >
+                <SquarePenIcon />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuDivider />
+              <DropdownMenuItem onClick={() => onDelete(session.id)}>
+                <Trash2Icon />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button
+            aria-label="Confirm rename"
+            className="app-shell-session-card-action app-shell-session-card-action-static"
+            disabled={disabled}
+            onClick={submitRename}
+            size="icon-xs"
+            type="button"
+            variant="ghost"
+          >
+            <CheckIcon data-icon="inline-start" />
+          </Button>
+        )}
       </div>
-    </section>
+    </SidebarMenuItem>
   )
 }

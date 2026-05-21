@@ -8,11 +8,9 @@ export function createGalleryPricingWorkbenchCss() {
       display: grid;
       gap: 0;
       overflow: hidden;
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 1.2);
-      background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 30%),
-        linear-gradient(180deg, color-mix(in srgb, var(--background) 99%, var(--muted) 1%), color-mix(in srgb, var(--background) 95%, var(--muted) 5%));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
     }
     .ahtml-gallery-pricing-utility-strip {
       display: flex;
@@ -33,9 +31,9 @@ export function createGalleryPricingWorkbenchCss() {
       padding:
         var(--ahtml-gallery-pill-padding-block)
         var(--ahtml-gallery-pill-padding-inline);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: var(--ahtml-gallery-radius-full);
-      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
       color: var(--muted-foreground);
       font-size: var(--ahtml-gallery-text-meta-size);
     }
@@ -48,25 +46,13 @@ export function createGalleryPricingWorkbenchCss() {
       grid-column: span 4;
       min-width: 0;
       height: 100%;
-      border-color: color-mix(in srgb, var(--border) 70%, transparent);
-      background:
-        linear-gradient(
-          180deg,
-          color-mix(in srgb, var(--background) 99%, var(--muted) 1%),
-          color-mix(in srgb, var(--background) 96%, var(--muted) 4%)
-        );
+      border-color: var(--border);
+      background: var(--card);
     }
     .ahtml-gallery-pricing-card-feature {
-      transform: translateY(calc(var(--ahtml-space-sm) * -1));
-      background:
-        linear-gradient(
-          135deg,
-          color-mix(in srgb, var(--card) 97%, white 3%),
-          color-mix(in srgb, var(--accent) 10%, var(--card) 90%)
-        );
-      box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 38%, transparent),
-        0 16px 34px color-mix(in srgb, var(--foreground) 6%, transparent);
+      transform: none;
+      background: var(--card);
+      box-shadow: none;
     }
     .ahtml-gallery-pricing-lower {
       display: grid;

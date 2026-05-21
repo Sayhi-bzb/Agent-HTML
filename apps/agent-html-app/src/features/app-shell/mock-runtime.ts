@@ -1,11 +1,9 @@
 import { mockAppState, mockPreviewHtml } from "@/lib/mock-data"
 import type {
-  AgentShellMessage,
   BuildRunSummary,
   DiagnosticItem,
   InspectSnapshot,
   LogSnapshot,
-  RuntimeReport,
   SessionDetail,
   SessionSummary,
   SourceValidationSnapshot,
@@ -143,13 +141,12 @@ function summarizeStructure(source: string): string {
 
 function createPaths(summary: SessionSummary): Pick<
   SessionDetail,
-  "sourcePath" | "previewPath" | "logDirectory" | "chatPath"
+  "sourcePath" | "previewPath" | "logDirectory"
 > {
   return {
     sourcePath: `${summary.directory}/source.agent.html`,
     previewPath: `${summary.directory}/build/index.html`,
     logDirectory: `${summary.directory}/logs`,
-    chatPath: `${summary.directory}/chat.jsonl`,
   }
 }
 
@@ -306,119 +303,6 @@ export function createMockValidationSnapshot(
     status: hasErrors ? "invalid" : "valid",
     diagnostics,
     structureSummary: summarizeStructure(source),
-  }
-}
-
-export function createMockRuntimeReport(): RuntimeReport {
-  return {
-    kind: "agent-html-doctor-report",
-    version: 1,
-    status: "ok",
-    packageVersion: "mock-local",
-    runtimeRoot: "mock://runtime",
-    outputDir: "mock://runtime/output",
-    counts: {
-      ok: 4,
-      warn: 0,
-      skip: 1,
-      fail: 0,
-    },
-    checks: [
-      {
-        category: "runtime",
-        name: "mock-mode",
-        status: "ok",
-        detail: "Session ready.",
-      },
-      {
-        category: "preview",
-        name: "preview-renderer",
-        status: "ok",
-        detail: "Preview ready.",
-      },
-      {
-        category: "inspect",
-        name: "inspect-pipeline",
-        status: "ok",
-        detail: "Inspect ready.",
-      },
-      {
-        category: "network",
-        name: "provider-link",
-        status: "skip",
-        detail: "Provider idle.",
-      },
-      {
-        category: "sessions",
-        name: "session-store",
-        status: "ok",
-        detail: "Sessions ready.",
-      },
-    ],
-  }
-}
-
-export function createMockProposalMessage(
-  summary: SessionSummary,
-  source: string,
-): AgentShellMessage {
-  const title = extractPageTitle(source, summary.name)
-  const lead = extractLead(source, getMockSeed(summary).fallbackLead)
-  const notes = extractListItems(source)
-  const focus = notes.length > 0 ? notes : getMockSeed(summary).fallbackNotes
-
-  return {
-    id: `proposal-${summary.id}-${Date.now()}`,
-    role: "placeholder",
-    createdAt: nowIso(),
-    kind: "proposal-placeholder",
-    text: [
-      title,
-      lead,
-      focus[0] ?? "Ready.",
-    ].join("\n"),
-    proposalSnapshot: {
-      source,
-      lineCount: source.split(/\r?\n/).length,
-    },
-  }
-}
-
-export function createMockBaseChat(
-  summary: SessionSummary,
-  source: string,
-): AgentShellMessage[] {
-  return [
-    {
-      id: `system-${summary.id}`,
-      role: "system",
-      createdAt: summary.updatedAt,
-      kind: "message",
-      text: "Ready.",
-    },
-    createMockProposalMessage(summary, source),
-  ]
-}
-
-export function createInitialMockSessionChats(
-  summaries: SessionSummary[],
-  sources: Record<string, string>,
-): Record<string, AgentShellMessage[]> {
-  return Object.fromEntries(
-    summaries.map((summary) => {
-      const source = sources[summary.id] ?? getMockSeed(summary).source
-      return [summary.id, createMockBaseChat(summary, source)]
-    }),
-  )
-}
-
-export function createMockUserMessage(text: string): AgentShellMessage {
-  return {
-    id: `user-${Date.now()}`,
-    role: "user",
-    createdAt: nowIso(),
-    kind: "message",
-    text,
   }
 }
 

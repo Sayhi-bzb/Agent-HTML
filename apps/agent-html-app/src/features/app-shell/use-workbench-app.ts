@@ -2,11 +2,8 @@ import { startTransition, useEffect, useMemo, useState } from "react"
 
 import { mockAppState, mockPreviewHtml } from "@/lib/mock-data"
 import {
-  appendChatMessage,
-  checkRuntime,
   createSession,
   deleteSession,
-  generateSessionProposal,
   isTauriRuntime,
   listSessions,
   openSession,
@@ -18,27 +15,20 @@ import {
   validateSource,
 } from "@/lib/tauri"
 import type {
-  AgentShellMessage,
   AppState,
-  RuntimeReport,
   SourceValidationSnapshot,
   WorkbenchView,
 } from "@/lib/types"
 
 import { formatError } from "./errors"
 import {
-  createInitialMockSessionChats,
   createInitialMockSessionSources,
-  createMockBaseChat,
   createMockBuildSummary,
   createMockInspectSnapshot,
   createMockLogs,
   createMockPreviewHtml,
-  createMockProposalMessage,
-  createMockRuntimeReport,
   createMockSessionDetail,
   createMockSessionSummary,
-  createMockUserMessage,
   createMockValidationSnapshot,
 } from "./mock-runtime"
 import {
@@ -46,7 +36,6 @@ import {
   deriveInspectSnapshot,
   hydrateSessionState,
   loadSessionState,
-  safeReadChat,
   safeReadLogs,
   safeReadPreviewHtml,
 } from "./session-hydration"
@@ -55,16 +44,6 @@ import {
   type CommandState,
   type OpenSessionTab,
 } from "./types"
-
-function filterMessages(messages: AppState["chat"]) {
-  return messages.filter((message) => {
-    return (
-      message.kind === "proposal-placeholder" ||
-      message.kind === "context-card" ||
-      message.role !== "system"
-    )
-  })
-}
 
 function getDefaultMockView(
   summary: AppState["sessions"][number],
@@ -133,10 +112,6 @@ export function useWorkbenchApp() {
       ]),
     ),
   )
-  const [mockSessionChats, setMockSessionChats] = useState(() => {
-    const sources = createInitialMockSessionSources(mockAppState.sessions)
-    return createInitialMockSessionChats(mockAppState.sessions, sources)
-  })
   const [previewHtml, setPreviewHtml] = useState<string | undefined>(
     isTauriRuntime() ? undefined : mockPreviewHtml,
   )
@@ -144,9 +119,7 @@ export function useWorkbenchApp() {
     mockAppState.currentSession.currentView,
   )
   const [draftSource, setDraftSource] = useState(mockAppState.currentSession.source)
-  const [messageDraft, setMessageDraft] = useState("")
   const [validation, setValidation] = useState<SourceValidationSnapshot>()
-  const [runtimeReport, setRuntimeReport] = useState<RuntimeReport>()
   const [commandState, setCommandState] = useState(initialCommandState)
   const [openSessionTabs, setOpenSessionTabs] = useState<OpenSessionTab[]>([
     { sessionId: mockAppState.currentSession.id },
@@ -156,10 +129,7 @@ export function useWorkbenchApp() {
   const currentBuild = appState.currentBuild
   const currentInspect = appState.currentInspect
   const currentLogs = appState.currentLogs
-  const messages = appState.chat
   const hasUnsavedChanges = draftSource !== currentSession.source
-
-  const filteredMessages = useMemo(() => filterMessages(messages), [messages])
 
   useEffect(() => {
     void bootstrap()
@@ -168,7 +138,6 @@ export function useWorkbenchApp() {
   useEffect(() => {
     setDraftSource(currentSession.source)
     setValidation(undefined)
-    setRuntimeReport(undefined)
   }, [currentSession.id, currentSession.source])
 
   async function yieldToNextTask(): Promise<void> {
@@ -277,7 +246,6 @@ export function useWorkbenchApp() {
         currentBuild: deriveBuildSummary(nextState.session),
         currentInspect: deriveInspectSnapshot(nextState.session),
         currentLogs: nextState.logs,
-        chat: nextState.chat,
       }))
       setPreviewHtml(nextState.previewHtml)
       setActiveView(nextState.session.currentView)
@@ -337,7 +305,6 @@ export function useWorkbenchApp() {
   function applyMockSessionState(
     summary: AppState["sessions"][number],
     source: string,
-    chat: AgentShellMessage[],
     sessions: AppState["sessions"],
     view: WorkbenchView,
   ): void {
@@ -353,7 +320,6 @@ export function useWorkbenchApp() {
         currentBuild: build,
         currentInspect: inspect,
         currentLogs: logs,
-        chat,
       })
       setPreviewHtml(createMockPreviewHtml(summary, source))
       setActiveView(view)
@@ -375,14 +341,11 @@ export function useWorkbenchApp() {
           const nextSource =
             mockSessionSources[sessionId] ??
             createInitialMockSessionSources([nextSummary])[sessionId]
-          const nextChat =
-            mockSessionChats[sessionId] ?? createMockBaseChat(nextSummary, nextSource)
           const nextView = getMockView(nextSummary)
 
           applyMockSessionState(
             nextSummary,
             nextSource,
-            nextChat,
             appState.sessions,
             nextView,
           )
@@ -417,7 +380,6 @@ export function useWorkbenchApp() {
           )
           const nextSource =
             createInitialMockSessionSources([nextSummary])[nextSummary.id]
-          const nextChat = createMockBaseChat(nextSummary, nextSource)
           const nextSessions = sortSessions([nextSummary, ...appState.sessions])
 
           setMockSessionSources((current) => ({
@@ -428,14 +390,9 @@ export function useWorkbenchApp() {
             ...current,
             [nextSummary.id]: "source",
           }))
-          setMockSessionChats((current) => ({
-            ...current,
-            [nextSummary.id]: nextChat,
-          }))
           applyMockSessionState(
             nextSummary,
             nextSource,
-            nextChat,
             nextSessions,
             "source",
           )
@@ -473,15 +430,12 @@ export function useWorkbenchApp() {
             const nextSummary = createMockSessionSummary("First Session", 1)
             const nextSource =
               createInitialMockSessionSources([nextSummary])[nextSummary.id]
-            const nextChat = createMockBaseChat(nextSummary, nextSource)
 
             setMockSessionSources({ [nextSummary.id]: nextSource })
             setMockSessionViews({ [nextSummary.id]: "source" })
-            setMockSessionChats({ [nextSummary.id]: nextChat })
             applyMockSessionState(
               nextSummary,
               nextSource,
-              nextChat,
               sortSessions([nextSummary]),
               "source",
             )
@@ -497,9 +451,6 @@ export function useWorkbenchApp() {
           const nextSource =
             mockSessionSources[fallbackSummary.id] ??
             createInitialMockSessionSources([fallbackSummary])[fallbackSummary.id]
-          const nextChat =
-            mockSessionChats[fallbackSummary.id] ??
-            createMockBaseChat(fallbackSummary, nextSource)
           const nextView = getMockView(fallbackSummary)
 
           setMockSessionSources((current) => {
@@ -512,15 +463,9 @@ export function useWorkbenchApp() {
             delete next[sessionId]
             return next
           })
-          setMockSessionChats((current) => {
-            const next = { ...current }
-            delete next[sessionId]
-            return next
-          })
           applyMockSessionState(
             fallbackSummary,
             nextSource,
-            nextChat,
             sortSessions(remainingSessions),
             nextView,
           )
@@ -587,15 +532,12 @@ export function useWorkbenchApp() {
           const nextSource =
             mockSessionSources[sessionId] ??
             createInitialMockSessionSources([nextSummary])[sessionId]
-          const nextChat =
-            mockSessionChats[sessionId] ?? createMockBaseChat(nextSummary, nextSource)
           const nextView = getMockView(nextSummary)
 
           if (sessionId === currentSession.id) {
             applyMockSessionState(
               nextSummary,
               nextSource,
-              nextChat,
               nextSessions,
               nextView,
             )
@@ -686,9 +628,6 @@ export function useWorkbenchApp() {
       const nextSessions = appState.sessions.map((item) =>
         item.id === nextSummary.id ? nextSummary : item,
       )
-      const nextChat =
-        mockSessionChats[nextSummary.id] ??
-        createMockBaseChat(nextSummary, draftSource)
 
       await runCommand("saving", async () => {
         await yieldToNextTask()
@@ -703,7 +642,6 @@ export function useWorkbenchApp() {
         applyMockSessionState(
           nextSummary,
           draftSource,
-          nextChat,
           nextSessions,
           "source",
         )
@@ -744,9 +682,6 @@ export function useWorkbenchApp() {
           const nextSessions = appState.sessions.map((item) =>
             item.id === nextSummary.id ? nextSummary : item,
           )
-          const nextChat =
-            mockSessionChats[nextSummary.id] ??
-            createMockBaseChat(nextSummary, nextSource)
 
           setMockSessionSources((current) => ({
             ...current,
@@ -759,7 +694,6 @@ export function useWorkbenchApp() {
           applyMockSessionState(
             nextSummary,
             nextSource,
-            nextChat,
             nextSessions,
             "preview",
           )
@@ -785,7 +719,6 @@ export function useWorkbenchApp() {
         const build = await runBuild(sessionId)
         const html = await safeReadPreviewHtml(sessionId)
         const session = await openSession(sessionId)
-        const chat = await safeReadChat(sessionId)
 
         startTransition(() => {
           const nextSummary = sessionSummaryFromDetail(session)
@@ -795,7 +728,6 @@ export function useWorkbenchApp() {
             currentBuild: build,
             currentInspect: current.currentInspect,
             sessions: replaceSessionSummary(nextSummary, current.sessions),
-            chat,
           }))
           setPreviewHtml(html)
           setActiveView(session.currentView)
@@ -843,7 +775,6 @@ export function useWorkbenchApp() {
               currentBuild: createMockBuildSummary(nextSummary, nextSession),
               currentInspect: nextInspect,
               currentLogs: nextLogs,
-              chat: appState.chat,
             })
             setPreviewHtml(createMockPreviewHtml(nextSummary, nextSource))
             setActiveView("inspect")
@@ -861,7 +792,6 @@ export function useWorkbenchApp() {
         const session = await openSession(currentSession.id)
         const logs = await safeReadLogs(currentSession.id)
         const html = await safeReadPreviewHtml(currentSession.id)
-        const chat = await safeReadChat(currentSession.id)
 
         startTransition(() => {
           const nextSummary = sessionSummaryFromDetail(session)
@@ -871,7 +801,6 @@ export function useWorkbenchApp() {
             currentInspect: inspect,
             currentLogs: logs,
             sessions: replaceSessionSummary(nextSummary, current.sessions),
-            chat,
           }))
           setPreviewHtml(html)
           setActiveView(session.currentView)
@@ -899,159 +828,6 @@ export function useWorkbenchApp() {
       await runCommand("validating", async () => {
         const result = await validateSource(currentSession.id, draftSource)
         setValidation(result)
-      })
-    } catch (error) {
-      void error
-    }
-  }
-
-  async function checkCurrentRuntime(): Promise<void> {
-    if (!isTauriRuntime()) {
-      try {
-        await runCommand("checking", async () => {
-          await yieldToNextTask()
-          setRuntimeReport(createMockRuntimeReport())
-        })
-      } catch (error) {
-        void error
-      }
-      return
-    }
-
-    try {
-      await runCommand("checking", async () => {
-        const report = await checkRuntime()
-        setRuntimeReport(report)
-      })
-    } catch (error) {
-      void error
-    }
-  }
-
-  async function draftProposal(): Promise<void> {
-    if (!isTauriRuntime()) {
-      try {
-        await runCommand("drafting", async () => {
-          await yieldToNextTask()
-          const nextSummary = {
-            ...currentSession,
-            updatedAt: new Date().toISOString(),
-          }
-          const nextSessions = replaceSessionSummary(nextSummary, appState.sessions)
-          const nextView = getMockView(nextSummary)
-          const nextSession = createMockSessionDetail(
-            nextSummary,
-            currentSession.source,
-            nextView,
-          )
-          const nextChat = [
-            ...(mockSessionChats[currentSession.id] ??
-              createMockBaseChat(currentSession, currentSession.source)).filter(
-              (message) => message.kind !== "proposal-placeholder",
-            ),
-            createMockProposalMessage(currentSession, currentSession.source),
-          ]
-
-          setMockSessionChats((current) => ({
-            ...current,
-            [currentSession.id]: nextChat,
-          }))
-          startTransition(() => {
-            setAppState((current) => ({
-              ...current,
-              sessions: nextSessions,
-              currentSession: nextSession,
-              chat: nextChat,
-            }))
-          })
-        })
-      } catch (error) {
-        void error
-      }
-      return
-    }
-
-    try {
-      await runCommand("drafting", async () => {
-        const chat = await generateSessionProposal(currentSession.id)
-        const session = await openSession(currentSession.id)
-        startTransition(() => {
-          updateSessionSummary(session)
-          setAppState((current) => ({
-            ...current,
-            chat,
-          }))
-        })
-      })
-    } catch (error) {
-      void error
-    }
-  }
-
-  async function sendMessage(): Promise<void> {
-    const trimmed = messageDraft.trim()
-    if (!trimmed) {
-      return
-    }
-
-    if (!isTauriRuntime()) {
-      try {
-        await runCommand("sending", async () => {
-          await yieldToNextTask()
-          const nextSummary = {
-            ...currentSession,
-            updatedAt: new Date().toISOString(),
-          }
-          const nextSessions = replaceSessionSummary(nextSummary, appState.sessions)
-          const nextView = getMockView(nextSummary)
-          const nextSession = createMockSessionDetail(
-            nextSummary,
-            currentSession.source,
-            nextView,
-          )
-          const nextChat = [
-            ...(mockSessionChats[currentSession.id] ??
-              createMockBaseChat(currentSession, currentSession.source)),
-            createMockUserMessage(trimmed),
-          ]
-
-          setMockSessionChats((current) => ({
-            ...current,
-            [currentSession.id]: nextChat,
-          }))
-          startTransition(() => {
-            setAppState((current) => ({
-              ...current,
-              sessions: nextSessions,
-              currentSession: nextSession,
-              chat: nextChat,
-            }))
-            setMessageDraft("")
-          })
-        })
-      } catch (error) {
-        void error
-      }
-      return
-    }
-
-    try {
-      await runCommand("sending", async () => {
-        const chat = await appendChatMessage(
-          currentSession.id,
-          "user",
-          trimmed,
-          "message",
-        )
-        const session = await openSession(currentSession.id)
-        startTransition(() => {
-          updateSessionSummary(session)
-          setAppState((current) => ({
-            ...current,
-            chat,
-          }))
-          setMessageDraft("")
-        })
       })
     } catch (error) {
       void error
@@ -1095,19 +871,15 @@ export function useWorkbenchApp() {
     previewHtml,
     activeView,
     draftSource,
-    messageDraft,
     validation,
-    runtimeReport,
     commandState,
     currentSession,
     currentBuild,
     currentInspect,
     currentLogs,
     hasUnsavedChanges,
-    filteredMessages,
     openSessionTabs: visibleSessionTabs,
     setDraftSource,
-    setMessageDraft,
     actions: {
       openSessionById,
       closeSessionTab,
@@ -1119,9 +891,6 @@ export function useWorkbenchApp() {
       buildCurrentSession,
       inspectCurrentSession,
       validateCurrentSource,
-      checkCurrentRuntime,
-      draftProposal,
-      sendMessage,
     },
   }
 }

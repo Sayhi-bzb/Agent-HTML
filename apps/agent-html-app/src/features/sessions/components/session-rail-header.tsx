@@ -1,11 +1,14 @@
-import { PlusIcon, SearchIcon } from "lucide-react"
+import { SearchIcon } from "lucide-react"
 
+import { Input } from "@/components/ui/input"
 import {
-  ShellIconButton,
-  ShellPaneHeader,
-  ShellPaneLabel,
-  ShellSearchField,
-} from "@/features/app-shell/components/shell-content"
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
 
 type SessionRailHeaderProps = {
   query: string
@@ -21,30 +24,33 @@ export function SessionRailHeader({
   onQueryChange,
 }: SessionRailHeaderProps) {
   return (
-    <ShellPaneHeader
-      leading={
-        <div className="app-shell-section-stack w-full">
-          <ShellPaneLabel icon={<SearchIcon className="app-shell-inline-icon" />} title="Sessions" />
-          <ShellSearchField
+    <SidebarGroup className="app-shell-session-sidebar-group">
+      <SidebarGroupLabel>Sessions</SidebarGroupLabel>
+      <SidebarGroupContent className="app-shell-section-stack">
+        <div className="app-shell-sidebar-search">
+          <SearchIcon className="app-shell-sidebar-search-icon" />
+          <Input
+            className="app-shell-sidebar-search-input"
             disabled={disabled}
-            icon={<SearchIcon />}
-            onChange={onQueryChange}
+            onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Find"
             value={query}
           />
         </div>
-      }
-      trailing={
-        <ShellIconButton
-          ariaLabel="Create session"
-          className="border-0"
-          disabled={disabled}
-          onClick={onCreateSession}
-          tooltip="New session"
-        >
-          <PlusIcon data-icon="inline-start" />
-        </ShellIconButton>
-      }
-    />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              aria-label="Create session"
+              className="app-shell-session-command-item"
+              disabled={disabled}
+              onClick={onCreateSession}
+              type="button"
+            >
+              <span>New session</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   )
 }

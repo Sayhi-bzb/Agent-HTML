@@ -1,7 +1,7 @@
 # Gallery Token Philosophy
 
 `gallery` 不是独立产品壳，也不是一组互不相关的 demo 页面。
-它是 `artifactProfile` 的样式工作台，用来让主题 token、typography、radius、treatment 在多个 preview 中被同一套语言消费。
+它是 `artifactProfile` 的样式工作台，用来让主题 token、typography、radius 和 layout 在多个 preview 中被同一套语言消费。
 
 这份文档定义 `packages/ahtml/src/cli/runtime-host/features/gallery` 的 CSS token 化哲学。
 后续新增 preview、重构样式、补充 token 编辑能力时，都应以这里为准。
@@ -10,7 +10,7 @@
 
 `gallery` 的 token 体系固定为三层：
 
-- `artifact theme token`：来自 `draftProfile.globalStyle`，包括 `tokenSets.light/dark`、typography、`radiusScale`、shadow / treatment 等用户可编辑契约。
+- `artifact theme token`：来自 `draftProfile.globalStyle`，包括 `tokenSets.light/dark`、typography、`radiusScale`、shadow 等用户可编辑契约。
 - `primitive scale`：提供离散基础尺度，当前以 `--ahtml-space-*`、surface padding、layout gap、radius base 为主。
 - `semantic gallery token`：把基础尺度映射成 workbench / preview 语义，例如 `--ahtml-gallery-layout-gap`、`--ahtml-gallery-layout-gap-compact`、`--ahtml-gallery-layout-inline-padding`、`--ahtml-gallery-content-card-padding`。
 
@@ -53,7 +53,7 @@
 - `color`：继续保持 artifact theme token 语义，不把 preview 颜色退化成局部 hex / rgb 常量
 - `tracking`：只保留少量语义角色，不为近似文案场景分裂多套 token
 - `columns / widths / breakpoints`：如 sidebar width、mail shell columns、comparison columns，这些是布局单例约束，应保持语义 token
-- `treatment`：阴影、surface mix、特殊边框对比等继续围绕 treatment 语义，而不是扩成一组无差别数值
+- `surface emphasis`：阴影、surface mix、特殊边框对比等继续围绕语义角色，而不是扩成一组无差别数值
 
 一句话约束：
 

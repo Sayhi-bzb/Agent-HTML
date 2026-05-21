@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   ResizableHandle,
   ResizablePanel,
@@ -58,27 +59,29 @@ export function GalleryApp({
         className="ahtml-runtime-host ahtml-gallery-shell"
         data-artifact-profile={artifactProfileId}
       >
-        <header
+        <Card
           className="ahtml-gallery-page-header"
           data-gallery-frame="header"
         >
-          <div className="ahtml-gallery-page-brand">
-            <strong>agent-html</strong>
-            <span>Gallery</span>
-          </div>
-          <div className="ahtml-gallery-header-actions">
-            <Badge variant="outline">{activeArtifactProfileReference}</Badge>
-            <Button asChild size="sm" variant="ghost">
-              <a
-                href="https://github.com/Sayhi-bzb/Agent-HTML"
-                rel="noreferrer"
-                target="_blank"
-              >
-                GitHub
-              </a>
-            </Button>
-          </div>
-        </header>
+          <CardContent className="ahtml-gallery-page-header-content">
+            <div className="ahtml-gallery-page-brand">
+              <strong>agent-html</strong>
+              <span>Gallery</span>
+            </div>
+            <div className="ahtml-gallery-header-actions">
+              <Badge variant="outline">{activeArtifactProfileReference}</Badge>
+              <Button asChild size="sm" variant="ghost">
+                <a
+                  href="https://github.com/Sayhi-bzb/Agent-HTML"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  GitHub
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
         <Tabs
           className="ahtml-gallery-mobile-tabs"
           onValueChange={(value) =>
@@ -86,7 +89,7 @@ export function GalleryApp({
           }
           value={mobileTab}
         >
-          <TabsList className="ahtml-gallery-mobile-tabs-list">
+          <TabsList className="ahtml-gallery-mobile-tabs-list" variant="default">
             <GalleryTabsTriggerPill
               className="ahtml-gallery-mobile-tabs-trigger"
               value="controls"

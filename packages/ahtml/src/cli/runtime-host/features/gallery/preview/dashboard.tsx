@@ -103,7 +103,7 @@ export function GalleryDashboardWorkbenchPanel({
           <div className="ahtml-gallery-dashboard-utility-strip">
             <div className="ahtml-gallery-dashboard-utility-copy">
               <strong>Release pulse</strong>
-              <p>Q2 launch week stays readable as a product-native analytics frame.</p>
+              <p>Q2 release week stays readable as a product-native analytics frame.</p>
             </div>
             <div className="ahtml-gallery-custom-badges">
               <Badge variant="secondary">Revenue stable</Badge>

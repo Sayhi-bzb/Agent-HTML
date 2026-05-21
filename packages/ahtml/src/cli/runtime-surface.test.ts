@@ -355,6 +355,38 @@ describe("runtime surface completeness", () => {
     )
   })
 
+  it("rejects ahtml glue proof drift between manifest and checked-in runtime host source", async () => {
+    const { assertRuntimeSurface } = await loadModules()
+    const fixture = await createRuntimeFixture()
+    await writeFile(
+      path.join(fixture.runtimePaths.runtimeSrcDir, "app.tsx"),
+      'export function App() { return "drift" }\n',
+    )
+    const runtimeSurface = fixture.manifest
+      .shadcnRuntimeSurface as RuntimeSurfaceWithProofs
+    const manifest = {
+      ...fixture.manifest,
+      shadcnRuntimeSurface: {
+        ...runtimeSurface,
+        ahtmlGlueProof: {
+          ...runtimeSurface.ahtmlGlueProof,
+          files: {
+            ...runtimeSurface.ahtmlGlueProof.files,
+          },
+        },
+      },
+    }
+
+    await expect(
+      assertRuntimeSurface({
+        manifest,
+        paths: fixture.runtimePaths,
+      }),
+    ).rejects.toThrow(
+      "surface ahtmlGlueProof src/app.tsx does not match runtime file hash",
+    )
+  })
+
   it("rejects managed UI proof drift between manifest and checked-in override source", async () => {
     const { assertRuntimeSurface } = await loadModules()
     const fixture = await createRuntimeFixture()

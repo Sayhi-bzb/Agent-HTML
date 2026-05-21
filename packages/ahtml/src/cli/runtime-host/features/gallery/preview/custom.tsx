@@ -57,7 +57,7 @@ export function GalleryCustomPreviewPanel({
                 <span className="ahtml-gallery-stage-panel-kicker">
                   Destination surface
                 </span>
-                <strong>Embedded campaign workbench preview</strong>
+                <strong>Embedded destination preview</strong>
               </div>
               <div className="ahtml-gallery-stage-toolbar-meta">
                 <GalleryPreviewMeta label="Style" value={profile.id} />
@@ -81,7 +81,7 @@ export function GalleryCustomPreviewPanel({
                 data-ahtml-source="shadcn"
               >
                 <div className="ahtml-gallery-custom-site-brand">
-                  <Badge variant="secondary">Campaign site</Badge>
+                  <Badge variant="secondary">Preview site</Badge>
                   <strong>{profile.id}.studio</strong>
                 </div>
                 <div className="ahtml-gallery-custom-site-nav">
@@ -133,7 +133,7 @@ export function GalleryCustomPreviewPanel({
                   </div>
                   <div className="ahtml-gallery-custom-preview-callout-copy">
                     <span className="ahtml-gallery-stage-panel-kicker">
-                      Publish checklist
+                      Preview checklist
                     </span>
                     <h4>Inspect the live destination before you publish.</h4>
                     <p>
@@ -171,11 +171,11 @@ export function GalleryCustomPreviewPanel({
                         fontFamily: profile.globalStyle.typography.fontSerif,
                       }}
                     >
-                      {profile.id} campaign workspace
+                      {profile.id} preview surface
                     </h3>
                     <p>
-                      Build a launch surface where navigation, editorial blocks,
-                      and conversion paths all respond to the same token system.
+                      Review a destination surface where navigation, content,
+                      and actions all respond to the same token system.
                     </p>
                     <div className="ahtml-gallery-custom-hero-actions">
                       <Button type="button">
@@ -231,7 +231,7 @@ export function GalleryCustomPreviewPanel({
                           Navigation and content share one token system.
                         </span>
                         <span>
-                          Side panels reveal contrast and density changes before launch.
+                          Side panels reveal contrast and density changes before release.
                         </span>
                       </div>
                     </CardContent>
@@ -250,7 +250,7 @@ export function GalleryCustomPreviewPanel({
                     <CardContent className="ahtml-gallery-custom-stack">
                       <div className="ahtml-gallery-custom-signal-list">
                         {[
-                          "Homepage palette passes contrast in nav and hero layers.",
+                          "Homepage palette passes contrast across navigation and lead sections.",
                           "Sidebar actions stay clear across light and dark review modes.",
                           "Editorial serif remains limited to content-led sections.",
                         ].map((item) => (
@@ -303,7 +303,7 @@ export function GalleryCustomPreviewPanel({
                   style={{ boxShadow: surfaceShadow }}
                 >
                   <CardHeader>
-                    <CardTitle>Launch Board</CardTitle>
+                    <CardTitle>Review Board</CardTitle>
                   </CardHeader>
                   <CardContent className="ahtml-gallery-custom-stack">
                     <div className="ahtml-gallery-custom-badges">
@@ -356,8 +356,8 @@ export function GalleryCustomPreviewPanel({
                       <strong>17%</strong>
                     </div>
                     <p className="ahtml-gallery-custom-copy">
-                      Track how the same profile carries campaign hierarchy from
-                      the lead story through utility panels and approval status.
+                      Track how the same profile carries section hierarchy from
+                      the lead story through utility panels and review status.
                     </p>
                   </CardContent>
                 </Card>

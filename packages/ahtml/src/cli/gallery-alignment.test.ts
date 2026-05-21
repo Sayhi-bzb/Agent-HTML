@@ -105,17 +105,6 @@ describe("gallery alignment", () => {
           "controls",
           "other-tab.tsx",
         ),
-        readRepoSource(
-          "packages",
-          "ahtml",
-          "src",
-          "cli",
-          "runtime-host",
-          "features",
-          "gallery",
-          "controls",
-          "treatments-tab.tsx",
-        ),
       ]).then((sources) => sources.join("\n")),
       readRepoSource(
         "packages",
@@ -373,9 +362,6 @@ describe("gallery alignment", () => {
     expect(runtimeGallerySource).toContain(
       "<AccordionTrigger>Radius</AccordionTrigger>",
     )
-    expect(runtimeGallerySource).toContain(
-      "<AccordionTrigger>Treatments</AccordionTrigger>",
-    )
     expect(runtimeGallerySource).toContain("ahtml-gallery-token-row")
     expect(runtimeGallerySource).toContain(
       "<AccordionTrigger>{section.title}</AccordionTrigger>",
@@ -388,7 +374,6 @@ describe("gallery alignment", () => {
     expect(runtimeGallerySource).toContain('value="lightTokens"')
     expect(runtimeGallerySource).toContain('value="darkTokens"')
     expect(runtimeGallerySource).toContain('value="radius"')
-    expect(runtimeGallerySource).toContain('value="treatments"')
     expect(runtimeGallerySource).toContain('setPreviewMode("selection")')
     expect(runtimeGallerySource).toContain("Press Esc to release")
     expect(runtimeGallerySource).toContain("ahtml-gallery-inspector-outline")
@@ -401,7 +386,7 @@ describe("gallery alignment", () => {
     expect(runtimeGallerySource).toContain('label="Path"')
     expect(runtimeGallerySource).toContain("Destination surface")
     expect(runtimeGallerySource).toContain(
-      "Embedded campaign workbench preview",
+      "Embedded destination preview",
     )
     expect(runtimeGallerySource).toContain(
       "Inspect the live destination before you publish.",

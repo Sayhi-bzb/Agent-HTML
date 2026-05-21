@@ -202,7 +202,7 @@ export function GalleryPricingWorkbenchPanel({
               <CardContent className="ahtml-gallery-workbench-checklist">
                 <div className="ahtml-gallery-workbench-checklist-item">
                   <strong>Hierarchy</strong>
-                  <span>Featured tier should read stronger without turning into a marketing hero.</span>
+                  <span>Featured tier should read stronger without breaking surface consistency.</span>
                 </div>
                 <div className="ahtml-gallery-workbench-checklist-item">
                   <strong>Density</strong>

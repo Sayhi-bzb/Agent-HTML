@@ -1,5 +1,4 @@
 import type {
-  AgentShellMessage,
   AppState,
   BuildRunSummary,
   DiagnosticItem,
@@ -38,7 +37,6 @@ const currentSession: SessionDetail = {
   sourcePath: "D:/Users/demo/.agent-html-app/sessions/vendor-decision/source.agent.html",
   previewPath: "D:/Users/demo/.agent-html-app/sessions/vendor-decision/build/index.html",
   logDirectory: "D:/Users/demo/.agent-html-app/sessions/vendor-decision/logs",
-  chatPath: "D:/Users/demo/.agent-html-app/sessions/vendor-decision/chat.jsonl",
   currentView: "preview",
   source: `<meta-agent profile="review-dense" />\n\n<page title="Vendor Decision">\n  <alert title="Recommendation" tone="neutral">\n    Choose Vendor A for the initial rollout.\n  </alert>\n\n  <card title="Decision Notes">\n    <list variant="unordered">\n      <item>Lower migration risk.</item>\n      <item>Faster initial rollout.</item>\n      <item>Needs stricter post-launch monitoring.</item>\n    </list>\n  </card>\n</page>`,
 }
@@ -79,31 +77,6 @@ const currentInspect: InspectSnapshot = {
   lastBuild: currentBuild,
 }
 
-const chat: AgentShellMessage[] = [
-  {
-    id: "msg-1",
-    role: "system",
-    createdAt: now,
-    text: "Ready.",
-    kind: "message",
-  },
-  {
-    id: "msg-2",
-    role: "placeholder",
-    createdAt: now,
-    text: [
-      "Vendor Decision",
-      "Vendor A",
-      "Preview stale.",
-    ].join("\n"),
-    kind: "proposal-placeholder",
-    proposalSnapshot: {
-      lineCount: currentSession.source.split(/\r?\n/).length,
-      source: currentSession.source,
-    },
-  },
-]
-
 const currentLogs: LogSnapshot = {
   stdout: "",
   stderr: "",
@@ -115,7 +88,6 @@ export const mockAppState: AppState = {
   currentInspect,
   currentBuild,
   currentLogs,
-  chat,
 }
 
 export const mockPreviewHtml = getDefaultMockPreviewArtifact()

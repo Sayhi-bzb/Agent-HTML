@@ -1,11 +1,20 @@
 import { useMemo, useState } from "react"
+import { Settings2Icon } from "lucide-react"
 
 import type { SessionSummary } from "@/lib/types"
 
 import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
+import {
   ShellEmptyCard,
   ShellLoadingRow,
-  ShellPaneScaffold,
   ShellScrollSurface,
 } from "@/features/app-shell/components/shell-content"
 import { filterSessions } from "../lib/filter-sessions"
@@ -37,18 +46,18 @@ export function SessionRail({
   const filtered = useMemo(() => filterSessions(sessions, query), [query, sessions])
 
   return (
-    <ShellPaneScaffold
-      header={
+    <Sidebar className="app-shell-session-sidebar">
+      <SidebarHeader className="app-shell-session-sidebar-header">
         <SessionRailHeader
           disabled={disabled}
           onCreateSession={onCreateSession}
           onQueryChange={setQuery}
           query={query}
         />
-      }
-      content={
-        <ShellScrollSurface>
-          <div className="app-shell-divider-list">
+      </SidebarHeader>
+      <SidebarContent className="app-shell-session-sidebar-content">
+        <ShellScrollSurface className="app-shell-session-sidebar-scroll">
+          <SidebarMenu className="app-shell-divider-list">
             {filtered.map((session) => (
               <SessionCard
                 active={session.id === activeSessionId}
@@ -60,11 +69,26 @@ export function SessionRail({
                 session={session}
               />
             ))}
-          </div>
+          </SidebarMenu>
           {filtered.length === 0 ? <ShellEmptyCard className="app-shell-flat-card">Empty</ShellEmptyCard> : null}
           {loading ? <ShellLoadingRow>Load</ShellLoadingRow> : null}
         </ShellScrollSurface>
-      }
-    />
+      </SidebarContent>
+      <SidebarFooter className="app-shell-session-sidebar-footer">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              aria-label="Settings"
+              className="app-shell-session-command-item"
+              disabled
+              type="button"
+            >
+              <Settings2Icon data-icon="inline-start" />
+              <span>Settings</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   )
 }

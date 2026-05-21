@@ -5,11 +5,9 @@ export function createGalleryMailWorkbenchCss() {
       grid-template-columns: var(--ahtml-gallery-mail-shell-columns);
       gap: 0;
       overflow: hidden;
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 1.2);
-      background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 28%),
-        linear-gradient(180deg, color-mix(in srgb, var(--background) 99%, var(--muted) 1%), color-mix(in srgb, var(--background) 95%, var(--muted) 5%));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
     }
     .ahtml-gallery-mail-nav,
     .ahtml-gallery-mail-list,
@@ -22,7 +20,7 @@ export function createGalleryMailWorkbenchCss() {
     }
     .ahtml-gallery-mail-nav,
     .ahtml-gallery-mail-list {
-      border-right: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+      border-right: 1px solid var(--border);
     }
     .ahtml-gallery-mail-nav-profile,
     .ahtml-gallery-mail-nav-section {
@@ -53,13 +51,13 @@ export function createGalleryMailWorkbenchCss() {
       align-items: center;
       min-height: var(--ahtml-gallery-nav-item-min-height);
       padding: 0 var(--ahtml-gallery-nav-item-padding-inline);
-      border-radius: calc(var(--radius) * 0.85);
-      background: color-mix(in srgb, white 6%, transparent);
+      border-radius: var(--radius);
+      background: var(--background);
     }
     .ahtml-gallery-mail-nav-links span.is-active {
-      color: var(--sidebar-foreground);
+      color: var(--foreground);
       font-weight: 700;
-      background: color-mix(in srgb, var(--sidebar-primary) 22%, transparent);
+      background: var(--accent);
     }
     .ahtml-gallery-mail-list-toolbar {
       display: inline-flex;
@@ -113,22 +111,17 @@ export function createGalleryMailWorkbenchCss() {
       display: grid;
       gap: var(--ahtml-space-2xs);
       padding: var(--ahtml-surface-padding-sm);
-      border: 1px solid color-mix(in srgb, var(--border) 48%, transparent);
-      border-radius: calc(var(--radius) * 0.9);
-      background: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
       text-align: left;
       color: inherit;
       cursor: pointer;
     }
     .ahtml-gallery-mail-list-item.is-active {
-      border-color: color-mix(in srgb, var(--border) 72%, transparent);
-      background:
-        linear-gradient(
-          135deg,
-          color-mix(in srgb, var(--card) 96%, white 4%),
-          color-mix(in srgb, var(--accent) 10%, var(--card) 90%)
-        );
-      box-shadow: 0 14px 26px color-mix(in srgb, var(--foreground) 5%, transparent);
+      border-color: var(--border);
+      background: var(--accent);
+      box-shadow: none;
     }
     .ahtml-gallery-mail-list-item-copy {
       display: grid;
@@ -191,9 +184,9 @@ export function createGalleryMailWorkbenchCss() {
       display: grid;
       gap: var(--ahtml-space-2xs);
       padding: var(--ahtml-surface-padding-md);
-      border-left: 2px solid color-mix(in srgb, var(--border) 76%, transparent);
-      background: color-mix(in srgb, var(--muted) 38%, transparent);
-      border-radius: 0 calc(var(--radius) * 0.9) calc(var(--radius) * 0.9) 0;
+      border-left: 2px solid var(--border);
+      background: var(--muted);
+      border-radius: var(--radius);
     }
     .ahtml-gallery-mail-quote strong {
       font-size: var(--ahtml-gallery-text-meta-size);
@@ -210,9 +203,9 @@ export function createGalleryMailWorkbenchCss() {
       display: grid;
       gap: var(--ahtml-gallery-copy-stack-gap-compact);
       padding: var(--ahtml-surface-padding-sm);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 0.9);
-      background: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
     }
     .ahtml-gallery-mail-attachment-card span {
       color: var(--muted-foreground);
@@ -222,9 +215,9 @@ export function createGalleryMailWorkbenchCss() {
       display: grid;
       gap: var(--ahtml-gallery-layout-gap-compact);
       padding: var(--ahtml-surface-padding-sm);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 0.95);
-      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
     }
     .ahtml-gallery-mail-composer-footer {
       display: flex;

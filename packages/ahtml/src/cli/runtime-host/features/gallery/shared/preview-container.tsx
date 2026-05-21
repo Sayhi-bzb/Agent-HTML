@@ -1,5 +1,6 @@
 import type { PropsWithChildren, RefObject } from "react"
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { resolveFocusableThemeToken } from "../helpers"
 import type {
   FocusedThemeToken,
@@ -114,94 +115,100 @@ export function GalleryExamplesPreviewContainer({
                 </div>
               </div>
             ) : null}
-            <div
+            <Card
               className="ahtml-gallery-inspector-panel"
               onClick={(event) => event.stopPropagation()}
               onPointerDown={(event) => event.stopPropagation()}
             >
-              <span className="ahtml-gallery-inspector-kicker">Inspector</span>
-              <strong>{inspectorState?.component ?? "Hover a component"}</strong>
-              <span>
-                {inspectorState
-                  ? `${inspectorState.label} · ${inspectorState.treatment}`
-                  : "Move over a rendered component to inspect its role and treatment."}
-              </span>
-              <div className="ahtml-gallery-inspector-grid">
-                <GalleryPreviewMeta
-                  label="Render"
-                  value={inspectorState?.renderKind ?? "structural"}
-                />
-                <GalleryPreviewMeta
-                  label="Source"
-                  value={inspectorState?.source ?? "ahtml-standard"}
-                />
-                <GalleryPreviewMeta
-                  label="Path"
-                  value={inspectorState?.path ?? "0"}
-                />
-                <GalleryPreviewMeta
-                  label="Slot"
-                  value={inspectorState?.slot ?? "component-root"}
-                />
-                <GalleryPreviewMeta
-                  label="Tag"
-                  value={inspectorState?.tagName ?? "n/a"}
-                />
-                <GalleryPreviewMeta
-                  label="Frame"
-                  value={
-                    inspectorState
-                      ? `${Math.round(inspectorState.width)}×${Math.round(
-                          inspectorState.height,
-                        )}`
-                      : "n/a"
-                  }
-                />
-              </div>
-              <div className="ahtml-gallery-inspector-token-group">
-                <span className="ahtml-gallery-inspector-token-label">
-                  Classes
-                </span>
-                <div className="ahtml-gallery-inspector-token-list">
-                  {(inspectorState?.classTokens.length
-                    ? inspectorState.classTokens
-                    : ["No class tokens"]
-                  ).map((token) =>
-                    renderInspectorTokenChip({
-                      focusedToken,
-                      keyPrefix: "class",
-                      onSelect: onInspectorTokenSelect,
-                      previewThemeMode,
-                      token,
-                    }),
-                  )}
+              <CardHeader className="ahtml-gallery-inspector-panel-header">
+                <span className="ahtml-gallery-inspector-kicker">Inspector</span>
+                <CardTitle>
+                  {inspectorState?.component ?? "Hover a component"}
+                </CardTitle>
+                <p className="ahtml-gallery-inspector-summary">
+                  {inspectorState
+                    ? inspectorState.label
+                    : "Move over a rendered component to inspect its role and source."}
+                </p>
+              </CardHeader>
+              <CardContent className="ahtml-gallery-inspector-panel-body">
+                <div className="ahtml-gallery-inspector-grid">
+                  <GalleryPreviewMeta
+                    label="Render"
+                    value={inspectorState?.renderKind ?? "structural"}
+                  />
+                  <GalleryPreviewMeta
+                    label="Source"
+                    value={inspectorState?.source ?? "ahtml-standard"}
+                  />
+                  <GalleryPreviewMeta
+                    label="Path"
+                    value={inspectorState?.path ?? "0"}
+                  />
+                  <GalleryPreviewMeta
+                    label="Slot"
+                    value={inspectorState?.slot ?? "component-root"}
+                  />
+                  <GalleryPreviewMeta
+                    label="Tag"
+                    value={inspectorState?.tagName ?? "n/a"}
+                  />
+                  <GalleryPreviewMeta
+                    label="Frame"
+                    value={
+                      inspectorState
+                        ? `${Math.round(inspectorState.width)}×${Math.round(
+                            inspectorState.height,
+                          )}`
+                        : "n/a"
+                    }
+                  />
                 </div>
-              </div>
-              <div className="ahtml-gallery-inspector-token-group">
-                <span className="ahtml-gallery-inspector-token-label">
-                  Source tokens
-                </span>
-                <div className="ahtml-gallery-inspector-token-list">
-                  {(inspectorState?.sourceTokens.length
-                    ? inspectorState.sourceTokens
-                    : ["No source tokens"]
-                  ).map((token) =>
-                    renderInspectorTokenChip({
-                      focusedToken,
-                      keyPrefix: "source",
-                      onSelect: onInspectorTokenSelect,
-                      previewThemeMode,
-                      token,
-                    }),
-                  )}
+                <div className="ahtml-gallery-inspector-token-group">
+                  <span className="ahtml-gallery-inspector-token-label">
+                    Classes
+                  </span>
+                  <div className="ahtml-gallery-inspector-token-list">
+                    {(inspectorState?.classTokens.length
+                      ? inspectorState.classTokens
+                      : ["No class tokens"]
+                    ).map((token) =>
+                      renderInspectorTokenChip({
+                        focusedToken,
+                        keyPrefix: "class",
+                        onSelect: onInspectorTokenSelect,
+                        previewThemeMode,
+                        token,
+                      }),
+                    )}
+                  </div>
                 </div>
-              </div>
-              <span className="ahtml-gallery-inspector-hint">
-                {inspectorState?.pinned
-                  ? "Pinned. Press Esc to release. Click a token to jump to matching controls."
-                  : "Click to pin the current component. Token pills also jump into matching controls."}
-              </span>
-            </div>
+                <div className="ahtml-gallery-inspector-token-group">
+                  <span className="ahtml-gallery-inspector-token-label">
+                    Source tokens
+                  </span>
+                  <div className="ahtml-gallery-inspector-token-list">
+                    {(inspectorState?.sourceTokens.length
+                      ? inspectorState.sourceTokens
+                      : ["No source tokens"]
+                    ).map((token) =>
+                      renderInspectorTokenChip({
+                        focusedToken,
+                        keyPrefix: "source",
+                        onSelect: onInspectorTokenSelect,
+                        previewThemeMode,
+                        token,
+                      }),
+                    )}
+                  </div>
+                </div>
+                <p className="ahtml-gallery-inspector-hint">
+                  {inspectorState?.pinned
+                    ? "Pinned. Press Esc to release. Click a token to jump to matching controls."
+                    : "Click to pin the current component. Token pills also jump into matching controls."}
+                </p>
+              </CardContent>
+            </Card>
           </div>
         ) : null}
         <div className="ahtml-gallery-preview-surface-inner">{children}</div>

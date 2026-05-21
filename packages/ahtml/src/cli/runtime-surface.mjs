@@ -682,6 +682,7 @@ async function assertManagedRuntimeProof({ paths, surface }) {
         `surface ahtmlGlueProof ${relativePath} does not match runtime file hash. Actual: ${String(proof.files[relativePath])} Expected: ${String(expectedProof.files[relativePath])}.`,
       )
     }
+
   }
 }
 

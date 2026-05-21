@@ -1,5 +1,4 @@
 import type {
-  AgentShellMessage,
   LogSnapshot,
   SessionDetail,
   SourceValidationSnapshot,
@@ -11,15 +10,11 @@ export type CommandState = {
   validating: boolean
   building: boolean
   inspecting: boolean
-  sending: boolean
-  drafting: boolean
-  checking: boolean
   error?: string
 }
 
 export type HydratedSessionState = {
   session: SessionDetail
-  chat: AgentShellMessage[]
   logs: LogSnapshot
   previewHtml?: string
 }
@@ -50,7 +45,4 @@ export const initialCommandState: CommandState = {
   validating: false,
   building: false,
   inspecting: false,
-  sending: false,
-  drafting: false,
-  checking: false,
 }

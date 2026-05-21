@@ -649,9 +649,7 @@ function createDocument(components: AgentDocument["components"]): AgentDocument 
             switcherJustify: "flex-start",
           },
         },
-        componentStyle: {
-          treatments: {},
-        },
+        componentStyle: {},
         componentLayout: {
           page: {
             gap: "",

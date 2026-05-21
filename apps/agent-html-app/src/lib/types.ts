@@ -24,7 +24,6 @@ export type SessionDetail = {
   previewPath?: string
   lastBuild?: BuildRunSummary
   logDirectory: string
-  chatPath: string
   currentView: WorkbenchView
   source: string
 }
@@ -81,45 +80,6 @@ export type LogSnapshot = {
   stderr?: string
 }
 
-export type RuntimeCheckCounts = {
-  ok: number
-  warn: number
-  skip: number
-  fail: number
-}
-
-export type RuntimeCheckItem = {
-  category: string
-  name: string
-  status: "ok" | "warn" | "skip" | "fail"
-  detail: string
-}
-
-export type RuntimeReport = {
-  kind: "agent-html-doctor-report"
-  version: number
-  status: "ok" | "fail"
-  packageVersion: string
-  runtimeRoot: string
-  outputDir: string
-  counts: RuntimeCheckCounts
-  checks: RuntimeCheckItem[]
-}
-
-export type ProposalSnapshot = {
-  source: string
-  lineCount: number
-}
-
-export type AgentShellMessage = {
-  id: string
-  role: "system" | "user" | "placeholder"
-  createdAt: string
-  text: string
-  kind: "message" | "context-card" | "proposal-placeholder"
-  proposalSnapshot?: ProposalSnapshot
-}
-
 type AppErrorCode =
   | "ui-validation"
   | "session-io"
@@ -142,6 +102,4 @@ export type AppState = {
   currentInspect: InspectSnapshot
   currentBuild: BuildRunSummary
   currentLogs: LogSnapshot
-  runtimeReport?: RuntimeReport
-  chat: AgentShellMessage[]
 }

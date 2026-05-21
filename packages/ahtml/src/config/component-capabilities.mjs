@@ -212,6 +212,7 @@ export const componentCapabilityDefinitions = {
       titleProp: "title",
       titleClassName:
         "text-3xl font-semibold tracking-normal text-foreground sm:text-4xl",
+      contentLayout: "stack-prose",
       childMode: "block",
       textMode: "prose",
     },
@@ -294,6 +295,7 @@ export const componentCapabilityDefinitions = {
       title: "AlertTitle",
       content: "AlertDescription",
       titleProp: "title",
+      contentLayout: "prose",
       childMode: "block",
       textMode: "prose",
       propMappings: [
@@ -317,6 +319,7 @@ export const componentCapabilityDefinitions = {
       titleContainer: "CardHeader",
       content: "CardContent",
       titleProp: "title",
+      contentLayout: "default",
       childMode: "block",
       textMode: "prose",
     },

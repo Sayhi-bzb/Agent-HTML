@@ -5,19 +5,17 @@ export function createGalleryDashboardWorkbenchCss() {
       grid-template-columns: var(--ahtml-gallery-dashboard-sidebar-width) minmax(0, 1fr);
       gap: 0;
       overflow: hidden;
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 1.2);
-      background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 32%),
-        linear-gradient(180deg, color-mix(in srgb, var(--background) 99%, var(--muted) 1%), color-mix(in srgb, var(--background) 95%, var(--muted) 5%));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
     }
     .ahtml-gallery-dashboard-sidebar {
       display: grid;
       align-content: start;
       gap: var(--ahtml-gallery-layout-gap-compact);
       padding: var(--ahtml-gallery-layout-block-padding);
-      border-right: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      background: color-mix(in srgb, var(--muted) 42%, transparent);
+      border-right: 1px solid var(--border);
+      background: var(--muted);
     }
     .ahtml-gallery-dashboard-sidebar-top,
     .ahtml-gallery-dashboard-nav-section,
@@ -51,13 +49,13 @@ export function createGalleryDashboardWorkbenchCss() {
       align-items: center;
       min-height: var(--ahtml-gallery-nav-item-min-height);
       padding: 0 var(--ahtml-gallery-nav-item-padding-inline);
-      border-radius: calc(var(--radius) * 0.85);
-      background: color-mix(in srgb, white 6%, transparent);
+      border-radius: var(--radius);
+      background: var(--background);
     }
     .ahtml-gallery-dashboard-nav-group span.is-active {
-      color: var(--sidebar-foreground);
+      color: var(--foreground);
       font-weight: 700;
-      background: color-mix(in srgb, var(--sidebar-primary) 22%, transparent);
+      background: var(--accent);
     }
     .ahtml-gallery-dashboard-main {
       display: grid;
@@ -94,13 +92,8 @@ export function createGalleryDashboardWorkbenchCss() {
     }
     .ahtml-gallery-dashboard-metric-card {
       height: 100%;
-      border-color: color-mix(in srgb, var(--border) 70%, transparent);
-      background:
-        linear-gradient(
-          180deg,
-          color-mix(in srgb, var(--background) 99%, var(--muted) 1%),
-          color-mix(in srgb, var(--background) 96%, var(--muted) 4%)
-        );
+      border-color: var(--border);
+      background: var(--card);
     }
     .ahtml-gallery-dashboard-metric-content {
       display: grid;
@@ -120,7 +113,7 @@ export function createGalleryDashboardWorkbenchCss() {
     }
     .ahtml-gallery-chart-bars span {
       border-radius: calc(var(--radius) * 0.75) calc(var(--radius) * 0.75) 0 0;
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, white 15%, transparent);
+      box-shadow: none;
     }
     .ahtml-gallery-dashboard-lower {
       display: grid;
@@ -153,7 +146,7 @@ export function createGalleryDashboardWorkbenchCss() {
       inset: 1.25rem;
       border-radius: var(--ahtml-gallery-radius-full);
       background: var(--card);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 72%, transparent);
+      border: 1px solid var(--border);
     }
     .ahtml-gallery-dashboard-mix-list {
       display: grid;

@@ -18,9 +18,16 @@
     padding-inline: var(--shell-topbar-padding-inline);
   }
 
+  .app-shell-titlebar-main {
+    @apply flex min-w-0 items-center;
+    gap: var(--shell-gap-base);
+    flex: 1 1 auto;
+  }
+
   .app-shell-titlebar-side {
     @apply flex items-center;
     gap: var(--shell-gap-compact);
+    flex: 0 0 auto;
   }
 
   .app-shell-titlebar-side-right {
@@ -46,8 +53,9 @@
   }
 
   .app-shell-tabstrip {
-    @apply flex min-w-0 flex-1 items-center;
+    @apply flex min-w-0 items-center;
     gap: var(--shell-gap-base);
+    flex: 0 1 auto;
   }
 
   .app-shell-tabstrip-brand {
@@ -57,16 +65,18 @@
   }
 
   .app-shell-session-tabs {
-    @apply min-w-0 flex-1;
+    @apply min-w-0;
+    flex: 0 1 auto;
   }
 
   .app-shell-session-tabs-list {
-    @apply flex w-full items-stretch justify-start overflow-hidden bg-transparent p-0;
+    @apply inline-flex max-w-full items-stretch justify-start overflow-hidden bg-transparent p-0;
     gap: 0;
   }
 
   .app-shell-session-tab {
-    @apply relative min-w-0 flex-1 rounded-none border-x border-t border-transparent border-b-shell-border-default bg-transparent px-0 py-0 text-shell-text-secondary data-[state=active]:border-shell-border-default data-[state=active]:border-b-shell-app-surface data-[state=active]:bg-shell-app-surface data-[state=active]:text-shell-text-primary;
+    @apply relative min-w-0 rounded-none border-x border-t border-transparent border-b-shell-border-default bg-transparent px-0 py-0 text-shell-text-secondary data-[state=active]:border-shell-border-default data-[state=active]:border-b-shell-app-surface data-[state=active]:bg-shell-app-surface data-[state=active]:text-shell-text-primary;
+    flex: 0 1 14rem;
     max-inline-size: 14rem;
   }
 
@@ -181,8 +191,7 @@
   }
 
   .app-shell-heading-body,
-  .app-shell-panel-title,
-  .app-shell-message-heading {
+  .app-shell-panel-title {
     font-size: var(--shell-text-body-size);
     line-height: var(--shell-text-body-line-height);
     font-weight: 500;
@@ -375,7 +384,6 @@
   .app-shell-text-body,
   .app-shell-card-body,
   .app-shell-surface-item,
-  .app-shell-metric-value,
   .app-shell-diagnostic-row {
     font-size: var(--shell-text-body-size);
     line-height: var(--shell-text-body-line-height);
@@ -429,23 +437,6 @@
     min-height: 0;
   }
 
-  .app-shell-composer-field {
-    @apply min-h-0 flex-1 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0;
-    font-size: var(--shell-text-body-size);
-    line-height: var(--shell-text-body-line-height);
-    min-height: 0;
-  }
-
-  .app-shell-composer-row {
-    @apply flex items-end;
-    gap: var(--shell-gap-base);
-  }
-
-  .app-shell-composer-input-shell {
-    @apply flex min-w-0 flex-1 items-center border-b;
-    padding-block: var(--shell-space-control-block-sm);
-  }
-
   .app-shell-empty-canvas {
     @apply flex size-full items-center justify-center uppercase text-shell-text-secondary;
     font-size: var(--shell-text-compact-size);
@@ -462,28 +453,6 @@
   .app-shell-supporting-copy {
     @apply text-shell-text-secondary;
     font-size: var(--shell-text-compact-size);
-  }
-
-  .app-shell-metric-row {
-    @apply flex items-center justify-between border-b bg-transparent px-0;
-    gap: var(--shell-gap-tight);
-    padding-block: var(--shell-space-control-block-sm);
-  }
-
-  .app-shell-metric-label {
-    @apply uppercase text-shell-text-secondary;
-    font-size: var(--shell-text-compact-size);
-    letter-spacing: var(--shell-tracking-kicker);
-  }
-
-  .app-shell-metric-value {
-    @apply font-medium text-shell-text-primary;
-  }
-
-  .app-shell-metric-strip {
-    @apply grid gap-0 pt-0;
-    padding-inline: var(--shell-pane-chrome-padding-inline);
-    padding-bottom: var(--shell-pane-chrome-padding-inline);
   }
 
   .app-shell-status-row {
@@ -514,18 +483,44 @@
   }
 
   .app-shell-session-card {
-    @apply relative border-b bg-transparent transition-colors;
+    @apply relative bg-transparent transition-colors;
+  }
+
+  .app-shell-session-sidebar {
+    @apply h-full border-r border-sidebar-border bg-sidebar text-sidebar-foreground;
+  }
+
+  .app-shell-session-sidebar-header,
+  .app-shell-session-sidebar-footer {
+    @apply px-0 py-0;
+  }
+
+  .app-shell-session-sidebar-content {
+    @apply min-h-0;
+  }
+
+  .app-shell-session-sidebar-scroll {
+    padding: 0;
+  }
+
+  .app-shell-session-sidebar-scroll > div {
+    padding: 0;
+  }
+
+  .app-shell-session-sidebar-group {
+    @apply p-2;
   }
 
   .app-shell-session-card-body {
-    @apply grid;
-    gap: var(--shell-gap-compact);
-    padding-inline: var(--shell-pane-chrome-padding-inline);
-    padding-block: var(--shell-pane-inset-padding);
+    @apply min-w-0;
+  }
+
+  .app-shell-session-card-row {
+    @apply rounded-md;
   }
 
   .app-shell-session-card-title {
-    @apply min-w-0 flex-1 truncate text-shell-text-emphasis;
+    @apply min-w-0 flex-1 truncate text-sidebar-foreground;
     font-size: var(--shell-text-body-size);
     line-height: var(--shell-text-body-line-height);
     font-family: var(--font-heading);
@@ -533,38 +528,26 @@
   }
 
   .app-shell-session-rename-input {
-    @apply min-w-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none;
+    @apply min-w-0 flex-1 border-0 bg-transparent px-0 py-0 text-inherit shadow-none;
     block-size: auto;
     font-family: var(--font-heading);
   }
 
   .app-shell-session-card-active {
-    @apply bg-transparent;
-  }
-
-  .app-shell-session-card-trigger {
-    @apply absolute inset-0 z-10 rounded-none bg-transparent p-0 opacity-0 outline-none hover:bg-transparent focus-visible:opacity-100;
-  }
-
-  .app-shell-focus-ring-strong:focus-visible,
-  .app-shell-session-card-trigger:focus-visible {
-    box-shadow: 0 0 0 3px var(--shell-color-focus-ring);
+    background-color: transparent;
   }
 
   .app-shell-session-card-action {
-    @apply relative z-20 text-shell-text-secondary transition-[color,opacity] hover:text-shell-text-primary;
-    opacity: 0 !important;
+    @apply text-sidebar-foreground/70;
   }
 
-  .group\/session:hover .app-shell-session-card-action:not(:disabled),
-  .group\/session:focus-within .app-shell-session-card-action:not(:disabled),
-  .app-shell-session-card-active .app-shell-session-card-action:not(:disabled) {
-    opacity: 0.72 !important;
+  .app-shell-session-card-action-static {
+    @apply absolute top-1.5 right-1 z-20;
   }
 
   .app-shell-section-stack {
     @apply grid;
-    gap: var(--shell-gap-roomy);
+    gap: var(--shell-gap-tight);
   }
 
   .app-shell-session-group {
@@ -572,21 +555,25 @@
     gap: var(--shell-gap-base);
   }
 
-  .app-shell-message-card {
-    @apply border-x-0 border-t-0 border-b bg-transparent;
+  .app-shell-session-command-item {
+    @apply text-sidebar-foreground/70;
   }
 
-  .app-shell-message-card-agent {
-    @apply border-shell-border-default;
+  .app-shell-sidebar-search {
+    @apply relative;
   }
 
-  .app-shell-message-card-user {
-    @apply bg-transparent;
+  .app-shell-sidebar-search-icon {
+    @apply pointer-events-none absolute top-1/2 -translate-y-1/2 text-sidebar-foreground/60;
+    inset-inline-start: var(--shell-space-control-inline-md);
+    block-size: var(--shell-control-icon-size);
+    inline-size: var(--shell-control-icon-size);
   }
 
-  .app-shell-runtime-card {
-    @apply border-x-0 border-t-0 border-b bg-transparent;
-    opacity: 0.88;
+  .app-shell-sidebar-search-input {
+    @apply h-8 rounded-md border-sidebar-border bg-background shadow-none;
+    padding-inline-start: calc(var(--shell-space-control-inline-lg) + var(--space-0_5));
+    padding-inline-end: var(--shell-space-control-inline-md);
   }
 
   .app-shell-tabs-list {
@@ -609,11 +596,6 @@
 
   .app-shell-plain-icon {
     @apply text-shell-text-secondary hover:text-shell-text-primary;
-  }
-
-  .app-shell-composer-send {
-    @apply shrink-0;
-    padding-inline: var(--shell-space-control-inline-sm);
   }
 
   .app-shell-console {
@@ -640,14 +622,6 @@
     @apply h-full border-l;
   }
 
-  .app-shell-pane-footer-review {
-    padding-block: var(--shell-space-control-block-sm);
-  }
-
-  .app-shell-panel-stack {
-    @apply flex h-full min-h-0 flex-col;
-  }
-
   .app-shell-flat-card {
     @apply border-x-0 border-t-0 rounded-none bg-transparent shadow-none;
   }
@@ -657,11 +631,7 @@
   }
 
   .app-shell-divider-list {
-    @apply grid gap-0;
-  }
-
-  .app-shell-structure-list {
-    @apply divide-y divide-shell-border-default;
+    @apply grid gap-1 px-2 py-2;
   }
 
   .app-shell-diagnostic-row {
@@ -669,78 +639,14 @@
     gap: var(--shell-gap-base);
     padding-block: var(--shell-space-control-block-md);
   }
-
-  .app-shell-message-section {
-    @apply grid border-b;
-    gap: var(--shell-gap-tight);
-    padding-block: var(--shell-space-control-block-md);
-  }
-
-  .app-shell-proposal-card {
-    @apply grid border-b;
-    gap: var(--shell-gap-roomy);
-    padding-block: var(--shell-space-control-block-lg);
-  }
-
-  .app-shell-proposal-card + .app-shell-runtime-card,
-  .app-shell-message-card + .app-shell-runtime-card {
-    padding-top: var(--shell-space-control-block-lg);
-  }
-
-  .app-shell-proposal-card .app-shell-message-heading {
-    color: var(--shell-color-text-primary);
-  }
-
-  .app-shell-proposal-card .app-shell-body-list {
-    gap: var(--shell-gap-roomy);
-  }
-
-  .app-shell-text-body-roomy,
-  .app-shell-proposal-card .app-shell-body-item {
-    font-size: var(--shell-text-body-size);
-    line-height: var(--shell-text-body-roomy-line-height);
-  }
-
-  .app-shell-proposal-card .app-shell-body-item {
-    @apply text-shell-text-primary;
-  }
-
-  .app-shell-proposal-card .app-shell-kicker {
-    @apply text-shell-text-subtle;
-  }
-
-  .app-shell-proposal-card .app-shell-body-item::before {
-    content: "";
-    @apply mr-0;
-  }
-
-  .app-shell-message-kicker {
-    @apply uppercase text-shell-text-secondary;
-    font-size: var(--shell-text-compact-size);
-    letter-spacing: var(--shell-tracking-kicker);
-  }
-
-  .app-shell-message-heading {
-    @apply text-shell-text-primary;
-  }
-
-  .app-shell-icon-frame-sm,
-  .app-shell-message-marker {
+  .app-shell-icon-frame-sm {
     block-size: var(--size-6);
     inline-size: var(--size-6);
-  }
-
-  .app-shell-message-marker {
-    @apply inline-flex items-center justify-center text-shell-text-secondary;
   }
 
   .app-shell-status-count {
     @apply uppercase text-shell-text-secondary;
     font-size: var(--shell-text-compact-size);
     letter-spacing: var(--shell-tracking-kicker);
-  }
-
-  .app-shell-panel-stack > * + * {
-    margin-top: var(--shell-gap-base);
   }
 }

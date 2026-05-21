@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList } from "@/components/ui/tabs"
 
 import { DocumentArtifactShell } from "../../artifact-shell"
@@ -60,12 +62,7 @@ export type GalleryPreviewPaneProps = {
   isSaving: boolean
   artifactProfileReference: string
   openControlTab: (
-    nextTab:
-      | "lightTokens"
-      | "darkTokens"
-      | "typography"
-      | "radius"
-      | "treatments",
+    nextTab: "lightTokens" | "darkTokens" | "typography" | "radius",
   ) => void
   previewMode: GalleryPreviewMode
   previewModeLabel: string
@@ -124,221 +121,233 @@ export function GalleryPreviewPane({
         onValueChange={(value) => setPreviewMode(value as GalleryPreviewMode)}
         value={previewMode}
       >
-        <div className="ahtml-gallery-toolbar ahtml-gallery-toolbar-border ahtml-gallery-preview-topbar">
-          <div className="ahtml-gallery-toolbar-copy">
-            <span className="ahtml-gallery-toolbar-label">Gallery actions</span>
-            <span className="ahtml-gallery-toolbar-caption">
-              Profile {artifactProfileReference} · Draft{" "}
-              {isDirty ? "unsaved" : "gallery-synced"} · Theme {previewThemeMode}
-            </span>
-          </div>
-          <div className="ahtml-gallery-preview-toolbar">
-            <GalleryToolbarGroup label="Tools">
+        <Card className="ahtml-gallery-preview-topbar rounded-none border-x-0 border-t-0 shadow-none">
+          <CardContent className="ahtml-gallery-preview-topbar-content">
+            <div className="ahtml-gallery-toolbar-copy">
+              <span className="ahtml-gallery-toolbar-label">Gallery actions</span>
+              <span className="ahtml-gallery-toolbar-caption">
+                Profile {artifactProfileReference} · Draft{" "}
+                {isDirty ? "unsaved" : "gallery-synced"} · Theme{" "}
+                {previewThemeMode}
+              </span>
+            </div>
+            <div className="ahtml-gallery-preview-toolbar">
+              <GalleryToolbarGroup label="Tools">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      aria-label="More gallery tools"
+                      className="ahtml-gallery-more-previews"
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <MoreVertical aria-hidden="true" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Gallery tools</DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        openControlTab(
+                          previewThemeMode === "dark"
+                            ? "darkTokens"
+                            : "lightTokens",
+                        )
+                        setPreviewMode("colors")
+                      }}
+                    >
+                      Edit theme tokens
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        openControlTab("typography")
+                        setPreviewMode("typography")
+                      }}
+                    >
+                      Edit typography
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => openControlTab("radius")}>
+                      Edit radius
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={() => setPreviewMode("components")}
+                    >
+                      Component cards
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setPreviewMode("full")}>
+                      Full component gallery
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  onClick={() => void copyCurrentArtifactProfile()}
+                  size="sm"
+                  type="button"
+                  variant="ghost"
+                >
+                  {hasCopiedProfile ? (
+                    <Check aria-hidden="true" />
+                  ) : (
+                    <Copy aria-hidden="true" />
+                  )}
+                  {hasCopiedProfile ? "Copied" : "Copy"}
+                </Button>
+              </GalleryToolbarGroup>
+              <GalleryToolbarGroup label="View">
+                <div
+                  aria-label="Preview theme"
+                  className="ahtml-gallery-segmented-toggle"
+                  role="group"
+                >
+                  <Button
+                    aria-pressed={previewThemeMode === "light"}
+                    className="ahtml-gallery-toggle-button"
+                    onClick={() => setPreviewThemeMode("light")}
+                    size="sm"
+                    type="button"
+                    variant={
+                      previewThemeMode === "light" ? "secondary" : "ghost"
+                    }
+                  >
+                    Light
+                  </Button>
+                  <Button
+                    aria-pressed={previewThemeMode === "dark"}
+                    className="ahtml-gallery-toggle-button"
+                    onClick={() => setPreviewThemeMode("dark")}
+                    size="sm"
+                    type="button"
+                    variant={
+                      previewThemeMode === "dark" ? "secondary" : "ghost"
+                    }
+                  >
+                    Dark
+                  </Button>
+                </div>
+                <Button
+                  aria-pressed={inspectorEnabled}
+                  className="ahtml-gallery-inspector-button"
+                  onClick={() => setInspectorEnabled((current) => !current)}
+                  size="sm"
+                  type="button"
+                  variant={inspectorEnabled ? "secondary" : "ghost"}
+                >
+                  <Inspect aria-hidden="true" />
+                  {inspectorEnabled ? "Inspecting" : "Inspect"}
+                </Button>
+                <Button
+                  onClick={() => void togglePreviewFullscreen()}
+                  size="sm"
+                  type="button"
+                  variant="ghost"
+                >
+                  {isPreviewFullscreen ? (
+                    <Minimize2 aria-hidden="true" />
+                  ) : (
+                    <Maximize2 aria-hidden="true" />
+                  )}
+                  {isPreviewFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                </Button>
+              </GalleryToolbarGroup>
+              <GalleryToolbarGroup label="Persist">
+                <Button
+                  disabled={isSaving || !isDirty}
+                  onClick={resetDraft}
+                  size="sm"
+                  type="button"
+                  variant="ghost"
+                >
+                  Reset
+                </Button>
+                <Button
+                  disabled={isSaving}
+                  onClick={() => void saveProfile()}
+                  size="sm"
+                  type="button"
+                >
+                  Save Profile
+                </Button>
+              </GalleryToolbarGroup>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="ahtml-gallery-preview-modebar rounded-none border-x-0 border-t-0 shadow-none">
+          <CardContent className="ahtml-gallery-preview-modebar-content">
+            <div className="ahtml-gallery-preview-mode-tools">
+              <ScrollArea className="ahtml-gallery-pill-scroll ahtml-gallery-preview-pill-scroll">
+                <TabsList className="ahtml-gallery-pill-tabs" variant="default">
+                  <GalleryTabsTriggerPill value="custom">
+                    Custom
+                  </GalleryTabsTriggerPill>
+                  <GalleryTabsTriggerPill value="components">
+                    Cards
+                  </GalleryTabsTriggerPill>
+                  <GalleryTabsTriggerPill value="dashboard">
+                    Dashboard
+                  </GalleryTabsTriggerPill>
+                  <GalleryTabsTriggerPill value="mail">
+                    Mail
+                  </GalleryTabsTriggerPill>
+                  <GalleryTabsTriggerPill value="pricing">
+                    Pricing
+                  </GalleryTabsTriggerPill>
+                  <GalleryTabsTriggerPill value="colors">
+                    Color Palette
+                  </GalleryTabsTriggerPill>
+                </TabsList>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+              <Separator
+                className="ahtml-gallery-action-separator"
+                orientation="vertical"
+              />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    aria-label="More gallery tools"
                     className="ahtml-gallery-more-previews"
                     size="sm"
                     type="button"
                     variant="ghost"
                   >
                     <MoreVertical aria-hidden="true" />
+                    More galleries
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Gallery tools</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      openControlTab(
-                        previewThemeMode === "dark" ? "darkTokens" : "lightTokens",
-                      )
-                      setPreviewMode("colors")
-                    }}
-                  >
-                    Edit theme tokens
+                <DropdownMenuContent align="start">
+                  <DropdownMenuLabel>Gallery catalog</DropdownMenuLabel>
+                  <DropdownMenuItem onSelect={() => setPreviewMode("forms")}>
+                    Form controls
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setPreviewMode("selection")}>
+                    Selection patterns
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onSelect={() => {
-                      openControlTab("typography")
-                      setPreviewMode("typography")
-                    }}
+                    onSelect={() => setPreviewMode("disclosure")}
                   >
-                    Edit typography
+                    Disclosure patterns
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => openControlTab("radius")}>
-                    Edit radius
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => openControlTab("treatments")}
-                  >
-                    Edit treatments
+                  <DropdownMenuItem onSelect={() => setPreviewMode("typography")}>
+                    Typography gallery
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => setPreviewMode("components")}
-                  >
-                    Component cards
-                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => setPreviewMode("full")}>
                     Full component gallery
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button
-                onClick={() => void copyCurrentArtifactProfile()}
-                size="sm"
-                type="button"
-                variant="ghost"
-              >
-                {hasCopiedProfile ? (
-                  <Check aria-hidden="true" />
-                ) : (
-                  <Copy aria-hidden="true" />
-                )}
-                {hasCopiedProfile ? "Copied" : "Copy"}
-              </Button>
-            </GalleryToolbarGroup>
-            <GalleryToolbarGroup label="View">
-              <div
-                aria-label="Preview theme"
-                className="ahtml-gallery-segmented-toggle"
-                role="group"
-              >
-                <Button
-                  aria-pressed={previewThemeMode === "light"}
-                  className="ahtml-gallery-toggle-button"
-                  onClick={() => setPreviewThemeMode("light")}
-                  size="sm"
-                  type="button"
-                  variant={previewThemeMode === "light" ? "secondary" : "ghost"}
-                >
-                  Light
-                </Button>
-                <Button
-                  aria-pressed={previewThemeMode === "dark"}
-                  className="ahtml-gallery-toggle-button"
-                  onClick={() => setPreviewThemeMode("dark")}
-                  size="sm"
-                  type="button"
-                  variant={previewThemeMode === "dark" ? "secondary" : "ghost"}
-                >
-                  Dark
-                </Button>
-              </div>
-              <Button
-                aria-pressed={inspectorEnabled}
-                className="ahtml-gallery-inspector-button"
-                onClick={() => setInspectorEnabled((current) => !current)}
-                size="sm"
-                type="button"
-                variant={inspectorEnabled ? "secondary" : "ghost"}
-              >
-                <Inspect aria-hidden="true" />
-                {inspectorEnabled ? "Inspecting" : "Inspect"}
-              </Button>
-              <Button
-                onClick={() => void togglePreviewFullscreen()}
-                size="sm"
-                type="button"
-                variant="ghost"
-              >
-                {isPreviewFullscreen ? (
-                  <Minimize2 aria-hidden="true" />
-                ) : (
-                  <Maximize2 aria-hidden="true" />
-                )}
-                {isPreviewFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-              </Button>
-            </GalleryToolbarGroup>
-            <GalleryToolbarGroup label="Persist">
-              <Button
-                disabled={isSaving || !isDirty}
-                onClick={resetDraft}
-                size="sm"
-                type="button"
-                variant="ghost"
-              >
-                Reset
-              </Button>
-              <Button
-                disabled={isSaving}
-                onClick={() => void saveProfile()}
-                size="sm"
-                type="button"
-              >
-                Save Profile
-              </Button>
-            </GalleryToolbarGroup>
-          </div>
-        </div>
-        <div className="ahtml-gallery-toolbar ahtml-gallery-toolbar-border ahtml-gallery-preview-modebar">
-          <div className="ahtml-gallery-preview-mode-tools">
-            <ScrollArea className="ahtml-gallery-pill-scroll ahtml-gallery-preview-pill-scroll">
-              <TabsList className="ahtml-gallery-pill-tabs">
-                <GalleryTabsTriggerPill value="custom">
-                  Custom
-                </GalleryTabsTriggerPill>
-                <GalleryTabsTriggerPill value="components">
-                  Cards
-                </GalleryTabsTriggerPill>
-                <GalleryTabsTriggerPill value="dashboard">
-                  Dashboard
-                </GalleryTabsTriggerPill>
-                <GalleryTabsTriggerPill value="mail">
-                  Mail
-                </GalleryTabsTriggerPill>
-                <GalleryTabsTriggerPill value="pricing">
-                  Pricing
-                </GalleryTabsTriggerPill>
-                <GalleryTabsTriggerPill value="colors">
-                  Color Palette
-                </GalleryTabsTriggerPill>
-              </TabsList>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  className="ahtml-gallery-more-previews"
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <MoreVertical aria-hidden="true" />
-                  More galleries
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuLabel>Gallery catalog</DropdownMenuLabel>
-                <DropdownMenuItem onSelect={() => setPreviewMode("forms")}>
-                  Form controls
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setPreviewMode("selection")}>
-                  Selection patterns
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setPreviewMode("disclosure")}>
-                  Disclosure patterns
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setPreviewMode("typography")}>
-                  Typography gallery
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => setPreviewMode("full")}>
-                  Full component gallery
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <div className="ahtml-gallery-preview-context">
-            <span>Mode</span>
-            <strong>{previewModeLabel}</strong>
-            <span>Draft</span>
-            <strong>{isDirty ? "unsaved" : "gallery-synced"}</strong>
-            <span>Style</span>
-            <strong>{artifactProfileReference}</strong>
-          </div>
-        </div>
+            </div>
+            <div className="ahtml-gallery-preview-context">
+              <span>Mode</span>
+              <strong>{previewModeLabel}</strong>
+              <span>Draft</span>
+              <strong>{isDirty ? "unsaved" : "gallery-synced"}</strong>
+              <span>Style</span>
+              <strong>{artifactProfileReference}</strong>
+            </div>
+          </CardContent>
+        </Card>
         <section className="ahtml-gallery-preview-stage">
           <ScrollArea className="ahtml-gallery-preview-canvas">
             <TabsContent

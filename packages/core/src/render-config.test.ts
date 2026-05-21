@@ -74,9 +74,7 @@ describe("artifact profile render config", () => {
             clusterWrap: "wrap",
           }),
         },
-        componentStyle: {
-          treatments: {},
-        },
+        componentStyle: {},
         componentLayout: {
           page: expect.objectContaining({
             gap: "1.25rem",
@@ -136,9 +134,7 @@ describe("artifact profile render config", () => {
           }),
         },
         globalLayout: expect.any(Object),
-        componentStyle: {
-          treatments: {},
-        },
+        componentStyle: {},
         componentLayout: expect.any(Object),
       },
     })

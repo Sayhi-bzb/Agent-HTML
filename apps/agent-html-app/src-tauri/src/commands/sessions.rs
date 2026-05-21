@@ -3,11 +3,8 @@ use tauri::AppHandle;
 use tracing::{info, info_span};
 
 use crate::{
-    chat_store::{default_chat_messages, write_chat_messages},
     error::BackendError,
-    models::{
-        AppError, SessionDetail, SessionRecord, SessionSummary,
-    },
+    models::{AppError, SessionDetail, SessionRecord, SessionSummary},
     paths::{ensure_sessions_root, session_dir, BUILD_DIR_NAME, LOGS_DIR_NAME, SOURCE_FILE_NAME},
     session_store::{
         load_session_detail_from_dir, read_session_record, rename_session_record,
@@ -113,7 +110,6 @@ pub(crate) fn create_session(app: AppHandle, name: String) -> Result<SessionDeta
         ))
         .with_session(session_id.clone())
     })?;
-    write_chat_messages(&session_dir, &default_chat_messages())?;
 
     info!(session_id = %session_id, "created session");
     load_session_detail_from_dir(&session_dir)

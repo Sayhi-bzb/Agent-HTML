@@ -34,7 +34,7 @@ type GalleryStatePayload = {
       }
     }
     componentStyle: {
-      treatments: Record<string, string>
+      [key: string]: never
     }
   }
 }

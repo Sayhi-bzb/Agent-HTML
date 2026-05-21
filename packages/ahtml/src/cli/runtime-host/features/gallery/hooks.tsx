@@ -206,7 +206,6 @@ export function useGalleryInspector({
         source: target.dataset.ahtmlSource ?? "ahtml-standard",
         tagName: target.tagName.toLowerCase(),
         top: targetRect.top - surfaceRect.top + surface.scrollTop,
-        treatment: target.dataset.ahtmlTreatment ?? "default",
         width: targetRect.width,
         height: targetRect.height,
       }

@@ -53,7 +53,6 @@ const galleryControlsModulePaths = [
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/header.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/other-tab.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/profile-tab.tsx",
-  "packages/ahtml/src/cli/runtime-host/features/gallery/controls/treatments-tab.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/typography-tab.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/types.ts",
 ]
@@ -379,7 +378,7 @@ describe("code governance sync blocks", () => {
     expect(galleryStylesSource).toContain(
       "grid-template-columns: var(--ahtml-gallery-pricing-comparison-columns);",
     )
-    expect(galleryStylesSource).toContain(
+    expect(hostStylesSource).toContain(
       "grid-template-columns: var(--ahtml-gallery-auto-fit-footer-columns);",
     )
     expect(galleryStylesSource).toContain(
@@ -658,13 +657,11 @@ describe("code governance sync blocks", () => {
     expect(controlsSource).toContain('from "./controls/colors-tab"')
     expect(controlsSource).toContain('from "./controls/typography-tab"')
     expect(controlsSource).toContain('from "./controls/other-tab"')
-    expect(controlsSource).toContain('from "./controls/treatments-tab"')
     expect(controlsSource).not.toContain("function GalleryControlsHeader(")
     expect(controlsSource).not.toContain("function GalleryProfileTab(")
     expect(controlsSource).not.toContain("function GalleryColorsTab(")
     expect(controlsSource).not.toContain("function GalleryTypographyTab(")
     expect(controlsSource).not.toContain("function GalleryOtherTab(")
-    expect(controlsSource).not.toContain("function GalleryTreatmentsTab(")
     expect(controlsModuleSource).toContain(
       "export function GalleryControlsHeader",
     )
@@ -674,9 +671,6 @@ describe("code governance sync blocks", () => {
       "export function GalleryTypographyTab",
     )
     expect(controlsModuleSource).toContain("export function GalleryOtherTab")
-    expect(controlsModuleSource).toContain(
-      "export function GalleryTreatmentsTab",
-    )
   })
 
   it("keeps gallery shared entry as a controlled export surface while shared implementations live in shared modules", async () => {

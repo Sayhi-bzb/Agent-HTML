@@ -3,6 +3,7 @@ import type {
   PropsWithChildren,
 } from "react"
 
+import { cn } from "@/lib/utils"
 import { TabsTrigger } from "@/components/ui/tabs"
 
 export function GalleryPreviewMeta({
@@ -13,7 +14,7 @@ export function GalleryPreviewMeta({
   value: string
 }) {
   return (
-    <div className="ahtml-gallery-preview-meta">
+    <div className="ahtml-gallery-preview-meta rounded-md border bg-card px-3 py-2">
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
@@ -27,11 +28,13 @@ export function GalleryToolbarGroup({
   label?: string
 }>) {
   return (
-    <div className="ahtml-gallery-toolbar-group">
+    <div className="ahtml-gallery-toolbar-group flex flex-wrap items-center gap-2">
       {label ? (
         <span className="ahtml-gallery-toolbar-group-label">{label}</span>
       ) : null}
-      <div className="ahtml-gallery-toolbar-group-body">{children}</div>
+      <div className="ahtml-gallery-toolbar-group-body flex flex-wrap items-center gap-2">
+        {children}
+      </div>
     </div>
   )
 }
@@ -43,9 +46,7 @@ export function GalleryTabsTriggerPill({
 }: ComponentPropsWithoutRef<typeof TabsTrigger>) {
   return (
     <TabsTrigger
-      className={["ahtml-gallery-tabs-trigger-pill", className]
-        .filter(Boolean)
-        .join(" ")}
+      className={cn("ahtml-gallery-tabs-trigger-pill rounded-md", className)}
       {...props}
     >
       {children}

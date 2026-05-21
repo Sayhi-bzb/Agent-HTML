@@ -17,6 +17,22 @@ import {
 } from "./helpers/text-and-path"
 import { requireRendererSpecField } from "./helpers/structured-items"
 
+function resolveCompoundContentClassName(
+  rendererSpec: RendererSpecComponent,
+) {
+  switch (rendererSpec.contentLayout) {
+    case "stack":
+      return "ahtml-section-stack"
+    case "prose":
+      return "ahtml-prose-block"
+    case "stack-prose":
+      return mergeClassNames("ahtml-section-stack", "ahtml-prose-block")
+    case "default":
+    default:
+      return undefined
+  }
+}
+
 export function createBasicUiRenderers(context: UiRendererContext) {
   function renderPrimitiveComponent(
     node: AgentComponentNode,
@@ -52,10 +68,7 @@ export function createBasicUiRenderers(context: UiRendererContext) {
       ...applyPropMappings(node.props, getRendererPropMappings(rendererSpec)),
     }
     const title = renderCompoundTitle(node, rendererSpec, Title)
-    const contentClassName = mergeClassNames(
-      "ahtml-section-stack",
-      rendererSpec.childMode === "block" ? "ahtml-prose-block" : undefined,
-    )
+    const contentClassName = resolveCompoundContentClassName(rendererSpec)
     const content =
       rendererSpec.childMode === "inline"
         ? context.renderInlineChildren(node, path, rendererSpec.textMode)

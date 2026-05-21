@@ -1,10 +1,8 @@
-mod chat_store;
 mod commands;
 mod error;
 mod inspect_payload;
 mod models;
 mod paths;
-mod proposal;
 mod runtime_cli;
 mod session_store;
 mod support;
@@ -14,11 +12,7 @@ use tracing::{info, info_span};
 
 use crate::{
     commands::{
-        builds::{
-            check_runtime, read_logs, read_preview_html, run_build, run_inspect,
-            validate_source,
-        },
-        chat::{append_chat_message, generate_session_proposal, read_chat},
+        builds::{read_logs, read_preview_html, run_build, run_inspect, validate_source},
         sessions::{
             create_session, delete_session, list_sessions, open_session, rename_session,
             save_source, set_session_view,
@@ -54,12 +48,8 @@ pub fn run() {
             run_build,
             run_inspect,
             validate_source,
-            check_runtime,
             read_preview_html,
             read_logs,
-            read_chat,
-            append_chat_message,
-            generate_session_proposal,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

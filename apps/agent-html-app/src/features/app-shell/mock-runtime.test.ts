@@ -6,7 +6,6 @@ import {
   createInitialMockSessionSources,
   createMockBuildSummary,
   createMockPreviewHtml,
-  createMockRuntimeReport,
   createMockSessionDetail,
   createMockSessionSummary,
   createMockValidationSnapshot,
@@ -62,15 +61,6 @@ describe("mock-runtime", () => {
 
     expect(result.status).toBe("invalid")
     expect(result.diagnostics.some((item) => item.severity === "error")).toBe(true)
-  })
-
-  it("creates runtime report counts for mock mode", () => {
-    const report = createMockRuntimeReport()
-
-    expect(report.status).toBe("ok")
-    expect(report.counts.ok).toBe(4)
-    expect(report.counts.skip).toBe(1)
-    expect(report.checks.some((item) => item.name === "session-store")).toBe(true)
   })
 
   it("keeps the last successful mock build summary even when inspect marks the session error", () => {
