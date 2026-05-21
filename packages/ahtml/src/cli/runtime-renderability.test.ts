@@ -528,8 +528,8 @@ describe("createRuntimeRenderDiagnostics", () => {
 function createDocument(components: AgentDocument["components"]): AgentDocument {
   return {
     meta: {
-      documentStyleConfigReference: "report-default",
-      styleProfile: {
+      artifactProfileReference: "report-default",
+      artifactProfile: {
         id: "report-default",
         globalStyle: {
           tokenSets: {
@@ -608,8 +608,89 @@ function createDocument(components: AgentDocument["components"]): AgentDocument 
             shadowOffsetY: "",
           },
         },
+        globalLayout: {
+          frame: {
+            pageMaxWidth: "",
+            pagePaddingInline: "",
+            pagePaddingBlockStart: "",
+            pagePaddingBlockEnd: "",
+            frameMaxWidth: "",
+          },
+          measure: {
+            prose: "",
+            wide: "",
+            full: "",
+          },
+          rhythm: {
+            pageGap: "",
+            stackGap: "",
+            clusterGap: "",
+            splitGap: "",
+            gridGap: "",
+            switcherGap: "",
+          },
+          density: {
+            default: "balanced",
+            compact: 1,
+            balanced: 1,
+            relaxed: 1,
+          },
+          partition: {
+            splitMinColumnWidth: "",
+            gridMinColumnWidth: "",
+            switcherMinChildWidth: "",
+          },
+          reflow: {
+            splitAutoFlow: "auto-fit",
+            gridAutoFlow: "auto-fit",
+            clusterWrap: "wrap",
+            switcherWrap: "wrap",
+            clusterJustify: "flex-start",
+            switcherJustify: "flex-start",
+          },
+        },
         componentStyle: {
           treatments: {},
+        },
+        componentLayout: {
+          page: {
+            gap: "",
+            measure: "wide",
+          },
+          stack: {
+            gap: "",
+            density: "balanced",
+            measure: "full",
+          },
+          cluster: {
+            gap: "",
+            density: "balanced",
+            wrap: "wrap",
+            justify: "flex-start",
+          },
+          split: {
+            gap: "",
+            density: "balanced",
+            minColumnWidth: "",
+            autoFlow: "auto-fit",
+          },
+          grid: {
+            gap: "",
+            density: "balanced",
+            minColumnWidth: "",
+            autoFlow: "auto-fit",
+          },
+          switcher: {
+            gap: "",
+            density: "balanced",
+            minChildWidth: "",
+            wrap: "wrap",
+            justify: "flex-start",
+          },
+          frame: {
+            maxWidth: "",
+            measure: "wide",
+          },
         },
       },
     },

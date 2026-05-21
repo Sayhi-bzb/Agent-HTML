@@ -72,6 +72,8 @@ const currentBuild: BuildRunSummary = {
   previewPath: currentSession.previewPath,
 }
 
+// This mock preview is sample artifact content for the preview pane.
+// It intentionally does not define the app shell theme contract.
 const previewHtml = `<!doctype html>
 <html lang="en">
   <head>

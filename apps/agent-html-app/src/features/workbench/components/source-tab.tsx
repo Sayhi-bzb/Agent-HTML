@@ -36,14 +36,14 @@ export function SourceTab({
   onDraftSourceChange,
 }: SourceTabProps) {
   return (
-    <Card className="h-full">
+    <Card className="app-shell-fill-card">
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
+        <div className="app-shell-split-row">
           <div>
             <CardTitle>Source</CardTitle>
             <CardDescription>{session.sourcePath}</CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="app-shell-stack-compact">
             {hasUnsavedChanges ? <Badge variant="outline">dirty</Badge> : null}
             <Button onClick={onValidate} size="sm" type="button" variant="outline">
               Validate
@@ -59,16 +59,16 @@ export function SourceTab({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex h-full min-h-0 flex-col gap-4">
+      <CardContent className="app-shell-content-stack">
         <Textarea
-          className="min-h-0 flex-1 resize-none font-mono"
+          className="app-shell-editor-field"
           onChange={(event) => onDraftSourceChange(event.target.value)}
           value={draftSource}
         />
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="app-shell-status-row">
           {validating ? (
             <>
-              <LoaderCircleIcon className="size-3.5 animate-spin" />
+              <LoaderCircleIcon className="app-shell-spinner" />
               Validating
             </>
           ) : validation ? (

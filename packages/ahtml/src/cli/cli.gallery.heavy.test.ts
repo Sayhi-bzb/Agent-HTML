@@ -23,9 +23,22 @@ const { getRegistryUrl } = useShadcnCliHarness()
 
 type GalleryStatePayload = {
   ok: boolean
-  availableStyleReferences: string[]
-  styleReference: string
-  styleProfile: {
+  availableArtifactProfileReferences: string[]
+  artifactProfileReference: string
+  artifactProfile: {
+    id: string
+    globalStyle: {
+      typography: {
+        fontSans: string
+      }
+    }
+    componentStyle: {
+      treatments: Record<string, string>
+    }
+  }
+  availableStyleReferences?: string[]
+  styleReference?: string
+  styleProfile?: {
     id: string
     globalStyle: {
       typography: {
@@ -79,7 +92,7 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(body).toContain("Border &amp; Input")
       expect(body).toContain("Read-only baseline preset")
       expect(body).toContain("Preview synced")
-      expect(body).toContain('data-style-profile="report-default"')
+      expect(body).toContain('data-artifact-profile="report-default"')
       expect(body).toContain('class="ahtml-runtime-host ahtml-gallery-shell"')
       expect(body).toContain('data-gallery-frame="header"')
       expect(body).toContain('data-gallery-frame="controls"')
@@ -110,7 +123,7 @@ describe("agent-html CLI heavy gallery flows", () => {
     const userProfilePath = path.join(
       runtimeHome,
       "config",
-      "style-profiles",
+      "artifact-profiles",
       "user",
       "team-ops.json",
     )
@@ -136,12 +149,14 @@ describe("agent-html CLI heavy gallery flows", () => {
       const initialState = (await stateResponse.json()) as GalleryStatePayload
 
       expect(initialState.ok).toBe(true)
-      expect(initialState.styleReference).toBe("report-default")
-      expect(initialState.availableStyleReferences).toContain("report-default")
+      expect(initialState.artifactProfileReference).toBe("report-default")
+      expect(initialState.availableArtifactProfileReferences).toContain(
+        "report-default",
+      )
 
       const createResponse = await fetch(`${url}/__ahtml/gallery/create`, {
         body: JSON.stringify({
-          styleReference: "team-ops",
+          artifactProfileReference: "team-ops",
         }),
         headers: {
           "content-type": "application/json",
@@ -152,29 +167,29 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       expect(createResponse.ok).toBe(true)
       expect(createdState.ok).toBe(true)
-      expect(createdState.styleReference).toBe("team-ops")
-      expect(createdState.availableStyleReferences).toContain("team-ops")
+      expect(createdState.artifactProfileReference).toBe("team-ops")
+      expect(createdState.availableArtifactProfileReferences).toContain("team-ops")
 
       const savedProfile = {
-        ...createdState.styleProfile,
+        ...createdState.artifactProfile,
         globalStyle: {
-          ...createdState.styleProfile.globalStyle,
+          ...createdState.artifactProfile.globalStyle,
           typography: {
-            ...createdState.styleProfile.globalStyle.typography,
+            ...createdState.artifactProfile.globalStyle.typography,
             fontSans: '"IBM Plex Sans", sans-serif',
           },
         },
         componentStyle: {
-          ...createdState.styleProfile.componentStyle,
+          ...createdState.artifactProfile.componentStyle,
           treatments: {
-            ...createdState.styleProfile.componentStyle.treatments,
+            ...createdState.artifactProfile.componentStyle.treatments,
             card: "team-card",
           },
         },
       }
       const saveResponse = await fetch(`${url}/__ahtml/gallery/save`, {
         body: JSON.stringify({
-          styleProfile: savedProfile,
+          artifactProfile: savedProfile,
         }),
         headers: {
           "content-type": "application/json",
@@ -185,11 +200,11 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       expect(saveResponse.ok).toBe(true)
       expect(savedState.ok).toBe(true)
-      expect(savedState.styleReference).toBe("team-ops")
-      expect(savedState.styleProfile.globalStyle.typography.fontSans).toBe(
+      expect(savedState.artifactProfileReference).toBe("team-ops")
+      expect(savedState.artifactProfile.globalStyle.typography.fontSans).toBe(
         '"IBM Plex Sans", sans-serif',
       )
-      expect(savedState.styleProfile.componentStyle.treatments.card).toBe(
+      expect(savedState.artifactProfile.componentStyle.treatments.card).toBe(
         "team-card",
       )
 
@@ -201,7 +216,7 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       const selectResponse = await fetch(`${url}/__ahtml/gallery/select`, {
         body: JSON.stringify({
-          styleReference: "report-default",
+          artifactProfileReference: "report-default",
         }),
         headers: {
           "content-type": "application/json",
@@ -212,11 +227,11 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       expect(selectResponse.ok).toBe(true)
       expect(selectedState.ok).toBe(true)
-      expect(selectedState.styleReference).toBe("report-default")
+      expect(selectedState.artifactProfileReference).toBe("report-default")
 
       const deleteResponse = await fetch(`${url}/__ahtml/gallery/delete`, {
         body: JSON.stringify({
-          styleReference: "team-ops",
+          artifactProfileReference: "team-ops",
         }),
         headers: {
           "content-type": "application/json",
@@ -227,8 +242,10 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       expect(deleteResponse.ok).toBe(true)
       expect(deletedState.ok).toBe(true)
-      expect(deletedState.styleReference).toBe("report-default")
-      expect(deletedState.availableStyleReferences).not.toContain("team-ops")
+      expect(deletedState.artifactProfileReference).toBe("report-default")
+      expect(deletedState.availableArtifactProfileReferences).not.toContain(
+        "team-ops",
+      )
     } finally {
       preview.kill("SIGTERM")
       await waitForProcessExit(preview)
@@ -262,8 +279,8 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       const saveResponse = await fetch(`${url}/__ahtml/gallery/save`, {
         body: JSON.stringify({
-          styleProfile: {
-            ...initialState.styleProfile,
+          artifactProfile: {
+            ...initialState.artifactProfile,
             id: "report-default",
           },
         }),
@@ -285,7 +302,7 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       const deleteResponse = await fetch(`${url}/__ahtml/gallery/delete`, {
         body: JSON.stringify({
-          styleReference: "report-default",
+          artifactProfileReference: "report-default",
         }),
         headers: {
           "content-type": "application/json",
@@ -338,7 +355,7 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       expect(body).toContain("ahtml-gallery-preset-select-row")
       expect(body).toContain(">team-ops</")
-      expect(body).toContain('data-style-profile="team-ops"')
+      expect(body).toContain('data-artifact-profile="team-ops"')
       expect(body).toContain('data-ahtml-treatment="review-card"')
       expect(body).toContain(":root{--background:#fcfbf8;--foreground:#1f2933;")
       expect(body).toContain("Style gallery ready.")
@@ -349,7 +366,7 @@ describe("agent-html CLI heavy gallery flows", () => {
     }
   }, 120000)
 
-  it("uses the selected current style for preview when the document omits style-ref", async () => {
+  it("uses the selected current profile for preview when the document omits profile-ref", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
     const previewOutputDir = path.join(tempDir, "preview")
@@ -380,7 +397,7 @@ describe("agent-html CLI heavy gallery flows", () => {
       const galleryUrl = await waitForPreviewUrl(gallery)
       await fetch(`${galleryUrl}/__ahtml/gallery/select`, {
         body: JSON.stringify({
-          styleReference: "team-ops",
+          artifactProfileReference: "team-ops",
         }),
         headers: {
           "content-type": "application/json",
@@ -412,7 +429,7 @@ describe("agent-html CLI heavy gallery flows", () => {
       const response = await fetch(url)
       const body = await response.text()
 
-      expect(body).toContain('data-style-profile="team-ops"')
+      expect(body).toContain('data-artifact-profile="team-ops"')
       expect(body).toContain(":root{--background:#fcfbf8;--foreground:#1f2933;")
     } finally {
       preview.kill("SIGTERM")

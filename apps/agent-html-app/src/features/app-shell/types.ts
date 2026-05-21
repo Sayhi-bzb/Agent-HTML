@@ -8,6 +8,7 @@ import type {
 export type CommandState = {
   loading: boolean
   saving: boolean
+  validating: boolean
   building: boolean
   inspecting: boolean
   sending: boolean
@@ -37,6 +38,7 @@ export type SourceState = {
 export const initialCommandState: CommandState = {
   loading: true,
   saving: false,
+  validating: false,
   building: false,
   inspecting: false,
   sending: false,

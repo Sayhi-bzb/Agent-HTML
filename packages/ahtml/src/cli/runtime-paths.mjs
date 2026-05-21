@@ -3,8 +3,10 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 export const runtimeManifestName = "runtime.json"
-export const styleProfileManifestName = "style-profiles.manifest.json"
-export const styleProfileStateName = "style-profile-state.json"
+export const artifactProfileManifestName = "artifact-profiles.manifest.json"
+export const artifactProfileStateName = "artifact-profile-state.json"
+export const styleProfileManifestName = artifactProfileManifestName
+export const styleProfileStateName = artifactProfileStateName
 export const runtimeRenderer = "shadcn-runtime"
 export const runtimeVersion = 2
 export const runtimePackageRoot = path.resolve(
@@ -24,29 +26,29 @@ export function getRuntimePaths(env = process.env) {
     cacheDir: path.join(runtimeRoot, "cache"),
     logsDir: path.join(runtimeRoot, "logs"),
     configDir: path.join(runtimeRoot, "config"),
-    styleProfilesDir: path.join(runtimeRoot, "config", "style-profiles"),
-    builtinStyleProfilesDir: path.join(
+    artifactProfilesDir: path.join(runtimeRoot, "config", "artifact-profiles"),
+    builtinArtifactProfilesDir: path.join(
       runtimeRoot,
       "config",
-      "style-profiles",
+      "artifact-profiles",
       "builtin",
     ),
-    userStyleProfilesDir: path.join(
+    userArtifactProfilesDir: path.join(
       runtimeRoot,
       "config",
-      "style-profiles",
+      "artifact-profiles",
       "user",
     ),
     manifestPath: path.join(runtimeRoot, "config", runtimeManifestName),
-    styleProfileManifestPath: path.join(
+    artifactProfileManifestPath: path.join(
       runtimeRoot,
       "config",
-      styleProfileManifestName,
+      artifactProfileManifestName,
     ),
-    styleProfileStatePath: path.join(
+    artifactProfileStatePath: path.join(
       runtimeRoot,
       "config",
-      styleProfileStateName,
+      artifactProfileStateName,
     ),
     promptUiManifestPath: path.join(
       runtimeRoot,
@@ -82,6 +84,29 @@ export function getRuntimePaths(env = process.env) {
       runtimeRoot,
       "runtime",
       "runtime-state.generated.json",
+    ),
+    styleProfilesDir: path.join(runtimeRoot, "config", "artifact-profiles"),
+    builtinStyleProfilesDir: path.join(
+      runtimeRoot,
+      "config",
+      "artifact-profiles",
+      "builtin",
+    ),
+    userStyleProfilesDir: path.join(
+      runtimeRoot,
+      "config",
+      "artifact-profiles",
+      "user",
+    ),
+    styleProfileManifestPath: path.join(
+      runtimeRoot,
+      "config",
+      artifactProfileManifestName,
+    ),
+    styleProfileStatePath: path.join(
+      runtimeRoot,
+      "config",
+      artifactProfileStateName,
     ),
   }
 }

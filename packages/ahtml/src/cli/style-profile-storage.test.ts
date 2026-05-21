@@ -5,21 +5,21 @@ import { mkdtemp, readFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
-import { StyleProfileSchema } from "@agent-html/core"
+import { ArtifactProfileSchema } from "@agent-html/core"
 import { afterEach, describe, expect, it } from "vitest"
 
 import { importCliModule } from "./cli-test-helpers"
 
 type RuntimePaths = {
   readonly runtimeRoot: string
-  readonly styleProfilesDir: string
-  readonly builtinStyleProfilesDir: string
-  readonly userStyleProfilesDir: string
-  readonly styleProfileManifestPath: string
-  readonly styleProfileStatePath: string
+  readonly artifactProfilesDir: string
+  readonly builtinArtifactProfilesDir: string
+  readonly userArtifactProfilesDir: string
+  readonly artifactProfileManifestPath: string
+  readonly artifactProfileStatePath: string
 }
 
-type StyleProfile = ReturnType<typeof StyleProfileSchema.parse>
+type ArtifactProfile = ReturnType<typeof ArtifactProfileSchema.parse>
 
 const tempDirs: string[] = []
 
@@ -32,7 +32,7 @@ afterEach(async () => {
   )
 })
 
-describe("style profile storage", () => {
+describe("artifact profile storage", () => {
   it("saves and overwrites user profiles", async () => {
     const runtimeHome = await createRuntimeHome()
     const { getRuntimePaths } = await importRuntimePathsModule()
@@ -128,7 +128,7 @@ async function createRuntimeHome(): Promise<string> {
   return directory
 }
 
-function createProfile(id: string, primary: string): StyleProfile {
+function createProfile(id: string, primary: string): ArtifactProfile {
   return {
     id,
     globalStyle: {
@@ -276,6 +276,47 @@ function createProfile(id: string, primary: string): StyleProfile {
         shadowOffsetY: "--shadow-offset-y",
       },
     },
+    globalLayout: {
+      frame: {
+        pageMaxWidth: "72rem",
+        pagePaddingInline: "1rem",
+        pagePaddingBlockStart: "1.5rem",
+        pagePaddingBlockEnd: "3rem",
+        frameMaxWidth: "64rem",
+      },
+      measure: {
+        prose: "68ch",
+        wide: "84ch",
+        full: "100%",
+      },
+      rhythm: {
+        pageGap: "1.25rem",
+        stackGap: "1rem",
+        clusterGap: "0.75rem",
+        splitGap: "1rem",
+        gridGap: "1rem",
+        switcherGap: "1rem",
+      },
+      density: {
+        default: "balanced",
+        compact: 0.85,
+        balanced: 1,
+        relaxed: 1.2,
+      },
+      partition: {
+        splitMinColumnWidth: "18rem",
+        gridMinColumnWidth: "16rem",
+        switcherMinChildWidth: "18rem",
+      },
+      reflow: {
+        splitAutoFlow: "auto-fit",
+        gridAutoFlow: "auto-fit",
+        clusterWrap: "wrap",
+        switcherWrap: "wrap",
+        clusterJustify: "flex-start",
+        switcherJustify: "flex-start",
+      },
+    },
     componentStyle: {
       treatments: {
         alert: "ops-alert",
@@ -285,6 +326,46 @@ function createProfile(id: string, primary: string): StyleProfile {
         table: "ops-table",
         tabs: "ops-tabs",
         textarea: "ops-field",
+      },
+    },
+    componentLayout: {
+      page: {
+        gap: "1.25rem",
+        measure: "wide",
+      },
+      stack: {
+        gap: "1rem",
+        density: "balanced",
+        measure: "full",
+      },
+      cluster: {
+        gap: "0.75rem",
+        density: "balanced",
+        wrap: "wrap",
+        justify: "flex-start",
+      },
+      split: {
+        gap: "1rem",
+        density: "balanced",
+        minColumnWidth: "18rem",
+        autoFlow: "auto-fit",
+      },
+      grid: {
+        gap: "1rem",
+        density: "balanced",
+        minColumnWidth: "16rem",
+        autoFlow: "auto-fit",
+      },
+      switcher: {
+        gap: "1rem",
+        density: "balanced",
+        minChildWidth: "18rem",
+        wrap: "wrap",
+        justify: "flex-start",
+      },
+      frame: {
+        maxWidth: "64rem",
+        measure: "wide",
       },
     },
   }
@@ -307,13 +388,13 @@ async function importStyleProfileStorageModule() {
     }>
     readonly loadUserStyleProfilesById: (
       paths: RuntimePaths,
-    ) => Promise<Map<string, StyleProfile>>
+    ) => Promise<Map<string, ArtifactProfile>>
     readonly readCurrentStyleProfileReference: (
       paths: RuntimePaths,
     ) => Promise<string>
     readonly saveUserStyleProfile: (
       paths: RuntimePaths,
-      profile: StyleProfile,
+      profile: ArtifactProfile,
       options?: {
         readonly overwrite?: boolean
       },

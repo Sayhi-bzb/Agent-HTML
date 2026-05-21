@@ -25,7 +25,7 @@ export const shadcnTemplateFixtureDir = path.join(
 export const validAgentHtmlFixtures = [
   '<page title="Fixture"><card title="Summary">Valid text.</card></page>',
   [
-    '<meta-agent style-ref="ops-compact" />',
+    '<meta-agent profile-ref="ops-compact" />',
     '<page title="Dashboard"><card title="Queue">Ready.</card></page>',
   ].join("\n"),
   [
@@ -421,7 +421,7 @@ export async function writeCustomStyleProfile(runtimeHome: string) {
   const profileDir = path.join(
     runtimeHome,
     "config",
-    "style-profiles",
+    "artifact-profiles",
     "user",
   )
   const profilePath = path.join(profileDir, "team-ops.json")
@@ -440,7 +440,7 @@ export async function writeCurrentStyleProfileState(
   const statePath = path.join(
     runtimeHome,
     "config",
-    "style-profile-state.json",
+    "artifact-profile-state.json",
   )
 
   await mkdir(path.dirname(statePath), { recursive: true })
@@ -448,8 +448,9 @@ export async function writeCurrentStyleProfileState(
     statePath,
     `${JSON.stringify(
       {
-        kind: "ahtml-style-profile-state",
+        kind: "ahtml-artifact-profile-state",
         version: 1,
+        currentArtifactProfileId: currentStyleProfileId,
         currentStyleProfileId,
       },
       null,

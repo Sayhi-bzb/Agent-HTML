@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   DEFAULT_RENDER_CONFIG,
   parseRenderConfig,
-  PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES,
+  PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES,
   PUBLIC_RENDER_CONFIG_KEY,
   PUBLIC_RENDER_CONFIG_DEFAULTS,
   RENDER_CONFIG_KEYS,
@@ -12,11 +12,11 @@ import {
   resolveRenderConfig,
 } from "./render-config"
 
-describe("document-style-config render config", () => {
-  it("accepts approved document style config reference values", () => {
+describe("artifact profile render config", () => {
+  it("accepts approved artifact profile reference values", () => {
     expect(RenderConfigSchema.parse(DEFAULT_RENDER_CONFIG)).toEqual({
-      documentStyleConfigReference: "report-default",
-      styleProfile: {
+      artifactProfileReference: "report-default",
+      artifactProfile: {
         id: "report-default",
         globalStyle: {
           tokenSets: {
@@ -48,6 +48,32 @@ describe("document-style-config render config", () => {
             spacing: "--spacing",
           }),
         },
+        globalLayout: {
+          frame: expect.objectContaining({
+            pageMaxWidth: "72rem",
+            frameMaxWidth: "64rem",
+          }),
+          measure: expect.objectContaining({
+            prose: "68ch",
+            wide: "84ch",
+          }),
+          rhythm: expect.objectContaining({
+            pageGap: "1.25rem",
+            stackGap: "1rem",
+          }),
+          density: expect.objectContaining({
+            default: "balanced",
+            compact: 0.85,
+          }),
+          partition: expect.objectContaining({
+            splitMinColumnWidth: "18rem",
+            gridMinColumnWidth: "16rem",
+          }),
+          reflow: expect.objectContaining({
+            splitAutoFlow: "auto-fit",
+            clusterWrap: "wrap",
+          }),
+        },
         componentStyle: {
           treatments: {
             alert: "report-alert",
@@ -59,12 +85,38 @@ describe("document-style-config render config", () => {
             textarea: "report-field",
           },
         },
+        componentLayout: {
+          page: expect.objectContaining({
+            gap: "1.25rem",
+            measure: "wide",
+          }),
+          stack: expect.objectContaining({
+            gap: "1rem",
+            density: "balanced",
+          }),
+          frame: expect.objectContaining({
+            maxWidth: "64rem",
+            measure: "wide",
+          }),
+          split: expect.objectContaining({
+            minColumnWidth: "18rem",
+          }),
+          grid: expect.objectContaining({
+            minColumnWidth: "16rem",
+          }),
+          switcher: expect.objectContaining({
+            minChildWidth: "18rem",
+          }),
+          cluster: expect.objectContaining({
+            wrap: "wrap",
+          }),
+        },
       },
     })
 
-    expect(parseRenderConfig({ "style-ref": "ops-compact" })).toEqual({
-      documentStyleConfigReference: "ops-compact",
-      styleProfile: {
+    expect(parseRenderConfig({ "profile-ref": "ops-compact" })).toEqual({
+      artifactProfileReference: "ops-compact",
+      artifactProfile: {
         id: "ops-compact",
         globalStyle: {
           tokenSets: {
@@ -91,6 +143,7 @@ describe("document-style-config render config", () => {
             shadowColor: "--shadow-color",
           }),
         },
+        globalLayout: expect.any(Object),
         componentStyle: {
           treatments: {
             alert: "ops-alert",
@@ -102,78 +155,87 @@ describe("document-style-config render config", () => {
             textarea: "ops-field",
           },
         },
+        componentLayout: expect.any(Object),
       },
     })
   })
 
-  it("accepts resolved user style profiles through a runtime resolver", () => {
-    const baseRenderConfig = parseRenderConfig({ "style-ref": "ops-compact" })
-    const customStyleProfile: ReturnType<
+  it("accepts resolved user artifact profiles through a runtime resolver", () => {
+    const baseRenderConfig = parseRenderConfig({ "profile-ref": "ops-compact" })
+    const customArtifactProfile: ReturnType<
       typeof parseRenderConfig
-    >["styleProfile"] = {
-      ...baseRenderConfig.styleProfile,
+    >["artifactProfile"] = {
+      ...baseRenderConfig.artifactProfile,
       id: "team-ops",
       globalStyle: {
-        ...baseRenderConfig.styleProfile.globalStyle,
+        ...baseRenderConfig.artifactProfile.globalStyle,
         tokenSets: {
           light: {
-            ...baseRenderConfig.styleProfile.globalStyle.tokenSets.light,
+            ...baseRenderConfig.artifactProfile.globalStyle.tokenSets.light,
             background: "#fcfbf8",
             primary: "#0f766e",
           },
-        dark: {
-          ...baseRenderConfig.styleProfile.globalStyle.tokenSets.dark,
-          background: "oklch(0.18 0.02 190)",
-          primary: "oklch(0.74 0.11 190)",
+          dark: {
+            ...baseRenderConfig.artifactProfile.globalStyle.tokenSets.dark,
+            background: "oklch(0.18 0.02 190)",
+            primary: "oklch(0.74 0.11 190)",
+          },
         },
       },
-    },
-    componentStyle: {
-      treatments: {
-        ...baseRenderConfig.styleProfile.componentStyle.treatments,
+      componentStyle: {
+        treatments: {
+          ...baseRenderConfig.artifactProfile.componentStyle.treatments,
           card: "review-card",
+        },
+      },
+      globalLayout: {
+        ...baseRenderConfig.artifactProfile.globalLayout,
+        frame: {
+          ...baseRenderConfig.artifactProfile.globalLayout.frame,
+          pageMaxWidth: "80rem",
+        },
+      },
+      componentLayout: {
+        ...baseRenderConfig.artifactProfile.componentLayout,
+        frame: {
+          ...baseRenderConfig.artifactProfile.componentLayout.frame,
+          maxWidth: "72rem",
         },
       },
     }
 
     const resolved = parseRenderConfig(
-      { "style-ref": "team-ops" },
+      { "profile-ref": "team-ops" },
       {
-        resolveStyleProfileReference: (reference) =>
-          reference === "team-ops" ? customStyleProfile : undefined,
+        resolveArtifactProfileReference: (reference: string) =>
+          reference === "team-ops" ? customArtifactProfile : undefined,
       },
     )
 
     expect(RenderConfigSchema.parse(resolved)).toEqual({
-      documentStyleConfigReference: "team-ops",
-      styleProfile: customStyleProfile,
+      artifactProfileReference: "team-ops",
+      artifactProfile: customArtifactProfile,
     })
   })
 
-  it("rejects resolved style profiles that do not match the selected reference", () => {
-    const config = parseRenderConfig({ "style-ref": "ops-compact" })
+  it("rejects resolved artifact profiles that do not match the selected reference", () => {
+    const config = parseRenderConfig({ "profile-ref": "ops-compact" })
 
     expect(() =>
       RenderConfigSchema.parse({
         ...config,
-        styleProfile: {
-          ...config.styleProfile,
+        artifactProfile: {
+          ...config.artifactProfile,
           id: "report-default",
         },
       }),
     ).toThrow()
   })
 
-  it("falls back to the default profile for invalid or legacy render config input", () => {
+  it("falls back to the default profile for invalid render config input", () => {
     expect(
       parseRenderConfig({
         className: "text-red-500",
-      }),
-    ).toEqual(DEFAULT_RENDER_CONFIG)
-
-    expect(
-      parseRenderConfig({
-        "style-ref": "color:red",
       }),
     ).toEqual(DEFAULT_RENDER_CONFIG)
 
@@ -193,49 +255,65 @@ describe("document-style-config render config", () => {
     ).toEqual(DEFAULT_RENDER_CONFIG)
   })
 
-  it("falls back to the default profile for unresolved but well-formed style references", () => {
-    expect(parseRenderConfig({ "style-ref": "team-missing" })).toEqual(
+  it("treats legacy style-ref as invalid and reports it explicitly", () => {
+    expect(
+      parseRenderConfig({
+        "style-ref": "ops-compact",
+      }),
+    ).toEqual(DEFAULT_RENDER_CONFIG)
+
+    expect(resolveRenderConfig({ "style-ref": "ops-compact" })).toMatchObject({
+      reason: "legacy-style-ref",
+      requestedLegacyStyleRef: "ops-compact",
+      config: DEFAULT_RENDER_CONFIG,
+    })
+  })
+
+  it("falls back to the default profile for unresolved but well-formed references", () => {
+    expect(parseRenderConfig({ "profile-ref": "team-missing" })).toEqual(
       DEFAULT_RENDER_CONFIG,
     )
   })
 
-  it("reports explicit resolution reasons for style-ref parsing outcomes", () => {
-    expect(resolveRenderConfig({ "style-ref": "ops-compact" })).toMatchObject({
-      reason: "explicit-style-ref",
-      requestedStyleRef: "ops-compact",
+  it("reports explicit resolution reasons for profile-ref parsing outcomes", () => {
+    expect(resolveRenderConfig({ "profile-ref": "ops-compact" })).toMatchObject({
+      reason: "explicit-profile-ref",
+      requestedProfileRef: "ops-compact",
       config: {
-        documentStyleConfigReference: "ops-compact",
+        artifactProfileReference: "ops-compact",
       },
     })
 
     expect(resolveRenderConfig({ profile: "ops-compact" })).toMatchObject({
-      reason: "invalid-style-ref-shape",
+      reason: "invalid-profile-ref-shape",
       config: DEFAULT_RENDER_CONFIG,
     })
 
     expect(resolveRenderConfig(undefined)).toMatchObject({
-      reason: "missing-style-ref",
+      reason: "missing-profile-ref",
       config: DEFAULT_RENDER_CONFIG,
     })
 
-    expect(resolveRenderConfig({ "style-ref": "team-missing" })).toMatchObject({
-      reason: "unknown-style-ref",
-      requestedStyleRef: "team-missing",
+    expect(
+      resolveRenderConfig({ "profile-ref": "team-missing" }),
+    ).toMatchObject({
+      reason: "unknown-profile-ref",
+      requestedProfileRef: "team-missing",
       config: DEFAULT_RENDER_CONFIG,
     })
   })
 
   it("exposes only the public render config keys", () => {
     expect(PUBLIC_RENDER_CONFIG_DEFAULTS).toEqual({
-      "style-ref": "report-default",
+      "profile-ref": "report-default",
     })
-    expect(PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES).toEqual([
+    expect(PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES).toEqual([
       "report-default",
       "ops-compact",
       "review-dense",
     ])
-    expect(PUBLIC_RENDER_CONFIG_KEY).toBe("style-ref")
-    expect(RENDER_CONFIG_KEYS).toEqual(["style-ref"])
+    expect(PUBLIC_RENDER_CONFIG_KEY).toBe("profile-ref")
+    expect(RENDER_CONFIG_KEYS).toEqual(["profile-ref"])
     expect(Object.keys(RENDER_CONFIG_VALUES)).toEqual(RENDER_CONFIG_KEYS)
   })
 })

@@ -27,12 +27,12 @@ describe("public agent contract", () => {
     )
 
     expect(contract.forbidden).toBe(contract.safetyPolicy.forbidden)
-    expect(contract.renderConfig.keys).toEqual(["style-ref"])
+    expect(contract.renderConfig.keys).toEqual(["profile-ref"])
     expect(contract.renderConfig.defaults).toEqual({
-      "style-ref": "report-default",
+      "profile-ref": "report-default",
     })
-    expect(contract.renderConfig.model).toBe("document-style-config-reference")
-    expect(contract.renderConfig.keys).toEqual(["style-ref"])
+    expect(contract.renderConfig.model).toBe("artifact-profile-reference")
+    expect(contract.renderConfig.keys).toEqual(["profile-ref"])
     expect(alert?.props.map((prop) => prop.name)).toEqual(["title", "variant"])
     expect(badge?.props.map((prop) => prop.name)).toEqual(["variant"])
     expect(stack?.props).toEqual([])
@@ -59,13 +59,13 @@ describe("public agent contract", () => {
   it("creates a render config contract from the published config values", () => {
     expect(createPublicRenderConfigContract()).toEqual({
       defaults: {
-        "style-ref": "report-default",
+        "profile-ref": "report-default",
       },
-      keys: ["style-ref"],
+      keys: ["profile-ref"],
       values: {
-        "style-ref": ["report-default", "ops-compact", "review-dense"],
+        "profile-ref": ["report-default", "ops-compact", "review-dense"],
       },
-      model: "document-style-config-reference",
+      model: "artifact-profile-reference",
     })
   })
 })

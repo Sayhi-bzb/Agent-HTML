@@ -15,7 +15,7 @@ export function MessageCard({ message }: MessageCardProps) {
   return (
     <Card size="sm">
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
+        <div className="app-shell-split-row">
           <CardTitle className="text-sm">{message.kind}</CardTitle>
           <Badge variant="outline">{message.role}</Badge>
         </div>

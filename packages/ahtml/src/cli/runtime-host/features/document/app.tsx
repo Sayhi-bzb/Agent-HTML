@@ -47,6 +47,7 @@ export function DocumentApp({
       <RuntimeStyleElements documentStyleCss={documentStyleCss} />
       <main
         className="ahtml-runtime-host ahtml-runtime-document"
+        data-artifact-profile={document.meta.artifactProfile.id}
         data-style-profile={document.meta.artifactProfile.id}
       >
         <DocumentArtifactShell

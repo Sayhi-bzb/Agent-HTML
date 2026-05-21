@@ -14,11 +14,6 @@ export function formatTimestampLabel(value?: string) {
   }).format(date)
 }
 
-export function getTimestampMillis(value?: string) {
-  const date = value ? parseTimestamp(value) : undefined
-  return date ? date.getTime() : undefined
-}
-
 function parseTimestamp(value: string) {
   const epochMatch = /^epoch-(\d+)$/.exec(value)
   if (epochMatch) {

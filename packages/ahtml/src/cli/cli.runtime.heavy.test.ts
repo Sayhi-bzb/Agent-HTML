@@ -40,7 +40,7 @@ describe("agent-html CLI heavy runtime flows", () => {
       `ok runtime:shadcn-components ${requiredShadcnRuntimeComponents.join(", ")}`,
     )
     expect(doctor.stdout).toContain("ok runtime:shadcn-template-vite-config")
-    expect(doctor.stdout).toContain("ok runtime:style-profile-manifest")
+    expect(doctor.stdout).toContain("ok runtime:artifact-profile-manifest")
     expect(doctor.stdout).toContain("ok runtime:prompt-ui-manifest")
     expect(doctor.stdout).toContain("ok runtime:verification-data")
     await expectFile(
@@ -57,25 +57,25 @@ describe("agent-html CLI heavy runtime flows", () => {
     )
     await expectFile(
       path.join(runtimeHome, "config", "runtime.json"),
-      '"styleProfileManifest"',
+      '"artifactProfileManifest"',
     )
     await expectFile(
       path.join(runtimeHome, "config", "runtime.json"),
-      '"builtinStyleProfiles"',
+      '"builtinArtifactProfiles"',
     )
     await expectFile(
       path.join(runtimeHome, "config", "prompt-ui.manifest.json"),
       "ahtml-prompt-ui-manifest",
     )
     await expectFile(
-      path.join(runtimeHome, "config", "style-profiles.manifest.json"),
-      "ahtml-style-profile-manifest",
+      path.join(runtimeHome, "config", "artifact-profiles.manifest.json"),
+      "ahtml-artifact-profile-manifest",
     )
     await expectFile(
       path.join(
         runtimeHome,
         "config",
-        "style-profiles",
+        "artifact-profiles",
         "builtin",
         "ops-compact.json",
       ),
@@ -223,7 +223,7 @@ describe("agent-html CLI heavy runtime flows", () => {
     expect(stdout).toContain("ok runtime:shadcn-provenance")
     expect(stdout).toContain("ok runtime:shadcn-components")
     expect(stdout).toContain("ok runtime:shadcn-template-vite-config")
-    expect(stdout).toContain("ok runtime:style-profile-manifest")
+    expect(stdout).toContain("ok runtime:artifact-profile-manifest")
     expect(stdout).toContain("ok runtime:prompt-ui-manifest")
     expect(stdout).toContain("ok runtime:verification-data")
     expect(stdout).toContain("ok runtime:verification-data-parity")
@@ -270,7 +270,7 @@ describe("agent-html CLI heavy runtime flows", () => {
       report.checks.some(
         (check) =>
           check.category === "runtime" &&
-          check.name === "style-profile-manifest",
+          check.name === "artifact-profile-manifest",
       ),
     ).toBe(true)
     expect(

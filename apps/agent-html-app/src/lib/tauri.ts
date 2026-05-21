@@ -15,14 +15,6 @@ export type SessionCreateInput = {
   name: string
 }
 
-export type SessionRenameInput = {
-  name: string
-}
-
-export type SessionPinInput = {
-  pinned: boolean
-}
-
 export type SessionViewInput = {
   view: SessionDetail["currentView"]
 }
@@ -43,14 +35,6 @@ export async function createSession(input: SessionCreateInput): Promise<SessionD
 
 export async function openSession(sessionId: string): Promise<SessionDetail> {
   return invoke("open_session", { sessionId })
-}
-
-export async function renameSession(sessionId: string, input: SessionRenameInput): Promise<SessionDetail> {
-  return invoke("rename_session", { sessionId, input })
-}
-
-export async function setSessionPinned(sessionId: string, input: SessionPinInput): Promise<SessionDetail> {
-  return invoke("set_session_pinned", { sessionId, input })
 }
 
 export async function deleteSession(sessionId: string): Promise<void> {

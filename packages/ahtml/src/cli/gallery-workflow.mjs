@@ -17,19 +17,20 @@ import { createInspection } from "./artifact-workflow.mjs"
 import { createGalleryPreviewDocument } from "./runtime-host/features/gallery/preview-document.mjs"
 
 export class StyleGalleryProfileNotFoundError extends Error {
-  constructor(styleReference, availableReferences) {
+  constructor(artifactProfileReference, availableReferences) {
     super(
       [
-        `Unknown style profile "${styleReference}".`,
+        `Unknown artifact profile "${artifactProfileReference}".`,
         availableReferences.length > 0
-          ? `Available style-ref values: ${availableReferences.join(", ")}.`
+          ? `Available profile-ref values: ${availableReferences.join(", ")}.`
           : "",
       ]
         .filter(Boolean)
         .join(" "),
     )
     this.name = "StyleGalleryProfileNotFoundError"
-    this.styleReference = styleReference
+    this.artifactProfileReference = artifactProfileReference
+    this.styleReference = artifactProfileReference
     this.availableReferences = availableReferences
   }
 }
@@ -44,17 +45,18 @@ export function createGalleryWorkflow({
 }) {
   async function buildGalleryArtifact(outputPath, options = {}) {
     const outputDir = path.resolve(userRoot, outputPath ?? defaultOutputDir)
-    const styleReference =
+    const artifactProfileReference =
+      options.artifactProfileReference ??
       options.styleReference ??
       (await readCurrentStyleProfileReference(runtimePaths))
-    const styleProfile = await resolveStyleProfileByReference(
+    const artifactProfile = await resolveStyleProfileByReference(
       runtimePaths,
-      styleReference,
+      artifactProfileReference,
     )
 
-    if (!styleProfile) {
+    if (!artifactProfile) {
       throw new StyleGalleryProfileNotFoundError(
-        styleReference,
+        artifactProfileReference,
         await listStyleProfileReferences(runtimePaths),
       )
     }
@@ -63,11 +65,12 @@ export function createGalleryWorkflow({
     const packageVersion = await readPackageVersion()
     await ensureManagedRuntime(packageVersion, schema)
 
-    const document = createStyleGalleryDocument(styleProfile)
+    const document = createStyleGalleryDocument(artifactProfile)
     const runtimeState = createGalleryRuntimeState({
-      styleProfile,
-      styleReference,
-      availableStyleReferences: await listStyleProfileReferences(runtimePaths),
+      artifactProfile,
+      artifactProfileReference,
+      availableArtifactProfileReferences:
+        await listStyleProfileReferences(runtimePaths),
     })
     const runtimeDiagnostics = await getRuntimeRenderDiagnostics({
       document,
@@ -85,7 +88,7 @@ export function createGalleryWorkflow({
         ok: false,
         outputDir,
         stage: "runtime-renderability",
-        styleReference,
+        artifactProfileReference,
       })
     }
 
@@ -109,7 +112,7 @@ export function createGalleryWorkflow({
       ok: true,
       outputDir,
       runtimeState,
-      styleReference,
+      artifactProfileReference,
     })
   }
 
@@ -123,18 +126,20 @@ export function createStyleGalleryDocument(styleProfile) {
 }
 
 export function createGalleryRuntimeState({
-  availableStyleReferences,
-  styleProfile,
-  styleReference,
+  availableArtifactProfileReferences,
+  artifactProfile,
+  artifactProfileReference,
 }) {
   return {
     kind: "ahtml-runtime-state",
     version: 1,
     mode: "gallery",
     gallery: {
-      availableStyleReferences,
-      styleReference,
-      artifactProfile: styleProfile,
+      availableArtifactProfileReferences,
+      artifactProfileReference,
+      artifactProfile,
+      availableStyleReferences: availableArtifactProfileReferences,
+      styleReference: artifactProfileReference,
     },
   }
 }
@@ -146,14 +151,15 @@ function createGalleryResult({
   ok,
   outputDir,
   stage,
-  styleReference,
+  artifactProfileReference,
 }) {
   return {
     kind: "agent-html-gallery-result",
     version: 1,
     ok,
     outputDir,
-    styleReference,
+    artifactProfileReference,
+    styleReference: artifactProfileReference,
     ...(inspection ? { inspection, inspectionPath } : {}),
     ...(diagnostics.length > 0 ? { diagnostics, stage } : {}),
   }

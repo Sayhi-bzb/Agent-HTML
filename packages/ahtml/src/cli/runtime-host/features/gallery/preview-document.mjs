@@ -1,35 +1,40 @@
-import { createRenderConfigFromArtifactProfile } from "@agent-html/core"
-
-export function createGalleryPreviewDocument(styleProfile) {
+export function createGalleryPreviewDocument(artifactProfile) {
   return {
-    meta: createRenderConfigFromArtifactProfile(styleProfile),
+    meta: createRenderConfigFromArtifactProfile(artifactProfile),
     components: [
       componentNode(
         "page",
-        { title: `${styleProfile.id} component gallery` },
-        createGallerySectionNodes(styleProfile),
+        { title: `${artifactProfile.id} component gallery` },
+        createGallerySectionNodes(artifactProfile),
       ),
     ],
   }
 }
 
-export function createGalleryPreviewSections(styleProfile) {
-  return createGallerySectionNodes(styleProfile).map((node) => ({
+export function createGalleryPreviewSections(artifactProfile) {
+  return createGallerySectionNodes(artifactProfile).map((node) => ({
     mode: resolveGallerySectionMode(node.props.title),
     node,
   }))
 }
 
-function createGallerySectionNodes(styleProfile) {
+function createGallerySectionNodes(artifactProfile) {
   return [
-    createCardsPreview(styleProfile),
-    createDashboardPreview(styleProfile),
-    createMailPreview(styleProfile),
-    createPricingPreview(styleProfile),
-    createFormsPreview(styleProfile),
-    createSelectionPreview(styleProfile),
-    createDisclosurePreview(styleProfile),
+    createCardsPreview(artifactProfile),
+    createDashboardPreview(artifactProfile),
+    createMailPreview(artifactProfile),
+    createPricingPreview(artifactProfile),
+    createFormsPreview(artifactProfile),
+    createSelectionPreview(artifactProfile),
+    createDisclosurePreview(artifactProfile),
   ]
+}
+
+function createRenderConfigFromArtifactProfile(artifactProfile) {
+  return {
+    artifactProfileReference: artifactProfile?.id,
+    artifactProfile,
+  }
 }
 
 function createCardsPreview(styleProfile) {

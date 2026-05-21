@@ -302,6 +302,42 @@ App
 
 ---
 
+## 当前治理状态
+
+当前实现已经补上了一层明确的 app shell contract，用来收敛之前散落在页面层的布局值。
+
+当前前端壳层已具备：
+
+- 集中的 panel 比例与最小宽度约束
+- 集中的 top bar / pane header / pane footer / pane content spacing token
+- 集中的 shell 语义类，例如：
+  - `app-shell-pane-header`
+  - `app-shell-pane-content`
+  - `app-shell-pane-footer`
+  - `app-shell-split-row`
+  - `app-shell-surface-grid`
+  - `app-shell-status-row`
+  - `app-shell-loading-row`
+  - `app-shell-search-field`
+  - `app-shell-session-card-trigger`
+
+这意味着：
+
+- `AppShell` 的常用布局参数不再主要依赖 feature 文件里的局部原子值
+- 页面壳层新增代码默认应消费 shell contract，而不是重新写一套 `p-*` / `gap-*` / `h-*`
+- 一部分高频内容模式也已开始从 feature 内联写法收敛成可复用语义类
+- `mock preview` 仍然允许保留独立视觉体系，但它被视为 preview artifact 示例，不再作为 app shell theme 的依据
+
+另外，当前治理不只是视觉层面：
+
+- `SessionRail` 已经去掉了 button 套 button 的交互结构；
+- `SourceTab` 的 validating 状态链已经接通，不再是假 UI。
+- mock 浏览器模式下的 session 切换、proposal、send message、build / inspect / doctor 等动作也已接入本地状态流，不再只是静态展示。
+
+仍需继续治理的部分，以 [`audit.md`](./audit.md) 的当前状态为准。
+
+---
+
 ## 8. 交互逻辑
 
 这个页面核心交互在当前项目里可以归纳为：

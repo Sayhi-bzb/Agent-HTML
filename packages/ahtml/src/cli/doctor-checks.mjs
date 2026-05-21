@@ -101,7 +101,7 @@ export async function runDoctorCommand({
     }),
   )
   checks.push(
-    await runDoctorCheck("runtime", "style-profile-manifest", async () => {
+    await runDoctorCheck("runtime", "artifact-profile-manifest", async () => {
       return assertStyleProfileStorage(runtimePaths)
     }),
   )

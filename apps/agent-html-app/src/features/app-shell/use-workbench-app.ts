@@ -17,6 +17,7 @@ import {
   validateSource,
 } from "@/lib/tauri"
 import type {
+  AgentShellMessage,
   AppState,
   RuntimeReport,
   SourceValidationSnapshot,
@@ -24,6 +25,21 @@ import type {
 } from "@/lib/types"
 
 import { formatError } from "./errors"
+import {
+  createInitialMockSessionChats,
+  createInitialMockSessionSources,
+  createMockBaseChat,
+  createMockBuildSummary,
+  createMockInspectSnapshot,
+  createMockLogs,
+  createMockPreviewHtml,
+  createMockProposalMessage,
+  createMockRuntimeReport,
+  createMockSessionDetail,
+  createMockSessionSummary,
+  createMockUserMessage,
+  createMockValidationSnapshot,
+} from "./mock-runtime"
 import {
   deriveBuildSummary,
   deriveInspectSnapshot,
@@ -47,6 +63,13 @@ function filterMessages(messages: AppState["chat"]) {
 
 export function useWorkbenchApp() {
   const [appState, setAppState] = useState<AppState>(mockAppState)
+  const [mockSessionSources, setMockSessionSources] = useState(() =>
+    createInitialMockSessionSources(mockAppState.sessions),
+  )
+  const [mockSessionChats, setMockSessionChats] = useState(() => {
+    const sources = createInitialMockSessionSources(mockAppState.sessions)
+    return createInitialMockSessionChats(mockAppState.sessions, sources)
+  })
   const [previewHtml, setPreviewHtml] = useState<string | undefined>(
     isTauriRuntime() ? undefined : mockPreviewHtml,
   )
@@ -77,6 +100,12 @@ export function useWorkbenchApp() {
     setValidation(undefined)
     setRuntimeReport(undefined)
   }, [currentSession.summary.id, currentSession.source])
+
+  async function yieldToNextTask(): Promise<void> {
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0)
+    })
+  }
 
   async function bootstrap(): Promise<void> {
     if (!isTauriRuntime()) {
@@ -143,19 +172,65 @@ export function useWorkbenchApp() {
     }))
   }
 
+  function applyMockSessionState(
+    summary: AppState["sessions"][number],
+    source: string,
+    chat: AgentShellMessage[],
+    sessions: AppState["sessions"],
+    view: WorkbenchView,
+  ): void {
+    const session = createMockSessionDetail(summary, source, view)
+    const build = createMockBuildSummary(summary, session)
+    const inspect = createMockInspectSnapshot(summary, session, source)
+    const logs = createMockLogs(summary, source)
+
+    startTransition(() => {
+      setAppState({
+        sessions,
+        currentSession: session,
+        currentBuild: build,
+        currentInspect: inspect,
+        currentLogs: logs,
+        chat,
+      })
+      setPreviewHtml(createMockPreviewHtml(summary, source))
+      setActiveView(view)
+      setDraftSource(source)
+      setValidation(undefined)
+    })
+  }
+
   async function openSessionById(sessionId: string): Promise<void> {
     if (!isTauriRuntime()) {
-      const nextSession = appState.sessions.find((session) => session.id === sessionId)
-      if (!nextSession) {
+      const nextSummary = appState.sessions.find((session) => session.id === sessionId)
+      if (!nextSummary) {
         return
       }
 
-      startTransition(() => {
-        setAppState((current) => ({
-          ...current,
-          currentSession: current.currentSession,
-        }))
-      })
+      setCommandState((current) => ({
+        ...current,
+        loading: true,
+        error: undefined,
+      }))
+
+      try {
+        await yieldToNextTask()
+        const nextSource =
+          mockSessionSources[sessionId] ??
+          createInitialMockSessionSources([nextSummary])[sessionId]
+        const nextChat =
+          mockSessionChats[sessionId] ?? createMockBaseChat(nextSummary, nextSource)
+
+        applyMockSessionState(
+          nextSummary,
+          nextSource,
+          nextChat,
+          appState.sessions,
+          activeView,
+        )
+      } finally {
+        setCommandState((current) => ({ ...current, loading: false }))
+      }
       return
     }
 
@@ -179,6 +254,41 @@ export function useWorkbenchApp() {
 
   async function createNewSession(): Promise<void> {
     if (!isTauriRuntime()) {
+      setCommandState((current) => ({
+        ...current,
+        loading: true,
+        error: undefined,
+      }))
+
+      try {
+        await yieldToNextTask()
+        const nextSummary = createMockSessionSummary(
+          `Session ${appState.sessions.length + 1}`,
+          appState.sessions.length + 1,
+        )
+        const nextSource =
+          createInitialMockSessionSources([nextSummary])[nextSummary.id]
+        const nextChat = createMockBaseChat(nextSummary, nextSource)
+        const nextSessions = [nextSummary, ...appState.sessions]
+
+        setMockSessionSources((current) => ({
+          ...current,
+          [nextSummary.id]: nextSource,
+        }))
+        setMockSessionChats((current) => ({
+          ...current,
+          [nextSummary.id]: nextChat,
+        }))
+        applyMockSessionState(
+          nextSummary,
+          nextSource,
+          nextChat,
+          nextSessions,
+          "source",
+        )
+      } finally {
+        setCommandState((current) => ({ ...current, loading: false }))
+      }
       return
     }
 
@@ -206,6 +316,66 @@ export function useWorkbenchApp() {
 
   async function deleteCurrentOrTargetSession(sessionId: string): Promise<void> {
     if (!isTauriRuntime()) {
+      setCommandState((current) => ({
+        ...current,
+        loading: true,
+        error: undefined,
+      }))
+
+      try {
+        await yieldToNextTask()
+        const remainingSessions = appState.sessions.filter((session) => session.id !== sessionId)
+
+        if (remainingSessions.length === 0) {
+          const nextSummary = createMockSessionSummary("First Session", 1)
+          const nextSource =
+            createInitialMockSessionSources([nextSummary])[nextSummary.id]
+          const nextChat = createMockBaseChat(nextSummary, nextSource)
+
+          setMockSessionSources({ [nextSummary.id]: nextSource })
+          setMockSessionChats({ [nextSummary.id]: nextChat })
+          applyMockSessionState(
+            nextSummary,
+            nextSource,
+            nextChat,
+            [nextSummary],
+            "source",
+          )
+          return
+        }
+
+        const fallbackSummary =
+          sessionId === currentSession.summary.id
+            ? remainingSessions[0]
+            : remainingSessions.find((session) => session.id === currentSession.summary.id) ??
+              remainingSessions[0]
+        const nextSource =
+          mockSessionSources[fallbackSummary.id] ??
+          createInitialMockSessionSources([fallbackSummary])[fallbackSummary.id]
+        const nextChat =
+          mockSessionChats[fallbackSummary.id] ??
+          createMockBaseChat(fallbackSummary, nextSource)
+
+        setMockSessionSources((current) => {
+          const next = { ...current }
+          delete next[sessionId]
+          return next
+        })
+        setMockSessionChats((current) => {
+          const next = { ...current }
+          delete next[sessionId]
+          return next
+        })
+        applyMockSessionState(
+          fallbackSummary,
+          nextSource,
+          nextChat,
+          remainingSessions,
+          activeView,
+        )
+      } finally {
+        setCommandState((current) => ({ ...current, loading: false }))
+      }
       return
     }
 
@@ -245,6 +415,15 @@ export function useWorkbenchApp() {
     setActiveView(view)
 
     if (!isTauriRuntime()) {
+      startTransition(() => {
+        setAppState((current) => ({
+          ...current,
+          currentSession: {
+            ...current.currentSession,
+            currentView: view,
+          },
+        }))
+      })
       return
     }
 
@@ -267,14 +446,32 @@ export function useWorkbenchApp() {
     }
 
     if (!isTauriRuntime()) {
+      const updatedAt = new Date().toISOString()
+      const nextSummary = {
+        ...currentSession.summary,
+        updatedAt,
+        status: "dirty" as const,
+      }
+      const nextSessions = appState.sessions.map((item) =>
+        item.id === nextSummary.id ? nextSummary : item,
+      )
+      const nextChat =
+        mockSessionChats[nextSummary.id] ??
+        createMockBaseChat(nextSummary, draftSource)
+      const nextSources = {
+        ...mockSessionSources,
+        [nextSummary.id]: draftSource,
+      }
+
+      setMockSessionSources(nextSources)
       startTransition(() => {
-        setAppState((current) => ({
-          ...current,
-          currentSession: {
-            ...current.currentSession,
-            source: draftSource,
-          },
-        }))
+        applyMockSessionState(
+          nextSummary,
+          draftSource,
+          nextChat,
+          nextSessions,
+          activeView,
+        )
       })
       return
     }
@@ -302,6 +499,44 @@ export function useWorkbenchApp() {
 
   async function buildCurrentSession(): Promise<void> {
     if (!isTauriRuntime()) {
+      setCommandState((current) => ({
+        ...current,
+        building: true,
+        error: undefined,
+      }))
+
+      try {
+        await yieldToNextTask()
+        const now = new Date().toISOString()
+        const nextSource = hasUnsavedChanges ? draftSource : currentSession.source
+        const nextSummary = {
+          ...currentSession.summary,
+          updatedAt: now,
+          lastBuildAt: now,
+          status: "ready" as const,
+          hasPreview: true,
+        }
+        const nextSessions = appState.sessions.map((item) =>
+          item.id === nextSummary.id ? nextSummary : item,
+        )
+        const nextChat =
+          mockSessionChats[nextSummary.id] ??
+          createMockBaseChat(nextSummary, nextSource)
+
+        setMockSessionSources((current) => ({
+          ...current,
+          [nextSummary.id]: nextSource,
+        }))
+        applyMockSessionState(
+          nextSummary,
+          nextSource,
+          nextChat,
+          nextSessions,
+          activeView,
+        )
+      } finally {
+        setCommandState((current) => ({ ...current, building: false }))
+      }
       return
     }
 
@@ -346,6 +581,38 @@ export function useWorkbenchApp() {
 
   async function inspectCurrentSession(): Promise<void> {
     if (!isTauriRuntime()) {
+      setCommandState((current) => ({
+        ...current,
+        inspecting: true,
+        error: undefined,
+      }))
+
+      try {
+        await yieldToNextTask()
+        const nextSource = hasUnsavedChanges ? draftSource : currentSession.source
+        const nextSession = createMockSessionDetail(
+          currentSession.summary,
+          nextSource,
+          activeView,
+        )
+        const nextInspect = createMockInspectSnapshot(
+          currentSession.summary,
+          nextSession,
+          nextSource,
+        )
+        const nextLogs = createMockLogs(currentSession.summary, nextSource)
+
+        startTransition(() => {
+          setAppState((current) => ({
+            ...current,
+            currentInspect: nextInspect,
+            currentLogs: nextLogs,
+            currentSession: nextSession,
+          }))
+        })
+      } finally {
+        setCommandState((current) => ({ ...current, inspecting: false }))
+      }
       return
     }
 
@@ -381,8 +648,25 @@ export function useWorkbenchApp() {
   }
 
   async function validateCurrentSource(): Promise<void> {
+    if (!isTauriRuntime()) {
+      setCommandState((current) => ({
+        ...current,
+        validating: true,
+        error: undefined,
+      }))
+
+      try {
+        const result = createMockValidationSnapshot(currentSession.summary, draftSource)
+        setValidation(result)
+      } finally {
+        setCommandState((current) => ({ ...current, validating: false }))
+      }
+      return
+    }
+
     setCommandState((current) => ({
       ...current,
+      validating: true,
       error: undefined,
     }))
 
@@ -394,11 +678,25 @@ export function useWorkbenchApp() {
         ...current,
         error: formatError(error),
       }))
+    } finally {
+      setCommandState((current) => ({ ...current, validating: false }))
     }
   }
 
   async function checkCurrentRuntime(): Promise<void> {
     if (!isTauriRuntime()) {
+      setCommandState((current) => ({
+        ...current,
+        checking: true,
+        error: undefined,
+      }))
+
+      try {
+        await yieldToNextTask()
+        setRuntimeReport(createMockRuntimeReport())
+      } finally {
+        setCommandState((current) => ({ ...current, checking: false }))
+      }
       return
     }
 
@@ -423,6 +721,35 @@ export function useWorkbenchApp() {
 
   async function draftProposal(): Promise<void> {
     if (!isTauriRuntime()) {
+      setCommandState((current) => ({
+        ...current,
+        drafting: true,
+        error: undefined,
+      }))
+
+      try {
+        await yieldToNextTask()
+        const nextChat = [
+          ...(mockSessionChats[currentSession.summary.id] ??
+            createMockBaseChat(currentSession.summary, currentSession.source)).filter(
+            (message) => message.kind !== "proposal-placeholder",
+          ),
+          createMockProposalMessage(currentSession.summary, draftSource),
+        ]
+
+        setMockSessionChats((current) => ({
+          ...current,
+          [currentSession.summary.id]: nextChat,
+        }))
+        startTransition(() => {
+          setAppState((current) => ({
+            ...current,
+            chat: nextChat,
+          }))
+        })
+      } finally {
+        setCommandState((current) => ({ ...current, drafting: false }))
+      }
       return
     }
 
@@ -452,7 +779,39 @@ export function useWorkbenchApp() {
 
   async function sendMessage(): Promise<void> {
     const trimmed = messageDraft.trim()
-    if (!trimmed || !isTauriRuntime()) {
+    if (!trimmed) {
+      return
+    }
+
+    if (!isTauriRuntime()) {
+      setCommandState((current) => ({
+        ...current,
+        sending: true,
+        error: undefined,
+      }))
+
+      try {
+        await yieldToNextTask()
+        const nextChat = [
+          ...(mockSessionChats[currentSession.summary.id] ??
+            createMockBaseChat(currentSession.summary, currentSession.source)),
+          createMockUserMessage(trimmed),
+        ]
+
+        setMockSessionChats((current) => ({
+          ...current,
+          [currentSession.summary.id]: nextChat,
+        }))
+        startTransition(() => {
+          setAppState((current) => ({
+            ...current,
+            chat: nextChat,
+          }))
+          setMessageDraft("")
+        })
+      } finally {
+        setCommandState((current) => ({ ...current, sending: false }))
+      }
       return
     }
 

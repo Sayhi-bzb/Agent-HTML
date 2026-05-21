@@ -30,7 +30,7 @@ describe("agent-html CLI heavy preview flows", () => {
     await writeFile(
       inputPath,
       [
-        '<meta-agent style-ref="ops-compact" />',
+        '<meta-agent profile-ref="ops-compact" />',
         '<page title="CLI Preview">',
         '  <card title="Overview">',
         '    <alert title="State" variant="destructive">Preview by CLI</alert>',
@@ -73,7 +73,7 @@ describe("agent-html CLI heavy preview flows", () => {
       expect(body).toContain(
         'rel="icon" type="image/svg+xml" href="./ghost.svg"',
       )
-      expect(body).toContain('data-style-profile="ops-compact"')
+      expect(body).toContain('data-artifact-profile="ops-compact"')
       expect(body).toContain('data-slot="alert"')
       expect(body).toContain('data-slot="badge"')
       expect(body).toContain('data-slot="tabs"')
@@ -99,7 +99,7 @@ describe("agent-html CLI heavy preview flows", () => {
     await writeFile(
       inputPath,
       [
-        '<meta-agent style-ref="team-ops" />',
+        '<meta-agent profile-ref="team-ops" />',
         '<page title="Team Preview"><card title="Summary">Preview by user profile.</card></page>',
       ].join("\n"),
     )
@@ -125,7 +125,7 @@ describe("agent-html CLI heavy preview flows", () => {
       const body = await response.text()
 
       expect(body).toContain("Team Preview")
-      expect(body).toContain('data-style-profile="team-ops"')
+      expect(body).toContain('data-artifact-profile="team-ops"')
       expect(body).toContain('class="ahtml-runtime-host ahtml-runtime-document"')
       expect(body).toContain(":root{--background:#fcfbf8;--foreground:#1f2933;")
     } finally {

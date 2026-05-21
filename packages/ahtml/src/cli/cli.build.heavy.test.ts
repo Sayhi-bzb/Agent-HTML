@@ -33,7 +33,7 @@ describe("agent-html CLI heavy build flows", () => {
     await writeFile(
       inputPath,
       [
-        '<meta-agent style-ref="ops-compact" />',
+        '<meta-agent profile-ref="ops-compact" />',
         [
           '<page title="Managed Runtime">',
           '<card title="Overview">',
@@ -117,7 +117,7 @@ describe("agent-html CLI heavy build flows", () => {
     )
     await expectFile(
       path.join(outputDir, "index.html"),
-      'data-style-profile="ops-compact"',
+      'data-artifact-profile="ops-compact"',
     )
     await expectFileMissingText(path.join(outputDir, "index.html"), 'tone="')
     await expectFileMissingText(path.join(outputDir, "index.html"), 'kind="')
@@ -161,7 +161,7 @@ describe("agent-html CLI heavy build flows", () => {
     await writeFile(
       inputPath,
       [
-        '<meta-agent style-ref="report-default" />',
+        '<meta-agent profile-ref="report-default" />',
         [
           '<page title="Generic Artifact">',
           "<tabs>",
@@ -250,7 +250,7 @@ describe("agent-html CLI heavy build flows", () => {
     await writeFile(
       inputPath,
       [
-        '<meta-agent style-ref="team-ops" />',
+        '<meta-agent profile-ref="team-ops" />',
         '<page title="Team Ops"><card title="Summary">Custom profile.</card></page>',
       ].join("\n"),
     )
@@ -264,7 +264,7 @@ describe("agent-html CLI heavy build flows", () => {
     await expectFile(path.join(outputDir, "index.html"), "Team Ops")
     await expectFile(
       path.join(outputDir, "index.html"),
-      'data-style-profile="team-ops"',
+      'data-artifact-profile="team-ops"',
     )
     await expectFile(
       path.join(outputDir, "index.html"),
@@ -284,12 +284,12 @@ describe("agent-html CLI heavy build flows", () => {
     )
     await expectFile(
       path.join(outputDir, "agent-html.inspect.json"),
-      '"documentStyleConfigReference": "team-ops"',
+      '"artifactProfileReference": "team-ops"',
     )
     await removeTempDir(tempDir)
   }, 120000)
 
-  it("builds with the current runtime style when the document omits style-ref", async () => {
+  it("builds with the current runtime profile when the document omits profile-ref", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "runtime-default.agent.html")
@@ -310,11 +310,11 @@ describe("agent-html CLI heavy build flows", () => {
 
     await expectFile(
       path.join(outputDir, "agent-html.inspect.json"),
-      '"documentStyleConfigReference": "team-ops"',
+      '"artifactProfileReference": "team-ops"',
     )
     await expectFile(
       path.join(outputDir, "index.html"),
-      'data-style-profile="team-ops"',
+      'data-artifact-profile="team-ops"',
     )
     await removeTempDir(tempDir)
   }, 120000)
@@ -373,7 +373,7 @@ describe("agent-html CLI heavy build flows", () => {
     await writeFile(
       documentPath,
       [
-        '<meta-agent style-ref="ops-compact" />',
+        '<meta-agent profile-ref="ops-compact" />',
         '<page title="CLI Artifact"><card title="Overview">Written as agent-html.</card></page>',
       ].join("\n"),
     )
@@ -390,7 +390,7 @@ describe("agent-html CLI heavy build flows", () => {
       inspectionPath: string
       inspection: {
         configModel: string
-        config: { documentStyleConfigReference: string }
+        config: { artifactProfileReference: string }
         components: { name: string; count: number }[]
       }
     }>(stdout)
@@ -403,9 +403,9 @@ describe("agent-html CLI heavy build flows", () => {
     )
     expect(stdout).not.toContain("resolvedConfig")
     expect(result.inspection.configModel).toBe(
-      "document-style-config-reference",
+      "artifact-profile-reference",
     )
-    expect(result.inspection.config.documentStyleConfigReference).toBe(
+    expect(result.inspection.config.artifactProfileReference).toBe(
       "ops-compact",
     )
     expect(stdout).not.toContain("resolvedDocumentStyleTokens")
@@ -425,7 +425,7 @@ describe("agent-html CLI heavy build flows", () => {
     await writeFile(
       documentPath,
       [
-        '<meta-agent style-ref="ops-compact" />',
+        '<meta-agent profile-ref="ops-compact" />',
         '<page title="CLI Artifact"><card title="Overview">Written as agent-html.</card></page>',
       ].join("\n"),
     )
@@ -449,10 +449,10 @@ describe("agent-html CLI heavy build flows", () => {
       tempDir,
     )
     expect(documentInspection.stdout).toContain(
-      '"documentStyleConfigReference": "ops-compact"',
+      '"artifactProfileReference": "ops-compact"',
     )
     expect(documentInspection.stdout).toContain(
-      '"configModel": "document-style-config-reference"',
+      '"configModel": "artifact-profile-reference"',
     )
     expect(documentInspection.stdout).not.toContain(
       '"resolvedDocumentStyleTokens"',
@@ -466,10 +466,10 @@ describe("agent-html CLI heavy build flows", () => {
       tempDir,
     )
     expect(artifactInspection.stdout).toContain(
-      "config model: document-style-config-reference",
+      "config model: artifact-profile-reference",
     )
     expect(artifactInspection.stdout).toContain(
-      "documentStyleConfigReference: ops-compact",
+      "artifactProfileReference: ops-compact",
     )
     expect(artifactInspection.stdout).not.toContain(
       "resolved document style tokens:",

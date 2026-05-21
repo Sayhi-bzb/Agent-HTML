@@ -307,10 +307,6 @@ function countComponents(nodes, counts = {}) {
     .sort((left, right) => left.name.localeCompare(right.name))
 }
 
-export function getDefaultOutputDir(userRoot) {
-  return path.join(userRoot, ...cliDefaults.outputDir.split("/"))
-}
-
 export function assertSafeOutputDirectory({
   inputFilePath,
   outputDir,

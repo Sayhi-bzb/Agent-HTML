@@ -54,6 +54,17 @@
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --radius: 0.625rem;
+  --shell-topbar-height: 3.5rem;
+  --shell-topbar-padding-inline: 1rem;
+  --shell-header-padding-block: 0.5rem;
+  --shell-header-padding-inline: 0.75rem;
+  --shell-section-padding: 0.75rem;
+  --shell-gap-compact: 0.5rem;
+  --shell-gap-base: 0.75rem;
+  --shell-gap-roomy: 1rem;
+  --shell-panel-icon-size: 2rem;
+  --shell-card-inset-padding: 0.75rem;
+  --shell-console-padding: 0.75rem;
 }
 
 .dark {
@@ -91,5 +102,216 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply min-h-screen bg-background text-foreground;
+  }
+
+  .app-shell-frame {
+    @apply flex min-h-screen flex-col;
+  }
+
+  .app-shell-topbar {
+    @apply border-b;
+  }
+
+  .app-shell-topbar-row {
+    @apply flex items-center justify-between;
+    min-height: var(--shell-topbar-height);
+    padding-inline: var(--shell-topbar-padding-inline);
+  }
+
+  .app-shell-topbar-group {
+    @apply flex items-center;
+    gap: var(--shell-gap-base);
+  }
+
+  .app-shell-status-group {
+    @apply flex items-center;
+    gap: var(--shell-gap-compact);
+  }
+
+  .app-shell-panel-icon {
+    @apply flex items-center justify-center rounded-md border bg-muted;
+    block-size: var(--shell-panel-icon-size);
+    inline-size: var(--shell-panel-icon-size);
+  }
+
+  .app-shell-inline-icon {
+    @apply size-4;
+  }
+
+  .app-shell-panel-title {
+    @apply truncate text-sm font-medium;
+  }
+
+  .app-shell-error-banner {
+    @apply border-b text-xs text-destructive;
+    padding-inline: var(--shell-topbar-padding-inline);
+    padding-block: var(--shell-header-padding-block);
+  }
+
+  .app-shell-body {
+    @apply flex-1 overflow-hidden;
+  }
+
+  .app-shell-pane {
+    @apply flex h-full flex-col;
+  }
+
+  .app-shell-pane-header {
+    @apply border-b;
+    padding-inline: var(--shell-header-padding-inline);
+    padding-block: var(--shell-header-padding-block);
+  }
+
+  .app-shell-pane-footer {
+    @apply border-t;
+    padding: var(--shell-section-padding);
+  }
+
+  .app-shell-pane-content {
+    @apply flex-1 overflow-hidden;
+    padding: var(--shell-section-padding);
+  }
+
+  .app-shell-fill-card {
+    @apply h-full;
+  }
+
+  .app-shell-fill-tabs {
+    @apply h-full;
+  }
+
+  .app-shell-fill-tab-panel {
+    @apply h-full;
+  }
+
+  .app-shell-stack-compact {
+    @apply flex items-center;
+    gap: var(--shell-gap-compact);
+  }
+
+  .app-shell-stack-base {
+    @apply flex items-center;
+    gap: var(--shell-gap-base);
+  }
+
+  .app-shell-search-field {
+    @apply relative flex-1;
+  }
+
+  .app-shell-search-icon {
+    @apply pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground;
+  }
+
+  .app-shell-search-input {
+    @apply pl-8;
+  }
+
+  .app-shell-surface-grid {
+    @apply grid;
+    gap: var(--shell-gap-base);
+  }
+
+  .app-shell-surface-grid-roomy {
+    @apply grid;
+    gap: var(--shell-gap-roomy);
+  }
+
+  .app-shell-split-row {
+    @apply flex items-center justify-between;
+    gap: var(--shell-gap-compact);
+  }
+
+  .app-shell-split-row-base {
+    @apply flex items-center justify-between;
+    gap: var(--shell-gap-base);
+  }
+
+  .app-shell-split-row-start {
+    @apply items-start;
+  }
+
+  .app-shell-card-active {
+    @apply border-primary;
+  }
+
+  .app-shell-content-stack {
+    @apply flex h-full min-h-0 flex-col;
+    gap: var(--shell-gap-roomy);
+  }
+
+  .app-shell-surface-item {
+    @apply rounded-lg border text-sm;
+    padding-inline: var(--shell-header-padding-inline);
+    padding-block: var(--shell-header-padding-block);
+  }
+
+  .app-shell-preview-frame {
+    @apply min-h-0 flex-1 overflow-hidden rounded-lg border;
+  }
+
+  .app-shell-editor-field {
+    @apply min-h-0 flex-1 resize-none font-mono;
+  }
+
+  .app-shell-empty-canvas {
+    @apply flex size-full items-center justify-center text-sm text-muted-foreground;
+  }
+
+  .app-shell-empty-state {
+    @apply py-6 text-muted-foreground;
+  }
+
+  .app-shell-supporting-copy {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .app-shell-metric-row {
+    @apply flex items-center justify-between;
+  }
+
+  .app-shell-status-row {
+    @apply flex items-center text-xs text-muted-foreground;
+    gap: var(--shell-gap-compact);
+  }
+
+  .app-shell-loading-row {
+    @apply flex items-center text-xs text-muted-foreground;
+    gap: var(--shell-gap-compact);
+    padding-inline: calc(var(--shell-gap-compact) / 2);
+  }
+
+  .app-shell-spinner {
+    @apply size-3.5 animate-spin;
+  }
+
+  .app-shell-kicker {
+    @apply text-xs uppercase text-muted-foreground;
+  }
+
+  .app-shell-card-inset {
+    padding: var(--shell-card-inset-padding);
+  }
+
+  .app-shell-session-card {
+    @apply relative;
+  }
+
+  .app-shell-session-card-trigger {
+    @apply absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50;
+  }
+
+  .app-shell-session-card-action {
+    @apply relative z-20;
+  }
+
+  .app-shell-console {
+    @apply min-h-0 overflow-auto rounded-lg border bg-muted text-xs;
+    padding: var(--shell-console-padding);
   }
 }

@@ -170,7 +170,7 @@ try {
   await writeFile(
     documentPath,
     [
-      '<meta-agent style-ref="ops-compact" />',
+      '<meta-agent profile-ref="ops-compact" />',
       '<page title="Packed CLI"><card title="Overview">Built from an installed package.</card></page>',
     ].join("\n"),
   )
@@ -376,8 +376,8 @@ async function expectInstalledConformance(coreModule) {
     const coreResult = normalizeConformanceResult(
       toCoreConformanceResult(
         coreModule.sanitizeAgentHtml(fixture.source, {
-          resolveDefaultStyleProfileReference: () =>
-            coreModule.BUILTIN_STYLE_PROFILES_BY_REFERENCE["ops-compact"],
+          resolveDefaultArtifactProfileReference: () =>
+            coreModule.BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE["ops-compact"],
         }),
       ),
     )
@@ -397,8 +397,8 @@ async function expectInstalledConformance(coreModule) {
 function toCoreConformanceResult(result) {
   return {
     ok: !result.diagnostics.some((diagnostic) => diagnostic.severity === "error"),
-    documentStyleConfigReference:
-      result.document?.meta.documentStyleConfigReference,
+    artifactProfileReference:
+      result.document?.meta.artifactProfileReference,
     components: createInspectionCounts(result.document?.components ?? []),
     diagnosticCodes: result.diagnostics.map((diagnostic) => diagnostic.code),
   }
@@ -416,8 +416,8 @@ async function runInstalledValidateJson(inputPath) {
     const parsed = JSON.parse(result.stdout)
     return normalizeConformanceResult({
       ok: parsed.ok,
-      documentStyleConfigReference:
-        parsed.inspection?.config?.documentStyleConfigReference,
+      artifactProfileReference:
+        parsed.inspection?.config?.artifactProfileReference,
       components: parsed.inspection?.components ?? [],
       diagnosticCodes: (parsed.diagnostics ?? []).map((diagnostic) => diagnostic.code),
     })
@@ -425,8 +425,8 @@ async function runInstalledValidateJson(inputPath) {
     const parsed = JSON.parse(String(error.stdout ?? "{}"))
     return normalizeConformanceResult({
       ok: parsed.ok,
-      documentStyleConfigReference:
-        parsed.inspection?.config?.documentStyleConfigReference,
+      artifactProfileReference:
+        parsed.inspection?.config?.artifactProfileReference,
       components: parsed.inspection?.components ?? [],
       diagnosticCodes: (parsed.diagnostics ?? []).map((diagnostic) => diagnostic.code),
     })
@@ -437,7 +437,7 @@ async function writeCurrentStyleProfileState(currentStyleProfileId) {
   const statePath = path.join(
     runtimeHome,
     "config",
-    "style-profile-state.json",
+    "artifact-profile-state.json",
   )
 
   await mkdir(path.dirname(statePath), { recursive: true })
@@ -445,8 +445,9 @@ async function writeCurrentStyleProfileState(currentStyleProfileId) {
     statePath,
     `${JSON.stringify(
       {
-        kind: "ahtml-style-profile-state",
+        kind: "ahtml-artifact-profile-state",
         version: 1,
+        currentArtifactProfileId: currentStyleProfileId,
         currentStyleProfileId,
       },
       null,

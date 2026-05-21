@@ -18,16 +18,16 @@ export function RuntimeReportCard({ runtimeReport }: RuntimeReportCardProps) {
         <CardTitle>Doctor</CardTitle>
         <CardDescription>{runtimeReport.status}</CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-2 text-sm">
-        <div className="flex items-center justify-between">
+      <CardContent className="app-shell-surface-grid text-sm">
+        <div className="app-shell-metric-row">
           <span>ok</span>
           <span>{runtimeReport.counts.ok}</span>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="app-shell-metric-row">
           <span>warn</span>
           <span>{runtimeReport.counts.warn}</span>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="app-shell-metric-row">
           <span>fail</span>
           <span>{runtimeReport.counts.fail}</span>
         </div>

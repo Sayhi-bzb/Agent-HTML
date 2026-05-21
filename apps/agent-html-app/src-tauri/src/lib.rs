@@ -139,18 +139,6 @@ struct SessionCreateInput {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct SessionRenameInput {
-    name: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct SessionPinInput {
-    pinned: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 struct SessionViewInput {
     view: String,
 }
@@ -406,44 +394,6 @@ fn create_session(app: AppHandle, input: SessionCreateInput) -> Result<SessionDe
 #[tauri::command]
 fn open_session(app: AppHandle, session_id: String) -> Result<SessionDetail, AppError> {
     let session_dir = session_dir(&app, &session_id)?;
-    load_session_detail_from_dir(&session_dir)
-}
-
-#[tauri::command]
-fn rename_session(
-    app: AppHandle,
-    session_id: String,
-    input: SessionRenameInput,
-) -> Result<SessionDetail, AppError> {
-    let session_dir = session_dir(&app, &session_id)?;
-    let mut record = read_session_record(&session_dir)?;
-    let name = input.name.trim();
-
-    if name.is_empty() {
-        return Err(AppError::from(BackendError::ui_validation(
-            "Session names cannot be empty.",
-        ))
-        .with_session(session_id));
-    }
-
-    record.name = name.to_string();
-    record.updated_at = now_iso_stub();
-    write_session_record(&session_dir, &record)?;
-    load_session_detail_from_dir(&session_dir)
-}
-
-#[tauri::command]
-fn set_session_pinned(
-    app: AppHandle,
-    session_id: String,
-    input: SessionPinInput,
-) -> Result<SessionDetail, AppError> {
-    let session_dir = session_dir(&app, &session_id)?;
-    let mut record = read_session_record(&session_dir)?;
-
-    record.pinned = input.pinned;
-    record.updated_at = now_iso_stub();
-    write_session_record(&session_dir, &record)?;
     load_session_detail_from_dir(&session_dir)
 }
 
@@ -1220,8 +1170,6 @@ pub fn run() {
             list_sessions,
             create_session,
             open_session,
-            rename_session,
-            set_session_pinned,
             delete_session,
             set_session_view,
             save_source,

@@ -115,7 +115,7 @@ describe("validate and inspect contracts", () => {
     await expectPathMissing(path.join(runtimeHome, "config", "runtime.json"))
   })
 
-  it("validates and inspects user style profiles from runtime storage without bootstrapping the runtime", async () => {
+  it("validates and inspects user artifact profiles from runtime storage without bootstrapping the runtime", async () => {
     const tempDir = await temporaryDirectories.create("agent-html-cli-")
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "team-ops.agent.html")
@@ -124,7 +124,7 @@ describe("validate and inspect contracts", () => {
     await writeFile(
       inputPath,
       [
-        '<meta-agent style-ref="team-ops" />',
+        '<meta-agent profile-ref="team-ops" />',
         '<page title="Team Ops"><card title="Summary">Ready.</card></page>',
       ].join("\n"),
     )
@@ -138,12 +138,12 @@ describe("validate and inspect contracts", () => {
       kind: string
       ok: boolean
       inspection?: {
-        config: { documentStyleConfigReference: string }
+        config: { artifactProfileReference: string }
       }
     }>(validation.stdout)
     expect(parsedValidation.kind).toBe("agent-html-validation-result")
     expect(parsedValidation.ok).toBe(true)
-    expect(parsedValidation.inspection?.config.documentStyleConfigReference).toBe(
+    expect(parsedValidation.inspection?.config.artifactProfileReference).toBe(
       "team-ops",
     )
     expect(validation.stdout).not.toContain("resolvedDocumentStyleTokens")
@@ -154,13 +154,13 @@ describe("validate and inspect contracts", () => {
       tempDir,
     )
     expect(inspection.stdout).toContain(
-      '"documentStyleConfigReference": "team-ops"',
+      '"artifactProfileReference": "team-ops"',
     )
     expect(inspection.stdout).not.toContain('"resolvedDocumentStyleTokens"')
     await expectPathMissing(path.join(runtimeHome, "config", "runtime.json"))
   })
 
-  it("falls back to the default profile for unresolved runtime style references in validate", async () => {
+  it("falls back to the default profile for unresolved runtime artifact profile references in validate", async () => {
     const tempDir = await temporaryDirectories.create("agent-html-cli-")
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "fallback.agent.html")
@@ -168,7 +168,7 @@ describe("validate and inspect contracts", () => {
     await writeFile(
       inputPath,
       [
-        '<meta-agent style-ref="team-missing" />',
+        '<meta-agent profile-ref="team-missing" />',
         '<page title="Fallback"><card title="Summary">Default profile.</card></page>',
       ].join("\n"),
     )
@@ -182,17 +182,17 @@ describe("validate and inspect contracts", () => {
       ok: boolean
       diagnostics?: Array<{ code: string; severity: string; message?: string }>
       inspection?: {
-        config: { documentStyleConfigReference: string }
+        config: { artifactProfileReference: string }
       }
     }>(validation.stdout)
 
     expect(parsedValidation.ok).toBe(true)
-    expect(parsedValidation.inspection?.config.documentStyleConfigReference).toBe(
+    expect(parsedValidation.inspection?.config.artifactProfileReference).toBe(
       "report-default",
     )
     expect(parsedValidation.diagnostics).toEqual([
       expect.objectContaining({
-        code: "unknown-style-ref",
+        code: "unknown-profile-ref",
         severity: "warning",
       }),
     ])
@@ -200,7 +200,7 @@ describe("validate and inspect contracts", () => {
     await expectPathMissing(path.join(runtimeHome, "config", "runtime.json"))
   })
 
-  it("uses the current runtime style for validate when the document omits style-ref", async () => {
+  it("uses the current runtime profile for validate when the document omits profile-ref", async () => {
     const tempDir = await temporaryDirectories.create("agent-html-cli-")
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "runtime-default.agent.html")
@@ -221,17 +221,17 @@ describe("validate and inspect contracts", () => {
       ok: boolean
       diagnostics?: Array<{ code: string; severity: string; message?: string }>
       inspection?: {
-        config: { documentStyleConfigReference: string }
+        config: { artifactProfileReference: string }
       }
     }>(validation.stdout)
 
     expect(parsedValidation.ok).toBe(true)
-    expect(parsedValidation.inspection?.config.documentStyleConfigReference).toBe(
+    expect(parsedValidation.inspection?.config.artifactProfileReference).toBe(
       "team-ops",
     )
     expect(parsedValidation.diagnostics).toEqual([
       expect.objectContaining({
-        code: "missing-style-ref",
+        code: "missing-profile-ref",
         severity: "warning",
       }),
     ])

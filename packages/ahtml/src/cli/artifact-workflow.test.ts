@@ -5,11 +5,11 @@ import { describe, expect, it } from "vitest"
 import { importCliModule } from "./cli-test-helpers"
 
 describe("artifact workflow inspection", () => {
-  it("reports the checked document style config reference in the inspection payload", async () => {
+  it("reports the checked artifact profile reference in the inspection payload", async () => {
     const { createInspection } = await importArtifactWorkflowModule()
     const inspection = createInspection({
       meta: {
-        documentStyleConfigReference: "ops-compact",
+        artifactProfileReference: "ops-compact",
       },
       components: [
         {
@@ -32,9 +32,9 @@ describe("artifact workflow inspection", () => {
 
     expect(inspection).toEqual({
       kind: "agent-html-inspection",
-      configModel: "document-style-config-reference",
+      configModel: "artifact-profile-reference",
       config: {
-        documentStyleConfigReference: "ops-compact",
+        artifactProfileReference: "ops-compact",
       },
       components: [
         { name: "card", count: 1 },
@@ -43,18 +43,18 @@ describe("artifact workflow inspection", () => {
     })
   })
 
-  it("formats inspection summaries with document-style wording", async () => {
+  it("formats inspection summaries with artifact-profile wording", async () => {
     const { formatInspectionSummary } = await importArtifactWorkflowModule()
     const summary = formatInspectionSummary({
-      configModel: "document-style-config-reference",
+      configModel: "artifact-profile-reference",
       config: {
-        documentStyleConfigReference: "ops-compact",
+        artifactProfileReference: "ops-compact",
       },
       components: [{ name: "card", count: 1 }],
     })
 
-    expect(summary).toContain("config model: document-style-config-reference")
-    expect(summary).toContain("documentStyleConfigReference: ops-compact")
+    expect(summary).toContain("config model: artifact-profile-reference")
+    expect(summary).toContain("artifactProfileReference: ops-compact")
     expect(summary).not.toContain("resolved config")
     expect(summary).not.toContain("resolved document style tokens")
     expect(summary).toContain("- card: 1")

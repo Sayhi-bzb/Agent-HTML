@@ -1,11 +1,12 @@
 import type { PanelLayoutState } from "./types"
+import { shellPanelConstraints } from "./layout"
 
 const panelLayoutStorageKey = "agent-html-app:panel-layout:v4-minimal"
 
 export const defaultPanelLayout: PanelLayoutState = {
-  sessions: 18,
-  workbench: 56,
-  shell: 26,
+  sessions: shellPanelConstraints.sessions.defaultSize,
+  workbench: shellPanelConstraints.workbench.defaultSize,
+  shell: shellPanelConstraints.shell.defaultSize,
 }
 
 export function readStoredPanelLayout(): PanelLayoutState {

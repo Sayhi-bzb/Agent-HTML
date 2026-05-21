@@ -55,9 +55,9 @@ export function WorkbenchPane({
   onDraftSourceChange,
 }: WorkbenchPaneProps) {
   return (
-    <div className="flex h-full flex-col">
-      <div className="border-b px-3 py-2">
-        <div className="flex items-center justify-between gap-3">
+    <div className="app-shell-pane">
+      <div className="app-shell-pane-header">
+        <div className="app-shell-split-row-base">
           <Tabs onValueChange={(value) => onViewChange(value as WorkbenchView)} value={activeView}>
             <TabsList>
               <TabsTrigger value="preview">
@@ -74,7 +74,7 @@ export function WorkbenchPane({
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex items-center gap-2">
+          <div className="app-shell-stack-compact">
             <Button onClick={onBuild} size="sm" type="button" variant="outline">
               <HammerIcon data-icon="inline-start" />
               Build
@@ -87,13 +87,13 @@ export function WorkbenchPane({
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden p-3">
-        <Tabs className="h-full" value={activeView}>
-          <TabsContent className="h-full" value="preview">
+      <div className="app-shell-pane-content">
+        <Tabs className="app-shell-fill-tabs" value={activeView}>
+          <TabsContent className="app-shell-fill-tab-panel" value="preview">
             <PreviewTab build={build} previewHtml={previewHtml} session={session} />
           </TabsContent>
 
-          <TabsContent className="h-full" value="source">
+          <TabsContent className="app-shell-fill-tab-panel" value="source">
             <SourceTab
               draftSource={draftSource}
               hasUnsavedChanges={hasUnsavedChanges}
@@ -107,7 +107,7 @@ export function WorkbenchPane({
             />
           </TabsContent>
 
-          <TabsContent className="h-full" value="inspect">
+          <TabsContent className="app-shell-fill-tab-panel" value="inspect">
             <InspectTab inspect={inspect} logs={logs} />
           </TabsContent>
         </Tabs>

@@ -20,9 +20,9 @@ export function PreviewTab({
   previewHtml,
 }: PreviewTabProps) {
   return (
-    <Card className="h-full">
+    <Card className="app-shell-fill-card">
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
+        <div className="app-shell-split-row">
           <div>
             <CardTitle>{session.summary.name}</CardTitle>
             <CardDescription>{session.previewPath ?? "preview"}</CardDescription>
@@ -32,8 +32,8 @@ export function PreviewTab({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex h-full min-h-0 flex-col gap-4">
-        <div className="min-h-0 flex-1 overflow-hidden rounded-lg border">
+      <CardContent className="app-shell-content-stack">
+        <div className="app-shell-preview-frame">
           {previewHtml ? (
             <iframe
               className="size-full bg-background"
@@ -41,7 +41,7 @@ export function PreviewTab({
               title={`${session.summary.name} preview`}
             />
           ) : (
-            <div className="flex size-full items-center justify-center text-sm text-muted-foreground">
+            <div className="app-shell-empty-canvas">
               Empty
             </div>
           )}

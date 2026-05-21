@@ -14,13 +14,13 @@ import {
 const { runCliWithServer } = useShadcnCliHarness()
 
 describe("prompt and schema contracts", () => {
-  it("formats a document-style-config prompt without implementation tokens", async () => {
+  it("formats an artifact-profile prompt without implementation tokens", async () => {
     const { formatPrompt, getCliSchemaOutput } = await importSchemaModule()
     const schema = await getCliSchemaOutput(root)
     const prompt = `${formatPrompt(schema)}\n`
 
-    expect(prompt).toContain("document style config reference")
-    expect(prompt).toContain('<meta-agent style-ref="')
+    expect(prompt).toContain("artifact profile reference")
+    expect(prompt).toContain('<meta-agent profile-ref="')
     expect(prompt).not.toContain('theme="')
     expect(prompt).not.toContain('density="')
     expect(prompt).not.toContain('width="')
@@ -78,20 +78,20 @@ describe("prompt and schema contracts", () => {
       expect.arrayContaining(["card", "accordion"]),
     )
     expect(schema.renderConfig.defaults).toEqual({
-      "style-ref": "report-default",
+      "profile-ref": "report-default",
     })
-    expect(schema.renderConfig.model).toBe("document-style-config-reference")
-    expect(schema.renderConfig.keys).toEqual(["style-ref"])
+    expect(schema.renderConfig.model).toBe("artifact-profile-reference")
+    expect(schema.renderConfig.keys).toEqual(["profile-ref"])
     expect(schema.renderConfig.keys).not.toContain("theme")
     expect(schema.renderConfig.keys).not.toContain("density")
     expect(schema.renderConfig.keys).not.toContain("tone")
     expect(schema.renderConfig.keys).not.toContain("width")
-    expect(Object.keys(schema.renderConfig.values)).toEqual(["style-ref"])
+    expect(Object.keys(schema.renderConfig.values)).toEqual(["profile-ref"])
     expect(Object.keys(schema.renderConfig.values)).not.toContain("theme")
     expect(Object.keys(schema.renderConfig.values)).not.toContain("density")
     expect(Object.keys(schema.renderConfig.values)).not.toContain("tone")
     expect(Object.keys(schema.renderConfig.values)).not.toContain("width")
-    expect(schema.renderConfig.values["style-ref"]).toEqual(
+    expect(schema.renderConfig.values["profile-ref"]).toEqual(
       expect.arrayContaining(["report-default", "ops-compact"]),
     )
     expect(serializedComponents).not.toContain('"className"')

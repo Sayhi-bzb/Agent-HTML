@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import type {
+  ArtifactProfileReference,
   ComponentSchema,
   ComponentExposurePolicy,
   ComponentSchemaOverlay,
   ComponentSemanticContract,
-  DocumentStyleConfigReference,
   GeneratedShadcnIntrospection,
   PropExposureState,
   RenderConfig,
@@ -14,14 +14,14 @@ import type {
 } from "./types"
 
 describe("agent-html public types", () => {
-  it("models a checked render config with a document style config reference", () => {
-    const styleReference = "ops-compact" satisfies DocumentStyleConfigReference
-    const customStyleReference =
-      "team-ops" satisfies DocumentStyleConfigReference
+  it("models a checked render config with an artifact profile reference", () => {
+    const profileReference = "ops-compact" satisfies ArtifactProfileReference
+    const customProfileReference =
+      "team-ops" satisfies ArtifactProfileReference
     const meta = {
-      documentStyleConfigReference: styleReference,
-      styleProfile: {
-        id: styleReference,
+      artifactProfileReference: profileReference,
+      artifactProfile: {
+        id: profileReference,
         globalStyle: {
           tokenSets: {
             light: {
@@ -167,6 +167,47 @@ describe("agent-html public types", () => {
             shadowOffsetY: "--shadow-offset-y",
           },
         },
+        globalLayout: {
+          frame: {
+            pageMaxWidth: "72rem",
+            pagePaddingInline: "1rem",
+            pagePaddingBlockStart: "1.5rem",
+            pagePaddingBlockEnd: "3rem",
+            frameMaxWidth: "64rem",
+          },
+          measure: {
+            prose: "68ch",
+            wide: "84ch",
+            full: "100%",
+          },
+          rhythm: {
+            pageGap: "1.25rem",
+            stackGap: "1rem",
+            clusterGap: "0.75rem",
+            splitGap: "1rem",
+            gridGap: "1rem",
+            switcherGap: "1rem",
+          },
+          density: {
+            default: "balanced",
+            compact: 0.85,
+            balanced: 1,
+            relaxed: 1.2,
+          },
+          partition: {
+            splitMinColumnWidth: "18rem",
+            gridMinColumnWidth: "16rem",
+            switcherMinChildWidth: "18rem",
+          },
+          reflow: {
+            splitAutoFlow: "auto-fit",
+            gridAutoFlow: "auto-fit",
+            clusterWrap: "wrap",
+            switcherWrap: "wrap",
+            clusterJustify: "flex-start",
+            switcherJustify: "flex-start",
+          },
+        },
         componentStyle: {
           treatments: {
             alert: "ops-alert",
@@ -176,6 +217,46 @@ describe("agent-html public types", () => {
             table: "ops-table",
             tabs: "ops-tabs",
             textarea: "ops-field",
+          },
+        },
+        componentLayout: {
+          page: {
+            gap: "1.25rem",
+            measure: "wide",
+          },
+          stack: {
+            gap: "1rem",
+            density: "balanced",
+            measure: "full",
+          },
+          cluster: {
+            gap: "0.75rem",
+            density: "balanced",
+            wrap: "wrap",
+            justify: "flex-start",
+          },
+          split: {
+            gap: "1rem",
+            density: "balanced",
+            minColumnWidth: "18rem",
+            autoFlow: "auto-fit",
+          },
+          grid: {
+            gap: "1rem",
+            density: "balanced",
+            minColumnWidth: "16rem",
+            autoFlow: "auto-fit",
+          },
+          switcher: {
+            gap: "1rem",
+            density: "balanced",
+            minChildWidth: "18rem",
+            wrap: "wrap",
+            justify: "flex-start",
+          },
+          frame: {
+            maxWidth: "64rem",
+            measure: "wide",
           },
         },
       },
@@ -214,11 +295,14 @@ describe("agent-html public types", () => {
     } satisfies SanitizedAgentHtml
 
     expect(pageComponentSchema.name).toBe("page")
-    expect(customStyleReference).toBe("team-ops")
-    expect(document.meta.documentStyleConfigReference).toBe("ops-compact")
-    expect(document.meta.styleProfile.id).toBe("ops-compact")
-    expect(document.meta.styleProfile.globalStyle.cssVariableMap.radius).toBe(
+    expect(customProfileReference).toBe("team-ops")
+    expect(document.meta.artifactProfileReference).toBe("ops-compact")
+    expect(document.meta.artifactProfile.id).toBe("ops-compact")
+    expect(document.meta.artifactProfile.globalStyle.cssVariableMap.radius).toBe(
       "--radius",
+    )
+    expect(document.meta.artifactProfile.componentLayout.frame.maxWidth).toBe(
+      "64rem",
     )
     expect(document.components[0]?.name).toBe("page")
   })

@@ -124,6 +124,8 @@ export async function readManagedRuntimeSnapshot(paths = getRuntimePaths()) {
     logs: await pathExists(paths.logsDir),
     config: await pathExists(paths.configDir),
     manifest: false,
+    artifactProfileManifest: await pathExists(paths.artifactProfileManifestPath),
+    artifactProfiles: await pathExists(paths.artifactProfilesDir),
     styleProfileManifest: await pathExists(paths.styleProfileManifestPath),
     styleProfiles: await pathExists(paths.styleProfilesDir),
     rendererAdapter: await pathExists(
@@ -148,6 +150,8 @@ export async function readManagedRuntimeSnapshot(paths = getRuntimePaths()) {
   try {
     manifest = await readRuntimeManifest(paths)
     checks.manifest = true
+    checks.styleProfileManifest = checks.artifactProfileManifest
+    checks.styleProfiles = checks.artifactProfiles
     checks.shadcnComponents = await runtimeComponentFilesExist({
       components: manifest.installedUiComponents ?? manifest.components ?? [],
       paths,
@@ -157,12 +161,13 @@ export async function readManagedRuntimeSnapshot(paths = getRuntimePaths()) {
   }
 
   if (manifest) {
-    checks.styleProfiles = await evaluateStatusCheck(
+    checks.artifactProfiles = await evaluateStatusCheck(
       async () => assertStyleProfileStorage(paths),
       (detail) => {
         runtimeDetail ||= detail
       },
     )
+    checks.styleProfiles = checks.artifactProfiles
     checks.componentsJson = await evaluateStatusCheck(
       async () => assertRuntimeComponentsJson({ manifest, paths }),
       (detail) => {
@@ -225,8 +230,8 @@ export function assessManagedRuntimeSnapshot({
     checks.logs &&
     checks.config &&
     checks.manifest &&
-    checks.styleProfileManifest &&
-    checks.styleProfiles &&
+    checks.artifactProfileManifest &&
+    checks.artifactProfiles &&
     checks.rendererAdapter &&
     checks.shadcnComponents &&
     checks.shadcnTemplateViteConfig &&

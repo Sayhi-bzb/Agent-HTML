@@ -12,8 +12,9 @@
 
 - 它**确实**直接消费了本地 `shadcn` 组件源码。
 - 它**确实**有统一的 theme token，并且颜色语义已被消费。
-- 它**没有**把页面壳层的 spacing、sizing、panel geometry 收敛成统一 contract。
-- 它当前更准确的描述是：**一个使用了本地 shadcn 组件和 theme token 的 Tailwind 应用**，而不是一个已经完成 shell-level design-system 收敛的工作台。
+- 它**已经开始**把页面壳层的 spacing、sizing、panel geometry 收敛成统一 contract，但收敛范围目前主要覆盖 shell 层，不代表整套 UI 已经治理完成。
+- 它**已经补上**一批高频 content-level contract，例如状态行、loading row、search field、session card trigger/action，但仍未形成完整的内容区规范。
+- 它当前更准确的描述是：**一个已经开始建立 shell-level design-system contract 的 Tailwind + shadcn 应用**，而不是一个已经彻底完成前端治理的工作台。
 
 这不是措辞问题，而是架构事实。
 
@@ -48,7 +49,7 @@
 
 这部分是符合的，不需要粉饰，也不需要否认。
 
-### 2. Theme token 层：半符合
+### 2. Theme token 层：符合
 
 全局 theme token 已存在于 `apps/agent-html-app/src/styles.css`：
 
@@ -72,41 +73,36 @@
 
 这说明项目并非裸色值乱飞，也不是完全靠局部 CSS 拼接视觉。
 
-但结论仍然只能是 **半符合**，原因很直接：  
-项目把“颜色语义 token”统一了，但**没有把 shell 的布局语义也统一起来**。theme token 只覆盖了视觉表层，没有覆盖 app shell 的结构层。
+这部分现在可以判定为 **符合**。  
+颜色、前景、边框与半径语义都集中在全局 theme token 层，且 app shell 没有继续引入新的裸视觉值。
 
-### 3. App shell 布局系统：明显偏离
+### 3. App shell 布局系统：半符合
 
 这是真正的主问题。
 
-当前页面壳层没有清晰的 layout contract。  
-rail padding、pane header 高度、content gutter、section gap、action row 密度、panel 默认比例与最小宽度，仍然散落在 feature 组件和容器 props 里。
+当前页面壳层已经补上了一层明确的 layout contract。  
+panel 默认比例与最小宽度已集中定义；top bar、pane header、pane footer、content gutter、surface gap 以及一批高频内容模式也已被集中命名并通过 shell 语义类消费。
 
-典型表现：
+目前已经被集中收敛的内容包括：
 
-- `p-3`
-- `px-3 py-2`
-- `px-4`
-- `gap-2`
-- `gap-3`
-- `h-14`
-- `size-8`
-- `minSize={16}`
-- `minSize={22}`
-- `minSize={38}`
+- top bar 高度
+- rail / pane header / footer / content padding
+- shell surface gap
+- panel 默认比例
+- panel 最小宽度
+- supporting copy / status row / loading row
+- search field / search icon / search input
+- session card trigger / card action layering
 
-这些值并不是偶发存在，而是已经构成当前 shell 的真实布局系统。  
-问题在于：**它们没有被命名、没有被集中、没有被约束，只是碰巧相互看起来还能凑合工作。**
+这意味着最危险的一层偏离已经被修正：  
+页面结构不再主要依赖散落的 `p-*` / `gap-*` / `h-*` 原子值维持一致性。
 
-这意味着：
+但这部分仍然只能判定为 **半符合**，而不是“完全达标”，原因有两点：
 
-- 页面结构靠“局部作者记忆”维持一致，而不是靠 contract；
-- 新 feature 会继续复制这些原子值；
-- 后续要统一密度、紧凑度、rail rhythm 时，没有单一控制面；
-- UI 审查无法判断一个新值是设计决定，还是局部随手写下的尺寸。
+- contract 目前主要覆盖 app shell，尚未系统化扩展到更多内容区与局部模式；
+- feature 内仍然存在少量组件级布局覆写，这些覆写虽然不再是裸值散落，但还没有完全收敛成更细粒度的 content contract。
 
-这部分不能再用“Tailwind 本来就这么写”来搪塞。  
-Tailwind 允许这样写，不代表 design system 应该停在这样写。
+结论不是“问题解决完了”，而是“最危险的壳层散落问题已经开始被系统治理”。
 
 ### 4. 基础组件内部几何：可接受，但已经外溢到页面层
 
@@ -120,17 +116,44 @@ Tailwind 允许这样写，不代表 design system 应该停在这样写。
 这本身不是问题。  
 这是 component primitive 的内部 geometry，属于可接受的源码内约束。
 
-问题是：**项目把这种“组件内部几何写死”的模式，继续复制到了页面壳层。**
+此前的问题是：**项目把这种“组件内部几何写死”的模式，继续复制到了页面壳层。**
 
-结果就是：
+当前壳层已经开始与 primitive 内部几何分层：
 
-- primitive 有一套尺寸；
-- shell 又在 feature 里再写一套尺寸；
-- 二者之间没有更高层级的 layout contract 做收束。
+- primitive 保留自身内部 geometry；
+- shell 额外建立了自己的结构 contract；
+- 两层边界比之前清晰得多。
 
-这不是 shadcn 的问题，这是当前 app shell 治理没做完。
+但这部分仍然没有完全结束。  
+后续仍需要继续判断哪些局部内容区 geometry 应留在 primitive，哪些应进一步提升为 app shell / content contract。
 
-### 5. Mock preview 携带第二套视觉体系：必须隔离解释
+### 5. 交互结构与状态链：已有真实问题，已修正一部分
+
+此前 app shell 不只是有“样式不统一”的问题，还出现了两个更实质的前端问题：
+
+- `SessionRail` 把整个 session card 包在原生 `<button>` 外层，同时在卡片 footer 里再嵌套删除 `Button`；
+- `SourceTab` 的 `validating` 状态在装配层被固定写成 `false`，导致“校验中”UI 永远不显示。
+
+前者会制造无效的交互嵌套结构；后者说明 app shell 某些 UI 状态之前只是“长得像支持”，并没有真正接上线。
+
+当前这两点已经开始被修正：
+
+- session card 改成 `Card + overlay trigger + action button` 分层，而不是 button 套 button；
+- `validateCurrentSource()` 已经维护 `commandState.validating`，并传递到 `SourceTab`。
+
+此外，mock 浏览器模式下原本还存在另一类假交互：
+
+- 点击 session 只更新视觉高亮预期，但不真正切换 `currentSession`；
+- `loading / building / inspecting / checking / drafting / sending` 这类 command 状态在 mock 分支里并没有统一经过 `commandState`。
+
+当前这部分也已经开始被修正：
+
+- mock session 切换、创建、删除、build、inspect、proposal、send message 已接入本地 mock runtime 状态；
+- mock 分支的核心命令状态已统一经过 `commandState`，不再完全是“同步直落的假 UI”。
+
+这部分的结论很直接：  
+design-system 治理如果只盯视觉，不看交互结构和状态链，就会把真实问题漏掉。
+### 6. Mock preview 携带第二套视觉体系：已隔离，但仍需保持边界
 
 `apps/agent-html-app/src/lib/mock-data.ts` 内的 preview HTML 示例包含大量裸视觉值：
 
@@ -147,15 +170,18 @@ Tailwind 允许这样写，不代表 design system 应该停在这样写。
 - 两套系统没有 contract 联系；
 - 视觉讨论会失去边界。
 
-因此，这部分必须被明确标记为 **shell 外部内容**，而不是“app 主题的另一种表达”。
+当前代码已经明确把这部分标记为 **sample artifact content for the preview pane**。  
+这一步已经满足“边界隔离”的最低要求。
+
+后续需要保持的是：不要再让 mock preview 示例倒灌回 app shell 的 design-system 讨论。
 
 ## Required Corrections
 
 以下整改不是可选建议，而是后续对齐 design system 的最低要求。
 
-### 1. 必须建立 app shell layout contract
+### 1. 必须继续扩展 app shell layout contract
 
-必须为 app shell 建立一层明确的结构 contract，至少覆盖：
+已完成的基础项：
 
 - top bar 高度
 - rail 内边距
@@ -165,13 +191,24 @@ Tailwind 允许这样写，不代表 design system 应该停在这样写。
 - 默认 panel 比例
 - panel 最小宽度
 
-这层 contract 可以落在统一 CSS 变量、统一 shell utility、或统一 layout wrapper 上。  
-形式可以讨论，**不建立 contract 这件事不能讨论。**
+接下来仍需继续补充更细一层的 content-level contract，例如：
 
-### 2. 页面层不得继续散落重复布局值
+- 空状态
+- 统计行
+- 列表项内部 rhythm
+- 内容卡片间距分层
+- topbar supporting copy / title hierarchy
+- 可复用的交互容器模式，例如 selectable card / card action layering
 
-feature 组件不得继续各自维护常用壳层尺寸。  
-重复出现的 `p-3`、`px-3 py-2`、`gap-2`、`gap-3`、`h-14` 这类值，必须收敛。
+形式已经明确：当前采用的是 **统一 CSS 变量 + shell utility classes + panel constraint constants**。
+
+### 2. 页面层不得重新引入散落重复布局值
+
+本轮已经收敛掉最主要的一批页面层重复值。  
+后续要求变成：
+
+- 不得在新代码中重新引入这类壳层原子值；
+- 若出现新的高频 layout pattern，必须优先提升为 shell 语义类或 content contract。
 
 允许局部特例存在，但特例必须少、必须有理由、必须能指出它为何不走标准 shell 尺度。
 
@@ -201,15 +238,14 @@ app shell 与 feature 层不得引入裸色值、裸阴影、裸边框语义。
 
 这些语义类去消费全局 token。
 
-### 5. Mock preview 必须被文档明确隔离
+### 5. Mock preview 的边界必须持续保持明确
 
-如果 mock preview 保留现状，spec 必须明确：
+当前代码侧已经明确：
 
 - 它是 preview artifact 示例；
-- 它不是 app shell 的 design-system 来源；
-- 它不参与 app shell theme 合规判断。
+- 它不是 app shell 的 design-system 来源。
 
-否则，审计边界会持续被污染。
+后续 spec 与实现都必须继续保持这个边界，不得回退。
 
 ## Acceptance Criteria
 
@@ -218,9 +254,12 @@ app shell 与 feature 层不得引入裸色值、裸阴影、裸边框语义。
 - app shell 的常用布局参数有集中定义位置；
 - panel 比例与最小宽度不再散落在页面装配代码中；
 - rail / header / content gutter 的常用值不再跨 feature 重复手写；
+- 高复用内容模式开始有命名 contract，而不是每个 feature 重新拼装；
 - 页面壳层新增代码默认走统一 shell contract，而不是先写原子值再事后回收；
 - `@/components/ui/*` 继续维持为基础 UI 唯一入口；
 - app shell 代码中不新增裸视觉值；
+- 关键 UI 状态链不是假接线，至少 loading / validating / sending / checking 这类状态能真实传到视图；
 - mock preview 的视觉体系被明确标注为 shell 外部内容。
 
-在这些条件达成前，任何“我们已经继承了 shadcn 哲学”的表述都属于过度自我美化。
+其中前四项和最后一项，当前实现已经开始满足；  
+但这仍然不足以支持“我们已经彻底完成前端治理”的说法。

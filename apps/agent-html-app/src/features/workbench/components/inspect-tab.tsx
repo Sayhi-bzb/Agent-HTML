@@ -30,9 +30,9 @@ function getDiagnosticVariant(
 
 export function InspectTab({ inspect, logs }: InspectTabProps) {
   return (
-    <Card className="h-full">
+    <Card className="app-shell-fill-card">
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
+        <div className="app-shell-split-row">
           <div>
             <CardTitle>Inspect</CardTitle>
             <CardDescription>{inspect.generatedAt}</CardDescription>
@@ -40,11 +40,11 @@ export function InspectTab({ inspect, logs }: InspectTabProps) {
           <Badge variant="outline">{inspect.diagnostics.length} items</Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex h-full min-h-0 flex-col gap-4">
-        <div className="grid gap-2">
+      <CardContent className="app-shell-content-stack">
+        <div className="app-shell-surface-grid">
           {inspect.diagnostics.map((item) => (
-            <div className="rounded-lg border px-3 py-2 text-sm" key={item.id}>
-              <div className="flex items-center justify-between gap-2">
+            <div className="app-shell-surface-item" key={item.id}>
+              <div className="app-shell-split-row">
                 <span>{item.message}</span>
                 <Badge variant={getDiagnosticVariant(item.severity)}>
                   {item.severity}
@@ -54,9 +54,9 @@ export function InspectTab({ inspect, logs }: InspectTabProps) {
           ))}
         </div>
         <Separator />
-        <div className="grid min-h-0 flex-1 gap-2">
-          <p className="text-xs uppercase text-muted-foreground">stdout</p>
-          <pre className="min-h-0 overflow-auto rounded-lg border bg-muted p-3 text-xs">
+        <div className="app-shell-surface-grid min-h-0 flex-1">
+          <p className="app-shell-kicker">stdout</p>
+          <pre className="app-shell-console">
             {logs.stdout || "n/a"}
           </pre>
         </div>

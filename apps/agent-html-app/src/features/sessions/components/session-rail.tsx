@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
 import { formatTimestampLabel } from "@/lib/time"
 import type { SessionSummary } from "@/lib/types"
 
@@ -44,82 +45,89 @@ export function SessionRail({
   const filtered = useMemo(() => filterSessions(sessions, query), [query, sessions])
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="border-b p-3">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+    <div className="app-shell-pane">
+      <div className="app-shell-pane-header">
+        <div className="app-shell-stack-compact">
+          <div className="app-shell-search-field">
+            <SearchIcon className="app-shell-search-icon" />
             <Input
-              className="pl-8"
+              className="app-shell-search-input"
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search"
               value={query}
             />
           </div>
-          <Button onClick={onCreateSession} size="icon-sm" type="button" variant="outline">
-            <PlusIcon />
+          <Button
+            aria-label="Create session"
+            onClick={onCreateSession}
+            size="icon-sm"
+            type="button"
+            variant="outline"
+          >
+            <PlusIcon data-icon="inline-start" />
           </Button>
         </div>
       </div>
       <ScrollArea className="flex-1">
-        <div className="grid gap-2 p-3">
+        <div className="app-shell-surface-grid app-shell-card-inset">
           {filtered.map((session) => {
             const isActive = session.id === activeSessionId
             return (
-              <button
-                className="text-left"
+              <Card
+                className={cn("app-shell-session-card", isActive && "app-shell-card-active")}
                 key={session.id}
-                onClick={() => onOpenSession(session.id)}
-                type="button"
+                size="sm"
               >
-                <Card className={isActive ? "border-primary" : ""} size="sm">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="truncate">{session.name}</CardTitle>
-                      <Badge variant={isActive ? "default" : "outline"}>
-                        {session.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardFooter className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      {formatTimestampLabel(session.updatedAt)}
-                    </span>
-                    <Button
-                      aria-label="Delete session"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        onDeleteSession(session.id)
-                      }}
-                      size="icon-xs"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <Trash2Icon />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </button>
+                <button
+                  aria-label={`Open session ${session.name}`}
+                  className="app-shell-session-card-trigger"
+                  onClick={() => onOpenSession(session.id)}
+                  type="button"
+                />
+                <CardHeader>
+                  <div className="app-shell-split-row app-shell-split-row-start">
+                    <CardTitle className="truncate">{session.name}</CardTitle>
+                    <Badge variant={isActive ? "default" : "outline"}>
+                      {session.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardFooter className="app-shell-metric-row">
+                  <span className="app-shell-supporting-copy">
+                    {formatTimestampLabel(session.updatedAt)}
+                  </span>
+                  <Button
+                    aria-label="Delete session"
+                    className="app-shell-session-card-action"
+                    onClick={() => onDeleteSession(session.id)}
+                    size="icon-xs"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Trash2Icon data-icon="inline-start" />
+                  </Button>
+                </CardFooter>
+              </Card>
             )
           })}
           {filtered.length === 0 ? (
             <Card size="sm">
-              <CardContent className="py-6 text-xs text-muted-foreground">
+              <CardContent className="app-shell-empty-state app-shell-supporting-copy">
                 No sessions
               </CardContent>
             </Card>
           ) : null}
           {loading ? (
-            <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
-              <LoaderCircleIcon className="size-3.5 animate-spin" />
+            <div className="app-shell-loading-row">
+              <LoaderCircleIcon className="app-shell-spinner" />
               Loading
             </div>
           ) : null}
         </div>
       </ScrollArea>
-      <div className="border-t p-3">
-        <Button size="icon-sm" type="button" variant="ghost">
-          <Settings2Icon />
+      <div className="app-shell-pane-footer">
+        <Button aria-label="Session settings" size="icon-sm" type="button" variant="ghost">
+          <Settings2Icon data-icon="inline-start" />
         </Button>
       </div>
     </div>

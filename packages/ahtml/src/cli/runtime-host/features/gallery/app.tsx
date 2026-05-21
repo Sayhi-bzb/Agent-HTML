@@ -76,30 +76,35 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import type { AgentDocument, RuntimeVerificationState } from "../../renderer/types"
 
-type StyleProfile = AgentDocument["meta"]["styleProfile"]
+type ArtifactProfile = AgentDocument["meta"]["artifactProfile"]
 type GalleryStateResponse = {
   ok: boolean
-  availableStyleReferences: string[]
-  styleReference: string
-  styleProfile: StyleProfile
+  availableArtifactProfileReferences: string[]
+  artifactProfileReference: string
+  artifactProfile: ArtifactProfile
+  availableStyleReferences?: string[]
+  styleReference?: string
+  styleProfile?: ArtifactProfile
 }
 
 type GalleryMutationResponse = {
   ok: boolean
   error?: string
+  availableArtifactProfileReferences?: string[]
+  artifactProfileReference?: string
+  artifactProfile?: ArtifactProfile
   availableStyleReferences?: string[]
   styleReference?: string
-  styleProfile?: StyleProfile
 }
 
 type GalleryEditorState = {
   availableStyleReferences: string[]
   createId: string
-  draftProfile: StyleProfile
+  draftProfile: ArtifactProfile
   error: string
   isDirty: boolean
   isSaving: boolean
-  persistedProfile: StyleProfile
+  persistedProfile: ArtifactProfile
   status: string
   styleReference: string
 }
@@ -118,7 +123,8 @@ type GalleryPreviewMode =
   | "typography"
   | "full"
 type GalleryPreviewThemeMode = "light" | "dark"
-type ThemeTokenName = keyof StyleProfile["globalStyle"]["tokenSets"]["light"]
+type ThemeTokenName =
+  keyof ArtifactProfile["globalStyle"]["tokenSets"]["light"]
 type FocusedThemeToken = {
   mode: GalleryPreviewThemeMode
   tokenName: ThemeTokenName
@@ -399,7 +405,7 @@ export function GalleryApp({
   styleReference,
 }: {
   availableStyleReferences: string[]
-  initialProfile: StyleProfile
+  initialProfile: ArtifactProfile
   runtimeRendererVerification: RuntimeVerificationState
   styleReference: string
 }) {
@@ -460,16 +466,19 @@ export function GalleryApp({
 
       setEditorState((current) => ({
         ...current,
-        availableStyleReferences: nextState.availableStyleReferences,
+        availableStyleReferences:
+          nextState.availableArtifactProfileReferences ??
+          nextState.availableStyleReferences ??
+          current.availableStyleReferences,
         draftProfile: current.isDirty
           ? current.draftProfile
-          : nextState.styleProfile,
+          : nextState.artifactProfile,
         error: "",
-        persistedProfile: nextState.styleProfile,
+        persistedProfile: nextState.artifactProfile,
         status: current.isDirty ? current.status : "Style gallery ready.",
         styleReference: current.isDirty
           ? current.styleReference
-          : nextState.styleReference,
+          : (nextState.artifactProfileReference ?? nextState.styleReference ?? current.styleReference),
       }))
     })
 
@@ -502,8 +511,9 @@ export function GalleryApp({
       createRendererNode(
         rendererSpecByName,
         editorState.draftProfile.componentStyle.treatments,
+        editorState.draftProfile,
       ),
-    [editorState.draftProfile.componentStyle.treatments],
+    [editorState.draftProfile, editorState.draftProfile.componentStyle.treatments],
   )
   const documentStyleCss = React.useMemo(
     () => createDocumentStyleCss(editorState.draftProfile),
@@ -607,7 +617,7 @@ export function GalleryApp({
       : "Saved preset loaded in the editor."
 
   const updateDraftProfile = React.useCallback(
-    (updater: (draft: StyleProfile) => StyleProfile) => {
+    (updater: (draft: ArtifactProfile) => ArtifactProfile) => {
       setEditorState((current) => ({
         ...current,
         draftProfile: updater(current.draftProfile),
@@ -737,7 +747,7 @@ export function GalleryApp({
     try {
       const response = await fetch("/__ahtml/gallery/save", {
         body: JSON.stringify({
-          styleProfile: editorState.draftProfile,
+          artifactProfile: editorState.draftProfile,
         }),
         headers: {
           "content-type": "application/json",
@@ -749,8 +759,8 @@ export function GalleryApp({
       if (
         !response.ok ||
         !result.ok ||
-        !result.styleProfile ||
-        !result.styleReference
+        !result.artifactProfile ||
+        !(result.artifactProfileReference ?? result.styleReference)
       ) {
         throw new Error(result.error ?? "Unable to save gallery style profile.")
       }
@@ -758,14 +768,16 @@ export function GalleryApp({
       setEditorState((current) => ({
         ...current,
         availableStyleReferences:
-          result.availableStyleReferences ?? current.availableStyleReferences,
-        draftProfile: result.styleProfile!,
+          result.availableArtifactProfileReferences ??
+          result.availableStyleReferences ??
+          current.availableStyleReferences,
+        draftProfile: result.artifactProfile!,
         error: "",
         isDirty: false,
         isSaving: false,
-        persistedProfile: result.styleProfile!,
-        status: `Saved ${result.styleReference}.`,
-        styleReference: result.styleReference!,
+        persistedProfile: result.artifactProfile!,
+        status: `Saved ${result.artifactProfileReference ?? result.styleReference}.`,
+        styleReference: (result.artifactProfileReference ?? result.styleReference)!,
       }))
     } catch (error) {
       setEditorState((current) => ({
@@ -788,7 +800,7 @@ export function GalleryApp({
       try {
         const response = await fetch("/__ahtml/gallery/select", {
           body: JSON.stringify({
-            styleReference: nextStyleReference,
+            artifactProfileReference: nextStyleReference,
           }),
           headers: {
             "content-type": "application/json",
@@ -800,8 +812,8 @@ export function GalleryApp({
         if (
           !response.ok ||
           !result.ok ||
-          !result.styleProfile ||
-          !result.styleReference
+          !result.artifactProfile ||
+          !(result.artifactProfileReference ?? result.styleReference)
         ) {
           throw new Error(result.error ?? "Unable to switch style profile.")
         }
@@ -809,13 +821,16 @@ export function GalleryApp({
         setEditorState((current) => ({
           ...current,
           availableStyleReferences:
-            result.availableStyleReferences ?? current.availableStyleReferences,
-          draftProfile: result.styleProfile!,
+            result.availableArtifactProfileReferences ??
+            result.availableStyleReferences ??
+            current.availableStyleReferences,
+          draftProfile: result.artifactProfile!,
           error: "",
           isDirty: false,
-          persistedProfile: result.styleProfile!,
-          status: `Selected ${result.styleReference}.`,
-          styleReference: result.styleReference!,
+          persistedProfile: result.artifactProfile!,
+          status: `Selected ${result.artifactProfileReference ?? result.styleReference}.`,
+          styleReference:
+            (result.artifactProfileReference ?? result.styleReference)!,
         }))
       } catch (error) {
         setEditorState((current) => ({
@@ -926,8 +941,8 @@ export function GalleryApp({
 
     try {
       const response = await fetch("/__ahtml/gallery/create", {
-        body: JSON.stringify({
-          styleReference: createId,
+          body: JSON.stringify({
+          artifactProfileReference: createId,
         }),
         headers: {
           "content-type": "application/json",
@@ -939,8 +954,8 @@ export function GalleryApp({
       if (
         !response.ok ||
         !result.ok ||
-        !result.styleProfile ||
-        !result.styleReference
+        !result.artifactProfile ||
+        !(result.artifactProfileReference ?? result.styleReference)
       ) {
         throw new Error(result.error ?? "Unable to create style profile.")
       }
@@ -948,15 +963,18 @@ export function GalleryApp({
       setEditorState((current) => ({
         ...current,
         availableStyleReferences:
-          result.availableStyleReferences ?? current.availableStyleReferences,
+          result.availableArtifactProfileReferences ??
+          result.availableStyleReferences ??
+          current.availableStyleReferences,
         createId: "",
-        draftProfile: result.styleProfile!,
+        draftProfile: result.artifactProfile!,
         error: "",
         isDirty: false,
         isSaving: false,
-        persistedProfile: result.styleProfile!,
-        status: `Created ${result.styleReference}.`,
-        styleReference: result.styleReference!,
+        persistedProfile: result.artifactProfile!,
+        status: `Created ${result.artifactProfileReference ?? result.styleReference}.`,
+        styleReference:
+          (result.artifactProfileReference ?? result.styleReference)!,
       }))
     } catch (error) {
       setEditorState((current) => ({
@@ -979,7 +997,7 @@ export function GalleryApp({
     try {
       const response = await fetch("/__ahtml/gallery/delete", {
         body: JSON.stringify({
-          styleReference: editorState.styleReference,
+          artifactProfileReference: editorState.styleReference,
         }),
         headers: {
           "content-type": "application/json",
@@ -991,8 +1009,8 @@ export function GalleryApp({
       if (
         !response.ok ||
         !result.ok ||
-        !result.styleProfile ||
-        !result.styleReference
+        !result.artifactProfile ||
+        !(result.artifactProfileReference ?? result.styleReference)
       ) {
         throw new Error(result.error ?? "Unable to delete style profile.")
       }
@@ -1000,14 +1018,17 @@ export function GalleryApp({
       setEditorState((current) => ({
         ...current,
         availableStyleReferences:
-          result.availableStyleReferences ?? current.availableStyleReferences,
-        draftProfile: result.styleProfile!,
+          result.availableArtifactProfileReferences ??
+          result.availableStyleReferences ??
+          current.availableStyleReferences,
+        draftProfile: result.artifactProfile!,
         error: "",
         isDirty: false,
         isSaving: false,
-        persistedProfile: result.styleProfile!,
-        status: `Deleted style. Current is ${result.styleReference}.`,
-        styleReference: result.styleReference!,
+        persistedProfile: result.artifactProfile!,
+        status: `Deleted style. Current is ${result.artifactProfileReference ?? result.styleReference}.`,
+        styleReference:
+          (result.artifactProfileReference ?? result.styleReference)!,
       }))
     } catch (error) {
       setEditorState((current) => ({
@@ -1239,6 +1260,7 @@ export function GalleryApp({
       />
       <main
         className="ahtml-runtime-host ahtml-gallery-shell"
+        data-artifact-profile={editorState.draftProfile.id}
         data-style-profile={editorState.draftProfile.id}
       >
         <header
@@ -4827,13 +4849,13 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-function createGallerySurfaceShadow(styleProfile: StyleProfile) {
+function createGallerySurfaceShadow(styleProfile: ArtifactProfile) {
   const typography = styleProfile.globalStyle.typography
 
   return `${typography.shadowOffsetX} ${typography.shadowOffsetY} ${typography.shadowBlur} ${typography.shadowSpread} color-mix(in srgb, ${typography.shadowColor} calc(${typography.shadowOpacity} * 100%), transparent)`
 }
 
-function createDocumentStyleCss(styleProfile: StyleProfile) {
+function createDocumentStyleCss(styleProfile: ArtifactProfile) {
   const globalStyle = styleProfile.globalStyle
 
   return [
@@ -4845,7 +4867,7 @@ function createDocumentStyleCss(styleProfile: StyleProfile) {
   ].join("")
 }
 
-function createGalleryPreviewThemeCss(styleProfile: StyleProfile) {
+function createGalleryPreviewThemeCss(styleProfile: ArtifactProfile) {
   return [
     `.ahtml-gallery-preview-surface[data-theme-mode="light"]{${createGlobalStyleDeclarations(
       styleProfile.globalStyle,
@@ -4859,7 +4881,7 @@ function createGalleryPreviewThemeCss(styleProfile: StyleProfile) {
 }
 
 function createGlobalStyleDeclarations(
-  globalStyle: StyleProfile["globalStyle"],
+  globalStyle: ArtifactProfile["globalStyle"],
   mode: "light" | "dark",
 ) {
   return [

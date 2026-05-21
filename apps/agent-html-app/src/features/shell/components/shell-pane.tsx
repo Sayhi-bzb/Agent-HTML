@@ -55,14 +55,14 @@ export function ShellPane({
   onRuntimeCheck,
 }: ShellPaneProps) {
   return (
-    <div className="flex h-full flex-col">
-      <div className="border-b px-3 py-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <BotIcon className="size-4" />
-            <span className="text-sm font-medium">Shell</span>
+    <div className="app-shell-pane">
+      <div className="app-shell-pane-header">
+        <div className="app-shell-split-row">
+          <div className="app-shell-stack-compact">
+            <BotIcon className="app-shell-inline-icon" />
+            <span className="app-shell-panel-title">Shell</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="app-shell-stack-compact">
             <Button onClick={onDraftProposal} size="sm" type="button" variant="outline">
               <SparklesIcon data-icon="inline-start" />
               Proposal
@@ -75,7 +75,7 @@ export function ShellPane({
         </div>
       </div>
       <ScrollArea className="flex-1">
-        <div className="grid gap-3 p-3">
+        <div className="app-shell-surface-grid-roomy app-shell-card-inset">
           {runtimeReport ? <RuntimeReportCard runtimeReport={runtimeReport} /> : null}
 
           {messages.map((message) => (
@@ -84,22 +84,22 @@ export function ShellPane({
 
           {messages.length === 0 ? (
             <Card size="sm">
-              <CardContent className="py-6 text-sm text-muted-foreground">
+              <CardContent className="app-shell-empty-state">
                 Empty
               </CardContent>
             </Card>
           ) : null}
         </div>
       </ScrollArea>
-      <div className="border-t p-3">
-        <div className="grid gap-2">
+      <div className="app-shell-pane-footer">
+        <div className="app-shell-surface-grid">
           <Textarea
             onChange={(event) => onDraftChange(event.target.value)}
             placeholder="..."
             value={messageDraft}
           />
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-xs text-muted-foreground">
+          <div className="app-shell-split-row">
+            <div className="app-shell-supporting-copy">
               {getShellStatusLabel(sending, drafting, checking)}
             </div>
             <Button disabled={!messageDraft.trim() || sending} onClick={onSend} type="button">

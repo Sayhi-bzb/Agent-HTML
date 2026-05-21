@@ -69,7 +69,8 @@ function validateRenderConfig(
   pushRenderConfigFallbackDiagnostic({
     diagnostics,
     reason: resolved.reason,
-    requestedStyleRef: resolved.requestedStyleRef,
+    requestedProfileRef: resolved.requestedProfileRef,
+    requestedLegacyStyleRef: resolved.requestedLegacyStyleRef,
   })
 
   return resolved.config

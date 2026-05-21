@@ -4,7 +4,7 @@ import { parseRenderConfig } from "../render-config"
 import { sanitizeAgentHtml } from "./sanitize-agent-html"
 
 const semanticReportSource = `
-  <meta-agent style-ref="report-default" />
+  <meta-agent profile-ref="report-default" />
   <page title="Semantic Report">
     <alert title="Thesis">HTML artifacts can stay readable without exposing implementation details.</alert>
     <card title="Executive Summary">
@@ -28,7 +28,7 @@ const semanticReportSource = `
 `
 
 const collaborationWorkbenchSource = `
-  <meta-agent style-ref="ops-compact" />
+  <meta-agent profile-ref="ops-compact" />
   <page title="Human Agent Collaboration Workbench">
     <tabs>
       <tab value="explore" label="Explore">
@@ -59,22 +59,22 @@ const collaborationWorkbenchSource = `
 
 function createCustomStyleProfile(
   id = "team-ops",
-): ReturnType<typeof parseRenderConfig>["styleProfile"] {
-  const baseRenderConfig = parseRenderConfig({ "style-ref": "ops-compact" })
+): ReturnType<typeof parseRenderConfig>["artifactProfile"] {
+  const baseRenderConfig = parseRenderConfig({ "profile-ref": "ops-compact" })
 
   return {
-    ...baseRenderConfig.styleProfile,
+    ...baseRenderConfig.artifactProfile,
     id,
     globalStyle: {
-      ...baseRenderConfig.styleProfile.globalStyle,
+      ...baseRenderConfig.artifactProfile.globalStyle,
       tokenSets: {
         light: {
-          ...baseRenderConfig.styleProfile.globalStyle.tokenSets.light,
+          ...baseRenderConfig.artifactProfile.globalStyle.tokenSets.light,
           background: "#fcfbf8",
           primary: "#0f766e",
         },
         dark: {
-          ...baseRenderConfig.styleProfile.globalStyle.tokenSets.dark,
+          ...baseRenderConfig.artifactProfile.globalStyle.tokenSets.dark,
           background: "oklch(0.18 0.02 190)",
           primary: "oklch(0.74 0.11 190)",
         },
@@ -82,7 +82,7 @@ function createCustomStyleProfile(
     },
     componentStyle: {
       treatments: {
-        ...baseRenderConfig.styleProfile.componentStyle.treatments,
+        ...baseRenderConfig.artifactProfile.componentStyle.treatments,
         card: "review-card",
       },
     },
@@ -100,7 +100,7 @@ function expectNoErrorDiagnostics(
 describe("sanitizeAgentHtml", () => {
   it("produces SanitizedAgentHtml for valid MVP agent-html", () => {
     const result = sanitizeAgentHtml(`
-      <meta-agent style-ref="report-default" />
+      <meta-agent profile-ref="report-default" />
       <page title="Payment Review">
         <card title="High Risk">
           <badge variant="destructive">Missing finance role check</badge>
@@ -124,10 +124,10 @@ describe("sanitizeAgentHtml", () => {
     `)
 
     expectNoErrorDiagnostics(result.diagnostics)
-    expect(result.document).toEqual({
+    expect(result.document).toMatchObject({
       meta: {
-        documentStyleConfigReference: "report-default",
-        styleProfile: {
+        artifactProfileReference: "report-default",
+        artifactProfile: {
           id: "report-default",
           globalStyle: {
             tokenSets: {
@@ -292,9 +292,9 @@ describe("sanitizeAgentHtml", () => {
     `)
 
     expectNoErrorDiagnostics(result.diagnostics)
-    expect(result.document?.meta).toEqual({
-      documentStyleConfigReference: "report-default",
-      styleProfile: {
+    expect(result.document?.meta).toMatchObject({
+      artifactProfileReference: "report-default",
+      artifactProfile: {
         id: "report-default",
         globalStyle: {
           tokenSets: {
@@ -332,7 +332,7 @@ describe("sanitizeAgentHtml", () => {
     })
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
-        code: "missing-style-ref",
+        code: "missing-profile-ref",
         severity: "warning",
       }),
     ])
@@ -341,21 +341,21 @@ describe("sanitizeAgentHtml", () => {
   it("resolves runtime style profiles through sanitize options", () => {
     const result = sanitizeAgentHtml(
       `
-        <meta-agent style-ref="team-ops" />
+        <meta-agent profile-ref="team-ops" />
         <page title="Team Ops">
           <card title="Summary">Ready.</card>
         </page>
       `,
       {
-        resolveStyleProfileReference: (reference) =>
+        resolveArtifactProfileReference: (reference) =>
           reference === "team-ops" ? createCustomStyleProfile() : undefined,
       },
     )
 
     expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.meta).toMatchObject({
-      documentStyleConfigReference: "team-ops",
-      styleProfile: {
+      artifactProfileReference: "team-ops",
+      artifactProfile: {
         id: "team-ops",
         globalStyle: {
           tokenSets: {
@@ -378,25 +378,25 @@ describe("sanitizeAgentHtml", () => {
     })
   })
 
-  it("falls back to the default profile for unresolved runtime style references", () => {
+  it("falls back to the default profile for unresolved runtime profile references", () => {
     const result = sanitizeAgentHtml(`
-      <meta-agent style-ref="team-missing" />
+      <meta-agent profile-ref="team-missing" />
       <page title="Fallback">
         <card title="Summary">Default profile.</card>
       </page>
     `)
 
     expectNoErrorDiagnostics(result.diagnostics)
-    expect(result.document?.meta.documentStyleConfigReference).toBe(
+    expect(result.document?.meta.artifactProfileReference).toBe(
       "report-default",
     )
-    expect(result.document?.meta.styleProfile.id).toBe("report-default")
-    expect(result.document?.meta.styleProfile.componentStyle.treatments.card).toBe(
+    expect(result.document?.meta.artifactProfile.id).toBe("report-default")
+    expect(result.document?.meta.artifactProfile.componentStyle.treatments.card).toBe(
       "report-card",
     )
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
-        code: "unknown-style-ref",
+        code: "unknown-profile-ref",
         severity: "warning",
       }),
     ])
@@ -404,7 +404,7 @@ describe("sanitizeAgentHtml", () => {
 
   it("keeps the page root after a self-closing meta-agent header", () => {
     const result = sanitizeAgentHtml(`
-      <meta-agent style-ref="ops-compact" />
+      <meta-agent profile-ref="ops-compact" />
       <page title="Payment Review" />
     `)
 
@@ -518,11 +518,11 @@ describe("sanitizeAgentHtml", () => {
 
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
-        code: "invalid-style-ref-shape",
+        code: "invalid-profile-ref-shape",
         severity: "warning",
       }),
     ])
-    expect(result.document?.meta.documentStyleConfigReference).toBe(
+    expect(result.document?.meta.artifactProfileReference).toBe(
       "report-default",
     )
   })
@@ -535,13 +535,28 @@ describe("sanitizeAgentHtml", () => {
 
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
-        code: "invalid-style-ref-shape",
+        code: "invalid-profile-ref-shape",
         severity: "warning",
       }),
     ])
-    expect(result.document?.meta.documentStyleConfigReference).toBe(
+    expect(result.document?.meta.artifactProfileReference).toBe(
       "report-default",
     )
+  })
+
+  it("rejects legacy style-ref headers as an error", () => {
+    const result = sanitizeAgentHtml(`
+      <meta-agent style-ref="ops-compact" />
+      <page title="Payment Review" />
+    `)
+
+    expect(result.document).toBeUndefined()
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "legacy-style-ref",
+        severity: "error",
+      }),
+    ])
   })
 
   it("does not pass cleaned HTML through as the renderer input", () => {

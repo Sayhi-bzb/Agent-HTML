@@ -8,7 +8,7 @@ export function createConformanceFixtures() {
       source: '<page title="Fallback"><card title="Summary">Default profile.</card></page>',
       expect: {
         ok: true,
-        documentStyleConfigReference: "ops-compact",
+        artifactProfileReference: "ops-compact",
         components: [
           { name: "card", count: 1 },
           { name: "page", count: 1 },
@@ -16,14 +16,14 @@ export function createConformanceFixtures() {
       },
     },
     {
-      name: "builtin style-ref via meta-agent",
+      name: "builtin profile-ref via meta-agent",
       source: [
-        '<meta-agent style-ref="ops-compact" />',
+        '<meta-agent profile-ref="ops-compact" />',
         '<page title="Dashboard"><card title="Queue">Ready.</card></page>',
       ].join("\n"),
       expect: {
         ok: true,
-        documentStyleConfigReference: "ops-compact",
+        artifactProfileReference: "ops-compact",
         components: [
           { name: "card", count: 1 },
           { name: "page", count: 1 },
@@ -39,14 +39,14 @@ export function createConformanceFixtures() {
       },
     },
     {
-      name: "unresolved style-ref falls back to default",
+      name: "unresolved profile-ref falls back to default",
       source: [
-        '<meta-agent style-ref="team-missing" />',
+        '<meta-agent profile-ref="team-missing" />',
         '<page title="Fallback"><card title="Summary">Default profile.</card></page>',
       ].join("\n"),
       expect: {
         ok: true,
-        documentStyleConfigReference: "report-default",
+        artifactProfileReference: "ops-compact",
         components: [
           { name: "card", count: 1 },
           { name: "page", count: 1 },
@@ -59,8 +59,7 @@ export function createConformanceFixtures() {
 export function normalizeConformanceResult(result) {
   return {
     ok: result.ok,
-    documentStyleConfigReference:
-      result.documentStyleConfigReference ?? undefined,
+    artifactProfileReference: result.artifactProfileReference ?? undefined,
     components: [...(result.components ?? [])].sort((left, right) =>
       left.name.localeCompare(right.name),
     ),
@@ -77,13 +76,13 @@ export function assertConformanceResultMatchesFixture(expect, actual) {
     )
   }
 
-  if (expect.documentStyleConfigReference) {
+  if (expect.artifactProfileReference) {
     if (
-      normalizedActual.documentStyleConfigReference !==
-      expect.documentStyleConfigReference
+      normalizedActual.artifactProfileReference !==
+      expect.artifactProfileReference
     ) {
       throw new Error(
-        `Expected documentStyleConfigReference="${expect.documentStyleConfigReference}", received "${normalizedActual.documentStyleConfigReference ?? "undefined"}".`,
+        `Expected artifactProfileReference="${expect.artifactProfileReference}", received "${normalizedActual.artifactProfileReference ?? "undefined"}".`,
       )
     }
   }
@@ -121,14 +120,14 @@ function hasErrorDiagnostics(diagnostics = []) {
 export async function runCoreConformanceFixture(root, fixture) {
   const coreModule = await importCoreModule(root)
   const result = coreModule.sanitizeAgentHtml(fixture.source, {
-    resolveDefaultStyleProfileReference: () =>
-      coreModule.BUILTIN_STYLE_PROFILES_BY_REFERENCE["ops-compact"],
+    resolveDefaultArtifactProfileReference: () =>
+      coreModule.BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE["ops-compact"],
   })
 
   return normalizeConformanceResult({
     ok: !hasErrorDiagnostics(result.diagnostics),
-    documentStyleConfigReference:
-      result.document?.meta.documentStyleConfigReference,
+    artifactProfileReference:
+      result.document?.meta.artifactProfileReference,
     components: createInspectionCounts(result.document?.components ?? []),
     diagnosticCodes: result.diagnostics.map((diagnostic) => diagnostic.code),
   })
@@ -143,8 +142,8 @@ export async function runAhtmlConformanceFixture(root, fixture, runtimePaths) {
 
   return normalizeConformanceResult({
     ok: !hasErrorDiagnostics(result.diagnostics),
-    documentStyleConfigReference:
-      result.document?.meta.documentStyleConfigReference,
+    artifactProfileReference:
+      result.document?.meta.artifactProfileReference,
     components: createInspectionCounts(result.document?.components ?? []),
     diagnosticCodes: result.diagnostics.map((diagnostic) => diagnostic.code),
   })
