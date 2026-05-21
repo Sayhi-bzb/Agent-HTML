@@ -67,6 +67,12 @@ export function App() {
               onOpenSession={(sessionId) => {
                 void actions.openSessionById(sessionId)
               }}
+              onRenameSession={(sessionId, name) => {
+                void actions.renameSessionById(sessionId, name)
+              }}
+              onTogglePinned={(sessionId, pinned) => {
+                void actions.toggleSessionPinned(sessionId, pinned)
+              }}
               sessions={appState.sessions}
             />
           }

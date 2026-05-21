@@ -2,18 +2,14 @@ export function createGalleryMailWorkbenchCss() {
   return `
     .ahtml-gallery-mail-shell {
       display: grid;
-      grid-template-columns:
-        var(--ahtml-gallery-mail-nav-width)
-        minmax(
-          var(--ahtml-gallery-mail-list-min-width),
-          var(--ahtml-gallery-mail-list-max-width)
-        )
-        minmax(0, 1fr);
+      grid-template-columns: var(--ahtml-gallery-mail-shell-columns);
       gap: 0;
       overflow: hidden;
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       border-radius: calc(var(--radius) * 1.2);
-      background: color-mix(in srgb, var(--background) 99%, var(--muted) 1%);
+      background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 28%),
+        linear-gradient(180deg, color-mix(in srgb, var(--background) 99%, var(--muted) 1%), color-mix(in srgb, var(--background) 95%, var(--muted) 5%));
     }
     .ahtml-gallery-mail-nav,
     .ahtml-gallery-mail-list,
@@ -28,15 +24,42 @@ export function createGalleryMailWorkbenchCss() {
     .ahtml-gallery-mail-list {
       border-right: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
     }
+    .ahtml-gallery-mail-nav-profile,
+    .ahtml-gallery-mail-nav-section {
+      display: grid;
+      gap: var(--ahtml-space-sm);
+    }
+    .ahtml-gallery-mail-nav-profile p {
+      margin: 0;
+      color: color-mix(in srgb, var(--sidebar-foreground) 74%, transparent);
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    .ahtml-gallery-mail-nav-label {
+      color: color-mix(in srgb, var(--sidebar-foreground) 68%, transparent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
     .ahtml-gallery-mail-nav-links {
       display: grid;
-      gap: 0.6rem;
+      gap: var(--ahtml-space-sm);
       color: var(--muted-foreground);
       font-size: 0.82rem;
+    }
+    .ahtml-gallery-mail-nav-links span {
+      display: flex;
+      align-items: center;
+      min-height: var(--ahtml-gallery-nav-item-min-height);
+      padding: 0 var(--ahtml-gallery-nav-item-padding-inline);
+      border-radius: calc(var(--radius) * 0.85);
+      background: color-mix(in srgb, white 6%, transparent);
     }
     .ahtml-gallery-mail-nav-links span.is-active {
       color: var(--sidebar-foreground);
       font-weight: 700;
+      background: color-mix(in srgb, var(--sidebar-primary) 22%, transparent);
     }
     .ahtml-gallery-mail-list-toolbar {
       display: inline-flex;
@@ -48,10 +71,20 @@ export function createGalleryMailWorkbenchCss() {
       display: grid;
       gap: var(--ahtml-gallery-layout-gap-compact);
     }
+    .ahtml-gallery-mail-list-heading {
+      display: grid;
+      gap: 0.2rem;
+    }
     .ahtml-gallery-mail-list-header h5 {
       margin: 0;
       font-size: 1.05rem;
       line-height: 1.1;
+    }
+    .ahtml-gallery-mail-list-header p {
+      margin: 0;
+      color: var(--muted-foreground);
+      font-size: 0.8rem;
+      line-height: 1.5;
     }
     .ahtml-gallery-mail-tab-pills {
       display: inline-flex;
@@ -80,16 +113,32 @@ export function createGalleryMailWorkbenchCss() {
       display: grid;
       gap: var(--ahtml-space-2xs);
       padding: var(--ahtml-surface-padding-sm);
-      border: 1px solid transparent;
+      border: 1px solid color-mix(in srgb, var(--border) 48%, transparent);
       border-radius: calc(var(--radius) * 0.9);
-      background: transparent;
+      background: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
       text-align: left;
       color: inherit;
       cursor: pointer;
     }
     .ahtml-gallery-mail-list-item.is-active {
       border-color: color-mix(in srgb, var(--border) 72%, transparent);
-      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      background:
+        linear-gradient(
+          135deg,
+          color-mix(in srgb, var(--card) 96%, white 4%),
+          color-mix(in srgb, var(--accent) 10%, var(--card) 90%)
+        );
+      box-shadow: 0 14px 26px color-mix(in srgb, var(--foreground) 5%, transparent);
+    }
+    .ahtml-gallery-mail-list-item-copy {
+      display: grid;
+      gap: 0.18rem;
+    }
+    .ahtml-gallery-mail-list-item-subject {
+      color: var(--foreground);
+      font-size: 0.86rem;
+      font-weight: 600;
+      line-height: 1.35;
     }
     .ahtml-gallery-mail-list-item span {
       color: var(--muted-foreground);
@@ -102,12 +151,24 @@ export function createGalleryMailWorkbenchCss() {
       font-size: 0.76rem;
       line-height: 1.45;
     }
+    .ahtml-gallery-mail-list-item-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--ahtml-space-xs);
+      flex-wrap: wrap;
+    }
     .ahtml-gallery-mail-display-header {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
       flex-wrap: wrap;
+    }
+    .ahtml-gallery-mail-display-heading {
+      display: grid;
+      gap: var(--ahtml-space-2xs);
+      max-width: var(--ahtml-gallery-workbench-header-max-width);
     }
     .ahtml-gallery-mail-display-header h4 {
       margin: 0.12rem 0 0;
@@ -125,6 +186,16 @@ export function createGalleryMailWorkbenchCss() {
       align-items: center;
       gap: var(--ahtml-space-xs);
       flex-wrap: wrap;
+    }
+    .ahtml-gallery-mail-thread-summary {
+      display: grid;
+      grid-template-columns: var(--ahtml-gallery-three-up-columns);
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      padding:
+        var(--ahtml-gallery-compact-panel-padding-block)
+        0;
+      border-top: 1px solid color-mix(in srgb, var(--border) 48%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 48%, transparent);
     }
     .ahtml-gallery-mail-display-body {
       display: grid;
@@ -166,6 +237,28 @@ export function createGalleryMailWorkbenchCss() {
     .ahtml-gallery-mail-attachment-card span {
       color: var(--muted-foreground);
       font-size: 0.76rem;
+    }
+    .ahtml-gallery-mail-composer {
+      display: grid;
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      padding: var(--ahtml-surface-padding-sm);
+      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+      border-radius: calc(var(--radius) * 0.95);
+      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
+    }
+    .ahtml-gallery-mail-composer-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--ahtml-space-sm);
+      flex-wrap: wrap;
+    }
+    .ahtml-gallery-mail-composer-footer span {
+      color: var(--muted-foreground);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      flex: 1;
+      min-width: 0;
     }
   `
 }

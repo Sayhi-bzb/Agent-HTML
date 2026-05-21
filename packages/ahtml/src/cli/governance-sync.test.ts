@@ -63,6 +63,12 @@ const gallerySharedModulePaths = [
   "packages/ahtml/src/cli/runtime-host/features/gallery/shared/preview-container.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/shared/preset-option.tsx",
 ]
+const galleryAppModulePaths = [
+  "packages/ahtml/src/cli/runtime-host/features/gallery/app.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/actions.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/hooks.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/state.tsx",
+]
 
 async function readGallerySceneStyleSource() {
   return (
@@ -100,6 +106,14 @@ async function readGallerySharedModuleSource() {
       gallerySharedModulePaths.map((relativePath) =>
         readRepoSource(relativePath),
       ),
+    )
+  ).join("\n")
+}
+
+async function readGalleryAppModuleSource() {
+  return (
+    await Promise.all(
+      galleryAppModulePaths.map((relativePath) => readRepoSource(relativePath)),
     )
   ).join("\n")
 }
@@ -253,6 +267,23 @@ describe("code governance sync blocks", () => {
     expect(hostStylesSource).toContain("--ahtml-gallery-color-popover-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-inspector-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-dashboard-card-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-two-up-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-workbench-intro-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-workbench-copy-max-width")
+    expect(hostStylesSource).toContain("--ahtml-gallery-workbench-header-max-width")
+    expect(hostStylesSource).toContain("--ahtml-gallery-workbench-meta-min-width")
+    expect(hostStylesSource).toContain("--ahtml-gallery-workbench-side-rail-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-three-up-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-triptych-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-nav-item-min-height")
+    expect(hostStylesSource).toContain("--ahtml-gallery-nav-item-padding-inline")
+    expect(hostStylesSource).toContain("--ahtml-gallery-custom-status-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-custom-stage-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-dashboard-lower-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-mail-shell-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-mail-shell-columns-medium")
+    expect(hostStylesSource).toContain("--ahtml-gallery-pricing-lower-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-showcase-grid-columns")
     expect(hostStylesSource).toContain(
       "grid-template-columns: var(--ahtml-gallery-preset-stats-columns);",
     )
@@ -263,8 +294,62 @@ describe("code governance sync blocks", () => {
       "grid-template-columns: var(--ahtml-gallery-inspector-columns);",
     )
     expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-two-up-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-workbench-intro-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-workbench-side-rail-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-three-up-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-triptych-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-custom-status-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-custom-stage-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-dashboard-lower-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-mail-shell-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-mail-shell-columns-medium);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-pricing-lower-columns);",
+    )
+    expect(galleryStylesSource).toContain(
       "grid-template-columns: var(--ahtml-gallery-dashboard-card-columns);",
     )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-showcase-grid-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "max-width: var(--ahtml-gallery-workbench-copy-max-width);",
+    )
+    expect(galleryStylesSource).toContain(
+      "max-width: var(--ahtml-gallery-workbench-header-max-width);",
+    )
+    expect(galleryStylesSource).toContain(
+      "min-width: var(--ahtml-gallery-workbench-meta-min-width);",
+    )
+    expect(galleryStylesSource).toContain(
+      "min-height: var(--ahtml-gallery-nav-item-min-height);",
+    )
+    expect(galleryStylesSource).toContain(
+      "padding: 0 var(--ahtml-gallery-nav-item-padding-inline);",
+    )
+    expect(hostStylesSource).not.toContain("--ahtml-gallery-cards-workbench-columns")
+    expect(hostStylesSource).not.toContain("--ahtml-gallery-cards-split-columns")
+    expect(hostStylesSource).not.toContain("--ahtml-gallery-pricing-columns")
   })
 
   it("keeps gallery micro spacing and surface padding on shared runtime host tokens", async () => {
@@ -630,5 +715,59 @@ describe("code governance sync blocks", () => {
     expect(galleryFeatureSource).toContain('from "../shared/chrome"')
     expect(galleryFeatureSource).toContain('from "../shared/form-controls"')
     expect(galleryFeatureSource).toContain('from "../shared/preset-option"')
+  })
+
+  it("keeps gallery app.tsx as an orchestrator while state, actions, and effects live in dedicated modules", async () => {
+    const [appSource, appModuleSource] = await Promise.all([
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "features",
+        "gallery",
+        "app.tsx",
+      ),
+      readGalleryAppModuleSource(),
+    ])
+
+    expect(appSource).toContain('from "./hooks"')
+    expect(appSource).toContain("useGalleryAppController({")
+    expect(appSource).not.toContain('from "./actions"')
+    expect(appSource).not.toContain('from "./state"')
+    expect(appSource).not.toContain("useGalleryWorkbenchState({")
+    expect(appSource).not.toContain("useGalleryDerivedState({")
+    expect(appSource).not.toContain("useGalleryFocusReset({")
+    expect(appSource).not.toContain("const updateDraftProfile = React.useCallback(")
+    expect(appSource).not.toContain("const saveProfile = React.useCallback(async () =>")
+    expect(appSource).not.toContain("const selectArtifactProfileReference = React.useCallback(")
+    expect(appSource).not.toContain('const [controlTab, setControlTab] =')
+    expect(appSource).not.toContain(
+      'const filteredArtifactProfileReferences = React.useMemo(',
+    )
+    expect(appSource).not.toContain("activeArtifactProfileEditorStatus={")
+    expect(appSource).not.toContain("artifactProfileReference={editorState.artifactProfileReference}")
+    expect(appSource).not.toContain("copyCurrentArtifactProfile={() =>")
+    expect(appSource).toContain("<GalleryControlsPane {...controlsPaneProps} />")
+    expect(appSource).toContain("<GalleryPreviewPane {...previewPaneProps} />")
+    expect(appSource).not.toContain("setFocusedToken(null)")
+    expect(appSource).not.toContain("setFocusedEditorField(null)")
+    expect(appSource).not.toContain("document.addEventListener(\"fullscreenchange\"")
+    expect(appSource).not.toContain("surface.addEventListener(\"pointermove\"")
+    expect(appModuleSource).toContain("export function useGalleryDraftActions")
+    expect(appModuleSource).toContain("export function useGalleryProfileActions")
+    expect(appModuleSource).toContain("export function useHydrateGalleryState")
+    expect(appModuleSource).toContain("export function usePreviewFullscreenState")
+    expect(appModuleSource).toContain("export function useGalleryFocusReset")
+    expect(appModuleSource).toContain("export function useGalleryInspector")
+    expect(appModuleSource).toContain("export function useGalleryAppController")
+    expect(appModuleSource).toContain("const controlsPaneProps: GalleryControlsPaneProps = {")
+    expect(appModuleSource).toContain("const previewPaneProps: GalleryPreviewPaneProps = {")
+    expect(appModuleSource).toContain("export function createInitialGalleryEditorState")
+    expect(appModuleSource).toContain("export function useGalleryWorkbenchState")
+    expect(appModuleSource).toContain("export function filterArtifactProfileReferences")
+    expect(appModuleSource).toContain("export function describeActiveArtifactProfile")
+    expect(appModuleSource).toContain("export function useGalleryDerivedState")
   })
 })

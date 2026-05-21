@@ -113,6 +113,18 @@ pub(crate) struct SessionViewInput {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub(crate) struct SessionRenameInput {
+    pub(crate) name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct SessionPinInput {
+    pub(crate) pinned: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct AppendChatMessageInput {
     pub(crate) role: String,
     pub(crate) text: String,

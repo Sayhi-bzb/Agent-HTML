@@ -36,30 +36,96 @@ export function GalleryCardsWorkbenchPanel({
           <GalleryPreviewMeta label="Spacing" value={spacing} />
         </div>
       </div>
-      <div className="ahtml-gallery-cards-workbench">
-        <div className="ahtml-gallery-cards-column ahtml-gallery-cards-column-primary">
-          <Card
-            {...getManualCardProps(profile, "manual.cards.0")}
-            style={{ boxShadow: surfaceShadow }}
-          >
-            <CardHeader>
-              <CardTitle>Revenue Pulse</CardTitle>
-            </CardHeader>
-            <CardContent className="ahtml-gallery-custom-stack">
-              <div className="ahtml-gallery-inline-metrics">
-                <strong>$94.8K</strong>
-                <Badge variant="secondary">+14%</Badge>
-              </div>
-              <Progress value={74} />
-              <p className="ahtml-gallery-custom-copy">
-                Compact KPI cards should hold number, movement, and action state
-                without turning into dashboard chrome.
-              </p>
-            </CardContent>
-          </Card>
-          <div className="ahtml-gallery-cards-split">
+      <div className="ahtml-gallery-cards-intro">
+        <div className="ahtml-gallery-cards-intro-copy">
+          <span className="ahtml-gallery-stage-panel-kicker">
+            Component gallery
+          </span>
+          <h3>Component families rendered as a workbench matrix</h3>
+          <p>
+            The default gallery view should read like a curated component wall:
+            content, forms, selection, and collaboration patterns all react to
+            the active artifact profile without collapsing back into a single
+            narrative document.
+          </p>
+        </div>
+        <div className="ahtml-gallery-cards-intro-meta">
+          <GalleryPreviewMeta label="Profile" value={profile.id} />
+          <GalleryPreviewMeta label="Cards" value="10 modules" />
+          <GalleryPreviewMeta label="Mode" value="component-gallery" />
+        </div>
+      </div>
+      <div className="ahtml-gallery-cards-catalog">
+        <section className="ahtml-gallery-cards-family">
+          <div className="ahtml-gallery-cards-family-header">
+            <span className="ahtml-gallery-stage-panel-kicker">
+              Content family
+            </span>
+            <h4>Metrics, editorial summaries, and surface language</h4>
+            <p>
+              High-signal cards should expose hierarchy, density, and treatment
+              shifts immediately.
+            </p>
+          </div>
+          <div className="ahtml-gallery-cards-grid ahtml-gallery-cards-grid-content">
             <Card
-              {...getManualCardProps(profile, "manual.cards.1")}
+              {...getManualCardProps(
+                profile,
+                "manual.cards.0",
+                "ahtml-gallery-cards-card ahtml-gallery-cards-card-feature",
+              )}
+              style={{ boxShadow: surfaceShadow }}
+            >
+              <CardHeader>
+                <CardTitle>Revenue Pulse</CardTitle>
+              </CardHeader>
+              <CardContent className="ahtml-gallery-custom-stack">
+                <div className="ahtml-gallery-inline-metrics">
+                  <strong>$94.8K</strong>
+                  <Badge variant="secondary">+14%</Badge>
+                </div>
+                <Progress value={74} />
+                <p className="ahtml-gallery-custom-copy">
+                  Compact KPI cards should hold number, movement, and action
+                  state without turning into dashboard chrome.
+                </p>
+              </CardContent>
+            </Card>
+            <Card
+              {...getManualCardProps(
+                profile,
+                "manual.cards.6",
+                "ahtml-gallery-cards-card",
+              )}
+              style={{ boxShadow: surfaceShadow }}
+            >
+              <CardHeader>
+                <CardTitle>Surface Audit</CardTitle>
+              </CardHeader>
+              <CardContent className="ahtml-gallery-custom-stack">
+                <div className="ahtml-gallery-custom-badges">
+                  <Badge variant="outline">Embed</Badge>
+                  <Badge variant="outline">JSON</Badge>
+                  <Badge variant="secondary">Preview</Badge>
+                </div>
+                <Separator />
+                <p className="ahtml-gallery-custom-copy">
+                  Compact summaries, badges, and field rows stay scannable when
+                  the surface shifts between dense review and lighter preview
+                  modes.
+                </p>
+                <FieldRow
+                  label="Treatment"
+                  value={profile.componentStyle.treatments.card ?? "none"}
+                />
+              </CardContent>
+            </Card>
+            <Card
+              {...getManualCardProps(
+                profile,
+                "manual.cards.1",
+                "ahtml-gallery-cards-card",
+              )}
               style={{ boxShadow: surfaceShadow }}
             >
               <CardHeader>
@@ -81,8 +147,133 @@ export function GalleryCardsWorkbenchPanel({
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </section>
+
+        <section className="ahtml-gallery-cards-family">
+          <div className="ahtml-gallery-cards-family-header">
+            <span className="ahtml-gallery-stage-panel-kicker">
+              Forms family
+            </span>
+            <h4>Entry flows, issue capture, and conversion surfaces</h4>
+            <p>
+              Form cards should let radius, spacing, and treatment changes show
+              up without extra explanation.
+            </p>
+          </div>
+          <div className="ahtml-gallery-cards-grid ahtml-gallery-cards-grid-forms">
             <Card
-              {...getManualCardProps(profile, "manual.cards.2")}
+              {...getManualCardProps(
+                profile,
+                "manual.cards.7",
+                "ahtml-gallery-cards-card ahtml-gallery-cards-card-feature",
+              )}
+              style={{ boxShadow: surfaceShadow }}
+            >
+              <CardHeader>
+                <CardTitle>Create Account</CardTitle>
+              </CardHeader>
+              <CardContent className="ahtml-gallery-custom-stack">
+                <Input readOnly value="name@agent-html.dev" />
+                <Input readOnly value="Create a password" />
+                <div className="ahtml-gallery-inline-metrics">
+                  <Badge variant="outline">OAuth</Badge>
+                  <Button size="sm" type="button">
+                    Continue
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            <Card
+              {...getManualCardProps(
+                profile,
+                "manual.cards.5",
+                "ahtml-gallery-cards-card",
+              )}
+              style={{ boxShadow: surfaceShadow }}
+            >
+              <CardHeader>
+                <CardTitle>Issue Report</CardTitle>
+              </CardHeader>
+              <CardContent className="ahtml-gallery-custom-stack">
+                <Input readOnly value="Unexpected spacing drift" />
+                <Textarea
+                  readOnly
+                  value="Capture the spacing issue in the settings rail and send it with the next review pass."
+                />
+              </CardContent>
+            </Card>
+            <Card
+              {...getManualCardProps(
+                profile,
+                "manual.cards.9",
+                "ahtml-gallery-cards-card",
+              )}
+              style={{ boxShadow: surfaceShadow }}
+            >
+              <CardHeader>
+                <CardTitle>Share this document</CardTitle>
+              </CardHeader>
+              <CardContent className="ahtml-gallery-custom-stack">
+                <p className="ahtml-gallery-custom-copy">
+                  Anyone with the link can view this document.
+                </p>
+                <div className="ahtml-gallery-inline-metrics">
+                  <Input readOnly value="http://example.com/link/to/document" />
+                  <Button size="sm" type="button" variant="outline">
+                    Copy Link
+                  </Button>
+                </div>
+                <Separator />
+                <div className="ahtml-gallery-member-list">
+                  {[
+                    ["Olivia", "m@example.com", "Can edit"],
+                    ["Isabella", "b@example.com", "Can view"],
+                  ].map(([name, email, access]) => (
+                    <div className="ahtml-gallery-member-row" key={email}>
+                      <div
+                        className="ahtml-gallery-member-avatar"
+                        aria-hidden="true"
+                      >
+                        {name.slice(0, 1)}
+                      </div>
+                      <div className="ahtml-gallery-member-copy">
+                        <strong>{name}</strong>
+                        <span>{email}</span>
+                      </div>
+                      <Badge
+                        variant={
+                          access === "Can edit" ? "secondary" : "outline"
+                        }
+                      >
+                        {access}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section className="ahtml-gallery-cards-family">
+          <div className="ahtml-gallery-cards-family-header">
+            <span className="ahtml-gallery-stage-panel-kicker">
+              Selection family
+            </span>
+            <h4>Targets, toggles, and preference systems</h4>
+            <p>
+              Selection patterns should make focus, fill, and control density
+              visible in one glance.
+            </p>
+          </div>
+          <div className="ahtml-gallery-cards-grid ahtml-gallery-cards-grid-selection">
+            <Card
+              {...getManualCardProps(
+                profile,
+                "manual.cards.2",
+                "ahtml-gallery-cards-card",
+              )}
               style={{ boxShadow: surfaceShadow }}
             >
               <CardHeader>
@@ -98,76 +289,53 @@ export function GalleryCardsWorkbenchPanel({
                 />
               </CardContent>
             </Card>
-          </div>
-          <Card
-            {...getManualCardProps(profile, "manual.cards.7")}
-            style={{ boxShadow: surfaceShadow }}
-          >
-            <CardHeader>
-              <CardTitle>Create Account</CardTitle>
-            </CardHeader>
-            <CardContent className="ahtml-gallery-custom-stack">
-              <Input readOnly value="name@agent-html.dev" />
-              <Input readOnly value="Create a password" />
-              <div className="ahtml-gallery-inline-metrics">
-                <Badge variant="outline">OAuth</Badge>
-                <Button size="sm" type="button">
-                  Continue
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          <Card
-            {...getManualCardProps(profile, "manual.cards.3")}
-            style={{ boxShadow: surfaceShadow }}
-          >
-            <CardHeader>
-              <CardTitle>Cookie Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="ahtml-gallery-toggle-list">
-              <label>
-                <span>Strictly necessary</span>
-                <Switch checked />
-              </label>
-              <label>
-                <span>Product analytics</span>
-                <Switch checked={previewThemeMode === "light"} />
-              </label>
-              <label>
-                <span>Personalization</span>
-                <Switch />
-              </label>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="ahtml-gallery-cards-column">
-          <Card
-            {...getManualCardProps(profile, "manual.cards.6")}
-            style={{ boxShadow: surfaceShadow }}
-          >
-            <CardHeader>
-              <CardTitle>Surface Audit</CardTitle>
-            </CardHeader>
-            <CardContent className="ahtml-gallery-custom-stack">
-              <div className="ahtml-gallery-custom-badges">
-                <Badge variant="outline">Embed</Badge>
-                <Badge variant="outline">JSON</Badge>
-                <Badge variant="secondary">Preview</Badge>
-              </div>
-              <Separator />
-              <p className="ahtml-gallery-custom-copy">
-                Tweakcn&apos;s cards area feels like a collage, not a linear
-                design system table.
-              </p>
-              <FieldRow
-                label="Treatment"
-                value={profile.componentStyle.treatments.card ?? "none"}
-              />
-            </CardContent>
-          </Card>
-          <div className="ahtml-gallery-cards-split ahtml-gallery-cards-split-tight">
             <Card
-              {...getManualCardProps(profile, "manual.cards.4")}
+              {...getManualCardProps(
+                profile,
+                "manual.cards.3",
+                "ahtml-gallery-cards-card",
+              )}
+              style={{ boxShadow: surfaceShadow }}
+            >
+              <CardHeader>
+                <CardTitle>Cookie Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="ahtml-gallery-toggle-list">
+                <label>
+                  <span>Strictly necessary</span>
+                  <Switch checked />
+                </label>
+                <label>
+                  <span>Product analytics</span>
+                  <Switch checked={previewThemeMode === "light"} />
+                </label>
+                <label>
+                  <span>Personalization</span>
+                  <Switch />
+                </label>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section className="ahtml-gallery-cards-family">
+          <div className="ahtml-gallery-cards-family-header">
+            <span className="ahtml-gallery-stage-panel-kicker">
+              Collaboration family
+            </span>
+            <h4>Conversation, people, and operational handoff</h4>
+            <p>
+              These cards test stacked density, repeated metadata rows, and the
+              softer surfaces that keep a workbench usable.
+            </p>
+          </div>
+          <div className="ahtml-gallery-cards-grid ahtml-gallery-cards-grid-collaboration">
+            <Card
+              {...getManualCardProps(
+                profile,
+                "manual.cards.4",
+                "ahtml-gallery-cards-card",
+              )}
               style={{ boxShadow: surfaceShadow }}
             >
               <CardHeader>
@@ -181,81 +349,30 @@ export function GalleryCardsWorkbenchPanel({
                 <div className="is-reply">
                   <strong>You</strong>
                   <p>
-                    The shell is close. The remaining gap is preview fidelity
-                    and denser component composition.
+                    I updated the handoff board and queued the next review so
+                    design, content, and ops can all work from the same card set.
                   </p>
                 </div>
               </CardContent>
             </Card>
             <Card
-              {...getManualCardProps(profile, "manual.cards.5")}
+              {...getManualCardProps(
+                profile,
+                "manual.cards.8",
+                "ahtml-gallery-cards-card",
+              )}
               style={{ boxShadow: surfaceShadow }}
             >
               <CardHeader>
-                <CardTitle>Issue Report</CardTitle>
+                <CardTitle>Team Members</CardTitle>
               </CardHeader>
-              <CardContent className="ahtml-gallery-custom-stack">
-                <Input readOnly value="Unexpected spacing drift" />
-                <Textarea
-                  readOnly
-                  value="Cards preview still needs more asymmetric collage behavior to feel like tweakcn."
-                />
-              </CardContent>
-            </Card>
-          </div>
-          <Card
-            {...getManualCardProps(profile, "manual.cards.8")}
-            style={{ boxShadow: surfaceShadow }}
-          >
-            <CardHeader>
-              <CardTitle>Team Members</CardTitle>
-            </CardHeader>
-            <CardContent className="ahtml-gallery-member-list">
-              {[
-                ["Alicia", "Design review"],
-                ["Noah", "Runtime QA"],
-                ["Mia", "Preview shell"],
-              ].map(([name, role]) => (
-                <div className="ahtml-gallery-member-row" key={name}>
-                  <div
-                    className="ahtml-gallery-member-avatar"
-                    aria-hidden="true"
-                  >
-                    {name.slice(0, 1)}
-                  </div>
-                  <div className="ahtml-gallery-member-copy">
-                    <strong>{name}</strong>
-                    <span>{role}</span>
-                  </div>
-                  <Badge variant="outline">online</Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-          <Card
-            {...getManualCardProps(profile, "manual.cards.9")}
-            style={{ boxShadow: surfaceShadow }}
-          >
-            <CardHeader>
-              <CardTitle>Share this document</CardTitle>
-            </CardHeader>
-            <CardContent className="ahtml-gallery-custom-stack">
-              <p className="ahtml-gallery-custom-copy">
-                Anyone with the link can view this document.
-              </p>
-              <div className="ahtml-gallery-inline-metrics">
-                <Input readOnly value="http://example.com/link/to/document" />
-                <Button size="sm" type="button" variant="outline">
-                  Copy Link
-                </Button>
-              </div>
-              <Separator />
-              <div className="ahtml-gallery-member-list">
+              <CardContent className="ahtml-gallery-member-list">
                 {[
-                  ["Olivia", "m@example.com", "Can edit"],
-                  ["Isabella", "b@example.com", "Can view"],
-                ].map(([name, email, access]) => (
-                  <div className="ahtml-gallery-member-row" key={email}>
+                  ["Alicia", "Design review"],
+                  ["Noah", "Runtime QA"],
+                  ["Mia", "Preview shell"],
+                ].map(([name, role]) => (
+                  <div className="ahtml-gallery-member-row" key={name}>
                     <div
                       className="ahtml-gallery-member-avatar"
                       aria-hidden="true"
@@ -264,19 +381,15 @@ export function GalleryCardsWorkbenchPanel({
                     </div>
                     <div className="ahtml-gallery-member-copy">
                       <strong>{name}</strong>
-                      <span>{email}</span>
+                      <span>{role}</span>
                     </div>
-                    <Badge
-                      variant={access === "Can edit" ? "secondary" : "outline"}
-                    >
-                      {access}
-                    </Badge>
+                    <Badge variant="outline">online</Badge>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
       </div>
       <div className="ahtml-gallery-workbench-footer">
         <FieldRow label="Primary" value={tokens.primary} />

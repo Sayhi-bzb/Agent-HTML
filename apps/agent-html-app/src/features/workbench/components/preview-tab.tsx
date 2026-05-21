@@ -25,7 +25,7 @@ export function PreviewTab({
       header={<PreviewHeader build={build} />}
     >
       {building ? <ShellLoadingRow>Build</ShellLoadingRow> : null}
-      <PreviewFrame empty="Blank" html={previewHtml} title={`${session.summary.name} preview`} />
+      <PreviewFrame empty="Empty" html={previewHtml} title={`${session.summary.name} preview`} />
     </WorkbenchCard>
   )
 }

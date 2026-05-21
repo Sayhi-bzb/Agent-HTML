@@ -88,8 +88,9 @@ export const commandMetadata = {
     hidden: true,
   },
   build: {
-    summary: "Validate and build a static HTML artifact.",
-    purpose: "Validate, sanitize, and build a static artifact directory.",
+    summary: "Validate and export a portable HTML artifact.",
+    purpose:
+      "Validate, sanitize, and materialize the portable artifact directory for delivery, sharing, or archive.",
     usage: "ahtml build [<input>] [--out <dir>] [--format text|json]",
     options: [
       {
@@ -134,7 +135,7 @@ export const commandMetadata = {
       {
         name: "out",
         description:
-          "Reserved for compatibility. Preview no longer materializes build output into this directory.",
+          "Compatibility-only flag. Preview no longer materializes build output into this directory.",
         value: true,
       },
       {
@@ -150,9 +151,9 @@ export const commandMetadata = {
     },
   },
   gallery: {
-    summary: "Open the artifact profile gallery and component preview workbench.",
+    summary: "Open the artifact profile gallery and component gallery workbench.",
     purpose:
-      "Open the managed gallery editor for artifact profile ids, customization, and component preview.",
+      "Open the managed gallery editor for artifact profile ids, customization, and component gallery review.",
     usage: "ahtml gallery [--port <port>]",
     options: [
       {

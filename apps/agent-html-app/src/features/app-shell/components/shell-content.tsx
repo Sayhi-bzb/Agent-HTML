@@ -7,7 +7,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -29,14 +28,12 @@ import { cn } from "@/lib/utils"
 
 type ShellCardCopyProps = {
   title: ReactNode
-  description?: ReactNode
   titleClassName?: string
   truncateTitle?: boolean
 }
 
 export function ShellCardCopy({
   title,
-  description,
   titleClassName,
   truncateTitle = false,
 }: ShellCardCopyProps) {
@@ -45,14 +42,12 @@ export function ShellCardCopy({
       <CardTitle className={cn(truncateTitle && "truncate", titleClassName)}>
         {title}
       </CardTitle>
-      {description ? <CardDescription className="app-shell-card-description">{description}</CardDescription> : null}
     </div>
   )
 }
 
 type ShellCardHeaderProps = {
   title: ReactNode
-  description?: ReactNode
   titleClassName?: string
   titleSize?: "default" | "sm"
   truncateTitle?: boolean
@@ -64,7 +59,6 @@ type ShellCardHeaderProps = {
 
 export function ShellCardHeader({
   title,
-  description,
   titleClassName,
   titleSize = "default",
   truncateTitle = false,
@@ -76,7 +70,6 @@ export function ShellCardHeader({
   return (
     <CardHeader className={cn("app-shell-card-header", className)}>
       <ShellCardCopy
-        description={description}
         title={title}
         titleClassName={cn(titleSize === "sm" && "app-shell-card-heading", titleClassName)}
         truncateTitle={truncateTitle}
@@ -95,29 +88,6 @@ export function ShellCardHeader({
   )
 }
 
-type ShellTitleStackProps = {
-  title: ReactNode
-  copy?: ReactNode
-  truncateCopy?: boolean
-}
-
-export function ShellTitleStack({
-  title,
-  copy,
-  truncateCopy = false,
-}: ShellTitleStackProps) {
-  return (
-    <div className="app-shell-title-stack">
-      <p className="app-shell-panel-title">{title}</p>
-      {copy ? (
-        <ShellSupportingCopy as="p" truncate={truncateCopy}>
-          {copy}
-        </ShellSupportingCopy>
-      ) : null}
-    </div>
-  )
-}
-
 type ShellPaneLabelProps = {
   icon: ReactNode
   title: ReactNode
@@ -129,27 +99,6 @@ export function ShellPaneLabel({ icon, title }: ShellPaneLabelProps) {
       {icon}
       <span className="app-shell-panel-title">{title}</span>
     </div>
-  )
-}
-
-type ShellSupportingCopyProps = {
-  children: ReactNode
-  as?: "div" | "p" | "span"
-  truncate?: boolean
-  className?: string
-}
-
-export function ShellSupportingCopy({
-  children,
-  as = "span",
-  truncate = false,
-  className,
-}: ShellSupportingCopyProps) {
-  const Comp = as
-  return (
-    <Comp className={cn("app-shell-supporting-copy", truncate && "truncate", className)}>
-      {children}
-    </Comp>
   )
 }
 
@@ -347,7 +296,7 @@ type ShellMetaRowProps = {
 export function ShellMetaRow({ copy, action }: ShellMetaRowProps) {
   return (
     <ShellSplitRow className="w-full">
-      {copy ? <ShellSupportingCopy>{copy}</ShellSupportingCopy> : <span />}
+      {copy ? <span className="app-shell-supporting-copy">{copy}</span> : <span />}
       {action ?? null}
     </ShellSplitRow>
   )

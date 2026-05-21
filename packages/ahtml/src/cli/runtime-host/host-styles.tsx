@@ -90,13 +90,44 @@ export function createGalleryShellCss() {
       --ahtml-gallery-layout-gap-relaxed: 0.85rem;
       --ahtml-gallery-layout-inline-padding: 1rem;
       --ahtml-gallery-layout-block-padding: 1rem;
+      --ahtml-gallery-two-up-columns: repeat(2, minmax(0, 1fr));
+      --ahtml-gallery-three-up-columns: repeat(3, minmax(0, 1fr));
+      --ahtml-gallery-triptych-columns: auto minmax(0, 1fr) auto;
+      --ahtml-gallery-nav-item-min-height: 2rem;
+      --ahtml-gallery-nav-item-padding-inline: 0.65rem;
+      --ahtml-gallery-workbench-intro-columns: minmax(0, 1.35fr) auto;
+      --ahtml-gallery-workbench-copy-max-width: 44rem;
+      --ahtml-gallery-workbench-header-max-width: 34rem;
+      --ahtml-gallery-workbench-meta-min-width: min(100%, 22rem);
+      --ahtml-gallery-workbench-side-rail-columns: minmax(13rem, 0.42fr) minmax(0, 1fr);
       --ahtml-gallery-custom-stage-secondary-min-width: 18rem;
       --ahtml-gallery-custom-card-min-width: 18rem;
+      --ahtml-gallery-custom-status-columns: minmax(0, 1fr) minmax(18rem, 0.82fr);
+      --ahtml-gallery-custom-stage-columns:
+        minmax(0, 1.45fr)
+        minmax(var(--ahtml-gallery-custom-stage-secondary-min-width), 0.75fr);
       --ahtml-gallery-dashboard-sidebar-width: 14rem;
       --ahtml-gallery-dashboard-secondary-min-width: 16rem;
+      --ahtml-gallery-dashboard-lower-columns:
+        minmax(0, 1.2fr)
+        minmax(var(--ahtml-gallery-dashboard-secondary-min-width), 0.8fr);
       --ahtml-gallery-mail-nav-width: 13rem;
       --ahtml-gallery-mail-list-min-width: 15rem;
       --ahtml-gallery-mail-list-max-width: 18rem;
+      --ahtml-gallery-mail-shell-columns:
+        var(--ahtml-gallery-mail-nav-width)
+        minmax(
+          var(--ahtml-gallery-mail-list-min-width),
+          var(--ahtml-gallery-mail-list-max-width)
+        )
+        minmax(0, 1fr);
+      --ahtml-gallery-mail-shell-columns-medium:
+        11rem
+        minmax(14rem, var(--ahtml-gallery-dashboard-secondary-min-width))
+        minmax(0, 1fr);
+      --ahtml-gallery-pricing-lower-columns:
+        minmax(0, 1.25fr)
+        minmax(16rem, 0.75fr);
       --ahtml-gallery-stage-frame-padding-inline: 0.9rem;
       --ahtml-gallery-stage-frame-padding-top: 0.9rem;
       --ahtml-gallery-stage-frame-padding-bottom: 1.1rem;
@@ -125,25 +156,34 @@ export function createGalleryShellCss() {
       --ahtml-gallery-custom-preview-steps-max-width: 30rem;
       --ahtml-gallery-inspector-panel-max-width: min(100%, 24rem);
       --ahtml-gallery-custom-rich-columns: repeat(3, minmax(0, 1fr));
-      --ahtml-gallery-custom-stat-columns: repeat(3, minmax(0, 1fr));
+      --ahtml-gallery-custom-stat-columns: var(--ahtml-gallery-three-up-columns);
       --ahtml-gallery-custom-swatch-columns: repeat(4, minmax(0, 1fr));
-      --ahtml-gallery-cards-workbench-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-      --ahtml-gallery-cards-split-columns: repeat(2, minmax(0, 1fr));
+      --ahtml-gallery-showcase-grid-columns: repeat(12, minmax(0, 1fr));
       --ahtml-gallery-dashboard-card-columns: repeat(4, minmax(0, 1fr));
-      --ahtml-gallery-dashboard-chart-footer-columns: repeat(2, minmax(0, 1fr));
-      --ahtml-gallery-mail-attachment-columns: repeat(2, minmax(0, 1fr));
-      --ahtml-gallery-pricing-columns: repeat(2, minmax(0, 1fr));
+      --ahtml-gallery-dashboard-chart-footer-columns: var(--ahtml-gallery-two-up-columns);
+      --ahtml-gallery-mail-attachment-columns: var(--ahtml-gallery-two-up-columns);
       --ahtml-gallery-preset-stats-columns: repeat(4, minmax(0, 1fr));
-      --ahtml-gallery-color-popover-columns: repeat(2, minmax(0, 1fr));
+      --ahtml-gallery-color-popover-columns: var(--ahtml-gallery-two-up-columns);
       --ahtml-gallery-inspector-columns: repeat(3, minmax(0, 1fr));
-      --ahtml-gallery-dashboard-card-columns-compact: repeat(2, minmax(0, 1fr));
-      --ahtml-gallery-inspector-columns-compact: repeat(2, minmax(0, 1fr));
+      --ahtml-gallery-dashboard-card-columns-compact: var(--ahtml-gallery-two-up-columns);
+      --ahtml-gallery-inspector-columns-compact: var(--ahtml-gallery-two-up-columns);
+      --ahtml-gallery-shell-surface: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
+      --ahtml-gallery-shell-panel: color-mix(in srgb, var(--background) 95%, var(--muted) 5%);
+      --ahtml-gallery-shell-rule: color-mix(in srgb, var(--border) 78%, transparent);
+      --ahtml-gallery-shell-stage: color-mix(in srgb, var(--background) 93%, var(--muted) 7%);
+      --ahtml-gallery-shell-stage-glow: color-mix(in srgb, var(--foreground) 6%, transparent);
       display: grid;
       min-height: 100vh;
       grid-template-rows: auto auto 1fr;
+      overflow: hidden;
+      isolation: isolate;
       background:
-        radial-gradient(circle at top, color-mix(in srgb, var(--primary) 10%, transparent), transparent 42%),
-        linear-gradient(180deg, color-mix(in srgb, var(--muted) 36%, transparent), transparent 28%);
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--background) 99%, var(--muted) 1%) 0%,
+          var(--ahtml-gallery-shell-surface) 12%,
+          var(--ahtml-gallery-shell-panel) 100%
+        );
     }
     .ahtml-gallery-page-header {
       display: flex;
@@ -203,11 +243,30 @@ export function createGalleryShellCss() {
       min-height: 0;
       min-width: 0;
       position: relative;
+      background: var(--ahtml-gallery-shell-panel);
+    }
+    .ahtml-gallery-workbench {
+      display: flex;
+      min-width: 0;
+      min-height: 0;
+      flex: 1;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--background) 97%, var(--muted) 3%),
+          color-mix(in srgb, var(--background) 94%, var(--muted) 6%)
+        );
     }
     .ahtml-gallery-sidebar {
       width: var(--ahtml-gallery-sidebar-width);
       min-width: var(--ahtml-gallery-sidebar-min-width);
       overflow: hidden;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--background) 98%, var(--muted) 2%),
+          color-mix(in srgb, var(--background) 95%, var(--muted) 5%)
+        );
     }
     .ahtml-gallery-divider {
       width: var(--ahtml-gallery-divider-width);
@@ -229,11 +288,17 @@ export function createGalleryShellCss() {
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
+      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
     }
     .ahtml-gallery-control-header {
       display: grid;
       gap: 0;
-      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--background) 99%, var(--muted) 1%),
+          color-mix(in srgb, var(--background) 96%, var(--muted) 4%)
+        );
     }
     .ahtml-gallery-control-header-row {
       display: flex;
@@ -531,6 +596,12 @@ export function createGalleryShellCss() {
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
+      padding:
+        0.55rem
+        var(--ahtml-shell-padding-inline)
+        0.7rem;
+      border-top: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
+      background: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
       color: color-mix(in srgb, var(--muted-foreground) 88%, transparent);
       font-size: 0.68rem;
       line-height: 1.35;
@@ -632,8 +703,16 @@ export function createGalleryShellCss() {
       flex: 1;
     }
     .ahtml-gallery-preview {
+      display: flex;
       min-width: 0;
+      min-height: 0;
       overflow: hidden;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--background) 96%, var(--muted) 4%),
+          var(--ahtml-gallery-shell-stage)
+        );
     }
     .ahtml-gallery-preview-toolbar {
       display: flex;
@@ -748,6 +827,12 @@ export function createGalleryShellCss() {
       min-height: 0;
       height: 100%;
       flex-direction: column;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--background) 97%, var(--muted) 3%),
+          color-mix(in srgb, var(--background) 94%, var(--muted) 6%)
+        );
     }
     .ahtml-gallery-preview-shell[data-fullscreen="true"] {
       background: var(--background);
@@ -757,6 +842,7 @@ export function createGalleryShellCss() {
       gap: var(--ahtml-gallery-layout-gap);
       padding-top: var(--ahtml-shell-preview-toolbar-padding-block);
       padding-bottom: var(--ahtml-shell-preview-toolbar-padding-block);
+      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
     }
     .ahtml-gallery-preview-modebar {
       align-items: center;
@@ -764,6 +850,7 @@ export function createGalleryShellCss() {
       gap: var(--ahtml-gallery-layout-gap);
       padding-top: var(--ahtml-shell-preview-toolbar-padding-block);
       padding-bottom: var(--ahtml-shell-preview-toolbar-padding-block);
+      background: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
     }
     .ahtml-gallery-preview-mode-tools {
       display: flex;
@@ -802,6 +889,12 @@ export function createGalleryShellCss() {
       display: flex;
       min-height: 0;
       flex: 1;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--muted) 20%, transparent),
+          transparent 20%
+        );
     }
     .ahtml-gallery-stage-toolbar {
       display: flex;
@@ -1183,8 +1276,8 @@ export function createGalleryShellCss() {
       background:
         linear-gradient(
           180deg,
-          color-mix(in srgb, var(--background) 99%, var(--muted) 1%),
-          color-mix(in srgb, var(--background) 95%, var(--muted) 5%)
+          color-mix(in srgb, var(--background) 98%, var(--muted) 2%),
+          color-mix(in srgb, var(--background) 94%, var(--muted) 6%)
         );
       box-sizing: border-box;
       padding:
@@ -1219,18 +1312,16 @@ export function createGalleryShellCss() {
     .ahtml-gallery-preview-surface {
       position: relative;
       min-height: 100%;
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 1.35);
-      background:
-        linear-gradient(
-          180deg,
-          color-mix(in srgb, var(--background) 99%, var(--muted) 1%),
-          color-mix(in srgb, var(--background) 95%, var(--muted) 5%)
-        );
+      overflow: clip;
+      border: 1px solid color-mix(in srgb, var(--border) 66%, transparent);
+      border-radius: calc(var(--radius) * 1.05);
+      background: color-mix(in srgb, var(--background) 99%, var(--muted) 1%);
       box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 38%, transparent),
+        0 1px 2px color-mix(in srgb, var(--foreground) 4%, transparent),
         var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-spread)
           color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent),
-        0 10px 32px color-mix(in srgb, var(--foreground) 7%, transparent);
+        0 18px 42px var(--ahtml-gallery-shell-stage-glow);
       color: var(--foreground);
       box-sizing: border-box;
     }
@@ -1238,11 +1329,13 @@ export function createGalleryShellCss() {
     .ahtml-gallery-stage-frame-components .ahtml-gallery-preview-surface,
     .ahtml-gallery-stage-frame-dashboard .ahtml-gallery-preview-surface,
     .ahtml-gallery-stage-frame-mail .ahtml-gallery-preview-surface {
-      border-radius: calc(var(--radius) * 1.1);
+      border-radius: calc(var(--radius) * 0.95);
       box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 34%, transparent),
+        0 1px 2px color-mix(in srgb, var(--foreground) 3%, transparent),
         var(--shadow-offset-x) var(--shadow-offset-y) var(--shadow-blur) var(--shadow-spread)
           color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent),
-        0 6px 18px color-mix(in srgb, var(--foreground) 5%, transparent);
+        0 12px 30px color-mix(in srgb, var(--foreground) 5%, transparent);
     }
     .ahtml-gallery-preview-surface[data-inspector="true"] {
       cursor: crosshair;

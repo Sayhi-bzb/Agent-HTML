@@ -2,6 +2,8 @@ import type { RuntimeReport } from "@/lib/types"
 
 import {
   ShellMetricList,
+  ShellSectionLabel,
+  ShellSplitRow,
   ShellRuntimeStatusBadge,
 } from "@/features/app-shell/components/shell-content"
 
@@ -15,13 +17,17 @@ export function RuntimeReportCard({ runtimeReport }: RuntimeReportCardProps) {
     { key: "warn", label: "warn", value: runtimeReport.counts.warn },
     { key: "fail", label: "issue", value: runtimeReport.counts.fail },
   ].filter((item) => item.value > 0)
+  const highlighted = runtimeReport.checks.find((item) => item.status !== "ok") ?? runtimeReport.checks[0]
 
   return (
     <section className="app-shell-runtime-card app-shell-message-section">
-      <div className="app-shell-split-row">
-        <p className="app-shell-message-heading">Checks</p>
+      <ShellSplitRow className="w-full">
+        <ShellSectionLabel>Check</ShellSectionLabel>
         <ShellRuntimeStatusBadge status={runtimeReport.status} />
-      </div>
+      </ShellSplitRow>
+      {highlighted ? (
+        <p className="app-shell-body-copy">{highlighted.detail}</p>
+      ) : null}
       <ShellMetricList
         className="px-0 pb-0"
         items={

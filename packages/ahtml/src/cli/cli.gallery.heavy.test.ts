@@ -95,7 +95,16 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(body).toContain("Draft")
       expect(body).toContain('data-slot="tabs"')
       expect(body).toContain("Cards Preview")
+      expect(body).toContain("Component gallery")
+      expect(body).toContain(
+        "Component families rendered as a workbench matrix",
+      )
+      expect(body).toContain("Content family")
+      expect(body).toContain("Forms family")
+      expect(body).toContain("Selection family")
+      expect(body).toContain("Collaboration family")
       expect(body).toContain("Revenue Pulse")
+      expect(body).toContain("Create Account")
       expect(body).toContain("Surface Audit")
       expect(body).toContain("report-card")
     } finally {

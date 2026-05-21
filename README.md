@@ -4,7 +4,7 @@
 
 # agent-html
 
-agent-html turns semantic `.agent.html` documents into stable, shareable HTML artifacts for dense agent work.
+agent-html turns semantic `.agent.html` documents into realtime previews and stable, shareable HTML artifacts for dense agent work.
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@agent-html/ahtml">
@@ -59,15 +59,16 @@ ahtml prompt
 </page>
 ```
 
-### 4. Render HTML
+### 4. Preview locally, then export when needed
 
 ```bash
-ahtml build artifact.agent.html
 ahtml preview artifact.agent.html
+ahtml build artifact.agent.html
 ahtml gallery
 ```
 
-Open the preview URL printed by `ahtml preview` to review the output.
+Open the preview URL printed by `ahtml preview` to review the live session and keep it open while editing the document.
+Use `ahtml build` when you need a portable output directory for delivery, sharing, or archive.
 Use `ahtml gallery` when you want to open the artifact profile editor and showcase canvas, manage local profile ids, and pick the current default profile for later preview/build.
 
 ## How It Works
@@ -77,6 +78,7 @@ agent work
   -> semantic .agent.html
   -> public agent contract
   -> runtime contract
+  -> realtime preview session
   -> portable HTML artifact
 ```
 

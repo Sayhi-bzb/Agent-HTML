@@ -17,12 +17,14 @@ describe("gallery alignment", () => {
       runtimeControls,
       runtimeControlModules,
       runtimePreview,
+      runtimePreviewModules,
+      runtimeAppModules,
       runtimeShared,
       runtimeSharedModules,
       runtimeStyles,
       runtimeConfig,
     ] = await Promise.all([
-      readRepoSource("docs", "spec", "gallery.md"),
+      readRepoSource("docs", "spec", "gallery", "gallery.md"),
       readRepoSource("blueprint", "architecture-design", "architecture.md"),
       readRepoSource("docs", "architecture", "architecture.md"),
       readRepoSource("docs-web", "content", "docs", "index.mdx"),
@@ -114,6 +116,117 @@ describe("gallery alignment", () => {
         "gallery",
         "preview.tsx",
       ),
+      Promise.all([
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "preview",
+          "cards.tsx",
+        ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "preview",
+          "colors.tsx",
+        ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "preview",
+          "custom.tsx",
+        ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "preview",
+          "dashboard.tsx",
+        ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "preview",
+          "mail.tsx",
+        ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "preview",
+          "pricing.tsx",
+        ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "preview",
+          "typography.tsx",
+        ),
+      ]).then((sources) => sources.join("\n")),
+      Promise.all([
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "actions.tsx",
+        ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "hooks.tsx",
+        ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "state.tsx",
+        ),
+      ]).then((sources) => sources.join("\n")),
       readRepoSource(
         "packages",
         "ahtml",
@@ -197,6 +310,8 @@ describe("gallery alignment", () => {
       runtimeControls,
       runtimeControlModules,
       runtimePreview,
+      runtimePreviewModules,
+      runtimeAppModules,
       runtimeShared,
       runtimeSharedModules,
       runtimeStyles,
@@ -212,10 +327,10 @@ describe("gallery alignment", () => {
     expect(blueprint).toContain("左侧配置页与右侧组件画廊预览")
     expect(docsArchitecture).toContain("左侧配置器与右侧组件画廊")
     expect(docsWeb).toContain(
-      "artifact profile gallery and component preview workbench",
+      "artifact profile gallery and component gallery workbench",
     )
     expect(commandContract).toContain(
-      "Open the artifact profile gallery and component preview workbench.",
+      "Open the artifact profile gallery and component gallery workbench.",
     )
 
     expect(runtimeGallerySource).toContain('data-gallery-frame="header"')
@@ -224,6 +339,8 @@ describe("gallery alignment", () => {
     expect(runtimeGallerySource).toContain('value="controls"')
     expect(runtimeGallerySource).toContain('value="preview"')
     expect(runtimeGallerySource).toContain('value="components"')
+    expect(runtimeGallerySource).toContain('React.useState<"controls" | "preview">(')
+    expect(runtimeGallerySource).toContain('"preview"')
     expect(runtimeGallerySource).toContain("<Button")
     expect(runtimeGallerySource).toContain("<Popover")
     expect(runtimeGallerySource).toContain("<Accordion")
@@ -268,5 +385,13 @@ describe("gallery alignment", () => {
     expect(runtimeGallerySource).toContain('label="Render"')
     expect(runtimeGallerySource).toContain('label="Source"')
     expect(runtimeGallerySource).toContain('label="Path"')
+    expect(runtimeGallerySource).toContain("Destination surface")
+    expect(runtimeGallerySource).toContain(
+      "Embedded campaign workbench preview",
+    )
+    expect(runtimeGallerySource).toContain(
+      "Audit the target page, not a detached mock.",
+    )
+    expect(runtimeGallerySource).toContain("Conversion Stack")
   })
 })

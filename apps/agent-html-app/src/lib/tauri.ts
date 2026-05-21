@@ -19,6 +19,14 @@ export type SessionViewInput = {
   view: SessionDetail["currentView"]
 }
 
+export type SessionRenameInput = {
+  name: string
+}
+
+export type SessionPinInput = {
+  pinned: boolean
+}
+
 export type AppendChatMessageInput = {
   role: AgentShellMessage["role"]
   text: string
@@ -43,6 +51,14 @@ export async function deleteSession(sessionId: string): Promise<void> {
 
 export async function setSessionView(sessionId: string, input: SessionViewInput): Promise<SessionDetail> {
   return invoke("set_session_view", { sessionId, input })
+}
+
+export async function renameSession(sessionId: string, input: SessionRenameInput): Promise<SessionDetail> {
+  return invoke("rename_session", { sessionId, input })
+}
+
+export async function setSessionPinned(sessionId: string, input: SessionPinInput): Promise<SessionDetail> {
+  return invoke("set_session_pinned", { sessionId, input })
 }
 
 export async function saveSource(sessionId: string, source: string): Promise<SessionDetail> {

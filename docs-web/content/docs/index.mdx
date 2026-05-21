@@ -1,18 +1,19 @@
 ---
 title: Quick Start
-description: Write AI-native HTML artifacts instead of long Markdown outputs.
+description: Write AI-native HTML previews and artifacts instead of long Markdown outputs.
 ---
 
 # Quick Start
 
-agent-html turns semantic `.agent.html` documents into stable, shareable HTML artifacts.
+agent-html turns semantic `.agent.html` documents into realtime previews and stable, shareable HTML artifacts.
 
 Most users only need this flow:
 
 1. Run `ahtml`
 2. Get the writing prompt
 3. Write `.agent.html`
-4. Render HTML
+4. Start `preview`
+5. Export with `build` when needed
 
 ## 1. Install the CLI [#install-the-cli]
 
@@ -95,21 +96,23 @@ A valid document needs a `<page>` root.
 </page>
 ```
 
-## 5. Build the artifact [#build-the-artifact]
-
-```bash
-ahtml build artifact.agent.html
-```
-
-`build` validates the document before generating the static artifact directory.
-
-## 6. Preview locally [#preview-locally]
+## 5. Start realtime preview [#start-realtime-preview]
 
 ```bash
 ahtml preview artifact.agent.html
 ```
 
-Preview serves the same static output produced by `build`. It does not use a separate renderer.
+`preview` validates the source, starts a long-lived runtime session, and refreshes the rendered document as the source changes. It uses the same render path as `build`, but it no longer depends on materializing the build output directory first.
+
+`preview --out` remains available only as a compatibility flag. It no longer writes preview output into that directory.
+
+## 6. Build the artifact [#build-the-artifact]
+
+```bash
+ahtml build artifact.agent.html
+```
+
+`build` validates the document and exports the portable artifact directory for delivery, sharing, or archive.
 
 ## 7. Open the artifact profile gallery [#open-the-artifact-profile-gallery]
 
@@ -117,7 +120,7 @@ Preview serves the same static output produced by `build`. It does not use a sep
 ahtml gallery
 ```
 
-Gallery opens the artifact profile gallery and component preview workbench. Use it to manage local profile ids, adjust tokens and treatments, and preview how the active artifact profile affects component families before `preview` or `build` falls back to that default profile.
+Gallery opens the artifact profile gallery and component gallery workbench. Use it to manage local profile ids, adjust tokens and treatments, and review how the active artifact profile affects component families before later `preview` or `build` runs fall back to that default profile.
 
 ## Need more detail? [#need-more-detail]
 

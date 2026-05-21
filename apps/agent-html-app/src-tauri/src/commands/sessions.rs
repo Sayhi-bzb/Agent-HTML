@@ -5,11 +5,14 @@ use tracing::{info, info_span};
 use crate::{
     chat_store::{default_chat_messages, write_chat_messages},
     error::BackendError,
-    models::{AppError, SessionCreateInput, SessionDetail, SessionRecord, SessionSummary, SessionViewInput},
+    models::{
+        AppError, SessionCreateInput, SessionDetail, SessionPinInput, SessionRecord,
+        SessionRenameInput, SessionSummary, SessionViewInput,
+    },
     paths::{ensure_sessions_root, session_dir, BUILD_DIR_NAME, LOGS_DIR_NAME, SOURCE_FILE_NAME},
     session_store::{
-        load_session_detail_from_dir, read_session_record, update_session_view_record,
-        write_session_record,
+        load_session_detail_from_dir, read_session_record, rename_session_record,
+        update_session_pin_record, update_session_view_record, write_session_record,
     },
     support::{default_source, now_epoch_millis, now_iso_stub, slugify},
 };
@@ -136,6 +139,28 @@ pub(crate) fn set_session_view(
 ) -> Result<SessionDetail, AppError> {
     let session_dir = session_dir(&app, &session_id)?;
     update_session_view_record(&session_dir, &input.view, Some(session_id.clone()))?;
+    load_session_detail_from_dir(&session_dir)
+}
+
+#[tauri::command]
+pub(crate) fn rename_session(
+    app: AppHandle,
+    session_id: String,
+    input: SessionRenameInput,
+) -> Result<SessionDetail, AppError> {
+    let session_dir = session_dir(&app, &session_id)?;
+    rename_session_record(&session_dir, &input.name, Some(session_id.clone()))?;
+    load_session_detail_from_dir(&session_dir)
+}
+
+#[tauri::command]
+pub(crate) fn set_session_pinned(
+    app: AppHandle,
+    session_id: String,
+    input: SessionPinInput,
+) -> Result<SessionDetail, AppError> {
+    let session_dir = session_dir(&app, &session_id)?;
+    update_session_pin_record(&session_dir, input.pinned)?;
     load_session_detail_from_dir(&session_dir)
 }
 

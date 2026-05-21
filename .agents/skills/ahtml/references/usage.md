@@ -1,6 +1,6 @@
 # ahtml Usage
 
-Use this after reading `SKILL.md` when the task is to write, build, preview, or inspect an artifact.
+Use this after reading `SKILL.md` when the task is to write, preview, build, or inspect an artifact.
 
 ## Main commands
 
@@ -16,17 +16,19 @@ Write a document:
 artifact.agent.html
 ```
 
-Build the static artifact:
-
-```bash
-ahtml build artifact.agent.html
-```
-
 Preview locally:
 
 ```bash
 ahtml preview artifact.agent.html
 ```
+
+Build the portable artifact directory:
+
+```bash
+ahtml build artifact.agent.html
+```
+
+Use `preview` as the default authoring loop. Keep the session open while editing the source document. Use `build` when the task needs a portable output directory for delivery, sharing, or archive.
 
 Use `inspect` when the task needs document or artifact details:
 

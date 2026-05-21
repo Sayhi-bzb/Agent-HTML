@@ -42,35 +42,7 @@ import type {
   ThemeTokenName,
 } from "./types"
 
-export function GalleryPreviewPane({
-  colorThemeSyncEnabled,
-  copyCurrentArtifactProfile,
-  draftProfile,
-  focusEditorField,
-  focusThemeToken,
-  focusedToken,
-  hasCopiedProfile,
-  inspectorEnabled,
-  inspectorState,
-  isDirty,
-  isPreviewFullscreen,
-  isSaving,
-  artifactProfileReference,
-  openControlTab,
-  previewMode,
-  previewModeLabel,
-  previewShellRef,
-  previewSurfaceRef,
-  previewThemeMode,
-  resetDraft,
-  saveProfile,
-  setInspectorEnabled,
-  setPreviewMode,
-  setPreviewThemeMode,
-  togglePreviewFullscreen,
-  visiblePreviewSections,
-  RendererNode,
-}: {
+export type GalleryPreviewPaneProps = {
   colorThemeSyncEnabled: boolean
   copyCurrentArtifactProfile: () => Promise<void>
   draftProfile: ArtifactProfile
@@ -105,7 +77,37 @@ export function GalleryPreviewPane({
   togglePreviewFullscreen: () => Promise<void>
   visiblePreviewSections: GalleryPreviewSection[]
   RendererNode: RendererNodeComponent
-}) {
+}
+
+export function GalleryPreviewPane({
+  colorThemeSyncEnabled,
+  copyCurrentArtifactProfile,
+  draftProfile,
+  focusEditorField,
+  focusThemeToken,
+  focusedToken,
+  hasCopiedProfile,
+  inspectorEnabled,
+  inspectorState,
+  isDirty,
+  isPreviewFullscreen,
+  isSaving,
+  artifactProfileReference,
+  openControlTab,
+  previewMode,
+  previewModeLabel,
+  previewShellRef,
+  previewSurfaceRef,
+  previewThemeMode,
+  resetDraft,
+  saveProfile,
+  setInspectorEnabled,
+  setPreviewMode,
+  setPreviewThemeMode,
+  togglePreviewFullscreen,
+  visiblePreviewSections,
+  RendererNode,
+}: GalleryPreviewPaneProps) {
   return (
     <div
       className="ahtml-gallery-preview-shell"

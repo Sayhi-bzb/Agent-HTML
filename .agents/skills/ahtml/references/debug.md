@@ -1,6 +1,6 @@
 # ahtml Debug
 
-Use this when setup, build, preview, or managed runtime rendering fails.
+Use this when setup, preview, build, or managed runtime rendering fails.
 
 ## First check
 
@@ -19,6 +19,7 @@ ahtml setup --force
 Artifact inspection:
 
 ```bash
+ahtml preview artifact.agent.html
 ahtml build artifact.agent.html
 ahtml inspect --input artifact.agent.html
 ahtml inspect --dir dist/html
@@ -26,7 +27,7 @@ ahtml inspect --dir dist/html
 
 ## Common flows
 
-Build fails before artifact output:
+Build fails before artifact export:
 
 - Run `ahtml doctor`.
 - Rebuild with `ahtml build artifact.agent.html`.
@@ -41,7 +42,8 @@ Runtime issue remains reproducible:
 
 Preview fails:
 
-- Build explicitly with `ahtml build artifact.agent.html`.
+- Retry `ahtml preview artifact.agent.html --port 0` from the same source document.
+- If preview stays up but renders diagnostics, fix the document errors shown in the page and save again.
 - Try a different port with `ahtml preview artifact.agent.html --port 0`.
 - If the port is unavailable, use that as the diagnosis instead of changing artifact logic.
 

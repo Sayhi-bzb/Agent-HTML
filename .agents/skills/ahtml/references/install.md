@@ -58,5 +58,6 @@ Do not use removed project-local scaffold flows such as `init`, `--template`, `-
 
 ```bash
 ahtml prompt
+ahtml preview artifact.agent.html
 ahtml build artifact.agent.html
 ```

@@ -1,18 +1,18 @@
 ---
 name: ahtml
-description: Use `ahtml` when a semantic `.agent.html` document should be rendered as an HTML artifact. It fits outputs that need more structure or reviewability than Markdown.
+description: Use `ahtml` when a semantic `.agent.html` document should be previewed live or exported as an HTML artifact. It fits outputs that need more structure or reviewability than Markdown.
 ---
 
 # ahtml
 
-Use `ahtml` to turn semantic `.agent.html` into an HTML artifact.
+Use `ahtml` to turn semantic `.agent.html` into a live preview session or an HTML artifact.
 
 ## Commands
 
 ```bash
 ahtml prompt
-ahtml build artifact.agent.html
 ahtml preview artifact.agent.html
+ahtml build artifact.agent.html
 ahtml inspect --input artifact.agent.html
 ```
 
@@ -86,6 +86,6 @@ If a nesting or attr detail is unclear, run `ahtml prompt` or read `references/u
 ## Route
 
 - Install, runtime setup, repair, isolated runtime -> `references/install.md`
-- Command flow, writing, build, preview, inspect -> `references/usage.md`
+- Command flow, writing, preview, build, inspect -> `references/usage.md`
 - Build, preview, runtime, or environment failures -> `references/debug.md`
 - Reproducible bug reports -> `references/bug-reporting.md`

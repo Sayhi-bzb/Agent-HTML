@@ -107,3 +107,35 @@ pub(super) fn update_session_view_record(
     record.current_view = view.to_string();
     write_session_record(session_dir, &record)
 }
+
+pub(super) fn rename_session_record(
+    session_dir: &Utf8Path,
+    name: &str,
+    session_id: Option<String>,
+) -> Result<(), AppError> {
+    let trimmed = name.trim();
+    if trimmed.is_empty() {
+        let error = AppError::from(BackendError::ui_validation(
+            "Session name cannot be empty.",
+        ));
+
+        return Err(match session_id {
+            Some(id) => error.with_session(id),
+            None => error,
+        });
+    }
+
+    let mut record = read_session_record(session_dir)?;
+    record.name = trimmed.to_string();
+    record.updated_at = crate::support::now_iso_stub();
+    write_session_record(session_dir, &record)
+}
+
+pub(super) fn update_session_pin_record(
+    session_dir: &Utf8Path,
+    pinned: bool,
+) -> Result<(), AppError> {
+    let mut record = read_session_record(session_dir)?;
+    record.pinned = pinned;
+    write_session_record(session_dir, &record)
+}

@@ -2,7 +2,7 @@
 
 Use this when debugging indicates a likely `ahtml` product bug after normal checks.
 
-Product bugs are failures in the path from semantic `.agent.html` to stable, shareable HTML artifact. Invalid raw HTML, CSS, scripts, or unsupported renderer props are expected input errors, not product bugs.
+Product bugs are failures in the path from semantic `.agent.html` to the live preview session or exported HTML artifact. Invalid raw HTML, CSS, scripts, or unsupported renderer props are expected input errors, not product bugs.
 
 ## First confirm it is a product bug
 
@@ -47,6 +47,7 @@ Include only relevant, redacted information:
 - expected behavior and actual behavior
 - results from `ahtml doctor`
 - runtime home path and whether `AHTML_HOME` was set
+- whether `ahtml preview` stays alive, shows diagnostics, or exits
 - whether `ahtml build` passes or fails
 
 Redact secrets, tokens, private account names, private URLs, and unrelated user content. Keep file paths only when they help reproduce the issue.

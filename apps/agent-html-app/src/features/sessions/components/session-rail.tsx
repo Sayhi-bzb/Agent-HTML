@@ -51,6 +51,8 @@ export type SessionRailProps = {
   onCreateSession: () => void
   onDeleteSession: (sessionId: string) => void
   onOpenSession: (sessionId: string) => void
+  onRenameSession: (sessionId: string, name: string) => void
+  onTogglePinned: (sessionId: string, pinned: boolean) => void
 }
 
 export function SessionRail({
@@ -61,6 +63,8 @@ export function SessionRail({
   onCreateSession,
   onDeleteSession,
   onOpenSession,
+  onRenameSession,
+  onTogglePinned,
 }: SessionRailProps) {
   const [query, setQuery] = useState("")
   const filtered = useMemo(() => filterSessions(sessions, query), [query, sessions])
@@ -92,13 +96,15 @@ export function SessionRail({
                     key={session.id}
                     onDelete={onDeleteSession}
                     onOpen={onOpenSession}
+                    onRename={onRenameSession}
+                    onTogglePinned={onTogglePinned}
                     session={session}
                   />
                 ))}
               </div>
             </section>
           ))}
-          {filtered.length === 0 ? <ShellEmptyCard className="app-shell-flat-card">None</ShellEmptyCard> : null}
+          {filtered.length === 0 ? <ShellEmptyCard className="app-shell-flat-card">Empty</ShellEmptyCard> : null}
           {loading ? <ShellLoadingRow>Load</ShellLoadingRow> : null}
         </ShellScrollSurface>
       }

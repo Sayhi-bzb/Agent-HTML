@@ -37,7 +37,7 @@
 - 当前 runtime 只保留一个显式 managed override：`slider.tsx`
 - `host-styles.tsx` 已接管大量 gallery shell、toolbar、panel 与部分 grid / spacing token
 - `gallery/styles.ts` 及 `styles/*` 仍保留 preview scene 级样式装配，不再是单一巨型字符串文件
-- `gallery/app.tsx` 仍然过重，仍混合 state、derived selectors、mutation actions、fullscreen effect、inspector effect 与最终 render shell，是当前最大的未收口点
+- `gallery/app.tsx` 已收敛为薄 orchestrator：page shell、mobile tabs 与 panel 装配仍留在 `app.tsx`，workbench state / actions / derived state / fullscreen / inspector 组合已下沉到 `state.ts`、`actions.tsx`、`hooks.tsx`
 
 ## Phase 1: Runtime Surface Governance
 
@@ -173,10 +173,13 @@
 
 ### Phase 4 当前状态
 
-- 状态：未完成
-- 当前阻塞点：
-  - `gallery/app.tsx` 仍同时承担 state、selectors、actions、fullscreen、inspector 与最终 render shell
-  - 当前结构虽可工作，但还不满足“app.tsx = orchestrator”这一治理目标
+- 状态：已完成
+- 已落地实现：
+  - initial editor state、preset / token filtering、active profile summary 与 renderer / preview derived state 已下沉到 `state.ts`
+  - draft update、theme token update、profile select / create / save / delete / reset、clipboard copy、focus / open-tab helpers 已下沉到 `actions.tsx`
+  - hydrate、fullscreen、focus reset、inspector 行为与 `useGalleryAppController` 已下沉到 `hooks.tsx`
+  - `gallery/app.tsx` 当前只保留 gallery shell JSX、mobile tab 切换与 pane 组装，不再直接持有大块 state / action / effect 实现
+  - `governance-sync.test.ts` 已显式约束 `app.tsx` 通过 `useGalleryAppController` 和 pane prop bags 维持 orchestrator 边界
 
 ## 总体验收
 
@@ -194,17 +197,21 @@
   - gallery 已稳定作为 runtime mode 挂在统一入口之下
   - runtime UI baseline / override 治理已显式化
   - preview、controls、shared 三块模块拆分已完成
+  - `gallery/app.tsx` 已从 feature 单体收敛为 orchestrator
 - 基本满足但仍需继续收口：
   - host style / token centralization 已有明显进展，但 gallery workbench 仍未完全收敛
-- 尚未满足：
-  - `gallery/app.tsx` 仍未完成 orchestrator 化
+
+## 当前未收口主线
+
+- `gallery/styles.ts` 与 `styles/*` 仍保有一批 feature-local layout 常量与 scene-specific policy，尚未完全达到单一顶层 CSS + token-first 的状态
+- 当前治理主要已锁住 shell ownership、micro spacing、surface padding 与部分 grid policy；仍需要继续把可复用的 workbench layout policy 从 scene CSS 上收
 
 ## 当前验证快照（2026-05-21）
 
 当前状态至少已由下面这些验证覆盖：
 
-- `npx vitest run packages/ahtml/src/cli/governance-sync.test.ts packages/ahtml/src/cli/gallery-alignment.test.ts packages/ahtml/src/cli/runtime-surface.test.ts packages/ahtml/src/cli/runtime-bootstrap.test.ts`
-- `npm run build`
+- `npx tsc -p packages/ahtml/tsconfig.runtime-host.json`
+- `npx vitest run packages/ahtml/src/cli/governance-sync.test.ts packages/ahtml/src/cli/gallery-alignment.test.ts`
 
 ## 备注
 

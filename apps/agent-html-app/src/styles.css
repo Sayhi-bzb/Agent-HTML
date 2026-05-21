@@ -97,40 +97,58 @@
     var(--destructive) 5%,
     transparent
   );
+  --space-0_5: 0.125rem;
+  --space-1: 0.25rem;
+  --space-1_5: 0.375rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --size-3: 0.75rem;
+  --size-4: 1rem;
+  --size-6: 1.5rem;
+  --size-8: 2rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --leading-tight: 1.25rem;
+  --leading-normal: 1.5rem;
   --radius: 0.5rem;
   --shell-topbar-height: 3.25rem;
-  --shell-topbar-padding-inline: 1rem;
-  --shell-header-padding-block: 0.5rem;
-  --shell-header-padding-inline: 0.75rem;
-  --shell-section-padding: 0.75rem;
-  --shell-gap-compact: 0.375rem;
-  --shell-gap-base: 0.625rem;
-  --shell-gap-roomy: 0.875rem;
-  --shell-gap-tight: 0.5rem;
-  --shell-gap-panel: 0.75rem;
-  --shell-gap-wide: 1rem;
-  --shell-panel-icon-size: 1.75rem;
-  --shell-card-inset-padding: 0.75rem;
-  --shell-console-padding: 0.75rem;
-  --shell-space-stack-tight: 0.125rem;
-  --shell-space-control-inline-xs: 0.375rem;
-  --shell-space-control-inline-sm: 0.5rem;
-  --shell-space-control-inline-md: 0.75rem;
-  --shell-space-control-inline-lg: 1rem;
-  --shell-space-control-inline-xl: 2rem;
-  --shell-space-control-block-xs: 0.25rem;
-  --shell-space-control-block-sm: 0.5rem;
-  --shell-space-control-block-md: 0.75rem;
-  --shell-space-state-block: 1.5rem;
-  --shell-space-icon-offset-inline: 0.625rem;
-  --shell-control-icon-sm: 0.875rem;
-  --shell-control-icon-md: 1rem;
-  --shell-control-height-sm: 1.75rem;
-  --shell-text-kicker-size: 0.6875rem;
-  --shell-text-control-size: 0.75rem;
-  --shell-text-body-size: 0.8125rem;
-  --shell-text-body-line-height: 1.25rem;
-  --shell-text-body-roomy-line-height: 1.5rem;
+  --shell-topbar-padding-inline: var(--space-4);
+  --shell-header-padding-block: var(--space-2);
+  --shell-header-padding-inline: var(--space-3);
+  --shell-section-padding: var(--space-3);
+  --shell-gap-compact: var(--space-1_5);
+  --shell-gap-base: var(--space-3);
+  --shell-gap-roomy: var(--space-4);
+  --shell-gap-tight: var(--space-2);
+  --shell-gap-panel: var(--space-3);
+  --shell-gap-wide: var(--space-4);
+  --shell-panel-icon-size: var(--size-8);
+  --shell-card-inset-padding: var(--space-3);
+  --shell-console-padding: var(--space-3);
+  --shell-space-stack-tight: var(--space-0_5);
+  --shell-space-control-inline-xs: var(--space-1_5);
+  --shell-space-control-inline-sm: var(--space-2);
+  --shell-space-control-inline-md: var(--space-3);
+  --shell-space-control-inline-lg: var(--space-4);
+  --shell-space-control-inline-xl: var(--space-8);
+  --shell-space-control-block-xs: var(--space-1);
+  --shell-space-control-block-sm: var(--space-2);
+  --shell-space-control-block-md: var(--space-3);
+  --shell-space-control-block-lg: var(--space-5);
+  --shell-space-state-block: var(--space-6);
+  --shell-space-icon-offset-inline: var(--space-3);
+  --shell-control-icon-sm: var(--size-4);
+  --shell-control-icon-md: var(--size-4);
+  --shell-control-height-sm: var(--size-8);
+  --shell-text-kicker-size: var(--text-xs);
+  --shell-text-control-size: var(--text-xs);
+  --shell-text-body-size: var(--text-sm);
+  --shell-text-body-line-height: var(--leading-tight);
+  --shell-text-body-roomy-line-height: var(--leading-normal);
   --shell-tracking-kicker: 0.16em;
   --shell-tracking-label: 0.14em;
   --shell-tracking-heading: -0.02em;
@@ -421,11 +439,6 @@
     padding-block: var(--shell-header-padding-block);
   }
 
-  .app-shell-card-description {
-    @apply text-shell-text-secondary;
-    font-size: var(--shell-text-kicker-size);
-  }
-
   .app-shell-card-body {
     @apply text-sm;
   }
@@ -574,6 +587,12 @@
     font-family: var(--font-heading);
   }
 
+  .app-shell-session-rename-input {
+    @apply min-w-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none;
+    block-size: auto;
+    font-family: var(--font-heading);
+  }
+
   .app-shell-session-card-active {
     @apply bg-transparent;
   }
@@ -617,6 +636,7 @@
 
   .app-shell-runtime-card {
     @apply border-x-0 border-t-0 border-b bg-transparent;
+    opacity: 0.88;
   }
 
   .app-shell-tabs-list {
@@ -709,7 +729,12 @@
   .app-shell-proposal-card {
     @apply grid border-b;
     gap: var(--shell-gap-wide);
-    padding-block: 1.25rem;
+    padding-block: var(--shell-space-control-block-lg);
+  }
+
+  .app-shell-proposal-card + .app-shell-runtime-card,
+  .app-shell-message-card + .app-shell-runtime-card {
+    padding-top: var(--shell-space-control-block-lg);
   }
 
   .app-shell-proposal-card .app-shell-message-heading {

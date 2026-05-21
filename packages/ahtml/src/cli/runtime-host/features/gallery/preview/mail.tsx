@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 
 import { extractFontName } from "../helpers"
 import { GalleryPreviewMeta } from "../shared/chrome"
+import { FieldRow } from "../shared/form-controls"
 import type { PreviewSceneProps } from "./types"
 
 export function GalleryMailWorkbenchPanel({
@@ -30,14 +31,32 @@ export function GalleryMailWorkbenchPanel({
             color: tokens.sidebarForeground,
           }}
         >
+          <div className="ahtml-gallery-mail-nav-profile">
+            <span className="ahtml-gallery-stage-panel-kicker">
+              Mail workbench
+            </span>
+            <strong>Ops Inbox</strong>
+            <p>Triage, thread review, and reply drafting stay in one frame.</p>
+          </div>
           <Button type="button">Compose</Button>
           <Input readOnly value="Search inbox" />
-          <div className="ahtml-gallery-mail-nav-links">
-            <span className="is-active">Inbox 128</span>
-            <span>Drafts 9</span>
-            <span>Sent</span>
-            <span>Archive 23</span>
-            <span>Later</span>
+          <div className="ahtml-gallery-mail-nav-section">
+            <span className="ahtml-gallery-mail-nav-label">Folders</span>
+            <div className="ahtml-gallery-mail-nav-links">
+              <span className="is-active">Inbox 128</span>
+              <span>Drafts 9</span>
+              <span>Sent</span>
+              <span>Archive 23</span>
+              <span>Later</span>
+            </div>
+          </div>
+          <div className="ahtml-gallery-mail-nav-section">
+            <span className="ahtml-gallery-mail-nav-label">Queues</span>
+            <div className="ahtml-gallery-mail-nav-links">
+              <span>Needs review 5</span>
+              <span>Launches 3</span>
+              <span>Partner replies 7</span>
+            </div>
           </div>
           <div className="ahtml-gallery-custom-badges">
             <Badge variant="secondary">All mail</Badge>
@@ -52,12 +71,15 @@ export function GalleryMailWorkbenchPanel({
           data-ahtml-source="shadcn"
         >
           <div className="ahtml-gallery-mail-list-header">
-            <div className="ahtml-gallery-inline-metrics">
-              <h5>Inbox</h5>
-              <div className="ahtml-gallery-mail-tab-pills">
-                <Badge variant="secondary">All mail</Badge>
-                <Badge variant="outline">Unread</Badge>
+            <div className="ahtml-gallery-mail-list-heading">
+              <div className="ahtml-gallery-inline-metrics">
+                <h5>Focused inbox</h5>
+                <div className="ahtml-gallery-mail-tab-pills">
+                  <Badge variant="secondary">All mail</Badge>
+                  <Badge variant="outline">Unread</Badge>
+                </div>
               </div>
+              <p>Dense list rhythm should still feel sortable, scannable, and app-native.</p>
             </div>
             <div className="ahtml-gallery-mail-search-wrap">
               <Search
@@ -70,27 +92,28 @@ export function GalleryMailWorkbenchPanel({
           <div className="ahtml-gallery-mail-list-toolbar">
             <Badge variant="secondary">Focused</Badge>
             <Badge variant="outline">Today</Badge>
+            <Badge variant="outline">Design review</Badge>
           </div>
           {[
             [
               "Mia Chen",
-              "Gallery alignment review",
+              "Launch checklist for Tuesday",
               "Needs reply",
-              "Preview shell is aligned. Remaining work is matching the denser work-app rhythm.",
+              "Please confirm final copy, token lock, and delivery window before the launch handoff closes.",
               "09:12",
             ],
             [
               "Alicia Gomez",
-              "Palette review ready",
+              "Palette approval received",
               "Unread",
-              "Dark mode sidebar tokens are finally reading like a real product surface.",
+              "Dark mode navigation and composer colors are approved for the rollout bundle.",
               "08:41",
             ],
             [
               "Noah Patel",
-              "Mail preview references",
+              "Partner assets uploaded",
               "Pinned",
-              "Collected structural refs from tweakcn mail and dashboard examples.",
+              "Attachment set includes the outbound brief, delivery sheet, and updated sizing notes.",
               "Yesterday",
             ],
           ].map(([author, subject, state, snippet, time], index) => (
@@ -108,11 +131,18 @@ export function GalleryMailWorkbenchPanel({
                 <strong>{author}</strong>
                 <span>{time}</span>
               </div>
-              <span>{subject}</span>
-              <p>{snippet}</p>
-              <Badge variant={index === 0 ? "secondary" : "outline"}>
-                {state}
-              </Badge>
+              <div className="ahtml-gallery-mail-list-item-copy">
+                <span className="ahtml-gallery-mail-list-item-subject">
+                  {subject}
+                </span>
+                <p>{snippet}</p>
+              </div>
+              <div className="ahtml-gallery-mail-list-item-footer">
+                <Badge variant={index === 0 ? "secondary" : "outline"}>
+                  {state}
+                </Badge>
+                <span>{index === 0 ? "Needs action" : "In thread"}</span>
+              </div>
             </button>
           ))}
         </section>
@@ -127,11 +157,11 @@ export function GalleryMailWorkbenchPanel({
           }}
         >
           <header className="ahtml-gallery-mail-display-header ahtml-gallery-stage-toolbar ahtml-gallery-stage-toolbar-inset">
-            <div>
+            <div className="ahtml-gallery-mail-display-heading">
               <span className="ahtml-gallery-stage-panel-kicker">
                 Mail preview
               </span>
-              <h4>Gallery alignment review</h4>
+              <h4>Launch checklist for Tuesday</h4>
               <p>From Mia Chen · Theme {profile.id}</p>
             </div>
             <div className="ahtml-gallery-stage-toolbar-meta">
@@ -148,22 +178,28 @@ export function GalleryMailWorkbenchPanel({
             <Badge variant="outline">Archive</Badge>
             <Badge variant="secondary">Assigned</Badge>
           </div>
+          <div className="ahtml-gallery-mail-thread-summary">
+            <FieldRow label="Participants" value="Mia, Alicia, Noah" />
+            <FieldRow label="Queue" value="Design review" />
+            <FieldRow label="Last action" value="09:12" />
+          </div>
           <div className="ahtml-gallery-mail-display-body">
             <p>
-              Preview shell is aligned. Remaining work is matching the denser
-              work-app rhythm from tweakcn and reducing synthetic layout
-              feeling.
+              Team review is complete for the launch surface. We only need
+              final confirmation on copy lock, token freeze, and outbound
+              timing before the campaign moves to scheduled send.
             </p>
             <p>
-              Focus on the inbox/list/detail relationship and keep the tool feel
-              closer to an app than to a component catalog.
+              Please reply with the approved subject line, confirm the partner
+              attachment set, and flag anything that should stay in draft until
+              the release window opens.
             </p>
             <div className="ahtml-gallery-mail-quote">
               <strong>Quoted context</strong>
               <p>
-                Current workbench shell is substantially closer. Remaining drift
-                comes from preview surfaces still reading as handcrafted demos
-                instead of product-native examples.
+                Final review notes: keep the inbox thread concise, preserve the
+                action hierarchy in the detail pane, and ship the approved
+                sidebar token set with the release bundle.
               </p>
             </div>
             <div className="ahtml-gallery-mail-attachments">
@@ -177,15 +213,18 @@ export function GalleryMailWorkbenchPanel({
               </div>
             </div>
           </div>
-          <Textarea
-            readOnly
-            value={`Reply draft\n\nPrimary ${tokens.primary}\nSidebar ${tokens.sidebar}\nMono ${profile.globalStyle.typography.fontMono}\nRadius ${profile.globalStyle.radiusScale.base}`}
-          />
-          <div className="ahtml-gallery-inline-metrics">
-            <Badge variant="outline">⌘ Enter to send</Badge>
-            <Button size="sm" type="button">
-              Send draft
-            </Button>
+          <div className="ahtml-gallery-mail-composer">
+            <Textarea
+              readOnly
+              value={`Reply draft\n\nPrimary ${tokens.primary}\nSidebar ${tokens.sidebar}\nMono ${profile.globalStyle.typography.fontMono}\nRadius ${profile.globalStyle.radiusScale.base}`}
+            />
+            <div className="ahtml-gallery-mail-composer-footer">
+              <Badge variant="outline">⌘ Enter to send</Badge>
+              <span>Composer keeps token, mono, and spacing shifts visible.</span>
+              <Button size="sm" type="button">
+                Send draft
+              </Button>
+            </div>
           </div>
         </article>
       </div>

@@ -47,6 +47,17 @@ function getShellStatusLabel(
   return ""
 }
 
+function sortShellMessages(messages: AgentShellMessage[]): AgentShellMessage[] {
+  const reviewCards = messages.filter(
+    (message) => message.proposalSnapshot || message.kind === "context-card",
+  )
+  const timeline = messages.filter(
+    (message) => !message.proposalSnapshot && message.kind !== "context-card",
+  )
+
+  return [...reviewCards, ...timeline]
+}
+
 export function ShellPane({
   messages,
   messageDraft,
@@ -62,6 +73,8 @@ export function ShellPane({
   onDraftProposal,
   onRuntimeCheck,
 }: ShellPaneProps) {
+  const orderedMessages = sortShellMessages(messages)
+
   return (
     <ShellPaneScaffold
       footerClassName="app-shell-pane-footer-review"
@@ -79,15 +92,15 @@ export function ShellPane({
 
           {checking ? <ShellLoadingRow>Check</ShellLoadingRow> : null}
 
-          {messages.map((message) => (
+          {orderedMessages.map((message) => (
             <MessageCard key={message.id} message={message} />
           ))}
 
-          {runtimeReport && !checking ? (
+          {runtimeReport && !checking && orderedMessages.length > 0 ? (
             <RuntimeReportCard runtimeReport={runtimeReport} />
           ) : null}
 
-          {messages.length === 0 ? <ShellEmptyCard className="app-shell-flat-card">Idle</ShellEmptyCard> : null}
+          {messages.length === 0 ? <ShellEmptyCard className="app-shell-flat-card">Empty</ShellEmptyCard> : null}
         </ShellScrollSurface>
       }
       footer={

@@ -36,6 +36,18 @@ function getMessageTitle(message: AgentShellMessage): string | undefined {
   return undefined
 }
 
+function getMessageKicker(message: AgentShellMessage): string | undefined {
+  if (message.proposalSnapshot) {
+    return "Proposal"
+  }
+
+  if (message.kind === "context-card") {
+    return "Context"
+  }
+
+  return undefined
+}
+
 function getMessageItems(message: AgentShellMessage): string[] {
   if (!message.proposalSnapshot) {
     return []
@@ -59,6 +71,7 @@ type MessageCardProps = {
 export function MessageCard({ message }: MessageCardProps) {
   const proposal = Boolean(message.proposalSnapshot)
   const title = getMessageTitle(message)
+  const kicker = getMessageKicker(message)
   const genericMessage = !proposal && !title
   const markerIcon = message.role === "user"
     ? <UserIcon className="app-shell-inline-icon" />
@@ -77,9 +90,9 @@ export function MessageCard({ message }: MessageCardProps) {
       )}
     >
       {!genericMessage ? (
-        <div className="app-shell-split-row">
-          <p className="app-shell-message-heading">{title}</p>
-          {proposal ? <ShellSectionLabel>Proposal</ShellSectionLabel> : null}
+        <div className="app-shell-panel-stack">
+          {kicker ? <ShellSectionLabel>{kicker}</ShellSectionLabel> : null}
+          {title ? <p className="app-shell-message-heading">{title}</p> : null}
         </div>
       ) : (
         <Tooltip>

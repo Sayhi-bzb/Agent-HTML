@@ -4,28 +4,55 @@ export function createGalleryWorkbenchResponsiveCss() {
       .ahtml-gallery-dashboard-lower {
         grid-template-columns: 1fr;
       }
-      .ahtml-gallery-mail-shell {
-        grid-template-columns:
-          11rem
-          minmax(14rem, var(--ahtml-gallery-dashboard-secondary-min-width))
-          minmax(0, 1fr);
+      .ahtml-gallery-cards-intro {
+        grid-template-columns: 1fr;
       }
+      .ahtml-gallery-cards-intro-meta {
+        min-width: 0;
+      }
+      .ahtml-gallery-pricing-overview {
+        grid-template-columns: 1fr;
+      }
+      .ahtml-gallery-pricing-overview-meta {
+        min-width: 0;
+      }
+      .ahtml-gallery-cards-family {
+        grid-template-columns: 1fr;
+      }
+      .ahtml-gallery-pricing-lower {
+        grid-template-columns: 1fr;
+      }
+      .ahtml-gallery-mail-shell {
+        grid-template-columns: var(--ahtml-gallery-mail-shell-columns-medium);
+      }
+      .ahtml-gallery-custom-preview-status-grid,
       .ahtml-gallery-custom-stage-grid,
       .ahtml-gallery-custom-grid-rich {
         grid-template-columns: 1fr;
       }
     }
     @media (max-width: 960px) {
-      .ahtml-gallery-cards-workbench,
-      .ahtml-gallery-cards-split,
+      .ahtml-gallery-cards-grid,
       .ahtml-gallery-mail-shell,
       .ahtml-gallery-dashboard-shell,
       .ahtml-gallery-pricing-grid,
+      .ahtml-gallery-pricing-comparison-row,
       .ahtml-gallery-dashboard-section-cards,
       .ahtml-gallery-dashboard-chart-footer,
+      .ahtml-gallery-dashboard-table-footer,
+      .ahtml-gallery-mail-thread-summary,
       .ahtml-gallery-mail-attachments,
       .ahtml-gallery-custom-stage-grid {
         grid-template-columns: 1fr;
+      }
+      .ahtml-gallery-cards-grid-content .ahtml-gallery-cards-card-feature,
+      .ahtml-gallery-cards-grid-forms .ahtml-gallery-cards-card-feature,
+      .ahtml-gallery-cards-grid-content .ahtml-gallery-cards-card,
+      .ahtml-gallery-cards-grid-forms .ahtml-gallery-cards-card,
+      .ahtml-gallery-cards-grid-selection .ahtml-gallery-cards-card,
+      .ahtml-gallery-cards-grid-collaboration .ahtml-gallery-cards-card,
+      .ahtml-gallery-pricing-card {
+        grid-column: span 1;
       }
       .ahtml-gallery-dashboard-sidebar,
       .ahtml-gallery-mail-nav,

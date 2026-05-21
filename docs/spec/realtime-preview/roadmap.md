@@ -29,11 +29,8 @@
   - 在文档非法时保持 preview 进程存活并展示 diagnostics
 - runtime host 已支持 `mode: "document" | "gallery" | "diagnostics"`，document preview 以 runtime state 中的 document 为主输入。
 - 当前 live update 依赖 managed runtime 下的 generated runtime files 与 Vite dev reload，不是单独设计的一套浏览器端 preview-state 订阅协议。
-- 仍未完全收口的部分主要在 Phase 4：
-  - `README.md`
-  - `docs-web/content/docs/index.mdx`
-  - `.agents/skills/ahtml/references/*`
-  这些位置仍残留旧的 static-preview 口径。
+- `README.md`、`docs-web/content/docs/index.mdx`、`.agents/skills/ahtml/references/*` 与 CLI help 已同步到 preview-first / build-as-export 口径。
+- `preview --out` 仍保留兼容参数，但已在 CLI help 和用户文档中明确说明它不再参与 preview 物化输出。
 
 ## Phase 1: Preview Path Decoupling
 
@@ -166,16 +163,15 @@
 
 ### Phase 4 当前状态
 
-- 状态：进行中
+- 状态：主线已完成
 - 已落地部分：
   - CLI runtime 与测试主路径已经切到 preview-first。
   - `packages/ahtml/src/cli/command-contract.mjs` 已把 `preview` 描述为 realtime preview session。
   - `build` 在实现层面已收口为 export / materialize。
-- 尚未收口部分：
-  - `README.md` 仍是旧口径。
-  - `docs-web/content/docs/index.mdx` 仍写着 “Preview serves the same static output produced by build.”
-  - 用户侧 skill 文档中的 build / preview 描述仍需改成 preview-first。
-  - `preview --out` 目前仍保留兼容参数；它已不再参与 preview 物化输出，但口径还需在文档中完全统一。
+  - `README.md`、`docs-web/content/docs/index.mdx` 与 `.agents/skills/ahtml/*` 已统一成 preview-first 文案。
+  - `preview --out` 仍保留兼容参数；它已不再参与 preview 物化输出，CLI help 和用户文档都已补充这一点。
+- 当前保留：
+  - 还需要在后续常规维护中持续防止旧的 static-preview 叙述重新回流到新文档或帮助文本。
 
 ## 总体验收
 
@@ -190,23 +186,28 @@
 ## 当前验收判断（2026-05-21）
 
 - 已满足：
+  - preview 已成为默认工作模式
   - preview 不再依赖完整 static artifact 目录生成
   - runtime host 已由运行时 state 驱动 preview
   - preview 与 build 仍共用同一条语义到渲染链路
-- 基本满足但仍需口径收口：
-  - preview 已在实现层面成为默认工作模式，但 README / docs-web / skill docs 还未完全同步
-  - build 已在实现层面收口为交付能力，但用户侧文档口径还未完全改完
+  - build 已收口为交付、分享和归档能力
+- 当前剩余风险：
+  - 主线本身暂无已知功能缺口；后续主要是常规维护中防止旧的 static-preview 叙述或错误编译边界重新回流。
 
 ## 当前验证快照（2026-05-21）
 
 当前状态至少已由下面这些验证覆盖：
 
 - `npm run build`
-- `npx vitest run packages/ahtml/src/cli/command-contract.test.ts`
-- `npx vitest run packages/ahtml/src/cli/cli-surface.test.ts`
-- `npx vitest run packages/ahtml/src/cli/runtime-bootstrap.test.ts`
-- `npx vitest run packages/ahtml/src/cli/runtime-surface.test.ts`
 - `npm run test:run:cli-heavy:preview`
+- `npm run test:run -- packages/ahtml/src/cli/command-contract.test.ts packages/ahtml/src/cli/cli-surface.test.ts packages/ahtml/src/cli/governance-sync.test.ts`
+- `npm run test:run -- packages/ahtml/src/cli/gallery-alignment.test.ts packages/ahtml/src/cli/governance-sync.test.ts packages/ahtml/src/cli/cli-surface.test.ts packages/ahtml/src/cli/command-contract.test.ts`
+- `npm run docs:web:build`
+- 既有实现验证记录：
+  - `npx vitest run packages/ahtml/src/cli/command-contract.test.ts`
+  - `npx vitest run packages/ahtml/src/cli/cli-surface.test.ts`
+  - `npx vitest run packages/ahtml/src/cli/runtime-bootstrap.test.ts`
+  - `npx vitest run packages/ahtml/src/cli/runtime-surface.test.ts`
 
 ## 备注
 

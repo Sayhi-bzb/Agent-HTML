@@ -65,7 +65,7 @@ export function createGalleryCustomWorkbenchCss() {
     }
     .ahtml-gallery-custom-browser-bar {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-columns: var(--ahtml-gallery-triptych-columns);
       align-items: center;
       gap: var(--ahtml-gallery-layout-gap-compact);
       padding:
@@ -106,23 +106,13 @@ export function createGalleryCustomWorkbenchCss() {
         radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 32%),
         linear-gradient(180deg, color-mix(in srgb, var(--background) 99%, var(--muted) 1%), color-mix(in srgb, var(--background) 95%, var(--muted) 5%));
     }
-    .ahtml-gallery-custom-preview-empty {
+    .ahtml-gallery-custom-surface-shell {
       display: grid;
-      justify-items: center;
       gap: var(--ahtml-gallery-layout-gap);
-      margin: 0 var(--ahtml-gallery-layout-inline-padding);
       padding:
-        var(--ahtml-gallery-custom-preview-empty-padding-block)
+        0
+        var(--ahtml-gallery-layout-inline-padding)
         var(--ahtml-gallery-layout-block-padding);
-      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: calc(var(--radius) * 1.15);
-      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
-      text-align: center;
-    }
-    .ahtml-gallery-custom-preview-empty h4 {
-      margin: 0;
-      font-size: 1.15rem;
-      line-height: 1.2;
     }
     .ahtml-gallery-custom-preview-empty-icons {
       display: inline-flex;
@@ -142,25 +132,42 @@ export function createGalleryCustomWorkbenchCss() {
     .ahtml-gallery-custom-preview-empty-separator {
       color: var(--muted-foreground);
     }
-    .ahtml-gallery-custom-preview-steps {
+    .ahtml-gallery-custom-preview-status-grid {
+      display: grid;
+      grid-template-columns: var(--ahtml-gallery-custom-status-columns);
+      gap: var(--ahtml-gallery-layout-gap);
+      align-items: stretch;
+    }
+    .ahtml-gallery-custom-preview-callout {
+      display: grid;
+      align-content: start;
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      padding:
+        var(--ahtml-gallery-custom-preview-empty-padding-block)
+        var(--ahtml-gallery-layout-block-padding);
+      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+      border-radius: calc(var(--radius) * 1.1);
+      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
+    }
+    .ahtml-gallery-custom-preview-callout-copy {
       display: grid;
       gap: var(--ahtml-space-sm);
-      max-width: var(--ahtml-gallery-custom-preview-steps-max-width);
     }
-    .ahtml-gallery-custom-preview-steps div {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: var(--ahtml-space-md);
-      text-align: left;
+    .ahtml-gallery-custom-preview-callout-copy h4 {
+      margin: 0;
+      font-size: 1.05rem;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
     }
-    .ahtml-gallery-custom-preview-steps span {
+    .ahtml-gallery-custom-preview-callout-copy p {
+      margin: 0;
       color: var(--muted-foreground);
-      line-height: 1.5;
+      line-height: 1.55;
     }
     .ahtml-gallery-custom-preview-guides {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
+      justify-content: flex-start;
       gap: var(--ahtml-space-sm);
     }
     .ahtml-gallery-custom-preview-guides button {
@@ -176,7 +183,6 @@ export function createGalleryCustomWorkbenchCss() {
       align-items: center;
       justify-content: space-between;
       gap: var(--ahtml-gallery-layout-gap-compact);
-      margin: 0 var(--ahtml-gallery-layout-inline-padding);
       padding:
         var(--ahtml-gallery-compact-panel-padding-block)
         var(--ahtml-gallery-compact-panel-padding-inline);
@@ -201,12 +207,13 @@ export function createGalleryCustomWorkbenchCss() {
     }
     .ahtml-gallery-custom-site-header {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-columns: var(--ahtml-gallery-triptych-columns);
       align-items: center;
       gap: var(--ahtml-gallery-layout-gap-relaxed);
-      margin: 0 var(--ahtml-gallery-layout-inline-padding);
       padding: var(--ahtml-gallery-layout-block-padding);
       border-radius: calc(var(--radius) * 1.05);
+      border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+      background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
     }
     .ahtml-gallery-custom-site-brand {
       display: grid;
@@ -235,9 +242,7 @@ export function createGalleryCustomWorkbenchCss() {
     }
     .ahtml-gallery-custom-stage-grid {
       display: grid;
-      grid-template-columns:
-        minmax(0, 1.45fr)
-        minmax(var(--ahtml-gallery-custom-stage-secondary-min-width), 0.75fr);
+      grid-template-columns: var(--ahtml-gallery-custom-stage-columns);
       gap: var(--ahtml-gallery-layout-gap);
       padding: 0 var(--ahtml-gallery-layout-inline-padding);
       align-items: stretch;
@@ -293,9 +298,9 @@ export function createGalleryCustomWorkbenchCss() {
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
-    .ahtml-gallery-custom-hero-panel {
+    .ahtml-gallery-custom-side-stack {
       display: grid;
-      gap: var(--ahtml-gallery-layout-gap-compact);
+      gap: var(--ahtml-gallery-layout-gap);
       align-content: start;
     }
     .ahtml-gallery-custom-swatch-stack {
@@ -327,6 +332,17 @@ export function createGalleryCustomWorkbenchCss() {
     .ahtml-gallery-custom-side-card {
       height: 100%;
       align-self: stretch;
+    }
+    .ahtml-gallery-custom-conversion-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      padding-bottom: var(--ahtml-space-sm);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
+    }
+    .ahtml-gallery-custom-conversion-row:last-of-type {
+      padding-bottom: 0;
     }
     .ahtml-gallery-custom-note-list,
     .ahtml-gallery-custom-signal-list {

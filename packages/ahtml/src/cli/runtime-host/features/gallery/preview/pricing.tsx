@@ -18,38 +18,108 @@ export function GalleryPricingWorkbenchPanel({
 
   return (
     <div className="ahtml-gallery-stage-panel ahtml-gallery-workbench-panel">
-      <div className="ahtml-gallery-stage-toolbar">
-        <div className="ahtml-gallery-stage-toolbar-copy">
-          <span className="ahtml-gallery-stage-panel-kicker">
-            Pricing preview
-          </span>
-          <strong>Marketing block inside the editor stage</strong>
-        </div>
-        <div className="ahtml-gallery-stage-toolbar-meta">
-          <GalleryPreviewMeta label="Primary" value={tokens.primary} />
-          <GalleryPreviewMeta label="Secondary" value={tokens.secondary} />
-          <GalleryPreviewMeta label="Style" value={profile.id} />
-        </div>
-      </div>
       <div className="ahtml-gallery-pricing-shell">
-        <div className="ahtml-gallery-pricing-header">
-          <h4>Pricing</h4>
-          <p>
-            Check out affordable plans without leaving the preview workbench.
-          </p>
-          <div className="ahtml-gallery-pricing-toggle">
-            <span>Monthly</span>
-            <Switch checked={previewThemeMode === "dark"} />
-            <span>Yearly</span>
+        <div className="ahtml-gallery-pricing-browser">
+          <header className="ahtml-gallery-pricing-header ahtml-gallery-stage-toolbar ahtml-gallery-stage-toolbar-inset">
+            <div className="ahtml-gallery-pricing-header-copy">
+              <span className="ahtml-gallery-stage-panel-kicker">
+                Pricing workbench
+              </span>
+              <h4>Commercial surface review</h4>
+              <p>
+                Evaluate tier hierarchy, comparison rhythm, and conversion
+                emphasis without leaving the gallery workbench.
+              </p>
+            </div>
+            <div className="ahtml-gallery-stage-toolbar-meta">
+              <GalleryPreviewMeta label="Primary" value={tokens.primary} />
+              <GalleryPreviewMeta label="Secondary" value={tokens.secondary} />
+              <GalleryPreviewMeta label="Style" value={profile.id} />
+            </div>
+          </header>
+
+          <div className="ahtml-gallery-pricing-utility-strip">
+            <div className="ahtml-gallery-pricing-toggle">
+              <span>Monthly</span>
+              <Switch checked={previewThemeMode === "dark"} />
+              <span>Yearly</span>
+            </div>
+            <div className="ahtml-gallery-custom-badges">
+              <Badge variant="secondary">Conversion reviewed</Badge>
+              <Badge variant="outline">Theme aware</Badge>
+              <Badge variant="outline">Editor embed</Badge>
+            </div>
           </div>
         </div>
+
+        <div className="ahtml-gallery-pricing-overview">
+          <div className="ahtml-gallery-pricing-overview-copy">
+            <span className="ahtml-gallery-stage-panel-kicker">
+              Pricing gallery
+            </span>
+            <h3>Tier cards, comparison tables, and conversion support in one stage</h3>
+            <p>
+              Review plan hierarchy, comparison clarity, and call-to-action
+              emphasis in the same commercial surface the team ships to
+              customers.
+            </p>
+          </div>
+          <div className="ahtml-gallery-pricing-overview-meta">
+            <GalleryPreviewMeta label="Layout" value="commercial-review" />
+            <GalleryPreviewMeta label="Cards" value="3 tiers" />
+            <GalleryPreviewMeta label="State" value="embedded" />
+          </div>
+        </div>
+
         <div className="ahtml-gallery-pricing-grid">
           {[
-            ["Plus", "$19", "For personal use", "outline"],
-            ["Pro", "$49", "For professionals", "secondary"],
-          ].map(([name, price, description, badgeVariant]) => (
+            {
+              name: "Starter",
+              price: "$19",
+              description: "For personal use",
+              badgeVariant: "outline",
+              features: [
+                ["Shared presets", true],
+                ["Gallery preview", true],
+                ["Priority support", false],
+              ] as const,
+            },
+            {
+              name: "Pro",
+              price: "$49",
+              description: "For professionals",
+              badgeVariant: "secondary",
+              features: [
+                ["Shared presets", true],
+                ["Gallery preview", true],
+                ["Priority support", true],
+              ] as const,
+            },
+            {
+              name: "Enterprise",
+              price: "$129",
+              description: "For teams shipping governed artifacts",
+              badgeVariant: "outline",
+              features: [
+                ["Release governance", true],
+                ["Review surfaces", true],
+                ["Dedicated onboarding", true],
+              ] as const,
+            },
+          ].map(({ name, price, description, badgeVariant, features }) => (
             <Card
-              {...getManualCardProps(profile, `manual.pricing.${name}`)}
+              {...getManualCardProps(
+                profile,
+                `manual.pricing.${name}`,
+                [
+                  "ahtml-gallery-pricing-card",
+                  name === "Pro"
+                    ? "ahtml-gallery-pricing-card-feature"
+                    : undefined,
+                ]
+                  .filter(Boolean)
+                  .join(" "),
+              )}
               key={name}
               style={{ boxShadow: surfaceShadow }}
             >
@@ -57,7 +127,11 @@ export function GalleryPricingWorkbenchPanel({
                 <div className="ahtml-gallery-inline-metrics">
                   <CardTitle>{name}</CardTitle>
                   <Badge variant={badgeVariant as "outline" | "secondary"}>
-                    {name === "Pro" ? "popular" : "solo"}
+                    {name === "Pro"
+                      ? "popular"
+                      : name === "Enterprise"
+                        ? "scale"
+                        : "solo"}
                   </Badge>
                 </div>
                 <p className="ahtml-gallery-custom-copy">{description}</p>
@@ -66,28 +140,91 @@ export function GalleryPricingWorkbenchPanel({
               <CardContent className="ahtml-gallery-custom-stack">
                 <Separator />
                 <div className="ahtml-gallery-feature-list">
-                  <label>
-                    <Checkbox checked /> Shared presets
-                  </label>
-                  <label>
-                    <Checkbox checked /> Gallery preview
-                  </label>
-                  <label>
-                    <Checkbox checked={name === "Pro"} /> Priority support
-                  </label>
+                  {features.map(([label, checked]) => (
+                    <label key={String(label)}>
+                      <Checkbox checked={Boolean(checked)} /> {label}
+                    </label>
+                  ))}
                 </div>
+                <FieldRow
+                  label="CTA"
+                  value={
+                    name === "Pro"
+                      ? "Primary emphasis"
+                      : name === "Enterprise"
+                        ? "Contact sales"
+                        : "Self-serve"
+                  }
+                />
               </CardContent>
             </Card>
           ))}
         </div>
-        <div className="ahtml-gallery-workbench-footer">
-          <FieldRow label="Primary" value={tokens.primary} />
-          <FieldRow label="Secondary" value={tokens.secondary} />
-          <FieldRow
-            label="Spacing"
-            value={profile.globalStyle.typography.spacing}
-          />
-          <FieldRow label="Style" value={profile.id} />
+
+        <div className="ahtml-gallery-pricing-lower">
+          <Card
+            {...getManualCardProps(profile, "manual.pricing.comparison")}
+            style={{ boxShadow: surfaceShadow }}
+          >
+            <CardHeader>
+              <CardTitle>Tier comparison</CardTitle>
+            </CardHeader>
+            <CardContent className="ahtml-gallery-pricing-comparison">
+              <div className="ahtml-gallery-pricing-comparison-row is-head">
+                <span>Capability</span>
+                <span>Starter</span>
+                <span>Pro</span>
+                <span>Enterprise</span>
+              </div>
+              {[
+                ["Saved profiles", "1", "10", "Unlimited"],
+                ["Review surfaces", "Basic", "Advanced", "Governed"],
+                ["Team seats", "1", "5", "25+"],
+              ].map(([label, starter, pro, enterprise]) => (
+                <div className="ahtml-gallery-pricing-comparison-row" key={label}>
+                  <strong>{label}</strong>
+                  <span>{starter}</span>
+                  <span>{pro}</span>
+                  <span>{enterprise}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <div className="ahtml-gallery-pricing-side-stack">
+            <Card
+              {...getManualCardProps(profile, "manual.pricing.notes")}
+              style={{ boxShadow: surfaceShadow }}
+            >
+              <CardHeader>
+                <CardTitle>Conversion checklist</CardTitle>
+              </CardHeader>
+              <CardContent className="ahtml-gallery-pricing-checklist">
+                <div>
+                  <strong>Hierarchy</strong>
+                  <span>Featured tier should read stronger without turning into a marketing hero.</span>
+                </div>
+                <div>
+                  <strong>Density</strong>
+                  <span>Comparison details stay compact and still scannable inside the editor shell.</span>
+                </div>
+                <div>
+                  <strong>Theme shift</strong>
+                  <span>CTA and surface contrast react to the active artifact profile.</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="ahtml-gallery-workbench-footer">
+              <FieldRow label="Primary" value={tokens.primary} />
+              <FieldRow label="Secondary" value={tokens.secondary} />
+              <FieldRow
+                label="Spacing"
+                value={profile.globalStyle.typography.spacing}
+              />
+              <FieldRow label="Style" value={profile.id} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

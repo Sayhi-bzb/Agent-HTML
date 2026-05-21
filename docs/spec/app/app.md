@@ -32,7 +32,7 @@
 ╰─────────────────┴──────────────────────────────────────────────────────────────┴──────────────────────────────╯
 ```
 
-关联审计：[`audit.md`](./audit.md)
+关联设计约束：[`apps/agent-html-app/DESIGN.md`](../../../apps/agent-html-app/DESIGN.md)
 
 **三栏工作台布局**：左侧是 Session rail，中间是 `Workbench` 主工作区，右侧是 `Agent Shell` 审查与提案区；上方是全局状态栏，不是传统浏览器 tab 栏。
 
@@ -41,9 +41,9 @@
 ```text
 AppShell
 ├── TopBar
-│   ├── Brand / Workspace identity
-│   ├── Current session summary
-│   └── Active workbench view + runtime status
+│   ├── Brand / Product identity
+│   ├── Current session name
+│   └── Active workbench view + runtime / error meta
 │
 ├── MainLayout
 │   ├── SessionsSidebar
@@ -68,35 +68,32 @@ AppShell
 │   │       └── InspectPanel
 │   │
 │   └── AgentShell
-│       ├── Review timeline / readiness
 │       ├── Proposal and context cards
-│       └── Message composer / session chat
+│       ├── Runtime check summary
+│       └── Message composer / session notes
 ```
 
 ## 2. 区域职责
 
 ### 顶部栏
 
-顶部栏主要承担 **当前工作上下文展示 + 会话状态摘要**，不是传统意义上的 tab 管理器。
+顶部栏主要承担 **当前工作上下文展示 + 轻量运行态提示**，不是传统意义上的 tab 管理器。
 
 在当前项目里，它更接近：
 
 ```text
 TopBar
-├── TopbarMark
-├── ProductLabel: agent-html-app
-├── SessionPath
+├── BrandMark: agent-html
 ├── CurrentSessionName
-├── ActiveViewLabel: Workbench · preview/source/inspect
-└── StatusMeta
+└── ActiveViewBadge + RuntimeMeta + ErrorMeta
 ```
 
 其中：
 
-* 左侧标识当前产品与工作路径
+* 左侧标识当前产品
 * 中间展示当前 session 名称
-* 右侧展示当前 workbench 视图与状态摘要
-* 当前实现里没有浏览器式 tab、多窗口控制、也没有顶部新增 tab 按钮
+* 右侧展示当前 workbench 视图 badge，以及 runtime / error meta icon
+* 当前实现里不展示 session path 或 workspace path，也没有浏览器式 tab、多窗口控制、顶部新增 tab 按钮
 
 因此，草图里的这些占位符在我们项目中应理解为：
 
@@ -132,7 +129,7 @@ SessionsSidebar
 └── Resize Handle
 ```
 
-### 建议功能
+### 当前功能
 
 | 模块 | 在本项目中的作用 |
 | --- | --- |
@@ -143,6 +140,8 @@ SessionsSidebar
 | `Resize Handle` | 拖拽调整左侧 rail 宽度 |
 
 这里的 `resiable ->` 应该是 `resizable ->`，表示左侧栏右边界可以拖拽调整宽度。
+
+当前代码里，`open`、`search`、`create`、`rename`、`pin / unpin`、`delete` 已经接通，且继续保持在左栏低频 action menu 里，而不是回流成常驻编辑表单。
 
 左侧面板当前使用的状态语义是：
 
@@ -177,9 +176,9 @@ Workbench
 
 * `Preview`：显示 build 后的静态产物预览
 * `Source`：编辑与校验当前 session 的源文档
-* `Inspect`：查看 diagnostics、review focus、proposal 对比和检查结果
+* `Inspect`：查看 diagnostics 和检查输出
 
-建议把中间区域理解为 **主制作区 / 主审查区**，而不是单一 viewer：
+这里更适合把中间区域理解为 **主制作区 / 主审查区**，而不是单一 viewer：
 
 ```text
 flex: 1
@@ -197,25 +196,24 @@ min-width: 0
 ```text
 AgentShell
 ├── ShellHeader
-├── Review Timeline
-├── Readiness / proposal cards
-├── Context / comparison cards
+├── Proposal cards
+├── Context cards
+├── Runtime check summary
 └── Composer
 ```
 
 它的主要职责包括：
 
-* 展示 session 级消息流
-* 展示 proposal、decision、context-card
-* 提供 review timeline 与 readiness 提示
-* 驱动从 proposal 到 `Preview / Source / Inspect` 的跳转
+* 展示 session 级 note 流
+* 展示 proposal 与 context card
+* 展示次级 runtime check 摘要
 * 作为 agent 协作入口，而不是裸 CLI 输入框
 
-它会和中间 `Workbench` 双向联动：
+当前实现里，它和中间 `Workbench` 的关系仍然以“共享同一 session 状态”为主，而不是已经打通的焦点跳转：
 
-* 从 `Agent Shell` 跳到 `Source` 查看焦点片段
-* 从 `Agent Shell` 跳到 `Inspect` 继续 review
-* 根据 build / inspect / validation 结果更新 proposal readiness
+* `proposal` 和 `check` 会消费当前 session 的 source / runtime 结果
+* 右栏还没有实现 `review focus` 到 `Source / Inspect` 的定位跳转
+* readiness / timeline 仍属于后续增强项
 
 因此草图中的 `terminal`，在本项目中更准确的名称应为：
 
@@ -255,9 +253,9 @@ overflow: hidden
 当前项目的三栏宽度语义更接近：
 
 ```text
-SessionsSidebar: 18
-Workbench: 56
-AgentShell: 26
+SessionsSidebar: 17
+Workbench: 60
+AgentShell: 23
 ```
 
 这是当前默认布局权重，而不是固定像素值。布局重点是：
@@ -329,7 +327,7 @@ App
   - `app-shell-composer-field`
   - `shell-content` 局部共享包装：`ShellEmptyCard`、`ShellCardCopy`、`ShellMetricList`、`ShellLoadingRow`
   - `shell-content` 语义组合：`ShellCardHeader`、`ShellStatusBadge`
-  - `shell-content` 壳层文本/块级组合：`ShellTitleStack`、`ShellPaneLabel`、`ShellSupportingCopy`、`ShellSurfaceItem`、`ShellSectionLabel`
+  - `shell-content` 壳层文本/块级组合：`ShellPaneLabel`、`ShellSurfaceItem`、`ShellSectionLabel`
   - `shell-content` 壳层行级组合：`ShellSplitRow`、`ShellActionGroup`、`ShellActionButton`、`ShellIconButton`、`ShellMetaRow`、`ShellStatusRow`、`ShellPaneHeader`
   - `shell-content` 滚动内容组合：`ShellScrollSurface`
   - `shell-content` 输入/检索组合：`ShellSearchField`
@@ -351,7 +349,9 @@ App
 
 - `SessionRail` 已经去掉了 button 套 button 的交互结构；
 - `SourceTab` 的 validating 状态链已经接通，不再是假 UI。
-- mock 浏览器模式下的 session 切换、proposal、send message、build / inspect / doctor 等动作也已接入本地状态流，不再只是静态展示。
+- mock 浏览器模式下的 session 切换、proposal、send message、build / inspect / runtime check 等动作也已接入本地状态流，不再只是静态展示。
+- `AgentShell` 现在会把 `proposal / context` 卡片稳定置于 runtime check 摘要之前，避免右栏重新退回 check-first。
+- `RuntimeReportCard` 现在会收敛成次级摘要卡，而不是右栏主导内容面。
 - `Build` 现在会在前置保存失败时中止，而不是继续运行后续 build。
 - mock 浏览器模式下的 `Inspect` 与 `Proposal` 也已回到“消费已保存 source”的边界，和 Tauri 运行时保持一致。
 - build / inspect 完成后的当前 workbench view 现在会重新对齐 session record，不再出现后端和前端对当前 tab 认知不一致的情况。
@@ -360,10 +360,14 @@ App
 - 左栏 session badge 现在表达真实 session status，而不是把“当前选中”误当状态颜色。
 - 关键命令按钮和 session rail 操作在运行态下已做基础禁重入。
 - 当前又补上了 session 级命令锁：在同一条会话命令链执行期间，session 切换、source 编辑、workbench tab/build/inspect、proposal/send 不再交叉重入。
+- `ShellCardHeader` 当前已回到极简头部默认值，不再把 `description` 当共享默认 affordance。
+- `Empty` 现在已经成为左栏、右栏和 preview canvas 的统一空态词汇。
 - Tauri `Build` 若在 optimistic `building` 过渡态后失败，前端现在会重新 hydrate 当前 session，回收过渡态而不是把 summary 留在假 `building`。
 - mock `Inspect` 也不再把上一轮成功 build 的结果错误覆盖成失败态。
 
-当前这轮 app shell 审计已经完成收口。后续新增 UI 仍需继续遵守 [`audit.md`](./audit.md) 里的 guardrail，不得把已收敛的布局、primitive 入口和 token 边界重新打散。
+当前这轮 app shell 的基础壳层与规范同步已经完成收口；[`todo.md`](./todo.md) 主要保留这轮对齐记录。
+
+后续新增 UI 仍需继续遵守 [`apps/agent-html-app/DESIGN.md`](../../../apps/agent-html-app/DESIGN.md) 里的 guardrail，不得把已收敛的布局、primitive 入口和 token 边界重新打散。
 
 ---
 
@@ -382,10 +386,12 @@ App
 | 点击 `Inspect` | 运行 inspect 流程并更新诊断与审查信息 |
 | 在 `Source` 中编辑 | 更新 session draft，并触发轻量校验 |
 | 保存 source | 将草稿写回 session 源文件 |
-| 在 `Agent Shell` 中选择 review focus | 定位到相关 `Source` 或 `Inspect` 内容 |
+| 点击 `Draft proposal` | 在右侧生成当前 session 的 proposal 卡片 |
+| 点击 `Run check` | 在右侧生成 runtime 检查摘要 |
+| 在 `Agent Shell` 中输入并发送消息 | 追加当前 session note |
 | 拖拽右侧边界 | 调整 `AgentShell` 宽度 |
 
-键盘语义也已经存在明确映射：
+当前代码侧尚未接通全局快捷键。如果后续补上，建议沿用：
 
 ```text
 Cmd/Ctrl+K  聚焦 session 搜索
