@@ -2,6 +2,7 @@ import { FileCode2Icon } from "lucide-react"
 
 import {
   ShellStatusBadge,
+  ShellSectionLabel,
 } from "@/features/app-shell/components/shell-content"
 import { isTauriRuntime } from "@/lib/tauri"
 import type { WorkbenchView } from "@/lib/types"
@@ -9,19 +10,14 @@ import type { WorkbenchView } from "@/lib/types"
 type TopBarProps = {
   activeView: WorkbenchView
   sessionName: string
-  sessionDirectory: string
   hasError: boolean
 }
 
 export function TopBar({
   activeView,
   sessionName,
-  sessionDirectory,
   hasError,
 }: TopBarProps) {
-  const pathParts = sessionDirectory.split("/")
-  const workspaceLabel = pathParts[pathParts.length - 2] ?? sessionDirectory
-
   return (
     <header className="app-shell-topbar">
       <div className="app-shell-topbar-row">
@@ -31,7 +27,7 @@ export function TopBar({
           </div>
           <div className="app-shell-topbar-brand">
             <span className="app-shell-topbar-copy">agent-html</span>
-            <span className="app-shell-panel-title">{workspaceLabel}</span>
+            <span className="app-shell-panel-title">review studio</span>
           </div>
         </div>
         <div className="app-shell-topbar-center">
@@ -42,7 +38,7 @@ export function TopBar({
             label={isTauriRuntime() ? "desktop" : "local"}
             variant="outline"
           />
-          <ShellStatusBadge label={activeView} variant="secondary" />
+          <ShellSectionLabel>{activeView}</ShellSectionLabel>
           {hasError ? <ShellStatusBadge label="error" variant="destructive" /> : null}
         </div>
       </div>

@@ -6,7 +6,7 @@ export const commandMetadata = {
     purpose:
       "Interactively configure or repair the user-level managed runtime.",
     usage:
-      "ahtml setup [--yes] [--force] [--ui shadcn] [--component-source shadcn-cli] [--preset <name|custom>] [--components <list|all>]",
+      "ahtml setup [--yes] [--force] [--ui shadcn] [--component-source ahtml-managed-ui] [--preset <name|custom>] [--components <list|all>]",
     options: [
       {
         name: "yes",
@@ -25,7 +25,7 @@ export const commandMetadata = {
       },
       {
         name: "component-source",
-        description: "Component source. Defaults to shadcn-cli.",
+        description: "Component source. Defaults to ahtml-managed-ui.",
         value: true,
       },
       {

@@ -1,7 +1,5 @@
 import type { ReactNode } from "react"
 
-import { Card, CardContent } from "@/components/ui/card"
-
 type WorkbenchCardProps = {
   header: ReactNode
   children: ReactNode
@@ -9,9 +7,9 @@ type WorkbenchCardProps = {
 
 export function WorkbenchCard({ header, children }: WorkbenchCardProps) {
   return (
-    <Card className="app-shell-fill-card">
+    <section className="app-shell-workbench-surface">
       {header}
-      <CardContent className="app-shell-content-stack">{children}</CardContent>
-    </Card>
+      <div className="app-shell-workbench-body">{children}</div>
+    </section>
   )
 }

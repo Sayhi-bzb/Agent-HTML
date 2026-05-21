@@ -770,6 +770,62 @@ function getDefinitionRequiredRegistryModules(definition) {
   return []
 }
 
+const runtimeOnlyRegistryModules = [
+  {
+    registryItem: "button",
+    exports: ["Button"],
+  },
+  {
+    registryItem: "dropdown-menu",
+    exports: [
+      "DropdownMenu",
+      "DropdownMenuContent",
+      "DropdownMenuItem",
+      "DropdownMenuLabel",
+      "DropdownMenuSeparator",
+      "DropdownMenuTrigger",
+    ],
+  },
+  {
+    registryItem: "input-group",
+    exports: [
+      "InputGroup",
+      "InputGroupAddon",
+      "InputGroupButton",
+      "InputGroupInput",
+      "InputGroupText",
+      "InputGroupTextarea",
+    ],
+  },
+  {
+    registryItem: "label",
+    exports: ["Label"],
+  },
+  {
+    registryItem: "popover",
+    exports: [
+      "Popover",
+      "PopoverContent",
+      "PopoverDescription",
+      "PopoverHeader",
+      "PopoverTitle",
+      "PopoverTrigger",
+    ],
+  },
+  {
+    registryItem: "resizable",
+    exports: [
+      "ResizableHandle",
+      "ResizablePanel",
+      "ResizablePanelGroup",
+    ],
+  },
+  {
+    registryItem: "scroll-area",
+    exports: ["ScrollArea", "ScrollBar"],
+  },
+]
+
 export const structuralAgentComponents = [
   "accordion-item",
   "cell",
@@ -787,7 +843,7 @@ export const requiredShadcnRuntimeComponents = [
           (module) => module.registryItem,
         ),
       )
-      .concat(["dropdown-menu", "popover", "resizable", "scroll-area"])
+      .concat(runtimeOnlyRegistryModules.map((module) => module.registryItem))
       .filter(Boolean),
   ),
 ]
@@ -797,15 +853,31 @@ export const requiredShadcnRuntimeExports = Object.fromEntries(
     registryItem,
     [
       ...new Set(
-        Object.values(componentCapabilityDefinitions).flatMap((definition) =>
-          getDefinitionRequiredRegistryModules(definition)
+        [
+          ...Object.values(componentCapabilityDefinitions).flatMap((definition) =>
+            getDefinitionRequiredRegistryModules(definition)
+              .filter((module) => module.registryItem === registryItem)
+              .flatMap((module) => module.exports),
+          ),
+          ...runtimeOnlyRegistryModules
             .filter((module) => module.registryItem === registryItem)
             .flatMap((module) => module.exports),
-        ),
+        ],
       ),
     ],
   ]),
 )
+
+export function normalizeManagedRuntimeComponents(components = []) {
+  const selectedComponents = Array.isArray(components)
+    ? [...new Set(components)]
+    : []
+  const extraComponents = selectedComponents.filter(
+    (component) => !requiredShadcnRuntimeComponents.includes(component),
+  )
+
+  return [...requiredShadcnRuntimeComponents, ...extraComponents]
+}
 
 export function getAgentComponentSource(name) {
   if (structuralAgentComponents.includes(name)) {

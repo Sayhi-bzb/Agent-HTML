@@ -13,7 +13,7 @@ import {
   assertRuntimeCssBase,
   assertRuntimeCssEntry,
   assertRuntimeCssImports,
-  assertRuntimeTemplateViteConfig,
+  assertRuntimeShellViteConfig,
   getShadcnRuntimeProvenanceState,
   assertRuntimeSurface,
   formatShadcnRuntimeSurface,
@@ -185,8 +185,8 @@ export async function runDoctorCommand({
     }),
   )
   checks.push(
-    await runDoctorCheck("runtime", "shadcn-template-vite-config", async () =>
-      assertRuntimeTemplateViteConfig(runtimePaths),
+    await runDoctorCheck("runtime", "runtime-shell-vite-config", async () =>
+      assertRuntimeShellViteConfig(runtimePaths),
     ),
   )
   checks.push(

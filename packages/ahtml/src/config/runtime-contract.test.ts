@@ -58,10 +58,10 @@ describe("runtime contract", () => {
     const runtimeContract = createRuntimeContract(
       VALIDATED_STANDARD_COMPONENT_SCHEMAS,
     )
-    const runtimeSurface = { source: "shadcn-init" }
+    const runtimeSurface = { source: "ahtml-managed-runtime" }
 
     const manifest = createManagedRuntimeManifest({
-      componentSource: "shadcn-cli",
+      componentSource: "ahtml-managed-ui",
       components: ["card", "tabs"],
       installMode: "default",
       packageVersion: "0.0.0",

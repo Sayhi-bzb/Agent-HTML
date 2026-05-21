@@ -1,14 +1,11 @@
-import {
-  CardContent,
-} from "@/components/ui/card"
 import type { AgentShellMessage } from "@/lib/types"
 
 import {
-  ShellCardHeader,
+  ShellSectionLabel,
   ShellStatusBadge,
 } from "@/features/app-shell/components/shell-content"
+import { cn } from "@/lib/utils"
 import { MessageBody } from "./message-body"
-import { ShellCardFrame } from "./shell-card-frame"
 
 function getMessageLines(message: AgentShellMessage): string[] {
   return message.text
@@ -66,22 +63,28 @@ type MessageCardProps = {
 }
 
 export function MessageCard({ message }: MessageCardProps) {
+  const proposal = Boolean(message.proposalSnapshot)
+
   return (
-    <ShellCardFrame
-      className={
-        getMessageTone(message) === "secondary"
-          ? "app-shell-message-card app-shell-message-card-user"
-          : "app-shell-message-card app-shell-message-card-agent"
-      }
+    <section
+      className={cn(
+        "app-shell-message-section",
+        proposal
+          ? "app-shell-proposal-card"
+          : getMessageTone(message) === "secondary"
+            ? "app-shell-message-card app-shell-message-card-user"
+            : "app-shell-message-card app-shell-message-card-agent",
+      )}
     >
-      <ShellCardHeader
-        action={<ShellStatusBadge label={getMessageLabel(message)} variant="outline" />}
-        title={getMessageTitle(message)}
-        titleSize="sm"
-      />
-      <CardContent>
-        <MessageBody items={getMessageItems(message)} text={getMessageText(message)} />
-      </CardContent>
-    </ShellCardFrame>
+      <div className="app-shell-split-row">
+        <p className="app-shell-message-heading">{getMessageTitle(message)}</p>
+        {proposal ? (
+          <ShellSectionLabel>Proposal</ShellSectionLabel>
+        ) : (
+          <ShellStatusBadge label={getMessageLabel(message)} variant="outline" />
+        )}
+      </div>
+      <MessageBody items={getMessageItems(message)} text={getMessageText(message)} />
+    </section>
   )
 }

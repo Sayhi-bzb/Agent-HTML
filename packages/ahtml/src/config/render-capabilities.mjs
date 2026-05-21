@@ -1,6 +1,7 @@
 export {
   getAgentComponentSource,
   getAgentRenderKind,
+  normalizeManagedRuntimeComponents,
   requiredShadcnRuntimeComponents,
   requiredShadcnRuntimeExports,
   structuralAgentComponents,

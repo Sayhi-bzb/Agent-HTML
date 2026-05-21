@@ -22,14 +22,17 @@ import {
   runtimeRenderer,
   runtimeVersion,
 } from "./runtime-paths.mjs"
-import { supportedRuntimeBase } from "../config/render-capabilities.mjs"
+import {
+  normalizeManagedRuntimeComponents,
+  supportedRuntimeBase,
+} from "../config/render-capabilities.mjs"
 import { createPromptUiManifest, nativeRuntimeSetup } from "./runtime-setup.mjs"
 import {
   assertRuntimeComponentsJson,
   assertRuntimeCssBase,
   assertRuntimeCssEntry,
   assertRuntimeCssImports,
-  assertRuntimeTemplateViteConfig,
+  assertRuntimeShellViteConfig,
   assertRuntimeSurface,
 } from "./runtime-surface.mjs"
 import {
@@ -45,6 +48,10 @@ export async function bootstrapManagedRuntime({
   setup = nativeRuntimeSetup,
   schema,
 } = {}) {
+  const normalizedSetup = {
+    ...setup,
+    components: normalizeManagedRuntimeComponents(setup?.components ?? []),
+  }
   await mkdir(paths.runtimeDir, { recursive: true })
   await mkdir(paths.cacheDir, { recursive: true })
   await mkdir(paths.logsDir, { recursive: true })
@@ -54,26 +61,26 @@ export async function bootstrapManagedRuntime({
     packageRoot,
     paths,
     schema,
-    setup,
+    setup: normalizedSetup,
   })
   const promptUiManifest = createPromptUiManifest({
     packageVersion,
-    setup,
+    setup: normalizedSetup,
     schema,
   })
   const runtimeContract = createRuntimeContractFromSchema(schema)
   const manifest = createManagedRuntimeManifest({
-    componentSource: setup.componentSource,
-    components: setup.components,
-    installMode: setup.installMode,
+    componentSource: normalizedSetup.componentSource,
+    components: normalizedSetup.components,
+    installMode: normalizedSetup.installMode,
     packageVersion,
     paths,
-    preset: setup.preset,
+    preset: normalizedSetup.preset,
     renderer: runtimeRenderer,
     runtimeBase: supportedRuntimeBase,
     runtimeContract,
     runtimeSurface: shadcnRuntimeSurface,
-    uiLibrary: setup.uiLibrary,
+    uiLibrary: normalizedSetup.uiLibrary,
     version: runtimeVersion,
   })
 
@@ -130,7 +137,7 @@ export async function readManagedRuntimeSnapshot(paths = getRuntimePaths()) {
       path.join(paths.runtimeSrcDir, "main.tsx"),
     ),
     shadcnComponents: false,
-    shadcnTemplateViteConfig: false,
+    runtimeShellViteConfig: false,
     componentsJson: false,
     shadcnCssEntry: false,
     shadcnCssImports: false,
@@ -187,8 +194,8 @@ export async function readManagedRuntimeSnapshot(paths = getRuntimePaths()) {
         runtimeDetail ||= detail
       },
     )
-    checks.shadcnTemplateViteConfig = await evaluateStatusCheck(
-      async () => assertRuntimeTemplateViteConfig(paths),
+    checks.runtimeShellViteConfig = await evaluateStatusCheck(
+      async () => assertRuntimeShellViteConfig(paths),
       (detail) => {
         runtimeDetail ||= detail
       },
@@ -229,7 +236,7 @@ export function assessManagedRuntimeSnapshot({
     checks.artifactProfiles &&
     checks.rendererAdapter &&
     checks.shadcnComponents &&
-    checks.shadcnTemplateViteConfig &&
+    checks.runtimeShellViteConfig &&
     checks.componentsJson &&
     checks.shadcnCssEntry &&
     checks.shadcnCssImports &&

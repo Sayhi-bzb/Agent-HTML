@@ -40,7 +40,7 @@ export function MainLayout({
           id="sessions"
           minSize={shellPanelConstraints.sessions.minSize}
         >
-          {sessions}
+          <div className="app-shell-rail-frame">{sessions}</div>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel
@@ -48,7 +48,7 @@ export function MainLayout({
           id="workbench"
           minSize={shellPanelConstraints.workbench.minSize}
         >
-          {workbench}
+          <div className="app-shell-workbench-frame">{workbench}</div>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel
@@ -56,7 +56,7 @@ export function MainLayout({
           id="shell"
           minSize={shellPanelConstraints.shell.minSize}
         >
-          {shell}
+          <div className="app-shell-review-frame">{shell}</div>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

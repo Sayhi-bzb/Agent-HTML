@@ -161,6 +161,8 @@ type ShellActionButtonProps = {
   disabled?: boolean
   onClick?: () => void
   ariaLabel?: string
+  variant?: "outline" | "ghost"
+  className?: string
 }
 
 export function ShellActionButton({
@@ -168,15 +170,18 @@ export function ShellActionButton({
   disabled = false,
   onClick,
   ariaLabel,
+  variant = "outline",
+  className,
 }: ShellActionButtonProps) {
   return (
     <Button
       aria-label={ariaLabel}
+      className={className}
       disabled={disabled}
       onClick={onClick}
       size="sm"
       type="button"
-      variant="outline"
+      variant={variant}
     >
       {children}
     </Button>
@@ -373,18 +378,20 @@ type ShellPaneScaffoldProps = {
   header?: ReactNode
   content?: ReactNode
   footer?: ReactNode
+  footerClassName?: string
 }
 
 export function ShellPaneScaffold({
   header,
   content,
   footer,
+  footerClassName,
 }: ShellPaneScaffoldProps) {
   return (
     <div className="app-shell-pane">
       {header ? <div className="app-shell-pane-header">{header}</div> : null}
       {content ? <div className="app-shell-pane-content">{content}</div> : null}
-      {footer ? <div className="app-shell-pane-footer">{footer}</div> : null}
+      {footer ? <div className={cn("app-shell-pane-footer", footerClassName)}>{footer}</div> : null}
     </div>
   )
 }
@@ -448,10 +455,6 @@ type ShellStatusBadgeVariant =
   | "ghost"
 
 function getSessionStatusBadgeVariant(status: SessionStatus): ShellStatusBadgeVariant {
-  if (status === "ready") {
-    return "default"
-  }
-
   if (status === "error") {
     return "destructive"
   }
@@ -465,7 +468,7 @@ function getSessionStatusBadgeVariant(status: SessionStatus): ShellStatusBadgeVa
 
 function getSessionStatusLabel(status: SessionStatus): string {
   if (status === "dirty") {
-    return "edit"
+    return "stale"
   }
 
   if (status === "building") {
@@ -482,7 +485,7 @@ function getSessionStatusLabel(status: SessionStatus): string {
 function getValidationStatusBadgeVariant(
   status: SourceValidationSnapshot["status"],
 ): ShellStatusBadgeVariant {
-  return status === "valid" ? "default" : "destructive"
+  return status === "valid" ? "outline" : "destructive"
 }
 
 function getValidationStatusLabel(status: SourceValidationSnapshot["status"]): string {
@@ -492,7 +495,7 @@ function getValidationStatusLabel(status: SourceValidationSnapshot["status"]): s
 function getBuildStatusBadgeVariant(
   status: BuildRunSummary["status"],
 ): ShellStatusBadgeVariant {
-  return status === "succeeded" ? "default" : "outline"
+  return status === "succeeded" ? "outline" : "outline"
 }
 
 function getBuildStatusLabel(status: BuildRunSummary["status"]): string {
@@ -514,7 +517,7 @@ function getBuildStatusLabel(status: BuildRunSummary["status"]): string {
 function getRuntimeStatusBadgeVariant(
   status: RuntimeReport["status"],
 ): ShellStatusBadgeVariant {
-  return status === "ok" ? "default" : "destructive"
+  return status === "ok" ? "outline" : "destructive"
 }
 
 function getRuntimeStatusLabel(status: RuntimeReport["status"]): string {

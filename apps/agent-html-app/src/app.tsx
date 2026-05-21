@@ -42,7 +42,6 @@ export function App() {
           activeView={activeView}
           hasError={Boolean(commandState.error)}
           sessionName={currentSession.summary.name}
-          sessionDirectory={currentSession.summary.directory}
         />
 
         {commandState.error ? (

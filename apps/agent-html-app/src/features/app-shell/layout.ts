@@ -1,14 +1,14 @@
 export const shellPanelConstraints = {
   sessions: {
-    defaultSize: 18,
+    defaultSize: 17,
     minSize: 16,
   },
   workbench: {
-    defaultSize: 56,
-    minSize: 38,
+    defaultSize: 60,
+    minSize: 40,
   },
   shell: {
-    defaultSize: 26,
-    minSize: 22,
+    defaultSize: 23,
+    minSize: 20,
   },
 } as const

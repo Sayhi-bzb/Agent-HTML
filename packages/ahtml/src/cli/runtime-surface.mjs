@@ -4,7 +4,10 @@ import path from "node:path"
 
 import { requiredShadcnRuntimeExports } from "../config/render-capabilities.mjs"
 import { parseJson } from "./cli-io.mjs"
-import { createManagedRuntimeUiProof } from "./runtime-managed-ui.mjs"
+import {
+  createManagedRuntimeUiProof,
+  getManagedRuntimeUiBundleEntries,
+} from "./runtime-managed-ui.mjs"
 
 const requiredCssImports = [
   "tailwindcss",
@@ -14,12 +17,10 @@ const requiredCssImports = [
 const requiredCssTokens = ["--background", "--foreground", "--border"]
 const requiredAliasKeys = ["components", "ui", "lib", "utils"]
 const ahtmlGlueProofAlgorithm = "sha256"
-const managedRuntimeShellSource = "shadcn-official-template"
-const managedRuntimeTemplateOverrideSource = "shadcn-template-override"
-const supportedManagedRuntimeShellSources = new Set([
-  managedRuntimeShellSource,
-  managedRuntimeTemplateOverrideSource,
-])
+export const managedRuntimeSurfaceSource = "ahtml-managed-runtime"
+export const managedRuntimeShellSource = "ahtml-runtime-shell"
+export const managedRuntimeInitSource = "ahtml-bootstrap"
+const supportedManagedRuntimeShellSources = new Set([managedRuntimeShellSource])
 const ahtmlGlueFiles = [
   "vite.ahtml.config.mjs",
   "src/app.tsx",
@@ -55,14 +56,14 @@ export async function createShadcnRuntimeSurface({
   await stat(path.join(paths.runtimeDir, cssPath))
 
   return {
-    source: "shadcn-init",
+    source: managedRuntimeSurfaceSource,
     template: "vite",
     preset: setup.preset,
     style: componentsJson.style,
     base: runtimeBase,
     iconLibrary: componentsJson.iconLibrary,
     shellSource,
-    initSource: "shadcn-cli",
+    initSource: managedRuntimeInitSource,
     tailwindVersion: await readRuntimeTailwindVersion(paths),
     tailwindCss: cssPath,
     cssPath,
@@ -230,12 +231,12 @@ export async function runtimeCssEntryExists({ manifest, paths }) {
   }
 }
 
-export async function assertRuntimeTemplateViteConfig(paths) {
-  const templateConfigPath = path.join(paths.runtimeDir, "vite.config.ts")
+export async function assertRuntimeShellViteConfig(paths) {
+  const shellConfigPath = path.join(paths.runtimeDir, "vite.config.ts")
   let source
 
   try {
-    source = await readFile(templateConfigPath, "utf8")
+    source = await readFile(shellConfigPath, "utf8")
   } catch (error) {
     if (error?.code === "ENOENT") {
       throw new Error("Runtime required file is missing: vite.config.ts.")
@@ -270,7 +271,7 @@ export async function assertRuntimeTemplateViteConfig(paths) {
 
   if (missing.length > 0) {
     throw new Error(
-      `shadcn template vite config is incomplete. Missing: ${missing.join(", ")}.`,
+      `runtime shell vite config is incomplete. Missing: ${missing.join(", ")}.`,
     )
   }
 
@@ -338,9 +339,9 @@ export async function assertRuntimeSurface({ manifest, paths }) {
   })
   const issues = []
 
-  if (surface.source !== "shadcn-init") {
+  if (surface.source !== managedRuntimeSurfaceSource) {
     issues.push(
-      `surface source must be shadcn-init, got ${String(surface.source)}.`,
+      `surface source must be ${managedRuntimeSurfaceSource}, got ${String(surface.source)}.`,
     )
   }
 
@@ -398,9 +399,9 @@ export async function assertRuntimeSurface({ manifest, paths }) {
     )
   }
 
-  if (surface.initSource !== "shadcn-cli") {
+  if (surface.initSource !== managedRuntimeInitSource) {
     issues.push(
-      `surface initSource must be shadcn-cli, got ${String(surface.initSource)}.`,
+      `surface initSource must be ${managedRuntimeInitSource}, got ${String(surface.initSource)}.`,
     )
   }
 
@@ -486,7 +487,7 @@ export function formatShadcnRuntimeProvenance(surface) {
   const managedUiCount = managedUiEntries.length
   const managedUiSummary =
     managedUiEntries.length > 0
-      ? ` overrides:${managedUiEntries
+      ? ` bundle:${managedUiEntries
           .map(([relativePath]) =>
             relativePath.replace("src/components/ui/", "").replace(".tsx", ""),
           )
@@ -716,11 +717,21 @@ async function assertManagedRuntimeUiProof({ components, paths, surface }) {
       )
     }
 
+    const expectedReason = expectedProof.reasons?.[relativePath]
+    const actualReason = proof.reasons?.[relativePath]
+
+    if (typeof expectedReason === "string" && actualReason !== expectedReason) {
+      throw new Error(
+        `surface ahtmlManagedUiProof ${relativePath} reason does not match checked-in managed UI override registry. Actual: ${String(actualReason)} Expected: ${String(expectedReason)}.`,
+      )
+    }
+
     if (
-      proof.reasons?.[relativePath] !== expectedProof.reasons?.[relativePath]
+      typeof expectedReason === "undefined" &&
+      typeof actualReason !== "undefined"
     ) {
       throw new Error(
-        `surface ahtmlManagedUiProof ${relativePath} reason does not match checked-in managed UI override registry. Actual: ${String(proof.reasons?.[relativePath])} Expected: ${String(expectedProof.reasons?.[relativePath])}.`,
+        `surface ahtmlManagedUiProof ${relativePath} should not record an override reason. Actual: ${String(actualReason)}.`,
       )
     }
 
@@ -812,16 +823,16 @@ function assertSameNestedStringMap({
 }
 
 function createRequiredRuntimeFiles({ components, cssPath }) {
+  const managedUiBundleFiles = getManagedRuntimeUiBundleEntries(components).map(
+    (entry) => normalizeRuntimeRelativePath(entry.runtimeRelativePath),
+  )
+
   return [
     "components.json",
     "vite.config.ts",
     normalizeRuntimeRelativePath(cssPath),
     normalizeRuntimeRelativePath(path.join("src", "lib", "utils.ts")),
-    ...components.map((component) =>
-      normalizeRuntimeRelativePath(
-        path.join("src", "components", "ui", `${component}.tsx`),
-      ),
-    ),
+    ...managedUiBundleFiles,
   ]
 }
 

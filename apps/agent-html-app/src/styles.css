@@ -38,54 +38,54 @@
 :root {
   --background: oklch(0.985 0.002 95);
   --foreground: oklch(0.215 0.004 95);
-  --card: oklch(0.998 0.001 95);
+  --card: oklch(0.988 0.002 95);
   --card-foreground: oklch(0.215 0.004 95);
-  --popover: oklch(0.998 0.001 95);
+  --popover: oklch(0.992 0.002 95);
   --popover-foreground: oklch(0.215 0.004 95);
   --primary: oklch(0.215 0.004 95);
   --primary-foreground: oklch(0.992 0 0);
-  --secondary: oklch(0.958 0.003 95);
+  --secondary: oklch(0.972 0.003 95);
   --secondary-foreground: oklch(0.215 0.004 95);
-  --muted: oklch(0.968 0.003 95);
+  --muted: oklch(0.976 0.002 95);
   --muted-foreground: oklch(0.49 0.01 95);
-  --accent: oklch(0.962 0.003 95);
+  --accent: oklch(0.976 0.003 95);
   --accent-foreground: oklch(0.215 0.004 95);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.004 95);
-  --input: oklch(0.91 0.004 95);
+  --border: oklch(0.87 0.003 95);
+  --input: oklch(0.87 0.003 95);
   --ring: oklch(0.66 0.01 95);
-  --radius: 0.75rem;
+  --radius: 0.5rem;
   --shell-topbar-height: 3.25rem;
   --shell-topbar-padding-inline: 1rem;
-  --shell-header-padding-block: 0.625rem;
-  --shell-header-padding-inline: 0.875rem;
-  --shell-section-padding: 0.875rem;
+  --shell-header-padding-block: 0.5rem;
+  --shell-header-padding-inline: 0.75rem;
+  --shell-section-padding: 0.75rem;
   --shell-gap-compact: 0.375rem;
   --shell-gap-base: 0.625rem;
   --shell-gap-roomy: 0.875rem;
   --shell-panel-icon-size: 1.75rem;
-  --shell-card-inset-padding: 0.875rem;
+  --shell-card-inset-padding: 0.75rem;
   --shell-console-padding: 0.75rem;
 }
 
 .dark {
   --background: oklch(0.175 0.004 95);
   --foreground: oklch(0.965 0.002 95);
-  --card: oklch(0.215 0.004 95);
+  --card: oklch(0.195 0.004 95);
   --card-foreground: oklch(0.965 0.002 95);
-  --popover: oklch(0.215 0.004 95);
+  --popover: oklch(0.205 0.004 95);
   --popover-foreground: oklch(0.965 0.002 95);
   --primary: oklch(0.93 0.002 95);
   --primary-foreground: oklch(0.205 0.004 95);
-  --secondary: oklch(0.255 0.004 95);
+  --secondary: oklch(0.235 0.004 95);
   --secondary-foreground: oklch(0.965 0.002 95);
-  --muted: oklch(0.255 0.004 95);
+  --muted: oklch(0.225 0.004 95);
   --muted-foreground: oklch(0.72 0.01 95);
-  --accent: oklch(0.255 0.004 95);
+  --accent: oklch(0.235 0.004 95);
   --accent-foreground: oklch(0.965 0.002 95);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.62 0.01 95);
 }
 
@@ -97,6 +97,7 @@
   html,
   body,
   #root {
+    height: 100%;
     min-height: 100%;
   }
 
@@ -108,15 +109,15 @@
 
 @layer components {
   .app-shell {
-    @apply min-h-screen bg-background text-foreground;
+    @apply h-full min-h-screen bg-background text-foreground;
   }
 
   .app-shell-frame {
-    @apply flex min-h-screen flex-col bg-gradient-to-b from-background to-muted/30;
+    @apply flex h-full min-h-screen flex-col bg-background;
   }
 
   .app-shell-topbar {
-    @apply border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/75;
+    @apply border-b bg-background;
   }
 
   .app-shell-topbar-row {
@@ -154,7 +155,7 @@
   }
 
   .app-shell-panel-icon {
-    @apply flex items-center justify-center rounded-lg border bg-card text-muted-foreground shadow-sm;
+    @apply flex items-center justify-center border bg-transparent text-muted-foreground;
     block-size: var(--shell-panel-icon-size);
     inline-size: var(--shell-panel-icon-size);
   }
@@ -188,25 +189,25 @@
   }
 
   .app-shell-body {
-    @apply flex-1 overflow-hidden;
+    @apply relative min-h-0 flex-1 overflow-hidden;
   }
 
   .app-shell-fill-layout {
-    @apply h-full;
+    @apply absolute inset-0 flex min-h-0;
   }
 
   .app-shell-pane {
-    @apply flex h-full flex-col;
+    @apply flex h-full min-h-0 flex-col;
   }
 
   .app-shell-pane-header {
-    @apply border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70;
+    @apply border-b bg-background;
     padding-inline: var(--shell-header-padding-inline);
     padding-block: var(--shell-header-padding-block);
   }
 
   .app-shell-pane-footer {
-    @apply border-t bg-background/88;
+    @apply border-t bg-background;
     padding: var(--shell-section-padding);
   }
 
@@ -216,7 +217,17 @@
   }
 
   .app-shell-fill-card {
-    @apply h-full rounded-2xl border bg-card/92 shadow-sm;
+    @apply h-full border bg-card;
+  }
+
+  .app-shell-workbench-surface {
+    @apply flex h-full min-h-0 flex-col bg-transparent;
+  }
+
+  .app-shell-workbench-body {
+    @apply flex min-h-0 flex-1 flex-col;
+    gap: var(--shell-gap-base);
+    padding-top: var(--shell-section-padding);
   }
 
   .app-shell-fill-tabs {
@@ -246,7 +257,7 @@
   }
 
   .app-shell-search-input {
-    @apply rounded-full border-transparent bg-muted pl-8 shadow-none;
+    @apply border-x-0 border-t-0 rounded-none border-b bg-transparent pl-8 shadow-none;
   }
 
   .app-shell-surface-grid {
@@ -285,7 +296,7 @@
   }
 
   .app-shell-card-active {
-    @apply border-foreground/20 shadow-md;
+    @apply border-foreground/40;
   }
 
   .app-shell-content-stack {
@@ -329,13 +340,13 @@
   }
 
   .app-shell-surface-item {
-    @apply rounded-xl border bg-card text-sm shadow-sm;
+    @apply border bg-transparent text-sm;
     padding-inline: var(--shell-header-padding-inline);
     padding-block: var(--shell-header-padding-block);
   }
 
   .app-shell-preview-frame {
-    @apply min-h-0 flex-1 overflow-hidden rounded-2xl border bg-muted/20;
+    @apply min-h-0 flex-1 overflow-hidden border bg-transparent;
   }
 
   .app-shell-preview-canvas {
@@ -344,10 +355,22 @@
 
   .app-shell-editor-field {
     @apply min-h-0 flex-1 resize-none border-0 bg-transparent p-0 font-mono text-[13px] leading-6 shadow-none focus-visible:ring-0;
+    min-height: 0;
   }
 
   .app-shell-composer-field {
-    @apply min-h-24 resize-none rounded-2xl border-0 bg-muted/50 p-3 text-[13px] leading-5 shadow-none focus-visible:ring-1;
+    @apply min-h-0 flex-1 resize-none border-0 bg-transparent p-0 text-[13px] leading-5 shadow-none focus-visible:ring-0;
+    min-height: 0;
+  }
+
+  .app-shell-composer-row {
+    @apply flex items-center;
+    gap: var(--shell-gap-base);
+  }
+
+  .app-shell-composer-input-shell {
+    @apply flex min-w-0 flex-1 items-center border-b;
+    padding-block: 0.375rem;
   }
 
   .app-shell-empty-canvas {
@@ -363,7 +386,7 @@
   }
 
   .app-shell-metric-row {
-    @apply flex items-center gap-2 rounded-full border bg-muted/50 px-3 py-1;
+    @apply flex items-center justify-between gap-2 border-b bg-transparent px-0 py-2;
   }
 
   .app-shell-metric-label {
@@ -375,7 +398,7 @@
   }
 
   .app-shell-metric-strip {
-    @apply flex flex-wrap gap-2 pt-0;
+    @apply grid gap-0 pt-0;
     padding-inline: var(--shell-header-padding-inline);
     padding-bottom: var(--shell-header-padding-inline);
   }
@@ -400,15 +423,38 @@
   }
 
   .app-shell-session-card {
-    @apply relative rounded-2xl border bg-card/90 shadow-sm transition-colors;
+    @apply relative border-b bg-transparent transition-colors;
+  }
+
+  .app-shell-session-card-body {
+    @apply grid;
+    gap: var(--shell-gap-compact);
+    padding-inline: var(--shell-header-padding-inline);
+    padding-block: var(--shell-section-padding);
+  }
+
+  .app-shell-session-card-title {
+    @apply min-w-0 flex-1 truncate text-sm tracking-tight text-foreground/86;
+    font-family: var(--font-heading);
+  }
+
+  .app-shell-session-card-active {
+    @apply bg-muted/30;
   }
 
   .app-shell-session-card-trigger {
-    @apply absolute inset-0 z-10 rounded-2xl bg-transparent p-0 opacity-0 outline-none hover:bg-transparent focus-visible:opacity-100 focus-visible:ring-[3px] focus-visible:ring-ring/50;
+    @apply absolute inset-0 z-10 rounded-none bg-transparent p-0 opacity-0 outline-none hover:bg-transparent focus-visible:opacity-100 focus-visible:ring-[3px] focus-visible:ring-ring/50;
   }
 
   .app-shell-session-card-action {
-    @apply relative z-20;
+    @apply relative z-20 transition-opacity;
+    opacity: 0 !important;
+  }
+
+  .group\/session:hover .app-shell-session-card-action:not(:disabled),
+  .group\/session:focus-within .app-shell-session-card-action:not(:disabled),
+  .app-shell-session-card-active .app-shell-session-card-action:not(:disabled) {
+    opacity: 0.72 !important;
   }
 
   .app-shell-section-stack {
@@ -422,35 +468,120 @@
   }
 
   .app-shell-message-card {
-    @apply border-border/80 bg-card/95;
+    @apply border-x-0 border-t-0 border-b bg-transparent;
   }
 
   .app-shell-message-card-agent {
-    @apply border-primary/10;
+    @apply border-border;
   }
 
   .app-shell-message-card-user {
-    @apply bg-muted/35;
+    @apply bg-transparent;
   }
 
   .app-shell-runtime-card {
-    @apply border-border/70 bg-muted/15 shadow-none;
+    @apply border-x-0 border-t-0 border-b bg-transparent;
   }
 
   .app-shell-tabs-list {
-    @apply rounded-full bg-muted/70 p-1;
+    @apply border-x-0 border-t-0 border-b bg-transparent p-0;
   }
 
   .app-shell-tabs-trigger {
-    @apply rounded-full px-3 text-xs data-[state=active]:shadow-none;
+    @apply rounded-none border-x-0 border-t-0 border-b border-transparent px-3 text-xs text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none;
+  }
+
+  .app-shell-plain-action {
+    @apply h-7 px-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground;
+  }
+
+  .app-shell-composer-send {
+    @apply px-1.5;
   }
 
   .app-shell-console {
-    @apply min-h-0 overflow-auto rounded-xl border bg-muted/40 text-[12px] leading-5;
+    @apply min-h-0 overflow-auto border bg-transparent text-[12px] leading-5;
     padding: var(--shell-console-padding);
   }
 
   .app-shell-console-section {
     @apply min-h-0 grid gap-2;
+  }
+
+  .app-shell-rail-frame {
+    @apply h-full border-r;
+  }
+
+  .app-shell-workbench-frame {
+    @apply h-full;
+  }
+
+  .app-shell-review-frame {
+    @apply h-full border-l;
+  }
+
+  .app-shell-pane-footer-review {
+    padding-block: 0.5rem;
+  }
+
+  .app-shell-panel-stack {
+    @apply flex h-full min-h-0 flex-col;
+  }
+
+  .app-shell-flat-card {
+    @apply border-x-0 border-t-0 rounded-none bg-transparent shadow-none;
+  }
+
+  .app-shell-flat-panel {
+    @apply border-0 bg-transparent shadow-none;
+  }
+
+  .app-shell-divider-list {
+    @apply grid gap-0;
+  }
+
+  .app-shell-structure-list {
+    @apply divide-y divide-border;
+  }
+
+  .app-shell-diagnostic-row {
+    @apply flex items-start justify-between gap-3 border-b py-3 text-sm;
+  }
+
+  .app-shell-message-section {
+    @apply grid gap-2 border-b py-3;
+  }
+
+  .app-shell-proposal-card {
+    @apply grid gap-3 border-b;
+    padding-block: 1rem;
+  }
+
+  .app-shell-proposal-card .app-shell-message-heading {
+    font-family: var(--font-heading);
+  }
+
+  .app-shell-proposal-card .app-shell-body-list {
+    @apply gap-3;
+  }
+
+  .app-shell-proposal-card .app-shell-body-item {
+    @apply text-foreground;
+  }
+
+  .app-shell-message-kicker {
+    @apply text-[11px] uppercase tracking-[0.16em] text-muted-foreground;
+  }
+
+  .app-shell-message-heading {
+    @apply text-sm font-medium tracking-tight;
+  }
+
+  .app-shell-status-count {
+    @apply text-[11px] uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  .app-shell-panel-stack > * + * {
+    @apply mt-3;
   }
 }

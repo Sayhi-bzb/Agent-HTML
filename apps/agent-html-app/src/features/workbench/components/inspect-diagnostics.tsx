@@ -4,7 +4,6 @@ import {
   ShellDiagnosticStatusBadge,
   ShellSectionLabel,
   ShellSplitRow,
-  ShellSurfaceItem,
 } from "@/features/app-shell/components/shell-content"
 import type { InspectSnapshot } from "@/lib/types"
 
@@ -15,15 +14,18 @@ type InspectDiagnosticListProps = {
 export function InspectDiagnosticList({
   diagnostics,
 }: InspectDiagnosticListProps) {
+  const actionable = diagnostics.filter((item) => item.severity !== "info")
+  const visibleDiagnostics = actionable.length > 0 ? actionable : diagnostics
+
   return (
-    <div className="app-shell-surface-grid">
-      {diagnostics.map((item) => (
-        <ShellSurfaceItem key={item.id}>
-          <ShellSplitRow>
+    <div className="app-shell-divider-list">
+      {visibleDiagnostics.map((item) => (
+        <div className="app-shell-diagnostic-row" key={item.id}>
+          <ShellSplitRow align="start" className="w-full">
             <span>{item.message}</span>
             <ShellDiagnosticStatusBadge severity={item.severity} />
           </ShellSplitRow>
-        </ShellSurfaceItem>
+        </div>
       ))}
     </div>
   )

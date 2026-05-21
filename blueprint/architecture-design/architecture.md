@@ -14,10 +14,14 @@ semantic agent-html
         +
 configuration selection
         ↓
-stable shareable HTML artifact
+shared renderer path
+   ↙                    ↘
+real-time preview loop   build / portable artifact
 ```
 
-agent 负责表达内容、关系和结构；系统负责把这些语义节点投影成稳定、可读、可分享的 HTML artifact。
+agent 负责表达内容、关系和结构；系统负责把这些语义节点投影到同一条渲染链路中，先服务实时 preview 与协作，再在需要交付、分享或归档时产出稳定 HTML artifact。
+
+这条产品形态的优势应来自 artifact 语义本身：用实时 preview、稳定风格、语义 authoring、低实现噪声与受控反馈回流，替代通用页面能力竞争。
 
 ## System Layers
 
@@ -86,11 +90,13 @@ runtime host 承载 React、Vite、Tailwind、shadcn 和 renderer glue。
 
 ### 6. Output Layer
 
-output 层负责最终产物：
+output 层负责面向外部的结果形态：
 
-- preview
-- build
+- real-time preview loop
+- build result
 - portable artifact
+
+preview 是首要工作模式；build 和 portable artifact 服务交付、分享和归档。
 
 ### 7. Component Facts Layer
 
@@ -135,8 +141,8 @@ engine parses / validates / sanitizes
 rendering layer resolves semantic nodes
         ↓
 runtime host renders
-        ↓
-portable artifact output
+   ↙                    ↘
+preview loop            build / portable artifact output
 ```
 
 ## Stable Decisions
@@ -146,4 +152,6 @@ portable artifact output
 - layout 使用层只表达结构关系，不表达实现参数
 - schema / prompt 只暴露最终公开的 props
 - runtime host 是执行宿主，不是架构中心模板
+- preview 是首要工作模式，portable artifact 是交付形态
+- preview 与 build 共用同一条语义到渲染链路
 - 组件事实服务映射与校验，不直接成为公开 contract

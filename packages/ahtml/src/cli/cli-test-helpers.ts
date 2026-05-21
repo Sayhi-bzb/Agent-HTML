@@ -15,13 +15,6 @@ const previewShutdownTimeoutMs = 5000
 
 export const root = process.cwd()
 export const cliPath = path.join(root, "packages", "ahtml", "bin", "ahtml.mjs")
-export const shadcnTemplateFixtureDir = path.join(
-  root,
-  "scripts",
-  "verify-pack",
-  "shadcn-test-fixtures",
-  "template",
-)
 export const validAgentHtmlFixtures = [
   '<page title="Fixture"><card title="Summary">Valid text.</card></page>',
   [
@@ -172,18 +165,10 @@ export function createCliEnv(
   env: NodeJS.ProcessEnv = {},
   registryUrl?: string,
 ): NodeJS.ProcessEnv {
-  const testRuntimeTemplateEnv = registryUrl
-    ? {
-        AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE: "1",
-        AHTML_SHADCN_TEMPLATE_DIR: shadcnTemplateFixtureDir,
-        REGISTRY_URL: registryUrl,
-      }
-    : {}
-
   return {
     ...process.env,
     AHTML_NO_UPDATE_CHECK: "1",
-    ...testRuntimeTemplateEnv,
+    ...(registryUrl ? { REGISTRY_URL: registryUrl } : {}),
     ...env,
   }
 }

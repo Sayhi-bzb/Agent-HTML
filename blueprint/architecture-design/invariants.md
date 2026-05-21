@@ -64,11 +64,11 @@ agent 输出中的脚本默认不执行。
 
 交互能力应由受控标准组件提供。
 
-## 11. artifact targets static sharing
+## 11. preview is the primary work mode
 
-artifact 默认面向静态分享。
+系统默认首先服务实时 preview 与协作 loop。
 
-默认交付物是包含 `index.html`、CSS / JS bundle 和 assets 的 static artifact directory。
+系统仍必须支持可分享、可归档的交付产物，但不把静态分享写成唯一默认目标。
 
 ## 12. current directory is not the runtime
 
@@ -78,7 +78,9 @@ Vite、React、Tailwind、shadcn、renderer adapter 和 generated runtime files 
 
 ## 13. dev preview shares the renderer path
 
-dev preview 与 final artifact 必须共用同一条语义到渲染链路。
+实时 preview 与 build / final artifact 必须共用同一条语义到渲染链路。
+
+不应为 preview 和 build 维护两套语义投影实现。
 
 ## 14. renderer uses registered semantic nodes
 

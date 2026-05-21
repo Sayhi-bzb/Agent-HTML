@@ -24,6 +24,29 @@ const forbiddenCoreBoundaryPatterns = [
   /\btailwind\b/i,
 ]
 
+const gallerySceneStylePaths = [
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles.ts",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles/base.ts",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles/cards.ts",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles/colors.ts",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles/custom.ts",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles/dashboard.ts",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles/mail.ts",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles/pricing.ts",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles/responsive.ts",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/styles/typography.ts",
+]
+
+async function readGallerySceneStyleSource() {
+  return (
+    await Promise.all(
+      gallerySceneStylePaths.map((relativePath) =>
+        readRepoSource(relativePath),
+      ),
+    )
+  ).join("\n")
+}
+
 describe("code governance sync blocks", () => {
   it("keeps schema and validate on the published core boundary", async () => {
     for (const relativePath of coreBoundaryEntrypoints) {
@@ -113,5 +136,209 @@ describe("code governance sync blocks", () => {
     expect(ahtmlPackageJsonSource).toContain(
       '"check:runtime-host": "tsc -p tsconfig.runtime-host.json"',
     )
+  })
+
+  it("keeps runtime-host ui source limited to explicit overrides while runtime baseline stays on fixtures", async () => {
+    const [
+      runtimeHostSliderSource,
+      runtimeManagedUiSource,
+      runtimeTsconfigSource,
+    ] = await Promise.all([
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "components",
+        "ui",
+        "slider.tsx",
+      ),
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-managed-ui.mjs",
+      ),
+      readRepoSource("packages", "ahtml", "tsconfig.runtime-host.json"),
+    ])
+
+    expect(runtimeHostSliderSource).toContain("controlId")
+    expect(runtimeManagedUiSource).toContain('"scripts",')
+    expect(runtimeManagedUiSource).toContain('"shadcn-test-fixtures",')
+    expect(runtimeManagedUiSource).toContain(
+      '"runtime-host/components/ui override registry must match explicit managed overrides only."',
+    )
+    expect(runtimeTsconfigSource).toContain('"@/components/ui/slider": [')
+    expect(runtimeTsconfigSource).toContain(
+      '"../../scripts/verify-pack/shadcn-test-fixtures/components/ui/*"',
+    )
+  })
+
+  it("keeps page-level gallery grid policy centralized in host-styles tokens", async () => {
+    const [hostStylesSource, galleryStylesSource] = await Promise.all([
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "host-styles.tsx",
+      ),
+      readGallerySceneStyleSource(),
+    ])
+
+    expect(hostStylesSource).toContain("--ahtml-gallery-preset-stats-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-color-popover-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-inspector-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-dashboard-card-columns")
+    expect(hostStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-preset-stats-columns);",
+    )
+    expect(hostStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-color-popover-columns);",
+    )
+    expect(hostStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-inspector-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-dashboard-card-columns);",
+    )
+  })
+
+  it("keeps gallery micro spacing and surface padding on shared runtime host tokens", async () => {
+    const [hostStylesSource, galleryStylesSource] = await Promise.all([
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "host-styles.tsx",
+      ),
+      readGallerySceneStyleSource(),
+    ])
+
+    expect(hostStylesSource).toContain("--ahtml-space-2xs")
+    expect(hostStylesSource).toContain("--ahtml-space-xs")
+    expect(hostStylesSource).toContain("--ahtml-space-sm")
+    expect(hostStylesSource).toContain("--ahtml-space-md")
+    expect(hostStylesSource).toContain("--ahtml-space-lg")
+    expect(hostStylesSource).toContain("--ahtml-surface-padding-sm")
+    expect(hostStylesSource).toContain("--ahtml-surface-padding-md")
+
+    expect(galleryStylesSource).toContain("gap: var(--ahtml-space-2xs);")
+    expect(galleryStylesSource).toContain("gap: var(--ahtml-space-xs);")
+    expect(galleryStylesSource).toContain("gap: var(--ahtml-space-sm);")
+    expect(galleryStylesSource).toContain("gap: var(--ahtml-space-md);")
+    expect(galleryStylesSource).toContain("gap: var(--ahtml-space-lg);")
+    expect(galleryStylesSource).toContain(
+      "padding: var(--ahtml-surface-padding-sm);",
+    )
+    expect(galleryStylesSource).toContain(
+      "padding: var(--ahtml-surface-padding-md);",
+    )
+
+    const forbiddenLiteralPatterns = [
+      /gap:\s+0\.35rem;/,
+      /gap:\s+0\.45rem;/,
+      /gap:\s+0\.5rem;/,
+      /gap:\s+0\.55rem;/,
+      /gap:\s+0\.7rem;/,
+      /padding:\s+0\.8rem;/,
+      /padding:\s+0\.9rem;/,
+    ]
+
+    for (const pattern of forbiddenLiteralPatterns) {
+      expect(galleryStylesSource).not.toMatch(pattern)
+    }
+  })
+
+  it("keeps gallery shell and toolbar frame ownership in host-styles", async () => {
+    const [hostStylesSource, galleryStylesSource] = await Promise.all([
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "host-styles.tsx",
+      ),
+      readGallerySceneStyleSource(),
+    ])
+
+    const sharedShellSelectors = [
+      ".ahtml-gallery-page-header",
+      ".ahtml-gallery-page-brand",
+      ".ahtml-gallery-header-actions",
+      ".ahtml-gallery-mobile-tabs",
+      ".ahtml-gallery-main",
+      ".ahtml-gallery-sidebar",
+      ".ahtml-gallery-divider",
+      ".ahtml-gallery-sidebar-inner",
+      ".ahtml-gallery-control-header",
+      ".ahtml-gallery-control-header-row",
+      ".ahtml-gallery-preset-rail",
+      ".ahtml-gallery-preset-popover",
+      ".ahtml-gallery-preset-option",
+      ".ahtml-gallery-preset-footnote",
+      ".ahtml-gallery-toolbar",
+      ".ahtml-gallery-toolbar-copy",
+      ".ahtml-gallery-toolbar-label",
+      ".ahtml-gallery-pill-tabs",
+      ".ahtml-gallery-tabs-trigger-pill",
+      ".ahtml-gallery-pill-scroll",
+      ".ahtml-gallery-control-body",
+      ".ahtml-gallery-control-filter-bar",
+      ".ahtml-gallery-control-filter-field",
+      ".ahtml-gallery-filter-pill",
+      ".ahtml-gallery-preview-toolbar",
+      ".ahtml-gallery-toolbar-group",
+      ".ahtml-gallery-preview-shell",
+      ".ahtml-gallery-preview-modebar",
+      ".ahtml-gallery-preview-stage",
+      ".ahtml-gallery-stage-toolbar",
+      ".ahtml-gallery-stage-toolbar-inset",
+      ".ahtml-gallery-control-sections",
+      ".ahtml-gallery-panel-body",
+      ".ahtml-gallery-stack",
+      ".ahtml-gallery-control-row",
+      ".ahtml-gallery-field-row",
+      ".ahtml-gallery-control-copy",
+      ".ahtml-gallery-control-label",
+      ".ahtml-gallery-control-description",
+      ".ahtml-gallery-control-input-wrap",
+      ".ahtml-gallery-control-input",
+      ".ahtml-gallery-control-readout",
+      ".ahtml-gallery-slider-field",
+      ".ahtml-gallery-font-picker-trigger",
+      ".ahtml-gallery-font-picker-popover",
+      ".ahtml-gallery-token-row",
+      ".ahtml-gallery-token-copy",
+      ".ahtml-gallery-color-popover",
+      ".ahtml-gallery-color-trigger",
+      ".ahtml-gallery-preview-document",
+      ".ahtml-gallery-stage-panel",
+      ".ahtml-gallery-stage-toolbar-copy",
+      ".ahtml-gallery-stage-panel-kicker",
+      ".ahtml-gallery-workbench-panel",
+      ".ahtml-gallery-preview-meta",
+      ".ahtml-gallery-stage-frame",
+      ".ahtml-gallery-preview-surface",
+      ".ahtml-gallery-preview-context",
+      ".ahtml-gallery-preview-canvas",
+      ".ahtml-gallery-inspector-overlay",
+      ".ahtml-gallery-inspector-panel",
+      ".ahtml-gallery-inspector-grid",
+      ".ahtml-gallery-inspector-token",
+    ]
+
+    for (const selector of sharedShellSelectors) {
+      expect(hostStylesSource).toContain(selector)
+      expect(galleryStylesSource).not.toMatch(
+        new RegExp(`(^|\\n)\\s*\\${selector}\\s*\\{`),
+      )
+    }
   })
 })

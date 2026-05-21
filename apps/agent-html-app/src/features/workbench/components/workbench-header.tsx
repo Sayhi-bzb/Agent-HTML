@@ -45,11 +45,23 @@ export function WorkbenchHeader({
       }
       trailing={
         <>
-          <ShellActionButton disabled={interactionLocked} onClick={onBuild}>
+          <ShellActionButton
+            ariaLabel="Build preview"
+            className="app-shell-plain-action"
+            disabled={interactionLocked}
+            onClick={onBuild}
+            variant="ghost"
+          >
             <HammerIcon data-icon="inline-start" />
             Build
           </ShellActionButton>
-          <ShellActionButton disabled={interactionLocked} onClick={onInspect}>
+          <ShellActionButton
+            ariaLabel="Open inspect review"
+            className="app-shell-plain-action"
+            disabled={interactionLocked}
+            onClick={onInspect}
+            variant="ghost"
+          >
             <InspectIcon data-icon="inline-start" />
             Review
           </ShellActionButton>

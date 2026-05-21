@@ -1,7 +1,7 @@
 import type { PanelLayoutState } from "./types"
 import { shellPanelConstraints } from "./layout"
 
-const panelLayoutStorageKey = "agent-html-app:panel-layout:v4-minimal"
+const panelLayoutStorageKey = "agent-html-app:panel-layout:v5-structural"
 
 export const defaultPanelLayout: PanelLayoutState = {
   sessions: shellPanelConstraints.sessions.defaultSize,

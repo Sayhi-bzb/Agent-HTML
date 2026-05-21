@@ -9,5 +9,11 @@ export function ComposerField({
   className,
   ...props
 }: ComposerFieldProps) {
-  return <Textarea className={cn("app-shell-composer-field", className)} {...props} />
+  return (
+    <Textarea
+      className={cn("app-shell-composer-field", className)}
+      rows={props.rows ?? 1}
+      {...props}
+    />
+  )
 }

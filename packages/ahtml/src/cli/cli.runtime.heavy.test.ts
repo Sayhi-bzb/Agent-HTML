@@ -39,7 +39,7 @@ describe("agent-html CLI heavy runtime flows", () => {
     expect(doctor.stdout).toContain(
       `ok runtime:shadcn-components ${requiredShadcnRuntimeComponents.join(", ")}`,
     )
-    expect(doctor.stdout).toContain("ok runtime:shadcn-template-vite-config")
+    expect(doctor.stdout).toContain("ok runtime:runtime-shell-vite-config")
     expect(doctor.stdout).toContain("ok runtime:artifact-profile-manifest")
     expect(doctor.stdout).toContain("ok runtime:prompt-ui-manifest")
     expect(doctor.stdout).toContain("ok runtime:verification-data")
@@ -53,7 +53,7 @@ describe("agent-html CLI heavy runtime flows", () => {
     )
     await expectFile(
       path.join(runtimeHome, "config", "runtime.json"),
-      "shadcn-template-override",
+      "ahtml-runtime-shell",
     )
     await expectFile(
       path.join(runtimeHome, "config", "runtime.json"),
@@ -141,7 +141,7 @@ describe("agent-html CLI heavy runtime flows", () => {
         "setup",
         "--yes",
         "--component-source",
-        "shadcn-cli",
+        "ahtml-managed-ui",
         "--preset",
         "custom",
         "--components",
@@ -153,9 +153,9 @@ describe("agent-html CLI heavy runtime flows", () => {
 
     expect(setup.stdout).toContain("ahtml runtime ready")
     expect(setup.stdout).toContain("ui library: shadcn")
-    expect(setup.stdout).toContain("component source: shadcn-cli")
+    expect(setup.stdout).toContain("component source: ahtml-managed-ui")
     expect(setup.stdout).toContain("runtime base: radix")
-    expect(setup.stdout).toContain("runtime surface: shadcn-init")
+    expect(setup.stdout).toContain("runtime surface: ahtml-managed-runtime")
     expect(setup.stdout).toContain("preset: custom")
     expect(setup.stdout).toContain(
       `components: ${requiredShadcnRuntimeComponents.join(", ")}`,
@@ -183,7 +183,7 @@ describe("agent-html CLI heavy runtime flows", () => {
     )
     await expectFile(
       path.join(runtimeHome, "config", "prompt-ui.manifest.json"),
-      '"componentSource": "shadcn-cli"',
+      '"componentSource": "ahtml-managed-ui"',
     )
     await expectFile(
       path.join(runtimeHome, "config", "prompt-ui.manifest.json"),
@@ -222,7 +222,7 @@ describe("agent-html CLI heavy runtime flows", () => {
     expect(stdout).toContain("ok runtime:shadcn-surface")
     expect(stdout).toContain("ok runtime:shadcn-provenance")
     expect(stdout).toContain("ok runtime:shadcn-components")
-    expect(stdout).toContain("ok runtime:shadcn-template-vite-config")
+    expect(stdout).toContain("ok runtime:runtime-shell-vite-config")
     expect(stdout).toContain("ok runtime:artifact-profile-manifest")
     expect(stdout).toContain("ok runtime:prompt-ui-manifest")
     expect(stdout).toContain("ok runtime:verification-data")

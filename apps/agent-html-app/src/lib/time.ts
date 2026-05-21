@@ -14,6 +14,22 @@ export function formatTimestampLabel(value?: string) {
   }).format(date)
 }
 
+export function formatSessionTimestampLabel(value?: string) {
+  if (!value) {
+    return "n/a"
+  }
+
+  const date = parseTimestamp(value)
+  if (!date) {
+    return value
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+  }).format(date)
+}
+
 function parseTimestamp(value: string) {
   const epochMatch = /^epoch-(\d+)$/.exec(value)
   if (epochMatch) {

@@ -18,7 +18,7 @@ function Tabs({
 }
 
 const tabsListVariants = cva(
-  "inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground",
+  "inline-flex h-9 items-center justify-center rounded-none p-0 text-muted-foreground",
   {
     variants: {
       variant: {
@@ -55,7 +55,7 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+        "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-none px-3 py-1 text-sm font-medium transition-all focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-none",
         className,
       )}
       {...props}

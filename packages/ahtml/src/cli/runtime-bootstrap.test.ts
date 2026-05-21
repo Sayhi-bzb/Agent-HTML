@@ -7,43 +7,9 @@ import path from "node:path"
 import { pathToFileURL } from "node:url"
 
 import prettier from "prettier"
-import { afterEach, describe, expect, it } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import { removeTempDir } from "./cli-test-helpers"
-
-const originalTemplateDir = process.env.AHTML_SHADCN_TEMPLATE_DIR
-const originalAllowOverride = process.env.AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE
-const originalRegistryUrl = process.env.REGISTRY_URL
-
-afterEach(() => {
-  restoreEnv("AHTML_SHADCN_TEMPLATE_DIR", originalTemplateDir)
-  restoreEnv("AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE", originalAllowOverride)
-  restoreEnv("REGISTRY_URL", originalRegistryUrl)
-})
-
-describe("runtime host override guard", () => {
-  it("ignores template overrides unless explicitly allowed", async () => {
-    const { resolveShadcnTemplateDir } = await importRuntimeTemplateModule()
-    process.env.AHTML_SHADCN_TEMPLATE_DIR = "fixtures/template"
-    process.env.REGISTRY_URL = "http://127.0.0.1:4312/r"
-    delete process.env.AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE
-
-    expect(resolveShadcnTemplateDir()).toBeUndefined()
-
-    process.env.AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE = "1"
-
-    expect(resolveShadcnTemplateDir()).toContain("fixtures")
-  })
-
-  it("ignores template overrides outside local registry flows", async () => {
-    const { resolveShadcnTemplateDir } = await importRuntimeTemplateModule()
-    process.env.AHTML_SHADCN_TEMPLATE_DIR = "fixtures/template"
-    process.env.AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE = "1"
-    process.env.REGISTRY_URL = "https://registry.example.com/r"
-
-    expect(resolveShadcnTemplateDir()).toBeUndefined()
-  })
-})
 
 describe("checked-in runtime bootstrap", () => {
   it("rewrites runtime vite configs to an ESM-safe template", async () => {
@@ -98,6 +64,90 @@ describe("checked-in runtime bootstrap", () => {
       await removeTempDir(runtimeDir)
     }
   })
+
+  it("provisions a managed runtime shell without shadcn init", async () => {
+    const { writeRuntimeHost } = await importRuntimeTemplateModule()
+    const runtimeRoot = await mkdtemp(
+      path.join(tmpdir(), "ahtml-runtime-shell-"),
+    )
+    const runtimeDir = path.join(runtimeRoot, "runtime")
+    const schemaModule: {
+      readonly getCliSchemaOutput: (root?: string) => Promise<unknown>
+    } = await import(
+      pathToFileURL(
+        path.join(
+          process.cwd(),
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "schema.mjs",
+        ),
+      ).href
+    )
+
+    try {
+      await writeRuntimeHost({
+        packageRoot: process.cwd(),
+        paths: {
+          runtimeDir,
+          runtimeSrcDir: path.join(runtimeDir, "src"),
+          runtimeComponentsDir: path.join(
+            runtimeDir,
+            "src",
+            "components",
+            "ui",
+          ),
+          runtimeViteConfigPath: path.join(runtimeDir, "vite.ahtml.config.mjs"),
+          runtimeVerificationPath: path.join(
+            runtimeDir,
+            "render-verification.generated.json",
+          ),
+        },
+        schema: await schemaModule.getCliSchemaOutput(process.cwd()),
+        setup: {
+          uiLibrary: "shadcn",
+          componentSource: "ahtml-managed-ui",
+          installMode: "preset",
+          preset: "nova",
+          components: ["card"],
+        },
+      })
+
+      const componentsJson = await readFile(
+        path.join(runtimeDir, "components.json"),
+        "utf8",
+      )
+      const packageJson = await readFile(
+        path.join(runtimeDir, "package.json"),
+        "utf8",
+      )
+      const cssSource = await readFile(
+        path.join(runtimeDir, "src", "styles.css"),
+        "utf8",
+      )
+
+      expect(componentsJson).toContain('"style": "nova"')
+      expect(componentsJson).toContain('"css": "src/styles.css"')
+      expect(componentsJson).toContain('"iconLibrary": "radix"')
+      expect(packageJson).toContain('"name": "ahtml-runtime"')
+      expect(cssSource).toContain('@import "shadcn/tailwind.css";')
+      expect(
+        await readFile(
+          path.join(runtimeDir, "src", "components", "ui", "card.tsx"),
+          "utf8",
+        ),
+      ).toContain("function Card")
+      expect(
+        await readFile(
+          path.join(runtimeDir, "src", "components", "ui", "slider.tsx"),
+          "utf8",
+        ),
+      ).toContain("controlId")
+    } finally {
+      await removeTempDir(runtimeRoot)
+    }
+  }, 30000)
 
   it("keeps the checked-in runtime element registry template in sync with shared mapping", async () => {
     const root = process.cwd()
@@ -196,15 +246,6 @@ describe("checked-in runtime bootstrap", () => {
   })
 })
 
-function restoreEnv(name: string, value: string | undefined) {
-  if (typeof value === "undefined") {
-    delete process.env[name]
-    return
-  }
-
-  process.env[name] = value
-}
-
 function normalizeNewlines(value: string) {
   return value.replaceAll("\r\n", "\n")
 }
@@ -234,6 +275,23 @@ async function importRuntimeTemplateModule() {
         readonly runtimeViteConfigPath: string
       }
     }) => Promise<void>
-    readonly resolveShadcnTemplateDir: () => string | undefined
+    readonly writeRuntimeHost: (input: {
+      readonly packageRoot: string
+      readonly paths: {
+        readonly runtimeDir: string
+        readonly runtimeSrcDir: string
+        readonly runtimeComponentsDir: string
+        readonly runtimeViteConfigPath: string
+        readonly runtimeVerificationPath: string
+      }
+      readonly schema: unknown
+      readonly setup: {
+        readonly uiLibrary: string
+        readonly componentSource: string
+        readonly installMode: string
+        readonly preset: string
+        readonly components: readonly string[]
+      }
+    }) => Promise<unknown>
   }>
 }

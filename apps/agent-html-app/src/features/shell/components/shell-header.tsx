@@ -29,11 +29,23 @@ export function ShellHeader({
       }
       trailing={
         <>
-          <ShellActionButton disabled={proposalLocked} onClick={onDraftProposal}>
+          <ShellActionButton
+            ariaLabel="Draft proposal"
+            className="app-shell-plain-action"
+            disabled={proposalLocked}
+            onClick={onDraftProposal}
+            variant="ghost"
+          >
             <SparklesIcon data-icon="inline-start" />
             Draft
           </ShellActionButton>
-          <ShellActionButton disabled={runtimeCheckLocked} onClick={onRuntimeCheck}>
+          <ShellActionButton
+            ariaLabel="Run review check"
+            className="app-shell-plain-action"
+            disabled={runtimeCheckLocked}
+            onClick={onRuntimeCheck}
+            variant="ghost"
+          >
             <WaypointsIcon data-icon="inline-start" />
             Check
           </ShellActionButton>

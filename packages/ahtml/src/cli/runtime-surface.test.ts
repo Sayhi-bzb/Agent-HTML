@@ -99,6 +99,15 @@ type LoadedModules = {
     readonly files: Record<string, string>
     readonly reasons?: Record<string, string>
   }>
+  readonly getManagedRuntimeUiBundleEntries: (
+    components: readonly string[],
+  ) => readonly {
+    readonly component: string
+    readonly fileName: string
+    readonly runtimeRelativePath: string
+    readonly sourcePath: string
+    readonly reason?: string
+  }[]
   readonly getManagedRuntimeUiOverrideRegistry: () => readonly {
     readonly component: string
     readonly fileName: string
@@ -115,6 +124,9 @@ type LoadedModules = {
     readonly sourcePath: string
   }[]
   readonly assertManagedRuntimeUiOverrideSourceDirectory: () => readonly string[]
+  readonly assertManagedRuntimeUiBundleSourceDirectory: () => readonly string[]
+  readonly getManagedRuntimeUiBundleDirectory: () => string
+  readonly getManagedRuntimeUiOverrideDirectory: () => string
   readonly createRuntimeVerificationState: (input: {
     readonly components: readonly string[]
     readonly runtimeBase: string
@@ -231,7 +243,7 @@ describe("runtime surface completeness", () => {
     expect(status.checks.shadcnCssEntry).toBe(true)
     expect(status.checks.shadcnCssImports).toBe(false)
     expect(status.checks.shadcnCssBase).toBe(true)
-    expect(status.checks.shadcnTemplateViteConfig).toBe(true)
+    expect(status.checks.runtimeShellViteConfig).toBe(true)
     expect(status.checks.shadcnSurface).toBe(true)
     expect(status.ready).toBe(false)
     expect(status.runtimeDetail).toContain(
@@ -239,7 +251,7 @@ describe("runtime surface completeness", () => {
     )
   })
 
-  it("marks runtime surface incomplete when shadcn template vite config is missing", async () => {
+  it("marks runtime surface incomplete when runtime shell vite config is missing", async () => {
     const { getRuntimeStatus } = await loadModules()
     const fixture = await createRuntimeFixture({
       includeTemplateViteConfig: false,
@@ -251,7 +263,7 @@ describe("runtime surface completeness", () => {
       paths: fixture.runtimePaths,
     })
 
-    expect(status.checks.shadcnTemplateViteConfig).toBe(false)
+    expect(status.checks.runtimeShellViteConfig).toBe(false)
     expect(status.checks.shadcnSurface).toBe(false)
     expect(status.ready).toBe(false)
     expect(status.runtimeDetail).toContain(
@@ -259,7 +271,7 @@ describe("runtime surface completeness", () => {
     )
   })
 
-  it("accepts shadcn template vite config that uses __dirname for src alias resolution", async () => {
+  it("accepts runtime shell vite config that uses __dirname for src alias resolution", async () => {
     const { assertRuntimeSurface } = await loadModules()
     const fixture = await createRuntimeFixture({
       templateViteConfigStyle: "dirname",
@@ -270,7 +282,7 @@ describe("runtime surface completeness", () => {
         manifest: fixture.manifest,
         paths: fixture.runtimePaths,
       }),
-    ).resolves.toContain("shadcn-init/vite")
+    ).resolves.toContain("ahtml-managed-runtime/vite")
   })
 
   it("fails doctor on missing shadcn css imports and skips built css when no artifact exists", async () => {
@@ -288,7 +300,7 @@ describe("runtime surface completeness", () => {
     )
 
     expect(output).toContain("ok runtime:components-json")
-    expect(output).toContain("ok runtime:shadcn-template-vite-config")
+    expect(output).toContain("ok runtime:runtime-shell-vite-config")
     expect(output).toContain(
       "fail runtime:shadcn-css-imports shadcn CSS entry is missing required imports: tw-animate-css, shadcn/tailwind.css.",
     )
@@ -434,7 +446,7 @@ describe("runtime surface completeness", () => {
     )
   })
 
-  it("reports official shell provenance as complete", async () => {
+  it("reports managed shell provenance as complete", async () => {
     const { getShadcnRuntimeProvenanceState } = await loadModules()
     const fixture = await createRuntimeFixture()
 
@@ -445,12 +457,12 @@ describe("runtime surface completeness", () => {
     })
   })
 
-  it("accepts template override shell provenance for test fixtures", async () => {
+  it("accepts managed shell provenance for test fixtures", async () => {
     const { assertRuntimeSurface, getShadcnRuntimeProvenanceState } =
       await loadModules()
     const fixture = await createRuntimeFixture({
       surfaceOverrides: {
-        shellSource: "shadcn-template-override",
+        shellSource: "ahtml-runtime-shell",
       },
     })
 
@@ -459,23 +471,36 @@ describe("runtime surface completeness", () => {
         manifest: fixture.manifest,
         paths: fixture.runtimePaths,
       }),
-    ).resolves.toContain("shadcn-init/vite")
+    ).resolves.toContain("ahtml-managed-runtime/vite")
     expect(
       getShadcnRuntimeProvenanceState(fixture.manifest.shadcnRuntimeSurface),
     ).toMatchObject({
       state: "complete",
-      detail: expect.stringContaining("shadcn-template-override"),
+      detail: expect.stringContaining("ahtml-runtime-shell"),
     })
   })
 
-  it("keeps checked-in runtime-host ui source limited to explicit managed overrides", async () => {
+  it("keeps runtime UI bundle and override registry rooted in the managed runtime host", async () => {
     const {
+      assertManagedRuntimeUiBundleSourceDirectory,
       assertManagedRuntimeUiOverrideSourceDirectory,
+      getManagedRuntimeUiBundleDirectory,
+      getManagedRuntimeUiBundleEntries,
+      getManagedRuntimeUiOverrideDirectory,
       getManagedRuntimeUiOverrideRegistry,
     } = await loadModules()
 
+    expect(assertManagedRuntimeUiBundleSourceDirectory()).toEqual(
+      getManagedRuntimeUiBundleEntries([]).map((entry) => entry.fileName),
+    )
     expect(assertManagedRuntimeUiOverrideSourceDirectory()).toEqual(
       getManagedRuntimeUiOverrideRegistry().map((entry) => entry.fileName),
+    )
+    expect(getManagedRuntimeUiBundleDirectory()).toContain(
+      "runtime-host\\components\\ui",
+    )
+    expect(getManagedRuntimeUiOverrideDirectory()).toBe(
+      getManagedRuntimeUiBundleDirectory(),
     )
   })
 })
@@ -503,6 +528,7 @@ async function createRuntimeFixture({
     supportedRuntimeBase,
     createAhtmlGlueProof,
     createManagedRuntimeUiProof,
+    getManagedRuntimeUiBundleEntries,
     createPromptUiManifest,
     getCliSchemaOutput,
     getManagedRuntimeUiOverrideEntries,
@@ -549,14 +575,14 @@ async function createRuntimeFixture({
     registries: {},
   }
   const baseRuntimeSurface = {
-    source: "shadcn-init",
+    source: "ahtml-managed-runtime",
     template: "vite",
     preset: nativeRuntimeSetup.preset,
     style: componentsJson.style,
     base: supportedRuntimeBase,
     iconLibrary: componentsJson.iconLibrary,
-    shellSource: "shadcn-official-template",
-    initSource: "shadcn-cli",
+    shellSource: "ahtml-runtime-shell",
+    initSource: "ahtml-bootstrap",
     tailwindVersion: "^4.3.0",
     tailwindCss: "src/styles.css",
     cssPath: "src/styles.css",
@@ -572,8 +598,8 @@ async function createRuntimeFixture({
       "vite.config.ts",
       "src/styles.css",
       "src/lib/utils.ts",
-      ...nativeRuntimeSetup.components.map(
-        (component) => `src/components/ui/${component}.tsx`,
+      ...getManagedRuntimeUiBundleEntries(nativeRuntimeSetup.components).map(
+        (entry) => entry.runtimeRelativePath,
       ),
     ],
     requiredExports: Object.fromEntries(
@@ -603,11 +629,21 @@ async function createRuntimeFixture({
     `${JSON.stringify(
       {
         name: "ahtml-runtime",
+        private: true,
+        version: "0.0.0",
+        type: "module",
+        scripts: {
+          dev: "vite",
+          build: "vite build",
+          preview: "vite preview",
+        },
         dependencies: {
           react: "^19.2.3",
           "react-dom": "^19.2.3",
         },
         devDependencies: {
+          "@tailwindcss/vite": "^4.3.0",
+          "@vitejs/plugin-react": "^5.0.4",
           vite: "^7.3.0",
           tailwindcss: "^4.3.0",
           typescript: "latest",
@@ -689,19 +725,23 @@ async function createRuntimeFixture({
     "export function cn(...values) { return values.filter(Boolean).join(' ') }\n",
   )
 
-  for (const component of nativeRuntimeSetup.components) {
+  for (const entry of getManagedRuntimeUiBundleEntries(
+    nativeRuntimeSetup.components,
+  )) {
     const exports = getRequiredComponentExports(
       requiredShadcnRuntimeExports,
-      component,
+      entry.component,
     )
     const managedOverride = getManagedRuntimeUiOverrideEntries(
       nativeRuntimeSetup.components,
-    ).find((entry) => entry.component === component)
+    ).find((overrideEntry) => overrideEntry.component === entry.component)
     await writeFile(
-      path.join(runtimePaths.runtimeComponentsDir, `${component}.tsx`),
+      path.join(runtimePaths.runtimeComponentsDir, entry.fileName),
       managedOverride
         ? await readFile(managedOverride.sourcePath, "utf8")
-        : createComponentModule(exports),
+        : await readFile(entry.sourcePath, "utf8").catch(() =>
+            createComponentModule(exports),
+          ),
     )
   }
 
@@ -982,8 +1022,16 @@ async function loadModules(): Promise<LoadedModules> {
     createAhtmlGlueProof: runtimeSurfaceModule.createAhtmlGlueProof,
     createManagedRuntimeUiProof:
       runtimeManagedUiModule.createManagedRuntimeUiProof,
+    getManagedRuntimeUiBundleEntries:
+      runtimeManagedUiModule.getManagedRuntimeUiBundleEntries,
+    getManagedRuntimeUiBundleDirectory:
+      runtimeManagedUiModule.getManagedRuntimeUiBundleDirectory,
     getManagedRuntimeUiOverrideRegistry:
       runtimeManagedUiModule.getManagedRuntimeUiOverrideRegistry,
+    getManagedRuntimeUiOverrideDirectory:
+      runtimeManagedUiModule.getManagedRuntimeUiOverrideDirectory,
+    assertManagedRuntimeUiBundleSourceDirectory:
+      runtimeManagedUiModule.assertManagedRuntimeUiBundleSourceDirectory,
     assertManagedRuntimeUiOverrideSourceDirectory:
       runtimeManagedUiModule.assertManagedRuntimeUiOverrideSourceDirectory,
     createRuntimeVerificationState:

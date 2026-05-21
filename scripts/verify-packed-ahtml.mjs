@@ -136,22 +136,25 @@ try {
   await expectStdout(["prompt", "--format", "json"], '"components"')
 
   await expectStdout(
-    ["setup", "--yes", "--component-source", "shadcn-cli"],
+    ["setup", "--yes", "--component-source", "ahtml-managed-ui"],
     "ahtml runtime ready",
   )
   await expectStdout(
-    ["setup", "--yes", "--component-source", "shadcn-cli"],
+    ["setup", "--yes", "--component-source", "ahtml-managed-ui"],
     "ahtml runtime already ready",
   )
   await expectStdout(["doctor"], "ok runtime:manifest shadcn-runtime")
   await expectStdout(["doctor"], "ok runtime:base radix")
-  await expectStdout(["doctor"], "ok runtime:shadcn-surface shadcn-init/vite")
   await expectStdout(
     ["doctor"],
-    "ok runtime:shadcn-provenance shadcn-template-override/shadcn-cli/",
+    "ok runtime:shadcn-surface ahtml-managed-runtime/vite",
+  )
+  await expectStdout(
+    ["doctor"],
+    "ok runtime:shadcn-provenance ahtml-runtime-shell/ahtml-bootstrap/",
   )
   await expectStdout(["doctor"], "ok runtime:prompt-ui-manifest")
-  await expectStdout(["doctor"], "ok runtime:shadcn-template-vite-config")
+  await expectStdout(["doctor"], "ok runtime:runtime-shell-vite-config")
   await expectStdout(["doctor"], "skip artifact:built-css")
   await expectFile(
     path.join(runtimeHome, "config", "runtime.json"),
@@ -163,7 +166,7 @@ try {
   )
   await expectFile(
     path.join(runtimeHome, "config", "runtime.json"),
-    "shadcn-template-override",
+    "ahtml-runtime-shell",
   )
   const documentPath = path.join(consumerDir, "artifact.agent.html")
   const outputDir = path.join(consumerDir, "dist", "html")
@@ -524,16 +527,8 @@ async function writeTempFile(directory, name, source) {
 function getAhtmlEnv() {
   return {
     ...process.env,
-    AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE: "1",
     AHTML_HOME: runtimeHome,
     AHTML_NO_UPDATE_CHECK: "1",
-    AHTML_SHADCN_TEMPLATE_DIR: path.join(
-      root,
-      "scripts",
-      "verify-pack",
-      "shadcn-test-fixtures",
-      "template",
-    ),
     REGISTRY_URL: shadcnTestServer.registryUrl,
   }
 }

@@ -37,6 +37,7 @@ export function SessionRailHeader({
       trailing={
         <ShellIconButton
           ariaLabel="Create session"
+          className="border-0"
           disabled={disabled}
           onClick={onCreateSession}
         >

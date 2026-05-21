@@ -10,14 +10,11 @@ type InspectHeaderProps = {
 }
 
 export function InspectHeader({ inspect }: InspectHeaderProps) {
+  const diagnosticsCount = inspect.diagnostics.filter((item) => item.severity !== "info").length
+
   return (
     <ShellCardHeader
-      action={
-        <ShellStatusBadge
-          label={`${inspect.diagnostics.length}`}
-          variant="outline"
-        />
-      }
+      action={diagnosticsCount > 0 ? <ShellStatusBadge label={`${diagnosticsCount}`} variant="outline" /> : null}
       title="Inspect"
       titleSize="sm"
     />

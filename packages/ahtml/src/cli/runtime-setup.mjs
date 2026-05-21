@@ -10,6 +10,7 @@ import {
 
 import {
   getAgentComponentSource,
+  normalizeManagedRuntimeComponents,
   requiredShadcnRuntimeComponents,
 } from "../config/render-capabilities.mjs"
 import {
@@ -29,7 +30,7 @@ export class RuntimeSetupCancelledError extends Error {
 
 const defaultRuntimeSetup = {
   uiLibrary: "shadcn",
-  componentSource: "shadcn-cli",
+  componentSource: "ahtml-managed-ui",
   installMode: "preset",
   preset: getDefaultShadcnPreset(),
   components: requiredShadcnRuntimeComponents,
@@ -38,7 +39,7 @@ const defaultRuntimeSetup = {
 export const nativeRuntimeSetup = defaultRuntimeSetup
 
 const supportedUiLibraries = ["shadcn"]
-const supportedComponentSources = ["shadcn-cli"]
+const supportedComponentSources = ["ahtml-managed-ui"]
 
 export async function resolveRuntimeSetup({
   options = {},
@@ -61,8 +62,17 @@ export async function resolveRuntimeSetup({
     installMode === "preset"
       ? (options.preset ?? answers.preset ?? defaultRuntimeSetup.preset)
       : "custom"
-  const componentCatalog = await getComponentCatalog()
   const shadcnPresets = listShadcnPresets()
+
+  assertRuntimeSetupBase({
+    uiLibrary,
+    componentSource,
+    installMode,
+    preset,
+    shadcnPresets,
+  })
+
+  const componentCatalog = await getComponentCatalog()
   const components = withRequiredRuntimeComponents(
     normalizeComponents(
       options.components ??
@@ -162,6 +172,30 @@ function assertRuntimeSetup({
   componentCatalog = fallbackShadcnComponents,
   shadcnPresets = listShadcnPresets(),
 }) {
+  assertRuntimeSetupBase({
+    uiLibrary,
+    componentSource,
+    installMode,
+    preset,
+    shadcnPresets,
+  })
+
+  for (const component of components) {
+    if (!componentCatalog.includes(component)) {
+      throw new Error(
+        `Unsupported shadcn component "${component}". Supported: ${componentCatalog.join(", ")}.`,
+      )
+    }
+  }
+}
+
+function assertRuntimeSetupBase({
+  uiLibrary,
+  componentSource,
+  installMode,
+  preset,
+  shadcnPresets = listShadcnPresets(),
+}) {
   if (!supportedUiLibraries.includes(uiLibrary)) {
     throw new Error(
       `Unsupported UI library "${uiLibrary}". Supported: ${supportedUiLibraries.join(", ")}.`,
@@ -183,14 +217,6 @@ function assertRuntimeSetup({
       `Unsupported shadcn preset "${preset}". Supported named styles: ${shadcnPresets.join(", ")}. Preset codes from shadcn are also supported.`,
     )
   }
-
-  for (const component of components) {
-    if (!componentCatalog.includes(component)) {
-      throw new Error(
-        `Unsupported shadcn component "${component}". Supported: ${componentCatalog.join(", ")}.`,
-      )
-    }
-  }
 }
 
 async function promptForRuntimeSetup() {
@@ -200,7 +226,7 @@ async function promptForRuntimeSetup() {
   const uiLibrary = defaultRuntimeSetup.uiLibrary
   const componentSource = await chooseOption({
     label: "Component source",
-    options: ["shadcn-cli"],
+    options: ["ahtml-managed-ui"],
     defaultValue: defaultRuntimeSetup.componentSource,
   })
   const installMode = await chooseOption({
@@ -311,12 +337,7 @@ function normalizeComponents(
 }
 
 function withRequiredRuntimeComponents(components) {
-  const selectedComponents = [...new Set(components)]
-  const extraComponents = selectedComponents.filter(
-    (component) => !requiredShadcnRuntimeComponents.includes(component),
-  )
-
-  return [...requiredShadcnRuntimeComponents, ...extraComponents]
+  return normalizeManagedRuntimeComponents(components)
 }
 
 export function resolveManagedRuntimeComponentSet({

@@ -34,7 +34,9 @@ export function SourceValidationSummary({
       ) : validation ? (
         <>
           <ShellValidationStatusBadge status={validation.status} />
-          {validation.status === "invalid" ? <span>{validation.diagnostics.length}</span> : null}
+          {validation.status === "invalid" ? (
+            <span className="app-shell-status-count">{validation.diagnostics.length}</span>
+          ) : null}
         </>
       ) : null}
     </ShellStatusRow>

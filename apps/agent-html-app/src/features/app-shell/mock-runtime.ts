@@ -88,16 +88,16 @@ function getMockSeed(summary: SessionSummary): MockSessionSeed {
   <card title="Decision Notes">
     <list variant="unordered">
       <item>Confirm the current recommendation.</item>
-      <item>Refresh the preview.</item>
-      <item>Clear any open warning.</item>
+      <item>Preview stale.</item>
+      <item>One open warning.</item>
     </list>
   </card>
 </page>`,
     fallbackLead: "Hold the current line.",
     fallbackNotes: [
       "Confirm the current recommendation.",
-      "Refresh the preview.",
-      "Clear any open warning.",
+      "Preview stale.",
+      "One open warning.",
     ],
   }
 }
@@ -328,7 +328,7 @@ export function createMockRuntimeReport(): RuntimeReport {
         category: "runtime",
         name: "mock-mode",
         status: "ok",
-        detail: "Browser session active.",
+        detail: "Session ready.",
       },
       {
         category: "preview",
@@ -346,13 +346,13 @@ export function createMockRuntimeReport(): RuntimeReport {
         category: "network",
         name: "provider-link",
         status: "skip",
-        detail: "Provider offline.",
+        detail: "Provider idle.",
       },
       {
         category: "sessions",
         name: "session-store",
         status: "ok",
-        detail: "Local sessions ready.",
+        detail: "Sessions ready.",
       },
     ],
   }
@@ -363,6 +363,7 @@ export function createMockProposalMessage(
   source: string,
 ): AgentShellMessage {
   const title = extractPageTitle(source, summary.name)
+  const lead = extractLead(source, getMockSeed(summary).fallbackLead)
   const notes = extractListItems(source)
   const focus = notes.length > 0 ? notes : getMockSeed(summary).fallbackNotes
 
@@ -373,8 +374,8 @@ export function createMockProposalMessage(
     kind: "proposal-placeholder",
     text: [
       title,
-      `Refresh the artifact.`,
-      `Verify ${focus[0]}.`,
+      lead,
+      focus[0] ?? "Ready.",
     ].join("\n"),
     proposalSnapshot: {
       source,
@@ -393,7 +394,7 @@ export function createMockBaseChat(
       role: "system",
       createdAt: summary.updatedAt,
       kind: "message",
-      text: "Review ready.",
+      text: "Ready.",
     },
     createMockProposalMessage(summary, source),
   ]

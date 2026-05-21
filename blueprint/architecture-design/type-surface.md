@@ -113,8 +113,8 @@ Note: 它只表达运行时宿主所需配置，不是 agent-facing schema。
 
 Ownership: output layer
 
-Purpose: 表示最终可交付产物。
+Purpose: 表示沿共享渲染链路产出的可消费结果。
 
 Consumers: preview, build, sharing flow
 
-Note: 默认交付形态是 portable artifact。
+Note: 它可以驱动 preview，也可以被 materialize 成 portable artifact。

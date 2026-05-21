@@ -1,15 +1,14 @@
-import { PinIcon, SquarePenIcon, Trash2Icon } from "lucide-react"
+import { Trash2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardFooter } from "@/components/ui/card"
 import {
   ShellActionGroup,
-  ShellCardHeader,
   ShellIconButton,
   ShellMetaRow,
   ShellSessionStatusBadge,
+  ShellSplitRow,
 } from "@/features/app-shell/components/shell-content"
-import { formatTimestampLabel } from "@/lib/time"
+import { formatSessionTimestampLabel } from "@/lib/time"
 import type { SessionSummary } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -29,9 +28,11 @@ export function SessionCard({
   onOpen,
 }: SessionCardProps) {
   return (
-    <Card
-      className={cn("app-shell-session-card", active && "app-shell-card-active")}
-      size="sm"
+    <section
+      className={cn(
+        "group/session app-shell-session-card",
+        active && "app-shell-session-card-active",
+      )}
     >
       <Button
         aria-label={`Open session ${session.name}`}
@@ -41,35 +42,21 @@ export function SessionCard({
         type="button"
         variant="ghost"
       />
-      <ShellCardHeader
-        action={<ShellSessionStatusBadge status={session.status} />}
-        className="border-b-0 pb-2"
-        title={session.name}
-        titleClassName={cn(active && "text-foreground")}
-        truncateTitle
-      />
-      <CardFooter>
+      <div className="app-shell-session-card-body">
+        <ShellSplitRow className="w-full">
+          <p
+            className={cn(
+              "app-shell-session-card-title",
+              active && "text-foreground",
+            )}
+          >
+            {session.name}
+          </p>
+          <ShellSessionStatusBadge status={session.status} />
+        </ShellSplitRow>
         <ShellMetaRow
           action={
             <ShellActionGroup>
-              <ShellIconButton
-                ariaLabel="Rename session"
-                className="app-shell-session-card-action"
-                disabled
-                size="icon-xs"
-                variant="ghost"
-              >
-                <SquarePenIcon data-icon="inline-start" />
-              </ShellIconButton>
-              <ShellIconButton
-                ariaLabel="Pin session"
-                className="app-shell-session-card-action"
-                disabled
-                size="icon-xs"
-                variant="ghost"
-              >
-                <PinIcon data-icon="inline-start" />
-              </ShellIconButton>
               {!active ? (
                 <ShellIconButton
                   ariaLabel="Delete session"
@@ -84,9 +71,9 @@ export function SessionCard({
               ) : null}
             </ShellActionGroup>
           }
-          copy={formatTimestampLabel(session.updatedAt)}
+          copy={formatSessionTimestampLabel(session.updatedAt)}
         />
-      </CardFooter>
-    </Card>
+      </div>
+    </section>
   )
 }

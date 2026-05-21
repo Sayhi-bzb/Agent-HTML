@@ -64,6 +64,7 @@ export function ShellPane({
 }: ShellPaneProps) {
   return (
     <ShellPaneScaffold
+      footerClassName="app-shell-pane-footer-review"
       header={
         <ShellHeader
           onDraftProposal={onDraftProposal}
@@ -73,7 +74,7 @@ export function ShellPane({
         />
       }
       content={
-        <ShellScrollSurface className="app-shell-section-stack" density="roomy">
+        <ShellScrollSurface className="app-shell-structure-list" density="roomy">
           {drafting ? <ShellLoadingRow>Draft</ShellLoadingRow> : null}
 
           {checking ? <ShellLoadingRow>Check</ShellLoadingRow> : null}
@@ -86,7 +87,7 @@ export function ShellPane({
             <RuntimeReportCard runtimeReport={runtimeReport} />
           ) : null}
 
-          {messages.length === 0 ? <ShellEmptyCard>Idle</ShellEmptyCard> : null}
+          {messages.length === 0 ? <ShellEmptyCard className="app-shell-flat-card">Idle</ShellEmptyCard> : null}
         </ShellScrollSurface>
       }
       footer={

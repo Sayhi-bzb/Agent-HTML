@@ -3,6 +3,7 @@ import {
   ShellCardHeader,
   ShellStatusBadge,
 } from "@/features/app-shell/components/shell-content"
+import { CheckIcon, SaveIcon } from "lucide-react"
 
 type SourceHeaderProps = {
   hasUnsavedChanges: boolean
@@ -25,15 +26,28 @@ export function SourceHeader({
           {hasUnsavedChanges ? (
             <ShellStatusBadge label="edit" variant="outline" />
           ) : null}
-          <ShellActionButton disabled={interactionLocked} onClick={onValidate}>
+          <ShellActionButton
+            ariaLabel="Check source"
+            className="app-shell-plain-action"
+            disabled={interactionLocked}
+            onClick={onValidate}
+            variant="ghost"
+          >
+            <CheckIcon data-icon="inline-start" />
             Check
           </ShellActionButton>
-          <ShellActionButton
-            disabled={!hasUnsavedChanges || interactionLocked}
-            onClick={onSaveSource}
-          >
-            Save
-          </ShellActionButton>
+          {hasUnsavedChanges ? (
+            <ShellActionButton
+              ariaLabel="Save source"
+              className="app-shell-plain-action"
+              disabled={interactionLocked}
+              onClick={onSaveSource}
+              variant="ghost"
+            >
+              <SaveIcon data-icon="inline-start" />
+              Save
+            </ShellActionButton>
+          ) : null}
         </>
       }
       title="Source"

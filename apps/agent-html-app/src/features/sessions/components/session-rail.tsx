@@ -86,7 +86,7 @@ export function SessionRail({
           {grouped.map((group) => (
             <section className="app-shell-session-group" key={group.key}>
               <ShellSectionLabel>{group.label}</ShellSectionLabel>
-              <div className="app-shell-section-stack">
+              <div className="app-shell-divider-list">
                 {group.sessions.map((session) => (
                   <SessionCard
                     active={session.id === activeSessionId}
@@ -100,7 +100,7 @@ export function SessionRail({
               </div>
             </section>
           ))}
-          {filtered.length === 0 ? <ShellEmptyCard>None</ShellEmptyCard> : null}
+          {filtered.length === 0 ? <ShellEmptyCard className="app-shell-flat-card">None</ShellEmptyCard> : null}
           {loading ? <ShellLoadingRow>Load</ShellLoadingRow> : null}
         </ShellScrollSurface>
       }

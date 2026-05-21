@@ -86,7 +86,7 @@ const chat: AgentShellMessage[] = [
     id: "msg-1",
     role: "system",
     createdAt: now,
-    text: "Review ready.",
+    text: "Ready.",
     kind: "message",
   },
   {
@@ -95,8 +95,8 @@ const chat: AgentShellMessage[] = [
     createdAt: now,
     text: [
       "Vendor Decision",
-      "Refresh the preview.",
-      "Clear the warning.",
+      "Vendor A",
+      "Preview stale.",
     ].join("\n"),
     kind: "proposal-placeholder",
     proposalSnapshot: {

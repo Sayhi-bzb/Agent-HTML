@@ -1,19 +1,13 @@
-import { execFile, spawn } from "node:child_process"
 import { existsSync } from "node:fs"
 import { createRequire } from "node:module"
-import {
-  access,
-  cp,
-  mkdir,
-  readFile,
-  rename,
-  rm,
-  writeFile,
-} from "node:fs/promises"
+import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
-import { supportedRuntimeBase } from "../../config/render-capabilities.mjs"
+import {
+  normalizeManagedRuntimeComponents,
+  supportedRuntimeBase,
+} from "../../config/render-capabilities.mjs"
 import {
   createManagedRuntimeCapability,
   createRuntimeContractFromSchema,
@@ -21,12 +15,16 @@ import {
 } from "../../config/runtime-contract.mjs"
 import {
   createShadcnRuntimeSurface,
+  managedRuntimeShellSource,
   recordAhtmlGlueProof,
 } from "../runtime-surface.mjs"
-import { applyManagedRuntimeUiOverrides } from "../runtime-managed-ui.mjs"
-import { getDefaultShadcnPreset } from "../shadcn-api.mjs"
+import { provisionManagedRuntimeUiBundle } from "../runtime-managed-ui.mjs"
+import {
+  DEFAULT_PRESET_CONFIG,
+  decodePreset,
+  isPresetCode,
+} from "shadcn/preset"
 
-const shadcnCliTimeoutMs = 90000
 const bootstrapDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
@@ -38,42 +36,30 @@ const runtimeHostSourceDir = path.join(
   "runtime-host",
 )
 
-export async function writeRuntimeHost({
-  packageRoot,
-  paths,
-  schema,
-  setup,
-}) {
-  const shadcnTemplateDir = resolveShadcnTemplateDir()
-  const shellSource = shadcnTemplateDir
-    ? "shadcn-template-override"
-    : "shadcn-official-template"
+export async function writeRuntimeHost({ packageRoot, paths, schema, setup }) {
+  const normalizedSetup = {
+    ...setup,
+    components: normalizeManagedRuntimeComponents(setup?.components ?? []),
+  }
   const dependencies = resolveRuntimeDependencies(packageRoot)
   const runtimeContract = createRuntimeContractFromSchema(schema)
 
   await rm(paths.runtimeDir, { force: true, recursive: true })
-  await initShadcnRuntime({
+  await provisionRuntimeShell({
     packageRoot,
     paths,
-    setup,
-    shadcnTemplateDir,
+    setup: normalizedSetup,
   })
 
   const runtimeSurface = await createShadcnRuntimeSurface({
     paths,
-    shellSource,
-    setup,
+    shellSource: managedRuntimeShellSource,
+    setup: normalizedSetup,
     runtimeBase: supportedRuntimeBase,
   })
 
-  await installShadcnComponents({
-    packageRoot,
-    components: setup.components,
-    paths,
-    shadcnTemplateDir,
-  })
-  await applyManagedRuntimeUiOverrides({
-    components: setup.components,
+  await provisionManagedRuntimeUiBundle({
+    components: normalizedSetup.components,
     paths,
   })
   await injectRuntimeHostFiles({
@@ -90,7 +76,7 @@ export async function writeRuntimeHost({
     paths,
     runtimeContract,
     runtimeSurface: provenRuntimeSurface,
-    setup,
+    setup: normalizedSetup,
   })
 
   return provenRuntimeSurface
@@ -188,62 +174,67 @@ function resolvePackageSearchPathAsset({
   )
 }
 
-async function initShadcnRuntime({
-  packageRoot,
-  paths,
-  setup,
-  shadcnTemplateDir,
-}) {
-  const preset =
-    setup.preset && setup.preset !== "custom"
-      ? setup.preset
-      : getDefaultShadcnPreset()
-  const runtimeParentDir = path.dirname(paths.runtimeDir)
-  const generatedRuntimeDir = path.join(runtimeParentDir, "vite-app")
+async function provisionRuntimeShell({ packageRoot, paths, setup }) {
+  const runtimePackageJson = await createRuntimePackageJson({ packageRoot })
+  const tsconfig = createRuntimeTsconfigSource()
+  const viteConfig = createManagedRuntimeTemplateViteConfigSource()
+  const indexHtml = createRuntimeIndexHtmlSource()
+  const styleConfig = resolveRuntimeShellStyleConfig(setup)
+  const componentsJson = createRuntimeComponentsJson(styleConfig)
+  const cssSource = createRuntimeCssSource(styleConfig)
 
-  await mkdir(runtimeParentDir, { recursive: true })
-  await rm(generatedRuntimeDir, { force: true, recursive: true })
-  const args = [
-    "init",
-    "--template",
-    "vite",
-    "--base",
-    supportedRuntimeBase,
-    "--yes",
-    "--force",
-    "--no-reinstall",
-    "--no-monorepo",
-    "--cwd",
-    runtimeParentDir,
-    "--silent",
-    "--preset",
-    preset,
-  ]
+  await mkdir(paths.runtimeDir, { recursive: true })
+  await mkdir(paths.runtimeSrcDir, { recursive: true })
+  await mkdir(path.join(paths.runtimeSrcDir, "lib"), { recursive: true })
 
-  try {
-    await runShadcnCli(args, {
-      cwd: runtimeParentDir,
-      packageRoot,
-      paths,
-      shadcnTemplateDir,
-    })
-  } catch (error) {
-    if (
-      !(await canContinueAfterInitInstallFailure(error, generatedRuntimeDir))
-    ) {
-      throw error
-    }
-  }
-
-  await rm(paths.runtimeDir, { force: true, recursive: true })
-  await moveGeneratedRuntimeDir({
-    from: generatedRuntimeDir,
-    to: paths.runtimeDir,
-  })
-  await normalizeRuntimeTemplateViteConfig(paths)
+  await writeFile(
+    path.join(paths.runtimeDir, "package.json"),
+    `${JSON.stringify(runtimePackageJson, null, 2)}\n`,
+  )
+  await writeFile(path.join(paths.runtimeDir, "tsconfig.json"), `${tsconfig}\n`)
+  await writeFile(
+    path.join(paths.runtimeDir, "vite.config.ts"),
+    `${viteConfig}\n`,
+  )
+  await writeFile(path.join(paths.runtimeDir, "index.html"), `${indexHtml}\n`)
+  await writeFile(
+    path.join(paths.runtimeDir, "components.json"),
+    `${JSON.stringify(componentsJson, null, 2)}\n`,
+  )
+  await writeFile(
+    path.join(paths.runtimeSrcDir, "styles.css"),
+    `${cssSource}\n`,
+  )
+  await cp(
+    path.join(runtimeHostSourceDir, "lib", "utils.ts"),
+    path.join(paths.runtimeSrcDir, "lib", "utils.ts"),
+  )
+  await writeFile(path.join(paths.runtimeSrcDir, "main.tsx"), "export {}\n")
+  await writeFile(
+    path.join(paths.runtimeSrcDir, "app.tsx"),
+    "export function App() { return null }\n",
+  )
 }
 
-async function injectRuntimeHostFiles({ paths, runtimeContract, runtimeSurface }) {
+function readPackageVersionFromManifest(packageManifest, packageName) {
+  const version =
+    packageManifest?.dependencies?.[packageName] ??
+    packageManifest?.devDependencies?.[packageName]
+
+  if (typeof version !== "string" || version.trim() === "") {
+    throw new Error(
+      `Unable to resolve package version for ${packageName} from managed runtime package root.`,
+    )
+  }
+
+  return version
+}
+
+async function injectRuntimeHostFiles({
+  paths,
+  runtimeContract,
+  runtimeSurface,
+}) {
   await mkdir(paths.runtimeSrcDir, { recursive: true })
   await cp(
     path.join(runtimeHostSourceDir, "features"),
@@ -280,6 +271,232 @@ async function injectRuntimeHostFiles({ paths, runtimeContract, runtimeSurface }
   await writeRuntimeRendererKindSource({ paths, runtimeContract })
   await writeRuntimeElementRegistrySource({ paths, runtimeContract })
   await writeRendererMain({ paths, cssPath: runtimeSurface.cssPath })
+}
+
+async function createRuntimePackageJson({ packageRoot }) {
+  const packageManifest = JSON.parse(
+    await readFile(path.join(packageRoot, "package.json"), "utf8"),
+  )
+
+  return {
+    name: "ahtml-runtime",
+    private: true,
+    version: "0.0.0",
+    type: "module",
+    scripts: {
+      dev: "vite",
+      build: "vite build",
+      preview: "vite preview",
+    },
+    dependencies: {
+      react: readPackageVersionFromManifest(packageManifest, "react"),
+      "react-dom": readPackageVersionFromManifest(packageManifest, "react-dom"),
+    },
+    devDependencies: {
+      "@tailwindcss/vite": readPackageVersionFromManifest(
+        packageManifest,
+        "@tailwindcss/vite",
+      ),
+      "@vitejs/plugin-react": readPackageVersionFromManifest(
+        packageManifest,
+        "@vitejs/plugin-react",
+      ),
+      tailwindcss: readPackageVersionFromManifest(
+        packageManifest,
+        "tailwindcss",
+      ),
+      typescript: readPackageVersionFromManifest(packageManifest, "typescript"),
+      vite: readPackageVersionFromManifest(packageManifest, "vite"),
+    },
+  }
+}
+
+function createRuntimeTsconfigSource() {
+  return [
+    "{",
+    '  "compilerOptions": {',
+    '    "target": "ES2022",',
+    '    "useDefineForClassFields": true,',
+    '    "lib": ["ES2022", "DOM", "DOM.Iterable"],',
+    '    "allowJs": false,',
+    '    "skipLibCheck": true,',
+    '    "esModuleInterop": true,',
+    '    "allowSyntheticDefaultImports": true,',
+    '    "strict": true,',
+    '    "forceConsistentCasingInFileNames": true,',
+    '    "module": "ESNext",',
+    '    "moduleResolution": "Bundler",',
+    '    "resolveJsonModule": true,',
+    '    "isolatedModules": true,',
+    '    "noEmit": true,',
+    '    "jsx": "react-jsx",',
+    '    "baseUrl": ".",',
+    '    "paths": {',
+    '      "@/*": ["./src/*"]',
+    "    }",
+    "  },",
+    '  "include": ["src"]',
+    "}",
+  ].join("\n")
+}
+
+function createRuntimeIndexHtmlSource() {
+  return [
+    "<!doctype html>",
+    '<html lang="en">',
+    "  <head>",
+    '    <meta charset="UTF-8" />',
+    '    <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+    "    <title>agent-html runtime</title>",
+    "  </head>",
+    "  <body>",
+    '    <div id="root"></div>',
+    '    <script type="module" src="/src/main.tsx"></script>',
+    "  </body>",
+    "</html>",
+  ].join("\n")
+}
+
+function resolveRuntimeShellStyleConfig(setup) {
+  const fallbackStyle = {
+    style: DEFAULT_PRESET_CONFIG.style,
+    baseColor: DEFAULT_PRESET_CONFIG.baseColor,
+    iconLibrary: "radix",
+    menuColor: DEFAULT_PRESET_CONFIG.menuColor,
+    menuAccent: DEFAULT_PRESET_CONFIG.menuAccent,
+  }
+
+  if (!setup?.preset || setup.preset === "custom") {
+    return fallbackStyle
+  }
+
+  if (isPresetCode(setup.preset)) {
+    const decoded = decodePreset(setup.preset)
+
+    if (decoded) {
+      return {
+        style: decoded.style,
+        baseColor: decoded.baseColor,
+        iconLibrary: "radix",
+        menuColor: decoded.menuColor,
+        menuAccent: decoded.menuAccent,
+      }
+    }
+  }
+
+  return {
+    style: setup.preset,
+    baseColor: DEFAULT_PRESET_CONFIG.baseColor,
+    iconLibrary: "radix",
+    menuColor: DEFAULT_PRESET_CONFIG.menuColor,
+    menuAccent: DEFAULT_PRESET_CONFIG.menuAccent,
+  }
+}
+
+function createRuntimeComponentsJson(styleConfig) {
+  return {
+    $schema: "https://ui.shadcn.com/schema.json",
+    style: styleConfig.style,
+    rsc: false,
+    tsx: true,
+    tailwind: {
+      config: "",
+      css: "src/styles.css",
+      baseColor: styleConfig.baseColor,
+      cssVariables: true,
+      prefix: "",
+    },
+    aliases: {
+      components: "@/components",
+      ui: "@/components/ui",
+      lib: "@/lib",
+      hooks: "@/hooks",
+      utils: "@/lib/utils",
+    },
+    iconLibrary: styleConfig.iconLibrary,
+    rtl: false,
+    menuColor: styleConfig.menuColor,
+    menuAccent: styleConfig.menuAccent,
+    registries: {},
+  }
+}
+
+function createRuntimeCssSource(_styleConfig) {
+  return [
+    '@import "tailwindcss";',
+    '@import "tw-animate-css";',
+    '@import "shadcn/tailwind.css";',
+    "",
+    '@source "./**/*.{ts,tsx}";',
+    "",
+    "@custom-variant dark (&:is(.dark *));",
+    "",
+    "@theme inline {",
+    "  --color-background: var(--background);",
+    "  --color-foreground: var(--foreground);",
+    "  --color-card: var(--card);",
+    "  --color-card-foreground: var(--card-foreground);",
+    "  --color-popover: var(--popover);",
+    "  --color-popover-foreground: var(--popover-foreground);",
+    "  --color-primary: var(--primary);",
+    "  --color-primary-foreground: var(--primary-foreground);",
+    "  --color-secondary: var(--secondary);",
+    "  --color-secondary-foreground: var(--secondary-foreground);",
+    "  --color-muted: var(--muted);",
+    "  --color-muted-foreground: var(--muted-foreground);",
+    "  --color-accent: var(--accent);",
+    "  --color-accent-foreground: var(--accent-foreground);",
+    "  --color-destructive: var(--destructive);",
+    "  --color-border: var(--border);",
+    "  --color-input: var(--input);",
+    "  --color-ring: var(--ring);",
+    "}",
+    "",
+    ":root {",
+    "  color-scheme: light;",
+    '  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;',
+    "  background: #f7f7f5;",
+    "  color: #1f2933;",
+    "  --background: #f7f7f5;",
+    "  --foreground: #111827;",
+    "  --card: #ffffff;",
+    "  --card-foreground: #111827;",
+    "  --popover: #ffffff;",
+    "  --popover-foreground: #111827;",
+    "  --primary: #111827;",
+    "  --primary-foreground: #ffffff;",
+    "  --secondary: #eef2f7;",
+    "  --secondary-foreground: #111827;",
+    "  --muted: #eef2f7;",
+    "  --muted-foreground: #64748b;",
+    "  --accent: #eef2f7;",
+    "  --accent-foreground: #111827;",
+    "  --destructive: #b42318;",
+    "  --border: #d9ddd6;",
+    "  --input: #d9ddd6;",
+    "  --ring: #94a3b8;",
+    "}",
+    "",
+    "* {",
+    "  box-sizing: border-box;",
+    "  border-color: var(--border);",
+    "}",
+    "",
+    "body {",
+    "  margin: 0;",
+    "  min-height: 100vh;",
+    "  background: var(--background);",
+    "  color: var(--foreground);",
+    "}",
+    "",
+    ".bg-card {",
+    "  background-color: var(--card);",
+    "}",
+    "",
+    ".text-card-foreground {",
+    "  color: var(--card-foreground);",
+    "}",
+  ].join("\n")
 }
 
 async function writeRendererMain({ paths, cssPath }) {
@@ -515,268 +732,7 @@ function normalizeDependencyPaths(dependencies) {
   )
 }
 
-async function installShadcnComponents({
-  packageRoot,
-  components,
-  paths,
-  shadcnTemplateDir,
-}) {
-  const selectedComponents = components.length > 0 ? components : ["card"]
-
-  await runShadcnCli(
-    [
-      "add",
-      ...selectedComponents,
-      "--yes",
-      "--overwrite",
-      "--cwd",
-      paths.runtimeDir,
-      "--silent",
-    ],
-    { packageRoot, paths, shadcnTemplateDir },
-  )
-}
-
 function normalizeCssImportPath({ from, to }) {
   const relative = path.relative(path.dirname(from), to).replaceAll("\\", "/")
   return relative.startsWith(".") ? relative : `./${relative}`
-}
-
-async function moveGeneratedRuntimeDir({
-  from,
-  to,
-  attempts = 6,
-  retryDelayMs = 200,
-}) {
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    try {
-      await rename(from, to)
-      return
-    } catch (error) {
-      if (!isRetryableRuntimeRenameError(error) || attempt === attempts) {
-        throw error
-      }
-
-      await wait(retryDelayMs * attempt)
-    }
-  }
-}
-
-function isRetryableRuntimeRenameError(error) {
-  return (
-    Boolean(error) &&
-    typeof error === "object" &&
-    ["EACCES", "EBUSY", "EPERM"].includes(String(error.code))
-  )
-}
-
-function wait(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
-}
-
-async function runShadcnCli(
-  args,
-  { cwd, env, packageRoot, paths, shadcnTemplateDir },
-) {
-  const command = await resolveShadcnCommand(packageRoot)
-  const commandCwd = cwd ?? paths.runtimeDir
-  const localRegistryEnv = isLocalRegistryUrl(process.env.REGISTRY_URL)
-    ? {
-        ALL_PROXY: "",
-        HTTPS_PROXY: "",
-        HTTP_PROXY: "",
-        NO_PROXY: withLocalNoProxy(process.env.NO_PROXY),
-        all_proxy: "",
-        http_proxy: "",
-        https_proxy: "",
-        no_proxy: withLocalNoProxy(process.env.no_proxy),
-      }
-    : {}
-
-  try {
-    await execFileWithProcessTreeCleanup(command.file, [...command.args, ...args], {
-      cwd: commandCwd,
-      env: {
-        ...process.env,
-        AHTML_SHADCN_RUNTIME: "1",
-        ...(shadcnTemplateDir
-          ? { SHADCN_TEMPLATE_DIR: shadcnTemplateDir }
-          : {}),
-        ...localRegistryEnv,
-        ...env,
-      },
-      timeout: resolveChildProcessTimeout(shadcnCliTimeoutMs),
-    })
-  } catch (error) {
-    const detail =
-      error instanceof Error && typeof error.message === "string"
-        ? error.message
-        : String(error)
-    const stdout =
-      typeof error?.stdout === "string" && error.stdout.trim().length > 0
-        ? ` stdout: ${error.stdout.trim()}`
-        : ""
-    const stderr =
-      typeof error?.stderr === "string" && error.stderr.trim().length > 0
-        ? ` stderr: ${error.stderr.trim()}`
-        : ""
-
-    throw new Error(
-      `shadcn CLI failed during runtime setup. ${detail}${stdout}${stderr}`,
-    )
-  }
-}
-
-function resolveChildProcessTimeout(defaultTimeoutMs) {
-  const override = Number(process.env.AHTML_CHILD_PROCESS_TIMEOUT_MS)
-
-  if (Number.isInteger(override) && override > 0) {
-    return override
-  }
-
-  return defaultTimeoutMs
-}
-
-function execFileWithProcessTreeCleanup(file, args, options) {
-  return new Promise((resolve, reject) => {
-    let stdout = ""
-    let stderr = ""
-    let settled = false
-    const child = spawn(
-      file,
-      args,
-      {
-        cwd: options.cwd,
-        env: options.env,
-        stdio: ["ignore", "pipe", "pipe"],
-        windowsHide: true,
-      },
-    )
-    const timeout = setTimeout(() => {
-      if (settled) {
-        return
-      }
-
-      settled = true
-      void terminateProcessTree(child).finally(() => {
-        reject(
-          Object.assign(
-            new Error(`Command timed out after ${options.timeout}ms.`),
-            {
-              stdout,
-              stderr,
-            },
-          ),
-        )
-      })
-    }, options.timeout)
-
-    child.stdout.setEncoding("utf8")
-    child.stderr.setEncoding("utf8")
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk
-    })
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk
-    })
-    child.on("error", (error) => {
-      if (settled) {
-        return
-      }
-
-      clearTimeout(timeout)
-      settled = true
-      reject(
-        Object.assign(error, {
-          stdout,
-          stderr,
-        }),
-      )
-    })
-    child.on("exit", (code, signal) => {
-        if (settled) {
-          return
-        }
-
-        clearTimeout(timeout)
-        settled = true
-
-        if (code !== 0) {
-          reject(
-            Object.assign(
-              new Error(
-                `Command exited with code ${String(code)} signal ${String(signal)}.`,
-              ),
-              {
-                code,
-                signal,
-              stdout,
-              stderr,
-              },
-            ),
-          )
-          return
-        }
-
-        resolve({ stdout, stderr })
-      },
-    )
-  })
-}
-
-async function terminateProcessTree(child) {
-  if (child.exitCode !== null) {
-    return
-  }
-
-  if (process.platform !== "win32" || child.pid === undefined) {
-    child.kill("SIGTERM")
-    return
-  }
-
-  await new Promise((resolve) => {
-    execFile(
-      "taskkill",
-      ["/pid", String(child.pid), "/t", "/f"],
-      { windowsHide: true },
-      () => resolve(),
-    )
-  })
-}
-
-export function resolveShadcnTemplateDir() {
-  const templateDir = process.env.AHTML_SHADCN_TEMPLATE_DIR?.trim()
-  const allowTemplateOverride =
-    process.env.AHTML_ALLOW_SHADCN_TEMPLATE_OVERRIDE === "1"
-  const localRegistryUrl = isLocalRegistryUrl(process.env.REGISTRY_URL)
-
-  if (!templateDir || !allowTemplateOverride || !localRegistryUrl) {
-    return undefined
-  }
-
-  return path.resolve(templateDir)
-}
-
-async function resolveShadcnCommand(packageRoot) {
-  const packageRequire = createRequire(path.join(packageRoot, "package.json"))
-  const shadcnBin = packageRequire.resolve("shadcn")
-
-  try {
-    await access(shadcnBin)
-  } catch {
-    throw new Error(`Unable to find shadcn CLI at ${shadcnBin}.`)
-  }
-
-  return { file: process.execPath, args: [shadcnBin] }
-}
-
-async function canContinueAfterInitInstallFailure(error, generatedRuntimeDir) {
-  try {
-    await access(path.join(generatedRuntimeDir, "components.json"))
-    return true
-  } catch {
-    return false
-  }
 }

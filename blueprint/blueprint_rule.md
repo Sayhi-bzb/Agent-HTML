@@ -51,4 +51,4 @@ blueprint 写作应保持正交、克制、最小充分。
 
 agent-html 的默认产品边界应服务 agent artifact runtime，而不是前端项目模板或用户项目接入器。
 
-默认概念使用 `runtime host`、`runtime root`、`core engine` 和 `portable artifact`。不得把 `user-local`、`project integration` 或 `local-project mode` 作为默认路径名称。
+默认概念使用 `runtime host`、`runtime root`、`core engine`、`preview loop` 和 `portable artifact`。不得把 `user-local`、`project integration` 或 `local-project mode` 作为默认路径名称。

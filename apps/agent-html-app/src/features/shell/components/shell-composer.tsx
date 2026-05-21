@@ -1,6 +1,6 @@
 import {
   ShellActionButton,
-  ShellMetaRow,
+  ShellStatusBadge,
 } from "@/features/app-shell/components/shell-content"
 import { ComposerField } from "./composer-field"
 
@@ -20,24 +20,26 @@ export function ShellComposer({
   onSend,
 }: ShellComposerProps) {
   return (
-    <div className="app-shell-surface-grid">
-      <ComposerField
-        disabled={interactionLocked}
-        onChange={(event) => onDraftChange(event.target.value)}
-        placeholder="..."
-        value={draft}
-      />
-      <ShellMetaRow
-        action={
-          <ShellActionButton
-            disabled={!draft.trim() || interactionLocked}
-            onClick={onSend}
-          >
-            Send
-          </ShellActionButton>
-        }
-        copy={statusLabel}
-      />
+    <div className="app-shell-composer-row">
+      {statusLabel ? (
+        <ShellStatusBadge label={statusLabel} variant="outline" />
+      ) : null}
+      <div className="app-shell-composer-input-shell">
+        <ComposerField
+          disabled={interactionLocked}
+          onChange={(event) => onDraftChange(event.target.value)}
+          placeholder="Note"
+          value={draft}
+        />
+      </div>
+      <ShellActionButton
+        className="app-shell-plain-action app-shell-composer-send"
+        disabled={!draft.trim() || interactionLocked}
+        onClick={onSend}
+        variant="ghost"
+      >
+        Send
+      </ShellActionButton>
     </div>
   )
 }

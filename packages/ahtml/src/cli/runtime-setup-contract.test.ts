@@ -37,7 +37,7 @@ describe("runtime setup contracts", () => {
       const setup = await resolveRuntimeSetup({
         interactive: false,
         options: {
-          "component-source": "shadcn-cli",
+          "component-source": "ahtml-managed-ui",
           preset: "custom",
           components: "accordion",
         },

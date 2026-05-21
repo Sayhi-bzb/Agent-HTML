@@ -6,6 +6,8 @@
 本文既是当前 `runtime` 的实现审计，也是后续重构的目标规范。  
 若未来 runtime 重构与本文冲突，以本文作为 runtime 层的约束基线。
 
+实时预览主线的开发节奏见 `docs/spec/realtime-preview/roadmap.md`。
+
 ## 1. Current Runtime Shape
 
 当前 runtime 不是单一 `gallery` 前端，而是完整的前端 runtime：
@@ -23,7 +25,11 @@
 - `packages/ahtml/src/cli/runtime-bootstrap/index.mjs`
   - 会把 `runtime-host/features`、`runtime-host/renderer`、`artifact-shell.tsx`、`host-styles.tsx`、`profile-theme.ts` 注入 runtime shell。
 - `packages/ahtml/src/cli/runtime-surface.mjs`
-  - 明确 runtime shell 的基础来源是 `shadcn-init` 的 Vite runtime surface，而不是完全自造前端壳。
+  - 明确 runtime shell 的基础来源已经进入 `ahtml-managed-runtime` 治理语义：
+  - surface source: `ahtml-managed-runtime`
+  - shell source: `ahtml-runtime-shell`
+  - init source: `ahtml-bootstrap`
+  - 它依然以 shadcn Vite runtime surface 为基底，但 provenance 已不再直接暴露为旧的 `shadcn-init` / `shadcn-cli` 表达。
 
 因此，runtime 的现实结构是：
 
@@ -55,17 +61,29 @@ runtime shell
 未统一的层：
 
 - `packages/ahtml/src/cli/runtime-host/features/gallery/styles.ts`
-  - 包含大量 `ahtml-gallery-*` 手写 CSS。
-  - 覆盖了 header、sidebar、toolbar、inspector、preview scene、dashboard、mail、pricing 等完整 workbench 壳层。
+  - 现在应只作为 gallery scene CSS 的装配入口。
+  - `styles/base.ts`、`styles/custom.ts`、`styles/cards.ts`、`styles/colors.ts`、`styles/typography.ts`、`styles/dashboard.ts`、`styles/mail.ts`、`styles/pricing.ts`、`styles/responsive.ts`
+    承担 preview scene 级样式分片。
+  - 这层仍然保有大量 `ahtml-gallery-*` 手写 CSS，但已经不再以单一巨型字符串文件承载全部 preview scene。
 - `host-styles.tsx` 的 shared shell 只提供了基础宿主样式与通用布局 policy。
   - 还没有把 feature 页面壳层也统一收敛到同一套 runtime shell 标准。
 - 但最近一轮治理已经开始把 `gallery` 的壳层布局常量持续上移到 `host-styles.tsx`：
-  - preset rail / preset popover
+  - page header / mobile tabs / sidebar / divider / control header
+  - preview toolbar / toolbar group / preview shell / preview mode bar
+  - stage toolbar / stage toolbar inset 这类宿主 frame
+  - preset rail / preset chooser / preset popover
+  - font picker / token editor / color token popover 这类 editor shell
+  - preview stage panel / preview document prose policy / stage title copy 这类 shared preview shell
   - stage frame / preview shell
   - custom / dashboard / mail / pricing 的列宽和 panel gap
   - color / typography / workbench footer 的展示区 grid min-width 与 card padding
   - inspector panel、custom browser toolbar、preview empty state、connection status 这类 preview/content 壳层的 padding 与 width policy
   - cards workbench、custom rich grid、dashboard cards、mail attachments、pricing grid 这类 page-level column policy
+  - preset stats、color popover、inspector grid 以及部分 responsive column fallback 也开始通过 shared token 管理
+  - 高频微布局节奏也已开始上收：
+    - `0.35rem` / `0.45rem` / `0.5rem` / `0.55rem` / `0.7rem` 这组 gap
+    - `0.8rem` / `0.9rem` 这组 surface padding
+  - 这些值现在应优先通过 runtime 顶层 token 消费，而不是继续在 `gallery/styles.ts` 内散落成字面量
 
 审计判断：
 
@@ -112,7 +130,8 @@ runtime shell
   - `slider.tsx`
   - 理由是 runtime renderer 需要把 field semantics 透传到 slider thumb / control 语义层。
 - `runtime-host` 源码侧现在也只保留 `slider.tsx` 这一个本地 override。
-- 其他历史上的 runtime-host `components/ui/*` 文件，更多是本地固化的 shadcn 源组件或 fixture 对齐副本，不再都应被视为 runtime 特殊兼容层。
+- baseline shadcn 组件源现在应来自 `scripts/verify-pack/shadcn-test-fixtures/components/ui/*`。
+- `runtime-host/components/ui/*` 不再承载 baseline 镜像副本，只承载显式 override。
 - `runtime-host` 的本地 type-check 也应默认回落到 shadcn fixture 基线，而不是继续优先消费本地镜像副本。
 
 审计判断：
@@ -139,7 +158,7 @@ runtime shell
 
 未统一的层：
 
-- `gallery/styles.ts`
+- `gallery/styles.ts` 与 `gallery/styles/*`
   - 虽然大量使用了 `var(--background)`、`var(--border)`、`var(--foreground)` 等 token，
   - 但页面壳层自身仍写入了大量 feature 常量：
     - `padding: 0.7rem 1rem`
@@ -169,6 +188,7 @@ runtime shell
 - runtime 已经建立统一 token 映射层。
 - runtime 已经建立统一 renderer 组件层。
 - runtime shell 明确依赖 `tailwindcss`、`tw-animate-css`、`shadcn/tailwind.css`，不是脱离 shadcn 体系的纯自造方案。
+- runtime surface provenance 已经显式进入 ahtml 管理语义，而不是继续把治理状态表述为 shadcn 原始初始化产物。
 
 ### 部分符合目标
 
@@ -195,6 +215,8 @@ runtime shell
   - panel density
   - layout policy
   - artifact shell baseline
+- `gallery` 的 header / tabs / sidebar / divider / preview toolbar / stage toolbar 这类 shell 或 frame 级结构，应优先由 `host-styles.tsx` 持有。
+- `preset chooser`、`font picker`、`token editor`、`inspector` 这类 gallery editor 通用壳层，也应优先由 `host-styles.tsx` 持有。
 - feature 不应继续扩张并列的页面壳层体系。
 - 若 feature 需要附加样式，应限定为：
   - 局部组件状态
@@ -226,7 +248,11 @@ runtime shell
   - toolbar height
   - shell density
   - sidebar width policy
+- 高频 micro spacing / surface padding 也应属于共享 runtime host token：
+  - `space-2xs` / `space-xs` / `space-sm` / `space-md` / `space-lg`
+  - `surface-padding-sm` / `surface-padding-md`
 - feature 不应再维持并列的 spacing / shell 常量体系。
+- 对已经完成上收的常量，应通过治理测试阻止字面量回退。
 
 ### 布局策略
 
