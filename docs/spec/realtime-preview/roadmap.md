@@ -1,6 +1,6 @@
 # Realtime Preview Roadmap
 
-本文只记录这轮 `realtime preview` 重构主线的开发节奏。  
+本文记录这轮 `realtime preview` 重构主线的开发节奏，以及当前实现已经落到哪一阶段。  
 它不重复顶层架构背景；顶层边界以 `blueprint/*` 和 `docs/spec/runtime/index.md` 为准。
 
 本路线图解决的是同一件事：
@@ -16,6 +16,24 @@
 - preview 与 build 必须共用同一条语义到渲染链路
 - 本轮不设计 agent 回流动作协议
 - 本轮不扩展成通用前端交互系统
+
+## 当前实现快照（2026-05-21）
+
+- `preview` 已不再走 `buildArtifact(...) -> serveDirectory(...)`；CLI 主路径已切到 `runRuntimePreviewSession(...)`。
+- `build` 仍保留导出职责，但其前置准备已拆成共享的 `prepareDocumentRuntime(...)`，供 preview 与 build 共同消费。
+- preview session 现为长驻 runtime：
+  - 启动 managed runtime
+  - 写入当前 document / runtime state
+  - 监听 `.agent.html` 文件变化
+  - 在文档变化后刷新 runtime state
+  - 在文档非法时保持 preview 进程存活并展示 diagnostics
+- runtime host 已支持 `mode: "document" | "gallery" | "diagnostics"`，document preview 以 runtime state 中的 document 为主输入。
+- 当前 live update 依赖 managed runtime 下的 generated runtime files 与 Vite dev reload，不是单独设计的一套浏览器端 preview-state 订阅协议。
+- 仍未完全收口的部分主要在 Phase 4：
+  - `README.md`
+  - `docs-web/content/docs/index.mdx`
+  - `.agents/skills/ahtml/references/*`
+  这些位置仍残留旧的 static-preview 口径。
 
 ## Phase 1: Preview Path Decoupling
 
@@ -43,6 +61,14 @@
 - `build` 与 `preview` 的职责边界在 CLI 和 workflow 中明确分开
 - preview 主路径已经能消费统一的 prepared document 结果
 
+### Phase 1 当前状态
+
+- 状态：已完成
+- 已落地实现：
+  - `packages/ahtml/src/cli/artifact-workflow.mjs` 已将 document prepare / validate / renderability 路径与 artifact materialize 路径拆开。
+  - `packages/ahtml/src/cli/index.mjs` 的 `previewCommand` 已改为直接调用 `runRuntimePreviewSession(...)`。
+  - `buildArtifact(...)` 现在消费 `prepareDocumentRuntime(...)` 的结果，再进入导出物化流程。
+
 ## Phase 2: Runtime State Driven Preview
 
 ### Phase 2 目标
@@ -67,6 +93,16 @@
 - runtime host 的 preview 输入不再依赖构建期静态 import
 - document mode 与 build mode 继续共用同一 renderer path
 
+### Phase 2 当前状态
+
+- 状态：主目标已完成
+- 已落地实现：
+  - `packages/ahtml/src/cli/runtime-host/app.tsx` 已支持读取 `runtimeState.document`，并支持 `diagnostics` mode。
+  - `packages/ahtml/src/cli/runtime-preview.mjs` 会在每次刷新时写入 document、artifact profile、diagnostics 与 inputPath。
+  - build 与 preview 仍共用同一条 runtime host / renderer path，没有重新分叉第二套 renderer。
+- 当前保留：
+  - `document.generated.json` 仍在 runtime host 中保留为 fallback / 共享输入的一部分，但 preview 主输入已切到 runtime state。
+
 ## Phase 3: Live Update Loop
 
 ### Phase 3 目标
@@ -90,6 +126,17 @@
 - 修改 `.agent.html` 后，preview 页面无需手动重启即可更新
 - 文档非法时 preview 进程保持存活，并向页面展示 diagnostics
 - 文档修复后，preview 可自动恢复正常渲染
+
+### Phase 3 当前状态
+
+- 状态：当前主线已落地
+- 已落地实现：
+  - `packages/ahtml/src/cli/runtime-preview.mjs` 已建立文件监听、去抖刷新与长驻 preview server。
+  - 非法文档时 preview 不再退出，而是进入 diagnostics mode。
+  - 文档修复后，preview 会自动恢复到 document mode。
+- 当前实现方式：
+  - 浏览器更新依赖 runtime generated files 的变化与 Vite dev server 的重载能力。
+  - 这满足当前 realtime preview 主线，但并未额外设计一套独立的浏览器端状态订阅协议。
 
 ## Phase 4: Build As Export
 
@@ -117,6 +164,19 @@
 - preview-first 口径在 CLI、runtime、tests 和 docs 中一致
 - static artifact 成为明确的交付形态，而不是默认工作形态
 
+### Phase 4 当前状态
+
+- 状态：进行中
+- 已落地部分：
+  - CLI runtime 与测试主路径已经切到 preview-first。
+  - `packages/ahtml/src/cli/command-contract.mjs` 已把 `preview` 描述为 realtime preview session。
+  - `build` 在实现层面已收口为 export / materialize。
+- 尚未收口部分：
+  - `README.md` 仍是旧口径。
+  - `docs-web/content/docs/index.mdx` 仍写着 “Preview serves the same static output produced by build.”
+  - 用户侧 skill 文档中的 build / preview 描述仍需改成 preview-first。
+  - `preview --out` 目前仍保留兼容参数；它已不再参与 preview 物化输出，但口径还需在文档中完全统一。
+
 ## 总体验收
 
 当下面五件事同时成立时，这轮主线才算完成：
@@ -126,6 +186,27 @@
 - runtime host 已由运行时 state 驱动 preview
 - preview 与 build 仍共用同一条语义到渲染链路
 - build 已收口为交付、分享和归档能力
+
+## 当前验收判断（2026-05-21）
+
+- 已满足：
+  - preview 不再依赖完整 static artifact 目录生成
+  - runtime host 已由运行时 state 驱动 preview
+  - preview 与 build 仍共用同一条语义到渲染链路
+- 基本满足但仍需口径收口：
+  - preview 已在实现层面成为默认工作模式，但 README / docs-web / skill docs 还未完全同步
+  - build 已在实现层面收口为交付能力，但用户侧文档口径还未完全改完
+
+## 当前验证快照（2026-05-21）
+
+当前状态至少已由下面这些验证覆盖：
+
+- `npm run build`
+- `npx vitest run packages/ahtml/src/cli/command-contract.test.ts`
+- `npx vitest run packages/ahtml/src/cli/cli-surface.test.ts`
+- `npx vitest run packages/ahtml/src/cli/runtime-bootstrap.test.ts`
+- `npx vitest run packages/ahtml/src/cli/runtime-surface.test.ts`
+- `npm run test:run:cli-heavy:preview`
 
 ## 备注
 
