@@ -20,11 +20,11 @@
 - `packages/ahtml/src/config/component-capabilities.mjs`
 - `packages/ahtml/src/config/render-capabilities.mjs`
 - `packages/ahtml/src/config/runtime-contract.mjs`
-- `packages/ahtml/src/cli/runtime-template/src/renderer/types.ts`
-- `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.tsx`
-- `packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx`
-- `packages/ahtml/src/cli/runtime-template/src/renderer/render-layout-node.tsx`
-- `packages/ahtml/src/cli/runtime-template/src/app.tsx`
+- `packages/ahtml/src/cli/runtime-host/renderer/types.ts`
+- `packages/ahtml/src/cli/runtime-host/renderer/render-node.tsx`
+- `packages/ahtml/src/cli/runtime-host/renderer/render-ui-node.tsx`
+- `packages/ahtml/src/cli/runtime-host/renderer/render-layout-node.tsx`
+- `packages/ahtml/src/cli/runtime-host/app.tsx`
 
 ## 结论概览
 
@@ -138,7 +138,7 @@ schema-overlays.ts
 - `accordion` 的 `legacyBridges.state`
 - `accordion.behavior.stateBridge`
 
-`packages/ahtml/src/cli/runtime-template/src/renderer/types.ts` 当前的主 spec 形状已经是：
+`packages/ahtml/src/cli/runtime-host/renderer/types.ts` 当前的主 spec 形状已经是：
 
 - `RendererSpecComponent`
   - 不再顶层声明 `kindProp` / `modeProp` / `defaultProp` / `defaultMode`
@@ -146,7 +146,7 @@ schema-overlays.ts
 - `RuntimeVerificationState.behavior`
   - 不再保留 `stateBridge`
 
-`packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx` 当前已切到新行为来源：
+`packages/ahtml/src/cli/runtime-host/renderer/render-ui-node.tsx` 当前已切到新行为来源：
 
 - `tabs`
   - 默认选中第一个 tab
@@ -203,7 +203,7 @@ schema-overlays.ts
 
 ## 7. runtime host / document shell / gallery shell 的当前关系
 
-`packages/ahtml/src/cli/runtime-template/src/app.tsx` 当前的真实边界是：
+`packages/ahtml/src/cli/runtime-host/app.tsx` 当前的真实边界是：
 
 - `DocumentArtifactShell`
   - 当前输出 artifact root 与 layout policy class
@@ -241,8 +241,7 @@ schema-overlays.ts
   - `packages/ahtml/src/config/render-capabilities.test.ts`
   - `packages/ahtml/src/config/runtime-contract.test.ts`
 - renderer / runtime shell
-  - `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.test.ts`
-  - `packages/ahtml/src/cli/runtime-template.test.ts`
+  - `packages/ahtml/src/cli/runtime-host/renderer/render-node.test.ts`
   - `packages/ahtml/src/cli/runtime-surface.test.ts`
   - `packages/ahtml/src/cli/cli.runtime.heavy.test.ts`
   - `packages/ahtml/src/cli/cli.build.heavy.test.ts`
@@ -253,7 +252,7 @@ schema-overlays.ts
 
 - `npm run build`
 - `npm run test:run -- packages/ahtml/src/cli/prompt-schema.test.ts packages/ahtml/src/cli/cli-surface.test.ts packages/ahtml/src/cli/runtime-setup-contract.test.ts packages/ahtml/src/cli/validate-inspect-contract.test.ts`
-- `npm run test:run -- packages/ahtml/src/cli/runtime-template.test.ts`
+- `npm run test:run -- packages/ahtml/src/cli/runtime-surface.test.ts`
 - `node scripts/verify-packed-ahtml.mjs`
 - `npm run docs:lint`
 - `npm run test:run:cli-heavy:runtime`

@@ -14,4 +14,4 @@
 - `current-contract-component-matrix.md`
   - 逐组件列出当前公开 props、兼容字段和 runtime bridge。
 - `high-risk-runtime-bridges.md`
-  - 当前仍需重点关注的 `tabs` / `accordion` / `table` 兼容桥现实。
+  - 当前仍需重点关注的 `tabs` / `accordion` / `table` 固定 renderer 行为边界。

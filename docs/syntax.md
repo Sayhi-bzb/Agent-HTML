@@ -15,8 +15,8 @@
 当前 authoring surface 由三层组成：
 
 1. 头部配置
-   - 当前规范写法仍是 `<meta-agent style-ref="..." />`
-   - `style-ref` 在 parse / runtime 层允许 fallback，并会产出显式 warning；但在当前 CLI prompt 主路径里仍是规范入口
+   - 当前规范写法是 `<meta-agent profile-ref="..." />`
+   - 旧 `style-ref` 已退出当前 authoring surface；输入会产生明确错误
 2. 正式语义节点
    - UI 节点
    - layout 节点
@@ -76,8 +76,8 @@
 
 ## 与配置层的关系
 
-- 头部配置负责 style / document config 选择
+- 头部配置负责 artifact profile 选择
 - 语义节点负责页面与组件关系
 - runtime host 消费语义节点和配置结果
-- 当前稳定配置结果仍主要承载 `style-ref -> styleProfile`
+- 当前稳定配置结果承载 `profile-ref -> artifactProfile`
 - host 不再替 authoring surface 补 layout primitive 节点，但当前仍会通过 document layout policy 追加文档型 framing / prose 默认值

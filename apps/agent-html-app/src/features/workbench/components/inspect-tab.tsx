@@ -6,14 +6,14 @@ import type {
 
 import {
   ShellCardHeader,
-  ShellDiagnosticStatusBadge,
   ShellLoadingRow,
-  ShellSplitRow,
-  ShellSectionLabel,
   ShellStatusBadge,
-  ShellSurfaceItem,
-  ShellWorkbenchCard,
 } from "@/features/app-shell/components/shell-content"
+import {
+  InspectConsoleSection,
+  InspectDiagnosticList,
+} from "./inspect-diagnostics"
+import { WorkbenchCard } from "./workbench-card"
 
 type InspectTabProps = {
   inspect: InspectSnapshot
@@ -23,7 +23,7 @@ type InspectTabProps = {
 
 export function InspectTab({ inspect, logs, inspecting }: InspectTabProps) {
   return (
-    <ShellWorkbenchCard
+    <WorkbenchCard
       header={
         <ShellCardHeader
           action={
@@ -38,23 +38,9 @@ export function InspectTab({ inspect, logs, inspecting }: InspectTabProps) {
       }
     >
       {inspecting ? <ShellLoadingRow>Refreshing inspect snapshot</ShellLoadingRow> : null}
-      <div className="app-shell-surface-grid">
-        {inspect.diagnostics.map((item) => (
-          <ShellSurfaceItem key={item.id}>
-            <ShellSplitRow>
-              <span>{item.message}</span>
-              <ShellDiagnosticStatusBadge severity={item.severity} />
-            </ShellSplitRow>
-          </ShellSurfaceItem>
-        ))}
-      </div>
+      <InspectDiagnosticList diagnostics={inspect.diagnostics} />
       <Separator />
-      <div className="app-shell-surface-grid app-shell-surface-pane">
-        <ShellSectionLabel>stdout</ShellSectionLabel>
-        <pre className="app-shell-console">
-          {logs.stdout || "n/a"}
-        </pre>
-      </div>
-    </ShellWorkbenchCard>
+      <InspectConsoleSection label="stdout">{logs.stdout || "n/a"}</InspectConsoleSection>
+    </WorkbenchCard>
   )
 }

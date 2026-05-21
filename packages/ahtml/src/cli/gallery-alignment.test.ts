@@ -34,15 +34,17 @@ describe("gallery alignment", () => {
 
     expect(gallerySpec).toContain("独立顶栏")
     expect(gallerySpec).toContain("组件展柜")
-    expect(gallerySpec).toContain("style profile 的选择、编辑、保存与预览")
+    expect(gallerySpec).toContain("artifact profile 的选择、编辑、保存与预览")
     expect(gallerySpec).toContain("reset draft to persisted state")
     expect(gallerySpec).toContain("/__ahtml/gallery/save")
 
     expect(blueprint).toContain("左侧配置页与右侧组件画廊预览")
     expect(docsArchitecture).toContain("左侧配置器与右侧组件画廊")
-    expect(docsWeb).toContain("style configuration page and component gallery")
+    expect(docsWeb).toContain(
+      "artifact profile gallery and component preview workbench",
+    )
     expect(commandContract).toContain(
-      "Open the style configuration page and component gallery.",
+      "Open the artifact profile gallery and component preview workbench.",
     )
 
     expect(runtimeApp).toContain('data-gallery-frame="header"')

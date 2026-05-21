@@ -223,6 +223,7 @@ design-system 治理如果只盯视觉，不看交互结构和状态链，就会
 - compact action group
 - split row 语义包装
 - meta row / supporting copy / status row 包装
+- scroll surface content 容器
 - card heading / card body / body copy
 - preview canvas 填充容器
 - shell empty card
@@ -239,10 +240,20 @@ design-system 治理如果只盯视觉，不看交互结构和状态链，就会
 - shell meta row
 - shell supporting copy
 - shell status row
+- shell scroll surface
 - shell surface item
 - shell section label
-- shell workbench card skeleton
 - shell pane scaffold
+- app-shell root pattern：`TopBar`
+- app-shell root pattern：`MainLayout`
+- feature-scoped content pattern：`WorkbenchCard`
+- feature-scoped content pattern：`PreviewFrame`
+- feature-scoped content pattern：`SourceEditorField`
+- feature-scoped content pattern：`SourceValidationSummary`
+- feature-scoped content pattern：`InspectDiagnosticList`
+- feature-scoped content pattern：`InspectConsoleSection`
+- feature-scoped content pattern：`MessageBody`
+- feature-scoped content pattern：`ComposerField`
 
 形式已经明确：当前采用的是 **统一 CSS 变量 + shell utility classes + panel constraint constants**。
 
@@ -317,6 +328,11 @@ app shell 与 feature 层不得引入裸色值、裸阴影、裸边框语义。
 以下问题仍然存在，不能因为本轮治理进展就被弱化：
 
 - `agent-html-app` 现在只是**明显更接近** shell-level design system，并没有完成 content-level 全面治理。
-- `SourceTab`、`InspectTab`、`ShellPane` 内仍保留局部 feature-specific 组合，它们虽然已开始消费共享 contract，但还没有形成统一的内容模式目录。
+- 本轮已经把 `WorkbenchCard`、`PreviewFrame`、`SourceEditorField`、`SourceValidationSummary`、`InspectDiagnosticList`、`InspectConsoleSection`、`MessageBody`、`ComposerField` 从 `shell-content` 共享层下沉回 feature 层，说明“伪共享模式混入共享 catalog”这个问题已经被正面处理，而不是继续含混维持。
+- `WorkbenchPane` 的 tab/tool action 条带、`SourceTab` 的 header action 组、`ShellPane` 的 composer 区仍然主要由 feature 自己装配；当前问题已从“共享层混装”转成“哪些 feature pattern 将来值得继续上提到更广的 contract”。
+- 本轮又继续把这些区域命名成 feature-scoped contract：`WorkbenchHeader`、`SourceHeader`、`ShellComposer`。问题已经从“匿名散落”进一步收敛到“这些 pattern 是否应继续上提到更通用层级”的边界判断。
+- 根层 `App` 已经不再直接匿名拼接顶部栏和三栏 resizable 布局，而是显式消费 `TopBar` 与 `MainLayout`。这一步修正的是“文档里已有壳层语义，但实现没有对应命名边界”的问题。
+- 当前又继续把 `WorkbenchTabs`、`SessionRailHeader`、`SessionCard` 命名出来，说明治理已经不只是抽单个 row 或 field，而是在把整段稳定交互模式收回到有边界的 pattern 上。
+- 这意味着当前缺的已经不是“有没有 contract”，而是 **content pattern catalog 还不完整**：共享层与 feature 层的边界已经比之前干净，但哪些模式应该被正式提升到更广的共享层，哪些长期只保留在 feature，本轮还没有到完全稳定的边界。
 - mock preview 仍然内嵌大量裸视觉值；当前只能因为它被明确标注为 preview artifact sample 而被接受，不能把这类写法迁回 app shell。
 - `Textarea`、`Tabs`、`ScrollArea` 等 primitive 的内部 geometry 仍然与 feature 内容排布共同决定最终密度，这要求后续继续守住“primitive 内部约束”和“shell 外层 contract”之间的边界。

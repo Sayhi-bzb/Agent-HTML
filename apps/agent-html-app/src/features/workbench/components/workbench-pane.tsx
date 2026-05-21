@@ -1,7 +1,3 @@
-import { EyeIcon, FileCode2Icon, HammerIcon, InspectIcon } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type {
   BuildRunSummary,
   InspectSnapshot,
@@ -12,12 +8,13 @@ import type {
 } from "@/lib/types"
 
 import {
-  ShellPaneHeader,
   ShellPaneScaffold,
 } from "@/features/app-shell/components/shell-content"
 import { InspectTab } from "./inspect-tab"
 import { PreviewTab } from "./preview-tab"
 import { SourceTab } from "./source-tab"
+import { WorkbenchHeader } from "./workbench-header"
+import { WorkbenchTabs } from "./workbench-tabs"
 
 export type WorkbenchPaneProps = {
   session: SessionDetail
@@ -69,64 +66,27 @@ export function WorkbenchPane({
   return (
     <ShellPaneScaffold
       header={
-        <ShellPaneHeader
-          gap="base"
-          leading={
-            <Tabs onValueChange={(value) => onViewChange(value as WorkbenchView)} value={activeView}>
-              <TabsList>
-                <TabsTrigger disabled={interactionLocked} value="preview">
-                  <EyeIcon data-icon="inline-start" />
-                  Preview
-                </TabsTrigger>
-                <TabsTrigger disabled={interactionLocked} value="source">
-                  <FileCode2Icon data-icon="inline-start" />
-                  Source
-                </TabsTrigger>
-                <TabsTrigger disabled={interactionLocked} value="inspect">
-                  <InspectIcon data-icon="inline-start" />
-                  Inspect
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          }
-          trailing={
-            <>
-              <Button
-                disabled={interactionLocked}
-                onClick={onBuild}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <HammerIcon data-icon="inline-start" />
-                Build
-              </Button>
-              <Button
-                disabled={interactionLocked}
-                onClick={onInspect}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <InspectIcon data-icon="inline-start" />
-                Inspect
-              </Button>
-            </>
-          }
+        <WorkbenchHeader
+          activeView={activeView}
+          interactionLocked={interactionLocked}
+          onBuild={onBuild}
+          onInspect={onInspect}
+          onViewChange={onViewChange}
         />
       }
       content={
-        <Tabs className="app-shell-fill-tabs" value={activeView}>
-          <TabsContent className="app-shell-fill-tab-panel" value="preview">
+        <WorkbenchTabs
+          activeView={activeView}
+          inspect={<InspectTab inspect={inspect} inspecting={inspecting} logs={logs} />}
+          preview={
             <PreviewTab
               build={build}
               building={building}
               previewHtml={previewHtml}
               session={session}
             />
-          </TabsContent>
-
-          <TabsContent className="app-shell-fill-tab-panel" value="source">
+          }
+          source={
             <SourceTab
               draftSource={draftSource}
               hasUnsavedChanges={hasUnsavedChanges}
@@ -140,12 +100,8 @@ export function WorkbenchPane({
               validating={validating}
               validation={validation}
             />
-          </TabsContent>
-
-          <TabsContent className="app-shell-fill-tab-panel" value="inspect">
-            <InspectTab inspect={inspect} inspecting={inspecting} logs={logs} />
-          </TabsContent>
-        </Tabs>
+          }
+        />
       }
     />
   )

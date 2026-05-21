@@ -1,0 +1,64 @@
+import type { ReactNode } from "react"
+
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
+import { normalizePanelLayout, persistPanelLayout } from "@/features/app-shell/panel-layout"
+import { shellPanelConstraints } from "@/features/app-shell/layout"
+import type { PanelLayoutState } from "@/features/app-shell/types"
+
+type MainLayoutProps = {
+  panelLayout: PanelLayoutState
+  onPanelLayoutChange: (layout: PanelLayoutState) => void
+  sessions: ReactNode
+  workbench: ReactNode
+  shell: ReactNode
+}
+
+export function MainLayout({
+  panelLayout,
+  onPanelLayoutChange,
+  sessions,
+  workbench,
+  shell,
+}: MainLayoutProps) {
+  return (
+    <div className="app-shell-body">
+      <ResizablePanelGroup
+        className="app-shell-fill-layout"
+        onLayoutChanged={(layout) => {
+          const nextLayout = normalizePanelLayout(layout)
+          onPanelLayoutChange(nextLayout)
+          persistPanelLayout(nextLayout)
+        }}
+        orientation="horizontal"
+      >
+        <ResizablePanel
+          defaultSize={panelLayout.sessions}
+          id="sessions"
+          minSize={shellPanelConstraints.sessions.minSize}
+        >
+          {sessions}
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel
+          defaultSize={panelLayout.workbench}
+          id="workbench"
+          minSize={shellPanelConstraints.workbench.minSize}
+        >
+          {workbench}
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel
+          defaultSize={panelLayout.shell}
+          id="shell"
+          minSize={shellPanelConstraints.shell.minSize}
+        >
+          {shell}
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  )
+}

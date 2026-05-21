@@ -1,19 +1,18 @@
 import { BotIcon, SparklesIcon, TerminalSquareIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Textarea } from "@/components/ui/textarea"
 import type { AgentShellMessage, RuntimeReport } from "@/lib/types"
 
 import {
   ShellEmptyCard,
   ShellLoadingRow,
-  ShellMetaRow,
   ShellPaneHeader,
   ShellPaneScaffold,
   ShellPaneLabel,
+  ShellScrollSurface,
 } from "@/features/app-shell/components/shell-content"
 import { MessageCard } from "./message-card"
+import { ShellComposer } from "./shell-composer"
 import { RuntimeReportCard } from "./runtime-report-card"
 
 export type ShellPaneProps = {
@@ -104,43 +103,28 @@ export function ShellPane({
         />
       }
       content={
-        <ScrollArea className="app-shell-scroll-pane">
-          <div className="app-shell-surface-grid-roomy app-shell-card-inset">
-            {drafting ? <ShellLoadingRow>Drafting proposal</ShellLoadingRow> : null}
+        <ShellScrollSurface density="roomy">
+          {drafting ? <ShellLoadingRow>Drafting proposal</ShellLoadingRow> : null}
 
-            {checking ? <ShellLoadingRow>Running doctor</ShellLoadingRow> : null}
+          {checking ? <ShellLoadingRow>Running doctor</ShellLoadingRow> : null}
 
-            {runtimeReport ? <RuntimeReportCard runtimeReport={runtimeReport} /> : null}
+          {runtimeReport ? <RuntimeReportCard runtimeReport={runtimeReport} /> : null}
 
-            {messages.map((message) => (
-              <MessageCard key={message.id} message={message} />
-            ))}
+          {messages.map((message) => (
+            <MessageCard key={message.id} message={message} />
+          ))}
 
-            {messages.length === 0 ? <ShellEmptyCard>Empty</ShellEmptyCard> : null}
-          </div>
-        </ScrollArea>
+          {messages.length === 0 ? <ShellEmptyCard>Empty</ShellEmptyCard> : null}
+        </ShellScrollSurface>
       }
       footer={
-        <div className="app-shell-surface-grid">
-          <Textarea
-            disabled={interactionLocked}
-            onChange={(event) => onDraftChange(event.target.value)}
-            placeholder="..."
-            value={messageDraft}
-          />
-          <ShellMetaRow
-            action={
-              <Button
-                disabled={!messageDraft.trim() || interactionLocked}
-                onClick={onSend}
-                type="button"
-              >
-                Send
-              </Button>
-            }
-            copy={getShellStatusLabel(sending, drafting, checking)}
-          />
-        </div>
+        <ShellComposer
+          draft={messageDraft}
+          interactionLocked={interactionLocked}
+          onDraftChange={onDraftChange}
+          onSend={onSend}
+          statusLabel={getShellStatusLabel(sending, drafting, checking)}
+        />
       }
     />
   )

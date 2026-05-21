@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type {
   BuildRunSummary,
   DiagnosticSeverity,
@@ -46,28 +47,41 @@ type ShellCardHeaderProps = {
   title: ReactNode
   description?: ReactNode
   titleClassName?: string
+  titleSize?: "default" | "sm"
   truncateTitle?: boolean
   action?: ReactNode
   actionClassName?: string
+  actionLayout?: "default" | "compact"
 }
 
 export function ShellCardHeader({
   title,
   description,
   titleClassName,
+  titleSize = "default",
   truncateTitle = false,
   action,
   actionClassName,
+  actionLayout = "default",
 }: ShellCardHeaderProps) {
   return (
     <CardHeader>
       <ShellCardCopy
         description={description}
         title={title}
-        titleClassName={titleClassName}
+        titleClassName={cn(titleSize === "sm" && "app-shell-card-heading", titleClassName)}
         truncateTitle={truncateTitle}
       />
-      {action ? <CardAction className={actionClassName}>{action}</CardAction> : null}
+      {action ? (
+        <CardAction
+          className={cn(
+            actionLayout === "compact" && "app-shell-stack-compact",
+            actionClassName,
+          )}
+        >
+          {action}
+        </CardAction>
+      ) : null}
     </CardHeader>
   )
 }
@@ -86,7 +100,11 @@ export function ShellTitleStack({
   return (
     <div className="app-shell-title-stack">
       <p className="app-shell-panel-title">{title}</p>
-      {copy ? <ShellSupportingCopy as="p" truncate={truncateCopy}>{copy}</ShellSupportingCopy> : null}
+      {copy ? (
+        <ShellSupportingCopy as="p" truncate={truncateCopy}>
+          {copy}
+        </ShellSupportingCopy>
+      ) : null}
     </div>
   )
 }
@@ -249,23 +267,6 @@ export function ShellMetricList({ items }: ShellMetricListProps) {
   )
 }
 
-type ShellWorkbenchCardProps = {
-  header: ReactNode
-  children: ReactNode
-}
-
-export function ShellWorkbenchCard({
-  header,
-  children,
-}: ShellWorkbenchCardProps) {
-  return (
-    <Card className="app-shell-fill-card">
-      {header}
-      <CardContent className="app-shell-content-stack">{children}</CardContent>
-    </Card>
-  )
-}
-
 type ShellPaneScaffoldProps = {
   header?: ReactNode
   content?: ReactNode
@@ -308,6 +309,30 @@ type ShellStatusRowProps = {
 
 export function ShellStatusRow({ children }: ShellStatusRowProps) {
   return <div className="app-shell-status-row">{children}</div>
+}
+
+type ShellScrollSurfaceProps = {
+  children: ReactNode
+  density?: "base" | "roomy"
+}
+
+export function ShellScrollSurface({
+  children,
+  density = "base",
+}: ShellScrollSurfaceProps) {
+  return (
+    <ScrollArea className="app-shell-scroll-pane">
+      <div
+        className={
+          density === "roomy"
+            ? "app-shell-scroll-surface-roomy"
+            : "app-shell-scroll-surface"
+        }
+      >
+        {children}
+      </div>
+    </ScrollArea>
+  )
 }
 
 type ShellStatusBadgeVariant = "default" | "secondary" | "outline" | "destructive"

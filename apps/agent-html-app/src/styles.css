@@ -239,6 +239,18 @@
     @apply flex-1;
   }
 
+  .app-shell-scroll-surface {
+    @apply grid;
+    gap: var(--shell-gap-base);
+    padding: var(--shell-card-inset-padding);
+  }
+
+  .app-shell-scroll-surface-roomy {
+    @apply grid;
+    gap: var(--shell-gap-roomy);
+    padding: var(--shell-card-inset-padding);
+  }
+
   .app-shell-split-row {
     @apply flex items-center justify-between;
     gap: var(--shell-gap-compact);
@@ -300,6 +312,10 @@
     @apply min-h-0 flex-1 resize-none font-mono;
   }
 
+  .app-shell-composer-field {
+    @apply resize-none;
+  }
+
   .app-shell-empty-canvas {
     @apply flex size-full items-center justify-center text-sm text-muted-foreground;
   }
@@ -354,5 +370,10 @@
   .app-shell-console {
     @apply min-h-0 overflow-auto rounded-lg border bg-muted text-xs;
     padding: var(--shell-console-padding);
+  }
+
+  .app-shell-console-section {
+    @apply min-h-0 flex-1 grid;
+    gap: var(--shell-gap-base);
   }
 }

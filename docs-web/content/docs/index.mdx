@@ -86,7 +86,7 @@ Use the schema output as the source of truth for registered components, allowed 
 A valid document needs a `<page>` root.
 
 ```html title="artifact.agent.html"
-<meta-agent style-ref="report-default" />
+<meta-agent profile-ref="report-default" />
 
 <page title="Review">
   <card title="Summary">
@@ -111,13 +111,13 @@ ahtml preview artifact.agent.html
 
 Preview serves the same static output produced by `build`. It does not use a separate renderer.
 
-## 7. Preview a style gallery [#preview-a-style-gallery]
+## 7. Open the artifact profile gallery [#open-the-artifact-profile-gallery]
 
 ```bash
 ahtml gallery
 ```
 
-Gallery opens the style configuration page and component gallery. Use it to manage local style ids, adjust tokens and treatments, and preview how the active style affects component families before `preview` or `build` falls back to that default style.
+Gallery opens the artifact profile gallery and component preview workbench. Use it to manage local profile ids, adjust tokens and treatments, and preview how the active artifact profile affects component families before `preview` or `build` falls back to that default profile.
 
 ## Need more detail? [#need-more-detail]
 

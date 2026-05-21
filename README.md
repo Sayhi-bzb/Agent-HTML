@@ -50,7 +50,7 @@ ahtml prompt
 ```
 
 ```html
-<meta-agent style-ref="report-default" />
+<meta-agent profile-ref="report-default" />
 
 <page title="Review">
   <card title="Summary">
@@ -68,7 +68,7 @@ ahtml gallery
 ```
 
 Open the preview URL printed by `ahtml preview` to review the output.
-Use `ahtml gallery` when you want to open the style editor and showcase canvas, manage local style ids, and pick the current default style for later preview/build.
+Use `ahtml gallery` when you want to open the artifact profile editor and showcase canvas, manage local profile ids, and pick the current default profile for later preview/build.
 
 ## How It Works
 
@@ -81,7 +81,7 @@ agent work
 ```
 
 The schema is the public contract. Agents write content structure, not raw HTML, CSS, JavaScript, Tailwind classes, or renderer props.
-Public visual choice is limited to approved document style config choices, selected through `style-ref` values such as `report-default` or `ops-compact`, not free-form `theme`, `density`, `tone`, or `width` inputs.
+Public visual choice is limited to approved artifact profile choices, selected through `profile-ref` values such as `report-default` or `ops-compact`, not free-form `theme`, `density`, `tone`, or `width` inputs.
 
 Published npm package: `@agent-html/ahtml`
 

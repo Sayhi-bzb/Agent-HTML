@@ -8,6 +8,7 @@ import {
   ShellCardHeader,
   ShellStatusBadge,
 } from "@/features/app-shell/components/shell-content"
+import { MessageBody } from "./message-body"
 
 type MessageCardProps = {
   message: AgentShellMessage
@@ -19,10 +20,10 @@ export function MessageCard({ message }: MessageCardProps) {
       <ShellCardHeader
         action={<ShellStatusBadge label={message.role} variant="outline" />}
         title={message.kind}
-        titleClassName="app-shell-card-heading"
+        titleSize="sm"
       />
       <CardContent>
-        <p className="app-shell-body-copy">{message.text}</p>
+        <MessageBody>{message.text}</MessageBody>
       </CardContent>
     </Card>
   )

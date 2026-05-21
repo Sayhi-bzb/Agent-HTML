@@ -433,7 +433,9 @@ async function runInstalledValidateJson(inputPath) {
   }
 }
 
-async function writeCurrentArtifactProfileState(currentArtifactProfileId) {
+async function writeCurrentArtifactProfileState(
+  currentArtifactProfileReference,
+) {
   const statePath = path.join(
     runtimeHome,
     "config",
@@ -447,7 +449,7 @@ async function writeCurrentArtifactProfileState(currentArtifactProfileId) {
       {
         kind: "ahtml-artifact-profile-state",
         version: 1,
-        currentArtifactProfileId,
+        currentArtifactProfileReference,
       },
       null,
       2,

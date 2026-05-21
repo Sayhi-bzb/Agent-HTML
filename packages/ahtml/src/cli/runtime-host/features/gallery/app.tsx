@@ -26,9 +26,11 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
 import {
-  createArtifactShellCss,
   DocumentArtifactShell,
 } from "../../artifact-shell"
+import {
+  RuntimeStyleElements,
+} from "../../host-styles"
 import {
   createDocumentStyleCss,
   createGalleryPreviewThemeCss,
@@ -1293,6 +1295,7 @@ export function GalleryApp({
     <>
       <RuntimeStyleElements
         documentStyleCss={documentStyleCss}
+        extraCss={createGalleryWorkbenchCss()}
         galleryPreviewThemeCss={previewThemeCss}
         includeGalleryShell
       />
@@ -1526,24 +1529,24 @@ export function GalleryApp({
                                           {filteredCustomArtifactProfileReferences.length}
                                         </Badge>
                                       </div>
-                                      {filteredCustomArtifactProfileReferences.map((styleId) =>
+                                      {filteredCustomArtifactProfileReferences.map((artifactProfileId) =>
                                         renderPresetChooserOption({
                                           builtinArtifactProfileReferences:
                                             editorState.builtinArtifactProfileReferences,
                                           currentProfile:
                                             editorState.draftProfile,
-                                          currentStyleReference:
+                                          currentArtifactProfileReference:
                                             editorState.artifactProfileReference,
-                                          onSelectStyleReference: (nextStyleId) => {
+                                          onSelectArtifactProfileReference: (nextArtifactProfileId) => {
                                             setPresetPopoverOpen(false)
                                             setPresetSearch("")
                                             void selectArtifactProfileReference(
-                                              nextStyleId,
+                                              nextArtifactProfileId,
                                             )
                                           },
                                           isDraftDirty: editorState.isDirty,
                                           previewThemeMode,
-                                          styleId,
+                                          artifactProfileId,
                                         }),
                                       )}
                                     </div>
@@ -1556,24 +1559,24 @@ export function GalleryApp({
                                           {filteredBuiltInArtifactProfileReferences.length}
                                         </Badge>
                                       </div>
-                                      {filteredBuiltInArtifactProfileReferences.map((styleId) =>
+                                      {filteredBuiltInArtifactProfileReferences.map((artifactProfileId) =>
                                         renderPresetChooserOption({
                                           builtinArtifactProfileReferences:
                                             editorState.builtinArtifactProfileReferences,
                                           currentProfile:
                                             editorState.draftProfile,
-                                          currentStyleReference:
+                                          currentArtifactProfileReference:
                                             editorState.artifactProfileReference,
-                                          onSelectStyleReference: (nextStyleId) => {
+                                          onSelectArtifactProfileReference: (nextArtifactProfileId) => {
                                             setPresetPopoverOpen(false)
                                             setPresetSearch("")
                                             void selectArtifactProfileReference(
-                                              nextStyleId,
+                                              nextArtifactProfileId,
                                             )
                                           },
                                           isDraftDirty: editorState.isDirty,
                                           previewThemeMode,
-                                          styleId,
+                                          artifactProfileId,
                                         }),
                                       )}
                                     </div>
@@ -2634,28 +2637,6 @@ export function GalleryApp({
   )
 }
 
-function RuntimeStyleElements({
-  documentStyleCss,
-  galleryPreviewThemeCss,
-  includeGalleryShell = false,
-}: {
-  documentStyleCss: string
-  galleryPreviewThemeCss?: string
-  includeGalleryShell?: boolean
-}) {
-  return (
-    <>
-      <style>{createRuntimeHostCss()}</style>
-      <style>{createArtifactShellCss()}</style>
-      <style>{createDocumentLayoutPolicyCss()}</style>
-      <style>{createGalleryLayoutPolicyCss()}</style>
-      {includeGalleryShell ? <style>{createGalleryShellCss()}</style> : null}
-      {galleryPreviewThemeCss ? <style>{galleryPreviewThemeCss}</style> : null}
-      <style>{documentStyleCss}</style>
-    </>
-  )
-}
-
 function TokenEditor({
   labels,
   focusedToken,
@@ -3455,23 +3436,23 @@ function renderInspectorTokenChip({
 function renderPresetChooserOption({
   builtinArtifactProfileReferences,
   currentProfile,
-  currentStyleReference,
+  currentArtifactProfileReference,
   isDraftDirty,
-  onSelectStyleReference,
+  onSelectArtifactProfileReference,
   previewThemeMode,
-  styleId,
+  artifactProfileId,
 }: {
   builtinArtifactProfileReferences: string[]
   currentProfile: ArtifactProfile
-  currentStyleReference: string
+  currentArtifactProfileReference: string
   isDraftDirty: boolean
-  onSelectStyleReference: (styleId: string) => void
+  onSelectArtifactProfileReference: (artifactProfileId: string) => void
   previewThemeMode: GalleryPreviewThemeMode
-  styleId: string
+  artifactProfileId: string
 }) {
-  const isCurrent = styleId === currentStyleReference
+  const isCurrent = artifactProfileId === currentArtifactProfileReference
   const isBuiltIn = isBuiltinArtifactProfileReference(
-    styleId,
+    artifactProfileId,
     builtinArtifactProfileReferences,
   )
   const kindLabel = isBuiltIn ? "Built-in" : "Custom"
@@ -3491,9 +3472,9 @@ function renderPresetChooserOption({
       ]
         .filter(Boolean)
         .join(" ")}
-      key={styleId}
-      onClick={() => onSelectStyleReference(styleId)}
-      title={`${styleId} • ${summary}`}
+      key={artifactProfileId}
+      onClick={() => onSelectArtifactProfileReference(artifactProfileId)}
+      title={`${artifactProfileId} • ${summary}`}
       type="button"
     >
       <span className="ahtml-gallery-preset-option-swatch-row">
@@ -3532,7 +3513,7 @@ function renderPresetChooserOption({
       </span>
       <span className="ahtml-gallery-preset-option-copy">
         <span className="ahtml-gallery-preset-option-copy-top">
-          <strong>{styleId}</strong>
+          <strong>{artifactProfileId}</strong>
           <span className="ahtml-gallery-preset-option-kicker">
             {summary}
           </span>
@@ -4898,7 +4879,7 @@ function createGallerySurfaceShadow(artifactProfile: ArtifactProfile) {
   return `${typography.shadowOffsetX} ${typography.shadowOffsetY} ${typography.shadowBlur} ${typography.shadowSpread} color-mix(in srgb, ${typography.shadowColor} calc(${typography.shadowOpacity} * 100%), transparent)`
 }
 
-function createRuntimeHostCss() {
+function createGalleryWorkbenchCss() {
   return `
     body {
       margin: 0;
@@ -4910,108 +4891,9 @@ function createRuntimeHostCss() {
       letter-spacing: var(--letter-spacing);
     }
     .ahtml-runtime-host {
-      min-height: 100vh;
       box-sizing: border-box;
     }
-  `
-}
-
-function createDocumentLayoutPolicyCss() {
-  return `
-    .ahtml-layout-policy-document {
-      width: min(100%, 72rem);
-      margin: 0 auto;
-      padding: 4rem 1.25rem 5rem;
-      gap: 2rem;
-    }
-    .ahtml-layout-policy-document .ahtml-prose-block {
-      max-width: 68ch;
-    }
-    .ahtml-layout-policy-document .ahtml-prose-block > p {
-      line-height: 1.75;
-    }
-    .ahtml-layout-policy-document .ahtml-prose-inline {
-      line-height: 1.65;
-    }
-    .ahtml-layout-policy-document .ahtml-section-stack {
-      display: grid;
-      gap: 1.35rem;
-    }
-    .ahtml-layout-policy-document [data-slot="card-content"].ahtml-section-stack > :where(
-      [data-agent-html-component="alert"],
-      [data-agent-html-component="table"],
-      [data-agent-html-component="list"],
-      [data-agent-html-component="tabs"],
-      [data-agent-html-component="accordion"],
-      [data-agent-html-component="checkbox"],
-      [data-agent-html-component="switch"],
-      [data-agent-html-component="input"],
-      [data-agent-html-component="textarea"],
-      [data-agent-html-component="slider"],
-      [data-agent-html-component="radio-group"],
-      [data-agent-html-component="toggle-group"],
-      [data-agent-html-component="select"],
-      [data-agent-html-component="combobox"],
-      [data-agent-html-component="progress"],
-      [data-agent-html-component="badge"],
-      [data-agent-html-component="separator"]
-    ) + :where(
-      [data-agent-html-component="alert"],
-      [data-agent-html-component="table"],
-      [data-agent-html-component="list"],
-      [data-agent-html-component="tabs"],
-      [data-agent-html-component="accordion"],
-      [data-agent-html-component="checkbox"],
-      [data-agent-html-component="switch"],
-      [data-agent-html-component="input"],
-      [data-agent-html-component="textarea"],
-      [data-agent-html-component="slider"],
-      [data-agent-html-component="radio-group"],
-      [data-agent-html-component="toggle-group"],
-      [data-agent-html-component="select"],
-      [data-agent-html-component="combobox"],
-      [data-agent-html-component="progress"],
-      [data-agent-html-component="badge"],
-      [data-agent-html-component="separator"]
-    ) {
-      margin-top: 0;
-    }
-    @media (max-width: 1100px) {
-      .ahtml-layout-policy-document {
-        width: min(100%, 60rem);
-        padding: 2.75rem 1rem 3.5rem;
-        gap: 1.5rem;
-      }
-    }
-    @media (min-width: 1200px) {
-      .ahtml-layout-policy-document {
-        width: min(100%, 76rem);
-        padding-top: 4.5rem;
-      }
-    }
-  `
-}
-
-function createGalleryLayoutPolicyCss() {
-  return `
-    .ahtml-layout-policy-gallery {
-      width: 100%;
-      padding: 0;
-      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-      gap: 1.25rem;
-      align-items: start;
-    }
-    .ahtml-layout-policy-gallery > * {
-      min-width: 0;
-    }
-  `
-}
-
-function createGalleryShellCss() {
-  return `
     .ahtml-gallery-shell {
-      display: grid;
-      min-height: 100vh;
       grid-template-rows: auto auto minmax(0, 1fr);
       box-sizing: border-box;
       background: var(--background);
@@ -6387,6 +6269,58 @@ function createGalleryShellCss() {
       padding: 0;
       min-height: auto;
       align-content: start;
+    }
+    .ahtml-gallery-preview-document .ahtml-prose-block {
+      max-width: 68ch;
+    }
+    .ahtml-gallery-preview-document .ahtml-prose-block > p {
+      line-height: 1.75;
+    }
+    .ahtml-gallery-preview-document .ahtml-prose-inline {
+      line-height: 1.65;
+    }
+    .ahtml-gallery-preview-document .ahtml-section-stack {
+      display: grid;
+      gap: 1.35rem;
+    }
+    .ahtml-gallery-preview-document [data-slot="card-content"].ahtml-section-stack > :where(
+      [data-agent-html-component="alert"],
+      [data-agent-html-component="table"],
+      [data-agent-html-component="list"],
+      [data-agent-html-component="tabs"],
+      [data-agent-html-component="accordion"],
+      [data-agent-html-component="checkbox"],
+      [data-agent-html-component="switch"],
+      [data-agent-html-component="input"],
+      [data-agent-html-component="textarea"],
+      [data-agent-html-component="slider"],
+      [data-agent-html-component="radio-group"],
+      [data-agent-html-component="toggle-group"],
+      [data-agent-html-component="select"],
+      [data-agent-html-component="combobox"],
+      [data-agent-html-component="progress"],
+      [data-agent-html-component="badge"],
+      [data-agent-html-component="separator"]
+    ) + :where(
+      [data-agent-html-component="alert"],
+      [data-agent-html-component="table"],
+      [data-agent-html-component="list"],
+      [data-agent-html-component="tabs"],
+      [data-agent-html-component="accordion"],
+      [data-agent-html-component="checkbox"],
+      [data-agent-html-component="switch"],
+      [data-agent-html-component="input"],
+      [data-agent-html-component="textarea"],
+      [data-agent-html-component="slider"],
+      [data-agent-html-component="radio-group"],
+      [data-agent-html-component="toggle-group"],
+      [data-agent-html-component="select"],
+      [data-agent-html-component="combobox"],
+      [data-agent-html-component="progress"],
+      [data-agent-html-component="badge"],
+      [data-agent-html-component="separator"]
+    ) {
+      margin-top: 0;
     }
     .ahtml-gallery-stage-panel {
       display: grid;

@@ -41,7 +41,7 @@
 
 - `packages/ahtml/src/config/component-capabilities.mjs`
   - `table` 只保留 `rowSlot` / `cellSlot`
-- `packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx`
+- `packages/ahtml/src/cli/runtime-host/renderer/render-ui-node.tsx`
   - 第一行在存在多行时固定作为 header
   - 剩余行进入 body
 
@@ -58,7 +58,7 @@
 
 - `packages/ahtml/src/config/component-capabilities.mjs`
   - `tabs` 只保留 `itemValueProp` / `itemHeadingProp`
-- `packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx`
+- `packages/ahtml/src/cli/runtime-host/renderer/render-ui-node.tsx`
   - 默认选中项固定来自第一个 `tab`
 
 当前判断：
@@ -75,7 +75,7 @@
 - `packages/ahtml/src/config/component-capabilities.mjs`
   - `behavior.model = "fixed-multiple-state"`
   - `renderer.staticProps = { type: "multiple" }`
-- `packages/ahtml/src/cli/runtime-template/src/renderer/render-ui-node.tsx`
+- `packages/ahtml/src/cli/runtime-host/renderer/render-ui-node.tsx`
   - 只消费 `staticProps`
   - 不再解析 authoring 输入里的旧状态字段
 
@@ -90,7 +90,7 @@
 
 - `packages/core/src/parse/sanitize-agent-html.test.ts`
   - 已改成断言旧 compat 字段会被拒绝
-- `packages/ahtml/src/cli/runtime-template/src/renderer/render-node.test.ts`
+- `packages/ahtml/src/cli/runtime-host/renderer/render-node.test.ts`
   - 已删除直接构造 `legacyBridges.*` 的测试
   - 改为断言 `table` / `tabs` / `accordion` 的现行固定行为
 - `packages/ahtml/src/cli/cli.build.heavy.test.ts`

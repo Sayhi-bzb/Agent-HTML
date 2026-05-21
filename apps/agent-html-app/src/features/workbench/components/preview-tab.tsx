@@ -3,10 +3,10 @@ import type { BuildRunSummary, SessionDetail } from "@/lib/types"
 import {
   ShellBuildStatusBadge,
   ShellCardHeader,
-  ShellEmptyCanvas,
   ShellLoadingRow,
-  ShellWorkbenchCard,
 } from "@/features/app-shell/components/shell-content"
+import { PreviewFrame } from "./preview-frame"
+import { WorkbenchCard } from "./workbench-card"
 
 type PreviewTabProps = {
   session: SessionDetail
@@ -22,7 +22,7 @@ export function PreviewTab({
   building,
 }: PreviewTabProps) {
   return (
-    <ShellWorkbenchCard
+    <WorkbenchCard
       header={
         <ShellCardHeader
           action={<ShellBuildStatusBadge status={build.status} />}
@@ -32,17 +32,7 @@ export function PreviewTab({
       }
     >
       {building ? <ShellLoadingRow>Building preview</ShellLoadingRow> : null}
-      <div className="app-shell-preview-frame">
-        {previewHtml ? (
-          <iframe
-            className="app-shell-preview-canvas"
-            srcDoc={previewHtml}
-            title={`${session.summary.name} preview`}
-          />
-        ) : (
-          <ShellEmptyCanvas>Empty</ShellEmptyCanvas>
-        )}
-      </div>
-    </ShellWorkbenchCard>
+      <PreviewFrame empty="Empty" html={previewHtml} title={`${session.summary.name} preview`} />
+    </WorkbenchCard>
   )
 }

@@ -28,7 +28,7 @@ export function createArtifactProfileStorageManifest(paths) {
   return {
     kind: artifactProfileManifestKind,
     version: ARTIFACT_PROFILE_STORAGE_VERSION,
-    defaultArtifactProfileId: DEFAULT_ARTIFACT_PROFILE_REFERENCE,
+    defaultArtifactProfileReference: DEFAULT_ARTIFACT_PROFILE_REFERENCE,
     directories: {
       root: paths.artifactProfilesDir,
       builtin: paths.builtinArtifactProfilesDir,
@@ -233,7 +233,8 @@ export async function readCurrentArtifactProfileReference(paths) {
   try {
     const source = await readFile(paths.artifactProfileStatePath, "utf8")
     const state = JSON.parse(source)
-    const artifactProfileReference = state?.currentArtifactProfileId
+    const artifactProfileReference =
+      state?.currentArtifactProfileReference ?? state?.currentArtifactProfileId
 
     if (!artifactProfileIdPattern.test(artifactProfileReference ?? "")) {
       return DEFAULT_ARTIFACT_PROFILE_REFERENCE
@@ -268,7 +269,7 @@ export async function writeCurrentArtifactProfileReference(
   await writeJsonFile(paths.artifactProfileStatePath, {
     kind: artifactProfileStateKind,
     version: ARTIFACT_PROFILE_STORAGE_VERSION,
-    currentArtifactProfileId: nextArtifactProfileReference,
+    currentArtifactProfileReference: nextArtifactProfileReference,
   })
 
   return nextArtifactProfileReference

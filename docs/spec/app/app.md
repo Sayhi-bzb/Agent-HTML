@@ -321,14 +321,21 @@ App
   - `app-shell-search-field`
   - `app-shell-session-card-trigger`
   - `app-shell-scroll-pane`
+  - `app-shell-scroll-surface`
+  - `app-shell-scroll-surface-roomy`
   - `app-shell-surface-pane`
   - `app-shell-card-heading`
   - `app-shell-preview-canvas`
+  - `app-shell-console-section`
+  - `app-shell-composer-field`
   - `shell-content` 局部共享包装：`ShellEmptyCard`、`ShellCardCopy`、`ShellMetricList`、`ShellLoadingRow`
   - `shell-content` 语义组合：`ShellCardHeader`、`ShellStatusBadge`
   - `shell-content` 壳层文本/块级组合：`ShellTitleStack`、`ShellPaneLabel`、`ShellSupportingCopy`、`ShellSurfaceItem`、`ShellSectionLabel`
   - `shell-content` 壳层行级组合：`ShellSplitRow`、`ShellActionGroup`、`ShellMetaRow`、`ShellStatusRow`、`ShellPaneHeader`
-  - `shell-content` workbench 骨架：`ShellWorkbenchCard`
+  - `shell-content` 滚动内容组合：`ShellScrollSurface`
+  - `app-shell` 根层 pattern：`TopBar`、`MainLayout`
+  - `feature-scoped pattern`：`WorkbenchHeader`、`WorkbenchTabs`、`SourceHeader`、`ShellComposer`、`SessionRailHeader`、`SessionCard`
+  - `feature-scoped content pattern`：`WorkbenchCard`、`PreviewFrame`、`SourceEditorField`、`SourceValidationSummary`、`InspectDiagnosticList`、`InspectConsoleSection`、`MessageBody`、`ComposerField`
   - `shell-content` 三栏 pane 骨架：`ShellPaneScaffold`
 
 这意味着：

@@ -1,7 +1,7 @@
 /// <reference types="node" />
 // @vitest-environment node
 
-import { mkdtemp, readFile } from "node:fs/promises"
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
@@ -33,6 +33,31 @@ afterEach(async () => {
 })
 
 describe("artifact profile storage", () => {
+  it("writes manifest and state files with artifact profile reference keys", async () => {
+    const runtimeHome = await createRuntimeHome()
+    const { getRuntimePaths } = await importRuntimePathsModule()
+    const {
+      createArtifactProfileStorageManifest,
+      writeArtifactProfileStorage,
+      writeCurrentArtifactProfileReference,
+    } = await importArtifactProfileStorageModule()
+    const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
+
+    const manifest = createArtifactProfileStorageManifest(paths)
+    await writeArtifactProfileStorage(paths)
+    await writeCurrentArtifactProfileReference(paths, "ops-compact")
+
+    expect(manifest.defaultArtifactProfileReference).toBe("report-default")
+    expect(manifest).not.toHaveProperty("defaultArtifactProfileId")
+
+    const persistedState = JSON.parse(
+      await readFile(paths.artifactProfileStatePath, "utf8"),
+    )
+
+    expect(persistedState.currentArtifactProfileReference).toBe("ops-compact")
+    expect(persistedState).not.toHaveProperty("currentArtifactProfileId")
+  })
+
   it("saves and overwrites user profiles", async () => {
     const runtimeHome = await createRuntimeHome()
     const { getRuntimePaths } = await importRuntimePathsModule()
@@ -94,6 +119,30 @@ describe("artifact profile storage", () => {
     expect(await readCurrentArtifactProfileReference(paths)).toBe(
       "report-default",
     )
+  })
+
+  it("accepts legacy current artifact profile id state during migration", async () => {
+    const runtimeHome = await createRuntimeHome()
+    const { getRuntimePaths } = await importRuntimePathsModule()
+    const { readCurrentArtifactProfileReference } =
+      await importArtifactProfileStorageModule()
+    const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
+
+    await mkdir(path.dirname(paths.artifactProfileStatePath), { recursive: true })
+    await writeFile(
+      paths.artifactProfileStatePath,
+      `${JSON.stringify(
+        {
+          kind: "ahtml-artifact-profile-state",
+          version: 1,
+          currentArtifactProfileId: "ops-compact",
+        },
+        null,
+        2,
+      )}\n`,
+    )
+
+    expect(await readCurrentArtifactProfileReference(paths)).toBe("ops-compact")
   })
 
   it("rejects invalid ids", async () => {
@@ -385,6 +434,14 @@ async function importRuntimePathsModule() {
 
 async function importArtifactProfileStorageModule() {
   return importCliModule<{
+    readonly createArtifactProfileStorageManifest: (
+      paths: RuntimePaths,
+    ) => {
+      readonly defaultArtifactProfileReference: string
+    }
+    readonly writeArtifactProfileStorage: (
+      paths: RuntimePaths,
+    ) => Promise<unknown>
     readonly deleteArtifactProfile: (
       paths: RuntimePaths,
       artifactProfileReference: string,

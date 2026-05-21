@@ -69,7 +69,7 @@ async function writeArtifactProfileState(artifactProfileStatePath: string) {
       {
         kind: "ahtml-artifact-profile-state",
         version: 1,
-        currentArtifactProfileId: "ops-compact",
+        currentArtifactProfileReference: "ops-compact",
       },
       null,
       2,

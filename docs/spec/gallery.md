@@ -1,7 +1,7 @@
 # Gallery Product Standard
 
 `ahtml gallery` 是 configuration layer 的可视化入口页。  
-它服务于 style profile 的选择、编辑、保存与预览，不承担语义 authoring，不替代 runtime host，也不改变 core/schema contract。
+它服务于 artifact profile 的选择、编辑、保存与预览，不承担语义 authoring，不替代 runtime host，也不改变 core/schema contract。
 
 本页把 low-fidelity 线框提升为 gallery 的当前产品标准。  
 若 blueprint、docs-web、CLI 文案或运行时界面与本文冲突，以本文为 gallery 产品定义基线。
@@ -10,7 +10,7 @@
 ╭header────────────────────────────────────────────────────────────────────────╮
 │agent-html                                                        <github>icon│
 ├────────────────────┬─────────────────────────────────────────────────────────┤
-│<style-ref>Combobox │         <reset>icon <theme>icon <save>icon <preview>icon│
+│<profile-ref>Combobox│        <reset>icon <theme>icon <save>icon <preview>icon│
 ├────────────────────┼─────────────────────────────────────────────────────────┤
 │                    │╭component────────────╮  ╭component────────────────────╮ │
 │                    ││                     │  │                             │ │
@@ -40,28 +40,32 @@
 
 ## Product Goal
 
-- 把 `styleReference` 和 `styleProfile` 的管理变成可见、可编辑、可保存的配置流程。
+- 把 `artifactProfileReference` 和 `artifactProfile` 的管理变成可见、可编辑、可保存的配置流程。
 - 让用户在一个页面里观察 typography、tokens、radius、component treatments 对组件家族的影响。
-- 为 `preview` / `build` 在文档未显式设置 `style-ref` 时提供默认 style 选择入口。
+- 为 `preview` / `build` 在文档未显式设置 `profile-ref` 时提供默认 artifact profile 选择入口。
 
 ## Non-goals
 
 - 不把 gallery 定义成语义文档编辑器。
 - 不在 gallery 中暴露 schema、sanitize 或 runtime host 的内部实现参数。
-- 不让 gallery 成为新的公开协议入口；现有 `styleReference` / `styleProfile` 与 gallery endpoints 继续作为唯一状态模型。
+- 不让 gallery 成为新的公开协议入口；现有 `artifactProfileReference` / `artifactProfile` 与 gallery endpoints 继续作为唯一状态模型。
 
 ## Primary Objects
 
-- `styleReference`
-  - 当前 style profile id。
+- `artifactProfileReference`
+  - 当前 artifact profile id。
   - 支持 select / create / delete。
-- `styleProfile`
+- `artifactProfile`
   - 当前 draft 与 persisted 配置对象。
   - 支持 edit / reset / save。
 - `globalStyle`
   - 当前稳定编辑面包含 typography、radius、light/dark token sets。
+- `globalLayout`
+  - 当前稳定配置模型中正式存在，但本页不要求同步提供独立 layout 编辑器。
 - `componentStyle.treatments`
   - 当前稳定组件配置编辑面。
+- `componentLayout`
+  - 当前稳定配置模型中正式存在，由 renderer projection 消费。
 
 ## Information Architecture
 
@@ -79,8 +83,8 @@
 
 ### Left Sidebar
 
-- 顶部展示当前 `styleReference` 的选择与管理。
-- 中部展示 `styleProfile` 的稳定编辑分区：
+- 顶部展示当前 `artifactProfileReference` 的选择与管理。
+- 中部展示 `artifactProfile` 的稳定编辑分区：
   - Typography
   - Radius
   - Light Tokens
@@ -99,12 +103,12 @@
 
 正式支持的动作是：
 
-- `select styleReference`
-- `create styleReference`
-- `delete styleReference`
-- `edit styleProfile draft`
+- `select artifactProfileReference`
+- `create artifactProfileReference`
+- `delete artifactProfileReference`
+- `edit artifactProfile draft`
 - `reset draft to persisted state`
-- `save styleProfile`
+- `save artifactProfile`
 
 说明：
 
@@ -116,7 +120,7 @@
 - 右侧 preview 的正式定义是“组件展柜 + 配置器”。
 - 组件画廊是主视图。
 - 可包含少量文档式内容作为语义样例，但不得让“连续语义文档预览”重新成为主体验。
-- 每个组件卡片应尽量让当前 style 的变化一眼可见。
+- 每个组件卡片应尽量让当前 artifact profile 的变化一眼可见。
 
 ## Contract Alignment
 
@@ -133,7 +137,7 @@
 
 为与本标准对齐，现有 gallery 需要满足：
 
-- 左侧明确呈现配置器分区，而不是单纯 style id 选择器。
+- 左侧明确呈现配置器分区，而不是单纯 profile id 选择器。
 - 右侧默认首屏是组件画廊。
 - preview 文案改为强调 component gallery，而不是 continuous semantic preview。
 - gallery 相关帮助文本、docs-web 文案、blueprint 中的 gallery 描述需要与本文口径一致。

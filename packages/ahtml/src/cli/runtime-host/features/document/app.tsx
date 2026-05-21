@@ -1,33 +1,17 @@
 import React from "react"
 
-import type { ArtifactLayoutPolicy } from "../../renderer/layout-projection"
+import { DocumentArtifactShell } from "../../artifact-shell"
+import { RuntimeStyleElements } from "../../host-styles"
+import { createDocumentStyleCss } from "../../profile-theme"
 import { createRendererNode } from "../../renderer/render-node"
 import type { AgentDocument, RuntimeVerificationState } from "../../renderer/types"
-
-export type ArtifactProfile = AgentDocument["meta"]["artifactProfile"]
 
 export function DocumentApp({
   document,
   rendererVerificationState,
-  createDocumentStyleCss,
-  createDocumentArtifactShell,
-  createRuntimeStyleElements,
 }: {
   document: AgentDocument
   rendererVerificationState: RuntimeVerificationState
-  createDocumentStyleCss: (artifactProfile: ArtifactProfile) => string
-  createDocumentArtifactShell: React.ComponentType<
-    React.PropsWithChildren<{
-      className?: string
-      artifactProfile?: ArtifactProfile
-      layoutPolicy?: ArtifactLayoutPolicy
-    }>
-  >
-  createRuntimeStyleElements: React.ComponentType<{
-    documentStyleCss: string
-    galleryPreviewThemeCss?: string
-    includeGalleryShell?: boolean
-  }>
 }) {
   const documentStyleCss = createDocumentStyleCss(document.meta.artifactProfile)
   const RendererNode = createRendererNode(
@@ -40,8 +24,6 @@ export function DocumentApp({
     document.meta.artifactProfile.componentStyle.treatments,
     document.meta.artifactProfile,
   )
-  const RuntimeStyleElements = createRuntimeStyleElements
-  const DocumentArtifactShell = createDocumentArtifactShell
 
   return (
     <>

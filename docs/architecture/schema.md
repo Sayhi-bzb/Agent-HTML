@@ -31,7 +31,8 @@
 
 - `blocked` prop 不进入公开 contract，也不进入 prompt。
 - `raw-candidate` prop 只有在当前 exposure policy 生成结果中被显式打开时，才进入公开 contract。
-- `style-ref` 在 parse / runtime 层不是唯一成功前提，但在当前 CLI prompt 主路径里仍是规范入口。
+- `profile-ref` 是当前唯一稳定的配置选择入口。
+- 旧 `style-ref` 已退出主公开协议，只保留拒绝与诊断路径。
 
 ## 当前公开主路径
 
@@ -69,6 +70,12 @@
 - `legacyBridges.state`
 - `legacyBridges.structuralRole`
 - `behavior.stateBridge`
+
+当前同样已经退出主公开协议的旧配置入口：
+
+- `style-ref`
+- `styleProfile`
+- `documentStyleConfigReference`
 
 ## 暴露状态模型
 

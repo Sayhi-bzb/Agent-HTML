@@ -148,9 +148,9 @@ export const commandMetadata = {
     },
   },
   gallery: {
-    summary: "Open the style configuration page and component gallery.",
+    summary: "Open the artifact profile gallery and component preview workbench.",
     purpose:
-      "Open the managed gallery editor for style ids, customization, and component gallery preview.",
+      "Open the managed gallery editor for artifact profile ids, customization, and component preview.",
     usage: "ahtml gallery [--port <port>]",
     options: [
       {

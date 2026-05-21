@@ -435,7 +435,7 @@ export async function writeCustomArtifactProfile(runtimeHome: string) {
 
 export async function writeCurrentArtifactProfileState(
   runtimeHome: string,
-  currentArtifactProfileId: string,
+  currentArtifactProfileReference: string,
 ) {
   const statePath = path.join(
     runtimeHome,
@@ -450,7 +450,7 @@ export async function writeCurrentArtifactProfileState(
       {
         kind: "ahtml-artifact-profile-state",
         version: 1,
-        currentArtifactProfileId,
+        currentArtifactProfileReference,
       },
       null,
       2,

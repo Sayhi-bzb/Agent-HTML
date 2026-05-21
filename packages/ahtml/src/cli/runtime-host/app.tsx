@@ -3,16 +3,9 @@ import React from "react"
 import generatedDocument from "./document.generated.json"
 import runtimeStateSource from "./runtime-state.generated.json"
 import runtimeVerificationState from "./render-verification.generated.json"
-import {
-  createArtifactShellCss,
-  createDocumentLayoutPolicyCss,
-  createGalleryLayoutPolicyCss,
-  DocumentArtifactShell,
-  type ArtifactProfile,
-} from "./artifact-shell"
+import { type ArtifactProfile } from "./artifact-shell"
 import { DocumentApp } from "./features/document/app"
 import { GalleryApp } from "./features/gallery/app"
-import { createDocumentStyleCss } from "./profile-theme"
 import type { AgentDocument, RuntimeVerificationState } from "./renderer/types"
 
 type RuntimeState = {
@@ -59,34 +52,9 @@ export function App() {
 
   return (
     <DocumentApp
-      createDocumentArtifactShell={DocumentArtifactShell}
-      createDocumentStyleCss={createDocumentStyleCss}
-      createRuntimeStyleElements={RuntimeStyleElements}
       document={agentDocument}
       rendererVerificationState={runtimeRendererVerification}
     />
-  )
-}
-
-export function RuntimeStyleElements({
-  documentStyleCss,
-  galleryPreviewThemeCss,
-  includeGalleryShell = false,
-}: {
-  documentStyleCss: string
-  galleryPreviewThemeCss?: string
-  includeGalleryShell?: boolean
-}) {
-  return (
-    <>
-      <style>{createRuntimeHostCss()}</style>
-      <style>{createArtifactShellCss()}</style>
-      <style>{createDocumentLayoutPolicyCss()}</style>
-      <style>{createGalleryLayoutPolicyCss()}</style>
-      {includeGalleryShell ? <style>{createGalleryShellCss()}</style> : null}
-      {galleryPreviewThemeCss ? <style>{galleryPreviewThemeCss}</style> : null}
-      <style>{documentStyleCss}</style>
-    </>
   )
 }
 
@@ -97,28 +65,4 @@ function getDocumentTitle(document: AgentDocument) {
   )
 
   return page?.props.title
-}
-
-function createRuntimeHostCss() {
-  return `
-    .ahtml-runtime-host {
-      min-height: 100vh;
-      background: var(--background);
-      color: var(--foreground);
-      font-family: var(--font-sans);
-    }
-  `
-}
-
-function createGalleryShellCss() {
-  return `
-    .ahtml-gallery-shell {
-      display: grid;
-      min-height: 100vh;
-      grid-template-rows: auto auto 1fr;
-      background:
-        radial-gradient(circle at top, color-mix(in srgb, var(--primary) 10%, transparent), transparent 42%),
-        linear-gradient(180deg, color-mix(in srgb, var(--muted) 36%, transparent), transparent 28%);
-    }
-  `
 }

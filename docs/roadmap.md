@@ -8,12 +8,16 @@
 
 当前工作树已经完成了这条主线：
 
+- `profile-ref / artifactProfile / artifactProfileReference` 已成为主公开配置口径
+- profile 类型已承载 `globalStyle`、`globalLayout`、`componentStyle`、`componentLayout`
 - prop exposure 主链已从旧 overlay 直抄收紧到当前公开 schema
 - layout primitives 已进入正式 schema / parse / validate / 最小 runtime projection
 - runtime renderer 已把 UI projection / layout projection 从主 dispatcher 分离
 - runtime host、document artifact shell、gallery shell 已拆开
+- layout realization 已开始由 profile projection 驱动，而不是只靠 host preset
 - compat authoring props `tone` / `kind` / `mode` / `default` 已退出当前 schema 接受面
 - runtime spec 与 renderer 已移除 `legacyBridges`、`stateBridge` 及相关 legacy payload 类型
+- 旧 `style-ref` 已退出主 authoring 协议，只保留拒绝与诊断路径
 
 ## 当前验证基线
 
@@ -21,7 +25,7 @@
 
 - `npm run build`
 - `npm run test:run -- packages/ahtml/src/cli/prompt-schema.test.ts packages/ahtml/src/cli/cli-surface.test.ts packages/ahtml/src/cli/runtime-setup-contract.test.ts packages/ahtml/src/cli/validate-inspect-contract.test.ts`
-- `npm run test:run -- packages/ahtml/src/cli/runtime-template.test.ts`
+- `npm run test:run -- packages/ahtml/src/cli/runtime-surface.test.ts packages/ahtml/src/cli/gallery-alignment.test.ts`
 - `node scripts/verify-packed-ahtml.mjs`
 - `npm run docs:lint`
   - 当前同时覆盖既有 markdownlint 入口与 `docs/` 的 discipline guard
