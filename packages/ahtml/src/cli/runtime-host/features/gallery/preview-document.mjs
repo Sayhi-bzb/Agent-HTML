@@ -1,8 +1,8 @@
-import { createRenderConfigFromStyleProfile } from "@agent-html/core"
+import { createRenderConfigFromArtifactProfile } from "@agent-html/core"
 
 export function createGalleryPreviewDocument(styleProfile) {
   return {
-    meta: createRenderConfigFromStyleProfile(styleProfile),
+    meta: createRenderConfigFromArtifactProfile(styleProfile),
     components: [
       componentNode(
         "page",

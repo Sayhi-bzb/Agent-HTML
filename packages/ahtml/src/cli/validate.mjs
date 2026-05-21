@@ -45,8 +45,8 @@ async function loadStyleProfileResolvers(runtimeContext) {
   )
 
   return {
-    resolveStyleProfileReference,
-    resolveDefaultStyleProfileReference: () => defaultStyleProfile,
+    resolveArtifactProfileReference: resolveStyleProfileReference,
+    resolveDefaultArtifactProfileReference: () => defaultStyleProfile,
   }
 }
 

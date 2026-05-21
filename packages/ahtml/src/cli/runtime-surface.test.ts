@@ -522,6 +522,7 @@ async function createRuntimeFixture({
       "components.json",
       "vite.config.ts",
       "src/styles.css",
+      "src/lib/utils.ts",
       ...nativeRuntimeSetup.components.map(
         (component) => `src/components/ui/${component}.tsx`,
       ),

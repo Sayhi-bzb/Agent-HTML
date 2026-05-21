@@ -1,30 +1,39 @@
 import { z } from "zod"
 
 import type {
-  BuiltinDocumentStyleConfigReference,
+  ArtifactProfile,
+  ArtifactProfileReference,
+  BuiltinArtifactProfileReference,
+  ComponentLayoutProfile,
+  ComponentStyleProfile,
   CssVariableMap,
-  DocumentStyleConfigReference,
+  DensityPosture,
+  GlobalLayoutProfile,
   GlobalStyleProfile,
+  LayoutAutoFlow,
+  LayoutJustifyMode,
+  LayoutMeasureToken,
+  LayoutWrapMode,
   RadiusScale,
   RenderConfig,
   ResolvedRenderConfig,
   SemanticColorTokenSet,
-  StyleProfile,
   TypographyProfile,
 } from "./types"
 
-export const PUBLIC_RENDER_CONFIG_MODEL = "document-style-config-reference"
-export const STYLE_PROFILE_STORAGE_VERSION = 1
+export const PUBLIC_RENDER_CONFIG_MODEL = "artifact-profile-reference"
+export const ARTIFACT_PROFILE_STORAGE_VERSION = 2
 
-export const PUBLIC_RENDER_CONFIG_KEY = "style-ref" as const
+export const PUBLIC_RENDER_CONFIG_KEY = "profile-ref" as const
+export const LEGACY_PUBLIC_RENDER_CONFIG_KEY = "style-ref" as const
 
-export const PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES = [
+export const PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES = [
   "report-default",
   "ops-compact",
   "review-dense",
-] as const satisfies readonly BuiltinDocumentStyleConfigReference[]
+] as const satisfies readonly BuiltinArtifactProfileReference[]
 
-const documentStyleConfigReferencePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const artifactProfileReferencePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const neutralLightSemanticTokens: SemanticColorTokenSet = {
   background: "#f7f7f4",
@@ -172,6 +181,48 @@ const defaultCssVariableMap: CssVariableMap = {
   shadowOffsetY: "--shadow-offset-y",
 }
 
+const defaultGlobalLayoutProfile: GlobalLayoutProfile = {
+  frame: {
+    pageMaxWidth: "72rem",
+    pagePaddingInline: "1rem",
+    pagePaddingBlockStart: "1.5rem",
+    pagePaddingBlockEnd: "3rem",
+    frameMaxWidth: "64rem",
+  },
+  measure: {
+    prose: "68ch",
+    wide: "84ch",
+    full: "100%",
+  },
+  rhythm: {
+    pageGap: "1.25rem",
+    stackGap: "1rem",
+    clusterGap: "0.75rem",
+    splitGap: "1rem",
+    gridGap: "1rem",
+    switcherGap: "1rem",
+  },
+  density: {
+    default: "balanced",
+    compact: 0.85,
+    balanced: 1,
+    relaxed: 1.2,
+  },
+  partition: {
+    splitMinColumnWidth: "18rem",
+    gridMinColumnWidth: "16rem",
+    switcherMinChildWidth: "18rem",
+  },
+  reflow: {
+    splitAutoFlow: "auto-fit",
+    gridAutoFlow: "auto-fit",
+    clusterWrap: "wrap",
+    switcherWrap: "wrap",
+    clusterJustify: "flex-start",
+    switcherJustify: "flex-start",
+  },
+}
+
 const BUILTIN_COMPONENT_TREATMENTS_BY_REFERENCE = {
   "report-default": {
     alert: "report-alert",
@@ -202,19 +253,29 @@ const BUILTIN_COMPONENT_TREATMENTS_BY_REFERENCE = {
   },
 } as const satisfies Readonly<
   Record<
-    BuiltinDocumentStyleConfigReference,
+    BuiltinArtifactProfileReference,
     Readonly<Record<string, string>>
   >
 >
 
-const DocumentStyleConfigReferenceSchema = z
+const artifactProfileReferenceSchema = z
   .string()
   .regex(
-    documentStyleConfigReferencePattern,
-    "document style config references must use lowercase kebab-case ids.",
+    artifactProfileReferencePattern,
+    "artifact profile references must use lowercase kebab-case ids.",
   )
 
-const SemanticColorTokenSetSchema = z
+const densityPostureSchema = z.enum(["compact", "balanced", "relaxed"])
+const layoutMeasureTokenSchema = z.enum(["prose", "wide", "full"])
+const layoutAutoFlowSchema = z.enum(["auto-fit", "auto-fill"])
+const layoutWrapModeSchema = z.enum(["wrap", "nowrap"])
+const layoutJustifyModeSchema = z.enum([
+  "flex-start",
+  "center",
+  "space-between",
+])
+
+const semanticColorTokenSetSchema = z
   .object({
     background: z.string(),
     foreground: z.string(),
@@ -251,7 +312,7 @@ const SemanticColorTokenSetSchema = z
   })
   .strict()
 
-const RadiusScaleSchema = z
+const radiusScaleSchema = z
   .object({
     base: z.string(),
     sm: z.string(),
@@ -264,7 +325,7 @@ const RadiusScaleSchema = z
   })
   .strict()
 
-const TypographyProfileSchema = z
+const typographyProfileSchema = z
   .object({
     fontSans: z.string(),
     fontHeading: z.string(),
@@ -281,7 +342,7 @@ const TypographyProfileSchema = z
   })
   .strict()
 
-const CssVariableMapSchema = z
+const cssVariableMapSchema = z
   .object({
     background: z.literal(defaultCssVariableMap.background),
     foreground: z.literal(defaultCssVariableMap.foreground),
@@ -335,86 +396,205 @@ const CssVariableMapSchema = z
   })
   .strict()
 
-export const StyleProfileSchema = z
+const globalStyleProfileSchema = z
   .object({
-    id: DocumentStyleConfigReferenceSchema,
-    globalStyle: z
+    tokenSets: z
       .object({
-        tokenSets: z
-          .object({
-            light: SemanticColorTokenSetSchema,
-            dark: SemanticColorTokenSetSchema,
-          })
-          .strict(),
-        radiusScale: RadiusScaleSchema,
-        typography: TypographyProfileSchema,
-        cssVariableMap: CssVariableMapSchema,
+        light: semanticColorTokenSetSchema,
+        dark: semanticColorTokenSetSchema,
       })
       .strict(),
-    componentStyle: z
+    radiusScale: radiusScaleSchema,
+    typography: typographyProfileSchema,
+    cssVariableMap: cssVariableMapSchema,
+  })
+  .strict()
+
+const globalLayoutProfileSchema = z
+  .object({
+    frame: z
       .object({
-        treatments: z.record(z.string(), z.string()),
+        pageMaxWidth: z.string(),
+        pagePaddingInline: z.string(),
+        pagePaddingBlockStart: z.string(),
+        pagePaddingBlockEnd: z.string(),
+        frameMaxWidth: z.string(),
+      })
+      .strict(),
+    measure: z
+      .object({
+        prose: z.string(),
+        wide: z.string(),
+        full: z.string(),
+      })
+      .strict(),
+    rhythm: z
+      .object({
+        pageGap: z.string(),
+        stackGap: z.string(),
+        clusterGap: z.string(),
+        splitGap: z.string(),
+        gridGap: z.string(),
+        switcherGap: z.string(),
+      })
+      .strict(),
+    density: z
+      .object({
+        default: densityPostureSchema,
+        compact: z.number().positive(),
+        balanced: z.number().positive(),
+        relaxed: z.number().positive(),
+      })
+      .strict(),
+    partition: z
+      .object({
+        splitMinColumnWidth: z.string(),
+        gridMinColumnWidth: z.string(),
+        switcherMinChildWidth: z.string(),
+      })
+      .strict(),
+    reflow: z
+      .object({
+        splitAutoFlow: layoutAutoFlowSchema,
+        gridAutoFlow: layoutAutoFlowSchema,
+        clusterWrap: layoutWrapModeSchema,
+        switcherWrap: layoutWrapModeSchema,
+        clusterJustify: layoutJustifyModeSchema,
+        switcherJustify: layoutJustifyModeSchema,
       })
       .strict(),
   })
   .strict()
 
-export const BUILTIN_STYLE_PROFILES_BY_REFERENCE = {
-  "report-default": createStyleProfile("report-default"),
-  "ops-compact": createStyleProfile("ops-compact"),
-  "review-dense": createStyleProfile("review-dense"),
-} as const satisfies Readonly<
-  Record<BuiltinDocumentStyleConfigReference, StyleProfile>
->
-
-const RESOLVED_DOCUMENT_STYLE_CONFIGS_BY_REFERENCE = {
-  "report-default": createRenderConfigFromStyleProfile(
-    BUILTIN_STYLE_PROFILES_BY_REFERENCE["report-default"],
-  ),
-  "ops-compact": createRenderConfigFromStyleProfile(
-    BUILTIN_STYLE_PROFILES_BY_REFERENCE["ops-compact"],
-  ),
-  "review-dense": createRenderConfigFromStyleProfile(
-    BUILTIN_STYLE_PROFILES_BY_REFERENCE["review-dense"],
-  ),
-} as const satisfies Readonly<
-  Record<BuiltinDocumentStyleConfigReference, RenderConfig>
->
-
-const StyleRefRenderConfigInputSchema = z
+const componentStyleProfileSchema = z
   .object({
-    [PUBLIC_RENDER_CONFIG_KEY]: DocumentStyleConfigReferenceSchema,
+    treatments: z.record(z.string(), z.string()),
+  })
+  .strict()
+
+const componentLayoutProfileSchema = z
+  .object({
+    page: z
+      .object({
+        gap: z.string(),
+        measure: layoutMeasureTokenSchema,
+      })
+      .strict(),
+    stack: z
+      .object({
+        gap: z.string(),
+        density: densityPostureSchema,
+        measure: layoutMeasureTokenSchema,
+      })
+      .strict(),
+    cluster: z
+      .object({
+        gap: z.string(),
+        density: densityPostureSchema,
+        wrap: layoutWrapModeSchema,
+        justify: layoutJustifyModeSchema,
+      })
+      .strict(),
+    split: z
+      .object({
+        gap: z.string(),
+        density: densityPostureSchema,
+        minColumnWidth: z.string(),
+        autoFlow: layoutAutoFlowSchema,
+      })
+      .strict(),
+    grid: z
+      .object({
+        gap: z.string(),
+        density: densityPostureSchema,
+        minColumnWidth: z.string(),
+        autoFlow: layoutAutoFlowSchema,
+      })
+      .strict(),
+    switcher: z
+      .object({
+        gap: z.string(),
+        density: densityPostureSchema,
+        minChildWidth: z.string(),
+        wrap: layoutWrapModeSchema,
+        justify: layoutJustifyModeSchema,
+      })
+      .strict(),
+    frame: z
+      .object({
+        maxWidth: z.string(),
+        measure: layoutMeasureTokenSchema,
+      })
+      .strict(),
+  })
+  .strict()
+
+export const ArtifactProfileSchema = z
+  .object({
+    id: artifactProfileReferenceSchema,
+    globalStyle: globalStyleProfileSchema,
+    globalLayout: globalLayoutProfileSchema,
+    componentStyle: componentStyleProfileSchema,
+    componentLayout: componentLayoutProfileSchema,
+  })
+  .strict()
+
+export const BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE = {
+  "report-default": createArtifactProfile("report-default"),
+  "ops-compact": createArtifactProfile("ops-compact"),
+  "review-dense": createArtifactProfile("review-dense"),
+} as const satisfies Readonly<
+  Record<BuiltinArtifactProfileReference, ArtifactProfile>
+>
+
+const resolvedRenderConfigsByReference = {
+  "report-default": createRenderConfigFromArtifactProfile(
+    BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE["report-default"],
+  ),
+  "ops-compact": createRenderConfigFromArtifactProfile(
+    BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE["ops-compact"],
+  ),
+  "review-dense": createRenderConfigFromArtifactProfile(
+    BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE["review-dense"],
+  ),
+} as const satisfies Readonly<
+  Record<BuiltinArtifactProfileReference, RenderConfig>
+>
+
+const profileRefRenderConfigInputSchema = z
+  .object({
+    [PUBLIC_RENDER_CONFIG_KEY]: artifactProfileReferenceSchema,
   })
   .strict()
 
 export const RENDER_CONFIG_VALUES = {
-  [PUBLIC_RENDER_CONFIG_KEY]: PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES,
+  [PUBLIC_RENDER_CONFIG_KEY]: PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES,
 } as const
 
 export const PUBLIC_RENDER_CONFIG_DEFAULTS = {
   [PUBLIC_RENDER_CONFIG_KEY]: "report-default",
 } as const
 
-export const DEFAULT_STYLE_PROFILE_REFERENCE =
+export const DEFAULT_ARTIFACT_PROFILE_REFERENCE =
   PUBLIC_RENDER_CONFIG_DEFAULTS[PUBLIC_RENDER_CONFIG_KEY]
 
 export const RenderConfigSchema = z
   .object({
-    documentStyleConfigReference: DocumentStyleConfigReferenceSchema,
-    styleProfile: StyleProfileSchema,
+    artifactProfileReference: artifactProfileReferenceSchema,
+    artifactProfile: ArtifactProfileSchema,
   })
   .strict()
   .superRefine((config, ctx) => {
-    if (config.documentStyleConfigReference !== config.styleProfile.id) {
+    if (config.artifactProfileReference !== config.artifactProfile.id) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "document style config reference must match style profile id.",
-        path: ["documentStyleConfigReference"],
+        message: "artifact profile reference must match artifact profile id.",
+        path: ["artifactProfileReference"],
       })
     }
   })
 
-export const DEFAULT_RENDER_CONFIG = resolveResolvedDocumentStyleConfig(
+export const DEFAULT_RENDER_CONFIG = resolveResolvedArtifactProfileConfig(
   PUBLIC_RENDER_CONFIG_DEFAULTS[PUBLIC_RENDER_CONFIG_KEY],
 )
 
@@ -423,10 +603,12 @@ export const RENDER_CONFIG_KEYS = Object.keys(
 ) as readonly (keyof typeof RENDER_CONFIG_VALUES)[]
 
 export type ParseRenderConfigOptions = {
-  readonly resolveStyleProfileReference?: (
-    documentStyleConfigReference: DocumentStyleConfigReference,
-  ) => StyleProfile | undefined
-  readonly resolveDefaultStyleProfileReference?: () => StyleProfile | undefined
+  readonly resolveArtifactProfileReference?: (
+    artifactProfileReference: ArtifactProfileReference,
+  ) => ArtifactProfile | undefined
+  readonly resolveDefaultArtifactProfileReference?: () =>
+    | ArtifactProfile
+    | undefined
 }
 
 export function parseRenderConfig(
@@ -440,76 +622,77 @@ export function resolveRenderConfig(
   input: unknown,
   options: ParseRenderConfigOptions = {},
 ): ResolvedRenderConfig {
-  const styleRefInput = StyleRefRenderConfigInputSchema.safeParse(input)
-
-  if (!styleRefInput.success) {
-    const defaultStyleProfile = options.resolveDefaultStyleProfileReference?.()
-
-    if (defaultStyleProfile) {
-      return {
-        config: createRenderConfigFromStyleProfile(defaultStyleProfile),
-        reason:
-          input && typeof input === "object" && !Array.isArray(input)
-            ? "invalid-style-ref-shape"
-            : "missing-style-ref",
-      }
-    }
-
+  if (hasLegacyStyleRefInput(input)) {
     return {
-      config: DEFAULT_RENDER_CONFIG,
-      reason:
-        input && typeof input === "object" && !Array.isArray(input)
-          ? "invalid-style-ref-shape"
-          : "missing-style-ref",
+      config: resolveDefaultRenderConfig(options),
+      reason: "legacy-style-ref",
+      requestedLegacyStyleRef:
+        typeof input?.[LEGACY_PUBLIC_RENDER_CONFIG_KEY] === "string"
+          ? input[LEGACY_PUBLIC_RENDER_CONFIG_KEY]
+          : undefined,
     }
   }
 
-  const documentStyleConfigReference =
-    styleRefInput.data[PUBLIC_RENDER_CONFIG_KEY]
-  const builtinConfig = resolveBuiltinRenderConfig(documentStyleConfigReference)
+  const profileRefInput = profileRefRenderConfigInputSchema.safeParse(input)
+
+  if (!profileRefInput.success) {
+    return {
+      config: resolveDefaultRenderConfig(options),
+      reason:
+        input && typeof input === "object" && !Array.isArray(input)
+          ? "invalid-profile-ref-shape"
+          : "missing-profile-ref",
+    }
+  }
+
+  const artifactProfileReference =
+    profileRefInput.data[PUBLIC_RENDER_CONFIG_KEY]
+  const builtinConfig = resolveBuiltinRenderConfig(artifactProfileReference)
 
   if (builtinConfig) {
     return {
       config: builtinConfig,
-      reason: "explicit-style-ref",
-      requestedStyleRef: documentStyleConfigReference,
+      reason: "explicit-profile-ref",
+      requestedProfileRef: artifactProfileReference,
     }
   }
 
-  const styleProfile = options.resolveStyleProfileReference?.(
-    documentStyleConfigReference,
+  const artifactProfile = options.resolveArtifactProfileReference?.(
+    artifactProfileReference,
   )
 
-  if (styleProfile) {
+  if (artifactProfile) {
     return {
-      config: createRenderConfigFromStyleProfile(styleProfile),
-      reason: "resolved-custom-style-ref",
-      requestedStyleRef: documentStyleConfigReference,
+      config: createRenderConfigFromArtifactProfile(artifactProfile),
+      reason: "resolved-custom-profile-ref",
+      requestedProfileRef: artifactProfileReference,
     }
   }
 
   return {
-    config: DEFAULT_RENDER_CONFIG,
-    reason: "unknown-style-ref",
-    requestedStyleRef: documentStyleConfigReference,
+    config: resolveDefaultRenderConfig(options),
+    reason: "unknown-profile-ref",
+    requestedProfileRef: artifactProfileReference,
   }
 }
 
-export function createRenderConfigFromStyleProfile(
-  styleProfile: StyleProfile,
+export function createRenderConfigFromArtifactProfile(
+  artifactProfile: ArtifactProfile,
 ): RenderConfig {
-  const parsedStyleProfile = StyleProfileSchema.parse(
-    normalizeStyleProfile(styleProfile),
+  const parsedArtifactProfile = ArtifactProfileSchema.parse(
+    normalizeArtifactProfile(artifactProfile),
   )
 
   return {
-    documentStyleConfigReference: parsedStyleProfile.id,
-    styleProfile: parsedStyleProfile,
+    artifactProfileReference: parsedArtifactProfile.id,
+    artifactProfile: parsedArtifactProfile,
   }
 }
 
-export function normalizeStyleProfile(styleProfile: unknown): StyleProfile {
-  const input = (styleProfile ?? {}) as Partial<StyleProfile> & {
+export function normalizeArtifactProfile(
+  artifactProfile: unknown,
+): ArtifactProfile {
+  const input = (artifactProfile ?? {}) as Partial<ArtifactProfile> & {
     globalStyle?: Partial<GlobalStyleProfile> & {
       tokenSets?: {
         light?: Partial<SemanticColorTokenSet>
@@ -518,13 +701,30 @@ export function normalizeStyleProfile(styleProfile: unknown): StyleProfile {
       typography?: Partial<TypographyProfile>
       cssVariableMap?: Partial<CssVariableMap>
     }
+    globalLayout?: Partial<GlobalLayoutProfile> & {
+      frame?: Partial<GlobalLayoutProfile["frame"]>
+      measure?: Partial<GlobalLayoutProfile["measure"]>
+      rhythm?: Partial<GlobalLayoutProfile["rhythm"]>
+      density?: Partial<GlobalLayoutProfile["density"]>
+      partition?: Partial<GlobalLayoutProfile["partition"]>
+      reflow?: Partial<GlobalLayoutProfile["reflow"]>
+    }
+    componentLayout?: Partial<ComponentLayoutProfile> & {
+      page?: Partial<ComponentLayoutProfile["page"]>
+      stack?: Partial<ComponentLayoutProfile["stack"]>
+      cluster?: Partial<ComponentLayoutProfile["cluster"]>
+      split?: Partial<ComponentLayoutProfile["split"]>
+      grid?: Partial<ComponentLayoutProfile["grid"]>
+      switcher?: Partial<ComponentLayoutProfile["switcher"]>
+      frame?: Partial<ComponentLayoutProfile["frame"]>
+    }
   }
 
   return {
     id:
       typeof input.id === "string" && input.id.length > 0
         ? input.id
-        : DEFAULT_STYLE_PROFILE_REFERENCE,
+        : DEFAULT_ARTIFACT_PROFILE_REFERENCE,
     globalStyle: {
       tokenSets: {
         light: {
@@ -549,49 +749,218 @@ export function normalizeStyleProfile(styleProfile: unknown): StyleProfile {
         ...input.globalStyle?.cssVariableMap,
       },
     },
+    globalLayout: {
+      frame: {
+        ...defaultGlobalLayoutProfile.frame,
+        ...input.globalLayout?.frame,
+      },
+      measure: {
+        ...defaultGlobalLayoutProfile.measure,
+        ...input.globalLayout?.measure,
+      },
+      rhythm: {
+        ...defaultGlobalLayoutProfile.rhythm,
+        ...input.globalLayout?.rhythm,
+      },
+      density: {
+        ...defaultGlobalLayoutProfile.density,
+        ...input.globalLayout?.density,
+      },
+      partition: {
+        ...defaultGlobalLayoutProfile.partition,
+        ...input.globalLayout?.partition,
+      },
+      reflow: {
+        ...defaultGlobalLayoutProfile.reflow,
+        ...input.globalLayout?.reflow,
+      },
+    },
     componentStyle: {
       treatments: {
         ...(input.componentStyle?.treatments ?? {}),
       },
     },
+    componentLayout: normalizeComponentLayoutProfile(
+      input.componentLayout,
+      input.globalLayout?.rhythm,
+      input.globalLayout?.partition,
+      input.globalLayout?.reflow,
+      input.globalLayout?.measure,
+      input.globalLayout?.density,
+      input.globalLayout?.frame,
+    ),
   }
+}
+
+function normalizeComponentLayoutProfile(
+  componentLayout: Partial<ComponentLayoutProfile> | undefined,
+  rhythm: Partial<GlobalLayoutProfile["rhythm"]> | undefined,
+  partition: Partial<GlobalLayoutProfile["partition"]> | undefined,
+  reflow: Partial<GlobalLayoutProfile["reflow"]> | undefined,
+  measure: Partial<GlobalLayoutProfile["measure"]> | undefined,
+  density: Partial<GlobalLayoutProfile["density"]> | undefined,
+  frame: Partial<GlobalLayoutProfile["frame"]> | undefined,
+): ComponentLayoutProfile {
+  return {
+    page: {
+      gap: componentLayout?.page?.gap ?? rhythm?.pageGap ?? defaultGlobalLayoutProfile.rhythm.pageGap,
+      measure: componentLayout?.page?.measure ?? "wide",
+    },
+    stack: {
+      gap: componentLayout?.stack?.gap ?? rhythm?.stackGap ?? defaultGlobalLayoutProfile.rhythm.stackGap,
+      density: componentLayout?.stack?.density ?? density?.default ?? defaultGlobalLayoutProfile.density.default,
+      measure: componentLayout?.stack?.measure ?? "full",
+    },
+    cluster: {
+      gap: componentLayout?.cluster?.gap ?? rhythm?.clusterGap ?? defaultGlobalLayoutProfile.rhythm.clusterGap,
+      density: componentLayout?.cluster?.density ?? density?.default ?? defaultGlobalLayoutProfile.density.default,
+      wrap: componentLayout?.cluster?.wrap ?? reflow?.clusterWrap ?? defaultGlobalLayoutProfile.reflow.clusterWrap,
+      justify:
+        componentLayout?.cluster?.justify ??
+        reflow?.clusterJustify ??
+        defaultGlobalLayoutProfile.reflow.clusterJustify,
+    },
+    split: {
+      gap: componentLayout?.split?.gap ?? rhythm?.splitGap ?? defaultGlobalLayoutProfile.rhythm.splitGap,
+      density: componentLayout?.split?.density ?? density?.default ?? defaultGlobalLayoutProfile.density.default,
+      minColumnWidth:
+        componentLayout?.split?.minColumnWidth ??
+        partition?.splitMinColumnWidth ??
+        defaultGlobalLayoutProfile.partition.splitMinColumnWidth,
+      autoFlow:
+        componentLayout?.split?.autoFlow ??
+        reflow?.splitAutoFlow ??
+        defaultGlobalLayoutProfile.reflow.splitAutoFlow,
+    },
+    grid: {
+      gap: componentLayout?.grid?.gap ?? rhythm?.gridGap ?? defaultGlobalLayoutProfile.rhythm.gridGap,
+      density: componentLayout?.grid?.density ?? density?.default ?? defaultGlobalLayoutProfile.density.default,
+      minColumnWidth:
+        componentLayout?.grid?.minColumnWidth ??
+        partition?.gridMinColumnWidth ??
+        defaultGlobalLayoutProfile.partition.gridMinColumnWidth,
+      autoFlow:
+        componentLayout?.grid?.autoFlow ??
+        reflow?.gridAutoFlow ??
+        defaultGlobalLayoutProfile.reflow.gridAutoFlow,
+    },
+    switcher: {
+      gap:
+        componentLayout?.switcher?.gap ??
+        rhythm?.switcherGap ??
+        defaultGlobalLayoutProfile.rhythm.switcherGap,
+      density:
+        componentLayout?.switcher?.density ??
+        density?.default ??
+        defaultGlobalLayoutProfile.density.default,
+      minChildWidth:
+        componentLayout?.switcher?.minChildWidth ??
+        partition?.switcherMinChildWidth ??
+        defaultGlobalLayoutProfile.partition.switcherMinChildWidth,
+      wrap:
+        componentLayout?.switcher?.wrap ??
+        reflow?.switcherWrap ??
+        defaultGlobalLayoutProfile.reflow.switcherWrap,
+      justify:
+        componentLayout?.switcher?.justify ??
+        reflow?.switcherJustify ??
+        defaultGlobalLayoutProfile.reflow.switcherJustify,
+    },
+    frame: {
+      maxWidth:
+        componentLayout?.frame?.maxWidth ??
+        frame?.frameMaxWidth ??
+        defaultGlobalLayoutProfile.frame.frameMaxWidth,
+      measure:
+        componentLayout?.frame?.measure ??
+        inferMeasureFromFrameMaxWidth(
+          componentLayout?.frame?.maxWidth ??
+            frame?.frameMaxWidth ??
+            defaultGlobalLayoutProfile.frame.frameMaxWidth,
+          measure,
+        ),
+    },
+  }
+}
+
+function inferMeasureFromFrameMaxWidth(
+  maxWidth: string,
+  measure: Partial<GlobalLayoutProfile["measure"]> | undefined,
+): LayoutMeasureToken {
+  if (maxWidth === (measure?.prose ?? defaultGlobalLayoutProfile.measure.prose)) {
+    return "prose"
+  }
+
+  if (maxWidth === (measure?.full ?? defaultGlobalLayoutProfile.measure.full)) {
+    return "full"
+  }
+
+  return "wide"
 }
 
 function resolveBuiltinRenderConfig(
-  documentStyleConfigReference: DocumentStyleConfigReference,
+  artifactProfileReference: ArtifactProfileReference,
 ) {
-  if (!isBuiltinDocumentStyleConfigReference(documentStyleConfigReference)) {
+  if (!isBuiltinArtifactProfileReference(artifactProfileReference)) {
     return undefined
   }
 
-  return resolveResolvedDocumentStyleConfig(documentStyleConfigReference)
+  return resolveResolvedArtifactProfileConfig(artifactProfileReference)
 }
 
-function isBuiltinDocumentStyleConfigReference(
-  documentStyleConfigReference: DocumentStyleConfigReference,
-): documentStyleConfigReference is BuiltinDocumentStyleConfigReference {
-  return PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES.includes(
-    documentStyleConfigReference as BuiltinDocumentStyleConfigReference,
+function resolveDefaultRenderConfig(
+  options: ParseRenderConfigOptions,
+): RenderConfig {
+  const defaultArtifactProfile =
+    options.resolveDefaultArtifactProfileReference?.()
+
+  if (defaultArtifactProfile) {
+    return createRenderConfigFromArtifactProfile(defaultArtifactProfile)
+  }
+
+  return DEFAULT_RENDER_CONFIG
+}
+
+function hasLegacyStyleRefInput(
+  input: unknown,
+): input is Record<string, unknown> {
+  return Boolean(
+    input &&
+      typeof input === "object" &&
+      !Array.isArray(input) &&
+      LEGACY_PUBLIC_RENDER_CONFIG_KEY in input,
   )
 }
 
-function resolveResolvedDocumentStyleConfig(
-  documentStyleConfigReference: BuiltinDocumentStyleConfigReference,
-): RenderConfig {
-  return RESOLVED_DOCUMENT_STYLE_CONFIGS_BY_REFERENCE[documentStyleConfigReference]
+function isBuiltinArtifactProfileReference(
+  artifactProfileReference: ArtifactProfileReference,
+): artifactProfileReference is BuiltinArtifactProfileReference {
+  return PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES.includes(
+    artifactProfileReference as BuiltinArtifactProfileReference,
+  )
 }
 
-function createStyleProfile(
-  id: BuiltinDocumentStyleConfigReference,
-): StyleProfile {
+function resolveResolvedArtifactProfileConfig(
+  artifactProfileReference: BuiltinArtifactProfileReference,
+): RenderConfig {
+  return resolvedRenderConfigsByReference[artifactProfileReference]
+}
+
+function createArtifactProfile(
+  id: BuiltinArtifactProfileReference,
+): ArtifactProfile {
   return {
     id,
     globalStyle: createGlobalStyleProfile(),
+    globalLayout: createGlobalLayoutProfile(),
     componentStyle: createComponentStyleProfile(id),
+    componentLayout: createComponentLayoutProfile(),
   }
 }
 
-function createComponentStyleProfile(id: BuiltinDocumentStyleConfigReference) {
+function createComponentStyleProfile(
+  id: BuiltinArtifactProfileReference,
+): ComponentStyleProfile {
   return {
     treatments: { ...BUILTIN_COMPONENT_TREATMENTS_BY_REFERENCE[id] },
   }
@@ -608,3 +977,47 @@ function createGlobalStyleProfile(): GlobalStyleProfile {
     cssVariableMap: { ...defaultCssVariableMap },
   }
 }
+
+function createGlobalLayoutProfile(): GlobalLayoutProfile {
+  return {
+    frame: { ...defaultGlobalLayoutProfile.frame },
+    measure: { ...defaultGlobalLayoutProfile.measure },
+    rhythm: { ...defaultGlobalLayoutProfile.rhythm },
+    density: { ...defaultGlobalLayoutProfile.density },
+    partition: { ...defaultGlobalLayoutProfile.partition },
+    reflow: { ...defaultGlobalLayoutProfile.reflow },
+  }
+}
+
+function createComponentLayoutProfile(): ComponentLayoutProfile {
+  return normalizeComponentLayoutProfile(
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+  )
+}
+
+export function createRenderConfigFromStyleProfile(
+  styleProfile: unknown,
+): RenderConfig {
+  return createRenderConfigFromArtifactProfile(
+    normalizeArtifactProfile(styleProfile),
+  )
+}
+
+export function normalizeStyleProfile(styleProfile: unknown): ArtifactProfile {
+  return normalizeArtifactProfile(styleProfile)
+}
+
+export const StyleProfileSchema = ArtifactProfileSchema
+export const BUILTIN_STYLE_PROFILES_BY_REFERENCE =
+  BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE
+export const DEFAULT_STYLE_PROFILE_REFERENCE =
+  DEFAULT_ARTIFACT_PROFILE_REFERENCE
+export const PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES =
+  PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES
+export const STYLE_PROFILE_STORAGE_VERSION = ARTIFACT_PROFILE_STORAGE_VERSION

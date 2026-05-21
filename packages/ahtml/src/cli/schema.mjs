@@ -36,8 +36,8 @@ export function formatPrompt(schema) {
 }
 
 function formatRenderConfigGuidance(renderConfig) {
-  if (renderConfig.model === "document-style-config-reference") {
-    return 'Use an approved document style config reference via style-ref="...".'
+  if (renderConfig.model === "artifact-profile-reference") {
+    return 'Use an approved artifact profile reference via profile-ref="...".'
   }
 
   return "Use an approved render config choice."

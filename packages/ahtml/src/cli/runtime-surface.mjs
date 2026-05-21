@@ -23,6 +23,7 @@ const supportedManagedRuntimeShellSources = new Set([
 const ahtmlGlueFiles = [
   "vite.ahtml.config.mjs",
   "src/app.tsx",
+  "src/lib/utils.ts",
   "src/main.tsx",
   "src/ssr.tsx",
   "src/renderer/elements.tsx",
@@ -792,6 +793,7 @@ function createRequiredRuntimeFiles({ components, cssPath }) {
     "components.json",
     "vite.config.ts",
     normalizeRuntimeRelativePath(cssPath),
+    normalizeRuntimeRelativePath(path.join("src", "lib", "utils.ts")),
     ...components.map((component) =>
       normalizeRuntimeRelativePath(
         path.join("src", "components", "ui", `${component}.tsx`),

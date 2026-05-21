@@ -14,6 +14,7 @@ import { createUiRenderer } from "./render-ui-node"
 export function createRendererNode(
   rendererSpecByName: Map<string, RendererSpecComponent>,
   componentTreatments: Record<string, string> = {},
+  artifactProfile?: AgentDocument["meta"]["artifactProfile"],
 ) {
   function RendererNode({
     node,
@@ -75,6 +76,7 @@ export function createRendererNode(
     path: RendererPath,
   ) {
     const treatment = componentTreatments[node.name]
+    const layoutStyle = resolveLayoutStyle(node.name, artifactProfile)
     const className = mergeClassNames(
       rendererSpec.rootClassName,
       treatment ? componentTreatmentClassNames[treatment] : undefined,
@@ -87,6 +89,7 @@ export function createRendererNode(
       "data-ahtml-path": path.map(String).join("."),
       ...(treatment ? { "data-ahtml-treatment": treatment } : {}),
       ...(className ? { className } : {}),
+      ...(layoutStyle ? { style: layoutStyle } : {}),
     }
   }
 
@@ -153,6 +156,129 @@ export function createRendererNode(
   }
 
   return RendererNode
+}
+
+function resolveLayoutStyle(
+  componentName: string,
+  artifactProfile: AgentDocument["meta"]["artifactProfile"] | undefined,
+) {
+  if (!artifactProfile) {
+    return undefined
+  }
+
+  const densityScale =
+    artifactProfile.globalLayout.density[
+      artifactProfile.globalLayout.density.default
+    ]
+
+  if (componentName === "page") {
+    return {
+      gap: artifactProfile.componentLayout.page.gap,
+      maxWidth: resolveMeasureWidth(
+        artifactProfile.componentLayout.page.measure,
+        artifactProfile.globalLayout.measure,
+      ),
+    } as React.CSSProperties
+  }
+
+  if (componentName === "stack") {
+    return {
+      gap: scaleCssLength(
+        artifactProfile.componentLayout.stack.gap,
+        artifactProfile.globalLayout.density[
+          artifactProfile.componentLayout.stack.density
+        ],
+      ),
+      maxWidth: resolveMeasureWidth(
+        artifactProfile.componentLayout.stack.measure,
+        artifactProfile.globalLayout.measure,
+      ),
+    } as React.CSSProperties
+  }
+
+  if (componentName === "cluster") {
+    return {
+      gap: scaleCssLength(
+        artifactProfile.componentLayout.cluster.gap,
+        artifactProfile.globalLayout.density[
+          artifactProfile.componentLayout.cluster.density
+        ],
+      ),
+      flexWrap: artifactProfile.componentLayout.cluster.wrap,
+      justifyContent: artifactProfile.componentLayout.cluster.justify,
+    } as React.CSSProperties
+  }
+
+  if (componentName === "split") {
+    return {
+      gap: scaleCssLength(
+        artifactProfile.componentLayout.split.gap,
+        artifactProfile.globalLayout.density[
+          artifactProfile.componentLayout.split.density
+        ],
+      ),
+      gridTemplateColumns: `repeat(${artifactProfile.componentLayout.split.autoFlow}, minmax(${artifactProfile.componentLayout.split.minColumnWidth}, 1fr))`,
+    } as React.CSSProperties
+  }
+
+  if (componentName === "grid") {
+    return {
+      gap: scaleCssLength(
+        artifactProfile.componentLayout.grid.gap,
+        artifactProfile.globalLayout.density[
+          artifactProfile.componentLayout.grid.density
+        ],
+      ),
+      gridTemplateColumns: `repeat(${artifactProfile.componentLayout.grid.autoFlow}, minmax(${artifactProfile.componentLayout.grid.minColumnWidth}, 1fr))`,
+    } as React.CSSProperties
+  }
+
+  if (componentName === "switcher") {
+    return {
+      gap: scaleCssLength(
+        artifactProfile.componentLayout.switcher.gap,
+        artifactProfile.globalLayout.density[
+          artifactProfile.componentLayout.switcher.density
+        ],
+      ),
+      flexWrap: artifactProfile.componentLayout.switcher.wrap,
+      justifyContent: artifactProfile.componentLayout.switcher.justify,
+      ["--ahtml-switcher-min-child-width" as string]:
+        artifactProfile.componentLayout.switcher.minChildWidth,
+      ["--ahtml-layout-density" as string]: String(densityScale),
+    } as React.CSSProperties
+  }
+
+  if (componentName === "frame") {
+    return {
+      maxWidth: artifactProfile.componentLayout.frame.maxWidth,
+      width: resolveMeasureWidth(
+        artifactProfile.componentLayout.frame.measure,
+        artifactProfile.globalLayout.measure,
+      ),
+    } as React.CSSProperties
+  }
+
+  return undefined
+}
+
+function resolveMeasureWidth(
+  token: "prose" | "wide" | "full",
+  measure: AgentDocument["meta"]["artifactProfile"]["globalLayout"]["measure"],
+) {
+  if (token === "prose") {
+    return measure.prose
+  }
+
+  if (token === "wide") {
+    return measure.wide
+  }
+
+  return measure.full
+}
+
+function scaleCssLength(value: string, factor: number) {
+  return factor === 1 ? value : `calc(${value} * ${factor})`
 }
 
 const componentTreatmentClassNames: Record<string, string> = {

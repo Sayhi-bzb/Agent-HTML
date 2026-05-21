@@ -36,7 +36,7 @@ import {
   assertStyleProfileStorage,
   writeStyleProfileStorage,
 } from "./style-profile-storage.mjs"
-import { writeRuntimeTemplate } from "./runtime-template.mjs"
+import { writeRuntimeHost } from "./runtime-bootstrap/index.mjs"
 
 export async function bootstrapManagedRuntime({
   packageVersion = "0.0.0",
@@ -50,7 +50,7 @@ export async function bootstrapManagedRuntime({
   await mkdir(paths.logsDir, { recursive: true })
   await mkdir(paths.configDir, { recursive: true })
   await writeStyleProfileStorage(paths)
-  const shadcnRuntimeSurface = await writeRuntimeTemplate({
+  const shadcnRuntimeSurface = await writeRuntimeHost({
     packageRoot,
     paths,
     schema,

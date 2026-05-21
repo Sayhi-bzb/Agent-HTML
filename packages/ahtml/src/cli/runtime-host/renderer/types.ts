@@ -19,8 +19,8 @@ export type RendererPath = RendererPathSegment[]
 
 export type AgentDocument = {
   meta: {
-    documentStyleConfigReference: string
-    styleProfile: {
+    artifactProfileReference: string
+    artifactProfile: {
       id: string
       globalStyle: {
         tokenSets: {
@@ -165,8 +165,89 @@ export type AgentDocument = {
           shadowOffsetY: string
         }
       }
+      globalLayout: {
+        frame: {
+          pageMaxWidth: string
+          pagePaddingInline: string
+          pagePaddingBlockStart: string
+          pagePaddingBlockEnd: string
+          frameMaxWidth: string
+        }
+        measure: {
+          prose: string
+          wide: string
+          full: string
+        }
+        rhythm: {
+          pageGap: string
+          stackGap: string
+          clusterGap: string
+          splitGap: string
+          gridGap: string
+          switcherGap: string
+        }
+        density: {
+          default: "compact" | "balanced" | "relaxed"
+          compact: number
+          balanced: number
+          relaxed: number
+        }
+        partition: {
+          splitMinColumnWidth: string
+          gridMinColumnWidth: string
+          switcherMinChildWidth: string
+        }
+        reflow: {
+          splitAutoFlow: "auto-fit" | "auto-fill"
+          gridAutoFlow: "auto-fit" | "auto-fill"
+          clusterWrap: "wrap" | "nowrap"
+          switcherWrap: "wrap" | "nowrap"
+          clusterJustify: "flex-start" | "center" | "space-between"
+          switcherJustify: "flex-start" | "center" | "space-between"
+        }
+      }
       componentStyle: {
         treatments: Record<string, string>
+      }
+      componentLayout: {
+        page: {
+          gap: string
+          measure: "prose" | "wide" | "full"
+        }
+        stack: {
+          gap: string
+          density: "compact" | "balanced" | "relaxed"
+          measure: "prose" | "wide" | "full"
+        }
+        cluster: {
+          gap: string
+          density: "compact" | "balanced" | "relaxed"
+          wrap: "wrap" | "nowrap"
+          justify: "flex-start" | "center" | "space-between"
+        }
+        split: {
+          gap: string
+          density: "compact" | "balanced" | "relaxed"
+          minColumnWidth: string
+          autoFlow: "auto-fit" | "auto-fill"
+        }
+        grid: {
+          gap: string
+          density: "compact" | "balanced" | "relaxed"
+          minColumnWidth: string
+          autoFlow: "auto-fit" | "auto-fill"
+        }
+        switcher: {
+          gap: string
+          density: "compact" | "balanced" | "relaxed"
+          minChildWidth: string
+          wrap: "wrap" | "nowrap"
+          justify: "flex-start" | "center" | "space-between"
+        }
+        frame: {
+          maxWidth: string
+          measure: "prose" | "wide" | "full"
+        }
       }
     }
   }

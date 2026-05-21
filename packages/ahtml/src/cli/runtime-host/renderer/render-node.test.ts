@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { pathToFileURL } from "node:url"
 import { beforeAll, describe, expect, it, vi } from "vitest"
 
-import { importCliModule, resolveRepoPath } from "../../../cli-test-helpers"
+import { importCliModule, resolveRepoPath } from "../../cli-test-helpers"
 import type { ComponentSchema } from "@agent-html/core"
 import type {
   AgentNode,
@@ -41,8 +41,7 @@ let createRendererMapping: RenderCapabilitiesModule["createRendererMapping"]
 
 async function importRenderNodeModule(): Promise<RendererNodeModule> {
   return importCliModule<RendererNodeModule>(
-    "runtime-template",
-    "src",
+    "runtime-host",
     "renderer",
     "render-node.tsx",
   )

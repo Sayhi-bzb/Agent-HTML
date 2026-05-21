@@ -41,17 +41,31 @@ export const createPublicAgentContract = core.createPublicAgentContract
 export const createPublicRenderConfigContract =
   core.createPublicRenderConfigContract
 export const createPublicSafetyPolicy = core.createPublicSafetyPolicy
+export const ARTIFACT_PROFILE_STORAGE_VERSION =
+  core.ARTIFACT_PROFILE_STORAGE_VERSION
+export const ArtifactProfileSchema = core.ArtifactProfileSchema
+export const BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE =
+  core.BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE
 export const BUILTIN_STYLE_PROFILES_BY_REFERENCE =
   core.BUILTIN_STYLE_PROFILES_BY_REFERENCE
+export const createRenderConfigFromArtifactProfile =
+  core.createRenderConfigFromArtifactProfile
 export const createRenderConfigFromStyleProfile =
   core.createRenderConfigFromStyleProfile
+export const DEFAULT_ARTIFACT_PROFILE_REFERENCE =
+  core.DEFAULT_ARTIFACT_PROFILE_REFERENCE
 export const DEFAULT_STYLE_PROFILE_REFERENCE =
   core.DEFAULT_STYLE_PROFILE_REFERENCE
 export const DEFAULT_RENDER_CONFIG = core.DEFAULT_RENDER_CONFIG
 export const formatForbiddenPolicy = core.formatForbiddenPolicy
+export const LEGACY_PUBLIC_RENDER_CONFIG_KEY =
+  core.LEGACY_PUBLIC_RENDER_CONFIG_KEY
+export const normalizeArtifactProfile = core.normalizeArtifactProfile
 export const normalizeStyleProfile = core.normalizeStyleProfile
 export const parseRenderConfig = core.parseRenderConfig
 export const resolveRenderConfig = core.resolveRenderConfig
+export const PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES =
+  core.PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES
 export const PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES =
   core.PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES
 export const PUBLIC_RENDER_CONFIG_KEY = core.PUBLIC_RENDER_CONFIG_KEY

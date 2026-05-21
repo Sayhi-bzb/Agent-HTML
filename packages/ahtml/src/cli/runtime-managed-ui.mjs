@@ -7,8 +7,7 @@ import { fileURLToPath } from "node:url"
 const managedRuntimeUiProofAlgorithm = "sha256"
 const managedRuntimeUiSourceDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
-  "runtime-template",
-  "src",
+  "runtime-host",
   "components",
   "ui",
 )

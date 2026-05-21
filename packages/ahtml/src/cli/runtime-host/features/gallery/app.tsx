@@ -14,9 +14,6 @@ import {
   X,
 } from "lucide-react"
 
-import generatedDocument from "../document.generated.json"
-import runtimeStateSource from "../runtime-state.generated.json"
-import runtimeVerificationState from "../render-verification.generated.json"
 import {
   Accordion,
   AccordionContent,
@@ -31,9 +28,9 @@ import {
 import {
   assertRendererRegistryParity,
   createRendererSpecMap,
-} from "./renderer/parity"
-import { createRendererNode } from "./renderer/render-node"
-import { createGalleryPreviewSections } from "./gallery-preview-document.mjs"
+} from "../../renderer/parity"
+import { createRendererNode } from "../../renderer/render-node"
+import { createGalleryPreviewSections } from "./preview-document.mjs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -77,20 +74,9 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import type { AgentDocument, RuntimeVerificationState } from "./renderer/types"
+import type { AgentDocument, RuntimeVerificationState } from "../../renderer/types"
 
 type StyleProfile = AgentDocument["meta"]["styleProfile"]
-type RuntimeState = {
-  kind?: string
-  version?: number
-  mode?: "document" | "gallery"
-  gallery?: {
-    availableStyleReferences: string[]
-    styleReference: string
-    styleProfile: StyleProfile
-  }
-}
-
 type GalleryStateResponse = {
   ok: boolean
   availableStyleReferences: string[]
@@ -169,11 +155,6 @@ type GalleryInspectorState = {
   height: number
 }
 
-const agentDocument = generatedDocument as AgentDocument
-const runtimeState = runtimeStateSource as RuntimeState
-const runtimeRendererVerification =
-  runtimeVerificationState as RuntimeVerificationState
-const rendererSpecByName = createRendererSpecMap(runtimeRendererVerification)
 const focusableThemeTokenEntries: Array<[string, ThemeTokenName]> = [
   ["destructive-foreground", "destructiveForeground"],
   ["primary-foreground", "primaryForeground"],
@@ -411,63 +392,22 @@ const fontPresetOptions: Record<
   ],
 }
 
-assertRendererRegistryParity(runtimeRendererVerification, rendererSpecByName)
-
-export function App() {
-  const title = getDocumentTitle(agentDocument)
-
-  React.useEffect(() => {
-    if (title && typeof document !== "undefined") {
-      document.title = title
-    }
-  }, [title])
-
-  if (runtimeState.mode === "gallery" && runtimeState.gallery) {
-    return (
-      <GalleryApp
-        availableStyleReferences={runtimeState.gallery.availableStyleReferences}
-        initialProfile={runtimeState.gallery.styleProfile}
-        styleReference={runtimeState.gallery.styleReference}
-      />
-    )
-  }
-
-  return <DocumentApp document={agentDocument} />
-}
-
-function DocumentApp({ document }: { document: AgentDocument }) {
-  const documentStyleCss = createDocumentStyleCss(document.meta.styleProfile)
-  const RendererNode = createRendererNode(
-    rendererSpecByName,
-    document.meta.styleProfile.componentStyle.treatments,
-  )
-
-  return (
-    <>
-      <RuntimeStyleElements documentStyleCss={documentStyleCss} />
-      <main
-        className="ahtml-runtime-host ahtml-runtime-document"
-        data-style-profile={document.meta.styleProfile.id}
-      >
-        <DocumentArtifactShell layoutPolicy="document">
-          {document.components.map((node, index) => (
-            <RendererNode key={index} node={node} path={[index]} />
-          ))}
-        </DocumentArtifactShell>
-      </main>
-    </>
-  )
-}
-
-function GalleryApp({
+export function GalleryApp({
   availableStyleReferences,
   initialProfile,
+  runtimeRendererVerification,
   styleReference,
 }: {
   availableStyleReferences: string[]
   initialProfile: StyleProfile
+  runtimeRendererVerification: RuntimeVerificationState
   styleReference: string
 }) {
+  const rendererSpecByName = React.useMemo(() => {
+    const specByName = createRendererSpecMap(runtimeRendererVerification)
+    assertRendererRegistryParity(runtimeRendererVerification, specByName)
+    return specByName
+  }, [runtimeRendererVerification])
   const [editorState, setEditorState] = React.useState<GalleryEditorState>({
     availableStyleReferences,
     createId: "",
@@ -7696,11 +7636,3 @@ function createGalleryShellCss() {
   `
 }
 
-function getDocumentTitle(document: AgentDocument) {
-  const page = document.components.find(
-    (node): node is AgentComponentNode =>
-      node.type === "component" && node.name === "page",
-  )
-
-  return page?.props.title
-}

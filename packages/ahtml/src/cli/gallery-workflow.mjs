@@ -14,7 +14,7 @@ import {
 } from "./style-profile-storage.mjs"
 import { printDiagnostics, writeJsonFile } from "./cli-io.mjs"
 import { createInspection } from "./artifact-workflow.mjs"
-import { createGalleryPreviewDocument } from "./runtime-template/src/gallery-preview-document.mjs"
+import { createGalleryPreviewDocument } from "./runtime-host/features/gallery/preview-document.mjs"
 
 export class StyleGalleryProfileNotFoundError extends Error {
   constructor(styleReference, availableReferences) {
@@ -134,7 +134,7 @@ export function createGalleryRuntimeState({
     gallery: {
       availableStyleReferences,
       styleReference,
-      styleProfile,
+      artifactProfile: styleProfile,
     },
   }
 }

@@ -224,7 +224,7 @@ export const componentCapabilityDefinitions = {
     renderer: {
       kind: "layout-stack",
       root: "section",
-      rootClassName: "grid gap-4",
+      rootClassName: "grid",
       childMode: "block",
       textMode: "prose",
     },
@@ -236,7 +236,7 @@ export const componentCapabilityDefinitions = {
     renderer: {
       kind: "layout-cluster",
       root: "div",
-      rootClassName: "flex flex-wrap items-start gap-3",
+      rootClassName: "flex items-start",
       childMode: "inline",
       textMode: "prose",
     },
@@ -248,7 +248,7 @@ export const componentCapabilityDefinitions = {
     renderer: {
       kind: "layout-split",
       root: "section",
-      rootClassName: "grid gap-4 md:grid-cols-2",
+      rootClassName: "grid",
       childMode: "block",
       textMode: "prose",
     },
@@ -260,7 +260,7 @@ export const componentCapabilityDefinitions = {
     renderer: {
       kind: "layout-grid",
       root: "section",
-      rootClassName: "grid gap-4 sm:grid-cols-2",
+      rootClassName: "grid",
       childMode: "block",
       textMode: "prose",
     },
@@ -272,7 +272,7 @@ export const componentCapabilityDefinitions = {
     renderer: {
       kind: "layout-switcher",
       root: "section",
-      rootClassName: "flex flex-wrap items-start gap-4",
+      rootClassName: "flex items-start",
       childMode: "block",
       textMode: "prose",
     },
@@ -284,7 +284,7 @@ export const componentCapabilityDefinitions = {
     renderer: {
       kind: "layout-frame",
       root: "section",
-      rootClassName: "mx-auto w-full max-w-4xl",
+      rootClassName: "mx-auto w-full",
       childMode: "block",
       textMode: "prose",
     },

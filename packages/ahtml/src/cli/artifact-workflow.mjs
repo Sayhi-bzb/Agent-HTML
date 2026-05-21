@@ -221,13 +221,13 @@ export function createInspection(document) {
     throw new Error("Cannot inspect an invalid agent-html document.")
   }
 
-  const { documentStyleConfigReference } = document.meta
+  const { artifactProfileReference } = document.meta
 
   return {
     kind: "agent-html-inspection",
-    configModel: "document-style-config-reference",
+    configModel: "artifact-profile-reference",
     config: {
-      documentStyleConfigReference,
+      artifactProfileReference,
     },
     components: countComponents(document.components),
   }

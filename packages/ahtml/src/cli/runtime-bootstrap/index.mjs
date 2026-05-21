@@ -13,27 +13,32 @@ import {
 import path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
-import { supportedRuntimeBase } from "../config/render-capabilities.mjs"
+import { supportedRuntimeBase } from "../../config/render-capabilities.mjs"
 import {
   createManagedRuntimeCapability,
   createRuntimeContractFromSchema,
   createRuntimeVerificationState,
-} from "../config/runtime-contract.mjs"
+} from "../../config/runtime-contract.mjs"
 import {
   createShadcnRuntimeSurface,
   recordAhtmlGlueProof,
-} from "./runtime-surface.mjs"
-import { applyManagedRuntimeUiOverrides } from "./runtime-managed-ui.mjs"
-import { getDefaultShadcnPreset } from "./shadcn-api.mjs"
+} from "../runtime-surface.mjs"
+import { applyManagedRuntimeUiOverrides } from "../runtime-managed-ui.mjs"
+import { getDefaultShadcnPreset } from "../shadcn-api.mjs"
 
 const shadcnCliTimeoutMs = 90000
-const templateDir = path.join(
+const bootstrapDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
-  "runtime-template",
+  "..",
+  "runtime-bootstrap",
 )
-const rendererSourceDir = path.join(templateDir, "src")
+const runtimeHostSourceDir = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "runtime-host",
+)
 
-export async function writeRuntimeTemplate({
+export async function writeRuntimeHost({
   packageRoot,
   paths,
   schema,
@@ -71,7 +76,7 @@ export async function writeRuntimeTemplate({
     components: setup.components,
     paths,
   })
-  await injectRendererFiles({
+  await injectRuntimeHostFiles({
     paths,
     runtimeContract,
     runtimeSurface,
@@ -94,7 +99,6 @@ export async function writeRuntimeTemplate({
 export function resolveRuntimeDependencies(packageRoot) {
   const packageRequire = createRequire(path.join(packageRoot, "package.json"))
   const viteRoot = resolvePackageRoot("vite", packageRequire)
-  const agentHtmlCoreRoot = resolvePackageRoot("@agent-html/core", packageRequire)
   const reactRoot = resolvePackageRoot("react", packageRequire)
   const reactDomRoot = resolvePackageRoot("react-dom", packageRequire)
   const baseUiReactRoot = resolvePackageRoot("@base-ui/react", packageRequire)
@@ -105,7 +109,7 @@ export function resolveRuntimeDependencies(packageRoot) {
     viteBin: path.join(viteRoot, "bin", "vite.js"),
     viteModule: packageRequire.resolve("vite"),
     viteReactPlugin: packageRequire.resolve("@vitejs/plugin-react"),
-    agentHtmlCoreEntry: path.join(agentHtmlCoreRoot, "src", "core.ts"),
+    agentHtmlCoreEntry: packageRequire.resolve("@agent-html/core"),
     reactRoot,
     reactJsxRuntime: packageRequire.resolve("react/jsx-runtime"),
     reactDomRoot,
@@ -239,25 +243,37 @@ async function initShadcnRuntime({
   await normalizeRuntimeTemplateViteConfig(paths)
 }
 
-async function injectRendererFiles({ paths, runtimeContract, runtimeSurface }) {
+async function injectRuntimeHostFiles({ paths, runtimeContract, runtimeSurface }) {
   await mkdir(paths.runtimeSrcDir, { recursive: true })
   await cp(
-    path.join(rendererSourceDir, "renderer"),
+    path.join(runtimeHostSourceDir, "renderer"),
     path.join(paths.runtimeSrcDir, "renderer"),
     { recursive: true },
   )
   await cp(
-    path.join(rendererSourceDir, "app.tsx"),
-    path.join(paths.runtimeSrcDir, "app.tsx"),
+    path.join(runtimeHostSourceDir, "features"),
+    path.join(paths.runtimeDir, "runtime-host", "features"),
+    { recursive: true },
   )
   await cp(
-    path.join(rendererSourceDir, "gallery-preview-document.mjs"),
+    path.join(runtimeHostSourceDir, "renderer"),
+    path.join(paths.runtimeDir, "runtime-host", "renderer"),
+    { recursive: true },
+  )
+  await cp(
+    path.join(runtimeHostSourceDir, "features", "gallery", "preview-document.mjs"),
     path.join(paths.runtimeSrcDir, "gallery-preview-document.mjs"),
   )
   await cp(
-    path.join(rendererSourceDir, "ssr.tsx"),
+    path.join(runtimeHostSourceDir, "ssr.tsx"),
     path.join(paths.runtimeSrcDir, "ssr.tsx"),
   )
+  await cp(
+    path.join(runtimeHostSourceDir, "lib"),
+    path.join(paths.runtimeSrcDir, "lib"),
+    { recursive: true },
+  )
+  await writeRuntimeHostApp(paths)
   await writeRuntimeRendererKindSource({ paths, runtimeContract })
   await writeRuntimeElementRegistrySource({ paths, runtimeContract })
   await writeRendererMain({ paths, cssPath: runtimeSurface.cssPath })
@@ -285,8 +301,248 @@ async function writeRendererMain({ paths, cssPath }) {
   await writeFile(path.join(paths.runtimeSrcDir, "main.tsx"), source)
 }
 
+async function writeRuntimeHostApp(paths) {
+  const source = [
+    'import React from "react"',
+    "",
+    'import generatedDocument from "../document.generated.json"',
+    'import runtimeStateSource from "../runtime-state.generated.json"',
+    'import runtimeVerificationState from "../render-verification.generated.json"',
+    'import { createRendererNode } from "./renderer/render-node"',
+    'import { GalleryApp } from "../runtime-host/features/gallery/app"',
+    'import type { AgentDocument, RuntimeVerificationState } from "./renderer/types"',
+    "",
+    'type StyleProfile = AgentDocument["meta"]["styleProfile"]',
+    "",
+    "type RuntimeState = {",
+    "  kind?: string",
+    "  version?: number",
+    '  mode?: "document" | "gallery"',
+    "  gallery?: {",
+    "    availableStyleReferences: string[]",
+    "    styleReference: string",
+    "    styleProfile: StyleProfile",
+    "  }",
+    "}",
+    "",
+    "const agentDocument = generatedDocument as AgentDocument",
+    "const runtimeState = runtimeStateSource as RuntimeState",
+    "const runtimeRendererVerification =",
+    "  runtimeVerificationState as RuntimeVerificationState",
+    "",
+    "export function App() {",
+    "  const title = getDocumentTitle(agentDocument)",
+    "",
+    "  React.useEffect(() => {",
+    '    if (title && typeof document !== "undefined") {',
+    "      document.title = title",
+    "    }",
+    "  }, [title])",
+    "",
+    '  if (runtimeState.mode === "gallery" && runtimeState.gallery) {',
+    "    return (",
+    "      <GalleryApp",
+    "        availableStyleReferences={runtimeState.gallery.availableStyleReferences}",
+    "        initialProfile={runtimeState.gallery.styleProfile}",
+    "        runtimeRendererVerification={runtimeRendererVerification}",
+    "        styleReference={runtimeState.gallery.styleReference}",
+    "      />",
+    "    )",
+    "  }",
+    "",
+    "  const documentStyleCss = createDocumentStyleCss(agentDocument.meta.styleProfile)",
+    "  const rendererSpecByName = new Map(",
+    "    runtimeRendererVerification.rendererMapping.components.map((component) => [",
+    "      component.name,",
+    "      component,",
+    "    ]),",
+    "  )",
+    "  const RendererNode = createRendererNode(",
+    "    rendererSpecByName,",
+    "    agentDocument.meta.styleProfile.componentStyle.treatments,",
+    "  )",
+    "",
+    "  return (",
+    "    <>",
+    "      <RuntimeStyleElements documentStyleCss={documentStyleCss} />",
+    '      <main className="ahtml-runtime-host ahtml-runtime-document" data-style-profile={agentDocument.meta.styleProfile.id}>',
+    '        <DocumentArtifactShell layoutPolicy="document">',
+    "          {agentDocument.components.map((node, index) => (",
+    "            <RendererNode key={index} node={node} path={[index]} />",
+    "          ))}",
+    "        </DocumentArtifactShell>",
+    "      </main>",
+    "    </>",
+    "  )",
+    "}",
+    "",
+    "export function RuntimeStyleElements({",
+    "  documentStyleCss,",
+    "  galleryPreviewThemeCss,",
+    "  includeGalleryShell = false,",
+    "}: {",
+    "  documentStyleCss: string",
+    "  galleryPreviewThemeCss?: string",
+    "  includeGalleryShell?: boolean",
+    "}) {",
+    "  return (",
+    "    <>",
+    "      <style>{createRuntimeHostCss()}</style>",
+    "      <style>{createArtifactShellCss()}</style>",
+    "      <style>{createDocumentLayoutPolicyCss()}</style>",
+    "      <style>{createGalleryLayoutPolicyCss()}</style>",
+    "      {includeGalleryShell ? <style>{createGalleryShellCss()}</style> : null}",
+    "      {galleryPreviewThemeCss ? <style>{galleryPreviewThemeCss}</style> : null}",
+    "      <style>{documentStyleCss}</style>",
+    "    </>",
+    "  )",
+    "}",
+    "",
+    "export function DocumentArtifactShell({",
+    "  children,",
+    "  className,",
+    '  layoutPolicy = "document",',
+    "}: React.PropsWithChildren<{",
+    "  className?: string",
+    '  layoutPolicy?: "document" | "gallery"',
+    "}>) {",
+    "  const classes = [",
+    '    "ahtml-artifact-root",',
+    '    layoutPolicy === "document"',
+    '      ? "ahtml-layout-policy-document"',
+    '      : "ahtml-layout-policy-gallery",',
+    "    className,",
+    "  ]",
+    "    .filter(Boolean)",
+    '    .join(" ")',
+    "",
+    "  return <div className={classes}>{children}</div>",
+    "}",
+    "",
+    "function getDocumentTitle(document: AgentDocument) {",
+    "  const page = document.components.find(",
+    '    (node): node is Extract<AgentDocument["components"][number], { type: "component" }> =>',
+    '      node.type === "component" && node.name === "page",',
+    "  )",
+    "",
+    "  return page?.props.title",
+    "}",
+    "",
+    "export function createDocumentStyleCss(styleProfile: StyleProfile) {",
+    "  const { cssVariableMap, radiusScale, tokenSets, typography } =",
+    "    styleProfile.globalStyle",
+    "  const lightThemeVars = Object.entries(tokenSets.light)",
+    "    .map(",
+    "      ([tokenName, value]) =>",
+    '        `  ${cssVariableMap[tokenName as keyof typeof cssVariableMap]}: ${value};`,',
+    "    )",
+    '    .join("\\n")',
+    "  const darkThemeVars = Object.entries(tokenSets.dark)",
+    "    .map(",
+    "      ([tokenName, value]) =>",
+    '        `  ${cssVariableMap[tokenName as keyof typeof cssVariableMap]}: ${value};`,',
+    "    )",
+    '    .join("\\n")',
+    "",
+    "  return `",
+    "    :root {",
+    "${lightThemeVars}",
+    "      ${cssVariableMap.radius}: ${radiusScale.base};",
+    "      ${cssVariableMap.fontSans}: ${typography.fontSans};",
+    "      ${cssVariableMap.fontHeading}: ${typography.fontHeading};",
+    "      ${cssVariableMap.fontSerif}: ${typography.fontSerif};",
+    "      ${cssVariableMap.fontMono}: ${typography.fontMono};",
+    "      ${cssVariableMap.letterSpacing}: ${typography.letterSpacing};",
+    "      ${cssVariableMap.spacing}: ${typography.spacing};",
+    "      ${cssVariableMap.shadowColor}: ${typography.shadowColor};",
+    "      ${cssVariableMap.shadowOpacity}: ${typography.shadowOpacity};",
+    "      ${cssVariableMap.shadowBlur}: ${typography.shadowBlur};",
+    "      ${cssVariableMap.shadowSpread}: ${typography.shadowSpread};",
+    "      ${cssVariableMap.shadowOffsetX}: ${typography.shadowOffsetX};",
+    "      ${cssVariableMap.shadowOffsetY}: ${typography.shadowOffsetY};",
+    "      --radius-sm: ${radiusScale.sm};",
+    "      --radius-md: ${radiusScale.md};",
+    "      --radius-lg: ${radiusScale.lg};",
+    '      --radius-xl: ${radiusScale.xl};',
+    '      --radius-2xl: ${radiusScale["2xl"]};',
+    '      --radius-3xl: ${radiusScale["3xl"]};',
+    '      --radius-4xl: ${radiusScale["4xl"]};',
+    "      --font-heading: ${typography.fontHeading};",
+    "      --font-serif: ${typography.fontSerif};",
+    "      --font-mono: ${typography.fontMono};",
+    "      --letter-spacing-tight: ${typography.letterSpacing};",
+    "      --surface-shadow:",
+    "        ${typography.shadowOffsetX}",
+    "        ${typography.shadowOffsetY}",
+    "        ${typography.shadowBlur}",
+    "        ${typography.shadowSpread}",
+    "        color-mix(in srgb, ${typography.shadowColor} calc(${typography.shadowOpacity} * 100%), transparent);",
+    "    }",
+    '    [data-theme-mode="dark"] {',
+    "${darkThemeVars}",
+    "    }",
+    "  `",
+    "}",
+    "",
+    "function createRuntimeHostCss() {",
+    "  return `",
+    "    .ahtml-runtime-host {",
+    "      min-height: 100vh;",
+    "      background: var(--background);",
+    "      color: var(--foreground);",
+    "      font-family: var(--font-sans);",
+    "    }",
+    "  `",
+    "}",
+    "",
+    "function createArtifactShellCss() {",
+    "  return `",
+    "    .ahtml-artifact-root {",
+    "      display: grid;",
+    "      gap: calc(var(--spacing) * 4);",
+    "    }",
+    "  `",
+    "}",
+    "",
+    "function createDocumentLayoutPolicyCss() {",
+    "  return `",
+    "    .ahtml-layout-policy-document {",
+    "      width: min(72rem, calc(100vw - 2rem));",
+    "      margin: 0 auto;",
+    "      padding: 1.5rem 1rem 3rem;",
+    "    }",
+    "  `",
+    "}",
+    "",
+    "function createGalleryLayoutPolicyCss() {",
+    "  return `",
+    "    .ahtml-layout-policy-gallery {",
+    "      display: grid;",
+    "      gap: 1rem;",
+    "    }",
+    "  `",
+    "}",
+    "",
+    "function createGalleryShellCss() {",
+    "  return `",
+    "    .ahtml-gallery-shell {",
+    "      display: grid;",
+    "      min-height: 100vh;",
+    "      grid-template-rows: auto auto 1fr;",
+    "      background:",
+    '        radial-gradient(circle at top, color-mix(in srgb, var(--primary) 10%, transparent), transparent 42%),',
+    '        linear-gradient(180deg, color-mix(in srgb, var(--muted) 36%, transparent), transparent 28%);',
+    "    }",
+    "  `",
+    "}",
+    "",
+  ].join("\n")
+
+  await writeFile(path.join(paths.runtimeSrcDir, "app.tsx"), source)
+}
+
 async function renderViteConfig({ dependencies, paths }) {
-  const templatePath = path.join(templateDir, "vite.config.mjs.template")
+  const templatePath = path.join(bootstrapDir, "vite.config.mjs.template")
   const source = await readFile(templatePath, "utf8")
   const normalizedDependencies = normalizeDependencyPaths(dependencies)
   const rendered = source

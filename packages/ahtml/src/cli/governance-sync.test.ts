@@ -14,7 +14,7 @@ const managedRuntimeSourcePaths = [
   "packages/ahtml/src/cli/runtime-build.mjs",
   "packages/ahtml/src/cli/runtime-paths.mjs",
   "packages/ahtml/src/cli/runtime-status.mjs",
-  "packages/ahtml/src/cli/runtime-template.mjs",
+  "packages/ahtml/src/cli/runtime-bootstrap/index.mjs",
 ]
 const forbiddenCoreBoundaryPatterns = [
   /from\s+["']vite["']/,
@@ -83,7 +83,7 @@ describe("code governance sync blocks", () => {
     expect(publicDocsSource).not.toContain("init --scaffold")
   })
 
-  it("keeps runtime templates outside runtime orchestration modules", async () => {
+  it("keeps runtime host sources outside runtime orchestration modules", async () => {
     const runtimeModuleSource = (
       await Promise.all(
         managedRuntimeSourcePaths.map((relativePath) =>
@@ -95,6 +95,6 @@ describe("code governance sync blocks", () => {
     expect(runtimeModuleSource).not.toContain("const appTsxSource")
     expect(runtimeModuleSource).not.toContain("const stylesSource")
     expect(runtimeModuleSource).not.toContain("function Card(")
-    expect(runtimeModuleSource).toContain("runtime-template")
+    expect(runtimeModuleSource).toContain("runtime-host")
   })
 })

@@ -25,8 +25,9 @@ describe("gallery alignment", () => {
         "ahtml",
         "src",
         "cli",
-        "runtime-template",
-        "src",
+        "runtime-host",
+        "features",
+        "gallery",
         "app.tsx",
       ),
     ])

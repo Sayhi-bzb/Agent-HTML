@@ -6,7 +6,7 @@ import type {
   AgentDocument,
   RendererSpecComponent,
   RuntimeVerificationState,
-} from "./runtime-template/src/renderer/types"
+} from "./runtime-host/renderer/types"
 
 type RuntimeVerificationDataComponent = {
   name: string

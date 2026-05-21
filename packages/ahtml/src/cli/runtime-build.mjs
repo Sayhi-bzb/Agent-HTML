@@ -12,7 +12,7 @@ import { parse, parseFragment, serialize } from "parse5"
 
 import { getRuntimePaths, runtimePackageRoot } from "./runtime-paths.mjs"
 import { getRuntimeStatus } from "./runtime-status.mjs"
-import { resolveRuntimeDependencies } from "./runtime-template.mjs"
+import { resolveRuntimeDependencies } from "./runtime-bootstrap/index.mjs"
 
 const viteBuildTimeoutMs = 90000
 const ssrRenderTimeoutMs = 30000

@@ -21,7 +21,7 @@ afterEach(() => {
   restoreEnv("REGISTRY_URL", originalRegistryUrl)
 })
 
-describe("runtime template override guard", () => {
+describe("runtime host override guard", () => {
   it("ignores template overrides unless explicitly allowed", async () => {
     const { resolveShadcnTemplateDir } = await importRuntimeTemplateModule()
     process.env.AHTML_SHADCN_TEMPLATE_DIR = "fixtures/template"
@@ -45,11 +45,11 @@ describe("runtime template override guard", () => {
   })
 })
 
-describe("checked-in runtime templates", () => {
+describe("checked-in runtime bootstrap", () => {
   it("rewrites runtime vite configs to an ESM-safe template", async () => {
     const { ensureRuntimeBuildConfig } = await importRuntimeTemplateModule()
     const runtimeDir = await mkdtemp(
-      path.join(tmpdir(), "ahtml-runtime-template-"),
+      path.join(tmpdir(), "ahtml-runtime-bootstrap-"),
     )
     const runtimeViteConfigPath = path.join(runtimeDir, "vite.ahtml.config.mjs")
 
@@ -154,8 +154,7 @@ describe("checked-in runtime templates", () => {
         "ahtml",
         "src",
         "cli",
-        "runtime-template",
-        "src",
+        "runtime-host",
         "renderer",
         "elements.tsx",
       ),
@@ -180,8 +179,7 @@ describe("checked-in runtime templates", () => {
         "ahtml",
         "src",
         "cli",
-        "runtime-template",
-        "src",
+        "runtime-host",
         "renderer",
         "kinds.ts",
       ),
@@ -219,7 +217,8 @@ async function importRuntimeTemplateModule() {
       "ahtml",
       "src",
       "cli",
-      "runtime-template.mjs",
+      "runtime-bootstrap",
+      "index.mjs",
     ),
   ).href
 

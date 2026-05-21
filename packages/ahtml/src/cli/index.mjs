@@ -5,7 +5,6 @@ import {
   select,
   spinner,
 } from "@clack/prompts"
-import { normalizeStyleProfile, StyleProfileSchema } from "@agent-html/core"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -109,6 +108,7 @@ const commandHandlers = {
   doctor: doctorCommand,
 }
 const commandDefinitions = createCommandDefinitions(commandHandlers)
+let coreStyleProfileModulePromise
 
 try {
   if (!command) {
@@ -543,6 +543,8 @@ function createGalleryRequestHandler() {
       requestUrl.pathname === "/__ahtml/gallery/save"
     ) {
       try {
+        const { normalizeStyleProfile, StyleProfileSchema } =
+          await loadCoreStyleProfileModule()
         const body = await readJsonBody(request)
         const profileInput = StyleProfileSchema.parse(
           normalizeStyleProfile(body.styleProfile),
@@ -613,6 +615,11 @@ async function loadGalleryState() {
     styleReference,
     styleProfile: profile,
   }
+}
+
+async function loadCoreStyleProfileModule() {
+  coreStyleProfileModulePromise ??= import("@agent-html/core")
+  return coreStyleProfileModulePromise
 }
 
 function fail(message) {

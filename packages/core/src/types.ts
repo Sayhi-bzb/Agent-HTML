@@ -79,12 +79,12 @@ export type GeneratedShadcnIntrospection = {
   readonly registryDependencies?: readonly string[]
 }
 
-export type BuiltinDocumentStyleConfigReference =
+export type BuiltinArtifactProfileReference =
   | "report-default"
   | "ops-compact"
   | "review-dense"
 
-export type DocumentStyleConfigReference = string
+export type ArtifactProfileReference = string
 
 export type SemanticColorTokenSet = {
   readonly background: string
@@ -211,31 +211,135 @@ export type ComponentStyleProfile = {
   readonly treatments: Readonly<Record<string, string>>
 }
 
-export type StyleProfile = {
-  readonly id: DocumentStyleConfigReference
+export type BuiltinDocumentStyleConfigReference = BuiltinArtifactProfileReference
+export type DocumentStyleConfigReference = ArtifactProfileReference
+export type StyleProfile = ArtifactProfile
+
+export type DensityPosture = "compact" | "balanced" | "relaxed"
+
+export type LayoutMeasureToken = "prose" | "wide" | "full"
+
+export type LayoutAutoFlow = "auto-fit" | "auto-fill"
+
+export type LayoutWrapMode = "wrap" | "nowrap"
+
+export type LayoutJustifyMode =
+  | "flex-start"
+  | "center"
+  | "space-between"
+
+export type GlobalLayoutProfile = {
+  readonly frame: {
+    readonly pageMaxWidth: string
+    readonly pagePaddingInline: string
+    readonly pagePaddingBlockStart: string
+    readonly pagePaddingBlockEnd: string
+    readonly frameMaxWidth: string
+  }
+  readonly measure: {
+    readonly prose: string
+    readonly wide: string
+    readonly full: string
+  }
+  readonly rhythm: {
+    readonly pageGap: string
+    readonly stackGap: string
+    readonly clusterGap: string
+    readonly splitGap: string
+    readonly gridGap: string
+    readonly switcherGap: string
+  }
+  readonly density: {
+    readonly default: DensityPosture
+    readonly compact: number
+    readonly balanced: number
+    readonly relaxed: number
+  }
+  readonly partition: {
+    readonly splitMinColumnWidth: string
+    readonly gridMinColumnWidth: string
+    readonly switcherMinChildWidth: string
+  }
+  readonly reflow: {
+    readonly splitAutoFlow: LayoutAutoFlow
+    readonly gridAutoFlow: LayoutAutoFlow
+    readonly clusterWrap: LayoutWrapMode
+    readonly switcherWrap: LayoutWrapMode
+    readonly clusterJustify: LayoutJustifyMode
+    readonly switcherJustify: LayoutJustifyMode
+  }
+}
+
+export type ComponentLayoutProfile = {
+  readonly page: {
+    readonly gap: string
+    readonly measure: LayoutMeasureToken
+  }
+  readonly stack: {
+    readonly gap: string
+    readonly density: DensityPosture
+    readonly measure: LayoutMeasureToken
+  }
+  readonly cluster: {
+    readonly gap: string
+    readonly density: DensityPosture
+    readonly wrap: LayoutWrapMode
+    readonly justify: LayoutJustifyMode
+  }
+  readonly split: {
+    readonly gap: string
+    readonly density: DensityPosture
+    readonly minColumnWidth: string
+    readonly autoFlow: LayoutAutoFlow
+  }
+  readonly grid: {
+    readonly gap: string
+    readonly density: DensityPosture
+    readonly minColumnWidth: string
+    readonly autoFlow: LayoutAutoFlow
+  }
+  readonly switcher: {
+    readonly gap: string
+    readonly density: DensityPosture
+    readonly minChildWidth: string
+    readonly wrap: LayoutWrapMode
+    readonly justify: LayoutJustifyMode
+  }
+  readonly frame: {
+    readonly maxWidth: string
+    readonly measure: LayoutMeasureToken
+  }
+}
+
+export type ArtifactProfile = {
+  readonly id: ArtifactProfileReference
   readonly globalStyle: GlobalStyleProfile
+  readonly globalLayout: GlobalLayoutProfile
   readonly componentStyle: ComponentStyleProfile
+  readonly componentLayout: ComponentLayoutProfile
 }
 
 export type RenderConfig = {
-  readonly documentStyleConfigReference: DocumentStyleConfigReference
-  readonly styleProfile: StyleProfile
+  readonly artifactProfileReference: ArtifactProfileReference
+  readonly artifactProfile: ArtifactProfile
 }
 
 export type RenderConfigResolutionReason =
-  | "explicit-style-ref"
-  | "resolved-custom-style-ref"
-  | "missing-style-ref"
-  | "invalid-style-ref-shape"
-  | "unknown-style-ref"
+  | "explicit-profile-ref"
+  | "resolved-custom-profile-ref"
+  | "missing-profile-ref"
+  | "invalid-profile-ref-shape"
+  | "legacy-style-ref"
+  | "unknown-profile-ref"
 
 export type ResolvedRenderConfig = {
   readonly config: RenderConfig
   readonly reason: RenderConfigResolutionReason
-  readonly requestedStyleRef?: string
+  readonly requestedProfileRef?: string
+  readonly requestedLegacyStyleRef?: string
 }
 
-export type PublicRenderConfigModel = "document-style-config-reference"
+export type PublicRenderConfigModel = "artifact-profile-reference"
 
 export type PublicRenderConfigContract = {
   readonly defaults: Readonly<Record<string, string>>

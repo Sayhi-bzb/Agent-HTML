@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { importCliModule } from "../cli/cli-test-helpers"
-import { runtimeRendererKinds } from "../cli/runtime-template/src/renderer/kinds"
+import { runtimeRendererKinds } from "../cli/runtime-host/renderer/kinds"
 
 type RenderCapabilitiesModule = {
   readonly collectRendererSpecComponentIssues: (
