@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 
 import { formatThemeTokenLabel } from "../helpers"
-import { GalleryPreviewMeta } from "../shared"
+import { GalleryPreviewMeta } from "../shared/chrome"
 import type {
   ArtifactProfile,
   GalleryPreviewThemeMode,

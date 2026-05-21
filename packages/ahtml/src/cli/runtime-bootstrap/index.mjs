@@ -98,6 +98,7 @@ export function resolveRuntimeDependencies(packageRoot) {
     agentHtmlCoreEntry: packageRequire.resolve("@agent-html/core"),
     reactRoot,
     reactJsxRuntime: packageRequire.resolve("react/jsx-runtime"),
+    reactJsxDevRuntime: packageRequire.resolve("react/jsx-dev-runtime"),
     reactDomRoot,
     reactDomClient: packageRequire.resolve("react-dom/client"),
     reactDomServer: packageRequire.resolve("react-dom/server"),

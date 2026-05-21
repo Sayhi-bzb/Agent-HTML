@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/table"
 
 import { createGallerySurfaceShadow, getManualCardProps } from "../helpers"
-import { FieldRow, GalleryPreviewMeta } from "../shared"
+import { GalleryPreviewMeta } from "../shared/chrome"
+import { FieldRow } from "../shared/form-controls"
 import type { PreviewSceneProps } from "./types"
 
 export function GalleryDashboardWorkbenchPanel({

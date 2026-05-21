@@ -10,7 +10,8 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   --font-heading:
-    "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
+    "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Times New Roman",
+    serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -63,9 +64,34 @@
   --shell-gap-compact: 0.375rem;
   --shell-gap-base: 0.625rem;
   --shell-gap-roomy: 0.875rem;
+  --shell-gap-tight: 0.5rem;
+  --shell-gap-panel: 0.75rem;
+  --shell-gap-wide: 1rem;
   --shell-panel-icon-size: 1.75rem;
   --shell-card-inset-padding: 0.75rem;
   --shell-console-padding: 0.75rem;
+  --shell-space-stack-tight: 0.125rem;
+  --shell-space-control-inline-xs: 0.375rem;
+  --shell-space-control-inline-sm: 0.5rem;
+  --shell-space-control-inline-md: 0.75rem;
+  --shell-space-control-inline-lg: 1rem;
+  --shell-space-control-inline-xl: 2rem;
+  --shell-space-control-block-xs: 0.25rem;
+  --shell-space-control-block-sm: 0.5rem;
+  --shell-space-control-block-md: 0.75rem;
+  --shell-space-state-block: 1.5rem;
+  --shell-space-icon-offset-inline: 0.625rem;
+  --shell-control-icon-sm: 0.875rem;
+  --shell-control-icon-md: 1rem;
+  --shell-control-height-sm: 1.75rem;
+  --shell-text-kicker-size: 0.6875rem;
+  --shell-text-control-size: 0.75rem;
+  --shell-text-body-size: 0.8125rem;
+  --shell-text-body-line-height: 1.25rem;
+  --shell-text-body-roomy-line-height: 1.5rem;
+  --shell-tracking-kicker: 0.16em;
+  --shell-tracking-label: 0.14em;
+  --shell-tracking-heading: -0.02em;
 }
 
 .dark {
@@ -121,7 +147,8 @@
   }
 
   .app-shell-topbar-row {
-    @apply flex items-center justify-between gap-4;
+    @apply flex items-center justify-between;
+    gap: var(--shell-gap-wide);
     min-height: var(--shell-topbar-height);
     padding-inline: var(--shell-topbar-padding-inline);
   }
@@ -133,20 +160,24 @@
 
   .app-shell-topbar-brand {
     @apply grid min-w-0;
-    gap: 0.125rem;
+    gap: var(--shell-space-stack-tight);
   }
 
   .app-shell-topbar-copy {
-    @apply text-[11px] uppercase tracking-[0.16em] text-muted-foreground;
+    @apply uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-kicker);
   }
 
   .app-shell-topbar-center {
-    @apply hidden min-w-0 flex-1 justify-center px-4 md:flex;
+    @apply hidden min-w-0 flex-1 justify-center md:flex;
+    padding-inline: var(--shell-space-control-inline-lg);
   }
 
   .app-shell-session-title {
-    @apply truncate text-lg tracking-[-0.02em] text-foreground;
+    @apply truncate text-lg text-foreground;
     font-family: var(--font-heading);
+    letter-spacing: var(--shell-tracking-heading);
   }
 
   .app-shell-status-group {
@@ -165,7 +196,8 @@
   }
 
   .app-shell-inline-icon {
-    @apply size-4;
+    block-size: var(--shell-control-icon-md);
+    inline-size: var(--shell-control-icon-md);
   }
 
   .app-shell-panel-title {
@@ -174,7 +206,7 @@
 
   .app-shell-title-stack {
     @apply grid min-w-0;
-    gap: 0.125rem;
+    gap: var(--shell-space-stack-tight);
   }
 
   .app-shell-pane-label {
@@ -183,11 +215,15 @@
   }
 
   .app-shell-pane-label-copy {
-    @apply text-[11px] uppercase tracking-[0.14em] text-muted-foreground;
+    @apply uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-label);
   }
 
   .app-shell-error-banner {
-    @apply border-b bg-destructive/5 text-xs text-destructive;
+    @apply border-b bg-destructive/5 text-destructive;
+    font-size: var(--shell-text-control-size);
+    line-height: var(--shell-text-body-line-height);
     padding-inline: var(--shell-topbar-padding-inline);
     padding-block: var(--shell-header-padding-block);
   }
@@ -257,11 +293,15 @@
   }
 
   .app-shell-search-icon {
-    @apply pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground;
+    @apply pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground;
+    inset-inline-start: var(--shell-space-icon-offset-inline);
+    block-size: var(--shell-control-icon-sm);
+    inline-size: var(--shell-control-icon-sm);
   }
 
   .app-shell-search-input {
-    @apply border-x-0 border-t-0 rounded-none border-b bg-transparent pl-8 shadow-none;
+    @apply border-x-0 border-t-0 rounded-none border-b bg-transparent shadow-none;
+    padding-inline-start: var(--shell-space-control-inline-xl);
   }
 
   .app-shell-surface-grid {
@@ -309,22 +349,26 @@
   }
 
   .app-shell-card-heading {
-    @apply text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground;
+    @apply font-medium uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-label);
   }
 
   .app-shell-card-copy {
     @apply grid min-w-0;
-    gap: 0.125rem;
+    gap: var(--shell-space-stack-tight);
   }
 
   .app-shell-card-header {
-    @apply gap-3 border-b;
+    @apply border-b;
+    gap: var(--shell-gap-panel);
     padding-inline: var(--shell-header-padding-inline);
     padding-block: var(--shell-header-padding-block);
   }
 
   .app-shell-card-description {
-    @apply text-[11px] text-muted-foreground;
+    @apply text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
   }
 
   .app-shell-card-body {
@@ -332,20 +376,26 @@
   }
 
   .app-shell-body-copy {
-    @apply whitespace-pre-wrap text-[13px] leading-5;
+    @apply whitespace-pre-wrap;
+    font-size: var(--shell-text-body-size);
+    line-height: var(--shell-text-body-line-height);
   }
 
   .app-shell-body-list {
-    @apply grid list-none gap-2;
+    @apply grid list-none;
+    gap: var(--shell-gap-tight);
   }
 
   .app-shell-body-item {
-    @apply text-[13px] leading-5 text-muted-foreground;
+    @apply text-muted-foreground;
+    font-size: var(--shell-text-body-size);
+    line-height: var(--shell-text-body-line-height);
   }
 
   .app-shell-body-item::before {
     content: "\2014";
-    @apply mr-2 text-muted-foreground;
+    @apply text-muted-foreground;
+    margin-inline-end: var(--shell-space-control-inline-sm);
   }
 
   .app-shell-surface-item {
@@ -363,12 +413,16 @@
   }
 
   .app-shell-editor-field {
-    @apply min-h-0 flex-1 resize-none border-0 bg-transparent p-0 font-mono text-[13px] leading-6 shadow-none focus-visible:ring-0;
+    @apply min-h-0 flex-1 resize-none border-0 bg-transparent p-0 font-mono shadow-none focus-visible:ring-0;
+    font-size: var(--shell-text-body-size);
+    line-height: var(--shell-text-body-roomy-line-height);
     min-height: 0;
   }
 
   .app-shell-composer-field {
-    @apply min-h-0 flex-1 resize-none border-0 bg-transparent p-0 text-[13px] leading-5 shadow-none focus-visible:ring-0;
+    @apply min-h-0 flex-1 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0;
+    font-size: var(--shell-text-body-size);
+    line-height: var(--shell-text-body-line-height);
     min-height: 0;
   }
 
@@ -379,27 +433,37 @@
 
   .app-shell-composer-input-shell {
     @apply flex min-w-0 flex-1 items-center border-b;
-    padding-block: 0.25rem;
+    padding-block: var(--shell-space-control-block-xs);
   }
 
   .app-shell-empty-canvas {
-    @apply flex size-full items-center justify-center text-[11px] uppercase tracking-[0.16em] text-muted-foreground;
+    @apply flex size-full items-center justify-center uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-kicker);
   }
 
   .app-shell-empty-state {
-    @apply py-6 text-center text-[11px] uppercase tracking-[0.16em] text-muted-foreground;
+    @apply text-center uppercase text-muted-foreground;
+    padding-block: var(--shell-space-state-block);
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-kicker);
   }
 
   .app-shell-supporting-copy {
-    @apply text-[11px] text-muted-foreground;
+    @apply text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
   }
 
   .app-shell-metric-row {
-    @apply flex items-center justify-between gap-2 border-b bg-transparent px-0 py-2;
+    @apply flex items-center justify-between border-b bg-transparent px-0;
+    gap: var(--shell-gap-tight);
+    padding-block: var(--shell-space-control-block-sm);
   }
 
   .app-shell-metric-label {
-    @apply text-[11px] uppercase tracking-[0.14em] text-muted-foreground;
+    @apply uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-label);
   }
 
   .app-shell-metric-value {
@@ -413,22 +477,30 @@
   }
 
   .app-shell-status-row {
-    @apply flex flex-wrap items-center text-[11px] uppercase tracking-[0.14em] text-muted-foreground;
+    @apply flex flex-wrap items-center uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-label);
     gap: var(--shell-gap-compact);
   }
 
   .app-shell-loading-row {
-    @apply flex items-center text-[11px] uppercase tracking-[0.14em] text-muted-foreground;
+    @apply flex items-center uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-label);
     gap: var(--shell-gap-compact);
     padding-inline: calc(var(--shell-gap-compact) / 2);
   }
 
   .app-shell-spinner {
-    @apply size-3.5 animate-spin;
+    @apply animate-spin;
+    block-size: var(--shell-control-icon-sm);
+    inline-size: var(--shell-control-icon-sm);
   }
 
   .app-shell-kicker {
-    @apply text-[11px] uppercase tracking-[0.16em] text-muted-foreground;
+    @apply uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-kicker);
   }
 
   .app-shell-session-card {
@@ -497,24 +569,33 @@
   }
 
   .app-shell-tabs-trigger {
-    @apply rounded-none border-x-0 border-t-0 border-b border-transparent px-3 text-xs text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none;
+    @apply rounded-none border-x-0 border-t-0 border-b border-transparent text-muted-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none;
+    padding-inline: var(--shell-space-control-inline-md);
+    font-size: var(--shell-text-control-size);
   }
 
   .app-shell-plain-action {
-    @apply h-7 px-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground;
+    @apply uppercase text-muted-foreground hover:text-foreground;
+    block-size: var(--shell-control-height-sm);
+    padding-inline: var(--shell-space-control-inline-sm);
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-label);
   }
 
   .app-shell-composer-send {
-    @apply px-1.5;
+    padding-inline: var(--shell-space-control-inline-xs);
   }
 
   .app-shell-console {
-    @apply min-h-0 overflow-auto border bg-transparent text-[12px] leading-5;
+    @apply min-h-0 overflow-auto border bg-transparent;
+    font-size: var(--shell-text-control-size);
+    line-height: var(--shell-text-body-line-height);
     padding: var(--shell-console-padding);
   }
 
   .app-shell-console-section {
-    @apply min-h-0 grid gap-2;
+    @apply min-h-0 grid;
+    gap: var(--shell-gap-tight);
   }
 
   .app-shell-rail-frame {
@@ -530,7 +611,7 @@
   }
 
   .app-shell-pane-footer-review {
-    padding-block: 0.5rem;
+    padding-block: var(--shell-space-control-block-sm);
   }
 
   .app-shell-panel-stack {
@@ -554,25 +635,31 @@
   }
 
   .app-shell-diagnostic-row {
-    @apply flex items-start justify-between gap-3 border-b py-3 text-sm;
+    @apply flex items-start justify-between border-b text-sm;
+    gap: var(--shell-gap-panel);
+    padding-block: var(--shell-space-control-block-md);
   }
 
   .app-shell-message-section {
-    @apply grid gap-2 border-b py-3;
+    @apply grid border-b;
+    gap: var(--shell-gap-tight);
+    padding-block: var(--shell-space-control-block-md);
   }
 
   .app-shell-proposal-card {
-    @apply grid gap-4 border-b;
+    @apply grid border-b;
+    gap: var(--shell-gap-wide);
     padding-block: 1.25rem;
   }
 
   .app-shell-proposal-card .app-shell-message-heading {
-    @apply text-lg tracking-[-0.02em];
+    @apply text-lg;
     font-family: var(--font-heading);
+    letter-spacing: var(--shell-tracking-heading);
   }
 
   .app-shell-proposal-card .app-shell-body-list {
-    @apply gap-4;
+    gap: var(--shell-gap-wide);
   }
 
   .app-shell-proposal-card .app-shell-body-item {
@@ -589,7 +676,9 @@
   }
 
   .app-shell-message-kicker {
-    @apply text-[11px] uppercase tracking-[0.16em] text-muted-foreground;
+    @apply uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-kicker);
   }
 
   .app-shell-message-heading {
@@ -597,10 +686,12 @@
   }
 
   .app-shell-status-count {
-    @apply text-[11px] uppercase tracking-[0.14em] text-muted-foreground;
+    @apply uppercase text-muted-foreground;
+    font-size: var(--shell-text-kicker-size);
+    letter-spacing: var(--shell-tracking-label);
   }
 
   .app-shell-panel-stack > * + * {
-    @apply mt-3;
+    margin-top: var(--shell-gap-panel);
   }
 }

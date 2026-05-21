@@ -669,6 +669,10 @@ async function createRuntimeFixture({
     "export {}\n",
   )
   await writeFile(
+    path.join(runtimePaths.runtimeSrcDir, "render-ssr.tsx"),
+    "export function renderRuntimeAppToHtml() { return '' }\n",
+  )
+  await writeFile(
     path.join(runtimePaths.runtimeSrcDir, "ssr.tsx"),
     "export {}\n",
   )

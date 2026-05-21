@@ -1,7 +1,8 @@
 import { Separator } from "@/components/ui/separator"
 
 import { extractFontName } from "../helpers"
-import { FieldRow, GalleryPreviewMeta } from "../shared"
+import { GalleryPreviewMeta } from "../shared/chrome"
+import { FieldRow } from "../shared/form-controls"
 import type { TypographyPanelProps } from "./types"
 
 export function GalleryTypographyPanel({

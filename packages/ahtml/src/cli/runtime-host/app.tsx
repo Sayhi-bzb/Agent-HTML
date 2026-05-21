@@ -1,26 +1,30 @@
 import React from "react"
 
+import { DocumentArtifactShell, type ArtifactProfile } from "./artifact-shell"
 import generatedDocument from "./document.generated.json"
+import { RuntimeStyleElements } from "./host-styles"
+import { createDocumentStyleCss } from "./profile-theme"
 import runtimeStateSource from "./runtime-state.generated.json"
 import runtimeVerificationState from "./render-verification.generated.json"
-import { type ArtifactProfile } from "./artifact-shell"
 import { DocumentApp } from "./features/document/app"
 import { GalleryApp } from "./features/gallery/app"
 import type { AgentDocument, RuntimeVerificationState } from "./renderer/types"
 
+type RuntimeDiagnostic = {
+  severity?: string
+  code?: string
+  path?: string
+  message?: string
+}
+
 type RuntimeState = {
   kind?: string
   version?: number
-  mode?: "document" | "gallery"
+  mode?: "document" | "gallery" | "diagnostics"
   artifactProfileReference?: string
   artifactProfile?: ArtifactProfile
   document?: AgentDocument
-  diagnostics?: {
-    severity?: string
-    code?: string
-    path?: string
-    message?: string
-  }[]
+  diagnostics?: RuntimeDiagnostic[]
   inputPath?: string
   gallery?: {
     availableArtifactProfileReferences: string[]
@@ -88,12 +92,7 @@ function PreviewDiagnosticsApp({
   inputPath,
 }: {
   artifactProfile: ArtifactProfile
-  diagnostics: {
-    severity?: string
-    code?: string
-    path?: string
-    message?: string
-  }[]
+  diagnostics: RuntimeDiagnostic[]
   inputPath?: string
 }) {
   const documentStyleCss = createDocumentStyleCss(artifactProfile)

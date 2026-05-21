@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 
 import { createGallerySurfaceShadow, getManualCardProps } from "../helpers"
-import { FieldRow, GalleryPreviewMeta } from "../shared"
+import { GalleryPreviewMeta } from "../shared/chrome"
+import { FieldRow } from "../shared/form-controls"
 import type { PreviewSceneProps } from "./types"
 
 export function GalleryCardsWorkbenchPanel({

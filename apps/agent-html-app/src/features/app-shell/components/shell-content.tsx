@@ -13,6 +13,11 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type {
   BuildRunSummary,
   DiagnosticSeverity,
@@ -156,6 +161,26 @@ export function ShellActionGroup({ children }: ShellActionGroupProps) {
   return <div className="app-shell-action-group">{children}</div>
 }
 
+function withTooltip(
+  element: ReactElement,
+  tooltip?: ReactNode,
+  disabled = false,
+  side: "top" | "right" | "bottom" | "left" = "top",
+) {
+  if (!tooltip) {
+    return element
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {disabled ? <span className="inline-flex">{element}</span> : element}
+      </TooltipTrigger>
+      <TooltipContent side={side}>{tooltip}</TooltipContent>
+    </Tooltip>
+  )
+}
+
 type ShellActionButtonProps = {
   children: ReactNode
   disabled?: boolean
@@ -163,6 +188,8 @@ type ShellActionButtonProps = {
   ariaLabel?: string
   variant?: "outline" | "ghost"
   className?: string
+  tooltip?: ReactNode
+  tooltipSide?: "top" | "right" | "bottom" | "left"
 }
 
 export function ShellActionButton({
@@ -172,8 +199,10 @@ export function ShellActionButton({
   ariaLabel,
   variant = "outline",
   className,
+  tooltip,
+  tooltipSide,
 }: ShellActionButtonProps) {
-  return (
+  const button = (
     <Button
       aria-label={ariaLabel}
       className={className}
@@ -186,6 +215,8 @@ export function ShellActionButton({
       {children}
     </Button>
   )
+
+  return withTooltip(button, tooltip, disabled, tooltipSide)
 }
 
 type ShellIconButtonProps = {
@@ -196,6 +227,8 @@ type ShellIconButtonProps = {
   variant?: "outline" | "ghost"
   size?: "icon-sm" | "icon-xs"
   className?: string
+  tooltip?: ReactNode
+  tooltipSide?: "top" | "right" | "bottom" | "left"
 }
 
 export function ShellIconButton({
@@ -206,8 +239,10 @@ export function ShellIconButton({
   variant = "outline",
   size = "icon-sm",
   className,
+  tooltip,
+  tooltipSide,
 }: ShellIconButtonProps) {
-  return (
+  const button = (
     <Button
       aria-label={ariaLabel}
       className={className}
@@ -220,6 +255,8 @@ export function ShellIconButton({
       {children}
     </Button>
   )
+
+  return withTooltip(button, tooltip, disabled, tooltipSide)
 }
 
 type ShellSearchFieldProps = {

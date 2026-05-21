@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
 import { extractFontName } from "../helpers"
-import { GalleryPreviewMeta } from "../shared"
+import { GalleryPreviewMeta } from "../shared/chrome"
 import type { PreviewSceneProps } from "./types"
 
 export function GalleryMailWorkbenchPanel({

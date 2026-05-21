@@ -29,11 +29,8 @@ import { GalleryMailWorkbenchPanel } from "./preview/mail"
 import { GalleryPricingWorkbenchPanel } from "./preview/pricing"
 import { GalleryTypographyPanel } from "./preview/typography"
 import type { RendererNodeComponent } from "./preview/types"
-import {
-  GalleryExamplesPreviewContainer,
-  GalleryTabsTriggerPill,
-  GalleryToolbarGroup,
-} from "./shared"
+import { GalleryTabsTriggerPill, GalleryToolbarGroup } from "./shared/chrome"
+import { GalleryExamplesPreviewContainer } from "./shared/preview-container"
 import type {
   ArtifactProfile,
   FocusedEditorField,

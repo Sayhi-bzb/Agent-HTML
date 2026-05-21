@@ -15,6 +15,7 @@ export default (async () => {
       alias: {
         react: dependencies.reactRoot,
         "react/jsx-runtime": dependencies.reactJsxRuntime,
+        "react/jsx-dev-runtime": dependencies.reactJsxDevRuntime,
         "react-dom": dependencies.reactDomRoot,
         "react-dom/client": dependencies.reactDomClient,
         "react-dom/server": dependencies.reactDomServer,

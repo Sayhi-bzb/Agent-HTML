@@ -47,6 +47,22 @@ const galleryPreviewScenePaths = [
   "packages/ahtml/src/cli/runtime-host/features/gallery/preview/typography.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/preview/types.ts",
 ]
+const galleryControlsModulePaths = [
+  "packages/ahtml/src/cli/runtime-host/features/gallery/controls.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/controls/colors-tab.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/controls/header.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/controls/other-tab.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/controls/profile-tab.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/controls/typography-tab.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/controls/types.ts",
+]
+const gallerySharedModulePaths = [
+  "packages/ahtml/src/cli/runtime-host/features/gallery/shared/index.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/shared/form-controls.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/shared/chrome.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/shared/preview-container.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/shared/preset-option.tsx",
+]
 
 async function readGallerySceneStyleSource() {
   return (
@@ -62,6 +78,26 @@ async function readGalleryPreviewSceneSource() {
   return (
     await Promise.all(
       galleryPreviewScenePaths.map((relativePath) =>
+        readRepoSource(relativePath),
+      ),
+    )
+  ).join("\n")
+}
+
+async function readGalleryControlsModuleSource() {
+  return (
+    await Promise.all(
+      galleryControlsModulePaths.map((relativePath) =>
+        readRepoSource(relativePath),
+      ),
+    )
+  ).join("\n")
+}
+
+async function readGallerySharedModuleSource() {
+  return (
+    await Promise.all(
+      gallerySharedModulePaths.map((relativePath) =>
         readRepoSource(relativePath),
       ),
     )
@@ -420,5 +456,179 @@ describe("code governance sync blocks", () => {
     expect(previewSceneSource).toContain(
       "export function GalleryPricingWorkbenchPanel",
     )
+  })
+
+  it("keeps gallery controls.tsx as an orchestrator while tab modules live in controls modules", async () => {
+    const [controlsSource, controlsModuleSource] = await Promise.all([
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "features",
+        "gallery",
+        "controls.tsx",
+      ),
+      readGalleryControlsModuleSource(),
+    ])
+
+    expect(controlsSource).toContain('from "./controls/header"')
+    expect(controlsSource).toContain('from "./controls/profile-tab"')
+    expect(controlsSource).toContain('from "./controls/colors-tab"')
+    expect(controlsSource).toContain('from "./controls/typography-tab"')
+    expect(controlsSource).toContain('from "./controls/other-tab"')
+    expect(controlsSource).not.toContain("function GalleryControlsHeader(")
+    expect(controlsSource).not.toContain("function GalleryProfileTab(")
+    expect(controlsSource).not.toContain("function GalleryColorsTab(")
+    expect(controlsSource).not.toContain("function GalleryTypographyTab(")
+    expect(controlsSource).not.toContain("function GalleryOtherTab(")
+    expect(controlsModuleSource).toContain(
+      "export function GalleryControlsHeader",
+    )
+    expect(controlsModuleSource).toContain("export function GalleryProfileTab")
+    expect(controlsModuleSource).toContain("export function GalleryColorsTab")
+    expect(controlsModuleSource).toContain(
+      "export function GalleryTypographyTab",
+    )
+    expect(controlsModuleSource).toContain("export function GalleryOtherTab")
+  })
+
+  it("keeps gallery shared entry as a controlled export surface while shared implementations live in shared modules", async () => {
+    const [sharedEntrySource, sharedModuleSource] = await Promise.all([
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "features",
+        "gallery",
+        "shared",
+        "index.tsx",
+      ),
+      readGallerySharedModuleSource(),
+    ])
+
+    expect(sharedEntrySource).toContain('from "./form-controls"')
+    expect(sharedEntrySource).toContain('from "./chrome"')
+    expect(sharedEntrySource).toContain('from "./preview-container"')
+    expect(sharedEntrySource).toContain('from "./preset-option"')
+    expect(sharedEntrySource).toContain('from "../helpers"')
+    expect(sharedEntrySource).not.toContain("export function TokenEditor(")
+    expect(sharedEntrySource).not.toContain("export function LabeledInput(")
+    expect(sharedEntrySource).not.toContain("export function FontPickerField(")
+    expect(sharedEntrySource).not.toContain("export function SliderInputField(")
+    expect(sharedEntrySource).not.toContain("export function FieldRow(")
+    expect(sharedEntrySource).not.toContain("export function GalleryPanelBody(")
+    expect(sharedEntrySource).not.toContain(
+      "export function GalleryPreviewMeta(",
+    )
+    expect(sharedEntrySource).not.toContain(
+      "export function GalleryToolbarGroup(",
+    )
+    expect(sharedEntrySource).not.toContain(
+      "export function GalleryTabsTriggerPill(",
+    )
+    expect(sharedEntrySource).not.toContain(
+      "export function GalleryExamplesPreviewContainer(",
+    )
+    expect(sharedEntrySource).not.toContain(
+      "export function renderPresetChooserOption(",
+    )
+    expect(sharedModuleSource).toContain("export function TokenEditor")
+    expect(sharedModuleSource).toContain("export function LabeledInput")
+    expect(sharedModuleSource).toContain("export function FontPickerField")
+    expect(sharedModuleSource).toContain("export function SliderInputField")
+    expect(sharedModuleSource).toContain("export function FieldRow")
+    expect(sharedModuleSource).toContain("export function GalleryPanelBody")
+    expect(sharedModuleSource).toContain("export function GalleryPreviewMeta")
+    expect(sharedModuleSource).toContain("export function GalleryToolbarGroup")
+    expect(sharedModuleSource).toContain(
+      "export function GalleryTabsTriggerPill",
+    )
+    expect(sharedModuleSource).toContain(
+      "export function GalleryExamplesPreviewContainer",
+    )
+    expect(sharedModuleSource).toContain(
+      "export function renderPresetChooserOption",
+    )
+  })
+
+  it("keeps gallery shared consumers on specific shared modules instead of a single shared monolith import", async () => {
+    const galleryFeatureSource = (
+      await Promise.all([
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "app.tsx",
+        ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "preview.tsx",
+        ),
+        ...[
+          "cards.tsx",
+          "colors.tsx",
+          "custom.tsx",
+          "dashboard.tsx",
+          "mail.tsx",
+          "pricing.tsx",
+          "typography.tsx",
+        ].map((fileName) =>
+          readRepoSource(
+            "packages",
+            "ahtml",
+            "src",
+            "cli",
+            "runtime-host",
+            "features",
+            "gallery",
+            "preview",
+            fileName,
+          ),
+        ),
+        ...[
+          "colors-tab.tsx",
+          "header.tsx",
+          "other-tab.tsx",
+          "profile-tab.tsx",
+          "typography-tab.tsx",
+        ].map((fileName) =>
+          readRepoSource(
+            "packages",
+            "ahtml",
+            "src",
+            "cli",
+            "runtime-host",
+            "features",
+            "gallery",
+            "controls",
+            fileName,
+          ),
+        ),
+      ])
+    ).join("\n")
+
+    expect(galleryFeatureSource).not.toContain('from "./shared"')
+    expect(galleryFeatureSource).not.toContain('from "../shared"')
+    expect(galleryFeatureSource).toContain('from "./shared/chrome"')
+    expect(galleryFeatureSource).toContain(
+      'from "./shared/preview-container"',
+    )
+    expect(galleryFeatureSource).toContain('from "../shared/chrome"')
+    expect(galleryFeatureSource).toContain('from "../shared/form-controls"')
+    expect(galleryFeatureSource).toContain('from "../shared/preset-option"')
   })
 })

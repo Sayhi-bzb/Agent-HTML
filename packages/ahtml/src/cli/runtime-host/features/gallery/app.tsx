@@ -38,7 +38,7 @@ import {
   isBuiltinArtifactProfileReference,
 } from "./helpers"
 import { GalleryPreviewPane } from "./preview"
-import { GalleryTabsTriggerPill } from "./shared"
+import { GalleryTabsTriggerPill } from "./shared/chrome"
 import { createGalleryWorkbenchCss } from "./styles"
 import type {
   ArtifactProfile,

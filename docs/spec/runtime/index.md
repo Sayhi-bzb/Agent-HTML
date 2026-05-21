@@ -217,6 +217,10 @@ runtime shell
   - artifact shell baseline
 - `gallery` 的 header / tabs / sidebar / divider / preview toolbar / stage toolbar 这类 shell 或 frame 级结构，应优先由 `host-styles.tsx` 持有。
 - `preset chooser`、`font picker`、`token editor`、`inspector` 这类 gallery editor 通用壳层，也应优先由 `host-styles.tsx` 持有。
+- `features/gallery/controls.tsx` 应只保留 control shell、tab routing 与 state handoff。
+- `profile` / `colors` / `typography` / `other` 这些 control panel 实现应下沉到 `features/gallery/controls/*` 独立模块，不再回流到单一巨型 `controls.tsx`。
+- `features/gallery/shared/index.tsx` 应只保留 shared export surface。
+- `form controls`、`preview shell`、`preset chooser helper` 这些共享实现应下沉到 `features/gallery/shared/*`，不再回流到单一巨型 `shared.tsx`。
 - `features/gallery/preview.tsx` 应只保留 preview shell、mode bar 与 scene orchestration。
 - 各个 preview scene 面板应下沉到 `features/gallery/preview/*` 独立模块，不再回流到单一巨型 `preview.tsx`。
 - feature 不应继续扩张并列的页面壳层体系。
