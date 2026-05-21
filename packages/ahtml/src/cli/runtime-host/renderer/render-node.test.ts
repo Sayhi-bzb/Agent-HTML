@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest"
 
 import { importCliModule, resolveRepoPath } from "../../cli-test-helpers"
 import type { ComponentSchema } from "@agent-html/core"
+import { createGalleryShellCss } from "../host-styles"
 import type {
   AgentNode,
   RendererPath,
@@ -404,6 +405,22 @@ describe("createRendererNode", () => {
     expect(markup).not.toContain('<header><h2>Summary</h2></header><div class="ahtml-section-stack')
     expect(markup).not.toContain('<header><h2>Summary</h2></header><div class="ahtml-prose-block')
     expect(markup).toContain('class="ahtml-prose-block"><p class="m-0 whitespace-normal">Ready</p>')
+  })
+
+  it("uses host CSS to add block spacing inside neutral card content", () => {
+    const css = createGalleryShellCss()
+
+    expect(css).toContain(
+      '.ahtml-gallery-preview-document [data-slot="card-content"]:not(.ahtml-section-stack):not(.ahtml-prose-block) > :where(',
+    )
+    expect(css).toContain(
+      '.ahtml-runtime-document .ahtml-layout-policy-document [data-slot="card-content"]:not(.ahtml-section-stack):not(.ahtml-prose-block) > :where(',
+    )
+    expect(css).toContain('[data-agent-html-component="list"]')
+    expect(css).toContain('[data-agent-html-component="separator"]')
+    expect(css).toContain('[data-agent-html-component="progress"]')
+    expect(css).toContain('[data-agent-html-component="alert"]')
+    expect(css).toContain("margin-top: 1rem;")
   })
 
   it("allows document-style compound content when the renderer spec opts in", () => {

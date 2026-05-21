@@ -1,0 +1,146 @@
+# UI Code Structure Specification
+
+## Purpose
+
+This document defines how frontend design decisions map onto code structure.
+It exists so the design system remains enforceable in implementation.
+
+## Ownership
+
+This document owns directory responsibilities, class-usage rules, variant management, promotion
+rules, and review anti-patterns.
+It does not define visual philosophy, typography roles, or component-family appearance rules.
+
+## Directory Roles
+
+### `src/index.css`
+
+This file is the token and theme-mapping entrypoint.
+
+It owns:
+
+- font setup
+- semantic CSS variables
+- light and dark theme mappings
+- shared base-layer application rules
+
+It MUST NOT become a dumping ground for page-specific styles.
+
+### `src/components/ui/*`
+
+This directory is the primitive UI layer.
+
+It owns:
+
+- shadcn-derived primitives
+- primitive variants
+- primitive slot styling
+- shared interaction surfaces
+
+### `src/components/*`
+
+This directory is the composite UI layer.
+
+It owns:
+
+- shell components
+- navigation modules
+- reusable feature-facing composition
+- stable product patterns built from primitives
+
+It MUST NOT become a second primitive library.
+
+### Page / App Layer
+
+The page layer owns:
+
+- data shaping
+- page-specific composition
+- local content ordering
+- temporary view structure before a pattern proves reusable
+
+It MUST NOT define new system-wide visual truth.
+
+## Styling Source of Truth
+
+Design decisions should originate from this order:
+
+1. token and theme mapping
+2. primitive variants and slots
+3. composites built from primitives
+4. page-level composition
+
+If a page needs repeated local visual overrides, the rule probably belongs higher in the system.
+
+## Class Usage Rules
+
+Tailwind utility usage is allowed, but it MUST remain system-led.
+
+- prefer semantic token-backed utilities
+- prefer existing primitive variants before adding local overrides
+- prefer composition over local restyling
+- use arbitrary values sparingly and only when no sanctioned token or constant exists
+- avoid repeating the same utility bundle across multiple files when it should become a primitive
+  or composite concern
+
+## Variant Management
+
+Variants belong to primitives first.
+
+- if multiple screens need the same interaction surface in different visual forms, add or refine a
+  primitive variant
+- if the pattern is a reusable arrangement of primitives, create a composite
+- if the pattern is unique to one screen, keep it local until reuse is proven
+
+## Layout Constant Management
+
+Structural constants such as shell heights and widths MUST be centralized.
+
+- layout constants SHOULD be declared close to the shell primitive that owns them
+- page code MUST NOT redefine shell structure constants ad hoc
+- if a structural value becomes reused beyond one shell context, evaluate whether it should be
+  promoted into a more explicit system constant
+
+## Primitive Change Policy
+
+When editing a primitive:
+
+- assume the blast radius is global
+- evaluate downstream consumers
+- prefer additive variants over breaking stylistic rewrites
+- preserve accessibility and interaction semantics
+
+## Composite Promotion Policy
+
+A page-level UI block should be promoted to a composite when:
+
+- it appears on multiple screens
+- it encodes a stable interaction pattern
+- it would otherwise duplicate layout or state logic
+
+It should stay local when:
+
+- it is a one-off placeholder
+- it is purely contextual
+- its reuse model is still unclear
+
+## Review Checklist
+
+A UI review should verify:
+
+- no raw visual values bypass the token model
+- no new parallel primitive was created
+- no page is styling around primitives when a variant should exist
+- no composite is leaking page-specific assumptions into the system
+- no shell constants are copied into random files
+- no accessibility behavior was lost during visual customization
+
+## Anti-Patterns
+
+The following should be rejected by default:
+
+- duplicating button or input behavior outside `src/components/ui/*`
+- creating a second sidebar implementation with custom markup
+- hard-coding colors in feature components
+- encoding typography decisions ad hoc in every page
+- growing page-local utility bundles into a shadow design system

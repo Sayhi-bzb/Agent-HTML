@@ -8,10 +8,12 @@ import {
   bootstrapManagedRuntime,
   ensureRuntimeBuildLock,
   getRuntimeStatus,
+  readRuntimeManifest,
   withRuntimeBuildLock,
   writeGeneratedDocument,
   writeGeneratedRuntimeState,
 } from "./runtime-status.mjs"
+import { assertRuntimeSurface } from "./runtime-surface.mjs"
 import { nativeRuntimeSetup, resolveRuntimeSetup } from "./runtime-setup.mjs"
 import {
   assertRendererSpecParity,
@@ -209,10 +211,16 @@ export function createArtifactWorkflow({
     try {
       const runtimeVerificationState =
         await readRuntimeVerificationState(runtimePaths)
-      return isRuntimeVerificationCurrent({
+      isRuntimeVerificationCurrent({
         runtimeVerificationState,
         schema,
       })
+      const runtimeManifest = await readRuntimeManifest(runtimePaths)
+      await assertRuntimeSurface({
+        manifest: runtimeManifest,
+        paths: runtimePaths,
+      })
+      return true
     } catch {
       return false
     }
