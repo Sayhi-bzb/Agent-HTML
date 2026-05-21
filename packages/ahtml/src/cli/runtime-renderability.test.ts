@@ -528,9 +528,9 @@ describe("createRuntimeRenderDiagnostics", () => {
 function createDocument(components: AgentDocument["components"]): AgentDocument {
   return {
     meta: {
-      artifactProfileReference: "report-default",
+      artifactProfileReference: "shadcn-default",
       artifactProfile: {
-        id: "report-default",
+        id: "shadcn-default",
         globalStyle: {
           tokenSets: {
             light: emptyColorTokenSet(),

@@ -428,6 +428,8 @@ export function useGalleryAppController({
     setPresetPopoverOpen: workbenchState.setPresetPopoverOpen,
     setPresetSearch: workbenchState.setPresetSearch,
     setPreviewThemeMode: workbenchState.setPreviewThemeMode,
+    resetDraft: draftActions.resetDraft,
+    saveProfile: profileActions.saveProfile,
     updateDraftProfile: draftActions.updateDraftProfile,
     updateThemeTokenValue: draftActions.updateThemeTokenValue,
   }

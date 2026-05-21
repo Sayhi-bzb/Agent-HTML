@@ -11,18 +11,18 @@ describe("gallery workflow", () => {
     const { createArtifactProfileGalleryDocument } =
       await importGalleryWorkflowModule()
     const artifactProfile = parseRenderConfig({
-      "profile-ref": "ops-compact",
+      "profile-ref": "shadcn-default",
     }).artifactProfile
 
     const document = createArtifactProfileGalleryDocument(artifactProfile)
 
-    expect(document.meta.artifactProfileReference).toBe("ops-compact")
-    expect(document.meta.artifactProfile.id).toBe("ops-compact")
+    expect(document.meta.artifactProfileReference).toBe("shadcn-default")
+    expect(document.meta.artifactProfile.id).toBe("shadcn-default")
     expect(document.components[0]).toMatchObject({
       type: "component",
       name: "page",
       props: {
-        title: "ops-compact component gallery",
+        title: "shadcn-default component gallery",
       },
     })
 
@@ -40,7 +40,7 @@ describe("gallery workflow", () => {
     expect(serialized).toContain(
       artifactProfile.globalStyle.tokenSets.light.background,
     )
-    expect(serialized).toContain(artifactProfile.componentStyle.treatments.card)
+    expect(artifactProfile.componentStyle).toEqual({})
     expect(serialized).toContain("Executive Summary")
     expect(serialized).toContain("Current profile")
   })
@@ -57,9 +57,7 @@ async function importGalleryWorkflowModule() {
           }
         }
       }
-      readonly componentStyle: {
-        readonly treatments: Readonly<Record<string, string>>
-      }
+      readonly componentStyle: Record<string, never>
     }) => {
       readonly meta: {
         readonly artifactProfileReference: string

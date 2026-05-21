@@ -80,9 +80,7 @@ export type GeneratedShadcnIntrospection = {
 }
 
 export type BuiltinArtifactProfileReference =
-  | "report-default"
-  | "ops-compact"
-  | "review-dense"
+  | "shadcn-default"
 
 export type ArtifactProfileReference = string
 
@@ -207,9 +205,7 @@ export type GlobalStyleProfile = {
   readonly cssVariableMap: CssVariableMap
 }
 
-export type ComponentStyleProfile = {
-  readonly treatments: Readonly<Record<string, string>>
-}
+export type ComponentStyleProfile = Record<string, never>
 
 export type DensityPosture = "compact" | "balanced" | "relaxed"
 

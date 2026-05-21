@@ -26,12 +26,11 @@ describe("agent-html CLI heavy preview flows", () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "artifact.agent.html")
-    const outputDir = path.join(tempDir, "html")
 
     await writeFile(
       inputPath,
       [
-        '<meta-agent profile-ref="ops-compact" />',
+        '<meta-agent profile-ref="shadcn-default" />',
         '<page title="CLI Preview">',
         '  <card title="Overview">',
         '    <alert title="State" variant="destructive">Preview by CLI</alert>',
@@ -51,7 +50,7 @@ describe("agent-html CLI heavy preview flows", () => {
 
     const preview = spawn(
       process.execPath,
-      [cliPath, "preview", inputPath, "--out", outputDir, "--port", "0"],
+      [cliPath, "preview", inputPath, "--port", "0"],
       {
         cwd: tempDir,
         env: createCliEnv(
@@ -73,7 +72,7 @@ describe("agent-html CLI heavy preview flows", () => {
       expect(body).toContain(
         'rel="icon" type="image/svg+xml" href="./ghost.svg"',
       )
-      expect(body).toContain('data-artifact-profile="ops-compact"')
+      expect(body).toContain('data-artifact-profile="shadcn-default"')
       expect(body).toContain('data-slot="alert"')
       expect(body).toContain('data-slot="badge"')
       expect(body).toContain('data-slot="tabs"')
@@ -93,7 +92,6 @@ describe("agent-html CLI heavy preview flows", () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "team-ops.agent.html")
-    const outputDir = path.join(tempDir, "html")
 
     await writeCustomArtifactProfile(runtimeHome)
     await writeFile(
@@ -106,7 +104,7 @@ describe("agent-html CLI heavy preview flows", () => {
 
     const preview = spawn(
       process.execPath,
-      [cliPath, "preview", inputPath, "--out", outputDir, "--port", "0"],
+      [cliPath, "preview", inputPath, "--port", "0"],
       {
         cwd: tempDir,
         env: createCliEnv(
@@ -142,7 +140,7 @@ describe("agent-html CLI heavy preview flows", () => {
     await writeFile(
       inputPath,
       [
-        '<meta-agent profile-ref="report-default" />',
+        '<meta-agent profile-ref="shadcn-default" />',
         '<page title="Live Preview">',
         '  <card title="Overview">First render.</card>',
         "</page>",
@@ -171,7 +169,7 @@ describe("agent-html CLI heavy preview flows", () => {
       await writeFile(
         inputPath,
         [
-          '<meta-agent profile-ref="report-default" />',
+          '<meta-agent profile-ref="shadcn-default" />',
           '<page title="Live Preview">',
           '  <card title="Overview">Second render.</card>',
           "</page>",
@@ -224,7 +222,7 @@ describe("agent-html CLI heavy preview flows", () => {
       await writeFile(
         inputPath,
         [
-          '<meta-agent profile-ref="review-dense" />',
+          '<meta-agent profile-ref="shadcn-default" />',
           '<page title="Recovered"><card title="Summary">Recovered preview.</card></page>',
         ].join("\n"),
       )

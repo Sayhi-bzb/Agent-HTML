@@ -30,28 +30,28 @@ export function createGalleryCustomWorkbenchCss() {
       position: relative;
       display: flex;
       align-items: center;
-      gap: 0.3rem;
+      gap: var(--ahtml-space-2xs);
       min-width: var(--ahtml-gallery-custom-preview-input-min-width);
       flex: 1;
       padding-left: 0.2rem;
     }
     .ahtml-gallery-custom-preview-input [data-slot="input"] {
-      padding-left: 2rem;
+      padding-left: var(--ahtml-gallery-control-input-padding-start);
       font-family:
         "SFMono-Regular",
         Consolas,
         "Liberation Mono",
         Menlo,
         monospace;
-      font-size: 0.76rem;
+      font-size: var(--ahtml-gallery-text-chip-size);
       background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
     }
     .ahtml-gallery-custom-preview-input-icon {
       position: absolute;
-      left: 0.8rem;
+      left: var(--ahtml-gallery-control-icon-offset-inline);
       top: 50%;
-      width: 0.9rem;
-      height: 0.9rem;
+      width: var(--ahtml-gallery-control-icon-size);
+      height: var(--ahtml-gallery-control-icon-size);
       transform: translateY(-50%);
       color: var(--muted-foreground);
       pointer-events: none;
@@ -60,7 +60,7 @@ export function createGalleryCustomWorkbenchCss() {
     .ahtml-gallery-custom-preview-actions {
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
+      gap: var(--ahtml-space-2xs);
       flex-wrap: wrap;
     }
     .ahtml-gallery-custom-browser-bar {
@@ -81,7 +81,7 @@ export function createGalleryCustomWorkbenchCss() {
     .ahtml-gallery-custom-browser-dots span {
       width: 0.65rem;
       height: 0.65rem;
-      border-radius: 999px;
+      border-radius: var(--ahtml-gallery-radius-full);
       background: color-mix(in srgb, var(--muted-foreground) 26%, transparent);
     }
     .ahtml-gallery-custom-browser-url {
@@ -90,7 +90,7 @@ export function createGalleryCustomWorkbenchCss() {
       text-overflow: ellipsis;
       white-space: nowrap;
       color: var(--muted-foreground);
-      font-size: 0.76rem;
+      font-size: var(--ahtml-gallery-text-chip-size);
       font-family:
         "SFMono-Regular",
         Consolas,
@@ -171,9 +171,11 @@ export function createGalleryCustomWorkbenchCss() {
       gap: var(--ahtml-space-sm);
     }
     .ahtml-gallery-custom-preview-guides button {
-      padding: 0.45rem 0.7rem;
+      padding:
+        var(--ahtml-gallery-pill-padding-block)
+        var(--ahtml-gallery-pill-padding-inline);
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-      border-radius: 999px;
+      border-radius: var(--ahtml-gallery-radius-full);
       background: transparent;
       color: var(--foreground);
       font: inherit;
@@ -194,7 +196,7 @@ export function createGalleryCustomWorkbenchCss() {
     .ahtml-gallery-custom-connection-indicator {
       width: 0.7rem;
       height: 0.7rem;
-      border-radius: 999px;
+      border-radius: var(--ahtml-gallery-radius-full);
       background: color-mix(in srgb, var(--primary) 88%, white 12%);
       box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 12%, transparent);
     }
@@ -202,7 +204,7 @@ export function createGalleryCustomWorkbenchCss() {
       flex: 1;
       min-width: 0;
       color: var(--muted-foreground);
-      font-size: 0.82rem;
+      font-size: var(--ahtml-gallery-text-supporting-size);
       line-height: 1.45;
     }
     .ahtml-gallery-custom-site-header {
@@ -217,7 +219,7 @@ export function createGalleryCustomWorkbenchCss() {
     }
     .ahtml-gallery-custom-site-brand {
       display: grid;
-      gap: 0.18rem;
+      gap: var(--ahtml-gallery-copy-stack-gap-compact);
     }
     .ahtml-gallery-custom-site-nav {
       display: flex;
@@ -227,7 +229,7 @@ export function createGalleryCustomWorkbenchCss() {
       min-width: 0;
       flex-wrap: wrap;
       color: var(--muted-foreground);
-      font-size: 0.82rem;
+      font-size: var(--ahtml-gallery-text-supporting-size);
     }
     .ahtml-gallery-custom-site-nav span.is-active {
       color: var(--foreground);
@@ -276,7 +278,7 @@ export function createGalleryCustomWorkbenchCss() {
     .ahtml-gallery-custom-hero-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.6rem;
+      gap: var(--ahtml-space-md);
     }
     .ahtml-gallery-custom-stat-strip {
       display: grid;
@@ -285,22 +287,22 @@ export function createGalleryCustomWorkbenchCss() {
     }
     .ahtml-gallery-custom-stat {
       display: grid;
-      gap: 0.16rem;
-      padding: 0.75rem 0.85rem;
+      gap: var(--ahtml-gallery-copy-stack-gap-compact);
+      padding:
+        var(--ahtml-gallery-compact-panel-padding-block)
+        var(--ahtml-gallery-compact-panel-padding-inline);
       border-radius: calc(var(--radius) * 0.95);
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       background: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
     }
     .ahtml-gallery-custom-stat span {
       color: var(--muted-foreground);
-      font-size: 0.66rem;
+      font-size: var(--ahtml-gallery-text-kicker-size);
       font-weight: 700;
-      letter-spacing: 0.12em;
+      letter-spacing: var(--ahtml-gallery-tracking-kicker);
       text-transform: uppercase;
     }
     .ahtml-gallery-custom-side-stack {
-      display: grid;
-      gap: var(--ahtml-gallery-layout-gap);
       align-content: start;
     }
     .ahtml-gallery-custom-swatch-stack {
@@ -315,8 +317,7 @@ export function createGalleryCustomWorkbenchCss() {
     }
     .ahtml-gallery-custom-grid {
       display: grid;
-      grid-template-columns:
-        repeat(auto-fit, minmax(var(--ahtml-gallery-custom-card-min-width), 1fr));
+      grid-template-columns: var(--ahtml-gallery-auto-fit-custom-card-columns);
       gap: var(--ahtml-gallery-layout-gap-relaxed);
       padding:
         0
@@ -351,7 +352,7 @@ export function createGalleryCustomWorkbenchCss() {
     }
     .ahtml-gallery-custom-note-list span {
       color: var(--muted-foreground);
-      font-size: 0.8rem;
+      font-size: var(--ahtml-gallery-text-body-size);
       line-height: 1.45;
     }
     .ahtml-gallery-custom-progress-list {
@@ -364,15 +365,15 @@ export function createGalleryCustomWorkbenchCss() {
     }
     .ahtml-gallery-custom-signal-item {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-columns: var(--ahtml-gallery-leading-detail-columns);
       align-items: start;
       gap: var(--ahtml-space-sm);
     }
     .ahtml-gallery-custom-signal-dot {
       width: 0.55rem;
       height: 0.55rem;
-      margin-top: 0.35rem;
-      border-radius: 999px;
+      margin-top: var(--ahtml-space-2xs);
+      border-radius: var(--ahtml-gallery-radius-full);
       background: var(--primary);
       box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 14%, transparent);
     }

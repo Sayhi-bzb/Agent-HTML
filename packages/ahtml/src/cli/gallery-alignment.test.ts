@@ -105,6 +105,17 @@ describe("gallery alignment", () => {
           "controls",
           "other-tab.tsx",
         ),
+        readRepoSource(
+          "packages",
+          "ahtml",
+          "src",
+          "cli",
+          "runtime-host",
+          "features",
+          "gallery",
+          "controls",
+          "treatments-tab.tsx",
+        ),
       ]).then((sources) => sources.join("\n")),
       readRepoSource(
         "packages",
@@ -347,13 +358,13 @@ describe("gallery alignment", () => {
     expect(runtimeGallerySource).toContain("Reset")
     expect(runtimeGallerySource).toContain("Save Profile")
     expect(runtimeGallerySource).toContain('aria-label="Preview theme"')
-    expect(runtimeGallerySource).toContain("Preset chooser")
+    expect(runtimeGallerySource).toContain("Profile gallery")
     expect(runtimeGallerySource).toContain("<GalleryPreviewMeta")
     expect(runtimeGallerySource).toContain("Gallery")
     expect(runtimeGallerySource).toContain("Fullscreen")
     expect(runtimeGallerySource).toContain("data-theme-mode={previewThemeMode}")
     expect(runtimeGallerySource).toContain("GalleryExamplesPreviewContainer")
-    expect(runtimeGallerySource).toContain("More previews")
+    expect(runtimeGallerySource).toContain("More galleries")
     expect(runtimeGallerySource).toContain("Color Palette")
     expect(runtimeGallerySource).toContain("Full component gallery")
     expect(runtimeGallerySource).toContain("Inspector")
@@ -374,7 +385,10 @@ describe("gallery alignment", () => {
     expect(runtimeGallerySource).toContain("ahtml-gallery-color-popover")
     expect(runtimeGallerySource).toContain('value="dashboard"')
     expect(runtimeGallerySource).toContain('value="mail"')
-    expect(runtimeGallerySource).toContain('value="colors"')
+    expect(runtimeGallerySource).toContain('value="lightTokens"')
+    expect(runtimeGallerySource).toContain('value="darkTokens"')
+    expect(runtimeGallerySource).toContain('value="radius"')
+    expect(runtimeGallerySource).toContain('value="treatments"')
     expect(runtimeGallerySource).toContain('setPreviewMode("selection")')
     expect(runtimeGallerySource).toContain("Press Esc to release")
     expect(runtimeGallerySource).toContain("ahtml-gallery-inspector-outline")
@@ -390,8 +404,10 @@ describe("gallery alignment", () => {
       "Embedded campaign workbench preview",
     )
     expect(runtimeGallerySource).toContain(
-      "Audit the target page, not a detached mock.",
+      "Inspect the live destination before you publish.",
     )
+    expect(runtimeGallerySource).toContain("Profile manager")
+    expect(runtimeGallerySource).toContain("Persist")
     expect(runtimeGallerySource).toContain("Conversion Stack")
   })
 })

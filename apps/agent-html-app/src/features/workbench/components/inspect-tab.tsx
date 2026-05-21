@@ -4,8 +4,11 @@ import type {
   LogSnapshot,
 } from "@/lib/types"
 
-import { ShellLoadingRow } from "@/features/app-shell/components/shell-content"
-import { InspectHeader } from "./inspect-header"
+import {
+  ShellLoadingRow,
+  ShellMetaRow,
+  ShellStatusBadge,
+} from "@/features/app-shell/components/shell-content"
 import {
   InspectConsoleSection,
   InspectDiagnosticList,
@@ -22,9 +25,17 @@ export function InspectTab({ inspect, logs, inspecting }: InspectTabProps) {
   const stdout = logs.stdout?.trim()
   const stderr = logs.stderr?.trim()
   const hasLogs = Boolean(stdout || stderr)
+  const diagnosticsCount = inspect.diagnostics.filter((item) => item.severity !== "info").length
 
   return (
-    <WorkbenchCard header={<InspectHeader inspect={inspect} />}>
+    <WorkbenchCard>
+      <ShellMetaRow
+        action={
+          diagnosticsCount > 0 ? (
+            <ShellStatusBadge label={`${diagnosticsCount}`} variant="outline" />
+          ) : null
+        }
+      />
       {inspecting ? <ShellLoadingRow>Scan</ShellLoadingRow> : null}
       <InspectDiagnosticList diagnostics={inspect.diagnostics} />
       {hasLogs ? <Separator /> : null}

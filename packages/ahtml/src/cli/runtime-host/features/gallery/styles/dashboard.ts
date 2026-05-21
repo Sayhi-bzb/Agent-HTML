@@ -28,14 +28,14 @@ export function createGalleryDashboardWorkbenchCss() {
     .ahtml-gallery-dashboard-sidebar-top p {
       margin: 0;
       color: color-mix(in srgb, var(--sidebar-foreground) 74%, transparent);
-      font-size: 0.8rem;
+      font-size: var(--ahtml-gallery-text-body-size);
       line-height: 1.5;
     }
     .ahtml-gallery-dashboard-nav-label {
       color: color-mix(in srgb, var(--sidebar-foreground) 68%, transparent);
-      font-size: 0.68rem;
+      font-size: var(--ahtml-gallery-text-label-size);
       font-weight: 700;
-      letter-spacing: 0.12em;
+      letter-spacing: var(--ahtml-gallery-tracking-kicker);
       text-transform: uppercase;
     }
     .ahtml-gallery-dashboard-nav-group {
@@ -44,7 +44,7 @@ export function createGalleryDashboardWorkbenchCss() {
     }
     .ahtml-gallery-dashboard-sidebar span {
       color: var(--muted-foreground);
-      font-size: 0.82rem;
+      font-size: var(--ahtml-gallery-text-supporting-size);
     }
     .ahtml-gallery-dashboard-nav-group span {
       display: flex;
@@ -67,29 +67,6 @@ export function createGalleryDashboardWorkbenchCss() {
         var(--ahtml-gallery-layout-inline-padding)
         var(--ahtml-gallery-layout-block-padding);
     }
-    .ahtml-gallery-dashboard-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--ahtml-gallery-layout-gap);
-      flex-wrap: wrap;
-    }
-    .ahtml-gallery-dashboard-header-copy {
-      display: grid;
-      gap: var(--ahtml-space-2xs);
-      max-width: var(--ahtml-gallery-workbench-header-max-width);
-    }
-    .ahtml-gallery-dashboard-header h4 {
-      margin: 0.12rem 0 0;
-      font-size: 1.3rem;
-      line-height: 1.1;
-      letter-spacing: -0.03em;
-    }
-    .ahtml-gallery-dashboard-header p {
-      margin: 0;
-      color: var(--muted-foreground);
-      line-height: 1.55;
-    }
     .ahtml-gallery-dashboard-utility-strip {
       display: flex;
       align-items: center;
@@ -102,12 +79,12 @@ export function createGalleryDashboardWorkbenchCss() {
     }
     .ahtml-gallery-dashboard-utility-copy {
       display: grid;
-      gap: 0.2rem;
+      gap: var(--ahtml-gallery-copy-stack-gap-tight);
     }
     .ahtml-gallery-dashboard-utility-copy p {
       margin: 0;
       color: var(--muted-foreground);
-      font-size: 0.82rem;
+      font-size: var(--ahtml-gallery-text-supporting-size);
       line-height: 1.5;
     }
     .ahtml-gallery-dashboard-section-cards {
@@ -131,12 +108,12 @@ export function createGalleryDashboardWorkbenchCss() {
     }
     .ahtml-gallery-dashboard-metric-content span {
       color: var(--muted-foreground);
-      font-size: 0.78rem;
+      font-size: var(--ahtml-gallery-text-meta-size);
       line-height: 1.45;
     }
     .ahtml-gallery-chart-bars {
       display: grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-columns: var(--ahtml-gallery-dashboard-chart-columns);
       align-items: end;
       gap: var(--ahtml-space-sm);
       min-height: 14rem;
@@ -150,55 +127,31 @@ export function createGalleryDashboardWorkbenchCss() {
       grid-template-columns: var(--ahtml-gallery-dashboard-lower-columns);
       gap: var(--ahtml-gallery-layout-gap-compact);
     }
-    .ahtml-gallery-dashboard-secondary-stack {
-      display: grid;
-      gap: var(--ahtml-gallery-layout-gap-compact);
-    }
     .ahtml-gallery-dashboard-table-footer {
-      display: grid;
       grid-template-columns: var(--ahtml-gallery-two-up-columns);
-      gap: var(--ahtml-gallery-layout-gap-compact);
-      margin-top: 0.9rem;
+      margin-top: var(--ahtml-gallery-summary-grid-margin-top);
     }
     .ahtml-gallery-dashboard-chart-footer {
-      display: grid;
       grid-template-columns: var(--ahtml-gallery-dashboard-chart-footer-columns);
-      gap: var(--ahtml-gallery-layout-gap-compact);
-      margin-top: 0.9rem;
-    }
-    .ahtml-gallery-dashboard-checklist {
-      display: grid;
-      gap: var(--ahtml-gallery-layout-gap-compact);
-    }
-    .ahtml-gallery-dashboard-checklist div {
-      display: grid;
-      gap: 0.18rem;
-      padding: var(--ahtml-surface-padding-sm);
-      border-radius: calc(var(--radius) * 0.9);
-      background: color-mix(in srgb, var(--muted) 42%, transparent);
-    }
-    .ahtml-gallery-dashboard-checklist span {
-      color: var(--muted-foreground);
-      font-size: 0.78rem;
-      line-height: 1.45;
+      margin-top: var(--ahtml-gallery-summary-grid-margin-top);
     }
     .ahtml-gallery-dashboard-mix-card {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-columns: var(--ahtml-gallery-leading-detail-columns);
       align-items: center;
       gap: var(--ahtml-gallery-layout-gap);
     }
     .ahtml-gallery-dashboard-donut {
       width: 7rem;
       height: 7rem;
-      border-radius: 999px;
+      border-radius: var(--ahtml-gallery-radius-full);
       position: relative;
     }
     .ahtml-gallery-dashboard-donut::after {
       content: "";
       position: absolute;
       inset: 1.25rem;
-      border-radius: 999px;
+      border-radius: var(--ahtml-gallery-radius-full);
       background: var(--card);
       box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 72%, transparent);
     }

@@ -32,7 +32,12 @@ export type GalleryEditorState = {
   artifactProfileReference: string
 }
 
-export type GalleryControlTab = "colors" | "typography" | "other" | "profile"
+export type GalleryControlTab =
+  | "lightTokens"
+  | "darkTokens"
+  | "typography"
+  | "radius"
+  | "treatments"
 
 export type GalleryPreviewMode =
   | "components"

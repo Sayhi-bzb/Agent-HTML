@@ -4,7 +4,6 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   ShellLoadingRow,
   ShellStatusRow,
-  ShellValidationStatusBadge,
 } from "@/features/app-shell/components/shell-content"
 import type { SourceValidationSnapshot } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -27,16 +26,17 @@ export function SourceValidationSummary({
   validating,
   validation,
 }: SourceValidationSummaryProps) {
+  const invalidCount =
+    validation?.status === "invalid" ? validation.diagnostics.length : 0
+
   return (
     <ShellStatusRow>
       {validating ? (
         <ShellLoadingRow>Check</ShellLoadingRow>
-      ) : validation ? (
+      ) : invalidCount > 0 ? (
         <>
-          <ShellValidationStatusBadge status={validation.status} />
-          {validation.status === "invalid" ? (
-            <span className="app-shell-status-count">{validation.diagnostics.length}</span>
-          ) : null}
+          <span className="app-shell-supporting-copy">Issue</span>
+          <span className="app-shell-status-count">{invalidCount}</span>
         </>
       ) : null}
     </ShellStatusRow>

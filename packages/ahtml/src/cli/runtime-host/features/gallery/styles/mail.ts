@@ -32,21 +32,21 @@ export function createGalleryMailWorkbenchCss() {
     .ahtml-gallery-mail-nav-profile p {
       margin: 0;
       color: color-mix(in srgb, var(--sidebar-foreground) 74%, transparent);
-      font-size: 0.8rem;
+      font-size: var(--ahtml-gallery-text-body-size);
       line-height: 1.5;
     }
     .ahtml-gallery-mail-nav-label {
       color: color-mix(in srgb, var(--sidebar-foreground) 68%, transparent);
-      font-size: 0.68rem;
+      font-size: var(--ahtml-gallery-text-label-size);
       font-weight: 700;
-      letter-spacing: 0.12em;
+      letter-spacing: var(--ahtml-gallery-tracking-kicker);
       text-transform: uppercase;
     }
     .ahtml-gallery-mail-nav-links {
       display: grid;
       gap: var(--ahtml-space-sm);
       color: var(--muted-foreground);
-      font-size: 0.82rem;
+      font-size: var(--ahtml-gallery-text-supporting-size);
     }
     .ahtml-gallery-mail-nav-links span {
       display: flex;
@@ -73,7 +73,7 @@ export function createGalleryMailWorkbenchCss() {
     }
     .ahtml-gallery-mail-list-heading {
       display: grid;
-      gap: 0.2rem;
+      gap: var(--ahtml-gallery-copy-stack-gap-tight);
     }
     .ahtml-gallery-mail-list-header h5 {
       margin: 0;
@@ -83,7 +83,7 @@ export function createGalleryMailWorkbenchCss() {
     .ahtml-gallery-mail-list-header p {
       margin: 0;
       color: var(--muted-foreground);
-      font-size: 0.8rem;
+      font-size: var(--ahtml-gallery-text-body-size);
       line-height: 1.5;
     }
     .ahtml-gallery-mail-tab-pills {
@@ -97,14 +97,14 @@ export function createGalleryMailWorkbenchCss() {
     }
     .ahtml-gallery-mail-search-wrap .ahtml-gallery-control-input,
     .ahtml-gallery-mail-search-wrap [data-slot="input"] {
-      padding-left: 2rem;
+      padding-left: var(--ahtml-gallery-control-input-padding-start);
     }
     .ahtml-gallery-mail-search-icon {
       position: absolute;
       top: 50%;
-      left: 0.7rem;
-      width: 0.9rem;
-      height: 0.9rem;
+      left: var(--ahtml-gallery-control-icon-offset-inline);
+      width: var(--ahtml-gallery-control-icon-size);
+      height: var(--ahtml-gallery-control-icon-size);
       transform: translateY(-50%);
       color: var(--muted-foreground);
       pointer-events: none;
@@ -132,23 +132,23 @@ export function createGalleryMailWorkbenchCss() {
     }
     .ahtml-gallery-mail-list-item-copy {
       display: grid;
-      gap: 0.18rem;
+      gap: var(--ahtml-gallery-copy-stack-gap-compact);
     }
     .ahtml-gallery-mail-list-item-subject {
       color: var(--foreground);
-      font-size: 0.86rem;
+      font-size: var(--ahtml-gallery-text-strong-size);
       font-weight: 600;
       line-height: 1.35;
     }
     .ahtml-gallery-mail-list-item span {
       color: var(--muted-foreground);
-      font-size: 0.8rem;
+      font-size: var(--ahtml-gallery-text-body-size);
       line-height: 1.45;
     }
     .ahtml-gallery-mail-list-item p {
       margin: 0;
       color: color-mix(in srgb, var(--muted-foreground) 88%, transparent);
-      font-size: 0.76rem;
+      font-size: var(--ahtml-gallery-text-chip-size);
       line-height: 1.45;
     }
     .ahtml-gallery-mail-list-item-footer {
@@ -158,28 +158,10 @@ export function createGalleryMailWorkbenchCss() {
       gap: var(--ahtml-space-xs);
       flex-wrap: wrap;
     }
-    .ahtml-gallery-mail-display-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--ahtml-gallery-layout-gap);
-      flex-wrap: wrap;
-    }
-    .ahtml-gallery-mail-display-heading {
-      display: grid;
-      gap: var(--ahtml-space-2xs);
-      max-width: var(--ahtml-gallery-workbench-header-max-width);
-    }
-    .ahtml-gallery-mail-display-header h4 {
-      margin: 0.12rem 0 0;
-      font-size: 1.3rem;
-      line-height: 1.1;
-      letter-spacing: -0.03em;
-    }
     .ahtml-gallery-mail-display-header p {
       margin: 0.25rem 0 0;
       color: var(--muted-foreground);
-      font-size: 0.82rem;
+      font-size: var(--ahtml-gallery-text-supporting-size);
     }
     .ahtml-gallery-mail-display-actions {
       display: inline-flex;
@@ -188,9 +170,7 @@ export function createGalleryMailWorkbenchCss() {
       flex-wrap: wrap;
     }
     .ahtml-gallery-mail-thread-summary {
-      display: grid;
       grid-template-columns: var(--ahtml-gallery-three-up-columns);
-      gap: var(--ahtml-gallery-layout-gap-compact);
       padding:
         var(--ahtml-gallery-compact-panel-padding-block)
         0;
@@ -204,7 +184,7 @@ export function createGalleryMailWorkbenchCss() {
     .ahtml-gallery-mail-display-body p {
       margin: 0;
       color: var(--foreground);
-      font-size: 0.92rem;
+      font-size: var(--ahtml-gallery-text-body-size);
       line-height: 1.7;
     }
     .ahtml-gallery-mail-quote {
@@ -216,8 +196,8 @@ export function createGalleryMailWorkbenchCss() {
       border-radius: 0 calc(var(--radius) * 0.9) calc(var(--radius) * 0.9) 0;
     }
     .ahtml-gallery-mail-quote strong {
-      font-size: 0.78rem;
-      letter-spacing: 0.1em;
+      font-size: var(--ahtml-gallery-text-meta-size);
+      letter-spacing: var(--ahtml-gallery-tracking-chip);
       text-transform: uppercase;
       color: var(--muted-foreground);
     }
@@ -228,7 +208,7 @@ export function createGalleryMailWorkbenchCss() {
     }
     .ahtml-gallery-mail-attachment-card {
       display: grid;
-      gap: 0.18rem;
+      gap: var(--ahtml-gallery-copy-stack-gap-compact);
       padding: var(--ahtml-surface-padding-sm);
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       border-radius: calc(var(--radius) * 0.9);
@@ -236,7 +216,7 @@ export function createGalleryMailWorkbenchCss() {
     }
     .ahtml-gallery-mail-attachment-card span {
       color: var(--muted-foreground);
-      font-size: 0.76rem;
+      font-size: var(--ahtml-gallery-text-chip-size);
     }
     .ahtml-gallery-mail-composer {
       display: grid;
@@ -255,7 +235,7 @@ export function createGalleryMailWorkbenchCss() {
     }
     .ahtml-gallery-mail-composer-footer span {
       color: var(--muted-foreground);
-      font-size: 0.78rem;
+      font-size: var(--ahtml-gallery-text-meta-size);
       line-height: 1.45;
       flex: 1;
       min-width: 0;

@@ -1,105 +1,64 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
-import { TabsContent } from "@/components/ui/tabs"
 
 import { getPreviewModeLabel } from "../helpers"
-import {
-  FieldRow,
-  GalleryPanelBody,
-  LabeledInput,
-} from "../shared/form-controls"
+import { FieldRow } from "../shared/form-controls"
 import type { GalleryProfileTabProps } from "./types"
 
 export function GalleryProfileTab({
-  createArtifactProfileReference,
-  deleteCurrentArtifactProfileReference,
   editorState,
   previewMode,
-  setEditorState,
+  resetDraft,
+  saveProfile,
 }: GalleryProfileTabProps) {
   return (
-    <TabsContent className="ahtml-gallery-tab-panel" value="profile">
-      <Accordion
-        className="ahtml-gallery-control-sections"
-        defaultValue={["style-id", "persist"]}
-        type="multiple"
-      >
-        <AccordionItem value="style-id">
-          <AccordionTrigger>Artifact profile</AccordionTrigger>
-          <AccordionContent>
-            <GalleryPanelBody>
-              <FieldRow
-                label="Current profile id"
-                value={editorState.artifactProfileReference}
-              />
-              <FieldRow
-                label="Available ids"
-                multiline
-                value={editorState.availableArtifactProfileReferences.join(", ")}
-              />
-              <div className="ahtml-gallery-actions">
-                <Button
-                  disabled={editorState.isSaving}
-                  onClick={() => void createArtifactProfileReference()}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  New Id
-                </Button>
-                <Button
-                  disabled={editorState.isSaving}
-                  onClick={() => void deleteCurrentArtifactProfileReference()}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  Delete Id
-                </Button>
-              </div>
-              <LabeledInput
-                description="Create a new persisted artifact profile from the current draft."
-                label="New Profile Id"
-                mono
-                onChange={(value) =>
-                  setEditorState((current) => ({
-                    ...current,
-                    createId: value,
-                  }))
-                }
-                value={editorState.createId}
-              />
-              {editorState.error ? (
-                <Field data-invalid>
-                  <FieldLabel>Error</FieldLabel>
-                  <FieldDescription className="ahtml-gallery-error">
-                    {editorState.error}
-                  </FieldDescription>
-                </Field>
-              ) : null}
-            </GalleryPanelBody>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="persist">
-          <AccordionTrigger>Persist</AccordionTrigger>
-          <AccordionContent>
-            <GalleryPanelBody>
-              <FieldRow label="Status" value={editorState.status} />
-              <FieldRow
-                label="Preview mode"
-                value={getPreviewModeLabel(previewMode)}
-              />
-            </GalleryPanelBody>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </TabsContent>
+    <div className="ahtml-gallery-control-footer" data-gallery-frame="persist">
+      <div className="ahtml-gallery-toolbar-copy">
+        <span className="ahtml-gallery-toolbar-label">Persist</span>
+        <span className="ahtml-gallery-toolbar-caption">{editorState.status}</span>
+      </div>
+      <div className="ahtml-gallery-control-footer-body">
+        <FieldRow label="Status" value={editorState.status} />
+        <FieldRow
+          label="Profile id"
+          value={editorState.artifactProfileReference}
+        />
+        <FieldRow
+          label="Gallery view"
+          value={getPreviewModeLabel(previewMode)}
+        />
+        <FieldRow
+          label="Draft state"
+          value={editorState.isDirty ? "Unsaved changes" : "Saved"}
+        />
+        <div className="ahtml-gallery-actions">
+          <Button
+            disabled={editorState.isSaving || !editorState.isDirty}
+            onClick={resetDraft}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Reset
+          </Button>
+          <Button
+            disabled={editorState.isSaving}
+            onClick={() => void saveProfile()}
+            size="sm"
+            type="button"
+          >
+            Save Profile
+          </Button>
+        </div>
+        {editorState.error ? (
+          <Field data-invalid>
+            <FieldLabel>Error</FieldLabel>
+            <FieldDescription className="ahtml-gallery-error">
+              {editorState.error}
+            </FieldDescription>
+          </Field>
+        ) : null}
+      </div>
+    </div>
   )
 }

@@ -1,10 +1,23 @@
 import { useState } from "react"
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "./components/ui/tooltip"
 import { MainLayout } from "./features/app-shell/components/main-layout"
+import { ShellStatusBadge } from "./features/app-shell/components/shell-content"
 import { TopBar } from "./features/app-shell/components/top-bar"
 import { deriveCommandLocks } from "./features/app-shell/command-locks"
-import { readStoredPanelLayout } from "./features/app-shell/panel-layout"
-import type { PanelLayoutState } from "./features/app-shell/types"
+import {
+  persistShellChromeState,
+  readStoredPanelLayout,
+  readStoredShellChromeState,
+} from "./features/app-shell/panel-layout"
+import type {
+  PanelLayoutState,
+  ShellChromeState,
+} from "./features/app-shell/types"
 import { useWorkbenchApp } from "./features/app-shell/use-workbench-app"
 import { SessionRail } from "./features/sessions/components/session-rail"
 import { ShellPane } from "./features/shell/components/shell-pane"
@@ -26,6 +39,7 @@ export function App() {
     currentLogs,
     hasUnsavedChanges,
     filteredMessages,
+    openSessionTabs,
     setDraftSource,
     setMessageDraft,
     actions,
@@ -33,29 +47,73 @@ export function App() {
   const [panelLayout, setPanelLayout] = useState<PanelLayoutState>(
     readStoredPanelLayout,
   )
+  const [shellChrome, setShellChrome] = useState<ShellChromeState>(
+    readStoredShellChromeState,
+  )
   const commandLocks = deriveCommandLocks(commandState)
+
+  function updateShellChrome(
+    mutate: (current: ShellChromeState) => ShellChromeState,
+  ): void {
+    setShellChrome((current) => {
+      const next = mutate(current)
+      persistShellChromeState(next)
+      return next
+    })
+  }
 
   return (
     <div className="app-shell">
       <div className="app-shell-frame">
         <TopBar
-          activeView={activeView}
-          hasError={Boolean(commandState.error)}
-          sessionName={currentSession.summary.name}
+          activeSessionId={currentSession.id}
+          interactionLocked={commandLocks.sessionNavigationLocked}
+          leftPanelVisible={shellChrome.leftPanelVisible}
+          onCloseSession={(sessionId) => {
+            void actions.closeSessionTab(sessionId)
+          }}
+          onCreateSession={() => {
+            void actions.createNewSession()
+          }}
+          onOpenSession={(sessionId) => {
+            void actions.openSessionById(sessionId)
+          }}
+          onToggleLeftPanel={() => {
+            updateShellChrome((current) => ({
+              ...current,
+              leftPanelVisible: !current.leftPanelVisible,
+            }))
+          }}
+          onToggleRightPanel={() => {
+            updateShellChrome((current) => ({
+              ...current,
+              rightPanelVisible: !current.rightPanelVisible,
+            }))
+          }}
+          rightPanelVisible={shellChrome.rightPanelVisible}
+          sessionTabs={openSessionTabs}
         />
 
         {commandState.error ? (
           <div className="app-shell-error-banner">
-            {commandState.error}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <ShellStatusBadge label="issue" variant="destructive" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{commandState.error}</TooltipContent>
+            </Tooltip>
           </div>
         ) : null}
 
         <MainLayout
           onPanelLayoutChange={setPanelLayout}
           panelLayout={panelLayout}
+          shellChrome={shellChrome}
           sessions={
             <SessionRail
-              activeSessionId={currentSession.summary.id}
+              activeSessionId={currentSession.id}
               disabled={commandLocks.sessionNavigationLocked}
               loading={commandState.loading}
               onCreateSession={() => {
@@ -69,9 +127,6 @@ export function App() {
               }}
               onRenameSession={(sessionId, name) => {
                 void actions.renameSessionById(sessionId, name)
-              }}
-              onTogglePinned={(sessionId, pinned) => {
-                void actions.toggleSessionPinned(sessionId, pinned)
               }}
               sessions={appState.sessions}
             />
@@ -110,13 +165,7 @@ export function App() {
               inspecting={commandState.inspecting}
               interactionLocked={commandLocks.workbenchInteractionLocked}
               logs={currentLogs}
-              onBuild={() => {
-                void actions.buildCurrentSession()
-              }}
               onDraftSourceChange={setDraftSource}
-              onInspect={() => {
-                void actions.inspectCurrentSession()
-              }}
               onSaveSource={() => {
                 void actions.saveCurrentSource()
               }}

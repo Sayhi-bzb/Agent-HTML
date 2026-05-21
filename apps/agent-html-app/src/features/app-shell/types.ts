@@ -30,7 +30,16 @@ export type PanelLayoutState = {
   shell: number
 }
 
-export type SourceState = {
+export type ShellChromeState = {
+  leftPanelVisible: boolean
+  rightPanelVisible: boolean
+}
+
+export type OpenSessionTab = {
+  sessionId: string
+}
+
+type SourceState = {
   draft: string
   validation?: SourceValidationSnapshot
 }

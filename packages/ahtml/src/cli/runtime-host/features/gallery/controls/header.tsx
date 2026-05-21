@@ -31,7 +31,9 @@ export function GalleryControlsHeader({
   activeArtifactProfileKindLabel,
   activeArtifactProfileSummary,
   artifactProfileReference,
+  createArtifactProfileReference,
   cycleArtifactProfileReference,
+  deleteCurrentArtifactProfileReference,
   editorState,
   filteredArtifactProfileReferences,
   filteredBuiltInArtifactProfileReferences,
@@ -41,6 +43,7 @@ export function GalleryControlsHeader({
   previewThemeMode,
   randomizeArtifactProfileReference,
   selectArtifactProfileReference,
+  setEditorState,
   setPresetPopoverOpen,
   setPresetSearch,
   setPreviewThemeMode,
@@ -64,7 +67,7 @@ export function GalleryControlsHeader({
             {activeArtifactProfileKindLabel}
           </Badge>
           <Badge variant="secondary">
-            {editorState.isDirty ? "Draft unsaved" : "Preview synced"}
+            {editorState.isDirty ? "Draft unsaved" : "Gallery synced"}
           </Badge>
         </div>
       </div>
@@ -128,10 +131,10 @@ export function GalleryControlsHeader({
           </PopoverTrigger>
           <PopoverContent align="start" className="ahtml-gallery-preset-popover">
             <PopoverHeader>
-              <PopoverTitle>Preset chooser</PopoverTitle>
+              <PopoverTitle>Profile gallery</PopoverTitle>
               <PopoverDescription>
-                Switch built-in and saved profiles without leaving the editor
-                shell.
+                Switch built-in and saved profiles without leaving the gallery
+                workbench.
               </PopoverDescription>
             </PopoverHeader>
             <div className="ahtml-gallery-preset-search-wrap">
@@ -291,11 +294,11 @@ export function GalleryControlsHeader({
           </Button>
         </div>
         <div
-          aria-label="Editor theme mode"
+          aria-label="Gallery theme mode"
           className="ahtml-gallery-segmented-toggle ahtml-gallery-preset-theme-toggle"
           role="group"
         >
-          <span className="ahtml-gallery-toolbar-label">Editor theme mode</span>
+          <span className="ahtml-gallery-toolbar-label">Gallery theme mode</span>
           <Button
             aria-pressed={previewThemeMode === "light"}
             className="ahtml-gallery-toggle-button"
@@ -318,6 +321,48 @@ export function GalleryControlsHeader({
           </Button>
         </div>
       </div>
+      <div className="ahtml-gallery-control-header-row ahtml-gallery-control-header-row-manager">
+        <div className="ahtml-gallery-toolbar-copy">
+          <span className="ahtml-gallery-toolbar-label">Profile manager</span>
+          <span className="ahtml-gallery-toolbar-caption">
+            Create or remove saved profile ids from the same selection rail.
+          </span>
+        </div>
+        <div className="ahtml-gallery-profile-manager">
+          <Input
+            aria-label="New profile id"
+            className="ahtml-gallery-control-input ahtml-gallery-control-input-mono"
+            onChange={(event) =>
+              setEditorState((current) => ({
+                ...current,
+                createId: event.target.value,
+              }))
+            }
+            placeholder="team-ops"
+            value={editorState.createId}
+          />
+          <div className="ahtml-gallery-actions ahtml-gallery-profile-manager-tools">
+            <Button
+              disabled={editorState.isSaving}
+              onClick={() => void createArtifactProfileReference()}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              New Id
+            </Button>
+            <Button
+              disabled={editorState.isSaving}
+              onClick={() => void deleteCurrentArtifactProfileReference()}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              Delete Id
+            </Button>
+          </div>
+        </div>
+      </div>
       <div className="ahtml-gallery-control-header-row ahtml-gallery-control-header-row-tabs">
         <div className="ahtml-gallery-toolbar-copy">
           <span className="ahtml-gallery-toolbar-label">Controls</span>
@@ -327,21 +372,19 @@ export function GalleryControlsHeader({
         </div>
         <ScrollArea className="ahtml-gallery-pill-scroll">
           <TabsList className="ahtml-gallery-pill-tabs">
-            <GalleryTabsTriggerPill value="colors">Colors</GalleryTabsTriggerPill>
+            <GalleryTabsTriggerPill value="lightTokens">
+              Light Tokens
+            </GalleryTabsTriggerPill>
+            <GalleryTabsTriggerPill value="darkTokens">
+              Dark Tokens
+            </GalleryTabsTriggerPill>
             <GalleryTabsTriggerPill value="typography">
               Typography
             </GalleryTabsTriggerPill>
-            <GalleryTabsTriggerPill value="other">Other</GalleryTabsTriggerPill>
-            <GalleryTabsTriggerPill value="profile">
-              Profile
-            </GalleryTabsTriggerPill>
+            <GalleryTabsTriggerPill value="radius">Radius</GalleryTabsTriggerPill>
           </TabsList>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
-      </div>
-      <div className="ahtml-gallery-preset-footnote">
-        <span>{activeArtifactProfileEditorStatus}</span>
-        <span>{activeArtifactProfileSummary}</span>
       </div>
     </div>
   )

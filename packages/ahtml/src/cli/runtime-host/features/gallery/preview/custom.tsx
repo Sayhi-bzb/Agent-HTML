@@ -81,7 +81,7 @@ export function GalleryCustomPreviewPanel({
                 data-ahtml-source="shadcn"
               >
                 <div className="ahtml-gallery-custom-site-brand">
-                  <Badge variant="secondary">Custom Website Preview</Badge>
+                  <Badge variant="secondary">Campaign site</Badge>
                   <strong>{profile.id}.studio</strong>
                 </div>
                 <div className="ahtml-gallery-custom-site-nav">
@@ -133,7 +133,7 @@ export function GalleryCustomPreviewPanel({
                   </div>
                   <div className="ahtml-gallery-custom-preview-callout-copy">
                     <span className="ahtml-gallery-stage-panel-kicker">
-                      Preview workflow
+                      Publish checklist
                     </span>
                     <h4>Inspect the live destination before you publish.</h4>
                     <p>
@@ -200,7 +200,7 @@ export function GalleryCustomPreviewPanel({
                     </div>
                   </div>
                 </section>
-                <div className="ahtml-gallery-custom-side-stack">
+                <div className="ahtml-gallery-custom-side-stack ahtml-gallery-workbench-side-stack">
                   <Card
                     {...getManualCardProps(
                       profile,
@@ -231,7 +231,7 @@ export function GalleryCustomPreviewPanel({
                           Navigation and content share one token system.
                         </span>
                         <span>
-                          Side panels expose drift faster than isolated cards.
+                          Side panels reveal contrast and density changes before launch.
                         </span>
                       </div>
                     </CardContent>
@@ -250,9 +250,9 @@ export function GalleryCustomPreviewPanel({
                     <CardContent className="ahtml-gallery-custom-stack">
                       <div className="ahtml-gallery-custom-signal-list">
                         {[
-                          "Palette passes accessibility in hero and nav layers.",
-                          "Sidebar emphasis reads stronger in dark preview mode.",
-                          "Editorial serif stays contained to content-led surfaces.",
+                          "Homepage palette passes contrast in nav and hero layers.",
+                          "Sidebar actions stay clear across light and dark review modes.",
+                          "Editorial serif remains limited to content-led sections.",
                         ].map((item) => (
                           <div
                             className="ahtml-gallery-custom-signal-item"
@@ -356,9 +356,8 @@ export function GalleryCustomPreviewPanel({
                       <strong>17%</strong>
                     </div>
                     <p className="ahtml-gallery-custom-copy">
-                      Custom scenes should expose how one profile moves between
-                      hero persuasion, compact utility panels, and operational
-                      status blocks.
+                      Track how the same profile carries campaign hierarchy from
+                      the lead story through utility panels and approval status.
                     </p>
                   </CardContent>
                 </Card>

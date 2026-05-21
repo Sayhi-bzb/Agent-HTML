@@ -16,7 +16,7 @@ import { SourceTab } from "./source-tab"
 import { WorkbenchHeader } from "./workbench-header"
 import { WorkbenchTabs } from "./workbench-tabs"
 
-export type WorkbenchPaneProps = {
+type WorkbenchPaneProps = {
   session: SessionDetail
   activeView: WorkbenchView
   previewHtml?: string
@@ -33,8 +33,6 @@ export type WorkbenchPaneProps = {
   validating: boolean
   validation?: SourceValidationSnapshot
   onViewChange: (view: WorkbenchView) => void
-  onBuild: () => void
-  onInspect: () => void
   onSaveSource: () => void
   onValidate: () => void
   onDraftSourceChange: (source: string) => void
@@ -57,20 +55,17 @@ export function WorkbenchPane({
   validating,
   validation,
   onViewChange,
-  onBuild,
-  onInspect,
   onSaveSource,
   onValidate,
   onDraftSourceChange,
 }: WorkbenchPaneProps) {
   return (
     <ShellPaneScaffold
+      contentClassName="app-shell-pane-content-bleed"
       header={
         <WorkbenchHeader
           activeView={activeView}
           interactionLocked={interactionLocked}
-          onBuild={onBuild}
-          onInspect={onInspect}
           onViewChange={onViewChange}
         />
       }

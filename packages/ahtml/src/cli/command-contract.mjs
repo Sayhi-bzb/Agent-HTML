@@ -124,19 +124,13 @@ export const commandMetadata = {
     summary: "Open a realtime preview session for an agent-html document.",
     purpose:
       "Validate the source, start a long-lived runtime preview session, and live-refresh document rendering as the source changes.",
-    usage: "ahtml preview [<input>] [--out <dir>] [--port <port>]",
+    usage: "ahtml preview [<input>] [--port <port>]",
     options: [
       {
         name: "input",
         description: "Agent-html document path.",
         value: true,
         hidden: true,
-      },
-      {
-        name: "out",
-        description:
-          "Compatibility-only flag. Preview no longer materializes build output into this directory.",
-        value: true,
       },
       {
         name: "port",

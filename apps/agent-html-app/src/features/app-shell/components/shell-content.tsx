@@ -32,7 +32,7 @@ type ShellCardCopyProps = {
   truncateTitle?: boolean
 }
 
-export function ShellCardCopy({
+function ShellCardCopy({
   title,
   titleClassName,
   truncateTitle = false,
@@ -57,7 +57,7 @@ type ShellCardHeaderProps = {
   className?: string
 }
 
-export function ShellCardHeader({
+function ShellCardHeader({
   title,
   titleClassName,
   titleSize = "default",
@@ -106,7 +106,7 @@ type ShellActionGroupProps = {
   children: ReactNode
 }
 
-export function ShellActionGroup({ children }: ShellActionGroupProps) {
+function ShellActionGroup({ children }: ShellActionGroupProps) {
   return <div className="app-shell-action-group">{children}</div>
 }
 
@@ -141,7 +141,7 @@ type ShellActionButtonProps = {
   tooltipSide?: "top" | "right" | "bottom" | "left"
 }
 
-export function ShellActionButton({
+function ShellActionButton({
   children,
   disabled = false,
   onClick,
@@ -185,7 +185,7 @@ export function ShellIconButton({
   disabled = false,
   onClick,
   ariaLabel,
-  variant = "outline",
+  variant = "ghost",
   size = "icon-sm",
   className,
   tooltip,
@@ -194,7 +194,8 @@ export function ShellIconButton({
   const button = (
     <Button
       aria-label={ariaLabel}
-      className={className}
+      // Page-level lightweight icon actions share one default contract.
+      className={cn("app-shell-plain-icon", className)}
       disabled={disabled}
       onClick={onClick}
       size={size}
@@ -270,7 +271,7 @@ export function ShellSplitRow({
 }
 
 type ShellPaneHeaderProps = {
-  leading: ReactNode
+  leading?: ReactNode
   trailing?: ReactNode
   gap?: "compact" | "base"
 }
@@ -281,8 +282,8 @@ export function ShellPaneHeader({
   gap = "compact",
 }: ShellPaneHeaderProps) {
   return (
-    <ShellSplitRow gap={gap}>
-      {leading}
+    <ShellSplitRow className={!leading ? "justify-end" : undefined} gap={gap}>
+      {leading ?? null}
       {trailing ? <ShellActionGroup>{trailing}</ShellActionGroup> : null}
     </ShellSplitRow>
   )
@@ -295,8 +296,8 @@ type ShellMetaRowProps = {
 
 export function ShellMetaRow({ copy, action }: ShellMetaRowProps) {
   return (
-    <ShellSplitRow className="w-full">
-      {copy ? <span className="app-shell-supporting-copy">{copy}</span> : <span />}
+    <ShellSplitRow className={cn("w-full", !copy && "justify-end")}>
+      {copy ? <span className="app-shell-supporting-copy">{copy}</span> : null}
       {action ?? null}
     </ShellSplitRow>
   )
@@ -363,6 +364,7 @@ export function ShellMetricList({ items, className }: ShellMetricListProps) {
 type ShellPaneScaffoldProps = {
   header?: ReactNode
   content?: ReactNode
+  contentClassName?: string
   footer?: ReactNode
   footerClassName?: string
 }
@@ -370,13 +372,14 @@ type ShellPaneScaffoldProps = {
 export function ShellPaneScaffold({
   header,
   content,
+  contentClassName,
   footer,
   footerClassName,
 }: ShellPaneScaffoldProps) {
   return (
     <div className="app-shell-pane">
       {header ? <div className="app-shell-pane-header">{header}</div> : null}
-      {content ? <div className="app-shell-pane-content">{content}</div> : null}
+      {content ? <div className={cn("app-shell-pane-content", contentClassName)}>{content}</div> : null}
       {footer ? <div className={cn("app-shell-pane-footer", footerClassName)}>{footer}</div> : null}
     </div>
   )
@@ -386,7 +389,7 @@ type ShellSurfaceItemProps = {
   children: ReactNode
 }
 
-export function ShellSurfaceItem({ children }: ShellSurfaceItemProps) {
+function ShellSurfaceItem({ children }: ShellSurfaceItemProps) {
   return <div className="app-shell-surface-item">{children}</div>
 }
 
@@ -553,7 +556,7 @@ type ShellValidationStatusBadgeProps = {
   status: SourceValidationSnapshot["status"]
 }
 
-export function ShellValidationStatusBadge({
+function ShellValidationStatusBadge({
   status,
 }: ShellValidationStatusBadgeProps) {
   return <ShellStatusBadge label={getValidationStatusLabel(status)} variant={getValidationStatusBadgeVariant(status)} />

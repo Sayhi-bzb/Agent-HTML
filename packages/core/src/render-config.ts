@@ -22,45 +22,43 @@ export const ARTIFACT_PROFILE_STORAGE_VERSION = 2
 
 export const PUBLIC_RENDER_CONFIG_KEY = "profile-ref" as const
 export const PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES = [
-  "report-default",
-  "ops-compact",
-  "review-dense",
+  "shadcn-default",
 ] as const satisfies readonly BuiltinArtifactProfileReference[]
 
 const artifactProfileReferencePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const neutralLightSemanticTokens: SemanticColorTokenSet = {
-  background: "#f7f7f4",
-  foreground: "#26251e",
+  background: "#f7f7f5",
+  foreground: "#111827",
   card: "#ffffff",
-  cardForeground: "#26251e",
+  cardForeground: "#111827",
   popover: "#ffffff",
-  popoverForeground: "#26251e",
-  primary: "#f54e00",
+  popoverForeground: "#111827",
+  primary: "#111827",
   primaryForeground: "#ffffff",
-  secondary: "#fafaf7",
-  secondaryForeground: "#26251e",
-  muted: "#fafaf7",
-  mutedForeground: "#807d72",
-  accent: "#fafaf7",
-  accentForeground: "#26251e",
-  destructive: "#cf2d56",
+  secondary: "#eef2f7",
+  secondaryForeground: "#111827",
+  muted: "#eef2f7",
+  mutedForeground: "#64748b",
+  accent: "#eef2f7",
+  accentForeground: "#111827",
+  destructive: "#b42318",
   destructiveForeground: "#ffffff",
-  border: "#e6e5e0",
-  input: "#cfcdc4",
-  ring: "#f54e00",
+  border: "#d9ddd6",
+  input: "#d9ddd6",
+  ring: "#94a3b8",
   chart1: "oklch(0.81 0.1 252)",
   chart2: "oklch(0.62 0.19 260)",
   chart3: "oklch(0.55 0.22 263)",
   chart4: "oklch(0.49 0.22 264)",
   chart5: "oklch(0.42 0.18 266)",
   sidebar: "oklch(0.985 0 0)",
-  sidebarForeground: "#26251e",
-  sidebarPrimary: "#26251e",
+  sidebarForeground: "#111827",
+  sidebarPrimary: "#111827",
   sidebarPrimaryForeground: "oklch(0.985 0 0)",
-  sidebarAccent: "#fafaf7",
-  sidebarAccentForeground: "#26251e",
-  sidebarBorder: "#e6e5e0",
+  sidebarAccent: "#eef2f7",
+  sidebarAccentForeground: "#111827",
+  sidebarBorder: "#d9ddd6",
   sidebarRing: "oklch(0.708 0 0)",
 }
 
@@ -100,7 +98,7 @@ const neutralDarkSemanticTokens: SemanticColorTokenSet = {
 }
 
 const defaultRadiusScale: RadiusScale = {
-  base: "0.75rem",
+  base: "0.625rem",
   sm: "calc(var(--radius) * 0.6)",
   md: "calc(var(--radius) * 0.8)",
   lg: "var(--radius)",
@@ -112,7 +110,7 @@ const defaultRadiusScale: RadiusScale = {
 
 const defaultTypographyProfile: TypographyProfile = {
   fontSans:
-    '"Inter Variable", system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif',
+    'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   fontHeading: "var(--font-sans)",
   fontSerif: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
   fontMono:
@@ -177,11 +175,11 @@ const defaultCssVariableMap: CssVariableMap = {
 
 const defaultGlobalLayoutProfile: GlobalLayoutProfile = {
   frame: {
-    pageMaxWidth: "72rem",
+    pageMaxWidth: "80rem",
     pagePaddingInline: "1rem",
     pagePaddingBlockStart: "1.5rem",
     pagePaddingBlockEnd: "3rem",
-    frameMaxWidth: "64rem",
+    frameMaxWidth: "72rem",
   },
   measure: {
     prose: "68ch",
@@ -216,41 +214,6 @@ const defaultGlobalLayoutProfile: GlobalLayoutProfile = {
     switcherJustify: "flex-start",
   },
 }
-
-const BUILTIN_COMPONENT_TREATMENTS_BY_REFERENCE = {
-  "report-default": {
-    alert: "report-alert",
-    badge: "report-badge",
-    card: "report-card",
-    input: "report-field",
-    table: "report-table",
-    tabs: "report-tabs",
-    textarea: "report-field",
-  },
-  "ops-compact": {
-    alert: "ops-alert",
-    badge: "ops-badge",
-    card: "ops-card",
-    input: "ops-field",
-    table: "ops-table",
-    tabs: "ops-tabs",
-    textarea: "ops-field",
-  },
-  "review-dense": {
-    alert: "review-alert",
-    badge: "review-badge",
-    card: "review-card",
-    input: "review-field",
-    table: "review-table",
-    tabs: "review-tabs",
-    textarea: "review-field",
-  },
-} as const satisfies Readonly<
-  Record<
-    BuiltinArtifactProfileReference,
-    Readonly<Record<string, string>>
-  >
->
 
 const artifactProfileReferenceSchema = z
   .string()
@@ -460,11 +423,7 @@ const globalLayoutProfileSchema = z
   })
   .strict()
 
-const componentStyleProfileSchema = z
-  .object({
-    treatments: z.record(z.string(), z.string()),
-  })
-  .strict()
+const componentStyleProfileSchema = z.object({}).strict()
 
 const componentLayoutProfileSchema = z
   .object({
@@ -534,22 +493,14 @@ export const ArtifactProfileSchema = z
   .strict()
 
 export const BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE = {
-  "report-default": createArtifactProfile("report-default"),
-  "ops-compact": createArtifactProfile("ops-compact"),
-  "review-dense": createArtifactProfile("review-dense"),
+  "shadcn-default": createArtifactProfile("shadcn-default"),
 } as const satisfies Readonly<
   Record<BuiltinArtifactProfileReference, ArtifactProfile>
 >
 
 const resolvedRenderConfigsByReference = {
-  "report-default": createRenderConfigFromArtifactProfile(
-    BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE["report-default"],
-  ),
-  "ops-compact": createRenderConfigFromArtifactProfile(
-    BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE["ops-compact"],
-  ),
-  "review-dense": createRenderConfigFromArtifactProfile(
-    BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE["review-dense"],
+  "shadcn-default": createRenderConfigFromArtifactProfile(
+    BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE["shadcn-default"],
   ),
 } as const satisfies Readonly<
   Record<BuiltinArtifactProfileReference, RenderConfig>
@@ -566,7 +517,7 @@ export const RENDER_CONFIG_VALUES = {
 } as const
 
 export const PUBLIC_RENDER_CONFIG_DEFAULTS = {
-  [PUBLIC_RENDER_CONFIG_KEY]: "report-default",
+  [PUBLIC_RENDER_CONFIG_KEY]: "shadcn-default",
 } as const
 
 export const DEFAULT_ARTIFACT_PROFILE_REFERENCE =
@@ -772,11 +723,7 @@ export function normalizeArtifactProfile(
         ...input.globalLayout?.reflow,
       },
     },
-    componentStyle: {
-      treatments: {
-        ...(input.componentStyle?.treatments ?? {}),
-      },
-    },
+    componentStyle: {},
     componentLayout: normalizeComponentLayoutProfile(
       input.componentLayout,
       input.globalLayout?.rhythm,
@@ -945,10 +892,10 @@ function createArtifactProfile(
 }
 
 function createComponentStyleProfile(
-  id: BuiltinArtifactProfileReference,
+  _id: BuiltinArtifactProfileReference,
 ): ComponentStyleProfile {
   return {
-    treatments: { ...BUILTIN_COMPONENT_TREATMENTS_BY_REFERENCE[id] },
+    treatments: {},
   }
 }
 

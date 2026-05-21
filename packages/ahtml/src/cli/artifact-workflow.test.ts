@@ -9,7 +9,7 @@ describe("artifact workflow inspection", () => {
     const { createInspection } = await importArtifactWorkflowModule()
     const inspection = createInspection({
       meta: {
-        artifactProfileReference: "ops-compact",
+        artifactProfileReference: "shadcn-default",
       },
       components: [
         {
@@ -34,7 +34,7 @@ describe("artifact workflow inspection", () => {
       kind: "agent-html-inspection",
       configModel: "artifact-profile-reference",
       config: {
-        artifactProfileReference: "ops-compact",
+        artifactProfileReference: "shadcn-default",
       },
       components: [
         { name: "card", count: 1 },
@@ -48,13 +48,13 @@ describe("artifact workflow inspection", () => {
     const summary = formatInspectionSummary({
       configModel: "artifact-profile-reference",
       config: {
-        artifactProfileReference: "ops-compact",
+        artifactProfileReference: "shadcn-default",
       },
       components: [{ name: "card", count: 1 }],
     })
 
     expect(summary).toContain("config model: artifact-profile-reference")
-    expect(summary).toContain("artifactProfileReference: ops-compact")
+    expect(summary).toContain("artifactProfileReference: shadcn-default")
     expect(summary).not.toContain("resolved config")
     expect(summary).not.toContain("resolved document style tokens")
     expect(summary).toContain("- card: 1")

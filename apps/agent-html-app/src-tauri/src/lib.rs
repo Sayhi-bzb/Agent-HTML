@@ -21,7 +21,7 @@ use crate::{
         chat::{append_chat_message, generate_session_proposal, read_chat},
         sessions::{
             create_session, delete_session, list_sessions, open_session, rename_session,
-            save_source, set_session_pinned, set_session_view,
+            save_source, set_session_view,
         },
     },
     paths::ensure_sessions_root,
@@ -50,7 +50,6 @@ pub fn run() {
             delete_session,
             set_session_view,
             rename_session,
-            set_session_pinned,
             save_source,
             run_build,
             run_inspect,

@@ -50,7 +50,7 @@ ahtml prompt
 ```
 
 ```html
-<meta-agent profile-ref="report-default" />
+<meta-agent profile-ref="shadcn-default" />
 
 <page title="Review">
   <card title="Summary">
@@ -83,7 +83,7 @@ agent work
 ```
 
 The schema is the public contract. Agents write content structure, not raw HTML, CSS, JavaScript, Tailwind classes, or renderer props.
-Public visual choice is limited to approved artifact profile choices, selected through `profile-ref` values such as `report-default` or `ops-compact`, not free-form `theme`, `density`, `tone`, or `width` inputs.
+Public visual choice is limited to approved artifact profile choices, selected through `profile-ref` values such as `shadcn-default`, not free-form `theme`, `density`, `tone`, or `width` inputs.
 
 Published npm package: `@agent-html/ahtml`
 

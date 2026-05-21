@@ -14,7 +14,7 @@ import {
 describe("layout projection", () => {
   it("projects profile-driven layout styles for layout primitives", () => {
     const artifactProfile = parseRenderConfig({
-      "profile-ref": "ops-compact",
+      "profile-ref": "shadcn-default",
     }).artifactProfile
 
     expect(resolveLayoutComponentStyle("page", artifactProfile)).toMatchObject({
@@ -62,7 +62,7 @@ describe("layout projection", () => {
 
   it("projects layout primitive class baselines and artifact shell policy styles", () => {
     const artifactProfile = parseRenderConfig({
-      "profile-ref": "report-default",
+      "profile-ref": "shadcn-default",
     }).artifactProfile
 
     expect(resolveLayoutComponentClassName("page")).toBe("grid gap-5")
@@ -93,7 +93,7 @@ describe("layout projection", () => {
     expect(resolveArtifactShellStyle(undefined, "document")).toBeUndefined()
 
     const artifactProfile = parseRenderConfig({
-      "profile-ref": "report-default",
+      "profile-ref": "shadcn-default",
     }).artifactProfile
 
     expect(resolveLayoutComponentStyle("card", artifactProfile)).toBeUndefined()

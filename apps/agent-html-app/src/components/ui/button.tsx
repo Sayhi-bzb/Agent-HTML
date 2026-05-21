@@ -25,7 +25,7 @@ const buttonVariants = cva(
         lg: "h-10 px-6 has-data-[icon=inline-start]:pl-5 has-data-[icon=inline-end]:pr-5",
         icon: "size-9",
         "icon-xs": "size-7",
-        "icon-sm": "size-8",
+        "icon-sm": "size-[var(--shell-control-height-sm)]",
         "icon-lg": "size-10",
       },
     },
@@ -59,4 +59,4 @@ function Button({
   )
 }
 
-export { Button, buttonVariants }
+export { Button }

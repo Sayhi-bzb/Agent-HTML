@@ -1,4 +1,4 @@
-import { CheckIcon, EllipsisIcon, PinIcon, SquarePenIcon, Trash2Icon } from "lucide-react"
+import { CheckIcon, EllipsisIcon, SquarePenIcon, Trash2Icon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -34,7 +34,6 @@ type SessionCardProps = {
   onDelete: (sessionId: string) => void
   onOpen: (sessionId: string) => void
   onRename: (sessionId: string, name: string) => void
-  onTogglePinned: (sessionId: string, pinned: boolean) => void
 }
 
 export function SessionCard({
@@ -44,7 +43,6 @@ export function SessionCard({
   onDelete,
   onOpen,
   onRename,
-  onTogglePinned,
 }: SessionCardProps) {
   const [renaming, setRenaming] = useState(false)
   const [draftName, setDraftName] = useState(session.name)
@@ -158,13 +156,6 @@ export function SessionCard({
                   >
                     <SquarePenIcon />
                     Rename
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    disabled={disabled}
-                    onClick={() => onTogglePinned(session.id, !session.pinned)}
-                  >
-                    <PinIcon />
-                    {session.pinned ? "Unpin" : "Pin"}
                   </DropdownMenuItem>
                   <DropdownMenuDivider />
                   <DropdownMenuItem onClick={() => onDelete(session.id)}>

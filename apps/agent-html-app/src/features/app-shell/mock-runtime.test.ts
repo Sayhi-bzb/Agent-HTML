@@ -18,7 +18,6 @@ function createSummary(overrides?: Partial<SessionSummary>): SessionSummary {
     name: "Custom Review",
     directory: "D:/Users/demo/.agent-html-app/sessions/custom-review",
     status: "dirty",
-    pinned: false,
     updatedAt: "2026-05-21T10:00:00.000Z",
     hasPreview: true,
     ...overrides,
@@ -32,7 +31,6 @@ describe("mock-runtime", () => {
     expect(summary.id).toBe("session-review-notes-3")
     expect(summary.status).toBe("draft")
     expect(summary.hasPreview).toBe(false)
-    expect(summary.pinned).toBe(false)
   })
 
   it("generates preview html from session source", () => {

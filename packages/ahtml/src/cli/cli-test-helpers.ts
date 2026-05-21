@@ -18,7 +18,7 @@ export const cliPath = path.join(root, "packages", "ahtml", "bin", "ahtml.mjs")
 export const validAgentHtmlFixtures = [
   '<page title="Fixture"><card title="Summary">Valid text.</card></page>',
   [
-    '<meta-agent profile-ref="ops-compact" />',
+    '<meta-agent profile-ref="shadcn-default" />',
     '<page title="Dashboard"><card title="Queue">Ready.</card></page>',
   ].join("\n"),
   [
@@ -796,16 +796,6 @@ function createCustomArtifactProfile() {
         shadowOffsetY: "--shadow-offset-y",
       },
     },
-    componentStyle: {
-      treatments: {
-        alert: "ops-alert",
-        badge: "ops-badge",
-        card: "review-card",
-        input: "ops-field",
-        table: "ops-table",
-        tabs: "ops-tabs",
-        textarea: "ops-field",
-      },
-    },
+    componentStyle: {},
   }
 }

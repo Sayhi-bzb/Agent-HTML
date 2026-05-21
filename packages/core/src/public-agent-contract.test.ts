@@ -29,7 +29,7 @@ describe("public agent contract", () => {
     expect(contract.forbidden).toBe(contract.safetyPolicy.forbidden)
     expect(contract.renderConfig.keys).toEqual(["profile-ref"])
     expect(contract.renderConfig.defaults).toEqual({
-      "profile-ref": "report-default",
+      "profile-ref": "shadcn-default",
     })
     expect(contract.renderConfig.model).toBe("artifact-profile-reference")
     expect(contract.renderConfig.keys).toEqual(["profile-ref"])
@@ -59,11 +59,11 @@ describe("public agent contract", () => {
   it("creates a render config contract from the published config values", () => {
     expect(createPublicRenderConfigContract()).toEqual({
       defaults: {
-        "profile-ref": "report-default",
+        "profile-ref": "shadcn-default",
       },
       keys: ["profile-ref"],
       values: {
-        "profile-ref": ["report-default", "ops-compact", "review-dense"],
+        "profile-ref": ["shadcn-default"],
       },
       model: "artifact-profile-reference",
     })

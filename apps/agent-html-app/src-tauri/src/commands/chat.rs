@@ -5,7 +5,7 @@ use tracing::info_span;
 use crate::{
     chat_store::{append_chat_message_to_file, read_chat_messages},
     error::BackendError,
-    models::{AgentShellMessage, AppendChatMessageInput, AppError, LogSnapshot, ProposalSnapshot},
+    models::{AgentShellMessage, AppError, LogSnapshot, ProposalSnapshot},
     paths::{session_dir, LOGS_DIR_NAME, SOURCE_FILE_NAME},
     proposal::{build_run_summary_from_record, build_session_proposal_text},
     session_store::{read_session_record, write_session_record},
@@ -22,11 +22,13 @@ pub(crate) fn read_chat(app: AppHandle, session_id: String) -> Result<Vec<AgentS
 pub(crate) fn append_chat_message(
     app: AppHandle,
     session_id: String,
-    input: AppendChatMessageInput,
+    role: String,
+    text: String,
+    kind: String,
 ) -> Result<Vec<AgentShellMessage>, AppError> {
     let session_dir = session_dir(&app, &session_id)?;
     let mut record = read_session_record(&session_dir)?;
-    let text = input.text.trim();
+    let text = text.trim();
 
     if text.is_empty() {
         return Err(AppError::from(BackendError::ui_validation(
@@ -37,10 +39,10 @@ pub(crate) fn append_chat_message(
 
     let message = AgentShellMessage {
         id: format!("chat-{}", now_epoch_millis()),
-        role: input.role,
+        role,
         created_at: now_iso_stub(),
         text: text.to_string(),
-        kind: input.kind,
+        kind,
         proposal_snapshot: None,
     };
 

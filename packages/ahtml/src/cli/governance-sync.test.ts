@@ -53,6 +53,7 @@ const galleryControlsModulePaths = [
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/header.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/other-tab.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/profile-tab.tsx",
+  "packages/ahtml/src/cli/runtime-host/features/gallery/controls/treatments-tab.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/typography-tab.tsx",
   "packages/ahtml/src/cli/runtime-host/features/gallery/controls/types.ts",
 ]
@@ -267,12 +268,22 @@ describe("code governance sync blocks", () => {
     expect(hostStylesSource).toContain("--ahtml-gallery-color-popover-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-inspector-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-dashboard-card-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-dashboard-chart-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-pricing-comparison-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-auto-fit-footer-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-auto-fit-color-hero-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-auto-fit-color-grid-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-auto-fit-color-mode-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-auto-fit-typography-sample-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-auto-fit-typography-token-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-auto-fit-custom-card-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-two-up-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-workbench-intro-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-workbench-copy-max-width")
     expect(hostStylesSource).toContain("--ahtml-gallery-workbench-header-max-width")
     expect(hostStylesSource).toContain("--ahtml-gallery-workbench-meta-min-width")
     expect(hostStylesSource).toContain("--ahtml-gallery-workbench-side-rail-columns")
+    expect(hostStylesSource).toContain("--ahtml-gallery-leading-detail-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-three-up-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-triptych-columns")
     expect(hostStylesSource).toContain("--ahtml-gallery-nav-item-min-height")
@@ -293,11 +304,38 @@ describe("code governance sync blocks", () => {
     expect(hostStylesSource).toContain(
       "grid-template-columns: var(--ahtml-gallery-inspector-columns);",
     )
+    expect(hostStylesSource).toContain(".ahtml-gallery-workbench-intro")
+    expect(hostStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-workbench-intro-columns);",
+    )
+    expect(hostStylesSource).toContain(
+      ".ahtml-gallery-workbench-intro-copy",
+    )
+    expect(hostStylesSource).toContain(
+      "max-width: var(--ahtml-gallery-workbench-copy-max-width);",
+    )
+    expect(hostStylesSource).toContain(
+      ".ahtml-gallery-workbench-intro-meta",
+    )
+    expect(hostStylesSource).toContain(
+      "min-width: var(--ahtml-gallery-workbench-meta-min-width);",
+    )
+    expect(hostStylesSource).toContain(".ahtml-gallery-workbench-header")
+    expect(hostStylesSource).toContain(
+      ".ahtml-gallery-workbench-header-copy",
+    )
+    expect(hostStylesSource).toContain(
+      "max-width: var(--ahtml-gallery-workbench-header-max-width);",
+    )
+    expect(hostStylesSource).toContain(".ahtml-gallery-workbench-side-stack")
+    expect(hostStylesSource).toContain(".ahtml-gallery-workbench-summary-grid")
+    expect(hostStylesSource).toContain(".ahtml-gallery-workbench-checklist")
+    expect(hostStylesSource).toContain(
+      ".ahtml-gallery-workbench-checklist-item",
+    )
+    expect(hostStylesSource).toContain(".ahtml-gallery-workbench-footer")
     expect(galleryStylesSource).toContain(
       "grid-template-columns: var(--ahtml-gallery-two-up-columns);",
-    )
-    expect(galleryStylesSource).toContain(
-      "grid-template-columns: var(--ahtml-gallery-workbench-intro-columns);",
     )
     expect(galleryStylesSource).toContain(
       "grid-template-columns: var(--ahtml-gallery-workbench-side-rail-columns);",
@@ -307,6 +345,9 @@ describe("code governance sync blocks", () => {
     )
     expect(galleryStylesSource).toContain(
       "grid-template-columns: var(--ahtml-gallery-triptych-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-leading-detail-columns);",
     )
     expect(galleryStylesSource).toContain(
       "grid-template-columns: var(--ahtml-gallery-custom-status-columns);",
@@ -333,13 +374,31 @@ describe("code governance sync blocks", () => {
       "grid-template-columns: var(--ahtml-gallery-showcase-grid-columns);",
     )
     expect(galleryStylesSource).toContain(
-      "max-width: var(--ahtml-gallery-workbench-copy-max-width);",
+      "grid-template-columns: var(--ahtml-gallery-dashboard-chart-columns);",
     )
     expect(galleryStylesSource).toContain(
-      "max-width: var(--ahtml-gallery-workbench-header-max-width);",
+      "grid-template-columns: var(--ahtml-gallery-pricing-comparison-columns);",
     )
     expect(galleryStylesSource).toContain(
-      "min-width: var(--ahtml-gallery-workbench-meta-min-width);",
+      "grid-template-columns: var(--ahtml-gallery-auto-fit-footer-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-auto-fit-color-hero-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-auto-fit-color-grid-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-auto-fit-color-mode-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-auto-fit-typography-sample-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-auto-fit-typography-token-columns);",
+    )
+    expect(galleryStylesSource).toContain(
+      "grid-template-columns: var(--ahtml-gallery-auto-fit-custom-card-columns);",
     )
     expect(galleryStylesSource).toContain(
       "min-height: var(--ahtml-gallery-nav-item-min-height);",
@@ -350,6 +409,21 @@ describe("code governance sync blocks", () => {
     expect(hostStylesSource).not.toContain("--ahtml-gallery-cards-workbench-columns")
     expect(hostStylesSource).not.toContain("--ahtml-gallery-cards-split-columns")
     expect(hostStylesSource).not.toContain("--ahtml-gallery-pricing-columns")
+    expect(galleryStylesSource).not.toContain(
+      "grid-template-columns: auto minmax(0, 1fr);",
+    )
+    expect(galleryStylesSource).not.toContain(
+      "grid-template-columns: var(--ahtml-gallery-workbench-intro-columns);",
+    )
+    expect(galleryStylesSource).not.toContain(
+      "max-width: var(--ahtml-gallery-workbench-copy-max-width);",
+    )
+    expect(galleryStylesSource).not.toContain(
+      "min-width: var(--ahtml-gallery-workbench-meta-min-width);",
+    )
+    expect(galleryStylesSource).not.toContain(
+      "max-width: var(--ahtml-gallery-workbench-header-max-width);",
+    )
   })
 
   it("keeps gallery micro spacing and surface padding on shared runtime host tokens", async () => {
@@ -467,7 +541,17 @@ describe("code governance sync blocks", () => {
       ".ahtml-gallery-stage-panel",
       ".ahtml-gallery-stage-toolbar-copy",
       ".ahtml-gallery-stage-panel-kicker",
+      ".ahtml-gallery-workbench-intro",
+      ".ahtml-gallery-workbench-intro-copy",
+      ".ahtml-gallery-workbench-intro-meta",
+      ".ahtml-gallery-workbench-header",
+      ".ahtml-gallery-workbench-header-copy",
+      ".ahtml-gallery-workbench-side-stack",
+      ".ahtml-gallery-workbench-summary-grid",
+      ".ahtml-gallery-workbench-checklist",
+      ".ahtml-gallery-workbench-checklist-item",
       ".ahtml-gallery-workbench-panel",
+      ".ahtml-gallery-workbench-footer",
       ".ahtml-gallery-preview-meta",
       ".ahtml-gallery-stage-frame",
       ".ahtml-gallery-preview-surface",
@@ -485,6 +569,17 @@ describe("code governance sync blocks", () => {
         new RegExp(`(^|\\n)\\s*\\${selector}\\s*\\{`),
       )
     }
+
+    expect(hostStylesSource).toContain(
+      ".ahtml-gallery-dashboard-sidebar,\n      .ahtml-gallery-mail-nav,\n      .ahtml-gallery-mail-list {",
+    )
+    expect(hostStylesSource).toContain("border-right: 0;")
+    expect(hostStylesSource).toContain(
+      "border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);",
+    )
+    expect(galleryStylesSource).not.toContain(
+      ".ahtml-gallery-dashboard-sidebar,\n      .ahtml-gallery-mail-nav,\n      .ahtml-gallery-mail-list {",
+    )
   })
 
   it("keeps gallery preview.tsx as an orchestrator while preview scenes live in preview modules", async () => {
@@ -563,11 +658,13 @@ describe("code governance sync blocks", () => {
     expect(controlsSource).toContain('from "./controls/colors-tab"')
     expect(controlsSource).toContain('from "./controls/typography-tab"')
     expect(controlsSource).toContain('from "./controls/other-tab"')
+    expect(controlsSource).toContain('from "./controls/treatments-tab"')
     expect(controlsSource).not.toContain("function GalleryControlsHeader(")
     expect(controlsSource).not.toContain("function GalleryProfileTab(")
     expect(controlsSource).not.toContain("function GalleryColorsTab(")
     expect(controlsSource).not.toContain("function GalleryTypographyTab(")
     expect(controlsSource).not.toContain("function GalleryOtherTab(")
+    expect(controlsSource).not.toContain("function GalleryTreatmentsTab(")
     expect(controlsModuleSource).toContain(
       "export function GalleryControlsHeader",
     )
@@ -577,6 +674,9 @@ describe("code governance sync blocks", () => {
       "export function GalleryTypographyTab",
     )
     expect(controlsModuleSource).toContain("export function GalleryOtherTab")
+    expect(controlsModuleSource).toContain(
+      "export function GalleryTreatmentsTab",
+    )
   })
 
   it("keeps gallery shared entry as a controlled export surface while shared implementations live in shared modules", async () => {

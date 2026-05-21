@@ -93,9 +93,6 @@ export {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuDivider,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 }

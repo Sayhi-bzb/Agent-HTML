@@ -52,10 +52,10 @@ export function useGalleryWorkbenchState({
     }),
   )
   const [controlTab, setControlTab] =
-    React.useState<GalleryControlTab>("colors")
+    React.useState<GalleryControlTab>("lightTokens")
   const [colorSectionValues, setColorSectionValues] = React.useState<string[]>([
-    "base-tokens",
-    "surface-tokens",
+    "base-colors",
+    "card-colors",
   ])
   const [presetSearch, setPresetSearch] = React.useState("")
   const [presetPopoverOpen, setPresetPopoverOpen] = React.useState(false)
@@ -279,7 +279,6 @@ export function useGalleryDerivedState({
     () =>
       createRendererNode(
         rendererSpecByName,
-        editorState.draftProfile.componentStyle.treatments,
         editorState.draftProfile,
       ),
     [editorState.draftProfile, rendererSpecByName],

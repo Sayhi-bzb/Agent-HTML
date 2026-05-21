@@ -7,14 +7,19 @@ export type SessionSummary = {
   name: string
   directory: string
   status: SessionStatus
-  pinned: boolean
   updatedAt: string
   lastBuildAt?: string
   hasPreview: boolean
 }
 
 export type SessionDetail = {
-  summary: SessionSummary
+  id: string
+  name: string
+  directory: string
+  status: SessionStatus
+  updatedAt: string
+  lastBuildAt?: string
+  hasPreview: boolean
   sourcePath: string
   previewPath?: string
   lastBuild?: BuildRunSummary
@@ -64,7 +69,7 @@ export type SourceValidationSnapshot = {
   structureSummary: string
 }
 
-export type SourceValidationState = {
+type SourceValidationState = {
   status: "idle" | "running" | "valid" | "invalid"
   validatedAt?: string
   diagnostics: DiagnosticItem[]
@@ -115,7 +120,7 @@ export type AgentShellMessage = {
   proposalSnapshot?: ProposalSnapshot
 }
 
-export type AppErrorCode =
+type AppErrorCode =
   | "ui-validation"
   | "session-io"
   | "cli-launch"
@@ -123,7 +128,7 @@ export type AppErrorCode =
   | "inspect-failed"
   | "preview-missing"
 
-export type AppError = {
+type AppError = {
   code: AppErrorCode
   message: string
   details?: string

@@ -80,15 +80,15 @@ export function GalleryDashboardWorkbenchPanel({
           </div>
         </aside>
         <div className="ahtml-gallery-dashboard-main">
-          <header className="ahtml-gallery-dashboard-header ahtml-gallery-stage-toolbar ahtml-gallery-stage-toolbar-inset">
-            <div className="ahtml-gallery-dashboard-header-copy">
+          <header className="ahtml-gallery-workbench-header ahtml-gallery-stage-toolbar ahtml-gallery-stage-toolbar-inset">
+            <div className="ahtml-gallery-workbench-header-copy">
               <span className="ahtml-gallery-stage-panel-kicker">
                 Dashboard surface
               </span>
               <h4>Operating dashboard workbench</h4>
               <p>
                 Keep analytics, review queues, and channel diagnostics inside
-                the same continuous editor surface.
+                the same continuous workbench surface.
               </p>
             </div>
             <div className="ahtml-gallery-stage-toolbar-meta">
@@ -108,7 +108,7 @@ export function GalleryDashboardWorkbenchPanel({
             <div className="ahtml-gallery-custom-badges">
               <Badge variant="secondary">Revenue stable</Badge>
               <Badge variant="outline">3 reviews pending</Badge>
-              <Badge variant="outline">Dark mode verified</Badge>
+              <Badge variant="outline">Dark mode ready</Badge>
             </div>
           </div>
           <div className="ahtml-gallery-dashboard-section-cards">
@@ -170,7 +170,7 @@ export function GalleryDashboardWorkbenchPanel({
                   />
                 ))}
               </div>
-              <div className="ahtml-gallery-dashboard-chart-footer">
+              <div className="ahtml-gallery-dashboard-chart-footer ahtml-gallery-workbench-summary-grid">
                 <FieldRow label="Goal" value="$200K" />
                 <FieldRow label="Window" value="Last 90 days" />
               </div>
@@ -207,13 +207,13 @@ export function GalleryDashboardWorkbenchPanel({
                     ))}
                   </TableBody>
                 </Table>
-                <div className="ahtml-gallery-dashboard-table-footer">
+                <div className="ahtml-gallery-dashboard-table-footer ahtml-gallery-workbench-summary-grid">
                   <FieldRow label="Escalations" value="2 open" />
                   <FieldRow label="Next cut" value="16:00 UTC" />
                 </div>
               </CardContent>
             </Card>
-            <div className="ahtml-gallery-dashboard-secondary-stack">
+            <div className="ahtml-gallery-workbench-side-stack">
               <Card
                 {...getManualCardProps(profile, "manual.dashboard.tokens")}
                 style={{ boxShadow: surfaceShadow }}
@@ -238,16 +238,16 @@ export function GalleryDashboardWorkbenchPanel({
                 <CardHeader>
                   <CardTitle>Workbench checklist</CardTitle>
                 </CardHeader>
-                <CardContent className="ahtml-gallery-dashboard-checklist">
-                  <div>
+                <CardContent className="ahtml-gallery-workbench-checklist">
+                  <div className="ahtml-gallery-workbench-checklist-item">
                     <strong>Density</strong>
                     <span>Header, cards, and diagnostics keep one app rhythm.</span>
                   </div>
-                  <div>
+                  <div className="ahtml-gallery-workbench-checklist-item">
                     <strong>Continuity</strong>
                     <span>Sidebar and preview belong to the same surface plane.</span>
                   </div>
-                  <div>
+                  <div className="ahtml-gallery-workbench-checklist-item">
                     <strong>Theme shift</strong>
                     <span>Chart, sidebar, and table all react to one profile.</span>
                   </div>

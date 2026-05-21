@@ -19,7 +19,6 @@ export type UiRendererContext = {
     "data-ahtml-render-kind": string
     "data-ahtml-path": string
     "data-ahtml-source"?: string
-    "data-ahtml-treatment"?: string
   }
   renderChildren: (
     node: AgentComponentNode,

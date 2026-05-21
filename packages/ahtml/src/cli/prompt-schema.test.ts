@@ -78,7 +78,7 @@ describe("prompt and schema contracts", () => {
       expect.arrayContaining(["card", "accordion"]),
     )
     expect(schema.renderConfig.defaults).toEqual({
-      "profile-ref": "report-default",
+      "profile-ref": "shadcn-default",
     })
     expect(schema.renderConfig.model).toBe("artifact-profile-reference")
     expect(schema.renderConfig.keys).toEqual(["profile-ref"])
@@ -91,9 +91,9 @@ describe("prompt and schema contracts", () => {
     expect(Object.keys(schema.renderConfig.values)).not.toContain("density")
     expect(Object.keys(schema.renderConfig.values)).not.toContain("tone")
     expect(Object.keys(schema.renderConfig.values)).not.toContain("width")
-    expect(schema.renderConfig.values["profile-ref"]).toEqual(
-      expect.arrayContaining(["report-default", "ops-compact"]),
-    )
+    expect(schema.renderConfig.values["profile-ref"]).toEqual([
+      "shadcn-default",
+    ])
     expect(serializedComponents).not.toContain('"className"')
     expect(serializedComponents).not.toContain('"style"')
     expect(alert?.props.map((prop) => prop.name)).toEqual(["title", "variant"])

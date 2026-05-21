@@ -15,7 +15,7 @@ import type {
 
 describe("agent-html public types", () => {
   it("models a checked render config with an artifact profile reference", () => {
-    const profileReference = "ops-compact" satisfies ArtifactProfileReference
+    const profileReference = "shadcn-default" satisfies ArtifactProfileReference
     const customProfileReference =
       "team-ops" satisfies ArtifactProfileReference
     const meta = {
@@ -208,17 +208,7 @@ describe("agent-html public types", () => {
             switcherJustify: "flex-start",
           },
         },
-        componentStyle: {
-          treatments: {
-            alert: "ops-alert",
-            badge: "ops-badge",
-            card: "ops-card",
-            input: "ops-field",
-            table: "ops-table",
-            tabs: "ops-tabs",
-            textarea: "ops-field",
-          },
-        },
+        componentStyle: {},
         componentLayout: {
           page: {
             gap: "1.25rem",
@@ -296,8 +286,8 @@ describe("agent-html public types", () => {
 
     expect(pageComponentSchema.name).toBe("page")
     expect(customProfileReference).toBe("team-ops")
-    expect(document.meta.artifactProfileReference).toBe("ops-compact")
-    expect(document.meta.artifactProfile.id).toBe("ops-compact")
+    expect(document.meta.artifactProfileReference).toBe("shadcn-default")
+    expect(document.meta.artifactProfile.id).toBe("shadcn-default")
     expect(document.meta.artifactProfile.globalStyle.cssVariableMap.radius).toBe(
       "--radius",
     )

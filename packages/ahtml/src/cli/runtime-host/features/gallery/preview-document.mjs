@@ -76,8 +76,8 @@ function createCardsPreview(artifactProfile) {
         createCard("Surface Audit", [
           componentNode("table", {}, [
             rowNode("Layer", "Signal"),
-            rowNode("Card", artifactProfile.componentStyle.treatments.card ?? "none"),
-            rowNode("Badge", artifactProfile.componentStyle.treatments.badge ?? "none"),
+            rowNode("Profile", artifactProfile.id),
+            rowNode("Primary", artifactProfile.globalStyle.tokenSets.light.primary),
             rowNode("Radius", artifactProfile.globalStyle.radiusScale.base),
           ]),
         ]),
@@ -322,9 +322,7 @@ function createSelectionPreview(artifactProfile) {
               description: "Select trigger, content, and item treatment.",
             },
             [
-              optionNode("report-default", "report-default", "Builtin"),
-              optionNode("ops-compact", "ops-compact", "Builtin"),
-              optionNode("review-dense", "review-dense", "Builtin"),
+              optionNode("shadcn-default", "shadcn-default", "Builtin"),
             ],
           ),
           componentNode(

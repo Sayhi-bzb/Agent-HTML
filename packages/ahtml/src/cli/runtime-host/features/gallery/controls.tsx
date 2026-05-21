@@ -28,10 +28,10 @@ export function GalleryControlsPane({
           onValueChange={(value) => {
             const nextTab = value as GalleryControlsPaneProps["controlTab"]
             openControlTab(nextTab)
-            if (nextTab !== "colors") {
+            if (nextTab !== "lightTokens" && nextTab !== "darkTokens") {
               setFocusedToken(null)
             }
-            if (nextTab !== "typography" && nextTab !== "other") {
+            if (nextTab !== "typography" && nextTab !== "radius") {
               setFocusedEditorField(null)
             }
           }}
@@ -40,17 +40,6 @@ export function GalleryControlsPane({
           <GalleryControlsHeader controlTab={controlTab} {...props} />
           <ScrollArea className="ahtml-gallery-control-scroll">
             <div className="ahtml-gallery-control-body">
-              <GalleryProfileTab
-                createArtifactProfileReference={
-                  props.createArtifactProfileReference
-                }
-                deleteCurrentArtifactProfileReference={
-                  props.deleteCurrentArtifactProfileReference
-                }
-                editorState={props.editorState}
-                previewMode={props.previewMode}
-                setEditorState={props.setEditorState}
-              />
               <GalleryColorsTab
                 colorSearch={props.colorSearch}
                 colorSectionValues={props.colorSectionValues}
@@ -60,6 +49,7 @@ export function GalleryControlsPane({
                 filteredColorTokenSections={props.filteredColorTokenSections}
                 focusedToken={props.focusedToken}
                 previewThemeMode={props.previewThemeMode}
+                setPreviewThemeMode={props.setPreviewThemeMode}
                 setColorSearch={props.setColorSearch}
                 setColorSectionValues={props.setColorSectionValues}
                 setColorThemeSyncEnabled={props.setColorThemeSyncEnabled}
@@ -78,6 +68,12 @@ export function GalleryControlsPane({
               />
             </div>
           </ScrollArea>
+          <GalleryProfileTab
+            editorState={props.editorState}
+            previewMode={props.previewMode}
+            resetDraft={props.resetDraft}
+            saveProfile={props.saveProfile}
+          />
         </Tabs>
       </div>
     </div>

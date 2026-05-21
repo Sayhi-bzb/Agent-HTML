@@ -76,10 +76,46 @@
 
 具体要求：
 
-- color、radius、spacing、pane padding、gap、border、surface 都必须吃 token。
+- token 体系固定为三层：`primitive scale -> shell semantic token -> consumer layer`。
+- primitive scale 只负责离散刻度，不直接承载页面语义。
+- 页面、组件、布局 class 必须优先消费 `--shell-*` token 或共享 shell class，不直接散落原始 `rem` / `px` 值。
 - 页面层不回流成 `p-* / gap-* / rounded-* / shadow-*` 的零散治理模式。
 - layout 值优先由共享变量表达，例如 shell header padding、top bar height、section padding。
+- 布局 token 至少要区分 `pane chrome`、`content inset`、`state spacing` 三类角色，不应用单一 padding 名义吞掉所有场景。
 - 页面中的视觉收敛必须通过 token 和 contract 扩展完成，而不是在单页做一组例外规则。
+
+当前 scale 维度：
+
+- primitive scale 当前只统一四类：`space`、`size`、`text`、`leading`。
+- `space` 用于 spacing、padding、gap、stack rhythm。
+- `space` 在 shell 层应继续区分 header chrome padding、content inset padding、state spacing。
+- `size` 用于 icon、control frame、固定方形尺寸。
+- `text` 与 `leading` 用于正文、kicker、control copy 的字号和行高归一。
+- control spacing 使用压缩后的有限档位，不长期保留过细的 `xs / xl` 梯度。
+- 新增 spacing / size / text / line-height 需求时，必须优先映射到最近的既有 scale，不应继续引入近似但未归一的新数值。
+
+当前不进入 primitive scale 的维度：
+
+- `color` 继续保持语义 token，不做无语义色阶直出。
+- `tracking` 继续保持语义 token，不并入通用 scale。
+- supporting uppercase 文案应优先统一 tracking，不为 label / status / meta copy 维持近似但分裂的 tracking token。
+- `topbar-height`、单例 pane 约束、特定布局高度等值继续保留为 shell 语义变量，不强行抽成通用 scale。
+- `radius`、`border`、`surface` 等系统值必须统一消费 token，但当前不要求扩展成独立 primitive family。
+
+诚实化规则：
+
+- token 只在它提供复用价值、稳定语义或明确接口边界时保留。
+- 纯直通、单点使用且没有语义增量的 alias token，不应长期存在。
+- `0`、一次性补位值、仅为转写原始数值而存在的变量，应优先删除并在消费处显式表达。
+- 当某个 shell token 只是对 primitive scale 的稳定语义命名，例如 `--shell-gap-base`、`--shell-control-icon-size`、`--shell-text-body-size`，应保留；当它不再提供额外语义时，应回收到更上游的 scale 或直接内联。
+- `gap` 负责元素之间的节奏，`padding` 负责容器内边距；不应用 `gap` 代替 pane chrome 或 content inset 的语义。
+
+消费层约束：
+
+- 顶层 CSS 中的 `--space-*`、`--size-*`、`--text-*`、`--leading-*` 是 primitive truth。
+- `--shell-gap-*`、`--shell-space-*`、`--shell-control-*`、`--shell-text-*` 是 app shell 的语义映射层。
+- `.app-shell-*` 语义 class 是页面与 feature 的首选消费入口。
+- feature 组件可以组合 shell contract，但不应绕开这三层结构重新建立局部尺寸体系。
 
 设计含义：
 
@@ -158,14 +194,16 @@
 它的职责是：
 
 - 展示产品标识
-- 展示当前 session 名称
-- 展示当前 view 和运行环境状态
+- 承载 session tabs
+- 承载左右 panel controls
+- 提供新建 session 入口
+- 承载窗口控制
 
 设计要求：
 
-- 当前 session 是主信息。
+- session tabs 是主信息。
 - 品牌与 workspace identity 是次级信息。
-- 状态只保留短 badge，不扩写解释文案。
+- 顶部不承载 `Preview / Source / Inspect` 主视图切换。
 - 路径、时间戳、实现术语不能占据主位。
 
 ### 4.2 左侧 Sessions Rail
@@ -176,12 +214,12 @@
 
 - 搜索 session
 - 创建 session
-- 按 `Current / Pinned / Needs attention / Recent` 分组
-- 切换、重命名、置顶、删除 session
+- 切换、重命名、删除 session
 
 设计要求：
 
-- rail 强调结构分组，不强调每条 session 的独立组件感。
+- rail 更接近 session manager / explorer panel，不承担主视图切换。
+- rail 强调列表结构，不强调每条 session 的独立组件感。
 - 当前 session 在结构上应清楚可见。
 - 搜索与新建入口保持极简。
 - resize handle 是工作台结构的一部分，应有明确语义。
@@ -200,7 +238,11 @@
 
 - 它不是单一 viewer，而是三视图工作台。
 - `Preview / Source / Inspect` 更像结构标签，而不是主导性的胶囊组件。
-- pane header 只保留标题、必要 action、必要 badge。
+- `Preview / Source / Inspect` 的主切换入口应放在 `WorkbenchHeader`，不应在顶部 app chrome 再重复一套切换器。
+- `WorkbenchHeader` 不再重复展示 `Workbench` 文本或 pane 标识；这一层只保留视图切换与必要 action。
+- `Preview / Source / Inspect` 各自内部不再重复渲染 card-header；局部状态和操作应下沉到内容区顶部的轻量 meta row。
+- `Workbench` 是三栏中唯一允许 content full-bleed 的主工作区；默认 pane content inset 不直接套用到它的内容区。
+- 一般 pane header 默认只保留标题、必要 action、必要 badge；`WorkbenchHeader` 是特例，允许 trailing-only 且不显示 pane title。
 - 中栏应始终是三栏里最稳定、最连续、最少噪音的区域。
 
 ### 4.4 右侧 Agent Shell
@@ -294,7 +336,7 @@ session item 的设计目标是结构清楚，不是组件可爱。
 
 ### 6.3 Pane Header
 
-header 默认只包含：
+一般 pane header 默认只包含：
 
 - 标题
 - 必要 action
@@ -306,6 +348,47 @@ header 默认只包含：
 - path
 - timestamp
 - help copy
+
+`WorkbenchHeader` 是特例：
+
+- 可以不显示 pane title
+- 可以只保留右侧视图切换 action
+- 不再重复承载 tab 内标题、card-header 或二次 view switcher
+
+#### 6.3.1 Lightweight Action Icon 标准
+
+`WorkbenchHeader` 右侧 `Preview / Source / Inspect` 三个 action icon 作为页面级 lightweight icon action 的标准实现。
+
+规则：
+
+- 页面中的次级 icon action 默认使用这套 lightweight action 标准
+- 默认优先使用 `ShellIconButton`
+- variant 固定为 `ghost`
+- 按钮尺寸默认使用 `size="icon-sm"`，即紧凑方形 control frame
+- icon 本体默认不单独覆盖尺寸，沿用共享 `Button` 基类的默认 svg 尺寸 `size-4`
+- icon 默认使用 `data-icon="inline-start"`，不额外传局部 size class、`strokeWidth` 或自定义视觉特效
+- 默认色使用 `text-shell-text-secondary`
+- hover 时文字 / icon 色提升到 `text-shell-text-primary`
+- hover 背景沿用 `ghost` button 的 `hover:bg-accent`
+- 不使用圆角强化、胶囊 hover、阴影 hover、发光 hover 或额外强调边框
+
+设计含义：
+
+- 页面级次级 icon action 是结构性轻操作，不应抢占主标题、主内容或主 CTA 的层级
+- hover 应只提供“可点击确认”，不应制造 CTA 感
+- 这套规则适用于 workbench、review rail、session manager、搜索栏、列表工具栏等页面中的次级 action
+- pane header 中的次级 icon action 默认应直接复用这套标准
+- 不适用于危险操作、窗口控制按钮、主 CTA、tab close 或 active state 强语义控件这类独立语义控件
+- 在 `WorkbenchHeader` 中，这组三个 icon 承担 workbench 主视图切换职责；当前 view 只通过轻量 active 文本色提升表达，不使用顶部二次 tabs
+- `Workbench` pane 允许 content full-bleed；pane inset 不应和 `app-shell-workbench-body` 的内部 spacing 重复叠加
+- `Preview / Source / Inspect` 内部如需状态 badge、保存/检查动作或 diagnostics 摘要，应使用 body 顶部的轻量 meta row，而不是再引入带边界的 card-header
+
+当前实现映射：
+
+- class: `app-shell-plain-icon`
+- wrapper: `ShellIconButton`
+- button contract: `ghost` + `icon-sm`
+- icon baseline: default svg `size-4`
 
 ### 6.4 Runtime / Diagnostics / Logs
 
@@ -416,8 +499,21 @@ header 默认只包含：
 设计系统的主要实现入口是：
 
 - `src/styles.css`
+- `src/styles/theme.css`
+- `src/styles/tokens.css`
+- `src/styles/base.css`
+- `src/styles/shell.css`
 - 共享 shell semantic classes
 - `Shell*` 语义组合组件
+
+实现约束：
+
+- `src/styles.css` 只作为聚合入口，不再承载完整 token 与 component class 定义。
+- `theme.css` 负责 Tailwind / shadcn bridge 与 `@theme inline`。
+- `tokens.css` 负责 foundation token、primitive scale、shell semantic token。
+- `base.css` 只负责全局 base layer。
+- `shell.css` 负责 `.app-shell-*` 语义 class 与共享 shell contract。
+- 后续若继续治理 token 数量，应优先在 `tokens.css` 和 `shell.css` 中操作，而不是把 theme bridge 误算进 app 自身 token 复杂度。
 
 ### 10.2 组件边界
 
@@ -449,10 +545,12 @@ header 默认只包含：
 代表性 contract 包括：
 
 - pane scaffold
-- pane header / footer / content spacing
+- pane header / footer rhythm
+- default pane content inset + workbench full-bleed exception
 - top bar rhythm
 - search field contract
-- tabs contract
+- session tabstrip contract
+- workbench view-switching contract
 - status badge contract
 - loading / empty / console contract
 - session / shell / workbench 的共享语义 wrapper

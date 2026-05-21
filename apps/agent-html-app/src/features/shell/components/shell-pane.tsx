@@ -11,7 +11,7 @@ import { ShellComposer } from "./shell-composer"
 import { ShellHeader } from "./shell-header"
 import { RuntimeReportCard } from "./runtime-report-card"
 
-export type ShellPaneProps = {
+type ShellPaneProps = {
   messages: AgentShellMessage[]
   messageDraft: string
   runtimeReport?: RuntimeReport

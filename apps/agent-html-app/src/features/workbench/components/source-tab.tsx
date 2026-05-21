@@ -1,9 +1,12 @@
 import type { SourceValidationSnapshot } from "@/lib/types"
 
 import {
+  ShellIconButton,
   ShellLoadingRow,
+  ShellMetaRow,
+  ShellStatusBadge,
 } from "@/features/app-shell/components/shell-content"
-import { SourceHeader } from "./source-header"
+import { CheckIcon, SaveIcon } from "lucide-react"
 import {
   SourceEditorField,
   SourceValidationSummary,
@@ -36,16 +39,34 @@ export function SourceTab({
   onDraftSourceChange,
 }: SourceTabProps) {
   return (
-    <WorkbenchCard
-      header={
-        <SourceHeader
-          hasUnsavedChanges={hasUnsavedChanges}
-          interactionLocked={interactionLocked}
-          onSaveSource={onSaveSource}
-          onValidate={onValidate}
-        />
-      }
-    >
+    <WorkbenchCard>
+      <ShellMetaRow
+        action={
+          <div className="app-shell-stack-compact">
+            {hasUnsavedChanges ? (
+              <ShellStatusBadge label="edit" variant="outline" />
+            ) : null}
+            <ShellIconButton
+              ariaLabel="Check source"
+              disabled={interactionLocked}
+              onClick={onValidate}
+              tooltip="Check"
+            >
+              <CheckIcon data-icon="inline-start" />
+            </ShellIconButton>
+            {hasUnsavedChanges ? (
+              <ShellIconButton
+                ariaLabel="Save source"
+                disabled={interactionLocked}
+                onClick={onSaveSource}
+                tooltip="Save"
+              >
+                <SaveIcon data-icon="inline-start" />
+              </ShellIconButton>
+            ) : null}
+          </div>
+        }
+      />
       {saving ? <ShellLoadingRow>Save</ShellLoadingRow> : null}
       <SourceEditorField
         disabled={sourceEditingLocked}

@@ -26,9 +26,9 @@ export function GalleryCardsWorkbenchPanel({
       <div className="ahtml-gallery-stage-toolbar">
         <div className="ahtml-gallery-stage-toolbar-copy">
           <span className="ahtml-gallery-stage-panel-kicker">
-            Cards preview
+            Component cards
           </span>
-          <strong>Cards Preview</strong>
+          <strong>Component card gallery</strong>
         </div>
         <div className="ahtml-gallery-stage-toolbar-meta">
           <GalleryPreviewMeta label="Primary" value={tokens.primary} />
@@ -36,20 +36,18 @@ export function GalleryCardsWorkbenchPanel({
           <GalleryPreviewMeta label="Spacing" value={spacing} />
         </div>
       </div>
-      <div className="ahtml-gallery-cards-intro">
-        <div className="ahtml-gallery-cards-intro-copy">
+      <div className="ahtml-gallery-workbench-intro">
+        <div className="ahtml-gallery-workbench-intro-copy">
           <span className="ahtml-gallery-stage-panel-kicker">
             Component gallery
           </span>
           <h3>Component families rendered as a workbench matrix</h3>
           <p>
-            The default gallery view should read like a curated component wall:
-            content, forms, selection, and collaboration patterns all react to
-            the active artifact profile without collapsing back into a single
-            narrative document.
+            Review the active profile across content, forms, selection, and
+            collaboration surfaces without leaving the same operational stage.
           </p>
         </div>
-        <div className="ahtml-gallery-cards-intro-meta">
+        <div className="ahtml-gallery-workbench-intro-meta">
           <GalleryPreviewMeta label="Profile" value={profile.id} />
           <GalleryPreviewMeta label="Cards" value="10 modules" />
           <GalleryPreviewMeta label="Mode" value="component-gallery" />
@@ -106,7 +104,7 @@ export function GalleryCardsWorkbenchPanel({
                 <div className="ahtml-gallery-custom-badges">
                   <Badge variant="outline">Embed</Badge>
                   <Badge variant="outline">JSON</Badge>
-                  <Badge variant="secondary">Preview</Badge>
+                  <Badge variant="secondary">Synced</Badge>
                 </div>
                 <Separator />
                 <p className="ahtml-gallery-custom-copy">
@@ -114,10 +112,6 @@ export function GalleryCardsWorkbenchPanel({
                   the surface shifts between dense review and lighter preview
                   modes.
                 </p>
-                <FieldRow
-                  label="Treatment"
-                  value={profile.componentStyle.treatments.card ?? "none"}
-                />
               </CardContent>
             </Card>
             <Card
@@ -325,8 +319,8 @@ export function GalleryCardsWorkbenchPanel({
             </span>
             <h4>Conversation, people, and operational handoff</h4>
             <p>
-              These cards test stacked density, repeated metadata rows, and the
-              softer surfaces that keep a workbench usable.
+              Conversation, roster, and handoff cards should stay compact while
+              still surfacing status, ownership, and the next action clearly.
             </p>
           </div>
           <div className="ahtml-gallery-cards-grid ahtml-gallery-cards-grid-collaboration">
@@ -344,7 +338,7 @@ export function GalleryCardsWorkbenchPanel({
               <CardContent className="ahtml-gallery-chat-thread">
                 <div>
                   <strong>Mia</strong>
-                  <p>Can the gallery feel more like a product editor?</p>
+                  <p>Can we ship the updated launch board before noon?</p>
                 </div>
                 <div className="is-reply">
                   <strong>You</strong>
@@ -368,9 +362,9 @@ export function GalleryCardsWorkbenchPanel({
               </CardHeader>
               <CardContent className="ahtml-gallery-member-list">
                 {[
-                  ["Alicia", "Design review"],
-                  ["Noah", "Runtime QA"],
-                  ["Mia", "Preview shell"],
+                  ["Alicia", "Content ops"],
+                  ["Noah", "Release manager"],
+                  ["Mia", "Launch lead"],
                 ].map(([name, role]) => (
                   <div className="ahtml-gallery-member-row" key={name}>
                     <div

@@ -20,9 +20,9 @@ export async function hydrateSessionState(
   session: SessionDetail,
 ): Promise<HydratedSessionState> {
   const [chat, previewHtml, logs] = await Promise.all([
-    safeReadChat(session.summary.id),
-    safeReadPreviewHtml(session.summary.id),
-    safeReadLogs(session.summary.id),
+    safeReadChat(session.id),
+    safeReadPreviewHtml(session.id),
+    safeReadLogs(session.id),
   ])
 
   return {
@@ -65,8 +65,8 @@ export function deriveBuildSummary(session: SessionDetail): BuildRunSummary {
   return (
     session.lastBuild ?? {
       runId: "idle",
-      sessionId: session.summary.id,
-      startedAt: session.summary.updatedAt,
+      sessionId: session.id,
+      startedAt: session.updatedAt,
       status: "idle",
     }
   )
@@ -74,8 +74,8 @@ export function deriveBuildSummary(session: SessionDetail): BuildRunSummary {
 
 export function deriveInspectSnapshot(session: SessionDetail): InspectSnapshot {
   return {
-    sessionId: session.summary.id,
-    generatedAt: session.summary.updatedAt,
+    sessionId: session.id,
+    generatedAt: session.updatedAt,
     diagnostics: [],
     structureSummary: "No inspect data",
     lastBuild: session.lastBuild,

@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core"
+import { getCurrentWindow } from "@tauri-apps/api/window"
 
 import type {
   AgentShellMessage,
@@ -11,34 +12,12 @@ import type {
   SourceValidationSnapshot,
 } from "./types"
 
-export type SessionCreateInput = {
-  name: string
-}
-
-export type SessionViewInput = {
-  view: SessionDetail["currentView"]
-}
-
-export type SessionRenameInput = {
-  name: string
-}
-
-export type SessionPinInput = {
-  pinned: boolean
-}
-
-export type AppendChatMessageInput = {
-  role: AgentShellMessage["role"]
-  text: string
-  kind: AgentShellMessage["kind"]
-}
-
 export async function listSessions(): Promise<SessionSummary[]> {
   return invoke("list_sessions")
 }
 
-export async function createSession(input: SessionCreateInput): Promise<SessionDetail> {
-  return invoke("create_session", { input })
+export async function createSession(name: string): Promise<SessionDetail> {
+  return invoke("create_session", { name })
 }
 
 export async function openSession(sessionId: string): Promise<SessionDetail> {
@@ -49,16 +28,15 @@ export async function deleteSession(sessionId: string): Promise<void> {
   return invoke("delete_session", { sessionId })
 }
 
-export async function setSessionView(sessionId: string, input: SessionViewInput): Promise<SessionDetail> {
-  return invoke("set_session_view", { sessionId, input })
+export async function setSessionView(
+  sessionId: string,
+  view: SessionDetail["currentView"],
+): Promise<SessionDetail> {
+  return invoke("set_session_view", { sessionId, view })
 }
 
-export async function renameSession(sessionId: string, input: SessionRenameInput): Promise<SessionDetail> {
-  return invoke("rename_session", { sessionId, input })
-}
-
-export async function setSessionPinned(sessionId: string, input: SessionPinInput): Promise<SessionDetail> {
-  return invoke("set_session_pinned", { sessionId, input })
+export async function renameSession(sessionId: string, name: string): Promise<SessionDetail> {
+  return invoke("rename_session", { sessionId, name })
 }
 
 export async function saveSource(sessionId: string, source: string): Promise<SessionDetail> {
@@ -98,9 +76,11 @@ export async function readChat(sessionId: string): Promise<AgentShellMessage[]> 
 
 export async function appendChatMessage(
   sessionId: string,
-  input: AppendChatMessageInput,
+  role: AgentShellMessage["role"],
+  text: string,
+  kind: AgentShellMessage["kind"],
 ): Promise<AgentShellMessage[]> {
-  return invoke("append_chat_message", { sessionId, input })
+  return invoke("append_chat_message", { sessionId, role, text, kind })
 }
 
 export async function generateSessionProposal(sessionId: string): Promise<AgentShellMessage[]> {
@@ -113,4 +93,34 @@ export function isTauriRuntime(): boolean {
   }
 
   return "__TAURI_INTERNALS__" in (window as Window & { __TAURI_INTERNALS__?: unknown })
+}
+
+export async function minimizeWindow(): Promise<void> {
+  if (!isTauriRuntime()) {
+    return
+  }
+
+  await getCurrentWindow().minimize()
+}
+
+export async function toggleMaximizeWindow(): Promise<void> {
+  if (!isTauriRuntime()) {
+    return
+  }
+
+  const currentWindow = getCurrentWindow()
+  if (await currentWindow.isMaximized()) {
+    await currentWindow.unmaximize()
+    return
+  }
+
+  await currentWindow.maximize()
+}
+
+export async function closeWindow(): Promise<void> {
+  if (!isTauriRuntime()) {
+    return
+  }
+
+  await getCurrentWindow().close()
 }

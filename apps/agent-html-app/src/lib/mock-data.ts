@@ -18,7 +18,6 @@ const sessions: SessionSummary[] = [
     name: "Vendor Decision",
     directory: "D:/Users/demo/.agent-html-app/sessions/vendor-decision",
     status: "dirty",
-    pinned: true,
     updatedAt: now,
     lastBuildAt: "2026-05-15T12:30:00.000Z",
     hasPreview: true,
@@ -28,7 +27,6 @@ const sessions: SessionSummary[] = [
     name: "Streaming Review",
     directory: "D:/Users/demo/.agent-html-app/sessions/streaming-review",
     status: "ready",
-    pinned: false,
     updatedAt: "2026-05-15T11:50:00.000Z",
     lastBuildAt: "2026-05-15T11:48:00.000Z",
     hasPreview: true,
@@ -36,7 +34,7 @@ const sessions: SessionSummary[] = [
 ]
 
 const currentSession: SessionDetail = {
-  summary: sessions[0],
+  ...sessions[0],
   sourcePath: "D:/Users/demo/.agent-html-app/sessions/vendor-decision/source.agent.html",
   previewPath: "D:/Users/demo/.agent-html-app/sessions/vendor-decision/build/index.html",
   logDirectory: "D:/Users/demo/.agent-html-app/sessions/vendor-decision/logs",
@@ -63,7 +61,7 @@ const diagnostics: DiagnosticItem[] = [
 
 const currentBuild: BuildRunSummary = {
   runId: "build-20260515-1230",
-  sessionId: currentSession.summary.id,
+  sessionId: currentSession.id,
   startedAt: "2026-05-15T12:30:00.000Z",
   finishedAt: "2026-05-15T12:30:04.000Z",
   status: "succeeded",
@@ -74,7 +72,7 @@ const currentBuild: BuildRunSummary = {
 }
 
 const currentInspect: InspectSnapshot = {
-  sessionId: currentSession.summary.id,
+  sessionId: currentSession.id,
   generatedAt: now,
   diagnostics,
   structureSummary: "1 page, 1 alert, 1 card, 1 list, 3 items",

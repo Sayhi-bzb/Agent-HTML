@@ -207,7 +207,7 @@ export function createMockSessionDetail(
   currentView: WorkbenchView,
 ): SessionDetail {
   return {
-    summary,
+    ...summary,
     ...createPaths(summary),
     currentView,
     source,
@@ -278,7 +278,7 @@ export function createMockPreviewHtml(
   }
 
   if (
-    summary.id === mockAppState.currentSession.summary.id &&
+    summary.id === mockAppState.currentSession.id &&
     source === mockAppState.currentSession.source
   ) {
     return mockPreviewHtml
@@ -438,7 +438,6 @@ export function createMockSessionSummary(
     name,
     directory: `D:/Users/demo/.agent-html-app/sessions/${slug || `session-${index}`}`,
     status: "draft",
-    pinned: false,
     updatedAt: createdAt,
     hasPreview: false,
   }

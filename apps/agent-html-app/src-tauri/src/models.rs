@@ -9,7 +9,6 @@ pub(crate) struct SessionSummary {
     pub(crate) name: String,
     pub(crate) directory: String,
     pub(crate) status: String,
-    pub(crate) pinned: bool,
     pub(crate) updated_at: String,
     pub(crate) last_build_at: Option<String>,
     pub(crate) has_preview: bool,
@@ -18,7 +17,13 @@ pub(crate) struct SessionSummary {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct SessionDetail {
-    pub(crate) summary: SessionSummary,
+    pub(crate) id: String,
+    pub(crate) name: String,
+    pub(crate) directory: String,
+    pub(crate) status: String,
+    pub(crate) updated_at: String,
+    pub(crate) last_build_at: Option<String>,
+    pub(crate) has_preview: bool,
     pub(crate) source_path: String,
     pub(crate) preview_path: Option<String>,
     pub(crate) last_build: Option<BuildRunSummary>,
@@ -101,38 +106,6 @@ pub(crate) struct LogSnapshot {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct SessionCreateInput {
-    pub(crate) name: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct SessionViewInput {
-    pub(crate) view: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct SessionRenameInput {
-    pub(crate) name: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct SessionPinInput {
-    pub(crate) pinned: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct AppendChatMessageInput {
-    pub(crate) role: String,
-    pub(crate) text: String,
-    pub(crate) kind: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub(crate) struct AppError {
     pub(crate) code: String,
     pub(crate) message: String,
@@ -147,7 +120,6 @@ pub(crate) struct SessionRecord {
     pub(crate) id: String,
     pub(crate) name: String,
     pub(crate) status: String,
-    pub(crate) pinned: bool,
     pub(crate) updated_at: String,
     pub(crate) last_build_at: Option<String>,
     #[serde(default)]

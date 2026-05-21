@@ -7,10 +7,14 @@ import {
 } from "@/components/ui/resizable"
 import { normalizePanelLayout, persistPanelLayout } from "@/features/app-shell/panel-layout"
 import { shellPanelConstraints } from "@/features/app-shell/layout"
-import type { PanelLayoutState } from "@/features/app-shell/types"
+import type {
+  PanelLayoutState,
+  ShellChromeState,
+} from "@/features/app-shell/types"
 
 type MainLayoutProps = {
   panelLayout: PanelLayoutState
+  shellChrome: ShellChromeState
   onPanelLayoutChange: (layout: PanelLayoutState) => void
   sessions: ReactNode
   workbench: ReactNode
@@ -19,6 +23,7 @@ type MainLayoutProps = {
 
 export function MainLayout({
   panelLayout,
+  shellChrome,
   onPanelLayoutChange,
   sessions,
   workbench,
@@ -35,14 +40,18 @@ export function MainLayout({
         }}
         orientation="horizontal"
       >
-        <ResizablePanel
-          defaultSize={panelLayout.sessions}
-          id="sessions"
-          minSize={shellPanelConstraints.sessions.minSize}
-        >
-          <div className="app-shell-rail-frame">{sessions}</div>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
+        {shellChrome.leftPanelVisible ? (
+          <>
+            <ResizablePanel
+              defaultSize={panelLayout.sessions}
+              id="sessions"
+              minSize={shellPanelConstraints.sessions.minSize}
+            >
+              <div className="app-shell-rail-frame">{sessions}</div>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+          </>
+        ) : null}
         <ResizablePanel
           defaultSize={panelLayout.workbench}
           id="workbench"
@@ -50,14 +59,18 @@ export function MainLayout({
         >
           <div className="app-shell-workbench-frame">{workbench}</div>
         </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel
-          defaultSize={panelLayout.shell}
-          id="shell"
-          minSize={shellPanelConstraints.shell.minSize}
-        >
-          <div className="app-shell-review-frame">{shell}</div>
-        </ResizablePanel>
+        {shellChrome.rightPanelVisible ? (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize={panelLayout.shell}
+              id="shell"
+              minSize={shellPanelConstraints.shell.minSize}
+            >
+              <div className="app-shell-review-frame">{shell}</div>
+            </ResizablePanel>
+          </>
+        ) : null}
       </ResizablePanelGroup>
     </div>
   )

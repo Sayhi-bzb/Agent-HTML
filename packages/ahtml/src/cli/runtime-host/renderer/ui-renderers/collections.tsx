@@ -1,3 +1,7 @@
+import React from "react"
+
+void React
+
 import { resolveElement } from "../elements"
 import type { RendererKind } from "../kinds"
 import { applyPropMappings, getRendererPropMappings } from "../renderer-props"

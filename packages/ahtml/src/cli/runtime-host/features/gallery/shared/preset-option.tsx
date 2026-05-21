@@ -34,7 +34,7 @@ export function renderPresetChooserOption({
     ? isDraftDirty
       ? "Current draft"
       : "Current preset"
-    : "Open in editor"
+    : "Open in gallery"
 
   return (
     <button

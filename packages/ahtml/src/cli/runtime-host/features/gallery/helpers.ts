@@ -73,12 +73,10 @@ export function pickThemeTokens(
 }
 
 export function getManualCardProps(
-  profile: ArtifactProfile,
+  _profile: ArtifactProfile,
   path: string,
   className?: string,
 ) {
-  const treatment = profile.componentStyle.treatments.card
-
   return {
     className: [className, "ahtml-gallery-workbench-card"]
       .filter(Boolean)
@@ -87,7 +85,6 @@ export function getManualCardProps(
     "data-ahtml-path": path,
     "data-ahtml-render-kind": "compound",
     "data-ahtml-source": "shadcn",
-    ...(treatment ? { "data-ahtml-treatment": treatment } : {}),
   } as const
 }
 
@@ -147,7 +144,7 @@ export function resolveFocusableThemeToken(
 export function getColorSectionIdForToken(tokenName: ThemeTokenName) {
   return (
     colorTokenSections.find((section) => section.tokenNames.includes(tokenName))
-      ?.id ?? "base-tokens"
+      ?.id ?? "base-colors"
   )
 }
 

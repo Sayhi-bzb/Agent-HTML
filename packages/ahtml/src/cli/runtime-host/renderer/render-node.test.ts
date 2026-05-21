@@ -15,7 +15,6 @@ import type {
 type RendererNodeModule = {
   readonly createRendererNode: (
     rendererSpecByName: Map<string, RendererSpecComponent>,
-    componentTreatments?: Record<string, string>,
   ) => React.ComponentType<{
     node: AgentNode
     path?: RendererPath
@@ -305,43 +304,6 @@ describe("createRendererNode", () => {
     expect(markup).toContain("<li>Second</li>")
   })
 
-  it("applies builtin component treatment metadata and classes internally", () => {
-    const rendererSpecByName = createRendererSpecByName([
-      [
-        "card",
-        {
-          name: "card",
-          kind: "compound",
-          renderKind: "compound",
-          slots: [{ name: "children", children: [] }],
-          root: "section",
-          title: "h2",
-          titleProp: "title",
-          content: "div",
-          childMode: "block",
-        },
-      ],
-    ])
-
-    const RendererNode = createRendererNode(rendererSpecByName, {
-      card: "ops-card",
-    })
-    const markup = renderToStaticMarkup(
-      React.createElement(RendererNode, {
-        node: {
-          type: "component",
-          name: "card",
-          props: { title: "Overview" },
-          children: [{ type: "text", value: "Scoped internals." }],
-        },
-      }),
-    )
-
-    expect(markup).toContain('data-ahtml-treatment="ops-card"')
-    expect(markup).toContain('class="rounded-xl border-border/80 shadow-sm"')
-    expect(markup).toContain('class="ahtml-section-stack ahtml-prose-block"')
-  })
-
   it("exposes renderer metadata needed by the gallery inspector overlay", () => {
     const rendererSpecByName = createRendererSpecByName([
       [
@@ -361,9 +323,7 @@ describe("createRendererNode", () => {
       ],
     ])
 
-    const RendererNode = createRendererNode(rendererSpecByName, {
-      card: "report-card",
-    })
+    const RendererNode = createRendererNode(rendererSpecByName)
     const markup = renderToStaticMarkup(
       React.createElement(RendererNode, {
         node: {

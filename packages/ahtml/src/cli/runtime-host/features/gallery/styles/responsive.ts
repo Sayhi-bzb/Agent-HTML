@@ -4,18 +4,6 @@ export function createGalleryWorkbenchResponsiveCss() {
       .ahtml-gallery-dashboard-lower {
         grid-template-columns: 1fr;
       }
-      .ahtml-gallery-cards-intro {
-        grid-template-columns: 1fr;
-      }
-      .ahtml-gallery-cards-intro-meta {
-        min-width: 0;
-      }
-      .ahtml-gallery-pricing-overview {
-        grid-template-columns: 1fr;
-      }
-      .ahtml-gallery-pricing-overview-meta {
-        min-width: 0;
-      }
       .ahtml-gallery-cards-family {
         grid-template-columns: 1fr;
       }
@@ -53,12 +41,6 @@ export function createGalleryWorkbenchResponsiveCss() {
       .ahtml-gallery-cards-grid-collaboration .ahtml-gallery-cards-card,
       .ahtml-gallery-pricing-card {
         grid-column: span 1;
-      }
-      .ahtml-gallery-dashboard-sidebar,
-      .ahtml-gallery-mail-nav,
-      .ahtml-gallery-mail-list {
-        border-right: 0;
-        border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       }
       .ahtml-gallery-custom-site-header {
         grid-template-columns: 1fr;

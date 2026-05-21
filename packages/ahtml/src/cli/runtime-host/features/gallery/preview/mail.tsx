@@ -92,7 +92,7 @@ export function GalleryMailWorkbenchPanel({
           <div className="ahtml-gallery-mail-list-toolbar">
             <Badge variant="secondary">Focused</Badge>
             <Badge variant="outline">Today</Badge>
-            <Badge variant="outline">Design review</Badge>
+            <Badge variant="outline">Launch ops</Badge>
           </div>
           {[
             [
@@ -106,7 +106,7 @@ export function GalleryMailWorkbenchPanel({
               "Alicia Gomez",
               "Palette approval received",
               "Unread",
-              "Dark mode navigation and composer colors are approved for the rollout bundle.",
+              "Dark mode navigation and composer colors are locked for the launch bundle.",
               "08:41",
             ],
             [
@@ -156,8 +156,8 @@ export function GalleryMailWorkbenchPanel({
             letterSpacing: profile.globalStyle.typography.letterSpacing,
           }}
         >
-          <header className="ahtml-gallery-mail-display-header ahtml-gallery-stage-toolbar ahtml-gallery-stage-toolbar-inset">
-            <div className="ahtml-gallery-mail-display-heading">
+          <header className="ahtml-gallery-mail-display-header ahtml-gallery-workbench-header ahtml-gallery-stage-toolbar ahtml-gallery-stage-toolbar-inset">
+            <div className="ahtml-gallery-workbench-header-copy">
               <span className="ahtml-gallery-stage-panel-kicker">
                 Mail preview
               </span>
@@ -178,9 +178,9 @@ export function GalleryMailWorkbenchPanel({
             <Badge variant="outline">Archive</Badge>
             <Badge variant="secondary">Assigned</Badge>
           </div>
-          <div className="ahtml-gallery-mail-thread-summary">
+          <div className="ahtml-gallery-mail-thread-summary ahtml-gallery-workbench-summary-grid">
             <FieldRow label="Participants" value="Mia, Alicia, Noah" />
-            <FieldRow label="Queue" value="Design review" />
+            <FieldRow label="Queue" value="Launch ops" />
             <FieldRow label="Last action" value="09:12" />
           </div>
           <div className="ahtml-gallery-mail-display-body">
@@ -190,7 +190,7 @@ export function GalleryMailWorkbenchPanel({
               timing before the campaign moves to scheduled send.
             </p>
             <p>
-              Please reply with the approved subject line, confirm the partner
+              Please reply with the final subject line, confirm the partner
               attachment set, and flag anything that should stay in draft until
               the release window opens.
             </p>
@@ -198,18 +198,18 @@ export function GalleryMailWorkbenchPanel({
               <strong>Quoted context</strong>
               <p>
                 Final review notes: keep the inbox thread concise, preserve the
-                action hierarchy in the detail pane, and ship the approved
+                action hierarchy in the detail pane, and ship the locked
                 sidebar token set with the release bundle.
               </p>
             </div>
             <div className="ahtml-gallery-mail-attachments">
               <div className="ahtml-gallery-mail-attachment-card">
-                <strong>design.md</strong>
-                <span>Visual gap notes</span>
+                <strong>launch-brief.pdf</strong>
+                <span>Approved messaging</span>
               </div>
               <div className="ahtml-gallery-mail-attachment-card">
-                <strong>gallery.md</strong>
-                <span>Product standard</span>
+                <strong>delivery-window.csv</strong>
+                <span>Regional send schedule</span>
               </div>
             </div>
           </div>

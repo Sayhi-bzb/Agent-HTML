@@ -20,8 +20,8 @@ export function GalleryPricingWorkbenchPanel({
     <div className="ahtml-gallery-stage-panel ahtml-gallery-workbench-panel">
       <div className="ahtml-gallery-pricing-shell">
         <div className="ahtml-gallery-pricing-browser">
-          <header className="ahtml-gallery-pricing-header ahtml-gallery-stage-toolbar ahtml-gallery-stage-toolbar-inset">
-            <div className="ahtml-gallery-pricing-header-copy">
+          <header className="ahtml-gallery-workbench-header ahtml-gallery-stage-toolbar ahtml-gallery-stage-toolbar-inset">
+            <div className="ahtml-gallery-workbench-header-copy">
               <span className="ahtml-gallery-stage-panel-kicker">
                 Pricing workbench
               </span>
@@ -47,13 +47,13 @@ export function GalleryPricingWorkbenchPanel({
             <div className="ahtml-gallery-custom-badges">
               <Badge variant="secondary">Conversion reviewed</Badge>
               <Badge variant="outline">Theme aware</Badge>
-              <Badge variant="outline">Editor embed</Badge>
+              <Badge variant="outline">Shared surface</Badge>
             </div>
           </div>
         </div>
 
-        <div className="ahtml-gallery-pricing-overview">
-          <div className="ahtml-gallery-pricing-overview-copy">
+        <div className="ahtml-gallery-workbench-intro">
+          <div className="ahtml-gallery-workbench-intro-copy">
             <span className="ahtml-gallery-stage-panel-kicker">
               Pricing gallery
             </span>
@@ -64,7 +64,7 @@ export function GalleryPricingWorkbenchPanel({
               customers.
             </p>
           </div>
-          <div className="ahtml-gallery-pricing-overview-meta">
+          <div className="ahtml-gallery-workbench-intro-meta">
             <GalleryPreviewMeta label="Layout" value="commercial-review" />
             <GalleryPreviewMeta label="Cards" value="3 tiers" />
             <GalleryPreviewMeta label="State" value="embedded" />
@@ -80,7 +80,7 @@ export function GalleryPricingWorkbenchPanel({
               badgeVariant: "outline",
               features: [
                 ["Shared presets", true],
-                ["Gallery preview", true],
+                ["Theme previews", true],
                 ["Priority support", false],
               ] as const,
             },
@@ -91,7 +91,7 @@ export function GalleryPricingWorkbenchPanel({
               badgeVariant: "secondary",
               features: [
                 ["Shared presets", true],
-                ["Gallery preview", true],
+                ["Theme previews", true],
                 ["Priority support", true],
               ] as const,
             },
@@ -191,7 +191,7 @@ export function GalleryPricingWorkbenchPanel({
             </CardContent>
           </Card>
 
-          <div className="ahtml-gallery-pricing-side-stack">
+          <div className="ahtml-gallery-workbench-side-stack">
             <Card
               {...getManualCardProps(profile, "manual.pricing.notes")}
               style={{ boxShadow: surfaceShadow }}
@@ -199,16 +199,16 @@ export function GalleryPricingWorkbenchPanel({
               <CardHeader>
                 <CardTitle>Conversion checklist</CardTitle>
               </CardHeader>
-              <CardContent className="ahtml-gallery-pricing-checklist">
-                <div>
+              <CardContent className="ahtml-gallery-workbench-checklist">
+                <div className="ahtml-gallery-workbench-checklist-item">
                   <strong>Hierarchy</strong>
                   <span>Featured tier should read stronger without turning into a marketing hero.</span>
                 </div>
-                <div>
+                <div className="ahtml-gallery-workbench-checklist-item">
                   <strong>Density</strong>
-                  <span>Comparison details stay compact and still scannable inside the editor shell.</span>
+                  <span>Comparison details stay compact and still scannable in the commercial surface.</span>
                 </div>
-                <div>
+                <div className="ahtml-gallery-workbench-checklist-item">
                   <strong>Theme shift</strong>
                   <span>CTA and surface contrast react to the active artifact profile.</span>
                 </div>

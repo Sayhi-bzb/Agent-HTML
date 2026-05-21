@@ -188,7 +188,7 @@ describe("validate and inspect contracts", () => {
 
     expect(parsedValidation.ok).toBe(true)
     expect(parsedValidation.inspection?.config.artifactProfileReference).toBe(
-      "report-default",
+      "shadcn-default",
     )
     expect(parsedValidation.diagnostics).toEqual([
       expect.objectContaining({

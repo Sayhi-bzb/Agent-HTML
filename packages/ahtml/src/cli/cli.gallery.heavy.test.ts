@@ -65,22 +65,25 @@ describe("agent-html CLI heavy gallery flows", () => {
       const body = await response.text()
 
       expect(body).toContain("ahtml-gallery-preset-select-row")
-      expect(body).toContain(">report-default</")
+      expect(body).toContain(">shadcn-default</")
       expect(body).toContain("Gallery")
       expect(body).toContain("GitHub")
       expect(body).toContain("Reset")
       expect(body).toContain("Save Profile")
-      expect(body).toContain("Colors")
+      expect(body).toContain("Light Tokens")
+      expect(body).toContain("Dark Tokens")
       expect(body).toContain("Typography")
-      expect(body).toContain("Other")
+      expect(body).toContain("Radius")
       expect(body).toContain("Preset controls")
-      expect(body).toContain("Editor theme mode")
+      expect(body).toContain("Profile manager")
+      expect(body).toContain("Persist")
+      expect(body).toContain("Gallery theme mode")
       expect(body).toContain("Primary")
       expect(body).toContain("Secondary")
       expect(body).toContain("Border &amp; Input")
       expect(body).toContain("Read-only baseline preset")
-      expect(body).toContain("Preview synced")
-      expect(body).toContain('data-artifact-profile="report-default"')
+      expect(body).toContain("Gallery synced")
+      expect(body).toContain('data-artifact-profile="shadcn-default"')
       expect(body).toContain('class="ahtml-runtime-host ahtml-gallery-shell"')
       expect(body).toContain('data-gallery-frame="header"')
       expect(body).toContain('data-gallery-frame="controls"')
@@ -94,7 +97,7 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(body).toContain("Mode")
       expect(body).toContain("Draft")
       expect(body).toContain('data-slot="tabs"')
-      expect(body).toContain("Cards Preview")
+      expect(body).toContain("Component card gallery")
       expect(body).toContain("Component gallery")
       expect(body).toContain(
         "Component families rendered as a workbench matrix",
@@ -106,7 +109,6 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(body).toContain("Revenue Pulse")
       expect(body).toContain("Create Account")
       expect(body).toContain("Surface Audit")
-      expect(body).toContain("report-card")
     } finally {
       preview.kill("SIGTERM")
       await waitForProcessExit(preview)
@@ -146,17 +148,13 @@ describe("agent-html CLI heavy gallery flows", () => {
       const initialState = (await stateResponse.json()) as GalleryStatePayload
 
       expect(initialState.ok).toBe(true)
-      expect(initialState.artifactProfileReference).toBe("report-default")
+      expect(initialState.artifactProfileReference).toBe("shadcn-default")
       expect(initialState.availableArtifactProfileReferences).toContain(
-        "report-default",
+        "shadcn-default",
       )
-      expect(initialState.builtinArtifactProfileReferences).toEqual(
-        expect.arrayContaining([
-          "report-default",
-          "ops-compact",
-          "review-dense",
-        ]),
-      )
+      expect(initialState.builtinArtifactProfileReferences).toEqual([
+        "shadcn-default",
+      ])
 
       const createResponse = await fetch(`${url}/__ahtml/gallery/create`, {
         body: JSON.stringify({
@@ -183,13 +181,7 @@ describe("agent-html CLI heavy gallery flows", () => {
             fontSans: '"IBM Plex Sans", sans-serif',
           },
         },
-        componentStyle: {
-          ...createdState.artifactProfile.componentStyle,
-          treatments: {
-            ...createdState.artifactProfile.componentStyle.treatments,
-            card: "team-card",
-          },
-        },
+        componentStyle: {},
       }
       const saveResponse = await fetch(`${url}/__ahtml/gallery/save`, {
         body: JSON.stringify({
@@ -208,19 +200,14 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(savedState.artifactProfile.globalStyle.typography.fontSans).toBe(
         '"IBM Plex Sans", sans-serif',
       )
-      expect(savedState.artifactProfile.componentStyle.treatments.card).toBe(
-        "team-card",
-      )
-
       const savedProfileSource = await readFile(userProfilePath, "utf8")
       expect(savedProfileSource).toContain(
         '"fontSans": "\\"IBM Plex Sans\\", sans-serif"',
       )
-      expect(savedProfileSource).toContain('"card": "team-card"')
 
       const selectResponse = await fetch(`${url}/__ahtml/gallery/select`, {
         body: JSON.stringify({
-          artifactProfileReference: "report-default",
+          artifactProfileReference: "shadcn-default",
         }),
         headers: {
           "content-type": "application/json",
@@ -231,7 +218,7 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       expect(selectResponse.ok).toBe(true)
       expect(selectedState.ok).toBe(true)
-      expect(selectedState.artifactProfileReference).toBe("report-default")
+      expect(selectedState.artifactProfileReference).toBe("shadcn-default")
 
       const deleteResponse = await fetch(`${url}/__ahtml/gallery/delete`, {
         body: JSON.stringify({
@@ -246,7 +233,7 @@ describe("agent-html CLI heavy gallery flows", () => {
 
       expect(deleteResponse.ok).toBe(true)
       expect(deletedState.ok).toBe(true)
-      expect(deletedState.artifactProfileReference).toBe("report-default")
+      expect(deletedState.artifactProfileReference).toBe("shadcn-default")
       expect(deletedState.availableArtifactProfileReferences).not.toContain(
         "team-ops",
       )
@@ -285,7 +272,7 @@ describe("agent-html CLI heavy gallery flows", () => {
         body: JSON.stringify({
           artifactProfile: {
             ...initialState.artifactProfile,
-            id: "report-default",
+            id: "shadcn-default",
           },
         }),
         headers: {
@@ -301,12 +288,12 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(saveResponse.ok).toBe(false)
       expect(saveResult.ok).toBe(false)
       expect(saveResult.error).toContain(
-        'Cannot save built-in artifact profile "report-default"',
+        'Cannot save built-in artifact profile "shadcn-default"',
       )
 
       const deleteResponse = await fetch(`${url}/__ahtml/gallery/delete`, {
         body: JSON.stringify({
-          artifactProfileReference: "report-default",
+          artifactProfileReference: "shadcn-default",
         }),
         headers: {
           "content-type": "application/json",
@@ -321,7 +308,7 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(deleteResponse.ok).toBe(false)
       expect(deleteResult.ok).toBe(false)
       expect(deleteResult.error).toContain(
-        'Cannot delete built-in artifact profile "report-default"',
+        'Cannot delete built-in artifact profile "shadcn-default"',
       )
     } finally {
       preview.kill("SIGTERM")
@@ -360,7 +347,6 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(body).toContain("ahtml-gallery-preset-select-row")
       expect(body).toContain(">team-ops</")
       expect(body).toContain('data-artifact-profile="team-ops"')
-      expect(body).toContain('data-ahtml-treatment="review-card"')
       expect(body).toContain(":root{--background:#fcfbf8;--foreground:#1f2933;")
       expect(body).toContain("Artifact profile gallery ready.")
     } finally {
@@ -373,7 +359,6 @@ describe("agent-html CLI heavy gallery flows", () => {
   it("uses the selected current profile for preview when the document omits profile-ref", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
-    const previewOutputDir = path.join(tempDir, "preview")
     const inputPath = path.join(tempDir, "artifact.agent.html")
 
     await writeCustomArtifactProfile(runtimeHome)
@@ -415,7 +400,7 @@ describe("agent-html CLI heavy gallery flows", () => {
 
     const preview = spawn(
       process.execPath,
-      [cliPath, "preview", inputPath, "--out", previewOutputDir, "--port", "0"],
+      [cliPath, "preview", inputPath, "--port", "0"],
       {
         cwd: tempDir,
         env: createCliEnv(

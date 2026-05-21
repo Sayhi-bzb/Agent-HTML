@@ -1,67 +1,50 @@
-import { EyeIcon, FileCode2Icon, HammerIcon, InspectIcon } from "lucide-react"
-
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CodeIcon, EyeIcon, InspectIcon } from "lucide-react"
 import {
   ShellIconButton,
   ShellPaneHeader,
 } from "@/features/app-shell/components/shell-content"
 import type { WorkbenchView } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 type WorkbenchHeaderProps = {
   activeView: WorkbenchView
   interactionLocked: boolean
   onViewChange: (view: WorkbenchView) => void
-  onBuild: () => void
-  onInspect: () => void
 }
 
 export function WorkbenchHeader({
   activeView,
   interactionLocked,
   onViewChange,
-  onBuild,
-  onInspect,
 }: WorkbenchHeaderProps) {
   return (
     <ShellPaneHeader
-      gap="base"
-      leading={
-        <Tabs onValueChange={(value) => onViewChange(value as WorkbenchView)} value={activeView}>
-          <TabsList className="app-shell-tabs-list" variant="line">
-            <TabsTrigger className="app-shell-tabs-trigger" disabled={interactionLocked} value="preview">
-              <EyeIcon data-icon="inline-start" />
-              Preview
-            </TabsTrigger>
-            <TabsTrigger className="app-shell-tabs-trigger" disabled={interactionLocked} value="source">
-              <FileCode2Icon data-icon="inline-start" />
-              Source
-            </TabsTrigger>
-            <TabsTrigger className="app-shell-tabs-trigger" disabled={interactionLocked} value="inspect">
-              <InspectIcon data-icon="inline-start" />
-              Inspect
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      }
       trailing={
         <>
           <ShellIconButton
-            ariaLabel="Build preview"
-            className="app-shell-plain-icon"
+            ariaLabel="Open preview view"
+            className={cn(activeView === "preview" && "text-shell-text-primary")}
             disabled={interactionLocked}
-            onClick={onBuild}
-            tooltip="Build"
-            variant="ghost"
+            onClick={() => onViewChange("preview")}
+            tooltip="Preview"
           >
-            <HammerIcon data-icon="inline-start" />
+            <EyeIcon data-icon="inline-start" />
+          </ShellIconButton>
+          <ShellIconButton
+            ariaLabel="Open source view"
+            className={cn(activeView === "source" && "text-shell-text-primary")}
+            disabled={interactionLocked}
+            onClick={() => onViewChange("source")}
+            tooltip="Source"
+          >
+            <CodeIcon data-icon="inline-start" />
           </ShellIconButton>
           <ShellIconButton
             ariaLabel="Open inspect review"
-            className="app-shell-plain-icon"
+            className={cn(activeView === "inspect" && "text-shell-text-primary")}
             disabled={interactionLocked}
-            onClick={onInspect}
+            onClick={() => onViewChange("inspect")}
             tooltip="Inspect"
-            variant="ghost"
           >
             <InspectIcon data-icon="inline-start" />
           </ShellIconButton>

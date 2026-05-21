@@ -1,6 +1,6 @@
 use crate::{
     error::BackendError,
-    models::{AppError, SessionDetail, SessionRecord, SessionSummary},
+    models::{AppError, SessionDetail, SessionRecord},
     paths::{
         path_to_string, preview_path, CHAT_FILE_NAME, LOGS_DIR_NAME, SESSION_FILE_NAME,
         SOURCE_FILE_NAME,
@@ -26,16 +26,13 @@ pub(super) fn load_session_detail_from_dir(
     })?;
 
     Ok(SessionDetail {
-        summary: SessionSummary {
-            id: record.id.clone(),
-            name: record.name.clone(),
-            directory: path_to_string(session_dir.to_path_buf()),
-            status: record.status.clone(),
-            pinned: record.pinned,
-            updated_at: record.updated_at.clone(),
-            last_build_at: record.last_build_at.clone(),
-            has_preview: record.has_preview,
-        },
+        id: record.id.clone(),
+        name: record.name.clone(),
+        directory: path_to_string(session_dir.to_path_buf()),
+        status: record.status.clone(),
+        updated_at: record.updated_at.clone(),
+        last_build_at: record.last_build_at.clone(),
+        has_preview: record.has_preview,
         source_path: path_to_string(source_path),
         preview_path: preview_path(session_dir)
             .filter(|path| path.exists())
@@ -128,14 +125,5 @@ pub(super) fn rename_session_record(
     let mut record = read_session_record(session_dir)?;
     record.name = trimmed.to_string();
     record.updated_at = crate::support::now_iso_stub();
-    write_session_record(session_dir, &record)
-}
-
-pub(super) fn update_session_pin_record(
-    session_dir: &Utf8Path,
-    pinned: bool,
-) -> Result<(), AppError> {
-    let mut record = read_session_record(session_dir)?;
-    record.pinned = pinned;
     write_session_record(session_dir, &record)
 }

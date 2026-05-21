@@ -6,16 +6,27 @@ use crate::{
     chat_store::{default_chat_messages, write_chat_messages},
     error::BackendError,
     models::{
-        AppError, SessionCreateInput, SessionDetail, SessionPinInput, SessionRecord,
-        SessionRenameInput, SessionSummary, SessionViewInput,
+        AppError, SessionDetail, SessionRecord, SessionSummary,
     },
     paths::{ensure_sessions_root, session_dir, BUILD_DIR_NAME, LOGS_DIR_NAME, SOURCE_FILE_NAME},
     session_store::{
         load_session_detail_from_dir, read_session_record, rename_session_record,
-        update_session_pin_record, update_session_view_record, write_session_record,
+        update_session_view_record, write_session_record,
     },
     support::{default_source, now_epoch_millis, now_iso_stub, slugify},
 };
+
+fn session_summary_from_detail(session: &SessionDetail) -> SessionSummary {
+    SessionSummary {
+        id: session.id.clone(),
+        name: session.name.clone(),
+        directory: session.directory.clone(),
+        status: session.status.clone(),
+        updated_at: session.updated_at.clone(),
+        last_build_at: session.last_build_at.clone(),
+        has_preview: session.has_preview,
+    }
+}
 
 #[tauri::command]
 pub(crate) fn list_sessions(app: AppHandle) -> Result<Vec<SessionSummary>, AppError> {
@@ -39,15 +50,14 @@ pub(crate) fn list_sessions(app: AppHandle) -> Result<Vec<SessionSummary>, AppEr
         }
 
         if let Ok(session) = load_session_detail_from_dir(path.as_path()) {
-            sessions.push(session.summary);
+            sessions.push(session_summary_from_detail(&session));
         }
     }
 
     sessions.sort_by(|left, right| {
         right
-            .pinned
-            .cmp(&left.pinned)
-            .then_with(|| right.updated_at.cmp(&left.updated_at))
+            .updated_at
+            .cmp(&left.updated_at)
             .then_with(|| left.name.cmp(&right.name))
     });
 
@@ -56,15 +66,12 @@ pub(crate) fn list_sessions(app: AppHandle) -> Result<Vec<SessionSummary>, AppEr
 }
 
 #[tauri::command]
-pub(crate) fn create_session(
-    app: AppHandle,
-    input: SessionCreateInput,
-) -> Result<SessionDetail, AppError> {
-    let _span = info_span!("create_session", requested_name = %input.name).entered();
-    let name = if input.name.trim().is_empty() {
+pub(crate) fn create_session(app: AppHandle, name: String) -> Result<SessionDetail, AppError> {
+    let _span = info_span!("create_session", requested_name = %name).entered();
+    let name = if name.trim().is_empty() {
         "Untitled Session".to_string()
     } else {
-        input.name.trim().to_string()
+        name.trim().to_string()
     };
     let session_id = format!("session-{}-{}", slugify(&name), now_epoch_millis());
     let session_dir = ensure_sessions_root(&app)?.join(&session_id);
@@ -88,7 +95,6 @@ pub(crate) fn create_session(
         id: session_id.clone(),
         name: name.clone(),
         status: "draft".into(),
-        pinned: false,
         updated_at: now_iso_stub(),
         last_build_at: None,
         last_build_status: None,
@@ -135,10 +141,10 @@ pub(crate) fn delete_session(app: AppHandle, session_id: String) -> Result<(), A
 pub(crate) fn set_session_view(
     app: AppHandle,
     session_id: String,
-    input: SessionViewInput,
+    view: String,
 ) -> Result<SessionDetail, AppError> {
     let session_dir = session_dir(&app, &session_id)?;
-    update_session_view_record(&session_dir, &input.view, Some(session_id.clone()))?;
+    update_session_view_record(&session_dir, &view, Some(session_id.clone()))?;
     load_session_detail_from_dir(&session_dir)
 }
 
@@ -146,21 +152,10 @@ pub(crate) fn set_session_view(
 pub(crate) fn rename_session(
     app: AppHandle,
     session_id: String,
-    input: SessionRenameInput,
+    name: String,
 ) -> Result<SessionDetail, AppError> {
     let session_dir = session_dir(&app, &session_id)?;
-    rename_session_record(&session_dir, &input.name, Some(session_id.clone()))?;
-    load_session_detail_from_dir(&session_dir)
-}
-
-#[tauri::command]
-pub(crate) fn set_session_pinned(
-    app: AppHandle,
-    session_id: String,
-    input: SessionPinInput,
-) -> Result<SessionDetail, AppError> {
-    let session_dir = session_dir(&app, &session_id)?;
-    update_session_pin_record(&session_dir, input.pinned)?;
+    rename_session_record(&session_dir, &name, Some(session_id.clone()))?;
     load_session_detail_from_dir(&session_dir)
 }
 

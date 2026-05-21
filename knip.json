@@ -27,6 +27,32 @@
     "*.{ts,js}",
     "scripts/**/*.mjs"
   ],
+  "workspaces": {
+    "apps/agent-html-app": {
+      "entry": [
+        "src/main.tsx",
+        "vite.config.ts",
+        "vitest.config.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "vite.config.ts",
+        "vitest.config.ts"
+      ],
+      "ignore": [
+        "src/**/*.test.ts"
+      ],
+      "ignoreBinaries": [
+        "vite",
+        "vitest",
+        "tauri"
+      ],
+      "ignoreDependencies": [
+        "@tauri-apps/cli"
+      ]
+    }
+  },
   "rules": {
     "exports": "off"
   }

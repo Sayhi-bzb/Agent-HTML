@@ -45,16 +45,16 @@ describe("artifact profile storage", () => {
 
     const manifest = createArtifactProfileStorageManifest(paths)
     await writeArtifactProfileStorage(paths)
-    await writeCurrentArtifactProfileReference(paths, "ops-compact")
+    await writeCurrentArtifactProfileReference(paths, "shadcn-default")
 
-    expect(manifest.defaultArtifactProfileReference).toBe("report-default")
+    expect(manifest.defaultArtifactProfileReference).toBe("shadcn-default")
     expect(manifest).not.toHaveProperty("defaultArtifactProfileId")
 
     const persistedState = JSON.parse(
       await readFile(paths.artifactProfileStatePath, "utf8"),
     )
 
-    expect(persistedState.currentArtifactProfileReference).toBe("ops-compact")
+    expect(persistedState.currentArtifactProfileReference).toBe("shadcn-default")
     expect(persistedState).not.toHaveProperty("currentArtifactProfileId")
   })
 
@@ -102,10 +102,10 @@ describe("artifact profile storage", () => {
     } = await importArtifactProfileStorageModule()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
 
-    await writeCurrentArtifactProfileReference(paths, "report-default")
+    await writeCurrentArtifactProfileReference(paths, "shadcn-default")
 
     expect(await readCurrentArtifactProfileReference(paths)).toBe(
-      "report-default",
+      "shadcn-default",
     )
 
     await saveUserArtifactProfile(paths, createProfile("team-ops", "#0f766e"))
@@ -115,9 +115,9 @@ describe("artifact profile storage", () => {
 
     const deletion = await deleteArtifactProfile(paths, "team-ops")
     expect(deletion.deleted).toBe(true)
-    expect(deletion.currentArtifactProfileReference).toBe("report-default")
+    expect(deletion.currentArtifactProfileReference).toBe("shadcn-default")
     expect(await readCurrentArtifactProfileReference(paths)).toBe(
-      "report-default",
+      "shadcn-default",
     )
   })
 
@@ -135,14 +135,14 @@ describe("artifact profile storage", () => {
         {
           kind: "ahtml-artifact-profile-state",
           version: 1,
-          currentArtifactProfileId: "ops-compact",
+          currentArtifactProfileId: "shadcn-default",
         },
         null,
         2,
       )}\n`,
     )
 
-    expect(await readCurrentArtifactProfileReference(paths)).toBe("ops-compact")
+    expect(await readCurrentArtifactProfileReference(paths)).toBe("shadcn-default")
   })
 
   it("rejects invalid ids", async () => {
@@ -164,15 +164,15 @@ describe("artifact profile storage", () => {
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
 
     await expect(
-      saveUserArtifactProfile(paths, createProfile("report-default", "#0f766e"), {
+      saveUserArtifactProfile(paths, createProfile("shadcn-default", "#0f766e"), {
         overwrite: true,
       }),
-    ).rejects.toThrow('Cannot save built-in artifact profile "report-default"')
+    ).rejects.toThrow('Cannot save built-in artifact profile "shadcn-default"')
 
     await expect(
-      deleteArtifactProfile(paths, "report-default"),
+      deleteArtifactProfile(paths, "shadcn-default"),
     ).rejects.toThrow(
-      'Cannot delete built-in artifact profile "report-default"',
+      'Cannot delete built-in artifact profile "shadcn-default"',
     )
   })
 })
@@ -372,17 +372,7 @@ function createProfile(id: string, primary: string): ArtifactProfile {
         switcherJustify: "flex-start",
       },
     },
-    componentStyle: {
-      treatments: {
-        alert: "ops-alert",
-        badge: "ops-badge",
-        card: "ops-card",
-        input: "ops-field",
-        table: "ops-table",
-        tabs: "ops-tabs",
-        textarea: "ops-field",
-      },
-    },
+    componentStyle: {},
     componentLayout: {
       page: {
         gap: "1.25rem",

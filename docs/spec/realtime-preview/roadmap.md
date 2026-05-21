@@ -30,7 +30,7 @@
 - runtime host 已支持 `mode: "document" | "gallery" | "diagnostics"`，document preview 以 runtime state 中的 document 为主输入。
 - 当前 live update 依赖 managed runtime 下的 generated runtime files 与 Vite dev reload，不是单独设计的一套浏览器端 preview-state 订阅协议。
 - `README.md`、`docs-web/content/docs/index.mdx`、`.agents/skills/ahtml/references/*` 与 CLI help 已同步到 preview-first / build-as-export 口径。
-- `preview --out` 仍保留兼容参数，但已在 CLI help 和用户文档中明确说明它不再参与 preview 物化输出。
+- `preview --out` 兼容参数已从公开命令面移除，preview 不再保留输出目录兼容入口。
 
 ## Phase 1: Preview Path Decoupling
 
@@ -169,7 +169,7 @@
   - `packages/ahtml/src/cli/command-contract.mjs` 已把 `preview` 描述为 realtime preview session。
   - `build` 在实现层面已收口为 export / materialize。
   - `README.md`、`docs-web/content/docs/index.mdx` 与 `.agents/skills/ahtml/*` 已统一成 preview-first 文案。
-  - `preview --out` 仍保留兼容参数；它已不再参与 preview 物化输出，CLI help 和用户文档都已补充这一点。
+  - `preview --out` 已从 CLI help、测试和用户文档中移除。
 - 当前保留：
   - 还需要在后续常规维护中持续防止旧的 static-preview 叙述重新回流到新文档或帮助文本。
 

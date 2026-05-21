@@ -22,7 +22,6 @@ export function DocumentApp({
         component,
       ]),
     ),
-    document.meta.artifactProfile.componentStyle.treatments,
     document.meta.artifactProfile,
   )
 

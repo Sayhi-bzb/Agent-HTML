@@ -60,7 +60,12 @@ export type GalleryPreviewPaneProps = {
   isSaving: boolean
   artifactProfileReference: string
   openControlTab: (
-    nextTab: "colors" | "typography" | "other" | "profile",
+    nextTab:
+      | "lightTokens"
+      | "darkTokens"
+      | "typography"
+      | "radius"
+      | "treatments",
   ) => void
   previewMode: GalleryPreviewMode
   previewModeLabel: string
@@ -121,10 +126,10 @@ export function GalleryPreviewPane({
       >
         <div className="ahtml-gallery-toolbar ahtml-gallery-toolbar-border ahtml-gallery-preview-topbar">
           <div className="ahtml-gallery-toolbar-copy">
-            <span className="ahtml-gallery-toolbar-label">Preview actions</span>
+            <span className="ahtml-gallery-toolbar-label">Gallery actions</span>
             <span className="ahtml-gallery-toolbar-caption">
               Profile {artifactProfileReference} · Draft{" "}
-              {isDirty ? "unsaved" : "synced"} · Theme {previewThemeMode}
+              {isDirty ? "unsaved" : "gallery-synced"} · Theme {previewThemeMode}
             </span>
           </div>
           <div className="ahtml-gallery-preview-toolbar">
@@ -132,7 +137,7 @@ export function GalleryPreviewPane({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    aria-label="More editor tools"
+                    aria-label="More gallery tools"
                     className="ahtml-gallery-more-previews"
                     size="sm"
                     type="button"
@@ -142,14 +147,16 @@ export function GalleryPreviewPane({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Editor tools</DropdownMenuLabel>
+                  <DropdownMenuLabel>Gallery tools</DropdownMenuLabel>
                   <DropdownMenuItem
                     onSelect={() => {
-                      openControlTab("colors")
+                      openControlTab(
+                        previewThemeMode === "dark" ? "darkTokens" : "lightTokens",
+                      )
                       setPreviewMode("colors")
                     }}
                   >
-                    Edit colors
+                    Edit theme tokens
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onSelect={() => {
@@ -159,17 +166,19 @@ export function GalleryPreviewPane({
                   >
                     Edit typography
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => openControlTab("other")}>
-                    Edit geometry
+                  <DropdownMenuItem onSelect={() => openControlTab("radius")}>
+                    Edit radius
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => openControlTab("profile")}>
-                    Manage profile
+                  <DropdownMenuItem
+                    onSelect={() => openControlTab("treatments")}
+                  >
+                    Edit treatments
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onSelect={() => setPreviewMode("components")}
                   >
-                    Cards preview
+                    Component cards
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => setPreviewMode("full")}>
                     Full component gallery
@@ -297,11 +306,11 @@ export function GalleryPreviewPane({
                   variant="ghost"
                 >
                   <MoreVertical aria-hidden="true" />
-                  More previews
+                  More galleries
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuLabel>Preview catalog</DropdownMenuLabel>
+                <DropdownMenuLabel>Gallery catalog</DropdownMenuLabel>
                 <DropdownMenuItem onSelect={() => setPreviewMode("forms")}>
                   Form controls
                 </DropdownMenuItem>
@@ -312,7 +321,7 @@ export function GalleryPreviewPane({
                   Disclosure patterns
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setPreviewMode("typography")}>
-                  Typography audit
+                  Typography gallery
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => setPreviewMode("full")}>
@@ -325,7 +334,7 @@ export function GalleryPreviewPane({
             <span>Mode</span>
             <strong>{previewModeLabel}</strong>
             <span>Draft</span>
-            <strong>{isDirty ? "unsaved" : "synced"}</strong>
+            <strong>{isDirty ? "unsaved" : "gallery-synced"}</strong>
             <span>Style</span>
             <strong>{artifactProfileReference}</strong>
           </div>

@@ -36,11 +36,10 @@ export function ShellComposer({
       </div>
       <ShellIconButton
         ariaLabel="Send note"
-        className="app-shell-plain-icon app-shell-composer-send"
+        className="app-shell-composer-send"
         disabled={!draft.trim() || interactionLocked}
         onClick={onSend}
         tooltip="Send"
-        variant="ghost"
       >
         <SendHorizontalIcon data-icon="inline-start" />
       </ShellIconButton>

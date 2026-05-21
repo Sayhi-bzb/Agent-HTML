@@ -61,6 +61,8 @@ export type GalleryControlsPaneProps = {
   setPreviewThemeMode: React.Dispatch<
     React.SetStateAction<GalleryPreviewThemeMode>
   >
+  resetDraft: () => void
+  saveProfile: () => Promise<void>
   updateDraftProfile: (
     updater: (draft: ArtifactProfile) => ArtifactProfile,
   ) => void
@@ -74,8 +76,10 @@ export type GalleryControlsHeaderProps = Pick<
   | "activeArtifactProfileKindLabel"
   | "activeArtifactProfileSummary"
   | "artifactProfileReference"
+  | "createArtifactProfileReference"
   | "controlTab"
   | "cycleArtifactProfileReference"
+  | "deleteCurrentArtifactProfileReference"
   | "editorState"
   | "filteredArtifactProfileReferences"
   | "filteredBuiltInArtifactProfileReferences"
@@ -85,6 +89,7 @@ export type GalleryControlsHeaderProps = Pick<
   | "previewThemeMode"
   | "randomizeArtifactProfileReference"
   | "selectArtifactProfileReference"
+  | "setEditorState"
   | "setPresetPopoverOpen"
   | "setPresetSearch"
   | "setPreviewThemeMode"
@@ -92,11 +97,10 @@ export type GalleryControlsHeaderProps = Pick<
 
 export type GalleryProfileTabProps = Pick<
   GalleryControlsPaneProps,
-  | "createArtifactProfileReference"
-  | "deleteCurrentArtifactProfileReference"
   | "editorState"
   | "previewMode"
-  | "setEditorState"
+  | "resetDraft"
+  | "saveProfile"
 >
 
 export type GalleryColorsTabProps = Pick<
@@ -109,6 +113,7 @@ export type GalleryColorsTabProps = Pick<
   | "filteredColorTokenSections"
   | "focusedToken"
   | "previewThemeMode"
+  | "setPreviewThemeMode"
   | "setColorSearch"
   | "setColorSectionValues"
   | "setColorThemeSyncEnabled"

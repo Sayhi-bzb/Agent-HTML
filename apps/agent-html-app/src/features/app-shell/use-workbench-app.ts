@@ -14,7 +14,6 @@ import {
   runBuild,
   runInspect,
   saveSource,
-  setSessionPinned,
   setSessionView,
   validateSource,
 } from "@/lib/tauri"
@@ -51,7 +50,11 @@ import {
   safeReadLogs,
   safeReadPreviewHtml,
 } from "./session-hydration"
-import { initialCommandState, type CommandState } from "./types"
+import {
+  initialCommandState,
+  type CommandState,
+  type OpenSessionTab,
+} from "./types"
 
 function filterMessages(messages: AppState["chat"]) {
   return messages.filter((message) => {
@@ -83,10 +86,34 @@ function sortSessions(
       return 0
     }
 
-    return Number(right.pinned) - Number(left.pinned) ||
-      right.updatedAt.localeCompare(left.updatedAt) ||
+    return right.updatedAt.localeCompare(left.updatedAt) ||
       left.name.localeCompare(right.name)
   })
+}
+
+function sessionSummaryFromDetail(
+  session: AppState["currentSession"],
+): AppState["sessions"][number] {
+  return {
+    id: session.id,
+    name: session.name,
+    directory: session.directory,
+    status: session.status,
+    updatedAt: session.updatedAt,
+    lastBuildAt: session.lastBuildAt,
+    hasPreview: session.hasPreview,
+  }
+}
+
+function ensureOpenSessionTab(
+  tabs: OpenSessionTab[],
+  sessionId: string,
+): OpenSessionTab[] {
+  if (tabs.some((tab) => tab.sessionId === sessionId)) {
+    return tabs
+  }
+
+  return [...tabs, { sessionId }]
 }
 
 export function useWorkbenchApp() {
@@ -100,7 +127,7 @@ export function useWorkbenchApp() {
         summary.id,
         getDefaultMockView(
           summary,
-          mockAppState.currentSession.summary.id,
+          mockAppState.currentSession.id,
           mockAppState.currentSession.currentView,
         ),
       ]),
@@ -121,6 +148,9 @@ export function useWorkbenchApp() {
   const [validation, setValidation] = useState<SourceValidationSnapshot>()
   const [runtimeReport, setRuntimeReport] = useState<RuntimeReport>()
   const [commandState, setCommandState] = useState(initialCommandState)
+  const [openSessionTabs, setOpenSessionTabs] = useState<OpenSessionTab[]>([
+    { sessionId: mockAppState.currentSession.id },
+  ])
 
   const currentSession = appState.currentSession
   const currentBuild = appState.currentBuild
@@ -139,7 +169,7 @@ export function useWorkbenchApp() {
     setDraftSource(currentSession.source)
     setValidation(undefined)
     setRuntimeReport(undefined)
-  }, [currentSession.summary.id, currentSession.source])
+  }, [currentSession.id, currentSession.source])
 
   async function yieldToNextTask(): Promise<void> {
     await new Promise((resolve) => {
@@ -204,14 +234,15 @@ export function useWorkbenchApp() {
         let session = sessions[0]
 
         if (!session) {
-          session = (await createSession({ name: "First Session" })).summary
+          session = sessionSummaryFromDetail(await createSession("First Session"))
         }
 
         const nextState = await loadSessionState(session.id)
         applyHydratedSessionState(
           nextState,
-          sessions.length > 0 ? sessions : [nextState.session.summary],
+          sessions.length > 0 ? sessions : [nextState.session],
         )
+        setOpenSessionTabs([{ sessionId: nextState.session.id }])
       })
     } catch (error) {
       void error
@@ -251,6 +282,9 @@ export function useWorkbenchApp() {
       setPreviewHtml(nextState.previewHtml)
       setActiveView(nextState.session.currentView)
       setDraftSource(nextState.session.source)
+      setOpenSessionTabs((current) =>
+        ensureOpenSessionTab(current, nextState.session.id),
+      )
     })
   }
 
@@ -267,12 +301,12 @@ export function useWorkbenchApp() {
     mutate: (summary: AppState["sessions"][number]) => AppState["sessions"][number],
   ): void {
     setAppState((current) => {
-      const nextSummary = mutate(current.currentSession.summary)
+      const nextSummary = mutate(sessionSummaryFromDetail(current.currentSession))
       return {
         ...current,
         currentSession: {
           ...current.currentSession,
-          summary: nextSummary,
+          ...nextSummary,
         },
         sessions: replaceSessionSummary(nextSummary, current.sessions),
       }
@@ -284,17 +318,18 @@ export function useWorkbenchApp() {
       mockSessionViews[summary.id] ??
       getDefaultMockView(
         summary,
-        mockAppState.currentSession.summary.id,
+        mockAppState.currentSession.id,
         mockAppState.currentSession.currentView,
       )
     )
   }
 
   function updateSessionSummary(session: AppState["currentSession"]): void {
+    const nextSummary = sessionSummaryFromDetail(session)
     setAppState((current) => ({
       ...current,
       currentSession: session,
-      sessions: replaceSessionSummary(session.summary, current.sessions),
+      sessions: replaceSessionSummary(nextSummary, current.sessions),
     }))
     setActiveView(session.currentView)
   }
@@ -351,6 +386,9 @@ export function useWorkbenchApp() {
             appState.sessions,
             nextView,
           )
+          setOpenSessionTabs((current) =>
+            ensureOpenSessionTab(current, nextSummary.id),
+          )
         })
       } catch (error) {
         void error
@@ -401,6 +439,9 @@ export function useWorkbenchApp() {
             nextSessions,
             "source",
           )
+          setOpenSessionTabs((current) =>
+            ensureOpenSessionTab(current, nextSummary.id),
+          )
         })
       } catch (error) {
         void error
@@ -410,12 +451,11 @@ export function useWorkbenchApp() {
 
     try {
       await runCommand("loading", async () => {
-        const created = await createSession({
-          name: `Session ${appState.sessions.length + 1}`,
-        })
+        const created = await createSession(`Session ${appState.sessions.length + 1}`)
         const nextState = await hydrateSessionState(created)
         const sessions = await listSessions()
         applyHydratedSessionState(nextState, sessions)
+        setOpenSessionTabs((current) => ensureOpenSessionTab(current, created.id))
       })
     } catch (error) {
       void error
@@ -445,13 +485,14 @@ export function useWorkbenchApp() {
               sortSessions([nextSummary]),
               "source",
             )
+            setOpenSessionTabs([{ sessionId: nextSummary.id }])
             return
           }
 
           const fallbackSummary =
-            sessionId === currentSession.summary.id
+            sessionId === currentSession.id
               ? remainingSessions[0]
-              : remainingSessions.find((session) => session.id === currentSession.summary.id) ??
+              : remainingSessions.find((session) => session.id === currentSession.id) ??
                 remainingSessions[0]
           const nextSource =
             mockSessionSources[fallbackSummary.id] ??
@@ -483,6 +524,10 @@ export function useWorkbenchApp() {
             sortSessions(remainingSessions),
             nextView,
           )
+          setOpenSessionTabs((current) => {
+            const nextTabs = current.filter((tab) => tab.sessionId !== sessionId)
+            return ensureOpenSessionTab(nextTabs, fallbackSummary.id)
+          })
         })
       } catch (error) {
         void error
@@ -496,18 +541,22 @@ export function useWorkbenchApp() {
         const sessions = await listSessions()
 
         if (sessions.length === 0) {
-          const created = await createSession({ name: "First Session" })
+          const created = await createSession("First Session")
           const nextState = await hydrateSessionState(created)
-          applyHydratedSessionState(nextState, [nextState.session.summary])
+          applyHydratedSessionState(nextState, [nextState.session])
           return
         }
 
         const fallbackId =
-          sessionId === currentSession.summary.id
+          sessionId === currentSession.id
             ? sessions[0].id
-            : currentSession.summary.id
+            : currentSession.id
         const nextState = await loadSessionState(fallbackId)
         applyHydratedSessionState(nextState, sessions)
+        setOpenSessionTabs((current) => {
+          const nextTabs = current.filter((tab) => tab.sessionId !== sessionId)
+          return ensureOpenSessionTab(nextTabs, nextState.session.id)
+        })
       })
     } catch (error) {
       void error
@@ -542,7 +591,7 @@ export function useWorkbenchApp() {
             mockSessionChats[sessionId] ?? createMockBaseChat(nextSummary, nextSource)
           const nextView = getMockView(nextSummary)
 
-          if (sessionId === currentSession.summary.id) {
+          if (sessionId === currentSession.id) {
             applyMockSessionState(
               nextSummary,
               nextSource,
@@ -568,79 +617,10 @@ export function useWorkbenchApp() {
 
     try {
       await runCommand("loading", async () => {
-        const session = await renameSession(sessionId, { name: trimmed })
+        const session = await renameSession(sessionId, trimmed)
         const sessions = await listSessions()
 
-        if (sessionId === currentSession.summary.id) {
-          const nextState = await hydrateSessionState(session)
-          applyHydratedSessionState(nextState, sessions)
-          return
-        }
-
-        startTransition(() => {
-          setAppState((current) => ({
-            ...current,
-            sessions,
-          }))
-        })
-      })
-    } catch (error) {
-      void error
-    }
-  }
-
-  async function toggleSessionPinned(sessionId: string, pinned: boolean): Promise<void> {
-    if (!isTauriRuntime()) {
-      try {
-        await runCommand("loading", async () => {
-          await yieldToNextTask()
-          const target = appState.sessions.find((session) => session.id === sessionId)
-          if (!target || target.pinned === pinned) {
-            return
-          }
-
-          const nextSummary = {
-            ...target,
-            pinned,
-          }
-          const nextSessions = replaceSessionSummary(nextSummary, appState.sessions)
-          const nextSource =
-            mockSessionSources[sessionId] ??
-            createInitialMockSessionSources([nextSummary])[sessionId]
-          const nextChat =
-            mockSessionChats[sessionId] ?? createMockBaseChat(nextSummary, nextSource)
-          const nextView = getMockView(nextSummary)
-
-          if (sessionId === currentSession.summary.id) {
-            applyMockSessionState(
-              nextSummary,
-              nextSource,
-              nextChat,
-              nextSessions,
-              nextView,
-            )
-            return
-          }
-
-          startTransition(() => {
-            setAppState((current) => ({
-              ...current,
-              sessions: nextSessions,
-            }))
-          })
-        })
-      } catch (error) {
-        void error
-      }
-      return
-    }
-
-    try {
-      await runCommand("loading", async () => {
-        const session = await setSessionPinned(sessionId, { pinned })
-        const sessions = await listSessions()
-
-        if (sessionId === currentSession.summary.id) {
+        if (sessionId === currentSession.id) {
           const nextState = await hydrateSessionState(session)
           applyHydratedSessionState(nextState, sessions)
           return
@@ -667,7 +647,7 @@ export function useWorkbenchApp() {
       startTransition(() => {
         setMockSessionViews((current) => ({
           ...current,
-          [currentSession.summary.id]: view,
+          [currentSession.id]: view,
         }))
         setAppState((current) => ({
           ...current,
@@ -681,7 +661,7 @@ export function useWorkbenchApp() {
     }
 
     try {
-      const session = await setSessionView(currentSession.summary.id, { view })
+      const session = await setSessionView(currentSession.id, view)
       startTransition(() => {
         updateSessionSummary(session)
       })
@@ -699,7 +679,7 @@ export function useWorkbenchApp() {
     if (!isTauriRuntime()) {
       const updatedAt = new Date().toISOString()
       const nextSummary = {
-        ...currentSession.summary,
+        ...currentSession,
         updatedAt,
         status: "dirty" as const,
       }
@@ -732,7 +712,7 @@ export function useWorkbenchApp() {
     }
 
     await runCommand("saving", async () => {
-      const session = await saveSource(currentSession.summary.id, draftSource)
+      const session = await saveSource(currentSession.id, draftSource)
       startTransition(() => updateSessionSummary(session))
     })
   }
@@ -746,7 +726,7 @@ export function useWorkbenchApp() {
   }
 
   async function buildCurrentSession(): Promise<void> {
-    const sessionId = currentSession.summary.id
+    const sessionId = currentSession.id
 
     if (!isTauriRuntime()) {
       try {
@@ -755,7 +735,7 @@ export function useWorkbenchApp() {
           const now = new Date().toISOString()
           const nextSource = hasUnsavedChanges ? draftSource : currentSession.source
           const nextSummary = {
-            ...currentSession.summary,
+            ...currentSession,
             updatedAt: now,
             lastBuildAt: now,
             status: "ready" as const,
@@ -808,12 +788,13 @@ export function useWorkbenchApp() {
         const chat = await safeReadChat(sessionId)
 
         startTransition(() => {
+          const nextSummary = sessionSummaryFromDetail(session)
           setAppState((current) => ({
             ...current,
             currentSession: session,
             currentBuild: build,
             currentInspect: current.currentInspect,
-            sessions: replaceSessionSummary(session.summary, current.sessions),
+            sessions: replaceSessionSummary(nextSummary, current.sessions),
             chat,
           }))
           setPreviewHtml(html)
@@ -833,14 +814,14 @@ export function useWorkbenchApp() {
           await yieldToNextTask()
           const nextSource = currentSession.source
           const nextValidation = createMockValidationSnapshot(
-            currentSession.summary,
+            currentSession,
             nextSource,
           )
           const nextSummary = {
-            ...currentSession.summary,
+            ...currentSession,
             updatedAt: new Date().toISOString(),
             status:
-              nextValidation.status === "invalid" ? ("error" as const) : currentSession.summary.status,
+              nextValidation.status === "invalid" ? ("error" as const) : currentSession.status,
           }
           const nextSessions = replaceSessionSummary(nextSummary, appState.sessions)
           const nextSession = createMockSessionDetail(nextSummary, nextSource, "inspect")
@@ -876,19 +857,20 @@ export function useWorkbenchApp() {
 
     try {
       await runCommand("inspecting", async () => {
-        const inspect = await runInspect(currentSession.summary.id)
-        const session = await openSession(currentSession.summary.id)
-        const logs = await safeReadLogs(currentSession.summary.id)
-        const html = await safeReadPreviewHtml(currentSession.summary.id)
-        const chat = await safeReadChat(currentSession.summary.id)
+        const inspect = await runInspect(currentSession.id)
+        const session = await openSession(currentSession.id)
+        const logs = await safeReadLogs(currentSession.id)
+        const html = await safeReadPreviewHtml(currentSession.id)
+        const chat = await safeReadChat(currentSession.id)
 
         startTransition(() => {
+          const nextSummary = sessionSummaryFromDetail(session)
           setAppState((current) => ({
             ...current,
             currentSession: session,
             currentInspect: inspect,
             currentLogs: logs,
-            sessions: replaceSessionSummary(session.summary, current.sessions),
+            sessions: replaceSessionSummary(nextSummary, current.sessions),
             chat,
           }))
           setPreviewHtml(html)
@@ -904,7 +886,7 @@ export function useWorkbenchApp() {
     if (!isTauriRuntime()) {
       try {
         await runCommand("validating", () => {
-          setValidation(createMockValidationSnapshot(currentSession.summary, draftSource))
+          setValidation(createMockValidationSnapshot(currentSession, draftSource))
           return Promise.resolve()
         })
       } catch (error) {
@@ -915,7 +897,7 @@ export function useWorkbenchApp() {
 
     try {
       await runCommand("validating", async () => {
-        const result = await validateSource(currentSession.summary.id, draftSource)
+        const result = await validateSource(currentSession.id, draftSource)
         setValidation(result)
       })
     } catch (error) {
@@ -952,7 +934,7 @@ export function useWorkbenchApp() {
         await runCommand("drafting", async () => {
           await yieldToNextTask()
           const nextSummary = {
-            ...currentSession.summary,
+            ...currentSession,
             updatedAt: new Date().toISOString(),
           }
           const nextSessions = replaceSessionSummary(nextSummary, appState.sessions)
@@ -963,16 +945,16 @@ export function useWorkbenchApp() {
             nextView,
           )
           const nextChat = [
-            ...(mockSessionChats[currentSession.summary.id] ??
-              createMockBaseChat(currentSession.summary, currentSession.source)).filter(
+            ...(mockSessionChats[currentSession.id] ??
+              createMockBaseChat(currentSession, currentSession.source)).filter(
               (message) => message.kind !== "proposal-placeholder",
             ),
-            createMockProposalMessage(currentSession.summary, currentSession.source),
+            createMockProposalMessage(currentSession, currentSession.source),
           ]
 
           setMockSessionChats((current) => ({
             ...current,
-            [currentSession.summary.id]: nextChat,
+            [currentSession.id]: nextChat,
           }))
           startTransition(() => {
             setAppState((current) => ({
@@ -991,8 +973,8 @@ export function useWorkbenchApp() {
 
     try {
       await runCommand("drafting", async () => {
-        const chat = await generateSessionProposal(currentSession.summary.id)
-        const session = await openSession(currentSession.summary.id)
+        const chat = await generateSessionProposal(currentSession.id)
+        const session = await openSession(currentSession.id)
         startTransition(() => {
           updateSessionSummary(session)
           setAppState((current) => ({
@@ -1017,7 +999,7 @@ export function useWorkbenchApp() {
         await runCommand("sending", async () => {
           await yieldToNextTask()
           const nextSummary = {
-            ...currentSession.summary,
+            ...currentSession,
             updatedAt: new Date().toISOString(),
           }
           const nextSessions = replaceSessionSummary(nextSummary, appState.sessions)
@@ -1028,14 +1010,14 @@ export function useWorkbenchApp() {
             nextView,
           )
           const nextChat = [
-            ...(mockSessionChats[currentSession.summary.id] ??
-              createMockBaseChat(currentSession.summary, currentSession.source)),
+            ...(mockSessionChats[currentSession.id] ??
+              createMockBaseChat(currentSession, currentSession.source)),
             createMockUserMessage(trimmed),
           ]
 
           setMockSessionChats((current) => ({
             ...current,
-            [currentSession.summary.id]: nextChat,
+            [currentSession.id]: nextChat,
           }))
           startTransition(() => {
             setAppState((current) => ({
@@ -1055,12 +1037,13 @@ export function useWorkbenchApp() {
 
     try {
       await runCommand("sending", async () => {
-        const chat = await appendChatMessage(currentSession.summary.id, {
-          role: "user",
-          text: trimmed,
-          kind: "message",
-        })
-        const session = await openSession(currentSession.summary.id)
+        const chat = await appendChatMessage(
+          currentSession.id,
+          "user",
+          trimmed,
+          "message",
+        )
+        const session = await openSession(currentSession.id)
         startTransition(() => {
           updateSessionSummary(session)
           setAppState((current) => ({
@@ -1074,6 +1057,38 @@ export function useWorkbenchApp() {
       void error
     }
   }
+
+  async function closeSessionTab(sessionId: string): Promise<void> {
+    if (openSessionTabs.length <= 1) {
+      return
+    }
+
+    const nextTabs = openSessionTabs.filter((tab) => tab.sessionId !== sessionId)
+    setOpenSessionTabs(nextTabs)
+
+    if (sessionId !== currentSession.id) {
+      return
+    }
+
+    const fallbackTab = nextTabs[nextTabs.length - 1]
+    if (!fallbackTab) {
+      return
+    }
+
+    try {
+      await openSessionById(fallbackTab.sessionId)
+    } catch (error) {
+      void error
+    }
+  }
+
+  const visibleSessionTabs = useMemo(
+    () =>
+      openSessionTabs
+        .map((tab) => appState.sessions.find((session) => session.id === tab.sessionId))
+        .filter((session): session is AppState["sessions"][number] => Boolean(session)),
+    [appState.sessions, openSessionTabs],
+  )
 
   return {
     appState,
@@ -1090,14 +1105,15 @@ export function useWorkbenchApp() {
     currentLogs,
     hasUnsavedChanges,
     filteredMessages,
+    openSessionTabs: visibleSessionTabs,
     setDraftSource,
     setMessageDraft,
     actions: {
       openSessionById,
+      closeSessionTab,
       createNewSession,
       deleteCurrentOrTargetSession,
       renameSessionById,
-      toggleSessionPinned,
       changeView,
       saveCurrentSource,
       buildCurrentSession,

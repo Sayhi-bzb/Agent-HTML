@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "project": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "ignoreBinaries": [
+    "vite",
+    "vitest",
+    "tauri"
+  ],
+  "ignoreDependencies": [
+    "@tauri-apps/cli",
+    "tailwindcss",
+    "tw-animate-css"
+  ]
+}

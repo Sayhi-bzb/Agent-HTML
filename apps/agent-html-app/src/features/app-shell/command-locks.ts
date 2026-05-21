@@ -1,6 +1,6 @@
 import type { CommandState } from "./types"
 
-export type CommandLocks = {
+type CommandLocks = {
   sessionNavigationLocked: boolean
   workbenchInteractionLocked: boolean
   sourceEditingLocked: boolean

@@ -1,9 +1,10 @@
-import type { PanelLayoutState } from "./types"
+import type { PanelLayoutState, ShellChromeState } from "./types"
 import { shellPanelConstraints } from "./layout"
 
 const panelLayoutStorageKey = "agent-html-app:panel-layout:v5-structural"
+const shellChromeStorageKey = "agent-html-app:shell-chrome:v1"
 
-export const defaultPanelLayout: PanelLayoutState = {
+const defaultPanelLayout: PanelLayoutState = {
   sessions: shellPanelConstraints.sessions.defaultSize,
   workbench: shellPanelConstraints.workbench.defaultSize,
   shell: shellPanelConstraints.shell.defaultSize,
@@ -65,4 +66,44 @@ export function persistPanelLayout(layout: PanelLayoutState): void {
   }
 
   window.localStorage.setItem(panelLayoutStorageKey, JSON.stringify(layout))
+}
+
+const defaultShellChromeState: ShellChromeState = {
+  leftPanelVisible: true,
+  rightPanelVisible: true,
+}
+
+export function readStoredShellChromeState(): ShellChromeState {
+  if (typeof window === "undefined") {
+    return defaultShellChromeState
+  }
+
+  try {
+    const raw = window.localStorage.getItem(shellChromeStorageKey)
+    if (!raw) {
+      return defaultShellChromeState
+    }
+
+    const parsed = JSON.parse(raw) as Partial<ShellChromeState>
+    return {
+      leftPanelVisible:
+        typeof parsed.leftPanelVisible === "boolean"
+          ? parsed.leftPanelVisible
+          : defaultShellChromeState.leftPanelVisible,
+      rightPanelVisible:
+        typeof parsed.rightPanelVisible === "boolean"
+          ? parsed.rightPanelVisible
+          : defaultShellChromeState.rightPanelVisible,
+    }
+  } catch {
+    return defaultShellChromeState
+  }
+}
+
+export function persistShellChromeState(state: ShellChromeState): void {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  window.localStorage.setItem(shellChromeStorageKey, JSON.stringify(state))
 }

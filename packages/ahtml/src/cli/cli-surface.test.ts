@@ -114,6 +114,10 @@ describe("cli surface contracts", () => {
       runCliWithServer(["gallery", "--port", "bad"], {}, tempDir),
       "gallery --port must be an integer from 0 to 65535.",
     )
+    await expectCliFailure(
+      runCliWithServer(["preview", inputPath, "--out", outputDir], {}, tempDir),
+      "does not accept --out.",
+    )
     await expectPathMissing(path.join(outputDir, "index.html"))
     await expectCliFailure(
       runCliWithServer(["prompt", "--format"]),

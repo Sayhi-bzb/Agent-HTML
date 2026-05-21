@@ -17,9 +17,9 @@ export function GalleryTypographyPanel({
       <div className="ahtml-gallery-stage-toolbar">
         <div className="ahtml-gallery-stage-toolbar-copy">
           <span className="ahtml-gallery-stage-panel-kicker">
-            Typography audit
+            Typography gallery
           </span>
-          <strong>Type system preview surface</strong>
+          <strong>Type system workbench</strong>
         </div>
         <div className="ahtml-gallery-stage-toolbar-meta">
           <GalleryPreviewMeta
@@ -48,8 +48,8 @@ export function GalleryTypographyPanel({
           <p className="ahtml-gallery-typography-kicker">Heading</p>
           <h2>{profile.globalStyle.typography.fontHeading}</h2>
           <p>
-            Review rhythm, line length, and contrast before shipping a style
-            profile into preview artifacts.
+            Check rhythm, line length, and contrast before a style profile
+            moves into live gallery surfaces.
           </p>
         </button>
         <div className="ahtml-gallery-typography-sample-grid">
@@ -63,8 +63,8 @@ export function GalleryTypographyPanel({
               className="ahtml-gallery-typography-body-copy"
               style={{ fontFamily: profile.globalStyle.typography.fontSans }}
             >
-              Dense editor copy should stay stable across toolbar labels,
-              preview captions, and form rows without looking decorative.
+              Dense product copy should stay stable across toolbar labels,
+              gallery captions, and form rows without looking decorative.
             </p>
           </button>
           <button
@@ -92,7 +92,7 @@ export function GalleryTypographyPanel({
               style={{ fontFamily: profile.globalStyle.typography.fontMono }}
             >
               Token values, paths, and tool-facing metadata should stay sharp
-              and compact when the editor leans into workbench density.
+              and compact when the gallery leans into workbench density.
             </p>
           </button>
           <button

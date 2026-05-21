@@ -119,11 +119,11 @@ export function useGalleryDraftActions({
       setControlTab(nextTab)
       setMobileTab("controls")
 
-      if (nextTab !== "colors") {
+      if (nextTab !== "lightTokens" && nextTab !== "darkTokens") {
         setFocusedToken(null)
       }
 
-      if (nextTab !== "typography" && nextTab !== "other") {
+      if (nextTab !== "typography" && nextTab !== "radius") {
         setFocusedEditorField(null)
       }
     },
@@ -139,7 +139,7 @@ export function useGalleryDraftActions({
     (field: FocusedEditorField) => {
       openControlTab(
         field === "radiusBase" || field === "spacing" || field === "shadow"
-          ? "other"
+          ? "radius"
           : "typography",
       )
       setFocusedEditorField(field)
@@ -154,7 +154,7 @@ export function useGalleryDraftActions({
     ) => {
       const sectionValue = getColorSectionIdForToken(tokenName)
 
-      openControlTab("colors")
+      openControlTab(mode === "dark" ? "darkTokens" : "lightTokens")
       setPreviewThemeMode(mode)
       setColorSectionValues((current) =>
         current.includes(sectionValue) ? current : [...current, sectionValue],

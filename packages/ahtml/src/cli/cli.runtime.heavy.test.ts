@@ -77,9 +77,9 @@ describe("agent-html CLI heavy runtime flows", () => {
         "config",
         "artifact-profiles",
         "builtin",
-        "ops-compact.json",
+        "shadcn-default.json",
       ),
-      '"id": "ops-compact"',
+      '"id": "shadcn-default"',
     )
     await expectFile(
       path.join(runtimeHome, "runtime", "render-verification.generated.json"),

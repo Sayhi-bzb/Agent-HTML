@@ -15,15 +15,15 @@ import {
 describe("artifact profile render config", () => {
   it("accepts approved artifact profile reference values", () => {
     expect(RenderConfigSchema.parse(DEFAULT_RENDER_CONFIG)).toEqual({
-      artifactProfileReference: "report-default",
+      artifactProfileReference: "shadcn-default",
       artifactProfile: {
-        id: "report-default",
+        id: "shadcn-default",
         globalStyle: {
           tokenSets: {
             light: expect.objectContaining({
-              background: "#f7f7f4",
-              foreground: "#26251e",
-              border: "#e6e5e0",
+              background: "#f7f7f5",
+              foreground: "#111827",
+              border: "#d9ddd6",
             }),
             dark: expect.objectContaining({
               background: "oklch(0.145 0 0)",
@@ -32,11 +32,11 @@ describe("artifact profile render config", () => {
             }),
           },
           radiusScale: expect.objectContaining({
-            base: "0.75rem",
+            base: "0.625rem",
             lg: "var(--radius)",
           }),
           typography: expect.objectContaining({
-            fontSans: expect.stringContaining("Inter Variable"),
+            fontSans: expect.stringContaining("Inter"),
             fontHeading: "var(--font-sans)",
             spacing: "0.25rem",
             shadowOpacity: "0.1",
@@ -50,8 +50,8 @@ describe("artifact profile render config", () => {
         },
         globalLayout: {
           frame: expect.objectContaining({
-            pageMaxWidth: "72rem",
-            frameMaxWidth: "64rem",
+            pageMaxWidth: "80rem",
+            frameMaxWidth: "72rem",
           }),
           measure: expect.objectContaining({
             prose: "68ch",
@@ -75,15 +75,7 @@ describe("artifact profile render config", () => {
           }),
         },
         componentStyle: {
-          treatments: {
-            alert: "report-alert",
-            badge: "report-badge",
-            card: "report-card",
-            input: "report-field",
-            table: "report-table",
-            tabs: "report-tabs",
-            textarea: "report-field",
-          },
+          treatments: {},
         },
         componentLayout: {
           page: expect.objectContaining({
@@ -95,7 +87,7 @@ describe("artifact profile render config", () => {
             density: "balanced",
           }),
           frame: expect.objectContaining({
-            maxWidth: "64rem",
+            maxWidth: "72rem",
             measure: "wide",
           }),
           split: expect.objectContaining({
@@ -114,14 +106,14 @@ describe("artifact profile render config", () => {
       },
     })
 
-    expect(parseRenderConfig({ "profile-ref": "ops-compact" })).toEqual({
-      artifactProfileReference: "ops-compact",
+    expect(parseRenderConfig({ "profile-ref": "shadcn-default" })).toEqual({
+      artifactProfileReference: "shadcn-default",
       artifactProfile: {
-        id: "ops-compact",
+        id: "shadcn-default",
         globalStyle: {
           tokenSets: {
             light: expect.objectContaining({
-              primary: "#f54e00",
+              primary: "#111827",
               card: "#ffffff",
             }),
             dark: expect.objectContaining({
@@ -145,15 +137,7 @@ describe("artifact profile render config", () => {
         },
         globalLayout: expect.any(Object),
         componentStyle: {
-          treatments: {
-            alert: "ops-alert",
-            badge: "ops-badge",
-            card: "ops-card",
-            input: "ops-field",
-            table: "ops-table",
-            tabs: "ops-tabs",
-            textarea: "ops-field",
-          },
+          treatments: {},
         },
         componentLayout: expect.any(Object),
       },
@@ -161,7 +145,7 @@ describe("artifact profile render config", () => {
   })
 
   it("accepts resolved user artifact profiles through a runtime resolver", () => {
-    const baseRenderConfig = parseRenderConfig({ "profile-ref": "ops-compact" })
+    const baseRenderConfig = parseRenderConfig({ "profile-ref": "shadcn-default" })
     const customArtifactProfile: ReturnType<
       typeof parseRenderConfig
     >["artifactProfile"] = {
@@ -182,12 +166,7 @@ describe("artifact profile render config", () => {
           },
         },
       },
-      componentStyle: {
-        treatments: {
-          ...baseRenderConfig.artifactProfile.componentStyle.treatments,
-          card: "review-card",
-        },
-      },
+      componentStyle: {},
       globalLayout: {
         ...baseRenderConfig.artifactProfile.globalLayout,
         frame: {
@@ -219,14 +198,14 @@ describe("artifact profile render config", () => {
   })
 
   it("rejects resolved artifact profiles that do not match the selected reference", () => {
-    const config = parseRenderConfig({ "profile-ref": "ops-compact" })
+    const config = parseRenderConfig({ "profile-ref": "shadcn-default" })
 
     expect(() =>
       RenderConfigSchema.parse({
         ...config,
         artifactProfile: {
           ...config.artifactProfile,
-          id: "report-default",
+          id: "team-mismatch",
         },
       }),
     ).toThrow()
@@ -235,7 +214,7 @@ describe("artifact profile render config", () => {
   it("falls back to the default profile for invalid render config input", () => {
     expect(
       parseRenderConfig({
-        "style-ref": "ops-compact",
+        "style-ref": "shadcn-default",
       }),
     ).toEqual(DEFAULT_RENDER_CONFIG)
 
@@ -247,7 +226,7 @@ describe("artifact profile render config", () => {
 
     expect(
       parseRenderConfig({
-        profile: "ops-compact",
+        profile: "shadcn-default",
       }),
     ).toEqual(DEFAULT_RENDER_CONFIG)
 
@@ -268,22 +247,22 @@ describe("artifact profile render config", () => {
   })
 
   it("reports explicit resolution reasons for profile-ref parsing outcomes", () => {
-    expect(resolveRenderConfig({ "profile-ref": "ops-compact" })).toMatchObject({
+    expect(resolveRenderConfig({ "profile-ref": "shadcn-default" })).toMatchObject({
       reason: "explicit-profile-ref",
-      requestedProfileRef: "ops-compact",
+      requestedProfileRef: "shadcn-default",
       config: {
-        artifactProfileReference: "ops-compact",
+        artifactProfileReference: "shadcn-default",
       },
     })
 
-    expect(resolveRenderConfig({ profile: "ops-compact" })).toMatchObject({
+    expect(resolveRenderConfig({ profile: "shadcn-default" })).toMatchObject({
       reason: "invalid-profile-ref-shape",
       config: DEFAULT_RENDER_CONFIG,
     })
 
-    expect(resolveRenderConfig({ "style-ref": "ops-compact" })).toMatchObject({
+    expect(resolveRenderConfig({ "style-ref": "shadcn-default" })).toMatchObject({
       reason: "legacy-style-ref",
-      requestedProfileRef: "ops-compact",
+      requestedProfileRef: "shadcn-default",
       config: DEFAULT_RENDER_CONFIG,
     })
 
@@ -303,12 +282,10 @@ describe("artifact profile render config", () => {
 
   it("exposes only the public render config keys", () => {
     expect(PUBLIC_RENDER_CONFIG_DEFAULTS).toEqual({
-      "profile-ref": "report-default",
+      "profile-ref": "shadcn-default",
     })
     expect(PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES).toEqual([
-      "report-default",
-      "ops-compact",
-      "review-dense",
+      "shadcn-default",
     ])
     expect(PUBLIC_RENDER_CONFIG_KEY).toBe("profile-ref")
     expect(RENDER_CONFIG_KEYS).toEqual(["profile-ref"])

@@ -42,7 +42,7 @@ export function createGalleryWorkbenchBaseCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-inline-metrics strong,
     .ahtml-gallery-goal-number {
@@ -64,12 +64,6 @@ export function createGalleryWorkbenchBaseCss() {
       margin: 0;
       color: var(--muted-foreground);
       line-height: 1.55;
-    }
-    .ahtml-gallery-workbench-footer {
-      display: grid;
-      grid-template-columns:
-        repeat(auto-fit, minmax(var(--ahtml-gallery-footer-card-min-width), 1fr));
-      gap: var(--ahtml-gallery-layout-gap-compact);
     }
   `
 }

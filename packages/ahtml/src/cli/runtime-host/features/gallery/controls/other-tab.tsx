@@ -56,10 +56,10 @@ export function GalleryOtherTab({
   updateDraftProfile,
 }: GalleryOtherTabProps) {
   return (
-    <TabsContent className="ahtml-gallery-tab-panel" value="other">
+    <TabsContent className="ahtml-gallery-tab-panel" value="radius">
       <Accordion
         className="ahtml-gallery-control-sections"
-        defaultValue={["geometry", "spacing", "shadow", "component-treatments"]}
+        defaultValue={["geometry", "spacing", "shadow"]}
         type="multiple"
       >
         <AccordionItem value="geometry">
@@ -204,36 +204,6 @@ export function GalleryOtherTab({
                   ),
                 )}
               </div>
-            </GalleryPanelBody>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="component-treatments">
-          <AccordionTrigger>Treatments</AccordionTrigger>
-          <AccordionContent>
-            <GalleryPanelBody>
-              {Object.entries(editorState.draftProfile.componentStyle.treatments)
-                .sort(([left], [right]) => left.localeCompare(right))
-                .map(([componentName, treatment]) => (
-                  <LabeledInput
-                    description="Treatment alias applied when the renderer maps this component into the gallery shell."
-                    key={componentName}
-                    label={componentName}
-                    mono
-                    onChange={(value) =>
-                      updateDraftProfile((draft) => ({
-                        ...draft,
-                        componentStyle: {
-                          ...draft.componentStyle,
-                          treatments: {
-                            ...draft.componentStyle.treatments,
-                            [componentName]: value,
-                          },
-                        },
-                      }))
-                    }
-                    value={treatment}
-                  />
-                ))}
             </GalleryPanelBody>
           </AccordionContent>
         </AccordionItem>

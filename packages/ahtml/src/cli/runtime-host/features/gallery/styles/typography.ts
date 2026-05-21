@@ -7,8 +7,7 @@ export function createGalleryTypographyWorkbenchCss() {
     }
     .ahtml-gallery-typography-sample-grid {
       display: grid;
-      grid-template-columns:
-        repeat(auto-fit, minmax(var(--ahtml-gallery-typography-sample-min-width), 1fr));
+      grid-template-columns: var(--ahtml-gallery-auto-fit-typography-sample-columns);
       gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-typography-sample {
@@ -31,7 +30,7 @@ export function createGalleryTypographyWorkbenchCss() {
     }
     .ahtml-gallery-typography-body-copy {
       margin: 0;
-      font-size: 0.92rem;
+      font-size: var(--ahtml-gallery-text-body-size);
       line-height: 1.65;
       color: var(--foreground);
     }
@@ -41,7 +40,7 @@ export function createGalleryTypographyWorkbenchCss() {
     }
     .ahtml-gallery-typography-note-stack p {
       margin: 0;
-      font-size: 0.82rem;
+      font-size: var(--ahtml-gallery-text-supporting-size);
       line-height: 1.55;
       color: var(--muted-foreground);
     }
@@ -49,24 +48,25 @@ export function createGalleryTypographyWorkbenchCss() {
       display: inline-flex;
       align-items: center;
       width: fit-content;
-      padding: 0.35rem 0.6rem;
-      font-size: 0.72rem;
+      padding:
+        var(--ahtml-gallery-pill-padding-block)
+        var(--ahtml-gallery-pill-padding-inline);
+      font-size: var(--ahtml-gallery-text-chip-size);
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: var(--ahtml-gallery-tracking-chip);
       text-transform: uppercase;
     }
     .ahtml-gallery-typography-kicker {
       margin: 0;
-      font-size: 0.75rem;
+      font-size: var(--ahtml-gallery-text-chip-size);
       font-weight: 600;
-      letter-spacing: 0.12em;
+      letter-spacing: var(--ahtml-gallery-tracking-kicker);
       text-transform: uppercase;
       color: var(--muted-foreground);
     }
     .ahtml-gallery-typography-grid {
       display: grid;
-      grid-template-columns:
-        repeat(auto-fit, minmax(var(--ahtml-gallery-typography-token-min-width), 1fr));
+      grid-template-columns: var(--ahtml-gallery-auto-fit-typography-token-columns);
       gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-typography-token {
@@ -76,7 +76,7 @@ export function createGalleryTypographyWorkbenchCss() {
       border-radius: calc(var(--radius) * 1.1);
       background: color-mix(in srgb, var(--muted) 56%, transparent);
       font-family: monospace;
-      font-size: 0.86rem;
+      font-size: var(--ahtml-gallery-text-strong-size);
     }
   `
 }

@@ -4,7 +4,7 @@ import { parseRenderConfig } from "../render-config"
 import { sanitizeAgentHtml } from "./sanitize-agent-html"
 
 const semanticReportSource = `
-  <meta-agent profile-ref="report-default" />
+  <meta-agent profile-ref="shadcn-default" />
   <page title="Semantic Report">
     <alert title="Thesis">HTML artifacts can stay readable without exposing implementation details.</alert>
     <card title="Executive Summary">
@@ -28,7 +28,7 @@ const semanticReportSource = `
 `
 
 const collaborationWorkbenchSource = `
-  <meta-agent profile-ref="ops-compact" />
+  <meta-agent profile-ref="shadcn-default" />
   <page title="Human Agent Collaboration Workbench">
     <tabs>
       <tab value="explore" label="Explore">
@@ -60,7 +60,7 @@ const collaborationWorkbenchSource = `
 function createCustomStyleProfile(
   id = "team-ops",
 ): ReturnType<typeof parseRenderConfig>["artifactProfile"] {
-  const baseRenderConfig = parseRenderConfig({ "profile-ref": "ops-compact" })
+  const baseRenderConfig = parseRenderConfig({ "profile-ref": "shadcn-default" })
 
   return {
     ...baseRenderConfig.artifactProfile,
@@ -80,12 +80,7 @@ function createCustomStyleProfile(
         },
       },
     },
-    componentStyle: {
-      treatments: {
-        ...baseRenderConfig.artifactProfile.componentStyle.treatments,
-        card: "review-card",
-      },
-    },
+    componentStyle: {},
   }
 }
 
@@ -100,7 +95,7 @@ function expectNoErrorDiagnostics(
 describe("sanitizeAgentHtml", () => {
   it("produces SanitizedAgentHtml for valid MVP agent-html", () => {
     const result = sanitizeAgentHtml(`
-      <meta-agent profile-ref="report-default" />
+      <meta-agent profile-ref="shadcn-default" />
       <page title="Payment Review">
         <card title="High Risk">
           <badge variant="destructive">Missing finance role check</badge>
@@ -126,14 +121,14 @@ describe("sanitizeAgentHtml", () => {
     expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document).toMatchObject({
       meta: {
-        artifactProfileReference: "report-default",
+        artifactProfileReference: "shadcn-default",
         artifactProfile: {
-          id: "report-default",
+          id: "shadcn-default",
           globalStyle: {
             tokenSets: {
               light: expect.objectContaining({
-                background: "#f7f7f4",
-                foreground: "#26251e",
+                background: "#f7f7f5",
+                foreground: "#111827",
               }),
               dark: expect.objectContaining({
                 background: "oklch(0.145 0 0)",
@@ -141,7 +136,7 @@ describe("sanitizeAgentHtml", () => {
               }),
             },
             radiusScale: expect.objectContaining({
-              base: "0.75rem",
+              base: "0.625rem",
             }),
             typography: expect.objectContaining({
               fontHeading: "var(--font-sans)",
@@ -151,15 +146,7 @@ describe("sanitizeAgentHtml", () => {
             }),
           },
           componentStyle: {
-            treatments: {
-              alert: "report-alert",
-              badge: "report-badge",
-              card: "report-card",
-              input: "report-field",
-              table: "report-table",
-              tabs: "report-tabs",
-              textarea: "report-field",
-            },
+            treatments: {},
           },
         },
       },
@@ -293,14 +280,14 @@ describe("sanitizeAgentHtml", () => {
 
     expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.meta).toMatchObject({
-      artifactProfileReference: "report-default",
+      artifactProfileReference: "shadcn-default",
       artifactProfile: {
-        id: "report-default",
+        id: "shadcn-default",
         globalStyle: {
           tokenSets: {
             light: expect.objectContaining({
-              background: "#f7f7f4",
-              foreground: "#26251e",
+              background: "#f7f7f5",
+              foreground: "#111827",
             }),
             dark: expect.objectContaining({
               background: "oklch(0.145 0 0)",
@@ -311,22 +298,14 @@ describe("sanitizeAgentHtml", () => {
             lg: "var(--radius)",
           }),
           typography: expect.objectContaining({
-            fontSans: expect.stringContaining("Inter Variable"),
+            fontSans: expect.stringContaining("Inter"),
           }),
           cssVariableMap: expect.objectContaining({
             radius: "--radius",
           }),
         },
         componentStyle: {
-          treatments: {
-            alert: "report-alert",
-            badge: "report-badge",
-            card: "report-card",
-            input: "report-field",
-            table: "report-table",
-            tabs: "report-tabs",
-            textarea: "report-field",
-          },
+          treatments: {},
         },
       },
     })
@@ -369,11 +348,7 @@ describe("sanitizeAgentHtml", () => {
             }),
           },
         },
-        componentStyle: {
-          treatments: expect.objectContaining({
-            card: "review-card",
-          }),
-        },
+        componentStyle: {},
       },
     })
   })
@@ -388,12 +363,10 @@ describe("sanitizeAgentHtml", () => {
 
     expectNoErrorDiagnostics(result.diagnostics)
     expect(result.document?.meta.artifactProfileReference).toBe(
-      "report-default",
+      "shadcn-default",
     )
-    expect(result.document?.meta.artifactProfile.id).toBe("report-default")
-    expect(result.document?.meta.artifactProfile.componentStyle.treatments.card).toBe(
-      "report-card",
-    )
+    expect(result.document?.meta.artifactProfile.id).toBe("shadcn-default")
+    expect(result.document?.meta.artifactProfile.componentStyle).toEqual({})
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
         code: "unknown-profile-ref",
@@ -404,7 +377,7 @@ describe("sanitizeAgentHtml", () => {
 
   it("keeps the page root after a self-closing meta-agent header", () => {
     const result = sanitizeAgentHtml(`
-      <meta-agent profile-ref="ops-compact" />
+      <meta-agent profile-ref="shadcn-default" />
       <page title="Payment Review" />
     `)
 
@@ -512,7 +485,7 @@ describe("sanitizeAgentHtml", () => {
 
   it("rejects removed profile render config header values", () => {
     const result = sanitizeAgentHtml(`
-      <meta-agent profile="report-default" />
+      <meta-agent profile="shadcn-default" />
       <page title="Payment Review" />
     `)
 
@@ -542,7 +515,7 @@ describe("sanitizeAgentHtml", () => {
 
   it("rejects legacy style-ref headers as an error", () => {
     const result = sanitizeAgentHtml(`
-      <meta-agent style-ref="ops-compact" />
+      <meta-agent style-ref="shadcn-default" />
       <page title="Payment Review" />
     `)
 
