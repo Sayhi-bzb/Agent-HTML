@@ -125,7 +125,7 @@
   }
 
   .app-shell-topbar-group {
-    @apply flex items-center;
+    @apply flex min-w-0 items-center;
     gap: var(--shell-gap-base);
   }
 
@@ -148,6 +148,15 @@
     @apply truncate text-sm font-medium;
   }
 
+  .app-shell-title-stack {
+    @apply min-w-0;
+  }
+
+  .app-shell-pane-label {
+    @apply flex items-center;
+    gap: var(--shell-gap-compact);
+  }
+
   .app-shell-error-banner {
     @apply border-b text-xs text-destructive;
     padding-inline: var(--shell-topbar-padding-inline);
@@ -156,6 +165,10 @@
 
   .app-shell-body {
     @apply flex-1 overflow-hidden;
+  }
+
+  .app-shell-fill-layout {
+    @apply h-full;
   }
 
   .app-shell-pane {
@@ -222,6 +235,10 @@
     gap: var(--shell-gap-roomy);
   }
 
+  .app-shell-scroll-pane {
+    @apply flex-1;
+  }
+
   .app-shell-split-row {
     @apply flex items-center justify-between;
     gap: var(--shell-gap-compact);
@@ -245,6 +262,26 @@
     gap: var(--shell-gap-roomy);
   }
 
+  .app-shell-surface-pane {
+    @apply min-h-0 flex-1;
+  }
+
+  .app-shell-card-heading {
+    @apply text-sm;
+  }
+
+  .app-shell-card-copy {
+    @apply min-w-0;
+  }
+
+  .app-shell-card-body {
+    @apply text-sm;
+  }
+
+  .app-shell-body-copy {
+    @apply whitespace-pre-wrap text-sm leading-6;
+  }
+
   .app-shell-surface-item {
     @apply rounded-lg border text-sm;
     padding-inline: var(--shell-header-padding-inline);
@@ -253,6 +290,10 @@
 
   .app-shell-preview-frame {
     @apply min-h-0 flex-1 overflow-hidden rounded-lg border;
+  }
+
+  .app-shell-preview-canvas {
+    @apply size-full bg-background;
   }
 
   .app-shell-editor-field {

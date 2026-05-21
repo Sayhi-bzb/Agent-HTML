@@ -4,7 +4,6 @@ import {
   BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE,
   DEFAULT_ARTIFACT_PROFILE_REFERENCE,
   normalizeArtifactProfile,
-  DEFAULT_STYLE_PROFILE_REFERENCE,
 } from "@agent-html/core"
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises"
 import path from "node:path"
@@ -12,23 +11,20 @@ import path from "node:path"
 export const artifactProfileManifestKind = "ahtml-artifact-profile-manifest"
 export const artifactProfileGeneratorKind = "ahtml-artifact-profile-registry"
 export const artifactProfileStateKind = "ahtml-artifact-profile-state"
-export const styleProfileManifestKind = artifactProfileManifestKind
-export const styleProfileGeneratorKind = artifactProfileGeneratorKind
-export const styleProfileStateKind = artifactProfileStateKind
-const styleProfileIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const artifactProfileIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-export class BuiltinStyleProfileMutationError extends Error {
-  constructor(action, styleReference) {
+export class BuiltinArtifactProfileMutationError extends Error {
+  constructor(action, artifactProfileReference) {
     super(
-      `Cannot ${action} built-in style profile "${styleReference}". Built-in style profiles are read-only.`,
+      `Cannot ${action} built-in artifact profile "${artifactProfileReference}". Built-in artifact profiles are read-only.`,
     )
-    this.name = "BuiltinStyleProfileMutationError"
+    this.name = "BuiltinArtifactProfileMutationError"
     this.action = action
-    this.styleReference = styleReference
+    this.artifactProfileReference = artifactProfileReference
   }
 }
 
-export function createStyleProfileStorageManifest(paths) {
+export function createArtifactProfileStorageManifest(paths) {
   return {
     kind: artifactProfileManifestKind,
     version: ARTIFACT_PROFILE_STORAGE_VERSION,
@@ -56,12 +52,11 @@ export function createStyleProfileStorageManifest(paths) {
         profile,
       }),
     ),
-    defaultStyleProfileId: DEFAULT_STYLE_PROFILE_REFERENCE,
   }
 }
 
-export async function writeStyleProfileStorage(paths) {
-  const manifest = createStyleProfileStorageManifest(paths)
+export async function writeArtifactProfileStorage(paths) {
+  const manifest = createArtifactProfileStorageManifest(paths)
 
   await mkdir(paths.artifactProfilesDir, { recursive: true })
   await mkdir(paths.builtinArtifactProfilesDir, { recursive: true })
@@ -72,11 +67,13 @@ export async function writeStyleProfileStorage(paths) {
   }
 
   await writeJsonFile(paths.artifactProfileManifestPath, manifest)
-  await writeCurrentStyleProfileReference(paths, DEFAULT_STYLE_PROFILE_REFERENCE)
+  await writeCurrentArtifactProfileReference(
+    paths,
+    DEFAULT_ARTIFACT_PROFILE_REFERENCE,
+  )
   return manifest
 }
-
-export async function readStyleProfileManifest(paths) {
+export async function readArtifactProfileManifest(paths) {
   const source = await readFile(paths.artifactProfileManifestPath, "utf8")
   const manifest = JSON.parse(source)
 
@@ -90,8 +87,8 @@ export async function readStyleProfileManifest(paths) {
   return manifest
 }
 
-export async function assertStyleProfileStorage(paths) {
-  const manifest = await readStyleProfileManifest(paths)
+export async function assertArtifactProfileStorage(paths) {
+  const manifest = await readArtifactProfileManifest(paths)
 
   await stat(paths.artifactProfilesDir)
   await stat(paths.builtinArtifactProfilesDir)
@@ -104,40 +101,51 @@ export async function assertStyleProfileStorage(paths) {
   return `${manifest.profiles.length} builtin profiles -> ${paths.userArtifactProfilesDir}`
 }
 
-export async function createStyleProfileResolver(paths) {
-  const userProfilesById = await loadUserStyleProfilesById(paths)
-  const currentStyleReference = await readCurrentStyleProfileReference(paths)
+export async function createArtifactProfileResolver(paths) {
+  const userProfilesById = await loadUserArtifactProfilesById(paths)
+  const currentArtifactProfileReference =
+    await readCurrentArtifactProfileReference(paths)
 
-  return (documentStyleConfigReference) =>
-    documentStyleConfigReference
-      ? resolveStoredStyleProfileReference(
-          documentStyleConfigReference,
+  return (artifactProfileReference) =>
+    artifactProfileReference
+      ? resolveStoredArtifactProfileReference(
+          artifactProfileReference,
           userProfilesById,
         )
-      : resolveStoredStyleProfileReference(currentStyleReference, userProfilesById)
+      : resolveStoredArtifactProfileReference(
+          currentArtifactProfileReference,
+          userProfilesById,
+        )
 }
 
-export async function resolveStyleProfileByReference(paths, styleReference) {
-  if (BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[styleReference]) {
-    return BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[styleReference]
+export async function resolveArtifactProfileByReference(
+  paths,
+  artifactProfileReference,
+) {
+  if (BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[artifactProfileReference]) {
+    return BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[artifactProfileReference]
   }
 
-  const userProfilesById = await loadUserStyleProfilesById(paths)
-  return userProfilesById.get(styleReference)
+  const userProfilesById = await loadUserArtifactProfilesById(paths)
+  return userProfilesById.get(artifactProfileReference)
 }
 
-export function getStyleProfileSource(styleReference) {
-  return BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[styleReference]
+export function getArtifactProfileSource(artifactProfileReference) {
+  return BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[artifactProfileReference]
     ? "builtin"
     : "user"
 }
 
-export function isBuiltinStyleProfileReference(styleReference) {
-  return Boolean(BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[styleReference])
+export function isBuiltinArtifactProfileReference(artifactProfileReference) {
+  return Boolean(BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[artifactProfileReference])
 }
 
-export async function listStyleProfileReferences(paths) {
-  const userProfilesById = await loadUserStyleProfilesById(paths)
+export function listBuiltinArtifactProfileReferences() {
+  return [...Object.keys(BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE)]
+}
+
+export async function listArtifactProfileReferences(paths) {
+  const userProfilesById = await loadUserArtifactProfilesById(paths)
 
   return [
     ...Object.keys(BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE),
@@ -145,7 +153,7 @@ export async function listStyleProfileReferences(paths) {
   ].sort((left, right) => left.localeCompare(right))
 }
 
-export async function loadUserStyleProfilesById(paths) {
+export async function loadUserArtifactProfilesById(paths) {
   if (!(await pathExists(paths.userArtifactProfilesDir))) {
     return new Map()
   }
@@ -182,29 +190,31 @@ export async function loadUserStyleProfilesById(paths) {
   return userProfilesById
 }
 
-export async function saveUserStyleProfile(paths, profile, options = {}) {
+export async function saveUserArtifactProfile(paths, profile, options = {}) {
   const profileId = profile?.id
 
-  if (!styleProfileIdPattern.test(profileId ?? "")) {
+  if (!artifactProfileIdPattern.test(profileId ?? "")) {
     throw new Error(
-      "style profile ids must use lowercase kebab-case, for example team-ops.",
+      "artifact profile ids must use lowercase kebab-case, for example team-ops.",
     )
   }
 
-  if (isBuiltinStyleProfileReference(profileId)) {
-    throw new BuiltinStyleProfileMutationError("save", profileId)
+  if (isBuiltinArtifactProfileReference(profileId)) {
+    throw new BuiltinArtifactProfileMutationError("save", profileId)
   }
 
   const parsedProfile = ArtifactProfileSchema.parse(
     normalizeArtifactProfile(profile),
   )
-  const existingProfile = (await loadUserStyleProfilesById(paths)).get(profileId)
+  const existingProfile = (await loadUserArtifactProfilesById(paths)).get(
+    profileId,
+  )
   const exists = Boolean(existingProfile)
   const targetPath = path.join(paths.userArtifactProfilesDir, `${profileId}.json`)
 
   if (exists && options.overwrite !== true) {
     throw new Error(
-      `Style profile "${profileId}" already exists. Pass overwrite to replace it.`,
+      `Artifact profile "${profileId}" already exists. Pass overwrite to replace it.`,
     )
   }
 
@@ -213,25 +223,29 @@ export async function saveUserStyleProfile(paths, profile, options = {}) {
   return {
     id: profileId,
     path: targetPath,
-    source: getStyleProfileSource(profileId),
+    source: getArtifactProfileSource(profileId),
     overwritten: exists,
     profile: parsedProfile,
   }
 }
 
-export async function readCurrentStyleProfileReference(paths) {
+export async function readCurrentArtifactProfileReference(paths) {
   try {
     const source = await readFile(paths.artifactProfileStatePath, "utf8")
     const state = JSON.parse(source)
-    const styleReference =
-      state?.currentArtifactProfileId ?? state?.currentStyleProfileId
+    const artifactProfileReference = state?.currentArtifactProfileId
 
-    if (!styleProfileIdPattern.test(styleReference ?? "")) {
+    if (!artifactProfileIdPattern.test(artifactProfileReference ?? "")) {
       return DEFAULT_ARTIFACT_PROFILE_REFERENCE
     }
 
-    const profile = await resolveStyleProfileByReference(paths, styleReference)
-    return profile ? styleReference : DEFAULT_ARTIFACT_PROFILE_REFERENCE
+    const profile = await resolveArtifactProfileByReference(
+      paths,
+      artifactProfileReference,
+    )
+    return profile
+      ? artifactProfileReference
+      : DEFAULT_ARTIFACT_PROFILE_REFERENCE
   } catch (error) {
     if (error?.code === "ENOENT") {
       return DEFAULT_ARTIFACT_PROFILE_REFERENCE
@@ -241,27 +255,37 @@ export async function readCurrentStyleProfileReference(paths) {
   }
 }
 
-export async function writeCurrentStyleProfileReference(paths, styleReference) {
-  const nextStyleReference = (await resolveStyleProfileByReference(paths, styleReference))
-    ? styleReference
+export async function writeCurrentArtifactProfileReference(
+  paths,
+  artifactProfileReference,
+) {
+  const nextArtifactProfileReference = (
+    await resolveArtifactProfileByReference(paths, artifactProfileReference)
+  )
+    ? artifactProfileReference
     : DEFAULT_ARTIFACT_PROFILE_REFERENCE
 
   await writeJsonFile(paths.artifactProfileStatePath, {
     kind: artifactProfileStateKind,
     version: ARTIFACT_PROFILE_STORAGE_VERSION,
-    currentArtifactProfileId: nextStyleReference,
-    currentStyleProfileId: nextStyleReference,
+    currentArtifactProfileId: nextArtifactProfileReference,
   })
 
-  return nextStyleReference
+  return nextArtifactProfileReference
 }
 
-export async function deleteStyleProfile(paths, styleReference) {
-  if (isBuiltinStyleProfileReference(styleReference)) {
-    throw new BuiltinStyleProfileMutationError("delete", styleReference)
+export async function deleteArtifactProfile(paths, artifactProfileReference) {
+  if (isBuiltinArtifactProfileReference(artifactProfileReference)) {
+    throw new BuiltinArtifactProfileMutationError(
+      "delete",
+      artifactProfileReference,
+    )
   }
 
-  const targetPath = path.join(paths.userArtifactProfilesDir, `${styleReference}.json`)
+  const targetPath = path.join(
+    paths.userArtifactProfilesDir,
+    `${artifactProfileReference}.json`,
+  )
 
   try {
     const { unlink } = await import("node:fs/promises")
@@ -270,25 +294,27 @@ export async function deleteStyleProfile(paths, styleReference) {
     if (error?.code === "ENOENT") {
       return {
         deleted: false,
-        currentStyleProfileId: await readCurrentStyleProfileReference(paths),
+        currentArtifactProfileReference:
+          await readCurrentArtifactProfileReference(paths),
       }
     }
 
     throw error
   }
 
-  const currentStyleProfileId = await readCurrentStyleProfileReference(paths)
-  const nextCurrentStyleProfileId =
-    currentStyleProfileId === styleReference
-      ? await writeCurrentStyleProfileReference(
+  const currentArtifactProfileReference =
+    await readCurrentArtifactProfileReference(paths)
+  const nextCurrentArtifactProfileReference =
+    currentArtifactProfileReference === artifactProfileReference
+      ? await writeCurrentArtifactProfileReference(
           paths,
           DEFAULT_ARTIFACT_PROFILE_REFERENCE,
         )
-      : currentStyleProfileId
+      : currentArtifactProfileReference
 
   return {
     deleted: true,
-    currentStyleProfileId: nextCurrentStyleProfileId,
+    currentArtifactProfileReference: nextCurrentArtifactProfileReference,
   }
 }
 
@@ -310,14 +336,17 @@ async function writeJsonFile(filePath, value) {
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`)
 }
 
-function resolveStoredStyleProfileReference(styleReference, userProfilesById) {
-  if (!styleReference) {
+function resolveStoredArtifactProfileReference(
+  artifactProfileReference,
+  userProfilesById,
+) {
+  if (!artifactProfileReference) {
     return undefined
   }
 
-  if (BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[styleReference]) {
-    return BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[styleReference]
+  if (BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[artifactProfileReference]) {
+    return BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE[artifactProfileReference]
   }
 
-  return userProfilesById.get(styleReference)
+  return userProfilesById.get(artifactProfileReference)
 }

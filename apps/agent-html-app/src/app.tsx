@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { FileCode2Icon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import {
   ResizableHandle,
   ResizablePanel,
@@ -14,6 +13,11 @@ import {
   persistPanelLayout,
   readStoredPanelLayout,
 } from "./features/app-shell/panel-layout"
+import {
+  ShellStatusBadge,
+  ShellTitleStack,
+} from "./features/app-shell/components/shell-content"
+import { deriveCommandLocks } from "./features/app-shell/command-locks"
 import { shellPanelConstraints } from "./features/app-shell/layout"
 import type { PanelLayoutState } from "./features/app-shell/types"
 import { useWorkbenchApp } from "./features/app-shell/use-workbench-app"
@@ -44,27 +48,32 @@ export function App() {
   const [panelLayout, setPanelLayout] = useState<PanelLayoutState>(
     readStoredPanelLayout,
   )
+  const commandLocks = deriveCommandLocks(commandState)
 
   return (
     <div className="app-shell">
       <div className="app-shell-frame">
         <header className="app-shell-topbar">
           <div className="app-shell-topbar-row">
-            <div className="app-shell-topbar-group min-w-0">
+            <div className="app-shell-topbar-group">
               <div className="app-shell-panel-icon">
                 <FileCode2Icon className="app-shell-inline-icon" />
               </div>
-              <div className="min-w-0">
-                <p className="app-shell-panel-title">agent-html</p>
-                <p className="truncate app-shell-supporting-copy">
-                  {currentSession.summary.directory}
-                </p>
-              </div>
+              <ShellTitleStack
+                copy={currentSession.summary.directory}
+                title="agent-html"
+                truncateCopy
+              />
             </div>
             <div className="app-shell-status-group">
-              <Badge variant="outline">{isTauriRuntime() ? "tauri" : "mock"}</Badge>
-              <Badge variant="secondary">{activeView}</Badge>
-              {commandState.error ? <Badge variant="destructive">error</Badge> : null}
+              <ShellStatusBadge
+                label={isTauriRuntime() ? "tauri" : "mock"}
+                variant="outline"
+              />
+              <ShellStatusBadge label={activeView} variant="secondary" />
+              {commandState.error ? (
+                <ShellStatusBadge label="error" variant="destructive" />
+              ) : null}
             </div>
           </div>
         </header>
@@ -77,7 +86,7 @@ export function App() {
 
         <div className="app-shell-body">
           <ResizablePanelGroup
-            className="h-full"
+            className="app-shell-fill-layout"
             onLayoutChanged={(layout) => {
               const nextLayout = normalizePanelLayout(layout)
               setPanelLayout(nextLayout)
@@ -92,6 +101,7 @@ export function App() {
             >
               <SessionRail
                 activeSessionId={currentSession.summary.id}
+                disabled={commandLocks.sessionNavigationLocked}
                 loading={commandState.loading}
                 onCreateSession={() => {
                   void actions.createNewSession()
@@ -116,7 +126,9 @@ export function App() {
                 build={currentBuild}
                 draftSource={draftSource}
                 hasUnsavedChanges={hasUnsavedChanges}
+                interactionLocked={commandLocks.workbenchInteractionLocked}
                 inspect={currentInspect}
+                inspecting={commandState.inspecting}
                 logs={currentLogs}
                 onBuild={() => {
                   void actions.buildCurrentSession()
@@ -134,9 +146,11 @@ export function App() {
                 onViewChange={(view) => {
                   void actions.changeView(view)
                 }}
+                building={commandState.building}
                 previewHtml={previewHtml}
                 saving={commandState.saving}
                 session={currentSession}
+                sourceEditingLocked={commandLocks.sourceEditingLocked}
                 validating={commandState.validating}
                 validation={validation}
               />
@@ -150,6 +164,7 @@ export function App() {
               <ShellPane
                 checking={commandState.checking}
                 drafting={commandState.drafting}
+                interactionLocked={commandLocks.shellComposeLocked}
                 messages={filteredMessages}
                 messageDraft={messageDraft}
                 onDraftChange={setMessageDraft}
@@ -162,6 +177,8 @@ export function App() {
                 onSend={() => {
                   void actions.sendMessage()
                 }}
+                proposalLocked={commandLocks.proposalLocked}
+                runtimeCheckLocked={commandLocks.runtimeCheckLocked}
                 runtimeReport={runtimeReport}
                 sending={commandState.sending}
               />

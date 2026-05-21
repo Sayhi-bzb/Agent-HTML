@@ -1,66 +1,60 @@
-import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import type { InspectSnapshot, LogSnapshot } from "@/lib/types"
+import type {
+  InspectSnapshot,
+  LogSnapshot,
+} from "@/lib/types"
+
+import {
+  ShellCardHeader,
+  ShellDiagnosticStatusBadge,
+  ShellLoadingRow,
+  ShellSplitRow,
+  ShellSectionLabel,
+  ShellStatusBadge,
+  ShellSurfaceItem,
+  ShellWorkbenchCard,
+} from "@/features/app-shell/components/shell-content"
 
 type InspectTabProps = {
   inspect: InspectSnapshot
   logs: LogSnapshot
+  inspecting: boolean
 }
 
-function getDiagnosticVariant(
-  severity: InspectSnapshot["diagnostics"][number]["severity"],
-): "destructive" | "outline" | "secondary" {
-  if (severity === "error") {
-    return "destructive"
-  }
-
-  if (severity === "warning") {
-    return "outline"
-  }
-
-  return "secondary"
-}
-
-export function InspectTab({ inspect, logs }: InspectTabProps) {
+export function InspectTab({ inspect, logs, inspecting }: InspectTabProps) {
   return (
-    <Card className="app-shell-fill-card">
-      <CardHeader>
-        <div className="app-shell-split-row">
-          <div>
-            <CardTitle>Inspect</CardTitle>
-            <CardDescription>{inspect.generatedAt}</CardDescription>
-          </div>
-          <Badge variant="outline">{inspect.diagnostics.length} items</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="app-shell-content-stack">
-        <div className="app-shell-surface-grid">
-          {inspect.diagnostics.map((item) => (
-            <div className="app-shell-surface-item" key={item.id}>
-              <div className="app-shell-split-row">
-                <span>{item.message}</span>
-                <Badge variant={getDiagnosticVariant(item.severity)}>
-                  {item.severity}
-                </Badge>
-              </div>
-            </div>
-          ))}
-        </div>
-        <Separator />
-        <div className="app-shell-surface-grid min-h-0 flex-1">
-          <p className="app-shell-kicker">stdout</p>
-          <pre className="app-shell-console">
-            {logs.stdout || "n/a"}
-          </pre>
-        </div>
-      </CardContent>
-    </Card>
+    <ShellWorkbenchCard
+      header={
+        <ShellCardHeader
+          action={
+            <ShellStatusBadge
+              label={`${inspect.diagnostics.length} items`}
+              variant="outline"
+            />
+          }
+          description={inspect.generatedAt}
+          title="Inspect"
+        />
+      }
+    >
+      {inspecting ? <ShellLoadingRow>Refreshing inspect snapshot</ShellLoadingRow> : null}
+      <div className="app-shell-surface-grid">
+        {inspect.diagnostics.map((item) => (
+          <ShellSurfaceItem key={item.id}>
+            <ShellSplitRow>
+              <span>{item.message}</span>
+              <ShellDiagnosticStatusBadge severity={item.severity} />
+            </ShellSplitRow>
+          </ShellSurfaceItem>
+        ))}
+      </div>
+      <Separator />
+      <div className="app-shell-surface-grid app-shell-surface-pane">
+        <ShellSectionLabel>stdout</ShellSectionLabel>
+        <pre className="app-shell-console">
+          {logs.stdout || "n/a"}
+        </pre>
+      </div>
+    </ShellWorkbenchCard>
   )
 }

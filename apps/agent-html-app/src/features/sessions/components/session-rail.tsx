@@ -1,20 +1,15 @@
 import { useMemo, useState } from "react"
 import {
-  LoaderCircleIcon,
   PlusIcon,
   SearchIcon,
   Settings2Icon,
   Trash2Icon,
 } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardContent,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -22,12 +17,21 @@ import { cn } from "@/lib/utils"
 import { formatTimestampLabel } from "@/lib/time"
 import type { SessionSummary } from "@/lib/types"
 
+import {
+  ShellEmptyCard,
+  ShellCardHeader,
+  ShellLoadingRow,
+  ShellMetaRow,
+  ShellPaneScaffold,
+  ShellSessionStatusBadge,
+} from "@/features/app-shell/components/shell-content"
 import { filterSessions } from "../lib/filter-sessions"
 
 export type SessionRailProps = {
   sessions: SessionSummary[]
   activeSessionId: string
   loading: boolean
+  disabled: boolean
   onCreateSession: () => void
   onDeleteSession: (sessionId: string) => void
   onOpenSession: (sessionId: string) => void
@@ -37,6 +41,7 @@ export function SessionRail({
   sessions,
   activeSessionId,
   loading,
+  disabled,
   onCreateSession,
   onDeleteSession,
   onOpenSession,
@@ -45,13 +50,14 @@ export function SessionRail({
   const filtered = useMemo(() => filterSessions(sessions, query), [query, sessions])
 
   return (
-    <div className="app-shell-pane">
-      <div className="app-shell-pane-header">
+    <ShellPaneScaffold
+      header={
         <div className="app-shell-stack-compact">
           <div className="app-shell-search-field">
             <SearchIcon className="app-shell-search-icon" />
             <Input
               className="app-shell-search-input"
+              disabled={disabled}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search"
               value={query}
@@ -59,6 +65,7 @@ export function SessionRail({
           </div>
           <Button
             aria-label="Create session"
+            disabled={disabled}
             onClick={onCreateSession}
             size="icon-sm"
             type="button"
@@ -67,69 +74,67 @@ export function SessionRail({
             <PlusIcon data-icon="inline-start" />
           </Button>
         </div>
-      </div>
-      <ScrollArea className="flex-1">
-        <div className="app-shell-surface-grid app-shell-card-inset">
-          {filtered.map((session) => {
-            const isActive = session.id === activeSessionId
-            return (
-              <Card
-                className={cn("app-shell-session-card", isActive && "app-shell-card-active")}
-                key={session.id}
-                size="sm"
-              >
-                <button
-                  aria-label={`Open session ${session.name}`}
-                  className="app-shell-session-card-trigger"
-                  onClick={() => onOpenSession(session.id)}
-                  type="button"
-                />
-                <CardHeader>
-                  <div className="app-shell-split-row app-shell-split-row-start">
-                    <CardTitle className="truncate">{session.name}</CardTitle>
-                    <Badge variant={isActive ? "default" : "outline"}>
-                      {session.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardFooter className="app-shell-metric-row">
-                  <span className="app-shell-supporting-copy">
-                    {formatTimestampLabel(session.updatedAt)}
-                  </span>
-                  <Button
-                    aria-label="Delete session"
-                    className="app-shell-session-card-action"
-                    onClick={() => onDeleteSession(session.id)}
-                    size="icon-xs"
+      }
+      content={
+        <ScrollArea className="app-shell-scroll-pane">
+          <div className="app-shell-surface-grid app-shell-card-inset">
+            {filtered.map((session) => {
+              const isActive = session.id === activeSessionId
+              return (
+                <Card
+                  className={cn("app-shell-session-card", isActive && "app-shell-card-active")}
+                  key={session.id}
+                  size="sm"
+                >
+                  <button
+                    aria-label={`Open session ${session.name}`}
+                    className="app-shell-session-card-trigger"
+                    disabled={disabled}
+                    onClick={() => onOpenSession(session.id)}
                     type="button"
-                    variant="ghost"
-                  >
-                    <Trash2Icon data-icon="inline-start" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            )
-          })}
-          {filtered.length === 0 ? (
-            <Card size="sm">
-              <CardContent className="app-shell-empty-state app-shell-supporting-copy">
-                No sessions
-              </CardContent>
-            </Card>
-          ) : null}
-          {loading ? (
-            <div className="app-shell-loading-row">
-              <LoaderCircleIcon className="app-shell-spinner" />
-              Loading
-            </div>
-          ) : null}
-        </div>
-      </ScrollArea>
-      <div className="app-shell-pane-footer">
-        <Button aria-label="Session settings" size="icon-sm" type="button" variant="ghost">
+                  />
+                  <ShellCardHeader
+                    action={<ShellSessionStatusBadge status={session.status} />}
+                    title={session.name}
+                    truncateTitle
+                  />
+                  <CardFooter>
+                    <ShellMetaRow
+                      action={
+                        <Button
+                          aria-label="Delete session"
+                          className="app-shell-session-card-action"
+                          disabled={disabled}
+                          onClick={() => onDeleteSession(session.id)}
+                          size="icon-xs"
+                          type="button"
+                          variant="ghost"
+                        >
+                          <Trash2Icon data-icon="inline-start" />
+                        </Button>
+                      }
+                      copy={formatTimestampLabel(session.updatedAt)}
+                    />
+                  </CardFooter>
+                </Card>
+              )
+            })}
+            {filtered.length === 0 ? <ShellEmptyCard>No sessions</ShellEmptyCard> : null}
+            {loading ? <ShellLoadingRow>Loading</ShellLoadingRow> : null}
+          </div>
+        </ScrollArea>
+      }
+      footer={
+        <Button
+          aria-label="Session settings"
+          disabled={disabled}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
           <Settings2Icon data-icon="inline-start" />
         </Button>
-      </div>
-    </div>
+      }
+    />
   )
 }

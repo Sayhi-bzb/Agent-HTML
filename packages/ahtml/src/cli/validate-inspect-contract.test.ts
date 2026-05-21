@@ -15,8 +15,8 @@ import {
   useShadcnCliHarness,
   useTemporaryDirectories,
   validAgentHtmlFixtures,
-  writeCurrentStyleProfileState,
-  writeCustomStyleProfile,
+  writeCurrentArtifactProfileState,
+  writeCustomArtifactProfile,
 } from "./cli-test-helpers"
 
 const { runCliWithServer } = useShadcnCliHarness()
@@ -120,7 +120,7 @@ describe("validate and inspect contracts", () => {
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "team-ops.agent.html")
 
-    await writeCustomStyleProfile(runtimeHome)
+    await writeCustomArtifactProfile(runtimeHome)
     await writeFile(
       inputPath,
       [
@@ -205,8 +205,8 @@ describe("validate and inspect contracts", () => {
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "runtime-default.agent.html")
 
-    await writeCustomStyleProfile(runtimeHome)
-    await writeCurrentStyleProfileState(runtimeHome, "team-ops")
+    await writeCustomArtifactProfile(runtimeHome)
+    await writeCurrentArtifactProfileState(runtimeHome, "team-ops")
     await writeFile(
       inputPath,
       '<page title="Runtime Default"><card title="Summary">Current style.</card></page>',

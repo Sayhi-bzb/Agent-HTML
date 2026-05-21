@@ -1,12 +1,12 @@
 import { sanitizeAgentHtml } from "@agent-html/core"
 import {
-  createStyleProfileResolver,
-  readCurrentStyleProfileReference,
-  resolveStyleProfileByReference,
-} from "./style-profile-storage.mjs"
+  createArtifactProfileResolver,
+  readCurrentArtifactProfileReference,
+  resolveArtifactProfileByReference,
+} from "./artifact-profile-storage.mjs"
 
 export async function validateAgentHtmlSource(source, runtimeContext) {
-  const renderConfigResolvers = await loadStyleProfileResolvers(
+  const renderConfigResolvers = await loadArtifactProfileResolvers(
     runtimeContext,
   )
   const result = sanitizeAgentHtml(source, renderConfigResolvers)
@@ -28,25 +28,24 @@ export function validateRenderConfig(config, values) {
   )
 }
 
-async function loadStyleProfileResolvers(runtimeContext) {
+async function loadArtifactProfileResolvers(runtimeContext) {
   if (!isRuntimePaths(runtimeContext)) {
     return undefined
   }
 
-  const resolveStyleProfileReference = await createStyleProfileResolver(
+  const resolveArtifactProfileReference = await createArtifactProfileResolver(
     runtimeContext,
   )
-  const currentStyleReference = await readCurrentStyleProfileReference(
+  const currentArtifactProfileReference =
+    await readCurrentArtifactProfileReference(runtimeContext)
+  const defaultArtifactProfile = await resolveArtifactProfileByReference(
     runtimeContext,
-  )
-  const defaultStyleProfile = await resolveStyleProfileByReference(
-    runtimeContext,
-    currentStyleReference,
+    currentArtifactProfileReference,
   )
 
   return {
-    resolveArtifactProfileReference: resolveStyleProfileReference,
-    resolveDefaultArtifactProfileReference: () => defaultStyleProfile,
+    resolveArtifactProfileReference,
+    resolveDefaultArtifactProfileReference: () => defaultArtifactProfile,
   }
 }
 
@@ -54,6 +53,6 @@ function isRuntimePaths(value) {
   return (
     Boolean(value) &&
     typeof value === "object" &&
-    typeof value.userStyleProfilesDir === "string"
+    typeof value.userArtifactProfilesDir === "string"
   )
 }

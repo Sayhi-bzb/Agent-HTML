@@ -338,7 +338,7 @@ describe("sanitizeAgentHtml", () => {
     ])
   })
 
-  it("resolves runtime style profiles through sanitize options", () => {
+  it("resolves runtime artifact profiles through sanitize options", () => {
     const result = sanitizeAgentHtml(
       `
         <meta-agent profile-ref="team-ops" />
@@ -510,38 +510,34 @@ describe("sanitizeAgentHtml", () => {
     )
   })
 
-  it("falls back to the default profile for removed profile render config header values", () => {
+  it("rejects removed profile render config header values", () => {
     const result = sanitizeAgentHtml(`
       <meta-agent profile="report-default" />
       <page title="Payment Review" />
     `)
 
+    expect(result.document).toBeUndefined()
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
         code: "invalid-profile-ref-shape",
-        severity: "warning",
+        severity: "error",
       }),
     ])
-    expect(result.document?.meta.artifactProfileReference).toBe(
-      "report-default",
-    )
   })
 
-  it("falls back to the default profile for legacy free-form render config header values", () => {
+  it("rejects legacy free-form render config header values", () => {
     const result = sanitizeAgentHtml(`
       <meta-agent theme="neutral" density="compact" tone="color:red" width="article" />
       <page title="Payment Review" />
     `)
 
+    expect(result.document).toBeUndefined()
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
         code: "invalid-profile-ref-shape",
-        severity: "warning",
+        severity: "error",
       }),
     ])
-    expect(result.document?.meta.artifactProfileReference).toBe(
-      "report-default",
-    )
   })
 
   it("rejects legacy style-ref headers as an error", () => {

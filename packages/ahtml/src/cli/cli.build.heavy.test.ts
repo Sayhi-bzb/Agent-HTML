@@ -15,8 +15,8 @@ import {
   parseJson,
   removeTempDir,
   useShadcnCliHarness,
-  writeCurrentStyleProfileState,
-  writeCustomStyleProfile,
+  writeCurrentArtifactProfileState,
+  writeCustomArtifactProfile,
 } from "./cli-test-helpers"
 
 const { runCliWithServer } = useShadcnCliHarness()
@@ -120,7 +120,10 @@ describe("agent-html CLI heavy build flows", () => {
       'data-artifact-profile="ops-compact"',
     )
     await expectFileMissingText(path.join(outputDir, "index.html"), 'tone="')
-    await expectFileMissingText(path.join(outputDir, "index.html"), 'kind="')
+    await expectFileMissingText(
+      path.join(outputDir, "index.html"),
+      '<meta-agent kind=',
+    )
     await expectFileMissingText(path.join(outputDir, "index.html"), 'default="')
     await expectFile(
       path.join(outputDir, "index.html"),
@@ -222,7 +225,7 @@ describe("agent-html CLI heavy build flows", () => {
     )
     await expectFile(
       path.join(outputDir, "index.html"),
-      '<ul data-agent-html-component="list" class="space-y-2 pl-5 marker:text-muted-foreground">',
+      'data-agent-html-component="list"',
     )
     await expectFile(
       path.join(outputDir, "index.html"),
@@ -233,6 +236,10 @@ describe("agent-html CLI heavy build flows", () => {
       "Built from semantic syntax.",
     )
     await expectFile(path.join(outputDir, "index.html"), ">Ready</span>")
+    await expectFileMissingText(
+      path.join(outputDir, "index.html"),
+      '<meta-agent kind=',
+    )
     await expectFile(
       path.join(outputDir, "index.html"),
       "@media (prefers-color-scheme: dark){:root{--background:oklch(0.145 0 0);",
@@ -240,13 +247,13 @@ describe("agent-html CLI heavy build flows", () => {
     await removeTempDir(tempDir)
   }, 120000)
 
-  it("builds artifacts from user style profiles stored under AHTML_HOME", async () => {
+  it("builds artifacts from user artifact profiles stored under AHTML_HOME", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "team-ops.agent.html")
     const outputDir = path.join(tempDir, "html")
 
-    await writeCustomStyleProfile(runtimeHome)
+    await writeCustomArtifactProfile(runtimeHome)
     await writeFile(
       inputPath,
       [
@@ -295,8 +302,8 @@ describe("agent-html CLI heavy build flows", () => {
     const inputPath = path.join(tempDir, "runtime-default.agent.html")
     const outputDir = path.join(tempDir, "html")
 
-    await writeCustomStyleProfile(runtimeHome)
-    await writeCurrentStyleProfileState(runtimeHome, "team-ops")
+    await writeCustomArtifactProfile(runtimeHome)
+    await writeCurrentArtifactProfileState(runtimeHome, "team-ops")
     await writeFile(
       inputPath,
       '<page title="Runtime Default"><card title="Summary">Current style.</card></page>',

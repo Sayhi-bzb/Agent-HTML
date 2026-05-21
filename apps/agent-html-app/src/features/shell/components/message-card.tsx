@@ -1,11 +1,13 @@
-import { Badge } from "@/components/ui/badge"
 import {
-  Card,
   CardContent,
-  CardHeader,
-  CardTitle,
+  Card,
 } from "@/components/ui/card"
 import type { AgentShellMessage } from "@/lib/types"
+
+import {
+  ShellCardHeader,
+  ShellStatusBadge,
+} from "@/features/app-shell/components/shell-content"
 
 type MessageCardProps = {
   message: AgentShellMessage
@@ -14,14 +16,13 @@ type MessageCardProps = {
 export function MessageCard({ message }: MessageCardProps) {
   return (
     <Card size="sm">
-      <CardHeader>
-        <div className="app-shell-split-row">
-          <CardTitle className="text-sm">{message.kind}</CardTitle>
-          <Badge variant="outline">{message.role}</Badge>
-        </div>
-      </CardHeader>
+      <ShellCardHeader
+        action={<ShellStatusBadge label={message.role} variant="outline" />}
+        title={message.kind}
+        titleClassName="app-shell-card-heading"
+      />
       <CardContent>
-        <p className="whitespace-pre-wrap text-sm leading-6">{message.text}</p>
+        <p className="app-shell-body-copy">{message.text}</p>
       </CardContent>
     </Card>
   )

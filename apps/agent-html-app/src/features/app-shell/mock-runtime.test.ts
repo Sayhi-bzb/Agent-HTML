@@ -4,8 +4,10 @@ import type { SessionSummary } from "@/lib/types"
 
 import {
   createInitialMockSessionSources,
+  createMockBuildSummary,
   createMockPreviewHtml,
   createMockRuntimeReport,
+  createMockSessionDetail,
   createMockSessionSummary,
   createMockValidationSnapshot,
 } from "./mock-runtime"
@@ -71,6 +73,25 @@ describe("mock-runtime", () => {
     expect(report.counts.ok).toBe(4)
     expect(report.counts.skip).toBe(1)
     expect(report.checks.some((item) => item.name === "session-store")).toBe(true)
+  })
+
+  it("keeps the last successful mock build summary even when inspect marks the session error", () => {
+    const summary = createSummary({
+      status: "error",
+      hasPreview: true,
+      lastBuildAt: "2026-05-21T09:55:00.000Z",
+    })
+    const session = createMockSessionDetail(
+      summary,
+      '<page title="Custom Review"></page>',
+      "inspect",
+    )
+
+    const build = createMockBuildSummary(summary, session)
+
+    expect(build.status).toBe("succeeded")
+    expect(build.exitCode).toBe(0)
+    expect(build.previewPath).toBe(session.previewPath)
   })
 
   it("creates initial sources for each provided session", () => {

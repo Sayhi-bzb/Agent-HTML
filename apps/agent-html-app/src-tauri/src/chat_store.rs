@@ -1,6 +1,8 @@
-use super::{
-    AgentShellMessage, AppError, BackendError, CHAT_FILE_NAME, now_epoch_millis,
-    now_iso_stub,
+use crate::{
+    error::BackendError,
+    models::{AgentShellMessage, AppError},
+    paths::CHAT_FILE_NAME,
+    support::{now_epoch_millis, now_iso_stub},
 };
 use camino::Utf8Path;
 use fs_err as fs;
@@ -111,7 +113,7 @@ pub(super) fn default_chat_messages() -> Vec<AgentShellMessage> {
 #[cfg(test)]
 mod tests {
     use super::{append_chat_message_to_file, read_chat_messages};
-    use crate::{AgentShellMessage, ProposalSnapshot};
+    use crate::models::{AgentShellMessage, ProposalSnapshot};
     use camino::Utf8PathBuf;
     use std::fs;
     use std::time::{SystemTime, UNIX_EPOCH};

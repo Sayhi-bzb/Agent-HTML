@@ -37,15 +37,15 @@ describe("artifact profile storage", () => {
     const runtimeHome = await createRuntimeHome()
     const { getRuntimePaths } = await importRuntimePathsModule()
     const {
-      loadUserStyleProfilesById,
-      saveUserStyleProfile,
-    } = await importStyleProfileStorageModule()
+      loadUserArtifactProfilesById,
+      saveUserArtifactProfile,
+    } = await importArtifactProfileStorageModule()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
     const firstProfile = createProfile("team-ops", "#0f766e")
 
-    const firstSave = await saveUserStyleProfile(paths, firstProfile)
+    const firstSave = await saveUserArtifactProfile(paths, firstProfile)
     const savedSource = await readFile(firstSave.path, "utf8")
-    const loadedProfiles = await loadUserStyleProfilesById(paths)
+    const loadedProfiles = await loadUserArtifactProfilesById(paths)
 
     expect(firstSave.overwritten).toBe(false)
     expect(savedSource).toContain('"id": "team-ops"')
@@ -53,7 +53,7 @@ describe("artifact profile storage", () => {
       "#0f766e",
     )
 
-    const overwriteSave = await saveUserStyleProfile(
+    const overwriteSave = await saveUserArtifactProfile(
       paths,
       createProfile("team-ops", "#0b5fff"),
       { overwrite: true },
@@ -61,63 +61,69 @@ describe("artifact profile storage", () => {
 
     expect(overwriteSave.overwritten).toBe(true)
     expect(
-      (await loadUserStyleProfilesById(paths)).get("team-ops")?.globalStyle
+      (await loadUserArtifactProfilesById(paths)).get("team-ops")?.globalStyle
         .tokenSets.light.primary,
     ).toBe("#0b5fff")
   })
 
-  it("persists and falls back current style ids", async () => {
+  it("persists and falls back current artifact profile ids", async () => {
     const runtimeHome = await createRuntimeHome()
     const { getRuntimePaths } = await importRuntimePathsModule()
     const {
-      deleteStyleProfile,
-      readCurrentStyleProfileReference,
-      saveUserStyleProfile,
-      writeCurrentStyleProfileReference,
-    } = await importStyleProfileStorageModule()
+      deleteArtifactProfile,
+      readCurrentArtifactProfileReference,
+      saveUserArtifactProfile,
+      writeCurrentArtifactProfileReference,
+    } = await importArtifactProfileStorageModule()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
 
-    await writeCurrentStyleProfileReference(paths, "report-default")
+    await writeCurrentArtifactProfileReference(paths, "report-default")
 
-    expect(await readCurrentStyleProfileReference(paths)).toBe("report-default")
+    expect(await readCurrentArtifactProfileReference(paths)).toBe(
+      "report-default",
+    )
 
-    await saveUserStyleProfile(paths, createProfile("team-ops", "#0f766e"))
-    await writeCurrentStyleProfileReference(paths, "team-ops")
+    await saveUserArtifactProfile(paths, createProfile("team-ops", "#0f766e"))
+    await writeCurrentArtifactProfileReference(paths, "team-ops")
 
-    expect(await readCurrentStyleProfileReference(paths)).toBe("team-ops")
+    expect(await readCurrentArtifactProfileReference(paths)).toBe("team-ops")
 
-    const deletion = await deleteStyleProfile(paths, "team-ops")
+    const deletion = await deleteArtifactProfile(paths, "team-ops")
     expect(deletion.deleted).toBe(true)
-    expect(deletion.currentStyleProfileId).toBe("report-default")
-    expect(await readCurrentStyleProfileReference(paths)).toBe("report-default")
+    expect(deletion.currentArtifactProfileReference).toBe("report-default")
+    expect(await readCurrentArtifactProfileReference(paths)).toBe(
+      "report-default",
+    )
   })
 
   it("rejects invalid ids", async () => {
     const runtimeHome = await createRuntimeHome()
     const { getRuntimePaths } = await importRuntimePathsModule()
-    const { saveUserStyleProfile } = await importStyleProfileStorageModule()
+    const { saveUserArtifactProfile } = await importArtifactProfileStorageModule()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
 
     await expect(
-      saveUserStyleProfile(paths, createProfile("TeamOps", "#0f766e")),
-    ).rejects.toThrow("style profile ids must use lowercase kebab-case")
+      saveUserArtifactProfile(paths, createProfile("TeamOps", "#0f766e")),
+    ).rejects.toThrow("artifact profile ids must use lowercase kebab-case")
   })
 
-  it("rejects save and delete mutations for built-in style profiles", async () => {
+  it("rejects save and delete mutations for built-in artifact profiles", async () => {
     const runtimeHome = await createRuntimeHome()
     const { getRuntimePaths } = await importRuntimePathsModule()
-    const { deleteStyleProfile, saveUserStyleProfile } =
-      await importStyleProfileStorageModule()
+    const { deleteArtifactProfile, saveUserArtifactProfile } =
+      await importArtifactProfileStorageModule()
     const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
 
     await expect(
-      saveUserStyleProfile(paths, createProfile("report-default", "#0f766e"), {
+      saveUserArtifactProfile(paths, createProfile("report-default", "#0f766e"), {
         overwrite: true,
       }),
-    ).rejects.toThrow('Cannot save built-in style profile "report-default"')
+    ).rejects.toThrow('Cannot save built-in artifact profile "report-default"')
 
-    await expect(deleteStyleProfile(paths, "report-default")).rejects.toThrow(
-      'Cannot delete built-in style profile "report-default"',
+    await expect(
+      deleteArtifactProfile(paths, "report-default"),
+    ).rejects.toThrow(
+      'Cannot delete built-in artifact profile "report-default"',
     )
   })
 })
@@ -377,22 +383,22 @@ async function importRuntimePathsModule() {
   }>("runtime-paths.mjs")
 }
 
-async function importStyleProfileStorageModule() {
+async function importArtifactProfileStorageModule() {
   return importCliModule<{
-    readonly deleteStyleProfile: (
+    readonly deleteArtifactProfile: (
       paths: RuntimePaths,
-      styleReference: string,
+      artifactProfileReference: string,
     ) => Promise<{
       readonly deleted: boolean
-      readonly currentStyleProfileId: string
+      readonly currentArtifactProfileReference: string
     }>
-    readonly loadUserStyleProfilesById: (
+    readonly loadUserArtifactProfilesById: (
       paths: RuntimePaths,
     ) => Promise<Map<string, ArtifactProfile>>
-    readonly readCurrentStyleProfileReference: (
+    readonly readCurrentArtifactProfileReference: (
       paths: RuntimePaths,
     ) => Promise<string>
-    readonly saveUserStyleProfile: (
+    readonly saveUserArtifactProfile: (
       paths: RuntimePaths,
       profile: ArtifactProfile,
       options?: {
@@ -402,9 +408,9 @@ async function importStyleProfileStorageModule() {
       readonly overwritten: boolean
       readonly path: string
     }>
-    readonly writeCurrentStyleProfileReference: (
+    readonly writeCurrentArtifactProfileReference: (
       paths: RuntimePaths,
-      styleReference: string,
+      artifactProfileReference: string,
     ) => Promise<string>
-  }>("style-profile-storage.mjs")
+  }>("artifact-profile-storage.mjs")
 }

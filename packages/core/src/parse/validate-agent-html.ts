@@ -70,7 +70,6 @@ function validateRenderConfig(
     diagnostics,
     reason: resolved.reason,
     requestedProfileRef: resolved.requestedProfileRef,
-    requestedLegacyStyleRef: resolved.requestedLegacyStyleRef,
   })
 
   return resolved.config
@@ -314,18 +313,16 @@ function pushRenderConfigFallbackDiagnostic({
   diagnostics,
   reason,
   requestedProfileRef,
-  requestedLegacyStyleRef,
 }: {
   diagnostics: AgentHtmlDiagnostic[]
   reason:
     | "explicit-profile-ref"
     | "resolved-custom-profile-ref"
+    | "legacy-style-ref"
     | "missing-profile-ref"
     | "invalid-profile-ref-shape"
-    | "legacy-style-ref"
     | "unknown-profile-ref"
   requestedProfileRef?: string
-  requestedLegacyStyleRef?: string
 }) {
   if (
     reason === "explicit-profile-ref" ||
@@ -345,23 +342,23 @@ function pushRenderConfigFallbackDiagnostic({
     return
   }
 
-  if (reason === "invalid-profile-ref-shape") {
+  if (reason === "legacy-style-ref") {
     diagnostics.push({
-      code: "invalid-profile-ref-shape",
-      message:
-        'The <meta-agent /> header did not match the supported profile-ref shape. Falling back to the current runtime profile or the default builtin profile.',
+      code: "legacy-style-ref",
+      message: requestedProfileRef
+        ? `The legacy style-ref "${requestedProfileRef}" is no longer supported. Use <meta-agent profile-ref="..." />.`
+        : 'The legacy style-ref header is no longer supported. Use <meta-agent profile-ref="..." />.',
       path: "/meta-agent",
-      severity: "warning",
+      severity: "error",
     })
     return
   }
 
-  if (reason === "legacy-style-ref") {
+  if (reason === "invalid-profile-ref-shape") {
     diagnostics.push({
-      code: "legacy-style-ref",
-      message: requestedLegacyStyleRef
-        ? `The legacy style-ref "${requestedLegacyStyleRef}" is no longer supported. Use <meta-agent profile-ref="..." /> instead.`
-        : 'The legacy style-ref header is no longer supported. Use <meta-agent profile-ref="..." /> instead.',
+      code: "invalid-profile-ref-shape",
+      message:
+        'The <meta-agent /> header did not match the supported profile-ref shape. Use <meta-agent profile-ref="..." />.',
       path: "/meta-agent",
       severity: "error",
     })

@@ -37,7 +37,7 @@ function createRenderConfigFromArtifactProfile(artifactProfile) {
   }
 }
 
-function createCardsPreview(styleProfile) {
+function createCardsPreview(artifactProfile) {
   return createCard("Cards Preview", [
     componentNode("frame", {}, [
       componentNode("grid", {}, [
@@ -76,9 +76,9 @@ function createCardsPreview(styleProfile) {
         createCard("Surface Audit", [
           componentNode("table", {}, [
             rowNode("Layer", "Signal"),
-            rowNode("Card", styleProfile.componentStyle.treatments.card ?? "none"),
-            rowNode("Badge", styleProfile.componentStyle.treatments.badge ?? "none"),
-            rowNode("Radius", styleProfile.globalStyle.radiusScale.base),
+            rowNode("Card", artifactProfile.componentStyle.treatments.card ?? "none"),
+            rowNode("Badge", artifactProfile.componentStyle.treatments.badge ?? "none"),
+            rowNode("Radius", artifactProfile.globalStyle.radiusScale.base),
           ]),
         ]),
       ]),
@@ -86,7 +86,7 @@ function createCardsPreview(styleProfile) {
   ])
 }
 
-function createDashboardPreview(styleProfile) {
+function createDashboardPreview(artifactProfile) {
   return createCard("Dashboard Preview", [
     componentNode("frame", {}, [
       componentNode("split", {}, [
@@ -120,9 +120,9 @@ function createDashboardPreview(styleProfile) {
         ]),
         createCard("Token Snapshot", [
           componentNode("table", {}, [
-            rowNode("Primary", styleProfile.globalStyle.tokenSets.light.primary),
-            rowNode("Muted", styleProfile.globalStyle.tokenSets.light.muted),
-            rowNode("Border", styleProfile.globalStyle.tokenSets.light.border),
+            rowNode("Primary", artifactProfile.globalStyle.tokenSets.light.primary),
+            rowNode("Muted", artifactProfile.globalStyle.tokenSets.light.muted),
+            rowNode("Border", artifactProfile.globalStyle.tokenSets.light.border),
           ]),
         ]),
       ]),
@@ -130,7 +130,7 @@ function createDashboardPreview(styleProfile) {
   ])
 }
 
-function createPricingPreview(styleProfile) {
+function createPricingPreview(artifactProfile) {
   return createCard("Pricing Preview", [
     componentNode("frame", {}, [
       componentNode("grid", {}, [
@@ -182,7 +182,7 @@ function createPricingPreview(styleProfile) {
   ])
 }
 
-function createMailPreview(styleProfile) {
+function createMailPreview(artifactProfile) {
   return createCard("Mail Preview", [
     componentNode("frame", {}, [
       componentNode("split", {}, [
@@ -213,7 +213,7 @@ function createMailPreview(styleProfile) {
             rowNode("From", "Mia Chen"),
             rowNode("Subject", "Gallery alignment review"),
             rowNode("Status", "Needs reply"),
-            rowNode("Theme", styleProfile.id),
+            rowNode("Theme", artifactProfile.id),
           ]),
           textNode(
             "A mail surface should stress dense navigation, list selection, long-form reading, and reply composition within the same preview frame.",
@@ -309,7 +309,7 @@ function createFormsPreview() {
   ])
 }
 
-function createSelectionPreview(styleProfile) {
+function createSelectionPreview(artifactProfile) {
   return createCard("Selection Preview", [
     componentNode("frame", {}, [
       componentNode("split", {}, [
@@ -318,7 +318,7 @@ function createSelectionPreview(styleProfile) {
             "select",
             {
               label: "Profile family",
-              value: styleProfile.id,
+              value: artifactProfile.id,
               description: "Select trigger, content, and item treatment.",
             },
             [
@@ -330,12 +330,16 @@ function createSelectionPreview(styleProfile) {
           componentNode(
             "combobox",
             {
-              label: "Style ref",
-              value: styleProfile.id,
+              label: "Profile ref",
+              value: artifactProfile.id,
               description: "Combobox trigger and option body.",
             },
             [
-              optionNode(styleProfile.id, styleProfile.id, "Current profile"),
+              optionNode(
+                artifactProfile.id,
+                artifactProfile.id,
+                "Current profile",
+              ),
               optionNode("team-ops", "team-ops", "User profile sample"),
             ],
           ),

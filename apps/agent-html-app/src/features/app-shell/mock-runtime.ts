@@ -242,8 +242,8 @@ export function createMockBuildSummary(
     sessionId: summary.id,
     startedAt,
     finishedAt: startedAt,
-    status: summary.status === "error" ? "failed" : "succeeded",
-    exitCode: summary.status === "error" ? 1 : 0,
+    status: "succeeded",
+    exitCode: 0,
     stdoutPath: `${session.logDirectory}/build.stdout.log`,
     stderrPath: `${session.logDirectory}/build.stderr.log`,
     previewPath: session.previewPath,
@@ -304,6 +304,8 @@ export function createMockPreviewHtml(
   const notes = extractListItems(source)
   const finalNotes = notes.length > 0 ? notes : seed.fallbackNotes
 
+  // This inline HTML/CSS is sample artifact content for the preview pane.
+  // It intentionally does not inherit the app shell design system contract.
   return `<!doctype html>
 <html lang="en">
   <head>

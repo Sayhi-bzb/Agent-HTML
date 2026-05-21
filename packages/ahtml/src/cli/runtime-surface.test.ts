@@ -23,11 +23,11 @@ type RuntimePaths = {
   readonly cacheDir: string
   readonly logsDir: string
   readonly configDir: string
-  readonly styleProfilesDir: string
-  readonly builtinStyleProfilesDir: string
-  readonly userStyleProfilesDir: string
+  readonly artifactProfilesDir: string
+  readonly builtinArtifactProfilesDir: string
+  readonly userArtifactProfilesDir: string
   readonly manifestPath: string
-  readonly styleProfileManifestPath: string
+  readonly artifactProfileManifestPath: string
   readonly promptUiManifestPath: string
   readonly runtimeVerificationPath: string
   readonly runtimeViteConfigPath: string
@@ -161,7 +161,9 @@ type LoadedModules = {
     readonly rendererMapping: unknown
   }
   readonly getCliSchemaOutput: (root?: string) => Promise<CliSchemaOutput>
-  readonly writeStyleProfileStorage: (paths: RuntimePaths) => Promise<unknown>
+  readonly writeArtifactProfileStorage: (
+    paths: RuntimePaths,
+  ) => Promise<unknown>
 }
 
 type NativeRuntimeSetup = {
@@ -461,7 +463,7 @@ async function createRuntimeFixture({
     nativeRuntimeSetup,
     runtimeRenderer,
     runtimeVersion,
-    writeStyleProfileStorage,
+    writeArtifactProfileStorage,
   } = await loadModules()
   const runtimeRoot = await temporaryDirectories.create("ahtml-runtime-")
   const runtimePaths = getRuntimePaths({ AHTML_HOME: runtimeRoot })
@@ -548,7 +550,7 @@ async function createRuntimeFixture({
     path.join(runtimePaths.runtimeDir, "components.json"),
     `${JSON.stringify(componentsJson, null, 2)}\n`,
   )
-  await writeStyleProfileStorage(runtimePaths)
+  await writeArtifactProfileStorage(runtimePaths)
   await writeFile(
     path.join(runtimePaths.runtimeDir, "package.json"),
     `${JSON.stringify(
@@ -807,7 +809,7 @@ async function loadModules(): Promise<LoadedModules> {
     runtimeSurfaceModule,
     runtimeStatusModule,
     schemaModule,
-    styleProfileStorageModule,
+    artifactProfileStorageModule,
   ] = await Promise.all([
     import(
       pathToFileURL(
@@ -897,7 +899,7 @@ async function loadModules(): Promise<LoadedModules> {
           "ahtml",
           "src",
           "cli",
-          "style-profile-storage.mjs",
+          "artifact-profile-storage.mjs",
         ),
       ).href
     ),
@@ -932,6 +934,7 @@ async function loadModules(): Promise<LoadedModules> {
       runtimeSurfaceModule.getShadcnRuntimeProvenanceState,
     getRuntimeStatus: runtimeStatusModule.getRuntimeStatus,
     getCliSchemaOutput: schemaModule.getCliSchemaOutput,
-    writeStyleProfileStorage: styleProfileStorageModule.writeStyleProfileStorage,
+    writeArtifactProfileStorage:
+      artifactProfileStorageModule.writeArtifactProfileStorage,
   }
 }

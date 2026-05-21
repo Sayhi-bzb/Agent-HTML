@@ -235,6 +235,12 @@ describe("artifact profile render config", () => {
   it("falls back to the default profile for invalid render config input", () => {
     expect(
       parseRenderConfig({
+        "style-ref": "ops-compact",
+      }),
+    ).toEqual(DEFAULT_RENDER_CONFIG)
+
+    expect(
+      parseRenderConfig({
         className: "text-red-500",
       }),
     ).toEqual(DEFAULT_RENDER_CONFIG)
@@ -255,20 +261,6 @@ describe("artifact profile render config", () => {
     ).toEqual(DEFAULT_RENDER_CONFIG)
   })
 
-  it("treats legacy style-ref as invalid and reports it explicitly", () => {
-    expect(
-      parseRenderConfig({
-        "style-ref": "ops-compact",
-      }),
-    ).toEqual(DEFAULT_RENDER_CONFIG)
-
-    expect(resolveRenderConfig({ "style-ref": "ops-compact" })).toMatchObject({
-      reason: "legacy-style-ref",
-      requestedLegacyStyleRef: "ops-compact",
-      config: DEFAULT_RENDER_CONFIG,
-    })
-  })
-
   it("falls back to the default profile for unresolved but well-formed references", () => {
     expect(parseRenderConfig({ "profile-ref": "team-missing" })).toEqual(
       DEFAULT_RENDER_CONFIG,
@@ -286,6 +278,12 @@ describe("artifact profile render config", () => {
 
     expect(resolveRenderConfig({ profile: "ops-compact" })).toMatchObject({
       reason: "invalid-profile-ref-shape",
+      config: DEFAULT_RENDER_CONFIG,
+    })
+
+    expect(resolveRenderConfig({ "style-ref": "ops-compact" })).toMatchObject({
+      reason: "legacy-style-ref",
+      requestedProfileRef: "ops-compact",
       config: DEFAULT_RENDER_CONFIG,
     })
 

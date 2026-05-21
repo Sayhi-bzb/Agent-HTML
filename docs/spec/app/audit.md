@@ -13,7 +13,11 @@
 - 它**确实**直接消费了本地 `shadcn` 组件源码。
 - 它**确实**有统一的 theme token，并且颜色语义已被消费。
 - 它**已经开始**把页面壳层的 spacing、sizing、panel geometry 收敛成统一 contract，但收敛范围目前主要覆盖 shell 层，不代表整套 UI 已经治理完成。
-- 它**已经补上**一批高频 content-level contract，例如状态行、loading row、search field、session card trigger/action，但仍未形成完整的内容区规范。
+- 它**已经补上**一批高频 content-level contract，例如状态行、loading row、empty card、card header/copy、metric row、status badge、search field、session card trigger/action，但仍未形成完整的内容区规范。
+- 它**已经继续补上**顶栏标题堆叠、pane label、surface item、section label 这类非 card 场景 contract，说明治理开始从单个卡片扩展到更广的 shell 内容层。
+- 它**已经开始收敛** `Preview / Source / Inspect` 三个 workbench tab 的共享 card/frame/content 骨架，不再每个 tab 各自复制同一套结构。
+- 它**已经开始收敛** session rail / workbench / shell 三列的 pane scaffold，本轮已把 `pane + header + content + footer` 这一层抽成共享壳层骨架，而不是三处分别手写。
+- 它**又继续收敛** pane header / action cluster / meta row / status row 这一层重复结构，说明治理已经进入 feature 内局部 shell 语义回收阶段。
 - 它当前更准确的描述是：**一个已经开始建立 shell-level design-system contract 的 Tailwind + shadcn 应用**，而不是一个已经彻底完成前端治理的工作台。
 
 这不是措辞问题，而是架构事实。
@@ -150,6 +154,17 @@ panel 默认比例与最小宽度已集中定义；top bar、pane header、pane 
 
 - mock session 切换、创建、删除、build、inspect、proposal、send message 已接入本地 mock runtime 状态；
 - mock 分支的核心命令状态已统一经过 `commandState`，不再完全是“同步直落的假 UI”。
+- `Build` 触发前若存在未保存 source，当前实现会先尝试保存；保存失败时不会再继续运行 build，避免出现“source 落盘失败但 build 仍继续”的假成功链路。
+- mock 浏览器模式下，`Inspect` 与 `Proposal` 现在也回到“以已保存 source 为准”的边界，不再错误地直接消费未保存 draft。
+- build / inspect 完成后，前端当前 `activeView` 会重新对齐 Tauri session record 的 `currentView`，不再出现后端已切 view 但前端仍停留旧 tab 的分叉。
+- mock 浏览器模式也补上了 session 级 view state，而不是只靠一个全局 `activeView` 假装切换。
+- `saving / building / inspecting / drafting / checking` 这批命令态现在已进入对应面板视图，不再只是内部 state 或 footer 文案。
+- Tauri `Build` 真正执行期间，当前 session summary 也会暂时进入 `building`，左侧 session 徽标不再滞后于命令过程。
+- session rail 的状态徽标现在按真实 `session.status` 渲染，不再把“当前选中”错误混成状态语义。
+- build / inspect / validate / proposal / doctor 以及 session rail 的关键操作在运行态下已做基本禁重入，避免继续制造假并发。
+- 当前又进一步收紧成 **session-scoped command lock**：session 切换、source 编辑、workbench tab / build / inspect、proposal / send 等动作不再在同一条会话命令链上交叉重入。
+- Tauri `Build` 若在前端 optimistic `building` 过渡态之后失败，当前实现会重新 hydrate 当前 session，避免左栏 summary 长时间停留在过期的 `building` 假态。
+- mock `Inspect` 不再反向污染 `currentBuild`；上一轮成功 preview 的 build 结果不会仅因为 inspect 发现错误就被伪造成失败。
 
 这部分的结论很直接：  
 design-system 治理如果只盯视觉，不看交互结构和状态链，就会把真实问题漏掉。
@@ -199,6 +214,35 @@ design-system 治理如果只盯视觉，不看交互结构和状态链，就会
 - 内容卡片间距分层
 - topbar supporting copy / title hierarchy
 - 可复用的交互容器模式，例如 selectable card / card action layering
+
+当前已继续落地的内容项包括：
+
+- scroll pane 统一入口
+- surface pane 填充容器
+- pane header leading/trailing contract
+- compact action group
+- split row 语义包装
+- meta row / supporting copy / status row 包装
+- card heading / card body / body copy
+- preview canvas 填充容器
+- shell empty card
+- shell card header
+- shell card copy
+- shell metric list
+- shell status badge
+- shell loading row 组件包装
+- shell title stack
+- shell pane label
+- shell pane header
+- shell split row
+- shell action group
+- shell meta row
+- shell supporting copy
+- shell status row
+- shell surface item
+- shell section label
+- shell workbench card skeleton
+- shell pane scaffold
 
 形式已经明确：当前采用的是 **统一 CSS 变量 + shell utility classes + panel constraint constants**。
 
@@ -259,7 +303,20 @@ app shell 与 feature 层不得引入裸色值、裸阴影、裸边框语义。
 - `@/components/ui/*` 继续维持为基础 UI 唯一入口；
 - app shell 代码中不新增裸视觉值；
 - 关键 UI 状态链不是假接线，至少 loading / validating / sending / checking 这类状态能真实传到视图；
+- build / inspect / proposal 这类跨面板动作不绕开 source-of-truth discipline；
+- session 级关键交互具备统一命令锁，不再允许主要命令链路交叉重入；
+- optimistic 过渡态在失败后具备显式恢复路径，而不是依赖下一次人工刷新；
+- session 级 view state 不与前端临时 tab state 分叉；
 - mock preview 的视觉体系被明确标注为 shell 外部内容。
 
-其中前四项和最后一项，当前实现已经开始满足；  
+其中前六项与最后一项，当前实现已经开始满足；  
 但这仍然不足以支持“我们已经彻底完成前端治理”的说法。
+
+## Remaining Sharp Problems
+
+以下问题仍然存在，不能因为本轮治理进展就被弱化：
+
+- `agent-html-app` 现在只是**明显更接近** shell-level design system，并没有完成 content-level 全面治理。
+- `SourceTab`、`InspectTab`、`ShellPane` 内仍保留局部 feature-specific 组合，它们虽然已开始消费共享 contract，但还没有形成统一的内容模式目录。
+- mock preview 仍然内嵌大量裸视觉值；当前只能因为它被明确标注为 preview artifact sample 而被接受，不能把这类写法迁回 app shell。
+- `Textarea`、`Tabs`、`ScrollArea` 等 primitive 的内部 geometry 仍然与 feature 内容排布共同决定最终密度，这要求后续继续守住“primitive 内部约束”和“shell 外层 contract”之间的边界。

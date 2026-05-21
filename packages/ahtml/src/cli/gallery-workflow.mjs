@@ -8,15 +8,16 @@ import {
 import { getRuntimeRenderDiagnostics } from "./runtime-renderability.mjs"
 import { getCliSchemaOutput } from "./schema.mjs"
 import {
-  listStyleProfileReferences,
-  readCurrentStyleProfileReference,
-  resolveStyleProfileByReference,
-} from "./style-profile-storage.mjs"
+  listArtifactProfileReferences,
+  listBuiltinArtifactProfileReferences,
+  readCurrentArtifactProfileReference,
+  resolveArtifactProfileByReference,
+} from "./artifact-profile-storage.mjs"
 import { printDiagnostics, writeJsonFile } from "./cli-io.mjs"
 import { createInspection } from "./artifact-workflow.mjs"
 import { createGalleryPreviewDocument } from "./runtime-host/features/gallery/preview-document.mjs"
 
-export class StyleGalleryProfileNotFoundError extends Error {
+export class ArtifactProfileGalleryNotFoundError extends Error {
   constructor(artifactProfileReference, availableReferences) {
     super(
       [
@@ -28,9 +29,8 @@ export class StyleGalleryProfileNotFoundError extends Error {
         .filter(Boolean)
         .join(" "),
     )
-    this.name = "StyleGalleryProfileNotFoundError"
+    this.name = "ArtifactProfileGalleryNotFoundError"
     this.artifactProfileReference = artifactProfileReference
-    this.styleReference = artifactProfileReference
     this.availableReferences = availableReferences
   }
 }
@@ -47,17 +47,16 @@ export function createGalleryWorkflow({
     const outputDir = path.resolve(userRoot, outputPath ?? defaultOutputDir)
     const artifactProfileReference =
       options.artifactProfileReference ??
-      options.styleReference ??
-      (await readCurrentStyleProfileReference(runtimePaths))
-    const artifactProfile = await resolveStyleProfileByReference(
+      (await readCurrentArtifactProfileReference(runtimePaths))
+    const artifactProfile = await resolveArtifactProfileByReference(
       runtimePaths,
       artifactProfileReference,
     )
 
     if (!artifactProfile) {
-      throw new StyleGalleryProfileNotFoundError(
+      throw new ArtifactProfileGalleryNotFoundError(
         artifactProfileReference,
-        await listStyleProfileReferences(runtimePaths),
+        await listArtifactProfileReferences(runtimePaths),
       )
     }
 
@@ -65,12 +64,13 @@ export function createGalleryWorkflow({
     const packageVersion = await readPackageVersion()
     await ensureManagedRuntime(packageVersion, schema)
 
-    const document = createStyleGalleryDocument(artifactProfile)
+    const document = createArtifactProfileGalleryDocument(artifactProfile)
     const runtimeState = createGalleryRuntimeState({
       artifactProfile,
       artifactProfileReference,
       availableArtifactProfileReferences:
-        await listStyleProfileReferences(runtimePaths),
+        await listArtifactProfileReferences(runtimePaths),
+      builtinArtifactProfileReferences: listBuiltinArtifactProfileReferences(),
     })
     const runtimeDiagnostics = await getRuntimeRenderDiagnostics({
       document,
@@ -121,14 +121,15 @@ export function createGalleryWorkflow({
   }
 }
 
-export function createStyleGalleryDocument(styleProfile) {
-  return createGalleryPreviewDocument(styleProfile)
+export function createArtifactProfileGalleryDocument(artifactProfile) {
+  return createGalleryPreviewDocument(artifactProfile)
 }
 
 export function createGalleryRuntimeState({
   availableArtifactProfileReferences,
   artifactProfile,
   artifactProfileReference,
+  builtinArtifactProfileReferences,
 }) {
   return {
     kind: "ahtml-runtime-state",
@@ -138,8 +139,7 @@ export function createGalleryRuntimeState({
       availableArtifactProfileReferences,
       artifactProfileReference,
       artifactProfile,
-      availableStyleReferences: availableArtifactProfileReferences,
-      styleReference: artifactProfileReference,
+      builtinArtifactProfileReferences,
     },
   }
 }
@@ -159,7 +159,6 @@ function createGalleryResult({
     ok,
     outputDir,
     artifactProfileReference,
-    styleReference: artifactProfileReference,
     ...(inspection ? { inspection, inspectionPath } : {}),
     ...(diagnostics.length > 0 ? { diagnostics, stage } : {}),
   }

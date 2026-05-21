@@ -1,4 +1,4 @@
-use super::DiagnosticItem;
+use crate::models::DiagnosticItem;
 use serde_json::Value;
 
 pub(super) fn diagnostics_from_inspect_payload(

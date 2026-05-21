@@ -19,7 +19,7 @@ import {
   formatShadcnRuntimeSurface,
   MissingBuiltArtifactCssError,
 } from "./runtime-surface.mjs"
-import { assertStyleProfileStorage } from "./style-profile-storage.mjs"
+import { assertArtifactProfileStorage } from "./artifact-profile-storage.mjs"
 import {
   assertRendererSpecParity,
   assertRuntimeRendererRegistryParity,
@@ -102,7 +102,7 @@ export async function runDoctorCommand({
   )
   checks.push(
     await runDoctorCheck("runtime", "artifact-profile-manifest", async () => {
-      return assertStyleProfileStorage(runtimePaths)
+      return assertArtifactProfileStorage(runtimePaths)
     }),
   )
   checks.push(

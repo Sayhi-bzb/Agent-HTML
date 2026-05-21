@@ -123,10 +123,6 @@ export function createManagedRuntimeManifest({
       builtinArtifactProfiles: paths.builtinArtifactProfilesDir,
       userArtifactProfiles: paths.userArtifactProfilesDir,
       artifactProfileManifest: paths.artifactProfileManifestPath,
-      styleProfiles: paths.styleProfilesDir,
-      builtinStyleProfiles: paths.builtinStyleProfilesDir,
-      userStyleProfiles: paths.userStyleProfilesDir,
-      styleProfileManifest: paths.styleProfileManifestPath,
     },
   }
 }

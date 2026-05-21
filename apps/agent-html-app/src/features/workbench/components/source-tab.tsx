@@ -1,21 +1,22 @@
-import { LoaderCircleIcon } from "lucide-react"
-
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import type { SessionDetail, SourceValidationSnapshot } from "@/lib/types"
+
+import {
+  ShellCardHeader,
+  ShellLoadingRow,
+  ShellStatusRow,
+  ShellStatusBadge,
+  ShellValidationStatusBadge,
+  ShellWorkbenchCard,
+} from "@/features/app-shell/components/shell-content"
 
 type SourceTabProps = {
   session: SessionDetail
   draftSource: string
   hasUnsavedChanges: boolean
+  interactionLocked: boolean
+  sourceEditingLocked: boolean
   saving: boolean
   validating: boolean
   validation?: SourceValidationSnapshot
@@ -28,6 +29,8 @@ export function SourceTab({
   session,
   draftSource,
   hasUnsavedChanges,
+  interactionLocked,
+  sourceEditingLocked,
   saving,
   validating,
   validation,
@@ -36,53 +39,56 @@ export function SourceTab({
   onDraftSourceChange,
 }: SourceTabProps) {
   return (
-    <Card className="app-shell-fill-card">
-      <CardHeader>
-        <div className="app-shell-split-row">
-          <div>
-            <CardTitle>Source</CardTitle>
-            <CardDescription>{session.sourcePath}</CardDescription>
-          </div>
-          <div className="app-shell-stack-compact">
-            {hasUnsavedChanges ? <Badge variant="outline">dirty</Badge> : null}
-            <Button onClick={onValidate} size="sm" type="button" variant="outline">
-              Validate
-            </Button>
-            <Button
-              disabled={!hasUnsavedChanges || saving}
-              onClick={onSaveSource}
-              size="sm"
-              type="button"
-            >
-              Save
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="app-shell-content-stack">
-        <Textarea
-          className="app-shell-editor-field"
-          onChange={(event) => onDraftSourceChange(event.target.value)}
-          value={draftSource}
-        />
-        <div className="app-shell-status-row">
-          {validating ? (
+    <ShellWorkbenchCard
+      header={
+        <ShellCardHeader
+          actionClassName="app-shell-stack-compact"
+          action={
             <>
-              <LoaderCircleIcon className="app-shell-spinner" />
-              Validating
-            </>
-          ) : validation ? (
-            <>
-              <Badge
-                variant={validation.status === "valid" ? "default" : "destructive"}
+              {hasUnsavedChanges ? (
+                <ShellStatusBadge label="dirty" variant="outline" />
+              ) : null}
+              <Button
+                disabled={interactionLocked}
+                onClick={onValidate}
+                size="sm"
+                type="button"
+                variant="outline"
               >
-                {validation.status}
-              </Badge>
-              <span>{validation.structureSummary}</span>
+                Validate
+              </Button>
+              <Button
+                disabled={!hasUnsavedChanges || interactionLocked}
+                onClick={onSaveSource}
+                size="sm"
+                type="button"
+              >
+                Save
+              </Button>
             </>
-          ) : null}
-        </div>
-      </CardContent>
-    </Card>
+          }
+          description={session.sourcePath}
+          title="Source"
+        />
+      }
+    >
+      {saving ? <ShellLoadingRow>Saving source</ShellLoadingRow> : null}
+      <Textarea
+        className="app-shell-editor-field"
+        disabled={sourceEditingLocked}
+        onChange={(event) => onDraftSourceChange(event.target.value)}
+        value={draftSource}
+      />
+      <ShellStatusRow>
+        {validating ? (
+          <ShellLoadingRow>Validating</ShellLoadingRow>
+        ) : validation ? (
+          <>
+            <ShellValidationStatusBadge status={validation.status} />
+            <span>{validation.structureSummary}</span>
+          </>
+        ) : null}
+      </ShellStatusRow>
+    </ShellWorkbenchCard>
   )
 }

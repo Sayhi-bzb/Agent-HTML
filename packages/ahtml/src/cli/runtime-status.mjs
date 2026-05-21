@@ -33,9 +33,9 @@ import {
   assertRuntimeSurface,
 } from "./runtime-surface.mjs"
 import {
-  assertStyleProfileStorage,
-  writeStyleProfileStorage,
-} from "./style-profile-storage.mjs"
+  assertArtifactProfileStorage,
+  writeArtifactProfileStorage,
+} from "./artifact-profile-storage.mjs"
 import { writeRuntimeHost } from "./runtime-bootstrap/index.mjs"
 
 export async function bootstrapManagedRuntime({
@@ -49,7 +49,7 @@ export async function bootstrapManagedRuntime({
   await mkdir(paths.cacheDir, { recursive: true })
   await mkdir(paths.logsDir, { recursive: true })
   await mkdir(paths.configDir, { recursive: true })
-  await writeStyleProfileStorage(paths)
+  await writeArtifactProfileStorage(paths)
   const shadcnRuntimeSurface = await writeRuntimeHost({
     packageRoot,
     paths,
@@ -126,8 +126,6 @@ export async function readManagedRuntimeSnapshot(paths = getRuntimePaths()) {
     manifest: false,
     artifactProfileManifest: await pathExists(paths.artifactProfileManifestPath),
     artifactProfiles: await pathExists(paths.artifactProfilesDir),
-    styleProfileManifest: await pathExists(paths.styleProfileManifestPath),
-    styleProfiles: await pathExists(paths.styleProfilesDir),
     rendererAdapter: await pathExists(
       path.join(paths.runtimeSrcDir, "main.tsx"),
     ),
@@ -150,8 +148,6 @@ export async function readManagedRuntimeSnapshot(paths = getRuntimePaths()) {
   try {
     manifest = await readRuntimeManifest(paths)
     checks.manifest = true
-    checks.styleProfileManifest = checks.artifactProfileManifest
-    checks.styleProfiles = checks.artifactProfiles
     checks.shadcnComponents = await runtimeComponentFilesExist({
       components: manifest.installedUiComponents ?? manifest.components ?? [],
       paths,
@@ -162,12 +158,11 @@ export async function readManagedRuntimeSnapshot(paths = getRuntimePaths()) {
 
   if (manifest) {
     checks.artifactProfiles = await evaluateStatusCheck(
-      async () => assertStyleProfileStorage(paths),
+      async () => assertArtifactProfileStorage(paths),
       (detail) => {
         runtimeDetail ||= detail
       },
     )
-    checks.styleProfiles = checks.artifactProfiles
     checks.componentsJson = await evaluateStatusCheck(
       async () => assertRuntimeComponentsJson({ manifest, paths }),
       (detail) => {

@@ -211,10 +211,6 @@ export type ComponentStyleProfile = {
   readonly treatments: Readonly<Record<string, string>>
 }
 
-export type BuiltinDocumentStyleConfigReference = BuiltinArtifactProfileReference
-export type DocumentStyleConfigReference = ArtifactProfileReference
-export type StyleProfile = ArtifactProfile
-
 export type DensityPosture = "compact" | "balanced" | "relaxed"
 
 export type LayoutMeasureToken = "prose" | "wide" | "full"
@@ -327,16 +323,15 @@ export type RenderConfig = {
 export type RenderConfigResolutionReason =
   | "explicit-profile-ref"
   | "resolved-custom-profile-ref"
+  | "legacy-style-ref"
   | "missing-profile-ref"
   | "invalid-profile-ref-shape"
-  | "legacy-style-ref"
   | "unknown-profile-ref"
 
 export type ResolvedRenderConfig = {
   readonly config: RenderConfig
   readonly reason: RenderConfigResolutionReason
   readonly requestedProfileRef?: string
-  readonly requestedLegacyStyleRef?: string
 }
 
 export type PublicRenderConfigModel = "artifact-profile-reference"

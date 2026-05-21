@@ -15,7 +15,7 @@ import {
   useShadcnCliHarness,
   waitForPreviewUrl,
   waitForProcessExit,
-  writeCustomStyleProfile,
+  writeCustomArtifactProfile,
 } from "./cli-test-helpers"
 
 const { getRegistryUrl } = useShadcnCliHarness()
@@ -80,7 +80,7 @@ describe("agent-html CLI heavy preview flows", () => {
       expect(body).toContain('data-slot="table"')
       expect(body).toContain('class="ahtml-runtime-host ahtml-runtime-document"')
       expect(body).not.toContain('tone="')
-      expect(body).not.toContain('kind="')
+      expect(body).not.toContain('<meta-agent kind=')
       expect(body).not.toContain('default="')
     } finally {
       preview.kill("SIGTERM")
@@ -89,13 +89,13 @@ describe("agent-html CLI heavy preview flows", () => {
     }
   }, 120000)
 
-  it("serves previews for user style profiles stored under AHTML_HOME", async () => {
+  it("serves previews for user artifact profiles stored under AHTML_HOME", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
     const inputPath = path.join(tempDir, "team-ops.agent.html")
     const outputDir = path.join(tempDir, "html")
 
-    await writeCustomStyleProfile(runtimeHome)
+    await writeCustomArtifactProfile(runtimeHome)
     await writeFile(
       inputPath,
       [

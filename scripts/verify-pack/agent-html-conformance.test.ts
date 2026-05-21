@@ -49,7 +49,7 @@ async function createRuntimePaths() {
   const runtimePathsModule = await importRuntimePathsModule()
   const paths = runtimePathsModule.getRuntimePaths({ AHTML_HOME: runtimeHome })
 
-  await writeStyleProfileState(paths.artifactProfileStatePath)
+  await writeArtifactProfileState(paths.artifactProfileStatePath)
   return paths
 }
 
@@ -61,7 +61,7 @@ async function importRuntimePathsModule() {
   return import(moduleUrl)
 }
 
-async function writeStyleProfileState(artifactProfileStatePath: string) {
+async function writeArtifactProfileState(artifactProfileStatePath: string) {
   await mkdir(path.dirname(artifactProfileStatePath), { recursive: true })
   await writeFile(
     artifactProfileStatePath,
@@ -70,7 +70,6 @@ async function writeStyleProfileState(artifactProfileStatePath: string) {
         kind: "ahtml-artifact-profile-state",
         version: 1,
         currentArtifactProfileId: "ops-compact",
-        currentStyleProfileId: "ops-compact",
       },
       null,
       2,

@@ -26,6 +26,14 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
 import {
+  createArtifactShellCss,
+  DocumentArtifactShell,
+} from "../../artifact-shell"
+import {
+  createDocumentStyleCss,
+  createGalleryPreviewThemeCss,
+} from "../../profile-theme"
+import {
   assertRendererRegistryParity,
   createRendererSpecMap,
 } from "../../renderer/parity"
@@ -80,25 +88,23 @@ type ArtifactProfile = AgentDocument["meta"]["artifactProfile"]
 type GalleryStateResponse = {
   ok: boolean
   availableArtifactProfileReferences: string[]
+  builtinArtifactProfileReferences: string[]
   artifactProfileReference: string
   artifactProfile: ArtifactProfile
-  availableStyleReferences?: string[]
-  styleReference?: string
-  styleProfile?: ArtifactProfile
 }
 
 type GalleryMutationResponse = {
   ok: boolean
   error?: string
   availableArtifactProfileReferences?: string[]
+  builtinArtifactProfileReferences?: string[]
   artifactProfileReference?: string
   artifactProfile?: ArtifactProfile
-  availableStyleReferences?: string[]
-  styleReference?: string
 }
 
 type GalleryEditorState = {
-  availableStyleReferences: string[]
+  availableArtifactProfileReferences: string[]
+  builtinArtifactProfileReferences: string[]
   createId: string
   draftProfile: ArtifactProfile
   error: string
@@ -106,7 +112,7 @@ type GalleryEditorState = {
   isSaving: boolean
   persistedProfile: ArtifactProfile
   status: string
-  styleReference: string
+  artifactProfileReference: string
 }
 
 type GalleryControlTab = "colors" | "typography" | "other" | "profile"
@@ -399,15 +405,17 @@ const fontPresetOptions: Record<
 }
 
 export function GalleryApp({
-  availableStyleReferences,
+  availableArtifactProfileReferences,
+  builtinArtifactProfileReferences,
   initialProfile,
   runtimeRendererVerification,
-  styleReference,
+  artifactProfileReference,
 }: {
-  availableStyleReferences: string[]
+  availableArtifactProfileReferences: string[]
+  builtinArtifactProfileReferences: string[]
   initialProfile: ArtifactProfile
   runtimeRendererVerification: RuntimeVerificationState
-  styleReference: string
+  artifactProfileReference: string
 }) {
   const rendererSpecByName = React.useMemo(() => {
     const specByName = createRendererSpecMap(runtimeRendererVerification)
@@ -415,15 +423,16 @@ export function GalleryApp({
     return specByName
   }, [runtimeRendererVerification])
   const [editorState, setEditorState] = React.useState<GalleryEditorState>({
-    availableStyleReferences,
+    availableArtifactProfileReferences,
+    builtinArtifactProfileReferences,
     createId: "",
     draftProfile: initialProfile,
     error: "",
     isDirty: false,
     isSaving: false,
     persistedProfile: initialProfile,
-    status: "Style gallery ready.",
-    styleReference,
+    status: "Artifact profile gallery ready.",
+    artifactProfileReference,
   })
   const [controlTab, setControlTab] =
     React.useState<GalleryControlTab>("colors")
@@ -466,19 +475,24 @@ export function GalleryApp({
 
       setEditorState((current) => ({
         ...current,
-        availableStyleReferences:
+        availableArtifactProfileReferences:
           nextState.availableArtifactProfileReferences ??
-          nextState.availableStyleReferences ??
-          current.availableStyleReferences,
+          current.availableArtifactProfileReferences,
+        builtinArtifactProfileReferences:
+          nextState.builtinArtifactProfileReferences ??
+          current.builtinArtifactProfileReferences,
         draftProfile: current.isDirty
           ? current.draftProfile
           : nextState.artifactProfile,
         error: "",
         persistedProfile: nextState.artifactProfile,
-        status: current.isDirty ? current.status : "Style gallery ready.",
-        styleReference: current.isDirty
-          ? current.styleReference
-          : (nextState.artifactProfileReference ?? nextState.styleReference ?? current.styleReference),
+        status:
+          current.isDirty
+            ? current.status
+            : "Artifact profile gallery ready.",
+        artifactProfileReference: current.isDirty
+          ? current.artifactProfileReference
+          : (nextState.artifactProfileReference ?? current.artifactProfileReference),
       }))
     })
 
@@ -527,30 +541,44 @@ export function GalleryApp({
     () => createGalleryPreviewSections(editorState.draftProfile),
     [editorState.draftProfile],
   )
-  const filteredStyleReferences = React.useMemo(() => {
+  const filteredArtifactProfileReferences = React.useMemo(() => {
     const query = presetSearch.trim().toLowerCase()
 
     if (!query) {
-      return editorState.availableStyleReferences
+      return editorState.availableArtifactProfileReferences
     }
 
-    return editorState.availableStyleReferences.filter((styleReference) =>
-      styleReference.toLowerCase().includes(query),
+    return editorState.availableArtifactProfileReferences.filter(
+      (artifactProfileReference) =>
+        artifactProfileReference.toLowerCase().includes(query),
     )
-  }, [editorState.availableStyleReferences, presetSearch])
-  const filteredBuiltInStyleReferences = React.useMemo(
+  }, [editorState.availableArtifactProfileReferences, presetSearch])
+  const filteredBuiltInArtifactProfileReferences = React.useMemo(
     () =>
-      filteredStyleReferences.filter((styleReference) =>
-        isBuiltInStyleReference(styleReference),
+      filteredArtifactProfileReferences.filter((artifactProfileReference) =>
+        isBuiltinArtifactProfileReference(
+          artifactProfileReference,
+          editorState.builtinArtifactProfileReferences,
+        ),
       ),
-    [filteredStyleReferences],
+    [
+      editorState.builtinArtifactProfileReferences,
+      filteredArtifactProfileReferences,
+    ],
   )
-  const filteredCustomStyleReferences = React.useMemo(
+  const filteredCustomArtifactProfileReferences = React.useMemo(
     () =>
-      filteredStyleReferences.filter(
-        (styleReference) => !isBuiltInStyleReference(styleReference),
+      filteredArtifactProfileReferences.filter(
+        (artifactProfileReference) =>
+          !isBuiltinArtifactProfileReference(
+            artifactProfileReference,
+            editorState.builtinArtifactProfileReferences,
+          ),
       ),
-    [filteredStyleReferences],
+    [
+      editorState.builtinArtifactProfileReferences,
+      filteredArtifactProfileReferences,
+    ],
   )
   const filteredColorTokenSections = React.useMemo(() => {
     const query = colorSearch.trim().toLowerCase()
@@ -603,16 +631,19 @@ export function GalleryApp({
             ? "selection-preview"
         : previewMode
 
-  const activeStyleIsBuiltIn = isBuiltInStyleReference(
-    editorState.styleReference,
+  const activeArtifactProfileIsBuiltIn = isBuiltinArtifactProfileReference(
+    editorState.artifactProfileReference,
+    editorState.builtinArtifactProfileReferences,
   )
-  const activeStyleKindLabel = activeStyleIsBuiltIn ? "Built-in" : "Custom"
-  const activeStyleSummary = activeStyleIsBuiltIn
+  const activeArtifactProfileKindLabel = activeArtifactProfileIsBuiltIn
+    ? "Built-in"
+    : "Custom"
+  const activeArtifactProfileSummary = activeArtifactProfileIsBuiltIn
     ? "Read-only baseline preset"
     : "Saved custom preset"
-  const activeStyleEditorStatus = editorState.isDirty
+  const activeArtifactProfileEditorStatus = editorState.isDirty
     ? "Current draft differs from the saved preset."
-    : activeStyleIsBuiltIn
+    : activeArtifactProfileIsBuiltIn
       ? "Baseline preset loaded in the editor."
       : "Saved preset loaded in the editor."
 
@@ -730,18 +761,18 @@ export function GalleryApp({
 
   React.useEffect(() => {
     setFocusedToken(null)
-  }, [editorState.styleReference, previewMode, previewThemeMode])
+  }, [editorState.artifactProfileReference, previewMode, previewThemeMode])
 
   React.useEffect(() => {
     setFocusedEditorField(null)
-  }, [editorState.styleReference, previewMode])
+  }, [editorState.artifactProfileReference, previewMode])
 
   const saveProfile = React.useCallback(async () => {
     setEditorState((current) => ({
       ...current,
       error: "",
       isSaving: true,
-      status: "Saving style profile...",
+      status: "Saving artifact profile...",
     }))
 
     try {
@@ -760,24 +791,28 @@ export function GalleryApp({
         !response.ok ||
         !result.ok ||
         !result.artifactProfile ||
-        !(result.artifactProfileReference ?? result.styleReference)
+        !result.artifactProfileReference
       ) {
-        throw new Error(result.error ?? "Unable to save gallery style profile.")
+        throw new Error(
+          result.error ?? "Unable to save gallery artifact profile.",
+        )
       }
 
       setEditorState((current) => ({
         ...current,
-        availableStyleReferences:
+        availableArtifactProfileReferences:
           result.availableArtifactProfileReferences ??
-          result.availableStyleReferences ??
-          current.availableStyleReferences,
+          current.availableArtifactProfileReferences,
+        builtinArtifactProfileReferences:
+          result.builtinArtifactProfileReferences ??
+          current.builtinArtifactProfileReferences,
         draftProfile: result.artifactProfile!,
         error: "",
         isDirty: false,
         isSaving: false,
         persistedProfile: result.artifactProfile!,
-        status: `Saved ${result.artifactProfileReference ?? result.styleReference}.`,
-        styleReference: (result.artifactProfileReference ?? result.styleReference)!,
+        status: `Saved ${result.artifactProfileReference}.`,
+        artifactProfileReference: result.artifactProfileReference,
       }))
     } catch (error) {
       setEditorState((current) => ({
@@ -789,18 +824,18 @@ export function GalleryApp({
     }
   }, [editorState])
 
-  const selectStyleReference = React.useCallback(
-    async (nextStyleReference: string) => {
+  const selectArtifactProfileReference = React.useCallback(
+    async (nextArtifactProfileReference: string) => {
       setEditorState((current) => ({
         ...current,
         error: "",
-        status: `Loading ${nextStyleReference}...`,
+        status: `Loading ${nextArtifactProfileReference}...`,
       }))
 
       try {
         const response = await fetch("/__ahtml/gallery/select", {
           body: JSON.stringify({
-            artifactProfileReference: nextStyleReference,
+            artifactProfileReference: nextArtifactProfileReference,
           }),
           headers: {
             "content-type": "application/json",
@@ -813,24 +848,25 @@ export function GalleryApp({
           !response.ok ||
           !result.ok ||
           !result.artifactProfile ||
-          !(result.artifactProfileReference ?? result.styleReference)
+          !result.artifactProfileReference
         ) {
-          throw new Error(result.error ?? "Unable to switch style profile.")
+          throw new Error(result.error ?? "Unable to switch artifact profile.")
         }
 
         setEditorState((current) => ({
           ...current,
-          availableStyleReferences:
+          availableArtifactProfileReferences:
             result.availableArtifactProfileReferences ??
-            result.availableStyleReferences ??
-            current.availableStyleReferences,
+            current.availableArtifactProfileReferences,
+          builtinArtifactProfileReferences:
+            result.builtinArtifactProfileReferences ??
+            current.builtinArtifactProfileReferences,
           draftProfile: result.artifactProfile!,
           error: "",
           isDirty: false,
           persistedProfile: result.artifactProfile!,
-          status: `Selected ${result.artifactProfileReference ?? result.styleReference}.`,
-          styleReference:
-            (result.artifactProfileReference ?? result.styleReference)!,
+          status: `Selected ${result.artifactProfileReference}.`,
+          artifactProfileReference: result.artifactProfileReference,
         }))
       } catch (error) {
         setEditorState((current) => ({
@@ -843,52 +879,52 @@ export function GalleryApp({
     [],
   )
 
-  const cycleStyleReference = React.useCallback(
+  const cycleArtifactProfileReference = React.useCallback(
     (direction: "prev" | "next") => {
-      const styleIds = editorState.availableStyleReferences
-      const currentIndex = styleIds.indexOf(editorState.styleReference)
+      const profileIds = editorState.availableArtifactProfileReferences
+      const currentIndex = profileIds.indexOf(editorState.artifactProfileReference)
 
-      if (currentIndex === -1 || styleIds.length < 2) {
+      if (currentIndex === -1 || profileIds.length < 2) {
         return
       }
 
       const nextIndex =
         direction === "next"
-          ? (currentIndex + 1) % styleIds.length
-          : (currentIndex - 1 + styleIds.length) % styleIds.length
+          ? (currentIndex + 1) % profileIds.length
+          : (currentIndex - 1 + profileIds.length) % profileIds.length
 
-      void selectStyleReference(styleIds[nextIndex])
+      void selectArtifactProfileReference(profileIds[nextIndex])
     },
     [
-      editorState.availableStyleReferences,
-      editorState.styleReference,
-      selectStyleReference,
+      editorState.availableArtifactProfileReferences,
+      editorState.artifactProfileReference,
+      selectArtifactProfileReference,
     ],
   )
 
-  const randomizeStyleReference = React.useCallback(() => {
-    const styleIds = editorState.availableStyleReferences
+  const randomizeArtifactProfileReference = React.useCallback(() => {
+    const profileIds = editorState.availableArtifactProfileReferences
 
-    if (styleIds.length < 2) {
+    if (profileIds.length < 2) {
       return
     }
 
-    const nextCandidates = styleIds.filter(
-      (styleId) => styleId !== editorState.styleReference,
+    const nextCandidates = profileIds.filter(
+      (profileId) => profileId !== editorState.artifactProfileReference,
     )
-    const nextStyleReference =
+    const nextArtifactProfileReference =
       nextCandidates[Math.floor(Math.random() * nextCandidates.length)]
 
-    if (nextStyleReference) {
-      void selectStyleReference(nextStyleReference)
+    if (nextArtifactProfileReference) {
+      void selectArtifactProfileReference(nextArtifactProfileReference)
     }
   }, [
-    editorState.availableStyleReferences,
-    editorState.styleReference,
-    selectStyleReference,
+    editorState.availableArtifactProfileReferences,
+    editorState.artifactProfileReference,
+    selectArtifactProfileReference,
   ])
 
-  const copyCurrentStyleProfile = React.useCallback(async () => {
+  const copyCurrentArtifactProfile = React.useCallback(async () => {
     if (
       typeof navigator === "undefined" ||
       !navigator.clipboard ||
@@ -908,7 +944,7 @@ export function GalleryApp({
       setHasCopiedProfile(true)
       setEditorState((current) => ({
         ...current,
-        status: `Copied ${current.styleReference} JSON.`,
+        status: `Copied ${current.artifactProfileReference} JSON.`,
       }))
       window.setTimeout(() => {
         setHasCopiedProfile(false)
@@ -921,13 +957,13 @@ export function GalleryApp({
     }
   }, [editorState.draftProfile])
 
-  const createStyleReference = React.useCallback(async () => {
+  const createArtifactProfileReference = React.useCallback(async () => {
     const createId = editorState.createId.trim()
 
     if (!createId) {
       setEditorState((current) => ({
         ...current,
-        error: 'New style id is required, for example "team-ops".',
+        error: 'New profile id is required, for example "team-ops".',
       }))
       return
     }
@@ -955,26 +991,27 @@ export function GalleryApp({
         !response.ok ||
         !result.ok ||
         !result.artifactProfile ||
-        !(result.artifactProfileReference ?? result.styleReference)
+        !result.artifactProfileReference
       ) {
-        throw new Error(result.error ?? "Unable to create style profile.")
+        throw new Error(result.error ?? "Unable to create artifact profile.")
       }
 
       setEditorState((current) => ({
         ...current,
-        availableStyleReferences:
+        availableArtifactProfileReferences:
           result.availableArtifactProfileReferences ??
-          result.availableStyleReferences ??
-          current.availableStyleReferences,
+          current.availableArtifactProfileReferences,
+        builtinArtifactProfileReferences:
+          result.builtinArtifactProfileReferences ??
+          current.builtinArtifactProfileReferences,
         createId: "",
         draftProfile: result.artifactProfile!,
         error: "",
         isDirty: false,
         isSaving: false,
         persistedProfile: result.artifactProfile!,
-        status: `Created ${result.artifactProfileReference ?? result.styleReference}.`,
-        styleReference:
-          (result.artifactProfileReference ?? result.styleReference)!,
+        status: `Created ${result.artifactProfileReference}.`,
+        artifactProfileReference: result.artifactProfileReference,
       }))
     } catch (error) {
       setEditorState((current) => ({
@@ -986,18 +1023,18 @@ export function GalleryApp({
     }
   }, [editorState.createId])
 
-  const deleteCurrentStyleReference = React.useCallback(async () => {
+  const deleteCurrentArtifactProfileReference = React.useCallback(async () => {
     setEditorState((current) => ({
       ...current,
       error: "",
       isSaving: true,
-      status: `Deleting ${current.styleReference}...`,
+      status: `Deleting ${current.artifactProfileReference}...`,
     }))
 
     try {
       const response = await fetch("/__ahtml/gallery/delete", {
         body: JSON.stringify({
-          artifactProfileReference: editorState.styleReference,
+          artifactProfileReference: editorState.artifactProfileReference,
         }),
         headers: {
           "content-type": "application/json",
@@ -1010,25 +1047,26 @@ export function GalleryApp({
         !response.ok ||
         !result.ok ||
         !result.artifactProfile ||
-        !(result.artifactProfileReference ?? result.styleReference)
+        !result.artifactProfileReference
       ) {
-        throw new Error(result.error ?? "Unable to delete style profile.")
+        throw new Error(result.error ?? "Unable to delete artifact profile.")
       }
 
       setEditorState((current) => ({
         ...current,
-        availableStyleReferences:
+        availableArtifactProfileReferences:
           result.availableArtifactProfileReferences ??
-          result.availableStyleReferences ??
-          current.availableStyleReferences,
+          current.availableArtifactProfileReferences,
+        builtinArtifactProfileReferences:
+          result.builtinArtifactProfileReferences ??
+          current.builtinArtifactProfileReferences,
         draftProfile: result.artifactProfile!,
         error: "",
         isDirty: false,
         isSaving: false,
         persistedProfile: result.artifactProfile!,
-        status: `Deleted style. Current is ${result.artifactProfileReference ?? result.styleReference}.`,
-        styleReference:
-          (result.artifactProfileReference ?? result.styleReference)!,
+        status: `Deleted profile. Current is ${result.artifactProfileReference}.`,
+        artifactProfileReference: result.artifactProfileReference,
       }))
     } catch (error) {
       setEditorState((current) => ({
@@ -1038,7 +1076,7 @@ export function GalleryApp({
         status: "Delete failed.",
       }))
     }
-  }, [editorState.styleReference])
+  }, [editorState.artifactProfileReference])
 
   const resetDraft = React.useCallback(() => {
     setEditorState((current) => ({
@@ -1046,7 +1084,7 @@ export function GalleryApp({
       draftProfile: current.persistedProfile,
       error: "",
       isDirty: false,
-      status: `Reset ${current.styleReference}.`,
+      status: `Reset ${current.artifactProfileReference}.`,
     }))
   }, [])
 
@@ -1261,7 +1299,6 @@ export function GalleryApp({
       <main
         className="ahtml-runtime-host ahtml-gallery-shell"
         data-artifact-profile={editorState.draftProfile.id}
-        data-style-profile={editorState.draftProfile.id}
       >
         <header
           className="ahtml-gallery-page-header"
@@ -1272,7 +1309,7 @@ export function GalleryApp({
             <span>Gallery</span>
           </div>
           <div className="ahtml-gallery-header-actions">
-            <Badge variant="outline">{editorState.styleReference}</Badge>
+            <Badge variant="outline">{editorState.artifactProfileReference}</Badge>
             <Button asChild size="sm" variant="ghost">
               <a
                 href="https://github.com/Sayhi-bzb/Agent-HTML"
@@ -1344,16 +1381,18 @@ export function GalleryApp({
                           Preset controls
                         </span>
                         <span className="ahtml-gallery-toolbar-caption">
-                          {activeStyleEditorStatus}
+                          {activeArtifactProfileEditorStatus}
                         </span>
                       </div>
                       <div className="ahtml-gallery-preset-rail-status">
                         <Badge
                           variant={
-                            activeStyleIsBuiltIn ? "outline" : "secondary"
+                            activeArtifactProfileIsBuiltIn
+                              ? "outline"
+                              : "secondary"
                           }
                         >
-                          {activeStyleKindLabel}
+                          {activeArtifactProfileKindLabel}
                         </Badge>
                         <Badge variant="secondary">
                           {editorState.isDirty
@@ -1371,7 +1410,7 @@ export function GalleryApp({
                           <Button
                             className="ahtml-gallery-preset-popover-trigger"
                             size="sm"
-                            title={`Open preset chooser for ${editorState.styleReference}`}
+                            title={`Open preset chooser for ${editorState.artifactProfileReference}`}
                             type="button"
                             variant="ghost"
                           >
@@ -1410,8 +1449,8 @@ export function GalleryApp({
                               />
                             </span>
                             <span className="ahtml-gallery-preset-trigger-copy">
-                              <strong>{editorState.styleReference}</strong>
-                              <span>{activeStyleSummary}</span>
+                              <strong>{editorState.artifactProfileReference}</strong>
+                              <span>{activeArtifactProfileSummary}</span>
                             </span>
                             <ChevronDown
                               aria-hidden="true"
@@ -1437,7 +1476,7 @@ export function GalleryApp({
                                 className="ahtml-gallery-preset-search-icon"
                               />
                               <Input
-                                aria-label="Search style presets"
+                                aria-label="Search artifact profile presets"
                                 className="ahtml-gallery-control-input-mono ahtml-gallery-preset-search-input"
                                 onChange={(event) =>
                                   setPresetSearch(event.target.value)
@@ -1451,20 +1490,22 @@ export function GalleryApp({
                             <div className="ahtml-gallery-preset-popover-stat">
                               <span>Visible</span>
                               <strong>
-                                {filteredStyleReferences.length} preset
-                                {filteredStyleReferences.length === 1 ? "" : "s"}
+                                {filteredArtifactProfileReferences.length} preset
+                                {filteredArtifactProfileReferences.length === 1
+                                  ? ""
+                                  : "s"}
                               </strong>
                             </div>
                             <div className="ahtml-gallery-preset-popover-stat">
                               <span>Custom</span>
                               <strong>
-                                {filteredCustomStyleReferences.length}
+                                {filteredCustomArtifactProfileReferences.length}
                               </strong>
                             </div>
                             <div className="ahtml-gallery-preset-popover-stat">
                               <span>Built-in</span>
                               <strong>
-                                {filteredBuiltInStyleReferences.length}
+                                {filteredBuiltInArtifactProfileReferences.length}
                               </strong>
                             </div>
                             <div className="ahtml-gallery-preset-popover-stat">
@@ -1475,26 +1516,30 @@ export function GalleryApp({
                           <Separator />
                           <ScrollArea className="ahtml-gallery-preset-list-scroll">
                             <div className="ahtml-gallery-preset-list">
-                              {filteredStyleReferences.length > 0 ? (
+                              {filteredArtifactProfileReferences.length > 0 ? (
                                 <>
-                                  {filteredCustomStyleReferences.length > 0 ? (
+                                  {filteredCustomArtifactProfileReferences.length > 0 ? (
                                     <div className="ahtml-gallery-preset-group">
                                       <div className="ahtml-gallery-preset-group-header">
                                         <span>Custom presets</span>
                                         <Badge variant="outline">
-                                          {filteredCustomStyleReferences.length}
+                                          {filteredCustomArtifactProfileReferences.length}
                                         </Badge>
                                       </div>
-                                      {filteredCustomStyleReferences.map((styleId) =>
+                                      {filteredCustomArtifactProfileReferences.map((styleId) =>
                                         renderPresetChooserOption({
+                                          builtinArtifactProfileReferences:
+                                            editorState.builtinArtifactProfileReferences,
                                           currentProfile:
                                             editorState.draftProfile,
                                           currentStyleReference:
-                                            editorState.styleReference,
+                                            editorState.artifactProfileReference,
                                           onSelectStyleReference: (nextStyleId) => {
                                             setPresetPopoverOpen(false)
                                             setPresetSearch("")
-                                            void selectStyleReference(nextStyleId)
+                                            void selectArtifactProfileReference(
+                                              nextStyleId,
+                                            )
                                           },
                                           isDraftDirty: editorState.isDirty,
                                           previewThemeMode,
@@ -1503,24 +1548,28 @@ export function GalleryApp({
                                       )}
                                     </div>
                                   ) : null}
-                                  {filteredBuiltInStyleReferences.length > 0 ? (
+                                  {filteredBuiltInArtifactProfileReferences.length > 0 ? (
                                     <div className="ahtml-gallery-preset-group">
                                       <div className="ahtml-gallery-preset-group-header">
                                         <span>Built-in presets</span>
                                         <Badge variant="outline">
-                                          {filteredBuiltInStyleReferences.length}
+                                          {filteredBuiltInArtifactProfileReferences.length}
                                         </Badge>
                                       </div>
-                                      {filteredBuiltInStyleReferences.map((styleId) =>
+                                      {filteredBuiltInArtifactProfileReferences.map((styleId) =>
                                         renderPresetChooserOption({
+                                          builtinArtifactProfileReferences:
+                                            editorState.builtinArtifactProfileReferences,
                                           currentProfile:
                                             editorState.draftProfile,
                                           currentStyleReference:
-                                            editorState.styleReference,
+                                            editorState.artifactProfileReference,
                                           onSelectStyleReference: (nextStyleId) => {
                                             setPresetPopoverOpen(false)
                                             setPresetSearch("")
-                                            void selectStyleReference(nextStyleId)
+                                            void selectArtifactProfileReference(
+                                              nextStyleId,
+                                            )
                                           },
                                           isDraftDirty: editorState.isDirty,
                                           previewThemeMode,
@@ -1541,12 +1590,14 @@ export function GalleryApp({
                       </Popover>
                       <div className="ahtml-gallery-preset-inline-tools">
                         <Button
-                          aria-label="Previous style"
+                          aria-label="Previous profile"
                           disabled={
                             editorState.isSaving ||
-                            editorState.availableStyleReferences.length < 2
+                            editorState.availableArtifactProfileReferences.length < 2
                           }
-                          onClick={() => cycleStyleReference("prev")}
+                          onClick={() =>
+                            cycleArtifactProfileReference("prev")
+                          }
                           size="sm"
                           type="button"
                           variant="ghost"
@@ -1554,12 +1605,12 @@ export function GalleryApp({
                           <ArrowLeft aria-hidden="true" />
                         </Button>
                         <Button
-                          aria-label="Random style"
+                          aria-label="Random profile"
                           disabled={
                             editorState.isSaving ||
-                            editorState.availableStyleReferences.length < 2
+                            editorState.availableArtifactProfileReferences.length < 2
                           }
-                          onClick={randomizeStyleReference}
+                          onClick={randomizeArtifactProfileReference}
                           size="sm"
                           type="button"
                           variant="ghost"
@@ -1567,12 +1618,14 @@ export function GalleryApp({
                           <Shuffle aria-hidden="true" />
                         </Button>
                         <Button
-                          aria-label="Next style"
+                          aria-label="Next profile"
                           disabled={
                             editorState.isSaving ||
-                            editorState.availableStyleReferences.length < 2
+                            editorState.availableArtifactProfileReferences.length < 2
                           }
-                          onClick={() => cycleStyleReference("next")}
+                          onClick={() =>
+                            cycleArtifactProfileReference("next")
+                          }
                           size="sm"
                           type="button"
                           variant="ghost"
@@ -1646,8 +1699,8 @@ export function GalleryApp({
                       </ScrollArea>
                     </div>
                     <div className="ahtml-gallery-preset-footnote">
-                      <span>{activeStyleEditorStatus}</span>
-                      <span>{activeStyleSummary}</span>
+                      <span>{activeArtifactProfileEditorStatus}</span>
+                      <span>{activeArtifactProfileSummary}</span>
                     </div>
                   </div>
 
@@ -1663,24 +1716,26 @@ export function GalleryApp({
                           type="multiple"
                         >
                           <AccordionItem value="style-id">
-                            <AccordionTrigger>Style profile</AccordionTrigger>
+                            <AccordionTrigger>Artifact profile</AccordionTrigger>
                             <AccordionContent>
                               <GalleryPanelBody>
                                 <FieldRow
-                                  label="Current style id"
-                                  value={editorState.styleReference}
+                                  label="Current profile id"
+                                  value={editorState.artifactProfileReference}
                                 />
                                 <FieldRow
                                   label="Available ids"
                                   multiline
-                                  value={editorState.availableStyleReferences.join(
+                                  value={editorState.availableArtifactProfileReferences.join(
                                     ", ",
                                   )}
                                 />
                                 <div className="ahtml-gallery-actions">
                                   <Button
                                     disabled={editorState.isSaving}
-                                    onClick={() => void createStyleReference()}
+                                    onClick={() =>
+                                      void createArtifactProfileReference()
+                                    }
                                     size="sm"
                                     type="button"
                                     variant="outline"
@@ -1690,7 +1745,7 @@ export function GalleryApp({
                                   <Button
                                     disabled={editorState.isSaving}
                                     onClick={() =>
-                                      void deleteCurrentStyleReference()
+                                      void deleteCurrentArtifactProfileReference()
                                     }
                                     size="sm"
                                     type="button"
@@ -1700,8 +1755,8 @@ export function GalleryApp({
                                   </Button>
                                 </div>
                                 <LabeledInput
-                                  description="Create a new persisted style reference from the current draft."
-                                  label="New Style Id"
+                                  description="Create a new persisted artifact profile from the current draft."
+                                  label="New Profile Id"
                                   mono
                                   value={editorState.createId}
                                   onChange={(value) =>
@@ -2257,7 +2312,7 @@ export function GalleryApp({
                         Preview actions
                       </span>
                       <span className="ahtml-gallery-toolbar-caption">
-                        Style {editorState.styleReference} · Draft{" "}
+                        Profile {editorState.artifactProfileReference} · Draft{" "}
                         {editorState.isDirty ? "unsaved" : "synced"} · Theme{" "}
                         {previewThemeMode}
                       </span>
@@ -2318,7 +2373,7 @@ export function GalleryApp({
                           </DropdownMenuContent>
                         </DropdownMenu>
                         <Button
-                          onClick={() => void copyCurrentStyleProfile()}
+                          onClick={() => void copyCurrentArtifactProfile()}
                           size="sm"
                           type="button"
                           variant="ghost"
@@ -2413,7 +2468,7 @@ export function GalleryApp({
                           size="sm"
                           type="button"
                         >
-                          Save Style
+                          Save Profile
                         </Button>
                       </GalleryToolbarGroup>
                     </div>
@@ -2494,7 +2549,7 @@ export function GalleryApp({
                         {editorState.isDirty ? "unsaved" : "synced"}
                       </strong>
                       <span>Style</span>
-                      <strong>{editorState.styleReference}</strong>
+                      <strong>{editorState.artifactProfileReference}</strong>
                     </div>
                   </div>
                   <section className="ahtml-gallery-preview-stage">
@@ -2552,6 +2607,7 @@ export function GalleryApp({
                             />
                           ) : (
                             <DocumentArtifactShell
+                              artifactProfile={editorState.draftProfile}
                               className="ahtml-gallery-preview-document"
                               layoutPolicy="gallery"
                             >
@@ -2600,27 +2656,6 @@ function RuntimeStyleElements({
   )
 }
 
-function DocumentArtifactShell({
-  children,
-  className,
-  layoutPolicy = "document",
-}: React.PropsWithChildren<{
-  className?: string
-  layoutPolicy?: "document" | "gallery"
-}>) {
-  const classes = [
-    "ahtml-artifact-root",
-    layoutPolicy === "document"
-      ? "ahtml-layout-policy-document"
-      : "ahtml-layout-policy-gallery",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ")
-
-  return <div className={classes}>{children}</div>
-}
-
 function TokenEditor({
   labels,
   focusedToken,
@@ -2629,7 +2664,7 @@ function TokenEditor({
 }: {
   labels: Partial<Record<ThemeTokenName, string>>
   focusedToken?: ThemeTokenName | null
-  tokens: Partial<StyleProfile["globalStyle"]["tokenSets"]["light"]>
+  tokens: Partial<ArtifactProfile["globalStyle"]["tokenSets"]["light"]>
   onChange: (
     tokenName: ThemeTokenName,
     value: string,
@@ -3418,6 +3453,7 @@ function renderInspectorTokenChip({
 }
 
 function renderPresetChooserOption({
+  builtinArtifactProfileReferences,
   currentProfile,
   currentStyleReference,
   isDraftDirty,
@@ -3425,7 +3461,8 @@ function renderPresetChooserOption({
   previewThemeMode,
   styleId,
 }: {
-  currentProfile: StyleProfile
+  builtinArtifactProfileReferences: string[]
+  currentProfile: ArtifactProfile
   currentStyleReference: string
   isDraftDirty: boolean
   onSelectStyleReference: (styleId: string) => void
@@ -3433,7 +3470,10 @@ function renderPresetChooserOption({
   styleId: string
 }) {
   const isCurrent = styleId === currentStyleReference
-  const isBuiltIn = isBuiltInStyleReference(styleId)
+  const isBuiltIn = isBuiltinArtifactProfileReference(
+    styleId,
+    builtinArtifactProfileReferences,
+  )
   const kindLabel = isBuiltIn ? "Built-in" : "Custom"
   const summary = isBuiltIn ? "Read-only baseline preset" : "Saved custom preset"
   const accessLabel = isBuiltIn ? "Locked" : "Editable"
@@ -3518,11 +3558,11 @@ function renderPresetChooserOption({
 }
 
 function pickThemeTokens(
-  tokens: StyleProfile["globalStyle"]["tokenSets"]["light"],
+  tokens: ArtifactProfile["globalStyle"]["tokenSets"]["light"],
   tokenNames: ThemeTokenName[],
 ) {
   return tokenNames.reduce<
-    Partial<StyleProfile["globalStyle"]["tokenSets"]["light"]>
+    Partial<ArtifactProfile["globalStyle"]["tokenSets"]["light"]>
   >((result, tokenName) => {
     result[tokenName] = tokens[tokenName]
     return result
@@ -3530,7 +3570,7 @@ function pickThemeTokens(
 }
 
 function getManualCardProps(
-  profile: StyleProfile,
+  profile: ArtifactProfile,
   path: string,
   className?: string,
 ) {
@@ -3570,7 +3610,7 @@ function GalleryTypographyPanel({
   previewThemeMode,
 }: {
   onSelectField: (field: FocusedEditorField) => void
-  profile: StyleProfile
+  profile: ArtifactProfile
   previewThemeMode: GalleryPreviewThemeMode
 }) {
   const activeTokens = profile.globalStyle.tokenSets[previewThemeMode]
@@ -3729,7 +3769,7 @@ function GalleryColorPreviewPanel({
     tokenName: ThemeTokenName,
     mode: GalleryPreviewThemeMode,
   ) => void
-  profile: StyleProfile
+  profile: ArtifactProfile
   previewThemeMode: GalleryPreviewThemeMode
   themeSyncEnabled: boolean
 }) {
@@ -3778,7 +3818,7 @@ function GalleryColorPreviewPanel({
               profile.globalStyle.tokenSets[mode],
             ) as Array<
               [
-                keyof StyleProfile["globalStyle"]["tokenSets"]["light"],
+                keyof ArtifactProfile["globalStyle"]["tokenSets"]["light"],
                 string,
               ]
             >
@@ -3846,7 +3886,7 @@ function GalleryColorPreviewPanel({
   )
 }
 
-function GalleryCustomPreviewPanel({ profile }: { profile: StyleProfile }) {
+function GalleryCustomPreviewPanel({ profile }: { profile: ArtifactProfile }) {
   const lightTokens = profile.globalStyle.tokenSets.light
   const darkTokens = profile.globalStyle.tokenSets.dark
   const surfaceShadow = createGallerySurfaceShadow(profile)
@@ -4112,7 +4152,7 @@ function GalleryCardsWorkbenchPanel({
   profile,
   previewThemeMode,
 }: {
-  profile: StyleProfile
+  profile: ArtifactProfile
   previewThemeMode: GalleryPreviewThemeMode
 }) {
   const tokens = profile.globalStyle.tokenSets[previewThemeMode]
@@ -4375,7 +4415,7 @@ function GalleryDashboardWorkbenchPanel({
   profile,
   previewThemeMode,
 }: {
-  profile: StyleProfile
+  profile: ArtifactProfile
   previewThemeMode: GalleryPreviewThemeMode
 }) {
   const tokens = profile.globalStyle.tokenSets[previewThemeMode]
@@ -4575,7 +4615,7 @@ function GalleryMailWorkbenchPanel({
   profile,
   previewThemeMode,
 }: {
-  profile: StyleProfile
+  profile: ArtifactProfile
   previewThemeMode: GalleryPreviewThemeMode
 }) {
   const tokens = profile.globalStyle.tokenSets[previewThemeMode]
@@ -4732,7 +4772,7 @@ function GalleryPricingWorkbenchPanel({
   profile,
   previewThemeMode,
 }: {
-  profile: StyleProfile
+  profile: ArtifactProfile
   previewThemeMode: GalleryPreviewThemeMode
 }) {
   const tokens = profile.globalStyle.tokenSets[previewThemeMode]
@@ -4841,97 +4881,21 @@ function getColorSectionIdForToken(tokenName: ThemeTokenName) {
   )
 }
 
-function isBuiltInStyleReference(styleReference: string) {
-  return styleReference === "report-default"
+function isBuiltinArtifactProfileReference(
+  artifactProfileReference: string,
+  builtinArtifactProfileReferences: string[],
+) {
+  return builtinArtifactProfileReferences.includes(artifactProfileReference)
 }
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-function createGallerySurfaceShadow(styleProfile: ArtifactProfile) {
-  const typography = styleProfile.globalStyle.typography
+function createGallerySurfaceShadow(artifactProfile: ArtifactProfile) {
+  const typography = artifactProfile.globalStyle.typography
 
   return `${typography.shadowOffsetX} ${typography.shadowOffsetY} ${typography.shadowBlur} ${typography.shadowSpread} color-mix(in srgb, ${typography.shadowColor} calc(${typography.shadowOpacity} * 100%), transparent)`
-}
-
-function createDocumentStyleCss(styleProfile: ArtifactProfile) {
-  const globalStyle = styleProfile.globalStyle
-
-  return [
-    `:root{${createGlobalStyleDeclarations(globalStyle, "light")}}`,
-    `@media (prefers-color-scheme: dark){:root{${createGlobalStyleDeclarations(
-      globalStyle,
-      "dark",
-    )}}}`,
-  ].join("")
-}
-
-function createGalleryPreviewThemeCss(styleProfile: ArtifactProfile) {
-  return [
-    `.ahtml-gallery-preview-surface[data-theme-mode="light"]{${createGlobalStyleDeclarations(
-      styleProfile.globalStyle,
-      "light",
-    )}}`,
-    `.ahtml-gallery-preview-surface[data-theme-mode="dark"]{${createGlobalStyleDeclarations(
-      styleProfile.globalStyle,
-      "dark",
-    )}}`,
-  ].join("")
-}
-
-function createGlobalStyleDeclarations(
-  globalStyle: ArtifactProfile["globalStyle"],
-  mode: "light" | "dark",
-) {
-  return [
-    `${globalStyle.cssVariableMap.background}:${globalStyle.tokenSets[mode].background};`,
-    `${globalStyle.cssVariableMap.foreground}:${globalStyle.tokenSets[mode].foreground};`,
-    `${globalStyle.cssVariableMap.card}:${globalStyle.tokenSets[mode].card};`,
-    `${globalStyle.cssVariableMap.cardForeground}:${globalStyle.tokenSets[mode].cardForeground};`,
-    `${globalStyle.cssVariableMap.popover}:${globalStyle.tokenSets[mode].popover};`,
-    `${globalStyle.cssVariableMap.popoverForeground}:${globalStyle.tokenSets[mode].popoverForeground};`,
-    `${globalStyle.cssVariableMap.primary}:${globalStyle.tokenSets[mode].primary};`,
-    `${globalStyle.cssVariableMap.primaryForeground}:${globalStyle.tokenSets[mode].primaryForeground};`,
-    `${globalStyle.cssVariableMap.secondary}:${globalStyle.tokenSets[mode].secondary};`,
-    `${globalStyle.cssVariableMap.secondaryForeground}:${globalStyle.tokenSets[mode].secondaryForeground};`,
-    `${globalStyle.cssVariableMap.muted}:${globalStyle.tokenSets[mode].muted};`,
-    `${globalStyle.cssVariableMap.mutedForeground}:${globalStyle.tokenSets[mode].mutedForeground};`,
-    `${globalStyle.cssVariableMap.accent}:${globalStyle.tokenSets[mode].accent};`,
-    `${globalStyle.cssVariableMap.accentForeground}:${globalStyle.tokenSets[mode].accentForeground};`,
-    `${globalStyle.cssVariableMap.destructive}:${globalStyle.tokenSets[mode].destructive};`,
-    `${globalStyle.cssVariableMap.destructiveForeground}:${globalStyle.tokenSets[mode].destructiveForeground};`,
-    `${globalStyle.cssVariableMap.border}:${globalStyle.tokenSets[mode].border};`,
-    `${globalStyle.cssVariableMap.input}:${globalStyle.tokenSets[mode].input};`,
-    `${globalStyle.cssVariableMap.ring}:${globalStyle.tokenSets[mode].ring};`,
-    `${globalStyle.cssVariableMap.chart1}:${globalStyle.tokenSets[mode].chart1};`,
-    `${globalStyle.cssVariableMap.chart2}:${globalStyle.tokenSets[mode].chart2};`,
-    `${globalStyle.cssVariableMap.chart3}:${globalStyle.tokenSets[mode].chart3};`,
-    `${globalStyle.cssVariableMap.chart4}:${globalStyle.tokenSets[mode].chart4};`,
-    `${globalStyle.cssVariableMap.chart5}:${globalStyle.tokenSets[mode].chart5};`,
-    `${globalStyle.cssVariableMap.sidebar}:${globalStyle.tokenSets[mode].sidebar};`,
-    `${globalStyle.cssVariableMap.sidebarForeground}:${globalStyle.tokenSets[mode].sidebarForeground};`,
-    `${globalStyle.cssVariableMap.sidebarPrimary}:${globalStyle.tokenSets[mode].sidebarPrimary};`,
-    `${globalStyle.cssVariableMap.sidebarPrimaryForeground}:${globalStyle.tokenSets[mode].sidebarPrimaryForeground};`,
-    `${globalStyle.cssVariableMap.sidebarAccent}:${globalStyle.tokenSets[mode].sidebarAccent};`,
-    `${globalStyle.cssVariableMap.sidebarAccentForeground}:${globalStyle.tokenSets[mode].sidebarAccentForeground};`,
-    `${globalStyle.cssVariableMap.sidebarBorder}:${globalStyle.tokenSets[mode].sidebarBorder};`,
-    `${globalStyle.cssVariableMap.sidebarRing}:${globalStyle.tokenSets[mode].sidebarRing};`,
-    `${globalStyle.cssVariableMap.radius}:${globalStyle.radiusScale.base};`,
-    `${globalStyle.cssVariableMap.fontSans}:${globalStyle.typography.fontSans};`,
-    `${globalStyle.cssVariableMap.fontHeading}:${globalStyle.typography.fontHeading};`,
-    `${globalStyle.cssVariableMap.fontSerif}:${globalStyle.typography.fontSerif};`,
-    `${globalStyle.cssVariableMap.fontMono}:${globalStyle.typography.fontMono};`,
-    `${globalStyle.cssVariableMap.letterSpacing}:${globalStyle.typography.letterSpacing};`,
-    `${globalStyle.cssVariableMap.spacing}:${globalStyle.typography.spacing};`,
-    `${globalStyle.cssVariableMap.shadowColor}:${globalStyle.typography.shadowColor};`,
-    `${globalStyle.cssVariableMap.shadowOpacity}:${globalStyle.typography.shadowOpacity};`,
-    `${globalStyle.cssVariableMap.shadowBlur}:${globalStyle.typography.shadowBlur};`,
-    `${globalStyle.cssVariableMap.shadowSpread}:${globalStyle.typography.shadowSpread};`,
-    `${globalStyle.cssVariableMap.shadowOffsetX}:${globalStyle.typography.shadowOffsetX};`,
-    `${globalStyle.cssVariableMap.shadowOffsetY}:${globalStyle.typography.shadowOffsetY};`,
-    `color-scheme:${mode};`,
-  ].join("")
 }
 
 function createRuntimeHostCss() {
@@ -4948,21 +4912,6 @@ function createRuntimeHostCss() {
     .ahtml-runtime-host {
       min-height: 100vh;
       box-sizing: border-box;
-    }
-  `
-}
-
-function createArtifactShellCss() {
-  return `
-    .ahtml-artifact-root {
-      box-sizing: border-box;
-      display: grid;
-    }
-    .ahtml-artifact-root > * {
-      min-width: 0;
-    }
-    .ahtml-artifact-root [data-agent-html-component="page"] > * {
-      min-width: 0;
     }
   `
 }

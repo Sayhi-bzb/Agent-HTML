@@ -1,7 +1,11 @@
-use super::{
-    AppError, BackendError, SessionDetail, SessionRecord, SessionSummary,
-    build_run_summary_from_record, path_to_string, preview_path, CHAT_FILE_NAME,
-    LOGS_DIR_NAME, SOURCE_FILE_NAME,
+use crate::{
+    error::BackendError,
+    models::{AppError, SessionDetail, SessionRecord, SessionSummary},
+    paths::{
+        path_to_string, preview_path, CHAT_FILE_NAME, LOGS_DIR_NAME, SESSION_FILE_NAME,
+        SOURCE_FILE_NAME,
+    },
+    proposal::build_run_summary_from_record,
 };
 use camino::Utf8Path;
 use fs_err as fs;
@@ -45,7 +49,7 @@ pub(super) fn load_session_detail_from_dir(
 }
 
 pub(super) fn read_session_record(session_dir: &Utf8Path) -> Result<SessionRecord, AppError> {
-    let record_path = session_dir.join(super::SESSION_FILE_NAME);
+    let record_path = session_dir.join(SESSION_FILE_NAME);
     let raw = fs::read_to_string(&record_path).map_err(|error| {
         AppError::from(BackendError::session_io(
             "Unable to read session metadata.",
@@ -66,7 +70,7 @@ pub(super) fn write_session_record(
     session_dir: &Utf8Path,
     record: &SessionRecord,
 ) -> Result<(), AppError> {
-    let record_path = session_dir.join(super::SESSION_FILE_NAME);
+    let record_path = session_dir.join(SESSION_FILE_NAME);
     let serialized = serde_json::to_string_pretty(record).map_err(|error| {
         AppError::from(BackendError::json(
             "session-io",

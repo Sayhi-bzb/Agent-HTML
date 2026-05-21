@@ -320,6 +320,16 @@ App
   - `app-shell-loading-row`
   - `app-shell-search-field`
   - `app-shell-session-card-trigger`
+  - `app-shell-scroll-pane`
+  - `app-shell-surface-pane`
+  - `app-shell-card-heading`
+  - `app-shell-preview-canvas`
+  - `shell-content` 局部共享包装：`ShellEmptyCard`、`ShellCardCopy`、`ShellMetricList`、`ShellLoadingRow`
+  - `shell-content` 语义组合：`ShellCardHeader`、`ShellStatusBadge`
+  - `shell-content` 壳层文本/块级组合：`ShellTitleStack`、`ShellPaneLabel`、`ShellSupportingCopy`、`ShellSurfaceItem`、`ShellSectionLabel`
+  - `shell-content` 壳层行级组合：`ShellSplitRow`、`ShellActionGroup`、`ShellMetaRow`、`ShellStatusRow`、`ShellPaneHeader`
+  - `shell-content` workbench 骨架：`ShellWorkbenchCard`
+  - `shell-content` 三栏 pane 骨架：`ShellPaneScaffold`
 
 这意味着：
 
@@ -333,6 +343,16 @@ App
 - `SessionRail` 已经去掉了 button 套 button 的交互结构；
 - `SourceTab` 的 validating 状态链已经接通，不再是假 UI。
 - mock 浏览器模式下的 session 切换、proposal、send message、build / inspect / doctor 等动作也已接入本地状态流，不再只是静态展示。
+- `Build` 现在会在前置保存失败时中止，而不是继续运行后续 build。
+- mock 浏览器模式下的 `Inspect` 与 `Proposal` 也已回到“消费已保存 source”的边界，和 Tauri 运行时保持一致。
+- build / inspect 完成后的当前 workbench view 现在会重新对齐 session record，不再出现后端和前端对当前 tab 认知不一致的情况。
+- `saving / building / inspecting / drafting / checking` 这些命令态现在已经进入对应 panel，而不只是停留在内部 state。
+- Tauri `Build` 执行期间，当前 session 的左栏状态徽标也会进入 `building` 过渡态。
+- 左栏 session badge 现在表达真实 session status，而不是把“当前选中”误当状态颜色。
+- 关键命令按钮和 session rail 操作在运行态下已做基础禁重入。
+- 当前又补上了 session 级命令锁：在同一条会话命令链执行期间，session 切换、source 编辑、workbench tab/build/inspect、proposal/send 不再交叉重入。
+- Tauri `Build` 若在 optimistic `building` 过渡态后失败，前端现在会重新 hydrate 当前 session，回收过渡态而不是把 summary 留在假 `building`。
+- mock `Inspect` 也不再把上一轮成功 build 的结果错误覆盖成失败态。
 
 仍需继续治理的部分，以 [`audit.md`](./audit.md) 的当前状态为准。
 

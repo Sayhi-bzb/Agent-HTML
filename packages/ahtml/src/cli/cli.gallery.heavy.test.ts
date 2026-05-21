@@ -15,8 +15,8 @@ import {
   useShadcnCliHarness,
   waitForPreviewUrl,
   waitForProcessExit,
-  writeCurrentStyleProfileState,
-  writeCustomStyleProfile,
+  writeCurrentArtifactProfileState,
+  writeCustomArtifactProfile,
 } from "./cli-test-helpers"
 
 const { getRegistryUrl } = useShadcnCliHarness()
@@ -24,21 +24,9 @@ const { getRegistryUrl } = useShadcnCliHarness()
 type GalleryStatePayload = {
   ok: boolean
   availableArtifactProfileReferences: string[]
+  builtinArtifactProfileReferences: string[]
   artifactProfileReference: string
   artifactProfile: {
-    id: string
-    globalStyle: {
-      typography: {
-        fontSans: string
-      }
-    }
-    componentStyle: {
-      treatments: Record<string, string>
-    }
-  }
-  availableStyleReferences?: string[]
-  styleReference?: string
-  styleProfile?: {
     id: string
     globalStyle: {
       typography: {
@@ -52,7 +40,7 @@ type GalleryStatePayload = {
 }
 
 describe("agent-html CLI heavy gallery flows", () => {
-  it("serves a built-in style gallery preview", async () => {
+  it("serves a built-in artifact profile gallery preview", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
 
@@ -81,7 +69,7 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(body).toContain("Gallery")
       expect(body).toContain("GitHub")
       expect(body).toContain("Reset")
-      expect(body).toContain("Save Style")
+      expect(body).toContain("Save Profile")
       expect(body).toContain("Colors")
       expect(body).toContain("Typography")
       expect(body).toContain("Other")
@@ -152,6 +140,13 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(initialState.artifactProfileReference).toBe("report-default")
       expect(initialState.availableArtifactProfileReferences).toContain(
         "report-default",
+      )
+      expect(initialState.builtinArtifactProfileReferences).toEqual(
+        expect.arrayContaining([
+          "report-default",
+          "ops-compact",
+          "review-dense",
+        ]),
       )
 
       const createResponse = await fetch(`${url}/__ahtml/gallery/create`, {
@@ -253,7 +248,7 @@ describe("agent-html CLI heavy gallery flows", () => {
     }
   }, 120000)
 
-  it("rejects builtin style profile mutations through gallery APIs", async () => {
+  it("rejects builtin artifact profile mutations through gallery APIs", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
 
@@ -297,7 +292,7 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(saveResponse.ok).toBe(false)
       expect(saveResult.ok).toBe(false)
       expect(saveResult.error).toContain(
-        'Cannot save built-in style profile "report-default"',
+        'Cannot save built-in artifact profile "report-default"',
       )
 
       const deleteResponse = await fetch(`${url}/__ahtml/gallery/delete`, {
@@ -317,7 +312,7 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(deleteResponse.ok).toBe(false)
       expect(deleteResult.ok).toBe(false)
       expect(deleteResult.error).toContain(
-        'Cannot delete built-in style profile "report-default"',
+        'Cannot delete built-in artifact profile "report-default"',
       )
     } finally {
       preview.kill("SIGTERM")
@@ -326,12 +321,12 @@ describe("agent-html CLI heavy gallery flows", () => {
     }
   }, 120000)
 
-  it("serves user style galleries from AHTML_HOME storage", async () => {
+  it("serves user artifact profile galleries from AHTML_HOME storage", async () => {
     const tempDir = await mkdtemp(path.join(tmpdir(), "agent-html-cli-"))
     const runtimeHome = path.join(tempDir, ".ahtml")
 
-    await writeCustomStyleProfile(runtimeHome)
-    await writeCurrentStyleProfileState(runtimeHome, "team-ops")
+    await writeCustomArtifactProfile(runtimeHome)
+    await writeCurrentArtifactProfileState(runtimeHome, "team-ops")
 
     const preview = spawn(
       process.execPath,
@@ -358,7 +353,7 @@ describe("agent-html CLI heavy gallery flows", () => {
       expect(body).toContain('data-artifact-profile="team-ops"')
       expect(body).toContain('data-ahtml-treatment="review-card"')
       expect(body).toContain(":root{--background:#fcfbf8;--foreground:#1f2933;")
-      expect(body).toContain("Style gallery ready.")
+      expect(body).toContain("Artifact profile gallery ready.")
     } finally {
       preview.kill("SIGTERM")
       await waitForProcessExit(preview)
@@ -372,7 +367,7 @@ describe("agent-html CLI heavy gallery flows", () => {
     const previewOutputDir = path.join(tempDir, "preview")
     const inputPath = path.join(tempDir, "artifact.agent.html")
 
-    await writeCustomStyleProfile(runtimeHome)
+    await writeCustomArtifactProfile(runtimeHome)
     await writeFile(
       inputPath,
       '<page title="Preview Current Style"><card title="Summary">Ready.</card></page>',

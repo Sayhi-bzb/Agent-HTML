@@ -34,7 +34,7 @@ describe("gallery alignment", () => {
 
     expect(gallerySpec).toContain("独立顶栏")
     expect(gallerySpec).toContain("组件展柜")
-    expect(gallerySpec).toContain("select styleReference")
+    expect(gallerySpec).toContain("style profile 的选择、编辑、保存与预览")
     expect(gallerySpec).toContain("reset draft to persisted state")
     expect(gallerySpec).toContain("/__ahtml/gallery/save")
 
@@ -55,7 +55,7 @@ describe("gallery alignment", () => {
     expect(runtimeApp).toContain("<Popover")
     expect(runtimeApp).toContain("<Accordion")
     expect(runtimeApp).toContain("Reset")
-    expect(runtimeApp).toContain("Save Style")
+    expect(runtimeApp).toContain("Save Profile")
     expect(runtimeApp).toContain('aria-label="Preview theme"')
     expect(runtimeApp).toContain("Preset chooser")
     expect(runtimeApp).toContain("<GalleryPreviewMeta")

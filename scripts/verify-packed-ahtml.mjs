@@ -365,7 +365,7 @@ async function expectPreview(inputPath, outputDir) {
 }
 
 async function expectInstalledConformance(coreModule) {
-  await writeCurrentStyleProfileState("ops-compact")
+  await writeCurrentArtifactProfileState("ops-compact")
 
   for (const fixture of createConformanceFixtures()) {
     const inputPath = await writeTempFile(
@@ -433,7 +433,7 @@ async function runInstalledValidateJson(inputPath) {
   }
 }
 
-async function writeCurrentStyleProfileState(currentStyleProfileId) {
+async function writeCurrentArtifactProfileState(currentArtifactProfileId) {
   const statePath = path.join(
     runtimeHome,
     "config",
@@ -447,8 +447,7 @@ async function writeCurrentStyleProfileState(currentStyleProfileId) {
       {
         kind: "ahtml-artifact-profile-state",
         version: 1,
-        currentArtifactProfileId: currentStyleProfileId,
-        currentStyleProfileId,
+        currentArtifactProfileId,
       },
       null,
       2,

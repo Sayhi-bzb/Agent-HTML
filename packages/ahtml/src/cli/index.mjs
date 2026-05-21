@@ -48,15 +48,16 @@ import {
   writeJsonResponse,
 } from "./preview-server.mjs"
 import {
-  BuiltinStyleProfileMutationError,
-  deleteStyleProfile,
-  isBuiltinStyleProfileReference,
-  listStyleProfileReferences,
-  readCurrentStyleProfileReference,
-  resolveStyleProfileByReference,
-  saveUserStyleProfile,
-  writeCurrentStyleProfileReference,
-} from "./style-profile-storage.mjs"
+  BuiltinArtifactProfileMutationError,
+  deleteArtifactProfile,
+  isBuiltinArtifactProfileReference,
+  listArtifactProfileReferences,
+  listBuiltinArtifactProfileReferences,
+  readCurrentArtifactProfileReference,
+  resolveArtifactProfileByReference,
+  saveUserArtifactProfile,
+  writeCurrentArtifactProfileReference,
+} from "./artifact-profile-storage.mjs"
 
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -108,7 +109,7 @@ const commandHandlers = {
   doctor: doctorCommand,
 }
 const commandDefinitions = createCommandDefinitions(commandHandlers)
-let coreStyleProfileModulePromise
+let coreArtifactProfileModulePromise
 
 try {
   if (!command) {
@@ -356,8 +357,8 @@ async function galleryCommand(commandArgs, definition) {
 
   const port = parsePort(options.port ?? cliDefaults.previewPort, "gallery")
   const result = await buildGalleryArtifact(undefined, {
-    artifactProfileReference: await readCurrentStyleProfileReference(runtimePaths),
-    styleReference: await readCurrentStyleProfileReference(runtimePaths),
+    artifactProfileReference:
+      await readCurrentArtifactProfileReference(runtimePaths),
   })
 
   if (!result?.ok) {
@@ -460,14 +461,14 @@ function createGalleryRequestHandler() {
       try {
         const body = await readJsonBody(request)
         const artifactProfileReference = String(
-          body.artifactProfileReference ?? body.styleReference ?? "",
+          body.artifactProfileReference ?? "",
         ).trim()
 
         if (!artifactProfileReference) {
           throw new Error("artifactProfileReference is required.")
         }
 
-        const profile = await resolveStyleProfileByReference(
+        const profile = await resolveArtifactProfileByReference(
           runtimePaths,
           artifactProfileReference,
         )
@@ -478,7 +479,7 @@ function createGalleryRequestHandler() {
           )
         }
 
-        await writeCurrentStyleProfileReference(
+        await writeCurrentArtifactProfileReference(
           runtimePaths,
           artifactProfileReference,
         )
@@ -505,21 +506,21 @@ function createGalleryRequestHandler() {
       try {
         const body = await readJsonBody(request)
         const artifactProfileReference = String(
-          body.artifactProfileReference ?? body.styleReference ?? "",
+          body.artifactProfileReference ?? "",
         ).trim()
 
         if (!artifactProfileReference) {
           throw new Error("artifactProfileReference is required.")
         }
 
-        if (isBuiltinStyleProfileReference(artifactProfileReference)) {
-          throw new BuiltinStyleProfileMutationError(
+        if (isBuiltinArtifactProfileReference(artifactProfileReference)) {
+          throw new BuiltinArtifactProfileMutationError(
             "create",
             artifactProfileReference,
           )
         }
 
-        const existingProfile = await resolveStyleProfileByReference(
+        const existingProfile = await resolveArtifactProfileByReference(
           runtimePaths,
           artifactProfileReference,
         )
@@ -535,8 +536,8 @@ function createGalleryRequestHandler() {
           ...currentState.artifactProfile,
           id: artifactProfileReference,
         }
-        await saveUserStyleProfile(runtimePaths, profile)
-        await writeCurrentStyleProfileReference(
+        await saveUserArtifactProfile(runtimePaths, profile)
+        await writeCurrentArtifactProfileReference(
           runtimePaths,
           artifactProfileReference,
         )
@@ -562,15 +563,15 @@ function createGalleryRequestHandler() {
     ) {
       try {
         const { normalizeArtifactProfile, ArtifactProfileSchema } =
-          await loadCoreStyleProfileModule()
+          await loadCoreArtifactProfileModule()
         const body = await readJsonBody(request)
         const profileInput = ArtifactProfileSchema.parse(
-          normalizeArtifactProfile(body.artifactProfile ?? body.styleProfile),
+          normalizeArtifactProfile(body.artifactProfile),
         )
-        const saved = await saveUserStyleProfile(runtimePaths, profileInput, {
+        const saved = await saveUserArtifactProfile(runtimePaths, profileInput, {
           overwrite: true,
         })
-        await writeCurrentStyleProfileReference(runtimePaths, saved.id)
+        await writeCurrentArtifactProfileReference(runtimePaths, saved.id)
         currentArtifactProfilePromise = loadGalleryState()
 
         writeJsonResponse(response, 200, {
@@ -594,14 +595,14 @@ function createGalleryRequestHandler() {
       try {
         const body = await readJsonBody(request)
         const artifactProfileReference = String(
-          body.artifactProfileReference ?? body.styleReference ?? "",
+          body.artifactProfileReference ?? "",
         ).trim()
 
         if (!artifactProfileReference) {
           throw new Error("artifactProfileReference is required.")
         }
 
-        await deleteStyleProfile(runtimePaths, artifactProfileReference)
+        await deleteArtifactProfile(runtimePaths, artifactProfileReference)
         currentArtifactProfilePromise = loadGalleryState()
 
         writeJsonResponse(response, 200, {
@@ -624,8 +625,8 @@ function createGalleryRequestHandler() {
 
 async function loadGalleryState() {
   const artifactProfileReference =
-    await readCurrentStyleProfileReference(runtimePaths)
-  const profile = await resolveStyleProfileByReference(
+    await readCurrentArtifactProfileReference(runtimePaths)
+  const profile = await resolveArtifactProfileByReference(
     runtimePaths,
     artifactProfileReference,
   )
@@ -636,18 +637,16 @@ async function loadGalleryState() {
 
   return {
     availableArtifactProfileReferences:
-      await listStyleProfileReferences(runtimePaths),
+      await listArtifactProfileReferences(runtimePaths),
     artifactProfileReference,
     artifactProfile: profile,
-    availableStyleReferences: await listStyleProfileReferences(runtimePaths),
-    styleReference: artifactProfileReference,
-    styleProfile: profile,
+    builtinArtifactProfileReferences: listBuiltinArtifactProfileReferences(),
   }
 }
 
-async function loadCoreStyleProfileModule() {
-  coreStyleProfileModulePromise ??= import("@agent-html/core")
-  return coreStyleProfileModulePromise
+async function loadCoreArtifactProfileModule() {
+  coreArtifactProfileModulePromise ??= import("@agent-html/core")
+  return coreArtifactProfileModulePromise
 }
 
 function fail(message) {

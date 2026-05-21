@@ -8,12 +8,13 @@ import { importCliModule } from "./cli-test-helpers"
 
 describe("gallery workflow", () => {
   it("creates a component gallery document from an artifact profile", async () => {
-    const { createStyleGalleryDocument } = await importGalleryWorkflowModule()
+    const { createArtifactProfileGalleryDocument } =
+      await importGalleryWorkflowModule()
     const artifactProfile = parseRenderConfig({
       "profile-ref": "ops-compact",
     }).artifactProfile
 
-    const document = createStyleGalleryDocument(artifactProfile)
+    const document = createArtifactProfileGalleryDocument(artifactProfile)
 
     expect(document.meta.artifactProfileReference).toBe("ops-compact")
     expect(document.meta.artifactProfile.id).toBe("ops-compact")
@@ -47,7 +48,7 @@ describe("gallery workflow", () => {
 
 async function importGalleryWorkflowModule() {
   return importCliModule<{
-    readonly createStyleGalleryDocument: (styleProfile: {
+    readonly createArtifactProfileGalleryDocument: (artifactProfile: {
       readonly id: string
       readonly globalStyle: {
         readonly tokenSets: {

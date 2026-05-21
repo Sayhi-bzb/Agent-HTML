@@ -1,11 +1,13 @@
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import type { RuntimeReport } from "@/lib/types"
+
+import {
+  ShellCardHeader,
+  ShellMetricList,
+  ShellRuntimeStatusBadge,
+} from "@/features/app-shell/components/shell-content"
 
 type RuntimeReportCardProps = {
   runtimeReport: RuntimeReport
@@ -14,24 +16,18 @@ type RuntimeReportCardProps = {
 export function RuntimeReportCard({ runtimeReport }: RuntimeReportCardProps) {
   return (
     <Card size="sm">
-      <CardHeader>
-        <CardTitle>Doctor</CardTitle>
-        <CardDescription>{runtimeReport.status}</CardDescription>
-      </CardHeader>
-      <CardContent className="app-shell-surface-grid text-sm">
-        <div className="app-shell-metric-row">
-          <span>ok</span>
-          <span>{runtimeReport.counts.ok}</span>
-        </div>
-        <div className="app-shell-metric-row">
-          <span>warn</span>
-          <span>{runtimeReport.counts.warn}</span>
-        </div>
-        <div className="app-shell-metric-row">
-          <span>fail</span>
-          <span>{runtimeReport.counts.fail}</span>
-        </div>
-      </CardContent>
+      <ShellCardHeader
+        action={<ShellRuntimeStatusBadge status={runtimeReport.status} />}
+        description={runtimeReport.status}
+        title="Doctor"
+      />
+      <ShellMetricList
+        items={[
+          { key: "ok", label: "ok", value: runtimeReport.counts.ok },
+          { key: "warn", label: "warn", value: runtimeReport.counts.warn },
+          { key: "fail", label: "fail", value: runtimeReport.counts.fail },
+        ]}
+      />
     </Card>
   )
 }

@@ -21,8 +21,6 @@ export const PUBLIC_RENDER_CONFIG_MODEL = "artifact-profile-reference"
 export const ARTIFACT_PROFILE_STORAGE_VERSION = 2
 
 export const PUBLIC_RENDER_CONFIG_KEY = "profile-ref" as const
-export const LEGACY_PUBLIC_RENDER_CONFIG_KEY = "style-ref" as const
-
 export const PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES = [
   "report-default",
   "ops-compact",
@@ -618,14 +616,17 @@ export function resolveRenderConfig(
   input: unknown,
   options: ParseRenderConfigOptions = {},
 ): ResolvedRenderConfig {
-  if (hasLegacyStyleRefInput(input)) {
+  if (
+    input &&
+    typeof input === "object" &&
+    !Array.isArray(input) &&
+    "style-ref" in input
+  ) {
     return {
       config: resolveDefaultRenderConfig(options),
       reason: "legacy-style-ref",
-      requestedLegacyStyleRef:
-        typeof input?.[LEGACY_PUBLIC_RENDER_CONFIG_KEY] === "string"
-          ? input[LEGACY_PUBLIC_RENDER_CONFIG_KEY]
-          : undefined,
+      requestedProfileRef:
+        typeof input["style-ref"] === "string" ? input["style-ref"] : undefined,
     }
   }
 
@@ -917,17 +918,6 @@ function resolveDefaultRenderConfig(
   return DEFAULT_RENDER_CONFIG
 }
 
-function hasLegacyStyleRefInput(
-  input: unknown,
-): input is Record<string, unknown> {
-  return Boolean(
-    input &&
-      typeof input === "object" &&
-      !Array.isArray(input) &&
-      LEGACY_PUBLIC_RENDER_CONFIG_KEY in input,
-  )
-}
-
 function isBuiltinArtifactProfileReference(
   artifactProfileReference: ArtifactProfileReference,
 ): artifactProfileReference is BuiltinArtifactProfileReference {
@@ -996,24 +986,3 @@ function createComponentLayoutProfile(): ComponentLayoutProfile {
     undefined,
   )
 }
-
-export function createRenderConfigFromStyleProfile(
-  styleProfile: unknown,
-): RenderConfig {
-  return createRenderConfigFromArtifactProfile(
-    normalizeArtifactProfile(styleProfile),
-  )
-}
-
-export function normalizeStyleProfile(styleProfile: unknown): ArtifactProfile {
-  return normalizeArtifactProfile(styleProfile)
-}
-
-export const StyleProfileSchema = ArtifactProfileSchema
-export const BUILTIN_STYLE_PROFILES_BY_REFERENCE =
-  BUILTIN_ARTIFACT_PROFILES_BY_REFERENCE
-export const DEFAULT_STYLE_PROFILE_REFERENCE =
-  DEFAULT_ARTIFACT_PROFILE_REFERENCE
-export const PUBLIC_DOCUMENT_STYLE_CONFIG_REFERENCE_VALUES =
-  PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES
-export const STYLE_PROFILE_STORAGE_VERSION = ARTIFACT_PROFILE_STORAGE_VERSION

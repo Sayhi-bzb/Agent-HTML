@@ -417,7 +417,7 @@ export async function removeTempDir(directory: string) {
   }
 }
 
-export async function writeCustomStyleProfile(runtimeHome: string) {
+export async function writeCustomArtifactProfile(runtimeHome: string) {
   const profileDir = path.join(
     runtimeHome,
     "config",
@@ -429,13 +429,13 @@ export async function writeCustomStyleProfile(runtimeHome: string) {
   await mkdir(profileDir, { recursive: true })
   await writeFile(
     profilePath,
-    `${JSON.stringify(createCustomStyleProfile(), null, 2)}\n`,
+    `${JSON.stringify(createCustomArtifactProfile(), null, 2)}\n`,
   )
 }
 
-export async function writeCurrentStyleProfileState(
+export async function writeCurrentArtifactProfileState(
   runtimeHome: string,
-  currentStyleProfileId: string,
+  currentArtifactProfileId: string,
 ) {
   const statePath = path.join(
     runtimeHome,
@@ -450,8 +450,7 @@ export async function writeCurrentStyleProfileState(
       {
         kind: "ahtml-artifact-profile-state",
         version: 1,
-        currentArtifactProfileId: currentStyleProfileId,
-        currentStyleProfileId,
+        currentArtifactProfileId,
       },
       null,
       2,
@@ -638,7 +637,7 @@ function getErrorOutput(error: unknown): string {
   return ""
 }
 
-function createCustomStyleProfile() {
+function createCustomArtifactProfile() {
   return {
     id: "team-ops",
     globalStyle: {

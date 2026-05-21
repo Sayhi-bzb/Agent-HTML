@@ -1,5 +1,6 @@
 import React from "react"
 
+import type { ArtifactLayoutPolicy } from "../../renderer/layout-projection"
 import { createRendererNode } from "../../renderer/render-node"
 import type { AgentDocument, RuntimeVerificationState } from "../../renderer/types"
 
@@ -19,7 +20,7 @@ export function DocumentApp({
     React.PropsWithChildren<{
       className?: string
       artifactProfile?: ArtifactProfile
-      layoutPolicy?: "document" | "gallery"
+      layoutPolicy?: ArtifactLayoutPolicy
     }>
   >
   createRuntimeStyleElements: React.ComponentType<{
@@ -48,7 +49,6 @@ export function DocumentApp({
       <main
         className="ahtml-runtime-host ahtml-runtime-document"
         data-artifact-profile={document.meta.artifactProfile.id}
-        data-style-profile={document.meta.artifactProfile.id}
       >
         <DocumentArtifactShell
           artifactProfile={document.meta.artifactProfile}
