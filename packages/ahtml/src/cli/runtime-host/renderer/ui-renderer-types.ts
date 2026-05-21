@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 
 import type {
   AgentComponentNode,
@@ -12,7 +12,15 @@ export type UiRendererContext = {
     node: AgentComponentNode,
     rendererSpec: RendererSpecComponent,
     path: RendererPath,
-  ) => Record<string, string>
+  ) => {
+    className?: string
+    style?: CSSProperties
+    "data-agent-html-component": string
+    "data-ahtml-render-kind": string
+    "data-ahtml-path": string
+    "data-ahtml-source"?: string
+    "data-ahtml-treatment"?: string
+  }
   renderChildren: (
     node: AgentComponentNode,
     path: RendererPath,

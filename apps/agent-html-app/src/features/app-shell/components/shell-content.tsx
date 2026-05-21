@@ -1,7 +1,8 @@
-import type { ReactNode } from "react"
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react"
 import { LoaderCircleIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
@@ -10,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type {
   BuildRunSummary,
@@ -38,7 +40,7 @@ export function ShellCardCopy({
       <CardTitle className={cn(truncateTitle && "truncate", titleClassName)}>
         {title}
       </CardTitle>
-      {description ? <CardDescription>{description}</CardDescription> : null}
+      {description ? <CardDescription className="app-shell-card-description">{description}</CardDescription> : null}
     </div>
   )
 }
@@ -52,6 +54,7 @@ type ShellCardHeaderProps = {
   action?: ReactNode
   actionClassName?: string
   actionLayout?: "default" | "compact"
+  className?: string
 }
 
 export function ShellCardHeader({
@@ -63,9 +66,10 @@ export function ShellCardHeader({
   action,
   actionClassName,
   actionLayout = "default",
+  className,
 }: ShellCardHeaderProps) {
   return (
-    <CardHeader>
+    <CardHeader className={cn("app-shell-card-header", className)}>
       <ShellCardCopy
         description={description}
         title={title}
@@ -149,7 +153,103 @@ type ShellActionGroupProps = {
 }
 
 export function ShellActionGroup({ children }: ShellActionGroupProps) {
-  return <div className="app-shell-stack-compact">{children}</div>
+  return <div className="app-shell-action-group">{children}</div>
+}
+
+type ShellActionButtonProps = {
+  children: ReactNode
+  disabled?: boolean
+  onClick?: () => void
+  ariaLabel?: string
+}
+
+export function ShellActionButton({
+  children,
+  disabled = false,
+  onClick,
+  ariaLabel,
+}: ShellActionButtonProps) {
+  return (
+    <Button
+      aria-label={ariaLabel}
+      disabled={disabled}
+      onClick={onClick}
+      size="sm"
+      type="button"
+      variant="outline"
+    >
+      {children}
+    </Button>
+  )
+}
+
+type ShellIconButtonProps = {
+  children: ReactNode
+  disabled?: boolean
+  onClick?: () => void
+  ariaLabel: string
+  variant?: "outline" | "ghost"
+  size?: "icon-sm" | "icon-xs"
+  className?: string
+}
+
+export function ShellIconButton({
+  children,
+  disabled = false,
+  onClick,
+  ariaLabel,
+  variant = "outline",
+  size = "icon-sm",
+  className,
+}: ShellIconButtonProps) {
+  return (
+    <Button
+      aria-label={ariaLabel}
+      className={className}
+      disabled={disabled}
+      onClick={onClick}
+      size={size}
+      type="button"
+      variant={variant}
+    >
+      {children}
+    </Button>
+  )
+}
+
+type ShellSearchFieldProps = {
+  icon: ReactElement<{ className?: string }>
+  value: string
+  disabled?: boolean
+  placeholder?: string
+  onChange: (value: string) => void
+}
+
+export function ShellSearchField({
+  icon,
+  value,
+  disabled = false,
+  placeholder = "Search",
+  onChange,
+}: ShellSearchFieldProps) {
+  const searchIcon = isValidElement(icon)
+    ? cloneElement(icon, {
+        className: cn("app-shell-search-icon", icon.props.className),
+      })
+    : icon
+
+  return (
+    <div className="app-shell-search-field">
+      {searchIcon}
+      <Input
+        className="app-shell-search-input"
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        value={value}
+      />
+    </div>
+  )
 }
 
 type ShellSplitRowProps = {
@@ -217,7 +317,7 @@ type ShellLoadingRowProps = {
 
 export function ShellLoadingRow({ children }: ShellLoadingRowProps) {
   return (
-    <div className="app-shell-loading-row">
+    <div className="app-shell-loading-row" role="status">
       <LoaderCircleIcon className="app-shell-spinner" />
       <span>{children}</span>
     </div>
@@ -226,11 +326,12 @@ export function ShellLoadingRow({ children }: ShellLoadingRowProps) {
 
 type ShellEmptyCardProps = {
   children: ReactNode
+  className?: string
 }
 
-export function ShellEmptyCard({ children }: ShellEmptyCardProps) {
+export function ShellEmptyCard({ children, className }: ShellEmptyCardProps) {
   return (
-    <Card size="sm">
+    <Card className={className} size="sm">
       <CardContent className="app-shell-empty-state app-shell-supporting-copy">
         {children}
       </CardContent>
@@ -252,15 +353,16 @@ type ShellMetricListProps = {
     label: ReactNode
     value: ReactNode
   }>
+  className?: string
 }
 
-export function ShellMetricList({ items }: ShellMetricListProps) {
+export function ShellMetricList({ items, className }: ShellMetricListProps) {
   return (
-    <CardContent className="app-shell-surface-grid app-shell-card-body">
+    <CardContent className={cn("app-shell-metric-strip app-shell-card-body", className)}>
       {items.map((item) => (
         <div className="app-shell-metric-row" key={item.key}>
-          <span>{item.label}</span>
-          <span>{item.value}</span>
+          <span className="app-shell-metric-label">{item.label}</span>
+          <span className="app-shell-metric-value">{item.value}</span>
         </div>
       ))}
     </CardContent>
@@ -314,20 +416,23 @@ export function ShellStatusRow({ children }: ShellStatusRowProps) {
 type ShellScrollSurfaceProps = {
   children: ReactNode
   density?: "base" | "roomy"
+  className?: string
 }
 
 export function ShellScrollSurface({
   children,
   density = "base",
+  className,
 }: ShellScrollSurfaceProps) {
   return (
     <ScrollArea className="app-shell-scroll-pane">
       <div
-        className={
+        className={cn(
           density === "roomy"
             ? "app-shell-scroll-surface-roomy"
-            : "app-shell-scroll-surface"
-        }
+            : "app-shell-scroll-surface",
+          className,
+        )}
       >
         {children}
       </div>
@@ -335,7 +440,12 @@ export function ShellScrollSurface({
   )
 }
 
-type ShellStatusBadgeVariant = "default" | "secondary" | "outline" | "destructive"
+type ShellStatusBadgeVariant =
+  | "default"
+  | "secondary"
+  | "outline"
+  | "destructive"
+  | "ghost"
 
 function getSessionStatusBadgeVariant(status: SessionStatus): ShellStatusBadgeVariant {
   if (status === "ready") {
@@ -353,10 +463,30 @@ function getSessionStatusBadgeVariant(status: SessionStatus): ShellStatusBadgeVa
   return "outline"
 }
 
+function getSessionStatusLabel(status: SessionStatus): string {
+  if (status === "dirty") {
+    return "edit"
+  }
+
+  if (status === "building") {
+    return "build"
+  }
+
+  if (status === "error") {
+    return "issue"
+  }
+
+  return status
+}
+
 function getValidationStatusBadgeVariant(
   status: SourceValidationSnapshot["status"],
 ): ShellStatusBadgeVariant {
   return status === "valid" ? "default" : "destructive"
+}
+
+function getValidationStatusLabel(status: SourceValidationSnapshot["status"]): string {
+  return status === "valid" ? "ready" : "issue"
 }
 
 function getBuildStatusBadgeVariant(
@@ -365,10 +495,30 @@ function getBuildStatusBadgeVariant(
   return status === "succeeded" ? "default" : "outline"
 }
 
+function getBuildStatusLabel(status: BuildRunSummary["status"]): string {
+  if (status === "running") {
+    return "build"
+  }
+
+  if (status === "failed") {
+    return "issue"
+  }
+
+  if (status === "succeeded") {
+    return "ready"
+  }
+
+  return "idle"
+}
+
 function getRuntimeStatusBadgeVariant(
   status: RuntimeReport["status"],
 ): ShellStatusBadgeVariant {
   return status === "ok" ? "default" : "destructive"
+}
+
+function getRuntimeStatusLabel(status: RuntimeReport["status"]): string {
+  return status === "ok" ? "ready" : "issue"
 }
 
 function getDiagnosticStatusBadgeVariant(
@@ -385,6 +535,14 @@ function getDiagnosticStatusBadgeVariant(
   return "secondary"
 }
 
+function getDiagnosticStatusLabel(severity: DiagnosticSeverity): string {
+  if (severity === "warning") {
+    return "warn"
+  }
+
+  return severity
+}
+
 type ShellStatusBadgeProps = {
   label: ReactNode
   variant: ShellStatusBadgeVariant
@@ -399,7 +557,7 @@ type ShellSessionStatusBadgeProps = {
 }
 
 export function ShellSessionStatusBadge({ status }: ShellSessionStatusBadgeProps) {
-  return <ShellStatusBadge label={status} variant={getSessionStatusBadgeVariant(status)} />
+  return <ShellStatusBadge label={getSessionStatusLabel(status)} variant={getSessionStatusBadgeVariant(status)} />
 }
 
 type ShellValidationStatusBadgeProps = {
@@ -409,7 +567,7 @@ type ShellValidationStatusBadgeProps = {
 export function ShellValidationStatusBadge({
   status,
 }: ShellValidationStatusBadgeProps) {
-  return <ShellStatusBadge label={status} variant={getValidationStatusBadgeVariant(status)} />
+  return <ShellStatusBadge label={getValidationStatusLabel(status)} variant={getValidationStatusBadgeVariant(status)} />
 }
 
 type ShellBuildStatusBadgeProps = {
@@ -417,7 +575,7 @@ type ShellBuildStatusBadgeProps = {
 }
 
 export function ShellBuildStatusBadge({ status }: ShellBuildStatusBadgeProps) {
-  return <ShellStatusBadge label={status} variant={getBuildStatusBadgeVariant(status)} />
+  return <ShellStatusBadge label={getBuildStatusLabel(status)} variant={getBuildStatusBadgeVariant(status)} />
 }
 
 type ShellRuntimeStatusBadgeProps = {
@@ -425,7 +583,7 @@ type ShellRuntimeStatusBadgeProps = {
 }
 
 export function ShellRuntimeStatusBadge({ status }: ShellRuntimeStatusBadgeProps) {
-  return <ShellStatusBadge label={status} variant={getRuntimeStatusBadgeVariant(status)} />
+  return <ShellStatusBadge label={getRuntimeStatusLabel(status)} variant={getRuntimeStatusBadgeVariant(status)} />
 }
 
 type ShellDiagnosticStatusBadgeProps = {
@@ -435,5 +593,5 @@ type ShellDiagnosticStatusBadgeProps = {
 export function ShellDiagnosticStatusBadge({
   severity,
 }: ShellDiagnosticStatusBadgeProps) {
-  return <ShellStatusBadge label={severity} variant={getDiagnosticStatusBadgeVariant(severity)} />
+  return <ShellStatusBadge label={getDiagnosticStatusLabel(severity)} variant={getDiagnosticStatusBadgeVariant(severity)} />
 }

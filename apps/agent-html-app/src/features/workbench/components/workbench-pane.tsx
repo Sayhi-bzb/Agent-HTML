@@ -95,7 +95,6 @@ export function WorkbenchPane({
               onSaveSource={onSaveSource}
               onValidate={onValidate}
               saving={saving}
-              session={session}
               sourceEditingLocked={sourceEditingLocked}
               validating={validating}
               validation={validation}

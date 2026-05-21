@@ -1,8 +1,11 @@
 import { PlusIcon, SearchIcon } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ShellPaneHeader } from "@/features/app-shell/components/shell-content"
+import {
+  ShellIconButton,
+  ShellPaneHeader,
+  ShellPaneLabel,
+  ShellSearchField,
+} from "@/features/app-shell/components/shell-content"
 
 type SessionRailHeaderProps = {
   query: string
@@ -20,28 +23,25 @@ export function SessionRailHeader({
   return (
     <ShellPaneHeader
       leading={
-        <div className="app-shell-search-field">
-          <SearchIcon className="app-shell-search-icon" />
-          <Input
-            className="app-shell-search-input"
+        <div className="app-shell-section-stack w-full">
+          <ShellPaneLabel icon={<SearchIcon className="app-shell-inline-icon" />} title="Sessions" />
+          <ShellSearchField
             disabled={disabled}
-            onChange={(event) => onQueryChange(event.target.value)}
-            placeholder="Search"
+            icon={<SearchIcon />}
+            onChange={onQueryChange}
+            placeholder="Find"
             value={query}
           />
         </div>
       }
       trailing={
-        <Button
-          aria-label="Create session"
+        <ShellIconButton
+          ariaLabel="Create session"
           disabled={disabled}
           onClick={onCreateSession}
-          size="icon-sm"
-          type="button"
-          variant="outline"
         >
           <PlusIcon data-icon="inline-start" />
-        </Button>
+        </ShellIconButton>
       }
     />
   )

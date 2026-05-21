@@ -2,34 +2,18 @@ import React from "react"
 
 import { resolveElement } from "./elements"
 import type { RendererKind } from "./kinds"
-import {
-  applyPropMappings,
-  getRendererPropMappings,
-} from "./renderer-props"
+import { applyPropMappings, getRendererPropMappings } from "./renderer-props"
 import type {
   AgentComponentNode,
   RendererPath,
   RendererSpecComponent,
-  RendererTextMode,
 } from "./types"
+import type { UiRendererContext } from "./ui-renderer-types"
 
-type LayoutRendererContext = {
-  getComponentMetadataProps: (
-    node: AgentComponentNode,
-    rendererSpec: RendererSpecComponent,
-    path: RendererPath,
-  ) => Record<string, string>
-  renderChildren: (
-    node: AgentComponentNode,
-    path: RendererPath,
-    textMode?: RendererTextMode,
-  ) => React.ReactNode
-  renderInlineChildren: (
-    node: AgentComponentNode,
-    path: RendererPath,
-    textMode?: RendererTextMode,
-  ) => React.ReactNode
-}
+type LayoutRendererContext = Pick<
+  UiRendererContext,
+  "getComponentMetadataProps" | "renderChildren" | "renderInlineChildren"
+>
 
 type LayoutRenderer = (
   node: AgentComponentNode,

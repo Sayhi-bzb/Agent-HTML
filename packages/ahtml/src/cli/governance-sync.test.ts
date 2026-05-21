@@ -97,4 +97,21 @@ describe("code governance sync blocks", () => {
     expect(runtimeModuleSource).not.toContain("function Card(")
     expect(runtimeModuleSource).toContain("runtime-host")
   })
+
+  it("keeps runtime-host typecheck inside the default build gates", async () => {
+    const [rootPackageJsonSource, ahtmlPackageJsonSource] = await Promise.all([
+      readRepoSource("package.json"),
+      readRepoSource("packages", "ahtml", "package.json"),
+    ])
+
+    expect(rootPackageJsonSource).toContain(
+      '"build": "tsc -b packages/core/tsconfig.json packages/ahtml/tsconfig.json && npm --workspace @agent-html/ahtml run check:runtime-host"',
+    )
+    expect(ahtmlPackageJsonSource).toContain(
+      '"build": "tsc -p tsconfig.json && npm run check:runtime-host"',
+    )
+    expect(ahtmlPackageJsonSource).toContain(
+      '"check:runtime-host": "tsc -p tsconfig.runtime-host.json"',
+    )
+  })
 })

@@ -25,6 +25,7 @@ import { TabsTrigger } from "@/components/ui/tabs"
 
 import {
   isBuiltinArtifactProfileReference,
+  getThemeTokenControlLabel,
   pickThemeTokens,
   resolveFocusableThemeToken,
   formatThemeTokenLabel,
@@ -139,22 +140,26 @@ export function TokenEditor({
                   <PopoverDescription>{tokenName}</PopoverDescription>
                 </PopoverHeader>
                 <div className="ahtml-gallery-color-popover-grid">
-                  {createTokenColorSuggestions(tokenValue ?? "").map((option) => (
-                    <button
-                      className="ahtml-gallery-color-suggestion"
-                      key={option}
-                      onClick={() => onChange(tokenName as ThemeTokenName, option)}
-                      title={`Apply ${option}`}
-                      type="button"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="ahtml-gallery-color-suggestion-swatch"
-                        style={{ background: option }}
-                      />
-                      <span>{option}</span>
-                    </button>
-                  ))}
+                  {createTokenColorSuggestions(tokenValue ?? "").map(
+                    (option) => (
+                      <button
+                        className="ahtml-gallery-color-suggestion"
+                        key={option}
+                        onClick={() =>
+                          onChange(tokenName as ThemeTokenName, option)
+                        }
+                        title={`Apply ${option}`}
+                        type="button"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="ahtml-gallery-color-suggestion-swatch"
+                          style={{ background: option }}
+                        />
+                        <span>{option}</span>
+                      </button>
+                    ),
+                  )}
                 </div>
                 <div className="ahtml-gallery-color-popover-input-wrap">
                   <Input
@@ -294,7 +299,9 @@ export function FontPickerField({
     >
       <Field className="ahtml-gallery-control-row ahtml-gallery-font-picker-row">
         <div className="ahtml-gallery-control-copy">
-          <FieldLabel className="ahtml-gallery-control-label">{label}</FieldLabel>
+          <FieldLabel className="ahtml-gallery-control-label">
+            {label}
+          </FieldLabel>
           {description ? (
             <FieldDescription className="ahtml-gallery-control-description">
               {description}
@@ -319,7 +326,9 @@ export function FontPickerField({
                 variant="outline"
               >
                 <span className="ahtml-gallery-font-picker-trigger-copy">
-                  <strong style={{ fontFamily: value }}>{currentOption.label}</strong>
+                  <strong style={{ fontFamily: value }}>
+                    {currentOption.label}
+                  </strong>
                   <span>{currentOption.category}</span>
                 </span>
                 <ChevronDown aria-hidden="true" />
@@ -373,7 +382,9 @@ export function FontPickerField({
                           </strong>
                           <span>{option.category}</span>
                         </span>
-                        {option.value === value ? <Check aria-hidden="true" /> : null}
+                        {option.value === value ? (
+                          <Check aria-hidden="true" />
+                        ) : null}
                       </button>
                     ))
                   ) : (
@@ -589,7 +600,10 @@ function renderInspectorTokenChip({
 
   if (!resolvedToken) {
     return (
-      <span className="ahtml-gallery-inspector-token" key={`${keyPrefix}-${token}`}>
+      <span
+        className="ahtml-gallery-inspector-token"
+        key={`${keyPrefix}-${token}`}
+      >
         {token}
       </span>
     )
@@ -675,7 +689,9 @@ export function GalleryExamplesPreviewContainer({
               onPointerDown={(event) => event.stopPropagation()}
             >
               <span className="ahtml-gallery-inspector-kicker">Inspector</span>
-              <strong>{inspectorState?.component ?? "Hover a component"}</strong>
+              <strong>
+                {inspectorState?.component ?? "Hover a component"}
+              </strong>
               <span>
                 {inspectorState
                   ? `${inspectorState.label} · ${inspectorState.treatment}`
@@ -788,7 +804,9 @@ export function renderPresetChooserOption({
     builtinArtifactProfileReferences,
   )
   const kindLabel = isBuiltIn ? "Built-in" : "Custom"
-  const summary = isBuiltIn ? "Read-only baseline preset" : "Saved custom preset"
+  const summary = isBuiltIn
+    ? "Read-only baseline preset"
+    : "Saved custom preset"
   const accessLabel = isBuiltIn ? "Locked" : "Editable"
   const currentLabel = isCurrent
     ? isDraftDirty

@@ -5,7 +5,6 @@ import type { RendererKind } from "../kinds"
 import type {
   AgentComponentNode,
   RendererPath,
-  RendererPropValue,
   RendererSpecComponent,
   RendererTextMode,
 } from "../types"
@@ -14,7 +13,10 @@ import type {
   UiRenderer,
   UiRendererContext,
 } from "../ui-renderer-types"
-import { createComboboxItems, findComboboxSelectedItem } from "./helpers/combobox"
+import {
+  createComboboxItems,
+  findComboboxSelectedItem,
+} from "./helpers/combobox"
 import {
   createFieldSemantics,
   getFieldControlProps,
@@ -53,7 +55,10 @@ export function createOptionUiRenderers(context: UiRendererContext) {
       ? requireRendererSpecField(rendererSpec, "descriptionProp")
       : undefined
     const itemSlot = requireRendererSpecField(rendererSpec, "itemSlot")
-    const itemValueProp = requireRendererSpecField(rendererSpec, "itemValueProp")
+    const itemValueProp = requireRendererSpecField(
+      rendererSpec,
+      "itemValueProp",
+    )
     const itemHeadingProp = requireRendererSpecField(
       rendererSpec,
       "itemHeadingProp",
@@ -94,7 +99,8 @@ export function createOptionUiRenderers(context: UiRendererContext) {
             const itemHeading = getStructuredItemHeading(item, itemHeadingProp)
             const itemPath = appendRendererPath(path, index)
             const itemSemantics = createFieldSemantics({
-              description: item.children.length > 0 ? "option-description" : undefined,
+              description:
+                item.children.length > 0 ? "option-description" : undefined,
               label: itemHeading,
               name: item.name,
               path: itemPath,
@@ -358,8 +364,15 @@ export function createOptionUiRenderers(context: UiRendererContext) {
       name: node.name,
       path,
     })
-    const comboboxItems = createComboboxItems(items, itemValueProp, itemHeadingProp)
-    const selectedItem = findComboboxSelectedItem(comboboxItems, node.props.value)
+    const comboboxItems = createComboboxItems(
+      items,
+      itemValueProp,
+      itemHeadingProp,
+    )
+    const selectedItem = findComboboxSelectedItem(
+      comboboxItems,
+      node.props.value,
+    )
     const controlRootProps = {
       ...(rendererSpec.staticProps ?? {}),
       items: comboboxItems,

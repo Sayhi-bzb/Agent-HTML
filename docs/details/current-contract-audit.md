@@ -251,6 +251,7 @@ schema-overlays.ts
 当前验证基线包括：
 
 - `npm run build`
+  - 当前已同时覆盖 `runtime-host` 源码侧的独立 typecheck，不再只检查 package-level `ts` 编译入口
 - `npm run test:run -- packages/ahtml/src/cli/prompt-schema.test.ts packages/ahtml/src/cli/cli-surface.test.ts packages/ahtml/src/cli/runtime-setup-contract.test.ts packages/ahtml/src/cli/validate-inspect-contract.test.ts`
 - `npm run test:run -- packages/ahtml/src/cli/runtime-surface.test.ts`
 - `node scripts/verify-packed-ahtml.mjs`

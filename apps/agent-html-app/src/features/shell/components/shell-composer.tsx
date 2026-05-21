@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button"
 import {
+  ShellActionButton,
   ShellMetaRow,
 } from "@/features/app-shell/components/shell-content"
 import { ComposerField } from "./composer-field"
@@ -29,13 +29,12 @@ export function ShellComposer({
       />
       <ShellMetaRow
         action={
-          <Button
+          <ShellActionButton
             disabled={!draft.trim() || interactionLocked}
             onClick={onSend}
-            type="button"
           >
             Send
-          </Button>
+          </ShellActionButton>
         }
         copy={statusLabel}
       />

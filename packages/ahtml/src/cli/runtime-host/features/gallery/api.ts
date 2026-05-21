@@ -1,4 +1,8 @@
-import type { ArtifactProfile, GalleryMutationResponse, GalleryStateResponse } from "./types"
+import type {
+  ArtifactProfile,
+  GalleryMutationResponse,
+  GalleryStateResponse,
+} from "./types"
 
 type GalleryMutationSuccess = {
   availableArtifactProfileReferences?: string[]
@@ -41,7 +45,9 @@ export function fetchGalleryState() {
     .catch(() => null)
 }
 
-export async function saveGalleryArtifactProfile(artifactProfile: ArtifactProfile) {
+export async function saveGalleryArtifactProfile(
+  artifactProfile: ArtifactProfile,
+) {
   const response = await fetch("/__ahtml/gallery/save", {
     body: JSON.stringify({
       artifactProfile,

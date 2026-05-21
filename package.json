@@ -10,7 +10,7 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/core/tsconfig.json packages/ahtml/tsconfig.json",
+    "build": "tsc -b packages/core/tsconfig.json packages/ahtml/tsconfig.json && npm --workspace @agent-html/ahtml run check:runtime-host",
     "app:dev": "npm --workspace agent-html-app run dev",
     "app:build": "npm --workspace agent-html-app run build",
     "app:tauri": "npm --workspace agent-html-app run tauri",

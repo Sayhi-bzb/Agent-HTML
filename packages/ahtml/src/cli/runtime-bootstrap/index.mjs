@@ -260,6 +260,18 @@ async function injectRuntimeHostFiles({ paths, runtimeContract, runtimeSurface }
     path.join(paths.runtimeSrcDir, "ssr.tsx"),
   )
   await cp(
+    path.join(runtimeHostSourceDir, "artifact-shell.tsx"),
+    path.join(paths.runtimeSrcDir, "artifact-shell.tsx"),
+  )
+  await cp(
+    path.join(runtimeHostSourceDir, "host-styles.tsx"),
+    path.join(paths.runtimeSrcDir, "host-styles.tsx"),
+  )
+  await cp(
+    path.join(runtimeHostSourceDir, "profile-theme.ts"),
+    path.join(paths.runtimeSrcDir, "profile-theme.ts"),
+  )
+  await cp(
     path.join(runtimeHostSourceDir, "lib"),
     path.join(paths.runtimeSrcDir, "lib"),
     { recursive: true },

@@ -11,7 +11,7 @@ type PreviewFrameProps = {
 export function PreviewFrame({
   html,
   title,
-  empty = "Empty",
+  empty = "Blank",
 }: PreviewFrameProps) {
   return (
     <div className="app-shell-preview-frame">

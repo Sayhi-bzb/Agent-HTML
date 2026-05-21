@@ -30,7 +30,7 @@ export function InspectDiagnosticList({
 }
 
 type InspectConsoleSectionProps = {
-  label: ReactNode
+  label?: ReactNode
   children: ReactNode
 }
 
@@ -40,7 +40,7 @@ export function InspectConsoleSection({
 }: InspectConsoleSectionProps) {
   return (
     <div className="app-shell-console-section">
-      <ShellSectionLabel>{label}</ShellSectionLabel>
+      {label ? <ShellSectionLabel>{label}</ShellSectionLabel> : null}
       <pre className="app-shell-console">{children}</pre>
     </div>
   )

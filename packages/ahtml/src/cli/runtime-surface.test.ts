@@ -97,7 +97,15 @@ type LoadedModules = {
   ) => Promise<{
     readonly algorithm: string
     readonly files: Record<string, string>
+    readonly reasons?: Record<string, string>
   }>
+  readonly getManagedRuntimeUiOverrideRegistry: () => readonly {
+    readonly component: string
+    readonly fileName: string
+    readonly runtimeRelativePath: string
+    readonly sourcePath: string
+    readonly reason: string
+  }[]
   readonly getManagedRuntimeUiOverrideEntries: (
     components: readonly string[],
   ) => readonly {
@@ -106,6 +114,7 @@ type LoadedModules = {
     readonly runtimeRelativePath: string
     readonly sourcePath: string
   }[]
+  readonly assertManagedRuntimeUiOverrideSourceDirectory: () => readonly string[]
   readonly createRuntimeVerificationState: (input: {
     readonly components: readonly string[]
     readonly runtimeBase: string
@@ -203,6 +212,7 @@ type RuntimeSurfaceWithProofs = Record<string, unknown> & {
   }
   readonly ahtmlManagedUiProof: {
     readonly files: Record<string, string>
+    readonly reasons?: Record<string, string>
   }
 }
 
@@ -346,7 +356,7 @@ describe("runtime surface completeness", () => {
           ...runtimeSurface.ahtmlManagedUiProof,
           files: {
             ...runtimeSurface.ahtmlManagedUiProof.files,
-            "src/components/ui/progress.tsx": "drifted-proof",
+            "src/components/ui/slider.tsx": "drifted-proof",
           },
         },
       },
@@ -358,7 +368,36 @@ describe("runtime surface completeness", () => {
         paths: fixture.runtimePaths,
       }),
     ).rejects.toThrow(
-      "surface ahtmlManagedUiProof src/components/ui/progress.tsx does not match checked-in managed UI source hash",
+      "surface ahtmlManagedUiProof src/components/ui/slider.tsx does not match checked-in managed UI source hash",
+    )
+  })
+
+  it("rejects managed UI override reason drift between manifest and checked-in registry", async () => {
+    const { assertRuntimeSurface } = await loadModules()
+    const fixture = await createRuntimeFixture()
+    const runtimeSurface = fixture.manifest
+      .shadcnRuntimeSurface as RuntimeSurfaceWithProofs
+    const manifest = {
+      ...fixture.manifest,
+      shadcnRuntimeSurface: {
+        ...runtimeSurface,
+        ahtmlManagedUiProof: {
+          ...runtimeSurface.ahtmlManagedUiProof,
+          reasons: {
+            ...runtimeSurface.ahtmlManagedUiProof.reasons,
+            "src/components/ui/slider.tsx": "drifted-reason",
+          },
+        },
+      },
+    }
+
+    await expect(
+      assertRuntimeSurface({
+        manifest,
+        paths: fixture.runtimePaths,
+      }),
+    ).rejects.toThrow(
+      "surface ahtmlManagedUiProof src/components/ui/slider.tsx reason does not match checked-in managed UI override registry",
     )
   })
 
@@ -367,11 +406,8 @@ describe("runtime surface completeness", () => {
     const fixture = await createRuntimeFixture()
 
     await writeFile(
-      path.join(
-        fixture.runtimePaths.runtimeComponentsDir,
-        "progress.tsx",
-      ),
-      'export function Progress() { return "drift" }\n',
+      path.join(fixture.runtimePaths.runtimeComponentsDir, "slider.tsx"),
+      'export function Slider() { return "drift" }\n',
     )
 
     await expect(
@@ -380,7 +416,7 @@ describe("runtime surface completeness", () => {
         paths: fixture.runtimePaths,
       }),
     ).rejects.toThrow(
-      "runtime managed UI file src/components/ui/progress.tsx does not match checked-in managed UI source hash",
+      "runtime managed UI file src/components/ui/slider.tsx does not match checked-in managed UI source hash",
     )
   })
 
@@ -430,6 +466,17 @@ describe("runtime surface completeness", () => {
       state: "complete",
       detail: expect.stringContaining("shadcn-template-override"),
     })
+  })
+
+  it("keeps checked-in runtime-host ui source limited to explicit managed overrides", async () => {
+    const {
+      assertManagedRuntimeUiOverrideSourceDirectory,
+      getManagedRuntimeUiOverrideRegistry,
+    } = await loadModules()
+
+    expect(assertManagedRuntimeUiOverrideSourceDirectory()).toEqual(
+      getManagedRuntimeUiOverrideRegistry().map((entry) => entry.fileName),
+    )
   })
 })
 
@@ -588,6 +635,18 @@ async function createRuntimeFixture({
   await writeFile(
     path.join(runtimePaths.runtimeSrcDir, "ssr.tsx"),
     "export {}\n",
+  )
+  await writeFile(
+    path.join(runtimePaths.runtimeSrcDir, "artifact-shell.tsx"),
+    "export type ArtifactProfile = {}\nexport function DocumentArtifactShell() { return null }\n",
+  )
+  await writeFile(
+    path.join(runtimePaths.runtimeSrcDir, "host-styles.tsx"),
+    "export function RuntimeStyleElements() { return null }\n",
+  )
+  await writeFile(
+    path.join(runtimePaths.runtimeSrcDir, "profile-theme.ts"),
+    "export function createDocumentStyleCss() { return '' }\nexport function createGalleryPreviewThemeCss() { return '' }\n",
   )
   await mkdir(path.join(runtimePaths.runtimeSrcDir, "renderer"), {
     recursive: true,
@@ -921,7 +980,12 @@ async function loadModules(): Promise<LoadedModules> {
     createManagedRuntimeCapability:
       runtimeContractModule.createManagedRuntimeCapability,
     createAhtmlGlueProof: runtimeSurfaceModule.createAhtmlGlueProof,
-    createManagedRuntimeUiProof: runtimeManagedUiModule.createManagedRuntimeUiProof,
+    createManagedRuntimeUiProof:
+      runtimeManagedUiModule.createManagedRuntimeUiProof,
+    getManagedRuntimeUiOverrideRegistry:
+      runtimeManagedUiModule.getManagedRuntimeUiOverrideRegistry,
+    assertManagedRuntimeUiOverrideSourceDirectory:
+      runtimeManagedUiModule.assertManagedRuntimeUiOverrideSourceDirectory,
     createRuntimeVerificationState:
       runtimeContractModule.createRuntimeVerificationState,
     getManagedRuntimeUiOverrideEntries:

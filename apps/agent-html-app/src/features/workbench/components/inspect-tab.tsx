@@ -4,11 +4,8 @@ import type {
   LogSnapshot,
 } from "@/lib/types"
 
-import {
-  ShellCardHeader,
-  ShellLoadingRow,
-  ShellStatusBadge,
-} from "@/features/app-shell/components/shell-content"
+import { ShellLoadingRow } from "@/features/app-shell/components/shell-content"
+import { InspectHeader } from "./inspect-header"
 import {
   InspectConsoleSection,
   InspectDiagnosticList,
@@ -22,25 +19,17 @@ type InspectTabProps = {
 }
 
 export function InspectTab({ inspect, logs, inspecting }: InspectTabProps) {
+  const stdout = logs.stdout?.trim()
+  const stderr = logs.stderr?.trim()
+  const hasLogs = Boolean(stdout || stderr)
+
   return (
-    <WorkbenchCard
-      header={
-        <ShellCardHeader
-          action={
-            <ShellStatusBadge
-              label={`${inspect.diagnostics.length} items`}
-              variant="outline"
-            />
-          }
-          description={inspect.generatedAt}
-          title="Inspect"
-        />
-      }
-    >
-      {inspecting ? <ShellLoadingRow>Refreshing inspect snapshot</ShellLoadingRow> : null}
+    <WorkbenchCard header={<InspectHeader inspect={inspect} />}>
+      {inspecting ? <ShellLoadingRow>Scan</ShellLoadingRow> : null}
       <InspectDiagnosticList diagnostics={inspect.diagnostics} />
-      <Separator />
-      <InspectConsoleSection label="stdout">{logs.stdout || "n/a"}</InspectConsoleSection>
+      {hasLogs ? <Separator /> : null}
+      {stdout ? <InspectConsoleSection>{stdout}</InspectConsoleSection> : null}
+      {stderr ? <InspectConsoleSection label="issue">{stderr}</InspectConsoleSection> : null}
     </WorkbenchCard>
   )
 }

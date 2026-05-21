@@ -21,9 +21,9 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.85rem;
-      min-height: 3.5rem;
-      padding: 0.7rem 1rem;
+      gap: var(--ahtml-shell-header-gap);
+      min-height: var(--ahtml-shell-toolbar-min-height);
+      padding: var(--ahtml-shell-padding-block) var(--ahtml-shell-padding-inline);
       border-bottom: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
       background: var(--background);
     }
@@ -48,11 +48,14 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       margin-left: auto;
-      gap: 0.75rem;
+      gap: var(--ahtml-shell-toolbar-gap);
     }
     .ahtml-gallery-mobile-tabs {
       display: none;
-      padding: 0.6rem 1rem 0;
+      padding:
+        var(--ahtml-shell-mobile-tabs-padding-top)
+        var(--ahtml-shell-padding-inline)
+        0;
       border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
     }
     .ahtml-gallery-mobile-tabs-list {
@@ -74,12 +77,12 @@ export function createGalleryWorkbenchCss() {
       position: relative;
     }
     .ahtml-gallery-sidebar {
-      width: min(31rem, 33vw);
-      min-width: 20rem;
+      width: var(--ahtml-gallery-sidebar-width);
+      min-width: var(--ahtml-gallery-sidebar-min-width);
       overflow: hidden;
     }
     .ahtml-gallery-divider {
-      width: 0.75rem;
+      width: var(--ahtml-gallery-divider-width);
       flex: none;
       border-left: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
       border-right: 1px solid color-mix(in srgb, var(--background) 96%, var(--muted) 4%);
@@ -108,8 +111,8 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
-      padding: 0.7rem 1rem;
+      gap: var(--ahtml-shell-toolbar-gap);
+      padding: var(--ahtml-shell-padding-block) var(--ahtml-shell-padding-inline);
       flex-wrap: wrap;
       min-width: 0;
     }
@@ -123,9 +126,9 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1rem;
-      min-height: 3.5rem;
-      padding: 0.7rem 1rem;
+      gap: var(--ahtml-gallery-preset-rail-gap);
+      min-height: var(--ahtml-shell-toolbar-min-height);
+      padding: var(--ahtml-shell-padding-block) var(--ahtml-shell-padding-inline);
       border-bottom: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
       background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
     }
@@ -140,7 +143,7 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.8rem;
+      gap: var(--ahtml-gallery-preset-workbar-gap);
       min-width: 0;
       flex-wrap: wrap;
     }
@@ -148,7 +151,7 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-preset-inline-gap);
       min-width: 0;
     }
     .ahtml-gallery-preset-rail-status {
@@ -173,11 +176,11 @@ export function createGalleryWorkbenchCss() {
       flex-wrap: nowrap;
     }
     .ahtml-gallery-preset-popover-trigger {
-      min-width: min(100%, 18rem);
+      min-width: var(--ahtml-gallery-preset-trigger-min-width);
       max-width: 100%;
       height: auto;
       justify-content: flex-start;
-      gap: 0.8rem;
+      gap: var(--ahtml-gallery-preset-trigger-gap);
       padding: 0.45rem 0.7rem;
       border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
       border-radius: calc(var(--radius) * 1.05);
@@ -234,15 +237,15 @@ export function createGalleryWorkbenchCss() {
       border-radius: 999px;
     }
     .ahtml-gallery-preset-select {
-      min-width: min(100%, 16rem);
+      min-width: var(--ahtml-gallery-preset-select-min-width);
       max-width: 100%;
       background: color-mix(in srgb, var(--background) 96%, var(--muted) 4%);
       border-color: color-mix(in srgb, var(--border) 80%, transparent);
     }
     .ahtml-gallery-preset-popover {
-      width: min(30rem, calc(100vw - 2rem));
-      padding: 0.75rem;
-      gap: 0.75rem;
+      width: var(--ahtml-gallery-preset-popover-width);
+      padding: var(--ahtml-gallery-preset-popover-padding);
+      gap: var(--ahtml-gallery-preset-popover-gap);
     }
     .ahtml-gallery-preset-search-wrap {
       margin-top: 0.1rem;
@@ -296,7 +299,7 @@ export function createGalleryWorkbenchCss() {
       word-break: break-word;
     }
     .ahtml-gallery-preset-list-scroll {
-      max-height: 18rem;
+      max-height: var(--ahtml-gallery-preset-list-max-height);
     }
     .ahtml-gallery-preset-list {
       display: grid;
@@ -450,8 +453,8 @@ export function createGalleryWorkbenchCss() {
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 0.75rem;
-      padding: 0.7rem 1rem;
+      gap: var(--ahtml-shell-toolbar-gap);
+      padding: var(--ahtml-shell-padding-block) var(--ahtml-shell-padding-inline);
     }
     .ahtml-gallery-toolbar-border {
       border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
@@ -521,7 +524,10 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-control-filter-bar {
       display: grid;
       gap: 0.55rem;
-      padding: 0.6rem 1rem 0.4rem;
+      padding:
+        var(--ahtml-shell-filter-padding-top)
+        var(--ahtml-shell-padding-inline)
+        var(--ahtml-shell-filter-padding-bottom);
       border-bottom: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
     }
     .ahtml-gallery-control-filter-field {
@@ -592,7 +598,10 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-control-sections {
       display: grid;
       gap: 0;
-      padding: 0 0.9rem 0.9rem;
+      padding:
+        0
+        var(--ahtml-shell-section-padding-inline)
+        var(--ahtml-shell-section-padding-bottom);
     }
     .ahtml-gallery-control-sections [data-slot="accordion-item"] {
       border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
@@ -992,21 +1001,21 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-preview-topbar {
       align-items: center;
-      gap: 1rem;
-      padding-top: 0.55rem;
-      padding-bottom: 0.55rem;
+      gap: var(--ahtml-gallery-layout-gap);
+      padding-top: var(--ahtml-shell-preview-toolbar-padding-block);
+      padding-bottom: var(--ahtml-shell-preview-toolbar-padding-block);
     }
     .ahtml-gallery-preview-modebar {
       align-items: center;
       justify-content: space-between;
-      gap: 1rem;
-      padding-top: 0.55rem;
-      padding-bottom: 0.55rem;
+      gap: var(--ahtml-gallery-layout-gap);
+      padding-top: var(--ahtml-shell-preview-toolbar-padding-block);
+      padding-bottom: var(--ahtml-shell-preview-toolbar-padding-block);
     }
     .ahtml-gallery-preview-mode-tools {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-preview-mode-tools-gap);
       min-width: 0;
       flex-wrap: wrap;
     }
@@ -1083,18 +1092,21 @@ export function createGalleryWorkbenchCss() {
           180deg,
           color-mix(in srgb, var(--background) 99%, var(--muted) 1%),
           color-mix(in srgb, var(--background) 95%, var(--muted) 5%)
-        );
+      );
       box-sizing: border-box;
-      padding: 0.9rem 0.9rem 1.1rem;
+      padding:
+        var(--ahtml-gallery-stage-frame-padding-top)
+        var(--ahtml-gallery-stage-frame-padding-inline)
+        var(--ahtml-gallery-stage-frame-padding-bottom);
     }
     .ahtml-gallery-stage-frame-components,
     .ahtml-gallery-stage-frame-full,
     .ahtml-gallery-stage-frame-custom,
     .ahtml-gallery-stage-frame-dashboard {
-      padding-top: 0.7rem;
+      padding-top: var(--ahtml-gallery-stage-frame-mode-padding-top);
     }
     .ahtml-gallery-stage-frame-mail {
-      padding-top: 0.7rem;
+      padding-top: var(--ahtml-gallery-stage-frame-mode-padding-top);
     }
     .ahtml-gallery-stage-frame-forms,
     .ahtml-gallery-stage-frame-colors,
@@ -1108,8 +1120,8 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-stage-frame-components,
     .ahtml-gallery-stage-frame-dashboard,
     .ahtml-gallery-stage-frame-mail {
-      padding-left: 0.7rem;
-      padding-right: 0.7rem;
+      padding-left: var(--ahtml-gallery-stage-frame-mode-padding-inline);
+      padding-right: var(--ahtml-gallery-stage-frame-mode-padding-inline);
     }
     .ahtml-gallery-preview-surface {
       position: relative;
@@ -1144,7 +1156,7 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-preview-surface-inner {
       min-height: 100%;
-      padding: 1rem;
+      padding: var(--ahtml-gallery-preview-surface-inner-padding);
       box-sizing: border-box;
     }
     .ahtml-gallery-inspector-overlay {
@@ -1154,7 +1166,10 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       justify-content: flex-end;
       pointer-events: none;
-      padding: 0.75rem 0.75rem 0;
+      padding:
+        var(--ahtml-gallery-inspector-overlay-padding-top)
+        var(--ahtml-gallery-inspector-overlay-padding-inline)
+        0;
     }
     .ahtml-gallery-inspector-outline {
       position: absolute;
@@ -1188,9 +1203,11 @@ export function createGalleryWorkbenchCss() {
       display: grid;
       gap: 0.18rem;
       min-width: 13rem;
-      max-width: min(100%, 24rem);
+      max-width: var(--ahtml-gallery-inspector-panel-max-width);
       pointer-events: auto;
-      padding: 0.7rem 0.85rem;
+      padding:
+        var(--ahtml-gallery-compact-panel-padding-block)
+        var(--ahtml-gallery-compact-panel-padding-inline);
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       border-radius: calc(var(--radius) * 1.1);
       background: color-mix(in srgb, var(--popover) 94%, transparent);
@@ -1359,7 +1376,7 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-stage-panel {
       display: grid;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-stage-panel-gap);
       width: min(100%, 72rem);
       padding: 0.25rem;
     }
@@ -1367,13 +1384,15 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-stage-toolbar-gap);
       flex-wrap: wrap;
       padding-bottom: 0.75rem;
       border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
     }
     .ahtml-gallery-stage-toolbar-inset {
-      padding: 0.85rem 1rem;
+      padding:
+        var(--ahtml-shell-stage-toolbar-padding-block)
+        var(--ahtml-shell-padding-inline);
       margin: -1rem -1rem 0;
       border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
@@ -1420,21 +1439,21 @@ export function createGalleryWorkbenchCss() {
       text-transform: uppercase;
     }
     .ahtml-gallery-typography-panel {
-      max-width: 68rem;
+      max-width: var(--ahtml-gallery-panel-max-width-reading);
     }
     .ahtml-gallery-color-panel {
-      width: min(100%, 72rem);
+      width: min(100%, var(--ahtml-gallery-panel-max-width));
     }
     .ahtml-gallery-custom-panel {
-      width: min(100%, 72rem);
+      width: min(100%, var(--ahtml-gallery-panel-max-width));
     }
     .ahtml-gallery-workbench-panel {
-      width: min(100%, 76rem);
+      width: min(100%, var(--ahtml-gallery-panel-max-width-wide));
     }
     .ahtml-gallery-custom-content {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
     }
     .ahtml-gallery-custom-browser {
       display: grid;
@@ -1449,8 +1468,10 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
-      padding: 0.6rem 0.85rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      padding:
+        var(--ahtml-gallery-tight-toolbar-padding-block)
+        var(--ahtml-gallery-compact-panel-padding-inline);
       border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       background: color-mix(in srgb, var(--muted) 54%, transparent);
       flex-wrap: wrap;
@@ -1460,7 +1481,7 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       gap: 0.3rem;
-      min-width: min(100%, 24rem);
+      min-width: var(--ahtml-gallery-custom-preview-input-min-width);
       flex: 1;
       padding-left: 0.2rem;
     }
@@ -1496,8 +1517,10 @@ export function createGalleryWorkbenchCss() {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.7rem 0.85rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      padding:
+        var(--ahtml-gallery-compact-panel-padding-block)
+        var(--ahtml-gallery-compact-panel-padding-inline);
       border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       background: color-mix(in srgb, var(--background) 96%, var(--muted) 4%);
     }
@@ -1527,7 +1550,7 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-custom-page {
       display: grid;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
       padding: 0;
       background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 32%),
@@ -1536,9 +1559,11 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-custom-preview-empty {
       display: grid;
       justify-items: center;
-      gap: 1rem;
-      margin: 0 1rem;
-      padding: 1.4rem 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
+      margin: 0 var(--ahtml-gallery-layout-inline-padding);
+      padding:
+        var(--ahtml-gallery-custom-preview-empty-padding-block)
+        var(--ahtml-gallery-layout-block-padding);
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       border-radius: calc(var(--radius) * 1.15);
       background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
@@ -1570,7 +1595,7 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-custom-preview-steps {
       display: grid;
       gap: 0.5rem;
-      max-width: 30rem;
+      max-width: var(--ahtml-gallery-custom-preview-steps-max-width);
     }
     .ahtml-gallery-custom-preview-steps div {
       display: grid;
@@ -1600,9 +1625,11 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
-      margin: 0 1rem;
-      padding: 0.7rem 0.85rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      margin: 0 var(--ahtml-gallery-layout-inline-padding);
+      padding:
+        var(--ahtml-gallery-compact-panel-padding-block)
+        var(--ahtml-gallery-compact-panel-padding-inline);
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       border-radius: calc(var(--radius) * 0.95);
       background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
@@ -1626,9 +1653,9 @@ export function createGalleryWorkbenchCss() {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
-      gap: 0.85rem;
-      margin: 0 1rem;
-      padding: 1rem;
+      gap: var(--ahtml-gallery-layout-gap-relaxed);
+      margin: 0 var(--ahtml-gallery-layout-inline-padding);
+      padding: var(--ahtml-gallery-layout-block-padding);
       border-radius: calc(var(--radius) * 1.05);
     }
     .ahtml-gallery-custom-site-brand {
@@ -1639,7 +1666,7 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.85rem;
+      gap: var(--ahtml-gallery-layout-gap-relaxed);
       min-width: 0;
       flex-wrap: wrap;
       color: var(--muted-foreground);
@@ -1658,14 +1685,16 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-custom-stage-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.75fr);
-      gap: 1rem;
-      padding: 0 1rem;
+      grid-template-columns:
+        minmax(0, 1.45fr)
+        minmax(var(--ahtml-gallery-custom-stage-secondary-min-width), 0.75fr);
+      gap: var(--ahtml-gallery-layout-gap);
+      padding: 0 var(--ahtml-gallery-layout-inline-padding);
       align-items: stretch;
     }
     .ahtml-gallery-custom-hero {
       display: grid;
-      padding: 1.3rem;
+      padding: var(--ahtml-gallery-custom-hero-padding);
       border-radius: calc(var(--radius) * 1.2);
       background:
         linear-gradient(135deg, color-mix(in srgb, var(--card) 96%, white 4%), color-mix(in srgb, var(--accent) 10%, var(--card) 90%));
@@ -1673,7 +1702,7 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-custom-hero-copy {
       display: grid;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
       align-content: start;
     }
     .ahtml-gallery-custom-hero-copy h3 {
@@ -1696,8 +1725,8 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-custom-stat-strip {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: var(--ahtml-gallery-custom-stat-columns);
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-custom-stat {
       display: grid;
@@ -1716,12 +1745,12 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-custom-hero-panel {
       display: grid;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
       align-content: start;
     }
     .ahtml-gallery-custom-swatch-stack {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: var(--ahtml-gallery-custom-swatch-columns);
       gap: 0.45rem;
     }
     .ahtml-gallery-custom-swatch-stack span {
@@ -1731,12 +1760,16 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-custom-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-      gap: 0.85rem;
-      padding: 0 1rem 1rem;
+      grid-template-columns:
+        repeat(auto-fit, minmax(var(--ahtml-gallery-custom-card-min-width), 1fr));
+      gap: var(--ahtml-gallery-layout-gap-relaxed);
+      padding:
+        0
+        var(--ahtml-gallery-layout-inline-padding)
+        var(--ahtml-gallery-layout-block-padding);
     }
     .ahtml-gallery-custom-grid-rich {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: var(--ahtml-gallery-custom-rich-columns);
     }
     .ahtml-gallery-custom-card {
       box-shadow: none;
@@ -1748,7 +1781,7 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-custom-stack {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-workbench-card {
       box-shadow: none;
@@ -1816,7 +1849,7 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-color-content {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
     }
     .ahtml-gallery-inline-metrics {
       display: flex;
@@ -1832,22 +1865,22 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-cards-workbench {
       display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-      gap: 1rem;
+      grid-template-columns: var(--ahtml-gallery-cards-workbench-columns);
+      gap: var(--ahtml-gallery-layout-gap);
       align-items: start;
     }
     .ahtml-gallery-cards-column {
       display: grid;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
       align-content: start;
     }
     .ahtml-gallery-cards-split {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
+      grid-template-columns: var(--ahtml-gallery-cards-split-columns);
+      gap: var(--ahtml-gallery-layout-gap);
     }
     .ahtml-gallery-cards-split-tight {
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-mini-calendar {
       display: grid;
@@ -1872,24 +1905,24 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-toggle-list {
       display: grid;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-toggle-list label,
     .ahtml-gallery-feature-list label {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
       font-size: 0.82rem;
     }
     .ahtml-gallery-chat-thread {
       display: grid;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-chat-thread > div {
       display: grid;
       gap: 0.22rem;
-      padding: 0.75rem;
+      padding: var(--ahtml-gallery-layout-gap-compact);
       border-radius: calc(var(--radius) * 0.95);
       background: color-mix(in srgb, var(--muted) 48%, transparent);
     }
@@ -1933,28 +1966,32 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-workbench-footer {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-      gap: 0.75rem;
+      grid-template-columns:
+        repeat(auto-fit, minmax(var(--ahtml-gallery-footer-card-min-width), 1fr));
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-color-hero {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-      gap: 0.75rem;
+      grid-template-columns:
+        repeat(auto-fit, minmax(var(--ahtml-gallery-color-hero-card-min-width), 1fr));
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-color-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-      gap: 0.75rem;
+      grid-template-columns:
+        repeat(auto-fit, minmax(var(--ahtml-gallery-color-grid-card-min-width), 1fr));
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-color-mode-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+      grid-template-columns:
+        repeat(auto-fit, minmax(var(--ahtml-gallery-color-mode-card-min-width), 1fr));
       gap: 0.9rem;
     }
     .ahtml-gallery-color-mode-panel {
       display: grid;
-      gap: 0.85rem;
-      padding: 0.9rem;
+      gap: var(--ahtml-gallery-layout-gap-relaxed);
+      padding: var(--ahtml-gallery-content-card-padding-relaxed);
       border: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
       border-radius: calc(var(--radius) * 1.05);
       background: color-mix(in srgb, var(--background) 98%, var(--muted) 2%);
@@ -1967,7 +2004,7 @@ export function createGalleryWorkbenchCss() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
       flex-wrap: wrap;
     }
     .ahtml-gallery-color-mode-copy {
@@ -1989,7 +2026,7 @@ export function createGalleryWorkbenchCss() {
       display: grid;
       gap: 0.7rem;
       width: 100%;
-      padding: 0.9rem;
+      padding: var(--ahtml-gallery-content-card-padding-relaxed);
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       border-radius: calc(var(--radius) * 1.05);
       background: color-mix(in srgb, var(--background) 97%, var(--muted) 3%);
@@ -2040,18 +2077,19 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-typography-content {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
     }
     .ahtml-gallery-typography-sample-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-      gap: 0.75rem;
+      grid-template-columns:
+        repeat(auto-fit, minmax(var(--ahtml-gallery-typography-sample-min-width), 1fr));
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-typography-sample {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
-      padding: 1rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      padding: var(--ahtml-gallery-content-card-padding);
     }
     .ahtml-gallery-typography-sample h2 {
       margin: 0;
@@ -2062,8 +2100,8 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-typography-body-card {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
-      padding: 1rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      padding: var(--ahtml-gallery-content-card-padding);
     }
     .ahtml-gallery-typography-body-copy {
       margin: 0;
@@ -2101,13 +2139,14 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-typography-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-      gap: 0.75rem;
+      grid-template-columns:
+        repeat(auto-fit, minmax(var(--ahtml-gallery-typography-token-min-width), 1fr));
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-typography-token {
       display: grid;
       gap: 0.5rem;
-      padding: 1rem;
+      padding: var(--ahtml-gallery-content-card-padding);
       border-radius: calc(var(--radius) * 1.1);
       background: color-mix(in srgb, var(--muted) 56%, transparent);
       font-family: monospace;
@@ -2115,7 +2154,7 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-dashboard-shell {
       display: grid;
-      grid-template-columns: 14rem minmax(0, 1fr);
+      grid-template-columns: var(--ahtml-gallery-dashboard-sidebar-width) minmax(0, 1fr);
       gap: 0;
       overflow: hidden;
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
@@ -2125,8 +2164,8 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-dashboard-sidebar {
       display: grid;
       align-content: start;
-      gap: 0.75rem;
-      padding: 1rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
+      padding: var(--ahtml-gallery-layout-block-padding);
       border-right: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
       background: color-mix(in srgb, var(--muted) 42%, transparent);
     }
@@ -2144,14 +2183,17 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-dashboard-main {
       display: grid;
-      gap: 1rem;
-      padding: 0 1rem 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
+      padding:
+        0
+        var(--ahtml-gallery-layout-inline-padding)
+        var(--ahtml-gallery-layout-block-padding);
     }
     .ahtml-gallery-dashboard-header {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
       flex-wrap: wrap;
     }
     .ahtml-gallery-dashboard-header h4,
@@ -2164,8 +2206,8 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-dashboard-section-cards {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: var(--ahtml-gallery-dashboard-card-columns);
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-chart-bars {
       display: grid;
@@ -2180,24 +2222,26 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-dashboard-lower {
       display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
-      gap: 0.75rem;
+      grid-template-columns:
+        minmax(0, 1.2fr)
+        minmax(var(--ahtml-gallery-dashboard-secondary-min-width), 0.8fr);
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-dashboard-secondary-stack {
       display: grid;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-dashboard-chart-footer {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: var(--ahtml-gallery-dashboard-chart-footer-columns);
+      gap: var(--ahtml-gallery-layout-gap-compact);
       margin-top: 0.9rem;
     }
     .ahtml-gallery-dashboard-mix-card {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
       align-items: center;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
     }
     .ahtml-gallery-dashboard-donut {
       width: 7rem;
@@ -2220,7 +2264,13 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-mail-shell {
       display: grid;
-      grid-template-columns: 13rem minmax(15rem, 18rem) minmax(0, 1fr);
+      grid-template-columns:
+        var(--ahtml-gallery-mail-nav-width)
+        minmax(
+          var(--ahtml-gallery-mail-list-min-width),
+          var(--ahtml-gallery-mail-list-max-width)
+        )
+        minmax(0, 1fr);
       gap: 0;
       overflow: hidden;
       border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
@@ -2232,8 +2282,8 @@ export function createGalleryWorkbenchCss() {
     .ahtml-gallery-mail-display {
       display: grid;
       align-content: start;
-      gap: 0.85rem;
-      padding: 1rem;
+      gap: var(--ahtml-gallery-layout-gap-relaxed);
+      padding: var(--ahtml-gallery-layout-block-padding);
       min-width: 0;
     }
     .ahtml-gallery-mail-nav,
@@ -2258,7 +2308,7 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-mail-list-header {
       display: grid;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-mail-list-header h5 {
       margin: 0;
@@ -2334,7 +2384,7 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-mail-display-body {
       display: grid;
-      gap: 0.75rem;
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-mail-display-body p {
       margin: 0;
@@ -2358,8 +2408,8 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-mail-attachments {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: var(--ahtml-gallery-mail-attachment-columns);
+      gap: var(--ahtml-gallery-layout-gap-compact);
     }
     .ahtml-gallery-mail-attachment-card {
       display: grid;
@@ -2375,7 +2425,7 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-pricing-shell {
       display: grid;
-      gap: 1rem;
+      gap: var(--ahtml-gallery-layout-gap);
     }
     .ahtml-gallery-pricing-header {
       display: grid;
@@ -2400,7 +2450,7 @@ export function createGalleryWorkbenchCss() {
     }
     .ahtml-gallery-pricing-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: var(--ahtml-gallery-pricing-columns);
       gap: 0.85rem;
     }
     .ahtml-gallery-feature-list {
@@ -2418,7 +2468,10 @@ export function createGalleryWorkbenchCss() {
         grid-template-columns: 1fr;
       }
       .ahtml-gallery-mail-shell {
-        grid-template-columns: 11rem minmax(14rem, 16rem) minmax(0, 1fr);
+        grid-template-columns:
+          11rem
+          minmax(14rem, var(--ahtml-gallery-dashboard-secondary-min-width))
+          minmax(0, 1fr);
       }
       .ahtml-gallery-custom-stage-grid,
       .ahtml-gallery-custom-grid-rich {
@@ -2484,12 +2537,12 @@ export function createGalleryWorkbenchCss() {
       .ahtml-gallery-toolbar,
       .ahtml-gallery-control-header-row,
       .ahtml-gallery-stage-toolbar-inset {
-        padding-left: 0.8rem;
-        padding-right: 0.8rem;
+        padding-left: var(--ahtml-shell-padding-inline);
+        padding-right: var(--ahtml-shell-padding-inline);
       }
       .ahtml-gallery-control-sections {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
+        padding-left: var(--ahtml-shell-section-padding-inline);
+        padding-right: var(--ahtml-shell-section-padding-inline);
       }
       .ahtml-gallery-control-row,
       .ahtml-gallery-field-row,

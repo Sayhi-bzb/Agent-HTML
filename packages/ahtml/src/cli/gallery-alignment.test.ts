@@ -14,6 +14,11 @@ describe("gallery alignment", () => {
       docsWeb,
       commandContract,
       runtimeApp,
+      runtimeControls,
+      runtimePreview,
+      runtimeShared,
+      runtimeStyles,
+      runtimeConfig,
     ] = await Promise.all([
       readRepoSource("docs", "spec", "gallery.md"),
       readRepoSource("blueprint", "architecture-design", "architecture.md"),
@@ -30,7 +35,65 @@ describe("gallery alignment", () => {
         "gallery",
         "app.tsx",
       ),
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "features",
+        "gallery",
+        "controls.tsx",
+      ),
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "features",
+        "gallery",
+        "preview.tsx",
+      ),
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "features",
+        "gallery",
+        "shared.tsx",
+      ),
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "features",
+        "gallery",
+        "styles.ts",
+      ),
+      readRepoSource(
+        "packages",
+        "ahtml",
+        "src",
+        "cli",
+        "runtime-host",
+        "features",
+        "gallery",
+        "config.ts",
+      ),
     ])
+    const runtimeGallerySource = [
+      runtimeApp,
+      runtimeControls,
+      runtimePreview,
+      runtimeShared,
+      runtimeStyles,
+      runtimeConfig,
+    ].join("\n")
 
     expect(gallerySpec).toContain("独立顶栏")
     expect(gallerySpec).toContain("组件展柜")
@@ -47,49 +110,55 @@ describe("gallery alignment", () => {
       "Open the artifact profile gallery and component preview workbench.",
     )
 
-    expect(runtimeApp).toContain('data-gallery-frame="header"')
-    expect(runtimeApp).toContain('data-gallery-frame="controls"')
-    expect(runtimeApp).toContain('data-gallery-frame="preview"')
-    expect(runtimeApp).toContain('value="controls"')
-    expect(runtimeApp).toContain('value="preview"')
-    expect(runtimeApp).toContain('value="components"')
-    expect(runtimeApp).toContain("<Button")
-    expect(runtimeApp).toContain("<Popover")
-    expect(runtimeApp).toContain("<Accordion")
-    expect(runtimeApp).toContain("Reset")
-    expect(runtimeApp).toContain("Save Profile")
-    expect(runtimeApp).toContain('aria-label="Preview theme"')
-    expect(runtimeApp).toContain("Preset chooser")
-    expect(runtimeApp).toContain("<GalleryPreviewMeta")
-    expect(runtimeApp).toContain("Gallery")
-    expect(runtimeApp).toContain("Fullscreen")
-    expect(runtimeApp).toContain('data-theme-mode={previewThemeMode}')
-    expect(runtimeApp).toContain("GalleryExamplesPreviewContainer")
-    expect(runtimeApp).toContain("More previews")
-    expect(runtimeApp).toContain("Color Palette")
-    expect(runtimeApp).toContain("Full component gallery")
-    expect(runtimeApp).toContain("Inspector")
-    expect(runtimeApp).toContain("Inspecting")
-    expect(runtimeApp).toContain("DropdownMenu")
-    expect(runtimeApp).toContain("<AccordionTrigger>Radius</AccordionTrigger>")
-    expect(runtimeApp).toContain("<AccordionTrigger>Treatments</AccordionTrigger>")
-    expect(runtimeApp).toContain("ahtml-gallery-token-row")
-    expect(runtimeApp).toContain('<AccordionTrigger>{section.title}</AccordionTrigger>')
-    expect(runtimeApp).toContain('title: "Primary"')
-    expect(runtimeApp).toContain('title: "Border & Input"')
-    expect(runtimeApp).toContain("ahtml-gallery-color-popover")
-    expect(runtimeApp).toContain('value="dashboard"')
-    expect(runtimeApp).toContain('value="mail"')
-    expect(runtimeApp).toContain('value="colors"')
-    expect(runtimeApp).toContain('setPreviewMode("selection")')
-    expect(runtimeApp).toContain("Press Esc to release")
-    expect(runtimeApp).toContain("ahtml-gallery-inspector-outline")
-    expect(runtimeApp).toContain("Click to pin the current component")
-    expect(runtimeApp).toContain('target.dataset.ahtmlPath')
-    expect(runtimeApp).toContain('target.dataset.ahtmlRenderKind')
-    expect(runtimeApp).toContain('target.dataset.ahtmlSource')
-    expect(runtimeApp).toContain('label="Render"')
-    expect(runtimeApp).toContain('label="Source"')
-    expect(runtimeApp).toContain('label="Path"')
+    expect(runtimeGallerySource).toContain('data-gallery-frame="header"')
+    expect(runtimeGallerySource).toContain('data-gallery-frame="controls"')
+    expect(runtimeGallerySource).toContain('data-gallery-frame="preview"')
+    expect(runtimeGallerySource).toContain('value="controls"')
+    expect(runtimeGallerySource).toContain('value="preview"')
+    expect(runtimeGallerySource).toContain('value="components"')
+    expect(runtimeGallerySource).toContain("<Button")
+    expect(runtimeGallerySource).toContain("<Popover")
+    expect(runtimeGallerySource).toContain("<Accordion")
+    expect(runtimeGallerySource).toContain("Reset")
+    expect(runtimeGallerySource).toContain("Save Profile")
+    expect(runtimeGallerySource).toContain('aria-label="Preview theme"')
+    expect(runtimeGallerySource).toContain("Preset chooser")
+    expect(runtimeGallerySource).toContain("<GalleryPreviewMeta")
+    expect(runtimeGallerySource).toContain("Gallery")
+    expect(runtimeGallerySource).toContain("Fullscreen")
+    expect(runtimeGallerySource).toContain("data-theme-mode={previewThemeMode}")
+    expect(runtimeGallerySource).toContain("GalleryExamplesPreviewContainer")
+    expect(runtimeGallerySource).toContain("More previews")
+    expect(runtimeGallerySource).toContain("Color Palette")
+    expect(runtimeGallerySource).toContain("Full component gallery")
+    expect(runtimeGallerySource).toContain("Inspector")
+    expect(runtimeGallerySource).toContain("Inspecting")
+    expect(runtimeGallerySource).toContain("DropdownMenu")
+    expect(runtimeGallerySource).toContain(
+      "<AccordionTrigger>Radius</AccordionTrigger>",
+    )
+    expect(runtimeGallerySource).toContain(
+      "<AccordionTrigger>Treatments</AccordionTrigger>",
+    )
+    expect(runtimeGallerySource).toContain("ahtml-gallery-token-row")
+    expect(runtimeGallerySource).toContain(
+      "<AccordionTrigger>{section.title}</AccordionTrigger>",
+    )
+    expect(runtimeGallerySource).toContain('title: "Primary"')
+    expect(runtimeGallerySource).toContain('title: "Border & Input"')
+    expect(runtimeGallerySource).toContain("ahtml-gallery-color-popover")
+    expect(runtimeGallerySource).toContain('value="dashboard"')
+    expect(runtimeGallerySource).toContain('value="mail"')
+    expect(runtimeGallerySource).toContain('value="colors"')
+    expect(runtimeGallerySource).toContain('setPreviewMode("selection")')
+    expect(runtimeGallerySource).toContain("Press Esc to release")
+    expect(runtimeGallerySource).toContain("ahtml-gallery-inspector-outline")
+    expect(runtimeGallerySource).toContain("Click to pin the current component")
+    expect(runtimeGallerySource).toContain("target.dataset.ahtmlPath")
+    expect(runtimeGallerySource).toContain("target.dataset.ahtmlRenderKind")
+    expect(runtimeGallerySource).toContain("target.dataset.ahtmlSource")
+    expect(runtimeGallerySource).toContain('label="Render"')
+    expect(runtimeGallerySource).toContain('label="Source"')
+    expect(runtimeGallerySource).toContain('label="Path"')
   })
 })

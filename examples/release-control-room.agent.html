@@ -1,0 +1,295 @@
+<meta-agent profile-ref="ops-compact" />
+
+<page title="发布控制室：把一次上线审查组织成可读页面">
+  <frame>
+    <stack>
+      <cluster>
+        <badge variant="secondary">Release Review</badge>
+        <badge variant="outline">ops-compact</badge>
+        <badge variant="default">Layout Primitives</badge>
+        <badge variant="ghost">Semantic Artifact</badge>
+      </cluster>
+
+      <alert title="这个案例是干什么的">
+        这不是一篇顺着往下流的普通文档，而是一块可审查的发布控制板。它故意把摘要、
+        风险、时间线、对照表、可折叠说明和读者输入放到同一页里，用来检查新 runtime
+        是否真的已经能靠 layout primitive 组织页面，而不是靠旧 document 模板硬撑。
+      </alert>
+
+      <split>
+        <card title="本次发布摘要">
+          <list variant="unordered">
+            <item>目标：把 artifact profile 和 layout realization 接到同一条 runtime 主链。</item>
+            <item>重点：检查 page 壳层、split/grid 节奏和 field 类组件的实际落位。</item>
+            <item>交付：一份能预览、能人工巡检、能对比 profile 表达差异的静态 artifact。</item>
+          </list>
+          <separator />
+          <progress value="72" />
+          <alert title="当前状态">
+            72% 代表主体结构已经完成，剩下的是人工体验、异常排查和局部视觉校正。
+          </alert>
+        </card>
+
+        <stack>
+          <card title="风险温度">
+            <cluster>
+              <badge variant="default">runtime host</badge>
+              <badge variant="secondary">profile bridge</badge>
+              <badge variant="outline">layout shell</badge>
+            </cluster>
+            <separator />
+            <table>
+              <row>
+                <cell>风险项</cell>
+                <cell>当前判断</cell>
+              </row>
+              <row>
+                <cell>布局节奏过挤</cell>
+                <cell>仍需人工看真实页面，不宜只看代码。</cell>
+              </row>
+              <row>
+                <cell>字段类组件错位</cell>
+                <cell>要重点检查 label、description 和 control 的组合关系。</cell>
+              </row>
+              <row>
+                <cell>页面壳层过强</cell>
+                <cell>document shell 仍存在，需确认是否压制 layout primitive。</cell>
+              </row>
+            </table>
+          </card>
+
+          <card title="值班偏好">
+            <switch
+              label="优先看结构问题"
+              checked="true"
+              description="先检查 split、grid、switcher 的真实排布。"
+            />
+            <separator />
+            <switch
+              label="优先看视觉问题"
+              checked="false"
+              description="如果先开这一项，注意观察 page 壳层和卡片密度。"
+            />
+            <separator />
+            <checkbox
+              label="我会打开 DevTools 看最终 DOM"
+              checked="true"
+              description="这比只看 authoring source 更容易定位 renderer bridge 问题。"
+            />
+          </card>
+        </stack>
+      </split>
+
+      <grid>
+        <card title="你应该重点盯什么">
+          <list variant="ordered">
+            <item>页面是否还是强烈像“单栏文章”。</item>
+            <item>grid 和 split 有没有真的把内容切开。</item>
+            <item>badge、alert、field 之间的节奏是否一致。</item>
+          </list>
+        </card>
+
+        <card title="这页为什么适合验收">
+          <alert title="原因">
+            它同时覆盖摘要、状态、表格、交互字段和多种 layout primitive，足够暴露结构 bug，
+            又不会像完整业务页面那样把问题藏进太多细节里。
+          </alert>
+        </card>
+
+        <card title="人工巡检提示">
+          <list variant="unordered">
+            <item>先在桌面宽度看整体分区，再缩窄窗口看 reflow。</item>
+            <item>看 cluster 是否自然换行，而不是突然挤压内容。</item>
+            <item>看 frame 是否只做边界，不要偷偷重新定义内部结构。</item>
+          </list>
+        </card>
+      </grid>
+
+      <switcher>
+        <card title="阅读入口 A">
+          先看摘要和风险判断，适合想快速知道这次重构有没有真正落地的人。
+        </card>
+        <card title="阅读入口 B">
+          先看下面的 tabs 和 accordion，适合想直接验证 runtime bridge 的人。
+        </card>
+        <card title="阅读入口 C">
+          先看字段类组件，适合专门找 field composition 视觉 bug 的人。
+        </card>
+      </switcher>
+
+      <tabs>
+        <tab value="timeline" label="时间线">
+          <stack>
+            <card title="重构推进节奏">
+              <table>
+                <row>
+                  <cell>阶段</cell>
+                  <cell>动作</cell>
+                  <cell>结果</cell>
+                </row>
+                <row>
+                  <cell>第一步</cell>
+                  <cell>把 `style-ref` 退场，统一到 `profile-ref`。</cell>
+                  <cell>公开 contract 和运行时状态口径一致了。</cell>
+                </row>
+                <row>
+                  <cell>第二步</cell>
+                  <cell>把 globalLayout 和 componentLayout 接进 artifact profile。</cell>
+                  <cell>layout primitive 有了正式配置来源。</cell>
+                </row>
+                <row>
+                  <cell>第三步</cell>
+                  <cell>把 runtime host、gallery、preview 接到同一个 profile 模型。</cell>
+                  <cell>页面、gallery、构建产物不再各说各话。</cell>
+                </row>
+              </table>
+            </card>
+
+            <split>
+              <card title="当前已经确定的事实">
+                <list variant="unordered">
+                  <item>layout primitive 已经不是 runtime-template 私藏逻辑。</item>
+                  <item>page 外层仍保留 document/gallery 两种 policy。</item>
+                  <item>人工视觉验收仍然必要，因为 CSS 壳层还可能盖过结构意图。</item>
+                </list>
+              </card>
+
+              <card title="下一段最值得怀疑的地方">
+                <alert variant="destructive" title="重点怀疑">
+                  如果你看到页面仍然明显像传统文档，那通常不是 authoring 写错了，而是外层
+                  shell policy 或 layout projection 还在替页面做额外决定。
+                </alert>
+              </card>
+            </split>
+          </stack>
+        </tab>
+
+        <tab value="review" label="审查清单">
+          <stack>
+            <accordion>
+              <accordion-item value="layout" title="Layout primitive 是否真的接管了结构">
+                <list variant="unordered">
+                  <item>split 是否形成两栏，而不是两张卡片顺序堆叠。</item>
+                  <item>grid 是否形成重复面板区，而不是看起来像普通 stack。</item>
+                  <item>switcher 缩窄时是否自然重排，而不是硬挤压。</item>
+                </list>
+              </accordion-item>
+
+              <accordion-item value="fields" title="Field 类组件是否存在样式错配">
+                <list variant="unordered">
+                  <item>看 label 和 control 是否分离得奇怪。</item>
+                  <item>看 description 是否突然形成异常缩进或断行。</item>
+                  <item>看 slider、checkbox、switch 是否共享一致的 field 节奏。</item>
+                </list>
+              </accordion-item>
+
+              <accordion-item value="shell" title="页面壳层是否还在强推文档姿势">
+                <list variant="unordered">
+                  <item>看整体宽度是不是被 page shell 强行收窄。</item>
+                  <item>看上下 padding 是否过重，导致布局显得拥挤。</item>
+                  <item>看 frame 是否只是边界组件，而不是二次决定内容结构。</item>
+                </list>
+              </accordion-item>
+            </accordion>
+
+            <card title="审查人输入面板">
+              <input
+                label="你第一眼看到的主要问题"
+                value="整体还是略像文档页，不够像控制板"
+                description="用一句话写出你最先感受到的不对劲。"
+              />
+              <separator />
+              <textarea
+                label="详细备注"
+                value="重点检查 page 壳层是否仍旧定义了过强的宽度、padding 和文档流姿势；同时观察 split 与 grid 在当前 profile 下是否真的形成分区。"
+                description="这块区域适合记录带判断的长备注。"
+              />
+              <separator />
+              <slider
+                label="你对当前页面结构自由度的评分"
+                value="64"
+                description="如果 layout 真正接管结构，这个值通常不会太低。"
+              />
+            </card>
+          </stack>
+        </tab>
+
+        <tab value="signals" label="信号面板">
+          <split>
+            <card title="决策分流">
+              <radio-group
+                label="你会先检查哪条线"
+                value="runtime"
+                description="单选表达当前最优先的检查入口。"
+              >
+                <option value="runtime" label="runtime">
+                  先检查 layout projection 和 artifact shell。
+                </option>
+                <option value="schema" label="schema">
+                  先检查 public contract 有没有暴露出错误字段。
+                </option>
+                <option value="visual" label="visual">
+                  先从真实页面感受回推问题位置。
+                </option>
+              </radio-group>
+              <separator />
+              <toggle-group
+                label="你今天的检查节奏"
+                value="深挖"
+                description="同样的页面，不同节奏会导致不同的 bug 发现顺序。"
+              >
+                <option value="速看" label="速看">先扫全局，找到最明显的问题。</option>
+                <option value="深挖" label="深挖">沿着一个 root bug 往下挖到结构层。</option>
+                <option value="对照" label="对照">边看 DOM 边看 authoring source。</option>
+              </toggle-group>
+            </card>
+
+            <stack>
+              <card title="对照选择器">
+                <select
+                  label="你想优先对比哪个 profile"
+                  value="ops-compact"
+                  description="先看紧凑 profile 更容易暴露节奏问题。"
+                >
+                  <option value="report-default" label="report-default">
+                    更偏文档表达，适合观察 document shell 残留。
+                  </option>
+                  <option value="ops-compact" label="ops-compact">
+                    更偏控制板表达，适合检查 layout 是否生效。
+                  </option>
+                  <option value="review-dense" label="review-dense">
+                    更密集，适合暴露拥挤和错位问题。
+                  </option>
+                </select>
+                <separator />
+                <combobox
+                  label="你最想追查的层级"
+                  value="layout projection"
+                  description="用来表达这轮排查最可能的根因落点。"
+                >
+                  <option value="schema" label="schema">
+                    看 authoring surface 和公开 contract 是否有歧义。
+                  </option>
+                  <option value="layout projection" label="layout projection">
+                    看 layout primitive 怎么被投影成最终 DOM 与 style。
+                  </option>
+                  <option value="artifact shell" label="artifact shell">
+                    看 document/gallery 壳层是否覆盖了内部布局意图。
+                  </option>
+                </combobox>
+              </card>
+
+              <card title="最终判断准备度">
+                <progress value="38" />
+                <alert title="还不够">
+                  38% 代表你已经有了怀疑对象，但还没把视觉现象、DOM 结构和 renderer 逻辑
+                  三者完全对上。
+                </alert>
+              </card>
+            </stack>
+          </split>
+        </tab>
+      </tabs>
+    </stack>
+  </frame>
+</page>

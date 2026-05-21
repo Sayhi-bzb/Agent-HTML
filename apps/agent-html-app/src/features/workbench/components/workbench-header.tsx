@@ -1,8 +1,10 @@
 import { EyeIcon, FileCode2Icon, HammerIcon, InspectIcon } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ShellPaneHeader } from "@/features/app-shell/components/shell-content"
+import {
+  ShellActionButton,
+  ShellPaneHeader,
+} from "@/features/app-shell/components/shell-content"
 import type { WorkbenchView } from "@/lib/types"
 
 type WorkbenchHeaderProps = {
@@ -25,16 +27,16 @@ export function WorkbenchHeader({
       gap="base"
       leading={
         <Tabs onValueChange={(value) => onViewChange(value as WorkbenchView)} value={activeView}>
-          <TabsList>
-            <TabsTrigger disabled={interactionLocked} value="preview">
+          <TabsList className="app-shell-tabs-list" variant="line">
+            <TabsTrigger className="app-shell-tabs-trigger" disabled={interactionLocked} value="preview">
               <EyeIcon data-icon="inline-start" />
               Preview
             </TabsTrigger>
-            <TabsTrigger disabled={interactionLocked} value="source">
+            <TabsTrigger className="app-shell-tabs-trigger" disabled={interactionLocked} value="source">
               <FileCode2Icon data-icon="inline-start" />
               Source
             </TabsTrigger>
-            <TabsTrigger disabled={interactionLocked} value="inspect">
+            <TabsTrigger className="app-shell-tabs-trigger" disabled={interactionLocked} value="inspect">
               <InspectIcon data-icon="inline-start" />
               Inspect
             </TabsTrigger>
@@ -43,26 +45,14 @@ export function WorkbenchHeader({
       }
       trailing={
         <>
-          <Button
-            disabled={interactionLocked}
-            onClick={onBuild}
-            size="sm"
-            type="button"
-            variant="outline"
-          >
+          <ShellActionButton disabled={interactionLocked} onClick={onBuild}>
             <HammerIcon data-icon="inline-start" />
             Build
-          </Button>
-          <Button
-            disabled={interactionLocked}
-            onClick={onInspect}
-            size="sm"
-            type="button"
-            variant="outline"
-          >
+          </ShellActionButton>
+          <ShellActionButton disabled={interactionLocked} onClick={onInspect}>
             <InspectIcon data-icon="inline-start" />
-            Inspect
-          </Button>
+            Review
+          </ShellActionButton>
         </>
       }
     />

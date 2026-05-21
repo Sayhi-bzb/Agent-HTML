@@ -8,6 +8,7 @@ import type {
   SessionDetail,
   SessionSummary,
 } from "./types"
+import { getDefaultMockPreviewArtifact } from "@/features/app-shell/mock-preview-artifact"
 
 const now = "2026-05-15T12:45:00.000Z"
 
@@ -48,14 +49,14 @@ const diagnostics: DiagnosticItem[] = [
   {
     id: "diag-1",
     severity: "warning",
-    message: "Build preview is older than source changes.",
+    message: "Preview stale.",
     source: "build",
     code: "preview-stale",
   },
   {
     id: "diag-2",
     severity: "info",
-    message: "No schema violations detected in the latest source snapshot.",
+    message: "Clear.",
     source: "source",
   },
 ]
@@ -72,150 +73,6 @@ const currentBuild: BuildRunSummary = {
   previewPath: currentSession.previewPath,
 }
 
-// This mock preview is sample artifact content for the preview pane.
-// It intentionally does not define the app shell theme contract.
-const previewHtml = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Vendor Decision</title>
-    <style>
-      :root {
-        color-scheme: dark;
-        font-family: "Inter", system-ui, sans-serif;
-        background: #0f141b;
-        color: #eef3fb;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        min-height: 100vh;
-        background:
-          radial-gradient(circle at top, rgba(255, 122, 26, 0.08), transparent 22%),
-          linear-gradient(180deg, #0d1218 0%, #10151c 100%);
-        padding: 0;
-      }
-      main {
-        max-width: 980px;
-        margin: 0 auto;
-        display: grid;
-        gap: 0;
-        min-height: 100vh;
-        padding: 32px 36px 40px;
-      }
-      .review-shell {
-        display: grid;
-        gap: 28px;
-      }
-      .topline {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: #90a0b8;
-        font-size: 12px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-      .status {
-        color: #ffbf7f;
-        font-weight: 600;
-      }
-      h1 {
-        margin: 0;
-        max-width: 14ch;
-        font-size: 44px;
-        line-height: 1.02;
-        letter-spacing: -0.05em;
-      }
-      p {
-        margin: 0;
-        color: #9aabc4;
-        line-height: 1.6;
-      }
-      .summary {
-        max-width: 60ch;
-        font-size: 18px;
-        color: #a8b7cc;
-      }
-      .meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      .chip {
-        border: 1px solid rgba(145, 167, 199, 0.1);
-        border-radius: 999px;
-        padding: 5px 10px;
-        color: #cfd8e5;
-        font-size: 12px;
-      }
-      .divider {
-        height: 1px;
-        background: rgba(145, 167, 199, 0.12);
-      }
-      .notes {
-        display: grid;
-        gap: 16px;
-      }
-      .notes-head {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 16px;
-      }
-      .notes h2 {
-        margin: 0;
-        font-size: 15px;
-        letter-spacing: -0.02em;
-      }
-      .notes-meta {
-        color: #76849b;
-        font-size: 13px;
-      }
-      ul {
-        margin: 0;
-        padding-left: 20px;
-        color: #dbe4ef;
-        display: grid;
-        gap: 12px;
-      }
-      li::marker {
-        color: #6c7b92;
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <section class="review-shell">
-        <div class="topline">
-          <span>Vendor decision</span>
-          <span class="status">Recommendation</span>
-        </div>
-        <h1>Choose Vendor A for the initial rollout.</h1>
-        <p class="summary">Lower migration risk and faster delivery make Vendor A the safest launch path, with targeted monitoring after release.</p>
-        <div class="meta">
-          <span class="chip">Lower migration risk</span>
-          <span class="chip">Faster initial rollout</span>
-          <span class="chip">Needs post-launch monitoring</span>
-        </div>
-        <div class="divider"></div>
-        <section class="notes">
-          <div class="notes-head">
-            <h2>Decision notes</h2>
-            <span class="notes-meta">Review before publish</span>
-          </div>
-          <ul>
-            <li>Migration complexity stays inside the current delivery window.</li>
-            <li>Support load is lower during the initial release phase.</li>
-            <li>Observability and rollback playbooks still need to be finalized.</li>
-          </ul>
-        </section>
-      </section>
-    </main>
-  </body>
-</html>`
-
 const currentInspect: InspectSnapshot = {
   sessionId: currentSession.summary.id,
   generatedAt: now,
@@ -229,7 +86,7 @@ const chat: AgentShellMessage[] = [
     id: "msg-1",
     role: "system",
     createdAt: now,
-    text: "Agent shell is scaffolded. Live provider integration is intentionally disabled in v1.",
+    text: "Review ready.",
     kind: "message",
   },
   {
@@ -237,10 +94,9 @@ const chat: AgentShellMessage[] = [
     role: "placeholder",
     createdAt: now,
     text: [
-      "Proposal for Vendor Decision",
-      "- [build] Rebuild after updating the decision notes so Preview matches the latest source.",
-      "- [review] Compare the refreshed preview against the current recommendation card before sharing the artifact.",
-      "- [inspect] Clear the stale-preview warning in Inspect before treating this session as ready.",
+      "Vendor Decision",
+      "Refresh the preview.",
+      "Clear the warning.",
     ].join("\n"),
     kind: "proposal-placeholder",
     proposalSnapshot: {
@@ -251,7 +107,7 @@ const chat: AgentShellMessage[] = [
 ]
 
 const currentLogs: LogSnapshot = {
-  stdout: "{\n  \"kind\": \"agent-html-build-result\",\n  \"ok\": true\n}",
+  stdout: "",
   stderr: "",
 }
 
@@ -264,4 +120,4 @@ export const mockAppState: AppState = {
   chat,
 }
 
-export const mockPreviewHtml = previewHtml
+export const mockPreviewHtml = getDefaultMockPreviewArtifact()

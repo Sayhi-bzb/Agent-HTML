@@ -1,4 +1,4 @@
-import type { SessionDetail, SourceValidationSnapshot } from "@/lib/types"
+import type { SourceValidationSnapshot } from "@/lib/types"
 
 import {
   ShellLoadingRow,
@@ -11,7 +11,6 @@ import {
 import { WorkbenchCard } from "./workbench-card"
 
 type SourceTabProps = {
-  session: SessionDetail
   draftSource: string
   hasUnsavedChanges: boolean
   interactionLocked: boolean
@@ -25,7 +24,6 @@ type SourceTabProps = {
 }
 
 export function SourceTab({
-  session,
   draftSource,
   hasUnsavedChanges,
   interactionLocked,
@@ -45,11 +43,10 @@ export function SourceTab({
           interactionLocked={interactionLocked}
           onSaveSource={onSaveSource}
           onValidate={onValidate}
-          sourcePath={session.sourcePath}
         />
       }
     >
-      {saving ? <ShellLoadingRow>Saving source</ShellLoadingRow> : null}
+      {saving ? <ShellLoadingRow>Save</ShellLoadingRow> : null}
       <SourceEditorField
         disabled={sourceEditingLocked}
         onChange={(event) => onDraftSourceChange(event.target.value)}

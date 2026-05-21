@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2023", "DOM"],
+    "types": ["node", "react", "react-dom"],
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@/components/ui/slider": [
+        "./src/cli/runtime-host/components/ui/slider.tsx"
+      ],
+      "@/components/ui/*": [
+        "../../scripts/verify-pack/shadcn-test-fixtures/components/ui/*"
+      ],
+      "@/lib/*": [
+        "./src/cli/runtime-host/lib/*",
+        "../../apps/agent-html-app/src/lib/*"
+      ]
+    }
+  },
+  "include": ["src/cli/runtime-host/**/*.ts", "src/cli/runtime-host/**/*.tsx"]
+}

@@ -123,7 +123,9 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-export function resolveFocusableThemeToken(token: string): ThemeTokenName | null {
+export function resolveFocusableThemeToken(
+  token: string,
+): ThemeTokenName | null {
   const normalizedToken = token
     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
     .replace(/_/g, "-")

@@ -1,18 +1,14 @@
-import { BotIcon, SparklesIcon, TerminalSquareIcon } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import type { AgentShellMessage, RuntimeReport } from "@/lib/types"
 
 import {
   ShellEmptyCard,
   ShellLoadingRow,
-  ShellPaneHeader,
   ShellPaneScaffold,
-  ShellPaneLabel,
   ShellScrollSurface,
 } from "@/features/app-shell/components/shell-content"
 import { MessageCard } from "./message-card"
 import { ShellComposer } from "./shell-composer"
+import { ShellHeader } from "./shell-header"
 import { RuntimeReportCard } from "./runtime-report-card"
 
 export type ShellPaneProps = {
@@ -37,15 +33,15 @@ function getShellStatusLabel(
   checking: boolean,
 ): string {
   if (sending) {
-    return "Sending"
+    return "send"
   }
 
   if (drafting) {
-    return "Drafting"
+    return "draft"
   }
 
   if (checking) {
-    return "Checking"
+    return "check"
   }
 
   return ""
@@ -69,52 +65,28 @@ export function ShellPane({
   return (
     <ShellPaneScaffold
       header={
-        <ShellPaneHeader
-          leading={
-            <ShellPaneLabel
-              icon={<BotIcon className="app-shell-inline-icon" />}
-              title="Shell"
-            />
-          }
-          trailing={
-            <>
-              <Button
-                disabled={proposalLocked}
-                onClick={onDraftProposal}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <SparklesIcon data-icon="inline-start" />
-                Proposal
-              </Button>
-              <Button
-                disabled={runtimeCheckLocked}
-                onClick={onRuntimeCheck}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <TerminalSquareIcon data-icon="inline-start" />
-                Doctor
-              </Button>
-            </>
-          }
+        <ShellHeader
+          onDraftProposal={onDraftProposal}
+          onRuntimeCheck={onRuntimeCheck}
+          proposalLocked={proposalLocked}
+          runtimeCheckLocked={runtimeCheckLocked}
         />
       }
       content={
-        <ShellScrollSurface density="roomy">
-          {drafting ? <ShellLoadingRow>Drafting proposal</ShellLoadingRow> : null}
+        <ShellScrollSurface className="app-shell-section-stack" density="roomy">
+          {drafting ? <ShellLoadingRow>Draft</ShellLoadingRow> : null}
 
-          {checking ? <ShellLoadingRow>Running doctor</ShellLoadingRow> : null}
-
-          {runtimeReport ? <RuntimeReportCard runtimeReport={runtimeReport} /> : null}
+          {checking ? <ShellLoadingRow>Check</ShellLoadingRow> : null}
 
           {messages.map((message) => (
             <MessageCard key={message.id} message={message} />
           ))}
 
-          {messages.length === 0 ? <ShellEmptyCard>Empty</ShellEmptyCard> : null}
+          {runtimeReport && !checking ? (
+            <RuntimeReportCard runtimeReport={runtimeReport} />
+          ) : null}
+
+          {messages.length === 0 ? <ShellEmptyCard>Idle</ShellEmptyCard> : null}
         </ShellScrollSurface>
       }
       footer={

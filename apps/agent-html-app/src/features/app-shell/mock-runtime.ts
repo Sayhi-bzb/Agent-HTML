@@ -11,6 +11,7 @@ import type {
   SourceValidationSnapshot,
   WorkbenchView,
 } from "@/lib/types"
+import { createMockPreviewArtifact } from "./mock-preview-artifact"
 
 type MockSessionSeed = {
   source: string
@@ -81,22 +82,22 @@ function getMockSeed(summary: SessionSummary): MockSessionSeed {
 
 <page title="${summary.name}">
   <alert title="Recommendation" tone="neutral">
-    Review the latest changes for ${summary.name} before sharing the artifact.
+    Hold the current line.
   </alert>
 
   <card title="Decision Notes">
     <list variant="unordered">
       <item>Confirm the current recommendation.</item>
-      <item>Rebuild the preview before final review.</item>
-      <item>Check inspect output for unresolved warnings.</item>
+      <item>Refresh the preview.</item>
+      <item>Clear any open warning.</item>
     </list>
   </card>
 </page>`,
-    fallbackLead: `Review the latest changes for ${summary.name} before sharing the artifact.`,
+    fallbackLead: "Hold the current line.",
     fallbackNotes: [
       "Confirm the current recommendation.",
-      "Rebuild the preview before final review.",
-      "Check inspect output for unresolved warnings.",
+      "Refresh the preview.",
+      "Clear any open warning.",
     ],
   }
 }
@@ -163,7 +164,7 @@ function createDiagnostics(
     diagnostics.push({
       id: `${summary.id}-missing-page`,
       severity: "error",
-      message: "Source is missing a <page> root node.",
+      message: "Page missing.",
       source: "source",
       code: "page-missing",
     })
@@ -173,7 +174,7 @@ function createDiagnostics(
     diagnostics.push({
       id: `${summary.id}-preview-stale`,
       severity: "warning",
-      message: "Build preview is older than the latest saved source.",
+      message: "Preview stale.",
       source: "build",
       code: "preview-stale",
     })
@@ -183,22 +184,13 @@ function createDiagnostics(
     diagnostics.push({
       id: `${summary.id}-structure-ok`,
       severity: "info",
-      message: "Mock review found no structural issues in the current source.",
+      message: "Clear.",
       source: "source",
       code: "structure-ok",
     })
   }
 
   return diagnostics
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;")
 }
 
 export function createInitialMockSessionSources(
@@ -268,17 +260,11 @@ export function createMockLogs(
   summary: SessionSummary,
   source: string,
 ): LogSnapshot {
+  const diagnostics = createDiagnostics(summary, source, true)
+  const issue = diagnostics.find((item) => item.severity !== "info")
+
   return {
-    stdout: JSON.stringify(
-      {
-        kind: "agent-html-mock-runtime",
-        sessionId: summary.id,
-        status: summary.status,
-        structure: summarizeStructure(source),
-      },
-      null,
-      2,
-    ),
+    stdout: issue ? `${issue.message}\n${summarizeStructure(source)}` : "",
     stderr: "",
   }
 }
@@ -304,94 +290,7 @@ export function createMockPreviewHtml(
   const notes = extractListItems(source)
   const finalNotes = notes.length > 0 ? notes : seed.fallbackNotes
 
-  // This inline HTML/CSS is sample artifact content for the preview pane.
-  // It intentionally does not inherit the app shell design system contract.
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(title)}</title>
-    <style>
-      :root {
-        color-scheme: dark;
-        font-family: ui-sans-serif, system-ui, sans-serif;
-        background: #0f141b;
-        color: #eef3fb;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        min-height: 100vh;
-        background:
-          radial-gradient(circle at top, rgba(255, 122, 26, 0.08), transparent 22%),
-          linear-gradient(180deg, #0d1218 0%, #10151c 100%);
-        padding: 0;
-      }
-      main {
-        max-width: 980px;
-        margin: 0 auto;
-        display: grid;
-        gap: 28px;
-        min-height: 100vh;
-        padding: 32px 36px 40px;
-      }
-      .topline {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: #90a0b8;
-        font-size: 12px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-      .status {
-        color: #ffbf7f;
-        font-weight: 600;
-      }
-      h1 {
-        margin: 0;
-        max-width: 14ch;
-        font-size: 44px;
-        line-height: 1.02;
-        letter-spacing: -0.05em;
-      }
-      p {
-        margin: 0;
-        color: #9aabc4;
-        line-height: 1.6;
-      }
-      ul {
-        margin: 0;
-        padding-left: 20px;
-        color: #dbe4ef;
-        display: grid;
-        gap: 12px;
-      }
-      li::marker {
-        color: #6c7b92;
-      }
-      .divider {
-        height: 1px;
-        background: rgba(145, 167, 199, 0.12);
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <div class="topline">
-        <span>${escapeHtml(summary.name)}</span>
-        <span class="status">${escapeHtml(summary.status)}</span>
-      </div>
-      <h1>${escapeHtml(title)}</h1>
-      <p>${escapeHtml(lead)}</p>
-      <div class="divider"></div>
-      <ul>
-        ${finalNotes.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-      </ul>
-    </main>
-  </body>
-</html>`
+  return createMockPreviewArtifact(summary, title, lead, finalNotes)
 }
 
 export function createMockValidationSnapshot(
@@ -429,31 +328,31 @@ export function createMockRuntimeReport(): RuntimeReport {
         category: "runtime",
         name: "mock-mode",
         status: "ok",
-        detail: "Mock runtime state is active in the browser workspace.",
+        detail: "Browser session active.",
       },
       {
         category: "preview",
         name: "preview-renderer",
         status: "ok",
-        detail: "Preview HTML is generated from the current mock session source.",
+        detail: "Preview ready.",
       },
       {
         category: "inspect",
         name: "inspect-pipeline",
         status: "ok",
-        detail: "Inspect diagnostics are derived from the current source snapshot.",
+        detail: "Inspect ready.",
       },
       {
         category: "network",
         name: "provider-link",
         status: "skip",
-        detail: "Live provider integration is intentionally unavailable in mock mode.",
+        detail: "Provider offline.",
       },
       {
         category: "sessions",
         name: "session-store",
         status: "ok",
-        detail: "Session switching is handled locally without a Tauri backend.",
+        detail: "Local sessions ready.",
       },
     ],
   }
@@ -473,10 +372,9 @@ export function createMockProposalMessage(
     createdAt: nowIso(),
     kind: "proposal-placeholder",
     text: [
-      `Proposal for ${title}`,
-      `- [source] Re-read the current recommendation before editing downstream copy.`,
-      `- [build] Rebuild the preview after changing the session source so the artifact is current.`,
-      `- [review] Verify ${focus[0]} before treating this session as ready.`,
+      title,
+      `Refresh the artifact.`,
+      `Verify ${focus[0]}.`,
     ].join("\n"),
     proposalSnapshot: {
       source,
@@ -495,7 +393,7 @@ export function createMockBaseChat(
       role: "system",
       createdAt: summary.updatedAt,
       kind: "message",
-      text: "Agent shell is running in local mock mode.",
+      text: "Review ready.",
     },
     createMockProposalMessage(summary, source),
   ]

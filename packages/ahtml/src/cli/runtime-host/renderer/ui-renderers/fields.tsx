@@ -1,11 +1,6 @@
-import React from "react"
-
 import { resolveElement } from "../elements"
 import type { RendererKind } from "../kinds"
-import {
-  applyPropMappings,
-  getRendererPropMappings,
-} from "../renderer-props"
+import { applyPropMappings, getRendererPropMappings } from "../renderer-props"
 import type {
   AgentComponentNode,
   RendererPath,

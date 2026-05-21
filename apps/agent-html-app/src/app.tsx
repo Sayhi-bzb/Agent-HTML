@@ -41,6 +41,7 @@ export function App() {
         <TopBar
           activeView={activeView}
           hasError={Boolean(commandState.error)}
+          sessionName={currentSession.summary.name}
           sessionDirectory={currentSession.summary.directory}
         />
 

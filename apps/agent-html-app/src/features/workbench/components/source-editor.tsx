@@ -30,11 +30,11 @@ export function SourceValidationSummary({
   return (
     <ShellStatusRow>
       {validating ? (
-        <ShellLoadingRow>Validating</ShellLoadingRow>
+        <ShellLoadingRow>Check</ShellLoadingRow>
       ) : validation ? (
         <>
           <ShellValidationStatusBadge status={validation.status} />
-          <span>{validation.structureSummary}</span>
+          {validation.status === "invalid" ? <span>{validation.diagnostics.length}</span> : null}
         </>
       ) : null}
     </ShellStatusRow>

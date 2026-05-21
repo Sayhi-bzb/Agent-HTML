@@ -53,7 +53,8 @@ export const colorTokenSections: GalleryColorTokenSection[] = [
     tokenNames: ["secondary", "secondaryForeground"],
   },
   {
-    description: "Accent colors for selection, hover, and focus-adjacent emphasis.",
+    description:
+      "Accent colors for selection, hover, and focus-adjacent emphasis.",
     id: "accent-colors",
     title: "Accent",
     tokenNames: ["accent", "accentForeground"],
@@ -65,19 +66,22 @@ export const colorTokenSections: GalleryColorTokenSection[] = [
     tokenNames: ["background", "foreground"],
   },
   {
-    description: "Card surface pair for nested preview shells and content panels.",
+    description:
+      "Card surface pair for nested preview shells and content panels.",
     id: "card-colors",
     title: "Card",
     tokenNames: ["card", "cardForeground"],
   },
   {
-    description: "Popover surface pair for menus, pickers, and floating editors.",
+    description:
+      "Popover surface pair for menus, pickers, and floating editors.",
     id: "popover-colors",
     title: "Popover",
     tokenNames: ["popover", "popoverForeground"],
   },
   {
-    description: "Muted background and text used for low-priority surfaces and captions.",
+    description:
+      "Muted background and text used for low-priority surfaces and captions.",
     id: "muted-colors",
     title: "Muted",
     tokenNames: ["muted", "mutedForeground"],
@@ -89,19 +93,22 @@ export const colorTokenSections: GalleryColorTokenSection[] = [
     tokenNames: ["destructive", "destructiveForeground"],
   },
   {
-    description: "Border, input, and focus ring tokens that hold the editor shell together.",
+    description:
+      "Border, input, and focus ring tokens that hold the editor shell together.",
     id: "border-input-colors",
     title: "Border & Input",
     tokenNames: ["border", "input", "ring"],
   },
   {
-    description: "Chart tokens for dashboard data marks and compact analytics surfaces.",
+    description:
+      "Chart tokens for dashboard data marks and compact analytics surfaces.",
     id: "chart-colors",
     title: "Chart",
     tokenNames: ["chart1", "chart2", "chart3", "chart4", "chart5"],
   },
   {
-    description: "Sidebar tokens for app navigation shells and inset workbench frames.",
+    description:
+      "Sidebar tokens for app navigation shells and inset workbench frames.",
     id: "sidebar-colors",
     title: "Sidebar",
     tokenNames: [

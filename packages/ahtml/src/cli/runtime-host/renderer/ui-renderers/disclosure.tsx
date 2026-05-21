@@ -1,5 +1,3 @@
-import React from "react"
-
 import { resolveElement } from "../elements"
 import type { RendererKind } from "../kinds"
 import type {
@@ -59,7 +57,11 @@ export function createDisclosureUiRenderers(context: UiRendererContext) {
                 {getStructuredItemHeading(item, itemHeadingProp)}
               </Trigger>
               <Content>
-                {context.renderChildren(item, appendRendererPath(path, index), "prose")}
+                {context.renderChildren(
+                  item,
+                  appendRendererPath(path, index),
+                  "prose",
+                )}
               </Content>
             </Item>
           ))}
@@ -131,7 +133,11 @@ export function createDisclosureUiRenderers(context: UiRendererContext) {
               key={getStructuredItemValue(tab, itemValueProp)}
               value={getStructuredItemValue(tab, itemValueProp)}
             >
-              {context.renderChildren(tab, appendRendererPath(path, index), "prose")}
+              {context.renderChildren(
+                tab,
+                appendRendererPath(path, index),
+                "prose",
+              )}
             </Content>
           ))}
         </Root>

@@ -1,254 +1,488 @@
-## Overview
-
-Cursor's marketing site reads as a quietly-confident developer brand that believes in editorial calm over IDE-darkness. The base canvas is **warm cream** (`{colors.canvas}` — #f7f7f4) holding warm near-black ink (`{colors.ink}` — #26251e) for body and display alike. The single brand voltage is **Cursor Orange** (`{colors.primary}` — #f54e00) reserved for primary CTAs and the wordmark — used scarcely.
-
-Type runs **CursorGothic** as the single sans family. Display sits at weight 400 with negative letter-spacing — a magazine-editorial voice rather than tech-bombastic. JetBrains Mono carries every code surface (and code surfaces are roughly half the page).
-
-The brand's strongest visual signature is the **AI-timeline pill palette**: five pastel pills (peach `{colors.timeline-thinking}`, mint `{colors.timeline-grep}`, blue `{colors.timeline-read}`, lavender `{colors.timeline-edit}`, gold `{colors.timeline-done}`) marking AI-action stages inside in-product timeline visualizations. Used only in product UI — never as system action colors.
-
-**Key Characteristics:**
-- Warm cream canvas, not white. Ink is warm (#26251e), not pure black.
-- Single CTA color: `{colors.primary}` (Cursor Orange #f54e00). Used scarcely.
-- Display weight stays at 400 — never bold. Magazine voice.
-- AI timeline pastels: 5 dedicated tokens for in-product agent action stages.
-- Compact 8px CTA radius — developer dialect.
-- Hairline-only depth; no drop shadows.
-- 80px section rhythm.
-
-## Colors
-
-### Brand & Accent
-- **Cursor Orange** (`{colors.primary}` — #f54e00): Primary CTA pills, wordmark, hero accent. Used scarcely.
-- **Cursor Orange Active** (`{colors.primary-active}` — #d04200): Press state.
-
-### Surface
-- **Canvas** (`{colors.canvas}` — #f7f7f4): Warm cream page floor.
-- **Canvas Soft** (`{colors.canvas-soft}` — #fafaf7): IDE-pane background inside mockups.
-- **Surface Card** (`{colors.surface-card}` — #ffffff): Pure white card surface — slight contrast against the cream canvas.
-- **Surface Strong** (`{colors.surface-strong}` — #e6e5e0): Badges, tag pills.
-
-### Hairlines
-- **Hairline** (`{colors.hairline}` — #e6e5e0): 1px divider.
-- **Hairline Soft** (`{colors.hairline-soft}` — #efeee8): Lighter divider.
-- **Hairline Strong** (`{colors.hairline-strong}` — #cfcdc4): Stronger panel outline.
-
-### Text
-- **Ink** (`{colors.ink}` — #26251e): Display, body emphasis. Warm near-black.
-- **Body** (`{colors.body}` — #5a5852): Default running-text.
-- **Body Strong** (`{colors.body-strong}` — #26251e): Same as ink.
-- **Muted** (`{colors.muted}` — #807d72): Sub-titles.
-- **Muted Soft** (`{colors.muted-soft}` — #a09c92): Disabled text.
-- **On Primary** (`{colors.on-primary}` — #ffffff): White text on Cursor Orange.
-
-### Timeline (AI-action signature)
-- **Thinking** (`{colors.timeline-thinking}` — #dfa88f): Peach. Used inside in-product agent timeline only.
-- **Grep** (`{colors.timeline-grep}` — #9fc9a2): Mint.
-- **Read** (`{colors.timeline-read}` — #9fbbe0): Pastel blue.
-- **Edit** (`{colors.timeline-edit}` — #c0a8dd): Lavender.
-- **Done** (`{colors.timeline-done}` — #c08532): Warm gold.
+# agent-html-app Design System
 
-### Semantic
-- **Success** (`{colors.semantic-success}` — #1f8a65): Confirmation indicators.
-- **Error** (`{colors.semantic-error}` — #cf2d56): Validation errors.
+`agent-html-app` 是一个围绕 `ahtml session` 工作流组织的本地优先桌面工作台。  
+它不是 marketing site，不是通用 shadcn 组件展示页，也不是卡片驱动的 SaaS dashboard。
 
-## Typography
+这份文档是 `agent-html-app` 的设计源文件，用来约束：
 
-### Font Family
-**CursorGothic** is the licensed display + body family. Fallback: `system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif`. Code surfaces switch to **JetBrains Mono**.
+- 页面整体信息架构
+- 顶层样式与 token 的治理边界
+- `shadcn` primitive 的使用方式
+- 结构化 UI / wireframe workbench 的最终视觉方向
 
-### Hierarchy
+## 1. 产品定位
 
-| Token | Size | Weight | Line Height | Letter Spacing | Use |
-|---|---|---|---|---|---|
-| `{typography.display-mega}` | 72px | 400 | 1.1 | -2.16px | Homepage hero h1 |
-| `{typography.display-lg}` | 36px | 400 | 1.2 | -0.72px | Section heads |
-| `{typography.display-md}` | 26px | 400 | 1.25 | -0.325px | Sub-section heads |
-| `{typography.display-sm}` | 22px | 400 | 1.3 | -0.11px | Card group titles |
-| `{typography.title-md}` | 18px | 600 | 1.4 | 0 | Component titles |
-| `{typography.title-sm}` | 16px | 600 | 1.4 | 0 | List labels |
-| `{typography.body-md}` | 16px | 400 | 1.5 | 0 | Default body |
-| `{typography.body-tracked}` | 16px | 400 | 1.5 | 0.08px | Tracked editorial body |
-| `{typography.body-sm}` | 14px | 400 | 1.5 | 0 | Footer body |
-| `{typography.caption}` | 13px | 400 | 1.4 | 0 | Photo captions |
-| `{typography.caption-uppercase}` | 11px | 600 | 1.4 | 0.88px | Section labels, timeline pill labels |
-| `{typography.code}` | 13px | 400 | 1.5 | 0 | Code blocks — JetBrains Mono |
-| `{typography.button}` | 14px | 500 | 1.0 | 0 | CTA pill labels |
-| `{typography.nav-link}` | 14px | 500 | 1.4 | 0 | Top-nav menu |
+这个 app 的页面类型是：
 
-### Principles
-- **Display weight stays at 400.** Magazine voice, never bold.
-- **Negative letter-spacing on display only.** -0.11px to -2.16px tracking.
-- **JetBrains Mono on every code surface.**
+- `local-first desktop workbench`
+- `review studio`
+- `session workspace`
 
-### Note on Font Substitutes
-CursorGothic is licensed. Open-source substitute: **Inter** at weight 400 with letter-spacing -1.5%. Or **GT Sectra** for a more editorial feel.
+核心对象不是 marketing 内容，而是：
 
-## Layout
+- `Session`
+- `Preview`
+- `Source`
+- `Inspect`
+- `Agent Shell`
 
-### Spacing System
-- **Base unit:** 4px.
-- **Tokens:** `{spacing.xxs}` 4px · `{spacing.xs}` 8px · `{spacing.sm}` 12px · `{spacing.base}` 16px · `{spacing.md}` 20px · `{spacing.lg}` 24px · `{spacing.xl}` 32px · `{spacing.xxl}` 48px · `{spacing.section}` 80px.
-- **Section padding:** 80px.
+主目标是围绕单个 session 完成：
 
-### Grid & Container
-- Max content width: ~1200px.
-- Editorial body: 12-column grid.
-- Feature card grids: 2-up at desktop for splits, 3-up for benefits.
-- Footer: 5-column at desktop.
+- 编辑 source
+- 构建 preview
+- 运行 inspect
+- 在右侧 review rail 中完成审查与提案闭环
 
-### Whitespace Philosophy
-Generous editorial pacing — closer to a print magazine than a tech site. The cream canvas has plenty of breathing room; cards within bands sit close (16-24px gap).
+## 2. 三原则
 
-## Elevation & Depth
+这是 `agent-html-app` 的最高优先级设计治理原则。后续任何新增 UI、重构或视觉收敛，都必须先满足这三条。
 
-The system uses **hairline-only depth**. No drop shadows, no elevation tiers. Cards float above the canvas via 1px hairlines and the slight white-on-cream contrast.
+### 2.1 顶层 CSS
 
-| Level | Treatment | Use |
-|---|---|---|
-| Flat (canvas) | `{colors.canvas}` (#f7f7f4) | Body bands, footer |
-| Card | `{colors.surface-card}` (#ffffff) | Content cards |
-| Hairline border | 1px `{colors.hairline}` | Card outlines, dividers |
-| IDE pane | `{colors.canvas-soft}` (#fafaf7) | Inside IDE mockup cards |
+视觉和布局规则必须优先收敛到 app 顶层 CSS 和共享 shell contract。
 
-### Decorative Depth
-- **IDE-mockup cards** are the only "elevated" element. White card on cream canvas with internal pane structure mimicking the actual Cursor editor.
-- **Timeline pastel pills** add chromatic depth without surface elevation.
+具体要求：
 
-## Shapes
+- 新增样式优先进入顶层 token、共享 class、语义化 shell class。
+- 页面层不长期保留一次性 `style`、匿名 layout 常量、feature 内局部视觉规则。
+- pane spacing、header/footer rhythm、surface 语言、status 语言必须从共享入口统一定义。
+- 页面文件应消费设计系统，不应在页面层重新拼一套视觉体系。
 
-### Border Radius Scale
+设计含义：
 
-| Token | Value | Use |
-|---|---|---|
-| `{rounded.none}` | 0px | Reserved |
-| `{rounded.xs}` | 4px | Inline tags |
-| `{rounded.sm}` | 6px | Compact rows |
-| `{rounded.md}` | 8px | CTA buttons, form inputs |
-| `{rounded.lg}` | 12px | Cards, IDE panes |
-| `{rounded.xl}` | 16px | Larger feature cards (rare) |
-| `{rounded.pill}` | 9999px | Timeline pills, badges |
-| `{rounded.full}` | 9999px | Avatars (rare) |
+- 顶层 CSS 是系统入口，不是补丁层。
+- feature 组件默认只消费，不自行建立第二套风格语言。
 
-## Components
+### 2.2 直接使用 shadcn 原装组件
 
-### Top Navigation
+交互 primitive 统一从仓内 `@/components/ui/*` 出发。
 
-**`top-nav`** — Background `{colors.canvas}`, text `{colors.ink}`, height 64px. Layout: Cursor wordmark left, primary horizontal menu (Pricing / Features / Enterprise / Blog / Forum / Careers), Sign In + Download primary CTA right.
+具体要求：
 
-### Buttons
+- `Button`、`Input`、`Textarea`、`Tabs`、`Badge`、`Card`、`ScrollArea` 等交互 primitive 直接使用 shadcn 生成的组件。
+- 不复制一份自制基础控件来替代 shadcn。
+- 需要变化时，优先通过 token、variant、组合方式、语义 wrapper 调整。
+- feature 层允许封装 `ShellActionButton`、`ShellPaneHeader` 这类语义组件，但底层 primitive 仍应来自 shadcn。
 
-**`button-primary`** — The signature Cursor Orange CTA. Background `{colors.primary}`, text `{colors.on-primary}`, type `{typography.button}` (14px / 500), padding 10px × 18px, height 40px, rounded `{rounded.md}` (8px).
+设计含义：
 
-**`button-primary-active`** — Press state. Background `{colors.primary-active}`.
+- 我们要统一 primitive 来源，而不是统一写法表面上像 shadcn。
+- 不允许“视觉想收敛，于是回退到手搓基础按钮/输入框”。
 
-**`button-secondary`** — White card pill on cream canvas. Background `{colors.surface-card}`, text `{colors.ink}`, 1px `{colors.hairline-strong}` border.
+### 2.3 页面和布局统一消费 token
 
-**`button-tertiary-text`** — Inline ink text link.
+页面和布局必须统一消费 token，而不是依赖随手写的原子值或局部硬编码。
 
-**`button-download`** — Larger ink-canvas CTA. Background `{colors.ink}`, text `{colors.canvas}`, padding 12px × 20px, height 44px. Used for "Download for macOS" type CTAs.
+具体要求：
 
-### Hero & IDE Mockups
+- color、radius、spacing、pane padding、gap、border、surface 都必须吃 token。
+- 页面层不回流成 `p-* / gap-* / rounded-* / shadow-*` 的零散治理模式。
+- layout 值优先由共享变量表达，例如 shell header padding、top bar height、section padding。
+- 页面中的视觉收敛必须通过 token 和 contract 扩展完成，而不是在单页做一组例外规则。
 
-**`hero-band`** — Background `{colors.canvas}`, full-width display headline in `{typography.display-mega}` (72px / 400 / -2.16px), subhead in `{typography.body-md}`, two CTAs (`button-download` + `button-tertiary-text`), and a centered IDE-mockup card below the hero copy.
+设计含义：
 
-**`ide-mockup-card`** — A white card containing a multi-pane IDE mockup (sidebar + main editor + chat panel + terminal). Background `{colors.surface-card}`, rounded `{rounded.lg}` (12px), 1px `{colors.hairline}` border, no padding (panes fill the card edge-to-edge).
+- token 是治理入口，不是文档摆设。
+- layout 也是设计系统的一部分，不只是颜色和字号。
 
-**`ide-pane`** — Individual IDE pane inside the mockup. Background `{colors.canvas-soft}`, text `{colors.body}` in `{typography.code}` (JetBrains Mono 13px), rounded `{rounded.md}` (8px), padding 16px.
+## 3. 视觉方向
 
-### Cards
+`agent-html-app` 的目标视觉不是：
 
-**`feature-card`** — Background `{colors.surface-card}`, text `{colors.ink}`, type `{typography.title-md}`, rounded `{rounded.lg}`, padding 24px. 1px `{colors.hairline}` border.
+- bento grid
+- SaaS card wall
+- pill-heavy dashboard
+- debug panel
 
-**`comparison-card`** — Side-by-side "Cursor vs other tools" card. Same surface and rounding; internally split into 2 columns.
+它的目标视觉是：
 
-**`testimonial-card`** — Quote card. Background `{colors.surface-card}`, text `{colors.body}`, rounded `{rounded.lg}`, padding 24px.
+- `structural UI`
+- `frame-first workbench`
+- `wireframe-inspired review studio`
 
-### AI Timeline (signature)
+一句话定义：
 
-**`timeline-pill-thinking`** — Peach pill. Background `{colors.timeline-thinking}`, text `{colors.ink}`, type `{typography.caption-uppercase}` (11px / 600 / 0.88px tracking, uppercase), rounded `{rounded.pill}`, padding 4px × 10px. Marks "Thinking" stage in product timeline.
+> 从“很多小盒子组成的 UI”，转向“一个清晰骨架承载内容的 UI”。
 
-**`timeline-pill-grep`** — Mint pill. Same shape, background `{colors.timeline-grep}`. Marks "Grepping" stage.
+### 3.1 结构化 UI 的核心特征
 
-**`timeline-pill-read`** — Pastel-blue pill. Background `{colors.timeline-read}`. Marks "Reading" stage.
+- 层次来自结构，不来自小卡片堆叠。
+- 大面积平面色块优先，不靠每块内容都加边框和阴影制造层次。
+- 分栏、分隔线、留白、对齐和排版承担主要视觉秩序。
+- pane 的边界是语义边界，不是装饰边界。
+- 整体气质应更接近 `workbench / review rail / editor shell`，而不是组件展示墙。
 
-**`timeline-pill-edit`** — Lavender pill. Background `{colors.timeline-edit}`. Marks "Editing" stage.
+### 3.2 层次优先级
 
-**`timeline-pill-done`** — Gold pill. Background `{colors.timeline-done}`, text `{colors.on-primary}` white. Marks "Done" stage.
+`agent-html-app` 的层次优先级固定为：
 
-### Code
+1. 布局
+2. 分割线
+3. 留白
+4. 排版
+5. 状态色
 
-**`code-block`** — Inline code block. Background `{colors.surface-card}`, text `{colors.ink}` in `{typography.code}`, rounded `{rounded.lg}`, padding 20px, 1px `{colors.hairline}` border.
+不是：
 
-### Pricing
+1. 阴影
+2. 大圆角
+3. pill
+4. 卡片套卡片
 
-**`pricing-tier-card`** — Background `{colors.surface-card}`, rounded `{rounded.lg}`, padding 32px, 1px `{colors.hairline}` border.
+### 3.3 应避免的视觉倾向
 
-**`pricing-tier-featured`** — Featured tier inverts to ink. Background `{colors.ink}`, text `{colors.canvas}`. Same shape, dark inversion signals "highlighted" without colored ribbon.
+以下倾向会把 app 拉回“便当味 / card-heavy UI”，必须避免：
 
-### Forms & Tags
+- 每个信息块都单独做成 card
+- card 内再继续普遍套 card
+- tabs、badge、metric、search、button 全部变成满屏 pill
+- 大量 `rounded-2xl`、`rounded-full` 与 `shadow-sm/md`
+- 靠“组件壳”而不是“页面结构”来表达层次
 
-**`text-input`** — Background `{colors.surface-card}`, text `{colors.ink}`, rounded `{rounded.md}` (8px), padding 12px × 16px, height 44px.
+## 4. 布局模型
 
-**`badge-pill`** — Small uppercase pill. Background `{colors.surface-strong}`, text `{colors.ink}`, type `{typography.caption-uppercase}`, rounded `{rounded.pill}`, padding 4px × 10px.
+这个 app 的标准布局是：
 
-### CTA / Footer
+- 顶部 `TopBar`
+- 左侧 `Sessions Rail`
+- 中间 `Workbench`
+- 右侧 `Agent Shell`
 
-**`cta-band`** — Pre-footer "Try Cursor now" band. Background `{colors.canvas}`, centered display headline in `{typography.display-lg}`, single Cursor Orange CTA. 96px vertical padding.
+这是一个标准的 `App Shell + Resizable Three-Pane Workspace`。
 
-**`footer`** — Closing footer. Background `{colors.canvas}`, text `{colors.body}`. 5-column link list. 64×48px padding.
+### 4.1 顶部栏
 
-**`footer-link`** — Background transparent, text `{colors.body}`, type `{typography.body-sm}`.
+顶部栏是紧凑状态栏，不是浏览器 tab 栏。
 
-## Do's and Don'ts
+它的职责是：
+
+- 展示产品标识
+- 展示当前 session 名称
+- 展示当前 view 和运行环境状态
+
+设计要求：
+
+- 当前 session 是主信息。
+- 品牌与 workspace identity 是次级信息。
+- 状态只保留短 badge，不扩写解释文案。
+- 路径、时间戳、实现术语不能占据主位。
+
+### 4.2 左侧 Sessions Rail
+
+左侧栏是 session 管理轨道，不是通用文件树。
+
+它的职责是：
+
+- 搜索 session
+- 创建 session
+- 按 `Current / Pinned / Needs attention / Recent` 分组
+- 切换、重命名、置顶、删除 session
+
+设计要求：
+
+- rail 强调结构分组，不强调每条 session 的独立组件感。
+- 当前 session 在结构上应清楚可见。
+- 搜索与新建入口保持极简。
+- resize handle 是工作台结构的一部分，应有明确语义。
+
+### 4.3 中间 Workbench
+
+中间栏是主工作区，承担最大视觉权重。
+
+它的职责是：
+
+- `Preview`
+- `Source`
+- `Inspect`
+
+设计要求：
+
+- 它不是单一 viewer，而是三视图工作台。
+- `Preview / Source / Inspect` 更像结构标签，而不是主导性的胶囊组件。
+- pane header 只保留标题、必要 action、必要 badge。
+- 中栏应始终是三栏里最稳定、最连续、最少噪音的区域。
+
+### 4.4 右侧 Agent Shell
+
+右侧栏不是 terminal，不是原始消息 dump，它是 `review rail`。
+
+它的职责是：
+
+- 展示 proposal
+- 展示 context / readiness
+- 提供简化后的 session message stream
+- 承载 composer 和 review 动作
+
+设计要求：
+
+- 右栏视觉应像审查轨道，而不是 debug 面板。
+- proposal / review 卡优先于 runtime / diagnostics 摘要。
+- runtime report、log、doctor 类信息都是次级信息。
+- 右栏不应和中栏争夺主视觉权重。
+
+## 5. 表面与边界
+
+### 5.1 边界的语义
+
+边界只在真正有结构语义时出现：
+
+- 顶栏与主体之间
+- 三栏之间
+- pane header / content / footer 之间
+- 需要明确容器归属时
+
+不允许：
+
+- 为了“看起来像组件”而普遍描边
+- 为了“更有层次”而每块内容都加 outline
+
+### 5.2 Surface 层级
+
+surface 层级应尽量少，推荐控制在 2 到 3 层：
+
+- 一级：整体工作台骨架
+- 二级：pane / 主要 surface
+- 三级：必要的次级容器
+
+不允许无限嵌套：
+
+- pane -> card -> inner card -> metric pill -> badge wall
+
+### 5.3 阴影
+
+阴影不是主视觉语言。
+
+规则：
+
+- 常规 surface 以平面或极弱层次为主
+- 阴影只能作为非常轻的辅助
+- 不允许依赖阴影建立主要结构感
+
+### 5.4 圆角
+
+圆角要克制。
+
+规则：
+
+- pane 级 surface 可以有中等圆角
+- 小型状态元素谨慎使用 pill
+- 不允许“所有元素都大圆角”
+
+## 6. 组件规则
+
+### 6.1 Session Item
+
+session item 的设计目标是结构清楚，不是组件可爱。
+
+规则：
+
+- 默认只保留名称、状态、更新时间三类必要信息
+- 辅助操作保持极简
+- 不通过额外帮助文字解释 session
+- 更接近平面 strip / row，而不是装饰性小卡片集合
+
+### 6.2 Tabs
+
+`Preview / Source / Inspect` 是工作台结构标签。
+
+规则：
+
+- tabs 要服务于结构识别
+- 不应成为整页最抢眼的视觉语言
+- 不要把 tabs 设计成一排很重的胶囊主角
+
+### 6.3 Pane Header
+
+header 默认只包含：
+
+- 标题
+- 必要 action
+- 必要 badge
+
+不默认包含：
+
+- 解释性副标题
+- path
+- timestamp
+- help copy
+
+### 6.4 Runtime / Diagnostics / Logs
+
+这些内容是次级信息。
+
+规则：
+
+- runtime report 不能常驻主导右栏层级
+- inspect 默认优先展示结果本身
+- log / console 只在确有必要时出现
+- runtime / doctor 类信息要以短摘要呈现，不要像调试终端
+
+### 6.5 Empty / Loading / Status
+
+这些状态必须使用极短语言。
+
+规则：
+
+- 用短标签
+- 不用句子说明
+- 不解释内部机制
+
+例如：
+
+- `Load`
+- `Build`
+- `Check`
+- `Draft`
+- `Idle`
+
+## 7. 文案与产品语言
+
+`agent-html-app` 的页面语言应该始终呈现为：
+
+- `session`
+- `review`
+- `result`
+
+而不是：
+
+- `mock runtime`
+- `system`
+- `placeholder`
+- `kind`
+- `role`
+- `doctor output`
+
+### 7.1 文案规则
+
+- 页面层不新增解释性 `description`、caption、help copy
+- 标题优先用名词或短动作
+- 状态优先用短标签
+- 文案必须看起来像产品语言，而不是实现日志
+
+### 7.2 不应作为主内容的信息
+
+以下信息默认不能当主内容展示：
+
+- 完整路径
+- 时间戳
+- 内部状态名
+- JSON 结果
+- mock / placeholder / system 等实现术语
+
+## 8. Typography
+
+当前 app 采用：
+
+- `--font-sans`: 系统无衬线
+- `--font-mono`: 系统等宽
+- `--font-heading`: 有衬线标题字族
+
+设计目标：
+
+- 标题承担更多气质与层次
+- body 保持克制、清晰、中性
+- code / source surface 保持等宽
+
+规则：
+
+- session title、重要标题允许使用 heading family
+- 状态标签、section label 使用更紧凑的 uppercase / tracking
+- 正文文案保持短、轻、密度受控
+
+## 9. Color 与 Token 方向
+
+当前 app 使用的是安静的中性色系统，不是高饱和品牌系统。
+
+目标方向：
+
+- 背景柔和
+- 前景克制
+- 边框轻
+- muted surface 只作为微弱层次
+- 破坏性状态保留最小必要对比
+
+规则：
+
+- app 的颜色主要服务于结构和状态，不服务于装饰
+- 不引入第二套品牌主色语言
+- 不让 badge / chip 颜色墙主导页面
+
+## 10. 实现约束
+
+### 10.1 顶层入口
+
+设计系统的主要实现入口是：
+
+- `src/styles.css`
+- 共享 shell semantic classes
+- `Shell*` 语义组合组件
+
+### 10.2 组件边界
+
+允许的模式：
+
+- shadcn primitive
+- shell semantic wrapper
+- feature 级组合
+
+不允许的模式：
+
+- feature 内重新发明 primitive
+- feature 内重新定义一套 layout 语言
+- 使用局部 hack 覆盖整个系统
+
+### 10.3 Preview Artifact 的边界
+
+`mock preview artifact` 可以保留独立视觉体系，因为它代表产物示例，而不是 app shell 本身。
+
+规则：
+
+- preview artifact 不作为 app shell 风格来源
+- app shell 的设计判断不能被 mock preview 的表现带偏
+
+## 11. 当前代码侧契约
+
+当前 app 已经存在一层明确的 shell contract，后续新增 UI 必须继续沿用。
+
+代表性 contract 包括：
+
+- pane scaffold
+- pane header / footer / content spacing
+- top bar rhythm
+- search field contract
+- tabs contract
+- status badge contract
+- loading / empty / console contract
+- session / shell / workbench 的共享语义 wrapper
+
+这意味着：
+
+- 页面层默认应消费这些 contract
+- 不应在 feature 中回流成新的原子值治理方式
+- 共享语义组件比页面内联写法优先级更高
+
+## 12. Do / Don’t
 
 ### Do
-- Reserve `{colors.primary}` (Cursor Orange) for primary CTAs and brand wordmark.
-- Keep display weight at 400. The editorial voice depends on this.
-- Use the cream `{colors.canvas}` page floor — never pure white.
-- Render every code surface (inline, blocks, IDE panes) in JetBrains Mono.
-- Use timeline pastels only inside in-product agent visualizations — never as system action colors.
 
-### Don't
-- Don't introduce a secondary brand action color. Cursor Orange is the only one.
-- Don't drop display to bold weights (700+). Magazine voice depends on 400.
-- Don't add drop shadows. Hairlines + ink-on-cream contrast carry the depth.
-- Don't use timeline pastels on non-timeline UI. They're scoped to the agent timeline only.
-- Don't extract a CTA color from a third-party widget (cookie consent, OneTrust). The brand's CTA is what appears on actual product CTAs.
+- 用结构建立层次
+- 用 token 驱动布局和视觉
+- 直接使用 shadcn primitive
+- 让中栏 workbench 成为最稳定的视觉中心
+- 让右栏像 review rail，而不是 debug pane
+- 让文案看起来像产品，而不是内部实现
 
-## Responsive Behavior
+### Don’t
 
-### Breakpoints
+- 不要让 UI 退回 card / pill / shadow 驱动
+- 不要把每个信息块都做成小盒子
+- 不要暴露实现术语
+- 不要把路径、JSON、时间戳当主内容
+- 不要在 feature 层重新做一套基础控件
+- 不要绕开顶层 CSS 和 token 直接写局部视觉规则
 
-| Name | Width | Key Changes |
-|---|---|---|
-| Mobile | < 640px | Hero h1 72→32px; IDE mockup collapses to single pane preview; feature grid 1-up; nav hamburger. |
-| Tablet | 640–1024px | Hero h1 56px; IDE mockup compresses; feature grid 2-up. |
-| Desktop | 1024–1280px | Full hero h1 72px; full multi-pane IDE mockup; feature grid 3-up. |
-| Wide | > 1280px | Content caps at 1200px. |
+## 13. 一句话规范
 
-### Touch Targets
-- Primary CTA at 40px height — at WCAG AA, padded for AAA.
-- Download CTA at 44px — at AAA.
+`agent-html-app` 的最终视觉标准是：
 
-### Collapsing Strategy
-- Top nav switches to hamburger below 768px.
-- IDE mockup multi-pane collapses to a single primary pane preview on mobile.
-- Feature grid: 3-up → 2-up → 1-up.
-
-## Iteration Guide
-
-1. Focus on a single component at a time.
-2. CTAs default to `{rounded.md}` (8px). Cards use `{rounded.lg}` (12px).
-3. Variants live as separate entries inside `components:`.
-4. Use `{token.refs}` everywhere — never inline hex.
-5. Hover state never documented.
-6. CursorGothic 400 for display, 400/500/600 for body. JetBrains Mono on every code surface.
-7. Cursor Orange stays scarce.
-8. Timeline pastels stay scoped to in-product agent visualizations.
-
-## Known Gaps
-
-- CursorGothic is a licensed typeface; Inter is the substitute.
-- Animation timings (timeline pill entrance, IDE pane reveal) out of scope.
-- In-app surfaces (code editor, chat panel, agent timeline) only partially captured via marketing IDE mockups.
-- Form validation states beyond focus not visible on captured surfaces.
+> 一个骨架清晰、边界克制、信息密度可控、统一消费 token 与 shadcn primitive 的结构化三栏工作台。

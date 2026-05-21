@@ -5,7 +5,6 @@ import { Combobox as ComboboxPrimitive } from "@base-ui/react"
 import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
@@ -166,10 +165,7 @@ function ComboboxItem({
   )
 }
 
-function ComboboxGroup({
-  className,
-  ...props
-}: ComboboxPrimitive.Group.Props) {
+function ComboboxGroup({ className, ...props }: ComboboxPrimitive.Group.Props) {
   return (
     <ComboboxPrimitive.Group
       data-slot="combobox-group"
@@ -195,18 +191,13 @@ function ComboboxLabel({
   )
 }
 
-function ComboboxCollection({
-  ...props
-}: ComboboxPrimitive.Collection.Props) {
+function ComboboxCollection({ ...props }: ComboboxPrimitive.Collection.Props) {
   return (
     <ComboboxPrimitive.Collection data-slot="combobox-collection" {...props} />
   )
 }
 
-function ComboboxEmpty({
-  className,
-  ...props
-}: ComboboxPrimitive.Empty.Props) {
+function ComboboxEmpty({ className, ...props }: ComboboxPrimitive.Empty.Props) {
   return (
     <ComboboxPrimitive.Empty
       data-slot="combobox-empty"

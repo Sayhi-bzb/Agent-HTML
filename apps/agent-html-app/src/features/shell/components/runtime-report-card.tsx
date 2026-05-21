@@ -1,6 +1,3 @@
-import {
-  Card,
-} from "@/components/ui/card"
 import type { RuntimeReport } from "@/lib/types"
 
 import {
@@ -8,26 +5,27 @@ import {
   ShellMetricList,
   ShellRuntimeStatusBadge,
 } from "@/features/app-shell/components/shell-content"
+import { ShellCardFrame } from "./shell-card-frame"
 
 type RuntimeReportCardProps = {
   runtimeReport: RuntimeReport
 }
 
 export function RuntimeReportCard({ runtimeReport }: RuntimeReportCardProps) {
+  const summaryItems = [
+    { key: "ok", label: "ready", value: runtimeReport.counts.ok },
+    { key: "warn", label: "warn", value: runtimeReport.counts.warn },
+    { key: "fail", label: "issue", value: runtimeReport.counts.fail },
+  ].filter((item) => item.value > 0)
+
   return (
-    <Card size="sm">
+    <ShellCardFrame className="app-shell-runtime-card">
       <ShellCardHeader
         action={<ShellRuntimeStatusBadge status={runtimeReport.status} />}
-        description={runtimeReport.status}
-        title="Doctor"
+        title="Checks"
+        titleSize="sm"
       />
-      <ShellMetricList
-        items={[
-          { key: "ok", label: "ok", value: runtimeReport.counts.ok },
-          { key: "warn", label: "warn", value: runtimeReport.counts.warn },
-          { key: "fail", label: "fail", value: runtimeReport.counts.fail },
-        ]}
-      />
-    </Card>
+      <ShellMetricList items={summaryItems.length > 0 ? summaryItems : [{ key: "ready", label: "ready", value: "all" }]} />
+    </ShellCardFrame>
   )
 }

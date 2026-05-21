@@ -480,11 +480,20 @@ export function formatShadcnRuntimeProvenance(surface) {
   }
 
   const proofCount = Object.keys(surface.ahtmlGlueProof?.files ?? {}).length
-  const managedUiCount = Object.keys(
+  const managedUiEntries = Object.entries(
     surface.ahtmlManagedUiProof?.files ?? {},
-  ).length
+  )
+  const managedUiCount = managedUiEntries.length
+  const managedUiSummary =
+    managedUiEntries.length > 0
+      ? ` overrides:${managedUiEntries
+          .map(([relativePath]) =>
+            relativePath.replace("src/components/ui/", "").replace(".tsx", ""),
+          )
+          .join(",")}`
+      : ""
 
-  return `${String(surface.shellSource ?? "missing")}/${String(surface.initSource ?? "missing")}/${String(surface.tailwindVersion ?? "missing")} glue-files:${proofCount} managed-ui-files:${managedUiCount}`
+  return `${String(surface.shellSource ?? "missing")}/${String(surface.initSource ?? "missing")}/${String(surface.tailwindVersion ?? "missing")} glue-files:${proofCount} managed-ui-files:${managedUiCount}${managedUiSummary}`
 }
 
 export function getShadcnRuntimeProvenanceState(surface) {
@@ -693,11 +702,25 @@ async function assertManagedRuntimeUiProof({ components, paths, surface }) {
     expected: Object.keys(expectedProof.files),
     expectedName: "expected ahtmlManagedUiProof files",
   })
+  assertSameStringSet({
+    actual: Object.keys(proof.reasons ?? {}),
+    actualName: "surface ahtmlManagedUiProof reasons",
+    expected: Object.keys(expectedProof.reasons ?? {}),
+    expectedName: "expected ahtmlManagedUiProof reasons",
+  })
 
   for (const relativePath of Object.keys(expectedProof.files)) {
     if (proof.files[relativePath] !== expectedProof.files[relativePath]) {
       throw new Error(
         `surface ahtmlManagedUiProof ${relativePath} does not match checked-in managed UI source hash. Actual: ${String(proof.files[relativePath])} Expected: ${String(expectedProof.files[relativePath])}.`,
+      )
+    }
+
+    if (
+      proof.reasons?.[relativePath] !== expectedProof.reasons?.[relativePath]
+    ) {
+      throw new Error(
+        `surface ahtmlManagedUiProof ${relativePath} reason does not match checked-in managed UI override registry. Actual: ${String(proof.reasons?.[relativePath])} Expected: ${String(expectedProof.reasons?.[relativePath])}.`,
       )
     }
 

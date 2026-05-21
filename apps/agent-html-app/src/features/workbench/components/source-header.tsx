@@ -1,11 +1,10 @@
-import { Button } from "@/components/ui/button"
 import {
+  ShellActionButton,
   ShellCardHeader,
   ShellStatusBadge,
 } from "@/features/app-shell/components/shell-content"
 
 type SourceHeaderProps = {
-  sourcePath: string
   hasUnsavedChanges: boolean
   interactionLocked: boolean
   onSaveSource: () => void
@@ -13,7 +12,6 @@ type SourceHeaderProps = {
 }
 
 export function SourceHeader({
-  sourcePath,
   hasUnsavedChanges,
   interactionLocked,
   onSaveSource,
@@ -25,29 +23,21 @@ export function SourceHeader({
       action={
         <>
           {hasUnsavedChanges ? (
-            <ShellStatusBadge label="dirty" variant="outline" />
+            <ShellStatusBadge label="edit" variant="outline" />
           ) : null}
-          <Button
-            disabled={interactionLocked}
-            onClick={onValidate}
-            size="sm"
-            type="button"
-            variant="outline"
-          >
-            Validate
-          </Button>
-          <Button
+          <ShellActionButton disabled={interactionLocked} onClick={onValidate}>
+            Check
+          </ShellActionButton>
+          <ShellActionButton
             disabled={!hasUnsavedChanges || interactionLocked}
             onClick={onSaveSource}
-            size="sm"
-            type="button"
           >
             Save
-          </Button>
+          </ShellActionButton>
         </>
       }
-      description={sourcePath}
       title="Source"
+      titleSize="sm"
     />
   )
 }

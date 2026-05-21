@@ -1,9 +1,20 @@
-import type { ReactNode } from "react"
-
 type MessageBodyProps = {
-  children: ReactNode
+  text?: string
+  items?: string[]
 }
 
-export function MessageBody({ children }: MessageBodyProps) {
-  return <p className="app-shell-body-copy">{children}</p>
+export function MessageBody({ text, items = [] }: MessageBodyProps) {
+  if (items.length > 0) {
+    return (
+      <ul className="app-shell-body-list">
+        {items.map((item) => (
+          <li className="app-shell-body-item" key={item}>
+            {item}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  return <p className="app-shell-body-copy">{text}</p>
 }

@@ -255,9 +255,9 @@ overflow: hidden
 当前项目的三栏宽度语义更接近：
 
 ```text
-SessionsSidebar: 15
-Workbench: 63
-AgentShell: 22
+SessionsSidebar: 18
+Workbench: 56
+AgentShell: 26
 ```
 
 这是当前默认布局权重，而不是固定像素值。布局重点是：
@@ -323,7 +323,6 @@ App
   - `app-shell-scroll-pane`
   - `app-shell-scroll-surface`
   - `app-shell-scroll-surface-roomy`
-  - `app-shell-surface-pane`
   - `app-shell-card-heading`
   - `app-shell-preview-canvas`
   - `app-shell-console-section`
@@ -331,11 +330,12 @@ App
   - `shell-content` 局部共享包装：`ShellEmptyCard`、`ShellCardCopy`、`ShellMetricList`、`ShellLoadingRow`
   - `shell-content` 语义组合：`ShellCardHeader`、`ShellStatusBadge`
   - `shell-content` 壳层文本/块级组合：`ShellTitleStack`、`ShellPaneLabel`、`ShellSupportingCopy`、`ShellSurfaceItem`、`ShellSectionLabel`
-  - `shell-content` 壳层行级组合：`ShellSplitRow`、`ShellActionGroup`、`ShellMetaRow`、`ShellStatusRow`、`ShellPaneHeader`
+  - `shell-content` 壳层行级组合：`ShellSplitRow`、`ShellActionGroup`、`ShellActionButton`、`ShellIconButton`、`ShellMetaRow`、`ShellStatusRow`、`ShellPaneHeader`
   - `shell-content` 滚动内容组合：`ShellScrollSurface`
+  - `shell-content` 输入/检索组合：`ShellSearchField`
   - `app-shell` 根层 pattern：`TopBar`、`MainLayout`
-  - `feature-scoped pattern`：`WorkbenchHeader`、`WorkbenchTabs`、`SourceHeader`、`ShellComposer`、`SessionRailHeader`、`SessionCard`
-  - `feature-scoped content pattern`：`WorkbenchCard`、`PreviewFrame`、`SourceEditorField`、`SourceValidationSummary`、`InspectDiagnosticList`、`InspectConsoleSection`、`MessageBody`、`ComposerField`
+  - `feature-scoped pattern`：`WorkbenchHeader`、`WorkbenchTabs`、`SourceHeader`、`PreviewHeader`、`InspectHeader`、`ShellHeader`、`ShellComposer`、`SessionRailHeader`、`SessionCard`
+  - `feature-scoped content pattern`：`WorkbenchCard`、`PreviewFrame`、`SourceEditorField`、`SourceValidationSummary`、`InspectDiagnosticList`、`InspectConsoleSection`、`MessageBody`、`ComposerField`、`ShellCardFrame`
   - `shell-content` 三栏 pane 骨架：`ShellPaneScaffold`
 
 这意味着：
@@ -344,6 +344,8 @@ App
 - 页面壳层新增代码默认应消费 shell contract，而不是重新写一套 `p-*` / `gap-*` / `h-*`
 - 一部分高频内容模式也已开始从 feature 内联写法收敛成可复用语义类
 - `mock preview` 仍然允许保留独立视觉体系，但它被视为 preview artifact 示例，不再作为 app shell theme 的依据
+- 对应模板已经集中在 `features/app-shell/mock-preview-artifact.ts`，不再和 app shell 的 mock 状态/流程代码混写
+- 当前 app 代码侧也没有新的裸色、`style=` 或匿名 layout 常量回流，剩余治理重点已经转成更高层的 feature/content pattern 边界，而不是回到基础样式散落阶段
 
 另外，当前治理不只是视觉层面：
 
@@ -361,7 +363,7 @@ App
 - Tauri `Build` 若在 optimistic `building` 过渡态后失败，前端现在会重新 hydrate 当前 session，回收过渡态而不是把 summary 留在假 `building`。
 - mock `Inspect` 也不再把上一轮成功 build 的结果错误覆盖成失败态。
 
-仍需继续治理的部分，以 [`audit.md`](./audit.md) 的当前状态为准。
+当前这轮 app shell 审计已经完成收口。后续新增 UI 仍需继续遵守 [`audit.md`](./audit.md) 里的 guardrail，不得把已收敛的布局、primitive 入口和 token 边界重新打散。
 
 ---
 

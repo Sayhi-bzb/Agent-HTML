@@ -1,10 +1,11 @@
-import React from "react"
-
 import { DocumentArtifactShell } from "../../artifact-shell"
 import { RuntimeStyleElements } from "../../host-styles"
 import { createDocumentStyleCss } from "../../profile-theme"
 import { createRendererNode } from "../../renderer/render-node"
-import type { AgentDocument, RuntimeVerificationState } from "../../renderer/types"
+import type {
+  AgentDocument,
+  RuntimeVerificationState,
+} from "../../renderer/types"
 
 export function DocumentApp({
   document,

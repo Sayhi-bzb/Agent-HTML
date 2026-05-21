@@ -21,7 +21,8 @@
   ],
   "scripts": {
     "agent": "node src/cli/index.mjs",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json && npm run check:runtime-host",
+    "check:runtime-host": "tsc -p tsconfig.runtime-host.json"
   },
   "dependencies": {
     "@agent-html/core": "^0.2.0-alpha.1",
