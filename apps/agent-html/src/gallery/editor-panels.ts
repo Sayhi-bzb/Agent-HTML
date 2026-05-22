@@ -50,6 +50,11 @@ export type GalleryColorTokenValue = {
   step: GalleryColorStep
 }
 
+export type GalleryColorTokenValues = Record<
+  GalleryColorTokenName,
+  GalleryColorTokenValue
+>
+
 export const galleryColorRoleGroups: ColorRoleGroup[] = [
   {
     id: "base-surfaces",
@@ -83,10 +88,7 @@ export const galleryColorRoleGroups: ColorRoleGroup[] = [
   },
 ]
 
-export const galleryColorTokenDefaults: Record<
-  GalleryColorTokenName,
-  GalleryColorTokenValue
-> = {
+export const galleryColorTokenDefaults: GalleryColorTokenValues = {
   background: { family: "zinc", step: "50" },
   foreground: { family: "zinc", step: "900" },
   card: { family: "zinc", step: "50" },

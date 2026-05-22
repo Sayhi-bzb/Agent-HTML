@@ -1,6 +1,16 @@
 import * as React from "react"
 
-import { GalleryEditorPanel, type GalleryRadiusValue } from "@/gallery/editor"
+import {
+  GalleryEditorPanel,
+  type GalleryRadiusValue,
+  type GallerySpacingValue,
+} from "@/gallery/editor"
+import type {
+  GalleryColorTokenName,
+  GalleryColorTokenValue,
+  GalleryColorTokenValues,
+} from "@/gallery/editor-panels"
+import type { GalleryTypographyValue } from "@/gallery/typography"
 import type { GalleryEditorMode } from "@/gallery/types"
 import {
   Popover,
@@ -35,30 +45,45 @@ const galleryHeaderEditorItems = [
 ] as const
 
 export function AppSidebar({
+  galleryColorTokenValues,
   mode = "workspace",
   onEnterGalleryMode,
   onExitGalleryMode,
   onDeleteProject,
   onDuplicateProject,
+  onGalleryColorTokenValueChange,
   onGalleryEditorModeChange,
   onOpenProject,
   onRadiusChange,
+  onSpacingChange,
+  onTypographyChange,
   onRenameProject,
   projects,
   galleryEditorMode = "color",
   galleryRadiusValue = "0.625rem",
+  gallerySpacingValue = "1rem",
+  galleryTypographyValue,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
+  galleryColorTokenValues: GalleryColorTokenValues
   galleryEditorMode?: GalleryEditorMode
   galleryRadiusValue?: GalleryRadiusValue
+  gallerySpacingValue?: GallerySpacingValue
+  galleryTypographyValue: GalleryTypographyValue
   mode?: "gallery" | "workspace"
   onEnterGalleryMode?: () => void
   onExitGalleryMode?: () => void
   onDeleteProject: (projectId: string) => void
   onDuplicateProject: (projectId: string) => void
+  onGalleryColorTokenValueChange: (
+    token: GalleryColorTokenName,
+    value: GalleryColorTokenValue
+  ) => void
   onGalleryEditorModeChange?: (mode: GalleryEditorMode) => void
   onOpenProject: (projectId: string) => void
   onRadiusChange?: (value: GalleryRadiusValue) => void
+  onSpacingChange?: (value: GallerySpacingValue) => void
+  onTypographyChange: (value: GalleryTypographyValue) => void
   onRenameProject: (projectId: string, name: string) => void
   projects: ProjectNavItem[]
 }) {
@@ -138,9 +163,15 @@ export function AppSidebar({
       <SidebarContent>
         {isGalleryMode ? (
           <GalleryEditorPanel
+            colorTokenValues={galleryColorTokenValues}
             mode={galleryEditorMode}
+            onColorTokenValueChange={onGalleryColorTokenValueChange}
             onRadiusChange={(value) => onRadiusChange?.(value)}
+            onSpacingChange={(value) => onSpacingChange?.(value)}
+            onTypographyChange={onTypographyChange}
             radiusValue={galleryRadiusValue}
+            spacingValue={gallerySpacingValue}
+            typographyValue={galleryTypographyValue}
           />
         ) : (
           <NavProjects

@@ -1,7 +1,19 @@
 import * as React from "react"
 
-import type { GalleryRadiusValue } from "@/gallery/editor"
+import type {
+  GalleryRadiusValue,
+  GallerySpacingValue,
+} from "@/gallery/editor"
+import {
+  galleryColorTokenDefaults,
+  type GalleryColorTokenName,
+  type GalleryColorTokenValue,
+} from "@/gallery/editor-panels"
 import { galleryScenes } from "@/gallery/scenes"
+import {
+  galleryTypographyDefaults,
+  type GalleryTypographyValue,
+} from "@/gallery/typography"
 import type { GalleryEditorMode } from "@/gallery/types"
 import { GalleryPanel } from "@/gallery/panel"
 import { galleryWorkspacePreviewBaseSceneId } from "@/gallery/preview-content"
@@ -237,8 +249,15 @@ export function App() {
   const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
   const [galleryEditorMode, setGalleryEditorMode] =
     React.useState<GalleryEditorMode>("color")
+  const [galleryColorTokenValues, setGalleryColorTokenValues] = React.useState(
+    galleryColorTokenDefaults
+  )
+  const [galleryTypographyValue, setGalleryTypographyValue] =
+    React.useState<GalleryTypographyValue>(galleryTypographyDefaults)
   const [galleryRadiusValue, setGalleryRadiusValue] =
     React.useState<GalleryRadiusValue>("0.625rem")
+  const [gallerySpacingValue, setGallerySpacingValue] =
+    React.useState<GallerySpacingValue>("1rem")
   const [activeGallerySceneId, setActiveGallerySceneId] = React.useState<string>(
     galleryScenes[0].id
   )
@@ -435,16 +454,30 @@ export function App() {
       />
       <main className="flex min-h-0 flex-1 overflow-hidden">
         <AppSidebar
+          galleryColorTokenValues={galleryColorTokenValues}
           galleryEditorMode={galleryEditorMode}
           galleryRadiusValue={galleryRadiusValue}
+          gallerySpacingValue={gallerySpacingValue}
+          galleryTypographyValue={galleryTypographyValue}
           mode={surfaceMode}
           onDeleteProject={handleDeleteProject}
           onDuplicateProject={handleDuplicateProject}
           onEnterGalleryMode={handleEnterGalleryMode}
           onExitGalleryMode={handleExitGalleryMode}
+          onGalleryColorTokenValueChange={(
+            token: GalleryColorTokenName,
+            value: GalleryColorTokenValue
+          ) =>
+            setGalleryColorTokenValues((current) => ({
+              ...current,
+              [token]: value,
+            }))
+          }
           onGalleryEditorModeChange={setGalleryEditorMode}
           onOpenProject={handleOpenProject}
           onRadiusChange={setGalleryRadiusValue}
+          onSpacingChange={setGallerySpacingValue}
+          onTypographyChange={setGalleryTypographyValue}
           onRenameProject={handleRenameProject}
           projects={projects}
           variant="inset"
@@ -452,8 +485,11 @@ export function App() {
         <SidebarInset className="min-h-0 overflow-hidden border-0 shadow-sm md:mr-2 md:mb-2">
           {surfaceMode === "gallery" ? (
             <GalleryPanel
+              colorTokenValues={galleryColorTokenValues}
               radiusValue={galleryRadiusValue}
               scene={galleryDisplayScene}
+              spacingValue={gallerySpacingValue}
+              typographyValue={galleryTypographyValue}
             />
           ) : (
             <WorkspacePanel activeProject={activeProject} />

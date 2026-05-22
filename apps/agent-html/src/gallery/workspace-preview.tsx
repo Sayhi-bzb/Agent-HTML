@@ -1,393 +1,116 @@
 import * as React from "react"
+import colors from "tailwindcss/colors"
+
+import type {
+  GalleryColorFamily,
+  GalleryColorStep,
+  GalleryColorTokenValues,
+} from "@/gallery/editor-panels"
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Label,
-  Pie,
-  PieChart,
-  XAxis,
-} from "recharts"
+  galleryTypographyFontOptions,
+  type GalleryTypographyValue,
+} from "@/gallery/typography"
+import { galleryPreviewCards } from "@/gallery/preview"
 
-import { Badge } from "@/gallery/ui/badge"
-import { Button } from "@/gallery/ui/button"
-import {
-  Card,
-  CardContent,
-} from "@/gallery/ui/card"
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/gallery/ui/chart"
-import { Input } from "@/gallery/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/gallery/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/gallery/ui/table"
+type TailwindColorScale = Record<GalleryColorStep, string>
 
-const performanceData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
+const tailwindColorFamilies = Object.fromEntries(
+  (Object.keys(colors) as GalleryColorFamily[]).map((family) => [
+    family,
+    colors[family] as TailwindColorScale,
+  ])
+) as Record<GalleryColorFamily, TailwindColorScale>
 
-const performanceChartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--chart-2)",
-  },
-} satisfies ChartConfig
-
-type SourceShareKey = "docs" | "registry" | "preview" | "review"
-
-const sourceShareData = [
-  { source: "docs", visitors: 275, fill: "var(--color-docs)" },
-  { source: "registry", visitors: 200, fill: "var(--color-registry)" },
-  { source: "preview", visitors: 187, fill: "var(--color-preview)" },
-  { source: "review", visitors: 173, fill: "var(--color-review)" },
-] satisfies Array<{
-  fill: string
-  source: SourceShareKey
-  visitors: number
-}>
-
-const sourceShareConfig = {
-  visitors: {
-    label: "Sessions",
-  },
-  docs: {
-    label: "Docs",
-    color: "var(--chart-1)",
-  },
-  registry: {
-    label: "Registry",
-    color: "var(--chart-2)",
-  },
-  preview: {
-    label: "Preview",
-    color: "var(--chart-3)",
-  },
-  review: {
-    label: "Review",
-    color: "var(--chart-4)",
-  },
-} satisfies ChartConfig
-
-const draftRows = [
-  {
-    assignee: "Sarah Chen",
-    revision: "3",
-    stage: "Ready",
-    task: "Chart composition",
-  },
-  {
-    assignee: "Marc Rodriguez",
-    revision: "2",
-    stage: "Review",
-    task: "Table states",
-  },
-  {
-    assignee: "Emily Watson",
-    revision: "1",
-    stage: "Draft",
-    task: "Inset density",
-  },
-]
-
-const budgetRows = [
-  {
-    amount: "$29.99",
-    item: "Card spacing",
-    quantity: "1",
-  },
-  {
-    amount: "$129.99",
-    item: "Chart clarity",
-    quantity: "2",
-  },
-  {
-    amount: "$49.99",
-    item: "Table polish",
-    quantity: "1",
-  },
-]
-
-type BadgeVariant = "default" | "secondary" | "outline" | "destructive"
-
-function getStageVariant(stage: string): BadgeVariant {
-  if (stage === "Ready") {
-    return "secondary"
-  }
-
-  if (stage === "Review") {
-    return "outline"
-  }
-
-  if (stage === "Draft") {
-    return "default"
-  }
-
-  return "destructive"
-}
-
-function PerformanceChartCard() {
+function GalleryMasonryItem({ children }: { children: React.ReactNode }) {
   return (
-    <Card>
-      <CardContent>
-        <ChartContainer
-          className="aspect-auto h-[200px] w-full"
-          config={performanceChartConfig}
-        >
-          <AreaChart
-            accessibilityLayer
-            data={performanceData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              axisLine={false}
-              dataKey="month"
-              tickFormatter={(value) => value.slice(0, 3)}
-              tickLine={false}
-              tickMargin={8}
-            />
-            <ChartTooltip
-              content={<ChartTooltipContent indicator="line" />}
-              cursor={false}
-            />
-            <Area
-              dataKey="desktop"
-              fill="var(--color-desktop)"
-              fillOpacity={0.4}
-              stroke="var(--color-desktop)"
-              type="natural"
-            />
-            <Area
-              dataKey="mobile"
-              fill="var(--color-mobile)"
-              fillOpacity={0.18}
-              stroke="var(--color-mobile)"
-              type="natural"
-            />
-          </AreaChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+    <div className="mb-[var(--space-2)] inline-block w-full align-top [break-inside:avoid]">
+      {children}
+    </div>
   )
 }
 
-function SourceShareCard() {
-  const totalSessions = React.useMemo(() => {
-    return sourceShareData.reduce((acc, entry) => acc + entry.visitors, 0)
-  }, [])
-
+function GalleryViewport({ style }: { style?: React.CSSProperties }) {
   return (
-    <Card>
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          className="mx-auto aspect-square max-h-[250px]"
-          config={sourceShareConfig}
-        >
-          <PieChart>
-            <ChartTooltip
-              content={<ChartTooltipContent hideLabel />}
-              cursor={false}
-            />
-            <Pie
-              data={sourceShareData}
-              dataKey="visitors"
-              innerRadius={56}
-              nameKey="source"
-              strokeWidth={5}
-            >
-              <Label
-                content={({ viewBox }) => {
-                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                    return (
-                      <text
-                        dominantBaseline="middle"
-                        textAnchor="middle"
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                      >
-                        <tspan
-                          className="fill-foreground text-3xl font-bold"
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                        >
-                          {totalSessions.toLocaleString()}
-                        </tspan>
-                        <tspan
-                          className="fill-muted-foreground"
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
-                        >
-                          Sessions
-                        </tspan>
-                      </text>
-                    )
-                  }
-
-                  return null
-                }}
-              />
-            </Pie>
-          </PieChart>
-        </ChartContainer>
-      </CardContent>
-      <CardContent className="pt-0">
-        <div className="flex flex-wrap gap-2">
-          {sourceShareData.map((entry) => (
-            <Badge key={entry.source} variant="secondary">
-              {sourceShareConfig[entry.source].label}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function DraftStatusTable() {
-  return (
-    <Card>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Task</TableHead>
-              <TableHead>Assignee</TableHead>
-              <TableHead>Stage</TableHead>
-              <TableHead className="text-right">Revision</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {draftRows.map((row) => (
-              <TableRow key={row.task}>
-                <TableCell className="font-medium">{row.task}</TableCell>
-                <TableCell>
-                  <Select defaultValue={row.assignee}>
-                    <SelectTrigger className="w-40" size="sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="Sarah Chen">Sarah Chen</SelectItem>
-                        <SelectItem value="Marc Rodriguez">Marc Rodriguez</SelectItem>
-                        <SelectItem value="Emily Watson">Emily Watson</SelectItem>
-                        <SelectItem value="David Kim">David Kim</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getStageVariant(row.stage)}>{row.stage}</Badge>
-                </TableCell>
-                <TableCell className="text-right">{row.revision}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={3}>Visible rows</TableCell>
-              <TableCell className="text-right">{draftRows.length}</TableCell>
-            </TableRow>
-          </TableFooter>
-        </Table>
-      </CardContent>
-    </Card>
-  )
-}
-
-function BudgetTableCard() {
-  return (
-    <Card>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Item</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {budgetRows.map((row) => (
-              <TableRow key={row.item}>
-                <TableCell className="font-medium">{row.item}</TableCell>
-                <TableCell>
-                  <Input
-                    className="w-20"
-                    defaultValue={row.quantity}
-                    min="0"
-                    type="number"
-                  />
-                </TableCell>
-                <TableCell>{row.amount}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-      <CardContent className="flex justify-end pt-0">
-        <Button size="sm" type="button" variant="outline">
-          Review
-        </Button>
-      </CardContent>
-    </Card>
-  )
-}
-
-function GalleryViewport() {
-  return (
-    <div className="flex flex-col gap-4 p-4">
-      <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
-        <PerformanceChartCard />
-        <SourceShareCard />
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
-        <DraftStatusTable />
-        <BudgetTableCard />
-      </section>
+    <div
+      className="columns-1 gap-x-[var(--space-2)] p-[var(--space-2)] md:columns-2"
+      style={style}
+    >
+      {galleryPreviewCards.map((PreviewCard) => (
+        <GalleryMasonryItem key={PreviewCard.name}>
+          <PreviewCard />
+        </GalleryMasonryItem>
+      ))}
     </div>
   )
 }
 
 export function GalleryWorkspacePreview({
+  colorTokenValues,
   radius = "0.625rem",
+  spacing = "1rem",
+  typographyValue,
 }: {
+  colorTokenValues: GalleryColorTokenValues
   radius?: string
+  spacing?: string
+  typographyValue: GalleryTypographyValue
 }) {
+  const previewThemeStyle = React.useMemo(() => {
+    const resolveColor = (tokenName: keyof GalleryColorTokenValues) => {
+      const token = colorTokenValues[tokenName]
+      return (
+        tailwindColorFamilies[token.family]?.[token.step] ??
+        tailwindColorFamilies.zinc[500]
+      )
+    }
+
+    const fontFamily =
+      galleryTypographyFontOptions.find(
+        (font) => font.id === typographyValue.fontFamily
+      )?.family ?? galleryTypographyFontOptions[0].family
+
+    return {
+      "--background": resolveColor("background"),
+      "--foreground": resolveColor("foreground"),
+      "--card": resolveColor("card"),
+      "--card-foreground": resolveColor("card-foreground"),
+      "--popover": resolveColor("popover"),
+      "--popover-foreground": resolveColor("popover-foreground"),
+      "--primary": resolveColor("primary"),
+      "--primary-foreground": resolveColor("primary-foreground"),
+      "--secondary": resolveColor("secondary"),
+      "--secondary-foreground": resolveColor("secondary-foreground"),
+      "--accent": resolveColor("accent"),
+      "--accent-foreground": resolveColor("accent-foreground"),
+      "--destructive": resolveColor("destructive"),
+      "--muted": resolveColor("muted"),
+      "--muted-foreground": resolveColor("muted-foreground"),
+      "--border": resolveColor("border"),
+      "--input": resolveColor("input"),
+      "--ring": resolveColor("ring"),
+      "--font-sans": fontFamily,
+      "--font-heading": fontFamily,
+      "--radius": radius,
+      "--spacing-base": spacing,
+      "--space-1": "calc(var(--spacing-base) * 0.75)",
+      "--space-2": "var(--spacing-base)",
+      "--space-3": "calc(var(--spacing-base) * 1.25)",
+      "--space-4": "calc(var(--spacing-base) * 1.5)",
+      "--type-base-size": typographyValue.baseSize,
+      "--type-base-line-height": typographyValue.lineHeight,
+      "--type-xs": "calc(var(--type-base-size) * 0.8125)",
+      "--type-sm": "calc(var(--type-base-size) * 0.9375)",
+      "--type-md": "var(--type-base-size)",
+      "--type-lg": "calc(var(--type-base-size) * 1.125)",
+      "--type-xl": "calc(var(--type-base-size) * 1.375)",
+      "--type-2xl": "calc(var(--type-base-size) * 1.875)",
+    } as React.CSSProperties
+  }, [colorTokenValues, radius, spacing, typographyValue])
+
   return (
     <div
       className="overflow-hidden rounded-[calc(var(--radius)*2.4)] bg-background"
-      style={{ "--radius": radius } as React.CSSProperties}
+      style={previewThemeStyle}
     >
       <GalleryViewport />
     </div>

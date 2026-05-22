@@ -1,4 +1,3 @@
-import * as React from "react"
 import colors from "tailwindcss/colors"
 import { ChevronRightIcon } from "lucide-react"
 
@@ -6,12 +5,18 @@ import {
   galleryColorFamilies,
   galleryColorRoleGroups,
   galleryColorSteps,
-  galleryColorTokenDefaults,
   type GalleryColorFamily,
   type GalleryColorStep,
   type GalleryColorTokenName,
   type GalleryColorTokenValue,
+  type GalleryColorTokenValues,
 } from "@/gallery/editor-panels"
+import {
+  galleryTypographyBaseSizeOptions,
+  galleryTypographyFontOptions,
+  galleryTypographyLineHeightOptions,
+  type GalleryTypographyValue,
+} from "@/gallery/typography"
 import type { GalleryEditorMode } from "@/gallery/types"
 import {
   Collapsible,
@@ -54,6 +59,14 @@ const radiusOptions = [
   "1.25rem",
 ] as const
 type GalleryRadiusValue = (typeof radiusOptions)[number]
+const spacingOptions = [
+  "0.75rem",
+  "1rem",
+  "1.25rem",
+  "1.5rem",
+  "1.75rem",
+] as const
+type GallerySpacingValue = (typeof spacingOptions)[number]
 
 const tailwindColorFamilies = Object.fromEntries(
   galleryColorFamilies.map((family) => [
@@ -170,10 +183,14 @@ function GalleryColorTokenItem({
 }
 
 function GalleryRadiusEditorPanel({
+  spacingValue,
   value,
+  onSpacingChange,
   onValueChange,
 }: {
+  spacingValue: GallerySpacingValue
   value: GalleryRadiusValue
+  onSpacingChange: (value: GallerySpacingValue) => void
   onValueChange: (value: GalleryRadiusValue) => void
 }) {
   return (
@@ -229,6 +246,233 @@ function GalleryRadiusEditorPanel({
                 </SidebarMenuSubItem>
               </SidebarMenuSub>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <SidebarMenuButton
+                    className="h-auto min-h-8 items-start py-1.5 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                    size="sm"
+                    type="button"
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span>spacing</span>
+                      <span className="text-xs text-sidebar-foreground/45">
+                        {spacingValue}
+                      </span>
+                    </span>
+                  </SidebarMenuButton>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="w-56 p-2"
+                  side="right"
+                  sideOffset={10}
+                >
+                  <SidebarMenu className="gap-0.5">
+                    {spacingOptions.map((spacing) => (
+                      <SidebarMenuItem key={spacing}>
+                        <SidebarMenuButton
+                          className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                          isActive={spacing === spacingValue}
+                          onClick={() => onSpacingChange(spacing)}
+                          size="sm"
+                          type="button"
+                        >
+                          <span>{spacing}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </PopoverContent>
+              </Popover>
+              <SidebarMenuSub>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton asChild>
+                    <span>base</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              </SidebarMenuSub>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </div>
+  )
+}
+
+function GalleryTypographyEditorPanel({
+  onValueChange,
+  value,
+}: {
+  onValueChange: (value: GalleryTypographyValue) => void
+  value: GalleryTypographyValue
+}) {
+  const currentFont =
+    galleryTypographyFontOptions.find((font) => font.id === value.fontFamily) ??
+    galleryTypographyFontOptions[0]
+
+  return (
+    <div className="flex flex-1 flex-col px-2 py-2">
+      <SidebarGroup className="px-0">
+        <SidebarGroupLabel>Role groups</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu className="gap-0.5">
+            <SidebarMenuItem>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <SidebarMenuButton
+                    className="h-auto min-h-8 items-start py-1.5 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                    size="sm"
+                    type="button"
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span>font family</span>
+                      <span className="text-xs text-sidebar-foreground/45">
+                        {currentFont.label}
+                      </span>
+                    </span>
+                  </SidebarMenuButton>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="w-56 p-2"
+                  side="right"
+                  sideOffset={10}
+                >
+                  <SidebarMenu className="gap-0.5">
+                    {galleryTypographyFontOptions.map((font) => (
+                      <SidebarMenuItem key={font.id}>
+                        <SidebarMenuButton
+                          className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                          isActive={font.id === value.fontFamily}
+                          onClick={() =>
+                            onValueChange({
+                              ...value,
+                              fontFamily: font.id,
+                            })
+                          }
+                          size="sm"
+                          type="button"
+                        >
+                          <span>{font.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </PopoverContent>
+              </Popover>
+              <SidebarMenuSub>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton asChild>
+                    <span>base</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              </SidebarMenuSub>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <SidebarMenuButton
+                    className="h-auto min-h-8 items-start py-1.5 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                    size="sm"
+                    type="button"
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span>base size</span>
+                      <span className="text-xs text-sidebar-foreground/45">
+                        {value.baseSize}
+                      </span>
+                    </span>
+                  </SidebarMenuButton>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="w-56 p-2"
+                  side="right"
+                  sideOffset={10}
+                >
+                  <SidebarMenu className="gap-0.5">
+                    {galleryTypographyBaseSizeOptions.map((size) => (
+                      <SidebarMenuItem key={size}>
+                        <SidebarMenuButton
+                          className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                          isActive={size === value.baseSize}
+                          onClick={() =>
+                            onValueChange({
+                              ...value,
+                              baseSize: size,
+                            })
+                          }
+                          size="sm"
+                          type="button"
+                        >
+                          <span>{size}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </PopoverContent>
+              </Popover>
+              <SidebarMenuSub>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton asChild>
+                    <span>base</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              </SidebarMenuSub>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <SidebarMenuButton
+                    className="h-auto min-h-8 items-start py-1.5 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                    size="sm"
+                    type="button"
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span>line height</span>
+                      <span className="text-xs text-sidebar-foreground/45">
+                        {value.lineHeight}
+                      </span>
+                    </span>
+                  </SidebarMenuButton>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="w-56 p-2"
+                  side="right"
+                  sideOffset={10}
+                >
+                  <SidebarMenu className="gap-0.5">
+                    {galleryTypographyLineHeightOptions.map((lineHeight) => (
+                      <SidebarMenuItem key={lineHeight}>
+                        <SidebarMenuButton
+                          className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                          isActive={lineHeight === value.lineHeight}
+                          onClick={() =>
+                            onValueChange({
+                              ...value,
+                              lineHeight,
+                            })
+                          }
+                          size="sm"
+                          type="button"
+                        >
+                          <span>{lineHeight}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </PopoverContent>
+              </Popover>
+              <SidebarMenuSub>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton asChild>
+                    <span>base</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              </SidebarMenuSub>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
@@ -237,20 +481,44 @@ function GalleryRadiusEditorPanel({
 }
 
 export function GalleryEditorPanel({
+  colorTokenValues,
   mode,
+  onColorTokenValueChange,
   onRadiusChange,
+  onSpacingChange,
+  onTypographyChange,
   radiusValue,
+  spacingValue,
+  typographyValue,
 }: {
+  colorTokenValues: GalleryColorTokenValues
   mode: GalleryEditorMode
+  onColorTokenValueChange: (
+    token: GalleryColorTokenName,
+    value: GalleryColorTokenValue
+  ) => void
   onRadiusChange: (value: GalleryRadiusValue) => void
+  onSpacingChange: (value: GallerySpacingValue) => void
+  onTypographyChange: (value: GalleryTypographyValue) => void
   radiusValue: GalleryRadiusValue
+  spacingValue: GallerySpacingValue
+  typographyValue: GalleryTypographyValue
 }) {
-  const [tokenValues, setTokenValues] = React.useState(galleryColorTokenDefaults)
+  if (mode === "typography") {
+    return (
+      <GalleryTypographyEditorPanel
+        onValueChange={onTypographyChange}
+        value={typographyValue}
+      />
+    )
+  }
 
-  if (mode !== "color") {
+  if (mode === "other") {
     return (
       <GalleryRadiusEditorPanel
+        onSpacingChange={onSpacingChange}
         onValueChange={onRadiusChange}
+        spacingValue={spacingValue}
         value={radiusValue}
       />
     )
@@ -281,13 +549,10 @@ export function GalleryEditorPanel({
                     <GalleryColorTokenItem
                       key={token}
                       onValueChange={(value) =>
-                        setTokenValues((current) => ({
-                          ...current,
-                          [token]: value,
-                        }))
+                        onColorTokenValueChange(token, value)
                       }
                       token={token}
-                      value={tokenValues[token]}
+                      value={colorTokenValues[token]}
                     />
                   ))}
                 </SidebarMenu>
@@ -300,4 +565,10 @@ export function GalleryEditorPanel({
   )
 }
 
-export { radiusOptions, type GalleryRadiusValue }
+export {
+  radiusOptions,
+  spacingOptions,
+  type GalleryRadiusValue,
+  type GallerySpacingValue,
+}
+export type { GalleryTypographyValue } from "@/gallery/typography"
