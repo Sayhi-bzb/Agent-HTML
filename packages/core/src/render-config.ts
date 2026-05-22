@@ -28,37 +28,37 @@ export const PUBLIC_ARTIFACT_PROFILE_REFERENCE_VALUES = [
 const artifactProfileReferencePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const neutralLightSemanticTokens: SemanticColorTokenSet = {
-  background: "#f7f7f5",
-  foreground: "#111827",
-  card: "#ffffff",
-  cardForeground: "#111827",
-  popover: "#ffffff",
-  popoverForeground: "#111827",
-  primary: "#111827",
-  primaryForeground: "#ffffff",
-  secondary: "#eef2f7",
-  secondaryForeground: "#111827",
-  muted: "#eef2f7",
-  mutedForeground: "#64748b",
-  accent: "#eef2f7",
-  accentForeground: "#111827",
-  destructive: "#b42318",
-  destructiveForeground: "#ffffff",
-  border: "#d9ddd6",
-  input: "#d9ddd6",
-  ring: "#94a3b8",
-  chart1: "oklch(0.81 0.1 252)",
-  chart2: "oklch(0.62 0.19 260)",
-  chart3: "oklch(0.55 0.22 263)",
-  chart4: "oklch(0.49 0.22 264)",
-  chart5: "oklch(0.42 0.18 266)",
+  background: "oklch(1 0 0)",
+  foreground: "oklch(0.145 0 0)",
+  card: "oklch(1 0 0)",
+  cardForeground: "oklch(0.145 0 0)",
+  popover: "oklch(1 0 0)",
+  popoverForeground: "oklch(0.145 0 0)",
+  primary: "oklch(0.205 0 0)",
+  primaryForeground: "oklch(0.985 0 0)",
+  secondary: "oklch(0.97 0 0)",
+  secondaryForeground: "oklch(0.205 0 0)",
+  muted: "oklch(0.97 0 0)",
+  mutedForeground: "oklch(0.556 0 0)",
+  accent: "oklch(0.97 0 0)",
+  accentForeground: "oklch(0.205 0 0)",
+  destructive: "oklch(0.577 0.245 27.325)",
+  destructiveForeground: "oklch(0.985 0 0)",
+  border: "oklch(0.922 0 0)",
+  input: "oklch(0.922 0 0)",
+  ring: "oklch(0.708 0 0)",
+  chart1: "oklch(0.646 0.222 41.116)",
+  chart2: "oklch(0.6 0.118 184.704)",
+  chart3: "oklch(0.398 0.07 227.392)",
+  chart4: "oklch(0.828 0.189 84.429)",
+  chart5: "oklch(0.769 0.188 70.08)",
   sidebar: "oklch(0.985 0 0)",
-  sidebarForeground: "#111827",
-  sidebarPrimary: "#111827",
+  sidebarForeground: "oklch(0.145 0 0)",
+  sidebarPrimary: "oklch(0.205 0 0)",
   sidebarPrimaryForeground: "oklch(0.985 0 0)",
-  sidebarAccent: "#eef2f7",
-  sidebarAccentForeground: "#111827",
-  sidebarBorder: "#d9ddd6",
+  sidebarAccent: "oklch(0.97 0 0)",
+  sidebarAccentForeground: "oklch(0.205 0 0)",
+  sidebarBorder: "oklch(0.922 0 0)",
   sidebarRing: "oklch(0.708 0 0)",
 }
 
@@ -83,18 +83,18 @@ const neutralDarkSemanticTokens: SemanticColorTokenSet = {
   input: "oklch(1 0 0 / 15%)",
   ring: "oklch(0.556 0 0)",
   chart1: "oklch(0.81 0.1 252)",
-  chart2: "oklch(0.62 0.19 260)",
-  chart3: "oklch(0.55 0.22 263)",
-  chart4: "oklch(0.49 0.22 264)",
-  chart5: "oklch(0.42 0.18 266)",
+  chart2: "oklch(0.696 0.17 162.48)",
+  chart3: "oklch(0.769 0.188 70.08)",
+  chart4: "oklch(0.627 0.265 303.9)",
+  chart5: "oklch(0.645 0.246 16.439)",
   sidebar: "oklch(0.205 0 0)",
   sidebarForeground: "oklch(0.985 0 0)",
   sidebarPrimary: "oklch(0.488 0.243 264.376)",
   sidebarPrimaryForeground: "oklch(0.985 0 0)",
   sidebarAccent: "oklch(0.269 0 0)",
   sidebarAccentForeground: "oklch(0.985 0 0)",
-  sidebarBorder: "oklch(0.275 0 0)",
-  sidebarRing: "oklch(0.439 0 0)",
+  sidebarBorder: "oklch(1 0 0 / 10%)",
+  sidebarRing: "oklch(0.556 0 0)",
 }
 
 const defaultRadiusScale: RadiusScale = {
@@ -179,7 +179,7 @@ const defaultGlobalLayoutProfile: GlobalLayoutProfile = {
     pagePaddingInline: "1rem",
     pagePaddingBlockStart: "1.5rem",
     pagePaddingBlockEnd: "3rem",
-    frameMaxWidth: "72rem",
+    frameMaxWidth: "100%",
   },
   measure: {
     prose: "68ch",
@@ -748,7 +748,7 @@ function normalizeComponentLayoutProfile(
   return {
     page: {
       gap: componentLayout?.page?.gap ?? rhythm?.pageGap ?? defaultGlobalLayoutProfile.rhythm.pageGap,
-      measure: componentLayout?.page?.measure ?? "wide",
+      measure: componentLayout?.page?.measure ?? "full",
     },
     stack: {
       gap: componentLayout?.stack?.gap ?? rhythm?.stackGap ?? defaultGlobalLayoutProfile.rhythm.stackGap,
@@ -815,14 +815,7 @@ function normalizeComponentLayoutProfile(
         componentLayout?.frame?.maxWidth ??
         frame?.frameMaxWidth ??
         defaultGlobalLayoutProfile.frame.frameMaxWidth,
-      measure:
-        componentLayout?.frame?.measure ??
-        inferMeasureFromFrameMaxWidth(
-          componentLayout?.frame?.maxWidth ??
-            frame?.frameMaxWidth ??
-            defaultGlobalLayoutProfile.frame.frameMaxWidth,
-          measure,
-        ),
+      measure: componentLayout?.frame?.measure ?? "full",
     },
   }
 }

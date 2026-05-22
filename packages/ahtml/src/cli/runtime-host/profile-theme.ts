@@ -1,6 +1,6 @@
 import type { AgentDocument } from "./renderer/types"
 
-export type ArtifactProfile = AgentDocument["meta"]["artifactProfile"]
+type ArtifactProfile = AgentDocument["meta"]["artifactProfile"]
 
 export function createDocumentStyleCss(artifactProfile: ArtifactProfile) {
   return [

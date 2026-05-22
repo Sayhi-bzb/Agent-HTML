@@ -1,3 +1,5 @@
+import * as React from "react"
+
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
@@ -5,6 +7,99 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+
+type Project = {
+  id: string
+  name: string
+  slug: string
+}
+
+type ProjectTab = {
+  id: string
+  projectId: string
+  label: string
+  slug: string
+}
+
+const initialProjects: Project[] = [
+  {
+    id: "design-engineering",
+    name: "Design Engineering",
+    slug: "design-engineering",
+  },
+  {
+    id: "sales-marketing",
+    name: "Sales & Marketing",
+    slug: "sales-marketing",
+  },
+  {
+    id: "travel",
+    name: "Travel",
+    slug: "travel",
+  },
+]
+
+function slugifyProjectName(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
+function createDuplicateProject(source: Project, projects: Project[]): Project {
+  const baseName = `${source.name} Copy`
+  let nextName = baseName
+  let nextSlug = slugifyProjectName(nextName)
+  let suffix = 2
+
+  while (
+    projects.some(
+      (project) => project.id === nextSlug || project.slug === nextSlug
+    )
+  ) {
+    nextName = `${baseName} ${suffix}`
+    nextSlug = slugifyProjectName(nextName)
+    suffix += 1
+  }
+
+  return {
+    id: nextSlug,
+    name: nextName,
+    slug: nextSlug,
+  }
+}
+
+function getNextActiveTabId(
+  currentTabs: ProjectTab[],
+  removedTabIds: Set<string>,
+  currentActiveTabId: string | null
+) {
+  if (!currentActiveTabId || !removedTabIds.has(currentActiveTabId)) {
+    return currentActiveTabId
+  }
+
+  const closingIndex = currentTabs.findIndex(
+    (tab) => tab.id === currentActiveTabId
+  )
+  if (closingIndex === -1) {
+    return null
+  }
+
+  for (let index = closingIndex - 1; index >= 0; index -= 1) {
+    if (!removedTabIds.has(currentTabs[index].id)) {
+      return currentTabs[index].id
+    }
+  }
+
+  for (let index = closingIndex + 1; index < currentTabs.length; index += 1) {
+    if (!removedTabIds.has(currentTabs[index].id)) {
+      return currentTabs[index].id
+    }
+  }
+
+  return null
+}
 
 const stats = [
   { label: "Active agents", value: "12", detail: "+2 this week" },
@@ -31,32 +126,180 @@ const activity = [
 ]
 
 export function App() {
+  const [projects, setProjects] = React.useState<Project[]>(initialProjects)
+  const [openTabs, setOpenTabs] = React.useState<ProjectTab[]>([])
+  const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
+
+  const activeTab = React.useMemo(
+    () => openTabs.find((tab) => tab.id === activeTabId) ?? null,
+    [activeTabId, openTabs]
+  )
+
+  const activeProject = React.useMemo(
+    () =>
+      activeTab
+        ? projects.find((project) => project.id === activeTab.projectId) ?? null
+        : null,
+    [activeTab]
+  )
+
+  const handleOpenProject = React.useCallback(
+    (projectId: string) => {
+      const project = projects.find((item) => item.id === projectId)
+      if (!project) {
+        return
+      }
+
+      const tabId = `project:${project.id}`
+
+      setOpenTabs((currentTabs) => {
+        if (currentTabs.some((tab) => tab.id === tabId)) {
+          return currentTabs
+        }
+
+        return [
+          ...currentTabs,
+          {
+            id: tabId,
+            projectId: project.id,
+            label: project.name,
+            slug: project.slug,
+          },
+        ]
+      })
+      setActiveTabId(tabId)
+    },
+    [projects]
+  )
+
+  const handleRenameProject = React.useCallback((projectId: string, name: string) => {
+    const nextName = name.trim()
+    if (!nextName) {
+      return
+    }
+
+    setProjects((currentProjects) =>
+      currentProjects.map((project) =>
+        project.id === projectId ? { ...project, name: nextName } : project
+      )
+    )
+    setOpenTabs((currentTabs) =>
+      currentTabs.map((tab) =>
+        tab.projectId === projectId ? { ...tab, label: nextName } : tab
+      )
+    )
+  }, [])
+
+  const handleDuplicateProject = React.useCallback(
+    (projectId: string) => {
+      const sourceProject = projects.find((project) => project.id === projectId)
+      if (!sourceProject) {
+        return
+      }
+
+      const duplicateProject = createDuplicateProject(sourceProject, projects)
+      const duplicateTabId = `project:${duplicateProject.id}`
+
+      setProjects((currentProjects) => [...currentProjects, duplicateProject])
+      setOpenTabs((currentTabs) => [
+        ...currentTabs,
+        {
+          id: duplicateTabId,
+          projectId: duplicateProject.id,
+          label: duplicateProject.name,
+          slug: duplicateProject.slug,
+        },
+      ])
+      setActiveTabId(duplicateTabId)
+    },
+    [projects]
+  )
+
+  const handleDeleteProject = React.useCallback((projectId: string) => {
+    setProjects((currentProjects) =>
+      currentProjects.filter((project) => project.id !== projectId)
+    )
+    setOpenTabs((currentTabs) => {
+      const removedTabIds = new Set(
+        currentTabs
+          .filter((tab) => tab.projectId === projectId)
+          .map((tab) => tab.id)
+      )
+
+      if (removedTabIds.size === 0) {
+        return currentTabs
+      }
+
+      const nextTabs = currentTabs.filter((tab) => tab.projectId !== projectId)
+
+      setActiveTabId((currentActiveTabId) =>
+        getNextActiveTabId(currentTabs, removedTabIds, currentActiveTabId)
+      )
+
+      return nextTabs
+    })
+  }, [])
+
+  const handleSelectTab = React.useCallback((tabId: string) => {
+    setActiveTabId(tabId)
+  }, [])
+
+  const handleCloseTab = React.useCallback((tabId: string) => {
+    setOpenTabs((currentTabs) => {
+      if (!currentTabs.some((tab) => tab.id === tabId)) {
+        return currentTabs
+      }
+
+      const removedTabIds = new Set([tabId])
+      const nextTabs = currentTabs.filter((tab) => tab.id !== tabId)
+
+      setActiveTabId((currentActiveTabId) => {
+        return getNextActiveTabId(currentTabs, removedTabIds, currentActiveTabId)
+      })
+
+      return nextTabs
+    })
+  }, [])
+
   return (
     <SidebarProvider
       className="min-h-svh flex-col"
       style={
         {
-          "--header-height": "3.5rem",
+          "--header-height": "2.5rem",
         } as React.CSSProperties
       }
     >
-      <SiteHeader />
+      <SiteHeader
+        activeTabId={activeTabId}
+        onCloseTab={handleCloseTab}
+        onSelectTab={handleSelectTab}
+        tabs={openTabs}
+      />
       <main className="flex min-h-0 flex-1">
-        <AppSidebar variant="inset" />
-        <SidebarInset className="min-h-0 rounded-none border-0 shadow-none md:m-0 md:rounded-none">
+        <AppSidebar
+          onDeleteProject={handleDeleteProject}
+          onDuplicateProject={handleDuplicateProject}
+          onOpenProject={handleOpenProject}
+          onRenameProject={handleRenameProject}
+          projects={projects}
+          variant="inset"
+        />
+        <SidebarInset className="min-h-0 border-0 shadow-sm md:mr-2 md:mb-2">
           <div className="flex flex-1 flex-col">
             <header className="border-b px-4 py-5 md:px-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="flex flex-col gap-1">
                   <p className="text-sm text-muted-foreground">
-                    Workspace shell
+                    {activeProject ? "Selected project" : "Workspace shell"}
                   </p>
                   <h1 className="text-2xl font-semibold tracking-tight">
-                    Agent Console
+                    {activeProject ? activeProject.name : "Agent Console"}
                   </h1>
                   <p className="max-w-2xl text-sm text-muted-foreground">
-                    The page header stays above the main content row, while the
-                    sidebar now belongs to the main layout area.
+                    {activeProject
+                      ? `The header tab now carries the active ${activeProject.name} workspace state while the sidebar stays navigation-only.`
+                      : "Open a project from the sidebar to create a workspace tab and load its state here."}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -71,7 +314,7 @@ export function App() {
                 {stats.map((stat) => (
                   <article
                     key={stat.label}
-                    className="rounded-xl border bg-card p-5 text-card-foreground shadow-sm"
+                    className="rounded-xl border bg-background p-5 text-foreground shadow-sm"
                   >
                     <p className="text-sm text-muted-foreground">{stat.label}</p>
                     <p className="mt-3 text-3xl font-semibold tracking-tight">
@@ -85,7 +328,7 @@ export function App() {
               </section>
 
               <section className="grid flex-1 gap-6 lg:grid-cols-[1.4fr_0.9fr]">
-                <article className="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <article className="rounded-xl border bg-background text-foreground shadow-sm">
                   <div className="grid gap-4 p-5 md:grid-cols-2">
                     <div className="rounded-lg border border-dashed p-4">
                       <p className="text-sm font-medium">Primary content area</p>
@@ -102,7 +345,7 @@ export function App() {
                   </div>
                 </article>
 
-                <article className="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <article className="rounded-xl border bg-background text-foreground shadow-sm">
                   <div className="border-b px-5 py-4">
                     <p className="text-sm font-medium">Recent activity</p>
                   </div>

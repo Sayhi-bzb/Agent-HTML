@@ -209,7 +209,7 @@ describe("code governance sync blocks", () => {
     )
   })
 
-  it("keeps runtime-host ui source limited to explicit overrides while runtime baseline stays on fixtures", async () => {
+  it("keeps runtime-host ui source self-contained inside packages/ahtml", async () => {
     const [
       runtimeHostSliderSource,
       runtimeManagedUiSource,
@@ -237,16 +237,27 @@ describe("code governance sync blocks", () => {
 
     expect(runtimeHostSliderSource).toContain("controlId")
     expect(runtimeManagedUiSource).toContain(
-      "const managedRuntimeUiBundleSourceDir = path.join(",
+      "const managedRuntimeUiSourceDir = path.join(",
     )
-    expect(runtimeManagedUiSource).toContain('"verify-pack",')
-    expect(runtimeManagedUiSource).toContain('"shadcn-test-fixtures",')
+    expect(runtimeManagedUiSource).toContain('"runtime-host",')
     expect(runtimeManagedUiSource).toContain(
-      '"runtime-host/components/ui override registry must match explicit managed overrides only."',
+      '"runtime-host/components/ui must contain every managed UI component with override metadata."',
     )
-    expect(runtimeTsconfigSource).toContain('"@/components/ui/slider": [')
+    expect(runtimeManagedUiSource).not.toContain('"verify-pack",')
+    expect(runtimeManagedUiSource).not.toContain('"shadcn-test-fixtures",')
+    expect(runtimeTsconfigSource).toContain('"@/components/ui/*": [')
     expect(runtimeTsconfigSource).toContain(
+      '"./src/cli/runtime-host/components/ui/*"',
+    )
+    expect(runtimeTsconfigSource).toContain('"@/lib/*": [')
+    expect(runtimeTsconfigSource).toContain(
+      '"./src/cli/runtime-host/lib/*"',
+    )
+    expect(runtimeTsconfigSource).not.toContain(
       '"../../scripts/verify-pack/shadcn-test-fixtures/components/ui/*"',
+    )
+    expect(runtimeTsconfigSource).not.toContain(
+      '"../../apps/agent-html-app/src/lib/*"',
     )
   })
 

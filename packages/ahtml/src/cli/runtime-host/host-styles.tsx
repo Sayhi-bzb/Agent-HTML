@@ -1617,60 +1617,10 @@ export function createGalleryShellCss() {
     ) {
       margin-top: 0;
     }
-    .ahtml-gallery-preview-document [data-slot="card-content"]:not(.ahtml-section-stack):not(.ahtml-prose-block),
-    .ahtml-runtime-document .ahtml-layout-policy-document [data-slot="card-content"]:not(.ahtml-section-stack):not(.ahtml-prose-block) {
+    .ahtml-gallery-preview-document [data-slot="card-content"]:not(.ahtml-section-stack):not(.ahtml-prose-block) {
       max-width: none;
     }
     .ahtml-gallery-preview-document [data-slot="card-content"]:not(.ahtml-section-stack):not(.ahtml-prose-block) > :where(
-      [data-agent-html-component="alert"],
-      [data-agent-html-component="table"],
-      [data-agent-html-component="list"],
-      [data-agent-html-component="tabs"],
-      [data-agent-html-component="accordion"],
-      [data-agent-html-component="checkbox"],
-      [data-agent-html-component="switch"],
-      [data-agent-html-component="input"],
-      [data-agent-html-component="textarea"],
-      [data-agent-html-component="slider"],
-      [data-agent-html-component="radio-group"],
-      [data-agent-html-component="toggle-group"],
-      [data-agent-html-component="select"],
-      [data-agent-html-component="combobox"],
-      [data-agent-html-component="progress"],
-      [data-agent-html-component="badge"],
-      [data-agent-html-component="separator"],
-      [data-agent-html-component="stack"],
-      [data-agent-html-component="cluster"],
-      [data-agent-html-component="split"],
-      [data-agent-html-component="grid"],
-      [data-agent-html-component="switcher"],
-      [data-agent-html-component="frame"]
-    ) + :where(
-      [data-agent-html-component="alert"],
-      [data-agent-html-component="table"],
-      [data-agent-html-component="list"],
-      [data-agent-html-component="tabs"],
-      [data-agent-html-component="accordion"],
-      [data-agent-html-component="checkbox"],
-      [data-agent-html-component="switch"],
-      [data-agent-html-component="input"],
-      [data-agent-html-component="textarea"],
-      [data-agent-html-component="slider"],
-      [data-agent-html-component="radio-group"],
-      [data-agent-html-component="toggle-group"],
-      [data-agent-html-component="select"],
-      [data-agent-html-component="combobox"],
-      [data-agent-html-component="progress"],
-      [data-agent-html-component="badge"],
-      [data-agent-html-component="separator"],
-      [data-agent-html-component="stack"],
-      [data-agent-html-component="cluster"],
-      [data-agent-html-component="split"],
-      [data-agent-html-component="grid"],
-      [data-agent-html-component="switcher"],
-      [data-agent-html-component="frame"]
-    ),
-    .ahtml-runtime-document .ahtml-layout-policy-document [data-slot="card-content"]:not(.ahtml-section-stack):not(.ahtml-prose-block) > :where(
       [data-agent-html-component="alert"],
       [data-agent-html-component="table"],
       [data-agent-html-component="list"],

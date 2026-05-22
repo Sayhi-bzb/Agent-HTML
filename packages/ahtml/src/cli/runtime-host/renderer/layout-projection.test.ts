@@ -19,7 +19,7 @@ describe("layout projection", () => {
 
     expect(resolveLayoutComponentStyle("page", artifactProfile)).toMatchObject({
       gap: artifactProfile.componentLayout.page.gap,
-      maxWidth: artifactProfile.globalLayout.measure.wide,
+      maxWidth: artifactProfile.globalLayout.measure.full,
     })
     expect(resolveLayoutComponentStyle("stack", artifactProfile)).toMatchObject({
       gap: artifactProfile.componentLayout.stack.gap,
@@ -56,7 +56,7 @@ describe("layout projection", () => {
     })
     expect(resolveLayoutComponentStyle("frame", artifactProfile)).toMatchObject({
       maxWidth: artifactProfile.componentLayout.frame.maxWidth,
-      width: artifactProfile.globalLayout.measure.wide,
+      width: artifactProfile.globalLayout.measure.full,
     })
   })
 

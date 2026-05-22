@@ -5,19 +5,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 const managedRuntimeUiProofAlgorithm = "sha256"
-const managedRuntimeUiBundleSourceDir = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-  "..",
-  "scripts",
-  "verify-pack",
-  "shadcn-test-fixtures",
-  "components",
-  "ui",
-)
-const managedRuntimeUiOverrideSourceDir = path.join(
+const managedRuntimeUiSourceDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "runtime-host",
   "components",
@@ -29,31 +17,52 @@ const managedRuntimeUiOverrideDefinitions = {
       "Adds runtime-specific field semantics passthrough for single-thumb slider accessibility.",
   },
 }
+const managedRuntimeUiComponentDependencies = {
+  combobox: ["input-group"],
+  field: ["label", "separator"],
+  "input-group": ["button", "input", "textarea"],
+}
 
 export function getManagedRuntimeUiBundleDirectory() {
-  return managedRuntimeUiBundleSourceDir
+  return managedRuntimeUiSourceDir
 }
 
 export function getManagedRuntimeUiOverrideDirectory() {
-  return managedRuntimeUiOverrideSourceDir
+  return managedRuntimeUiSourceDir
 }
 
-function listManagedRuntimeUiFiles(directory) {
+function listManagedRuntimeUiFiles(directory, allowedComponents = null) {
   if (!existsSync(directory)) {
     return []
   }
 
   return readdirSync(directory)
-    .filter((entry) => entry.endsWith(".tsx"))
+    .filter((entry) => {
+      if (!entry.endsWith(".tsx")) {
+        return false
+      }
+
+      if (!allowedComponents) {
+        return true
+      }
+
+      return allowedComponents.has(entry.replace(/\.tsx$/, ""))
+    })
     .sort()
 }
 
-export function listManagedRuntimeUiBundleFiles() {
-  return listManagedRuntimeUiFiles(managedRuntimeUiBundleSourceDir)
+export function listManagedRuntimeUiBundleFiles(components = []) {
+  return listManagedRuntimeUiFiles(
+    managedRuntimeUiSourceDir,
+    resolveManagedRuntimeUiComponents(components),
+  )
 }
 
 export function listManagedRuntimeUiOverrideFiles() {
-  return listManagedRuntimeUiFiles(managedRuntimeUiOverrideSourceDir)
+  return listManagedRuntimeUiFiles(
+    managedRuntimeUiSourceDir,
+    new Set(Object.keys(managedRuntimeUiOverrideDefinitions)),
+  )
 }
 
 export function getManagedRuntimeUiOverrideRegistry() {
@@ -62,16 +71,13 @@ export function getManagedRuntimeUiOverrideRegistry() {
       component,
       fileName: `${component}.tsx`,
       runtimeRelativePath: `src/components/ui/${component}.tsx`,
-      sourcePath: path.join(
-        managedRuntimeUiOverrideSourceDir,
-        `${component}.tsx`,
-      ),
+      sourcePath: path.join(managedRuntimeUiSourceDir, `${component}.tsx`),
       reason: metadata.reason,
     }))
     .sort((left, right) => left.fileName.localeCompare(right.fileName))
 }
 
-export function getManagedRuntimeUiBundleRegistry() {
+export function getManagedRuntimeUiBundleRegistry(components = []) {
   const overrideRegistry = new Map(
     getManagedRuntimeUiOverrideRegistry().map((entry) => [
       entry.component,
@@ -79,23 +85,16 @@ export function getManagedRuntimeUiBundleRegistry() {
     ]),
   )
 
-  return listManagedRuntimeUiBundleFiles().map((fileName) => {
+  return listManagedRuntimeUiBundleFiles(components).map((fileName) => {
     const component = fileName.replace(/\.tsx$/, "")
-    const baselineSourcePath = path.join(
-      managedRuntimeUiBundleSourceDir,
-      fileName,
-    )
     const overrideEntry = overrideRegistry.get(component)
-    const hasOverride = Boolean(
-      overrideEntry && existsSync(overrideEntry.sourcePath),
-    )
 
     return {
       component,
       fileName,
       runtimeRelativePath: `src/components/ui/${fileName}`,
-      sourcePath: hasOverride ? overrideEntry.sourcePath : baselineSourcePath,
-      reason: hasOverride ? overrideEntry.reason : undefined,
+      sourcePath: path.join(managedRuntimeUiSourceDir, fileName),
+      reason: overrideEntry?.reason,
     }
   })
 }
@@ -105,7 +104,7 @@ export function assertManagedRuntimeUiBundleSourceDirectory() {
 
   if (actualFiles.length === 0) {
     throw new Error(
-      "scripts/verify-pack/shadcn-test-fixtures/components/ui must contain the managed runtime UI baseline bundle.",
+      "packages/ahtml/src/cli/runtime-host/components/ui must contain the managed runtime UI bundle.",
     )
   }
 
@@ -120,14 +119,12 @@ export function assertManagedRuntimeUiOverrideSourceDirectory() {
   const expectedSet = new Set(expectedFiles)
   const actualSet = new Set(actualFiles)
   const missing = expectedFiles.filter((fileName) => !actualSet.has(fileName))
-  const extra = actualFiles.filter((fileName) => !expectedSet.has(fileName))
 
-  if (missing.length > 0 || extra.length > 0) {
+  if (missing.length > 0) {
     throw new Error(
       [
-        "runtime-host/components/ui override registry must match explicit managed overrides only.",
+        "runtime-host/components/ui must contain every managed UI component with override metadata.",
         missing.length > 0 ? `Missing: ${missing.join(", ")}.` : "",
-        extra.length > 0 ? `Extra: ${extra.join(", ")}.` : "",
       ]
         .filter(Boolean)
         .join(" "),
@@ -141,15 +138,7 @@ export function getManagedRuntimeUiBundleEntries(components = []) {
   assertManagedRuntimeUiBundleSourceDirectory()
   assertManagedRuntimeUiOverrideSourceDirectory()
 
-  if (!Array.isArray(components) || components.length === 0) {
-    return getManagedRuntimeUiBundleRegistry()
-  }
-
-  const requestedComponents = new Set(components)
-
-  return getManagedRuntimeUiBundleRegistry().filter((entry) =>
-    requestedComponents.has(entry.component),
-  )
+  return getManagedRuntimeUiBundleRegistry(components)
 }
 
 export function getManagedRuntimeUiOverrideEntries(components = []) {
@@ -159,7 +148,7 @@ export function getManagedRuntimeUiOverrideEntries(components = []) {
     return getManagedRuntimeUiOverrideRegistry()
   }
 
-  const requestedComponents = new Set(components)
+  const requestedComponents = resolveManagedRuntimeUiComponents(components)
 
   return getManagedRuntimeUiOverrideRegistry().filter((entry) =>
     requestedComponents.has(entry.component),
@@ -233,4 +222,32 @@ export async function createManagedRuntimeUiProof(components = []) {
 
 function createContentHash(source) {
   return createHash(managedRuntimeUiProofAlgorithm).update(source).digest("hex")
+}
+
+function resolveManagedRuntimeUiComponents(components = []) {
+  if (!Array.isArray(components) || components.length === 0) {
+    return null
+  }
+
+  const resolvedComponents = new Set()
+  const pendingComponents = [...new Set(components)]
+
+  while (pendingComponents.length > 0) {
+    const component = pendingComponents.shift()
+
+    if (!component || resolvedComponents.has(component)) {
+      continue
+    }
+
+    resolvedComponents.add(component)
+
+    for (const dependency of managedRuntimeUiComponentDependencies[component] ??
+      []) {
+      if (!resolvedComponents.has(dependency)) {
+        pendingComponents.push(dependency)
+      }
+    }
+  }
+
+  return resolvedComponents
 }

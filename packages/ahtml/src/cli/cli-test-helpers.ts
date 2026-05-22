@@ -156,7 +156,7 @@ type ShadcnTestServerModule = {
   readonly startShadcnTestServer: () => Promise<ShadcnTestServer>
 }
 
-export type ShadcnTestServer = {
+type ShadcnTestServer = {
   readonly registryUrl: string
   readonly close: () => Promise<void>
 }
@@ -736,7 +736,8 @@ function createCustomArtifactProfile() {
         fontSans:
           '"Inter Variable", system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif',
         fontHeading: "var(--font-sans)",
-        fontSerif: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
+        fontSerif:
+          'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
         fontMono:
           'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
         letterSpacing: "0em",

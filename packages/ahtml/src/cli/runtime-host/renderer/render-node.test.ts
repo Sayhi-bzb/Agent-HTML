@@ -407,13 +407,13 @@ describe("createRendererNode", () => {
     expect(markup).toContain('class="ahtml-prose-block"><p class="m-0 whitespace-normal">Ready</p>')
   })
 
-  it("uses host CSS to add block spacing inside neutral card content", () => {
+  it("keeps gallery preview spacing rules scoped away from document preview card content", () => {
     const css = createGalleryShellCss()
 
     expect(css).toContain(
       '.ahtml-gallery-preview-document [data-slot="card-content"]:not(.ahtml-section-stack):not(.ahtml-prose-block) > :where(',
     )
-    expect(css).toContain(
+    expect(css).not.toContain(
       '.ahtml-runtime-document .ahtml-layout-policy-document [data-slot="card-content"]:not(.ahtml-section-stack):not(.ahtml-prose-block) > :where(',
     )
     expect(css).toContain('[data-agent-html-component="list"]')

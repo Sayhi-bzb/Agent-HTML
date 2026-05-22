@@ -152,6 +152,18 @@ Rules:
 - light and dark MUST expose the same semantic names
 - component code MUST consume semantic tokens rather than foundation tokens directly
 
+`sidebar*` remains a valid semantic interface for shell-specific consumption.
+It does not imply a permanently separate color family.
+When shell and workspace surfaces are intentionally unified, `sidebar*` SHOULD map to the
+corresponding shared semantic tokens (`background`, `foreground`, `accent`, `border`, `ring`,
+`primary`) rather than introducing a second independent palette.
+
+In the current shell/workspace model:
+
+- `background` owns the shell plane
+- `card` owns the primary workspace plane
+- `sidebar*` is a shell-facing alias layer over the shared semantic tokens above
+
 ## Layout Constants
 
 The current shell includes structural constants that are not general-purpose design tokens:

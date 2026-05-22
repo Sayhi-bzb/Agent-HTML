@@ -100,7 +100,8 @@ describe("artifact workflow inspection", () => {
   })
 
   it("marks managed runtime stale when renderer mapping drifts from current schema", async () => {
-    const { isRuntimeVerificationCurrent } = await importArtifactWorkflowModule()
+    const { isRuntimeVerificationCurrent } =
+      await importArtifactWorkflowModule()
 
     expect(() =>
       isRuntimeVerificationCurrent({
@@ -156,10 +157,13 @@ describe("artifact workflow inspection", () => {
   })
 
   it("reads runtime verification from the generated runtime file instead of manifest capability snapshots", async () => {
-    const { isRuntimeVerificationCurrent } = await importArtifactWorkflowModule()
+    const { isRuntimeVerificationCurrent } =
+      await importArtifactWorkflowModule()
     const { readRuntimeVerificationState } =
       await importRuntimeRenderabilityModule()
-    const runtimeRoot = await mkdtemp(path.join(tmpdir(), "ahtml-runtime-state-"))
+    const runtimeRoot = await mkdtemp(
+      path.join(tmpdir(), "ahtml-runtime-state-"),
+    )
     const runtimeVerificationPath = path.join(
       runtimeRoot,
       "runtime",
@@ -237,13 +241,15 @@ describe("artifact workflow inspection", () => {
   })
 
   it("marks managed runtime stale when runtime host glue drifts even if verification data still matches", async () => {
-    const { createRuntimeContractFromSchema } = await importRuntimeContractModule()
+    const { createRuntimeContractFromSchema } =
+      await importRuntimeContractModule()
     const { createManagedRuntimeManifest, createRuntimeVerificationState } =
       await importRuntimeContractModule()
     const { createAhtmlGlueProof } = await importRuntimeSurfaceModule()
     const { createManagedRuntimeUiProof } = await importRuntimeManagedUiModule()
-    const { isManagedRuntimeCurrent } = await importArtifactWorkflowModule()
-    const runtimeRoot = await mkdtemp(path.join(tmpdir(), "ahtml-runtime-current-"))
+    const runtimeRoot = await mkdtemp(
+      path.join(tmpdir(), "ahtml-runtime-current-"),
+    )
     const runtimePaths = createRuntimePaths(runtimeRoot)
 
     await mkdir(path.join(runtimePaths.runtimeSrcDir, "renderer"), {
@@ -366,7 +372,7 @@ describe("artifact workflow inspection", () => {
       "export function createRuntimeHostCss() { return 'drifted' }\n",
     )
 
-    const workflow = createArtifactWorkflowForTest(runtimePaths)
+    const workflow = await createArtifactWorkflowForTest(runtimePaths)
 
     await expect(workflow.isManagedRuntimeCurrent(schema)).resolves.toBe(false)
   })
@@ -380,6 +386,15 @@ async function importArtifactWorkflowModule() {
       readonly outputDir: string
       readonly userRoot: string
     }) => void
+    readonly createArtifactWorkflow: (input: {
+      readonly userRoot: string
+      readonly defaultOutputDir: string
+      readonly packageRoot: string
+      readonly runtimePaths: ReturnType<typeof createRuntimePaths>
+      readonly readPackageVersion: () => Promise<string>
+    }) => {
+      readonly isManagedRuntimeCurrent: (schema: unknown) => Promise<boolean>
+    }
     readonly createInspection: (document: unknown) => unknown
     readonly formatInspectionSummary: (inspection: {
       readonly configModel?: string
@@ -407,21 +422,31 @@ async function importRuntimeRenderabilityModule() {
 
 async function importRuntimeContractModule() {
   return importCliModule<{
-    readonly createManagedRuntimeManifest: (input: Record<string, unknown>) => Record<string, unknown>
-    readonly createRuntimeContractFromSchema: (schema: unknown) => Record<string, unknown>
-    readonly createRuntimeVerificationState: (input: Record<string, unknown>) => Record<string, unknown>
+    readonly createManagedRuntimeManifest: (
+      input: Record<string, unknown>,
+    ) => Record<string, unknown>
+    readonly createRuntimeContractFromSchema: (
+      schema: unknown,
+    ) => Record<string, unknown>
+    readonly createRuntimeVerificationState: (
+      input: Record<string, unknown>,
+    ) => Record<string, unknown>
   }>("..", "config", "runtime-contract.mjs")
 }
 
 async function importRuntimeSurfaceModule() {
   return importCliModule<{
-    readonly createAhtmlGlueProof: (paths: ReturnType<typeof createRuntimePaths>) => Promise<Record<string, unknown>>
+    readonly createAhtmlGlueProof: (
+      paths: ReturnType<typeof createRuntimePaths>,
+    ) => Promise<Record<string, unknown>>
   }>("runtime-surface.mjs")
 }
 
 async function importRuntimeManagedUiModule() {
   return importCliModule<{
-    readonly createManagedRuntimeUiProof: (components: string[]) => Promise<Record<string, unknown>>
+    readonly createManagedRuntimeUiProof: (
+      components: string[],
+    ) => Promise<Record<string, unknown>>
   }>("runtime-managed-ui.mjs")
 }
 
@@ -494,8 +519,10 @@ function createRuntimePaths(runtimeRoot: string) {
   }
 }
 
-function createArtifactWorkflowForTest(runtimePaths: ReturnType<typeof createRuntimePaths>) {
-  const { createArtifactWorkflow } = requireArtifactWorkflowModuleForTest()
+async function createArtifactWorkflowForTest(
+  runtimePaths: ReturnType<typeof createRuntimePaths>,
+) {
+  const { createArtifactWorkflow } = await importArtifactWorkflowModule()
   return createArtifactWorkflow({
     userRoot: "D:\\repo",
     defaultOutputDir: "dist",
@@ -505,11 +532,9 @@ function createArtifactWorkflowForTest(runtimePaths: ReturnType<typeof createRun
   })
 }
 
-function requireArtifactWorkflowModuleForTest() {
-  throw new Error("createArtifactWorkflowForTest should not be called synchronously.")
-}
-
-async function seedRuntimeSurfaceFixture(runtimePaths: ReturnType<typeof createRuntimePaths>) {
+async function seedRuntimeSurfaceFixture(
+  runtimePaths: ReturnType<typeof createRuntimePaths>,
+) {
   await mkdir(path.join(runtimePaths.runtimeSrcDir, "lib"), { recursive: true })
 
   const files = {
@@ -550,7 +575,8 @@ async function seedRuntimeSurfaceFixture(runtimePaths: ReturnType<typeof createR
       "export function App() { return null }\n",
     [path.join(runtimePaths.runtimeSrcDir, "render-ssr.tsx")]: "export {}\n",
     [path.join(runtimePaths.runtimeSrcDir, "ssr.tsx")]: "export {}\n",
-    [path.join(runtimePaths.runtimeSrcDir, "artifact-shell.tsx")]: "export {}\n",
+    [path.join(runtimePaths.runtimeSrcDir, "artifact-shell.tsx")]:
+      "export {}\n",
     [path.join(runtimePaths.runtimeSrcDir, "host-styles.tsx")]:
       "export function createRuntimeHostCss() { return '' }\n",
     [path.join(runtimePaths.runtimeSrcDir, "profile-theme.ts")]: "export {}\n",
@@ -562,8 +588,11 @@ async function seedRuntimeSurfaceFixture(runtimePaths: ReturnType<typeof createR
       "export {}\n",
     [path.join(runtimePaths.runtimeSrcDir, "renderer", "parity.ts")]:
       "export {}\n",
-    [path.join(runtimePaths.runtimeSrcDir, "renderer", "render-layout-node.tsx")]:
-      "export {}\n",
+    [path.join(
+      runtimePaths.runtimeSrcDir,
+      "renderer",
+      "render-layout-node.tsx",
+    )]: "export {}\n",
     [path.join(runtimePaths.runtimeSrcDir, "renderer", "render-node.tsx")]:
       "export {}\n",
     [path.join(runtimePaths.runtimeSrcDir, "renderer", "render-ui-node.tsx")]:
@@ -571,7 +600,7 @@ async function seedRuntimeSurfaceFixture(runtimePaths: ReturnType<typeof createR
     [path.join(runtimePaths.runtimeSrcDir, "renderer", "types.ts")]:
       "export type X = {}\n",
     [path.join(runtimePaths.runtimeComponentsDir, "card.tsx")]:
-      'export function Card() { return null }\nexport function CardContent() { return null }\nexport function CardHeader() { return null }\nexport function CardTitle() { return null }\n',
+      "export function Card() { return null }\nexport function CardContent() { return null }\nexport function CardHeader() { return null }\nexport function CardTitle() { return null }\n",
   }
 
   for (const [filePath, source] of Object.entries(files)) {

@@ -2,7 +2,7 @@ import type React from "react"
 
 import type { AgentDocument } from "./types"
 
-export type ArtifactProfile = AgentDocument["meta"]["artifactProfile"]
+type ArtifactProfile = AgentDocument["meta"]["artifactProfile"]
 export type ArtifactLayoutPolicy = "document" | "gallery"
 
 export function resolveLayoutComponentClassName(componentName: string) {

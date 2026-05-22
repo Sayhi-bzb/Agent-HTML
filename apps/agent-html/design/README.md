@@ -5,11 +5,12 @@ This directory contains the working frontend design standards for the `agent-htm
 ## Ownership
 
 This package owns the implementation-facing design rules for the app frontend.
-It does not own the high-level visual philosophy, which remains in [`../DESIGN.md`](../DESIGN.md).
+High-level visual philosophy is defined in [`DESIGN.md`](./DESIGN.md), while the rest of this
+directory translates that philosophy into implementation-facing rules.
 
 ## Reading Order
 
-1. [`../DESIGN.md`](../DESIGN.md) for visual philosophy and product feel
+1. [`DESIGN.md`](./DESIGN.md) for visual philosophy and product feel
 2. [`constitution.md`](./constitution.md) for global design-system law
 3. [`tokens.md`](./tokens.md) for token layers, naming, and consumption
 4. [`typography.md`](./typography.md) for text roles and hierarchy
@@ -19,7 +20,7 @@ It does not own the high-level visual philosophy, which remains in [`../DESIGN.m
 
 ## Which Document Answers What
 
-- If the question is "what should this product feel like," read `../DESIGN.md`.
+- If the question is "what should this product feel like," read `DESIGN.md`.
 - If the question is "what is globally allowed or forbidden," read `constitution.md`.
 - If the question is "where does this visual value come from," read `tokens.md`.
 - If the question is "what text role should this use," read `typography.md`.

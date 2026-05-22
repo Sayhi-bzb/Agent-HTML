@@ -512,7 +512,7 @@ describe("runtime surface completeness", () => {
     })
   })
 
-  it("keeps runtime UI bundle rooted in fixtures and overrides rooted in runtime-host", async () => {
+  it("keeps runtime UI bundle self-contained inside runtime-host", async () => {
     const {
       assertManagedRuntimeUiBundleSourceDirectory,
       assertManagedRuntimeUiOverrideSourceDirectory,
@@ -529,11 +529,12 @@ describe("runtime surface completeness", () => {
       getManagedRuntimeUiOverrideRegistry().map((entry) => entry.fileName),
     )
     expect(getManagedRuntimeUiBundleDirectory()).toContain(
-      "scripts\\verify-pack\\shadcn-test-fixtures\\components\\ui",
+      "runtime-host\\components\\ui",
     )
     expect(getManagedRuntimeUiOverrideDirectory()).toContain(
       "runtime-host\\components\\ui",
     )
+    expect(getManagedRuntimeUiBundleDirectory()).not.toContain("verify-pack")
   })
 })
 

@@ -7,5 +7,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/cli/runtime-host/**/*.ts", "src/cli/runtime-host/**/*.tsx"]
 }

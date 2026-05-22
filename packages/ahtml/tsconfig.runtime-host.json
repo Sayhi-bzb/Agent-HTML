@@ -8,17 +8,14 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "paths": {
-      "@/components/ui/slider": [
-        "./src/cli/runtime-host/components/ui/slider.tsx"
-      ],
       "@/components/ui/*": [
-        "../../scripts/verify-pack/shadcn-test-fixtures/components/ui/*"
+        "./src/cli/runtime-host/components/ui/*"
       ],
       "@/lib/*": [
-        "./src/cli/runtime-host/lib/*",
-        "../../apps/agent-html-app/src/lib/*"
+        "./src/cli/runtime-host/lib/*"
       ]
     }
   },
+  "exclude": [],
   "include": ["src/cli/runtime-host/**/*.ts", "src/cli/runtime-host/**/*.tsx"]
 }

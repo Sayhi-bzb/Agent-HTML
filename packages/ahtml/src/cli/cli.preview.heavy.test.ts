@@ -73,11 +73,15 @@ describe("agent-html CLI heavy preview flows", () => {
         'rel="icon" type="image/svg+xml" href="./ghost.svg"',
       )
       expect(body).toContain('data-artifact-profile="shadcn-default"')
+      expect(body).toContain(":root{--background:oklch(1 0 0);--foreground:oklch(0.145 0 0);")
       expect(body).toContain('data-slot="alert"')
       expect(body).toContain('data-slot="badge"')
       expect(body).toContain('data-slot="tabs"')
       expect(body).toContain('data-slot="table"')
       expect(body).toContain('class="ahtml-runtime-host ahtml-runtime-document"')
+      expect(body).not.toContain('ahtml-card')
+      expect(body).not.toContain('ahtml-card-title')
+      expect(body).not.toContain('ahtml-content')
       expect(body).not.toContain(
         'data-slot="card-content" class="px-6 ahtml-content ahtml-section-stack ahtml-prose-block"',
       )

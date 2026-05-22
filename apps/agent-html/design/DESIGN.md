@@ -67,7 +67,62 @@ Pages should inherit a clear shell hierarchy:
 The main content area should favor dashboard-like modules, panels, and structured sections over
 long, undifferentiated reading flows.
 
-## 6. Design Philosophy
+## 6. Spatial Philosophy
+This product is organized around two spatial roles: `shell` and `workspace`.
+
+The shell is the durable container for navigation, global actions, open-context tabs, and product
+orientation.
+The workspace is the focused surface where reading, editing, reviewing, and tool execution happen.
+
+These roles must feel different:
+
+- the shell should read as one continuous operational frame
+- the workspace should read as a distinct work surface nested inside that frame
+- primary separation should come from surface hierarchy, not from drawing more lines
+
+This is why the header, sidebar, and tab strip should visually belong to the same family.
+They are not separate panels that happen to touch.
+They are different control zones inside the same shell.
+
+This is also why the main content well should feel inset rather than merely adjacent.
+Rounded corners, margin offsets, and surface contrast should make the workspace feel placed into
+the shell, like a work board inside a chassis.
+
+## 7. Surface Hierarchy
+The product should establish hierarchy through surfaces before it relies on borders.
+
+Preferred reading order:
+
+- shell surface first
+- workspace surface second
+- cards and modules inside the workspace third
+
+Implications:
+
+- shell-level regions should share a base color family whenever possible
+- borders should organize local structure, not serve as the main tool for separating major zones
+- shadows should stay light and structural rather than theatrical
+- selected states may claim a stronger surface when they represent a focused workspace context
+
+In the current implementation, the shell reads from `background` while the main workspace surface
+reads from `card`.
+
+The interface should feel assembled from calm planes rather than carved into many outlined boxes.
+
+## 8. Interaction Philosophy
+Interaction feedback should reinforce spatial roles instead of competing with them.
+
+Shell interactions should stay stable and quiet.
+Hover and focus states in navigation chrome should usually prefer text, icon, and small local
+surface changes over large flashing blocks of color.
+
+Workspace interactions may use stronger emphasis, but they should still feel operational rather
+than promotional.
+
+The goal is not visual excitement.
+The goal is durable orientation during long working sessions.
+
+## 9. Design Philosophy
 The system should stay aligned with these principles:
 
 - Prefer neutral surfaces over brand-colored surfaces.

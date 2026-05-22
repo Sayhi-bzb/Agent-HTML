@@ -23,6 +23,15 @@ Core traits:
 - clear separation between chrome and task content
 - responsive adaptation through reflow, not redesign
 
+The layout system is built around two spatial roles:
+
+- `shell`: navigation, current context, global controls, and frame-level orientation
+- `workspace`: the primary task surface where page-specific work happens
+
+These roles MUST not collapse into the same visual treatment.
+The shell should read as a continuous frame.
+The workspace should read as an inset surface nested inside that frame.
+
 ## Shell Model
 
 The default application structure is:
@@ -35,6 +44,15 @@ The default application structure is:
 Future product screens SHOULD inherit from this shell unless they are intentionally outside the
 main workspace.
 
+The shell is a single compositional object, not a pile of neighboring panels.
+
+- header, sidebar, and tab strip SHOULD feel materially related
+- shell regions SHOULD prefer shared surface color over explicit dividing lines
+- shell subdivision SHOULD rely on spacing, alignment, and local controls before it relies on hard
+  separators
+- if a shell region needs emphasis, it SHOULD be achieved with local contrast rather than turning
+  the full shell into stacked cards
+
 ## Header Rules
 
 The header is compact, structural, and persistent.
@@ -42,6 +60,9 @@ The header is compact, structural, and persistent.
 - it MUST remain a control row rather than a hero band
 - it SHOULD carry navigation context, shell actions, or search
 - it MUST use structural separation rather than dramatic elevation
+- it SHOULD visually belong to the sidebar and tab layer when those elements are part of the same
+  shell
+- it SHOULD avoid heavy borders that imply it is an isolated panel
 
 ## Content Well Rules
 
@@ -51,6 +72,11 @@ The main content area is where page-specific work happens.
 - it SHOULD favor cards, sections, and split panels over long undifferentiated text flows
 - it MUST preserve clear page hierarchy through spacing and section boundaries
 - it MUST avoid marketing-style oversized hero regions
+- it SHOULD read as an inset workspace surface rather than as a continuation of shell chrome
+- it SHOULD use margin, radius, and background contrast to establish its own plane
+- it MUST remain visually distinct from the shell even when the palette is neutral
+- the default shell plane SHOULD consume `background`, while the default workspace plane SHOULD
+  consume `card`
 
 ## Spacing Rhythm
 
@@ -89,6 +115,8 @@ Panels are the standard content container at the layout level.
 - panels SHOULD define modular sections
 - panel headers SHOULD remain simple and dense
 - spacing inside panels SHOULD stay consistent across pages
+- panels inside the workspace SHOULD feel like secondary structure inside the main work surface,
+  not like peers of the shell itself
 
 Suggested panel archetypes:
 
@@ -112,6 +140,10 @@ Responsive changes SHOULD alter structure first:
 - columns to rows
 - persistent nav to sheet
 - split panels to stacked panels
+
+Responsive collapse MUST preserve the shell/workspace distinction even when the sidebar becomes a
+sheet.
+Navigation may change its delivery mechanism, but it should not change its spatial role.
 
 ## Standard Page Archetypes
 
@@ -138,6 +170,10 @@ Use for focused tool surfaces where the content well becomes the primary work zo
 The following should be rejected by default:
 
 - hero banners inside the main shell
+- turning header, sidebar, and tabs into unrelated card blocks
+- using borders as the primary way to carve major layout zones apart
+- making the content well look like it is flush with the shell when it is meant to be a workspace
+  surface
 - oversized empty whitespace bands
 - inconsistent card padding from page to page
 - bespoke breakpoint logic for one screen

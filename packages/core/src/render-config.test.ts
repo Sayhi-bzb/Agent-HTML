@@ -21,9 +21,9 @@ describe("artifact profile render config", () => {
         globalStyle: {
           tokenSets: {
             light: expect.objectContaining({
-              background: "#f7f7f5",
-              foreground: "#111827",
-              border: "#d9ddd6",
+              background: "oklch(1 0 0)",
+              foreground: "oklch(0.145 0 0)",
+              border: "oklch(0.922 0 0)",
             }),
             dark: expect.objectContaining({
               background: "oklch(0.145 0 0)",
@@ -51,7 +51,7 @@ describe("artifact profile render config", () => {
         globalLayout: {
           frame: expect.objectContaining({
             pageMaxWidth: "80rem",
-            frameMaxWidth: "72rem",
+            frameMaxWidth: "100%",
           }),
           measure: expect.objectContaining({
             prose: "68ch",
@@ -78,15 +78,15 @@ describe("artifact profile render config", () => {
         componentLayout: {
           page: expect.objectContaining({
             gap: "1.25rem",
-            measure: "wide",
+            measure: "full",
           }),
           stack: expect.objectContaining({
             gap: "1rem",
             density: "balanced",
           }),
           frame: expect.objectContaining({
-            maxWidth: "72rem",
-            measure: "wide",
+            maxWidth: "100%",
+            measure: "full",
           }),
           split: expect.objectContaining({
             minColumnWidth: "18rem",
@@ -111,8 +111,8 @@ describe("artifact profile render config", () => {
         globalStyle: {
           tokenSets: {
             light: expect.objectContaining({
-              primary: "#111827",
-              card: "#ffffff",
+              primary: "oklch(0.205 0 0)",
+              card: "oklch(1 0 0)",
             }),
             dark: expect.objectContaining({
               primary: "oklch(0.922 0 0)",
@@ -174,7 +174,7 @@ describe("artifact profile render config", () => {
         ...baseRenderConfig.artifactProfile.componentLayout,
         frame: {
           ...baseRenderConfig.artifactProfile.componentLayout.frame,
-          maxWidth: "72rem",
+          maxWidth: "100%",
         },
       },
     }
