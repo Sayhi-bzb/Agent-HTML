@@ -13,6 +13,22 @@ It does not define visual philosophy, typography roles, or component-family appe
 
 ## Directory Roles
 
+### `src/gallery/*`
+
+This directory is the Gallery feature domain.
+
+It owns:
+
+- gallery scene definitions
+- gallery preview/example assets
+- gallery editor-panel metadata
+- gallery-specific content registries and adapters
+
+It exists so Gallery can grow like an editor asset library without polluting either the primitive
+layer or the generic composite layer.
+
+It MUST NOT become a second primitive UI library.
+
 ### `src/index.css`
 
 This file is the token and theme-mapping entrypoint.
@@ -58,6 +74,8 @@ Current stable examples include:
 - `GallerySidebarPanels`
 
 It MUST NOT become a second primitive library.
+It also MUST NOT become the long-term storage area for gallery asset data that belongs in
+`src/gallery/*`.
 
 ### Page / App Layer
 
@@ -76,6 +94,7 @@ The current app layer is responsible for:
 - operating mode state (`workspace` vs `gallery`)
 - scene selection state
 - wiring shell composites together
+- connecting shell composites to gallery-domain assets
 
 ## Styling Source of Truth
 
@@ -151,6 +170,9 @@ composites:
 - the gallery scene panel
 - the gallery sidebar editor panels
 
+Gallery asset content, however, should live in `src/gallery/*` even when those composites render
+it.
+
 ## Review Checklist
 
 A UI review should verify:
@@ -175,3 +197,5 @@ The following should be rejected by default:
 - hard-coding colors in feature components
 - encoding typography decisions ad hoc in every page
 - growing page-local utility bundles into a shadow design system
+- storing gallery scene/example data ad hoc inside generic shell components when it belongs in
+  `src/gallery/*`

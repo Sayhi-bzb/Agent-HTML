@@ -14,6 +14,7 @@ import {
   writeGeneratedRuntimeState,
 } from "./runtime-status.mjs"
 import { assertRuntimeSurface } from "./runtime-surface.mjs"
+import { assertRuntimeHostSourceParity } from "./runtime-host-proof.mjs"
 import { nativeRuntimeSetup, resolveRuntimeSetup } from "./runtime-setup.mjs"
 import {
   assertRendererSpecParity,
@@ -219,6 +220,10 @@ export function createArtifactWorkflow({
       await assertRuntimeSurface({
         manifest: runtimeManifest,
         paths: runtimePaths,
+      })
+      await assertRuntimeHostSourceParity({
+        paths: runtimePaths,
+        proof: runtimeManifest.shadcnRuntimeSurface?.ahtmlHostProof,
       })
       return true
     } catch {

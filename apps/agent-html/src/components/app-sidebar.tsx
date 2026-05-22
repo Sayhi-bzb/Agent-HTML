@@ -1,10 +1,16 @@
 import * as React from "react"
 
+import { galleryEditorSections } from "@/gallery/editor-panels"
+import type { GallerySection } from "@/gallery/types"
 import { GallerySidebarPanels } from "@/components/gallery-view"
-import type { GallerySection } from "@/components/gallery-view"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { FooterMenuStack } from "@/components/footer-menu-stack"
 import { NavProjects } from "@/components/nav-projects"
 import { SearchCommand } from "@/components/search-command"
-import { FooterMenuStack } from "@/components/footer-menu-stack"
 import { SettingsMenu } from "@/components/settings-menu"
 import {
   Sidebar,
@@ -15,7 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { ArrowLeftIcon, BookImageIcon, PanelsTopLeftIcon, SparklesIcon, SwatchBookIcon } from "lucide-react"
+import { ArrowLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react"
 
 type ProjectNavItem = {
   id: string
@@ -23,15 +29,13 @@ type ProjectNavItem = {
   slug: string
 }
 
-const gallerySections: Array<{
-  icon: React.ComponentType<React.ComponentProps<"svg">>
-  id: GallerySection
-  label: string
-}> = [
-  { id: "editor", label: "Editor", icon: SwatchBookIcon },
-  { id: "notes", label: "Notes", icon: BookImageIcon },
-  { id: "inspect", label: "Inspect", icon: PanelsTopLeftIcon },
-]
+const galleryHeaderEditorItems = [
+  "color",
+  "typography",
+  "spacing",
+  "radius",
+  "shadows",
+] as const
 
 export function AppSidebar({
   mode = "workspace",
@@ -58,6 +62,7 @@ export function AppSidebar({
   gallerySection?: GallerySection
 }) {
   const isGalleryMode = mode === "gallery"
+  const [isEditorPopoverOpen, setIsEditorPopoverOpen] = React.useState(false)
 
   return (
     <Sidebar
@@ -66,14 +71,59 @@ export function AppSidebar({
     >
       <SidebarHeader>
         {isGalleryMode ? (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={onExitGalleryMode} type="button">
-                <ArrowLeftIcon className="size-4" />
-                <span>Back</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onExitGalleryMode} type="button">
+                  <ArrowLeftIcon className="size-4" />
+                  <span>Back</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <Popover
+                  onOpenChange={setIsEditorPopoverOpen}
+                  open={isEditorPopoverOpen}
+                >
+                  <PopoverTrigger asChild>
+                    <SidebarMenuButton
+                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                      type="button"
+                    >
+                      <span>Editor</span>
+                      <ChevronRightIcon
+                        className={
+                          "ml-auto transition-transform " +
+                          (isEditorPopoverOpen ? "rotate-90" : "")
+                        }
+                      />
+                    </SidebarMenuButton>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    className="w-[var(--radix-popover-trigger-width)] min-w-0"
+                    side="bottom"
+                    sideOffset={6}
+                  >
+                    <SidebarMenu className="gap-0">
+                      {galleryHeaderEditorItems.map((item) => (
+                        <SidebarMenuItem key={item}>
+                          <button
+                            className="flex h-8 w-full items-center rounded-lg px-2 text-left text-sm text-muted-foreground outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground"
+                            type="button"
+                          >
+                            <span className="capitalize">{item}</span>
+                          </button>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </PopoverContent>
+                </Popover>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </>
         ) : (
           <SearchCommand onOpenProject={onOpenProject} projects={projects} />
         )}
@@ -82,7 +132,7 @@ export function AppSidebar({
         {isGalleryMode ? (
           <div className="flex flex-1 flex-col gap-2">
             <SidebarMenu className="px-2 py-2">
-            {gallerySections.map((section) => {
+            {galleryEditorSections.map((section) => {
               const Icon = section.icon
 
               return (

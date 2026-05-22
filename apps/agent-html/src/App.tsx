@@ -1,9 +1,9 @@
 import * as React from "react"
 
+import { galleryScenes } from "@/gallery/scenes"
+import type { GallerySection } from "@/gallery/types"
 import { AppSidebar } from "@/components/app-sidebar"
 import { GalleryPanel } from "@/components/gallery-view"
-import { galleryScenes } from "@/components/gallery-view"
-import type { GallerySection } from "@/components/gallery-view"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import {

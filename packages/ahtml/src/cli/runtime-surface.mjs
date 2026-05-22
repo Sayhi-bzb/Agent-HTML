@@ -8,6 +8,7 @@ import {
   createManagedRuntimeUiProof,
   getManagedRuntimeUiBundleEntries,
 } from "./runtime-managed-ui.mjs"
+import { createRuntimeHostSourceProof } from "./runtime-host-proof.mjs"
 
 const requiredCssImports = [
   "tailwindcss",
@@ -87,6 +88,7 @@ export async function recordAhtmlGlueProof({ paths, surface }) {
   return {
     ...surface,
     ahtmlGlueProof: await createAhtmlGlueProof(paths),
+    ahtmlHostProof: await createRuntimeHostSourceProof(),
     ahtmlManagedUiProof: await createManagedRuntimeUiProof(
       surface.registryItems ?? [],
     ),

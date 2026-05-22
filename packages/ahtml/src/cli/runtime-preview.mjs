@@ -29,6 +29,7 @@ import {
   resolveRuntimeSetup,
 } from "./runtime-setup.mjs"
 import { assertRuntimeSurface } from "./runtime-surface.mjs"
+import { assertRuntimeHostSourceParity } from "./runtime-host-proof.mjs"
 import {
   assertRendererSpecParity,
   assertVerificationDataParity,
@@ -331,6 +332,10 @@ async function isPreviewRuntimeCurrent({ paths, schema }) {
     await assertRuntimeSurface({
       manifest: runtimeManifest,
       paths,
+    })
+    await assertRuntimeHostSourceParity({
+      paths,
+      proof: runtimeManifest.shadcnRuntimeSurface?.ahtmlHostProof,
     })
     return true
   } catch {

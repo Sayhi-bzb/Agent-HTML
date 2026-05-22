@@ -81,3 +81,21 @@ Port 4173 is in use, trying another one...
 [2m2:33:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
 [2m2:33:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
 [2m2:34:34 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m3:08:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/gallery-view.tsx[22m
+[2m3:08:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/gallery-view.tsx[22m
+[2m3:08:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/app-sidebar.tsx, /src/index.css[22m
+[2m3:08:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m3:08:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/app-sidebar.tsx, /src/index.css[22m
+[2m3:08:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m3:08:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/components/gallery-view.tsx[22m Could not Fast Refresh (export removed)
+[2m3:08:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/components/app-sidebar.tsx[22m
+[2m3:09:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/gallery-view.tsx[22m
+[2m3:21:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/gallery-view.tsx[22m
+[2m3:21:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/app-sidebar.tsx, /src/index.css[22m
+[2m3:27:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/app-sidebar.tsx, /src/index.css[22m
+[2m3:45:44 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/gallery/workspace-preview.tsx[22m
+[2m3:45:45 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/gallery/workspace-preview.tsx[22m
+[2m3:46:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32m✨ new dependencies optimized: [33mrecharts[32m[39m
+[2m3:46:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32m✨ optimized dependencies changed. reloading[39m
+[2m3:46:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/gallery/workspace-preview.tsx[22m
+[2m3:50:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/app-sidebar.tsx, /src/index.css[22m
