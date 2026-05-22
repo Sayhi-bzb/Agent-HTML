@@ -1,5 +1,3 @@
-export type GallerySection = "editor" | "notes" | "inspect"
-
 export type GalleryScene = {
   description: string
   id: string
@@ -7,3 +5,5 @@ export type GalleryScene = {
   summary: string
   title: string
 }
+
+export type GalleryEditorMode = "color" | "typography" | "other"

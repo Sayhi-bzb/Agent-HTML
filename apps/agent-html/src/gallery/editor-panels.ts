@@ -1,57 +1,108 @@
-import {
-  BookImageIcon,
-  PanelsTopLeftIcon,
-  SwatchBookIcon,
-} from "lucide-react"
-
-import type { GallerySection } from "@/gallery/types"
-
-export const galleryEditorSections: Array<{
-  icon: React.ComponentType<React.ComponentProps<"svg">>
-  id: GallerySection
+export type ColorRoleGroup = {
+  id: string
   label: string
-}> = [
-  { id: "editor", label: "Editor", icon: SwatchBookIcon },
-  { id: "notes", label: "Notes", icon: BookImageIcon },
-  { id: "inspect", label: "Inspect", icon: PanelsTopLeftIcon },
-]
-
-export const gallerySectionMeta: Record<
-  GallerySection,
-  {
-    description: string
-    icon: typeof SwatchBookIcon
-    label: string
-  }
-> = {
-  editor: {
-    description: "Persistent editor controls for the active gallery scene.",
-    icon: SwatchBookIcon,
-    label: "Editor",
-  },
-  inspect: {
-    description: "Inspection aids and structural notes for the active scene.",
-    icon: PanelsTopLeftIcon,
-    label: "Inspect",
-  },
-  notes: {
-    description: "Reasoning notes, decisions, and reference framing for the active scene.",
-    icon: BookImageIcon,
-    label: "Notes",
-  },
+  tokens: string[]
 }
 
-export const galleryEditorPanels = [
+export const galleryColorFamilies = [
+  "slate",
+  "gray",
+  "zinc",
+  "neutral",
+  "stone",
+  "red",
+  "orange",
+  "amber",
+  "yellow",
+  "green",
+  "emerald",
+  "teal",
+  "cyan",
+  "sky",
+  "blue",
+  "indigo",
+  "violet",
+  "purple",
+  "pink",
+  "rose",
+] as const
+
+export const galleryColorSteps = [
+  "50",
+  "100",
+  "200",
+  "300",
+  "400",
+  "500",
+  "600",
+  "700",
+  "800",
+  "900",
+  "950",
+] as const
+
+export type GalleryColorFamily = (typeof galleryColorFamilies)[number]
+export type GalleryColorStep = (typeof galleryColorSteps)[number]
+export type GalleryColorTokenName = (typeof galleryColorRoleGroups)[number]["tokens"][number]
+
+export type GalleryColorTokenValue = {
+  family: GalleryColorFamily
+  step: GalleryColorStep
+}
+
+export const galleryColorRoleGroups: ColorRoleGroup[] = [
   {
-    title: "Shell tone",
-    summary: "Track how dark the shell reads relative to the inset workspace.",
+    id: "base-surfaces",
+    label: "Base surfaces",
+    tokens: [
+      "background",
+      "foreground",
+      "card",
+      "card-foreground",
+      "popover",
+      "popover-foreground",
+    ],
   },
   {
-    title: "Inset depth",
-    summary: "Track how embedded the workspace feels without relying on shadow.",
+    id: "action-colors",
+    label: "Action colors",
+    tokens: [
+      "primary",
+      "primary-foreground",
+      "secondary",
+      "secondary-foreground",
+      "accent",
+      "accent-foreground",
+      "destructive",
+    ],
   },
   {
-    title: "Reading rhythm",
-    summary: "Track spacing, density, and whether the scene keeps scanning easy.",
+    id: "utility-colors",
+    label: "Utility colors",
+    tokens: ["muted", "muted-foreground", "border", "input", "ring"],
   },
 ]
+
+export const galleryColorTokenDefaults: Record<
+  GalleryColorTokenName,
+  GalleryColorTokenValue
+> = {
+  background: { family: "zinc", step: "50" },
+  foreground: { family: "zinc", step: "900" },
+  card: { family: "zinc", step: "50" },
+  "card-foreground": { family: "zinc", step: "900" },
+  popover: { family: "zinc", step: "50" },
+  "popover-foreground": { family: "zinc", step: "900" },
+  primary: { family: "zinc", step: "900" },
+  "primary-foreground": { family: "zinc", step: "50" },
+  secondary: { family: "zinc", step: "100" },
+  "secondary-foreground": { family: "zinc", step: "900" },
+  accent: { family: "zinc", step: "100" },
+  "accent-foreground": { family: "zinc", step: "900" },
+  destructive: { family: "red", step: "600" },
+  muted: { family: "zinc", step: "100" },
+  "muted-foreground": { family: "zinc", step: "500" },
+  border: { family: "zinc", step: "200" },
+  input: { family: "zinc", step: "200" },
+  ring: { family: "zinc", step: "400" },
+}

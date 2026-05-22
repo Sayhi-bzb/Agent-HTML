@@ -1,11 +1,14 @@
 import * as React from "react"
 
+import type { GalleryRadiusValue } from "@/gallery/editor"
 import { galleryScenes } from "@/gallery/scenes"
-import type { GallerySection } from "@/gallery/types"
+import type { GalleryEditorMode } from "@/gallery/types"
+import { GalleryPanel } from "@/gallery/panel"
+import { galleryWorkspacePreviewBaseSceneId } from "@/gallery/preview-content"
 import { AppSidebar } from "@/components/app-sidebar"
-import { GalleryPanel } from "@/components/gallery-view"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   SidebarInset,
   SidebarProvider,
@@ -137,8 +140,8 @@ type HeaderTab = {
 
 function WorkspacePanel({ activeProject }: { activeProject: Project | null }) {
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="border-b px-4 py-5 md:px-6">
+    <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+      <header className="shrink-0 border-b px-4 py-5 md:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex flex-col gap-1">
             <p className="text-sm text-muted-foreground">
@@ -160,67 +163,69 @@ function WorkspacePanel({ activeProject }: { activeProject: Project | null }) {
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-        <section className="grid gap-4 md:grid-cols-3">
-          {stats.map((stat) => (
-            <article
-              key={stat.label}
-              className="rounded-xl border bg-background p-5 text-foreground shadow-sm"
-            >
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-              <p className="mt-3 text-3xl font-semibold tracking-tight">
-                {stat.value}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {stat.detail}
-              </p>
-            </article>
-          ))}
-        </section>
-
-        <section className="grid flex-1 gap-6 lg:grid-cols-[1.4fr_0.9fr]">
-          <article className="rounded-xl border bg-background text-foreground shadow-sm">
-            <div className="grid gap-4 p-5 md:grid-cols-2">
-              <div className="rounded-lg border border-dashed p-4">
-                <p className="text-sm font-medium">Primary content area</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Put your routed page, dashboard widgets, or editor here.
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="flex min-h-full flex-col gap-6 p-4 md:p-6">
+          <section className="grid gap-4 md:grid-cols-3">
+            {stats.map((stat) => (
+              <article
+                key={stat.label}
+                className="rounded-xl border bg-background p-5 text-foreground shadow-sm"
+              >
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <p className="mt-3 text-3xl font-semibold tracking-tight">
+                  {stat.value}
                 </p>
-              </div>
-              <div className="rounded-lg border border-dashed p-4">
-                <p className="text-sm font-medium">Responsive behavior</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  On mobile, the sidebar switches to a sheet automatically.
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {stat.detail}
                 </p>
-              </div>
-            </div>
-          </article>
+              </article>
+            ))}
+          </section>
 
-          <article className="rounded-xl border bg-background text-foreground shadow-sm">
-            <div className="border-b px-5 py-4">
-              <p className="text-sm font-medium">Recent activity</p>
-            </div>
-            <div className="flex flex-col gap-3 p-5">
-              {activity.map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-lg border border-dashed p-4"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium">{item.title}</p>
-                    <span className="text-xs text-muted-foreground">
-                      {item.time}
-                    </span>
-                  </div>
+          <section className="grid flex-1 gap-6 lg:grid-cols-[1.4fr_0.9fr]">
+            <article className="rounded-xl border bg-background text-foreground shadow-sm">
+              <div className="grid gap-4 p-5 md:grid-cols-2">
+                <div className="rounded-lg border border-dashed p-4">
+                  <p className="text-sm font-medium">Primary content area</p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {item.summary}
+                    Put your routed page, dashboard widgets, or editor here.
                   </p>
                 </div>
-              ))}
-            </div>
-          </article>
-        </section>
-      </div>
+                <div className="rounded-lg border border-dashed p-4">
+                  <p className="text-sm font-medium">Responsive behavior</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    On mobile, the sidebar switches to a sheet automatically.
+                  </p>
+                </div>
+              </div>
+            </article>
+
+            <article className="rounded-xl border bg-background text-foreground shadow-sm">
+              <div className="border-b px-5 py-4">
+                <p className="text-sm font-medium">Recent activity</p>
+              </div>
+              <div className="flex flex-col gap-3 p-5">
+                {activity.map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-lg border border-dashed p-4"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium">{item.title}</p>
+                      <span className="text-xs text-muted-foreground">
+                        {item.time}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {item.summary}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </section>
+        </div>
+      </ScrollArea>
     </div>
   )
 }
@@ -230,7 +235,10 @@ export function App() {
   const [openTabs, setOpenTabs] = React.useState<ProjectTab[]>([])
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
   const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
-  const [gallerySection, setGallerySection] = React.useState<GallerySection>("editor")
+  const [galleryEditorMode, setGalleryEditorMode] =
+    React.useState<GalleryEditorMode>("color")
+  const [galleryRadiusValue, setGalleryRadiusValue] =
+    React.useState<GalleryRadiusValue>("0.625rem")
   const [activeGallerySceneId, setActiveGallerySceneId] = React.useState<string>(
     galleryScenes[0].id
   )
@@ -248,11 +256,12 @@ export function App() {
     [activeTab]
   )
 
-  const activeGalleryScene = React.useMemo(
+  const galleryDisplayScene = React.useMemo(
     () =>
-      galleryScenes.find((scene) => scene.id === activeGallerySceneId) ??
-      galleryScenes[0],
-    [activeGallerySceneId]
+      galleryScenes.find(
+        (scene) => scene.id === galleryWorkspacePreviewBaseSceneId
+      ) ?? galleryScenes[0],
+    []
   )
 
   const headerTabs = React.useMemo<HeaderTab[]>(() => {
@@ -371,7 +380,11 @@ export function App() {
   const handleSelectTab = React.useCallback(
     (tabId: string) => {
       if (surfaceMode === "gallery") {
-        setActiveGallerySceneId(tabId)
+        const nextSceneId = galleryScenes.some((scene) => scene.id === tabId)
+          ? tabId
+          : galleryWorkspacePreviewBaseSceneId
+
+        setActiveGallerySceneId(nextSceneId)
         return
       }
 
@@ -398,7 +411,6 @@ export function App() {
   }, [])
 
   const handleEnterGalleryMode = React.useCallback(() => {
-    setGallerySection("editor")
     setSurfaceMode("gallery")
   }, [])
 
@@ -408,7 +420,7 @@ export function App() {
 
   return (
     <SidebarProvider
-      className="min-h-svh flex-col"
+      className="h-svh min-h-svh flex-col overflow-hidden"
       style={
         {
           "--header-height": "2.5rem",
@@ -421,23 +433,28 @@ export function App() {
         onSelectTab={handleSelectTab}
         tabs={headerTabs}
       />
-      <main className="flex min-h-0 flex-1">
+      <main className="flex min-h-0 flex-1 overflow-hidden">
         <AppSidebar
+          galleryEditorMode={galleryEditorMode}
+          galleryRadiusValue={galleryRadiusValue}
           mode={surfaceMode}
           onDeleteProject={handleDeleteProject}
           onDuplicateProject={handleDuplicateProject}
           onEnterGalleryMode={handleEnterGalleryMode}
           onExitGalleryMode={handleExitGalleryMode}
-          onSelectGallerySection={setGallerySection}
+          onGalleryEditorModeChange={setGalleryEditorMode}
           onOpenProject={handleOpenProject}
+          onRadiusChange={setGalleryRadiusValue}
           onRenameProject={handleRenameProject}
           projects={projects}
-          gallerySection={gallerySection}
           variant="inset"
         />
-        <SidebarInset className="min-h-0 border-0 shadow-sm md:mr-2 md:mb-2">
+        <SidebarInset className="min-h-0 overflow-hidden border-0 shadow-sm md:mr-2 md:mb-2">
           {surfaceMode === "gallery" ? (
-            <GalleryPanel scene={activeGalleryScene} />
+            <GalleryPanel
+              radiusValue={galleryRadiusValue}
+              scene={galleryDisplayScene}
+            />
           ) : (
             <WorkspacePanel activeProject={activeProject} />
           )}

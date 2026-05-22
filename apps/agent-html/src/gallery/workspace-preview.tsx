@@ -9,27 +9,19 @@ import {
   XAxis,
 } from "recharts"
 
-import { galleryWorkspacePreviewContent } from "@/gallery/preview-content"
-import type { GalleryScene } from "@/gallery/types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@/gallery/ui/badge"
+import { Button } from "@/gallery/ui/button"
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+} from "@/gallery/ui/card"
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/components/ui/chart"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "@/gallery/ui/chart"
+import { Input } from "@/gallery/ui/input"
 import {
   Select,
   SelectContent,
@@ -37,7 +29,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/gallery/ui/select"
 import {
   Table,
   TableBody,
@@ -46,7 +38,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/gallery/ui/table"
 
 const performanceData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -102,33 +94,6 @@ const sourceShareConfig = {
     color: "var(--chart-4)",
   },
 } satisfies ChartConfig
-
-const metricCards = [
-  {
-    change: "+12.5%",
-    description: "Real preview modules now replace the old placeholder canvas.",
-    title: "Preview fidelity",
-    value: "04",
-  },
-  {
-    change: "Official",
-    description: "Cards, charts, tables, and scroll areas come from shadcn source.",
-    title: "Registry sources",
-    value: "06",
-  },
-  {
-    change: "Stable",
-    description: "Sidebar, header tabs, and gallery entry flow remain unchanged.",
-    title: "Shell impact",
-    value: "Low",
-  },
-  {
-    change: "Scene-hosted",
-    description: "The work area owns the preview while mode switching stays in the window header.",
-    title: "Navigation split",
-    value: "1x",
-  },
-]
 
 const draftRows = [
   {
@@ -187,48 +152,14 @@ function getStageVariant(stage: string): BadgeVariant {
   return "destructive"
 }
 
-function MetricCard({
-  change,
-  description,
-  title,
-  value,
-}: {
-  change: string
-  description: string
-  title: string
-  value: string
-}) {
+function PerformanceChartCard() {
   return (
     <Card>
-      <CardHeader>
-        <CardDescription>{title}</CardDescription>
-        <CardTitle className="text-2xl font-semibold tabular-nums">
-          {value}
-        </CardTitle>
-        <CardAction>
-          <Badge variant="outline">{change}</Badge>
-        </CardAction>
-      </CardHeader>
-      <CardFooter className="items-start">
-        <p className="leading-6 text-muted-foreground">{description}</p>
-      </CardFooter>
-    </Card>
-  )
-}
-
-function PerformanceChartCard({
-  title,
-}: {
-  title: string
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>Showing preview activity for the last 6 months.</CardDescription>
-      </CardHeader>
       <CardContent>
-        <ChartContainer config={performanceChartConfig}>
+        <ChartContainer
+          className="aspect-auto h-[200px] w-full"
+          config={performanceChartConfig}
+        >
           <AreaChart
             accessibilityLayer
             data={performanceData}
@@ -266,12 +197,6 @@ function PerformanceChartCard({
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2">
-        <p className="font-medium">Official chart primitives now anchor the preview stage.</p>
-        <p className="text-muted-foreground">
-          The chart section is adapted from shadcn examples and tuned only at the layout layer.
-        </p>
-      </CardFooter>
     </Card>
   )
 }
@@ -283,10 +208,6 @@ function SourceShareCard() {
 
   return (
     <Card>
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Preview source mix</CardTitle>
-        <CardDescription>Registry-backed component surface</CardDescription>
-      </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           className="mx-auto aspect-square max-h-[250px]"
@@ -339,7 +260,7 @@ function SourceShareCard() {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2">
+      <CardContent className="pt-0">
         <div className="flex flex-wrap gap-2">
           {sourceShareData.map((entry) => (
             <Badge key={entry.source} variant="secondary">
@@ -347,10 +268,7 @@ function SourceShareCard() {
             </Badge>
           ))}
         </div>
-        <p className="text-muted-foreground">
-          The preview mixes chart and table examples without importing a second shell into Gallery.
-        </p>
-      </CardFooter>
+      </CardContent>
     </Card>
   )
 }
@@ -358,10 +276,6 @@ function SourceShareCard() {
 function DraftStatusTable() {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Draft stages</CardTitle>
-        <CardDescription>Adapted from the official table example patterns.</CardDescription>
-      </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
@@ -413,10 +327,6 @@ function DraftStatusTable() {
 function BudgetTableCard() {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Component tuning budget</CardTitle>
-        <CardDescription>Input fields stay inside the preview as real shadcn controls.</CardDescription>
-      </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
@@ -444,152 +354,42 @@ function BudgetTableCard() {
           </TableBody>
         </Table>
       </CardContent>
-      <CardFooter className="justify-between">
-        <span className="text-muted-foreground">Preview state is isolated from the app.</span>
+      <CardContent className="flex justify-end pt-0">
         <Button size="sm" type="button" variant="outline">
           Review
         </Button>
-      </CardFooter>
+      </CardContent>
     </Card>
   )
 }
 
-function SceneIntroCard({
-  scene,
-  tags,
-}: {
-  scene: GalleryScene
-  tags: string[]
-}) {
+function GalleryViewport() {
   return (
-    <Card>
-      <CardHeader>
-        <CardDescription>Gallery work area</CardDescription>
-        <CardTitle>{scene.title}</CardTitle>
-        <CardAction>
-          <Badge>{scene.label}</Badge>
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-        <p className="leading-6 text-muted-foreground">{scene.summary}</p>
-      </CardContent>
-      <CardFooter className="flex-wrap gap-2">
-        {tags.map((tag) => (
-          <Badge key={tag} variant="outline">
-            {tag}
-          </Badge>
-        ))}
-      </CardFooter>
-    </Card>
-  )
-}
+    <div className="flex flex-col gap-4 p-4">
+      <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
+        <PerformanceChartCard />
+        <SourceShareCard />
+      </section>
 
-function PreviewNotesCard({
-  mode,
-}: {
-  mode: string
-}) {
-  const summaries =
-    mode === "detail"
-      ? [
-          "Detail mode prioritizes table interaction density.",
-          "Inputs and selects stay inline so the preview remains inspectable.",
-          "The shell does not move while the work area gets denser.",
-        ]
-      : mode === "shell"
-        ? [
-            "Preview chrome stays light so the app shell remains the dominant frame.",
-            "Real examples are nested under the shell instead of introducing a second sidebar.",
-            "Cards and charts carry the visual weight, not extra framing.",
-          ]
-        : mode === "workspace"
-          ? [
-              "The lighter work surface hosts a denser component mix than the shell.",
-              "Charts and tables test how internal cards step down from the inset canvas.",
-              "Spacing and contrast do more separation work than divider lines.",
-            ]
-          : [
-              "Official examples now anchor the preview instead of prose blocks.",
-              "The Gallery work area is becoming a reusable scene renderer.",
-              "The sidebar remains stable and detached from preview implementation.",
-            ]
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Scene notes</CardTitle>
-        <CardDescription>Minimal framing around the official preview content.</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        {summaries.map((summary) => (
-          <div key={summary} className="rounded-lg border bg-muted/40 px-3 py-2.5">
-            <p className="leading-6 text-muted-foreground">{summary}</p>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
+        <DraftStatusTable />
+        <BudgetTableCard />
+      </section>
+    </div>
   )
 }
 
 export function GalleryWorkspacePreview({
-  scene,
+  radius = "0.625rem",
 }: {
-  scene: GalleryScene
+  radius?: string
 }) {
-  const preview = galleryWorkspacePreviewContent[scene.id]
-  const showTablesFirst = preview.mode === "detail"
-
-  const chartSection = (
-    <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
-      <PerformanceChartCard title={preview.stageLabel} />
-      <SourceShareCard />
-    </section>
-  )
-
-  const tableSection = (
-    <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
-      <DraftStatusTable />
-      <BudgetTableCard />
-    </section>
-  )
-
   return (
-    <div className="rounded-[calc(var(--radius)*2.8)] border bg-card/70 p-3">
-      <div className="overflow-hidden rounded-[calc(var(--radius)*2.2)] border border-border/80 bg-background">
-        <div className="border-b px-4 py-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-medium">{preview.stageLabel}</p>
-            <Badge variant="secondary">Official shadcn preview</Badge>
-          </div>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            {preview.stageSummary}
-          </p>
-        </div>
-
-        <ScrollArea className="h-[54rem]">
-          <div className="flex flex-col gap-4 p-4">
-            <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
-              <SceneIntroCard scene={scene} tags={preview.tags} />
-              <PreviewNotesCard mode={preview.mode} />
-            </section>
-
-            <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-              {metricCards.map((card) => (
-                <MetricCard
-                  key={card.title}
-                  change={card.change}
-                  description={card.description}
-                  title={card.title}
-                  value={card.value}
-                />
-              ))}
-            </section>
-
-            {showTablesFirst ? tableSection : chartSection}
-            {showTablesFirst ? chartSection : tableSection}
-          </div>
-        </ScrollArea>
-      </div>
+    <div
+      className="overflow-hidden rounded-[calc(var(--radius)*2.4)] bg-background"
+      style={{ "--radius": radius } as React.CSSProperties}
+    >
+      <GalleryViewport />
     </div>
   )
 }

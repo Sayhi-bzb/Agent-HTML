@@ -1,8 +1,7 @@
 import * as React from "react"
 
-import { galleryEditorSections } from "@/gallery/editor-panels"
-import type { GallerySection } from "@/gallery/types"
-import { GallerySidebarPanels } from "@/components/gallery-view"
+import { GalleryEditorPanel, type GalleryRadiusValue } from "@/gallery/editor"
+import type { GalleryEditorMode } from "@/gallery/types"
 import {
   Popover,
   PopoverContent,
@@ -32,9 +31,7 @@ type ProjectNavItem = {
 const galleryHeaderEditorItems = [
   "color",
   "typography",
-  "spacing",
-  "radius",
-  "shadows",
+  "other",
 ] as const
 
 export function AppSidebar({
@@ -43,23 +40,27 @@ export function AppSidebar({
   onExitGalleryMode,
   onDeleteProject,
   onDuplicateProject,
-  onSelectGallerySection,
+  onGalleryEditorModeChange,
   onOpenProject,
+  onRadiusChange,
   onRenameProject,
   projects,
-  gallerySection = "editor",
+  galleryEditorMode = "color",
+  galleryRadiusValue = "0.625rem",
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
+  galleryEditorMode?: GalleryEditorMode
+  galleryRadiusValue?: GalleryRadiusValue
   mode?: "gallery" | "workspace"
   onEnterGalleryMode?: () => void
   onExitGalleryMode?: () => void
   onDeleteProject: (projectId: string) => void
   onDuplicateProject: (projectId: string) => void
-  onSelectGallerySection?: (section: GallerySection) => void
+  onGalleryEditorModeChange?: (mode: GalleryEditorMode) => void
   onOpenProject: (projectId: string) => void
+  onRadiusChange?: (value: GalleryRadiusValue) => void
   onRenameProject: (projectId: string, name: string) => void
   projects: ProjectNavItem[]
-  gallerySection?: GallerySection
 }) {
   const isGalleryMode = mode === "gallery"
   const [isEditorPopoverOpen, setIsEditorPopoverOpen] = React.useState(false)
@@ -92,7 +93,7 @@ export function AppSidebar({
                       className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                       type="button"
                     >
-                      <span>Editor</span>
+                      <span>{galleryEditorMode}</span>
                       <ChevronRightIcon
                         className={
                           "ml-auto transition-transform " +
@@ -110,12 +111,18 @@ export function AppSidebar({
                     <SidebarMenu className="gap-0">
                       {galleryHeaderEditorItems.map((item) => (
                         <SidebarMenuItem key={item}>
-                          <button
-                            className="flex h-8 w-full items-center rounded-lg px-2 text-left text-sm text-muted-foreground outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground"
+                          <SidebarMenuButton
+                            className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                            isActive={galleryEditorMode === item}
+                            onClick={() => {
+                              onGalleryEditorModeChange?.(item)
+                              setIsEditorPopoverOpen(false)
+                            }}
+                            size="sm"
                             type="button"
                           >
-                            <span className="capitalize">{item}</span>
-                          </button>
+                            <span>{item}</span>
+                          </SidebarMenuButton>
                         </SidebarMenuItem>
                       ))}
                     </SidebarMenu>
@@ -130,27 +137,11 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         {isGalleryMode ? (
-          <div className="flex flex-1 flex-col gap-2">
-            <SidebarMenu className="px-2 py-2">
-            {galleryEditorSections.map((section) => {
-              const Icon = section.icon
-
-              return (
-                <SidebarMenuItem key={section.id}>
-                  <SidebarMenuButton
-                    isActive={gallerySection === section.id}
-                    onClick={() => onSelectGallerySection?.(section.id)}
-                    type="button"
-                  >
-                    <Icon className="size-4" />
-                    <span>{section.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )
-            })}
-            </SidebarMenu>
-            <GallerySidebarPanels section={gallerySection} />
-          </div>
+          <GalleryEditorPanel
+            mode={galleryEditorMode}
+            onRadiusChange={(value) => onRadiusChange?.(value)}
+            radiusValue={galleryRadiusValue}
+          />
         ) : (
           <NavProjects
             onDeleteProject={onDeleteProject}
@@ -162,11 +153,7 @@ export function AppSidebar({
         )}
       </SidebarContent>
       <SidebarFooter>
-        {isGalleryMode ? (
-          <div className="rounded-lg border border-dashed px-3 py-2 text-sm text-sidebar-foreground/70">
-            Gallery editor shell
-          </div>
-        ) : (
+        {isGalleryMode ? null : (
           <FooterMenuStack>
             <SidebarMenuItem>
               <SidebarMenuButton onClick={onEnterGalleryMode} type="button">
