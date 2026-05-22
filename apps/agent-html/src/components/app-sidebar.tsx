@@ -3,6 +3,7 @@ import * as React from "react"
 import {
   GalleryEditorPanel,
   type GalleryRadiusValue,
+  type GalleryShadowValue,
   type GallerySpacingValue,
 } from "@/gallery/editor"
 import type {
@@ -55,12 +56,14 @@ export function AppSidebar({
   onGalleryEditorModeChange,
   onOpenProject,
   onRadiusChange,
+  onShadowChange,
   onSpacingChange,
   onTypographyChange,
   onRenameProject,
   projects,
   galleryEditorMode = "color",
   galleryRadiusValue = "0.625rem",
+  galleryShadowValue = "medium",
   gallerySpacingValue = "1rem",
   galleryTypographyValue,
   ...props
@@ -68,6 +71,7 @@ export function AppSidebar({
   galleryColorTokenValues: GalleryColorTokenValues
   galleryEditorMode?: GalleryEditorMode
   galleryRadiusValue?: GalleryRadiusValue
+  galleryShadowValue?: GalleryShadowValue
   gallerySpacingValue?: GallerySpacingValue
   galleryTypographyValue: GalleryTypographyValue
   mode?: "gallery" | "workspace"
@@ -82,6 +86,7 @@ export function AppSidebar({
   onGalleryEditorModeChange?: (mode: GalleryEditorMode) => void
   onOpenProject: (projectId: string) => void
   onRadiusChange?: (value: GalleryRadiusValue) => void
+  onShadowChange?: (value: GalleryShadowValue) => void
   onSpacingChange?: (value: GallerySpacingValue) => void
   onTypographyChange: (value: GalleryTypographyValue) => void
   onRenameProject: (projectId: string, name: string) => void
@@ -167,9 +172,11 @@ export function AppSidebar({
             mode={galleryEditorMode}
             onColorTokenValueChange={onGalleryColorTokenValueChange}
             onRadiusChange={(value) => onRadiusChange?.(value)}
+            onShadowChange={(value) => onShadowChange?.(value)}
             onSpacingChange={(value) => onSpacingChange?.(value)}
             onTypographyChange={onTypographyChange}
             radiusValue={galleryRadiusValue}
+            shadowValue={galleryShadowValue}
             spacingValue={gallerySpacingValue}
             typographyValue={galleryTypographyValue}
           />

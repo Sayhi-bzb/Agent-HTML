@@ -1,7 +1,13 @@
+export type ColorRoleGroupItem = {
+  id: string
+  label: string
+  token: string
+}
+
 export type ColorRoleGroup = {
   id: string
   label: string
-  tokens: string[]
+  items: readonly ColorRoleGroupItem[]
 }
 
 export const galleryColorFamilies = [
@@ -43,7 +49,8 @@ export const galleryColorSteps = [
 
 export type GalleryColorFamily = (typeof galleryColorFamilies)[number]
 export type GalleryColorStep = (typeof galleryColorSteps)[number]
-export type GalleryColorTokenName = (typeof galleryColorRoleGroups)[number]["tokens"][number]
+export type GalleryColorTokenName =
+  (typeof galleryColorRoleGroups)[number]["items"][number]["token"]
 
 export type GalleryColorTokenValue = {
   family: GalleryColorFamily
@@ -57,34 +64,100 @@ export type GalleryColorTokenValues = Record<
 
 export const galleryColorRoleGroups: ColorRoleGroup[] = [
   {
-    id: "base-surfaces",
-    label: "Base surfaces",
-    tokens: [
-      "background",
-      "foreground",
-      "card",
-      "card-foreground",
-      "popover",
-      "popover-foreground",
+    id: "background",
+    label: "background",
+    items: [
+      { id: "background", label: "background", token: "background" },
+      { id: "foreground", label: "foreground", token: "foreground" },
     ],
   },
   {
-    id: "action-colors",
-    label: "Action colors",
-    tokens: [
-      "primary",
-      "primary-foreground",
-      "secondary",
-      "secondary-foreground",
-      "accent",
-      "accent-foreground",
-      "destructive",
+    id: "card",
+    label: "card",
+    items: [
+      { id: "background", label: "background", token: "card" },
+      { id: "foreground", label: "foreground", token: "card-foreground" },
     ],
   },
   {
-    id: "utility-colors",
-    label: "Utility colors",
-    tokens: ["muted", "muted-foreground", "border", "input", "ring"],
+    id: "popover",
+    label: "popover",
+    items: [
+      { id: "background", label: "background", token: "popover" },
+      {
+        id: "foreground",
+        label: "foreground",
+        token: "popover-foreground",
+      },
+    ],
+  },
+  {
+    id: "primary",
+    label: "primary",
+    items: [
+      { id: "background", label: "background", token: "primary" },
+      {
+        id: "foreground",
+        label: "foreground",
+        token: "primary-foreground",
+      },
+    ],
+  },
+  {
+    id: "secondary",
+    label: "secondary",
+    items: [
+      { id: "background", label: "background", token: "secondary" },
+      {
+        id: "foreground",
+        label: "foreground",
+        token: "secondary-foreground",
+      },
+    ],
+  },
+  {
+    id: "accent",
+    label: "accent",
+    items: [
+      { id: "background", label: "background", token: "accent" },
+      {
+        id: "foreground",
+        label: "foreground",
+        token: "accent-foreground",
+      },
+    ],
+  },
+  {
+    id: "muted",
+    label: "muted",
+    items: [
+      { id: "background", label: "background", token: "muted" },
+      {
+        id: "foreground",
+        label: "foreground",
+        token: "muted-foreground",
+      },
+    ],
+  },
+  {
+    id: "destructive",
+    label: "destructive",
+    items: [{ id: "color", label: "color", token: "destructive" }],
+  },
+  {
+    id: "border",
+    label: "border",
+    items: [{ id: "color", label: "color", token: "border" }],
+  },
+  {
+    id: "input",
+    label: "input",
+    items: [{ id: "color", label: "color", token: "input" }],
+  },
+  {
+    id: "ring",
+    label: "ring",
+    items: [{ id: "color", label: "color", token: "ring" }],
   },
 ]
 

@@ -29,6 +29,33 @@ layer or the generic composite layer.
 
 It MUST NOT become a second primitive UI library.
 
+Top-level `src/gallery/*` should remain preview-agnostic orchestration first.
+
+It SHOULD own:
+
+- editor state and controls
+- preview scene selection and domain metadata
+- panel composition
+- feature-level types and registries
+
+It SHOULD NOT own preview-local primitives, preview token CSS, or preview showcase card files.
+
+### `src/gallery/preview/*`
+
+This directory is the Gallery preview subdomain.
+
+It owns:
+
+- preview showcase cards
+- preview-local workspace surface rendering
+- preview-only themed primitives under `preview/ui/*`
+- preview-only token CSS under `preview/styles/*`
+- preview-only adaptation rules under `preview/rule/*`
+
+`src/gallery/preview/ui/*` exists only for preview showcase consumption.
+It MUST NOT become a second gallery-wide primitive layer.
+Top-level gallery editor and panel code MUST continue to consume `src/components/ui/*`.
+
 ### `src/index.css`
 
 This file is the token and theme-mapping entrypoint.
@@ -199,3 +226,4 @@ The following should be rejected by default:
 - growing page-local utility bundles into a shadow design system
 - storing gallery scene/example data ad hoc inside generic shell components when it belongs in
   `src/gallery/*`
+- importing `src/gallery/preview/ui/*` into top-level gallery editor or shell orchestration code

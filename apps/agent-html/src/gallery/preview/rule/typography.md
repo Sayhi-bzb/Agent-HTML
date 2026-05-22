@@ -1,28 +1,39 @@
-# Typography Specification
+# Typography Rules
 
 ## Purpose
 
-This document defines the typography standard for the current operating shell.
-It turns the current page style into a reusable role system for future screens.
+This document defines the typography standard for gallery preview component adaptation work.
+It turns the current preview page style into a reusable role system for future gallery preview
+surfaces.
 
 ## Ownership
 
-This document owns typeface choice, text roles, line-height, weight, tracking, and text color use.
+This document owns typeface choice, text roles, line-height, weight, tracking, and text color use
+for preview-facing component adaptation.
 It does not define raw token names or page layout structure.
+
+## Preview Boundary
+
+This rule applies to `src/gallery/preview/*` only.
+
+- preview cards MUST consume `src/gallery/preview/ui/*`
+- preview primitives MAY consume `src/gallery/preview/styles/*`
+- preview typography rules MUST NOT leak into `src/components/ui/*`
+- gallery editor / panel / shell code MUST continue to consume `src/components/ui/*`
 
 ## Typeface
 
-The default UI typeface is `Geist Variable`.
+The default preview UI typeface is `Geist Variable`.
 
 Rules:
 
-- all interface text MUST use `Geist Variable`
+- all preview interface text MUST use `Geist Variable`
 - fallback fonts MAY remain generic sans-serif fallbacks
-- alternate display fonts MUST NOT be introduced inside product UI
+- alternate display fonts MUST NOT be introduced inside preview UI
 
 ## Typography Principles
 
-Typography in this app should remain:
+Typography in preview should remain:
 
 - compact
 - technical
@@ -36,7 +47,7 @@ Hierarchy should come from role clarity, not from dramatic display styling.
 
 ### Page Title
 
-Use for the primary heading of a shell page.
+Use for the primary heading of a preview page or preview panel.
 
 - size: `text-2xl`
 - weight: `font-semibold`
@@ -84,9 +95,9 @@ Use inside compact controls, buttons, nav items, and dropdown items.
 - weight: default or medium depending on control role
 - line height: compact
 
-Current shell rule:
+Current preview rule:
 
-- sidebar and scene-selection controls SHOULD NOT rely on heavier active weight by default
+- preview controls SHOULD NOT rely on heavier active weight by default
 - emphasis SHOULD usually come from foreground and surface change first
 
 ### Label Text
@@ -128,8 +139,8 @@ Weight is the primary hierarchy lever.
 - `font-medium` for labels, controls, and section headings
 - default weight for body and supporting copy
 
-Active shell controls SHOULD NOT automatically become heavier when selected.
-If a shell control needs emphasis, prefer foreground, background, or positional hierarchy before
+Active preview controls SHOULD NOT automatically become heavier when selected.
+If a preview control needs emphasis, prefer foreground, background, or positional hierarchy before
 adding weight.
 
 ## Color Rules
@@ -140,15 +151,32 @@ Typography color MUST come from semantic tokens.
 - supporting text uses `muted-foreground`
 - destructive text uses `destructive`
 
-Shell-local secondary emphasis MAY use weakened `sidebar-foreground` treatment when the text lives
-inside header or footer shell chrome.
-
 ## Reuse Rule
 
-A new screen should not need to redefine:
+A new preview card should not need to redefine:
 
 - what a page title looks like
 - what a card title looks like
 - what helper text looks like
 - what a timestamp looks like
 - what compact control text looks like
+
+## Rule Check Script
+
+This rule is accompanied by a governance helper script:
+
+- `rule/typography/check-typography.mjs`
+
+Usage:
+
+```bash
+node rule/typography/check-typography.mjs
+```
+
+Current scan scope:
+
+- `src/gallery/preview/ui/*`
+- `src/gallery/preview/cards/*`
+
+The script reports direct preview typography utility usage that has not yet been migrated to
+preview token or role consumption.

@@ -85,7 +85,7 @@ Typography-specific scale values belong here as raw values only:
 - `tracking-tight`
 - `tracking-normal`
 
-Detailed text-role usage is owned by `typography.md`.
+Detailed preview text-role usage is owned by [`../src/gallery/preview/rule/typography.md`](../src/gallery/preview/rule/typography.md).
 
 ### Icon Sizes
 

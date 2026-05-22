@@ -6,6 +6,7 @@ import type {
   GalleryColorStep,
   GalleryColorTokenValues,
 } from "@/gallery/editor-panels"
+import type { GalleryShadowValue } from "@/gallery/editor"
 import {
   galleryTypographyFontOptions,
   type GalleryTypographyValue,
@@ -47,11 +48,13 @@ function GalleryViewport({ style }: { style?: React.CSSProperties }) {
 export function GalleryWorkspacePreview({
   colorTokenValues,
   radius = "0.625rem",
+  shadow = "medium",
   spacing = "1rem",
   typographyValue,
 }: {
   colorTokenValues: GalleryColorTokenValues
   radius?: string
+  shadow?: GalleryShadowValue
   spacing?: string
   typographyValue: GalleryTypographyValue
 }) {
@@ -68,6 +71,15 @@ export function GalleryWorkspacePreview({
       galleryTypographyFontOptions.find(
         (font) => font.id === typographyValue.fontFamily
       )?.family ?? galleryTypographyFontOptions[0].family
+
+    const shadowValue =
+      shadow === "none"
+        ? "none"
+        : shadow === "soft"
+          ? "0 10px 24px -18px color-mix(in oklab, var(--foreground) 32%, transparent)"
+          : shadow === "strong"
+            ? "0 26px 48px -24px color-mix(in oklab, var(--foreground) 45%, transparent)"
+            : "0 18px 36px -22px color-mix(in oklab, var(--foreground) 38%, transparent)"
 
     return {
       "--background": resolveColor("background"),
@@ -91,6 +103,7 @@ export function GalleryWorkspacePreview({
       "--font-sans": fontFamily,
       "--font-heading": fontFamily,
       "--radius": radius,
+      "--preview-card-shadow": shadowValue,
       "--spacing-base": spacing,
       "--space-1": "calc(var(--spacing-base) * 0.75)",
       "--space-2": "var(--spacing-base)",
@@ -105,11 +118,11 @@ export function GalleryWorkspacePreview({
       "--type-xl": "calc(var(--type-base-size) * 1.375)",
       "--type-2xl": "calc(var(--type-base-size) * 1.875)",
     } as React.CSSProperties
-  }, [colorTokenValues, radius, spacing, typographyValue])
+  }, [colorTokenValues, radius, shadow, spacing, typographyValue])
 
   return (
     <div
-      className="overflow-hidden rounded-[calc(var(--radius)*2.4)] bg-background"
+      className="overflow-hidden rounded-[calc(var(--radius)*2.4)]"
       style={previewThemeStyle}
     >
       <GalleryViewport />

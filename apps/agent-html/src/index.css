@@ -2,12 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "./gallery/preview/styles/typography.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
     --shadow: 0 0 #0000;
     --shadow-sm: 0 0 #0000;
     --shadow-md: 0 0 #0000;

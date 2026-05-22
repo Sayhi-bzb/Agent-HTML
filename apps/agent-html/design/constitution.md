@@ -124,7 +124,7 @@ Schedule pressure is not sufficient justification for creating a parallel design
 Detailed implementation rules are delegated as follows:
 
 - `tokens.md` owns token taxonomy, naming, and consumption
-- `typography.md` owns text hierarchy and text-role rules
+- [`../src/gallery/preview/rule/typography.md`](../src/gallery/preview/rule/typography.md) owns preview text hierarchy and text-role rules
 - `layout.md` owns shell structure and responsive layout rules
 - `components.md` owns component-family standards
 - `code-structure.md` owns code placement and implementation review rules

@@ -1,6 +1,7 @@
-import { GalleryWorkspacePreview } from "@/gallery/workspace-preview"
+import { GalleryWorkspacePreview } from "@/gallery/preview/workspace-preview"
 import type {
   GalleryRadiusValue,
+  GalleryShadowValue,
   GallerySpacingValue,
 } from "@/gallery/editor"
 import type { GalleryColorTokenValues } from "@/gallery/editor-panels"
@@ -11,12 +12,14 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 export function GalleryPanel({
   colorTokenValues,
   radiusValue = "0.625rem",
+  shadowValue = "medium",
   spacingValue = "1rem",
   scene: _scene,
   typographyValue,
 }: {
   colorTokenValues: GalleryColorTokenValues
   radiusValue?: GalleryRadiusValue
+  shadowValue?: GalleryShadowValue
   spacingValue?: GallerySpacingValue
   scene: GalleryScene
   typographyValue: GalleryTypographyValue
@@ -28,6 +31,7 @@ export function GalleryPanel({
           <GalleryWorkspacePreview
             colorTokenValues={colorTokenValues}
             radius={radiusValue}
+            shadow={shadowValue}
             spacing={spacingValue}
             typographyValue={typographyValue}
           />

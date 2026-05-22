@@ -2,6 +2,7 @@ import * as React from "react"
 
 import type {
   GalleryRadiusValue,
+  GalleryShadowValue,
   GallerySpacingValue,
 } from "@/gallery/editor"
 import {
@@ -256,6 +257,8 @@ export function App() {
     React.useState<GalleryTypographyValue>(galleryTypographyDefaults)
   const [galleryRadiusValue, setGalleryRadiusValue] =
     React.useState<GalleryRadiusValue>("0.625rem")
+  const [galleryShadowValue, setGalleryShadowValue] =
+    React.useState<GalleryShadowValue>("medium")
   const [gallerySpacingValue, setGallerySpacingValue] =
     React.useState<GallerySpacingValue>("1rem")
   const [activeGallerySceneId, setActiveGallerySceneId] = React.useState<string>(
@@ -457,6 +460,7 @@ export function App() {
           galleryColorTokenValues={galleryColorTokenValues}
           galleryEditorMode={galleryEditorMode}
           galleryRadiusValue={galleryRadiusValue}
+          galleryShadowValue={galleryShadowValue}
           gallerySpacingValue={gallerySpacingValue}
           galleryTypographyValue={galleryTypographyValue}
           mode={surfaceMode}
@@ -476,6 +480,7 @@ export function App() {
           onGalleryEditorModeChange={setGalleryEditorMode}
           onOpenProject={handleOpenProject}
           onRadiusChange={setGalleryRadiusValue}
+          onShadowChange={setGalleryShadowValue}
           onSpacingChange={setGallerySpacingValue}
           onTypographyChange={setGalleryTypographyValue}
           onRenameProject={handleRenameProject}
@@ -488,6 +493,7 @@ export function App() {
               colorTokenValues={galleryColorTokenValues}
               radiusValue={galleryRadiusValue}
               scene={galleryDisplayScene}
+              shadowValue={galleryShadowValue}
               spacingValue={gallerySpacingValue}
               typographyValue={galleryTypographyValue}
             />
