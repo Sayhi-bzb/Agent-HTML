@@ -1,6 +1,9 @@
 import * as React from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { GalleryPanel } from "@/components/gallery-view"
+import { galleryScenes } from "@/components/gallery-view"
+import type { GallerySection } from "@/components/gallery-view"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -125,10 +128,112 @@ const activity = [
   },
 ]
 
+type SurfaceMode = "gallery" | "workspace"
+type HeaderTab = {
+  id: string
+  isClosable: boolean
+  label: string
+}
+
+function WorkspacePanel({ activeProject }: { activeProject: Project | null }) {
+  return (
+    <div className="flex flex-1 flex-col">
+      <header className="border-b px-4 py-5 md:px-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-muted-foreground">
+              {activeProject ? "Selected project" : "Workspace shell"}
+            </p>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {activeProject ? activeProject.name : "Agent Console"}
+            </h1>
+            <p className="max-w-2xl text-sm text-muted-foreground">
+              {activeProject
+                ? `The header tab now carries the active ${activeProject.name} workspace state while the sidebar stays navigation-only.`
+                : "Open a project from the sidebar to create a workspace tab and load its state here."}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline">Preview Layout</Button>
+            <Button>Open Workspace</Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+        <section className="grid gap-4 md:grid-cols-3">
+          {stats.map((stat) => (
+            <article
+              key={stat.label}
+              className="rounded-xl border bg-background p-5 text-foreground shadow-sm"
+            >
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <p className="mt-3 text-3xl font-semibold tracking-tight">
+                {stat.value}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {stat.detail}
+              </p>
+            </article>
+          ))}
+        </section>
+
+        <section className="grid flex-1 gap-6 lg:grid-cols-[1.4fr_0.9fr]">
+          <article className="rounded-xl border bg-background text-foreground shadow-sm">
+            <div className="grid gap-4 p-5 md:grid-cols-2">
+              <div className="rounded-lg border border-dashed p-4">
+                <p className="text-sm font-medium">Primary content area</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Put your routed page, dashboard widgets, or editor here.
+                </p>
+              </div>
+              <div className="rounded-lg border border-dashed p-4">
+                <p className="text-sm font-medium">Responsive behavior</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  On mobile, the sidebar switches to a sheet automatically.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <article className="rounded-xl border bg-background text-foreground shadow-sm">
+            <div className="border-b px-5 py-4">
+              <p className="text-sm font-medium">Recent activity</p>
+            </div>
+            <div className="flex flex-col gap-3 p-5">
+              {activity.map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-lg border border-dashed p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium">{item.title}</p>
+                    <span className="text-xs text-muted-foreground">
+                      {item.time}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {item.summary}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
+      </div>
+    </div>
+  )
+}
+
 export function App() {
   const [projects, setProjects] = React.useState<Project[]>(initialProjects)
   const [openTabs, setOpenTabs] = React.useState<ProjectTab[]>([])
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
+  const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
+  const [gallerySection, setGallerySection] = React.useState<GallerySection>("editor")
+  const [activeGallerySceneId, setActiveGallerySceneId] = React.useState<string>(
+    galleryScenes[0].id
+  )
 
   const activeTab = React.useMemo(
     () => openTabs.find((tab) => tab.id === activeTabId) ?? null,
@@ -142,6 +247,29 @@ export function App() {
         : null,
     [activeTab]
   )
+
+  const activeGalleryScene = React.useMemo(
+    () =>
+      galleryScenes.find((scene) => scene.id === activeGallerySceneId) ??
+      galleryScenes[0],
+    [activeGallerySceneId]
+  )
+
+  const headerTabs = React.useMemo<HeaderTab[]>(() => {
+    if (surfaceMode === "gallery") {
+      return galleryScenes.map((scene) => ({
+        id: scene.id,
+        isClosable: false,
+        label: scene.label,
+      }))
+    }
+
+    return openTabs.map((tab) => ({
+      id: tab.id,
+      isClosable: true,
+      label: tab.label,
+    }))
+  }, [openTabs, surfaceMode])
 
   const handleOpenProject = React.useCallback(
     (projectId: string) => {
@@ -240,9 +368,17 @@ export function App() {
     })
   }, [])
 
-  const handleSelectTab = React.useCallback((tabId: string) => {
-    setActiveTabId(tabId)
-  }, [])
+  const handleSelectTab = React.useCallback(
+    (tabId: string) => {
+      if (surfaceMode === "gallery") {
+        setActiveGallerySceneId(tabId)
+        return
+      }
+
+      setActiveTabId(tabId)
+    },
+    [surfaceMode]
+  )
 
   const handleCloseTab = React.useCallback((tabId: string) => {
     setOpenTabs((currentTabs) => {
@@ -261,6 +397,15 @@ export function App() {
     })
   }, [])
 
+  const handleEnterGalleryMode = React.useCallback(() => {
+    setGallerySection("editor")
+    setSurfaceMode("gallery")
+  }, [])
+
+  const handleExitGalleryMode = React.useCallback(() => {
+    setSurfaceMode("workspace")
+  }, [])
+
   return (
     <SidebarProvider
       className="min-h-svh flex-col"
@@ -271,106 +416,31 @@ export function App() {
       }
     >
       <SiteHeader
-        activeTabId={activeTabId}
+        activeTabId={surfaceMode === "gallery" ? activeGallerySceneId : activeTabId}
         onCloseTab={handleCloseTab}
         onSelectTab={handleSelectTab}
-        tabs={openTabs}
+        tabs={headerTabs}
       />
       <main className="flex min-h-0 flex-1">
         <AppSidebar
+          mode={surfaceMode}
           onDeleteProject={handleDeleteProject}
           onDuplicateProject={handleDuplicateProject}
+          onEnterGalleryMode={handleEnterGalleryMode}
+          onExitGalleryMode={handleExitGalleryMode}
+          onSelectGallerySection={setGallerySection}
           onOpenProject={handleOpenProject}
           onRenameProject={handleRenameProject}
           projects={projects}
+          gallerySection={gallerySection}
           variant="inset"
         />
         <SidebarInset className="min-h-0 border-0 shadow-sm md:mr-2 md:mb-2">
-          <div className="flex flex-1 flex-col">
-            <header className="border-b px-4 py-5 md:px-6">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm text-muted-foreground">
-                    {activeProject ? "Selected project" : "Workspace shell"}
-                  </p>
-                  <h1 className="text-2xl font-semibold tracking-tight">
-                    {activeProject ? activeProject.name : "Agent Console"}
-                  </h1>
-                  <p className="max-w-2xl text-sm text-muted-foreground">
-                    {activeProject
-                      ? `The header tab now carries the active ${activeProject.name} workspace state while the sidebar stays navigation-only.`
-                      : "Open a project from the sidebar to create a workspace tab and load its state here."}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button variant="outline">Preview Layout</Button>
-                  <Button>Open Workspace</Button>
-                </div>
-              </div>
-            </header>
-
-            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-              <section className="grid gap-4 md:grid-cols-3">
-                {stats.map((stat) => (
-                  <article
-                    key={stat.label}
-                    className="rounded-xl border bg-background p-5 text-foreground shadow-sm"
-                  >
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
-                    <p className="mt-3 text-3xl font-semibold tracking-tight">
-                      {stat.value}
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {stat.detail}
-                    </p>
-                  </article>
-                ))}
-              </section>
-
-              <section className="grid flex-1 gap-6 lg:grid-cols-[1.4fr_0.9fr]">
-                <article className="rounded-xl border bg-background text-foreground shadow-sm">
-                  <div className="grid gap-4 p-5 md:grid-cols-2">
-                    <div className="rounded-lg border border-dashed p-4">
-                      <p className="text-sm font-medium">Primary content area</p>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        Put your routed page, dashboard widgets, or editor here.
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-dashed p-4">
-                      <p className="text-sm font-medium">Responsive behavior</p>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        On mobile, the sidebar switches to a sheet automatically.
-                      </p>
-                    </div>
-                  </div>
-                </article>
-
-                <article className="rounded-xl border bg-background text-foreground shadow-sm">
-                  <div className="border-b px-5 py-4">
-                    <p className="text-sm font-medium">Recent activity</p>
-                  </div>
-                  <div className="flex flex-col gap-3 p-5">
-                    {activity.map((item) => (
-                      <div
-                        key={item.title}
-                        className="rounded-lg border border-dashed p-4"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium">{item.title}</p>
-                          <span className="text-xs text-muted-foreground">
-                            {item.time}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          {item.summary}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              </section>
-            </div>
-          </div>
+          {surfaceMode === "gallery" ? (
+            <GalleryPanel scene={activeGalleryScene} />
+          ) : (
+            <WorkspacePanel activeProject={activeProject} />
+          )}
         </SidebarInset>
       </main>
     </SidebarProvider>

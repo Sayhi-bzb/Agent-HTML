@@ -158,11 +158,20 @@ When shell and workspace surfaces are intentionally unified, `sidebar*` SHOULD m
 corresponding shared semantic tokens (`background`, `foreground`, `accent`, `border`, `ring`,
 `primary`) rather than introducing a second independent palette.
 
-In the current shell/workspace model:
+In the current shell/gallery/workspace model:
 
 - `background` owns the shell plane
 - `card` owns the primary workspace plane
 - `sidebar*` is a shell-facing alias layer over the shared semantic tokens above
+- gallery-mode sidebar editor panels are still shell surfaces unless they intentionally escalate to
+  a stronger local plane
+
+The current implementation also uses shell-local semantic context without introducing a new global
+token family:
+
+- weakened secondary shell text is expressed as `sidebar-foreground` with lower opacity
+- secondary shell hover strengthens text before it claims new background
+- active sidebar identity is expressed through surface and foreground, not font-weight
 
 ## Layout Constants
 
@@ -201,3 +210,5 @@ The current implementation still needs normalization in these areas:
 - raw values still live directly inside semantic declarations
 - spacing remains implicit in utility usage rather than formal top-level tokens
 - icon and shadow scales are not yet fully expressed as explicit top-level sources
+- shell-local tone contexts still live in primitive classes rather than in a more explicit semantic
+  token interface

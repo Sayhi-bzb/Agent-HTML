@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the typography standard for the workspace shell.
+This document defines the typography standard for the current operating shell.
 It turns the current page style into a reusable role system for future screens.
 
 ## Ownership
@@ -81,8 +81,13 @@ Use for metadata, timestamps, breadcrumbs, sublabels, and secondary context.
 Use inside compact controls, buttons, nav items, and dropdown items.
 
 - size: `text-sm`
-- weight: medium when interactive emphasis is needed
+- weight: default or medium depending on control role
 - line height: compact
+
+Current shell rule:
+
+- sidebar and scene-selection controls SHOULD NOT rely on heavier active weight by default
+- emphasis SHOULD usually come from foreground and surface change first
 
 ### Label Text
 
@@ -123,6 +128,10 @@ Weight is the primary hierarchy lever.
 - `font-medium` for labels, controls, and section headings
 - default weight for body and supporting copy
 
+Active shell controls SHOULD NOT automatically become heavier when selected.
+If a shell control needs emphasis, prefer foreground, background, or positional hierarchy before
+adding weight.
+
 ## Color Rules
 
 Typography color MUST come from semantic tokens.
@@ -130,6 +139,9 @@ Typography color MUST come from semantic tokens.
 - primary text uses `foreground`
 - supporting text uses `muted-foreground`
 - destructive text uses `destructive`
+
+Shell-local secondary emphasis MAY use weakened `sidebar-foreground` treatment when the text lives
+inside header or footer shell chrome.
 
 ## Reuse Rule
 

@@ -376,7 +376,7 @@ describe("createRendererNode", () => {
           content: "div",
           childMode: "block",
           textMode: "prose",
-          contentLayout: "prose",
+          contentLayout: "default",
         },
       ],
     ])
@@ -404,7 +404,7 @@ describe("createRendererNode", () => {
     expect(markup).toContain("<header><h2>Summary</h2></header><div><aside")
     expect(markup).not.toContain('<header><h2>Summary</h2></header><div class="ahtml-section-stack')
     expect(markup).not.toContain('<header><h2>Summary</h2></header><div class="ahtml-prose-block')
-    expect(markup).toContain('class="ahtml-prose-block"><p class="m-0 whitespace-normal">Ready</p>')
+    expect(markup).toContain('<div><p class="m-0 whitespace-normal">Ready</p></div>')
   })
 
   it("keeps gallery preview spacing rules scoped away from document preview card content", () => {

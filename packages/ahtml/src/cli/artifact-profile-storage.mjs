@@ -89,16 +89,27 @@ export async function readArtifactProfileManifest(paths) {
 
 export async function assertArtifactProfileStorage(paths) {
   const manifest = await readArtifactProfileManifest(paths)
+  const expectedManifest = createArtifactProfileStorageManifest(paths)
 
   await stat(paths.artifactProfilesDir)
   await stat(paths.builtinArtifactProfilesDir)
   await stat(paths.userArtifactProfilesDir)
 
-  for (const profileEntry of manifest.profiles ?? []) {
-    await stat(profileEntry.path)
+  assertBuiltinArtifactProfileManifestCurrent({
+    actual: manifest,
+    expected: expectedManifest,
+  })
+
+  for (const expectedProfileEntry of expectedManifest.profiles ?? []) {
+    await stat(expectedProfileEntry.path)
+    await assertStoredArtifactProfileMatches({
+      expectedProfile: expectedProfileEntry.profile,
+      id: expectedProfileEntry.id,
+      path: expectedProfileEntry.path,
+    })
   }
 
-  return `${manifest.profiles.length} builtin profiles -> ${paths.userArtifactProfilesDir}`
+  return `${expectedManifest.profiles.length} builtin profiles -> ${paths.userArtifactProfilesDir}`
 }
 
 export async function createArtifactProfileResolver(paths) {
@@ -350,4 +361,87 @@ function resolveStoredArtifactProfileReference(
   }
 
   return userProfilesById.get(artifactProfileReference)
+}
+
+function assertBuiltinArtifactProfileManifestCurrent({ actual, expected }) {
+  if (
+    actual.defaultArtifactProfileReference !==
+    expected.defaultArtifactProfileReference
+  ) {
+    throw new Error(
+      [
+        "artifact profile storage default profile is stale.",
+        `Actual: ${String(actual.defaultArtifactProfileReference)}.`,
+        `Expected: ${String(expected.defaultArtifactProfileReference)}.`,
+      ].join(" "),
+    )
+  }
+
+  const actualProfiles = Array.isArray(actual.profiles) ? actual.profiles : []
+  const expectedProfiles = Array.isArray(expected.profiles)
+    ? expected.profiles
+    : []
+  const actualIds = actualProfiles.map((profile) => profile.id)
+  const expectedIds = expectedProfiles.map((profile) => profile.id)
+  const missingIds = expectedIds.filter((id) => !actualIds.includes(id))
+  const extraIds = actualIds.filter((id) => !expectedIds.includes(id))
+
+  if (missingIds.length > 0 || extraIds.length > 0) {
+    throw new Error(
+      [
+        "artifact profile storage manifest is stale.",
+        missingIds.length > 0 ? `Missing: ${missingIds.join(", ")}.` : "",
+        extraIds.length > 0 ? `Extra: ${extraIds.join(", ")}.` : "",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    )
+  }
+
+  for (const expectedProfileEntry of expectedProfiles) {
+    const actualProfileEntry = actualProfiles.find(
+      (profile) => profile.id === expectedProfileEntry.id,
+    )
+
+    if (!actualProfileEntry) {
+      continue
+    }
+
+    assertArtifactProfileValueMatches({
+      actual: actualProfileEntry.profile,
+      expected: expectedProfileEntry.profile,
+      label: `artifact profile storage manifest profile "${expectedProfileEntry.id}"`,
+    })
+  }
+}
+
+async function assertStoredArtifactProfileMatches({ expectedProfile, id, path }) {
+  const parsedProfile = ArtifactProfileSchema.parse(
+    normalizeArtifactProfile(JSON.parse(await readFile(path, "utf8"))),
+  )
+
+  if (parsedProfile.id !== id) {
+    throw new Error(
+      [
+        `artifact profile storage file "${id}" is stale.`,
+        `Actual id: ${parsedProfile.id}.`,
+        `Expected id: ${id}.`,
+      ].join(" "),
+    )
+  }
+
+  assertArtifactProfileValueMatches({
+    actual: parsedProfile,
+    expected: expectedProfile,
+    label: `artifact profile storage file "${id}"`,
+  })
+}
+
+function assertArtifactProfileValueMatches({ actual, expected, label }) {
+  const actualSerialized = JSON.stringify(actual)
+  const expectedSerialized = JSON.stringify(expected)
+
+  if (actualSerialized !== expectedSerialized) {
+    throw new Error(`${label} does not match the current built-in profile.`)
+  }
 }

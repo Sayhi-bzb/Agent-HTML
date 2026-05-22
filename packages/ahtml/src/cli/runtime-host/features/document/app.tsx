@@ -34,7 +34,7 @@ export function DocumentApp({
       >
         <DocumentArtifactShell
           artifactProfile={document.meta.artifactProfile}
-          layoutPolicy="document"
+          layoutPolicy="gallery"
         >
           {document.components.map((node, index) => (
             <RendererNode key={index} node={node} path={[index]} />

@@ -58,6 +58,38 @@ describe("artifact profile storage", () => {
     expect(persistedState).not.toHaveProperty("currentArtifactProfileId")
   })
 
+  it("marks builtin storage stale when persisted builtin profiles drift from current source", async () => {
+    const runtimeHome = await createRuntimeHome()
+    const { getRuntimePaths } = await importRuntimePathsModule()
+    const {
+      assertArtifactProfileStorage,
+      writeArtifactProfileStorage,
+    } = await importArtifactProfileStorageModule()
+    const paths = getRuntimePaths({ AHTML_HOME: runtimeHome })
+    const builtinProfilePath = path.join(
+      paths.builtinArtifactProfilesDir,
+      "shadcn-default.json",
+    )
+
+    await writeArtifactProfileStorage(paths)
+
+    const persistedProfile = JSON.parse(
+      await readFile(builtinProfilePath, "utf8"),
+    )
+    persistedProfile.globalLayout.frame.frameMaxWidth = "72rem"
+    persistedProfile.componentLayout.frame.maxWidth = "72rem"
+    persistedProfile.globalStyle.tokenSets.light.background = "#f7f7f5"
+
+    await writeFile(
+      builtinProfilePath,
+      `${JSON.stringify(persistedProfile, null, 2)}\n`,
+    )
+
+    await expect(assertArtifactProfileStorage(paths)).rejects.toThrow(
+      /does not match the current built-in profile/i,
+    )
+  })
+
   it("saves and overwrites user profiles", async () => {
     const runtimeHome = await createRuntimeHome()
     const { getRuntimePaths } = await importRuntimePathsModule()
@@ -432,6 +464,9 @@ async function importArtifactProfileStorageModule() {
     readonly writeArtifactProfileStorage: (
       paths: RuntimePaths,
     ) => Promise<unknown>
+    readonly assertArtifactProfileStorage: (
+      paths: RuntimePaths,
+    ) => Promise<string>
     readonly deleteArtifactProfile: (
       paths: RuntimePaths,
       artifactProfileReference: string,

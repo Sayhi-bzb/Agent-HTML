@@ -3,6 +3,16 @@
 import * as React from "react"
 
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -50,6 +60,18 @@ export function NavProjects({
   const [editingProjectId, setEditingProjectId] = React.useState<string | null>(
     null
   )
+  const [pendingDeleteProjectId, setPendingDeleteProjectId] = React.useState<
+    string | null
+  >(null)
+
+  const pendingDeleteProject = React.useMemo(
+    () =>
+      pendingDeleteProjectId
+        ? projects.find((project) => project.id === pendingDeleteProjectId) ??
+          null
+        : null,
+    [pendingDeleteProjectId, projects]
+  )
 
   const cancelRename = React.useCallback(() => {
     setDraftName("")
@@ -79,6 +101,12 @@ export function NavProjects({
       cancelRename()
     }
   }, [cancelRename, editingProjectId, projects])
+
+  React.useEffect(() => {
+    if (pendingDeleteProjectId && !pendingDeleteProject) {
+      setPendingDeleteProjectId(null)
+    }
+  }, [pendingDeleteProject, pendingDeleteProjectId])
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -148,7 +176,7 @@ export function NavProjects({
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onSelect={() => onDeleteProject(item.id)}
+                    onSelect={() => setPendingDeleteProjectId(item.id)}
                     variant="destructive"
                   >
                     <Trash2Icon />
@@ -160,6 +188,41 @@ export function NavProjects({
           </SidebarMenuItem>
         )})}
       </SidebarMenu>
+      <AlertDialog
+        open={pendingDeleteProject !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDeleteProjectId(null)
+          }
+        }}
+      >
+          <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {pendingDeleteProject?.name ?? "project"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This deletes the project and closes its open tabs.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (!pendingDeleteProjectId) {
+                  return
+                }
+
+                onDeleteProject(pendingDeleteProjectId)
+                setPendingDeleteProjectId(null)
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarGroup>
   )
 }

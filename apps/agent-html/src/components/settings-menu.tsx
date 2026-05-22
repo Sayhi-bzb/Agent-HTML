@@ -1,19 +1,47 @@
 import {
-  SidebarMenu,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
-import { Settings2Icon } from "lucide-react"
+import { BellIcon, BadgeCheckIcon, Settings2Icon } from "lucide-react"
 
 export function SettingsMenu() {
+  const { isMobile } = useSidebar()
+
   return (
-    <SidebarMenu>
+    <DropdownMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton type="button">
-          <Settings2Icon />
-          <span>Settings</span>
-        </SidebarMenuButton>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuButton
+            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            type="button"
+          >
+            <Settings2Icon />
+            <span>Settings</span>
+          </SidebarMenuButton>
+        </DropdownMenuTrigger>
       </SidebarMenuItem>
-    </SidebarMenu>
+      <DropdownMenuContent
+        className="w-56 rounded-lg"
+        side={isMobile ? "bottom" : "right"}
+        align="end"
+        sideOffset={4}
+      >
+        <DropdownMenuItem>
+          <BadgeCheckIcon />
+          Account
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <BellIcon />
+          Notifications
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

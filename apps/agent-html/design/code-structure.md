@@ -48,6 +48,15 @@ It owns:
 - reusable feature-facing composition
 - stable product patterns built from primitives
 
+Current stable examples include:
+
+- `AppSidebar`
+- `SiteHeader`
+- `NavProjects`
+- `SearchCommand`
+- `GalleryPanel`
+- `GallerySidebarPanels`
+
 It MUST NOT become a second primitive library.
 
 ### Page / App Layer
@@ -55,11 +64,18 @@ It MUST NOT become a second primitive library.
 The page layer owns:
 
 - data shaping
-- page-specific composition
+- mode state and orchestration
 - local content ordering
-- temporary view structure before a pattern proves reusable
+- feature composition at the app root
 
 It MUST NOT define new system-wide visual truth.
+
+The current app layer is responsible for:
+
+- project and tab state
+- operating mode state (`workspace` vs `gallery`)
+- scene selection state
+- wiring shell composites together
 
 ## Styling Source of Truth
 
@@ -71,6 +87,9 @@ Design decisions should originate from this order:
 4. page-level composition
 
 If a page needs repeated local visual overrides, the rule probably belongs higher in the system.
+
+The current shell already proves that mode-aware behavior belongs in composites before it belongs
+in page-local one-offs.
 
 ## Class Usage Rules
 
@@ -124,6 +143,14 @@ It should stay local when:
 - it is purely contextual
 - its reuse model is still unclear
 
+The following are no longer placeholders in the current app and should be treated as stable
+composites:
+
+- the mode-aware sidebar
+- the mode-aware header tab rail
+- the gallery scene panel
+- the gallery sidebar editor panels
+
 ## Review Checklist
 
 A UI review should verify:
@@ -134,6 +161,8 @@ A UI review should verify:
 - no composite is leaking page-specific assumptions into the system
 - no shell constants are copied into random files
 - no accessibility behavior was lost during visual customization
+- no mode-specific shell behavior was implemented by forking the shell instead of extending the
+  existing composites
 
 ## Anti-Patterns
 
@@ -141,6 +170,8 @@ The following should be rejected by default:
 
 - duplicating button or input behavior outside `src/components/ui/*`
 - creating a second sidebar implementation with custom markup
+- creating a second mode-specific header or sidebar instead of extending `SiteHeader` or
+  `AppSidebar`
 - hard-coding colors in feature components
 - encoding typography decisions ad hoc in every page
 - growing page-local utility bundles into a shadow design system

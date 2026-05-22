@@ -295,7 +295,7 @@ export const componentCapabilityDefinitions = {
       title: "AlertTitle",
       content: "AlertDescription",
       titleProp: "title",
-      contentLayout: "prose",
+      contentLayout: "default",
       childMode: "block",
       textMode: "prose",
       propMappings: [

@@ -2,8 +2,8 @@
 
 ## Purpose
 
-This document defines the layout system for the workspace shell.
-It standardizes page structure, spacing rhythm, grids, panel composition, and responsive behavior.
+This document defines the layout system for the current operating shell.
+It standardizes mode structure, spacing rhythm, grids, panel composition, and responsive behavior.
 
 ## Ownership
 
@@ -12,12 +12,13 @@ It does not define component-family styling details or typography roles.
 
 ## Layout Philosophy
 
-The app is a product workspace, not a storytelling site.
+The app is a product shell, not a storytelling site.
 Layouts MUST prioritize orientation, task flow, and scan speed.
 
 Core traits:
 
 - persistent shell structure
+- mode-swapped work surfaces
 - compact utility spacing
 - grid-based content organization
 - clear separation between chrome and task content
@@ -26,11 +27,33 @@ Core traits:
 The layout system is built around two spatial roles:
 
 - `shell`: navigation, current context, global controls, and frame-level orientation
-- `workspace`: the primary task surface where page-specific work happens
+- `workspace`: the primary hosted work surface where page-specific work happens
 
 These roles MUST not collapse into the same visual treatment.
 The shell should read as a continuous frame.
 The workspace should read as an inset surface nested inside that frame.
+
+## Mode Model
+
+The current implementation has two first-class operating modes:
+
+### Workspace Mode
+
+- header tabs represent open project contexts
+- sidebar header hosts search
+- sidebar body hosts project navigation
+- sidebar footer hosts utility entry points
+- content well hosts the project working surface
+
+### Gallery Mode
+
+- header tabs represent gallery scenes
+- sidebar header hosts a back action
+- sidebar body hosts section selection plus editor-side panels
+- sidebar footer becomes passive contextual support
+- content well hosts scene boards and preview surfaces
+
+Mode changes SHOULD reuse the same shell rather than create a separate full-screen layout family.
 
 ## Shell Model
 
@@ -42,7 +65,7 @@ The default application structure is:
 4. flexible content well to the right of navigation
 
 Future product screens SHOULD inherit from this shell unless they are intentionally outside the
-main workspace.
+main product frame.
 
 The shell is a single compositional object, not a pile of neighboring panels.
 
@@ -53,16 +76,24 @@ The shell is a single compositional object, not a pile of neighboring panels.
 - if a shell region needs emphasis, it SHOULD be achieved with local contrast rather than turning
   the full shell into stacked cards
 
+The current shell also includes mode-aware continuity rules:
+
+- the header owns the current tab rail in both modes
+- the sidebar MAY swap from navigation to editor use without losing shell identity
+- the content well MAY change task role without changing its hosted spatial role
+
 ## Header Rules
 
 The header is compact, structural, and persistent.
 
 - it MUST remain a control row rather than a hero band
-- it SHOULD carry navigation context, shell actions, or search
+- it SHOULD carry navigation context, shell actions, or scene tabs
 - it MUST use structural separation rather than dramatic elevation
 - it SHOULD visually belong to the sidebar and tab layer when those elements are part of the same
   shell
 - it SHOULD avoid heavy borders that imply it is an isolated panel
+- it MAY switch between closable work tabs and non-closable scene tabs without changing its base
+  shell treatment
 
 ## Content Well Rules
 
@@ -96,6 +127,8 @@ Current implementation suggests these baseline roles:
 - `gap-6` for section separation
 - `gap-4` for local grid and card-group separation
 - `gap-2` and `gap-3` for dense inline UI
+- `gap-1` for `SidebarMenu` item rhythm
+- `h-8` for standard sidebar item height
 
 Future normalization should map these roles onto explicit spacing tokens.
 
@@ -124,6 +157,8 @@ Suggested panel archetypes:
 - standard content panel
 - split panel
 - activity / feed panel
+- gallery scene board
+- sidebar editor support panel
 
 ## Responsive Rules
 
@@ -149,21 +184,18 @@ Navigation may change its delivery mechanism, but it should not change its spati
 
 Future development should converge on a small set of page archetypes:
 
-### Shell Dashboard
+### Workspace Mode Surface
 
-Use for overview screens, metrics, recent activity, and multi-panel workspaces.
+Use for project-backed work where the main well is the primary task surface.
 
-### Settings / Detail Page
+### Gallery Mode Surface
 
-Use for account management, preferences, and detail forms.
+Use for design-study scenes where the shell persists and the content well becomes a preview or
+inspection surface.
 
-### List / Table Page
+### Detail / Utility Page
 
-Use for collections, records, assets, and filtered results.
-
-### Editor / Workspace Page
-
-Use for focused tool surfaces where the content well becomes the primary work zone.
+Use for account management, preferences, or focused detail forms that still inherit the shell.
 
 ## Anti-Patterns
 
@@ -178,3 +210,4 @@ The following should be rejected by default:
 - inconsistent card padding from page to page
 - bespoke breakpoint logic for one screen
 - decorative asymmetry without task value
+- creating a second shell for a mode change that could live inside the current operating frame

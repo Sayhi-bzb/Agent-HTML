@@ -1,6 +1,6 @@
 import http from "node:http"
 import { watch } from "node:fs"
-import { readFile } from "node:fs/promises"
+import { readFile, readdir } from "node:fs/promises"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
 
@@ -14,12 +14,26 @@ import {
   readCurrentArtifactProfileReference,
   resolveArtifactProfileByReference,
 } from "./artifact-profile-storage.mjs"
+import { getCliSchemaOutput } from "./schema.mjs"
 import { resolveRuntimeDependencies } from "./runtime-bootstrap/index.mjs"
 import {
+  bootstrapManagedRuntime,
+  getRuntimeStatus,
+  readRuntimeManifest,
   withRuntimeBuildLock,
   writeGeneratedDocument,
   writeGeneratedRuntimeState,
 } from "./runtime-status.mjs"
+import {
+  nativeRuntimeSetup,
+  resolveRuntimeSetup,
+} from "./runtime-setup.mjs"
+import { assertRuntimeSurface } from "./runtime-surface.mjs"
+import {
+  assertRendererSpecParity,
+  assertVerificationDataParity,
+  readRuntimeVerificationState,
+} from "./runtime-renderability.mjs"
 
 const previewRefreshDebounceMs = 75
 
@@ -64,6 +78,7 @@ export async function runRuntimePreviewSession({
       },
     },
     paths,
+    packageRoot,
     prepareDocumentRuntime,
   })
 
@@ -72,8 +87,9 @@ export async function runRuntimePreviewSession({
     paths,
     port,
   })
-  const watcher = createPreviewWatcher({
+  const watcher = await createPreviewWatcher({
     absoluteInputPath,
+    packageRoot,
     onChange: () =>
       refreshPreviewState({
         absoluteInputPath,
@@ -87,6 +103,7 @@ export async function runRuntimePreviewSession({
           },
         },
         paths,
+        packageRoot,
         prepareDocumentRuntime,
       }),
   })
@@ -104,8 +121,11 @@ async function refreshPreviewState({
   inputPath,
   lastStableDocumentRef,
   paths,
+  packageRoot,
   prepareDocumentRuntime,
 }) {
+  await ensurePreviewRuntimeCurrent({ packageRoot, paths })
+
   const prepared = await prepareDocumentRuntime(absoluteInputPath, {
     printDiagnostics: false,
   })
@@ -184,6 +204,7 @@ async function createRuntimePreviewServer({ packageRoot, paths, port }) {
       (requestUrl.pathname === "/" || requestUrl.pathname === "/index.html")
     ) {
       try {
+        await ensurePreviewRuntimeCurrent({ packageRoot, paths })
         const template = await viteServer.transformIndexHtml(
           requestUrl.pathname,
           await readFile(templatePath, "utf8"),
@@ -254,33 +275,166 @@ async function createRuntimePreviewServer({ packageRoot, paths, port }) {
   }
 }
 
-function createPreviewWatcher({ absoluteInputPath, onChange }) {
-  const watchedDirectory = path.dirname(absoluteInputPath)
-  const watchedFileName = path.basename(absoluteInputPath)
-  let refreshTimeout
-  let refreshPromise = Promise.resolve()
-  const watcher = watch(watchedDirectory, { persistent: false }, (event, file) => {
-    const fileName = typeof file === "string" ? file : file?.toString()
+async function ensurePreviewRuntimeCurrent({ packageRoot, paths }) {
+  const schema = await getCliSchemaOutput()
+  const status = await getRuntimeStatus({ paths })
+
+  if (status.ready && (await isPreviewRuntimeCurrent({ paths, schema }))) {
+    return
+  }
+
+  await withRuntimeBuildLock(paths, async () => {
+    const refreshedStatus = await getRuntimeStatus({ paths })
 
     if (
-      (event === "change" || event === "rename") &&
-      fileName === watchedFileName
+      refreshedStatus.ready &&
+      (await isPreviewRuntimeCurrent({ paths, schema }))
     ) {
-      clearTimeout(refreshTimeout)
-      refreshTimeout = setTimeout(() => {
-        refreshPromise = refreshPromise
-          .catch(() => {})
-          .then(() => onChange())
-          .catch(() => {})
-      }, previewRefreshDebounceMs)
+      return
     }
+
+    await bootstrapManagedRuntime({
+      packageRoot,
+      paths,
+      schema,
+      setup: await resolveRuntimeSetup({
+        options: {
+          ui: nativeRuntimeSetup.uiLibrary,
+          "component-source": nativeRuntimeSetup.componentSource,
+          preset: nativeRuntimeSetup.preset,
+          components: nativeRuntimeSetup.components,
+          yes: true,
+        },
+        interactive: false,
+      }),
+    })
   })
+}
+
+async function isPreviewRuntimeCurrent({ paths, schema }) {
+  try {
+    const runtimeVerificationState =
+      await readRuntimeVerificationState(paths)
+    assertVerificationDataParity({
+      actual: runtimeVerificationState.verificationData,
+      actualName: "runtime verification data",
+      expected: schema.verificationData,
+      expectedName: "schema verification data",
+    })
+    assertRendererSpecParity({
+      actual: runtimeVerificationState.rendererMapping,
+      actualName: "runtime renderer verification mapping",
+      expected: schema.rendererMapping,
+      expectedName: "schema renderer mapping",
+    })
+    const runtimeManifest = await readRuntimeManifest(paths)
+    await assertRuntimeSurface({
+      manifest: runtimeManifest,
+      paths,
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function createPreviewWatcher({
+  absoluteInputPath,
+  packageRoot,
+  onChange,
+}) {
+  const watchedDirectory = path.dirname(absoluteInputPath)
+  const watchedFileName = path.basename(absoluteInputPath)
+  const repoWatchRoots = [
+    path.join(packageRoot, "src"),
+    path.resolve(packageRoot, "..", "core", "src"),
+  ]
+  const repoWatchDirectories = await collectWatchDirectories(repoWatchRoots)
+  const watchers = []
+  let refreshTimeout
+  let refreshPromise = Promise.resolve()
+
+  const scheduleRefresh = () => {
+    clearTimeout(refreshTimeout)
+    refreshTimeout = setTimeout(() => {
+      refreshPromise = refreshPromise
+        .catch(() => {})
+        .then(() => onChange())
+        .catch(() => {})
+    }, previewRefreshDebounceMs)
+  }
+
+  watchers.push(
+    watch(watchedDirectory, { persistent: false }, (event, file) => {
+      const fileName = typeof file === "string" ? file : file?.toString()
+
+      if (
+        (event === "change" || event === "rename") &&
+        fileName === watchedFileName
+      ) {
+        scheduleRefresh()
+      }
+    }),
+  )
+
+  for (const directory of repoWatchDirectories) {
+    watchers.push(
+      watch(directory, { persistent: false }, (event, file) => {
+        const fileName = typeof file === "string" ? file : file?.toString()
+
+        if (
+          event === "change" ||
+          event === "rename" ||
+          typeof fileName === "string"
+        ) {
+          scheduleRefresh()
+        }
+      }),
+    )
+  }
 
   return {
     close: () => {
       clearTimeout(refreshTimeout)
-      watcher.close()
+      for (const currentWatcher of watchers) {
+        currentWatcher.close()
+      }
     },
+  }
+}
+
+async function collectWatchDirectories(roots) {
+  const directories = []
+
+  for (const root of roots) {
+    directories.push(...(await walkDirectories(root)))
+  }
+
+  return directories
+}
+
+async function walkDirectories(root) {
+  try {
+    const entries = await readdir(root, { withFileTypes: true })
+    const directories = [root]
+
+    for (const entry of entries) {
+      if (!entry.isDirectory()) {
+        continue
+      }
+
+      directories.push(
+        ...(await walkDirectories(path.join(root, entry.name))),
+      )
+    }
+
+    return directories
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return []
+    }
+
+    throw error
   }
 }
 

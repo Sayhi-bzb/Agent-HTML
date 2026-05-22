@@ -79,6 +79,8 @@ describe("agent-html CLI heavy preview flows", () => {
       expect(body).toContain('data-slot="tabs"')
       expect(body).toContain('data-slot="table"')
       expect(body).toContain('class="ahtml-runtime-host ahtml-runtime-document"')
+      expect(body).toContain('class="ahtml-artifact-root ahtml-layout-policy-gallery"')
+      expect(body).not.toContain('class="ahtml-artifact-root ahtml-layout-policy-document"')
       expect(body).not.toContain('ahtml-card')
       expect(body).not.toContain('ahtml-card-title')
       expect(body).not.toContain('ahtml-content')

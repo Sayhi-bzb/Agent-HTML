@@ -11,11 +11,10 @@ import {
 } from "@/lib/window-controls"
 import { MinusIcon, PanelLeftIcon, SquareIcon, XIcon } from "lucide-react"
 
-type ProjectTab = {
+type HeaderTab = {
   id: string
-  projectId: string
+  isClosable: boolean
   label: string
-  slug: string
 }
 
 export function SiteHeader({
@@ -27,7 +26,7 @@ export function SiteHeader({
   activeTabId: string | null
   onCloseTab: (tabId: string) => void
   onSelectTab: (tabId: string) => void
-  tabs: ProjectTab[]
+  tabs: HeaderTab[]
 }) {
   const { toggleSidebar } = useSidebar()
   const desktopRuntime = isDesktopRuntime()
@@ -86,21 +85,23 @@ export function SiteHeader({
                         {tab.label}
                       </span>
                     </TabsTrigger>
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center pr-1">
-                      <button
-                        aria-label={`Close ${tab.label} tab`}
-                        onClick={() => onCloseTab(tab.id)}
-                        className={cn(
-                          "inline-flex size-6 items-center justify-center rounded-md transition-[opacity,color,background-color] duration-150",
-                          isActive
-                            ? "text-card-foreground/60 hover:bg-muted hover:text-card-foreground"
-                            : "pointer-events-none text-sidebar-foreground/48 opacity-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
-                        )}
-                        type="button"
-                      >
-                        <XIcon className="size-3.5" />
-                      </button>
-                    </div>
+                    {tab.isClosable ? (
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center pr-1">
+                        <button
+                          aria-label={`Close ${tab.label} tab`}
+                          onClick={() => onCloseTab(tab.id)}
+                          className={cn(
+                            "inline-flex size-6 items-center justify-center rounded-md transition-[opacity,color,background-color] duration-150",
+                            isActive
+                              ? "text-card-foreground/60 hover:bg-muted hover:text-card-foreground"
+                              : "pointer-events-none text-sidebar-foreground/48 opacity-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+                          )}
+                          type="button"
+                        >
+                          <XIcon className="size-3.5" />
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 )
               })}
