@@ -1,0 +1,7 @@
+<Page title="Timeline unknown icon">
+  <Timeline>
+    <TimelineItem icon="not-a-real-icon">
+      <TimelineTitle>Unknown icon</TimelineTitle>
+    </TimelineItem>
+  </Timeline>
+</Page>

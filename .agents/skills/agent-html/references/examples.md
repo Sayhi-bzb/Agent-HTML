@@ -18,6 +18,7 @@ Use the closest valid fixture before inventing new structure.
 - `minimal-page.xml`
 - `section-width.xml`
 - `text-basic.xml`
+- `timeline-basic.xml`
 
 ## Invalid Patterns
 
@@ -35,5 +36,9 @@ Use the closest valid fixture before inventing new structure.
 - `missing-tabs-trigger-value.xml`
 - `section-invalid-width.xml`
 - `text-with-child.xml`
+- `timeline-invalid-status.xml`
+- `timeline-item-missing-title.xml`
+- `timeline-missing-item.xml`
+- `timeline-unknown-icon.xml`
 - `unknown-icon-name.xml`
 - `unknown-tag.xml`

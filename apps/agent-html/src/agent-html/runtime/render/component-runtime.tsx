@@ -39,6 +39,13 @@ import {
 } from "@/agent-html/runtime/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/agent-html/runtime/ui/tabs"
 import { Text } from "@/agent-html/runtime/ui/text"
+import {
+  Timeline,
+  TimelineContent,
+  TimelineDescription,
+  TimelineItem,
+  TimelineTitle,
+} from "@/agent-html/runtime/ui/timeline"
 
 export const previewComponentRuntime = {
   AspectRatio,
@@ -79,6 +86,11 @@ export const previewComponentRuntime = {
   TabsList,
   TabsTrigger,
   TabsContent,
+  Timeline,
+  TimelineItem,
+  TimelineTitle,
+  TimelineDescription,
+  TimelineContent,
   Text,
 } as const
 

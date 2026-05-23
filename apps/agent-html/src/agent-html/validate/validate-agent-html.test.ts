@@ -87,6 +87,15 @@ describe("validateAgentHtml", () => {
     expect(result.errors).toHaveLength(0)
   })
 
+  it("accepts the timeline basic fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "timeline-basic.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
   it("rejects unknown tags", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "unknown-tag.xml"))
@@ -250,6 +259,55 @@ describe("validateAgentHtml", () => {
   it("rejects empty codeblocks", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "codeblock-empty.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_CHILD")
+    ).toBe(true)
+  })
+
+  it("rejects timelines without items", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "timeline-missing-item.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_CHILD")
+    ).toBe(true)
+  })
+
+  it("rejects invalid timeline item statuses", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "timeline-invalid-status.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "INVALID_ATTR_VALUE" && error.attr === "status"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects unknown timeline item icons", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "timeline-unknown-icon.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) => error.code === "UNKNOWN_ICON_NAME" && error.attr === "icon"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects timeline items without titles", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "timeline-item-missing-title.xml"))
     )
 
     expect(result.ok).toBe(false)

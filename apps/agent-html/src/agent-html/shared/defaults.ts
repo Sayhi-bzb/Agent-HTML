@@ -12,3 +12,7 @@ export const gridDefaults = {
 export const sectionDefaults = {
   width: "content",
 } as const
+
+export const timelineItemDefaults = {
+  status: "default",
+} as const

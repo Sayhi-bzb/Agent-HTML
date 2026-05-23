@@ -39,6 +39,8 @@ const codeBlockLanguages = new Set([
   "bash",
 ])
 
+const timelineItemStatuses = new Set(["default", "complete", "current", "muted"])
+
 function validateNode(
   node: AgentHtmlNode,
   path: string,
@@ -328,6 +330,89 @@ function validateNode(
         message: "CodeBlock must contain raw code text",
         path,
         tag,
+      })
+    }
+  }
+
+  if (knownTag === "Timeline") {
+    const children = elementChildren(node)
+    if (children.length === 0) {
+      errors.push({
+        code: "MISSING_REQUIRED_CHILD",
+        message: "Timeline must contain TimelineItem",
+        path,
+        tag,
+      })
+    }
+
+    for (const child of children) {
+      if (child.tag !== "TimelineItem") {
+        errors.push({
+          code: "INVALID_CHILD",
+          message: "Timeline can only contain TimelineItem",
+          path: `${path}/${child.tag}`,
+          tag: child.tag,
+        })
+      }
+    }
+  }
+
+  if (knownTag === "TimelineItem") {
+    if (!hasChild(node, "TimelineTitle")) {
+      errors.push({
+        code: "MISSING_REQUIRED_CHILD",
+        message: "TimelineItem must contain TimelineTitle",
+        path,
+        tag,
+      })
+    }
+
+    const status = node.attrs.status
+    if (status !== undefined && !timelineItemStatuses.has(status)) {
+      errors.push({
+        code: "INVALID_ATTR_VALUE",
+        message: "TimelineItem status is not supported",
+        path,
+        tag,
+        attr: "status",
+      })
+    }
+
+    const iconName = node.attrs.icon
+    if (iconName && !hasIconName(iconName)) {
+      errors.push({
+        code: "UNKNOWN_ICON_NAME",
+        message: `Unknown icon name: ${iconName}`,
+        path,
+        tag,
+        attr: "icon",
+      })
+    }
+
+    for (const child of elementChildren(node)) {
+      if (
+        child.tag !== "TimelineTitle" &&
+        child.tag !== "TimelineDescription" &&
+        child.tag !== "TimelineContent"
+      ) {
+        errors.push({
+          code: "INVALID_CHILD",
+          message:
+            "TimelineItem can only contain TimelineTitle, TimelineDescription, and TimelineContent",
+          path: `${path}/${child.tag}`,
+          tag: child.tag,
+        })
+      }
+    }
+  }
+
+  if (knownTag === "TimelineTitle" || knownTag === "TimelineDescription") {
+    for (const child of elementChildren(node)) {
+      errors.push({
+        code: "INVALID_CHILD",
+        message: `${tag} can only contain text`,
+        path: `${path}/${child.tag}`,
+        tag: child.tag,
       })
     }
   }

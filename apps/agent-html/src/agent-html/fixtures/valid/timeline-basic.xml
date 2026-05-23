@@ -1,0 +1,24 @@
+<Page title="Timeline">
+  <Section width="reader">
+    <Timeline>
+      <TimelineItem icon="building" meta="TechCorp Solutions · 2023 - Present" status="complete">
+        <TimelineTitle>Senior Full Stack Developer</TimelineTitle>
+        <TimelineDescription>Led enterprise-scale web application work.</TimelineDescription>
+        <TimelineContent>
+          <Cluster wrap="true">
+            <Badge variant="secondary">React</Badge>
+            <Badge variant="secondary">TypeScript</Badge>
+          </Cluster>
+        </TimelineContent>
+      </TimelineItem>
+      <TimelineItem icon="calendar" meta="Next milestone" status="current">
+        <TimelineTitle>Runtime planning</TimelineTitle>
+        <TimelineDescription>Design the next component surface.</TimelineDescription>
+      </TimelineItem>
+      <TimelineItem status="muted">
+        <TimelineTitle>Maintenance</TimelineTitle>
+        <TimelineDescription>Monitor quality after rollout.</TimelineDescription>
+      </TimelineItem>
+    </Timeline>
+  </Section>
+</Page>

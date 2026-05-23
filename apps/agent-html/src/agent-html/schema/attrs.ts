@@ -18,6 +18,7 @@ export const allowedAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
   Tabs: ["orientation", "defaultValue"],
   TabsTrigger: ["value", "disabled"],
   TabsContent: ["value"],
+  TimelineItem: ["icon", "status", "meta"],
   Chart: ["type"],
   ChartSeries: ["key", "label"],
   ChartTooltip: ["hideLabel"],

@@ -79,6 +79,12 @@
 - `TabsTrigger:value=string, disabled?="true|false" -> Text, Icon?`
 - `TabsContent:value=string -> Layout | UI | Text`
 
+- `Timeline -> TimelineItem+`
+- `TimelineItem:icon?=string, status?="default|complete|current|muted", meta?=string -> TimelineTitle, TimelineDescription?, TimelineContent?`
+- `TimelineTitle -> Text`
+- `TimelineDescription -> Text`
+- `TimelineContent -> Layout | UI | Text`
+
 - `Chart:type="area|bar" -> ChartSeries+, ChartTooltip?`
 - `ChartSeries:key=string, label?=string`
 - `ChartTooltip:hideLabel?="true|false" -> none`

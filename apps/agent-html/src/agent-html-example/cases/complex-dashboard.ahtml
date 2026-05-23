@@ -139,6 +139,28 @@
 </Page>
       </CodeBlock>
 
+      <Timeline>
+        <TimelineItem icon="code-xml" meta="Prompt surface" status="complete">
+          <TimelineTitle>Constrained authoring</TimelineTitle>
+          <TimelineDescription>Agents write XML-shaped UI with slots, variants, and raw code blocks instead of class names.</TimelineDescription>
+          <TimelineContent>
+            <Cluster wrap="true">
+              <Badge variant="secondary">Section</Badge>
+              <Badge variant="secondary">CodeBlock</Badge>
+              <Badge variant="outline">Timeline</Badge>
+            </Cluster>
+          </TimelineContent>
+        </TimelineItem>
+        <TimelineItem icon="shield-check" meta="Validation layer" status="current">
+          <TimelineTitle>AST validation</TimelineTitle>
+          <TimelineDescription>Unknown tags, invalid attrs, and unsafe icon names fail before runtime rendering.</TimelineDescription>
+        </TimelineItem>
+        <TimelineItem icon="component" meta="Runtime layer" status="default">
+          <TimelineTitle>Shadcn primitives</TimelineTitle>
+          <TimelineDescription>The rendered output still uses production UI primitives behind a narrow DSL contract.</TimelineDescription>
+        </TimelineItem>
+      </Timeline>
+
       <Grid columns="3">
         <Card>
           <CardHeader>

@@ -96,6 +96,22 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("Hello")
   })
 
+  it("renders the timeline basic fixture", () => {
+    const document = parseAgentHtml(fixture("valid", "timeline-basic.xml"))
+    const validation = validateAgentHtml(document)
+
+    expect(validation.ok).toBe(true)
+
+    const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("data-slot=\"timeline\"")
+    expect(html).toContain("data-slot=\"timeline-item\"")
+    expect(html).toContain("data-status=\"complete\"")
+    expect(html).toContain("Senior Full Stack Developer")
+    expect(html).toContain("TechCorp Solutions")
+    expect(html).toContain("React")
+    expect(html).toContain("TypeScript")
+  })
+
   it("renders the canonical card/tabs/grid fixture", () => {
     const document = parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
     const validation = validateAgentHtml(document)
