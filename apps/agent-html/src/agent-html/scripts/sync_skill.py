@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 
 
-REPO_ROOT = Path(__file__).resolve().parents[5]
-SOURCE_ROOT = REPO_ROOT / "apps" / "agent-html" / "src" / "agent-html"
-SKILL_ROOT = REPO_ROOT / ".agents" / "skills" / "agent-html"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SOURCE_ROOT = REPO_ROOT / "src" / "agent-html"
+SKILL_ROOT = REPO_ROOT / ".codex" / "skills" / "agent-html"
 
 
 def write_text(path: Path, content: str) -> None:
