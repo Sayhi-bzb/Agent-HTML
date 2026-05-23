@@ -4,7 +4,7 @@ import reactSource from "@/agent-html-example/cases/complex-dashboard.react.tsx?
 export const agentHtmlExampleCases = [
   {
     id: "complex-dashboard",
-    title: "Agent-HTML Runtime",
+    title: "Introducing agent-html",
     ahtmlSource,
     reactSource,
   },

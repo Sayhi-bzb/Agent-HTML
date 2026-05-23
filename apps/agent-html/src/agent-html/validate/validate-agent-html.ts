@@ -24,6 +24,10 @@ function hasChild(node: AgentHtmlElementNode, tag: AgentHtmlTag) {
   return elementChildren(node).some((child) => child.tag === tag)
 }
 
+function isAllowedImageSrc(src: string) {
+  return src.startsWith("https://") || (src.startsWith("/") && !src.startsWith("//"))
+}
+
 function validateNode(
   node: AgentHtmlNode,
   path: string,
@@ -128,6 +132,52 @@ function validateNode(
         tag,
         attr: "name",
       })
+    }
+  }
+
+  if (knownTag === "Image") {
+    if (node.children.length > 0) {
+      errors.push({
+        code: "INVALID_CHILD",
+        message: "Image cannot contain children",
+        path,
+        tag,
+      })
+    }
+
+    const src = node.attrs.src
+    if (src !== undefined && !isAllowedImageSrc(src)) {
+      errors.push({
+        code: "INVALID_ATTR_VALUE",
+        message: "Image src must start with https:// or /",
+        path,
+        tag,
+        attr: "src",
+      })
+    }
+
+    const fit = node.attrs.fit
+    if (fit !== undefined && fit !== "cover" && fit !== "contain") {
+      errors.push({
+        code: "INVALID_ATTR_VALUE",
+        message: "Image fit must be cover or contain",
+        path,
+        tag,
+        attr: "fit",
+      })
+    }
+  }
+
+  if (knownTag === "Text") {
+    for (const child of node.children) {
+      if (child.type === "element") {
+        errors.push({
+          code: "INVALID_CHILD",
+          message: "Text can only contain text",
+          path: `${path}/${child.tag}`,
+          tag: child.tag,
+        })
+      }
     }
   }
 

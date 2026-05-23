@@ -39,24 +39,35 @@ import {
   TabsTrigger,
   type ChartConfig,
 } from "@/agent-html/ui"
-import { AlertCircle, Search } from "lucide-react"
+import {
+  Blocks,
+  Bot,
+  CodeXml,
+  Component,
+  ListChecks,
+  Monitor,
+  Route,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+} from "lucide-react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 
 const chartData = [
-  { week: "W1", publish: 19, review: 26 },
-  { week: "W2", publish: 24, review: 31 },
-  { week: "W3", publish: 28, review: 34 },
-  { week: "W4", publish: 33, review: 39 },
+  { stage: "Hero", ahtml: 24, react: 58 },
+  { stage: "Cards", ahtml: 38, react: 96 },
+  { stage: "Flow", ahtml: 51, react: 138 },
+  { stage: "Showcase", ahtml: 69, react: 188 },
 ] as const
 
 const chartConfig = {
-  publish: {
+  ahtml: {
     color: "var(--chart-2)",
-    label: "Publish",
+    label: "AHTML",
   },
-  review: {
+  react: {
     color: "var(--chart-1)",
-    label: "Review",
+    label: "React",
   },
 } satisfies ChartConfig
 
@@ -64,65 +75,72 @@ export function ComplexDashboardExample() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Badge variant="secondary">Synced 12m ago</Badge>
-        <Badge variant="outline">4 teams active</Badge>
-        <Badge variant="destructive">2 incidents open</Badge>
+        <Badge variant="secondary">DSL preview</Badge>
+        <Badge variant="outline">Shadcn runtime</Badge>
+        <Badge variant="outline">AST validated</Badge>
+        <Badge variant="destructive">Experimental</Badge>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>Release status</CardTitle>
+            <CardTitle>Agent-authored interface</CardTitle>
             <CardDescription>
-              Track the path from review to production.
+              Describe UI with a small HTML-like DSL, then render through the
+              agent-html runtime.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="publish">
+            <Tabs defaultValue="author">
               <TabsList>
-                <TabsTrigger value="publish">Publish</TabsTrigger>
-                <TabsTrigger value="review">Review</TabsTrigger>
-                <TabsTrigger value="archive">Archive</TabsTrigger>
+                <TabsTrigger value="author">Author</TabsTrigger>
+                <TabsTrigger value="validate">Validate</TabsTrigger>
+                <TabsTrigger value="render">Render</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="publish">
+              <TabsContent value="author">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between gap-2">
-                    <Badge variant="secondary">82%</Badge>
-                    <Badge variant="outline">Ready for cutover</Badge>
+                    <Badge variant="secondary">XML-shaped</Badge>
+                    <Badge variant="outline">Low classname load</Badge>
                   </div>
-                  <Progress value={82} />
+                  <Progress value={88} />
                   <Alert>
-                    <AlertCircle />
-                    <AlertTitle>Release window confirmed</AlertTitle>
+                    <Sparkles />
+                    <AlertTitle>Designed for LLM generation</AlertTitle>
                     <AlertDescription>
-                      The production train is aligned for 19:00 UTC.
+                      Tags, slots, and narrow variants keep the prompt close to
+                      patterns the model already knows.
                     </AlertDescription>
                   </Alert>
                 </div>
               </TabsContent>
 
-              <TabsContent value="review">
+              <TabsContent value="validate">
                 <div className="flex flex-col gap-2">
-                  <Badge variant="outline">5 approvals remaining</Badge>
-                  <Progress value={64} />
+                  <Badge variant="outline">Schema checked before render</Badge>
+                  <Progress value={76} />
                   <Alert>
-                    <AlertTitle>Design review open</AlertTitle>
+                    <ShieldCheck />
+                    <AlertTitle>AST first</AlertTitle>
                     <AlertDescription>
-                      Density and footer alignment still need sign-off.
+                      The parser turns source into a constrained tree so
+                      invalid tags and missing props fail early.
                     </AlertDescription>
                   </Alert>
                 </div>
               </TabsContent>
 
-              <TabsContent value="archive">
+              <TabsContent value="render">
                 <div className="flex flex-col gap-2">
-                  <Badge variant="destructive">Paused</Badge>
-                  <Progress value={28} />
-                  <Alert variant="destructive">
-                    <AlertTitle>Archive blocked</AlertTitle>
+                  <Badge variant="secondary">Runtime maps to shadcn</Badge>
+                  <Progress value={92} />
+                  <Alert>
+                    <Component />
+                    <AlertTitle>No handcrafted widgets</AlertTitle>
                     <AlertDescription>
-                      Dependency snapshot failed on two legacy modules.
+                      agent-html composes the existing shadcn runtime primitives
+                      instead of inventing a parallel UI kit.
                     </AlertDescription>
                   </Alert>
                 </div>
@@ -131,17 +149,146 @@ export function ComplexDashboardExample() {
           </CardContent>
           <CardFooter>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">Primary lane</Badge>
-              <Badge variant="outline">Token-driven</Badge>
+              <Badge variant="secondary">Prompt-friendly</Badge>
+              <Badge variant="outline">Renderable</Badge>
+              <Badge variant="outline">Inspectable</Badge>
             </div>
           </CardFooter>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Scene rotation</CardTitle>
+            <CardTitle>Design principles</CardTitle>
             <CardDescription>
-              Sequential preview for related review states.
+              Why agent-html stays small and deliberately constrained.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single">
+              <AccordionItem value="html-shape">
+                <AccordionTrigger>Why HTML-shaped?</AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex flex-col gap-2">
+                    <Alert>
+                      <CodeXml />
+                      <AlertTitle>Lower model friction</AlertTitle>
+                      <AlertDescription>
+                        LLMs already understand nested markup, attributes,
+                        closing tags, and slot-like composition.
+                      </AlertDescription>
+                    </Alert>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary">Familiar syntax</Badge>
+                      <Badge variant="outline">Less prompt text</Badge>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="limited-props">
+                <AccordionTrigger>Why narrow props?</AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex flex-col gap-2">
+                    <Alert>
+                      <ListChecks />
+                      <AlertTitle>
+                        Reliable generation beats full flexibility
+                      </AlertTitle>
+                      <AlertDescription>
+                        Small variant sets make generated UI easier to
+                        validate, render, and compare across examples.
+                      </AlertDescription>
+                    </Alert>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary">Variants</Badge>
+                      <Badge variant="outline">Slots</Badge>
+                      <Badge variant="outline">Layout tags</Badge>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="runtime">
+                <AccordionTrigger>Why shadcn runtime?</AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex flex-col gap-2">
+                    <Alert>
+                      <Blocks />
+                      <AlertTitle>Use production primitives</AlertTitle>
+                      <AlertDescription>
+                        The DSL is an authoring layer. The rendered result still
+                        uses real UI components.
+                      </AlertDescription>
+                    </Alert>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary">Native primitives</Badge>
+                      <Badge variant="outline">Theme tokens</Badge>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Separator />
+
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Source comparison</CardTitle>
+            <CardDescription>
+              AHTML keeps the page structure explicit without writing every
+              React wrapper.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableCaption>
+                Same interface, different authoring surfaces
+              </TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Format</TableHead>
+                  <TableHead>Strength</TableHead>
+                  <TableHead>Tradeoff</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>AHTML</TableCell>
+                  <TableCell>Compact structure</TableCell>
+                  <TableCell>Requires runtime</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>HTML</TableCell>
+                  <TableCell>Universal output</TableCell>
+                  <TableCell>Loses component intent</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>React</TableCell>
+                  <TableCell>Full control</TableCell>
+                  <TableCell>Highest token cost</TableCell>
+                </TableRow>
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell>Goal</TableCell>
+                  <TableCell>LLM accuracy</TableCell>
+                  <TableCell>Small API surface</TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Deployment surfaces</CardTitle>
+            <CardDescription>
+              The same DSL experiment can preview web, app, and generated UI
+              states.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -152,12 +299,13 @@ export function ComplexDashboardExample() {
                     <Card size="sm">
                       <CardContent>
                         <div className="flex flex-col gap-2">
-                        <Badge variant="secondary">Scene 01</Badge>
-                        <Alert>
-                          <Search />
-                          <AlertTitle>Contrast audit</AlertTitle>
-                          <AlertDescription>
-                            High-signal dashboard surfaces are ready for review.
+                          <Badge variant="secondary">Web preview</Badge>
+                          <Alert>
+                            <Monitor />
+                            <AlertTitle>Independent route</AlertTitle>
+                            <AlertDescription>
+                              Render agent-html without coupling the example
+                              system to gallery internals.
                             </AlertDescription>
                           </Alert>
                         </div>
@@ -165,16 +313,39 @@ export function ComplexDashboardExample() {
                     </Card>
                   </AspectRatio>
                 </CarouselItem>
+
                 <CarouselItem>
                   <AspectRatio ratio={1}>
                     <Card size="sm">
                       <CardContent>
                         <div className="flex flex-col gap-2">
-                          <Badge variant="outline">Scene 02</Badge>
+                          <Badge variant="outline">App surface</Badge>
                           <Alert>
-                            <AlertTitle>Spacing pass</AlertTitle>
+                            <Smartphone />
+                            <AlertTitle>Portable runtime contract</AlertTitle>
                             <AlertDescription>
-                              Vertical rhythm is aligned across inset cards.
+                              The AST and component map can be packaged
+                              separately from the demo shell.
+                            </AlertDescription>
+                          </Alert>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </AspectRatio>
+                </CarouselItem>
+
+                <CarouselItem>
+                  <AspectRatio ratio={4 / 3}>
+                    <Card size="sm">
+                      <CardContent>
+                        <div className="flex flex-col gap-2">
+                          <Badge variant="secondary">Agent output</Badge>
+                          <Alert>
+                            <Bot />
+                            <AlertTitle>Structured generation</AlertTitle>
+                            <AlertDescription>
+                              Agents emit declarative UI that can be validated
+                              before it reaches users.
                             </AlertDescription>
                           </Alert>
                         </div>
@@ -191,125 +362,30 @@ export function ComplexDashboardExample() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Review notes</CardTitle>
+            <CardTitle>What this proves</CardTitle>
             <CardDescription>
-              Surface nested sections and state transitions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single">
-              <AccordionItem value="layout">
-                <AccordionTrigger>Layout continuity</AccordionTrigger>
-                <AccordionContent>
-                  <div className="flex flex-col gap-2">
-                    <Alert>
-                      <AlertTitle>Shell alignment</AlertTitle>
-                      <AlertDescription>
-                        Inset spacing now matches the active gallery workspace rhythm.
-                      </AlertDescription>
-                    </Alert>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary">Aligned</Badge>
-                      <Badge variant="outline">Spacing</Badge>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="tokens">
-                <AccordionTrigger>Token migration</AccordionTrigger>
-                <AccordionContent>
-                  <div className="flex flex-col gap-2">
-                    <Alert>
-                      <AlertTitle>Color map stable</AlertTitle>
-                      <AlertDescription>
-                        Primary, muted, and border tokens now match the preview runtime.
-                      </AlertDescription>
-                    </Alert>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary">Stable</Badge>
-                      <Badge variant="outline">Preview</Badge>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Separator />
-
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Team readiness</CardTitle>
-            <CardDescription>
-              Operational table with summary footer.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableCaption>Current release support matrix</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Team</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Owner</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>Design systems</TableCell>
-                  <TableCell>Ready</TableCell>
-                  <TableCell>Sarah Chen</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Platform runtime</TableCell>
-                  <TableCell>Review</TableCell>
-                  <TableCell>Marc Rodriguez</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Content ops</TableCell>
-                  <TableCell>Draft</TableCell>
-                  <TableCell>Emily Watson</TableCell>
-                </TableRow>
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell>Visible teams</TableCell>
-                  <TableCell>3</TableCell>
-                  <TableCell>2 active leads</TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Decision summary</CardTitle>
-            <CardDescription>
-              Compact recap of what changes next.
+              The showcase is a runtime contract, not just a visual sample.
             </CardDescription>
             <CardAction>
-              <Badge variant="outline">Overview</Badge>
+              <Badge variant="outline">Boundary</Badge>
             </CardAction>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-2">
               <Alert>
-                <AlertTitle>Next checkpoint</AlertTitle>
+                <Route />
+                <AlertTitle>Example consumes the package</AlertTitle>
                 <AlertDescription>
-                  Move chart and carousel into the second render batch after
-                  layout runtime settles.
+                  The demo stays outside agent-html internals and uses only the
+                  public runtime entrypoints.
                 </AlertDescription>
               </Alert>
               <Separator />
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary">Render v0</Badge>
-                <Badge variant="outline">Independent route</Badge>
-                <Badge variant="outline">Preview UI runtime</Badge>
+                <Badge variant="secondary">Parser</Badge>
+                <Badge variant="outline">Validator</Badge>
+                <Badge variant="outline">Renderer</Badge>
+                <Badge variant="outline">Source diff</Badge>
               </div>
             </div>
           </CardContent>
@@ -318,9 +394,10 @@ export function ComplexDashboardExample() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Throughput trend</CardTitle>
+          <CardTitle>Complexity trend</CardTitle>
           <CardDescription>
-            Second-batch chart runtime using preview chart primitives.
+            As UI structure grows, the DSL keeps authoring cost closer to
+            component intent.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -331,25 +408,25 @@ export function ComplexDashboardExample() {
               margin={{ left: 0, right: 8 }}
             >
               <CartesianGrid vertical={false} />
-              <XAxis axisLine={false} dataKey="week" tickLine={false} />
+              <XAxis axisLine={false} dataKey="stage" tickLine={false} />
               <ChartTooltip
                 content={
                   <ChartTooltipContent indicator="line" hideLabel={false} />
                 }
               />
               <Area
-                dataKey="review"
-                fill="var(--color-review)"
+                dataKey="react"
+                fill="var(--color-react)"
                 fillOpacity={0.2}
-                stroke="var(--color-review)"
+                stroke="var(--color-react)"
                 strokeWidth={2}
                 type="monotone"
               />
               <Area
-                dataKey="publish"
-                fill="var(--color-publish)"
+                dataKey="ahtml"
+                fill="var(--color-ahtml)"
                 fillOpacity={0.2}
-                stroke="var(--color-publish)"
+                stroke="var(--color-ahtml)"
                 strokeWidth={2}
                 type="monotone"
               />
@@ -360,4 +437,3 @@ export function ComplexDashboardExample() {
     </div>
   )
 }
-

@@ -84,7 +84,7 @@ export function AgentHtmlRuntimeTheme({
 
   return (
     <div
-      className="min-h-screen bg-background text-foreground"
+      className="min-h-screen w-screen overflow-hidden bg-background text-foreground"
       style={previewThemeStyle}
     >
       {children}

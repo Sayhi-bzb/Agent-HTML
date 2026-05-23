@@ -2,6 +2,7 @@ export type AgentHtmlValidationCode =
   | "UNKNOWN_TAG"
   | "UNKNOWN_ATTR"
   | "UNKNOWN_ICON_NAME"
+  | "INVALID_ATTR_VALUE"
   | "INVALID_CHILD"
   | "MISSING_REQUIRED_ATTR"
   | "TEXT_NOT_ALLOWED"

@@ -85,12 +85,16 @@
 - `ChartTooltip:hideLabel?="true|false" -> none`
 
 - `Icon:name=string -> none`
+- `Image:src=string, alt=string, fit?="cover|contain" -> none`
+- `Text:variant?="h1|h2|h3|h4|p|lead|large|small|muted|inline-code" -> Text`
 
 ## Canonical Example
 
 ```xml
 <Page title="Gallery Preview">
   <Stack>
+    <Text variant="muted">Use Text for standalone copy inside layout nodes.</Text>
+
     <Card>
       <CardHeader>
         <CardTitle>Controls</CardTitle>

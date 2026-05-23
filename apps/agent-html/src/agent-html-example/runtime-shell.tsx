@@ -8,11 +8,15 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/agent-html/ui"
+import { Button } from "@/components/ui/button"
 import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 type SourceTabValue = "ahtml" | "html" | "react"
@@ -29,9 +33,9 @@ const RenderPanel = React.memo(function RenderPanel({
   children: React.ReactNode
 }) {
   return (
-    <div className="h-full overflow-hidden">
-      <ScrollArea className="h-[calc(100vh-9rem)]">
-        <div className="p-5">{children}</div>
+    <div className="h-full w-full min-w-0 overflow-hidden">
+      <ScrollArea className="h-[calc(100vh-9rem)] w-full">
+        <div className="w-full min-w-0 p-5">{children}</div>
       </ScrollArea>
     </div>
   )
@@ -49,13 +53,13 @@ const SourcePanel = React.memo(function SourcePanel({
   visitedTabs: ReadonlySet<SourceTabValue>
 }) {
   return (
-    <aside className="h-full overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <TabsContent
-        className="data-[state=inactive]:hidden"
+        className="mt-0 min-h-0 flex-1 overflow-hidden data-[state=inactive]:hidden"
         forceMount
         value="ahtml"
       >
-        <ScrollArea className="h-[calc(100vh-9rem)] w-full">
+        <ScrollArea className="h-full w-full">
           <div className="min-w-max">
             {visitedTabs.has("ahtml") ? (
               <CodeBlock language="ahtml" source={ahtmlSource} />
@@ -64,11 +68,11 @@ const SourcePanel = React.memo(function SourcePanel({
         </ScrollArea>
       </TabsContent>
       <TabsContent
-        className="data-[state=inactive]:hidden"
+        className="mt-0 min-h-0 flex-1 overflow-hidden data-[state=inactive]:hidden"
         forceMount
         value="html"
       >
-        <ScrollArea className="h-[calc(100vh-9rem)] w-full">
+        <ScrollArea className="h-full w-full">
           <div className="min-w-max">
             {visitedTabs.has("html") ? (
               <CodeBlock language="html" source={htmlSource} />
@@ -77,11 +81,11 @@ const SourcePanel = React.memo(function SourcePanel({
         </ScrollArea>
       </TabsContent>
       <TabsContent
-        className="data-[state=inactive]:hidden"
+        className="mt-0 min-h-0 flex-1 overflow-hidden data-[state=inactive]:hidden"
         forceMount
         value="react"
       >
-        <ScrollArea className="h-[calc(100vh-9rem)] w-full">
+        <ScrollArea className="h-full w-full">
           <div className="min-w-max">
             {visitedTabs.has("react") ? (
               <CodeBlock language="react" source={reactSource} />
@@ -89,19 +93,13 @@ const SourcePanel = React.memo(function SourcePanel({
           </div>
         </ScrollArea>
       </TabsContent>
-    </aside>
+    </div>
   )
 })
 
 function RuntimeHeader({
-  ahtmlMetrics,
-  htmlMetrics,
-  reactMetrics,
   title,
 }: {
-  ahtmlMetrics: SourceMetrics
-  htmlMetrics: SourceMetrics
-  reactMetrics: SourceMetrics
   title: string
 }) {
   return (
@@ -114,24 +112,59 @@ function RuntimeHeader({
           Runtime preview for the agent-html DSL.
         </p>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="hidden items-center gap-2 text-[length:var(--type-xs)] leading-[calc(var(--type-base-line-height)*0.9)] text-muted-foreground sm:flex">
-          <span>ahtml ~{ahtmlMetrics.approxTokens}</span>
-          <span>html ~{htmlMetrics.approxTokens}</span>
-          <span>react ~{reactMetrics.approxTokens}</span>
-        </div>
-        <div className="flex items-center gap-2 text-[length:var(--type-xs)] leading-[calc(var(--type-base-line-height)*0.9)] text-muted-foreground sm:hidden">
-          <span>a:{ahtmlMetrics.approxTokens}</span>
-          <span>h:{htmlMetrics.approxTokens}</span>
-          <span>r:{reactMetrics.approxTokens}</span>
-        </div>
-        <TabsList>
-          <TabsTrigger value="ahtml">ahtml</TabsTrigger>
-          <TabsTrigger value="html">html</TabsTrigger>
-          <TabsTrigger value="react">react</TabsTrigger>
-        </TabsList>
-      </div>
+      <DialogTrigger asChild>
+        <Button variant="outline">Source</Button>
+      </DialogTrigger>
     </header>
+  )
+}
+
+function SourceDialog({
+  ahtmlMetrics,
+  ahtmlSource,
+  htmlMetrics,
+  htmlSource,
+  reactMetrics,
+  reactSource,
+  visitedTabs,
+}: {
+  ahtmlMetrics: SourceMetrics
+  ahtmlSource: string
+  htmlMetrics: SourceMetrics
+  htmlSource: string
+  reactMetrics: SourceMetrics
+  reactSource: string
+  visitedTabs: ReadonlySet<SourceTabValue>
+}) {
+  return (
+    <DialogContent className="flex h-[min(90vh,60rem)] w-[min(92vw,72rem)] max-w-none grid-rows-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none">
+      <DialogHeader className="gap-4 border-b border-border/70 p-4 pr-12">
+        <div>
+          <DialogTitle>Source</DialogTitle>
+          <DialogDescription>
+            Compare agent-html, generated HTML, and equivalent React.
+          </DialogDescription>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2 text-[length:var(--type-xs)] leading-[calc(var(--type-base-line-height)*0.9)] text-muted-foreground">
+            <span>ahtml ~{ahtmlMetrics.approxTokens}</span>
+            <span>html ~{htmlMetrics.approxTokens}</span>
+            <span>react ~{reactMetrics.approxTokens}</span>
+          </div>
+          <TabsList>
+            <TabsTrigger value="ahtml">ahtml</TabsTrigger>
+            <TabsTrigger value="html">html</TabsTrigger>
+            <TabsTrigger value="react">react</TabsTrigger>
+          </TabsList>
+        </div>
+      </DialogHeader>
+      <SourcePanel
+        ahtmlSource={ahtmlSource}
+        htmlSource={htmlSource}
+        reactSource={reactSource}
+        visitedTabs={visitedTabs}
+      />
+    </DialogContent>
   )
 }
 
@@ -179,49 +212,28 @@ export function RuntimeShell({
     })
   }, [])
 
-  const renderPanel = <RenderPanel>{children}</RenderPanel>
-  const sourcePanel = (
-    <SourcePanel
-      ahtmlSource={ahtmlSource}
-      htmlSource={htmlSource}
-      reactSource={reactSource}
-      visitedTabs={visitedTabs}
-    />
-  )
-
   return (
-    <Tabs
-      className="min-h-screen gap-0 bg-background p-6 text-foreground"
-      onValueChange={handleSourceTabChange}
-      value={activeSourceTab}
-    >
-      <RuntimeHeader
-        ahtmlMetrics={ahtmlMetrics}
-        htmlMetrics={htmlMetrics}
-        reactMetrics={reactMetrics}
-        title={title}
-      />
-
-      <div className="mt-6 flex flex-col gap-6 lg:hidden">
-        {renderPanel}
-        {sourcePanel}
-      </div>
-
-      <div className="mt-6 hidden lg:block">
-        <ResizablePanelGroup
-          className="min-h-[calc(100vh-9rem)] gap-6"
-          orientation="horizontal"
-        >
-          <ResizablePanel defaultSize={60} minSize={35}>
-            {renderPanel}
-          </ResizablePanel>
-          <ResizableHandle className="bg-transparent" withHandle />
-          <ResizablePanel defaultSize={40} minSize={28}>
-            {sourcePanel}
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
-    </Tabs>
+    <Dialog>
+      <Tabs
+        className="min-h-screen w-full max-w-none gap-0 overflow-x-hidden bg-background p-6 text-foreground"
+        onValueChange={handleSourceTabChange}
+        value={activeSourceTab}
+      >
+        <RuntimeHeader title={title} />
+        <main className="mt-6 w-full min-w-0">
+          <RenderPanel>{children}</RenderPanel>
+        </main>
+        <SourceDialog
+          ahtmlMetrics={ahtmlMetrics}
+          ahtmlSource={ahtmlSource}
+          htmlMetrics={htmlMetrics}
+          htmlSource={htmlSource}
+          reactMetrics={reactMetrics}
+          reactSource={reactSource}
+          visitedTabs={visitedTabs}
+        />
+      </Tabs>
+    </Dialog>
   )
 }
 

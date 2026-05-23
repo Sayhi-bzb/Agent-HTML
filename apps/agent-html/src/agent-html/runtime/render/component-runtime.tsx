@@ -24,6 +24,7 @@ import {
   CarouselPrevious,
 } from "@/agent-html/runtime/ui/carousel"
 import { Progress } from "@/agent-html/runtime/ui/progress"
+import { Image } from "@/agent-html/runtime/ui/image"
 import { Separator } from "@/agent-html/runtime/ui/separator"
 import {
   Table,
@@ -36,6 +37,7 @@ import {
   TableRow,
 } from "@/agent-html/runtime/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/agent-html/runtime/ui/tabs"
+import { Text } from "@/agent-html/runtime/ui/text"
 
 export const previewComponentRuntime = {
   AspectRatio,
@@ -60,6 +62,7 @@ export const previewComponentRuntime = {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  Image,
   Progress,
   Separator,
   Table,
@@ -74,5 +77,6 @@ export const previewComponentRuntime = {
   TabsList,
   TabsTrigger,
   TabsContent,
+  Text,
 } as const
 

@@ -21,6 +21,8 @@ export const allowedAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
   ChartSeries: ["key", "label"],
   ChartTooltip: ["hideLabel"],
   Icon: ["name"],
+  Image: ["src", "alt", "fit"],
+  Text: ["variant"],
 }
 
 export const requiredAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
@@ -32,5 +34,6 @@ export const requiredAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
   Chart: ["type"],
   ChartSeries: ["key"],
   Icon: ["name"],
+  Image: ["src", "alt"],
 }
 

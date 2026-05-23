@@ -43,6 +43,21 @@ describe("parseAgentHtml", () => {
     })
   })
 
+  it("parses the text fixture", () => {
+    const document = parseAgentHtml(fixture("valid", "text-basic.xml"))
+    const stack = document.root.children[0]
+
+    expect(stack).toMatchObject({
+      type: "element",
+      tag: "Stack",
+    })
+    expect(stack.type === "element" ? stack.children[0] : undefined).toMatchObject({
+      type: "element",
+      tag: "Text",
+      attrs: { variant: "h2" },
+    })
+  })
+
   it("throws on multiple roots", () => {
     expect(() =>
       parseAgentHtml("<Page title=\"A\" /><Page title=\"B\" />")

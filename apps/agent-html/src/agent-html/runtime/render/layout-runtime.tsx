@@ -9,7 +9,7 @@ export function PageRuntime({
   children: ReactNode
 }) {
   return (
-    <div className={cn("flex flex-col", layoutDefaultGapClass)}>
+    <div className={cn("flex w-full min-w-0 flex-col", layoutDefaultGapClass)}>
       {children}
     </div>
   )
@@ -21,7 +21,7 @@ export function StackRuntime({
   children: ReactNode
 }) {
   return (
-    <div className={cn("flex flex-col", layoutDefaultGapClass)}>
+    <div className={cn("flex w-full min-w-0 flex-col", layoutDefaultGapClass)}>
       {children}
     </div>
   )
@@ -39,7 +39,7 @@ export function ClusterRuntime({
   return (
     <div
       className={cn(
-        "flex items-center",
+        "flex w-full min-w-0 items-center",
         wrap === "false" ? "flex-nowrap" : "flex-wrap",
         justify === "center" && "justify-center",
         justify === "end" && "justify-end",
@@ -66,7 +66,7 @@ export function GridRuntime({
   return (
     <div
       className={cn(
-        "grid",
+        "grid w-full min-w-0",
         columns === "1" && "grid-cols-1",
         columns === "2" && "grid-cols-2",
         columns === "3" && "grid-cols-3",

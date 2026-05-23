@@ -1,55 +1,58 @@
-<Page title="Operations Console">
+<Page title="Introducing agent-html">
   <Stack>
     <Cluster justify="between" wrap="true">
-      <Badge variant="secondary">Synced 12m ago</Badge>
-      <Badge variant="outline">4 teams active</Badge>
-      <Badge variant="destructive">2 incidents open</Badge>
+      <Badge variant="secondary">DSL preview</Badge>
+      <Badge variant="outline">Shadcn runtime</Badge>
+      <Badge variant="outline">AST validated</Badge>
+      <Badge variant="destructive">Experimental</Badge>
     </Cluster>
 
     <Grid columns="2">
       <Card>
         <CardHeader>
-          <CardTitle>Release status</CardTitle>
-          <CardDescription>Track the path from review to production.</CardDescription>
+          <CardTitle>Agent-authored interface</CardTitle>
+          <CardDescription>Describe UI with a small HTML-like DSL, then render through the agent-html runtime.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="publish">
+          <Tabs defaultValue="author">
             <TabsList>
-              <TabsTrigger value="publish">Publish</TabsTrigger>
-              <TabsTrigger value="review">Review</TabsTrigger>
-              <TabsTrigger value="archive">Archive</TabsTrigger>
+              <TabsTrigger value="author">Author</TabsTrigger>
+              <TabsTrigger value="validate">Validate</TabsTrigger>
+              <TabsTrigger value="render">Render</TabsTrigger>
             </TabsList>
-            <TabsContent value="publish">
+            <TabsContent value="author">
               <Stack>
-                <Cluster justify="between" wrap="false">
-                  <Badge variant="secondary">82%</Badge>
-                  <Badge variant="outline">Ready for cutover</Badge>
+                <Cluster justify="between" wrap="true">
+                  <Badge variant="secondary">XML-shaped</Badge>
+                  <Badge variant="outline">Low classname load</Badge>
                 </Cluster>
-                <Progress value="82" />
+                <Progress value="88" />
                 <Alert>
-                  <Icon name="alert-circle" />
-                  <AlertTitle>Release window confirmed</AlertTitle>
-                  <AlertDescription>The production train is aligned for 19:00 UTC.</AlertDescription>
+                  <Icon name="sparkles" />
+                  <AlertTitle>Designed for LLM generation</AlertTitle>
+                  <AlertDescription>Tags, slots, and narrow variants keep the prompt close to patterns the model already knows.</AlertDescription>
                 </Alert>
               </Stack>
             </TabsContent>
-            <TabsContent value="review">
+            <TabsContent value="validate">
               <Stack>
-                <Badge variant="outline">5 approvals remaining</Badge>
-                <Progress value="64" />
+                <Badge variant="outline">Schema checked before render</Badge>
+                <Progress value="76" />
                 <Alert>
-                  <AlertTitle>Design review open</AlertTitle>
-                  <AlertDescription>Density and footer alignment still need sign-off.</AlertDescription>
+                  <Icon name="shield-check" />
+                  <AlertTitle>AST first</AlertTitle>
+                  <AlertDescription>The parser turns source into a constrained tree so invalid tags and missing props fail early.</AlertDescription>
                 </Alert>
               </Stack>
             </TabsContent>
-            <TabsContent value="archive">
+            <TabsContent value="render">
               <Stack>
-                <Badge variant="destructive">Paused</Badge>
-                <Progress value="28" />
-                <Alert variant="destructive">
-                  <AlertTitle>Archive blocked</AlertTitle>
-                  <AlertDescription>Dependency snapshot failed on two legacy modules.</AlertDescription>
+                <Badge variant="secondary">Runtime maps to shadcn</Badge>
+                <Progress value="92" />
+                <Alert>
+                  <Icon name="component" />
+                  <AlertTitle>No handcrafted widgets</AlertTitle>
+                  <AlertDescription>agent-html composes the existing shadcn runtime primitives instead of inventing a parallel UI kit.</AlertDescription>
                 </Alert>
               </Stack>
             </TabsContent>
@@ -57,45 +60,65 @@
         </CardContent>
         <CardFooter>
           <Cluster wrap="true">
-            <Badge variant="secondary">Primary lane</Badge>
-            <Badge variant="outline">Token-driven</Badge>
+            <Badge variant="secondary">Prompt-friendly</Badge>
+            <Badge variant="outline">Renderable</Badge>
+            <Badge variant="outline">Inspectable</Badge>
           </Cluster>
         </CardFooter>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Review notes</CardTitle>
-          <CardDescription>Surface nested sections and state transitions.</CardDescription>
+          <CardTitle>Design principles</CardTitle>
+          <CardDescription>Why agent-html stays small and deliberately constrained.</CardDescription>
         </CardHeader>
         <CardContent>
           <Accordion type="single">
-            <AccordionItem value="layout">
-              <AccordionTrigger>Layout continuity</AccordionTrigger>
+            <AccordionItem value="html-shape">
+              <AccordionTrigger>Why HTML-shaped?</AccordionTrigger>
               <AccordionContent>
                 <Stack>
                   <Alert>
-                    <AlertTitle>Shell alignment</AlertTitle>
-                    <AlertDescription>Inset spacing now matches the active gallery workspace rhythm.</AlertDescription>
+                    <Icon name="code-xml" />
+                    <AlertTitle>Lower model friction</AlertTitle>
+                    <AlertDescription>LLMs already understand nested markup, attributes, closing tags, and slot-like composition.</AlertDescription>
                   </Alert>
                   <Cluster wrap="true">
-                    <Badge variant="secondary">Aligned</Badge>
-                    <Badge variant="outline">Spacing</Badge>
+                    <Badge variant="secondary">Familiar syntax</Badge>
+                    <Badge variant="outline">Less prompt text</Badge>
                   </Cluster>
                 </Stack>
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="tokens">
-              <AccordionTrigger>Token migration</AccordionTrigger>
+            <AccordionItem value="limited-props">
+              <AccordionTrigger>Why narrow props?</AccordionTrigger>
               <AccordionContent>
                 <Stack>
                   <Alert>
-                    <AlertTitle>Color map stable</AlertTitle>
-                    <AlertDescription>Primary, muted, and border tokens now match the preview runtime.</AlertDescription>
+                    <Icon name="list-checks" />
+                    <AlertTitle>Reliable generation beats full flexibility</AlertTitle>
+                    <AlertDescription>Small variant sets make generated UI easier to validate, render, and compare across examples.</AlertDescription>
                   </Alert>
                   <Cluster wrap="true">
-                    <Badge variant="secondary">Stable</Badge>
-                    <Badge variant="outline">Preview</Badge>
+                    <Badge variant="secondary">Variants</Badge>
+                    <Badge variant="outline">Slots</Badge>
+                    <Badge variant="outline">Layout tags</Badge>
+                  </Cluster>
+                </Stack>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="runtime">
+              <AccordionTrigger>Why shadcn runtime?</AccordionTrigger>
+              <AccordionContent>
+                <Stack>
+                  <Alert>
+                    <Icon name="blocks" />
+                    <AlertTitle>Use production primitives</AlertTitle>
+                    <AlertDescription>The DSL is an authoring layer. The rendered result still uses real UI components.</AlertDescription>
+                  </Alert>
+                  <Cluster wrap="true">
+                    <Badge variant="secondary">Native primitives</Badge>
+                    <Badge variant="outline">Theme tokens</Badge>
                   </Cluster>
                 </Stack>
               </AccordionContent>
@@ -110,41 +133,41 @@
     <Grid columns="3">
       <Card>
         <CardHeader>
-          <CardTitle>Team readiness</CardTitle>
-          <CardDescription>Operational table with summary footer.</CardDescription>
+          <CardTitle>Source comparison</CardTitle>
+          <CardDescription>AHTML keeps the page structure explicit without writing every React wrapper.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
-            <TableCaption>Current release support matrix</TableCaption>
+            <TableCaption>Same interface, different authoring surfaces</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead>Team</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Owner</TableHead>
+                <TableHead>Format</TableHead>
+                <TableHead>Strength</TableHead>
+                <TableHead>Tradeoff</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow>
-                <TableCell>Design systems</TableCell>
-                <TableCell>Ready</TableCell>
-                <TableCell>Sarah Chen</TableCell>
+                <TableCell>AHTML</TableCell>
+                <TableCell>Compact structure</TableCell>
+                <TableCell>Requires runtime</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell>Platform runtime</TableCell>
-                <TableCell>Review</TableCell>
-                <TableCell>Marc Rodriguez</TableCell>
+                <TableCell>HTML</TableCell>
+                <TableCell>Universal output</TableCell>
+                <TableCell>Loses component intent</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell>Content ops</TableCell>
-                <TableCell>Draft</TableCell>
-                <TableCell>Emily Watson</TableCell>
+                <TableCell>React</TableCell>
+                <TableCell>Full control</TableCell>
+                <TableCell>Highest token cost</TableCell>
               </TableRow>
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell>Visible teams</TableCell>
-                <TableCell>3</TableCell>
-                <TableCell>2 active leads</TableCell>
+                <TableCell>Goal</TableCell>
+                <TableCell>LLM accuracy</TableCell>
+                <TableCell>Small API surface</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
@@ -153,41 +176,25 @@
 
       <Card>
         <CardHeader>
-          <CardTitle>Scene rotation</CardTitle>
-          <CardDescription>Sequential preview for related review states.</CardDescription>
+          <CardTitle>Deployment surfaces</CardTitle>
+          <CardDescription>The same DSL experiment can preview web, app, and generated UI states.</CardDescription>
         </CardHeader>
         <CardContent>
           <Carousel>
             <CarouselContent>
               <CarouselItem>
                 <AspectRatio ratio="1.777">
-                  <Card size="sm">
-                    <CardContent>
-                      <Stack>
-                        <Badge variant="secondary">Scene 01</Badge>
-                        <Alert>
-                          <Icon name="search" />
-                          <AlertTitle>Contrast audit</AlertTitle>
-                          <AlertDescription>High-signal dashboard surfaces are ready for review.</AlertDescription>
-                        </Alert>
-                      </Stack>
-                    </CardContent>
-                  </Card>
+                  <Image src="https://images.unsplash.com/photo-1551288049-bebda4e38f71" alt="Web preview dashboard" fit="cover" />
                 </AspectRatio>
               </CarouselItem>
               <CarouselItem>
-                <AspectRatio ratio="1">
-                  <Card size="sm">
-                    <CardContent>
-                      <Stack>
-                        <Badge variant="outline">Scene 02</Badge>
-                        <Alert>
-                          <AlertTitle>Spacing pass</AlertTitle>
-                          <AlertDescription>Vertical rhythm is aligned across inset cards.</AlertDescription>
-                        </Alert>
-                      </Stack>
-                    </CardContent>
-                  </Card>
+                <AspectRatio ratio="1.777">
+                  <Image src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3" alt="App surface preview" fit="cover" />
+                </AspectRatio>
+              </CarouselItem>
+              <CarouselItem>
+                <AspectRatio ratio="1.777">
+                  <Image src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31" alt="Structured agent output" fit="cover" />
                 </AspectRatio>
               </CarouselItem>
             </CarouselContent>
@@ -199,23 +206,25 @@
 
       <Card>
         <CardHeader>
-          <CardTitle>Decision summary</CardTitle>
-          <CardDescription>Compact recap of what changes next.</CardDescription>
+          <CardTitle>What this proves</CardTitle>
+          <CardDescription>The showcase is a runtime contract, not just a visual sample.</CardDescription>
           <CardAction>
-            <Badge variant="outline">Overview</Badge>
+            <Badge variant="outline">Boundary</Badge>
           </CardAction>
         </CardHeader>
         <CardContent>
           <Stack>
             <Alert>
-              <AlertTitle>Next checkpoint</AlertTitle>
-              <AlertDescription>Move chart and carousel into the second render batch after layout runtime settles.</AlertDescription>
+              <Icon name="route" />
+              <AlertTitle>Example consumes the package</AlertTitle>
+              <AlertDescription>The demo stays outside agent-html internals and uses only the public runtime entrypoints.</AlertDescription>
             </Alert>
             <Separator />
             <Cluster wrap="true">
-              <Badge variant="secondary">Render v0</Badge>
-              <Badge variant="outline">Independent route</Badge>
-              <Badge variant="outline">Preview UI runtime</Badge>
+              <Badge variant="secondary">Parser</Badge>
+              <Badge variant="outline">Validator</Badge>
+              <Badge variant="outline">Renderer</Badge>
+              <Badge variant="outline">Source diff</Badge>
             </Cluster>
           </Stack>
         </CardContent>
@@ -224,13 +233,13 @@
 
     <Card>
       <CardHeader>
-        <CardTitle>Throughput trend</CardTitle>
-        <CardDescription>Second-batch chart runtime using preview chart primitives.</CardDescription>
+        <CardTitle>Complexity trend</CardTitle>
+        <CardDescription>As UI structure grows, the DSL keeps authoring cost closer to component intent.</CardDescription>
       </CardHeader>
       <CardContent>
         <Chart type="area">
-          <ChartSeries key="review" label="Review" />
-          <ChartSeries key="publish" label="Publish" />
+          <ChartSeries key="ahtml" label="AHTML" />
+          <ChartSeries key="react" label="React" />
           <ChartTooltip hideLabel="false" />
         </Chart>
       </CardContent>

@@ -1,5 +1,7 @@
 <Page title="Gallery Preview">
   <Stack>
+    <Text variant="muted">Use Text for standalone copy inside layout nodes.</Text>
+
     <Card>
       <CardHeader>
         <CardTitle>Controls</CardTitle>

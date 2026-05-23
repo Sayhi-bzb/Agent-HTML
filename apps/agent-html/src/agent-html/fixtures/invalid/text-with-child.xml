@@ -1,0 +1,8 @@
+<Page title="Invalid text">
+  <Stack>
+    <Text>
+      Label
+      <Icon name="search" />
+    </Text>
+  </Stack>
+</Page>

@@ -51,6 +51,24 @@ describe("validateAgentHtml", () => {
     expect(result.errors).toHaveLength(0)
   })
 
+  it("accepts the text basic fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "text-basic.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it("accepts the image basic fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "image-basic.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
   it("rejects unknown tags", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "unknown-tag.xml"))
@@ -93,6 +111,17 @@ describe("validateAgentHtml", () => {
     ).toBe(true)
   })
 
+  it("rejects element children inside text", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "text-with-child.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "INVALID_CHILD")
+    ).toBe(true)
+  })
+
   it("rejects a carousel without content", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "carousel-missing-content.xml"))
@@ -123,6 +152,43 @@ describe("validateAgentHtml", () => {
     expect(result.ok).toBe(false)
     expect(
       result.errors.some((error) => error.code === "UNKNOWN_ICON_NAME")
+    ).toBe(true)
+  })
+
+  it("rejects invalid image src values", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "image-invalid-src.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) => error.code === "INVALID_ATTR_VALUE" && error.attr === "src"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects invalid image fit values", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "image-invalid-fit.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) => error.code === "INVALID_ATTR_VALUE" && error.attr === "fit"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects children inside image", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "image-with-child.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "INVALID_CHILD")
     ).toBe(true)
   })
 })

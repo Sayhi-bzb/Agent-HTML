@@ -13,14 +13,20 @@ Use the closest valid fixture before inventing new structure.
 - `card-tabs-grid.xml`
 - `complex-dashboard.xml`
 - `icon-basic.xml`
+- `image-basic.xml`
 - `minimal-page.xml`
+- `text-basic.xml`
 
 ## Invalid Patterns
 
 - `bare-text-under-grid.xml`
 - `carousel-missing-content.xml`
 - `chart-missing-series.xml`
+- `image-invalid-fit.xml`
+- `image-invalid-src.xml`
+- `image-with-child.xml`
 - `layout-gap-not-allowed.xml`
 - `missing-tabs-trigger-value.xml`
+- `text-with-child.xml`
 - `unknown-icon-name.xml`
 - `unknown-tag.xml`

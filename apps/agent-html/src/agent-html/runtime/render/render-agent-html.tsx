@@ -32,7 +32,8 @@ function hasChildren(tag: AgentHtmlElementNode["tag"]) {
     tag === "Progress" ||
     tag === "Separator" ||
     tag === "CarouselPrevious" ||
-    tag === "CarouselNext"
+    tag === "CarouselNext" ||
+    tag === "Image"
   )
 }
 

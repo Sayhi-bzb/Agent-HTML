@@ -1,0 +1,6 @@
+<Page title="Invalid image src">
+  <Stack>
+    <Image src="http://example.com/runtime-preview.jpg" alt="Runtime preview" />
+    <Image src="//example.com/runtime-preview.jpg" alt="Runtime preview" />
+  </Stack>
+</Page>

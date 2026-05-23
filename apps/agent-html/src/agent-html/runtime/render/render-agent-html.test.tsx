@@ -41,6 +41,34 @@ describe("renderAgentHtml", () => {
     ).toBe(true)
   })
 
+  it("renders the text basic fixture", () => {
+    const document = parseAgentHtml(fixture("valid", "text-basic.xml"))
+    const validation = validateAgentHtml(document)
+
+    expect(validation.ok).toBe(true)
+
+    const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("Typography block")
+    expect(html).toContain("data-slot=\"text\"")
+    expect(html).toContain("data-variant=\"h2\"")
+    expect(html).toContain("<code")
+  })
+
+  it("renders the image basic fixture", () => {
+    const document = parseAgentHtml(fixture("valid", "image-basic.xml"))
+    const validation = validateAgentHtml(document)
+
+    expect(validation.ok).toBe(true)
+
+    const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("<img")
+    expect(html).toContain("data-slot=\"image\"")
+    expect(html).toContain("src=\"https://example.com/runtime-preview.jpg\"")
+    expect(html).toContain("alt=\"Runtime preview\"")
+    expect(html).toContain("object-cover")
+    expect(html).toContain("object-contain")
+  })
+
   it("renders the canonical card/tabs/grid fixture", () => {
     const document = parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
     const validation = validateAgentHtml(document)
