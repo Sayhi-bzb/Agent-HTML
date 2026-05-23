@@ -5,6 +5,7 @@ import type {
   AgentHtmlElementNode,
   AgentHtmlNode,
 } from "@/gallery/preview/agent-html/ast/types"
+import { ChartRuntime } from "@/gallery/preview/agent-html/render/chart-runtime"
 import {
   ClusterRuntime,
   GridRuntime,
@@ -28,14 +29,15 @@ function renderChildren(children: AgentHtmlNode[]) {
 function hasChildren(tag: AgentHtmlElementNode["tag"]) {
   return !(
     tag === "Progress" ||
-    tag === "Separator"
+    tag === "Separator" ||
+    tag === "CarouselPrevious" ||
+    tag === "CarouselNext"
   )
 }
 
 function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
-  const children = renderChildren(node.children)
-
   if (node.tag === "Page") {
+    const children = renderChildren(node.children)
     return (
       <PageRuntime gap={node.attrs.gap} key={key}>
         {children}
@@ -44,6 +46,7 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
   }
 
   if (node.tag === "Stack") {
+    const children = renderChildren(node.children)
     return (
       <StackRuntime gap={node.attrs.gap} key={key}>
         {children}
@@ -52,6 +55,7 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
   }
 
   if (node.tag === "Cluster") {
+    const children = renderChildren(node.children)
     return (
       <ClusterRuntime
         gap={node.attrs.gap}
@@ -65,6 +69,7 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
   }
 
   if (node.tag === "Grid") {
+    const children = renderChildren(node.children)
     return (
       <GridRuntime columns={node.attrs.columns} gap={node.attrs.gap} key={key}>
         {children}
@@ -73,18 +78,15 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
   }
 
   if (
-    node.tag === "AspectRatio" ||
-    node.tag === "Carousel" ||
-    node.tag === "CarouselContent" ||
-    node.tag === "CarouselItem" ||
-    node.tag === "CarouselPrevious" ||
-    node.tag === "CarouselNext" ||
-    node.tag === "Chart" ||
     node.tag === "ChartSeries" ||
     node.tag === "ChartTooltip" ||
     node.tag === "Icon"
   ) {
     throw new Error(`Unsupported render tag: ${node.tag}`)
+  }
+
+  if (node.tag === "Chart") {
+    return <ChartRuntime key={key} node={node} />
   }
 
   const Component =
@@ -100,6 +102,7 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
     return createElement(Component, { key, ...node.attrs })
   }
 
+  const children = renderChildren(node.children)
   return createElement(Component, { key, ...node.attrs }, ...children)
 }
 

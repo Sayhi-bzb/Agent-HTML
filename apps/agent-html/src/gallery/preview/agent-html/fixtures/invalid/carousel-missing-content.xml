@@ -1,0 +1,6 @@
+<Page title="Invalid carousel">
+  <Carousel>
+    <CarouselPrevious />
+    <CarouselNext />
+  </Carousel>
+</Page>

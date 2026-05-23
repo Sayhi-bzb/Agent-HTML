@@ -29,6 +29,7 @@ export const requiredAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
   AspectRatio: ["ratio"],
   TabsTrigger: ["value"],
   TabsContent: ["value"],
+  Chart: ["type"],
   ChartSeries: ["key"],
   Icon: ["name"],
 }

@@ -1,0 +1,5 @@
+<Page title="Invalid chart">
+  <Chart type="bar">
+    <ChartTooltip hideLabel="false" />
+  </Chart>
+</Page>

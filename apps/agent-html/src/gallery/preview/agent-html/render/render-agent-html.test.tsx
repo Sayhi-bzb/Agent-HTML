@@ -48,6 +48,9 @@ describe("renderAgentHtml", () => {
 
     const html = renderToStaticMarkup(renderAgentHtml(document))
     expect(html).toContain("Release status")
+    expect(html).toContain("data-slot=\"aspect-ratio\"")
+    expect(html).toContain("data-slot=\"carousel\"")
+    expect(html).toContain("data-slot=\"chart\"")
     expect(html).toContain("data-slot=\"tabs\"")
     expect(html).toContain("data-slot=\"accordion\"")
     expect(html).toContain("data-slot=\"table\"")
@@ -56,9 +59,9 @@ describe("renderAgentHtml", () => {
 
   it("throws for unsupported render tags", () => {
     const document = parseAgentHtml(
-      "<Page title=\"Unsupported\"><Chart type=\"bar\"><ChartSeries key=\"a\" /></Chart></Page>"
+      "<Page title=\"Unsupported\"><Icon name=\"alert\" /></Page>"
     )
 
-    expect(() => renderAgentHtml(document)).toThrow("Unsupported render tag: Chart")
+    expect(() => renderAgentHtml(document)).toThrow("Unsupported render tag: Icon")
   })
 })

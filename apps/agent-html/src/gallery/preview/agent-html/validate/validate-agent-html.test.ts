@@ -70,4 +70,26 @@ describe("validateAgentHtml", () => {
       result.errors.some((error) => error.code === "MISSING_REQUIRED_ATTR")
     ).toBe(true)
   })
+
+  it("rejects a carousel without content", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "carousel-missing-content.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_CHILD")
+    ).toBe(true)
+  })
+
+  it("rejects a chart without series", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "chart-missing-series.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_CHILD")
+    ).toBe(true)
+  })
 })

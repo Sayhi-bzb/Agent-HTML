@@ -1,3 +1,4 @@
+import { AspectRatio } from "@/gallery/preview/ui/aspect-ratio"
 import {
   Accordion,
   AccordionContent,
@@ -19,6 +20,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/gallery/preview/ui/card"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/gallery/preview/ui/carousel"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/gallery/preview/ui/chart"
 import { Progress } from "@/gallery/preview/ui/progress"
 import { Separator } from "@/gallery/preview/ui/separator"
 import {
@@ -37,6 +51,25 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/gallery/preview/ui/tabs"
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+
+const chartData = [
+  { week: "W1", publish: 19, review: 26 },
+  { week: "W2", publish: 24, review: 31 },
+  { week: "W3", publish: 28, review: 34 },
+  { week: "W4", publish: 33, review: 39 },
+] as const
+
+const chartConfig = {
+  publish: {
+    color: "var(--chart-2)",
+    label: "Publish",
+  },
+  review: {
+    color: "var(--chart-1)",
+    label: "Review",
+  },
+} satisfies ChartConfig
 
 export function ComplexDashboardExample() {
   return (
@@ -47,7 +80,7 @@ export function ComplexDashboardExample() {
         <Badge variant="destructive">2 incidents open</Badge>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardHeader>
             <CardTitle>Release status</CardTitle>
@@ -112,6 +145,57 @@ export function ComplexDashboardExample() {
               <Badge variant="outline">Token-driven</Badge>
             </div>
           </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Scene rotation</CardTitle>
+            <CardDescription>
+              Sequential preview for related review states.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Carousel>
+              <CarouselContent>
+                <CarouselItem>
+                  <AspectRatio ratio={16 / 9}>
+                    <Card size="sm">
+                      <CardContent>
+                        <div className="flex flex-col gap-2">
+                          <Badge variant="secondary">Scene 01</Badge>
+                          <Alert>
+                            <AlertTitle>Contrast audit</AlertTitle>
+                            <AlertDescription>
+                              High-signal dashboard surfaces are ready for review.
+                            </AlertDescription>
+                          </Alert>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </AspectRatio>
+                </CarouselItem>
+                <CarouselItem>
+                  <AspectRatio ratio={1}>
+                    <Card size="sm">
+                      <CardContent>
+                        <div className="flex flex-col gap-2">
+                          <Badge variant="outline">Scene 02</Badge>
+                          <Alert>
+                            <AlertTitle>Spacing pass</AlertTitle>
+                            <AlertDescription>
+                              Vertical rhythm is aligned across inset cards.
+                            </AlertDescription>
+                          </Alert>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </AspectRatio>
+                </CarouselItem>
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </CardContent>
         </Card>
 
         <Card>
@@ -240,6 +324,48 @@ export function ComplexDashboardExample() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Throughput trend</CardTitle>
+          <CardDescription>
+            Second-batch chart runtime using preview chart primitives.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer className="h-60 w-full" config={chartConfig}>
+            <AreaChart
+              accessibilityLayer
+              data={chartData}
+              margin={{ left: 0, right: 8 }}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis axisLine={false} dataKey="week" tickLine={false} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent indicator="line" hideLabel={false} />
+                }
+              />
+              <Area
+                dataKey="review"
+                fill="var(--color-review)"
+                fillOpacity={0.2}
+                stroke="var(--color-review)"
+                strokeWidth={2}
+                type="monotone"
+              />
+              <Area
+                dataKey="publish"
+                fill="var(--color-publish)"
+                fillOpacity={0.2}
+                stroke="var(--color-publish)"
+                strokeWidth={2}
+                type="monotone"
+              />
+            </AreaChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
     </div>
   )
 }

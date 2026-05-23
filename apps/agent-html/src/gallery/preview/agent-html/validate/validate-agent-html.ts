@@ -108,6 +108,92 @@ function validateNode(
     }
   }
 
+  if (knownTag === "Carousel") {
+    if (!hasChild(node, "CarouselContent")) {
+      errors.push({
+        code: "MISSING_REQUIRED_CHILD",
+        message: "Carousel must contain CarouselContent",
+        path,
+        tag,
+      })
+    }
+
+    for (const child of elementChildren(node)) {
+      if (
+        child.tag !== "CarouselContent" &&
+        child.tag !== "CarouselPrevious" &&
+        child.tag !== "CarouselNext"
+      ) {
+        errors.push({
+          code: "INVALID_CHILD",
+          message:
+            "Carousel can only contain CarouselContent, CarouselPrevious, and CarouselNext",
+          path: `${path}/${child.tag}`,
+          tag: child.tag,
+        })
+      }
+    }
+  }
+
+  if (knownTag === "CarouselContent") {
+    const children = elementChildren(node)
+
+    if (children.length === 0) {
+      errors.push({
+        code: "MISSING_REQUIRED_CHILD",
+        message: "CarouselContent must contain CarouselItem",
+        path,
+        tag,
+      })
+    }
+
+    for (const child of children) {
+      if (child.tag !== "CarouselItem") {
+        errors.push({
+          code: "INVALID_CHILD",
+          message: "CarouselContent can only contain CarouselItem",
+          path: `${path}/${child.tag}`,
+          tag: child.tag,
+        })
+      }
+    }
+  }
+
+  if (knownTag === "Chart") {
+    const children = elementChildren(node)
+    const seriesChildren = children.filter((child) => child.tag === "ChartSeries")
+    const tooltipChildren = children.filter((child) => child.tag === "ChartTooltip")
+
+    if (seriesChildren.length === 0) {
+      errors.push({
+        code: "MISSING_REQUIRED_CHILD",
+        message: "Chart must contain at least one ChartSeries",
+        path,
+        tag,
+      })
+    }
+
+    if (tooltipChildren.length > 1) {
+      errors.push({
+        code: "INVALID_CHILD",
+        message: "Chart can contain at most one ChartTooltip",
+        path,
+        tag,
+      })
+    }
+
+    for (const child of children) {
+      if (child.tag !== "ChartSeries" && child.tag !== "ChartTooltip") {
+        errors.push({
+          code: "INVALID_CHILD",
+          message: "Chart can only contain ChartSeries and ChartTooltip",
+          path: `${path}/${child.tag}`,
+          tag: child.tag,
+        })
+      }
+    }
+  }
+
   if (knownTag === "TabsList") {
     for (const child of elementChildren(node)) {
       if (child.tag !== "TabsTrigger") {

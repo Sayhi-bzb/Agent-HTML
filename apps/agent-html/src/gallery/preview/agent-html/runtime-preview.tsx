@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server"
 
+import { formatHtmlSource } from "@/gallery/preview/agent-html/format-html-source"
 import { parseAgentHtml } from "@/gallery/preview/agent-html/parse/parse-agent-html"
 import { renderAgentHtml } from "@/gallery/preview/agent-html/render/render-agent-html"
 import { getSourceMetrics } from "@/gallery/preview/agent-html/source-metrics"
@@ -12,7 +13,9 @@ import reactSource from "@/gallery/preview/agent-html/examples/complex-dashboard
 export function AgentHtmlRuntimePreview() {
   const document = parseAgentHtml(runtimeSource)
   const validation = validateAgentHtml(document)
-  const htmlSource = validation.ok ? renderToStaticMarkup(renderAgentHtml(document)) : ""
+  const htmlSource = validation.ok
+    ? formatHtmlSource(renderToStaticMarkup(renderAgentHtml(document)))
+    : ""
   const ahtmlMetrics = getSourceMetrics(runtimeSource)
   const htmlMetrics = getSourceMetrics(htmlSource)
   const reactMetrics = getSourceMetrics(reactSource)

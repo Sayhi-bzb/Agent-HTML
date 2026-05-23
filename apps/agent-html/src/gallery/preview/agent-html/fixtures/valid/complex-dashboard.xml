@@ -106,7 +106,7 @@
 
     <Separator />
 
-    <Grid columns="2" gap="md">
+    <Grid columns="3" gap="md">
       <Card>
         <CardHeader>
           <CardTitle>Team readiness</CardTitle>
@@ -152,6 +152,51 @@
 
       <Card>
         <CardHeader>
+          <CardTitle>Scene rotation</CardTitle>
+          <CardDescription>Sequential preview for related review states.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Carousel>
+            <CarouselContent>
+              <CarouselItem>
+                <AspectRatio ratio="1.777">
+                  <Card size="sm">
+                    <CardContent>
+                      <Stack gap="sm">
+                        <Badge variant="secondary">Scene 01</Badge>
+                        <Alert>
+                          <AlertTitle>Contrast audit</AlertTitle>
+                          <AlertDescription>High-signal dashboard surfaces are ready for review.</AlertDescription>
+                        </Alert>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </AspectRatio>
+              </CarouselItem>
+              <CarouselItem>
+                <AspectRatio ratio="1">
+                  <Card size="sm">
+                    <CardContent>
+                      <Stack gap="sm">
+                        <Badge variant="outline">Scene 02</Badge>
+                        <Alert>
+                          <AlertTitle>Spacing pass</AlertTitle>
+                          <AlertDescription>Vertical rhythm is aligned across inset cards.</AlertDescription>
+                        </Alert>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </AspectRatio>
+              </CarouselItem>
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Decision summary</CardTitle>
           <CardDescription>Compact recap of what changes next.</CardDescription>
           <CardAction>
@@ -174,5 +219,19 @@
         </CardContent>
       </Card>
     </Grid>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Throughput trend</CardTitle>
+        <CardDescription>Second-batch chart runtime using preview chart primitives.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Chart type="area">
+          <ChartSeries key="review" label="Review" />
+          <ChartSeries key="publish" label="Publish" />
+          <ChartTooltip hideLabel="false" />
+        </Chart>
+      </CardContent>
+    </Card>
   </Stack>
 </Page>

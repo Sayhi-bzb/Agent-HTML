@@ -11,6 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+.gitnexus
+.cache
+.agent-html-dev.out
+.agent-html-dev.err
 
 # Editor directories and files
 .vscode/*

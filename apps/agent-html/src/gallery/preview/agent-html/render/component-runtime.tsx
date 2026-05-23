@@ -1,3 +1,4 @@
+import { AspectRatio } from "@/gallery/preview/ui/aspect-ratio"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/gallery/preview/ui/accordion"
 import {
   Alert,
@@ -15,6 +16,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/gallery/preview/ui/card"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/gallery/preview/ui/carousel"
 import { Progress } from "@/gallery/preview/ui/progress"
 import { Separator } from "@/gallery/preview/ui/separator"
 import {
@@ -30,6 +38,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/gallery/preview/ui/tabs"
 
 export const previewComponentRuntime = {
+  AspectRatio,
   Accordion,
   AccordionItem,
   AccordionTrigger,
@@ -46,6 +55,11 @@ export const previewComponentRuntime = {
   CardAction,
   CardContent,
   CardFooter,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
   Progress,
   Separator,
   Table,
