@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "test": "..\\..\\node_modules\\.bin\\vitest.cmd run --config vitest.config.mjs",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview"
   },

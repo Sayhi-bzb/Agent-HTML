@@ -1,0 +1,10 @@
+<Page title="Invalid">
+  <Tabs>
+    <TabsList>
+      <TabsTrigger>Publish</TabsTrigger>
+    </TabsList>
+    <TabsContent value="publish">
+      <Badge>Ready</Badge>
+    </TabsContent>
+  </Tabs>
+</Page>

@@ -10,7 +10,6 @@ import { GalleryPanel } from "@/gallery/panel"
 import { galleryWorkspacePreviewBaseSceneId } from "@/gallery/preview-content"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   SidebarInset,
@@ -141,28 +140,14 @@ type HeaderTab = {
   label: string
 }
 
-function WorkspacePanel({ activeProject }: { activeProject: Project | null }) {
+function WorkspacePanel({ activeProject: _activeProject }: { activeProject: Project | null }) {
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-      <header className="shrink-0 border-b px-4 py-5 md:px-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex flex-col gap-1">
-            <p className="text-sm text-muted-foreground">
-              {activeProject ? "Selected project" : "Workspace shell"}
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {activeProject ? activeProject.name : "Agent Console"}
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              {activeProject
-                ? `The header tab now carries the active ${activeProject.name} workspace state while the sidebar stays navigation-only.`
-                : "Open a project from the sidebar to create a workspace tab and load its state here."}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline">Preview Layout</Button>
-            <Button>Open Workspace</Button>
-          </div>
+      <header className="shrink-0 border-b px-4 py-3 md:px-6">
+        <div className="flex min-h-8 items-center gap-3">
+          <div className="min-w-0 flex-1" aria-hidden="true" />
+          <div className="hidden flex-1 items-center justify-center gap-2 lg:flex" aria-hidden="true" />
+          <div className="flex shrink-0 items-center gap-2" aria-hidden="true" />
         </div>
       </header>
 

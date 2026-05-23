@@ -1,0 +1,64 @@
+<Page title="Gallery Preview" gap="lg">
+  <Stack gap="lg">
+    <Card>
+      <CardHeader>
+        <CardTitle>Controls</CardTitle>
+        <CardDescription>Preview action and state tokens.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="publish">
+          <TabsList>
+            <TabsTrigger value="publish">Publish</TabsTrigger>
+            <TabsTrigger value="review">Review</TabsTrigger>
+          </TabsList>
+          <TabsContent value="publish">
+            <Stack gap="sm">
+              <Badge variant="secondary">82%</Badge>
+              <Progress value="82" />
+            </Stack>
+          </TabsContent>
+          <TabsContent value="review">
+            <Alert>
+              <AlertTitle>Review queue</AlertTitle>
+              <AlertDescription>5 items remain.</AlertDescription>
+            </Alert>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+
+    <Grid columns="2" gap="md">
+      <Card>
+        <CardContent>
+          <Accordion type="single">
+            <AccordionItem value="notes">
+              <AccordionTrigger>Migration notes</AccordionTrigger>
+              <AccordionContent>
+                <Badge variant="outline">Pending</Badge>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Signal</TableHead>
+                <TableHead>State</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>Spacing</TableCell>
+                <TableCell>Balanced</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </Grid>
+  </Stack>
+</Page>
