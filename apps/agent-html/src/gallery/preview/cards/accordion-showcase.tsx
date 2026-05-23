@@ -3,7 +3,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/gallery/preview/ui/accordion"
+} from "@/agent-html/runtime/ui/accordion"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 
 const items = [
@@ -41,3 +41,4 @@ export function AccordionShowcase() {
     </ShowcaseShell>
   )
 }
+

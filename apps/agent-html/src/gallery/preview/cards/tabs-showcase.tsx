@@ -3,7 +3,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/gallery/preview/ui/tabs"
+} from "@/agent-html/runtime/ui/tabs"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 
 const panels = [
@@ -53,3 +53,4 @@ export function TabsShowcase() {
     </ShowcaseShell>
   )
 }
+

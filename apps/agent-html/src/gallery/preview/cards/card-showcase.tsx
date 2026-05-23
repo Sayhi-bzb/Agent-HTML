@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/gallery/preview/ui/card"
+} from "@/agent-html/runtime/ui/card"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 
 export function CardShowcase() {
@@ -64,3 +64,4 @@ export function CardShowcase() {
     </ShowcaseShell>
   )
 }
+

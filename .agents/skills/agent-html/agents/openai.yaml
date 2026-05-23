@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent HTML"
+  short_description: "Write gallery preview DSL pages"
+  default_prompt: "Use $agent-html to draft a valid agent-html DSL preview page."

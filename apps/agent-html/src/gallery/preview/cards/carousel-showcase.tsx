@@ -4,7 +4,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/gallery/preview/ui/carousel"
+} from "@/agent-html/runtime/ui/carousel"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 
 const slides = [
@@ -65,3 +65,4 @@ export function CarouselShowcase() {
     </ShowcaseShell>
   )
 }
+

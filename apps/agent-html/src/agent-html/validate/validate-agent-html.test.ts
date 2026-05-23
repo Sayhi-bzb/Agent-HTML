@@ -1,0 +1,116 @@
+/// <reference types="node" />
+
+import { readFileSync } from "node:fs"
+
+import { describe, expect, it } from "vitest"
+
+import { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
+import { validateAgentHtml } from "@/agent-html/validate/validate-agent-html"
+
+function fixture(...parts: string[]) {
+  return readFileSync(
+    new URL(`../fixtures/${parts.join("/")}`, import.meta.url),
+    "utf8"
+  )
+}
+
+describe("validateAgentHtml", () => {
+  it("accepts the minimal valid page", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "minimal-page.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it("accepts the canonical card/tabs/grid fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it("accepts the complex dashboard fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it("accepts the icon basic fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "icon-basic.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it("rejects unknown tags", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "unknown-tag.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.errors[0]?.code).toBe("UNKNOWN_TAG")
+  })
+
+  it("rejects bare text under layout nodes", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "bare-text-under-grid.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.errors[0]?.code).toBe("TEXT_NOT_ALLOWED")
+  })
+
+  it("rejects missing required attrs", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "missing-tabs-trigger-value.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_ATTR")
+    ).toBe(true)
+  })
+
+  it("rejects a carousel without content", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "carousel-missing-content.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_CHILD")
+    ).toBe(true)
+  })
+
+  it("rejects a chart without series", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "chart-missing-series.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_CHILD")
+    ).toBe(true)
+  })
+
+  it("rejects an unknown icon name", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "unknown-icon-name.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "UNKNOWN_ICON_NAME")
+    ).toBe(true)
+  })
+})
+

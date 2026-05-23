@@ -1,0 +1,6 @@
+<Page title="Unknown icon">
+  <Alert>
+    <Icon name="not-a-real-lucide-icon" />
+    <AlertTitle>Broken icon</AlertTitle>
+  </Alert>
+</Page>

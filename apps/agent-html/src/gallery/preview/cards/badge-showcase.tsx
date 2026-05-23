@@ -1,4 +1,4 @@
-import { Badge } from "@/gallery/preview/ui/badge"
+import { Badge } from "@/agent-html/runtime/ui/badge"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 import { FlameIcon, LinkIcon, SparklesIcon } from "lucide-react"
 
@@ -42,3 +42,4 @@ export function BadgeShowcase() {
     </ShowcaseShell>
   )
 }
+

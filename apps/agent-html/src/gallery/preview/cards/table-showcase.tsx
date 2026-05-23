@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/gallery/preview/ui/table"
+} from "@/agent-html/runtime/ui/table"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 
 const rows = [
@@ -52,3 +52,4 @@ export function TableShowcase() {
     </ShowcaseShell>
   )
 }
+

@@ -1,0 +1,239 @@
+<Page title="Operations Console" gap="lg">
+  <Stack gap="lg">
+    <Cluster gap="sm" justify="between" wrap="true">
+      <Badge variant="secondary">Synced 12m ago</Badge>
+      <Badge variant="outline">4 teams active</Badge>
+      <Badge variant="destructive">2 incidents open</Badge>
+    </Cluster>
+
+    <Grid columns="2" gap="md">
+      <Card>
+        <CardHeader>
+          <CardTitle>Release status</CardTitle>
+          <CardDescription>Track the path from review to production.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="publish">
+            <TabsList>
+              <TabsTrigger value="publish">Publish</TabsTrigger>
+              <TabsTrigger value="review">Review</TabsTrigger>
+              <TabsTrigger value="archive">Archive</TabsTrigger>
+            </TabsList>
+            <TabsContent value="publish">
+              <Stack gap="sm">
+                <Cluster gap="sm" justify="between" wrap="false">
+                  <Badge variant="secondary">82%</Badge>
+                  <Badge variant="outline">Ready for cutover</Badge>
+                </Cluster>
+                <Progress value="82" />
+                <Alert>
+                  <Icon name="alert-circle" />
+                  <AlertTitle>Release window confirmed</AlertTitle>
+                  <AlertDescription>The production train is aligned for 19:00 UTC.</AlertDescription>
+                </Alert>
+              </Stack>
+            </TabsContent>
+            <TabsContent value="review">
+              <Stack gap="sm">
+                <Badge variant="outline">5 approvals remaining</Badge>
+                <Progress value="64" />
+                <Alert>
+                  <AlertTitle>Design review open</AlertTitle>
+                  <AlertDescription>Density and footer alignment still need sign-off.</AlertDescription>
+                </Alert>
+              </Stack>
+            </TabsContent>
+            <TabsContent value="archive">
+              <Stack gap="sm">
+                <Badge variant="destructive">Paused</Badge>
+                <Progress value="28" />
+                <Alert variant="destructive">
+                  <AlertTitle>Archive blocked</AlertTitle>
+                  <AlertDescription>Dependency snapshot failed on two legacy modules.</AlertDescription>
+                </Alert>
+              </Stack>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+        <CardFooter>
+          <Cluster gap="sm" wrap="true">
+            <Badge variant="secondary">Primary lane</Badge>
+            <Badge variant="outline">Token-driven</Badge>
+          </Cluster>
+        </CardFooter>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Review notes</CardTitle>
+          <CardDescription>Surface nested sections and state transitions.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single">
+            <AccordionItem value="layout">
+              <AccordionTrigger>Layout continuity</AccordionTrigger>
+              <AccordionContent>
+                <Stack gap="sm">
+                  <Alert>
+                    <AlertTitle>Shell alignment</AlertTitle>
+                    <AlertDescription>Inset spacing now matches the active gallery workspace rhythm.</AlertDescription>
+                  </Alert>
+                  <Cluster gap="sm" wrap="true">
+                    <Badge variant="secondary">Aligned</Badge>
+                    <Badge variant="outline">Spacing</Badge>
+                  </Cluster>
+                </Stack>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="tokens">
+              <AccordionTrigger>Token migration</AccordionTrigger>
+              <AccordionContent>
+                <Stack gap="sm">
+                  <Alert>
+                    <AlertTitle>Color map stable</AlertTitle>
+                    <AlertDescription>Primary, muted, and border tokens now match the preview runtime.</AlertDescription>
+                  </Alert>
+                  <Cluster gap="sm" wrap="true">
+                    <Badge variant="secondary">Stable</Badge>
+                    <Badge variant="outline">Preview</Badge>
+                  </Cluster>
+                </Stack>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
+    </Grid>
+
+    <Separator />
+
+    <Grid columns="3" gap="md">
+      <Card>
+        <CardHeader>
+          <CardTitle>Team readiness</CardTitle>
+          <CardDescription>Operational table with summary footer.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableCaption>Current release support matrix</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Team</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Owner</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>Design systems</TableCell>
+                <TableCell>Ready</TableCell>
+                <TableCell>Sarah Chen</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Platform runtime</TableCell>
+                <TableCell>Review</TableCell>
+                <TableCell>Marc Rodriguez</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Content ops</TableCell>
+                <TableCell>Draft</TableCell>
+                <TableCell>Emily Watson</TableCell>
+              </TableRow>
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell>Visible teams</TableCell>
+                <TableCell>3</TableCell>
+                <TableCell>2 active leads</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Scene rotation</CardTitle>
+          <CardDescription>Sequential preview for related review states.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Carousel>
+            <CarouselContent>
+              <CarouselItem>
+                <AspectRatio ratio="1.777">
+                  <Card size="sm">
+                    <CardContent>
+                      <Stack gap="sm">
+                        <Badge variant="secondary">Scene 01</Badge>
+                        <Alert>
+                          <Icon name="search" />
+                          <AlertTitle>Contrast audit</AlertTitle>
+                          <AlertDescription>High-signal dashboard surfaces are ready for review.</AlertDescription>
+                        </Alert>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </AspectRatio>
+              </CarouselItem>
+              <CarouselItem>
+                <AspectRatio ratio="1">
+                  <Card size="sm">
+                    <CardContent>
+                      <Stack gap="sm">
+                        <Badge variant="outline">Scene 02</Badge>
+                        <Alert>
+                          <AlertTitle>Spacing pass</AlertTitle>
+                          <AlertDescription>Vertical rhythm is aligned across inset cards.</AlertDescription>
+                        </Alert>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </AspectRatio>
+              </CarouselItem>
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Decision summary</CardTitle>
+          <CardDescription>Compact recap of what changes next.</CardDescription>
+          <CardAction>
+            <Badge variant="outline">Overview</Badge>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <Stack gap="sm">
+            <Alert>
+              <AlertTitle>Next checkpoint</AlertTitle>
+              <AlertDescription>Move chart and carousel into the second render batch after layout runtime settles.</AlertDescription>
+            </Alert>
+            <Separator />
+            <Cluster gap="sm" wrap="true">
+              <Badge variant="secondary">Render v0</Badge>
+              <Badge variant="outline">Independent route</Badge>
+              <Badge variant="outline">Preview UI runtime</Badge>
+            </Cluster>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Grid>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Throughput trend</CardTitle>
+        <CardDescription>Second-batch chart runtime using preview chart primitives.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Chart type="area">
+          <ChartSeries key="review" label="Review" />
+          <ChartSeries key="publish" label="Publish" />
+          <ChartTooltip hideLabel="false" />
+        </Chart>
+      </CardContent>
+    </Card>
+  </Stack>
+</Page>
