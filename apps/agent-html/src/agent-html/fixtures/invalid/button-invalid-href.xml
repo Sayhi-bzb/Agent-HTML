@@ -1,0 +1,5 @@
+<Page title="Invalid button href">
+  <Section>
+    <Button href="javascript:alert(1)">Open</Button>
+  </Section>
+</Page>

@@ -16,6 +16,7 @@ export type AgentHtmlUiTag =
   | "AlertAction"
   | "AspectRatio"
   | "Badge"
+  | "Button"
   | "Card"
   | "CardHeader"
   | "CardTitle"

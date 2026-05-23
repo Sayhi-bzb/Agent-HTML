@@ -2,10 +2,12 @@
   <Section width="content">
     <Stack>
       <Cluster justify="between" wrap="true">
-        <Badge variant="secondary">DSL preview</Badge>
-        <Badge variant="outline">Shadcn runtime</Badge>
-        <Badge variant="outline">AST validated</Badge>
-        <Badge variant="destructive">Experimental</Badge>
+        <Cluster wrap="true">
+          <Badge variant="secondary">DSL preview</Badge>
+          <Badge variant="outline">Shadcn runtime</Badge>
+          <Badge variant="outline">AST validated</Badge>
+        </Cluster>
+        <Button variant="outline" href="/agent-html">Open preview</Button>
       </Cluster>
 
       <Grid columns="2">
@@ -60,10 +62,18 @@
             </Tabs>
           </CardContent>
           <CardFooter>
-            <Cluster wrap="true">
-              <Badge variant="secondary">Prompt-friendly</Badge>
-              <Badge variant="outline">Renderable</Badge>
-              <Badge variant="outline">Inspectable</Badge>
+            <Cluster justify="between" wrap="true">
+              <Cluster wrap="true">
+                <Button>Generate draft</Button>
+                <Button variant="ghost">
+                  <Icon name="search" />
+                  Inspect AST
+                </Button>
+              </Cluster>
+              <Cluster wrap="true">
+                <Badge variant="secondary">Prompt-friendly</Badge>
+                <Badge variant="outline">Renderable</Badge>
+              </Cluster>
             </Cluster>
           </CardFooter>
         </Card>

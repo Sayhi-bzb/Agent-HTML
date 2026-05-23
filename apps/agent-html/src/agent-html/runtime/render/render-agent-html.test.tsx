@@ -112,6 +112,20 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("TypeScript")
   })
 
+  it("renders the button basic fixture", () => {
+    const document = parseAgentHtml(fixture("valid", "button-basic.xml"))
+    const validation = validateAgentHtml(document)
+
+    expect(validation.ok).toBe(true)
+
+    const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("data-slot=\"button\"")
+    expect(html).toContain("data-variant=\"outline\"")
+    expect(html).toContain("data-size=\"default\"")
+    expect(html).toContain("<a href=\"/docs\"")
+    expect(html).toContain("aria-label=\"Open settings\"")
+  })
+
   it("renders the canonical card/tabs/grid fixture", () => {
     const document = parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
     const validation = validateAgentHtml(document)

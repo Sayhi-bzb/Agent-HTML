@@ -28,6 +28,12 @@ function isAllowedImageSrc(src: string) {
   return src.startsWith("https://") || (src.startsWith("/") && !src.startsWith("//"))
 }
 
+function isAllowedHref(href: string) {
+  return (
+    href.startsWith("/") && !href.startsWith("//")
+  ) || href.startsWith("https://") || href.startsWith("mailto:")
+}
+
 const codeBlockLanguages = new Set([
   "ahtml",
   "html",
@@ -40,6 +46,15 @@ const codeBlockLanguages = new Set([
 ])
 
 const timelineItemStatuses = new Set(["default", "complete", "current", "muted"])
+
+const buttonVariants = new Set([
+  "default",
+  "outline",
+  "ghost",
+  "destructive",
+  "secondary",
+  "link",
+])
 
 function validateNode(
   node: AgentHtmlNode,
@@ -209,6 +224,55 @@ function validateNode(
           tag: child.tag,
         })
       }
+    }
+  }
+
+  if (knownTag === "Button") {
+    const variant = node.attrs.variant
+    if (variant !== undefined && !buttonVariants.has(variant)) {
+      errors.push({
+        code: "INVALID_ATTR_VALUE",
+        message: "Button variant is not supported",
+        path,
+        tag,
+        attr: "variant",
+      })
+    }
+
+    const href = node.attrs.href
+    if (href !== undefined && !isAllowedHref(href)) {
+      errors.push({
+        code: "INVALID_ATTR_VALUE",
+        message: "Button href must start with /, https://, or mailto:",
+        path,
+        tag,
+        attr: "href",
+      })
+    }
+
+    for (const child of elementChildren(node)) {
+      if (child.tag !== "Icon") {
+        errors.push({
+          code: "INVALID_CHILD",
+          message: "Button can only contain text and Icon",
+          path: `${path}/${child.tag}`,
+          tag: child.tag,
+        })
+      }
+    }
+
+    const hasText = node.children.some(
+      (child) => child.type === "text" && child.value.trim().length > 0
+    )
+    const hasIcon = hasChild(node, "Icon")
+    if (!hasText && hasIcon && !node.attrs.label) {
+      errors.push({
+        code: "MISSING_REQUIRED_ATTR",
+        message: "Icon-only Button must include label",
+        path,
+        tag,
+        attr: "label",
+      })
     }
   }
 

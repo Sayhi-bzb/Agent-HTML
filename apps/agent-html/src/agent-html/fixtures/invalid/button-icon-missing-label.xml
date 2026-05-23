@@ -1,0 +1,7 @@
+<Page title="Button icon missing label">
+  <Section>
+    <Button>
+      <Icon name="search" />
+    </Button>
+  </Section>
+</Page>

@@ -11,6 +11,7 @@ export const allowedAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
   Alert: ["variant"],
   AspectRatio: ["ratio"],
   Badge: ["variant"],
+  Button: ["variant", "href", "label"],
   Card: ["size"],
   Carousel: ["orientation"],
   Progress: ["value"],

@@ -96,6 +96,15 @@ describe("validateAgentHtml", () => {
     expect(result.errors).toHaveLength(0)
   })
 
+  it("accepts the button basic fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "button-basic.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
   it("rejects unknown tags", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "unknown-tag.xml"))
@@ -324,6 +333,71 @@ describe("validateAgentHtml", () => {
     expect(result.ok).toBe(false)
     expect(
       result.errors.some((error) => error.code === "INVALID_CHILD")
+    ).toBe(true)
+  })
+
+  it("rejects invalid button variants", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "button-invalid-variant.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "INVALID_ATTR_VALUE" && error.attr === "variant"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects invalid button href values", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "button-invalid-href.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) => error.code === "INVALID_ATTR_VALUE" && error.attr === "href"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects complex button children", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "button-invalid-child.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "INVALID_CHILD")
+    ).toBe(true)
+  })
+
+  it("requires label for icon-only buttons", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "button-icon-missing-label.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "MISSING_REQUIRED_ATTR" && error.attr === "label"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects button size attrs", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "button-size-not-allowed.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) => error.code === "UNKNOWN_ATTR" && error.attr === "size"
+      )
     ).toBe(true)
   })
 })

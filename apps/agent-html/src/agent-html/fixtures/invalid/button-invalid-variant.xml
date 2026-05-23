@@ -1,0 +1,5 @@
+<Page title="Invalid button variant">
+  <Section>
+    <Button variant="primary">Save</Button>
+  </Section>
+</Page>

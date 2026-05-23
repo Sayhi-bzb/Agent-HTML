@@ -7,6 +7,7 @@ import {
   AlertTitle,
 } from "@/agent-html/runtime/ui/alert"
 import { Badge } from "@/agent-html/runtime/ui/badge"
+import { Button } from "@/agent-html/runtime/ui/button"
 import {
   Card,
   CardAction,
@@ -58,6 +59,7 @@ export const previewComponentRuntime = {
   AlertDescription,
   AlertAction,
   Badge,
+  Button,
   Card,
   CardHeader,
   CardTitle,

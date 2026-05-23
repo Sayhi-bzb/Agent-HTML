@@ -24,6 +24,7 @@ export const allTags = new Set<AgentHtmlTag>([
   "AlertAction",
   "AspectRatio",
   "Badge",
+  "Button",
   "Card",
   "CardHeader",
   "CardTitle",

@@ -88,6 +88,21 @@ describe("parseAgentHtml", () => {
     )
   })
 
+  it("parses buttons", () => {
+    const document = parseAgentHtml(fixture("valid", "button-basic.xml"))
+    const section = document.root.children[0]
+    const cluster =
+      section.type === "element" ? section.children[0] : undefined
+    const button =
+      cluster?.type === "element" ? cluster.children[1] : undefined
+
+    expect(button).toMatchObject({
+      type: "element",
+      tag: "Button",
+      attrs: { variant: "outline", href: "/docs" },
+    })
+  })
+
   it("throws on multiple roots", () => {
     expect(() =>
       parseAgentHtml("<Page title=\"A\" /><Page title=\"B\" />")
