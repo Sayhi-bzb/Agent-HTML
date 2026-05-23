@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Structured agent output</title>
+  <desc id="desc">A stylized structured generation preview.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#111827"/>
+      <stop offset="1" stop-color="#3f3f46"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect x="116" y="92" width="1048" height="536" rx="42" fill="#f8fafc" opacity=".96"/>
+  <rect x="164" y="144" width="300" height="432" rx="26" fill="#e2e8f0"/>
+  <rect x="512" y="144" width="604" height="92" rx="24" fill="#dbeafe"/>
+  <rect x="512" y="272" width="276" height="304" rx="24" fill="#ecfeff"/>
+  <rect x="840" y="272" width="276" height="304" rx="24" fill="#f0fdf4"/>
+  <rect x="206" y="190" width="132" height="18" rx="9" fill="#334155"/>
+  <rect x="206" y="242" width="214" height="16" rx="8" fill="#64748b"/>
+  <rect x="206" y="292" width="170" height="16" rx="8" fill="#64748b"/>
+  <rect x="556" y="178" width="208" height="24" rx="12" fill="#1d4ed8"/>
+  <path d="M560 520 C616 408 668 468 728 352" fill="none" stroke="#0891b2" stroke-width="18" stroke-linecap="round"/>
+  <path d="M888 512 C936 424 990 450 1060 340" fill="none" stroke="#16a34a" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="1038" cy="150" r="88" fill="#38bdf8" opacity=".22"/>
+</svg>

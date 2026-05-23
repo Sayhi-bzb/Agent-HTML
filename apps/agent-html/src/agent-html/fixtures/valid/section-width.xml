@@ -1,0 +1,25 @@
+<Page title="Sections">
+  <Section>
+    <Stack>
+      <Text variant="h1">Default content section</Text>
+      <Text variant="lead">Section defaults to content width.</Text>
+    </Stack>
+  </Section>
+  <Section width="reader">
+    <Text>Reader width is for focused copy.</Text>
+  </Section>
+  <Section width="full">
+    <Grid columns="2">
+      <Card>
+        <CardContent>
+          <Text>Full width can hold broader modules.</Text>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+          <Text>Layout still belongs inside the section.</Text>
+        </CardContent>
+      </Card>
+    </Grid>
+  </Section>
+</Page>

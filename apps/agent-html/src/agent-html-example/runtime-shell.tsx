@@ -34,7 +34,7 @@ const RenderPanel = React.memo(function RenderPanel({
 }) {
   return (
     <div className="h-full w-full min-w-0 overflow-hidden">
-      <ScrollArea className="h-[calc(100vh-9rem)] w-full">
+      <ScrollArea className="h-[calc(100vh-6rem)] w-full">
         <div className="w-full min-w-0 p-5">{children}</div>
       </ScrollArea>
     </div>
@@ -103,14 +103,11 @@ function RuntimeHeader({
   title: string
 }) {
   return (
-    <header className="flex flex-col gap-4 border-b border-border/70 px-1 pb-4 lg:flex-row lg:items-center lg:justify-between">
+    <header className="flex items-center justify-between gap-3 border-b border-border/70 px-1 pb-2">
       <div className="min-w-0">
-        <h1 className="text-[length:var(--type-xl)] leading-[calc(var(--type-base-line-height)*0.92)] font-medium">
+        <h1 className="truncate text-[length:var(--type-lg)] leading-[var(--type-base-line-height)] font-medium">
           {title}
         </h1>
-        <p className="mt-1 text-[length:var(--type-sm)] leading-[var(--type-base-line-height)] text-muted-foreground">
-          Runtime preview for the agent-html DSL.
-        </p>
       </div>
       <DialogTrigger asChild>
         <Button variant="outline">Source</Button>
@@ -220,7 +217,7 @@ export function RuntimeShell({
         value={activeSourceTab}
       >
         <RuntimeHeader title={title} />
-        <main className="mt-6 w-full min-w-0">
+        <main className="mt-3 w-full min-w-0">
           <RenderPanel>{children}</RenderPanel>
         </main>
         <SourceDialog

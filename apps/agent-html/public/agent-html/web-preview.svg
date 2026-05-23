@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Web preview dashboard</title>
+  <desc id="desc">A stylized analytics dashboard preview.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#164e63"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f8fafc" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#cbd5e1" stop-opacity=".88"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <circle cx="1040" cy="120" r="220" fill="#22d3ee" opacity=".18"/>
+  <circle cx="160" cy="650" r="260" fill="#38bdf8" opacity=".12"/>
+  <rect x="100" y="84" width="1080" height="552" rx="44" fill="#020617" opacity=".62"/>
+  <rect x="144" y="128" width="992" height="96" rx="26" fill="url(#card)"/>
+  <rect x="184" y="164" width="260" height="24" rx="12" fill="#0f172a" opacity=".85"/>
+  <rect x="886" y="160" width="88" height="32" rx="16" fill="#0891b2"/>
+  <rect x="994" y="160" width="88" height="32" rx="16" fill="#94a3b8"/>
+  <rect x="144" y="264" width="300" height="292" rx="28" fill="url(#card)"/>
+  <rect x="490" y="264" width="300" height="292" rx="28" fill="url(#card)"/>
+  <rect x="836" y="264" width="300" height="292" rx="28" fill="url(#card)"/>
+  <path d="M190 500 L250 430 L310 465 L390 356" fill="none" stroke="#0891b2" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M536 492 L590 438 L650 456 L730 332" fill="none" stroke="#0f766e" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M884 508 L942 398 L1000 442 L1080 320" fill="none" stroke="#0369a1" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

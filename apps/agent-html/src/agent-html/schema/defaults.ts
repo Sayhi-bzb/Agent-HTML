@@ -8,3 +8,7 @@ export const clusterDefaults = {
 export const gridDefaults = {
   columns: "2",
 } as const
+
+export const sectionDefaults = {
+  width: "content",
+} as const

@@ -2,6 +2,7 @@ import type { AgentHtmlTag } from "@/agent-html/ast/types"
 
 export const allowedAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
   Page: ["title"],
+  Section: ["width"],
   Stack: [],
   Cluster: ["justify", "wrap"],
   Grid: ["columns"],

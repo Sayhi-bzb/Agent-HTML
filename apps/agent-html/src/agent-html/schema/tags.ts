@@ -2,6 +2,7 @@ import type { AgentHtmlTag } from "@/agent-html/ast/types"
 
 export const layoutTags = new Set<AgentHtmlTag>([
   "Page",
+  "Section",
   "Stack",
   "Cluster",
   "Grid",
@@ -9,6 +10,7 @@ export const layoutTags = new Set<AgentHtmlTag>([
 
 export const allTags = new Set<AgentHtmlTag>([
   "Page",
+  "Section",
   "Stack",
   "Cluster",
   "Grid",

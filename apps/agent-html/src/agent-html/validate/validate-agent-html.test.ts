@@ -69,6 +69,15 @@ describe("validateAgentHtml", () => {
     expect(result.errors).toHaveLength(0)
   })
 
+  it("accepts the section width fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "section-width.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
   it("rejects unknown tags", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "unknown-tag.xml"))
@@ -81,6 +90,15 @@ describe("validateAgentHtml", () => {
   it("rejects bare text under layout nodes", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "bare-text-under-grid.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.errors[0]?.code).toBe("TEXT_NOT_ALLOWED")
+  })
+
+  it("rejects bare text under section", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "bare-text-under-section.xml"))
     )
 
     expect(result.ok).toBe(false)
@@ -177,6 +195,20 @@ describe("validateAgentHtml", () => {
     expect(
       result.errors.some(
         (error) => error.code === "INVALID_ATTR_VALUE" && error.attr === "fit"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects invalid section width values", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "section-invalid-width.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "INVALID_ATTR_VALUE" && error.attr === "width"
       )
     ).toBe(true)
   })

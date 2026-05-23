@@ -1,4 +1,9 @@
-export type AgentHtmlLayoutTag = "Page" | "Stack" | "Cluster" | "Grid"
+export type AgentHtmlLayoutTag =
+  | "Page"
+  | "Section"
+  | "Stack"
+  | "Cluster"
+  | "Grid"
 
 export type AgentHtmlUiTag =
   | "Accordion"

@@ -168,6 +168,24 @@ function validateNode(
     }
   }
 
+  if (knownTag === "Section") {
+    const width = node.attrs.width
+    if (
+      width !== undefined &&
+      width !== "full" &&
+      width !== "content" &&
+      width !== "reader"
+    ) {
+      errors.push({
+        code: "INVALID_ATTR_VALUE",
+        message: "Section width must be full, content, or reader",
+        path,
+        tag,
+        attr: "width",
+      })
+    }
+  }
+
   if (knownTag === "Text") {
     for (const child of node.children) {
       if (child.type === "element") {

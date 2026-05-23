@@ -1,7 +1,12 @@
 import type { ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
-import { clusterDefaults, gridDefaults, layoutDefaultGapClass } from "@/agent-html/schema/defaults"
+import {
+  clusterDefaults,
+  gridDefaults,
+  layoutDefaultGapClass,
+  sectionDefaults,
+} from "@/agent-html/schema/defaults"
 
 export function PageRuntime({
   children,
@@ -12,6 +17,26 @@ export function PageRuntime({
     <div className={cn("flex w-full min-w-0 flex-col", layoutDefaultGapClass)}>
       {children}
     </div>
+  )
+}
+
+export function SectionRuntime({
+  children,
+  width = sectionDefaults.width,
+}: {
+  children: ReactNode
+  width?: string
+}) {
+  return (
+    <section
+      className={cn(
+        "w-full min-w-0",
+        width === "reader" && "mx-auto max-w-2xl",
+        width === "content" && "mx-auto max-w-4xl"
+      )}
+    >
+      {children}
+    </section>
   )
 }
 

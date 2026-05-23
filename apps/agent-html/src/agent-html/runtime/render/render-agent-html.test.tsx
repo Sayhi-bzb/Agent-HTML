@@ -69,6 +69,19 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("object-contain")
   })
 
+  it("renders the section width fixture", () => {
+    const document = parseAgentHtml(fixture("valid", "section-width.xml"))
+    const validation = validateAgentHtml(document)
+
+    expect(validation.ok).toBe(true)
+
+    const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("<section")
+    expect(html).toContain("max-w-4xl")
+    expect(html).toContain("max-w-2xl")
+    expect(html).toContain("Full width can hold broader modules.")
+  })
+
   it("renders the canonical card/tabs/grid fixture", () => {
     const document = parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
     const validation = validateAgentHtml(document)

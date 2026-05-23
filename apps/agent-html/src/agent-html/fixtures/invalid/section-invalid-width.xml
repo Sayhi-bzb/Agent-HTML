@@ -1,0 +1,5 @@
+<Page title="Invalid section">
+  <Section width="wide">
+    <Text>Wide is not supported yet.</Text>
+  </Section>
+</Page>

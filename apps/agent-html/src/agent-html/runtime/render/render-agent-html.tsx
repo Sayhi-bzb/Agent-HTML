@@ -11,6 +11,7 @@ import {
   ClusterRuntime,
   GridRuntime,
   PageRuntime,
+  SectionRuntime,
   StackRuntime,
 } from "@/agent-html/runtime/render/layout-runtime"
 import { previewComponentRuntime } from "@/agent-html/runtime/render/component-runtime"
@@ -41,6 +42,15 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
   if (node.tag === "Page") {
     const children = renderChildren(node.children)
     return <PageRuntime key={key}>{children}</PageRuntime>
+  }
+
+  if (node.tag === "Section") {
+    const children = renderChildren(node.children)
+    return (
+      <SectionRuntime key={key} width={node.attrs.width}>
+        {children}
+      </SectionRuntime>
+    )
   }
 
   if (node.tag === "Stack") {

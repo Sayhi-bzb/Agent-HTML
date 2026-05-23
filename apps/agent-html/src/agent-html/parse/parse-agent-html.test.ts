@@ -58,6 +58,15 @@ describe("parseAgentHtml", () => {
     })
   })
 
+  it("parses the section fixture", () => {
+    const document = parseAgentHtml(fixture("valid", "section-width.xml"))
+
+    expect(document.root.children[0]).toMatchObject({
+      type: "element",
+      tag: "Section",
+    })
+  })
+
   it("throws on multiple roots", () => {
     expect(() =>
       parseAgentHtml("<Page title=\"A\" /><Page title=\"B\" />")

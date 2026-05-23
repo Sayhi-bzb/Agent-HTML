@@ -18,6 +18,7 @@
 
 - `Cluster justify="start" wrap="true"`
 - `Grid columns="2"`
+- `Section width="content"`
 - `Alert variant="default"`
 - `Card size="default"`
 - `Carousel orientation="horizontal"`
@@ -28,6 +29,7 @@
 ## Layout
 
 - `Page:title=string -> Layout | UI`
+- `Section:width?="full|content|reader" -> Layout | UI`
 - `Stack -> Layout | UI`
 - `Cluster:justify?="start|center|end|between", wrap?="true|false" -> Layout | UI`
 - `Grid:columns?="1|2|3|4" -> Layout | UI`
@@ -92,9 +94,13 @@
 
 ```xml
 <Page title="Gallery Preview">
-  <Stack>
-    <Text variant="muted">Use Text for standalone copy inside layout nodes.</Text>
+  <Section width="reader">
+    <Stack>
+      <Text variant="muted">Use Text for standalone copy inside layout nodes.</Text>
+    </Stack>
+  </Section>
 
+  <Section>
     <Card>
       <CardHeader>
         <CardTitle>Controls</CardTitle>
@@ -121,7 +127,9 @@
         </Tabs>
       </CardContent>
     </Card>
+  </Section>
 
+  <Section>
     <Grid columns="2">
       <Card>
         <CardContent>
@@ -155,7 +163,7 @@
         </CardContent>
       </Card>
     </Grid>
-  </Stack>
+  </Section>
 </Page>
 ```
 

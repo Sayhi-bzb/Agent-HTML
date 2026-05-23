@@ -1,5 +1,12 @@
 import * as React from "react"
+import { renderToStaticMarkup } from "react-dom/server"
 
+import {
+  AgentHtmlRuntimeTheme,
+  parseAgentHtml,
+  renderAgentHtml,
+  validateAgentHtml,
+} from "@/agent-html"
 import {
   galleryColorTokenDefaults,
   type GalleryColorTokenName,
@@ -15,67 +22,27 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-
-type Project = {
-  id: string
-  name: string
-  slug: string
-}
+import {
+  createWorkspaceProject,
+  deleteWorkspaceProject,
+  duplicateWorkspaceProject,
+  getCurrentWorkspaceName,
+  isFileSystemAccessSupported,
+  loadWorkspaceProjects,
+  openWorkspaceDirectory,
+  readWorkspaceProjectDocument,
+  renameWorkspaceProject,
+} from "@/workspace/file-system-access-store"
+import type {
+  AgentHtmlProjectDocument,
+  WorkspaceProject,
+} from "@/workspace/types"
 
 type ProjectTab = {
   id: string
   projectId: string
   label: string
   slug: string
-}
-
-const initialProjects: Project[] = [
-  {
-    id: "design-engineering",
-    name: "Design Engineering",
-    slug: "design-engineering",
-  },
-  {
-    id: "sales-marketing",
-    name: "Sales & Marketing",
-    slug: "sales-marketing",
-  },
-  {
-    id: "travel",
-    name: "Travel",
-    slug: "travel",
-  },
-]
-
-function slugifyProjectName(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
-
-function createDuplicateProject(source: Project, projects: Project[]): Project {
-  const baseName = `${source.name} Copy`
-  let nextName = baseName
-  let nextSlug = slugifyProjectName(nextName)
-  let suffix = 2
-
-  while (
-    projects.some(
-      (project) => project.id === nextSlug || project.slug === nextSlug
-    )
-  ) {
-    nextName = `${baseName} ${suffix}`
-    nextSlug = slugifyProjectName(nextName)
-    suffix += 1
-  }
-
-  return {
-    id: nextSlug,
-    name: nextName,
-    slug: nextSlug,
-  }
 }
 
 function getNextActiveTabId(
@@ -109,112 +76,192 @@ function getNextActiveTabId(
   return null
 }
 
-const stats = [
-  { label: "Active agents", value: "12", detail: "+2 this week" },
-  { label: "Artifacts built", value: "48", detail: "7 pending review" },
-  { label: "Failed checks", value: "03", detail: "Needs triage" },
-]
-
-const activity = [
-  {
-    title: "Sidebar template attached",
-    summary: "Main shell now uses the shadcn sidebar provider and header.",
-    time: "Just now",
-  },
-  {
-    title: "Workspace status",
-    summary: "Template components are wired and ready for page-specific content.",
-    time: "Ready",
-  },
-  {
-    title: "Next step",
-    summary: "Replace placeholder cards with real module data or routes.",
-    time: "Open",
-  },
-]
-
 type SurfaceMode = "gallery" | "workspace"
 type HeaderTab = {
   id: string
   isClosable: boolean
   label: string
 }
+type WorkspaceStatus = "idle" | "loading" | "ready" | "unsupported" | "error"
 
-function WorkspacePanel({ activeProject: _activeProject }: { activeProject: Project | null }) {
+function WorkspacePanel({
+  activeDocument,
+  activeProject,
+  error,
+  onCreateProject,
+  onOpenWorkspace,
+  status,
+  workspaceName,
+}: {
+  activeDocument: AgentHtmlProjectDocument | null
+  activeProject: WorkspaceProject | null
+  error: string | null
+  onCreateProject: () => void
+  onOpenWorkspace: () => void
+  status: WorkspaceStatus
+  workspaceName: string | null
+}) {
+  const runtime = React.useMemo(() => {
+    if (!activeDocument) {
+      return null
+    }
+
+    const document = parseAgentHtml(activeDocument.source)
+    const validation = validateAgentHtml(document)
+    const renderedContent = validation.ok ? renderAgentHtml(document) : null
+
+    return {
+      htmlSource: renderedContent
+        ? renderToStaticMarkup(renderedContent)
+        : "",
+      renderedContent,
+      validation,
+    }
+  }, [activeDocument])
+
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
       <ScrollArea className="min-h-0 flex-1">
-        <div className="flex min-h-full flex-col gap-6 p-4 md:p-6">
-          <section className="grid gap-4 md:grid-cols-3">
-            {stats.map((stat) => (
-              <article
-                key={stat.label}
-                className="rounded-xl border bg-background p-5 text-foreground shadow-sm"
-              >
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight">
-                  {stat.value}
+        <div className="flex min-h-full flex-col p-4 md:p-6">
+          {status === "unsupported" ? (
+            <WorkspaceEmptyState
+              actionLabel="Use a supported browser"
+              description="This workspace needs the File System Access API to open local project folders."
+              title="Local folders are not available"
+            />
+          ) : !workspaceName ? (
+            <WorkspaceEmptyState
+              actionLabel="Open Workspace"
+              description="Choose a local folder. The app will manage agent-html projects under projects/*."
+              onAction={onOpenWorkspace}
+              title="Open an agent-html workspace"
+            />
+          ) : !activeProject ? (
+            <WorkspaceEmptyState
+              actionLabel="Create Project"
+              description={`Workspace: ${workspaceName}`}
+              onAction={onCreateProject}
+              title="No project selected"
+            />
+          ) : error ? (
+            <WorkspaceEmptyState
+              actionLabel="Reload Workspace"
+              description={error}
+              onAction={onOpenWorkspace}
+              title="Workspace error"
+            />
+          ) : runtime ? (
+            <div className="grid min-h-full gap-4 xl:grid-cols-[1fr_24rem]">
+              <section className="min-h-[32rem] overflow-hidden rounded-xl border bg-background shadow-sm">
+                <AgentHtmlRuntimeTheme>
+                  <div className="h-full overflow-auto p-5">
+                    {runtime.renderedContent ? (
+                      runtime.renderedContent
+                    ) : (
+                      <div className="flex flex-col gap-3">
+                        {runtime.validation.errors.map((validationError) => (
+                          <article
+                            key={`${validationError.code}:${validationError.path}`}
+                            className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive"
+                          >
+                            <p className="text-sm font-medium">
+                              {validationError.code}
+                            </p>
+                            <p className="mt-1 text-sm">
+                              {validationError.path} -{" "}
+                              {validationError.message}
+                            </p>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </AgentHtmlRuntimeTheme>
+              </section>
+              <aside className="rounded-xl border bg-background p-4 text-foreground shadow-sm">
+                <p className="text-sm font-medium">{activeProject.name}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {activeProject.slug}/index.agent-html
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {stat.detail}
-                </p>
-              </article>
-            ))}
-          </section>
-
-          <section className="grid flex-1 gap-6 lg:grid-cols-[1.4fr_0.9fr]">
-            <article className="rounded-xl border bg-background text-foreground shadow-sm">
-              <div className="grid gap-4 p-5 md:grid-cols-2">
-                <div className="rounded-lg border border-dashed p-4">
-                  <p className="text-sm font-medium">Primary content area</p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Put your routed page, dashboard widgets, or editor here.
+                <div className="mt-4 rounded-lg border bg-muted/30 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Source
                   </p>
+                  <pre className="mt-2 max-h-[26rem] overflow-auto text-xs leading-5 whitespace-pre-wrap">
+                    {activeDocument?.source}
+                  </pre>
                 </div>
-                <div className="rounded-lg border border-dashed p-4">
-                  <p className="text-sm font-medium">Responsive behavior</p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    On mobile, the sidebar switches to a sheet automatically.
-                  </p>
-                </div>
-              </div>
-            </article>
-
-            <article className="rounded-xl border bg-background text-foreground shadow-sm">
-              <div className="border-b px-5 py-4">
-                <p className="text-sm font-medium">Recent activity</p>
-              </div>
-              <div className="flex flex-col gap-3 p-5">
-                {activity.map((item) => (
-                  <div
-                    key={item.title}
-                    className="rounded-lg border border-dashed p-4"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">{item.title}</p>
-                      <span className="text-xs text-muted-foreground">
-                        {item.time}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      {item.summary}
+                {runtime.htmlSource ? (
+                  <div className="mt-4 rounded-lg border bg-muted/30 p-3">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Rendered HTML
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {runtime.htmlSource.length.toLocaleString()} chars
                     </p>
                   </div>
-                ))}
-              </div>
-            </article>
-          </section>
+                ) : null}
+              </aside>
+            </div>
+          ) : (
+            <WorkspaceEmptyState
+              actionLabel="Reload Project"
+              description="The active project is open, but its index.agent-html has not loaded yet."
+              onAction={onOpenWorkspace}
+              title="Loading project"
+            />
+          )}
         </div>
       </ScrollArea>
     </div>
   )
 }
 
+function WorkspaceEmptyState({
+  actionLabel,
+  description,
+  onAction,
+  title,
+}: {
+  actionLabel: string
+  description: string
+  onAction?: () => void
+  title: string
+}) {
+  return (
+    <div className="flex min-h-[24rem] flex-1 items-center justify-center">
+      <div className="w-full max-w-md rounded-xl border bg-background p-5 text-foreground shadow-sm">
+        <p className="text-sm font-medium">{title}</p>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          {description}
+        </p>
+        {onAction ? (
+          <button
+            className="mt-4 inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
+            onClick={onAction}
+            type="button"
+          >
+            {actionLabel}
+          </button>
+        ) : (
+          <p className="mt-4 text-xs text-muted-foreground">{actionLabel}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function App() {
-  const [projects, setProjects] = React.useState<Project[]>(initialProjects)
+  const [projects, setProjects] = React.useState<WorkspaceProject[]>([])
   const [openTabs, setOpenTabs] = React.useState<ProjectTab[]>([])
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
   const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
+  const [workspaceName, setWorkspaceName] = React.useState<string | null>(null)
+  const [workspaceStatus, setWorkspaceStatus] =
+    React.useState<WorkspaceStatus>("idle")
+  const [workspaceError, setWorkspaceError] = React.useState<string | null>(null)
+  const [activeDocument, setActiveDocument] =
+    React.useState<AgentHtmlProjectDocument | null>(null)
   const [galleryColorTokenValues, setGalleryColorTokenValues] = React.useState(
     galleryColorTokenDefaults
   )
@@ -234,6 +281,41 @@ export function App() {
         : null,
     [activeTab]
   )
+
+  React.useEffect(() => {
+    if (!isFileSystemAccessSupported()) {
+      setWorkspaceStatus("unsupported")
+    }
+  }, [])
+
+  React.useEffect(() => {
+    let isCurrent = true
+
+    if (!activeProject) {
+      setActiveDocument(null)
+      return
+    }
+
+    setWorkspaceError(null)
+    void readWorkspaceProjectDocument(activeProject)
+      .then((document) => {
+        if (isCurrent) {
+          setActiveDocument(document)
+        }
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          setActiveDocument(null)
+          setWorkspaceError(
+            error instanceof Error ? error.message : "Unable to load project."
+          )
+        }
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [activeProject])
 
   const galleryDisplayScene = React.useMemo(
     () =>
@@ -288,35 +370,86 @@ export function App() {
     [projects]
   )
 
-  const handleRenameProject = React.useCallback((projectId: string, name: string) => {
+  const refreshProjects = React.useCallback(async () => {
+    const nextProjects = await loadWorkspaceProjects()
+    setProjects(nextProjects)
+    setWorkspaceName(getCurrentWorkspaceName())
+    setWorkspaceStatus("ready")
+    return nextProjects
+  }, [])
+
+  const handleOpenWorkspace = React.useCallback(async () => {
+    if (!isFileSystemAccessSupported()) {
+      setWorkspaceStatus("unsupported")
+      return
+    }
+
+    setWorkspaceStatus("loading")
+    setWorkspaceError(null)
+
+    try {
+      const nextProjects = await openWorkspaceDirectory()
+      setProjects(nextProjects)
+      setWorkspaceName(getCurrentWorkspaceName())
+      setWorkspaceStatus("ready")
+      setOpenTabs([])
+      setActiveTabId(null)
+      setActiveDocument(null)
+    } catch (error) {
+      setWorkspaceStatus("error")
+      setWorkspaceError(
+        error instanceof Error ? error.message : "Unable to open workspace."
+      )
+    }
+  }, [])
+
+  const handleCreateProject = React.useCallback(async () => {
+    const projectName = `Project ${projects.length + 1}`
+
+    try {
+      const project = await createWorkspaceProject(projectName)
+      const nextProjects = await refreshProjects()
+      setProjects(nextProjects)
+      handleOpenProject(project.id)
+    } catch (error) {
+      setWorkspaceError(
+        error instanceof Error ? error.message : "Unable to create project."
+      )
+    }
+  }, [handleOpenProject, projects.length, refreshProjects])
+
+  const handleRenameProject = React.useCallback(async (projectId: string, name: string) => {
     const nextName = name.trim()
     if (!nextName) {
       return
     }
 
-    setProjects((currentProjects) =>
-      currentProjects.map((project) =>
-        project.id === projectId ? { ...project, name: nextName } : project
+    try {
+      const project = await renameWorkspaceProject(projectId, nextName)
+      setProjects((currentProjects) =>
+        currentProjects.map((currentProject) =>
+          currentProject.id === projectId ? project : currentProject
+        )
       )
-    )
-    setOpenTabs((currentTabs) =>
-      currentTabs.map((tab) =>
-        tab.projectId === projectId ? { ...tab, label: nextName } : tab
+      setOpenTabs((currentTabs) =>
+        currentTabs.map((tab) =>
+          tab.projectId === projectId ? { ...tab, label: project.name } : tab
+        )
       )
-    )
+    } catch (error) {
+      setWorkspaceError(
+        error instanceof Error ? error.message : "Unable to rename project."
+      )
+    }
   }, [])
 
   const handleDuplicateProject = React.useCallback(
-    (projectId: string) => {
-      const sourceProject = projects.find((project) => project.id === projectId)
-      if (!sourceProject) {
-        return
-      }
-
-      const duplicateProject = createDuplicateProject(sourceProject, projects)
+    async (projectId: string) => {
+      try {
+        const duplicateProject = await duplicateWorkspaceProject(projectId)
       const duplicateTabId = `project:${duplicateProject.id}`
 
-      setProjects((currentProjects) => [...currentProjects, duplicateProject])
+        await refreshProjects()
       setOpenTabs((currentTabs) => [
         ...currentTabs,
         {
@@ -327,14 +460,19 @@ export function App() {
         },
       ])
       setActiveTabId(duplicateTabId)
+      } catch (error) {
+        setWorkspaceError(
+          error instanceof Error ? error.message : "Unable to duplicate project."
+        )
+      }
     },
-    [projects]
+    [refreshProjects]
   )
 
-  const handleDeleteProject = React.useCallback((projectId: string) => {
-    setProjects((currentProjects) =>
-      currentProjects.filter((project) => project.id !== projectId)
-    )
+  const handleDeleteProject = React.useCallback(async (projectId: string) => {
+    try {
+      await deleteWorkspaceProject(projectId)
+      await refreshProjects()
     setOpenTabs((currentTabs) => {
       const removedTabIds = new Set(
         currentTabs
@@ -354,7 +492,12 @@ export function App() {
 
       return nextTabs
     })
-  }, [])
+    } catch (error) {
+      setWorkspaceError(
+        error instanceof Error ? error.message : "Unable to delete project."
+      )
+    }
+  }, [refreshProjects])
 
   const handleSelectTab = React.useCallback(
     (tabId: string) => {
@@ -416,6 +559,7 @@ export function App() {
         <AppSidebar
           galleryColorTokenValues={galleryColorTokenValues}
           mode={surfaceMode}
+          onCreateProject={handleCreateProject}
           onDeleteProject={handleDeleteProject}
           onDuplicateProject={handleDuplicateProject}
           onEnterGalleryMode={handleEnterGalleryMode}
@@ -430,9 +574,11 @@ export function App() {
             }))
           }
           onOpenProject={handleOpenProject}
+          onOpenWorkspace={handleOpenWorkspace}
           onRenameProject={handleRenameProject}
           projects={projects}
           variant="inset"
+          workspaceName={workspaceName}
         />
         <SidebarInset className="min-h-0 overflow-hidden border-0 shadow-sm md:mr-2 md:mb-2">
           {surfaceMode === "gallery" ? (
@@ -441,7 +587,15 @@ export function App() {
               scene={galleryDisplayScene}
             />
           ) : (
-            <WorkspacePanel activeProject={activeProject} />
+            <WorkspacePanel
+              activeDocument={activeDocument}
+              activeProject={activeProject}
+              error={workspaceError}
+              onCreateProject={handleCreateProject}
+              onOpenWorkspace={handleOpenWorkspace}
+              status={workspaceStatus}
+              workspaceName={workspaceName}
+            />
           )}
         </SidebarInset>
       </main>

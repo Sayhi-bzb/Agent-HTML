@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">App surface preview</title>
+  <desc id="desc">A stylized application surface preview.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#365314"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect x="438" y="54" width="404" height="612" rx="58" fill="#020617" opacity=".78"/>
+  <rect x="474" y="106" width="332" height="508" rx="34" fill="#f8fafc"/>
+  <rect x="514" y="150" width="154" height="22" rx="11" fill="#0f172a"/>
+  <rect x="514" y="206" width="252" height="80" rx="22" fill="#d9f99d"/>
+  <rect x="514" y="318" width="252" height="80" rx="22" fill="#ccfbf1"/>
+  <rect x="514" y="430" width="252" height="80" rx="22" fill="#e0f2fe"/>
+  <circle cx="722" cy="246" r="20" fill="#65a30d"/>
+  <circle cx="722" cy="358" r="20" fill="#0f766e"/>
+  <circle cx="722" cy="470" r="20" fill="#0284c7"/>
+  <rect x="574" y="552" width="132" height="18" rx="9" fill="#94a3b8"/>
+  <circle cx="276" cy="168" r="130" fill="#84cc16" opacity=".18"/>
+  <circle cx="1000" cy="556" r="170" fill="#22d3ee" opacity=".16"/>
+</svg>

@@ -31,8 +31,10 @@ import {
 } from "@/components/ui/sidebar"
 import {
   CopyIcon,
+  FolderOpenIcon,
   MoreHorizontalIcon,
   PencilIcon,
+  PlusIcon,
   Trash2Icon,
 } from "lucide-react"
 
@@ -43,17 +45,23 @@ type ProjectNavItem = {
 }
 
 export function NavProjects({
+  onCreateProject,
   onDeleteProject,
   onDuplicateProject,
   onOpenProject,
+  onOpenWorkspace,
   onRenameProject,
   projects,
+  workspaceName,
 }: {
+  onCreateProject: () => void
   onDeleteProject: (projectId: string) => void
   onDuplicateProject: (projectId: string) => void
   onOpenProject: (projectId: string) => void
+  onOpenWorkspace: () => void
   onRenameProject: (projectId: string, name: string) => void
   projects: ProjectNavItem[]
+  workspaceName: string | null
 }) {
   const { isMobile } = useSidebar()
   const [draftName, setDraftName] = React.useState("")
@@ -110,7 +118,33 @@ export function NavProjects({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <div className="flex items-center justify-between gap-2">
+        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <div className="flex items-center">
+          <button
+            aria-label="Open workspace"
+            className="text-sidebar-foreground/55 hover:text-sidebar-foreground inline-flex size-6 items-center justify-center rounded-md hover:bg-sidebar-accent"
+            onClick={onOpenWorkspace}
+            type="button"
+          >
+            <FolderOpenIcon className="size-3.5" />
+          </button>
+          <button
+            aria-label="Create project"
+            className="text-sidebar-foreground/55 hover:text-sidebar-foreground inline-flex size-6 items-center justify-center rounded-md hover:bg-sidebar-accent disabled:pointer-events-none disabled:opacity-35"
+            disabled={!workspaceName}
+            onClick={onCreateProject}
+            type="button"
+          >
+            <PlusIcon className="size-3.5" />
+          </button>
+        </div>
+      </div>
+      {workspaceName ? (
+        <p className="text-sidebar-foreground/50 px-2 pb-1 text-xs truncate">
+          {workspaceName}
+        </p>
+      ) : null}
       <SidebarMenu>
         {projects.map((item) => {
           const isEditing = editingProjectId === item.id
