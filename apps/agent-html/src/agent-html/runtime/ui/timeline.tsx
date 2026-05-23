@@ -30,7 +30,7 @@ function TimelineItem({
   return (
     <div
       className={cn(
-        "relative border-l pb-10 pl-10 last:pb-0",
+        "relative border-l-2 pb-10 pl-10 last:pb-0",
         status === "muted" && "opacity-70",
         className
       )}
