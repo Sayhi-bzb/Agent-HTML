@@ -131,6 +131,14 @@
 
       <Separator />
 
+      <CodeBlock language="ahtml" title="Minimal section">
+<Page title="Demo">
+  <Section width="reader">
+    <Text variant="lead">Readable content stays centered.</Text>
+  </Section>
+</Page>
+      </CodeBlock>
+
       <Grid columns="3">
         <Card>
           <CardHeader>

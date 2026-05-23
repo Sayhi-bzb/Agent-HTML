@@ -35,22 +35,18 @@ type ProjectNavItem = {
 export function AppSidebar({
   galleryColorTokenValues,
   mode = "workspace",
-  onCreateProject,
   onEnterGalleryMode,
   onExitGalleryMode,
   onDeleteProject,
   onDuplicateProject,
   onGalleryColorTokenValueChange,
   onOpenProject,
-  onOpenWorkspace,
   onRenameProject,
   projects,
-  workspaceName,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   galleryColorTokenValues: GalleryColorTokenValues
   mode?: "gallery" | "workspace"
-  onCreateProject: () => void
   onEnterGalleryMode?: () => void
   onExitGalleryMode?: () => void
   onDeleteProject: (projectId: string) => void
@@ -60,10 +56,8 @@ export function AppSidebar({
     value: GalleryColorTokenValue
   ) => void
   onOpenProject: (projectId: string) => void
-  onOpenWorkspace: () => void
   onRenameProject: (projectId: string, name: string) => void
   projects: ProjectNavItem[]
-  workspaceName: string | null
 }) {
   const isGalleryMode = mode === "gallery"
   const [isEditorPopoverOpen, setIsEditorPopoverOpen] = React.useState(false)
@@ -141,14 +135,11 @@ export function AppSidebar({
           />
         ) : (
           <NavProjects
-            onCreateProject={onCreateProject}
             onDeleteProject={onDeleteProject}
             onDuplicateProject={onDuplicateProject}
-            onOpenWorkspace={onOpenWorkspace}
             onOpenProject={onOpenProject}
             onRenameProject={onRenameProject}
             projects={projects}
-            workspaceName={workspaceName}
           />
         )}
       </SidebarContent>

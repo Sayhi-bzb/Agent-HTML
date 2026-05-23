@@ -11,6 +11,7 @@ Use the closest valid fixture before inventing new structure.
 ## Valid Patterns
 
 - `card-tabs-grid.xml`
+- `codeblock-basic.xml`
 - `complex-dashboard.xml`
 - `icon-basic.xml`
 - `image-basic.xml`
@@ -24,6 +25,9 @@ Use the closest valid fixture before inventing new structure.
 - `bare-text-under-section.xml`
 - `carousel-missing-content.xml`
 - `chart-missing-series.xml`
+- `codeblock-empty.xml`
+- `codeblock-invalid-language.xml`
+- `codeblock-missing-language.xml`
 - `image-invalid-fit.xml`
 - `image-invalid-src.xml`
 - `image-with-child.xml`

@@ -28,6 +28,17 @@ function isAllowedImageSrc(src: string) {
   return src.startsWith("https://") || (src.startsWith("/") && !src.startsWith("//"))
 }
 
+const codeBlockLanguages = new Set([
+  "ahtml",
+  "html",
+  "tsx",
+  "jsx",
+  "ts",
+  "js",
+  "json",
+  "bash",
+])
+
 function validateNode(
   node: AgentHtmlNode,
   path: string,
@@ -282,6 +293,42 @@ function validateNode(
           tag: child.tag,
         })
       }
+    }
+  }
+
+  if (knownTag === "CodeBlock") {
+    const language = node.attrs.language
+    if (language !== undefined && !codeBlockLanguages.has(language)) {
+      errors.push({
+        code: "INVALID_ATTR_VALUE",
+        message: "CodeBlock language is not supported",
+        path,
+        tag,
+        attr: "language",
+      })
+    }
+
+    const textChildren = node.children.filter((child) => child.type === "text")
+    const elementChild = elementChildren(node)[0]
+    if (elementChild) {
+      errors.push({
+        code: "INVALID_CHILD",
+        message: "CodeBlock can only contain raw code text",
+        path: `${path}/${elementChild.tag}`,
+        tag: elementChild.tag,
+      })
+    }
+
+    if (
+      textChildren.length === 0 ||
+      textChildren.every((child) => child.type === "text" && child.value.trim().length === 0)
+    ) {
+      errors.push({
+        code: "MISSING_REQUIRED_CHILD",
+        message: "CodeBlock must contain raw code text",
+        path,
+        tag,
+      })
     }
   }
 

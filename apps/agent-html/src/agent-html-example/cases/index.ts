@@ -9,11 +9,3 @@ export const agentHtmlExampleCases = [
     reactSource,
   },
 ] as const
-
-export const agentHtmlWorkspaceTemplates = agentHtmlExampleCases.map(
-  ({ ahtmlSource, id, title }) => ({
-    ahtmlSource,
-    id,
-    title,
-  })
-)

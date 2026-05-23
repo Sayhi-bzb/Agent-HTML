@@ -82,6 +82,20 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("Full width can hold broader modules.")
   })
 
+  it("renders the codeblock basic fixture", () => {
+    const document = parseAgentHtml(fixture("valid", "codeblock-basic.xml"))
+    const validation = validateAgentHtml(document)
+
+    expect(validation.ok).toBe(true)
+
+    const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("data-slot=\"code-block\"")
+    expect(html).toContain("data-slot=\"code-block-copy\"")
+    expect(html).toContain("Example.tsx")
+    expect(html).toContain("return")
+    expect(html).toContain("Hello")
+  })
+
   it("renders the canonical card/tabs/grid fixture", () => {
     const document = parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
     const validation = validateAgentHtml(document)

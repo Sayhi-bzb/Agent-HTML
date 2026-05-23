@@ -45,6 +45,7 @@ export type AgentHtmlUiTag =
   | "Chart"
   | "ChartSeries"
   | "ChartTooltip"
+  | "CodeBlock"
   | "Icon"
   | "Image"
   | "Text"

@@ -67,6 +67,27 @@ describe("parseAgentHtml", () => {
     })
   })
 
+  it("parses raw text inside code blocks", () => {
+    const document = parseAgentHtml(fixture("valid", "codeblock-basic.xml"))
+    const section = document.root.children[0]
+    const codeBlock =
+      section.type === "element" ? section.children[0] : undefined
+    const code =
+      codeBlock?.type === "element" ? codeBlock.children[0] : undefined
+
+    expect(codeBlock).toMatchObject({
+      type: "element",
+      tag: "CodeBlock",
+      attrs: { language: "tsx", title: "Example.tsx" },
+    })
+    expect(code).toMatchObject({
+      type: "text",
+    })
+    expect(code?.type === "text" ? code.value : "").toContain(
+      "return <div>Hello</div>"
+    )
+  })
+
   it("throws on multiple roots", () => {
     expect(() =>
       parseAgentHtml("<Page title=\"A\" /><Page title=\"B\" />")

@@ -53,6 +53,7 @@ export const allTags = new Set<AgentHtmlTag>([
   "Chart",
   "ChartSeries",
   "ChartTooltip",
+  "CodeBlock",
   "Icon",
   "Image",
   "Text",

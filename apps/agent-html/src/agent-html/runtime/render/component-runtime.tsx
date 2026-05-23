@@ -23,6 +23,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/agent-html/runtime/ui/carousel"
+import { CodeBlock } from "@/agent-html/runtime/ui/code-block"
 import { Progress } from "@/agent-html/runtime/ui/progress"
 import { Image } from "@/agent-html/runtime/ui/image"
 import { Separator } from "@/agent-html/runtime/ui/separator"
@@ -62,6 +63,7 @@ export const previewComponentRuntime = {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  CodeBlock,
   Image,
   Progress,
   Separator,

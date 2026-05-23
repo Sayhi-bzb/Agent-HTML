@@ -1,0 +1,9 @@
+<Page title="CodeBlock">
+  <Section width="reader">
+    <CodeBlock language="tsx" title="Example.tsx">
+function App() {
+  return <div>Hello</div>
+}
+    </CodeBlock>
+  </Section>
+</Page>

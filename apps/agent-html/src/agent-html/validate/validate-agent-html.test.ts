@@ -78,6 +78,15 @@ describe("validateAgentHtml", () => {
     expect(result.errors).toHaveLength(0)
   })
 
+  it("accepts the codeblock basic fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "codeblock-basic.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
   it("rejects unknown tags", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "unknown-tag.xml"))
@@ -210,6 +219,42 @@ describe("validateAgentHtml", () => {
         (error) =>
           error.code === "INVALID_ATTR_VALUE" && error.attr === "width"
       )
+    ).toBe(true)
+  })
+
+  it("rejects codeblocks missing language", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "codeblock-missing-language.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_ATTR")
+    ).toBe(true)
+  })
+
+  it("rejects unsupported codeblock languages", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "codeblock-invalid-language.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "INVALID_ATTR_VALUE" && error.attr === "language"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects empty codeblocks", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "codeblock-empty.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_CHILD")
     ).toBe(true)
   })
 

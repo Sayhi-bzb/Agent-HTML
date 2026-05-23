@@ -8,7 +8,13 @@ import type {
 type Token =
   | { type: "open"; tag: string; attrs: AgentHtmlAttrMap; selfClosing: boolean }
   | { type: "close"; tag: string }
-  | { type: "text"; value: string }
+  | { type: "text"; value: string; raw?: boolean }
+
+const rawTextTags = new Set(["CodeBlock"])
+
+function trimRawText(value: string) {
+  return value.replace(/^\r?\n/, "").replace(/\r?\n\s*$/, "")
+}
 
 function parseAttrs(raw: string) {
   const attrs: AgentHtmlAttrMap = {}
@@ -51,6 +57,25 @@ function tokenize(input: string) {
       const rawAttrs = firstSpace === -1 ? "" : tagBody.slice(firstSpace + 1).trim()
       const attrs = parseAttrs(rawAttrs)
       tokens.push({ type: "open", tag, attrs, selfClosing })
+
+      if (!selfClosing && rawTextTags.has(tag)) {
+        const closeTag = `</${tag}>`
+        const rawStart = match.index + rawTag.length
+        const rawEnd = input.indexOf(closeTag, rawStart)
+
+        if (rawEnd === -1) {
+          throw new Error(`Unclosed tag: <${tag}>`)
+        }
+
+        const rawText = trimRawText(input.slice(rawStart, rawEnd))
+        if (rawText.length > 0) {
+          tokens.push({ type: "text", value: rawText, raw: true })
+        }
+        tokens.push({ type: "close", tag })
+        tagPattern.lastIndex = rawEnd + closeTag.length
+        lastIndex = tagPattern.lastIndex
+        continue
+      }
     }
 
     lastIndex = match.index + rawTag.length
@@ -71,7 +96,7 @@ export function parseAgentHtml(input: string): AgentHtmlDocument {
 
   for (const token of tokens) {
     if (token.type === "text") {
-      const normalized = token.value.replace(/\s+/g, " ").trim()
+      const normalized = token.raw ? token.value : token.value.replace(/\s+/g, " ").trim()
       if (!normalized) {
         continue
       }

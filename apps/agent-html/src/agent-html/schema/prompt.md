@@ -83,6 +83,8 @@
 - `ChartSeries:key=string, label?=string`
 - `ChartTooltip:hideLabel?="true|false" -> none`
 
+- `CodeBlock:language="ahtml|html|tsx|jsx|ts|js|json|bash", title?=string -> raw code text`
+
 - `Icon:name=string -> none`
 - `Image:src=string, alt=string, fit?="cover|contain" -> none`
 - `Text:variant?="h1|h2|h3|h4|p|lead|large|small|muted|inline-code" -> Text`
@@ -94,6 +96,11 @@
   <Section width="reader">
     <Stack>
       <Text variant="muted">Use Text for standalone copy inside layout nodes.</Text>
+      <CodeBlock language="tsx" title="Example.tsx">
+function Example() {
+  return <div>Hello</div>
+}
+      </CodeBlock>
     </Stack>
   </Section>
 
