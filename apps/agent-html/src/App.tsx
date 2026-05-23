@@ -143,14 +143,6 @@ type HeaderTab = {
 function WorkspacePanel({ activeProject: _activeProject }: { activeProject: Project | null }) {
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-      <header className="shrink-0 border-b px-4 py-3 md:px-6">
-        <div className="flex min-h-8 items-center gap-3">
-          <div className="min-w-0 flex-1" aria-hidden="true" />
-          <div className="hidden flex-1 items-center justify-center gap-2 lg:flex" aria-hidden="true" />
-          <div className="flex shrink-0 items-center gap-2" aria-hidden="true" />
-        </div>
-      </header>
-
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex min-h-full flex-col gap-6 p-4 md:p-6">
           <section className="grid gap-4 md:grid-cols-3">

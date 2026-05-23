@@ -3,7 +3,7 @@ import type {
   AgentHtmlDocument,
   AgentHtmlElementNode,
   AgentHtmlNode,
-} from "@/gallery/preview/agent-html/ast"
+} from "@/gallery/preview/agent-html/ast/types"
 
 type Token =
   | { type: "open"; tag: string; attrs: AgentHtmlAttrMap; selfClosing: boolean }
@@ -111,7 +111,9 @@ export function parseAgentHtml(input: string): AgentHtmlDocument {
     }
 
     if (current.tag !== token.tag) {
-      throw new Error(`Mismatched closing tag: expected </${current.tag}> but found </${token.tag}>`)
+      throw new Error(
+        `Mismatched closing tag: expected </${current.tag}> but found </${token.tag}>`
+      )
     }
   }
 

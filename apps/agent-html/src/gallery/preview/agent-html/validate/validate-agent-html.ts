@@ -3,105 +3,13 @@ import type {
   AgentHtmlElementNode,
   AgentHtmlNode,
   AgentHtmlTag,
-} from "@/gallery/preview/agent-html/ast"
-
-export type AgentHtmlValidationCode =
-  | "UNKNOWN_TAG"
-  | "UNKNOWN_ATTR"
-  | "INVALID_CHILD"
-  | "MISSING_REQUIRED_ATTR"
-  | "TEXT_NOT_ALLOWED"
-  | "MISSING_REQUIRED_CHILD"
-
-export type AgentHtmlValidationError = {
-  code: AgentHtmlValidationCode
-  message: string
-  path: string
-  tag?: string
-  attr?: string
-}
-
-const layoutTags = new Set<AgentHtmlTag>(["Page", "Stack", "Cluster", "Grid"])
-
-const allTags = new Set<AgentHtmlTag>([
-  "Page",
-  "Stack",
-  "Cluster",
-  "Grid",
-  "Accordion",
-  "AccordionItem",
-  "AccordionTrigger",
-  "AccordionContent",
-  "Alert",
-  "AlertTitle",
-  "AlertDescription",
-  "AlertAction",
-  "AspectRatio",
-  "Badge",
-  "Card",
-  "CardHeader",
-  "CardTitle",
-  "CardDescription",
-  "CardAction",
-  "CardContent",
-  "CardFooter",
-  "Carousel",
-  "CarouselContent",
-  "CarouselItem",
-  "CarouselPrevious",
-  "CarouselNext",
-  "Progress",
-  "Separator",
-  "Table",
-  "TableCaption",
-  "TableHeader",
-  "TableBody",
-  "TableFooter",
-  "TableRow",
-  "TableHead",
-  "TableCell",
-  "Tabs",
-  "TabsList",
-  "TabsTrigger",
-  "TabsContent",
-  "Chart",
-  "ChartSeries",
-  "ChartTooltip",
-  "Icon",
-])
-
-const allowedAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
-  Page: ["title", "gap"],
-  Stack: ["gap"],
-  Cluster: ["gap", "justify", "wrap"],
-  Grid: ["columns", "gap"],
-  Accordion: ["type"],
-  AccordionItem: ["value", "disabled"],
-  Alert: ["variant"],
-  AspectRatio: ["ratio"],
-  Badge: ["variant"],
-  Card: ["size"],
-  Carousel: ["orientation"],
-  Progress: ["value"],
-  Separator: ["orientation"],
-  Tabs: ["orientation", "defaultValue"],
-  TabsTrigger: ["value", "disabled"],
-  TabsContent: ["value"],
-  Chart: ["type"],
-  ChartSeries: ["key", "label"],
-  ChartTooltip: ["hideLabel"],
-  Icon: ["name"],
-}
-
-const requiredAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
-  Page: ["title"],
-  Progress: ["value"],
-  AspectRatio: ["ratio"],
-  TabsTrigger: ["value"],
-  TabsContent: ["value"],
-  ChartSeries: ["key"],
-  Icon: ["name"],
-}
+} from "@/gallery/preview/agent-html/ast/types"
+import {
+  allowedAttrs,
+  requiredAttrs,
+} from "@/gallery/preview/agent-html/shared/attrs"
+import { allTags, layoutTags } from "@/gallery/preview/agent-html/shared/tags"
+import type { AgentHtmlValidationError } from "@/gallery/preview/agent-html/validate/error-codes"
 
 function isElement(node: AgentHtmlNode): node is AgentHtmlElementNode {
   return node.type === "element"
@@ -186,10 +94,14 @@ function validateNode(
   }
 
   if (knownTag === "AccordionItem") {
-    if (!hasChild(node, "AccordionTrigger") || !hasChild(node, "AccordionContent")) {
+    if (
+      !hasChild(node, "AccordionTrigger") ||
+      !hasChild(node, "AccordionContent")
+    ) {
       errors.push({
         code: "MISSING_REQUIRED_CHILD",
-        message: "AccordionItem must contain AccordionTrigger and AccordionContent",
+        message:
+          "AccordionItem must contain AccordionTrigger and AccordionContent",
         path,
         tag,
       })
@@ -201,7 +113,7 @@ function validateNode(
       if (child.tag !== "TabsTrigger") {
         errors.push({
           code: "INVALID_CHILD",
-          message: `TabsList can only contain TabsTrigger`,
+          message: "TabsList can only contain TabsTrigger",
           path: `${path}/${child.tag}`,
           tag: child.tag,
         })
@@ -209,7 +121,11 @@ function validateNode(
     }
   }
 
-  if (knownTag === "TableHeader" || knownTag === "TableBody" || knownTag === "TableFooter") {
+  if (
+    knownTag === "TableHeader" ||
+    knownTag === "TableBody" ||
+    knownTag === "TableFooter"
+  ) {
     for (const child of elementChildren(node)) {
       if (child.tag !== "TableRow") {
         errors.push({

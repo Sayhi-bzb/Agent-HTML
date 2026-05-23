@@ -4,12 +4,12 @@ import { readFileSync } from "node:fs"
 
 import { describe, expect, it } from "vitest"
 
-import { parseAgentHtml } from "@/gallery/preview/agent-html/parser"
-import { validateAgentHtml } from "@/gallery/preview/agent-html/validate"
+import { parseAgentHtml } from "@/gallery/preview/agent-html/parse/parse-agent-html"
+import { validateAgentHtml } from "@/gallery/preview/agent-html/validate/validate-agent-html"
 
 function fixture(...parts: string[]) {
   return readFileSync(
-    new URL(`./fixtures/${parts.join("/")}`, import.meta.url),
+    new URL(`../fixtures/${parts.join("/")}`, import.meta.url),
     "utf8"
   )
 }
@@ -27,6 +27,15 @@ describe("validateAgentHtml", () => {
   it("accepts the canonical card/tabs/grid fixture", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it("accepts the complex dashboard fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
     )
 
     expect(result.ok).toBe(true)
@@ -57,8 +66,8 @@ describe("validateAgentHtml", () => {
     )
 
     expect(result.ok).toBe(false)
-    expect(result.errors.some((error) => error.code === "MISSING_REQUIRED_ATTR")).toBe(
-      true
-    )
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_ATTR")
+    ).toBe(true)
   })
 })

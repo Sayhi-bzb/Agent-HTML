@@ -1,18 +1,54 @@
 import {
+  DropdownMenuCheckboxItem,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useTheme, type Theme } from "@/components/theme-provider"
 import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { BellIcon, BadgeCheckIcon, Settings2Icon } from "lucide-react"
+import {
+  BellIcon,
+  BadgeCheckIcon,
+  MonitorIcon,
+  MoonIcon,
+  Settings2Icon,
+  SunIcon,
+} from "lucide-react"
+
+const themeItems: {
+  icon: typeof SunIcon
+  label: string
+  value: Theme
+}[] = [
+  {
+    icon: SunIcon,
+    label: "Light",
+    value: "light",
+  },
+  {
+    icon: MoonIcon,
+    label: "Dark",
+    value: "dark",
+  },
+  {
+    icon: MonitorIcon,
+    label: "System",
+    value: "system",
+  },
+]
 
 export function SettingsMenu() {
   const { isMobile } = useSidebar()
+  const { setTheme, theme } = useTheme()
 
   return (
     <DropdownMenu>
@@ -41,6 +77,30 @@ export function SettingsMenu() {
           <BellIcon />
           Notifications
         </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <SunIcon />
+            Theme
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent className="w-44 rounded-lg">
+              {themeItems.map((item) => {
+                const Icon = item.icon
+
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={item.value}
+                    checked={theme === item.value}
+                    onCheckedChange={() => setTheme(item.value)}
+                  >
+                    <Icon />
+                    {item.label}
+                  </DropdownMenuCheckboxItem>
+                )
+              })}
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu>
   )
