@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { TooltipProvider } from "@/components/ui/tooltip.tsx"
 
 const AgentHtmlRuntimeDemo = lazy(() =>
-  import("@/agent-html/runtime/runtime-entry").then((module) => ({
+  import("@/agent-html-example/entry").then((module) => ({
     default: module.AgentHtmlRuntimeDemo,
   }))
 )

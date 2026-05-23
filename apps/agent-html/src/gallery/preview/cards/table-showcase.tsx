@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/agent-html/runtime/ui/table"
+} from "@/gallery/preview/ui/table"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 
 const rows = [

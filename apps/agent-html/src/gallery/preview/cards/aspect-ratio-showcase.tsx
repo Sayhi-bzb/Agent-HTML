@@ -1,4 +1,4 @@
-import { AspectRatio } from "@/agent-html/runtime/ui/aspect-ratio"
+import { AspectRatio } from "@/gallery/preview/ui/aspect-ratio"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 
 const frames = [

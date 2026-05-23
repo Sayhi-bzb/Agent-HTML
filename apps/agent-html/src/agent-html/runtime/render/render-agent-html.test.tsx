@@ -10,7 +10,7 @@ import { validateAgentHtml } from "@/agent-html/validate/validate-agent-html"
 
 function fixture(...parts: string[]) {
   return readFileSync(
-    new URL(`../fixtures/${parts.join("/")}`, import.meta.url),
+    new URL(`../../fixtures/${parts.join("/")}`, import.meta.url),
     "utf8"
   )
 }

@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/agent-html/runtime/ui/card"
+} from "@/gallery/preview/ui/card"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 
 export function CardShowcase() {

@@ -3,7 +3,7 @@ import {
   AlertAction,
   AlertDescription,
   AlertTitle,
-} from "@/agent-html/runtime/ui/alert"
+} from "@/gallery/preview/ui/alert"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 import { ShieldCheckIcon, TriangleAlertIcon } from "lucide-react"
 

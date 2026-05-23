@@ -39,27 +39,18 @@ function hasChildren(tag: AgentHtmlElementNode["tag"]) {
 function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
   if (node.tag === "Page") {
     const children = renderChildren(node.children)
-    return (
-      <PageRuntime gap={node.attrs.gap} key={key}>
-        {children}
-      </PageRuntime>
-    )
+    return <PageRuntime key={key}>{children}</PageRuntime>
   }
 
   if (node.tag === "Stack") {
     const children = renderChildren(node.children)
-    return (
-      <StackRuntime gap={node.attrs.gap} key={key}>
-        {children}
-      </StackRuntime>
-    )
+    return <StackRuntime key={key}>{children}</StackRuntime>
   }
 
   if (node.tag === "Cluster") {
     const children = renderChildren(node.children)
     return (
       <ClusterRuntime
-        gap={node.attrs.gap}
         justify={node.attrs.justify}
         key={key}
         wrap={node.attrs.wrap}
@@ -72,7 +63,7 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
   if (node.tag === "Grid") {
     const children = renderChildren(node.children)
     return (
-      <GridRuntime columns={node.attrs.columns} gap={node.attrs.gap} key={key}>
+      <GridRuntime columns={node.attrs.columns} key={key}>
         {children}
       </GridRuntime>
     )

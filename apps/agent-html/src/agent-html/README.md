@@ -1,13 +1,15 @@
-# Agent-HTML Preview DSL
+# Agent-HTML DSL
 
-This directory isolates the experimental `agent-html` DSL used for gallery preview generation work.
+This directory owns the `agent-html` DSL and runtime system.
 
 It currently owns:
 
 - prompt and grammar notes
-- future parser / validator / renderer work
-- future DSL fixtures and error cases
+- parser, validator, and renderer
+- runtime UI used by rendered DSL output
+- runtime theme defaults
+- test fixtures and error cases
+- public exports from `src/agent-html/index.ts`
 
-It does not own the preview surface itself.
-Keep masonry/layout rendering, preview cards, and preview-local UI outside this directory unless they
-are directly part of the DSL experiment.
+It does not own the standalone example app surface. Keep demo panels, source comparison,
+and deployable example cases in `src/agent-html-example`.

@@ -6,17 +6,15 @@
 - Use JSX-like XML tags with `PascalCase`.
 - Root must be `<Page>`.
 - Attribute values must be quoted scalars.
-  Example: `gap="md"`, `columns="2"`, `value="82"`.
+  Example: `columns="2"`, `value="82"`.
 - Do not use `class`, `className`, `style`, imports, fragments, hooks, JS expressions, or raw HTML.
 - Do not use unknown tags or unknown attrs.
 - Do not put bare text directly under `Page`, `Stack`, `Cluster`, or `Grid`.
 
 ## Defaults
 
-- `Page gap="md"`
-- `Stack gap="md"`
-- `Cluster gap="md" justify="start" wrap="true"`
-- `Grid columns="2" gap="md"`
+- `Cluster justify="start" wrap="true"`
+- `Grid columns="2"`
 - `Alert variant="default"`
 - `Card size="default"`
 - `Carousel orientation="horizontal"`
@@ -26,10 +24,10 @@
 
 ## Layout
 
-- `Page:title=string, gap?="xs|sm|md|lg" -> Layout | UI`
-- `Stack:gap?="xs|sm|md|lg" -> Layout | UI`
-- `Cluster:gap?="xs|sm|md|lg", justify?="start|center|end|between", wrap?="true|false" -> Layout | UI`
-- `Grid:columns?="1|2|3|4", gap?="xs|sm|md|lg" -> Layout | UI`
+- `Page:title=string -> Layout | UI`
+- `Stack -> Layout | UI`
+- `Cluster:justify?="start|center|end|between", wrap?="true|false" -> Layout | UI`
+- `Grid:columns?="1|2|3|4" -> Layout | UI`
 
 ## UI
 
@@ -88,8 +86,8 @@
 ## Canonical Example
 
 ```xml
-<Page title="Gallery Preview" gap="lg">
-  <Stack gap="lg">
+<Page title="Gallery Preview">
+  <Stack>
     <Card>
       <CardHeader>
         <CardTitle>Controls</CardTitle>
@@ -102,7 +100,7 @@
             <TabsTrigger value="review">Review</TabsTrigger>
           </TabsList>
           <TabsContent value="publish">
-            <Stack gap="sm">
+            <Stack>
               <Badge variant="secondary">82%</Badge>
               <Progress value="82" />
             </Stack>
@@ -117,7 +115,7 @@
       </CardContent>
     </Card>
 
-    <Grid columns="2" gap="md">
+    <Grid columns="2">
       <Card>
         <CardContent>
           <Accordion type="single">

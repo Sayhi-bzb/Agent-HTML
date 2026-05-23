@@ -1,11 +1,11 @@
 <Page title="Icon basic">
-  <Stack gap="md">
+  <Stack>
     <Alert>
       <Icon name="alert-circle" />
       <AlertTitle>Runtime icon</AlertTitle>
       <AlertDescription>Lucide icon lookup resolves at render time.</AlertDescription>
     </Alert>
-    <Cluster gap="sm" wrap="true">
+    <Cluster wrap="true">
       <Badge variant="secondary">
         Synced
         <Icon name="activity" />

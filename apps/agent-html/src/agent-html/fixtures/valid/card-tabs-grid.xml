@@ -1,5 +1,5 @@
-<Page title="Gallery Preview" gap="lg">
-  <Stack gap="lg">
+<Page title="Gallery Preview">
+  <Stack>
     <Card>
       <CardHeader>
         <CardTitle>Controls</CardTitle>
@@ -12,7 +12,7 @@
             <TabsTrigger value="review">Review</TabsTrigger>
           </TabsList>
           <TabsContent value="publish">
-            <Stack gap="sm">
+            <Stack>
               <Badge variant="secondary">82%</Badge>
               <Progress value="82" />
             </Stack>
@@ -27,7 +27,7 @@
       </CardContent>
     </Card>
 
-    <Grid columns="2" gap="md">
+    <Grid columns="2">
       <Card>
         <CardContent>
           <Accordion type="single">

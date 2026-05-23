@@ -1,25 +1,12 @@
+<!-- AUTO-GENERATED FROM src/agent-html/icons/README.md -->
 # Agent-HTML Icons
 
-Do not embed the Lucide icon list into DSL output or prompt text.
+This directory isolates lucide icon lookup for the experimental `agent-html`
+DSL.
 
-## Rule
+The DSL prompt stays minimal:
 
-- Write only:
-  - `<Icon name="alert-circle" />`
+- `Icon:name=string -> none`
 
-## Name Source
-
-Project icon utilities live in:
-
-- `src/agent-html/icons/icon-registry.ts`
-- `src/agent-html/icons/search-icons.ts`
-
-## Query
-
-Use the helper script:
-
-```bash
-python .agents/skills/agent-html/scripts/search_icons.py "alert"
-```
-
-Prefer exact names returned by the helper.
+The full icon list is not embedded in the prompt.
+Validation and lookup happen through the registry helpers in this directory.

@@ -1,10 +1,10 @@
 import type { AgentHtmlTag } from "@/agent-html/ast/types"
 
 export const allowedAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
-  Page: ["title", "gap"],
-  Stack: ["gap"],
-  Cluster: ["gap", "justify", "wrap"],
-  Grid: ["columns", "gap"],
+  Page: ["title"],
+  Stack: [],
+  Cluster: ["justify", "wrap"],
+  Grid: ["columns"],
   Accordion: ["type"],
   AccordionItem: ["value", "disabled"],
   Alert: ["variant"],

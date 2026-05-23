@@ -23,6 +23,7 @@
     "radix-ui": "^1.4.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-resizable-panels": "^4.11.1",
     "react-syntax-highlighter": "^16.1.1",
     "recharts": "^3.8.0",
     "shadcn": "^4.8.0",

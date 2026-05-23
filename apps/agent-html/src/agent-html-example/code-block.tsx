@@ -1,7 +1,8 @@
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism"
+import * as React from "react"
 
-export function CodeBlock({
+export const CodeBlock = React.memo(function CodeBlock({
   language,
   source,
 }: {
@@ -35,4 +36,4 @@ export function CodeBlock({
       {source}
     </SyntaxHighlighter>
   )
-}
+})

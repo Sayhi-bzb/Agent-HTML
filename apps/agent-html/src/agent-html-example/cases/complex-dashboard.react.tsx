@@ -1,17 +1,13 @@
-import { AspectRatio } from "@/agent-html/runtime/ui/aspect-ratio"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/agent-html/runtime/ui/accordion"
-import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@/agent-html/runtime/ui/alert"
-import { Badge } from "@/agent-html/runtime/ui/badge"
-import {
+  AspectRatio,
+  Badge,
   Card,
   CardAction,
   CardContent,
@@ -19,23 +15,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/agent-html/runtime/ui/card"
-import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/agent-html/runtime/ui/carousel"
-import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
-} from "@/agent-html/runtime/ui/chart"
-import { Progress } from "@/agent-html/runtime/ui/progress"
-import { Separator } from "@/agent-html/runtime/ui/separator"
-import {
+  Progress,
+  Separator,
   Table,
   TableBody,
   TableCaption,
@@ -44,13 +33,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/agent-html/runtime/ui/table"
-import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/agent-html/runtime/ui/tabs"
+  type ChartConfig,
+} from "@/agent-html/ui"
 import { AlertCircle, Search } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 

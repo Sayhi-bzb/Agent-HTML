@@ -1,4 +1,4 @@
-import { Progress } from "@/agent-html/runtime/ui/progress"
+import { Progress } from "@/gallery/preview/ui/progress"
 import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
 
 const tracks = [

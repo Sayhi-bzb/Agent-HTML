@@ -19,7 +19,7 @@ Write `agent-html` DSL, not JSX or HTML.
 - Output only `agent-html` DSL.
 - Use `PascalCase` tags.
 - Root must be `<Page>`.
-- Use quoted scalar attrs like `gap="md"` or `value="82"`.
+- Use quoted scalar attrs like `columns="2"` or `value="82"`.
 - Do not use `class`, `className`, `style`, imports, hooks, JS expressions, or raw HTML tags.
 - Do not invent tags or attrs not present in the grammar reference.
 - Do not put bare text directly under `Page`, `Stack`, `Cluster`, or `Grid`.
@@ -30,6 +30,12 @@ Write `agent-html` DSL, not JSX or HTML.
 - Valid and invalid fixture patterns: `references/examples.md`
 - Icon lookup notes: `references/icons.md`
 
+These files are generated from `src/agent-html/`.
+Do not hand-edit generated reference files.
+When the source changes, rerun the sync script.
+
 ## Scripts
 
 - Search Lucide icon names: `scripts/search_icons.py "<query>"`
+- Sync generated skill resources from project sources:
+  `python src/agent-html/scripts/sync_skill.py`

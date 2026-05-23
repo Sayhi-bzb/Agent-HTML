@@ -80,6 +80,19 @@ describe("validateAgentHtml", () => {
     ).toBe(true)
   })
 
+  it("rejects layout gap attrs", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "layout-gap-not-allowed.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) => error.code === "UNKNOWN_ATTR" && error.attr === "gap"
+      )
+    ).toBe(true)
+  })
+
   it("rejects a carousel without content", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "carousel-missing-content.xml"))
