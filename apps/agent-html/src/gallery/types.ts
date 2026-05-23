@@ -5,5 +5,3 @@ export type GalleryScene = {
   summary: string
   title: string
 }
-
-export type GalleryEditorMode = "color" | "typography" | "other"

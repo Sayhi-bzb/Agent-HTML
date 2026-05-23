@@ -1,18 +1,11 @@
 import * as React from "react"
 
-import {
-  GalleryEditorPanel,
-  type GalleryRadiusValue,
-  type GalleryShadowValue,
-  type GallerySpacingValue,
-} from "@/gallery/editor"
+import { GalleryEditorPanel } from "@/gallery/editor"
 import type {
   GalleryColorTokenName,
   GalleryColorTokenValue,
   GalleryColorTokenValues,
 } from "@/gallery/editor-panels"
-import type { GalleryTypographyValue } from "@/gallery/typography"
-import type { GalleryEditorMode } from "@/gallery/types"
 import {
   Popover,
   PopoverContent,
@@ -39,12 +32,6 @@ type ProjectNavItem = {
   slug: string
 }
 
-const galleryHeaderEditorItems = [
-  "color",
-  "typography",
-  "other",
-] as const
-
 export function AppSidebar({
   galleryColorTokenValues,
   mode = "workspace",
@@ -53,27 +40,12 @@ export function AppSidebar({
   onDeleteProject,
   onDuplicateProject,
   onGalleryColorTokenValueChange,
-  onGalleryEditorModeChange,
   onOpenProject,
-  onRadiusChange,
-  onShadowChange,
-  onSpacingChange,
-  onTypographyChange,
   onRenameProject,
   projects,
-  galleryEditorMode = "color",
-  galleryRadiusValue = "0.625rem",
-  galleryShadowValue = "medium",
-  gallerySpacingValue = "1rem",
-  galleryTypographyValue,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   galleryColorTokenValues: GalleryColorTokenValues
-  galleryEditorMode?: GalleryEditorMode
-  galleryRadiusValue?: GalleryRadiusValue
-  galleryShadowValue?: GalleryShadowValue
-  gallerySpacingValue?: GallerySpacingValue
-  galleryTypographyValue: GalleryTypographyValue
   mode?: "gallery" | "workspace"
   onEnterGalleryMode?: () => void
   onExitGalleryMode?: () => void
@@ -83,12 +55,7 @@ export function AppSidebar({
     token: GalleryColorTokenName,
     value: GalleryColorTokenValue
   ) => void
-  onGalleryEditorModeChange?: (mode: GalleryEditorMode) => void
   onOpenProject: (projectId: string) => void
-  onRadiusChange?: (value: GalleryRadiusValue) => void
-  onShadowChange?: (value: GalleryShadowValue) => void
-  onSpacingChange?: (value: GallerySpacingValue) => void
-  onTypographyChange: (value: GalleryTypographyValue) => void
   onRenameProject: (projectId: string, name: string) => void
   projects: ProjectNavItem[]
 }) {
@@ -123,7 +90,7 @@ export function AppSidebar({
                       className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                       type="button"
                     >
-                      <span>{galleryEditorMode}</span>
+                      <span>color</span>
                       <ChevronRightIcon
                         className={
                           "ml-auto transition-transform " +
@@ -139,22 +106,17 @@ export function AppSidebar({
                     sideOffset={6}
                   >
                     <SidebarMenu className="gap-0">
-                      {galleryHeaderEditorItems.map((item) => (
-                        <SidebarMenuItem key={item}>
-                          <SidebarMenuButton
-                            className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
-                            isActive={galleryEditorMode === item}
-                            onClick={() => {
-                              onGalleryEditorModeChange?.(item)
-                              setIsEditorPopoverOpen(false)
-                            }}
-                            size="sm"
-                            type="button"
-                          >
-                            <span>{item}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                          isActive
+                          onClick={() => setIsEditorPopoverOpen(false)}
+                          size="sm"
+                          type="button"
+                        >
+                          <span>color</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     </SidebarMenu>
                   </PopoverContent>
                 </Popover>
@@ -169,16 +131,7 @@ export function AppSidebar({
         {isGalleryMode ? (
           <GalleryEditorPanel
             colorTokenValues={galleryColorTokenValues}
-            mode={galleryEditorMode}
             onColorTokenValueChange={onGalleryColorTokenValueChange}
-            onRadiusChange={(value) => onRadiusChange?.(value)}
-            onShadowChange={(value) => onShadowChange?.(value)}
-            onSpacingChange={(value) => onSpacingChange?.(value)}
-            onTypographyChange={onTypographyChange}
-            radiusValue={galleryRadiusValue}
-            shadowValue={galleryShadowValue}
-            spacingValue={gallerySpacingValue}
-            typographyValue={galleryTypographyValue}
           />
         ) : (
           <NavProjects

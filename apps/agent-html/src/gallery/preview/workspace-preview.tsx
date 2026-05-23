@@ -6,11 +6,12 @@ import type {
   GalleryColorStep,
   GalleryColorTokenValues,
 } from "@/gallery/editor-panels"
-import type { GalleryShadowValue } from "@/gallery/editor"
 import {
-  galleryTypographyFontOptions,
-  type GalleryTypographyValue,
+  galleryTypographyDefaults,
+  resolveGalleryTypographyFontFamily,
 } from "@/gallery/typography"
+import { galleryPreviewDefaults } from "@/gallery/preview-defaults"
+import { PreviewMasonry } from "@/gallery/preview/masonry"
 import { galleryPreviewCards } from "@/gallery/preview"
 
 type TailwindColorScale = Record<GalleryColorStep, string>
@@ -22,41 +23,14 @@ const tailwindColorFamilies = Object.fromEntries(
   ])
 ) as Record<GalleryColorFamily, TailwindColorScale>
 
-function GalleryMasonryItem({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mb-[var(--space-2)] inline-block w-full align-top [break-inside:avoid]">
-      {children}
-    </div>
-  )
-}
-
-function GalleryViewport({ style }: { style?: React.CSSProperties }) {
-  return (
-    <div
-      className="columns-1 gap-x-[var(--space-2)] p-[var(--space-2)] md:columns-2"
-      style={style}
-    >
-      {galleryPreviewCards.map((PreviewCard) => (
-        <GalleryMasonryItem key={PreviewCard.name}>
-          <PreviewCard />
-        </GalleryMasonryItem>
-      ))}
-    </div>
-  )
+function GalleryViewport() {
+  return <PreviewMasonry cards={galleryPreviewCards} />
 }
 
 export function GalleryWorkspacePreview({
   colorTokenValues,
-  radius = "0.625rem",
-  shadow = "medium",
-  spacing = "1rem",
-  typographyValue,
 }: {
   colorTokenValues: GalleryColorTokenValues
-  radius?: string
-  shadow?: GalleryShadowValue
-  spacing?: string
-  typographyValue: GalleryTypographyValue
 }) {
   const previewThemeStyle = React.useMemo(() => {
     const resolveColor = (tokenName: keyof GalleryColorTokenValues) => {
@@ -67,19 +41,9 @@ export function GalleryWorkspacePreview({
       )
     }
 
-    const fontFamily =
-      galleryTypographyFontOptions.find(
-        (font) => font.id === typographyValue.fontFamily
-      )?.family ?? galleryTypographyFontOptions[0].family
-
-    const shadowValue =
-      shadow === "none"
-        ? "none"
-        : shadow === "soft"
-          ? "0 10px 24px -18px color-mix(in oklab, var(--foreground) 32%, transparent)"
-          : shadow === "strong"
-            ? "0 26px 48px -24px color-mix(in oklab, var(--foreground) 45%, transparent)"
-            : "0 18px 36px -22px color-mix(in oklab, var(--foreground) 38%, transparent)"
+    const fontFamily = resolveGalleryTypographyFontFamily(
+      galleryTypographyDefaults.fontFamily
+    )
 
     return {
       "--background": resolveColor("background"),
@@ -102,15 +66,16 @@ export function GalleryWorkspacePreview({
       "--ring": resolveColor("ring"),
       "--font-sans": fontFamily,
       "--font-heading": fontFamily,
-      "--radius": radius,
-      "--preview-card-shadow": shadowValue,
-      "--spacing-base": spacing,
+      "--radius": galleryPreviewDefaults.radius,
+      "--preview-card-shadow":
+        "0 18px 36px -22px color-mix(in oklab, var(--foreground) 38%, transparent)",
+      "--spacing-base": galleryPreviewDefaults.spacing,
       "--space-1": "calc(var(--spacing-base) * 0.75)",
       "--space-2": "var(--spacing-base)",
       "--space-3": "calc(var(--spacing-base) * 1.25)",
       "--space-4": "calc(var(--spacing-base) * 1.5)",
-      "--type-base-size": typographyValue.baseSize,
-      "--type-base-line-height": typographyValue.lineHeight,
+      "--type-base-size": galleryTypographyDefaults.baseSize,
+      "--type-base-line-height": galleryTypographyDefaults.lineHeight,
       "--type-xs": "calc(var(--type-base-size) * 0.8125)",
       "--type-sm": "calc(var(--type-base-size) * 0.9375)",
       "--type-md": "var(--type-base-size)",
@@ -118,7 +83,7 @@ export function GalleryWorkspacePreview({
       "--type-xl": "calc(var(--type-base-size) * 1.375)",
       "--type-2xl": "calc(var(--type-base-size) * 1.875)",
     } as React.CSSProperties
-  }, [colorTokenValues, radius, shadow, spacing, typographyValue])
+  }, [colorTokenValues])
 
   return (
     <div

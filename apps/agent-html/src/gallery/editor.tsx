@@ -13,13 +13,6 @@ import {
   type GalleryColorTokenValues,
 } from "@/gallery/editor-panels"
 import {
-  galleryTypographyBaseSizeOptions,
-  galleryTypographyFontOptions,
-  galleryTypographyLineHeightOptions,
-  type GalleryTypographyValue,
-} from "@/gallery/typography"
-import type { GalleryEditorMode } from "@/gallery/types"
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -40,26 +33,6 @@ import {
 import { cn } from "@/lib/utils"
 
 type TailwindColorScale = Record<GalleryColorStep, string>
-const radiusOptions = [
-  "0.25rem",
-  "0.375rem",
-  "0.5rem",
-  "0.625rem",
-  "0.75rem",
-  "1rem",
-  "1.25rem",
-] as const
-type GalleryRadiusValue = (typeof radiusOptions)[number]
-const spacingOptions = [
-  "0.75rem",
-  "1rem",
-  "1.25rem",
-  "1.5rem",
-  "1.75rem",
-] as const
-type GallerySpacingValue = (typeof spacingOptions)[number]
-const shadowOptions = ["none", "soft", "medium", "strong"] as const
-type GalleryShadowValue = (typeof shadowOptions)[number]
 
 const tailwindColorFamilies = Object.fromEntries(
   galleryColorFamilies.map((family) => [
@@ -70,9 +43,6 @@ const tailwindColorFamilies = Object.fromEntries(
 
 const gallerySidebarPopoverButtonClassName =
   "h-auto min-h-8 items-start py-1.5 text-sidebar-foreground/70 hover:text-sidebar-foreground"
-
-const gallerySidebarChoiceButtonClassName =
-  "text-sidebar-foreground/70 hover:text-sidebar-foreground"
 
 function getTokenColorValue({
   family,
@@ -251,34 +221,6 @@ function GallerySidebarPopoverItem({
   )
 }
 
-function GallerySidebarChoiceMenu({
-  activeId,
-  onSelect,
-  options,
-}: {
-  activeId: string
-  onSelect: (id: string) => void
-  options: readonly { id: string; label: string }[]
-}) {
-  return (
-    <SidebarMenu className="gap-0.5">
-      {options.map((option) => (
-        <SidebarMenuItem key={option.id}>
-          <SidebarMenuButton
-            className={gallerySidebarChoiceButtonClassName}
-            isActive={option.id === activeId}
-            onClick={() => onSelect(option.id)}
-            size="sm"
-            type="button"
-          >
-            <span>{option.label}</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      ))}
-    </SidebarMenu>
-  )
-}
-
 function GalleryColorTokenItem({
   label,
   token,
@@ -391,188 +333,16 @@ function GalleryColorTokenItem({
   )
 }
 
-function GalleryRadiusEditorPanel({
-  shadowValue,
-  spacingValue,
-  value,
-  onShadowChange,
-  onSpacingChange,
-  onValueChange,
-}: {
-  shadowValue: GalleryShadowValue
-  spacingValue: GallerySpacingValue
-  value: GalleryRadiusValue
-  onShadowChange: (value: GalleryShadowValue) => void
-  onSpacingChange: (value: GallerySpacingValue) => void
-  onValueChange: (value: GalleryRadiusValue) => void
-}) {
-  return (
-    <div className="flex flex-1 flex-col px-2 py-2">
-      <GallerySidebarSection label="Role groups">
-        <SidebarMenu className="gap-0.5">
-          <GallerySidebarPopoverItem label="radius" valueLabel={value}>
-            <GallerySidebarChoiceMenu
-              activeId={value}
-              onSelect={(radius) => onValueChange(radius as GalleryRadiusValue)}
-              options={radiusOptions.map((radius) => ({
-                id: radius,
-                label: radius,
-              }))}
-            />
-          </GallerySidebarPopoverItem>
-          <GallerySidebarPopoverItem label="spacing" valueLabel={spacingValue}>
-            <GallerySidebarChoiceMenu
-              activeId={spacingValue}
-              onSelect={(spacing) =>
-                onSpacingChange(spacing as GallerySpacingValue)
-              }
-              options={spacingOptions.map((spacing) => ({
-                id: spacing,
-                label: spacing,
-              }))}
-            />
-          </GallerySidebarPopoverItem>
-          <GallerySidebarPopoverItem label="shadows" valueLabel={shadowValue}>
-            <GallerySidebarChoiceMenu
-              activeId={shadowValue}
-              onSelect={(shadow) => onShadowChange(shadow as GalleryShadowValue)}
-              options={shadowOptions.map((shadow) => ({
-                id: shadow,
-                label: shadow,
-              }))}
-            />
-          </GallerySidebarPopoverItem>
-        </SidebarMenu>
-      </GallerySidebarSection>
-    </div>
-  )
-}
-
-function GalleryTypographyEditorPanel({
-  onValueChange,
-  value,
-}: {
-  onValueChange: (value: GalleryTypographyValue) => void
-  value: GalleryTypographyValue
-}) {
-  const currentFont =
-    galleryTypographyFontOptions.find((font) => font.id === value.fontFamily) ??
-    galleryTypographyFontOptions[0]
-
-  return (
-    <div className="flex flex-1 flex-col px-2 py-2">
-      <GallerySidebarSection label="Role groups">
-        <SidebarMenu className="gap-0.5">
-          <GallerySidebarPopoverItem
-            label="font family"
-            valueLabel={currentFont.label}
-          >
-            <GallerySidebarChoiceMenu
-              activeId={value.fontFamily}
-              onSelect={(fontFamily) =>
-                onValueChange({
-                  ...value,
-                  fontFamily: fontFamily as GalleryTypographyValue["fontFamily"],
-                })
-              }
-              options={galleryTypographyFontOptions.map((font) => ({
-                id: font.id,
-                label: font.label,
-              }))}
-            />
-          </GallerySidebarPopoverItem>
-          <GallerySidebarPopoverItem
-            label="base size"
-            valueLabel={value.baseSize}
-          >
-            <GallerySidebarChoiceMenu
-              activeId={value.baseSize}
-              onSelect={(baseSize) =>
-                onValueChange({
-                  ...value,
-                  baseSize: baseSize as GalleryTypographyValue["baseSize"],
-                })
-              }
-              options={galleryTypographyBaseSizeOptions.map((size) => ({
-                id: size,
-                label: size,
-              }))}
-            />
-          </GallerySidebarPopoverItem>
-          <GallerySidebarPopoverItem
-            label="line height"
-            valueLabel={value.lineHeight}
-          >
-            <GallerySidebarChoiceMenu
-              activeId={value.lineHeight}
-              onSelect={(lineHeight) =>
-                onValueChange({
-                  ...value,
-                  lineHeight: lineHeight as GalleryTypographyValue["lineHeight"],
-                })
-              }
-              options={galleryTypographyLineHeightOptions.map((lineHeight) => ({
-                id: lineHeight,
-                label: lineHeight,
-              }))}
-            />
-          </GallerySidebarPopoverItem>
-        </SidebarMenu>
-      </GallerySidebarSection>
-    </div>
-  )
-}
-
 export function GalleryEditorPanel({
   colorTokenValues,
-  mode,
   onColorTokenValueChange,
-  onRadiusChange,
-  onShadowChange,
-  onSpacingChange,
-  onTypographyChange,
-  radiusValue,
-  shadowValue,
-  spacingValue,
-  typographyValue,
 }: {
   colorTokenValues: GalleryColorTokenValues
-  mode: GalleryEditorMode
   onColorTokenValueChange: (
     token: GalleryColorTokenName,
     value: GalleryColorTokenValue
   ) => void
-  onRadiusChange: (value: GalleryRadiusValue) => void
-  onShadowChange: (value: GalleryShadowValue) => void
-  onSpacingChange: (value: GallerySpacingValue) => void
-  onTypographyChange: (value: GalleryTypographyValue) => void
-  radiusValue: GalleryRadiusValue
-  shadowValue: GalleryShadowValue
-  spacingValue: GallerySpacingValue
-  typographyValue: GalleryTypographyValue
 }) {
-  if (mode === "typography") {
-    return (
-      <GalleryTypographyEditorPanel
-        onValueChange={onTypographyChange}
-        value={typographyValue}
-      />
-    )
-  }
-
-  if (mode === "other") {
-    return (
-      <GalleryRadiusEditorPanel
-        onShadowChange={onShadowChange}
-        onSpacingChange={onSpacingChange}
-        onValueChange={onRadiusChange}
-        spacingValue={spacingValue}
-        shadowValue={shadowValue}
-        value={radiusValue}
-      />
-    )
-  }
-
   return (
     <div className="flex flex-1 flex-col gap-3 px-2 py-2">
       {galleryColorRoleGroups.map((group, index) => (
@@ -600,13 +370,3 @@ export function GalleryEditorPanel({
     </div>
   )
 }
-
-export {
-  radiusOptions,
-  shadowOptions,
-  spacingOptions,
-  type GalleryRadiusValue,
-  type GalleryShadowValue,
-  type GallerySpacingValue,
-}
-export type { GalleryTypographyValue } from "@/gallery/typography"
