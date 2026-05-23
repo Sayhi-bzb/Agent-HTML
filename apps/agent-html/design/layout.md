@@ -49,9 +49,9 @@ The current implementation has two first-class operating modes:
 
 - header tabs represent gallery scenes
 - sidebar header hosts a back action
-- sidebar body hosts section selection plus editor-side panels
+- sidebar body hosts the color editor
 - sidebar footer becomes passive contextual support
-- content well hosts scene boards and preview surfaces
+- content well hosts the gallery preview surface
 
 Mode changes SHOULD reuse the same shell rather than create a separate full-screen layout family.
 
@@ -106,8 +106,9 @@ The main content area is where page-specific work happens.
 - it SHOULD read as an inset workspace surface rather than as a continuation of shell chrome
 - it SHOULD use margin, radius, and background contrast to establish its own plane
 - it MUST remain visually distinct from the shell even when the palette is neutral
-- the default shell plane SHOULD consume `background`, while the default workspace plane SHOULD
-  consume `card`
+- the default shell plane SHOULD consume `background`, while the inset workspace plane SHOULD be
+  established through neutral surface separation rather than by assuming all hosted panels consume
+  `card`
 
 ## Spacing Rhythm
 
@@ -157,8 +158,8 @@ Suggested panel archetypes:
 - standard content panel
 - split panel
 - activity / feed panel
-- gallery scene board
-- sidebar editor support panel
+- gallery preview surface
+- sidebar color editor panel
 
 ## Responsive Rules
 

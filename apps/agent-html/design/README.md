@@ -6,7 +6,7 @@ exists today.
 The current product model is a dual-mode operating shell:
 
 - `workspace` mode for project-backed work tabs and the main working surface
-- `gallery` mode for design-study scenes, scene tabs, and sidebar editor panels
+- `gallery` mode for design-study scenes, scene tabs, and a color-focused sidebar editor
 
 These documents should describe the real shell, not a historical placeholder concept.
 

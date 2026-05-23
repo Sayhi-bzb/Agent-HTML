@@ -20,7 +20,7 @@ It makes the app read like a console or workbench, not a landing page.
 The current product is organized around one durable shell with two operating modes:
 
 - `workspace` mode for project navigation and project-backed work tabs
-- `gallery` mode for shell studies, scene tabs, and sidebar editor panels
+- `gallery` mode for shell studies, scene tabs, and a color-focused sidebar editor
 
 The shell stays materially stable while the active work surface changes role.
 This is a mode swap, not a route-family fork.
@@ -29,7 +29,7 @@ The header, sidebar, and footer remain part of the same operational frame in bot
 What changes is the content they host:
 
 - project tabs vs. scene tabs in the header
-- navigation list vs. editor panels in the sidebar body
+- navigation list vs. the gallery color editor in the sidebar body
 - utility footer vs. passive gallery footer content
 
 ## 3. Visual Character
@@ -124,8 +124,9 @@ Implications:
 - shadows should stay light and structural rather than theatrical
 - selected states may claim a stronger surface when they represent a focused context
 
-In the current implementation, the shell reads from `background` while the main workspace surface
-reads from `card`.
+In the current implementation, the shell reads from `background` while the inset workspace well is
+established through placement, radius, and border-led separation rather than through a single
+uniform `card` surface.
 
 The interface should feel assembled from calm planes rather than carved into many outlined boxes.
 

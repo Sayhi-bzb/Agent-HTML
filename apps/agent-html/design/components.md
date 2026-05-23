@@ -116,7 +116,7 @@ Rules:
 The current implementation includes two stable sidebar uses:
 
 1. workspace navigation sidebar
-2. gallery-mode editor sidebar
+2. gallery-mode color editor sidebar
 
 These are variants of the same shell family, not separate systems.
 

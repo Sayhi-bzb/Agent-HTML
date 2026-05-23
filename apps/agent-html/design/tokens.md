@@ -161,10 +161,11 @@ corresponding shared semantic tokens (`background`, `foreground`, `accent`, `bor
 In the current shell/gallery/workspace model:
 
 - `background` owns the shell plane
-- `card` owns the primary workspace plane
+- the inset workspace plane is established through neutral surface separation, while hosted
+  workspace modules may consume either `background` or `card` depending on local hierarchy
 - `sidebar*` is a shell-facing alias layer over the shared semantic tokens above
-- gallery-mode sidebar editor panels are still shell surfaces unless they intentionally escalate to
-  a stronger local plane
+- the gallery color editor remains a shell-facing surface unless it intentionally escalates to a
+  stronger local plane
 
 The current implementation also uses shell-local semantic context without introducing a new global
 token family:

@@ -98,7 +98,7 @@ Current stable examples include:
 - `NavProjects`
 - `SearchCommand`
 - `GalleryPanel`
-- `GallerySidebarPanels`
+- `GalleryEditorPanel`
 
 It MUST NOT become a second primitive library.
 It also MUST NOT become the long-term storage area for gallery asset data that belongs in
@@ -195,7 +195,7 @@ composites:
 - the mode-aware sidebar
 - the mode-aware header tab rail
 - the gallery scene panel
-- the gallery sidebar editor panels
+- the gallery color editor panel
 
 Gallery asset content, however, should live in `src/gallery/*` even when those composites render
 it.
