@@ -1,4 +1,4 @@
-import type { GalleryScene } from "@/gallery/types"
+import type { GalleryScene } from "@/app/gallery/types"
 
 export const gallerySceneBoards: Record<
   GalleryScene["id"],

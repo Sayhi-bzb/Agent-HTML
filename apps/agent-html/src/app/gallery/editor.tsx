@@ -11,7 +11,7 @@ import {
   type GalleryColorTokenName,
   type GalleryColorTokenValue,
   type GalleryColorTokenValues,
-} from "@/gallery/editor-panels"
+} from "@/app/gallery/editor-panels"
 import {
   Collapsible,
   CollapsibleContent,

@@ -1,5 +1,5 @@
-import { Badge } from "@/gallery/preview/ui/badge"
-import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
+import { Badge } from "@/app/gallery/preview/ui/badge"
+import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 import { FlameIcon, LinkIcon, SparklesIcon } from "lucide-react"
 
 export function BadgeShowcase() {

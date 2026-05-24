@@ -1,5 +1,5 @@
-import { gallerySceneBoards } from "@/gallery/scene-content"
-import type { GalleryScene } from "@/gallery/types"
+import { gallerySceneBoards } from "@/app/gallery/scene-content"
+import type { GalleryScene } from "@/app/gallery/types"
 
 export function GalleryBoard({ scene }: { scene: GalleryScene }) {
   const cards = gallerySceneBoards[scene.id]

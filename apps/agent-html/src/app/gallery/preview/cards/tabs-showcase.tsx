@@ -3,8 +3,8 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/gallery/preview/ui/tabs"
-import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
+} from "@/app/gallery/preview/ui/tabs"
+import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const panels = [
   {

@@ -5,14 +5,14 @@ import type {
   GalleryColorFamily,
   GalleryColorStep,
   GalleryColorTokenValues,
-} from "@/gallery/editor-panels"
+} from "@/app/gallery/editor-panels"
 import {
   galleryTypographyDefaults,
   resolveGalleryTypographyFontFamily,
-} from "@/gallery/typography"
-import { galleryPreviewDefaults } from "@/gallery/preview-defaults"
-import { PreviewMasonry } from "@/gallery/preview/masonry"
-import { galleryPreviewCards } from "@/gallery/preview"
+} from "@/app/gallery/typography"
+import { galleryPreviewDefaults } from "@/app/gallery/preview-defaults"
+import { PreviewMasonry } from "@/app/gallery/preview/masonry"
+import { galleryPreviewCards } from "@/app/gallery/preview"
 
 type TailwindColorScale = Record<GalleryColorStep, string>
 

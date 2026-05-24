@@ -40,7 +40,7 @@ describe("agent-html boundaries", () => {
 
   it("keeps gallery preview cards off agent-html runtime UI", () => {
     const forbidden = /@\/agent-html\/runtime\/ui/
-    const offenders = sourceFilesUnder("src/gallery/preview/cards").filter((file) =>
+    const offenders = sourceFilesUnder("src/app/gallery/preview/cards").filter((file) =>
       forbidden.test(readFileSync(join(root, file), "utf8"))
     )
 

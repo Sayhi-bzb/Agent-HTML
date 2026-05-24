@@ -7,8 +7,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/gallery/preview/ui/table"
-import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
+} from "@/app/gallery/preview/ui/table"
+import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const rows = [
   { owner: "Mia", stage: "Audit", hours: "06h" },

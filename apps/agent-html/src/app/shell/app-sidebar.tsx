@@ -1,20 +1,20 @@
 import * as React from "react"
 
-import { GalleryEditorPanel } from "@/gallery/editor"
+import { GalleryEditorPanel } from "@/app/gallery/editor"
 import type {
   GalleryColorTokenName,
   GalleryColorTokenValue,
   GalleryColorTokenValues,
-} from "@/gallery/editor-panels"
+} from "@/app/gallery/editor-panels"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { FooterMenuStack } from "@/components/footer-menu-stack"
-import { NavProjects } from "@/components/nav-projects"
-import { SearchCommand } from "@/components/search-command"
-import { SettingsMenu } from "@/components/settings-menu"
+import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
+import { NavProjects } from "@/app/shell/nav-projects"
+import { SearchCommand } from "@/app/shell/search-command"
+import { SettingsMenu } from "@/app/shell/settings-menu"
 import {
   Sidebar,
   SidebarContent,

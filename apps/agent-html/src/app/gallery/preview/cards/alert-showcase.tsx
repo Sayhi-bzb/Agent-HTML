@@ -3,8 +3,8 @@ import {
   AlertAction,
   AlertDescription,
   AlertTitle,
-} from "@/gallery/preview/ui/alert"
-import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
+} from "@/app/gallery/preview/ui/alert"
+import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 import { ShieldCheckIcon, TriangleAlertIcon } from "lucide-react"
 
 export function AlertShowcase() {

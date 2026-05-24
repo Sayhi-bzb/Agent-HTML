@@ -4,12 +4,12 @@ import {
   galleryColorTokenDefaults,
   type GalleryColorTokenName,
   type GalleryColorTokenValue,
-} from "@/gallery/editor-panels"
-import { galleryScenes } from "@/gallery/scenes"
-import { GalleryPanel } from "@/gallery/panel"
-import { galleryWorkspacePreviewBaseSceneId } from "@/gallery/preview-content"
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
+} from "@/app/gallery/editor-panels"
+import { galleryScenes } from "@/app/gallery/scenes"
+import { GalleryPanel } from "@/app/gallery/panel"
+import { galleryWorkspacePreviewBaseSceneId } from "@/app/gallery/preview-content"
+import { AppSidebar } from "@/app/shell/app-sidebar"
+import { SiteHeader } from "@/app/shell/site-header"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   SidebarInset,

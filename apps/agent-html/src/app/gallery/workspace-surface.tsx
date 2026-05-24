@@ -1,5 +1,5 @@
-import { GalleryWorkspacePreview } from "@/gallery/preview/workspace-preview"
-import type { GalleryColorTokenValues } from "@/gallery/editor-panels"
+import { GalleryWorkspacePreview } from "@/app/gallery/preview/workspace-preview"
+import type { GalleryColorTokenValues } from "@/app/gallery/editor-panels"
 
 export function GalleryWorkspaceSurface({
   colorTokenValues,

@@ -1,5 +1,5 @@
-import { AspectRatio } from "@/gallery/preview/ui/aspect-ratio"
-import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
+import { AspectRatio } from "@/app/gallery/preview/ui/aspect-ratio"
+import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const frames = [
   {

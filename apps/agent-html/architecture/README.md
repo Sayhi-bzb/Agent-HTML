@@ -13,7 +13,7 @@ Frontend design rules belong in [`design/README.md`](../design/README.md).
 
 The app has two top-level surfaces selected in `src/main.tsx`.
 
-- `/` renders the main operating shell from `src/App.tsx`.
+- `/` renders the main operating shell from `src/app/App.tsx`.
 - `/agent-html` lazy-loads the standalone Agent-HTML runtime demo from
   `src/agent-html-example/entry.tsx`.
 
@@ -52,7 +52,7 @@ Owns the standalone runtime demo surface:
 It may consume `src/agent-html` public APIs. It must not become the owner of DSL
 schema, parser, validator, or runtime rules.
 
-### `src/gallery`
+### `src/app/gallery`
 
 Owns the Gallery feature domain:
 
@@ -74,7 +74,7 @@ building blocks used by app, shell, and feature code.
 Primitive changes have broad impact. Prefer additive variants and preserve
 accessibility semantics when changing this layer.
 
-### `src/components`
+### `src/app/shell`
 
 Owns reusable composite and shell components:
 
@@ -86,7 +86,7 @@ Owns reusable composite and shell components:
 Composite components may coordinate primitives and feature-facing UI patterns.
 They should not store feature-specific registries or DSL-specific rules.
 
-### `src/App.tsx`
+### `src/app/App.tsx`
 
 Owns app-level orchestration:
 
@@ -120,7 +120,7 @@ source string
 
 Rules:
 
-- `src/agent-html` must not depend on `src/agent-html-example` or `src/gallery`.
+- `src/agent-html` must not depend on `src/agent-html-example` or `src/app/gallery`.
 - `src/agent-html-example` may depend on `src/agent-html` public APIs.
 - Gallery may depend on shared components, but shared components should not
   depend on Gallery content.
@@ -137,10 +137,10 @@ Before making structural changes, classify the change by owner:
   `src/agent-html`.
 - Demo-only source comparison or showcase behavior belongs in
   `src/agent-html-example`.
-- Gallery scene or editor behavior belongs in `src/gallery`.
+- Gallery scene or editor behavior belongs in `src/app/gallery`.
 - Shared primitive interaction belongs in `src/components/ui`.
-- Reusable shell composition belongs in `src/components`.
-- Cross-surface state wiring belongs in `src/App.tsx`.
+- Reusable shell composition belongs in `src/app/shell`.
+- Cross-surface state wiring belongs in `src/app/App.tsx`.
 
 Do not fix a surface by bypassing its owning layer. If a change requires behavior
 from another layer, move the behavior to the appropriate shared owner and have

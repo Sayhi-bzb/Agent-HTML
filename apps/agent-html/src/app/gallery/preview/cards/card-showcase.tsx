@@ -6,8 +6,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/gallery/preview/ui/card"
-import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
+} from "@/app/gallery/preview/ui/card"
+import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 export function CardShowcase() {
   return (

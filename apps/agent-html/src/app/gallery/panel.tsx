@@ -1,6 +1,6 @@
-import type { GalleryColorTokenValues } from "@/gallery/editor-panels"
-import type { GalleryScene } from "@/gallery/types"
-import { GalleryWorkspaceSurface } from "@/gallery/workspace-surface"
+import type { GalleryColorTokenValues } from "@/app/gallery/editor-panels"
+import type { GalleryScene } from "@/app/gallery/types"
+import { GalleryWorkspaceSurface } from "@/app/gallery/workspace-surface"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 export function GalleryPanel({

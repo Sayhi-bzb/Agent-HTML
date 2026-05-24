@@ -5,8 +5,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/gallery/preview/ui/chart"
-import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
+} from "@/app/gallery/preview/ui/chart"
+import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 
 const data = [

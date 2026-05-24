@@ -4,8 +4,8 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/gallery/preview/ui/carousel"
-import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
+} from "@/app/gallery/preview/ui/carousel"
+import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const slides = [
   {

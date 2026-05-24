@@ -1,5 +1,5 @@
-import { Progress } from "@/gallery/preview/ui/progress"
-import { ShowcaseShell } from "@/gallery/preview/cards/showcase-shell"
+import { Progress } from "@/app/gallery/preview/ui/progress"
+import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const tracks = [
   { label: "Coverage", value: 84 },
