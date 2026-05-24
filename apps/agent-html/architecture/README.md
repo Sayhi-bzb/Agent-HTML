@@ -84,7 +84,9 @@ Owns reusable composite and shell components:
 - reusable product-level composition built from primitives
 
 Composite components may coordinate primitives and feature-facing UI patterns.
-They should not store feature-specific registries or DSL-specific rules.
+They should not store feature-specific registries or DSL-specific rules. When
+shell components host feature content, app-level orchestration should pass that
+content through slots instead of having shell code import the feature directly.
 
 ### `src/app/App.tsx`
 

@@ -1,11 +1,5 @@
 import * as React from "react"
 
-import { GalleryEditorPanel } from "@/app/gallery/editor"
-import type {
-  GalleryColorTokenName,
-  GalleryColorTokenValue,
-  GalleryColorTokenValues,
-} from "@/app/gallery/editor-panels"
 import {
   Popover,
   PopoverContent,
@@ -33,28 +27,23 @@ type ProjectNavItem = {
 }
 
 export function AppSidebar({
-  galleryColorTokenValues,
+  galleryContent,
   mode = "workspace",
   onEnterGalleryMode,
   onExitGalleryMode,
   onDeleteProject,
   onDuplicateProject,
-  onGalleryColorTokenValueChange,
   onOpenProject,
   onRenameProject,
   projects,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  galleryColorTokenValues: GalleryColorTokenValues
+  galleryContent: React.ReactNode
   mode?: "gallery" | "workspace"
   onEnterGalleryMode?: () => void
   onExitGalleryMode?: () => void
   onDeleteProject: (projectId: string) => void
   onDuplicateProject: (projectId: string) => void
-  onGalleryColorTokenValueChange: (
-    token: GalleryColorTokenName,
-    value: GalleryColorTokenValue
-  ) => void
   onOpenProject: (projectId: string) => void
   onRenameProject: (projectId: string, name: string) => void
   projects: ProjectNavItem[]
@@ -129,10 +118,7 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         {isGalleryMode ? (
-          <GalleryEditorPanel
-            colorTokenValues={galleryColorTokenValues}
-            onColorTokenValueChange={onGalleryColorTokenValueChange}
-          />
+          galleryContent
         ) : (
           <NavProjects
             onDeleteProject={onDeleteProject}

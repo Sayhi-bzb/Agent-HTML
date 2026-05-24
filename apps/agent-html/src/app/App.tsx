@@ -5,6 +5,7 @@ import {
   type GalleryColorTokenName,
   type GalleryColorTokenValue,
 } from "@/app/gallery/editor-panels"
+import { GalleryEditorPanel } from "@/app/gallery/editor"
 import { galleryScenes } from "@/app/gallery/scenes"
 import { GalleryPanel } from "@/app/gallery/panel"
 import { galleryWorkspacePreviewBaseSceneId } from "@/app/gallery/preview-content"
@@ -414,21 +415,25 @@ export function App() {
       />
       <main className="flex min-h-0 flex-1 overflow-hidden">
         <AppSidebar
-          galleryColorTokenValues={galleryColorTokenValues}
+          galleryContent={
+            <GalleryEditorPanel
+              colorTokenValues={galleryColorTokenValues}
+              onColorTokenValueChange={(
+                token: GalleryColorTokenName,
+                value: GalleryColorTokenValue
+              ) =>
+                setGalleryColorTokenValues((current) => ({
+                  ...current,
+                  [token]: value,
+                }))
+              }
+            />
+          }
           mode={surfaceMode}
           onDeleteProject={handleDeleteProject}
           onDuplicateProject={handleDuplicateProject}
           onEnterGalleryMode={handleEnterGalleryMode}
           onExitGalleryMode={handleExitGalleryMode}
-          onGalleryColorTokenValueChange={(
-            token: GalleryColorTokenName,
-            value: GalleryColorTokenValue
-          ) =>
-            setGalleryColorTokenValues((current) => ({
-              ...current,
-              [token]: value,
-            }))
-          }
           onOpenProject={handleOpenProject}
           onRenameProject={handleRenameProject}
           projects={projects}
