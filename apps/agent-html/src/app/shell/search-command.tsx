@@ -10,12 +10,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/shared/ui/command"
+} from "@/app/shared/ui/command"
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/shared/ui/sidebar"
+} from "@/app/shared/ui/sidebar"
 import { SearchIcon } from "lucide-react"
 
 type ProjectSearchItem = {

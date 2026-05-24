@@ -3,8 +3,8 @@ import { createRoot } from "react-dom/client"
 
 import "./index.css"
 import App from "@/app/App"
-import { ThemeProvider } from "@/shared/theme-provider"
-import { TooltipProvider } from "@/shared/ui/tooltip.tsx"
+import { ThemeProvider } from "@/app/shared/theme-provider"
+import { TooltipProvider } from "@/app/shared/ui/tooltip.tsx"
 
 const AgentHtmlExampleApp = lazy(() =>
   import("@/agent-html-example/app/entry").then((module) => ({

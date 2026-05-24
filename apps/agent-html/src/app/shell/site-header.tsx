@@ -1,14 +1,14 @@
-import { Button } from "@/shared/ui/button"
-import { useSidebar } from "@/shared/ui/sidebar"
-import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs"
-import { cn } from "@/shared/lib/utils"
+import { Button } from "@/app/shared/ui/button"
+import { useSidebar } from "@/app/shared/ui/sidebar"
+import { Tabs, TabsList, TabsTrigger } from "@/app/shared/ui/tabs"
+import { cn } from "@/app/shared/lib/utils"
 import {
   closeWindow,
   getDragRegionProps,
   isDesktopRuntime,
   minimizeWindow,
   toggleMaximizeWindow,
-} from "@/shared/lib/window-controls"
+} from "@/app/shared/lib/window-controls"
 import { MinusIcon, PanelLeftIcon, SquareIcon, XIcon } from "lucide-react"
 
 type HeaderTab = {

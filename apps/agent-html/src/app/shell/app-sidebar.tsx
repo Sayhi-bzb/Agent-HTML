@@ -10,7 +10,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/shared/ui/popover"
+} from "@/app/shared/ui/popover"
 import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
 import { NavProjects } from "@/app/shell/nav-projects"
 import { SearchCommand } from "@/app/shell/search-command"
@@ -23,7 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/shared/ui/sidebar"
+} from "@/app/shared/ui/sidebar"
 import { ArrowLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react"
 
 type ProjectNavItem = {

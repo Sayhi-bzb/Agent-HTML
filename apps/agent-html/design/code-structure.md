@@ -54,7 +54,7 @@ It owns:
 
 `src/app/gallery/preview/ui/*` exists only for preview showcase consumption.
 It MUST NOT become a second gallery-wide primitive layer.
-Top-level gallery editor and panel code MUST continue to consume `src/shared/ui/*`.
+Top-level gallery editor and panel code MUST continue to consume `src/app/shared/ui/*`.
 
 ### `src/index.css`
 
@@ -69,7 +69,7 @@ It owns:
 
 It MUST NOT become a dumping ground for page-specific styles.
 
-### `src/shared/ui/*`
+### `src/app/shared/ui/*`
 
 This directory is the primitive UI layer.
 
@@ -217,7 +217,7 @@ A UI review should verify:
 
 The following should be rejected by default:
 
-- duplicating button or input behavior outside `src/shared/ui/*`
+- duplicating button or input behavior outside `src/app/shared/ui/*`
 - creating a second sidebar implementation with custom markup
 - creating a second mode-specific header or sidebar instead of extending `SiteHeader` or
   `AppSidebar`
