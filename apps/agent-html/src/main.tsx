@@ -6,29 +6,27 @@ import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { TooltipProvider } from "@/components/ui/tooltip.tsx"
 
-const AgentHtmlRuntimeDemo = lazy(() =>
-  import("@/agent-html-example/entry").then((module) => ({
-    default: module.AgentHtmlRuntimeDemo,
+const AgentHtmlExampleApp = lazy(() =>
+  import("@/agent-html-example/app/entry").then((module) => ({
+    default: module.AgentHtmlExampleApp,
   }))
 )
 
 const rootComponent =
   window.location.pathname === "/agent-html" ? (
     <Suspense fallback={null}>
-      <AgentHtmlRuntimeDemo />
+      <AgentHtmlExampleApp />
     </Suspense>
   ) : (
-    <App />
+    <ThemeProvider>
+      <TooltipProvider>
+        <App />
+      </TooltipProvider>
+    </ThemeProvider>
   )
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ThemeProvider>
-      <TooltipProvider>
-        {rootComponent}
-      </TooltipProvider>
-    </ThemeProvider>
-  </StrictMode>
+  <StrictMode>{rootComponent}</StrictMode>
 )
 
 

@@ -286,16 +286,13 @@ function Kanban({ children }: { children?: React.ReactNode }) {
 }
 
 function KanbanColumnView({ column }: { column: KanbanColumnData }) {
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef } = useDroppable({
     id: columnDndId(column.value),
   })
 
   return (
     <section
-      className={cn(
-        "flex min-w-64 flex-col rounded-xl border bg-muted/40 p-3 transition-all duration-150",
-        isOver && "border-primary/60 bg-primary/5 shadow-sm ring-1 ring-primary/20"
-      )}
+      className="flex min-w-64 flex-col rounded-xl border bg-muted/40 p-3 transition-colors duration-150"
       data-slot="kanban-column"
       data-value={column.value}
     >
@@ -367,9 +364,9 @@ const KanbanItemCard = React.forwardRef<
   return (
     <article
       className={cn(
-        "rounded-lg border bg-card p-3 text-card-foreground shadow-xs transition-shadow",
-        dragging && !overlay && "opacity-25 ring-1 ring-border",
-        overlay && "rotate-1 scale-[1.02] shadow-2xl ring-1 ring-primary/20"
+        "rounded-lg border bg-card p-3 text-card-foreground shadow-xs transition-colors",
+        dragging && !overlay && "border-foreground/40 border-2",
+        overlay && "border-foreground/40 border-2"
       )}
       data-dragging={dragging ? "" : undefined}
       data-slot="kanban-item"

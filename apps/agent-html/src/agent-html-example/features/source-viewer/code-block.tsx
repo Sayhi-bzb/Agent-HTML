@@ -1,12 +1,14 @@
+import * as React from "react"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism"
-import * as React from "react"
+
+import type { SourceTabValue } from "@/agent-html-example/features/source-viewer/types"
 
 export const CodeBlock = React.memo(function CodeBlock({
   language,
   source,
 }: {
-  language: "ahtml" | "html" | "react"
+  language: SourceTabValue
   source: string
 }) {
   const syntaxLanguage = language === "react" ? "tsx" : "markup"
