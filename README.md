@@ -21,3 +21,8 @@ npm run test
 npm run typecheck
 npm run lint
 ```
+
+## Thanks To
+
+- [shadcn/ui](https://shadcn-ui.com/) for the UI components.
+- [linux.do](https://linux.do/) for community feedback and discussion.
