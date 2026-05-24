@@ -3,7 +3,7 @@ import { CheckIcon } from "lucide-react"
 
 import { IconRuntime } from "@/agent-html/runtime/render/icon-runtime"
 import { timelineItemDefaults } from "@/agent-html/schema/defaults"
-import { cn } from "@/lib/utils"
+import { cn } from "@/agent-html/lib/utils"
 
 function Timeline({ className, ...props }: React.ComponentProps<"div">) {
   return (

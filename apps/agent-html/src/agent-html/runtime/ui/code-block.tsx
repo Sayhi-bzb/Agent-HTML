@@ -3,7 +3,7 @@ import { CheckIcon, CopyIcon } from "lucide-react"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/agent-html/lib/utils"
 
 function syntaxLanguageFor(language: string) {
   if (language === "ahtml" || language === "html") return "markup"

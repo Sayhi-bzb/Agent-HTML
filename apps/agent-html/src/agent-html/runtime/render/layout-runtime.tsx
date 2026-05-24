@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/agent-html/lib/utils"
 import {
   clusterDefaults,
   gridDefaults,

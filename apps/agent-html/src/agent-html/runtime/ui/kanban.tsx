@@ -29,7 +29,7 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 import { GripVerticalIcon } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/agent-html/lib/utils"
 
 type KanbanColumnData = {
   value: string
