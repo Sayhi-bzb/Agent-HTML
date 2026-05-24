@@ -54,6 +54,9 @@ export type AgentHtmlUiTag =
   | "CodeBlock"
   | "Icon"
   | "Image"
+  | "Kanban"
+  | "KanbanColumn"
+  | "KanbanItem"
   | "Text"
 
 export type AgentHtmlTag = AgentHtmlLayoutTag | AgentHtmlUiTag

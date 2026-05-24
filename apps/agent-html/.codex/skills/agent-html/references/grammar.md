@@ -1,3 +1,6 @@
+<!-- AUTO-GENERATED FROM src/agent-html/schema/prompt.md -->
+# Agent-HTML Grammar
+
 # Gallery Preview DSL
 
 ## Contract

@@ -126,6 +126,20 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("aria-label=\"Open settings\"")
   })
 
+  it("renders the kanban basic fixture", () => {
+    const document = parseAgentHtml(fixture("valid", "kanban-basic.xml"))
+    const validation = validateAgentHtml(document)
+
+    expect(validation.ok).toBe(true)
+
+    const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("data-slot=\"kanban\"")
+    expect(html).toContain("data-slot=\"kanban-column\"")
+    expect(html).toContain("data-slot=\"kanban-item\"")
+    expect(html).toContain("Todo")
+    expect(html).toContain("Audit prompt copy")
+  })
+
   it("renders the canonical card/tabs/grid fixture", () => {
     const document = parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
     const validation = validateAgentHtml(document)

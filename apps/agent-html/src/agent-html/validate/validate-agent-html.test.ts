@@ -105,6 +105,15 @@ describe("validateAgentHtml", () => {
     expect(result.errors).toHaveLength(0)
   })
 
+  it("accepts the kanban basic fixture", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "kanban-basic.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
   it("rejects unknown tags", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "unknown-tag.xml"))
@@ -397,6 +406,98 @@ describe("validateAgentHtml", () => {
     expect(
       result.errors.some(
         (error) => error.code === "UNKNOWN_ATTR" && error.attr === "size"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects kanban boards without columns", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "kanban-missing-column.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_CHILD")
+    ).toBe(true)
+  })
+
+  it("rejects kanban columns missing value", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "kanban-column-missing-value.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "MISSING_REQUIRED_ATTR" && error.attr === "value"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects kanban columns missing title", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "kanban-column-missing-title.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "MISSING_REQUIRED_ATTR" && error.attr === "title"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects kanban items missing value", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "kanban-item-missing-value.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "MISSING_REQUIRED_ATTR" && error.attr === "value"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects invalid kanban children", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "kanban-invalid-child.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "INVALID_CHILD")
+    ).toBe(true)
+  })
+
+  it("rejects duplicate kanban column values", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "kanban-duplicate-column-value.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "INVALID_ATTR_VALUE" && error.attr === "value"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects duplicate kanban item values", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "kanban-duplicate-item-value.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "INVALID_ATTR_VALUE" && error.attr === "value"
       )
     ).toBe(true)
   })

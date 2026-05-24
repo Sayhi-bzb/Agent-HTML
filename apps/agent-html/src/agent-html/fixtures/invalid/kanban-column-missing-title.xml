@@ -1,0 +1,7 @@
+<Page title="Kanban column missing title">
+  <Section>
+    <Kanban>
+      <KanbanColumn value="todo" />
+    </Kanban>
+  </Section>
+</Page>

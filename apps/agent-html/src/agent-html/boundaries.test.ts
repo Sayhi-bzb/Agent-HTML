@@ -29,7 +29,8 @@ function sourceFilesUnder(directory: string) {
 
 describe("agent-html boundaries", () => {
   it("keeps the standalone example on public agent-html imports", () => {
-    const forbidden = /@\/agent-html\/(parse|validate|runtime|fixtures|examples)\b/
+    const forbidden =
+      /@\/agent-html\/(parse|validate|runtime|fixtures|examples|ui)\b|@\/components\/ui\b/
     const offenders = sourceFilesUnder("src/agent-html-example").filter((file) =>
       forbidden.test(readFileSync(join(root, file), "utf8"))
     )

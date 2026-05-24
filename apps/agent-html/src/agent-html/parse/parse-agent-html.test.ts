@@ -103,6 +103,25 @@ describe("parseAgentHtml", () => {
     })
   })
 
+  it("parses kanban boards", () => {
+    const document = parseAgentHtml(fixture("valid", "kanban-basic.xml"))
+    const section = document.root.children[0]
+    const kanban =
+      section.type === "element" ? section.children[0] : undefined
+    const firstColumn =
+      kanban?.type === "element" ? kanban.children[0] : undefined
+
+    expect(kanban).toMatchObject({
+      type: "element",
+      tag: "Kanban",
+    })
+    expect(firstColumn).toMatchObject({
+      type: "element",
+      tag: "KanbanColumn",
+      attrs: { value: "todo", title: "Todo" },
+    })
+  })
+
   it("throws on multiple roots", () => {
     expect(() =>
       parseAgentHtml("<Page title=\"A\" /><Page title=\"B\" />")

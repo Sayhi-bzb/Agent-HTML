@@ -171,6 +171,39 @@
         </TimelineItem>
       </Timeline>
 
+      <Kanban>
+        <KanbanColumn value="todo" title="Todo">
+          <KanbanItem value="prompt-audit">
+            <Stack>
+              <Text variant="small">Audit prompt grammar</Text>
+              <Badge variant="outline">Docs</Badge>
+            </Stack>
+          </KanbanItem>
+          <KanbanItem value="list-component">
+            <Stack>
+              <Text variant="small">Design List API</Text>
+              <Badge variant="secondary">Next</Badge>
+            </Stack>
+          </KanbanItem>
+        </KanbanColumn>
+        <KanbanColumn value="doing" title="Doing">
+          <KanbanItem value="kanban-runtime">
+            <Stack>
+              <Text variant="small">Wire Kanban runtime</Text>
+              <Badge variant="secondary">Drag</Badge>
+            </Stack>
+          </KanbanItem>
+        </KanbanColumn>
+        <KanbanColumn value="done" title="Done">
+          <KanbanItem value="button-api">
+            <Stack>
+              <Text variant="small">Ship Button v1</Text>
+              <Badge variant="outline">Shadcn</Badge>
+            </Stack>
+          </KanbanItem>
+        </KanbanColumn>
+      </Kanban>
+
       <Grid columns="3">
         <Card>
           <CardHeader>

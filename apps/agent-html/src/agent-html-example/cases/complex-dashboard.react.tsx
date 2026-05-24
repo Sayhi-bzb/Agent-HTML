@@ -38,7 +38,7 @@ import {
   TabsList,
   TabsTrigger,
   type ChartConfig,
-} from "@/agent-html/ui"
+} from "@/agent-html-example/ui"
 import {
   Blocks,
   Bot,

@@ -26,6 +26,8 @@ export const allowedAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
   CodeBlock: ["language", "title"],
   Icon: ["name"],
   Image: ["src", "alt", "fit"],
+  KanbanColumn: ["value", "title"],
+  KanbanItem: ["value"],
   Text: ["variant"],
 }
 
@@ -40,5 +42,7 @@ export const requiredAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
   CodeBlock: ["language"],
   Icon: ["name"],
   Image: ["src", "alt"],
+  KanbanColumn: ["value", "title"],
+  KanbanItem: ["value"],
 }
 

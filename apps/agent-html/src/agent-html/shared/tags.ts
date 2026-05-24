@@ -62,6 +62,9 @@ export const allTags = new Set<AgentHtmlTag>([
   "CodeBlock",
   "Icon",
   "Image",
+  "Kanban",
+  "KanbanColumn",
+  "KanbanItem",
   "Text",
 ])
 

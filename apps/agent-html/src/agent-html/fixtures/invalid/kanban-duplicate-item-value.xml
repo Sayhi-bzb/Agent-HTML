@@ -1,0 +1,12 @@
+<Page title="Kanban duplicate item value">
+  <Section>
+    <Kanban>
+      <KanbanColumn value="todo" title="Todo">
+        <KanbanItem value="same">One</KanbanItem>
+      </KanbanColumn>
+      <KanbanColumn value="doing" title="Doing">
+        <KanbanItem value="same">Two</KanbanItem>
+      </KanbanColumn>
+    </Kanban>
+  </Section>
+</Page>

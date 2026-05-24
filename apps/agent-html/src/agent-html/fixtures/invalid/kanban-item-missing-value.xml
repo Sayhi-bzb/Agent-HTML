@@ -1,0 +1,11 @@
+<Page title="Kanban item missing value">
+  <Section>
+    <Kanban>
+      <KanbanColumn value="todo" title="Todo">
+        <KanbanItem>
+          <Text>Missing value</Text>
+        </KanbanItem>
+      </KanbanColumn>
+    </Kanban>
+  </Section>
+</Page>

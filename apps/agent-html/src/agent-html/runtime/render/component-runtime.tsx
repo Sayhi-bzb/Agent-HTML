@@ -27,6 +27,7 @@ import {
 import { CodeBlock } from "@/agent-html/runtime/ui/code-block"
 import { Progress } from "@/agent-html/runtime/ui/progress"
 import { Image } from "@/agent-html/runtime/ui/image"
+import { Kanban, KanbanColumn, KanbanItem } from "@/agent-html/runtime/ui/kanban"
 import { Separator } from "@/agent-html/runtime/ui/separator"
 import {
   Table,
@@ -74,6 +75,9 @@ export const previewComponentRuntime = {
   CarouselNext,
   CodeBlock,
   Image,
+  Kanban,
+  KanbanColumn,
+  KanbanItem,
   Progress,
   Separator,
   Table,

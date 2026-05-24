@@ -1,0 +1,5 @@
+<Page title="Kanban missing column">
+  <Section>
+    <Kanban />
+  </Section>
+</Page>

@@ -24,6 +24,10 @@ function hasChild(node: AgentHtmlElementNode, tag: AgentHtmlTag) {
   return elementChildren(node).some((child) => child.tag === tag)
 }
 
+function hasDuplicate(values: string[]) {
+  return new Set(values).size !== values.length
+}
+
 function isAllowedImageSrc(src: string) {
   return src.startsWith("https://") || (src.startsWith("/") && !src.startsWith("//"))
 }
@@ -478,6 +482,99 @@ function validateNode(
         path: `${path}/${child.tag}`,
         tag: child.tag,
       })
+    }
+  }
+
+  if (knownTag === "Kanban") {
+    const columns = elementChildren(node)
+
+    for (const child of node.children) {
+      if (child.type === "text" && child.value.trim().length > 0) {
+        errors.push({
+          code: "TEXT_NOT_ALLOWED",
+          message: "Bare text is not allowed under Kanban",
+          path,
+          tag,
+        })
+      }
+    }
+
+    if (columns.length === 0) {
+      errors.push({
+        code: "MISSING_REQUIRED_CHILD",
+        message: "Kanban must contain KanbanColumn",
+        path,
+        tag,
+      })
+    }
+
+    for (const child of columns) {
+      if (child.tag !== "KanbanColumn") {
+        errors.push({
+          code: "INVALID_CHILD",
+          message: "Kanban can only contain KanbanColumn",
+          path: `${path}/${child.tag}`,
+          tag: child.tag,
+        })
+      }
+    }
+
+    const columnValues = columns
+      .filter((child) => child.tag === "KanbanColumn")
+      .map((child) => child.attrs.value)
+      .filter(Boolean)
+    if (hasDuplicate(columnValues)) {
+      errors.push({
+        code: "INVALID_ATTR_VALUE",
+        message: "KanbanColumn values must be unique",
+        path,
+        tag,
+        attr: "value",
+      })
+    }
+
+    const itemValues = columns
+      .filter((child) => child.tag === "KanbanColumn")
+      .flatMap((child) =>
+        elementChildren(child)
+          .filter((item) => item.tag === "KanbanItem")
+          .map((item) => item.attrs.value)
+          .filter(Boolean)
+      )
+    if (hasDuplicate(itemValues)) {
+      errors.push({
+        code: "INVALID_ATTR_VALUE",
+        message: "KanbanItem values must be unique",
+        path,
+        tag,
+        attr: "value",
+      })
+    }
+  }
+
+  if (knownTag === "KanbanColumn") {
+    const items = elementChildren(node)
+
+    for (const child of node.children) {
+      if (child.type === "text" && child.value.trim().length > 0) {
+        errors.push({
+          code: "TEXT_NOT_ALLOWED",
+          message: "Bare text is not allowed under KanbanColumn",
+          path,
+          tag,
+        })
+      }
+    }
+
+    for (const child of items) {
+      if (child.tag !== "KanbanItem") {
+        errors.push({
+          code: "INVALID_CHILD",
+          message: "KanbanColumn can only contain KanbanItem",
+          path: `${path}/${child.tag}`,
+          tag: child.tag,
+        })
+      }
     }
   }
 

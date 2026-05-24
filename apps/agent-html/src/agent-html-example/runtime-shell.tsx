@@ -3,21 +3,19 @@ import * as React from "react"
 import type { SourceMetrics } from "@/agent-html"
 import { CodeBlock } from "@/agent-html-example/code-block"
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/agent-html/ui"
-import { Button } from "@/components/ui/button"
-import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
+  ScrollArea,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/agent-html-example/ui"
 
 type SourceTabValue = "ahtml" | "html" | "react"
 

@@ -1,0 +1,7 @@
+<Page title="Kanban invalid child">
+  <Section>
+    <Kanban>
+      <Card />
+    </Kanban>
+  </Section>
+</Page>
