@@ -4,6 +4,7 @@ import type { BundledLanguage, ShikiTransformer } from "shiki"
 
 import { cn } from "@/agent-html/lib/utils"
 import { buttonVariants } from "@/agent-html/runtime/ui/button"
+import { ScrollArea } from "@/agent-html/runtime/ui/scroll-area"
 
 const lineNumberTransformer: ShikiTransformer = {
   name: "line-numbers",
@@ -52,18 +53,20 @@ async function highlightCode(code: string, language: BundledLanguage) {
 
 function CodeBlockFallback({ code }: { code: string }) {
   return (
-    <pre className="m-0 min-w-max overflow-auto bg-background p-4 font-mono text-sm text-foreground">
-      <code className="grid">
-        {code.split("\n").map((line, index) => (
-          <span className="line relative w-full px-0" key={index}>
-            <span className="mr-4 inline-block min-w-10 select-none text-right text-muted-foreground">
-              {index + 1}
+    <ScrollArea className="w-full">
+      <pre className="m-0 min-w-max bg-background p-4 font-mono text-sm text-foreground">
+        <code className="grid">
+          {code.split("\n").map((line, index) => (
+            <span className="line relative w-full px-0" key={index}>
+              <span className="mr-4 inline-block min-w-10 select-none text-right text-muted-foreground">
+                {index + 1}
+              </span>
+              {line}
             </span>
-            {line}
-          </span>
-        ))}
-      </code>
-    </pre>
+          ))}
+        </code>
+      </pre>
+    </ScrollArea>
   )
 }
 
@@ -156,22 +159,24 @@ function CodeBlock({
       </figcaption>
       {hasHighlightedCode ? (
         <>
-          <div
-            className={cn(
-              "overflow-auto dark:hidden",
-              "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
-              "[&_code]:font-mono [&_code]:text-sm"
-            )}
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
-          <div
-            className={cn(
-              "hidden overflow-auto dark:block",
-              "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
-              "[&_code]:font-mono [&_code]:text-sm"
-            )}
-            dangerouslySetInnerHTML={{ __html: darkHtml }}
-          />
+          <ScrollArea className="w-full dark:hidden">
+            <div
+              className={cn(
+                "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
+                "[&_code]:font-mono [&_code]:text-sm"
+              )}
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          </ScrollArea>
+          <ScrollArea className="hidden w-full dark:block">
+            <div
+              className={cn(
+                "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
+                "[&_code]:font-mono [&_code]:text-sm"
+              )}
+              dangerouslySetInnerHTML={{ __html: darkHtml }}
+            />
+          </ScrollArea>
         </>
       ) : (
         <CodeBlockFallback code={code} />

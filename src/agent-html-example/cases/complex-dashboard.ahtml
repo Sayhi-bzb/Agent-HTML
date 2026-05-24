@@ -1,13 +1,20 @@
 <Page title="agent-html">
   <Section width="content">
     <Stack>
-      <Grid columns="2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Bar chart</CardTitle>
-            <CardDescription>Token cost for the same interface across authoring surfaces.</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Stack>
+        <Text variant="h1">agent-html</Text>
+        <Text variant="lead">A constrained UI language for agents: XML-shaped source, validated structure, runtime-backed primitives.</Text>
+      </Stack>
+
+      <Separator />
+
+      <Stack>
+        <Text variant="h2">Data becomes UI</Text>
+        <Text variant="muted">Charts render directly from declarative series and rows. The DSL carries data shape without exposing component internals.</Text>
+        <Grid columns="2">
+          <Stack>
+            <Text variant="h3">Bar chart</Text>
+            <Text variant="muted">Token cost for the same interface across authoring surfaces.</Text>
             <Chart type="bar">
               <ChartSeries key="ahtml" label="AHTML" />
               <ChartSeries key="html" label="HTML" />
@@ -15,15 +22,11 @@
               <ChartRow label="Source tokens" ahtml="3600" html="19871" react="4041" />
               <ChartTooltip hideLabel="false" />
             </Chart>
-          </CardContent>
-        </Card>
+          </Stack>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Line chart</CardTitle>
-            <CardDescription>As UI structure grows, the DSL stays closer to component intent.</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <Stack>
+            <Text variant="h3">Line chart</Text>
+            <Text variant="muted">As interface structure grows, agent-html stays closer to component intent.</Text>
             <Chart type="area">
               <ChartSeries key="ahtml" label="AHTML" />
               <ChartSeries key="react" label="React" />
@@ -33,11 +36,14 @@
               <ChartRow label="Showcase" ahtml="69" react="188" />
               <ChartTooltip hideLabel="false" />
             </Chart>
-          </CardContent>
-        </Card>
-      </Grid>
+          </Stack>
+        </Grid>
+      </Stack>
 
-      <CodeBlock language="ahtml" title="A small authoring surface">
+      <Stack>
+        <Text variant="h2">Small source, real components</Text>
+        <Text variant="muted">Agents author a compact tree. The runtime turns it into real UI primitives after validation.</Text>
+        <CodeBlock language="ahtml" title="A small authoring surface">
 <Page title="Demo">
   <Section width="reader">
     <Stack>
@@ -46,76 +52,96 @@
     </Stack>
   </Section>
 </Page>
-      </CodeBlock>
+        </CodeBlock>
+        <Alert>
+          <Icon name="shield-check" />
+          <AlertTitle>Validation happens before render</AlertTitle>
+          <AlertDescription>Unknown tags, invalid attrs, unsafe icons, and unsupported child structures fail before they reach the preview surface.</AlertDescription>
+        </Alert>
+      </Stack>
 
-      <Kanban>
-        <KanbanColumn value="author" title="Author">
-          <KanbanItem value="draft-structure">
-            <Stack>
-              <Text variant="small">Draft the UI as XML-shaped DSL</Text>
-              <Badge variant="secondary">Prompt</Badge>
-            </Stack>
-          </KanbanItem>
-          <KanbanItem value="choose-primitives">
-            <Stack>
-              <Text variant="small">Choose runtime-backed primitives</Text>
-              <Badge variant="outline">Schema</Badge>
-            </Stack>
-          </KanbanItem>
-        </KanbanColumn>
-        <KanbanColumn value="validate" title="Validate">
-          <KanbanItem value="parse-tree">
-            <Stack>
-              <Text variant="small">Parse to a constrained AST</Text>
-              <Badge variant="secondary">AST</Badge>
-            </Stack>
-          </KanbanItem>
-          <KanbanItem value="reject-invalid">
-            <Stack>
-              <Text variant="small">Reject unknown tags and unsafe props</Text>
-              <Badge variant="outline">Guardrail</Badge>
-            </Stack>
-          </KanbanItem>
-        </KanbanColumn>
-        <KanbanColumn value="render" title="Render">
-          <KanbanItem value="runtime-map">
-            <Stack>
-              <Text variant="small">Map DSL nodes to shadcn primitives</Text>
-              <Badge variant="secondary">Runtime</Badge>
-            </Stack>
-          </KanbanItem>
-        </KanbanColumn>
-      </Kanban>
+      <Stack>
+        <Text variant="h2">Workflow state</Text>
+        <Text variant="muted">Generated UI can describe stateful product surfaces, not only static content blocks.</Text>
+        <Kanban>
+          <KanbanColumn value="author" title="Author">
+            <KanbanItem value="draft-structure">
+              <Stack>
+                <Text variant="small">Draft the UI as XML-shaped DSL</Text>
+                <Badge variant="secondary">Prompt</Badge>
+              </Stack>
+            </KanbanItem>
+            <KanbanItem value="choose-primitives">
+              <Stack>
+                <Text variant="small">Choose runtime-backed primitives</Text>
+                <Badge variant="outline">Schema</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+          <KanbanColumn value="validate" title="Validate">
+            <KanbanItem value="parse-tree">
+              <Stack>
+                <Text variant="small">Parse to a constrained AST</Text>
+                <Badge variant="secondary">AST</Badge>
+              </Stack>
+            </KanbanItem>
+            <KanbanItem value="reject-invalid">
+              <Stack>
+                <Text variant="small">Reject unknown tags and unsafe props</Text>
+                <Badge variant="outline">Guardrail</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+          <KanbanColumn value="render" title="Render">
+            <KanbanItem value="runtime-map">
+              <Stack>
+                <Text variant="small">Map DSL nodes to shadcn primitives</Text>
+                <Badge variant="secondary">Runtime</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+        </Kanban>
+      </Stack>
 
-      <Timeline>
-        <TimelineItem icon="code-xml" meta="Authoring" status="complete">
-          <TimelineTitle>Constrained markup</TimelineTitle>
-          <TimelineDescription>Agents write nested tags, quoted attrs, and slots instead of class names.</TimelineDescription>
-          <TimelineContent>
-            <Cluster wrap="true">
-              <Badge variant="secondary">Page</Badge>
-              <Badge variant="outline">Grid</Badge>
-              <Badge variant="outline">Card</Badge>
-            </Cluster>
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem icon="shield-check" meta="Validation" status="current">
-          <TimelineTitle>AST checked before render</TimelineTitle>
-          <TimelineDescription>Unknown tags, invalid attrs, and unsafe icons fail at the runtime boundary.</TimelineDescription>
-        </TimelineItem>
-        <TimelineItem icon="component" meta="Runtime" status="default">
-          <TimelineTitle>Production primitives</TimelineTitle>
-          <TimelineDescription>The rendered output uses the same component system as the rest of the product.</TimelineDescription>
-        </TimelineItem>
-      </Timeline>
+      <Stack>
+        <Text variant="h2">Runtime pipeline</Text>
+        <Text variant="muted">The boundary is explicit: source enters the parser, the AST is validated, and runtime components render the result.</Text>
+        <Timeline>
+          <TimelineItem icon="code-xml" meta="Authoring" status="complete">
+            <TimelineTitle>Constrained markup</TimelineTitle>
+            <TimelineDescription>Agents write nested tags, quoted attrs, and slots instead of class names.</TimelineDescription>
+            <TimelineContent>
+              <Cluster wrap="true">
+                <Badge variant="secondary">Page</Badge>
+                <Badge variant="outline">Grid</Badge>
+                <Badge variant="outline">Text</Badge>
+              </Cluster>
+            </TimelineContent>
+          </TimelineItem>
+          <TimelineItem icon="shield-check" meta="Validation" status="current">
+            <TimelineTitle>AST checked before render</TimelineTitle>
+            <TimelineDescription>Invalid structure fails before the UI appears.</TimelineDescription>
+            <TimelineContent>
+              <Cluster wrap="true">
+                <Badge variant="secondary">Tags</Badge>
+                <Badge variant="outline">Attrs</Badge>
+                <Badge variant="outline">Children</Badge>
+              </Cluster>
+            </TimelineContent>
+          </TimelineItem>
+          <TimelineItem icon="component" meta="Runtime" status="default">
+            <TimelineTitle>Production primitives</TimelineTitle>
+            <TimelineDescription>The rendered output uses the same component system as the rest of the product.</TimelineDescription>
+          </TimelineItem>
+        </Timeline>
+      </Stack>
 
-      <Grid columns="3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Table</CardTitle>
-            <CardDescription>Compare authoring formats without losing component intent.</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Stack>
+        <Text variant="h2">Composable primitives</Text>
+        <Text variant="muted">Different primitive types can sit next to each other without a showcase wrapper around every component.</Text>
+        <Grid columns="3">
+          <Stack>
+            <Text variant="h3">Table</Text>
             <Table>
               <TableCaption>Same interface, different authoring surfaces</TableCaption>
               <TableHeader>
@@ -143,50 +169,38 @@
                 </TableRow>
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </Stack>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Aspect ratio</CardTitle>
-            <CardDescription>A media primitive keeps previews stable inside generated layouts.</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <Stack>
+            <Text variant="h3">Aspect ratio</Text>
+            <Text variant="muted">Media keeps stable dimensions inside generated layouts.</Text>
             <AspectRatio ratio="1.777">
               <Image src="/assets/blocks.png" alt="Agent HTML block preview" fit="cover" />
             </AspectRatio>
-          </CardContent>
-        </Card>
+          </Stack>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Runtime contract</CardTitle>
-            <CardDescription>The example proves the parser, validator, and renderer stay behind one boundary.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Stack>
-              <Alert>
-                <Icon name="route" />
-                <AlertTitle>Public surface only</AlertTitle>
-                <AlertDescription>The demo consumes the runtime contract without reaching into app internals.</AlertDescription>
-              </Alert>
-              <Cluster wrap="true">
-                <Badge variant="secondary">Parser</Badge>
-                <Badge variant="outline">Validator</Badge>
-                <Badge variant="outline">Renderer</Badge>
-              </Cluster>
-            </Stack>
-          </CardContent>
-        </Card>
-      </Grid>
+          <Stack>
+            <Text variant="h3">Runtime contract</Text>
+            <Alert>
+              <Icon name="route" />
+              <AlertTitle>Public surface only</AlertTitle>
+              <AlertDescription>The demo consumes the runtime contract without reaching into app internals.</AlertDescription>
+            </Alert>
+            <Cluster wrap="true">
+              <Badge variant="secondary">Parser</Badge>
+              <Badge variant="outline">Validator</Badge>
+              <Badge variant="outline">Renderer</Badge>
+            </Cluster>
+          </Stack>
+        </Grid>
+      </Stack>
 
-      <Grid columns="2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Accordion</CardTitle>
-            <CardDescription>Expandable sections explain why the DSL stays deliberately small.</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Stack>
+        <Text variant="h2">Interaction without custom code</Text>
+        <Text variant="muted">Accordion and tabs stay declarative while the runtime supplies the interactive behavior.</Text>
+        <Grid columns="2">
+          <Stack>
+            <Text variant="h3">Accordion</Text>
             <Accordion type="single">
               <AccordionItem value="html-shape">
                 <AccordionTrigger>Why HTML-shaped?</AccordionTrigger>
@@ -219,15 +233,10 @@
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-          </CardContent>
-        </Card>
+          </Stack>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Tabs</CardTitle>
-            <CardDescription>One compact card shows the author, validate, and render loop.</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <Stack>
+            <Text variant="h3">Tabs</Text>
             <Tabs defaultValue="author">
               <TabsList>
                 <TabsTrigger value="author">Author</TabsTrigger>
@@ -253,9 +262,9 @@
                 </Stack>
               </TabsContent>
             </Tabs>
-          </CardContent>
-        </Card>
-      </Grid>
+          </Stack>
+        </Grid>
+      </Stack>
     </Stack>
   </Section>
 </Page>
