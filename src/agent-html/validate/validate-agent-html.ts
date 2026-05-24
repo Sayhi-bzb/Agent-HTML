@@ -28,6 +28,14 @@ function hasDuplicate(values: string[]) {
   return new Set(values).size !== values.length
 }
 
+function hasAnyChildContent(node: AgentHtmlElementNode) {
+  return node.children.some(
+    (child) =>
+      child.type === "element" ||
+      (child.type === "text" && child.value.trim().length > 0)
+  )
+}
+
 function isAllowedImageSrc(src: string) {
   return src.startsWith("https://") || (src.startsWith("/") && !src.startsWith("//"))
 }
@@ -83,7 +91,7 @@ function validateNode(
   const knownTag = tag as AgentHtmlTag
   const allowed = new Set(allowedAttrs[knownTag] ?? [])
   for (const attr of Object.keys(node.attrs)) {
-    if (!allowed.has(attr)) {
+    if (knownTag !== "ChartRow" && !allowed.has(attr)) {
       errors.push({
         code: "UNKNOWN_ATTR",
         message: `Unknown attr "${attr}" on ${tag}`,
@@ -334,12 +342,24 @@ function validateNode(
   if (knownTag === "Chart") {
     const children = elementChildren(node)
     const seriesChildren = children.filter((child) => child.tag === "ChartSeries")
+    const rowChildren = children.filter((child) => child.tag === "ChartRow")
     const tooltipChildren = children.filter((child) => child.tag === "ChartTooltip")
+    const seriesKeys = seriesChildren.map((child) => child.attrs.key).filter(Boolean)
+    const seriesKeySet = new Set(seriesKeys)
 
     if (seriesChildren.length === 0) {
       errors.push({
         code: "MISSING_REQUIRED_CHILD",
         message: "Chart must contain at least one ChartSeries",
+        path,
+        tag,
+      })
+    }
+
+    if (rowChildren.length === 0) {
+      errors.push({
+        code: "MISSING_REQUIRED_CHILD",
+        message: "Chart must contain at least one ChartRow",
         path,
         tag,
       })
@@ -355,14 +375,74 @@ function validateNode(
     }
 
     for (const child of children) {
-      if (child.tag !== "ChartSeries" && child.tag !== "ChartTooltip") {
+      if (
+        child.tag !== "ChartSeries" &&
+        child.tag !== "ChartRow" &&
+        child.tag !== "ChartTooltip"
+      ) {
         errors.push({
           code: "INVALID_CHILD",
-          message: "Chart can only contain ChartSeries and ChartTooltip",
+          message: "Chart can only contain ChartSeries, ChartRow, and ChartTooltip",
           path: `${path}/${child.tag}`,
           tag: child.tag,
         })
       }
+    }
+
+    for (const row of rowChildren) {
+      for (const seriesKey of seriesKeys) {
+        if (!(seriesKey in row.attrs)) {
+          errors.push({
+            code: "MISSING_REQUIRED_ATTR",
+            message: `ChartRow must include value for series "${seriesKey}"`,
+            path: `${path}/ChartRow`,
+            tag: row.tag,
+            attr: seriesKey,
+          })
+        }
+      }
+
+      for (const [attr, value] of Object.entries(row.attrs)) {
+        if (attr === "label") {
+          continue
+        }
+
+        if (!seriesKeySet.has(attr)) {
+          errors.push({
+            code: "UNKNOWN_ATTR",
+            message: `Unknown chart series attr "${attr}" on ChartRow`,
+            path: `${path}/ChartRow`,
+            tag: row.tag,
+            attr,
+          })
+          continue
+        }
+
+        if (value.trim() === "" || Number.isNaN(Number(value))) {
+          errors.push({
+            code: "INVALID_ATTR_VALUE",
+            message: "ChartRow series values must be numbers",
+            path: `${path}/ChartRow`,
+            tag: row.tag,
+            attr,
+          })
+        }
+      }
+    }
+  }
+
+  if (
+    knownTag === "ChartSeries" ||
+    knownTag === "ChartRow" ||
+    knownTag === "ChartTooltip"
+  ) {
+    if (hasAnyChildContent(node)) {
+      errors.push({
+        code: "INVALID_CHILD",
+        message: `${tag} cannot contain children`,
+        path,
+        tag,
+      })
     }
   }
 

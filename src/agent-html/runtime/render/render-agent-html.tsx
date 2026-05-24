@@ -82,6 +82,7 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
 
   if (
     node.tag === "ChartSeries" ||
+    node.tag === "ChartRow" ||
     node.tag === "ChartTooltip"
   ) {
     throw new Error(`Unsupported render tag: ${node.tag}`)

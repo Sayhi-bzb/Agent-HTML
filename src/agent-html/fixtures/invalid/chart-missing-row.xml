@@ -1,6 +1,6 @@
 <Page title="Invalid chart">
   <Chart type="bar">
-    <ChartRow label="W1" publish="12" />
+    <ChartSeries key="publish" label="Publish" />
     <ChartTooltip hideLabel="false" />
   </Chart>
 </Page>

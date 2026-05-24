@@ -5,6 +5,7 @@ import {
   type ChartConfig,
 } from "@/agent-html/runtime/ui/chart"
 import type { AgentHtmlElementNode } from "@/agent-html/ast/types"
+import type * as React from "react"
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
 const chartColors = [
@@ -21,24 +22,36 @@ function isElement(
   return node.type === "element"
 }
 
-function buildChartData(seriesKeys: string[]) {
-  const labels = ["W1", "W2", "W3", "W4"]
+function BarTooltipCursor({
+  x = 0,
+  y = 0,
+  width = 0,
+  height = 0,
+  className,
+}: React.SVGProps<SVGRectElement>) {
+  const lineX = Number(x) + Number(width) / 2
 
-  return labels.map((label, rowIndex) => {
-    const row: Record<string, string | number> = { label }
-
-    seriesKeys.forEach((key, seriesIndex) => {
-      row[key] = 12 + rowIndex * 5 + seriesIndex * 7 + ((rowIndex + seriesIndex) % 3) * 4
-    })
-
-    return row
-  })
+  return (
+    <line
+      className={className}
+      pointerEvents="none"
+      stroke="var(--border)"
+      x1={lineX}
+      x2={lineX}
+      y1={Number(y)}
+      y2={Number(y) + Number(height)}
+    />
+  )
 }
 
 export function ChartRuntime({ node }: { node: AgentHtmlElementNode }) {
   const seriesNodes = node.children.filter(
     (child): child is AgentHtmlElementNode =>
       isElement(child) && child.tag === "ChartSeries"
+  )
+  const rowNodes = node.children.filter(
+    (child): child is AgentHtmlElementNode =>
+      isElement(child) && child.tag === "ChartRow"
   )
   const tooltipNode = node.children.find(
     (child): child is AgentHtmlElementNode =>
@@ -57,7 +70,17 @@ export function ChartRuntime({ node }: { node: AgentHtmlElementNode }) {
     ])
   ) satisfies ChartConfig
 
-  const data = buildChartData(seriesKeys)
+  const data = rowNodes.map((rowNode) => {
+    const row: Record<string, string | number> = {
+      label: rowNode.attrs.label,
+    }
+
+    seriesKeys.forEach((key) => {
+      row[key] = Number(rowNode.attrs[key])
+    })
+
+    return row
+  })
   const hideLabel = tooltipNode?.attrs.hideLabel === "true"
 
   if (chartType === "area") {
@@ -89,10 +112,20 @@ export function ChartRuntime({ node }: { node: AgentHtmlElementNode }) {
 
   return (
     <ChartContainer className="h-60 w-full" config={chartConfig}>
-      <BarChart accessibilityLayer data={data} margin={{ left: 0, right: 8 }}>
+      <BarChart
+        accessibilityLayer
+        barCategoryGap="40%"
+        barGap={8}
+        data={data}
+        margin={{ left: 0, right: 8 }}
+        maxBarSize={48}
+      >
         <CartesianGrid vertical={false} />
         <XAxis axisLine={false} dataKey="label" tickLine={false} />
-        <ChartTooltip content={<ChartTooltipContent hideLabel={hideLabel} />} />
+        <ChartTooltip
+          content={<ChartTooltipContent hideLabel={hideLabel} />}
+          cursor={<BarTooltipCursor />}
+        />
         {seriesNodes.map((series) => (
           <Bar
             key={series.attrs.key}

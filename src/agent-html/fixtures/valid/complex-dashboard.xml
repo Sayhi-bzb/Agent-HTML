@@ -231,6 +231,10 @@
         <Chart type="area">
           <ChartSeries key="review" label="Review" />
           <ChartSeries key="publish" label="Publish" />
+          <ChartRow label="W1" review="12" publish="19" />
+          <ChartRow label="W2" review="17" publish="24" />
+          <ChartRow label="W3" review="22" publish="29" />
+          <ChartRow label="W4" review="27" publish="34" />
           <ChartTooltip hideLabel="false" />
         </Chart>
       </CardContent>

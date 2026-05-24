@@ -88,8 +88,9 @@
 - `TimelineDescription -> Text`
 - `TimelineContent -> Layout | UI | Text`
 
-- `Chart:type="area|bar" -> ChartSeries+, ChartTooltip?`
+- `Chart:type="area|bar" -> ChartSeries+, ChartRow+, ChartTooltip?`
 - `ChartSeries:key=string, label?=string`
+- `ChartRow:label=string, [series key]=number -> none`
 - `ChartTooltip:hideLabel?="true|false" -> none`
 
 - `CodeBlock:language="ahtml|html|tsx|jsx|ts|js|json|bash", title?=string -> raw code text`

@@ -1,14 +1,21 @@
 <Page title="Introducing agent-html">
   <Section width="content">
     <Stack>
-      <Cluster justify="between" wrap="true">
-        <Cluster wrap="true">
-          <Badge variant="secondary">DSL preview</Badge>
-          <Badge variant="outline">Shadcn runtime</Badge>
-          <Badge variant="outline">AST validated</Badge>
-        </Cluster>
-        <Button variant="outline" href="/agent-html">Open preview</Button>
-      </Cluster>
+      <Card>
+        <CardHeader>
+          <CardTitle>Token cost by source</CardTitle>
+          <CardDescription>Approximate source-panel token cost for the same interface.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Chart type="bar">
+            <ChartSeries key="ahtml" label="AHTML" />
+            <ChartSeries key="html" label="HTML" />
+            <ChartSeries key="react" label="React" />
+            <ChartRow label="Tokens" ahtml="3600" html="19871" react="4041" />
+            <ChartTooltip hideLabel="false" />
+          </Chart>
+        </CardContent>
+      </Card>
 
       <Grid columns="2">
         <Card>
@@ -314,6 +321,10 @@
           <Chart type="area">
             <ChartSeries key="ahtml" label="AHTML" />
             <ChartSeries key="react" label="React" />
+            <ChartRow label="Hero" ahtml="24" react="58" />
+            <ChartRow label="Cards" ahtml="38" react="96" />
+            <ChartRow label="Flow" ahtml="51" react="138" />
+            <ChartRow label="Showcase" ahtml="69" react="188" />
             <ChartTooltip hideLabel="false" />
           </Chart>
         </CardContent>

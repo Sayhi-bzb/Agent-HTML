@@ -50,6 +50,7 @@ export type AgentHtmlUiTag =
   | "TimelineContent"
   | "Chart"
   | "ChartSeries"
+  | "ChartRow"
   | "ChartTooltip"
   | "CodeBlock"
   | "Icon"

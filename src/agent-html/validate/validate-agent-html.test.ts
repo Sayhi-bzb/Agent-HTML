@@ -198,6 +198,72 @@ describe("validateAgentHtml", () => {
     ).toBe(true)
   })
 
+  it("rejects a chart without rows", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "chart-missing-row.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some((error) => error.code === "MISSING_REQUIRED_CHILD")
+    ).toBe(true)
+  })
+
+  it("rejects chart rows missing labels", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "chart-row-missing-label.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "MISSING_REQUIRED_ATTR" && error.attr === "label"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects chart rows with unknown series attrs", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "chart-row-unknown-series.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) => error.code === "UNKNOWN_ATTR" && error.attr === "draft"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects chart rows missing series values", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "chart-row-missing-series-value.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "MISSING_REQUIRED_ATTR" && error.attr === "publish"
+      )
+    ).toBe(true)
+  })
+
+  it("rejects chart rows with non-numeric values", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("invalid", "chart-row-invalid-number.xml"))
+    )
+
+    expect(result.ok).toBe(false)
+    expect(
+      result.errors.some(
+        (error) =>
+          error.code === "INVALID_ATTR_VALUE" && error.attr === "publish"
+      )
+    ).toBe(true)
+  })
+
   it("rejects an unknown icon name", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("invalid", "unknown-icon-name.xml"))

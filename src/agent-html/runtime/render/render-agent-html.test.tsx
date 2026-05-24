@@ -164,6 +164,8 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("data-slot=\"aspect-ratio\"")
     expect(html).toContain("data-slot=\"carousel\"")
     expect(html).toContain("data-slot=\"chart\"")
+    expect(html).toContain("--color-review")
+    expect(html).toContain("--color-publish")
     expect(html).toContain("data-slot=\"tabs\"")
     expect(html).toContain("data-slot=\"accordion\"")
     expect(html).toContain("data-slot=\"table\"")

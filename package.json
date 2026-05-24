@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:example": "tsc -b && vite build --config vite.agent-html.config.ts",
+    "verify:example-build": "node tools/verify-example-build.mjs",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "test": "vitest run --config vitest.config.mjs",

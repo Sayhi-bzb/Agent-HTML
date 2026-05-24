@@ -5,7 +5,25 @@ import { defineConfig } from "vite"
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    {
+      name: "agent-html-example-dev-route",
+      configureServer(server) {
+        server.middlewares.use((request, response, next) => {
+          if (request.url === "/agent-html") {
+            response.statusCode = 302
+            response.setHeader("Location", "/agent-html/")
+            response.end()
+            return
+          }
+
+          next()
+        })
+      },
+    },
+    react(),
+    tailwindcss(),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
