@@ -56,7 +56,7 @@ It owns:
 It MUST NOT become a second gallery-wide primitive layer.
 Top-level gallery editor and panel code MUST continue to consume `src/app/shared/ui/*`.
 
-### `src/index.css`
+### `src/app/index.css`
 
 This file is the token and theme-mapping entrypoint.
 

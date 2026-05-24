@@ -28,6 +28,3 @@ const rootComponent =
 createRoot(document.getElementById("root")!).render(
   <StrictMode>{rootComponent}</StrictMode>
 )
-
-
-

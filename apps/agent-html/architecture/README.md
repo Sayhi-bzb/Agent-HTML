@@ -11,11 +11,11 @@ Frontend design rules belong in [`design/README.md`](../design/README.md).
 
 ## Application Entrypoints
 
-The app has two top-level surfaces selected in `src/main.tsx`.
+The app has two top-level surfaces selected in `src/app/main.tsx`.
 
 - `/` renders the main operating shell from `src/app/App.tsx`.
 - `/agent-html` lazy-loads the standalone Agent-HTML runtime demo from
-  `src/agent-html-example/entry.tsx`.
+  `src/agent-html-example/app/entry.tsx`.
 
 The default shell and the runtime demo are separate surfaces. Shared behavior
 should move into stable modules instead of being copied between these surfaces.
