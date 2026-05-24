@@ -5,12 +5,8 @@ AI-native artifact authoring and preview.
 
 ## Documents
 
-- [Product blueprint](./blueprint/index.md): product purpose, north star,
-  principles, and product boundary.
-- [Architecture](./architecture/README.md): engineering structure, module
-  ownership, dependency direction, and structural change rules.
-- [Design standards](./design/README.md): frontend design system, layout,
-  component, and token rules.
+- [Docs index](./docs/index.md): product, engineering, design, and reference
+  documentation.
 
 ## Development
 

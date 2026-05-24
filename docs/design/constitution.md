@@ -10,7 +10,7 @@ team governs exceptions.
 
 This document owns system-level rules.
 It does not define detailed token scales, typography roles, page layouts, or component-family
-standards. Those belong to the specialized documents in `design/`.
+standards. Those belong to the specialized documents in `docs/design/`.
 
 The keywords `MUST`, `SHOULD`, and `MUST NOT` are normative.
 
@@ -124,7 +124,7 @@ Schedule pressure is not sufficient justification for creating a parallel design
 Detailed implementation rules are delegated as follows:
 
 - `tokens.md` owns token taxonomy, naming, and consumption
-- [`../src/app/gallery/preview/rule/typography.md`](../src/app/gallery/preview/rule/typography.md) owns preview text hierarchy and text-role rules
+- [`src/app/gallery/preview/rule/typography.md`](../../src/app/gallery/preview/rule/typography.md) owns preview text hierarchy and text-role rules
 - `layout.md` owns shell structure and responsive layout rules
 - `components.md` owns component-family standards
 - `code-structure.md` owns code placement and implementation review rules

@@ -160,4 +160,4 @@ The system should stay aligned with these principles:
 - Prefer compositional discipline over stylistic novelty.
 
 Implementation rules, token structure, typography roles, layout standards, and component standards
-are defined in `design/`.
+are defined in `docs/design/`.
