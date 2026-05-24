@@ -66,7 +66,7 @@ Gallery code may compose shared shell and primitive components. It must not
 become a second primitive UI library, and gallery-specific content should not be
 stored inside generic shell components.
 
-### `src/components/ui`
+### `src/shared/ui`
 
 Owns shared primitive UI components. These are the base interactive and visual
 building blocks used by app, shell, and feature code.
@@ -138,7 +138,7 @@ Before making structural changes, classify the change by owner:
 - Demo-only source comparison or showcase behavior belongs in
   `src/agent-html-example`.
 - Gallery scene or editor behavior belongs in `src/app/gallery`.
-- Shared primitive interaction belongs in `src/components/ui`.
+- Shared primitive interaction belongs in `src/shared/ui`.
 - Reusable shell composition belongs in `src/app/shell`.
 - Cross-surface state wiring belongs in `src/app/App.tsx`.
 

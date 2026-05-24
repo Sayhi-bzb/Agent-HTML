@@ -16,12 +16,12 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@/shared/ui/collapsible"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/shared/ui/popover"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -29,8 +29,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { cn } from "@/lib/utils"
+} from "@/shared/ui/sidebar"
+import { cn } from "@/shared/lib/utils"
 
 type TailwindColorScale = Record<GalleryColorStep, string>
 

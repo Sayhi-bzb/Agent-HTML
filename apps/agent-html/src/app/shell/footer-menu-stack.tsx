@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { SidebarMenu } from "@/components/ui/sidebar"
+import { SidebarMenu } from "@/shared/ui/sidebar"
 
 export function FooterMenuStack({ children }: { children: React.ReactNode }) {
   return <SidebarMenu>{children}</SidebarMenu>

@@ -56,7 +56,7 @@ They MUST:
 
 ### Primitives / Atoms
 
-`src/components/ui/*` is the primitive layer.
+`src/shared/ui/*` is the primitive layer.
 These components are the only allowed atomic UI building blocks in the app.
 
 They MUST:
@@ -67,7 +67,7 @@ They MUST:
 
 ### Composites / Page Composition
 
-Components outside `src/components/ui/*` assemble primitives into stable product patterns.
+Components outside `src/shared/ui/*` assemble primitives into stable product patterns.
 Page code assembles composites and primitives into route-level screens.
 
 They MUST:

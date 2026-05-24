@@ -8,13 +8,13 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useTheme, type Theme } from "@/components/theme-provider"
+} from "@/shared/ui/dropdown-menu"
+import { useTheme, type Theme } from "@/shared/theme-provider"
 import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/shared/ui/sidebar"
 import {
   BellIcon,
   BadgeCheckIcon,

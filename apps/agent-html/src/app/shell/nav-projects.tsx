@@ -11,15 +11,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/shared/ui/alert-dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+} from "@/shared/ui/dropdown-menu"
+import { Input } from "@/shared/ui/input"
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -28,7 +28,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/shared/ui/sidebar"
 import {
   CopyIcon,
   MoreHorizontalIcon,

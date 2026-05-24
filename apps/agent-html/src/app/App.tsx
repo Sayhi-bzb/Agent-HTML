@@ -10,11 +10,11 @@ import { GalleryPanel } from "@/app/gallery/panel"
 import { galleryWorkspacePreviewBaseSceneId } from "@/app/gallery/preview-content"
 import { AppSidebar } from "@/app/shell/app-sidebar"
 import { SiteHeader } from "@/app/shell/site-header"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea } from "@/shared/ui/scroll-area"
 import {
   SidebarInset,
   SidebarProvider,
-} from "@/components/ui/sidebar"
+} from "@/shared/ui/sidebar"
 
 type Project = {
   id: string
