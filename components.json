@@ -13,10 +13,10 @@
   "iconLibrary": "lucide",
   "rtl": false,
   "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
+    "components": "@/agent-html-example",
+    "utils": "@/agent-html-example/lib/utils",
+    "ui": "@/agent-html-example/ui",
+    "lib": "@/agent-html-example/lib",
     "hooks": "@/hooks"
   },
   "menuColor": "default",
