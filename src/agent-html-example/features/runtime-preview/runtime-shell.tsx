@@ -21,7 +21,6 @@ export function RuntimeShell({
   reactMetrics,
   reactSource,
   theme,
-  title,
 }: {
   ahtmlMetrics: SourceMetrics
   children: React.ReactNode
@@ -32,7 +31,6 @@ export function RuntimeShell({
   reactMetrics: SourceMetrics
   reactSource: string
   theme: ExampleThemeId
-  title: string
 }) {
   const [activeSourceTab, setActiveSourceTab] =
     React.useState<SourceTabValue>("ahtml")
@@ -69,7 +67,6 @@ export function RuntimeShell({
         <RuntimeHeader
           onThemeChange={onThemeChange}
           theme={theme}
-          title={title}
         />
         <main className="mt-3 min-h-0 w-full min-w-0 flex-1">
           <RenderPanel>{children}</RenderPanel>

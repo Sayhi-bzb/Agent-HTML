@@ -50,7 +50,6 @@ export function AgentHtmlRuntimePage({
       reactSource={activeCase.reactSource}
       onThemeChange={onThemeChange}
       theme={theme}
-      title={activeCase.title}
     >
       {runtime.renderedContent ? (
         runtime.renderedContent

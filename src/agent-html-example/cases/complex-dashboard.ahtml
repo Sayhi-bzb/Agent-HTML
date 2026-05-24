@@ -1,221 +1,119 @@
-<Page title="Introducing agent-html">
+<Page title="agent-html">
   <Section width="content">
     <Stack>
-      <Card>
-        <CardHeader>
-          <CardTitle>Token cost by source</CardTitle>
-          <CardDescription>Approximate source-panel token cost for the same interface.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Chart type="bar">
-            <ChartSeries key="ahtml" label="AHTML" />
-            <ChartSeries key="html" label="HTML" />
-            <ChartSeries key="react" label="React" />
-            <ChartRow label="Tokens" ahtml="3600" html="19871" react="4041" />
-            <ChartTooltip hideLabel="false" />
-          </Chart>
-        </CardContent>
-      </Card>
-
       <Grid columns="2">
         <Card>
           <CardHeader>
-            <CardTitle>Agent-authored interface</CardTitle>
-            <CardDescription>Describe UI with a small HTML-like DSL, then render through the agent-html runtime.</CardDescription>
+            <CardTitle>Bar chart</CardTitle>
+            <CardDescription>Token cost for the same interface across authoring surfaces.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="author">
-              <TabsList>
-                <TabsTrigger value="author">Author</TabsTrigger>
-                <TabsTrigger value="validate">Validate</TabsTrigger>
-                <TabsTrigger value="render">Render</TabsTrigger>
-              </TabsList>
-              <TabsContent value="author">
-                <Stack>
-                  <Cluster justify="between" wrap="true">
-                    <Badge variant="secondary">XML-shaped</Badge>
-                    <Badge variant="outline">Low classname load</Badge>
-                  </Cluster>
-                  <Progress value="88" />
-                  <Alert>
-                    <Icon name="sparkles" />
-                    <AlertTitle>Designed for LLM generation</AlertTitle>
-                    <AlertDescription>Tags, slots, and narrow variants keep the prompt close to patterns the model already knows.</AlertDescription>
-                  </Alert>
-                </Stack>
-              </TabsContent>
-              <TabsContent value="validate">
-                <Stack>
-                  <Badge variant="outline">Schema checked before render</Badge>
-                  <Progress value="76" />
-                  <Alert>
-                    <Icon name="shield-check" />
-                    <AlertTitle>AST first</AlertTitle>
-                    <AlertDescription>The parser turns source into a constrained tree so invalid tags and missing props fail early.</AlertDescription>
-                  </Alert>
-                </Stack>
-              </TabsContent>
-              <TabsContent value="render">
-                <Stack>
-                  <Badge variant="secondary">Runtime maps to shadcn</Badge>
-                  <Progress value="92" />
-                  <Alert>
-                    <Icon name="component" />
-                    <AlertTitle>No handcrafted widgets</AlertTitle>
-                    <AlertDescription>agent-html composes the existing shadcn runtime primitives instead of inventing a parallel UI kit.</AlertDescription>
-                  </Alert>
-                </Stack>
-              </TabsContent>
-            </Tabs>
+            <Chart type="bar">
+              <ChartSeries key="ahtml" label="AHTML" />
+              <ChartSeries key="html" label="HTML" />
+              <ChartSeries key="react" label="React" />
+              <ChartRow label="Source tokens" ahtml="3600" html="19871" react="4041" />
+              <ChartTooltip hideLabel="false" />
+            </Chart>
           </CardContent>
-          <CardFooter>
-            <Cluster justify="between" wrap="true">
-              <Cluster wrap="true">
-                <Button>Generate draft</Button>
-                <Button variant="ghost">
-                  <Icon name="search" />
-                  Inspect AST
-                </Button>
-              </Cluster>
-              <Cluster wrap="true">
-                <Badge variant="secondary">Prompt-friendly</Badge>
-                <Badge variant="outline">Renderable</Badge>
-              </Cluster>
-            </Cluster>
-          </CardFooter>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Design principles</CardTitle>
-            <CardDescription>Why agent-html stays small and deliberately constrained.</CardDescription>
+            <CardTitle>Line chart</CardTitle>
+            <CardDescription>As UI structure grows, the DSL stays closer to component intent.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Accordion type="single">
-              <AccordionItem value="html-shape">
-                <AccordionTrigger>Why HTML-shaped?</AccordionTrigger>
-                <AccordionContent>
-                  <Stack>
-                    <Alert>
-                      <Icon name="code-xml" />
-                      <AlertTitle>Lower model friction</AlertTitle>
-                      <AlertDescription>LLMs already understand nested markup, attributes, closing tags, and slot-like composition.</AlertDescription>
-                    </Alert>
-                    <Cluster wrap="true">
-                      <Badge variant="secondary">Familiar syntax</Badge>
-                      <Badge variant="outline">Less prompt text</Badge>
-                    </Cluster>
-                  </Stack>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="limited-props">
-                <AccordionTrigger>Why narrow props?</AccordionTrigger>
-                <AccordionContent>
-                  <Stack>
-                    <Alert>
-                      <Icon name="list-checks" />
-                      <AlertTitle>Reliable generation beats full flexibility</AlertTitle>
-                      <AlertDescription>Small variant sets make generated UI easier to validate, render, and compare across examples.</AlertDescription>
-                    </Alert>
-                    <Cluster wrap="true">
-                      <Badge variant="secondary">Variants</Badge>
-                      <Badge variant="outline">Slots</Badge>
-                      <Badge variant="outline">Layout tags</Badge>
-                    </Cluster>
-                  </Stack>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="runtime">
-                <AccordionTrigger>Why shadcn runtime?</AccordionTrigger>
-                <AccordionContent>
-                  <Stack>
-                    <Alert>
-                      <Icon name="blocks" />
-                      <AlertTitle>Use production primitives</AlertTitle>
-                      <AlertDescription>The DSL is an authoring layer. The rendered result still uses real UI components.</AlertDescription>
-                    </Alert>
-                    <Cluster wrap="true">
-                      <Badge variant="secondary">Native primitives</Badge>
-                      <Badge variant="outline">Theme tokens</Badge>
-                    </Cluster>
-                  </Stack>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            <Chart type="area">
+              <ChartSeries key="ahtml" label="AHTML" />
+              <ChartSeries key="react" label="React" />
+              <ChartRow label="Hero" ahtml="24" react="58" />
+              <ChartRow label="Cards" ahtml="38" react="96" />
+              <ChartRow label="Flow" ahtml="51" react="138" />
+              <ChartRow label="Showcase" ahtml="69" react="188" />
+              <ChartTooltip hideLabel="false" />
+            </Chart>
           </CardContent>
         </Card>
       </Grid>
 
-      <Separator />
-
-      <CodeBlock language="ahtml" title="Minimal section">
+      <CodeBlock language="ahtml" title="A small authoring surface">
 <Page title="Demo">
   <Section width="reader">
-    <Text variant="lead">Readable content stays centered.</Text>
+    <Stack>
+      <Text variant="lead">Describe the interface with constrained tags.</Text>
+      <Badge variant="secondary">Validated before render</Badge>
+    </Stack>
   </Section>
 </Page>
       </CodeBlock>
 
-      <Timeline>
-        <TimelineItem icon="code-xml" meta="Prompt surface" status="complete">
-          <TimelineTitle>Constrained authoring</TimelineTitle>
-          <TimelineDescription>Agents write XML-shaped UI with slots, variants, and raw code blocks instead of class names.</TimelineDescription>
-          <TimelineContent>
-            <Cluster wrap="true">
-              <Badge variant="secondary">Section</Badge>
-              <Badge variant="secondary">CodeBlock</Badge>
-              <Badge variant="outline">Timeline</Badge>
-            </Cluster>
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem icon="shield-check" meta="Validation layer" status="current">
-          <TimelineTitle>AST validation</TimelineTitle>
-          <TimelineDescription>Unknown tags, invalid attrs, and unsafe icon names fail before runtime rendering.</TimelineDescription>
-        </TimelineItem>
-        <TimelineItem icon="component" meta="Runtime layer" status="default">
-          <TimelineTitle>Shadcn primitives</TimelineTitle>
-          <TimelineDescription>The rendered output still uses production UI primitives behind a narrow DSL contract.</TimelineDescription>
-        </TimelineItem>
-      </Timeline>
-
       <Kanban>
-        <KanbanColumn value="todo" title="Todo">
-          <KanbanItem value="prompt-audit">
+        <KanbanColumn value="author" title="Author">
+          <KanbanItem value="draft-structure">
             <Stack>
-              <Text variant="small">Audit prompt grammar</Text>
-              <Badge variant="outline">Docs</Badge>
+              <Text variant="small">Draft the UI as XML-shaped DSL</Text>
+              <Badge variant="secondary">Prompt</Badge>
             </Stack>
           </KanbanItem>
-          <KanbanItem value="list-component">
+          <KanbanItem value="choose-primitives">
             <Stack>
-              <Text variant="small">Design List API</Text>
-              <Badge variant="secondary">Next</Badge>
-            </Stack>
-          </KanbanItem>
-        </KanbanColumn>
-        <KanbanColumn value="doing" title="Doing">
-          <KanbanItem value="kanban-runtime">
-            <Stack>
-              <Text variant="small">Wire Kanban runtime</Text>
-              <Badge variant="secondary">Drag</Badge>
+              <Text variant="small">Choose runtime-backed primitives</Text>
+              <Badge variant="outline">Schema</Badge>
             </Stack>
           </KanbanItem>
         </KanbanColumn>
-        <KanbanColumn value="done" title="Done">
-          <KanbanItem value="button-api">
+        <KanbanColumn value="validate" title="Validate">
+          <KanbanItem value="parse-tree">
             <Stack>
-              <Text variant="small">Ship Button v1</Text>
-              <Badge variant="outline">Shadcn</Badge>
+              <Text variant="small">Parse to a constrained AST</Text>
+              <Badge variant="secondary">AST</Badge>
+            </Stack>
+          </KanbanItem>
+          <KanbanItem value="reject-invalid">
+            <Stack>
+              <Text variant="small">Reject unknown tags and unsafe props</Text>
+              <Badge variant="outline">Guardrail</Badge>
+            </Stack>
+          </KanbanItem>
+        </KanbanColumn>
+        <KanbanColumn value="render" title="Render">
+          <KanbanItem value="runtime-map">
+            <Stack>
+              <Text variant="small">Map DSL nodes to shadcn primitives</Text>
+              <Badge variant="secondary">Runtime</Badge>
             </Stack>
           </KanbanItem>
         </KanbanColumn>
       </Kanban>
 
+      <Timeline>
+        <TimelineItem icon="code-xml" meta="Authoring" status="complete">
+          <TimelineTitle>Constrained markup</TimelineTitle>
+          <TimelineDescription>Agents write nested tags, quoted attrs, and slots instead of class names.</TimelineDescription>
+          <TimelineContent>
+            <Cluster wrap="true">
+              <Badge variant="secondary">Page</Badge>
+              <Badge variant="outline">Grid</Badge>
+              <Badge variant="outline">Card</Badge>
+            </Cluster>
+          </TimelineContent>
+        </TimelineItem>
+        <TimelineItem icon="shield-check" meta="Validation" status="current">
+          <TimelineTitle>AST checked before render</TimelineTitle>
+          <TimelineDescription>Unknown tags, invalid attrs, and unsafe icons fail at the runtime boundary.</TimelineDescription>
+        </TimelineItem>
+        <TimelineItem icon="component" meta="Runtime" status="default">
+          <TimelineTitle>Production primitives</TimelineTitle>
+          <TimelineDescription>The rendered output uses the same component system as the rest of the product.</TimelineDescription>
+        </TimelineItem>
+      </Timeline>
+
       <Grid columns="3">
         <Card>
           <CardHeader>
-            <CardTitle>Source comparison</CardTitle>
-            <CardDescription>AHTML keeps the page structure explicit without writing every React wrapper.</CardDescription>
+            <CardTitle>Table</CardTitle>
+            <CardDescription>Compare authoring formats without losing component intent.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -244,91 +142,120 @@
                   <TableCell>Highest token cost</TableCell>
                 </TableRow>
               </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell>Goal</TableCell>
-                  <TableCell>LLM accuracy</TableCell>
-                  <TableCell>Small API surface</TableCell>
-                </TableRow>
-              </TableFooter>
             </Table>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Deployment surfaces</CardTitle>
-            <CardDescription>The same DSL experiment can preview web, app, and generated UI states.</CardDescription>
+            <CardTitle>Aspect ratio</CardTitle>
+            <CardDescription>A media primitive keeps previews stable inside generated layouts.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Carousel>
-              <CarouselContent>
-                <CarouselItem>
-                  <AspectRatio ratio="1.777">
-                    <Image src="/agent-html/web-preview.svg" alt="Web preview dashboard" fit="cover" />
-                  </AspectRatio>
-                </CarouselItem>
-                <CarouselItem>
-                  <AspectRatio ratio="1.777">
-                    <Image src="/agent-html/app-surface.svg" alt="App surface preview" fit="cover" />
-                  </AspectRatio>
-                </CarouselItem>
-                <CarouselItem>
-                  <AspectRatio ratio="1.777">
-                    <Image src="/agent-html/agent-output.svg" alt="Structured agent output" fit="cover" />
-                  </AspectRatio>
-                </CarouselItem>
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+            <AspectRatio ratio="1.777">
+              <Image src="/assets/blocks.png" alt="Agent HTML block preview" fit="cover" />
+            </AspectRatio>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>What this proves</CardTitle>
-            <CardDescription>The showcase is a runtime contract, not just a visual sample.</CardDescription>
-            <CardAction>
-              <Badge variant="outline">Boundary</Badge>
-            </CardAction>
+            <CardTitle>Runtime contract</CardTitle>
+            <CardDescription>The example proves the parser, validator, and renderer stay behind one boundary.</CardDescription>
           </CardHeader>
           <CardContent>
             <Stack>
               <Alert>
                 <Icon name="route" />
-                <AlertTitle>Example consumes the package</AlertTitle>
-                <AlertDescription>The demo stays outside agent-html internals and uses only the public runtime entrypoints.</AlertDescription>
+                <AlertTitle>Public surface only</AlertTitle>
+                <AlertDescription>The demo consumes the runtime contract without reaching into app internals.</AlertDescription>
               </Alert>
-              <Separator />
               <Cluster wrap="true">
                 <Badge variant="secondary">Parser</Badge>
                 <Badge variant="outline">Validator</Badge>
                 <Badge variant="outline">Renderer</Badge>
-                <Badge variant="outline">Source diff</Badge>
               </Cluster>
             </Stack>
           </CardContent>
         </Card>
       </Grid>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Complexity trend</CardTitle>
-          <CardDescription>As UI structure grows, the DSL keeps authoring cost closer to component intent.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Chart type="area">
-            <ChartSeries key="ahtml" label="AHTML" />
-            <ChartSeries key="react" label="React" />
-            <ChartRow label="Hero" ahtml="24" react="58" />
-            <ChartRow label="Cards" ahtml="38" react="96" />
-            <ChartRow label="Flow" ahtml="51" react="138" />
-            <ChartRow label="Showcase" ahtml="69" react="188" />
-            <ChartTooltip hideLabel="false" />
-          </Chart>
-        </CardContent>
-      </Card>
+      <Grid columns="2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Accordion</CardTitle>
+            <CardDescription>Expandable sections explain why the DSL stays deliberately small.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single">
+              <AccordionItem value="html-shape">
+                <AccordionTrigger>Why HTML-shaped?</AccordionTrigger>
+                <AccordionContent>
+                  <Alert>
+                    <Icon name="code-xml" />
+                    <AlertTitle>Lower model friction</AlertTitle>
+                    <AlertDescription>LLMs already understand nested markup, attributes, and closing tags.</AlertDescription>
+                  </Alert>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="narrow-props">
+                <AccordionTrigger>Why narrow props?</AccordionTrigger>
+                <AccordionContent>
+                  <Alert>
+                    <Icon name="list-checks" />
+                    <AlertTitle>Reliable generation beats flexibility</AlertTitle>
+                    <AlertDescription>Small variant sets make generated UI easier to validate and compare.</AlertDescription>
+                  </Alert>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="runtime">
+                <AccordionTrigger>Why runtime primitives?</AccordionTrigger>
+                <AccordionContent>
+                  <Alert>
+                    <Icon name="blocks" />
+                    <AlertTitle>No parallel UI kit</AlertTitle>
+                    <AlertDescription>The DSL composes production primitives instead of inventing a second component system.</AlertDescription>
+                  </Alert>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Tabs</CardTitle>
+            <CardDescription>One compact card shows the author, validate, and render loop.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="author">
+              <TabsList>
+                <TabsTrigger value="author">Author</TabsTrigger>
+                <TabsTrigger value="validate">Validate</TabsTrigger>
+                <TabsTrigger value="render">Render</TabsTrigger>
+              </TabsList>
+              <TabsContent value="author">
+                <Stack>
+                  <Badge variant="secondary">XML-shaped</Badge>
+                  <Text variant="small">Write tags and attrs that map directly to runtime primitives.</Text>
+                </Stack>
+              </TabsContent>
+              <TabsContent value="validate">
+                <Stack>
+                  <Badge variant="outline">Schema checked</Badge>
+                  <Text variant="small">Fail invalid source before it reaches the preview surface.</Text>
+                </Stack>
+              </TabsContent>
+              <TabsContent value="render">
+                <Stack>
+                  <Badge variant="secondary">Runtime-backed</Badge>
+                  <Text variant="small">Render through shadcn primitives with shared theme tokens.</Text>
+                </Stack>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </Grid>
     </Stack>
   </Section>
 </Page>
