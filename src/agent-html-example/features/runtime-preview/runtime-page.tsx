@@ -9,12 +9,19 @@ import {
   validateAgentHtml,
 } from "@/agent-html"
 import { agentHtmlExampleCases } from "@/agent-html-example/cases"
+import type { ExampleThemeId } from "@/agent-html-example/theme/theme-presets"
 import { RuntimeShell } from "@/agent-html-example/features/runtime-preview/runtime-shell"
 import { ValidationErrors } from "@/agent-html-example/features/runtime-preview/validation-errors"
 
 const activeCase = agentHtmlExampleCases[0]
 
-export function AgentHtmlRuntimePage() {
+export function AgentHtmlRuntimePage({
+  onThemeChange,
+  theme,
+}: {
+  onThemeChange: (theme: ExampleThemeId) => void
+  theme: ExampleThemeId
+}) {
   const runtime = React.useMemo(() => {
     const document = parseAgentHtml(activeCase.ahtmlSource)
     const validation = validateAgentHtml(document)
@@ -41,6 +48,8 @@ export function AgentHtmlRuntimePage() {
       htmlSource={runtime.htmlSource}
       reactMetrics={runtime.reactMetrics}
       reactSource={activeCase.reactSource}
+      onThemeChange={onThemeChange}
+      theme={theme}
       title={activeCase.title}
     >
       {runtime.renderedContent ? (

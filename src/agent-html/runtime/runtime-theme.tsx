@@ -14,6 +14,7 @@ import {
 } from "@/agent-html/theme/defaults"
 
 type TailwindColorScale = Record<AgentHtmlColorStep, string>
+export type AgentHtmlColorCssVariables = Partial<Record<`--${string}`, string>>
 
 const tailwindColorFamilies = Object.fromEntries(
   (Object.keys(colors) as AgentHtmlColorFamily[]).map((family) => [
@@ -24,9 +25,11 @@ const tailwindColorFamilies = Object.fromEntries(
 
 export function AgentHtmlRuntimeTheme({
   children,
+  colorCssVariables,
   colorTokenValues = agentHtmlColorTokenDefaults,
 }: {
   children: React.ReactNode
+  colorCssVariables?: AgentHtmlColorCssVariables
   colorTokenValues?: AgentHtmlColorTokenValues
 }) {
   const previewThemeStyle = React.useMemo(() => {
@@ -79,8 +82,9 @@ export function AgentHtmlRuntimeTheme({
       "--type-lg": "calc(var(--type-base-size) * 1.125)",
       "--type-xl": "calc(var(--type-base-size) * 1.375)",
       "--type-2xl": "calc(var(--type-base-size) * 1.875)",
+      ...colorCssVariables,
     } as React.CSSProperties
-  }, [colorTokenValues])
+  }, [colorCssVariables, colorTokenValues])
 
   return (
     <div

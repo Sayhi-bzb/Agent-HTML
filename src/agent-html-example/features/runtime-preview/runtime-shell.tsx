@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import type { SourceMetrics } from "@/agent-html"
+import type { ExampleThemeId } from "@/agent-html-example/theme/theme-presets"
 import { RenderPanel } from "@/agent-html-example/features/runtime-preview/render-panel"
 import { RuntimeHeader } from "@/agent-html-example/features/runtime-preview/runtime-header"
 import { SourceDialog } from "@/agent-html-example/features/runtime-preview/source-dialog"
@@ -16,8 +17,10 @@ export function RuntimeShell({
   ahtmlSource,
   htmlMetrics,
   htmlSource,
+  onThemeChange,
   reactMetrics,
   reactSource,
+  theme,
   title,
 }: {
   ahtmlMetrics: SourceMetrics
@@ -25,8 +28,10 @@ export function RuntimeShell({
   ahtmlSource: string
   htmlMetrics: SourceMetrics
   htmlSource: string
+  onThemeChange: (theme: ExampleThemeId) => void
   reactMetrics: SourceMetrics
   reactSource: string
+  theme: ExampleThemeId
   title: string
 }) {
   const [activeSourceTab, setActiveSourceTab] =
@@ -61,7 +66,11 @@ export function RuntimeShell({
         onValueChange={handleSourceTabChange}
         value={activeSourceTab}
       >
-        <RuntimeHeader title={title} />
+        <RuntimeHeader
+          onThemeChange={onThemeChange}
+          theme={theme}
+          title={title}
+        />
         <main className="mt-3 min-h-0 w-full min-w-0 flex-1">
           <RenderPanel>{children}</RenderPanel>
         </main>
