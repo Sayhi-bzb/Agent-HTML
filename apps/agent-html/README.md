@@ -1,21 +1,27 @@
-# React + TypeScript + Vite + shadcn/ui
+# Agent-HTML
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+Agent-HTML is a Vite, React, TypeScript, and shadcn/ui application for exploring
+AI-native artifact authoring and preview.
 
-## Adding components
+## Documents
 
-To add components to your app, run the following command:
+- [Product blueprint](./blueprint/index.md): product purpose, north star,
+  principles, and product boundary.
+- [Architecture](./architecture/README.md): engineering structure, module
+  ownership, dependency direction, and structural change rules.
+- [Design standards](./design/README.md): frontend design system, layout,
+  component, and token rules.
+
+## Development
 
 ```bash
-npx shadcn@latest add button
+npm run dev
 ```
 
-This will place the ui components in the `src/components` directory.
+Useful checks:
 
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button"
+```bash
+npm run test
+npm run typecheck
+npm run lint
 ```
