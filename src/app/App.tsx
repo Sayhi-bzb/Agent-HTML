@@ -10,6 +10,10 @@ import { galleryScenes } from "@/app/gallery/scenes"
 import { GalleryPanel } from "@/app/gallery/panel"
 import { galleryWorkspacePreviewBaseSceneId } from "@/app/gallery/preview-content"
 import { AppSidebar } from "@/app/shell/app-sidebar"
+import {
+  defaultWorkspaceSectionId,
+  getWorkspaceSection,
+} from "@/app/shell/nav-projects"
 import { SiteHeader } from "@/app/shell/site-header"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import {
@@ -47,37 +51,6 @@ const initialProjects: Project[] = [
     slug: "travel",
   },
 ]
-
-function slugifyProjectName(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
-
-function createDuplicateProject(source: Project, projects: Project[]): Project {
-  const baseName = `${source.name} Copy`
-  let nextName = baseName
-  let nextSlug = slugifyProjectName(nextName)
-  let suffix = 2
-
-  while (
-    projects.some(
-      (project) => project.id === nextSlug || project.slug === nextSlug
-    )
-  ) {
-    nextName = `${baseName} ${suffix}`
-    nextSlug = slugifyProjectName(nextName)
-    suffix += 1
-  }
-
-  return {
-    id: nextSlug,
-    name: nextName,
-    slug: nextSlug,
-  }
-}
 
 function getNextActiveTabId(
   currentTabs: ProjectTab[],
@@ -141,11 +114,33 @@ const activity = [
   },
 ]
 
-function WorkspacePanel({ activeProject: _activeProject }: { activeProject: Project | null }) {
+function WorkspacePanel({
+  activeProject,
+  activeSectionId,
+}: {
+  activeProject: Project | null
+  activeSectionId: string
+}) {
+  const activeSection = getWorkspaceSection(activeSectionId)
+  const projectLabel = activeProject?.name ?? "No project selected"
+
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex min-h-full flex-col gap-6 p-4 md:p-6">
+          <section className="rounded-xl border bg-background p-5 text-foreground shadow-sm">
+            <p className="text-sm font-medium text-muted-foreground">
+              {activeSection.groupTitle}
+            </p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+              {activeSection.title}
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Workspace content is scoped to the selected sidebar section while
+              header tabs remain project-level. Current project: {projectLabel}.
+            </p>
+          </section>
+
           <section className="grid gap-4 md:grid-cols-3">
             {stats.map((stat) => (
               <article
@@ -212,9 +207,11 @@ function WorkspacePanel({ activeProject: _activeProject }: { activeProject: Proj
 }
 
 export function App() {
-  const [projects, setProjects] = React.useState<Project[]>(initialProjects)
+  const [projects] = React.useState<Project[]>(initialProjects)
   const [openTabs, setOpenTabs] = React.useState<ProjectTab[]>([])
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
+  const [activeWorkspaceSectionId, setActiveWorkspaceSectionId] =
+    React.useState(defaultWorkspaceSectionId)
   const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
   const [galleryColorTokenValues, setGalleryColorTokenValues] = React.useState(
     galleryColorTokenDefaults
@@ -289,74 +286,6 @@ export function App() {
     [projects]
   )
 
-  const handleRenameProject = React.useCallback((projectId: string, name: string) => {
-    const nextName = name.trim()
-    if (!nextName) {
-      return
-    }
-
-    setProjects((currentProjects) =>
-      currentProjects.map((project) =>
-        project.id === projectId ? { ...project, name: nextName } : project
-      )
-    )
-    setOpenTabs((currentTabs) =>
-      currentTabs.map((tab) =>
-        tab.projectId === projectId ? { ...tab, label: nextName } : tab
-      )
-    )
-  }, [])
-
-  const handleDuplicateProject = React.useCallback(
-    (projectId: string) => {
-      const sourceProject = projects.find((project) => project.id === projectId)
-      if (!sourceProject) {
-        return
-      }
-
-      const duplicateProject = createDuplicateProject(sourceProject, projects)
-      const duplicateTabId = `project:${duplicateProject.id}`
-
-      setProjects((currentProjects) => [...currentProjects, duplicateProject])
-      setOpenTabs((currentTabs) => [
-        ...currentTabs,
-        {
-          id: duplicateTabId,
-          projectId: duplicateProject.id,
-          label: duplicateProject.name,
-          slug: duplicateProject.slug,
-        },
-      ])
-      setActiveTabId(duplicateTabId)
-    },
-    [projects]
-  )
-
-  const handleDeleteProject = React.useCallback((projectId: string) => {
-    setProjects((currentProjects) =>
-      currentProjects.filter((project) => project.id !== projectId)
-    )
-    setOpenTabs((currentTabs) => {
-      const removedTabIds = new Set(
-        currentTabs
-          .filter((tab) => tab.projectId === projectId)
-          .map((tab) => tab.id)
-      )
-
-      if (removedTabIds.size === 0) {
-        return currentTabs
-      }
-
-      const nextTabs = currentTabs.filter((tab) => tab.projectId !== projectId)
-
-      setActiveTabId((currentActiveTabId) =>
-        getNextActiveTabId(currentTabs, removedTabIds, currentActiveTabId)
-      )
-
-      return nextTabs
-    })
-  }, [])
-
   const handleSelectTab = React.useCallback(
     (tabId: string) => {
       if (surfaceMode === "gallery") {
@@ -415,6 +344,8 @@ export function App() {
       />
       <main className="flex min-h-0 flex-1 overflow-hidden">
         <AppSidebar
+          activeProjectId={activeProject?.id ?? null}
+          activeWorkspaceSectionId={activeWorkspaceSectionId}
           galleryContent={
             <GalleryEditorPanel
               colorTokenValues={galleryColorTokenValues}
@@ -430,12 +361,10 @@ export function App() {
             />
           }
           mode={surfaceMode}
-          onDeleteProject={handleDeleteProject}
-          onDuplicateProject={handleDuplicateProject}
           onEnterGalleryMode={handleEnterGalleryMode}
           onExitGalleryMode={handleExitGalleryMode}
           onOpenProject={handleOpenProject}
-          onRenameProject={handleRenameProject}
+          onWorkspaceSectionSelect={setActiveWorkspaceSectionId}
           projects={projects}
           variant="inset"
         />
@@ -446,7 +375,10 @@ export function App() {
               scene={galleryDisplayScene}
             />
           ) : (
-            <WorkspacePanel activeProject={activeProject} />
+            <WorkspacePanel
+              activeProject={activeProject}
+              activeSectionId={activeWorkspaceSectionId}
+            />
           )}
         </SidebarInset>
       </main>

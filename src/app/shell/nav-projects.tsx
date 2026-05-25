@@ -1,228 +1,130 @@
 "use client"
 
-import * as React from "react"
-
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/app/shared/ui/alert-dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/app/shared/ui/dropdown-menu"
-import { Input } from "@/app/shared/ui/input"
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/app/shared/ui/collapsible"
 import {
   SidebarGroup,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/app/shared/ui/sidebar"
-import {
-  CopyIcon,
-  MoreHorizontalIcon,
-  PencilIcon,
-  Trash2Icon,
-} from "lucide-react"
+import { ChevronRightIcon } from "lucide-react"
+
+export type WorkspaceSection = {
+  groupTitle: string
+  id: string
+  title: string
+}
 
 type ProjectNavItem = {
   id: string
   name: string
-  slug: string
+}
+
+export const workspaceSections: WorkspaceSection[] = [
+  {
+    groupTitle: "Getting Started",
+    id: "installation",
+    title: "Installation",
+  },
+  {
+    groupTitle: "Getting Started",
+    id: "project-structure",
+    title: "Project Structure",
+  },
+  {
+    groupTitle: "Build Your Application",
+    id: "routing",
+    title: "Routing",
+  },
+  {
+    groupTitle: "Build Your Application",
+    id: "data-fetching",
+    title: "Data Fetching",
+  },
+  {
+    groupTitle: "Build Your Application",
+    id: "rendering",
+    title: "Rendering",
+  },
+  {
+    groupTitle: "Build Your Application",
+    id: "caching",
+    title: "Caching",
+  },
+]
+
+export const defaultWorkspaceSectionId = workspaceSections[0].id
+
+export function getWorkspaceSection(sectionId: string) {
+  return (
+    workspaceSections.find((section) => section.id === sectionId) ??
+    workspaceSections[0]
+  )
 }
 
 export function NavProjects({
-  onDeleteProject,
-  onDuplicateProject,
+  activeProjectId,
+  activeSectionId,
   onOpenProject,
-  onRenameProject,
+  onSectionSelect,
   projects,
 }: {
-  onDeleteProject: (projectId: string) => void
-  onDuplicateProject: (projectId: string) => void
+  activeProjectId: string | null
+  activeSectionId: string
   onOpenProject: (projectId: string) => void
-  onRenameProject: (projectId: string, name: string) => void
+  onSectionSelect: (sectionId: string) => void
   projects: ProjectNavItem[]
 }) {
-  const { isMobile } = useSidebar()
-  const [draftName, setDraftName] = React.useState("")
-  const [editingProjectId, setEditingProjectId] = React.useState<string | null>(
-    null
-  )
-  const [pendingDeleteProjectId, setPendingDeleteProjectId] = React.useState<
-    string | null
-  >(null)
-
-  const pendingDeleteProject = React.useMemo(
-    () =>
-      pendingDeleteProjectId
-        ? projects.find((project) => project.id === pendingDeleteProjectId) ??
-          null
-        : null,
-    [pendingDeleteProjectId, projects]
-  )
-
-  const cancelRename = React.useCallback(() => {
-    setDraftName("")
-    setEditingProjectId(null)
-  }, [])
-
-  const commitRename = React.useCallback(() => {
-    if (!editingProjectId) {
-      return
-    }
-
-    const nextName = draftName.trim()
-    if (!nextName) {
-      cancelRename()
-      return
-    }
-
-    onRenameProject(editingProjectId, nextName)
-    cancelRename()
-  }, [cancelRename, draftName, editingProjectId, onRenameProject])
-
-  React.useEffect(() => {
-    if (
-      editingProjectId &&
-      !projects.some((project) => project.id === editingProjectId)
-    ) {
-      cancelRename()
-    }
-  }, [cancelRename, editingProjectId, projects])
-
-  React.useEffect(() => {
-    if (pendingDeleteProjectId && !pendingDeleteProject) {
-      setPendingDeleteProjectId(null)
-    }
-  }, [pendingDeleteProject, pendingDeleteProjectId])
-
   return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
-      <SidebarMenu>
-        {projects.map((item) => {
-          const isEditing = editingProjectId === item.id
-
-          return (
-          <SidebarMenuItem key={item.id}>
-            {isEditing ? (
-              <Input
-                autoFocus
-                className="h-8 bg-background"
-                onBlur={commitRename}
-                onChange={(event) => setDraftName(event.target.value)}
-                onFocus={(event) => event.currentTarget.select()}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault()
-                    commitRename()
-                  }
-
-                  if (event.key === "Escape") {
-                    event.preventDefault()
-                    cancelRename()
-                  }
-                }}
-                value={draftName}
-              />
-            ) : (
-              <SidebarMenuButton
-                onClick={() => onOpenProject(item.id)}
-                type="button"
-              >
-                <span>{item.name}</span>
-              </SidebarMenuButton>
-            )}
-            {!isEditing ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <SidebarMenuAction
-                    showOnHover
-                    className="aria-expanded:bg-muted"
-                  >
-                    <MoreHorizontalIcon />
-                    <span className="sr-only">More</span>
-                  </SidebarMenuAction>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-48"
-                  side={isMobile ? "bottom" : "right"}
-                  align={isMobile ? "end" : "start"}
-                >
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setDraftName(item.name)
-                      setEditingProjectId(item.id)
-                    }}
-                  >
-                    <PencilIcon className="text-muted-foreground" />
-                    <span>Rename</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => onDuplicateProject(item.id)}>
-                    <CopyIcon className="text-muted-foreground" />
-                    <span>Duplicate</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => setPendingDeleteProjectId(item.id)}
-                    variant="destructive"
-                  >
-                    <Trash2Icon />
-                    <span>Delete</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : null}
-          </SidebarMenuItem>
-        )})}
-      </SidebarMenu>
-      <AlertDialog
-        open={pendingDeleteProject !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setPendingDeleteProjectId(null)
-          }
-        }}
-      >
-          <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete {pendingDeleteProject?.name ?? "project"}?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This deletes the project and closes its open tabs.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={() => {
-                if (!pendingDeleteProjectId) {
-                  return
-                }
-
-                onDeleteProject(pendingDeleteProjectId)
-                setPendingDeleteProjectId(null)
-              }}
+    <div className="group-data-[collapsible=icon]:hidden">
+      {projects.map((project) => (
+        <Collapsible
+          key={project.id}
+          className="group/collapsible"
+          defaultOpen
+        >
+          <SidebarGroup>
+            <SidebarGroupLabel
+              asChild
+              className="group/label text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </SidebarGroup>
+              <CollapsibleTrigger>
+                {project.name}
+                <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {workspaceSections.map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton
+                        isActive={
+                          activeProjectId === project.id &&
+                          activeSectionId === item.id
+                        }
+                        onClick={() => {
+                          onOpenProject(project.id)
+                          onSectionSelect(item.id)
+                        }}
+                        type="button"
+                      >
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+      ))}
+    </div>
   )
 }

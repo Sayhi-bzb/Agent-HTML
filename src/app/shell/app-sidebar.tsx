@@ -27,25 +27,25 @@ type ProjectNavItem = {
 }
 
 export function AppSidebar({
+  activeProjectId,
+  activeWorkspaceSectionId,
   galleryContent,
   mode = "workspace",
   onEnterGalleryMode,
   onExitGalleryMode,
-  onDeleteProject,
-  onDuplicateProject,
   onOpenProject,
-  onRenameProject,
+  onWorkspaceSectionSelect,
   projects,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
+  activeProjectId: string | null
+  activeWorkspaceSectionId: string
   galleryContent: React.ReactNode
   mode?: "gallery" | "workspace"
   onEnterGalleryMode?: () => void
   onExitGalleryMode?: () => void
-  onDeleteProject: (projectId: string) => void
-  onDuplicateProject: (projectId: string) => void
   onOpenProject: (projectId: string) => void
-  onRenameProject: (projectId: string, name: string) => void
+  onWorkspaceSectionSelect: (sectionId: string) => void
   projects: ProjectNavItem[]
 }) {
   const isGalleryMode = mode === "gallery"
@@ -121,10 +121,10 @@ export function AppSidebar({
           galleryContent
         ) : (
           <NavProjects
-            onDeleteProject={onDeleteProject}
-            onDuplicateProject={onDuplicateProject}
+            activeProjectId={activeProjectId}
+            activeSectionId={activeWorkspaceSectionId}
             onOpenProject={onOpenProject}
-            onRenameProject={onRenameProject}
+            onSectionSelect={onWorkspaceSectionSelect}
             projects={projects}
           />
         )}
