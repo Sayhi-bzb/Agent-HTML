@@ -605,6 +605,12 @@ export function App() {
       style={
         {
           "--header-height": "2.5rem",
+          "--sidebar": "var(--background)",
+          "--sidebar-foreground": "var(--foreground)",
+          "--sidebar-accent": "var(--muted)",
+          "--sidebar-accent-foreground": "var(--foreground)",
+          "--sidebar-border": "var(--border)",
+          "--sidebar-ring": "var(--ring)",
         } as React.CSSProperties
       }
     >
