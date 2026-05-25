@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import {
-  galleryColorTokenDefaults,
   galleryThemePresets,
   type GalleryColorTokenName,
   type GalleryColorTokenValue,
@@ -18,10 +17,13 @@ import {
   createDefaultGalleryThemeDraft,
   createGalleryPresetThemeDraft,
   loadAppliedGalleryTheme,
+  resolveGalleryThemeColorTokenValues,
   saveAppliedGalleryTheme,
+  updateGalleryThemeDraftColorTokenValue,
 } from "@/app/gallery/theme-apply"
 import { AppSidebar } from "@/app/shell/app-sidebar"
 import { SiteHeader } from "@/app/shell/site-header"
+import { useTheme } from "@/app/shared/theme-provider"
 import { SidebarInset, SidebarProvider } from "@/app/shared/ui/sidebar"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
 import { defaultWorkspaceSectionId } from "@/app/workspace/seed"
@@ -283,6 +285,7 @@ function WorkspacePanel({
 }
 
 export function App() {
+  const { resolvedTheme } = useTheme()
   const [projects, setProjects] = React.useState<WorkspaceProjectView[]>([])
   const [workspaceLoadError, setWorkspaceLoadError] = React.useState<
     string | null
@@ -372,10 +375,10 @@ export function App() {
     [appliedGalleryThemeDraft, galleryThemeDraft]
   )
 
-  const galleryColorTokenValues =
-    galleryThemeDraft.kind === "tokens"
-      ? galleryThemeDraft.colorTokenValues
-      : galleryColorTokenDefaults
+  const galleryColorTokenValues = React.useMemo(
+    () => resolveGalleryThemeColorTokenValues(galleryThemeDraft, resolvedTheme),
+    [galleryThemeDraft, resolvedTheme]
+  )
 
   const activeGalleryThemePresetId =
     galleryThemeDraft.kind === "preset" ? galleryThemeDraft.id : "default"
@@ -533,15 +536,14 @@ export function App() {
             token: GalleryColorTokenName,
             value: GalleryColorTokenValue
           ) =>
-            setGalleryThemeDraft((current) => ({
-              colorTokenValues: {
-                ...(current.kind === "tokens"
-                  ? current.colorTokenValues
-                  : galleryColorTokenDefaults),
-                [token]: value,
-              },
-              kind: "tokens",
-            }))
+            setGalleryThemeDraft((current) =>
+              updateGalleryThemeDraftColorTokenValue({
+                draft: current,
+                resolvedMode: resolvedTheme,
+                token,
+                value,
+              })
+            )
           }
         />
       }

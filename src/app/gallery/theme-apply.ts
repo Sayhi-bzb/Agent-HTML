@@ -4,6 +4,7 @@ import type {
   GalleryColorFamily,
   GalleryColorStep,
   GalleryColorTokenName,
+  GalleryColorTokenValue,
   GalleryColorTokenValues,
   GalleryThemeCssVariables,
   GalleryThemePresetId,
@@ -100,6 +101,153 @@ const tailwindColorFamilies = Object.fromEntries(
   ])
 ) as Record<GalleryColorFamily, TailwindColorScale>
 
+type RgbColor = {
+  blue: number
+  green: number
+  red: number
+}
+
+function parseHexColor(value: string | undefined): RgbColor | null {
+  if (!value) {
+    return null
+  }
+
+  const hexMatch = value.trim().match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/)
+  if (!hexMatch) {
+    return null
+  }
+
+  const hexValue = hexMatch[1]
+  const normalizedHex =
+    hexValue.length === 3
+      ? hexValue
+          .split("")
+          .map((character) => `${character}${character}`)
+          .join("")
+      : hexValue
+
+  return {
+    blue: Number.parseInt(normalizedHex.slice(4, 6), 16),
+    green: Number.parseInt(normalizedHex.slice(2, 4), 16),
+    red: Number.parseInt(normalizedHex.slice(0, 2), 16),
+  }
+}
+
+function clampColorChannel(value: number) {
+  return Math.min(255, Math.max(0, Math.round(value * 255)))
+}
+
+function linearSrgbToSrgb(value: number) {
+  return value >= 0.0031308
+    ? 1.055 * value ** (1 / 2.4) - 0.055
+    : 12.92 * value
+}
+
+function parseOklchColor(value: string | undefined): RgbColor | null {
+  if (!value) {
+    return null
+  }
+
+  const match = value
+    .trim()
+    .match(
+      /^oklch\(\s*([0-9.]+)%?\s+([0-9.]+)\s+([0-9.]+|none)(?:deg)?(?:\s*\/\s*[0-9.]+%?)?\s*\)$/i
+    )
+  if (!match) {
+    return null
+  }
+
+  const lightnessValue = Number.parseFloat(match[1])
+  const lightness = match[1].includes("%")
+    ? lightnessValue / 100
+    : lightnessValue > 1
+      ? lightnessValue / 100
+      : lightnessValue
+  const chroma = Number.parseFloat(match[2])
+  const hue = match[3].toLowerCase() === "none" ? 0 : Number.parseFloat(match[3])
+  const hueRadians = (hue * Math.PI) / 180
+
+  const a = chroma * Math.cos(hueRadians)
+  const b = chroma * Math.sin(hueRadians)
+  const lPrime = lightness + 0.3963377774 * a + 0.2158037573 * b
+  const mPrime = lightness - 0.1055613458 * a - 0.0638541728 * b
+  const sPrime = lightness - 0.0894841775 * a - 1.291485548 * b
+  const l = lPrime ** 3
+  const m = mPrime ** 3
+  const s = sPrime ** 3
+
+  return {
+    blue: clampColorChannel(
+      linearSrgbToSrgb(
+        0.055710120445510616 * l -
+          0.2040210505984867 * m +
+          1.0572251689370704 * s
+      )
+    ),
+    green: clampColorChannel(
+      linearSrgbToSrgb(
+        -1.2684380040921763 * l +
+          2.6097574006633715 * m -
+          0.3413193963102197 * s
+      )
+    ),
+    red: clampColorChannel(
+      linearSrgbToSrgb(
+        4.076741661347994 * l -
+          3.307711590408193 * m +
+          0.230969928729428 * s
+      )
+    ),
+  }
+}
+
+function parseColor(value: string | undefined): RgbColor | null {
+  return parseHexColor(value) ?? parseOklchColor(value)
+}
+
+const tailwindColorEntries = galleryColorFamilies.flatMap((family) =>
+  galleryColorSteps.flatMap((step) => {
+    const color = parseColor(tailwindColorFamilies[family]?.[step])
+
+    return color
+      ? [
+          {
+            color,
+            value: { family, step },
+          },
+        ]
+      : []
+  })
+)
+
+function getColorDistance(left: RgbColor, right: RgbColor) {
+  return (
+    (left.red - right.red) ** 2 +
+    (left.green - right.green) ** 2 +
+    (left.blue - right.blue) ** 2
+  )
+}
+
+function findNearestTailwindColor(value: string): GalleryColorTokenValue | null {
+  const color = parseColor(value)
+  if (!color) {
+    return null
+  }
+
+  let nearestValue: GalleryColorTokenValue | null = null
+  let nearestDistance = Number.POSITIVE_INFINITY
+
+  for (const entry of tailwindColorEntries) {
+    const distance = getColorDistance(color, entry.color)
+    if (distance < nearestDistance) {
+      nearestDistance = distance
+      nearestValue = entry.value
+    }
+  }
+
+  return nearestValue
+}
+
 function resolveTokenColor(
   values: GalleryColorTokenValues,
   tokenName: keyof GalleryColorTokenValues
@@ -107,6 +255,13 @@ function resolveTokenColor(
   const token = values[tokenName]
   return (
     tailwindColorFamilies[token.family]?.[token.step] ??
+    tailwindColorFamilies.zinc[500]
+  )
+}
+
+function resolveTokenValueColor(value: GalleryColorTokenValue) {
+  return (
+    tailwindColorFamilies[value.family]?.[value.step] ??
     tailwindColorFamilies.zinc[500]
   )
 }
@@ -265,6 +420,79 @@ export function resolveGalleryColorTokenCssVariables(
       resolveTokenColor(values, tokenName as keyof GalleryColorTokenValues),
     ])
   ) as Record<`--${string}`, string>
+}
+
+export function createGalleryTokenThemeDraftFromCssVariables(
+  cssVariables: GalleryThemeCssVariables
+): GalleryTokenThemeDraft {
+  const colorTokenValues = { ...galleryColorTokenDefaults }
+
+  for (const tokenName of Object.keys(
+    galleryColorTokenDefaults
+  ) as GalleryColorTokenName[]) {
+    const cssValue = cssVariables[`--${tokenName}`]
+    const tokenValue = cssValue ? findNearestTailwindColor(cssValue) : null
+
+    if (tokenValue) {
+      colorTokenValues[tokenName] = tokenValue
+    }
+  }
+
+  return {
+    colorTokenValues,
+    kind: "tokens",
+  }
+}
+
+export function resolveGalleryThemeColorTokenValues(
+  draft: GalleryThemeDraft,
+  resolvedMode: "dark" | "light" = "light"
+) {
+  if (draft.kind === "tokens") {
+    return draft.colorTokenValues
+  }
+
+  return createGalleryTokenThemeDraftFromCssVariables(
+    resolvedMode === "dark" ? draft.darkCssVariables : draft.lightCssVariables
+  ).colorTokenValues
+}
+
+export function updateGalleryThemeDraftColorTokenValue({
+  draft,
+  resolvedMode = "light",
+  token,
+  value,
+}: {
+  draft: GalleryThemeDraft
+  resolvedMode?: "dark" | "light"
+  token: GalleryColorTokenName
+  value: GalleryColorTokenValue
+}): GalleryThemeDraft {
+  if (draft.kind === "tokens") {
+    return {
+      colorTokenValues: {
+        ...draft.colorTokenValues,
+        [token]: value,
+      },
+      kind: "tokens",
+    }
+  }
+
+  const cssVariableName = `--${token}` as const
+  const nextCssVariables = {
+    ...(resolvedMode === "dark"
+      ? draft.darkCssVariables
+      : draft.lightCssVariables),
+    [cssVariableName]: resolveTokenValueColor(value),
+  }
+
+  return {
+    ...draft,
+    darkCssVariables:
+      resolvedMode === "dark" ? nextCssVariables : draft.darkCssVariables,
+    lightCssVariables:
+      resolvedMode === "light" ? nextCssVariables : draft.lightCssVariables,
+  }
 }
 
 export function resolveGalleryThemeCssVariables(

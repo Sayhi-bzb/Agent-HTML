@@ -174,6 +174,11 @@ token family:
 - secondary shell hover strengthens text before it claims new background
 - active sidebar identity is expressed through surface and foreground, not font-weight
 
+Floating surfaces consume `popover` / `popover-foreground`.
+Interactive states inside floating surfaces consume `accent` / `accent-foreground`.
+Do not reuse `sidebar*` item tokens inside popover, dropdown, select, dialog, or sheet content.
+Detailed primitive selection rules are owned by [`components.md`](./components.md).
+
 ## Layout Constants
 
 The current shell includes structural constants that are not general-purpose design tokens:

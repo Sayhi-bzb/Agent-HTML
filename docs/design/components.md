@@ -122,7 +122,8 @@ These are variants of the same shell family, not separate systems.
 
 ## Menu and Overlay Standard
 
-Dropdowns, sheets, and tooltips extend the same shell language.
+Menus and overlays must be selected by interaction semantics, not by visual similarity.
+Do not collapse all floating or expandable controls into one primitive.
 
 Rules:
 
@@ -130,6 +131,35 @@ Rules:
 - dropdown items MUST stay compact and scan-friendly
 - tooltip styling SHOULD remain functional and minimal
 - sheets SHOULD feel like shell extensions, not separate canvases
+- `Collapsible` MUST be used for content that already belongs to the page structure and only needs
+  inline expand / collapse behavior
+- `Popover` SHOULD be used for temporary floating panels with custom content, such as compact
+  editors, pickers, or non-menu controls
+- `DropdownMenu` SHOULD be used for action menus, configuration menus, submenus, checkbox menus, and
+  radio menus
+- `Select` SHOULD be used when the user is setting a form field value
+- `CommandDialog` SHOULD be used for search, fuzzy filtering, or cross-surface command entry
+- `Dialog` SHOULD be used for blocking tasks that require explicit completion, confirmation, or
+  dismissal
+- `Sheet` SHOULD be used for edge-attached drawers, mobile sidebar behavior, or large auxiliary
+  panels
+- `Tooltip` MUST remain explanatory only and MUST NOT contain interactive controls
+- standard menus SHOULD use `DropdownMenu` rather than a `Popover` that imitates menu behavior
+- complex editors SHOULD use `Popover`, `Dialog`, or `Sheet` rather than `DropdownMenu`
+- floating surfaces MUST consume `popover` / `popover-foreground`; their interactive item states
+  SHOULD consume `accent` / `accent-foreground`
+- sidebar surfaces MUST consume `sidebar*`; sidebar item tokens MUST NOT be reused inside popover or
+  dropdown content
+
+Current mappings:
+
+- workspace project / section navigation uses `Collapsible`
+- gallery editor color role groups use `Collapsible`
+- gallery header theme and config dimension menus use `DropdownMenu`
+- gallery color-token editing uses `Popover`
+- app settings uses `DropdownMenu`
+- project search uses `CommandDialog`
+- mobile sidebar behavior uses `Sheet`
 
 ## Header and Tab Rail Standard
 
