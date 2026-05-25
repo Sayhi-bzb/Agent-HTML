@@ -92,7 +92,7 @@ function highlightBlock(
   return (
     <div
       className={cn(
-        "rounded-[18px] outline outline-1 outline-offset-4 outline-blue-500/20 bg-blue-500/[0.025]"
+        "rounded-[18px] bg-blue-500/0 outline outline-1 outline-offset-4 outline-blue-500/0 transition-[background-color,outline-color] duration-200 ease-out hover:bg-blue-500/[0.025] hover:outline-blue-500/20 focus-within:bg-blue-500/[0.025] focus-within:outline-blue-500/20"
       )}
       data-agent-html-block="true"
       data-agent-html-block-path={path}

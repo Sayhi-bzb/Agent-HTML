@@ -278,7 +278,7 @@ function WorkspacePanel({
   }
 
   return (
-    <div className="min-h-full overflow-auto bg-background text-foreground">
+    <div className="min-h-full overflow-auto bg-background p-4 text-foreground md:p-6">
       {runtime.content}
     </div>
   )
@@ -576,7 +576,7 @@ export function App() {
       {header}
       <main className="flex min-h-0 flex-1 overflow-hidden">
         {sidebar}
-        <SidebarInset className="min-h-0 overflow-hidden border-0 shadow-sm md:mr-2 md:mb-2">
+        <SidebarInset className="min-h-0 overflow-hidden border-0 shadow-none md:mr-2 md:mb-2 md:peer-data-[variant=inset]:shadow-none">
           {surfaceMode === "gallery" ? (
             <GalleryPanel scene={galleryDisplayScene} />
           ) : workspaceLoadError ? (
