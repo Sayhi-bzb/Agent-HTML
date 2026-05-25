@@ -1,72 +1,17 @@
 import * as React from "react"
-import colors from "tailwindcss/colors"
 
-import type {
-  GalleryColorFamily,
-  GalleryColorStep,
-  GalleryColorTokenValues,
-} from "@/app/gallery/editor-panels"
-import {
-  galleryTypographyDefaults,
-  resolveGalleryTypographyFontFamily,
-} from "@/app/gallery/typography"
+import { galleryTypographyDefaults } from "@/app/gallery/typography"
 import { galleryPreviewDefaults } from "@/app/gallery/preview-defaults"
 import { PreviewMasonry } from "@/app/gallery/preview/masonry"
 import { galleryPreviewCards } from "@/app/gallery/preview"
-
-type TailwindColorScale = Record<GalleryColorStep, string>
-
-const tailwindColorFamilies = Object.fromEntries(
-  (Object.keys(colors) as GalleryColorFamily[]).map((family) => [
-    family,
-    colors[family] as TailwindColorScale,
-  ])
-) as Record<GalleryColorFamily, TailwindColorScale>
 
 function GalleryViewport() {
   return <PreviewMasonry cards={galleryPreviewCards} />
 }
 
-export function GalleryWorkspacePreview({
-  colorTokenValues,
-}: {
-  colorTokenValues: GalleryColorTokenValues
-}) {
+export function GalleryWorkspacePreview() {
   const previewThemeStyle = React.useMemo(() => {
-    const resolveColor = (tokenName: keyof GalleryColorTokenValues) => {
-      const token = colorTokenValues[tokenName]
-      return (
-        tailwindColorFamilies[token.family]?.[token.step] ??
-        tailwindColorFamilies.zinc[500]
-      )
-    }
-
-    const fontFamily = resolveGalleryTypographyFontFamily(
-      galleryTypographyDefaults.fontFamily
-    )
-
     return {
-      "--background": resolveColor("background"),
-      "--foreground": resolveColor("foreground"),
-      "--card": resolveColor("card"),
-      "--card-foreground": resolveColor("card-foreground"),
-      "--popover": resolveColor("popover"),
-      "--popover-foreground": resolveColor("popover-foreground"),
-      "--primary": resolveColor("primary"),
-      "--primary-foreground": resolveColor("primary-foreground"),
-      "--secondary": resolveColor("secondary"),
-      "--secondary-foreground": resolveColor("secondary-foreground"),
-      "--accent": resolveColor("accent"),
-      "--accent-foreground": resolveColor("accent-foreground"),
-      "--destructive": resolveColor("destructive"),
-      "--muted": resolveColor("muted"),
-      "--muted-foreground": resolveColor("muted-foreground"),
-      "--border": resolveColor("border"),
-      "--input": resolveColor("input"),
-      "--ring": resolveColor("ring"),
-      "--font-sans": fontFamily,
-      "--font-heading": fontFamily,
-      "--radius": galleryPreviewDefaults.radius,
       "--preview-card-shadow":
         "0 18px 36px -22px color-mix(in oklab, var(--foreground) 38%, transparent)",
       "--spacing-base": galleryPreviewDefaults.spacing,
@@ -83,7 +28,7 @@ export function GalleryWorkspacePreview({
       "--type-xl": "calc(var(--type-base-size) * 1.375)",
       "--type-2xl": "calc(var(--type-base-size) * 1.875)",
     } as React.CSSProperties
-  }, [colorTokenValues])
+  }, [])
 
   return (
     <div

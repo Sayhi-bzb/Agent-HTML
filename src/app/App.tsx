@@ -2,55 +2,79 @@ import * as React from "react"
 
 import {
   galleryColorTokenDefaults,
+  galleryThemePresets,
   type GalleryColorTokenName,
   type GalleryColorTokenValue,
+  type GalleryThemePresetId,
 } from "@/app/gallery/editor-panels"
 import { GalleryEditorPanel } from "@/app/gallery/editor"
 import { galleryScenes } from "@/app/gallery/scenes"
 import { GalleryPanel } from "@/app/gallery/panel"
 import { galleryWorkspacePreviewBaseSceneId } from "@/app/gallery/preview-content"
+import { GalleryThemeScope } from "@/app/gallery/theme-scope"
+import {
+  areGalleryThemeDraftsEqual,
+  applyGalleryTheme,
+  createDefaultGalleryThemeDraft,
+  createGalleryPresetThemeDraft,
+  loadAppliedGalleryTheme,
+  saveAppliedGalleryTheme,
+} from "@/app/gallery/theme-apply"
 import { AppSidebar } from "@/app/shell/app-sidebar"
-import {
-  defaultWorkspaceSectionId,
-  getWorkspaceSection,
-} from "@/app/shell/nav-projects"
 import { SiteHeader } from "@/app/shell/site-header"
-import { ScrollArea } from "@/app/shared/ui/scroll-area"
+import { SidebarInset, SidebarProvider } from "@/app/shared/ui/sidebar"
+import { createWorkspaceRepository } from "@/app/workspace/repository"
+import { defaultWorkspaceSectionId } from "@/app/workspace/seed"
+import type {
+  ProjectSectionDocument,
+  WorkspaceProject,
+  WorkspaceSection,
+} from "@/app/workspace/types"
 import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/app/shared/ui/sidebar"
-
-type Project = {
-  id: string
-  name: string
-  slug: string
-}
+  parseAgentHtml,
+  renderAgentHtml,
+  validateAgentHtml,
+  type AgentHtmlValidationError,
+} from "@/agent-html"
 
 type ProjectTab = {
   id: string
-  projectId: string
   label: string
+  projectId: string
   slug: string
 }
 
-const initialProjects: Project[] = [
-  {
-    id: "design-engineering",
-    name: "Design Engineering",
-    slug: "design-engineering",
-  },
-  {
-    id: "sales-marketing",
-    name: "Sales & Marketing",
-    slug: "sales-marketing",
-  },
-  {
-    id: "travel",
-    name: "Travel",
-    slug: "travel",
-  },
-]
+type WorkspaceProjectView = WorkspaceProject & {
+  sections: WorkspaceSection[]
+}
+
+type WorkspaceDocumentState =
+  | { status: "idle" | "loading" }
+  | { message: string; status: "error" }
+  | { document: ProjectSectionDocument; status: "ready" }
+
+type RuntimeState =
+  | { content: React.ReactNode; status: "ready" }
+  | { errors: AgentHtmlValidationError[]; status: "invalid" }
+  | { message: string; status: "error" }
+
+type SurfaceMode = "gallery" | "workspace"
+
+type HeaderTab = {
+  id: string
+  isClosable: boolean
+  label: string
+}
+
+const workspaceRepository = createWorkspaceRepository()
+
+function getInitialAppliedGalleryTheme() {
+  if (typeof window === "undefined") {
+    return createDefaultGalleryThemeDraft()
+  }
+
+  return loadAppliedGalleryTheme() ?? createDefaultGalleryThemeDraft()
+}
 
 function getNextActiveTabId(
   currentTabs: ProjectTab[],
@@ -83,142 +107,278 @@ function getNextActiveTabId(
   return null
 }
 
-type SurfaceMode = "gallery" | "workspace"
-type HeaderTab = {
-  id: string
-  isClosable: boolean
-  label: string
+function getDefaultSectionId(project: WorkspaceProjectView | null) {
+  return project?.sections[0]?.id ?? defaultWorkspaceSectionId
 }
 
-const stats = [
-  { label: "Active agents", value: "12", detail: "+2 this week" },
-  { label: "Artifacts built", value: "48", detail: "7 pending review" },
-  { label: "Failed checks", value: "03", detail: "Needs triage" },
-]
+function getActiveSection(
+  activeProject: WorkspaceProjectView | null,
+  activeSectionId: string
+) {
+  return (
+    activeProject?.sections.find((section) => section.id === activeSectionId) ??
+    activeProject?.sections[0] ??
+    null
+  )
+}
 
-const activity = [
-  {
-    title: "Sidebar template attached",
-    summary: "Main shell now uses the shadcn sidebar provider and header.",
-    time: "Just now",
-  },
-  {
-    title: "Workspace status",
-    summary: "Template components are wired and ready for page-specific content.",
-    time: "Ready",
-  },
-  {
-    title: "Next step",
-    summary: "Replace placeholder cards with real module data or routes.",
-    time: "Open",
-  },
-]
+function RuntimeValidationErrors({
+  errors,
+}: {
+  errors: AgentHtmlValidationError[]
+}) {
+  return (
+    <div className="flex flex-col gap-3 p-4 md:p-6">
+      {errors.map((error) => (
+        <article
+          key={`${error.code}:${error.path}:${error.attr ?? ""}`}
+          className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive"
+        >
+          <p className="text-sm font-medium">{error.code}</p>
+          <p className="mt-1 text-xs leading-5">
+            {error.path} - {error.message}
+          </p>
+        </article>
+      ))}
+    </div>
+  )
+}
+
+function WorkspaceStatus({
+  detail,
+  title,
+}: {
+  detail: string
+  title: string
+}) {
+  return (
+    <div className="flex flex-1 items-center justify-center p-6">
+      <section className="max-w-md rounded-xl border bg-background p-5 text-foreground shadow-sm">
+        <p className="text-sm font-medium">{title}</p>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
+      </section>
+    </div>
+  )
+}
+
+function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState {
+  try {
+    const parsedDocument = parseAgentHtml(document.ahtmlSource)
+    const validation = validateAgentHtml(parsedDocument)
+
+    if (!validation.ok) {
+      return {
+        errors: validation.errors,
+        status: "invalid",
+      }
+    }
+
+    return {
+      content: renderAgentHtml(parsedDocument),
+      status: "ready",
+    }
+  } catch (error) {
+    return {
+      message: error instanceof Error ? error.message : "Unable to render AHTML.",
+      status: "error",
+    }
+  }
+}
 
 function WorkspacePanel({
   activeProject,
-  activeSectionId,
+  activeSection,
 }: {
-  activeProject: Project | null
-  activeSectionId: string
+  activeProject: WorkspaceProjectView | null
+  activeSection: WorkspaceSection | null
 }) {
-  const activeSection = getWorkspaceSection(activeSectionId)
-  const projectLabel = activeProject?.name ?? "No project selected"
+  const [documentState, setDocumentState] =
+    React.useState<WorkspaceDocumentState>({ status: "idle" })
+
+  React.useEffect(() => {
+    if (!activeProject || !activeSection) {
+      setDocumentState({ status: "idle" })
+      return
+    }
+
+    let isCurrent = true
+    setDocumentState({ status: "loading" })
+
+    workspaceRepository
+      .getProjectSectionDocument(activeProject.id, activeSection.id)
+      .then((document) => {
+        if (isCurrent) {
+          setDocumentState({ document, status: "ready" })
+        }
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          setDocumentState({
+            message:
+              error instanceof Error
+                ? error.message
+                : "Unable to load workspace document.",
+            status: "error",
+          })
+        }
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [activeProject, activeSection])
+
+  const runtime = React.useMemo(() => {
+    if (documentState.status !== "ready") {
+      return null
+    }
+
+    return renderWorkspaceDocument(documentState.document)
+  }, [documentState])
+
+  if (!activeProject || !activeSection) {
+    return (
+      <WorkspaceStatus
+        detail="Open a project section from the sidebar to render its local AHTML document."
+        title="No workspace section selected"
+      />
+    )
+  }
+
+  if (documentState.status === "idle" || documentState.status === "loading") {
+    return (
+      <WorkspaceStatus
+        detail={`${activeProject.name} / ${activeSection.title}`}
+        title="Loading local document"
+      />
+    )
+  }
+
+  if (documentState.status === "error") {
+    return (
+      <WorkspaceStatus
+        detail={documentState.message}
+        title="Unable to load document"
+      />
+    )
+  }
+
+  if (!runtime) {
+    return null
+  }
+
+  if (runtime.status === "invalid") {
+    return <RuntimeValidationErrors errors={runtime.errors} />
+  }
+
+  if (runtime.status === "error") {
+    return <WorkspaceStatus detail={runtime.message} title="Runtime error" />
+  }
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="flex min-h-full flex-col gap-6 p-4 md:p-6">
-          <section className="rounded-xl border bg-background p-5 text-foreground shadow-sm">
-            <p className="text-sm font-medium text-muted-foreground">
-              {activeSection.groupTitle}
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              {activeSection.title}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Workspace content is scoped to the selected sidebar section while
-              header tabs remain project-level. Current project: {projectLabel}.
-            </p>
-          </section>
-
-          <section className="grid gap-4 md:grid-cols-3">
-            {stats.map((stat) => (
-              <article
-                key={stat.label}
-                className="rounded-xl border bg-background p-5 text-foreground shadow-sm"
-              >
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight">
-                  {stat.value}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {stat.detail}
-                </p>
-              </article>
-            ))}
-          </section>
-
-          <section className="grid flex-1 gap-6 lg:grid-cols-[1.4fr_0.9fr]">
-            <article className="rounded-xl border bg-background text-foreground shadow-sm">
-              <div className="grid gap-4 p-5 md:grid-cols-2">
-                <div className="rounded-lg border border-dashed p-4">
-                  <p className="text-sm font-medium">Primary content area</p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Put your routed page, dashboard widgets, or editor here.
-                  </p>
-                </div>
-                <div className="rounded-lg border border-dashed p-4">
-                  <p className="text-sm font-medium">Responsive behavior</p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    On mobile, the sidebar switches to a sheet automatically.
-                  </p>
-                </div>
-              </div>
-            </article>
-
-            <article className="rounded-xl border bg-background text-foreground shadow-sm">
-              <div className="border-b px-5 py-4">
-                <p className="text-sm font-medium">Recent activity</p>
-              </div>
-              <div className="flex flex-col gap-3 p-5">
-                {activity.map((item) => (
-                  <div
-                    key={item.title}
-                    className="rounded-lg border border-dashed p-4"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">{item.title}</p>
-                      <span className="text-xs text-muted-foreground">
-                        {item.time}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      {item.summary}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </article>
-          </section>
-        </div>
-      </ScrollArea>
+    <div className="min-h-full overflow-auto bg-background text-foreground">
+      {runtime.content}
     </div>
   )
 }
 
 export function App() {
-  const [projects] = React.useState<Project[]>(initialProjects)
+  const [projects, setProjects] = React.useState<WorkspaceProjectView[]>([])
+  const [workspaceLoadError, setWorkspaceLoadError] = React.useState<
+    string | null
+  >(null)
   const [openTabs, setOpenTabs] = React.useState<ProjectTab[]>([])
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
   const [activeWorkspaceSectionId, setActiveWorkspaceSectionId] =
     React.useState(defaultWorkspaceSectionId)
   const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
-  const [galleryColorTokenValues, setGalleryColorTokenValues] = React.useState(
-    galleryColorTokenDefaults
+  const [appliedGalleryThemeDraft, setAppliedGalleryThemeDraft] =
+    React.useState(getInitialAppliedGalleryTheme)
+  const [galleryThemeDraft, setGalleryThemeDraft] = React.useState(
+    () => appliedGalleryThemeDraft
   )
   const [activeGallerySceneId, setActiveGallerySceneId] = React.useState<string>(
     galleryScenes[0].id
   )
+
+  React.useEffect(() => {
+    applyGalleryTheme(appliedGalleryThemeDraft)
+  }, [appliedGalleryThemeDraft])
+
+  React.useEffect(() => {
+    let isCurrent = true
+
+    async function loadWorkspace() {
+      try {
+        const nextProjects = await workspaceRepository.listProjects()
+        const projectViews = await Promise.all(
+          nextProjects.map(async (project) => ({
+            ...project,
+            sections: await workspaceRepository.listProjectSections(project.id),
+          }))
+        )
+
+        if (!isCurrent) {
+          return
+        }
+
+        setProjects(projectViews)
+        setWorkspaceLoadError(null)
+
+        const firstProject = projectViews[0]
+        if (firstProject) {
+          const firstSectionId = getDefaultSectionId(firstProject)
+          setActiveWorkspaceSectionId(firstSectionId)
+          setActiveTabId((currentActiveTabId) => {
+            return currentActiveTabId ?? `project:${firstProject.id}`
+          })
+          setOpenTabs((currentTabs) => {
+            if (currentTabs.length > 0) {
+              return currentTabs
+            }
+
+            return [
+              {
+                id: `project:${firstProject.id}`,
+                label: firstProject.name,
+                projectId: firstProject.id,
+                slug: firstProject.slug,
+              },
+            ]
+          })
+        }
+      } catch (error) {
+        if (isCurrent) {
+          setWorkspaceLoadError(
+            error instanceof Error ? error.message : "Unable to load workspace."
+          )
+        }
+      }
+    }
+
+    loadWorkspace()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [])
+
+  const isGalleryThemeDirty = React.useMemo(
+    () =>
+      !areGalleryThemeDraftsEqual(
+        galleryThemeDraft,
+        appliedGalleryThemeDraft
+      ),
+    [appliedGalleryThemeDraft, galleryThemeDraft]
+  )
+
+  const galleryColorTokenValues =
+    galleryThemeDraft.kind === "tokens"
+      ? galleryThemeDraft.colorTokenValues
+      : galleryColorTokenDefaults
+
+  const activeGalleryThemePresetId =
+    galleryThemeDraft.kind === "preset" ? galleryThemeDraft.id : "default"
 
   const activeTab = React.useMemo(
     () => openTabs.find((tab) => tab.id === activeTabId) ?? null,
@@ -230,7 +390,12 @@ export function App() {
       activeTab
         ? projects.find((project) => project.id === activeTab.projectId) ?? null
         : null,
-    [activeTab]
+    [activeTab, projects]
+  )
+
+  const activeWorkspaceSection = React.useMemo(
+    () => getActiveSection(activeProject, activeWorkspaceSectionId),
+    [activeProject, activeWorkspaceSectionId]
   )
 
   const galleryDisplayScene = React.useMemo(
@@ -275,8 +440,8 @@ export function App() {
           ...currentTabs,
           {
             id: tabId,
-            projectId: project.id,
             label: project.name,
+            projectId: project.id,
             slug: project.slug,
           },
         ]
@@ -284,6 +449,13 @@ export function App() {
       setActiveTabId(tabId)
     },
     [projects]
+  )
+
+  const handleSelectWorkspaceSection = React.useCallback(
+    (sectionId: string) => {
+      setActiveWorkspaceSectionId(sectionId)
+    },
+    []
   )
 
   const handleSelectTab = React.useCallback(
@@ -297,9 +469,15 @@ export function App() {
         return
       }
 
+      const nextTab = openTabs.find((tab) => tab.id === tabId)
+      const nextProject = nextTab
+        ? projects.find((project) => project.id === nextTab.projectId)
+        : null
+
       setActiveTabId(tabId)
+      setActiveWorkspaceSectionId(getDefaultSectionId(nextProject ?? null))
     },
-    [surfaceMode]
+    [openTabs, projects, surfaceMode]
   )
 
   const handleCloseTab = React.useCallback((tabId: string) => {
@@ -327,62 +505,117 @@ export function App() {
     setSurfaceMode("workspace")
   }, [])
 
-  return (
+  const handleApplyGalleryTheme = React.useCallback(() => {
+    saveAppliedGalleryTheme(galleryThemeDraft)
+    setAppliedGalleryThemeDraft(galleryThemeDraft)
+  }, [galleryThemeDraft])
+
+  const handleSelectGalleryThemePreset = React.useCallback(
+    (presetId: GalleryThemePresetId) => {
+      const draft = createGalleryPresetThemeDraft(presetId)
+      if (!draft) {
+        return
+      }
+
+      setGalleryThemeDraft(draft)
+    },
+    []
+  )
+
+  const sidebar = (
+    <AppSidebar
+      activeProjectId={activeProject?.id ?? null}
+      activeWorkspaceSectionId={activeWorkspaceSection?.id ?? ""}
+      galleryContent={
+        <GalleryEditorPanel
+          colorTokenValues={galleryColorTokenValues}
+          onColorTokenValueChange={(
+            token: GalleryColorTokenName,
+            value: GalleryColorTokenValue
+          ) =>
+            setGalleryThemeDraft((current) => ({
+              colorTokenValues: {
+                ...(current.kind === "tokens"
+                  ? current.colorTokenValues
+                  : galleryColorTokenDefaults),
+                [token]: value,
+              },
+              kind: "tokens",
+            }))
+          }
+        />
+      }
+      activeGalleryThemePresetId={activeGalleryThemePresetId}
+      galleryThemePresets={galleryThemePresets}
+      isGalleryThemeDirty={isGalleryThemeDirty}
+      mode={surfaceMode}
+      onApplyGalleryTheme={handleApplyGalleryTheme}
+      onEnterGalleryMode={handleEnterGalleryMode}
+      onExitGalleryMode={handleExitGalleryMode}
+      onOpenProject={handleOpenProject}
+      onSelectGalleryThemePreset={handleSelectGalleryThemePreset}
+      onWorkspaceSectionSelect={handleSelectWorkspaceSection}
+      projects={projects}
+      variant="inset"
+    />
+  )
+
+  const header = (
+    <SiteHeader
+      activeTabId={surfaceMode === "gallery" ? activeGallerySceneId : activeTabId}
+      onCloseTab={handleCloseTab}
+      onSelectTab={handleSelectTab}
+      tabs={headerTabs}
+    />
+  )
+
+  const appSurface = (
+    <>
+      {header}
+      <main className="flex min-h-0 flex-1 overflow-hidden">
+        {sidebar}
+        <SidebarInset className="min-h-0 overflow-hidden border-0 shadow-sm md:mr-2 md:mb-2">
+          {surfaceMode === "gallery" ? (
+            <GalleryPanel scene={galleryDisplayScene} />
+          ) : workspaceLoadError ? (
+            <WorkspaceStatus
+              detail={workspaceLoadError}
+              title="Unable to load workspace"
+            />
+          ) : (
+            <WorkspacePanel
+              activeProject={activeProject}
+              activeSection={activeWorkspaceSection}
+            />
+          )}
+        </SidebarInset>
+      </main>
+    </>
+  )
+
+  const framedAppSurface = (
     <SidebarProvider
-      className="h-svh min-h-svh flex-col overflow-hidden"
+      className={
+        surfaceMode === "gallery"
+          ? "min-h-0 flex-1 flex-col overflow-hidden"
+          : "h-svh min-h-svh flex-col overflow-hidden"
+      }
       style={
         {
           "--header-height": "2.5rem",
         } as React.CSSProperties
       }
     >
-      <SiteHeader
-        activeTabId={surfaceMode === "gallery" ? activeGallerySceneId : activeTabId}
-        onCloseTab={handleCloseTab}
-        onSelectTab={handleSelectTab}
-        tabs={headerTabs}
-      />
-      <main className="flex min-h-0 flex-1 overflow-hidden">
-        <AppSidebar
-          activeProjectId={activeProject?.id ?? null}
-          activeWorkspaceSectionId={activeWorkspaceSectionId}
-          galleryContent={
-            <GalleryEditorPanel
-              colorTokenValues={galleryColorTokenValues}
-              onColorTokenValueChange={(
-                token: GalleryColorTokenName,
-                value: GalleryColorTokenValue
-              ) =>
-                setGalleryColorTokenValues((current) => ({
-                  ...current,
-                  [token]: value,
-                }))
-              }
-            />
-          }
-          mode={surfaceMode}
-          onEnterGalleryMode={handleEnterGalleryMode}
-          onExitGalleryMode={handleExitGalleryMode}
-          onOpenProject={handleOpenProject}
-          onWorkspaceSectionSelect={setActiveWorkspaceSectionId}
-          projects={projects}
-          variant="inset"
-        />
-        <SidebarInset className="min-h-0 overflow-hidden border-0 shadow-sm md:mr-2 md:mb-2">
-          {surfaceMode === "gallery" ? (
-            <GalleryPanel
-              colorTokenValues={galleryColorTokenValues}
-              scene={galleryDisplayScene}
-            />
-          ) : (
-            <WorkspacePanel
-              activeProject={activeProject}
-              activeSectionId={activeWorkspaceSectionId}
-            />
-          )}
-        </SidebarInset>
-      </main>
+      {appSurface}
     </SidebarProvider>
+  )
+
+  return surfaceMode === "gallery" ? (
+    <GalleryThemeScope themeDraft={galleryThemeDraft}>
+      {framedAppSurface}
+    </GalleryThemeScope>
+  ) : (
+    framedAppSurface
   )
 }
 

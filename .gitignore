@@ -11,6 +11,8 @@ node_modules
 dist
 dist-agent-html
 dist-ssr
+src-tauri/target/
+src-tauri/gen/
 *.local
 .gitnexus
 .cache

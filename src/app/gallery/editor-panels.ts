@@ -1,3 +1,5 @@
+import { generatedGalleryThemePresets } from "@/app/gallery/theme-presets.generated"
+
 export type ColorRoleGroupItem = {
   id: string
   label: string
@@ -181,3 +183,23 @@ export const galleryColorTokenDefaults: GalleryColorTokenValues = {
   input: { family: "zinc", step: "200" },
   ring: { family: "zinc", step: "400" },
 }
+
+export type GalleryThemeCssVariables = Partial<Record<`--${string}`, string>>
+
+export type GalleryThemePreset = {
+  darkCssVariables?: GalleryThemeCssVariables
+  id: string
+  label: string
+  lightCssVariables?: GalleryThemeCssVariables
+}
+
+export const galleryThemePresets: readonly GalleryThemePreset[] = [
+  {
+    id: "default",
+    label: "Default",
+    lightCssVariables: {},
+  },
+  ...generatedGalleryThemePresets,
+] as const
+
+export type GalleryThemePresetId = (typeof galleryThemePresets)[number]["id"]

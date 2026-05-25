@@ -7,10 +7,14 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:example": "tsc -b && vite build --config vite.agent-html.config.ts",
+    "import:gallery-presets": "node tools/import-gallery-theme-presets.mjs",
     "verify:example-build": "node tools/verify-example-build.mjs",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "test": "vitest run --config vitest.config.mjs",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview"
   },
@@ -39,6 +43,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@tauri-apps/cli": "^2.11.2",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

@@ -15,57 +15,12 @@ import {
 } from "@/app/shared/ui/sidebar"
 import { ChevronRightIcon } from "lucide-react"
 
-export type WorkspaceSection = {
-  groupTitle: string
-  id: string
-  title: string
-}
+import type { WorkspaceSection } from "@/app/workspace/types"
 
 type ProjectNavItem = {
   id: string
   name: string
-}
-
-export const workspaceSections: WorkspaceSection[] = [
-  {
-    groupTitle: "Getting Started",
-    id: "installation",
-    title: "Installation",
-  },
-  {
-    groupTitle: "Getting Started",
-    id: "project-structure",
-    title: "Project Structure",
-  },
-  {
-    groupTitle: "Build Your Application",
-    id: "routing",
-    title: "Routing",
-  },
-  {
-    groupTitle: "Build Your Application",
-    id: "data-fetching",
-    title: "Data Fetching",
-  },
-  {
-    groupTitle: "Build Your Application",
-    id: "rendering",
-    title: "Rendering",
-  },
-  {
-    groupTitle: "Build Your Application",
-    id: "caching",
-    title: "Caching",
-  },
-]
-
-export const defaultWorkspaceSectionId = workspaceSections[0].id
-
-export function getWorkspaceSection(sectionId: string) {
-  return (
-    workspaceSections.find((section) => section.id === sectionId) ??
-    workspaceSections[0]
-  )
+  sections: WorkspaceSection[]
 }
 
 export function NavProjects({
@@ -102,7 +57,7 @@ export function NavProjects({
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {workspaceSections.map((item) => (
+                  {project.sections.map((item) => (
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
                         isActive={
