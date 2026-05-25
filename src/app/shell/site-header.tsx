@@ -17,6 +17,20 @@ type HeaderTab = {
   label: string
 }
 
+const headerChromeButtonClassName =
+  "h-7 w-7 rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+
+const inactiveTabClassName =
+  "bg-transparent text-sidebar-foreground/58 hover:text-sidebar-accent-foreground"
+
+const inactiveTabTriggerClassName =
+  "text-sidebar-foreground/58 hover:text-sidebar-accent-foreground data-active:text-sidebar-accent-foreground"
+
+const activeTabClassName = "bg-card text-card-foreground shadow-sm"
+
+const activeTabTriggerClassName =
+  "text-card-foreground hover:text-card-foreground data-active:text-card-foreground"
+
 export function SiteHeader({
   activeTabId,
   onCloseTab,
@@ -38,7 +52,7 @@ export function SiteHeader({
         <div className="flex items-center gap-1">
           <Button
             aria-label="Toggle sidebar"
-            className="h-7 w-7 rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className={headerChromeButtonClassName}
             variant="ghost"
             size="icon-sm"
             onClick={toggleSidebar}
@@ -67,17 +81,15 @@ export function SiteHeader({
                     key={tab.id}
                     className={cn(
                       "group relative flex max-w-[16rem] min-w-[12rem] flex-none items-center rounded-lg transition-colors",
-                      isActive
-                        ? "bg-card text-card-foreground shadow-sm"
-                        : "bg-transparent text-sidebar-foreground/58 hover:text-sidebar-accent-foreground"
+                      isActive ? activeTabClassName : inactiveTabClassName
                     )}
                   >
                     <TabsTrigger
                       className={cn(
                         "h-8 min-w-0 flex-1 justify-start rounded-lg border-0 bg-transparent pl-3 pr-2 shadow-none data-active:after:hidden",
                         isActive
-                          ? "text-card-foreground hover:text-card-foreground data-active:text-card-foreground"
-                          : "text-sidebar-foreground/58 hover:text-sidebar-accent-foreground data-active:text-sidebar-accent-foreground"
+                          ? activeTabTriggerClassName
+                          : inactiveTabTriggerClassName
                       )}
                       value={tab.id}
                     >
@@ -114,7 +126,7 @@ export function SiteHeader({
         <div className="ml-auto flex items-center gap-1">
           <Button
             aria-label="Minimize window"
-            className="h-7 w-7 rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className={headerChromeButtonClassName}
             disabled={!desktopRuntime}
             onClick={() => {
               void minimizeWindow()
@@ -127,7 +139,7 @@ export function SiteHeader({
           </Button>
           <Button
             aria-label="Toggle maximize window"
-            className="h-7 w-7 rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className={headerChromeButtonClassName}
             disabled={!desktopRuntime}
             onClick={() => {
               void toggleMaximizeWindow()

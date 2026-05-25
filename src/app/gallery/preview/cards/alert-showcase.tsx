@@ -3,7 +3,7 @@ import {
   AlertAction,
   AlertDescription,
   AlertTitle,
-} from "@/app/gallery/preview/ui/alert"
+} from "@/app/shared/ui/alert"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 import { ShieldCheckIcon, TriangleAlertIcon } from "lucide-react"
 

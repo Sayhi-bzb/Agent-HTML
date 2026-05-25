@@ -44,6 +44,15 @@ const tailwindColorFamilies = Object.fromEntries(
 const gallerySidebarPopoverButtonClassName =
   "h-auto min-h-8 items-start py-1.5 text-sidebar-foreground/70 hover:text-sidebar-foreground"
 
+const gallerySidebarSectionTriggerClassName =
+  "group/label text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+
+const galleryEditorPopoverSurfaceClassName =
+  "absolute top-0 left-[calc(100%+0.75rem)] z-10 w-48 rounded-lg border border-border bg-popover p-1 text-popover-foreground ring-1 ring-foreground/10"
+
+const galleryEditorOptionClassName =
+  "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground"
+
 function getTokenColorValue({
   family,
   step,
@@ -162,7 +171,7 @@ function GallerySidebarSection({
       <SidebarGroup className="px-0">
         <SidebarGroupLabel
           asChild
-          className="group/label text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className={gallerySidebarSectionTriggerClassName}
         >
           <CollapsibleTrigger className="cursor-pointer">
             {label}
@@ -286,7 +295,7 @@ function GalleryColorTokenItem({
         />
 
         {activeField ? (
-          <div className="absolute top-0 left-[calc(100%+0.75rem)] z-10 w-48 rounded-lg border border-border bg-popover p-1 text-popover-foreground ring-1 ring-foreground/10">
+          <div className={galleryEditorPopoverSurfaceClassName}>
             <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
               {activeFieldLabel}
             </div>
@@ -298,7 +307,7 @@ function GalleryColorTokenItem({
                   <button
                     key={option}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground",
+                      galleryEditorOptionClassName,
                       isActive && "bg-accent text-accent-foreground"
                     )}
                     onClick={() => {

@@ -5,7 +5,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/app/gallery/preview/ui/chart"
+} from "@/app/shared/ui/chart"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 

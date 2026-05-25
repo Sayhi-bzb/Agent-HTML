@@ -1,3 +1,5 @@
+"use client"
+
 import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "@/app/shared/lib/utils"

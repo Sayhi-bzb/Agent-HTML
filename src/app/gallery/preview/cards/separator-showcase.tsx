@@ -1,4 +1,4 @@
-import { Separator } from "@/app/gallery/preview/ui/separator"
+import { Separator } from "@/app/shared/ui/separator"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 export function SeparatorShowcase() {

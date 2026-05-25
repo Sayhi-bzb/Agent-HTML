@@ -1,10 +1,11 @@
 import * as React from "react"
 
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/shared/ui/popover"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/shared/ui/dropdown-menu"
 import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
 import { NavProjects } from "@/app/shell/nav-projects"
 import { SearchCommand } from "@/app/shell/search-command"
@@ -72,8 +73,6 @@ export function AppSidebar({
   projects: ProjectNavItem[]
 }) {
   const isGalleryMode = mode === "gallery"
-  const [isThemePopoverOpen, setIsThemePopoverOpen] = React.useState(false)
-  const [isEditorPopoverOpen, setIsEditorPopoverOpen] = React.useState(false)
 
   return (
     <Sidebar
@@ -94,95 +93,60 @@ export function AppSidebar({
 
             <SidebarMenu>
               <SidebarMenuItem>
-                <Popover
-                  onOpenChange={setIsThemePopoverOpen}
-                  open={isThemePopoverOpen}
-                >
-                  <PopoverTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <SidebarMenuButton
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                      className="group/trigger data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                       type="button"
                     >
                       <span>theme</span>
-                      <ChevronRightIcon
-                        className={
-                          "ml-auto transition-transform " +
-                          (isThemePopoverOpen ? "rotate-90" : "")
-                        }
-                      />
+                      <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/trigger:rotate-90" />
                     </SidebarMenuButton>
-                  </PopoverTrigger>
-                  <PopoverContent
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
                     align="start"
-                    className="w-[var(--radix-popover-trigger-width)] min-w-0"
+                    className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0"
                     side="bottom"
                     sideOffset={6}
                   >
-                    <SidebarMenu className="gap-0">
-                      {(galleryThemePresets ?? []).map((preset) => (
-                        <SidebarMenuItem key={preset.id}>
-                          <SidebarMenuButton
-                            className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
-                            isActive={preset.id === activeGalleryThemePresetId}
-                            onClick={() => {
-                              onSelectGalleryThemePreset?.(preset.id)
-                              setIsThemePopoverOpen(false)
-                            }}
-                            size="sm"
-                            type="button"
-                          >
-                            <span>{preset.label}</span>
-                            {preset.id === activeGalleryThemePresetId ? (
-                              <CheckIcon className="ml-auto size-4" />
-                            ) : null}
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </PopoverContent>
-                </Popover>
+                    {(galleryThemePresets ?? []).map((preset) => (
+                      <DropdownMenuItem
+                        key={preset.id}
+                        onSelect={() => onSelectGalleryThemePreset?.(preset.id)}
+                      >
+                        <span>{preset.label}</span>
+                        {preset.id === activeGalleryThemePresetId ? (
+                          <CheckIcon className="ml-auto size-4" />
+                        ) : null}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <Popover
-                  onOpenChange={setIsEditorPopoverOpen}
-                  open={isEditorPopoverOpen}
-                >
-                  <PopoverTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <SidebarMenuButton
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                      className="group/trigger data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                       type="button"
                     >
                       <span>color</span>
-                      <ChevronRightIcon
-                        className={
-                          "ml-auto transition-transform " +
-                          (isEditorPopoverOpen ? "rotate-90" : "")
-                        }
-                      />
+                      <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/trigger:rotate-90" />
                     </SidebarMenuButton>
-                  </PopoverTrigger>
-                  <PopoverContent
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
                     align="start"
-                    className="w-[var(--radix-popover-trigger-width)] min-w-0"
+                    className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0"
                     side="bottom"
                     sideOffset={6}
                   >
-                    <SidebarMenu className="gap-0">
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
-                          isActive
-                          onClick={() => setIsEditorPopoverOpen(false)}
-                          size="sm"
-                          type="button"
-                        >
-                          <span>color</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </SidebarMenu>
-                  </PopoverContent>
-                </Popover>
+                    <DropdownMenuItem>
+                      <span>color</span>
+                      <CheckIcon className="ml-auto size-4" />
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </SidebarMenuItem>
             </SidebarMenu>
           </>

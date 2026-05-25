@@ -13,11 +13,11 @@
   "iconLibrary": "lucide",
   "rtl": false,
   "aliases": {
-    "components": "@/agent-html-example",
-    "utils": "@/agent-html-example/lib/utils",
-    "ui": "@/agent-html-example/ui",
-    "lib": "@/agent-html-example/lib",
-    "hooks": "@/hooks"
+    "components": "@/app/shared",
+    "utils": "@/app/shared/lib/utils",
+    "ui": "@/app/shared/ui",
+    "lib": "@/app/shared/lib",
+    "hooks": "@/app/shared/hooks"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

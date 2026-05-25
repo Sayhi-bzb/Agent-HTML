@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/gallery/preview/ui/table"
+} from "@/app/shared/ui/table"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const rows = [

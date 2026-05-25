@@ -3,7 +3,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/app/gallery/preview/ui/accordion"
+} from "@/app/shared/ui/accordion"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const items = [

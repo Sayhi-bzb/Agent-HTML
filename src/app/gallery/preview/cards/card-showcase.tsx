@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/app/gallery/preview/ui/card"
+} from "@/app/shared/ui/card"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 export function CardShowcase() {
@@ -48,7 +48,7 @@ export function CardShowcase() {
         </CardFooter>
       </Card>
 
-      <Card size="sm">
+      <Card>
         <CardHeader>
           <CardTitle>Small card variant</CardTitle>
           <CardDescription>

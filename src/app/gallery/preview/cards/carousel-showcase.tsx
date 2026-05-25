@@ -4,7 +4,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/app/gallery/preview/ui/carousel"
+} from "@/app/shared/ui/carousel"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const slides = [

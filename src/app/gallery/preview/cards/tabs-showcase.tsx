@@ -3,7 +3,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/app/gallery/preview/ui/tabs"
+} from "@/app/shared/ui/tabs"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const panels = [
@@ -32,7 +32,7 @@ export function TabsShowcase() {
       footer="The tab list owns navigation while each panel proves the content slot changes cleanly."
     >
       <Tabs className="gap-3" defaultValue="summary">
-        <TabsList variant="line">
+        <TabsList>
           {panels.map((panel) => (
             <TabsTrigger key={panel.value} value={panel.value}>
               {panel.title}

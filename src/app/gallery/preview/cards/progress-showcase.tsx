@@ -1,4 +1,4 @@
-import { Progress } from "@/app/gallery/preview/ui/progress"
+import { Progress } from "@/app/shared/ui/progress"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 
 const tracks = [

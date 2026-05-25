@@ -1,4 +1,4 @@
-import { Badge } from "@/app/gallery/preview/ui/badge"
+import { Badge } from "@/app/shared/ui/badge"
 import { ShowcaseShell } from "@/app/gallery/preview/cards/showcase-shell"
 import { FlameIcon, LinkIcon, SparklesIcon } from "lucide-react"
 
@@ -17,17 +17,18 @@ export function BadgeShowcase() {
         </Badge>
         <Badge variant="secondary">Secondary</Badge>
         <Badge variant="outline">Outline</Badge>
-        <Badge variant="ghost">Ghost</Badge>
+        <Badge variant="outline">Neutral</Badge>
         <Badge variant="destructive">
           <FlameIcon />
           Risk
         </Badge>
-        <Badge variant="link" asChild>
-          <a href="#badge-showcase">
-            <LinkIcon />
-            Linked
-          </a>
-        </Badge>
+        <a
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+          href="#badge-showcase"
+        >
+          <LinkIcon className="size-3.5" />
+          Linked
+        </a>
       </div>
 
       <div className="grid gap-2 rounded-[calc(var(--radius)*1.25)] border border-dashed border-border/70 bg-muted/25 p-3">
