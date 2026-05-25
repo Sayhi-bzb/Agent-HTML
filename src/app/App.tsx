@@ -27,17 +27,15 @@ import { useTheme } from "@/app/shared/theme-provider"
 import { SidebarInset, SidebarProvider } from "@/app/shared/ui/sidebar"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
 import { defaultWorkspaceSectionId } from "@/app/workspace/seed"
+import {
+  WorkspaceLoadErrorState,
+  WorkspaceSurface,
+} from "@/app/workspace/surface"
 import type {
-  ProjectSectionDocument,
   WorkspaceProject,
+  WorkspaceProjectView,
   WorkspaceSection,
 } from "@/app/workspace/types"
-import {
-  parseAgentHtml,
-  renderAgentHtml,
-  validateAgentHtml,
-  type AgentHtmlValidationError,
-} from "@/agent-html"
 
 type ProjectTab = {
   id: string
@@ -45,20 +43,6 @@ type ProjectTab = {
   projectId: string
   slug: string
 }
-
-type WorkspaceProjectView = WorkspaceProject & {
-  sections: WorkspaceSection[]
-}
-
-type WorkspaceDocumentState =
-  | { status: "idle" | "loading" }
-  | { message: string; status: "error" }
-  | { document: ProjectSectionDocument; status: "ready" }
-
-type RuntimeState =
-  | { content: React.ReactNode; status: "ready" }
-  | { errors: AgentHtmlValidationError[]; status: "invalid" }
-  | { message: string; status: "error" }
 
 type SurfaceMode = "gallery" | "workspace"
 
@@ -121,166 +105,6 @@ function getActiveSection(
     activeProject?.sections.find((section) => section.id === activeSectionId) ??
     activeProject?.sections[0] ??
     null
-  )
-}
-
-function RuntimeValidationErrors({
-  errors,
-}: {
-  errors: AgentHtmlValidationError[]
-}) {
-  return (
-    <div className="flex flex-col gap-3 p-4 md:p-6">
-      {errors.map((error) => (
-        <article
-          key={`${error.code}:${error.path}:${error.attr ?? ""}`}
-          className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive"
-        >
-          <p className="text-sm font-medium">{error.code}</p>
-          <p className="mt-1 text-xs leading-5">
-            {error.path} - {error.message}
-          </p>
-        </article>
-      ))}
-    </div>
-  )
-}
-
-function WorkspaceStatus({
-  detail,
-  title,
-}: {
-  detail: string
-  title: string
-}) {
-  return (
-    <div className="flex flex-1 items-center justify-center p-6">
-      <section className="max-w-md rounded-xl border bg-background p-5 text-foreground shadow-sm">
-        <p className="text-sm font-medium">{title}</p>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
-      </section>
-    </div>
-  )
-}
-
-function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState {
-  try {
-    const parsedDocument = parseAgentHtml(document.ahtmlSource)
-    const validation = validateAgentHtml(parsedDocument)
-
-    if (!validation.ok) {
-      return {
-        errors: validation.errors,
-        status: "invalid",
-      }
-    }
-
-    return {
-      content: renderAgentHtml(parsedDocument),
-      status: "ready",
-    }
-  } catch (error) {
-    return {
-      message: error instanceof Error ? error.message : "Unable to render AHTML.",
-      status: "error",
-    }
-  }
-}
-
-function WorkspacePanel({
-  activeProject,
-  activeSection,
-}: {
-  activeProject: WorkspaceProjectView | null
-  activeSection: WorkspaceSection | null
-}) {
-  const [documentState, setDocumentState] =
-    React.useState<WorkspaceDocumentState>({ status: "idle" })
-
-  React.useEffect(() => {
-    if (!activeProject || !activeSection) {
-      setDocumentState({ status: "idle" })
-      return
-    }
-
-    let isCurrent = true
-    setDocumentState({ status: "loading" })
-
-    workspaceRepository
-      .getProjectSectionDocument(activeProject.id, activeSection.id)
-      .then((document) => {
-        if (isCurrent) {
-          setDocumentState({ document, status: "ready" })
-        }
-      })
-      .catch((error: unknown) => {
-        if (isCurrent) {
-          setDocumentState({
-            message:
-              error instanceof Error
-                ? error.message
-                : "Unable to load workspace document.",
-            status: "error",
-          })
-        }
-      })
-
-    return () => {
-      isCurrent = false
-    }
-  }, [activeProject, activeSection])
-
-  const runtime = React.useMemo(() => {
-    if (documentState.status !== "ready") {
-      return null
-    }
-
-    return renderWorkspaceDocument(documentState.document)
-  }, [documentState])
-
-  if (!activeProject || !activeSection) {
-    return (
-      <WorkspaceStatus
-        detail="Open a project section from the sidebar to render its local AHTML document."
-        title="No workspace section selected"
-      />
-    )
-  }
-
-  if (documentState.status === "idle" || documentState.status === "loading") {
-    return (
-      <WorkspaceStatus
-        detail={`${activeProject.name} / ${activeSection.title}`}
-        title="Loading local document"
-      />
-    )
-  }
-
-  if (documentState.status === "error") {
-    return (
-      <WorkspaceStatus
-        detail={documentState.message}
-        title="Unable to load document"
-      />
-    )
-  }
-
-  if (!runtime) {
-    return null
-  }
-
-  if (runtime.status === "invalid") {
-    return <RuntimeValidationErrors errors={runtime.errors} />
-  }
-
-  if (runtime.status === "error") {
-    return <WorkspaceStatus detail={runtime.message} title="Runtime error" />
-  }
-
-  return (
-    <div className="min-h-full overflow-auto bg-background p-4 text-foreground md:p-6">
-      {runtime.content}
-    </div>
   )
 }
 
@@ -580,12 +404,9 @@ export function App() {
           {surfaceMode === "gallery" ? (
             <GalleryPanel scene={galleryDisplayScene} />
           ) : workspaceLoadError ? (
-            <WorkspaceStatus
-              detail={workspaceLoadError}
-              title="Unable to load workspace"
-            />
+            <WorkspaceLoadErrorState detail={workspaceLoadError} />
           ) : (
-            <WorkspacePanel
+            <WorkspaceSurface
               activeProject={activeProject}
               activeSection={activeWorkspaceSection}
             />

@@ -4,6 +4,10 @@ export type WorkspaceProject = {
   slug: string
 }
 
+export type WorkspaceProjectView = WorkspaceProject & {
+  sections: WorkspaceSection[]
+}
+
 export type WorkspaceSection = {
   groupTitle: string
   id: string

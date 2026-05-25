@@ -72,12 +72,12 @@ function createSeedAhtmlSource(project: WorkspaceProject, section: WorkspaceSect
     <Stack>
       <Stack>
         <Text variant="h1">${section.title}</Text>
-        <Text variant="lead">${project.name} workspace content rendered through the agent-html runtime.</Text>
+        <Text variant="lead">${project.name} workspace preview rendered through the agent-html runtime.</Text>
       </Stack>
       <Alert>
         <Icon name="database" />
-        <AlertTitle>Local-first document</AlertTitle>
-        <AlertDescription>This section is loaded from the desktop workspace repository and rendered from AHTML source.</AlertDescription>
+        <AlertTitle>Workspace preview document</AlertTitle>
+        <AlertDescription>This section is loaded from the current workspace data source and rendered from AHTML source.</AlertDescription>
       </Alert>
       <Grid columns="3">
         <Card>

@@ -26,11 +26,13 @@ import { previewComponentRuntime } from "@/agent-html/runtime/render/component-r
 export type RenderAgentHtmlOptions = {
   highlightBlocks?: boolean
   interactionUnits?: AgentHtmlInteractionUnits
+  onBlockHover?: (path: string | null) => void
 }
 
 type RenderContext = {
   blockPaths: ReadonlySet<string>
   highlightBlocks: boolean
+  onBlockHover?: (path: string | null) => void
 }
 
 function renderNode(
@@ -92,11 +94,15 @@ function highlightBlock(
   return (
     <div
       className={cn(
-        "rounded-[18px] bg-blue-500/0 outline outline-1 outline-offset-4 outline-blue-500/0 transition-[background-color,outline-color] duration-200 ease-out hover:bg-blue-500/[0.025] hover:outline-blue-500/20 focus-within:bg-blue-500/[0.025] focus-within:outline-blue-500/20"
+        "rounded-[18px] bg-[color-mix(in_oklab,var(--primary)_0%,transparent)] outline outline-1 outline-offset-4 outline-[color-mix(in_oklab,var(--primary)_0%,transparent)] transition-[background-color,outline-color] duration-200 ease-out hover:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)] hover:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)] focus-within:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)] focus-within:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)]"
       )}
       data-agent-html-block="true"
       data-agent-html-block-path={path}
       key={key}
+      onBlur={() => context.onBlockHover?.(null)}
+      onFocus={() => context.onBlockHover?.(path)}
+      onMouseEnter={() => context.onBlockHover?.(path)}
+      onMouseLeave={() => context.onBlockHover?.(null)}
     >
       {rendered}
     </div>
@@ -203,6 +209,7 @@ export function renderAgentHtml(
       options.interactionUnits?.blocks.map((unit) => unit.path) ?? []
     ),
     highlightBlocks: options.highlightBlocks === true,
+    onBlockHover: options.onBlockHover,
   }
 
   return renderElement(document.root, "root", `/${document.root.tag}`, context)

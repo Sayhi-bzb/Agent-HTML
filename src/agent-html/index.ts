@@ -5,6 +5,11 @@ export type {
   AgentHtmlTag,
   AgentHtmlTextNode,
 } from "@/agent-html/ast/types"
+export {
+  getAgentHtmlElementByPath,
+  walkAgentHtmlElementPaths,
+} from "@/agent-html/ast/paths"
+export { serializeAgentHtmlNode } from "@/agent-html/ast/serialize"
 export { formatHtmlSource } from "@/agent-html/runtime/format-html-source"
 export { inferAgentHtmlInteractionUnits } from "@/agent-html/interaction/infer-interaction-units"
 export type {

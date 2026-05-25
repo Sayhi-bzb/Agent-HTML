@@ -45,9 +45,11 @@ async function highlightCode(code: string, language: BundledLanguage) {
 }
 
 export const CodeBlock = React.memo(function CodeBlock({
+  className,
   language,
   source,
 }: {
+  className?: string
   language: SourceTabValue
   source: string
 }) {
@@ -87,7 +89,12 @@ export const CodeBlock = React.memo(function CodeBlock({
   const CopyStateIcon = isCopied ? CheckIcon : CopyIcon
 
   return (
-    <div className="group relative min-w-max overflow-hidden bg-background text-foreground">
+    <div
+      className={cn(
+        "group relative min-w-max overflow-hidden bg-background text-foreground",
+        className
+      )}
+    >
       <div
         className={cn(
           "overflow-auto dark:hidden",

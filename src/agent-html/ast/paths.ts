@@ -42,3 +42,18 @@ export function walkAgentHtmlElementPaths(
     )
   }
 }
+
+export function getAgentHtmlElementByPath(
+  root: AgentHtmlElementNode,
+  targetPath: string
+) {
+  let match: AgentHtmlElementNode | null = null
+
+  walkAgentHtmlElementPaths(root, (node, path) => {
+    if (path === targetPath) {
+      match = node
+    }
+  })
+
+  return match
+}

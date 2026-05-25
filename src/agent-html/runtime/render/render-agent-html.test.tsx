@@ -2,7 +2,7 @@
 
 import { readFileSync } from "node:fs"
 import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
 import { inferAgentHtmlInteractionUnits } from "@/agent-html/interaction/infer-interaction-units"
@@ -43,6 +43,20 @@ describe("renderAgentHtml", () => {
     expect(html.match(/data-agent-html-block="true"/g)).toHaveLength(
       interactionUnits.blocks.length
     )
+  })
+
+  it("renders hover-capable block wrappers when a callback is provided", () => {
+    const document = parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
+    const interactionUnits = inferAgentHtmlInteractionUnits(document)
+    const html = renderToStaticMarkup(
+      renderAgentHtml(document, {
+        highlightBlocks: true,
+        interactionUnits,
+        onBlockHover: vi.fn(),
+      })
+    )
+
+    expect(html).toContain("data-agent-html-block-path")
   })
 
   it("renders the icon basic fixture", () => {
