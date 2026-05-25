@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
 import { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
+import { inferAgentHtmlInteractionUnits } from "@/agent-html/interaction/infer-interaction-units"
 import { renderAgentHtml } from "@/agent-html/runtime/render/render-agent-html"
 import { validateAgentHtml } from "@/agent-html/validate/validate-agent-html"
 
@@ -25,6 +26,23 @@ describe("renderAgentHtml", () => {
     const html = renderToStaticMarkup(renderAgentHtml(document))
     expect(html).toContain("Ready")
     expect(html).toContain("data-slot=\"card\"")
+    expect(html).not.toContain("data-agent-html-block")
+  })
+
+  it("can lightly highlight inferred interaction blocks", () => {
+    const document = parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
+    const interactionUnits = inferAgentHtmlInteractionUnits(document)
+    const html = renderToStaticMarkup(
+      renderAgentHtml(document, {
+        highlightBlocks: true,
+        interactionUnits,
+      })
+    )
+
+    expect(html).toContain("data-agent-html-block=\"true\"")
+    expect(html.match(/data-agent-html-block="true"/g)).toHaveLength(
+      interactionUnits.blocks.length
+    )
   })
 
   it("renders the icon basic fixture", () => {

@@ -6,6 +6,14 @@ export type {
   AgentHtmlTextNode,
 } from "@/agent-html/ast/types"
 export { formatHtmlSource } from "@/agent-html/runtime/format-html-source"
+export { inferAgentHtmlInteractionUnits } from "@/agent-html/interaction/infer-interaction-units"
+export type {
+  AgentHtmlInteractionDiagnostics,
+  AgentHtmlInteractionUnit,
+  AgentHtmlInteractionUnitKind,
+  AgentHtmlInteractionUnits,
+  AgentHtmlNestedInteractionBlock,
+} from "@/agent-html/interaction/types"
 export { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
 export { renderAgentHtml } from "@/agent-html/runtime/render/render-agent-html"
 export {

@@ -1,10 +1,17 @@
-import { createElement, type ElementType, type ReactNode } from "react"
+import {
+  createElement,
+  type ElementType,
+  type ReactNode,
+} from "react"
 
 import type {
   AgentHtmlDocument,
   AgentHtmlElementNode,
   AgentHtmlNode,
 } from "@/agent-html/ast/types"
+import { agentHtmlChildPath } from "@/agent-html/ast/paths"
+import type { AgentHtmlInteractionUnits } from "@/agent-html/interaction/types"
+import { cn } from "@/agent-html/lib/utils"
 import { ChartRuntime } from "@/agent-html/runtime/render/chart-runtime"
 import { IconRuntime } from "@/agent-html/runtime/render/icon-runtime"
 import {
@@ -16,16 +23,50 @@ import {
 } from "@/agent-html/runtime/render/layout-runtime"
 import { previewComponentRuntime } from "@/agent-html/runtime/render/component-runtime"
 
-function renderNode(node: AgentHtmlNode, key: string): ReactNode {
+export type RenderAgentHtmlOptions = {
+  highlightBlocks?: boolean
+  interactionUnits?: AgentHtmlInteractionUnits
+}
+
+type RenderContext = {
+  blockPaths: ReadonlySet<string>
+  highlightBlocks: boolean
+}
+
+function renderNode(
+  node: AgentHtmlNode,
+  key: string,
+  path: string,
+  context: RenderContext
+): ReactNode {
   if (node.type === "text") {
     return node.value
   }
 
-  return renderElement(node, key)
+  return renderElement(node, key, path, context)
 }
 
-function renderChildren(children: AgentHtmlNode[]) {
-  return children.map((child, index) => renderNode(child, `${index}`))
+function renderChildren(
+  children: AgentHtmlNode[],
+  parentPath: string,
+  context: RenderContext
+) {
+  const childCounts = new Map<string, number>()
+
+  return children.map((child, index) => {
+    if (child.type === "text") {
+      return renderNode(child, `${index}`, `${parentPath}/#text[${index}]`, context)
+    }
+
+    const count = childCounts.get(child.tag) ?? 0
+    childCounts.set(child.tag, count + 1)
+    return renderNode(
+      child,
+      `${index}`,
+      agentHtmlChildPath(parentPath, child.tag, count),
+      context
+    )
+  })
 }
 
 function hasChildren(tag: AgentHtmlElementNode["tag"]) {
@@ -38,29 +79,63 @@ function hasChildren(tag: AgentHtmlElementNode["tag"]) {
   )
 }
 
-function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
+function highlightBlock(
+  rendered: ReactNode,
+  key: string,
+  path: string,
+  context: RenderContext
+) {
+  if (!context.highlightBlocks || !context.blockPaths.has(path)) {
+    return rendered
+  }
+
+  return (
+    <div
+      className={cn(
+        "rounded-[18px] outline outline-1 outline-offset-4 outline-blue-500/20 bg-blue-500/[0.025]"
+      )}
+      data-agent-html-block="true"
+      data-agent-html-block-path={path}
+      key={key}
+    >
+      {rendered}
+    </div>
+  )
+}
+
+function renderElement(
+  node: AgentHtmlElementNode,
+  key: string,
+  path: string,
+  context: RenderContext
+): ReactNode {
+  let rendered: ReactNode
+
   if (node.tag === "Page") {
-    const children = renderChildren(node.children)
-    return <PageRuntime key={key}>{children}</PageRuntime>
+    const children = renderChildren(node.children, path, context)
+    rendered = <PageRuntime key={key}>{children}</PageRuntime>
+    return highlightBlock(rendered, key, path, context)
   }
 
   if (node.tag === "Section") {
-    const children = renderChildren(node.children)
-    return (
+    const children = renderChildren(node.children, path, context)
+    rendered = (
       <SectionRuntime key={key} width={node.attrs.width}>
         {children}
       </SectionRuntime>
     )
+    return highlightBlock(rendered, key, path, context)
   }
 
   if (node.tag === "Stack") {
-    const children = renderChildren(node.children)
-    return <StackRuntime key={key}>{children}</StackRuntime>
+    const children = renderChildren(node.children, path, context)
+    rendered = <StackRuntime key={key}>{children}</StackRuntime>
+    return highlightBlock(rendered, key, path, context)
   }
 
   if (node.tag === "Cluster") {
-    const children = renderChildren(node.children)
-    return (
+    const children = renderChildren(node.children, path, context)
+    rendered = (
       <ClusterRuntime
         justify={node.attrs.justify}
         key={key}
@@ -69,15 +144,17 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
         {children}
       </ClusterRuntime>
     )
+    return highlightBlock(rendered, key, path, context)
   }
 
   if (node.tag === "Grid") {
-    const children = renderChildren(node.children)
-    return (
+    const children = renderChildren(node.children, path, context)
+    rendered = (
       <GridRuntime columns={node.attrs.columns} key={key}>
         {children}
       </GridRuntime>
     )
+    return highlightBlock(rendered, key, path, context)
   }
 
   if (
@@ -89,11 +166,13 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
   }
 
   if (node.tag === "Icon") {
-    return <IconRuntime key={key} name={node.attrs.name} />
+    rendered = <IconRuntime key={key} name={node.attrs.name} />
+    return highlightBlock(rendered, key, path, context)
   }
 
   if (node.tag === "Chart") {
-    return <ChartRuntime key={key} node={node} />
+    rendered = <ChartRuntime key={key} node={node} />
+    return highlightBlock(rendered, key, path, context)
   }
 
   const Component =
@@ -106,15 +185,27 @@ function renderElement(node: AgentHtmlElementNode, key: string): ReactNode {
   }
 
   if (!hasChildren(node.tag)) {
-    return createElement(Component, { key, ...node.attrs })
+    rendered = createElement(Component, { key, ...node.attrs })
+    return highlightBlock(rendered, key, path, context)
   }
 
-  const children = renderChildren(node.children)
-  return createElement(Component, { key, ...node.attrs }, ...children)
+  const children = renderChildren(node.children, path, context)
+  rendered = createElement(Component, { key, ...node.attrs }, ...children)
+  return highlightBlock(rendered, key, path, context)
 }
 
-export function renderAgentHtml(document: AgentHtmlDocument) {
-  return renderElement(document.root, "root")
+export function renderAgentHtml(
+  document: AgentHtmlDocument,
+  options: RenderAgentHtmlOptions = {}
+) {
+  const context = {
+    blockPaths: new Set(
+      options.interactionUnits?.blocks.map((unit) => unit.path) ?? []
+    ),
+    highlightBlocks: options.highlightBlocks === true,
+  }
+
+  return renderElement(document.root, "root", `/${document.root.tag}`, context)
 }
 
 

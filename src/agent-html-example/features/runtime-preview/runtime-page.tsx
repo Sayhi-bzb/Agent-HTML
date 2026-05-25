@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import {
   formatHtmlSource,
   getSourceMetrics,
+  inferAgentHtmlInteractionUnits,
   parseAgentHtml,
   renderAgentHtml,
   validateAgentHtml,
@@ -25,7 +26,15 @@ export function AgentHtmlRuntimePage({
   const runtime = React.useMemo(() => {
     const document = parseAgentHtml(activeCase.ahtmlSource)
     const validation = validateAgentHtml(document)
-    const renderedContent = validation.ok ? renderAgentHtml(document) : null
+    const interactionUnits = validation.ok
+      ? inferAgentHtmlInteractionUnits(document)
+      : null
+    const renderedContent = validation.ok
+      ? renderAgentHtml(document, {
+          highlightBlocks: true,
+          interactionUnits: interactionUnits ?? undefined,
+        })
+      : null
     const htmlSource = renderedContent
       ? formatHtmlSource(renderToStaticMarkup(renderedContent))
       : ""
