@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { basename, join } from "node:path"
 
 const presetDirectory = "preset-theme"
-const outputFile = "src/app/gallery/theme-presets.generated.ts"
+const outputFile = "apps/agent-html-app/src/gallery/theme-presets.generated.ts"
 
 function slugifyPresetName(name) {
   return name

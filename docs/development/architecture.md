@@ -15,7 +15,7 @@ Frontend design rules belong in [`design/README.md`](../design/README.md).
 
 The repository has two top-level web surfaces with separate ownership.
 
-- `/` renders the main operating shell from `src/app/App.tsx`.
+- `/` renders the main operating shell from `apps/agent-html-app/src/App.tsx`.
 - `apps/agent-html-example` owns the standalone Agent-HTML example website.
 
 The default shell and the example website are separate deployable surfaces.
@@ -57,7 +57,7 @@ Owns the standalone runtime demo website:
 It may consume `src/agent-html` public APIs. It must not become the owner of DSL
 schema, parser, validator, or runtime rules.
 
-### `src/app/gallery`
+### `apps/agent-html-app/src/gallery`
 
 Owns the Gallery feature domain:
 
@@ -71,7 +71,7 @@ Gallery code may compose shared shell and primitive components. It must not
 become a second primitive UI library, and gallery-specific content should not be
 stored inside generic shell components.
 
-### `src/app/shared/ui`
+### `apps/agent-html-app/src/shared/ui`
 
 Owns shared primitive UI components. These are the base interactive and visual
 building blocks used by app, shell, and feature code.
@@ -79,7 +79,7 @@ building blocks used by app, shell, and feature code.
 Primitive changes have broad impact. Prefer additive variants and preserve
 accessibility semantics when changing this layer.
 
-### `src/app/shell`
+### `apps/agent-html-app/src/shell`
 
 Owns reusable composite and shell components:
 
@@ -93,7 +93,7 @@ They should not store feature-specific registries or DSL-specific rules. When
 shell components host feature content, app-level orchestration should pass that
 content through slots instead of having shell code import the feature directly.
 
-### `src/app/App.tsx`
+### `apps/agent-html-app/src/App.tsx`
 
 Owns app-level orchestration:
 
@@ -127,9 +127,9 @@ source string
 
 Rules:
 
-- `src/agent-html` must not depend on `apps/agent-html-example` or `src/app/gallery`.
+- `src/agent-html` must not depend on `apps/agent-html-example` or `apps/agent-html-app/src/gallery`.
 - `apps/agent-html-example` may depend on `src/agent-html` public APIs.
-- `apps/agent-html-example` must not import `src/app` or `src/app/index.css`.
+- `apps/agent-html-example` must not import `apps/agent-html-app/src` or app CSS.
 - Gallery may depend on shared components, but shared components should not
   depend on Gallery content.
 - App orchestration may compose feature domains, but feature domains should not
@@ -145,10 +145,10 @@ Before making structural changes, classify the change by owner:
   `src/agent-html`.
 - Demo-only source comparison or showcase behavior belongs in
   `apps/agent-html-example`.
-- Gallery scene or editor behavior belongs in `src/app/gallery`.
-- Shared primitive interaction belongs in `src/app/shared/ui`.
-- Reusable shell composition belongs in `src/app/shell`.
-- Cross-surface state wiring belongs in `src/app/App.tsx`.
+- Gallery scene or editor behavior belongs in `apps/agent-html-app/src/gallery`.
+- Shared primitive interaction belongs in `apps/agent-html-app/src/shared/ui`.
+- Reusable shell composition belongs in `apps/agent-html-app/src/shell`.
+- Cross-surface state wiring belongs in `apps/agent-html-app/src/App.tsx`.
 
 Do not fix a surface by bypassing its owning layer. If a change requires behavior
 from another layer, move the behavior to the appropriate shared owner and have

@@ -18,7 +18,7 @@ apps/agent-html-example
 ```
 
 It may import Agent-HTML runtime APIs from `src/agent-html`. It must not import
-`src/app`, `src/app/index.css`, or app-shell assets.
+`apps/agent-html-app/src`, app CSS, or app-shell assets.
 
 The deploy output is always:
 
@@ -162,8 +162,8 @@ Before deploying:
 - `dist-agent-html/index.html` exists.
 - The generated bundle does not contain app-only markers such as `Gallery` or
   `Design Engineering`.
-- `apps/agent-html-example` does not import `@/app`, `src/app`, or
-  `app/index.css`.
+- `apps/agent-html-example` does not import `@/app`,
+  `apps/agent-html-app/src`, or app CSS.
 - `apps/agent-html-example/public/_redirects` exists.
 
 ## Common Failure Modes

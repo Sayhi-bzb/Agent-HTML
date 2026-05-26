@@ -1,0 +1,9 @@
+{
+  "name": "@agent-html/app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p ../../tsconfig.app.json && vite build"
+  }
+}

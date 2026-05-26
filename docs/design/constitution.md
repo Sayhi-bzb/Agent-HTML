@@ -56,7 +56,7 @@ They MUST:
 
 ### Primitives / Atoms
 
-`src/app/shared/ui/*` is the primitive layer.
+`apps/agent-html-app/src/shared/ui/*` is the primitive layer.
 These components are the only allowed atomic UI building blocks in the app.
 
 They MUST:
@@ -67,7 +67,7 @@ They MUST:
 
 ### Composites / Page Composition
 
-Components outside `src/app/shared/ui/*` assemble primitives into stable product patterns.
+Components outside `apps/agent-html-app/src/shared/ui/*` assemble primitives into stable product patterns.
 Page code assembles composites and primitives into route-level screens.
 
 They MUST:
@@ -124,7 +124,7 @@ Schedule pressure is not sufficient justification for creating a parallel design
 Detailed implementation rules are delegated as follows:
 
 - `tokens.md` owns token taxonomy, naming, and consumption
-- [`src/app/gallery/preview/rule/typography.md`](../../src/app/gallery/preview/rule/typography.md) owns preview text hierarchy and text-role rules
+- [`apps/agent-html-app/src/gallery/preview/rule/typography.md`](../../apps/agent-html-app/src/gallery/preview/rule/typography.md) owns preview text hierarchy and text-role rules
 - `layout.md` owns shell structure and responsive layout rules
 - `components.md` owns component-family standards
 - `code-structure.md` owns code placement and implementation review rules

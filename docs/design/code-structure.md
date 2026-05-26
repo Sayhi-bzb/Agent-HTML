@@ -13,7 +13,7 @@ It does not define visual philosophy, typography roles, or component-family appe
 
 ## Directory Roles
 
-### `src/app/gallery/*`
+### `apps/agent-html-app/src/gallery/*`
 
 This directory is the Gallery feature domain.
 
@@ -29,7 +29,7 @@ layer or the generic composite layer.
 
 It MUST NOT become a second primitive UI library.
 
-Top-level `src/app/gallery/*` should remain preview-agnostic orchestration first.
+Top-level `apps/agent-html-app/src/gallery/*` should remain preview-agnostic orchestration first.
 
 It SHOULD own:
 
@@ -40,7 +40,7 @@ It SHOULD own:
 
 It SHOULD NOT own preview-local primitives, preview token CSS, or preview showcase card files.
 
-### `src/app/gallery/preview/*`
+### `apps/agent-html-app/src/gallery/preview/*`
 
 This directory is the Gallery preview subdomain.
 
@@ -52,11 +52,11 @@ It owns:
 - preview-only token CSS under `preview/styles/*`
 - preview-only adaptation rules under `preview/rule/*`
 
-`src/app/gallery/preview/ui/*` exists only for preview showcase consumption.
+`apps/agent-html-app/src/gallery/preview/ui/*` exists only for preview showcase consumption.
 It MUST NOT become a second gallery-wide primitive layer.
-Top-level gallery editor and panel code MUST continue to consume `src/app/shared/ui/*`.
+Top-level gallery editor and panel code MUST continue to consume `apps/agent-html-app/src/shared/ui/*`.
 
-### `src/app/index.css`
+### `apps/agent-html-app/src/index.css`
 
 This file is the token and theme-mapping entrypoint.
 
@@ -69,7 +69,7 @@ It owns:
 
 It MUST NOT become a dumping ground for page-specific styles.
 
-### `src/app/shared/ui/*`
+### `apps/agent-html-app/src/shared/ui/*`
 
 This directory is the primitive UI layer.
 
@@ -80,7 +80,7 @@ It owns:
 - primitive slot styling
 - shared interaction surfaces
 
-### `src/app/shell/*`
+### `apps/agent-html-app/src/shell/*`
 
 This directory is the composite UI layer.
 
@@ -102,7 +102,7 @@ Current stable examples include:
 
 It MUST NOT become a second primitive library.
 It also MUST NOT become the long-term storage area for gallery asset data that belongs in
-`src/app/gallery/*`.
+`apps/agent-html-app/src/gallery/*`.
 
 ### Page / App Layer
 
@@ -197,7 +197,7 @@ composites:
 - the gallery scene panel
 - the gallery color editor panel
 
-Gallery asset content, however, should live in `src/app/gallery/*` even when those composites render
+Gallery asset content, however, should live in `apps/agent-html-app/src/gallery/*` even when those composites render
 it.
 
 ## Review Checklist
@@ -217,7 +217,7 @@ A UI review should verify:
 
 The following should be rejected by default:
 
-- duplicating button or input behavior outside `src/app/shared/ui/*`
+- duplicating button or input behavior outside `apps/agent-html-app/src/shared/ui/*`
 - creating a second sidebar implementation with custom markup
 - creating a second mode-specific header or sidebar instead of extending `SiteHeader` or
   `AppSidebar`
@@ -225,5 +225,5 @@ The following should be rejected by default:
 - encoding typography decisions ad hoc in every page
 - growing page-local utility bundles into a shadow design system
 - storing gallery scene/example data ad hoc inside generic shell components when it belongs in
-  `src/app/gallery/*`
-- importing `src/app/gallery/preview/ui/*` into top-level gallery editor or shell orchestration code
+  `apps/agent-html-app/src/gallery/*`
+- importing `apps/agent-html-app/src/gallery/preview/ui/*` into top-level gallery editor or shell orchestration code
