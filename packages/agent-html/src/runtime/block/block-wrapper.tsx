@@ -11,6 +11,8 @@ export const agentHtmlBlockWrapperClassName = cn(
   "bg-[color-mix(in_oklab,var(--primary)_0%,transparent)]",
   "outline outline-1 outline-offset-4 outline-[color-mix(in_oklab,var(--primary)_0%,transparent)]",
   "transition-[background-color,opacity,outline-color] duration-200 ease-out",
+  "data-hovered:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]",
+  "data-hovered:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)]",
   "focus-within:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]",
   "focus-within:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)]"
 )
@@ -40,17 +42,16 @@ export function AgentHtmlBlockWrapper({
   const {
     activeMotionKey,
     activePath,
-    hoveredMotionKey,
+    hoveredPath,
     landingMotionKey,
     openBlockInput,
     registerBlockElement,
     registerBlockPreview,
     registerBlockUnit,
-    setHoveredBlock,
   } = runtime
   const ref = React.useRef<HTMLDivElement | null>(null)
   const isActive = activeMotionKey === unit.motionKey
-  const isHovered = hoveredMotionKey === unit.motionKey && !activePath
+  const isHovered = hoveredPath === path && !activePath
   const isLanding = landingMotionKey === unit.motionKey
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: path,
@@ -78,28 +79,6 @@ export function AgentHtmlBlockWrapper({
     return registerBlockUnit(path, unit)
   }, [path, registerBlockUnit, unit])
 
-  const handlePointerEnter = React.useCallback(() => {
-    if (activePath) {
-      return
-    }
-
-    setHoveredBlock({ motionKey: unit.motionKey, path })
-  }, [activePath, path, setHoveredBlock, unit.motionKey])
-
-  const handlePointerLeave = React.useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      if (
-        event.relatedTarget instanceof Node &&
-        ref.current?.contains(event.relatedTarget)
-      ) {
-        return
-      }
-
-      setHoveredBlock(null)
-    },
-    [setHoveredBlock]
-  )
-
   const handleInputTrigger = React.useCallback(
     (element: HTMLButtonElement) => {
       openBlockInput(path, element)
@@ -119,9 +98,8 @@ export function AgentHtmlBlockWrapper({
       data-agent-html-block="true"
       data-agent-html-block-path={path}
       data-agent-html-block-active={isActive ? "true" : undefined}
+      data-hovered={isHovered ? "" : undefined}
       data-agent-html-block-landing={isLanding ? "true" : undefined}
-      onPointerEnter={handlePointerEnter}
-      onPointerLeave={handlePointerLeave}
       ref={setWrapperRef}
     >
       <AgentHtmlBlockHandle
@@ -129,6 +107,7 @@ export function AgentHtmlBlockWrapper({
         listeners={listeners}
         onInputTrigger={handleInputTrigger}
         path={path}
+        visible={isHovered}
       />
       {children}
     </div>

@@ -1,4 +1,6 @@
 import * as React from "react"
+import { readFileSync } from "node:fs"
+import { fileURLToPath } from "node:url"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
@@ -6,6 +8,11 @@ import {
   AgentHtmlBlockRuntimeProvider,
   AgentHtmlBlockWrapper,
 } from "@/agent-html/runtime/block"
+
+const blockHandleSource = readFileSync(
+  fileURLToPath(new URL("./block-handle.tsx", import.meta.url)),
+  "utf8"
+)
 
 describe("AgentHtmlBlockWrapper", () => {
   it("renders block metadata and a Notion-like handle", () => {
@@ -36,5 +43,9 @@ describe("AgentHtmlBlockWrapper", () => {
     expect(html).not.toContain("Moving block")
     expect(html).not.toContain("overlayRect")
     expect(html).not.toContain("rect")
+  })
+
+  it("does not bind handle visibility to browser css hover", () => {
+    expect(blockHandleSource).not.toContain("group-hover/agent-html-block")
   })
 })

@@ -12,9 +12,15 @@ export default defineConfig({
   },
   plugins: [react(), tailwindcss()],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "../../src"),
-      "@example": path.resolve(__dirname, "src"),
-    },
+    alias: [
+      {
+        find: "@/agent-html",
+        replacement: path.resolve(__dirname, "../../packages/agent-html/src"),
+      },
+      {
+        find: "@example",
+        replacement: path.resolve(__dirname, "src"),
+      },
+    ],
   },
 })

@@ -25,7 +25,7 @@ these surfaces. Cloud deployment rules for the example website are defined in
 
 ## Module Ownership
 
-### `src/agent-html`
+### `packages/agent-html/src`
 
 Owns the Agent-HTML DSL core and runtime system:
 
@@ -37,7 +37,7 @@ Owns the Agent-HTML DSL core and runtime system:
 - runtime UI used by rendered DSL output
 - runtime theme helpers
 - fixtures and DSL-focused tests
-- public exports from `src/agent-html/index.ts`
+- public exports from `packages/agent-html/src/index.ts`
 
 This module is the stable boundary for Agent-HTML consumers. External surfaces
 should use the public exports instead of reaching into internal parser,
@@ -54,7 +54,7 @@ Owns the standalone runtime demo website:
 - example-only public assets
 - example-only CSS entry
 
-It may consume `src/agent-html` public APIs. It must not become the owner of DSL
+It may consume `packages/agent-html` public APIs. It must not become the owner of DSL
 schema, parser, validator, or runtime rules.
 
 ### `apps/agent-html-app/src/gallery`
@@ -127,14 +127,14 @@ source string
 
 Rules:
 
-- `src/agent-html` must not depend on `apps/agent-html-example` or `apps/agent-html-app/src/gallery`.
-- `apps/agent-html-example` may depend on `src/agent-html` public APIs.
+- `packages/agent-html/src` must not depend on `apps/agent-html-example` or `apps/agent-html-app/src/gallery`.
+- `apps/agent-html-example` may depend on `packages/agent-html` public APIs.
 - `apps/agent-html-example` must not import `apps/agent-html-app/src` or app CSS.
 - Gallery may depend on shared components, but shared components should not
   depend on Gallery content.
 - App orchestration may compose feature domains, but feature domains should not
   depend on app-local state.
-- Runtime UI under `src/agent-html/runtime/ui` belongs to rendered DSL output and
+- Runtime UI under `packages/agent-html/src/runtime/ui` belongs to rendered DSL output and
   should not be treated as the general app primitive layer.
 
 ## Structural Change Rules
@@ -142,7 +142,7 @@ Rules:
 Before making structural changes, classify the change by owner:
 
 - DSL semantics, schema, parsing, validation, or rendering belong in
-  `src/agent-html`.
+  `packages/agent-html/src`.
 - Demo-only source comparison or showcase behavior belongs in
   `apps/agent-html-example`.
 - Gallery scene or editor behavior belongs in `apps/agent-html-app/src/gallery`.

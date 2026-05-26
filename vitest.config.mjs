@@ -5,7 +5,9 @@ import { defineConfig } from "vitest/config"
 export default defineConfig({
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@/agent-html": fileURLToPath(
+        new URL("./packages/agent-html/src", import.meta.url)
+      ),
       "@example": fileURLToPath(
         new URL("./apps/agent-html-example/src", import.meta.url)
       ),
@@ -14,8 +16,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: [
-      "src/agent-html/**/*.test.ts",
-      "src/agent-html/**/*.test.tsx",
+      "packages/agent-html/src/**/*.test.ts",
+      "packages/agent-html/src/**/*.test.tsx",
       "apps/agent-html-example/src/**/*.test.ts",
       "apps/agent-html-example/src/**/*.test.tsx",
     ],

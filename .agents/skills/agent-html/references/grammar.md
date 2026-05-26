@@ -1,4 +1,4 @@
-<!-- AUTO-GENERATED FROM src/agent-html/schema/prompt.md -->
+<!-- AUTO-GENERATED FROM packages/agent-html/src/schema/prompt.md -->
 # Agent-HTML Grammar
 
 # Gallery Preview DSL

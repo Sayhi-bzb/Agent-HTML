@@ -26,14 +26,15 @@
     "baseUrl": ".",
     "paths": {
       "@/app/*": ["./apps/agent-html-app/src/*"],
-      "@/*": ["./src/*"]
+      "@/agent-html": ["./packages/agent-html/src/index.ts"],
+      "@/agent-html/*": ["./packages/agent-html/src/*"]
     }
   },
-  "include": ["apps/agent-html-app/src", "src/agent-html"],
+  "include": ["apps/agent-html-app/src", "packages/agent-html/src"],
   "exclude": [
     "apps/agent-html-app/src/**/*.test.ts",
     "apps/agent-html-app/src/**/*.test.tsx",
-    "src/**/*.test.ts",
-    "src/**/*.test.tsx"
+    "packages/**/*.test.ts",
+    "packages/**/*.test.tsx"
   ]
 }

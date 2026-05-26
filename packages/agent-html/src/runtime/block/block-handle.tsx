@@ -7,7 +7,8 @@ const agentHtmlBlockHandleButtonClassName = cn(
   "grid size-6 place-items-center",
   "text-foreground/40 opacity-0 transition-opacity duration-150",
   "hover:text-foreground/70",
-  "group-hover/agent-html-block:opacity-100 group-focus-within/agent-html-block:opacity-100"
+  "data-visible:opacity-100",
+  "group-focus-within/agent-html-block:opacity-100"
 )
 
 export function AgentHtmlBlockHandle({
@@ -15,17 +16,20 @@ export function AgentHtmlBlockHandle({
   listeners,
   onInputTrigger,
   path,
+  visible,
 }: {
   attributes: DraggableAttributes
   listeners: ReturnType<typeof useDraggable>["listeners"]
   onInputTrigger?: (element: HTMLButtonElement) => void
   path: string
+  visible?: boolean
 }) {
   return (
     <div className="absolute top-1/2 -left-6 z-10 grid -translate-y-10 grid-rows-[1.5rem_1.5rem] gap-1">
       <button
         aria-label="Open block input"
         className={cn(agentHtmlBlockHandleButtonClassName, "cursor-pointer")}
+        data-visible={visible ? "" : undefined}
         data-agent-html-block-input-trigger="true"
         data-agent-html-block-input-trigger-path={path}
         onClick={(event) => {
@@ -46,6 +50,7 @@ export function AgentHtmlBlockHandle({
           agentHtmlBlockHandleButtonClassName,
           "cursor-grab active:cursor-grabbing"
         )}
+        data-visible={visible ? "" : undefined}
         data-agent-html-block-handle="true"
         data-agent-html-block-handle-path={path}
         type="button"

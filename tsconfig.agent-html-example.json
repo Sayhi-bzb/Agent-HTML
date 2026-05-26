@@ -21,15 +21,16 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
+      "@/agent-html": ["./packages/agent-html/src/index.ts"],
+      "@/agent-html/*": ["./packages/agent-html/src/*"],
       "@example/*": ["./apps/agent-html-example/src/*"]
     }
   },
-  "include": ["apps/agent-html-example/src", "src/agent-html"],
+  "include": ["apps/agent-html-example/src", "packages/agent-html/src"],
   "exclude": [
     "apps/agent-html-example/src/**/*.test.ts",
     "apps/agent-html-example/src/**/*.test.tsx",
-    "src/**/*.test.ts",
-    "src/**/*.test.tsx"
+    "packages/**/*.test.ts",
+    "packages/**/*.test.tsx"
   ]
 }

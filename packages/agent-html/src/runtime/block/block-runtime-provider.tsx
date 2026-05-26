@@ -177,6 +177,8 @@ export function AgentHtmlBlockRuntimeProvider({
   const pendingLayoutFrameRef = React.useRef<number | null>(null)
   const previewsRef = React.useRef(new Map<string, React.ReactNode>())
   const unitsRef = React.useRef(new Map<string, AgentHtmlInteractionUnit>())
+  const lastHoverClientPointerRef =
+    React.useRef<AgentHtmlClientPointer | null>(null)
   const initialClientPointerRef =
     React.useRef<AgentHtmlClientPointer | null>(null)
   const blockInputPopoverRef = React.useRef<HTMLDivElement | null>(null)
@@ -358,6 +360,59 @@ export function AgentHtmlBlockRuntimeProvider({
       }
 
       setIndicator(intent)
+    },
+    []
+  )
+
+  const updateHoveredBlockFromPointer = React.useCallback(
+    (event: Pick<PointerEvent, "clientX" | "clientY" | "isTrusted">) => {
+      if (activePathRef.current) {
+        return
+      }
+
+      const pointer = {
+        x: event.clientX,
+        y: event.clientY,
+      }
+      const previousPointer = lastHoverClientPointerRef.current
+
+      if (
+        previousPointer &&
+        previousPointer.x === pointer.x &&
+        previousPointer.y === pointer.y
+      ) {
+        return
+      }
+
+      lastHoverClientPointerRef.current = pointer
+
+      if (!event.isTrusted) {
+        return
+      }
+
+      const target = document.elementFromPoint(event.clientX, event.clientY)
+      const blockElement = target?.closest?.("[data-agent-html-block='true']")
+
+      if (!(blockElement instanceof HTMLElement)) {
+        setHoveredBlock(null)
+        return
+      }
+
+      const path = blockElement.dataset.agentHtmlBlockPath
+      const unit = path ? unitsRef.current.get(path) : null
+
+      if (!path || !unit) {
+        setHoveredBlock(null)
+        return
+      }
+
+      setHoveredBlock((current) => {
+        if (current?.motionKey === unit.motionKey && current.path === path) {
+          return current
+        }
+
+        return { motionKey: unit.motionKey, path }
+      })
     },
     []
   )
@@ -618,6 +673,18 @@ export function AgentHtmlBlockRuntimeProvider({
   }, [runLandingTransition])
 
   React.useEffect(() => {
+    window.addEventListener("pointermove", updateHoveredBlockFromPointer, {
+      capture: true,
+    })
+
+    return () => {
+      window.removeEventListener("pointermove", updateHoveredBlockFromPointer, {
+        capture: true,
+      })
+    }
+  }, [updateHoveredBlockFromPointer])
+
+  React.useEffect(() => {
     if (!activeBlock) {
       return
     }
@@ -767,10 +834,7 @@ export function AgentHtmlBlockRuntimeProvider({
         ? (findPathByMotionKey(unitsRef.current, activeBlock.motionKey) ??
           activeBlock.path)
         : null
-      const hoveredPath = hoveredBlock
-        ? (findPathByMotionKey(unitsRef.current, hoveredBlock.motionKey) ??
-          hoveredBlock.path)
-        : null
+      const hoveredPath = hoveredBlock?.path ?? null
 
       return {
         activeMotionKey: activeBlock?.motionKey ?? null,
