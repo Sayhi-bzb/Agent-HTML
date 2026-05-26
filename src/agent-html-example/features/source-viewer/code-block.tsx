@@ -3,7 +3,6 @@ import * as React from "react"
 import { type BundledLanguage, codeToHtml, type ShikiTransformer } from "shiki"
 
 import type { SourceTabValue } from "@/agent-html-example/features/source-viewer/types"
-import { cn } from "@/agent-html-example/lib/utils"
 import { Button } from "@/agent-html-example/ui/button"
 
 const lineNumberTransformer: ShikiTransformer = {
@@ -45,11 +44,9 @@ async function highlightCode(code: string, language: BundledLanguage) {
 }
 
 export const CodeBlock = React.memo(function CodeBlock({
-  className,
   language,
   source,
 }: {
-  className?: string
   language: SourceTabValue
   source: string
 }) {
@@ -89,26 +86,13 @@ export const CodeBlock = React.memo(function CodeBlock({
   const CopyStateIcon = isCopied ? CheckIcon : CopyIcon
 
   return (
-    <div
-      className={cn(
-        "group relative min-w-max overflow-hidden bg-background text-foreground",
-        className
-      )}
-    >
+    <div className="group relative min-w-max overflow-hidden bg-background text-foreground">
       <div
-        className={cn(
-          "overflow-auto dark:hidden",
-          "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
-          "[&_code]:font-mono [&_code]:text-sm"
-        )}
+        className="overflow-auto dark:hidden [&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm [&_code]:font-mono [&_code]:text-sm"
         dangerouslySetInnerHTML={{ __html: html }}
       />
       <div
-        className={cn(
-          "hidden overflow-auto dark:block",
-          "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
-          "[&_code]:font-mono [&_code]:text-sm"
-        )}
+        className="hidden overflow-auto dark:block [&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm [&_code]:font-mono [&_code]:text-sm"
         dangerouslySetInnerHTML={{ __html: darkHtml }}
       />
       <Button

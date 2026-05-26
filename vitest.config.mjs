@@ -10,6 +10,11 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/agent-html/**/*.test.ts", "src/agent-html/**/*.test.tsx"],
+    include: [
+      "src/agent-html/**/*.test.ts",
+      "src/agent-html/**/*.test.tsx",
+      "src/agent-html-example/**/*.test.ts",
+      "src/agent-html-example/**/*.test.tsx",
+    ],
   },
 })

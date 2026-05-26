@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import type { SourceMetrics } from "@/agent-html"
-import type { BlockCodeSnippet } from "@/agent-html-example/features/runtime-preview/block-code-inspector"
 import type { ExampleThemeId } from "@/agent-html-example/theme/theme-presets"
 import { RenderPanel } from "@/agent-html-example/features/runtime-preview/render-panel"
 import { RuntimeHeader } from "@/agent-html-example/features/runtime-preview/runtime-header"
@@ -14,24 +13,20 @@ import { Dialog, Tabs } from "@/agent-html-example/ui"
 
 export function RuntimeShell({
   ahtmlMetrics,
-  activeBlockCode,
   children,
   ahtmlSource,
   htmlMetrics,
   htmlSource,
-  onInspectorHoverChange,
   onThemeChange,
   reactMetrics,
   reactSource,
   theme,
 }: {
   ahtmlMetrics: SourceMetrics
-  activeBlockCode?: BlockCodeSnippet | null
   children: React.ReactNode
   ahtmlSource: string
   htmlMetrics: SourceMetrics
   htmlSource: string
-  onInspectorHoverChange?: (hovering: boolean) => void
   onThemeChange: (theme: ExampleThemeId) => void
   reactMetrics: SourceMetrics
   reactSource: string
@@ -74,12 +69,7 @@ export function RuntimeShell({
           theme={theme}
         />
         <main className="mt-3 min-h-0 w-full min-w-0 flex-1">
-          <RenderPanel
-            activeBlockCode={activeBlockCode}
-            onInspectorHoverChange={onInspectorHoverChange}
-          >
-            {children}
-          </RenderPanel>
+          <RenderPanel>{children}</RenderPanel>
         </main>
         <SourceDialog
           ahtmlMetrics={ahtmlMetrics}

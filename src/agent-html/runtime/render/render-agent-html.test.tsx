@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { readFileSync } from "node:fs"
+import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it, vi } from "vitest"
 
@@ -52,11 +53,19 @@ describe("renderAgentHtml", () => {
       renderAgentHtml(document, {
         highlightBlocks: true,
         interactionUnits,
-        onBlockHover: vi.fn(),
+        renderBlockWrapper: ({ children, className, key, path }) => (
+          <div
+            className={className}
+            data-test-block-path={path}
+            key={key}
+          >
+            {children}
+          </div>
+        ),
       })
     )
 
-    expect(html).toContain("data-agent-html-block-path")
+    expect(html).toContain("data-test-block-path")
   })
 
   it("renders the icon basic fixture", () => {

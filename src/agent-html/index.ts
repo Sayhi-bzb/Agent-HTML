@@ -6,10 +6,14 @@ export type {
   AgentHtmlTextNode,
 } from "@/agent-html/ast/types"
 export {
-  getAgentHtmlElementByPath,
   walkAgentHtmlElementPaths,
 } from "@/agent-html/ast/paths"
-export { serializeAgentHtmlNode } from "@/agent-html/ast/serialize"
+export { serializeAgentHtml } from "@/agent-html/ast/serialize-agent-html"
+export { applyAgentHtmlDropIntent } from "@/agent-html/edit/apply-drop-intent"
+export type {
+  AgentHtmlDropIntent,
+  ApplyAgentHtmlDropIntentInput,
+} from "@/agent-html/edit/types"
 export { formatHtmlSource } from "@/agent-html/runtime/format-html-source"
 export { inferAgentHtmlInteractionUnits } from "@/agent-html/interaction/infer-interaction-units"
 export type {
@@ -25,6 +29,16 @@ export {
   AgentHtmlRuntimeTheme,
   type AgentHtmlColorCssVariables,
 } from "@/agent-html/runtime/runtime-theme"
+export {
+  AgentHtmlBlockHandle,
+  AgentHtmlBlockIndicator,
+  AgentHtmlBlockRuntimeProvider,
+  AgentHtmlBlockWrapper,
+  agentHtmlBlockWrapperClassName,
+  useAgentHtmlBlockRuntime,
+  type AgentHtmlBlockDropIndicator,
+  type AgentHtmlBlockRuntimeState,
+} from "@/agent-html/runtime/block"
 export {
   getSourceMetrics,
   type SourceMetrics,

@@ -11,7 +11,10 @@ import type {
 } from "@/agent-html/ast/types"
 import { agentHtmlChildPath } from "@/agent-html/ast/paths"
 import type { AgentHtmlInteractionUnits } from "@/agent-html/interaction/types"
-import { cn } from "@/agent-html/lib/utils"
+import {
+  AgentHtmlBlockWrapper,
+  agentHtmlBlockWrapperClassName,
+} from "@/agent-html/runtime/block"
 import { ChartRuntime } from "@/agent-html/runtime/render/chart-runtime"
 import { IconRuntime } from "@/agent-html/runtime/render/icon-runtime"
 import {
@@ -26,13 +29,18 @@ import { previewComponentRuntime } from "@/agent-html/runtime/render/component-r
 export type RenderAgentHtmlOptions = {
   highlightBlocks?: boolean
   interactionUnits?: AgentHtmlInteractionUnits
-  onBlockHover?: (path: string | null) => void
+  renderBlockWrapper?: (props: {
+    children: ReactNode
+    className: string
+    key: string
+    path: string
+  }) => ReactNode
 }
 
 type RenderContext = {
   blockPaths: ReadonlySet<string>
   highlightBlocks: boolean
-  onBlockHover?: (path: string | null) => void
+  renderBlockWrapper?: RenderAgentHtmlOptions["renderBlockWrapper"]
 }
 
 function renderNode(
@@ -91,18 +99,23 @@ function highlightBlock(
     return rendered
   }
 
+  const className = agentHtmlBlockWrapperClassName
+
+  if (context.renderBlockWrapper) {
+    return context.renderBlockWrapper({
+      children: rendered,
+      className,
+      key,
+      path,
+    })
+  }
+
   return (
     <div
-      className={cn(
-        "rounded-[18px] bg-[color-mix(in_oklab,var(--primary)_0%,transparent)] outline outline-1 outline-offset-4 outline-[color-mix(in_oklab,var(--primary)_0%,transparent)] transition-[background-color,outline-color] duration-200 ease-out hover:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)] hover:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)] focus-within:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)] focus-within:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)]"
-      )}
+      className={className}
       data-agent-html-block="true"
       data-agent-html-block-path={path}
       key={key}
-      onBlur={() => context.onBlockHover?.(null)}
-      onFocus={() => context.onBlockHover?.(path)}
-      onMouseEnter={() => context.onBlockHover?.(path)}
-      onMouseLeave={() => context.onBlockHover?.(null)}
     >
       {rendered}
     </div>
@@ -209,7 +222,7 @@ export function renderAgentHtml(
       options.interactionUnits?.blocks.map((unit) => unit.path) ?? []
     ),
     highlightBlocks: options.highlightBlocks === true,
-    onBlockHover: options.onBlockHover,
+    renderBlockWrapper: options.renderBlockWrapper,
   }
 
   return renderElement(document.root, "root", `/${document.root.tag}`, context)
