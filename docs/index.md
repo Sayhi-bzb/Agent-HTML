@@ -6,10 +6,11 @@ This directory contains project documentation grouped by ownership boundary.
 
 - [Product blueprint](./blueprint/index.md): product purpose, north star, principles, and product boundary.
 
-## Engineering
+## Development
 
-- [Architecture](./architecture/README.md): module ownership, dependency direction, and structural change rules.
-- [Runtime interactions](./architecture/runtime-interactions.md): runtime gesture, hit-testing, and scroll-aware interaction rules.
+- [Architecture](./development/architecture.md): module ownership, dependency direction, and structural change rules.
+- [Deployment](./development/deployment.md): example website build and Cloudflare Pages deployment rules.
+- [Runtime interactions](./development/runtime-interactions.md): runtime gesture, hit-testing, and scroll-aware interaction rules.
 
 ## Design
 

@@ -1,0 +1,10 @@
+{
+  "name": "@agent-html/example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p ../../tsconfig.agent-html-example.json && vite build",
+    "verify": "node ../../tools/verify-example-build.mjs"
+  }
+}

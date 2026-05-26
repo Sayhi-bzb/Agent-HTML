@@ -12,4 +12,4 @@ It currently owns:
 - public exports from `src/agent-html/index.ts`
 
 It does not own the standalone example app surface. Keep demo panels, source comparison,
-and deployable example cases in `src/agent-html-example`.
+and deployable example cases in `apps/agent-html-example`.

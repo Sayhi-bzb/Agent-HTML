@@ -31,8 +31,17 @@ describe("agent-html boundaries", () => {
   it("keeps the standalone example on public agent-html imports", () => {
     const forbidden =
       /@\/agent-html\/(parse|validate|runtime|fixtures|examples|ui)\b|@\/components\/ui\b/
-    const offenders = sourceFilesUnder("src/agent-html-example").filter((file) =>
-      forbidden.test(readFileSync(join(root, file), "utf8"))
+    const offenders = sourceFilesUnder("apps/agent-html-example/src").filter(
+      (file) => forbidden.test(readFileSync(join(root, file), "utf8"))
+    )
+
+    expect(offenders).toEqual([])
+  })
+
+  it("keeps the standalone example off the app frontend", () => {
+    const forbidden = /@\/app\b|@\/app\/|src\/app|app\/index\.css/
+    const offenders = sourceFilesUnder("apps/agent-html-example/src").filter(
+      (file) => forbidden.test(readFileSync(join(root, file), "utf8"))
     )
 
     expect(offenders).toEqual([])
