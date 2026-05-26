@@ -13,15 +13,22 @@ import {
   exampleThemeOptions,
   type ExampleThemeId,
 } from "@/agent-html-example/theme/theme-presets"
-import { SquareCodeIcon } from "lucide-react"
+import type { AgentHtmlExampleLocale } from "@/agent-html-example/cases"
+import { Languages, SquareCodeIcon } from "lucide-react"
 
 export function RuntimeHeader({
+  locale,
+  onLocaleChange,
   onThemeChange,
   theme,
 }: {
+  locale: AgentHtmlExampleLocale
+  onLocaleChange: (locale: AgentHtmlExampleLocale) => void
   onThemeChange: (theme: ExampleThemeId) => void
   theme: ExampleThemeId
 }) {
+  const nextLocale = locale === "zh" ? "en" : "zh"
+
   return (
     <header className="flex items-center justify-between gap-3 border-b border-border/70 px-1 pb-2">
       <div className="min-w-0 flex-1">
@@ -61,6 +68,20 @@ export function RuntimeHeader({
         </h1>
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon-sm"
+          aria-label={
+            nextLocale === "zh"
+              ? "Switch to Chinese"
+              : "Switch to English"
+          }
+          onClick={() => {
+            onLocaleChange(nextLocale)
+          }}
+        >
+          <Languages />
+        </Button>
         <Select onValueChange={onThemeChange} value={theme}>
           <SelectTrigger aria-label="Theme" className="w-32" size="sm">
             <SelectValue placeholder="Theme" />

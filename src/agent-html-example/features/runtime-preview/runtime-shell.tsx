@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import type { SourceMetrics } from "@/agent-html"
+import type { AgentHtmlExampleLocale } from "@/agent-html-example/cases"
 import type { ExampleThemeId } from "@/agent-html-example/theme/theme-presets"
 import { RenderPanel } from "@/agent-html-example/features/runtime-preview/render-panel"
 import { RuntimeHeader } from "@/agent-html-example/features/runtime-preview/runtime-header"
@@ -18,6 +19,8 @@ export function RuntimeShell({
   blockSummaries,
   htmlMetrics,
   htmlSource,
+  locale,
+  onLocaleChange,
   onThemeChange,
   reactMetrics,
   reactSource,
@@ -29,6 +32,8 @@ export function RuntimeShell({
   blockSummaries: Record<string, string>
   htmlMetrics?: SourceMetrics
   htmlSource?: string
+  locale: AgentHtmlExampleLocale
+  onLocaleChange: (locale: AgentHtmlExampleLocale) => void
   onThemeChange: (theme: ExampleThemeId) => void
   reactMetrics: SourceMetrics
   reactSource: string
@@ -67,6 +72,8 @@ export function RuntimeShell({
         value={activeSourceTab}
       >
         <RuntimeHeader
+          locale={locale}
+          onLocaleChange={onLocaleChange}
           onThemeChange={onThemeChange}
           theme={theme}
         />

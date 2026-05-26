@@ -16,13 +16,15 @@ import {
   validateAgentHtml,
   type AgentHtmlDropIntent,
 } from "@/agent-html"
-import { agentHtmlExampleCases } from "@/agent-html-example/cases"
+import {
+  agentHtmlExampleCases,
+  type AgentHtmlExampleCase,
+  type AgentHtmlExampleLocale,
+} from "@/agent-html-example/cases"
 import type { ExampleThemeId } from "@/agent-html-example/theme/theme-presets"
 import { createAgentHtmlBlockSummaryMap } from "@/agent-html-example/features/runtime-preview/block-summary"
 import { RuntimeShell } from "@/agent-html-example/features/runtime-preview/runtime-shell"
 import { ValidationErrors } from "@/agent-html-example/features/runtime-preview/validation-errors"
-
-const activeCase = agentHtmlExampleCases[0]
 
 type AgentHtmlValidationResult = {
   errors: AgentHtmlValidationError[]
@@ -47,17 +49,21 @@ function createRuntimeDocumentState(source: string): RuntimeDocumentState {
   }
 }
 
-const initialRuntimeState = createRuntimeDocumentState(activeCase.ahtmlSource)
-
 export function AgentHtmlRuntimePage({
+  activeCase = agentHtmlExampleCases[0],
+  locale,
+  onLocaleChange,
   onThemeChange,
   theme,
 }: {
+  activeCase?: AgentHtmlExampleCase
+  locale: AgentHtmlExampleLocale
+  onLocaleChange: (locale: AgentHtmlExampleLocale) => void
   onThemeChange: (theme: ExampleThemeId) => void
   theme: ExampleThemeId
 }) {
   const [runtimeState, setRuntimeState] = React.useState(() =>
-    initialRuntimeState
+    createRuntimeDocumentState(activeCase.ahtmlSource)
   )
   const [debugRuntime, setDebugRuntime] = React.useState<{
     blockSummaries: Record<string, string>
@@ -65,9 +71,9 @@ export function AgentHtmlRuntimePage({
     version: number
   }>(() => {
     return {
-      blockSummaries: createAgentHtmlBlockSummaryMap(initialRuntimeState.document),
+      blockSummaries: createAgentHtmlBlockSummaryMap(runtimeState.document),
       htmlSource: "",
-      version: initialRuntimeState.version,
+      version: runtimeState.version,
     }
   })
   const deferredHtmlDocument = React.useDeferredValue(
@@ -99,6 +105,17 @@ export function AgentHtmlRuntimePage({
   const htmlMetrics = React.useMemo(() => {
     return runtime.htmlSource ? getSourceMetrics(runtime.htmlSource) : undefined
   }, [runtime.htmlSource])
+
+  React.useEffect(() => {
+    const nextRuntimeState = createRuntimeDocumentState(activeCase.ahtmlSource)
+
+    setRuntimeState(nextRuntimeState)
+    setDebugRuntime({
+      blockSummaries: createAgentHtmlBlockSummaryMap(nextRuntimeState.document),
+      htmlSource: "",
+      version: nextRuntimeState.version,
+    })
+  }, [activeCase.ahtmlSource])
 
   React.useEffect(() => {
     if (!deferredHtmlDocument) {
@@ -178,6 +195,8 @@ export function AgentHtmlRuntimePage({
         blockSummaries={runtime.blockSummaries}
         htmlMetrics={htmlMetrics}
         htmlSource={runtime.htmlSource}
+        locale={locale}
+        onLocaleChange={onLocaleChange}
         reactMetrics={runtime.reactMetrics}
         reactSource={activeCase.reactSource}
         onThemeChange={onThemeChange}

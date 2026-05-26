@@ -17,6 +17,10 @@ export default defineConfig({
             return
           }
 
+          if (request.url === "/agent-html/zh") {
+            request.url = "/agent-html/"
+          }
+
           next()
         })
       },
