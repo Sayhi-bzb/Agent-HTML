@@ -44,7 +44,7 @@ export function AgentHtmlBlockIndicator() {
   return (
     <div
       className={cn(
-        "pointer-events-none absolute z-30 rounded-full bg-primary shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent),0_8px_20px_-12px_var(--primary)]",
+        "pointer-events-none absolute z-30 rounded-full bg-[color-mix(in_oklab,var(--primary)_28%,transparent)] shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_28%,transparent)]",
         isColumn ? "w-0.5 -translate-x-1/2" : "h-0.5 -translate-y-1/2"
       )}
       data-agent-html-block-indicator={indicator.type}

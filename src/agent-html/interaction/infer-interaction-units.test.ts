@@ -223,4 +223,38 @@ describe("inferAgentHtmlInteractionUnits", () => {
       "Stack",
     ])
   })
+
+  it("keeps motion keys stable when the same block moves", () => {
+    const before = inferAgentHtmlInteractionUnits(
+      parseAgentHtml(`<Page title="Motion">
+  <Stack>
+    <Text>A</Text>
+    <Text>B</Text>
+    <Stack>
+      <Text>C</Text>
+    </Stack>
+  </Stack>
+</Page>`)
+    )
+    const after = inferAgentHtmlInteractionUnits(
+      parseAgentHtml(`<Page title="Motion">
+  <Stack>
+    <Text>B</Text>
+    <Text>A</Text>
+    <Stack>
+      <Text>C</Text>
+    </Stack>
+  </Stack>
+</Page>`)
+    )
+    const beforeA = before.blocks.find(
+      (unit) => unit.tag === "Text" && unit.path.endsWith("/Text[0]")
+    )
+    const afterA = after.blocks.find(
+      (unit) => unit.tag === "Text" && unit.path.endsWith("/Text[1]")
+    )
+
+    expect(beforeA?.motionKey).toBeDefined()
+    expect(afterA?.motionKey).toBe(beforeA?.motionKey)
+  })
 })

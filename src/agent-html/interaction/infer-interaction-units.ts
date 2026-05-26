@@ -27,6 +27,36 @@ type IndexedElement = {
   path: string
 }
 
+function stableStringHash(value: string) {
+  let hash = 5381
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 33) ^ value.charCodeAt(index)
+  }
+
+  return (hash >>> 0).toString(36)
+}
+
+function nodeMotionSignature(node: AgentHtmlElementNode): string {
+  const attrs = Object.entries(node.attrs)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}=${value}`)
+    .join(";")
+  const children = node.children
+    .map((child) =>
+      child.type === "text"
+        ? `#text:${child.value.replace(/\s+/g, " ").trim()}`
+        : nodeMotionSignature(child)
+    )
+    .join("|")
+
+  return `${node.tag}[${attrs}](${children})`
+}
+
+function getMotionKey(node: AgentHtmlElementNode) {
+  return `${node.tag}:${stableStringHash(nodeMotionSignature(node))}`
+}
+
 function isFlowLayout(node: AgentHtmlElementNode) {
   return agentHtmlFlowLayoutTags.has(node.tag)
 }
@@ -94,6 +124,7 @@ function toInteractionUnit(
 ): AgentHtmlInteractionUnit {
   return {
     kind,
+    motionKey: getMotionKey(indexed.node),
     parentPath: indexed.parentPath,
     parentTag: indexed.parentTag,
     path: indexed.path,

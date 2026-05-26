@@ -14,8 +14,8 @@ export function SourceDialog({
 }: {
   ahtmlMetrics: SourceMetrics
   ahtmlSource: string
-  htmlMetrics: SourceMetrics
-  htmlSource: string
+  htmlMetrics?: SourceMetrics
+  htmlSource?: string
   reactMetrics: SourceMetrics
   reactSource: string
   visitedTabs: ReadonlySet<SourceTabValue>

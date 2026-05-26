@@ -16,8 +16,8 @@ export const SourcePanel = React.memo(function SourcePanel({
 }: {
   ahtmlMetrics: SourceMetrics
   ahtmlSource: string
-  htmlMetrics: SourceMetrics
-  htmlSource: string
+  htmlMetrics?: SourceMetrics
+  htmlSource?: string
   reactMetrics: SourceMetrics
   reactSource: string
   visitedTabs: ReadonlySet<SourceTabValue>
@@ -32,7 +32,7 @@ export const SourcePanel = React.memo(function SourcePanel({
         </TabsList>
         <div className="flex flex-wrap items-center gap-2 text-[length:var(--type-xs)] leading-[calc(var(--type-base-line-height)*0.9)] text-muted-foreground">
           <span>ahtml ~{ahtmlMetrics.approxTokens}</span>
-          <span>html ~{htmlMetrics.approxTokens}</span>
+          <span>html ~{htmlMetrics?.approxTokens ?? "..."}</span>
           <span>react ~{reactMetrics.approxTokens}</span>
         </div>
       </div>
@@ -57,7 +57,13 @@ export const SourcePanel = React.memo(function SourcePanel({
         <ScrollArea className="h-full w-full">
           <div className="min-w-max">
             {visitedTabs.has("html") ? (
-              <CodeBlock language="html" source={htmlSource} />
+              htmlSource ? (
+                <CodeBlock language="html" source={htmlSource} />
+              ) : (
+                <div className="p-4 font-mono text-xs text-muted-foreground">
+                  Preparing HTML source...
+                </div>
+              )
             ) : null}
           </div>
         </ScrollArea>

@@ -103,12 +103,10 @@ function highlightBlock(
     return rendered
   }
 
-  const className = agentHtmlBlockWrapperClassName
-
   if (context.renderBlockWrapper) {
     return context.renderBlockWrapper({
       children: rendered,
-      className,
+      className: "",
       key,
       path,
       unit,
@@ -117,7 +115,7 @@ function highlightBlock(
 
   return (
     <div
-      className={className}
+      className={agentHtmlBlockWrapperClassName}
       data-agent-html-block="true"
       data-agent-html-block-path={path}
       key={key}

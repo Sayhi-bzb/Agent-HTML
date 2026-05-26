@@ -49,25 +49,31 @@ describe("renderAgentHtml", () => {
   it("renders hover-capable block wrappers when a callback is provided", () => {
     const document = parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
     const interactionUnits = inferAgentHtmlInteractionUnits(document)
+    const wrapperClassNames: string[] = []
     const html = renderToStaticMarkup(
       renderAgentHtml(document, {
         highlightBlocks: true,
         interactionUnits,
-        renderBlockWrapper: ({ children, className, key, path, unit }) => (
-          <div
-            className={className}
-            data-test-block-role={unit.role}
-            data-test-block-path={path}
-            key={key}
-          >
-            {children}
-          </div>
-        ),
+        renderBlockWrapper: ({ children, className, key, path, unit }) => {
+          wrapperClassNames.push(className)
+
+          return (
+            <div
+              className={className}
+              data-test-block-role={unit.role}
+              data-test-block-path={path}
+              key={key}
+            >
+              {children}
+            </div>
+          )
+        },
       })
     )
 
     expect(html).toContain("data-test-block-path")
     expect(html).toContain("data-test-block-role")
+    expect(wrapperClassNames.every((className) => className === "")).toBe(true)
   })
 
   it("renders the icon basic fixture", () => {
@@ -133,6 +139,7 @@ describe("renderAgentHtml", () => {
 
     const html = renderToStaticMarkup(renderAgentHtml(document))
     expect(html).toContain("data-slot=\"code-block\"")
+    expect(html).toContain("data-slot=\"intrinsic-scroll-frame\"")
     expect(html).toContain("data-slot=\"code-block-copy\"")
     expect(html).toContain("Example.tsx")
     expect(html).toContain("return")
@@ -176,6 +183,7 @@ describe("renderAgentHtml", () => {
     expect(validation.ok).toBe(true)
 
     const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("data-slot=\"intrinsic-scroll-frame\"")
     expect(html).toContain("data-slot=\"kanban\"")
     expect(html).toContain("data-slot=\"kanban-column\"")
     expect(html).toContain("data-slot=\"kanban-item\"")
@@ -194,6 +202,7 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("data-slot=\"tabs\"")
     expect(html).toContain("data-slot=\"accordion\"")
     expect(html).toContain("data-slot=\"table\"")
+    expect(html).toContain("data-slot=\"table-container\"")
   })
 
   it("renders the complex dashboard fixture", () => {

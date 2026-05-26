@@ -27,8 +27,8 @@ export function RuntimeShell({
   children: React.ReactNode
   ahtmlSource: string
   blockSummaries: Record<string, string>
-  htmlMetrics: SourceMetrics
-  htmlSource: string
+  htmlMetrics?: SourceMetrics
+  htmlSource?: string
   onThemeChange: (theme: ExampleThemeId) => void
   reactMetrics: SourceMetrics
   reactSource: string

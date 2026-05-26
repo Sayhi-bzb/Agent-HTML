@@ -4,7 +4,7 @@ import type { BundledLanguage, ShikiTransformer } from "shiki"
 
 import { cn } from "@/agent-html/lib/utils"
 import { buttonVariants } from "@/agent-html/runtime/ui/button"
-import { ScrollArea } from "@/agent-html/runtime/ui/scroll-area"
+import { IntrinsicScrollFrame } from "@/agent-html/runtime/ui/intrinsic-scroll-frame"
 
 const lineNumberTransformer: ShikiTransformer = {
   name: "line-numbers",
@@ -53,7 +53,7 @@ async function highlightCode(code: string, language: BundledLanguage) {
 
 function CodeBlockFallback({ code }: { code: string }) {
   return (
-    <ScrollArea className="w-full">
+    <IntrinsicScrollFrame>
       <pre className="m-0 min-w-max bg-background p-4 font-mono text-sm text-foreground">
         <code className="grid">
           {code.split("\n").map((line, index) => (
@@ -66,7 +66,7 @@ function CodeBlockFallback({ code }: { code: string }) {
           ))}
         </code>
       </pre>
-    </ScrollArea>
+    </IntrinsicScrollFrame>
   )
 }
 
@@ -159,7 +159,7 @@ function CodeBlock({
       </figcaption>
       {hasHighlightedCode ? (
         <>
-          <ScrollArea className="w-full dark:hidden">
+          <IntrinsicScrollFrame className="dark:hidden">
             <div
               className={cn(
                 "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
@@ -167,8 +167,8 @@ function CodeBlock({
               )}
               dangerouslySetInnerHTML={{ __html: html }}
             />
-          </ScrollArea>
-          <ScrollArea className="hidden w-full dark:block">
+          </IntrinsicScrollFrame>
+          <IntrinsicScrollFrame className="hidden dark:block">
             <div
               className={cn(
                 "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
@@ -176,7 +176,7 @@ function CodeBlock({
               )}
               dangerouslySetInnerHTML={{ __html: darkHtml }}
             />
-          </ScrollArea>
+          </IntrinsicScrollFrame>
         </>
       ) : (
         <CodeBlockFallback code={code} />

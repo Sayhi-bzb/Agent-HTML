@@ -2,8 +2,10 @@ import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 
 import {
+  type AgentHtmlDocument,
   AgentHtmlBlockRuntimeProvider,
   AgentHtmlBlockWrapper,
+  type AgentHtmlValidationError,
   applyAgentHtmlDropIntent,
   formatHtmlSource,
   getSourceMetrics,
@@ -22,6 +24,31 @@ import { ValidationErrors } from "@/agent-html-example/features/runtime-preview/
 
 const activeCase = agentHtmlExampleCases[0]
 
+type AgentHtmlValidationResult = {
+  errors: AgentHtmlValidationError[]
+  ok: boolean
+}
+
+type RuntimeDocumentState = {
+  document: AgentHtmlDocument
+  source: string
+  validation: AgentHtmlValidationResult
+  version: number
+}
+
+function createRuntimeDocumentState(source: string): RuntimeDocumentState {
+  const document = parseAgentHtml(source)
+
+  return {
+    document,
+    source,
+    validation: validateAgentHtml(document),
+    version: 0,
+  }
+}
+
+const initialRuntimeState = createRuntimeDocumentState(activeCase.ahtmlSource)
+
 export function AgentHtmlRuntimePage({
   onThemeChange,
   theme,
@@ -29,30 +56,70 @@ export function AgentHtmlRuntimePage({
   onThemeChange: (theme: ExampleThemeId) => void
   theme: ExampleThemeId
 }) {
-  const [ahtmlSource, setAhtmlSource] = React.useState(activeCase.ahtmlSource)
+  const [runtimeState, setRuntimeState] = React.useState(() =>
+    initialRuntimeState
+  )
+  const [debugRuntime, setDebugRuntime] = React.useState<{
+    blockSummaries: Record<string, string>
+    htmlSource: string
+    version: number
+  }>(() => {
+    return {
+      blockSummaries: createAgentHtmlBlockSummaryMap(initialRuntimeState.document),
+      htmlSource: "",
+      version: initialRuntimeState.version,
+    }
+  })
+  const deferredHtmlDocument = React.useDeferredValue(
+    runtimeState.validation.ok ? runtimeState.document : null
+  )
 
   const runtime = React.useMemo(() => {
-    const document = parseAgentHtml(ahtmlSource)
-    const validation = validateAgentHtml(document)
-    const interactionUnits = validation.ok
-      ? inferAgentHtmlInteractionUnits(document)
+    const interactionUnits = runtimeState.validation.ok
+      ? inferAgentHtmlInteractionUnits(runtimeState.document)
       : null
-    const sourceContent = validation.ok ? renderAgentHtml(document) : null
-    const htmlSource = sourceContent
-      ? formatHtmlSource(renderToStaticMarkup(sourceContent))
-      : ""
 
     return {
-      ahtmlMetrics: getSourceMetrics(ahtmlSource),
-      blockSummaries: validation.ok ? createAgentHtmlBlockSummaryMap(document) : {},
-      document,
-      htmlMetrics: getSourceMetrics(htmlSource),
-      htmlSource,
+      ahtmlMetrics: getSourceMetrics(runtimeState.source),
+      blockSummaries:
+        debugRuntime.version === runtimeState.version
+          ? debugRuntime.blockSummaries
+          : {},
+      document: runtimeState.document,
+      htmlSource:
+        debugRuntime.version === runtimeState.version
+          ? debugRuntime.htmlSource
+          : "",
       interactionUnits,
       reactMetrics: getSourceMetrics(activeCase.reactSource),
-      validation,
+      validation: runtimeState.validation,
     }
-  }, [ahtmlSource])
+  }, [debugRuntime, runtimeState])
+
+  const htmlMetrics = React.useMemo(() => {
+    return runtime.htmlSource ? getSourceMetrics(runtime.htmlSource) : undefined
+  }, [runtime.htmlSource])
+
+  React.useEffect(() => {
+    if (!deferredHtmlDocument) {
+      setDebugRuntime({
+        blockSummaries: {},
+        htmlSource: "",
+        version: runtimeState.version,
+      })
+      return
+    }
+
+    const version = runtimeState.version
+    React.startTransition(() => {
+      const sourceContent = renderAgentHtml(deferredHtmlDocument)
+      setDebugRuntime({
+        blockSummaries: createAgentHtmlBlockSummaryMap(deferredHtmlDocument),
+        htmlSource: formatHtmlSource(renderToStaticMarkup(sourceContent)),
+        version,
+      })
+    })
+  }, [deferredHtmlDocument, runtimeState.version])
 
   const handleDropIntent = React.useCallback(
     ({
@@ -62,17 +129,22 @@ export function AgentHtmlRuntimePage({
       intent: AgentHtmlDropIntent
       sourcePath: string
     }) => {
-      setAhtmlSource((currentSource) => {
+      setRuntimeState((current) => {
         try {
-          const currentDocument = parseAgentHtml(currentSource)
-          const nextDocument = applyAgentHtmlDropIntent(currentDocument, {
+          const nextDocument = applyAgentHtmlDropIntent(current.document, {
             intent,
             sourcePath,
           })
+          const source = serializeAgentHtml(nextDocument)
 
-          return serializeAgentHtml(nextDocument)
+          return {
+            document: nextDocument,
+            source,
+            validation: validateAgentHtml(nextDocument),
+            version: current.version + 1,
+          }
         } catch {
-          return currentSource
+          return current
         }
       })
     },
@@ -102,9 +174,9 @@ export function AgentHtmlRuntimePage({
     <AgentHtmlBlockRuntimeProvider onDropIntent={handleDropIntent}>
       <RuntimeShell
         ahtmlMetrics={runtime.ahtmlMetrics}
-        ahtmlSource={ahtmlSource}
+        ahtmlSource={runtimeState.source}
         blockSummaries={runtime.blockSummaries}
-        htmlMetrics={runtime.htmlMetrics}
+        htmlMetrics={htmlMetrics}
         htmlSource={runtime.htmlSource}
         reactMetrics={runtime.reactMetrics}
         reactSource={activeCase.reactSource}

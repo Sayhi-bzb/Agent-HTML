@@ -8,6 +8,7 @@ export type AgentHtmlInteractionUnitRole =
 
 export type AgentHtmlInteractionUnit = {
   kind: AgentHtmlInteractionUnitKind
+  motionKey: string
   parentPath?: string
   parentTag?: AgentHtmlTag | string
   path: string

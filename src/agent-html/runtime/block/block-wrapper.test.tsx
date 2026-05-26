@@ -15,6 +15,7 @@ describe("AgentHtmlBlockWrapper", () => {
           path="/Page/Stack[0]"
           unit={{
             kind: "block",
+            motionKey: "Stack:test",
             path: "/Page/Stack[0]",
             role: "flow-block",
             tag: "Stack",

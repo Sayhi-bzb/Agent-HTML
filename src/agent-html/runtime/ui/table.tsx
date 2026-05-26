@@ -3,20 +3,19 @@
 import * as React from "react"
 
 import { cn } from "@/agent-html/lib/utils"
-import { ScrollArea } from "@/agent-html/runtime/ui/scroll-area"
+import { IntrinsicScrollFrame } from "@/agent-html/runtime/ui/intrinsic-scroll-frame"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <ScrollArea
+    <IntrinsicScrollFrame
       data-slot="table-container"
-      className="w-full"
     >
       <table
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
       />
-    </ScrollArea>
+    </IntrinsicScrollFrame>
   )
 }
 

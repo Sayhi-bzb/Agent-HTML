@@ -11,8 +11,6 @@ export const agentHtmlBlockWrapperClassName = cn(
   "bg-[color-mix(in_oklab,var(--primary)_0%,transparent)]",
   "outline outline-1 outline-offset-4 outline-[color-mix(in_oklab,var(--primary)_0%,transparent)]",
   "transition-[background-color,opacity,outline-color] duration-200 ease-out",
-  "hover:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]",
-  "hover:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)]",
   "focus-within:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]",
   "focus-within:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)]"
 )
@@ -41,6 +39,7 @@ export function AgentHtmlBlockWrapper({
   const runtime = useAgentHtmlBlockRuntime()
   const {
     activePath,
+    hoveredPath,
     registerBlockElement,
     registerBlockPreview,
     registerBlockUnit,
@@ -48,6 +47,7 @@ export function AgentHtmlBlockWrapper({
   } = runtime
   const ref = React.useRef<HTMLDivElement | null>(null)
   const isActive = activePath === path
+  const isHovered = hoveredPath === path && !activePath
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: path,
   })
@@ -60,7 +60,7 @@ export function AgentHtmlBlockWrapper({
     [setNodeRef]
   )
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     return registerBlockElement(path, ref.current)
   }, [path, registerBlockElement])
 
@@ -73,8 +73,12 @@ export function AgentHtmlBlockWrapper({
   }, [path, registerBlockUnit, unit])
 
   const handlePointerEnter = React.useCallback(() => {
+    if (activePath) {
+      return
+    }
+
     setHoveredPath(path)
-  }, [path, setHoveredPath])
+  }, [activePath, path, setHoveredPath])
 
   const handlePointerLeave = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -94,6 +98,7 @@ export function AgentHtmlBlockWrapper({
     <div
       className={cn(
         agentHtmlBlockWrapperClassName,
+        isHovered && agentHtmlBlockInteractiveClassName,
         isActive && agentHtmlBlockDraggingClassName,
         className
       )}

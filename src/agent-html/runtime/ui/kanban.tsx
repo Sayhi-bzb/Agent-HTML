@@ -30,7 +30,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVerticalIcon } from "lucide-react"
 
 import { cn } from "@/agent-html/lib/utils"
-import { ScrollArea } from "@/agent-html/runtime/ui/scroll-area"
+import { IntrinsicScrollFrame } from "@/agent-html/runtime/ui/intrinsic-scroll-frame"
 
 type KanbanColumnData = {
   value: string
@@ -267,10 +267,10 @@ function Kanban({ children }: { children?: React.ReactNode }) {
       onDragStart={handleDragStart}
       sensors={sensors}
     >
-      <ScrollArea className="w-full">
+      <IntrinsicScrollFrame>
         <div
           className={cn(
-            "grid w-full auto-cols-fr grid-flow-col gap-4 pb-2",
+            "grid w-full min-w-max auto-cols-[16rem] grid-flow-col gap-4 pb-2",
             activeItem && "cursor-grabbing"
           )}
           data-dragging={activeItem ? "" : undefined}
@@ -280,7 +280,7 @@ function Kanban({ children }: { children?: React.ReactNode }) {
             <KanbanColumnView column={column} key={column.value} />
           ))}
         </div>
-      </ScrollArea>
+      </IntrinsicScrollFrame>
       <DragOverlay dropAnimation={dropAnimation}>
         {activeItem ? <KanbanItemCard dragging item={activeItem} overlay /> : null}
       </DragOverlay>
