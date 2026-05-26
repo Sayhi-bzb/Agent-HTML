@@ -1,5 +1,7 @@
 import * as React from "react"
+import { useDraggable } from "@dnd-kit/core"
 
+import type { AgentHtmlInteractionUnit } from "@/agent-html/interaction/types"
 import { cn } from "@/agent-html/lib/utils"
 import { useAgentHtmlBlockRuntime } from "@/agent-html/runtime/block/block-runtime-provider"
 import { AgentHtmlBlockHandle } from "@/agent-html/runtime/block/block-handle"
@@ -8,32 +10,71 @@ export const agentHtmlBlockWrapperClassName = cn(
   "group/agent-html-block relative rounded-[18px]",
   "bg-[color-mix(in_oklab,var(--primary)_0%,transparent)]",
   "outline outline-1 outline-offset-4 outline-[color-mix(in_oklab,var(--primary)_0%,transparent)]",
-  "transition-[background-color,outline-color] duration-200 ease-out",
+  "transition-[background-color,opacity,outline-color] duration-200 ease-out",
   "hover:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]",
   "hover:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)]",
   "focus-within:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]",
   "focus-within:outline-[color-mix(in_oklab,var(--primary)_28%,transparent)]"
 )
 
+const agentHtmlBlockInteractiveClassName = cn(
+  "bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]",
+  "outline-[color-mix(in_oklab,var(--primary)_28%,transparent)]"
+)
+
+const agentHtmlBlockDraggingClassName = cn(
+  agentHtmlBlockInteractiveClassName,
+  "opacity-45"
+)
+
 export function AgentHtmlBlockWrapper({
   children,
   className,
   path,
+  unit,
 }: {
   children: React.ReactNode
   className?: string
   path: string
+  unit: AgentHtmlInteractionUnit
 }) {
   const runtime = useAgentHtmlBlockRuntime()
+  const {
+    activePath,
+    registerBlockElement,
+    registerBlockPreview,
+    registerBlockUnit,
+    setHoveredPath,
+  } = runtime
   const ref = React.useRef<HTMLDivElement | null>(null)
+  const isActive = activePath === path
+  const { attributes, listeners, setNodeRef } = useDraggable({
+    id: path,
+  })
+
+  const setWrapperRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      ref.current = element
+      setNodeRef(element)
+    },
+    [setNodeRef]
+  )
 
   React.useEffect(() => {
-    return runtime.registerBlockElement(path, ref.current)
-  }, [path, runtime])
+    return registerBlockElement(path, ref.current)
+  }, [path, registerBlockElement])
+
+  React.useEffect(() => {
+    return registerBlockPreview(path, children)
+  }, [children, path, registerBlockPreview])
+
+  React.useEffect(() => {
+    return registerBlockUnit(path, unit)
+  }, [path, registerBlockUnit, unit])
 
   const handlePointerEnter = React.useCallback(() => {
-    runtime.setHoveredPath(path)
-  }, [path, runtime])
+    setHoveredPath(path)
+  }, [path, setHoveredPath])
 
   const handlePointerLeave = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -44,21 +85,30 @@ export function AgentHtmlBlockWrapper({
         return
       }
 
-      runtime.setHoveredPath(null)
+      setHoveredPath(null)
     },
-    [runtime]
+    [setHoveredPath]
   )
 
   return (
     <div
-      className={cn(agentHtmlBlockWrapperClassName, className)}
+      className={cn(
+        agentHtmlBlockWrapperClassName,
+        isActive && agentHtmlBlockDraggingClassName,
+        className
+      )}
       data-agent-html-block="true"
       data-agent-html-block-path={path}
+      data-agent-html-block-active={isActive ? "true" : undefined}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
-      ref={ref}
+      ref={setWrapperRef}
     >
-      <AgentHtmlBlockHandle path={path} />
+      <AgentHtmlBlockHandle
+        attributes={attributes}
+        listeners={listeners}
+        path={path}
+      />
       {children}
     </div>
   )

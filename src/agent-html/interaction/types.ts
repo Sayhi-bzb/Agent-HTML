@@ -1,10 +1,17 @@
 import type { AgentHtmlTag } from "@/agent-html/ast/types"
 
 export type AgentHtmlInteractionUnitKind = "block" | "group" | "internal"
+export type AgentHtmlInteractionUnitRole =
+  | "flow-block"
+  | "grid-item"
+  | "internal-layout"
 
 export type AgentHtmlInteractionUnit = {
   kind: AgentHtmlInteractionUnitKind
+  parentPath?: string
+  parentTag?: AgentHtmlTag | string
   path: string
+  role: AgentHtmlInteractionUnitRole
   tag: AgentHtmlTag | string
 }
 

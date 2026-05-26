@@ -53,9 +53,10 @@ describe("renderAgentHtml", () => {
       renderAgentHtml(document, {
         highlightBlocks: true,
         interactionUnits,
-        renderBlockWrapper: ({ children, className, key, path }) => (
+        renderBlockWrapper: ({ children, className, key, path, unit }) => (
           <div
             className={className}
+            data-test-block-role={unit.role}
             data-test-block-path={path}
             key={key}
           >
@@ -66,6 +67,7 @@ describe("renderAgentHtml", () => {
     )
 
     expect(html).toContain("data-test-block-path")
+    expect(html).toContain("data-test-block-role")
   })
 
   it("renders the icon basic fixture", () => {

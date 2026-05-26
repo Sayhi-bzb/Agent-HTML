@@ -101,6 +101,122 @@ describe("applyAgentHtmlDropIntent", () => {
     )
   })
 
+  it("releases a single-child grid after moving a column away", () => {
+    const document = parseAgentHtml(`<Page title="Release">
+  <Stack>
+    <Grid columns="2">
+      <Text>A</Text>
+      <Text>B</Text>
+    </Grid>
+    <Text>C</Text>
+  </Stack>
+</Page>`)
+
+    const next = applyAgentHtmlDropIntent(document, {
+      sourcePath: "/Page/Stack[0]/Grid[0]/Text[0]",
+      intent: { type: "after", targetPath: "/Page/Stack[0]/Text[0]" },
+    })
+    const serialized = serializeAgentHtml(next)
+
+    expect(serialized).not.toContain("<Grid")
+    expect(serialized).toContain(
+      `<Text>B</Text>\n    <Text>C</Text>\n    <Text>A</Text>`
+    )
+  })
+
+  it("updates grid columns after moving one child out of a larger grid", () => {
+    const document = parseAgentHtml(`<Page title="Release">
+  <Stack>
+    <Grid columns="3">
+      <Text>A</Text>
+      <Text>B</Text>
+      <Text>C</Text>
+    </Grid>
+    <Text>D</Text>
+  </Stack>
+</Page>`)
+
+    const next = applyAgentHtmlDropIntent(document, {
+      sourcePath: "/Page/Stack[0]/Grid[0]/Text[0]",
+      intent: { type: "after", targetPath: "/Page/Stack[0]/Text[0]" },
+    })
+    const serialized = serializeAgentHtml(next)
+
+    expect(serialized).toContain(`<Grid columns="2">`)
+    expect(serialized).toContain(`<Text>B</Text>\n      <Text>C</Text>`)
+  })
+
+  it("keeps equivalent same-grid column drops as no-op", () => {
+    const source = `<Page title="Noop">
+  <Stack>
+    <Grid columns="2">
+      <Text>A</Text>
+      <Text>B</Text>
+    </Grid>
+  </Stack>
+</Page>
+`
+    const document = parseAgentHtml(source)
+
+    const next = applyAgentHtmlDropIntent(document, {
+      sourcePath: "/Page/Stack[0]/Grid[0]/Text[0]",
+      intent: {
+        type: "column-before",
+        targetPath: "/Page/Stack[0]/Grid[0]/Text[1]",
+      },
+    })
+
+    expect(serializeAgentHtml(next)).toBe(source)
+  })
+
+  it("removes empty layout containers after a drop", () => {
+    const document = parseAgentHtml(`<Page title="Empty">
+  <Stack>
+    <Stack>
+      <Text>A</Text>
+    </Stack>
+    <Text>B</Text>
+  </Stack>
+</Page>`)
+
+    const next = applyAgentHtmlDropIntent(document, {
+      sourcePath: "/Page/Stack[0]/Stack[0]/Text[0]",
+      intent: { type: "after", targetPath: "/Page/Stack[0]/Text[0]" },
+    })
+    const serialized = serializeAgentHtml(next)
+
+    expect(serialized).not.toContain(`    <Stack>\n    </Stack>`)
+    expect(serialized).toContain(`<Text>B</Text>\n    <Text>A</Text>`)
+  })
+
+  it("moves inside a grid item stack instead of adding a grid column", () => {
+    const document = parseAgentHtml(`<Page title="Grid item">
+  <Stack>
+    <Text>Outside</Text>
+    <Grid columns="2">
+      <Stack>
+        <Text>A</Text>
+      </Stack>
+      <Stack>
+        <Text>B</Text>
+      </Stack>
+    </Grid>
+  </Stack>
+</Page>`)
+
+    const next = applyAgentHtmlDropIntent(document, {
+      sourcePath: "/Page/Stack[0]/Text[0]",
+      intent: { type: "inside", targetPath: "/Page/Stack[0]/Grid[0]/Stack[0]" },
+    })
+    const serialized = serializeAgentHtml(next)
+
+    expect(serialized).toContain(`<Grid columns="2">`)
+    expect(serialized).toContain(
+      `<Stack>\n        <Text>A</Text>\n        <Text>Outside</Text>\n      </Stack>`
+    )
+    expect(serialized).not.toContain(`<Grid columns="3">`)
+  })
+
   it("rejects moving a block into itself", () => {
     const document = parseAgentHtml(`<Page title="Invalid">
   <Stack>

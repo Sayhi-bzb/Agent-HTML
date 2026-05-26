@@ -89,6 +89,83 @@ function createGrid(children: AgentHtmlElementNode[]): AgentHtmlElementNode {
   }
 }
 
+function isLayoutNode(node: AgentHtmlElementNode) {
+  return (
+    agentHtmlDocumentContainerTags.has(node.tag) ||
+    agentHtmlFlowLayoutTags.has(node.tag)
+  )
+}
+
+function normalizeLayoutChildren(parent: AgentHtmlElementNode) {
+  for (const child of parent.children) {
+    if (child.type === "element") {
+      normalizeLayoutChildren(child)
+    }
+  }
+
+  const nextChildren: AgentHtmlNode[] = []
+
+  for (const child of parent.children) {
+    if (child.type !== "element" || !isLayoutNode(child)) {
+      nextChildren.push(child)
+      continue
+    }
+
+    if (child.children.length === 0) {
+      continue
+    }
+
+    if (child.tag === "Grid") {
+      if (child.children.length === 1) {
+        nextChildren.push(child.children[0])
+        continue
+      }
+
+      child.attrs.columns = String(Math.min(child.children.length, 4))
+    }
+
+    nextChildren.push(child)
+  }
+
+  parent.children = nextChildren
+}
+
+function normalizeDocument(document: AgentHtmlDocument) {
+  normalizeLayoutChildren(document.root)
+}
+
+function isSameParent(source: LocatedElement, target: LocatedElement) {
+  return source.parent !== null && source.parent === target.parent
+}
+
+function isEquivalentDrop(
+  source: LocatedElement,
+  target: LocatedElement,
+  intent: AgentHtmlDropIntent
+) {
+  if (!isSameParent(source, target)) {
+    return false
+  }
+
+  if (intent.type === "before") {
+    return source.index === target.index || source.index === target.index - 1
+  }
+
+  if (intent.type === "after") {
+    return source.index === target.index || source.index === target.index + 1
+  }
+
+  if (intent.type === "column-before") {
+    return source.parent?.tag === "Grid" && source.index === target.index - 1
+  }
+
+  if (intent.type === "column-after") {
+    return source.parent?.tag === "Grid" && source.index === target.index + 1
+  }
+
+  return false
+}
+
 function applyMove(
   document: AgentHtmlDocument,
   source: LocatedElement,
@@ -171,7 +248,12 @@ export function applyAgentHtmlDropIntent(
     throw new Error("Cannot move a block into itself")
   }
 
+  if (isEquivalentDrop(source, target, input.intent)) {
+    return nextDocument
+  }
+
   applyMove(nextDocument, source, target, input.intent)
+  normalizeDocument(nextDocument)
 
   const validation = validateAgentHtml(nextDocument)
   if (!validation.ok) {

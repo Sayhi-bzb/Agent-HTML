@@ -22,6 +22,8 @@ import type {
 
 type IndexedElement = {
   node: AgentHtmlElementNode
+  parentPath?: string
+  parentTag?: AgentHtmlElementNode["tag"]
   path: string
 }
 
@@ -78,6 +80,8 @@ function directContentBlocksOfGroup(group: IndexedElement): IndexedElement[] {
     return [
       {
         node: child,
+        parentPath: group.path,
+        parentTag: group.node.tag,
         path: agentHtmlChildPath(group.path, child.tag, count),
       },
     ]
@@ -90,7 +94,15 @@ function toInteractionUnit(
 ): AgentHtmlInteractionUnit {
   return {
     kind,
+    parentPath: indexed.parentPath,
+    parentTag: indexed.parentTag,
     path: indexed.path,
+    role:
+      kind === "internal"
+        ? "internal-layout"
+        : indexed.parentTag === "Grid" && indexed.node.tag === "Stack"
+          ? "grid-item"
+          : "flow-block",
     tag: indexed.node.tag,
   }
 }
@@ -167,7 +179,16 @@ export function inferAgentHtmlInteractionUnits(
   const internalCandidates: IndexedElement[] = []
 
   walkAgentHtmlElementPaths(document.root, (node, path, ancestors) => {
-    const indexed = { node, path }
+    const parent = ancestors.at(-1)
+    const parentPath = parent
+      ? path.split("/").slice(0, -1).join("/")
+      : undefined
+    const indexed = {
+      node,
+      parentPath,
+      parentTag: parent?.tag,
+      path,
+    }
 
     if (isInsideComponentAnatomy(ancestors)) {
       if (isFlowLayout(indexed.node)) {

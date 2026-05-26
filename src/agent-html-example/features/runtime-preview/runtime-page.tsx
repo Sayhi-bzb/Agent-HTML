@@ -4,15 +4,19 @@ import { renderToStaticMarkup } from "react-dom/server"
 import {
   AgentHtmlBlockRuntimeProvider,
   AgentHtmlBlockWrapper,
+  applyAgentHtmlDropIntent,
   formatHtmlSource,
   getSourceMetrics,
   inferAgentHtmlInteractionUnits,
   parseAgentHtml,
   renderAgentHtml,
+  serializeAgentHtml,
   validateAgentHtml,
+  type AgentHtmlDropIntent,
 } from "@/agent-html"
 import { agentHtmlExampleCases } from "@/agent-html-example/cases"
 import type { ExampleThemeId } from "@/agent-html-example/theme/theme-presets"
+import { createAgentHtmlBlockSummaryMap } from "@/agent-html-example/features/runtime-preview/block-summary"
 import { RuntimeShell } from "@/agent-html-example/features/runtime-preview/runtime-shell"
 import { ValidationErrors } from "@/agent-html-example/features/runtime-preview/validation-errors"
 
@@ -25,8 +29,10 @@ export function AgentHtmlRuntimePage({
   onThemeChange: (theme: ExampleThemeId) => void
   theme: ExampleThemeId
 }) {
+  const [ahtmlSource, setAhtmlSource] = React.useState(activeCase.ahtmlSource)
+
   const runtime = React.useMemo(() => {
-    const document = parseAgentHtml(activeCase.ahtmlSource)
+    const document = parseAgentHtml(ahtmlSource)
     const validation = validateAgentHtml(document)
     const interactionUnits = validation.ok
       ? inferAgentHtmlInteractionUnits(document)
@@ -37,7 +43,8 @@ export function AgentHtmlRuntimePage({
       : ""
 
     return {
-      ahtmlMetrics: getSourceMetrics(activeCase.ahtmlSource),
+      ahtmlMetrics: getSourceMetrics(ahtmlSource),
+      blockSummaries: validation.ok ? createAgentHtmlBlockSummaryMap(document) : {},
       document,
       htmlMetrics: getSourceMetrics(htmlSource),
       htmlSource,
@@ -45,18 +52,44 @@ export function AgentHtmlRuntimePage({
       reactMetrics: getSourceMetrics(activeCase.reactSource),
       validation,
     }
-  }, [])
+  }, [ahtmlSource])
+
+  const handleDropIntent = React.useCallback(
+    ({
+      intent,
+      sourcePath,
+    }: {
+      intent: AgentHtmlDropIntent
+      sourcePath: string
+    }) => {
+      setAhtmlSource((currentSource) => {
+        try {
+          const currentDocument = parseAgentHtml(currentSource)
+          const nextDocument = applyAgentHtmlDropIntent(currentDocument, {
+            intent,
+            sourcePath,
+          })
+
+          return serializeAgentHtml(nextDocument)
+        } catch {
+          return currentSource
+        }
+      })
+    },
+    []
+  )
 
   const renderedContent = React.useMemo(() => {
     return runtime.validation.ok
       ? renderAgentHtml(runtime.document, {
           highlightBlocks: true,
           interactionUnits: runtime.interactionUnits ?? undefined,
-          renderBlockWrapper: ({ children, className, key, path }) => (
+          renderBlockWrapper: ({ children, className, key, path, unit }) => (
             <AgentHtmlBlockWrapper
               className={className}
               key={key}
               path={path}
+              unit={unit}
             >
               {children}
             </AgentHtmlBlockWrapper>
@@ -66,10 +99,11 @@ export function AgentHtmlRuntimePage({
   }, [runtime])
 
   return (
-    <AgentHtmlBlockRuntimeProvider>
+    <AgentHtmlBlockRuntimeProvider onDropIntent={handleDropIntent}>
       <RuntimeShell
         ahtmlMetrics={runtime.ahtmlMetrics}
-        ahtmlSource={activeCase.ahtmlSource}
+        ahtmlSource={ahtmlSource}
+        blockSummaries={runtime.blockSummaries}
         htmlMetrics={runtime.htmlMetrics}
         htmlSource={runtime.htmlSource}
         reactMetrics={runtime.reactMetrics}

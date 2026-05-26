@@ -182,10 +182,41 @@ describe("inferAgentHtmlInteractionUnits", () => {
     expect(result.blocks.some((unit) => unit.tag === "Text")).toBe(true)
   })
 
+  it("marks grid item stacks with structural metadata", () => {
+    const document = parseAgentHtml(edgeCases[0].source)
+    const result = inferAgentHtmlInteractionUnits(document)
+    const gridItem = result.blocks.find(
+      (unit) => unit.path === "/Page/Section[0]/Stack[0]/Stack[0]/Grid[0]/Stack[0]"
+    )
+
+    expect(gridItem).toMatchObject({
+      parentPath: "/Page/Section[0]/Stack[0]/Stack[0]/Grid[0]",
+      parentTag: "Grid",
+      role: "grid-item",
+      tag: "Stack",
+    })
+  })
+
+  it("marks ordinary blocks as flow blocks", () => {
+    const document = parseAgentHtml(edgeCases[3].source)
+    const result = inferAgentHtmlInteractionUnits(document)
+    const textBlock = result.blocks.find((unit) => unit.tag === "Text")
+
+    expect(textBlock).toMatchObject({
+      parentTag: "Stack",
+      role: "flow-block",
+    })
+  })
+
   it("keeps component anatomy layouts internal", () => {
     const document = parseAgentHtml(edgeCases[2].source)
     const result = inferAgentHtmlInteractionUnits(document)
 
+    expect(result.internal).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: "internal-layout" }),
+      ])
+    )
     expect(result.internal.map((unit) => unit.tag)).toEqual([
       "Stack",
       "Stack",

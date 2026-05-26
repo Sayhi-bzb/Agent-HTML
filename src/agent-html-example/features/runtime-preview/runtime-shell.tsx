@@ -15,6 +15,7 @@ export function RuntimeShell({
   ahtmlMetrics,
   children,
   ahtmlSource,
+  blockSummaries,
   htmlMetrics,
   htmlSource,
   onThemeChange,
@@ -25,6 +26,7 @@ export function RuntimeShell({
   ahtmlMetrics: SourceMetrics
   children: React.ReactNode
   ahtmlSource: string
+  blockSummaries: Record<string, string>
   htmlMetrics: SourceMetrics
   htmlSource: string
   onThemeChange: (theme: ExampleThemeId) => void
@@ -69,7 +71,7 @@ export function RuntimeShell({
           theme={theme}
         />
         <main className="mt-3 min-h-0 w-full min-w-0 flex-1">
-          <RenderPanel>{children}</RenderPanel>
+          <RenderPanel blockSummaries={blockSummaries}>{children}</RenderPanel>
         </main>
         <SourceDialog
           ahtmlMetrics={ahtmlMetrics}

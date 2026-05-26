@@ -11,6 +11,7 @@ import type {
 } from "@/agent-html/ast/types"
 import { agentHtmlChildPath } from "@/agent-html/ast/paths"
 import type { AgentHtmlInteractionUnits } from "@/agent-html/interaction/types"
+import type { AgentHtmlInteractionUnit } from "@/agent-html/interaction/types"
 import {
   AgentHtmlBlockWrapper,
   agentHtmlBlockWrapperClassName,
@@ -34,11 +35,12 @@ export type RenderAgentHtmlOptions = {
     className: string
     key: string
     path: string
+    unit: AgentHtmlInteractionUnit
   }) => ReactNode
 }
 
 type RenderContext = {
-  blockPaths: ReadonlySet<string>
+  blockUnitByPath: ReadonlyMap<string, AgentHtmlInteractionUnit>
   highlightBlocks: boolean
   renderBlockWrapper?: RenderAgentHtmlOptions["renderBlockWrapper"]
 }
@@ -95,7 +97,9 @@ function highlightBlock(
   path: string,
   context: RenderContext
 ) {
-  if (!context.highlightBlocks || !context.blockPaths.has(path)) {
+  const unit = context.blockUnitByPath.get(path)
+
+  if (!context.highlightBlocks || !unit) {
     return rendered
   }
 
@@ -107,6 +111,7 @@ function highlightBlock(
       className,
       key,
       path,
+      unit,
     })
   }
 
@@ -218,8 +223,8 @@ export function renderAgentHtml(
   options: RenderAgentHtmlOptions = {}
 ) {
   const context = {
-    blockPaths: new Set(
-      options.interactionUnits?.blocks.map((unit) => unit.path) ?? []
+    blockUnitByPath: new Map(
+      options.interactionUnits?.blocks.map((unit) => [unit.path, unit]) ?? []
     ),
     highlightBlocks: options.highlightBlocks === true,
     renderBlockWrapper: options.renderBlockWrapper,
