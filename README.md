@@ -3,6 +3,10 @@
 Agent-HTML is a Vite, React, TypeScript, and shadcn/ui application for exploring
 AI-native artifact authoring and preview.
 
+![Edit HTML like Notion](./public/block-dnd.gif)
+
+Edit HTML like Notion.
+
 ## Documents
 
 - [Docs index](./docs/index.md): product, engineering, design, and reference
