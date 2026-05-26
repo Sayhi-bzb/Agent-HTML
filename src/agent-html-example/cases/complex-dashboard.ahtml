@@ -3,14 +3,12 @@
     <Stack>
       <Stack>
         <Text variant="h1">agent-html</Text>
-        <Text variant="lead">A constrained UI language for agents: XML-shaped source, validated structure, runtime-backed primitives.</Text>
+        <Text variant="lead">A constrained UI language and live editing surface for agents: hover any block, drag the handle, open the plus prompt, then switch themes from the header.</Text>
       </Stack>
 
       <Separator />
 
       <Stack>
-        <Text variant="h2">Data becomes UI</Text>
-        <Text variant="muted">Charts render directly from declarative series and rows. The DSL carries data shape without exposing component internals.</Text>
         <Grid columns="2">
           <Stack>
             <Text variant="h3">Bar chart</Text>
@@ -41,6 +39,55 @@
       </Stack>
 
       <Stack>
+        <Text variant="h2">Try the editor surface</Text>
+        <Text variant="muted">This preview is interactive. Use the page itself to feel how agent-html turns layout nodes into Notion-like blocks.</Text>
+        <Kanban>
+          <KanbanColumn value="discover" title="Discover">
+            <KanbanItem value="hover-handle">
+              <Stack>
+                <Text variant="small">Hover any section until the left-side controls fade in.</Text>
+                <Badge variant="secondary">Block handle</Badge>
+              </Stack>
+            </KanbanItem>
+            <KanbanItem value="drag-block">
+              <Stack>
+                <Text variant="small">Grab the six-dot handle and move a block above, below, or into a column.</Text>
+                <Badge variant="outline">Drag and drop</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+          <KanbanColumn value="create" title="Create">
+            <KanbanItem value="open-plus">
+              <Stack>
+                <Text variant="small">Click the plus button above the handle to open the block input.</Text>
+                <Badge variant="secondary">Plus handle</Badge>
+              </Stack>
+            </KanbanItem>
+            <KanbanItem value="ask-chat">
+              <Stack>
+                <Text variant="small">Use the input area as the future Ask, Search, or Chat entry point for AI edits.</Text>
+                <Badge variant="outline">AI surface</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+          <KanbanColumn value="personalize" title="Personalize">
+            <KanbanItem value="switch-theme">
+              <Stack>
+                <Text variant="small">Open the Theme menu in the header and swap palettes without changing the source.</Text>
+                <Badge variant="secondary">Theme switcher</Badge>
+              </Stack>
+            </KanbanItem>
+            <KanbanItem value="shared-tokens">
+              <Stack>
+                <Text variant="small">Every chart, table, alert, and block highlight consumes the same runtime tokens.</Text>
+                <Badge variant="outline">Token driven</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+        </Kanban>
+      </Stack>
+
+      <Stack>
         <Text variant="h2">Small source, real components</Text>
         <Text variant="muted">Agents author a compact tree. The runtime turns it into real UI primitives after validation.</Text>
         <CodeBlock language="ahtml" title="A small authoring surface">
@@ -58,49 +105,6 @@
           <AlertTitle>Validation happens before render</AlertTitle>
           <AlertDescription>Unknown tags, invalid attrs, unsafe icons, and unsupported child structures fail before they reach the preview surface.</AlertDescription>
         </Alert>
-      </Stack>
-
-      <Stack>
-        <Text variant="h2">Workflow state</Text>
-        <Text variant="muted">Generated UI can describe stateful product surfaces, not only static content blocks.</Text>
-        <Kanban>
-          <KanbanColumn value="author" title="Author">
-            <KanbanItem value="draft-structure">
-              <Stack>
-                <Text variant="small">Draft the UI as XML-shaped DSL</Text>
-                <Badge variant="secondary">Prompt</Badge>
-              </Stack>
-            </KanbanItem>
-            <KanbanItem value="choose-primitives">
-              <Stack>
-                <Text variant="small">Choose runtime-backed primitives</Text>
-                <Badge variant="outline">Schema</Badge>
-              </Stack>
-            </KanbanItem>
-          </KanbanColumn>
-          <KanbanColumn value="validate" title="Validate">
-            <KanbanItem value="parse-tree">
-              <Stack>
-                <Text variant="small">Parse to a constrained AST</Text>
-                <Badge variant="secondary">AST</Badge>
-              </Stack>
-            </KanbanItem>
-            <KanbanItem value="reject-invalid">
-              <Stack>
-                <Text variant="small">Reject unknown tags and unsafe props</Text>
-                <Badge variant="outline">Guardrail</Badge>
-              </Stack>
-            </KanbanItem>
-          </KanbanColumn>
-          <KanbanColumn value="render" title="Render">
-            <KanbanItem value="runtime-map">
-              <Stack>
-                <Text variant="small">Map DSL nodes to shadcn primitives</Text>
-                <Badge variant="secondary">Runtime</Badge>
-              </Stack>
-            </KanbanItem>
-          </KanbanColumn>
-        </Kanban>
       </Stack>
 
       <Stack>
@@ -137,8 +141,8 @@
       </Stack>
 
       <Stack>
-        <Text variant="h2">Composable primitives</Text>
-        <Text variant="muted">Different primitive types can sit next to each other without a showcase wrapper around every component.</Text>
+        <Text variant="h2">Composable component ecosystem</Text>
+        <Text variant="muted">Tables, media, alerts, badges, charts, timelines, tabs, and accordions share one constrained authoring surface.</Text>
         <Grid columns="3">
           <Stack>
             <Text variant="h3">Table</Text>
@@ -196,8 +200,8 @@
       </Stack>
 
       <Stack>
-        <Text variant="h2">Interaction without custom code</Text>
-        <Text variant="muted">Accordion and tabs stay declarative while the runtime supplies the interactive behavior.</Text>
+        <Text variant="h2">Runtime interaction primitives</Text>
+        <Text variant="muted">Accordion and tabs stay declarative while the runtime supplies accessible interactive behavior.</Text>
         <Grid columns="2">
           <Stack>
             <Text variant="h3">Accordion</Text>
@@ -205,31 +209,28 @@
               <AccordionItem value="html-shape">
                 <AccordionTrigger>Why HTML-shaped?</AccordionTrigger>
                 <AccordionContent>
-                  <Alert>
-                    <Icon name="code-xml" />
-                    <AlertTitle>Lower model friction</AlertTitle>
-                    <AlertDescription>LLMs already understand nested markup, attributes, and closing tags.</AlertDescription>
-                  </Alert>
+                  <Stack>
+                    <Badge variant="secondary">Lower model friction</Badge>
+                    <Text variant="small">LLMs already understand nested markup, attributes, and closing tags.</Text>
+                  </Stack>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="narrow-props">
                 <AccordionTrigger>Why narrow props?</AccordionTrigger>
                 <AccordionContent>
-                  <Alert>
-                    <Icon name="list-checks" />
-                    <AlertTitle>Reliable generation beats flexibility</AlertTitle>
-                    <AlertDescription>Small variant sets make generated UI easier to validate and compare.</AlertDescription>
-                  </Alert>
+                  <Stack>
+                    <Badge variant="outline">Reliable generation beats flexibility</Badge>
+                    <Text variant="small">Small variant sets make generated UI easier to validate and compare.</Text>
+                  </Stack>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="runtime">
                 <AccordionTrigger>Why runtime primitives?</AccordionTrigger>
                 <AccordionContent>
-                  <Alert>
-                    <Icon name="blocks" />
-                    <AlertTitle>No parallel UI kit</AlertTitle>
-                    <AlertDescription>The DSL composes production primitives instead of inventing a second component system.</AlertDescription>
-                  </Alert>
+                  <Stack>
+                    <Badge variant="secondary">No parallel UI kit</Badge>
+                    <Text variant="small">The DSL composes production primitives instead of inventing a second component system.</Text>
+                  </Stack>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
