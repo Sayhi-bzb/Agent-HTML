@@ -17,7 +17,7 @@ apps/agent-html-example
   -> public
 ```
 
-It may import Agent-HTML runtime APIs from `src/agent-html`. It must not import
+It may import Agent-HTML runtime APIs from `packages/agent-html`. It must not import
 `apps/agent-html-app/src`, app CSS, or app-shell assets.
 
 The deploy output is always:

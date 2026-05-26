@@ -1,10 +1,10 @@
-<!-- AUTO-GENERATED FROM src/agent-html/fixtures -->
+<!-- AUTO-GENERATED FROM packages/agent-html/src/fixtures -->
 # Agent-HTML Examples
 
 Source fixtures live in:
 
-- `src/agent-html/fixtures/valid/`
-- `src/agent-html/fixtures/invalid/`
+- `packages/agent-html/src/fixtures/valid/`
+- `packages/agent-html/src/fixtures/invalid/`
 
 Use the closest valid fixture before inventing new structure.
 

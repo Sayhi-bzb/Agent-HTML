@@ -1,4 +1,4 @@
-# AUTO-GENERATED FROM src/agent-html/icons/search-icons.ts intent
+# AUTO-GENERATED FROM packages/agent-html/src/icons/search-icons.ts intent
 from pathlib import Path
 import re
 import sys

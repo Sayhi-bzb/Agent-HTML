@@ -3,9 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-SOURCE_ROOT = REPO_ROOT / "src" / "agent-html"
-SKILL_ROOT = REPO_ROOT / ".codex" / "skills" / "agent-html"
+REPO_ROOT = Path(__file__).resolve().parents[4]
+SOURCE_ROOT = REPO_ROOT / "packages" / "agent-html" / "src"
+SKILL_ROOT = REPO_ROOT / ".agents" / "skills" / "agent-html"
 
 
 def write_text(path: Path, content: str) -> None:
@@ -19,7 +19,7 @@ def sync_grammar() -> None:
 
     content = "\n".join(
         [
-            "<!-- AUTO-GENERATED FROM src/agent-html/schema/prompt.md -->",
+            "<!-- AUTO-GENERATED FROM packages/agent-html/src/schema/prompt.md -->",
             "# Agent-HTML Grammar",
             "",
             source.read_text(encoding="utf-8").strip(),
@@ -44,13 +44,13 @@ def sync_examples() -> None:
 
     content = "\n".join(
         [
-            "<!-- AUTO-GENERATED FROM src/agent-html/fixtures -->",
+            "<!-- AUTO-GENERATED FROM packages/agent-html/src/fixtures -->",
             "# Agent-HTML Examples",
             "",
             "Source fixtures live in:",
             "",
-            "- `src/agent-html/fixtures/valid/`",
-            "- `src/agent-html/fixtures/invalid/`",
+            "- `packages/agent-html/src/fixtures/valid/`",
+            "- `packages/agent-html/src/fixtures/invalid/`",
             "",
             "Use the closest valid fixture before inventing new structure.",
             "",
@@ -68,7 +68,7 @@ def sync_icons_reference() -> None:
 
     content = "\n".join(
         [
-            "<!-- AUTO-GENERATED FROM src/agent-html/icons/README.md -->",
+            "<!-- AUTO-GENERATED FROM packages/agent-html/src/icons/README.md -->",
             source.read_text(encoding="utf-8").strip(),
             "",
         ]
@@ -81,7 +81,7 @@ def sync_icon_script() -> None:
     source = SKILL_ROOT / "scripts" / "search_icons.py"
     generated = "\n".join(
         [
-            "# AUTO-GENERATED FROM src/agent-html/icons/search-icons.ts intent",
+            "# AUTO-GENERATED FROM packages/agent-html/src/icons/search-icons.ts intent",
             "from pathlib import Path",
             "import re",
             "import sys",

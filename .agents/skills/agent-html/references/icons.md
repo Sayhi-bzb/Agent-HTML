@@ -1,4 +1,4 @@
-<!-- AUTO-GENERATED FROM src/agent-html/icons/README.md -->
+<!-- AUTO-GENERATED FROM packages/agent-html/src/icons/README.md -->
 # Agent-HTML Icons
 
 This directory isolates lucide icon lookup for the experimental `agent-html`

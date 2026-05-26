@@ -1,6 +1,6 @@
 ---
 name: agent-html
-description: Write valid `agent-html` DSL pages for this project's preview runtime. Use when Codex needs to compose XML-like preview layouts with `Page`, `Stack`, `Cluster`, `Grid`, and the supported UI tags under `src/agent-html/runtime/ui/*`; use it to draft new pages, adapt existing fixtures, or choose valid Lucide icon names without falling back to JSX, className, or raw HTML.
+description: Write valid `agent-html` DSL pages for this project's preview runtime. Use when Codex needs to compose XML-like preview layouts with `Page`, `Stack`, `Cluster`, `Grid`, and the supported UI tags under `packages/agent-html/src/runtime/ui/*`; use it to draft new pages, adapt existing fixtures, or choose valid Lucide icon names without falling back to JSX, className, or raw HTML.
 ---
 
 # agent-html
@@ -30,7 +30,7 @@ Write `agent-html` DSL, not JSX or HTML.
 - Valid and invalid fixture patterns: `references/examples.md`
 - Icon lookup notes: `references/icons.md`
 
-These files are generated from `src/agent-html/`.
+These files are generated from `packages/agent-html/src/`.
 Do not hand-edit generated reference files.
 When the source changes, rerun the sync script.
 
@@ -38,4 +38,4 @@ When the source changes, rerun the sync script.
 
 - Search Lucide icon names: `scripts/search_icons.py "<query>"`
 - Sync generated skill resources from project sources:
-  `python src/agent-html/scripts/sync_skill.py`
+  `python packages/agent-html/src/scripts/sync_skill.py`

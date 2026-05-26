@@ -8,7 +8,8 @@
     "baseUrl": ".",
     "paths": {
       "@/app/*": ["./apps/agent-html-app/src/*"],
-      "@/*": ["./src/*"]
+      "@/agent-html": ["./packages/agent-html/src/index.ts"],
+      "@/agent-html/*": ["./packages/agent-html/src/*"]
     }
   }
 }

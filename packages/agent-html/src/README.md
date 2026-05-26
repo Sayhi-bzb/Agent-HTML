@@ -1,6 +1,6 @@
 # Agent-HTML DSL
 
-This directory owns the `agent-html` DSL and runtime system.
+This package owns the `agent-html` DSL and runtime system.
 
 It currently owns:
 
@@ -9,7 +9,7 @@ It currently owns:
 - runtime UI used by rendered DSL output
 - runtime theme defaults
 - test fixtures and error cases
-- public exports from `src/agent-html/index.ts`
+- public exports from `packages/agent-html/src/index.ts`
 
 It does not own the standalone example app surface. Keep demo panels, source comparison,
 and deployable example cases in `apps/agent-html-example`.

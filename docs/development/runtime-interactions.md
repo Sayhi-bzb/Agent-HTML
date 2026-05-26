@@ -9,7 +9,7 @@ rules belong in [`../design/README.md`](../design/README.md).
 
 ## Ownership
 
-Runtime interactions under `src/agent-html/runtime` may use third-party
+Runtime interactions under `packages/agent-html/src/runtime` may use third-party
 interaction libraries for sensors, lifecycle callbacks, overlays, or accessible
 primitives. Those libraries do not own Agent-HTML semantic decisions.
 

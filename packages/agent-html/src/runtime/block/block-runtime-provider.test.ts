@@ -20,4 +20,8 @@ describe("AgentHtmlBlockRuntimeProvider source guardrails", () => {
     expect(providerSource).toContain("lastClientPointerRef")
     expect(providerSource).toContain("updateDragClientPointer")
   })
+
+  it("does not clear hover from wrapper pointerleave during scroll", () => {
+    expect(providerSource).toContain("updateHoveredBlockFromPointer")
+  })
 })
