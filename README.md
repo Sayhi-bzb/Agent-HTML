@@ -1,5 +1,7 @@
 # Agent-HTML
 
+[中文](./README.zh-CN.md)
+
 Agent-HTML is an AI-native artifact workspace for turning generated HTML into
 structured, editable, and previewable documents. It combines a block editor,
 runtime preview, theme controls, and agent feedback loops so HTML output can be
