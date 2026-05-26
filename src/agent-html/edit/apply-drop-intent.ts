@@ -2,6 +2,7 @@ import type {
   AgentHtmlDocument,
   AgentHtmlElementNode,
   AgentHtmlNode,
+  AgentHtmlTag,
 } from "@/agent-html/ast/types"
 import { walkAgentHtmlElementPaths } from "@/agent-html/ast/paths"
 import type {
@@ -79,8 +80,8 @@ function insertIndexForPlacement(index: number, placement: "before" | "after") {
 
 function canContainBlock(node: AgentHtmlElementNode) {
   return (
-    agentHtmlDocumentContainerTags.has(node.tag) ||
-    agentHtmlFlowLayoutTags.has(node.tag)
+    agentHtmlDocumentContainerTags.has(node.tag as AgentHtmlTag) ||
+    agentHtmlFlowLayoutTags.has(node.tag as AgentHtmlTag)
   )
 }
 
@@ -95,8 +96,8 @@ function createGrid(children: AgentHtmlElementNode[]): AgentHtmlElementNode {
 
 function isLayoutNode(node: AgentHtmlElementNode) {
   return (
-    agentHtmlDocumentContainerTags.has(node.tag) ||
-    agentHtmlFlowLayoutTags.has(node.tag)
+    agentHtmlDocumentContainerTags.has(node.tag as AgentHtmlTag) ||
+    agentHtmlFlowLayoutTags.has(node.tag as AgentHtmlTag)
   )
 }
 
@@ -229,7 +230,6 @@ function moveIntoColumnGroup(
 }
 
 function applyMove(
-  document: AgentHtmlDocument,
   source: LocatedElement,
   target: LocatedElement,
   intent: AgentHtmlDropIntent
@@ -287,7 +287,7 @@ export function applyAgentHtmlDropIntent(
     return nextDocument
   }
 
-  applyMove(nextDocument, source, target, input.intent)
+  applyMove(source, target, input.intent)
   normalizeDocument(nextDocument)
 
   const validation = validateAgentHtml(nextDocument)

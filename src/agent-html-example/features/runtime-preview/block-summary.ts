@@ -1,7 +1,18 @@
-import type { AgentHtmlDocument, AgentHtmlElementNode, AgentHtmlNode } from "@/agent-html"
+import type {
+  AgentHtmlDocument,
+  AgentHtmlElementNode,
+  AgentHtmlNode,
+  AgentHtmlTag,
+} from "@/agent-html"
 import { walkAgentHtmlElementPaths } from "@/agent-html"
 
-const hiddenSummaryTags = new Set(["Page", "Section", "Stack", "Cluster", "Grid"])
+const hiddenSummaryTags = new Set<AgentHtmlTag>([
+  "Page",
+  "Section",
+  "Stack",
+  "Cluster",
+  "Grid",
+])
 const maxSummaryLines = 10
 
 function isElement(node: AgentHtmlNode): node is AgentHtmlElementNode {
@@ -14,13 +25,15 @@ function hasTextContent(node: AgentHtmlElementNode) {
   )
 }
 
-function childElements(node: AgentHtmlElementNode) {
+function childElements(node: AgentHtmlElementNode): AgentHtmlElementNode[] {
   return node.children.filter(isElement)
 }
 
-function visibleChildren(node: AgentHtmlElementNode) {
+function visibleChildren(node: AgentHtmlElementNode): AgentHtmlElementNode[] {
   return childElements(node).flatMap((child) =>
-    hiddenSummaryTags.has(child.tag) ? visibleChildren(child) : [child]
+    hiddenSummaryTags.has(child.tag as AgentHtmlTag)
+      ? visibleChildren(child)
+      : [child]
   )
 }
 
@@ -42,7 +55,9 @@ function summarizeElement(node: AgentHtmlElementNode, level: number): string[] {
 }
 
 export function summarizeAgentHtmlBlock(node: AgentHtmlElementNode) {
-  const children = hiddenSummaryTags.has(node.tag) ? visibleChildren(node) : [node]
+  const children = hiddenSummaryTags.has(node.tag as AgentHtmlTag)
+    ? visibleChildren(node)
+    : [node]
   const lines = children.flatMap((child) => summarizeElement(child, 0))
 
   if (lines.length <= maxSummaryLines) {

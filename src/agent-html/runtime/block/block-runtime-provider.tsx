@@ -645,10 +645,21 @@ export function AgentHtmlBlockRuntimeProvider({
     const sourcePath = String(event.active.id)
     const activatorEvent = event.activatorEvent
 
-    if ("clientX" in activatorEvent && "clientY" in activatorEvent) {
+    const clientPointer =
+      "clientX" in activatorEvent &&
+      "clientY" in activatorEvent &&
+      typeof activatorEvent.clientX === "number" &&
+      typeof activatorEvent.clientY === "number"
+        ? {
+            x: activatorEvent.clientX,
+            y: activatorEvent.clientY,
+          }
+        : null
+
+    if (clientPointer) {
       initialClientPointerRef.current = {
-        x: activatorEvent.clientX,
-        y: activatorEvent.clientY,
+        x: clientPointer.x,
+        y: clientPointer.y,
       }
     }
 
@@ -659,13 +670,7 @@ export function AgentHtmlBlockRuntimeProvider({
       path: sourcePath,
     })
     activePathRef.current = sourcePath
-    lastClientPointerRef.current =
-      "clientX" in activatorEvent && "clientY" in activatorEvent
-        ? {
-            x: activatorEvent.clientX,
-            y: activatorEvent.clientY,
-          }
-        : null
+    lastClientPointerRef.current = clientPointer
     const activeElement = elementsRef.current.get(sourcePath)
     const preview = previewsRef.current.get(sourcePath)
 
@@ -710,7 +715,12 @@ export function AgentHtmlBlockRuntimeProvider({
         const initialClientPointer = initialClientPointerRef.current
 
         captureLayoutSnapshot()
-        if (activePreview && sourceUnit?.motionKey && initialClientPointer) {
+        if (
+          activePreview &&
+          sourceUnit?.motionKey &&
+          initialClientPointer &&
+          pointer
+        ) {
           setLandingMotionKey(sourceUnit.motionKey)
           setLandingPreview({
             fromRect: offsetLayoutRect(activePreview.rect, {

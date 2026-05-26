@@ -32,9 +32,7 @@ import {
   WorkspaceSurface,
 } from "@/app/workspace/surface"
 import type {
-  WorkspaceProject,
   WorkspaceProjectView,
-  WorkspaceSection,
 } from "@/app/workspace/types"
 
 type ProjectTab = {

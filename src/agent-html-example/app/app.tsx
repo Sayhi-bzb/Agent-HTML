@@ -40,7 +40,7 @@ export function AgentHtmlExampleApp() {
 
     return storedTheme && isExampleThemeId(storedTheme)
       ? storedTheme
-      : "default"
+      : "claude"
   })
   const [locale, setLocale] = React.useState<AgentHtmlExampleLocale>(
     getInitialLocale

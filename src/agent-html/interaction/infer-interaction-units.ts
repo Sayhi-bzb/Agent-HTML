@@ -1,6 +1,7 @@
 import type {
   AgentHtmlDocument,
   AgentHtmlElementNode,
+  AgentHtmlTag,
 } from "@/agent-html/ast/types"
 import {
   agentHtmlChildPath,
@@ -58,31 +59,31 @@ function getMotionKey(node: AgentHtmlElementNode) {
 }
 
 function isFlowLayout(node: AgentHtmlElementNode) {
-  return agentHtmlFlowLayoutTags.has(node.tag)
+  return agentHtmlFlowLayoutTags.has(node.tag as AgentHtmlTag)
 }
 
 function hasDirectContentChild(node: AgentHtmlElementNode) {
   return agentHtmlElementChildren(node).some(
     (child) =>
-      !agentHtmlFlowLayoutTags.has(child.tag) &&
-      !agentHtmlDocumentContainerTags.has(child.tag) &&
-      !agentHtmlDataChildTags.has(child.tag)
+      !agentHtmlFlowLayoutTags.has(child.tag as AgentHtmlTag) &&
+      !agentHtmlDocumentContainerTags.has(child.tag as AgentHtmlTag) &&
+      !agentHtmlDataChildTags.has(child.tag as AgentHtmlTag)
   )
 }
 
 function isInsideComponentAnatomy(ancestors: AgentHtmlElementNode[]) {
   return ancestors.some((ancestor) =>
-    agentHtmlComponentAnatomyTags.has(ancestor.tag)
+    agentHtmlComponentAnatomyTags.has(ancestor.tag as AgentHtmlTag)
   )
 }
 
 function isMeaningfulDirectContent(node: AgentHtmlElementNode) {
   return (
-    !agentHtmlFlowLayoutTags.has(node.tag) &&
-    !agentHtmlDocumentContainerTags.has(node.tag) &&
-    !agentHtmlComponentAnatomyTags.has(node.tag) &&
-    !agentHtmlNonBlockContentTags.has(node.tag) &&
-    !agentHtmlDataChildTags.has(node.tag)
+    !agentHtmlFlowLayoutTags.has(node.tag as AgentHtmlTag) &&
+    !agentHtmlDocumentContainerTags.has(node.tag as AgentHtmlTag) &&
+    !agentHtmlComponentAnatomyTags.has(node.tag as AgentHtmlTag) &&
+    !agentHtmlNonBlockContentTags.has(node.tag as AgentHtmlTag) &&
+    !agentHtmlDataChildTags.has(node.tag as AgentHtmlTag)
   )
 }
 

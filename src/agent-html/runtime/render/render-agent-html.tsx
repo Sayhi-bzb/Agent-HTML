@@ -13,7 +13,6 @@ import { agentHtmlChildPath } from "@/agent-html/ast/paths"
 import type { AgentHtmlInteractionUnits } from "@/agent-html/interaction/types"
 import type { AgentHtmlInteractionUnit } from "@/agent-html/interaction/types"
 import {
-  AgentHtmlBlockWrapper,
   agentHtmlBlockWrapperClassName,
 } from "@/agent-html/runtime/block"
 import { ChartRuntime } from "@/agent-html/runtime/render/chart-runtime"
