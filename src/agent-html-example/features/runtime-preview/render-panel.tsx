@@ -8,6 +8,7 @@ import {
   type HoverCardCandidate,
   type HoverCardSide,
 } from "@/agent-html-example/features/runtime-preview/hover-card-placement"
+import { BlockSummaryCode } from "@/agent-html-example/features/runtime-preview/block-summary-code"
 import { AgentHtmlBlockIndicator, useAgentHtmlBlockRuntime } from "@/agent-html"
 import { ScrollArea } from "@/agent-html-example/ui"
 
@@ -257,9 +258,7 @@ export const RenderPanel = React.memo(function RenderPanel({
           top: 0,
         }}
       >
-        <pre className="overflow-hidden whitespace-pre-wrap font-mono text-[11px] leading-4 text-[var(--card-foreground)]">
-          {hoverCard.summary}
-        </pre>
+        <BlockSummaryCode summary={hoverCard.summary} />
       </motion.div>
     </div>
   )

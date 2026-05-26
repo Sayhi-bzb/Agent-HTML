@@ -21,7 +21,6 @@ import {
   type AgentHtmlBlockLayoutRect,
   type AgentHtmlBlockLayoutSnapshot,
 } from "@/agent-html/runtime/block/layout-transition"
-import type { AgentHtmlBlockIntentCandidate } from "@/agent-html/runtime/block/drag-intent"
 import type {
   AgentHtmlBlockDropIndicator,
   AgentHtmlBlockRuntimeState,
@@ -152,9 +151,6 @@ export function AgentHtmlBlockRuntimeProvider({
   const activePathRef = React.useRef<string | null>(null)
   const lastPointerRef = React.useRef<{ x: number; y: number } | null>(null)
   const overlayElementRef = React.useRef<HTMLElement | null>(null)
-  const dragCandidateRectsRef = React.useRef<
-    AgentHtmlBlockIntentCandidate[] | null
-  >(null)
   const pendingLayoutSnapshotRef = React.useRef<
     AgentHtmlBlockLayoutSnapshot[] | null
   >(null)
@@ -174,6 +170,9 @@ export function AgentHtmlBlockRuntimeProvider({
     React.useState<AgentHtmlBlockDropIndicator | null>(null)
   const [landingPreview, setLandingPreview] =
     React.useState<LandingPreview | null>(null)
+  const [landingMotionKey, setLandingMotionKey] = React.useState<string | null>(
+    null
+  )
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -190,12 +189,9 @@ export function AgentHtmlBlockRuntimeProvider({
         elementsRef.current.delete(path)
       }
 
-      dragCandidateRectsRef.current = null
-
       return () => {
         if (elementsRef.current.get(path) === element) {
           elementsRef.current.delete(path)
-          dragCandidateRectsRef.current = null
         }
       }
     },
@@ -294,20 +290,10 @@ export function AgentHtmlBlockRuntimeProvider({
     })
   }, [])
 
-  const refreshDragCandidates = React.useCallback(() => {
-    if (activePathRef.current) {
-      dragCandidateRectsRef.current = captureDragCandidates()
-    } else {
-      dragCandidateRectsRef.current = null
-    }
-  }, [captureDragCandidates])
-
   const inferIntent = React.useCallback(
     (sourcePath: string, pointer: { x: number; y: number }) => {
       return inferAgentHtmlDropIntentFromPointer({
-        candidates:
-          dragCandidateRectsRef.current ??
-          (dragCandidateRectsRef.current = captureDragCandidates()),
+        candidates: captureDragCandidates(),
         pointer,
         sourcePath,
       })
@@ -352,9 +338,8 @@ export function AgentHtmlBlockRuntimeProvider({
       return
     }
 
-    refreshDragCandidates()
     setIndicatorFromIntent(inferIntent(sourcePath, pointer))
-  }, [inferIntent, refreshDragCandidates, setIndicatorFromIntent])
+  }, [inferIntent, setIndicatorFromIntent])
 
   const captureLayoutSnapshot = React.useCallback(() => {
     pendingLayoutSnapshotRef.current = canAnimateLayout()
@@ -428,6 +413,7 @@ export function AgentHtmlBlockRuntimeProvider({
 
     if (!targetElement) {
       setLandingPreview(null)
+      setLandingMotionKey(null)
       return
     }
 
@@ -448,6 +434,7 @@ export function AgentHtmlBlockRuntimeProvider({
       if (!overlayElement) {
         targetElement.style.opacity = ""
         setLandingPreview(null)
+        setLandingMotionKey(null)
         return
       }
 
@@ -473,6 +460,7 @@ export function AgentHtmlBlockRuntimeProvider({
       animation.finished.finally(() => {
         targetElement.style.opacity = ""
         setLandingPreview(null)
+        setLandingMotionKey(null)
       })
     })
   }, [landingPreview])
@@ -515,7 +503,6 @@ export function AgentHtmlBlockRuntimeProvider({
       path: sourcePath,
     })
     activePathRef.current = sourcePath
-    dragCandidateRectsRef.current = captureDragCandidates()
     lastPointerRef.current =
       "clientX" in activatorEvent && "clientY" in activatorEvent
         ? {
@@ -535,6 +522,7 @@ export function AgentHtmlBlockRuntimeProvider({
         : null
     )
     setLandingPreview(null)
+    setLandingMotionKey(null)
     setHoveredBlock(null)
     setIndicator(null)
   }, [])
@@ -567,6 +555,7 @@ export function AgentHtmlBlockRuntimeProvider({
 
         captureLayoutSnapshot()
         if (activePreview && sourceUnit?.motionKey && initialPointer) {
+          setLandingMotionKey(sourceUnit.motionKey)
           setLandingPreview({
             fromRect: offsetLayoutRect(activePreview.rect, {
               x: pointer.x - initialPointer.x,
@@ -581,7 +570,6 @@ export function AgentHtmlBlockRuntimeProvider({
 
       initialPointerRef.current = null
       activePathRef.current = null
-      dragCandidateRectsRef.current = null
       lastPointerRef.current = null
       setActiveBlock(null)
       setActivePreview(null)
@@ -599,11 +587,11 @@ export function AgentHtmlBlockRuntimeProvider({
   const handleDragCancel = React.useCallback(() => {
     initialPointerRef.current = null
     activePathRef.current = null
-    dragCandidateRectsRef.current = null
     lastPointerRef.current = null
     setActiveBlock(null)
     setActivePreview(null)
     setLandingPreview(null)
+    setLandingMotionKey(null)
     setIndicator(null)
   }, [])
 
@@ -630,6 +618,7 @@ export function AgentHtmlBlockRuntimeProvider({
         hoveredMotionKey: hoveredBlock?.motionKey ?? null,
         hoveredPath,
         indicator,
+        landingMotionKey,
         registerBlockElement,
         registerBlockPreview,
         registerBlockUnit,
@@ -650,6 +639,7 @@ export function AgentHtmlBlockRuntimeProvider({
       getVisibleBlockRects,
       hoveredBlock,
       indicator,
+      landingMotionKey,
       registerBlockElement,
       registerBlockPreview,
       registerBlockUnit,

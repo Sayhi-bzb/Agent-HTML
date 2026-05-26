@@ -11,4 +11,5 @@ export type AgentHtmlBlockRuntimeState = {
   hoveredMotionKey: string | null
   hoveredPath: string | null
   indicator: AgentHtmlBlockDropIndicator | null
+  landingMotionKey: string | null
 }

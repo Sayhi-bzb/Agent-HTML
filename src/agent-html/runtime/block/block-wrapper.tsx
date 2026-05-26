@@ -41,6 +41,7 @@ export function AgentHtmlBlockWrapper({
     activeMotionKey,
     activePath,
     hoveredMotionKey,
+    landingMotionKey,
     registerBlockElement,
     registerBlockPreview,
     registerBlockUnit,
@@ -49,6 +50,7 @@ export function AgentHtmlBlockWrapper({
   const ref = React.useRef<HTMLDivElement | null>(null)
   const isActive = activeMotionKey === unit.motionKey
   const isHovered = hoveredMotionKey === unit.motionKey && !activePath
+  const isLanding = landingMotionKey === unit.motionKey
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: path,
   })
@@ -69,7 +71,9 @@ export function AgentHtmlBlockWrapper({
     return registerBlockPreview(path, children)
   }, [children, path, registerBlockPreview])
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
+    // Landing and FLIP resolve targets during layout effects, so unit metadata
+    // must be in sync with DOM registration before those effects run.
     return registerBlockUnit(path, unit)
   }, [path, registerBlockUnit, unit])
 
@@ -101,11 +105,13 @@ export function AgentHtmlBlockWrapper({
         agentHtmlBlockWrapperClassName,
         isHovered && agentHtmlBlockInteractiveClassName,
         isActive && agentHtmlBlockDraggingClassName,
+        isLanding && "opacity-0",
         className
       )}
       data-agent-html-block="true"
       data-agent-html-block-path={path}
       data-agent-html-block-active={isActive ? "true" : undefined}
+      data-agent-html-block-landing={isLanding ? "true" : undefined}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
       ref={setWrapperRef}

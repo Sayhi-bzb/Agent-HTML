@@ -73,6 +73,10 @@ function insertAt(
   parent.children.splice(index, 0, node)
 }
 
+function insertIndexForPlacement(index: number, placement: "before" | "after") {
+  return index + (placement === "after" ? 1 : 0)
+}
+
 function canContainBlock(node: AgentHtmlElementNode) {
   return (
     agentHtmlDocumentContainerTags.has(node.tag) ||
@@ -166,6 +170,64 @@ function isEquivalentDrop(
   return false
 }
 
+function refreshTargetAfterRemoval(target: LocatedElement): LocatedElement {
+  return {
+    ...target,
+    index: target.parent ? target.parent.children.indexOf(target.node) : -1,
+  }
+}
+
+function moveInside(moved: AgentHtmlElementNode, target: LocatedElement) {
+  const targetContainer = canContainBlock(target.node)
+    ? target.node
+    : target.parent
+
+  if (!targetContainer) {
+    throw new Error("Cannot move inside the root Agent-HTML element")
+  }
+
+  targetContainer.children.push(moved)
+}
+
+function moveAdjacent(
+  moved: AgentHtmlElementNode,
+  target: LocatedElement,
+  placement: "before" | "after"
+) {
+  if (!target.parent) {
+    throw new Error("Cannot insert next to the root Agent-HTML element")
+  }
+
+  insertAt(
+    target.parent,
+    insertIndexForPlacement(target.index, placement),
+    moved
+  )
+}
+
+function moveIntoColumnGroup(
+  moved: AgentHtmlElementNode,
+  target: LocatedElement,
+  placement: "before" | "after"
+) {
+  if (!target.parent) {
+    throw new Error("Cannot create columns around the root Agent-HTML element")
+  }
+
+  if (target.parent.tag === "Grid") {
+    insertAt(
+      target.parent,
+      insertIndexForPlacement(target.index, placement),
+      moved
+    )
+    return
+  }
+
+  const orderedChildren =
+    placement === "before" ? [moved, target.node] : [target.node, moved]
+  target.parent.children.splice(target.index, 1, createGrid(orderedChildren))
+}
+
 function applyMove(
   document: AgentHtmlDocument,
   source: LocatedElement,
@@ -178,58 +240,22 @@ function applyMove(
 
   removeLocated(source)
   const moved = source.node
-  const targetIndex = target.parent ? target.parent.children.indexOf(target.node) : -1
-  const currentTarget = {
-    ...target,
-    index: targetIndex,
-  }
+  const currentTarget = refreshTargetAfterRemoval(target)
 
   if (intent.type === "inside") {
-    const targetContainer = canContainBlock(currentTarget.node)
-      ? currentTarget.node
-      : currentTarget.parent
-
-    if (!targetContainer) {
-      throw new Error("Cannot move inside the root Agent-HTML element")
-    }
-
-    targetContainer.children.push(moved)
+    moveInside(moved, currentTarget)
     return
   }
 
   if (intent.type === "before" || intent.type === "after") {
-    if (!currentTarget.parent) {
-      throw new Error("Cannot insert next to the root Agent-HTML element")
-    }
-
-    insertAt(
-      currentTarget.parent,
-      currentTarget.index + (intent.type === "after" ? 1 : 0),
-      moved
-    )
+    moveAdjacent(moved, currentTarget, intent.type)
     return
   }
 
-  if (!currentTarget.parent) {
-    throw new Error("Cannot create columns around the root Agent-HTML element")
-  }
-
-  if (currentTarget.parent.tag === "Grid") {
-    insertAt(
-      currentTarget.parent,
-      currentTarget.index + (intent.type === "column-after" ? 1 : 0),
-      moved
-    )
-    return
-  }
-
-  const targetNode = currentTarget.node
-  const orderedChildren =
-    intent.type === "column-before" ? [moved, targetNode] : [targetNode, moved]
-  currentTarget.parent.children.splice(
-    currentTarget.index,
-    1,
-    createGrid(orderedChildren)
+  moveIntoColumnGroup(
+    moved,
+    currentTarget,
+    intent.type === "column-before" ? "before" : "after"
   )
 }
 
