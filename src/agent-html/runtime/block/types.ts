@@ -6,7 +6,9 @@ export type AgentHtmlBlockDropIndicator =
   | { type: "column-after"; targetPath: string }
 
 export type AgentHtmlBlockRuntimeState = {
+  activeMotionKey: string | null
   activePath: string | null
+  hoveredMotionKey: string | null
   hoveredPath: string | null
   indicator: AgentHtmlBlockDropIndicator | null
 }

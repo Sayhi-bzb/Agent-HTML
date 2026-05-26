@@ -38,16 +38,17 @@ export function AgentHtmlBlockWrapper({
 }) {
   const runtime = useAgentHtmlBlockRuntime()
   const {
+    activeMotionKey,
     activePath,
-    hoveredPath,
+    hoveredMotionKey,
     registerBlockElement,
     registerBlockPreview,
     registerBlockUnit,
-    setHoveredPath,
+    setHoveredBlock,
   } = runtime
   const ref = React.useRef<HTMLDivElement | null>(null)
-  const isActive = activePath === path
-  const isHovered = hoveredPath === path && !activePath
+  const isActive = activeMotionKey === unit.motionKey
+  const isHovered = hoveredMotionKey === unit.motionKey && !activePath
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: path,
   })
@@ -77,8 +78,8 @@ export function AgentHtmlBlockWrapper({
       return
     }
 
-    setHoveredPath(path)
-  }, [activePath, path, setHoveredPath])
+    setHoveredBlock({ motionKey: unit.motionKey, path })
+  }, [activePath, path, setHoveredBlock, unit.motionKey])
 
   const handlePointerLeave = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -89,9 +90,9 @@ export function AgentHtmlBlockWrapper({
         return
       }
 
-      setHoveredPath(null)
+      setHoveredBlock(null)
     },
-    [setHoveredPath]
+    [setHoveredBlock]
   )
 
   return (

@@ -156,10 +156,10 @@ export function AgentHtmlRuntimePage({
       ? renderAgentHtml(runtime.document, {
           highlightBlocks: true,
           interactionUnits: runtime.interactionUnits ?? undefined,
-          renderBlockWrapper: ({ children, className, key, path, unit }) => (
+          renderBlockWrapper: ({ children, className, path, unit }) => (
             <AgentHtmlBlockWrapper
               className={className}
-              key={key}
+              key={unit.motionKey}
               path={path}
               unit={unit}
             >

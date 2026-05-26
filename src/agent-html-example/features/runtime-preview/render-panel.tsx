@@ -52,10 +52,11 @@ export const RenderPanel = React.memo(function RenderPanel({
     activePath,
     getHoveredBlockElement,
     getVisibleBlockRects,
+    hoveredMotionKey,
     hoveredPath,
     registerOverlayElement,
     refreshDragIntent,
-    setHoveredPath,
+    setHoveredBlock,
   } = blockRuntime
   const shouldReduceMotion = useReducedMotion()
   const scrollAreaRef = React.useRef<HTMLDivElement | null>(null)
@@ -95,8 +96,8 @@ export const RenderPanel = React.memo(function RenderPanel({
     placementRequestRef.current = requestId
     const viewport = viewportRef.current
     const hoverCardElement = hoverCardRef.current
-    const hoverSummary = hoveredPath
-      ? blockSummaries[hoveredPath]
+    const hoverSummary = hoveredMotionKey
+      ? blockSummaries[hoveredMotionKey] ?? blockSummaries[hoveredPath ?? ""]
       : null
 
     if (activePath || !block || !viewport || !hoverCardElement || !hoverSummary) {
@@ -165,6 +166,7 @@ export const RenderPanel = React.memo(function RenderPanel({
     blockSummaries,
     getVisibleBlockRects,
     hideHoverCard,
+    hoveredMotionKey,
     hoveredPath,
     invalidateHoverCardRequest,
   ])
@@ -176,8 +178,8 @@ export const RenderPanel = React.memo(function RenderPanel({
       return
     }
 
-    setHoveredPath(null)
-  }, [activePath, invalidateHoverCardRequest, refreshDragIntent, setHoveredPath])
+    setHoveredBlock(null)
+  }, [activePath, invalidateHoverCardRequest, refreshDragIntent, setHoveredBlock])
 
   React.useEffect(() => {
     const scrollRoot = scrollAreaRef.current
@@ -198,7 +200,13 @@ export const RenderPanel = React.memo(function RenderPanel({
 
   React.useEffect(() => {
     updatePlacement(getHoveredBlockElement())
-  }, [blockSummaries, getHoveredBlockElement, hoveredPath, updatePlacement])
+  }, [
+    blockSummaries,
+    getHoveredBlockElement,
+    hoveredMotionKey,
+    hoveredPath,
+    updatePlacement,
+  ])
 
   React.useEffect(() => {
     if (!activePath) {

@@ -42,9 +42,14 @@ type AgentHtmlBlockRuntimeContextValue = AgentHtmlBlockRuntimeState & {
   registerBlockUnit: (path: string, unit: AgentHtmlInteractionUnit) => () => void
   registerOverlayElement: (element: HTMLElement | null) => () => void
   refreshDragIntent: () => void
-  setActivePath: (path: string | null) => void
-  setHoveredPath: (path: string | null) => void
+  setActiveBlock: (block: AgentHtmlBlockRuntimeIdentity | null) => void
+  setHoveredBlock: (block: AgentHtmlBlockRuntimeIdentity | null) => void
   setIndicator: (indicator: AgentHtmlBlockDropIndicator | null) => void
+}
+
+type AgentHtmlBlockRuntimeIdentity = {
+  motionKey: string
+  path: string
 }
 
 type AgentHtmlBlockRuntimeProviderProps = {
@@ -132,6 +137,13 @@ function offsetLayoutRect(
   }
 }
 
+function findPathByMotionKey(
+  units: ReadonlyMap<string, AgentHtmlInteractionUnit>,
+  motionKey: string
+) {
+  return [...units.entries()].find(([, unit]) => unit.motionKey === motionKey)?.[0]
+}
+
 export function AgentHtmlBlockRuntimeProvider({
   children,
   onDropIntent,
@@ -151,8 +163,10 @@ export function AgentHtmlBlockRuntimeProvider({
   const previewsRef = React.useRef(new Map<string, React.ReactNode>())
   const unitsRef = React.useRef(new Map<string, AgentHtmlInteractionUnit>())
   const initialPointerRef = React.useRef<{ x: number; y: number } | null>(null)
-  const [hoveredPath, setHoveredPath] = React.useState<string | null>(null)
-  const [activePath, setActivePath] = React.useState<string | null>(null)
+  const [hoveredBlock, setHoveredBlock] =
+    React.useState<AgentHtmlBlockRuntimeIdentity | null>(null)
+  const [activeBlock, setActiveBlock] =
+    React.useState<AgentHtmlBlockRuntimeIdentity | null>(null)
   const [activePreview, setActivePreview] = React.useState<ActivePreview | null>(
     null
   )
@@ -240,8 +254,16 @@ export function AgentHtmlBlockRuntimeProvider({
   }, [])
 
   const getHoveredBlockElement = React.useCallback(() => {
-    return hoveredPath ? elementsRef.current.get(hoveredPath) ?? null : null
-  }, [hoveredPath])
+    if (!hoveredBlock) {
+      return null
+    }
+
+    const currentPath =
+      findPathByMotionKey(unitsRef.current, hoveredBlock.motionKey) ??
+      hoveredBlock.path
+
+    return elementsRef.current.get(currentPath) ?? null
+  }, [hoveredBlock])
 
   const getVisibleBlockRects = React.useCallback(() => {
     return [...elementsRef.current.values()]
@@ -486,7 +508,12 @@ export function AgentHtmlBlockRuntimeProvider({
       }
     }
 
-    setActivePath(sourcePath)
+    const sourceUnit = unitsRef.current.get(sourcePath)
+
+    setActiveBlock({
+      motionKey: sourceUnit?.motionKey ?? sourcePath,
+      path: sourcePath,
+    })
     activePathRef.current = sourcePath
     dragCandidateRectsRef.current = captureDragCandidates()
     lastPointerRef.current =
@@ -508,7 +535,7 @@ export function AgentHtmlBlockRuntimeProvider({
         : null
     )
     setLandingPreview(null)
-    setHoveredPath(null)
+    setHoveredBlock(null)
     setIndicator(null)
   }, [])
 
@@ -556,7 +583,7 @@ export function AgentHtmlBlockRuntimeProvider({
       activePathRef.current = null
       dragCandidateRectsRef.current = null
       lastPointerRef.current = null
-      setActivePath(null)
+      setActiveBlock(null)
       setActivePreview(null)
       setIndicator(null)
     },
@@ -574,41 +601,54 @@ export function AgentHtmlBlockRuntimeProvider({
     activePathRef.current = null
     dragCandidateRectsRef.current = null
     lastPointerRef.current = null
-    setActivePath(null)
+    setActiveBlock(null)
     setActivePreview(null)
     setLandingPreview(null)
     setIndicator(null)
   }, [])
 
   const value = React.useMemo<AgentHtmlBlockRuntimeContextValue>(
-    () => ({
-      activePath,
-      clearIndicator,
-      getBlockElement,
-      getBlockElements,
-      getHoveredBlockElement,
-      getOverlayElement,
-      getVisibleBlockRects,
-      hoveredPath,
-      indicator,
-      registerBlockElement,
-      registerBlockPreview,
-      registerBlockUnit,
-      registerOverlayElement,
-      refreshDragIntent,
-      setActivePath,
-      setHoveredPath,
-      setIndicator,
-    }),
+    () => {
+      const activePath = activeBlock
+        ? (findPathByMotionKey(unitsRef.current, activeBlock.motionKey) ??
+          activeBlock.path)
+        : null
+      const hoveredPath = hoveredBlock
+        ? (findPathByMotionKey(unitsRef.current, hoveredBlock.motionKey) ??
+          hoveredBlock.path)
+        : null
+
+      return {
+        activeMotionKey: activeBlock?.motionKey ?? null,
+        activePath,
+        clearIndicator,
+        getBlockElement,
+        getBlockElements,
+        getHoveredBlockElement,
+        getOverlayElement,
+        getVisibleBlockRects,
+        hoveredMotionKey: hoveredBlock?.motionKey ?? null,
+        hoveredPath,
+        indicator,
+        registerBlockElement,
+        registerBlockPreview,
+        registerBlockUnit,
+        registerOverlayElement,
+        refreshDragIntent,
+        setActiveBlock,
+        setHoveredBlock,
+        setIndicator,
+      }
+    },
     [
-      activePath,
+      activeBlock,
       clearIndicator,
       getBlockElement,
       getBlockElements,
       getHoveredBlockElement,
       getOverlayElement,
       getVisibleBlockRects,
-      hoveredPath,
+      hoveredBlock,
       indicator,
       registerBlockElement,
       registerBlockPreview,
@@ -629,7 +669,7 @@ export function AgentHtmlBlockRuntimeProvider({
       <AgentHtmlBlockRuntimeContext value={value}>
         {children}
         <DragOverlay dropAnimation={null}>
-          {activePath ? (
+          {activeBlock ? (
             <div
               className={cn(
                 "pointer-events-none overflow-hidden rounded-[18px] bg-background/92 text-foreground shadow-[0_22px_48px_-24px_color-mix(in_oklab,var(--foreground)_45%,transparent)] backdrop-blur",

@@ -107,7 +107,7 @@ function highlightBlock(
     return context.renderBlockWrapper({
       children: rendered,
       className: "",
-      key,
+      key: unit.motionKey,
       path,
       unit,
     })

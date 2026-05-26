@@ -214,6 +214,15 @@ function applyMove(
     throw new Error("Cannot create columns around the root Agent-HTML element")
   }
 
+  if (currentTarget.parent.tag === "Grid") {
+    insertAt(
+      currentTarget.parent,
+      currentTarget.index + (intent.type === "column-after" ? 1 : 0),
+      moved
+    )
+    return
+  }
+
   const targetNode = currentTarget.node
   const orderedChildren =
     intent.type === "column-before" ? [moved, targetNode] : [targetNode, moved]

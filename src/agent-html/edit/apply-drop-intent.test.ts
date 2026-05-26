@@ -169,6 +169,60 @@ describe("applyAgentHtmlDropIntent", () => {
     expect(serializeAgentHtml(next)).toBe(source)
   })
 
+  it("extends an existing grid instead of nesting a new grid", () => {
+    const document = parseAgentHtml(`<Page title="Extend grid">
+  <Stack>
+    <Grid columns="2">
+      <Text>A</Text>
+      <Text>B</Text>
+    </Grid>
+    <Text>C</Text>
+  </Stack>
+</Page>`)
+
+    const next = applyAgentHtmlDropIntent(document, {
+      sourcePath: "/Page/Stack[0]/Text[0]",
+      intent: {
+        type: "column-after",
+        targetPath: "/Page/Stack[0]/Grid[0]/Text[1]",
+      },
+    })
+    const serialized = serializeAgentHtml(next)
+
+    expect(serialized).toContain(`<Grid columns="3">`)
+    expect(serialized).toContain(
+      `<Text>A</Text>\n      <Text>B</Text>\n      <Text>C</Text>`
+    )
+    expect(serialized.match(/<Grid/g)).toHaveLength(1)
+  })
+
+  it("inserts into the middle of an existing grid", () => {
+    const document = parseAgentHtml(`<Page title="Insert grid">
+  <Stack>
+    <Grid columns="2">
+      <Text>A</Text>
+      <Text>C</Text>
+    </Grid>
+    <Text>B</Text>
+  </Stack>
+</Page>`)
+
+    const next = applyAgentHtmlDropIntent(document, {
+      sourcePath: "/Page/Stack[0]/Text[0]",
+      intent: {
+        type: "column-before",
+        targetPath: "/Page/Stack[0]/Grid[0]/Text[1]",
+      },
+    })
+    const serialized = serializeAgentHtml(next)
+
+    expect(serialized).toContain(`<Grid columns="3">`)
+    expect(serialized).toContain(
+      `<Text>A</Text>\n      <Text>B</Text>\n      <Text>C</Text>`
+    )
+    expect(serialized.match(/<Grid/g)).toHaveLength(1)
+  })
+
   it("removes empty layout containers after a drop", () => {
     const document = parseAgentHtml(`<Page title="Empty">
   <Stack>
