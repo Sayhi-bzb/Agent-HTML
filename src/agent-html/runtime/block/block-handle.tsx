@@ -1,42 +1,59 @@
 import type { DraggableAttributes, useDraggable } from "@dnd-kit/core"
+import { GripVerticalIcon, PlusIcon } from "lucide-react"
 
 import { cn } from "@/agent-html/lib/utils"
+
+const agentHtmlBlockHandleButtonClassName = cn(
+  "grid size-6 place-items-center",
+  "text-foreground/40 opacity-0 transition-opacity duration-150",
+  "hover:text-foreground/70",
+  "group-hover/agent-html-block:opacity-100 group-focus-within/agent-html-block:opacity-100"
+)
 
 export function AgentHtmlBlockHandle({
   attributes,
   listeners,
+  onInputTrigger,
   path,
 }: {
   attributes: DraggableAttributes
   listeners: ReturnType<typeof useDraggable>["listeners"]
+  onInputTrigger?: (element: HTMLButtonElement) => void
   path: string
 }) {
   return (
-    <button
-      aria-label="Block actions"
-      className={cn(
-        "absolute top-1/2 -left-6 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-md",
-        "cursor-grab text-foreground/40 opacity-0 transition-opacity duration-150",
-        "hover:bg-foreground/5 hover:text-foreground/70 active:cursor-grabbing",
-        "group-hover/agent-html-block:opacity-100 group-focus-within/agent-html-block:opacity-100"
-      )}
-      data-agent-html-block-handle="true"
-      data-agent-html-block-handle-path={path}
-      type="button"
-      {...attributes}
-      {...listeners}
-    >
-      <span
-        aria-hidden="true"
-        className="grid grid-cols-2 gap-0.5"
+    <div className="absolute top-1/2 -left-6 z-10 grid -translate-y-10 grid-rows-[1.5rem_1.5rem] gap-1">
+      <button
+        aria-label="Open block input"
+        className={cn(agentHtmlBlockHandleButtonClassName, "cursor-pointer")}
+        data-agent-html-block-input-trigger="true"
+        data-agent-html-block-input-trigger-path={path}
+        onClick={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          onInputTrigger?.(event.currentTarget)
+        }}
+        onPointerDown={(event) => {
+          event.stopPropagation()
+        }}
+        type="button"
       >
-        <i className="size-1 rounded-full bg-current" />
-        <i className="size-1 rounded-full bg-current" />
-        <i className="size-1 rounded-full bg-current" />
-        <i className="size-1 rounded-full bg-current" />
-        <i className="size-1 rounded-full bg-current" />
-        <i className="size-1 rounded-full bg-current" />
-      </span>
-    </button>
+        <PlusIcon aria-hidden="true" className="size-4" />
+      </button>
+      <button
+        aria-label="Block actions"
+        className={cn(
+          agentHtmlBlockHandleButtonClassName,
+          "cursor-grab active:cursor-grabbing"
+        )}
+        data-agent-html-block-handle="true"
+        data-agent-html-block-handle-path={path}
+        type="button"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVerticalIcon aria-hidden="true" className="size-4" />
+      </button>
+    </div>
   )
 }

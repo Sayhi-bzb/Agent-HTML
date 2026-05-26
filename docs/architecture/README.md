@@ -4,6 +4,8 @@
 
 This document defines the engineering structure of the Agent-HTML app. It owns
 module boundaries, dependency direction, and structural change rules.
+Runtime gesture and hit-testing boundaries are defined in
+[`runtime-interactions.md`](./runtime-interactions.md).
 
 It does not define product purpose, visual design, component styling, or usage
 instructions. Product direction belongs in [`blueprint/index.md`](../blueprint/index.md).
@@ -147,6 +149,12 @@ Before making structural changes, classify the change by owner:
 Do not fix a surface by bypassing its owning layer. If a change requires behavior
 from another layer, move the behavior to the appropriate shared owner and have
 the surface consume it through that boundary.
+
+Runtime interactions that combine pointer movement, scroll, floating layers, or
+layout feedback must follow
+[`runtime-interactions.md`](./runtime-interactions.md). In particular, runtime
+hit-testing should use browser client pointers and live DOM geometry instead of
+third-party drag transforms or overlay positions.
 
 ## Non-Goals
 

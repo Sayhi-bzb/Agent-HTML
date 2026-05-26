@@ -9,10 +9,12 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core"
+import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/react"
 
 import type { AgentHtmlDropIntent } from "@/agent-html/edit/types"
 import type { AgentHtmlInteractionUnit } from "@/agent-html/interaction/types"
 import { cn } from "@/agent-html/lib/utils"
+import { AgentHtmlBlockInputGroup } from "@/agent-html/runtime/block/block-input-group"
 import { inferAgentHtmlDropIntentFromPointer } from "@/agent-html/runtime/block/drag-intent"
 import {
   getAgentHtmlBlockLayoutKeyframes,
@@ -28,6 +30,7 @@ import type {
 
 type AgentHtmlBlockRuntimeContextValue = AgentHtmlBlockRuntimeState & {
   clearIndicator: () => void
+  closeBlockInput: () => void
   getBlockElement: (path: string) => HTMLElement | null
   getBlockElements: () => HTMLElement[]
   getHoveredBlockElement: () => HTMLElement | null
@@ -40,6 +43,7 @@ type AgentHtmlBlockRuntimeContextValue = AgentHtmlBlockRuntimeState & {
   registerBlockPreview: (path: string, preview: React.ReactNode) => () => void
   registerBlockUnit: (path: string, unit: AgentHtmlInteractionUnit) => () => void
   registerOverlayElement: (element: HTMLElement | null) => () => void
+  openBlockInput: (path: string, anchorElement: HTMLElement) => void
   refreshDragIntent: () => void
   setActiveBlock: (block: AgentHtmlBlockRuntimeIdentity | null) => void
   setHoveredBlock: (block: AgentHtmlBlockRuntimeIdentity | null) => void
@@ -49,6 +53,11 @@ type AgentHtmlBlockRuntimeContextValue = AgentHtmlBlockRuntimeState & {
 type AgentHtmlBlockRuntimeIdentity = {
   motionKey: string
   path: string
+}
+
+type AgentHtmlClientPointer = {
+  x: number
+  y: number
 }
 
 type AgentHtmlBlockRuntimeProviderProps = {
@@ -71,6 +80,16 @@ type LandingPreview = {
   fromRect: AgentHtmlBlockLayoutRect
   motionKey: string
   node: React.ReactNode
+}
+
+type BlockInputPopover = {
+  anchorElement: HTMLElement
+  path: string
+}
+
+type BlockInputPopoverPlacement = {
+  left: number
+  top: number
 }
 
 const layoutTransitionOptions = {
@@ -149,7 +168,7 @@ export function AgentHtmlBlockRuntimeProvider({
 }: AgentHtmlBlockRuntimeProviderProps) {
   const elementsRef = React.useRef(new Map<string, HTMLElement>())
   const activePathRef = React.useRef<string | null>(null)
-  const lastPointerRef = React.useRef<{ x: number; y: number } | null>(null)
+  const lastClientPointerRef = React.useRef<AgentHtmlClientPointer | null>(null)
   const overlayElementRef = React.useRef<HTMLElement | null>(null)
   const pendingLayoutSnapshotRef = React.useRef<
     AgentHtmlBlockLayoutSnapshot[] | null
@@ -158,7 +177,10 @@ export function AgentHtmlBlockRuntimeProvider({
   const pendingLayoutFrameRef = React.useRef<number | null>(null)
   const previewsRef = React.useRef(new Map<string, React.ReactNode>())
   const unitsRef = React.useRef(new Map<string, AgentHtmlInteractionUnit>())
-  const initialPointerRef = React.useRef<{ x: number; y: number } | null>(null)
+  const initialClientPointerRef =
+    React.useRef<AgentHtmlClientPointer | null>(null)
+  const blockInputPopoverRef = React.useRef<HTMLDivElement | null>(null)
+  const cleanupBlockInputAutoUpdateRef = React.useRef<(() => void) | null>(null)
   const [hoveredBlock, setHoveredBlock] =
     React.useState<AgentHtmlBlockRuntimeIdentity | null>(null)
   const [activeBlock, setActiveBlock] =
@@ -173,6 +195,10 @@ export function AgentHtmlBlockRuntimeProvider({
   const [landingMotionKey, setLandingMotionKey] = React.useState<string | null>(
     null
   )
+  const [blockInputPopover, setBlockInputPopover] =
+    React.useState<BlockInputPopover | null>(null)
+  const [blockInputPopoverPlacement, setBlockInputPopoverPlacement] =
+    React.useState<BlockInputPopoverPlacement | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -271,6 +297,29 @@ export function AgentHtmlBlockRuntimeProvider({
     setIndicator(null)
   }, [])
 
+  const closeBlockInput = React.useCallback(() => {
+    cleanupBlockInputAutoUpdateRef.current?.()
+    cleanupBlockInputAutoUpdateRef.current = null
+    setBlockInputPopover(null)
+    setBlockInputPopoverPlacement(null)
+  }, [])
+
+  const openBlockInput = React.useCallback(
+    (path: string, anchorElement: HTMLElement) => {
+      setBlockInputPopover((current) => {
+        if (
+          current?.path === path &&
+          current.anchorElement === anchorElement
+        ) {
+          return null
+        }
+
+        return { anchorElement, path }
+      })
+    },
+    []
+  )
+
   const captureDragCandidates = React.useCallback(() => {
     return [...elementsRef.current.entries()].map(([path, element]) => {
       const rect = element.getBoundingClientRect()
@@ -291,7 +340,7 @@ export function AgentHtmlBlockRuntimeProvider({
   }, [])
 
   const inferIntent = React.useCallback(
-    (sourcePath: string, pointer: { x: number; y: number }) => {
+    (sourcePath: string, pointer: AgentHtmlClientPointer) => {
       return inferAgentHtmlDropIntentFromPointer({
         candidates: captureDragCandidates(),
         pointer,
@@ -299,22 +348,6 @@ export function AgentHtmlBlockRuntimeProvider({
       })
     },
     [captureDragCandidates]
-  )
-
-  const getEventPointer = React.useCallback(
-    (event: DragMoveEvent | DragEndEvent) => {
-      const initialPointer = initialPointerRef.current
-
-      if (!initialPointer) {
-        return null
-      }
-
-      return {
-        x: initialPointer.x + event.delta.x,
-        y: initialPointer.y + event.delta.y,
-      }
-    },
-    []
   )
 
   const setIndicatorFromIntent = React.useCallback(
@@ -331,7 +364,7 @@ export function AgentHtmlBlockRuntimeProvider({
 
   const refreshDragIntent = React.useCallback(() => {
     const sourcePath = activePathRef.current
-    const pointer = lastPointerRef.current
+    const pointer = lastClientPointerRef.current
 
     if (!sourcePath || !pointer) {
       setIndicator(null)
@@ -340,6 +373,25 @@ export function AgentHtmlBlockRuntimeProvider({
 
     setIndicatorFromIntent(inferIntent(sourcePath, pointer))
   }, [inferIntent, setIndicatorFromIntent])
+
+  const updateDragClientPointer = React.useCallback(
+    (event: Pick<PointerEvent | MouseEvent, "clientX" | "clientY">) => {
+      const sourcePath = activePathRef.current
+
+      if (!sourcePath) {
+        return
+      }
+
+      const pointer = {
+        x: event.clientX,
+        y: event.clientY,
+      }
+
+      lastClientPointerRef.current = pointer
+      setIndicatorFromIntent(inferIntent(sourcePath, pointer))
+    },
+    [inferIntent, setIndicatorFromIntent]
+  )
 
   const captureLayoutSnapshot = React.useCallback(() => {
     pendingLayoutSnapshotRef.current = canAnimateLayout()
@@ -467,6 +519,8 @@ export function AgentHtmlBlockRuntimeProvider({
 
   React.useEffect(() => {
     return () => {
+      cleanupBlockInputAutoUpdateRef.current?.()
+
       if (pendingLayoutFrameRef.current) {
         window.cancelAnimationFrame(pendingLayoutFrameRef.current)
       }
@@ -478,6 +532,84 @@ export function AgentHtmlBlockRuntimeProvider({
   }, [])
 
   React.useLayoutEffect(() => {
+    cleanupBlockInputAutoUpdateRef.current?.()
+    cleanupBlockInputAutoUpdateRef.current = null
+
+    if (!blockInputPopover) {
+      setBlockInputPopoverPlacement(null)
+      return
+    }
+
+    const updateBlockInputPlacement = () => {
+      const floatingElement = blockInputPopoverRef.current
+
+      if (!floatingElement || !blockInputPopover.anchorElement.isConnected) {
+        closeBlockInput()
+        return
+      }
+
+      void computePosition(blockInputPopover.anchorElement, floatingElement, {
+        middleware: [offset(12), flip(), shift({ padding: 12 })],
+        placement: "right-start",
+        strategy: "fixed",
+      }).then(({ x, y }) => {
+        setBlockInputPopoverPlacement({ left: x, top: y })
+      })
+    }
+
+    cleanupBlockInputAutoUpdateRef.current = autoUpdate(
+      blockInputPopover.anchorElement,
+      blockInputPopoverRef.current ?? blockInputPopover.anchorElement,
+      updateBlockInputPlacement
+    )
+    updateBlockInputPlacement()
+
+    return () => {
+      cleanupBlockInputAutoUpdateRef.current?.()
+      cleanupBlockInputAutoUpdateRef.current = null
+    }
+  }, [blockInputPopover, closeBlockInput])
+
+  React.useEffect(() => {
+    if (!blockInputPopover) {
+      return
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target
+
+      if (!(target instanceof Node)) {
+        return
+      }
+
+      if (
+        blockInputPopover.anchorElement.contains(target) ||
+        blockInputPopoverRef.current?.contains(target)
+      ) {
+        return
+      }
+
+      closeBlockInput()
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeBlockInput()
+      }
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown, { capture: true })
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown, {
+        capture: true,
+      })
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [blockInputPopover, closeBlockInput])
+
+  React.useLayoutEffect(() => {
     runPendingLayoutTransition()
   })
 
@@ -485,12 +617,36 @@ export function AgentHtmlBlockRuntimeProvider({
     runLandingTransition()
   }, [runLandingTransition])
 
+  React.useEffect(() => {
+    if (!activeBlock) {
+      return
+    }
+
+    // Block hit-testing must use browser client coordinates, not dnd-kit
+    // scroll-adjusted drag deltas or overlay transforms.
+    window.addEventListener("pointermove", updateDragClientPointer, {
+      capture: true,
+    })
+    window.addEventListener("mousemove", updateDragClientPointer, {
+      capture: true,
+    })
+
+    return () => {
+      window.removeEventListener("pointermove", updateDragClientPointer, {
+        capture: true,
+      })
+      window.removeEventListener("mousemove", updateDragClientPointer, {
+        capture: true,
+      })
+    }
+  }, [activeBlock, updateDragClientPointer])
+
   const handleDragStart = React.useCallback((event: DragStartEvent) => {
     const sourcePath = String(event.active.id)
     const activatorEvent = event.activatorEvent
 
     if ("clientX" in activatorEvent && "clientY" in activatorEvent) {
-      initialPointerRef.current = {
+      initialClientPointerRef.current = {
         x: activatorEvent.clientX,
         y: activatorEvent.clientY,
       }
@@ -503,7 +659,7 @@ export function AgentHtmlBlockRuntimeProvider({
       path: sourcePath,
     })
     activePathRef.current = sourcePath
-    lastPointerRef.current =
+    lastClientPointerRef.current =
       "clientX" in activatorEvent && "clientY" in activatorEvent
         ? {
             x: activatorEvent.clientX,
@@ -524,42 +680,42 @@ export function AgentHtmlBlockRuntimeProvider({
     setLandingPreview(null)
     setLandingMotionKey(null)
     setHoveredBlock(null)
+    closeBlockInput()
     setIndicator(null)
-  }, [])
+  }, [closeBlockInput])
 
   const handleDragMove = React.useCallback(
     (event: DragMoveEvent) => {
       const sourcePath = String(event.active.id)
-      const pointer = getEventPointer(event)
+      const pointer = lastClientPointerRef.current
 
       if (!pointer) {
         setIndicator(null)
         return
       }
 
-      lastPointerRef.current = pointer
       setIndicatorFromIntent(inferIntent(sourcePath, pointer))
     },
-    [getEventPointer, inferIntent, setIndicatorFromIntent]
+    [inferIntent, setIndicatorFromIntent]
   )
 
   const handleDragEnd = React.useCallback(
     (event: DragEndEvent) => {
       const sourcePath = String(event.active.id)
-      const pointer = lastPointerRef.current ?? getEventPointer(event)
+      const pointer = lastClientPointerRef.current
       const intent = pointer ? inferIntent(sourcePath, pointer) : null
 
       if (intent) {
         const sourceUnit = unitsRef.current.get(sourcePath)
-        const initialPointer = initialPointerRef.current
+        const initialClientPointer = initialClientPointerRef.current
 
         captureLayoutSnapshot()
-        if (activePreview && sourceUnit?.motionKey && initialPointer) {
+        if (activePreview && sourceUnit?.motionKey && initialClientPointer) {
           setLandingMotionKey(sourceUnit.motionKey)
           setLandingPreview({
             fromRect: offsetLayoutRect(activePreview.rect, {
-              x: pointer.x - initialPointer.x,
-              y: pointer.y - initialPointer.y,
+              x: pointer.x - initialClientPointer.x,
+              y: pointer.y - initialClientPointer.y,
             }),
             motionKey: sourceUnit.motionKey,
             node: activePreview.node,
@@ -568,9 +724,9 @@ export function AgentHtmlBlockRuntimeProvider({
         onDropIntent?.({ intent, sourcePath })
       }
 
-      initialPointerRef.current = null
+      initialClientPointerRef.current = null
       activePathRef.current = null
-      lastPointerRef.current = null
+      lastClientPointerRef.current = null
       setActiveBlock(null)
       setActivePreview(null)
       setIndicator(null)
@@ -578,22 +734,22 @@ export function AgentHtmlBlockRuntimeProvider({
     [
       activePreview,
       captureLayoutSnapshot,
-      getEventPointer,
       inferIntent,
       onDropIntent,
     ]
   )
 
   const handleDragCancel = React.useCallback(() => {
-    initialPointerRef.current = null
+    initialClientPointerRef.current = null
     activePathRef.current = null
-    lastPointerRef.current = null
+    lastClientPointerRef.current = null
     setActiveBlock(null)
     setActivePreview(null)
     setLandingPreview(null)
     setLandingMotionKey(null)
     setIndicator(null)
-  }, [])
+    closeBlockInput()
+  }, [closeBlockInput])
 
   const value = React.useMemo<AgentHtmlBlockRuntimeContextValue>(
     () => {
@@ -610,6 +766,7 @@ export function AgentHtmlBlockRuntimeProvider({
         activeMotionKey: activeBlock?.motionKey ?? null,
         activePath,
         clearIndicator,
+        closeBlockInput,
         getBlockElement,
         getBlockElements,
         getHoveredBlockElement,
@@ -619,6 +776,7 @@ export function AgentHtmlBlockRuntimeProvider({
         hoveredPath,
         indicator,
         landingMotionKey,
+        openBlockInput,
         registerBlockElement,
         registerBlockPreview,
         registerBlockUnit,
@@ -632,6 +790,7 @@ export function AgentHtmlBlockRuntimeProvider({
     [
       activeBlock,
       clearIndicator,
+      closeBlockInput,
       getBlockElement,
       getBlockElements,
       getHoveredBlockElement,
@@ -640,6 +799,7 @@ export function AgentHtmlBlockRuntimeProvider({
       hoveredBlock,
       indicator,
       landingMotionKey,
+      openBlockInput,
       registerBlockElement,
       registerBlockPreview,
       registerBlockUnit,
@@ -692,6 +852,27 @@ export function AgentHtmlBlockRuntimeProvider({
             }}
           >
             <div className="p-0">{landingPreview.node}</div>
+          </div>
+        ) : null}
+        {blockInputPopover ? (
+          <div
+            className={cn(
+              "fixed z-50 w-[min(360px,calc(100vw-24px))]",
+              blockInputPopoverPlacement ? "opacity-100" : "opacity-0"
+            )}
+            data-agent-html-block-input-popover="true"
+            data-agent-html-block-input-path={blockInputPopover.path}
+            ref={blockInputPopoverRef}
+            style={{
+              left: blockInputPopoverPlacement?.left ?? 0,
+              top: blockInputPopoverPlacement?.top ?? 0,
+            }}
+          >
+            <AgentHtmlBlockInputGroup
+              onPointerDown={(event) => {
+                event.stopPropagation()
+              }}
+            />
           </div>
         ) : null}
       </AgentHtmlBlockRuntimeContext>

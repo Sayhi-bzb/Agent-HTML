@@ -9,6 +9,7 @@ This directory contains project documentation grouped by ownership boundary.
 ## Engineering
 
 - [Architecture](./architecture/README.md): module ownership, dependency direction, and structural change rules.
+- [Runtime interactions](./architecture/runtime-interactions.md): runtime gesture, hit-testing, and scroll-aware interaction rules.
 
 ## Design
 

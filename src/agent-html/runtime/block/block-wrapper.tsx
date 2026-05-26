@@ -42,6 +42,7 @@ export function AgentHtmlBlockWrapper({
     activePath,
     hoveredMotionKey,
     landingMotionKey,
+    openBlockInput,
     registerBlockElement,
     registerBlockPreview,
     registerBlockUnit,
@@ -99,6 +100,13 @@ export function AgentHtmlBlockWrapper({
     [setHoveredBlock]
   )
 
+  const handleInputTrigger = React.useCallback(
+    (element: HTMLButtonElement) => {
+      openBlockInput(path, element)
+    },
+    [openBlockInput, path]
+  )
+
   return (
     <div
       className={cn(
@@ -119,6 +127,7 @@ export function AgentHtmlBlockWrapper({
       <AgentHtmlBlockHandle
         attributes={attributes}
         listeners={listeners}
+        onInputTrigger={handleInputTrigger}
         path={path}
       />
       {children}
