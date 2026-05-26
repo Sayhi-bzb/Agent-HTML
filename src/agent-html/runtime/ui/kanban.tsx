@@ -295,9 +295,10 @@ function KanbanColumnView({ column }: { column: KanbanColumnData }) {
 
   return (
     <section
-      className="flex min-w-64 flex-col rounded-xl border bg-muted/40 p-3 transition-colors duration-150"
+      className="flex min-h-40 min-w-64 flex-col rounded-xl border bg-muted/40 p-3 transition-colors duration-150"
       data-slot="kanban-column"
       data-value={column.value}
+      ref={setNodeRef}
     >
       <div
         className="mb-3 flex items-center justify-between gap-3"
@@ -311,9 +312,8 @@ function KanbanColumnView({ column }: { column: KanbanColumnData }) {
         strategy={verticalListSortingStrategy}
       >
         <div
-          className="flex min-h-24 flex-col gap-2"
+          className="flex min-h-24 flex-1 flex-col gap-2"
           data-slot="kanban-column-content"
-          ref={setNodeRef}
         >
           {column.items.map((item) => (
             <SortableKanbanItem item={item} key={item.value} />
