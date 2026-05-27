@@ -24,6 +24,7 @@ import {
 import { AppSidebar } from "@/app/shell/app-sidebar"
 import { SiteHeader } from "@/app/shell/site-header"
 import { useTheme } from "@/app/shared/theme-provider"
+import { closeWindow } from "@/app/shared/lib/window-controls"
 import { SidebarInset, SidebarProvider } from "@/app/shared/ui/sidebar"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
 import { defaultWorkspaceSectionId } from "@/app/workspace/seed"
@@ -144,6 +145,8 @@ export function App() {
   const [workspaceActionError, setWorkspaceActionError] = React.useState<
     string | null
   >(null)
+  const [workspaceSaveAttentionToken, setWorkspaceSaveAttentionToken] =
+    React.useState(0)
   const [workspaceHasUnsavedChanges, setWorkspaceHasUnsavedChanges] =
     React.useState(false)
   const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
@@ -277,35 +280,6 @@ export function App() {
     }))
   }, [openTabs, surfaceMode])
 
-  const handleOpenProject = React.useCallback(
-    (projectId: string) => {
-      const project = projects.find((item) => item.id === projectId)
-      if (!project) {
-        return
-      }
-
-      const tabId = `project:${project.id}`
-
-      setOpenTabs((currentTabs) => {
-        if (currentTabs.some((tab) => tab.id === tabId)) {
-          return currentTabs
-        }
-
-        return [
-          ...currentTabs,
-          {
-            id: tabId,
-            label: project.name,
-            projectId: project.id,
-            slug: project.slug,
-          },
-        ]
-      })
-      setActiveTabId(tabId)
-    },
-    [projects]
-  )
-
   const handleCreateProject = React.useCallback(
     async ({ name }: { name: string }) => {
       const project = await workspaceRepository.createProject({ name })
@@ -337,8 +311,53 @@ export function App() {
     setWorkspaceActionError(
       "Save current section before editing workspace structure."
     )
+    setWorkspaceSaveAttentionToken((current) => current + 1)
     return true
   }, [workspaceHasUnsavedChanges])
+
+  const guardWorkspaceDocumentNavigation = React.useCallback(() => {
+    if (!workspaceHasUnsavedChanges) {
+      setWorkspaceActionError(null)
+      return false
+    }
+
+    setWorkspaceActionError("Save current section before leaving this document.")
+    setWorkspaceSaveAttentionToken((current) => current + 1)
+    return true
+  }, [workspaceHasUnsavedChanges])
+
+  const handleOpenProject = React.useCallback(
+    (projectId: string) => {
+      if (projectId !== activeProject?.id && guardWorkspaceDocumentNavigation()) {
+        return
+      }
+
+      const project = projects.find((item) => item.id === projectId)
+      if (!project) {
+        return
+      }
+
+      const tabId = `project:${project.id}`
+
+      setOpenTabs((currentTabs) => {
+        if (currentTabs.some((tab) => tab.id === tabId)) {
+          return currentTabs
+        }
+
+        return [
+          ...currentTabs,
+          {
+            id: tabId,
+            label: project.name,
+            projectId: project.id,
+            slug: project.slug,
+          },
+        ]
+      })
+      setActiveTabId(tabId)
+    },
+    [activeProject?.id, guardWorkspaceDocumentNavigation, projects]
+  )
 
   const handleRenameProject = React.useCallback(
     async ({ name, projectId }: { name: string; projectId: string }) => {
@@ -555,13 +574,29 @@ export function App() {
 
   const handleSelectWorkspaceSection = React.useCallback(
     (sectionId: string) => {
+      if (sectionId === activeWorkspaceSectionId) {
+        return
+      }
+
+      if (guardWorkspaceDocumentNavigation()) {
+        return
+      }
+
       setActiveWorkspaceSectionId(sectionId)
     },
-    []
+    [activeWorkspaceSectionId, guardWorkspaceDocumentNavigation]
   )
 
   const handleSelectTab = React.useCallback(
     (tabId: string) => {
+      if (tabId === activeTabId && surfaceMode !== "gallery") {
+        return
+      }
+
+      if (surfaceMode !== "gallery" && guardWorkspaceDocumentNavigation()) {
+        return
+      }
+
       if (surfaceMode === "gallery") {
         const nextSceneId = galleryScenes.some((scene) => scene.id === tabId)
           ? tabId
@@ -579,10 +614,20 @@ export function App() {
       setActiveTabId(tabId)
       setActiveWorkspaceSectionId(getDefaultSectionId(nextProject ?? null))
     },
-    [openTabs, projects, surfaceMode]
+    [
+      activeTabId,
+      guardWorkspaceDocumentNavigation,
+      openTabs,
+      projects,
+      surfaceMode,
+    ]
   )
 
   const handleCloseTab = React.useCallback((tabId: string) => {
+    if (tabId === activeTabId && guardWorkspaceDocumentNavigation()) {
+      return
+    }
+
     setOpenTabs((currentTabs) => {
       if (!currentTabs.some((tab) => tab.id === tabId)) {
         return currentTabs
@@ -597,15 +642,27 @@ export function App() {
 
       return nextTabs
     })
-  }, [])
+  }, [activeTabId, guardWorkspaceDocumentNavigation])
 
   const handleEnterGalleryMode = React.useCallback(() => {
+    if (guardWorkspaceDocumentNavigation()) {
+      return
+    }
+
     setSurfaceMode("gallery")
-  }, [])
+  }, [guardWorkspaceDocumentNavigation])
 
   const handleExitGalleryMode = React.useCallback(() => {
     setSurfaceMode("workspace")
   }, [])
+
+  const handleCloseWindow = React.useCallback(() => {
+    if (guardWorkspaceDocumentNavigation()) {
+      return
+    }
+
+    void closeWindow()
+  }, [guardWorkspaceDocumentNavigation])
 
   const handleApplyGalleryTheme = React.useCallback(() => {
     saveAppliedGalleryTheme(galleryThemeDraft)
@@ -675,6 +732,7 @@ export function App() {
   const header = (
     <SiteHeader
       activeTabId={surfaceMode === "gallery" ? activeGallerySceneId : activeTabId}
+      onCloseWindow={handleCloseWindow}
       onCloseTab={handleCloseTab}
       onSelectTab={handleSelectTab}
       tabs={headerTabs}
@@ -699,6 +757,7 @@ export function App() {
               canSave={workspaceCanWrite}
               onCreateSection={handleCreateProjectSection}
               onDirtyChange={setWorkspaceHasUnsavedChanges}
+              saveAttentionToken={workspaceSaveAttentionToken}
               workspaceActionError={workspaceActionError}
             />
           )}

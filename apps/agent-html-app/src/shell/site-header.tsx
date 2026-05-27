@@ -3,7 +3,6 @@ import { useSidebar } from "@/app/shared/ui/sidebar"
 import { Tabs, TabsList, TabsTrigger } from "@/app/shared/ui/tabs"
 import { cn } from "@/app/shared/lib/utils"
 import {
-  closeWindow,
   getDragRegionProps,
   isDesktopRuntime,
   minimizeWindow,
@@ -33,11 +32,13 @@ const activeTabTriggerClassName =
 
 export function SiteHeader({
   activeTabId,
+  onCloseWindow,
   onCloseTab,
   onSelectTab,
   tabs,
 }: {
   activeTabId: string | null
+  onCloseWindow: () => void
   onCloseTab: (tabId: string) => void
   onSelectTab: (tabId: string) => void
   tabs: HeaderTab[]
@@ -159,9 +160,7 @@ export function SiteHeader({
             aria-label="Close window"
             className="h-7 w-7 rounded-md text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive"
             disabled={!desktopRuntime}
-            onClick={() => {
-              void closeWindow()
-            }}
+            onClick={onCloseWindow}
             size="icon-sm"
             type="button"
             variant="ghost"

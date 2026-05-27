@@ -121,6 +121,7 @@ export function WorkspaceSurface({
   canSave,
   onCreateSection,
   onDirtyChange,
+  saveAttentionToken,
   workspaceActionError,
 }: {
   activeProject: WorkspaceProjectView | null
@@ -129,6 +130,7 @@ export function WorkspaceSurface({
   canSave: boolean
   onCreateSection: (input: { projectId: string; title: string }) => Promise<void>
   onDirtyChange: (isDirty: boolean) => void
+  saveAttentionToken: number
   workspaceActionError: string | null
 }) {
   const [documentState, setDocumentState] =
@@ -142,6 +144,8 @@ export function WorkspaceSurface({
   const [createSectionError, setCreateSectionError] = React.useState<
     string | null
   >(null)
+  const [isSaveAttentionActive, setIsSaveAttentionActive] =
+    React.useState(false)
   const lastInteractionRef =
     React.useRef<AgentHtmlAgentInteractionEvent | null>(null)
 
@@ -169,6 +173,22 @@ export function WorkspaceSurface({
   React.useEffect(() => {
     onDirtyChange(saveState.status === "dirty" || saveState.status === "error")
   }, [onDirtyChange, saveState.status])
+
+  React.useEffect(() => {
+    if (
+      saveAttentionToken === 0 ||
+      (saveState.status !== "dirty" && saveState.status !== "error")
+    ) {
+      return
+    }
+
+    setIsSaveAttentionActive(true)
+    const timeout = window.setTimeout(() => {
+      setIsSaveAttentionActive(false)
+    }, 1400)
+
+    return () => window.clearTimeout(timeout)
+  }, [saveAttentionToken, saveState.status])
 
   const handleDropIntent = React.useCallback(
     ({
@@ -401,7 +421,12 @@ export function WorkspaceSurface({
       </AgentHtmlBlockRuntimeProvider>
       {saveState.status !== "clean" ? (
         <div
-          className="fixed right-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-xs text-foreground shadow-lg"
+          className={[
+            "fixed right-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-xs text-foreground shadow-lg transition-[box-shadow,border-color,background-color]",
+            isSaveAttentionActive
+              ? "border-primary/70 bg-primary/5 shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)]"
+              : "",
+          ].join(" ")}
           role="status"
         >
           <span>

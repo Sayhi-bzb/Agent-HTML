@@ -34,7 +34,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/app/shared/ui/sidebar"
-import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
+import {
+  ChevronRightIcon,
+  CopyIcon,
+  MoreHorizontalIcon,
+  PlusIcon,
+} from "lucide-react"
 
 import type { WorkspaceSection } from "@/app/workspace/types"
 
@@ -226,6 +231,31 @@ function ProjectActionMenu({
   )
 }
 
+function ProjectQuickActions({
+  canEdit,
+  onNewSection,
+}: {
+  canEdit: boolean
+  onNewSection: () => void
+}) {
+  return (
+    <button
+      aria-label="New section"
+      className="absolute top-1.5 right-7 flex size-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-0 outline-hidden transition-opacity after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring group-focus-within/project-row:opacity-100 group-hover/project-row:opacity-100 md:after:hidden [&_svg]:size-4 [&_svg]:shrink-0"
+      disabled={!canEdit}
+      onClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        onNewSection()
+      }}
+      title="New Section"
+      type="button"
+    >
+      <PlusIcon />
+    </button>
+  )
+}
+
 function SectionActionMenu({
   canEdit,
   disabledReason,
@@ -271,6 +301,31 @@ function SectionActionMenu({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+function SectionQuickActions({
+  canEdit,
+  onDuplicate,
+}: {
+  canEdit: boolean
+  onDuplicate: () => void
+}) {
+  return (
+    <button
+      aria-label="Duplicate section"
+      className="absolute top-1.5 right-7 flex size-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-0 outline-hidden transition-opacity after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 md:after:hidden [&_svg]:size-4 [&_svg]:shrink-0"
+      disabled={!canEdit}
+      onClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        onDuplicate()
+      }}
+      title="Duplicate"
+      type="button"
+    >
+      <CopyIcon />
+    </button>
   )
 }
 
@@ -385,7 +440,7 @@ export function NavProjects({
         >
           <SidebarGroup>
             <SidebarGroupLabel
-              className="group/project-row relative gap-0 pr-8 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              className="group/project-row relative gap-0 pr-14 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
               {isEditingProject(editingTarget, project.id) ? (
                 <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -409,9 +464,34 @@ export function NavProjects({
               ) : (
                 <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-2 outline-none">
                   <ChevronRightIcon className="size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                  <span className="truncate">{project.name}</span>
+                  <span
+                    className="truncate"
+                    onDoubleClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      beginStructureEdit(() =>
+                        setEditingTarget({
+                          projectId: project.id,
+                          type: "project",
+                        })
+                      )
+                    }}
+                  >
+                    {project.name}
+                  </span>
                 </CollapsibleTrigger>
               )}
+              <ProjectQuickActions
+                canEdit={canEdit}
+                onNewSection={() => {
+                  beginStructureEdit(() =>
+                    setEditingTarget({
+                      projectId: project.id,
+                      type: "new-section",
+                    })
+                  )
+                }}
+              />
               <ProjectActionMenu
                 canEdit={canEdit}
                 disabledReason={disabledReason}
@@ -448,17 +528,17 @@ export function NavProjects({
                               error={actionError}
                               onCancel={() => setEditingTarget(null)}
                               onSubmit={(title) =>
-                      submitAction(
-                        () =>
-                          onRenameProjectSection({
+                                submitAction(
+                                  () =>
+                                    onRenameProjectSection({
                                       projectId: project.id,
                                       sectionId: item.id,
-                            title,
-                          }),
-                        "Unable to rename section.",
-                        "rename-section"
-                      )
-                    }
+                                      title,
+                                    }),
+                                  "Unable to rename section.",
+                                  "rename-section"
+                                )
+                              }
                               placeholder="Section title"
                               submittingLabel="Renaming..."
                               value={item.title}
@@ -467,6 +547,7 @@ export function NavProjects({
                         </div>
                       ) : (
                         <SidebarMenuButton
+                          className="pr-14"
                           isActive={
                             activeProjectId === project.id &&
                             activeSectionId === item.id
@@ -477,9 +558,40 @@ export function NavProjects({
                           }}
                           type="button"
                         >
-                          <span className="ml-6 truncate">{item.title}</span>
+                          <span
+                            className="ml-6 truncate"
+                            onDoubleClick={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              beginStructureEdit(() =>
+                                setEditingTarget({
+                                  projectId: project.id,
+                                  sectionId: item.id,
+                                  type: "section",
+                                })
+                              )
+                            }}
+                          >
+                            {item.title}
+                          </span>
                         </SidebarMenuButton>
                       )}
+                      <SectionQuickActions
+                        canEdit={canEdit}
+                        onDuplicate={() =>
+                          beginStructureEdit(() =>
+                            submitAction(
+                              () =>
+                                onDuplicateProjectSection({
+                                  projectId: project.id,
+                                  sectionId: item.id,
+                                }),
+                              "Unable to duplicate section.",
+                              "duplicate-section"
+                            ).catch(() => {})
+                          )
+                        }
+                      />
                       <SectionActionMenu
                         canEdit={canEdit}
                         disabledReason={disabledReason}
