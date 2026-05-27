@@ -12,6 +12,7 @@ import type {
 } from "@/app/workspace/types"
 import {
   AgentHtmlBlockRuntimeProvider,
+  type AgentHtmlColorTokenValues,
   AgentHtmlRuntimeTheme,
   AgentHtmlRuntimeViewport,
   applyAgentHtmlDropIntent,
@@ -121,6 +122,7 @@ export function WorkspaceSurface({
   activeSection,
   canEditStructure,
   canSave,
+  colorTokenValues,
   onCreateSection,
   onDirtyChange,
   saveAttentionToken,
@@ -130,6 +132,7 @@ export function WorkspaceSurface({
   activeSection: WorkspaceSection | null
   canEditStructure: boolean
   canSave: boolean
+  colorTokenValues: AgentHtmlColorTokenValues
   onCreateSection: (input: { projectId: string; title: string }) => Promise<void>
   onDirtyChange: (isDirty: boolean) => void
   saveAttentionToken: number
@@ -416,7 +419,10 @@ export function WorkspaceSurface({
   }
 
   return (
-    <AgentHtmlRuntimeTheme className="h-full w-full">
+    <AgentHtmlRuntimeTheme
+      className="h-full w-full"
+      colorTokenValues={colorTokenValues}
+    >
       <AgentHtmlBlockRuntimeProvider
         onDropIntent={handleDropIntent}
         onPromptSubmit={handlePromptSubmit}

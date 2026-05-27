@@ -175,6 +175,24 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error)
 }
 
+function validateSettings(settings: CodexConnectionSettings) {
+  if (!settings.codexCommand.trim()) {
+    throw new Error("Set the Codex command before connecting.")
+  }
+
+  if (!settings.workspaceCwd.trim()) {
+    throw new Error("Choose your workspace folder before connecting.")
+  }
+
+  if (!settings.bridgeHost.trim()) {
+    throw new Error("Enter a bridge host before connecting.")
+  }
+
+  if (settings.bridgePort < 1 || settings.bridgePort > 65535) {
+    throw new Error("Bridge port must be between 1 and 65535.")
+  }
+}
+
 function normalizeStatus(status: CodexConnectionStatus, health: CodexBridgeHealth | null) {
   if (health?.connected) {
     return "connected"
@@ -223,6 +241,8 @@ export function CodexConnectionProvider({
       if (!canManageBridge) {
         throw new Error("Desktop runtime required to manage Codex.")
       }
+
+      validateSettings(settingsOverride ?? settings)
 
       const processStatus = await invoke<CodexBridgeProcessStatus>(command, {
         settings: settingsOverride ?? settings,
@@ -324,10 +344,9 @@ export function CodexConnectionProvider({
         )
       }
 
-      const paths = await invoke<CodexBridgeLogPaths>("codex_bridge_logs", {
+      await invoke<string>("codex_bridge_open_logs", {
         settings: targetSettings,
       })
-      throw new Error(getOpenLogsInstructions(paths))
     },
     [canManageBridge, settings]
   )

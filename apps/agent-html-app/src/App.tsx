@@ -32,6 +32,7 @@ import {
   WorkspaceLoadErrorState,
   WorkspaceSurface,
 } from "@/app/workspace/surface"
+import type { AgentHtmlColorTokenValues } from "@/agent-html"
 import type {
   WorkspaceSection,
   WorkspaceProjectView,
@@ -231,7 +232,11 @@ export function App() {
   )
 
   const galleryColorTokenValues = React.useMemo(
-    () => resolveGalleryThemeColorTokenValues(galleryThemeDraft, resolvedTheme),
+    () =>
+      resolveGalleryThemeColorTokenValues(
+        galleryThemeDraft,
+        resolvedTheme
+      ) as AgentHtmlColorTokenValues,
     [galleryThemeDraft, resolvedTheme]
   )
 
@@ -755,6 +760,7 @@ export function App() {
               activeSection={activeWorkspaceSection}
               canEditStructure={workspaceCanWrite}
               canSave={workspaceCanWrite}
+              colorTokenValues={galleryColorTokenValues}
               onCreateSection={handleCreateProjectSection}
               onDirtyChange={setWorkspaceHasUnsavedChanges}
               saveAttentionToken={workspaceSaveAttentionToken}

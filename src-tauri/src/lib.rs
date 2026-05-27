@@ -4,8 +4,9 @@ mod workspace;
 use tauri::Manager;
 
 use crate::codex_bridge::{
-    codex_bridge_health, codex_bridge_logs, codex_bridge_restart, codex_bridge_start,
-    codex_bridge_stop, codex_settings_load, codex_settings_save, CodexBridgeState,
+    codex_bridge_health, codex_bridge_logs, codex_bridge_open_logs, codex_bridge_restart,
+    codex_bridge_start, codex_bridge_stop, codex_settings_load, codex_settings_save,
+    CodexBridgeState,
 };
 use crate::workspace::{
     create_project, create_project_section, delete_project, delete_project_section,
@@ -15,6 +16,7 @@ use crate::workspace::{
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let app_data_dir = app
                 .path()
@@ -44,7 +46,8 @@ pub fn run() {
             codex_bridge_stop,
             codex_bridge_restart,
             codex_bridge_health,
-            codex_bridge_logs
+            codex_bridge_logs,
+            codex_bridge_open_logs
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

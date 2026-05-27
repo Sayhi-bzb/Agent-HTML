@@ -8,6 +8,7 @@ use std::fs;
 
 use serde::{Deserialize, Serialize};
 use tauri::{Manager, State};
+use tauri_plugin_opener::OpenerExt;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -232,6 +233,15 @@ fn resolve_log_paths(settings: &CodexBridgeSettings) -> CodexBridgeLogPaths {
         resolved_from_defaults: settings.event_log_path.trim().is_empty()
             || settings.codex_event_log_path.trim().is_empty(),
     }
+}
+
+fn resolve_log_directory(settings: &CodexBridgeSettings) -> PathBuf {
+    let normalized = normalize_codex_settings(settings);
+    let event_log_path = PathBuf::from(&normalized.event_log_path);
+    event_log_path
+        .parent()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("."))
 }
 
 fn enrich_codex_bridge_health(
@@ -499,6 +509,24 @@ pub(crate) fn codex_bridge_logs(
         None => load_settings_from_disk(&app)?,
     };
     Ok(resolve_log_paths(&settings))
+}
+
+#[tauri::command]
+pub(crate) fn codex_bridge_open_logs(
+    app: tauri::AppHandle,
+    settings: Option<CodexBridgeSettings>,
+) -> CodexBridgeResult<String> {
+    let settings = match settings {
+        Some(settings) => settings_with_runtime_defaults(settings),
+        None => load_settings_from_disk(&app)?,
+    };
+    let directory = resolve_log_directory(&settings);
+    fs::create_dir_all(&directory)?;
+    let path = directory.canonicalize().unwrap_or(directory);
+    app.opener()
+        .open_path(path.to_string_lossy().as_ref(), None::<&str>)
+        .map_err(|error| CodexBridgeError::Process(error.to_string()))?;
+    Ok(path.to_string_lossy().to_string())
 }
 
 #[tauri::command]

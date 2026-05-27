@@ -1,4 +1,10 @@
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/app/shared/ui/accordion"
+import {
   DropdownMenuCheckboxItem,
   DropdownMenu,
   DropdownMenuContent,
@@ -124,7 +130,7 @@ function CodexConnectionDialog({
         <DialogHeader>
           <DialogTitle>Codex Connection</DialogTitle>
           <DialogDescription>
-            Connect the desktop app to a local Codex app-server bridge.
+            Connect Agent-HTML to a local Codex bridge.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
@@ -171,104 +177,17 @@ function CodexConnectionDialog({
                 value={draftSettings.workspaceCwd}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="codex-host">Bridge host</Label>
-              <Input
-                id="codex-host"
-                onChange={updateTextSetting("bridgeHost")}
-                value={draftSettings.bridgeHost}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="codex-port">Bridge port</Label>
-              <Input
-                id="codex-port"
-                min={1}
-                max={65535}
-                onChange={handleNumberChange}
-                type="number"
-                value={draftSettings.bridgePort}
-              />
-            </div>
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              checked={draftSettings.autoStart}
-              className="size-4 accent-primary"
-              onChange={(event) =>
-                setDraftSettings((current) => ({
-                  ...current,
-                  autoStart: event.target.checked,
-                }))
-              }
-              type="checkbox"
-            />
-            Auto start bridge on app launch
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              checked={draftSettings.eventLogEnabled}
-              className="size-4 accent-primary"
-              onChange={(event) =>
-                setDraftSettings((current) => ({
-                  ...current,
-                  eventLogEnabled: event.target.checked,
-                }))
-              }
-              type="checkbox"
-            />
-            Enable event logs
-          </label>
-          {draftSettings.eventLogEnabled ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="codex-event-log">Event log path</Label>
-                <Input
-                  id="codex-event-log"
-                  onChange={updateTextSetting("eventLogPath")}
-                  value={draftSettings.eventLogPath}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="codex-server-log">Codex event log path</Label>
-                <Input
-                  id="codex-server-log"
-                  onChange={updateTextSetting("codexEventLogPath")}
-                  value={draftSettings.codexEventLogPath}
-                />
-              </div>
-            </div>
+          {!draftSettings.codexCommand.trim() ? (
+            <p className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">
+              Set the Codex command before connecting.
+            </p>
           ) : null}
-          <dl className="grid gap-2 rounded-lg border p-3 text-xs sm:grid-cols-2">
-            <div>
-              <dt className="text-muted-foreground">Provider</dt>
-              <dd>{codexConnection.health?.provider ?? "unknown"}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">App server</dt>
-              <dd>
-                {codexConnection.health?.appServerRunning ? "running" : "off"}
-              </dd>
-            </div>
-            <div className="sm:col-span-2">
-              <dt className="text-muted-foreground">Thread</dt>
-              <dd className="break-all">
-                {codexConnection.health?.threadId ?? "none"}
-              </dd>
-            </div>
-            <div className="sm:col-span-2">
-              <dt className="text-muted-foreground">Codex command</dt>
-              <dd className="break-all">
-                {codexConnection.health?.codexCommand ?? "unknown"}
-              </dd>
-            </div>
-            <div className="sm:col-span-2">
-              <dt className="text-muted-foreground">Codex cwd</dt>
-              <dd className="break-all">
-                {codexConnection.health?.cwd ?? "unknown"}
-              </dd>
-            </div>
-          </dl>
+          {!draftSettings.workspaceCwd.trim() ? (
+            <p className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">
+              Choose your workspace folder before connecting.
+            </p>
+          ) : null}
           {codexConnection.lastError ? (
             <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
               {codexConnection.lastError}
@@ -280,21 +199,160 @@ function CodexConnectionDialog({
               the development bridge fallback.
             </p>
           ) : null}
+          <Accordion
+            type="multiple"
+            defaultValue={
+              codexConnection.lastError ? ["logs-diagnostics"] : undefined
+            }
+            className="rounded-lg border px-3"
+          >
+            <AccordionItem value="network-startup">
+              <AccordionTrigger>Network & Startup</AccordionTrigger>
+              <AccordionContent className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="codex-host">Bridge host</Label>
+                  <Input
+                    id="codex-host"
+                    onChange={updateTextSetting("bridgeHost")}
+                    value={draftSettings.bridgeHost}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="codex-port">Bridge port</Label>
+                  <Input
+                    id="codex-port"
+                    min={1}
+                    max={65535}
+                    onChange={handleNumberChange}
+                    type="number"
+                    value={draftSettings.bridgePort}
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                  <input
+                    checked={draftSettings.autoStart}
+                    className="size-4 accent-primary"
+                    onChange={(event) =>
+                      setDraftSettings((current) => ({
+                        ...current,
+                        autoStart: event.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  Auto start bridge on app launch
+                </label>
+                <div className="sm:col-span-2">
+                  <Button
+                    disabled={codexConnection.isBusy || !codexConnection.isLoaded}
+                    onClick={() => void runAction(codexConnection.test)}
+                    type="button"
+                    variant="outline"
+                  >
+                    <CableIcon />
+                    Test connection
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="logs-diagnostics">
+              <AccordionTrigger>Logs & Diagnostics</AccordionTrigger>
+              <AccordionContent className="grid gap-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    checked={draftSettings.eventLogEnabled}
+                    className="size-4 accent-primary"
+                    onChange={(event) =>
+                      setDraftSettings((current) => ({
+                        ...current,
+                        eventLogEnabled: event.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  Enable event logs
+                </label>
+                {draftSettings.eventLogEnabled ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="codex-event-log">Event log path</Label>
+                      <Input
+                        id="codex-event-log"
+                        onChange={updateTextSetting("eventLogPath")}
+                        value={draftSettings.eventLogPath}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="codex-server-log">
+                        Codex event log path
+                      </Label>
+                      <Input
+                        id="codex-server-log"
+                        onChange={updateTextSetting("codexEventLogPath")}
+                        value={draftSettings.codexEventLogPath}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+                <div>
+                  <Button
+                    disabled={!codexConnection.isLoaded}
+                    onClick={() =>
+                      void codexConnection
+                        .openLogs(draftSettings)
+                        .catch((error) =>
+                          window.alert(
+                            error instanceof Error ? error.message : String(error)
+                          )
+                        )
+                    }
+                    type="button"
+                    variant="outline"
+                  >
+                    Open log folder
+                  </Button>
+                </div>
+                <dl className="grid gap-2 rounded-lg border p-3 text-xs sm:grid-cols-2">
+                  <div>
+                    <dt className="text-muted-foreground">Provider</dt>
+                    <dd>{codexConnection.health?.provider ?? "unknown"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">App server</dt>
+                    <dd>
+                      {codexConnection.health?.appServerRunning
+                        ? "running"
+                        : "off"}
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="text-muted-foreground">Thread</dt>
+                    <dd className="break-all">
+                      {codexConnection.health?.threadId ?? "none"}
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="text-muted-foreground">Codex command</dt>
+                    <dd className="break-all">
+                      {codexConnection.health?.codexCommand ?? "unknown"}
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="text-muted-foreground">Codex cwd</dt>
+                    <dd className="break-all">
+                      {codexConnection.health?.cwd ?? "unknown"}
+                    </dd>
+                  </div>
+                </dl>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
         <DialogFooter className="items-center sm:justify-between">
           <Button onClick={saveDraft} type="button" variant="outline">
             Save
           </Button>
           <div className="flex flex-wrap justify-end gap-2">
-            <Button
-              disabled={codexConnection.isBusy || !codexConnection.isLoaded}
-              onClick={() => void runAction(codexConnection.test)}
-              type="button"
-              variant="outline"
-            >
-              <CableIcon />
-              Test
-            </Button>
             <Button
               disabled={codexConnection.isBusy || !codexConnection.isLoaded}
               onClick={() => void runAction(codexConnection.stop)}
@@ -330,14 +388,6 @@ function CodexConnectionDialog({
             >
               <PlayIcon />
               {codexConnection.isBusy ? "Connecting..." : "Connect"}
-            </Button>
-            <Button
-              disabled={!codexConnection.isLoaded}
-              onClick={() => void codexConnection.openLogs(draftSettings).catch((error) => window.alert(error instanceof Error ? error.message : String(error)))}
-              type="button"
-              variant="outline"
-            >
-              Open logs
             </Button>
           </div>
         </DialogFooter>
