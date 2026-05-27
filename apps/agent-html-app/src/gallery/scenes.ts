@@ -37,13 +37,4 @@ export const galleryScenes: GalleryScene[] = [
     description:
       "Use this view to inspect a smaller set of references in more detail and capture the decisions they imply for the shell.",
   },
-  {
-    id: "agent-event-lab",
-    label: "Agent Event Lab",
-    title: "Agent event behavior lab",
-    summary:
-      "A controlled scene for testing how Pet, block markers, and the full Drawer divide one turn across different surfaces.",
-    description:
-      "Use this view to simulate block edits, streaming responses, approvals, and failures without touching the production workspace path.",
-  },
 ]

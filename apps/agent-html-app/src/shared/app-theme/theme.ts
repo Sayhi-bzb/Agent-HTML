@@ -1,44 +1,44 @@
 import colors from "tailwindcss/colors"
 
 import type {
-  GalleryColorFamily,
-  GalleryColorStep,
-  GalleryColorTokenName,
-  GalleryColorTokenValue,
-  GalleryColorTokenValues,
-  GalleryThemeCssVariables,
-  GalleryThemePresetId,
-} from "@/app/gallery/editor-panels"
+  AppColorFamily,
+  AppColorStep,
+  AppColorTokenName,
+  AppColorTokenValue,
+  AppColorTokenValues,
+  AppThemeCssVariables,
+  AppThemePresetId,
+} from "@/app/shared/app-theme/tokens"
 import {
-  galleryColorFamilies,
-  galleryColorSteps,
-  galleryColorTokenDefaults,
-  galleryThemePresets,
-} from "@/app/gallery/editor-panels"
+  appColorFamilies,
+  appColorSteps,
+  appColorTokenDefaults,
+  appThemePresets,
+} from "@/app/shared/app-theme/tokens"
 
-type TailwindColorScale = Record<GalleryColorStep, string>
+type TailwindColorScale = Record<AppColorStep, string>
 
-export type GalleryTokenThemeDraft = {
-  colorTokenValues: GalleryColorTokenValues
+export type AppTokenThemeDraft = {
+  colorTokenValues: AppColorTokenValues
   kind: "tokens"
 }
 
-export type GalleryPresetThemeDraft = {
-  darkCssVariables: GalleryThemeCssVariables
-  id: GalleryThemePresetId
+export type AppPresetThemeDraft = {
+  darkCssVariables: AppThemeCssVariables
+  id: AppThemePresetId
   kind: "preset"
-  lightCssVariables: GalleryThemeCssVariables
+  lightCssVariables: AppThemeCssVariables
 }
 
-export type GalleryThemeDraft =
-  | GalleryPresetThemeDraft
-  | GalleryTokenThemeDraft
+export type AppThemeDraft = AppPresetThemeDraft | AppTokenThemeDraft
 
-const appliedGalleryThemeStorageKey = "gallery:applied-theme"
-const legacyAppliedGalleryThemeStorageKey = "gallery:applied-color-token-values"
-const galleryAppliedThemeStyleId = "gallery-applied-theme-vars"
-const galleryColorFamilySet = new Set<string>(galleryColorFamilies)
-const galleryColorStepSet = new Set<string>(galleryColorSteps)
+const appliedAppThemeStorageKey = "app:applied-theme"
+const legacyAppliedGalleryThemeStorageKey = "gallery:applied-theme"
+const legacyAppliedGalleryColorTokenStorageKey =
+  "gallery:applied-color-token-values"
+const appAppliedThemeStyleId = "app-applied-theme-vars"
+const appColorFamilySet = new Set<string>(appColorFamilies)
+const appColorStepSet = new Set<string>(appColorSteps)
 const managedRootVariableNames = [
   "--background",
   "--foreground",
@@ -95,11 +95,11 @@ const managedRootVariableNames = [
 ] as const
 
 const tailwindColorFamilies = Object.fromEntries(
-  (Object.keys(colors) as GalleryColorFamily[]).map((family) => [
+  (Object.keys(colors) as AppColorFamily[]).map((family) => [
     family,
     colors[family] as TailwindColorScale,
   ])
-) as Record<GalleryColorFamily, TailwindColorScale>
+) as Record<AppColorFamily, TailwindColorScale>
 
 type RgbColor = {
   blue: number
@@ -205,8 +205,8 @@ function parseColor(value: string | undefined): RgbColor | null {
   return parseHexColor(value) ?? parseOklchColor(value)
 }
 
-const tailwindColorEntries = galleryColorFamilies.flatMap((family) =>
-  galleryColorSteps.flatMap((step) => {
+const tailwindColorEntries = appColorFamilies.flatMap((family) =>
+  appColorSteps.flatMap((step) => {
     const color = parseColor(tailwindColorFamilies[family]?.[step])
 
     return color
@@ -228,13 +228,13 @@ function getColorDistance(left: RgbColor, right: RgbColor) {
   )
 }
 
-function findNearestTailwindColor(value: string): GalleryColorTokenValue | null {
+function findNearestTailwindColor(value: string): AppColorTokenValue | null {
   const color = parseColor(value)
   if (!color) {
     return null
   }
 
-  let nearestValue: GalleryColorTokenValue | null = null
+  let nearestValue: AppColorTokenValue | null = null
   let nearestDistance = Number.POSITIVE_INFINITY
 
   for (const entry of tailwindColorEntries) {
@@ -249,8 +249,8 @@ function findNearestTailwindColor(value: string): GalleryColorTokenValue | null 
 }
 
 function resolveTokenColor(
-  values: GalleryColorTokenValues,
-  tokenName: keyof GalleryColorTokenValues
+  values: AppColorTokenValues,
+  tokenName: keyof AppColorTokenValues
 ) {
   const token = values[tokenName]
   return (
@@ -259,14 +259,14 @@ function resolveTokenColor(
   )
 }
 
-function resolveTokenValueColor(value: GalleryColorTokenValue) {
+function resolveTokenValueColor(value: AppColorTokenValue) {
   return (
     tailwindColorFamilies[value.family]?.[value.step] ??
     tailwindColorFamilies.zinc[500]
   )
 }
 
-function isCssVariables(value: unknown): value is GalleryThemeCssVariables {
+function isCssVariables(value: unknown): value is AppThemeCssVariables {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return false
   }
@@ -281,26 +281,26 @@ function isCssVariables(value: unknown): value is GalleryThemeCssVariables {
 }
 
 function getManagedThemeStyleElement() {
-  let styleElement = document.getElementById(galleryAppliedThemeStyleId)
+  let styleElement = document.getElementById(appAppliedThemeStyleId)
 
   if (!styleElement) {
     styleElement = document.createElement("style")
-    styleElement.id = galleryAppliedThemeStyleId
+    styleElement.id = appAppliedThemeStyleId
     document.head.appendChild(styleElement)
   }
 
   return styleElement
 }
 
-function formatCssVariables(variables: GalleryThemeCssVariables) {
+function formatCssVariables(variables: AppThemeCssVariables) {
   return Object.entries(variables)
     .map(([name, value]) => `  ${name}: ${value};`)
     .join("\n")
 }
 
 function applyManagedPresetTheme(
-  lightCssVariables: GalleryThemeCssVariables,
-  darkCssVariables: GalleryThemeCssVariables
+  lightCssVariables: AppThemeCssVariables,
+  darkCssVariables: AppThemeCssVariables
 ) {
   const styleElement = getManagedThemeStyleElement()
   const lightVariables = formatCssVariables(lightCssVariables)
@@ -310,35 +310,35 @@ function applyManagedPresetTheme(
 }
 
 function clearManagedPresetTheme() {
-  const styleElement = document.getElementById(galleryAppliedThemeStyleId)
+  const styleElement = document.getElementById(appAppliedThemeStyleId)
   styleElement?.remove()
 }
 
-function parseTokenThemeDraft(value: unknown): GalleryTokenThemeDraft | null {
+function parseTokenThemeDraft(value: unknown): AppTokenThemeDraft | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null
   }
 
   const parsedValue = value as Partial<
-    Record<GalleryColorTokenName, Partial<{ family: string; step: string }>>
+    Record<AppColorTokenName, Partial<{ family: string; step: string }>>
   >
-  const nextValues = { ...galleryColorTokenDefaults }
+  const nextValues = { ...appColorTokenDefaults }
 
   for (const tokenName of Object.keys(
-    galleryColorTokenDefaults
-  ) as GalleryColorTokenName[]) {
+    appColorTokenDefaults
+  ) as AppColorTokenName[]) {
     const token = parsedValue[tokenName]
     if (
       !token ||
-      !galleryColorFamilySet.has(token.family ?? "") ||
-      !galleryColorStepSet.has(token.step ?? "")
+      !appColorFamilySet.has(token.family ?? "") ||
+      !appColorStepSet.has(token.step ?? "")
     ) {
       return null
     }
 
     nextValues[tokenName] = {
-      family: token.family as GalleryColorFamily,
-      step: token.step as GalleryColorStep,
+      family: token.family as AppColorFamily,
+      step: token.step as AppColorStep,
     }
   }
 
@@ -348,7 +348,7 @@ function parseTokenThemeDraft(value: unknown): GalleryTokenThemeDraft | null {
   }
 }
 
-function parseThemeDraft(value: unknown): GalleryThemeDraft | null {
+function parseThemeDraft(value: unknown): AppThemeDraft | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null
   }
@@ -368,13 +368,13 @@ function parseThemeDraft(value: unknown): GalleryThemeDraft | null {
   if (
     draft.kind === "preset" &&
     typeof draft.id === "string" &&
-    galleryThemePresets.some((preset) => preset.id === draft.id) &&
+    appThemePresets.some((preset) => preset.id === draft.id) &&
     isCssVariables(draft.lightCssVariables) &&
     isCssVariables(draft.darkCssVariables)
   ) {
     return {
       darkCssVariables: draft.darkCssVariables,
-      id: draft.id as GalleryThemePresetId,
+      id: draft.id as AppThemePresetId,
       kind: "preset",
       lightCssVariables: draft.lightCssVariables,
     }
@@ -383,24 +383,24 @@ function parseThemeDraft(value: unknown): GalleryThemeDraft | null {
   return parseTokenThemeDraft(value)
 }
 
-export function createDefaultGalleryThemeDraft(): GalleryThemeDraft {
+export function createDefaultAppThemeDraft(): AppThemeDraft {
   return {
-    colorTokenValues: galleryColorTokenDefaults,
+    colorTokenValues: appColorTokenDefaults,
     kind: "tokens",
   }
 }
 
-export function createGalleryPresetThemeDraft(
-  presetId: GalleryThemePresetId
-): GalleryThemeDraft | null {
-  const preset = galleryThemePresets.find((item) => item.id === presetId)
+export function createAppPresetThemeDraft(
+  presetId: AppThemePresetId
+): AppThemeDraft | null {
+  const preset = appThemePresets.find((item) => item.id === presetId)
 
   if (!preset) {
     return null
   }
 
   if (preset.id === "default") {
-    return createDefaultGalleryThemeDraft()
+    return createDefaultAppThemeDraft()
   }
 
   return {
@@ -411,25 +411,25 @@ export function createGalleryPresetThemeDraft(
   }
 }
 
-export function resolveGalleryColorTokenCssVariables(
-  values: GalleryColorTokenValues
+export function resolveAppColorTokenCssVariables(
+  values: AppColorTokenValues
 ) {
   return Object.fromEntries(
     Object.keys(values).map((tokenName) => [
       `--${tokenName}`,
-      resolveTokenColor(values, tokenName as keyof GalleryColorTokenValues),
+      resolveTokenColor(values, tokenName as keyof AppColorTokenValues),
     ])
   ) as Record<`--${string}`, string>
 }
 
-export function createGalleryTokenThemeDraftFromCssVariables(
-  cssVariables: GalleryThemeCssVariables
-): GalleryTokenThemeDraft {
-  const colorTokenValues = { ...galleryColorTokenDefaults }
+export function createAppTokenThemeDraftFromCssVariables(
+  cssVariables: AppThemeCssVariables
+): AppTokenThemeDraft {
+  const colorTokenValues = { ...appColorTokenDefaults }
 
   for (const tokenName of Object.keys(
-    galleryColorTokenDefaults
-  ) as GalleryColorTokenName[]) {
+    appColorTokenDefaults
+  ) as AppColorTokenName[]) {
     const cssValue = cssVariables[`--${tokenName}`]
     const tokenValue = cssValue ? findNearestTailwindColor(cssValue) : null
 
@@ -444,30 +444,30 @@ export function createGalleryTokenThemeDraftFromCssVariables(
   }
 }
 
-export function resolveGalleryThemeColorTokenValues(
-  draft: GalleryThemeDraft,
+export function resolveAppThemeColorTokenValues(
+  draft: AppThemeDraft,
   resolvedMode: "dark" | "light" = "light"
 ) {
   if (draft.kind === "tokens") {
     return draft.colorTokenValues
   }
 
-  return createGalleryTokenThemeDraftFromCssVariables(
+  return createAppTokenThemeDraftFromCssVariables(
     resolvedMode === "dark" ? draft.darkCssVariables : draft.lightCssVariables
   ).colorTokenValues
 }
 
-export function updateGalleryThemeDraftColorTokenValue({
+export function updateAppThemeDraftColorTokenValue({
   draft,
   resolvedMode = "light",
   token,
   value,
 }: {
-  draft: GalleryThemeDraft
+  draft: AppThemeDraft
   resolvedMode?: "dark" | "light"
-  token: GalleryColorTokenName
-  value: GalleryColorTokenValue
-}): GalleryThemeDraft {
+  token: AppColorTokenName
+  value: AppColorTokenValue
+}): AppThemeDraft {
   if (draft.kind === "tokens") {
     return {
       colorTokenValues: {
@@ -495,8 +495,8 @@ export function updateGalleryThemeDraftColorTokenValue({
   }
 }
 
-export function resolveGalleryThemeCssVariables(
-  draft: GalleryThemeDraft,
+export function resolveAppThemeCssVariables(
+  draft: AppThemeDraft,
   resolvedMode: "dark" | "light" = "light"
 ) {
   if (draft.kind === "preset") {
@@ -505,17 +505,17 @@ export function resolveGalleryThemeCssVariables(
       : draft.lightCssVariables
   }
 
-  return resolveGalleryColorTokenCssVariables(draft.colorTokenValues)
+  return resolveAppColorTokenCssVariables(draft.colorTokenValues)
 }
 
-export function areGalleryThemeDraftsEqual(
-  left: GalleryThemeDraft,
-  right: GalleryThemeDraft
+export function areAppThemeDraftsEqual(
+  left: AppThemeDraft,
+  right: AppThemeDraft
 ) {
   return JSON.stringify(left) === JSON.stringify(right)
 }
 
-export function applyGalleryTheme(draft: GalleryThemeDraft) {
+export function applyAppTheme(draft: AppThemeDraft) {
   const root = document.documentElement
 
   if (draft.kind === "preset") {
@@ -528,17 +528,18 @@ export function applyGalleryTheme(draft: GalleryThemeDraft) {
   }
 
   clearManagedPresetTheme()
-  const variables = resolveGalleryColorTokenCssVariables(draft.colorTokenValues)
+  const variables = resolveAppColorTokenCssVariables(draft.colorTokenValues)
 
   for (const [name, value] of Object.entries(variables)) {
     root.style.setProperty(name, value)
   }
 }
 
-export function loadAppliedGalleryTheme() {
+export function loadAppliedAppTheme() {
   const storedValue =
-    localStorage.getItem(appliedGalleryThemeStorageKey) ??
-    localStorage.getItem(legacyAppliedGalleryThemeStorageKey)
+    localStorage.getItem(appliedAppThemeStorageKey) ??
+    localStorage.getItem(legacyAppliedGalleryThemeStorageKey) ??
+    localStorage.getItem(legacyAppliedGalleryColorTokenStorageKey)
 
   if (!storedValue) {
     return null
@@ -551,6 +552,6 @@ export function loadAppliedGalleryTheme() {
   }
 }
 
-export function saveAppliedGalleryTheme(draft: GalleryThemeDraft) {
-  localStorage.setItem(appliedGalleryThemeStorageKey, JSON.stringify(draft))
+export function saveAppliedAppTheme(draft: AppThemeDraft) {
+  localStorage.setItem(appliedAppThemeStorageKey, JSON.stringify(draft))
 }

@@ -1,22 +1,22 @@
 import * as React from "react"
 
 import {
-  resolveGalleryThemeCssVariables,
-  type GalleryThemeDraft,
-} from "@/app/gallery/theme-apply"
+  resolveAppThemeCssVariables,
+  type AppThemeDraft,
+} from "@/app/shared/app-theme/theme"
 import { useTheme } from "@/app/shared/theme-provider"
 
-export function GalleryThemeScope({
+export function AppThemeScope({
   children,
   themeDraft,
 }: {
   children: React.ReactNode
-  themeDraft: GalleryThemeDraft
+  themeDraft: AppThemeDraft
 }) {
   const { resolvedTheme } = useTheme()
   const themeStyle = React.useMemo(
     () =>
-      resolveGalleryThemeCssVariables(
+      resolveAppThemeCssVariables(
         themeDraft,
         resolvedTheme
       ) as React.CSSProperties,

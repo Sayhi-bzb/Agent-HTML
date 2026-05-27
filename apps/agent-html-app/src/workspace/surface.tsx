@@ -3,7 +3,10 @@ import * as React from "react"
 import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
 import { useCodexConnection } from "@/app/codex/connection"
 import { Button } from "@/app/shared/ui/button"
-import { WorkspaceGhostPet } from "@/app/workspace/ghost-pet"
+import {
+  WorkspaceGhostPet,
+  type PetPresence,
+} from "@/app/workspace/ghost-pet"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
 import type {
   ProjectSectionDocument,
@@ -12,7 +15,7 @@ import type {
 } from "@/app/workspace/types"
 import {
   AgentHtmlBlockRuntimeProvider,
-  type AgentHtmlColorTokenValues,
+  type AgentHtmlColorCssVariables,
   AgentHtmlRuntimeTheme,
   AgentHtmlRuntimeViewport,
   applyAgentHtmlDropIntent,
@@ -52,6 +55,56 @@ type SaveState =
   | { detail: string; status: "error" }
 
 const workspaceRepository = createWorkspaceRepository()
+
+function getAgentDeliveryPresence(
+  agentDeliveryState: AgentDeliveryState
+): PetPresence | undefined {
+  if (agentDeliveryState.status === "idle") {
+    return undefined
+  }
+
+  if (agentDeliveryState.status === "sending") {
+    return {
+      action: {
+        kind: "running",
+        label: "starting turn",
+      },
+      message: {
+        mode: "transient",
+        text: "Sending request to Codex.",
+      },
+      mood: "working",
+    }
+  }
+
+  if (agentDeliveryState.status === "sent") {
+    return {
+      message: {
+        mode: "final",
+        text: agentDeliveryState.detail,
+      },
+      mood: "review",
+    }
+  }
+
+  if (agentDeliveryState.status === "copied") {
+    return {
+      message: {
+        mode: "final",
+        text: "Prompt copied.",
+      },
+      mood: "review",
+    }
+  }
+
+  return {
+    message: {
+      mode: "final",
+      text: agentDeliveryState.detail,
+    },
+    mood: "failed",
+  }
+}
 
 function RuntimeValidationErrors({
   errors,
@@ -122,7 +175,7 @@ export function WorkspaceSurface({
   activeSection,
   canEditStructure,
   canSave,
-  colorTokenValues,
+  colorCssVariables,
   onCreateSection,
   onDirtyChange,
   saveAttentionToken,
@@ -132,7 +185,7 @@ export function WorkspaceSurface({
   activeSection: WorkspaceSection | null
   canEditStructure: boolean
   canSave: boolean
-  colorTokenValues: AgentHtmlColorTokenValues
+  colorCssVariables: AgentHtmlColorCssVariables
   onCreateSection: (input: { projectId: string; title: string }) => Promise<void>
   onDirtyChange: (isDirty: boolean) => void
   saveAttentionToken: number
@@ -351,6 +404,10 @@ export function WorkspaceSurface({
 
     return renderWorkspaceDocument(documentState.document)
   }, [documentState])
+  const petPresence = React.useMemo(
+    () => getAgentDeliveryPresence(agentDeliveryState),
+    [agentDeliveryState]
+  )
 
   if (!activeProject) {
     return (
@@ -421,7 +478,7 @@ export function WorkspaceSurface({
   return (
     <AgentHtmlRuntimeTheme
       className="h-full w-full"
-      colorTokenValues={colorTokenValues}
+      colorCssVariables={colorCssVariables}
     >
       <AgentHtmlBlockRuntimeProvider
         onDropIntent={handleDropIntent}
@@ -460,17 +517,7 @@ export function WorkspaceSurface({
           ) : null}
         </div>
       ) : null}
-      {agentDeliveryState.status !== "idle" ? (
-        <div
-          className="fixed right-4 bottom-16 z-50 rounded-lg border bg-background px-3 py-2 text-xs text-foreground shadow-lg"
-          role="status"
-        >
-          {agentDeliveryState.status === "sending"
-            ? "Sending to agent..."
-            : agentDeliveryState.detail}
-        </div>
-      ) : null}
-      <WorkspaceGhostPet />
+      <WorkspaceGhostPet presence={petPresence} />
     </AgentHtmlRuntimeTheme>
   )
 }

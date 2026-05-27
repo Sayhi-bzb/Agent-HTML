@@ -1,4 +1,4 @@
-import { generatedGalleryThemePresets } from "@/app/gallery/theme-presets.generated"
+import { generatedAppThemePresets } from "@/app/shared/app-theme/theme-presets.generated"
 
 export type ColorRoleGroupItem = {
   id: string
@@ -12,7 +12,7 @@ export type ColorRoleGroup = {
   items: readonly ColorRoleGroupItem[]
 }
 
-export const galleryColorFamilies = [
+export const appColorFamilies = [
   "slate",
   "gray",
   "zinc",
@@ -35,7 +35,7 @@ export const galleryColorFamilies = [
   "rose",
 ] as const
 
-export const galleryColorSteps = [
+export const appColorSteps = [
   "50",
   "100",
   "200",
@@ -49,22 +49,22 @@ export const galleryColorSteps = [
   "950",
 ] as const
 
-export type GalleryColorFamily = (typeof galleryColorFamilies)[number]
-export type GalleryColorStep = (typeof galleryColorSteps)[number]
-export type GalleryColorTokenName =
-  (typeof galleryColorRoleGroups)[number]["items"][number]["token"]
+export type AppColorFamily = (typeof appColorFamilies)[number]
+export type AppColorStep = (typeof appColorSteps)[number]
+export type AppColorTokenName =
+  (typeof appColorRoleGroups)[number]["items"][number]["token"]
 
-export type GalleryColorTokenValue = {
-  family: GalleryColorFamily
-  step: GalleryColorStep
+export type AppColorTokenValue = {
+  family: AppColorFamily
+  step: AppColorStep
 }
 
-export type GalleryColorTokenValues = Record<
-  GalleryColorTokenName,
-  GalleryColorTokenValue
+export type AppColorTokenValues = Record<
+  AppColorTokenName,
+  AppColorTokenValue
 >
 
-export const galleryColorRoleGroups: ColorRoleGroup[] = [
+export const appColorRoleGroups: ColorRoleGroup[] = [
   {
     id: "background",
     label: "background",
@@ -163,7 +163,7 @@ export const galleryColorRoleGroups: ColorRoleGroup[] = [
   },
 ]
 
-export const galleryColorTokenDefaults: GalleryColorTokenValues = {
+export const appColorTokenDefaults: AppColorTokenValues = {
   background: { family: "zinc", step: "50" },
   foreground: { family: "zinc", step: "900" },
   card: { family: "zinc", step: "50" },
@@ -184,22 +184,22 @@ export const galleryColorTokenDefaults: GalleryColorTokenValues = {
   ring: { family: "zinc", step: "400" },
 }
 
-export type GalleryThemeCssVariables = Partial<Record<`--${string}`, string>>
+export type AppThemeCssVariables = Partial<Record<`--${string}`, string>>
 
-export type GalleryThemePreset = {
-  darkCssVariables?: GalleryThemeCssVariables
+export type AppThemePreset = {
+  darkCssVariables?: AppThemeCssVariables
   id: string
   label: string
-  lightCssVariables?: GalleryThemeCssVariables
+  lightCssVariables?: AppThemeCssVariables
 }
 
-export const galleryThemePresets: readonly GalleryThemePreset[] = [
+export const appThemePresets: readonly AppThemePreset[] = [
   {
     id: "default",
     label: "Default",
     lightCssVariables: {},
   },
-  ...generatedGalleryThemePresets,
+  ...generatedAppThemePresets,
 ] as const
 
-export type GalleryThemePresetId = (typeof galleryThemePresets)[number]["id"]
+export type AppThemePresetId = (typeof appThemePresets)[number]["id"]

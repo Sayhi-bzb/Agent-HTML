@@ -1,26 +1,27 @@
 import * as React from "react"
 
 import {
-  galleryThemePresets,
-  type GalleryColorTokenName,
-  type GalleryColorTokenValue,
-  type GalleryThemePresetId,
-} from "@/app/gallery/editor-panels"
+  appThemePresets,
+  type AppColorTokenName,
+  type AppColorTokenValue,
+  type AppThemePresetId,
+} from "@/app/shared/app-theme/tokens"
 import { GalleryEditorPanel } from "@/app/gallery/editor"
 import { galleryScenes } from "@/app/gallery/scenes"
 import { GalleryPanel } from "@/app/gallery/panel"
 import { galleryWorkspacePreviewBaseSceneId } from "@/app/gallery/preview-content"
-import { GalleryThemeScope } from "@/app/gallery/theme-scope"
+import { AppThemeScope } from "@/app/shared/app-theme/scope"
 import {
-  areGalleryThemeDraftsEqual,
-  applyGalleryTheme,
-  createDefaultGalleryThemeDraft,
-  createGalleryPresetThemeDraft,
-  loadAppliedGalleryTheme,
-  resolveGalleryThemeColorTokenValues,
-  saveAppliedGalleryTheme,
-  updateGalleryThemeDraftColorTokenValue,
-} from "@/app/gallery/theme-apply"
+  areAppThemeDraftsEqual,
+  applyAppTheme,
+  createDefaultAppThemeDraft,
+  createAppPresetThemeDraft,
+  loadAppliedAppTheme,
+  resolveAppThemeColorTokenValues,
+  resolveAppThemeCssVariables,
+  saveAppliedAppTheme,
+  updateAppThemeDraftColorTokenValue,
+} from "@/app/shared/app-theme/theme"
 import { AppSidebar } from "@/app/shell/app-sidebar"
 import { SiteHeader } from "@/app/shell/site-header"
 import { useTheme } from "@/app/shared/theme-provider"
@@ -32,7 +33,10 @@ import {
   WorkspaceLoadErrorState,
   WorkspaceSurface,
 } from "@/app/workspace/surface"
-import type { AgentHtmlColorTokenValues } from "@/agent-html"
+import type {
+  AgentHtmlColorCssVariables,
+  AgentHtmlColorTokenValues,
+} from "@/agent-html"
 import type {
   WorkspaceSection,
   WorkspaceProjectView,
@@ -56,12 +60,12 @@ type HeaderTab = {
 const workspaceRepository = createWorkspaceRepository()
 const workspaceCanWrite = workspaceRepository.canWrite
 
-function getInitialAppliedGalleryTheme() {
+function getInitialAppliedAppTheme() {
   if (typeof window === "undefined") {
-    return createDefaultGalleryThemeDraft()
+    return createDefaultAppThemeDraft()
   }
 
-  return loadAppliedGalleryTheme() ?? createDefaultGalleryThemeDraft()
+  return loadAppliedAppTheme() ?? createDefaultAppThemeDraft()
 }
 
 function getNextActiveTabId(
@@ -151,18 +155,18 @@ export function App() {
   const [workspaceHasUnsavedChanges, setWorkspaceHasUnsavedChanges] =
     React.useState(false)
   const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
-  const [appliedGalleryThemeDraft, setAppliedGalleryThemeDraft] =
-    React.useState(getInitialAppliedGalleryTheme)
-  const [galleryThemeDraft, setGalleryThemeDraft] = React.useState(
-    () => appliedGalleryThemeDraft
+  const [appliedAppThemeDraft, setAppliedAppThemeDraft] =
+    React.useState(getInitialAppliedAppTheme)
+  const [appThemeDraft, setAppThemeDraft] = React.useState(
+    () => appliedAppThemeDraft
   )
   const [activeGallerySceneId, setActiveGallerySceneId] = React.useState<string>(
     galleryScenes[0].id
   )
 
   React.useEffect(() => {
-    applyGalleryTheme(appliedGalleryThemeDraft)
-  }, [appliedGalleryThemeDraft])
+    applyAppTheme(appliedAppThemeDraft)
+  }, [appliedAppThemeDraft])
 
   React.useEffect(() => {
     let isCurrent = true
@@ -224,24 +228,32 @@ export function App() {
 
   const isGalleryThemeDirty = React.useMemo(
     () =>
-      !areGalleryThemeDraftsEqual(
-        galleryThemeDraft,
-        appliedGalleryThemeDraft
+      !areAppThemeDraftsEqual(
+        appThemeDraft,
+        appliedAppThemeDraft
       ),
-    [appliedGalleryThemeDraft, galleryThemeDraft]
+    [appliedAppThemeDraft, appThemeDraft]
   )
 
-  const galleryColorTokenValues = React.useMemo(
+  const appColorTokenValues = React.useMemo(
     () =>
-      resolveGalleryThemeColorTokenValues(
-        galleryThemeDraft,
+      resolveAppThemeColorTokenValues(
+        appThemeDraft,
         resolvedTheme
       ) as AgentHtmlColorTokenValues,
-    [galleryThemeDraft, resolvedTheme]
+    [appThemeDraft, resolvedTheme]
+  )
+  const appliedAppThemeCssVariables = React.useMemo(
+    () =>
+      resolveAppThemeCssVariables(
+        appliedAppThemeDraft,
+        resolvedTheme
+      ) as AgentHtmlColorCssVariables,
+    [appliedAppThemeDraft, resolvedTheme]
   )
 
   const activeGalleryThemePresetId =
-    galleryThemeDraft.kind === "preset" ? galleryThemeDraft.id : "default"
+    appThemeDraft.kind === "preset" ? appThemeDraft.id : "default"
 
   const activeTab = React.useMemo(
     () => openTabs.find((tab) => tab.id === activeTabId) ?? null,
@@ -670,18 +682,18 @@ export function App() {
   }, [guardWorkspaceDocumentNavigation])
 
   const handleApplyGalleryTheme = React.useCallback(() => {
-    saveAppliedGalleryTheme(galleryThemeDraft)
-    setAppliedGalleryThemeDraft(galleryThemeDraft)
-  }, [galleryThemeDraft])
+    saveAppliedAppTheme(appThemeDraft)
+    setAppliedAppThemeDraft(appThemeDraft)
+  }, [appThemeDraft])
 
   const handleSelectGalleryThemePreset = React.useCallback(
-    (presetId: GalleryThemePresetId) => {
-      const draft = createGalleryPresetThemeDraft(presetId)
+    (presetId: AppThemePresetId) => {
+      const draft = createAppPresetThemeDraft(presetId)
       if (!draft) {
         return
       }
 
-      setGalleryThemeDraft(draft)
+      setAppThemeDraft(draft)
     },
     []
   )
@@ -693,13 +705,13 @@ export function App() {
       canCreateProject={workspaceCanWrite}
       galleryContent={
         <GalleryEditorPanel
-          colorTokenValues={galleryColorTokenValues}
+          colorTokenValues={appColorTokenValues}
           onColorTokenValueChange={(
-            token: GalleryColorTokenName,
-            value: GalleryColorTokenValue
+            token: AppColorTokenName,
+            value: AppColorTokenValue
           ) =>
-            setGalleryThemeDraft((current) =>
-              updateGalleryThemeDraftColorTokenValue({
+            setAppThemeDraft((current) =>
+              updateAppThemeDraftColorTokenValue({
                 draft: current,
                 resolvedMode: resolvedTheme,
                 token,
@@ -710,7 +722,7 @@ export function App() {
         />
       }
       activeGalleryThemePresetId={activeGalleryThemePresetId}
-      galleryThemePresets={galleryThemePresets}
+      galleryThemePresets={appThemePresets}
       isGalleryThemeDirty={isGalleryThemeDirty}
       mode={surfaceMode}
       onApplyGalleryTheme={handleApplyGalleryTheme}
@@ -760,7 +772,7 @@ export function App() {
               activeSection={activeWorkspaceSection}
               canEditStructure={workspaceCanWrite}
               canSave={workspaceCanWrite}
-              colorTokenValues={galleryColorTokenValues}
+              colorCssVariables={appliedAppThemeCssVariables}
               onCreateSection={handleCreateProjectSection}
               onDirtyChange={setWorkspaceHasUnsavedChanges}
               saveAttentionToken={workspaceSaveAttentionToken}
@@ -796,9 +808,9 @@ export function App() {
   )
 
   return surfaceMode === "gallery" ? (
-    <GalleryThemeScope themeDraft={galleryThemeDraft}>
+    <AppThemeScope themeDraft={appThemeDraft}>
       {framedAppSurface}
-    </GalleryThemeScope>
+    </AppThemeScope>
   ) : (
     framedAppSurface
   )

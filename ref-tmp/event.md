@@ -61,6 +61,54 @@ Comment icon 是页面对象上的结果入口，接近 Figma comment pin，但�
 
 Pet 是 agent presence，不是完整聊天框。它负责让用户知道 agent 当前正在做什么，以及是否需要用户处理。
 
+Pet 不应该只有一个状态文本。Agent-HTML 的 Pet 需要分成三层语义：
+
+- `mood`: 少量稳定生命周期状态，驱动整体气质。
+- `message`: agent 对用户说的话，显示在 ghost 头顶 bubble。
+- `action`: agent 当前正在做的事，显示为 ghost 附近的轻量动作 label。
+
+例如：
+
+```text
+[message bubble]
+我要查为什么 scene tab 没切过去
+
+ghost
+
+[action label]
+reading site-header.tsx
+```
+
+这可以表达“agent 在说话”和“agent 在做事”同时发生，而不是把 `speaking`、`editing`、`running` 都压成互斥状态。
+
+推荐内部视图模型：
+
+```ts
+type PetMood = "idle" | "working" | "waiting" | "review" | "failed"
+
+type PetActionKind =
+  | "thinking"
+  | "speaking"
+  | "reading"
+  | "editing"
+  | "running"
+  | "searching"
+  | "testing"
+  | "waiting"
+
+type PetPresence = {
+  mood: PetMood
+  message?: {
+    text: string
+    mode: "streaming" | "final" | "transient"
+  }
+  action?: {
+    kind: PetActionKind
+    label: string
+  }
+}
+```
+
 它承载：
 
 - 当前 active item。
@@ -77,11 +125,11 @@ Pet 可以显示短句，但不应该展示完整内容。完整内容进 Drawer
 | UX 事件 | Drawer | Comment icon | Pet |
 | --- | --- | --- | --- |
 | Intent received | 记录用户 prompt、target block、eventId、turnId | 目标 block 出现 pending/working icon | 显示收到请求、开始工作 |
-| Status | 记录 turn/thread 状态变化 | 只显示该 block 的 working/done/error 状态点 | 主承载：idle/thinking/editing/done/failed |
-| Agent response | 保存完整 message、delta、final | block-scoped response 完成后生成 comment card | delta 期间显示 speaking/typing/短 preview |
-| Plan / reasoning summary | 保存 plan、reasoning summary、步骤 | 默认不放，除非是 block 修改说明 | 显示极短中间态，如“我先检查结构” |
-| Tool use | 记录 command、MCP、web search、file read/write | 默认不放，除非直接改变该 block | 显示 reading/editing/testing/running command |
-| Tool observe | 记录 stdout、result、error、测试结果 | 只放 block 相关摘要或失败原因 | 显示 tests passed / command failed / done |
+| Status | 记录 turn/thread 状态变化 | 只显示该 block 的 working/done/error 状态点 | 更新 mood：idle/working/waiting/review/failed |
+| Agent response | 保存完整 message、delta、final | block-scoped response 完成后生成 comment card | 更新 message，delta 期间显示 streaming bubble |
+| Plan / reasoning summary | 保存 plan、reasoning summary、步骤 | 默认不放，除非是 block 修改说明 | 更新 message 或 action=thinking |
+| Tool use | 记录 command、MCP、web search、file read/write | 默认不放，除非直接改变该 block | 更新 action：reading/editing/testing/running/searching |
+| Tool observe | 记录 stdout、result、error、测试结果 | 只放 block 相关摘要或失败原因 | 更新 action 短结果，不展示完整 output |
 | File change / diff | 保存 changed files、patch、diff | 主承载之一：生成 suggestion/file-change card | 显示“已修改 N files”，不展示 diff |
 | Approval / blocked | 保存完整阻塞原因和上下文 | block 相关时显示 needs approval/error icon | 主承载之一：全局确认入口/blocked card |
 
@@ -96,9 +144,9 @@ any event -> Drawer
 当前正在执行的 item 进入 Pet。
 
 ```text
-item/started -> Pet current item
-item/delta   -> Pet short intermediate state
-item/done    -> Pet short completion state, then idle
+item/started -> Pet action and/or mood
+item/delta   -> Pet message streaming or action short update
+item/done    -> Pet short completion state, then review/idle
 ```
 
 和 block 相关的 completed item 进入 Comment icon。
@@ -119,11 +167,33 @@ agentMessage/delta 的推荐节奏：
 ```text
 Send
   -> block icon: pending spinner
-  -> Pet: thinking / speaking / editing
-  -> Drawer: append full delta/events
+  -> Pet mood: working
+  -> Pet message: "我先检查这个 block"
+  -> Pet action: reading/editing/running as tools start
+  -> Drawer: append full delta/events/details
   -> final response or file change completed
   -> after a short delay, block icon becomes comment/suggestion
-  -> Pet shows done, then returns to idle
+  -> Pet mood: review
+  -> Pet message: short final summary
+  -> Pet returns to idle after the outcome settles
+```
+
+message 和 action 必须分离：
+
+```text
+agentMessage/delta -> Pet message
+command/tool/file change -> Pet action
+turn status/error/approval -> Pet mood
+```
+
+例如 Codex timeline 里这几行应该这样拆：
+
+```text
+"我要查为什么 scene tab 没切过去" -> message
+"Running Get-Content ..." -> action=reading/running
+"Ran Get-Content ..." -> action short completion
+"问题找到了：App.tsx 里..." -> message
+"Edited apps/.../App.tsx (+9 -7)" -> action=editing/review summary
 ```
 
 ## Item Scope
@@ -207,20 +277,22 @@ Pet 是状态载体和轻量控制入口。它可以有 collapsed 和 dock 两�
 Collapsed:
 
 ```text
-thinking
-editing this block
-running tests
-waiting approval
-done
-failed
+[message bubble]
+我先检查这个 block 的结构
+
+ghost
+
+[action label]
+reading source
 ```
 
 Dock:
 
 ```text
-Codex is editing
+Codex is working
 
-Current: applying patch
+Message: 问题找到了，我现在修接线。
+Action: editing App.tsx
 
 [Open activity] [Stop]
 ```
@@ -248,7 +320,52 @@ Ask Codex about this document...
 - 有 block 选中时，主输入优先在 block/context popover。
 - 没有 block 选中时，Pet dock 可以承载全局 input area。
 - 有 approval/blocked 时，Pet 优先变成必须处理的入口。
+- Pet 的 message 可以流式变化，但只能展示低信息密度短内容。
+- Pet 的 action 只展示当前动作摘要，不展示 stdout、diff、MCP args/result。
 - Pet 不展示完整 diff、不展示完整 tool output、不替代 Drawer。
+
+## Codex TUI 对齐结论
+
+Codex TUI 不把 raw app-server event 原样展示给用户。它先把事件归一成 `ServerNotification`、`ServerRequest`、`Turn`、`ThreadItem`，再映射到不同 UI surface。
+
+Codex TUI 的 Pet 很粗，只接收：
+
+```text
+Running
+Waiting
+Review
+Failed
+```
+
+大致触发关系：
+
+```text
+TurnStarted -> Running
+approval/input/elicitation request -> Waiting
+TurnCompleted success -> Review
+error/failed turn -> Failed
+```
+
+Chat/history 保留更细粒度事实：
+
+```text
+AgentMessageDelta -> streaming agent message cell
+CommandExecution -> exec cell
+Command output -> active exec cell
+FileChange -> patch/file-change cell
+McpToolCall -> MCP tool call cell
+Approval request/result -> bottom pane and approval decision cell
+```
+
+Agent-HTML 可以比 Codex TUI 的 Pet 更“活”，但不能让 Pet 直接依赖 Codex raw event 名称。推荐边界：
+
+```text
+Codex raw event
+  -> Agent activity adapter
+  -> PetPresence
+```
+
+`Agent activity adapter` 是唯一理解 Codex 协议的地方。Pet 组件只消费 `PetPresence`，Drawer/timeline 才保存 raw/detail。
 
 ## Drawer 形态
 

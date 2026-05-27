@@ -7,6 +7,11 @@ use serde::Serialize;
 use tauri::State;
 use thiserror::Error;
 
+const INTRODUCE_AGENT_HTML_SOURCE: &str =
+    include_str!("../../apps/agent-html-app/src/workspace/fixtures/introduce-agent-html.ahtml");
+const INTRODUCE_AGENT_HTML_ZH_SOURCE: &str =
+    include_str!("../../apps/agent-html-app/src/workspace/fixtures/introduce-agent-html-cn.ahtml");
+
 #[derive(Debug, Error)]
 pub(crate) enum WorkspaceError {
     #[error("database error: {0}")]
@@ -106,6 +111,7 @@ impl WorkspaceStore {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
         create_schema(&connection)?;
         seed_if_empty(&connection)?;
+        seed_introduce_examples(&connection)?;
         Ok(())
     }
 
@@ -694,6 +700,71 @@ fn seed_if_empty(connection: &Connection) -> WorkspaceResult<()> {
     Ok(())
 }
 
+fn seed_introduce_examples(connection: &Connection) -> WorkspaceResult<()> {
+    let now = current_timestamp();
+    let project = WorkspaceProject {
+        id: "agent-html-example".to_string(),
+        name: "Agent-HTML Example".to_string(),
+        slug: "agent-html-example".to_string(),
+    };
+    let sections = [
+        (
+            seed_section(
+                &project.id,
+                "introduce-agent-html",
+                "Introducing agent-html",
+                "Example Cases",
+                0,
+            ),
+            INTRODUCE_AGENT_HTML_SOURCE,
+        ),
+        (
+            seed_section(
+                &project.id,
+                "introduce-agent-html-zh",
+                "介绍 agent-html",
+                "Example Cases",
+                1,
+            ),
+            INTRODUCE_AGENT_HTML_ZH_SOURCE,
+        ),
+    ];
+    let transaction = connection.unchecked_transaction()?;
+
+    transaction.execute(
+        "INSERT OR IGNORE INTO projects (id, name, slug, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![project.id, project.name, project.slug, now, now],
+    )?;
+
+    for (section, source) in sections {
+        transaction.execute(
+            "INSERT OR IGNORE INTO project_sections
+             (id, project_id, title, group_title, sort_order, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![
+                section.id,
+                section.project_id,
+                section.title,
+                section.group_title,
+                section.sort_order,
+                now,
+                now
+            ],
+        )?;
+
+        transaction.execute(
+            "INSERT OR IGNORE INTO project_section_documents
+             (project_id, section_id, ahtml_source, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![section.project_id, section.id, source, now, now],
+        )?;
+    }
+
+    transaction.commit()?;
+    Ok(())
+}
+
 fn seed_projects() -> Vec<WorkspaceProject> {
     vec![
         WorkspaceProject {
@@ -1085,8 +1156,11 @@ mod tests {
 
         let projects = store.list_projects().expect("list projects");
 
-        assert_eq!(projects.len(), 3);
+        assert_eq!(projects.len(), 4);
         assert_eq!(projects[0].id, "design-engineering");
+        assert!(projects
+            .iter()
+            .any(|project| project.id == "agent-html-example"));
     }
 
     #[test]
@@ -1115,6 +1189,24 @@ mod tests {
         assert_eq!(document.project_id, "design-engineering");
         assert_eq!(document.section_id, "installation");
         assert!(document.ahtml_source.contains("<Page"));
+    }
+
+    #[test]
+    fn seeds_introduce_agent_html_examples() {
+        let store = test_store();
+
+        let sections = store
+            .list_project_sections("agent-html-example")
+            .expect("list example sections");
+
+        assert_eq!(sections.len(), 2);
+        assert_eq!(sections[0].id, "introduce-agent-html");
+        assert_eq!(sections[1].id, "introduce-agent-html-zh");
+
+        let document = store
+            .get_project_section_document("agent-html-example", "introduce-agent-html")
+            .expect("read introduce document");
+        assert!(document.ahtml_source.contains("agent-html"));
     }
 
     #[test]

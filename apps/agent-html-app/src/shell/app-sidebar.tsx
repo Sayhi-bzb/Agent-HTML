@@ -27,7 +27,7 @@ import {
   ChevronRightIcon,
   SparklesIcon,
 } from "lucide-react"
-import type { GalleryThemePresetId } from "@/app/gallery/editor-panels"
+import type { AppThemePresetId } from "@/app/shared/app-theme/tokens"
 
 type ProjectNavItem = {
   id: string
@@ -36,8 +36,8 @@ type ProjectNavItem = {
   slug: string
 }
 
-type GalleryThemePresetNavItem = {
-  id: GalleryThemePresetId
+type AppThemePresetNavItem = {
+  id: AppThemePresetId
   label: string
 }
 
@@ -69,12 +69,12 @@ export function AppSidebar({
   workspaceHasUnsavedChanges,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  activeGalleryThemePresetId?: GalleryThemePresetId
+  activeGalleryThemePresetId?: AppThemePresetId
   activeProjectId: string | null
   activeWorkspaceSectionId: string
   canCreateProject: boolean
   galleryContent: React.ReactNode
-  galleryThemePresets?: readonly GalleryThemePresetNavItem[]
+  galleryThemePresets?: readonly AppThemePresetNavItem[]
   isGalleryThemeDirty?: boolean
   mode?: "gallery" | "workspace"
   onApplyGalleryTheme?: () => void
@@ -104,7 +104,7 @@ export function AppSidebar({
     sectionId: string
     title: string
   }) => Promise<void>
-  onSelectGalleryThemePreset?: (presetId: GalleryThemePresetId) => void
+  onSelectGalleryThemePreset?: (presetId: AppThemePresetId) => void
   onWorkspaceSectionSelect: (sectionId: string) => void
   projects: ProjectNavItem[]
   workspaceActionError: string | null
