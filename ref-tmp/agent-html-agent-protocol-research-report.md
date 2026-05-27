@@ -201,6 +201,19 @@ await mcp.notification({
 - 需要 Claude Code v2.1.80 或更新版本。
 - Team/Enterprise 环境可能需要管理员启用。
 - 如果没有正在运行的 Claude Code session，事件无法自然进入当前 session。
+- 第三方 Anthropic 兼容网关或自定义模型环境下，Channels 可能不可用。2026-05-27 本项目实测：Claude Code v2.1.116、`channelsEnabled: true`、`agent-html-channel` MCP server 显示 connected，但当 `ANTHROPIC_BASE_URL` 指向第三方网关、模型为自定义 `mimo-v2.5-pro` 时，启动 `claude --dangerously-load-development-channels server:agent-html-channel` 仍输出 `Channels are not currently available`，并忽略该 channel。结论是：MCP 连接成功不等于 Channels 可用；第三方 provider 场景应默认走 local bridge/log/copy fallback，不能承诺 push 到当前 Claude Code session。
+
+本项目的 Claude channel bridge 还需要声明 MCP experimental capability：
+
+```js
+capabilities: {
+  experimental: {
+    "claude/channel": {}
+  }
+}
+```
+
+这个 capability 只是必要条件，不会绕过 Claude Code 的 Channels 可用性、账号、组织策略或 provider 限制。
 
 ### Codex App Server Adapter
 
@@ -392,6 +405,39 @@ AgentContextEvent
   -> Codex App Server adapter
   -> MCP context tools
 ```
+
+## 本轮第一版实现归档
+
+第一版交互能力已经实现并归档在：
+
+```text
+ref-tmp/agent-html-interaction-v1-code-archive/
+ref-tmp/agent-html-interaction-v1-code-archive.zip
+```
+
+归档内容包括：
+
+- App block input 的 Send 入口。
+- `agent-html.context-event.v1` 的事件生成与 prompt 格式化。
+- Kanban item 拖拽交互事件记录。
+- `POST /agent-html/events` local bridge。
+- Claude Code channel bridge 适配脚本。
+- Copy Prompt fallback。
+- 单元测试与开发文档。
+
+实测可用形态：
+
+```text
+Agent-HTML App Send -> local bridge/log -> copy fallback
+```
+
+在官方 Claude Code Channels 可用的账号/组织/provider 环境中，设计目标是：
+
+```text
+Agent-HTML App Send -> local bridge -> notifications/claude/channel -> 当前 Claude Code session
+```
+
+但在第三方 Anthropic 兼容网关场景下，本轮验证结果是 Channels 不可用，因此产品体验必须降级到 bridge/log/copy，而不是宣称自动进入当前 Claude Code 对话。
 
 ## 参考文档
 
