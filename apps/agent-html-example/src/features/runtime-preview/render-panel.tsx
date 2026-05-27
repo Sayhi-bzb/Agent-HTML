@@ -9,8 +9,8 @@ import {
   type HoverCardSide,
 } from "@example/features/runtime-preview/hover-card-placement"
 import { BlockSummaryCode } from "@example/features/runtime-preview/block-summary-code"
-import { AgentHtmlBlockIndicator, useAgentHtmlBlockRuntime } from "@/agent-html"
-import { ScrollArea } from "@example/ui"
+import { AgentHtmlRuntimeViewport } from "@/agent-html/runtime"
+import { useAgentHtmlBlockRuntime } from "@/agent-html/runtime/block"
 
 const hoverCardSize = {
   height: 224,
@@ -55,12 +55,8 @@ export const RenderPanel = React.memo(function RenderPanel({
     getVisibleBlockRects,
     hoveredMotionKey,
     hoveredPath,
-    registerOverlayElement,
-    refreshDragIntent,
-    setHoveredBlock,
   } = blockRuntime
   const shouldReduceMotion = useReducedMotion()
-  const scrollAreaRef = React.useRef<HTMLDivElement | null>(null)
   const viewportRef = React.useRef<HTMLDivElement | null>(null)
   const hoverCardRef = React.useRef<HTMLDivElement | null>(null)
   const hoveredBlockRef = React.useRef<HTMLElement | null>(null)
@@ -72,10 +68,6 @@ export const RenderPanel = React.memo(function RenderPanel({
     summary: "",
     visible: false,
   })
-
-  React.useEffect(() => {
-    return registerOverlayElement(viewportRef.current)
-  }, [registerOverlayElement])
 
   const hideHoverCard = React.useCallback(() => {
     setHoverCard((current) => ({
@@ -174,30 +166,7 @@ export const RenderPanel = React.memo(function RenderPanel({
 
   const handleScroll = React.useCallback(() => {
     invalidateHoverCardRequest()
-    if (activePath) {
-      refreshDragIntent()
-      return
-    }
-
-    setHoveredBlock(null)
-  }, [activePath, invalidateHoverCardRequest, refreshDragIntent, setHoveredBlock])
-
-  React.useEffect(() => {
-    const scrollRoot = scrollAreaRef.current
-    const scrollViewport = scrollRoot?.querySelector<HTMLElement>(
-      "[data-slot='scroll-area-viewport']"
-    )
-
-    if (!scrollViewport) {
-      return
-    }
-
-    scrollViewport.addEventListener("scroll", handleScroll, { passive: true })
-
-    return () => {
-      scrollViewport.removeEventListener("scroll", handleScroll)
-    }
-  }, [handleScroll])
+  }, [invalidateHoverCardRequest])
 
   React.useEffect(() => {
     updatePlacement(getHoveredBlockElement())
@@ -223,43 +192,40 @@ export const RenderPanel = React.memo(function RenderPanel({
     }
   }, [])
 
-  return (
-    <div
-      className="relative h-full min-h-0 w-full min-w-0 overflow-hidden"
-      ref={viewportRef}
+  const hoverCardOverlay = (
+    <motion.div
+      animate={{
+        opacity: hoverCard.visible ? 1 : 0,
+        scale: shouldReduceMotion || hoverCard.visible ? 1 : 0.96,
+        x: hoverCard.placement?.left ?? 0,
+        y: hoverCard.placement?.top ?? 0,
+      }}
+      aria-hidden="true"
+      className="pointer-events-none fixed z-50 max-h-56 w-56 overflow-hidden rounded-lg border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[var(--card)] px-3 py-2 shadow-[0_18px_36px_-24px_color-mix(in_oklab,var(--foreground)_35%,transparent)] ring-1 ring-[color-mix(in_oklab,var(--foreground)_10%,transparent)]"
+      data-agent-html-hover-card="true"
+      initial={false}
+      ref={hoverCardRef}
+      transition={
+        shouldReduceMotion
+          ? reducedHoverCardMotionTransition
+          : hoverCardMotionTransition
+      }
+      style={{
+        left: 0,
+        top: 0,
+      }}
     >
-      <ScrollArea className="h-full w-full" ref={scrollAreaRef}>
-        <div
-          className="w-full min-w-0 p-5"
-        >
-          {children}
-        </div>
-      </ScrollArea>
-      <AgentHtmlBlockIndicator />
-      <motion.div
-        animate={{
-          opacity: hoverCard.visible ? 1 : 0,
-          scale: shouldReduceMotion || hoverCard.visible ? 1 : 0.96,
-          x: hoverCard.placement?.left ?? 0,
-          y: hoverCard.placement?.top ?? 0,
-        }}
-        aria-hidden="true"
-        className="pointer-events-none fixed z-50 max-h-56 w-56 overflow-hidden rounded-lg border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[var(--card)] px-3 py-2 shadow-[0_18px_36px_-24px_color-mix(in_oklab,var(--foreground)_35%,transparent)] ring-1 ring-[color-mix(in_oklab,var(--foreground)_10%,transparent)]"
-        data-agent-html-hover-card="true"
-        initial={false}
-        ref={hoverCardRef}
-        transition={
-          shouldReduceMotion
-            ? reducedHoverCardMotionTransition
-            : hoverCardMotionTransition
-        }
-        style={{
-          left: 0,
-          top: 0,
-        }}
-      >
-        <BlockSummaryCode summary={hoverCard.summary} />
-      </motion.div>
-    </div>
+      <BlockSummaryCode summary={hoverCard.summary} />
+    </motion.div>
+  )
+
+  return (
+    <AgentHtmlRuntimeViewport
+      onScroll={handleScroll}
+      overlay={hoverCardOverlay}
+      viewportRef={viewportRef}
+    >
+      {children}
+    </AgentHtmlRuntimeViewport>
   )
 })

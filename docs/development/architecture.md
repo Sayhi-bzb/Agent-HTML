@@ -35,6 +35,7 @@ Owns the Agent-HTML DSL core and runtime system:
 - schema metadata
 - runtime renderer
 - runtime UI used by rendered DSL output
+- shared runtime host helpers used by app and example render surfaces
 - runtime theme helpers
 - fixtures and DSL-focused tests
 - public exports from `packages/agent-html/src/index.ts`
@@ -42,6 +43,20 @@ Owns the Agent-HTML DSL core and runtime system:
 This module is the stable boundary for Agent-HTML consumers. External surfaces
 should use the public exports instead of reaching into internal parser,
 validator, schema, or runtime files unless they are extending the DSL itself.
+Consumers that render Agent-HTML must include the package source in their
+Tailwind scanning and provide their own app-level CSS token context; the runtime
+package stays neutral and does not preload example presets.
+
+The package public surface is intentionally layered:
+
+- `@/agent-html` is the stable contract for DSL core and production runtime host
+  APIs.
+- `@/agent-html/runtime` exposes the runtime host contract for consumers that
+  want explicit runtime imports.
+- `@/agent-html/runtime/block` is for advanced block-host internals such as
+  hover state and drag/drop geometry.
+- `@/agent-html/source` is demo/source-analysis support for source comparison
+  surfaces. It is not part of the production runtime host contract.
 
 ### `apps/agent-html-example`
 
@@ -136,6 +151,9 @@ Rules:
   depend on app-local state.
 - Runtime UI under `packages/agent-html/src/runtime/ui` belongs to rendered DSL output and
   should not be treated as the general app primitive layer.
+- Source comparison, source metrics, and formatted HTML output belong to
+  example/debug support even when their helpers live in the package for reuse.
+  They should not be promoted through the stable top-level package contract.
 
 ## Structural Change Rules
 

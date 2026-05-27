@@ -6,6 +6,7 @@ import type {
   AgentHtmlColorStep,
   AgentHtmlColorTokenValues,
 } from "@/agent-html/theme/defaults"
+import { cn } from "@/agent-html/lib/utils"
 import {
   agentHtmlColorTokenDefaults,
   agentHtmlRuntimeDefaults,
@@ -25,10 +26,12 @@ const tailwindColorFamilies = Object.fromEntries(
 
 export function AgentHtmlRuntimeTheme({
   children,
+  className,
   colorCssVariables,
   colorTokenValues = agentHtmlColorTokenDefaults,
 }: {
   children: React.ReactNode
+  className?: string
   colorCssVariables?: AgentHtmlColorCssVariables
   colorTokenValues?: AgentHtmlColorTokenValues
 }) {
@@ -88,7 +91,10 @@ export function AgentHtmlRuntimeTheme({
 
   return (
     <div
-      className="h-screen w-screen overflow-hidden bg-background text-foreground"
+      className={cn(
+        "h-screen w-screen overflow-hidden bg-background text-foreground",
+        className
+      )}
       style={previewThemeStyle}
     >
       {children}

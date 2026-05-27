@@ -20,60 +20,50 @@ Agent-HTML 是一个面向 AI 原生工件的工作区，用来把生成的 HTML
 
 ## 预览
 
-### 结构化工件
+### 块编辑
 
-Agent-HTML 面向工件形态的输出：计划、看板、时间线、报告、简报，以及其他
-适合审阅的界面。
+把生成的 UI 当作块来移动，通过拖拽把手和落点预览，让工件编辑更接近页面搭建，
+而不是静态 HTML 预览。
+
+![块拖拽](./public/block-dnd.gif)
+
+### 结构化组件
+
+Agent-HTML 面向工件形态的输出：仪表盘、看板、报告、简报，以及其他适合审阅的
+界面。
 
 <table>
   <tr>
     <td width="50%">
       <strong>Kanban</strong><br />
-      <img src="./public/kanban.png" alt="Kanban 看板工件" />
+      <img src="./public/components3-kanban.gif" alt="Kanban 看板组件工件" />
     </td>
     <td width="50%">
-      <strong>Timeline</strong><br />
-      <img src="./public/timeline.png" alt="时间线工件" />
+      <strong>图表</strong><br />
+      <img src="./public/components2-chart.gif" alt="由数据渲染的图表组件" />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <strong>图片和表格</strong><br />
+      <img src="./public/components3-img%26table.gif" alt="图片和表格组件组合" />
+    </td>
+    <td width="50%">
     </td>
   </tr>
 </table>
-
-### 响应式预览
-
-通过宽高比预览控制，检查同一个工件在不同展示格式下是否依然清晰可靠。
-
-![宽高比预览](./public/aspectratio.png)
 
 ### 主题
 
-在内置主题之间切换，或为同一套工件结构定义自定义视觉风格。
+在内置主题之间切换，同时保持同一套底层工件结构。
 
-<table>
-  <tr>
-    <td width="50%">
-      <strong>主题一</strong><br />
-      <img src="./public/theme1.png" alt="主题一" />
-    </td>
-    <td width="50%">
-      <strong>主题二</strong><br />
-      <img src="./public/theme2.png" alt="主题二" />
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <strong>自定义主题</strong><br />
-      <img src="./public/custom%20theme.png" alt="自定义主题" />
-    </td>
-    <td width="50%">
-    </td>
-  </tr>
-</table>
+![主题切换](./public/theme.gif)
 
 ### Agent 协作
 
 审阅工件，指出需要修改的位置，并让下一轮迭代紧贴预览结果发生。
 
-![与 agent 交互](./public/interact%20with%20agent.png)
+![与 agent 交互](./public/interact%20with%20agent.gif)
 
 ## 文档
 

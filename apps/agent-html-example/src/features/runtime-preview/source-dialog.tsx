@@ -1,4 +1,4 @@
-import type { SourceMetrics } from "@/agent-html"
+import type { SourceMetrics } from "@/agent-html/source"
 import { SourcePanel } from "@example/features/source-viewer/source-panel"
 import type { SourceTabValue } from "@example/features/source-viewer/types"
 import { DialogContent } from "@example/ui"

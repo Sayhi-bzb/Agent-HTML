@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { parseAgentHtml, type AgentHtmlElementNode } from "@/agent-html"
+import type { AgentHtmlElementNode } from "@/agent-html/ast/types"
+import { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
 import {
   createAgentHtmlBlockSummaryMap,
   summarizeAgentHtmlBlock,

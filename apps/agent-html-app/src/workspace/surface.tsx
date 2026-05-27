@@ -7,9 +7,15 @@ import type {
   WorkspaceSection,
 } from "@/app/workspace/types"
 import {
+  AgentHtmlBlockRuntimeProvider,
+  AgentHtmlRuntimeTheme,
+  AgentHtmlRuntimeViewport,
+  applyAgentHtmlDropIntent,
   parseAgentHtml,
-  renderAgentHtml,
+  renderInteractiveAgentHtml,
+  serializeAgentHtml,
   validateAgentHtml,
+  type AgentHtmlDropIntent,
   type AgentHtmlValidationError,
 } from "@/agent-html"
 
@@ -19,7 +25,7 @@ type WorkspaceDocumentState =
   | { document: ProjectSectionDocument; status: "ready" }
 
 type RuntimeState =
-  | { content: React.ReactNode; status: "ready" }
+  | { document: ProjectSectionDocument; content: React.ReactNode; status: "ready" }
   | { errors: AgentHtmlValidationError[]; status: "invalid" }
   | { message: string; status: "error" }
 
@@ -77,7 +83,8 @@ function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState
     }
 
     return {
-      content: renderAgentHtml(parsedDocument),
+      content: renderInteractiveAgentHtml(parsedDocument),
+      document,
       status: "ready",
     }
   } catch (error) {
@@ -97,6 +104,41 @@ export function WorkspaceSurface({
 }) {
   const [documentState, setDocumentState] =
     React.useState<WorkspaceDocumentState>({ status: "idle" })
+
+  const handleDropIntent = React.useCallback(
+    ({
+      intent,
+      sourcePath,
+    }: {
+      intent: AgentHtmlDropIntent
+      sourcePath: string
+    }) => {
+      setDocumentState((current) => {
+        if (current.status !== "ready") {
+          return current
+        }
+
+        try {
+          const parsedDocument = parseAgentHtml(current.document.ahtmlSource)
+          const nextDocument = applyAgentHtmlDropIntent(parsedDocument, {
+            intent,
+            sourcePath,
+          })
+
+          return {
+            document: {
+              ...current.document,
+              ahtmlSource: serializeAgentHtml(nextDocument),
+            },
+            status: "ready",
+          }
+        } catch {
+          return current
+        }
+      })
+    },
+    []
+  )
 
   React.useEffect(() => {
     if (!activeProject || !activeSection) {
@@ -179,9 +221,11 @@ export function WorkspaceSurface({
   }
 
   return (
-    <div className="min-h-full overflow-auto bg-background p-4 text-foreground md:p-6">
-      {runtime.content}
-    </div>
+    <AgentHtmlRuntimeTheme className="h-full w-full">
+      <AgentHtmlBlockRuntimeProvider onDropIntent={handleDropIntent}>
+        <AgentHtmlRuntimeViewport>{runtime.content}</AgentHtmlRuntimeViewport>
+      </AgentHtmlBlockRuntimeProvider>
+    </AgentHtmlRuntimeTheme>
   )
 }
 

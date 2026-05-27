@@ -22,63 +22,51 @@ Edit HTML like Notion.
 
 ## Preview
 
-### Structured Artifacts
+### Block Editing
 
-Agent-HTML is designed for artifact-shaped output: plans, boards, timelines,
-reports, briefs, and other reviewable surfaces.
+Move generated UI as blocks, with drag handles and drop placement that make
+artifact editing feel closer to a page builder than a static HTML preview.
+
+![Block drag and drop](./public/block-dnd.gif)
+
+### Structured Components
+
+Agent-HTML is designed for artifact-shaped output: dashboards, boards, reports,
+briefs, and other reviewable surfaces.
 
 <table>
   <tr>
     <td width="50%">
       <strong>Kanban</strong><br />
-      <img src="./public/kanban.png" alt="Kanban board artifact" />
+      <img src="./public/components3-kanban.gif" alt="Kanban component artifact" />
     </td>
     <td width="50%">
-      <strong>Timeline</strong><br />
-      <img src="./public/timeline.png" alt="Timeline artifact" />
+      <strong>Charts</strong><br />
+      <img src="./public/components2-chart.gif" alt="Chart components rendered from data" />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <strong>Image and table</strong><br />
+      <img src="./public/components3-img%26table.gif" alt="Image and table component composition" />
+    </td>
+    <td width="50%">
     </td>
   </tr>
 </table>
-
-### Responsive Preview
-
-Use aspect-ratio aware preview controls to inspect how an artifact holds up
-across different presentation formats.
-
-![Aspect ratio preview](./public/aspectratio.png)
 
 ### Themes
 
-Switch between built-in themes or define a custom visual treatment for the same
-underlying artifact structure.
+Switch between built-in themes and keep the same underlying artifact structure.
 
-<table>
-  <tr>
-    <td width="50%">
-      <strong>Theme one</strong><br />
-      <img src="./public/theme1.png" alt="Theme one" />
-    </td>
-    <td width="50%">
-      <strong>Theme two</strong><br />
-      <img src="./public/theme2.png" alt="Theme two" />
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <strong>Custom theme</strong><br />
-      <img src="./public/custom%20theme.png" alt="Custom theme" />
-    </td>
-    <td width="50%">
-    </td>
-  </tr>
-</table>
+![Theme switching](./public/theme.gif)
 
 ### Agent Collaboration
 
 Review the artifact, point at what needs to change, and keep iteration close to
 the preview.
 
-![Interact with agent](./public/interact%20with%20agent.png)
+![Interact with agent](./public/interact%20with%20agent.gif)
 
 ## Documents
 

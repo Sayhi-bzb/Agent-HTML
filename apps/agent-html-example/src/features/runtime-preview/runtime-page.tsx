@@ -4,18 +4,16 @@ import { renderToStaticMarkup } from "react-dom/server"
 import {
   type AgentHtmlDocument,
   AgentHtmlBlockRuntimeProvider,
-  AgentHtmlBlockWrapper,
   type AgentHtmlValidationError,
   applyAgentHtmlDropIntent,
-  formatHtmlSource,
-  getSourceMetrics,
-  inferAgentHtmlInteractionUnits,
   parseAgentHtml,
-  renderAgentHtml,
   serializeAgentHtml,
   validateAgentHtml,
   type AgentHtmlDropIntent,
 } from "@/agent-html"
+import { inferAgentHtmlInteractionUnits } from "@/agent-html/interaction/infer-interaction-units"
+import { renderAgentHtml, renderInteractiveAgentHtml } from "@/agent-html/runtime"
+import { formatHtmlSource, getSourceMetrics } from "@/agent-html/source"
 import {
   agentHtmlExampleCases,
   type AgentHtmlExampleCase,
@@ -170,19 +168,8 @@ export function AgentHtmlRuntimePage({
 
   const renderedContent = React.useMemo(() => {
     return runtime.validation.ok
-      ? renderAgentHtml(runtime.document, {
-          highlightBlocks: true,
+      ? renderInteractiveAgentHtml(runtime.document, {
           interactionUnits: runtime.interactionUnits ?? undefined,
-          renderBlockWrapper: ({ children, className, path, unit }) => (
-            <AgentHtmlBlockWrapper
-              className={className}
-              key={unit.motionKey}
-              path={path}
-              unit={unit}
-            >
-              {children}
-            </AgentHtmlBlockWrapper>
-          ),
         })
       : null
   }, [runtime])

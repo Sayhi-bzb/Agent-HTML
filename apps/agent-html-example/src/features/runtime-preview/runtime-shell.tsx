@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import type { SourceMetrics } from "@/agent-html"
+import type { SourceMetrics } from "@/agent-html/source"
 import type { AgentHtmlExampleLocale } from "@example/cases"
 import type { ExampleThemeId } from "@example/theme/theme-presets"
 import { RenderPanel } from "@example/features/runtime-preview/render-panel"

@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import type { SourceMetrics } from "@/agent-html"
+import type { SourceMetrics } from "@/agent-html/source"
 import { CodeBlock } from "@example/features/source-viewer/code-block"
 import type { SourceTabValue } from "@example/features/source-viewer/types"
 import { ScrollArea, TabsContent, TabsList, TabsTrigger } from "@example/ui"

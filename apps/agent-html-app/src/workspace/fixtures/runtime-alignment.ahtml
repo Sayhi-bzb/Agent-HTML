@@ -1,0 +1,155 @@
+<Page title="Runtime alignment">
+  <Section width="content">
+    <Stack>
+      <Stack>
+        <Text variant="h1">Runtime alignment</Text>
+        <Text variant="lead">A compact workspace case for comparing app-hosted rendering with the shared runtime preview contract.</Text>
+      </Stack>
+
+      <Separator />
+
+      <Grid columns="2">
+        <Stack>
+          <Text variant="h2">Surface rhythm</Text>
+          <Text variant="muted">Spacing, typography, badges, and alerts should keep the same visual weight inside the workspace shell.</Text>
+          <Alert>
+            <Icon name="scan-line" />
+            <AlertTitle>Check the hosted runtime frame</AlertTitle>
+            <AlertDescription>This section should render through the package runtime viewport, not app-specific preview code.</AlertDescription>
+          </Alert>
+          <Cluster wrap="true">
+            <Badge variant="secondary">Shared viewport</Badge>
+            <Badge variant="outline">Workspace tokens</Badge>
+            <Badge variant="outline">Block handles</Badge>
+          </Cluster>
+        </Stack>
+
+        <Stack>
+          <Text variant="h2">Interactive primitives</Text>
+          <Text variant="muted">Tabs should preserve their controlled runtime behavior while matching the app surface theme.</Text>
+          <Tabs defaultValue="layout">
+            <TabsList>
+              <TabsTrigger value="layout">Layout</TabsTrigger>
+              <TabsTrigger value="tokens">Tokens</TabsTrigger>
+              <TabsTrigger value="blocks">Blocks</TabsTrigger>
+            </TabsList>
+            <TabsContent value="layout">
+              <Stack>
+                <Badge variant="secondary">Grid + Stack</Badge>
+                <Text variant="small">Nested layout nodes should keep stable gaps and readable widths.</Text>
+              </Stack>
+            </TabsContent>
+            <TabsContent value="tokens">
+              <Stack>
+                <Badge variant="outline">Theme driven</Badge>
+                <Text variant="small">Runtime primitives consume the host app token context.</Text>
+              </Stack>
+            </TabsContent>
+            <TabsContent value="blocks">
+              <Stack>
+                <Badge variant="secondary">Hover enabled</Badge>
+                <Text variant="small">Block controls should appear without changing the section layout.</Text>
+              </Stack>
+            </TabsContent>
+          </Tabs>
+        </Stack>
+      </Grid>
+
+      <Grid columns="2">
+        <Stack>
+          <Text variant="h2">Component density</Text>
+          <Text variant="muted">Tables and charts are useful for spotting spacing drift between hosts.</Text>
+          <Table>
+            <TableCaption>Expected runtime ownership</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Area</TableHead>
+                <TableHead>Owner</TableHead>
+                <TableHead>Signal</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>Viewport</TableCell>
+                <TableCell>Runtime</TableCell>
+                <TableCell>Scroll frame</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Tokens</TableCell>
+                <TableCell>Host app</TableCell>
+                <TableCell>Theme context</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Demo chrome</TableCell>
+                <TableCell>Example only</TableCell>
+                <TableCell>Not present here</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </Stack>
+
+        <Stack>
+          <Text variant="h2">Render metrics</Text>
+          <Text variant="muted">Bars should inherit chart colors and container spacing from the runtime token bridge.</Text>
+          <Chart type="bar">
+            <ChartSeries key="workspace" label="Workspace" />
+            <ChartSeries key="example" label="Example" />
+            <ChartRow label="Layout" workspace="92" example="92" />
+            <ChartRow label="Tokens" workspace="88" example="90" />
+            <ChartRow label="Blocks" workspace="94" example="94" />
+            <ChartTooltip hideLabel="false" />
+          </Chart>
+        </Stack>
+      </Grid>
+
+      <Stack>
+        <Text variant="h2">Block interaction lane</Text>
+        <Text variant="muted">This lane gives block handles, drop intent, and nested content a predictable workspace target.</Text>
+        <Kanban>
+          <KanbanColumn value="inspect" title="Inspect">
+            <KanbanItem value="hover">
+              <Stack>
+                <Text variant="small">Hover this card and confirm the block controls appear outside the content edge.</Text>
+                <Badge variant="secondary">Hover state</Badge>
+              </Stack>
+            </KanbanItem>
+            <KanbanItem value="frame">
+              <Stack>
+                <Text variant="small">Scroll the viewport and confirm hover state clears without shifting layout.</Text>
+                <Badge variant="outline">Viewport</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+          <KanbanColumn value="compare" title="Compare">
+            <KanbanItem value="tokens">
+              <Stack>
+                <Text variant="small">Check badge, alert, table, and chart colors against the example runtime.</Text>
+                <Badge variant="secondary">Token parity</Badge>
+              </Stack>
+            </KanbanItem>
+            <KanbanItem value="spacing">
+              <Stack>
+                <Text variant="small">Compare section padding and grid gaps with the reference example surface.</Text>
+                <Badge variant="outline">Spacing</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+          <KanbanColumn value="confirm" title="Confirm">
+            <KanbanItem value="shared-host">
+              <Stack>
+                <Text variant="small">The app should use shared runtime host wiring instead of example-only code.</Text>
+                <Badge variant="secondary">Runtime host</Badge>
+              </Stack>
+            </KanbanItem>
+            <KanbanItem value="demo-boundary">
+              <Stack>
+                <Text variant="small">Source comparison panels and demo hover cards should stay out of this workspace case.</Text>
+                <Badge variant="outline">Boundary</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+        </Kanban>
+      </Stack>
+    </Stack>
+  </Section>
+</Page>

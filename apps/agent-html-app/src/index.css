@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "shadcn/tailwind.css";
 
+@source "../../../packages/agent-html/src";
+@source "./";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

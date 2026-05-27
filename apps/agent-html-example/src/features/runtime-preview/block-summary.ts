@@ -3,8 +3,8 @@ import type {
   AgentHtmlElementNode,
   AgentHtmlNode,
   AgentHtmlTag,
-} from "@/agent-html"
-import { walkAgentHtmlElementPaths } from "@/agent-html"
+} from "@/agent-html/ast/types"
+import { walkAgentHtmlElementPaths } from "@/agent-html/ast/paths"
 
 const hiddenSummaryTags = new Set<AgentHtmlTag>([
   "Page",
