@@ -45,11 +45,13 @@ export function AppSidebar({
   activeGalleryThemePresetId,
   activeProjectId,
   activeWorkspaceSectionId,
+  canCreateProject,
   galleryContent,
   galleryThemePresets,
   isGalleryThemeDirty = false,
   mode = "workspace",
   onApplyGalleryTheme,
+  onCreateProject,
   onEnterGalleryMode,
   onExitGalleryMode,
   onOpenProject,
@@ -61,11 +63,13 @@ export function AppSidebar({
   activeGalleryThemePresetId?: GalleryThemePresetId
   activeProjectId: string | null
   activeWorkspaceSectionId: string
+  canCreateProject: boolean
   galleryContent: React.ReactNode
   galleryThemePresets?: readonly GalleryThemePresetNavItem[]
   isGalleryThemeDirty?: boolean
   mode?: "gallery" | "workspace"
   onApplyGalleryTheme?: () => void
+  onCreateProject: (input: { name: string }) => Promise<void>
   onEnterGalleryMode?: () => void
   onExitGalleryMode?: () => void
   onOpenProject: (projectId: string) => void
@@ -154,7 +158,10 @@ export function AppSidebar({
         ) : (
           <>
             <SearchCommand onOpenProject={onOpenProject} projects={projects} />
-            <NewProjectDialog />
+            <NewProjectDialog
+              canCreate={canCreateProject}
+              onCreateProject={onCreateProject}
+            />
           </>
         )}
       </SidebarHeader>

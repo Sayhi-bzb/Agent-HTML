@@ -14,6 +14,7 @@
     "build": "tsc -b && vite build --config apps/agent-html-app/vite.config.ts",
     "bridge:agent": "node tools/agent-html-bridge.mjs",
     "bridge:claude-channel": "node tools/agent-html-claude-channel-bridge.mjs",
+    "bridge:codex-app": "node tools/agent-html-codex-app-server-bridge.mjs",
     "build:example": "tsc --noEmit -p tsconfig.agent-html-example.json && vite build --config apps/agent-html-example/vite.config.ts",
     "import:gallery-presets": "node tools/import-gallery-theme-presets.mjs",
     "verify:example-build": "node tools/verify-example-build.mjs",

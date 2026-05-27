@@ -1,79 +1,99 @@
 # Agent Intent Bridge
 
-This document describes the first-version Agent-HTML interaction loop.
+Agent-HTML 的 bridge 负责把 App 里的结构化用户意图送到本地 agent。当前主线是 Codex App Server；本地日志 bridge 和 Claude Code channel bridge 保留为调试/可选适配。
 
-## UX Loop
+## Current Product Loop
 
 ```text
 Agent-HTML App
-  -> user opens a block input or performs a runtime interaction
-  -> user clicks Send
-  -> App posts an Agent Context Event to the local bridge
-  -> bridge delivers or logs the request
+  -> user selects a block or performs an interaction
+  -> user enters a request and clicks Send
+  -> App posts an Agent Context Event to a local bridge
+  -> bridge delivers the request to a backend agent
 ```
 
-The App sends to `VITE_AGENT_HTML_BRIDGE_URL` when set. Otherwise it defaults to:
+当前已验证的 Codex 链路：
 
 ```text
-http://127.0.0.1:51278/agent-html/events
+Agent-HTML App Send
+  -> POST /agent-html/events
+  -> local Codex bridge
+  -> codex app-server --listen stdio://
+  -> thread/start
+  -> turn/start
+  -> Codex response / local file edit
 ```
 
-## Local Log Bridge
+## Recommended: Codex App Server
 
-Use this when developing the App UX or validating payloads without Claude Code:
+Start the Codex bridge:
 
-```bash
-npm run bridge:agent
+```powershell
+$env:AGENT_HTML_CODEX_COMMAND = "C:\Users\Administrator\AppData\Roaming\npm\codex.cmd"
+npm run bridge:codex-app
+```
+
+Start the App against that bridge:
+
+```powershell
+$env:VITE_AGENT_HTML_BRIDGE_URL = "http://127.0.0.1:51279/agent-html/events"
 npm run dev
 ```
 
-Optional event log:
-
-```bash
-AGENT_HTML_EVENT_LOG=.tmp/agent-html-events.jsonl npm run bridge:agent
-```
-
-On Windows PowerShell:
+Health check:
 
 ```powershell
-$env:AGENT_HTML_EVENT_LOG = ".tmp/agent-html-events.jsonl"
+Invoke-RestMethod http://127.0.0.1:51279/health
+```
+
+Expected fields:
+
+```text
+provider         : codex_app_server
+appServerRunning : True
+connected        : True
+threadId         : <codex-thread-id>
+```
+
+Optional logs:
+
+```powershell
+$env:AGENT_HTML_EVENT_LOG = ".tmp\agent-html-codex-events.jsonl"
+$env:AGENT_HTML_CODEX_EVENT_LOG = ".tmp\agent-html-codex-app-server-events.jsonl"
+npm run bridge:codex-app
+```
+
+The Codex bridge does not inject messages into an already open Codex TUI. Agent-HTML acts as a Codex App Server client and owns its thread/turn flow.
+
+## Optional Bridges
+
+Local log bridge:
+
+```powershell
+$env:AGENT_HTML_EVENT_LOG = ".tmp\agent-html-events.jsonl"
 npm run bridge:agent
 ```
 
-## Claude Code Channel Bridge
+Use this to validate payloads without running a real backend agent.
 
-Use this when Claude Code should receive Agent-HTML events in the active session.
-
-Register the bridge as a Claude Code MCP server from the repo root:
+Claude Code channel bridge:
 
 ```bash
 claude mcp add agent-html-channel -- node tools/agent-html-claude-channel-bridge.mjs
 ```
 
-Then start Claude Code in the project. When Agent-HTML posts to the bridge, the MCP server sends:
-
-```text
-notifications/claude/channel
-```
-
-The channel content is the formatted prompt. The metadata includes the Agent-HTML event id, project id, section id, block path, and block tag.
-
-## App Test Flow
-
-1. Start the channel bridge through Claude Code, or start `npm run bridge:agent`.
-2. Start the App with `npm run dev`.
-3. Open a block input in the preview.
-4. Type a request and click Send.
-5. Expected App feedback:
-   - `Sent to local agent bridge.` when the bridge accepts the event.
-   - `Agent bridge unavailable. Prompt copied.` when the bridge is unavailable and clipboard fallback succeeds.
+This is only useful when Claude Code Channels are available in the user's Claude Code/account/provider environment. Third-party Anthropic-compatible providers may show the MCP server as connected while Channels remain unavailable.
 
 ## Current Boundary
 
-This is the first-version bridge. It proves the product loop:
+Implemented:
 
-```text
-select/operate in App -> Send -> backend agent channel receives structured context
-```
+- App can submit structured Agent-HTML context to a local bridge.
+- Codex App Server can receive the request, produce a response, and edit files in the local workspace.
+- Local log and Claude channel adapters remain available for debugging or compatible environments.
 
-It does not yet implement a full in-app agent transcript, execution status streaming, or automatic diff review UI.
+Not implemented yet:
+
+- In-app streaming transcript of Codex responses.
+- In-app display of tool calls, approvals, and final task status.
+- Automatic diff review UI after agent edits.

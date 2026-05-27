@@ -20,6 +20,8 @@ enum WorkspaceError {
     },
     #[error("unable to resolve app data directory")]
     MissingAppDataDir,
+    #[error("project name is required")]
+    ProjectNameRequired,
 }
 
 impl Serialize for WorkspaceError {
@@ -39,6 +41,15 @@ struct WorkspaceProject {
     id: String,
     name: String,
     slug: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct WorkspaceProjectView {
+    id: String,
+    name: String,
+    slug: String,
+    sections: Vec<WorkspaceSection>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -148,6 +159,99 @@ impl WorkspaceStore {
         document.ok_or_else(|| WorkspaceError::DocumentNotFound {
             project_id: project_id.to_string(),
             section_id: section_id.to_string(),
+        })
+    }
+
+    fn create_project(&self, name: &str) -> WorkspaceResult<WorkspaceProjectView> {
+        let name = name.trim();
+        if name.is_empty() {
+            return Err(WorkspaceError::ProjectNameRequired);
+        }
+
+        let mut connection = self.connection.lock().expect("workspace db lock poisoned");
+        let slug = unique_slug(&connection, name)?;
+        let now = current_timestamp();
+        let project = WorkspaceProject {
+            id: slug.clone(),
+            name: name.to_string(),
+            slug,
+        };
+        let section = seed_section(&project.id, "overview", "Overview", "Workspace", 0);
+        let ahtml_source = create_blank_project_ahtml_source(&project);
+
+        let transaction = connection.transaction()?;
+        transaction.execute(
+            "INSERT INTO projects (id, name, slug, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![project.id, project.name, project.slug, now, now],
+        )?;
+        transaction.execute(
+            "INSERT INTO project_sections
+             (id, project_id, title, group_title, sort_order, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![
+                section.id,
+                section.project_id,
+                section.title,
+                section.group_title,
+                section.sort_order,
+                now,
+                now
+            ],
+        )?;
+        transaction.execute(
+            "INSERT INTO project_section_documents
+             (project_id, section_id, ahtml_source, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![project.id, section.id, ahtml_source, now, now],
+        )?;
+        transaction.commit()?;
+
+        Ok(WorkspaceProjectView {
+            id: project.id,
+            name: project.name,
+            slug: project.slug,
+            sections: vec![section],
+        })
+    }
+
+    fn update_project_section_document(
+        &self,
+        project_id: &str,
+        section_id: &str,
+        ahtml_source: &str,
+    ) -> WorkspaceResult<ProjectSectionDocument> {
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
+        let exists: Option<i64> = connection
+            .query_row(
+                "SELECT 1
+                 FROM project_section_documents
+                 WHERE project_id = ?1 AND section_id = ?2",
+                params![project_id, section_id],
+                |row| row.get(0),
+            )
+            .optional()?;
+
+        if exists.is_none() {
+            return Err(WorkspaceError::DocumentNotFound {
+                project_id: project_id.to_string(),
+                section_id: section_id.to_string(),
+            });
+        }
+
+        let updated_at = current_timestamp();
+        connection.execute(
+            "UPDATE project_section_documents
+             SET ahtml_source = ?3, updated_at = ?4
+             WHERE project_id = ?1 AND section_id = ?2",
+            params![project_id, section_id, ahtml_source, updated_at],
+        )?;
+
+        Ok(ProjectSectionDocument {
+            ahtml_source: ahtml_source.to_string(),
+            project_id: project_id.to_string(),
+            section_id: section_id.to_string(),
+            updated_at,
         })
     }
 }
@@ -374,6 +478,80 @@ fn create_seed_ahtml_source(project: &WorkspaceProject, section: &WorkspaceSecti
     )
 }
 
+fn current_timestamp() -> String {
+    "2026-05-27T00:00:00.000Z".to_string()
+}
+
+fn slugify(value: &str) -> String {
+    let mut slug = String::new();
+    let mut pending_dash = false;
+
+    for character in value.trim().chars() {
+        if character.is_ascii_alphanumeric() {
+            if pending_dash && !slug.is_empty() {
+                slug.push('-');
+            }
+            slug.push(character.to_ascii_lowercase());
+            pending_dash = false;
+        } else {
+            pending_dash = true;
+        }
+    }
+
+    if slug.is_empty() {
+        "project".to_string()
+    } else {
+        slug
+    }
+}
+
+fn unique_slug(connection: &Connection, name: &str) -> WorkspaceResult<String> {
+    let base = slugify(name);
+    let mut suffix = 1;
+
+    loop {
+        let candidate = if suffix == 1 {
+            base.clone()
+        } else {
+            format!("{base}-{suffix}")
+        };
+        let exists: Option<i64> = connection
+            .query_row(
+                "SELECT 1 FROM projects WHERE id = ?1 OR slug = ?1",
+                [candidate.as_str()],
+                |row| row.get(0),
+            )
+            .optional()?;
+
+        if exists.is_none() {
+            return Ok(candidate);
+        }
+
+        suffix += 1;
+    }
+}
+
+fn create_blank_project_ahtml_source(project: &WorkspaceProject) -> String {
+    format!(
+        r#"<Page title="{project_name}">
+  <Section width="content">
+    <Stack>
+      <Stack>
+        <Text variant="h1">{project_name}</Text>
+        <Text variant="lead">Start shaping this workspace artifact from a blank Agent-HTML document.</Text>
+      </Stack>
+      <Alert>
+        <Icon name="file-plus-2" />
+        <AlertTitle>Blank project</AlertTitle>
+        <AlertDescription>This overview section is stored in the local desktop workspace database.</AlertDescription>
+      </Alert>
+    </Stack>
+  </Section>
+</Page>"#,
+        project_name = project.name,
+    )
+}
+
 #[tauri::command]
 fn list_projects(store: State<'_, WorkspaceStore>) -> WorkspaceResult<Vec<WorkspaceProject>> {
     store.list_projects()
@@ -396,6 +574,24 @@ fn get_project_section_document(
     store.get_project_section_document(&project_id, &section_id)
 }
 
+#[tauri::command]
+fn create_project(
+    store: State<'_, WorkspaceStore>,
+    name: String,
+) -> WorkspaceResult<WorkspaceProjectView> {
+    store.create_project(&name)
+}
+
+#[tauri::command]
+fn update_project_section_document(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+    section_id: String,
+    ahtml_source: String,
+) -> WorkspaceResult<ProjectSectionDocument> {
+    store.update_project_section_document(&project_id, &section_id, &ahtml_source)
+}
+
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -410,7 +606,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             list_projects,
             list_project_sections,
-            get_project_section_document
+            get_project_section_document,
+            create_project,
+            update_project_section_document
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -473,6 +671,69 @@ mod tests {
         let error = store
             .get_project_section_document("design-engineering", "missing")
             .expect_err("missing document should fail");
+
+        assert!(matches!(error, WorkspaceError::DocumentNotFound { .. }));
+    }
+
+    #[test]
+    fn creates_blank_project_with_overview_document() {
+        let store = test_store();
+
+        let project = store
+            .create_project("Research Notes")
+            .expect("create project");
+
+        assert_eq!(project.id, "research-notes");
+        assert_eq!(project.slug, "research-notes");
+        assert_eq!(project.sections.len(), 1);
+        assert_eq!(project.sections[0].id, "overview");
+
+        let document = store
+            .get_project_section_document("research-notes", "overview")
+            .expect("read overview document");
+        assert!(document.ahtml_source.contains("Research Notes"));
+        assert!(document.ahtml_source.contains("Blank project"));
+    }
+
+    #[test]
+    fn creates_unique_slug_for_duplicate_project_names() {
+        let store = test_store();
+
+        let first = store
+            .create_project("Research Notes")
+            .expect("create first project");
+        let second = store
+            .create_project("Research Notes")
+            .expect("create second project");
+
+        assert_eq!(first.id, "research-notes");
+        assert_eq!(second.id, "research-notes-2");
+    }
+
+    #[test]
+    fn updates_project_section_document_source() {
+        let store = test_store();
+        let source = r#"<Page title="Updated">
+  <Section width="content">
+    <Text variant="h1">Updated</Text>
+  </Section>
+</Page>"#;
+
+        let document = store
+            .update_project_section_document("design-engineering", "installation", source)
+            .expect("update document");
+
+        assert_eq!(document.ahtml_source, source);
+        assert_eq!(document.updated_at, "2026-05-27T00:00:00.000Z");
+    }
+
+    #[test]
+    fn returns_error_when_updating_missing_document() {
+        let store = test_store();
+
+        let error = store
+            .update_project_section_document("design-engineering", "missing", "<Page />")
+            .expect_err("missing update should fail");
 
         assert!(matches!(error, WorkspaceError::DocumentNotFound { .. }));
     }

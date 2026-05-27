@@ -40,6 +40,13 @@ type AgentDeliveryState =
   | { detail: string; status: "copied" }
   | { detail: string; status: "error" }
 
+type SaveState =
+  | { status: "clean" }
+  | { status: "dirty" }
+  | { status: "saving" }
+  | { status: "saved" }
+  | { detail: string; status: "error" }
+
 const workspaceRepository = createWorkspaceRepository()
 
 function RuntimeValidationErrors({
@@ -109,14 +116,19 @@ function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState
 export function WorkspaceSurface({
   activeProject,
   activeSection,
+  canSave,
 }: {
   activeProject: WorkspaceProjectView | null
   activeSection: WorkspaceSection | null
+  canSave: boolean
 }) {
   const [documentState, setDocumentState] =
     React.useState<WorkspaceDocumentState>({ status: "idle" })
   const [agentDeliveryState, setAgentDeliveryState] =
     React.useState<AgentDeliveryState>({ status: "idle" })
+  const [saveState, setSaveState] = React.useState<SaveState>({
+    status: "clean",
+  })
   const lastInteractionRef =
     React.useRef<AgentHtmlAgentInteractionEvent | null>(null)
 
@@ -128,32 +140,59 @@ export function WorkspaceSurface({
       intent: AgentHtmlDropIntent
       sourcePath: string
     }) => {
-      setDocumentState((current) => {
-        if (current.status !== "ready") {
-          return current
-        }
+      if (documentState.status !== "ready") {
+        return
+      }
 
-        try {
-          const parsedDocument = parseAgentHtml(current.document.ahtmlSource)
-          const nextDocument = applyAgentHtmlDropIntent(parsedDocument, {
-            intent,
-            sourcePath,
-          })
+      try {
+        const parsedDocument = parseAgentHtml(documentState.document.ahtmlSource)
+        const nextDocument = applyAgentHtmlDropIntent(parsedDocument, {
+          intent,
+          sourcePath,
+        })
 
-          return {
-            document: {
-              ...current.document,
-              ahtmlSource: serializeAgentHtml(nextDocument),
-            },
-            status: "ready",
-          }
-        } catch {
-          return current
-        }
-      })
+        setDocumentState({
+          document: {
+            ...documentState.document,
+            ahtmlSource: serializeAgentHtml(nextDocument),
+          },
+          status: "ready",
+        })
+        setSaveState({ status: "dirty" })
+      } catch {
+        return
+      }
     },
-    []
+    [documentState]
   )
+
+  const handleSaveDocument = React.useCallback(() => {
+    if (!canSave || documentState.status !== "ready") {
+      return
+    }
+
+    const document = documentState.document
+    setSaveState({ status: "saving" })
+    workspaceRepository
+      .updateProjectSectionDocument({
+        ahtmlSource: document.ahtmlSource,
+        projectId: document.projectId,
+        sectionId: document.sectionId,
+      })
+      .then((nextDocument) => {
+        setDocumentState({ document: nextDocument, status: "ready" })
+        setSaveState({ status: "saved" })
+      })
+      .catch((error: unknown) => {
+        setSaveState({
+          detail:
+            error instanceof Error
+              ? error.message
+              : "Unable to save workspace document.",
+          status: "error",
+        })
+      })
+  }, [canSave, documentState])
 
   const handlePromptSubmit = React.useCallback(
     (submit: AgentHtmlAgentPromptSubmitInput) => {
@@ -218,6 +257,7 @@ export function WorkspaceSurface({
       .then((document) => {
         if (isCurrent) {
           setDocumentState({ document, status: "ready" })
+          setSaveState({ status: "clean" })
         }
       })
       .catch((error: unknown) => {
@@ -292,9 +332,35 @@ export function WorkspaceSurface({
       >
         <AgentHtmlRuntimeViewport>{runtime.content}</AgentHtmlRuntimeViewport>
       </AgentHtmlBlockRuntimeProvider>
+      {saveState.status !== "clean" ? (
+        <div
+          className="fixed right-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-xs text-foreground shadow-lg"
+          role="status"
+        >
+          <span>
+            {saveState.status === "dirty"
+              ? "Unsaved changes"
+              : saveState.status === "saving"
+                ? "Saving..."
+                : saveState.status === "saved"
+                  ? "Saved"
+                  : saveState.detail}
+          </span>
+          {saveState.status === "dirty" || saveState.status === "error" ? (
+            <button
+              className="rounded-md bg-primary px-2 py-1 font-medium text-primary-foreground disabled:opacity-50"
+              disabled={!canSave}
+              onClick={handleSaveDocument}
+              type="button"
+            >
+              Save
+            </button>
+          ) : null}
+        </div>
+      ) : null}
       {agentDeliveryState.status !== "idle" ? (
         <div
-          className="fixed bottom-4 right-4 z-50 rounded-lg border bg-background px-3 py-2 text-xs text-foreground shadow-lg"
+          className="fixed right-4 bottom-16 z-50 rounded-lg border bg-background px-3 py-2 text-xs text-foreground shadow-lg"
           role="status"
         >
           {agentDeliveryState.status === "sending"

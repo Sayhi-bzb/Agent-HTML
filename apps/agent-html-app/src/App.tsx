@@ -51,6 +51,7 @@ type HeaderTab = {
 }
 
 const workspaceRepository = createWorkspaceRepository()
+const workspaceCanWrite = workspaceRepository.canWrite
 
 function getInitialAppliedGalleryTheme() {
   if (typeof window === "undefined") {
@@ -276,6 +277,28 @@ export function App() {
     [projects]
   )
 
+  const handleCreateProject = React.useCallback(
+    async ({ name }: { name: string }) => {
+      const project = await workspaceRepository.createProject({ name })
+      const tabId = `project:${project.id}`
+
+      setProjects((currentProjects) => [...currentProjects, project])
+      setOpenTabs((currentTabs) => [
+        ...currentTabs,
+        {
+          id: tabId,
+          label: project.name,
+          projectId: project.id,
+          slug: project.slug,
+        },
+      ])
+      setActiveTabId(tabId)
+      setActiveWorkspaceSectionId(project.sections[0]?.id ?? defaultWorkspaceSectionId)
+      setSurfaceMode("workspace")
+    },
+    []
+  )
+
   const handleSelectWorkspaceSection = React.useCallback(
     (sectionId: string) => {
       setActiveWorkspaceSectionId(sectionId)
@@ -351,6 +374,7 @@ export function App() {
     <AppSidebar
       activeProjectId={activeProject?.id ?? null}
       activeWorkspaceSectionId={activeWorkspaceSection?.id ?? ""}
+      canCreateProject={workspaceCanWrite}
       galleryContent={
         <GalleryEditorPanel
           colorTokenValues={galleryColorTokenValues}
@@ -374,6 +398,7 @@ export function App() {
       isGalleryThemeDirty={isGalleryThemeDirty}
       mode={surfaceMode}
       onApplyGalleryTheme={handleApplyGalleryTheme}
+      onCreateProject={handleCreateProject}
       onEnterGalleryMode={handleEnterGalleryMode}
       onExitGalleryMode={handleExitGalleryMode}
       onOpenProject={handleOpenProject}
@@ -407,6 +432,7 @@ export function App() {
             <WorkspaceSurface
               activeProject={activeProject}
               activeSection={activeWorkspaceSection}
+              canSave={workspaceCanWrite}
             />
           )}
         </SidebarInset>
