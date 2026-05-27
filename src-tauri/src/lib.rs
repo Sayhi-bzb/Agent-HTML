@@ -22,6 +22,15 @@ enum WorkspaceError {
     MissingAppDataDir,
     #[error("project name is required")]
     ProjectNameRequired,
+    #[error("project not found for {project_id}")]
+    ProjectNotFound { project_id: String },
+    #[error("section not found for {project_id}/{section_id}")]
+    SectionNotFound {
+        project_id: String,
+        section_id: String,
+    },
+    #[error("section title is required")]
+    SectionTitleRequired,
 }
 
 impl Serialize for WorkspaceError {
@@ -75,6 +84,11 @@ struct WorkspaceStore {
     connection: Mutex<Connection>,
 }
 
+struct SectionWithDocument {
+    document: ProjectSectionDocument,
+    section: WorkspaceSection,
+}
+
 impl WorkspaceStore {
     fn open(path: PathBuf) -> WorkspaceResult<Self> {
         if let Some(parent) = path.parent() {
@@ -114,23 +128,7 @@ impl WorkspaceStore {
 
     fn list_project_sections(&self, project_id: &str) -> WorkspaceResult<Vec<WorkspaceSection>> {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        let mut statement = connection.prepare(
-            "SELECT id, project_id, title, group_title, sort_order
-             FROM project_sections
-             WHERE project_id = ?1
-             ORDER BY sort_order ASC, id ASC",
-        )?;
-        let rows = statement.query_map([project_id], |row| {
-            Ok(WorkspaceSection {
-                id: row.get(0)?,
-                project_id: row.get(1)?,
-                title: row.get(2)?,
-                group_title: row.get(3)?,
-                sort_order: row.get(4)?,
-            })
-        })?;
-
-        collect_rows(rows)
+        list_sections(&connection, project_id)
     }
 
     fn get_project_section_document(
@@ -215,6 +213,233 @@ impl WorkspaceStore {
         })
     }
 
+    fn rename_project(&self, project_id: &str, name: &str) -> WorkspaceResult<WorkspaceProjectView> {
+        let name = name.trim();
+        if name.is_empty() {
+            return Err(WorkspaceError::ProjectNameRequired);
+        }
+
+        let mut connection = self.connection.lock().expect("workspace db lock poisoned");
+        let existing = find_project(&connection, project_id)?;
+        if existing.is_none() {
+            return Err(WorkspaceError::ProjectNotFound {
+                project_id: project_id.to_string(),
+            });
+        }
+
+        let new_slug = unique_slug_excluding_project(&connection, name, project_id)?;
+        let now = current_timestamp();
+        connection.execute("PRAGMA foreign_keys = OFF", [])?;
+        let transaction_result = (|| -> WorkspaceResult<()> {
+            let transaction = connection.transaction()?;
+
+            transaction.execute(
+                "UPDATE projects
+                 SET id = ?2, name = ?3, slug = ?2, updated_at = ?4
+                 WHERE id = ?1",
+                params![project_id, new_slug, name, now],
+            )?;
+            transaction.execute(
+                "UPDATE project_sections
+                 SET project_id = ?2, updated_at = ?3
+                 WHERE project_id = ?1",
+                params![project_id, new_slug, now],
+            )?;
+            transaction.execute(
+                "UPDATE project_section_documents
+                 SET project_id = ?2, updated_at = ?3
+                 WHERE project_id = ?1",
+                params![project_id, new_slug, now],
+            )?;
+            transaction.commit()?;
+
+            Ok(())
+        })();
+        connection.execute("PRAGMA foreign_keys = ON", [])?;
+        transaction_result?;
+
+        let project = find_project(&connection, &new_slug)?.ok_or_else(|| {
+            WorkspaceError::ProjectNotFound {
+                project_id: new_slug.clone(),
+            }
+        })?;
+        let sections = list_sections(&connection, &new_slug)?;
+
+        Ok(WorkspaceProjectView {
+            id: project.id,
+            name: project.name,
+            slug: project.slug,
+            sections,
+        })
+    }
+
+    fn delete_project(&self, project_id: &str) -> WorkspaceResult<String> {
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
+        let changed = connection.execute("DELETE FROM projects WHERE id = ?1", [project_id])?;
+
+        if changed == 0 {
+            return Err(WorkspaceError::ProjectNotFound {
+                project_id: project_id.to_string(),
+            });
+        }
+
+        Ok(project_id.to_string())
+    }
+
+    fn create_project_section(
+        &self,
+        project_id: &str,
+        title: &str,
+    ) -> WorkspaceResult<WorkspaceSection> {
+        let title = title.trim();
+        if title.is_empty() {
+            return Err(WorkspaceError::SectionTitleRequired);
+        }
+
+        let mut connection = self.connection.lock().expect("workspace db lock poisoned");
+        let project = find_project(&connection, project_id)?.ok_or_else(|| {
+            WorkspaceError::ProjectNotFound {
+                project_id: project_id.to_string(),
+            }
+        })?;
+        let section_id = unique_section_id(&connection, project_id, title)?;
+        let sort_order = next_section_sort_order(&connection, project_id)?;
+        let now = current_timestamp();
+        let section = seed_section(project_id, &section_id, title, "Workspace", sort_order);
+        let ahtml_source = create_blank_section_ahtml_source(&project, &section);
+
+        let transaction = connection.transaction()?;
+        transaction.execute(
+            "INSERT INTO project_sections
+             (id, project_id, title, group_title, sort_order, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![
+                section.id,
+                section.project_id,
+                section.title,
+                section.group_title,
+                section.sort_order,
+                now,
+                now
+            ],
+        )?;
+        transaction.execute(
+            "INSERT INTO project_section_documents
+             (project_id, section_id, ahtml_source, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![section.project_id, section.id, ahtml_source, now, now],
+        )?;
+        transaction.commit()?;
+
+        Ok(section)
+    }
+
+    fn rename_project_section(
+        &self,
+        project_id: &str,
+        section_id: &str,
+        title: &str,
+    ) -> WorkspaceResult<WorkspaceSection> {
+        let title = title.trim();
+        if title.is_empty() {
+            return Err(WorkspaceError::SectionTitleRequired);
+        }
+
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
+        let now = current_timestamp();
+        let changed = connection.execute(
+            "UPDATE project_sections
+             SET title = ?3, updated_at = ?4
+             WHERE project_id = ?1 AND id = ?2",
+            params![project_id, section_id, title, now],
+        )?;
+
+        if changed == 0 {
+            return Err(WorkspaceError::SectionNotFound {
+                project_id: project_id.to_string(),
+                section_id: section_id.to_string(),
+            });
+        }
+
+        get_section(&connection, project_id, section_id)
+    }
+
+    fn delete_project_section(
+        &self,
+        project_id: &str,
+        section_id: &str,
+    ) -> WorkspaceResult<String> {
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
+        let changed = connection.execute(
+            "DELETE FROM project_sections WHERE project_id = ?1 AND id = ?2",
+            params![project_id, section_id],
+        )?;
+
+        if changed == 0 {
+            return Err(WorkspaceError::SectionNotFound {
+                project_id: project_id.to_string(),
+                section_id: section_id.to_string(),
+            });
+        }
+
+        Ok(section_id.to_string())
+    }
+
+    fn duplicate_project_section(
+        &self,
+        project_id: &str,
+        section_id: &str,
+    ) -> WorkspaceResult<WorkspaceSection> {
+        let mut connection = self.connection.lock().expect("workspace db lock poisoned");
+        let source = get_section_with_document(&connection, project_id, section_id)?;
+        let next_title = unique_section_title(
+            &connection,
+            project_id,
+            &format!("{} Copy", source.section.title),
+        )?;
+        let next_section_id = unique_section_id(&connection, project_id, &next_title)?;
+        let sort_order = next_section_sort_order(&connection, project_id)?;
+        let now = current_timestamp();
+        let section = seed_section(
+            project_id,
+            &next_section_id,
+            &next_title,
+            &source.section.group_title,
+            sort_order,
+        );
+
+        let transaction = connection.transaction()?;
+        transaction.execute(
+            "INSERT INTO project_sections
+             (id, project_id, title, group_title, sort_order, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![
+                section.id,
+                section.project_id,
+                section.title,
+                section.group_title,
+                section.sort_order,
+                now,
+                now
+            ],
+        )?;
+        transaction.execute(
+            "INSERT INTO project_section_documents
+             (project_id, section_id, ahtml_source, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![
+                section.project_id,
+                section.id,
+                source.document.ahtml_source,
+                now,
+                now
+            ],
+        )?;
+        transaction.commit()?;
+
+        Ok(section)
+    }
+
     fn update_project_section_document(
         &self,
         project_id: &str,
@@ -265,6 +490,118 @@ fn collect_rows<T>(
     }
 
     Ok(values)
+}
+
+fn find_project(
+    connection: &Connection,
+    project_id: &str,
+) -> WorkspaceResult<Option<WorkspaceProject>> {
+    connection
+        .query_row(
+            "SELECT id, name, slug FROM projects WHERE id = ?1",
+            [project_id],
+            |row| {
+                Ok(WorkspaceProject {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    slug: row.get(2)?,
+                })
+            },
+        )
+        .optional()
+        .map_err(WorkspaceError::from)
+}
+
+fn list_sections(
+    connection: &Connection,
+    project_id: &str,
+) -> WorkspaceResult<Vec<WorkspaceSection>> {
+    let mut statement = connection.prepare(
+        "SELECT id, project_id, title, group_title, sort_order
+         FROM project_sections
+         WHERE project_id = ?1
+         ORDER BY sort_order ASC, id ASC",
+    )?;
+    let rows = statement.query_map([project_id], |row| {
+        Ok(WorkspaceSection {
+            id: row.get(0)?,
+            project_id: row.get(1)?,
+            title: row.get(2)?,
+            group_title: row.get(3)?,
+            sort_order: row.get(4)?,
+        })
+    })?;
+
+    collect_rows(rows)
+}
+
+fn get_section(
+    connection: &Connection,
+    project_id: &str,
+    section_id: &str,
+) -> WorkspaceResult<WorkspaceSection> {
+    let section = connection
+        .query_row(
+            "SELECT id, project_id, title, group_title, sort_order
+             FROM project_sections
+             WHERE project_id = ?1 AND id = ?2",
+            params![project_id, section_id],
+            |row| {
+                Ok(WorkspaceSection {
+                    id: row.get(0)?,
+                    project_id: row.get(1)?,
+                    title: row.get(2)?,
+                    group_title: row.get(3)?,
+                    sort_order: row.get(4)?,
+                })
+            },
+        )
+        .optional()?;
+
+    section.ok_or_else(|| WorkspaceError::SectionNotFound {
+        project_id: project_id.to_string(),
+        section_id: section_id.to_string(),
+    })
+}
+
+fn get_section_with_document(
+    connection: &Connection,
+    project_id: &str,
+    section_id: &str,
+) -> WorkspaceResult<SectionWithDocument> {
+    let row = connection
+        .query_row(
+            "SELECT s.id, s.project_id, s.title, s.group_title, s.sort_order,
+                    d.ahtml_source, d.updated_at
+             FROM project_sections s
+             JOIN project_section_documents d
+               ON d.project_id = s.project_id AND d.section_id = s.id
+             WHERE s.project_id = ?1 AND s.id = ?2",
+            params![project_id, section_id],
+            |row| {
+                let section = WorkspaceSection {
+                    id: row.get(0)?,
+                    project_id: row.get(1)?,
+                    title: row.get(2)?,
+                    group_title: row.get(3)?,
+                    sort_order: row.get(4)?,
+                };
+                let document = ProjectSectionDocument {
+                    project_id: section.project_id.clone(),
+                    section_id: section.id.clone(),
+                    ahtml_source: row.get(5)?,
+                    updated_at: row.get(6)?,
+                };
+
+                Ok(SectionWithDocument { document, section })
+            },
+        )
+        .optional()?;
+
+    row.ok_or_else(|| WorkspaceError::SectionNotFound {
+        project_id: project_id.to_string(),
+        section_id: section_id.to_string(),
+    })
 }
 
 fn create_schema(connection: &Connection) -> WorkspaceResult<()> {
@@ -506,6 +843,14 @@ fn slugify(value: &str) -> String {
 }
 
 fn unique_slug(connection: &Connection, name: &str) -> WorkspaceResult<String> {
+    unique_slug_excluding_project(connection, name, "")
+}
+
+fn unique_slug_excluding_project(
+    connection: &Connection,
+    name: &str,
+    excluded_project_id: &str,
+) -> WorkspaceResult<String> {
     let base = slugify(name);
     let mut suffix = 1;
 
@@ -517,8 +862,8 @@ fn unique_slug(connection: &Connection, name: &str) -> WorkspaceResult<String> {
         };
         let exists: Option<i64> = connection
             .query_row(
-                "SELECT 1 FROM projects WHERE id = ?1 OR slug = ?1",
-                [candidate.as_str()],
+                "SELECT 1 FROM projects WHERE (id = ?1 OR slug = ?1) AND id <> ?2",
+                params![candidate.as_str(), excluded_project_id],
                 |row| row.get(0),
             )
             .optional()?;
@@ -529,6 +874,76 @@ fn unique_slug(connection: &Connection, name: &str) -> WorkspaceResult<String> {
 
         suffix += 1;
     }
+}
+
+fn unique_section_id(
+    connection: &Connection,
+    project_id: &str,
+    title: &str,
+) -> WorkspaceResult<String> {
+    let base = slugify(title);
+    let mut suffix = 1;
+
+    loop {
+        let candidate = if suffix == 1 {
+            base.clone()
+        } else {
+            format!("{base}-{suffix}")
+        };
+        let exists: Option<i64> = connection
+            .query_row(
+                "SELECT 1 FROM project_sections WHERE project_id = ?1 AND id = ?2",
+                params![project_id, candidate],
+                |row| row.get(0),
+            )
+            .optional()?;
+
+        if exists.is_none() {
+            return Ok(candidate);
+        }
+
+        suffix += 1;
+    }
+}
+
+fn unique_section_title(
+    connection: &Connection,
+    project_id: &str,
+    title: &str,
+) -> WorkspaceResult<String> {
+    let base = title.trim();
+    let mut suffix = 1;
+
+    loop {
+        let candidate = if suffix == 1 {
+            base.to_string()
+        } else {
+            format!("{base} {suffix}")
+        };
+        let exists: Option<i64> = connection
+            .query_row(
+                "SELECT 1 FROM project_sections WHERE project_id = ?1 AND title = ?2",
+                params![project_id, candidate],
+                |row| row.get(0),
+            )
+            .optional()?;
+
+        if exists.is_none() {
+            return Ok(candidate);
+        }
+
+        suffix += 1;
+    }
+}
+
+fn next_section_sort_order(connection: &Connection, project_id: &str) -> WorkspaceResult<i64> {
+    let max_sort_order: Option<i64> = connection.query_row(
+        "SELECT MAX(sort_order) FROM project_sections WHERE project_id = ?1",
+        [project_id],
+        |row| row.get(0),
+    )?;
+
+    Ok(max_sort_order.map_or(0, |value| value + 1))
 }
 
 fn create_blank_project_ahtml_source(project: &WorkspaceProject) -> String {
@@ -549,6 +964,31 @@ fn create_blank_project_ahtml_source(project: &WorkspaceProject) -> String {
   </Section>
 </Page>"#,
         project_name = project.name,
+    )
+}
+
+fn create_blank_section_ahtml_source(
+    project: &WorkspaceProject,
+    section: &WorkspaceSection,
+) -> String {
+    format!(
+        r#"<Page title="{project_name} - {section_title}">
+  <Section width="content">
+    <Stack>
+      <Stack>
+        <Text variant="h1">{section_title}</Text>
+        <Text variant="lead">Start shaping this workspace section from a blank Agent-HTML document.</Text>
+      </Stack>
+      <Alert>
+        <Icon name="file-text" />
+        <AlertTitle>Blank section</AlertTitle>
+        <AlertDescription>This section is stored in the local desktop workspace database.</AlertDescription>
+      </Alert>
+    </Stack>
+  </Section>
+</Page>"#,
+        project_name = project.name,
+        section_title = section.title,
     )
 }
 
@@ -583,6 +1023,57 @@ fn create_project(
 }
 
 #[tauri::command]
+fn rename_project(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+    name: String,
+) -> WorkspaceResult<WorkspaceProjectView> {
+    store.rename_project(&project_id, &name)
+}
+
+#[tauri::command]
+fn delete_project(store: State<'_, WorkspaceStore>, project_id: String) -> WorkspaceResult<String> {
+    store.delete_project(&project_id)
+}
+
+#[tauri::command]
+fn create_project_section(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+    title: String,
+) -> WorkspaceResult<WorkspaceSection> {
+    store.create_project_section(&project_id, &title)
+}
+
+#[tauri::command]
+fn rename_project_section(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+    section_id: String,
+    title: String,
+) -> WorkspaceResult<WorkspaceSection> {
+    store.rename_project_section(&project_id, &section_id, &title)
+}
+
+#[tauri::command]
+fn delete_project_section(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+    section_id: String,
+) -> WorkspaceResult<String> {
+    store.delete_project_section(&project_id, &section_id)
+}
+
+#[tauri::command]
+fn duplicate_project_section(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+    section_id: String,
+) -> WorkspaceResult<WorkspaceSection> {
+    store.duplicate_project_section(&project_id, &section_id)
+}
+
+#[tauri::command]
 fn update_project_section_document(
     store: State<'_, WorkspaceStore>,
     project_id: String,
@@ -608,6 +1099,12 @@ pub fn run() {
             list_project_sections,
             get_project_section_document,
             create_project,
+            rename_project,
+            delete_project,
+            create_project_section,
+            rename_project_section,
+            delete_project_section,
+            duplicate_project_section,
             update_project_section_document
         ])
         .run(tauri::generate_context!())
@@ -708,6 +1205,126 @@ mod tests {
 
         assert_eq!(first.id, "research-notes");
         assert_eq!(second.id, "research-notes-2");
+    }
+
+    #[test]
+    fn renames_project_and_moves_owned_sections_and_documents() {
+        let store = test_store();
+
+        let renamed = store
+            .rename_project("design-engineering", "Design Systems")
+            .expect("rename project");
+
+        assert_eq!(renamed.id, "design-systems");
+        assert_eq!(renamed.slug, "design-systems");
+        assert_eq!(renamed.name, "Design Systems");
+        assert_eq!(renamed.sections.len(), 6);
+        assert!(renamed
+            .sections
+            .iter()
+            .all(|section| section.project_id == "design-systems"));
+
+        let document = store
+            .get_project_section_document("design-systems", "installation")
+            .expect("read moved document");
+        assert_eq!(document.project_id, "design-systems");
+
+        let old_document = store
+            .get_project_section_document("design-engineering", "installation")
+            .expect_err("old project document should be gone");
+        assert!(matches!(old_document, WorkspaceError::DocumentNotFound { .. }));
+    }
+
+    #[test]
+    fn deletes_project_and_owned_documents() {
+        let store = test_store();
+
+        let deleted_id = store
+            .delete_project("design-engineering")
+            .expect("delete project");
+
+        assert_eq!(deleted_id, "design-engineering");
+        assert!(store
+            .list_project_sections("design-engineering")
+            .expect("list deleted project sections")
+            .is_empty());
+        assert!(matches!(
+            store
+                .get_project_section_document("design-engineering", "installation")
+                .expect_err("deleted document should be gone"),
+            WorkspaceError::DocumentNotFound { .. }
+        ));
+    }
+
+    #[test]
+    fn creates_project_section_with_blank_document() {
+        let store = test_store();
+
+        let section = store
+            .create_project_section("design-engineering", "Release Notes")
+            .expect("create section");
+
+        assert_eq!(section.id, "release-notes");
+        assert_eq!(section.project_id, "design-engineering");
+        assert_eq!(section.sort_order, 6);
+
+        let document = store
+            .get_project_section_document("design-engineering", "release-notes")
+            .expect("read new section document");
+        assert!(document.ahtml_source.contains("Release Notes"));
+        assert!(document.ahtml_source.contains("Blank section"));
+    }
+
+    #[test]
+    fn renames_project_section_without_changing_id() {
+        let store = test_store();
+
+        let section = store
+            .rename_project_section("design-engineering", "installation", "Setup")
+            .expect("rename section");
+
+        assert_eq!(section.id, "installation");
+        assert_eq!(section.title, "Setup");
+    }
+
+    #[test]
+    fn deletes_last_project_section() {
+        let store = test_store();
+        let project = store
+            .create_project("One Section")
+            .expect("create one-section project");
+
+        let deleted_id = store
+            .delete_project_section(&project.id, "overview")
+            .expect("delete only section");
+
+        assert_eq!(deleted_id, "overview");
+        assert!(store
+            .list_project_sections(&project.id)
+            .expect("list empty project sections")
+            .is_empty());
+    }
+
+    #[test]
+    fn duplicates_project_section_from_saved_document() {
+        let store = test_store();
+        let source = "<Page title=\"Saved Copy\" />";
+        store
+            .update_project_section_document("design-engineering", "installation", source)
+            .expect("save source");
+
+        let section = store
+            .duplicate_project_section("design-engineering", "installation")
+            .expect("duplicate section");
+
+        assert_eq!(section.id, "installation-copy");
+        assert_eq!(section.title, "Installation Copy");
+        assert_eq!(section.sort_order, 6);
+
+        let document = store
+            .get_project_section_document("design-engineering", "installation-copy")
+            .expect("read duplicate document");
+        assert_eq!(document.ahtml_source, source);
     }
 
     #[test]

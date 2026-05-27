@@ -32,6 +32,7 @@ import {
   WorkspaceSurface,
 } from "@/app/workspace/surface"
 import type {
+  WorkspaceSection,
   WorkspaceProjectView,
 } from "@/app/workspace/types"
 
@@ -107,6 +108,29 @@ function getActiveSection(
   )
 }
 
+function getNextSectionId(
+  sections: WorkspaceSection[],
+  removedSectionId: string,
+  currentActiveSectionId: string
+) {
+  if (removedSectionId !== currentActiveSectionId) {
+    return currentActiveSectionId
+  }
+
+  const removedIndex = sections.findIndex(
+    (section) => section.id === removedSectionId
+  )
+  if (removedIndex === -1) {
+    return sections[0]?.id ?? ""
+  }
+
+  return (
+    sections[removedIndex - 1]?.id ??
+    sections[removedIndex + 1]?.id ??
+    ""
+  )
+}
+
 export function App() {
   const { resolvedTheme } = useTheme()
   const [projects, setProjects] = React.useState<WorkspaceProjectView[]>([])
@@ -117,6 +141,11 @@ export function App() {
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
   const [activeWorkspaceSectionId, setActiveWorkspaceSectionId] =
     React.useState(defaultWorkspaceSectionId)
+  const [workspaceActionError, setWorkspaceActionError] = React.useState<
+    string | null
+  >(null)
+  const [workspaceHasUnsavedChanges, setWorkspaceHasUnsavedChanges] =
+    React.useState(false)
   const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
   const [appliedGalleryThemeDraft, setAppliedGalleryThemeDraft] =
     React.useState(getInitialAppliedGalleryTheme)
@@ -299,6 +328,231 @@ export function App() {
     []
   )
 
+  const guardWorkspaceStructureEdit = React.useCallback(() => {
+    if (!workspaceHasUnsavedChanges) {
+      setWorkspaceActionError(null)
+      return false
+    }
+
+    setWorkspaceActionError(
+      "Save current section before editing workspace structure."
+    )
+    return true
+  }, [workspaceHasUnsavedChanges])
+
+  const handleRenameProject = React.useCallback(
+    async ({ name, projectId }: { name: string; projectId: string }) => {
+      if (guardWorkspaceStructureEdit()) {
+        return
+      }
+
+      const renamedProject = await workspaceRepository.renameProject({
+        name,
+        projectId,
+      })
+      const oldTabId = `project:${projectId}`
+      const newTabId = `project:${renamedProject.id}`
+
+      setProjects((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === projectId ? renamedProject : project
+        )
+      )
+      setOpenTabs((currentTabs) =>
+        currentTabs.map((tab) =>
+          tab.projectId === projectId
+            ? {
+                id: newTabId,
+                label: renamedProject.name,
+                projectId: renamedProject.id,
+                slug: renamedProject.slug,
+              }
+            : tab
+        )
+      )
+      setActiveTabId((currentActiveTabId) =>
+        currentActiveTabId === oldTabId ? newTabId : currentActiveTabId
+      )
+      setWorkspaceActionError(null)
+    },
+    [guardWorkspaceStructureEdit]
+  )
+
+  const handleDeleteProject = React.useCallback(
+    async ({ projectId }: { projectId: string }) => {
+      if (guardWorkspaceStructureEdit()) {
+        return
+      }
+
+      await workspaceRepository.deleteProject({ projectId })
+      const removedTabId = `project:${projectId}`
+
+      setProjects((currentProjects) =>
+        currentProjects.filter((project) => project.id !== projectId)
+      )
+      setOpenTabs((currentTabs) => {
+        const removedTabIds = new Set([removedTabId])
+        const nextTabs = currentTabs.filter((tab) => tab.id !== removedTabId)
+
+        setActiveTabId((currentActiveTabId) =>
+          getNextActiveTabId(currentTabs, removedTabIds, currentActiveTabId)
+        )
+
+        if (nextTabs.length === 0) {
+          setActiveWorkspaceSectionId("")
+        }
+
+        return nextTabs
+      })
+      setWorkspaceActionError(null)
+    },
+    [guardWorkspaceStructureEdit]
+  )
+
+  const handleCreateProjectSection = React.useCallback(
+    async ({ projectId, title }: { projectId: string; title: string }) => {
+      if (guardWorkspaceStructureEdit()) {
+        return
+      }
+
+      const section = await workspaceRepository.createProjectSection({
+        projectId,
+        title,
+      })
+
+      setProjects((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === projectId
+            ? { ...project, sections: [...project.sections, section] }
+            : project
+        )
+      )
+      handleOpenProject(projectId)
+      setActiveWorkspaceSectionId(section.id)
+      setSurfaceMode("workspace")
+      setWorkspaceActionError(null)
+    },
+    [guardWorkspaceStructureEdit, handleOpenProject]
+  )
+
+  const handleRenameProjectSection = React.useCallback(
+    async ({
+      projectId,
+      sectionId,
+      title,
+    }: {
+      projectId: string
+      sectionId: string
+      title: string
+    }) => {
+      if (guardWorkspaceStructureEdit()) {
+        return
+      }
+
+      const renamedSection = await workspaceRepository.renameProjectSection({
+        projectId,
+        sectionId,
+        title,
+      })
+
+      setProjects((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === projectId
+            ? {
+                ...project,
+                sections: project.sections.map((section) =>
+                  section.id === sectionId ? renamedSection : section
+                ),
+              }
+            : project
+        )
+      )
+      setWorkspaceActionError(null)
+    },
+    [guardWorkspaceStructureEdit]
+  )
+
+  const handleDeleteProjectSection = React.useCallback(
+    async ({
+      projectId,
+      sectionId,
+    }: {
+      projectId: string
+      sectionId: string
+    }) => {
+      if (guardWorkspaceStructureEdit()) {
+        return
+      }
+
+      await workspaceRepository.deleteProjectSection({ projectId, sectionId })
+
+      setProjects((currentProjects) =>
+        currentProjects.map((project) => {
+          if (project.id !== projectId) {
+            return project
+          }
+
+          const nextSectionId = getNextSectionId(
+            project.sections,
+            sectionId,
+            activeWorkspaceSectionId
+          )
+          const nextSections = project.sections.filter(
+            (section) => section.id !== sectionId
+          )
+
+          if (activeProject?.id === projectId) {
+            setActiveWorkspaceSectionId(
+              nextSections.some((section) => section.id === nextSectionId)
+                ? nextSectionId
+                : nextSections[0]?.id ?? ""
+            )
+          }
+
+          return { ...project, sections: nextSections }
+        })
+      )
+      setWorkspaceActionError(null)
+    },
+    [
+      activeProject?.id,
+      activeWorkspaceSectionId,
+      guardWorkspaceStructureEdit,
+    ]
+  )
+
+  const handleDuplicateProjectSection = React.useCallback(
+    async ({
+      projectId,
+      sectionId,
+    }: {
+      projectId: string
+      sectionId: string
+    }) => {
+      if (guardWorkspaceStructureEdit()) {
+        return
+      }
+
+      const section = await workspaceRepository.duplicateProjectSection({
+        projectId,
+        sectionId,
+      })
+
+      setProjects((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === projectId
+            ? { ...project, sections: [...project.sections, section] }
+            : project
+        )
+      )
+      handleOpenProject(projectId)
+      setActiveWorkspaceSectionId(section.id)
+      setSurfaceMode("workspace")
+      setWorkspaceActionError(null)
+    },
+    [guardWorkspaceStructureEdit, handleOpenProject]
+  )
+
   const handleSelectWorkspaceSection = React.useCallback(
     (sectionId: string) => {
       setActiveWorkspaceSectionId(sectionId)
@@ -399,12 +653,21 @@ export function App() {
       mode={surfaceMode}
       onApplyGalleryTheme={handleApplyGalleryTheme}
       onCreateProject={handleCreateProject}
+      onCreateProjectSection={handleCreateProjectSection}
+      onDeleteProject={handleDeleteProject}
+      onDeleteProjectSection={handleDeleteProjectSection}
+      onDuplicateProjectSection={handleDuplicateProjectSection}
       onEnterGalleryMode={handleEnterGalleryMode}
       onExitGalleryMode={handleExitGalleryMode}
       onOpenProject={handleOpenProject}
+      onRenameProject={handleRenameProject}
+      onRenameProjectSection={handleRenameProjectSection}
       onSelectGalleryThemePreset={handleSelectGalleryThemePreset}
       onWorkspaceSectionSelect={handleSelectWorkspaceSection}
       projects={projects}
+      workspaceActionError={workspaceActionError}
+      workspaceCanEditStructure={workspaceCanWrite}
+      workspaceHasUnsavedChanges={workspaceHasUnsavedChanges}
       variant="inset"
     />
   )
@@ -432,7 +695,11 @@ export function App() {
             <WorkspaceSurface
               activeProject={activeProject}
               activeSection={activeWorkspaceSection}
+              canEditStructure={workspaceCanWrite}
               canSave={workspaceCanWrite}
+              onCreateSection={handleCreateProjectSection}
+              onDirtyChange={setWorkspaceHasUnsavedChanges}
+              workspaceActionError={workspaceActionError}
             />
           )}
         </SidebarInset>

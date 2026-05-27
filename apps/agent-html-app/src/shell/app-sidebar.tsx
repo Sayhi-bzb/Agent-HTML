@@ -52,12 +52,21 @@ export function AppSidebar({
   mode = "workspace",
   onApplyGalleryTheme,
   onCreateProject,
+  onCreateProjectSection,
+  onDeleteProject,
+  onDeleteProjectSection,
+  onDuplicateProjectSection,
   onEnterGalleryMode,
   onExitGalleryMode,
   onOpenProject,
+  onRenameProject,
+  onRenameProjectSection,
   onSelectGalleryThemePreset,
   onWorkspaceSectionSelect,
   projects,
+  workspaceActionError,
+  workspaceCanEditStructure,
+  workspaceHasUnsavedChanges,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   activeGalleryThemePresetId?: GalleryThemePresetId
@@ -70,12 +79,37 @@ export function AppSidebar({
   mode?: "gallery" | "workspace"
   onApplyGalleryTheme?: () => void
   onCreateProject: (input: { name: string }) => Promise<void>
+  onCreateProjectSection: (input: {
+    projectId: string
+    title: string
+  }) => Promise<void>
+  onDeleteProject: (input: { projectId: string }) => Promise<void>
+  onDeleteProjectSection: (input: {
+    projectId: string
+    sectionId: string
+  }) => Promise<void>
+  onDuplicateProjectSection: (input: {
+    projectId: string
+    sectionId: string
+  }) => Promise<void>
   onEnterGalleryMode?: () => void
   onExitGalleryMode?: () => void
   onOpenProject: (projectId: string) => void
+  onRenameProject: (input: {
+    name: string
+    projectId: string
+  }) => Promise<void>
+  onRenameProjectSection: (input: {
+    projectId: string
+    sectionId: string
+    title: string
+  }) => Promise<void>
   onSelectGalleryThemePreset?: (presetId: GalleryThemePresetId) => void
   onWorkspaceSectionSelect: (sectionId: string) => void
   projects: ProjectNavItem[]
+  workspaceActionError: string | null
+  workspaceCanEditStructure: boolean
+  workspaceHasUnsavedChanges: boolean
 }) {
   const isGalleryMode = mode === "gallery"
 
@@ -172,9 +206,18 @@ export function AppSidebar({
           <NavProjects
             activeProjectId={activeProjectId}
             activeSectionId={activeWorkspaceSectionId}
+            canEditStructure={workspaceCanEditStructure}
+            hasUnsavedChanges={workspaceHasUnsavedChanges}
+            onCreateProjectSection={onCreateProjectSection}
+            onDeleteProject={onDeleteProject}
+            onDeleteProjectSection={onDeleteProjectSection}
+            onDuplicateProjectSection={onDuplicateProjectSection}
             onOpenProject={onOpenProject}
+            onRenameProject={onRenameProject}
+            onRenameProjectSection={onRenameProjectSection}
             onSectionSelect={onWorkspaceSectionSelect}
             projects={projects}
+            workspaceActionError={workspaceActionError}
           />
         )}
       </SidebarContent>

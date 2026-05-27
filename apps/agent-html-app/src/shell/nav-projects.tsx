@@ -1,5 +1,17 @@
 "use client"
 
+import * as React from "react"
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/app/shared/ui/alert-dialog"
 import {
   Collapsible,
   CollapsibleContent,
@@ -12,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/shared/ui/dropdown-menu"
+import { Input } from "@/app/shared/ui/input"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -31,22 +44,181 @@ type ProjectNavItem = {
   sections: WorkspaceSection[]
 }
 
-function ProjectActionMenu() {
+type PendingDelete =
+  | { project: ProjectNavItem; type: "project" }
+  | { project: ProjectNavItem; section: WorkspaceSection; type: "section" }
+
+type EditingTarget =
+  | { projectId: string; type: "new-section" }
+  | { projectId: string; type: "project" }
+  | { projectId: string; sectionId: string; type: "section" }
+  | null
+
+type PendingAction =
+  | "delete-project"
+  | "delete-section"
+  | "duplicate-section"
+  | "new-section"
+  | "rename-project"
+  | "rename-section"
+  | null
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback
+}
+
+function isEditingProject(target: EditingTarget, projectId: string) {
+  return target?.type === "project" && target.projectId === projectId
+}
+
+function isCreatingSection(target: EditingTarget, projectId: string) {
+  return target?.type === "new-section" && target.projectId === projectId
+}
+
+function isEditingSection(
+  target: EditingTarget,
+  projectId: string,
+  sectionId: string
+) {
+  return (
+    target?.type === "section" &&
+    target.projectId === projectId &&
+    target.sectionId === sectionId
+  )
+}
+
+function InlineNameInput({
+  autoFocus,
+  error,
+  onCancel,
+  onSubmit,
+  placeholder,
+  submittingLabel,
+  value,
+}: {
+  autoFocus?: boolean
+  error: string | null
+  onCancel: () => void
+  onSubmit: (value: string) => Promise<void>
+  placeholder: string
+  submittingLabel: string
+  value: string
+}) {
+  const [draft, setDraft] = React.useState(value)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [localError, setLocalError] = React.useState<string | null>(null)
+  const isSubmittingRef = React.useRef(false)
+
+  React.useEffect(() => {
+    setDraft(value)
+  }, [value])
+
+  const submit = React.useCallback(async () => {
+    const nextValue = draft.trim()
+    if (isSubmitting) {
+      return
+    }
+    if (!nextValue) {
+      setLocalError(`${placeholder} is required.`)
+      return
+    }
+
+    setLocalError(null)
+    isSubmittingRef.current = true
+    setIsSubmitting(true)
+    try {
+      await onSubmit(nextValue)
+    } catch {
+      return
+    } finally {
+      isSubmittingRef.current = false
+      setIsSubmitting(false)
+    }
+  }, [draft, isSubmitting, onSubmit])
+
+  return (
+    <div className="min-w-0 flex-1">
+      <Input
+        aria-label={placeholder}
+        autoFocus={autoFocus}
+        className="h-7 bg-background px-2 text-sm"
+        disabled={isSubmitting}
+        onBlur={() => {
+          if (!isSubmittingRef.current && draft.trim() === value.trim()) {
+            onCancel()
+          }
+        }}
+        onChange={(event) => {
+          setDraft(event.target.value)
+          setLocalError(null)
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault()
+            submit()
+          }
+          if (event.key === "Escape") {
+            event.preventDefault()
+            onCancel()
+          }
+        }}
+        placeholder={placeholder}
+        value={draft}
+      />
+      {localError || error ? (
+        <p className="mt-1 truncate px-1 text-xs text-destructive">
+          {localError ?? error}
+        </p>
+      ) : isSubmitting ? (
+        <p className="mt-1 truncate px-1 text-xs text-muted-foreground">
+          {submittingLabel}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+function ProjectActionMenu({
+  canEdit,
+  disabledReason,
+  onDelete,
+  onNewSection,
+  onRename,
+}: {
+  canEdit: boolean
+  disabledReason: string | null
+  onDelete: () => void
+  onNewSection: () => void
+  onRename: () => void
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           aria-label="Project actions"
           className="absolute top-1.5 right-1 flex size-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-0 outline-hidden transition-opacity after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring group-focus-within/project-row:opacity-100 group-hover/project-row:opacity-100 aria-expanded:opacity-100 md:after:hidden [&_svg]:size-4 [&_svg]:shrink-0"
+          title={disabledReason ?? undefined}
           type="button"
         >
           <MoreHorizontalIcon />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6}>
-        <DropdownMenuItem disabled>Rename</DropdownMenuItem>
+        {!canEdit && disabledReason ? (
+          <DropdownMenuItem disabled>{disabledReason}</DropdownMenuItem>
+        ) : null}
+        <DropdownMenuItem disabled={!canEdit} onSelect={onNewSection}>
+          New Section
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={!canEdit} onSelect={onRename}>
+          Rename
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled variant="destructive">
+        <DropdownMenuItem
+          disabled={!canEdit}
+          onSelect={onDelete}
+          variant="destructive"
+        >
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -54,23 +226,47 @@ function ProjectActionMenu() {
   )
 }
 
-function SectionActionMenu() {
+function SectionActionMenu({
+  canEdit,
+  disabledReason,
+  onDelete,
+  onDuplicate,
+  onRename,
+}: {
+  canEdit: boolean
+  disabledReason: string | null
+  onDelete: () => void
+  onDuplicate: () => void
+  onRename: () => void
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <SidebarMenuAction
           aria-label="Section actions"
           showOnHover
+          title={disabledReason ?? undefined}
           type="button"
         >
           <MoreHorizontalIcon />
         </SidebarMenuAction>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6}>
-        <DropdownMenuItem disabled>Duplicate</DropdownMenuItem>
-        <DropdownMenuItem disabled>Rename</DropdownMenuItem>
+        {!canEdit && disabledReason ? (
+          <DropdownMenuItem disabled>{disabledReason}</DropdownMenuItem>
+        ) : null}
+        <DropdownMenuItem disabled={!canEdit} onSelect={onDuplicate}>
+          Duplicate
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={!canEdit} onSelect={onRename}>
+          Rename
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled variant="destructive">
+        <DropdownMenuItem
+          disabled={!canEdit}
+          onSelect={onDelete}
+          variant="destructive"
+        >
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -81,18 +277,106 @@ function SectionActionMenu() {
 export function NavProjects({
   activeProjectId,
   activeSectionId,
+  canEditStructure,
+  hasUnsavedChanges,
+  onCreateProjectSection,
+  onDeleteProject,
+  onDeleteProjectSection,
+  onDuplicateProjectSection,
   onOpenProject,
+  onRenameProject,
+  onRenameProjectSection,
   onSectionSelect,
   projects,
+  workspaceActionError,
 }: {
   activeProjectId: string | null
   activeSectionId: string
+  canEditStructure: boolean
+  hasUnsavedChanges: boolean
+  onCreateProjectSection: (input: {
+    projectId: string
+    title: string
+  }) => Promise<void>
+  onDeleteProject: (input: { projectId: string }) => Promise<void>
+  onDeleteProjectSection: (input: {
+    projectId: string
+    sectionId: string
+  }) => Promise<void>
+  onDuplicateProjectSection: (input: {
+    projectId: string
+    sectionId: string
+  }) => Promise<void>
   onOpenProject: (projectId: string) => void
+  onRenameProject: (input: {
+    name: string
+    projectId: string
+  }) => Promise<void>
+  onRenameProjectSection: (input: {
+    projectId: string
+    sectionId: string
+    title: string
+  }) => Promise<void>
   onSectionSelect: (sectionId: string) => void
   projects: ProjectNavItem[]
+  workspaceActionError: string | null
 }) {
+  const [editingTarget, setEditingTarget] =
+    React.useState<EditingTarget>(null)
+  const [actionError, setActionError] = React.useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] =
+    React.useState<PendingDelete | null>(null)
+  const [pendingAction, setPendingAction] =
+    React.useState<PendingAction>(null)
+
+  const canEdit = canEditStructure && pendingAction === null
+  const disabledReason = !canEditStructure
+    ? "Desktop runtime required"
+    : pendingAction !== null
+      ? "Working..."
+      : null
+
+  const beginStructureEdit = React.useCallback(
+    (action: () => void) => {
+      if (hasUnsavedChanges) {
+        setActionError("Save current section before editing workspace structure.")
+        return
+      }
+
+      setActionError(null)
+      action()
+    },
+    [hasUnsavedChanges]
+  )
+
+  const submitAction = React.useCallback(
+    async (
+      action: () => Promise<void>,
+      fallback: string,
+      pending: PendingAction
+    ) => {
+      setActionError(null)
+      setPendingAction(pending)
+      try {
+        await action()
+        setEditingTarget(null)
+      } catch (error) {
+        setActionError(getErrorMessage(error, fallback))
+        throw error
+      } finally {
+        setPendingAction(null)
+      }
+    },
+    []
+  )
+
   return (
     <div className="group-data-[collapsible=icon]:hidden">
+      {workspaceActionError || actionError ? (
+        <p className="px-4 py-2 text-xs text-destructive">
+          {workspaceActionError ?? actionError}
+        </p>
+      ) : null}
       {projects.map((project) => (
         <Collapsible
           key={project.id}
@@ -103,39 +387,236 @@ export function NavProjects({
             <SidebarGroupLabel
               className="group/project-row relative gap-0 pr-8 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
-              <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-2 outline-none">
-                <ChevronRightIcon className="size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                <span className="truncate">{project.name}</span>
-              </CollapsibleTrigger>
-              <ProjectActionMenu />
+              {isEditingProject(editingTarget, project.id) ? (
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <ChevronRightIcon className="size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                  <InlineNameInput
+                    autoFocus
+                    error={actionError}
+                    onCancel={() => setEditingTarget(null)}
+                    onSubmit={(name) =>
+                      submitAction(
+                        () => onRenameProject({ name, projectId: project.id }),
+                        "Unable to rename project.",
+                        "rename-project"
+                      )
+                    }
+                    placeholder="Project name"
+                    submittingLabel="Renaming..."
+                    value={project.name}
+                  />
+                </div>
+              ) : (
+                <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-2 outline-none">
+                  <ChevronRightIcon className="size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                  <span className="truncate">{project.name}</span>
+                </CollapsibleTrigger>
+              )}
+              <ProjectActionMenu
+                canEdit={canEdit}
+                disabledReason={disabledReason}
+                onDelete={() =>
+                  beginStructureEdit(() =>
+                    setPendingDelete({ project, type: "project" })
+                  )
+                }
+                onNewSection={() => {
+                  beginStructureEdit(() =>
+                    setEditingTarget({
+                      projectId: project.id,
+                      type: "new-section",
+                    })
+                  )
+                }}
+                onRename={() => {
+                  beginStructureEdit(() =>
+                    setEditingTarget({ projectId: project.id, type: "project" })
+                  )
+                }}
+              />
             </SidebarGroupLabel>
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {project.sections.map((item) => (
                     <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        isActive={
-                          activeProjectId === project.id &&
-                          activeSectionId === item.id
+                      {isEditingSection(editingTarget, project.id, item.id) ? (
+                        <div className="flex min-h-8 w-full items-start rounded-md p-2 pr-8 text-sm">
+                          <span className="ml-6 min-w-0 flex-1">
+                            <InlineNameInput
+                              autoFocus
+                              error={actionError}
+                              onCancel={() => setEditingTarget(null)}
+                              onSubmit={(title) =>
+                      submitAction(
+                        () =>
+                          onRenameProjectSection({
+                                      projectId: project.id,
+                                      sectionId: item.id,
+                            title,
+                          }),
+                        "Unable to rename section.",
+                        "rename-section"
+                      )
+                    }
+                              placeholder="Section title"
+                              submittingLabel="Renaming..."
+                              value={item.title}
+                            />
+                          </span>
+                        </div>
+                      ) : (
+                        <SidebarMenuButton
+                          isActive={
+                            activeProjectId === project.id &&
+                            activeSectionId === item.id
+                          }
+                          onClick={() => {
+                            onOpenProject(project.id)
+                            onSectionSelect(item.id)
+                          }}
+                          type="button"
+                        >
+                          <span className="ml-6 truncate">{item.title}</span>
+                        </SidebarMenuButton>
+                      )}
+                      <SectionActionMenu
+                        canEdit={canEdit}
+                        disabledReason={disabledReason}
+                        onDelete={() =>
+                          beginStructureEdit(() =>
+                            setPendingDelete({
+                              project,
+                              section: item,
+                              type: "section",
+                            })
+                          )
                         }
-                        onClick={() => {
-                          onOpenProject(project.id)
-                          onSectionSelect(item.id)
+                        onDuplicate={() =>
+                          beginStructureEdit(() =>
+                            submitAction(
+                              () =>
+                                onDuplicateProjectSection({
+                                  projectId: project.id,
+                                  sectionId: item.id,
+                                }),
+                              "Unable to duplicate section.",
+                              "duplicate-section"
+                            ).catch(() => {})
+                          )
+                        }
+                        onRename={() => {
+                          beginStructureEdit(() =>
+                            setEditingTarget({
+                              projectId: project.id,
+                              sectionId: item.id,
+                              type: "section",
+                            })
+                          )
                         }}
-                        type="button"
-                      >
-                        <span className="ml-6 truncate">{item.title}</span>
-                      </SidebarMenuButton>
-                      <SectionActionMenu />
+                      />
                     </SidebarMenuItem>
                   ))}
+                  {isCreatingSection(editingTarget, project.id) ? (
+                    <SidebarMenuItem>
+                      <div className="flex min-h-8 items-start p-2">
+                        <span className="ml-6 min-w-0 flex-1">
+                          <InlineNameInput
+                            autoFocus
+                            error={actionError}
+                            onCancel={() => setEditingTarget(null)}
+                            onSubmit={(title) =>
+                              submitAction(
+                                () =>
+                                  onCreateProjectSection({
+                                    projectId: project.id,
+                                    title,
+                                  }),
+                                "Unable to create section.",
+                                "new-section"
+                              )
+                            }
+                            placeholder="Untitled Section"
+                            submittingLabel="Creating..."
+                            value=""
+                          />
+                        </span>
+                      </div>
+                    </SidebarMenuItem>
+                  ) : null}
                 </SidebarMenu>
               </SidebarGroupContent>
             </CollapsibleContent>
           </SidebarGroup>
         </Collapsible>
       ))}
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDelete(null)
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingDelete?.type === "project"
+                ? "Delete project?"
+                : "Delete section?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.type === "project"
+                ? `This will delete "${pendingDelete.project.name}" and all of its sections and documents.`
+                : pendingDelete
+                  ? `This will delete "${pendingDelete.section.title}" and its document.`
+                  : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pendingAction !== null}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={pendingAction !== null}
+              variant="destructive"
+              onClick={(event) => {
+                event.preventDefault()
+                if (!pendingDelete || pendingAction !== null) {
+                  return
+                }
+
+                const action =
+                  pendingDelete.type === "project"
+                    ? onDeleteProject({
+                        projectId: pendingDelete.project.id,
+                      })
+                    : onDeleteProjectSection({
+                        projectId: pendingDelete.project.id,
+                        sectionId: pendingDelete.section.id,
+                      })
+
+                submitAction(
+                  () => action,
+                  pendingDelete.type === "project"
+                    ? "Unable to delete project."
+                    : "Unable to delete section.",
+                  pendingDelete.type === "project"
+                    ? "delete-project"
+                    : "delete-section"
+                )
+                  .then(() => setPendingDelete(null))
+                  .catch(() => {})
+              }}
+            >
+              {pendingAction === "delete-project" ||
+              pendingAction === "delete-section"
+                ? "Deleting..."
+                : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

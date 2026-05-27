@@ -121,6 +121,14 @@
     @apply border-border outline-ring/50;
   }
 
+  [data-tauri-drag-region] {
+    app-region: drag;
+  }
+
+  [data-tauri-no-drag] {
+    app-region: no-drag;
+  }
+
   body {
     @apply bg-background text-foreground;
   }

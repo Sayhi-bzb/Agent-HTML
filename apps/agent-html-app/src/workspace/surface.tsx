@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
+import { Button } from "@/app/shared/ui/button"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
 import type {
   ProjectSectionDocument,
@@ -116,11 +117,19 @@ function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState
 export function WorkspaceSurface({
   activeProject,
   activeSection,
+  canEditStructure,
   canSave,
+  onCreateSection,
+  onDirtyChange,
+  workspaceActionError,
 }: {
   activeProject: WorkspaceProjectView | null
   activeSection: WorkspaceSection | null
+  canEditStructure: boolean
   canSave: boolean
+  onCreateSection: (input: { projectId: string; title: string }) => Promise<void>
+  onDirtyChange: (isDirty: boolean) => void
+  workspaceActionError: string | null
 }) {
   const [documentState, setDocumentState] =
     React.useState<WorkspaceDocumentState>({ status: "idle" })
@@ -129,8 +138,37 @@ export function WorkspaceSurface({
   const [saveState, setSaveState] = React.useState<SaveState>({
     status: "clean",
   })
+  const [isCreatingSection, setIsCreatingSection] = React.useState(false)
+  const [createSectionError, setCreateSectionError] = React.useState<
+    string | null
+  >(null)
   const lastInteractionRef =
     React.useRef<AgentHtmlAgentInteractionEvent | null>(null)
+
+  const handleCreateSection = React.useCallback(() => {
+    if (!activeProject || isCreatingSection) {
+      return
+    }
+
+    setCreateSectionError(null)
+    setIsCreatingSection(true)
+    onCreateSection({
+      projectId: activeProject.id,
+      title: "Untitled Section",
+    })
+      .catch((error: unknown) => {
+        setCreateSectionError(
+          error instanceof Error ? error.message : "Unable to create section."
+        )
+      })
+      .finally(() => {
+        setIsCreatingSection(false)
+      })
+  }, [activeProject, isCreatingSection, onCreateSection])
+
+  React.useEffect(() => {
+    onDirtyChange(saveState.status === "dirty" || saveState.status === "error")
+  }, [onDirtyChange, saveState.status])
 
   const handleDropIntent = React.useCallback(
     ({
@@ -246,6 +284,7 @@ export function WorkspaceSurface({
   React.useEffect(() => {
     if (!activeProject || !activeSection) {
       setDocumentState({ status: "idle" })
+      setSaveState({ status: "clean" })
       return
     }
 
@@ -269,6 +308,7 @@ export function WorkspaceSurface({
                 : "Unable to load workspace document.",
             status: "error",
           })
+          setSaveState({ status: "clean" })
         }
       })
 
@@ -285,12 +325,39 @@ export function WorkspaceSurface({
     return renderWorkspaceDocument(documentState.document)
   }, [documentState])
 
-  if (!activeProject || !activeSection) {
+  if (!activeProject) {
     return (
       <WorkspaceStatus
         detail="Open a project section from the sidebar to render its current AHTML document."
         title="No workspace section selected"
       />
+    )
+  }
+
+  if (!activeSection) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-6">
+        <section className="max-w-md rounded-xl border bg-background p-5 text-foreground shadow-sm">
+          <p className="text-sm font-medium">No sections in this project</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Create a section to start editing this workspace project.
+          </p>
+          {workspaceActionError || createSectionError ? (
+            <p className="mt-3 text-sm text-destructive">
+              {workspaceActionError ?? createSectionError}
+            </p>
+          ) : null}
+          <Button
+            className="mt-4"
+            disabled={!canEditStructure || isCreatingSection}
+            onClick={handleCreateSection}
+            title={canEditStructure ? undefined : "Desktop runtime required"}
+            type="button"
+          >
+            {isCreatingSection ? "Creating..." : "New Section"}
+          </Button>
+        </section>
+      </div>
     )
   }
 

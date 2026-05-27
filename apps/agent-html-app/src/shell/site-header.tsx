@@ -62,16 +62,21 @@ export function SiteHeader({
           </Button>
         </div>
 
-        <div className="flex min-w-0 flex-1 items-end gap-2">
+        <div
+          className="relative flex min-w-0 flex-1 items-end gap-2 self-stretch"
+          {...dragRegionProps}
+        >
           <Tabs
-            className="min-w-0 flex-1 gap-0 self-end"
+            className="relative z-10 min-w-0 flex-1 gap-0 self-end"
             orientation="horizontal"
             onValueChange={onSelectTab}
             value={activeTabId ?? undefined}
+            {...dragRegionProps}
           >
             <TabsList
               className="h-auto min-w-0 items-center justify-start gap-1 rounded-none bg-transparent p-0 text-sidebar-foreground/70"
               variant="line"
+              {...dragRegionProps}
             >
               {tabs.map((tab) => {
                 const isActive = tab.id === activeTabId
@@ -85,6 +90,7 @@ export function SiteHeader({
                     )}
                   >
                     <TabsTrigger
+                      data-tauri-no-drag=""
                       className={cn(
                         "h-8 min-w-0 flex-1 justify-start rounded-lg border-0 bg-transparent pl-3 pr-2 shadow-none data-active:after:hidden",
                         isActive
@@ -100,6 +106,7 @@ export function SiteHeader({
                     {tab.isClosable ? (
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center pr-1">
                         <button
+                          data-tauri-no-drag=""
                           aria-label={`Close ${tab.label} tab`}
                           onClick={() => onCloseTab(tab.id)}
                           className={cn(
@@ -119,8 +126,6 @@ export function SiteHeader({
               })}
             </TabsList>
           </Tabs>
-
-          <div className="min-w-0 flex-1 self-stretch" {...dragRegionProps} />
         </div>
 
         <div className="ml-auto flex items-center gap-1">

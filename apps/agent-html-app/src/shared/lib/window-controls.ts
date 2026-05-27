@@ -1,23 +1,13 @@
+import { isTauri } from "@tauri-apps/api/core"
+
 type TauriWindowHandle = {
   close: () => Promise<void>
-  isMaximized: () => Promise<boolean>
-  maximize: () => Promise<void>
   minimize: () => Promise<void>
-  unmaximize: () => Promise<void>
-}
-
-declare global {
-  interface Window {
-    __TAURI_INTERNALS__?: unknown
-  }
+  toggleMaximize: () => Promise<void>
 }
 
 function isTauriRuntime(): boolean {
-  if (typeof window === "undefined") {
-    return false
-  }
-
-  return "__TAURI_INTERNALS__" in window
+  return isTauri()
 }
 
 async function getCurrentWindowHandle(): Promise<TauriWindowHandle | null> {
@@ -52,12 +42,7 @@ export async function toggleMaximizeWindow(): Promise<void> {
     return
   }
 
-  if (await currentWindow.isMaximized()) {
-    await currentWindow.unmaximize()
-    return
-  }
-
-  await currentWindow.maximize()
+  await currentWindow.toggleMaximize()
 }
 
 export async function closeWindow(): Promise<void> {

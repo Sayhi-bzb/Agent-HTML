@@ -12,7 +12,9 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Agent HTML",
+        "decorations": false,
         "width": 1280,
         "height": 820
       }

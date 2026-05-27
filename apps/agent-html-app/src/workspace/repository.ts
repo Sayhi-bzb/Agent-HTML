@@ -16,12 +16,34 @@ export type WorkspaceRepository = {
   createProject: (input: {
     name: string
   }) => Promise<WorkspaceProject & { sections: WorkspaceSection[] }>
+  createProjectSection: (input: {
+    projectId: string
+    title: string
+  }) => Promise<WorkspaceSection>
+  deleteProject: (input: { projectId: string }) => Promise<string>
+  deleteProjectSection: (input: {
+    projectId: string
+    sectionId: string
+  }) => Promise<string>
+  duplicateProjectSection: (input: {
+    projectId: string
+    sectionId: string
+  }) => Promise<WorkspaceSection>
   getProjectSectionDocument: (
     projectId: string,
     sectionId: string
   ) => Promise<ProjectSectionDocument>
   listProjectSections: (projectId: string) => Promise<WorkspaceSection[]>
   listProjects: () => Promise<WorkspaceProject[]>
+  renameProject: (input: {
+    name: string
+    projectId: string
+  }) => Promise<WorkspaceProject & { sections: WorkspaceSection[] }>
+  renameProjectSection: (input: {
+    projectId: string
+    sectionId: string
+    title: string
+  }) => Promise<WorkspaceSection>
   updateProjectSectionDocument: (input: {
     ahtmlSource: string
     projectId: string
@@ -33,6 +55,18 @@ const fixtureWorkspaceRepository: WorkspaceRepository = {
   canWrite: false,
   async createProject() {
     throw new Error("Desktop runtime required to create projects.")
+  },
+  async createProjectSection() {
+    throw new Error("Desktop runtime required to create sections.")
+  },
+  async deleteProject() {
+    throw new Error("Desktop runtime required to delete projects.")
+  },
+  async deleteProjectSection() {
+    throw new Error("Desktop runtime required to delete sections.")
+  },
+  async duplicateProjectSection() {
+    throw new Error("Desktop runtime required to duplicate sections.")
   },
   async getProjectSectionDocument(projectId, sectionId) {
     const document = getSeedDocument(projectId, sectionId)
@@ -48,6 +82,12 @@ const fixtureWorkspaceRepository: WorkspaceRepository = {
   async listProjects() {
     return workspaceSeedProjects
   },
+  async renameProject() {
+    throw new Error("Desktop runtime required to rename projects.")
+  },
+  async renameProjectSection() {
+    throw new Error("Desktop runtime required to rename sections.")
+  },
   async updateProjectSectionDocument() {
     throw new Error("Desktop runtime required to save workspace documents.")
   },
@@ -57,6 +97,18 @@ const tauriWorkspaceRepository: WorkspaceRepository = {
   canWrite: true,
   createProject(input) {
     return invoke("create_project", input)
+  },
+  createProjectSection(input) {
+    return invoke("create_project_section", input)
+  },
+  deleteProject(input) {
+    return invoke("delete_project", input)
+  },
+  deleteProjectSection(input) {
+    return invoke("delete_project_section", input)
+  },
+  duplicateProjectSection(input) {
+    return invoke("duplicate_project_section", input)
   },
   getProjectSectionDocument(projectId, sectionId) {
     return invoke("get_project_section_document", {
@@ -69,6 +121,12 @@ const tauriWorkspaceRepository: WorkspaceRepository = {
   },
   listProjects() {
     return invoke("list_projects")
+  },
+  renameProject(input) {
+    return invoke("rename_project", input)
+  },
+  renameProjectSection(input) {
+    return invoke("rename_project_section", input)
   },
   updateProjectSectionDocument(input) {
     return invoke("update_project_section_document", input)
