@@ -1,6 +1,7 @@
 import http from "node:http"
-import { appendFile } from "node:fs/promises"
+import { appendFile, mkdir } from "node:fs/promises"
 import { spawn } from "node:child_process"
+import { dirname } from "node:path"
 
 const host = process.env.AGENT_HTML_BRIDGE_HOST ?? "127.0.0.1"
 const configuredPort = Number.parseInt(
@@ -24,6 +25,9 @@ let threadId = null
 let initialized = false
 let appServerClosed = false
 let stdoutBuffer = ""
+let lastCodexError = null
+let lastCodexStderr = null
+let codex = null
 const pendingRequests = new Map()
 
 function sendJson(response, statusCode, payload) {
@@ -56,10 +60,45 @@ async function appendJsonLine(path, payload) {
     return
   }
 
-  await appendFile(path, `${JSON.stringify(payload)}\n`, "utf8")
+  try {
+    await mkdir(dirname(path), { recursive: true })
+    await appendFile(path, `${JSON.stringify(payload)}\n`, "utf8")
+  } catch (error) {
+    lastCodexError =
+      error instanceof Error ? `event log write failed: ${error.message}` : "event log write failed"
+  }
 }
 
 function createCodexProcess() {
+  if (process.platform === "win32" && codexCommand.endsWith(".exe")) {
+    const child = spawn(codexCommand, codexArgs, {
+      cwd,
+      env: process.env,
+      stdio: ["pipe", "pipe", "pipe"],
+    })
+
+    child.stdout.setEncoding("utf8")
+    child.stderr.setEncoding("utf8")
+    child.stdout.on("data", handleCodexStdout)
+    child.stderr.on("data", (chunk) => {
+      lastCodexStderr = chunk.toString()
+      process.stderr.write(chunk)
+    })
+    child.on("error", (error) => {
+      lastCodexError = error.message
+      rejectAllPending(error)
+    })
+    child.on("close", (code, signal) => {
+      appServerClosed = true
+      lastCodexError = `Codex app-server exited with code ${
+        code ?? "null"
+      } and signal ${signal ?? "null"}.`
+      rejectAllPending(new Error(lastCodexError))
+    })
+
+    return child
+  }
+
   const quotedCommand = codexCommand.includes(" ")
     ? `"${codexCommand}"`
     : codexCommand
@@ -85,13 +124,18 @@ function createCodexProcess() {
   child.stderr.setEncoding("utf8")
   child.stdout.on("data", handleCodexStdout)
   child.stderr.on("data", (chunk) => {
+    lastCodexStderr = chunk.toString()
     process.stderr.write(chunk)
   })
   child.on("error", (error) => {
+    lastCodexError = error.message
     rejectAllPending(error)
   })
   child.on("close", (code, signal) => {
     appServerClosed = true
+    lastCodexError = `Codex app-server exited with code ${
+      code ?? "null"
+    } and signal ${signal ?? "null"}.`
     rejectAllPending(
       new Error(
         `Codex app-server exited with code ${code ?? "null"} and signal ${
@@ -104,7 +148,25 @@ function createCodexProcess() {
   return child
 }
 
-const codex = createCodexProcess()
+function startCodexProcess() {
+  if (codex && !appServerClosed) {
+    return codex
+  }
+
+  try {
+    appServerClosed = false
+    lastCodexError = null
+    codex = createCodexProcess()
+    return codex
+  } catch (error) {
+    appServerClosed = true
+    codex = null
+    lastCodexError = error instanceof Error ? error.message : "unknown_error"
+    return null
+  }
+}
+
+startCodexProcess()
 
 function rejectAllPending(error) {
   for (const { reject } of pendingRequests.values()) {
@@ -121,7 +183,8 @@ function handleCodexMessage(message) {
     pendingRequests.delete(message.id)
 
     if (message.error) {
-      pending.reject(new Error(JSON.stringify(message.error)))
+      lastCodexError = JSON.stringify(message.error)
+      pending.reject(new Error(lastCodexError))
       return
     }
 
@@ -152,17 +215,37 @@ function handleCodexStdout(chunk) {
   }
 }
 
+function sendCodexNotification(method, params) {
+  const currentCodex = startCodexProcess()
+  if (!currentCodex || appServerClosed) {
+    return
+  }
+
+  currentCodex.stdin.write(
+    `${JSON.stringify({ method, params })}\n`,
+    "utf8",
+    (error) => {
+      if (error) {
+        lastCodexError = error.message
+      }
+    }
+  )
+}
+
 function sendCodexRequest(method, params) {
-  if (appServerClosed) {
-    return Promise.reject(new Error("Codex app-server is not running."))
+  const currentCodex = startCodexProcess()
+  if (!currentCodex || appServerClosed) {
+    return Promise.reject(
+      new Error(lastCodexError ?? "Codex app-server is not running.")
+    )
   }
 
   const id = nextRequestId++
-  const message = { id, method, params }
+    const message = { id, method, params }
 
   return new Promise((resolve, reject) => {
     pendingRequests.set(id, { reject, resolve })
-    codex.stdin.write(`${JSON.stringify(message)}\n`, "utf8", (error) => {
+    currentCodex.stdin.write(`${JSON.stringify(message)}\n`, "utf8", (error) => {
       if (!error) {
         return
       }
@@ -188,6 +271,7 @@ async function initializeCodex() {
       version: "0.1.0",
     },
   })
+  sendCodexNotification("initialized", {})
   initialized = true
 }
 
@@ -241,13 +325,48 @@ const server = http.createServer(async (request, response) => {
   }
 
   if (request.method === "GET" && request.url === "/health") {
+    const connected = initialized && Boolean(threadId) && !appServerClosed
     sendJson(response, 200, {
-      connected: initialized && !appServerClosed,
+      connected,
       appServerRunning: !appServerClosed,
-      ok: true,
+      codexCommand,
+      cwd,
+      error: lastCodexError,
+      ok: connected,
       provider: "codex_app_server",
+      stderr: lastCodexStderr,
       threadId,
     })
+    return
+  }
+
+  if (request.method === "POST" && request.url === "/connect") {
+    try {
+      await ensureThread()
+      sendJson(response, 200, {
+        connected: initialized && Boolean(threadId) && !appServerClosed,
+        appServerRunning: !appServerClosed,
+        codexCommand,
+        cwd,
+        error: lastCodexError,
+        ok: true,
+        provider: "codex_app_server",
+        stderr: lastCodexStderr,
+        threadId,
+      })
+    } catch (error) {
+      sendJson(response, 200, {
+        connected: false,
+        appServerRunning: !appServerClosed,
+        codexCommand,
+        cwd,
+        error: error instanceof Error ? error.message : "unknown_error",
+        ok: false,
+        provider: "codex_app_server",
+        stderr: lastCodexStderr,
+        threadId,
+      })
+    }
     return
   }
 
@@ -301,7 +420,7 @@ server.listen(port, host, () => {
 
 function shutdown() {
   server.close()
-  codex.kill()
+  codex?.kill()
 }
 
 process.on("SIGINT", shutdown)

@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
+import { useCodexConnection } from "@/app/codex/connection"
 import { Button } from "@/app/shared/ui/button"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
 import type {
@@ -89,6 +90,39 @@ function WorkspaceStatus({
   )
 }
 
+function WorkspaceGhostPetDemo() {
+  const ghostRows = [
+    "╭──────╮",
+    "│ █  █ │",
+    "│      │",
+    "│╭╮╭╮╭╮│",
+    "╰╯╰╯╰╯╰╯",
+  ]
+
+  return (
+    <div
+      aria-label="Agent presence demo"
+      className="pointer-events-none fixed right-4 bottom-28 z-50 flex flex-col items-center gap-2"
+    >
+      <div className="rounded-full bg-background/95 px-3 py-1.5 text-[11px] font-medium text-muted-foreground backdrop-blur">
+        watching this canvas
+      </div>
+      <div className="rounded-xl bg-background/90 px-3 py-2 text-foreground backdrop-blur">
+        <div
+          aria-hidden="true"
+          className="grid select-none grid-cols-[repeat(8,0.4rem)] grid-rows-[repeat(5,0.9rem)] place-items-center font-mono text-[12px] leading-none"
+        >
+          {ghostRows.flatMap((row, rowIndex) =>
+            [...row].map((character, columnIndex) => (
+              <span key={`${rowIndex}:${columnIndex}`}>{character}</span>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState {
   try {
     const parsedDocument = parseAgentHtml(document.ahtmlSource)
@@ -133,6 +167,7 @@ export function WorkspaceSurface({
   saveAttentionToken: number
   workspaceActionError: string | null
 }) {
+  const codexConnection = useCodexConnection()
   const [documentState, setDocumentState] =
     React.useState<WorkspaceDocumentState>({ status: "idle" })
   const [agentDeliveryState, setAgentDeliveryState] =
@@ -260,6 +295,7 @@ export function WorkspaceSurface({
 
       setAgentDeliveryState({ status: "sending" })
       deliverAgentHtmlIntent({
+        bridgeUrl: codexConnection.bridgeUrl,
         document: documentState.document,
         project: activeProject,
         section: activeSection,
@@ -270,7 +306,7 @@ export function WorkspaceSurface({
       }).then((result) => {
         if (result.ok) {
           setAgentDeliveryState({
-            detail: "Sent to local agent bridge.",
+            detail: "Sent to Codex.",
             status: "sent",
           })
           lastInteractionRef.current = null
@@ -285,7 +321,7 @@ export function WorkspaceSurface({
         }
       })
     },
-    [activeProject, activeSection, documentState]
+    [activeProject, activeSection, codexConnection.bridgeUrl, documentState]
   )
 
   React.useEffect(() => {
@@ -460,6 +496,7 @@ export function WorkspaceSurface({
             : agentDeliveryState.detail}
         </div>
       ) : null}
+      <WorkspaceGhostPetDemo />
     </AgentHtmlRuntimeTheme>
   )
 }

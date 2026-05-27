@@ -147,6 +147,7 @@ async function copyPromptFallback(promptText: string) {
 }
 
 export async function deliverAgentHtmlIntent(input: {
+  bridgeUrl?: string | null
   document: ProjectSectionDocument
   project: WorkspaceProjectView
   section: WorkspaceSection
@@ -186,7 +187,7 @@ export async function deliverAgentHtmlIntent(input: {
   const promptText = createPromptText(event)
 
   try {
-    const response = await fetch(getBridgeUrl(), {
+    const response = await fetch(input.bridgeUrl ?? getBridgeUrl(), {
       body: JSON.stringify({
         event,
         promptText,
