@@ -9,6 +9,7 @@ export type CodexConnectionStatus =
   | "stopped"
 
 export type CodexConnectionSettings = {
+  autoStart: boolean
   bridgeHost: string
   bridgePort: number
   codexCommand: string
@@ -45,19 +46,27 @@ type CodexConnectionContextValue = {
   bridgeUrl: string | null
   canManageBridge: boolean
   health: CodexBridgeHealth | null
+  isLoaded: boolean
   isBusy: boolean
   lastError: string | null
   ownership: CodexBridgeOwnership | null
+  openLogs: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   settings: CodexConnectionSettings
   status: CodexConnectionStatus
   start: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   stop: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   restart: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   test: (settingsOverride?: CodexConnectionSettings) => Promise<void>
-  updateSettings: (settings: CodexConnectionSettings) => void
+  updateSettings: (settings: CodexConnectionSettings) => Promise<void>
 }
 
 const STORAGE_KEY = "agent-html.codex-connection"
+
+type CodexBridgeLogPaths = {
+  codexEventLogPath: string
+  eventLogPath: string
+  resolvedFromDefaults: boolean
+}
 
 const CodexConnectionContext = React.createContext<
   CodexConnectionContextValue | undefined
@@ -75,6 +84,7 @@ function getDefaultWorkspaceCwd() {
 
 function getDefaultSettings(): CodexConnectionSettings {
   return {
+    autoStart: false,
     bridgeHost: "127.0.0.1",
     bridgePort: 51279,
     codexCommand: getDefaultCodexCommand(),
@@ -107,6 +117,10 @@ function loadSettings(): CodexConnectionSettings {
     }
 
     return {
+      autoStart:
+        typeof parsed.autoStart === "boolean"
+          ? parsed.autoStart
+          : defaults.autoStart,
       bridgeHost:
         typeof parsed.bridgeHost === "string"
           ? parsed.bridgeHost
@@ -145,6 +159,14 @@ function saveSettings(settings: CodexConnectionSettings) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
 }
 
+function getOpenLogsInstructions(paths: CodexBridgeLogPaths) {
+  return [
+    "Open these log files from your workspace or file explorer:",
+    `Event log: ${paths.eventLogPath}`,
+    `Codex event log: ${paths.codexEventLogPath}`,
+  ].join("\n")
+}
+
 function createBridgeUrl(settings: CodexConnectionSettings) {
   return `http://${settings.bridgeHost}:${settings.bridgePort}/agent-html/events`
 }
@@ -177,6 +199,7 @@ export function CodexConnectionProvider({
   const [settings, setSettings] =
     React.useState<CodexConnectionSettings>(loadSettings)
   const [health, setHealth] = React.useState<CodexBridgeHealth | null>(null)
+  const [isLoaded, setIsLoaded] = React.useState(false)
   const [status, setStatus] =
     React.useState<CodexConnectionStatus>("disconnected")
   const [lastError, setLastError] = React.useState<string | null>(null)
@@ -207,6 +230,27 @@ export function CodexConnectionProvider({
       applyProcessStatus(processStatus)
     },
     [applyProcessStatus, canManageBridge, settings]
+  )
+
+  const saveSettingsEverywhere = React.useCallback(
+    async (nextSettings: CodexConnectionSettings) => {
+      if (canManageBridge) {
+        const savedSettings = await invoke<CodexConnectionSettings>(
+          "codex_settings_save",
+          {
+            settings: nextSettings,
+          }
+        )
+        setSettings(savedSettings)
+        saveSettings(savedSettings)
+        return savedSettings
+      }
+
+      setSettings(nextSettings)
+      saveSettings(nextSettings)
+      return nextSettings
+    },
+    [canManageBridge]
   )
 
   const start = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
@@ -267,13 +311,69 @@ export function CodexConnectionProvider({
     }
   }, [runCommand])
 
-  const updateSettings = React.useCallback(
-    (nextSettings: CodexConnectionSettings) => {
-      setSettings(nextSettings)
-      saveSettings(nextSettings)
+  const openLogs = React.useCallback(
+    async (settingsOverride?: CodexConnectionSettings) => {
+      const targetSettings = settingsOverride ?? settings
+      if (!canManageBridge) {
+        throw new Error(
+          getOpenLogsInstructions({
+            codexEventLogPath: targetSettings.codexEventLogPath,
+            eventLogPath: targetSettings.eventLogPath,
+            resolvedFromDefaults: false,
+          })
+        )
+      }
+
+      const paths = await invoke<CodexBridgeLogPaths>("codex_bridge_logs", {
+        settings: targetSettings,
+      })
+      throw new Error(getOpenLogsInstructions(paths))
     },
-    []
+    [canManageBridge, settings]
   )
+
+  const updateSettings = React.useCallback(
+    async (nextSettings: CodexConnectionSettings) => {
+      await saveSettingsEverywhere(nextSettings)
+    },
+    [saveSettingsEverywhere]
+  )
+
+  React.useEffect(() => {
+    if (!canManageBridge) {
+      setIsLoaded(true)
+      return
+    }
+
+    let isCurrent = true
+
+    void invoke<CodexConnectionSettings>("codex_settings_load")
+      .then((loadedSettings) => {
+        if (!isCurrent) {
+          return
+        }
+
+        setSettings(loadedSettings)
+        saveSettings(loadedSettings)
+        setIsLoaded(true)
+
+        if (loadedSettings.autoStart) {
+          void start(loadedSettings)
+        }
+      })
+      .catch((error) => {
+        if (!isCurrent) {
+          return
+        }
+
+        setLastError(getErrorMessage(error))
+        setIsLoaded(true)
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [canManageBridge, start])
 
   React.useEffect(() => {
     if (!canManageBridge || status !== "connected") {
@@ -292,9 +392,11 @@ export function CodexConnectionProvider({
       bridgeUrl: status === "connected" ? createBridgeUrl(settings) : null,
       canManageBridge,
       health,
+      isLoaded,
       isBusy,
       lastError,
       ownership,
+      openLogs,
       restart,
       settings,
       start,
@@ -306,9 +408,11 @@ export function CodexConnectionProvider({
     [
       canManageBridge,
       health,
+      isLoaded,
       isBusy,
       lastError,
       ownership,
+      openLogs,
       restart,
       settings,
       start,

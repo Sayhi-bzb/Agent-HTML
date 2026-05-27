@@ -14,6 +14,7 @@ version = "0.0.1"
 dependencies = [
  "rusqlite",
  "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
  "thiserror 2.0.18",

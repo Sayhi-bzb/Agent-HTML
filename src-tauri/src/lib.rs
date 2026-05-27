@@ -4,8 +4,8 @@ mod workspace;
 use tauri::Manager;
 
 use crate::codex_bridge::{
-    codex_bridge_health, codex_bridge_restart, codex_bridge_start, codex_bridge_stop,
-    CodexBridgeState,
+    codex_bridge_health, codex_bridge_logs, codex_bridge_restart, codex_bridge_start,
+    codex_bridge_stop, codex_settings_load, codex_settings_save, CodexBridgeState,
 };
 use crate::workspace::{
     create_project, create_project_section, delete_project, delete_project_section,
@@ -38,10 +38,13 @@ pub fn run() {
             delete_project_section,
             duplicate_project_section,
             update_project_section_document,
+            codex_settings_load,
+            codex_settings_save,
             codex_bridge_start,
             codex_bridge_stop,
             codex_bridge_restart,
-            codex_bridge_health
+            codex_bridge_health,
+            codex_bridge_logs
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

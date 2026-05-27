@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use std::time::Duration;
+use std::fs;
 
 use serde::{Deserialize, Serialize};
 use tauri::{Manager, State};
@@ -54,9 +55,10 @@ impl Drop for CodexBridgeState {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CodexBridgeSettings {
+    auto_start: bool,
     bridge_host: String,
     bridge_port: u16,
     codex_command: String,
@@ -79,6 +81,14 @@ struct CodexBridgeHealth {
     stderr: Option<String>,
     status: String,
     thread_id: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct CodexBridgeLogPaths {
+    codex_event_log_path: String,
+    event_log_path: String,
+    resolved_from_defaults: bool,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -146,8 +156,11 @@ fn json_string_field(body: &str, field: &str) -> Option<String> {
 
 fn normalize_codex_settings(settings: &CodexBridgeSettings) -> CodexBridgeSettings {
     let default_command = if cfg!(windows) { "codex.cmd" } else { "codex" };
+    let default_event_log_path = default_event_log_path();
+    let default_codex_event_log_path = default_codex_event_log_path();
 
     CodexBridgeSettings {
+        auto_start: settings.auto_start,
         bridge_host: if settings.bridge_host.trim().is_empty() {
             "127.0.0.1".to_string()
         } else {
@@ -159,10 +172,65 @@ fn normalize_codex_settings(settings: &CodexBridgeSettings) -> CodexBridgeSettin
         } else {
             settings.codex_command.trim().to_string()
         },
-        codex_event_log_path: settings.codex_event_log_path.trim().to_string(),
+        codex_event_log_path: if settings.codex_event_log_path.trim().is_empty() {
+            default_codex_event_log_path
+        } else {
+            settings.codex_event_log_path.trim().to_string()
+        },
         event_log_enabled: settings.event_log_enabled,
-        event_log_path: settings.event_log_path.trim().to_string(),
+        event_log_path: if settings.event_log_path.trim().is_empty() {
+            default_event_log_path
+        } else {
+            settings.event_log_path.trim().to_string()
+        },
         workspace_cwd: settings.workspace_cwd.trim().to_string(),
+    }
+}
+
+fn default_settings_path(app: &tauri::AppHandle) -> CodexBridgeResult<PathBuf> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|_| CodexBridgeError::Process("unable to resolve app data directory".to_string()))?;
+    Ok(app_data_dir.join("codex-connection-settings.json"))
+}
+
+fn default_event_log_path() -> String {
+    ".tmp\\agent-html-codex-events.jsonl".to_string()
+}
+
+fn default_codex_event_log_path() -> String {
+    ".tmp\\agent-html-codex-app-server-events.jsonl".to_string()
+}
+
+fn default_settings() -> CodexBridgeSettings {
+    CodexBridgeSettings {
+        auto_start: false,
+        bridge_host: "127.0.0.1".to_string(),
+        bridge_port: 51279,
+        codex_command: if cfg!(windows) {
+            "codex.cmd".to_string()
+        } else {
+            "codex".to_string()
+        },
+        codex_event_log_path: default_codex_event_log_path(),
+        event_log_enabled: false,
+        event_log_path: default_event_log_path(),
+        workspace_cwd: String::new(),
+    }
+}
+
+fn settings_with_runtime_defaults(settings: CodexBridgeSettings) -> CodexBridgeSettings {
+    normalize_codex_settings(&settings)
+}
+
+fn resolve_log_paths(settings: &CodexBridgeSettings) -> CodexBridgeLogPaths {
+    let normalized = normalize_codex_settings(settings);
+    CodexBridgeLogPaths {
+        codex_event_log_path: normalized.codex_event_log_path.clone(),
+        event_log_path: normalized.event_log_path.clone(),
+        resolved_from_defaults: settings.event_log_path.trim().is_empty()
+            || settings.codex_event_log_path.trim().is_empty(),
     }
 }
 
@@ -367,6 +435,34 @@ fn bridge_port_status(settings: &CodexBridgeSettings) -> CodexBridgeHealth {
     read_codex_bridge_health(settings)
 }
 
+fn load_settings_from_disk(app: &tauri::AppHandle) -> CodexBridgeResult<CodexBridgeSettings> {
+    let path = default_settings_path(app)?;
+    if !path.exists() {
+        return Ok(default_settings());
+    }
+
+    let content = fs::read_to_string(path)?;
+    let parsed: CodexBridgeSettings =
+        serde_json::from_str(&content).map_err(|error| CodexBridgeError::Process(error.to_string()))?;
+    Ok(settings_with_runtime_defaults(parsed))
+}
+
+fn save_settings_to_disk(
+    app: &tauri::AppHandle,
+    settings: &CodexBridgeSettings,
+) -> CodexBridgeResult<CodexBridgeSettings> {
+    let path = default_settings_path(app)?;
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    let normalized = settings_with_runtime_defaults(settings.clone());
+    let content =
+        serde_json::to_string_pretty(&normalized).map_err(|error| CodexBridgeError::Process(error.to_string()))?;
+    fs::write(path, content)?;
+    Ok(normalized)
+}
+
 fn check_bridge_process(process: &mut Child) -> Option<u32> {
     match process.try_wait() {
         Ok(Some(_)) => None,
@@ -378,6 +474,31 @@ fn check_bridge_process(process: &mut Child) -> Option<u32> {
 fn stop_bridge_process(process: &mut Child) {
     let _ = process.kill();
     let _ = process.wait();
+}
+
+#[tauri::command]
+pub(crate) fn codex_settings_load(app: tauri::AppHandle) -> CodexBridgeResult<CodexBridgeSettings> {
+    load_settings_from_disk(&app)
+}
+
+#[tauri::command]
+pub(crate) fn codex_settings_save(
+    app: tauri::AppHandle,
+    settings: CodexBridgeSettings,
+) -> CodexBridgeResult<CodexBridgeSettings> {
+    save_settings_to_disk(&app, &settings)
+}
+
+#[tauri::command]
+pub(crate) fn codex_bridge_logs(
+    app: tauri::AppHandle,
+    settings: Option<CodexBridgeSettings>,
+) -> CodexBridgeResult<CodexBridgeLogPaths> {
+    let settings = match settings {
+        Some(settings) => settings_with_runtime_defaults(settings),
+        None => load_settings_from_disk(&app)?,
+    };
+    Ok(resolve_log_paths(&settings))
 }
 
 #[tauri::command]

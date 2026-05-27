@@ -75,11 +75,13 @@ function CodexConnectionDialog({
   const [draftSettings, setDraftSettings] = React.useState(
     codexConnection.settings
   )
+  const wasOpenRef = React.useRef(false)
 
   React.useEffect(() => {
-    if (open) {
+    if (open && !wasOpenRef.current) {
       setDraftSettings(codexConnection.settings)
     }
+    wasOpenRef.current = open
   }, [codexConnection.settings, open])
 
   const handleNumberChange = React.useCallback(
@@ -105,13 +107,13 @@ function CodexConnectionDialog({
   )
 
   const saveDraft = React.useCallback(() => {
-    codexConnection.updateSettings(draftSettings)
+    void codexConnection.updateSettings(draftSettings)
   }, [codexConnection, draftSettings])
 
   const runAction = React.useCallback(
-    (action: (settingsOverride?: typeof draftSettings) => Promise<void>) => {
-      codexConnection.updateSettings(draftSettings)
-      void action(draftSettings)
+    async (action: (settingsOverride?: typeof draftSettings) => Promise<void>) => {
+      await codexConnection.updateSettings(draftSettings)
+      await action(draftSettings)
     },
     [codexConnection, draftSettings]
   )
@@ -130,7 +132,9 @@ function CodexConnectionDialog({
             <div className="min-w-0">
               <p className="text-sm font-medium">Status</p>
               <p className="truncate text-xs text-muted-foreground">
-                {codexConnection.bridgeUrl ?? "Not connected"}
+                {!codexConnection.isLoaded
+                  ? "Loading saved settings..."
+                  : codexConnection.bridgeUrl ?? "Not connected"}
               </p>
               {codexConnection.ownership === "external" ? (
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -187,6 +191,20 @@ function CodexConnectionDialog({
               />
             </div>
           </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              checked={draftSettings.autoStart}
+              className="size-4 accent-primary"
+              onChange={(event) =>
+                setDraftSettings((current) => ({
+                  ...current,
+                  autoStart: event.target.checked,
+                }))
+              }
+              type="checkbox"
+            />
+            Auto start bridge on app launch
+          </label>
           <label className="flex items-center gap-2 text-sm">
             <input
               checked={draftSettings.eventLogEnabled}
@@ -269,8 +287,8 @@ function CodexConnectionDialog({
           </Button>
           <div className="flex flex-wrap justify-end gap-2">
             <Button
-              disabled={codexConnection.isBusy}
-              onClick={() => runAction(codexConnection.test)}
+              disabled={codexConnection.isBusy || !codexConnection.isLoaded}
+              onClick={() => void runAction(codexConnection.test)}
               type="button"
               variant="outline"
             >
@@ -278,8 +296,8 @@ function CodexConnectionDialog({
               Test
             </Button>
             <Button
-              disabled={codexConnection.isBusy}
-              onClick={() => runAction(codexConnection.stop)}
+              disabled={codexConnection.isBusy || !codexConnection.isLoaded}
+              onClick={() => void runAction(codexConnection.stop)}
               type="button"
               variant="outline"
               title={
@@ -292,8 +310,8 @@ function CodexConnectionDialog({
               {codexConnection.ownership === "external" ? "Disconnect" : "Stop"}
             </Button>
             <Button
-              disabled={codexConnection.isBusy}
-              onClick={() => runAction(codexConnection.restart)}
+              disabled={codexConnection.isBusy || !codexConnection.isLoaded}
+              onClick={() => void runAction(codexConnection.restart)}
               type="button"
               variant="outline"
               title={
@@ -306,12 +324,20 @@ function CodexConnectionDialog({
               {codexConnection.ownership === "external" ? "Reconnect" : "Restart"}
             </Button>
             <Button
-              disabled={codexConnection.isBusy}
-              onClick={() => runAction(codexConnection.start)}
+              disabled={codexConnection.isBusy || !codexConnection.isLoaded}
+              onClick={() => void runAction(codexConnection.start)}
               type="button"
             >
               <PlayIcon />
               {codexConnection.isBusy ? "Connecting..." : "Connect"}
+            </Button>
+            <Button
+              disabled={!codexConnection.isLoaded}
+              onClick={() => void codexConnection.openLogs(draftSettings).catch((error) => window.alert(error instanceof Error ? error.message : String(error)))}
+              type="button"
+              variant="outline"
+            >
+              Open logs
             </Button>
           </div>
         </DialogFooter>
