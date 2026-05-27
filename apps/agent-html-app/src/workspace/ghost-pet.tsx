@@ -1,4 +1,5 @@
 import type * as React from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 const GHOST_GLYPH_ROWS = [
   "╭──────╮",
@@ -10,6 +11,8 @@ const GHOST_GLYPH_ROWS = [
 
 const GHOST_CELL_WIDTH = "0.4rem"
 const GHOST_CELL_HEIGHT = "0.9rem"
+const GHOST_POSITION_STORAGE_KEY = "agent-html.workspace-ghost-pet-position"
+const GHOST_VIEWPORT_MARGIN = 24
 
 export type PetMood = "failed" | "idle" | "review" | "waiting" | "working"
 
@@ -33,6 +36,18 @@ export type PetPresence = {
     text: string
   }
   mood: PetMood
+}
+
+type GhostPetPosition = {
+  x: number
+  y: number
+}
+
+type GhostPetDragState = {
+  pointerId: number
+  startClientX: number
+  startClientY: number
+  startPosition: GhostPetPosition
 }
 
 const idlePresence: PetPresence = {
@@ -63,17 +78,157 @@ function getPresenceMessage(presence: PetPresence) {
   return idlePresence.message?.text ?? ""
 }
 
+function getDefaultPosition(): GhostPetPosition {
+  if (typeof window === "undefined") {
+    return { x: 0, y: 0 }
+  }
+
+  return {
+    x: window.innerWidth - 48,
+    y: window.innerHeight - 112,
+  }
+}
+
+function clampPosition(position: GhostPetPosition): GhostPetPosition {
+  if (typeof window === "undefined") {
+    return position
+  }
+
+  return {
+    x: Math.min(
+      Math.max(position.x, GHOST_VIEWPORT_MARGIN),
+      window.innerWidth - GHOST_VIEWPORT_MARGIN
+    ),
+    y: Math.min(
+      Math.max(position.y, GHOST_VIEWPORT_MARGIN),
+      window.innerHeight - GHOST_VIEWPORT_MARGIN
+    ),
+  }
+}
+
+function loadStoredPosition(): GhostPetPosition {
+  if (typeof localStorage === "undefined") {
+    return getDefaultPosition()
+  }
+
+  try {
+    const stored = localStorage.getItem(GHOST_POSITION_STORAGE_KEY)
+    if (!stored) {
+      return getDefaultPosition()
+    }
+
+    const parsed: unknown = JSON.parse(stored)
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      "x" in parsed &&
+      "y" in parsed &&
+      typeof parsed.x === "number" &&
+      typeof parsed.y === "number"
+    ) {
+      return clampPosition({ x: parsed.x, y: parsed.y })
+    }
+  } catch {
+    return getDefaultPosition()
+  }
+
+  return getDefaultPosition()
+}
+
+function saveStoredPosition(position: GhostPetPosition) {
+  if (typeof localStorage === "undefined") {
+    return
+  }
+
+  localStorage.setItem(
+    GHOST_POSITION_STORAGE_KEY,
+    JSON.stringify(clampPosition(position))
+  )
+}
+
 export function WorkspaceGhostPet({
   presence = idlePresence,
 }: {
   presence?: PetPresence
 }) {
   const message = getPresenceMessage(presence)
+  const dragStateRef = useRef<GhostPetDragState | null>(null)
+  const [position, setPosition] = useState<GhostPetPosition>(loadStoredPosition)
+  const [isDragging, setIsDragging] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition((currentPosition) => {
+        const nextPosition = clampPosition(currentPosition)
+        saveStoredPosition(nextPosition)
+        return nextPosition
+      })
+    }
+
+    window.addEventListener("resize", handleResize)
+
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      event.currentTarget.setPointerCapture(event.pointerId)
+      dragStateRef.current = {
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startPosition: position,
+      }
+      setIsDragging(true)
+    },
+    [position]
+  )
+
+  const handlePointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const dragState = dragStateRef.current
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return
+      }
+
+      const nextPosition = clampPosition({
+        x: dragState.startPosition.x + event.clientX - dragState.startClientX,
+        y: dragState.startPosition.y + event.clientY - dragState.startClientY,
+      })
+      setPosition(nextPosition)
+    },
+    []
+  )
+
+  const finishDrag = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = dragStateRef.current
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return
+    }
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    dragStateRef.current = null
+    setIsDragging(false)
+    setPosition((currentPosition) => {
+      const nextPosition = clampPosition(currentPosition)
+      saveStoredPosition(nextPosition)
+      return nextPosition
+    })
+  }, [])
 
   return (
     <div
       aria-label="Agent presence"
-      className="pointer-events-none fixed right-4 bottom-28 z-50"
+      className="pointer-events-none fixed z-50"
+      style={{
+        left: position.x,
+        top: position.y,
+        transform: "translate(-50%, -50%)",
+      }}
     >
       <div className="relative">
         {message ? (
@@ -81,7 +236,16 @@ export function WorkspaceGhostPet({
             {message}
           </div>
         ) : null}
-        <div className="px-3 py-2 text-foreground">
+        <div
+          className={[
+            "pointer-events-auto px-3 py-2 text-foreground",
+            isDragging ? "cursor-grabbing" : "cursor-grab",
+          ].join(" ")}
+          onPointerCancel={finishDrag}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={finishDrag}
+        >
           <div
             aria-hidden="true"
             className="grid select-none grid-cols-[repeat(8,var(--ghost-cell-width))] grid-rows-[repeat(5,var(--ghost-cell-height))] place-items-center font-mono text-[12px] leading-none"
