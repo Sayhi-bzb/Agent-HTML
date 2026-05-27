@@ -1,126 +1,54 @@
+import introduceAgentHtmlSource from "@/app/workspace/fixtures/introduce-agent-html.ahtml?raw"
+import introduceAgentHtmlZhSource from "@/app/workspace/fixtures/introduce-agent-html-cn.ahtml?raw"
 import type {
   ProjectSectionDocument,
   WorkspaceProject,
   WorkspaceSection,
 } from "@/app/workspace/types"
 
+const exampleProjectId = "agent-html-example"
+
 export const workspaceSeedProjects: WorkspaceProject[] = [
   {
-    id: "design-engineering",
-    name: "Design Engineering",
-    slug: "design-engineering",
-  },
-  {
-    id: "sales-marketing",
-    name: "Sales & Marketing",
-    slug: "sales-marketing",
-  },
-  {
-    id: "travel",
-    name: "Travel",
-    slug: "travel",
+    id: exampleProjectId,
+    name: "Agent-HTML Example",
+    slug: "agent-html-example",
   },
 ]
 
-const sectionTemplates = [
+export const workspaceSeedSections: WorkspaceSection[] = [
   {
-    groupTitle: "Getting Started",
-    id: "installation",
-    title: "Installation",
+    groupTitle: "Example Cases",
+    id: "introduce-agent-html",
+    projectId: exampleProjectId,
+    sortOrder: 0,
+    title: "Introducing agent-html",
   },
   {
-    groupTitle: "Getting Started",
-    id: "project-structure",
-    title: "Project Structure",
-  },
-  {
-    groupTitle: "Build Your Application",
-    id: "routing",
-    title: "Routing",
-  },
-  {
-    groupTitle: "Build Your Application",
-    id: "data-fetching",
-    title: "Data Fetching",
-  },
-  {
-    groupTitle: "Build Your Application",
-    id: "rendering",
-    title: "Rendering",
-  },
-  {
-    groupTitle: "Build Your Application",
-    id: "caching",
-    title: "Caching",
+    groupTitle: "Example Cases",
+    id: "introduce-agent-html-zh",
+    projectId: exampleProjectId,
+    sortOrder: 1,
+    title: "介绍 agent-html",
   },
 ]
 
-export const defaultWorkspaceSectionId = sectionTemplates[0].id
+export const defaultWorkspaceSectionId = workspaceSeedSections[0].id
 
-export const workspaceSeedSections: WorkspaceSection[] =
-  workspaceSeedProjects.flatMap((project) =>
-    sectionTemplates.map((section, index) => ({
-      ...section,
-      projectId: project.id,
-      sortOrder: index,
-    }))
-  )
-
-function createSeedAhtmlSource(project: WorkspaceProject, section: WorkspaceSection) {
-  return `<Page title="${project.name} - ${section.title}">
-  <Section width="content">
-    <Stack>
-      <Stack>
-        <Text variant="h1">${section.title}</Text>
-        <Text variant="lead">${project.name} workspace preview rendered through the agent-html runtime.</Text>
-      </Stack>
-      <Alert>
-        <Icon name="database" />
-        <AlertTitle>Workspace preview document</AlertTitle>
-        <AlertDescription>This section is loaded from the current workspace data source and rendered from AHTML source.</AlertDescription>
-      </Alert>
-      <Grid columns="3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Project</CardTitle>
-            <CardDescription>${project.name}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Section</CardTitle>
-            <CardDescription>${section.groupTitle}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Runtime</CardTitle>
-            <CardDescription>parse -> validate -> render</CardDescription>
-          </CardHeader>
-        </Card>
-      </Grid>
-    </Stack>
-  </Section>
-</Page>`
-}
-
-export const workspaceSeedDocuments: ProjectSectionDocument[] =
-  workspaceSeedSections.map((section) => {
-    const project = workspaceSeedProjects.find(
-      (item) => item.id === section.projectId
-    )
-
-    if (!project) {
-      throw new Error(`Missing seed project for section ${section.id}`)
-    }
-
-    return {
-      ahtmlSource: createSeedAhtmlSource(project, section),
-      projectId: project.id,
-      sectionId: section.id,
-      updatedAt: "2026-05-25T00:00:00.000Z",
-    }
-  })
+export const workspaceSeedDocuments: ProjectSectionDocument[] = [
+  {
+    ahtmlSource: introduceAgentHtmlSource,
+    projectId: exampleProjectId,
+    sectionId: "introduce-agent-html",
+    updatedAt: "2026-05-25T00:00:00.000Z",
+  },
+  {
+    ahtmlSource: introduceAgentHtmlZhSource,
+    projectId: exampleProjectId,
+    sectionId: "introduce-agent-html-zh",
+    updatedAt: "2026-05-25T00:00:00.000Z",
+  },
+]
 
 export function getSeedSections(projectId: string) {
   return workspaceSeedSections.filter((section) => section.projectId === projectId)
