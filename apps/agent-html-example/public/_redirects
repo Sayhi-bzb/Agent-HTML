@@ -1,1 +1,3 @@
-/agent-html/* /index.html 200
+/agent-html/zh /zh 301
+/agent-html/* / 301
+/* /index.html 200

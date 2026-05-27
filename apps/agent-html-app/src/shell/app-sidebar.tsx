@@ -8,6 +8,7 @@ import {
 } from "@/app/shared/ui/dropdown-menu"
 import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
 import { NavProjects } from "@/app/shell/nav-projects"
+import { NewProjectDialog } from "@/app/shell/new-project-dialog"
 import { SearchCommand } from "@/app/shell/search-command"
 import { SettingsMenu } from "@/app/shell/settings-menu"
 import {
@@ -151,7 +152,10 @@ export function AppSidebar({
             </SidebarMenu>
           </>
         ) : (
-          <SearchCommand onOpenProject={onOpenProject} projects={projects} />
+          <>
+            <SearchCommand onOpenProject={onOpenProject} projects={projects} />
+            <NewProjectDialog />
+          </>
         )}
       </SidebarHeader>
       <SidebarContent>

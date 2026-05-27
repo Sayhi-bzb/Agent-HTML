@@ -56,9 +56,10 @@ the app shell, the wrong Vite config is running.
 
 Expected local routes:
 
-- `/` renders the example website.
-- `/agent-html/` renders the example website.
-- `/agent-html/zh` renders the Chinese example route.
+- `/` renders the English example route.
+- `/zh` renders the Chinese example route.
+- `/agent-html/` redirects to `/`.
+- `/agent-html/zh` redirects to `/zh`.
 
 ## Build
 
@@ -86,7 +87,6 @@ The build command type-checks with `tsconfig.agent-html-example.json`, then uses
 - public directory: `apps/agent-html-example/public`
 - output directory: `dist-agent-html`
 - `@example` alias: `apps/agent-html-example/src`
-- `@` alias: repository `src`
 
 The root `vite.agent-html.config.ts` only exists as a compatibility re-export.
 Do not add new example deployment rules there.
@@ -146,7 +146,9 @@ apps/agent-html-example/public/_redirects
 Current rule:
 
 ```text
-/agent-html/* /index.html 200
+/agent-html/zh /zh 301
+/agent-html/* / 301
+/* /index.html 200
 ```
 
 Keep this file under the example app public directory. Do not move it back to

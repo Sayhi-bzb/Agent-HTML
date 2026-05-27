@@ -23,15 +23,17 @@ function prefersChineseLocale() {
 }
 
 function getInitialLocale(): AgentHtmlExampleLocale {
-  if (window.location.pathname.startsWith("/agent-html/zh")) {
+  if (window.location.pathname === "/zh") {
     return "zh"
   }
 
-  return prefersChineseLocale() ? "zh" : "en"
+  return window.location.pathname === "/" && prefersChineseLocale()
+    ? "zh"
+    : "en"
 }
 
 function localePath(locale: AgentHtmlExampleLocale) {
-  return locale === "zh" ? "/agent-html/zh" : "/agent-html/"
+  return locale === "zh" ? "/zh" : "/"
 }
 
 export function AgentHtmlExampleApp() {
@@ -54,7 +56,7 @@ export function AgentHtmlExampleApp() {
   }, [theme])
 
   React.useEffect(() => {
-    if (locale === "zh" && window.location.pathname === "/agent-html/") {
+    if (locale === "zh" && window.location.pathname === "/") {
       window.history.replaceState(null, "", localePath(locale))
     }
   }, [locale])
