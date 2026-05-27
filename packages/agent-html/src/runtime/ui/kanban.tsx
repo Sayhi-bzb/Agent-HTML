@@ -317,7 +317,7 @@ function Kanban({ children }: { children?: React.ReactNode }) {
       <IntrinsicScrollFrame>
         <div
           className={cn(
-            "grid w-full min-w-max auto-cols-[16rem] grid-flow-col gap-4 pb-2",
+            "grid w-full min-w-max auto-cols-[16rem] grid-flow-col justify-center gap-4 pb-2",
             activeItem && "cursor-grabbing"
           )}
           data-dragging={activeItem ? "" : undefined}
