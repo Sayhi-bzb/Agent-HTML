@@ -19,9 +19,36 @@ export type CodexHostHealth = {
   cwd?: string | null
   error?: string | null
   ok: boolean
-  provider?: string | null
   stderr?: string | null
   status: CodexConnectionStatus
+}
+
+export type CodexRuntimeCapability =
+  | "apps"
+  | "collaborationModes"
+  | "config"
+  | "mcpServers"
+  | "models"
+  | "plugins"
+  | "skills"
+
+export type CodexRuntimeCapabilityStatus = {
+  count?: number
+  error?: string
+  ok: boolean
+}
+
+export type CodexRuntimeStatus = {
+  capabilities: Record<CodexRuntimeCapability, CodexRuntimeCapabilityStatus>
+  config: {
+    approvalPolicy?: string
+    model?: string
+    modelProvider?: string
+    sandboxMode?: string
+  }
+  error?: string | null
+  loadedAt?: string
+  status: "idle" | "loading" | "ready" | "error"
 }
 
 type CodexHostProcessStatus = {
@@ -39,6 +66,27 @@ type CodexTurnStartResult = {
   turnId?: string | null
 }
 
+export type CodexThreadSummary = {
+  createdAt?: string
+  id: string
+  name?: string | null
+  status?: string | null
+  updatedAt?: string
+}
+
+export type CodexThreadListState = {
+  error?: string | null
+  isLoading: boolean
+  items: CodexThreadSummary[]
+  loadedAt?: string
+}
+
+type CodexRuntimeReadSpec = {
+  capability: CodexRuntimeCapability
+  method: string
+  params: (input: { cwd?: string | null }) => unknown
+}
+
 type CodexConnectionContextValue = {
   activeThreadId: string | null
   canManageHost: boolean
@@ -47,12 +95,18 @@ type CodexConnectionContextValue = {
   isLoaded: boolean
   isBusy: boolean
   lastError: string | null
+  refreshRuntimeStatus: () => Promise<void>
+  refreshThreads: () => Promise<void>
   request: (method: string, params: unknown) => Promise<unknown>
+  resumeThread: (threadId: string) => Promise<void>
+  runtimeStatus: CodexRuntimeStatus
   settings: CodexConnectionSettings
   status: CodexConnectionStatus
   start: (settingsOverride?: CodexConnectionSettings) => Promise<void>
+  startNewThread: () => Promise<string>
   startTurn: (promptText: string) => Promise<CodexTurnStartResult>
   stop: (settingsOverride?: CodexConnectionSettings) => Promise<void>
+  threadList: CodexThreadListState
   restart: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   test: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   updateSettings: (settings: CodexConnectionSettings) => Promise<void>
@@ -73,6 +127,44 @@ type ApplyProcessStatusOptions = {
 }
 
 type ConnectionTracePayload = Record<string, unknown>
+
+const CODEX_RUNTIME_READS: CodexRuntimeReadSpec[] = [
+  {
+    capability: "config",
+    method: "config/read",
+    params: () => ({}),
+  },
+  {
+    capability: "models",
+    method: "model/list",
+    params: () => ({ includeHidden: false }),
+  },
+  {
+    capability: "collaborationModes",
+    method: "collaborationMode/list",
+    params: () => ({}),
+  },
+  {
+    capability: "skills",
+    method: "skills/list",
+    params: ({ cwd }) => (cwd ? { cwds: [cwd] } : { cwds: [] }),
+  },
+  {
+    capability: "plugins",
+    method: "plugin/list",
+    params: () => ({ limit: 100 }),
+  },
+  {
+    capability: "apps",
+    method: "app/list",
+    params: () => ({ limit: 100 }),
+  },
+  {
+    capability: "mcpServers",
+    method: "mcpServerStatus/list",
+    params: () => ({ detail: "toolsAndAuthOnly", limit: 100 }),
+  },
+]
 
 const CodexConnectionContext = React.createContext<
   CodexConnectionContextValue | undefined
@@ -110,6 +202,19 @@ function readObject(value: unknown): Record<string, unknown> | null {
     : null
 }
 
+function readString(value: unknown, keys: string[]) {
+  let current = value
+  for (const key of keys) {
+    const object = readObject(current)
+    if (!object) {
+      return undefined
+    }
+    current = object[key]
+  }
+
+  return typeof current === "string" ? current : undefined
+}
+
 function readThreadId(value: unknown) {
   const result = readObject(value)
   const thread = readObject(result?.thread)
@@ -120,6 +225,112 @@ function readTurnId(value: unknown) {
   const result = readObject(value)
   const turn = readObject(result?.turn)
   return typeof turn?.id === "string" ? turn.id : null
+}
+
+function readThreads(value: unknown): CodexThreadSummary[] {
+  const result = readObject(value)
+  const rawThreads =
+    (Array.isArray(result?.threads) && result.threads) ||
+    (Array.isArray(result?.items) && result.items) ||
+    (Array.isArray(value) && value) ||
+    []
+
+  return rawThreads
+    .map((rawThread) => {
+      const thread = readObject(rawThread)
+      const id = typeof thread?.id === "string" ? thread.id : null
+      if (!id) {
+        return null
+      }
+
+      return {
+        createdAt:
+          readString(thread, ["createdAt"]) ??
+          readString(thread, ["created_at"]) ??
+          readString(thread, ["created"]),
+        id,
+        name:
+          readString(thread, ["name"]) ??
+          readString(thread, ["title"]) ??
+          null,
+        status: readString(thread, ["status"]) ?? null,
+        updatedAt:
+          readString(thread, ["updatedAt"]) ??
+          readString(thread, ["updated_at"]) ??
+          readString(thread, ["lastUpdatedAt"]),
+      }
+    })
+    .filter((thread): thread is CodexThreadSummary => thread !== null)
+}
+
+function createIdleThreadList(): CodexThreadListState {
+  return {
+    error: null,
+    isLoading: false,
+    items: [],
+  }
+}
+
+function createIdleRuntimeStatus(): CodexRuntimeStatus {
+  return {
+    capabilities: {
+      apps: { ok: false },
+      collaborationModes: { ok: false },
+      config: { ok: false },
+      mcpServers: { ok: false },
+      models: { ok: false },
+      plugins: { ok: false },
+      skills: { ok: false },
+    },
+    config: {},
+    error: null,
+    status: "idle",
+  }
+}
+
+function countItems(value: unknown): number | undefined {
+  if (Array.isArray(value)) {
+    return value.length
+  }
+
+  const object = readObject(value)
+  if (!object) {
+    return undefined
+  }
+
+  for (const key of [
+    "apps",
+    "collaborationModes",
+    "items",
+    "models",
+    "plugins",
+    "servers",
+    "skills",
+  ]) {
+    const child = object[key]
+    if (Array.isArray(child)) {
+      return child.length
+    }
+  }
+
+  return undefined
+}
+
+function readEffectiveConfig(value: unknown): CodexRuntimeStatus["config"] {
+  const config = readObject(value)?.config ?? value
+
+  return {
+    approvalPolicy:
+      readString(config, ["approval_policy"]) ??
+      readString(config, ["approvalPolicy"]),
+    model: readString(config, ["model"]),
+    modelProvider:
+      readString(config, ["model_provider"]) ??
+      readString(config, ["modelProvider"]),
+    sandboxMode:
+      readString(config, ["sandbox_mode"]) ??
+      readString(config, ["sandboxMode"]),
+  }
 }
 
 function normalizeStatus(status: CodexConnectionStatus, health: CodexHostHealth | null) {
@@ -220,6 +431,10 @@ export function CodexConnectionProvider({
   )
   const [lastError, setLastError] = React.useState<string | null>(null)
   const [isBusy, setIsBusy] = React.useState(false)
+  const [runtimeStatus, setRuntimeStatus] =
+    React.useState<CodexRuntimeStatus>(createIdleRuntimeStatus)
+  const [threadList, setThreadList] =
+    React.useState<CodexThreadListState>(createIdleThreadList)
   const [activeThreadId, setActiveThreadId] = React.useState<string | null>(null)
   const canManageHost = isTauri()
   const connectionAttemptRef = React.useRef(0)
@@ -351,6 +566,7 @@ export function CodexConnectionProvider({
     setPhase("connecting")
     setLastError(null)
     setActiveThreadId(null)
+    setThreadList(createIdleThreadList())
 
     try {
       const processStatus = await withTimeout(
@@ -445,6 +661,7 @@ export function CodexConnectionProvider({
     setPhase("connecting")
     setLastError(null)
     setActiveThreadId(null)
+    setThreadList(createIdleThreadList())
 
     try {
       const processStatus = await withTimeout(
@@ -514,22 +731,127 @@ export function CodexConnectionProvider({
     [canManageHost]
   )
 
+  const refreshRuntimeStatus = React.useCallback(async () => {
+    if (!canManageHost || phaseRef.current !== "connected") {
+      setRuntimeStatus(createIdleRuntimeStatus())
+      return
+    }
+
+    setRuntimeStatus((currentStatus) => ({
+      ...currentStatus,
+      error: null,
+      status: "loading",
+    }))
+
+    const entries = await Promise.all(
+      CODEX_RUNTIME_READS.map(async (spec) => {
+        try {
+          const result = await request(spec.method, spec.params({ cwd: health?.cwd }))
+          return {
+            capability: spec.capability,
+            result,
+            status: {
+              count: countItems(result),
+              ok: true,
+            },
+          }
+        } catch (error) {
+          return {
+            capability: spec.capability,
+            result: null,
+            status: {
+              error: getErrorMessage(error),
+              ok: false,
+            },
+          }
+        }
+      })
+    )
+
+    const capabilities = createIdleRuntimeStatus().capabilities
+    let config: CodexRuntimeStatus["config"] = {}
+    for (const entry of entries) {
+      capabilities[entry.capability] = entry.status
+      if (entry.capability === "config" && entry.status.ok) {
+        config = readEffectiveConfig(entry.result)
+      }
+    }
+
+    const hasSuccess = entries.some((entry) => entry.status.ok)
+    const hasFailure = entries.some((entry) => !entry.status.ok)
+    setRuntimeStatus({
+      capabilities,
+      config,
+      error: hasSuccess || !hasFailure ? null : "Unable to read Codex status.",
+      loadedAt: new Date().toISOString(),
+      status: hasSuccess ? "ready" : "error",
+    })
+  }, [canManageHost, health?.cwd, request])
+
+  const refreshThreads = React.useCallback(async () => {
+    if (!canManageHost || phaseRef.current !== "connected") {
+      setThreadList(createIdleThreadList())
+      return
+    }
+
+    setThreadList((currentList) => ({
+      ...currentList,
+      error: null,
+      isLoading: true,
+    }))
+
+    try {
+      const result = await request("thread/list", {
+        cwd: health?.cwd ?? undefined,
+        limit: 20,
+      })
+      setThreadList({
+        error: null,
+        isLoading: false,
+        items: readThreads(result),
+        loadedAt: new Date().toISOString(),
+      })
+    } catch (error) {
+      setThreadList((currentList) => ({
+        ...currentList,
+        error: getErrorMessage(error),
+        isLoading: false,
+      }))
+    }
+  }, [canManageHost, health?.cwd, request])
+
+  const resumeThread = React.useCallback(
+    async (threadId: string) => {
+      await request("thread/resume", { threadId })
+      setActiveThreadId(threadId)
+    },
+    [request]
+  )
+
+  const startNewThread = React.useCallback(async () => {
+    const threadId = readThreadId(
+      await request("thread/start", {
+        persistExtendedHistory: false,
+        serviceName: "agent_html",
+      })
+    )
+
+    if (!threadId) {
+      throw new Error("Codex did not return a thread id.")
+    }
+
+    setActiveThreadId(threadId)
+    void refreshThreads()
+    return threadId
+  }, [refreshThreads, request])
+
   const startTurn = React.useCallback(
     async (promptText: string) => {
-      const threadId =
-        activeThreadId ??
-        readThreadId(
-          await request("thread/start", {
-            persistExtendedHistory: false,
-            serviceName: "agent_html",
-          })
-        )
+      const threadId = activeThreadId
 
       if (!threadId) {
-        throw new Error("Codex did not return a thread id.")
+        throw new Error("Choose a Codex thread before sending a request.")
       }
-
-      setActiveThreadId(threadId)
 
       const result = await request("turn/start", {
         input: [
@@ -648,6 +970,17 @@ export function CodexConnectionProvider({
     return () => window.clearInterval(interval)
   }, [applyProcessStatus, canManageHost, phase, runCommand])
 
+  React.useEffect(() => {
+    if (phase !== "connected") {
+      setRuntimeStatus(createIdleRuntimeStatus())
+      setThreadList(createIdleThreadList())
+      return
+    }
+
+    void refreshRuntimeStatus()
+    void refreshThreads()
+  }, [phase, refreshRuntimeStatus, refreshThreads])
+
   const status = statusFromPhase(phase)
 
   const value = React.useMemo<CodexConnectionContextValue>(
@@ -659,13 +992,19 @@ export function CodexConnectionProvider({
       isLoaded,
       isBusy,
       lastError,
+      refreshRuntimeStatus,
+      refreshThreads,
       request,
+      resumeThread,
       restart,
+      runtimeStatus,
       settings,
       start,
+      startNewThread,
       startTurn,
       status,
       stop,
+      threadList,
       test,
       updateSettings,
     }),
@@ -677,13 +1016,19 @@ export function CodexConnectionProvider({
       isLoaded,
       isBusy,
       lastError,
+      refreshRuntimeStatus,
+      refreshThreads,
       request,
+      resumeThread,
       restart,
+      runtimeStatus,
       settings,
       start,
+      startNewThread,
       startTurn,
       status,
       stop,
+      threadList,
       test,
       updateSettings,
     ]

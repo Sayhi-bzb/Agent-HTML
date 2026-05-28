@@ -27,6 +27,7 @@ Codex App Server client and uses the official Thread / Turn / Item model.
 Agent-HTML may:
 
 - start, stop, restart, and health-check the local Codex App Server process
+- read official Codex runtime status through App Server RPCs such as `config/read`, `model/list`, `skills/list`, `plugin/list`, `app/list`, and `mcpServerStatus/list`
 - generate a prompt from the selected Agent-HTML block/document context
 - call `thread/start` and `turn/start`
 - forward raw Codex notifications into the app event bus
@@ -67,6 +68,7 @@ Implemented:
 
 - App auto-starts a local Codex App Server in the Tauri desktop runtime.
 - Tauri host forwards Codex JSON-RPC requests without owning thread state.
+- Settings diagnostics read Codex config, model, MCP, skills, plugins, apps, and collaboration-mode status through official App Server APIs.
 - Agent-HTML context is sent to Codex as official `turn/start` input.
 - Raw Codex notifications are forwarded to the frontend event bus.
 - Hidden connection tracing can capture startup and JSON-RPC handoff details during development.

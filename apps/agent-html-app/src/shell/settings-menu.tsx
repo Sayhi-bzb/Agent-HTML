@@ -63,6 +63,7 @@ import {
 import * as React from "react"
 import { useLingui } from "@lingui/react"
 import { Trans } from "@lingui/react/macro"
+import type { CodexRuntimeCapabilityStatus } from "@/app/codex/connection"
 
 const themeItems: {
   icon: typeof SunIcon
@@ -121,6 +122,19 @@ function getThemeMenuLabel(theme: Theme) {
   return "System"
 }
 
+function formatCapability(
+  capability: CodexRuntimeCapabilityStatus,
+  translate: (descriptor: { id: string }) => string
+) {
+  if (!capability.ok) {
+    return capability.error ?? translate({ id: "unavailable" })
+  }
+
+  return typeof capability.count === "number"
+    ? String(capability.count)
+    : translate({ id: "available" })
+}
+
 function LocalizedLanguageLabel({
   label,
 }: {
@@ -151,6 +165,7 @@ function CodexConnectionDialog({
 }) {
   const { _ } = useLingui()
   const codexConnection = useCodexConnection()
+  const runtimeStatus = codexConnection.runtimeStatus
   const [draftSettings, setDraftSettings] = React.useState(
     codexConnection.settings
   )
@@ -254,7 +269,7 @@ function CodexConnectionDialog({
           <Accordion
             type="multiple"
             defaultValue={
-              codexConnection.lastError ? ["logs-diagnostics"] : undefined
+              codexConnection.lastError ? ["diagnostics"] : undefined
             }
             className="rounded-lg border px-3"
           >
@@ -291,12 +306,29 @@ function CodexConnectionDialog({
                 <Trans>Diagnostics</Trans>
               </AccordionTrigger>
               <AccordionContent className="grid gap-3">
+                <div className="flex justify-end">
+                  <Button
+                    disabled={
+                      codexConnection.status !== "connected" ||
+                      runtimeStatus.status === "loading"
+                    }
+                    onClick={() => void codexConnection.refreshRuntimeStatus()}
+                    type="button"
+                    variant="outline"
+                  >
+                    <RefreshCwIcon />
+                    <Trans>Refresh</Trans>
+                  </Button>
+                </div>
+                <SettingsInfoPanel>
+                  <Trans>
+                    Codex runtime details are read from the official App Server
+                    APIs. Agent-HTML does not edit model, MCP, skill, plugin, or
+                    app configuration here.
+                  </Trans>
+                </SettingsInfoPanel>
                 <SettingsDiagnosticsList
                   items={[
-                    {
-                      label: <Trans>Provider</Trans>,
-                      value: codexConnection.health?.provider ?? _({ id: "unknown" }),
-                    },
                     {
                       label: <Trans>App server</Trans>,
                       value: codexConnection.health?.appServerRunning
@@ -319,6 +351,68 @@ function CodexConnectionDialog({
                       label: <Trans>Codex cwd</Trans>,
                       span: "full",
                       value: codexConnection.health?.cwd ?? _({ id: "unknown" }),
+                    },
+                  ]}
+                />
+                <SettingsDiagnosticsList
+                  items={[
+                    {
+                      label: <Trans>Runtime status</Trans>,
+                      value: runtimeStatus.status,
+                    },
+                    {
+                      label: <Trans>Model</Trans>,
+                      value: runtimeStatus.config.model ?? _({ id: "unknown" }),
+                    },
+                    {
+                      label: <Trans>Model provider</Trans>,
+                      value:
+                        runtimeStatus.config.modelProvider ?? _({ id: "unknown" }),
+                    },
+                    {
+                      label: <Trans>Sandbox</Trans>,
+                      value:
+                        runtimeStatus.config.sandboxMode ?? _({ id: "unknown" }),
+                    },
+                    {
+                      label: <Trans>Approvals</Trans>,
+                      value:
+                        runtimeStatus.config.approvalPolicy ??
+                        _({ id: "unknown" }),
+                    },
+                    {
+                      label: <Trans>Models</Trans>,
+                      value: formatCapability(runtimeStatus.capabilities.models, _),
+                    },
+                    {
+                      label: <Trans>MCP servers</Trans>,
+                      value: formatCapability(
+                        runtimeStatus.capabilities.mcpServers,
+                        _
+                      ),
+                    },
+                    {
+                      label: <Trans>Skills</Trans>,
+                      value: formatCapability(runtimeStatus.capabilities.skills, _),
+                    },
+                    {
+                      label: <Trans>Plugins</Trans>,
+                      value: formatCapability(runtimeStatus.capabilities.plugins, _),
+                    },
+                    {
+                      label: <Trans>Apps</Trans>,
+                      value: formatCapability(runtimeStatus.capabilities.apps, _),
+                    },
+                    {
+                      label: <Trans>Collaboration modes</Trans>,
+                      value: formatCapability(
+                        runtimeStatus.capabilities.collaborationModes,
+                        _
+                      ),
+                    },
+                    {
+                      label: <Trans>Config API</Trans>,
+                      value: formatCapability(runtimeStatus.capabilities.config, _),
                     },
                   ]}
                 />

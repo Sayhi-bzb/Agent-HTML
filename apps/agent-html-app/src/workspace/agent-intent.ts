@@ -16,20 +16,19 @@ import type {
 
 type AgentHtmlContextEvent = {
   context: {
-    ahtmlSource: string
     selectedSource: string | null
   }
   createdAt: string
   eventId: string
   interaction: AgentHtmlAgentInteractionEvent | null
   intent: {
-    prompt: string
-    type: "edit"
+    request: string
   }
   schemaVersion: "agent-html.context-event.v1"
   source: {
     app: "agent-html"
     documentId: string
+    filePath: string
     projectId: string
     projectName: string
     sectionId: string
@@ -37,8 +36,7 @@ type AgentHtmlContextEvent = {
     surface: "workspace"
   }
   target: {
-    blockPath: string
-    blockTag: string | null
+    ahtmlPath: string
     kind: "block"
   }
 }
@@ -86,48 +84,21 @@ function findElementByPath(
   return matchedNode ?? null
 }
 
-function formatInteraction(interaction: AgentHtmlAgentInteractionEvent | null) {
-  if (!interaction) {
-    return "无"
-  }
-
-  if (interaction.kind === "kanban_item_moved") {
-    return [
-      `类型：Kanban item moved`,
-      `item: ${interaction.itemValue}`,
-      `from: ${interaction.previousColumnValue}[${interaction.previousIndex}]`,
-      `to: ${interaction.nextColumnValue}[${interaction.nextIndex}]`,
-    ].join("\n")
-  }
-
-  return [
-    `类型：Block moved`,
-    `sourcePath: ${interaction.sourcePath}`,
-    `intent: ${JSON.stringify(interaction.intent)}`,
-  ].join("\n")
-}
-
 function createPromptText(event: AgentHtmlContextEvent) {
+  // TODO: Convert filePath to a Codex-cwd-relative path when the host exposes a
+  // stable cwd contract for workspace documents.
   return [
-    "用户在 Agent-HTML 工作台中发起了一个上下文请求。",
+    "---",
+    `filePath: ${event.source.filePath}`,
+    `ahtmlPath: ${event.target.ahtmlPath}`,
+    "---",
     "",
-    "用户要求：",
-    event.intent.prompt,
+    "```ahtml",
+    event.context.selectedSource ?? "",
+    "```",
     "",
-    "目标位置：",
-    `- project: ${event.source.projectName} (${event.source.projectId})`,
-    `- section: ${event.source.sectionTitle} (${event.source.sectionId})`,
-    `- blockPath: ${event.target.blockPath}`,
-    `- blockTag: ${event.target.blockTag ?? "unknown"}`,
-    "",
-    "最近一次交互：",
-    formatInteraction(event.interaction),
-    "",
-    "选中 Block AHTML：",
-    event.context.selectedSource ?? "未找到选中 block 的源码片段。",
-    "",
-    "当前文档 AHTML：",
-    event.context.ahtmlSource,
+    "Request:",
+    event.intent.request,
   ].join("\n")
 }
 
@@ -144,7 +115,6 @@ export async function deliverAgentHtmlIntent(input: {
   const selectedNode = findElementByPath(input.document, input.submit.path)
   const event: AgentHtmlContextEvent = {
     context: {
-      ahtmlSource: input.document.ahtmlSource,
       selectedSource: selectedNode
         ? serializeAgentHtml({ root: selectedNode })
         : null,
@@ -153,13 +123,13 @@ export async function deliverAgentHtmlIntent(input: {
     eventId: createEventId(),
     interaction: input.submit.interaction ?? null,
     intent: {
-      prompt: input.submit.prompt,
-      type: "edit",
+      request: input.submit.prompt,
     },
     schemaVersion: "agent-html.context-event.v1",
     source: {
       app: "agent-html",
       documentId: `${input.document.projectId}/${input.document.sectionId}`,
+      filePath: input.document.filePath,
       projectId: input.project.id,
       projectName: input.project.name,
       sectionId: input.section.id,
@@ -167,8 +137,7 @@ export async function deliverAgentHtmlIntent(input: {
       surface: "workspace",
     },
     target: {
-      blockPath: input.submit.path,
-      blockTag: selectedNode?.tag ?? null,
+      ahtmlPath: input.submit.path,
       kind: "block",
     },
   }

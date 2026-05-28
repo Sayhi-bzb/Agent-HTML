@@ -99,7 +99,6 @@ struct CodexHostHealth {
     cwd: Option<String>,
     error: Option<String>,
     ok: bool,
-    provider: Option<String>,
     stderr: Option<String>,
     status: String,
 }
@@ -608,7 +607,6 @@ fn health_from_state(
         cwd: workspace_cwd.map(|path| path.to_string_lossy().to_string()),
         error: error.clone(),
         ok: connected || (app_server_running && error.is_none()),
-        provider: Some("codex_app_server".to_string()),
         stderr: get_last_stderr(state),
         status: if connected {
             "connected".to_string()

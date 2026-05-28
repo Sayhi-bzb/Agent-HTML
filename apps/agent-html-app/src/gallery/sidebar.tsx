@@ -24,6 +24,7 @@ import {
 } from "@/app/gallery/theme-editor-sections"
 import {
   CheckIcon,
+  ChevronDownIcon,
   PackageIcon,
   PawPrintIcon,
 } from "lucide-react"
@@ -33,14 +34,14 @@ type AppThemePresetNavItem = {
   label: string
 }
 
-const galleryThemeSidebarSelectTriggerClassName =
-  "h-8 w-full gap-2 border-transparent bg-sidebar px-2 py-0 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-
 const galleryThemeSidebarSelectContentClassName =
   "w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)] p-1"
 
 const galleryThemeSidebarSelectItemClassName =
   "gap-2 px-2 py-1 pr-8 text-sm"
+
+const galleryThemeSidebarSelectMenuButtonClassName =
+  "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 
 export function GalleryThemeSidebarHeader({
   activePresetId,
@@ -61,21 +62,29 @@ export function GalleryThemeSidebarHeader({
   )
 
   return (
-    <div className="flex flex-col gap-1 px-2">
+    <div className="flex flex-col gap-1">
       <Select
         onValueChange={(value) => onSelectPreset(value as AppThemePresetId)}
         value={activePresetId}
       >
-        <SelectTrigger
-          aria-label="Theme preset"
-          className={galleryThemeSidebarSelectTriggerClassName}
-        >
-          <SelectValue placeholder="Theme">
-            <span className="min-w-0 truncate">
-              {activePreset?.label ?? "Theme"}
-            </span>
-          </SelectValue>
-        </SelectTrigger>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SelectTrigger asChild>
+              <SidebarMenuButton
+                aria-label="Theme preset"
+                className={galleryThemeSidebarSelectMenuButtonClassName}
+                type="button"
+              >
+                <SelectValue placeholder="Theme">
+                  <span className="min-w-0 flex-1 truncate text-left">
+                    {activePreset?.label ?? "Theme"}
+                  </span>
+                </SelectValue>
+                <ChevronDownIcon className="ml-auto size-4 shrink-0 text-sidebar-foreground/60" />
+              </SidebarMenuButton>
+            </SelectTrigger>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <SelectContent
           align="start"
           className={galleryThemeSidebarSelectContentClassName}
@@ -99,24 +108,34 @@ export function GalleryThemeSidebarHeader({
         }
         value={activeSectionId}
       >
-        <SelectTrigger
-          aria-label="Theme editor section"
-          className={galleryThemeSidebarSelectTriggerClassName}
-        >
-          <SelectValue placeholder="Section">
-            {activeSection ? (
-              <span className="flex min-w-0 items-center gap-2">
-                <activeSection.icon
-                  aria-hidden="true"
-                  className="size-4 shrink-0"
-                />
-                <span className="truncate">{activeSection.label}</span>
-              </span>
-            ) : (
-              <span className="min-w-0 truncate">Section</span>
-            )}
-          </SelectValue>
-        </SelectTrigger>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SelectTrigger asChild>
+              <SidebarMenuButton
+                aria-label="Theme editor section"
+                className={galleryThemeSidebarSelectMenuButtonClassName}
+                type="button"
+              >
+                <SelectValue placeholder="Section">
+                  {activeSection ? (
+                    <span className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                      <activeSection.icon
+                        aria-hidden="true"
+                        className="size-4 shrink-0"
+                      />
+                      <span className="truncate">{activeSection.label}</span>
+                    </span>
+                  ) : (
+                    <span className="min-w-0 flex-1 truncate text-left">
+                      Section
+                    </span>
+                  )}
+                </SelectValue>
+                <ChevronDownIcon className="ml-auto size-4 shrink-0 text-sidebar-foreground/60" />
+              </SidebarMenuButton>
+            </SelectTrigger>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <SelectContent
           align="start"
           className={galleryThemeSidebarSelectContentClassName}

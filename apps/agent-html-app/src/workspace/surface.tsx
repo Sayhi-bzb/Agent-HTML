@@ -138,6 +138,17 @@ function WorkspaceStatus({
   )
 }
 
+function formatThreadLabel(thread: {
+  createdAt?: string
+  id: string
+  name?: string | null
+  updatedAt?: string
+}) {
+  const label = thread.name?.trim() || thread.id
+  const timestamp = thread.updatedAt ?? thread.createdAt
+  return timestamp ? `${label} - ${timestamp}` : label
+}
+
 function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState {
   try {
     const parsedDocument = parseAgentHtml(document.ahtmlSource)
@@ -189,6 +200,10 @@ export function WorkspaceSurface({
     React.useState<WorkspaceDocumentState>({ status: "idle" })
   const [agentDeliveryState, setAgentDeliveryState] =
     React.useState<AgentDeliveryState>({ status: "idle" })
+  const [threadSelectionError, setThreadSelectionError] = React.useState<
+    string | null
+  >(null)
+  const [isSelectingThread, setIsSelectingThread] = React.useState(false)
   const [activeTurnContext, setActiveTurnContext] =
     React.useState<AgentActivityTurnContext>({})
   const agentActivity = useAgentActivity(activeTurnContext)
@@ -307,9 +322,48 @@ export function WorkspaceSurface({
       })
   }, [canSave, documentState])
 
+  const startNewThread = React.useCallback(() => {
+    setThreadSelectionError(null)
+    setIsSelectingThread(true)
+    codexConnection
+      .startNewThread()
+      .catch((error: unknown) => {
+        setThreadSelectionError(
+          error instanceof Error ? error.message : "Unable to start Codex thread."
+        )
+      })
+      .finally(() => setIsSelectingThread(false))
+  }, [codexConnection])
+
+  const resumeThread = React.useCallback(
+    (threadId: string) => {
+      setThreadSelectionError(null)
+      setIsSelectingThread(true)
+      codexConnection
+        .resumeThread(threadId)
+        .catch((error: unknown) => {
+          setThreadSelectionError(
+            error instanceof Error
+              ? error.message
+              : "Unable to resume Codex thread."
+          )
+        })
+        .finally(() => setIsSelectingThread(false))
+    },
+    [codexConnection]
+  )
+
   const handlePromptSubmit = React.useCallback(
     (submit: AgentHtmlAgentPromptSubmitInput) => {
       if (!activeProject || !activeSection || documentState.status !== "ready") {
+        return
+      }
+
+      if (!codexConnection.activeThreadId) {
+        setAgentDeliveryState({
+          detail: "Choose a Codex thread before sending a request.",
+          status: "error",
+        })
         return
       }
 
@@ -345,7 +399,13 @@ export function WorkspaceSurface({
         })
       })
     },
-    [activeProject, activeSection, codexConnection.startTurn, documentState]
+    [
+      activeProject,
+      activeSection,
+      codexConnection.activeThreadId,
+      codexConnection.startTurn,
+      documentState,
+    ]
   )
 
   React.useEffect(() => {

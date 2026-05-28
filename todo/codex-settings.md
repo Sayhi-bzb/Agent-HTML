@@ -45,13 +45,8 @@ Visible status:
 
 Visible health details:
 
-- provider
-- appServerRunning
-- connected
-- activeThreadId
-- Codex command
-- cwd
-- last error / stderr
+- Host: appServerRunning, connected, activeThreadId, Codex command, cwd, last error / stderr
+- Codex runtime: effective model/provider, sandbox, approvals, model count, MCP server count, skills, plugins, apps, collaboration modes
 
 Actions:
 
@@ -63,6 +58,16 @@ Developer diagnostics:
 
 - Connection trace is hidden behind `localStorage["agent-html.codex-connection-trace"] = "1"`.
 - Product settings should not expose Agent-HTML event log paths; Codex owns runtime logs through its official config.
+
+Official Codex status APIs consumed:
+
+- `config/read`
+- `model/list`
+- `collaborationMode/list`
+- `skills/list`
+- `plugin/list`
+- `app/list`
+- `mcpServerStatus/list`
 
 ## Next Event UX Work
 

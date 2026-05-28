@@ -18,6 +18,7 @@ export type WorkspaceSection = {
 
 export type ProjectSectionDocument = {
   ahtmlSource: string
+  filePath: string
   projectId: string
   sectionId: string
   updatedAt: string

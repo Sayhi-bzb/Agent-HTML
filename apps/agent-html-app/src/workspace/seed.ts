@@ -46,18 +46,21 @@ export const defaultWorkspaceSectionId = workspaceSeedSections[0].id
 export const workspaceSeedDocuments: ProjectSectionDocument[] = [
   {
     ahtmlSource: introduceAgentHtmlSource,
+    filePath: "fixture://agent-html-example/introduce-agent-html.agent-html",
     projectId: exampleProjectId,
     sectionId: "introduce-agent-html",
     updatedAt: "2026-05-25T00:00:00.000Z",
   },
   {
     ahtmlSource: introduceAgentHtmlZhSource,
+    filePath: "fixture://agent-html-example/introduce-agent-html-zh.agent-html",
     projectId: exampleProjectId,
     sectionId: "introduce-agent-html-zh",
     updatedAt: "2026-05-25T00:00:00.000Z",
   },
   {
     ahtmlSource: runtimeAlignmentSource,
+    filePath: "fixture://agent-html-example/runtime-alignment.agent-html",
     projectId: exampleProjectId,
     sectionId: "runtime-alignment",
     updatedAt: "2026-05-27T00:00:00.000Z",

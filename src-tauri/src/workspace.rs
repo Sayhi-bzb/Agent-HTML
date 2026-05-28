@@ -78,6 +78,7 @@ pub(crate) struct WorkspaceSection {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ProjectSectionDocument {
     ahtml_source: String,
+    file_path: String,
     project_id: String,
     section_id: String,
     updated_at: String,
@@ -85,6 +86,7 @@ pub(crate) struct ProjectSectionDocument {
 
 pub(crate) struct WorkspaceStore {
     connection: Mutex<Connection>,
+    document_root: PathBuf,
 }
 
 struct SectionWithDocument {
@@ -98,9 +100,14 @@ impl WorkspaceStore {
             fs::create_dir_all(parent)?;
         }
 
-        let connection = Connection::open(path)?;
+        let connection = Connection::open(&path)?;
+        let document_root = path
+            .parent()
+            .map(|parent| parent.join("documents"))
+            .unwrap_or_else(|| PathBuf::from("documents"));
         let store = Self {
             connection: Mutex::new(connection),
+            document_root,
         };
         store.initialize()?;
 
@@ -135,6 +142,47 @@ impl WorkspaceStore {
         list_sections(&connection, project_id)
     }
 
+    fn document_path(&self, project_id: &str, section_id: &str) -> PathBuf {
+        self.document_root
+            .join(project_id)
+            .join(format!("{section_id}.agent-html"))
+    }
+
+    fn write_document_file(
+        &self,
+        project_id: &str,
+        section_id: &str,
+        ahtml_source: &str,
+    ) -> WorkspaceResult<PathBuf> {
+        let path = self.document_path(project_id, section_id);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::write(&path, ahtml_source)?;
+        Ok(path)
+    }
+
+    fn read_or_migrate_document_file(
+        &self,
+        project_id: &str,
+        section_id: &str,
+        legacy_source: &str,
+    ) -> WorkspaceResult<(String, String)> {
+        let path = self.document_path(project_id, section_id);
+        if path.exists() {
+            return Ok((
+                fs::read_to_string(&path)?,
+                path.to_string_lossy().to_string(),
+            ));
+        }
+
+        let path = self.write_document_file(project_id, section_id, legacy_source)?;
+        Ok((
+            legacy_source.to_string(),
+            path.to_string_lossy().to_string(),
+        ))
+    }
+
     fn get_project_section_document(
         &self,
         project_id: &str,
@@ -148,20 +196,113 @@ impl WorkspaceStore {
                  WHERE project_id = ?1 AND section_id = ?2",
                 params![project_id, section_id],
                 |row| {
-                    Ok(ProjectSectionDocument {
-                        project_id: row.get(0)?,
-                        section_id: row.get(1)?,
-                        ahtml_source: row.get(2)?,
-                        updated_at: row.get(3)?,
-                    })
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, String>(2)?,
+                        row.get::<_, String>(3)?,
+                    ))
                 },
             )
             .optional()?;
 
-        document.ok_or_else(|| WorkspaceError::DocumentNotFound {
-            project_id: project_id.to_string(),
-            section_id: section_id.to_string(),
+        let (project_id, section_id, legacy_source, updated_at) =
+            document.ok_or_else(|| WorkspaceError::DocumentNotFound {
+                project_id: project_id.to_string(),
+                section_id: section_id.to_string(),
+            })?;
+        let (ahtml_source, file_path) =
+            self.read_or_migrate_document_file(&project_id, &section_id, &legacy_source)?;
+
+        Ok(ProjectSectionDocument {
+            ahtml_source,
+            file_path,
+            project_id,
+            section_id,
+            updated_at,
         })
+    }
+
+    fn remove_document_file(&self, project_id: &str, section_id: &str) -> WorkspaceResult<()> {
+        let path = self.document_path(project_id, section_id);
+        if path.exists() {
+            fs::remove_file(path)?;
+        }
+
+        Ok(())
+    }
+
+    fn remove_project_document_dir(&self, project_id: &str) -> WorkspaceResult<()> {
+        let path = self.document_root.join(project_id);
+        if path.exists() {
+            fs::remove_dir_all(path)?;
+        }
+
+        Ok(())
+    }
+
+    fn rename_project_document_dir(
+        &self,
+        old_project_id: &str,
+        new_project_id: &str,
+    ) -> WorkspaceResult<()> {
+        let old_path = self.document_root.join(old_project_id);
+        if !old_path.exists() {
+            return Ok(());
+        }
+
+        let new_path = self.document_root.join(new_project_id);
+        if let Some(parent) = new_path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        if new_path.exists() {
+            fs::remove_dir_all(&new_path)?;
+        }
+        fs::rename(old_path, new_path)?;
+
+        Ok(())
+    }
+
+    fn duplicate_document_file(
+        &self,
+        source_project_id: &str,
+        source_section_id: &str,
+        next_project_id: &str,
+        next_section_id: &str,
+        fallback_source: &str,
+    ) -> WorkspaceResult<()> {
+        let (source, _) = self.read_or_migrate_document_file(
+            source_project_id,
+            source_section_id,
+            fallback_source,
+        )?;
+        self.write_document_file(next_project_id, next_section_id, &source)?;
+
+        Ok(())
+    }
+
+    fn ensure_document_exists(&self, project_id: &str, section_id: &str) -> WorkspaceResult<()> {
+        let exists: Option<i64> = self
+            .connection
+            .lock()
+            .expect("workspace db lock poisoned")
+            .query_row(
+                "SELECT 1
+                 FROM project_section_documents
+                 WHERE project_id = ?1 AND section_id = ?2",
+                params![project_id, section_id],
+                |row| row.get(0),
+            )
+            .optional()?;
+
+        if exists.is_none() {
+            return Err(WorkspaceError::DocumentNotFound {
+                project_id: project_id.to_string(),
+                section_id: section_id.to_string(),
+            });
+        }
+
+        Ok(())
     }
 
     fn create_project(&self, name: &str) -> WorkspaceResult<WorkspaceProjectView> {
@@ -208,6 +349,7 @@ impl WorkspaceStore {
             params![project.id, section.id, ahtml_source, now, now],
         )?;
         transaction.commit()?;
+        self.write_document_file(&project.id, &section.id, &ahtml_source)?;
 
         Ok(WorkspaceProjectView {
             id: project.id,
@@ -217,7 +359,11 @@ impl WorkspaceStore {
         })
     }
 
-    fn rename_project(&self, project_id: &str, name: &str) -> WorkspaceResult<WorkspaceProjectView> {
+    fn rename_project(
+        &self,
+        project_id: &str,
+        name: &str,
+    ) -> WorkspaceResult<WorkspaceProjectView> {
         let name = name.trim();
         if name.is_empty() {
             return Err(WorkspaceError::ProjectNameRequired);
@@ -261,6 +407,7 @@ impl WorkspaceStore {
         })();
         connection.execute("PRAGMA foreign_keys = ON", [])?;
         transaction_result?;
+        self.rename_project_document_dir(project_id, &new_slug)?;
 
         let project = find_project(&connection, &new_slug)?.ok_or_else(|| {
             WorkspaceError::ProjectNotFound {
@@ -286,6 +433,7 @@ impl WorkspaceStore {
                 project_id: project_id.to_string(),
             });
         }
+        self.remove_project_document_dir(project_id)?;
 
         Ok(project_id.to_string())
     }
@@ -334,6 +482,7 @@ impl WorkspaceStore {
             params![section.project_id, section.id, ahtml_source, now, now],
         )?;
         transaction.commit()?;
+        self.write_document_file(&section.project_id, &section.id, &ahtml_source)?;
 
         Ok(section)
     }
@@ -385,6 +534,7 @@ impl WorkspaceStore {
                 section_id: section_id.to_string(),
             });
         }
+        self.remove_document_file(project_id, section_id)?;
 
         Ok(section_id.to_string())
     }
@@ -440,6 +590,13 @@ impl WorkspaceStore {
             ],
         )?;
         transaction.commit()?;
+        self.duplicate_document_file(
+            project_id,
+            section_id,
+            &section.project_id,
+            &section.id,
+            &source.document.ahtml_source,
+        )?;
 
         Ok(section)
     }
@@ -450,25 +607,14 @@ impl WorkspaceStore {
         section_id: &str,
         ahtml_source: &str,
     ) -> WorkspaceResult<ProjectSectionDocument> {
-        let connection = self.connection.lock().expect("workspace db lock poisoned");
-        let exists: Option<i64> = connection
-            .query_row(
-                "SELECT 1
-                 FROM project_section_documents
-                 WHERE project_id = ?1 AND section_id = ?2",
-                params![project_id, section_id],
-                |row| row.get(0),
-            )
-            .optional()?;
-
-        if exists.is_none() {
-            return Err(WorkspaceError::DocumentNotFound {
-                project_id: project_id.to_string(),
-                section_id: section_id.to_string(),
-            });
-        }
+        self.ensure_document_exists(project_id, section_id)?;
 
         let updated_at = current_timestamp();
+        let file_path = self
+            .write_document_file(project_id, section_id, ahtml_source)?
+            .to_string_lossy()
+            .to_string();
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
         connection.execute(
             "UPDATE project_section_documents
              SET ahtml_source = ?3, updated_at = ?4
@@ -478,6 +624,7 @@ impl WorkspaceStore {
 
         Ok(ProjectSectionDocument {
             ahtml_source: ahtml_source.to_string(),
+            file_path,
             project_id: project_id.to_string(),
             section_id: section_id.to_string(),
             updated_at,
@@ -594,6 +741,7 @@ fn get_section_with_document(
                     project_id: section.project_id.clone(),
                     section_id: section.id.clone(),
                     ahtml_source: row.get(5)?,
+                    file_path: String::new(),
                     updated_at: row.get(6)?,
                 };
 
@@ -787,7 +935,13 @@ fn seed_projects() -> Vec<WorkspaceProject> {
 
 fn seed_sections(project_id: &str) -> Vec<WorkspaceSection> {
     vec![
-        seed_section(project_id, "installation", "Installation", "Getting Started", 0),
+        seed_section(
+            project_id,
+            "installation",
+            "Installation",
+            "Getting Started",
+            0,
+        ),
         seed_section(
             project_id,
             "project-structure",
@@ -795,7 +949,13 @@ fn seed_sections(project_id: &str) -> Vec<WorkspaceSection> {
             "Getting Started",
             1,
         ),
-        seed_section(project_id, "routing", "Routing", "Build Your Application", 2),
+        seed_section(
+            project_id,
+            "routing",
+            "Routing",
+            "Build Your Application",
+            2,
+        ),
         seed_section(
             project_id,
             "data-fetching",
@@ -803,8 +963,20 @@ fn seed_sections(project_id: &str) -> Vec<WorkspaceSection> {
             "Build Your Application",
             3,
         ),
-        seed_section(project_id, "rendering", "Rendering", "Build Your Application", 4),
-        seed_section(project_id, "caching", "Caching", "Build Your Application", 5),
+        seed_section(
+            project_id,
+            "rendering",
+            "Rendering",
+            "Build Your Application",
+            4,
+        ),
+        seed_section(
+            project_id,
+            "caching",
+            "Caching",
+            "Build Your Application",
+            5,
+        ),
     ]
 }
 
@@ -1045,7 +1217,9 @@ fn create_blank_section_ahtml_source(
 }
 
 #[tauri::command]
-pub(crate) fn list_projects(store: State<'_, WorkspaceStore>) -> WorkspaceResult<Vec<WorkspaceProject>> {
+pub(crate) fn list_projects(
+    store: State<'_, WorkspaceStore>,
+) -> WorkspaceResult<Vec<WorkspaceProject>> {
     store.list_projects()
 }
 
@@ -1141,31 +1315,46 @@ pub(crate) fn update_project_section_document(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::TempDir;
 
-    fn test_store() -> WorkspaceStore {
+    struct TestWorkspace {
+        _temp_dir: TempDir,
+        store: WorkspaceStore,
+    }
+
+    fn test_store() -> TestWorkspace {
+        let temp_dir = tempfile::tempdir().expect("create temp workspace");
         let store = WorkspaceStore {
             connection: Mutex::new(Connection::open_in_memory().expect("open in-memory db")),
+            document_root: temp_dir.path().join("documents"),
         };
         store.initialize().expect("initialize workspace store");
-        store
+        TestWorkspace {
+            _temp_dir: temp_dir,
+            store,
+        }
     }
 
     #[test]
     fn seeds_projects_on_empty_database() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let projects = store.list_projects().expect("list projects");
 
         assert_eq!(projects.len(), 4);
-        assert_eq!(projects[0].id, "design-engineering");
         assert!(projects
             .iter()
             .any(|project| project.id == "agent-html-example"));
+        assert!(projects
+            .iter()
+            .any(|project| project.id == "design-engineering"));
     }
 
     #[test]
     fn lists_project_owned_sections() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let sections = store
             .list_project_sections("design-engineering")
@@ -1180,7 +1369,8 @@ mod tests {
 
     #[test]
     fn reads_project_section_document_source() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let document = store
             .get_project_section_document("design-engineering", "installation")
@@ -1189,11 +1379,24 @@ mod tests {
         assert_eq!(document.project_id, "design-engineering");
         assert_eq!(document.section_id, "installation");
         assert!(document.ahtml_source.contains("<Page"));
+        assert!(
+            document
+                .file_path
+                .ends_with("design-engineering\\installation.agent-html")
+                || document
+                    .file_path
+                    .ends_with("design-engineering/installation.agent-html")
+        );
+        assert_eq!(
+            fs::read_to_string(&document.file_path).expect("read migrated document file"),
+            document.ahtml_source
+        );
     }
 
     #[test]
     fn seeds_introduce_agent_html_examples() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let sections = store
             .list_project_sections("agent-html-example")
@@ -1211,7 +1414,8 @@ mod tests {
 
     #[test]
     fn returns_error_for_missing_document() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let error = store
             .get_project_section_document("design-engineering", "missing")
@@ -1222,7 +1426,8 @@ mod tests {
 
     #[test]
     fn creates_blank_project_with_overview_document() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let project = store
             .create_project("Research Notes")
@@ -1238,11 +1443,16 @@ mod tests {
             .expect("read overview document");
         assert!(document.ahtml_source.contains("Research Notes"));
         assert!(document.ahtml_source.contains("Blank project"));
+        assert_eq!(
+            fs::read_to_string(&document.file_path).expect("read created document file"),
+            document.ahtml_source
+        );
     }
 
     #[test]
     fn creates_unique_slug_for_duplicate_project_names() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let first = store
             .create_project("Research Notes")
@@ -1257,7 +1467,8 @@ mod tests {
 
     #[test]
     fn renames_project_and_moves_owned_sections_and_documents() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let renamed = store
             .rename_project("design-engineering", "Design Systems")
@@ -1276,16 +1487,21 @@ mod tests {
             .get_project_section_document("design-systems", "installation")
             .expect("read moved document");
         assert_eq!(document.project_id, "design-systems");
+        assert!(document.file_path.contains("design-systems"));
 
         let old_document = store
             .get_project_section_document("design-engineering", "installation")
             .expect_err("old project document should be gone");
-        assert!(matches!(old_document, WorkspaceError::DocumentNotFound { .. }));
+        assert!(matches!(
+            old_document,
+            WorkspaceError::DocumentNotFound { .. }
+        ));
     }
 
     #[test]
     fn deletes_project_and_owned_documents() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let deleted_id = store
             .delete_project("design-engineering")
@@ -1302,11 +1518,13 @@ mod tests {
                 .expect_err("deleted document should be gone"),
             WorkspaceError::DocumentNotFound { .. }
         ));
+        assert!(!store.document_root.join("design-engineering").exists());
     }
 
     #[test]
     fn creates_project_section_with_blank_document() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let section = store
             .create_project_section("design-engineering", "Release Notes")
@@ -1321,11 +1539,17 @@ mod tests {
             .expect("read new section document");
         assert!(document.ahtml_source.contains("Release Notes"));
         assert!(document.ahtml_source.contains("Blank section"));
+        assert!(store
+            .document_root
+            .join("design-engineering")
+            .join("release-notes.agent-html")
+            .exists());
     }
 
     #[test]
     fn renames_project_section_without_changing_id() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let section = store
             .rename_project_section("design-engineering", "installation", "Setup")
@@ -1337,7 +1561,8 @@ mod tests {
 
     #[test]
     fn deletes_last_project_section() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
         let project = store
             .create_project("One Section")
             .expect("create one-section project");
@@ -1347,6 +1572,11 @@ mod tests {
             .expect("delete only section");
 
         assert_eq!(deleted_id, "overview");
+        assert!(!store
+            .document_root
+            .join(&project.id)
+            .join("overview.agent-html")
+            .exists());
         assert!(store
             .list_project_sections(&project.id)
             .expect("list empty project sections")
@@ -1355,7 +1585,8 @@ mod tests {
 
     #[test]
     fn duplicates_project_section_from_saved_document() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
         let source = "<Page title=\"Saved Copy\" />";
         store
             .update_project_section_document("design-engineering", "installation", source)
@@ -1373,11 +1604,16 @@ mod tests {
             .get_project_section_document("design-engineering", "installation-copy")
             .expect("read duplicate document");
         assert_eq!(document.ahtml_source, source);
+        assert_eq!(
+            fs::read_to_string(&document.file_path).expect("read duplicated document file"),
+            source
+        );
     }
 
     #[test]
     fn updates_project_section_document_source() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
         let source = r#"<Page title="Updated">
   <Section width="content">
     <Text variant="h1">Updated</Text>
@@ -1389,12 +1625,17 @@ mod tests {
             .expect("update document");
 
         assert_eq!(document.ahtml_source, source);
+        assert_eq!(
+            fs::read_to_string(&document.file_path).expect("read updated document file"),
+            source
+        );
         assert_eq!(document.updated_at, "2026-05-27T00:00:00.000Z");
     }
 
     #[test]
     fn returns_error_when_updating_missing_document() {
-        let store = test_store();
+        let workspace = test_store();
+        let store = &workspace.store;
 
         let error = store
             .update_project_section_document("design-engineering", "missing", "<Page />")

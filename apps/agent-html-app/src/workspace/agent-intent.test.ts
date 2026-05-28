@@ -13,6 +13,7 @@ const document = {
     "</Page>",
     "",
   ].join("\n"),
+  filePath: "D:\\workspace\\project-1\\section-1.agent-html",
   projectId: "project-1",
   sectionId: "section-1",
   updatedAt: "2026-05-27T00:00:00.000Z",
@@ -57,8 +58,19 @@ describe("deliverAgentHtmlIntent", () => {
     })
 
     expect(result.ok).toBe(true)
-    expect(startTurn).toHaveBeenCalledWith(expect.stringContaining("Make this tighter."))
-    expect(startTurn).toHaveBeenCalledWith(expect.stringContaining("<Stack>"))
+    const promptText = startTurn.mock.calls[0][0]
+    expect(promptText).toContain(
+      [
+        "---",
+        "filePath: D:\\workspace\\project-1\\section-1.agent-html",
+        "ahtmlPath: /Page/Section[0]/Stack[0]",
+        "---",
+      ].join("\n")
+    )
+    expect(promptText).toMatch(/```ahtml\s+<Stack>/)
+    expect(promptText).toContain("<Text>Move faster</Text>")
+    expect(promptText).toContain("\n```\n\nRequest:\nMake this tighter.")
+    expect(promptText).not.toContain("当前文档 AHTML")
     expect(result.provider).toBe("codex_app_server")
     expect(result.threadId).toBe("thr_123")
   })
@@ -89,6 +101,7 @@ describe("deliverAgentHtmlIntent", () => {
     expect(result.provider).toBe("codex_app_server")
     expect(result.error).toBe("offline")
     expect(result.promptText).toContain("Persist my ordering.")
-    expect(result.promptText).toContain("Kanban item moved")
+    expect(result.promptText).not.toContain("Kanban item moved")
+    expect(result.promptText).not.toContain("当前文档 AHTML")
   })
 })

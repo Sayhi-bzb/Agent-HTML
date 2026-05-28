@@ -118,6 +118,11 @@ Rules:
 
 - new navigation patterns SHOULD extend the sidebar family before creating a parallel system
 - mode-specific sidebar views SHOULD still use the same sidebar primitives
+- sidebar-hosted navigation, selection, and command rows SHOULD use the sidebar item-row surface:
+  `SidebarMenu`, `SidebarMenuItem`, and `SidebarMenuButton`
+- select, dropdown, and popover triggers inside the sidebar SHOULD reuse `SidebarMenuButton` as
+  their visual shell; the overlay primitive owns behavior and floating content, not the sidebar row
+  appearance
 - active states SHOULD remain subtle and neutral-first
 - accent usage SHOULD stay scoped to orientation and navigation identity
 - default active states SHOULD rely on foreground and surface, not font-weight changes
@@ -160,6 +165,10 @@ Rules:
 - component families SHOULD keep their own semantics: shell document tabs use the
   shell tab rail composite, sidebar navigation uses sidebar primitives, menu
   choices use menu primitives, and form selections use select primitives
+- visual surface ownership follows the host region: when a select or menu trigger
+  appears as a sidebar row, its trigger surface SHOULD come from sidebar
+  primitives even though its value, keyboard behavior, and floating content remain
+  owned by the select or menu primitive
 
 This standard is structural, not visual. It exists to keep titles readable,
 actions stable, focus states unclipped, and overflow contained by the owning
