@@ -16,6 +16,21 @@ export type {
 } from "@/agent-html/edit/types"
 export { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
 export {
+  agentHtmlComponentRegistry,
+} from "@/agent-html/schema/component-registry"
+export {
+  buildAgentHtmlPromptDocument,
+  buildAgentHtmlPromptGrammar,
+} from "@/agent-html/schema/prompt-grammar"
+export {
+  createEnabledComponentRegistry,
+  deriveMarketComponents,
+} from "@/agent-html/schema/derive"
+export type {
+  AgentHtmlComponentContract,
+  AgentHtmlComponentMarketCategory,
+} from "@/agent-html/schema/component-contract"
+export {
   AgentHtmlBlockRuntimeProvider,
   AgentHtmlRuntimeTheme,
   AgentHtmlRuntimeViewport,

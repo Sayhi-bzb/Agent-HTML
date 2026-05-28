@@ -1,116 +1,35 @@
-use std::fs;
+mod db;
+mod documents;
+mod projects;
+mod sections;
+mod seed;
+mod threads;
+mod types;
+mod util;
+
+#[cfg(test)]
+use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use rusqlite::{params, Connection, OptionalExtension};
-use serde::Serialize;
+use documents::DocumentStore;
+use rusqlite::Connection;
 use tauri::State;
-use thiserror::Error;
 
-const INTRODUCE_AGENT_HTML_SOURCE: &str =
-    include_str!("../../apps/agent-html-app/src/workspace/fixtures/introduce-agent-html.ahtml");
-const INTRODUCE_AGENT_HTML_ZH_SOURCE: &str =
-    include_str!("../../apps/agent-html-app/src/workspace/fixtures/introduce-agent-html-cn.ahtml");
-
-#[derive(Debug, Error)]
-pub(crate) enum WorkspaceError {
-    #[error("database error: {0}")]
-    Database(#[from] rusqlite::Error),
-    #[error("filesystem error: {0}")]
-    Filesystem(#[from] std::io::Error),
-    #[error("document not found for {project_id}/{section_id}")]
-    DocumentNotFound {
-        project_id: String,
-        section_id: String,
-    },
-    #[error("project name is required")]
-    ProjectNameRequired,
-    #[error("project not found for {project_id}")]
-    ProjectNotFound { project_id: String },
-    #[error("section not found for {project_id}/{section_id}")]
-    SectionNotFound {
-        project_id: String,
-        section_id: String,
-    },
-    #[error("section title is required")]
-    SectionTitleRequired,
-}
-
-impl Serialize for WorkspaceError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-pub(crate) type WorkspaceResult<T> = Result<T, WorkspaceError>;
-
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct WorkspaceProject {
-    id: String,
-    name: String,
-    slug: String,
-}
-
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct WorkspaceProjectView {
-    id: String,
-    name: String,
-    slug: String,
-    sections: Vec<WorkspaceSection>,
-}
-
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct WorkspaceSection {
-    group_title: String,
-    id: String,
-    project_id: String,
-    sort_order: i64,
-    title: String,
-}
-
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct ProjectSectionDocument {
-    ahtml_source: String,
-    file_path: String,
-    project_id: String,
-    section_id: String,
-    updated_at: String,
-}
-
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct ProjectCodexThreadLink {
-    created_at: String,
-    last_ahtml_path: Option<String>,
-    last_document_path: Option<String>,
-    last_section_id: Option<String>,
-    last_used_at: String,
-    origin: String,
-    project_id: String,
-    thread_id: String,
-}
+pub(crate) use types::{
+    ProjectCodexThreadLink, ProjectSectionDocument, WorkspaceProject, WorkspaceProjectView,
+    WorkspaceResult, WorkspaceSection,
+};
 
 pub(crate) struct WorkspaceStore {
     connection: Mutex<Connection>,
-    document_root: PathBuf,
-}
-
-struct SectionWithDocument {
-    document: ProjectSectionDocument,
-    section: WorkspaceSection,
+    documents: DocumentStore,
 }
 
 impl WorkspaceStore {
     pub(crate) fn open(path: PathBuf) -> WorkspaceResult<Self> {
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)?;
+            std::fs::create_dir_all(parent)?;
         }
 
         let connection = Connection::open(&path)?;
@@ -120,7 +39,7 @@ impl WorkspaceStore {
             .unwrap_or_else(|| PathBuf::from("documents"));
         let store = Self {
             connection: Mutex::new(connection),
-            document_root,
+            documents: DocumentStore::new(document_root),
         };
         store.initialize()?;
 
@@ -128,72 +47,26 @@ impl WorkspaceStore {
     }
 
     fn initialize(&self) -> WorkspaceResult<()> {
-        let connection = self.connection.lock().expect("workspace db lock poisoned");
-        create_schema(&connection)?;
-        seed_if_empty(&connection)?;
-        seed_introduce_examples(&connection)?;
+        let mut connection = self.connection.lock().expect("workspace db lock poisoned");
+        db::create_schema(&connection)?;
+        seed::seed_if_empty(&mut connection)?;
+        seed::seed_introduce_examples(&mut connection)?;
         Ok(())
+    }
+
+    #[cfg(test)]
+    fn document_root(&self) -> &Path {
+        self.documents.root()
     }
 
     fn list_projects(&self) -> WorkspaceResult<Vec<WorkspaceProject>> {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        let mut statement = connection
-            .prepare("SELECT id, name, slug FROM projects ORDER BY created_at ASC, id ASC")?;
-        let rows = statement.query_map([], |row| {
-            Ok(WorkspaceProject {
-                id: row.get(0)?,
-                name: row.get(1)?,
-                slug: row.get(2)?,
-            })
-        })?;
-
-        collect_rows(rows)
+        projects::list_projects(&connection)
     }
 
     fn list_project_sections(&self, project_id: &str) -> WorkspaceResult<Vec<WorkspaceSection>> {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        list_sections(&connection, project_id)
-    }
-
-    fn document_path(&self, project_id: &str, section_id: &str) -> PathBuf {
-        self.document_root
-            .join(project_id)
-            .join(format!("{section_id}.agent-html"))
-    }
-
-    fn write_document_file(
-        &self,
-        project_id: &str,
-        section_id: &str,
-        ahtml_source: &str,
-    ) -> WorkspaceResult<PathBuf> {
-        let path = self.document_path(project_id, section_id);
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)?;
-        }
-        fs::write(&path, ahtml_source)?;
-        Ok(path)
-    }
-
-    fn read_or_migrate_document_file(
-        &self,
-        project_id: &str,
-        section_id: &str,
-        legacy_source: &str,
-    ) -> WorkspaceResult<(String, String)> {
-        let path = self.document_path(project_id, section_id);
-        if path.exists() {
-            return Ok((
-                fs::read_to_string(&path)?,
-                path.to_string_lossy().to_string(),
-            ));
-        }
-
-        let path = self.write_document_file(project_id, section_id, legacy_source)?;
-        Ok((
-            legacy_source.to_string(),
-            path.to_string_lossy().to_string(),
-        ))
+        sections::list_project_sections(&connection, project_id)
     }
 
     fn get_project_section_document(
@@ -202,174 +75,12 @@ impl WorkspaceStore {
         section_id: &str,
     ) -> WorkspaceResult<ProjectSectionDocument> {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        let document = connection
-            .query_row(
-                "SELECT project_id, section_id, ahtml_source, updated_at
-                 FROM project_section_documents
-                 WHERE project_id = ?1 AND section_id = ?2",
-                params![project_id, section_id],
-                |row| {
-                    Ok((
-                        row.get::<_, String>(0)?,
-                        row.get::<_, String>(1)?,
-                        row.get::<_, String>(2)?,
-                        row.get::<_, String>(3)?,
-                    ))
-                },
-            )
-            .optional()?;
-
-        let (project_id, section_id, legacy_source, updated_at) =
-            document.ok_or_else(|| WorkspaceError::DocumentNotFound {
-                project_id: project_id.to_string(),
-                section_id: section_id.to_string(),
-            })?;
-        let (ahtml_source, file_path) =
-            self.read_or_migrate_document_file(&project_id, &section_id, &legacy_source)?;
-
-        Ok(ProjectSectionDocument {
-            ahtml_source,
-            file_path,
-            project_id,
-            section_id,
-            updated_at,
-        })
-    }
-
-    fn remove_document_file(&self, project_id: &str, section_id: &str) -> WorkspaceResult<()> {
-        let path = self.document_path(project_id, section_id);
-        if path.exists() {
-            fs::remove_file(path)?;
-        }
-
-        Ok(())
-    }
-
-    fn remove_project_document_dir(&self, project_id: &str) -> WorkspaceResult<()> {
-        let path = self.document_root.join(project_id);
-        if path.exists() {
-            fs::remove_dir_all(path)?;
-        }
-
-        Ok(())
-    }
-
-    fn rename_project_document_dir(
-        &self,
-        old_project_id: &str,
-        new_project_id: &str,
-    ) -> WorkspaceResult<()> {
-        let old_path = self.document_root.join(old_project_id);
-        if !old_path.exists() {
-            return Ok(());
-        }
-
-        let new_path = self.document_root.join(new_project_id);
-        if let Some(parent) = new_path.parent() {
-            fs::create_dir_all(parent)?;
-        }
-        if new_path.exists() {
-            fs::remove_dir_all(&new_path)?;
-        }
-        fs::rename(old_path, new_path)?;
-
-        Ok(())
-    }
-
-    fn duplicate_document_file(
-        &self,
-        source_project_id: &str,
-        source_section_id: &str,
-        next_project_id: &str,
-        next_section_id: &str,
-        fallback_source: &str,
-    ) -> WorkspaceResult<()> {
-        let (source, _) = self.read_or_migrate_document_file(
-            source_project_id,
-            source_section_id,
-            fallback_source,
-        )?;
-        self.write_document_file(next_project_id, next_section_id, &source)?;
-
-        Ok(())
-    }
-
-    fn ensure_document_exists(&self, project_id: &str, section_id: &str) -> WorkspaceResult<()> {
-        let exists: Option<i64> = self
-            .connection
-            .lock()
-            .expect("workspace db lock poisoned")
-            .query_row(
-                "SELECT 1
-                 FROM project_section_documents
-                 WHERE project_id = ?1 AND section_id = ?2",
-                params![project_id, section_id],
-                |row| row.get(0),
-            )
-            .optional()?;
-
-        if exists.is_none() {
-            return Err(WorkspaceError::DocumentNotFound {
-                project_id: project_id.to_string(),
-                section_id: section_id.to_string(),
-            });
-        }
-
-        Ok(())
+        sections::get_project_section_document(&connection, &self.documents, project_id, section_id)
     }
 
     fn create_project(&self, name: &str) -> WorkspaceResult<WorkspaceProjectView> {
-        let name = name.trim();
-        if name.is_empty() {
-            return Err(WorkspaceError::ProjectNameRequired);
-        }
-
         let mut connection = self.connection.lock().expect("workspace db lock poisoned");
-        let slug = unique_slug(&connection, name)?;
-        let now = current_timestamp();
-        let project = WorkspaceProject {
-            id: slug.clone(),
-            name: name.to_string(),
-            slug,
-        };
-        let section = seed_section(&project.id, "overview", "Overview", "Workspace", 0);
-        let ahtml_source = create_blank_project_ahtml_source(&project);
-
-        let transaction = connection.transaction()?;
-        transaction.execute(
-            "INSERT INTO projects (id, name, slug, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![project.id, project.name, project.slug, now, now],
-        )?;
-        transaction.execute(
-            "INSERT INTO project_sections
-             (id, project_id, title, group_title, sort_order, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-            params![
-                section.id,
-                section.project_id,
-                section.title,
-                section.group_title,
-                section.sort_order,
-                now,
-                now
-            ],
-        )?;
-        transaction.execute(
-            "INSERT INTO project_section_documents
-             (project_id, section_id, ahtml_source, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![project.id, section.id, ahtml_source, now, now],
-        )?;
-        transaction.commit()?;
-        self.write_document_file(&project.id, &section.id, &ahtml_source)?;
-
-        Ok(WorkspaceProjectView {
-            id: project.id,
-            name: project.name,
-            slug: project.slug,
-            sections: vec![section],
-        })
+        projects::create_project(&mut connection, &self.documents, name)
     }
 
     fn rename_project(
@@ -377,78 +88,13 @@ impl WorkspaceStore {
         project_id: &str,
         name: &str,
     ) -> WorkspaceResult<WorkspaceProjectView> {
-        let name = name.trim();
-        if name.is_empty() {
-            return Err(WorkspaceError::ProjectNameRequired);
-        }
-
         let mut connection = self.connection.lock().expect("workspace db lock poisoned");
-        let existing = find_project(&connection, project_id)?;
-        if existing.is_none() {
-            return Err(WorkspaceError::ProjectNotFound {
-                project_id: project_id.to_string(),
-            });
-        }
-
-        let new_slug = unique_slug_excluding_project(&connection, name, project_id)?;
-        let now = current_timestamp();
-        connection.execute("PRAGMA foreign_keys = OFF", [])?;
-        let transaction_result = (|| -> WorkspaceResult<()> {
-            let transaction = connection.transaction()?;
-
-            transaction.execute(
-                "UPDATE projects
-                 SET id = ?2, name = ?3, slug = ?2, updated_at = ?4
-                 WHERE id = ?1",
-                params![project_id, new_slug, name, now],
-            )?;
-            transaction.execute(
-                "UPDATE project_sections
-                 SET project_id = ?2, updated_at = ?3
-                 WHERE project_id = ?1",
-                params![project_id, new_slug, now],
-            )?;
-            transaction.execute(
-                "UPDATE project_section_documents
-                 SET project_id = ?2, updated_at = ?3
-                 WHERE project_id = ?1",
-                params![project_id, new_slug, now],
-            )?;
-            transaction.commit()?;
-
-            Ok(())
-        })();
-        connection.execute("PRAGMA foreign_keys = ON", [])?;
-        transaction_result?;
-        self.rename_project_document_dir(project_id, &new_slug)?;
-
-        let project = find_project(&connection, &new_slug)?.ok_or_else(|| {
-            WorkspaceError::ProjectNotFound {
-                project_id: new_slug.clone(),
-            }
-        })?;
-        let sections = list_sections(&connection, &new_slug)?;
-
-        Ok(WorkspaceProjectView {
-            id: project.id,
-            name: project.name,
-            slug: project.slug,
-            sections,
-        })
+        projects::rename_project(&mut connection, &self.documents, project_id, name)
     }
 
     fn delete_project(&self, project_id: &str) -> WorkspaceResult<String> {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        let changed = connection.execute("DELETE FROM projects WHERE id = ?1", [project_id])?;
-
-        if changed == 0 {
-            return Err(WorkspaceError::ProjectNotFound {
-                project_id: project_id.to_string(),
-            });
-        }
-        self.remove_project_document_dir(project_id)?;
-
-        Ok(project_id.to_string())
+        projects::delete_project(&connection, &self.documents, project_id)
     }
 
     fn create_project_section(
@@ -456,48 +102,8 @@ impl WorkspaceStore {
         project_id: &str,
         title: &str,
     ) -> WorkspaceResult<WorkspaceSection> {
-        let title = title.trim();
-        if title.is_empty() {
-            return Err(WorkspaceError::SectionTitleRequired);
-        }
-
         let mut connection = self.connection.lock().expect("workspace db lock poisoned");
-        let project = find_project(&connection, project_id)?.ok_or_else(|| {
-            WorkspaceError::ProjectNotFound {
-                project_id: project_id.to_string(),
-            }
-        })?;
-        let section_id = unique_section_id(&connection, project_id, title)?;
-        let sort_order = next_section_sort_order(&connection, project_id)?;
-        let now = current_timestamp();
-        let section = seed_section(project_id, &section_id, title, "Workspace", sort_order);
-        let ahtml_source = create_blank_section_ahtml_source(&project, &section);
-
-        let transaction = connection.transaction()?;
-        transaction.execute(
-            "INSERT INTO project_sections
-             (id, project_id, title, group_title, sort_order, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-            params![
-                section.id,
-                section.project_id,
-                section.title,
-                section.group_title,
-                section.sort_order,
-                now,
-                now
-            ],
-        )?;
-        transaction.execute(
-            "INSERT INTO project_section_documents
-             (project_id, section_id, ahtml_source, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![section.project_id, section.id, ahtml_source, now, now],
-        )?;
-        transaction.commit()?;
-        self.write_document_file(&section.project_id, &section.id, &ahtml_source)?;
-
-        Ok(section)
+        sections::create_project_section(&mut connection, &self.documents, project_id, title)
     }
 
     fn rename_project_section(
@@ -506,28 +112,8 @@ impl WorkspaceStore {
         section_id: &str,
         title: &str,
     ) -> WorkspaceResult<WorkspaceSection> {
-        let title = title.trim();
-        if title.is_empty() {
-            return Err(WorkspaceError::SectionTitleRequired);
-        }
-
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        let now = current_timestamp();
-        let changed = connection.execute(
-            "UPDATE project_sections
-             SET title = ?3, updated_at = ?4
-             WHERE project_id = ?1 AND id = ?2",
-            params![project_id, section_id, title, now],
-        )?;
-
-        if changed == 0 {
-            return Err(WorkspaceError::SectionNotFound {
-                project_id: project_id.to_string(),
-                section_id: section_id.to_string(),
-            });
-        }
-
-        get_section(&connection, project_id, section_id)
+        sections::rename_project_section(&connection, project_id, section_id, title)
     }
 
     fn delete_project_section(
@@ -536,20 +122,7 @@ impl WorkspaceStore {
         section_id: &str,
     ) -> WorkspaceResult<String> {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        let changed = connection.execute(
-            "DELETE FROM project_sections WHERE project_id = ?1 AND id = ?2",
-            params![project_id, section_id],
-        )?;
-
-        if changed == 0 {
-            return Err(WorkspaceError::SectionNotFound {
-                project_id: project_id.to_string(),
-                section_id: section_id.to_string(),
-            });
-        }
-        self.remove_document_file(project_id, section_id)?;
-
-        Ok(section_id.to_string())
+        sections::delete_project_section(&connection, &self.documents, project_id, section_id)
     }
 
     fn duplicate_project_section(
@@ -558,60 +131,12 @@ impl WorkspaceStore {
         section_id: &str,
     ) -> WorkspaceResult<WorkspaceSection> {
         let mut connection = self.connection.lock().expect("workspace db lock poisoned");
-        let source = get_section_with_document(&connection, project_id, section_id)?;
-        let next_title = unique_section_title(
-            &connection,
-            project_id,
-            &format!("{} Copy", source.section.title),
-        )?;
-        let next_section_id = unique_section_id(&connection, project_id, &next_title)?;
-        let sort_order = next_section_sort_order(&connection, project_id)?;
-        let now = current_timestamp();
-        let section = seed_section(
-            project_id,
-            &next_section_id,
-            &next_title,
-            &source.section.group_title,
-            sort_order,
-        );
-
-        let transaction = connection.transaction()?;
-        transaction.execute(
-            "INSERT INTO project_sections
-             (id, project_id, title, group_title, sort_order, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-            params![
-                section.id,
-                section.project_id,
-                section.title,
-                section.group_title,
-                section.sort_order,
-                now,
-                now
-            ],
-        )?;
-        transaction.execute(
-            "INSERT INTO project_section_documents
-             (project_id, section_id, ahtml_source, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![
-                section.project_id,
-                section.id,
-                source.document.ahtml_source,
-                now,
-                now
-            ],
-        )?;
-        transaction.commit()?;
-        self.duplicate_document_file(
+        sections::duplicate_project_section(
+            &mut connection,
+            &self.documents,
             project_id,
             section_id,
-            &section.project_id,
-            &section.id,
-            &source.document.ahtml_source,
-        )?;
-
-        Ok(section)
+        )
     }
 
     fn update_project_section_document(
@@ -620,28 +145,14 @@ impl WorkspaceStore {
         section_id: &str,
         ahtml_source: &str,
     ) -> WorkspaceResult<ProjectSectionDocument> {
-        self.ensure_document_exists(project_id, section_id)?;
-
-        let updated_at = current_timestamp();
-        let file_path = self
-            .write_document_file(project_id, section_id, ahtml_source)?
-            .to_string_lossy()
-            .to_string();
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        connection.execute(
-            "UPDATE project_section_documents
-             SET ahtml_source = ?3, updated_at = ?4
-             WHERE project_id = ?1 AND section_id = ?2",
-            params![project_id, section_id, ahtml_source, updated_at],
-        )?;
-
-        Ok(ProjectSectionDocument {
-            ahtml_source: ahtml_source.to_string(),
-            file_path,
-            project_id: project_id.to_string(),
-            section_id: section_id.to_string(),
-            updated_at,
-        })
+        sections::update_project_section_document(
+            &connection,
+            &self.documents,
+            project_id,
+            section_id,
+            ahtml_source,
+        )
     }
 
     fn list_project_codex_threads(
@@ -649,27 +160,7 @@ impl WorkspaceStore {
         project_id: &str,
     ) -> WorkspaceResult<Vec<ProjectCodexThreadLink>> {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        let mut statement = connection.prepare(
-            "SELECT thread_id, project_id, origin, last_section_id, last_ahtml_path,
-                    last_document_path, created_at, last_used_at
-             FROM project_codex_threads
-             WHERE project_id = ?1
-             ORDER BY last_used_at DESC, created_at DESC, thread_id ASC",
-        )?;
-        let rows = statement.query_map([project_id], |row| {
-            Ok(ProjectCodexThreadLink {
-                thread_id: row.get(0)?,
-                project_id: row.get(1)?,
-                origin: row.get(2)?,
-                last_section_id: row.get(3)?,
-                last_ahtml_path: row.get(4)?,
-                last_document_path: row.get(5)?,
-                created_at: row.get(6)?,
-                last_used_at: row.get(7)?,
-            })
-        })?;
-
-        collect_rows(rows)
+        threads::list_project_codex_threads(&connection, project_id)
     }
 
     fn upsert_project_codex_thread_link(
@@ -680,25 +171,15 @@ impl WorkspaceStore {
         ahtml_path: Option<&str>,
         document_path: Option<&str>,
     ) -> WorkspaceResult<ProjectCodexThreadLink> {
-        let now = current_timestamp();
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        ensure_project_exists(&connection, project_id)?;
-        connection.execute(
-            "INSERT INTO project_codex_threads
-             (thread_id, project_id, origin, last_section_id, last_ahtml_path,
-              last_document_path, created_at, last_used_at)
-             VALUES (?1, ?2, 'agent-html', ?3, ?4, ?5, ?6, ?6)
-             ON CONFLICT(thread_id) DO UPDATE SET
-                project_id = excluded.project_id,
-                origin = excluded.origin,
-                last_section_id = excluded.last_section_id,
-                last_ahtml_path = excluded.last_ahtml_path,
-                last_document_path = excluded.last_document_path,
-                last_used_at = excluded.last_used_at",
-            params![thread_id, project_id, section_id, ahtml_path, document_path, now],
-        )?;
-
-        get_project_codex_thread_link(&connection, thread_id)
+        threads::upsert_project_codex_thread_link(
+            &connection,
+            project_id,
+            thread_id,
+            section_id,
+            ahtml_path,
+            document_path,
+        )
     }
 
     fn touch_project_codex_thread_link(
@@ -724,650 +205,8 @@ impl WorkspaceStore {
         thread_id: &str,
     ) -> WorkspaceResult<String> {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
-        connection.execute(
-            "DELETE FROM project_codex_threads
-             WHERE project_id = ?1 AND thread_id = ?2",
-            params![project_id, thread_id],
-        )?;
-
-        Ok(thread_id.to_string())
+        threads::delete_project_codex_thread_link(&connection, project_id, thread_id)
     }
-}
-
-fn collect_rows<T>(
-    rows: rusqlite::MappedRows<'_, impl FnMut(&rusqlite::Row<'_>) -> rusqlite::Result<T>>,
-) -> WorkspaceResult<Vec<T>> {
-    let mut values = Vec::new();
-    for row in rows {
-        values.push(row?);
-    }
-
-    Ok(values)
-}
-
-fn find_project(
-    connection: &Connection,
-    project_id: &str,
-) -> WorkspaceResult<Option<WorkspaceProject>> {
-    connection
-        .query_row(
-            "SELECT id, name, slug FROM projects WHERE id = ?1",
-            [project_id],
-            |row| {
-                Ok(WorkspaceProject {
-                    id: row.get(0)?,
-                    name: row.get(1)?,
-                    slug: row.get(2)?,
-                })
-            },
-        )
-        .optional()
-        .map_err(WorkspaceError::from)
-}
-
-fn ensure_project_exists(
-    connection: &Connection,
-    project_id: &str,
-) -> WorkspaceResult<()> {
-    if find_project(connection, project_id)?.is_none() {
-        return Err(WorkspaceError::ProjectNotFound {
-            project_id: project_id.to_string(),
-        });
-    }
-
-    Ok(())
-}
-
-fn get_project_codex_thread_link(
-    connection: &Connection,
-    thread_id: &str,
-) -> WorkspaceResult<ProjectCodexThreadLink> {
-    connection
-        .query_row(
-            "SELECT thread_id, project_id, origin, last_section_id, last_ahtml_path,
-                    last_document_path, created_at, last_used_at
-             FROM project_codex_threads
-             WHERE thread_id = ?1",
-            [thread_id],
-            |row| {
-                Ok(ProjectCodexThreadLink {
-                    thread_id: row.get(0)?,
-                    project_id: row.get(1)?,
-                    origin: row.get(2)?,
-                    last_section_id: row.get(3)?,
-                    last_ahtml_path: row.get(4)?,
-                    last_document_path: row.get(5)?,
-                    created_at: row.get(6)?,
-                    last_used_at: row.get(7)?,
-                })
-            },
-        )
-        .map_err(WorkspaceError::from)
-}
-
-fn list_sections(
-    connection: &Connection,
-    project_id: &str,
-) -> WorkspaceResult<Vec<WorkspaceSection>> {
-    let mut statement = connection.prepare(
-        "SELECT id, project_id, title, group_title, sort_order
-         FROM project_sections
-         WHERE project_id = ?1
-         ORDER BY sort_order ASC, id ASC",
-    )?;
-    let rows = statement.query_map([project_id], |row| {
-        Ok(WorkspaceSection {
-            id: row.get(0)?,
-            project_id: row.get(1)?,
-            title: row.get(2)?,
-            group_title: row.get(3)?,
-            sort_order: row.get(4)?,
-        })
-    })?;
-
-    collect_rows(rows)
-}
-
-fn get_section(
-    connection: &Connection,
-    project_id: &str,
-    section_id: &str,
-) -> WorkspaceResult<WorkspaceSection> {
-    let section = connection
-        .query_row(
-            "SELECT id, project_id, title, group_title, sort_order
-             FROM project_sections
-             WHERE project_id = ?1 AND id = ?2",
-            params![project_id, section_id],
-            |row| {
-                Ok(WorkspaceSection {
-                    id: row.get(0)?,
-                    project_id: row.get(1)?,
-                    title: row.get(2)?,
-                    group_title: row.get(3)?,
-                    sort_order: row.get(4)?,
-                })
-            },
-        )
-        .optional()?;
-
-    section.ok_or_else(|| WorkspaceError::SectionNotFound {
-        project_id: project_id.to_string(),
-        section_id: section_id.to_string(),
-    })
-}
-
-fn get_section_with_document(
-    connection: &Connection,
-    project_id: &str,
-    section_id: &str,
-) -> WorkspaceResult<SectionWithDocument> {
-    let row = connection
-        .query_row(
-            "SELECT s.id, s.project_id, s.title, s.group_title, s.sort_order,
-                    d.ahtml_source, d.updated_at
-             FROM project_sections s
-             JOIN project_section_documents d
-               ON d.project_id = s.project_id AND d.section_id = s.id
-             WHERE s.project_id = ?1 AND s.id = ?2",
-            params![project_id, section_id],
-            |row| {
-                let section = WorkspaceSection {
-                    id: row.get(0)?,
-                    project_id: row.get(1)?,
-                    title: row.get(2)?,
-                    group_title: row.get(3)?,
-                    sort_order: row.get(4)?,
-                };
-                let document = ProjectSectionDocument {
-                    project_id: section.project_id.clone(),
-                    section_id: section.id.clone(),
-                    ahtml_source: row.get(5)?,
-                    file_path: String::new(),
-                    updated_at: row.get(6)?,
-                };
-
-                Ok(SectionWithDocument { document, section })
-            },
-        )
-        .optional()?;
-
-    row.ok_or_else(|| WorkspaceError::SectionNotFound {
-        project_id: project_id.to_string(),
-        section_id: section_id.to_string(),
-    })
-}
-
-fn create_schema(connection: &Connection) -> WorkspaceResult<()> {
-    connection.execute_batch(
-        "
-        CREATE TABLE IF NOT EXISTS projects (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            slug TEXT NOT NULL UNIQUE,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS project_sections (
-            id TEXT NOT NULL,
-            project_id TEXT NOT NULL,
-            title TEXT NOT NULL,
-            group_title TEXT NOT NULL,
-            sort_order INTEGER NOT NULL,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            PRIMARY KEY (project_id, id),
-            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-        );
-
-        CREATE TABLE IF NOT EXISTS project_section_documents (
-            project_id TEXT NOT NULL,
-            section_id TEXT NOT NULL,
-            ahtml_source TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            PRIMARY KEY (project_id, section_id),
-            FOREIGN KEY (project_id, section_id)
-                REFERENCES project_sections(project_id, id)
-                ON DELETE CASCADE
-        );
-
-        CREATE TABLE IF NOT EXISTS project_codex_threads (
-            thread_id TEXT PRIMARY KEY,
-            project_id TEXT NOT NULL,
-            origin TEXT NOT NULL DEFAULT 'agent-html',
-            last_section_id TEXT,
-            last_ahtml_path TEXT,
-            last_document_path TEXT,
-            created_at TEXT NOT NULL,
-            last_used_at TEXT NOT NULL,
-            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-        );
-        ",
-    )?;
-
-    Ok(())
-}
-
-fn seed_if_empty(connection: &Connection) -> WorkspaceResult<()> {
-    let count: i64 = connection.query_row("SELECT COUNT(*) FROM projects", [], |row| row.get(0))?;
-    if count > 0 {
-        return Ok(());
-    }
-
-    let now = current_timestamp();
-    let projects = seed_projects();
-    let transaction = connection.unchecked_transaction()?;
-
-    for project in projects {
-        transaction.execute(
-            "INSERT INTO projects (id, name, slug, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![project.id, project.name, project.slug, now, now],
-        )?;
-
-        for section in seed_sections(&project.id) {
-            transaction.execute(
-                "INSERT INTO project_sections
-                 (id, project_id, title, group_title, sort_order, created_at, updated_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                params![
-                    section.id,
-                    section.project_id,
-                    section.title,
-                    section.group_title,
-                    section.sort_order,
-                    now,
-                    now
-                ],
-            )?;
-
-            transaction.execute(
-                "INSERT INTO project_section_documents
-                 (project_id, section_id, ahtml_source, created_at, updated_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![
-                    section.project_id,
-                    section.id,
-                    create_seed_ahtml_source(&project, &section),
-                    now,
-                    now
-                ],
-            )?;
-        }
-    }
-
-    transaction.commit()?;
-    Ok(())
-}
-
-fn seed_introduce_examples(connection: &Connection) -> WorkspaceResult<()> {
-    let now = current_timestamp();
-    let project = WorkspaceProject {
-        id: "agent-html-example".to_string(),
-        name: "Agent-HTML Example".to_string(),
-        slug: "agent-html-example".to_string(),
-    };
-    let sections = [
-        (
-            seed_section(
-                &project.id,
-                "introduce-agent-html",
-                "Introducing agent-html",
-                "Example Cases",
-                0,
-            ),
-            INTRODUCE_AGENT_HTML_SOURCE,
-        ),
-        (
-            seed_section(
-                &project.id,
-                "introduce-agent-html-zh",
-                "介绍 agent-html",
-                "Example Cases",
-                1,
-            ),
-            INTRODUCE_AGENT_HTML_ZH_SOURCE,
-        ),
-    ];
-    let transaction = connection.unchecked_transaction()?;
-
-    transaction.execute(
-        "INSERT OR IGNORE INTO projects (id, name, slug, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![project.id, project.name, project.slug, now, now],
-    )?;
-
-    for (section, source) in sections {
-        transaction.execute(
-            "INSERT OR IGNORE INTO project_sections
-             (id, project_id, title, group_title, sort_order, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-            params![
-                section.id,
-                section.project_id,
-                section.title,
-                section.group_title,
-                section.sort_order,
-                now,
-                now
-            ],
-        )?;
-
-        transaction.execute(
-            "INSERT OR IGNORE INTO project_section_documents
-             (project_id, section_id, ahtml_source, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![section.project_id, section.id, source, now, now],
-        )?;
-    }
-
-    transaction.commit()?;
-    Ok(())
-}
-
-fn seed_projects() -> Vec<WorkspaceProject> {
-    vec![
-        WorkspaceProject {
-            id: "design-engineering".to_string(),
-            name: "Design Engineering".to_string(),
-            slug: "design-engineering".to_string(),
-        },
-        WorkspaceProject {
-            id: "developer-docs".to_string(),
-            name: "Developer Docs".to_string(),
-            slug: "developer-docs".to_string(),
-        },
-        WorkspaceProject {
-            id: "product-brief".to_string(),
-            name: "Product Brief".to_string(),
-            slug: "product-brief".to_string(),
-        },
-    ]
-}
-
-fn seed_sections(project_id: &str) -> Vec<WorkspaceSection> {
-    vec![
-        seed_section(
-            project_id,
-            "installation",
-            "Installation",
-            "Getting Started",
-            0,
-        ),
-        seed_section(
-            project_id,
-            "project-structure",
-            "Project Structure",
-            "Getting Started",
-            1,
-        ),
-        seed_section(
-            project_id,
-            "routing",
-            "Routing",
-            "Build Your Application",
-            2,
-        ),
-        seed_section(
-            project_id,
-            "data-fetching",
-            "Data Fetching",
-            "Build Your Application",
-            3,
-        ),
-        seed_section(
-            project_id,
-            "rendering",
-            "Rendering",
-            "Build Your Application",
-            4,
-        ),
-        seed_section(
-            project_id,
-            "caching",
-            "Caching",
-            "Build Your Application",
-            5,
-        ),
-    ]
-}
-
-fn seed_section(
-    project_id: &str,
-    id: &str,
-    title: &str,
-    group_title: &str,
-    sort_order: i64,
-) -> WorkspaceSection {
-    WorkspaceSection {
-        group_title: group_title.to_string(),
-        id: id.to_string(),
-        project_id: project_id.to_string(),
-        sort_order,
-        title: title.to_string(),
-    }
-}
-
-fn create_seed_ahtml_source(project: &WorkspaceProject, section: &WorkspaceSection) -> String {
-    format!(
-        r#"<Page title="{project_name} - {section_title}">
-  <Section width="content">
-    <Stack>
-      <Stack>
-        <Text variant="h1">{section_title}</Text>
-        <Text variant="lead">{project_name} workspace content rendered through the agent-html runtime.</Text>
-      </Stack>
-      <Alert>
-        <Icon name="database" />
-        <AlertTitle>Local-first document</AlertTitle>
-        <AlertDescription>This section is loaded from the desktop workspace repository and rendered from AHTML source.</AlertDescription>
-      </Alert>
-      <Grid columns="3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Project</CardTitle>
-            <CardDescription>{project_name}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Section</CardTitle>
-            <CardDescription>{group_title}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Runtime</CardTitle>
-            <CardDescription>parse -> validate -> render</CardDescription>
-          </CardHeader>
-        </Card>
-      </Grid>
-    </Stack>
-  </Section>
-</Page>"#,
-        group_title = section.group_title,
-        project_name = project.name,
-        section_title = section.title,
-    )
-}
-
-fn current_timestamp() -> String {
-    "2026-05-27T00:00:00.000Z".to_string()
-}
-
-fn slugify(value: &str) -> String {
-    let mut slug = String::new();
-    let mut pending_dash = false;
-
-    for character in value.trim().chars() {
-        if character.is_ascii_alphanumeric() {
-            if pending_dash && !slug.is_empty() {
-                slug.push('-');
-            }
-            slug.push(character.to_ascii_lowercase());
-            pending_dash = false;
-        } else {
-            pending_dash = true;
-        }
-    }
-
-    if slug.is_empty() {
-        "project".to_string()
-    } else {
-        slug
-    }
-}
-
-fn unique_slug(connection: &Connection, name: &str) -> WorkspaceResult<String> {
-    unique_slug_excluding_project(connection, name, "")
-}
-
-fn unique_slug_excluding_project(
-    connection: &Connection,
-    name: &str,
-    excluded_project_id: &str,
-) -> WorkspaceResult<String> {
-    let base = slugify(name);
-    let mut suffix = 1;
-
-    loop {
-        let candidate = if suffix == 1 {
-            base.clone()
-        } else {
-            format!("{base}-{suffix}")
-        };
-        let exists: Option<i64> = connection
-            .query_row(
-                "SELECT 1 FROM projects WHERE (id = ?1 OR slug = ?1) AND id <> ?2",
-                params![candidate.as_str(), excluded_project_id],
-                |row| row.get(0),
-            )
-            .optional()?;
-
-        if exists.is_none() {
-            return Ok(candidate);
-        }
-
-        suffix += 1;
-    }
-}
-
-fn unique_section_id(
-    connection: &Connection,
-    project_id: &str,
-    title: &str,
-) -> WorkspaceResult<String> {
-    let base = slugify(title);
-    let mut suffix = 1;
-
-    loop {
-        let candidate = if suffix == 1 {
-            base.clone()
-        } else {
-            format!("{base}-{suffix}")
-        };
-        let exists: Option<i64> = connection
-            .query_row(
-                "SELECT 1 FROM project_sections WHERE project_id = ?1 AND id = ?2",
-                params![project_id, candidate],
-                |row| row.get(0),
-            )
-            .optional()?;
-
-        if exists.is_none() {
-            return Ok(candidate);
-        }
-
-        suffix += 1;
-    }
-}
-
-fn unique_section_title(
-    connection: &Connection,
-    project_id: &str,
-    title: &str,
-) -> WorkspaceResult<String> {
-    let base = title.trim();
-    let mut suffix = 1;
-
-    loop {
-        let candidate = if suffix == 1 {
-            base.to_string()
-        } else {
-            format!("{base} {suffix}")
-        };
-        let exists: Option<i64> = connection
-            .query_row(
-                "SELECT 1 FROM project_sections WHERE project_id = ?1 AND title = ?2",
-                params![project_id, candidate],
-                |row| row.get(0),
-            )
-            .optional()?;
-
-        if exists.is_none() {
-            return Ok(candidate);
-        }
-
-        suffix += 1;
-    }
-}
-
-fn next_section_sort_order(connection: &Connection, project_id: &str) -> WorkspaceResult<i64> {
-    let max_sort_order: Option<i64> = connection.query_row(
-        "SELECT MAX(sort_order) FROM project_sections WHERE project_id = ?1",
-        [project_id],
-        |row| row.get(0),
-    )?;
-
-    Ok(max_sort_order.map_or(0, |value| value + 1))
-}
-
-fn create_blank_project_ahtml_source(project: &WorkspaceProject) -> String {
-    format!(
-        r#"<Page title="{project_name}">
-  <Section width="content">
-    <Stack>
-      <Stack>
-        <Text variant="h1">{project_name}</Text>
-        <Text variant="lead">Start shaping this workspace artifact from a blank Agent-HTML document.</Text>
-      </Stack>
-      <Alert>
-        <Icon name="file-plus-2" />
-        <AlertTitle>Blank project</AlertTitle>
-        <AlertDescription>This overview section is stored in the local desktop workspace database.</AlertDescription>
-      </Alert>
-    </Stack>
-  </Section>
-</Page>"#,
-        project_name = project.name,
-    )
-}
-
-fn create_blank_section_ahtml_source(
-    project: &WorkspaceProject,
-    section: &WorkspaceSection,
-) -> String {
-    format!(
-        r#"<Page title="{project_name} - {section_title}">
-  <Section width="content">
-    <Stack>
-      <Stack>
-        <Text variant="h1">{section_title}</Text>
-        <Text variant="lead">Start shaping this workspace section from a blank Agent-HTML document.</Text>
-      </Stack>
-      <Alert>
-        <Icon name="file-text" />
-        <AlertTitle>Blank section</AlertTitle>
-        <AlertDescription>This section is stored in the local desktop workspace database.</AlertDescription>
-      </Alert>
-    </Stack>
-  </Section>
-</Page>"#,
-        project_name = project.name,
-        section_title = section.title,
-    )
 }
 
 #[tauri::command]
@@ -1522,6 +361,7 @@ pub(crate) fn delete_project_codex_thread_link(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::workspace::types::WorkspaceError;
     use tempfile::TempDir;
 
     struct TestWorkspace {
@@ -1533,7 +373,7 @@ mod tests {
         let temp_dir = tempfile::tempdir().expect("create temp workspace");
         let store = WorkspaceStore {
             connection: Mutex::new(Connection::open_in_memory().expect("open in-memory db")),
-            document_root: temp_dir.path().join("documents"),
+            documents: DocumentStore::new(temp_dir.path().join("documents")),
         };
         store.initialize().expect("initialize workspace store");
         TestWorkspace {
@@ -1595,9 +435,29 @@ mod tests {
                     .ends_with("design-engineering/installation.agent-html")
         );
         assert_eq!(
-            fs::read_to_string(&document.file_path).expect("read migrated document file"),
+            std::fs::read_to_string(&document.file_path).expect("read migrated document file"),
             document.ahtml_source
         );
+    }
+
+    #[test]
+    fn reads_existing_file_as_document_source() {
+        let workspace = test_store();
+        let store = &workspace.store;
+        let document_path = store
+            .document_root()
+            .join("design-engineering")
+            .join("installation.agent-html");
+        std::fs::create_dir_all(document_path.parent().expect("document parent"))
+            .expect("create document parent");
+        std::fs::write(&document_path, "<Page title=\"File Source\" />")
+            .expect("write file source");
+
+        let document = store
+            .get_project_section_document("design-engineering", "installation")
+            .expect("read document");
+
+        assert_eq!(document.ahtml_source, "<Page title=\"File Source\" />");
     }
 
     #[test]
@@ -1651,7 +511,7 @@ mod tests {
         assert!(document.ahtml_source.contains("Research Notes"));
         assert!(document.ahtml_source.contains("Blank project"));
         assert_eq!(
-            fs::read_to_string(&document.file_path).expect("read created document file"),
+            std::fs::read_to_string(&document.file_path).expect("read created document file"),
             document.ahtml_source
         );
     }
@@ -1725,7 +585,7 @@ mod tests {
                 .expect_err("deleted document should be gone"),
             WorkspaceError::DocumentNotFound { .. }
         ));
-        assert!(!store.document_root.join("design-engineering").exists());
+        assert!(!store.document_root().join("design-engineering").exists());
     }
 
     #[test]
@@ -1747,7 +607,7 @@ mod tests {
         assert!(document.ahtml_source.contains("Release Notes"));
         assert!(document.ahtml_source.contains("Blank section"));
         assert!(store
-            .document_root
+            .document_root()
             .join("design-engineering")
             .join("release-notes.agent-html")
             .exists());
@@ -1780,7 +640,7 @@ mod tests {
 
         assert_eq!(deleted_id, "overview");
         assert!(!store
-            .document_root
+            .document_root()
             .join(&project.id)
             .join("overview.agent-html")
             .exists());
@@ -1812,7 +672,7 @@ mod tests {
             .expect("read duplicate document");
         assert_eq!(document.ahtml_source, source);
         assert_eq!(
-            fs::read_to_string(&document.file_path).expect("read duplicated document file"),
+            std::fs::read_to_string(&document.file_path).expect("read duplicated document file"),
             source
         );
     }
@@ -1833,7 +693,7 @@ mod tests {
 
         assert_eq!(document.ahtml_source, source);
         assert_eq!(
-            fs::read_to_string(&document.file_path).expect("read updated document file"),
+            std::fs::read_to_string(&document.file_path).expect("read updated document file"),
             source
         );
         assert_eq!(document.updated_at, "2026-05-27T00:00:00.000Z");

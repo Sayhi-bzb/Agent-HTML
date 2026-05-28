@@ -1,8 +1,13 @@
+mod component_market;
 mod codex_host;
 mod workspace;
 
 use tauri::Manager;
 
+use crate::component_market::{
+    load_component_market_settings, save_component_market_settings,
+    write_agent_html_prompt_schema_artifact,
+};
 use crate::codex_host::{
     codex_connection_trace,
     codex_host_settings_load, codex_host_settings_save,
@@ -48,6 +53,9 @@ pub fn run() {
             upsert_project_codex_thread_link,
             touch_project_codex_thread_link,
             delete_project_codex_thread_link,
+            load_component_market_settings,
+            save_component_market_settings,
+            write_agent_html_prompt_schema_artifact,
             codex_host_settings_load,
             codex_host_settings_save,
             codex_host_start,

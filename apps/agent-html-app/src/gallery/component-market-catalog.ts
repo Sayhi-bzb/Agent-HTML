@@ -1,6 +1,8 @@
-import { agentHtmlComponentRegistry } from "@/agent-html/schema/component-registry"
-import { deriveMarketComponents } from "@/agent-html/schema/derive"
-import type { AgentHtmlTag } from "@/agent-html"
+import {
+  agentHtmlComponentRegistry,
+  deriveMarketComponents,
+  type AgentHtmlTag,
+} from "@/agent-html"
 
 export const galleryComponentMarketCatalog = deriveMarketComponents(
   agentHtmlComponentRegistry
@@ -43,6 +45,24 @@ export const defaultEnabledGalleryComponentTags = new Set<AgentHtmlTag>([
   "Tabs",
   "Chart",
 ])
+
+export const galleryComponentMarketTags = new Set<AgentHtmlTag>(
+  galleryComponentMarketCatalog.map((component) => component.tag)
+)
+
+export function normalizeEnabledGalleryComponentTags(
+  tags: Iterable<string>
+): Set<AgentHtmlTag> {
+  const enabledTags = new Set<AgentHtmlTag>()
+
+  for (const tag of tags) {
+    if (galleryComponentMarketTags.has(tag as AgentHtmlTag)) {
+      enabledTags.add(tag as AgentHtmlTag)
+    }
+  }
+
+  return enabledTags
+}
 
 export function getGalleryComponentMarketStatus(
   component: GalleryComponentMarketItem,

@@ -15,6 +15,7 @@ import {
   type EnabledGalleryComponentTags,
   type GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
+import { createGalleryComponentMarketRepository } from "@/app/gallery/component-market-repository"
 import {
   GalleryMarketSidebar,
   GalleryThemeSidebarFooter,
@@ -72,6 +73,8 @@ type SurfaceMode = "gallery" | "workspace"
 
 const workspaceRepository = createWorkspaceRepository()
 const workspaceCanWrite = workspaceRepository.canWrite
+const galleryComponentMarketRepository =
+  createGalleryComponentMarketRepository()
 
 function getInitialAppliedAppTheme() {
   if (typeof window === "undefined") {
@@ -184,6 +187,29 @@ export function App() {
   React.useEffect(() => {
     applyAppTheme(appliedAppThemeDraft)
   }, [appliedAppThemeDraft])
+
+  React.useEffect(() => {
+    let isCurrent = true
+
+    galleryComponentMarketRepository
+      .loadEnabledComponentTags()
+      .then((enabledTags) => {
+        if (isCurrent) {
+          setEnabledGalleryComponentTags(enabledTags)
+        }
+
+        return galleryComponentMarketRepository.writePromptSchemaArtifact(
+          enabledTags
+        )
+      })
+      .catch((error: unknown) => {
+        console.error("Unable to load component market settings.", error)
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [])
 
   React.useEffect(() => {
     let isCurrent = true
@@ -723,6 +749,30 @@ export function App() {
     setAppliedAppThemeDraft(appThemeDraft)
   }, [appThemeDraft])
 
+  const handleEnabledGalleryComponentTagsChange = React.useCallback(
+    (nextEnabledTags: EnabledGalleryComponentTags) => {
+      const previousEnabledTags = enabledGalleryComponentTags
+      const nextTags = new Set(nextEnabledTags)
+
+      setEnabledGalleryComponentTags(nextTags)
+      galleryComponentMarketRepository
+        .saveEnabledComponentTags(nextTags)
+        .then((savedTags) =>
+          galleryComponentMarketRepository
+            .writePromptSchemaArtifact(savedTags)
+            .then(() => savedTags)
+        )
+        .then((savedTags) => {
+          setEnabledGalleryComponentTags(savedTags)
+        })
+        .catch((error: unknown) => {
+          console.error("Unable to save component market settings.", error)
+          setEnabledGalleryComponentTags(previousEnabledTags)
+        })
+    },
+    [enabledGalleryComponentTags]
+  )
+
   const handleSaveAndExitGalleryMode = React.useCallback(() => {
     saveAppliedAppTheme(appThemeDraft)
     setAppliedAppThemeDraft(appThemeDraft)
@@ -881,7 +931,9 @@ export function App() {
               activeViewId={activeGalleryViewId}
               componentMarketFilters={galleryComponentMarketFilters}
               enabledComponentTags={enabledGalleryComponentTags}
-              onEnabledComponentTagsChange={setEnabledGalleryComponentTags}
+              onEnabledComponentTagsChange={
+                handleEnabledGalleryComponentTagsChange
+              }
               onComponentMarketFiltersChange={setGalleryComponentMarketFilters}
             />
           ) : workspaceLoadError ? (

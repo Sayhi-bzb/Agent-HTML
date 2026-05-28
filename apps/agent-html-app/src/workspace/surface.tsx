@@ -1,4 +1,5 @@
 import * as React from "react"
+import { CheckIcon, PencilIcon, XIcon } from "lucide-react"
 
 import { markCodexStartupEvent } from "@/app/codex/connection"
 import {
@@ -11,6 +12,7 @@ import {
   type CodexThreadSummary,
 } from "@/app/codex/connection"
 import { Button } from "@/app/shared/ui/button"
+import { Input } from "@/app/shared/ui/input"
 import { WorkspaceGhostPet } from "@/app/pet/ghost"
 import type { PetPresence } from "@/app/workspace/agent-presence"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
@@ -66,7 +68,14 @@ type SaveState =
   | { status: "saved" }
   | { detail: string; status: "error" }
 
+type ThreadPreviewState = {
+  error?: string | null
+  isLoading: boolean
+  requestText?: string | null
+}
+
 const workspaceRepository = createWorkspaceRepository()
+const THREAD_REQUEST_PREVIEW_LIMIT = 160
 
 function getAgentDeliveryPresence(
   agentDeliveryState: AgentDeliveryState
@@ -147,15 +156,58 @@ function WorkspaceStatus({
   )
 }
 
-function formatThreadLabel(thread: {
-  createdAt?: string
-  id: string
-  name?: string | null
-  updatedAt?: string
-}) {
-  const label = thread.name?.trim() || thread.id
-  const timestamp = thread.updatedAt ?? thread.createdAt
-  return timestamp ? `${label} - ${timestamp}` : label
+export function formatThreadRelativeTime(value?: string | null, now = Date.now()) {
+  if (!value) {
+    return "unknown"
+  }
+
+  const timestamp = readTimestampMs(value)
+  if (timestamp === null) {
+    return "unknown"
+  }
+
+  const seconds = Math.max(0, Math.floor((now - timestamp) / 1000))
+  if (seconds < 45) return "just now"
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days}d ago`
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months}mo ago`
+  return `${Math.floor(days / 365)}y ago`
+}
+
+function readTimestampMs(value: string) {
+  if (/^\d+$/.test(value)) {
+    const numeric = Number(value)
+    return numeric < 10_000_000_000 ? numeric * 1000 : numeric
+  }
+
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date.getTime()
+}
+
+function getThreadDisplayName(
+  link: ProjectCodexThreadLink,
+  summary: ReturnType<typeof getThreadSummaryById>
+) {
+  return summary?.name?.trim() || `Thread ${link.threadId.slice(0, 8)}`
+}
+
+export function getThreadLinkStatus(
+  summary: ReturnType<typeof getThreadSummaryById>
+) {
+  return summary ? "linked" : "check"
+}
+
+function getSectionTitleById(sections: WorkspaceSection[], sectionId?: string | null) {
+  if (!sectionId) {
+    return null
+  }
+
+  return sections.find((section) => section.id === sectionId)?.title ?? null
 }
 
 function getThreadSummaryById(
@@ -163,6 +215,94 @@ function getThreadSummaryById(
   threadId: string
 ) {
   return threads.find((thread) => thread.id === threadId) ?? null
+}
+
+function readObject(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function readArrayFromKeys(value: unknown, keys: string[]) {
+  const object = readObject(value)
+  if (!object) {
+    return null
+  }
+
+  for (const key of keys) {
+    const child = object[key]
+    if (Array.isArray(child)) {
+      return child
+    }
+  }
+
+  return null
+}
+
+function truncateThreadPreview(text: string) {
+  const normalized = text.replace(/\s+/g, " ").trim()
+  return normalized.length > THREAD_REQUEST_PREVIEW_LIMIT
+    ? `${normalized.slice(0, THREAD_REQUEST_PREVIEW_LIMIT - 3)}...`
+    : normalized
+}
+
+function readTextFromUserInput(value: unknown): string | null {
+  if (typeof value === "string") {
+    return value
+  }
+
+  const object = readObject(value)
+  if (!object) {
+    return null
+  }
+
+  for (const key of ["text", "content", "value"]) {
+    const child = object[key]
+    if (typeof child === "string") {
+      return child
+    }
+  }
+
+  return null
+}
+
+export function readFirstThreadRequestText(value: unknown) {
+  const turns =
+    readArrayFromKeys(value, ["data", "turns", "items"]) ??
+    (Array.isArray(value) ? value : [])
+
+  for (const rawTurn of turns) {
+    const turn = readObject(rawTurn)
+    const rawItems =
+      readArrayFromKeys(turn, ["items", "summaries", "events"]) ??
+      (turn ? [turn] : [])
+
+    for (const rawItem of rawItems) {
+      const item = readObject(rawItem)
+      const type = item?.type
+      if (type && type !== "userMessage" && type !== "user_message") {
+        continue
+      }
+
+      const content = readArrayFromKeys(item, ["content", "input"])
+      if (content) {
+        const joined = content
+          .map(readTextFromUserInput)
+          .filter((text): text is string => Boolean(text?.trim()))
+          .join(" ")
+        if (joined.trim()) {
+          return truncateThreadPreview(joined)
+        }
+      }
+
+      const text = readTextFromUserInput(item)
+      if (text?.trim()) {
+        return truncateThreadPreview(text)
+      }
+    }
+  }
+
+  return null
 }
 
 function getErrorMessage(error: unknown) {
@@ -197,18 +337,6 @@ function isMissingCodexThreadError(error: unknown) {
   )
 }
 
-function formatProjectThreadLabel(
-  link: ProjectCodexThreadLink,
-  summary: ReturnType<typeof getThreadSummaryById>
-) {
-  return formatThreadLabel({
-    createdAt: summary?.createdAt ?? link.createdAt,
-    id: link.threadId,
-    name: summary?.name,
-    updatedAt: summary?.updatedAt ?? link.lastUsedAt,
-  })
-}
-
 function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState {
   try {
     const parsedDocument = parseAgentHtml(document.ahtmlSource)
@@ -241,10 +369,16 @@ function ProjectThreadPickerContent({
   isLoading,
   isSelectingThread,
   onNewThread,
+  onRenameThread,
   onResumeThread,
+  optimisticThreadNames,
   projectThreadError,
   projectThreadLinks,
+  renameError,
+  renamingThreadId,
+  sections,
   threadSelectionError,
+  threadRequestPreviews,
   threadSummaries,
 }: {
   canSelectThread: boolean
@@ -252,12 +386,21 @@ function ProjectThreadPickerContent({
   isLoading: boolean
   isSelectingThread: boolean
   onNewThread: () => void
+  onRenameThread: (input: { name: string; threadId: string }) => Promise<void>
   onResumeThread: (threadId: string) => void
+  optimisticThreadNames: Record<string, string>
   projectThreadError?: string | null
   projectThreadLinks: ProjectCodexThreadLink[]
+  renameError?: string | null
+  renamingThreadId?: string | null
+  sections: WorkspaceSection[]
   threadSelectionError?: string | null
+  threadRequestPreviews: Record<string, ThreadPreviewState>
   threadSummaries: CodexThreadSummary[]
 }) {
+  const [editingThreadId, setEditingThreadId] = React.useState<string | null>(null)
+  const [editingName, setEditingName] = React.useState("")
+
   return (
     <div className="flex flex-col gap-3 text-sm">
       <div className="flex items-start justify-between gap-3">
@@ -286,6 +429,9 @@ function ProjectThreadPickerContent({
       {threadSelectionError ? (
         <p className="text-xs text-destructive">{threadSelectionError}</p>
       ) : null}
+      {renameError ? (
+        <p className="text-xs text-destructive">{renameError}</p>
+      ) : null}
       <div className="grid max-h-60 gap-2 overflow-auto">
         {!canSelectThread ? (
           <p className="text-xs text-muted-foreground">
@@ -296,21 +442,125 @@ function ProjectThreadPickerContent({
         ) : projectThreadLinks.length > 0 ? (
           projectThreadLinks.map((link) => {
             const summary = getThreadSummaryById(threadSummaries, link.threadId)
+            const sectionTitle = getSectionTitleById(sections, link.lastSectionId)
+            const displayName =
+              optimisticThreadNames[link.threadId] ??
+              getThreadDisplayName(link, summary)
+            const timestamp = formatThreadRelativeTime(
+              summary?.updatedAt ?? link.lastUsedAt ?? summary?.createdAt ?? link.createdAt
+            )
+            const status = getThreadLinkStatus(summary)
+            const preview = threadRequestPreviews[link.threadId]
+            const isEditing = editingThreadId === link.threadId
+            const isRenaming = renamingThreadId === link.threadId
+
             return (
-              <button
+              <div
                 key={link.threadId}
-                className="rounded-md border px-2 py-1.5 text-left text-xs hover:bg-muted disabled:opacity-50"
-                disabled={!canSelectThread || isSelectingThread}
-                onClick={() => onResumeThread(link.threadId)}
-                type="button"
+                className="group rounded-md border bg-background px-3 py-2 text-xs transition-colors hover:bg-muted/70"
               >
-                <span className="block truncate font-medium">
-                  {formatProjectThreadLabel(link, summary)}
+                <div className="flex min-w-0 items-center justify-between gap-2">
+                  {isEditing ? (
+                    <form
+                      className="flex min-w-0 flex-1 items-center gap-1.5"
+                      onSubmit={(event) => {
+                        event.preventDefault()
+                        const nextName = editingName.trim()
+                        if (!nextName || isRenaming) {
+                          return
+                        }
+                        void onRenameThread({
+                          name: nextName,
+                          threadId: link.threadId,
+                        }).then(() => setEditingThreadId(null))
+                      }}
+                    >
+                      <Input
+                        autoFocus
+                        className="h-7 min-w-0 flex-1 px-2 text-xs"
+                        disabled={isRenaming}
+                        onChange={(event) => setEditingName(event.target.value)}
+                        value={editingName}
+                      />
+                      <Button
+                        className="size-7 p-0"
+                        disabled={isRenaming || !editingName.trim()}
+                        type="submit"
+                        variant="ghost"
+                      >
+                        <CheckIcon className="size-3.5" />
+                      </Button>
+                      <Button
+                        className="size-7 p-0"
+                        disabled={isRenaming}
+                        onClick={() => setEditingThreadId(null)}
+                        type="button"
+                        variant="ghost"
+                      >
+                        <XIcon className="size-3.5" />
+                      </Button>
+                    </form>
+                  ) : (
+                    <button
+                      className="min-w-0 flex-1 truncate text-left font-medium text-foreground"
+                      disabled={!canSelectThread || isSelectingThread}
+                      onClick={() => onResumeThread(link.threadId)}
+                      type="button"
+                    >
+                      {displayName}
+                    </button>
+                  )}
+                  {!isEditing ? (
+                    <Button
+                      className="size-7 shrink-0 p-0 opacity-70 hover:opacity-100"
+                      disabled={!canSelectThread || isSelectingThread || isRenaming}
+                      onClick={() => {
+                        setEditingThreadId(link.threadId)
+                        setEditingName(
+                          optimisticThreadNames[link.threadId] ??
+                            summary?.name?.trim() ??
+                            ""
+                        )
+                      }}
+                      title="Rename thread"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <PencilIcon className="size-3.5" />
+                    </Button>
+                  ) : null}
+                  <span
+                    className={[
+                      "shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-normal",
+                      summary
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+                    ].join(" ")}
+                  >
+                    {status}
+                  </span>
+                </div>
+                <button
+                  className="mt-1 flex w-full min-w-0 items-center gap-2 text-left text-muted-foreground"
+                  disabled={!canSelectThread || isSelectingThread}
+                  onClick={() => onResumeThread(link.threadId)}
+                  type="button"
+                >
+                  <span className="truncate">
+                    {sectionTitle ?? link.lastAhtmlPath ?? "Project thread"}
+                  </span>
+                  <span aria-hidden="true">/</span>
+                  <span className="shrink-0">{timestamp}</span>
+                </button>
+                <p className="mt-1 truncate text-muted-foreground">
+                  {preview?.isLoading
+                    ? "Loading request..."
+                    : preview?.requestText || "No request yet"}
+                </p>
+                <span className="mt-1 block truncate font-mono text-[10px] text-muted-foreground/80">
+                  {link.threadId}
                 </span>
-                <span className="block truncate text-muted-foreground">
-                  {summary ? link.threadId : `${link.threadId} - verify on resume`}
-                </span>
-              </button>
+              </div>
             )
           })
         ) : (
@@ -352,6 +602,18 @@ export function WorkspaceSurface({
   const [threadSelectionError, setThreadSelectionError] = React.useState<
     string | null
   >(null)
+  const [threadRenameError, setThreadRenameError] = React.useState<string | null>(
+    null
+  )
+  const [renamingThreadId, setRenamingThreadId] = React.useState<string | null>(
+    null
+  )
+  const [optimisticThreadNames, setOptimisticThreadNames] = React.useState<
+    Record<string, string>
+  >({})
+  const [threadRequestPreviews, setThreadRequestPreviews] = React.useState<
+    Record<string, ThreadPreviewState>
+  >({})
   const [isThreadPickerOpen, setIsThreadPickerOpen] = React.useState(false)
   const [isSelectingThread, setIsSelectingThread] = React.useState(false)
   const [projectThreadLinks, setProjectThreadLinks] = React.useState<
@@ -574,6 +836,37 @@ export function WorkspaceSurface({
     [activeProject, codexConnection, selectedProjectThreadId]
   )
 
+  const renameThread = React.useCallback(
+    async ({ name, threadId }: { name: string; threadId: string }) => {
+      const nextName = name.trim()
+      if (!nextName) {
+        return
+      }
+
+      setThreadRenameError(null)
+      setRenamingThreadId(threadId)
+      try {
+        await codexConnection.request("thread/name/set", {
+          name: nextName,
+          threadId,
+        })
+        setOptimisticThreadNames((currentNames) => ({
+          ...currentNames,
+          [threadId]: nextName,
+        }))
+        void codexConnection.refreshThreads()
+      } catch (error) {
+        setThreadRenameError(
+          `Unable to rename Codex thread: ${getErrorMessage(error)}`
+        )
+        throw error
+      } finally {
+        setRenamingThreadId(null)
+      }
+    },
+    [codexConnection.refreshThreads, codexConnection.request]
+  )
+
   const createThreadForProject = React.useCallback(
     async (input: {
       ahtmlPath: string
@@ -750,6 +1043,8 @@ export function WorkspaceSurface({
       setProjectThreadLinks([])
       setProjectThreadListState({ error: null, isLoading: false })
       setSelectedProjectThreadId(null)
+      setThreadRequestPreviews({})
+      setOptimisticThreadNames({})
       setIsThreadPickerOpen(false)
       return
     }
@@ -787,6 +1082,67 @@ export function WorkspaceSurface({
       isCurrent = false
     }
   }, [activeProject])
+
+  React.useEffect(() => {
+    if (codexConnection.status !== "connected" || projectThreadLinks.length === 0) {
+      setThreadRequestPreviews({})
+      return
+    }
+
+    let isCurrent = true
+    const threadIds = projectThreadLinks.map((link) => link.threadId)
+    setThreadRequestPreviews((currentPreviews) => {
+      const nextPreviews: Record<string, ThreadPreviewState> = {}
+      for (const threadId of threadIds) {
+        nextPreviews[threadId] = currentPreviews[threadId] ?? {
+          isLoading: true,
+        }
+      }
+      return nextPreviews
+    })
+
+    for (const threadId of threadIds) {
+      void codexConnection
+        .request("thread/turns/list", {
+          itemsView: "summary",
+          limit: 1,
+          sortDirection: "asc",
+          threadId,
+        })
+        .then((result) => {
+          if (!isCurrent) {
+            return
+          }
+
+          setThreadRequestPreviews((currentPreviews) => ({
+            ...currentPreviews,
+            [threadId]: {
+              error: null,
+              isLoading: false,
+              requestText: readFirstThreadRequestText(result),
+            },
+          }))
+        })
+        .catch((error: unknown) => {
+          if (!isCurrent) {
+            return
+          }
+
+          setThreadRequestPreviews((currentPreviews) => ({
+            ...currentPreviews,
+            [threadId]: {
+              error: getErrorMessage(error),
+              isLoading: false,
+              requestText: null,
+            },
+          }))
+        })
+    }
+
+    return () => {
+      isCurrent = false
+    }
+  }, [codexConnection.request, codexConnection.status, projectThreadLinks])
 
   const petPresence = React.useMemo(
     () => agentActivity.presence ?? getAgentDeliveryPresence(agentDeliveryState),
@@ -860,6 +1216,11 @@ export function WorkspaceSurface({
   }
 
   const canSelectThread = codexConnection.status === "connected"
+  const threadSummaries = codexConnection.threadList.items.map((thread) =>
+    optimisticThreadNames[thread.id]
+      ? { ...thread, name: optimisticThreadNames[thread.id] }
+      : thread
+  )
   const threadPickerContent = (
     <ProjectThreadPickerContent
       canSelectThread={canSelectThread}
@@ -870,11 +1231,17 @@ export function WorkspaceSurface({
       }
       isSelectingThread={isSelectingThread}
       onNewThread={startNewThread}
+      onRenameThread={renameThread}
       onResumeThread={resumeThread}
+      optimisticThreadNames={optimisticThreadNames}
       projectThreadError={projectThreadListState.error}
       projectThreadLinks={projectThreadLinks}
+      renameError={threadRenameError}
+      renamingThreadId={renamingThreadId}
+      sections={activeProject.sections}
       threadSelectionError={threadSelectionError}
-      threadSummaries={codexConnection.threadList.items}
+      threadRequestPreviews={threadRequestPreviews}
+      threadSummaries={threadSummaries}
     />
   )
 

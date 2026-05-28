@@ -281,7 +281,7 @@ export function readThreads(value: unknown): CodexThreadSummary[] {
     []
 
   return rawThreads
-    .map((rawThread) => {
+    .map<CodexThreadSummary | null>((rawThread) => {
       const thread = readObject(rawThread)
       const id = typeof thread?.id === "string" ? thread.id : null
       if (!id) {

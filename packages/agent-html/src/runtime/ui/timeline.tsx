@@ -5,6 +5,11 @@ import { IconRuntime } from "@/agent-html/runtime/render/icon-runtime"
 import { timelineItemDefaults } from "@/agent-html/schema/defaults"
 import { cn } from "@/agent-html/lib/utils"
 
+type TimelineItemStatus = "default" | "complete" | "current" | "muted"
+
+const defaultTimelineItemStatus =
+  timelineItemDefaults.status as TimelineItemStatus
+
 function Timeline({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -20,12 +25,12 @@ function TimelineItem({
   className,
   icon,
   meta,
-  status = timelineItemDefaults.status,
+  status = defaultTimelineItemStatus,
   ...props
 }: React.ComponentProps<"div"> & {
   icon?: string
   meta?: string
-  status?: "default" | "complete" | "current" | "muted"
+  status?: TimelineItemStatus
 }) {
   return (
     <div
