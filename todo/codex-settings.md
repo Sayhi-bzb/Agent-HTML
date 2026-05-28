@@ -14,7 +14,7 @@ Server RPCs. Agent-HTML should not duplicate those settings.
 
 ```text
 Settings
-  -> configure Codex command / logs
+  -> configure Codex command only
   -> Tauri starts codex app-server --listen stdio://
   -> Tauri sends initialize / initialized
   -> App calls official thread/start through generic RPC
@@ -34,9 +34,6 @@ Implemented files:
 Visible settings should stay small:
 
 - Codex command
-- Enable event logs
-- Event log path
-- Codex event log path
 
 Visible status:
 
@@ -61,7 +58,11 @@ Actions:
 - Test connection
 - Stop
 - Restart
-- Open logs
+
+Developer diagnostics:
+
+- Connection trace is hidden behind `localStorage["agent-html.codex-connection-trace"] = "1"`.
+- Product settings should not expose Agent-HTML event log paths; Codex owns runtime logs through its official config.
 
 ## Next Event UX Work
 

@@ -30,7 +30,7 @@ Agent-HTML may:
 - generate a prompt from the selected Agent-HTML block/document context
 - call `thread/start` and `turn/start`
 - forward raw Codex notifications into the app event bus
-- store optional local JSONL diagnostics
+- keep hidden local connection traces for development diagnostics
 
 Agent-HTML must not duplicate Codex configuration UI for:
 
@@ -69,7 +69,7 @@ Implemented:
 - Tauri host forwards Codex JSON-RPC requests without owning thread state.
 - Agent-HTML context is sent to Codex as official `turn/start` input.
 - Raw Codex notifications are forwarded to the frontend event bus.
-- Optional local logs can capture prompt delivery and Codex JSON-RPC messages.
+- Hidden connection tracing can capture startup and JSON-RPC handoff details during development.
 
 Not implemented yet:
 

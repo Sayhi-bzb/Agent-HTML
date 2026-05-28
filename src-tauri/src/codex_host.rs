@@ -11,7 +11,6 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tauri::{Emitter, Manager, State};
-use tauri_plugin_opener::OpenerExt;
 use thiserror::Error;
 
 const CODEX_NOTIFICATION_EVENT: &str = "codex://notification";
@@ -83,9 +82,6 @@ impl Drop for CodexHostState {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CodexHostSettings {
     codex_command: String,
-    codex_event_log_path: String,
-    event_log_enabled: bool,
-    event_log_path: String,
 }
 
 impl Default for CodexHostSettings {
@@ -106,14 +102,6 @@ struct CodexHostHealth {
     provider: Option<String>,
     stderr: Option<String>,
     status: String,
-}
-
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct CodexHostLogPaths {
-    codex_event_log_path: String,
-    event_log_path: String,
-    resolved_from_defaults: bool,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -195,25 +183,12 @@ fn get_last_stderr(state: &CodexHostState) -> Option<String> {
 
 fn normalize_codex_settings(settings: &CodexHostSettings) -> CodexHostSettings {
     let default_command = if cfg!(windows) { "codex.cmd" } else { "codex" };
-    let default_event_log_path = default_event_log_path();
-    let default_codex_event_log_path = default_codex_event_log_path();
 
     CodexHostSettings {
         codex_command: if settings.codex_command.trim().is_empty() {
             default_command.to_string()
         } else {
             settings.codex_command.trim().to_string()
-        },
-        codex_event_log_path: if settings.codex_event_log_path.trim().is_empty() {
-            default_codex_event_log_path
-        } else {
-            settings.codex_event_log_path.trim().to_string()
-        },
-        event_log_enabled: settings.event_log_enabled,
-        event_log_path: if settings.event_log_path.trim().is_empty() {
-            default_event_log_path
-        } else {
-            settings.event_log_path.trim().to_string()
         },
     }
 }
@@ -226,14 +201,6 @@ fn default_settings_path(app: &tauri::AppHandle) -> CodexHostResult<PathBuf> {
     Ok(app_data_dir.join("codex-connection-settings.json"))
 }
 
-fn default_event_log_path() -> String {
-    ".tmp\\agent-html-codex-turns.jsonl".to_string()
-}
-
-fn default_codex_event_log_path() -> String {
-    ".tmp\\agent-html-codex-app-server-events.jsonl".to_string()
-}
-
 fn default_settings() -> CodexHostSettings {
     CodexHostSettings {
         codex_command: if cfg!(windows) {
@@ -241,33 +208,11 @@ fn default_settings() -> CodexHostSettings {
         } else {
             "codex".to_string()
         },
-        codex_event_log_path: default_codex_event_log_path(),
-        event_log_enabled: false,
-        event_log_path: default_event_log_path(),
     }
 }
 
 fn settings_with_runtime_defaults(settings: CodexHostSettings) -> CodexHostSettings {
     normalize_codex_settings(&settings)
-}
-
-fn resolve_log_paths(settings: &CodexHostSettings) -> CodexHostLogPaths {
-    let normalized = normalize_codex_settings(settings);
-    CodexHostLogPaths {
-        codex_event_log_path: normalized.codex_event_log_path.clone(),
-        event_log_path: normalized.event_log_path.clone(),
-        resolved_from_defaults: settings.event_log_path.trim().is_empty()
-            || settings.codex_event_log_path.trim().is_empty(),
-    }
-}
-
-fn resolve_log_directory(settings: &CodexHostSettings) -> PathBuf {
-    let normalized = normalize_codex_settings(settings);
-    let event_log_path = PathBuf::from(&normalized.event_log_path);
-    event_log_path
-        .parent()
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("."))
 }
 
 fn append_json_line(path: &str, payload: &Value) -> CodexHostResult<()> {
@@ -376,7 +321,6 @@ fn handle_codex_stdout_line(
     app: &tauri::AppHandle,
     pending_requests: &Arc<Mutex<HashMap<u64, PendingRequest>>>,
     last_error: &Arc<Mutex<Option<String>>>,
-    codex_event_log_path: Option<&str>,
     line: &str,
 ) {
     let message: Value = match serde_json::from_str(line) {
@@ -395,21 +339,6 @@ fn handle_codex_stdout_line(
             return;
         }
     };
-
-    if let Some(path) = codex_event_log_path {
-        if let Err(error) = append_json_line(path, &message) {
-            if let Ok(mut current_error) = last_error.lock() {
-                *current_error = Some(error.to_string());
-            }
-            append_connection_trace(
-                "host:codex-event-log-error",
-                json!({
-                    "error": error.to_string(),
-                    "path": path,
-                }),
-            );
-        }
-    }
 
     if let Some(id) = message.get("id").and_then(Value::as_u64) {
         let sender = pending_requests
@@ -483,9 +412,6 @@ fn spawn_codex_process(
     let app_for_stdout = app.clone();
     let pending_for_stdout = pending_requests.clone();
     let last_error_for_stdout = last_error.clone();
-    let codex_event_log_path = settings
-        .event_log_enabled
-        .then(|| settings.codex_event_log_path.clone());
     thread::spawn(move || {
         let reader = BufReader::new(stdout);
         for line in reader.lines() {
@@ -494,7 +420,6 @@ fn spawn_codex_process(
                     &app_for_stdout,
                     &pending_for_stdout,
                     &last_error_for_stdout,
-                    codex_event_log_path.as_deref(),
                     &line,
                 ),
                 Ok(_) => {}
@@ -736,18 +661,6 @@ pub(crate) fn codex_host_settings_save(
 }
 
 #[tauri::command]
-pub(crate) fn codex_host_logs(
-    app: tauri::AppHandle,
-    settings: Option<CodexHostSettings>,
-) -> CodexHostResult<CodexHostLogPaths> {
-    let settings = match settings {
-        Some(settings) => settings_with_runtime_defaults(settings),
-        None => load_settings_from_disk(&app)?,
-    };
-    Ok(resolve_log_paths(&settings))
-}
-
-#[tauri::command]
 pub(crate) fn codex_connection_trace(input: CodexConnectionTraceInput) -> CodexHostResult<()> {
     CONNECTION_TRACE_ENABLED.store(true, Ordering::Relaxed);
     let line = json!({
@@ -757,24 +670,6 @@ pub(crate) fn codex_connection_trace(input: CodexConnectionTraceInput) -> CodexH
         "payload": input.payload,
     });
     append_json_line(CONNECTION_TRACE_PATH, &line)
-}
-
-#[tauri::command]
-pub(crate) fn codex_host_open_logs(
-    app: tauri::AppHandle,
-    settings: Option<CodexHostSettings>,
-) -> CodexHostResult<String> {
-    let settings = match settings {
-        Some(settings) => settings_with_runtime_defaults(settings),
-        None => load_settings_from_disk(&app)?,
-    };
-    let directory = resolve_log_directory(&settings);
-    fs::create_dir_all(&directory)?;
-    let path = directory.canonicalize().unwrap_or(directory);
-    app.opener()
-        .open_path(path.to_string_lossy().as_ref(), None::<&str>)
-        .map_err(|error| CodexHostError::Process(error.to_string()))?;
-    Ok(path.to_string_lossy().to_string())
 }
 
 #[tauri::command]
@@ -973,17 +868,6 @@ pub(crate) fn codex_rpc_request(
     );
     ensure_host_ready(&app, state.clone(), &settings)?;
     ensure_initialized(&state)?;
-
-    if settings.event_log_enabled && input.method == "turn/start" {
-        let _ = append_json_line(
-            &settings.event_log_path,
-            &json!({
-                "createdAt": chrono_like_timestamp(),
-                "method": input.method,
-                "params": input.params
-            }),
-        );
-    }
 
     let result = send_codex_request(&state, &input.method, input.params)?;
     Ok(CodexRpcRequestResult { result })

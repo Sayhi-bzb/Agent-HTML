@@ -10,9 +10,6 @@ export type CodexConnectionStatus =
 
 export type CodexConnectionSettings = {
   codexCommand: string
-  codexEventLogPath: string
-  eventLogEnabled: boolean
-  eventLogPath: string
 }
 
 export type CodexHostHealth = {
@@ -50,7 +47,6 @@ type CodexConnectionContextValue = {
   isLoaded: boolean
   isBusy: boolean
   lastError: string | null
-  openLogs: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   request: (method: string, params: unknown) => Promise<unknown>
   settings: CodexConnectionSettings
   status: CodexConnectionStatus
@@ -62,7 +58,6 @@ type CodexConnectionContextValue = {
   updateSettings: (settings: CodexConnectionSettings) => Promise<void>
 }
 
-const STORAGE_KEY = "agent-html.codex-connection"
 const TRACE_STORAGE_KEY = "agent-html.codex-connection-trace"
 const CONNECTION_TIMEOUT_MS = 30000
 
@@ -72,12 +67,6 @@ export type CodexConnectionPhase =
   | "error"
   | "loadingSettings"
   | "stopped"
-
-type CodexHostLogPaths = {
-  codexEventLogPath: string
-  eventLogPath: string
-  resolvedFromDefaults: boolean
-}
 
 type ApplyProcessStatusOptions = {
   allowConnectingPhase?: boolean
@@ -98,66 +87,11 @@ function getDefaultCodexCommand() {
 function getDefaultSettings(): CodexConnectionSettings {
   return {
     codexCommand: getDefaultCodexCommand(),
-    codexEventLogPath: ".tmp\\agent-html-codex-app-server-events.jsonl",
-    eventLogEnabled: false,
-    eventLogPath: ".tmp\\agent-html-codex-turns.jsonl",
   }
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null
 }
 
 function loadSettings(): CodexConnectionSettings {
-  if (typeof localStorage === "undefined") {
-    return getDefaultSettings()
-  }
-
-  const stored = localStorage.getItem(STORAGE_KEY)
-  if (!stored) {
-    return getDefaultSettings()
-  }
-
-  try {
-    const parsed: unknown = JSON.parse(stored)
-    const defaults = getDefaultSettings()
-    if (!isPlainObject(parsed)) {
-      return defaults
-    }
-
-    return {
-      codexCommand:
-        typeof parsed.codexCommand === "string"
-          ? parsed.codexCommand
-          : defaults.codexCommand,
-      codexEventLogPath:
-        typeof parsed.codexEventLogPath === "string"
-          ? parsed.codexEventLogPath
-          : defaults.codexEventLogPath,
-      eventLogEnabled:
-        typeof parsed.eventLogEnabled === "boolean"
-          ? parsed.eventLogEnabled
-          : defaults.eventLogEnabled,
-      eventLogPath:
-        typeof parsed.eventLogPath === "string"
-          ? parsed.eventLogPath
-          : defaults.eventLogPath,
-    }
-  } catch {
-    return getDefaultSettings()
-  }
-}
-
-function saveSettings(settings: CodexConnectionSettings) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
-}
-
-function getOpenLogsInstructions(paths: CodexHostLogPaths) {
-  return [
-    "Open these log files from your workspace or file explorer:",
-    `Event log: ${paths.eventLogPath}`,
-    `Codex event log: ${paths.codexEventLogPath}`,
-  ].join("\n")
+  return getDefaultSettings()
 }
 
 function getErrorMessage(error: unknown) {
@@ -235,12 +169,7 @@ function areSettingsEqual(
   left: CodexConnectionSettings,
   right: CodexConnectionSettings
 ) {
-  return (
-    left.codexCommand === right.codexCommand &&
-    left.codexEventLogPath === right.codexEventLogPath &&
-    left.eventLogEnabled === right.eventLogEnabled &&
-    left.eventLogPath === right.eventLogPath
-  )
+  return left.codexCommand === right.codexCommand
 }
 
 function isConnectionTraceEnabled() {
@@ -397,7 +326,6 @@ export function CodexConnectionProvider({
             ? currentSettings
             : savedSettings
         )
-        saveSettings(savedSettings)
         return savedSettings
       }
 
@@ -407,7 +335,6 @@ export function CodexConnectionProvider({
           ? currentSettings
           : nextSettings
       )
-      saveSettings(nextSettings)
       return nextSettings
     },
     [canManageHost]
@@ -626,26 +553,6 @@ export function CodexConnectionProvider({
     await connect(settingsOverride)
   }, [connect])
 
-  const openLogs = React.useCallback(
-    async (settingsOverride?: CodexConnectionSettings) => {
-      const targetSettings = settingsOverride ?? settingsRef.current
-      if (!canManageHost) {
-        throw new Error(
-          getOpenLogsInstructions({
-            codexEventLogPath: targetSettings.codexEventLogPath,
-            eventLogPath: targetSettings.eventLogPath,
-            resolvedFromDefaults: false,
-          })
-        )
-      }
-
-      await invoke<string>("codex_host_open_logs", {
-        settings: targetSettings,
-      })
-    },
-    [canManageHost]
-  )
-
   const updateSettings = React.useCallback(
     async (nextSettings: CodexConnectionSettings) => {
       await saveSettingsEverywhere(nextSettings)
@@ -673,7 +580,6 @@ export function CodexConnectionProvider({
             ? currentSettings
             : loadedSettings
         )
-        saveSettings(loadedSettings)
         writeConnectionTrace("settings:loaded", {
           command: loadedSettings.codexCommand,
           phase: phaseRef.current,
@@ -753,7 +659,6 @@ export function CodexConnectionProvider({
       isLoaded,
       isBusy,
       lastError,
-      openLogs,
       request,
       restart,
       settings,
@@ -772,7 +677,6 @@ export function CodexConnectionProvider({
       isLoaded,
       isBusy,
       lastError,
-      openLogs,
       request,
       restart,
       settings,

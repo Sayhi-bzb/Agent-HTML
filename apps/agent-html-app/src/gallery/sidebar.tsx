@@ -2,12 +2,12 @@ import {
   type AppThemePresetId,
 } from "@/app/shared/app-theme/tokens"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/app/shared/ui/dropdown-menu"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/shared/ui/select"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -24,7 +24,6 @@ import {
 } from "@/app/gallery/theme-editor-sections"
 import {
   CheckIcon,
-  ChevronRightIcon,
   PackageIcon,
   PawPrintIcon,
 } from "lucide-react"
@@ -33,6 +32,15 @@ type AppThemePresetNavItem = {
   id: AppThemePresetId
   label: string
 }
+
+const galleryThemeSidebarSelectTriggerClassName =
+  "h-8 w-full gap-2 border-transparent bg-sidebar px-2 py-0 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+
+const galleryThemeSidebarSelectContentClassName =
+  "w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)] p-1"
+
+const galleryThemeSidebarSelectItemClassName =
+  "gap-2 px-2 py-1 pr-8 text-sm"
 
 export function GalleryThemeSidebarHeader({
   activePresetId,
@@ -47,65 +55,90 @@ export function GalleryThemeSidebarHeader({
   onSelectPreset: (presetId: AppThemePresetId) => void
   presets: readonly AppThemePresetNavItem[]
 }) {
+  const activePreset = presets.find((preset) => preset.id === activePresetId)
+  const activeSection = galleryThemeEditorSections.find(
+    (section) => section.id === activeSectionId
+  )
+
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              className="group/trigger data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              type="button"
+    <div className="flex flex-col gap-1 px-2">
+      <Select
+        onValueChange={(value) => onSelectPreset(value as AppThemePresetId)}
+        value={activePresetId}
+      >
+        <SelectTrigger
+          aria-label="Theme preset"
+          className={galleryThemeSidebarSelectTriggerClassName}
+        >
+          <SelectValue placeholder="Theme">
+            <span className="min-w-0 truncate">
+              {activePreset?.label ?? "Theme"}
+            </span>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent
+          align="start"
+          className={galleryThemeSidebarSelectContentClassName}
+          position="popper"
+        >
+          {presets.map((preset) => (
+            <SelectItem
+              className={galleryThemeSidebarSelectItemClassName}
+              key={preset.id}
+              value={preset.id}
             >
-              <span>theme</span>
-              <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/trigger:rotate-90" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0"
-            side="bottom"
-            sideOffset={6}
-          >
-            <DropdownMenuRadioGroup
-              onValueChange={(value) =>
-                onSelectPreset(value as AppThemePresetId)
-              }
-              value={activePresetId}
-            >
-              {presets.map((preset) => (
-                <DropdownMenuRadioItem key={preset.id} value={preset.id}>
-                  <span className="min-w-0 truncate">{preset.label}</span>
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
+              <span className="min-w-0 truncate">{preset.label}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      {galleryThemeEditorSections.map((section) => {
-        const Icon = section.icon
-        const isActive = section.id === activeSectionId
-
-        return (
-          <SidebarMenuItem key={section.id}>
-            <SidebarMenuButton
-              isActive={isActive}
-              onClick={() => onSelectSection(section.id)}
-              type="button"
-            >
-              <Icon className="size-4" />
-              <span className="min-w-0 flex-1 truncate">{section.label}</span>
-              {isActive ? (
-                <CheckIcon
+      <Select
+        onValueChange={(value) =>
+          onSelectSection(value as GalleryThemeEditorSectionId)
+        }
+        value={activeSectionId}
+      >
+        <SelectTrigger
+          aria-label="Theme editor section"
+          className={galleryThemeSidebarSelectTriggerClassName}
+        >
+          <SelectValue placeholder="Section">
+            {activeSection ? (
+              <span className="flex min-w-0 items-center gap-2">
+                <activeSection.icon
                   aria-hidden="true"
-                  className="size-4 shrink-0 text-sidebar-foreground/60"
+                  className="size-4 shrink-0"
                 />
-              ) : null}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        )
-      })}
-    </SidebarMenu>
+                <span className="truncate">{activeSection.label}</span>
+              </span>
+            ) : (
+              <span className="min-w-0 truncate">Section</span>
+            )}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent
+          align="start"
+          className={galleryThemeSidebarSelectContentClassName}
+          position="popper"
+        >
+          {galleryThemeEditorSections.map((section) => {
+            const Icon = section.icon
+
+            return (
+              <SelectItem
+                className={galleryThemeSidebarSelectItemClassName}
+                key={section.id}
+                value={section.id}
+              >
+                <Icon aria-hidden="true" className="size-4 shrink-0" />
+                <span className="min-w-0 truncate">{section.label}</span>
+              </SelectItem>
+            )
+          })}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }
 

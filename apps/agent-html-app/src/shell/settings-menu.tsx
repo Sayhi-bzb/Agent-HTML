@@ -286,67 +286,11 @@ function CodexConnectionDialog({
                 </div>
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="logs-diagnostics">
+            <AccordionItem value="diagnostics">
               <AccordionTrigger>
-                <Trans>Logs & Diagnostics</Trans>
+                <Trans>Diagnostics</Trans>
               </AccordionTrigger>
               <AccordionContent className="grid gap-3">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    checked={draftSettings.eventLogEnabled}
-                    className="size-4 accent-primary"
-                    onChange={(event) =>
-                      setDraftSettings((current) => ({
-                        ...current,
-                        eventLogEnabled: event.target.checked,
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  <Trans>Enable event logs</Trans>
-                </label>
-                {draftSettings.eventLogEnabled ? (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="codex-event-log">
-                        <Trans>Event log path</Trans>
-                      </Label>
-                      <Input
-                        id="codex-event-log"
-                        onChange={updateTextSetting("eventLogPath")}
-                        value={draftSettings.eventLogPath}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="codex-server-log">
-                        <Trans>Codex event log path</Trans>
-                      </Label>
-                      <Input
-                        id="codex-server-log"
-                        onChange={updateTextSetting("codexEventLogPath")}
-                        value={draftSettings.codexEventLogPath}
-                      />
-                    </div>
-                  </div>
-                ) : null}
-                <div>
-                  <Button
-                    disabled={!codexConnection.isLoaded}
-                    onClick={() =>
-                      void codexConnection
-                        .openLogs(draftSettings)
-                        .catch((error) =>
-                          window.alert(
-                            error instanceof Error ? error.message : String(error)
-                          )
-                        )
-                    }
-                    type="button"
-                    variant="outline"
-                  >
-                    <Trans>Open log folder</Trans>
-                  </Button>
-                </div>
                 <SettingsDiagnosticsList
                   items={[
                     {
