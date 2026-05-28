@@ -10,7 +10,7 @@ export const galleryViews: GalleryView[] = [
   {
     id: "theme",
     label: "Theme",
-    summary: "Edit app theme tokens, presets, and preview component coverage.",
+    summary: "Edit app theme colors, typography, radius, spacing, and shadows.",
   },
   {
     id: "components",

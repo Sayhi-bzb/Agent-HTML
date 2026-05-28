@@ -27,7 +27,7 @@ It owns:
 It exists so Gallery can grow like an editor asset library without polluting either the primitive
 layer or the generic composite layer.
 
-It MUST NOT become a second primitive UI library.
+It SHOULD NOT become a second primitive UI library.
 
 Top-level `apps/agent-html-app/src/gallery/*` should remain preview-agnostic orchestration first.
 
@@ -53,7 +53,7 @@ It owns:
 - preview-only adaptation rules under `preview/rule/*`
 
 `apps/agent-html-app/src/gallery/preview/ui/*` exists only for preview showcase consumption.
-It MUST NOT become a second gallery-wide primitive layer.
+It SHOULD NOT become a second gallery-wide primitive layer.
 Top-level gallery editor and panel code MUST continue to consume `apps/agent-html-app/src/shared/ui/*`.
 
 ### `apps/agent-html-app/src/index.css`
@@ -91,16 +91,6 @@ It owns:
 - reusable feature-facing composition
 - stable product patterns built from primitives
 
-Current stable examples include:
-
-- `AppSidebar`
-- `ConfirmationDialog`
-- `SiteHeader`
-- `NavProjects`
-- `SearchCommand`
-- `GalleryPanel`
-- `GalleryEditorPanel`
-
 It MUST NOT become a second primitive library.
 It also MUST NOT become the long-term storage area for gallery asset data that belongs in
 `apps/agent-html-app/src/gallery/*`.
@@ -135,8 +125,7 @@ Design decisions should originate from this order:
 
 If a page needs repeated local visual overrides, the rule probably belongs higher in the system.
 
-The current shell already proves that mode-aware behavior belongs in composites before it belongs
-in page-local one-offs.
+Current shell code puts mode-aware behavior in composites before page-local one-offs.
 
 ## Class Usage Rules
 
@@ -190,17 +179,9 @@ It should stay local when:
 - it is purely contextual
 - its reuse model is still unclear
 
-The following are no longer placeholders in the current app and should be treated as stable
-composites:
-
-- the mode-aware sidebar
-- the mode-aware header tab rail
-- the app-level confirmation dialog
-- the gallery scene panel
-- the gallery color editor panel
-
-Gallery asset content, however, should live in `apps/agent-html-app/src/gallery/*` even when those composites render
-it.
+Stable shell patterns should be promoted into this layer, but feature-domain content must remain in
+the feature owner. Gallery asset content belongs in `apps/agent-html-app/src/gallery/*` even when a
+shell composite renders it.
 
 ## Review Checklist
 

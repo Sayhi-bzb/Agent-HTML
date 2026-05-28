@@ -44,6 +44,11 @@ import {
   useSidebar,
 } from "@/app/shared/ui/sidebar"
 import {
+  SettingsDiagnosticsList,
+  SettingsInfoPanel,
+  SettingsStatusPanel,
+} from "@/app/shell/settings-surface"
+import {
   BellIcon,
   BadgeCheckIcon,
   CableIcon,
@@ -56,7 +61,8 @@ import {
   SunIcon,
 } from "lucide-react"
 import * as React from "react"
-import { Trans, useLingui } from "@lingui/react/macro"
+import { useLingui } from "@lingui/react"
+import { Trans } from "@lingui/react/macro"
 
 const themeItems: {
   icon: typeof SunIcon
@@ -120,20 +126,20 @@ function LocalizedLanguageLabel({
 }: {
   label: "English" | "System · English" | "System · 中文" | "中文"
 }) {
-  const { t } = useLingui()
+  const { _ } = useLingui()
 
-  if (label === "System · English") return t`System · English`
-  if (label === "System · 中文") return t`System · 中文`
-  if (label === "English") return t`English`
-  return t`中文`
+  if (label === "System · English") return _({ id: "System · English" })
+  if (label === "System · 中文") return _({ id: "System · 中文" })
+  if (label === "English") return _({ id: "English" })
+  return _({ id: "中文" })
 }
 
 function LocalizedThemeLabel({ label }: { label: "Dark" | "Light" | "System" }) {
-  const { t } = useLingui()
+  const { _ } = useLingui()
 
-  if (label === "Light") return t`Light`
-  if (label === "Dark") return t`Dark`
-  return t`System`
+  if (label === "Light") return _({ id: "Light" })
+  if (label === "Dark") return _({ id: "Dark" })
+  return _({ id: "System" })
 }
 
 function CodexConnectionDialog({
@@ -143,21 +149,22 @@ function CodexConnectionDialog({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
-  const { t } = useLingui()
+  const { _ } = useLingui()
   const codexConnection = useCodexConnection()
   const [draftSettings, setDraftSettings] = React.useState(
     codexConnection.settings
   )
   const wasOpenRef = React.useRef(false)
-  const statusSummary = !codexConnection.isLoaded
-    ? t`Loading saved settings...`
-    : codexConnection.status === "connected"
-      ? t`Connected`
-      : codexConnection.status === "starting"
-        ? t`Starting...`
-        : codexConnection.status === "error"
-          ? t`Connection failed`
-          : t`Not connected`
+  const displayStatus = codexConnection.status
+  const statusSummary = codexConnection.phase === "loadingSettings"
+    ? _({ id: "Loading saved settings..." })
+    : codexConnection.phase === "connected"
+      ? _({ id: "Connected" })
+      : codexConnection.phase === "connecting"
+        ? _({ id: "Starting..." })
+        : codexConnection.phase === "error"
+          ? _({ id: "Connection failed" })
+          : _({ id: "Not connected" })
 
   React.useEffect(() => {
     if (open && !wasOpenRef.current) {
@@ -184,7 +191,11 @@ function CodexConnectionDialog({
   const runAction = React.useCallback(
     async (action: (settingsOverride?: typeof draftSettings) => Promise<void>) => {
       await codexConnection.updateSettings(draftSettings)
-      await action(draftSettings)
+      try {
+        await action(draftSettings)
+      } catch {
+        // The connection provider owns the visible error state.
+      }
     },
     [codexConnection, draftSettings]
   )
@@ -204,45 +215,41 @@ function CodexConnectionDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
-          <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
-            <div className="min-w-0">
-              <p className="text-sm font-medium">
-                <Trans>Status</Trans>
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {statusSummary}
-              </p>
-            </div>
-            <Badge
-              variant={
-                codexConnection.status === "connected"
-                  ? "default"
-                  : codexConnection.status === "error"
-                    ? "destructive"
-                    : "outline"
-              }
-            >
-              {codexConnection.status}
-            </Badge>
-          </div>
-          <p className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">
+          <SettingsStatusPanel
+            label={<Trans>Status</Trans>}
+            description={statusSummary}
+            action={
+              <Badge
+                variant={
+                  displayStatus === "connected"
+                    ? "default"
+                    : displayStatus === "error"
+                      ? "destructive"
+                      : "outline"
+                }
+              >
+                {displayStatus}
+              </Badge>
+            }
+          />
+          <SettingsInfoPanel>
             <Trans>
               Codex model, approval, sandbox, profile, and trust settings are read
               by Codex from its official config layers, including user and project
               config files. Agent-HTML only manages the local Codex host lifecycle.
             </Trans>
-          </p>
+          </SettingsInfoPanel>
           {codexConnection.lastError ? (
-            <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            <SettingsInfoPanel variant="destructive">
               {codexConnection.lastError}
-            </p>
+            </SettingsInfoPanel>
           ) : null}
           {!codexConnection.canManageHost ? (
-            <p className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">
+            <SettingsInfoPanel>
               <Trans>
                 Desktop runtime required to manage Codex.
               </Trans>
-            </p>
+            </SettingsInfoPanel>
           ) : null}
           <Accordion
             type="multiple"
@@ -340,48 +347,37 @@ function CodexConnectionDialog({
                     <Trans>Open log folder</Trans>
                   </Button>
                 </div>
-                <dl className="grid gap-2 rounded-lg border p-3 text-xs sm:grid-cols-2">
-                  <div>
-                    <dt className="text-muted-foreground">
-                      <Trans>Provider</Trans>
-                    </dt>
-                    <dd>{codexConnection.health?.provider ?? t`unknown`}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">
-                      <Trans>App server</Trans>
-                    </dt>
-                    <dd>
-                      {codexConnection.health?.appServerRunning
-                        ? t`running`
-                        : t`off`}
-                    </dd>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <dt className="text-muted-foreground">
-                      <Trans>Thread</Trans>
-                    </dt>
-                    <dd className="break-all">
-                      {codexConnection.activeThreadId ?? t`none`}
-                    </dd>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <dt className="text-muted-foreground">
-                      <Trans>Codex command</Trans>
-                    </dt>
-                    <dd className="break-all">
-                      {codexConnection.health?.codexCommand ?? t`unknown`}
-                    </dd>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <dt className="text-muted-foreground">
-                      <Trans>Codex cwd</Trans>
-                    </dt>
-                    <dd className="break-all">
-                      {codexConnection.health?.cwd ?? t`unknown`}
-                    </dd>
-                  </div>
-                </dl>
+                <SettingsDiagnosticsList
+                  items={[
+                    {
+                      label: <Trans>Provider</Trans>,
+                      value: codexConnection.health?.provider ?? _({ id: "unknown" }),
+                    },
+                    {
+                      label: <Trans>App server</Trans>,
+                      value: codexConnection.health?.appServerRunning
+                        ? _({ id: "running" })
+                        : _({ id: "off" }),
+                    },
+                    {
+                      label: <Trans>Thread</Trans>,
+                      span: "full",
+                      value: codexConnection.activeThreadId ?? _({ id: "none" }),
+                    },
+                    {
+                      label: <Trans>Codex command</Trans>,
+                      span: "full",
+                      value:
+                        codexConnection.health?.codexCommand ??
+                        _({ id: "unknown" }),
+                    },
+                    {
+                      label: <Trans>Codex cwd</Trans>,
+                      span: "full",
+                      value: codexConnection.health?.cwd ?? _({ id: "unknown" }),
+                    },
+                  ]}
+                />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -463,8 +459,10 @@ export function SettingsMenu() {
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <LanguagesIcon />
-              <Trans>Language</Trans>
-              <span className="ml-auto max-w-28 truncate text-xs text-muted-foreground">
+              <span className="min-w-0 flex-1">
+                <Trans>Language</Trans>
+              </span>
+              <span className="max-w-28 shrink-0 truncate text-xs text-muted-foreground">
                 <LocalizedLanguageLabel
                   label={
                     languageSummary as

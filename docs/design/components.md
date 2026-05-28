@@ -66,7 +66,7 @@ Rules:
 
 ## Card and Panel Standard
 
-Cards are the default content container.
+Cards are a common content container, not the default shell surface.
 
 Characteristics:
 
@@ -84,6 +84,20 @@ Rules:
 - dashed internal blocks MAY be used for placeholders or segmentation only
 - sidebar-hosted editor panels MAY use shell-facing surfaces instead of workspace cards when they
   belong to the shell itself
+
+## Settings Surface Standard
+
+Settings dialogs currently use status, explanatory, and diagnostic shell composites. These are
+settings-specific structure, not generic card replacements.
+
+Rules:
+
+- settings status surfaces represent chrome or live state and SHOULD disable text selection
+- settings info surfaces carry readable explanation or errors and SHOULD preserve text selection
+- settings diagnostic lists SHOULD keep labels non-selectable while preserving selectable values
+- settings dialogs SHOULD compose these shell surfaces instead of hand-writing bordered status
+  blocks
+- diagnostic values such as thread ids, commands, paths, and cwd MUST remain copyable
 
 ## Sidebar Standard
 
@@ -119,12 +133,37 @@ Rules:
 - sidebar-hosted readable content MUST opt into selectable behavior explicitly instead of inheriting
   navigation defaults
 
-The current implementation includes two stable sidebar uses:
+## Navigation Item Structure Standard
 
-1. workspace navigation sidebar
-2. gallery-mode color editor sidebar
+Tabs, sidebar rows, menu items, and select items belong to the same structural
+family: compact selectable items with one primary target and optional supporting
+slots. They do not share one component because their semantics differ.
 
-These are variants of the same shell family, not separate systems.
+New or touched navigation items MUST follow this layout discipline.
+
+Rules:
+
+- the primary hit target SHOULD own the main item surface
+- labels MUST live in a compressible `min-w-0` content region and truncate
+  inside that region
+- leading icons, trailing status, and trailing actions MUST NOT be compressed by
+  long labels
+- interactive trailing actions such as close, duplicate, delete, or more menus
+  SHOULD be sibling overlay controls or component-owned action slots
+- primary targets MUST reserve inline space for overlay actions instead of
+  letting actions compete with title layout
+- static trailing meta such as a summary value, swatch, badge, or check state MAY
+  be a flex sibling only when it is explicitly non-interactive, `shrink-0`, and
+  separated from the label truncation boundary
+- selection indicators inside menus and selects SHOULD use the menu or select
+  primitive's indicator pattern rather than ad hoc `ml-auto` icons
+- component families SHOULD keep their own semantics: shell document tabs use the
+  shell tab rail composite, sidebar navigation uses sidebar primitives, menu
+  choices use menu primitives, and form selections use select primitives
+
+This standard is structural, not visual. It exists to keep titles readable,
+actions stable, focus states unclipped, and overflow contained by the owning
+rail, row, or menu.
 
 ## Menu and Overlay Standard
 
@@ -165,16 +204,6 @@ Rules:
 - sidebar surfaces MUST consume `sidebar*`; sidebar item tokens MUST NOT be reused inside popover or
   dropdown content
 
-Current mappings:
-
-- workspace project / section navigation uses `Collapsible`
-- gallery editor color role groups use `Collapsible`
-- gallery header theme and config dimension menus use `DropdownMenu`
-- gallery color-token editing uses `Popover`
-- app settings uses `DropdownMenu`
-- project search uses `CommandDialog`
-- mobile sidebar behavior uses `Sheet`
-
 ### Confirmation Dialog Standard
 
 Confirmation dialogs are for decisions that affect existing user work or irreversible structure.
@@ -191,11 +220,6 @@ Rules:
 - cancel SHOULD close the dialog without changing user data or navigation state
 - confirmation titles SHOULD name the decision, not the implementation detail
 - descriptions SHOULD explain the consequence of the next action in one short sentence
-
-Current mappings:
-
-- Gallery theme exit uses a save / discard / cancel confirmation
-- workspace project and section deletion use destructive confirmations
 
 ## Header and Tab Rail Standard
 
@@ -215,19 +239,10 @@ Rules:
 - scene tabs MAY be non-closable when they represent shell mode state rather than document state
 - Gallery view-local navigation, filters, and preview selectors SHOULD stay inside the active view
   instead of becoming header tabs
-- the header tab rail MUST not compete with window controls for space
-- overflowing tabs SHOULD scroll horizontally inside the tab rail viewport
-- header tab rail scrollbars MUST NOT be visible or consume header layout height
-- active tab affordances MUST NOT depend on bottom-aligned layout or share space with scrollbars
-- shell document tab rails MUST reserve vertical visual space for active and focus states so
-  rounded corners, rings, and local elevation are not clipped by the scroll viewport
-- window controls are protected shell chrome and MUST remain visible and clickable when tabs overflow
+- header zone, overflow, alignment, and protected window-control layout rules are owned by
+  `layout.md`
 - shell document tabs MUST use a shell tab rail composite rather than the generic content tab
   primitive
-- shell document tabs MUST share the header chrome vertical centerline with sidebar and window
-  control icons
-- shell document tabs SHOULD compress within the available middle zone before overflowing
-  horizontally
 - shell document tabs MUST keep a readable minimum width; compression must not reduce labels to
   ambiguous two- or three-character fragments
 - shell document tabs MUST preserve tablist keyboard navigation for arrow, home, and end keys
@@ -268,7 +283,8 @@ State treatment MUST be coherent across families.
 For current shell navigation:
 
 - secondary hover MAY strengthen text without adding background
-- selected sidebar items SHOULD NOT become bold by default
+- selected sidebar items should prefer surface and foreground contrast over font-weight changes;
+  existing font-weight active states are a normalization target
 - scene or project selection SHOULD remain readable through surface and foreground contrast
 
 ## Selection and Cursor Standard
@@ -293,23 +309,3 @@ Rules:
   explicit selectable text affordances use `data-cursor="text"`
 - desktop drag regions are window-management boundaries only; `data-tauri-drag-region` MUST NOT be
   used as a substitute for content selection rules
-
-Current mappings:
-
-- header chrome and tab rail disable text selection
-- shared buttons, menu items, command items, select items, labels, and scrollbars disable text
-  selection
-- runtime viewport, runtime text, and code bodies remain selectable
-- runtime block handles, code headers, copy buttons, and code line numbers disable text selection
-
-## Reuse Pipeline
-
-The following page patterns should be promoted into explicit reusable composites once they recur:
-
-- dashboard stat card
-- section header row
-- activity list item
-- empty state block
-- settings form section
-- list toolbar
-- gallery sidebar support panel

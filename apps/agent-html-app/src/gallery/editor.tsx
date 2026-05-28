@@ -11,7 +11,17 @@ import {
   type AppColorTokenName,
   type AppColorTokenValue,
   type AppColorTokenValues,
+  type AppThemeCssVariables,
 } from "@/app/shared/app-theme/tokens"
+import {
+  appThemeFontOptions,
+  createAppThemeShadowScaleVariables,
+  formatAppThemeCssNumber,
+  getAppThemeCssVariableValue,
+  parseAppThemeCssNumber,
+  type AppThemeEditableVariableName,
+} from "@/app/shared/app-theme/variables"
+import type { GalleryThemeEditorSectionId } from "@/app/gallery/theme-editor-sections"
 import {
   Collapsible,
   CollapsibleContent,
@@ -209,12 +219,14 @@ function GallerySidebarPopoverItem({
             type="button"
           >
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span>{label}</span>
-              <span className="text-xs text-sidebar-foreground/45">
+              <span className="truncate">{label}</span>
+              <span className="truncate text-xs text-sidebar-foreground/45">
                 {valueLabel}
               </span>
             </span>
-            {trailing}
+            {trailing ? (
+              <span className="flex shrink-0 items-center">{trailing}</span>
+            ) : null}
           </SidebarMenuButton>
         </PopoverTrigger>
         <PopoverContent
@@ -264,7 +276,7 @@ function GalleryColorTokenItem({
     <GallerySidebarPopoverItem
       label={label ?? token}
       popoverClassName="w-56 overflow-visible p-3"
-      trailing={<ColorSwatch className="mt-0.5 size-3" color={swatchColor} />}
+      trailing={<ColorSwatch className="size-3" color={swatchColor} />}
       valueLabel={`${value.family} / ${value.step}`}
     >
       <div className="relative flex flex-col gap-3">
@@ -342,16 +354,395 @@ function GalleryColorTokenItem({
   )
 }
 
+function GalleryThemeSelectItem({
+  label,
+  onValueChange,
+  options,
+  value,
+}: {
+  label: string
+  onValueChange: (value: string) => void
+  options: readonly { label: string; value: string }[]
+  value: string
+}) {
+  const activeOption = options.find((option) => option.value === value)
+
+  return (
+    <GallerySidebarPopoverItem
+      label={label}
+      popoverClassName="w-60 p-1"
+      valueLabel={activeOption?.label ?? value}
+    >
+      <div className="flex flex-col gap-0.5">
+        {options.map((option) => {
+          const isActive = option.value === value
+
+          return (
+            <button
+              key={option.value}
+              className={cn(
+                galleryEditorOptionClassName,
+                isActive && "bg-accent text-accent-foreground"
+              )}
+              onClick={() => onValueChange(option.value)}
+              type="button"
+            >
+              <span className="min-w-0 flex-1 truncate">{option.label}</span>
+              {isActive ? <CheckIcon className="size-4 shrink-0" /> : null}
+            </button>
+          )
+        })}
+      </div>
+    </GallerySidebarPopoverItem>
+  )
+}
+
+function GalleryThemeRangeItem({
+  label,
+  max,
+  min,
+  onValueChange,
+  step,
+  unit,
+  value,
+}: {
+  label: string
+  max: number
+  min: number
+  onValueChange: (value: string) => void
+  step: number
+  unit: string
+  value: string
+}) {
+  const numericValue = parseAppThemeCssNumber(value, min)
+
+  return (
+    <GallerySidebarPopoverItem
+      label={label}
+      popoverClassName="w-60 p-3"
+      valueLabel={value}
+    >
+      <div className="flex flex-col gap-3">
+        <input
+          className="w-full accent-primary"
+          max={max}
+          min={min}
+          onChange={(event) =>
+            onValueChange(
+              formatAppThemeCssNumber(event.currentTarget.valueAsNumber, unit)
+            )
+          }
+          step={step}
+          type="range"
+          value={numericValue}
+        />
+        <div className="flex items-center gap-2">
+          <input
+            className="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            max={max}
+            min={min}
+            onChange={(event) => {
+              const nextValue = Number.parseFloat(event.currentTarget.value)
+              if (Number.isFinite(nextValue)) {
+                onValueChange(formatAppThemeCssNumber(nextValue, unit))
+              }
+            }}
+            step={step}
+            type="number"
+            value={numericValue}
+          />
+          <span className="w-9 shrink-0 text-xs text-muted-foreground">
+            {unit || "value"}
+          </span>
+        </div>
+      </div>
+    </GallerySidebarPopoverItem>
+  )
+}
+
+function GalleryThemeColorValueItem({
+  label,
+  onValueChange,
+  value,
+}: {
+  label: string
+  onValueChange: (value: string) => void
+  value: string
+}) {
+  const colorInputValue = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000"
+
+  return (
+    <GallerySidebarPopoverItem
+      label={label}
+      popoverClassName="w-60 p-3"
+      trailing={<ColorSwatch className="size-3" color={colorInputValue} />}
+      valueLabel={value}
+    >
+      <div className="flex flex-col gap-3">
+        <input
+          className="h-9 w-full cursor-pointer rounded-md border border-input bg-transparent p-1"
+          onChange={(event) => onValueChange(event.currentTarget.value)}
+          type="color"
+          value={colorInputValue}
+        />
+        <input
+          className="h-8 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          onChange={(event) => onValueChange(event.currentTarget.value)}
+          value={value}
+        />
+      </div>
+    </GallerySidebarPopoverItem>
+  )
+}
+
+function GalleryTypographyEditor({
+  cssVariables,
+  onCssVariableChange,
+}: {
+  cssVariables: AppThemeCssVariables
+  onCssVariableChange: (
+    name: AppThemeEditableVariableName,
+    value: string
+  ) => void
+}) {
+  return (
+    <GallerySidebarSection label="Typography">
+      <SidebarMenu className="gap-0.5">
+        <GalleryThemeSelectItem
+          label="Sans"
+          onValueChange={(value) => onCssVariableChange("--font-sans", value)}
+          options={appThemeFontOptions}
+          value={getAppThemeCssVariableValue(cssVariables, "--font-sans")}
+        />
+        <GalleryThemeSelectItem
+          label="Serif"
+          onValueChange={(value) => onCssVariableChange("--font-serif", value)}
+          options={appThemeFontOptions}
+          value={getAppThemeCssVariableValue(cssVariables, "--font-serif")}
+        />
+        <GalleryThemeSelectItem
+          label="Mono"
+          onValueChange={(value) => onCssVariableChange("--font-mono", value)}
+          options={appThemeFontOptions}
+          value={getAppThemeCssVariableValue(cssVariables, "--font-mono")}
+        />
+        <GalleryThemeRangeItem
+          label="Tracking"
+          max={0.08}
+          min={-0.05}
+          onValueChange={(value) =>
+            onCssVariableChange("--tracking-normal", value)
+          }
+          step={0.005}
+          unit="em"
+          value={getAppThemeCssVariableValue(cssVariables, "--tracking-normal")}
+        />
+      </SidebarMenu>
+    </GallerySidebarSection>
+  )
+}
+
+function GalleryRadiusEditor({
+  cssVariables,
+  onCssVariableChange,
+}: {
+  cssVariables: AppThemeCssVariables
+  onCssVariableChange: (
+    name: AppThemeEditableVariableName,
+    value: string
+  ) => void
+}) {
+  return (
+    <GallerySidebarSection label="Radius">
+      <SidebarMenu className="gap-0.5">
+        <GalleryThemeRangeItem
+          label="Base radius"
+          max={2}
+          min={0}
+          onValueChange={(value) => onCssVariableChange("--radius", value)}
+          step={0.025}
+          unit="rem"
+          value={getAppThemeCssVariableValue(cssVariables, "--radius")}
+        />
+      </SidebarMenu>
+    </GallerySidebarSection>
+  )
+}
+
+function GallerySpacingEditor({
+  cssVariables,
+  onCssVariableChange,
+}: {
+  cssVariables: AppThemeCssVariables
+  onCssVariableChange: (
+    name: AppThemeEditableVariableName,
+    value: string
+  ) => void
+}) {
+  return (
+    <GallerySidebarSection label="Spacing">
+      <SidebarMenu className="gap-0.5">
+        <GalleryThemeRangeItem
+          label="Base spacing"
+          max={0.5}
+          min={0.125}
+          onValueChange={(value) => onCssVariableChange("--spacing", value)}
+          step={0.025}
+          unit="rem"
+          value={getAppThemeCssVariableValue(cssVariables, "--spacing")}
+        />
+      </SidebarMenu>
+    </GallerySidebarSection>
+  )
+}
+
+function GalleryShadowEditor({
+  cssVariables,
+  onCssVariablesChange,
+}: {
+  cssVariables: AppThemeCssVariables
+  onCssVariablesChange: (
+    values: Partial<Record<AppThemeEditableVariableName, string>>
+  ) => void
+}) {
+  const updateShadowVariable = (
+    name: AppThemeEditableVariableName,
+    value: string
+  ) => {
+    onCssVariablesChange(
+      createAppThemeShadowScaleVariables(cssVariables, { [name]: value })
+    )
+  }
+
+  return (
+    <GallerySidebarSection label="Shadow">
+      <SidebarMenu className="gap-0.5">
+        <GalleryThemeColorValueItem
+          label="Color"
+          onValueChange={(value) => updateShadowVariable("--shadow-color", value)}
+          value={getAppThemeCssVariableValue(cssVariables, "--shadow-color")}
+        />
+        <GalleryThemeRangeItem
+          label="Opacity"
+          max={1}
+          min={0}
+          onValueChange={(value) =>
+            updateShadowVariable("--shadow-opacity", value)
+          }
+          step={0.01}
+          unit=""
+          value={getAppThemeCssVariableValue(cssVariables, "--shadow-opacity")}
+        />
+        <GalleryThemeRangeItem
+          label="X"
+          max={24}
+          min={-24}
+          onValueChange={(value) => updateShadowVariable("--shadow-x", value)}
+          step={1}
+          unit="px"
+          value={getAppThemeCssVariableValue(cssVariables, "--shadow-x")}
+        />
+        <GalleryThemeRangeItem
+          label="Y"
+          max={32}
+          min={-24}
+          onValueChange={(value) => updateShadowVariable("--shadow-y", value)}
+          step={1}
+          unit="px"
+          value={getAppThemeCssVariableValue(cssVariables, "--shadow-y")}
+        />
+        <GalleryThemeRangeItem
+          label="Blur"
+          max={64}
+          min={0}
+          onValueChange={(value) => updateShadowVariable("--shadow-blur", value)}
+          step={1}
+          unit="px"
+          value={getAppThemeCssVariableValue(cssVariables, "--shadow-blur")}
+        />
+        <GalleryThemeRangeItem
+          label="Spread"
+          max={24}
+          min={-24}
+          onValueChange={(value) =>
+            updateShadowVariable("--shadow-spread", value)
+          }
+          step={1}
+          unit="px"
+          value={getAppThemeCssVariableValue(cssVariables, "--shadow-spread")}
+        />
+      </SidebarMenu>
+    </GallerySidebarSection>
+  )
+}
+
 export function GalleryEditorPanel({
   colorTokenValues,
+  cssVariables,
   onColorTokenValueChange,
+  onCssVariableChange,
+  onCssVariablesChange,
+  sectionId,
 }: {
   colorTokenValues: AppColorTokenValues
+  cssVariables: AppThemeCssVariables
   onColorTokenValueChange: (
     token: AppColorTokenName,
     value: AppColorTokenValue
   ) => void
+  onCssVariableChange: (
+    name: AppThemeEditableVariableName,
+    value: string
+  ) => void
+  onCssVariablesChange: (
+    values: Partial<Record<AppThemeEditableVariableName, string>>
+  ) => void
+  sectionId: GalleryThemeEditorSectionId
 }) {
+  if (sectionId === "typography") {
+    return (
+      <div className="flex flex-1 flex-col gap-3 px-2 py-2">
+        <GalleryTypographyEditor
+          cssVariables={cssVariables}
+          onCssVariableChange={onCssVariableChange}
+        />
+      </div>
+    )
+  }
+
+  if (sectionId === "radius") {
+    return (
+      <div className="flex flex-1 flex-col gap-3 px-2 py-2">
+        <GalleryRadiusEditor
+          cssVariables={cssVariables}
+          onCssVariableChange={onCssVariableChange}
+        />
+      </div>
+    )
+  }
+
+  if (sectionId === "spacing") {
+    return (
+      <div className="flex flex-1 flex-col gap-3 px-2 py-2">
+        <GallerySpacingEditor
+          cssVariables={cssVariables}
+          onCssVariableChange={onCssVariableChange}
+        />
+      </div>
+    )
+  }
+
+  if (sectionId === "shadow") {
+    return (
+      <div className="flex flex-1 flex-col gap-3 px-2 py-2">
+        <GalleryShadowEditor
+          cssVariables={cssVariables}
+          onCssVariablesChange={onCssVariablesChange}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-3 px-2 py-2">
       {appColorRoleGroups.map((group, index) => (

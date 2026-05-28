@@ -1,71 +1,15 @@
 import type { AgentHtmlTag } from "@/agent-html/ast/types"
+import { agentHtmlComponentRegistry } from "@/agent-html/schema/component-registry"
+import {
+  deriveAllTags,
+  deriveLayoutTags,
+} from "@/agent-html/schema/derive"
 
-export const layoutTags = new Set<AgentHtmlTag>([
-  "Page",
-  "Section",
-  "Stack",
-  "Cluster",
-  "Grid",
-])
+export const layoutTags: Set<AgentHtmlTag> = deriveLayoutTags(
+  agentHtmlComponentRegistry
+)
 
-export const allTags = new Set<AgentHtmlTag>([
-  "Page",
-  "Section",
-  "Stack",
-  "Cluster",
-  "Grid",
-  "Accordion",
-  "AccordionItem",
-  "AccordionTrigger",
-  "AccordionContent",
-  "Alert",
-  "AlertTitle",
-  "AlertDescription",
-  "AlertAction",
-  "AspectRatio",
-  "Badge",
-  "Button",
-  "Card",
-  "CardHeader",
-  "CardTitle",
-  "CardDescription",
-  "CardAction",
-  "CardContent",
-  "CardFooter",
-  "Carousel",
-  "CarouselContent",
-  "CarouselItem",
-  "CarouselPrevious",
-  "CarouselNext",
-  "Progress",
-  "Separator",
-  "Table",
-  "TableCaption",
-  "TableHeader",
-  "TableBody",
-  "TableFooter",
-  "TableRow",
-  "TableHead",
-  "TableCell",
-  "Tabs",
-  "TabsList",
-  "TabsTrigger",
-  "TabsContent",
-  "Timeline",
-  "TimelineItem",
-  "TimelineTitle",
-  "TimelineDescription",
-  "TimelineContent",
-  "Chart",
-  "ChartSeries",
-  "ChartRow",
-  "ChartTooltip",
-  "CodeBlock",
-  "Icon",
-  "Image",
-  "Kanban",
-  "KanbanColumn",
-  "KanbanItem",
-  "Text",
-])
+export const allTags: Set<AgentHtmlTag> = deriveAllTags(
+  agentHtmlComponentRegistry
+)
 

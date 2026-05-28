@@ -45,6 +45,7 @@ type CodexTurnStartResult = {
 type CodexConnectionContextValue = {
   activeThreadId: string | null
   canManageHost: boolean
+  phase: CodexConnectionPhase
   health: CodexHostHealth | null
   isLoaded: boolean
   isBusy: boolean
@@ -62,12 +63,27 @@ type CodexConnectionContextValue = {
 }
 
 const STORAGE_KEY = "agent-html.codex-connection"
+const TRACE_STORAGE_KEY = "agent-html.codex-connection-trace"
+const CONNECTION_TIMEOUT_MS = 30000
+
+export type CodexConnectionPhase =
+  | "connected"
+  | "connecting"
+  | "error"
+  | "loadingSettings"
+  | "stopped"
 
 type CodexHostLogPaths = {
   codexEventLogPath: string
   eventLogPath: string
   resolvedFromDefaults: boolean
 }
+
+type ApplyProcessStatusOptions = {
+  allowConnectingPhase?: boolean
+}
+
+type ConnectionTracePayload = Record<string, unknown>
 
 const CodexConnectionContext = React.createContext<
   CodexConnectionContextValue | undefined
@@ -188,6 +204,79 @@ function normalizeStatus(status: CodexConnectionStatus, health: CodexHostHealth 
   return status
 }
 
+function statusFromPhase(phase: CodexConnectionPhase): CodexConnectionStatus {
+  if (phase === "connected") return "connected"
+  if (phase === "connecting" || phase === "loadingSettings") return "starting"
+  if (phase === "error") return "error"
+  return "stopped"
+}
+
+function statusToPhase(status: CodexConnectionStatus): CodexConnectionPhase {
+  if (status === "connected") return "connected"
+  if (status === "starting") return "connecting"
+  if (status === "error") return "error"
+  return "stopped"
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeout = setTimeout(() => reject(new Error(message)), timeoutMs)
+  })
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeout) {
+      clearTimeout(timeout)
+    }
+  })
+}
+
+function areSettingsEqual(
+  left: CodexConnectionSettings,
+  right: CodexConnectionSettings
+) {
+  return (
+    left.codexCommand === right.codexCommand &&
+    left.codexEventLogPath === right.codexEventLogPath &&
+    left.eventLogEnabled === right.eventLogEnabled &&
+    left.eventLogPath === right.eventLogPath
+  )
+}
+
+function isConnectionTraceEnabled() {
+  return (
+    typeof localStorage !== "undefined" &&
+    localStorage.getItem(TRACE_STORAGE_KEY) === "1"
+  )
+}
+
+function writeConnectionTrace(event: string, payload: ConnectionTracePayload) {
+  if (!isConnectionTraceEnabled()) {
+    return
+  }
+
+  const line = {
+    event,
+    payload,
+    side: "frontend",
+    ts: new Date().toISOString(),
+  }
+  console.info("[codex-connection-trace]", line)
+
+  if (!isTauri()) {
+    return
+  }
+
+  void invoke("codex_connection_trace", {
+    input: {
+      event,
+      payload,
+    },
+  }).catch((error) => {
+    console.warn("[codex-connection-trace] write failed", error)
+  })
+}
+
 export function CodexConnectionProvider({
   children,
 }: {
@@ -197,17 +286,56 @@ export function CodexConnectionProvider({
     React.useState<CodexConnectionSettings>(loadSettings)
   const [health, setHealth] = React.useState<CodexHostHealth | null>(null)
   const [isLoaded, setIsLoaded] = React.useState(false)
-  const [status, setStatus] =
-    React.useState<CodexConnectionStatus>("disconnected")
+  const [phase, setPhase] = React.useState<CodexConnectionPhase>(
+    isTauri() ? "loadingSettings" : "stopped"
+  )
   const [lastError, setLastError] = React.useState<string | null>(null)
   const [isBusy, setIsBusy] = React.useState(false)
   const [activeThreadId, setActiveThreadId] = React.useState<string | null>(null)
   const canManageHost = isTauri()
+  const connectionAttemptRef = React.useRef(0)
+  const phaseRef = React.useRef<CodexConnectionPhase>(phase)
+  const settingsRef = React.useRef(settings)
+
+  React.useEffect(() => {
+    phaseRef.current = phase
+  }, [phase])
+
+  React.useEffect(() => {
+    settingsRef.current = settings
+  }, [settings])
 
   const applyProcessStatus = React.useCallback(
-    (processStatus: CodexHostProcessStatus) => {
+    (
+      processStatus: CodexHostProcessStatus,
+      options: ApplyProcessStatusOptions = {}
+    ) => {
       setHealth(processStatus.health)
-      setStatus(normalizeStatus(processStatus.status, processStatus.health))
+      const nextStatus = normalizeStatus(processStatus.status, processStatus.health)
+      setPhase((currentPhase) => {
+        let nextPhase: CodexConnectionPhase
+        if (nextStatus === "connected") {
+          nextPhase = "connected"
+        } else if (nextStatus === "starting" && !options.allowConnectingPhase) {
+          nextPhase = currentPhase === "connected" ? "connected" : currentPhase
+        } else {
+          nextPhase = statusToPhase(nextStatus)
+        }
+
+        writeConnectionTrace("phase:apply", {
+          allowConnectingPhase: Boolean(options.allowConnectingPhase),
+          appServerRunning: processStatus.health.appServerRunning,
+          connected: processStatus.health.connected,
+          currentPhase,
+          error: processStatus.health.error,
+          hostStatus: processStatus.status,
+          nextPhase,
+          nextStatus,
+          pid: processStatus.pid ?? null,
+          stderr: processStatus.health.stderr,
+        })
+        return nextPhase
+      })
       setLastError(processStatus.health.error ?? processStatus.health.stderr ?? null)
     },
     []
@@ -219,14 +347,39 @@ export function CodexConnectionProvider({
         throw new Error("Desktop runtime required to manage Codex.")
       }
 
-      validateSettings(settingsOverride ?? settings)
+      const targetSettings = settingsOverride ?? settingsRef.current
+      validateSettings(targetSettings)
 
-      const processStatus = await invoke<CodexHostProcessStatus>(command, {
-        settings: settingsOverride ?? settings,
+      writeConnectionTrace("command:start", {
+        command,
+        phase: phaseRef.current,
       })
-      applyProcessStatus(processStatus)
+
+      try {
+        const processStatus = await invoke<CodexHostProcessStatus>(command, {
+          settings: targetSettings,
+        })
+        writeConnectionTrace("command:result", {
+          appServerRunning: processStatus.health.appServerRunning,
+          command,
+          connected: processStatus.health.connected,
+          error: processStatus.health.error,
+          hostStatus: processStatus.status,
+          phase: phaseRef.current,
+          pid: processStatus.pid ?? null,
+          stderr: processStatus.health.stderr,
+        })
+        return processStatus
+      } catch (error) {
+        writeConnectionTrace("command:error", {
+          command,
+          error: getErrorMessage(error),
+          phase: phaseRef.current,
+        })
+        throw error
+      }
     },
-    [applyProcessStatus, canManageHost, settings]
+    [canManageHost]
   )
 
   const saveSettingsEverywhere = React.useCallback(
@@ -238,12 +391,22 @@ export function CodexConnectionProvider({
             settings: nextSettings,
           }
         )
-        setSettings(savedSettings)
+        settingsRef.current = savedSettings
+        setSettings((currentSettings) =>
+          areSettingsEqual(currentSettings, savedSettings)
+            ? currentSettings
+            : savedSettings
+        )
         saveSettings(savedSettings)
         return savedSettings
       }
 
-      setSettings(nextSettings)
+      settingsRef.current = nextSettings
+      setSettings((currentSettings) =>
+        areSettingsEqual(currentSettings, nextSettings)
+          ? currentSettings
+          : nextSettings
+      )
       saveSettings(nextSettings)
       return nextSettings
     },
@@ -251,50 +414,144 @@ export function CodexConnectionProvider({
   )
 
   const connect = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
+    const attemptId = connectionAttemptRef.current + 1
+    connectionAttemptRef.current = attemptId
+    writeConnectionTrace("connect:start", {
+      attemptId,
+      phase: phaseRef.current,
+    })
     setIsBusy(true)
-    setStatus("starting")
-    setLastError(null)
-
-    try {
-      await runCommand("codex_host_start", settingsOverride)
-    } catch (error) {
-      setStatus("error")
-      setLastError(getErrorMessage(error))
-    } finally {
-      setIsBusy(false)
-    }
-  }, [runCommand])
-
-  const stop = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
-    setIsBusy(true)
-    setLastError(null)
-
-    try {
-      await runCommand("codex_host_stop", settingsOverride)
-      setActiveThreadId(null)
-    } catch (error) {
-      setStatus("error")
-      setLastError(getErrorMessage(error))
-    } finally {
-      setIsBusy(false)
-    }
-  }, [runCommand])
-
-  const restart = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
-    setIsBusy(true)
-    setStatus("starting")
+    setPhase("connecting")
     setLastError(null)
     setActiveThreadId(null)
 
     try {
-      await runCommand("codex_host_restart", settingsOverride)
+      const processStatus = await withTimeout(
+        runCommand("codex_host_start", settingsOverride),
+        CONNECTION_TIMEOUT_MS,
+        "Codex connection timed out."
+      )
+      if (connectionAttemptRef.current !== attemptId) {
+        writeConnectionTrace("connect:stale-result", {
+          attemptId,
+          currentAttemptId: connectionAttemptRef.current,
+          hostStatus: processStatus.status,
+        })
+        return
+      }
+
+      applyProcessStatus(processStatus, { allowConnectingPhase: true })
     } catch (error) {
-      setStatus("error")
-      setLastError(getErrorMessage(error))
+      writeConnectionTrace("connect:error", {
+        attemptId,
+        currentAttemptId: connectionAttemptRef.current,
+        error: getErrorMessage(error),
+        phase: phaseRef.current,
+      })
+      if (connectionAttemptRef.current === attemptId) {
+        setPhase("error")
+        setLastError(getErrorMessage(error))
+      }
+      throw error
     } finally {
-      setIsBusy(false)
+      if (connectionAttemptRef.current === attemptId) {
+        setIsBusy(false)
+      }
+      writeConnectionTrace("connect:finally", {
+        attemptId,
+        currentAttemptId: connectionAttemptRef.current,
+        phase: phaseRef.current,
+      })
     }
-  }, [runCommand])
+  }, [applyProcessStatus, runCommand])
+
+  const stop = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
+    const attemptId = connectionAttemptRef.current + 1
+    connectionAttemptRef.current = attemptId
+    writeConnectionTrace("stop:start", {
+      attemptId,
+      phase: phaseRef.current,
+    })
+    setIsBusy(true)
+    setLastError(null)
+
+    try {
+      const processStatus = await runCommand("codex_host_stop", settingsOverride)
+      if (connectionAttemptRef.current !== attemptId) {
+        writeConnectionTrace("stop:stale-result", {
+          attemptId,
+          currentAttemptId: connectionAttemptRef.current,
+          hostStatus: processStatus.status,
+        })
+        return
+      }
+
+      applyProcessStatus(processStatus)
+      setActiveThreadId(null)
+      setPhase("stopped")
+    } catch (error) {
+      writeConnectionTrace("stop:error", {
+        attemptId,
+        currentAttemptId: connectionAttemptRef.current,
+        error: getErrorMessage(error),
+        phase: phaseRef.current,
+      })
+      if (connectionAttemptRef.current === attemptId) {
+        setPhase("error")
+        setLastError(getErrorMessage(error))
+      }
+    } finally {
+      if (connectionAttemptRef.current === attemptId) {
+        setIsBusy(false)
+      }
+    }
+  }, [applyProcessStatus, runCommand])
+
+  const restart = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
+    const attemptId = connectionAttemptRef.current + 1
+    connectionAttemptRef.current = attemptId
+    writeConnectionTrace("restart:start", {
+      attemptId,
+      phase: phaseRef.current,
+    })
+    setIsBusy(true)
+    setPhase("connecting")
+    setLastError(null)
+    setActiveThreadId(null)
+
+    try {
+      const processStatus = await withTimeout(
+        runCommand("codex_host_restart", settingsOverride),
+        CONNECTION_TIMEOUT_MS,
+        "Codex connection timed out."
+      )
+      if (connectionAttemptRef.current !== attemptId) {
+        writeConnectionTrace("restart:stale-result", {
+          attemptId,
+          currentAttemptId: connectionAttemptRef.current,
+          hostStatus: processStatus.status,
+        })
+        return
+      }
+
+      applyProcessStatus(processStatus, { allowConnectingPhase: true })
+    } catch (error) {
+      writeConnectionTrace("restart:error", {
+        attemptId,
+        currentAttemptId: connectionAttemptRef.current,
+        error: getErrorMessage(error),
+        phase: phaseRef.current,
+      })
+      if (connectionAttemptRef.current === attemptId) {
+        setPhase("error")
+        setLastError(getErrorMessage(error))
+      }
+    } finally {
+      if (connectionAttemptRef.current === attemptId) {
+        setIsBusy(false)
+      }
+    }
+  }, [applyProcessStatus, runCommand])
 
   const start = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
     await connect(settingsOverride)
@@ -306,19 +563,28 @@ export function CodexConnectionProvider({
         throw new Error("Desktop runtime required to manage Codex.")
       }
 
-      validateSettings(settings)
+      const targetSettings = settingsRef.current
+      validateSettings(targetSettings)
 
+      writeConnectionTrace("rpc:start", {
+        method,
+        phase: phaseRef.current,
+      })
       const response = await invoke<CodexRpcRequestResult>("codex_rpc_request", {
         input: {
           method,
           params,
         },
-        settings,
+        settings: targetSettings,
       })
 
+      writeConnectionTrace("rpc:result", {
+        method,
+        phase: phaseRef.current,
+      })
       return response.result
     },
-    [canManageHost, settings]
+    [canManageHost]
   )
 
   const startTurn = React.useCallback(
@@ -362,7 +628,7 @@ export function CodexConnectionProvider({
 
   const openLogs = React.useCallback(
     async (settingsOverride?: CodexConnectionSettings) => {
-      const targetSettings = settingsOverride ?? settings
+      const targetSettings = settingsOverride ?? settingsRef.current
       if (!canManageHost) {
         throw new Error(
           getOpenLogsInstructions({
@@ -377,7 +643,7 @@ export function CodexConnectionProvider({
         settings: targetSettings,
       })
     },
-    [canManageHost, settings]
+    [canManageHost]
   )
 
   const updateSettings = React.useCallback(
@@ -401,17 +667,33 @@ export function CodexConnectionProvider({
           return
         }
 
-        setSettings(loadedSettings)
+        settingsRef.current = loadedSettings
+        setSettings((currentSettings) =>
+          areSettingsEqual(currentSettings, loadedSettings)
+            ? currentSettings
+            : loadedSettings
+        )
         saveSettings(loadedSettings)
-        setIsLoaded(true)
+        writeConnectionTrace("settings:loaded", {
+          command: loadedSettings.codexCommand,
+          phase: phaseRef.current,
+        })
+        setPhase("connecting")
         return connect(loadedSettings)
+      })
+      .then(() => {
+        if (!isCurrent) {
+          return
+        }
+
+        setIsLoaded(true)
       })
       .catch((error) => {
         if (!isCurrent) {
           return
         }
 
-        setStatus("error")
+        setPhase("error")
         setLastError(getErrorMessage(error))
         setIsLoaded(true)
       })
@@ -421,21 +703,52 @@ export function CodexConnectionProvider({
   }, [canManageHost, connect])
 
   React.useEffect(() => {
-    if (!canManageHost || status !== "connected") {
+    if (!canManageHost || phase !== "connected") {
       return undefined
     }
 
     const interval = window.setInterval(() => {
+      const attemptId = connectionAttemptRef.current
+      writeConnectionTrace("health:poll", {
+        attemptId,
+        phase: phaseRef.current,
+      })
       void runCommand("codex_host_health")
+        .then((processStatus) => {
+          if (connectionAttemptRef.current === attemptId) {
+            applyProcessStatus(processStatus)
+            return
+          }
+          writeConnectionTrace("health:stale-result", {
+            attemptId,
+            currentAttemptId: connectionAttemptRef.current,
+            hostStatus: processStatus.status,
+          })
+        })
+        .catch((error) => {
+          writeConnectionTrace("health:error", {
+            attemptId,
+            currentAttemptId: connectionAttemptRef.current,
+            error: getErrorMessage(error),
+            phase: phaseRef.current,
+          })
+          if (connectionAttemptRef.current === attemptId) {
+            setPhase("error")
+            setLastError(getErrorMessage(error))
+          }
+        })
     }, 5000)
 
     return () => window.clearInterval(interval)
-  }, [canManageHost, runCommand, status])
+  }, [applyProcessStatus, canManageHost, phase, runCommand])
+
+  const status = statusFromPhase(phase)
 
   const value = React.useMemo<CodexConnectionContextValue>(
     () => ({
       activeThreadId,
       canManageHost,
+      phase,
       health,
       isLoaded,
       isBusy,
@@ -454,6 +767,7 @@ export function CodexConnectionProvider({
     [
       activeThreadId,
       canManageHost,
+      phase,
       health,
       isLoaded,
       isBusy,

@@ -1,50 +1,13 @@
 import type { AgentHtmlTag } from "@/agent-html/ast/types"
+import { agentHtmlComponentRegistry } from "@/agent-html/schema/component-registry"
+import {
+  deriveAllowedAttrs,
+  deriveRequiredAttrs,
+} from "@/agent-html/schema/derive"
 
-export const allowedAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
-  Page: ["title"],
-  Section: ["width"],
-  Stack: [],
-  Cluster: ["justify", "wrap"],
-  Grid: ["columns"],
-  Accordion: ["type"],
-  AccordionItem: ["value", "disabled"],
-  Alert: ["variant"],
-  AspectRatio: ["ratio"],
-  Badge: ["variant"],
-  Button: ["variant", "href", "label"],
-  Card: ["size"],
-  Carousel: ["orientation"],
-  Progress: ["value"],
-  Separator: ["orientation"],
-  Tabs: ["orientation", "defaultValue"],
-  TabsTrigger: ["value", "disabled"],
-  TabsContent: ["value"],
-  TimelineItem: ["icon", "status", "meta"],
-  Chart: ["type"],
-  ChartSeries: ["key", "label"],
-  ChartRow: ["label"],
-  ChartTooltip: ["hideLabel"],
-  CodeBlock: ["language", "title"],
-  Icon: ["name"],
-  Image: ["src", "alt", "fit"],
-  KanbanColumn: ["value", "title"],
-  KanbanItem: ["value"],
-  Text: ["variant"],
-}
+export const allowedAttrs: Partial<Record<AgentHtmlTag, string[]>> =
+  deriveAllowedAttrs(agentHtmlComponentRegistry)
 
-export const requiredAttrs: Partial<Record<AgentHtmlTag, string[]>> = {
-  Page: ["title"],
-  Progress: ["value"],
-  AspectRatio: ["ratio"],
-  TabsTrigger: ["value"],
-  TabsContent: ["value"],
-  Chart: ["type"],
-  ChartSeries: ["key"],
-  ChartRow: ["label"],
-  CodeBlock: ["language"],
-  Icon: ["name"],
-  Image: ["src", "alt"],
-  KanbanColumn: ["value", "title"],
-  KanbanItem: ["value"],
-}
+export const requiredAttrs: Partial<Record<AgentHtmlTag, string[]>> =
+  deriveRequiredAttrs(agentHtmlComponentRegistry)
 

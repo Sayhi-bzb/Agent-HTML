@@ -13,6 +13,7 @@ import {
   GalleryThemeSidebarFooter,
   GalleryThemeSidebarHeader,
 } from "@/app/gallery/sidebar"
+import type { GalleryThemeEditorSectionId } from "@/app/gallery/theme-editor-sections"
 import {
   galleryViews,
   isGalleryViewId,
@@ -29,7 +30,10 @@ import {
   resolveAppThemeCssVariables,
   saveAppliedAppTheme,
   updateAppThemeDraftColorTokenValue,
+  updateAppThemeDraftCssVariable,
+  updateAppThemeDraftCssVariables,
 } from "@/app/shared/app-theme/theme"
+import type { AppThemeEditableVariableName } from "@/app/shared/app-theme/variables"
 import { AppSidebar } from "@/app/shell/app-sidebar"
 import { ConfirmationDialog } from "@/app/shell/confirmation-dialog"
 import { SiteHeader, type HeaderTab } from "@/app/shell/site-header"
@@ -156,6 +160,8 @@ export function App() {
     React.useState(false)
   const [activeGalleryViewId, setActiveGalleryViewId] =
     React.useState<GalleryViewId>("theme")
+  const [activeGalleryThemeEditorSectionId, setActiveGalleryThemeEditorSectionId] =
+    React.useState<GalleryThemeEditorSectionId>("color")
   const [pendingGalleryViewId, setPendingGalleryViewId] =
     React.useState<GalleryViewId | null>(null)
 
@@ -239,6 +245,10 @@ export function App() {
         resolvedTheme
       ) as AgentHtmlColorCssVariables,
     [appliedAppThemeDraft, resolvedTheme]
+  )
+  const appThemeCssVariables = React.useMemo(
+    () => resolveAppThemeCssVariables(appThemeDraft, resolvedTheme),
+    [appThemeDraft, resolvedTheme]
   )
 
   const activeGalleryThemePresetId =
@@ -730,6 +740,8 @@ export function App() {
     activeGalleryViewId === "theme" ? (
       <GalleryThemeSidebarHeader
         activePresetId={activeGalleryThemePresetId}
+        activeSectionId={activeGalleryThemeEditorSectionId}
+        onSelectSection={setActiveGalleryThemeEditorSectionId}
         onSelectPreset={handleSelectGalleryThemePreset}
         presets={appThemePresets}
       />
@@ -739,6 +751,7 @@ export function App() {
     activeGalleryViewId === "theme" ? (
       <GalleryEditorPanel
         colorTokenValues={appColorTokenValues}
+        cssVariables={appThemeCssVariables}
         onColorTokenValueChange={(
           token: AppColorTokenName,
           value: AppColorTokenValue
@@ -752,6 +765,29 @@ export function App() {
             })
           )
         }
+        onCssVariableChange={(
+          name: AppThemeEditableVariableName,
+          value: string
+        ) =>
+          setAppThemeDraft((current) =>
+            updateAppThemeDraftCssVariable({
+              draft: current,
+              name,
+              resolvedMode: resolvedTheme,
+              value,
+            })
+          )
+        }
+        onCssVariablesChange={(values) =>
+          setAppThemeDraft((current) =>
+            updateAppThemeDraftCssVariables({
+              draft: current,
+              resolvedMode: resolvedTheme,
+              values,
+            })
+          )
+        }
+        sectionId={activeGalleryThemeEditorSectionId}
       />
     ) : (
       <GalleryMarketSidebar viewId={activeGalleryViewId} />

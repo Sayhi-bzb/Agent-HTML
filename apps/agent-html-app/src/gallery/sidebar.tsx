@@ -4,7 +4,8 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/app/shared/ui/dropdown-menu"
 import {
@@ -17,6 +18,10 @@ import {
 } from "@/app/shared/ui/sidebar"
 import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
 import type { GalleryViewId } from "@/app/gallery/views"
+import {
+  galleryThemeEditorSections,
+  type GalleryThemeEditorSectionId,
+} from "@/app/gallery/theme-editor-sections"
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -31,10 +36,14 @@ type AppThemePresetNavItem = {
 
 export function GalleryThemeSidebarHeader({
   activePresetId,
+  activeSectionId,
+  onSelectSection,
   onSelectPreset,
   presets,
 }: {
   activePresetId: AppThemePresetId
+  activeSectionId: GalleryThemeEditorSectionId
+  onSelectSection: (sectionId: GalleryThemeEditorSectionId) => void
   onSelectPreset: (presetId: AppThemePresetId) => void
   presets: readonly AppThemePresetNavItem[]
 }) {
@@ -57,27 +66,45 @@ export function GalleryThemeSidebarHeader({
             side="bottom"
             sideOffset={6}
           >
-            {presets.map((preset) => (
-              <DropdownMenuItem
-                key={preset.id}
-                onSelect={() => onSelectPreset(preset.id)}
-              >
-                <span>{preset.label}</span>
-                {preset.id === activePresetId ? (
-                  <CheckIcon className="ml-auto size-4" />
-                ) : null}
-              </DropdownMenuItem>
-            ))}
+            <DropdownMenuRadioGroup
+              onValueChange={(value) =>
+                onSelectPreset(value as AppThemePresetId)
+              }
+              value={activePresetId}
+            >
+              {presets.map((preset) => (
+                <DropdownMenuRadioItem key={preset.id} value={preset.id}>
+                  <span className="min-w-0 truncate">{preset.label}</span>
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
 
-      <SidebarMenuItem>
-        <SidebarMenuButton type="button">
-          <span>color</span>
-          <CheckIcon className="ml-auto size-4" />
-        </SidebarMenuButton>
-      </SidebarMenuItem>
+      {galleryThemeEditorSections.map((section) => {
+        const Icon = section.icon
+        const isActive = section.id === activeSectionId
+
+        return (
+          <SidebarMenuItem key={section.id}>
+            <SidebarMenuButton
+              isActive={isActive}
+              onClick={() => onSelectSection(section.id)}
+              type="button"
+            >
+              <Icon className="size-4" />
+              <span className="min-w-0 flex-1 truncate">{section.label}</span>
+              {isActive ? (
+                <CheckIcon
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-sidebar-foreground/60"
+                />
+              ) : null}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )
+      })}
     </SidebarMenu>
   )
 }

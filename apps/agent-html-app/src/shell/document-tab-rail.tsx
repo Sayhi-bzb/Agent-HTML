@@ -248,7 +248,6 @@ const DocumentTabItem = React.forwardRef<
         isDragging && "opacity-70"
       )}
       ref={setNodeRef}
-      role="presentation"
       style={style}
       {...attributes}
     >

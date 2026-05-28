@@ -3,6 +3,7 @@ use std::fs;
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, Command, Stdio};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -14,6 +15,8 @@ use tauri_plugin_opener::OpenerExt;
 use thiserror::Error;
 
 const CODEX_NOTIFICATION_EVENT: &str = "codex://notification";
+const CONNECTION_TRACE_PATH: &str = ".tmp\\agent-html-codex-connection-trace.jsonl";
+static CONNECTION_TRACE_ENABLED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Error)]
 pub(crate) enum CodexHostError {
@@ -139,6 +142,27 @@ pub(crate) struct CodexRpcRequestResult {
 pub(crate) struct CodexRpcNotifyInput {
     method: String,
     params: Value,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct CodexConnectionTraceInput {
+    event: String,
+    payload: Value,
+}
+
+fn append_connection_trace(event: &str, payload: Value) {
+    if !CONNECTION_TRACE_ENABLED.load(Ordering::Relaxed) {
+        return;
+    }
+
+    let line = json!({
+        "ts": chrono_like_timestamp(),
+        "side": "tauri",
+        "event": event,
+        "payload": payload,
+    });
+    let _ = append_json_line(CONNECTION_TRACE_PATH, &line);
 }
 
 fn set_last_error(state: &CodexHostState, error: Option<String>) {
@@ -361,6 +385,13 @@ fn handle_codex_stdout_line(
             if let Ok(mut current_error) = last_error.lock() {
                 *current_error = Some(format!("invalid Codex JSON-RPC message: {error}"));
             }
+            append_connection_trace(
+                "host:stdout-invalid-json",
+                json!({
+                    "error": error.to_string(),
+                    "line": line,
+                }),
+            );
             return;
         }
     };
@@ -370,6 +401,13 @@ fn handle_codex_stdout_line(
             if let Ok(mut current_error) = last_error.lock() {
                 *current_error = Some(error.to_string());
             }
+            append_connection_trace(
+                "host:codex-event-log-error",
+                json!({
+                    "error": error.to_string(),
+                    "path": path,
+                }),
+            );
         }
     }
 
@@ -464,6 +502,12 @@ fn spawn_codex_process(
                     if let Ok(mut current_error) = last_error_for_stdout.lock() {
                         *current_error = Some(error.to_string());
                     }
+                    append_connection_trace(
+                        "host:stdout-read-error",
+                        json!({
+                            "error": error.to_string(),
+                        }),
+                    );
                     break;
                 }
             }
@@ -476,11 +520,18 @@ fn spawn_codex_process(
         for line in reader.lines() {
             match line {
                 Ok(line) if !line.trim().is_empty() => {
+                    append_connection_trace("host:stderr", json!({ "line": line }));
                     set_last_stderr(&last_stderr_for_thread, line);
                 }
                 Ok(_) => {}
                 Err(error) => {
                     set_last_stderr(&last_stderr_for_thread, error.to_string());
+                    append_connection_trace(
+                        "host:stderr-read-error",
+                        json!({
+                            "error": error.to_string(),
+                        }),
+                    );
                     break;
                 }
             }
@@ -583,9 +634,11 @@ fn ensure_initialized(state: &CodexHostState) -> CodexHostResult<()> {
         .lock()
         .map_err(|_| CodexHostError::Process("Codex initialized lock poisoned".to_string()))?
     {
+        append_connection_trace("host:ensure-initialized:skip", json!({ "initialized": true }));
         return Ok(());
     }
 
+    append_connection_trace("host:ensure-initialized:start", json!({ "initialized": false }));
     send_codex_request(
         state,
         "initialize",
@@ -608,6 +661,7 @@ fn ensure_initialized(state: &CodexHostState) -> CodexHostResult<()> {
         .lock()
         .map_err(|_| CodexHostError::Process("Codex initialized lock poisoned".to_string()))?;
     *initialized = true;
+    append_connection_trace("host:ensure-initialized:ok", json!({ "initialized": true }));
     Ok(())
 }
 
@@ -650,6 +704,17 @@ fn process_status_from_state(
     pid: Option<u32>,
 ) -> CodexHostProcessStatus {
     let health = health_from_state(state, settings, workspace_cwd, pid);
+    append_connection_trace(
+        "host:process-status",
+        json!({
+            "status": health.status,
+            "pid": pid,
+            "connected": health.connected,
+            "appServerRunning": health.app_server_running,
+            "error": health.error,
+            "stderr": health.stderr,
+        }),
+    );
     CodexHostProcessStatus {
         status: health.status.clone(),
         health,
@@ -683,6 +748,18 @@ pub(crate) fn codex_host_logs(
 }
 
 #[tauri::command]
+pub(crate) fn codex_connection_trace(input: CodexConnectionTraceInput) -> CodexHostResult<()> {
+    CONNECTION_TRACE_ENABLED.store(true, Ordering::Relaxed);
+    let line = json!({
+        "ts": chrono_like_timestamp(),
+        "side": "frontend",
+        "event": input.event,
+        "payload": input.payload,
+    });
+    append_json_line(CONNECTION_TRACE_PATH, &line)
+}
+
+#[tauri::command]
 pub(crate) fn codex_host_open_logs(
     app: tauri::AppHandle,
     settings: Option<CodexHostSettings>,
@@ -708,11 +785,19 @@ pub(crate) fn codex_host_start(
 ) -> CodexHostResult<CodexHostProcessStatus> {
     let settings = normalize_codex_settings(&settings);
     let workspace_cwd = resolve_workspace_cwd(&app)?;
+    append_connection_trace(
+        "host:start:entry",
+        json!({
+            "command": settings.codex_command,
+            "cwd": workspace_cwd.to_string_lossy().to_string(),
+        }),
+    );
 
     {
         let mut current_process = state.process.lock().expect("codex process lock poisoned");
         if let Some(process) = current_process.as_mut() {
             if let Some(pid) = check_codex_process(&mut process.child) {
+                append_connection_trace("host:start:existing-process", json!({ "pid": pid }));
                 ensure_initialized(&state)?;
                 return Ok(process_status_from_state(
                     &state,
@@ -722,6 +807,7 @@ pub(crate) fn codex_host_start(
                 ));
             }
 
+            append_connection_trace("host:start:dead-process", json!({}));
             *current_process = None;
         }
     }
@@ -743,6 +829,7 @@ pub(crate) fn codex_host_start(
         state.last_stderr.clone(),
     )?;
     let pid = managed_process.child.id();
+    append_connection_trace("host:start:spawned", json!({ "pid": pid }));
 
     {
         let mut current_process = state.process.lock().expect("codex process lock poisoned");
@@ -765,6 +852,7 @@ pub(crate) fn codex_host_stop(
     settings: CodexHostSettings,
 ) -> CodexHostResult<CodexHostProcessStatus> {
     let settings = normalize_codex_settings(&settings);
+    append_connection_trace("host:stop:entry", json!({}));
     if let Some(mut process) = state
         .process
         .lock()
@@ -793,6 +881,7 @@ pub(crate) fn codex_host_restart(
     settings: CodexHostSettings,
 ) -> CodexHostResult<CodexHostProcessStatus> {
     let normalized = normalize_codex_settings(&settings);
+    append_connection_trace("host:restart:entry", json!({}));
     if let Some(mut process) = state
         .process
         .lock()
@@ -816,12 +905,22 @@ pub(crate) fn codex_host_health(
 ) -> CodexHostResult<CodexHostProcessStatus> {
     let settings = normalize_codex_settings(&settings);
     let workspace_cwd = resolve_workspace_cwd(&app).ok();
+    append_connection_trace(
+        "host:health:entry",
+        json!({
+            "command": settings.codex_command,
+            "cwd": workspace_cwd
+                .as_ref()
+                .map(|path| path.to_string_lossy().to_string()),
+        }),
+    );
     let pid = {
         let mut current_process = state.process.lock().expect("codex process lock poisoned");
         let pid = current_process
             .as_mut()
             .and_then(|process| check_codex_process(&mut process.child));
         if current_process.is_some() && pid.is_none() {
+            append_connection_trace("host:health:process-exited", json!({}));
             *current_process = None;
             if let Ok(mut initialized) = state.initialized.lock() {
                 *initialized = false;
@@ -866,6 +965,12 @@ pub(crate) fn codex_rpc_request(
     input: CodexRpcRequestInput,
 ) -> CodexHostResult<CodexRpcRequestResult> {
     let settings = normalize_codex_settings(&settings);
+    append_connection_trace(
+        "host:rpc-request",
+        json!({
+            "method": input.method,
+        }),
+    );
     ensure_host_ready(&app, state.clone(), &settings)?;
     ensure_initialized(&state)?;
 

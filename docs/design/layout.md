@@ -12,17 +12,8 @@ It does not define component-family styling details or typography roles.
 
 ## Layout Philosophy
 
-The app is a product shell, not a storytelling site.
-Layouts MUST prioritize orientation, task flow, and scan speed.
-
-Core traits:
-
-- persistent shell structure
-- mode-swapped work surfaces
-- compact utility spacing
-- grid-based content organization
-- clear separation between chrome and task content
-- responsive adaptation through reflow, not redesign
+Layouts MUST preserve orientation, task flow, and scan speed inside the operating shell.
+Product feel is owned by `DESIGN.md`; this file owns spatial structure.
 
 The layout system is built around two spatial roles:
 
@@ -30,8 +21,7 @@ The layout system is built around two spatial roles:
 - `workspace`: the primary hosted work surface where page-specific work happens
 
 These roles MUST not collapse into the same visual treatment.
-The shell should read as a continuous frame.
-The workspace should read as an inset surface nested inside that frame.
+The shell is the durable frame. The workspace is the hosted work surface.
 
 ## Mode Model
 
@@ -64,19 +54,13 @@ The default application structure is:
 3. sheet-based navigation on narrow viewports
 4. flexible content well to the right of navigation
 
-Future product screens SHOULD inherit from this shell unless they are intentionally outside the
-main product frame.
+New product screens should inherit from this shell by default unless they are intentionally outside
+the main product frame.
 
 The shell is a single compositional object, not a pile of neighboring panels.
+Surface hierarchy and visual tone are owned by `DESIGN.md` and `tokens.md`.
 
-- header, sidebar, and tab strip SHOULD feel materially related
-- shell regions SHOULD prefer shared surface color over explicit dividing lines
-- shell subdivision SHOULD rely on spacing, alignment, and local controls before it relies on hard
-  separators
-- if a shell region needs emphasis, it SHOULD be achieved with local contrast rather than turning
-  the full shell into stacked cards
-
-The current shell also includes mode-aware continuity rules:
+The current shell uses these mode-aware continuity rules:
 
 - the header owns the current tab rail in both modes
 - the sidebar MAY swap from navigation to editor use without losing shell identity
@@ -86,14 +70,9 @@ The current shell also includes mode-aware continuity rules:
 
 The header is compact, structural, and persistent.
 
-- it MUST remain a control row rather than a hero band
 - it SHOULD carry navigation context, shell actions, or scene tabs
 - in Gallery mode, it SHOULD carry stable first-level Gallery views rather than view-local filters
   or preview scenes
-- it MUST use structural separation rather than dramatic elevation
-- it SHOULD visually belong to the sidebar and tab layer when those elements are part of the same
-  shell
-- it SHOULD avoid heavy borders that imply it is an isolated panel
 - it MAY switch between closable work tabs and non-closable scene tabs without changing its base
   shell treatment
 - it MUST preserve three structural zones: leading chrome, tab rail, and protected window controls
@@ -105,15 +84,16 @@ The header is compact, structural, and persistent.
 
 ## Content Well Rules
 
-The main content area is where page-specific work happens.
+The main content area is where page-specific work happens. The current direction is an inset,
+structured work surface; individual screens may still be at different stages of normalization.
 
-- it SHOULD be modular and grid-oriented
-- it SHOULD favor cards, sections, and split panels over long undifferentiated text flows
+- new or substantially touched surfaces SHOULD be modular and grid-oriented
+- new or substantially touched surfaces SHOULD favor cards, sections, and split panels over long
+  undifferentiated text flows
 - it MUST preserve clear page hierarchy through spacing and section boundaries
-- it MUST avoid marketing-style oversized hero regions
 - it SHOULD read as an inset workspace surface rather than as a continuation of shell chrome
 - it SHOULD use margin, radius, and background contrast to establish its own plane
-- it MUST remain visually distinct from the shell even when the palette is neutral
+- it SHOULD remain visually distinct from the shell even when the palette is neutral
 - the default shell plane SHOULD consume `background`, while the inset workspace plane SHOULD be
   established through neutral surface separation rather than by assuming all hosted panels consume
   `card`
@@ -129,7 +109,7 @@ Standard spacing roles include:
 - local item gap
 - dense control gap
 
-Current implementation suggests these baseline roles:
+Current baseline roles:
 
 - `p-4` to `p-6` for page and section padding
 - `p-5` for common card padding
@@ -139,11 +119,11 @@ Current implementation suggests these baseline roles:
 - `gap-1` for `SidebarMenu` item rhythm
 - `h-8` for standard sidebar item height
 
-Future normalization should map these roles onto explicit spacing tokens.
+Token ownership for reusable spacing values belongs to `tokens.md`.
 
 ## Grid Rules
 
-The main content area SHOULD default to structured panel grids.
+New or substantially touched content areas SHOULD default to structured panel grids.
 
 - dashboards SHOULD use card grids and split panels
 - denser secondary sections MAY use asymmetric column ratios
@@ -159,15 +139,6 @@ Panels are the standard content container at the layout level.
 - spacing inside panels SHOULD stay consistent across pages
 - panels inside the workspace SHOULD feel like secondary structure inside the main work surface,
   not like peers of the shell itself
-
-Suggested panel archetypes:
-
-- summary metric card
-- standard content panel
-- split panel
-- activity / feed panel
-- gallery preview surface
-- sidebar color editor panel
 
 ## Responsive Rules
 
@@ -188,23 +159,6 @@ Responsive changes SHOULD alter structure first:
 Responsive collapse MUST preserve the shell/workspace distinction even when the sidebar becomes a
 sheet.
 Navigation may change its delivery mechanism, but it should not change its spatial role.
-
-## Standard Page Archetypes
-
-Future development should converge on a small set of page archetypes:
-
-### Workspace Mode Surface
-
-Use for project-backed work where the main well is the primary task surface.
-
-### Gallery Mode Surface
-
-Use for design-study scenes where the shell persists and the content well becomes a preview or
-inspection surface.
-
-### Detail / Utility Page
-
-Use for account management, preferences, or focused detail forms that still inherit the shell.
 
 ## Anti-Patterns
 

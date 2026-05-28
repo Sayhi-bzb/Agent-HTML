@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -13,16 +14,118 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def read_registry_prompt_lines(kind: str) -> list[str]:
+    registry = SOURCE_ROOT / "schema" / "component-registry.ts"
+    text = registry.read_text(encoding="utf-8")
+    blocks = re.findall(r"defineAgentHtmlComponent\(\{(.*?)\n  \}\)", text, re.S)
+    lines: list[str] = []
+
+    def extract_object_body(block: str, key: str) -> str | None:
+        key_match = re.search(rf"\b{re.escape(key)}: \{{", block)
+        if not key_match:
+            return None
+
+        start = key_match.end() - 1
+        depth = 0
+        for index in range(start, len(block)):
+            char = block[index]
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    return block[start + 1:index]
+
+        return None
+
+    def extract_attrs(attrs_body: str) -> list[tuple[str, str]]:
+        attrs: list[tuple[str, str]] = []
+        index = 0
+
+        while index < len(attrs_body):
+            match = re.search(r"\b(\w+): \{", attrs_body[index:])
+            if not match:
+                break
+
+            name = match.group(1)
+            start = index + match.end() - 1
+            depth = 0
+            end = start
+
+            for cursor in range(start, len(attrs_body)):
+                char = attrs_body[cursor]
+                if char == "{":
+                    depth += 1
+                elif char == "}":
+                    depth -= 1
+                    if depth == 0:
+                        end = cursor
+                        break
+
+            attrs.append((name, attrs_body[start + 1:end]))
+            index = end + 1
+
+        return attrs
+
+    for block in blocks:
+        kind_match = re.search(r'kind: "([^"]+)"', block)
+        tag_match = re.search(r'tag: "([^"]+)"', block)
+        grammar_match = re.search(r'children: \{ grammar: "([^"]+)"', block)
+
+        if not kind_match or not tag_match or not grammar_match:
+            continue
+
+        if kind_match.group(1) != kind:
+            continue
+
+        signature_match = re.search(r'promptSignature: "([^"]+)"', block)
+        attrs_body = extract_object_body(block, "attrs")
+        attr_lines = extract_attrs(attrs_body) if attrs_body else []
+        attrs: list[str] = []
+        for name, attr_block in attr_lines:
+            if "prompt: false" in attr_block:
+                continue
+
+            required = "required: true" in attr_block
+            marker = "" if required else "?"
+            values_match = re.search(r"values: \[([^\]]+)\]", attr_block, re.S)
+            type_match = re.search(r'type: "([^"]+)"', attr_block)
+
+            if values_match:
+                values = re.findall(r'"([^"]+)"', values_match.group(1))
+                attrs.append(f'{name}{marker}="{"|".join(values)}"')
+            elif type_match:
+                attrs.append(f"{name}{marker}={type_match.group(1)}")
+
+        signature = signature_match.group(1) if signature_match else None
+        if not signature:
+            attr_text = f":{', '.join(attrs)}" if attrs else ""
+            signature = f"{tag_match.group(1)}{attr_text}"
+
+        lines.append(f"- `{signature} -> {grammar_match.group(1)}`")
+
+    return lines
+
+
+def replace_section(content: str, title: str, lines: list[str]) -> str:
+    pattern = rf"(## {re.escape(title)}\n\n)(.*?)(\n\n## )"
+    replacement = rf"\1{chr(10).join(lines)}\3"
+    return re.sub(pattern, replacement, content, flags=re.S)
+
+
 def sync_grammar() -> None:
     source = SOURCE_ROOT / "schema" / "prompt.md"
     target = SKILL_ROOT / "references" / "grammar.md"
+    prompt = source.read_text(encoding="utf-8").strip()
+    prompt = replace_section(prompt, "Layout", read_registry_prompt_lines("layout"))
+    prompt = replace_section(prompt, "UI", read_registry_prompt_lines("ui"))
 
     content = "\n".join(
         [
-            "<!-- AUTO-GENERATED FROM packages/agent-html/src/schema/prompt.md -->",
+            "<!-- AUTO-GENERATED FROM packages/agent-html/src/schema/prompt.md and component-registry.ts -->",
             "# Agent-HTML Grammar",
             "",
-            source.read_text(encoding="utf-8").strip(),
+            prompt,
             "",
         ]
     )

@@ -51,7 +51,7 @@ Visible health details:
 - provider
 - appServerRunning
 - connected
-- threadId
+- activeThreadId
 - Codex command
 - cwd
 - last error / stderr
@@ -86,7 +86,7 @@ Next milestones:
 Manual validation:
 
 - App auto-starts Codex in Tauri.
-- Health reaches connected and shows a thread id after the app starts one.
+- Health reaches connected; the app shows activeThreadId only after it starts one.
 - Sending a block prompt starts a Codex turn.
 - Codex notifications reach frontend listeners.
 - Stop / Restart does not leave orphaned processes.

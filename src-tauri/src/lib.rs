@@ -4,6 +4,7 @@ mod workspace;
 use tauri::Manager;
 
 use crate::codex_host::{
+    codex_connection_trace,
     codex_host_settings_load, codex_host_settings_save,
     codex_host_health, codex_host_logs, codex_host_open_logs, codex_host_restart,
     codex_host_start, codex_host_stop, codex_rpc_notify, codex_rpc_request,
@@ -49,6 +50,7 @@ pub fn run() {
             codex_host_health,
             codex_host_logs,
             codex_host_open_logs,
+            codex_connection_trace,
             codex_rpc_request,
             codex_rpc_notify
         ])

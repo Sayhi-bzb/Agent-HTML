@@ -15,11 +15,18 @@ import {
   appColorTokenDefaults,
   appThemePresets,
 } from "@/app/shared/app-theme/tokens"
+import {
+  appThemeVariableDefaults,
+  managedRootVariableNames,
+  type AppThemeEditableVariableName,
+  type AppThemeVariableName,
+} from "@/app/shared/app-theme/variables"
 
 type TailwindColorScale = Record<AppColorStep, string>
 
 export type AppTokenThemeDraft = {
   colorTokenValues: AppColorTokenValues
+  cssVariables: AppThemeCssVariables
   kind: "tokens"
 }
 
@@ -39,60 +46,6 @@ const legacyAppliedGalleryColorTokenStorageKey =
 const appAppliedThemeStyleId = "app-applied-theme-vars"
 const appColorFamilySet = new Set<string>(appColorFamilies)
 const appColorStepSet = new Set<string>(appColorSteps)
-const managedRootVariableNames = [
-  "--background",
-  "--foreground",
-  "--card",
-  "--card-foreground",
-  "--popover",
-  "--popover-foreground",
-  "--primary",
-  "--primary-foreground",
-  "--secondary",
-  "--secondary-foreground",
-  "--muted",
-  "--muted-foreground",
-  "--accent",
-  "--accent-foreground",
-  "--destructive",
-  "--destructive-foreground",
-  "--border",
-  "--input",
-  "--ring",
-  "--chart-1",
-  "--chart-2",
-  "--chart-3",
-  "--chart-4",
-  "--chart-5",
-  "--sidebar",
-  "--sidebar-foreground",
-  "--sidebar-primary",
-  "--sidebar-primary-foreground",
-  "--sidebar-accent",
-  "--sidebar-accent-foreground",
-  "--sidebar-border",
-  "--sidebar-ring",
-  "--font-sans",
-  "--font-serif",
-  "--font-mono",
-  "--radius",
-  "--shadow-x",
-  "--shadow-y",
-  "--shadow-blur",
-  "--shadow-spread",
-  "--shadow-opacity",
-  "--shadow-color",
-  "--shadow-2xs",
-  "--shadow-xs",
-  "--shadow-sm",
-  "--shadow",
-  "--shadow-md",
-  "--shadow-lg",
-  "--shadow-xl",
-  "--shadow-2xl",
-  "--tracking-normal",
-  "--spacing",
-] as const
 
 const tailwindColorFamilies = Object.fromEntries(
   (Object.keys(colors) as AppColorFamily[]).map((family) => [
@@ -280,6 +233,52 @@ function isCssVariables(value: unknown): value is AppThemeCssVariables {
   })
 }
 
+function normalizeAppThemeCssVariables(
+  value: unknown,
+  defaults: AppThemeCssVariables = {}
+) {
+  const nextVariables = { ...defaults }
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return nextVariables
+  }
+
+  for (const [name, cssValue] of Object.entries(value)) {
+    if (
+      managedRootVariableNames.includes(name as AppThemeVariableName) &&
+      typeof cssValue === "string" &&
+      cssValue.trim().length > 0
+    ) {
+      nextVariables[name as AppThemeVariableName] = cssValue
+    }
+  }
+
+  return nextVariables
+}
+
+function parseTokenThemePayload(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null
+  }
+
+  const parsedValue = value as Partial<{
+    colorTokenValues: unknown
+    cssVariables: unknown
+  }>
+
+  if (parsedValue.colorTokenValues) {
+    return {
+      colorTokenValues: parsedValue.colorTokenValues,
+      cssVariables: parsedValue.cssVariables,
+    }
+  }
+
+  return {
+    colorTokenValues: value,
+    cssVariables: undefined,
+  }
+}
+
 function getManagedThemeStyleElement() {
   let styleElement = document.getElementById(appAppliedThemeStyleId)
 
@@ -315,11 +314,12 @@ function clearManagedPresetTheme() {
 }
 
 function parseTokenThemeDraft(value: unknown): AppTokenThemeDraft | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
+  const payload = parseTokenThemePayload(value)
+  if (!payload) {
     return null
   }
 
-  const parsedValue = value as Partial<
+  const parsedValue = payload.colorTokenValues as Partial<
     Record<AppColorTokenName, Partial<{ family: string; step: string }>>
   >
   const nextValues = { ...appColorTokenDefaults }
@@ -344,6 +344,10 @@ function parseTokenThemeDraft(value: unknown): AppTokenThemeDraft | null {
 
   return {
     colorTokenValues: nextValues,
+    cssVariables: normalizeAppThemeCssVariables(
+      payload.cssVariables,
+      appThemeVariableDefaults
+    ),
     kind: "tokens",
   }
 }
@@ -386,6 +390,7 @@ function parseThemeDraft(value: unknown): AppThemeDraft | null {
 export function createDefaultAppThemeDraft(): AppThemeDraft {
   return {
     colorTokenValues: appColorTokenDefaults,
+    cssVariables: appThemeVariableDefaults,
     kind: "tokens",
   }
 }
@@ -422,6 +427,14 @@ export function resolveAppColorTokenCssVariables(
   ) as Record<`--${string}`, string>
 }
 
+export function resolveAppTokenThemeCssVariables(draft: AppTokenThemeDraft) {
+  return {
+    ...appThemeVariableDefaults,
+    ...draft.cssVariables,
+    ...resolveAppColorTokenCssVariables(draft.colorTokenValues),
+  }
+}
+
 export function createAppTokenThemeDraftFromCssVariables(
   cssVariables: AppThemeCssVariables
 ): AppTokenThemeDraft {
@@ -440,6 +453,10 @@ export function createAppTokenThemeDraftFromCssVariables(
 
   return {
     colorTokenValues,
+    cssVariables: normalizeAppThemeCssVariables(
+      cssVariables,
+      appThemeVariableDefaults
+    ),
     kind: "tokens",
   }
 }
@@ -474,6 +491,7 @@ export function updateAppThemeDraftColorTokenValue({
         ...draft.colorTokenValues,
         [token]: value,
       },
+      cssVariables: draft.cssVariables,
       kind: "tokens",
     }
   }
@@ -495,6 +513,80 @@ export function updateAppThemeDraftColorTokenValue({
   }
 }
 
+export function updateAppThemeDraftCssVariable({
+  draft,
+  name,
+  resolvedMode = "light",
+  value,
+}: {
+  draft: AppThemeDraft
+  name: AppThemeEditableVariableName
+  resolvedMode?: "dark" | "light"
+  value: string
+}): AppThemeDraft {
+  if (draft.kind === "tokens") {
+    return {
+      colorTokenValues: draft.colorTokenValues,
+      cssVariables: {
+        ...draft.cssVariables,
+        [name]: value,
+      },
+      kind: "tokens",
+    }
+  }
+
+  const nextCssVariables = {
+    ...(resolvedMode === "dark"
+      ? draft.darkCssVariables
+      : draft.lightCssVariables),
+    [name]: value,
+  }
+
+  return {
+    ...draft,
+    darkCssVariables:
+      resolvedMode === "dark" ? nextCssVariables : draft.darkCssVariables,
+    lightCssVariables:
+      resolvedMode === "light" ? nextCssVariables : draft.lightCssVariables,
+  }
+}
+
+export function updateAppThemeDraftCssVariables({
+  draft,
+  resolvedMode = "light",
+  values,
+}: {
+  draft: AppThemeDraft
+  resolvedMode?: "dark" | "light"
+  values: Partial<Record<AppThemeEditableVariableName, string>>
+}): AppThemeDraft {
+  if (draft.kind === "tokens") {
+    return {
+      colorTokenValues: draft.colorTokenValues,
+      cssVariables: {
+        ...draft.cssVariables,
+        ...values,
+      },
+      kind: "tokens",
+    }
+  }
+
+  const nextCssVariables = {
+    ...(resolvedMode === "dark"
+      ? draft.darkCssVariables
+      : draft.lightCssVariables),
+    ...values,
+  }
+
+  return {
+    ...draft,
+    darkCssVariables:
+      resolvedMode === "dark" ? nextCssVariables : draft.darkCssVariables,
+    lightCssVariables:
+      resolvedMode === "light" ? nextCssVariables : draft.lightCssVariables,
+  }
+}
+
 export function resolveAppThemeCssVariables(
   draft: AppThemeDraft,
   resolvedMode: "dark" | "light" = "light"
@@ -505,7 +597,7 @@ export function resolveAppThemeCssVariables(
       : draft.lightCssVariables
   }
 
-  return resolveAppColorTokenCssVariables(draft.colorTokenValues)
+  return resolveAppTokenThemeCssVariables(draft)
 }
 
 export function areAppThemeDraftsEqual(
@@ -528,10 +620,12 @@ export function applyAppTheme(draft: AppThemeDraft) {
   }
 
   clearManagedPresetTheme()
-  const variables = resolveAppColorTokenCssVariables(draft.colorTokenValues)
+  const variables = resolveAppTokenThemeCssVariables(draft)
 
   for (const [name, value] of Object.entries(variables)) {
-    root.style.setProperty(name, value)
+    if (typeof value === "string") {
+      root.style.setProperty(name, value)
+    }
   }
 }
 

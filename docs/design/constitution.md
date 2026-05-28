@@ -36,7 +36,8 @@ Dependencies MUST flow downward only.
 
 ### Foundation Tokens
 
-Foundation tokens are the only permitted source of raw reusable design values.
+Foundation tokens are the intended source of reusable raw design values. Current implementation gaps
+are tracked in `tokens.md`.
 
 They MUST:
 

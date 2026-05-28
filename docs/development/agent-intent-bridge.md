@@ -1,4 +1,4 @@
-# Agent Intent Bridge
+# Agent Intent Codex Host
 
 Agent-HTML sends structured workspace intent to Codex through the official Codex
 App Server protocol. The app is a thin host: it owns lifecycle, workspace
@@ -14,6 +14,7 @@ Agent-HTML App
   -> user enters a request and clicks Send
   -> Tauri host starts codex app-server --listen stdio://
   -> Tauri sends initialize / initialized once
+  -> App calls thread/start through generic RPC when needed
   -> App sends Agent-HTML context as turn/start input
   -> Tauri forwards Codex notifications to the frontend
 ```
@@ -65,6 +66,7 @@ This remains optional and separate from the Codex main path.
 Implemented:
 
 - App auto-starts a local Codex App Server in the Tauri desktop runtime.
+- Tauri host forwards Codex JSON-RPC requests without owning thread state.
 - Agent-HTML context is sent to Codex as official `turn/start` input.
 - Raw Codex notifications are forwarded to the frontend event bus.
 - Optional local logs can capture prompt delivery and Codex JSON-RPC messages.

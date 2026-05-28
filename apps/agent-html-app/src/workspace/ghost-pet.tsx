@@ -9,8 +9,11 @@ const GHOST_GLYPH_ROWS = [
   "╰╯╰╯╰╯╰╯",
 ] as const
 
-const GHOST_CELL_WIDTH = "0.4rem"
-const GHOST_CELL_HEIGHT = "0.9rem"
+const GHOST_CELL_WIDTH = "6.4px"
+const GHOST_CELL_HEIGHT = "14.4px"
+const GHOST_FONT_FAMILY =
+  '"Cascadia Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, Monaco, "Liberation Mono", "Courier New", monospace'
+const GHOST_FONT_SIZE = "12px"
 const GHOST_POSITION_STORAGE_KEY = "agent-html.workspace-ghost-pet-position"
 const GHOST_VIEWPORT_MARGIN = 24
 
@@ -248,9 +251,17 @@ export function WorkspaceGhostPet({
         >
           <div
             aria-hidden="true"
-            className="grid select-none grid-cols-[repeat(8,var(--ghost-cell-width))] grid-rows-[repeat(5,var(--ghost-cell-height))] place-items-center font-mono text-[12px] leading-none"
+            className="grid select-none grid-cols-[repeat(8,var(--ghost-cell-width))] grid-rows-[repeat(5,var(--ghost-cell-height))] place-items-center leading-none"
+            lang="en"
             style={
               {
+                fontFamily: GHOST_FONT_FAMILY,
+                fontFeatureSettings: '"liga" 0, "calt" 0',
+                fontKerning: "none",
+                fontSize: GHOST_FONT_SIZE,
+                fontSynthesis: "none",
+                fontWeight: 700,
+                fontVariantLigatures: "none",
                 "--ghost-cell-height": GHOST_CELL_HEIGHT,
                 "--ghost-cell-width": GHOST_CELL_WIDTH,
               } as React.CSSProperties

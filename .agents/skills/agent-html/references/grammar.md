@@ -1,4 +1,4 @@
-<!-- AUTO-GENERATED FROM packages/agent-html/src/schema/prompt.md -->
+<!-- AUTO-GENERATED FROM packages/agent-html/src/schema/prompt.md and component-registry.ts -->
 # Agent-HTML Grammar
 
 # Gallery Preview DSL
@@ -36,20 +36,17 @@
 
 ## UI
 
-- `Accordion:type="single|multiple" -> AccordionItem+`
+- `Accordion:type?="single|multiple" -> AccordionItem+`
 - `AccordionItem:value?=string, disabled?="true|false" -> AccordionTrigger, AccordionContent`
 - `AccordionTrigger -> Text`
 - `AccordionContent -> Layout | UI | Text`
-
 - `Alert:variant?="default|destructive" -> Icon?, AlertTitle?, AlertDescription?, AlertAction?`
 - `AlertTitle -> Text`
 - `AlertDescription -> Text`
 - `AlertAction -> Layout | UI | Text`
-
 - `AspectRatio:ratio=number -> Layout | UI`
-
 - `Badge:variant?="default|secondary|destructive|outline|ghost|link" -> Text, Icon?`
-
+- `Button:variant?="default|outline|ghost|destructive|secondary|link", href?=string, label?=string -> Text, Icon?`
 - `Card:size?="default|sm" -> CardHeader?, CardContent?, CardFooter?`
 - `CardHeader -> CardTitle?, CardDescription?, CardAction?`
 - `CardTitle -> Text`
@@ -57,17 +54,13 @@
 - `CardAction -> Layout | UI | Text`
 - `CardContent -> Layout | UI | Text`
 - `CardFooter -> Layout | UI | Text`
-
 - `Carousel:orientation?="horizontal|vertical" -> CarouselContent, CarouselPrevious?, CarouselNext?`
 - `CarouselContent -> CarouselItem+`
 - `CarouselItem -> Layout | UI | Text`
 - `CarouselPrevious -> none`
 - `CarouselNext -> none`
-
 - `Progress:value=number -> none`
-
 - `Separator:orientation?="horizontal|vertical" -> none`
-
 - `Table -> TableCaption?, TableHeader?, TableBody?, TableFooter?`
 - `TableCaption -> Text`
 - `TableHeader -> TableRow+`
@@ -76,27 +69,25 @@
 - `TableRow -> TableHead+ | TableCell+`
 - `TableHead -> Text`
 - `TableCell -> Layout | UI | Text`
-
 - `Tabs:orientation?="horizontal|vertical", defaultValue?=string -> TabsList, TabsContent+`
 - `TabsList -> TabsTrigger+`
 - `TabsTrigger:value=string, disabled?="true|false" -> Text, Icon?`
 - `TabsContent:value=string -> Layout | UI | Text`
-
 - `Timeline -> TimelineItem+`
 - `TimelineItem:icon?=string, status?="default|complete|current|muted", meta?=string -> TimelineTitle, TimelineDescription?, TimelineContent?`
 - `TimelineTitle -> Text`
 - `TimelineDescription -> Text`
 - `TimelineContent -> Layout | UI | Text`
-
 - `Chart:type="area|bar" -> ChartSeries+, ChartRow+, ChartTooltip?`
-- `ChartSeries:key=string, label?=string`
+- `ChartSeries:key=string, label?=string -> none`
 - `ChartRow:label=string, [series key]=number -> none`
 - `ChartTooltip:hideLabel?="true|false" -> none`
-
 - `CodeBlock:language="ahtml|html|tsx|jsx|ts|js|json|bash", title?=string -> raw code text`
-
 - `Icon:name=string -> none`
 - `Image:src=string, alt=string, fit?="cover|contain" -> none`
+- `Kanban -> KanbanColumn+`
+- `KanbanColumn:value=string, title=string -> KanbanItem+`
+- `KanbanItem:value=string -> Layout | UI | Text`
 - `Text:variant?="h1|h2|h3|h4|p|lead|large|small|muted|inline-code" -> Text`
 
 ## Canonical Example
