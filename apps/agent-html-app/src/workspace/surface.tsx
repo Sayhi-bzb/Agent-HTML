@@ -535,6 +535,12 @@ export function WorkspaceSurface({
     return <WorkspaceStatus detail={runtime.message} title="Runtime error" />
   }
 
+  const shouldShowThreadSelector =
+    (codexConnection.status === "connected" ||
+      codexConnection.status === "starting") &&
+    !codexConnection.activeThreadId
+  const canSelectThread = codexConnection.status === "connected"
+
   return (
     <AgentHtmlRuntimeTheme
       className="h-full w-full"
@@ -546,6 +552,67 @@ export function WorkspaceSurface({
       >
         <AgentHtmlRuntimeViewport>{runtime.content}</AgentHtmlRuntimeViewport>
       </AgentHtmlBlockRuntimeProvider>
+      {shouldShowThreadSelector ? (
+        <div className="fixed inset-x-4 bottom-4 z-40 mx-auto max-w-xl rounded-lg border bg-background p-3 text-sm text-foreground shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="font-medium">Choose a Codex thread</p>
+              <p className="text-xs text-muted-foreground">
+                Continue a previous workspace thread or start fresh.
+              </p>
+            </div>
+            <Button
+              disabled={!canSelectThread || isSelectingThread}
+              onClick={startNewThread}
+              title={canSelectThread ? undefined : "Codex is starting"}
+              type="button"
+              variant="outline"
+            >
+              New thread
+            </Button>
+          </div>
+          {codexConnection.threadList.error ? (
+            <p className="mt-2 text-xs text-destructive">
+              {codexConnection.threadList.error}
+            </p>
+          ) : null}
+          {threadSelectionError ? (
+            <p className="mt-2 text-xs text-destructive">
+              {threadSelectionError}
+            </p>
+          ) : null}
+          <div className="mt-3 grid max-h-48 gap-2 overflow-auto">
+            {!canSelectThread ? (
+              <p className="text-xs text-muted-foreground">
+                Connecting to Codex...
+              </p>
+            ) : codexConnection.threadList.isLoading ? (
+              <p className="text-xs text-muted-foreground">Loading threads...</p>
+            ) : codexConnection.threadList.items.length > 0 ? (
+              codexConnection.threadList.items.map((thread) => (
+                <button
+                  key={thread.id}
+                  className="rounded-md border px-2 py-1.5 text-left text-xs hover:bg-muted disabled:opacity-50"
+                  disabled={!canSelectThread || isSelectingThread}
+                  onClick={() => resumeThread(thread.id)}
+                  type="button"
+                >
+                  <span className="block truncate font-medium">
+                    {formatThreadLabel(thread)}
+                  </span>
+                  <span className="block truncate text-muted-foreground">
+                    {thread.id}
+                  </span>
+                </button>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                No previous threads for this workspace.
+              </p>
+            )}
+          </div>
+        </div>
+      ) : null}
       {saveState.status !== "clean" ? (
         <div
           className={[

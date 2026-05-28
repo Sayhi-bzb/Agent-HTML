@@ -17,8 +17,9 @@ Settings
   -> configure Codex command only
   -> Tauri starts codex app-server --listen stdio://
   -> Tauri sends initialize / initialized
-  -> App calls official thread/start through generic RPC
-  -> App sends Agent-HTML prompt context as turn/start input
+  -> App calls official thread/list for the current workspace cwd
+  -> User chooses thread/resume or thread/start
+  -> App sends Agent-HTML prompt context as turn/start input for the active thread
   -> Tauri forwards raw Codex notifications to frontend listeners
 ```
 
@@ -50,6 +51,8 @@ Visible health details:
 
 Actions:
 
+- Continue previous thread
+- New thread
 - Test connection
 - Stop
 - Restart
@@ -92,8 +95,9 @@ Next milestones:
 Manual validation:
 
 - App auto-starts Codex in Tauri.
-- Health reaches connected; the app shows activeThreadId only after it starts one.
-- Sending a block prompt starts a Codex turn.
+- Health reaches connected without creating a new thread.
+- App lists current-workspace Codex threads, then sets activeThreadId only after `thread/resume` or `thread/start`.
+- Sending a block prompt starts a Codex turn on the active thread.
 - Codex notifications reach frontend listeners.
 - Stop / Restart does not leave orphaned processes.
 - App close cleans up the Codex child process.

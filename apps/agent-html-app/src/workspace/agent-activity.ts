@@ -7,6 +7,7 @@ import type { PetActionKind, PetPresence } from "@/app/workspace/ghost-pet"
 export const codexNotificationEventName = "codex://notification"
 
 const MAX_ACTIVITY_EVENTS = 100
+const MAX_STREAMING_MESSAGE_LENGTH = 4000
 
 export type AgentActivityScope =
   | { blockPath: string; sectionId?: string; type: "block" }
@@ -30,9 +31,9 @@ export type AgentActivityEvent = {
   id: string
   itemId?: string
   method: string
-  params?: unknown
   receivedAt: string
   scope: AgentActivityScope
+  status?: string
   threadId?: string
   turnId?: string
 }
@@ -129,6 +130,15 @@ function getCommandLabel(params: unknown) {
   }
 
   return undefined
+}
+
+function appendStreamingMessage(current: string | undefined, delta: string) {
+  const next = `${current ?? ""}${delta}`
+  if (next.length <= MAX_STREAMING_MESSAGE_LENGTH) {
+    return next
+  }
+
+  return next.slice(next.length - MAX_STREAMING_MESSAGE_LENGTH)
 }
 
 function createEventId(method: string, receivedAt: string, index: number) {
@@ -334,7 +344,7 @@ function presenceForNotification(
   if (method === "item/agentMessage/delta") {
     const delta = getAgentMessageDelta(params)
     const streamingMessage = delta
-      ? `${state.streamingMessage ?? ""}${delta}`
+      ? appendStreamingMessage(state.streamingMessage, delta)
       : state.streamingMessage
 
     return {
@@ -374,9 +384,9 @@ export function reduceCodexNotification(
     id: createEventId(notification.method, receivedAt, state.events.length),
     itemId,
     method: notification.method,
-    params: notification.params,
     receivedAt,
     scope: scopeForEvent(context, threadId, turnId),
+    status: getStatus(notification.params) ?? getError(notification.params),
     threadId,
     turnId,
   }
@@ -400,7 +410,7 @@ export function reduceCodexNotification(
     latestStatus: getStatus(notification.params) ?? state.latestStatus,
     presence: nextPresence ?? state.presence,
     streamingMessage: delta
-      ? `${state.streamingMessage ?? ""}${delta}`
+      ? appendStreamingMessage(state.streamingMessage, delta)
       : state.streamingMessage,
   }
 }

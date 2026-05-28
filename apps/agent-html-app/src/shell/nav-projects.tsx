@@ -190,14 +190,14 @@ function ProjectActionMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
+        <SidebarMenuAction
           aria-label="Project actions"
-          className="absolute top-1.5 right-1 flex size-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-0 outline-hidden transition-opacity after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring group-focus-within/project-row:opacity-100 group-hover/project-row:opacity-100 aria-expanded:opacity-100 md:after:hidden [&_svg]:size-4 [&_svg]:shrink-0"
+          showOnHover
           title={disabledReason ?? undefined}
           type="button"
         >
           <MoreHorizontalIcon />
-        </button>
+        </SidebarMenuAction>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6}>
         {!canEdit && disabledReason ? (
@@ -230,20 +230,21 @@ function ProjectQuickActions({
   onNewSection: () => void
 }) {
   return (
-    <button
+    <SidebarMenuAction
       aria-label="New section"
-      className="absolute top-1.5 right-7 flex size-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-0 outline-hidden transition-opacity after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring group-focus-within/project-row:opacity-100 group-hover/project-row:opacity-100 md:after:hidden [&_svg]:size-4 [&_svg]:shrink-0"
       disabled={!canEdit}
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
         onNewSection()
       }}
+      position="secondary"
+      showOnHover
       title="New Section"
       type="button"
     >
       <PlusIcon />
-    </button>
+    </SidebarMenuAction>
   )
 }
 
@@ -303,20 +304,21 @@ function SectionQuickActions({
   onDuplicate: () => void
 }) {
   return (
-    <button
+    <SidebarMenuAction
       aria-label="Duplicate section"
-      className="absolute top-1.5 right-7 flex size-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-0 outline-hidden transition-opacity after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 md:after:hidden [&_svg]:size-4 [&_svg]:shrink-0"
       disabled={!canEdit}
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
         onDuplicate()
       }}
+      position="secondary"
+      showOnHover
       title="Duplicate"
       type="button"
     >
       <CopyIcon />
-    </button>
+    </SidebarMenuAction>
   )
 }
 

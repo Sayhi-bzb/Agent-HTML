@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest"
 import type { AgentHtmlTag } from "@/agent-html/ast/types"
 import { agentHtmlComponentRegistry } from "@/agent-html/schema/component-registry"
 import { defaultAttrs } from "@/agent-html/schema/defaults"
-import { buildAgentHtmlPromptGrammar } from "@/agent-html/schema/prompt-grammar"
+import {
+  buildAgentHtmlPromptDocument,
+  buildAgentHtmlPromptGrammar,
+} from "@/agent-html/schema/prompt-grammar"
 import { allowedAttrs, requiredAttrs } from "@/agent-html/schema/attrs"
 import { allTags, layoutTags } from "@/agent-html/schema/tags"
 
@@ -106,5 +109,37 @@ describe("agentHtmlComponentRegistry", () => {
       "- `ChartRow:label=string, [series key]=number -> none`"
     )
     expect(grammar.ui).toContain("- `KanbanColumn:value=string, title=string -> KanbanItem+`")
+  })
+
+  it("builds prompt documents with generated layout and ui grammar", () => {
+    const document = buildAgentHtmlPromptDocument(`# Gallery Preview DSL
+
+## Contract
+
+- Keep this hand-authored.
+
+## Layout
+
+- old layout
+
+## UI
+
+- old ui
+
+## Never
+
+- Keep this hand-authored too.
+`)
+
+    expect(document).toContain("- Keep this hand-authored.")
+    expect(document).toContain("- Keep this hand-authored too.")
+    expect(document).not.toContain("- old layout")
+    expect(document).not.toContain("- old ui")
+    expect(document).toContain("- `Accordion:type?=\"single|multiple\" -> AccordionItem+`")
+    expect(document).toContain("- `ChartSeries:key=string, label?=string -> none`")
+    expect(document).toContain(
+      "- `ChartRow:label=string, [series key]=number -> none`"
+    )
+    expect(document).toContain("- `Kanban -> KanbanColumn+`")
   })
 })

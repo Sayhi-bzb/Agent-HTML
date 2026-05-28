@@ -163,4 +163,35 @@ describe("reduceCodexNotification", () => {
     expect(state.events[0].scope).toEqual({ type: "system" })
     expect(state.presence).toBeUndefined()
   })
+
+  it("stores event summaries without raw notification payloads", () => {
+    const state = reduceCodexNotification(
+      createInitialAgentActivityState(),
+      {
+        method: "item/completed",
+        params: {
+          item: {
+            id: "item_1",
+            output: "x".repeat(10_000),
+            status: "completed",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:00.000Z"
+    )
+
+    expect(state.events[0]).toEqual({
+      id: "2026-05-28T00:00:00.000Z:0:item/completed",
+      itemId: "item_1",
+      method: "item/completed",
+      receivedAt: "2026-05-28T00:00:00.000Z",
+      scope: { type: "workspace" },
+      status: "completed",
+      threadId: "thr_1",
+      turnId: "turn_1",
+    })
+  })
 })

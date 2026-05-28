@@ -169,6 +169,7 @@ function CodexConnectionDialog({
   const [draftSettings, setDraftSettings] = React.useState(
     codexConnection.settings
   )
+  const [accordionValue, setAccordionValue] = React.useState<string[]>([])
   const wasOpenRef = React.useRef(false)
   const displayStatus = codexConnection.status
   const statusSummary = codexConnection.phase === "loadingSettings"
@@ -184,9 +185,21 @@ function CodexConnectionDialog({
   React.useEffect(() => {
     if (open && !wasOpenRef.current) {
       setDraftSettings(codexConnection.settings)
+      setAccordionValue(codexConnection.lastError ? ["diagnostics"] : [])
     }
     wasOpenRef.current = open
-  }, [codexConnection.settings, open])
+  }, [codexConnection.lastError, codexConnection.settings, open])
+
+  React.useEffect(() => {
+    if (
+      open &&
+      accordionValue.includes("diagnostics") &&
+      codexConnection.status === "connected" &&
+      runtimeStatus.status === "idle"
+    ) {
+      void codexConnection.refreshRuntimeStatus()
+    }
+  }, [accordionValue, codexConnection, open, runtimeStatus.status])
 
   const updateTextSetting = React.useCallback(
     (key: keyof typeof draftSettings) =>
@@ -268,9 +281,8 @@ function CodexConnectionDialog({
           ) : null}
           <Accordion
             type="multiple"
-            defaultValue={
-              codexConnection.lastError ? ["diagnostics"] : undefined
-            }
+            onValueChange={setAccordionValue}
+            value={accordionValue}
             className="rounded-lg border px-3"
           >
             <AccordionItem value="advanced">

@@ -113,7 +113,10 @@ type CodexConnectionContextValue = {
 }
 
 const TRACE_STORAGE_KEY = "agent-html.codex-connection-trace"
+const ACTIVE_THREAD_STORAGE_KEY = "agent-html.codex-active-thread-id"
 const CONNECTION_TIMEOUT_MS = 30000
+const THREAD_LIST_LIMIT = 50
+const TRACE_TEXT_LIMIT = 240
 
 export type CodexConnectionPhase =
   | "connected"
@@ -215,10 +218,36 @@ function readString(value: unknown, keys: string[]) {
   return typeof current === "string" ? current : undefined
 }
 
-function readThreadId(value: unknown) {
+function readScalarAsString(value: unknown, keys: string[]) {
+  let current = value
+  for (const key of keys) {
+    const object = readObject(current)
+    if (!object) {
+      return undefined
+    }
+    current = object[key]
+  }
+
+  if (typeof current === "string") {
+    return current
+  }
+
+  if (typeof current === "number") {
+    return String(current)
+  }
+
+  return undefined
+}
+
+export function readThreadId(value: unknown) {
   const result = readObject(value)
   const thread = readObject(result?.thread)
-  return typeof thread?.id === "string" ? thread.id : null
+  return (
+    (typeof thread?.id === "string" && thread.id) ||
+    (typeof result?.threadId === "string" && result.threadId) ||
+    (typeof result?.id === "string" && result.id) ||
+    null
+  )
 }
 
 function readTurnId(value: unknown) {
@@ -227,9 +256,10 @@ function readTurnId(value: unknown) {
   return typeof turn?.id === "string" ? turn.id : null
 }
 
-function readThreads(value: unknown): CodexThreadSummary[] {
+export function readThreads(value: unknown): CodexThreadSummary[] {
   const result = readObject(value)
   const rawThreads =
+    (Array.isArray(result?.data) && result.data) ||
     (Array.isArray(result?.threads) && result.threads) ||
     (Array.isArray(result?.items) && result.items) ||
     (Array.isArray(value) && value) ||
@@ -245,9 +275,9 @@ function readThreads(value: unknown): CodexThreadSummary[] {
 
       return {
         createdAt:
-          readString(thread, ["createdAt"]) ??
-          readString(thread, ["created_at"]) ??
-          readString(thread, ["created"]),
+          readScalarAsString(thread, ["createdAt"]) ??
+          readScalarAsString(thread, ["created_at"]) ??
+          readScalarAsString(thread, ["created"]),
         id,
         name:
           readString(thread, ["name"]) ??
@@ -255,12 +285,21 @@ function readThreads(value: unknown): CodexThreadSummary[] {
           null,
         status: readString(thread, ["status"]) ?? null,
         updatedAt:
-          readString(thread, ["updatedAt"]) ??
-          readString(thread, ["updated_at"]) ??
-          readString(thread, ["lastUpdatedAt"]),
+          readScalarAsString(thread, ["updatedAt"]) ??
+          readScalarAsString(thread, ["updated_at"]) ??
+          readScalarAsString(thread, ["lastUpdatedAt"]),
       }
     })
     .filter((thread): thread is CodexThreadSummary => thread !== null)
+}
+
+function createThreadListParams(cwd?: string | null) {
+  return {
+    ...(cwd ? { cwd } : {}),
+    limit: THREAD_LIST_LIMIT,
+    sortKey: "updated_at",
+    sourceKinds: ["appServer", "vscode", "cli"],
+  }
 }
 
 function createIdleThreadList(): CodexThreadListState {
@@ -390,6 +429,54 @@ function isConnectionTraceEnabled() {
   )
 }
 
+function truncateTraceText(value: string) {
+  return value.length > TRACE_TEXT_LIMIT
+    ? `${value.slice(0, TRACE_TEXT_LIMIT)}...`
+    : value
+}
+
+function summarizeTraceValue(value: unknown): unknown {
+  if (typeof value === "string") {
+    return truncateTraceText(value)
+  }
+
+  if (Array.isArray(value)) {
+    return value.slice(0, 5).map(summarizeTraceValue)
+  }
+
+  const object = readObject(value)
+  if (!object) {
+    return value
+  }
+
+  const summary: Record<string, unknown> = {}
+  for (const [key, child] of Object.entries(object)) {
+    if (key === "text" || key === "promptText") {
+      summary[key] = typeof child === "string" ? `<text:${child.length}>` : child
+      continue
+    }
+    summary[key] = summarizeTraceValue(child)
+  }
+  return summary
+}
+
+function summarizeRpcResult(value: unknown) {
+  const object = readObject(value)
+  if (!object) {
+    return summarizeTraceValue(value)
+  }
+
+  const threadId = readThreadId(value)
+  const turnId = readTurnId(value)
+  const threads = readThreads(value)
+  return {
+    keys: Object.keys(object),
+    threadCount: threads.length || undefined,
+    threadId: threadId ?? undefined,
+    turnId: turnId ?? undefined,
+  }
+}
+
 function writeConnectionTrace(event: string, payload: ConnectionTracePayload) {
   if (!isConnectionTraceEnabled()) {
     return
@@ -415,6 +502,14 @@ function writeConnectionTrace(event: string, payload: ConnectionTracePayload) {
   }).catch((error) => {
     console.warn("[codex-connection-trace] write failed", error)
   })
+}
+
+function storeActiveThreadId(threadId: string) {
+  if (typeof localStorage === "undefined") {
+    return
+  }
+
+  localStorage.setItem(ACTIVE_THREAD_STORAGE_KEY, threadId)
 }
 
 export function CodexConnectionProvider({
@@ -566,7 +661,11 @@ export function CodexConnectionProvider({
     setPhase("connecting")
     setLastError(null)
     setActiveThreadId(null)
-    setThreadList(createIdleThreadList())
+    setThreadList((currentList) => ({
+      ...currentList,
+      error: null,
+      isLoading: true,
+    }))
 
     try {
       const processStatus = await withTimeout(
@@ -661,7 +760,11 @@ export function CodexConnectionProvider({
     setPhase("connecting")
     setLastError(null)
     setActiveThreadId(null)
-    setThreadList(createIdleThreadList())
+    setThreadList((currentList) => ({
+      ...currentList,
+      error: null,
+      isLoading: true,
+    }))
 
     try {
       const processStatus = await withTimeout(
@@ -712,6 +815,7 @@ export function CodexConnectionProvider({
 
       writeConnectionTrace("rpc:start", {
         method,
+        params: summarizeTraceValue(params),
         phase: phaseRef.current,
       })
       const response = await invoke<CodexRpcRequestResult>("codex_rpc_request", {
@@ -725,6 +829,7 @@ export function CodexConnectionProvider({
       writeConnectionTrace("rpc:result", {
         method,
         phase: phaseRef.current,
+        result: summarizeRpcResult(response.result),
       })
       return response.result
     },
@@ -801,14 +906,21 @@ export function CodexConnectionProvider({
     }))
 
     try {
-      const result = await request("thread/list", {
-        cwd: health?.cwd ?? undefined,
-        limit: 20,
-      })
+      const primaryResult = await request(
+        "thread/list",
+        createThreadListParams(health?.cwd)
+      )
+      let items = readThreads(primaryResult)
+      if (items.length === 0 && health?.cwd) {
+        writeConnectionTrace("thread:list:fallback-without-cwd", {
+          cwd: health.cwd,
+        })
+        items = readThreads(await request("thread/list", createThreadListParams()))
+      }
       setThreadList({
         error: null,
         isLoading: false,
-        items: readThreads(result),
+        items,
         loadedAt: new Date().toISOString(),
       })
     } catch (error) {
@@ -824,6 +936,7 @@ export function CodexConnectionProvider({
     async (threadId: string) => {
       await request("thread/resume", { threadId })
       setActiveThreadId(threadId)
+      storeActiveThreadId(threadId)
     },
     [request]
   )
@@ -841,6 +954,7 @@ export function CodexConnectionProvider({
     }
 
     setActiveThreadId(threadId)
+    storeActiveThreadId(threadId)
     void refreshThreads()
     return threadId
   }, [refreshThreads, request])
@@ -973,13 +1087,20 @@ export function CodexConnectionProvider({
   React.useEffect(() => {
     if (phase !== "connected") {
       setRuntimeStatus(createIdleRuntimeStatus())
-      setThreadList(createIdleThreadList())
+      setThreadList((currentList) =>
+        phase === "connecting" || phase === "loadingSettings"
+          ? {
+              ...currentList,
+              error: null,
+              isLoading: true,
+            }
+          : createIdleThreadList()
+      )
       return
     }
 
-    void refreshRuntimeStatus()
     void refreshThreads()
-  }, [phase, refreshRuntimeStatus, refreshThreads])
+  }, [phase, refreshThreads])
 
   const status = statusFromPhase(phase)
 
