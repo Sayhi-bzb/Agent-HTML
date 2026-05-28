@@ -717,6 +717,21 @@ impl WorkspaceStore {
             document_path,
         )
     }
+
+    fn delete_project_codex_thread_link(
+        &self,
+        project_id: &str,
+        thread_id: &str,
+    ) -> WorkspaceResult<String> {
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
+        connection.execute(
+            "DELETE FROM project_codex_threads
+             WHERE project_id = ?1 AND thread_id = ?2",
+            params![project_id, thread_id],
+        )?;
+
+        Ok(thread_id.to_string())
+    }
 }
 
 fn collect_rows<T>(
@@ -1495,6 +1510,15 @@ pub(crate) fn touch_project_codex_thread_link(
     )
 }
 
+#[tauri::command]
+pub(crate) fn delete_project_codex_thread_link(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+    thread_id: String,
+) -> WorkspaceResult<String> {
+    store.delete_project_codex_thread_link(&project_id, &thread_id)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1885,5 +1909,29 @@ mod tests {
             .expect("list deleted project links");
 
         assert!(links.is_empty());
+    }
+
+    #[test]
+    fn deletes_single_project_codex_thread_link() {
+        let workspace = test_store();
+        let store = &workspace.store;
+
+        store
+            .upsert_project_codex_thread_link("design-engineering", "thr_one", None, None, None)
+            .expect("link first thread");
+        store
+            .upsert_project_codex_thread_link("design-engineering", "thr_two", None, None, None)
+            .expect("link second thread");
+
+        let deleted = store
+            .delete_project_codex_thread_link("design-engineering", "thr_one")
+            .expect("delete thread link");
+        let links = store
+            .list_project_codex_threads("design-engineering")
+            .expect("list remaining links");
+
+        assert_eq!(deleted, "thr_one");
+        assert_eq!(links.len(), 1);
+        assert_eq!(links[0].thread_id, "thr_two");
     }
 }

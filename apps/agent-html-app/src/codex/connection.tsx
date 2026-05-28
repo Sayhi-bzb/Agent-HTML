@@ -120,6 +120,7 @@ const ACTIVE_THREAD_STORAGE_KEY = "agent-html.codex-active-thread-id"
 const CONNECTION_TIMEOUT_MS = 30000
 const THREAD_LIST_LIMIT = 50
 const TRACE_TEXT_LIMIT = 240
+const AUTO_CONNECT_DELAY_MS = 250
 
 export type CodexConnectionPhase =
   | "connected"
@@ -133,6 +134,10 @@ type ApplyProcessStatusOptions = {
 }
 
 type ConnectionTracePayload = Record<string, unknown>
+
+type ScheduledCodexAutoConnect = {
+  cancel: () => void
+}
 
 const CODEX_RUNTIME_READS: CodexRuntimeReadSpec[] = [
   {
@@ -251,6 +256,13 @@ export function readThreadId(value: unknown) {
     (typeof result?.id === "string" && result.id) ||
     null
   )
+}
+
+export function markCodexStartupEvent(
+  event: string,
+  payload: ConnectionTracePayload = {}
+) {
+  writeConnectionTrace(`startup:${event}`, payload)
 }
 
 function readTurnId(value: unknown) {
@@ -507,6 +519,44 @@ function writeConnectionTrace(event: string, payload: ConnectionTracePayload) {
   })
 }
 
+export function scheduleCodexAutoConnect({
+  connect,
+  delayMs = AUTO_CONNECT_DELAY_MS,
+  getAttemptId,
+  onError,
+  onSkip,
+  settings,
+}: {
+  connect: (settings: CodexConnectionSettings) => Promise<void>
+  delayMs?: number
+  getAttemptId: () => number
+  onError?: (error: unknown) => void
+  onSkip?: () => void
+  settings: CodexConnectionSettings
+}): ScheduledCodexAutoConnect {
+  const scheduledAttemptId = getAttemptId()
+  let isCancelled = false
+  const timeout = globalThis.setTimeout(() => {
+    if (isCancelled || getAttemptId() !== scheduledAttemptId) {
+      onSkip?.()
+      return
+    }
+
+    void connect(settings).catch((error) => {
+      if (!isCancelled) {
+        onError?.(error)
+      }
+    })
+  }, delayMs)
+
+  return {
+    cancel() {
+      isCancelled = true
+      globalThis.clearTimeout(timeout)
+    },
+  }
+}
+
 function storeActiveThreadId(threadId: string) {
   if (typeof localStorage === "undefined") {
     return
@@ -538,6 +588,12 @@ export function CodexConnectionProvider({
   const connectionAttemptRef = React.useRef(0)
   const phaseRef = React.useRef<CodexConnectionPhase>(phase)
   const settingsRef = React.useRef(settings)
+
+  React.useEffect(() => {
+    writeConnectionTrace("startup:provider-mounted", {
+      phase: phaseRef.current,
+    })
+  }, [])
 
   React.useEffect(() => {
     phaseRef.current = phase
@@ -1010,6 +1066,7 @@ export function CodexConnectionProvider({
     }
 
     let isCurrent = true
+    let cleanupScheduledConnection: ScheduledCodexAutoConnect | undefined
 
     void invoke<CodexConnectionSettings>("codex_host_settings_load")
       .then((loadedSettings) => {
@@ -1027,15 +1084,27 @@ export function CodexConnectionProvider({
           command: loadedSettings.codexCommand,
           phase: phaseRef.current,
         })
-        setPhase("connecting")
-        return connect(loadedSettings)
-      })
-      .then(() => {
-        if (!isCurrent) {
-          return
-        }
-
+        setPhase("stopped")
         setIsLoaded(true)
+        writeConnectionTrace("startup:loaded-before-auto-connect", {
+          phase: phaseRef.current,
+        })
+        cleanupScheduledConnection = scheduleCodexAutoConnect({
+          connect,
+          getAttemptId: () => connectionAttemptRef.current,
+          onError: (error) => {
+            writeConnectionTrace("auto-connect:error", {
+              error: getErrorMessage(error),
+              phase: phaseRef.current,
+            })
+          },
+          onSkip: () => {
+            writeConnectionTrace("auto-connect:skip", {
+              phase: phaseRef.current,
+            })
+          },
+          settings: loadedSettings,
+        })
       })
       .catch((error) => {
         if (!isCurrent) {
@@ -1048,6 +1117,7 @@ export function CodexConnectionProvider({
       })
     return () => {
       isCurrent = false
+      cleanupScheduledConnection?.cancel()
     }
   }, [canManageHost, connect])
 

@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import { markCodexStartupEvent } from "@/app/codex/connection"
 import {
   useAgentActivity,
   type AgentActivityTurnContext,
@@ -164,6 +165,38 @@ function getThreadSummaryById(
   return threads.find((thread) => thread.id === threadId) ?? null
 }
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  if (typeof error === "string") {
+    return error
+  }
+
+  if (typeof error === "object" && error !== null) {
+    if ("message" in error && typeof error.message === "string") {
+      return error.message
+    }
+    if ("error" in error && typeof error.error === "string") {
+      return error.error
+    }
+  }
+
+  return String(error)
+}
+
+function isMissingCodexThreadError(error: unknown) {
+  const message = getErrorMessage(error).toLowerCase()
+  return (
+    message.includes("not found") ||
+    message.includes("missing") ||
+    message.includes("no such thread") ||
+    message.includes("unknown thread") ||
+    message.includes("archived")
+  )
+}
+
 function formatProjectThreadLabel(
   link: ProjectCodexThreadLink,
   summary: ReturnType<typeof getThreadSummaryById>
@@ -202,6 +235,94 @@ function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState
   }
 }
 
+function ProjectThreadPickerContent({
+  canSelectThread,
+  codexThreadError,
+  isLoading,
+  isSelectingThread,
+  onNewThread,
+  onResumeThread,
+  projectThreadError,
+  projectThreadLinks,
+  threadSelectionError,
+  threadSummaries,
+}: {
+  canSelectThread: boolean
+  codexThreadError?: string | null
+  isLoading: boolean
+  isSelectingThread: boolean
+  onNewThread: () => void
+  onResumeThread: (threadId: string) => void
+  projectThreadError?: string | null
+  projectThreadLinks: ProjectCodexThreadLink[]
+  threadSelectionError?: string | null
+  threadSummaries: CodexThreadSummary[]
+}) {
+  return (
+    <div className="flex flex-col gap-3 text-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-medium">Codex threads</p>
+          <p className="text-xs text-muted-foreground">
+            Continue a project thread or start fresh.
+          </p>
+        </div>
+        <Button
+          disabled={!canSelectThread || isSelectingThread}
+          onClick={onNewThread}
+          title={canSelectThread ? undefined : "Codex is starting"}
+          type="button"
+          variant="outline"
+        >
+          New
+        </Button>
+      </div>
+      {codexThreadError ? (
+        <p className="text-xs text-destructive">{codexThreadError}</p>
+      ) : null}
+      {projectThreadError ? (
+        <p className="text-xs text-destructive">{projectThreadError}</p>
+      ) : null}
+      {threadSelectionError ? (
+        <p className="text-xs text-destructive">{threadSelectionError}</p>
+      ) : null}
+      <div className="grid max-h-60 gap-2 overflow-auto">
+        {!canSelectThread ? (
+          <p className="text-xs text-muted-foreground">
+            Connecting to Codex...
+          </p>
+        ) : isLoading ? (
+          <p className="text-xs text-muted-foreground">Loading threads...</p>
+        ) : projectThreadLinks.length > 0 ? (
+          projectThreadLinks.map((link) => {
+            const summary = getThreadSummaryById(threadSummaries, link.threadId)
+            return (
+              <button
+                key={link.threadId}
+                className="rounded-md border px-2 py-1.5 text-left text-xs hover:bg-muted disabled:opacity-50"
+                disabled={!canSelectThread || isSelectingThread}
+                onClick={() => onResumeThread(link.threadId)}
+                type="button"
+              >
+                <span className="block truncate font-medium">
+                  {formatProjectThreadLabel(link, summary)}
+                </span>
+                <span className="block truncate text-muted-foreground">
+                  {summary ? link.threadId : `${link.threadId} - verify on resume`}
+                </span>
+              </button>
+            )
+          })
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            No previous threads for this project.
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function WorkspaceSurface({
   activeProject,
   activeSection,
@@ -231,6 +352,7 @@ export function WorkspaceSurface({
   const [threadSelectionError, setThreadSelectionError] = React.useState<
     string | null
   >(null)
+  const [isThreadPickerOpen, setIsThreadPickerOpen] = React.useState(false)
   const [isSelectingThread, setIsSelectingThread] = React.useState(false)
   const [projectThreadLinks, setProjectThreadLinks] = React.useState<
     ProjectCodexThreadLink[]
@@ -384,6 +506,7 @@ export function WorkspaceSurface({
       )
       .then((link) => {
         setSelectedProjectThreadId(link.threadId)
+        setIsThreadPickerOpen(false)
         setProjectThreadLinks((currentLinks) => [
           link,
           ...currentLinks.filter(
@@ -393,7 +516,7 @@ export function WorkspaceSurface({
       })
       .catch((error: unknown) => {
         setThreadSelectionError(
-          error instanceof Error ? error.message : "Unable to start Codex thread."
+          `Unable to start Codex thread: ${getErrorMessage(error)}`
         )
       })
       .finally(() => setIsSelectingThread(false))
@@ -408,7 +531,8 @@ export function WorkspaceSurface({
       setThreadSelectionError(null)
       setIsSelectingThread(true)
       codexConnection
-        .resumeThread(threadId)
+        .request("thread/read", { includeTurns: false, threadId })
+        .then(() => codexConnection.resumeThread(threadId))
         .then(() =>
           workspaceRepository.touchProjectCodexThreadLink({
             projectId: activeProject.id,
@@ -417,6 +541,7 @@ export function WorkspaceSurface({
         )
         .then((link) => {
           setSelectedProjectThreadId(link.threadId)
+          setIsThreadPickerOpen(false)
           setProjectThreadLinks((currentLinks) => [
             link,
             ...currentLinks.filter(
@@ -425,15 +550,28 @@ export function WorkspaceSurface({
           ])
         })
         .catch((error: unknown) => {
+          if (isMissingCodexThreadError(error)) {
+            void workspaceRepository
+              .deleteProjectCodexThreadLink({
+                projectId: activeProject.id,
+                threadId,
+              })
+              .then(() => {
+                setProjectThreadLinks((currentLinks) =>
+                  currentLinks.filter((link) => link.threadId !== threadId)
+                )
+                if (selectedProjectThreadId === threadId) {
+                  setSelectedProjectThreadId(null)
+                }
+              })
+          }
           setThreadSelectionError(
-            error instanceof Error
-              ? error.message
-              : "Unable to resume Codex thread."
+            `Unable to resume Codex thread: ${getErrorMessage(error)}`
           )
         })
         .finally(() => setIsSelectingThread(false))
     },
-    [activeProject, codexConnection]
+    [activeProject, codexConnection, selectedProjectThreadId]
   )
 
   const createThreadForProject = React.useCallback(
@@ -537,10 +675,7 @@ export function WorkspaceSurface({
         })
         .catch((error: unknown) => {
           setAgentDeliveryState({
-            detail:
-              error instanceof Error
-                ? error.message
-                : "Unable to prepare Codex thread.",
+            detail: `Unable to prepare Codex thread: ${getErrorMessage(error)}`,
             status: "error",
           })
         })
@@ -583,6 +718,11 @@ export function WorkspaceSurface({
       .getProjectSectionDocument(activeProject.id, activeSection.id)
       .then((document) => {
         if (isCurrent) {
+          markCodexStartupEvent("workspace-document-ready", {
+            filePath: document.filePath,
+            projectId: activeProject.id,
+            sectionId: activeSection.id,
+          })
           setDocumentState({ document, status: "ready" })
           setSaveState({ status: "clean" })
         }
@@ -610,6 +750,7 @@ export function WorkspaceSurface({
       setProjectThreadLinks([])
       setProjectThreadListState({ error: null, isLoading: false })
       setSelectedProjectThreadId(null)
+      setIsThreadPickerOpen(false)
       return
     }
 
@@ -718,11 +859,24 @@ export function WorkspaceSurface({
     return <WorkspaceStatus detail={runtime.message} title="Runtime error" />
   }
 
-  const shouldShowThreadSelector =
-    (codexConnection.status === "connected" ||
-      codexConnection.status === "starting") &&
-    !selectedProjectThreadId
   const canSelectThread = codexConnection.status === "connected"
+  const threadPickerContent = (
+    <ProjectThreadPickerContent
+      canSelectThread={canSelectThread}
+      codexThreadError={codexConnection.threadList.error}
+      isLoading={
+        codexConnection.threadList.isLoading ||
+        projectThreadListState.isLoading
+      }
+      isSelectingThread={isSelectingThread}
+      onNewThread={startNewThread}
+      onResumeThread={resumeThread}
+      projectThreadError={projectThreadListState.error}
+      projectThreadLinks={projectThreadLinks}
+      threadSelectionError={threadSelectionError}
+      threadSummaries={codexConnection.threadList.items}
+    />
+  )
 
   return (
     <AgentHtmlRuntimeTheme
@@ -735,79 +889,6 @@ export function WorkspaceSurface({
       >
         <AgentHtmlRuntimeViewport>{runtime.content}</AgentHtmlRuntimeViewport>
       </AgentHtmlBlockRuntimeProvider>
-      {shouldShowThreadSelector ? (
-        <div className="fixed inset-x-4 bottom-4 z-40 mx-auto max-w-xl rounded-lg border bg-background p-3 text-sm text-foreground shadow-lg">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="font-medium">Choose a Codex thread</p>
-              <p className="text-xs text-muted-foreground">
-                Continue a previous workspace thread or start fresh.
-              </p>
-            </div>
-            <Button
-              disabled={!canSelectThread || isSelectingThread}
-              onClick={startNewThread}
-              title={canSelectThread ? undefined : "Codex is starting"}
-              type="button"
-              variant="outline"
-            >
-              New thread
-            </Button>
-          </div>
-          {codexConnection.threadList.error ? (
-            <p className="mt-2 text-xs text-destructive">
-              {codexConnection.threadList.error}
-            </p>
-          ) : null}
-          {projectThreadListState.error ? (
-            <p className="mt-2 text-xs text-destructive">
-              {projectThreadListState.error}
-            </p>
-          ) : null}
-          {threadSelectionError ? (
-            <p className="mt-2 text-xs text-destructive">
-              {threadSelectionError}
-            </p>
-          ) : null}
-          <div className="mt-3 grid max-h-48 gap-2 overflow-auto">
-            {!canSelectThread ? (
-              <p className="text-xs text-muted-foreground">
-                Connecting to Codex...
-              </p>
-            ) : codexConnection.threadList.isLoading ||
-              projectThreadListState.isLoading ? (
-              <p className="text-xs text-muted-foreground">Loading threads...</p>
-            ) : projectThreadLinks.length > 0 ? (
-              projectThreadLinks.map((link) => {
-                const summary = getThreadSummaryById(
-                  codexConnection.threadList.items,
-                  link.threadId
-                )
-                return (
-                  <button
-                    key={link.threadId}
-                    className="rounded-md border px-2 py-1.5 text-left text-xs hover:bg-muted disabled:opacity-50"
-                    disabled={!canSelectThread || isSelectingThread}
-                    onClick={() => resumeThread(link.threadId)}
-                    type="button"
-                  >
-                    <span className="block truncate font-medium">
-                      {formatProjectThreadLabel(link, summary)}
-                    </span>
-                    <span className="block truncate text-muted-foreground">
-                      {link.threadId}
-                    </span>
-                  </button>
-                )
-              })
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                No previous threads for this project.
-              </p>
-            )}
-          </div>
-        </div>
-      ) : null}
       {saveState.status !== "clean" ? (
         <div
           className={[
@@ -839,7 +920,12 @@ export function WorkspaceSurface({
           ) : null}
         </div>
       ) : null}
-      <WorkspaceGhostPet presence={petPresence} />
+      <WorkspaceGhostPet
+        isThreadPickerOpen={isThreadPickerOpen}
+        onThreadPickerOpenChange={setIsThreadPickerOpen}
+        presence={petPresence}
+        threadPickerContent={threadPickerContent}
+      />
     </AgentHtmlRuntimeTheme>
   )
 }

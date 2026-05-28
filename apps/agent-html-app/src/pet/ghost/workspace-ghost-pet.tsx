@@ -8,7 +8,16 @@ import {
   saveStoredPosition,
 } from "@/app/pet/ghost/position"
 import { GhostRadialMenu } from "@/app/pet/ghost/radial-menu"
-import type { GhostPetDragState, GhostPetPosition } from "@/app/pet/ghost/types"
+import type {
+  GhostMenuItem,
+  GhostPetDragState,
+  GhostPetPosition,
+} from "@/app/pet/ghost/types"
+import {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+} from "@/app/shared/ui/popover"
 import type { PetPresence } from "@/app/workspace/agent-presence"
 
 const idlePresence: PetPresence = {
@@ -40,9 +49,15 @@ function getPresenceMessage(presence: PetPresence) {
 }
 
 export function WorkspaceGhostPet({
+  isThreadPickerOpen = false,
+  onThreadPickerOpenChange,
   presence = idlePresence,
+  threadPickerContent,
 }: {
+  isThreadPickerOpen?: boolean
+  onThreadPickerOpenChange?: (open: boolean) => void
   presence?: PetPresence
+  threadPickerContent?: React.ReactNode
 }) {
   const message = getPresenceMessage(presence)
   const dragStateRef = useRef<GhostPetDragState | null>(null)
@@ -119,9 +134,20 @@ export function WorkspaceGhostPet({
     (event: React.MouseEvent<HTMLDivElement>) => {
       event.preventDefault()
       event.stopPropagation()
+      onThreadPickerOpenChange?.(false)
       setIsMenuOpen((current) => !current)
     },
-    []
+    [onThreadPickerOpenChange]
+  )
+
+  const handleMenuSelect = useCallback(
+    (item: GhostMenuItem["id"]) => {
+      setIsMenuOpen(false)
+      if (item === "threads") {
+        onThreadPickerOpenChange?.(true)
+      }
+    },
+    [onThreadPickerOpenChange]
   )
 
   const handlePointerMove = useCallback(
@@ -170,32 +196,49 @@ export function WorkspaceGhostPet({
         transform: "translate(-50%, -50%)",
       }}
     >
-      <div className="relative">
-        {message ? (
-          <div className="absolute bottom-full left-1/2 mb-2 max-w-56 -translate-x-1/2 rounded-full bg-background/95 px-3 py-1.5 text-center text-[11px] font-medium whitespace-nowrap text-muted-foreground backdrop-blur">
-            {message}
+      <Popover
+        open={isThreadPickerOpen}
+        onOpenChange={onThreadPickerOpenChange}
+      >
+        <PopoverAnchor asChild>
+          <div className="relative">
+            {message ? (
+              <div className="absolute bottom-full left-1/2 mb-2 max-w-56 -translate-x-1/2 rounded-full bg-background/95 px-3 py-1.5 text-center text-[11px] font-medium whitespace-nowrap text-muted-foreground backdrop-blur">
+                {message}
+              </div>
+            ) : null}
+            <div
+              className={[
+                "pointer-events-auto px-3 py-2 text-foreground",
+                isDragging ? "cursor-grabbing" : "cursor-grab",
+              ].join(" ")}
+              onContextMenu={handleContextMenu}
+              onPointerCancel={finishDrag}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={finishDrag}
+            >
+              <AsciiGhost />
+            </div>
+            <GhostRadialMenu isOpen={isMenuOpen} onSelect={handleMenuSelect} />
+            {presence.action ? (
+              <div className="absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-full bg-background/80 px-2.5 py-1 text-[10px] font-medium whitespace-nowrap text-muted-foreground backdrop-blur">
+                {presence.action.label}
+              </div>
+            ) : null}
           </div>
+        </PopoverAnchor>
+        {threadPickerContent ? (
+          <PopoverContent
+            align="end"
+            className="pointer-events-auto w-80 p-3"
+            side="left"
+            sideOffset={12}
+          >
+            {threadPickerContent}
+          </PopoverContent>
         ) : null}
-        <div
-          className={[
-            "pointer-events-auto px-3 py-2 text-foreground",
-            isDragging ? "cursor-grabbing" : "cursor-grab",
-          ].join(" ")}
-          onContextMenu={handleContextMenu}
-          onPointerCancel={finishDrag}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={finishDrag}
-        >
-          <AsciiGhost />
-        </div>
-        <GhostRadialMenu isOpen={isMenuOpen} />
-        {presence.action ? (
-          <div className="absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-full bg-background/80 px-2.5 py-1 text-[10px] font-medium whitespace-nowrap text-muted-foreground backdrop-blur">
-            {presence.action.label}
-          </div>
-        ) : null}
-      </div>
+      </Popover>
     </div>
   )
 }

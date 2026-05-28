@@ -26,6 +26,10 @@ export type WorkspaceRepository = {
     projectId: string
     sectionId: string
   }) => Promise<string>
+  deleteProjectCodexThreadLink: (input: {
+    projectId: string
+    threadId: string
+  }) => Promise<string>
   duplicateProjectSection: (input: {
     projectId: string
     sectionId: string
@@ -81,6 +85,9 @@ const fixtureWorkspaceRepository: WorkspaceRepository = {
   async deleteProjectSection() {
     throw new Error("Desktop runtime required to delete sections.")
   },
+  async deleteProjectCodexThreadLink() {
+    throw new Error("Desktop runtime required to remove Codex thread links.")
+  },
   async duplicateProjectSection() {
     throw new Error("Desktop runtime required to duplicate sections.")
   },
@@ -131,6 +138,9 @@ const tauriWorkspaceRepository: WorkspaceRepository = {
   },
   deleteProjectSection(input) {
     return invoke("delete_project_section", input)
+  },
+  deleteProjectCodexThreadLink(input) {
+    return invoke("delete_project_codex_thread_link", input)
   },
   duplicateProjectSection(input) {
     return invoke("duplicate_project_section", input)

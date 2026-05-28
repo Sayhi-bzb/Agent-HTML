@@ -12,8 +12,8 @@ use crate::codex_host::{
 };
 use crate::workspace::{
     create_project, create_project_section, delete_project, delete_project_section,
-    duplicate_project_section, get_project_section_document, list_project_sections, list_projects,
-    list_project_codex_threads, rename_project, rename_project_section,
+    delete_project_codex_thread_link, duplicate_project_section, get_project_section_document,
+    list_project_sections, list_projects, list_project_codex_threads, rename_project, rename_project_section,
     touch_project_codex_thread_link, update_project_section_document,
     upsert_project_codex_thread_link, WorkspaceStore,
 };
@@ -47,6 +47,7 @@ pub fn run() {
             list_project_codex_threads,
             upsert_project_codex_thread_link,
             touch_project_codex_thread_link,
+            delete_project_codex_thread_link,
             codex_host_settings_load,
             codex_host_settings_save,
             codex_host_start,

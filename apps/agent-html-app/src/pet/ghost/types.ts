@@ -14,6 +14,7 @@ export type GhostPetDragState = {
 
 export type GhostMenuItem = {
   Icon: LucideIcon
+  id: "close" | "focus" | "inspect" | "message" | "pause" | "refresh" | "settings" | "threads"
   label: string
   x: number
   y: number

@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import { markCodexStartupEvent } from "@/app/codex/connection"
 import {
   appThemePresets,
   type AppColorTokenName,
@@ -189,6 +190,7 @@ export function App() {
 
     async function loadWorkspace() {
       try {
+        markCodexStartupEvent("workspace-load-start")
         const nextProjects = await workspaceRepository.listProjects()
         const projectViews = await Promise.all(
           nextProjects.map(async (project) => ({
@@ -203,6 +205,13 @@ export function App() {
 
         setProjects(projectViews)
         setWorkspaceLoadError(null)
+        markCodexStartupEvent("workspace-load-ready", {
+          projectCount: projectViews.length,
+          sectionCount: projectViews.reduce(
+            (count, project) => count + project.sections.length,
+            0
+          ),
+        })
 
         const firstWorkspaceSection = getFirstWorkspaceSection(projectViews)
         if (firstWorkspaceSection) {
