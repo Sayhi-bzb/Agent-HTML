@@ -48,7 +48,6 @@ pub(crate) struct CodexHostState {
     next_request_id: Mutex<u64>,
     pending_requests: Arc<Mutex<HashMap<u64, PendingRequest>>>,
     process: Mutex<Option<ManagedCodexProcess>>,
-    thread_id: Arc<Mutex<Option<String>>>,
     last_error: Arc<Mutex<Option<String>>>,
     last_stderr: Arc<Mutex<Option<String>>>,
 }
@@ -60,7 +59,6 @@ impl CodexHostState {
             next_request_id: Mutex::new(1),
             pending_requests: Arc::new(Mutex::new(HashMap::new())),
             process: Mutex::new(None),
-            thread_id: Arc::new(Mutex::new(None)),
             last_error: Arc::new(Mutex::new(None)),
             last_stderr: Arc::new(Mutex::new(None)),
         }
@@ -105,7 +103,6 @@ struct CodexHostHealth {
     provider: Option<String>,
     stderr: Option<String>,
     status: String,
-    thread_id: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -355,7 +352,6 @@ fn handle_codex_stdout_line(
     app: &tauri::AppHandle,
     pending_requests: &Arc<Mutex<HashMap<u64, PendingRequest>>>,
     last_error: &Arc<Mutex<Option<String>>>,
-    thread_id: &Arc<Mutex<Option<String>>>,
     codex_event_log_path: Option<&str>,
     line: &str,
 ) {
@@ -398,18 +394,6 @@ fn handle_codex_stdout_line(
         return;
     }
 
-    if message.get("method").and_then(Value::as_str) == Some("thread/started") {
-        if let Some(next_thread_id) = message
-            .pointer("/params/thread/id")
-            .and_then(Value::as_str)
-            .map(str::to_string)
-        {
-            if let Ok(mut current_thread_id) = thread_id.lock() {
-                *current_thread_id = Some(next_thread_id);
-            }
-        }
-    }
-
     let _ = app.emit(CODEX_NOTIFICATION_EVENT, message);
 }
 
@@ -420,7 +404,6 @@ fn spawn_codex_process(
     pending_requests: Arc<Mutex<HashMap<u64, PendingRequest>>>,
     last_error: Arc<Mutex<Option<String>>>,
     last_stderr: Arc<Mutex<Option<String>>>,
-    state_thread_id: Arc<Mutex<Option<String>>>,
 ) -> CodexHostResult<ManagedCodexProcess> {
     let mut command = if cfg!(windows) && !settings.codex_command.ends_with(".exe") {
         let quoted_command = if settings.codex_command.contains(' ') {
@@ -473,7 +456,6 @@ fn spawn_codex_process(
                     &app_for_stdout,
                     &pending_for_stdout,
                     &last_error_for_stdout,
-                    &state_thread_id,
                     codex_event_log_path.as_deref(),
                     &line,
                 ),
@@ -636,7 +618,6 @@ fn health_from_state(
     pid: Option<u32>,
 ) -> CodexHostHealth {
     let initialized = state.initialized.lock().map(|value| *value).unwrap_or(false);
-    let thread_id = state.thread_id.lock().ok().and_then(|value| value.clone());
     let app_server_running = pid.is_some();
     let connected = initialized && app_server_running;
     let error = get_last_error(state);
@@ -659,7 +640,6 @@ fn health_from_state(
         } else {
             "disconnected".to_string()
         },
-        thread_id,
     }
 }
 
@@ -753,9 +733,6 @@ pub(crate) fn codex_host_start(
     if let Ok(mut initialized) = state.initialized.lock() {
         *initialized = false;
     }
-    if let Ok(mut thread_id) = state.thread_id.lock() {
-        *thread_id = None;
-    }
 
     let managed_process = spawn_codex_process(
         &app,
@@ -764,7 +741,6 @@ pub(crate) fn codex_host_start(
         state.pending_requests.clone(),
         state.last_error.clone(),
         state.last_stderr.clone(),
-        state.thread_id.clone(),
     )?;
     let pid = managed_process.child.id();
 
@@ -773,9 +749,7 @@ pub(crate) fn codex_host_start(
         *current_process = Some(managed_process);
     }
 
-    if let Err(error) = ensure_initialized(&state) {
-        set_last_error(&state, Some(error.to_string()));
-    }
+    ensure_initialized(&state)?;
 
     Ok(process_status_from_state(
         &state,
@@ -806,9 +780,6 @@ pub(crate) fn codex_host_stop(
     );
     if let Ok(mut initialized) = state.initialized.lock() {
         *initialized = false;
-    }
-    if let Ok(mut thread_id) = state.thread_id.lock() {
-        *thread_id = None;
     }
     set_last_error(&state, None);
 
@@ -907,20 +878,6 @@ pub(crate) fn codex_rpc_request(
                 "params": input.params
             }),
         );
-    }
-
-    if input.method == "thread/start" {
-        let result = send_codex_request(&state, &input.method, input.params)?;
-        if let Some(thread_id) = result
-            .pointer("/thread/id")
-            .and_then(Value::as_str)
-            .map(str::to_string)
-        {
-            if let Ok(mut current_thread_id) = state.thread_id.lock() {
-                *current_thread_id = Some(thread_id);
-            }
-        }
-        return Ok(CodexRpcRequestResult { result });
     }
 
     let result = send_codex_request(&state, &input.method, input.params)?;

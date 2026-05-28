@@ -9,6 +9,7 @@ function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
     <nav
       aria-label="breadcrumb"
       data-slot="breadcrumb"
+      data-selection="none"
       className={cn(className)}
       {...props}
     />
@@ -19,6 +20,7 @@ function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
   return (
     <ol
       data-slot="breadcrumb-list"
+      data-selection="none"
       className={cn(
         "flex flex-wrap items-center gap-1.5 text-sm wrap-break-word text-muted-foreground",
         className
@@ -50,6 +52,8 @@ function BreadcrumbLink({
   return (
     <Comp
       data-slot="breadcrumb-link"
+      data-selection="none"
+      data-cursor="action"
       className={cn("transition-colors hover:text-foreground", className)}
       {...props}
     />
@@ -60,6 +64,7 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
       data-slot="breadcrumb-page"
+      data-selection="none"
       role="link"
       aria-disabled="true"
       aria-current="page"
@@ -77,6 +82,7 @@ function BreadcrumbSeparator({
   return (
     <li
       data-slot="breadcrumb-separator"
+      data-selection="none"
       role="presentation"
       aria-hidden="true"
       className={cn("[&>svg]:size-3.5", className)}
@@ -96,6 +102,7 @@ function BreadcrumbEllipsis({
   return (
     <span
       data-slot="breadcrumb-ellipsis"
+      data-selection="none"
       role="presentation"
       aria-hidden="true"
       className={cn(

@@ -362,7 +362,7 @@ function CodexConnectionDialog({
                       <Trans>Thread</Trans>
                     </dt>
                     <dd className="break-all">
-                      {codexConnection.health?.threadId ?? t`none`}
+                      {codexConnection.activeThreadId ?? t`none`}
                     </dd>
                   </div>
                   <div className="sm:col-span-2">

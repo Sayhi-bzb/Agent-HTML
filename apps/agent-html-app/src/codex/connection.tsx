@@ -25,7 +25,6 @@ export type CodexHostHealth = {
   provider?: string | null
   stderr?: string | null
   status: CodexConnectionStatus
-  threadId?: string | null
 }
 
 type CodexHostProcessStatus = {
@@ -44,6 +43,7 @@ type CodexTurnStartResult = {
 }
 
 type CodexConnectionContextValue = {
+  activeThreadId: string | null
   canManageHost: boolean
   health: CodexHostHealth | null
   isLoaded: boolean
@@ -201,6 +201,7 @@ export function CodexConnectionProvider({
     React.useState<CodexConnectionStatus>("disconnected")
   const [lastError, setLastError] = React.useState<string | null>(null)
   const [isBusy, setIsBusy] = React.useState(false)
+  const [activeThreadId, setActiveThreadId] = React.useState<string | null>(null)
   const canManageHost = isTauri()
 
   const applyProcessStatus = React.useCallback(
@@ -249,7 +250,7 @@ export function CodexConnectionProvider({
     [canManageHost]
   )
 
-  const start = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
+  const connect = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
     setIsBusy(true)
     setStatus("starting")
     setLastError(null)
@@ -270,6 +271,7 @@ export function CodexConnectionProvider({
 
     try {
       await runCommand("codex_host_stop", settingsOverride)
+      setActiveThreadId(null)
     } catch (error) {
       setStatus("error")
       setLastError(getErrorMessage(error))
@@ -282,6 +284,7 @@ export function CodexConnectionProvider({
     setIsBusy(true)
     setStatus("starting")
     setLastError(null)
+    setActiveThreadId(null)
 
     try {
       await runCommand("codex_host_restart", settingsOverride)
@@ -292,6 +295,10 @@ export function CodexConnectionProvider({
       setIsBusy(false)
     }
   }, [runCommand])
+
+  const start = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
+    await connect(settingsOverride)
+  }, [connect])
 
   const request = React.useCallback(
     async (method: string, params: unknown) => {
@@ -317,7 +324,7 @@ export function CodexConnectionProvider({
   const startTurn = React.useCallback(
     async (promptText: string) => {
       const threadId =
-        health?.threadId ??
+        activeThreadId ??
         readThreadId(
           await request("thread/start", {
             persistExtendedHistory: false,
@@ -328,6 +335,8 @@ export function CodexConnectionProvider({
       if (!threadId) {
         throw new Error("Codex did not return a thread id.")
       }
+
+      setActiveThreadId(threadId)
 
       const result = await request("turn/start", {
         input: [
@@ -344,23 +353,12 @@ export function CodexConnectionProvider({
         turnId: readTurnId(result),
       }
     },
-    [health?.threadId, request]
+    [activeThreadId, request]
   )
 
   const test = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
-    setIsBusy(true)
-    setStatus("starting")
-    setLastError(null)
-
-    try {
-      await runCommand("codex_host_start", settingsOverride)
-    } catch (error) {
-      setStatus("error")
-      setLastError(getErrorMessage(error))
-    } finally {
-      setIsBusy(false)
-    }
-  }, [runCommand])
+    await connect(settingsOverride)
+  }, [connect])
 
   const openLogs = React.useCallback(
     async (settingsOverride?: CodexConnectionSettings) => {
@@ -406,20 +404,7 @@ export function CodexConnectionProvider({
         setSettings(loadedSettings)
         saveSettings(loadedSettings)
         setIsLoaded(true)
-        setIsBusy(true)
-        setStatus("starting")
-        setLastError(null)
-
-        return invoke<CodexHostProcessStatus>("codex_host_start", {
-          settings: loadedSettings,
-        })
-      })
-      .then((processStatus) => {
-        if (!isCurrent || !processStatus) {
-          return
-        }
-
-        applyProcessStatus(processStatus)
+        return connect(loadedSettings)
       })
       .catch((error) => {
         if (!isCurrent) {
@@ -430,18 +415,10 @@ export function CodexConnectionProvider({
         setLastError(getErrorMessage(error))
         setIsLoaded(true)
       })
-      .finally(() => {
-        if (!isCurrent) {
-          return
-        }
-
-        setIsBusy(false)
-      })
-
     return () => {
       isCurrent = false
     }
-  }, [applyProcessStatus, canManageHost])
+  }, [canManageHost, connect])
 
   React.useEffect(() => {
     if (!canManageHost || status !== "connected") {
@@ -457,6 +434,7 @@ export function CodexConnectionProvider({
 
   const value = React.useMemo<CodexConnectionContextValue>(
     () => ({
+      activeThreadId,
       canManageHost,
       health,
       isLoaded,
@@ -474,6 +452,7 @@ export function CodexConnectionProvider({
       updateSettings,
     }),
     [
+      activeThreadId,
       canManageHost,
       health,
       isLoaded,

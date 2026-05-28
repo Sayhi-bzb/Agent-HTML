@@ -12,6 +12,8 @@ function CollapsibleTrigger({
   return (
     <CollapsiblePrimitive.CollapsibleTrigger
       data-slot="collapsible-trigger"
+      data-selection="none"
+      data-cursor="action"
       {...props}
     />
   )
