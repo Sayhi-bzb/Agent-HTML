@@ -10,6 +10,7 @@ This directory contains project documentation grouped by ownership boundary.
 
 - [Architecture](./development/architecture.md): module ownership, dependency direction, and structural change rules.
 - [Agent intent bridge](./development/agent-intent-bridge.md): first-version App Send to local agent/Claude channel bridge flow.
+- [App language](./development/app-language.md): lightweight Lingui boundaries and maintenance workflow.
 - [Deployment](./development/deployment.md): example website build and Cloudflare Pages deployment rules.
 - [Runtime interactions](./development/runtime-interactions.md): runtime gesture, hit-testing, and scroll-aware interaction rules.
 

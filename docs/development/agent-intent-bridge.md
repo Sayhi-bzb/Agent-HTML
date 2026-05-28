@@ -1,6 +1,10 @@
 # Agent Intent Bridge
 
-Agent-HTML 的 bridge 负责把 App 里的结构化用户意图送到本地 agent。当前主线是 Codex App Server；本地日志 bridge 和 Claude Code channel bridge 保留为调试/可选适配。
+Agent-HTML sends structured workspace intent to Codex through the official Codex
+App Server protocol. The app is a thin host: it owns lifecycle, workspace
+context, and UI routing, while Codex owns auth, model selection, sandbox,
+approvals, MCP, skills, plugins, and conversation semantics through its official
+configuration layers.
 
 ## Current Product Loop
 
@@ -8,62 +12,34 @@ Agent-HTML 的 bridge 负责把 App 里的结构化用户意图送到本地 agen
 Agent-HTML App
   -> user selects a block or performs an interaction
   -> user enters a request and clicks Send
-  -> App posts an Agent Context Event to a local bridge
-  -> bridge delivers the request to a backend agent
+  -> Tauri host starts codex app-server --listen stdio://
+  -> Tauri sends initialize / initialized once
+  -> App sends Agent-HTML context as turn/start input
+  -> Tauri forwards Codex notifications to the frontend
 ```
 
-当前已验证的 Codex 链路：
+Agent-HTML does not inject messages into an already open Codex TUI. It is a
+Codex App Server client and uses the official Thread / Turn / Item model.
 
-```text
-Agent-HTML App Send
-  -> POST /agent-html/events
-  -> local Codex bridge
-  -> codex app-server --listen stdio://
-  -> thread/start
-  -> turn/start
-  -> Codex response / local file edit
-```
+## Codex Boundary
 
-## Recommended: Codex App Server
+Agent-HTML may:
 
-Start the Codex bridge:
+- start, stop, restart, and health-check the local Codex App Server process
+- generate a prompt from the selected Agent-HTML block/document context
+- call `thread/start` and `turn/start`
+- forward raw Codex notifications into the app event bus
+- store optional local JSONL diagnostics
 
-```powershell
-$env:AGENT_HTML_CODEX_COMMAND = "C:\Users\Administrator\AppData\Roaming\npm\codex.cmd"
-npm run bridge:codex-app
-```
+Agent-HTML must not duplicate Codex configuration UI for:
 
-Start the App against that bridge:
+- model or provider selection
+- auth mode or account state
+- sandbox and approval policy
+- MCP servers, apps/connectors, plugins, or skills
+- profiles and project trust
 
-```powershell
-$env:VITE_AGENT_HTML_BRIDGE_URL = "http://127.0.0.1:51279/agent-html/events"
-npm run dev
-```
-
-Health check:
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:51279/health
-```
-
-Expected fields:
-
-```text
-provider         : codex_app_server
-appServerRunning : True
-connected        : True
-threadId         : <codex-thread-id>
-```
-
-Optional logs:
-
-```powershell
-$env:AGENT_HTML_EVENT_LOG = ".tmp\agent-html-codex-events.jsonl"
-$env:AGENT_HTML_CODEX_EVENT_LOG = ".tmp\agent-html-codex-app-server-events.jsonl"
-npm run bridge:codex-app
-```
-
-The Codex bridge does not inject messages into an already open Codex TUI. Agent-HTML acts as a Codex App Server client and owns its thread/turn flow.
+Those settings come from official Codex config files and App Server RPCs.
 
 ## Optional Bridges
 
@@ -82,15 +58,16 @@ Claude Code channel bridge:
 claude mcp add agent-html-channel -- node tools/agent-html-claude-channel-bridge.mjs
 ```
 
-This is only useful when Claude Code Channels are available in the user's Claude Code/account/provider environment. Third-party Anthropic-compatible providers may show the MCP server as connected while Channels remain unavailable.
+This remains optional and separate from the Codex main path.
 
 ## Current Boundary
 
 Implemented:
 
-- App can submit structured Agent-HTML context to a local bridge.
-- Codex App Server can receive the request, produce a response, and edit files in the local workspace.
-- Local log and Claude channel adapters remain available for debugging or compatible environments.
+- App auto-starts a local Codex App Server in the Tauri desktop runtime.
+- Agent-HTML context is sent to Codex as official `turn/start` input.
+- Raw Codex notifications are forwarded to the frontend event bus.
+- Optional local logs can capture prompt delivery and Codex JSON-RPC messages.
 
 Not implemented yet:
 

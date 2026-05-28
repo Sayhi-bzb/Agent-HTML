@@ -21,17 +21,34 @@ import { SearchIcon } from "lucide-react"
 type ProjectSearchItem = {
   id: string
   name: string
+  sections: {
+    id: string
+    title: string
+  }[]
   slug: string
 }
 
 export function SearchCommand({
-  onOpenProject,
+  onOpenWorkspaceSection,
   projects,
 }: {
-  onOpenProject: (projectId: string) => void
+  onOpenWorkspaceSection: (input: {
+    projectId: string
+    sectionId: string
+  }) => void
   projects: ProjectSearchItem[]
 }) {
   const [open, setOpen] = React.useState(false)
+  const sectionItems = React.useMemo(
+    () =>
+      projects.flatMap((project) =>
+        project.sections.map((section) => ({
+          project,
+          section,
+        }))
+      ),
+    [projects]
+  )
 
   return (
     <>
@@ -54,17 +71,20 @@ export function SearchCommand({
           <CommandInput placeholder="Type a command or search..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Projects">
-              {projects.map((project) => (
+            <CommandGroup heading="Sections">
+              {sectionItems.map(({ project, section }) => (
                 <CommandItem
-                  key={project.id}
-                  keywords={[project.slug]}
+                  key={section.id}
+                  keywords={[project.name, project.slug, section.title]}
                   onSelect={() => {
-                    onOpenProject(project.id)
+                    onOpenWorkspaceSection({
+                      projectId: project.id,
+                      sectionId: section.id,
+                    })
                     setOpen(false)
                   }}
                 >
-                  {project.name}
+                  {section.title}
                 </CommandItem>
               ))}
             </CommandGroup>

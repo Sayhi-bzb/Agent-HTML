@@ -101,6 +101,7 @@ export function AgentHtmlRuntimeViewport({
         "relative h-full min-h-0 w-full min-w-0 overflow-hidden",
         className
       )}
+      data-selection="text"
       ref={setRootRef}
     >
       <ScrollArea className="h-full w-full" ref={setScrollRootRef}>

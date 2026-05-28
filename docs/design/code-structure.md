@@ -94,6 +94,7 @@ It owns:
 Current stable examples include:
 
 - `AppSidebar`
+- `ConfirmationDialog`
 - `SiteHeader`
 - `NavProjects`
 - `SearchCommand`
@@ -194,6 +195,7 @@ composites:
 
 - the mode-aware sidebar
 - the mode-aware header tab rail
+- the app-level confirmation dialog
 - the gallery scene panel
 - the gallery color editor panel
 

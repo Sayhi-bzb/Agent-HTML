@@ -3,20 +3,11 @@
 import * as React from "react"
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/app/shared/ui/alert-dialog"
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/app/shared/ui/collapsible"
+import { ConfirmationDialog } from "@/app/shell/confirmation-dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -338,10 +329,9 @@ export function NavProjects({
   onDeleteProject,
   onDeleteProjectSection,
   onDuplicateProjectSection,
-  onOpenProject,
+  onOpenWorkspaceSection,
   onRenameProject,
   onRenameProjectSection,
-  onSectionSelect,
   projects,
   workspaceActionError,
 }: {
@@ -362,7 +352,10 @@ export function NavProjects({
     projectId: string
     sectionId: string
   }) => Promise<void>
-  onOpenProject: (projectId: string) => void
+  onOpenWorkspaceSection: (input: {
+    projectId: string
+    sectionId: string
+  }) => void
   onRenameProject: (input: {
     name: string
     projectId: string
@@ -372,7 +365,6 @@ export function NavProjects({
     sectionId: string
     title: string
   }) => Promise<void>
-  onSectionSelect: (sectionId: string) => void
   projects: ProjectNavItem[]
   workspaceActionError: string | null
 }) {
@@ -553,8 +545,10 @@ export function NavProjects({
                             activeSectionId === item.id
                           }
                           onClick={() => {
-                            onOpenProject(project.id)
-                            onSectionSelect(item.id)
+                            onOpenWorkspaceSection({
+                              projectId: project.id,
+                              sectionId: item.id,
+                            })
                           }}
                           type="button"
                         >
@@ -662,73 +656,64 @@ export function NavProjects({
           </SidebarGroup>
         </Collapsible>
       ))}
-      <AlertDialog
+      <ConfirmationDialog
         open={pendingDelete !== null}
         onOpenChange={(open) => {
           if (!open) {
             setPendingDelete(null)
           }
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {pendingDelete?.type === "project"
-                ? "Delete project?"
-                : "Delete section?"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {pendingDelete?.type === "project"
-                ? `This will delete "${pendingDelete.project.name}" and all of its sections and documents.`
-                : pendingDelete
-                  ? `This will delete "${pendingDelete.section.title}" and its document.`
-                  : null}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={pendingAction !== null}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={pendingAction !== null}
-              variant="destructive"
-              onClick={(event) => {
-                event.preventDefault()
-                if (!pendingDelete || pendingAction !== null) {
-                  return
-                }
+        title={
+          pendingDelete?.type === "project"
+            ? "Delete project?"
+            : "Delete section?"
+        }
+        description={
+          pendingDelete?.type === "project"
+            ? `This will delete "${pendingDelete.project.name}" and all of its sections and documents.`
+            : pendingDelete
+              ? `This will delete "${pendingDelete.section.title}" and its document.`
+              : null
+        }
+        cancelDisabled={pendingAction !== null}
+        primaryAction={{
+          disabled: pendingAction !== null,
+          label:
+            pendingAction === "delete-project" ||
+            pendingAction === "delete-section"
+              ? "Deleting..."
+              : "Delete",
+          onClick: (event) => {
+            event.preventDefault()
+            if (!pendingDelete || pendingAction !== null) {
+              return
+            }
 
-                const action =
-                  pendingDelete.type === "project"
-                    ? onDeleteProject({
-                        projectId: pendingDelete.project.id,
-                      })
-                    : onDeleteProjectSection({
-                        projectId: pendingDelete.project.id,
-                        sectionId: pendingDelete.section.id,
-                      })
+            const action =
+              pendingDelete.type === "project"
+                ? onDeleteProject({
+                    projectId: pendingDelete.project.id,
+                  })
+                : onDeleteProjectSection({
+                    projectId: pendingDelete.project.id,
+                    sectionId: pendingDelete.section.id,
+                  })
 
-                submitAction(
-                  () => action,
-                  pendingDelete.type === "project"
-                    ? "Unable to delete project."
-                    : "Unable to delete section.",
-                  pendingDelete.type === "project"
-                    ? "delete-project"
-                    : "delete-section"
-                )
-                  .then(() => setPendingDelete(null))
-                  .catch(() => {})
-              }}
-            >
-              {pendingAction === "delete-project" ||
-              pendingAction === "delete-section"
-                ? "Deleting..."
-                : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            submitAction(
+              () => action,
+              pendingDelete.type === "project"
+                ? "Unable to delete project."
+                : "Unable to delete section.",
+              pendingDelete.type === "project"
+                ? "delete-project"
+                : "delete-section"
+            )
+              .then(() => setPendingDelete(null))
+              .catch(() => {})
+          },
+          variant: "destructive",
+        }}
+      />
     </div>
   )
 }

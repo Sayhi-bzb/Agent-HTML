@@ -83,6 +83,11 @@ npm run typecheck
 npm run lint
 ```
 
+## 许可证
+
+不同目录授权不同，请以根目录 [`LICENSE`](./LICENSE) 和各 package/目录内的
+授权声明为准。简单说：用哪个目录，就看哪个目录的声明。
+
 ## 致谢
 
 - [shadcn/ui](https://shadcn-ui.com/) 提供 UI 组件。

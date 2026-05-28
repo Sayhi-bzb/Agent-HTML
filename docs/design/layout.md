@@ -39,7 +39,7 @@ The current implementation has two first-class operating modes:
 
 ### Workspace Mode
 
-- header tabs represent open project contexts
+- header tabs represent open section documents
 - sidebar header hosts search
 - sidebar body hosts project navigation
 - sidebar footer hosts utility entry points
@@ -47,11 +47,11 @@ The current implementation has two first-class operating modes:
 
 ### Gallery Mode
 
-- header tabs represent gallery scenes
+- header tabs represent gallery views such as Theme, Components, and Pets
 - sidebar header hosts a back action
-- sidebar body hosts the color editor
-- sidebar footer becomes passive contextual support
-- content well hosts the gallery preview surface
+- sidebar body hosts the active view's editor, filters, or local navigation
+- sidebar footer hosts active-view actions when that view has commit state
+- content well hosts the active gallery view surface
 
 Mode changes SHOULD reuse the same shell rather than create a separate full-screen layout family.
 
@@ -88,12 +88,20 @@ The header is compact, structural, and persistent.
 
 - it MUST remain a control row rather than a hero band
 - it SHOULD carry navigation context, shell actions, or scene tabs
+- in Gallery mode, it SHOULD carry stable first-level Gallery views rather than view-local filters
+  or preview scenes
 - it MUST use structural separation rather than dramatic elevation
 - it SHOULD visually belong to the sidebar and tab layer when those elements are part of the same
   shell
 - it SHOULD avoid heavy borders that imply it is an isolated panel
 - it MAY switch between closable work tabs and non-closable scene tabs without changing its base
   shell treatment
+- it MUST preserve three structural zones: leading chrome, tab rail, and protected window controls
+- the tab rail MUST stay inside the middle zone and handle overflow within that zone
+- tab rail overflow MUST use a hidden, non-layout-affecting horizontal scrollport
+- tab text and tab actions MUST align to the same vertical centerline as header chrome icons
+- tabs SHOULD compress inside the middle zone before horizontal overflow is introduced
+- window controls MUST remain visible and interactive; tabs MUST NOT overlap or obscure them
 
 ## Content Well Rules
 

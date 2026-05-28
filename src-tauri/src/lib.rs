@@ -1,12 +1,13 @@
-mod codex_bridge;
+mod codex_host;
 mod workspace;
 
 use tauri::Manager;
 
-use crate::codex_bridge::{
-    codex_bridge_health, codex_bridge_logs, codex_bridge_open_logs, codex_bridge_restart,
-    codex_bridge_start, codex_bridge_stop, codex_settings_load, codex_settings_save,
-    CodexBridgeState,
+use crate::codex_host::{
+    codex_host_settings_load, codex_host_settings_save,
+    codex_host_health, codex_host_logs, codex_host_open_logs, codex_host_restart,
+    codex_host_start, codex_host_stop, codex_rpc_notify, codex_rpc_request,
+    CodexHostState,
 };
 use crate::workspace::{
     create_project, create_project_section, delete_project, delete_project_section,
@@ -25,7 +26,7 @@ pub fn run() {
             let store = WorkspaceStore::open(app_data_dir.join("workspace.sqlite3"))
                 .map_err(|error| error.to_string())?;
             app.manage(store);
-            app.manage(CodexBridgeState::new());
+            app.manage(CodexHostState::new());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -40,14 +41,16 @@ pub fn run() {
             delete_project_section,
             duplicate_project_section,
             update_project_section_document,
-            codex_settings_load,
-            codex_settings_save,
-            codex_bridge_start,
-            codex_bridge_stop,
-            codex_bridge_restart,
-            codex_bridge_health,
-            codex_bridge_logs,
-            codex_bridge_open_logs
+            codex_host_settings_load,
+            codex_host_settings_save,
+            codex_host_start,
+            codex_host_stop,
+            codex_host_restart,
+            codex_host_health,
+            codex_host_logs,
+            codex_host_open_logs,
+            codex_rpc_request,
+            codex_rpc_notify
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

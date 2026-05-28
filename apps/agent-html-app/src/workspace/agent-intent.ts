@@ -48,14 +48,16 @@ export type AgentHtmlIntentDeliveryResult =
       eventId: string
       ok: true
       promptText: string
-      provider: "http_bridge"
+      provider: "codex_app_server"
+      threadId: string
+      turnId: string | null
     }
   | {
       error: string
       eventId: string
       ok: false
       promptText: string
-      provider: "copy_prompt"
+      provider: "codex_app_server"
     }
 
 function createEventId() {
@@ -129,28 +131,14 @@ function createPromptText(event: AgentHtmlContextEvent) {
   ].join("\n")
 }
 
-function getBridgeUrl() {
-  const configuredUrl = import.meta.env.VITE_AGENT_HTML_BRIDGE_URL
-  if (typeof configuredUrl === "string" && configuredUrl.trim()) {
-    return configuredUrl.trim()
-  }
-
-  return "http://127.0.0.1:51278/agent-html/events"
-}
-
-async function copyPromptFallback(promptText: string) {
-  if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
-    throw new Error("Clipboard is not available.")
-  }
-
-  await navigator.clipboard.writeText(promptText)
-}
-
 export async function deliverAgentHtmlIntent(input: {
-  bridgeUrl?: string | null
   document: ProjectSectionDocument
   project: WorkspaceProjectView
   section: WorkspaceSection
+  startTurn: (promptText: string) => Promise<{
+    threadId: string
+    turnId?: string | null
+  }>
   submit: AgentHtmlAgentPromptSubmitInput
 }): Promise<AgentHtmlIntentDeliveryResult> {
   const selectedNode = findElementByPath(input.document, input.submit.path)
@@ -187,52 +175,26 @@ export async function deliverAgentHtmlIntent(input: {
   const promptText = createPromptText(event)
 
   try {
-    const response = await fetch(input.bridgeUrl ?? getBridgeUrl(), {
-      body: JSON.stringify({
-        event,
-        promptText,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    })
-
-    if (!response.ok) {
-      throw new Error(`Bridge returned ${response.status}.`)
-    }
+    const turn = await input.startTurn(promptText)
 
     return {
       eventId: event.eventId,
       ok: true,
       promptText,
-      provider: "http_bridge",
+      provider: "codex_app_server",
+      threadId: turn.threadId,
+      turnId: turn.turnId ?? null,
     }
   } catch (error) {
-    try {
-      await copyPromptFallback(promptText)
-    } catch {
-      return {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Bridge unavailable and clipboard fallback failed.",
-        eventId: event.eventId,
-        ok: false,
-        promptText,
-        provider: "copy_prompt",
-      }
-    }
-
     return {
       error:
         error instanceof Error
           ? error.message
-          : "Bridge unavailable; prompt copied instead.",
+          : "Unable to start Codex turn.",
       eventId: event.eventId,
       ok: false,
       promptText,
-      provider: "copy_prompt",
+      provider: "codex_app_server",
     }
   }
 }

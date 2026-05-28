@@ -21,6 +21,7 @@ const lineNumberTransformer: ShikiTransformer = {
           "select-none",
           "text-muted-foreground",
         ],
+        "data-selection": "none",
       },
       children: [{ type: "text", value: String(line) }],
     })
@@ -54,11 +55,17 @@ async function highlightCode(code: string, language: BundledLanguage) {
 function CodeBlockFallback({ code }: { code: string }) {
   return (
     <IntrinsicScrollFrame>
-      <pre className="m-0 min-w-max bg-background p-4 font-mono text-sm text-foreground">
+      <pre
+        className="m-0 min-w-max bg-background p-4 font-mono text-sm text-foreground"
+        data-selection="text"
+      >
         <code className="grid">
           {code.split("\n").map((line, index) => (
             <span className="line relative w-full px-0" key={index}>
-              <span className="mr-4 inline-block min-w-10 select-none text-right text-muted-foreground">
+              <span
+                className="mr-4 inline-block min-w-10 select-none text-right text-muted-foreground"
+                data-selection="none"
+              >
                 {index + 1}
               </span>
               {line}
@@ -90,9 +97,6 @@ function CodeBlock({
 
   React.useEffect(() => {
     let mounted = true
-
-    setHtml("")
-    setDarkHtml("")
 
     highlightCode(code, syntaxLanguage)
       .then(([light, dark]) => {
@@ -138,10 +142,12 @@ function CodeBlock({
         className
       )}
       data-slot="code-block"
+      data-selection="text"
     >
       <figcaption
         className="flex items-center justify-between gap-3 border-b bg-secondary p-1 pl-4"
         data-slot="code-block-header"
+        data-selection="none"
       >
         <span className="truncate text-muted-foreground text-xs">{label}</span>
         <button
@@ -151,6 +157,8 @@ function CodeBlock({
             "shrink-0"
           )}
           data-slot="code-block-copy"
+          data-selection="none"
+          data-cursor="action"
           onClick={handleCopy}
           type="button"
         >
@@ -165,6 +173,7 @@ function CodeBlock({
                 "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
                 "[&_code]:font-mono [&_code]:text-sm"
               )}
+              data-selection="text"
               dangerouslySetInnerHTML={{ __html: html }}
             />
           </IntrinsicScrollFrame>
@@ -174,6 +183,7 @@ function CodeBlock({
                 "[&>pre]:m-0 [&>pre]:bg-background! [&>pre]:p-4 [&>pre]:text-foreground! [&>pre]:text-sm",
                 "[&_code]:font-mono [&_code]:text-sm"
               )}
+              data-selection="text"
               dangerouslySetInnerHTML={{ __html: darkHtml }}
             />
           </IntrinsicScrollFrame>

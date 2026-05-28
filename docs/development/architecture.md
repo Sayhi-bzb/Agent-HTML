@@ -76,6 +76,9 @@ schema, parser, validator, or runtime rules.
 
 Owns the Gallery feature domain:
 
+- gallery view registry
+- gallery view composition
+- gallery view-local sidebar content
 - gallery scene definitions
 - gallery preview content
 - gallery editor metadata
@@ -164,9 +167,14 @@ Before making structural changes, classify the change by owner:
 - Demo-only source comparison or showcase behavior belongs in
   `apps/agent-html-example`.
 - Gallery scene or editor behavior belongs in `apps/agent-html-app/src/gallery`.
+- Gallery view registries, market placeholders, and view-local editor
+  composition belong in `apps/agent-html-app/src/gallery`.
 - Shared primitive interaction belongs in `apps/agent-html-app/src/shared/ui`.
 - Reusable shell composition belongs in `apps/agent-html-app/src/shell`.
 - Cross-surface state wiring belongs in `apps/agent-html-app/src/App.tsx`.
+- App-level selection and cursor policy belongs in the app CSS root and shared
+  primitive boundaries. Runtime selectable content boundaries belong in the
+  runtime viewport and runtime UI controls.
 
 Do not fix a surface by bypassing its owning layer. If a change requires behavior
 from another layer, move the behavior to the appropriate shared owner and have

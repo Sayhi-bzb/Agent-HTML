@@ -7,9 +7,17 @@ import {
   type AppThemePresetId,
 } from "@/app/shared/app-theme/tokens"
 import { GalleryEditorPanel } from "@/app/gallery/editor"
-import { galleryScenes } from "@/app/gallery/scenes"
 import { GalleryPanel } from "@/app/gallery/panel"
-import { galleryWorkspacePreviewBaseSceneId } from "@/app/gallery/preview-content"
+import {
+  GalleryMarketSidebar,
+  GalleryThemeSidebarFooter,
+  GalleryThemeSidebarHeader,
+} from "@/app/gallery/sidebar"
+import {
+  galleryViews,
+  isGalleryViewId,
+  type GalleryViewId,
+} from "@/app/gallery/views"
 import { AppThemeScope } from "@/app/shared/app-theme/scope"
 import {
   areAppThemeDraftsEqual,
@@ -23,12 +31,12 @@ import {
   updateAppThemeDraftColorTokenValue,
 } from "@/app/shared/app-theme/theme"
 import { AppSidebar } from "@/app/shell/app-sidebar"
-import { SiteHeader } from "@/app/shell/site-header"
+import { ConfirmationDialog } from "@/app/shell/confirmation-dialog"
+import { SiteHeader, type HeaderTab } from "@/app/shell/site-header"
 import { useTheme } from "@/app/shared/theme-provider"
 import { closeWindow } from "@/app/shared/lib/window-controls"
 import { SidebarInset, SidebarProvider } from "@/app/shared/ui/sidebar"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
-import { defaultWorkspaceSectionId } from "@/app/workspace/seed"
 import {
   WorkspaceLoadErrorState,
   WorkspaceSurface,
@@ -42,20 +50,14 @@ import type {
   WorkspaceProjectView,
 } from "@/app/workspace/types"
 
-type ProjectTab = {
+type WorkspaceTab = {
   id: string
   label: string
   projectId: string
-  slug: string
+  sectionId: string
 }
 
 type SurfaceMode = "gallery" | "workspace"
-
-type HeaderTab = {
-  id: string
-  isClosable: boolean
-  label: string
-}
 
 const workspaceRepository = createWorkspaceRepository()
 const workspaceCanWrite = workspaceRepository.canWrite
@@ -69,7 +71,7 @@ function getInitialAppliedAppTheme() {
 }
 
 function getNextActiveTabId(
-  currentTabs: ProjectTab[],
+  currentTabs: WorkspaceTab[],
   removedTabIds: Set<string>,
   currentActiveTabId: string | null
 ) {
@@ -99,42 +101,34 @@ function getNextActiveTabId(
   return null
 }
 
-function getDefaultSectionId(project: WorkspaceProjectView | null) {
-  return project?.sections[0]?.id ?? defaultWorkspaceSectionId
+function getSectionTabId(sectionId: string) {
+  return `section:${sectionId}`
 }
 
-function getActiveSection(
-  activeProject: WorkspaceProjectView | null,
-  activeSectionId: string
-) {
-  return (
-    activeProject?.sections.find((section) => section.id === activeSectionId) ??
-    activeProject?.sections[0] ??
-    null
-  )
+function createWorkspaceSectionTab({
+  project,
+  section,
+}: {
+  project: WorkspaceProjectView
+  section: WorkspaceSection
+}): WorkspaceTab {
+  return {
+    id: getSectionTabId(section.id),
+    label: section.title,
+    projectId: project.id,
+    sectionId: section.id,
+  }
 }
 
-function getNextSectionId(
-  sections: WorkspaceSection[],
-  removedSectionId: string,
-  currentActiveSectionId: string
-) {
-  if (removedSectionId !== currentActiveSectionId) {
-    return currentActiveSectionId
+function getFirstWorkspaceSection(projects: WorkspaceProjectView[]) {
+  for (const project of projects) {
+    const section = project.sections[0]
+    if (section) {
+      return { project, section }
+    }
   }
 
-  const removedIndex = sections.findIndex(
-    (section) => section.id === removedSectionId
-  )
-  if (removedIndex === -1) {
-    return sections[0]?.id ?? ""
-  }
-
-  return (
-    sections[removedIndex - 1]?.id ??
-    sections[removedIndex + 1]?.id ??
-    ""
-  )
+  return null
 }
 
 export function App() {
@@ -143,10 +137,8 @@ export function App() {
   const [workspaceLoadError, setWorkspaceLoadError] = React.useState<
     string | null
   >(null)
-  const [openTabs, setOpenTabs] = React.useState<ProjectTab[]>([])
+  const [openTabs, setOpenTabs] = React.useState<WorkspaceTab[]>([])
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
-  const [activeWorkspaceSectionId, setActiveWorkspaceSectionId] =
-    React.useState(defaultWorkspaceSectionId)
   const [workspaceActionError, setWorkspaceActionError] = React.useState<
     string | null
   >(null)
@@ -160,9 +152,12 @@ export function App() {
   const [appThemeDraft, setAppThemeDraft] = React.useState(
     () => appliedAppThemeDraft
   )
-  const [activeGallerySceneId, setActiveGallerySceneId] = React.useState<string>(
-    galleryScenes[0].id
-  )
+  const [isGalleryExitDialogOpen, setIsGalleryExitDialogOpen] =
+    React.useState(false)
+  const [activeGalleryViewId, setActiveGalleryViewId] =
+    React.useState<GalleryViewId>("theme")
+  const [pendingGalleryViewId, setPendingGalleryViewId] =
+    React.useState<GalleryViewId | null>(null)
 
   React.useEffect(() => {
     applyAppTheme(appliedAppThemeDraft)
@@ -188,12 +183,11 @@ export function App() {
         setProjects(projectViews)
         setWorkspaceLoadError(null)
 
-        const firstProject = projectViews[0]
-        if (firstProject) {
-          const firstSectionId = getDefaultSectionId(firstProject)
-          setActiveWorkspaceSectionId(firstSectionId)
+        const firstWorkspaceSection = getFirstWorkspaceSection(projectViews)
+        if (firstWorkspaceSection) {
+          const firstTab = createWorkspaceSectionTab(firstWorkspaceSection)
           setActiveTabId((currentActiveTabId) => {
-            return currentActiveTabId ?? `project:${firstProject.id}`
+            return currentActiveTabId ?? firstTab.id
           })
           setOpenTabs((currentTabs) => {
             if (currentTabs.length > 0) {
@@ -201,12 +195,7 @@ export function App() {
             }
 
             return [
-              {
-                id: `project:${firstProject.id}`,
-                label: firstProject.name,
-                projectId: firstProject.id,
-                slug: firstProject.slug,
-              },
+              firstTab,
             ]
           })
         }
@@ -269,24 +258,19 @@ export function App() {
   )
 
   const activeWorkspaceSection = React.useMemo(
-    () => getActiveSection(activeProject, activeWorkspaceSectionId),
-    [activeProject, activeWorkspaceSectionId]
-  )
-
-  const galleryDisplayScene = React.useMemo(
     () =>
-      galleryScenes.find(
-        (scene) => scene.id === galleryWorkspacePreviewBaseSceneId
-      ) ?? galleryScenes[0],
-    []
+      activeProject?.sections.find(
+        (section) => section.id === activeTab?.sectionId
+      ) ?? null,
+    [activeProject, activeTab?.sectionId]
   )
 
   const headerTabs = React.useMemo<HeaderTab[]>(() => {
     if (surfaceMode === "gallery") {
-      return galleryScenes.map((scene) => ({
-        id: scene.id,
+      return galleryViews.map((view) => ({
+        id: view.id,
         isClosable: false,
-        label: scene.label,
+        label: view.label,
       }))
     }
 
@@ -300,20 +284,16 @@ export function App() {
   const handleCreateProject = React.useCallback(
     async ({ name }: { name: string }) => {
       const project = await workspaceRepository.createProject({ name })
-      const tabId = `project:${project.id}`
+      const firstSection = project.sections[0]
+      const tab = firstSection
+        ? createWorkspaceSectionTab({ project, section: firstSection })
+        : null
 
       setProjects((currentProjects) => [...currentProjects, project])
-      setOpenTabs((currentTabs) => [
-        ...currentTabs,
-        {
-          id: tabId,
-          label: project.name,
-          projectId: project.id,
-          slug: project.slug,
-        },
-      ])
-      setActiveTabId(tabId)
-      setActiveWorkspaceSectionId(project.sections[0]?.id ?? defaultWorkspaceSectionId)
+      if (tab) {
+        setOpenTabs((currentTabs) => [...currentTabs, tab])
+        setActiveTabId(tab.id)
+      }
       setSurfaceMode("workspace")
     },
     []
@@ -343,9 +323,10 @@ export function App() {
     return true
   }, [workspaceHasUnsavedChanges])
 
-  const handleOpenProject = React.useCallback(
-    (projectId: string) => {
-      if (projectId !== activeProject?.id && guardWorkspaceDocumentNavigation()) {
+  const handleOpenWorkspaceSection = React.useCallback(
+    ({ projectId, sectionId }: { projectId: string; sectionId: string }) => {
+      const tabId = getSectionTabId(sectionId)
+      if (tabId !== activeTabId && guardWorkspaceDocumentNavigation()) {
         return
       }
 
@@ -354,7 +335,12 @@ export function App() {
         return
       }
 
-      const tabId = `project:${project.id}`
+      const section = project.sections.find((item) => item.id === sectionId)
+      if (!section) {
+        return
+      }
+
+      const tab = createWorkspaceSectionTab({ project, section })
 
       setOpenTabs((currentTabs) => {
         if (currentTabs.some((tab) => tab.id === tabId)) {
@@ -363,17 +349,13 @@ export function App() {
 
         return [
           ...currentTabs,
-          {
-            id: tabId,
-            label: project.name,
-            projectId: project.id,
-            slug: project.slug,
-          },
+          tab,
         ]
       })
       setActiveTabId(tabId)
+      setSurfaceMode("workspace")
     },
-    [activeProject?.id, guardWorkspaceDocumentNavigation, projects]
+    [activeTabId, guardWorkspaceDocumentNavigation, projects]
   )
 
   const handleRenameProject = React.useCallback(
@@ -386,28 +368,11 @@ export function App() {
         name,
         projectId,
       })
-      const oldTabId = `project:${projectId}`
-      const newTabId = `project:${renamedProject.id}`
 
       setProjects((currentProjects) =>
         currentProjects.map((project) =>
           project.id === projectId ? renamedProject : project
         )
-      )
-      setOpenTabs((currentTabs) =>
-        currentTabs.map((tab) =>
-          tab.projectId === projectId
-            ? {
-                id: newTabId,
-                label: renamedProject.name,
-                projectId: renamedProject.id,
-                slug: renamedProject.slug,
-              }
-            : tab
-        )
-      )
-      setActiveTabId((currentActiveTabId) =>
-        currentActiveTabId === oldTabId ? newTabId : currentActiveTabId
       )
       setWorkspaceActionError(null)
     },
@@ -421,22 +386,21 @@ export function App() {
       }
 
       await workspaceRepository.deleteProject({ projectId })
-      const removedTabId = `project:${projectId}`
 
       setProjects((currentProjects) =>
         currentProjects.filter((project) => project.id !== projectId)
       )
       setOpenTabs((currentTabs) => {
-        const removedTabIds = new Set([removedTabId])
-        const nextTabs = currentTabs.filter((tab) => tab.id !== removedTabId)
+        const removedTabIds = new Set(
+          currentTabs
+            .filter((tab) => tab.projectId === projectId)
+            .map((tab) => tab.id)
+        )
+        const nextTabs = currentTabs.filter((tab) => tab.projectId !== projectId)
 
         setActiveTabId((currentActiveTabId) =>
           getNextActiveTabId(currentTabs, removedTabIds, currentActiveTabId)
         )
-
-        if (nextTabs.length === 0) {
-          setActiveWorkspaceSectionId("")
-        }
 
         return nextTabs
       })
@@ -463,12 +427,20 @@ export function App() {
             : project
         )
       )
-      handleOpenProject(projectId)
-      setActiveWorkspaceSectionId(section.id)
+      setOpenTabs((currentTabs) => [
+        ...currentTabs,
+        {
+          id: getSectionTabId(section.id),
+          label: section.title,
+          projectId,
+          sectionId: section.id,
+        },
+      ])
+      setActiveTabId(getSectionTabId(section.id))
       setSurfaceMode("workspace")
       setWorkspaceActionError(null)
     },
-    [guardWorkspaceStructureEdit, handleOpenProject]
+    [guardWorkspaceStructureEdit]
   )
 
   const handleRenameProjectSection = React.useCallback(
@@ -503,6 +475,13 @@ export function App() {
             : project
         )
       )
+      setOpenTabs((currentTabs) =>
+        currentTabs.map((tab) =>
+          tab.sectionId === sectionId
+            ? { ...tab, label: renamedSection.title }
+            : tab
+        )
+      )
       setWorkspaceActionError(null)
     },
     [guardWorkspaceStructureEdit]
@@ -521,40 +500,37 @@ export function App() {
       }
 
       await workspaceRepository.deleteProjectSection({ projectId, sectionId })
+      const removedTabId = getSectionTabId(sectionId)
 
       setProjects((currentProjects) =>
-        currentProjects.map((project) => {
-          if (project.id !== projectId) {
-            return project
-          }
-
-          const nextSectionId = getNextSectionId(
-            project.sections,
-            sectionId,
-            activeWorkspaceSectionId
-          )
-          const nextSections = project.sections.filter(
-            (section) => section.id !== sectionId
-          )
-
-          if (activeProject?.id === projectId) {
-            setActiveWorkspaceSectionId(
-              nextSections.some((section) => section.id === nextSectionId)
-                ? nextSectionId
-                : nextSections[0]?.id ?? ""
-            )
-          }
-
-          return { ...project, sections: nextSections }
-        })
+        currentProjects.map((project) =>
+          project.id === projectId
+            ? {
+                ...project,
+                sections: project.sections.filter(
+                  (section) => section.id !== sectionId
+                ),
+              }
+            : project
+        )
       )
+      setOpenTabs((currentTabs) => {
+        if (!currentTabs.some((tab) => tab.id === removedTabId)) {
+          return currentTabs
+        }
+
+        const removedTabIds = new Set([removedTabId])
+        const nextTabs = currentTabs.filter((tab) => tab.id !== removedTabId)
+
+        setActiveTabId((currentActiveTabId) =>
+          getNextActiveTabId(currentTabs, removedTabIds, currentActiveTabId)
+        )
+
+        return nextTabs
+      })
       setWorkspaceActionError(null)
     },
-    [
-      activeProject?.id,
-      activeWorkspaceSectionId,
-      guardWorkspaceStructureEdit,
-    ]
+    [guardWorkspaceStructureEdit]
   )
 
   const handleDuplicateProjectSection = React.useCallback(
@@ -581,27 +557,20 @@ export function App() {
             : project
         )
       )
-      handleOpenProject(projectId)
-      setActiveWorkspaceSectionId(section.id)
+      setOpenTabs((currentTabs) => [
+        ...currentTabs,
+        {
+          id: getSectionTabId(section.id),
+          label: section.title,
+          projectId,
+          sectionId: section.id,
+        },
+      ])
+      setActiveTabId(getSectionTabId(section.id))
       setSurfaceMode("workspace")
       setWorkspaceActionError(null)
     },
-    [guardWorkspaceStructureEdit, handleOpenProject]
-  )
-
-  const handleSelectWorkspaceSection = React.useCallback(
-    (sectionId: string) => {
-      if (sectionId === activeWorkspaceSectionId) {
-        return
-      }
-
-      if (guardWorkspaceDocumentNavigation()) {
-        return
-      }
-
-      setActiveWorkspaceSectionId(sectionId)
-    },
-    [activeWorkspaceSectionId, guardWorkspaceDocumentNavigation]
+    [guardWorkspaceStructureEdit]
   )
 
   const handleSelectTab = React.useCallback(
@@ -615,27 +584,27 @@ export function App() {
       }
 
       if (surfaceMode === "gallery") {
-        const nextSceneId = galleryScenes.some((scene) => scene.id === tabId)
-          ? tabId
-          : galleryWorkspacePreviewBaseSceneId
+        if (!isGalleryViewId(tabId) || tabId === activeGalleryViewId) {
+          return
+        }
 
-        setActiveGallerySceneId(nextSceneId)
+        if (activeGalleryViewId === "theme" && isGalleryThemeDirty) {
+          setPendingGalleryViewId(tabId)
+          setIsGalleryExitDialogOpen(true)
+          return
+        }
+
+        setActiveGalleryViewId(tabId)
         return
       }
 
-      const nextTab = openTabs.find((tab) => tab.id === tabId)
-      const nextProject = nextTab
-        ? projects.find((project) => project.id === nextTab.projectId)
-        : null
-
       setActiveTabId(tabId)
-      setActiveWorkspaceSectionId(getDefaultSectionId(nextProject ?? null))
     },
     [
+      activeGalleryViewId,
       activeTabId,
       guardWorkspaceDocumentNavigation,
-      openTabs,
-      projects,
+      isGalleryThemeDirty,
       surfaceMode,
     ]
   )
@@ -661,17 +630,51 @@ export function App() {
     })
   }, [activeTabId, guardWorkspaceDocumentNavigation])
 
+  const handleReorderWorkspaceTabs = React.useCallback(
+    (orderedTabIds: string[]) => {
+      if (surfaceMode !== "workspace") {
+        return
+      }
+
+      setOpenTabs((currentTabs) => {
+        const tabsById = new Map(currentTabs.map((tab) => [tab.id, tab]))
+        const nextTabs = orderedTabIds.flatMap((tabId) => {
+          const tab = tabsById.get(tabId)
+          return tab ? [tab] : []
+        })
+
+        if (nextTabs.length !== currentTabs.length) {
+          return currentTabs
+        }
+
+        return nextTabs
+      })
+    },
+    [surfaceMode]
+  )
+
   const handleEnterGalleryMode = React.useCallback(() => {
     if (guardWorkspaceDocumentNavigation()) {
       return
     }
 
+    setAppThemeDraft(appliedAppThemeDraft)
+    setIsGalleryExitDialogOpen(false)
+    setPendingGalleryViewId(null)
+    setActiveGalleryViewId("theme")
     setSurfaceMode("gallery")
-  }, [guardWorkspaceDocumentNavigation])
+  }, [appliedAppThemeDraft, guardWorkspaceDocumentNavigation])
 
   const handleExitGalleryMode = React.useCallback(() => {
+    if (activeGalleryViewId === "theme" && isGalleryThemeDirty) {
+      setPendingGalleryViewId(null)
+      setIsGalleryExitDialogOpen(true)
+      return
+    }
+
+    setAppThemeDraft(appliedAppThemeDraft)
     setSurfaceMode("workspace")
-  }, [])
+  }, [activeGalleryViewId, appliedAppThemeDraft, isGalleryThemeDirty])
 
   const handleCloseWindow = React.useCallback(() => {
     if (guardWorkspaceDocumentNavigation()) {
@@ -686,6 +689,31 @@ export function App() {
     setAppliedAppThemeDraft(appThemeDraft)
   }, [appThemeDraft])
 
+  const handleSaveAndExitGalleryMode = React.useCallback(() => {
+    saveAppliedAppTheme(appThemeDraft)
+    setAppliedAppThemeDraft(appThemeDraft)
+    setIsGalleryExitDialogOpen(false)
+    if (pendingGalleryViewId) {
+      setActiveGalleryViewId(pendingGalleryViewId)
+      setPendingGalleryViewId(null)
+      return
+    }
+
+    setSurfaceMode("workspace")
+  }, [appThemeDraft, pendingGalleryViewId])
+
+  const handleDiscardAndExitGalleryMode = React.useCallback(() => {
+    setAppThemeDraft(appliedAppThemeDraft)
+    setIsGalleryExitDialogOpen(false)
+    if (pendingGalleryViewId) {
+      setActiveGalleryViewId(pendingGalleryViewId)
+      setPendingGalleryViewId(null)
+      return
+    }
+
+    setSurfaceMode("workspace")
+  }, [appliedAppThemeDraft, pendingGalleryViewId])
+
   const handleSelectGalleryThemePreset = React.useCallback(
     (presetId: AppThemePresetId) => {
       const draft = createAppPresetThemeDraft(presetId)
@@ -698,34 +726,54 @@ export function App() {
     []
   )
 
+  const gallerySidebarHeaderContent =
+    activeGalleryViewId === "theme" ? (
+      <GalleryThemeSidebarHeader
+        activePresetId={activeGalleryThemePresetId}
+        onSelectPreset={handleSelectGalleryThemePreset}
+        presets={appThemePresets}
+      />
+    ) : null
+
+  const gallerySidebarContent =
+    activeGalleryViewId === "theme" ? (
+      <GalleryEditorPanel
+        colorTokenValues={appColorTokenValues}
+        onColorTokenValueChange={(
+          token: AppColorTokenName,
+          value: AppColorTokenValue
+        ) =>
+          setAppThemeDraft((current) =>
+            updateAppThemeDraftColorTokenValue({
+              draft: current,
+              resolvedMode: resolvedTheme,
+              token,
+              value,
+            })
+          )
+        }
+      />
+    ) : (
+      <GalleryMarketSidebar viewId={activeGalleryViewId} />
+    )
+
+  const gallerySidebarFooterContent =
+    activeGalleryViewId === "theme" ? (
+      <GalleryThemeSidebarFooter
+        isDirty={isGalleryThemeDirty}
+        onApply={handleApplyGalleryTheme}
+      />
+    ) : null
+
   const sidebar = (
     <AppSidebar
       activeProjectId={activeProject?.id ?? null}
       activeWorkspaceSectionId={activeWorkspaceSection?.id ?? ""}
       canCreateProject={workspaceCanWrite}
-      galleryContent={
-        <GalleryEditorPanel
-          colorTokenValues={appColorTokenValues}
-          onColorTokenValueChange={(
-            token: AppColorTokenName,
-            value: AppColorTokenValue
-          ) =>
-            setAppThemeDraft((current) =>
-              updateAppThemeDraftColorTokenValue({
-                draft: current,
-                resolvedMode: resolvedTheme,
-                token,
-                value,
-              })
-            )
-          }
-        />
-      }
-      activeGalleryThemePresetId={activeGalleryThemePresetId}
-      galleryThemePresets={appThemePresets}
-      isGalleryThemeDirty={isGalleryThemeDirty}
+      galleryContent={gallerySidebarContent}
+      galleryFooterContent={gallerySidebarFooterContent}
+      galleryHeaderContent={gallerySidebarHeaderContent}
       mode={surfaceMode}
-      onApplyGalleryTheme={handleApplyGalleryTheme}
       onCreateProject={handleCreateProject}
       onCreateProjectSection={handleCreateProjectSection}
       onDeleteProject={handleDeleteProject}
@@ -733,11 +781,9 @@ export function App() {
       onDuplicateProjectSection={handleDuplicateProjectSection}
       onEnterGalleryMode={handleEnterGalleryMode}
       onExitGalleryMode={handleExitGalleryMode}
-      onOpenProject={handleOpenProject}
+      onOpenWorkspaceSection={handleOpenWorkspaceSection}
       onRenameProject={handleRenameProject}
       onRenameProjectSection={handleRenameProjectSection}
-      onSelectGalleryThemePreset={handleSelectGalleryThemePreset}
-      onWorkspaceSectionSelect={handleSelectWorkspaceSection}
       projects={projects}
       workspaceActionError={workspaceActionError}
       workspaceCanEditStructure={workspaceCanWrite}
@@ -748,9 +794,12 @@ export function App() {
 
   const header = (
     <SiteHeader
-      activeTabId={surfaceMode === "gallery" ? activeGallerySceneId : activeTabId}
+      activeTabId={surfaceMode === "gallery" ? activeGalleryViewId : activeTabId}
       onCloseWindow={handleCloseWindow}
       onCloseTab={handleCloseTab}
+      onReorderTabs={
+        surfaceMode === "workspace" ? handleReorderWorkspaceTabs : undefined
+      }
       onSelectTab={handleSelectTab}
       tabs={headerTabs}
     />
@@ -763,7 +812,7 @@ export function App() {
         {sidebar}
         <SidebarInset className="min-h-0 overflow-hidden border-0 shadow-none md:mr-2 md:mb-2 md:peer-data-[variant=inset]:shadow-none">
           {surfaceMode === "gallery" ? (
-            <GalleryPanel scene={galleryDisplayScene} />
+            <GalleryPanel activeViewId={activeGalleryViewId} />
           ) : workspaceLoadError ? (
             <WorkspaceLoadErrorState detail={workspaceLoadError} />
           ) : (
@@ -781,6 +830,27 @@ export function App() {
           )}
         </SidebarInset>
       </main>
+      <ConfirmationDialog
+        open={isGalleryExitDialogOpen}
+        onOpenChange={(open) => {
+          setIsGalleryExitDialogOpen(open)
+          if (!open) {
+            setPendingGalleryViewId(null)
+          }
+        }}
+        title="Save theme changes?"
+        description="Your Gallery theme changes are only a draft until you save them."
+        cancelLabel="Cancel"
+        secondaryAction={{
+          label: "Discard",
+          onClick: handleDiscardAndExitGalleryMode,
+          variant: "outline",
+        }}
+        primaryAction={{
+          label: "Save",
+          onClick: handleSaveAndExitGalleryMode,
+        }}
+      />
     </>
   )
 

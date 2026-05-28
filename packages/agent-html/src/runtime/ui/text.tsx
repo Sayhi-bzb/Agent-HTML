@@ -38,21 +38,43 @@ function textElementForVariant(variant: TextVariant | null | undefined) {
 
 type TextVariant = NonNullable<VariantProps<typeof textVariants>["variant"]>
 
-function Text({
-  className,
-  variant,
-  ...props
-}: React.ComponentProps<"p"> & VariantProps<typeof textVariants>) {
-  const Element = textElementForVariant(variant)
+type TextProps = React.ComponentProps<"p"> & VariantProps<typeof textVariants>
 
-  return (
-    <Element
-      data-slot="text"
-      data-variant={variant ?? "p"}
-      className={cn(textVariants({ variant }), className)}
-      {...props}
-    />
-  )
+function getTextProps({ className, variant, ...props }: TextProps) {
+  return {
+    "data-slot": "text",
+    "data-variant": variant ?? "p",
+    "data-selection": "text",
+    className: cn(textVariants({ variant }), className),
+    ...props,
+  }
+}
+
+function Text(props: TextProps) {
+  const element = textElementForVariant(props.variant)
+  const textProps = getTextProps(props)
+
+  if (element === "h1") {
+    return <h1 {...textProps} />
+  }
+
+  if (element === "h2") {
+    return <h2 {...textProps} />
+  }
+
+  if (element === "h3") {
+    return <h3 {...textProps} />
+  }
+
+  if (element === "h4") {
+    return <h4 {...textProps} />
+  }
+
+  if (element === "code") {
+    return <code {...textProps} />
+  }
+
+  return <p {...textProps} />
 }
 
 export { Text }

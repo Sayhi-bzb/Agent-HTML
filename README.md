@@ -87,6 +87,12 @@ npm run typecheck
 npm run lint
 ```
 
+## License
+
+License terms vary by package. See the root [`LICENSE`](./LICENSE) and
+package-level license files for details. Short version: check the folder you
+use.
+
 ## Thanks To
 
 - [shadcn/ui](https://shadcn-ui.com/) for the UI components.

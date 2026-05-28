@@ -1,11 +1,5 @@
 import * as React from "react"
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/app/shared/ui/dropdown-menu"
 import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
 import { NavProjects } from "@/app/shell/nav-projects"
 import { NewProjectDialog } from "@/app/shell/new-project-dialog"
@@ -21,13 +15,7 @@ import {
   SidebarMenuItem,
 } from "@/app/shared/ui/sidebar"
 import type { WorkspaceSection } from "@/app/workspace/types"
-import {
-  ArrowLeftIcon,
-  CheckIcon,
-  ChevronRightIcon,
-  SparklesIcon,
-} from "lucide-react"
-import type { AppThemePresetId } from "@/app/shared/app-theme/tokens"
+import { ArrowLeftIcon, SparklesIcon } from "lucide-react"
 
 type ProjectNavItem = {
   id: string
@@ -36,21 +24,14 @@ type ProjectNavItem = {
   slug: string
 }
 
-type AppThemePresetNavItem = {
-  id: AppThemePresetId
-  label: string
-}
-
 export function AppSidebar({
-  activeGalleryThemePresetId,
   activeProjectId,
   activeWorkspaceSectionId,
   canCreateProject,
   galleryContent,
-  galleryThemePresets,
-  isGalleryThemeDirty = false,
+  galleryFooterContent,
+  galleryHeaderContent,
   mode = "workspace",
-  onApplyGalleryTheme,
   onCreateProject,
   onCreateProjectSection,
   onDeleteProject,
@@ -58,26 +39,22 @@ export function AppSidebar({
   onDuplicateProjectSection,
   onEnterGalleryMode,
   onExitGalleryMode,
-  onOpenProject,
+  onOpenWorkspaceSection,
   onRenameProject,
   onRenameProjectSection,
-  onSelectGalleryThemePreset,
-  onWorkspaceSectionSelect,
   projects,
   workspaceActionError,
   workspaceCanEditStructure,
   workspaceHasUnsavedChanges,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  activeGalleryThemePresetId?: AppThemePresetId
   activeProjectId: string | null
   activeWorkspaceSectionId: string
   canCreateProject: boolean
   galleryContent: React.ReactNode
-  galleryThemePresets?: readonly AppThemePresetNavItem[]
-  isGalleryThemeDirty?: boolean
+  galleryFooterContent?: React.ReactNode
+  galleryHeaderContent?: React.ReactNode
   mode?: "gallery" | "workspace"
-  onApplyGalleryTheme?: () => void
   onCreateProject: (input: { name: string }) => Promise<void>
   onCreateProjectSection: (input: {
     projectId: string
@@ -94,7 +71,10 @@ export function AppSidebar({
   }) => Promise<void>
   onEnterGalleryMode?: () => void
   onExitGalleryMode?: () => void
-  onOpenProject: (projectId: string) => void
+  onOpenWorkspaceSection: (input: {
+    projectId: string
+    sectionId: string
+  }) => void
   onRenameProject: (input: {
     name: string
     projectId: string
@@ -104,8 +84,6 @@ export function AppSidebar({
     sectionId: string
     title: string
   }) => Promise<void>
-  onSelectGalleryThemePreset?: (presetId: AppThemePresetId) => void
-  onWorkspaceSectionSelect: (sectionId: string) => void
   projects: ProjectNavItem[]
   workspaceActionError: string | null
   workspaceCanEditStructure: boolean
@@ -130,68 +108,14 @@ export function AppSidebar({
               </SidebarMenuItem>
             </SidebarMenu>
 
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      className="group/trigger data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                      type="button"
-                    >
-                      <span>theme</span>
-                      <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/trigger:rotate-90" />
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0"
-                    side="bottom"
-                    sideOffset={6}
-                  >
-                    {(galleryThemePresets ?? []).map((preset) => (
-                      <DropdownMenuItem
-                        key={preset.id}
-                        onSelect={() => onSelectGalleryThemePreset?.(preset.id)}
-                      >
-                        <span>{preset.label}</span>
-                        {preset.id === activeGalleryThemePresetId ? (
-                          <CheckIcon className="ml-auto size-4" />
-                        ) : null}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      className="group/trigger data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                      type="button"
-                    >
-                      <span>color</span>
-                      <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/trigger:rotate-90" />
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0"
-                    side="bottom"
-                    sideOffset={6}
-                  >
-                    <DropdownMenuItem>
-                      <span>color</span>
-                      <CheckIcon className="ml-auto size-4" />
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            {galleryHeaderContent}
           </>
         ) : (
           <>
-            <SearchCommand onOpenProject={onOpenProject} projects={projects} />
+            <SearchCommand
+              onOpenWorkspaceSection={onOpenWorkspaceSection}
+              projects={projects}
+            />
             <NewProjectDialog
               canCreate={canCreateProject}
               onCreateProject={onCreateProject}
@@ -212,10 +136,9 @@ export function AppSidebar({
             onDeleteProject={onDeleteProject}
             onDeleteProjectSection={onDeleteProjectSection}
             onDuplicateProjectSection={onDuplicateProjectSection}
-            onOpenProject={onOpenProject}
+            onOpenWorkspaceSection={onOpenWorkspaceSection}
             onRenameProject={onRenameProject}
             onRenameProjectSection={onRenameProjectSection}
-            onSectionSelect={onWorkspaceSectionSelect}
             projects={projects}
             workspaceActionError={workspaceActionError}
           />
@@ -223,18 +146,7 @@ export function AppSidebar({
       </SidebarContent>
       <SidebarFooter>
         {isGalleryMode ? (
-          <FooterMenuStack>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                disabled={!isGalleryThemeDirty}
-                onClick={onApplyGalleryTheme}
-                type="button"
-              >
-                <CheckIcon className="size-4" />
-                <span>{isGalleryThemeDirty ? "Apply" : "Applied"}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </FooterMenuStack>
+          galleryFooterContent
         ) : (
           <FooterMenuStack>
             <SidebarMenuItem>

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
@@ -58,6 +59,8 @@ function Button({
       data-slot="button"
       data-variant={variant}
       data-size={size}
+      data-selection="none"
+      data-cursor="action"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

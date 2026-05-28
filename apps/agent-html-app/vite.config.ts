@@ -1,4 +1,5 @@
 import path from "path"
+import { lingui } from "@lingui/vite-plugin"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
@@ -9,7 +10,15 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "../../dist"),
     emptyOutDir: true,
   },
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react({
+      babel: {
+        plugins: ["@lingui/babel-plugin-lingui-macro"],
+      },
+    }),
+    lingui(),
+    tailwindcss(),
+  ],
   resolve: {
     alias: [
       {

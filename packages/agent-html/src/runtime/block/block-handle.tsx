@@ -25,10 +25,14 @@ export function AgentHtmlBlockHandle({
   visible?: boolean
 }) {
   return (
-    <div className="absolute top-1/2 -left-6 z-10 grid -translate-y-10 grid-rows-[1.5rem_1.5rem] gap-1">
+    <div
+      className="absolute top-1/2 -left-6 z-10 grid -translate-y-10 grid-rows-[1.5rem_1.5rem] gap-1"
+      data-selection="none"
+    >
       <button
         aria-label="Open block input"
         className={cn(agentHtmlBlockHandleButtonClassName, "cursor-pointer")}
+        data-cursor="action"
         data-visible={visible ? "" : undefined}
         data-agent-html-block-input-trigger="true"
         data-agent-html-block-input-trigger-path={path}
@@ -50,6 +54,7 @@ export function AgentHtmlBlockHandle({
           agentHtmlBlockHandleButtonClassName,
           "cursor-grab active:cursor-grabbing"
         )}
+        data-cursor="drag"
         data-visible={visible ? "" : undefined}
         data-agent-html-block-handle="true"
         data-agent-html-block-handle-path={path}

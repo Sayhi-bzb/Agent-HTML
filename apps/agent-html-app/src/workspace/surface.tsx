@@ -1,5 +1,9 @@
 import * as React from "react"
 
+import {
+  useAgentActivity,
+  type AgentActivityTurnContext,
+} from "@/app/workspace/agent-activity"
 import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
 import { useCodexConnection } from "@/app/codex/connection"
 import { Button } from "@/app/shared/ui/button"
@@ -44,7 +48,6 @@ type AgentDeliveryState =
   | { status: "idle" }
   | { status: "sending" }
   | { detail: string; status: "sent" }
-  | { detail: string; status: "copied" }
   | { detail: string; status: "error" }
 
 type SaveState =
@@ -82,16 +85,6 @@ function getAgentDeliveryPresence(
       message: {
         mode: "final",
         text: agentDeliveryState.detail,
-      },
-      mood: "review",
-    }
-  }
-
-  if (agentDeliveryState.status === "copied") {
-    return {
-      message: {
-        mode: "final",
-        text: "Prompt copied.",
       },
       mood: "review",
     }
@@ -196,6 +189,9 @@ export function WorkspaceSurface({
     React.useState<WorkspaceDocumentState>({ status: "idle" })
   const [agentDeliveryState, setAgentDeliveryState] =
     React.useState<AgentDeliveryState>({ status: "idle" })
+  const [activeTurnContext, setActiveTurnContext] =
+    React.useState<AgentActivityTurnContext>({})
+  const agentActivity = useAgentActivity(activeTurnContext)
   const [saveState, setSaveState] = React.useState<SaveState>({
     status: "clean",
   })
@@ -319,16 +315,22 @@ export function WorkspaceSurface({
 
       setAgentDeliveryState({ status: "sending" })
       deliverAgentHtmlIntent({
-        bridgeUrl: codexConnection.bridgeUrl,
         document: documentState.document,
         project: activeProject,
         section: activeSection,
+        startTurn: codexConnection.startTurn,
         submit: {
           ...submit,
           interaction: submit.interaction ?? lastInteractionRef.current,
         },
       }).then((result) => {
         if (result.ok) {
+          setActiveTurnContext({
+            blockPath: submit.path,
+            sectionId: activeSection.id,
+            threadId: result.threadId,
+            turnId: result.turnId,
+          })
           setAgentDeliveryState({
             detail: "Sent to Codex.",
             status: "sent",
@@ -337,15 +339,13 @@ export function WorkspaceSurface({
           return
         }
 
-        if (result.provider === "copy_prompt") {
-          setAgentDeliveryState({
-            detail: "Agent bridge unavailable. Prompt copied.",
-            status: "copied",
-          })
-        }
+        setAgentDeliveryState({
+          detail: result.error,
+          status: "error",
+        })
       })
     },
-    [activeProject, activeSection, codexConnection.bridgeUrl, documentState]
+    [activeProject, activeSection, codexConnection.startTurn, documentState]
   )
 
   React.useEffect(() => {
@@ -405,8 +405,8 @@ export function WorkspaceSurface({
     return renderWorkspaceDocument(documentState.document)
   }, [documentState])
   const petPresence = React.useMemo(
-    () => getAgentDeliveryPresence(agentDeliveryState),
-    [agentDeliveryState]
+    () => agentActivity.presence ?? getAgentDeliveryPresence(agentDeliveryState),
+    [agentActivity.presence, agentDeliveryState]
   )
 
   if (!activeProject) {

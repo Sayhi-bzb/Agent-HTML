@@ -81,6 +81,22 @@ relationship is explicit.
 - Floating popovers and hover cards are secondary UI layers. Their placement
   must not affect block hit-testing.
 
+## Selection and Cursor Boundaries
+
+Runtime-rendered content is content first. Text, code bodies, and generated
+document output should remain selectable unless the element is an interaction
+control.
+
+Rules:
+
+- runtime viewport roots should preserve selectable content behavior
+- block handles, drag affordances, overlays, copy buttons, scrollbars, and line
+  numbers should disable text selection
+- drag handles should use drag cursor semantics without making the whole content
+  block non-selectable
+- selection policy must not be inferred from drag state, hover state, or
+  third-party library internals
+
 ## Scroll-Aware Dragging
 
 Scroll can happen while a drag is active. During scroll-aware dragging:

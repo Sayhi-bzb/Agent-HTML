@@ -10,6 +10,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -28,6 +30,13 @@ import {
 } from "@/app/shared/ui/dialog"
 import { Input } from "@/app/shared/ui/input"
 import { Label } from "@/app/shared/ui/label"
+import {
+  getAppLanguageLabel,
+  getResolvedAppLocaleLabel,
+  useLanguage,
+  type AppLanguage,
+  type ResolvedAppLocale,
+} from "@/app/shared/language-provider"
 import { useTheme, type Theme } from "@/app/shared/theme-provider"
 import {
   SidebarMenuButton,
@@ -38,15 +47,16 @@ import {
   BellIcon,
   BadgeCheckIcon,
   CableIcon,
+  LanguagesIcon,
   MonitorIcon,
   MoonIcon,
-  PlayIcon,
   RefreshCwIcon,
   Settings2Icon,
   SquareIcon,
   SunIcon,
 } from "lucide-react"
 import * as React from "react"
+import { Trans, useLingui } from "@lingui/react/macro"
 
 const themeItems: {
   icon: typeof SunIcon
@@ -70,6 +80,62 @@ const themeItems: {
   },
 ]
 
+const languageItems: {
+  label: string
+  value: AppLanguage
+}[] = [
+  {
+    label: "System",
+    value: "system",
+  },
+  {
+    label: "English",
+    value: "en",
+  },
+  {
+    label: "中文",
+    value: "zh",
+  },
+]
+
+function getLanguageMenuLabel(
+  language: AppLanguage,
+  resolvedLocale: ResolvedAppLocale
+) {
+  if (language === "system") {
+    return `System · ${getResolvedAppLocaleLabel(resolvedLocale)}`
+  }
+
+  return getAppLanguageLabel(language, resolvedLocale)
+}
+
+function getThemeMenuLabel(theme: Theme) {
+  if (theme === "light") return "Light"
+  if (theme === "dark") return "Dark"
+  return "System"
+}
+
+function LocalizedLanguageLabel({
+  label,
+}: {
+  label: "English" | "System · English" | "System · 中文" | "中文"
+}) {
+  const { t } = useLingui()
+
+  if (label === "System · English") return t`System · English`
+  if (label === "System · 中文") return t`System · 中文`
+  if (label === "English") return t`English`
+  return t`中文`
+}
+
+function LocalizedThemeLabel({ label }: { label: "Dark" | "Light" | "System" }) {
+  const { t } = useLingui()
+
+  if (label === "Light") return t`Light`
+  if (label === "Dark") return t`Dark`
+  return t`System`
+}
+
 function CodexConnectionDialog({
   onOpenChange,
   open,
@@ -77,11 +143,21 @@ function CodexConnectionDialog({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
+  const { t } = useLingui()
   const codexConnection = useCodexConnection()
   const [draftSettings, setDraftSettings] = React.useState(
     codexConnection.settings
   )
   const wasOpenRef = React.useRef(false)
+  const statusSummary = !codexConnection.isLoaded
+    ? t`Loading saved settings...`
+    : codexConnection.status === "connected"
+      ? t`Connected`
+      : codexConnection.status === "starting"
+        ? t`Starting...`
+        : codexConnection.status === "error"
+          ? t`Connection failed`
+          : t`Not connected`
 
   React.useEffect(() => {
     if (open && !wasOpenRef.current) {
@@ -89,17 +165,6 @@ function CodexConnectionDialog({
     }
     wasOpenRef.current = open
   }, [codexConnection.settings, open])
-
-  const handleNumberChange = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = Number.parseInt(event.target.value, 10)
-      setDraftSettings((current) => ({
-        ...current,
-        bridgePort: Number.isFinite(value) ? value : current.bridgePort,
-      }))
-    },
-    []
-  )
 
   const updateTextSetting = React.useCallback(
     (key: keyof typeof draftSettings) =>
@@ -128,25 +193,25 @@ function CodexConnectionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Codex Connection</DialogTitle>
+          <DialogTitle>
+            <Trans>Codex Connection</Trans>
+          </DialogTitle>
           <DialogDescription>
-            Connect Agent-HTML to a local Codex bridge.
+            <Trans>
+              Agent-HTML connects to Codex automatically and uses the official
+              Codex configuration files for agent behavior.
+            </Trans>
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
             <div className="min-w-0">
-              <p className="text-sm font-medium">Status</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {!codexConnection.isLoaded
-                  ? "Loading saved settings..."
-                  : codexConnection.bridgeUrl ?? "Not connected"}
+              <p className="text-sm font-medium">
+                <Trans>Status</Trans>
               </p>
-              {codexConnection.ownership === "external" ? (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Connected to an existing bridge on this port.
-                </p>
-              ) : null}
+              <p className="truncate text-xs text-muted-foreground">
+                {statusSummary}
+              </p>
             </div>
             <Badge
               variant={
@@ -160,43 +225,23 @@ function CodexConnectionDialog({
               {codexConnection.status}
             </Badge>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="codex-command">Codex command</Label>
-              <Input
-                id="codex-command"
-                onChange={updateTextSetting("codexCommand")}
-                value={draftSettings.codexCommand}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="codex-workspace">Workspace cwd</Label>
-              <Input
-                id="codex-workspace"
-                onChange={updateTextSetting("workspaceCwd")}
-                value={draftSettings.workspaceCwd}
-              />
-            </div>
-          </div>
-          {!draftSettings.codexCommand.trim() ? (
-            <p className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">
-              Set the Codex command before connecting.
-            </p>
-          ) : null}
-          {!draftSettings.workspaceCwd.trim() ? (
-            <p className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">
-              Choose your workspace folder before connecting.
-            </p>
-          ) : null}
+          <p className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">
+            <Trans>
+              Codex model, approval, sandbox, profile, and trust settings are read
+              by Codex from its official config layers, including user and project
+              config files. Agent-HTML only manages the local Codex host lifecycle.
+            </Trans>
+          </p>
           {codexConnection.lastError ? (
             <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
               {codexConnection.lastError}
             </p>
           ) : null}
-          {!codexConnection.canManageBridge ? (
+          {!codexConnection.canManageHost ? (
             <p className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">
-              Desktop runtime required to manage Codex. Web mode can still use
-              the development bridge fallback.
+              <Trans>
+                Desktop runtime required to manage Codex.
+              </Trans>
             </p>
           ) : null}
           <Accordion
@@ -206,57 +251,38 @@ function CodexConnectionDialog({
             }
             className="rounded-lg border px-3"
           >
-            <AccordionItem value="network-startup">
-              <AccordionTrigger>Network & Startup</AccordionTrigger>
-              <AccordionContent className="grid gap-3 sm:grid-cols-2">
+            <AccordionItem value="advanced">
+              <AccordionTrigger>
+                <Trans>Advanced Connection</Trans>
+              </AccordionTrigger>
+              <AccordionContent className="grid gap-3">
                 <div className="grid gap-2">
-                  <Label htmlFor="codex-host">Bridge host</Label>
+                  <Label htmlFor="codex-command">
+                    <Trans>Codex command</Trans>
+                  </Label>
                   <Input
-                    id="codex-host"
-                    onChange={updateTextSetting("bridgeHost")}
-                    value={draftSettings.bridgeHost}
+                    id="codex-command"
+                    onChange={updateTextSetting("codexCommand")}
+                    value={draftSettings.codexCommand}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="codex-port">Bridge port</Label>
-                  <Input
-                    id="codex-port"
-                    min={1}
-                    max={65535}
-                    onChange={handleNumberChange}
-                    type="number"
-                    value={draftSettings.bridgePort}
-                  />
-                </div>
-                <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                  <input
-                    checked={draftSettings.autoStart}
-                    className="size-4 accent-primary"
-                    onChange={(event) =>
-                      setDraftSettings((current) => ({
-                        ...current,
-                        autoStart: event.target.checked,
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  Auto start bridge on app launch
-                </label>
-                <div className="sm:col-span-2">
+                <div>
                   <Button
-                    disabled={codexConnection.isBusy || !codexConnection.isLoaded}
+                    disabled={codexConnection.isBusy}
                     onClick={() => void runAction(codexConnection.test)}
                     type="button"
                     variant="outline"
                   >
                     <CableIcon />
-                    Test connection
+                    <Trans>Test connection</Trans>
                   </Button>
                 </div>
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="logs-diagnostics">
-              <AccordionTrigger>Logs & Diagnostics</AccordionTrigger>
+              <AccordionTrigger>
+                <Trans>Logs & Diagnostics</Trans>
+              </AccordionTrigger>
               <AccordionContent className="grid gap-3">
                 <label className="flex items-center gap-2 text-sm">
                   <input
@@ -270,12 +296,14 @@ function CodexConnectionDialog({
                     }
                     type="checkbox"
                   />
-                  Enable event logs
+                  <Trans>Enable event logs</Trans>
                 </label>
                 {draftSettings.eventLogEnabled ? (
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="grid gap-2">
-                      <Label htmlFor="codex-event-log">Event log path</Label>
+                      <Label htmlFor="codex-event-log">
+                        <Trans>Event log path</Trans>
+                      </Label>
                       <Input
                         id="codex-event-log"
                         onChange={updateTextSetting("eventLogPath")}
@@ -284,7 +312,7 @@ function CodexConnectionDialog({
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="codex-server-log">
-                        Codex event log path
+                        <Trans>Codex event log path</Trans>
                       </Label>
                       <Input
                         id="codex-server-log"
@@ -309,38 +337,48 @@ function CodexConnectionDialog({
                     type="button"
                     variant="outline"
                   >
-                    Open log folder
+                    <Trans>Open log folder</Trans>
                   </Button>
                 </div>
                 <dl className="grid gap-2 rounded-lg border p-3 text-xs sm:grid-cols-2">
                   <div>
-                    <dt className="text-muted-foreground">Provider</dt>
-                    <dd>{codexConnection.health?.provider ?? "unknown"}</dd>
+                    <dt className="text-muted-foreground">
+                      <Trans>Provider</Trans>
+                    </dt>
+                    <dd>{codexConnection.health?.provider ?? t`unknown`}</dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">App server</dt>
+                    <dt className="text-muted-foreground">
+                      <Trans>App server</Trans>
+                    </dt>
                     <dd>
                       {codexConnection.health?.appServerRunning
-                        ? "running"
-                        : "off"}
+                        ? t`running`
+                        : t`off`}
                     </dd>
                   </div>
                   <div className="sm:col-span-2">
-                    <dt className="text-muted-foreground">Thread</dt>
+                    <dt className="text-muted-foreground">
+                      <Trans>Thread</Trans>
+                    </dt>
                     <dd className="break-all">
-                      {codexConnection.health?.threadId ?? "none"}
+                      {codexConnection.health?.threadId ?? t`none`}
                     </dd>
                   </div>
                   <div className="sm:col-span-2">
-                    <dt className="text-muted-foreground">Codex command</dt>
+                    <dt className="text-muted-foreground">
+                      <Trans>Codex command</Trans>
+                    </dt>
                     <dd className="break-all">
-                      {codexConnection.health?.codexCommand ?? "unknown"}
+                      {codexConnection.health?.codexCommand ?? t`unknown`}
                     </dd>
                   </div>
                   <div className="sm:col-span-2">
-                    <dt className="text-muted-foreground">Codex cwd</dt>
+                    <dt className="text-muted-foreground">
+                      <Trans>Codex cwd</Trans>
+                    </dt>
                     <dd className="break-all">
-                      {codexConnection.health?.cwd ?? "unknown"}
+                      {codexConnection.health?.cwd ?? t`unknown`}
                     </dd>
                   </div>
                 </dl>
@@ -350,44 +388,29 @@ function CodexConnectionDialog({
         </div>
         <DialogFooter className="items-center sm:justify-between">
           <Button onClick={saveDraft} type="button" variant="outline">
-            Save
+            <Trans>Save</Trans>
           </Button>
           <div className="flex flex-wrap justify-end gap-2">
             <Button
-              disabled={codexConnection.isBusy || !codexConnection.isLoaded}
+              disabled={
+                codexConnection.isBusy ||
+                !codexConnection.isLoaded ||
+                codexConnection.status === "disconnected"
+              }
               onClick={() => void runAction(codexConnection.stop)}
               type="button"
               variant="outline"
-              title={
-                codexConnection.ownership === "external"
-                  ? "Disconnect from the existing bridge without stopping it."
-                  : undefined
-              }
             >
               <SquareIcon />
-              {codexConnection.ownership === "external" ? "Disconnect" : "Stop"}
+              <Trans>Stop</Trans>
             </Button>
             <Button
               disabled={codexConnection.isBusy || !codexConnection.isLoaded}
               onClick={() => void runAction(codexConnection.restart)}
               type="button"
-              variant="outline"
-              title={
-                codexConnection.ownership === "external"
-                  ? "Reconnect to the existing bridge on this port."
-                  : undefined
-              }
             >
               <RefreshCwIcon />
-              {codexConnection.ownership === "external" ? "Reconnect" : "Restart"}
-            </Button>
-            <Button
-              disabled={codexConnection.isBusy || !codexConnection.isLoaded}
-              onClick={() => void runAction(codexConnection.start)}
-              type="button"
-            >
-              <PlayIcon />
-              {codexConnection.isBusy ? "Connecting..." : "Connect"}
+              <Trans>Restart</Trans>
             </Button>
           </div>
         </DialogFooter>
@@ -398,8 +421,10 @@ function CodexConnectionDialog({
 
 export function SettingsMenu() {
   const { isMobile } = useSidebar()
+  const { language, resolvedLocale, setLanguage } = useLanguage()
   const { setTheme, theme } = useTheme()
   const [codexOpen, setCodexOpen] = React.useState(false)
+  const languageSummary = getLanguageMenuLabel(language, resolvedLocale)
 
   return (
     <>
@@ -411,7 +436,9 @@ export function SettingsMenu() {
               type="button"
             >
               <Settings2Icon />
-              <span>Settings</span>
+              <span>
+                <Trans>Settings</Trans>
+              </span>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
         </SidebarMenuItem>
@@ -423,20 +450,62 @@ export function SettingsMenu() {
         >
           <DropdownMenuItem>
             <BadgeCheckIcon />
-            Account
+            <Trans>Account</Trans>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <BellIcon />
-            Notifications
+            <Trans>Notifications</Trans>
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setCodexOpen(true)}>
             <CableIcon />
-            Codex Connection
+            <Trans>Codex Connection</Trans>
           </DropdownMenuItem>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
+              <LanguagesIcon />
+              <Trans>Language</Trans>
+              <span className="ml-auto max-w-28 truncate text-xs text-muted-foreground">
+                <LocalizedLanguageLabel
+                  label={
+                    languageSummary as
+                      | "English"
+                      | "System · English"
+                      | "System · 中文"
+                      | "中文"
+                  }
+                />
+              </span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent className="w-44 rounded-lg">
+                <DropdownMenuRadioGroup
+                  onValueChange={(value) => setLanguage(value as AppLanguage)}
+                  value={language}
+                >
+                  {languageItems.map((item) => {
+                    const label = getLanguageMenuLabel(
+                      item.value,
+                      resolvedLocale
+                    ) as
+                      | "English"
+                      | "System · English"
+                      | "System · 中文"
+                      | "中文"
+
+                    return (
+                      <DropdownMenuRadioItem key={item.value} value={item.value}>
+                        <LocalizedLanguageLabel label={label} />
+                      </DropdownMenuRadioItem>
+                    )
+                  })}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
               <SunIcon />
-              Theme
+              <Trans>Theme</Trans>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="w-44 rounded-lg">
@@ -450,7 +519,7 @@ export function SettingsMenu() {
                       onCheckedChange={() => setTheme(item.value)}
                     >
                       <Icon />
-                      {item.label}
+                      <LocalizedThemeLabel label={getThemeMenuLabel(item.value)} />
                     </DropdownMenuCheckboxItem>
                   )
                 })}

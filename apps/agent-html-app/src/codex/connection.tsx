@@ -9,17 +9,13 @@ export type CodexConnectionStatus =
   | "stopped"
 
 export type CodexConnectionSettings = {
-  autoStart: boolean
-  bridgeHost: string
-  bridgePort: number
   codexCommand: string
   codexEventLogPath: string
   eventLogEnabled: boolean
   eventLogPath: string
-  workspaceCwd: string
 }
 
-export type CodexBridgeHealth = {
+export type CodexHostHealth = {
   appServerRunning: boolean
   codexCommand?: string | null
   connected: boolean
@@ -32,28 +28,33 @@ export type CodexBridgeHealth = {
   threadId?: string | null
 }
 
-export type CodexBridgeOwnership = "external" | "managed"
-
-type CodexBridgeProcessStatus = {
-  bridgeUrl: string
-  health: CodexBridgeHealth
-  ownership: CodexBridgeOwnership
+type CodexHostProcessStatus = {
+  health: CodexHostHealth
   pid?: number | null
   status: CodexConnectionStatus
 }
 
+type CodexRpcRequestResult = {
+  result: unknown
+}
+
+type CodexTurnStartResult = {
+  threadId: string
+  turnId?: string | null
+}
+
 type CodexConnectionContextValue = {
-  bridgeUrl: string | null
-  canManageBridge: boolean
-  health: CodexBridgeHealth | null
+  canManageHost: boolean
+  health: CodexHostHealth | null
   isLoaded: boolean
   isBusy: boolean
   lastError: string | null
-  ownership: CodexBridgeOwnership | null
   openLogs: (settingsOverride?: CodexConnectionSettings) => Promise<void>
+  request: (method: string, params: unknown) => Promise<unknown>
   settings: CodexConnectionSettings
   status: CodexConnectionStatus
   start: (settingsOverride?: CodexConnectionSettings) => Promise<void>
+  startTurn: (promptText: string) => Promise<CodexTurnStartResult>
   stop: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   restart: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   test: (settingsOverride?: CodexConnectionSettings) => Promise<void>
@@ -62,7 +63,7 @@ type CodexConnectionContextValue = {
 
 const STORAGE_KEY = "agent-html.codex-connection"
 
-type CodexBridgeLogPaths = {
+type CodexHostLogPaths = {
   codexEventLogPath: string
   eventLogPath: string
   resolvedFromDefaults: boolean
@@ -78,20 +79,12 @@ function getDefaultCodexCommand() {
     : "codex"
 }
 
-function getDefaultWorkspaceCwd() {
-  return ""
-}
-
 function getDefaultSettings(): CodexConnectionSettings {
   return {
-    autoStart: false,
-    bridgeHost: "127.0.0.1",
-    bridgePort: 51279,
     codexCommand: getDefaultCodexCommand(),
     codexEventLogPath: ".tmp\\agent-html-codex-app-server-events.jsonl",
     eventLogEnabled: false,
-    eventLogPath: ".tmp\\agent-html-codex-events.jsonl",
-    workspaceCwd: getDefaultWorkspaceCwd(),
+    eventLogPath: ".tmp\\agent-html-codex-turns.jsonl",
   }
 }
 
@@ -117,18 +110,6 @@ function loadSettings(): CodexConnectionSettings {
     }
 
     return {
-      autoStart:
-        typeof parsed.autoStart === "boolean"
-          ? parsed.autoStart
-          : defaults.autoStart,
-      bridgeHost:
-        typeof parsed.bridgeHost === "string"
-          ? parsed.bridgeHost
-          : defaults.bridgeHost,
-      bridgePort:
-        typeof parsed.bridgePort === "number"
-          ? parsed.bridgePort
-          : defaults.bridgePort,
       codexCommand:
         typeof parsed.codexCommand === "string"
           ? parsed.codexCommand
@@ -145,10 +126,6 @@ function loadSettings(): CodexConnectionSettings {
         typeof parsed.eventLogPath === "string"
           ? parsed.eventLogPath
           : defaults.eventLogPath,
-      workspaceCwd:
-        typeof parsed.workspaceCwd === "string"
-          ? parsed.workspaceCwd
-          : defaults.workspaceCwd,
     }
   } catch {
     return getDefaultSettings()
@@ -159,16 +136,12 @@ function saveSettings(settings: CodexConnectionSettings) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
 }
 
-function getOpenLogsInstructions(paths: CodexBridgeLogPaths) {
+function getOpenLogsInstructions(paths: CodexHostLogPaths) {
   return [
     "Open these log files from your workspace or file explorer:",
     `Event log: ${paths.eventLogPath}`,
     `Codex event log: ${paths.codexEventLogPath}`,
   ].join("\n")
-}
-
-function createBridgeUrl(settings: CodexConnectionSettings) {
-  return `http://${settings.bridgeHost}:${settings.bridgePort}/agent-html/events`
 }
 
 function getErrorMessage(error: unknown) {
@@ -179,21 +152,27 @@ function validateSettings(settings: CodexConnectionSettings) {
   if (!settings.codexCommand.trim()) {
     throw new Error("Set the Codex command before connecting.")
   }
-
-  if (!settings.workspaceCwd.trim()) {
-    throw new Error("Choose your workspace folder before connecting.")
-  }
-
-  if (!settings.bridgeHost.trim()) {
-    throw new Error("Enter a bridge host before connecting.")
-  }
-
-  if (settings.bridgePort < 1 || settings.bridgePort > 65535) {
-    throw new Error("Bridge port must be between 1 and 65535.")
-  }
 }
 
-function normalizeStatus(status: CodexConnectionStatus, health: CodexBridgeHealth | null) {
+function readObject(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function readThreadId(value: unknown) {
+  const result = readObject(value)
+  const thread = readObject(result?.thread)
+  return typeof thread?.id === "string" ? thread.id : null
+}
+
+function readTurnId(value: unknown) {
+  const result = readObject(value)
+  const turn = readObject(result?.turn)
+  return typeof turn?.id === "string" ? turn.id : null
+}
+
+function normalizeStatus(status: CodexConnectionStatus, health: CodexHostHealth | null) {
   if (health?.connected) {
     return "connected"
   }
@@ -216,20 +195,17 @@ export function CodexConnectionProvider({
 }) {
   const [settings, setSettings] =
     React.useState<CodexConnectionSettings>(loadSettings)
-  const [health, setHealth] = React.useState<CodexBridgeHealth | null>(null)
+  const [health, setHealth] = React.useState<CodexHostHealth | null>(null)
   const [isLoaded, setIsLoaded] = React.useState(false)
   const [status, setStatus] =
     React.useState<CodexConnectionStatus>("disconnected")
   const [lastError, setLastError] = React.useState<string | null>(null)
-  const [ownership, setOwnership] =
-    React.useState<CodexBridgeOwnership | null>(null)
   const [isBusy, setIsBusy] = React.useState(false)
-  const canManageBridge = isTauri()
+  const canManageHost = isTauri()
 
   const applyProcessStatus = React.useCallback(
-    (processStatus: CodexBridgeProcessStatus) => {
+    (processStatus: CodexHostProcessStatus) => {
       setHealth(processStatus.health)
-      setOwnership(processStatus.ownership)
       setStatus(normalizeStatus(processStatus.status, processStatus.health))
       setLastError(processStatus.health.error ?? processStatus.health.stderr ?? null)
     },
@@ -238,25 +214,25 @@ export function CodexConnectionProvider({
 
   const runCommand = React.useCallback(
     async (command: string, settingsOverride?: CodexConnectionSettings) => {
-      if (!canManageBridge) {
+      if (!canManageHost) {
         throw new Error("Desktop runtime required to manage Codex.")
       }
 
       validateSettings(settingsOverride ?? settings)
 
-      const processStatus = await invoke<CodexBridgeProcessStatus>(command, {
+      const processStatus = await invoke<CodexHostProcessStatus>(command, {
         settings: settingsOverride ?? settings,
       })
       applyProcessStatus(processStatus)
     },
-    [applyProcessStatus, canManageBridge, settings]
+    [applyProcessStatus, canManageHost, settings]
   )
 
   const saveSettingsEverywhere = React.useCallback(
     async (nextSettings: CodexConnectionSettings) => {
-      if (canManageBridge) {
+      if (canManageHost) {
         const savedSettings = await invoke<CodexConnectionSettings>(
-          "codex_settings_save",
+          "codex_host_settings_save",
           {
             settings: nextSettings,
           }
@@ -270,7 +246,7 @@ export function CodexConnectionProvider({
       saveSettings(nextSettings)
       return nextSettings
     },
-    [canManageBridge]
+    [canManageHost]
   )
 
   const start = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
@@ -279,7 +255,7 @@ export function CodexConnectionProvider({
     setLastError(null)
 
     try {
-      await runCommand("codex_bridge_start", settingsOverride)
+      await runCommand("codex_host_start", settingsOverride)
     } catch (error) {
       setStatus("error")
       setLastError(getErrorMessage(error))
@@ -293,7 +269,7 @@ export function CodexConnectionProvider({
     setLastError(null)
 
     try {
-      await runCommand("codex_bridge_stop", settingsOverride)
+      await runCommand("codex_host_stop", settingsOverride)
     } catch (error) {
       setStatus("error")
       setLastError(getErrorMessage(error))
@@ -308,7 +284,7 @@ export function CodexConnectionProvider({
     setLastError(null)
 
     try {
-      await runCommand("codex_bridge_restart", settingsOverride)
+      await runCommand("codex_host_restart", settingsOverride)
     } catch (error) {
       setStatus("error")
       setLastError(getErrorMessage(error))
@@ -317,12 +293,67 @@ export function CodexConnectionProvider({
     }
   }, [runCommand])
 
+  const request = React.useCallback(
+    async (method: string, params: unknown) => {
+      if (!canManageHost) {
+        throw new Error("Desktop runtime required to manage Codex.")
+      }
+
+      validateSettings(settings)
+
+      const response = await invoke<CodexRpcRequestResult>("codex_rpc_request", {
+        input: {
+          method,
+          params,
+        },
+        settings,
+      })
+
+      return response.result
+    },
+    [canManageHost, settings]
+  )
+
+  const startTurn = React.useCallback(
+    async (promptText: string) => {
+      const threadId =
+        health?.threadId ??
+        readThreadId(
+          await request("thread/start", {
+            persistExtendedHistory: false,
+            serviceName: "agent_html",
+          })
+        )
+
+      if (!threadId) {
+        throw new Error("Codex did not return a thread id.")
+      }
+
+      const result = await request("turn/start", {
+        input: [
+          {
+            text: promptText,
+            type: "text",
+          },
+        ],
+        threadId,
+      })
+
+      return {
+        threadId,
+        turnId: readTurnId(result),
+      }
+    },
+    [health?.threadId, request]
+  )
+
   const test = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
     setIsBusy(true)
+    setStatus("starting")
     setLastError(null)
 
     try {
-      await runCommand("codex_bridge_health", settingsOverride)
+      await runCommand("codex_host_start", settingsOverride)
     } catch (error) {
       setStatus("error")
       setLastError(getErrorMessage(error))
@@ -334,7 +365,7 @@ export function CodexConnectionProvider({
   const openLogs = React.useCallback(
     async (settingsOverride?: CodexConnectionSettings) => {
       const targetSettings = settingsOverride ?? settings
-      if (!canManageBridge) {
+      if (!canManageHost) {
         throw new Error(
           getOpenLogsInstructions({
             codexEventLogPath: targetSettings.codexEventLogPath,
@@ -344,11 +375,11 @@ export function CodexConnectionProvider({
         )
       }
 
-      await invoke<string>("codex_bridge_open_logs", {
+      await invoke<string>("codex_host_open_logs", {
         settings: targetSettings,
       })
     },
-    [canManageBridge, settings]
+    [canManageHost, settings]
   )
 
   const updateSettings = React.useCallback(
@@ -359,14 +390,14 @@ export function CodexConnectionProvider({
   )
 
   React.useEffect(() => {
-    if (!canManageBridge) {
+    if (!canManageHost) {
       setIsLoaded(true)
       return
     }
 
     let isCurrent = true
 
-    void invoke<CodexConnectionSettings>("codex_settings_load")
+    void invoke<CodexConnectionSettings>("codex_host_settings_load")
       .then((loadedSettings) => {
         if (!isCurrent) {
           return
@@ -375,66 +406,85 @@ export function CodexConnectionProvider({
         setSettings(loadedSettings)
         saveSettings(loadedSettings)
         setIsLoaded(true)
+        setIsBusy(true)
+        setStatus("starting")
+        setLastError(null)
 
-        if (loadedSettings.autoStart) {
-          void start(loadedSettings)
+        return invoke<CodexHostProcessStatus>("codex_host_start", {
+          settings: loadedSettings,
+        })
+      })
+      .then((processStatus) => {
+        if (!isCurrent || !processStatus) {
+          return
         }
+
+        applyProcessStatus(processStatus)
       })
       .catch((error) => {
         if (!isCurrent) {
           return
         }
 
+        setStatus("error")
         setLastError(getErrorMessage(error))
         setIsLoaded(true)
+      })
+      .finally(() => {
+        if (!isCurrent) {
+          return
+        }
+
+        setIsBusy(false)
       })
 
     return () => {
       isCurrent = false
     }
-  }, [canManageBridge, start])
+  }, [applyProcessStatus, canManageHost])
 
   React.useEffect(() => {
-    if (!canManageBridge || status !== "connected") {
+    if (!canManageHost || status !== "connected") {
       return undefined
     }
 
     const interval = window.setInterval(() => {
-      void runCommand("codex_bridge_health")
+      void runCommand("codex_host_health")
     }, 5000)
 
     return () => window.clearInterval(interval)
-  }, [canManageBridge, runCommand, status])
+  }, [canManageHost, runCommand, status])
 
   const value = React.useMemo<CodexConnectionContextValue>(
     () => ({
-      bridgeUrl: status === "connected" ? createBridgeUrl(settings) : null,
-      canManageBridge,
+      canManageHost,
       health,
       isLoaded,
       isBusy,
       lastError,
-      ownership,
       openLogs,
+      request,
       restart,
       settings,
       start,
+      startTurn,
       status,
       stop,
       test,
       updateSettings,
     }),
     [
-      canManageBridge,
+      canManageHost,
       health,
       isLoaded,
       isBusy,
       lastError,
-      ownership,
       openLogs,
+      request,
       restart,
       settings,
       start,
+      startTurn,
       status,
       stop,
       test,

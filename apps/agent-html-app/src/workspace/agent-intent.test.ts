@@ -38,14 +38,17 @@ describe("deliverAgentHtmlIntent", () => {
     vi.restoreAllMocks()
   })
 
-  it("posts a context event to the local bridge", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
-    vi.stubGlobal("fetch", fetchMock)
+  it("starts a Codex turn with Agent-HTML context", async () => {
+    const startTurn = vi.fn().mockResolvedValue({
+      threadId: "thr_123",
+      turnId: "turn_123",
+    })
 
     const result = await deliverAgentHtmlIntent({
       document,
       project,
       section,
+      startTurn,
       submit: {
         interaction: null,
         path: "/Page/Section[0]/Stack[0]",
@@ -54,32 +57,20 @@ describe("deliverAgentHtmlIntent", () => {
     })
 
     expect(result.ok).toBe(true)
-    expect(fetchMock).toHaveBeenCalledWith(
-      "http://127.0.0.1:51278/agent-html/events",
-      expect.objectContaining({
-        method: "POST",
-      })
-    )
-
-    const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.event.target.blockTag).toBe("Stack")
-    expect(body.promptText).toContain("Make this tighter.")
-    expect(body.promptText).toContain("<Stack>")
+    expect(startTurn).toHaveBeenCalledWith(expect.stringContaining("Make this tighter."))
+    expect(startTurn).toHaveBeenCalledWith(expect.stringContaining("<Stack>"))
+    expect(result.provider).toBe("codex_app_server")
+    expect(result.threadId).toBe("thr_123")
   })
 
-  it("copies the prompt when the bridge is unavailable", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")))
-    vi.stubGlobal("navigator", {
-      clipboard: {
-        writeText,
-      },
-    })
+  it("returns the Codex turn error when delivery fails", async () => {
+    const startTurn = vi.fn().mockRejectedValue(new Error("offline"))
 
     const result = await deliverAgentHtmlIntent({
       document,
       project,
       section,
+      startTurn,
       submit: {
         interaction: {
           itemValue: "ticket-1",
@@ -95,12 +86,9 @@ describe("deliverAgentHtmlIntent", () => {
     })
 
     expect(result.ok).toBe(false)
-    expect(result.provider).toBe("copy_prompt")
-    expect(writeText).toHaveBeenCalledWith(
-      expect.stringContaining("Persist my ordering.")
-    )
-    expect(writeText).toHaveBeenCalledWith(
-      expect.stringContaining("Kanban item moved")
-    )
+    expect(result.provider).toBe("codex_app_server")
+    expect(result.error).toBe("offline")
+    expect(result.promptText).toContain("Persist my ordering.")
+    expect(result.promptText).toContain("Kanban item moved")
   })
 })

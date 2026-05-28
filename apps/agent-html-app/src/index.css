@@ -67,6 +67,15 @@
   }
 }
 
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -147,6 +156,30 @@
 
   [data-tauri-no-drag] {
     app-region: no-drag;
+  }
+
+  [data-selection="none"] {
+    user-select: none;
+  }
+
+  [data-selection="text"] {
+    user-select: text;
+  }
+
+  [data-cursor="action"] {
+    cursor: pointer;
+  }
+
+  [data-cursor="drag"] {
+    cursor: grab;
+  }
+
+  [data-cursor="dragging"] {
+    cursor: grabbing;
+  }
+
+  [data-cursor="text"] {
+    cursor: text;
   }
 
   body {
