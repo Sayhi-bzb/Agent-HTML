@@ -37,6 +37,20 @@ export type GalleryComponentMarketRepository = {
   ) => Promise<AgentHtmlPromptSchemaArtifact>
 }
 
+export type PromptSchemaTokenEstimate = {
+  characters: number
+  tokens: number
+}
+
+export type GalleryComponentPromptMetrics = {
+  componentTokens: number
+  current: PromptSchemaTokenEstimate
+  installDeltaTokens: number
+  removeDeltaTokens: number
+  withComponent: PromptSchemaTokenEstimate
+  withoutComponent: PromptSchemaTokenEstimate
+}
+
 function createSettings(enabledTags: EnabledGalleryComponentTags) {
   return {
     enabledComponentTags: [...enabledTags].sort(),
@@ -70,6 +84,45 @@ export function buildEnabledAgentHtmlPromptSchema(
   return `${buildAgentHtmlPromptDocument(sourcePrompt, {
     registry: enabledRegistry,
   }).trim()}\n`
+}
+
+export function estimatePromptSchemaTokens(content: string): PromptSchemaTokenEstimate {
+  const normalizedContent = content.trim()
+
+  return {
+    characters: normalizedContent.length,
+    tokens: normalizedContent ? Math.ceil(normalizedContent.length / 4) : 0,
+  }
+}
+
+export function buildGalleryComponentPromptMetrics(
+  enabledTags: EnabledGalleryComponentTags,
+  componentTag: AgentHtmlTag
+): GalleryComponentPromptMetrics {
+  const tagsWithComponent = new Set(enabledTags)
+  tagsWithComponent.add(componentTag)
+
+  const tagsWithoutComponent = new Set(enabledTags)
+  tagsWithoutComponent.delete(componentTag)
+
+  const current = estimatePromptSchemaTokens(
+    buildEnabledAgentHtmlPromptSchema(enabledTags)
+  )
+  const withComponent = estimatePromptSchemaTokens(
+    buildEnabledAgentHtmlPromptSchema(tagsWithComponent)
+  )
+  const withoutComponent = estimatePromptSchemaTokens(
+    buildEnabledAgentHtmlPromptSchema(tagsWithoutComponent)
+  )
+
+  return {
+    componentTokens: Math.max(0, withComponent.tokens - withoutComponent.tokens),
+    current,
+    installDeltaTokens: withComponent.tokens - current.tokens,
+    removeDeltaTokens: withoutComponent.tokens - current.tokens,
+    withComponent,
+    withoutComponent,
+  }
 }
 
 const browserComponentMarketRepository: GalleryComponentMarketRepository = {

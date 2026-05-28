@@ -1,5 +1,5 @@
 import * as React from "react"
-import { CheckIcon, PencilIcon, XIcon } from "lucide-react"
+import { CheckIcon, CopyIcon, PencilIcon, XIcon } from "lucide-react"
 
 import { markCodexStartupEvent } from "@/app/codex/connection"
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/app/codex/connection"
 import { Button } from "@/app/shared/ui/button"
 import { Input } from "@/app/shared/ui/input"
+import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import { WorkspaceGhostPet } from "@/app/pet/ghost"
 import type { PetPresence } from "@/app/workspace/agent-presence"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
@@ -189,6 +190,43 @@ function readTimestampMs(value: string) {
   return Number.isNaN(date.getTime()) ? null : date.getTime()
 }
 
+function getThreadSortTimestamp(
+  link: ProjectCodexThreadLink,
+  summary: ReturnType<typeof getThreadSummaryById>
+) {
+  for (const value of [
+    summary?.updatedAt,
+    link.lastUsedAt,
+    summary?.createdAt,
+    link.createdAt,
+  ]) {
+    if (!value) {
+      continue
+    }
+
+    const timestamp = readTimestampMs(value)
+    if (timestamp !== null) {
+      return timestamp
+    }
+  }
+
+  return 0
+}
+
+export function sortProjectThreadLinksByRecent(
+  links: ProjectCodexThreadLink[],
+  summaries: CodexThreadSummary[]
+) {
+  return [...links].sort((left, right) => {
+    const leftSummary = getThreadSummaryById(summaries, left.threadId)
+    const rightSummary = getThreadSummaryById(summaries, right.threadId)
+    return (
+      getThreadSortTimestamp(right, rightSummary) -
+      getThreadSortTimestamp(left, leftSummary)
+    )
+  })
+}
+
 function getThreadDisplayName(
   link: ProjectCodexThreadLink,
   summary: ReturnType<typeof getThreadSummaryById>
@@ -196,18 +234,10 @@ function getThreadDisplayName(
   return summary?.name?.trim() || `Thread ${link.threadId.slice(0, 8)}`
 }
 
-export function getThreadLinkStatus(
-  summary: ReturnType<typeof getThreadSummaryById>
-) {
-  return summary ? "linked" : "check"
-}
-
-function getSectionTitleById(sections: WorkspaceSection[], sectionId?: string | null) {
-  if (!sectionId) {
-    return null
-  }
-
-  return sections.find((section) => section.id === sectionId)?.title ?? null
+function copyThreadId(threadId: string) {
+  void navigator.clipboard?.writeText(threadId).catch(() => {
+    return undefined
+  })
 }
 
 function getThreadSummaryById(
@@ -244,6 +274,15 @@ function truncateThreadPreview(text: string) {
   return normalized.length > THREAD_REQUEST_PREVIEW_LIMIT
     ? `${normalized.slice(0, THREAD_REQUEST_PREVIEW_LIMIT - 3)}...`
     : normalized
+}
+
+function extractAgentHtmlRequest(text: string) {
+  const marker = /\nRequest:\s*/.exec(text)
+  if (!marker) {
+    return text
+  }
+
+  return text.slice(marker.index + marker[0].length)
 }
 
 function readTextFromUserInput(value: unknown): string | null {
@@ -291,13 +330,13 @@ export function readFirstThreadRequestText(value: unknown) {
           .filter((text): text is string => Boolean(text?.trim()))
           .join(" ")
         if (joined.trim()) {
-          return truncateThreadPreview(joined)
+          return truncateThreadPreview(extractAgentHtmlRequest(joined))
         }
       }
 
       const text = readTextFromUserInput(item)
       if (text?.trim()) {
-        return truncateThreadPreview(text)
+        return truncateThreadPreview(extractAgentHtmlRequest(text))
       }
     }
   }
@@ -376,7 +415,6 @@ function ProjectThreadPickerContent({
   projectThreadLinks,
   renameError,
   renamingThreadId,
-  sections,
   threadSelectionError,
   threadRequestPreviews,
   threadSummaries,
@@ -393,20 +431,23 @@ function ProjectThreadPickerContent({
   projectThreadLinks: ProjectCodexThreadLink[]
   renameError?: string | null
   renamingThreadId?: string | null
-  sections: WorkspaceSection[]
   threadSelectionError?: string | null
   threadRequestPreviews: Record<string, ThreadPreviewState>
   threadSummaries: CodexThreadSummary[]
 }) {
   const [editingThreadId, setEditingThreadId] = React.useState<string | null>(null)
   const [editingName, setEditingName] = React.useState("")
+  const sortedProjectThreadLinks = React.useMemo(
+    () => sortProjectThreadLinksByRecent(projectThreadLinks, threadSummaries),
+    [projectThreadLinks, threadSummaries]
+  )
 
   return (
-    <div className="flex flex-col gap-3 text-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+    <div className="flex min-w-0 flex-col gap-3 text-sm">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0">
           <p className="font-medium">Codex threads</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="truncate text-xs text-muted-foreground">
             Continue a project thread or start fresh.
           </p>
         </div>
@@ -432,7 +473,8 @@ function ProjectThreadPickerContent({
       {renameError ? (
         <p className="text-xs text-destructive">{renameError}</p>
       ) : null}
-      <div className="grid max-h-60 gap-2 overflow-auto">
+      <ScrollArea className="min-w-0" viewportClassName="max-h-60">
+        <div className="grid min-w-0 gap-2 pr-3">
         {!canSelectThread ? (
           <p className="text-xs text-muted-foreground">
             Connecting to Codex...
@@ -440,24 +482,25 @@ function ProjectThreadPickerContent({
         ) : isLoading ? (
           <p className="text-xs text-muted-foreground">Loading threads...</p>
         ) : projectThreadLinks.length > 0 ? (
-          projectThreadLinks.map((link) => {
+          sortedProjectThreadLinks.map((link) => {
             const summary = getThreadSummaryById(threadSummaries, link.threadId)
-            const sectionTitle = getSectionTitleById(sections, link.lastSectionId)
             const displayName =
               optimisticThreadNames[link.threadId] ??
               getThreadDisplayName(link, summary)
             const timestamp = formatThreadRelativeTime(
               summary?.updatedAt ?? link.lastUsedAt ?? summary?.createdAt ?? link.createdAt
             )
-            const status = getThreadLinkStatus(summary)
             const preview = threadRequestPreviews[link.threadId]
+            const previewText = preview?.isLoading
+              ? "Loading request..."
+              : preview?.requestText || "No request yet"
             const isEditing = editingThreadId === link.threadId
             const isRenaming = renamingThreadId === link.threadId
 
             return (
               <div
                 key={link.threadId}
-                className="group rounded-md border bg-background px-3 py-2 text-xs transition-colors hover:bg-muted/70"
+                className="group min-w-0 overflow-hidden rounded-md border bg-background px-3 py-2 text-xs transition-colors hover:bg-muted/70"
               >
                 <div className="flex min-w-0 items-center justify-between gap-2">
                   {isEditing ? (
@@ -511,34 +554,35 @@ function ProjectThreadPickerContent({
                     </button>
                   )}
                   {!isEditing ? (
-                    <Button
-                      className="size-7 shrink-0 p-0 opacity-70 hover:opacity-100"
-                      disabled={!canSelectThread || isSelectingThread || isRenaming}
-                      onClick={() => {
-                        setEditingThreadId(link.threadId)
-                        setEditingName(
-                          optimisticThreadNames[link.threadId] ??
-                            summary?.name?.trim() ??
-                            ""
-                        )
-                      }}
-                      title="Rename thread"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <PencilIcon className="size-3.5" />
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        className="size-7 p-0 opacity-70 hover:opacity-100"
+                        onClick={() => copyThreadId(link.threadId)}
+                        title="Copy thread id"
+                        type="button"
+                        variant="ghost"
+                      >
+                        <CopyIcon className="size-3.5" />
+                      </Button>
+                      <Button
+                        className="size-7 p-0 opacity-70 hover:opacity-100"
+                        disabled={!canSelectThread || isSelectingThread || isRenaming}
+                        onClick={() => {
+                          setEditingThreadId(link.threadId)
+                          setEditingName(
+                            optimisticThreadNames[link.threadId] ??
+                              summary?.name?.trim() ??
+                              ""
+                          )
+                        }}
+                        title="Rename thread"
+                        type="button"
+                        variant="ghost"
+                      >
+                        <PencilIcon className="size-3.5" />
+                      </Button>
+                    </div>
                   ) : null}
-                  <span
-                    className={[
-                      "shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-normal",
-                      summary
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                        : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-                    ].join(" ")}
-                  >
-                    {status}
-                  </span>
                 </div>
                 <button
                   className="mt-1 flex w-full min-w-0 items-center gap-2 text-left text-muted-foreground"
@@ -546,20 +590,17 @@ function ProjectThreadPickerContent({
                   onClick={() => onResumeThread(link.threadId)}
                   type="button"
                 >
-                  <span className="truncate">
-                    {sectionTitle ?? link.lastAhtmlPath ?? "Project thread"}
-                  </span>
-                  <span aria-hidden="true">/</span>
                   <span className="shrink-0">{timestamp}</span>
+                  <span aria-hidden="true">/</span>
+                  <ScrollArea
+                    className="min-w-0 flex-1"
+                    viewportClassName="max-h-10"
+                  >
+                    <span className="block pr-2 text-muted-foreground">
+                      {previewText}
+                    </span>
+                  </ScrollArea>
                 </button>
-                <p className="mt-1 truncate text-muted-foreground">
-                  {preview?.isLoading
-                    ? "Loading request..."
-                    : preview?.requestText || "No request yet"}
-                </p>
-                <span className="mt-1 block truncate font-mono text-[10px] text-muted-foreground/80">
-                  {link.threadId}
-                </span>
               </div>
             )
           })
@@ -568,7 +609,8 @@ function ProjectThreadPickerContent({
             No previous threads for this project.
           </p>
         )}
-      </div>
+        </div>
+      </ScrollArea>
     </div>
   )
 }
@@ -1238,7 +1280,6 @@ export function WorkspaceSurface({
       projectThreadLinks={projectThreadLinks}
       renameError={threadRenameError}
       renamingThreadId={renamingThreadId}
-      sections={activeProject.sections}
       threadSelectionError={threadSelectionError}
       threadRequestPreviews={threadRequestPreviews}
       threadSummaries={threadSummaries}

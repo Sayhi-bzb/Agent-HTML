@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import {
   formatThreadRelativeTime,
-  getThreadLinkStatus,
   readFirstThreadRequestText,
+  sortProjectThreadLinksByRecent,
 } from "@/app/workspace/surface"
 
 describe("workspace thread card helpers", () => {
@@ -24,11 +24,6 @@ describe("workspace thread card helpers", () => {
     )
   })
 
-  it("uses linked and check for project-thread correlation state", () => {
-    expect(getThreadLinkStatus({ id: "thr_1", name: null })).toBe("linked")
-    expect(getThreadLinkStatus(null)).toBe("check")
-  })
-
   it("reads the first user request from summarized thread turns", () => {
     expect(
       readFirstThreadRequestText({
@@ -47,5 +42,87 @@ describe("workspace thread card helpers", () => {
         ],
       })
     ).toBe("Build a pricing card with actions")
+  })
+
+  it("extracts the Agent-HTML request from prompt front matter", () => {
+    expect(
+      readFirstThreadRequestText({
+        data: [
+          {
+            items: [
+              {
+                content: [
+                  {
+                    text: [
+                      "---",
+                      "filePath: D:/demo/page.ahtml",
+                      "ahtmlPath: /Page/Stack[0]",
+                      "---",
+                      "",
+                      "```ahtml",
+                      "<Stack />",
+                      "```",
+                      "",
+                      "Request:",
+                      "Make this section tighter.",
+                    ].join("\n"),
+                  },
+                ],
+                type: "userMessage",
+              },
+            ],
+          },
+        ],
+      })
+    ).toBe("Make this section tighter.")
+  })
+
+  it("truncates long request previews", () => {
+    const preview = readFirstThreadRequestText({
+      data: [
+        {
+          items: [
+            {
+              content: [{ text: "x".repeat(200) }],
+              type: "userMessage",
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(preview).toHaveLength(160)
+    expect(preview?.endsWith("...")).toBe(true)
+  })
+
+  it("sorts project thread links with the newest thread first", () => {
+    const links = [
+      {
+        createdAt: "2026-05-26T12:00:00.000Z",
+        lastUsedAt: "2026-05-27T12:00:00.000Z",
+        origin: "agent-html",
+        projectId: "project",
+        threadId: "thr_old",
+      },
+      {
+        createdAt: "2026-05-25T12:00:00.000Z",
+        lastUsedAt: "2026-05-26T12:00:00.000Z",
+        origin: "agent-html",
+        projectId: "project",
+        threadId: "thr_new",
+      },
+    ] as const
+    const summaries = [
+      {
+        id: "thr_new",
+        name: null,
+        updatedAt: "2026-05-28T12:00:00.000Z",
+      },
+    ]
+
+    expect(sortProjectThreadLinksByRecent([...links], summaries).map((link) => link.threadId)).toEqual([
+      "thr_new",
+      "thr_old",
+    ])
   })
 })

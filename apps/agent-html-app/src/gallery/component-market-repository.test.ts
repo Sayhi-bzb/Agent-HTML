@@ -4,6 +4,8 @@ import type { AgentHtmlTag } from "@/agent-html"
 import {
   agentHtmlPromptSchemaArtifactPath,
   buildEnabledAgentHtmlPromptSchema,
+  buildGalleryComponentPromptMetrics,
+  estimatePromptSchemaTokens,
 } from "@/app/gallery/component-market-repository"
 
 describe("component market repository", () => {
@@ -26,6 +28,32 @@ describe("component market repository", () => {
   it("keeps the schema artifact path stable for Codex actions", () => {
     expect(agentHtmlPromptSchemaArtifactPath).toBe(
       ".tmp/agent-html-prompt-schema.md"
+    )
+  })
+
+  it("estimates prompt schema token counts from generated text", () => {
+    expect(estimatePromptSchemaTokens("abcd")).toEqual({
+      characters: 4,
+      tokens: 1,
+    })
+    expect(estimatePromptSchemaTokens("abcde")).toEqual({
+      characters: 5,
+      tokens: 2,
+    })
+  })
+
+  it("builds component-level prompt token metrics", () => {
+    const metrics = buildGalleryComponentPromptMetrics(
+      new Set<AgentHtmlTag>(["Card"]),
+      "Chart"
+    )
+
+    expect(metrics.current.tokens).toBeGreaterThan(0)
+    expect(metrics.componentTokens).toBeGreaterThan(0)
+    expect(metrics.installDeltaTokens).toBe(metrics.componentTokens)
+    expect(metrics.removeDeltaTokens).toBe(0)
+    expect(metrics.withComponent.tokens).toBeGreaterThan(
+      metrics.withoutComponent.tokens
     )
   })
 })

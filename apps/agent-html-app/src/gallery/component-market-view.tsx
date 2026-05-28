@@ -19,6 +19,7 @@ import {
   type GalleryComponentMarketItem,
   type GalleryComponentMarketStatus,
 } from "@/app/gallery/component-market-catalog"
+import { buildGalleryComponentPromptMetrics } from "@/app/gallery/component-market-repository"
 import { Badge } from "@/app/shared/ui/badge"
 import { Button } from "@/app/shared/ui/button"
 import { Input } from "@/app/shared/ui/input"
@@ -110,6 +111,14 @@ export function GalleryComponentMarketView({
       null,
     [filteredComponents, selectedTag]
   )
+
+  const selectedPromptMetrics = React.useMemo(() => {
+    if (!selectedComponent) {
+      return null
+    }
+
+    return buildGalleryComponentPromptMetrics(enabledTags, selectedComponent.tag)
+  }, [enabledTags, selectedComponent])
 
   function updateStatus(status: GalleryComponentMarketStatus) {
     onFiltersChange({ ...filters, status })
@@ -358,11 +367,32 @@ export function GalleryComponentMarketView({
               <h3 className="text-xs font-medium uppercase text-muted-foreground">
                 Prompt impact
               </h3>
-              <div className="mt-2 rounded-lg border bg-background p-3 text-sm leading-5">
-                Installing this component adds its tag, attrs, and child grammar
-                to the generated prompt schema. Removing it hides the component
-                from future agent output without deleting existing documents.
-              </div>
+              {selectedPromptMetrics ? (
+                <div className="mt-2 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <DetailStat
+                      label="Prompt budget"
+                      value={`~${selectedPromptMetrics.current.tokens.toLocaleString()} tokens`}
+                    />
+                    <DetailStat
+                      label="Component"
+                      value={`~${selectedPromptMetrics.componentTokens.toLocaleString()} tokens`}
+                    />
+                  </div>
+                  <DetailStat
+                    label={
+                      enabledTags.has(selectedComponent.tag)
+                        ? "Remove"
+                        : "Install"
+                    }
+                    value={
+                      enabledTags.has(selectedComponent.tag)
+                        ? formatTokenDelta(selectedPromptMetrics.removeDeltaTokens)
+                        : formatTokenDelta(selectedPromptMetrics.installDeltaTokens)
+                    }
+                  />
+                </div>
+              ) : null}
             </div>
 
             <div>
@@ -379,18 +409,6 @@ export function GalleryComponentMarketView({
                 )}
               </div>
             </div>
-
-            <div>
-              <h3 className="text-xs font-medium uppercase text-muted-foreground">
-                Insert template
-              </h3>
-              <pre
-                className="mt-2 max-h-64 overflow-auto rounded-lg border bg-background p-3 text-xs leading-5 text-muted-foreground"
-                data-selection="text"
-              >
-                {selectedComponent.market.insertTemplate}
-              </pre>
-            </div>
           </div>
         </aside>
       ) : null}
@@ -405,4 +423,14 @@ function DetailStat({ label, value }: { label: string; value: string }) {
       <p className="mt-1 truncate text-sm font-medium">{value}</p>
     </div>
   )
+}
+
+function formatTokenDelta(delta: number) {
+  if (delta === 0) {
+    return "~0 tokens"
+  }
+
+  const sign = delta > 0 ? "+" : "-"
+
+  return `${sign}~${Math.abs(delta).toLocaleString()} tokens`
 }
