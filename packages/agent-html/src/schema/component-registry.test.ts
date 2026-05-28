@@ -9,6 +9,10 @@ import {
 } from "@/agent-html/schema/prompt-grammar"
 import { allowedAttrs, requiredAttrs } from "@/agent-html/schema/attrs"
 import { allTags, layoutTags } from "@/agent-html/schema/tags"
+import {
+  deriveMarketComponents,
+  deriveRuntimeBoundary,
+} from "@/agent-html/schema/derive"
 
 const expectedTags: AgentHtmlTag[] = [
   "Page",
@@ -97,6 +101,71 @@ describe("agentHtmlComponentRegistry", () => {
     const tags = agentHtmlComponentRegistry.map((contract) => contract.tag)
 
     expect(new Set(tags).size).toBe(tags.length)
+  })
+
+  it("derives a market catalog for independently insertable components", () => {
+    const catalog = deriveMarketComponents(agentHtmlComponentRegistry)
+    const catalogTags = catalog.map((component) => component.tag)
+
+    expect(catalogTags).toEqual([
+      "Accordion",
+      "Alert",
+      "AspectRatio",
+      "Badge",
+      "Button",
+      "Card",
+      "Carousel",
+      "Progress",
+      "Separator",
+      "Table",
+      "Tabs",
+      "Timeline",
+      "Chart",
+      "CodeBlock",
+      "Image",
+      "Kanban",
+    ])
+    expect(catalogTags).not.toContain("ChartRow")
+    expect(catalogTags).not.toContain("CardHeader")
+    expect(catalogTags).not.toContain("Icon")
+    expect(catalogTags).not.toContain("Text")
+    expect(
+      catalog.every(
+        (component) =>
+          component.role === "component" &&
+          component.market.title &&
+          component.market.summary &&
+          component.market.category &&
+          component.market.insertTemplate &&
+          component.market.previewExample
+      )
+    ).toBe(true)
+  })
+
+  it("derives runtime boundaries for layout, special, data, and mapped components", () => {
+    const boundary = deriveRuntimeBoundary(agentHtmlComponentRegistry)
+    const byTag = new Map(boundary.map((component) => [component.tag, component]))
+
+    expect(byTag.get("Page")).toMatchObject({
+      role: "layout",
+      runtime: "layout-special",
+    })
+    expect(byTag.get("Button")).toMatchObject({
+      role: "component",
+      runtime: "component-map",
+    })
+    expect(byTag.get("Chart")).toMatchObject({
+      role: "component",
+      runtime: "special-renderer",
+    })
+    expect(byTag.get("ChartRow")).toMatchObject({
+      role: "data",
+      runtime: "data-only",
+    })
+    expect(byTag.get("Icon")).toMatchObject({
+      role: "utility",
+      runtime: "special-renderer",
+    })
   })
 
   it("builds prompt grammar from registered contracts", () => {

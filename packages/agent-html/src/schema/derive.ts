@@ -2,6 +2,8 @@ import type { AgentHtmlTag } from "@/agent-html/ast/types"
 import type {
   AgentHtmlAttrContract,
   AgentHtmlComponentContract,
+  AgentHtmlComponentRole,
+  AgentHtmlComponentRuntime,
 } from "@/agent-html/schema/component-contract"
 
 function isPromptAttr(attr: AgentHtmlAttrContract) {
@@ -16,6 +18,70 @@ function formatAttr(name: string, attr: AgentHtmlAttrContract) {
   }
 
   return `${name}${requiredMarker}=${attr.type}`
+}
+
+const layoutSpecialTags = new Set<AgentHtmlTag>([
+  "Page",
+  "Section",
+  "Stack",
+  "Cluster",
+  "Grid",
+])
+
+const specialRendererTags = new Set<AgentHtmlTag>(["Chart", "Icon"])
+
+const dataOnlyTags = new Set<AgentHtmlTag>([
+  "ChartSeries",
+  "ChartRow",
+  "ChartTooltip",
+])
+
+export function resolveComponentRole(
+  contract: AgentHtmlComponentContract
+): AgentHtmlComponentRole {
+  if (contract.role) {
+    return contract.role
+  }
+
+  if (contract.kind === "layout") {
+    return "layout"
+  }
+
+  if (dataOnlyTags.has(contract.tag)) {
+    return "data"
+  }
+
+  if (contract.market) {
+    return "component"
+  }
+
+  if (contract.tag === "Icon" || contract.tag === "Text") {
+    return "utility"
+  }
+
+  return "part"
+}
+
+export function resolveComponentRuntime(
+  contract: AgentHtmlComponentContract
+): AgentHtmlComponentRuntime {
+  if (contract.runtime) {
+    return contract.runtime
+  }
+
+  if (layoutSpecialTags.has(contract.tag)) {
+    return "layout-special"
+  }
+
+  if (specialRendererTags.has(contract.tag)) {
+    return "special-renderer"
+  }
+
+  if (dataOnlyTags.has(contract.tag)) {
+    return "data-only"
+  }
+
+  return "component-map"
 }
 
 export function deriveLayoutTags(
@@ -92,4 +158,32 @@ export function derivePromptGrammarLines(
 
       return `- \`${contract.tag}${attrText} -> ${contract.children.grammar}\``
     })
+}
+
+export function deriveMarketComponents(
+  contracts: readonly AgentHtmlComponentContract[]
+) {
+  return contracts.flatMap((contract) => {
+    if (!contract.market) {
+      return []
+    }
+
+    return [{
+      attrs: contract.attrs ?? {},
+      market: contract.market,
+      role: resolveComponentRole(contract),
+      runtime: resolveComponentRuntime(contract),
+      tag: contract.tag,
+    }]
+  })
+}
+
+export function deriveRuntimeBoundary(
+  contracts: readonly AgentHtmlComponentContract[]
+) {
+  return contracts.map((contract) => ({
+    role: resolveComponentRole(contract),
+    runtime: resolveComponentRuntime(contract),
+    tag: contract.tag,
+  }))
 }
