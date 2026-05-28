@@ -18,8 +18,10 @@ import {
 } from "@/app/shared/ui/sidebar"
 import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
 import {
+  type EnabledGalleryComponentTags,
   galleryComponentMarketAllCategory,
   galleryComponentMarketCatalog,
+  getGalleryComponentMarketStatus,
   type GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
 import type { GalleryViewId } from "@/app/gallery/views"
@@ -192,16 +194,19 @@ export function GalleryThemeSidebarFooter({
 
 export function GalleryMarketSidebar({
   componentMarketFilters,
+  enabledComponentTags,
   onComponentMarketFiltersChange,
   viewId,
 }: {
   componentMarketFilters: GalleryComponentMarketFilters
+  enabledComponentTags: EnabledGalleryComponentTags
   onComponentMarketFiltersChange: (filters: GalleryComponentMarketFilters) => void
   viewId: Exclude<GalleryViewId, "theme">
 }) {
   if (viewId === "components") {
     return (
       <GalleryComponentMarketSidebar
+        enabledTags={enabledComponentTags}
         filters={componentMarketFilters}
         onFiltersChange={onComponentMarketFiltersChange}
       />
@@ -244,14 +249,16 @@ export function GalleryMarketSidebar({
 }
 
 function GalleryComponentMarketSidebar({
+  enabledTags,
   filters,
   onFiltersChange,
 }: {
+  enabledTags: EnabledGalleryComponentTags
   filters: GalleryComponentMarketFilters
   onFiltersChange: (filters: GalleryComponentMarketFilters) => void
 }) {
   const installedCount = galleryComponentMarketCatalog.filter((component) =>
-    ["Button", "Card", "Tabs", "Chart"].includes(component.tag)
+    getGalleryComponentMarketStatus(component, enabledTags) === "installed"
   ).length
   const categoryCounts = galleryComponentMarketCatalog.reduce(
     (counts, component) => {

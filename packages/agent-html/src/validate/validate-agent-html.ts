@@ -4,13 +4,36 @@ import type {
   AgentHtmlNode,
   AgentHtmlTag,
 } from "@/agent-html/ast/types"
+import { agentHtmlComponentRegistry } from "@/agent-html/schema/component-registry"
+import type { AgentHtmlComponentContract } from "@/agent-html/schema/component-contract"
 import {
-  allowedAttrs,
-  requiredAttrs,
-} from "@/agent-html/schema/attrs"
+  deriveAllTags,
+  deriveAllowedAttrs,
+  deriveLayoutTags,
+  deriveRequiredAttrs,
+} from "@/agent-html/schema/derive"
 import { hasIconName } from "@/agent-html/icons/icon-registry"
-import { allTags, layoutTags } from "@/agent-html/schema/tags"
 import type { AgentHtmlValidationError } from "@/agent-html/validate/error-codes"
+
+type ValidationContext = {
+  allTags: Set<AgentHtmlTag>
+  allowedAttrs: Partial<Record<AgentHtmlTag, string[]>>
+  fullTags: Set<AgentHtmlTag>
+  layoutTags: Set<AgentHtmlTag>
+  requiredAttrs: Partial<Record<AgentHtmlTag, string[]>>
+}
+
+function createValidationContext(
+  registry: readonly AgentHtmlComponentContract[]
+): ValidationContext {
+  return {
+    allTags: deriveAllTags(registry),
+    allowedAttrs: deriveAllowedAttrs(registry),
+    fullTags: deriveAllTags(agentHtmlComponentRegistry),
+    layoutTags: deriveLayoutTags(registry),
+    requiredAttrs: deriveRequiredAttrs(registry),
+  }
+}
 
 function isElement(node: AgentHtmlNode): node is AgentHtmlElementNode {
   return node.type === "element"
@@ -71,14 +94,25 @@ const buttonVariants = new Set([
 function validateNode(
   node: AgentHtmlNode,
   path: string,
-  errors: AgentHtmlValidationError[]
+  errors: AgentHtmlValidationError[],
+  context: ValidationContext
 ) {
   if (node.type === "text") {
     return
   }
 
   const tag = node.tag
-  if (!allTags.has(tag as AgentHtmlTag)) {
+  if (!context.allTags.has(tag as AgentHtmlTag)) {
+    if (context.fullTags.has(tag as AgentHtmlTag)) {
+      errors.push({
+        code: "DISABLED_TAG",
+        message: `Component is not enabled: ${tag}`,
+        path,
+        tag,
+      })
+      return
+    }
+
     errors.push({
       code: "UNKNOWN_TAG",
       message: `Unknown tag: ${tag}`,
@@ -89,7 +123,7 @@ function validateNode(
   }
 
   const knownTag = tag as AgentHtmlTag
-  const allowed = new Set(allowedAttrs[knownTag] ?? [])
+  const allowed = new Set(context.allowedAttrs[knownTag] ?? [])
   for (const attr of Object.keys(node.attrs)) {
     if (knownTag !== "ChartRow" && !allowed.has(attr)) {
       errors.push({
@@ -102,7 +136,7 @@ function validateNode(
     }
   }
 
-  for (const attr of requiredAttrs[knownTag] ?? []) {
+  for (const attr of context.requiredAttrs[knownTag] ?? []) {
     if (!(attr in node.attrs)) {
       errors.push({
         code: "MISSING_REQUIRED_ATTR",
@@ -114,7 +148,7 @@ function validateNode(
     }
   }
 
-  if (layoutTags.has(knownTag)) {
+  if (context.layoutTags.has(knownTag)) {
     for (const child of node.children) {
       if (child.type === "text") {
         errors.push({
@@ -706,12 +740,21 @@ function validateNode(
     validateNode(
       child,
       child.type === "element" ? `${path}/${child.tag}` : `${path}/#text`,
-      errors
+      errors,
+      context
     )
   }
 }
 
-export function validateAgentHtml(document: AgentHtmlDocument) {
+export function validateAgentHtml(
+  document: AgentHtmlDocument,
+  options: {
+    registry?: readonly AgentHtmlComponentContract[]
+  } = {}
+) {
+  const context = createValidationContext(
+    options.registry ?? agentHtmlComponentRegistry
+  )
   const errors: AgentHtmlValidationError[] = []
 
   if (document.root.tag !== "Page") {
@@ -723,7 +766,7 @@ export function validateAgentHtml(document: AgentHtmlDocument) {
     })
   }
 
-  validateNode(document.root, "/Page", errors)
+  validateNode(document.root, "/Page", errors, context)
 
   return {
     ok: errors.length === 0,

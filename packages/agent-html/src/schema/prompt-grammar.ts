@@ -1,5 +1,6 @@
 import { agentHtmlComponentRegistry } from "@/agent-html/schema/component-registry"
 import { derivePromptGrammarLines } from "@/agent-html/schema/derive"
+import type { AgentHtmlComponentContract } from "@/agent-html/schema/component-contract"
 
 function replacePromptSection(
   source: string,
@@ -12,15 +13,24 @@ function replacePromptSection(
   return normalizedSource.replace(pattern, `$1${lines.join("\n")}$3`)
 }
 
-export function buildAgentHtmlPromptGrammar() {
+export function buildAgentHtmlPromptGrammar({
+  registry = agentHtmlComponentRegistry,
+}: {
+  registry?: readonly AgentHtmlComponentContract[]
+} = {}) {
   return {
-    layout: derivePromptGrammarLines(agentHtmlComponentRegistry, "layout"),
-    ui: derivePromptGrammarLines(agentHtmlComponentRegistry, "ui"),
+    layout: derivePromptGrammarLines(registry, "layout"),
+    ui: derivePromptGrammarLines(registry, "ui"),
   }
 }
 
-export function buildAgentHtmlPromptDocument(sourcePrompt: string) {
-  const grammar = buildAgentHtmlPromptGrammar()
+export function buildAgentHtmlPromptDocument(
+  sourcePrompt: string,
+  options: {
+    registry?: readonly AgentHtmlComponentContract[]
+  } = {}
+) {
+  const grammar = buildAgentHtmlPromptGrammar(options)
 
   return replacePromptSection(
     replacePromptSection(sourcePrompt, "Layout", grammar.layout),

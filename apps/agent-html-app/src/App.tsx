@@ -9,7 +9,9 @@ import {
 import { GalleryEditorPanel } from "@/app/gallery/editor"
 import { GalleryPanel } from "@/app/gallery/panel"
 import {
+  defaultEnabledGalleryComponentTags,
   galleryComponentMarketAllCategory,
+  type EnabledGalleryComponentTags,
   type GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
 import {
@@ -169,6 +171,10 @@ export function App() {
       category: galleryComponentMarketAllCategory,
       status: "all",
     })
+  const [enabledGalleryComponentTags, setEnabledGalleryComponentTags] =
+    React.useState<EnabledGalleryComponentTags>(
+      () => new Set(defaultEnabledGalleryComponentTags)
+    )
   const [activeGalleryThemeEditorSectionId, setActiveGalleryThemeEditorSectionId] =
     React.useState<GalleryThemeEditorSectionId>("color")
   const [pendingGalleryViewId, setPendingGalleryViewId] =
@@ -801,6 +807,7 @@ export function App() {
     ) : (
       <GalleryMarketSidebar
         componentMarketFilters={galleryComponentMarketFilters}
+        enabledComponentTags={enabledGalleryComponentTags}
         onComponentMarketFiltersChange={setGalleryComponentMarketFilters}
         viewId={activeGalleryViewId}
       />
@@ -864,6 +871,8 @@ export function App() {
             <GalleryPanel
               activeViewId={activeGalleryViewId}
               componentMarketFilters={galleryComponentMarketFilters}
+              enabledComponentTags={enabledGalleryComponentTags}
+              onEnabledComponentTagsChange={setEnabledGalleryComponentTags}
               onComponentMarketFiltersChange={setGalleryComponentMarketFilters}
             />
           ) : workspaceLoadError ? (

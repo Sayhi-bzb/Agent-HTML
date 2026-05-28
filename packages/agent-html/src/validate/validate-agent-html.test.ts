@@ -5,6 +5,9 @@ import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 
 import { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
+import { agentHtmlComponentRegistry } from "@/agent-html/schema/component-registry"
+import { createEnabledComponentRegistry } from "@/agent-html/schema/derive"
+import type { AgentHtmlTag } from "@/agent-html/ast/types"
 import { validateAgentHtml } from "@/agent-html/validate/validate-agent-html"
 
 function fixture(...parts: string[]) {
@@ -121,6 +124,25 @@ describe("validateAgentHtml", () => {
 
     expect(result.ok).toBe(false)
     expect(result.errors[0]?.code).toBe("UNKNOWN_TAG")
+  })
+
+  it("rejects disabled registered tags when validating against an enabled registry", () => {
+    const enabledRegistry = createEnabledComponentRegistry(
+      agentHtmlComponentRegistry,
+      new Set<AgentHtmlTag>(["Card"])
+    )
+    const result = validateAgentHtml(
+      parseAgentHtml(`<Page title="Demo"><Section><Tabs><TabsList><TabsTrigger value="one">One</TabsTrigger></TabsList><TabsContent value="one">One</TabsContent></Tabs></Section></Page>`),
+      { registry: enabledRegistry }
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "DISABLED_TAG",
+        tag: "Tabs",
+      })
+    )
   })
 
   it("rejects bare text under layout nodes", () => {

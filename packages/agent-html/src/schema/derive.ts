@@ -36,6 +36,45 @@ const dataOnlyTags = new Set<AgentHtmlTag>([
   "ChartTooltip",
 ])
 
+const componentDependencies: Partial<Record<AgentHtmlTag, readonly AgentHtmlTag[]>> = {
+  Accordion: ["AccordionItem", "AccordionTrigger", "AccordionContent"],
+  Alert: ["AlertTitle", "AlertDescription", "AlertAction", "Icon"],
+  Badge: ["Icon"],
+  Button: ["Icon"],
+  Card: [
+    "CardHeader",
+    "CardTitle",
+    "CardDescription",
+    "CardAction",
+    "CardContent",
+    "CardFooter",
+  ],
+  Carousel: [
+    "CarouselContent",
+    "CarouselItem",
+    "CarouselPrevious",
+    "CarouselNext",
+  ],
+  Chart: ["ChartSeries", "ChartRow", "ChartTooltip"],
+  Kanban: ["KanbanColumn", "KanbanItem"],
+  Table: [
+    "TableCaption",
+    "TableHeader",
+    "TableBody",
+    "TableFooter",
+    "TableRow",
+    "TableHead",
+    "TableCell",
+  ],
+  Tabs: ["TabsList", "TabsTrigger", "TabsContent"],
+  Timeline: [
+    "TimelineItem",
+    "TimelineTitle",
+    "TimelineDescription",
+    "TimelineContent",
+  ],
+}
+
 export function resolveComponentRole(
   contract: AgentHtmlComponentContract
 ): AgentHtmlComponentRole {
@@ -186,4 +225,29 @@ export function deriveRuntimeBoundary(
     runtime: resolveComponentRuntime(contract),
     tag: contract.tag,
   }))
+}
+
+export function createEnabledComponentRegistry(
+  contracts: readonly AgentHtmlComponentContract[],
+  enabledMarketTags: ReadonlySet<AgentHtmlTag>
+) {
+  const enabledTags = new Set<AgentHtmlTag>()
+
+  for (const contract of contracts) {
+    const role = resolveComponentRole(contract)
+
+    if (role === "layout" || role === "utility") {
+      enabledTags.add(contract.tag)
+      continue
+    }
+
+    if (role === "component" && enabledMarketTags.has(contract.tag)) {
+      enabledTags.add(contract.tag)
+      for (const dependency of componentDependencies[contract.tag] ?? []) {
+        enabledTags.add(dependency)
+      }
+    }
+  }
+
+  return contracts.filter((contract) => enabledTags.has(contract.tag))
 }

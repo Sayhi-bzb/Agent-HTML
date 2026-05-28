@@ -2,15 +2,22 @@ import { GalleryWorkspaceSurface } from "@/app/gallery/workspace-surface"
 import { GalleryComponentMarketView } from "@/app/gallery/component-market-view"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import type { GalleryViewId } from "@/app/gallery/views"
-import type { GalleryComponentMarketFilters } from "@/app/gallery/component-market-catalog"
+import type {
+  EnabledGalleryComponentTags,
+  GalleryComponentMarketFilters,
+} from "@/app/gallery/component-market-catalog"
 
 export function GalleryPanel({
   activeViewId,
   componentMarketFilters,
+  enabledComponentTags,
+  onEnabledComponentTagsChange,
   onComponentMarketFiltersChange,
 }: {
   activeViewId: GalleryViewId
   componentMarketFilters: GalleryComponentMarketFilters
+  enabledComponentTags: EnabledGalleryComponentTags
+  onEnabledComponentTagsChange: (tags: EnabledGalleryComponentTags) => void
   onComponentMarketFiltersChange: (filters: GalleryComponentMarketFilters) => void
 }) {
   return (
@@ -21,7 +28,9 @@ export function GalleryPanel({
             <GalleryWorkspaceSurface />
           ) : activeViewId === "components" ? (
             <GalleryComponentMarketView
+              enabledTags={enabledComponentTags}
               filters={componentMarketFilters}
+              onEnabledTagsChange={onEnabledComponentTagsChange}
               onFiltersChange={onComponentMarketFiltersChange}
             />
           ) : (

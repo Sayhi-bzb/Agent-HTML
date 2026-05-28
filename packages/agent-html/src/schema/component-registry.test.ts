@@ -10,6 +10,7 @@ import {
 import { allowedAttrs, requiredAttrs } from "@/agent-html/schema/attrs"
 import { allTags, layoutTags } from "@/agent-html/schema/tags"
 import {
+  createEnabledComponentRegistry,
   deriveMarketComponents,
   deriveRuntimeBoundary,
 } from "@/agent-html/schema/derive"
@@ -168,6 +169,29 @@ describe("agentHtmlComponentRegistry", () => {
     })
   })
 
+  it("creates enabled registries with structural dependencies", () => {
+    const enabledRegistry = createEnabledComponentRegistry(
+      agentHtmlComponentRegistry,
+      new Set<AgentHtmlTag>(["Card", "Chart"])
+    )
+    const enabledTags = enabledRegistry.map((contract) => contract.tag)
+
+    expect(enabledTags).toContain("Page")
+    expect(enabledTags).toContain("Grid")
+    expect(enabledTags).toContain("Icon")
+    expect(enabledTags).toContain("Text")
+    expect(enabledTags).toContain("Card")
+    expect(enabledTags).toContain("CardHeader")
+    expect(enabledTags).toContain("CardTitle")
+    expect(enabledTags).toContain("CardContent")
+    expect(enabledTags).toContain("Chart")
+    expect(enabledTags).toContain("ChartSeries")
+    expect(enabledTags).toContain("ChartRow")
+    expect(enabledTags).toContain("ChartTooltip")
+    expect(enabledTags).not.toContain("Tabs")
+    expect(enabledTags).not.toContain("Button")
+  })
+
   it("builds prompt grammar from registered contracts", () => {
     const grammar = buildAgentHtmlPromptGrammar()
 
@@ -178,6 +202,20 @@ describe("agentHtmlComponentRegistry", () => {
       "- `ChartRow:label=string, [series key]=number -> none`"
     )
     expect(grammar.ui).toContain("- `KanbanColumn:value=string, title=string -> KanbanItem+`")
+  })
+
+  it("builds prompt grammar from an enabled registry", () => {
+    const enabledRegistry = createEnabledComponentRegistry(
+      agentHtmlComponentRegistry,
+      new Set<AgentHtmlTag>(["Card", "Chart"])
+    )
+    const grammar = buildAgentHtmlPromptGrammar({ registry: enabledRegistry })
+
+    expect(grammar.ui).toContain("- `Card:size?=\"default|sm\" -> CardHeader?, CardContent?, CardFooter?`")
+    expect(grammar.ui).toContain("- `Chart:type=\"area|bar\" -> ChartSeries+, ChartRow+, ChartTooltip?`")
+    expect(grammar.ui).toContain("- `ChartRow:label=string, [series key]=number -> none`")
+    expect(grammar.ui).not.toContain("- `Tabs:")
+    expect(grammar.ui).not.toContain("- `Button:")
   })
 
   it("builds prompt documents with generated layout and ui grammar", () => {

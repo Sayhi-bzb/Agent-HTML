@@ -1,57 +1,15 @@
 import type * as React from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-const GHOST_GLYPH_ROWS = [
-  "╭──────╮",
-  "│ █  █ │",
-  "│      │",
-  "│╭╮╭╮╭╮│",
-  "╰╯╰╯╰╯╰╯",
-] as const
-
-const GHOST_CELL_WIDTH = "6.4px"
-const GHOST_CELL_HEIGHT = "14.4px"
-const GHOST_FONT_FAMILY =
-  '"Cascadia Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, Monaco, "Liberation Mono", "Courier New", monospace'
-const GHOST_FONT_SIZE = "12px"
-const GHOST_POSITION_STORAGE_KEY = "agent-html.workspace-ghost-pet-position"
-const GHOST_VIEWPORT_MARGIN = 24
-
-export type PetMood = "failed" | "idle" | "review" | "waiting" | "working"
-
-export type PetActionKind =
-  | "editing"
-  | "reading"
-  | "running"
-  | "searching"
-  | "speaking"
-  | "testing"
-  | "thinking"
-  | "waiting"
-
-export type PetPresence = {
-  action?: {
-    kind: PetActionKind
-    label: string
-  }
-  message?: {
-    mode: "final" | "streaming" | "transient"
-    text: string
-  }
-  mood: PetMood
-}
-
-type GhostPetPosition = {
-  x: number
-  y: number
-}
-
-type GhostPetDragState = {
-  pointerId: number
-  startClientX: number
-  startClientY: number
-  startPosition: GhostPetPosition
-}
+import { AsciiGhost } from "@/app/pet/ghost/ascii-ghost"
+import {
+  clampPosition,
+  loadStoredPosition,
+  saveStoredPosition,
+} from "@/app/pet/ghost/position"
+import { GhostRadialMenu } from "@/app/pet/ghost/radial-menu"
+import type { GhostPetDragState, GhostPetPosition } from "@/app/pet/ghost/types"
+import type { PetPresence } from "@/app/workspace/agent-presence"
 
 const idlePresence: PetPresence = {
   message: {
@@ -81,74 +39,6 @@ function getPresenceMessage(presence: PetPresence) {
   return idlePresence.message?.text ?? ""
 }
 
-function getDefaultPosition(): GhostPetPosition {
-  if (typeof window === "undefined") {
-    return { x: 0, y: 0 }
-  }
-
-  return {
-    x: window.innerWidth - 48,
-    y: window.innerHeight - 112,
-  }
-}
-
-function clampPosition(position: GhostPetPosition): GhostPetPosition {
-  if (typeof window === "undefined") {
-    return position
-  }
-
-  return {
-    x: Math.min(
-      Math.max(position.x, GHOST_VIEWPORT_MARGIN),
-      window.innerWidth - GHOST_VIEWPORT_MARGIN
-    ),
-    y: Math.min(
-      Math.max(position.y, GHOST_VIEWPORT_MARGIN),
-      window.innerHeight - GHOST_VIEWPORT_MARGIN
-    ),
-  }
-}
-
-function loadStoredPosition(): GhostPetPosition {
-  if (typeof localStorage === "undefined") {
-    return getDefaultPosition()
-  }
-
-  try {
-    const stored = localStorage.getItem(GHOST_POSITION_STORAGE_KEY)
-    if (!stored) {
-      return getDefaultPosition()
-    }
-
-    const parsed: unknown = JSON.parse(stored)
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      "x" in parsed &&
-      "y" in parsed &&
-      typeof parsed.x === "number" &&
-      typeof parsed.y === "number"
-    ) {
-      return clampPosition({ x: parsed.x, y: parsed.y })
-    }
-  } catch {
-    return getDefaultPosition()
-  }
-
-  return getDefaultPosition()
-}
-
-function saveStoredPosition(position: GhostPetPosition) {
-  if (typeof localStorage === "undefined") {
-    return
-  }
-
-  localStorage.setItem(
-    GHOST_POSITION_STORAGE_KEY,
-    JSON.stringify(clampPosition(position))
-  )
-}
-
 export function WorkspaceGhostPet({
   presence = idlePresence,
 }: {
@@ -156,8 +46,10 @@ export function WorkspaceGhostPet({
 }) {
   const message = getPresenceMessage(presence)
   const dragStateRef = useRef<GhostPetDragState | null>(null)
+  const rootRef = useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = useState<GhostPetPosition>(loadStoredPosition)
   const [isDragging, setIsDragging] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleResize = () => {
@@ -173,9 +65,44 @@ export function WorkspaceGhostPet({
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return undefined
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        rootRef.current?.contains(event.target)
+      ) {
+        return
+      }
+
+      setIsMenuOpen(false)
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false)
+      }
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown)
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown)
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [isMenuOpen])
+
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0) {
+        return
+      }
+
       event.preventDefault()
+      setIsMenuOpen(false)
       event.currentTarget.setPointerCapture(event.pointerId)
       dragStateRef.current = {
         pointerId: event.pointerId,
@@ -186,6 +113,15 @@ export function WorkspaceGhostPet({
       setIsDragging(true)
     },
     [position]
+  )
+
+  const handleContextMenu = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      event.stopPropagation()
+      setIsMenuOpen((current) => !current)
+    },
+    []
   )
 
   const handlePointerMove = useCallback(
@@ -227,6 +163,7 @@ export function WorkspaceGhostPet({
     <div
       aria-label="Agent presence"
       className="pointer-events-none fixed z-50"
+      ref={rootRef}
       style={{
         left: position.x,
         top: position.y,
@@ -244,36 +181,15 @@ export function WorkspaceGhostPet({
             "pointer-events-auto px-3 py-2 text-foreground",
             isDragging ? "cursor-grabbing" : "cursor-grab",
           ].join(" ")}
+          onContextMenu={handleContextMenu}
           onPointerCancel={finishDrag}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={finishDrag}
         >
-          <div
-            aria-hidden="true"
-            className="grid select-none grid-cols-[repeat(8,var(--ghost-cell-width))] grid-rows-[repeat(5,var(--ghost-cell-height))] place-items-center leading-none"
-            lang="en"
-            style={
-              {
-                fontFamily: GHOST_FONT_FAMILY,
-                fontFeatureSettings: '"liga" 0, "calt" 0',
-                fontKerning: "none",
-                fontSize: GHOST_FONT_SIZE,
-                fontSynthesis: "none",
-                fontWeight: 700,
-                fontVariantLigatures: "none",
-                "--ghost-cell-height": GHOST_CELL_HEIGHT,
-                "--ghost-cell-width": GHOST_CELL_WIDTH,
-              } as React.CSSProperties
-            }
-          >
-            {GHOST_GLYPH_ROWS.flatMap((row, rowIndex) =>
-              [...row].map((character, columnIndex) => (
-                <span key={`${rowIndex}:${columnIndex}`}>{character}</span>
-              ))
-            )}
-          </div>
+          <AsciiGhost />
         </div>
+        <GhostRadialMenu isOpen={isMenuOpen} />
         {presence.action ? (
           <div className="absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-full bg-background/80 px-2.5 py-1 text-[10px] font-medium whitespace-nowrap text-muted-foreground backdrop-blur">
             {presence.action.label}

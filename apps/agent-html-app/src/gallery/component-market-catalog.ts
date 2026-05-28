@@ -1,5 +1,6 @@
 import { agentHtmlComponentRegistry } from "@/agent-html/schema/component-registry"
 import { deriveMarketComponents } from "@/agent-html/schema/derive"
+import type { AgentHtmlTag } from "@/agent-html"
 
 export const galleryComponentMarketCatalog = deriveMarketComponents(
   agentHtmlComponentRegistry
@@ -7,6 +8,8 @@ export const galleryComponentMarketCatalog = deriveMarketComponents(
 
 export type GalleryComponentMarketItem =
   (typeof galleryComponentMarketCatalog)[number]
+
+export type EnabledGalleryComponentTags = ReadonlySet<AgentHtmlTag>
 
 export type GalleryComponentMarketCategory =
   GalleryComponentMarketItem["market"]["category"]
@@ -34,7 +37,7 @@ export const galleryComponentMarketCategoryLabels: Record<
   navigation: "Navigation",
 }
 
-export const demoInstalledGalleryComponentTags = new Set([
+export const defaultEnabledGalleryComponentTags = new Set<AgentHtmlTag>([
   "Button",
   "Card",
   "Tabs",
@@ -42,9 +45,10 @@ export const demoInstalledGalleryComponentTags = new Set([
 ])
 
 export function getGalleryComponentMarketStatus(
-  component: GalleryComponentMarketItem
+  component: GalleryComponentMarketItem,
+  enabledTags: ReadonlySet<AgentHtmlTag>
 ) {
-  return demoInstalledGalleryComponentTags.has(component.tag)
+  return enabledTags.has(component.tag)
     ? "installed"
     : "available"
 }

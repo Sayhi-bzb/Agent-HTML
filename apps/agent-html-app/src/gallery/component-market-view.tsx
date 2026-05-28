@@ -13,6 +13,7 @@ import {
   galleryComponentMarketCatalog,
   galleryComponentMarketCategoryLabels,
   getGalleryComponentMarketStatus,
+  type EnabledGalleryComponentTags,
   type GalleryComponentMarketCategory,
   type GalleryComponentMarketFilters,
   type GalleryComponentMarketItem,
@@ -39,10 +40,14 @@ function matchesSearch(component: GalleryComponentMarketItem, query: string) {
 }
 
 export function GalleryComponentMarketView({
+  enabledTags,
   filters,
+  onEnabledTagsChange,
   onFiltersChange,
 }: {
+  enabledTags: EnabledGalleryComponentTags
   filters: GalleryComponentMarketFilters
+  onEnabledTagsChange: (tags: EnabledGalleryComponentTags) => void
   onFiltersChange: (filters: GalleryComponentMarketFilters) => void
 }) {
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -54,9 +59,9 @@ export function GalleryComponentMarketView({
   const installedCount = React.useMemo(
     () =>
       galleryComponentMarketCatalog.filter((component) =>
-        getGalleryComponentMarketStatus(component) === "installed"
+        getGalleryComponentMarketStatus(component, enabledTags) === "installed"
       ).length,
-    []
+    [enabledTags]
   )
   const availableCount = galleryComponentMarketCatalog.length - installedCount
 
@@ -86,7 +91,7 @@ export function GalleryComponentMarketView({
   const filteredComponents = React.useMemo(
     () =>
       galleryComponentMarketCatalog.filter((component) => {
-        const status = getGalleryComponentMarketStatus(component)
+        const status = getGalleryComponentMarketStatus(component, enabledTags)
 
         return (
           matchesSearch(component, searchQuery) &&
@@ -95,7 +100,7 @@ export function GalleryComponentMarketView({
           (filters.status === "all" || status === filters.status)
         )
       }),
-    [filters.category, filters.status, searchQuery]
+    [enabledTags, filters.category, filters.status, searchQuery]
   )
 
   const selectedComponent = React.useMemo(
@@ -116,6 +121,18 @@ export function GalleryComponentMarketView({
       | typeof galleryComponentMarketAllCategory
   ) {
     onFiltersChange({ ...filters, category })
+  }
+
+  function toggleEnabled(component: GalleryComponentMarketItem) {
+    const nextTags = new Set(enabledTags)
+
+    if (nextTags.has(component.tag)) {
+      nextTags.delete(component.tag)
+    } else {
+      nextTags.add(component.tag)
+    }
+
+    onEnabledTagsChange(nextTags)
   }
 
   return (
@@ -192,12 +209,12 @@ export function GalleryComponentMarketView({
           <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
             {filteredComponents.map((component) => {
               const isInstalled =
-                getGalleryComponentMarketStatus(component) === "installed"
+                getGalleryComponentMarketStatus(component, enabledTags) ===
+                "installed"
               const isSelected = selectedComponent?.tag === component.tag
 
               return (
-                <button
-                  aria-pressed={isSelected}
+                <article
                   className={cn(
                     "flex min-h-44 min-w-0 flex-col rounded-lg border bg-card p-3 text-left text-card-foreground shadow-xs transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
                     isSelected
@@ -207,8 +224,6 @@ export function GalleryComponentMarketView({
                         : "hover:border-foreground/20"
                   )}
                   key={component.tag}
-                  onClick={() => setSelectedTag(component.tag)}
-                  type="button"
                 >
                   <div className="flex min-w-0 items-start gap-2">
                     <div className="grid size-8 shrink-0 place-items-center rounded-lg border bg-background text-muted-foreground">
@@ -246,32 +261,33 @@ export function GalleryComponentMarketView({
                   </div>
 
                   <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-                    <span
-                      className={cn(
-                        "inline-flex h-7 items-center gap-1 rounded-lg border px-2 text-xs font-medium",
-                        isInstalled
-                          ? "border-border bg-background text-foreground"
-                          : "border-primary bg-primary text-primary-foreground"
-                      )}
+                    <Button
+                      onClick={() => toggleEnabled(component)}
+                      size="sm"
+                      variant={isInstalled ? "outline" : "default"}
                     >
                       {isInstalled ? (
-                        <CheckCircle2Icon
-                          aria-hidden="true"
-                          className="size-3.5"
-                        />
+                        <CheckCircle2Icon aria-hidden="true" className="size-4" />
                       ) : (
                         <ArrowDownToLineIcon
                           aria-hidden="true"
-                          className="size-3.5"
+                          className="size-4"
                         />
                       )}
-                      {isInstalled ? "Installed" : "Install"}
-                    </span>
-                    <span className="grid size-7 place-items-center rounded-lg text-muted-foreground">
+                      {isInstalled ? "Remove" : "Install"}
+                    </Button>
+                    <Button
+                      aria-pressed={isSelected}
+                      onClick={() => setSelectedTag(component.tag)}
+                      size="icon-sm"
+                      type="button"
+                      variant="ghost"
+                      aria-label={`View ${component.market.title} details`}
+                    >
                       <InfoIcon aria-hidden="true" className="size-4" />
-                    </span>
+                    </Button>
                   </div>
-                </button>
+                </article>
               )
             })}
           </div>
@@ -318,7 +334,10 @@ export function GalleryComponentMarketView({
               <DetailStat
                 label="Status"
                 value={
-                  getGalleryComponentMarketStatus(selectedComponent) === "installed"
+                  getGalleryComponentMarketStatus(
+                    selectedComponent,
+                    enabledTags
+                  ) === "installed"
                     ? "Installed"
                     : "Available"
                 }

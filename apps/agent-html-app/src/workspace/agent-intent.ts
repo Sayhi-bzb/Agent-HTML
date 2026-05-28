@@ -1,12 +1,12 @@
 import type {
   AgentHtmlAgentInteractionEvent,
   AgentHtmlAgentPromptSubmitInput,
+  AgentHtmlDocument,
   AgentHtmlElementNode,
 } from "@/agent-html"
 import {
   parseAgentHtml,
   serializeAgentHtml,
-  walkAgentHtmlElementPaths,
 } from "@/agent-html"
 import type {
   ProjectSectionDocument,
@@ -69,19 +69,50 @@ function createEventId() {
 }
 
 function findElementByPath(
-  document: ProjectSectionDocument,
+  parsedDocument: AgentHtmlDocument,
   path: string
 ): AgentHtmlElementNode | null {
-  const parsedDocument = parseAgentHtml(document.ahtmlSource)
-  let matchedNode: AgentHtmlElementNode | undefined
+  if (path === `/${parsedDocument.root.tag}`) {
+    return parsedDocument.root
+  }
 
-  walkAgentHtmlElementPaths(parsedDocument.root, (node, currentPath) => {
-    if (currentPath === path) {
-      matchedNode = node
+  const parts = path.split("/").filter(Boolean)
+  if (parts[0] !== parsedDocument.root.tag) {
+    return null
+  }
+
+  let current: AgentHtmlElementNode = parsedDocument.root
+  for (const part of parts.slice(1)) {
+    const match = /^([A-Za-z][A-Za-z0-9-]*)\[(\d+)\]$/.exec(part)
+    if (!match) {
+      return null
     }
-  })
 
-  return matchedNode ?? null
+    const [, tag, indexValue] = match
+    const targetIndex = Number(indexValue)
+    let seen = 0
+    let next: AgentHtmlElementNode | null = null
+
+    for (const child of current.children) {
+      if (child.type !== "element" || child.tag !== tag) {
+        continue
+      }
+
+      if (seen === targetIndex) {
+        next = child
+        break
+      }
+      seen += 1
+    }
+
+    if (!next) {
+      return null
+    }
+
+    current = next
+  }
+
+  return current
 }
 
 function createPromptText(event: AgentHtmlContextEvent) {
@@ -104,6 +135,7 @@ function createPromptText(event: AgentHtmlContextEvent) {
 
 export async function deliverAgentHtmlIntent(input: {
   document: ProjectSectionDocument
+  parsedDocument?: AgentHtmlDocument
   project: WorkspaceProjectView
   section: WorkspaceSection
   startTurn: (input: {
@@ -116,7 +148,9 @@ export async function deliverAgentHtmlIntent(input: {
   submit: AgentHtmlAgentPromptSubmitInput
   threadId: string
 }): Promise<AgentHtmlIntentDeliveryResult> {
-  const selectedNode = findElementByPath(input.document, input.submit.path)
+  const parsedDocument =
+    input.parsedDocument ?? parseAgentHtml(input.document.ahtmlSource)
+  const selectedNode = findElementByPath(parsedDocument, input.submit.path)
   const event: AgentHtmlContextEvent = {
     context: {
       selectedSource: selectedNode

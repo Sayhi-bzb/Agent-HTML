@@ -10,10 +10,8 @@ import {
   type CodexThreadSummary,
 } from "@/app/codex/connection"
 import { Button } from "@/app/shared/ui/button"
-import {
-  WorkspaceGhostPet,
-  type PetPresence,
-} from "@/app/workspace/ghost-pet"
+import { WorkspaceGhostPet } from "@/app/pet/ghost"
+import type { PetPresence } from "@/app/workspace/agent-presence"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
 import type {
   ProjectCodexThreadLink,
@@ -23,6 +21,7 @@ import type {
 } from "@/app/workspace/types"
 import {
   AgentHtmlBlockRuntimeProvider,
+  type AgentHtmlDocument,
   type AgentHtmlColorCssVariables,
   AgentHtmlRuntimeTheme,
   AgentHtmlRuntimeViewport,
@@ -44,7 +43,12 @@ type WorkspaceDocumentState =
   | { document: ProjectSectionDocument; status: "ready" }
 
 type RuntimeState =
-  | { document: ProjectSectionDocument; content: React.ReactNode; status: "ready" }
+  | {
+      content: React.ReactNode
+      document: ProjectSectionDocument
+      parsedDocument: AgentHtmlDocument
+      status: "ready"
+    }
   | { errors: AgentHtmlValidationError[]; status: "invalid" }
   | { message: string; status: "error" }
 
@@ -187,6 +191,7 @@ function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState
     return {
       content: renderInteractiveAgentHtml(parsedDocument),
       document,
+      parsedDocument,
       status: "ready",
     }
   } catch (error) {
@@ -293,6 +298,14 @@ export function WorkspaceSurface({
     return () => window.clearTimeout(timeout)
   }, [saveAttentionToken, saveState.status])
 
+  const runtime = React.useMemo(() => {
+    if (documentState.status !== "ready") {
+      return null
+    }
+
+    return renderWorkspaceDocument(documentState.document)
+  }, [documentState])
+
   const handleDropIntent = React.useCallback(
     ({
       intent,
@@ -301,13 +314,12 @@ export function WorkspaceSurface({
       intent: AgentHtmlDropIntent
       sourcePath: string
     }) => {
-      if (documentState.status !== "ready") {
+      if (documentState.status !== "ready" || runtime?.status !== "ready") {
         return
       }
 
       try {
-        const parsedDocument = parseAgentHtml(documentState.document.ahtmlSource)
-        const nextDocument = applyAgentHtmlDropIntent(parsedDocument, {
+        const nextDocument = applyAgentHtmlDropIntent(runtime.parsedDocument, {
           intent,
           sourcePath,
         })
@@ -324,7 +336,7 @@ export function WorkspaceSurface({
         return
       }
     },
-    [documentState]
+    [documentState, runtime]
   )
 
   const handleSaveDocument = React.useCallback(() => {
@@ -456,6 +468,9 @@ export function WorkspaceSurface({
       if (!activeProject || !activeSection || documentState.status !== "ready") {
         return
       }
+      if (runtime?.status !== "ready") {
+        return
+      }
 
       setAgentDeliveryState({ status: "sending" })
       const document = documentState.document
@@ -472,6 +487,7 @@ export function WorkspaceSurface({
         .then((threadId) =>
           deliverAgentHtmlIntent({
             document,
+            parsedDocument: runtime.parsedDocument,
             project: activeProject,
             section: activeSection,
             startTurn: codexConnection.startTurn,
@@ -535,6 +551,7 @@ export function WorkspaceSurface({
       codexConnection.startTurn,
       createThreadForProject,
       documentState,
+      runtime,
       selectedProjectThreadId,
     ]
   )
@@ -630,13 +647,6 @@ export function WorkspaceSurface({
     }
   }, [activeProject])
 
-  const runtime = React.useMemo(() => {
-    if (documentState.status !== "ready") {
-      return null
-    }
-
-    return renderWorkspaceDocument(documentState.document)
-  }, [documentState])
   const petPresence = React.useMemo(
     () => agentActivity.presence ?? getAgentDeliveryPresence(agentDeliveryState),
     [agentActivity.presence, agentDeliveryState]

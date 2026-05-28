@@ -2,7 +2,7 @@ import * as React from "react"
 import { isTauri } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
 
-import type { PetActionKind, PetPresence } from "@/app/workspace/ghost-pet"
+import type { PetActionKind, PetPresence } from "@/app/workspace/agent-presence"
 
 export const codexNotificationEventName = "codex://notification"
 

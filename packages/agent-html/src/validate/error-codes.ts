@@ -1,4 +1,5 @@
 export type AgentHtmlValidationCode =
+  | "DISABLED_TAG"
   | "UNKNOWN_TAG"
   | "UNKNOWN_ATTR"
   | "UNKNOWN_ICON_NAME"

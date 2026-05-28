@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
+import { parseAgentHtml } from "@/agent-html"
 
 const document = {
   ahtmlSource: [
@@ -75,6 +76,63 @@ describe("deliverAgentHtmlIntent", () => {
     expect(promptText).not.toContain("当前文档 AHTML")
     expect(result.provider).toBe("codex_app_server")
     expect(result.threadId).toBe("thr_123")
+  })
+
+  it("uses a provided parsed document to select block context", async () => {
+    const startTurn = vi.fn().mockResolvedValue({
+      threadId: "thr_123",
+      turnId: "turn_123",
+    })
+    const parsedDocument = parseAgentHtml(document.ahtmlSource)
+
+    const result = await deliverAgentHtmlIntent({
+      document: {
+        ...document,
+        ahtmlSource: "<Page><Text>Changed source should not be parsed</Text></Page>",
+      },
+      parsedDocument,
+      project,
+      section,
+      startTurn,
+      submit: {
+        path: "/Page/Section[0]/Stack[0]",
+        prompt: "Explain this block.",
+      },
+      threadId: "thr_123",
+    })
+
+    expect(result.ok).toBe(true)
+    expect(startTurn.mock.calls[0][0].promptText).toContain(
+      "<Text>Move faster</Text>"
+    )
+    expect(startTurn.mock.calls[0][0].promptText).not.toContain(
+      "Changed source should not be parsed"
+    )
+  })
+
+  it("keeps a valid prompt when the selected path is missing", async () => {
+    const startTurn = vi.fn().mockResolvedValue({
+      threadId: "thr_123",
+      turnId: "turn_123",
+    })
+
+    const result = await deliverAgentHtmlIntent({
+      document,
+      project,
+      section,
+      startTurn,
+      submit: {
+        path: "/Page/Section[0]/Stack[1]",
+        prompt: "What is this?",
+      },
+      threadId: "thr_123",
+    })
+
+    expect(result.ok).toBe(true)
+    expect(startTurn.mock.calls[0][0].promptText).toContain(
+      "ahtmlPath: /Page/Section[0]/Stack[1]"
+    )
+    expect(startTurn.mock.calls[0][0].promptText).toMatch(/```ahtml\s+```/)
   })
 
   it("returns the Codex turn error when delivery fails", async () => {
