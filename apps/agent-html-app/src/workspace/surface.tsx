@@ -5,7 +5,10 @@ import {
   type AgentActivityTurnContext,
 } from "@/app/workspace/agent-activity"
 import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
-import { useCodexConnection } from "@/app/codex/connection"
+import {
+  useCodexConnection,
+  type CodexThreadSummary,
+} from "@/app/codex/connection"
 import { Button } from "@/app/shared/ui/button"
 import {
   WorkspaceGhostPet,
@@ -13,6 +16,7 @@ import {
 } from "@/app/workspace/ghost-pet"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
 import type {
+  ProjectCodexThreadLink,
   ProjectSectionDocument,
   WorkspaceProjectView,
   WorkspaceSection,
@@ -149,6 +153,25 @@ function formatThreadLabel(thread: {
   return timestamp ? `${label} - ${timestamp}` : label
 }
 
+function getThreadSummaryById(
+  threads: CodexThreadSummary[],
+  threadId: string
+) {
+  return threads.find((thread) => thread.id === threadId) ?? null
+}
+
+function formatProjectThreadLabel(
+  link: ProjectCodexThreadLink,
+  summary: ReturnType<typeof getThreadSummaryById>
+) {
+  return formatThreadLabel({
+    createdAt: summary?.createdAt ?? link.createdAt,
+    id: link.threadId,
+    name: summary?.name,
+    updatedAt: summary?.updatedAt ?? link.lastUsedAt,
+  })
+}
+
 function renderWorkspaceDocument(document: ProjectSectionDocument): RuntimeState {
   try {
     const parsedDocument = parseAgentHtml(document.ahtmlSource)
@@ -204,6 +227,16 @@ export function WorkspaceSurface({
     string | null
   >(null)
   const [isSelectingThread, setIsSelectingThread] = React.useState(false)
+  const [projectThreadLinks, setProjectThreadLinks] = React.useState<
+    ProjectCodexThreadLink[]
+  >([])
+  const [projectThreadListState, setProjectThreadListState] = React.useState<{
+    error: string | null
+    isLoading: boolean
+  }>({ error: null, isLoading: false })
+  const [selectedProjectThreadId, setSelectedProjectThreadId] = React.useState<
+    string | null
+  >(null)
   const [activeTurnContext, setActiveTurnContext] =
     React.useState<AgentActivityTurnContext>({})
   const agentActivity = useAgentActivity(activeTurnContext)
@@ -323,24 +356,62 @@ export function WorkspaceSurface({
   }, [canSave, documentState])
 
   const startNewThread = React.useCallback(() => {
+    if (!activeProject) {
+      return
+    }
+
     setThreadSelectionError(null)
     setIsSelectingThread(true)
     codexConnection
       .startNewThread()
+      .then((threadId) =>
+        workspaceRepository.upsertProjectCodexThreadLink({
+          projectId: activeProject.id,
+          threadId,
+        })
+      )
+      .then((link) => {
+        setSelectedProjectThreadId(link.threadId)
+        setProjectThreadLinks((currentLinks) => [
+          link,
+          ...currentLinks.filter(
+            (currentLink) => currentLink.threadId !== link.threadId
+          ),
+        ])
+      })
       .catch((error: unknown) => {
         setThreadSelectionError(
           error instanceof Error ? error.message : "Unable to start Codex thread."
         )
       })
       .finally(() => setIsSelectingThread(false))
-  }, [codexConnection])
+  }, [activeProject, codexConnection])
 
   const resumeThread = React.useCallback(
     (threadId: string) => {
+      if (!activeProject) {
+        return
+      }
+
       setThreadSelectionError(null)
       setIsSelectingThread(true)
       codexConnection
         .resumeThread(threadId)
+        .then(() =>
+          workspaceRepository.touchProjectCodexThreadLink({
+            projectId: activeProject.id,
+            threadId,
+          })
+        )
+        .then((link) => {
+          setSelectedProjectThreadId(link.threadId)
+          setProjectThreadLinks((currentLinks) => [
+            link,
+            ...currentLinks.filter(
+              (currentLink) => currentLink.threadId !== link.threadId
+            ),
+          ])
+        })
         .catch((error: unknown) => {
           setThreadSelectionError(
             error instanceof Error
@@ -349,6 +420,33 @@ export function WorkspaceSurface({
           )
         })
         .finally(() => setIsSelectingThread(false))
+    },
+    [activeProject, codexConnection]
+  )
+
+  const createThreadForProject = React.useCallback(
+    async (input: {
+      ahtmlPath: string
+      documentPath: string
+      projectId: string
+      sectionId: string
+    }) => {
+      const threadId = await codexConnection.startNewThread()
+      const link = await workspaceRepository.upsertProjectCodexThreadLink({
+        ahtmlPath: input.ahtmlPath,
+        documentPath: input.documentPath,
+        projectId: input.projectId,
+        sectionId: input.sectionId,
+        threadId,
+      })
+      setProjectThreadLinks((currentLinks) => [
+        link,
+        ...currentLinks.filter(
+          (currentLink) => currentLink.threadId !== link.threadId
+        ),
+      ])
+      setSelectedProjectThreadId(link.threadId)
+      return link.threadId
     },
     [codexConnection]
   )
@@ -359,52 +457,85 @@ export function WorkspaceSurface({
         return
       }
 
-      if (!codexConnection.activeThreadId) {
-        setAgentDeliveryState({
-          detail: "Choose a Codex thread before sending a request.",
-          status: "error",
-        })
-        return
-      }
-
       setAgentDeliveryState({ status: "sending" })
-      deliverAgentHtmlIntent({
-        document: documentState.document,
-        project: activeProject,
-        section: activeSection,
-        startTurn: codexConnection.startTurn,
-        submit: {
-          ...submit,
-          interaction: submit.interaction ?? lastInteractionRef.current,
-        },
-      }).then((result) => {
-        if (result.ok) {
-          setActiveTurnContext({
-            blockPath: submit.path,
+      const document = documentState.document
+      const threadPromise = selectedProjectThreadId
+        ? Promise.resolve(selectedProjectThreadId)
+        : createThreadForProject({
+            ahtmlPath: submit.path,
+            documentPath: document.filePath,
+            projectId: activeProject.id,
             sectionId: activeSection.id,
-            threadId: result.threadId,
-            turnId: result.turnId,
           })
-          setAgentDeliveryState({
-            detail: "Sent to Codex.",
-            status: "sent",
-          })
-          lastInteractionRef.current = null
-          return
-        }
 
-        setAgentDeliveryState({
-          detail: result.error,
-          status: "error",
+      threadPromise
+        .then((threadId) =>
+          deliverAgentHtmlIntent({
+            document,
+            project: activeProject,
+            section: activeSection,
+            startTurn: codexConnection.startTurn,
+            submit: {
+              ...submit,
+              interaction: submit.interaction ?? lastInteractionRef.current,
+            },
+            threadId,
+          })
+        )
+        .then((result) => {
+          if (result.ok) {
+            void workspaceRepository
+              .touchProjectCodexThreadLink({
+                ahtmlPath: submit.path,
+                documentPath: document.filePath,
+                projectId: activeProject.id,
+                sectionId: activeSection.id,
+                threadId: result.threadId,
+              })
+              .then((link) => {
+                setProjectThreadLinks((currentLinks) => [
+                  link,
+                  ...currentLinks.filter(
+                    (currentLink) => currentLink.threadId !== link.threadId
+                  ),
+                ])
+              })
+            setActiveTurnContext({
+              blockPath: submit.path,
+              sectionId: activeSection.id,
+              threadId: result.threadId,
+              turnId: result.turnId,
+            })
+            setAgentDeliveryState({
+              detail: "Sent to Codex.",
+              status: "sent",
+            })
+            lastInteractionRef.current = null
+            return
+          }
+
+          setAgentDeliveryState({
+            detail: result.error,
+            status: "error",
+          })
         })
-      })
+        .catch((error: unknown) => {
+          setAgentDeliveryState({
+            detail:
+              error instanceof Error
+                ? error.message
+                : "Unable to prepare Codex thread.",
+            status: "error",
+          })
+        })
     },
     [
       activeProject,
       activeSection,
-      codexConnection.activeThreadId,
       codexConnection.startTurn,
+      createThreadForProject,
       documentState,
+      selectedProjectThreadId,
     ]
   )
 
@@ -456,6 +587,48 @@ export function WorkspaceSurface({
       isCurrent = false
     }
   }, [activeProject, activeSection])
+
+  React.useEffect(() => {
+    if (!activeProject) {
+      setProjectThreadLinks([])
+      setProjectThreadListState({ error: null, isLoading: false })
+      setSelectedProjectThreadId(null)
+      return
+    }
+
+    let isCurrent = true
+    setProjectThreadLinks([])
+    setSelectedProjectThreadId(null)
+    setProjectThreadListState({ error: null, isLoading: true })
+
+    workspaceRepository
+      .listProjectCodexThreads(activeProject.id)
+      .then((links) => {
+        if (!isCurrent) {
+          return
+        }
+
+        setProjectThreadLinks(links)
+        setProjectThreadListState({ error: null, isLoading: false })
+      })
+      .catch((error: unknown) => {
+        if (!isCurrent) {
+          return
+        }
+
+        setProjectThreadListState({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to load project Codex threads.",
+          isLoading: false,
+        })
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [activeProject])
 
   const runtime = React.useMemo(() => {
     if (documentState.status !== "ready") {
@@ -538,7 +711,7 @@ export function WorkspaceSurface({
   const shouldShowThreadSelector =
     (codexConnection.status === "connected" ||
       codexConnection.status === "starting") &&
-    !codexConnection.activeThreadId
+    !selectedProjectThreadId
   const canSelectThread = codexConnection.status === "connected"
 
   return (
@@ -576,6 +749,11 @@ export function WorkspaceSurface({
               {codexConnection.threadList.error}
             </p>
           ) : null}
+          {projectThreadListState.error ? (
+            <p className="mt-2 text-xs text-destructive">
+              {projectThreadListState.error}
+            </p>
+          ) : null}
           {threadSelectionError ? (
             <p className="mt-2 text-xs text-destructive">
               {threadSelectionError}
@@ -586,28 +764,35 @@ export function WorkspaceSurface({
               <p className="text-xs text-muted-foreground">
                 Connecting to Codex...
               </p>
-            ) : codexConnection.threadList.isLoading ? (
+            ) : codexConnection.threadList.isLoading ||
+              projectThreadListState.isLoading ? (
               <p className="text-xs text-muted-foreground">Loading threads...</p>
-            ) : codexConnection.threadList.items.length > 0 ? (
-              codexConnection.threadList.items.map((thread) => (
-                <button
-                  key={thread.id}
-                  className="rounded-md border px-2 py-1.5 text-left text-xs hover:bg-muted disabled:opacity-50"
-                  disabled={!canSelectThread || isSelectingThread}
-                  onClick={() => resumeThread(thread.id)}
-                  type="button"
-                >
-                  <span className="block truncate font-medium">
-                    {formatThreadLabel(thread)}
-                  </span>
-                  <span className="block truncate text-muted-foreground">
-                    {thread.id}
-                  </span>
-                </button>
-              ))
+            ) : projectThreadLinks.length > 0 ? (
+              projectThreadLinks.map((link) => {
+                const summary = getThreadSummaryById(
+                  codexConnection.threadList.items,
+                  link.threadId
+                )
+                return (
+                  <button
+                    key={link.threadId}
+                    className="rounded-md border px-2 py-1.5 text-left text-xs hover:bg-muted disabled:opacity-50"
+                    disabled={!canSelectThread || isSelectingThread}
+                    onClick={() => resumeThread(link.threadId)}
+                    type="button"
+                  >
+                    <span className="block truncate font-medium">
+                      {formatProjectThreadLabel(link, summary)}
+                    </span>
+                    <span className="block truncate text-muted-foreground">
+                      {link.threadId}
+                    </span>
+                  </button>
+                )
+              })
             ) : (
               <p className="text-xs text-muted-foreground">
-                No previous threads for this workspace.
+                No previous threads for this project.
               </p>
             )}
           </div>

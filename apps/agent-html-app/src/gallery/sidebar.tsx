@@ -17,6 +17,11 @@ import {
   SidebarMenuItem,
 } from "@/app/shared/ui/sidebar"
 import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
+import {
+  galleryComponentMarketAllCategory,
+  galleryComponentMarketCatalog,
+  type GalleryComponentMarketFilters,
+} from "@/app/gallery/component-market-catalog"
 import type { GalleryViewId } from "@/app/gallery/views"
 import {
   galleryThemeEditorSections,
@@ -25,8 +30,13 @@ import {
 import {
   CheckIcon,
   ChevronDownIcon,
+  CircleIcon,
+  DatabaseIcon,
+  FileTextIcon,
+  GalleryVerticalEndIcon,
   PackageIcon,
   PawPrintIcon,
+  SearchIcon,
 } from "lucide-react"
 
 type AppThemePresetNavItem = {
@@ -181,24 +191,30 @@ export function GalleryThemeSidebarFooter({
 }
 
 export function GalleryMarketSidebar({
+  componentMarketFilters,
+  onComponentMarketFiltersChange,
   viewId,
 }: {
+  componentMarketFilters: GalleryComponentMarketFilters
+  onComponentMarketFiltersChange: (filters: GalleryComponentMarketFilters) => void
   viewId: Exclude<GalleryViewId, "theme">
 }) {
+  if (viewId === "components") {
+    return (
+      <GalleryComponentMarketSidebar
+        filters={componentMarketFilters}
+        onFiltersChange={onComponentMarketFiltersChange}
+      />
+    )
+  }
+
   const copy =
-    viewId === "components"
-      ? {
-          icon: PackageIcon,
-          label: "Component Market",
-          summary: "Browse component packs once market data is connected.",
-          sections: ["Browse", "Installed", "Filters"],
-        }
-      : {
-          icon: PawPrintIcon,
-          label: "Pet Market",
-          summary: "Browse companion assets once pet packages are connected.",
-          sections: ["Browse", "Installed", "Preview"],
-        }
+    {
+      icon: PawPrintIcon,
+      label: "Pet Market",
+      summary: "Browse companion assets once pet packages are connected.",
+      sections: ["Browse", "Installed", "Preview"],
+    }
   const Icon = copy.icon
 
   return (
@@ -223,6 +239,117 @@ export function GalleryMarketSidebar({
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
+    </div>
+  )
+}
+
+function GalleryComponentMarketSidebar({
+  filters,
+  onFiltersChange,
+}: {
+  filters: GalleryComponentMarketFilters
+  onFiltersChange: (filters: GalleryComponentMarketFilters) => void
+}) {
+  const installedCount = galleryComponentMarketCatalog.filter((component) =>
+    ["Button", "Card", "Tabs", "Chart"].includes(component.tag)
+  ).length
+  const categoryCounts = galleryComponentMarketCatalog.reduce(
+    (counts, component) => {
+      const category = component.market.category
+      counts[category] = (counts[category] ?? 0) + 1
+      return counts
+    },
+    {} as Record<string, number>
+  )
+  const groups = [
+    {
+      label: "Browse",
+      items: [
+        {
+          icon: SearchIcon,
+          label: "All components",
+          meta: String(galleryComponentMarketCatalog.length),
+          onClick: () =>
+            onFiltersChange({
+              category: galleryComponentMarketAllCategory,
+              status: "all",
+            }),
+        },
+        {
+          icon: CheckIcon,
+          label: "Installed",
+          meta: String(installedCount),
+          onClick: () => onFiltersChange({ ...filters, status: "installed" }),
+        },
+      ],
+    },
+    {
+      label: "Categories",
+      items: [
+        {
+          icon: GalleryVerticalEndIcon,
+          label: "Layout",
+          meta: String(categoryCounts.layout ?? 0),
+          onClick: () => onFiltersChange({ ...filters, category: "layout" }),
+        },
+        {
+          icon: FileTextIcon,
+          label: "Content",
+          meta: String(categoryCounts.content ?? 0),
+          onClick: () => onFiltersChange({ ...filters, category: "content" }),
+        },
+        {
+          icon: DatabaseIcon,
+          label: "Data",
+          meta: String(categoryCounts.data ?? 0),
+          onClick: () => onFiltersChange({ ...filters, category: "data" }),
+        },
+        {
+          icon: CircleIcon,
+          label: "Feedback",
+          meta: String(categoryCounts.feedback ?? 0),
+          onClick: () => onFiltersChange({ ...filters, category: "feedback" }),
+        },
+        {
+          icon: PackageIcon,
+          label: "Media and form",
+          meta: String(
+            (categoryCounts.media ?? 0) + (categoryCounts.form ?? 0)
+          ),
+          onClick: () => onFiltersChange({ ...filters, category: "media" }),
+        },
+      ],
+    },
+  ]
+
+  return (
+    <div className="flex flex-1 flex-col gap-3 px-2 py-2">
+      {groups.map((group) => (
+        <SidebarGroup className="px-0" key={group.label}>
+          <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1">
+              {group.items.map((item) => {
+                const Icon = item.icon
+
+                return (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton onClick={item.onClick} type="button">
+                      <Icon className="size-4" />
+                      <span className="min-w-0 flex-1 truncate">
+                        {item.label}
+                      </span>
+                      <span className="shrink-0 text-xs text-sidebar-foreground/50">
+                        {item.meta}
+                      </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      ))}
     </div>
   )
 }

@@ -84,6 +84,19 @@ pub(crate) struct ProjectSectionDocument {
     updated_at: String,
 }
 
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ProjectCodexThreadLink {
+    created_at: String,
+    last_ahtml_path: Option<String>,
+    last_document_path: Option<String>,
+    last_section_id: Option<String>,
+    last_used_at: String,
+    origin: String,
+    project_id: String,
+    thread_id: String,
+}
+
 pub(crate) struct WorkspaceStore {
     connection: Mutex<Connection>,
     document_root: PathBuf,
@@ -630,6 +643,80 @@ impl WorkspaceStore {
             updated_at,
         })
     }
+
+    fn list_project_codex_threads(
+        &self,
+        project_id: &str,
+    ) -> WorkspaceResult<Vec<ProjectCodexThreadLink>> {
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
+        let mut statement = connection.prepare(
+            "SELECT thread_id, project_id, origin, last_section_id, last_ahtml_path,
+                    last_document_path, created_at, last_used_at
+             FROM project_codex_threads
+             WHERE project_id = ?1
+             ORDER BY last_used_at DESC, created_at DESC, thread_id ASC",
+        )?;
+        let rows = statement.query_map([project_id], |row| {
+            Ok(ProjectCodexThreadLink {
+                thread_id: row.get(0)?,
+                project_id: row.get(1)?,
+                origin: row.get(2)?,
+                last_section_id: row.get(3)?,
+                last_ahtml_path: row.get(4)?,
+                last_document_path: row.get(5)?,
+                created_at: row.get(6)?,
+                last_used_at: row.get(7)?,
+            })
+        })?;
+
+        collect_rows(rows)
+    }
+
+    fn upsert_project_codex_thread_link(
+        &self,
+        project_id: &str,
+        thread_id: &str,
+        section_id: Option<&str>,
+        ahtml_path: Option<&str>,
+        document_path: Option<&str>,
+    ) -> WorkspaceResult<ProjectCodexThreadLink> {
+        let now = current_timestamp();
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
+        ensure_project_exists(&connection, project_id)?;
+        connection.execute(
+            "INSERT INTO project_codex_threads
+             (thread_id, project_id, origin, last_section_id, last_ahtml_path,
+              last_document_path, created_at, last_used_at)
+             VALUES (?1, ?2, 'agent-html', ?3, ?4, ?5, ?6, ?6)
+             ON CONFLICT(thread_id) DO UPDATE SET
+                project_id = excluded.project_id,
+                origin = excluded.origin,
+                last_section_id = excluded.last_section_id,
+                last_ahtml_path = excluded.last_ahtml_path,
+                last_document_path = excluded.last_document_path,
+                last_used_at = excluded.last_used_at",
+            params![thread_id, project_id, section_id, ahtml_path, document_path, now],
+        )?;
+
+        get_project_codex_thread_link(&connection, thread_id)
+    }
+
+    fn touch_project_codex_thread_link(
+        &self,
+        project_id: &str,
+        thread_id: &str,
+        section_id: Option<&str>,
+        ahtml_path: Option<&str>,
+        document_path: Option<&str>,
+    ) -> WorkspaceResult<ProjectCodexThreadLink> {
+        self.upsert_project_codex_thread_link(
+            project_id,
+            thread_id,
+            section_id,
+            ahtml_path,
+            document_path,
+        )
+    }
 }
 
 fn collect_rows<T>(
@@ -660,6 +747,46 @@ fn find_project(
             },
         )
         .optional()
+        .map_err(WorkspaceError::from)
+}
+
+fn ensure_project_exists(
+    connection: &Connection,
+    project_id: &str,
+) -> WorkspaceResult<()> {
+    if find_project(connection, project_id)?.is_none() {
+        return Err(WorkspaceError::ProjectNotFound {
+            project_id: project_id.to_string(),
+        });
+    }
+
+    Ok(())
+}
+
+fn get_project_codex_thread_link(
+    connection: &Connection,
+    thread_id: &str,
+) -> WorkspaceResult<ProjectCodexThreadLink> {
+    connection
+        .query_row(
+            "SELECT thread_id, project_id, origin, last_section_id, last_ahtml_path,
+                    last_document_path, created_at, last_used_at
+             FROM project_codex_threads
+             WHERE thread_id = ?1",
+            [thread_id],
+            |row| {
+                Ok(ProjectCodexThreadLink {
+                    thread_id: row.get(0)?,
+                    project_id: row.get(1)?,
+                    origin: row.get(2)?,
+                    last_section_id: row.get(3)?,
+                    last_ahtml_path: row.get(4)?,
+                    last_document_path: row.get(5)?,
+                    created_at: row.get(6)?,
+                    last_used_at: row.get(7)?,
+                })
+            },
+        )
         .map_err(WorkspaceError::from)
 }
 
@@ -789,6 +916,18 @@ fn create_schema(connection: &Connection) -> WorkspaceResult<()> {
             FOREIGN KEY (project_id, section_id)
                 REFERENCES project_sections(project_id, id)
                 ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS project_codex_threads (
+            thread_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            origin TEXT NOT NULL DEFAULT 'agent-html',
+            last_section_id TEXT,
+            last_ahtml_path TEXT,
+            last_document_path TEXT,
+            created_at TEXT NOT NULL,
+            last_used_at TEXT NOT NULL,
+            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
         );
         ",
     )?;
@@ -1312,6 +1451,50 @@ pub(crate) fn update_project_section_document(
     store.update_project_section_document(&project_id, &section_id, &ahtml_source)
 }
 
+#[tauri::command]
+pub(crate) fn list_project_codex_threads(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+) -> WorkspaceResult<Vec<ProjectCodexThreadLink>> {
+    store.list_project_codex_threads(&project_id)
+}
+
+#[tauri::command]
+pub(crate) fn upsert_project_codex_thread_link(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+    thread_id: String,
+    section_id: Option<String>,
+    ahtml_path: Option<String>,
+    document_path: Option<String>,
+) -> WorkspaceResult<ProjectCodexThreadLink> {
+    store.upsert_project_codex_thread_link(
+        &project_id,
+        &thread_id,
+        section_id.as_deref(),
+        ahtml_path.as_deref(),
+        document_path.as_deref(),
+    )
+}
+
+#[tauri::command]
+pub(crate) fn touch_project_codex_thread_link(
+    store: State<'_, WorkspaceStore>,
+    project_id: String,
+    thread_id: String,
+    section_id: Option<String>,
+    ahtml_path: Option<String>,
+    document_path: Option<String>,
+) -> WorkspaceResult<ProjectCodexThreadLink> {
+    store.touch_project_codex_thread_link(
+        &project_id,
+        &thread_id,
+        section_id.as_deref(),
+        ahtml_path.as_deref(),
+        document_path.as_deref(),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1642,5 +1825,65 @@ mod tests {
             .expect_err("missing update should fail");
 
         assert!(matches!(error, WorkspaceError::DocumentNotFound { .. }));
+    }
+
+    #[test]
+    fn links_codex_threads_to_projects() {
+        let workspace = test_store();
+        let store = &workspace.store;
+
+        let link = store
+            .upsert_project_codex_thread_link(
+                "design-engineering",
+                "thr_project",
+                Some("installation"),
+                Some("/Page/Section[0]"),
+                Some("D:\\workspace\\installation.agent-html"),
+            )
+            .expect("link thread");
+
+        assert_eq!(link.thread_id, "thr_project");
+        assert_eq!(link.project_id, "design-engineering");
+        assert_eq!(link.last_section_id.as_deref(), Some("installation"));
+        assert_eq!(link.last_ahtml_path.as_deref(), Some("/Page/Section[0]"));
+        assert_eq!(link.origin, "agent-html");
+
+        let links = store
+            .list_project_codex_threads("design-engineering")
+            .expect("list links");
+
+        assert_eq!(links.len(), 1);
+        assert_eq!(links[0].thread_id, "thr_project");
+    }
+
+    #[test]
+    fn rejects_codex_thread_links_for_missing_projects() {
+        let workspace = test_store();
+        let store = &workspace.store;
+
+        let error = store
+            .upsert_project_codex_thread_link("missing", "thr_project", None, None, None)
+            .expect_err("missing project should fail");
+
+        assert!(matches!(error, WorkspaceError::ProjectNotFound { .. }));
+    }
+
+    #[test]
+    fn deletes_project_codex_thread_links_with_project() {
+        let workspace = test_store();
+        let store = &workspace.store;
+
+        store
+            .upsert_project_codex_thread_link("design-engineering", "thr_project", None, None, None)
+            .expect("link thread");
+        store
+            .delete_project("design-engineering")
+            .expect("delete project");
+
+        let links = store
+            .list_project_codex_threads("design-engineering")
+            .expect("list deleted project links");
+
+        assert!(links.is_empty());
     }
 }

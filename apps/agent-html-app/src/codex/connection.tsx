@@ -104,7 +104,10 @@ type CodexConnectionContextValue = {
   status: CodexConnectionStatus
   start: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   startNewThread: () => Promise<string>
-  startTurn: (promptText: string) => Promise<CodexTurnStartResult>
+  startTurn: (input: {
+    promptText: string
+    threadId: string
+  }) => Promise<CodexTurnStartResult>
   stop: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   threadList: CodexThreadListState
   restart: (settingsOverride?: CodexConnectionSettings) => Promise<void>
@@ -960,9 +963,13 @@ export function CodexConnectionProvider({
   }, [refreshThreads, request])
 
   const startTurn = React.useCallback(
-    async (promptText: string) => {
-      const threadId = activeThreadId
-
+    async ({
+      promptText,
+      threadId,
+    }: {
+      promptText: string
+      threadId: string
+    }) => {
       if (!threadId) {
         throw new Error("Choose a Codex thread before sending a request.")
       }
@@ -982,7 +989,7 @@ export function CodexConnectionProvider({
         turnId: readTurnId(result),
       }
     },
-    [activeThreadId, request]
+    [request]
   )
 
   const test = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {

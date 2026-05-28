@@ -23,3 +23,14 @@ export type ProjectSectionDocument = {
   sectionId: string
   updatedAt: string
 }
+
+export type ProjectCodexThreadLink = {
+  createdAt: string
+  lastAhtmlPath?: string | null
+  lastDocumentPath?: string | null
+  lastSectionId?: string | null
+  lastUsedAt: string
+  origin: "agent-html" | string
+  projectId: string
+  threadId: string
+}

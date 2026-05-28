@@ -9,6 +9,10 @@ import {
 import { GalleryEditorPanel } from "@/app/gallery/editor"
 import { GalleryPanel } from "@/app/gallery/panel"
 import {
+  galleryComponentMarketAllCategory,
+  type GalleryComponentMarketFilters,
+} from "@/app/gallery/component-market-catalog"
+import {
   GalleryMarketSidebar,
   GalleryThemeSidebarFooter,
   GalleryThemeSidebarHeader,
@@ -160,6 +164,11 @@ export function App() {
     React.useState(false)
   const [activeGalleryViewId, setActiveGalleryViewId] =
     React.useState<GalleryViewId>("theme")
+  const [galleryComponentMarketFilters, setGalleryComponentMarketFilters] =
+    React.useState<GalleryComponentMarketFilters>({
+      category: galleryComponentMarketAllCategory,
+      status: "all",
+    })
   const [activeGalleryThemeEditorSectionId, setActiveGalleryThemeEditorSectionId] =
     React.useState<GalleryThemeEditorSectionId>("color")
   const [pendingGalleryViewId, setPendingGalleryViewId] =
@@ -790,7 +799,11 @@ export function App() {
         sectionId={activeGalleryThemeEditorSectionId}
       />
     ) : (
-      <GalleryMarketSidebar viewId={activeGalleryViewId} />
+      <GalleryMarketSidebar
+        componentMarketFilters={galleryComponentMarketFilters}
+        onComponentMarketFiltersChange={setGalleryComponentMarketFilters}
+        viewId={activeGalleryViewId}
+      />
     )
 
   const gallerySidebarFooterContent =
@@ -848,7 +861,11 @@ export function App() {
         {sidebar}
         <SidebarInset className="min-h-0 overflow-hidden border-0 shadow-none md:mr-2 md:mb-2 md:peer-data-[variant=inset]:shadow-none">
           {surfaceMode === "gallery" ? (
-            <GalleryPanel activeViewId={activeGalleryViewId} />
+            <GalleryPanel
+              activeViewId={activeGalleryViewId}
+              componentMarketFilters={galleryComponentMarketFilters}
+              onComponentMarketFiltersChange={setGalleryComponentMarketFilters}
+            />
           ) : workspaceLoadError ? (
             <WorkspaceLoadErrorState detail={workspaceLoadError} />
           ) : (

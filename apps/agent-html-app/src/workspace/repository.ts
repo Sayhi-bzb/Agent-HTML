@@ -6,6 +6,7 @@ import {
   workspaceSeedProjects,
 } from "@/app/workspace/seed"
 import type {
+  ProjectCodexThreadLink,
   ProjectSectionDocument,
   WorkspaceProject,
   WorkspaceSection,
@@ -33,6 +34,7 @@ export type WorkspaceRepository = {
     projectId: string,
     sectionId: string
   ) => Promise<ProjectSectionDocument>
+  listProjectCodexThreads: (projectId: string) => Promise<ProjectCodexThreadLink[]>
   listProjectSections: (projectId: string) => Promise<WorkspaceSection[]>
   listProjects: () => Promise<WorkspaceProject[]>
   renameProject: (input: {
@@ -49,6 +51,20 @@ export type WorkspaceRepository = {
     projectId: string
     sectionId: string
   }) => Promise<ProjectSectionDocument>
+  touchProjectCodexThreadLink: (input: {
+    ahtmlPath?: string | null
+    documentPath?: string | null
+    projectId: string
+    sectionId?: string | null
+    threadId: string
+  }) => Promise<ProjectCodexThreadLink>
+  upsertProjectCodexThreadLink: (input: {
+    ahtmlPath?: string | null
+    documentPath?: string | null
+    projectId: string
+    sectionId?: string | null
+    threadId: string
+  }) => Promise<ProjectCodexThreadLink>
 }
 
 const fixtureWorkspaceRepository: WorkspaceRepository = {
@@ -76,6 +92,9 @@ const fixtureWorkspaceRepository: WorkspaceRepository = {
 
     return document
   },
+  async listProjectCodexThreads() {
+    return []
+  },
   async listProjectSections(projectId) {
     return getSeedSections(projectId)
   },
@@ -90,6 +109,12 @@ const fixtureWorkspaceRepository: WorkspaceRepository = {
   },
   async updateProjectSectionDocument() {
     throw new Error("Desktop runtime required to save workspace documents.")
+  },
+  async touchProjectCodexThreadLink() {
+    throw new Error("Desktop runtime required to update Codex thread links.")
+  },
+  async upsertProjectCodexThreadLink() {
+    throw new Error("Desktop runtime required to link Codex threads.")
   },
 }
 
@@ -116,6 +141,9 @@ const tauriWorkspaceRepository: WorkspaceRepository = {
       sectionId,
     })
   },
+  listProjectCodexThreads(projectId) {
+    return invoke("list_project_codex_threads", { projectId })
+  },
   listProjectSections(projectId) {
     return invoke("list_project_sections", { projectId })
   },
@@ -130,6 +158,12 @@ const tauriWorkspaceRepository: WorkspaceRepository = {
   },
   updateProjectSectionDocument(input) {
     return invoke("update_project_section_document", input)
+  },
+  touchProjectCodexThreadLink(input) {
+    return invoke("touch_project_codex_thread_link", input)
+  },
+  upsertProjectCodexThreadLink(input) {
+    return invoke("upsert_project_codex_thread_link", input)
   },
 }
 

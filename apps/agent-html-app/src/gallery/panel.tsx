@@ -1,20 +1,29 @@
 import { GalleryWorkspaceSurface } from "@/app/gallery/workspace-surface"
+import { GalleryComponentMarketView } from "@/app/gallery/component-market-view"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import type { GalleryViewId } from "@/app/gallery/views"
+import type { GalleryComponentMarketFilters } from "@/app/gallery/component-market-catalog"
 
 export function GalleryPanel({
   activeViewId,
+  componentMarketFilters,
+  onComponentMarketFiltersChange,
 }: {
   activeViewId: GalleryViewId
+  componentMarketFilters: GalleryComponentMarketFilters
+  onComponentMarketFiltersChange: (filters: GalleryComponentMarketFilters) => void
 }) {
-  const isThemeView = activeViewId === "theme"
-
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex min-h-full flex-col p-4 md:p-6">
-          {isThemeView ? (
+          {activeViewId === "theme" ? (
             <GalleryWorkspaceSurface />
+          ) : activeViewId === "components" ? (
+            <GalleryComponentMarketView
+              filters={componentMarketFilters}
+              onFiltersChange={onComponentMarketFiltersChange}
+            />
           ) : (
             <GalleryMarketPlaceholder viewId={activeViewId} />
           )}

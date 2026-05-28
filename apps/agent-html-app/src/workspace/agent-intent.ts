@@ -106,11 +106,15 @@ export async function deliverAgentHtmlIntent(input: {
   document: ProjectSectionDocument
   project: WorkspaceProjectView
   section: WorkspaceSection
-  startTurn: (promptText: string) => Promise<{
+  startTurn: (input: {
+    promptText: string
+    threadId: string
+  }) => Promise<{
     threadId: string
     turnId?: string | null
   }>
   submit: AgentHtmlAgentPromptSubmitInput
+  threadId: string
 }): Promise<AgentHtmlIntentDeliveryResult> {
   const selectedNode = findElementByPath(input.document, input.submit.path)
   const event: AgentHtmlContextEvent = {
@@ -144,7 +148,10 @@ export async function deliverAgentHtmlIntent(input: {
   const promptText = createPromptText(event)
 
   try {
-    const turn = await input.startTurn(promptText)
+    const turn = await input.startTurn({
+      promptText,
+      threadId: input.threadId,
+    })
 
     return {
       eventId: event.eventId,

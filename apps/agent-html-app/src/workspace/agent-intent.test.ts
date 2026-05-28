@@ -55,10 +55,12 @@ describe("deliverAgentHtmlIntent", () => {
         path: "/Page/Section[0]/Stack[0]",
         prompt: "Make this tighter.",
       },
+      threadId: "thr_123",
     })
 
     expect(result.ok).toBe(true)
-    const promptText = startTurn.mock.calls[0][0]
+    expect(startTurn.mock.calls[0][0].threadId).toBe("thr_123")
+    const promptText = startTurn.mock.calls[0][0].promptText
     expect(promptText).toContain(
       [
         "---",
@@ -95,6 +97,7 @@ describe("deliverAgentHtmlIntent", () => {
         path: "/Page/Section[0]/Stack[0]",
         prompt: "Persist my ordering.",
       },
+      threadId: "thr_123",
     })
 
     expect(result.ok).toBe(false)
