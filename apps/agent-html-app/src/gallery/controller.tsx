@@ -11,7 +11,7 @@ import {
   type EnabledGalleryComponentTags,
   type GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
-import { createGalleryComponentMarketRepository } from "@/app/gallery/component-market-repository"
+import { createGalleryComponentMarketStore } from "@/app/gallery/component-market-store"
 import { GalleryEditorPanel } from "@/app/gallery/editor"
 import { GalleryPanel } from "@/app/gallery/panel"
 import {
@@ -59,8 +59,7 @@ const galleryViewIcons: Record<
   theme: BrushIcon,
 }
 
-const galleryComponentMarketRepository =
-  createGalleryComponentMarketRepository()
+const galleryComponentMarketStore = createGalleryComponentMarketStore()
 
 function getInitialAppliedAppTheme() {
   if (typeof window === "undefined") {
@@ -110,14 +109,14 @@ export function useGalleryController({
   React.useEffect(() => {
     let isCurrent = true
 
-    galleryComponentMarketRepository
+    galleryComponentMarketStore
       .loadEnabledComponentTags()
       .then((enabledTags) => {
         if (isCurrent) {
           setEnabledComponentTags(enabledTags)
         }
 
-        return galleryComponentMarketRepository.writePromptSchemaArtifact(
+        return galleryComponentMarketStore.writePromptSchemaArtifact(
           enabledTags
         )
       })
@@ -266,10 +265,10 @@ export function useGalleryController({
       const nextTags = new Set(nextEnabledTags)
 
       setEnabledComponentTags(nextTags)
-      galleryComponentMarketRepository
+      galleryComponentMarketStore
         .saveEnabledComponentTags(nextTags)
         .then((savedTags) =>
-          galleryComponentMarketRepository
+          galleryComponentMarketStore
             .writePromptSchemaArtifact(savedTags)
             .then(() => savedTags)
         )

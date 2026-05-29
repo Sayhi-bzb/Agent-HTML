@@ -1,9 +1,15 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
+use tauri::State;
 use thiserror::Error;
+
+use crate::workspace::WorkspaceStore;
+
+const PROMPT_SCHEMA_ARTIFACT_RELATIVE_PATH: &str =
+    ".agents/skills/agent-html/references/prompt-schema.md";
 
 #[derive(Debug, Error)]
 pub(crate) enum ComponentMarketError {
@@ -51,40 +57,8 @@ fn default_settings_path(app: &tauri::AppHandle) -> ComponentMarketResult<PathBu
     Ok(app_data_dir.join("component-market-settings.json"))
 }
 
-fn has_project_root_marker(path: &Path) -> bool {
-    path.join("package.json").exists() && path.join("src-tauri").exists()
-}
-
-fn find_project_root_from(start: &Path) -> Option<PathBuf> {
-    for candidate in start.ancestors() {
-        if has_project_root_marker(candidate) {
-            return Some(candidate.to_path_buf());
-        }
-    }
-
-    None
-}
-
-fn resolve_project_root(app: &tauri::AppHandle) -> ComponentMarketResult<PathBuf> {
-    if let Ok(current_dir) = std::env::current_dir() {
-        if let Some(project_root) = find_project_root_from(&current_dir) {
-            return Ok(project_root);
-        }
-    }
-
-    if let Ok(resource_dir) = app.path().resource_dir() {
-        if let Some(project_root) = find_project_root_from(&resource_dir) {
-            return Ok(project_root);
-        }
-    }
-
-    Err(ComponentMarketError::Path(
-        "unable to resolve Agent-HTML project root".to_string(),
-    ))
-}
-
-fn prompt_schema_artifact_path(app: &tauri::AppHandle) -> ComponentMarketResult<PathBuf> {
-    Ok(resolve_project_root(app)?.join(".tmp").join("agent-html-prompt-schema.md"))
+fn prompt_schema_artifact_path(store: &WorkspaceStore) -> PathBuf {
+    store.root().join(PROMPT_SCHEMA_ARTIFACT_RELATIVE_PATH)
 }
 
 #[tauri::command]
@@ -117,16 +91,37 @@ pub(crate) fn save_component_market_settings(
 
 #[tauri::command]
 pub(crate) fn write_agent_html_prompt_schema_artifact(
-    app: tauri::AppHandle,
+    store: State<'_, WorkspaceStore>,
     input: AgentHtmlPromptSchemaArtifactInput,
 ) -> ComponentMarketResult<AgentHtmlPromptSchemaArtifact> {
-    let path = prompt_schema_artifact_path(&app)?;
+    let path = prompt_schema_artifact_path(&store);
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
 
     fs::write(&path, input.content)?;
     Ok(AgentHtmlPromptSchemaArtifact {
-        path: path.to_string_lossy().to_string(),
+        path: PROMPT_SCHEMA_ARTIFACT_RELATIVE_PATH.to_string(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn prompt_schema_artifact_path_is_workspace_root_relative() {
+        let temp_dir = tempfile::tempdir().expect("create temp workspace");
+        let root = temp_dir.path().join("AgentHTML");
+        let store = WorkspaceStore::open(root.clone()).expect("open workspace root");
+
+        assert_eq!(
+            prompt_schema_artifact_path(&store),
+            root.join(".agents")
+                .join("skills")
+                .join("agent-html")
+                .join("references")
+                .join("prompt-schema.md")
+        );
+    }
 }

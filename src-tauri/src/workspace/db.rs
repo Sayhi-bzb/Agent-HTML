@@ -1,8 +1,7 @@
 use rusqlite::{params, Connection, OptionalExtension};
 
 use crate::workspace::types::{
-    ProjectCodexThreadLink, ProjectSectionDocument, SectionWithDocument, WorkspaceError,
-    WorkspaceProject, WorkspaceResult, WorkspaceSection,
+    ProjectCodexThreadLink, WorkspaceError, WorkspaceProject, WorkspaceResult, WorkspaceSection,
 };
 
 pub(crate) fn create_schema(connection: &Connection) -> WorkspaceResult<()> {
@@ -31,7 +30,6 @@ pub(crate) fn create_schema(connection: &Connection) -> WorkspaceResult<()> {
         CREATE TABLE IF NOT EXISTS project_section_documents (
             project_id TEXT NOT NULL,
             section_id TEXT NOT NULL,
-            ahtml_source TEXT NOT NULL,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             PRIMARY KEY (project_id, section_id),
@@ -45,7 +43,7 @@ pub(crate) fn create_schema(connection: &Connection) -> WorkspaceResult<()> {
             project_id TEXT NOT NULL,
             origin TEXT NOT NULL DEFAULT 'agent-html',
             last_section_id TEXT,
-            last_ahtml_path TEXT,
+            last_block_path TEXT,
             last_document_path TEXT,
             created_at TEXT NOT NULL,
             last_used_at TEXT NOT NULL,
@@ -53,7 +51,72 @@ pub(crate) fn create_schema(connection: &Connection) -> WorkspaceResult<()> {
         );
         ",
     )?;
+    remove_document_source_column_if_present(connection)?;
+    rename_thread_ahtml_path_column_if_present(connection)?;
 
+    Ok(())
+}
+
+fn remove_document_source_column_if_present(connection: &Connection) -> WorkspaceResult<()> {
+    if !table_has_column(connection, "project_section_documents", "ahtml_source")? {
+        return Ok(());
+    }
+
+    connection.execute_batch(
+        "
+        CREATE TABLE project_section_documents_next (
+            project_id TEXT NOT NULL,
+            section_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (project_id, section_id),
+            FOREIGN KEY (project_id, section_id)
+                REFERENCES project_sections(project_id, id)
+                ON DELETE CASCADE
+        );
+
+        INSERT OR IGNORE INTO project_section_documents_next
+            (project_id, section_id, created_at, updated_at)
+        SELECT project_id, section_id, created_at, updated_at
+        FROM project_section_documents;
+
+        DROP TABLE project_section_documents;
+        ALTER TABLE project_section_documents_next RENAME TO project_section_documents;
+        ",
+    )?;
+
+    Ok(())
+}
+
+fn table_has_column(
+    connection: &Connection,
+    table_name: &str,
+    column_name: &str,
+) -> WorkspaceResult<bool> {
+    let mut statement = connection.prepare(&format!("PRAGMA table_info({table_name})"))?;
+    let columns = statement.query_map([], |row| row.get::<_, String>(1))?;
+
+    for column in columns {
+        if column? == column_name {
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
+}
+
+fn rename_thread_ahtml_path_column_if_present(connection: &Connection) -> WorkspaceResult<()> {
+    if table_has_column(connection, "project_codex_threads", "last_block_path")? {
+        return Ok(());
+    }
+    if !table_has_column(connection, "project_codex_threads", "last_ahtml_path")? {
+        return Ok(());
+    }
+
+    connection.execute(
+        "ALTER TABLE project_codex_threads RENAME COLUMN last_ahtml_path TO last_block_path",
+        [],
+    )?;
     Ok(())
 }
 
@@ -167,15 +230,15 @@ pub(crate) fn get_section(
     })
 }
 
-pub(crate) fn get_section_with_document(
+pub(crate) fn get_section_for_document(
     connection: &Connection,
     project_id: &str,
     section_id: &str,
-) -> WorkspaceResult<SectionWithDocument> {
+) -> WorkspaceResult<(WorkspaceSection, String)> {
     let row = connection
         .query_row(
             "SELECT s.id, s.project_id, s.title, s.group_title, s.sort_order,
-                    d.ahtml_source, d.updated_at
+                    d.updated_at
              FROM project_sections s
              JOIN project_section_documents d
                ON d.project_id = s.project_id AND d.section_id = s.id
@@ -189,15 +252,9 @@ pub(crate) fn get_section_with_document(
                     group_title: row.get(3)?,
                     sort_order: row.get(4)?,
                 };
-                let document = ProjectSectionDocument {
-                    project_id: section.project_id.clone(),
-                    section_id: section.id.clone(),
-                    ahtml_source: row.get(5)?,
-                    file_path: String::new(),
-                    updated_at: row.get(6)?,
-                };
+                let updated_at = row.get(5)?;
 
-                Ok(SectionWithDocument { document, section })
+                Ok((section, updated_at))
             },
         )
         .optional()?;
@@ -237,10 +294,10 @@ pub(crate) fn read_document_row(
     connection: &Connection,
     project_id: &str,
     section_id: &str,
-) -> WorkspaceResult<(String, String, String, String)> {
+) -> WorkspaceResult<(String, String, String)> {
     let document = connection
         .query_row(
-            "SELECT project_id, section_id, ahtml_source, updated_at
+            "SELECT project_id, section_id, updated_at
              FROM project_section_documents
              WHERE project_id = ?1 AND section_id = ?2",
             params![project_id, section_id],
@@ -249,7 +306,6 @@ pub(crate) fn read_document_row(
                     row.get::<_, String>(0)?,
                     row.get::<_, String>(1)?,
                     row.get::<_, String>(2)?,
-                    row.get::<_, String>(3)?,
                 ))
             },
         )
@@ -267,7 +323,7 @@ pub(crate) fn get_project_codex_thread_link(
 ) -> WorkspaceResult<ProjectCodexThreadLink> {
     connection
         .query_row(
-            "SELECT thread_id, project_id, origin, last_section_id, last_ahtml_path,
+            "SELECT thread_id, project_id, origin, last_section_id, last_block_path,
                     last_document_path, created_at, last_used_at
              FROM project_codex_threads
              WHERE thread_id = ?1",
@@ -278,7 +334,7 @@ pub(crate) fn get_project_codex_thread_link(
                     project_id: row.get(1)?,
                     origin: row.get(2)?,
                     last_section_id: row.get(3)?,
-                    last_ahtml_path: row.get(4)?,
+                    last_block_path: row.get(4)?,
                     last_document_path: row.get(5)?,
                     created_at: row.get(6)?,
                     last_used_at: row.get(7)?,

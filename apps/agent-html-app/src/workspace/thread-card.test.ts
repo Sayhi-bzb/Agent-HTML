@@ -57,7 +57,7 @@ describe("workspace thread card helpers", () => {
                     text: [
                       "---",
                       "filePath: D:/demo/page.ahtml",
-                      "ahtmlPath: /Page/Stack[0]",
+                      "blockPath: /Page/Stack[0]",
                       "---",
                       "",
                       "```ahtml",

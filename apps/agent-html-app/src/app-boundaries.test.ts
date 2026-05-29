@@ -10,7 +10,7 @@ const appSource = readFileSync(
 describe("App source boundaries", () => {
   it("keeps workspace ownership in the workspace controller", () => {
     expect(appSource).toContain("useWorkspaceController")
-    expect(appSource).not.toContain("createWorkspaceRepository")
+    expect(appSource).not.toContain("createWorkspaceStore")
     expect(appSource).not.toContain("markCodexStartupEvent")
     expect(appSource).not.toContain("setProjects")
     expect(appSource).not.toContain("setOpenTabs")
@@ -20,7 +20,7 @@ describe("App source boundaries", () => {
 
   it("keeps gallery ownership in the gallery controller", () => {
     expect(appSource).toContain("useGalleryController")
-    expect(appSource).not.toContain("createGalleryComponentMarketRepository")
+    expect(appSource).not.toContain("createGalleryComponentMarketStore")
     expect(appSource).not.toContain("GalleryEditorPanel")
     expect(appSource).not.toContain("GalleryMarketSidebar")
     expect(appSource).not.toContain("saveAppliedAppTheme")

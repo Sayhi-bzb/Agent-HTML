@@ -4,7 +4,7 @@ import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
 import { parseAgentHtml } from "@/agent-html"
 
 const document = {
-  ahtmlSource: [
+  source: [
     "<Page>",
     "  <Section>",
     "    <Stack>",
@@ -14,10 +14,21 @@ const document = {
     "</Page>",
     "",
   ].join("\n"),
-  filePath: "D:\\workspace\\project-1\\section-1.agent-html",
+  filePath: "D:\\AgentHTML\\projects\\project-1\\section-1\\artifact.agent-html",
   projectId: "project-1",
   sectionId: "section-1",
   updatedAt: "2026-05-27T00:00:00.000Z",
+}
+
+const worldDocument = {
+  ...document,
+  filePath:
+    "C:\\Users\\Administrator\\AppData\\Roaming\\Agent-HTML\\AgentHTML\\projects\\project-1\\section-1\\artifact.agent-html",
+}
+
+const customRootDocument = {
+  ...document,
+  filePath: "D:\\AgentHTML\\projects\\project-1\\section-1\\artifact.agent-html",
 }
 
 const project = {
@@ -60,6 +71,7 @@ describe("deliverAgentHtmlIntent", () => {
         },
       },
       threadId: "thr_123",
+      workspaceRootPath: "D:\\AgentHTML",
     })
 
     expect(result.ok).toBe(true)
@@ -68,9 +80,9 @@ describe("deliverAgentHtmlIntent", () => {
     expect(promptText).toContain(
       [
         "---",
-        "filePath: D:\\workspace\\project-1\\section-1.agent-html",
+        "filePath: projects/project-1/section-1/artifact.agent-html",
         "targetKind: block",
-        "ahtmlPath: /Page/Section[0]/Stack[0]",
+        "blockPath: /Page/Section[0]/Stack[0]",
         "---",
       ].join("\n")
     )
@@ -87,12 +99,12 @@ describe("deliverAgentHtmlIntent", () => {
       threadId: "thr_123",
       turnId: "turn_123",
     })
-    const parsedDocument = parseAgentHtml(document.ahtmlSource)
+    const parsedDocument = parseAgentHtml(document.source)
 
     const result = await deliverAgentHtmlIntent({
       document: {
         ...document,
-        ahtmlSource: "<Page><Text>Changed source should not be parsed</Text></Page>",
+        source: "<Page><Text>Changed source should not be parsed</Text></Page>",
       },
       parsedDocument,
       project,
@@ -106,6 +118,7 @@ describe("deliverAgentHtmlIntent", () => {
         },
       },
       threadId: "thr_123",
+      workspaceRootPath: "D:\\AgentHTML",
     })
 
     expect(result.ok).toBe(true)
@@ -136,11 +149,12 @@ describe("deliverAgentHtmlIntent", () => {
         },
       },
       threadId: "thr_123",
+      workspaceRootPath: "D:\\AgentHTML",
     })
 
     expect(result.ok).toBe(true)
     expect(startTurn.mock.calls[0][0].promptText).toContain(
-      "ahtmlPath: /Page/Section[0]/Stack[1]"
+      "blockPath: /Page/Section[0]/Stack[1]"
     )
     expect(startTurn.mock.calls[0][0].promptText).toMatch(/```ahtml\s+```/)
   })
@@ -169,6 +183,7 @@ describe("deliverAgentHtmlIntent", () => {
         },
       },
       threadId: "thr_123",
+      workspaceRootPath: "D:\\AgentHTML",
     })
 
     expect(result.ok).toBe(false)
@@ -197,6 +212,7 @@ describe("deliverAgentHtmlIntent", () => {
         },
       },
       threadId: "thr_123",
+      workspaceRootPath: "D:\\AgentHTML",
     })
 
     expect(result.ok).toBe(true)
@@ -204,14 +220,94 @@ describe("deliverAgentHtmlIntent", () => {
     expect(promptText).toContain(
       [
         "---",
-        "filePath: D:\\workspace\\project-1\\section-1.agent-html",
+        "filePath: projects/project-1/section-1/artifact.agent-html",
         "targetKind: document",
         "---",
       ].join("\n")
     )
-    expect(promptText).not.toContain("ahtmlPath:")
+    expect(promptText).not.toContain("blockPath:")
     expect(promptText).toContain("<Page>")
     expect(promptText).toContain("<Text>Move faster</Text>")
     expect(promptText).toContain("\n```\n\nRequest:\nReview this section.")
+  })
+
+  it("uses a file path relative to the Codex workspace root", async () => {
+    const startTurn = vi.fn().mockResolvedValue({
+      threadId: "thr_123",
+      turnId: "turn_123",
+    })
+
+    await deliverAgentHtmlIntent({
+      document: worldDocument,
+      project,
+      section,
+      startTurn,
+      submit: {
+        prompt: "Review this section.",
+        target: {
+          kind: "document",
+        },
+      },
+      threadId: "thr_123",
+      workspaceRootPath:
+        "C:\\Users\\Administrator\\AppData\\Roaming\\Agent-HTML\\AgentHTML",
+    })
+
+    expect(startTurn.mock.calls[0][0].promptText).toContain(
+      "filePath: projects/project-1/section-1/artifact.agent-html"
+    )
+  })
+
+  it("handles custom workspace roots and trailing slashes", async () => {
+    const startTurn = vi.fn().mockResolvedValue({
+      threadId: "thr_123",
+      turnId: "turn_123",
+    })
+
+    await deliverAgentHtmlIntent({
+      document: customRootDocument,
+      project,
+      section,
+      startTurn,
+      submit: {
+        prompt: "Review this section.",
+        target: {
+          kind: "document",
+        },
+      },
+      threadId: "thr_123",
+      workspaceRootPath: "D:/AgentHTML/",
+    })
+
+    expect(startTurn.mock.calls[0][0].promptText).toContain(
+      "filePath: projects/project-1/section-1/artifact.agent-html"
+    )
+  })
+
+  it("rejects file paths outside the Codex workspace root", async () => {
+    const startTurn = vi.fn().mockResolvedValue({
+      threadId: "thr_123",
+      turnId: "turn_123",
+    })
+
+    await expect(
+      deliverAgentHtmlIntent({
+        document: {
+          ...document,
+          filePath: "D:\\external\\notes\\source.agent-html",
+        },
+        project,
+        section,
+        startTurn,
+        submit: {
+          prompt: "Review this section.",
+          target: {
+            kind: "document",
+          },
+        },
+        threadId: "thr_123",
+        workspaceRootPath: "D:\\AgentHTML",
+      })
+    ).rejects.toThrow("outside the Codex workspace root")
   })
 })

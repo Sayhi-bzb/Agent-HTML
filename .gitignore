@@ -22,6 +22,7 @@ src-tauri/gen/
 .cache
 .tmp/
 .codex-tmp/
+.secrets/
 .wrangler/
 ref-tmp/
 .vite-*.log

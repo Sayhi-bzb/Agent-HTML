@@ -28,7 +28,7 @@ describe("workspace surface boundaries", () => {
     expect(surfaceSource).not.toContain("renderWorkspaceDocument")
   })
 
-  it("keeps thread repository ownership out of the surface composition layer", () => {
+  it("keeps thread store ownership out of the surface composition layer", () => {
     expect(surfaceSource).not.toContain("listProjectCodexThreads")
     expect(surfaceSource).not.toContain("upsertProjectCodexThreadLink")
     expect(surfaceSource).not.toContain("touchProjectCodexThreadLink")

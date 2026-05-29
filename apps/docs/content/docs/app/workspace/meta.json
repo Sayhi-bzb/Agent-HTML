@@ -1,5 +1,12 @@
 {
   "title": "Workspace",
   "root": true,
-  "pages": ["index", "projects-and-tabs", "reviewing-artifacts", "codex-host", "search-and-settings"]
+  "pages": [
+    "index",
+    "workspace-root",
+    "projects-and-tabs",
+    "reviewing-artifacts",
+    "codex-host",
+    "search-and-settings"
+  ]
 }

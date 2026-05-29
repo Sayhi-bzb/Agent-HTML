@@ -1,7 +1,7 @@
 export {
   CodexConnectionProvider,
-  useCodexConnection,
 } from "./connection/provider"
+export { useCodexConnection } from "./connection/use-codex-connection"
 export { scheduleCodexAutoConnect } from "./connection/auto-connect"
 export { readThreadId, readThreads } from "./connection/parsers"
 export { markCodexStartupEvent } from "./connection/trace"

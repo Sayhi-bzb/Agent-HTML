@@ -13,6 +13,7 @@ import type {
   WorkspaceProjectView,
   WorkspaceSection,
 } from "@/app/workspace/types"
+import { formatCodexWorkspacePath } from "@/app/workspace/codex-path"
 
 type AgentHtmlContextEvent = {
   context: {
@@ -34,9 +35,10 @@ type AgentHtmlContextEvent = {
     sectionId: string
     sectionTitle: string
     surface: "workspace"
+    workspaceRootPath: string
   }
   target: {
-    ahtmlPath?: string
+    blockPath?: string
     kind: "block" | "document"
   }
 }
@@ -116,13 +118,14 @@ function findElementByPath(
 }
 
 function createPromptText(event: AgentHtmlContextEvent) {
-  // TODO: Convert filePath to a Codex-cwd-relative path when the host exposes a
-  // stable cwd contract for workspace documents.
   return [
     "---",
-    `filePath: ${event.source.filePath}`,
+    `filePath: ${formatCodexWorkspacePath(
+      event.source.filePath,
+      event.source.workspaceRootPath
+    )}`,
     `targetKind: ${event.target.kind}`,
-    event.target.ahtmlPath ? `ahtmlPath: ${event.target.ahtmlPath}` : null,
+    event.target.blockPath ? `blockPath: ${event.target.blockPath}` : null,
     "---",
     "",
     "```ahtml",
@@ -148,9 +151,10 @@ export async function deliverAgentHtmlIntent(input: {
   }>
   submit: AgentHtmlAgentPromptSubmitInput
   threadId: string
+  workspaceRootPath: string
 }): Promise<AgentHtmlIntentDeliveryResult> {
   const parsedDocument =
-    input.parsedDocument ?? parseAgentHtml(input.document.ahtmlSource)
+    input.parsedDocument ?? parseAgentHtml(input.document.source)
   const selectedNode =
     input.submit.target.kind === "block"
       ? findElementByPath(parsedDocument, input.submit.target.path)
@@ -177,9 +181,10 @@ export async function deliverAgentHtmlIntent(input: {
       sectionId: input.section.id,
       sectionTitle: input.section.title,
       surface: "workspace",
+      workspaceRootPath: input.workspaceRootPath,
     },
     target: {
-      ahtmlPath:
+      blockPath:
         input.submit.target.kind === "block"
           ? input.submit.target.path
           : undefined,

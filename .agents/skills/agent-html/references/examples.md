@@ -1,44 +1,22 @@
-<!-- AUTO-GENERATED FROM packages/agent-html/src/fixtures -->
-# Agent-HTML Examples
+# AgentHTML Examples
 
-Source fixtures live in:
-
-- `packages/agent-html/src/fixtures/valid/`
-- `packages/agent-html/src/fixtures/invalid/`
-
-Use the closest valid fixture before inventing new structure.
+Use these pattern names as orientation before drafting new structure.
 
 ## Valid Patterns
 
-- `card-tabs-grid.xml`
-- `codeblock-basic.xml`
-- `complex-dashboard.xml`
-- `icon-basic.xml`
-- `image-basic.xml`
-- `minimal-page.xml`
-- `section-width.xml`
-- `text-basic.xml`
-- `timeline-basic.xml`
+- `minimal-page`: root Page with a single Section.
+- `card-tabs-grid`: Cards inside Grid with nested Tabs.
+- `complex-dashboard`: mixed layout, cards, metrics, and charts.
+- `timeline-basic`: Timeline with status and optional icon attrs.
+- `kanban-basic`: Kanban columns and items with stable values.
+- `codeblock-basic`: CodeBlock with raw code text.
+- `image-basic`: Image with src, alt, and fit.
 
 ## Invalid Patterns
 
-- `bare-text-under-grid.xml`
-- `bare-text-under-section.xml`
-- `carousel-missing-content.xml`
-- `chart-missing-series.xml`
-- `codeblock-empty.xml`
-- `codeblock-invalid-language.xml`
-- `codeblock-missing-language.xml`
-- `image-invalid-fit.xml`
-- `image-invalid-src.xml`
-- `image-with-child.xml`
-- `layout-gap-not-allowed.xml`
-- `missing-tabs-trigger-value.xml`
-- `section-invalid-width.xml`
-- `text-with-child.xml`
-- `timeline-invalid-status.xml`
-- `timeline-item-missing-title.xml`
-- `timeline-missing-item.xml`
-- `timeline-unknown-icon.xml`
-- `unknown-icon-name.xml`
-- `unknown-tag.xml`
+- Bare text directly under `Page`, `Section`, `Stack`, `Cluster`, or `Grid`.
+- Unknown tags or attrs.
+- JSX expressions, imports, hooks, `class`, `className`, or `style`.
+- Missing required attrs like `Page:title`, `Image:src`, or `Image:alt`.
+- Invalid enum attrs such as unknown variants, widths, status, or language values.
+- Unknown Lucide icon names.

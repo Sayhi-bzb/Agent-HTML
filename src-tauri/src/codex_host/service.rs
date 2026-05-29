@@ -1,6 +1,8 @@
 use serde_json::{json, Value};
 use tauri::State;
 
+use crate::workspace::WorkspaceStore;
+
 use super::error::CodexHostResult;
 use super::health::{process_status_from_state, CodexHostProcessStatus};
 use super::process::{check_codex_process, spawn_codex_process, stop_codex_process};
@@ -9,16 +11,18 @@ use super::rpc::{
 };
 use super::settings::{normalize_codex_settings, CodexHostSettings};
 use super::state::{set_last_error, CodexHostState};
-use super::trace::append_connection_trace;
+use super::trace::{append_connection_trace, bind_connection_trace_path};
 use super::workspace::resolve_workspace_cwd;
 
 pub(crate) fn start(
     app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: CodexHostSettings,
 ) -> CodexHostResult<CodexHostProcessStatus> {
     let settings = normalize_codex_settings(&settings);
-    let workspace_cwd = resolve_workspace_cwd(&app)?;
+    let workspace_cwd = resolve_workspace_cwd(&store)?;
+    bind_connection_trace_path(&store)?;
     append_connection_trace(
         "host:start:entry",
         json!({
@@ -110,6 +114,7 @@ pub(crate) fn stop(
 pub(crate) fn restart(
     app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: CodexHostSettings,
 ) -> CodexHostResult<CodexHostProcessStatus> {
     let normalized = normalize_codex_settings(&settings);
@@ -126,16 +131,17 @@ pub(crate) fn restart(
         &state.pending_requests,
         "Codex app-server restarted.".to_string(),
     );
-    start(app, state, normalized)
+    start(app, state, store, normalized)
 }
 
 pub(crate) fn health(
-    app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: CodexHostSettings,
 ) -> CodexHostResult<CodexHostProcessStatus> {
     let settings = normalize_codex_settings(&settings);
-    let workspace_cwd = resolve_workspace_cwd(&app).ok();
+    let workspace_cwd = Some(resolve_workspace_cwd(&store)?);
+    bind_connection_trace_path(&store)?;
     append_connection_trace(
         "host:health:entry",
         json!({
@@ -172,9 +178,11 @@ pub(crate) fn health(
 fn ensure_host_ready(
     app: &tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: &CodexHostSettings,
 ) -> CodexHostResult<()> {
-    resolve_workspace_cwd(app)?;
+    resolve_workspace_cwd(&store)?;
+    bind_connection_trace_path(&store)?;
 
     if state
         .process
@@ -182,7 +190,7 @@ fn ensure_host_ready(
         .expect("codex process lock poisoned")
         .is_none()
     {
-        drop(start(app.clone(), state.clone(), settings.clone())?);
+        drop(start(app.clone(), state.clone(), store, settings.clone())?);
     }
 
     Ok(())
@@ -191,6 +199,7 @@ fn ensure_host_ready(
 pub(crate) fn rpc_request(
     app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: &CodexHostSettings,
     method: String,
     params: Value,
@@ -201,7 +210,7 @@ pub(crate) fn rpc_request(
             "method": method,
         }),
     );
-    ensure_host_ready(&app, state.clone(), settings)?;
+    ensure_host_ready(&app, state.clone(), store, settings)?;
     ensure_initialized(&state)?;
     send_codex_request(&state, &method, params)
 }
@@ -209,11 +218,12 @@ pub(crate) fn rpc_request(
 pub(crate) fn rpc_notify(
     app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: &CodexHostSettings,
     method: String,
     params: Value,
 ) -> CodexHostResult<()> {
-    ensure_host_ready(&app, state.clone(), settings)?;
+    ensure_host_ready(&app, state.clone(), store, settings)?;
     ensure_initialized(&state)?;
     send_codex_notification(&state, &method, params)
 }

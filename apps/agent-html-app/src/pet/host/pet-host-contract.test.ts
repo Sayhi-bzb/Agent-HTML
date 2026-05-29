@@ -29,6 +29,8 @@ describe("pet host contract", () => {
   it("keeps app-hosted pet UI and actions in the host", () => {
     expect(hostSource).toContain("WorkspaceGhostPet")
     expect(hostSource).toContain("AgentHtmlPromptComposer")
+    expect(hostSource).toContain("PetSettingsContent")
+    expect(hostSource).toContain("settingsContent")
     expect(hostSource).toContain("threadPickerContent")
     expect(hostSource).toContain("onPromptSubmit")
     expect(hostSource).not.toContain("WebviewWindow")

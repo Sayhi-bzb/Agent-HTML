@@ -40,9 +40,6 @@ export type AppPresetThemeDraft = {
 export type AppThemeDraft = AppPresetThemeDraft | AppTokenThemeDraft
 
 const appliedAppThemeStorageKey = "app:applied-theme"
-const legacyAppliedGalleryThemeStorageKey = "gallery:applied-theme"
-const legacyAppliedGalleryColorTokenStorageKey =
-  "gallery:applied-color-token-values"
 const appAppliedThemeStyleId = "app-applied-theme-vars"
 const appColorFamilySet = new Set<string>(appColorFamilies)
 const appColorStepSet = new Set<string>(appColorSteps)
@@ -630,10 +627,7 @@ export function applyAppTheme(draft: AppThemeDraft) {
 }
 
 export function loadAppliedAppTheme() {
-  const storedValue =
-    localStorage.getItem(appliedAppThemeStorageKey) ??
-    localStorage.getItem(legacyAppliedGalleryThemeStorageKey) ??
-    localStorage.getItem(legacyAppliedGalleryColorTokenStorageKey)
+  const storedValue = localStorage.getItem(appliedAppThemeStorageKey)
 
   if (!storedValue) {
     return null

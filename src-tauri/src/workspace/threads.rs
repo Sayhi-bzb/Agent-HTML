@@ -9,7 +9,7 @@ pub(crate) fn list_project_codex_threads(
     project_id: &str,
 ) -> WorkspaceResult<Vec<ProjectCodexThreadLink>> {
     let mut statement = connection.prepare(
-        "SELECT thread_id, project_id, origin, last_section_id, last_ahtml_path,
+        "SELECT thread_id, project_id, origin, last_section_id, last_block_path,
                 last_document_path, created_at, last_used_at
          FROM project_codex_threads
          WHERE project_id = ?1
@@ -21,7 +21,7 @@ pub(crate) fn list_project_codex_threads(
             project_id: row.get(1)?,
             origin: row.get(2)?,
             last_section_id: row.get(3)?,
-            last_ahtml_path: row.get(4)?,
+            last_block_path: row.get(4)?,
             last_document_path: row.get(5)?,
             created_at: row.get(6)?,
             last_used_at: row.get(7)?,
@@ -36,28 +36,28 @@ pub(crate) fn upsert_project_codex_thread_link(
     project_id: &str,
     thread_id: &str,
     section_id: Option<&str>,
-    ahtml_path: Option<&str>,
+    block_path: Option<&str>,
     document_path: Option<&str>,
 ) -> WorkspaceResult<ProjectCodexThreadLink> {
     let now = current_timestamp();
     db::ensure_project_exists(connection, project_id)?;
     connection.execute(
         "INSERT INTO project_codex_threads
-         (thread_id, project_id, origin, last_section_id, last_ahtml_path,
+         (thread_id, project_id, origin, last_section_id, last_block_path,
           last_document_path, created_at, last_used_at)
          VALUES (?1, ?2, 'agent-html', ?3, ?4, ?5, ?6, ?6)
          ON CONFLICT(thread_id) DO UPDATE SET
             project_id = excluded.project_id,
             origin = excluded.origin,
             last_section_id = excluded.last_section_id,
-            last_ahtml_path = excluded.last_ahtml_path,
+            last_block_path = excluded.last_block_path,
             last_document_path = excluded.last_document_path,
             last_used_at = excluded.last_used_at",
         params![
             thread_id,
             project_id,
             section_id,
-            ahtml_path,
+            block_path,
             document_path,
             now
         ],

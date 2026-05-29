@@ -1,8 +1,9 @@
 use rusqlite::{params, Connection};
+use serde_json::json;
 
 use crate::workspace::db;
 use crate::workspace::documents::DocumentStore;
-use crate::workspace::seed::{create_blank_section_ahtml_source, seed_section};
+use crate::workspace::seed::{create_blank_section_source, seed_section};
 use crate::workspace::types::{
     ProjectSectionDocument, WorkspaceError, WorkspaceResult, WorkspaceSection,
 };
@@ -23,16 +24,15 @@ pub(crate) fn get_project_section_document(
     project_id: &str,
     section_id: &str,
 ) -> WorkspaceResult<ProjectSectionDocument> {
-    let (project_id, section_id, legacy_source, updated_at) =
+    let (project_id, section_id, updated_at) =
         db::read_document_row(connection, project_id, section_id)?;
-    let (ahtml_source, file_path) =
-        documents.read_or_migrate_document(&project_id, &section_id, &legacy_source)?;
+    let (source, file_path) = documents.read_document(&project_id, &section_id)?;
 
     Ok(ProjectSectionDocument {
-        ahtml_source,
         file_path,
         project_id,
         section_id,
+        source,
         updated_at,
     })
 }
@@ -57,8 +57,19 @@ pub(crate) fn create_project_section(
     let sort_order = next_section_sort_order(connection, project_id)?;
     let now = current_timestamp();
     let section = seed_section(project_id, &section_id, title, "Workspace", sort_order);
-    let ahtml_source = create_blank_section_ahtml_source(&project, &section);
-    documents.write_document(&section.project_id, &section.id, &ahtml_source)?;
+    let source = create_blank_section_source(&project, &section);
+    documents.write_section_metadata(
+        &section.project_id,
+        &section.id,
+        &serde_json::to_string_pretty(&json!({
+            "groupTitle": section.group_title,
+            "id": section.id,
+            "projectId": section.project_id,
+            "sortOrder": section.sort_order,
+            "title": section.title,
+        }))?,
+    )?;
+    documents.write_document(&section.project_id, &section.id, &source)?;
 
     let transaction_result = (|| -> WorkspaceResult<()> {
         let transaction = connection.transaction()?;
@@ -78,9 +89,9 @@ pub(crate) fn create_project_section(
         )?;
         transaction.execute(
             "INSERT INTO project_section_documents
-             (project_id, section_id, ahtml_source, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![section.project_id, section.id, ahtml_source, now, now],
+             (project_id, section_id, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4)",
+            params![section.project_id, section.id, now, now],
         )?;
         transaction.commit()?;
         Ok(())
@@ -96,6 +107,7 @@ pub(crate) fn create_project_section(
 
 pub(crate) fn rename_project_section(
     connection: &Connection,
+    documents: &DocumentStore,
     project_id: &str,
     section_id: &str,
     title: &str,
@@ -120,7 +132,19 @@ pub(crate) fn rename_project_section(
         });
     }
 
-    db::get_section(connection, project_id, section_id)
+    let section = db::get_section(connection, project_id, section_id)?;
+    documents.write_section_metadata(
+        &section.project_id,
+        &section.id,
+        &serde_json::to_string_pretty(&json!({
+            "groupTitle": section.group_title,
+            "id": section.id,
+            "projectId": section.project_id,
+            "sortOrder": section.sort_order,
+            "title": section.title,
+        }))?,
+    )?;
+    Ok(section)
 }
 
 pub(crate) fn delete_project_section(
@@ -152,11 +176,11 @@ pub(crate) fn duplicate_project_section(
     project_id: &str,
     section_id: &str,
 ) -> WorkspaceResult<WorkspaceSection> {
-    let source = db::get_section_with_document(connection, project_id, section_id)?;
+    let (source_section, _) = db::get_section_for_document(connection, project_id, section_id)?;
     let next_title = unique_section_title(
         connection,
         project_id,
-        &format!("{} Copy", source.section.title),
+        &format!("{} Copy", source_section.title),
     )?;
     let next_section_id = unique_section_id(connection, project_id, &next_title)?;
     let sort_order = next_section_sort_order(connection, project_id)?;
@@ -165,16 +189,21 @@ pub(crate) fn duplicate_project_section(
         project_id,
         &next_section_id,
         &next_title,
-        &source.section.group_title,
+        &source_section.group_title,
         sort_order,
     );
-    let document_source = documents.duplicate_document(
-        project_id,
-        section_id,
+    documents.write_section_metadata(
         &section.project_id,
         &section.id,
-        &source.document.ahtml_source,
+        &serde_json::to_string_pretty(&json!({
+            "groupTitle": section.group_title,
+            "id": section.id,
+            "projectId": section.project_id,
+            "sortOrder": section.sort_order,
+            "title": section.title,
+        }))?,
     )?;
+    documents.duplicate_document(project_id, section_id, &section.project_id, &section.id)?;
 
     let transaction_result = (|| -> WorkspaceResult<()> {
         let transaction = connection.transaction()?;
@@ -194,9 +223,9 @@ pub(crate) fn duplicate_project_section(
         )?;
         transaction.execute(
             "INSERT INTO project_section_documents
-             (project_id, section_id, ahtml_source, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![section.project_id, section.id, document_source, now, now],
+             (project_id, section_id, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4)",
+            params![section.project_id, section.id, now, now],
         )?;
         transaction.commit()?;
         Ok(())
@@ -215,27 +244,27 @@ pub(crate) fn update_project_section_document(
     documents: &DocumentStore,
     project_id: &str,
     section_id: &str,
-    ahtml_source: &str,
+    source: &str,
 ) -> WorkspaceResult<ProjectSectionDocument> {
     db::ensure_document_exists(connection, project_id, section_id)?;
 
     let updated_at = current_timestamp();
     let file_path = documents
-        .write_document(project_id, section_id, ahtml_source)?
+        .write_document(project_id, section_id, source)?
         .to_string_lossy()
         .to_string();
     connection.execute(
         "UPDATE project_section_documents
-         SET ahtml_source = ?3, updated_at = ?4
+         SET updated_at = ?3
          WHERE project_id = ?1 AND section_id = ?2",
-        params![project_id, section_id, ahtml_source, updated_at],
+        params![project_id, section_id, updated_at],
     )?;
 
     Ok(ProjectSectionDocument {
-        ahtml_source: ahtml_source.to_string(),
         file_path,
         project_id: project_id.to_string(),
         section_id: section_id.to_string(),
+        source: source.to_string(),
         updated_at,
     })
 }

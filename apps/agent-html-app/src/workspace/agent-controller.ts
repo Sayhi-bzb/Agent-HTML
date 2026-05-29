@@ -5,6 +5,7 @@ import {
   type AgentActivityTurnContext,
 } from "@/app/workspace/agent-activity"
 import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
+import { formatCodexWorkspacePath } from "@/app/workspace/codex-path"
 import type {
   RuntimeState,
   WorkspaceDocumentState,
@@ -12,7 +13,6 @@ import type {
 import type { PetPresence } from "@/app/workspace/agent-presence"
 import type { WorkspaceThreadController } from "@/app/workspace/thread-controller"
 import type {
-  ProjectSectionDocument,
   WorkspaceProjectView,
   WorkspaceSection,
 } from "@/app/workspace/types"
@@ -110,7 +110,8 @@ export function useWorkspaceAgentController({
   const lastInteractionRef =
     React.useRef<AgentHtmlAgentInteractionEvent | null>(null)
   const { codexConnection } = threadController
-  const documentAhtmlPath =
+  const workspaceRootPath = codexConnection.workspaceRootStatus?.rootPath ?? null
+  const documentBlockPath =
     runtime?.status === "ready" ? `/${runtime.parsedDocument.root.tag}` : null
 
   const handlePromptSubmit = React.useCallback(
@@ -121,15 +122,26 @@ export function useWorkspaceAgentController({
       if (runtime?.status !== "ready") {
         return
       }
+      if (!workspaceRootPath) {
+        setAgentDeliveryState({
+          detail: "Workspace root is not ready.",
+          status: "error",
+        })
+        return
+      }
 
       setAgentDeliveryState({ status: "sending" })
       const document = documentState.document
-      const ahtmlPath = getPromptSubmitAhtmlPath(submit, documentAhtmlPath)
+      const codexDocumentPath = formatCodexWorkspacePath(
+        document.filePath,
+        workspaceRootPath
+      )
+      const blockPath = getPromptSubmitBlockPath(submit, documentBlockPath)
       const threadPromise = threadController.selectedProjectThreadId
         ? Promise.resolve(threadController.selectedProjectThreadId)
         : threadController.createThreadForProject({
-            ahtmlPath,
-            documentPath: document.filePath,
+            blockPath,
+            documentPath: codexDocumentPath,
             projectId: activeProject.id,
             sectionId: activeSection.id,
           })
@@ -147,6 +159,7 @@ export function useWorkspaceAgentController({
               interaction: submit.interaction ?? lastInteractionRef.current,
             },
             threadId,
+            workspaceRootPath,
           })
         )
         .then((result) => {
@@ -154,8 +167,8 @@ export function useWorkspaceAgentController({
             void touchThreadAfterDelivery({
               activeProject,
               activeSection,
-              document,
-              path: ahtmlPath,
+              documentPath: codexDocumentPath,
+              blockPath,
               result,
               threadController,
             })
@@ -190,9 +203,10 @@ export function useWorkspaceAgentController({
       activeSection,
       codexConnection.startTurn,
       documentState,
-      documentAhtmlPath,
+      documentBlockPath,
       runtime,
       threadController,
+      workspaceRootPath,
     ]
   )
 
@@ -220,35 +234,35 @@ export function useWorkspaceAgentController({
   }
 }
 
-function getPromptSubmitAhtmlPath(
+function getPromptSubmitBlockPath(
   submit: AgentHtmlAgentPromptSubmitInput,
-  documentAhtmlPath: string | null
+  documentBlockPath: string | null
 ) {
   if (submit.target.kind === "block") {
     return submit.target.path
   }
 
-  return documentAhtmlPath ?? "/Page"
+  return documentBlockPath ?? "/Page"
 }
 
 function touchThreadAfterDelivery({
   activeProject,
   activeSection,
-  document,
-  path,
+  blockPath,
+  documentPath,
   result,
   threadController,
 }: {
   activeProject: WorkspaceProjectView
   activeSection: WorkspaceSection
-  document: ProjectSectionDocument
-  path: string
+  blockPath: string
+  documentPath: string
   result: Extract<Awaited<ReturnType<typeof deliverAgentHtmlIntent>>, { ok: true }>
   threadController: WorkspaceThreadController
 }) {
   return threadController.touchProjectThread({
-    ahtmlPath: path,
-    documentPath: document.filePath,
+    blockPath,
+    documentPath,
     projectId: activeProject.id,
     sectionId: activeSection.id,
     threadId: result.threadId,

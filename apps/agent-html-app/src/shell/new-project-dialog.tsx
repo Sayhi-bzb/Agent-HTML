@@ -83,7 +83,8 @@ export function NewProjectDialog({
             <DialogHeader>
               <DialogTitle>New Project</DialogTitle>
               <DialogDescription>
-                Create a local desktop workspace with a blank overview section.
+                Create an AgentHTML workspace project with a blank overview
+                section.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-2 py-4">

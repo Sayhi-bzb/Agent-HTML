@@ -10,7 +10,7 @@ import {
   type GalleryComponentMarketFilters,
   type GalleryComponentMarketItem,
 } from "@/app/gallery/component-market-catalog"
-import { buildGalleryComponentPromptMetrics } from "@/app/gallery/component-market-repository"
+import { buildGalleryComponentPromptMetrics } from "@/app/gallery/component-market-store"
 
 export function GalleryComponentMarketView({
   enabledTags,

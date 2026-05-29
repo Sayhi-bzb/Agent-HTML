@@ -41,7 +41,8 @@ pub(crate) fn spawn_codex_process(
             settings.codex_command.clone()
         };
         let windows_command = format!("{quoted_command} app-server --listen stdio://");
-        let mut command = Command::new(std::env::var("ComSpec").unwrap_or_else(|_| "cmd.exe".to_string()));
+        let mut command =
+            Command::new(std::env::var("ComSpec").unwrap_or_else(|_| "cmd.exe".to_string()));
         command.args(["/d", "/s", "/c", &windows_command]);
         command
     } else {

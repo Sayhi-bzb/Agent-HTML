@@ -94,7 +94,10 @@ pub(crate) fn send_codex_notification(
     let process = process
         .as_ref()
         .ok_or_else(|| CodexHostError::Process("Codex app-server is not running.".to_string()))?;
-    send_codex_message(&process.stdin, &json!({ "method": method, "params": params }))
+    send_codex_message(
+        &process.stdin,
+        &json!({ "method": method, "params": params }),
+    )
 }
 
 pub(crate) fn send_codex_request(
@@ -123,9 +126,9 @@ pub(crate) fn send_codex_request(
             .process
             .lock()
             .map_err(|_| CodexHostError::Process("Codex process lock poisoned".to_string()))?;
-        let process = process
-            .as_ref()
-            .ok_or_else(|| CodexHostError::Process("Codex app-server is not running.".to_string()))?;
+        let process = process.as_ref().ok_or_else(|| {
+            CodexHostError::Process("Codex app-server is not running.".to_string())
+        })?;
         send_codex_message(
             &process.stdin,
             &json!({ "id": id, "method": method, "params": params }),
@@ -161,11 +164,17 @@ pub(crate) fn ensure_initialized(state: &CodexHostState) -> CodexHostResult<()> 
         .lock()
         .map_err(|_| CodexHostError::Process("Codex initialized lock poisoned".to_string()))?
     {
-        append_connection_trace("host:ensure-initialized:skip", json!({ "initialized": true }));
+        append_connection_trace(
+            "host:ensure-initialized:skip",
+            json!({ "initialized": true }),
+        );
         return Ok(());
     }
 
-    append_connection_trace("host:ensure-initialized:start", json!({ "initialized": false }));
+    append_connection_trace(
+        "host:ensure-initialized:start",
+        json!({ "initialized": false }),
+    );
     send_codex_request(
         state,
         "initialize",

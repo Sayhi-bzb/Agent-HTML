@@ -28,21 +28,18 @@ const idlePresence: PetPresence = {
   mood: "idle",
 }
 
-const THREAD_PICKER_NO_DRAG_SELECTOR =
-  'button,input,textarea,select,a,[role="menu"],[role="menuitem"],[data-thread-picker-no-drag]'
+const POPOVER_NO_DRAG_SELECTOR =
+  'button,input,textarea,select,a,[role="menu"],[role="menuitem"],[data-popover-no-drag],[data-pet-settings-no-drag],[data-thread-picker-no-drag]'
 
-type ThreadPickerDragState = {
+type PopoverDragState = {
   pointerId: number
   startClientX: number
   startClientY: number
   startOffset: GhostPetPosition
 }
 
-function isThreadPickerDragTarget(target: EventTarget | null) {
-  return (
-    target instanceof Element &&
-    !target.closest(THREAD_PICKER_NO_DRAG_SELECTOR)
-  )
+function isPopoverDragTarget(target: EventTarget | null) {
+  return target instanceof Element && !target.closest(POPOVER_NO_DRAG_SELECTOR)
 }
 
 function getPresenceMessage(presence: PetPresence) {
@@ -67,28 +64,40 @@ function getPresenceMessage(presence: PetPresence) {
 
 export function WorkspaceGhostPet({
   isMessageOpen = false,
+  isSettingsOpen = false,
   isThreadPickerOpen = false,
   messageContent,
   onMessageOpenChange,
+  onSettingsOpenChange,
   onThreadPickerOpenChange,
   presence = idlePresence,
+  settingsContent,
   threadPickerContent,
 }: {
   isMessageOpen?: boolean
+  isSettingsOpen?: boolean
   isThreadPickerOpen?: boolean
   messageContent?: React.ReactNode
   onMessageOpenChange?: (open: boolean) => void
+  onSettingsOpenChange?: (open: boolean) => void
   onThreadPickerOpenChange?: (open: boolean) => void
   presence?: PetPresence
+  settingsContent?: React.ReactNode
   threadPickerContent?: React.ReactNode
 }) {
   const message = getPresenceMessage(presence)
   const dragStateRef = useRef<GhostPetDragState | null>(null)
-  const threadPickerDragStateRef = useRef<ThreadPickerDragState | null>(null)
+  const settingsDragStateRef = useRef<PopoverDragState | null>(null)
+  const threadPickerDragStateRef = useRef<PopoverDragState | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = useState<GhostPetPosition>(loadStoredPosition)
   const [isDragging, setIsDragging] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [settingsOffset, setSettingsOffset] = useState<GhostPetPosition>({
+    x: 0,
+    y: 0,
+  })
+  const [isSettingsDragging, setIsSettingsDragging] = useState(false)
   const [threadPickerOffset, setThreadPickerOffset] =
     useState<GhostPetPosition>({ x: 0, y: 0 })
   const [isThreadPickerDragging, setIsThreadPickerDragging] = useState(false)
@@ -137,16 +146,6 @@ export function WorkspaceGhostPet({
     }
   }, [isMenuOpen])
 
-  useEffect(() => {
-    if (isThreadPickerOpen) {
-      setThreadPickerOffset({ x: 0, y: 0 })
-      return
-    }
-
-    threadPickerDragStateRef.current = null
-    setIsThreadPickerDragging(false)
-  }, [isThreadPickerOpen])
-
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (event.button !== 0) {
@@ -172,10 +171,11 @@ export function WorkspaceGhostPet({
       event.preventDefault()
       event.stopPropagation()
       onMessageOpenChange?.(false)
+      onSettingsOpenChange?.(false)
       onThreadPickerOpenChange?.(false)
       setIsMenuOpen((current) => !current)
     },
-    [onMessageOpenChange, onThreadPickerOpenChange]
+    [onMessageOpenChange, onSettingsOpenChange, onThreadPickerOpenChange]
   )
 
   const handleDoubleClick = useCallback(
@@ -183,25 +183,57 @@ export function WorkspaceGhostPet({
       event.preventDefault()
       event.stopPropagation()
       onMessageOpenChange?.(false)
+      onSettingsOpenChange?.(false)
       onThreadPickerOpenChange?.(false)
       setIsMenuOpen((current) => !current)
     },
-    [onMessageOpenChange, onThreadPickerOpenChange]
+    [onMessageOpenChange, onSettingsOpenChange, onThreadPickerOpenChange]
   )
 
   const handleMenuSelect = useCallback(
     (item: GhostMenuItem["id"]) => {
       setIsMenuOpen(false)
       if (item === "message") {
+        onSettingsOpenChange?.(false)
         onThreadPickerOpenChange?.(false)
         onMessageOpenChange?.(true)
       }
       if (item === "threads") {
         onMessageOpenChange?.(false)
+        onSettingsOpenChange?.(false)
+        setThreadPickerOffset({ x: 0, y: 0 })
         onThreadPickerOpenChange?.(true)
       }
+      if (item === "settings") {
+        onMessageOpenChange?.(false)
+        onThreadPickerOpenChange?.(false)
+        setSettingsOffset({ x: 0, y: 0 })
+        onSettingsOpenChange?.(true)
+      }
     },
-    [onMessageOpenChange, onThreadPickerOpenChange]
+    [onMessageOpenChange, onSettingsOpenChange, onThreadPickerOpenChange]
+  )
+
+  const handleThreadPickerOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        threadPickerDragStateRef.current = null
+        setIsThreadPickerDragging(false)
+      }
+      onThreadPickerOpenChange?.(open)
+    },
+    [onThreadPickerOpenChange]
+  )
+
+  const handleSettingsOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        settingsDragStateRef.current = null
+        setIsSettingsDragging(false)
+      }
+      onSettingsOpenChange?.(open)
+    },
+    [onSettingsOpenChange]
   )
 
   const handlePointerMove = useCallback(
@@ -241,7 +273,7 @@ export function WorkspaceGhostPet({
 
   const handleThreadPickerPointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0 || !isThreadPickerDragTarget(event.target)) {
+      if (event.button !== 0 || !isPopoverDragTarget(event.target)) {
         return
       }
 
@@ -258,6 +290,25 @@ export function WorkspaceGhostPet({
     [threadPickerOffset]
   )
 
+  const handleSettingsPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0 || !isPopoverDragTarget(event.target)) {
+        return
+      }
+
+      event.preventDefault()
+      event.currentTarget.setPointerCapture(event.pointerId)
+      settingsDragStateRef.current = {
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startOffset: settingsOffset,
+      }
+      setIsSettingsDragging(true)
+    },
+    [settingsOffset]
+  )
+
   const handleThreadPickerPointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       const dragState = threadPickerDragStateRef.current
@@ -266,6 +317,21 @@ export function WorkspaceGhostPet({
       }
 
       setThreadPickerOffset({
+        x: dragState.startOffset.x + event.clientX - dragState.startClientX,
+        y: dragState.startOffset.y + event.clientY - dragState.startClientY,
+      })
+    },
+    []
+  )
+
+  const handleSettingsPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const dragState = settingsDragStateRef.current
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return
+      }
+
+      setSettingsOffset({
         x: dragState.startOffset.x + event.clientX - dragState.startClientX,
         y: dragState.startOffset.y + event.clientY - dragState.startClientY,
       })
@@ -286,6 +352,23 @@ export function WorkspaceGhostPet({
 
       threadPickerDragStateRef.current = null
       setIsThreadPickerDragging(false)
+    },
+    []
+  )
+
+  const finishSettingsDrag = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const dragState = settingsDragStateRef.current
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return
+      }
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId)
+      }
+
+      settingsDragStateRef.current = null
+      setIsSettingsDragging(false)
     },
     []
   )
@@ -344,7 +427,7 @@ export function WorkspaceGhostPet({
       </Popover>
       <Popover
         open={isThreadPickerOpen}
-        onOpenChange={onThreadPickerOpenChange}
+        onOpenChange={handleThreadPickerOpenChange}
       >
         <PopoverAnchor asChild>
           <div className="relative size-0" />
@@ -367,6 +450,31 @@ export function WorkspaceGhostPet({
             }}
           >
             {threadPickerContent}
+          </PopoverContent>
+        ) : null}
+      </Popover>
+      <Popover open={isSettingsOpen} onOpenChange={handleSettingsOpenChange}>
+        <PopoverAnchor asChild>
+          <div className="relative size-0" />
+        </PopoverAnchor>
+        {settingsContent ? (
+          <PopoverContent
+            align="end"
+            className={[
+              "pointer-events-auto w-[30rem] p-3 select-none",
+              isSettingsDragging ? "cursor-grabbing" : "cursor-grab",
+            ].join(" ")}
+            onPointerCancel={finishSettingsDrag}
+            onPointerDown={handleSettingsPointerDown}
+            onPointerMove={handleSettingsPointerMove}
+            onPointerUp={finishSettingsDrag}
+            side="left"
+            sideOffset={12}
+            style={{
+              translate: `${settingsOffset.x}px ${settingsOffset.y}px`,
+            }}
+          >
+            {settingsContent}
           </PopoverContent>
         ) : null}
       </Popover>

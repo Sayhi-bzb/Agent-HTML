@@ -187,6 +187,10 @@ function CodexConnectionDialog({
   const [draftSettings, setDraftSettings] = React.useState(
     codexConnection.settings
   )
+  const [draftWorkspaceRootPath, setDraftWorkspaceRootPath] =
+    React.useState("")
+  const [workspaceRootNotice, setWorkspaceRootNotice] =
+    React.useState<string | null>(null)
   const [accordionValue, setAccordionValue] = React.useState<string[]>([])
   const wasOpenRef = React.useRef(false)
   const displayStatus = codexConnection.status
@@ -203,10 +207,19 @@ function CodexConnectionDialog({
   React.useEffect(() => {
     if (open && !wasOpenRef.current) {
       setDraftSettings(codexConnection.settings)
+      setDraftWorkspaceRootPath(
+        codexConnection.workspaceRootStatus?.settings.rootPath ?? ""
+      )
+      setWorkspaceRootNotice(null)
       setAccordionValue(codexConnection.lastError ? ["diagnostics"] : [])
     }
     wasOpenRef.current = open
-  }, [codexConnection.lastError, codexConnection.settings, open])
+  }, [
+    codexConnection.lastError,
+    codexConnection.settings,
+    codexConnection.workspaceRootStatus?.settings.rootPath,
+    open,
+  ])
 
   const updateTextSetting = React.useCallback(
     (key: keyof typeof draftSettings) =>
@@ -222,6 +235,18 @@ function CodexConnectionDialog({
   const saveDraft = React.useCallback(() => {
     void codexConnection.updateSettings(draftSettings)
   }, [codexConnection, draftSettings])
+
+  const saveWorkspaceRootDraft = React.useCallback(() => {
+    void codexConnection
+      .updateWorkspaceRootSettings({ rootPath: draftWorkspaceRootPath })
+      .then(() =>
+        setWorkspaceRootNotice(
+          _({
+            id: "Restart Agent-HTML for the workspace root change to take effect.",
+          })
+        )
+      )
+  }, [_, codexConnection, draftWorkspaceRootPath])
 
   const runAction = React.useCallback(
     async (action: (settingsOverride?: typeof draftSettings) => Promise<void>) => {
@@ -286,6 +311,73 @@ function CodexConnectionDialog({
               value={accordionValue}
               className="rounded-lg border px-3"
             >
+              <AccordionItem value="workspace">
+                <AccordionTrigger>
+                  <Trans>Workspace Root</Trans>
+                </AccordionTrigger>
+                <AccordionContent className="grid gap-3">
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    <Trans>
+                      Codex starts inside this AgentHTML workspace root. Leave it
+                      blank to use the default AppData workspace.
+                    </Trans>
+                  </p>
+                  <div className="grid gap-2">
+                    <Label htmlFor="workspace-root">
+                      <Trans>Custom workspace root</Trans>
+                    </Label>
+                    <Input
+                      id="workspace-root"
+                      onChange={(event) =>
+                        setDraftWorkspaceRootPath(event.target.value)
+                      }
+                      placeholder={
+                        codexConnection.workspaceRootStatus?.defaultRootPath ??
+                        ""
+                      }
+                      value={draftWorkspaceRootPath}
+                    />
+                  </div>
+                  <SettingsDiagnosticsList
+                    items={[
+                      {
+                        label: <Trans>Opened root</Trans>,
+                        span: "full",
+                        value:
+                          codexConnection.workspaceRootStatus?.rootPath ??
+                          _({ id: "unknown" }),
+                      },
+                      {
+                        label: <Trans>Next startup root</Trans>,
+                        span: "full",
+                        value:
+                          codexConnection.workspaceRootStatus?.pendingRootPath ??
+                          _({ id: "unknown" }),
+                      },
+                      {
+                        label: <Trans>Default root</Trans>,
+                        span: "full",
+                        value:
+                          codexConnection.workspaceRootStatus?.defaultRootPath ??
+                          _({ id: "unknown" }),
+                      },
+                    ]}
+                  />
+                  {workspaceRootNotice ? (
+                    <SettingsInfoPanel>{workspaceRootNotice}</SettingsInfoPanel>
+                  ) : null}
+                  <div>
+                    <Button
+                      disabled={!codexConnection.canManageHost}
+                      onClick={saveWorkspaceRootDraft}
+                      type="button"
+                      variant="outline"
+                    >
+                      <Trans>Save workspace root</Trans>
+                    </Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
               <AccordionItem value="advanced">
                 <AccordionTrigger>
                   <Trans>Advanced Connection</Trans>

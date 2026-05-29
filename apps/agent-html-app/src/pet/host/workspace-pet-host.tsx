@@ -1,9 +1,11 @@
 import * as React from "react"
 
 import { WorkspaceGhostPet } from "@/app/pet/ghost"
+import { PetSettingsContent } from "@/app/pet/host/pet-settings-content"
 import {
   getWorkspacePetHostSnapshot,
   subscribeWorkspacePetHost,
+  type WorkspacePetHostSnapshot,
 } from "@/app/pet/host/pet-host-store"
 import {
   type AgentHtmlAgentPromptSubmitInput,
@@ -16,23 +18,32 @@ export function WorkspacePetHost() {
     getWorkspacePetHostSnapshot,
     getWorkspacePetHostSnapshot
   )
-  const [isMessageOpen, setIsMessageOpen] = React.useState(false)
-  const [isThreadPickerOpen, setIsThreadPickerOpen] = React.useState(false)
-  const [messageDraft, setMessageDraft] = React.useState("")
-
-  React.useEffect(() => {
-    setMessageDraft("")
-    setIsMessageOpen(false)
-    setIsThreadPickerOpen(false)
-  }, [snapshot.draftScope])
-
   if (!snapshot.enabled) {
     return null
   }
 
   return (
+    <WorkspacePetHostSession
+      key={snapshot.draftScope ?? "workspace"}
+      snapshot={snapshot}
+    />
+  )
+}
+
+function WorkspacePetHostSession({
+  snapshot,
+}: {
+  snapshot: WorkspacePetHostSnapshot
+}) {
+  const [isMessageOpen, setIsMessageOpen] = React.useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
+  const [isThreadPickerOpen, setIsThreadPickerOpen] = React.useState(false)
+  const [messageDraft, setMessageDraft] = React.useState("")
+
+  return (
     <WorkspaceGhostPet
       isMessageOpen={isMessageOpen}
+      isSettingsOpen={isSettingsOpen}
       isThreadPickerOpen={isThreadPickerOpen}
       messageContent={
         <PetMessageComposer
@@ -43,8 +54,10 @@ export function WorkspacePetHost() {
         />
       }
       onMessageOpenChange={setIsMessageOpen}
+      onSettingsOpenChange={setIsSettingsOpen}
       onThreadPickerOpenChange={setIsThreadPickerOpen}
       presence={snapshot.presence}
+      settingsContent={<PetSettingsContent />}
       threadPickerContent={snapshot.threadPickerContent}
     />
   )

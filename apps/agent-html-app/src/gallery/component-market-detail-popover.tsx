@@ -4,7 +4,7 @@ import type {
   EnabledGalleryComponentTags,
   GalleryComponentMarketItem,
 } from "@/app/gallery/component-market-catalog"
-import { buildGalleryComponentPromptMetrics } from "@/app/gallery/component-market-repository"
+import { buildGalleryComponentPromptMetrics } from "@/app/gallery/component-market-store"
 import { Badge } from "@/app/shared/ui/badge"
 import { PopoverContent } from "@/app/shared/ui/popover"
 

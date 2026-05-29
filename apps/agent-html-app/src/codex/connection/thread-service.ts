@@ -8,7 +8,6 @@ export type CodexRpcRequest = (
 ) => Promise<unknown>
 
 export type CodexThreadListResult = {
-  fallbackWithoutCwd: boolean
   items: CodexThreadSummary[]
 }
 
@@ -31,18 +30,8 @@ export type CodexThreadService = {
 
 export const codexThreadService: CodexThreadService = {
   async listThreads({ cwd, request }) {
-    const primaryResult = await request("thread/list", createThreadListParams(cwd))
-    let items = readThreads(primaryResult)
-    let fallbackWithoutCwd = false
-
-    if (items.length === 0 && cwd) {
-      fallbackWithoutCwd = true
-      items = readThreads(await request("thread/list", createThreadListParams()))
-    }
-
     return {
-      fallbackWithoutCwd,
-      items,
+      items: readThreads(await request("thread/list", createThreadListParams(cwd))),
     }
   },
 

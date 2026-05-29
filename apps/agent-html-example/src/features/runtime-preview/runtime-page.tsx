@@ -61,7 +61,7 @@ export function AgentHtmlRuntimePage({
   theme: ExampleThemeId
 }) {
   const [runtimeState, setRuntimeState] = React.useState(() =>
-    createRuntimeDocumentState(activeCase.ahtmlSource)
+    createRuntimeDocumentState(activeCase.artifactSource)
   )
   const [debugRuntime, setDebugRuntime] = React.useState<{
     blockSummaries: Record<string, string>
@@ -105,7 +105,7 @@ export function AgentHtmlRuntimePage({
   }, [runtime.htmlSource])
 
   React.useEffect(() => {
-    const nextRuntimeState = createRuntimeDocumentState(activeCase.ahtmlSource)
+    const nextRuntimeState = createRuntimeDocumentState(activeCase.artifactSource)
 
     setRuntimeState(nextRuntimeState)
     setDebugRuntime({
@@ -113,7 +113,7 @@ export function AgentHtmlRuntimePage({
       htmlSource: "",
       version: nextRuntimeState.version,
     })
-  }, [activeCase.ahtmlSource])
+  }, [activeCase.artifactSource])
 
   React.useEffect(() => {
     if (!deferredHtmlDocument) {
@@ -178,7 +178,7 @@ export function AgentHtmlRuntimePage({
     <AgentHtmlBlockRuntimeProvider onDropIntent={handleDropIntent}>
       <RuntimeShell
         ahtmlMetrics={runtime.ahtmlMetrics}
-        ahtmlSource={runtimeState.source}
+        artifactSource={runtimeState.source}
         blockSummaries={runtime.blockSummaries}
         htmlMetrics={htmlMetrics}
         htmlSource={runtime.htmlSource}

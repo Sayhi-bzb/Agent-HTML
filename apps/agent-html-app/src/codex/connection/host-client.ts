@@ -4,6 +4,8 @@ import type {
   CodexConnectionSettings,
   CodexHostProcessStatus,
   CodexRpcRequestResult,
+  WorkspaceRootSettings,
+  WorkspaceRootStatus,
 } from "./types"
 
 export type CodexHostCommand =
@@ -29,6 +31,10 @@ export type CodexHostClient = {
   saveSettings: (
     settings: CodexConnectionSettings
   ) => Promise<CodexConnectionSettings>
+  loadWorkspaceRootSettings: () => Promise<WorkspaceRootStatus>
+  saveWorkspaceRootSettings: (
+    settings: WorkspaceRootSettings
+  ) => Promise<WorkspaceRootStatus>
 }
 
 export const codexHostClient: CodexHostClient = {
@@ -58,6 +64,16 @@ export const codexHostClient: CodexHostClient = {
 
   saveSettings(settings) {
     return invoke<CodexConnectionSettings>("codex_host_settings_save", {
+      settings,
+    })
+  },
+
+  loadWorkspaceRootSettings() {
+    return invoke<WorkspaceRootStatus>("workspace_root_settings_load")
+  },
+
+  saveWorkspaceRootSettings(settings) {
+    return invoke<WorkspaceRootStatus>("workspace_root_settings_save", {
       settings,
     })
   },

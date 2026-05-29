@@ -1,12 +1,11 @@
-<!-- AUTO-GENERATED FROM packages/agent-html/src/icons/README.md -->
-# Agent-HTML Icons
+# AgentHTML Icons
 
-This directory isolates lucide icon lookup for the experimental `agent-html`
-DSL.
+`Icon:name=string -> none` uses Lucide icon names.
 
-The DSL prompt stays minimal:
+Do not guess icon names. Search with:
 
-- `Icon:name=string -> none`
+```bash
+python .agents/skills/agent-html/scripts/search_icons.py "alert"
+```
 
-The full icon list is not embedded in the prompt.
-Validation and lookup happen through the registry helpers in this directory.
+Prefer exact returned names such as `alert-circle`, `check`, or `sparkles`.

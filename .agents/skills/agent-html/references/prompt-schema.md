@@ -1,6 +1,4 @@
 <!-- AUTO-GENERATED FROM packages/agent-html/src/schema/prompt.md and component-registry.ts -->
-# Agent-HTML Grammar
-
 # Gallery Preview DSL
 
 ## Contract
@@ -97,6 +95,10 @@
   <Section width="reader">
     <Stack>
       <Text variant="muted">Use Text for standalone copy inside layout nodes.</Text>
+      <Cluster wrap="true">
+        <Button>Save changes</Button>
+        <Button variant="outline" href="/docs">Read docs</Button>
+      </Cluster>
       <CodeBlock language="tsx" title="Example.tsx">
 function Example() {
   return <div>Hello</div>

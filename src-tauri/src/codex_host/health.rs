@@ -34,7 +34,11 @@ fn health_from_state(
     workspace_cwd: Option<&Path>,
     pid: Option<u32>,
 ) -> CodexHostHealth {
-    let initialized = state.initialized.lock().map(|value| *value).unwrap_or(false);
+    let initialized = state
+        .initialized
+        .lock()
+        .map(|value| *value)
+        .unwrap_or(false);
     let app_server_running = pid.is_some();
     let connected = initialized && app_server_running;
     let error = get_last_error(state);

@@ -17,7 +17,7 @@ const COMPONENT_MARKET_SETTINGS_STORAGE_KEY =
   "agent-html.component-market-settings"
 
 export const agentHtmlPromptSchemaArtifactPath =
-  ".tmp/agent-html-prompt-schema.md"
+  ".agents/skills/agent-html/references/prompt-schema.md"
 
 type ComponentMarketSettings = {
   enabledComponentTags: string[]
@@ -27,7 +27,7 @@ type AgentHtmlPromptSchemaArtifact = {
   path: string
 }
 
-export type GalleryComponentMarketRepository = {
+export type GalleryComponentMarketStore = {
   loadEnabledComponentTags: () => Promise<Set<AgentHtmlTag>>
   saveEnabledComponentTags: (
     enabledTags: EnabledGalleryComponentTags
@@ -121,7 +121,7 @@ export function buildGalleryComponentPromptMetrics(
   }
 }
 
-const browserComponentMarketRepository: GalleryComponentMarketRepository = {
+const browserComponentMarketStore: GalleryComponentMarketStore = {
   async loadEnabledComponentTags() {
     if (typeof localStorage === "undefined") {
       return new Set(defaultEnabledGalleryComponentTags)
@@ -155,13 +155,13 @@ const browserComponentMarketRepository: GalleryComponentMarketRepository = {
     return {
       path: `browser-memory://${agentHtmlPromptSchemaArtifactPath}`,
       // Keep the content reachable in devtools without pretending browser mode
-      // can write to the repository .tmp directory.
+      // can write to the AgentHTML workspace internals directory.
       ...(content ? {} : {}),
     }
   },
 }
 
-const tauriComponentMarketRepository: GalleryComponentMarketRepository = {
+const tauriComponentMarketStore: GalleryComponentMarketStore = {
   async loadEnabledComponentTags() {
     const settings = await invoke<ComponentMarketSettings | null>(
       "load_component_market_settings"
@@ -196,8 +196,6 @@ const tauriComponentMarketRepository: GalleryComponentMarketRepository = {
   },
 }
 
-export function createGalleryComponentMarketRepository() {
-  return isTauri()
-    ? tauriComponentMarketRepository
-    : browserComponentMarketRepository
+export function createGalleryComponentMarketStore() {
+  return isTauri() ? tauriComponentMarketStore : browserComponentMarketStore
 }

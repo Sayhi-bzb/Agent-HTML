@@ -1,10 +1,10 @@
 import * as React from "react"
 
 import type { CodexConnectionContextValue } from "@/app/codex/connection/types"
-import { createWorkspaceRepository } from "@/app/workspace/repository"
+import { createWorkspaceStore } from "@/app/workspace/store"
 import type { ProjectCodexThreadLink, WorkspaceProjectView } from "./types"
 
-const workspaceRepository = createWorkspaceRepository()
+const workspaceStore = createWorkspaceStore()
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -72,7 +72,7 @@ export function useProjectThreadLinks({
     codexConnection
       .startNewThread()
       .then((threadId) =>
-        workspaceRepository.upsertProjectCodexThreadLink({
+        workspaceStore.upsertProjectCodexThreadLink({
           projectId: activeProject.id,
           threadId,
         })
@@ -104,7 +104,7 @@ export function useProjectThreadLinks({
         .request("thread/read", { includeTurns: false, threadId })
         .then(() => codexConnection.resumeThread(threadId))
         .then(() =>
-          workspaceRepository.touchProjectCodexThreadLink({
+          workspaceStore.touchProjectCodexThreadLink({
             projectId: activeProject.id,
             threadId,
           })
@@ -118,7 +118,7 @@ export function useProjectThreadLinks({
         })
         .catch((error: unknown) => {
           if (isMissingCodexThreadError(error)) {
-            void workspaceRepository
+            void workspaceStore
               .deleteProjectCodexThreadLink({
                 projectId: activeProject.id,
                 threadId,
@@ -148,14 +148,14 @@ export function useProjectThreadLinks({
 
   const createThreadForProject = React.useCallback(
     async (input: {
-      ahtmlPath: string
+      blockPath: string
       documentPath: string
       projectId: string
       sectionId: string
     }) => {
       const threadId = await codexConnection.startNewThread()
-      const link = await workspaceRepository.upsertProjectCodexThreadLink({
-        ahtmlPath: input.ahtmlPath,
+      const link = await workspaceStore.upsertProjectCodexThreadLink({
+        blockPath: input.blockPath,
         documentPath: input.documentPath,
         projectId: input.projectId,
         sectionId: input.sectionId,
@@ -172,13 +172,13 @@ export function useProjectThreadLinks({
 
   const touchProjectThread = React.useCallback(
     (input: {
-      ahtmlPath?: string | null
+      blockPath?: string | null
       documentPath?: string | null
       projectId: string
       sectionId?: string | null
       threadId: string
     }) =>
-      workspaceRepository.touchProjectCodexThreadLink(input).then((link) => {
+      workspaceStore.touchProjectCodexThreadLink(input).then((link) => {
         setProjectThreadLinks((currentLinks) =>
           mergeProjectThreadLink(link, currentLinks)
         )
@@ -200,7 +200,7 @@ export function useProjectThreadLinks({
     setSelectedProjectThreadId(null)
     setProjectThreadListState({ error: null, isLoading: true })
 
-    workspaceRepository
+    workspaceStore
       .listProjectCodexThreads(activeProject.id)
       .then((links) => {
         if (!isCurrent) {

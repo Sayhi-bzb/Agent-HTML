@@ -6,9 +6,9 @@ import {
   buildEnabledAgentHtmlPromptSchema,
   buildGalleryComponentPromptMetrics,
   estimatePromptSchemaTokens,
-} from "@/app/gallery/component-market-repository"
+} from "@/app/gallery/component-market-store"
 
-describe("component market repository", () => {
+describe("component market store", () => {
   it("builds an enabled prompt schema artifact", () => {
     const schema = buildEnabledAgentHtmlPromptSchema(
       new Set<AgentHtmlTag>(["Card", "Chart"])
@@ -27,7 +27,7 @@ describe("component market repository", () => {
 
   it("keeps the schema artifact path stable for Codex actions", () => {
     expect(agentHtmlPromptSchemaArtifactPath).toBe(
-      ".tmp/agent-html-prompt-schema.md"
+      ".agents/skills/agent-html/references/prompt-schema.md"
     )
   })
 

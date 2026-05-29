@@ -12,7 +12,7 @@ import type {
   WorkspaceSection,
 } from "@/app/workspace/types"
 
-export type WorkspaceRepository = {
+export type WorkspaceStore = {
   canWrite: boolean
   createProject: (input: {
     name: string
@@ -38,6 +38,7 @@ export type WorkspaceRepository = {
     projectId: string,
     sectionId: string
   ) => Promise<ProjectSectionDocument>
+  getRootAgentsInstructions: () => Promise<string>
   listProjectCodexThreads: (projectId: string) => Promise<ProjectCodexThreadLink[]>
   listProjectSections: (projectId: string) => Promise<WorkspaceSection[]>
   listProjects: () => Promise<WorkspaceProject[]>
@@ -51,19 +52,20 @@ export type WorkspaceRepository = {
     title: string
   }) => Promise<WorkspaceSection>
   updateProjectSectionDocument: (input: {
-    ahtmlSource: string
     projectId: string
     sectionId: string
+    source: string
   }) => Promise<ProjectSectionDocument>
+  updateRootAgentsInstructions: (input: { source: string }) => Promise<string>
   touchProjectCodexThreadLink: (input: {
-    ahtmlPath?: string | null
+    blockPath?: string | null
     documentPath?: string | null
     projectId: string
     sectionId?: string | null
     threadId: string
   }) => Promise<ProjectCodexThreadLink>
   upsertProjectCodexThreadLink: (input: {
-    ahtmlPath?: string | null
+    blockPath?: string | null
     documentPath?: string | null
     projectId: string
     sectionId?: string | null
@@ -71,7 +73,7 @@ export type WorkspaceRepository = {
   }) => Promise<ProjectCodexThreadLink>
 }
 
-const fixtureWorkspaceRepository: WorkspaceRepository = {
+const previewWorkspaceStore: WorkspaceStore = {
   canWrite: false,
   async createProject() {
     throw new Error("Desktop runtime required to create projects.")
@@ -99,6 +101,17 @@ const fixtureWorkspaceRepository: WorkspaceRepository = {
 
     return document
   },
+  async getRootAgentsInstructions() {
+    return [
+      "# AgentHTML World",
+      "",
+      "This directory is the AgentHTML workspace root.",
+      "",
+      "- User projects live under `projects/`.",
+      "- Edit `projects/{project-id}/{section-id}/artifact.agent-html` when changing user-facing workspace content.",
+      "",
+    ].join("\n")
+  },
   async listProjectCodexThreads() {
     return []
   },
@@ -117,6 +130,9 @@ const fixtureWorkspaceRepository: WorkspaceRepository = {
   async updateProjectSectionDocument() {
     throw new Error("Desktop runtime required to save workspace documents.")
   },
+  async updateRootAgentsInstructions() {
+    throw new Error("Desktop runtime required to update AGENTS.md.")
+  },
   async touchProjectCodexThreadLink() {
     throw new Error("Desktop runtime required to update Codex thread links.")
   },
@@ -125,7 +141,7 @@ const fixtureWorkspaceRepository: WorkspaceRepository = {
   },
 }
 
-const tauriWorkspaceRepository: WorkspaceRepository = {
+const tauriWorkspaceStore: WorkspaceStore = {
   canWrite: true,
   createProject(input) {
     return invoke("create_project", input)
@@ -151,6 +167,9 @@ const tauriWorkspaceRepository: WorkspaceRepository = {
       sectionId,
     })
   },
+  getRootAgentsInstructions() {
+    return invoke("get_root_agents_instructions")
+  },
   listProjectCodexThreads(projectId) {
     return invoke("list_project_codex_threads", { projectId })
   },
@@ -169,6 +188,9 @@ const tauriWorkspaceRepository: WorkspaceRepository = {
   updateProjectSectionDocument(input) {
     return invoke("update_project_section_document", input)
   },
+  updateRootAgentsInstructions(input) {
+    return invoke("update_root_agents_instructions", input)
+  },
   touchProjectCodexThreadLink(input) {
     return invoke("touch_project_codex_thread_link", input)
   },
@@ -177,6 +199,6 @@ const tauriWorkspaceRepository: WorkspaceRepository = {
   },
 }
 
-export function createWorkspaceRepository(): WorkspaceRepository {
-  return isTauri() ? tauriWorkspaceRepository : fixtureWorkspaceRepository
+export function createWorkspaceStore(): WorkspaceStore {
+  return isTauri() ? tauriWorkspaceStore : previewWorkspaceStore
 }

@@ -14,8 +14,8 @@ import { Dialog, Tabs } from "@example/ui"
 
 export function RuntimeShell({
   ahtmlMetrics,
+  artifactSource,
   children,
-  ahtmlSource,
   blockSummaries,
   htmlMetrics,
   htmlSource,
@@ -27,8 +27,8 @@ export function RuntimeShell({
   theme,
 }: {
   ahtmlMetrics: SourceMetrics
+  artifactSource: string
   children: React.ReactNode
-  ahtmlSource: string
   blockSummaries: Record<string, string>
   htmlMetrics?: SourceMetrics
   htmlSource?: string
@@ -82,7 +82,7 @@ export function RuntimeShell({
         </main>
         <SourceDialog
           ahtmlMetrics={ahtmlMetrics}
-          ahtmlSource={ahtmlSource}
+          artifactSource={artifactSource}
           htmlMetrics={htmlMetrics}
           htmlSource={htmlSource}
           reactMetrics={reactMetrics}

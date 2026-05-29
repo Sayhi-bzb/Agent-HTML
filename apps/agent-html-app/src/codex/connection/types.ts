@@ -9,6 +9,17 @@ export type CodexConnectionSettings = {
   codexCommand: string
 }
 
+export type WorkspaceRootSettings = {
+  rootPath: string
+}
+
+export type WorkspaceRootStatus = {
+  defaultRootPath: string
+  pendingRootPath: string
+  rootPath: string
+  settings: WorkspaceRootSettings
+}
+
 export type CodexHostHealth = {
   appServerRunning: boolean
   codexCommand?: string | null
@@ -127,4 +138,8 @@ export type CodexConnectionContextValue = {
   restart: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   test: (settingsOverride?: CodexConnectionSettings) => Promise<void>
   updateSettings: (settings: CodexConnectionSettings) => Promise<void>
+  updateWorkspaceRootSettings: (
+    settings: WorkspaceRootSettings
+  ) => Promise<WorkspaceRootStatus>
+  workspaceRootStatus: WorkspaceRootStatus | null
 }

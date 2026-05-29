@@ -23,7 +23,7 @@ import {
 import {
   buildEnabledAgentHtmlPromptSchema,
   estimatePromptSchemaTokens,
-} from "@/app/gallery/component-market-repository"
+} from "@/app/gallery/component-market-store"
 import {
   Command,
   CommandDialog,

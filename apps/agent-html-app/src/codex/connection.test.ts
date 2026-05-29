@@ -37,7 +37,7 @@ describe("Codex thread response parsing", () => {
     ])
   })
 
-  it("keeps compatibility with previous thread array shapes", () => {
+  it("reads alternate thread array shapes", () => {
     expect(readThreads({ threads: [{ id: "thr_1", name: "One" }] })).toEqual([
       {
         createdAt: undefined,

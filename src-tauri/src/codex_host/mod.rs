@@ -12,6 +12,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::State;
 
+use crate::workspace::WorkspaceStore;
+
 pub(crate) use error::CodexHostResult;
 use health::CodexHostProcessStatus;
 pub(crate) use settings::CodexHostSettings;
@@ -47,7 +49,9 @@ pub(crate) struct CodexConnectionTraceInput {
 }
 
 #[tauri::command]
-pub(crate) fn codex_host_settings_load(app: tauri::AppHandle) -> CodexHostResult<CodexHostSettings> {
+pub(crate) fn codex_host_settings_load(
+    app: tauri::AppHandle,
+) -> CodexHostResult<CodexHostSettings> {
     load_settings_from_disk(&app)
 }
 
@@ -60,17 +64,21 @@ pub(crate) fn codex_host_settings_save(
 }
 
 #[tauri::command]
-pub(crate) fn codex_connection_trace(input: CodexConnectionTraceInput) -> CodexHostResult<()> {
-    append_frontend_connection_trace(&input.event, input.payload)
+pub(crate) fn codex_connection_trace(
+    store: State<'_, WorkspaceStore>,
+    input: CodexConnectionTraceInput,
+) -> CodexHostResult<()> {
+    append_frontend_connection_trace(&store, &input.event, input.payload)
 }
 
 #[tauri::command]
 pub(crate) fn codex_host_start(
     app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: CodexHostSettings,
 ) -> CodexHostResult<CodexHostProcessStatus> {
-    service::start(app, state, settings)
+    service::start(app, state, store, settings)
 }
 
 #[tauri::command]
@@ -85,29 +93,31 @@ pub(crate) fn codex_host_stop(
 pub(crate) fn codex_host_restart(
     app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: CodexHostSettings,
 ) -> CodexHostResult<CodexHostProcessStatus> {
-    service::restart(app, state, settings)
+    service::restart(app, state, store, settings)
 }
 
 #[tauri::command]
 pub(crate) fn codex_host_health(
-    app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: CodexHostSettings,
 ) -> CodexHostResult<CodexHostProcessStatus> {
-    service::health(app, state, settings)
+    service::health(state, store, settings)
 }
 
 #[tauri::command]
 pub(crate) fn codex_rpc_request(
     app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: CodexHostSettings,
     input: CodexRpcRequestInput,
 ) -> CodexHostResult<CodexRpcRequestResult> {
     let settings = normalize_codex_settings(&settings);
-    let result = service::rpc_request(app, state, &settings, input.method, input.params)?;
+    let result = service::rpc_request(app, state, store, &settings, input.method, input.params)?;
     Ok(CodexRpcRequestResult { result })
 }
 
@@ -115,16 +125,20 @@ pub(crate) fn codex_rpc_request(
 pub(crate) fn codex_rpc_notify(
     app: tauri::AppHandle,
     state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
     settings: CodexHostSettings,
     input: CodexRpcNotifyInput,
 ) -> CodexHostResult<()> {
     let settings = normalize_codex_settings(&settings);
-    service::rpc_notify(app, state, &settings, input.method, input.params)
+    service::rpc_notify(app, state, store, &settings, input.method, input.params)
 }
 
 #[cfg(test)]
 mod tests {
     const FACADE_SOURCE: &str = include_str!("mod.rs");
+    const SERVICE_SOURCE: &str = include_str!("service.rs");
+    const TRACE_SOURCE: &str = include_str!("trace.rs");
+    const WORKSPACE_SOURCE: &str = include_str!("workspace.rs");
 
     #[test]
     fn codex_host_facade_keeps_process_and_transport_details_in_submodules() {
@@ -138,5 +152,22 @@ mod tests {
         ] {
             assert!(!FACADE_SOURCE.contains(&forbidden));
         }
+    }
+
+    #[test]
+    fn connection_trace_writes_under_agent_world_logs() {
+        assert!(TRACE_SOURCE.contains(".agent-world"));
+        assert!(TRACE_SOURCE.contains("logs"));
+        assert!(TRACE_SOURCE.contains("agent-html-codex-connection-trace.jsonl"));
+        assert!(!TRACE_SOURCE.contains(".tmp"));
+    }
+
+    #[test]
+    fn codex_host_uses_open_workspace_store_for_cwd_and_trace() {
+        assert!(SERVICE_SOURCE.contains("State<'_, WorkspaceStore>"));
+        assert!(WORKSPACE_SOURCE.contains("store.root().to_path_buf()"));
+        assert!(!SERVICE_SOURCE.contains("resolve_workspace_root"));
+        assert!(!TRACE_SOURCE.contains("resolve_workspace_root"));
+        assert!(!WORKSPACE_SOURCE.contains("resolve_workspace_root"));
     }
 }

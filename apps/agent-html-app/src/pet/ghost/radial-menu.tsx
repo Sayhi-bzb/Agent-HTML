@@ -1,4 +1,4 @@
-import { MessageCircleIcon, WaypointsIcon } from "lucide-react"
+import { MessageCircleIcon, SettingsIcon, WaypointsIcon } from "lucide-react"
 
 import type { GhostMenuItem } from "@/app/pet/ghost/types"
 import {
@@ -11,6 +11,7 @@ import {
 const GHOST_MENU_ITEMS: GhostMenuItem[] = [
   { Icon: MessageCircleIcon, id: "message", label: "Message", x: 62, y: -62 },
   { Icon: WaypointsIcon, id: "threads", label: "Threads", x: 0, y: -88 },
+  { Icon: SettingsIcon, id: "settings", label: "Settings", x: -62, y: -62 },
 ]
 
 function getTooltipSide({ x, y }: Pick<GhostMenuItem, "x" | "y">) {

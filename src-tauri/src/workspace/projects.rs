@@ -1,8 +1,9 @@
 use rusqlite::{params, Connection};
+use serde_json::json;
 
 use crate::workspace::db;
 use crate::workspace::documents::DocumentStore;
-use crate::workspace::seed::{create_blank_project_ahtml_source, seed_section};
+use crate::workspace::seed::{create_blank_project_source, seed_section};
 use crate::workspace::types::{
     WorkspaceError, WorkspaceProject, WorkspaceProjectView, WorkspaceResult,
 };
@@ -30,8 +31,27 @@ pub(crate) fn create_project(
         slug,
     };
     let section = seed_section(&project.id, "overview", "Overview", "Workspace", 0);
-    let ahtml_source = create_blank_project_ahtml_source(&project);
-    documents.write_document(&project.id, &section.id, &ahtml_source)?;
+    let source = create_blank_project_source(&project);
+    documents.write_project_metadata(
+        &project.id,
+        &serde_json::to_string_pretty(&json!({
+            "id": project.id,
+            "name": project.name,
+            "slug": project.slug,
+        }))?,
+    )?;
+    documents.write_section_metadata(
+        &section.project_id,
+        &section.id,
+        &serde_json::to_string_pretty(&json!({
+            "groupTitle": section.group_title,
+            "id": section.id,
+            "projectId": section.project_id,
+            "sortOrder": section.sort_order,
+            "title": section.title,
+        }))?,
+    )?;
+    documents.write_document(&project.id, &section.id, &source)?;
 
     let transaction_result = (|| -> WorkspaceResult<()> {
         let transaction = connection.transaction()?;
@@ -56,9 +76,9 @@ pub(crate) fn create_project(
         )?;
         transaction.execute(
             "INSERT INTO project_section_documents
-             (project_id, section_id, ahtml_source, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![project.id, section.id, ahtml_source, now, now],
+             (project_id, section_id, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4)",
+            params![project.id, section.id, now, now],
         )?;
         transaction.commit()?;
         Ok(())
@@ -134,6 +154,27 @@ pub(crate) fn rename_project(
         }
     })?;
     let sections = db::list_sections(connection, &new_slug)?;
+    documents.write_project_metadata(
+        &project.id,
+        &serde_json::to_string_pretty(&json!({
+            "id": project.id,
+            "name": project.name,
+            "slug": project.slug,
+        }))?,
+    )?;
+    for section in &sections {
+        documents.write_section_metadata(
+            &section.project_id,
+            &section.id,
+            &serde_json::to_string_pretty(&json!({
+                "groupTitle": section.group_title,
+                "id": section.id,
+                "projectId": section.project_id,
+                "sortOrder": section.sort_order,
+                "title": section.title,
+            }))?,
+        )?;
+    }
 
     Ok(WorkspaceProjectView {
         id: project.id,

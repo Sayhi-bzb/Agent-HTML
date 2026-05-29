@@ -41,6 +41,53 @@ describe("codexHostClient", () => {
     })
   })
 
+  it("loads and saves workspace root settings through Tauri commands", async () => {
+    invokeMock
+      .mockResolvedValueOnce({
+        defaultRootPath: "C:\\Users\\Administrator\\AppData\\Roaming\\Agent-HTML\\AgentHTML",
+        pendingRootPath: "D:\\AgentHTML",
+        rootPath: "D:\\AgentHTML",
+        settings: { rootPath: "D:\\AgentHTML" },
+      })
+      .mockResolvedValueOnce({
+        defaultRootPath: "C:\\Users\\Administrator\\AppData\\Roaming\\Agent-HTML\\AgentHTML",
+        pendingRootPath: "D:\\Workspace",
+        rootPath: "D:\\AgentHTML",
+        settings: { rootPath: "D:\\Workspace" },
+      })
+
+    await expect(codexHostClient.loadWorkspaceRootSettings()).resolves.toEqual({
+      defaultRootPath:
+        "C:\\Users\\Administrator\\AppData\\Roaming\\Agent-HTML\\AgentHTML",
+      pendingRootPath: "D:\\AgentHTML",
+      rootPath: "D:\\AgentHTML",
+      settings: { rootPath: "D:\\AgentHTML" },
+    })
+    await expect(
+      codexHostClient.saveWorkspaceRootSettings({
+        rootPath: "D:\\Workspace",
+      })
+    ).resolves.toEqual({
+      defaultRootPath:
+        "C:\\Users\\Administrator\\AppData\\Roaming\\Agent-HTML\\AgentHTML",
+      pendingRootPath: "D:\\Workspace",
+      rootPath: "D:\\AgentHTML",
+      settings: { rootPath: "D:\\Workspace" },
+    })
+
+    expect(invokeMock).toHaveBeenNthCalledWith(
+      1,
+      "workspace_root_settings_load"
+    )
+    expect(invokeMock).toHaveBeenNthCalledWith(
+      2,
+      "workspace_root_settings_save",
+      {
+        settings: { rootPath: "D:\\Workspace" },
+      }
+    )
+  })
+
   it("runs host commands with settings", async () => {
     const processStatus = {
       health: {

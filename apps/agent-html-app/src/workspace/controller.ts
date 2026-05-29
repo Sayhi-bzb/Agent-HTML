@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { markCodexStartupEvent } from "@/app/codex/connection"
-import { createWorkspaceRepository } from "@/app/workspace/repository"
+import { createWorkspaceStore } from "@/app/workspace/store"
 import type { WorkspaceDocumentDraft } from "@/app/workspace/document-controller"
 import type {
   WorkspaceProjectView,
@@ -21,7 +21,7 @@ type PendingUnsavedWorkspaceAction =
 
 type PendingUnsavedContinuation = (() => void) | null
 
-const workspaceRepository = createWorkspaceRepository()
+const workspaceStore = createWorkspaceStore()
 
 function getNextActiveTabId(
   currentTabs: WorkspaceTab[],
@@ -113,11 +113,11 @@ export function useWorkspaceController({
     async function loadWorkspace() {
       try {
         markCodexStartupEvent("workspace-load-start")
-        const nextProjects = await workspaceRepository.listProjects()
+        const nextProjects = await workspaceStore.listProjects()
         const projectViews = await Promise.all(
           nextProjects.map(async (project) => ({
             ...project,
-            sections: await workspaceRepository.listProjectSections(project.id),
+            sections: await workspaceStore.listProjectSections(project.id),
           }))
         )
 
@@ -344,10 +344,10 @@ export function useWorkspaceController({
     try {
       await Promise.all(
         drafts.map(({ draft }) =>
-          workspaceRepository.updateProjectSectionDocument({
-            ahtmlSource: draft.document.ahtmlSource,
+          workspaceStore.updateProjectSectionDocument({
             projectId: draft.document.projectId,
             sectionId: draft.document.sectionId,
+            source: draft.document.source,
           })
         )
       )
@@ -376,7 +376,7 @@ export function useWorkspaceController({
 
   const createProject = React.useCallback(
     async ({ name }: { name: string }) => {
-      const project = await workspaceRepository.createProject({ name })
+      const project = await workspaceStore.createProject({ name })
       const firstSection = project.sections[0]
       const tab = firstSection
         ? createWorkspaceSectionTab({ project, section: firstSection })
@@ -427,7 +427,7 @@ export function useWorkspaceController({
         return
       }
 
-      const renamedProject = await workspaceRepository.renameProject({
+      const renamedProject = await workspaceStore.renameProject({
         name,
         projectId,
       })
@@ -448,7 +448,7 @@ export function useWorkspaceController({
         return
       }
 
-      await workspaceRepository.deleteProject({ projectId })
+      await workspaceStore.deleteProject({ projectId })
 
       const removedTabIds = new Set(
         openTabs
@@ -472,7 +472,7 @@ export function useWorkspaceController({
         return
       }
 
-      const section = await workspaceRepository.createProjectSection({
+      const section = await workspaceStore.createProjectSection({
         projectId,
         title,
       })
@@ -518,7 +518,7 @@ export function useWorkspaceController({
         return
       }
 
-      const renamedSection = await workspaceRepository.renameProjectSection({
+      const renamedSection = await workspaceStore.renameProjectSection({
         projectId,
         sectionId,
         title,
@@ -564,7 +564,7 @@ export function useWorkspaceController({
         return
       }
 
-      await workspaceRepository.deleteProjectSection({ projectId, sectionId })
+      await workspaceStore.deleteProjectSection({ projectId, sectionId })
       const removedTabId = getSectionTabId(sectionId)
 
       setProjects((currentProjects) =>
@@ -601,7 +601,7 @@ export function useWorkspaceController({
         return
       }
 
-      const section = await workspaceRepository.duplicateProjectSection({
+      const section = await workspaceStore.duplicateProjectSection({
         projectId,
         sectionId,
       })
@@ -671,7 +671,7 @@ export function useWorkspaceController({
     activeSection,
     activeTabId,
     activeTabDraft: activeTabId ? draftsByTabId.get(activeTabId) ?? null : null,
-    canWrite: workspaceRepository.canWrite,
+    canWrite: workspaceStore.canWrite,
     closeTab,
     createProject,
     createProjectSection,

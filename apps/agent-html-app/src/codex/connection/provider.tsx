@@ -31,11 +31,10 @@ import type {
   CodexRuntimeStatus,
   CodexThreadListState,
   ScheduledCodexAutoConnect,
+  WorkspaceRootSettings,
+  WorkspaceRootStatus,
 } from "./types"
-
-const CodexConnectionContext = React.createContext<
-  CodexConnectionContextValue | undefined
->(undefined)
+import { CodexConnectionContext } from "./context"
 
 function storeActiveThreadId(threadId: string) {
   if (typeof localStorage === "undefined") {
@@ -52,6 +51,8 @@ export function CodexConnectionProvider({
 }) {
   const [settings, setSettings] =
     React.useState<CodexConnectionSettings>(loadSettings)
+  const [workspaceRootStatus, setWorkspaceRootStatus] =
+    React.useState<WorkspaceRootStatus | null>(null)
   const [health, setHealth] = React.useState<CodexHostHealth | null>(null)
   const [isLoaded, setIsLoaded] = React.useState(false)
   const canManageHost = codexHostClient.canManageHost()
@@ -445,15 +446,10 @@ export function CodexConnectionProvider({
     }))
 
     try {
-      const { fallbackWithoutCwd, items } = await codexThreadService.listThreads({
+      const { items } = await codexThreadService.listThreads({
         cwd: health?.cwd,
         request,
       })
-      if (fallbackWithoutCwd && health?.cwd) {
-        writeConnectionTrace("thread:list:fallback-without-cwd", {
-          cwd: health.cwd,
-        })
-      }
       setThreadList({
         error: null,
         isLoading: false,
@@ -514,6 +510,20 @@ export function CodexConnectionProvider({
     [saveSettingsEverywhere]
   )
 
+  const updateWorkspaceRootSettings = React.useCallback(
+    async (nextSettings: WorkspaceRootSettings) => {
+      if (!canManageHost) {
+        throw new Error("Desktop runtime required to update workspace root.")
+      }
+
+      const nextStatus =
+        await codexHostClient.saveWorkspaceRootSettings(nextSettings)
+      setWorkspaceRootStatus(nextStatus)
+      return nextStatus
+    },
+    [canManageHost]
+  )
+
   React.useEffect(() => {
     if (!canManageHost) {
       setIsLoaded(true)
@@ -523,13 +533,16 @@ export function CodexConnectionProvider({
     let isCurrent = true
     let cleanupScheduledConnection: ScheduledCodexAutoConnect | undefined
 
-    void codexHostClient
-      .loadSettings()
-      .then((loadedSettings) => {
+    void Promise.all([
+      codexHostClient.loadSettings(),
+      codexHostClient.loadWorkspaceRootSettings(),
+    ])
+      .then(([loadedSettings, loadedWorkspaceRootStatus]) => {
         if (!isCurrent) {
           return
         }
 
+        setWorkspaceRootStatus(loadedWorkspaceRootStatus)
         settingsRef.current = loadedSettings
         setSettings((currentSettings) =>
           areSettingsEqual(currentSettings, loadedSettings)
@@ -633,7 +646,8 @@ export function CodexConnectionProvider({
     }
 
     void refreshThreads()
-  }, [phase, refreshThreads])
+    void refreshRuntimeStatus()
+  }, [phase, refreshRuntimeStatus, refreshThreads])
 
   const status = statusFromPhase(phase)
 
@@ -661,6 +675,8 @@ export function CodexConnectionProvider({
       threadList,
       test,
       updateSettings,
+      updateWorkspaceRootSettings,
+      workspaceRootStatus,
     }),
     [
       activeThreadId,
@@ -685,6 +701,8 @@ export function CodexConnectionProvider({
       threadList,
       test,
       updateSettings,
+      updateWorkspaceRootSettings,
+      workspaceRootStatus,
     ]
   )
 
@@ -693,13 +711,4 @@ export function CodexConnectionProvider({
       {children}
     </CodexConnectionContext.Provider>
   )
-}
-
-export function useCodexConnection() {
-  const context = React.useContext(CodexConnectionContext)
-  if (!context) {
-    throw new Error("useCodexConnection must be used within CodexConnectionProvider")
-  }
-
-  return context
 }

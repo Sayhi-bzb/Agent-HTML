@@ -17,16 +17,16 @@ export type WorkspaceSection = {
 }
 
 export type ProjectSectionDocument = {
-  ahtmlSource: string
   filePath: string
   projectId: string
   sectionId: string
+  source: string
   updatedAt: string
 }
 
 export type ProjectCodexThreadLink = {
   createdAt: string
-  lastAhtmlPath?: string | null
+  lastBlockPath?: string | null
   lastDocumentPath?: string | null
   lastSectionId?: string | null
   lastUsedAt: string

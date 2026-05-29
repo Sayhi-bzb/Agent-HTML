@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { markCodexStartupEvent } from "@/app/codex/connection"
-import { createWorkspaceRepository } from "@/app/workspace/repository"
+import { createWorkspaceStore } from "@/app/workspace/store"
 import type {
   ProjectSectionDocument,
   WorkspaceProjectView,
@@ -53,7 +53,7 @@ export type WorkspaceDocumentDraft = {
   tabId: string
 }
 
-const workspaceRepository = createWorkspaceRepository()
+const workspaceStore = createWorkspaceStore()
 
 function getSectionTabId(sectionId: string) {
   return `section:${sectionId}`
@@ -63,7 +63,7 @@ export function renderWorkspaceDocument(
   document: ProjectSectionDocument
 ): RuntimeState {
   try {
-    const parsedDocument = parseAgentHtml(document.ahtmlSource)
+    const parsedDocument = parseAgentHtml(document.source)
     const validation = validateAgentHtml(parsedDocument)
 
     if (!validation.ok) {
@@ -171,7 +171,7 @@ export function useWorkspaceDocumentController({
         setDocumentState({
           document: {
             ...documentState.document,
-            ahtmlSource: serializeAgentHtml(nextDocument),
+            source: serializeAgentHtml(nextDocument),
           },
           status: "ready",
         })
@@ -196,11 +196,11 @@ export function useWorkspaceDocumentController({
 
     const document = documentState.document
     setSaveState({ status: "saving" })
-    workspaceRepository
+    workspaceStore
       .updateProjectSectionDocument({
-        ahtmlSource: document.ahtmlSource,
         projectId: document.projectId,
         sectionId: document.sectionId,
+        source: document.source,
       })
       .then((nextDocument) => {
         setDocumentState({ document: nextDocument, status: "ready" })
@@ -287,7 +287,7 @@ export function useWorkspaceDocumentController({
       setDocumentState({ status: "loading" })
     }
 
-    workspaceRepository
+    workspaceStore
       .getProjectSectionDocument(activeProject.id, activeSection.id)
       .then((document) => {
         if (isCurrent) {

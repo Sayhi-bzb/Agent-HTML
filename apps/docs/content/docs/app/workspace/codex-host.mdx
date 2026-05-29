@@ -8,6 +8,24 @@ This page is the canonical source for the Agent-HTML Codex host boundary.
 Agent-HTML is a thin Codex App Server host. Codex owns auth, model selection,
 sandbox, approvals, MCP, skills, plugins, and conversation semantics.
 
+Codex starts in the AgentHTML workspace root. See
+[Workspace Root](/docs/app/workspace/workspace-root) for the directory layout.
+
+## Prompt Path Anchor
+
+Agent-HTML anchors agent-injected file paths to the Codex cwd.
+
+Codex cwd is the AgentHTML workspace root. When the app injects Agent-HTML
+context into a Codex prompt, `filePath` must be relative to that root, not an
+absolute host path. A section artifact path should look like:
+
+```text
+projects/{project-id}/{section-id}/artifact.agent-html
+```
+
+Codex can then treat `filePath` as the physical address it can pass to shell,
+read, edit, and write operations from its current position.
+
 ## Product Loop
 
 ```text
@@ -15,6 +33,7 @@ Agent-HTML App
   -> user selects a block or performs an interaction
   -> user enters a request
   -> Tauri starts codex app-server --listen stdio://
+  -> Codex cwd is the AgentHTML workspace root
   -> Tauri sends initialize / initialized
   -> App lists workspace threads through thread/list
   -> user chooses thread/resume or thread/start

@@ -9,9 +9,8 @@ describe("codexThreadService", () => {
     })
 
     await expect(
-      codexThreadService.listThreads({ cwd: "D:/repo", request })
+      codexThreadService.listThreads({ cwd: "D:/AgentHTML", request })
     ).resolves.toEqual({
-      fallbackWithoutCwd: false,
       items: [
         {
           createdAt: undefined,
@@ -24,39 +23,23 @@ describe("codexThreadService", () => {
     })
 
     expect(request).toHaveBeenCalledWith("thread/list", {
-      cwd: "D:/repo",
+      cwd: "D:/AgentHTML",
       limit: 50,
       sortKey: "updated_at",
       sourceKinds: ["appServer", "vscode", "cli"],
     })
   })
 
-  it("falls back to unscoped thread list when cwd returns no threads", async () => {
-    const request = vi
-      .fn()
-      .mockResolvedValueOnce({ data: [] })
-      .mockResolvedValueOnce({ data: [{ id: "thr_2", name: "Two" }] })
+  it("keeps thread lists scoped to the Codex cwd", async () => {
+    const request = vi.fn().mockResolvedValue({ data: [] })
 
     await expect(
-      codexThreadService.listThreads({ cwd: "D:/repo", request })
+      codexThreadService.listThreads({ cwd: "D:/AgentHTML", request })
     ).resolves.toEqual({
-      fallbackWithoutCwd: true,
-      items: [
-        {
-          createdAt: undefined,
-          id: "thr_2",
-          name: "Two",
-          status: null,
-          updatedAt: undefined,
-        },
-      ],
+      items: [],
     })
 
-    expect(request).toHaveBeenNthCalledWith(2, "thread/list", {
-      limit: 50,
-      sortKey: "updated_at",
-      sourceKinds: ["appServer", "vscode", "cli"],
-    })
+    expect(request).toHaveBeenCalledTimes(1)
   })
 
   it("starts a persisted Agent-HTML thread and returns its id", async () => {

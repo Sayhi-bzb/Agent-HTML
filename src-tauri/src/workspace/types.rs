@@ -7,6 +7,8 @@ pub(crate) enum WorkspaceError {
     Database(#[from] rusqlite::Error),
     #[error("filesystem error: {0}")]
     Filesystem(#[from] std::io::Error),
+    #[error("json error: {0}")]
+    Json(#[from] serde_json::Error),
     #[error("document not found for {project_id}/{section_id}")]
     DocumentNotFound {
         project_id: String,
@@ -66,10 +68,10 @@ pub(crate) struct WorkspaceSection {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ProjectSectionDocument {
-    pub(crate) ahtml_source: String,
     pub(crate) file_path: String,
     pub(crate) project_id: String,
     pub(crate) section_id: String,
+    pub(crate) source: String,
     pub(crate) updated_at: String,
 }
 
@@ -77,16 +79,11 @@ pub(crate) struct ProjectSectionDocument {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ProjectCodexThreadLink {
     pub(crate) created_at: String,
-    pub(crate) last_ahtml_path: Option<String>,
+    pub(crate) last_block_path: Option<String>,
     pub(crate) last_document_path: Option<String>,
     pub(crate) last_section_id: Option<String>,
     pub(crate) last_used_at: String,
     pub(crate) origin: String,
     pub(crate) project_id: String,
     pub(crate) thread_id: String,
-}
-
-pub(super) struct SectionWithDocument {
-    pub(super) document: ProjectSectionDocument,
-    pub(super) section: WorkspaceSection,
 }

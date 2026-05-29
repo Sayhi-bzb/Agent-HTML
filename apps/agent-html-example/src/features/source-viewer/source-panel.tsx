@@ -7,7 +7,7 @@ import { ScrollArea, TabsContent, TabsList, TabsTrigger } from "@example/ui"
 
 export const SourcePanel = React.memo(function SourcePanel({
   ahtmlMetrics,
-  ahtmlSource,
+  artifactSource,
   htmlMetrics,
   htmlSource,
   reactMetrics,
@@ -15,7 +15,7 @@ export const SourcePanel = React.memo(function SourcePanel({
   visitedTabs,
 }: {
   ahtmlMetrics: SourceMetrics
-  ahtmlSource: string
+  artifactSource: string
   htmlMetrics?: SourceMetrics
   htmlSource?: string
   reactMetrics: SourceMetrics
@@ -44,7 +44,7 @@ export const SourcePanel = React.memo(function SourcePanel({
         <ScrollArea className="h-full w-full">
           <div className="min-w-max">
             {visitedTabs.has("ahtml") ? (
-              <CodeBlock language="ahtml" source={ahtmlSource} />
+              <CodeBlock language="ahtml" source={artifactSource} />
             ) : null}
           </div>
         </ScrollArea>

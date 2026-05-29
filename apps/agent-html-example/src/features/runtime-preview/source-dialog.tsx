@@ -5,7 +5,7 @@ import { DialogContent } from "@example/ui"
 
 export function SourceDialog({
   ahtmlMetrics,
-  ahtmlSource,
+  artifactSource,
   htmlMetrics,
   htmlSource,
   reactMetrics,
@@ -13,7 +13,7 @@ export function SourceDialog({
   visitedTabs,
 }: {
   ahtmlMetrics: SourceMetrics
-  ahtmlSource: string
+  artifactSource: string
   htmlMetrics?: SourceMetrics
   htmlSource?: string
   reactMetrics: SourceMetrics
@@ -24,7 +24,7 @@ export function SourceDialog({
     <DialogContent className="flex h-[min(90vh,60rem)] w-[min(92vw,72rem)] max-w-none grid-rows-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none">
       <SourcePanel
         ahtmlMetrics={ahtmlMetrics}
-        ahtmlSource={ahtmlSource}
+        artifactSource={artifactSource}
         htmlMetrics={htmlMetrics}
         htmlSource={htmlSource}
         reactMetrics={reactMetrics}

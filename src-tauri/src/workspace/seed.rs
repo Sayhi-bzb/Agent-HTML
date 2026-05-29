@@ -44,15 +44,9 @@ pub(crate) fn seed_if_empty(connection: &mut Connection) -> WorkspaceResult<()> 
 
             transaction.execute(
                 "INSERT INTO project_section_documents
-                 (project_id, section_id, ahtml_source, created_at, updated_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![
-                    section.project_id,
-                    section.id,
-                    create_seed_ahtml_source(&project, &section),
-                    now,
-                    now
-                ],
+                 (project_id, section_id, created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4)",
+                params![section.project_id, section.id, now, now],
             )?;
         }
     }
@@ -98,7 +92,7 @@ pub(crate) fn seed_introduce_examples(connection: &mut Connection) -> WorkspaceR
         params![project.id, project.name, project.slug, now, now],
     )?;
 
-    for (section, source) in sections {
+    for (section, _source) in sections {
         transaction.execute(
             "INSERT OR IGNORE INTO project_sections
              (id, project_id, title, group_title, sort_order, created_at, updated_at)
@@ -116,9 +110,9 @@ pub(crate) fn seed_introduce_examples(connection: &mut Connection) -> WorkspaceR
 
         transaction.execute(
             "INSERT OR IGNORE INTO project_section_documents
-             (project_id, section_id, ahtml_source, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![section.project_id, section.id, source, now, now],
+             (project_id, section_id, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4)",
+            params![section.project_id, section.id, now, now],
         )?;
     }
 
@@ -142,7 +136,7 @@ pub(crate) fn seed_section(
     }
 }
 
-pub(crate) fn create_blank_project_ahtml_source(project: &WorkspaceProject) -> String {
+pub(crate) fn create_blank_project_source(project: &WorkspaceProject) -> String {
     format!(
         r#"<Page title="{project_name}">
   <Section width="content">
@@ -154,7 +148,7 @@ pub(crate) fn create_blank_project_ahtml_source(project: &WorkspaceProject) -> S
       <Alert>
         <Icon name="file-plus-2" />
         <AlertTitle>Blank project</AlertTitle>
-        <AlertDescription>This overview section is stored in the local desktop workspace database.</AlertDescription>
+        <AlertDescription>This overview section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
       </Alert>
     </Stack>
   </Section>
@@ -163,7 +157,7 @@ pub(crate) fn create_blank_project_ahtml_source(project: &WorkspaceProject) -> S
     )
 }
 
-pub(crate) fn create_blank_section_ahtml_source(
+pub(crate) fn create_blank_section_source(
     project: &WorkspaceProject,
     section: &WorkspaceSection,
 ) -> String {
@@ -178,7 +172,7 @@ pub(crate) fn create_blank_section_ahtml_source(
       <Alert>
         <Icon name="file-text" />
         <AlertTitle>Blank section</AlertTitle>
-        <AlertDescription>This section is stored in the local desktop workspace database.</AlertDescription>
+        <AlertDescription>This section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
       </Alert>
     </Stack>
   </Section>
@@ -186,6 +180,21 @@ pub(crate) fn create_blank_section_ahtml_source(
         project_name = project.name,
         section_title = section.title,
     )
+}
+
+pub(crate) fn create_initial_document_source(
+    project: &WorkspaceProject,
+    section: &WorkspaceSection,
+) -> String {
+    if project.id == "agent-html-example" && section.id == "introduce-agent-html" {
+        return INTRODUCE_AGENT_HTML_SOURCE.to_string();
+    }
+
+    if project.id == "agent-html-example" && section.id == "introduce-agent-html-zh" {
+        return INTRODUCE_AGENT_HTML_ZH_SOURCE.to_string();
+    }
+
+    create_seed_document_source(project, section)
 }
 
 fn seed_projects() -> Vec<WorkspaceProject> {
@@ -255,7 +264,10 @@ fn seed_sections(project_id: &str) -> Vec<WorkspaceSection> {
     ]
 }
 
-fn create_seed_ahtml_source(project: &WorkspaceProject, section: &WorkspaceSection) -> String {
+pub(crate) fn create_seed_document_source(
+    project: &WorkspaceProject,
+    section: &WorkspaceSection,
+) -> String {
     format!(
         r#"<Page title="{project_name} - {section_title}">
   <Section width="content">
@@ -265,9 +277,9 @@ fn create_seed_ahtml_source(project: &WorkspaceProject, section: &WorkspaceSecti
         <Text variant="lead">{project_name} workspace content rendered through the agent-html runtime.</Text>
       </Stack>
       <Alert>
-        <Icon name="database" />
-        <AlertTitle>Local-first document</AlertTitle>
-        <AlertDescription>This section is loaded from the desktop workspace repository and rendered from AHTML source.</AlertDescription>
+        <Icon name="file-text" />
+        <AlertTitle>Workspace artifact</AlertTitle>
+        <AlertDescription>This section is loaded from artifact.agent-html in the AgentHTML workspace.</AlertDescription>
       </Alert>
       <Grid columns="3">
         <Card>
