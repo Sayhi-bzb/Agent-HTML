@@ -213,6 +213,41 @@ Rules:
 - sidebar surfaces MUST consume `sidebar*`; sidebar item tokens MUST NOT be reused inside popover or
   dropdown content
 
+### Information Disclosure Standard
+
+Information disclosure primitives must be selected by product semantics, not by which primitive can
+visually hide content.
+
+Default surfaces SHOULD carry only high-frequency decisions, current state, and the next likely
+action. Low-frequency explanations, technical metadata, diagnostics, and auxiliary editing controls
+SHOULD move into the smallest disclosure primitive that preserves the user's current task context.
+
+Current boundaries:
+
+- `Tooltip` explains briefly. It SHOULD name icons, clarify short labels, or explain disabled states
+  in one short phrase. It MUST NOT contain interactive controls or task-critical content.
+- `Collapsible` reveals inline structure. It SHOULD be used for content that already belongs to the
+  current page, sidebar, card, or popover flow, such as tree children, advanced fields, or technical
+  details. A single technical-details block SHOULD use `Collapsible`, not `Accordion`.
+- `Popover` opens a temporary panel for the current object. It SHOULD be used for item-local
+  metadata, compact editors, pickers, or inspectors that should not permanently change layout.
+- `DropdownMenu` lists commands or menu choices. It MUST NOT be used as a metadata drawer,
+  explanation panel, or complex editor.
+- `Select` sets one field value. It SHOULD be used when the user is choosing the current value for a
+  specific setting or form field.
+- `CommandDialog` searches or runs commands across a set. It SHOULD be used for fuzzy search,
+  command palettes, and cross-surface result picking.
+- `Dialog` hosts blocking tasks or complex settings. It SHOULD be used when the user must complete,
+  save, cancel, or test a task before returning to the main flow.
+- `AlertDialog` confirms risk. It SHOULD be reserved for destructive, irreversible, discard,
+  overwrite, or leave-with-unsaved-work decisions.
+- `Accordion` groups multiple peer disclosure sections. It SHOULD be used for sets of related
+  expandable sections such as advanced settings and diagnostics. It SHOULD NOT be used for a single
+  "more details" block.
+- `Sheet` hosts large auxiliary surfaces or mobile structural fallbacks. Current product code uses
+  sheets primarily through the sidebar's mobile fallback; lightweight item details SHOULD prefer
+  `Popover` unless the content is too large or edge-attached.
+
 ### Confirmation Dialog Standard
 
 Confirmation dialogs are for decisions that affect existing user work or irreversible structure.

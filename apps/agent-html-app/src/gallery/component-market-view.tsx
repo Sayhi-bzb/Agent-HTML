@@ -2,7 +2,6 @@ import * as React from "react"
 import {
   ArrowDownToLineIcon,
   CheckCircle2Icon,
-  ChevronDownIcon,
   Code2Icon,
   InfoIcon,
   PackageIcon,
@@ -22,11 +21,6 @@ import {
 import { buildGalleryComponentPromptMetrics } from "@/app/gallery/component-market-repository"
 import { Badge } from "@/app/shared/ui/badge"
 import { Button } from "@/app/shared/ui/button"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/app/shared/ui/collapsible"
 import {
   Popover,
   PopoverContent,
@@ -62,15 +56,6 @@ export function GalleryComponentMarketView({
   onEnabledTagsChange: (tags: EnabledGalleryComponentTags) => void
   onFiltersChange: (filters: GalleryComponentMarketFilters) => void
 }) {
-  const installedCount = React.useMemo(
-    () =>
-      galleryComponentMarketCatalog.filter((component) =>
-        getGalleryComponentMarketStatus(component, enabledTags) === "installed"
-      ).length,
-    [enabledTags]
-  )
-  const availableCount = galleryComponentMarketCatalog.length - installedCount
-
   const categoryFilters = React.useMemo(() => {
     const categoryCounts = galleryComponentMarketCatalog.reduce(
       (counts, component) => {
@@ -136,12 +121,6 @@ export function GalleryComponentMarketView({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <section className="flex min-w-0 flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <Badge variant="secondary">{installedCount} installed</Badge>
-            <Badge variant="outline">{availableCount} available</Badge>
-            <Badge variant="outline">{filteredComponents.length} shown</Badge>
-        </div>
-
         <div className="flex flex-wrap gap-2">
           <Button
             onClick={() => updateStatus("all")}
@@ -299,8 +278,6 @@ function GalleryComponentDetailPopoverContent({
   component: GalleryComponentMarketItem
   enabledTags: EnabledGalleryComponentTags
 }) {
-  const [technicalDetailsOpen, setTechnicalDetailsOpen] =
-    React.useState(false)
   const promptMetrics = React.useMemo(
     () => buildGalleryComponentPromptMetrics(enabledTags, component.tag),
     [component.tag, enabledTags]
@@ -325,35 +302,14 @@ function GalleryComponentDetailPopoverContent({
         </div>
       </div>
 
-      <Collapsible
-        open={technicalDetailsOpen}
-        onOpenChange={setTechnicalDetailsOpen}
-      >
-        <CollapsibleTrigger asChild>
-          <button
-            className="group mt-2 flex w-full items-center justify-between rounded-md py-1.5 text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-            type="button"
-            data-selection="none"
-            data-cursor="action"
-          >
-            Technical details
-            <ChevronDownIcon
-              aria-hidden="true"
-              className="size-4 transition-transform group-data-[state=open]:rotate-180"
-            />
-          </button>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="space-y-3 pt-1">
-            <InlineBadgeRow
-              label="Props"
-              values={[...(component.market.configurableAttrs ?? ["children"])]}
-            />
-            <KeyValueRow label="Runtime" value={component.runtime} />
-            <KeyValueRow label="Role" value={component.role} />
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+      <div className="space-y-3 pt-1">
+        <InlineBadgeRow
+          label="Props"
+          values={[...(component.market.configurableAttrs ?? ["children"])]}
+        />
+        <KeyValueRow label="Runtime" value={component.runtime} />
+        <KeyValueRow label="Role" value={component.role} />
+      </div>
     </PopoverContent>
   )
 }

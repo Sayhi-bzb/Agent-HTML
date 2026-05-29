@@ -135,6 +135,23 @@ function formatCapability(
     : translate({ id: "available" })
 }
 
+function SettingsDiagnosticsSection({
+  children,
+  title,
+}: {
+  children: React.ReactNode
+  title: string
+}) {
+  return (
+    <section className="grid gap-2">
+      <h4 className="text-xs font-medium uppercase text-muted-foreground">
+        {title}
+      </h4>
+      {children}
+    </section>
+  )
+}
+
 function LocalizedLanguageLabel({
   label,
 }: {
@@ -339,95 +356,124 @@ function CodexConnectionDialog({
                     app configuration here.
                   </Trans>
                 </SettingsInfoPanel>
-                <SettingsDiagnosticsList
-                  items={[
-                    {
-                      label: <Trans>App server</Trans>,
-                      value: codexConnection.health?.appServerRunning
-                        ? _({ id: "running" })
-                        : _({ id: "off" }),
-                    },
-                    {
-                      label: <Trans>Thread</Trans>,
-                      span: "full",
-                      value: codexConnection.activeThreadId ?? _({ id: "none" }),
-                    },
-                    {
-                      label: <Trans>Codex command</Trans>,
-                      span: "full",
-                      value:
-                        codexConnection.health?.codexCommand ??
-                        _({ id: "unknown" }),
-                    },
-                    {
-                      label: <Trans>Codex cwd</Trans>,
-                      span: "full",
-                      value: codexConnection.health?.cwd ?? _({ id: "unknown" }),
-                    },
-                  ]}
-                />
-                <SettingsDiagnosticsList
-                  items={[
-                    {
-                      label: <Trans>Runtime status</Trans>,
-                      value: runtimeStatus.status,
-                    },
-                    {
-                      label: <Trans>Model</Trans>,
-                      value: runtimeStatus.config.model ?? _({ id: "unknown" }),
-                    },
-                    {
-                      label: <Trans>Model provider</Trans>,
-                      value:
-                        runtimeStatus.config.modelProvider ?? _({ id: "unknown" }),
-                    },
-                    {
-                      label: <Trans>Sandbox</Trans>,
-                      value:
-                        runtimeStatus.config.sandboxMode ?? _({ id: "unknown" }),
-                    },
-                    {
-                      label: <Trans>Approvals</Trans>,
-                      value:
-                        runtimeStatus.config.approvalPolicy ??
-                        _({ id: "unknown" }),
-                    },
-                    {
-                      label: <Trans>Models</Trans>,
-                      value: formatCapability(runtimeStatus.capabilities.models, _),
-                    },
-                    {
-                      label: <Trans>MCP servers</Trans>,
-                      value: formatCapability(
-                        runtimeStatus.capabilities.mcpServers,
-                        _
-                      ),
-                    },
-                    {
-                      label: <Trans>Skills</Trans>,
-                      value: formatCapability(runtimeStatus.capabilities.skills, _),
-                    },
-                    {
-                      label: <Trans>Plugins</Trans>,
-                      value: formatCapability(runtimeStatus.capabilities.plugins, _),
-                    },
-                    {
-                      label: <Trans>Apps</Trans>,
-                      value: formatCapability(runtimeStatus.capabilities.apps, _),
-                    },
-                    {
-                      label: <Trans>Collaboration modes</Trans>,
-                      value: formatCapability(
-                        runtimeStatus.capabilities.collaborationModes,
-                        _
-                      ),
-                    },
-                    {
-                      label: <Trans>Config API</Trans>,
-                      value: formatCapability(runtimeStatus.capabilities.config, _),
-                    },
-                  ]}
-                />
+                <SettingsDiagnosticsSection title="Connection">
+                  <SettingsDiagnosticsList
+                    items={[
+                      {
+                        label: <Trans>App server</Trans>,
+                        value: codexConnection.health?.appServerRunning
+                          ? _({ id: "running" })
+                          : _({ id: "off" }),
+                      },
+                      {
+                        label: <Trans>Thread</Trans>,
+                        span: "full",
+                        value:
+                          codexConnection.activeThreadId ?? _({ id: "none" }),
+                      },
+                      {
+                        label: <Trans>Codex command</Trans>,
+                        span: "full",
+                        value:
+                          codexConnection.health?.codexCommand ??
+                          _({ id: "unknown" }),
+                      },
+                      {
+                        label: <Trans>Codex cwd</Trans>,
+                        span: "full",
+                        value: codexConnection.health?.cwd ?? _({ id: "unknown" }),
+                      },
+                    ]}
+                  />
+                </SettingsDiagnosticsSection>
+                <SettingsDiagnosticsSection title="Runtime">
+                  <SettingsDiagnosticsList
+                    items={[
+                      {
+                        label: <Trans>Runtime status</Trans>,
+                        value: runtimeStatus.status,
+                      },
+                      {
+                        label: <Trans>Model</Trans>,
+                        value:
+                          runtimeStatus.config.model ?? _({ id: "unknown" }),
+                      },
+                      {
+                        label: <Trans>Model provider</Trans>,
+                        value:
+                          runtimeStatus.config.modelProvider ??
+                          _({ id: "unknown" }),
+                      },
+                      {
+                        label: <Trans>Sandbox</Trans>,
+                        value:
+                          runtimeStatus.config.sandboxMode ??
+                          _({ id: "unknown" }),
+                      },
+                      {
+                        label: <Trans>Approvals</Trans>,
+                        value:
+                          runtimeStatus.config.approvalPolicy ??
+                          _({ id: "unknown" }),
+                      },
+                    ]}
+                  />
+                </SettingsDiagnosticsSection>
+                <SettingsDiagnosticsSection title="Capabilities">
+                  <SettingsDiagnosticsList
+                    items={[
+                      {
+                        label: <Trans>Models</Trans>,
+                        value: formatCapability(
+                          runtimeStatus.capabilities.models,
+                          _
+                        ),
+                      },
+                      {
+                        label: <Trans>MCP servers</Trans>,
+                        value: formatCapability(
+                          runtimeStatus.capabilities.mcpServers,
+                          _
+                        ),
+                      },
+                      {
+                        label: <Trans>Skills</Trans>,
+                        value: formatCapability(
+                          runtimeStatus.capabilities.skills,
+                          _
+                        ),
+                      },
+                      {
+                        label: <Trans>Plugins</Trans>,
+                        value: formatCapability(
+                          runtimeStatus.capabilities.plugins,
+                          _
+                        ),
+                      },
+                      {
+                        label: <Trans>Apps</Trans>,
+                        value: formatCapability(
+                          runtimeStatus.capabilities.apps,
+                          _
+                        ),
+                      },
+                      {
+                        label: <Trans>Collaboration modes</Trans>,
+                        value: formatCapability(
+                          runtimeStatus.capabilities.collaborationModes,
+                          _
+                        ),
+                      },
+                      {
+                        label: <Trans>Config API</Trans>,
+                        value: formatCapability(
+                          runtimeStatus.capabilities.config,
+                          _
+                        ),
+                      },
+                    ]}
+                  />
+                </SettingsDiagnosticsSection>
               </AccordionContent>
             </AccordionItem>
           </Accordion>

@@ -3,7 +3,11 @@ import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
 const surfacePath = fileURLToPath(new URL("./surface.tsx", import.meta.url))
+const threadControllerPath = fileURLToPath(
+  new URL("./thread-controller.ts", import.meta.url)
+)
 const surfaceSource = readFileSync(surfacePath, "utf8")
+const threadControllerSource = readFileSync(threadControllerPath, "utf8")
 
 describe("workspace surface boundaries", () => {
   it("keeps document persistence out of the surface composition layer", () => {
@@ -23,5 +27,19 @@ describe("workspace surface boundaries", () => {
     expect(surfaceSource).not.toContain("deliverAgentHtmlIntent")
     expect(surfaceSource).not.toContain("function ProjectThreadPickerContent")
     expect(surfaceSource).not.toContain("function SaveStatus")
+  })
+
+  it("keeps empty-state rendering and section creation state out of surface", () => {
+    expect(surfaceSource).not.toContain("function WorkspaceStatus")
+    expect(surfaceSource).not.toContain("function RuntimeValidationErrors")
+    expect(surfaceSource).not.toContain("createSectionError")
+    expect(surfaceSource).not.toContain("setCreateSectionError")
+    expect(surfaceSource).not.toContain("isCreatingSection")
+    expect(surfaceSource).not.toContain("setIsCreatingSection")
+  })
+
+  it("keeps thread preview loading out of the main thread controller", () => {
+    expect(threadControllerSource).not.toContain("thread/turns/list")
+    expect(threadControllerSource).not.toContain("readFirstThreadRequestText")
   })
 })

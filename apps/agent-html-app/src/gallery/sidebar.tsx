@@ -1,3 +1,5 @@
+import * as React from "react"
+
 import {
   type AppThemePresetId,
 } from "@/app/shared/app-theme/tokens"
@@ -11,7 +13,11 @@ import {
 import {
   Command,
   CommandDialog,
+  CommandEmpty,
+  CommandGroup,
   CommandInput,
+  CommandItem,
+  CommandList,
 } from "@/app/shared/ui/command"
 import {
   SidebarGroup,
@@ -26,6 +32,7 @@ import {
   type EnabledGalleryComponentTags,
   galleryComponentMarketAllCategory,
   galleryComponentMarketCatalog,
+  galleryComponentMarketCategoryLabels,
   getGalleryComponentMarketStatus,
   type GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
@@ -203,13 +210,39 @@ export function GalleryThemeSidebarFooter({
 }
 
 export function GalleryComponentMarketSidebarHeader({
+  componentMarketFilters,
+  enabledComponentTags,
+  onComponentMarketFiltersChange,
   onSearchQueryChange,
   searchQuery,
 }: {
+  componentMarketFilters: GalleryComponentMarketFilters
+  enabledComponentTags: EnabledGalleryComponentTags
+  onComponentMarketFiltersChange: (filters: GalleryComponentMarketFilters) => void
   onSearchQueryChange: (query: string) => void
   searchQuery: string
 }) {
   const [open, setOpen] = React.useState(false)
+  const installedCount = galleryComponentMarketCatalog.filter((component) =>
+    getGalleryComponentMarketStatus(component, enabledComponentTags) ===
+    "installed"
+  ).length
+  const searchResults = React.useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+
+    if (!query) {
+      return galleryComponentMarketCatalog
+    }
+
+    return galleryComponentMarketCatalog.filter((component) =>
+      [
+        component.tag,
+        component.market.title,
+        component.market.summary,
+        component.market.category,
+      ].some((value) => value.toLowerCase().includes(query))
+    )
+  }, [searchQuery])
 
   return (
     <>
@@ -218,11 +251,40 @@ export function GalleryComponentMarketSidebarHeader({
           <SidebarMenuButton onClick={() => setOpen(true)} type="button">
             <SearchIcon className="size-4" />
             <span className="min-w-0 flex-1 truncate">Search</span>
-            {searchQuery.trim() ? (
-              <span className="shrink-0 text-xs text-sidebar-foreground">
-                active
-              </span>
-            ) : null}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() =>
+              onComponentMarketFiltersChange({
+                category: galleryComponentMarketAllCategory,
+                status: "all",
+              })
+            }
+            type="button"
+          >
+            <PackageIcon className="size-4" />
+            <span className="min-w-0 flex-1 truncate">All components</span>
+            <span className="shrink-0 text-xs text-sidebar-foreground/50">
+              {galleryComponentMarketCatalog.length}
+            </span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() =>
+              onComponentMarketFiltersChange({
+                ...componentMarketFilters,
+                status: "installed",
+              })
+            }
+            type="button"
+          >
+            <CheckIcon className="size-4" />
+            <span className="min-w-0 flex-1 truncate">Installed</span>
+            <span className="shrink-0 text-xs text-sidebar-foreground/50">
+              {installedCount}
+            </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
@@ -239,6 +301,37 @@ export function GalleryComponentMarketSidebarHeader({
             placeholder="Search components..."
             value={searchQuery}
           />
+          <CommandList>
+            <CommandEmpty>No components found.</CommandEmpty>
+            <CommandGroup heading="Components">
+              {searchResults.map((component) => (
+                <CommandItem
+                  key={component.tag}
+                  keywords={[
+                    component.tag,
+                    component.market.title,
+                    component.market.summary,
+                    component.market.category,
+                  ]}
+                  onSelect={() => {
+                    onSearchQueryChange(component.market.title)
+                    setOpen(false)
+                  }}
+                >
+                  <span className="min-w-0 flex-1 truncate">
+                    {component.market.title}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {
+                      galleryComponentMarketCategoryLabels[
+                        component.market.category
+                      ]
+                    }
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </CommandDialog>
     </>
@@ -271,19 +364,16 @@ export function GalleryComponentMarketSidebarFooter({
 
 export function GalleryMarketSidebar({
   componentMarketFilters,
-  enabledComponentTags,
   onComponentMarketFiltersChange,
   viewId,
 }: {
   componentMarketFilters: GalleryComponentMarketFilters
-  enabledComponentTags: EnabledGalleryComponentTags
   onComponentMarketFiltersChange: (filters: GalleryComponentMarketFilters) => void
   viewId: Exclude<GalleryViewId, "theme">
 }) {
   if (viewId === "components") {
     return (
       <GalleryComponentMarketSidebar
-        enabledTags={enabledComponentTags}
         filters={componentMarketFilters}
         onFiltersChange={onComponentMarketFiltersChange}
       />
@@ -326,17 +416,12 @@ export function GalleryMarketSidebar({
 }
 
 function GalleryComponentMarketSidebar({
-  enabledTags,
   filters,
   onFiltersChange,
 }: {
-  enabledTags: EnabledGalleryComponentTags
   filters: GalleryComponentMarketFilters
   onFiltersChange: (filters: GalleryComponentMarketFilters) => void
 }) {
-  const installedCount = galleryComponentMarketCatalog.filter((component) =>
-    getGalleryComponentMarketStatus(component, enabledTags) === "installed"
-  ).length
   const categoryCounts = galleryComponentMarketCatalog.reduce(
     (counts, component) => {
       const category = component.market.category
@@ -346,27 +431,6 @@ function GalleryComponentMarketSidebar({
     {} as Record<string, number>
   )
   const groups = [
-    {
-      label: "Browse",
-      items: [
-        {
-          icon: SearchIcon,
-          label: "All components",
-          meta: String(galleryComponentMarketCatalog.length),
-          onClick: () =>
-            onFiltersChange({
-              category: galleryComponentMarketAllCategory,
-              status: "all",
-            }),
-        },
-        {
-          icon: CheckIcon,
-          label: "Installed",
-          meta: String(installedCount),
-          onClick: () => onFiltersChange({ ...filters, status: "installed" }),
-        },
-      ],
-    },
     {
       label: "Categories",
       items: [

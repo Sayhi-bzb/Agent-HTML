@@ -14,6 +14,7 @@ dist-agent-html
 dist-ssr
 apps/docs/.react-router
 apps/docs/.source
+apps/docs/node_modules
 src-tauri/target/
 src-tauri/gen/
 *.local

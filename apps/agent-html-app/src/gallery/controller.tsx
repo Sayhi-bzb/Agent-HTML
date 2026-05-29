@@ -293,6 +293,9 @@ export function useGalleryController({
       />
     ) : activeViewId === "components" ? (
       <GalleryComponentMarketSidebarHeader
+        componentMarketFilters={componentMarketFilters}
+        enabledComponentTags={enabledComponentTags}
+        onComponentMarketFiltersChange={setComponentMarketFilters}
         onSearchQueryChange={setComponentMarketSearchQuery}
         searchQuery={componentMarketSearchQuery}
       />
@@ -343,7 +346,6 @@ export function useGalleryController({
     ) : (
       <GalleryMarketSidebar
         componentMarketFilters={componentMarketFilters}
-        enabledComponentTags={enabledComponentTags}
         onComponentMarketFiltersChange={setComponentMarketFilters}
         viewId={activeViewId}
       />

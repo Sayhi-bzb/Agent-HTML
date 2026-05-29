@@ -1,20 +1,12 @@
-import path from "path"
-import { reactRouter } from "@react-router/dev/vite"
-import tailwindcss from "@tailwindcss/vite"
-import mdx from "fumadocs-mdx/vite"
-import { defineConfig } from "vite"
+import { reactRouter } from '@react-router/dev/vite';
+import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'vite';
+import mdx from 'fumadocs-mdx/vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
-  root: __dirname,
-  plugins: [
-    await mdx(),
-    tailwindcss(),
-    reactRouter(),
-  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "app"),
-      "@source": path.resolve(__dirname, ".source"),
-    },
+  plugins: [tsconfigPaths(), mdx(), tailwindcss(), reactRouter()],
+  ssr: {
+    external: ['@takumi-rs/image-response'],
   },
-})
+});
