@@ -6,7 +6,6 @@ import {
   Code2Icon,
   InfoIcon,
   PackageIcon,
-  SearchIcon,
 } from "lucide-react"
 
 import {
@@ -28,7 +27,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/app/shared/ui/collapsible"
-import { Input } from "@/app/shared/ui/input"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/shared/ui/popover"
 import { cn } from "@/app/shared/lib/utils"
 
 function matchesSearch(component: GalleryComponentMarketItem, query: string) {
@@ -49,22 +52,16 @@ function matchesSearch(component: GalleryComponentMarketItem, query: string) {
 export function GalleryComponentMarketView({
   enabledTags,
   filters,
+  searchQuery,
   onEnabledTagsChange,
   onFiltersChange,
 }: {
   enabledTags: EnabledGalleryComponentTags
   filters: GalleryComponentMarketFilters
+  searchQuery: string
   onEnabledTagsChange: (tags: EnabledGalleryComponentTags) => void
   onFiltersChange: (filters: GalleryComponentMarketFilters) => void
 }) {
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [technicalDetailsOpen, setTechnicalDetailsOpen] =
-    React.useState(false)
-  const [selectedTag, setSelectedTag] = React.useState(
-    galleryComponentMarketCatalog.find((component) => component.tag === "Card")
-      ?.tag ?? galleryComponentMarketCatalog[0]?.tag
-  )
-
   const installedCount = React.useMemo(
     () =>
       galleryComponentMarketCatalog.filter((component) =>
@@ -112,22 +109,6 @@ export function GalleryComponentMarketView({
     [enabledTags, filters.category, filters.status, searchQuery]
   )
 
-  const selectedComponent = React.useMemo(
-    () =>
-      filteredComponents.find((component) => component.tag === selectedTag) ??
-      filteredComponents[0] ??
-      null,
-    [filteredComponents, selectedTag]
-  )
-
-  const selectedPromptMetrics = React.useMemo(() => {
-    if (!selectedComponent) {
-      return null
-    }
-
-    return buildGalleryComponentPromptMetrics(enabledTags, selectedComponent.tag)
-  }, [enabledTags, selectedComponent])
-
   function updateStatus(status: GalleryComponentMarketStatus) {
     onFiltersChange({ ...filters, status })
   }
@@ -153,27 +134,12 @@ export function GalleryComponentMarketView({
   }
 
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <div className="flex min-h-0 flex-1 flex-col">
       <section className="flex min-w-0 flex-col gap-4">
-        <div className="flex flex-col gap-3 rounded-lg border bg-card p-3 text-card-foreground shadow-xs md:flex-row md:items-center">
-          <div className="relative min-w-0 flex-1">
-            <SearchIcon
-              aria-hidden="true"
-              className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              aria-label="Search components"
-              className="pl-8"
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search components"
-              value={searchQuery}
-            />
-          </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Badge variant="secondary">{installedCount} installed</Badge>
             <Badge variant="outline">{availableCount} available</Badge>
             <Badge variant="outline">{filteredComponents.length} shown</Badge>
-          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -228,15 +194,12 @@ export function GalleryComponentMarketView({
               const isInstalled =
                 getGalleryComponentMarketStatus(component, enabledTags) ===
                 "installed"
-              const isSelected = selectedComponent?.tag === component.tag
 
               return (
                 <article
                   className={cn(
                     "flex min-h-44 min-w-0 flex-col rounded-lg border bg-card p-3 text-left text-card-foreground shadow-xs transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
-                    isSelected
-                      ? "border-primary/45 bg-primary/7"
-                      : isInstalled
+                    isInstalled
                         ? "border-primary/25 bg-primary/5"
                         : "hover:border-foreground/20"
                   )}
@@ -272,11 +235,6 @@ export function GalleryComponentMarketView({
                     {component.market.summary}
                   </p>
 
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    <Badge variant="outline">{component.runtime}</Badge>
-                    <Badge variant="outline">{component.role}</Badge>
-                  </div>
-
                   <div className="mt-auto flex items-center justify-between gap-2 pt-4">
                     <Button
                       onClick={() => toggleEnabled(component)}
@@ -293,16 +251,22 @@ export function GalleryComponentMarketView({
                       )}
                       {isInstalled ? "Remove" : "Install"}
                     </Button>
-                    <Button
-                      aria-pressed={isSelected}
-                      onClick={() => setSelectedTag(component.tag)}
-                      size="icon-sm"
-                      type="button"
-                      variant="ghost"
-                      aria-label={`View ${component.market.title} details`}
-                    >
-                      <InfoIcon aria-hidden="true" className="size-4" />
-                    </Button>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          size="icon-sm"
+                          type="button"
+                          variant="ghost"
+                          aria-label={`View ${component.market.title} details`}
+                        >
+                          <InfoIcon aria-hidden="true" className="size-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <GalleryComponentDetailPopoverContent
+                        component={component}
+                        enabledTags={enabledTags}
+                      />
+                    </Popover>
                   </div>
                 </article>
               )
@@ -324,80 +288,73 @@ export function GalleryComponentMarketView({
           </div>
         )}
       </section>
+    </div>
+  )
+}
 
-      {selectedComponent ? (
-        <aside className="min-w-0 rounded-lg border bg-card text-card-foreground shadow-xs xl:sticky xl:top-0 xl:self-start">
-          <div className="border-b p-4">
-            <div className="flex items-start gap-3">
-              <div className="grid size-9 shrink-0 place-items-center rounded-lg border bg-background text-muted-foreground">
-                <Code2Icon aria-hidden="true" className="size-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex min-w-0 items-center gap-2">
-                  <h2 className="truncate text-base font-semibold">
-                    {selectedComponent.market.title}
-                  </h2>
-                  <Badge variant="outline">{selectedComponent.tag}</Badge>
-                  <Badge variant="secondary">
-                    {
-                      galleryComponentMarketCategoryLabels[
-                        selectedComponent.market.category
-                      ]
-                    }
-                  </Badge>
-                </div>
-                <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                  {selectedComponent.market.summary}
-                </p>
-              </div>
-            </div>
+function GalleryComponentDetailPopoverContent({
+  component,
+  enabledTags,
+}: {
+  component: GalleryComponentMarketItem
+  enabledTags: EnabledGalleryComponentTags
+}) {
+  const [technicalDetailsOpen, setTechnicalDetailsOpen] =
+    React.useState(false)
+  const promptMetrics = React.useMemo(
+    () => buildGalleryComponentPromptMetrics(enabledTags, component.tag),
+    [component.tag, enabledTags]
+  )
+
+  return (
+    <PopoverContent align="end" className="w-80" side="top">
+      <div className="flex items-start gap-3">
+        <div className="grid size-8 shrink-0 place-items-center rounded-lg border bg-background text-muted-foreground">
+          <Code2Icon aria-hidden="true" className="size-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-sm font-medium">
+            {component.market.title} details
+          </h2>
+          <div className="mt-2 flex min-w-0 flex-wrap gap-1.5">
+            <Badge variant="outline">{component.tag}</Badge>
+            <Badge variant="default">
+              {promptMetrics.componentTokens.toLocaleString()} tokens
+            </Badge>
           </div>
+        </div>
+      </div>
 
-          <div className="space-y-4 p-4">
-            {selectedPromptMetrics ? (
-              <InlineBadgeRow
-                label="Tokens"
-                variant="default"
-                values={[
-                  `${selectedPromptMetrics.componentTokens.toLocaleString()} tokens`,
-                ]}
-              />
-            ) : null}
-
+      <Collapsible
+        open={technicalDetailsOpen}
+        onOpenChange={setTechnicalDetailsOpen}
+      >
+        <CollapsibleTrigger asChild>
+          <button
+            className="group mt-2 flex w-full items-center justify-between rounded-md py-1.5 text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            type="button"
+            data-selection="none"
+            data-cursor="action"
+          >
+            Technical details
+            <ChevronDownIcon
+              aria-hidden="true"
+              className="size-4 transition-transform group-data-[state=open]:rotate-180"
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="space-y-3 pt-1">
             <InlineBadgeRow
               label="Props"
-              values={[...(selectedComponent.market.configurableAttrs ?? ["children"])]}
+              values={[...(component.market.configurableAttrs ?? ["children"])]}
             />
-
-            <Collapsible
-              open={technicalDetailsOpen}
-              onOpenChange={setTechnicalDetailsOpen}
-            >
-              <CollapsibleTrigger asChild>
-                <button
-                  className="group flex w-full items-center justify-between rounded-md py-1.5 text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-                  type="button"
-                  data-selection="none"
-                  data-cursor="action"
-                >
-                  Technical details
-                  <ChevronDownIcon
-                    aria-hidden="true"
-                    className="size-4 transition-transform group-data-[state=open]:rotate-180"
-                  />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="space-y-1 pt-1">
-                  <KeyValueRow label="Runtime" value={selectedComponent.runtime} />
-                  <KeyValueRow label="Role" value={selectedComponent.role} />
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+            <KeyValueRow label="Runtime" value={component.runtime} />
+            <KeyValueRow label="Role" value={component.role} />
           </div>
-        </aside>
-      ) : null}
-    </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </PopoverContent>
   )
 }
 

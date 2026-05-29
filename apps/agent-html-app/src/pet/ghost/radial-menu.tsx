@@ -1,13 +1,4 @@
-import {
-  EyeIcon,
-  MessageCircleIcon,
-  PauseIcon,
-  RefreshCwIcon,
-  SettingsIcon,
-  SparklesIcon,
-  WaypointsIcon,
-  XIcon,
-} from "lucide-react"
+import { WaypointsIcon } from "lucide-react"
 
 import type { GhostMenuItem } from "@/app/pet/ghost/types"
 import {
@@ -18,14 +9,7 @@ import {
 } from "@/app/shared/ui/tooltip"
 
 const GHOST_MENU_ITEMS: GhostMenuItem[] = [
-  { Icon: SparklesIcon, id: "focus", label: "Focus", x: 0, y: -88 },
-  { Icon: MessageCircleIcon, id: "message", label: "Message", x: 62, y: -62 },
-  { Icon: EyeIcon, id: "inspect", label: "Inspect", x: 88, y: 0 },
-  { Icon: WaypointsIcon, id: "threads", label: "Threads", x: 62, y: 62 },
-  { Icon: RefreshCwIcon, id: "refresh", label: "Refresh", x: 0, y: 88 },
-  { Icon: PauseIcon, id: "pause", label: "Pause", x: -62, y: 62 },
-  { Icon: SettingsIcon, id: "settings", label: "Settings", x: -88, y: 0 },
-  { Icon: XIcon, id: "close", label: "Close", x: -62, y: -62 },
+  { Icon: WaypointsIcon, id: "threads", label: "Threads", x: 0, y: -88 },
 ]
 
 function getTooltipSide({ x, y }: Pick<GhostMenuItem, "x" | "y">) {

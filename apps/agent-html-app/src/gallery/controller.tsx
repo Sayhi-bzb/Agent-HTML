@@ -15,6 +15,7 @@ import { createGalleryComponentMarketRepository } from "@/app/gallery/component-
 import { GalleryEditorPanel } from "@/app/gallery/editor"
 import { GalleryPanel } from "@/app/gallery/panel"
 import {
+  GalleryComponentMarketSidebarHeader,
   GalleryComponentMarketSidebarFooter,
   GalleryMarketSidebar,
   GalleryThemeSidebarFooter,
@@ -91,6 +92,8 @@ export function useGalleryController({
       category: galleryComponentMarketAllCategory,
       status: "all",
     })
+  const [componentMarketSearchQuery, setComponentMarketSearchQuery] =
+    React.useState("")
   const [enabledComponentTags, setEnabledComponentTags] =
     React.useState<EnabledGalleryComponentTags>(
       () => new Set(defaultEnabledGalleryComponentTags)
@@ -288,6 +291,11 @@ export function useGalleryController({
         onSelectSection={setActiveThemeEditorSectionId}
         presets={appThemePresets}
       />
+    ) : activeViewId === "components" ? (
+      <GalleryComponentMarketSidebarHeader
+        onSearchQueryChange={setComponentMarketSearchQuery}
+        searchQuery={componentMarketSearchQuery}
+      />
     ) : null
 
   const sidebarContent =
@@ -354,6 +362,7 @@ export function useGalleryController({
     <GalleryPanel
       activeViewId={activeViewId}
       componentMarketFilters={componentMarketFilters}
+      componentMarketSearchQuery={componentMarketSearchQuery}
       enabledComponentTags={enabledComponentTags}
       onComponentMarketFiltersChange={setComponentMarketFilters}
       onEnabledComponentTagsChange={changeEnabledComponentTags}

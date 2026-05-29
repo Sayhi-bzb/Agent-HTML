@@ -14,7 +14,11 @@ export default function Page() {
   const MDX = page.data.body
 
   return (
-    <DocsPage toc={page.data.toc}>
+    <DocsPage
+      footer={{ enabled: false }}
+      tableOfContent={{ enabled: false }}
+      toc={page.data.toc}
+    >
       <DocsTitle>{page.data.title}</DocsTitle>
       {page.data.description ? (
         <DocsDescription>{page.data.description}</DocsDescription>

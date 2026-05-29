@@ -9,6 +9,11 @@ import {
   SelectValue,
 } from "@/app/shared/ui/select"
 import {
+  Command,
+  CommandDialog,
+  CommandInput,
+} from "@/app/shared/ui/command"
+import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -194,6 +199,49 @@ export function GalleryThemeSidebarFooter({
         </SidebarMenuButton>
       </SidebarMenuItem>
     </FooterMenuStack>
+  )
+}
+
+export function GalleryComponentMarketSidebarHeader({
+  onSearchQueryChange,
+  searchQuery,
+}: {
+  onSearchQueryChange: (query: string) => void
+  searchQuery: string
+}) {
+  const [open, setOpen] = React.useState(false)
+
+  return (
+    <>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={() => setOpen(true)} type="button">
+            <SearchIcon className="size-4" />
+            <span className="min-w-0 flex-1 truncate">Search</span>
+            {searchQuery.trim() ? (
+              <span className="shrink-0 text-xs text-sidebar-foreground">
+                active
+              </span>
+            ) : null}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+      <CommandDialog
+        className="sm:max-w-md"
+        description="Search component market components."
+        onOpenChange={setOpen}
+        open={open}
+        title="Search components"
+      >
+        <Command>
+          <CommandInput
+            onValueChange={onSearchQueryChange}
+            placeholder="Search components..."
+            value={searchQuery}
+          />
+        </Command>
+      </CommandDialog>
+    </>
   )
 }
 

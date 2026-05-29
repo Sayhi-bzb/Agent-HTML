@@ -10,12 +10,14 @@ import type {
 export function GalleryPanel({
   activeViewId,
   componentMarketFilters,
+  componentMarketSearchQuery,
   enabledComponentTags,
   onEnabledComponentTagsChange,
   onComponentMarketFiltersChange,
 }: {
   activeViewId: GalleryViewId
   componentMarketFilters: GalleryComponentMarketFilters
+  componentMarketSearchQuery: string
   enabledComponentTags: EnabledGalleryComponentTags
   onEnabledComponentTagsChange: (tags: EnabledGalleryComponentTags) => void
   onComponentMarketFiltersChange: (filters: GalleryComponentMarketFilters) => void
@@ -30,6 +32,7 @@ export function GalleryPanel({
             <GalleryComponentMarketView
               enabledTags={enabledComponentTags}
               filters={componentMarketFilters}
+              searchQuery={componentMarketSearchQuery}
               onEnabledTagsChange={onEnabledComponentTagsChange}
               onFiltersChange={onComponentMarketFiltersChange}
             />

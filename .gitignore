@@ -9,8 +9,11 @@ lerna-debug.log*
 s
 node_modules
 dist
+dist-docs
 dist-agent-html
 dist-ssr
+apps/docs/.react-router
+apps/docs/.source
 src-tauri/target/
 src-tauri/gen/
 *.local

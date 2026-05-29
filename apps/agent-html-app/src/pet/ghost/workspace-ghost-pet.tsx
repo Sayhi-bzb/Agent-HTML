@@ -28,6 +28,23 @@ const idlePresence: PetPresence = {
   mood: "idle",
 }
 
+const THREAD_PICKER_NO_DRAG_SELECTOR =
+  'button,input,textarea,select,a,[role="menu"],[role="menuitem"],[data-thread-picker-no-drag]'
+
+type ThreadPickerDragState = {
+  pointerId: number
+  startClientX: number
+  startClientY: number
+  startOffset: GhostPetPosition
+}
+
+function isThreadPickerDragTarget(target: EventTarget | null) {
+  return (
+    target instanceof Element &&
+    !target.closest(THREAD_PICKER_NO_DRAG_SELECTOR)
+  )
+}
+
 function getPresenceMessage(presence: PetPresence) {
   if (presence.message?.text) {
     return presence.message.text
@@ -61,10 +78,14 @@ export function WorkspaceGhostPet({
 }) {
   const message = getPresenceMessage(presence)
   const dragStateRef = useRef<GhostPetDragState | null>(null)
+  const threadPickerDragStateRef = useRef<ThreadPickerDragState | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = useState<GhostPetPosition>(loadStoredPosition)
   const [isDragging, setIsDragging] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [threadPickerOffset, setThreadPickerOffset] =
+    useState<GhostPetPosition>({ x: 0, y: 0 })
+  const [isThreadPickerDragging, setIsThreadPickerDragging] = useState(false)
 
   useEffect(() => {
     const handleResize = () => {
@@ -109,6 +130,16 @@ export function WorkspaceGhostPet({
       window.removeEventListener("keydown", handleKeyDown)
     }
   }, [isMenuOpen])
+
+  useEffect(() => {
+    if (isThreadPickerOpen) {
+      setThreadPickerOffset({ x: 0, y: 0 })
+      return
+    }
+
+    threadPickerDragStateRef.current = null
+    setIsThreadPickerDragging(false)
+  }, [isThreadPickerOpen])
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -185,6 +216,57 @@ export function WorkspaceGhostPet({
     })
   }, [])
 
+  const handleThreadPickerPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0 || !isThreadPickerDragTarget(event.target)) {
+        return
+      }
+
+      event.preventDefault()
+      event.currentTarget.setPointerCapture(event.pointerId)
+      threadPickerDragStateRef.current = {
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startOffset: threadPickerOffset,
+      }
+      setIsThreadPickerDragging(true)
+    },
+    [threadPickerOffset]
+  )
+
+  const handleThreadPickerPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const dragState = threadPickerDragStateRef.current
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return
+      }
+
+      setThreadPickerOffset({
+        x: dragState.startOffset.x + event.clientX - dragState.startClientX,
+        y: dragState.startOffset.y + event.clientY - dragState.startClientY,
+      })
+    },
+    []
+  )
+
+  const finishThreadPickerDrag = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const dragState = threadPickerDragStateRef.current
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return
+      }
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId)
+      }
+
+      threadPickerDragStateRef.current = null
+      setIsThreadPickerDragging(false)
+    },
+    []
+  )
+
   return (
     <div
       aria-label="Agent presence"
@@ -231,9 +313,19 @@ export function WorkspaceGhostPet({
         {threadPickerContent ? (
           <PopoverContent
             align="end"
-            className="pointer-events-auto w-80 p-3"
+            className={[
+              "pointer-events-auto w-80 p-3 select-none",
+              isThreadPickerDragging ? "cursor-grabbing" : "cursor-grab",
+            ].join(" ")}
+            onPointerCancel={finishThreadPickerDrag}
+            onPointerDown={handleThreadPickerPointerDown}
+            onPointerMove={handleThreadPickerPointerMove}
+            onPointerUp={finishThreadPickerDrag}
             side="left"
             sideOffset={12}
+            style={{
+              translate: `${threadPickerOffset.x}px ${threadPickerOffset.y}px`,
+            }}
           >
             {threadPickerContent}
           </PopoverContent>
