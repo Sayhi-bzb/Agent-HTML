@@ -36,10 +36,15 @@ import {
   DatabaseIcon,
   FileTextIcon,
   GalleryVerticalEndIcon,
+  GaugeIcon,
   PackageIcon,
   PawPrintIcon,
   SearchIcon,
 } from "lucide-react"
+import {
+  buildEnabledAgentHtmlPromptSchema,
+  estimatePromptSchemaTokens,
+} from "@/app/gallery/component-market-repository"
 
 type AppThemePresetNavItem = {
   id: AppThemePresetId
@@ -186,6 +191,30 @@ export function GalleryThemeSidebarFooter({
         <SidebarMenuButton disabled={!isDirty} onClick={onApply} type="button">
           <CheckIcon className="size-4" />
           <span>{isDirty ? "Apply" : "Applied"}</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </FooterMenuStack>
+  )
+}
+
+export function GalleryComponentMarketSidebarFooter({
+  enabledComponentTags,
+}: {
+  enabledComponentTags: EnabledGalleryComponentTags
+}) {
+  const tokenCount = estimatePromptSchemaTokens(
+    buildEnabledAgentHtmlPromptSchema(enabledComponentTags)
+  ).tokens
+
+  return (
+    <FooterMenuStack>
+      <SidebarMenuItem>
+        <SidebarMenuButton disabled type="button">
+          <GaugeIcon className="size-4" />
+          <span className="min-w-0 flex-1 truncate">Tokens</span>
+          <span className="shrink-0 text-xs text-sidebar-foreground">
+            {tokenCount.toLocaleString()}
+          </span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </FooterMenuStack>

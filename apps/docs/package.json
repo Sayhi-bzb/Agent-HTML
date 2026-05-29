@@ -1,0 +1,14 @@
+{
+  "name": "@agent-html/docs",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "dev": "react-router dev",
+    "build": "react-router build"
+  },
+  "dependencies": {
+    "@react-router/node": "^7.16.0",
+    "isbot": "^5.1.32"
+  }
+}

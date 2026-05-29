@@ -15,6 +15,7 @@ import { createGalleryComponentMarketRepository } from "@/app/gallery/component-
 import { GalleryEditorPanel } from "@/app/gallery/editor"
 import { GalleryPanel } from "@/app/gallery/panel"
 import {
+  GalleryComponentMarketSidebarFooter,
   GalleryMarketSidebar,
   GalleryThemeSidebarFooter,
   GalleryThemeSidebarHeader,
@@ -343,6 +344,10 @@ export function useGalleryController({
   const sidebarFooterContent =
     activeViewId === "theme" ? (
       <GalleryThemeSidebarFooter isDirty={isThemeDirty} onApply={applyTheme} />
+    ) : activeViewId === "components" ? (
+      <GalleryComponentMarketSidebarFooter
+        enabledComponentTags={enabledComponentTags}
+      />
     ) : null
 
   const panel = (

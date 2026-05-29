@@ -2,6 +2,7 @@ import * as React from "react"
 import {
   ArrowDownToLineIcon,
   CheckCircle2Icon,
+  ChevronDownIcon,
   Code2Icon,
   InfoIcon,
   PackageIcon,
@@ -22,6 +23,11 @@ import {
 import { buildGalleryComponentPromptMetrics } from "@/app/gallery/component-market-repository"
 import { Badge } from "@/app/shared/ui/badge"
 import { Button } from "@/app/shared/ui/button"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/app/shared/ui/collapsible"
 import { Input } from "@/app/shared/ui/input"
 import { cn } from "@/app/shared/lib/utils"
 
@@ -52,6 +58,8 @@ export function GalleryComponentMarketView({
   onFiltersChange: (filters: GalleryComponentMarketFilters) => void
 }) {
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [technicalDetailsOpen, setTechnicalDetailsOpen] =
+    React.useState(false)
   const [selectedTag, setSelectedTag] = React.useState(
     galleryComponentMarketCatalog.find((component) => component.tag === "Card")
       ?.tag ?? galleryComponentMarketCatalog[0]?.tag
@@ -330,6 +338,13 @@ export function GalleryComponentMarketView({
                     {selectedComponent.market.title}
                   </h2>
                   <Badge variant="outline">{selectedComponent.tag}</Badge>
+                  <Badge variant="secondary">
+                    {
+                      galleryComponentMarketCategoryLabels[
+                        selectedComponent.market.category
+                      ]
+                    }
+                  </Badge>
                 </div>
                 <p className="mt-1 text-sm leading-5 text-muted-foreground">
                   {selectedComponent.market.summary}
@@ -339,64 +354,46 @@ export function GalleryComponentMarketView({
           </div>
 
           <div className="space-y-4 p-4">
-            <div className="grid grid-cols-2 gap-2">
-              <DetailStat
-                label="Status"
-                value={
-                  getGalleryComponentMarketStatus(
-                    selectedComponent,
-                    enabledTags
-                  ) === "installed"
-                    ? "Installed"
-                    : "Available"
-                }
+            {selectedPromptMetrics ? (
+              <InlineBadgeRow
+                label="Tokens"
+                variant="default"
+                values={[
+                  `${selectedPromptMetrics.componentTokens.toLocaleString()} tokens`,
+                ]}
               />
-              <DetailStat
-                label="Category"
-                value={
-                  galleryComponentMarketCategoryLabels[
-                    selectedComponent.market.category
-                  ]
-                }
-              />
-              <DetailStat label="Runtime" value={selectedComponent.runtime} />
-              <DetailStat label="Role" value={selectedComponent.role} />
-            </div>
+            ) : null}
 
-            <div>
-              <h3 className="text-xs font-medium uppercase text-muted-foreground">
-                Prompt impact
-              </h3>
-              {selectedPromptMetrics ? (
-                <div className="mt-2 space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <DetailStat
-                      label="Prompt budget"
-                      value={`~${selectedPromptMetrics.current.tokens.toLocaleString()} tokens`}
-                    />
-                    <DetailStat
-                      label="Component"
-                      value={`~${selectedPromptMetrics.componentTokens.toLocaleString()} tokens`}
-                    />
-                  </div>
+            <InlineBadgeRow
+              label="Props"
+              values={[...(selectedComponent.market.configurableAttrs ?? ["children"])]}
+            />
+
+            <Collapsible
+              open={technicalDetailsOpen}
+              onOpenChange={setTechnicalDetailsOpen}
+            >
+              <CollapsibleTrigger asChild>
+                <button
+                  className="group flex w-full items-center justify-between rounded-md py-1.5 text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+                  type="button"
+                  data-selection="none"
+                  data-cursor="action"
+                >
+                  Technical details
+                  <ChevronDownIcon
+                    aria-hidden="true"
+                    className="size-4 transition-transform group-data-[state=open]:rotate-180"
+                  />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="space-y-1 pt-1">
+                  <KeyValueRow label="Runtime" value={selectedComponent.runtime} />
+                  <KeyValueRow label="Role" value={selectedComponent.role} />
                 </div>
-              ) : null}
-            </div>
-
-            <div>
-              <h3 className="text-xs font-medium uppercase text-muted-foreground">
-                Configurable props
-              </h3>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {(selectedComponent.market.configurableAttrs ?? ["children"]).map(
-                  (attr) => (
-                    <Badge key={attr} variant="secondary">
-                      {attr}
-                    </Badge>
-                  )
-                )}
-              </div>
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         </aside>
       ) : null}
@@ -404,11 +401,36 @@ export function GalleryComponentMarketView({
   )
 }
 
-function DetailStat({ label, value }: { label: string; value: string }) {
+function InlineBadgeRow({
+  label,
+  values,
+  variant = "secondary",
+}: {
+  label: string
+  values: readonly string[]
+  variant?: React.ComponentProps<typeof Badge>["variant"]
+}) {
   return (
-    <div className="min-w-0 rounded-lg border bg-background p-2">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 truncate text-sm font-medium">{value}</p>
+    <div className="flex min-w-0 items-center gap-2">
+      <span className="shrink-0 text-xs font-medium uppercase text-muted-foreground">
+        {label}
+      </span>
+      <div className="flex min-w-0 flex-wrap gap-1.5">
+        {values.map((value) => (
+          <Badge key={value} variant={variant}>
+            {value}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function KeyValueRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-3 text-sm">
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="min-w-0 truncate font-medium">{value}</span>
     </div>
   )
 }
