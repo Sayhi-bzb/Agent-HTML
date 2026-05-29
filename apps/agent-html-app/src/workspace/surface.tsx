@@ -1,5 +1,9 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
+import {
+  clearWorkspacePetHost,
+  publishWorkspacePetHost,
+} from "@/app/pet/host/pet-host-store"
 import { useWorkspaceAgentController } from "@/app/workspace/agent-controller"
 import { useWorkspaceDocumentController } from "@/app/workspace/document-controller"
 import { useWorkspaceSectionCreation } from "@/app/workspace/section-creation-controller"
@@ -53,6 +57,7 @@ export function WorkspaceSurface({
     handleDropIntent,
     handleSaveDocument,
     isSaveAttentionActive,
+    pendingDocumentState,
     runtime,
     saveState,
   } = useWorkspaceDocumentController({
@@ -66,8 +71,6 @@ export function WorkspaceSurface({
     activeProject,
     onCreateSection,
   })
-  const [isMessageOpen, setIsMessageOpen] = useState(false)
-  const [messageDraft, setMessageDraft] = useState("")
   const threadController = useWorkspaceThreadController({ activeProject })
   const { handlePromptSubmit, petPresence } = useWorkspaceAgentController({
     activeProject,
@@ -76,12 +79,36 @@ export function WorkspaceSurface({
     runtime,
     threadController,
   })
-  const messageDraftScope =
+  const threadPickerContent = (
+    <ProjectThreadPickerContent {...threadController.threadPickerProps} />
+  )
+  const petDraftScope =
     activeProject && activeSection ? `${activeProject.id}:${activeSection.id}` : null
+  const canPublishPetHost =
+    Boolean(activeProject && activeSection) && runtime?.status === "ready"
 
   useEffect(() => {
-    setMessageDraft("")
-  }, [messageDraftScope])
+    if (!canPublishPetHost || !petDraftScope) {
+      clearWorkspacePetHost()
+      return
+    }
+
+    publishWorkspacePetHost({
+      draftScope: petDraftScope,
+      enabled: true,
+      onPromptSubmit: handlePromptSubmit,
+      presence: petPresence,
+      threadPickerContent,
+    })
+
+    return () => clearWorkspacePetHost()
+  }, [
+    canPublishPetHost,
+    handlePromptSubmit,
+    petDraftScope,
+    petPresence,
+    threadPickerContent,
+  ])
 
   if (!activeProject) {
     return <WorkspaceNoProjectState />
@@ -122,28 +149,17 @@ export function WorkspaceSurface({
     return <WorkspaceRuntimeErrorState detail={runtime.message} />
   }
 
-  const threadPickerContent = (
-    <ProjectThreadPickerContent {...threadController.threadPickerProps} />
-  )
-
   return (
     <WorkspaceSurfaceFrame
       canSave={canSave}
       colorCssVariables={colorCssVariables}
       isSaveAttentionActive={isSaveAttentionActive}
-      isMessageOpen={isMessageOpen}
-      isThreadPickerOpen={threadController.isThreadPickerOpen}
-      messageDraft={messageDraft}
       onDropIntent={handleDropIntent}
-      onMessageDraftChange={setMessageDraft}
-      onMessageOpenChange={setIsMessageOpen}
       onPromptSubmit={handlePromptSubmit}
       onSaveDocument={handleSaveDocument}
-      onThreadPickerOpenChange={threadController.setIsThreadPickerOpen}
-      petPresence={petPresence}
+      pendingDocumentState={pendingDocumentState}
       runtime={runtime}
       saveState={saveState}
-      threadPickerContent={threadPickerContent}
     />
   )
 }

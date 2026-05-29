@@ -1,5 +1,4 @@
 {
   "title": "Runtime",
-  "root": true,
-  "pages": ["index", "demo"]
+  "pages": ["overview", "demo"]
 }

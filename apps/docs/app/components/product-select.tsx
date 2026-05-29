@@ -17,13 +17,13 @@ const products = [
     icon: BoxIcon,
     label: 'App',
     value: 'app',
-    href: '/docs/app',
+    href: '/docs/app/overview',
   },
   {
     icon: CpuIcon,
     label: 'Runtime',
     value: 'runtime',
-    href: '/docs/runtime',
+    href: '/docs/runtime/overview',
   },
 ] as const;
 
@@ -32,9 +32,11 @@ export function ProductSelect() {
   const navigate = useNavigate();
 
   const value = useMemo(() => {
-    const active = products.find((product) =>
-      location.pathname.startsWith(product.href),
-    );
+    const active = products.find((product) => {
+      const productRoot = product.href.replace(/\/overview$/, '');
+
+      return location.pathname.startsWith(productRoot);
+    });
 
     return active?.value ?? products[0].value;
   }, [location.pathname]);

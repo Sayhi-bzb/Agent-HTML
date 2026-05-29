@@ -1,12 +1,13 @@
 import * as React from "react"
 
-import { WorkspaceGhostPet } from "@/app/pet/ghost"
-import type { PetPresence } from "@/app/workspace/agent-presence"
-import type { RuntimeState, SaveState } from "./document-controller"
+import type {
+  PendingDocumentState,
+  RuntimeState,
+  SaveState,
+} from "./document-controller"
 import {
   AgentHtmlBlockRuntimeProvider,
   type AgentHtmlColorCssVariables,
-  AgentHtmlPromptComposer,
   AgentHtmlRuntimeTheme,
   AgentHtmlRuntimeViewport,
   type AgentHtmlAgentPromptSubmitInput,
@@ -17,40 +18,33 @@ export function WorkspaceSurfaceFrame({
   canSave,
   colorCssVariables,
   isSaveAttentionActive,
-  isMessageOpen,
-  isThreadPickerOpen,
-  messageDraft,
   onDropIntent,
-  onMessageDraftChange,
   onPromptSubmit,
   onSaveDocument,
-  onMessageOpenChange,
-  onThreadPickerOpenChange,
-  petPresence,
+  pendingDocumentState,
   runtime,
   saveState,
-  threadPickerContent,
 }: {
   canSave: boolean
   colorCssVariables: AgentHtmlColorCssVariables
   isSaveAttentionActive: boolean
-  isMessageOpen: boolean
-  isThreadPickerOpen: boolean
-  messageDraft: string
   onDropIntent: (input: {
     intent: AgentHtmlDropIntent
     sourcePath: string
   }) => void
-  onMessageDraftChange: (draft: string) => void
   onPromptSubmit: (submit: AgentHtmlAgentPromptSubmitInput) => void
   onSaveDocument: () => void
-  onMessageOpenChange: (isOpen: boolean) => void
-  onThreadPickerOpenChange: (isOpen: boolean) => void
-  petPresence?: PetPresence
+  pendingDocumentState: PendingDocumentState
   runtime: Extract<RuntimeState, { status: "ready" }>
   saveState: SaveState
-  threadPickerContent: React.ReactNode
 }) {
+  const statusState =
+    saveState.status !== "clean"
+      ? saveState
+      : pendingDocumentState.status !== "idle"
+        ? pendingDocumentState
+        : null
+
   return (
     <AgentHtmlRuntimeTheme
       className="h-full w-full"
@@ -62,39 +56,14 @@ export function WorkspaceSurfaceFrame({
       >
         <AgentHtmlRuntimeViewport>{runtime.content}</AgentHtmlRuntimeViewport>
       </AgentHtmlBlockRuntimeProvider>
-      {saveState.status !== "clean" ? (
+      {statusState ? (
         <SaveStatus
           canSave={canSave}
           isSaveAttentionActive={isSaveAttentionActive}
           onSaveDocument={onSaveDocument}
-          saveState={saveState}
+          statusState={statusState}
         />
       ) : null}
-      <WorkspaceGhostPet
-        isMessageOpen={isMessageOpen}
-        isThreadPickerOpen={isThreadPickerOpen}
-        messageContent={
-          <AgentHtmlPromptComposer
-            onPointerDown={(event) => event.stopPropagation()}
-            onSend={(prompt) => {
-              onMessageDraftChange("")
-              onPromptSubmit({
-                prompt,
-                target: {
-                  kind: "document",
-                },
-              })
-              onMessageOpenChange(false)
-            }}
-            onValueChange={onMessageDraftChange}
-            value={messageDraft}
-          />
-        }
-        onMessageOpenChange={onMessageOpenChange}
-        onThreadPickerOpenChange={onThreadPickerOpenChange}
-        presence={petPresence}
-        threadPickerContent={threadPickerContent}
-      />
     </AgentHtmlRuntimeTheme>
   )
 }
@@ -103,12 +72,14 @@ function SaveStatus({
   canSave,
   isSaveAttentionActive,
   onSaveDocument,
-  saveState,
+  statusState,
 }: {
   canSave: boolean
   isSaveAttentionActive: boolean
   onSaveDocument: () => void
-  saveState: Exclude<SaveState, { status: "clean" }>
+  statusState:
+    | Exclude<SaveState, { status: "clean" }>
+    | Exclude<PendingDocumentState, { status: "idle" }>
 }) {
   return (
     <div
@@ -121,15 +92,18 @@ function SaveStatus({
       role="status"
     >
       <span>
-        {saveState.status === "dirty"
+        {statusState.status === "dirty"
           ? "Unsaved changes"
-          : saveState.status === "saving"
+          : statusState.status === "saving"
             ? "Saving..."
-            : saveState.status === "saved"
+            : statusState.status === "saved"
               ? "Saved"
-              : saveState.detail}
+              : statusState.status === "loading"
+                ? `Loading ${statusState.detail}...`
+                : statusState.detail}
       </span>
-      {saveState.status === "dirty" || saveState.status === "error" ? (
+      {statusState.status === "dirty" ||
+      (statusState.status === "error" && "detail" in statusState) ? (
         <button
           className="rounded-md bg-primary px-2 py-1 font-medium text-primary-foreground disabled:opacity-50"
           disabled={!canSave}

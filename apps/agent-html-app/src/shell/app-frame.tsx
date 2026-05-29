@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import { WorkspacePetHost } from "@/app/pet/host/workspace-pet-host"
 import { AppThemeScope } from "@/app/shared/app-theme/scope"
 import { SidebarInset, SidebarProvider } from "@/app/shared/ui/sidebar"
 import { AppSidebar } from "@/app/shell/app-sidebar"
@@ -116,6 +117,7 @@ export function AppFrame({
           onClick: gallery.themeExitDialog.onSave,
         }}
       />
+      <WorkspacePetHost />
     </>
   )
 

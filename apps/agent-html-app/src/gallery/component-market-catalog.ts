@@ -73,6 +73,29 @@ export function getGalleryComponentMarketStatus(
     : "available"
 }
 
+export function getGalleryComponentMarketInstalledCount(
+  enabledTags: ReadonlySet<AgentHtmlTag>
+) {
+  return galleryComponentMarketCatalog.filter((component) =>
+    enabledTags.has(component.tag)
+  ).length
+}
+
+export function getGalleryComponentMarketCategoryCounts() {
+  const counts = Object.fromEntries(
+    Object.keys(galleryComponentMarketCategoryLabels).map((category) => [
+      category,
+      0,
+    ])
+  ) as Record<GalleryComponentMarketCategory, number>
+
+  for (const component of galleryComponentMarketCatalog) {
+    counts[component.market.category] += 1
+  }
+
+  return counts
+}
+
 export function matchesGalleryComponentMarketSearch(
   component: GalleryComponentMarketItem,
   query: string
@@ -89,4 +112,25 @@ export function matchesGalleryComponentMarketSearch(
     component.market.summary,
     component.market.category,
   ].some((value) => value.toLowerCase().includes(normalizedQuery))
+}
+
+export function filterGalleryComponentMarketComponents({
+  enabledTags,
+  filters,
+  searchQuery,
+}: {
+  enabledTags: ReadonlySet<AgentHtmlTag>
+  filters: GalleryComponentMarketFilters
+  searchQuery: string
+}) {
+  return galleryComponentMarketCatalog.filter((component) => {
+    const status = getGalleryComponentMarketStatus(component, enabledTags)
+
+    return (
+      matchesGalleryComponentMarketSearch(component, searchQuery) &&
+      (filters.category === galleryComponentMarketAllCategory ||
+        component.market.category === filters.category) &&
+      (filters.status === "all" || status === filters.status)
+    )
+  })
 }

@@ -1,0 +1,5 @@
+{
+  "title": "Demo",
+  "root": true,
+  "pages": ["index", "xxx3", "xxx4"]
+}

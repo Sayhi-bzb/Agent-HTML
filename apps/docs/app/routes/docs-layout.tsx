@@ -8,11 +8,11 @@ import type { Route } from './+types/docs-layout';
 
 const productTabs = {
   app: [
-    { title: 'Overview', url: '/docs/app' },
+    { title: 'Overview', url: '/docs/app/overview' },
     { title: 'Demo', url: '/docs/app/demo' },
   ],
   runtime: [
-    { title: 'Overview', url: '/docs/runtime' },
+    { title: 'Overview', url: '/docs/runtime/overview' },
     { title: 'Demo', url: '/docs/runtime/demo' },
   ],
 } satisfies Record<string, LayoutTab[]>;

@@ -1,5 +1,4 @@
 {
   "title": "App",
-  "root": true,
-  "pages": ["index", "demo"]
+  "pages": ["overview", "demo"]
 }

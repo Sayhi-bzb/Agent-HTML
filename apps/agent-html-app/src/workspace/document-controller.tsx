@@ -40,6 +40,11 @@ export type SaveState =
   | { status: "saved" }
   | { detail: string; status: "error" }
 
+export type PendingDocumentState =
+  | { status: "idle" }
+  | { detail: string; status: "loading" }
+  | { detail: string; status: "error" }
+
 const workspaceRepository = createWorkspaceRepository()
 
 export function renderWorkspaceDocument(
@@ -88,6 +93,8 @@ export function useWorkspaceDocumentController({
   const [saveState, setSaveState] = React.useState<SaveState>({
     status: "clean",
   })
+  const [pendingDocumentState, setPendingDocumentState] =
+    React.useState<PendingDocumentState>({ status: "idle" })
   const [isSaveAttentionActive, setIsSaveAttentionActive] =
     React.useState(false)
 
@@ -183,12 +190,26 @@ export function useWorkspaceDocumentController({
   React.useEffect(() => {
     if (!activeProject || !activeSection) {
       setDocumentState({ status: "idle" })
+      setPendingDocumentState({ status: "idle" })
       setSaveState({ status: "clean" })
       return
     }
 
     let isCurrent = true
-    setDocumentState({ status: "loading" })
+    const pendingDetail = `${activeProject.name} / ${activeSection.title}`
+
+    setDocumentState((current) => {
+      if (current.status === "ready") {
+        setPendingDocumentState({
+          detail: pendingDetail,
+          status: "loading",
+        })
+        return current
+      }
+
+      setPendingDocumentState({ status: "idle" })
+      return { status: "loading" }
+    })
 
     workspaceRepository
       .getProjectSectionDocument(activeProject.id, activeSection.id)
@@ -200,17 +221,31 @@ export function useWorkspaceDocumentController({
             sectionId: activeSection.id,
           })
           setDocumentState({ document, status: "ready" })
+          setPendingDocumentState({ status: "idle" })
           setSaveState({ status: "clean" })
         }
       })
       .catch((error: unknown) => {
         if (isCurrent) {
-          setDocumentState({
-            message:
-              error instanceof Error
-                ? error.message
-                : "Unable to load workspace document.",
-            status: "error",
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Unable to load workspace document."
+
+          setDocumentState((current) => {
+            if (current.status === "ready") {
+              setPendingDocumentState({
+                detail: message,
+                status: "error",
+              })
+              return current
+            }
+
+            setPendingDocumentState({ status: "idle" })
+            return {
+              message,
+              status: "error",
+            }
           })
           setSaveState({ status: "clean" })
         }
@@ -226,6 +261,7 @@ export function useWorkspaceDocumentController({
     handleDropIntent,
     handleSaveDocument,
     isSaveAttentionActive,
+    pendingDocumentState,
     runtime,
     saveState,
   }
