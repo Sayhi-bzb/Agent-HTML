@@ -23,6 +23,7 @@ function toPetWindowState(): PetWindowState {
     draftScope: snapshot.draftScope,
     enabled: snapshot.enabled,
     presence: snapshot.presence,
+    threads: snapshot.threads,
   }
 }
 
@@ -68,16 +69,32 @@ export function WorkspacePetBridge() {
       unlistenCommand = await listen<PetWindowCommand>(
         PET_WINDOW_COMMAND_EVENT,
         (event) => {
-          if (event.payload.type !== "send-prompt") {
+          if (event.payload.type === "send-prompt") {
+            snapshotRef.current.onPromptSubmit?.({
+              prompt: event.payload.prompt,
+              target: {
+                kind: "document",
+              },
+            })
             return
           }
 
-          snapshotRef.current.onPromptSubmit?.({
-            prompt: event.payload.prompt,
-            target: {
-              kind: "document",
-            },
-          })
+          if (event.payload.type === "new-thread") {
+            snapshotRef.current.onNewThread?.()
+            return
+          }
+
+          if (event.payload.type === "resume-thread") {
+            snapshotRef.current.onResumeThread?.(event.payload.threadId)
+            return
+          }
+
+          if (event.payload.type === "rename-thread") {
+            void snapshotRef.current.onRenameThread?.({
+              name: event.payload.name,
+              threadId: event.payload.threadId,
+            })
+          }
         }
       )
       unlistenReady = await listen(PET_WINDOW_READY_EVENT, () => {

@@ -21,6 +21,10 @@ src-tauri/gen/
 .gitnexus
 .cache
 .tmp/
+.codex-tmp/
+.wrangler/
+ref-tmp/
+.vite-*.log
 .agent-html-dev.out
 .agent-html-dev.err
 

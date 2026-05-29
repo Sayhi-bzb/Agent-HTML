@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 
 import {
   clearWorkspacePetHost,
@@ -8,6 +8,7 @@ import { useWorkspaceAgentController } from "@/app/workspace/agent-controller"
 import { useWorkspaceDocumentController } from "@/app/workspace/document-controller"
 import { useWorkspaceSectionCreation } from "@/app/workspace/section-creation-controller"
 import { ProjectThreadPickerContent } from "@/app/workspace/thread-picker"
+import { buildProjectThreadPickerItems } from "@/app/workspace/thread-picker-model"
 import { useWorkspaceThreadController } from "@/app/workspace/thread-controller"
 import { WorkspaceSurfaceFrame } from "@/app/workspace/surface-frame"
 import {
@@ -88,6 +89,44 @@ export function WorkspaceSurface({
   const threadPickerContent = (
     <ProjectThreadPickerContent {...threadController.threadPickerProps} />
   )
+  const petThreads = useMemo(
+    () => ({
+      canSelectThread: threadController.threadPickerProps.canSelectThread,
+      error:
+        threadController.threadPickerProps.codexThreadError ??
+        threadController.threadPickerProps.projectThreadError ??
+        threadController.threadPickerProps.threadSelectionError ??
+        threadController.threadPickerProps.renameError ??
+        null,
+      isLoading: threadController.threadPickerProps.isLoading,
+      isSelectingThread: threadController.threadPickerProps.isSelectingThread,
+      items: buildProjectThreadPickerItems({
+        optimisticThreadNames:
+          threadController.threadPickerProps.optimisticThreadNames,
+        projectThreadLinks:
+          threadController.threadPickerProps.projectThreadLinks,
+        selectedProjectThreadId:
+          threadController.threadPickerProps.selectedProjectThreadId,
+        threadRequestPreviews:
+          threadController.threadPickerProps.threadRequestPreviews,
+        threadSummaries: threadController.threadPickerProps.threadSummaries,
+      }),
+    }),
+    [
+      threadController.threadPickerProps.canSelectThread,
+      threadController.threadPickerProps.codexThreadError,
+      threadController.threadPickerProps.isLoading,
+      threadController.threadPickerProps.isSelectingThread,
+      threadController.threadPickerProps.optimisticThreadNames,
+      threadController.threadPickerProps.projectThreadError,
+      threadController.threadPickerProps.projectThreadLinks,
+      threadController.threadPickerProps.renameError,
+      threadController.threadPickerProps.selectedProjectThreadId,
+      threadController.threadPickerProps.threadRequestPreviews,
+      threadController.threadPickerProps.threadSelectionError,
+      threadController.threadPickerProps.threadSummaries,
+    ]
+  )
   const petDraftScope =
     activeProject && displayedSection
       ? `${activeProject.id}:${displayedSection.id}`
@@ -104,9 +143,13 @@ export function WorkspaceSurface({
     publishWorkspacePetHost({
       draftScope: petDraftScope,
       enabled: true,
+      onNewThread: threadController.threadPickerProps.onNewThread,
       onPromptSubmit: handlePromptSubmit,
+      onRenameThread: threadController.threadPickerProps.onRenameThread,
+      onResumeThread: threadController.threadPickerProps.onResumeThread,
       presence: petPresence,
       threadPickerContent,
+      threads: petThreads,
     })
 
     return () => clearWorkspacePetHost()
@@ -115,7 +158,11 @@ export function WorkspaceSurface({
     handlePromptSubmit,
     petDraftScope,
     petPresence,
+    petThreads,
     threadPickerContent,
+    threadController.threadPickerProps.onNewThread,
+    threadController.threadPickerProps.onRenameThread,
+    threadController.threadPickerProps.onResumeThread,
   ])
 
   if (!activeProject) {

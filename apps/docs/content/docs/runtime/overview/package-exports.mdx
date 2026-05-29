@@ -1,0 +1,27 @@
+---
+title: Package Exports
+description: Understand the intended public import boundaries for Agent-HTML runtime consumers.
+---
+
+The runtime package has layered public surfaces. Use the narrowest stable export
+that matches your integration.
+
+## Stable Runtime Contract
+
+`@/agent-html` is the stable contract for DSL core and production runtime host
+APIs.
+
+## Explicit Runtime Imports
+
+`@/agent-html/runtime` exposes the runtime host contract for consumers that want
+explicit runtime imports.
+
+## Advanced Block Internals
+
+`@/agent-html/runtime/block` is for advanced block-host internals such as hover
+state and drag/drop geometry.
+
+## Source Support
+
+`@/agent-html/source` supports demo and source-analysis surfaces. It is not part
+of the production runtime host contract.

@@ -14,7 +14,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const product = getProductByPathname(pathname);
 
   return {
-    tabs: getLayoutTabs(tree).filter((tab) => tab.url === product.root || tab.url.startsWith(`${product.root}/`)),
+    productRoot: product.root,
     tree,
   };
 }
@@ -27,14 +27,18 @@ export default function Layout({
   loaderData: Route.ComponentProps['loaderData'];
 }) {
   const { nav, ...base } = baseOptions();
+  const tree = loaderData.tree as Root;
+  const tabs = getLayoutTabs(tree).filter(
+    (tab) => tab.url === loaderData.productRoot || tab.url.startsWith(`${loaderData.productRoot}/`),
+  );
 
   return (
     <DocsLayout
       {...base}
       nav={{ ...nav, mode: 'top' }}
       tabMode="navbar"
-      tabs={loaderData.tabs}
-      tree={loaderData.tree as Root}
+      tabs={tabs}
+      tree={tree}
     >
       {children ?? <Outlet />}
     </DocsLayout>

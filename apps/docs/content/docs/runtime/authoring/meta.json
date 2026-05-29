@@ -1,0 +1,5 @@
+{
+  "title": "Authoring",
+  "root": true,
+  "pages": ["index", "document-structure", "layout-primitives", "content-components"]
+}

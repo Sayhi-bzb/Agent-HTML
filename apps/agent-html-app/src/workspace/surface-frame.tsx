@@ -21,6 +21,12 @@ type WorkspaceStatusPillState =
       state: Exclude<PendingDocumentState, { status: "idle" }>
     }
 
+const workspaceStatusPillTransitionMs = 200
+const workspaceStatusPillTimingMs = {
+  loadingDelay: workspaceStatusPillTransitionMs,
+  loadingMinVisible: workspaceStatusPillTransitionMs * 2,
+} as const
+
 export function WorkspaceSurfaceFrame({
   canSave,
   colorCssVariables,
@@ -54,6 +60,7 @@ export function WorkspaceSurfaceFrame({
             state: pendingDocumentState,
           } satisfies WorkspaceStatusPillState)
         : null
+  const visibleStatusState = useVisibleWorkspaceStatusPillState(statusState)
 
   return (
     <AgentHtmlRuntimeTheme
@@ -66,16 +73,87 @@ export function WorkspaceSurfaceFrame({
       >
         <AgentHtmlRuntimeViewport>{runtime.content}</AgentHtmlRuntimeViewport>
       </AgentHtmlBlockRuntimeProvider>
-      {statusState ? (
+      {visibleStatusState ? (
         <SaveStatus
           canSave={canSave}
           isSaveAttentionActive={isSaveAttentionActive}
           onSaveDocument={onSaveDocument}
-          statusState={statusState}
+          statusState={visibleStatusState}
         />
       ) : null}
     </AgentHtmlRuntimeTheme>
   )
+}
+
+function useVisibleWorkspaceStatusPillState(
+  statusState: WorkspaceStatusPillState | null
+) {
+  const [visibleStatusState, setVisibleStatusState] =
+    React.useState<WorkspaceStatusPillState | null>(null)
+  const visibleStatusStateRef =
+    React.useRef<WorkspaceStatusPillState | null>(null)
+  const visibleSinceRef = React.useRef<number | null>(null)
+  const hideTimeoutRef = React.useRef<number | null>(null)
+
+  React.useEffect(() => {
+    visibleStatusStateRef.current = visibleStatusState
+  }, [visibleStatusState])
+
+  React.useEffect(() => {
+    if (hideTimeoutRef.current !== null) {
+      window.clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+
+    if (
+      statusState?.kind === "document" &&
+      statusState.state.status === "loading"
+    ) {
+      const delayTimeout = window.setTimeout(() => {
+        visibleSinceRef.current = window.performance.now()
+        visibleStatusStateRef.current = statusState
+        setVisibleStatusState(statusState)
+      }, workspaceStatusPillTimingMs.loadingDelay)
+
+      return () => window.clearTimeout(delayTimeout)
+    }
+
+    const visibleState = visibleStatusStateRef.current
+    const isVisibleDocumentLoading =
+      visibleState?.kind === "document" &&
+      visibleState.state.status === "loading"
+
+    if (isVisibleDocumentLoading && statusState === null) {
+      const visibleSince = visibleSinceRef.current ?? window.performance.now()
+      const remaining =
+        workspaceStatusPillTimingMs.loadingMinVisible -
+        (window.performance.now() - visibleSince)
+
+      if (remaining > 0) {
+        hideTimeoutRef.current = window.setTimeout(() => {
+          visibleSinceRef.current = null
+          visibleStatusStateRef.current = null
+          setVisibleStatusState(null)
+          hideTimeoutRef.current = null
+        }, remaining)
+
+        return () => {
+          if (hideTimeoutRef.current !== null) {
+            window.clearTimeout(hideTimeoutRef.current)
+            hideTimeoutRef.current = null
+          }
+        }
+      }
+    }
+
+    visibleSinceRef.current = null
+    visibleStatusStateRef.current = statusState
+    setVisibleStatusState(statusState)
+
+    return undefined
+  }, [statusState])
+
+  return visibleStatusState
 }
 
 function SaveStatus({
@@ -94,12 +172,16 @@ function SaveStatus({
   return (
     <div
       className={[
-        "fixed right-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-xs text-foreground shadow-lg transition-[box-shadow,border-color,background-color]",
+        "fixed right-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-xs text-foreground transition-[box-shadow,border-color,background-color]",
+        statusState.kind === "document"
+          ? "border-border/60 bg-background/90 shadow-sm"
+          : "shadow-lg",
         isSaveAttentionActive
           ? "border-primary/70 bg-primary/5 shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)]"
           : "",
       ].join(" ")}
       role="status"
+      style={{ transitionDuration: `${workspaceStatusPillTransitionMs}ms` }}
     >
       <span>
         {status === "dirty"
@@ -109,7 +191,7 @@ function SaveStatus({
             : status === "saved"
               ? "Saved"
               : status === "loading"
-                ? `Loading ${statusState.state.detail}...`
+                ? "Loading section..."
                 : statusState.state.detail}
       </span>
       {statusState.kind === "save" &&

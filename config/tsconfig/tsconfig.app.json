@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@/app/*": ["./apps/agent-html-app/src/*"],
+      "@/agent-html": ["./packages/agent-html/src/index.ts"],
+      "@/agent-html/*": ["./packages/agent-html/src/*"]
+    }
+  },
+  "include": [
+    "../../apps/agent-html-app/src",
+    "../../packages/agent-html/src"
+  ],
+  "exclude": [
+    "../../apps/agent-html-app/src/**/*.test.ts",
+    "../../apps/agent-html-app/src/**/*.test.tsx",
+    "../../packages/**/*.test.ts",
+    "../../packages/**/*.test.tsx"
+  ]
+}

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  buildProjectThreadPickerItems,
   formatThreadRelativeTime,
   readFirstThreadRequestText,
   sortProjectThreadLinksByRecent,
-} from "@/app/workspace/surface"
+} from "@/app/workspace/thread-picker-model"
 
 describe("workspace thread card helpers", () => {
   it("formats thread timestamps as fixed English relative time", () => {
@@ -123,6 +124,41 @@ describe("workspace thread card helpers", () => {
     expect(sortProjectThreadLinksByRecent([...links], summaries).map((link) => link.threadId)).toEqual([
       "thr_new",
       "thr_old",
+    ])
+  })
+
+  it("builds serializable thread picker items for native pet windows", () => {
+    const items = buildProjectThreadPickerItems({
+      optimisticThreadNames: {
+        thr_current: "Working thread",
+      },
+      projectThreadLinks: [
+        {
+          createdAt: "2026-05-27T12:00:00.000Z",
+          lastUsedAt: "2026-05-28T11:58:00.000Z",
+          origin: "agent-html",
+          projectId: "project",
+          threadId: "thr_current",
+        },
+      ],
+      selectedProjectThreadId: "thr_current",
+      threadRequestPreviews: {
+        thr_current: {
+          isLoading: false,
+          requestText: "Make the pet draggable.",
+        },
+      },
+      threadSummaries: [],
+    })
+
+    expect(items).toEqual([
+      {
+        displayName: "Working thread",
+        isCurrentThread: true,
+        previewText: "Make the pet draggable.",
+        threadId: "thr_current",
+        timestamp: expect.any(String),
+      },
     ])
   })
 })

@@ -1,56 +1,9 @@
 import * as React from "react"
 import { CheckIcon, CopyIcon } from "lucide-react"
-import type { BundledLanguage, ShikiTransformer } from "shiki"
 
 import { cn } from "@/agent-html/lib/utils"
 import { buttonVariants } from "@/agent-html/runtime/ui/button"
 import { IntrinsicScrollFrame } from "@/agent-html/runtime/ui/intrinsic-scroll-frame"
-
-const lineNumberTransformer: ShikiTransformer = {
-  name: "line-numbers",
-  line(node, line) {
-    node.children.unshift({
-      type: "element",
-      tagName: "span",
-      properties: {
-        className: [
-          "inline-block",
-          "min-w-10",
-          "mr-4",
-          "text-right",
-          "select-none",
-          "text-muted-foreground",
-        ],
-        "data-selection": "none",
-      },
-      children: [{ type: "text", value: String(line) }],
-    })
-  },
-}
-
-function syntaxLanguageFor(language: string): BundledLanguage {
-  if (language === "ahtml") return "xml"
-  if (language === "react") return "tsx"
-  return language as BundledLanguage
-}
-
-async function highlightCode(code: string, language: BundledLanguage) {
-  const { codeToHtml } = await import("shiki")
-  const transformers: ShikiTransformer[] = [lineNumberTransformer]
-
-  return await Promise.all([
-    codeToHtml(code, {
-      lang: language,
-      theme: "one-light",
-      transformers,
-    }),
-    codeToHtml(code, {
-      lang: language,
-      theme: "one-dark-pro",
-      transformers,
-    }),
-  ])
-}
 
 function CodeBlockFallback({ code }: { code: string }) {
   return (
@@ -93,19 +46,19 @@ function CodeBlock({
   const [darkHtml, setDarkHtml] = React.useState("")
   const code = React.Children.toArray(children).join("")
   const label = title || language
-  const syntaxLanguage = syntaxLanguageFor(language)
 
   React.useEffect(() => {
     let mounted = true
 
-    highlightCode(code, syntaxLanguage)
-      .then(([light, dark]) => {
+    import("@/agent-html/runtime/ui/code-highlighter")
+      .then(({ highlightCode }) => highlightCode(code, language))
+      .then((highlightedCode) => {
         if (!mounted) {
           return
         }
 
-        setHtml(light)
-        setDarkHtml(dark)
+        setHtml(highlightedCode?.html ?? "")
+        setDarkHtml(highlightedCode?.darkHtml ?? "")
       })
       .catch(() => {
         if (!mounted) {
@@ -119,7 +72,7 @@ function CodeBlock({
     return () => {
       mounted = false
     }
-  }, [code, syntaxLanguage])
+  }, [code, language])
 
   const handleCopy = React.useCallback(() => {
     if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {

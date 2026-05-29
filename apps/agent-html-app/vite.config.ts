@@ -16,7 +16,9 @@ export default defineConfig({
         plugins: ["@lingui/babel-plugin-lingui-macro"],
       },
     }),
-    lingui(),
+    lingui({
+      configPath: path.resolve(__dirname, "../../config/lingui.config.ts"),
+    }),
     tailwindcss(),
   ],
   resolve: {

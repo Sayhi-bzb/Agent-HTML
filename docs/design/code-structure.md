@@ -13,6 +13,25 @@ It does not define visual philosophy, typography roles, or component-family appe
 
 ## Directory Roles
 
+### Repository Root
+
+The repository root is an entrypoint layer, not a storage layer.
+
+It owns:
+
+- repository identity files such as package manifests, readmes, license, release notes, and agent
+  instructions
+- ecosystem files that rely on root discovery, such as `components.json`
+- first-level product boundaries such as `apps/`, `packages/`, `docs/`, `tools/`, `public/`, and
+  `src-tauri/`
+- the root TypeScript solution entrypoint, `tsconfig.json`
+
+Tooling configuration that does not require root discovery SHOULD live under `config/`.
+TypeScript subproject configs SHOULD live under `config/tsconfig/`.
+
+Generated output, local caches, temporary references, and tool runtime folders MUST be ignored
+rather than organized by hand in root.
+
 ### `apps/agent-html-app/src/gallery/*`
 
 This directory is the Gallery feature domain.

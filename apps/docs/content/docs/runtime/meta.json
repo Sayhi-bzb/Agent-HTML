@@ -1,4 +1,4 @@
 {
   "title": "Runtime",
-  "pages": ["overview", "demo"]
+  "pages": ["overview", "authoring", "integration", "reference"]
 }

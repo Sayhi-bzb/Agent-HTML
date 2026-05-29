@@ -1,5 +1,5 @@
 {
   "title": "Overview",
   "root": true,
-  "pages": ["index", "xxx1"]
+  "pages": ["index", "quick-start", "package-exports"]
 }

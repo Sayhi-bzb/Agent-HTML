@@ -1,14 +1,25 @@
 import * as React from "react"
 
 import type { PetPresence } from "@/app/workspace/agent-presence"
+import type { ProjectThreadPickerItem } from "@/app/workspace/thread-picker-model"
 import type { AgentHtmlAgentPromptSubmitInput } from "@/agent-html"
 
 export type WorkspacePetHostSnapshot = {
   draftScope: string | null
   enabled: boolean
+  onNewThread?: () => void
   onPromptSubmit?: (submit: AgentHtmlAgentPromptSubmitInput) => void
+  onRenameThread?: (input: { name: string; threadId: string }) => Promise<void>
+  onResumeThread?: (threadId: string) => void
   presence?: PetPresence
   threadPickerContent?: React.ReactNode
+  threads?: {
+    canSelectThread: boolean
+    error?: string | null
+    isLoading: boolean
+    isSelectingThread: boolean
+    items: ProjectThreadPickerItem[]
+  }
 }
 
 const disabledSnapshot: WorkspacePetHostSnapshot = {

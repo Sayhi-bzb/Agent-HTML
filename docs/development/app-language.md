@@ -51,8 +51,8 @@ Edit `.po` files for translations. Do not hand-edit compiled `.mjs` catalogs.
 `npm run i18n:compile` must keep ES module output so Vite can import catalogs.
 
 The current extraction scope is intentionally narrow while nearby app work is in
-flight. Expand `lingui.config.ts` by folder when that area is parse-stable and
-ready for i18n cleanup.
+flight. Expand `config/lingui.config.ts` by folder when that area is parse-stable
+and ready for i18n cleanup.
 
 ## Release Check
 

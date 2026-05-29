@@ -1,0 +1,5 @@
+{
+  "title": "Workspace",
+  "root": true,
+  "pages": ["index", "projects-and-tabs", "reviewing-artifacts", "search-and-settings"]
+}

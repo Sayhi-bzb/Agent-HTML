@@ -78,8 +78,8 @@ npm run build
 npm run verify
 ```
 
-The build command type-checks with `tsconfig.agent-html-example.json`, then uses
-`apps/agent-html-example/vite.config.ts`.
+The build command type-checks with `config/tsconfig/tsconfig.agent-html-example.json`,
+then uses `apps/agent-html-example/vite.config.ts`.
 
 `apps/agent-html-example/vite.config.ts` is the source of truth for:
 
@@ -88,8 +88,8 @@ The build command type-checks with `tsconfig.agent-html-example.json`, then uses
 - output directory: `dist-agent-html`
 - `@example` alias: `apps/agent-html-example/src`
 
-The root `vite.agent-html.config.ts` only exists as a compatibility re-export.
-Do not add new example deployment rules there.
+The `config/vite.agent-html.config.ts` wrapper only exists as a compatibility
+re-export. Do not add new example deployment rules there.
 
 ## Cloudflare Pages Deploy
 

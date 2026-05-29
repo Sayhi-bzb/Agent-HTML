@@ -1,6 +1,38 @@
 ---
 title: Runtime Overview
-description: Runtime documentation demo tab.
+description: Learn what the Agent-HTML runtime owns and how it fits into the product.
 ---
 
-Runtime tab placeholder.
+The Agent-HTML runtime owns the DSL pipeline that turns source text into a
+rendered artifact.
+
+The intended flow is:
+
+```text
+source string
+  -> parseAgentHtml
+  -> validateAgentHtml
+  -> renderAgentHtml
+  -> runtime UI
+```
+
+Runtime docs are for developers who need to author, validate, render, embed, or
+extend Agent-HTML. Product usage and workspace behavior live under App.
+
+## Runtime Owns
+
+- AST types
+- parser and validator behavior
+- schema metadata
+- runtime renderer
+- runtime UI for rendered DSL output
+- runtime host helpers
+- public package exports
+
+## Runtime Does Not Own
+
+- app shell navigation
+- gallery scene content
+- product workspace state
+- arbitrary website generation
+- page-specific visual design rules

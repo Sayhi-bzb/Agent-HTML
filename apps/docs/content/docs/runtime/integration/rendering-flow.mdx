@@ -1,0 +1,20 @@
+---
+title: Rendering Flow
+description: The standard source-to-rendered-output pipeline for Agent-HTML.
+---
+
+The runtime pipeline has four main stages:
+
+```text
+source string
+  -> parseAgentHtml
+  -> validateAgentHtml
+  -> renderAgentHtml
+  -> runtime UI
+```
+
+Parsing creates structure. Validation checks whether that structure follows the
+schema. Rendering turns the validated document into runtime UI.
+
+Consumers should keep this order explicit so validation failures remain easy to
+diagnose.

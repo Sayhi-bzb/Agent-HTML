@@ -1,0 +1,17 @@
+---
+title: Runtime Host
+description: The runtime host responsibilities for embedded Agent-HTML output.
+---
+
+The runtime host is the boundary between DSL-rendered output and the surrounding
+application.
+
+Host responsibilities include:
+
+- providing the surface where runtime UI is mounted
+- preserving text selection where content should be selectable
+- keeping shell controls separate from rendered document content
+- handling pointer, scroll, and floating-layer interactions consistently
+
+Runtime interaction code should use browser client pointers and live DOM geometry
+for hit-testing.

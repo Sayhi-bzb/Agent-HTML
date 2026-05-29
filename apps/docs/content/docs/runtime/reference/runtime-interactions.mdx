@@ -1,0 +1,14 @@
+---
+title: Runtime Interactions
+description: Runtime interaction rules for pointer movement, scroll, and live geometry.
+---
+
+Runtime interactions include pointer movement, scroll, floating layers, layout
+feedback, selection, and hit-testing.
+
+Use browser client pointer positions and live DOM geometry for runtime
+hit-testing. Do not base runtime hit-testing on third-party drag transforms or
+overlay positions.
+
+Keep rendered document content selectable where review requires it. Treat shell
+chrome, controls, menus, tabs, and drag handles as non-selectable controls.
