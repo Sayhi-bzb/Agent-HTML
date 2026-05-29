@@ -178,6 +178,17 @@ export function WorkspaceGhostPet({
     [onMessageOpenChange, onThreadPickerOpenChange]
   )
 
+  const handleDoubleClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      event.stopPropagation()
+      onMessageOpenChange?.(false)
+      onThreadPickerOpenChange?.(false)
+      setIsMenuOpen((current) => !current)
+    },
+    [onMessageOpenChange, onThreadPickerOpenChange]
+  )
+
   const handleMenuSelect = useCallback(
     (item: GhostMenuItem["id"]) => {
       setIsMenuOpen(false)
@@ -304,6 +315,7 @@ export function WorkspaceGhostPet({
                 isDragging ? "cursor-grabbing" : "cursor-grab",
               ].join(" ")}
               onContextMenu={handleContextMenu}
+              onDoubleClick={handleDoubleClick}
               onPointerCancel={finishDrag}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}

@@ -64,6 +64,12 @@ export function SiteHeader({
           />
         </div>
 
+        <div
+          aria-hidden="true"
+          className="h-full w-10 shrink-0"
+          {...dragRegionProps}
+        />
+
         <div className="ml-auto flex shrink-0 items-center gap-1">
           <Button
             aria-label="Minimize window"

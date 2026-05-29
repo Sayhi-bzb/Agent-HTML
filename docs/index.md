@@ -12,6 +12,7 @@ This directory contains project documentation grouped by ownership boundary.
 - [Agent intent Codex host](./development/agent-intent-bridge.md): thin Codex App Server host and official RPC send flow.
 - [App language](./development/app-language.md): lightweight Lingui boundaries and maintenance workflow.
 - [Deployment](./development/deployment.md): example website build and Cloudflare Pages deployment rules.
+- [GitHub release](./development/github-release.md): lightweight desktop alpha release rules and checklist.
 - [Runtime interactions](./development/runtime-interactions.md): runtime gesture, hit-testing, and scroll-aware interaction rules.
 
 ## Design

@@ -85,6 +85,28 @@ Rules:
 - sidebar-hosted editor panels MAY use shell-facing surfaces instead of workspace cards when they
   belong to the shell itself
 
+## Information Density Standard
+
+Operational interfaces should use space to improve scanning, comparison, and action speed. They
+should not use vertical height or empty spacing to create display-page drama.
+
+Rules:
+
+- work-oriented cards, rows, and lists SHOULD organize identity, status, metadata, and actions
+  horizontally before adding vertical sections
+- high-frequency decision data such as status, token cost, counts, current value, and primary action
+  SHOULD stay visible in the default surface
+- low-frequency technical metadata, long explanations, and auxiliary controls SHOULD move into the
+  smallest appropriate disclosure primitive
+- desktop layouts SHOULD use trailing slots, inline metadata, split regions, and grid columns before
+  increasing card height
+- cards SHOULD avoid large `min-height`, padding, or gaps unless stable row height is needed for
+  comparison or the content itself needs the space
+- summaries and descriptions in catalog-like surfaces SHOULD default to truncation or line clamping
+  rather than turning the surface into a reading flow
+- repeated filters, navigation, status, or summary text SHOULD have one owner; for example, sidebar
+  filters SHOULD not be repeated as a second filter bar in the content result area
+
 ## Settings Surface Standard
 
 Settings dialogs currently use status, explanatory, and diagnostic shell composites. These are

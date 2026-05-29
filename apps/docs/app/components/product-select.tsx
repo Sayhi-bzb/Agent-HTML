@@ -38,6 +38,7 @@ export function ProductSelect() {
 
     return active?.value ?? products[0].value;
   }, [location.pathname]);
+  const selected = products.find((product) => product.value === value) ?? products[0];
 
   return (
     <Select
@@ -48,8 +49,13 @@ export function ProductSelect() {
         if (product) navigate(product.href);
       }}
     >
-      <SelectTrigger size="sm" className="ms-3">
-        <SelectValue />
+      <SelectTrigger size="sm" className="ms-3 min-w-32">
+        <SelectValue asChild>
+          <span className="flex items-center gap-2">
+            <selected.icon />
+            <span className="truncate">{selected.label}</span>
+          </span>
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>

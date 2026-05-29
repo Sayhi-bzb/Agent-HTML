@@ -79,7 +79,7 @@ function SettingsDiagnosticsList({
     <dl
       data-slot="settings-diagnostics-list"
       className={cn(
-        "grid gap-2 rounded-lg border p-3 text-xs sm:grid-cols-2",
+        "grid gap-x-4 gap-y-2 rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs sm:grid-cols-2",
         className
       )}
       {...props}

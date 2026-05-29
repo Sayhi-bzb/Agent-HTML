@@ -12,10 +12,8 @@ import {
   galleryComponentMarketCategoryLabels,
   getGalleryComponentMarketStatus,
   type EnabledGalleryComponentTags,
-  type GalleryComponentMarketCategory,
   type GalleryComponentMarketFilters,
   type GalleryComponentMarketItem,
-  type GalleryComponentMarketStatus,
 } from "@/app/gallery/component-market-catalog"
 import { buildGalleryComponentPromptMetrics } from "@/app/gallery/component-market-repository"
 import { Badge } from "@/app/shared/ui/badge"
@@ -47,7 +45,6 @@ export function GalleryComponentMarketView({
   filters,
   searchQuery,
   onEnabledTagsChange,
-  onFiltersChange,
 }: {
   enabledTags: EnabledGalleryComponentTags
   filters: GalleryComponentMarketFilters
@@ -55,29 +52,6 @@ export function GalleryComponentMarketView({
   onEnabledTagsChange: (tags: EnabledGalleryComponentTags) => void
   onFiltersChange: (filters: GalleryComponentMarketFilters) => void
 }) {
-  const categoryFilters = React.useMemo(() => {
-    const categoryCounts = galleryComponentMarketCatalog.reduce(
-      (counts, component) => {
-        const category = component.market.category
-        counts[category] = (counts[category] ?? 0) + 1
-        return counts
-      },
-      {} as Partial<Record<GalleryComponentMarketCategory, number>>
-    )
-
-    return (
-      Object.keys(
-        galleryComponentMarketCategoryLabels
-      ) as GalleryComponentMarketCategory[]
-    )
-      .filter((category) => categoryCounts[category])
-      .map((category) => ({
-        count: categoryCounts[category] ?? 0,
-        id: category,
-        label: galleryComponentMarketCategoryLabels[category],
-      }))
-  }, [])
-
   const filteredComponents = React.useMemo(
     () =>
       galleryComponentMarketCatalog.filter((component) => {
@@ -93,18 +67,6 @@ export function GalleryComponentMarketView({
     [enabledTags, filters.category, filters.status, searchQuery]
   )
 
-  function updateStatus(status: GalleryComponentMarketStatus) {
-    onFiltersChange({ ...filters, status })
-  }
-
-  function updateCategory(
-    category:
-      | GalleryComponentMarketCategory
-      | typeof galleryComponentMarketAllCategory
-  ) {
-    onFiltersChange({ ...filters, category })
-  }
-
   function toggleEnabled(component: GalleryComponentMarketItem) {
     const nextTags = new Set(enabledTags)
 
@@ -119,101 +81,82 @@ export function GalleryComponentMarketView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <section className="flex min-w-0 flex-col gap-4">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => updateStatus("all")}
-            size="sm"
-            variant={filters.status === "all" ? "secondary" : "outline"}
-          >
-            All
-          </Button>
-          <Button
-            onClick={() => updateStatus("installed")}
-            size="sm"
-            variant={filters.status === "installed" ? "secondary" : "outline"}
-          >
-            Installed
-          </Button>
-          <Button
-            onClick={() => updateStatus("available")}
-            size="sm"
-            variant={filters.status === "available" ? "secondary" : "outline"}
-          >
-            Available
-          </Button>
-          <span className="mx-1 h-7 w-px bg-border" aria-hidden="true" />
-          <Button
-            onClick={() => updateCategory(galleryComponentMarketAllCategory)}
-            size="sm"
-            variant={
-              filters.category === galleryComponentMarketAllCategory
-                ? "secondary"
-                : "outline"
-            }
-          >
-            All categories
-          </Button>
-          {categoryFilters.map((category) => (
-            <Button
-              key={category.id}
-              onClick={() => updateCategory(category.id)}
-              size="sm"
-              variant={filters.category === category.id ? "secondary" : "outline"}
-            >
-              {category.label}
-            </Button>
-          ))}
-        </div>
-
+      <section className="flex min-w-0 flex-col">
         {filteredComponents.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
             {filteredComponents.map((component) => {
               const isInstalled =
                 getGalleryComponentMarketStatus(component, enabledTags) ===
                 "installed"
+              const promptMetrics = buildGalleryComponentPromptMetrics(
+                enabledTags,
+                component.tag
+              )
 
               return (
                 <article
                   className={cn(
-                    "flex min-h-44 min-w-0 flex-col rounded-lg border bg-card p-3 text-left text-card-foreground shadow-xs transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+                    "flex min-h-32 min-w-0 flex-col rounded-lg border bg-card p-3 text-left text-card-foreground shadow-xs transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
                     isInstalled
                         ? "border-primary/25 bg-primary/5"
                         : "hover:border-foreground/20"
                   )}
                   key={component.tag}
                 >
-                  <div className="flex min-w-0 items-start gap-2">
-                    <div className="grid size-8 shrink-0 place-items-center rounded-lg border bg-background text-muted-foreground">
-                      <PackageIcon aria-hidden="true" className="size-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <h3 className="min-w-0 truncate text-sm font-medium">
-                          {component.market.title}
-                        </h3>
-                        {isInstalled ? (
-                          <CheckCircle2Icon
-                            aria-label="Installed"
-                            className="size-4 shrink-0 text-primary"
-                          />
-                        ) : null}
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="flex min-w-0 flex-1 items-start gap-2">
+                      <div className="grid size-8 shrink-0 place-items-center rounded-lg border bg-background text-muted-foreground">
+                        <PackageIcon aria-hidden="true" className="size-4" />
                       </div>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {
-                          galleryComponentMarketCategoryLabels[
-                            component.market.category
-                          ]
-                        }
-                      </p>
+                      <div className="min-w-0">
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <h3 className="min-w-0 truncate text-sm font-medium">
+                            {component.market.title}
+                          </h3>
+                          {isInstalled ? (
+                            <CheckCircle2Icon
+                              aria-label="Installed"
+                              className="size-4 shrink-0 text-primary"
+                            />
+                          ) : null}
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {
+                            galleryComponentMarketCategoryLabels[
+                              component.market.category
+                            ]
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Badge variant="default">
+                        {promptMetrics.componentTokens.toLocaleString()} tokens
+                      </Badge>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            size="icon-sm"
+                            type="button"
+                            variant="ghost"
+                            aria-label={`View ${component.market.title} details`}
+                          >
+                            <InfoIcon aria-hidden="true" className="size-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <GalleryComponentDetailPopoverContent
+                          component={component}
+                          enabledTags={enabledTags}
+                        />
+                      </Popover>
                     </div>
                   </div>
 
-                  <p className="mt-3 line-clamp-2 text-sm leading-5 text-muted-foreground">
+                  <p className="mt-2 line-clamp-2 text-sm leading-5 text-muted-foreground">
                     {component.market.summary}
                   </p>
 
-                  <div className="mt-auto flex items-center justify-between gap-2 pt-4">
+                  <div className="mt-auto flex items-center pt-3">
                     <Button
                       onClick={() => toggleEnabled(component)}
                       size="sm"
@@ -229,22 +172,6 @@ export function GalleryComponentMarketView({
                       )}
                       {isInstalled ? "Remove" : "Install"}
                     </Button>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          size="icon-sm"
-                          type="button"
-                          variant="ghost"
-                          aria-label={`View ${component.market.title} details`}
-                        >
-                          <InfoIcon aria-hidden="true" className="size-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <GalleryComponentDetailPopoverContent
-                        component={component}
-                        enabledTags={enabledTags}
-                      />
-                    </Popover>
                   </div>
                 </article>
               )

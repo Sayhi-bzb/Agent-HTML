@@ -61,7 +61,12 @@ export function GhostRadialMenu({
                 <Icon aria-hidden="true" className="size-4" strokeWidth={2} />
               </button>
             </TooltipTrigger>
-            <TooltipContent side={getTooltipSide({ x, y })} sideOffset={8}>
+            <TooltipContent
+              arrowClassName="bg-foreground/80 fill-foreground/80"
+              className="bg-foreground/80 backdrop-blur-sm"
+              side={getTooltipSide({ x, y })}
+              sideOffset={8}
+            >
               {label}
             </TooltipContent>
           </Tooltip>

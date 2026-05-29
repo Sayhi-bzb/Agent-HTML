@@ -97,6 +97,8 @@ structured work surface; individual screens may still be at different stages of 
 - the default shell plane SHOULD consume `background`, while the inset workspace plane SHOULD be
   established through neutral surface separation rather than by assuming all hosted panels consume
   `card`
+- desktop content wells SHOULD use structured horizontal space, split regions, and compact grids
+  before adding vertical height or decorative whitespace
 
 ## Spacing Rhythm
 
@@ -118,6 +120,9 @@ Current baseline roles:
 - `gap-2` and `gap-3` for dense inline UI
 - `gap-1` for `SidebarMenu` item rhythm
 - `h-8` for standard sidebar item height
+
+Spacing SHOULD support density and orientation. Avoid using large gaps, tall minimum heights, or
+extra section padding as a substitute for clear alignment and information hierarchy.
 
 Token ownership for reusable spacing values belongs to `tokens.md`.
 
