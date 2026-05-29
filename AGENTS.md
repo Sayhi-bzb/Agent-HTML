@@ -30,6 +30,23 @@ Apply these rules when writing or editing docs.
 - Do not introduce a new rule, label, or concept when an existing one explains the point.
 - Prefer restrained, minimal, sufficient writing over exhaustive explanation.
 
+# Content Routes
+
+Use these routes before searching broadly.
+
+- App constitution: `apps/docs/content/docs/app/index.mdx`
+- Runtime constitution: `apps/docs/content/docs/runtime/index.mdx`
+- App docs: `apps/docs/content/docs/app`
+- Runtime docs: `apps/docs/content/docs/runtime`
+- Design system: `design/README.md`
+- Design code structure: `design/code-structure.md`
+- Architecture: `apps/docs/content/docs/runtime/reference/module-boundaries.mdx`
+- Codex host: `apps/docs/content/docs/app/workspace/codex-host.mdx`
+- App language: `apps/docs/content/docs/app/reference/language.mdx`
+- Deployment: `apps/docs/content/docs/runtime/host/example-deployment.mdx`
+- Release: `apps/docs/content/docs/app/reference/release.mdx`
+- Runtime interactions: `apps/docs/content/docs/runtime/host/interaction-boundaries.mdx`
+
 # App Constitution
 
 Canonical source: `apps/docs/content/docs/app/index.mdx`.

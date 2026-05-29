@@ -70,8 +70,8 @@ the preview.
 
 ## Documents
 
-- [Docs index](./docs/index.md): product, engineering, design, and reference
-  documentation.
+- [Agent instructions](./AGENTS.md): content routes for product, engineering,
+  design, and reference documentation.
 
 ## Development
 

@@ -41,3 +41,5 @@ ref-tmp/
 
 .agent-html-dev.out
 .agent-html-dev.err
+agent-html-dev.out
+agent-html-dev.err
