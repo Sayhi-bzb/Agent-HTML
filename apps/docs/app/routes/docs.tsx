@@ -1,5 +1,4 @@
 import type { Route } from './+types/docs';
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import {
   DocsBody,
   DocsDescription,
@@ -7,12 +6,10 @@ import {
   DocsTitle,
   MarkdownCopyButton,
   ViewOptionsPopover,
-} from 'fumadocs-ui/layouts/docs/page';
+} from 'fumadocs-ui/layouts/notebook/page';
 import { getPageMarkdownUrl, source } from '@/lib/source';
 import browserCollections from 'collections/browser';
-import { baseOptions } from '@/lib/layout.shared';
 import { gitConfig } from '@/lib/shared';
-import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { getPageImagePath } from '@/lib/og';
 import { useMDXComponents } from '@/components/mdx';
 
@@ -24,7 +21,6 @@ export async function loader({ params }: Route.LoaderArgs) {
   return {
     path: page.path,
     markdownUrl: getPageMarkdownUrl(page).url,
-    pageTree: await source.serializePageTree(source.getPageTree()),
     imagePath: getPageImagePath(slugs),
   };
 }
@@ -66,11 +62,7 @@ const clientLoader = browserCollections.docs.createClientLoader({
 });
 
 export default function Page({ loaderData }: Route.ComponentProps) {
-  const { path, pageTree, imagePath, markdownUrl } = useFumadocsLoader(loaderData);
+  const { path, imagePath, markdownUrl } = loaderData;
 
-  return (
-    <DocsLayout {...baseOptions()} tree={pageTree}>
-      {clientLoader.useContent(path, { markdownUrl, path, imagePath })}
-    </DocsLayout>
-  );
+  return clientLoader.useContent(path, { markdownUrl, path, imagePath });
 }

@@ -213,22 +213,21 @@ export function GalleryComponentMarketSidebarHeader({
   componentMarketFilters,
   enabledComponentTags,
   onComponentMarketFiltersChange,
-  onSearchQueryChange,
-  searchQuery,
+  onSearchQueryCommit,
 }: {
   componentMarketFilters: GalleryComponentMarketFilters
   enabledComponentTags: EnabledGalleryComponentTags
   onComponentMarketFiltersChange: (filters: GalleryComponentMarketFilters) => void
-  onSearchQueryChange: (query: string) => void
-  searchQuery: string
+  onSearchQueryCommit: (query: string) => void
 }) {
   const [open, setOpen] = React.useState(false)
+  const [dialogSearchQuery, setDialogSearchQuery] = React.useState("")
   const installedCount = galleryComponentMarketCatalog.filter((component) =>
     getGalleryComponentMarketStatus(component, enabledComponentTags) ===
     "installed"
   ).length
   const searchResults = React.useMemo(() => {
-    const query = searchQuery.trim().toLowerCase()
+    const query = dialogSearchQuery.trim().toLowerCase()
 
     if (!query) {
       return galleryComponentMarketCatalog
@@ -242,25 +241,33 @@ export function GalleryComponentMarketSidebarHeader({
         component.market.category,
       ].some((value) => value.toLowerCase().includes(query))
     )
-  }, [searchQuery])
+  }, [dialogSearchQuery])
+
+  function changeOpen(nextOpen: boolean) {
+    setOpen(nextOpen)
+    if (nextOpen) {
+      setDialogSearchQuery("")
+    }
+  }
 
   return (
     <>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton onClick={() => setOpen(true)} type="button">
+          <SidebarMenuButton onClick={() => changeOpen(true)} type="button">
             <SearchIcon className="size-4" />
             <span className="min-w-0 flex-1 truncate">Search</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton
-            onClick={() =>
+            onClick={() => {
               onComponentMarketFiltersChange({
                 category: galleryComponentMarketAllCategory,
                 status: "all",
               })
-            }
+              onSearchQueryCommit("")
+            }}
             type="button"
           >
             <PackageIcon className="size-4" />
@@ -291,15 +298,15 @@ export function GalleryComponentMarketSidebarHeader({
       <CommandDialog
         className="sm:max-w-md"
         description="Search component market components."
-        onOpenChange={setOpen}
+        onOpenChange={changeOpen}
         open={open}
         title="Search components"
       >
         <Command>
           <CommandInput
-            onValueChange={onSearchQueryChange}
+            onValueChange={setDialogSearchQuery}
             placeholder="Search components..."
-            value={searchQuery}
+            value={dialogSearchQuery}
           />
           <CommandList>
             <CommandEmpty>No components found.</CommandEmpty>
@@ -314,7 +321,7 @@ export function GalleryComponentMarketSidebarHeader({
                     component.market.category,
                   ]}
                   onSelect={() => {
-                    onSearchQueryChange(component.market.title)
+                    onSearchQueryCommit(component.market.title)
                     setOpen(false)
                   }}
                 >

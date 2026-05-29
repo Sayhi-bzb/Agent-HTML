@@ -1,4 +1,4 @@
-import { WaypointsIcon } from "lucide-react"
+import { MessageCircleIcon, WaypointsIcon } from "lucide-react"
 
 import type { GhostMenuItem } from "@/app/pet/ghost/types"
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/app/shared/ui/tooltip"
 
 const GHOST_MENU_ITEMS: GhostMenuItem[] = [
+  { Icon: MessageCircleIcon, id: "message", label: "Message", x: 62, y: -62 },
   { Icon: WaypointsIcon, id: "threads", label: "Threads", x: 0, y: -88 },
 ]
 

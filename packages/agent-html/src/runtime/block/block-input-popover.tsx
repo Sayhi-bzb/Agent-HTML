@@ -148,8 +148,11 @@ export function useAgentHtmlBlockInputPopover({
       <AgentHtmlBlockInputGroup
         onSend={(prompt) => {
           onPromptSubmit?.({
-            path: blockInputPopover.path,
             prompt,
+            target: {
+              kind: "block",
+              path: blockInputPopover.path,
+            },
           })
         }}
         onPointerDown={(event) => {

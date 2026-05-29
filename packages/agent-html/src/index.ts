@@ -32,6 +32,7 @@ export type {
 } from "@/agent-html/schema/component-contract"
 export {
   AgentHtmlBlockRuntimeProvider,
+  AgentHtmlPromptComposer,
   AgentHtmlRuntimeTheme,
   AgentHtmlRuntimeViewport,
   agentHtmlInteractionEventName,

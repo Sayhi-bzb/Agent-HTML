@@ -1,4 +1,5 @@
-import * as React from "react"
+import { useEffect, useState } from "react"
+
 import { useWorkspaceAgentController } from "@/app/workspace/agent-controller"
 import { useWorkspaceDocumentController } from "@/app/workspace/document-controller"
 import { useWorkspaceSectionCreation } from "@/app/workspace/section-creation-controller"
@@ -18,10 +19,7 @@ import type {
   WorkspaceProjectView,
   WorkspaceSection,
 } from "@/app/workspace/types"
-import {
-  type AgentHtmlColorCssVariables,
-  renderInteractiveAgentHtml,
-} from "@/agent-html"
+import { type AgentHtmlColorCssVariables } from "@/agent-html"
 
 export {
   formatThreadRelativeTime,
@@ -68,6 +66,8 @@ export function WorkspaceSurface({
     activeProject,
     onCreateSection,
   })
+  const [isMessageOpen, setIsMessageOpen] = useState(false)
+  const [messageDraft, setMessageDraft] = useState("")
   const threadController = useWorkspaceThreadController({ activeProject })
   const { handlePromptSubmit, petPresence } = useWorkspaceAgentController({
     activeProject,
@@ -76,6 +76,12 @@ export function WorkspaceSurface({
     runtime,
     threadController,
   })
+  const messageDraftScope =
+    activeProject && activeSection ? `${activeProject.id}:${activeSection.id}` : null
+
+  useEffect(() => {
+    setMessageDraft("")
+  }, [messageDraftScope])
 
   if (!activeProject) {
     return <WorkspaceNoProjectState />
@@ -125,8 +131,12 @@ export function WorkspaceSurface({
       canSave={canSave}
       colorCssVariables={colorCssVariables}
       isSaveAttentionActive={isSaveAttentionActive}
+      isMessageOpen={isMessageOpen}
       isThreadPickerOpen={threadController.isThreadPickerOpen}
+      messageDraft={messageDraft}
       onDropIntent={handleDropIntent}
+      onMessageDraftChange={setMessageDraft}
+      onMessageOpenChange={setIsMessageOpen}
       onPromptSubmit={handlePromptSubmit}
       onSaveDocument={handleSaveDocument}
       onThreadPickerOpenChange={threadController.setIsThreadPickerOpen}

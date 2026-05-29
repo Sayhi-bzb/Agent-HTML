@@ -36,8 +36,8 @@ type AgentHtmlContextEvent = {
     surface: "workspace"
   }
   target: {
-    ahtmlPath: string
-    kind: "block"
+    ahtmlPath?: string
+    kind: "block" | "document"
   }
 }
 
@@ -121,7 +121,8 @@ function createPromptText(event: AgentHtmlContextEvent) {
   return [
     "---",
     `filePath: ${event.source.filePath}`,
-    `ahtmlPath: ${event.target.ahtmlPath}`,
+    `targetKind: ${event.target.kind}`,
+    event.target.ahtmlPath ? `ahtmlPath: ${event.target.ahtmlPath}` : null,
     "---",
     "",
     "```ahtml",
@@ -130,7 +131,7 @@ function createPromptText(event: AgentHtmlContextEvent) {
     "",
     "Request:",
     event.intent.request,
-  ].join("\n")
+  ].filter((line): line is string => line !== null).join("\n")
 }
 
 export async function deliverAgentHtmlIntent(input: {
@@ -150,7 +151,10 @@ export async function deliverAgentHtmlIntent(input: {
 }): Promise<AgentHtmlIntentDeliveryResult> {
   const parsedDocument =
     input.parsedDocument ?? parseAgentHtml(input.document.ahtmlSource)
-  const selectedNode = findElementByPath(parsedDocument, input.submit.path)
+  const selectedNode =
+    input.submit.target.kind === "block"
+      ? findElementByPath(parsedDocument, input.submit.target.path)
+      : parsedDocument.root
   const event: AgentHtmlContextEvent = {
     context: {
       selectedSource: selectedNode
@@ -175,8 +179,11 @@ export async function deliverAgentHtmlIntent(input: {
       surface: "workspace",
     },
     target: {
-      ahtmlPath: input.submit.path,
-      kind: "block",
+      ahtmlPath:
+        input.submit.target.kind === "block"
+          ? input.submit.target.path
+          : undefined,
+      kind: input.submit.target.kind,
     },
   }
   const promptText = createPromptText(event)

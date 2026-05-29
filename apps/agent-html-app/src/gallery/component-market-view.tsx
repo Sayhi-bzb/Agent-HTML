@@ -2,7 +2,6 @@ import * as React from "react"
 import {
   ArrowDownToLineIcon,
   CheckCircle2Icon,
-  Code2Icon,
   InfoIcon,
   PackageIcon,
 } from "lucide-react"
@@ -285,24 +284,14 @@ function GalleryComponentDetailPopoverContent({
 
   return (
     <PopoverContent align="end" className="w-80" side="top">
-      <div className="flex items-start gap-3">
-        <div className="grid size-8 shrink-0 place-items-center rounded-lg border bg-background text-muted-foreground">
-          <Code2Icon aria-hidden="true" className="size-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-sm font-medium">
-            {component.market.title} details
-          </h2>
-          <div className="mt-2 flex min-w-0 flex-wrap gap-1.5">
-            <Badge variant="outline">{component.tag}</Badge>
-            <Badge variant="default">
-              {promptMetrics.componentTokens.toLocaleString()} tokens
-            </Badge>
-          </div>
-        </div>
+      <div className="flex min-w-0 flex-wrap gap-1.5">
+        <Badge variant="outline">{component.tag}</Badge>
+        <Badge variant="default">
+          {promptMetrics.componentTokens.toLocaleString()} tokens
+        </Badge>
       </div>
 
-      <div className="space-y-3 pt-1">
+      <div className="space-y-3 pt-3">
         <InlineBadgeRow
           label="Props"
           values={[...(component.market.configurableAttrs ?? ["children"])]}

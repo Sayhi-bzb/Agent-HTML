@@ -53,8 +53,11 @@ describe("deliverAgentHtmlIntent", () => {
       startTurn,
       submit: {
         interaction: null,
-        path: "/Page/Section[0]/Stack[0]",
         prompt: "Make this tighter.",
+        target: {
+          kind: "block",
+          path: "/Page/Section[0]/Stack[0]",
+        },
       },
       threadId: "thr_123",
     })
@@ -66,6 +69,7 @@ describe("deliverAgentHtmlIntent", () => {
       [
         "---",
         "filePath: D:\\workspace\\project-1\\section-1.agent-html",
+        "targetKind: block",
         "ahtmlPath: /Page/Section[0]/Stack[0]",
         "---",
       ].join("\n")
@@ -95,8 +99,11 @@ describe("deliverAgentHtmlIntent", () => {
       section,
       startTurn,
       submit: {
-        path: "/Page/Section[0]/Stack[0]",
         prompt: "Explain this block.",
+        target: {
+          kind: "block",
+          path: "/Page/Section[0]/Stack[0]",
+        },
       },
       threadId: "thr_123",
     })
@@ -122,8 +129,11 @@ describe("deliverAgentHtmlIntent", () => {
       section,
       startTurn,
       submit: {
-        path: "/Page/Section[0]/Stack[1]",
         prompt: "What is this?",
+        target: {
+          kind: "block",
+          path: "/Page/Section[0]/Stack[1]",
+        },
       },
       threadId: "thr_123",
     })
@@ -152,8 +162,11 @@ describe("deliverAgentHtmlIntent", () => {
           previousColumnValue: "todo",
           previousIndex: 2,
         },
-        path: "/Page/Section[0]/Stack[0]",
         prompt: "Persist my ordering.",
+        target: {
+          kind: "block",
+          path: "/Page/Section[0]/Stack[0]",
+        },
       },
       threadId: "thr_123",
     })
@@ -164,5 +177,41 @@ describe("deliverAgentHtmlIntent", () => {
     expect(result.promptText).toContain("Persist my ordering.")
     expect(result.promptText).not.toContain("Kanban item moved")
     expect(result.promptText).not.toContain("当前文档 AHTML")
+  })
+
+  it("starts a document-scoped Codex turn with full document context", async () => {
+    const startTurn = vi.fn().mockResolvedValue({
+      threadId: "thr_123",
+      turnId: "turn_123",
+    })
+
+    const result = await deliverAgentHtmlIntent({
+      document,
+      project,
+      section,
+      startTurn,
+      submit: {
+        prompt: "Review this section.",
+        target: {
+          kind: "document",
+        },
+      },
+      threadId: "thr_123",
+    })
+
+    expect(result.ok).toBe(true)
+    const promptText = startTurn.mock.calls[0][0].promptText
+    expect(promptText).toContain(
+      [
+        "---",
+        "filePath: D:\\workspace\\project-1\\section-1.agent-html",
+        "targetKind: document",
+        "---",
+      ].join("\n")
+    )
+    expect(promptText).not.toContain("ahtmlPath:")
+    expect(promptText).toContain("<Page>")
+    expect(promptText).toContain("<Text>Move faster</Text>")
+    expect(promptText).toContain("\n```\n\nRequest:\nReview this section.")
   })
 })

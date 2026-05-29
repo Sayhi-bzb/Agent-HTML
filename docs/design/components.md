@@ -222,6 +222,14 @@ Default surfaces SHOULD carry only high-frequency decisions, current state, and 
 action. Low-frequency explanations, technical metadata, diagnostics, and auxiliary editing controls
 SHOULD move into the smallest disclosure primitive that preserves the user's current task context.
 
+Object-local disclosures SHOULD inherit identity from their trigger surface. When a `Popover`,
+inline detail panel, or similar disclosure is opened from a card, row, or list item, it SHOULD NOT
+repeat the parent surface's icon, title, summary, or status by default. The disclosure SHOULD carry
+only additional information that the parent does not already show, such as exact tags, token cost,
+technical metadata, or configuration fields. It MAY repeat the minimum necessary identity only when
+the disclosure can be opened detached from its parent context, when the parent identity is no longer
+visible, or when a compact label is required to disambiguate similar objects.
+
 Current boundaries:
 
 - `Tooltip` explains briefly. It SHOULD name icons, clarify short labels, or explain disabled states

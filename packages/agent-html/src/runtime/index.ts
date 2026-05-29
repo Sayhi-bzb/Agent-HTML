@@ -9,6 +9,9 @@ export type {
   AgentHtmlAgentPromptSubmitInput,
 } from "@/agent-html/runtime/agent-events/types"
 export {
+  AgentHtmlPromptComposer,
+} from "@/agent-html/runtime/prompt/prompt-composer"
+export {
   AgentHtmlRuntimeTheme,
   type AgentHtmlColorCssVariables,
 } from "@/agent-html/runtime/runtime-theme"

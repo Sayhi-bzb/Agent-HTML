@@ -296,8 +296,7 @@ export function useGalleryController({
         componentMarketFilters={componentMarketFilters}
         enabledComponentTags={enabledComponentTags}
         onComponentMarketFiltersChange={setComponentMarketFilters}
-        onSearchQueryChange={setComponentMarketSearchQuery}
-        searchQuery={componentMarketSearchQuery}
+        onSearchQueryCommit={setComponentMarketSearchQuery}
       />
     ) : null
 

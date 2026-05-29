@@ -66,12 +66,18 @@ function getPresenceMessage(presence: PetPresence) {
 }
 
 export function WorkspaceGhostPet({
+  isMessageOpen = false,
   isThreadPickerOpen = false,
+  messageContent,
+  onMessageOpenChange,
   onThreadPickerOpenChange,
   presence = idlePresence,
   threadPickerContent,
 }: {
+  isMessageOpen?: boolean
   isThreadPickerOpen?: boolean
+  messageContent?: React.ReactNode
+  onMessageOpenChange?: (open: boolean) => void
   onThreadPickerOpenChange?: (open: boolean) => void
   presence?: PetPresence
   threadPickerContent?: React.ReactNode
@@ -165,20 +171,26 @@ export function WorkspaceGhostPet({
     (event: React.MouseEvent<HTMLDivElement>) => {
       event.preventDefault()
       event.stopPropagation()
+      onMessageOpenChange?.(false)
       onThreadPickerOpenChange?.(false)
       setIsMenuOpen((current) => !current)
     },
-    [onThreadPickerOpenChange]
+    [onMessageOpenChange, onThreadPickerOpenChange]
   )
 
   const handleMenuSelect = useCallback(
     (item: GhostMenuItem["id"]) => {
       setIsMenuOpen(false)
+      if (item === "message") {
+        onThreadPickerOpenChange?.(false)
+        onMessageOpenChange?.(true)
+      }
       if (item === "threads") {
+        onMessageOpenChange?.(false)
         onThreadPickerOpenChange?.(true)
       }
     },
-    [onThreadPickerOpenChange]
+    [onMessageOpenChange, onThreadPickerOpenChange]
   )
 
   const handlePointerMove = useCallback(
@@ -278,10 +290,7 @@ export function WorkspaceGhostPet({
         transform: "translate(-50%, -50%)",
       }}
     >
-      <Popover
-        open={isThreadPickerOpen}
-        onOpenChange={onThreadPickerOpenChange}
-      >
+      <Popover open={isMessageOpen} onOpenChange={onMessageOpenChange}>
         <PopoverAnchor asChild>
           <div className="relative">
             {message ? (
@@ -309,6 +318,24 @@ export function WorkspaceGhostPet({
               </div>
             ) : null}
           </div>
+        </PopoverAnchor>
+        {messageContent ? (
+          <PopoverContent
+            align="end"
+            className="pointer-events-auto w-90 p-0"
+            side="left"
+            sideOffset={12}
+          >
+            {messageContent}
+          </PopoverContent>
+        ) : null}
+      </Popover>
+      <Popover
+        open={isThreadPickerOpen}
+        onOpenChange={onThreadPickerOpenChange}
+      >
+        <PopoverAnchor asChild>
+          <div className="relative size-0" />
         </PopoverAnchor>
         {threadPickerContent ? (
           <PopoverContent

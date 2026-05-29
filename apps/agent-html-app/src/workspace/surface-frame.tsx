@@ -6,6 +6,7 @@ import type { RuntimeState, SaveState } from "./document-controller"
 import {
   AgentHtmlBlockRuntimeProvider,
   type AgentHtmlColorCssVariables,
+  AgentHtmlPromptComposer,
   AgentHtmlRuntimeTheme,
   AgentHtmlRuntimeViewport,
   type AgentHtmlAgentPromptSubmitInput,
@@ -16,10 +17,14 @@ export function WorkspaceSurfaceFrame({
   canSave,
   colorCssVariables,
   isSaveAttentionActive,
+  isMessageOpen,
   isThreadPickerOpen,
+  messageDraft,
   onDropIntent,
+  onMessageDraftChange,
   onPromptSubmit,
   onSaveDocument,
+  onMessageOpenChange,
   onThreadPickerOpenChange,
   petPresence,
   runtime,
@@ -29,13 +34,17 @@ export function WorkspaceSurfaceFrame({
   canSave: boolean
   colorCssVariables: AgentHtmlColorCssVariables
   isSaveAttentionActive: boolean
+  isMessageOpen: boolean
   isThreadPickerOpen: boolean
+  messageDraft: string
   onDropIntent: (input: {
     intent: AgentHtmlDropIntent
     sourcePath: string
   }) => void
+  onMessageDraftChange: (draft: string) => void
   onPromptSubmit: (submit: AgentHtmlAgentPromptSubmitInput) => void
   onSaveDocument: () => void
+  onMessageOpenChange: (isOpen: boolean) => void
   onThreadPickerOpenChange: (isOpen: boolean) => void
   petPresence?: PetPresence
   runtime: Extract<RuntimeState, { status: "ready" }>
@@ -62,7 +71,26 @@ export function WorkspaceSurfaceFrame({
         />
       ) : null}
       <WorkspaceGhostPet
+        isMessageOpen={isMessageOpen}
         isThreadPickerOpen={isThreadPickerOpen}
+        messageContent={
+          <AgentHtmlPromptComposer
+            onPointerDown={(event) => event.stopPropagation()}
+            onSend={(prompt) => {
+              onMessageDraftChange("")
+              onPromptSubmit({
+                prompt,
+                target: {
+                  kind: "document",
+                },
+              })
+              onMessageOpenChange(false)
+            }}
+            onValueChange={onMessageDraftChange}
+            value={messageDraft}
+          />
+        }
+        onMessageOpenChange={onMessageOpenChange}
         onThreadPickerOpenChange={onThreadPickerOpenChange}
         presence={petPresence}
         threadPickerContent={threadPickerContent}

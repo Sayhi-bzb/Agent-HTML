@@ -110,6 +110,8 @@ export function useWorkspaceAgentController({
   const lastInteractionRef =
     React.useRef<AgentHtmlAgentInteractionEvent | null>(null)
   const { codexConnection } = threadController
+  const documentAhtmlPath =
+    runtime?.status === "ready" ? `/${runtime.parsedDocument.root.tag}` : null
 
   const handlePromptSubmit = React.useCallback(
     (submit: AgentHtmlAgentPromptSubmitInput) => {
@@ -122,10 +124,11 @@ export function useWorkspaceAgentController({
 
       setAgentDeliveryState({ status: "sending" })
       const document = documentState.document
+      const ahtmlPath = getPromptSubmitAhtmlPath(submit, documentAhtmlPath)
       const threadPromise = threadController.selectedProjectThreadId
         ? Promise.resolve(threadController.selectedProjectThreadId)
         : threadController.createThreadForProject({
-            ahtmlPath: submit.path,
+            ahtmlPath,
             documentPath: document.filePath,
             projectId: activeProject.id,
             sectionId: activeSection.id,
@@ -152,12 +155,12 @@ export function useWorkspaceAgentController({
               activeProject,
               activeSection,
               document,
-              path: submit.path,
+              path: ahtmlPath,
               result,
               threadController,
             })
             setActiveTurnContext({
-              blockPath: submit.path,
+              blockPath: submit.target.kind === "block" ? submit.target.path : undefined,
               sectionId: activeSection.id,
               threadId: result.threadId,
               turnId: result.turnId,
@@ -187,6 +190,7 @@ export function useWorkspaceAgentController({
       activeSection,
       codexConnection.startTurn,
       documentState,
+      documentAhtmlPath,
       runtime,
       threadController,
     ]
@@ -214,6 +218,17 @@ export function useWorkspaceAgentController({
     handlePromptSubmit,
     petPresence,
   }
+}
+
+function getPromptSubmitAhtmlPath(
+  submit: AgentHtmlAgentPromptSubmitInput,
+  documentAhtmlPath: string | null
+) {
+  if (submit.target.kind === "block") {
+    return submit.target.path
+  }
+
+  return documentAhtmlPath ?? "/Page"
 }
 
 function touchThreadAfterDelivery({
