@@ -72,9 +72,15 @@ export function WorkspaceSurface({
     onCreateSection,
   })
   const threadController = useWorkspaceThreadController({ activeProject })
+  const displayedSection =
+    activeProject && documentState.status === "ready"
+      ? activeProject.sections.find(
+          (section) => section.id === documentState.document.sectionId
+        ) ?? activeSection
+      : activeSection
   const { handlePromptSubmit, petPresence } = useWorkspaceAgentController({
     activeProject,
-    activeSection,
+    activeSection: displayedSection,
     documentState,
     runtime,
     threadController,
@@ -83,7 +89,9 @@ export function WorkspaceSurface({
     <ProjectThreadPickerContent {...threadController.threadPickerProps} />
   )
   const petDraftScope =
-    activeProject && activeSection ? `${activeProject.id}:${activeSection.id}` : null
+    activeProject && displayedSection
+      ? `${activeProject.id}:${displayedSection.id}`
+      : null
   const canPublishPetHost =
     Boolean(activeProject && activeSection) && runtime?.status === "ready"
 

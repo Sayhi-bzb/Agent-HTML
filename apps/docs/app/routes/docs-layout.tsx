@@ -2,29 +2,20 @@ import type { ReactNode } from 'react';
 import { Outlet } from 'react-router';
 import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
 import type { Root } from 'fumadocs-core/page-tree';
-import type { LayoutTab } from 'fumadocs-ui/layouts/shared';
+import { getLayoutTabs } from 'fumadocs-ui/layouts/shared';
 import { baseOptions } from '@/lib/layout.shared';
+import { getProductByPathname } from '@/lib/products';
 import type { Route } from './+types/docs-layout';
-
-const productTabs = {
-  app: [
-    { title: 'Overview', url: '/docs/app/overview' },
-    { title: 'Demo', url: '/docs/app/demo' },
-  ],
-  runtime: [
-    { title: 'Overview', url: '/docs/runtime/overview' },
-    { title: 'Demo', url: '/docs/runtime/demo' },
-  ],
-} satisfies Record<string, LayoutTab[]>;
 
 export async function loader({ request }: Route.LoaderArgs) {
   const { source } = await import('@/lib/source');
+  const tree = source.getPageTree();
   const pathname = new URL(request.url).pathname;
-  const product = pathname.startsWith('/docs/runtime') ? 'runtime' : 'app';
+  const product = getProductByPathname(pathname);
 
   return {
-    tabs: productTabs[product],
-    tree: source.getPageTree(),
+    tabs: getLayoutTabs(tree).filter((tab) => tab.url === product.root || tab.url.startsWith(`${product.root}/`)),
+    tree,
   };
 }
 

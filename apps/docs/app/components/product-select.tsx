@@ -11,36 +11,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getProductByPathname, products, type ProductValue } from '@/lib/products';
 
-const products = [
-  {
-    icon: BoxIcon,
-    label: 'App',
-    value: 'app',
-    href: '/docs/app/overview',
-  },
-  {
-    icon: CpuIcon,
-    label: 'Runtime',
-    value: 'runtime',
-    href: '/docs/runtime/overview',
-  },
-] as const;
+const productIcons = {
+  app: BoxIcon,
+  runtime: CpuIcon,
+} satisfies Record<ProductValue, typeof BoxIcon>;
+
+function ProductIcon({ value }: { value: ProductValue }) {
+  const Icon = productIcons[value];
+
+  return <Icon />;
+}
 
 export function ProductSelect() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const value = useMemo(() => {
-    const active = products.find((product) => {
-      const productRoot = product.href.replace(/\/overview$/, '');
-
-      return location.pathname.startsWith(productRoot);
-    });
-
-    return active?.value ?? products[0].value;
-  }, [location.pathname]);
+  const value = useMemo(() => getProductByPathname(location.pathname).value, [location.pathname]);
   const selected = products.find((product) => product.value === value) ?? products[0];
+  const SelectedIcon = productIcons[selected.value];
 
   return (
     <Select
@@ -48,13 +38,13 @@ export function ProductSelect() {
       value={value}
       onValueChange={(nextValue) => {
         const product = products.find((item) => item.value === nextValue);
-        if (product) navigate(product.href);
+        if (product) navigate(product.defaultHref);
       }}
     >
       <SelectTrigger size="sm" className="ms-3 min-w-32">
         <SelectValue asChild>
           <span className="flex items-center gap-2">
-            <selected.icon />
+            <SelectedIcon />
             <span className="truncate">{selected.label}</span>
           </span>
         </SelectValue>
@@ -63,7 +53,7 @@ export function ProductSelect() {
         <SelectGroup>
           {products.map((product) => (
             <SelectItem key={product.value} value={product.value}>
-              <product.icon />
+              <ProductIcon value={product.value} />
               <span className="truncate">{product.label}</span>
             </SelectItem>
           ))}

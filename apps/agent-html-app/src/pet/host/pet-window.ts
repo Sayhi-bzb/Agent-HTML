@@ -1,19 +1,19 @@
 import { isTauri } from "@tauri-apps/api/core"
 
-const PET_WINDOW_LABEL = "pet"
+import { PET_WINDOW_LABEL } from "@/app/pet/host/pet-window-events"
 
 export async function ensurePetWindow() {
   if (!isTauri()) {
     return null
   }
 
-  const tauriWindow = await import("@tauri-apps/api/window")
-  const existing = await tauriWindow.WebviewWindow.getByLabel(PET_WINDOW_LABEL)
+  const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow")
+  const existing = await WebviewWindow.getByLabel(PET_WINDOW_LABEL)
   if (existing) {
     return existing
   }
 
-  return new tauriWindow.WebviewWindow(PET_WINDOW_LABEL, {
+  return new WebviewWindow(PET_WINDOW_LABEL, {
     alwaysOnTop: true,
     decorations: false,
     focus: false,

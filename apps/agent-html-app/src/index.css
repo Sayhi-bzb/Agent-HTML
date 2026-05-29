@@ -225,4 +225,10 @@
     font-family: var(--font-sans);
     letter-spacing: var(--tracking-normal);
   }
+
+  html[data-agent-window="pet"],
+  html[data-agent-window="pet"] body,
+  html[data-agent-window="pet"] #root {
+    background: transparent;
+  }
 }

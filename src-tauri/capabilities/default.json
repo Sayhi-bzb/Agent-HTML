@@ -4,6 +4,7 @@
   "description": "Capability for the main application window.",
   "windows": ["main", "pet"],
   "permissions": [
+    "core:event:default",
     "core:window:default",
     "core:window:allow-minimize",
     "core:window:allow-toggle-maximize",

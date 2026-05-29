@@ -14,6 +14,13 @@ import {
   type AgentHtmlDropIntent,
 } from "@/agent-html"
 
+type WorkspaceStatusPillState =
+  | { kind: "save"; state: Exclude<SaveState, { status: "clean" }> }
+  | {
+      kind: "document"
+      state: Exclude<PendingDocumentState, { status: "idle" }>
+    }
+
 export function WorkspaceSurfaceFrame({
   canSave,
   colorCssVariables,
@@ -40,9 +47,12 @@ export function WorkspaceSurfaceFrame({
 }) {
   const statusState =
     saveState.status !== "clean"
-      ? saveState
+      ? ({ kind: "save", state: saveState } satisfies WorkspaceStatusPillState)
       : pendingDocumentState.status !== "idle"
-        ? pendingDocumentState
+        ? ({
+            kind: "document",
+            state: pendingDocumentState,
+          } satisfies WorkspaceStatusPillState)
         : null
 
   return (
@@ -77,10 +87,10 @@ function SaveStatus({
   canSave: boolean
   isSaveAttentionActive: boolean
   onSaveDocument: () => void
-  statusState:
-    | Exclude<SaveState, { status: "clean" }>
-    | Exclude<PendingDocumentState, { status: "idle" }>
+  statusState: WorkspaceStatusPillState
 }) {
+  const status = statusState.state.status
+
   return (
     <div
       className={[
@@ -92,18 +102,18 @@ function SaveStatus({
       role="status"
     >
       <span>
-        {statusState.status === "dirty"
+        {status === "dirty"
           ? "Unsaved changes"
-          : statusState.status === "saving"
+          : status === "saving"
             ? "Saving..."
-            : statusState.status === "saved"
+            : status === "saved"
               ? "Saved"
-              : statusState.status === "loading"
-                ? `Loading ${statusState.detail}...`
-                : statusState.detail}
+              : status === "loading"
+                ? `Loading ${statusState.state.detail}...`
+                : statusState.state.detail}
       </span>
-      {statusState.status === "dirty" ||
-      (statusState.status === "error" && "detail" in statusState) ? (
+      {statusState.kind === "save" &&
+      (status === "dirty" || status === "error") ? (
         <button
           className="rounded-md bg-primary px-2 py-1 font-medium text-primary-foreground disabled:opacity-50"
           disabled={!canSave}

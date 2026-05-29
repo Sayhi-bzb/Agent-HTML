@@ -97,6 +97,11 @@ export function useWorkspaceDocumentController({
     React.useState<PendingDocumentState>({ status: "idle" })
   const [isSaveAttentionActive, setIsSaveAttentionActive] =
     React.useState(false)
+  const documentStateRef = React.useRef(documentState)
+
+  React.useEffect(() => {
+    documentStateRef.current = documentState
+  }, [documentState])
 
   React.useEffect(() => {
     onDirtyChange(saveState.status === "dirty" || saveState.status === "error")
@@ -197,19 +202,24 @@ export function useWorkspaceDocumentController({
 
     let isCurrent = true
     const pendingDetail = `${activeProject.name} / ${activeSection.title}`
+    const hasDisplayedDocument = documentStateRef.current.status === "ready"
 
-    setDocumentState((current) => {
-      if (current.status === "ready") {
-        setPendingDocumentState({
-          detail: pendingDetail,
-          status: "loading",
-        })
-        return current
-      }
-
+    if (hasDisplayedDocument) {
+      setPendingDocumentState({
+        detail: pendingDetail,
+        status: "loading",
+      })
+      setSaveState((current) =>
+        current.status === "dirty" ||
+        current.status === "saving" ||
+        current.status === "error"
+          ? current
+          : { status: "clean" }
+      )
+    } else {
       setPendingDocumentState({ status: "idle" })
-      return { status: "loading" }
-    })
+      setDocumentState({ status: "loading" })
+    }
 
     workspaceRepository
       .getProjectSectionDocument(activeProject.id, activeSection.id)
@@ -232,22 +242,19 @@ export function useWorkspaceDocumentController({
               ? error.message
               : "Unable to load workspace document."
 
-          setDocumentState((current) => {
-            if (current.status === "ready") {
-              setPendingDocumentState({
-                detail: message,
-                status: "error",
-              })
-              return current
-            }
-
+          if (documentStateRef.current.status === "ready") {
+            setPendingDocumentState({
+              detail: message,
+              status: "error",
+            })
+          } else {
             setPendingDocumentState({ status: "idle" })
-            return {
+            setDocumentState({
               message,
               status: "error",
-            }
-          })
-          setSaveState({ status: "clean" })
+            })
+            setSaveState({ status: "clean" })
+          }
         }
       })
 

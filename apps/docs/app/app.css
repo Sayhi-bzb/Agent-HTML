@@ -127,6 +127,7 @@ html > body[data-scroll-locked] {
 
 #nd-sidebar,
 #nd-sidebar-mobile {
+  /* Fumadocs sidebar consumes --color-fd-* internally; map it back to shadcn sidebar tokens. */
   --color-fd-background: var(--sidebar);
   --color-fd-foreground: var(--sidebar-foreground);
   --color-fd-card: var(--sidebar);
