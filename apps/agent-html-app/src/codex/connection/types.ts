@@ -40,9 +40,16 @@ export type CodexRuntimeCapability =
   | "plugins"
   | "skills"
 
+export type CodexRuntimeCapabilityItem = {
+  id?: string
+  name: string
+  status?: string
+}
+
 export type CodexRuntimeCapabilityStatus = {
   count?: number
   error?: string
+  items?: CodexRuntimeCapabilityItem[]
   ok: boolean
 }
 

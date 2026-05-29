@@ -15,7 +15,7 @@ describe("code-highlighter", () => {
     )
   })
 
-  it("maps agent html and legacy react aliases", async () => {
+  it("maps agent html and react source aliases", async () => {
     expect(canHighlightCode("ahtml")).toBe(true)
     expect(canHighlightCode("react")).toBe(true)
 

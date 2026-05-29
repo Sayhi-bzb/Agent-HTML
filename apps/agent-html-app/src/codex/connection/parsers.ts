@@ -1,5 +1,19 @@
-import type { CodexRuntimeStatus, CodexThreadSummary } from "./types"
+import type {
+  CodexRuntimeCapabilityItem,
+  CodexRuntimeStatus,
+  CodexThreadSummary,
+} from "./types"
 import { readObject, readScalarAsString, readString } from "./object-readers"
+
+const runtimeListKeys = [
+  "apps",
+  "collaborationModes",
+  "items",
+  "models",
+  "plugins",
+  "servers",
+  "skills",
+] as const
 
 export function readThreadId(value: unknown): string | null {
   const result = readObject(value)
@@ -56,8 +70,12 @@ export function readThreads(value: unknown): CodexThreadSummary[] {
 }
 
 export function countItems(value: unknown): number | undefined {
+  return readRuntimeItemValues(value)?.length
+}
+
+function readRuntimeItemValues(value: unknown): unknown[] | undefined {
   if (Array.isArray(value)) {
-    return value.length
+    return value
   }
 
   const object = readObject(value)
@@ -65,22 +83,53 @@ export function countItems(value: unknown): number | undefined {
     return undefined
   }
 
-  for (const key of [
-    "apps",
-    "collaborationModes",
-    "items",
-    "models",
-    "plugins",
-    "servers",
-    "skills",
-  ]) {
+  for (const key of runtimeListKeys) {
     const child = object[key]
     if (Array.isArray(child)) {
-      return child.length
+      return child
     }
   }
 
   return undefined
+}
+
+export function readRuntimeItems(value: unknown): CodexRuntimeCapabilityItem[] {
+  const items = readRuntimeItemValues(value) ?? []
+
+  return items
+    .map<CodexRuntimeCapabilityItem | null>((rawItem) => {
+      if (typeof rawItem === "string") {
+        return { name: rawItem }
+      }
+
+      const item = readObject(rawItem)
+      if (!item) {
+        return null
+      }
+
+      const id =
+        readScalarAsString(item, ["id"]) ??
+        readScalarAsString(item, ["name"])
+      const name =
+        readString(item, ["name"]) ??
+        readString(item, ["title"]) ??
+        readScalarAsString(item, ["id"]) ??
+        readString(item, ["command"])
+      if (!name) {
+        return null
+      }
+
+      return {
+        id,
+        name,
+        status:
+          readScalarAsString(item, ["status"]) ??
+          readScalarAsString(item, ["state"]) ??
+          readScalarAsString(item, ["enabled"]) ??
+          readScalarAsString(item, ["ok"]),
+      }
+    })
+    .filter((item): item is CodexRuntimeCapabilityItem => item !== null)
 }
 
 export function readEffectiveConfig(

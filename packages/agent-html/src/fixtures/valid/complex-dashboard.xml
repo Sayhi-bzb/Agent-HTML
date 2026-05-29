@@ -49,7 +49,7 @@
                 <Progress value="28" />
                 <Alert variant="destructive">
                   <AlertTitle>Archive blocked</AlertTitle>
-                  <AlertDescription>Dependency snapshot failed on two legacy modules.</AlertDescription>
+                  <AlertDescription>Dependency snapshot failed on two archived modules.</AlertDescription>
                 </Alert>
               </Stack>
             </TabsContent>
