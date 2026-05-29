@@ -226,16 +226,4 @@
     letter-spacing: var(--tracking-normal);
   }
 
-  html[data-agent-window="pet"],
-  html[data-agent-window="pet-panel"],
-  html[data-agent-window="pet"] body,
-  html[data-agent-window="pet-panel"] body,
-  html[data-agent-window="pet"] #root,
-  html[data-agent-window="pet-panel"] #root {
-    background: transparent;
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-    width: 100%;
-  }
 }

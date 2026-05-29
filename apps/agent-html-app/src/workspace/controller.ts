@@ -94,7 +94,6 @@ export function useWorkspaceController({
   const [openTabs, setOpenTabs] = React.useState<WorkspaceTab[]>([])
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
   const [actionError, setActionError] = React.useState<string | null>(null)
-  const [saveAttentionToken, setSaveAttentionToken] = React.useState(0)
   const [dirtyTabIds, setDirtyTabIds] = React.useState<Set<string>>(
     () => new Set()
   )
@@ -201,7 +200,6 @@ export function useWorkspaceController({
 
     pendingUnsavedContinuationRef.current = continuation ?? null
     setPendingUnsavedAction({ type: "leave-workspace" })
-    setSaveAttentionToken((current) => current + 1)
     return true
   }, [hasUnsavedChanges])
 
@@ -219,7 +217,6 @@ export function useWorkspaceController({
 
     pendingUnsavedContinuationRef.current = continuation ?? null
     setPendingUnsavedAction({ type: "leave-workspace" })
-    setSaveAttentionToken((current) => current + 1)
     return true
   }, [hasUnsavedChanges])
 
@@ -640,7 +637,6 @@ export function useWorkspaceController({
     (tabId: string) => {
       if (dirtyTabIds.has(tabId)) {
         setPendingUnsavedAction({ tabId, type: "close-tab" })
-        setSaveAttentionToken((current) => current + 1)
         return
       }
 
@@ -692,7 +688,6 @@ export function useWorkspaceController({
     renameProject,
     renameProjectSection,
     reorderTabs,
-    saveAttentionToken,
     pendingUnsavedAction,
     cancelPendingUnsavedAction,
     savePendingUnsavedAction,

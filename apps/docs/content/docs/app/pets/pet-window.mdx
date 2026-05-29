@@ -1,17 +1,16 @@
 ---
-title: Pet Window
-description: How pet companion behavior can appear outside the main workspace frame.
+title: Pet Host
+description: How pet companion behavior is hosted inside the main workspace frame.
 ---
 
-The pet window uses a small event contract.
+Pet companion behavior is hosted inside the main App window.
 
-## Events
+## Host
 
-- `agent-html:pet-ready`
-- `agent-html:pet-state`
-- `agent-html:pet-command`
+`WorkspacePetHost` owns the visible in-workspace pet surface. It consumes App
+state directly instead of synchronizing through a separate native window.
 
 ## State
 
-Pet window state includes enablement, draft scope, presence, and thread picker
-state.
+Pet host state includes enablement, presence, prompt draft state, and thread
+picker state.

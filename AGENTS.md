@@ -30,6 +30,19 @@ Apply these rules when writing or editing docs.
 - Do not introduce a new rule, label, or concept when an existing one explains the point.
 - Prefer restrained, minimal, sufficient writing over exhaustive explanation.
 
+# App Constitution
+
+Canonical source: `apps/docs/content/docs/app/index.mdx`.
+
+App governs human-agent collaboration around artifacts. Runtime governs artifact source, schema, rendering, and host behavior.
+
+Apply these rules when changing app docs, workspace behavior, shell UI, gallery, pets, or agent-facing app operations.
+
+- Human-Agent Collaboration: app exists to make human-agent collaboration the primary working mode.
+- Cognitive Bandwidth: app abstracts model capability into surfaces humans can scan, compare, judge, and steer within their cognitive limits.
+- Parallel Work Surface: app replaces serial chat flow with a canvas-like workspace for persistent, parallel task context.
+- Shared Agency: app must be legible to humans and operable by agents through stable objects, routes, states, and actions.
+
 # Runtime Constitution
 
 Canonical source: `apps/docs/content/docs/runtime/index.mdx`.

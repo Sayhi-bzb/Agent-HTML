@@ -47,10 +47,17 @@ export type PendingDocumentState =
 
 export type WorkspaceDocumentDraft = {
   document: ProjectSectionDocument
+  projectId: string
   saveState: Extract<SaveState, { status: "dirty" | "error" }>
+  sectionId: string
+  tabId: string
 }
 
 const workspaceRepository = createWorkspaceRepository()
+
+function getSectionTabId(sectionId: string) {
+  return `section:${sectionId}`
+}
 
 export function renderWorkspaceDocument(
   document: ProjectSectionDocument
@@ -88,7 +95,6 @@ export function useWorkspaceDocumentController({
   canSave,
   onDraftChange,
   onDirtyChange,
-  saveAttentionToken,
 }: {
   activeProject: WorkspaceProjectView | null
   activeSection: WorkspaceSection | null
@@ -97,7 +103,6 @@ export function useWorkspaceDocumentController({
   canSave: boolean
   onDraftChange: (tabId: string, draft: WorkspaceDocumentDraft | null) => void
   onDirtyChange: (tabId: string | null, isDirty: boolean) => void
-  saveAttentionToken: number
 }) {
   const [documentState, setDocumentState] =
     React.useState<WorkspaceDocumentState>({ status: "idle" })
@@ -106,8 +111,6 @@ export function useWorkspaceDocumentController({
   })
   const [pendingDocumentState, setPendingDocumentState] =
     React.useState<PendingDocumentState>({ status: "idle" })
-  const [isSaveAttentionActive, setIsSaveAttentionActive] =
-    React.useState(false)
   const documentStateRef = React.useRef(documentState)
 
   React.useEffect(() => {
@@ -116,38 +119,28 @@ export function useWorkspaceDocumentController({
 
   React.useEffect(() => {
     const isDirty = saveState.status === "dirty" || saveState.status === "error"
-    onDirtyChange(activeTabId, isDirty)
 
-    if (!activeTabId || documentState.status !== "ready") {
+    if (documentState.status !== "ready") {
+      onDirtyChange(activeTabId, false)
       return
     }
 
+    const documentTabId = getSectionTabId(documentState.document.sectionId)
+    onDirtyChange(documentTabId, isDirty)
+
     if (isDirty) {
-      onDraftChange(activeTabId, {
+      onDraftChange(documentTabId, {
         document: documentState.document,
+        projectId: documentState.document.projectId,
         saveState,
+        sectionId: documentState.document.sectionId,
+        tabId: documentTabId,
       })
       return
     }
 
-    onDraftChange(activeTabId, null)
+    onDraftChange(documentTabId, null)
   }, [activeTabId, documentState, onDirtyChange, onDraftChange, saveState])
-
-  React.useEffect(() => {
-    if (
-      saveAttentionToken === 0 ||
-      (saveState.status !== "dirty" && saveState.status !== "error")
-    ) {
-      return
-    }
-
-    setIsSaveAttentionActive(true)
-    const timeout = window.setTimeout(() => {
-      setIsSaveAttentionActive(false)
-    }, 1400)
-
-    return () => window.clearTimeout(timeout)
-  }, [saveAttentionToken, saveState.status])
 
   const runtime = React.useMemo(() => {
     if (documentState.status !== "ready") {
@@ -191,7 +184,13 @@ export function useWorkspaceDocumentController({
   )
 
   const handleSaveDocument = React.useCallback(() => {
-    if (!canSave || documentState.status !== "ready") {
+    if (
+      !canSave ||
+      documentState.status !== "ready" ||
+      saveState.status === "clean" ||
+      saveState.status === "saved" ||
+      saveState.status === "saving"
+    ) {
       return
     }
 
@@ -206,10 +205,9 @@ export function useWorkspaceDocumentController({
       .then((nextDocument) => {
         setDocumentState({ document: nextDocument, status: "ready" })
         setSaveState({ status: "saved" })
-        if (activeTabId) {
-          onDraftChange(activeTabId, null)
-          onDirtyChange(activeTabId, false)
-        }
+        const documentTabId = getSectionTabId(nextDocument.sectionId)
+        onDraftChange(documentTabId, null)
+        onDirtyChange(documentTabId, false)
       })
       .catch((error: unknown) => {
         setSaveState({
@@ -220,7 +218,34 @@ export function useWorkspaceDocumentController({
           status: "error",
         })
       })
-  }, [activeTabId, canSave, documentState, onDirtyChange, onDraftChange])
+  }, [canSave, documentState, onDirtyChange, onDraftChange, saveState.status])
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key.toLowerCase() !== "s" ||
+        event.altKey ||
+        event.shiftKey ||
+        (!event.ctrlKey && !event.metaKey)
+      ) {
+        return
+      }
+
+      if (
+        !canSave ||
+        documentStateRef.current.status !== "ready" ||
+        (saveState.status !== "dirty" && saveState.status !== "error")
+      ) {
+        return
+      }
+
+      event.preventDefault()
+      handleSaveDocument()
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [canSave, handleSaveDocument, saveState.status])
 
   React.useEffect(() => {
     if (!activeProject || !activeSection || !activeTabId) {
@@ -234,7 +259,11 @@ export function useWorkspaceDocumentController({
     const pendingDetail = `${activeProject.name} / ${activeSection.title}`
     const hasDisplayedDocument = documentStateRef.current.status === "ready"
 
-    if (activeTabDraft) {
+    if (
+      activeTabDraft?.tabId === activeTabId &&
+      activeTabDraft.projectId === activeProject.id &&
+      activeTabDraft.sectionId === activeSection.id
+    ) {
       setDocumentState({ document: activeTabDraft.document, status: "ready" })
       setPendingDocumentState({ status: "idle" })
       setSaveState(activeTabDraft.saveState)
@@ -304,7 +333,6 @@ export function useWorkspaceDocumentController({
     documentState,
     handleDropIntent,
     handleSaveDocument,
-    isSaveAttentionActive,
     pendingDocumentState,
     runtime,
     saveState,

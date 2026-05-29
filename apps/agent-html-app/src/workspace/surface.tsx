@@ -46,7 +46,6 @@ export function WorkspaceSurface({
   onCreateSection,
   onDraftChange,
   onDirtyChange,
-  saveAttentionToken,
   workspaceActionError,
 }: {
   activeProject: WorkspaceProjectView | null
@@ -59,17 +58,13 @@ export function WorkspaceSurface({
   onCreateSection: (input: { projectId: string; title: string }) => Promise<void>
   onDraftChange: (tabId: string, draft: WorkspaceDocumentDraft | null) => void
   onDirtyChange: (tabId: string | null, isDirty: boolean) => void
-  saveAttentionToken: number
   workspaceActionError: string | null
 }) {
   const {
     documentState,
     handleDropIntent,
-    handleSaveDocument,
-    isSaveAttentionActive,
     pendingDocumentState,
     runtime,
-    saveState,
   } = useWorkspaceDocumentController({
     activeProject,
     activeSection,
@@ -78,7 +73,6 @@ export function WorkspaceSurface({
     canSave,
     onDraftChange,
     onDirtyChange,
-    saveAttentionToken,
   })
   const sectionCreation = useWorkspaceSectionCreation({
     activeProject,
@@ -218,15 +212,11 @@ export function WorkspaceSurface({
 
   return (
     <WorkspaceSurfaceFrame
-      canSave={canSave}
       colorCssVariables={colorCssVariables}
-      isSaveAttentionActive={isSaveAttentionActive}
       onDropIntent={handleDropIntent}
       onPromptSubmit={handlePromptSubmit}
-      onSaveDocument={handleSaveDocument}
       pendingDocumentState={pendingDocumentState}
       runtime={runtime}
-      saveState={saveState}
     />
   )
 }

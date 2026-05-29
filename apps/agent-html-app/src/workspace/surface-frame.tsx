@@ -3,7 +3,6 @@ import * as React from "react"
 import type {
   PendingDocumentState,
   RuntimeState,
-  SaveState,
 } from "./document-controller"
 import {
   AgentHtmlBlockRuntimeProvider,
@@ -15,11 +14,7 @@ import {
 } from "@/agent-html"
 
 type WorkspaceStatusPillState =
-  | { kind: "save"; state: Exclude<SaveState, { status: "clean" }> }
-  | {
-      kind: "document"
-      state: Exclude<PendingDocumentState, { status: "idle" }>
-    }
+  Exclude<PendingDocumentState, { status: "idle" }>
 
 const workspaceStatusPillTransitionMs = 200
 const workspaceStatusPillTimingMs = {
@@ -28,40 +23,28 @@ const workspaceStatusPillTimingMs = {
 } as const
 
 export function WorkspaceSurfaceFrame({
-  canSave,
   colorCssVariables,
-  isSaveAttentionActive,
   onDropIntent,
   onPromptSubmit,
-  onSaveDocument,
   pendingDocumentState,
   runtime,
-  saveState,
 }: {
-  canSave: boolean
   colorCssVariables: AgentHtmlColorCssVariables
-  isSaveAttentionActive: boolean
   onDropIntent: (input: {
     intent: AgentHtmlDropIntent
     sourcePath: string
   }) => void
   onPromptSubmit: (submit: AgentHtmlAgentPromptSubmitInput) => void
-  onSaveDocument: () => void
   pendingDocumentState: PendingDocumentState
   runtime: Extract<RuntimeState, { status: "ready" }>
-  saveState: SaveState
 }) {
   const statusState = React.useMemo<WorkspaceStatusPillState | null>(() => {
-    if (saveState.status !== "clean") {
-      return { kind: "save", state: saveState }
-    }
-
     if (pendingDocumentState.status !== "idle") {
-      return { kind: "document", state: pendingDocumentState }
+      return pendingDocumentState
     }
 
     return null
-  }, [pendingDocumentState, saveState])
+  }, [pendingDocumentState])
   const visibleStatusState = useVisibleWorkspaceStatusPillState(statusState)
 
   return (
@@ -76,12 +59,7 @@ export function WorkspaceSurfaceFrame({
         <AgentHtmlRuntimeViewport>{runtime.content}</AgentHtmlRuntimeViewport>
       </AgentHtmlBlockRuntimeProvider>
       {visibleStatusState ? (
-        <SaveStatus
-          canSave={canSave}
-          isSaveAttentionActive={isSaveAttentionActive}
-          onSaveDocument={onSaveDocument}
-          statusState={visibleStatusState}
-        />
+        <WorkspaceStatus statusState={visibleStatusState} />
       ) : null}
     </AgentHtmlRuntimeTheme>
   )
@@ -120,8 +98,7 @@ function useVisibleWorkspaceStatusPillState(
     }
 
     if (
-      statusState?.kind === "document" &&
-      statusState.state.status === "loading"
+      statusState?.status === "loading"
     ) {
       const delayTimeout = window.setTimeout(() => {
         visibleSinceRef.current = window.performance.now()
@@ -133,8 +110,7 @@ function useVisibleWorkspaceStatusPillState(
 
     const visibleState = visibleStatusStateRef.current
     const isVisibleDocumentLoading =
-      visibleState?.kind === "document" &&
-      visibleState.state.status === "loading"
+      visibleState?.status === "loading"
 
     if (isVisibleDocumentLoading && statusState === null) {
       const visibleSince = visibleSinceRef.current ?? window.performance.now()
@@ -167,55 +143,22 @@ function useVisibleWorkspaceStatusPillState(
   return visibleStatusState
 }
 
-function SaveStatus({
-  canSave,
-  isSaveAttentionActive,
-  onSaveDocument,
+function WorkspaceStatus({
   statusState,
 }: {
-  canSave: boolean
-  isSaveAttentionActive: boolean
-  onSaveDocument: () => void
   statusState: WorkspaceStatusPillState
 }) {
-  const status = statusState.state.status
+  const status = statusState.status
 
   return (
     <div
-      className={[
-        "fixed right-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-xs text-foreground transition-[box-shadow,border-color,background-color]",
-        statusState.kind === "document"
-          ? "border-border/60 bg-background/90 shadow-sm"
-          : "shadow-lg",
-        isSaveAttentionActive
-          ? "border-primary/70 bg-primary/5 shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)]"
-          : "",
-      ].join(" ")}
+      className="fixed right-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border border-border/60 bg-background/90 px-3 py-2 text-xs text-foreground shadow-sm transition-[box-shadow,border-color,background-color]"
       role="status"
       style={{ transitionDuration: `${workspaceStatusPillTransitionMs}ms` }}
     >
       <span>
-        {status === "dirty"
-          ? "Unsaved changes"
-          : status === "saving"
-            ? "Saving..."
-            : status === "saved"
-              ? "Saved"
-              : status === "loading"
-                ? "Loading section..."
-                : statusState.state.detail}
+        {status === "loading" ? "Loading section..." : statusState.detail}
       </span>
-      {statusState.kind === "save" &&
-      (status === "dirty" || status === "error") ? (
-        <button
-          className="rounded-md bg-primary px-2 py-1 font-medium text-primary-foreground disabled:opacity-50"
-          disabled={!canSave}
-          onClick={onSaveDocument}
-          type="button"
-        >
-          Save
-        </button>
-      ) : null}
     </div>
   )
 }

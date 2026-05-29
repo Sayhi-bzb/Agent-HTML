@@ -127,7 +127,7 @@ describe("workspace thread card helpers", () => {
     ])
   })
 
-  it("builds serializable thread picker items for native pet windows", () => {
+  it("builds serializable thread picker items for the app-hosted pet", () => {
     const items = buildProjectThreadPickerItems({
       optimisticThreadNames: {
         thr_current: "Working thread",

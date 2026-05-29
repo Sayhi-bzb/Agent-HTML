@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { WorkspacePetBridge } from "@/app/pet/host/workspace-pet-bridge"
+import { WorkspacePetHost } from "@/app/pet/host/workspace-pet-host"
 import { AppThemeScope } from "@/app/shared/app-theme/scope"
 import { SidebarInset, SidebarProvider } from "@/app/shared/ui/sidebar"
 import { AppSidebar } from "@/app/shell/app-sidebar"
@@ -97,7 +97,6 @@ export function AppFrame({
               onCreateSection={workspace.createProjectSection}
               onDraftChange={workspace.setDocumentDraft}
               onDirtyChange={workspace.setTabDirty}
-              saveAttentionToken={workspace.saveAttentionToken}
               workspaceActionError={workspace.actionError}
             />
           )}
@@ -148,7 +147,7 @@ export function AppFrame({
           },
         }}
       />
-      <WorkspacePetBridge />
+      <WorkspacePetHost />
     </>
   )
 
