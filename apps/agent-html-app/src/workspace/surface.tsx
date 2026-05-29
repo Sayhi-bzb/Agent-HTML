@@ -1,5 +1,5 @@
 import * as React from "react"
-import { CheckIcon, CopyIcon, PencilIcon, XIcon } from "lucide-react"
+import { CheckIcon, MoreHorizontalIcon, PlusIcon, XIcon } from "lucide-react"
 
 import { markCodexStartupEvent } from "@/app/codex/connection"
 import {
@@ -12,8 +12,15 @@ import {
   type CodexThreadSummary,
 } from "@/app/codex/connection"
 import { Button } from "@/app/shared/ui/button"
+import { Badge } from "@/app/shared/ui/badge"
 import { Input } from "@/app/shared/ui/input"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/shared/ui/dropdown-menu"
 import { WorkspaceGhostPet } from "@/app/pet/ghost"
 import type { PetPresence } from "@/app/workspace/agent-presence"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
@@ -231,7 +238,7 @@ function getThreadDisplayName(
   link: ProjectCodexThreadLink,
   summary: ReturnType<typeof getThreadSummaryById>
 ) {
-  return summary?.name?.trim() || `Thread ${link.threadId.slice(0, 8)}`
+  return summary?.name?.trim() || link.threadId.slice(0, 8)
 }
 
 function copyThreadId(threadId: string) {
@@ -415,6 +422,7 @@ function ProjectThreadPickerContent({
   projectThreadLinks,
   renameError,
   renamingThreadId,
+  selectedProjectThreadId,
   threadSelectionError,
   threadRequestPreviews,
   threadSummaries,
@@ -431,6 +439,7 @@ function ProjectThreadPickerContent({
   projectThreadLinks: ProjectCodexThreadLink[]
   renameError?: string | null
   renamingThreadId?: string | null
+  selectedProjectThreadId?: string | null
   threadSelectionError?: string | null
   threadRequestPreviews: Record<string, ThreadPreviewState>
   threadSummaries: CodexThreadSummary[]
@@ -447,19 +456,19 @@ function ProjectThreadPickerContent({
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-medium">Codex threads</p>
-          <p className="truncate text-xs text-muted-foreground">
-            Continue a project thread or start fresh.
-          </p>
         </div>
-        <Button
-          disabled={!canSelectThread || isSelectingThread}
-          onClick={onNewThread}
-          title={canSelectThread ? undefined : "Codex is starting"}
-          type="button"
-          variant="outline"
-        >
-          New
-        </Button>
+        <Badge asChild variant="outline">
+          <button
+            className="cursor-pointer hover:bg-muted hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-50"
+            disabled={!canSelectThread || isSelectingThread}
+            onClick={onNewThread}
+            title={canSelectThread ? undefined : "Codex is starting"}
+            type="button"
+          >
+            <PlusIcon data-icon="inline-start" />
+            <span>New</span>
+          </button>
+        </Badge>
       </div>
       {codexThreadError ? (
         <p className="text-xs text-destructive">{codexThreadError}</p>
@@ -496,11 +505,17 @@ function ProjectThreadPickerContent({
               : preview?.requestText || "No request yet"
             const isEditing = editingThreadId === link.threadId
             const isRenaming = renamingThreadId === link.threadId
+            const isCurrentThread = selectedProjectThreadId === link.threadId
 
             return (
               <div
                 key={link.threadId}
-                className="group min-w-0 overflow-hidden rounded-md border bg-background px-3 py-2 text-xs transition-colors hover:bg-muted/70"
+                className={[
+                  "group min-w-0 overflow-hidden rounded-md border px-3 py-2 text-xs transition-colors",
+                  isCurrentThread
+                    ? "border-border bg-background text-foreground"
+                    : "border-border/60 bg-transparent hover:bg-muted/50",
+                ].join(" ")}
               >
                 <div className="flex min-w-0 items-center justify-between gap-2">
                   {isEditing ? (
@@ -545,62 +560,59 @@ function ProjectThreadPickerContent({
                     </form>
                   ) : (
                     <button
-                      className="min-w-0 flex-1 truncate text-left font-medium text-foreground"
+                      aria-current={isCurrentThread ? "true" : undefined}
+                      className="flex min-w-0 flex-1 items-center gap-2 text-left"
                       disabled={!canSelectThread || isSelectingThread}
                       onClick={() => onResumeThread(link.threadId)}
                       type="button"
                     >
-                      {displayName}
+                      <span className="min-w-0 shrink-0 truncate font-medium text-foreground">
+                        {displayName}
+                      </span>
+                      <span className="shrink-0 text-muted-foreground">{timestamp}</span>
+                      <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                        {previewText}
+                      </span>
                     </button>
                   )}
                   {!isEditing ? (
-                    <div className="flex shrink-0 items-center gap-1">
-                      <Button
-                        className="size-7 p-0 opacity-70 hover:opacity-100"
-                        onClick={() => copyThreadId(link.threadId)}
-                        title="Copy thread id"
-                        type="button"
-                        variant="ghost"
-                      >
-                        <CopyIcon className="size-3.5" />
-                      </Button>
-                      <Button
-                        className="size-7 p-0 opacity-70 hover:opacity-100"
-                        disabled={!canSelectThread || isSelectingThread || isRenaming}
-                        onClick={() => {
-                          setEditingThreadId(link.threadId)
-                          setEditingName(
-                            optimisticThreadNames[link.threadId] ??
-                              summary?.name?.trim() ??
-                              ""
-                          )
-                        }}
-                        title="Rename thread"
-                        type="button"
-                        variant="ghost"
-                      >
-                        <PencilIcon className="size-3.5" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-label="Thread actions"
+                          className="size-7 shrink-0 p-0 opacity-70 hover:opacity-100"
+                          title="Thread actions"
+                          type="button"
+                          variant="ghost"
+                        >
+                          <MoreHorizontalIcon className="size-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" sideOffset={6}>
+                        <DropdownMenuItem
+                          onSelect={() => copyThreadId(link.threadId)}
+                        >
+                          Copy thread id
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={
+                            !canSelectThread || isSelectingThread || isRenaming
+                          }
+                          onSelect={() => {
+                            setEditingThreadId(link.threadId)
+                            setEditingName(
+                              optimisticThreadNames[link.threadId] ??
+                                summary?.name?.trim() ??
+                                ""
+                            )
+                          }}
+                        >
+                          Rename
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   ) : null}
                 </div>
-                <button
-                  className="mt-1 flex w-full min-w-0 items-center gap-2 text-left text-muted-foreground"
-                  disabled={!canSelectThread || isSelectingThread}
-                  onClick={() => onResumeThread(link.threadId)}
-                  type="button"
-                >
-                  <span className="shrink-0">{timestamp}</span>
-                  <span aria-hidden="true">/</span>
-                  <ScrollArea
-                    className="min-w-0 flex-1"
-                    viewportClassName="max-h-10"
-                  >
-                    <span className="block pr-2 text-muted-foreground">
-                      {previewText}
-                    </span>
-                  </ScrollArea>
-                </button>
               </div>
             )
           })
@@ -1280,6 +1292,7 @@ export function WorkspaceSurface({
       projectThreadLinks={projectThreadLinks}
       renameError={threadRenameError}
       renamingThreadId={renamingThreadId}
+      selectedProjectThreadId={selectedProjectThreadId}
       threadSelectionError={threadSelectionError}
       threadRequestPreviews={threadRequestPreviews}
       threadSummaries={threadSummaries}

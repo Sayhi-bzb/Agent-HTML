@@ -24,4 +24,35 @@ describe("AgentHtmlBlockRuntimeProvider source guardrails", () => {
   it("does not clear hover from wrapper pointerleave during scroll", () => {
     expect(providerSource).toContain("updateHoveredBlockFromPointer")
   })
+
+  it("keeps block input popover positioning outside the provider", () => {
+    expect(providerSource).not.toContain("@floating-ui/react")
+    expect(providerSource).not.toContain("AgentHtmlBlockInputGroup")
+    expect(providerSource).toContain("useAgentHtmlBlockInputPopover")
+  })
+
+  it("keeps block registry maps outside the provider", () => {
+    expect(providerSource).not.toContain("new Map<string, HTMLElement>()")
+    expect(providerSource).not.toContain(
+      "new Map<string, AgentHtmlInteractionUnit>()"
+    )
+    expect(providerSource).toContain("useAgentHtmlBlockRegistry")
+  })
+
+  it("keeps block layout animation outside the provider", () => {
+    expect(providerSource).not.toContain("pendingLayoutSnapshotRef")
+    expect(providerSource).not.toContain("getAgentHtmlBlockLayoutTransitions")
+    expect(providerSource).toContain("useAgentHtmlBlockLayoutAnimation")
+  })
+
+  it("keeps block overlay presentation outside the provider", () => {
+    expect(providerSource).not.toContain(
+      "data-agent-html-block-landing-overlay"
+    )
+    expect(providerSource).not.toContain(
+      "data-agent-html-block-input-popover"
+    )
+    expect(providerSource).not.toContain("data-agent-html-block-drag-overlay")
+    expect(providerSource).toContain("AgentHtmlBlockDragOverlay")
+  })
 })

@@ -45,8 +45,6 @@ export type PromptSchemaTokenEstimate = {
 export type GalleryComponentPromptMetrics = {
   componentTokens: number
   current: PromptSchemaTokenEstimate
-  installDeltaTokens: number
-  removeDeltaTokens: number
   withComponent: PromptSchemaTokenEstimate
   withoutComponent: PromptSchemaTokenEstimate
 }
@@ -118,8 +116,6 @@ export function buildGalleryComponentPromptMetrics(
   return {
     componentTokens: Math.max(0, withComponent.tokens - withoutComponent.tokens),
     current,
-    installDeltaTokens: withComponent.tokens - current.tokens,
-    removeDeltaTokens: withoutComponent.tokens - current.tokens,
     withComponent,
     withoutComponent,
   }

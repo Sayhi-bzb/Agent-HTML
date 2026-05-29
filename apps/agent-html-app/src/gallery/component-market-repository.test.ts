@@ -50,8 +50,6 @@ describe("component market repository", () => {
 
     expect(metrics.current.tokens).toBeGreaterThan(0)
     expect(metrics.componentTokens).toBeGreaterThan(0)
-    expect(metrics.installDeltaTokens).toBe(metrics.componentTokens)
-    expect(metrics.removeDeltaTokens).toBe(0)
     expect(metrics.withComponent.tokens).toBeGreaterThan(
       metrics.withoutComponent.tokens
     )

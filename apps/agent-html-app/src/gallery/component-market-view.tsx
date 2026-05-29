@@ -379,18 +379,6 @@ export function GalleryComponentMarketView({
                       value={`~${selectedPromptMetrics.componentTokens.toLocaleString()} tokens`}
                     />
                   </div>
-                  <DetailStat
-                    label={
-                      enabledTags.has(selectedComponent.tag)
-                        ? "Remove"
-                        : "Install"
-                    }
-                    value={
-                      enabledTags.has(selectedComponent.tag)
-                        ? formatTokenDelta(selectedPromptMetrics.removeDeltaTokens)
-                        : formatTokenDelta(selectedPromptMetrics.installDeltaTokens)
-                    }
-                  />
                 </div>
               ) : null}
             </div>
@@ -423,14 +411,4 @@ function DetailStat({ label, value }: { label: string; value: string }) {
       <p className="mt-1 truncate text-sm font-medium">{value}</p>
     </div>
   )
-}
-
-function formatTokenDelta(delta: number) {
-  if (delta === 0) {
-    return "~0 tokens"
-  }
-
-  const sign = delta > 0 ? "+" : "-"
-
-  return `${sign}~${Math.abs(delta).toLocaleString()} tokens`
 }

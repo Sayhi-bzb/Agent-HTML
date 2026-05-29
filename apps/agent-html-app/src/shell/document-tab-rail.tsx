@@ -20,6 +20,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { XIcon } from "lucide-react"
 
 export type HeaderTab = {
+  Icon?: React.ComponentType<{ className?: string }>
   id: string
   isClosable: boolean
   label: string
@@ -196,6 +197,12 @@ function DocumentTabDragPreview({
         isActive ? activeTabClassName : inactiveTabClassName
       )}
     >
+      {tab.Icon ? (
+        <tab.Icon
+          aria-hidden="true"
+          className="mr-2 size-3.5 shrink-0"
+        />
+      ) : null}
       <span className="truncate">{tab.label}</span>
     </div>
   )
@@ -291,6 +298,12 @@ const DocumentTabItem = React.forwardRef<
         type="button"
         {...(sortable ? listeners : undefined)}
       >
+        {tab.Icon ? (
+          <tab.Icon
+            aria-hidden="true"
+            className="mr-2 size-3.5 shrink-0"
+          />
+        ) : null}
         <span className="truncate">{tab.label}</span>
       </button>
       {tab.isClosable ? (
