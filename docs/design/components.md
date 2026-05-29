@@ -267,6 +267,10 @@ Current boundaries:
   specific setting or form field.
 - `CommandDialog` searches or runs commands across a set. It SHOULD be used for fuzzy search,
   command palettes, and cross-surface result picking.
+- sidebar-hosted search entries SHOULD use a sidebar item trigger and a `CommandDialog` result
+  picker when the result set is broader than a single inline field; the command input may maintain
+  local draft text, but committing a result SHOULD update the owning view's filter state through one
+  shared search matcher
 - `Dialog` hosts blocking tasks or complex settings. It SHOULD be used when the user must complete,
   save, cancel, or test a task before returning to the main flow.
 - `AlertDialog` confirms risk. It SHOULD be reserved for destructive, irreversible, discard,

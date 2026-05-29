@@ -208,17 +208,6 @@ function CodexConnectionDialog({
     wasOpenRef.current = open
   }, [codexConnection.lastError, codexConnection.settings, open])
 
-  React.useEffect(() => {
-    if (
-      open &&
-      accordionValue.includes("diagnostics") &&
-      codexConnection.status === "connected" &&
-      runtimeStatus.status === "idle"
-    ) {
-      void codexConnection.refreshRuntimeStatus()
-    }
-  }, [accordionValue, codexConnection, open, runtimeStatus.status])
-
   const updateTextSetting = React.useCallback(
     (key: keyof typeof draftSettings) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {

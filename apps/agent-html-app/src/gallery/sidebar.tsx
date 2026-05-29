@@ -34,6 +34,7 @@ import {
   galleryComponentMarketCatalog,
   galleryComponentMarketCategoryLabels,
   getGalleryComponentMarketStatus,
+  matchesGalleryComponentMarketSearch,
   type GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
 import type { GalleryViewId } from "@/app/gallery/views"
@@ -234,12 +235,7 @@ export function GalleryComponentMarketSidebarHeader({
     }
 
     return galleryComponentMarketCatalog.filter((component) =>
-      [
-        component.tag,
-        component.market.title,
-        component.market.summary,
-        component.market.category,
-      ].some((value) => value.toLowerCase().includes(query))
+      matchesGalleryComponentMarketSearch(component, query)
     )
   }, [dialogSearchQuery])
 

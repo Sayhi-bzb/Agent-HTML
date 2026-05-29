@@ -11,6 +11,7 @@ import {
   galleryComponentMarketCatalog,
   galleryComponentMarketCategoryLabels,
   getGalleryComponentMarketStatus,
+  matchesGalleryComponentMarketSearch,
   type EnabledGalleryComponentTags,
   type GalleryComponentMarketFilters,
   type GalleryComponentMarketItem,
@@ -24,21 +25,6 @@ import {
   PopoverTrigger,
 } from "@/app/shared/ui/popover"
 import { cn } from "@/app/shared/lib/utils"
-
-function matchesSearch(component: GalleryComponentMarketItem, query: string) {
-  const normalizedQuery = query.trim().toLowerCase()
-
-  if (!normalizedQuery) {
-    return true
-  }
-
-  return [
-    component.tag,
-    component.market.title,
-    component.market.summary,
-    component.market.category,
-  ].some((value) => value.toLowerCase().includes(normalizedQuery))
-}
 
 export function GalleryComponentMarketView({
   enabledTags,
@@ -58,13 +44,24 @@ export function GalleryComponentMarketView({
         const status = getGalleryComponentMarketStatus(component, enabledTags)
 
         return (
-          matchesSearch(component, searchQuery) &&
+          matchesGalleryComponentMarketSearch(component, searchQuery) &&
           (filters.category === galleryComponentMarketAllCategory ||
             component.market.category === filters.category) &&
           (filters.status === "all" || status === filters.status)
         )
       }),
     [enabledTags, filters.category, filters.status, searchQuery]
+  )
+  const componentTokenCounts = React.useMemo(
+    () =>
+      Object.fromEntries(
+        galleryComponentMarketCatalog.map((component) => [
+          component.tag,
+          buildGalleryComponentPromptMetrics(enabledTags, component.tag)
+            .componentTokens,
+        ])
+      ) as Record<GalleryComponentMarketItem["tag"], number>,
+    [enabledTags]
   )
 
   function toggleEnabled(component: GalleryComponentMarketItem) {
@@ -88,11 +85,6 @@ export function GalleryComponentMarketView({
               const isInstalled =
                 getGalleryComponentMarketStatus(component, enabledTags) ===
                 "installed"
-              const promptMetrics = buildGalleryComponentPromptMetrics(
-                enabledTags,
-                component.tag
-              )
-
               return (
                 <article
                   className={cn(
@@ -131,7 +123,10 @@ export function GalleryComponentMarketView({
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
                       <Badge variant="default">
-                        {promptMetrics.componentTokens.toLocaleString()} tokens
+                        {componentTokenCounts[
+                          component.tag
+                        ].toLocaleString()}{" "}
+                        tokens
                       </Badge>
                       <Popover>
                         <PopoverTrigger asChild>

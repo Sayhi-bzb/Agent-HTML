@@ -67,6 +67,7 @@ export function CodexConnectionProvider({
   const [activeThreadId, setActiveThreadId] = React.useState<string | null>(null)
   const connectionAttemptRef = React.useRef(0)
   const phaseRef = React.useRef<CodexConnectionPhase>(phase)
+  const runtimeStatusRequestRef = React.useRef<Promise<void> | null>(null)
   const settingsRef = React.useRef(settings)
 
   React.useEffect(() => {
@@ -373,43 +374,62 @@ export function CodexConnectionProvider({
   )
 
   const refreshRuntimeStatus = React.useCallback(async () => {
+    if (runtimeStatusRequestRef.current) {
+      return runtimeStatusRequestRef.current
+    }
+
     if (!canManageHost || phaseRef.current !== "connected") {
       setRuntimeStatus(createIdleRuntimeStatus())
       return
     }
 
-    setRuntimeStatus((currentStatus) => ({
-      ...currentStatus,
-      error: null,
-      status: "loading",
-    }))
+    const requestPromise = (async () => {
+      setRuntimeStatus((currentStatus) => ({
+        ...currentStatus,
+        error: null,
+        status: "loading",
+      }))
 
-    const entries = await Promise.all(
-      CODEX_RUNTIME_READS.map(async (spec) => {
-        try {
-          const result = await request(spec.method, spec.params({ cwd: health?.cwd }))
-          return {
-            capability: spec.capability,
-            result,
-            status: {
-              count: countItems(result),
-              ok: true,
-            },
+      const entries = await Promise.all(
+        CODEX_RUNTIME_READS.map(async (spec) => {
+          try {
+            const result = await request(
+              spec.method,
+              spec.params({ cwd: health?.cwd })
+            )
+            return {
+              capability: spec.capability,
+              result,
+              status: {
+                count: countItems(result),
+                ok: true,
+              },
+            }
+          } catch (error) {
+            return {
+              capability: spec.capability,
+              result: null,
+              status: {
+                error: getErrorMessage(error),
+                ok: false,
+              },
+            }
           }
-        } catch (error) {
-          return {
-            capability: spec.capability,
-            result: null,
-            status: {
-              error: getErrorMessage(error),
-              ok: false,
-            },
-          }
-        }
-      })
-    )
+        })
+      )
 
-    setRuntimeStatus(createRuntimeStatusFromEntries(entries))
+      setRuntimeStatus(createRuntimeStatusFromEntries(entries))
+    })()
+
+    runtimeStatusRequestRef.current = requestPromise
+
+    try {
+      await requestPromise
+    } finally {
+      if (runtimeStatusRequestRef.current === requestPromise) {
+        runtimeStatusRequestRef.current = null
+      }
+    }
   }, [canManageHost, health?.cwd, request])
 
   const refreshThreads = React.useCallback(async () => {

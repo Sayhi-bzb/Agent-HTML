@@ -72,3 +72,21 @@ export function getGalleryComponentMarketStatus(
     ? "installed"
     : "available"
 }
+
+export function matchesGalleryComponentMarketSearch(
+  component: GalleryComponentMarketItem,
+  query: string
+) {
+  const normalizedQuery = query.trim().toLowerCase()
+
+  if (!normalizedQuery) {
+    return true
+  }
+
+  return [
+    component.tag,
+    component.market.title,
+    component.market.summary,
+    component.market.category,
+  ].some((value) => value.toLowerCase().includes(normalizedQuery))
+}

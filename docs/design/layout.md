@@ -81,6 +81,9 @@ The header is compact, structural, and persistent.
 - tab text and tab actions MUST align to the same vertical centerline as header chrome icons
 - tabs SHOULD compress inside the middle zone before horizontal overflow is introduced
 - window controls MUST remain visible and interactive; tabs MUST NOT overlap or obscure them
+- desktop window headers SHOULD preserve a small stable drag gutter outside the tab hit targets
+  when tabs can fill the middle zone; tab gaps and rounded corners MUST NOT be the only draggable
+  affordance
 
 ## Content Well Rules
 

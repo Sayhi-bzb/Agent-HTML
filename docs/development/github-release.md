@@ -21,6 +21,8 @@ clean commit, one matching tag, one matching installer, and release notes.
   `targets = "all"` output unless the release scope explicitly changes.
 - The NSIS installer uses current-user installation so alpha testers do not need
   administrator access.
+- The NSIS installer uses `src-tauri/installer/header.bmp` and
+  `src-tauri/installer/sidebar.bmp` for lightweight branding.
 - Windows alpha builds are unsigned. Release notes must mention the unknown
   publisher or SmartScreen warning.
 - Alpha tags may be deleted and recreated before wider distribution. Stable
@@ -75,6 +77,9 @@ git rev-parse HEAD vX.Y.Z-alpha.N origin/main
 ```
 
 The three revisions printed by `git rev-parse` must match.
+
+Before publishing a new installer, open it locally and confirm the header and
+sidebar brand images render correctly.
 
 ## Common Mistakes
 
