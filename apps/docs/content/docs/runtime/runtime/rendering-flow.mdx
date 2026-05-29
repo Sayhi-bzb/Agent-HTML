@@ -1,0 +1,17 @@
+---
+title: Rendering Flow
+description: The standard source-to-rendered-output pipeline for Agent-HTML.
+---
+
+Pipeline:
+
+```text
+source string
+  -> parseAgentHtml
+  -> validateAgentHtml
+  -> renderAgentHtml
+  -> runtime UI
+```
+
+Interactive rendering wraps `renderAgentHtml` with block wrappers and inferred
+interaction units.

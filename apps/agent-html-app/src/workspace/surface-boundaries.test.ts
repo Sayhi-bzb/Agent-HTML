@@ -6,8 +6,12 @@ const surfacePath = fileURLToPath(new URL("./surface.tsx", import.meta.url))
 const threadControllerPath = fileURLToPath(
   new URL("./thread-controller.ts", import.meta.url)
 )
+const navProjectsPath = fileURLToPath(
+  new URL("../shell/nav-projects.tsx", import.meta.url)
+)
 const surfaceSource = readFileSync(surfacePath, "utf8")
 const threadControllerSource = readFileSync(threadControllerPath, "utf8")
+const navProjectsSource = readFileSync(navProjectsPath, "utf8")
 
 describe("workspace surface boundaries", () => {
   it("keeps document persistence out of the surface composition layer", () => {
@@ -41,5 +45,10 @@ describe("workspace surface boundaries", () => {
   it("keeps thread preview loading out of the main thread controller", () => {
     expect(threadControllerSource).not.toContain("thread/turns/list")
     expect(threadControllerSource).not.toContain("readFirstThreadRequestText")
+  })
+
+  it("keeps document unsaved-state messaging out of sidebar navigation", () => {
+    expect(navProjectsSource).not.toContain("Save current section")
+    expect(navProjectsSource).not.toContain("hasUnsavedChanges")
   })
 })

@@ -1,0 +1,13 @@
+---
+title: Interactive Rendering
+description: How interactive runtime rendering differs from static rendering.
+---
+
+`renderInteractiveAgentHtml` calls `renderAgentHtml` with:
+
+- block highlighting
+- inferred interaction units
+- `AgentHtmlBlockWrapper`
+
+Use it when the host needs block selection, prompt submission, or drag/drop
+feedback.

@@ -5,19 +5,19 @@ description: Understand the main working surface for Agent-HTML projects and art
 
 Workspace mode is the primary product surface for project-backed work.
 
-It keeps the shell stable while the active work context changes. The header
-tracks open contexts, the sidebar supports navigation, and the content well hosts
-the current artifact or project surface.
+`useWorkspaceController` owns projects, sections, open tabs, active tab state,
+write capability, and document navigation guards.
 
-## Workspace Is For
+## Workspace Owns
 
-- navigating project-backed work
-- switching between open tabs
-- reviewing generated artifacts
-- continuing a result through feedback and revision
+- project list loading
+- section tab creation
+- active project and section selection
+- project and section create/rename/delete/duplicate actions
+- tab close, select, and reorder behavior
+- dirty-section navigation guards
 
-## Workspace Is Not For
+## Boundary
 
-- editing runtime schema rules
-- authoring preview-only gallery scenes
-- replacing the runtime integration API
+Workspace composes Runtime output. Runtime parsing, validation, rendering, and
+block hosting stay under Runtime docs.

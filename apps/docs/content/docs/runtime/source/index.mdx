@@ -1,0 +1,18 @@
+---
+title: Source
+description: How Agent-HTML source enters the runtime system.
+---
+
+Source is the first boundary in the Agent-HTML runtime.
+
+It covers source text, AST, parsing, serialization, and source support helpers.
+
+## Source Owns
+
+- source text conventions
+- AST shape and traversal model
+- parsing behavior
+- serialization back to Agent-HTML
+- source/debug support used by comparison surfaces
+
+Schema decides allowed tags and attributes. Runtime renders validated AST.

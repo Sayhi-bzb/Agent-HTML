@@ -3,14 +3,14 @@ title: Attributes
 description: A high-level reference for common Agent-HTML attributes.
 ---
 
-Attributes configure element behavior and presentation within the limits of the
-DSL.
+Attribute contracts live in Schema.
 
-Attribute documentation should describe:
+Each attribute can define:
 
-- allowed values
-- default behavior
-- validation constraints
-- whether the attribute changes semantics, layout, or interaction
+- `type`
+- `values`
+- `defaultValue`
+- `required`
+- `prompt`
 
-Avoid documenting host-app styling decisions as DSL attributes.
+Do not document host styling as DSL attributes.

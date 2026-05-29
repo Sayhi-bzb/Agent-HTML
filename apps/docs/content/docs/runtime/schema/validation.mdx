@@ -1,0 +1,18 @@
+---
+title: Validation
+description: How Agent-HTML validation checks parsed documents.
+---
+
+`validateAgentHtml` checks parsed AST against Schema.
+
+Validation sits after parsing and before rendering.
+
+## Validation Should Check
+
+- allowed tags
+- allowed attributes
+- required structure
+- invalid child relationships
+- unsupported values
+
+Validation returns `AgentHtmlValidationError`.

@@ -1,23 +1,24 @@
 import * as React from "react"
+import { isTauri } from "@tauri-apps/api/core"
 import {
   CheckIcon,
-  MessageCircleIcon,
   MoreHorizontalIcon,
   PlusIcon,
-  WaypointsIcon,
   XIcon,
 } from "lucide-react"
 
 import { AsciiGhost } from "@/app/pet/ghost/ascii-ghost"
+import { GhostRadialMenu } from "@/app/pet/ghost/radial-menu"
 import {
+  PET_PANEL_STATE_EVENT,
   PET_WINDOW_COMMAND_EVENT,
   PET_WINDOW_READY_EVENT,
   PET_WINDOW_STATE_EVENT,
+  type PetPanelState,
   type PetWindowCommand,
   type PetWindowState,
 } from "@/app/pet/host/pet-window-events"
 import {
-  resizeCurrentPetWindow,
   savePetWindowPosition,
 } from "@/app/pet/host/pet-window"
 import {
@@ -28,16 +29,6 @@ import {
 const disabledState: PetWindowState = {
   draftScope: null,
   enabled: false,
-}
-
-const PET_WINDOW_COLLAPSED_SIZE = {
-  height: 260,
-  width: 360,
-}
-
-const PET_WINDOW_PANEL_SIZE = {
-  height: 520,
-  width: 440,
 }
 
 function getPresenceMessage(state: PetWindowState) {
@@ -61,15 +52,18 @@ function getPresenceMessage(state: PetWindowState) {
 }
 
 async function emitPetCommand(command: PetWindowCommand) {
+  if (!isTauri()) {
+    return
+  }
+
   const { emitTo } = await import("@tauri-apps/api/event")
   await emitTo("main", PET_WINDOW_COMMAND_EVENT, command)
 }
 
 export function PetWindowApp() {
+  const rootRef = React.useRef<HTMLElement | null>(null)
   const [state, setState] = React.useState<PetWindowState>(disabledState)
-  const [isMessageOpen, setIsMessageOpen] = React.useState(false)
-  const [isThreadsOpen, setIsThreadsOpen] = React.useState(false)
-  const [messageDraft, setMessageDraft] = React.useState("")
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
 
   React.useEffect(() => {
     document.documentElement.dataset.agentWindow = "pet"
@@ -80,6 +74,10 @@ export function PetWindowApp() {
   }, [])
 
   React.useEffect(() => {
+    if (!isTauri()) {
+      return undefined
+    }
+
     let isDisposed = false
     let unlistenState: (() => void) | undefined
     let unlistenMoved: (() => void) | undefined
@@ -114,92 +112,178 @@ export function PetWindowApp() {
   }, [])
 
   React.useEffect(() => {
-    setMessageDraft("")
-    setIsMessageOpen(false)
-    setIsThreadsOpen(false)
+    setIsMenuOpen(false)
   }, [state.draftScope])
 
   React.useEffect(() => {
-    void resizeCurrentPetWindow(
-      isMessageOpen || isThreadsOpen
-        ? PET_WINDOW_PANEL_SIZE
-        : PET_WINDOW_COLLAPSED_SIZE
-    )
-  }, [isMessageOpen, isThreadsOpen])
+    if (!isMenuOpen) {
+      return undefined
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        rootRef.current?.contains(event.target)
+      ) {
+        return
+      }
+
+      setIsMenuOpen(false)
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false)
+      }
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown)
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown)
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [isMenuOpen])
 
   if (!state.enabled) {
     return null
   }
 
   return (
-    <main className="grid h-svh place-items-center bg-transparent p-3">
+    <main
+      className="relative h-svh w-svw overflow-hidden bg-transparent"
+      ref={rootRef}
+    >
       <div
-        className="flex flex-col items-center gap-2 text-foreground"
+        className="absolute top-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-foreground"
         data-tauri-drag-region
       >
         <div className="max-w-60 rounded-full bg-background/95 px-3 py-1.5 text-center text-[11px] font-medium whitespace-nowrap text-muted-foreground backdrop-blur">
           {getPresenceMessage(state)}
         </div>
         <div className="relative">
-          <button
-            aria-label="Message"
+          <div
+            aria-label="Pet"
             className="px-3 py-2"
-            data-tauri-no-drag
-            onClick={() => {
-              setIsThreadsOpen(false)
-              setIsMessageOpen((current) => !current)
+            data-cursor="drag"
+            data-tauri-drag-region
+            onContextMenu={(event) => {
+              event.preventDefault()
+              setIsMenuOpen((current) => !current)
             }}
-            type="button"
+            onDoubleClick={() => {
+              setIsMenuOpen((current) => !current)
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") {
+                return
+              }
+
+              event.preventDefault()
+              setIsMenuOpen((current) => !current)
+            }}
+            role="button"
+            tabIndex={0}
           >
             <AsciiGhost />
-          </button>
-          <div
-            className="absolute top-1/2 left-1/2 size-0"
-            data-tauri-no-drag
-          >
-            <button
-              aria-label="Message"
-              className="absolute -mt-5 -ml-5 grid size-10 translate-x-16 -translate-y-16 place-items-center rounded-full border border-border/70 bg-background/95 text-muted-foreground shadow-lg shadow-black/15 backdrop-blur hover:border-primary/50 hover:bg-primary hover:text-primary-foreground"
-              onClick={() => {
-                setIsThreadsOpen(false)
-                setIsMessageOpen(true)
-              }}
-              type="button"
-            >
-              <MessageCircleIcon className="size-4" />
-            </button>
-            <button
-              aria-label="Threads"
-              className="absolute -mt-5 -ml-5 grid size-10 -translate-y-22 place-items-center rounded-full border border-border/70 bg-background/95 text-muted-foreground shadow-lg shadow-black/15 backdrop-blur hover:border-primary/50 hover:bg-primary hover:text-primary-foreground"
-              onClick={() => {
-                setIsMessageOpen(false)
-                setIsThreadsOpen(true)
-              }}
-              type="button"
-            >
-              <WaypointsIcon className="size-4" />
-            </button>
           </div>
-        </div>
-        {isMessageOpen ? (
-          <div
-            className="w-80 overflow-hidden rounded-md border border-border bg-popover shadow-xl"
-            data-tauri-no-drag
-          >
-            <PetWindowMessageComposer
-              draft={messageDraft}
-              onDraftChange={setMessageDraft}
-              onMessageOpenChange={setIsMessageOpen}
+          <div data-tauri-no-drag>
+            <GhostRadialMenu
+              isOpen={isMenuOpen}
+              onSelect={(item) => {
+                setIsMenuOpen(false)
+                if (item === "message") {
+                  void emitPetCommand({ panel: "message", type: "open-panel" })
+                  return
+                }
+
+                if (item === "threads") {
+                  void emitPetCommand({ panel: "threads", type: "open-panel" })
+                }
+              }}
             />
           </div>
-        ) : null}
-        {isThreadsOpen ? (
-          <PetWindowThreadPicker
-            state={state}
-            onClose={() => setIsThreadsOpen(false)}
-          />
-        ) : null}
+        </div>
       </div>
+    </main>
+  )
+}
+
+export function PetPanelWindowApp() {
+  const [panelState, setPanelState] = React.useState<PetPanelState>({
+    mode: null,
+    state: disabledState,
+  })
+  const [messageDraft, setMessageDraft] = React.useState("")
+
+  React.useEffect(() => {
+    document.documentElement.dataset.agentWindow = "pet-panel"
+
+    return () => {
+      delete document.documentElement.dataset.agentWindow
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (!isTauri()) {
+      return undefined
+    }
+
+    let isDisposed = false
+    let unlistenState: (() => void) | undefined
+
+    async function attachListener() {
+      const { emitTo, listen } = await import("@tauri-apps/api/event")
+      unlistenState = await listen<PetPanelState>(
+        PET_PANEL_STATE_EVENT,
+        (event) => {
+          setPanelState(event.payload)
+        }
+      )
+      if (!isDisposed) {
+        await emitTo("main", PET_WINDOW_READY_EVENT)
+      }
+    }
+
+    void attachListener()
+
+    return () => {
+      isDisposed = true
+      unlistenState?.()
+    }
+  }, [])
+
+  React.useEffect(() => {
+    setMessageDraft("")
+  }, [panelState.state.draftScope])
+
+  if (!panelState.state.enabled || !panelState.mode) {
+    return null
+  }
+
+  return (
+    <main className="relative h-svh w-svw overflow-hidden bg-transparent p-3">
+      {panelState.mode === "message" ? (
+        <div className="h-full w-full overflow-hidden rounded-md border border-border bg-popover shadow-xl">
+          <PetWindowMessageComposer
+            draft={messageDraft}
+            onDraftChange={setMessageDraft}
+            onMessageOpenChange={(open) => {
+              if (!open) {
+                void emitPetCommand({ type: "close-panel" })
+              }
+            }}
+          />
+        </div>
+      ) : null}
+      {panelState.mode === "threads" ? (
+        <PetWindowThreadPicker
+          state={panelState.state}
+          onClose={() => {
+            void emitPetCommand({ type: "close-panel" })
+          }}
+        />
+      ) : null}
     </main>
   )
 }

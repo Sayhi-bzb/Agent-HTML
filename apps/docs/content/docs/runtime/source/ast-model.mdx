@@ -1,0 +1,16 @@
+---
+title: AST Model
+description: The document, element, and text node model used by Agent-HTML.
+---
+
+Core AST exports:
+
+- `AgentHtmlDocument`
+- `AgentHtmlElementNode`
+- `AgentHtmlTextNode`
+- `AgentHtmlNode`
+- `AgentHtmlTag`
+
+Path traversal is exported as `walkAgentHtmlElementPaths`.
+
+AST types should not contain App shell state, Gallery state, or host state.

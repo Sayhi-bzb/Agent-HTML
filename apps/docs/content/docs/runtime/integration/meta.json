@@ -1,5 +1,0 @@
-{
-  "title": "Integration",
-  "root": true,
-  "pages": ["index", "rendering-flow", "styling-and-tailwind", "runtime-host"]
-}

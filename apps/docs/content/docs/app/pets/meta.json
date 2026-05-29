@@ -1,0 +1,5 @@
+{
+  "title": "Pets",
+  "root": true,
+  "pages": ["index", "workspace-pet", "pet-window", "actions-and-controls"]
+}

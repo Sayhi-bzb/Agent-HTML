@@ -1,4 +1,4 @@
 {
   "title": "Runtime",
-  "pages": ["overview", "authoring", "integration", "reference"]
+  "pages": ["source", "schema", "runtime", "host", "reference"]
 }

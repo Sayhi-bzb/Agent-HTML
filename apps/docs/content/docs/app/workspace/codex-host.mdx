@@ -1,0 +1,50 @@
+---
+title: Codex Host
+description: Workspace boundary for Codex App Server integration.
+---
+
+This page is the canonical source for the Agent-HTML Codex host boundary.
+
+Agent-HTML is a thin Codex App Server host. Codex owns auth, model selection,
+sandbox, approvals, MCP, skills, plugins, and conversation semantics.
+
+## Product Loop
+
+```text
+Agent-HTML App
+  -> user selects a block or performs an interaction
+  -> user enters a request
+  -> Tauri starts codex app-server --listen stdio://
+  -> Tauri sends initialize / initialized
+  -> App lists workspace threads through thread/list
+  -> user chooses thread/resume or thread/start
+  -> App sends Agent-HTML context through turn/start
+  -> Tauri forwards Codex notifications
+```
+
+Agent-HTML does not inject messages into an open Codex TUI.
+
+## Agent-HTML May
+
+- start, stop, restart, and health-check the local Codex App Server
+- list, resume, and start Codex threads
+- read Codex runtime status through official App Server RPCs
+- generate a prompt from selected Agent-HTML context
+- call `thread/start` and `turn/start`
+- forward Codex notifications into the app event bus
+- keep hidden local diagnostics
+
+## Agent-HTML Must Not Duplicate
+
+- model or provider selection
+- auth mode or account state
+- sandbox and approval policy
+- MCP servers, apps/connectors, plugins, or skills
+- profiles and project trust
+
+Those settings come from Codex config and App Server RPCs.
+
+## Current Gap
+
+The app does not yet show an in-app streaming transcript, tool calls, approvals,
+final task status, or automatic diff review.

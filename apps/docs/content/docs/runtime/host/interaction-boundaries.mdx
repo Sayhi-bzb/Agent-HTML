@@ -1,0 +1,55 @@
+---
+title: Interaction Boundaries
+description: Runtime interaction rules for pointer movement, scroll, and live geometry.
+---
+
+Runtime interactions include pointer movement, scroll, floating layers, layout
+feedback, selection, and hit-testing.
+
+Use browser client pointer positions and live DOM geometry for runtime
+hit-testing. Do not base runtime hit-testing on third-party drag transforms or
+overlay positions.
+
+The block runtime stores client pointer coordinates and reads live block
+geometry from the registry.
+
+## Ownership
+
+Runtime owns:
+
+- block identity and path mapping
+- pointer-to-intent hit-testing
+- drop intent semantics
+- AST-affecting runtime decisions
+- indicators and block previews
+
+Third-party libraries may own sensors, lifecycle callbacks, overlays,
+accessibility primitives, and floating-layer positioning. They do not own
+Agent-HTML semantic decisions.
+
+## Coordinate Source
+
+Use browser viewport coordinates from `PointerEvent.clientX/clientY` or
+`MouseEvent.clientX/clientY`.
+
+Do not infer drop intent from dnd-kit deltas, CSS transforms, overlay DOMRects,
+scroll-adjusted translates, or floating-layer placement.
+
+## Geometry
+
+Use current `getBoundingClientRect()` values when computing block candidates.
+
+```text
+browser client pointer + live block DOMRects -> drop intent
+```
+
+## Layer Separation
+
+- Drag overlay is visual.
+- Drop indicator reflects current intent.
+- AST mutation happens after committed drop intent.
+- Floating layers do not affect block hit-testing.
+
+## Selection
+
+Rendered content stays selectable unless the element is an interaction control.

@@ -1,0 +1,61 @@
+---
+title: Release
+description: Desktop alpha release rules for GitHub prereleases.
+---
+
+This page is the canonical source for desktop alpha releases.
+
+An alpha release is one clean commit, one matching tag, one matching installer,
+and release notes.
+
+## Rules
+
+- Keep release commits scoped to release work.
+- Keep versions in sync across npm, Cargo, and Tauri files.
+- The Git tag points to the installer commit.
+- Alpha versions use `vX.Y.Z-alpha.N`.
+- Windows alpha releases ship only the NSIS installer.
+- Windows alpha builds are unsigned.
+- Release notes mention unknown publisher or SmartScreen warnings.
+- Stable tags do not move.
+
+## Local Gates
+
+```powershell
+git status --short
+npm run typecheck
+npm test
+npm run build
+cargo check --manifest-path src-tauri/Cargo.toml
+```
+
+## Build Installer
+
+```powershell
+$env:CARGO_TARGET_DIR='D:\tmp\agent-html-tauri-alpha-target'
+$env:CARGO_BUILD_JOBS='1'
+npx tauri build --ci --no-sign --bundles nsis
+```
+
+## Publish
+
+```powershell
+git tag vX.Y.Z-alpha.N
+git push origin main
+git push origin vX.Y.Z-alpha.N
+gh release create vX.Y.Z-alpha.N `
+  "D:\tmp\agent-html-tauri-alpha-target\release\bundle\nsis\Agent HTML_X.Y.Z-alpha.N_x64-setup.exe" `
+  --repo Sayhi-bzb/Agent-HTML `
+  --title "Agent HTML vX.Y.Z-alpha.N" `
+  --notes-file RELEASE_NOTES.md `
+  --prerelease
+```
+
+Verify:
+
+```powershell
+gh release view vX.Y.Z-alpha.N --repo Sayhi-bzb/Agent-HTML
+git rev-parse HEAD vX.Y.Z-alpha.N origin/main
+```
+
+The three revisions must match.

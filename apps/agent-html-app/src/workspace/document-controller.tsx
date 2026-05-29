@@ -45,6 +45,11 @@ export type PendingDocumentState =
   | { detail: string; status: "loading" }
   | { detail: string; status: "error" }
 
+export type WorkspaceDocumentDraft = {
+  document: ProjectSectionDocument
+  saveState: Extract<SaveState, { status: "dirty" | "error" }>
+}
+
 const workspaceRepository = createWorkspaceRepository()
 
 export function renderWorkspaceDocument(
@@ -78,14 +83,20 @@ export function renderWorkspaceDocument(
 export function useWorkspaceDocumentController({
   activeProject,
   activeSection,
+  activeTabDraft,
+  activeTabId,
   canSave,
+  onDraftChange,
   onDirtyChange,
   saveAttentionToken,
 }: {
   activeProject: WorkspaceProjectView | null
   activeSection: WorkspaceSection | null
+  activeTabDraft: WorkspaceDocumentDraft | null
+  activeTabId: string | null
   canSave: boolean
-  onDirtyChange: (isDirty: boolean) => void
+  onDraftChange: (tabId: string, draft: WorkspaceDocumentDraft | null) => void
+  onDirtyChange: (tabId: string | null, isDirty: boolean) => void
   saveAttentionToken: number
 }) {
   const [documentState, setDocumentState] =
@@ -104,8 +115,23 @@ export function useWorkspaceDocumentController({
   }, [documentState])
 
   React.useEffect(() => {
-    onDirtyChange(saveState.status === "dirty" || saveState.status === "error")
-  }, [onDirtyChange, saveState.status])
+    const isDirty = saveState.status === "dirty" || saveState.status === "error"
+    onDirtyChange(activeTabId, isDirty)
+
+    if (!activeTabId || documentState.status !== "ready") {
+      return
+    }
+
+    if (isDirty) {
+      onDraftChange(activeTabId, {
+        document: documentState.document,
+        saveState,
+      })
+      return
+    }
+
+    onDraftChange(activeTabId, null)
+  }, [activeTabId, documentState, onDirtyChange, onDraftChange, saveState])
 
   React.useEffect(() => {
     if (
@@ -180,6 +206,10 @@ export function useWorkspaceDocumentController({
       .then((nextDocument) => {
         setDocumentState({ document: nextDocument, status: "ready" })
         setSaveState({ status: "saved" })
+        if (activeTabId) {
+          onDraftChange(activeTabId, null)
+          onDirtyChange(activeTabId, false)
+        }
       })
       .catch((error: unknown) => {
         setSaveState({
@@ -190,10 +220,10 @@ export function useWorkspaceDocumentController({
           status: "error",
         })
       })
-  }, [canSave, documentState])
+  }, [activeTabId, canSave, documentState, onDirtyChange, onDraftChange])
 
   React.useEffect(() => {
-    if (!activeProject || !activeSection) {
+    if (!activeProject || !activeSection || !activeTabId) {
       setDocumentState({ status: "idle" })
       setPendingDocumentState({ status: "idle" })
       setSaveState({ status: "clean" })
@@ -203,6 +233,13 @@ export function useWorkspaceDocumentController({
     let isCurrent = true
     const pendingDetail = `${activeProject.name} / ${activeSection.title}`
     const hasDisplayedDocument = documentStateRef.current.status === "ready"
+
+    if (activeTabDraft) {
+      setDocumentState({ document: activeTabDraft.document, status: "ready" })
+      setPendingDocumentState({ status: "idle" })
+      setSaveState(activeTabDraft.saveState)
+      return
+    }
 
     if (hasDisplayedDocument) {
       setPendingDocumentState({
@@ -261,7 +298,7 @@ export function useWorkspaceDocumentController({
     return () => {
       isCurrent = false
     }
-  }, [activeProject, activeSection])
+  }, [activeProject, activeSection, activeTabDraft, activeTabId])
 
   return {
     documentState,

@@ -71,7 +71,6 @@ export function AppFrame({
       projects={workspace.projects}
       workspaceActionError={workspace.actionError}
       workspaceCanEditStructure={workspace.canWrite}
-      workspaceHasUnsavedChanges={workspace.hasUnsavedChanges}
       variant="inset"
     />
   )
@@ -90,11 +89,14 @@ export function AppFrame({
             <WorkspaceSurface
               activeProject={workspace.activeProject}
               activeSection={workspace.activeSection}
+              activeTabDraft={workspace.activeTabDraft}
+              activeTabId={workspace.activeTabId}
               canEditStructure={workspace.canWrite}
               canSave={workspace.canWrite}
               colorCssVariables={gallery.appliedThemeCssVariables}
               onCreateSection={workspace.createProjectSection}
-              onDirtyChange={workspace.setHasUnsavedChanges}
+              onDraftChange={workspace.setDocumentDraft}
+              onDirtyChange={workspace.setTabDirty}
               saveAttentionToken={workspace.saveAttentionToken}
               workspaceActionError={workspace.actionError}
             />
@@ -115,6 +117,35 @@ export function AppFrame({
         primaryAction={{
           label: "Save",
           onClick: gallery.themeExitDialog.onSave,
+        }}
+      />
+      <ConfirmationDialog
+        open={workspace.pendingUnsavedAction !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            workspace.cancelPendingUnsavedAction()
+          }
+        }}
+        title="Save workspace changes?"
+        description={
+          workspace.actionError ??
+          "Your workspace document changes are only stored in this app session until you save them."
+        }
+        cancelLabel="Cancel"
+        secondaryAction={{
+          label: "Discard",
+          onClick: (event) => {
+            event.preventDefault()
+            workspace.discardPendingUnsavedAction()
+          },
+          variant: "outline",
+        }}
+        primaryAction={{
+          label: "Save",
+          onClick: (event) => {
+            event.preventDefault()
+            void workspace.savePendingUnsavedAction()
+          },
         }}
       />
       <WorkspacePetBridge />

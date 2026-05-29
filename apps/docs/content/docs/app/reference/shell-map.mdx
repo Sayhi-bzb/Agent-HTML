@@ -1,0 +1,15 @@
+---
+title: Shell Map
+description: The main regions of the Agent-HTML app shell.
+---
+
+The app shell is `AppFrame`.
+
+## Main Regions
+
+- **Header** receives workspace section tabs or gallery view tabs.
+- **Sidebar** receives workspace navigation or gallery view controls.
+- **Content well** receives the workspace surface or gallery panel.
+- **Window controls** remain protected by `AppFrame`.
+
+Mode changes should reuse this shell instead of creating unrelated frames.

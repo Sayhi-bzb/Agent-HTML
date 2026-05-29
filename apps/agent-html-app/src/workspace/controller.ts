@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { markCodexStartupEvent } from "@/app/codex/connection"
 import { createWorkspaceRepository } from "@/app/workspace/repository"
+import type { WorkspaceDocumentDraft } from "@/app/workspace/document-controller"
 import type {
   WorkspaceProjectView,
   WorkspaceSection,
@@ -13,6 +14,12 @@ export type WorkspaceTab = {
   projectId: string
   sectionId: string
 }
+
+type PendingUnsavedWorkspaceAction =
+  | { tabId: string; type: "close-tab" }
+  | { type: "leave-workspace" }
+
+type PendingUnsavedContinuation = (() => void) | null
 
 const workspaceRepository = createWorkspaceRepository()
 
@@ -88,7 +95,18 @@ export function useWorkspaceController({
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
   const [actionError, setActionError] = React.useState<string | null>(null)
   const [saveAttentionToken, setSaveAttentionToken] = React.useState(0)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false)
+  const [dirtyTabIds, setDirtyTabIds] = React.useState<Set<string>>(
+    () => new Set()
+  )
+  const [draftsByTabId, setDraftsByTabId] = React.useState(
+    () => new Map<string, WorkspaceDocumentDraft>()
+  )
+  const [pendingUnsavedAction, setPendingUnsavedAction] =
+    React.useState<PendingUnsavedWorkspaceAction | null>(null)
+  const pendingUnsavedContinuationRef =
+    React.useRef<PendingUnsavedContinuation>(null)
+  const bypassNextUnsavedGuardRef = React.useRef(false)
+  const hasUnsavedChanges = dirtyTabIds.size > 0
 
   React.useEffect(() => {
     let isCurrent = true
@@ -169,27 +187,195 @@ export function useWorkspaceController({
     [activeProject, activeTab?.sectionId]
   )
 
-  const guardStructureEdit = React.useCallback(() => {
+  const guardStructureEdit = React.useCallback((continuation?: () => void) => {
+    if (bypassNextUnsavedGuardRef.current) {
+      bypassNextUnsavedGuardRef.current = false
+      setActionError(null)
+      return false
+    }
+
     if (!hasUnsavedChanges) {
       setActionError(null)
       return false
     }
 
-    setActionError("Save current section before editing workspace structure.")
+    pendingUnsavedContinuationRef.current = continuation ?? null
+    setPendingUnsavedAction({ type: "leave-workspace" })
     setSaveAttentionToken((current) => current + 1)
     return true
   }, [hasUnsavedChanges])
 
-  const guardDocumentNavigation = React.useCallback(() => {
+  const guardDocumentNavigation = React.useCallback((continuation?: () => void) => {
+    if (bypassNextUnsavedGuardRef.current) {
+      bypassNextUnsavedGuardRef.current = false
+      setActionError(null)
+      return false
+    }
+
     if (!hasUnsavedChanges) {
       setActionError(null)
       return false
     }
 
-    setActionError("Save current section before leaving this document.")
+    pendingUnsavedContinuationRef.current = continuation ?? null
+    setPendingUnsavedAction({ type: "leave-workspace" })
     setSaveAttentionToken((current) => current + 1)
     return true
   }, [hasUnsavedChanges])
+
+  const setDocumentDraft = React.useCallback(
+    (tabId: string, draft: WorkspaceDocumentDraft | null) => {
+      setDraftsByTabId((currentDrafts) => {
+        const currentDraft = currentDrafts.get(tabId) ?? null
+        if (
+          currentDraft?.document === draft?.document &&
+          currentDraft?.saveState === draft?.saveState
+        ) {
+          return currentDrafts
+        }
+
+        if (!currentDraft && !draft) {
+          return currentDrafts
+        }
+
+        const nextDrafts = new Map(currentDrafts)
+        if (draft) {
+          nextDrafts.set(tabId, draft)
+        } else {
+          nextDrafts.delete(tabId)
+        }
+
+        return nextDrafts
+      })
+    },
+    []
+  )
+
+  const setTabDirty = React.useCallback(
+    (tabId: string | null, isDirty: boolean) => {
+      if (!tabId) {
+        return
+      }
+
+      setDirtyTabIds((currentTabIds) => {
+        if (currentTabIds.has(tabId) === isDirty) {
+          return currentTabIds
+        }
+
+        const nextTabIds = new Set(currentTabIds)
+        if (isDirty) {
+          nextTabIds.add(tabId)
+        } else {
+          nextTabIds.delete(tabId)
+        }
+
+        return nextTabIds
+      })
+    },
+    []
+  )
+
+  const removeTabs = React.useCallback(
+    (tabIds: Set<string>) => {
+      setOpenTabs((currentTabs) => {
+        const nextTabs = currentTabs.filter((tab) => !tabIds.has(tab.id))
+
+        setActiveTabId((currentActiveTabId) =>
+          getNextActiveTabId(currentTabs, tabIds, currentActiveTabId)
+        )
+
+        return nextTabs
+      })
+      setDirtyTabIds((currentTabIds) => {
+        const nextTabIds = new Set(currentTabIds)
+        for (const tabId of tabIds) {
+          nextTabIds.delete(tabId)
+        }
+        return nextTabIds
+      })
+      setDraftsByTabId((currentDrafts) => {
+        const nextDrafts = new Map(currentDrafts)
+        for (const tabId of tabIds) {
+          nextDrafts.delete(tabId)
+        }
+        return nextDrafts
+      })
+    },
+    []
+  )
+
+  const discardPendingUnsavedAction = React.useCallback(() => {
+    const action = pendingUnsavedAction
+    if (!action) {
+      return
+    }
+
+    if (action.type === "close-tab") {
+      removeTabs(new Set([action.tabId]))
+    }
+
+    if (action.type === "leave-workspace") {
+      setDirtyTabIds(new Set())
+      setDraftsByTabId(new Map())
+      bypassNextUnsavedGuardRef.current = true
+      pendingUnsavedContinuationRef.current?.()
+      pendingUnsavedContinuationRef.current = null
+    }
+
+    setPendingUnsavedAction(null)
+    setActionError(null)
+  }, [pendingUnsavedAction, removeTabs])
+
+  const cancelPendingUnsavedAction = React.useCallback(() => {
+    pendingUnsavedContinuationRef.current = null
+    setPendingUnsavedAction(null)
+  }, [])
+
+  const savePendingUnsavedAction = React.useCallback(async () => {
+    const action = pendingUnsavedAction
+    if (!action) {
+      return
+    }
+
+    const tabIds =
+      action.type === "close-tab" ? [action.tabId] : Array.from(dirtyTabIds)
+    const drafts = tabIds.flatMap((tabId) => {
+      const draft = draftsByTabId.get(tabId)
+      return draft ? [{ draft, tabId }] : []
+    })
+
+    try {
+      await Promise.all(
+        drafts.map(({ draft }) =>
+          workspaceRepository.updateProjectSectionDocument({
+            ahtmlSource: draft.document.ahtmlSource,
+            projectId: draft.document.projectId,
+            sectionId: draft.document.sectionId,
+          })
+        )
+      )
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Unable to save workspace changes."
+      )
+      return
+    }
+
+    if (action.type === "close-tab") {
+      removeTabs(new Set([action.tabId]))
+    } else {
+      setDirtyTabIds(new Set())
+      setDraftsByTabId(new Map())
+      bypassNextUnsavedGuardRef.current = true
+      pendingUnsavedContinuationRef.current?.()
+      pendingUnsavedContinuationRef.current = null
+    }
+
+    setPendingUnsavedAction(null)
+    setActionError(null)
+  }, [dirtyTabIds, draftsByTabId, pendingUnsavedAction, removeTabs])
 
   const createProject = React.useCallback(
     async ({ name }: { name: string }) => {
@@ -212,9 +398,6 @@ export function useWorkspaceController({
   const openSection = React.useCallback(
     ({ projectId, sectionId }: { projectId: string; sectionId: string }) => {
       const tabId = getSectionTabId(sectionId)
-      if (tabId !== activeTabId && guardDocumentNavigation()) {
-        return
-      }
 
       const project = projects.find((item) => item.id === projectId)
       if (!project) {
@@ -238,12 +421,12 @@ export function useWorkspaceController({
       setActiveTabId(tabId)
       onActivateWorkspace()
     },
-    [activeTabId, guardDocumentNavigation, onActivateWorkspace, projects]
+    [onActivateWorkspace, projects]
   )
 
   const renameProject = React.useCallback(
     async ({ name, projectId }: { name: string; projectId: string }) => {
-      if (guardStructureEdit()) {
+      if (guardStructureEdit(() => void renameProject({ name, projectId }))) {
         return
       }
 
@@ -264,37 +447,31 @@ export function useWorkspaceController({
 
   const deleteProject = React.useCallback(
     async ({ projectId }: { projectId: string }) => {
-      if (guardStructureEdit()) {
+      if (guardStructureEdit(() => void deleteProject({ projectId }))) {
         return
       }
 
       await workspaceRepository.deleteProject({ projectId })
 
+      const removedTabIds = new Set(
+        openTabs
+          .filter((tab) => tab.projectId === projectId)
+          .map((tab) => tab.id)
+      )
       setProjects((currentProjects) =>
         currentProjects.filter((project) => project.id !== projectId)
       )
-      setOpenTabs((currentTabs) => {
-        const removedTabIds = new Set(
-          currentTabs
-            .filter((tab) => tab.projectId === projectId)
-            .map((tab) => tab.id)
-        )
-        const nextTabs = currentTabs.filter((tab) => tab.projectId !== projectId)
-
-        setActiveTabId((currentActiveTabId) =>
-          getNextActiveTabId(currentTabs, removedTabIds, currentActiveTabId)
-        )
-
-        return nextTabs
-      })
+      removeTabs(removedTabIds)
       setActionError(null)
     },
-    [guardStructureEdit]
+    [guardStructureEdit, openTabs, removeTabs]
   )
 
   const createProjectSection = React.useCallback(
     async ({ projectId, title }: { projectId: string; title: string }) => {
-      if (guardStructureEdit()) {
+      if (
+        guardStructureEdit(() => void createProjectSection({ projectId, title }))
+      ) {
         return
       }
 
@@ -336,7 +513,11 @@ export function useWorkspaceController({
       sectionId: string
       title: string
     }) => {
-      if (guardStructureEdit()) {
+      if (
+        guardStructureEdit(
+          () => void renameProjectSection({ projectId, sectionId, title })
+        )
+      ) {
         return
       }
 
@@ -378,7 +559,11 @@ export function useWorkspaceController({
       projectId: string
       sectionId: string
     }) => {
-      if (guardStructureEdit()) {
+      if (
+        guardStructureEdit(
+          () => void deleteProjectSection({ projectId, sectionId })
+        )
+      ) {
         return
       }
 
@@ -397,23 +582,10 @@ export function useWorkspaceController({
             : project
         )
       )
-      setOpenTabs((currentTabs) => {
-        if (!currentTabs.some((tab) => tab.id === removedTabId)) {
-          return currentTabs
-        }
-
-        const removedTabIds = new Set([removedTabId])
-        const nextTabs = currentTabs.filter((tab) => tab.id !== removedTabId)
-
-        setActiveTabId((currentActiveTabId) =>
-          getNextActiveTabId(currentTabs, removedTabIds, currentActiveTabId)
-        )
-
-        return nextTabs
-      })
+      removeTabs(new Set([removedTabId]))
       setActionError(null)
     },
-    [guardStructureEdit]
+    [guardStructureEdit, removeTabs]
   )
 
   const duplicateProjectSection = React.useCallback(
@@ -424,7 +596,11 @@ export function useWorkspaceController({
       projectId: string
       sectionId: string
     }) => {
-      if (guardStructureEdit()) {
+      if (
+        guardStructureEdit(
+          () => void duplicateProjectSection({ projectId, sectionId })
+        )
+      ) {
         return
       }
 
@@ -462,30 +638,15 @@ export function useWorkspaceController({
 
   const closeTab = React.useCallback(
     (tabId: string) => {
-      if (tabId === activeTabId && guardDocumentNavigation()) {
+      if (dirtyTabIds.has(tabId)) {
+        setPendingUnsavedAction({ tabId, type: "close-tab" })
+        setSaveAttentionToken((current) => current + 1)
         return
       }
 
-      setOpenTabs((currentTabs) => {
-        if (!currentTabs.some((tab) => tab.id === tabId)) {
-          return currentTabs
-        }
-
-        const removedTabIds = new Set([tabId])
-        const nextTabs = currentTabs.filter((tab) => tab.id !== tabId)
-
-        setActiveTabId((currentActiveTabId) => {
-          return getNextActiveTabId(
-            currentTabs,
-            removedTabIds,
-            currentActiveTabId
-          )
-        })
-
-        return nextTabs
-      })
+      removeTabs(new Set([tabId]))
     },
-    [activeTabId, guardDocumentNavigation]
+    [dirtyTabIds, removeTabs]
   )
 
   const reorderTabs = React.useCallback((orderedTabIds: string[]) => {
@@ -504,10 +665,16 @@ export function useWorkspaceController({
     })
   }, [])
 
+  const isTabDirty = React.useCallback(
+    (tabId: string) => dirtyTabIds.has(tabId),
+    [dirtyTabIds]
+  )
+
   return {
     activeProject,
     activeSection,
     activeTabId,
+    activeTabDraft: activeTabId ? draftsByTabId.get(activeTabId) ?? null : null,
     canWrite: workspaceRepository.canWrite,
     closeTab,
     createProject,
@@ -517,6 +684,7 @@ export function useWorkspaceController({
     duplicateProjectSection,
     guardDocumentNavigation,
     hasUnsavedChanges,
+    isTabDirty,
     loadError,
     openSection,
     openTabs,
@@ -525,8 +693,13 @@ export function useWorkspaceController({
     renameProjectSection,
     reorderTabs,
     saveAttentionToken,
+    pendingUnsavedAction,
+    cancelPendingUnsavedAction,
+    savePendingUnsavedAction,
     selectTab,
-    setHasUnsavedChanges,
+    setDocumentDraft,
+    setTabDirty,
+    discardPendingUnsavedAction,
     actionError,
   }
 }

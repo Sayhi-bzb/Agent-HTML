@@ -51,15 +51,17 @@ export function WorkspaceSurfaceFrame({
   runtime: Extract<RuntimeState, { status: "ready" }>
   saveState: SaveState
 }) {
-  const statusState =
-    saveState.status !== "clean"
-      ? ({ kind: "save", state: saveState } satisfies WorkspaceStatusPillState)
-      : pendingDocumentState.status !== "idle"
-        ? ({
-            kind: "document",
-            state: pendingDocumentState,
-          } satisfies WorkspaceStatusPillState)
-        : null
+  const statusState = React.useMemo<WorkspaceStatusPillState | null>(() => {
+    if (saveState.status !== "clean") {
+      return { kind: "save", state: saveState }
+    }
+
+    if (pendingDocumentState.status !== "idle") {
+      return { kind: "document", state: pendingDocumentState }
+    }
+
+    return null
+  }, [pendingDocumentState, saveState])
   const visibleStatusState = useVisibleWorkspaceStatusPillState(statusState)
 
   return (
@@ -95,6 +97,18 @@ function useVisibleWorkspaceStatusPillState(
   const visibleSinceRef = React.useRef<number | null>(null)
   const hideTimeoutRef = React.useRef<number | null>(null)
 
+  const showStatusState = React.useCallback(
+    (nextStatusState: WorkspaceStatusPillState | null) => {
+      if (visibleStatusStateRef.current === nextStatusState) {
+        return
+      }
+
+      visibleStatusStateRef.current = nextStatusState
+      setVisibleStatusState(nextStatusState)
+    },
+    []
+  )
+
   React.useEffect(() => {
     visibleStatusStateRef.current = visibleStatusState
   }, [visibleStatusState])
@@ -111,8 +125,7 @@ function useVisibleWorkspaceStatusPillState(
     ) {
       const delayTimeout = window.setTimeout(() => {
         visibleSinceRef.current = window.performance.now()
-        visibleStatusStateRef.current = statusState
-        setVisibleStatusState(statusState)
+        showStatusState(statusState)
       }, workspaceStatusPillTimingMs.loadingDelay)
 
       return () => window.clearTimeout(delayTimeout)
@@ -132,8 +145,7 @@ function useVisibleWorkspaceStatusPillState(
       if (remaining > 0) {
         hideTimeoutRef.current = window.setTimeout(() => {
           visibleSinceRef.current = null
-          visibleStatusStateRef.current = null
-          setVisibleStatusState(null)
+          showStatusState(null)
           hideTimeoutRef.current = null
         }, remaining)
 
@@ -147,11 +159,10 @@ function useVisibleWorkspaceStatusPillState(
     }
 
     visibleSinceRef.current = null
-    visibleStatusStateRef.current = statusState
-    setVisibleStatusState(statusState)
+    showStatusState(statusState)
 
     return undefined
-  }, [statusState])
+  }, [showStatusState, statusState])
 
   return visibleStatusState
 }

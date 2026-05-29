@@ -1,0 +1,84 @@
+---
+title: Example Deployment
+description: Build and deploy the standalone Agent-HTML example website.
+---
+
+This page is the canonical source for example website deployment.
+
+## Ownership
+
+`apps/agent-html-example` owns the standalone example website.
+
+It may import `packages/agent-html`. It must not import:
+
+- `apps/agent-html-app/src`
+- app CSS
+- app-shell assets
+
+## Output
+
+Deploy only:
+
+```text
+dist-agent-html
+```
+
+Do not deploy `dist`, `public`, `apps/agent-html-example`, or the repository
+root.
+
+## Local Development
+
+```powershell
+npm run dev:example
+```
+
+or:
+
+```powershell
+cd apps\agent-html-example
+npm run dev
+```
+
+Expected routes:
+
+- `/`
+- `/zh`
+- `/agent-html/` redirects to `/`
+- `/agent-html/zh` redirects to `/zh`
+
+## Build
+
+```powershell
+npm run build:example
+npm run verify:example-build
+```
+
+The source of truth for Vite root, public directory, output directory, and
+`@example` alias is `apps/agent-html-example/vite.config.ts`.
+
+## Cloudflare Pages
+
+Project:
+
+```text
+agent-html
+```
+
+Deploy:
+
+```powershell
+npm run build:example
+npm run verify:example-build
+npx wrangler pages deploy dist-agent-html --project-name agent-html --branch main
+```
+
+Use `wrangler pages deploy`, not `wrangler deploy`.
+
+## Checklist
+
+- `npm run build:example`
+- `npm run verify:example-build`
+- `dist-agent-html/index.html` exists
+- bundle does not contain app-only markers
+- example app does not import app shell code
+- `apps/agent-html-example/public/_redirects` exists

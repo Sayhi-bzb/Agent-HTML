@@ -6,6 +6,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   plugins: [tsconfigPaths(), mdx(), tailwindcss(), reactRouter()],
+  publicDir: 'public',
   ssr: {
     external: ['@takumi-rs/image-response'],
   },

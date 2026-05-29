@@ -1,0 +1,5 @@
+{
+  "title": "Runtime",
+  "root": true,
+  "pages": ["index", "rendering-flow", "runtime-ui", "interactive-rendering", "agent-events"]
+}

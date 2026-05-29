@@ -23,6 +23,7 @@ export type HeaderTab = {
   Icon?: React.ComponentType<{ className?: string }>
   id: string
   isClosable: boolean
+  isDirty?: boolean
   label: string
 }
 
@@ -204,6 +205,12 @@ function DocumentTabDragPreview({
         />
       ) : null}
       <span className="truncate">{tab.label}</span>
+      {tab.isDirty ? (
+        <span
+          aria-label="Unsaved changes"
+          className="ml-1.5 size-1.5 shrink-0 rounded-full bg-primary"
+        />
+      ) : null}
     </div>
   )
 }
@@ -305,6 +312,12 @@ const DocumentTabItem = React.forwardRef<
           />
         ) : null}
         <span className="truncate">{tab.label}</span>
+        {tab.isDirty ? (
+          <span
+            aria-label="Unsaved changes"
+            className="ml-1.5 size-1.5 shrink-0 rounded-full bg-primary"
+          />
+        ) : null}
       </button>
       {tab.isClosable ? (
         <button

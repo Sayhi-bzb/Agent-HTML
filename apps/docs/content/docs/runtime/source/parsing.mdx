@@ -1,0 +1,16 @@
+---
+title: Parsing
+description: How Agent-HTML source is parsed into runtime structure.
+---
+
+`parseAgentHtml` turns Agent-HTML source text into the runtime AST.
+
+Parser work is syntax and structure.
+
+## Boundary
+
+- parser code creates structure
+- schema and validation code decide whether structure is allowed
+- rendering code consumes validated structure
+
+Allowed tags, attributes, defaults, and child grammar belong in Schema.

@@ -1,5 +1,5 @@
 {
   "title": "Reference",
   "root": true,
-  "pages": ["index", "elements", "attributes", "validation-errors", "runtime-interactions"]
+  "pages": ["index", "module-boundaries", "elements", "attributes", "validation-errors", "public-exports", "glossary"]
 }

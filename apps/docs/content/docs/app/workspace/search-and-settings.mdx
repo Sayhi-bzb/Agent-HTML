@@ -3,17 +3,13 @@ title: Search and Settings
 description: How workspace utility surfaces fit into the app shell.
 ---
 
-Search and settings are shell-level utilities. They should support active work
-without becoming a separate product mode.
+Search and settings are shell surfaces, not Workspace state.
 
 ## Search
 
-Search helps users find work contexts, commands, or docs depending on the active
-surface. It should preserve the current shell frame and return users to the work
-they were doing.
+Search lives in shell code and should route back to the current App context.
 
 ## Settings
 
-Settings should stay task-oriented and diagnostic. Values such as paths,
-commands, and identifiers should remain copyable when they help users debug or
-share state.
+Settings lives in shell code. Diagnostic values such as paths, commands, and ids
+should remain copyable.

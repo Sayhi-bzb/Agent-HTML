@@ -3,17 +3,18 @@ title: Projects and Tabs
 description: How workspace projects and open work tabs keep context visible.
 ---
 
-Projects organize work. Tabs keep active contexts close at hand.
+Projects contain sections. Workspace tabs represent open sections.
 
-The header tab rail represents open workspace contexts. It should help users
-return to recent work without turning navigation into a separate page family.
+Tab ids use `section:<sectionId>`. Tab labels mirror section titles.
 
 ## Expected Behavior
 
-- tabs represent open work contexts
-- sidebar navigation stays project-oriented
-- the active tab controls the main content well
-- switching tabs preserves the operating shell
+- opening a section creates a tab if one is not already open
+- selecting a tab changes the active section
+- renaming a section updates its tab label
+- deleting a project removes its section tabs
+- deleting a section removes its tab
+- closing the active tab selects the nearest remaining tab
 
-The goal is orientation during longer sessions, not a document browser with
-unrelated frames.
+Dirty sections block tab switches, tab closes, project edits, and section edits
+until the current section is saved.

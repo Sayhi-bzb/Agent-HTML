@@ -20,6 +20,26 @@ function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
   ref.current = value
 }
 
+function useStableElementRef<T extends HTMLElement>(
+  externalRef: React.Ref<T> | undefined
+) {
+  const elementRef = React.useRef<T | null>(null)
+
+  const setElementRef = React.useCallback(
+    (element: T | null) => {
+      if (elementRef.current === element) {
+        return
+      }
+
+      elementRef.current = element
+      assignRef(externalRef, element)
+    },
+    [externalRef]
+  )
+
+  return [elementRef, setElementRef] as const
+}
+
 export function AgentHtmlRuntimeViewport({
   children,
   className,
@@ -45,24 +65,9 @@ export function AgentHtmlRuntimeViewport({
     registerOverlayElement,
     setHoveredBlock,
   } = useAgentHtmlBlockRuntime()
-  const rootRef = React.useRef<HTMLDivElement | null>(null)
-  const scrollRootRef = React.useRef<HTMLDivElement | null>(null)
-
-  const setRootRef = React.useCallback(
-    (element: HTMLDivElement | null) => {
-      rootRef.current = element
-      assignRef(viewportRef, element)
-    },
-    [viewportRef]
-  )
-
-  const setScrollRootRef = React.useCallback(
-    (element: HTMLDivElement | null) => {
-      scrollRootRef.current = element
-      assignRef(scrollAreaRef, element)
-    },
-    [scrollAreaRef]
-  )
+  const [rootRef, setRootRef] = useStableElementRef(viewportRef)
+  const [scrollRootRef, setScrollRootRef] =
+    useStableElementRef(scrollAreaRef)
 
   React.useEffect(() => {
     return registerOverlayElement(rootRef.current)

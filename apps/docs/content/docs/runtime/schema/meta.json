@@ -1,0 +1,5 @@
+{
+  "title": "Schema",
+  "root": true,
+  "pages": ["index", "components-and-tags", "attributes", "registry", "validation", "prompt-grammar"]
+}

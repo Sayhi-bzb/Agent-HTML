@@ -1,0 +1,47 @@
+---
+title: Language
+description: App language and Lingui maintenance boundary.
+---
+
+This page is the canonical source for App language rules.
+
+Lingui is used for app UI chrome under `apps/agent-html-app`.
+
+## Translate
+
+- navigation and settings labels
+- dialogs, buttons, menus, tooltips, and empty states
+- stable product-facing status text
+
+## Do Not Translate
+
+- Agent-HTML runtime artifact content
+- generated artifact text
+- project names and section titles
+- user-authored content
+- code, logs, debug payloads, and fixture source
+- example website locale flow
+
+## Developer Workflow
+
+Write clear English UI copy first. If stable product chrome is already in the
+file, wrap it with Lingui:
+
+- `<Trans>` from `@lingui/react/macro` for visible JSX text
+- `useLingui().t` for attributes, titles, alerts, and conditional strings
+
+## Language Pass
+
+```powershell
+npm run i18n:extract
+npm run i18n:compile
+```
+
+Edit `.po` files. Do not hand-edit compiled `.mjs` catalogs.
+
+Release checks stay focused:
+
+```powershell
+npm run typecheck
+npm test
+```

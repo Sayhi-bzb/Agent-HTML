@@ -3,13 +3,13 @@ export const products = [
     label: 'App',
     value: 'app',
     root: '/docs/app',
-    defaultHref: '/docs/app/overview',
+    defaultHref: '/docs/app/start',
   },
   {
     label: 'Runtime',
     value: 'runtime',
     root: '/docs/runtime',
-    defaultHref: '/docs/runtime/overview',
+    defaultHref: '/docs/runtime/source',
   },
 ] as const;
 

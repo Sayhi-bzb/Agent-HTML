@@ -326,7 +326,6 @@ export function NavProjects({
   activeProjectId,
   activeSectionId,
   canEditStructure,
-  hasUnsavedChanges,
   onCreateProjectSection,
   onDeleteProject,
   onDeleteProjectSection,
@@ -340,7 +339,6 @@ export function NavProjects({
   activeProjectId: string | null
   activeSectionId: string
   canEditStructure: boolean
-  hasUnsavedChanges: boolean
   onCreateProjectSection: (input: {
     projectId: string
     title: string
@@ -385,18 +383,10 @@ export function NavProjects({
       ? "Working..."
       : null
 
-  const beginStructureEdit = React.useCallback(
-    (action: () => void) => {
-      if (hasUnsavedChanges) {
-        setActionError("Save current section before editing workspace structure.")
-        return
-      }
-
-      setActionError(null)
-      action()
-    },
-    [hasUnsavedChanges]
-  )
+  const beginStructureEdit = React.useCallback((action: () => void) => {
+    setActionError(null)
+    action()
+  }, [])
 
   const submitAction = React.useCallback(
     async (

@@ -3,16 +3,15 @@ title: Gallery
 description: Understand the App gallery mode for design studies and preview scenes.
 ---
 
-Gallery mode is a product surface for inspecting design studies, scene previews,
-and theme-focused system work.
+Gallery mode has three views: Theme, Components, and Pets.
 
-It uses the same operating shell as Workspace mode. The sidebar may become an
-editor or filter surface, and the header tabs may represent gallery views, but
-the shell identity remains stable.
+`useGalleryController` owns the active view, theme draft, component filters, and
+gallery sidebar content.
 
-## Gallery Is For
+## View Map
 
-- theme and color studies
-- component showcase review
-- preview scene inspection
-- design-system checks inside the app frame
+- **Theme** edits app theme variables.
+- **Components** browses enabled runtime component tags.
+- **Pets** browses companion assets for workspace personalization.
+
+Leaving Theme with unsaved changes opens a save/discard confirmation.

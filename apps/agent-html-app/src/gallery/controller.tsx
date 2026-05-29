@@ -172,8 +172,10 @@ export function useGalleryController({
     []
   )
 
-  const requestEnterGallery = React.useCallback(() => {
-    if (!canLeaveWorkspace()) {
+  const requestEnterGallery = React.useCallback((options?: {
+    skipWorkspaceGuard?: boolean
+  }) => {
+    if (!options?.skipWorkspaceGuard && !canLeaveWorkspace()) {
       return
     }
 

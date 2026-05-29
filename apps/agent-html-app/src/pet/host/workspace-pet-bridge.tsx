@@ -5,6 +5,8 @@ import {
   subscribeWorkspacePetHost,
 } from "@/app/pet/host/pet-host-store"
 import {
+  PET_PANEL_STATE_EVENT,
+  PET_PANEL_WINDOW_LABEL,
   PET_WINDOW_COMMAND_EVENT,
   PET_WINDOW_LABEL,
   PET_WINDOW_READY_EVENT,
@@ -12,7 +14,10 @@ import {
   type PetWindowCommand,
   type PetWindowState,
 } from "@/app/pet/host/pet-window-events"
-import { ensurePetWindow } from "@/app/pet/host/pet-window"
+import {
+  ensurePetPanelWindow,
+  ensurePetWindow,
+} from "@/app/pet/host/pet-window"
 import { WorkspacePetHost } from "@/app/pet/host/workspace-pet-host"
 import { isDesktopRuntime } from "@/app/shared/lib/window-controls"
 
@@ -36,6 +41,28 @@ async function emitPetWindowState(state: PetWindowState) {
   await emitTo(PET_WINDOW_LABEL, PET_WINDOW_STATE_EVENT, state)
 }
 
+async function syncPetPanelWindow(input: {
+  mode: "message" | "threads" | null
+  state: PetWindowState
+}) {
+  if (!isDesktopRuntime()) {
+    return
+  }
+
+  const panelWindow = await ensurePetPanelWindow()
+  if (!panelWindow) {
+    return
+  }
+
+  const { emitTo } = await import("@tauri-apps/api/event")
+  if (input.mode) {
+    await panelWindow.show()
+  } else {
+    await panelWindow.hide()
+  }
+  await emitTo(PET_PANEL_WINDOW_LABEL, PET_PANEL_STATE_EVENT, input)
+}
+
 export function WorkspacePetBridge() {
   const snapshot = React.useSyncExternalStore(
     subscribeWorkspacePetHost,
@@ -43,6 +70,7 @@ export function WorkspacePetBridge() {
     getWorkspacePetHostSnapshot
   )
   const snapshotRef = React.useRef(snapshot)
+  const panelModeRef = React.useRef<"message" | "threads" | null>(null)
   const [useInAppHost, setUseInAppHost] = React.useState(
     () => !isDesktopRuntime()
   )
@@ -69,6 +97,24 @@ export function WorkspacePetBridge() {
       unlistenCommand = await listen<PetWindowCommand>(
         PET_WINDOW_COMMAND_EVENT,
         (event) => {
+          if (event.payload.type === "open-panel") {
+            panelModeRef.current = event.payload.panel
+            void syncPetPanelWindow({
+              mode: event.payload.panel,
+              state: toPetWindowState(),
+            })
+            return
+          }
+
+          if (event.payload.type === "close-panel") {
+            panelModeRef.current = null
+            void syncPetPanelWindow({
+              mode: null,
+              state: toPetWindowState(),
+            })
+            return
+          }
+
           if (event.payload.type === "send-prompt") {
             snapshotRef.current.onPromptSubmit?.({
               prompt: event.payload.prompt,
@@ -99,6 +145,10 @@ export function WorkspacePetBridge() {
       )
       unlistenReady = await listen(PET_WINDOW_READY_EVENT, () => {
         void emitPetWindowState(toPetWindowState())
+        void syncPetPanelWindow({
+          mode: panelModeRef.current,
+          state: toPetWindowState(),
+        })
       })
     }
 
@@ -124,6 +174,8 @@ export function WorkspacePetBridge() {
       if (!snapshot.enabled) {
         setUseInAppHost(false)
         await emitPetWindowState(state)
+        panelModeRef.current = null
+        await syncPetPanelWindow({ mode: null, state })
         return
       }
 
@@ -134,6 +186,7 @@ export function WorkspacePetBridge() {
         }
         setUseInAppHost(false)
         await emitPetWindowState(state)
+        await syncPetPanelWindow({ mode: panelModeRef.current, state })
       } catch (error) {
         console.warn("Unable to open pet window; using in-app pet.", error)
         if (!isDisposed) {

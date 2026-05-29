@@ -1,8 +1,15 @@
 import { isTauri } from "@tauri-apps/api/core"
 
-import { PET_WINDOW_LABEL } from "@/app/pet/host/pet-window-events"
+import {
+  PET_PANEL_WINDOW_LABEL,
+  PET_WINDOW_LABEL,
+} from "@/app/pet/host/pet-window-events"
 
 const PET_WINDOW_POSITION_KEY = "agent-html:pet-window-position"
+const PET_PANEL_OFFSET = {
+  x: 100,
+  y: 160,
+}
 
 type StoredPetWindowPosition = {
   x: number
@@ -25,6 +32,16 @@ function readStoredPetWindowPosition(): StoredPetWindowPosition | null {
   }
 }
 
+function getStoredPetPanelPosition() {
+  const position = readStoredPetWindowPosition()
+  return position
+    ? {
+        x: position.x + PET_PANEL_OFFSET.x,
+        y: position.y + PET_PANEL_OFFSET.y,
+      }
+    : null
+}
+
 export async function ensurePetWindow() {
   if (!isTauri()) {
     return null
@@ -41,14 +58,16 @@ export async function ensurePetWindow() {
     alwaysOnTop: true,
     decorations: false,
     focus: false,
-    height: 260,
+    focusable: false,
+    height: 220,
     ...(position ? { x: position.x, y: position.y } : {}),
     resizable: false,
+    shadow: false,
     skipTaskbar: true,
     title: "Agent HTML Pet",
     transparent: true,
     url: "/?window=pet",
-    width: 360,
+    width: 320,
   })
 }
 
@@ -56,14 +75,38 @@ export function savePetWindowPosition(position: StoredPetWindowPosition) {
   window.localStorage.setItem(PET_WINDOW_POSITION_KEY, JSON.stringify(position))
 }
 
-export async function resizeCurrentPetWindow(input: {
-  height: number
-  width: number
-}) {
+export async function ensurePetPanelWindow() {
   if (!isTauri()) {
-    return
+    return null
   }
 
-  const { LogicalSize, getCurrentWindow } = await import("@tauri-apps/api/window")
-  await getCurrentWindow().setSize(new LogicalSize(input.width, input.height))
+  const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow")
+  const existing = await WebviewWindow.getByLabel(PET_PANEL_WINDOW_LABEL)
+  if (existing) {
+    const panelPosition = getStoredPetPanelPosition()
+    if (panelPosition) {
+      const { LogicalPosition } = await import("@tauri-apps/api/dpi")
+      await existing.setPosition(
+        new LogicalPosition(panelPosition.x, panelPosition.y)
+      )
+    }
+    return existing
+  }
+
+  const panelPosition = getStoredPetPanelPosition()
+  return new WebviewWindow(PET_PANEL_WINDOW_LABEL, {
+    alwaysOnTop: true,
+    decorations: false,
+    focus: false,
+    height: 340,
+    ...(panelPosition ? { x: panelPosition.x, y: panelPosition.y } : {}),
+    resizable: false,
+    shadow: true,
+    skipTaskbar: true,
+    title: "Agent HTML Pet Panel",
+    transparent: true,
+    url: "/?window=pet-panel",
+    visible: false,
+    width: 380,
+  })
 }

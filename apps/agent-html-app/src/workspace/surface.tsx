@@ -5,7 +5,10 @@ import {
   publishWorkspacePetHost,
 } from "@/app/pet/host/pet-host-store"
 import { useWorkspaceAgentController } from "@/app/workspace/agent-controller"
-import { useWorkspaceDocumentController } from "@/app/workspace/document-controller"
+import {
+  useWorkspaceDocumentController,
+  type WorkspaceDocumentDraft,
+} from "@/app/workspace/document-controller"
 import { useWorkspaceSectionCreation } from "@/app/workspace/section-creation-controller"
 import { ProjectThreadPickerContent } from "@/app/workspace/thread-picker"
 import { buildProjectThreadPickerItems } from "@/app/workspace/thread-picker-model"
@@ -35,21 +38,27 @@ export {
 export function WorkspaceSurface({
   activeProject,
   activeSection,
+  activeTabDraft,
+  activeTabId,
   canEditStructure,
   canSave,
   colorCssVariables,
   onCreateSection,
+  onDraftChange,
   onDirtyChange,
   saveAttentionToken,
   workspaceActionError,
 }: {
   activeProject: WorkspaceProjectView | null
   activeSection: WorkspaceSection | null
+  activeTabDraft: WorkspaceDocumentDraft | null
+  activeTabId: string | null
   canEditStructure: boolean
   canSave: boolean
   colorCssVariables: AgentHtmlColorCssVariables
   onCreateSection: (input: { projectId: string; title: string }) => Promise<void>
-  onDirtyChange: (isDirty: boolean) => void
+  onDraftChange: (tabId: string, draft: WorkspaceDocumentDraft | null) => void
+  onDirtyChange: (tabId: string | null, isDirty: boolean) => void
   saveAttentionToken: number
   workspaceActionError: string | null
 }) {
@@ -64,7 +73,10 @@ export function WorkspaceSurface({
   } = useWorkspaceDocumentController({
     activeProject,
     activeSection,
+    activeTabDraft,
+    activeTabId,
     canSave,
+    onDraftChange,
     onDirtyChange,
     saveAttentionToken,
   })

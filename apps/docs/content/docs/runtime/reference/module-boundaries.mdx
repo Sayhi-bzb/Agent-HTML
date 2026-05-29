@@ -1,0 +1,63 @@
+---
+title: Module Boundaries
+description: Ownership and dependency boundaries for Agent-HTML modules.
+---
+
+This page is the canonical source for engineering ownership.
+
+## Surfaces
+
+- `/` renders the app shell from `apps/agent-html-app/src/App.tsx`.
+- `apps/agent-html-example` owns the standalone example website.
+
+The app shell and example website are separate deployable surfaces.
+
+## Runtime
+
+`packages/agent-html/src` owns:
+
+- AST types
+- parser
+- validator
+- schema metadata
+- runtime renderer
+- runtime UI for rendered DSL output
+- runtime host helpers
+- runtime theme helpers
+- DSL fixtures and tests
+- public exports from `packages/agent-html/src/index.ts`
+
+External consumers use public exports unless they are extending the subsystem
+directly.
+
+## Public Surfaces
+
+- `@/agent-html`: stable DSL core and production runtime host APIs
+- `@/agent-html/runtime`: explicit runtime host imports
+- `@/agent-html/runtime/block`: advanced block-host internals
+- `@/agent-html/source`: source-analysis support, not production host contract
+
+## App Ownership
+
+- `apps/agent-html-app/src/gallery`: Gallery feature domain
+- `apps/agent-html-app/src/shared/ui`: shared primitives
+- `apps/agent-html-app/src/shell`: shell composites
+- `apps/agent-html-app/src/App.tsx`: app orchestration
+
+## Dependency Direction
+
+```text
+app orchestration
+  -> composites / feature domains
+  -> primitives / shared utilities
+```
+
+```text
+source string
+  -> parseAgentHtml
+  -> validateAgentHtml
+  -> renderAgentHtml
+  -> runtime UI
+```
+
+Do not fix a surface by bypassing its owner.

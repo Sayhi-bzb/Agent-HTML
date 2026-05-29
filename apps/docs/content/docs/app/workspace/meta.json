@@ -1,5 +1,5 @@
 {
   "title": "Workspace",
   "root": true,
-  "pages": ["index", "projects-and-tabs", "reviewing-artifacts", "search-and-settings"]
+  "pages": ["index", "projects-and-tabs", "reviewing-artifacts", "codex-host", "search-and-settings"]
 }

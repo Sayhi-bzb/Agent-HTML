@@ -34,18 +34,15 @@ export function App() {
 
     return workspace.openTabs.map((tab) => ({
       id: tab.id,
+      isDirty: workspace.isTabDirty(tab.id),
       isClosable: true,
       label: tab.label,
     }))
-  }, [gallery.headerTabs, surfaceMode, workspace.openTabs])
+  }, [gallery.headerTabs, surfaceMode, workspace])
 
   const handleSelectTab = React.useCallback(
     (tabId: string) => {
       if (tabId === workspace.activeTabId && surfaceMode !== "gallery") {
-        return
-      }
-
-      if (surfaceMode !== "gallery" && workspace.guardDocumentNavigation()) {
         return
       }
 
@@ -71,7 +68,11 @@ export function App() {
   )
 
   const handleEnterGalleryMode = React.useCallback(() => {
-    if (workspace.guardDocumentNavigation()) {
+    if (
+      workspace.guardDocumentNavigation(() => {
+        gallery.requestEnterGallery({ skipWorkspaceGuard: true })
+      })
+    ) {
       return
     }
 
@@ -79,7 +80,11 @@ export function App() {
   }, [gallery, workspace])
 
   const handleCloseWindow = React.useCallback(() => {
-    if (workspace.guardDocumentNavigation()) {
+    if (
+      workspace.guardDocumentNavigation(() => {
+        void closeWindow()
+      })
+    ) {
       return
     }
 

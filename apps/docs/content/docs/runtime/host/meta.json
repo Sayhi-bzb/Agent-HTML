@@ -1,0 +1,5 @@
+{
+  "title": "Host",
+  "root": true,
+  "pages": ["index", "package-exports", "styling-and-tailwind", "block-hosting", "interaction-boundaries", "example-deployment"]
+}

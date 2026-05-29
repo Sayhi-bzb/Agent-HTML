@@ -45,7 +45,6 @@ export function AppSidebar({
   projects,
   workspaceActionError,
   workspaceCanEditStructure,
-  workspaceHasUnsavedChanges,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   activeProjectId: string | null
@@ -87,7 +86,6 @@ export function AppSidebar({
   projects: ProjectNavItem[]
   workspaceActionError: string | null
   workspaceCanEditStructure: boolean
-  workspaceHasUnsavedChanges: boolean
 }) {
   const isGalleryMode = mode === "gallery"
 
@@ -131,7 +129,6 @@ export function AppSidebar({
             activeProjectId={activeProjectId}
             activeSectionId={activeWorkspaceSectionId}
             canEditStructure={workspaceCanEditStructure}
-            hasUnsavedChanges={workspaceHasUnsavedChanges}
             onCreateProjectSection={onCreateProjectSection}
             onDeleteProject={onDeleteProject}
             onDeleteProjectSection={onDeleteProjectSection}
