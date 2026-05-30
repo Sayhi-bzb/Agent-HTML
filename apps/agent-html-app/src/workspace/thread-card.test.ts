@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  buildProjectThreadPickerItems,
+  buildCodexThreadPickerItems,
   formatThreadRelativeTime,
   readFirstThreadRequestText,
-  sortProjectThreadLinksByRecent,
+  sortThreadSummariesByRecent,
 } from "@/app/workspace/thread-picker-model"
 
 describe("workspace thread card helpers", () => {
@@ -96,24 +96,14 @@ describe("workspace thread card helpers", () => {
     expect(preview?.endsWith("...")).toBe(true)
   })
 
-  it("sorts project thread links with the newest thread first", () => {
-    const links = [
+  it("sorts global thread summaries with the newest thread first", () => {
+    const summaries = [
       {
         createdAt: "2026-05-26T12:00:00.000Z",
-        lastUsedAt: "2026-05-27T12:00:00.000Z",
-        origin: "agent-html",
-        projectId: "project",
-        threadId: "thr_old",
+        id: "thr_old",
+        name: null,
+        updatedAt: "2026-05-27T12:00:00.000Z",
       },
-      {
-        createdAt: "2026-05-25T12:00:00.000Z",
-        lastUsedAt: "2026-05-26T12:00:00.000Z",
-        origin: "agent-html",
-        projectId: "project",
-        threadId: "thr_new",
-      },
-    ] as const
-    const summaries = [
       {
         id: "thr_new",
         name: null,
@@ -121,34 +111,32 @@ describe("workspace thread card helpers", () => {
       },
     ]
 
-    expect(sortProjectThreadLinksByRecent([...links], summaries).map((link) => link.threadId)).toEqual([
+    expect(sortThreadSummariesByRecent(summaries).map((thread) => thread.id)).toEqual([
       "thr_new",
       "thr_old",
     ])
   })
 
   it("builds serializable thread picker items for the app-hosted pet", () => {
-    const items = buildProjectThreadPickerItems({
+    const items = buildCodexThreadPickerItems({
+      activeThreadId: "thr_current",
       optimisticThreadNames: {
         thr_current: "Working thread",
       },
-      projectThreadLinks: [
-        {
-          createdAt: "2026-05-27T12:00:00.000Z",
-          lastUsedAt: "2026-05-28T11:58:00.000Z",
-          origin: "agent-html",
-          projectId: "project",
-          threadId: "thr_current",
-        },
-      ],
-      selectedProjectThreadId: "thr_current",
       threadRequestPreviews: {
         thr_current: {
           isLoading: false,
           requestText: "Make the pet draggable.",
         },
       },
-      threadSummaries: [],
+      threadSummaries: [
+        {
+          createdAt: "2026-05-27T12:00:00.000Z",
+          id: "thr_current",
+          name: null,
+          updatedAt: "2026-05-28T11:58:00.000Z",
+        },
+      ],
     })
 
     expect(items).toEqual([

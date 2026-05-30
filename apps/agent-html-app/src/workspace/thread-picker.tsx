@@ -12,18 +12,17 @@ import {
 import { Input } from "@/app/shared/ui/input"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import {
-  buildProjectThreadPickerItems,
+  buildCodexThreadPickerItems,
   getThreadSummaryById,
   type ThreadPreviewState,
 } from "@/app/workspace/thread-picker-model"
 import type { CodexThreadSummary } from "@/app/codex/connection"
-import type { ProjectCodexThreadLink } from "@/app/workspace/types"
 
 export type { ThreadPreviewState }
 export {
   formatThreadRelativeTime,
   readFirstThreadRequestText,
-  sortProjectThreadLinksByRecent,
+  sortThreadSummariesByRecent,
 } from "@/app/workspace/thread-picker-model"
 
 function copyThreadId(threadId: string) {
@@ -32,37 +31,35 @@ function copyThreadId(threadId: string) {
   })
 }
 
-export function ProjectThreadPickerContent({
+export function CodexThreadPickerContent({
+  activeThreadId,
   canSelectThread,
   codexThreadError,
+  companyAgentError,
   isLoading,
   isSelectingThread,
   onNewThread,
   onRenameThread,
   onResumeThread,
   optimisticThreadNames,
-  projectThreadError,
-  projectThreadLinks,
   renameError,
   renamingThreadId,
-  selectedProjectThreadId,
   threadSelectionError,
   threadRequestPreviews,
   threadSummaries,
 }: {
+  activeThreadId?: string | null
   canSelectThread: boolean
   codexThreadError?: string | null
+  companyAgentError?: string | null
   isLoading: boolean
   isSelectingThread: boolean
   onNewThread: () => void
   onRenameThread: (input: { name: string; threadId: string }) => Promise<void>
   onResumeThread: (threadId: string) => void
   optimisticThreadNames: Record<string, string>
-  projectThreadError?: string | null
-  projectThreadLinks: ProjectCodexThreadLink[]
   renameError?: string | null
   renamingThreadId?: string | null
-  selectedProjectThreadId?: string | null
   threadSelectionError?: string | null
   threadRequestPreviews: Record<string, ThreadPreviewState>
   threadSummaries: CodexThreadSummary[]
@@ -73,17 +70,15 @@ export function ProjectThreadPickerContent({
   const [editingName, setEditingName] = React.useState("")
   const threadItems = React.useMemo(
     () =>
-      buildProjectThreadPickerItems({
+      buildCodexThreadPickerItems({
+        activeThreadId,
         optimisticThreadNames,
-        projectThreadLinks,
-        selectedProjectThreadId,
         threadRequestPreviews,
         threadSummaries,
       }),
     [
+      activeThreadId,
       optimisticThreadNames,
-      projectThreadLinks,
-      selectedProjectThreadId,
       threadRequestPreviews,
       threadSummaries,
     ]
@@ -111,8 +106,8 @@ export function ProjectThreadPickerContent({
       {codexThreadError ? (
         <p className="text-xs text-destructive">{codexThreadError}</p>
       ) : null}
-      {projectThreadError ? (
-        <p className="text-xs text-destructive">{projectThreadError}</p>
+      {companyAgentError ? (
+        <p className="text-xs text-destructive">{companyAgentError}</p>
       ) : null}
       {threadSelectionError ? (
         <p className="text-xs text-destructive">{threadSelectionError}</p>
@@ -256,7 +251,7 @@ export function ProjectThreadPickerContent({
             })
           ) : (
             <p className="text-xs text-muted-foreground">
-              No previous threads for this project.
+              No Codex threads yet.
             </p>
           )}
         </div>

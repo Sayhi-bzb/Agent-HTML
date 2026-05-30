@@ -1,8 +1,4 @@
 import type { CodexThreadSummary } from "@/app/codex/connection"
-import type {
-  ProjectCodexThreadLink,
-  WorkspaceProjectView,
-} from "@/app/workspace/types"
 
 export type ThreadPreviewState = {
   error?: string | null
@@ -10,7 +6,7 @@ export type ThreadPreviewState = {
   requestText?: string | null
 }
 
-export type ProjectThreadPickerItem = {
+export type CodexThreadPickerItem = {
   displayName: string
   isCurrentThread: boolean
   previewText: string
@@ -56,16 +52,8 @@ function readTimestampMs(value: string) {
   return Number.isNaN(date.getTime()) ? null : date.getTime()
 }
 
-function getThreadSortTimestamp(
-  link: ProjectCodexThreadLink,
-  summary: ReturnType<typeof getThreadSummaryById>
-) {
-  for (const value of [
-    summary?.updatedAt,
-    link.lastUsedAt,
-    summary?.createdAt,
-    link.createdAt,
-  ]) {
+function getThreadSortTimestamp(summary: CodexThreadSummary) {
+  for (const value of [summary.updatedAt, summary.createdAt]) {
     if (!value) {
       continue
     }
@@ -79,25 +67,14 @@ function getThreadSortTimestamp(
   return 0
 }
 
-export function sortProjectThreadLinksByRecent(
-  links: ProjectCodexThreadLink[],
-  summaries: CodexThreadSummary[]
-) {
-  return [...links].sort((left, right) => {
-    const leftSummary = getThreadSummaryById(summaries, left.threadId)
-    const rightSummary = getThreadSummaryById(summaries, right.threadId)
-    return (
-      getThreadSortTimestamp(right, rightSummary) -
-      getThreadSortTimestamp(left, leftSummary)
-    )
-  })
+export function sortThreadSummariesByRecent(summaries: CodexThreadSummary[]) {
+  return [...summaries].sort(
+    (left, right) => getThreadSortTimestamp(right) - getThreadSortTimestamp(left)
+  )
 }
 
-function getThreadDisplayName(
-  link: ProjectCodexThreadLink,
-  summary: ReturnType<typeof getThreadSummaryById>
-) {
-  return summary?.name?.trim() || link.threadId.slice(0, 8)
+function getThreadDisplayName(summary: CodexThreadSummary) {
+  return summary.name?.trim() || summary.id.slice(0, 8)
 }
 
 export function getThreadSummaryById(
@@ -204,46 +181,29 @@ export function readFirstThreadRequestText(value: unknown) {
   return null
 }
 
-export function buildProjectThreadPickerItems({
+export function buildCodexThreadPickerItems({
   optimisticThreadNames,
-  projectThreadLinks,
-  selectedProjectThreadId,
+  activeThreadId,
   threadRequestPreviews,
   threadSummaries,
 }: {
+  activeThreadId?: string | null
   optimisticThreadNames: Record<string, string>
-  projectThreadLinks: ProjectCodexThreadLink[]
-  selectedProjectThreadId?: string | null
   threadRequestPreviews: Record<string, ThreadPreviewState>
   threadSummaries: CodexThreadSummary[]
-}): ProjectThreadPickerItem[] {
-  return sortProjectThreadLinksByRecent(projectThreadLinks, threadSummaries).map(
-    (link) => {
-      const summary = getThreadSummaryById(threadSummaries, link.threadId)
-      const preview = threadRequestPreviews[link.threadId]
+}): CodexThreadPickerItem[] {
+  return sortThreadSummariesByRecent(threadSummaries).map((summary) => {
+    const preview = threadRequestPreviews[summary.id]
 
-      return {
-        displayName:
-          optimisticThreadNames[link.threadId] ??
-          getThreadDisplayName(link, summary),
-        isCurrentThread: selectedProjectThreadId === link.threadId,
-        previewText: preview?.isLoading
-          ? "Loading request..."
-          : preview?.requestText || "No request yet",
-        threadId: link.threadId,
-        timestamp: formatThreadRelativeTime(
-          summary?.updatedAt ??
-            link.lastUsedAt ??
-            summary?.createdAt ??
-            link.createdAt
-        ),
-      }
+    return {
+      displayName:
+        optimisticThreadNames[summary.id] ?? getThreadDisplayName(summary),
+      isCurrentThread: activeThreadId === summary.id,
+      previewText: preview?.isLoading
+        ? "Loading request..."
+        : preview?.requestText || "No request yet",
+      threadId: summary.id,
+      timestamp: formatThreadRelativeTime(summary.updatedAt ?? summary.createdAt),
     }
-  )
-}
-
-export function buildProjectThreadPickerTitle(
-  activeProject: WorkspaceProjectView | null
-) {
-  return activeProject ? `${activeProject.name} threads` : "Codex threads"
+  })
 }

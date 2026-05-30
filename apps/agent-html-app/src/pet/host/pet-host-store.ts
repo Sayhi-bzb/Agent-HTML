@@ -8,7 +8,7 @@ import type {
   PetPresence,
   PetSpeechBubble,
 } from "@/app/workspace/agent-presence"
-import type { ProjectThreadPickerItem } from "@/app/workspace/thread-picker-model"
+import type { CodexThreadPickerItem } from "@/app/workspace/thread-picker-model"
 import type { AgentHtmlAgentPromptSubmitInput } from "@/agent-html"
 
 export type WorkspacePetHostSnapshot = {
@@ -33,7 +33,7 @@ export type WorkspacePetHostSnapshot = {
     error?: string | null
     isLoading: boolean
     isSelectingThread: boolean
-    items: ProjectThreadPickerItem[]
+    items: CodexThreadPickerItem[]
   }
 }
 

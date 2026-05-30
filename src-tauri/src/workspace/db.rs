@@ -49,6 +49,12 @@ pub(crate) fn create_schema(connection: &Connection) -> WorkspaceResult<()> {
             last_used_at TEXT NOT NULL,
             FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS company_agent_state (
+            id TEXT PRIMARY KEY CHECK (id = 'default'),
+            active_thread_id TEXT,
+            updated_at TEXT NOT NULL
+        );
         ",
     )?;
     Ok(())

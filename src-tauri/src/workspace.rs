@@ -1,3 +1,4 @@
+mod company_agent;
 mod db;
 mod documents;
 mod projects;
@@ -16,8 +17,8 @@ use serde_json::json;
 use tauri::State;
 
 pub(crate) use types::{
-    ProjectCodexThreadLink, ProjectSectionDocument, WorkspaceProject, WorkspaceProjectView,
-    WorkspaceResult, WorkspaceSection,
+    CompanyAgentState, ProjectCodexThreadLink, ProjectSectionDocument, WorkspaceProject,
+    WorkspaceProjectView, WorkspaceResult, WorkspaceSection,
 };
 
 pub(crate) struct WorkspaceStore {
@@ -179,6 +180,19 @@ impl WorkspaceStore {
     fn list_projects(&self) -> WorkspaceResult<Vec<WorkspaceProject>> {
         let connection = self.connection.lock().expect("workspace db lock poisoned");
         projects::list_projects(&connection)
+    }
+
+    fn get_company_agent_state(&self) -> WorkspaceResult<CompanyAgentState> {
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
+        company_agent::get_company_agent_state(&connection)
+    }
+
+    fn update_company_agent_state(
+        &self,
+        active_thread_id: Option<&str>,
+    ) -> WorkspaceResult<CompanyAgentState> {
+        let connection = self.connection.lock().expect("workspace db lock poisoned");
+        company_agent::update_company_agent_state(&connection, active_thread_id)
     }
 
     fn list_project_sections(&self, project_id: &str) -> WorkspaceResult<Vec<WorkspaceSection>> {
@@ -509,6 +523,21 @@ pub(crate) fn list_projects(
     store: State<'_, WorkspaceStore>,
 ) -> WorkspaceResult<Vec<WorkspaceProject>> {
     store.list_projects()
+}
+
+#[tauri::command]
+pub(crate) fn get_company_agent_state(
+    store: State<'_, WorkspaceStore>,
+) -> WorkspaceResult<CompanyAgentState> {
+    store.get_company_agent_state()
+}
+
+#[tauri::command]
+pub(crate) fn update_company_agent_state(
+    store: State<'_, WorkspaceStore>,
+    active_thread_id: Option<String>,
+) -> WorkspaceResult<CompanyAgentState> {
+    store.update_company_agent_state(active_thread_id.as_deref())
 }
 
 #[tauri::command]
@@ -857,6 +886,30 @@ mod tests {
                 .expect("read updated AGENTS.md"),
             updated
         );
+    }
+
+    #[test]
+    fn persists_company_agent_active_thread() {
+        let workspace = test_store();
+        let store = &workspace.store;
+
+        let initial = store
+            .get_company_agent_state()
+            .expect("read initial company agent state");
+
+        assert_eq!(initial.active_thread_id, None);
+
+        let updated = store
+            .update_company_agent_state(Some("thr_company"))
+            .expect("update company agent state");
+
+        assert_eq!(updated.active_thread_id.as_deref(), Some("thr_company"));
+
+        let reloaded = store
+            .get_company_agent_state()
+            .expect("reload company agent state");
+
+        assert_eq!(reloaded.active_thread_id.as_deref(), Some("thr_company"));
     }
 
     #[test]

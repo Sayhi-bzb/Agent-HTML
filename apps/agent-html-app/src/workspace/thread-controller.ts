@@ -2,9 +2,10 @@ import * as React from "react"
 
 import { useCodexConnection } from "@/app/codex/connection"
 import type { CodexConnectionContextValue } from "@/app/codex/connection/types"
-import { useProjectThreadLinks } from "@/app/workspace/thread-links-controller"
-import { useThreadPreviews } from "@/app/workspace/thread-previews-controller"
+import { createWorkspaceStore } from "@/app/workspace/store"
 import type { WorkspaceProjectView } from "./types"
+
+const workspaceStore = createWorkspaceStore()
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -28,11 +29,16 @@ function getErrorMessage(error: unknown) {
 }
 
 export function useWorkspaceThreadController({
-  activeProject,
+  activeProject: _activeProject,
 }: {
   activeProject: WorkspaceProjectView | null
 }) {
   const codexConnection = useCodexConnection()
+  const [companyAgentError, setCompanyAgentError] = React.useState<
+    string | null
+  >(null)
+  const [isCompanyAgentStateLoading, setIsCompanyAgentStateLoading] =
+    React.useState(false)
   const [threadRenameError, setThreadRenameError] = React.useState<string | null>(
     null
   )
@@ -43,15 +49,91 @@ export function useWorkspaceThreadController({
     Record<string, string>
   >({})
   const [isThreadPickerOpen, setIsThreadPickerOpen] = React.useState(false)
-  const threadLinks = useProjectThreadLinks({
-    activeProject,
-    codexConnection,
-    onThreadPickerOpenChange: setIsThreadPickerOpen,
-  })
-  const threadRequestPreviews = useThreadPreviews({
-    codexConnection,
-    projectThreadLinks: threadLinks.projectThreadLinks,
-  })
+  const [activeThreadId, setActiveThreadId] = React.useState<string | null>(null)
+  const [threadSelectionError, setThreadSelectionError] = React.useState<
+    string | null
+  >(null)
+  const [isSelectingThread, setIsSelectingThread] = React.useState(false)
+
+  const persistActiveThreadId = React.useCallback(async (threadId: string | null) => {
+    const state = await workspaceStore.updateCompanyAgentState({
+      activeThreadId: threadId,
+    })
+    setActiveThreadId(state.activeThreadId ?? null)
+    return state.activeThreadId ?? null
+  }, [])
+
+  React.useEffect(() => {
+    let isCurrent = true
+    setIsCompanyAgentStateLoading(true)
+    setCompanyAgentError(null)
+
+    workspaceStore
+      .getCompanyAgentState()
+      .then((state) => {
+        if (!isCurrent) {
+          return
+        }
+        setActiveThreadId(state.activeThreadId ?? null)
+      })
+      .catch((error: unknown) => {
+        if (!isCurrent) {
+          return
+        }
+        setCompanyAgentError(
+          `Unable to load company agent state: ${getErrorMessage(error)}`
+        )
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsCompanyAgentStateLoading(false)
+        }
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [])
+
+  const startNewThread = React.useCallback(() => {
+    setThreadSelectionError(null)
+    setIsSelectingThread(true)
+    codexConnection
+      .startNewThread()
+      .then((threadId) => persistActiveThreadId(threadId))
+      .then(() => setIsThreadPickerOpen(false))
+      .catch((error: unknown) => {
+        setThreadSelectionError(
+          `Unable to start Codex thread: ${getErrorMessage(error)}`
+        )
+      })
+      .finally(() => setIsSelectingThread(false))
+  }, [codexConnection, persistActiveThreadId])
+
+  const resumeThread = React.useCallback(
+    (threadId: string) => {
+      setThreadSelectionError(null)
+      setIsSelectingThread(true)
+      codexConnection
+        .request("thread/read", { includeTurns: false, threadId })
+        .then(() => codexConnection.resumeThread(threadId))
+        .then(() => persistActiveThreadId(threadId))
+        .then(() => setIsThreadPickerOpen(false))
+        .catch((error: unknown) => {
+          setThreadSelectionError(
+            `Unable to resume Codex thread: ${getErrorMessage(error)}`
+          )
+        })
+        .finally(() => setIsSelectingThread(false))
+    },
+    [codexConnection, persistActiveThreadId]
+  )
+
+  const ensureCompanyAgentThread = React.useCallback(async () => {
+    const threadId = await codexConnection.startNewThread()
+    await persistActiveThreadId(threadId)
+    return threadId
+  }, [codexConnection, persistActiveThreadId])
 
   const renameThread = React.useCallback(
     async ({ name, threadId }: { name: string; threadId: string }) => {
@@ -84,12 +166,6 @@ export function useWorkspaceThreadController({
     [codexConnection.refreshThreads, codexConnection.request]
   )
 
-  React.useEffect(() => {
-    if (!activeProject) {
-      setOptimisticThreadNames({})
-    }
-  }, [activeProject])
-
   const threadSummaries = React.useMemo(
     () =>
       codexConnection.threadList.items.map((thread) =>
@@ -101,32 +177,30 @@ export function useWorkspaceThreadController({
   )
 
   return {
+    activeThreadId,
     codexConnection,
-    createThreadForProject: threadLinks.createThreadForProject,
+    ensureCompanyAgentThread,
     isThreadPickerOpen,
-    selectedProjectThreadId: threadLinks.selectedProjectThreadId,
     setIsThreadPickerOpen,
     threadPickerProps: {
+      activeThreadId,
       canSelectThread: codexConnection.status === "connected",
       codexThreadError: codexConnection.threadList.error,
+      companyAgentError,
       isLoading:
         codexConnection.threadList.isLoading ||
-        threadLinks.projectThreadListIsLoading,
-      isSelectingThread: threadLinks.isSelectingThread,
-      onNewThread: threadLinks.startNewThread,
+        isCompanyAgentStateLoading,
+      isSelectingThread,
+      onNewThread: startNewThread,
       onRenameThread: renameThread,
-      onResumeThread: threadLinks.resumeThread,
+      onResumeThread: resumeThread,
       optimisticThreadNames,
-      projectThreadError: threadLinks.projectThreadError,
-      projectThreadLinks: threadLinks.projectThreadLinks,
       renameError: threadRenameError,
       renamingThreadId,
-      selectedProjectThreadId: threadLinks.selectedProjectThreadId,
-      threadRequestPreviews,
-      threadSelectionError: threadLinks.threadSelectionError,
+      threadRequestPreviews: {},
+      threadSelectionError,
       threadSummaries,
     },
-    touchProjectThread: threadLinks.touchProjectThread,
   }
 }
 

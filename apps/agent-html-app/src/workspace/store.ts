@@ -6,6 +6,7 @@ import {
   workspaceSeedProjects,
 } from "@/app/workspace/seed"
 import type {
+  CompanyAgentState,
   ProjectCodexThreadLink,
   ProjectSectionDocument,
   WorkspaceProject,
@@ -34,6 +35,7 @@ export type WorkspaceStore = {
     projectId: string
     sectionId: string
   }) => Promise<WorkspaceSection>
+  getCompanyAgentState: () => Promise<CompanyAgentState>
   getProjectSectionDocument: (
     projectId: string,
     sectionId: string
@@ -57,6 +59,9 @@ export type WorkspaceStore = {
     source: string
   }) => Promise<ProjectSectionDocument>
   updateRootAgentsInstructions: (input: { source: string }) => Promise<string>
+  updateCompanyAgentState: (input: {
+    activeThreadId?: string | null
+  }) => Promise<CompanyAgentState>
   touchProjectCodexThreadLink: (input: {
     blockPath?: string | null
     documentPath?: string | null
@@ -92,6 +97,12 @@ const previewWorkspaceStore: WorkspaceStore = {
   },
   async duplicateProjectSection() {
     throw new Error("Desktop runtime required to duplicate sections.")
+  },
+  async getCompanyAgentState() {
+    return {
+      activeThreadId: null,
+      updatedAt: new Date(0).toISOString(),
+    }
   },
   async getProjectSectionDocument(projectId, sectionId) {
     const document = getSeedDocument(projectId, sectionId)
@@ -133,6 +144,9 @@ const previewWorkspaceStore: WorkspaceStore = {
   async updateRootAgentsInstructions() {
     throw new Error("Desktop runtime required to update AGENTS.md.")
   },
+  async updateCompanyAgentState() {
+    throw new Error("Desktop runtime required to update company agent state.")
+  },
   async touchProjectCodexThreadLink() {
     throw new Error("Desktop runtime required to update Codex thread links.")
   },
@@ -160,6 +174,9 @@ const tauriWorkspaceStore: WorkspaceStore = {
   },
   duplicateProjectSection(input) {
     return invoke("duplicate_project_section", input)
+  },
+  getCompanyAgentState() {
+    return invoke("get_company_agent_state")
   },
   getProjectSectionDocument(projectId, sectionId) {
     return invoke("get_project_section_document", {
@@ -190,6 +207,9 @@ const tauriWorkspaceStore: WorkspaceStore = {
   },
   updateRootAgentsInstructions(input) {
     return invoke("update_root_agents_instructions", input)
+  },
+  updateCompanyAgentState(input) {
+    return invoke("update_company_agent_state", input)
   },
   touchProjectCodexThreadLink(input) {
     return invoke("touch_project_codex_thread_link", input)

@@ -725,7 +725,14 @@ export function WorkspaceGhostPet({
                         "max-w-full rounded-2xl bg-background/95 px-3 py-1.5 text-left text-[11px] font-medium whitespace-pre-wrap text-muted-foreground shadow-sm backdrop-blur break-words transition-[opacity,transform] duration-300 ease-out will-change-transform",
                       ].join(" ")}
                       key={bubble.id}
-                      style={getSpeechBubbleStyle(index, speechBubbles.length)}
+                      style={
+                        bubble.mode === "exiting"
+                          ? {
+                              opacity: 0,
+                              transform: "translateY(-24px) scale(0.92)",
+                            }
+                          : getSpeechBubbleStyle(index, speechBubbles.length)
+                      }
                     >
                       <PetMarkdownText text={bubble.text} />
                     </div>

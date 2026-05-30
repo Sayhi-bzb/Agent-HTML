@@ -4,6 +4,11 @@ export type WorkspaceProject = {
   slug: string
 }
 
+export type CompanyAgentState = {
+  activeThreadId?: string | null
+  updatedAt: string
+}
+
 export type WorkspaceProjectView = WorkspaceProject & {
   sections: WorkspaceSection[]
 }

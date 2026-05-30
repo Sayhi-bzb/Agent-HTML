@@ -40,6 +40,13 @@ pub(crate) type WorkspaceResult<T> = Result<T, WorkspaceError>;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub(crate) struct CompanyAgentState {
+    pub(crate) active_thread_id: Option<String>,
+    pub(crate) updated_at: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct WorkspaceProject {
     pub(crate) id: String,
     pub(crate) name: String,

@@ -13,8 +13,8 @@ import {
 } from "@/app/workspace/document-controller"
 import { useAgentDocumentRefresh } from "@/app/workspace/agent-document-refresh"
 import { useWorkspaceSectionCreation } from "@/app/workspace/section-creation-controller"
-import { ProjectThreadPickerContent } from "@/app/workspace/thread-picker"
-import { buildProjectThreadPickerItems } from "@/app/workspace/thread-picker-model"
+import { CodexThreadPickerContent } from "@/app/workspace/thread-picker"
+import { buildCodexThreadPickerItems } from "@/app/workspace/thread-picker-model"
 import { useThreadTranscript } from "@/app/workspace/thread-transcript"
 import { useWorkspaceThreadController } from "@/app/workspace/thread-controller"
 import { WorkspaceSurfaceFrame } from "@/app/workspace/surface-frame"
@@ -36,7 +36,7 @@ import { type AgentHtmlColorCssVariables } from "@/agent-html"
 export {
   formatThreadRelativeTime,
   readFirstThreadRequestText,
-  sortProjectThreadLinksByRecent,
+  sortThreadSummariesByRecent,
 } from "@/app/workspace/thread-picker"
 
 export function WorkspaceSurface({
@@ -113,12 +113,12 @@ export function WorkspaceSurface({
     reloadDocumentFromDisk,
   })
   const threadPickerContent = useMemo(
-    () => <ProjectThreadPickerContent {...threadController.threadPickerProps} />,
+    () => <CodexThreadPickerContent {...threadController.threadPickerProps} />,
     [threadController.threadPickerProps]
   )
   const threadTranscript = useThreadTranscript({
     codexConnection: threadController.codexConnection,
-    threadId: threadController.threadPickerProps.selectedProjectThreadId,
+    threadId: threadController.threadPickerProps.activeThreadId,
   })
   const transcriptContent = useMemo(
     () => (
@@ -143,19 +143,16 @@ export function WorkspaceSurface({
       canSelectThread: threadController.threadPickerProps.canSelectThread,
       error:
         threadController.threadPickerProps.codexThreadError ??
-        threadController.threadPickerProps.projectThreadError ??
+        threadController.threadPickerProps.companyAgentError ??
         threadController.threadPickerProps.threadSelectionError ??
         threadController.threadPickerProps.renameError ??
         null,
       isLoading: threadController.threadPickerProps.isLoading,
       isSelectingThread: threadController.threadPickerProps.isSelectingThread,
-      items: buildProjectThreadPickerItems({
+      items: buildCodexThreadPickerItems({
+        activeThreadId: threadController.threadPickerProps.activeThreadId,
         optimisticThreadNames:
           threadController.threadPickerProps.optimisticThreadNames,
-        projectThreadLinks:
-          threadController.threadPickerProps.projectThreadLinks,
-        selectedProjectThreadId:
-          threadController.threadPickerProps.selectedProjectThreadId,
         threadRequestPreviews:
           threadController.threadPickerProps.threadRequestPreviews,
         threadSummaries: threadController.threadPickerProps.threadSummaries,
@@ -164,13 +161,12 @@ export function WorkspaceSurface({
     [
       threadController.threadPickerProps.canSelectThread,
       threadController.threadPickerProps.codexThreadError,
+      threadController.threadPickerProps.companyAgentError,
       threadController.threadPickerProps.isLoading,
       threadController.threadPickerProps.isSelectingThread,
       threadController.threadPickerProps.optimisticThreadNames,
-      threadController.threadPickerProps.projectThreadError,
-      threadController.threadPickerProps.projectThreadLinks,
       threadController.threadPickerProps.renameError,
-      threadController.threadPickerProps.selectedProjectThreadId,
+      threadController.threadPickerProps.activeThreadId,
       threadController.threadPickerProps.threadRequestPreviews,
       threadController.threadPickerProps.threadSelectionError,
       threadController.threadPickerProps.threadSummaries,

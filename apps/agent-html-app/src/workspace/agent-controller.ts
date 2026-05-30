@@ -6,7 +6,6 @@ import {
 } from "@/app/workspace/agent-activity"
 import { useCodexApprovals } from "@/app/workspace/agent-approval"
 import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
-import { formatCodexWorkspacePath } from "@/app/workspace/codex-path"
 import type {
   RuntimeState,
   WorkspaceDocumentState,
@@ -151,9 +150,6 @@ export function useWorkspaceAgentController({
   const currentInterruptTarget = isTerminalTurnStatus(agentActivity.latestStatus)
     ? null
     : interruptTarget
-  const documentBlockPath =
-    runtime?.status === "ready" ? `/${runtime.parsedDocument.root.tag}` : null
-
   const handlePromptSubmit = React.useCallback(
     (submit: AgentHtmlAgentPromptSubmitInput) => {
       if (!activeProject || !activeSection || documentState.status !== "ready") {
@@ -172,19 +168,9 @@ export function useWorkspaceAgentController({
 
       setAgentDeliveryState({ status: "sending" })
       const document = documentState.document
-      const codexDocumentPath = formatCodexWorkspacePath(
-        document.filePath,
-        workspaceRootPath
-      )
-      const blockPath = getPromptSubmitBlockPath(submit, documentBlockPath)
-      const threadPromise = threadController.selectedProjectThreadId
-        ? Promise.resolve(threadController.selectedProjectThreadId)
-        : threadController.createThreadForProject({
-            blockPath,
-            documentPath: codexDocumentPath,
-            projectId: activeProject.id,
-            sectionId: activeSection.id,
-          })
+      const threadPromise = threadController.activeThreadId
+        ? Promise.resolve(threadController.activeThreadId)
+        : threadController.ensureCompanyAgentThread()
 
       threadPromise
         .then((threadId) =>
@@ -204,14 +190,6 @@ export function useWorkspaceAgentController({
         )
         .then((result) => {
           if (result.ok) {
-            void touchThreadAfterDelivery({
-              activeProject,
-              activeSection,
-              documentPath: codexDocumentPath,
-              blockPath,
-              result,
-              threadController,
-            })
             setActiveTurnContext({
               blockPath: submit.target.kind === "block" ? submit.target.path : undefined,
               sectionId: activeSection.id,
@@ -249,7 +227,6 @@ export function useWorkspaceAgentController({
       activeSection,
       codexConnection.startTurn,
       documentState,
-      documentBlockPath,
       runtime,
       threadController,
       workspaceRootPath,
@@ -308,37 +285,3 @@ export function useWorkspaceAgentController({
   }
 }
 
-function getPromptSubmitBlockPath(
-  submit: AgentHtmlAgentPromptSubmitInput,
-  documentBlockPath: string | null
-) {
-  if (submit.target.kind === "block") {
-    return submit.target.path
-  }
-
-  return documentBlockPath ?? "/Page"
-}
-
-function touchThreadAfterDelivery({
-  activeProject,
-  activeSection,
-  blockPath,
-  documentPath,
-  result,
-  threadController,
-}: {
-  activeProject: WorkspaceProjectView
-  activeSection: WorkspaceSection
-  blockPath: string
-  documentPath: string
-  result: Extract<Awaited<ReturnType<typeof deliverAgentHtmlIntent>>, { ok: true }>
-  threadController: WorkspaceThreadController
-}) {
-  return threadController.touchProjectThread({
-    blockPath,
-    documentPath,
-    projectId: activeProject.id,
-    sectionId: activeSection.id,
-    threadId: result.threadId,
-  })
-}

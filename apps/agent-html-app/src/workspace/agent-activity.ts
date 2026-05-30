@@ -12,6 +12,8 @@ export const codexNotificationEventName = "codex://notification"
 
 const MAX_ACTIVITY_EVENTS = 100
 const MAX_SPEECH_BUBBLES = 2
+const SPEECH_BUBBLE_EXIT_MS = 300
+const SPEECH_BUBBLE_FINAL_TTL_MS = 4000
 const MAX_STREAMING_MESSAGE_LENGTH = 4000
 
 export type AgentActivityScope =
@@ -250,6 +252,32 @@ function updateSpeechBubblesForNotification({
   }
 
   return state.speechBubbles
+}
+
+export function markSpeechBubbleExiting(
+  state: AgentActivityState,
+  bubbleId: string
+): AgentActivityState {
+  return {
+    ...state,
+    speechBubbles: state.speechBubbles.map((bubble) =>
+      bubble.id === bubbleId && bubble.mode === "final"
+        ? { ...bubble, mode: "exiting" as const }
+        : bubble
+    ),
+  }
+}
+
+export function removeSpeechBubble(
+  state: AgentActivityState,
+  bubbleId: string
+): AgentActivityState {
+  return {
+    ...state,
+    speechBubbles: state.speechBubbles.filter(
+      (bubble) => bubble.id !== bubbleId
+    ),
+  }
 }
 
 function createEventId(method: string, receivedAt: string, index: number) {
@@ -546,10 +574,50 @@ export function useAgentActivity(context: AgentActivityTurnContext) {
     createInitialAgentActivityState
   )
   const contextRef = React.useRef(context)
+  const speechBubbleTimersRef = React.useRef(new Map<string, number[]>())
 
   React.useEffect(() => {
     contextRef.current = context
   }, [context])
+
+  React.useEffect(() => {
+    const currentIds = new Set(state.speechBubbles.map((bubble) => bubble.id))
+    for (const [bubbleId, timers] of speechBubbleTimersRef.current) {
+      if (!currentIds.has(bubbleId)) {
+        for (const timer of timers) {
+          window.clearTimeout(timer)
+        }
+        speechBubbleTimersRef.current.delete(bubbleId)
+      }
+    }
+
+    for (const bubble of state.speechBubbles) {
+      if (bubble.mode !== "final" || speechBubbleTimersRef.current.has(bubble.id)) {
+        continue
+      }
+
+      const exitTimer = window.setTimeout(() => {
+        setState((current) => markSpeechBubbleExiting(current, bubble.id))
+      }, SPEECH_BUBBLE_FINAL_TTL_MS)
+      const removeTimer = window.setTimeout(() => {
+        setState((current) => removeSpeechBubble(current, bubble.id))
+        speechBubbleTimersRef.current.delete(bubble.id)
+      }, SPEECH_BUBBLE_FINAL_TTL_MS + SPEECH_BUBBLE_EXIT_MS)
+      speechBubbleTimersRef.current.set(bubble.id, [exitTimer, removeTimer])
+    }
+  }, [state.speechBubbles])
+
+  React.useEffect(
+    () => () => {
+      for (const timers of speechBubbleTimersRef.current.values()) {
+        for (const timer of timers) {
+          window.clearTimeout(timer)
+        }
+      }
+      speechBubbleTimersRef.current.clear()
+    },
+    []
+  )
 
   React.useEffect(() => {
     if (!isTauri()) {

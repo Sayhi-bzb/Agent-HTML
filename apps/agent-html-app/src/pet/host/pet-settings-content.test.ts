@@ -61,4 +61,9 @@ describe("pet settings content", () => {
     expect(storeSource).toContain('invoke("get_root_agents_instructions")')
     expect(storeSource).toContain('invoke("update_root_agents_instructions"')
   })
+
+  it("maps company agent state to dedicated Tauri commands", () => {
+    expect(storeSource).toContain('invoke("get_company_agent_state")')
+    expect(storeSource).toContain('invoke("update_company_agent_state"')
+  })
 })

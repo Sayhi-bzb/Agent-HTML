@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest"
 
 import {
   createInitialAgentActivityState,
+  markSpeechBubbleExiting,
   reduceCodexNotification,
+  removeSpeechBubble,
 } from "@/app/workspace/agent-activity"
 
 describe("reduceCodexNotification", () => {
@@ -126,6 +128,26 @@ describe("reduceCodexNotification", () => {
       },
     ])
     expect(completed.speechBubbles[0]?.mode).toBe("final")
+  })
+
+  it("marks final speech bubbles as exiting before removal", () => {
+    const state = {
+      ...createInitialAgentActivityState(),
+      speechBubbles: [
+        {
+          createdAt: "2026-05-28T00:00:00.000Z",
+          id: "item_1",
+          mode: "final" as const,
+          text: "Done",
+        },
+      ],
+    }
+
+    const exiting = markSpeechBubbleExiting(state, "item_1")
+    const removed = removeSpeechBubble(exiting, "item_1")
+
+    expect(exiting.speechBubbles[0]?.mode).toBe("exiting")
+    expect(removed.speechBubbles).toEqual([])
   })
 
   it("keeps the latest two speech bubbles", () => {

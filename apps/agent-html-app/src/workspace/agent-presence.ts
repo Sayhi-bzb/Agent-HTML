@@ -25,6 +25,6 @@ export type PetPresence = {
 export type PetSpeechBubble = {
   createdAt: string
   id: string
-  mode: "final" | "streaming"
+  mode: "exiting" | "final" | "streaming"
   text: string
 }
