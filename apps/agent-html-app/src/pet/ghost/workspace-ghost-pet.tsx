@@ -63,10 +63,13 @@ function getPresenceMessage(presence: PetPresence) {
 }
 
 export function WorkspaceGhostPet({
+  canInterruptTurn = false,
   isMessageOpen = false,
+  isInterruptingTurn = false,
   isSettingsOpen = false,
   isThreadPickerOpen = false,
   messageContent,
+  onInterruptTurn,
   onMessageOpenChange,
   onSettingsOpenChange,
   onThreadPickerOpenChange,
@@ -74,10 +77,13 @@ export function WorkspaceGhostPet({
   settingsContent,
   threadPickerContent,
 }: {
+  canInterruptTurn?: boolean
   isMessageOpen?: boolean
+  isInterruptingTurn?: boolean
   isSettingsOpen?: boolean
   isThreadPickerOpen?: boolean
   messageContent?: React.ReactNode
+  onInterruptTurn?: () => void
   onMessageOpenChange?: (open: boolean) => void
   onSettingsOpenChange?: (open: boolean) => void
   onThreadPickerOpenChange?: (open: boolean) => void
@@ -210,8 +216,16 @@ export function WorkspaceGhostPet({
         setSettingsOffset({ x: 0, y: 0 })
         onSettingsOpenChange?.(true)
       }
+      if (item === "interrupt") {
+        onInterruptTurn?.()
+      }
     },
-    [onMessageOpenChange, onSettingsOpenChange, onThreadPickerOpenChange]
+    [
+      onInterruptTurn,
+      onMessageOpenChange,
+      onSettingsOpenChange,
+      onThreadPickerOpenChange,
+    ]
   )
 
   const handleThreadPickerOpenChange = useCallback(
@@ -406,7 +420,12 @@ export function WorkspaceGhostPet({
             >
               <AsciiGhost />
             </div>
-            <GhostRadialMenu isOpen={isMenuOpen} onSelect={handleMenuSelect} />
+            <GhostRadialMenu
+              canInterrupt={canInterruptTurn}
+              isInterrupting={isInterruptingTurn}
+              isOpen={isMenuOpen}
+              onSelect={handleMenuSelect}
+            />
             {presence.action ? (
               <div className="absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-full bg-background/80 px-2.5 py-1 text-[10px] font-medium whitespace-nowrap text-muted-foreground backdrop-blur">
                 {presence.action.label}

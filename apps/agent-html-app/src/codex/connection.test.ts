@@ -5,6 +5,7 @@ import {
   readThreads,
   scheduleCodexAutoConnect,
 } from "@/app/codex/connection"
+import { readRuntimeItems } from "@/app/codex/connection/parsers"
 
 afterEach(() => {
   vi.useRealTimers()
@@ -64,6 +65,110 @@ describe("Codex thread response parsing", () => {
     )
     expect(readThreadId({ threadId: "thr_compact" })).toBe("thr_compact")
     expect(readThreadId({ id: "thr_root" })).toBe("thr_root")
+  })
+})
+
+describe("Codex runtime capability parsing", () => {
+  it("reads capability item names from app-server list shapes", () => {
+    expect(
+      readRuntimeItems({
+        skills: [{ name: "agent-html" }],
+      })
+    ).toEqual([
+      {
+        id: "agent-html",
+        name: "agent-html",
+        source: undefined,
+        status: undefined,
+      },
+    ])
+    expect(
+      readRuntimeItems({
+        plugins: [{ id: "plugin-1", title: "Plugin One" }],
+      })
+    ).toEqual([
+      {
+        id: "plugin-1",
+        name: "Plugin One",
+        source: undefined,
+        status: undefined,
+      },
+    ])
+    expect(
+      readRuntimeItems({
+        servers: [{ name: "filesystem", status: "ready" }],
+      })
+    ).toEqual([
+      {
+        id: "filesystem",
+        name: "filesystem",
+        source: undefined,
+        status: "ready",
+      },
+    ])
+    expect(readRuntimeItems(["plain-skill"])).toEqual([
+      { name: "plain-skill", source: undefined },
+    ])
+  })
+
+  it("reads nested runtime capability items with inherited sources", () => {
+    expect(
+      readRuntimeItems({
+        items: [
+          {
+            cwd: "D:/codes/AgentHTML",
+            skills: [
+              { name: "agent-html", path: "AgentHTML/.agents/skills/agent-html" },
+            ],
+          },
+          {
+            cwd: null,
+            skills: [
+              { name: "commit", path: "C:/Users/Admin/.agents/skills/commit" },
+            ],
+          },
+        ],
+      })
+    ).toEqual([
+      {
+        id: "agent-html",
+        name: "agent-html",
+        source: "AgentHTML/.agents/skills/agent-html",
+        status: undefined,
+      },
+      {
+        id: "commit",
+        name: "commit",
+        source: "C:/Users/Admin/.agents/skills/commit",
+        status: undefined,
+      },
+    ])
+  })
+
+  it("reads plugin source metadata from nested source objects", () => {
+    expect(
+      readRuntimeItems({
+        plugins: [
+          {
+            name: "browser-tools",
+            source: { path: "AgentHTML/plugins/browser-tools", type: "local" },
+          },
+        ],
+      })
+    ).toEqual([
+      {
+        id: "browser-tools",
+        name: "browser-tools",
+        source: "AgentHTML/plugins/browser-tools",
+        status: undefined,
+      },
+    ])
+  })
+
+  it("skips runtime capability items without a readable name", () => {
+    expect(readRuntimeItems({ items: [{ enabled: true }, null, 12] })).toEqual(
+      []
+    )
   })
 })
 

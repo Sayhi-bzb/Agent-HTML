@@ -5,8 +5,11 @@ import type { ProjectThreadPickerItem } from "@/app/workspace/thread-picker-mode
 import type { AgentHtmlAgentPromptSubmitInput } from "@/agent-html"
 
 export type WorkspacePetHostSnapshot = {
+  canInterruptTurn?: boolean
   draftScope: string | null
   enabled: boolean
+  isInterruptingTurn?: boolean
+  onInterruptTurn?: () => void
   onNewThread?: () => void
   onPromptSubmit?: (submit: AgentHtmlAgentPromptSubmitInput) => void
   onRenameThread?: (input: { name: string; threadId: string }) => Promise<void>

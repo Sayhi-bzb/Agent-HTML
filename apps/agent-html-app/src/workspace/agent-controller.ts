@@ -25,8 +25,14 @@ import {
 type AgentDeliveryState =
   | { status: "idle" }
   | { status: "sending" }
+  | { status: "interrupting" }
   | { detail: string; status: "sent" }
   | { detail: string; status: "error" }
+
+type InterruptTarget = {
+  threadId: string
+  turnId?: string | null
+}
 
 function getAgentDeliveryPresence(
   agentDeliveryState: AgentDeliveryState
@@ -44,6 +50,20 @@ function getAgentDeliveryPresence(
       message: {
         mode: "transient",
         text: "Sending request to Codex.",
+      },
+      mood: "working",
+    }
+  }
+
+  if (agentDeliveryState.status === "interrupting") {
+    return {
+      action: {
+        kind: "running",
+        label: "interrupting turn",
+      },
+      message: {
+        mode: "transient",
+        text: "Interrupting Codex.",
       },
       mood: "working",
     }
@@ -89,6 +109,15 @@ function getErrorMessage(error: unknown) {
   return String(error)
 }
 
+function isTerminalTurnStatus(status?: string) {
+  return (
+    status === "completed" ||
+    status === "failed" ||
+    status === "error" ||
+    status === "interrupted"
+  )
+}
+
 export function useWorkspaceAgentController({
   activeProject,
   activeSection,
@@ -106,11 +135,17 @@ export function useWorkspaceAgentController({
     React.useState<AgentDeliveryState>({ status: "idle" })
   const [activeTurnContext, setActiveTurnContext] =
     React.useState<AgentActivityTurnContext>({})
+  const [interruptTarget, setInterruptTarget] =
+    React.useState<InterruptTarget | null>(null)
+  const [isInterruptingTurn, setIsInterruptingTurn] = React.useState(false)
   const agentActivity = useAgentActivity(activeTurnContext)
   const lastInteractionRef =
     React.useRef<AgentHtmlAgentInteractionEvent | null>(null)
   const { codexConnection } = threadController
   const workspaceRootPath = codexConnection.workspaceRootStatus?.rootPath ?? null
+  const currentInterruptTarget = isTerminalTurnStatus(agentActivity.latestStatus)
+    ? null
+    : interruptTarget
   const documentBlockPath =
     runtime?.status === "ready" ? `/${runtime.parsedDocument.root.tag}` : null
 
@@ -178,6 +213,10 @@ export function useWorkspaceAgentController({
               threadId: result.threadId,
               turnId: result.turnId,
             })
+            setInterruptTarget({
+              threadId: result.threadId,
+              turnId: result.turnId,
+            })
             setAgentDeliveryState({
               detail: "Sent to Codex.",
               status: "sent",
@@ -190,12 +229,14 @@ export function useWorkspaceAgentController({
             detail: result.error,
             status: "error",
           })
+          setInterruptTarget(null)
         })
         .catch((error: unknown) => {
           setAgentDeliveryState({
             detail: `Unable to prepare Codex thread: ${getErrorMessage(error)}`,
             status: "error",
           })
+          setInterruptTarget(null)
         })
     },
     [
@@ -223,13 +264,36 @@ export function useWorkspaceAgentController({
     }
   }, [])
 
+  const handleInterruptTurn = React.useCallback(() => {
+    if (!currentInterruptTarget || isInterruptingTurn) {
+      return
+    }
+
+    setIsInterruptingTurn(true)
+    setAgentDeliveryState({ status: "interrupting" })
+    void codexConnection
+      .interruptTurn(currentInterruptTarget)
+      .catch((error: unknown) => {
+        setAgentDeliveryState({
+          detail: `Unable to interrupt Codex turn: ${getErrorMessage(error)}`,
+          status: "error",
+        })
+      })
+      .finally(() => {
+        setIsInterruptingTurn(false)
+      })
+  }, [codexConnection, currentInterruptTarget, isInterruptingTurn])
+
   const petPresence = React.useMemo(
     () => agentActivity.presence ?? getAgentDeliveryPresence(agentDeliveryState),
     [agentActivity.presence, agentDeliveryState]
   )
 
   return {
+    canInterruptTurn: currentInterruptTarget !== null,
     handlePromptSubmit,
+    handleInterruptTurn,
+    isInterruptingTurn,
     petPresence,
   }
 }

@@ -1,4 +1,9 @@
-import { MessageCircleIcon, SettingsIcon, WaypointsIcon } from "lucide-react"
+import {
+  MessageCircleIcon,
+  SettingsIcon,
+  SquareIcon,
+  WaypointsIcon,
+} from "lucide-react"
 
 import type { GhostMenuItem } from "@/app/pet/ghost/types"
 import {
@@ -14,6 +19,14 @@ const GHOST_MENU_ITEMS: GhostMenuItem[] = [
   { Icon: SettingsIcon, id: "settings", label: "Settings", x: -62, y: -62 },
 ]
 
+const INTERRUPT_MENU_ITEM: GhostMenuItem = {
+  Icon: SquareIcon,
+  id: "interrupt",
+  label: "Interrupt",
+  x: 88,
+  y: 0,
+}
+
 function getTooltipSide({ x, y }: Pick<GhostMenuItem, "x" | "y">) {
   if (Math.abs(x) > Math.abs(y)) {
     return x > 0 ? "right" : "left"
@@ -23,12 +36,20 @@ function getTooltipSide({ x, y }: Pick<GhostMenuItem, "x" | "y">) {
 }
 
 export function GhostRadialMenu({
+  canInterrupt,
   isOpen,
+  isInterrupting,
   onSelect,
 }: {
+  canInterrupt?: boolean
   isOpen: boolean
+  isInterrupting?: boolean
   onSelect?: (item: GhostMenuItem["id"]) => void
 }) {
+  const menuItems = canInterrupt
+    ? [...GHOST_MENU_ITEMS, INTERRUPT_MENU_ITEM]
+    : GHOST_MENU_ITEMS
+
   return (
     <div
       aria-hidden={!isOpen}
@@ -38,7 +59,7 @@ export function GhostRadialMenu({
       ].join(" ")}
     >
       <TooltipProvider>
-        {GHOST_MENU_ITEMS.map(({ Icon, id, label, x, y }, index) => (
+        {menuItems.map(({ Icon, id, label, x, y }, index) => (
           <Tooltip key={label}>
             <TooltipTrigger asChild>
               <button
@@ -50,6 +71,7 @@ export function GhostRadialMenu({
                     ? "pointer-events-auto scale-100 opacity-100"
                     : "pointer-events-none scale-50 opacity-0",
                 ].join(" ")}
+                disabled={id === "interrupt" && isInterrupting}
                 onClick={() => onSelect?.(id)}
                 style={{
                   transitionDelay: isOpen ? `${index * 35}ms` : "0ms",

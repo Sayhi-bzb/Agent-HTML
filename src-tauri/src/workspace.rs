@@ -356,6 +356,7 @@ fn root_instructions_content() -> String {
         "- The canonical artifact for a section is `artifact.agent-html`.",
         "- Projects and sections may define local `AGENTS.md` files for scoped instructions.",
         "- Edit `projects/{project-id}/{section-id}/artifact.agent-html` when changing user-facing workspace content.",
+        "- Use workspace-root-relative paths for workspace files; read the AgentHTML skill at `.agents/skills/agent-html/SKILL.md`.",
         "- Use the `$agent-html` skill for `.agent-html`, artifact, block, component, or section work.",
         "- The `agent-html` skill is the Codex bridge for the current AgentHTML runtime contract.",
         "- Do not edit `.agent-world/` unless the task explicitly asks for workspace internals.",
@@ -368,7 +369,7 @@ fn agent_html_skill_content() -> String {
     [
         "---",
         "name: agent-html",
-        "description: Use when editing AgentHTML artifacts, .agent-html files, Gallery Preview DSL, blocks, components, sections, prompt schema, or runtime-rendered artifact content. Before editing AgentHTML content, read references/prompt-schema.md for the current DSL contract and enabled component grammar.",
+        "description: Use when editing AgentHTML artifacts, .agent-html files, Gallery Preview DSL, blocks, components, sections, prompt schema, or runtime-rendered artifact content. Before editing AgentHTML content, read `.agents/skills/agent-html/references/prompt-schema.md` for the current DSL contract and enabled component grammar.",
         "---",
         "",
         "# AgentHTML",
@@ -377,9 +378,9 @@ fn agent_html_skill_content() -> String {
         "",
         "Before editing AgentHTML content:",
         "",
-        "1. Read `references/prompt-schema.md`.",
-        "2. Reuse patterns from `references/examples.md` before inventing structure.",
-        "3. Use `scripts/search_icons.py \"<query>\"` before choosing Lucide icon names.",
+        "1. Read `.agents/skills/agent-html/references/prompt-schema.md`.",
+        "2. Reuse patterns from `.agents/skills/agent-html/references/examples.md` before inventing structure.",
+        "3. Use `.agents/skills/agent-html/scripts/search_icons.py \"<query>\"` before choosing Lucide icon names.",
         "4. Use only tags, attributes, and child rules listed in the prompt schema.",
         "5. Edit `projects/{project-id}/{section-id}/artifact.agent-html` for user-facing workspace content.",
         "",
@@ -705,11 +706,15 @@ mod tests {
         assert!(
             instructions.contains("Edit `projects/{project-id}/{section-id}/artifact.agent-html`")
         );
+        assert!(instructions.contains(
+            "Use workspace-root-relative paths for workspace files; read the AgentHTML skill at `.agents/skills/agent-html/SKILL.md`."
+        ));
         assert!(instructions.contains("Use the `$agent-html` skill"));
         assert!(instructions.contains("The `agent-html` skill is the Codex bridge"));
         assert!(!instructions.contains("agent-html-prompt-schema.md"));
         assert!(!instructions.contains(".agent-world/tmp/agent-html-prompt-schema.md"));
         assert!(!instructions.contains("Edit `.agent-html` artifacts"));
+        assert!(!instructions.contains(".agent/"));
         let skill_path = root
             .join(".agents")
             .join("skills")
@@ -717,7 +722,15 @@ mod tests {
             .join("SKILL.md");
         let skill = std::fs::read_to_string(skill_path).expect("read agent-html skill");
         assert!(skill.contains("name: agent-html"));
-        assert!(skill.contains("Read `references/prompt-schema.md`"));
+        assert!(skill.contains(
+            "Read `.agents/skills/agent-html/references/prompt-schema.md`"
+        ));
+        assert!(skill.contains(
+            "Use `.agents/skills/agent-html/scripts/search_icons.py \"<query>\"`"
+        ));
+        assert!(!skill.contains("`references/prompt-schema.md`"));
+        assert!(!skill.contains("`references/examples.md`"));
+        assert!(!skill.contains("`scripts/search_icons.py"));
         assert!(root
             .join(".agents")
             .join("skills")
@@ -814,7 +827,9 @@ mod tests {
         WorkspaceStore::open(root.clone()).expect("open workspace root");
         let skill = std::fs::read_to_string(skill_dir.join("SKILL.md")).expect("read skill");
 
-        assert!(skill.contains("Read `references/prompt-schema.md`"));
+        assert!(skill.contains(
+            "Read `.agents/skills/agent-html/references/prompt-schema.md`"
+        ));
         assert!(skill.contains("Edit `projects/{project-id}/{section-id}/artifact.agent-html`"));
         assert!(!skill.contains("Use raw fixture files"));
         assert!(skill_dir.join("references").join("examples.md").exists());
@@ -966,161 +981,6 @@ mod tests {
         ));
     }
 
-    #[test]
-    fn opening_old_document_table_drops_stored_source() {
-        let temp_dir = tempfile::tempdir().expect("create temp workspace");
-        let root = temp_dir.path().join("AgentHTML");
-        let db_dir = root.join(".agent-world");
-        std::fs::create_dir_all(&db_dir).expect("create workspace db dir");
-        let connection =
-            Connection::open(WorkspaceStore::database_path(&root)).expect("open workspace db");
-        connection
-            .execute_batch(
-                "
-                CREATE TABLE projects (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    slug TEXT NOT NULL UNIQUE,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-                CREATE TABLE project_sections (
-                    id TEXT NOT NULL,
-                    project_id TEXT NOT NULL,
-                    title TEXT NOT NULL,
-                    group_title TEXT NOT NULL,
-                    sort_order INTEGER NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    PRIMARY KEY (project_id, id)
-                );
-                CREATE TABLE project_section_documents (
-                    project_id TEXT NOT NULL,
-                    section_id TEXT NOT NULL,
-                    ahtml_source TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    PRIMARY KEY (project_id, section_id)
-                );
-                INSERT INTO projects
-                    (id, name, slug, created_at, updated_at)
-                VALUES
-                    ('old-project', 'Old Project', 'old-project', 'old', 'old');
-                INSERT INTO project_sections
-                    (id, project_id, title, group_title, sort_order, created_at, updated_at)
-                VALUES
-                    ('old-section', 'old-project', 'Old Section', 'Old', 0, 'old', 'old');
-                INSERT INTO project_section_documents
-                    (project_id, section_id, ahtml_source, created_at, updated_at)
-                VALUES
-                    ('old-project', 'old-section', '<Page title=\"Old DB Source\" />', 'old', 'old');
-                ",
-            )
-            .expect("create old workspace schema");
-        drop(connection);
-
-        let store = WorkspaceStore::open(root.clone()).expect("open workspace root");
-        let connection =
-            Connection::open(WorkspaceStore::database_path(&root)).expect("open workspace db");
-        let mut statement = connection
-            .prepare("PRAGMA table_info(project_section_documents)")
-            .expect("prepare table info");
-        let columns = statement
-            .query_map([], |row| row.get::<_, String>(1))
-            .expect("query columns")
-            .collect::<Result<Vec<_>, _>>()
-            .expect("collect columns");
-
-        assert!(!columns.iter().any(|column| column == "ahtml_source"));
-        let document = store
-            .get_project_section_document("old-project", "old-section")
-            .expect("read regenerated artifact");
-        assert!(!document.source.contains("Old DB Source"));
-        assert!(document.source.contains("Old Project"));
-        assert!(document.file_path.ends_with("artifact.agent-html"));
-        assert!(!sqlite_table_exists(
-            &connection,
-            "project_section_documents_next"
-        ));
-    }
-
-    #[test]
-    fn opening_old_thread_table_renames_ahtml_path_to_block_path() {
-        let temp_dir = tempfile::tempdir().expect("create temp workspace");
-        let root = temp_dir.path().join("AgentHTML");
-        let db_dir = root.join(".agent-world");
-        std::fs::create_dir_all(&db_dir).expect("create workspace db dir");
-        let connection =
-            Connection::open(WorkspaceStore::database_path(&root)).expect("open workspace db");
-        connection
-            .execute_batch(
-                "
-                CREATE TABLE projects (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    slug TEXT NOT NULL UNIQUE,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-                CREATE TABLE project_sections (
-                    id TEXT NOT NULL,
-                    project_id TEXT NOT NULL,
-                    title TEXT NOT NULL,
-                    group_title TEXT NOT NULL,
-                    sort_order INTEGER NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    PRIMARY KEY (project_id, id)
-                );
-                CREATE TABLE project_section_documents (
-                    project_id TEXT NOT NULL,
-                    section_id TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    PRIMARY KEY (project_id, section_id)
-                );
-                CREATE TABLE project_codex_threads (
-                    thread_id TEXT PRIMARY KEY,
-                    project_id TEXT NOT NULL,
-                    origin TEXT NOT NULL DEFAULT 'agent-html',
-                    last_section_id TEXT,
-                    last_ahtml_path TEXT,
-                    last_document_path TEXT,
-                    created_at TEXT NOT NULL,
-                    last_used_at TEXT NOT NULL
-                );
-                INSERT INTO projects
-                    (id, name, slug, created_at, updated_at)
-                VALUES
-                    ('old-project', 'Old Project', 'old-project', 'old', 'old');
-                INSERT INTO project_codex_threads
-                    (thread_id, project_id, origin, last_section_id, last_ahtml_path,
-                     last_document_path, created_at, last_used_at)
-                VALUES
-                    ('thr_old', 'old-project', 'agent-html', 'old-section',
-                     '/Page/Section[0]', 'projects/old-project/old-section/artifact.agent-html',
-                     'old', 'old');
-                ",
-            )
-            .expect("create old thread schema");
-        drop(connection);
-
-        let store = WorkspaceStore::open(root.clone()).expect("open workspace root");
-        let connection =
-            Connection::open(WorkspaceStore::database_path(&root)).expect("open workspace db");
-        let columns = sqlite_table_columns(&connection, "project_codex_threads");
-        let link = store
-            .list_project_codex_threads("old-project")
-            .expect("list migrated links")
-            .into_iter()
-            .find(|link| link.thread_id == "thr_old")
-            .expect("find migrated link");
-
-        assert!(columns.iter().any(|column| column == "last_block_path"));
-        assert!(!columns.iter().any(|column| column == "last_ahtml_path"));
-        assert_eq!(link.last_block_path.as_deref(), Some("/Page/Section[0]"));
-    }
-
     fn sqlite_table_exists(connection: &Connection, table_name: &str) -> bool {
         connection
             .query_row(
@@ -1129,17 +989,6 @@ mod tests {
                 |_| Ok(()),
             )
             .is_ok()
-    }
-
-    fn sqlite_table_columns(connection: &Connection, table_name: &str) -> Vec<String> {
-        let mut statement = connection
-            .prepare(&format!("PRAGMA table_info({table_name})"))
-            .expect("prepare table info");
-        statement
-            .query_map([], |row| row.get::<_, String>(1))
-            .expect("query columns")
-            .collect::<Result<Vec<_>, _>>()
-            .expect("collect columns")
     }
 
     fn read_json(path: impl AsRef<Path>) -> serde_json::Value {

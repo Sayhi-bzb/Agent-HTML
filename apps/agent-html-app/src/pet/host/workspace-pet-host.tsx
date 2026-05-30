@@ -54,6 +54,9 @@ function WorkspacePetHostSession({
         />
       }
       onMessageOpenChange={setIsMessageOpen}
+      canInterruptTurn={snapshot.canInterruptTurn}
+      isInterruptingTurn={snapshot.isInterruptingTurn}
+      onInterruptTurn={snapshot.onInterruptTurn}
       onSettingsOpenChange={setIsSettingsOpen}
       onThreadPickerOpenChange={setIsThreadPickerOpen}
       presence={snapshot.presence}

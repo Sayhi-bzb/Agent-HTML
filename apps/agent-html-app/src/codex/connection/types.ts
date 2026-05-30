@@ -43,6 +43,7 @@ export type CodexRuntimeCapability =
 export type CodexRuntimeCapabilityItem = {
   id?: string
   name: string
+  source?: string
   status?: string
 }
 
@@ -96,6 +97,11 @@ export type CodexThreadListState = {
   loadedAt?: string
 }
 
+export type CodexTurnInterruptInput = {
+  threadId: string
+  turnId?: string | null
+}
+
 export type CodexRuntimeReadSpec = {
   capability: CodexRuntimeCapability
   method: string
@@ -127,6 +133,7 @@ export type CodexConnectionContextValue = {
   isLoaded: boolean
   isBusy: boolean
   lastError: string | null
+  interruptTurn: (input: CodexTurnInterruptInput) => Promise<void>
   refreshRuntimeStatus: () => Promise<void>
   refreshThreads: () => Promise<void>
   request: (method: string, params: unknown) => Promise<unknown>

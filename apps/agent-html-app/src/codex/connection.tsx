@@ -11,6 +11,7 @@ export type {
   CodexConnectionStatus,
   CodexHostHealth,
   CodexRuntimeCapability,
+  CodexRuntimeCapabilityItem,
   CodexRuntimeCapabilityStatus,
   CodexRuntimeStatus,
   CodexThreadListState,

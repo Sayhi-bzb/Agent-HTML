@@ -499,6 +499,23 @@ export function CodexConnectionProvider({
     [request]
   )
 
+  const interruptTurn = React.useCallback(
+    async ({
+      threadId,
+      turnId,
+    }: {
+      threadId: string
+      turnId?: string | null
+    }) => {
+      return codexThreadService.interruptTurn({
+        request,
+        threadId,
+        turnId,
+      })
+    },
+    [request]
+  )
+
   const test = React.useCallback(async (settingsOverride?: CodexConnectionSettings) => {
     await connect(settingsOverride)
   }, [connect])
@@ -657,6 +674,7 @@ export function CodexConnectionProvider({
       canManageHost,
       phase,
       health,
+      interruptTurn,
       isLoaded,
       isBusy,
       lastError,
@@ -683,6 +701,7 @@ export function CodexConnectionProvider({
       canManageHost,
       phase,
       health,
+      interruptTurn,
       isLoaded,
       isBusy,
       lastError,

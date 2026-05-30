@@ -6,6 +6,7 @@ import type {
   CodexRuntimeCapabilityStatus,
   CodexRuntimeStatus,
 } from "@/app/codex/connection"
+import type { CodexRuntimeCapabilityItem } from "@/app/codex/connection/types"
 import { Button } from "@/app/shared/ui/button"
 import {
   PopoverDescription,
@@ -84,6 +85,73 @@ function CapabilityRow({
       >
         {formatCapability(status, runtimeStatus)}
       </span>
+    </div>
+  )
+}
+
+function CapabilityItemList({
+  emptyLabel = "No items reported",
+  items,
+  runtimeStatus,
+}: {
+  emptyLabel?: string
+  items?: CodexRuntimeCapabilityItem[]
+  runtimeStatus: CodexRuntimeStatus["status"]
+}) {
+  if (runtimeStatus === "idle" || runtimeStatus === "loading") {
+    return null
+  }
+
+  if (!items?.length) {
+    return (
+      <div
+        className="rounded-lg border border-dashed border-border/70 px-3 py-2 text-xs text-muted-foreground"
+        data-selection="none"
+      >
+        {emptyLabel}
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid max-h-40 gap-1.5 overflow-auto rounded-lg border border-border/60 bg-background/60 p-2">
+      {items.map((item) => (
+        <div
+          className="grid min-w-0 gap-1 rounded-md bg-muted/30 px-2.5 py-1.5 text-xs"
+          key={`${item.id ?? item.name}:${item.source ?? ""}:${item.status ?? ""}`}
+        >
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <span
+              className="min-w-0 truncate font-medium"
+              data-cursor="text"
+              data-selection="text"
+              title={item.name}
+            >
+              {item.name}
+            </span>
+            {item.status ? (
+              <span
+                className="shrink-0 text-muted-foreground"
+                data-cursor="text"
+                data-selection="text"
+                title={item.status}
+              >
+                {item.status}
+              </span>
+            ) : null}
+          </div>
+          {item.source ? (
+            <span
+              className="min-w-0 truncate text-[11px] text-muted-foreground"
+              data-cursor="text"
+              data-selection="text"
+              title={item.source}
+            >
+              {item.source}
+            </span>
+          ) : null}
+        </div>
+      ))}
     </div>
   )
 }
@@ -350,6 +418,10 @@ function SkillsView({
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.skills}
       />
+      <CapabilityItemList
+        items={runtimeStatus.capabilities.skills.items}
+        runtimeStatus={runtimeStatus.status}
+      />
       <PathInfoRow
         label="Managed skill"
         value="AgentHTML/.agents/skills/agent-html/SKILL.md"
@@ -379,6 +451,10 @@ function McpView({
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.mcpServers}
       />
+      <CapabilityItemList
+        items={runtimeStatus.capabilities.mcpServers.items}
+        runtimeStatus={runtimeStatus.status}
+      />
       <PathInfoRow label="Codex config" value="~/.codex/config.toml" />
       <SettingsInfoPanel>
         MCP servers are managed by Codex config, including `[mcp_servers.*]`
@@ -401,10 +477,18 @@ function PluginsView({
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.plugins}
       />
+      <CapabilityItemList
+        items={runtimeStatus.capabilities.plugins.items}
+        runtimeStatus={runtimeStatus.status}
+      />
       <CapabilityRow
         label="Codex apps"
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.apps}
+      />
+      <CapabilityItemList
+        items={runtimeStatus.capabilities.apps.items}
+        runtimeStatus={runtimeStatus.status}
       />
       <PathInfoRow label="Workspace plugins" value="AgentHTML/plugins/" />
       <SettingsInfoPanel>

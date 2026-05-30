@@ -1,4 +1,4 @@
-import { countItems, readEffectiveConfig } from "./parsers"
+import { countItems, readEffectiveConfig, readRuntimeItems } from "./parsers"
 import type {
   CodexRuntimeReadSpec,
   CodexRuntimeStatus,
@@ -23,7 +23,10 @@ export const CODEX_RUNTIME_READS: CodexRuntimeReadSpec[] = [
   {
     capability: "skills",
     method: "skills/list",
-    params: ({ cwd }) => (cwd ? { cwds: [cwd] } : { cwds: [] }),
+    params: ({ cwd }) => ({
+      cwds: cwd ? [cwd] : [],
+      forceReload: true,
+    }),
   },
   {
     capability: "plugins",
@@ -73,7 +76,10 @@ export function createRuntimeStatusFromEntries(
   const capabilities = createIdleRuntimeStatus().capabilities
   let config: CodexRuntimeStatus["config"] = {}
   for (const entry of entries) {
-    capabilities[entry.capability] = entry.status
+    capabilities[entry.capability] = {
+      ...entry.status,
+      items: entry.status.ok ? readRuntimeItems(entry.result) : undefined,
+    }
     if (entry.capability === "config" && entry.status.ok) {
       config = readEffectiveConfig(entry.result)
     }

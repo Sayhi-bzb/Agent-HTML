@@ -43,6 +43,10 @@ describe("pet settings content", () => {
   it("surfaces Codex app-server capabilities without owning config writes", () => {
     expect(settingsContentSource).toContain("useCodexConnection")
     expect(settingsContentSource).toContain("refreshRuntimeStatus")
+    expect(settingsContentSource).toContain("CapabilityItemList")
+    expect(settingsContentSource).toContain("No items reported")
+    expect(settingsContentSource).toContain(".items")
+    expect(settingsContentSource).toContain("item.source")
     expect(settingsContentSource).toContain('runtimeStatus.status === "loading"')
     expect(settingsContentSource).toContain("Not loaded")
     expect(settingsContentSource).toContain("Loading...")

@@ -85,7 +85,13 @@ export function WorkspaceSurface({
           (section) => section.id === documentState.document.sectionId
         ) ?? activeSection
       : activeSection
-  const { handlePromptSubmit, petPresence } = useWorkspaceAgentController({
+  const {
+    canInterruptTurn,
+    handleInterruptTurn,
+    handlePromptSubmit,
+    isInterruptingTurn,
+    petPresence,
+  } = useWorkspaceAgentController({
     activeProject,
     activeSection: displayedSection,
     documentState,
@@ -149,6 +155,9 @@ export function WorkspaceSurface({
     publishWorkspacePetHost({
       draftScope: petDraftScope,
       enabled: true,
+      canInterruptTurn,
+      isInterruptingTurn,
+      onInterruptTurn: handleInterruptTurn,
       onNewThread: threadController.threadPickerProps.onNewThread,
       onPromptSubmit: handlePromptSubmit,
       onRenameThread: threadController.threadPickerProps.onRenameThread,
@@ -161,7 +170,10 @@ export function WorkspaceSurface({
     return () => clearWorkspacePetHost()
   }, [
     canPublishPetHost,
+    canInterruptTurn,
+    handleInterruptTurn,
     handlePromptSubmit,
+    isInterruptingTurn,
     petDraftScope,
     petPresence,
     petThreads,

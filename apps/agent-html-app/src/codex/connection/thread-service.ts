@@ -1,6 +1,10 @@
 import { readThreadId, readThreads, readTurnId } from "./parsers"
 import { createThreadListParams } from "./thread-list"
-import type { CodexThreadSummary, CodexTurnStartResult } from "./types"
+import type {
+  CodexThreadSummary,
+  CodexTurnInterruptInput,
+  CodexTurnStartResult,
+} from "./types"
 
 export type CodexRpcRequest = (
   method: string,
@@ -26,6 +30,9 @@ export type CodexThreadService = {
     request: CodexRpcRequest
     threadId: string
   }) => Promise<CodexTurnStartResult>
+  interruptTurn: (input: CodexTurnInterruptInput & {
+    request: CodexRpcRequest
+  }) => Promise<void>
 }
 
 export const codexThreadService: CodexThreadService = {
@@ -73,5 +80,16 @@ export const codexThreadService: CodexThreadService = {
       threadId,
       turnId: readTurnId(result),
     }
+  },
+
+  async interruptTurn({ request, threadId, turnId }) {
+    if (!threadId) {
+      throw new Error("Choose a Codex thread before interrupting a turn.")
+    }
+
+    await request("turn/interrupt", {
+      threadId,
+      ...(turnId ? { turnId } : {}),
+    })
   },
 }

@@ -111,4 +111,36 @@ describe("codexThreadService", () => {
 
     expect(request).not.toHaveBeenCalled()
   })
+
+  it("interrupts the active turn without stopping the host", async () => {
+    const request = vi.fn().mockResolvedValue({})
+
+    await codexThreadService.interruptTurn({
+      request,
+      threadId: "thr_1",
+      turnId: "turn_1",
+    })
+
+    expect(request).toHaveBeenCalledWith("turn/interrupt", {
+      threadId: "thr_1",
+      turnId: "turn_1",
+    })
+    expect(request).not.toHaveBeenCalledWith(
+      expect.stringContaining("codex_host_stop"),
+      expect.anything()
+    )
+  })
+
+  it("requires a thread id before interrupting a turn", async () => {
+    const request = vi.fn()
+
+    await expect(
+      codexThreadService.interruptTurn({
+        request,
+        threadId: "",
+      })
+    ).rejects.toThrow("Choose a Codex thread before interrupting a turn.")
+
+    expect(request).not.toHaveBeenCalled()
+  })
 })
