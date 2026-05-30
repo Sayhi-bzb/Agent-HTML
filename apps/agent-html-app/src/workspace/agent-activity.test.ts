@@ -69,6 +69,93 @@ describe("reduceCodexNotification", () => {
     expect(second.presence?.action?.kind).toBe("speaking")
   })
 
+  it("streams one agent message item into one speech bubble", () => {
+    const started = reduceCodexNotification(
+      createInitialAgentActivityState(),
+      {
+        method: "item/started",
+        params: {
+          item: {
+            id: "item_1",
+            type: "agentMessage",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:00.000Z"
+    )
+    const firstDelta = reduceCodexNotification(
+      started,
+      {
+        method: "item/agentMessage/delta",
+        params: {
+          delta: "Hello",
+          itemId: "item_1",
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:01.000Z"
+    )
+    const completed = reduceCodexNotification(
+      firstDelta,
+      {
+        method: "item/completed",
+        params: {
+          item: {
+            id: "item_1",
+            type: "agentMessage",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:02.000Z"
+    )
+
+    expect(firstDelta.speechBubbles).toEqual([
+      {
+        createdAt: "2026-05-28T00:00:00.000Z",
+        id: "item_1",
+        mode: "streaming",
+        text: "Hello",
+      },
+    ])
+    expect(completed.speechBubbles[0]?.mode).toBe("final")
+  })
+
+  it("keeps the latest two speech bubbles", () => {
+    let state = createInitialAgentActivityState()
+
+    for (let index = 1; index <= 3; index += 1) {
+      state = reduceCodexNotification(
+        state,
+        {
+          method: "item/started",
+          params: {
+            item: {
+              id: `item_${index}`,
+              type: "agentMessage",
+            },
+            threadId: "thr_1",
+            turnId: "turn_1",
+          },
+        },
+        { threadId: "thr_1", turnId: "turn_1" },
+        `2026-05-28T00:00:0${index}.000Z`
+      )
+    }
+
+    expect(state.speechBubbles.map((bubble) => bubble.id)).toEqual([
+      "item_2",
+      "item_3",
+    ])
+  })
+
   it("maps command item started to a running action", () => {
     const state = reduceCodexNotification(
       createInitialAgentActivityState(),
@@ -93,6 +180,7 @@ describe("reduceCodexNotification", () => {
       kind: "running",
       label: "npm test",
     })
+    expect(state.speechBubbles).toEqual([])
   })
 
   it("maps approval requests to waiting presence", () => {

@@ -21,3 +21,10 @@ export type PetPresence = {
   }
   mood: PetMood
 }
+
+export type PetSpeechBubble = {
+  createdAt: string
+  id: string
+  mode: "final" | "streaming"
+  text: string
+}

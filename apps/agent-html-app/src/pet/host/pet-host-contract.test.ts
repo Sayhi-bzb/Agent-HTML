@@ -32,6 +32,7 @@ describe("pet host contract", () => {
     expect(hostSource).toContain("PetSettingsContent")
     expect(hostSource).toContain("settingsContent")
     expect(hostSource).toContain("threadPickerContent")
+    expect(hostSource).toContain("transcriptContent")
     expect(hostSource).toContain("onPromptSubmit")
     expect(hostSource).toContain("onInterruptTurn")
     expect(hostSource).not.toContain("WebviewWindow")

@@ -4,6 +4,7 @@ import {
   useAgentActivity,
   type AgentActivityTurnContext,
 } from "@/app/workspace/agent-activity"
+import { useCodexApprovals } from "@/app/workspace/agent-approval"
 import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
 import { formatCodexWorkspacePath } from "@/app/workspace/codex-path"
 import type {
@@ -142,6 +143,10 @@ export function useWorkspaceAgentController({
   const lastInteractionRef =
     React.useRef<AgentHtmlAgentInteractionEvent | null>(null)
   const { codexConnection } = threadController
+  const codexApprovals = useCodexApprovals({
+    codexConnection,
+    context: activeTurnContext,
+  })
   const workspaceRootPath = codexConnection.workspaceRootStatus?.rootPath ?? null
   const currentInterruptTarget = isTerminalTurnStatus(agentActivity.latestStatus)
     ? null
@@ -291,10 +296,15 @@ export function useWorkspaceAgentController({
 
   return {
     canInterruptTurn: currentInterruptTarget !== null,
+    activeTurnContext,
     handlePromptSubmit,
     handleInterruptTurn,
     isInterruptingTurn,
+    petApproval: codexApprovals.activeApproval,
+    petApprovalError: codexApprovals.approvalError,
     petPresence,
+    petSpeechBubbles: agentActivity.speechBubbles,
+    respondToPetApproval: codexApprovals.respondToApproval,
   }
 }
 

@@ -1,6 +1,13 @@
 import * as React from "react"
 
-import type { PetPresence } from "@/app/workspace/agent-presence"
+import type {
+  CodexApprovalDecision,
+  CodexApprovalRequest,
+} from "@/app/codex/connection/types"
+import type {
+  PetPresence,
+  PetSpeechBubble,
+} from "@/app/workspace/agent-presence"
 import type { ProjectThreadPickerItem } from "@/app/workspace/thread-picker-model"
 import type { AgentHtmlAgentPromptSubmitInput } from "@/agent-html"
 
@@ -12,10 +19,15 @@ export type WorkspacePetHostSnapshot = {
   onInterruptTurn?: () => void
   onNewThread?: () => void
   onPromptSubmit?: (submit: AgentHtmlAgentPromptSubmitInput) => void
+  onRespondToApproval?: (decision: CodexApprovalDecision) => void
   onRenameThread?: (input: { name: string; threadId: string }) => Promise<void>
   onResumeThread?: (threadId: string) => void
   presence?: PetPresence
+  approval?: CodexApprovalRequest | null
+  approvalError?: string | null
+  speechBubbles?: PetSpeechBubble[]
   threadPickerContent?: React.ReactNode
+  transcriptContent?: React.ReactNode
   threads?: {
     canSelectThread: boolean
     error?: string | null

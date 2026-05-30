@@ -491,12 +491,14 @@ function CodexConnectionDialog({
                           label: <Trans>Sandbox</Trans>,
                           value:
                             runtimeStatus.config.sandboxMode ??
+                            runtimeStatus.config.sandboxModeDiagnostic ??
                             _({ id: "unknown" }),
                         },
                         {
                           label: <Trans>Approvals</Trans>,
                           value:
                             runtimeStatus.config.approvalPolicy ??
+                            runtimeStatus.config.approvalPolicyDiagnostic ??
                             _({ id: "unknown" }),
                         },
                       ]}

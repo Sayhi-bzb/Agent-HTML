@@ -38,13 +38,17 @@ function WorkspacePetHostSession({
   const [isMessageOpen, setIsMessageOpen] = React.useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
   const [isThreadPickerOpen, setIsThreadPickerOpen] = React.useState(false)
+  const [isTranscriptOpen, setIsTranscriptOpen] = React.useState(false)
   const [messageDraft, setMessageDraft] = React.useState("")
 
   return (
     <WorkspaceGhostPet
+      approval={snapshot.approval}
+      approvalError={snapshot.approvalError}
       isMessageOpen={isMessageOpen}
       isSettingsOpen={isSettingsOpen}
       isThreadPickerOpen={isThreadPickerOpen}
+      isTranscriptOpen={isTranscriptOpen}
       messageContent={
         <PetMessageComposer
           draft={messageDraft}
@@ -58,10 +62,14 @@ function WorkspacePetHostSession({
       isInterruptingTurn={snapshot.isInterruptingTurn}
       onInterruptTurn={snapshot.onInterruptTurn}
       onSettingsOpenChange={setIsSettingsOpen}
+      onRespondToApproval={snapshot.onRespondToApproval}
       onThreadPickerOpenChange={setIsThreadPickerOpen}
+      onTranscriptOpenChange={setIsTranscriptOpen}
       presence={snapshot.presence}
       settingsContent={<PetSettingsContent />}
+      speechBubbles={snapshot.speechBubbles}
       threadPickerContent={snapshot.threadPickerContent}
+      transcriptContent={snapshot.transcriptContent}
     />
   )
 }

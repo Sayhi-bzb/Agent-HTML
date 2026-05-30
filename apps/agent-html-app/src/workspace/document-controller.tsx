@@ -45,6 +45,10 @@ export type PendingDocumentState =
   | { detail: string; status: "loading" }
   | { detail: string; status: "error" }
 
+export type ReloadDocumentFromDiskOptions = {
+  reason?: string
+}
+
 export type WorkspaceDocumentDraft = {
   document: ProjectSectionDocument
   projectId: string
@@ -112,10 +116,15 @@ export function useWorkspaceDocumentController({
   const [pendingDocumentState, setPendingDocumentState] =
     React.useState<PendingDocumentState>({ status: "idle" })
   const documentStateRef = React.useRef(documentState)
+  const saveStateRef = React.useRef(saveState)
 
   React.useEffect(() => {
     documentStateRef.current = documentState
   }, [documentState])
+
+  React.useEffect(() => {
+    saveStateRef.current = saveState
+  }, [saveState])
 
   React.useEffect(() => {
     const isDirty = saveState.status === "dirty" || saveState.status === "error"
@@ -219,6 +228,55 @@ export function useWorkspaceDocumentController({
         })
       })
   }, [canSave, documentState, onDirtyChange, onDraftChange, saveState.status])
+
+  const reloadDocumentFromDisk = React.useCallback(
+    (options: ReloadDocumentFromDiskOptions = {}) => {
+      const currentDocument = documentStateRef.current
+      const currentSaveState = saveStateRef.current
+      if (currentDocument.status !== "ready") {
+        return Promise.resolve(false)
+      }
+
+      if (
+        currentSaveState.status === "dirty" ||
+        currentSaveState.status === "saving" ||
+        currentSaveState.status === "error"
+      ) {
+        return Promise.resolve(false)
+      }
+
+      setPendingDocumentState({
+        detail: options.reason ?? "Reloading artifact.",
+        status: "loading",
+      })
+
+      return workspaceStore
+        .getProjectSectionDocument(
+          currentDocument.document.projectId,
+          currentDocument.document.sectionId
+        )
+        .then((document) => {
+          setDocumentState({ document, status: "ready" })
+          setPendingDocumentState({ status: "idle" })
+          setSaveState({ status: "clean" })
+          const documentTabId = getSectionTabId(document.sectionId)
+          onDraftChange(documentTabId, null)
+          onDirtyChange(documentTabId, false)
+          return true
+        })
+        .catch((error: unknown) => {
+          setPendingDocumentState({
+            detail:
+              error instanceof Error
+                ? error.message
+                : "Unable to reload workspace document.",
+            status: "error",
+          })
+          return false
+        })
+    },
+    [onDirtyChange, onDraftChange]
+  )
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -334,6 +392,7 @@ export function useWorkspaceDocumentController({
     handleDropIntent,
     handleSaveDocument,
     pendingDocumentState,
+    reloadDocumentFromDisk,
     runtime,
     saveState,
   }

@@ -23,6 +23,7 @@ export type GhostMenuItem = {
     | "pause"
     | "refresh"
     | "settings"
+    | "transcript"
     | "threads"
   label: string
   x: number

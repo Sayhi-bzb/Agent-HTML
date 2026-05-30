@@ -529,11 +529,19 @@ function RuntimeView({
         />
         <RuntimeField
           label="Sandbox"
-          value={runtimeStatus.config.sandboxMode ?? "unknown"}
+          value={
+            runtimeStatus.config.sandboxMode ??
+            runtimeStatus.config.sandboxModeDiagnostic ??
+            "unknown"
+          }
         />
         <RuntimeField
           label="Approvals"
-          value={runtimeStatus.config.approvalPolicy ?? "unknown"}
+          value={
+            runtimeStatus.config.approvalPolicy ??
+            runtimeStatus.config.approvalPolicyDiagnostic ??
+            "unknown"
+          }
         />
       </div>
       <SettingsInfoPanel>

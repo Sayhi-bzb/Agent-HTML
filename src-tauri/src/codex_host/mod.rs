@@ -43,6 +43,13 @@ pub(crate) struct CodexRpcNotifyInput {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub(crate) struct CodexRpcRespondInput {
+    request_id: u64,
+    result: Value,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct CodexConnectionTraceInput {
     event: String,
     payload: Value,
@@ -131,6 +138,25 @@ pub(crate) fn codex_rpc_notify(
 ) -> CodexHostResult<()> {
     let settings = normalize_codex_settings(&settings);
     service::rpc_notify(app, state, store, &settings, input.method, input.params)
+}
+
+#[tauri::command]
+pub(crate) fn codex_rpc_respond(
+    app: tauri::AppHandle,
+    state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
+    settings: CodexHostSettings,
+    input: CodexRpcRespondInput,
+) -> CodexHostResult<()> {
+    let settings = normalize_codex_settings(&settings);
+    service::rpc_respond(
+        app,
+        state,
+        store,
+        &settings,
+        input.request_id,
+        input.result,
+    )
 }
 
 #[cfg(test)]

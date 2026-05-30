@@ -5,7 +5,10 @@ import {
   readThreads,
   scheduleCodexAutoConnect,
 } from "@/app/codex/connection"
-import { readRuntimeItems } from "@/app/codex/connection/parsers"
+import {
+  readEffectiveConfig,
+  readRuntimeItems,
+} from "@/app/codex/connection/parsers"
 
 afterEach(() => {
   vi.useRealTimers()
@@ -69,6 +72,37 @@ describe("Codex thread response parsing", () => {
 })
 
 describe("Codex runtime capability parsing", () => {
+  it("reads effective sandbox and approval config", () => {
+    expect(
+      readEffectiveConfig({
+        config: {
+          approval_policy: "on-request",
+          model: "gpt-5.5",
+          model_provider: "OpenAI",
+          sandbox_mode: "workspace-write",
+        },
+      })
+    ).toEqual({
+      approvalPolicy: "on-request",
+      approvalPolicyDiagnostic: undefined,
+      model: "gpt-5.5",
+      modelProvider: "OpenAI",
+      sandboxMode: "workspace-write",
+      sandboxModeDiagnostic: undefined,
+    })
+  })
+
+  it("diagnoses config responses that omit sandbox and approval fields", () => {
+    expect(readEffectiveConfig({ config: { model: "gpt-5.5" } })).toEqual({
+      approvalPolicy: undefined,
+      approvalPolicyDiagnostic: "not exposed by config/read",
+      model: "gpt-5.5",
+      modelProvider: undefined,
+      sandboxMode: undefined,
+      sandboxModeDiagnostic: "not exposed by config/read",
+    })
+  })
+
   it("reads capability item names from app-server list shapes", () => {
     expect(
       readRuntimeItems({

@@ -3,6 +3,7 @@ import { invoke, isTauri } from "@tauri-apps/api/core"
 import type {
   CodexConnectionSettings,
   CodexHostProcessStatus,
+  CodexRpcResponseInput,
   CodexRpcRequestResult,
   WorkspaceRootSettings,
   WorkspaceRootStatus,
@@ -24,6 +25,9 @@ export type CodexHostClient = {
   canManageHost: () => boolean
   loadSettings: () => Promise<CodexConnectionSettings>
   request: (input: CodexRpcRequestInput) => Promise<unknown>
+  respond: (
+    input: CodexRpcResponseInput & { settings: CodexConnectionSettings }
+  ) => Promise<void>
   runCommand: (
     command: CodexHostCommand,
     settings: CodexConnectionSettings
@@ -56,6 +60,16 @@ export const codexHostClient: CodexHostClient = {
     })
 
     return response.result
+  },
+
+  respond({ requestId, result, settings }) {
+    return invoke<void>("codex_rpc_respond", {
+      input: {
+        requestId,
+        result,
+      },
+      settings,
+    })
   },
 
   runCommand(command, settings) {

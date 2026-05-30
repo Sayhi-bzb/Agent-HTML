@@ -12,6 +12,7 @@ use super::state::{CodexHostState, PendingRequest};
 use super::trace::append_connection_trace;
 
 pub(crate) const CODEX_NOTIFICATION_EVENT: &str = "codex://notification";
+pub(crate) const CODEX_SERVER_REQUEST_EVENT: &str = "codex://server-request";
 
 pub(crate) fn reject_all_pending(
     pending_requests: &Arc<Mutex<HashMap<u64, PendingRequest>>>,
@@ -64,6 +65,8 @@ pub(crate) fn handle_codex_stdout_line(
             } else {
                 let _ = sender.send(Ok(message.get("result").cloned().unwrap_or(Value::Null)));
             }
+        } else if message.get("method").and_then(Value::as_str).is_some() {
+            let _ = app.emit(CODEX_SERVER_REQUEST_EVENT, message);
         }
         return;
     }
@@ -156,6 +159,24 @@ pub(crate) fn send_codex_request(
             "Codex request '{method}' was disconnected."
         ))),
     }
+}
+
+pub(crate) fn send_codex_response(
+    state: &CodexHostState,
+    request_id: u64,
+    result: Value,
+) -> CodexHostResult<()> {
+    let process = state
+        .process
+        .lock()
+        .map_err(|_| CodexHostError::Process("Codex process lock poisoned".to_string()))?;
+    let process = process
+        .as_ref()
+        .ok_or_else(|| CodexHostError::Process("Codex app-server is not running.".to_string()))?;
+    send_codex_message(
+        &process.stdin,
+        &json!({ "id": request_id, "result": result }),
+    )
 }
 
 pub(crate) fn ensure_initialized(state: &CodexHostState) -> CodexHostResult<()> {

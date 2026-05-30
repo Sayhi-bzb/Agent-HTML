@@ -131,4 +131,24 @@ describe("codexHostClient", () => {
       settings: { codexCommand: "codex" },
     })
   })
+
+  it("responds to Codex server requests", async () => {
+    invokeMock.mockResolvedValueOnce(undefined)
+
+    await expect(
+      codexHostClient.respond({
+        requestId: 42,
+        result: "accept",
+        settings: { codexCommand: "codex" },
+      })
+    ).resolves.toBeUndefined()
+
+    expect(invokeMock).toHaveBeenCalledWith("codex_rpc_respond", {
+      input: {
+        requestId: 42,
+        result: "accept",
+      },
+      settings: { codexCommand: "codex" },
+    })
+  })
 })

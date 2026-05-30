@@ -1,4 +1,5 @@
 import {
+  ActivityIcon,
   MessageCircleIcon,
   SettingsIcon,
   SquareIcon,
@@ -16,6 +17,7 @@ import {
 const GHOST_MENU_ITEMS: GhostMenuItem[] = [
   { Icon: MessageCircleIcon, id: "message", label: "Message", x: 62, y: -62 },
   { Icon: WaypointsIcon, id: "threads", label: "Threads", x: 0, y: -88 },
+  { Icon: ActivityIcon, id: "transcript", label: "Transcript", x: -88, y: 0 },
   { Icon: SettingsIcon, id: "settings", label: "Settings", x: -62, y: -62 },
 ]
 

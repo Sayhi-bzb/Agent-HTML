@@ -26,11 +26,29 @@ describe("ghost radial menu", () => {
     expect(radialMenuSource).toContain('label: "Settings"')
   })
 
+  it("exposes a transcript action", () => {
+    expect(radialMenuSource).toContain("ActivityIcon")
+    expect(radialMenuSource).toContain('id: "transcript"')
+    expect(radialMenuSource).toContain('label: "Transcript"')
+  })
+
   it("routes settings selection to the settings popover", () => {
     expect(ghostPetSource).toContain('if (item === "interrupt")')
     expect(ghostPetSource).toContain("onInterruptTurn?.()")
     expect(ghostPetSource).toContain('if (item === "settings")')
     expect(ghostPetSource).toContain("onSettingsOpenChange?.(true)")
     expect(ghostPetSource).toContain("settingsContent")
+    expect(ghostPetSource).toContain('if (item === "transcript")')
+    expect(ghostPetSource).toContain("onTranscriptOpenChange?.(true)")
+    expect(ghostPetSource).toContain("transcriptContent")
+  })
+
+  it("keeps drag motion on animation frames instead of pointermove renders", () => {
+    expect(ghostPetSource).toContain("requestAnimationFrame")
+    expect(ghostPetSource).toContain("pendingPositionRef")
+    expect(ghostPetSource).toContain("positionRef.current")
+    expect(ghostPetSource).toContain("getGhostTransform")
+    expect(ghostPetSource).toContain("pendingThreadPickerOffsetRef")
+    expect(ghostPetSource).toContain("pendingSettingsOffsetRef")
   })
 })

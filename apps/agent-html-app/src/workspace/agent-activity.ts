@@ -2,11 +2,16 @@ import * as React from "react"
 import { isTauri } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
 
-import type { PetActionKind, PetPresence } from "@/app/workspace/agent-presence"
+import type {
+  PetActionKind,
+  PetPresence,
+  PetSpeechBubble,
+} from "@/app/workspace/agent-presence"
 
 export const codexNotificationEventName = "codex://notification"
 
 const MAX_ACTIVITY_EVENTS = 100
+const MAX_SPEECH_BUBBLES = 2
 const MAX_STREAMING_MESSAGE_LENGTH = 4000
 
 export type AgentActivityScope =
@@ -46,6 +51,7 @@ export type AgentActivityState = {
   latestError?: string
   latestStatus?: string
   presence?: PetPresence
+  speechBubbles: PetSpeechBubble[]
   streamingMessage?: string
 }
 
@@ -139,6 +145,111 @@ function appendStreamingMessage(current: string | undefined, delta: string) {
   }
 
   return next.slice(next.length - MAX_STREAMING_MESSAGE_LENGTH)
+}
+
+function appendBubbleText(current: string, delta: string) {
+  const next = `${current}${delta}`
+  if (next.length <= MAX_STREAMING_MESSAGE_LENGTH) {
+    return next
+  }
+
+  return next.slice(next.length - MAX_STREAMING_MESSAGE_LENGTH)
+}
+
+function createSpeechBubble(id: string, createdAt: string): PetSpeechBubble {
+  return {
+    createdAt,
+    id,
+    mode: "streaming",
+    text: "",
+  }
+}
+
+function appendSpeechBubble(
+  bubbles: PetSpeechBubble[],
+  bubble: PetSpeechBubble
+) {
+  const withoutDuplicate = bubbles.filter((item) => item.id !== bubble.id)
+  return [...withoutDuplicate, bubble].slice(-MAX_SPEECH_BUBBLES)
+}
+
+function updateSpeechBubblesForNotification({
+  eventId,
+  itemId,
+  notification,
+  receivedAt,
+  shouldUpdate,
+  state,
+}: {
+  eventId: string
+  itemId?: string
+  notification: CodexNotification
+  receivedAt: string
+  shouldUpdate: boolean
+  state: AgentActivityState
+}): PetSpeechBubble[] {
+  if (!shouldUpdate) {
+    return state.speechBubbles
+  }
+
+  if (
+    notification.method === "item/started" &&
+    getItemType(notification.params) === "agentMessage"
+  ) {
+    return appendSpeechBubble(
+      state.speechBubbles,
+      createSpeechBubble(itemId ?? eventId, receivedAt)
+    )
+  }
+
+  if (notification.method === "item/agentMessage/delta") {
+    const delta = getAgentMessageDelta(notification.params)
+    if (!delta) {
+      return state.speechBubbles
+    }
+
+    const targetId =
+      itemId ??
+      state.activeItemId ??
+      state.speechBubbles[state.speechBubbles.length - 1]?.id ??
+      eventId
+    const existingIndex = state.speechBubbles.findIndex(
+      (bubble) => bubble.id === targetId
+    )
+    if (existingIndex === -1) {
+      return appendSpeechBubble(state.speechBubbles, {
+        ...createSpeechBubble(targetId, receivedAt),
+        text: appendBubbleText("", delta),
+      })
+    }
+
+    return state.speechBubbles.map((bubble, index) =>
+      index === existingIndex
+        ? {
+            ...bubble,
+            mode: "streaming" as const,
+            text: appendBubbleText(bubble.text, delta),
+          }
+        : bubble
+    )
+  }
+
+  if (
+    notification.method === "item/completed" &&
+    getItemType(notification.params) === "agentMessage"
+  ) {
+    const targetId =
+      itemId ?? state.activeItemId ?? state.speechBubbles.at(-1)?.id
+    if (!targetId) {
+      return state.speechBubbles
+    }
+
+    return state.speechBubbles.map((bubble) =>
+      bubble.id === targetId ? { ...bubble, mode: "final" as const } : bubble
+    )
+  }
+
+  return state.speechBubbles
 }
 
 function createEventId(method: string, receivedAt: string, index: number) {
@@ -368,6 +479,7 @@ function presenceForNotification(
 export function createInitialAgentActivityState(): AgentActivityState {
   return {
     events: [],
+    speechBubbles: [],
   }
 }
 
@@ -380,8 +492,13 @@ export function reduceCodexNotification(
   const threadId = getThreadId(notification.params)
   const turnId = getTurnId(notification.params)
   const itemId = getItemId(notification.params)
+  const eventId = createEventId(
+    notification.method,
+    receivedAt,
+    state.events.length
+  )
   const event: AgentActivityEvent = {
-    id: createEventId(notification.method, receivedAt, state.events.length),
+    id: eventId,
     itemId,
     method: notification.method,
     receivedAt,
@@ -395,6 +512,14 @@ export function reduceCodexNotification(
   const nextPresence = shouldMapPresence
     ? presenceForNotification(state, notification)
     : undefined
+  const speechBubbles = updateSpeechBubblesForNotification({
+    eventId,
+    itemId,
+    notification,
+    receivedAt,
+    shouldUpdate: shouldMapPresence,
+    state,
+  })
   const delta =
     notification.method === "item/agentMessage/delta"
       ? getAgentMessageDelta(notification.params)
@@ -409,6 +534,7 @@ export function reduceCodexNotification(
     latestError: getError(notification.params) ?? state.latestError,
     latestStatus: getStatus(notification.params) ?? state.latestStatus,
     presence: nextPresence ?? state.presence,
+    speechBubbles,
     streamingMessage: delta
       ? appendStreamingMessage(state.streamingMessage, delta)
       : state.streamingMessage,

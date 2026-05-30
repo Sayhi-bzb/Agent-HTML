@@ -1,17 +1,21 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useEffect, useMemo } from "react"
 
 import {
   clearWorkspacePetHost,
   publishWorkspacePetHost,
 } from "@/app/pet/host/pet-host-store"
+import { PetThreadTranscriptContent } from "@/app/pet/host/pet-thread-transcript-content"
 import { useWorkspaceAgentController } from "@/app/workspace/agent-controller"
 import {
   useWorkspaceDocumentController,
   type WorkspaceDocumentDraft,
 } from "@/app/workspace/document-controller"
+import { useAgentDocumentRefresh } from "@/app/workspace/agent-document-refresh"
 import { useWorkspaceSectionCreation } from "@/app/workspace/section-creation-controller"
 import { ProjectThreadPickerContent } from "@/app/workspace/thread-picker"
 import { buildProjectThreadPickerItems } from "@/app/workspace/thread-picker-model"
+import { useThreadTranscript } from "@/app/workspace/thread-transcript"
 import { useWorkspaceThreadController } from "@/app/workspace/thread-controller"
 import { WorkspaceSurfaceFrame } from "@/app/workspace/surface-frame"
 import {
@@ -64,6 +68,7 @@ export function WorkspaceSurface({
     documentState,
     handleDropIntent,
     pendingDocumentState,
+    reloadDocumentFromDisk,
     runtime,
   } = useWorkspaceDocumentController({
     activeProject,
@@ -86,11 +91,16 @@ export function WorkspaceSurface({
         ) ?? activeSection
       : activeSection
   const {
+    activeTurnContext,
     canInterruptTurn,
     handleInterruptTurn,
     handlePromptSubmit,
     isInterruptingTurn,
+    petApproval,
+    petApprovalError,
     petPresence,
+    petSpeechBubbles,
+    respondToPetApproval,
   } = useWorkspaceAgentController({
     activeProject,
     activeSection: displayedSection,
@@ -98,8 +108,35 @@ export function WorkspaceSurface({
     runtime,
     threadController,
   })
-  const threadPickerContent = (
-    <ProjectThreadPickerContent {...threadController.threadPickerProps} />
+  useAgentDocumentRefresh({
+    context: activeTurnContext,
+    reloadDocumentFromDisk,
+  })
+  const threadPickerContent = useMemo(
+    () => <ProjectThreadPickerContent {...threadController.threadPickerProps} />,
+    [threadController.threadPickerProps]
+  )
+  const threadTranscript = useThreadTranscript({
+    codexConnection: threadController.codexConnection,
+    threadId: threadController.threadPickerProps.selectedProjectThreadId,
+  })
+  const transcriptContent = useMemo(
+    () => (
+      <PetThreadTranscriptContent
+        error={threadTranscript.error}
+        isLoading={threadTranscript.isLoading}
+        onReload={threadTranscript.reload}
+        threadId={threadTranscript.threadId}
+        turns={threadTranscript.turns}
+      />
+    ),
+    [
+      threadTranscript.error,
+      threadTranscript.isLoading,
+      threadTranscript.reload,
+      threadTranscript.threadId,
+      threadTranscript.turns,
+    ]
   )
   const petThreads = useMemo(
     () => ({
@@ -160,10 +197,15 @@ export function WorkspaceSurface({
       onInterruptTurn: handleInterruptTurn,
       onNewThread: threadController.threadPickerProps.onNewThread,
       onPromptSubmit: handlePromptSubmit,
+      onRespondToApproval: respondToPetApproval,
       onRenameThread: threadController.threadPickerProps.onRenameThread,
       onResumeThread: threadController.threadPickerProps.onResumeThread,
       presence: petPresence,
+      approval: petApproval,
+      approvalError: petApprovalError,
+      speechBubbles: petSpeechBubbles,
       threadPickerContent,
+      transcriptContent,
       threads: petThreads,
     })
 
@@ -176,8 +218,10 @@ export function WorkspaceSurface({
     isInterruptingTurn,
     petDraftScope,
     petPresence,
+    petSpeechBubbles,
     petThreads,
     threadPickerContent,
+    transcriptContent,
     threadController.threadPickerProps.onNewThread,
     threadController.threadPickerProps.onRenameThread,
     threadController.threadPickerProps.onResumeThread,

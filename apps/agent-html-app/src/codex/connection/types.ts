@@ -58,9 +58,11 @@ export type CodexRuntimeStatus = {
   capabilities: Record<CodexRuntimeCapability, CodexRuntimeCapabilityStatus>
   config: {
     approvalPolicy?: string
+    approvalPolicyDiagnostic?: string
     model?: string
     modelProvider?: string
     sandboxMode?: string
+    sandboxModeDiagnostic?: string
   }
   error?: string | null
   loadedAt?: string
@@ -75,6 +77,41 @@ export type CodexHostProcessStatus = {
 
 export type CodexRpcRequestResult = {
   result: unknown
+}
+
+export type CodexRpcResponseInput = {
+  requestId: number
+  result: unknown
+}
+
+export type CodexServerRequest = {
+  id: number
+  method: string
+  params?: unknown
+}
+
+export type CodexApprovalDecision =
+  | "accept"
+  | "acceptForSession"
+  | "cancel"
+  | "decline"
+
+export type CodexApprovalRequestKind = "command" | "fileChange" | "toolInput"
+
+export type CodexApprovalRequest = {
+  availableDecisions: CodexApprovalDecision[]
+  command?: string
+  cwd?: string
+  id: string
+  itemId?: string
+  kind: CodexApprovalRequestKind
+  networkTarget?: string
+  reason?: string
+  requestId: number
+  status: "pending" | "responding" | "error"
+  threadId?: string
+  title: string
+  turnId?: string
 }
 
 export type CodexTurnStartResult = {
@@ -137,6 +174,7 @@ export type CodexConnectionContextValue = {
   refreshRuntimeStatus: () => Promise<void>
   refreshThreads: () => Promise<void>
   request: (method: string, params: unknown) => Promise<unknown>
+  respond: (input: CodexRpcResponseInput) => Promise<void>
   resumeThread: (threadId: string) => Promise<void>
   runtimeStatus: CodexRuntimeStatus
   settings: CodexConnectionSettings

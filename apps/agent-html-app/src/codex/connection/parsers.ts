@@ -170,17 +170,24 @@ export function readEffectiveConfig(
   value: unknown
 ): CodexRuntimeStatus["config"] {
   const config = readObject(value)?.config ?? value
+  const approvalPolicy =
+    readString(config, ["approval_policy"]) ??
+    readString(config, ["approvalPolicy"])
+  const sandboxMode =
+    readString(config, ["sandbox_mode"]) ?? readString(config, ["sandboxMode"])
 
   return {
-    approvalPolicy:
-      readString(config, ["approval_policy"]) ??
-      readString(config, ["approvalPolicy"]),
+    approvalPolicy,
+    approvalPolicyDiagnostic:
+      approvalPolicy === undefined
+        ? "not exposed by config/read"
+        : undefined,
     model: readString(config, ["model"]),
     modelProvider:
       readString(config, ["model_provider"]) ??
       readString(config, ["modelProvider"]),
-    sandboxMode:
-      readString(config, ["sandbox_mode"]) ??
-      readString(config, ["sandboxMode"]),
+    sandboxMode,
+    sandboxModeDiagnostic:
+      sandboxMode === undefined ? "not exposed by config/read" : undefined,
   }
 }

@@ -541,6 +541,32 @@ export function CodexConnectionProvider({
     [canManageHost]
   )
 
+  const respond = React.useCallback(
+    async ({ requestId, result }: { requestId: number; result: unknown }) => {
+      if (!canManageHost) {
+        throw new Error("Desktop runtime required to manage Codex.")
+      }
+
+      const targetSettings = settingsRef.current
+      validateSettings(targetSettings)
+
+      writeConnectionTrace("rpc:respond:start", {
+        phase: phaseRef.current,
+        requestId,
+      })
+      await codexHostClient.respond({
+        requestId,
+        result,
+        settings: targetSettings,
+      })
+      writeConnectionTrace("rpc:respond:result", {
+        phase: phaseRef.current,
+        requestId,
+      })
+    },
+    [canManageHost]
+  )
+
   React.useEffect(() => {
     if (!canManageHost) {
       setIsLoaded(true)
@@ -681,6 +707,7 @@ export function CodexConnectionProvider({
       refreshRuntimeStatus,
       refreshThreads,
       request,
+      respond,
       resumeThread,
       restart,
       runtimeStatus,
@@ -708,6 +735,7 @@ export function CodexConnectionProvider({
       refreshRuntimeStatus,
       refreshThreads,
       request,
+      respond,
       resumeThread,
       restart,
       runtimeStatus,

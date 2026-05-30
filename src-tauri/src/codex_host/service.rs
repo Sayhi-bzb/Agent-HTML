@@ -8,6 +8,7 @@ use super::health::{process_status_from_state, CodexHostProcessStatus};
 use super::process::{check_codex_process, spawn_codex_process, stop_codex_process};
 use super::rpc::{
     ensure_initialized, reject_all_pending, send_codex_notification, send_codex_request,
+    send_codex_response,
 };
 use super::settings::{normalize_codex_settings, CodexHostSettings};
 use super::state::{set_last_error, CodexHostState};
@@ -226,4 +227,17 @@ pub(crate) fn rpc_notify(
     ensure_host_ready(&app, state.clone(), store, settings)?;
     ensure_initialized(&state)?;
     send_codex_notification(&state, &method, params)
+}
+
+pub(crate) fn rpc_respond(
+    app: tauri::AppHandle,
+    state: State<'_, CodexHostState>,
+    store: State<'_, WorkspaceStore>,
+    settings: &CodexHostSettings,
+    request_id: u64,
+    result: Value,
+) -> CodexHostResult<()> {
+    ensure_host_ready(&app, state.clone(), store, settings)?;
+    ensure_initialized(&state)?;
+    send_codex_response(&state, request_id, result)
 }

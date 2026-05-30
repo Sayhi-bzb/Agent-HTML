@@ -8,7 +8,7 @@ use tauri::Manager;
 use crate::codex_host::{
     codex_connection_trace, codex_host_health, codex_host_restart, codex_host_settings_load,
     codex_host_settings_save, codex_host_start, codex_host_stop, codex_rpc_notify,
-    codex_rpc_request, CodexHostState,
+    codex_rpc_request, codex_rpc_respond, CodexHostState,
 };
 use crate::component_market::{
     load_component_market_settings, save_component_market_settings,
@@ -67,6 +67,7 @@ pub fn run() {
             codex_connection_trace,
             codex_rpc_request,
             codex_rpc_notify,
+            codex_rpc_respond,
             workspace_root_settings_load,
             workspace_root_settings_save
         ])
