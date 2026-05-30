@@ -396,17 +396,7 @@ function presenceForNotification(
   }
 
   if (method === "turn/started") {
-    return {
-      action: {
-        kind: "thinking",
-        label: "starting turn",
-      },
-      message: {
-        mode: "transient",
-        text: "Codex is working.",
-      },
-      mood: "working",
-    }
+    return undefined
   }
 
   if (method === "turn/completed") {
@@ -422,13 +412,7 @@ function presenceForNotification(
       }
     }
 
-    return {
-      message: {
-        mode: "final",
-        text: "Codex finished.",
-      },
-      mood: "review",
-    }
+    return undefined
   }
 
   if (method === "thread/status/changed") {
@@ -457,9 +441,10 @@ function presenceForNotification(
   }
 
   if (method === "item/started") {
+    const itemType = getItemType(params)
     return {
       action: actionFromItem(params),
-      message: state.presence?.message,
+      message: itemType === "agentMessage" ? undefined : state.presence?.message,
       mood: "working",
     }
   }
@@ -477,26 +462,24 @@ function presenceForNotification(
       }
     }
 
+    if (getItemType(params) === "agentMessage") {
+      return state.presence
+        ? {
+            ...state.presence,
+            message: undefined,
+          }
+        : undefined
+    }
+
     return state.presence
   }
 
   if (method === "item/agentMessage/delta") {
-    const delta = getAgentMessageDelta(params)
-    const streamingMessage = delta
-      ? appendStreamingMessage(state.streamingMessage, delta)
-      : state.streamingMessage
-
     return {
       action: {
         kind: "speaking",
         label: "writing response",
       },
-      message: streamingMessage
-        ? {
-            mode: "streaming",
-            text: streamingMessage,
-          }
-        : state.presence?.message,
       mood: "working",
     }
   }

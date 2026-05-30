@@ -188,10 +188,10 @@ export function useWorkspaceAgentController({
             workspaceRootPath,
           })
         )
-        .then((result) => {
+            .then((result) => {
           if (result.ok) {
             setActiveTurnContext({
-              blockPath: submit.target.kind === "block" ? submit.target.path : undefined,
+              blockPath: submit.target?.path,
               sectionId: activeSection.id,
               threadId: result.threadId,
               turnId: result.turnId,

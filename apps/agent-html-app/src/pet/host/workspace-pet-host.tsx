@@ -92,9 +92,6 @@ function PetMessageComposer({
         onDraftChange("")
         onPromptSubmit?.({
           prompt,
-          target: {
-            kind: "document",
-          },
         })
         onMessageOpenChange(false)
       }}

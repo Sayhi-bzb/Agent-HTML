@@ -58,7 +58,6 @@ export function useAgentHtmlBlockInputPopover({
     cleanupBlockInputAutoUpdateRef.current = null
 
     if (!blockInputPopover) {
-      setBlockInputPopoverPlacement(null)
       return
     }
 
@@ -150,10 +149,10 @@ export function useAgentHtmlBlockInputPopover({
           onPromptSubmit?.({
             prompt,
             target: {
-              kind: "block",
               path: blockInputPopover.path,
             },
           })
+          closeBlockInput()
         }}
         onPointerDown={(event) => {
           event.stopPropagation()

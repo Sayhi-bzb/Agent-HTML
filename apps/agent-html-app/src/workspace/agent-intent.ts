@@ -1,5 +1,4 @@
 import type {
-  AgentHtmlAgentInteractionEvent,
   AgentHtmlAgentPromptSubmitInput,
   AgentHtmlDocument,
   AgentHtmlElementNode,
@@ -14,34 +13,6 @@ import type {
   WorkspaceSection,
 } from "@/app/workspace/types"
 import { formatCodexWorkspacePath } from "@/app/workspace/codex-path"
-
-type AgentHtmlContextEvent = {
-  context: {
-    selectedSource: string | null
-  }
-  createdAt: string
-  eventId: string
-  interaction: AgentHtmlAgentInteractionEvent | null
-  intent: {
-    request: string
-  }
-  schemaVersion: "agent-html.context-event.v1"
-  source: {
-    app: "agent-html"
-    documentId: string
-    filePath: string
-    projectId: string
-    projectName: string
-    sectionId: string
-    sectionTitle: string
-    surface: "workspace"
-    workspaceRootPath: string
-  }
-  target: {
-    blockPath?: string
-    kind: "block" | "document"
-  }
-}
 
 export type AgentHtmlIntentDeliveryResult =
   | {
@@ -68,6 +39,27 @@ function createEventId() {
   return `evt_${Date.now().toString(36)}_${Math.random()
     .toString(36)
     .slice(2)}`
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  if (typeof error === "string") {
+    return error
+  }
+
+  if (typeof error === "object" && error !== null) {
+    if ("message" in error && typeof error.message === "string") {
+      return error.message
+    }
+    if ("error" in error && typeof error.error === "string") {
+      return error.error
+    }
+  }
+
+  return "Unable to start Codex turn."
 }
 
 function findElementByPath(
@@ -117,24 +109,35 @@ function findElementByPath(
   return current
 }
 
-function createPromptText(event: AgentHtmlContextEvent) {
+function createBlockPromptText({
+  blockPath,
+  filePath,
+  request,
+  selectedSource,
+  workspaceRootPath,
+}: {
+  blockPath: string
+  filePath: string
+  request: string
+  selectedSource: string | null
+  workspaceRootPath: string
+}) {
   return [
     "---",
     `filePath: ${formatCodexWorkspacePath(
-      event.source.filePath,
-      event.source.workspaceRootPath
+      filePath,
+      workspaceRootPath
     )}`,
-    `targetKind: ${event.target.kind}`,
-    event.target.blockPath ? `blockPath: ${event.target.blockPath}` : null,
+    `blockPath: ${blockPath}`,
     "---",
     "",
     "```ahtml",
-    event.context.selectedSource ?? "",
+    selectedSource ?? "",
     "```",
     "",
     "Request:",
-    event.intent.request,
-  ].filter((line): line is string => line !== null).join("\n")
+    request,
+  ].join("\n")
 }
 
 export async function deliverAgentHtmlIntent(input: {
@@ -153,45 +156,22 @@ export async function deliverAgentHtmlIntent(input: {
   threadId: string
   workspaceRootPath: string
 }): Promise<AgentHtmlIntentDeliveryResult> {
-  const parsedDocument =
-    input.parsedDocument ?? parseAgentHtml(input.document.source)
-  const selectedNode =
-    input.submit.target.kind === "block"
-      ? findElementByPath(parsedDocument, input.submit.target.path)
-      : parsedDocument.root
-  const event: AgentHtmlContextEvent = {
-    context: {
-      selectedSource: selectedNode
-        ? serializeAgentHtml({ root: selectedNode })
-        : null,
-    },
-    createdAt: new Date().toISOString(),
-    eventId: createEventId(),
-    interaction: input.submit.interaction ?? null,
-    intent: {
-      request: input.submit.prompt,
-    },
-    schemaVersion: "agent-html.context-event.v1",
-    source: {
-      app: "agent-html",
-      documentId: `${input.document.projectId}/${input.document.sectionId}`,
-      filePath: input.document.filePath,
-      projectId: input.project.id,
-      projectName: input.project.name,
-      sectionId: input.section.id,
-      sectionTitle: input.section.title,
-      surface: "workspace",
-      workspaceRootPath: input.workspaceRootPath,
-    },
-    target: {
-      blockPath:
-        input.submit.target.kind === "block"
-          ? input.submit.target.path
-          : undefined,
-      kind: input.submit.target.kind,
-    },
-  }
-  const promptText = createPromptText(event)
+  const eventId = createEventId()
+  const blockPath = input.submit.target?.path
+  const promptText = blockPath
+    ? createBlockPromptText({
+        blockPath,
+        filePath: input.document.filePath,
+        request: input.submit.prompt,
+        selectedSource: (() => {
+          const parsedDocument =
+            input.parsedDocument ?? parseAgentHtml(input.document.source)
+          const selectedNode = findElementByPath(parsedDocument, blockPath)
+          return selectedNode ? serializeAgentHtml({ root: selectedNode }) : null
+        })(),
+        workspaceRootPath: input.workspaceRootPath,
+      })
+    : input.submit.prompt
 
   try {
     const turn = await input.startTurn({
@@ -200,7 +180,7 @@ export async function deliverAgentHtmlIntent(input: {
     })
 
     return {
-      eventId: event.eventId,
+      eventId,
       ok: true,
       promptText,
       provider: "codex_app_server",
@@ -209,11 +189,8 @@ export async function deliverAgentHtmlIntent(input: {
     }
   } catch (error) {
     return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unable to start Codex turn.",
-      eventId: event.eventId,
+      error: getErrorMessage(error),
+      eventId,
       ok: false,
       promptText,
       provider: "codex_app_server",

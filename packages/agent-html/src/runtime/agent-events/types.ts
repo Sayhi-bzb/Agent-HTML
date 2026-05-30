@@ -18,12 +18,7 @@ export type AgentHtmlAgentInteractionEvent =
 export type AgentHtmlAgentPromptSubmitInput = {
   interaction?: AgentHtmlAgentInteractionEvent | null
   prompt: string
-  target:
-    | {
-        kind: "block"
-        path: string
-      }
-    | {
-        kind: "document"
-      }
+  target?: {
+    path: string
+  }
 }

@@ -39,4 +39,9 @@ describe("pet host contract", () => {
     expect(hostSource).not.toContain("emitTo")
     expect(hostSource).not.toContain("codex_host_stop")
   })
+
+  it("treats pet message send as a floating interaction", () => {
+    expect(hostSource).toContain('onMessageOpenChange(false)')
+    expect(hostSource).toContain('onDraftChange("")')
+  })
 })

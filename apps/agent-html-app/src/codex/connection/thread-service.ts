@@ -21,11 +21,16 @@ export type CodexThreadService = {
     request: CodexRpcRequest
   }) => Promise<CodexThreadListResult>
   resumeThread: (input: {
+    cwd?: string | null
     request: CodexRpcRequest
     threadId: string
   }) => Promise<void>
-  startThread: (input: { request: CodexRpcRequest }) => Promise<string>
+  startThread: (input: {
+    cwd?: string | null
+    request: CodexRpcRequest
+  }) => Promise<string>
   startTurn: (input: {
+    cwd?: string | null
     promptText: string
     request: CodexRpcRequest
     threadId: string
@@ -42,13 +47,17 @@ export const codexThreadService: CodexThreadService = {
     }
   },
 
-  async resumeThread({ request, threadId }) {
-    await request("thread/resume", { threadId })
+  async resumeThread({ cwd, request, threadId }) {
+    await request("thread/resume", {
+      ...(cwd ? { cwd } : {}),
+      threadId,
+    })
   },
 
-  async startThread({ request }) {
+  async startThread({ cwd, request }) {
     const threadId = readThreadId(
       await request("thread/start", {
+        ...(cwd ? { cwd } : {}),
         persistExtendedHistory: false,
         serviceName: "agent_html",
       })
@@ -61,12 +70,13 @@ export const codexThreadService: CodexThreadService = {
     return threadId
   },
 
-  async startTurn({ promptText, request, threadId }) {
+  async startTurn({ cwd, promptText, request, threadId }) {
     if (!threadId) {
       throw new Error("Choose a Codex thread before sending a request.")
     }
 
     const result = await request("turn/start", {
+      ...(cwd ? { cwd } : {}),
       input: [
         {
           text: promptText,

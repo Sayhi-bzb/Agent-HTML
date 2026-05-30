@@ -45,11 +45,12 @@ describe("codexThreadService", () => {
   it("starts a persisted Agent-HTML thread and returns its id", async () => {
     const request = vi.fn().mockResolvedValue({ thread: { id: "thr_new" } })
 
-    await expect(codexThreadService.startThread({ request })).resolves.toBe(
-      "thr_new"
-    )
+    await expect(
+      codexThreadService.startThread({ cwd: "D:/AgentHTML", request })
+    ).resolves.toBe("thr_new")
 
     expect(request).toHaveBeenCalledWith("thread/start", {
+      cwd: "D:/AgentHTML",
       persistExtendedHistory: false,
       serviceName: "agent_html",
     })
@@ -61,14 +62,24 @@ describe("codexThreadService", () => {
     await expect(codexThreadService.startThread({ request })).rejects.toThrow(
       "Codex did not return a thread id."
     )
+
+    expect(request).toHaveBeenCalledWith("thread/start", {
+      persistExtendedHistory: false,
+      serviceName: "agent_html",
+    })
   })
 
-  it("resumes a thread by id", async () => {
+  it("resumes a thread by id with the Codex cwd", async () => {
     const request = vi.fn().mockResolvedValue(undefined)
 
-    await codexThreadService.resumeThread({ request, threadId: "thr_1" })
+    await codexThreadService.resumeThread({
+      cwd: "D:/AgentHTML",
+      request,
+      threadId: "thr_1",
+    })
 
     expect(request).toHaveBeenCalledWith("thread/resume", {
+      cwd: "D:/AgentHTML",
       threadId: "thr_1",
     })
   })
@@ -78,6 +89,7 @@ describe("codexThreadService", () => {
 
     await expect(
       codexThreadService.startTurn({
+        cwd: "D:/AgentHTML",
         promptText: "Update the button",
         request,
         threadId: "thr_1",
@@ -88,6 +100,7 @@ describe("codexThreadService", () => {
     })
 
     expect(request).toHaveBeenCalledWith("turn/start", {
+      cwd: "D:/AgentHTML",
       input: [
         {
           text: "Update the button",

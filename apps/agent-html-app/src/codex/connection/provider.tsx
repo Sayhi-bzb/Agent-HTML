@@ -44,6 +44,13 @@ function storeActiveThreadId(threadId: string) {
   localStorage.setItem(ACTIVE_THREAD_STORAGE_KEY, threadId)
 }
 
+function resolveCodexRequestCwd(
+  health: CodexHostHealth | null,
+  workspaceRootStatus: WorkspaceRootStatus | null
+) {
+  return health?.cwd ?? workspaceRootStatus?.rootPath ?? null
+}
+
 export function CodexConnectionProvider({
   children,
 }: {
@@ -358,11 +365,22 @@ export function CodexConnectionProvider({
         params: summarizeTraceValue(params),
         phase: phaseRef.current,
       })
-      const result = await codexHostClient.request({
-        method,
-        params,
-        settings: targetSettings,
-      })
+      let result: unknown
+      try {
+        result = await codexHostClient.request({
+          method,
+          params,
+          settings: targetSettings,
+        })
+      } catch (error) {
+        writeConnectionTrace("rpc:error", {
+          error: getErrorMessage(error),
+          method,
+          params: summarizeTraceValue(params),
+          phase: phaseRef.current,
+        })
+        throw error
+      }
 
       writeConnectionTrace("rpc:result", {
         method,
@@ -467,20 +485,27 @@ export function CodexConnectionProvider({
 
   const resumeThread = React.useCallback(
     async (threadId: string) => {
-      await codexThreadService.resumeThread({ request, threadId })
+      await codexThreadService.resumeThread({
+        cwd: resolveCodexRequestCwd(health, workspaceRootStatus),
+        request,
+        threadId,
+      })
       setActiveThreadId(threadId)
       storeActiveThreadId(threadId)
     },
-    [request]
+    [health, request, workspaceRootStatus]
   )
 
   const startNewThread = React.useCallback(async () => {
-    const threadId = await codexThreadService.startThread({ request })
+    const threadId = await codexThreadService.startThread({
+      cwd: resolveCodexRequestCwd(health, workspaceRootStatus),
+      request,
+    })
     setActiveThreadId(threadId)
     storeActiveThreadId(threadId)
     void refreshThreads()
     return threadId
-  }, [refreshThreads, request])
+  }, [health, refreshThreads, request, workspaceRootStatus])
 
   const startTurn = React.useCallback(
     async ({
@@ -491,12 +516,13 @@ export function CodexConnectionProvider({
       threadId: string
     }) => {
       return codexThreadService.startTurn({
+        cwd: resolveCodexRequestCwd(health, workspaceRootStatus),
         promptText,
         request,
         threadId,
       })
     },
-    [request]
+    [health, request, workspaceRootStatus]
   )
 
   const interruptTurn = React.useCallback(

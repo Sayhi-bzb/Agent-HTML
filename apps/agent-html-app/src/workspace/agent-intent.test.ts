@@ -66,7 +66,6 @@ describe("deliverAgentHtmlIntent", () => {
         interaction: null,
         prompt: "Make this tighter.",
         target: {
-          kind: "block",
           path: "/Page/Section[0]/Stack[0]",
         },
       },
@@ -81,7 +80,6 @@ describe("deliverAgentHtmlIntent", () => {
       [
         "---",
         "filePath: projects/project-1/section-1/artifact.agent-html",
-        "targetKind: block",
         "blockPath: /Page/Section[0]/Stack[0]",
         "---",
       ].join("\n")
@@ -113,7 +111,6 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "Explain this block.",
         target: {
-          kind: "block",
           path: "/Page/Section[0]/Stack[0]",
         },
       },
@@ -144,7 +141,6 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "What is this?",
         target: {
-          kind: "block",
           path: "/Page/Section[0]/Stack[1]",
         },
       },
@@ -178,7 +174,6 @@ describe("deliverAgentHtmlIntent", () => {
         },
         prompt: "Persist my ordering.",
         target: {
-          kind: "block",
           path: "/Page/Section[0]/Stack[0]",
         },
       },
@@ -194,7 +189,47 @@ describe("deliverAgentHtmlIntent", () => {
     expect(result.promptText).not.toContain("当前文档 AHTML")
   })
 
-  it("starts a document-scoped Codex turn with full document context", async () => {
+  it("returns string and object Codex turn errors when delivery fails", async () => {
+    const stringError = await deliverAgentHtmlIntent({
+      document,
+      project,
+      section,
+      startTurn: vi.fn().mockRejectedValue("thread already has an active turn"),
+      submit: {
+        prompt: "Try again.",
+      },
+      threadId: "thr_123",
+      workspaceRootPath: "D:\\AgentHTML",
+    })
+    const objectError = await deliverAgentHtmlIntent({
+      document,
+      project,
+      section,
+      startTurn: vi.fn().mockRejectedValue({
+        error: "required MCP server failed",
+      }),
+      submit: {
+        prompt: "Try again.",
+      },
+      threadId: "thr_123",
+      workspaceRootPath: "D:\\AgentHTML",
+    })
+
+    expect(stringError).toEqual(
+      expect.objectContaining({
+        error: "thread already has an active turn",
+        ok: false,
+      })
+    )
+    expect(objectError).toEqual(
+      expect.objectContaining({
+        error: "required MCP server failed",
+        ok: false,
+      })
+    )
+  })
+
+  it("starts a pet Codex turn with the plain request", async () => {
     const startTurn = vi.fn().mockResolvedValue({
       threadId: "thr_123",
       turnId: "turn_123",
@@ -207,9 +242,6 @@ describe("deliverAgentHtmlIntent", () => {
       startTurn,
       submit: {
         prompt: "Review this section.",
-        target: {
-          kind: "document",
-        },
       },
       threadId: "thr_123",
       workspaceRootPath: "D:\\AgentHTML",
@@ -217,21 +249,14 @@ describe("deliverAgentHtmlIntent", () => {
 
     expect(result.ok).toBe(true)
     const promptText = startTurn.mock.calls[0][0].promptText
-    expect(promptText).toContain(
-      [
-        "---",
-        "filePath: projects/project-1/section-1/artifact.agent-html",
-        "targetKind: document",
-        "---",
-      ].join("\n")
-    )
+    expect(promptText).toBe("Review this section.")
+    expect(promptText).not.toContain("filePath:")
     expect(promptText).not.toContain("blockPath:")
-    expect(promptText).toContain("<Page>")
-    expect(promptText).toContain("<Text>Move faster</Text>")
-    expect(promptText).toContain("\n```\n\nRequest:\nReview this section.")
+    expect(promptText).not.toContain("targetKind:")
+    expect(promptText).not.toContain("```ahtml")
   })
 
-  it("uses a file path relative to the Codex workspace root", async () => {
+  it("uses a file path relative to the Codex workspace root for block prompts", async () => {
     const startTurn = vi.fn().mockResolvedValue({
       threadId: "thr_123",
       turnId: "turn_123",
@@ -245,7 +270,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "Review this section.",
         target: {
-          kind: "document",
+          path: "/Page/Section[0]/Stack[0]",
         },
       },
       threadId: "thr_123",
@@ -272,7 +297,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "Review this section.",
         target: {
-          kind: "document",
+          path: "/Page/Section[0]/Stack[0]",
         },
       },
       threadId: "thr_123",
@@ -302,7 +327,7 @@ describe("deliverAgentHtmlIntent", () => {
         submit: {
           prompt: "Review this section.",
           target: {
-            kind: "document",
+            path: "/Page/Section[0]/Stack[0]",
           },
         },
         threadId: "thr_123",

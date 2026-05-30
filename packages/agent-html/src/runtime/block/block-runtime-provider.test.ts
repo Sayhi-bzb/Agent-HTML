@@ -6,6 +6,10 @@ const providerSource = readFileSync(
   fileURLToPath(new URL("./block-runtime-provider.tsx", import.meta.url)),
   "utf8"
 )
+const blockInputPopoverSource = readFileSync(
+  fileURLToPath(new URL("./block-input-popover.tsx", import.meta.url)),
+  "utf8"
+)
 
 describe("AgentHtmlBlockRuntimeProvider source guardrails", () => {
   it("does not derive block hit-testing coordinates from dnd-kit drag deltas", () => {
@@ -29,6 +33,11 @@ describe("AgentHtmlBlockRuntimeProvider source guardrails", () => {
     expect(providerSource).not.toContain("@floating-ui/react")
     expect(providerSource).not.toContain("AgentHtmlBlockInputGroup")
     expect(providerSource).toContain("useAgentHtmlBlockInputPopover")
+  })
+
+  it("treats block prompt send as a floating interaction", () => {
+    expect(blockInputPopoverSource).toContain("onPromptSubmit?.({")
+    expect(blockInputPopoverSource).toContain("closeBlockInput()")
   })
 
   it("keeps block registry maps outside the provider", () => {

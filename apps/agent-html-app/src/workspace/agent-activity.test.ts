@@ -8,7 +8,7 @@ import {
 } from "@/app/workspace/agent-activity"
 
 describe("reduceCodexNotification", () => {
-  it("maps turn started to working presence", () => {
+  it("records turn started without changing visible presence", () => {
     const state = reduceCodexNotification(
       createInitialAgentActivityState(),
       {
@@ -28,21 +28,37 @@ describe("reduceCodexNotification", () => {
       "2026-05-28T00:00:00.000Z"
     )
 
-    expect(state.presence?.mood).toBe("working")
-    expect(state.presence?.action?.kind).toBe("thinking")
+    expect(state.presence).toBeUndefined()
     expect(state.events[0].scope).toEqual({
       blockPath: "/Page/Section[0]/Stack[0]",
       type: "block",
     })
   })
 
-  it("streams agent message deltas into PetPresence", () => {
-    const first = reduceCodexNotification(
+  it("keeps agent message deltas out of PetPresence fallback messages", () => {
+    const started = reduceCodexNotification(
       createInitialAgentActivityState(),
+      {
+        method: "item/started",
+        params: {
+          item: {
+            id: "item_1",
+            type: "agentMessage",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:00.000Z"
+    )
+    const first = reduceCodexNotification(
+      started,
       {
         method: "item/agentMessage/delta",
         params: {
           delta: "Hello",
+          itemId: "item_1",
           threadId: "thr_1",
           turnId: "turn_1",
         },
@@ -56,6 +72,7 @@ describe("reduceCodexNotification", () => {
         method: "item/agentMessage/delta",
         params: {
           delta: " world",
+          itemId: "item_1",
           threadId: "thr_1",
           turnId: "turn_1",
         },
@@ -64,10 +81,8 @@ describe("reduceCodexNotification", () => {
       "2026-05-28T00:00:01.000Z"
     )
 
-    expect(second.presence?.message).toEqual({
-      mode: "streaming",
-      text: "Hello world",
-    })
+    expect(second.speechBubbles[0]?.text).toBe("Hello world")
+    expect(second.presence?.message).toBeUndefined()
     expect(second.presence?.action?.kind).toBe("speaking")
   })
 
@@ -128,6 +143,92 @@ describe("reduceCodexNotification", () => {
       },
     ])
     expect(completed.speechBubbles[0]?.mode).toBe("final")
+  })
+
+  it("does not carry prior status messages into agent message presence", () => {
+    const waiting = reduceCodexNotification(
+      createInitialAgentActivityState(),
+      {
+        method: "item/commandExecution/requestApproval",
+        params: {
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:00.000Z"
+    )
+    const speaking = reduceCodexNotification(
+      waiting,
+      {
+        method: "item/started",
+        params: {
+          item: {
+            id: "item_1",
+            type: "agentMessage",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:01.000Z"
+    )
+    const completed = reduceCodexNotification(
+      speaking,
+      {
+        method: "item/completed",
+        params: {
+          item: {
+            id: "item_1",
+            type: "agentMessage",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:02.000Z"
+    )
+
+    expect(waiting.presence?.message?.text).toBe("Codex needs input.")
+    expect(speaking.presence?.message).toBeUndefined()
+    expect(completed.presence?.message).toBeUndefined()
+  })
+
+  it("keeps approval and error messages in PetPresence", () => {
+    const waiting = reduceCodexNotification(
+      createInitialAgentActivityState(),
+      {
+        method: "item/commandExecution/requestApproval",
+        params: {
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:00.000Z"
+    )
+    const failed = reduceCodexNotification(
+      waiting,
+      {
+        method: "item/completed",
+        params: {
+          error: "Command failed.",
+          item: {
+            id: "item_1",
+            type: "commandExecution",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:01.000Z"
+    )
+
+    expect(waiting.presence?.message?.text).toBe("Codex needs input.")
+    expect(failed.presence?.message?.text).toBe("Command failed.")
   })
 
   it("marks final speech bubbles as exiting before removal", () => {
@@ -223,7 +324,7 @@ describe("reduceCodexNotification", () => {
     expect(state.presence?.action?.kind).toBe("waiting")
   })
 
-  it("maps turn completion to review or failed presence", () => {
+  it("hides successful turn completion but shows failures", () => {
     const done = reduceCodexNotification(
       createInitialAgentActivityState(),
       {
@@ -251,7 +352,7 @@ describe("reduceCodexNotification", () => {
       "2026-05-28T00:00:01.000Z"
     )
 
-    expect(done.presence?.mood).toBe("review")
+    expect(done.presence).toBeUndefined()
     expect(failed.presence?.mood).toBe("failed")
     expect(failed.presence?.message?.text).toBe("nope")
   })
