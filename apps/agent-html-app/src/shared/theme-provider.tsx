@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 
 export type Theme = "dark" | "light" | "system"
@@ -93,24 +92,13 @@ export function ThemeProvider({
 
     return defaultTheme
   })
-  const [resolvedTheme, setResolvedTheme] = React.useState<ResolvedTheme>(() =>
-    theme === "system" ? getSystemTheme() : theme
+  const [systemTheme, setSystemTheme] = React.useState<ResolvedTheme>(
+    getSystemTheme
   )
+  const resolvedTheme = theme === "system" ? systemTheme : theme
 
-  const setTheme = React.useCallback(
-    (nextTheme: Theme) => {
-      localStorage.setItem(storageKey, nextTheme)
-      setThemeState(nextTheme)
-    },
-    [storageKey]
-  )
-
-  const applyTheme = React.useCallback(
-    (nextTheme: Theme) => {
+  React.useEffect(() => {
       const root = document.documentElement
-      const resolvedTheme =
-        nextTheme === "system" ? getSystemTheme() : nextTheme
-      setResolvedTheme(resolvedTheme)
       const restoreTransitions = disableTransitionOnChange
         ? disableTransitionsTemporarily()
         : null
@@ -121,20 +109,24 @@ export function ThemeProvider({
       if (restoreTransitions) {
         restoreTransitions()
       }
+  }, [disableTransitionOnChange, resolvedTheme])
+
+  const setTheme = React.useCallback(
+    (nextTheme: Theme) => {
+      localStorage.setItem(storageKey, nextTheme)
+      setThemeState(nextTheme)
     },
-    [disableTransitionOnChange]
+    [storageKey]
   )
 
   React.useEffect(() => {
-    applyTheme(theme)
-
     if (theme !== "system") {
       return undefined
     }
 
     const mediaQuery = window.matchMedia(COLOR_SCHEME_QUERY)
     const handleChange = () => {
-      applyTheme("system")
+      setSystemTheme(getSystemTheme())
     }
 
     mediaQuery.addEventListener("change", handleChange)
@@ -142,7 +134,7 @@ export function ThemeProvider({
     return () => {
       mediaQuery.removeEventListener("change", handleChange)
     }
-  }, [theme, applyTheme])
+  }, [theme])
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

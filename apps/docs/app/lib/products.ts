@@ -17,5 +17,10 @@ export type Product = (typeof products)[number];
 export type ProductValue = Product['value'];
 
 export function getProductByPathname(pathname: string): Product {
-  return products.find((product) => pathname === product.root || pathname.startsWith(`${product.root}/`)) ?? products[0];
+  return (
+    products.find(
+      (product) =>
+        pathname === product.root || pathname.startsWith(`${product.root}/`),
+    ) ?? products[0]
+  );
 }

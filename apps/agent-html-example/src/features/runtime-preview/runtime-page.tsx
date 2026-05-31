@@ -60,6 +60,31 @@ export function AgentHtmlRuntimePage({
   onThemeChange: (theme: ExampleThemeId) => void
   theme: ExampleThemeId
 }) {
+  return (
+    <AgentHtmlRuntimePageSession
+      activeCase={activeCase}
+      key={activeCase.id}
+      locale={locale}
+      onLocaleChange={onLocaleChange}
+      onThemeChange={onThemeChange}
+      theme={theme}
+    />
+  )
+}
+
+function AgentHtmlRuntimePageSession({
+  activeCase,
+  locale,
+  onLocaleChange,
+  onThemeChange,
+  theme,
+}: {
+  activeCase: AgentHtmlExampleCase
+  locale: AgentHtmlExampleLocale
+  onLocaleChange: (locale: AgentHtmlExampleLocale) => void
+  onThemeChange: (theme: ExampleThemeId) => void
+  theme: ExampleThemeId
+}) {
   const [runtimeState, setRuntimeState] = React.useState(() =>
     createRuntimeDocumentState(activeCase.artifactSource)
   )
@@ -98,30 +123,14 @@ export function AgentHtmlRuntimePage({
       reactMetrics: getSourceMetrics(activeCase.reactSource),
       validation: runtimeState.validation,
     }
-  }, [debugRuntime, runtimeState])
+  }, [activeCase.reactSource, debugRuntime, runtimeState])
 
   const htmlMetrics = React.useMemo(() => {
     return runtime.htmlSource ? getSourceMetrics(runtime.htmlSource) : undefined
   }, [runtime.htmlSource])
 
   React.useEffect(() => {
-    const nextRuntimeState = createRuntimeDocumentState(activeCase.artifactSource)
-
-    setRuntimeState(nextRuntimeState)
-    setDebugRuntime({
-      blockSummaries: createAgentHtmlBlockSummaryMap(nextRuntimeState.document),
-      htmlSource: "",
-      version: nextRuntimeState.version,
-    })
-  }, [activeCase.artifactSource])
-
-  React.useEffect(() => {
     if (!deferredHtmlDocument) {
-      setDebugRuntime({
-        blockSummaries: {},
-        htmlSource: "",
-        version: runtimeState.version,
-      })
       return
     }
 

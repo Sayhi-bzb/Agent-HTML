@@ -11,7 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getProductByPathname, products, type ProductValue } from '@/lib/products';
+import {
+  getProductByPathname,
+  type ProductValue,
+  products,
+} from '@/lib/products';
 
 const productIcons = {
   app: BoxIcon,
@@ -28,8 +32,12 @@ export function ProductSelect() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const value = useMemo(() => getProductByPathname(location.pathname).value, [location.pathname]);
-  const selected = products.find((product) => product.value === value) ?? products[0];
+  const value = useMemo(
+    () => getProductByPathname(location.pathname).value,
+    [location.pathname],
+  );
+  const selected =
+    products.find((product) => product.value === value) ?? products[0];
   const SelectedIcon = productIcons[selected.value];
 
   return (

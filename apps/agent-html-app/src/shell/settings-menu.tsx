@@ -1,10 +1,4 @@
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/app/shared/ui/accordion"
-import {
   DropdownMenuCheckboxItem,
   DropdownMenu,
   DropdownMenuContent,
@@ -17,20 +11,14 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/app/shared/ui/dropdown-menu"
-import { Badge } from "@/app/shared/ui/badge"
-import { Button } from "@/app/shared/ui/button"
-import { useCodexConnection } from "@/app/codex/connection"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/app/shared/ui/dialog"
-import { Input } from "@/app/shared/ui/input"
-import { Label } from "@/app/shared/ui/label"
-import { ScrollArea } from "@/app/shared/ui/scroll-area"
+import { PetSettingsContent } from "@/app/pet/host/pet-settings-content"
 import {
   getAppLanguageLabel,
   getResolvedAppLocaleLabel,
@@ -45,26 +33,18 @@ import {
   useSidebar,
 } from "@/app/shared/ui/sidebar"
 import {
-  SettingsDiagnosticsList,
-  SettingsInfoPanel,
-  SettingsStatusPanel,
-} from "@/app/shell/settings-surface"
-import {
   BellIcon,
   BadgeCheckIcon,
   CableIcon,
   LanguagesIcon,
   MonitorIcon,
   MoonIcon,
-  RefreshCwIcon,
   Settings2Icon,
-  SquareIcon,
   SunIcon,
 } from "lucide-react"
 import * as React from "react"
 import { useLingui } from "@lingui/react"
 import { Trans } from "@lingui/react/macro"
-import type { CodexRuntimeCapabilityStatus } from "@/app/codex/connection"
 
 const themeItems: {
   icon: typeof SunIcon
@@ -123,36 +103,6 @@ function getThemeMenuLabel(theme: Theme) {
   return "System"
 }
 
-function formatCapability(
-  capability: CodexRuntimeCapabilityStatus,
-  translate: (descriptor: { id: string }) => string
-) {
-  if (!capability.ok) {
-    return capability.error ?? translate({ id: "unavailable" })
-  }
-
-  return typeof capability.count === "number"
-    ? String(capability.count)
-    : translate({ id: "available" })
-}
-
-function SettingsDiagnosticsSection({
-  children,
-  title,
-}: {
-  children: React.ReactNode
-  title: string
-}) {
-  return (
-    <section className="grid gap-2">
-      <h4 className="text-xs font-medium uppercase text-muted-foreground">
-        {title}
-      </h4>
-      {children}
-    </section>
-  )
-}
-
 function LocalizedLanguageLabel({
   label,
 }: {
@@ -181,417 +131,24 @@ function CodexConnectionDialog({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
-  const { _ } = useLingui()
-  const codexConnection = useCodexConnection()
-  const runtimeStatus = codexConnection.runtimeStatus
-  const [draftSettings, setDraftSettings] = React.useState(
-    codexConnection.settings
-  )
-  const [draftWorkspaceRootPath, setDraftWorkspaceRootPath] =
-    React.useState("")
-  const [workspaceRootNotice, setWorkspaceRootNotice] =
-    React.useState<string | null>(null)
-  const [accordionValue, setAccordionValue] = React.useState<string[]>([])
-  const wasOpenRef = React.useRef(false)
-  const displayStatus = codexConnection.status
-  const statusSummary = codexConnection.phase === "loadingSettings"
-    ? _({ id: "Loading saved settings..." })
-    : codexConnection.phase === "connected"
-      ? _({ id: "Connected" })
-      : codexConnection.phase === "connecting"
-        ? _({ id: "Starting..." })
-        : codexConnection.phase === "error"
-          ? _({ id: "Connection failed" })
-          : _({ id: "Not connected" })
-
-  React.useEffect(() => {
-    if (open && !wasOpenRef.current) {
-      setDraftSettings(codexConnection.settings)
-      setDraftWorkspaceRootPath(
-        codexConnection.workspaceRootStatus?.settings.rootPath ?? ""
-      )
-      setWorkspaceRootNotice(null)
-      setAccordionValue(codexConnection.lastError ? ["diagnostics"] : [])
-    }
-    wasOpenRef.current = open
-  }, [
-    codexConnection.lastError,
-    codexConnection.settings,
-    codexConnection.workspaceRootStatus?.settings.rootPath,
-    open,
-  ])
-
-  const updateTextSetting = React.useCallback(
-    (key: keyof typeof draftSettings) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        setDraftSettings((current) => ({
-          ...current,
-          [key]: event.target.value,
-        }))
-      },
-    []
-  )
-
-  const saveDraft = React.useCallback(() => {
-    void codexConnection.updateSettings(draftSettings)
-  }, [codexConnection, draftSettings])
-
-  const saveWorkspaceRootDraft = React.useCallback(() => {
-    void codexConnection
-      .updateWorkspaceRootSettings({ rootPath: draftWorkspaceRootPath })
-      .then(() =>
-        setWorkspaceRootNotice(
-          _({
-            id: "Restart Agent-HTML for the workspace root change to take effect.",
-          })
-        )
-      )
-  }, [_, codexConnection, draftWorkspaceRootPath])
-
-  const runAction = React.useCallback(
-    async (action: (settingsOverride?: typeof draftSettings) => Promise<void>) => {
-      await codexConnection.updateSettings(draftSettings)
-      try {
-        await action(draftSettings)
-      } catch {
-        // The connection provider owns the visible error state.
-      }
-    },
-    [codexConnection, draftSettings]
-  )
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100svh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-xl">
+      <DialogContent className="border-0 bg-transparent p-0 shadow-none sm:max-w-none">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="sr-only">
             <Trans>Codex Connection</Trans>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="sr-only">
             <Trans>
               Agent-HTML connects to Codex automatically and uses the official
               Codex configuration files for agent behavior.
             </Trans>
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="min-h-0" viewportClassName="pr-3">
-          <div className="grid gap-4">
-            <SettingsStatusPanel
-              label={<Trans>Status</Trans>}
-              description={statusSummary}
-              action={
-                <Badge
-                  variant={
-                    displayStatus === "connected"
-                      ? "default"
-                      : displayStatus === "error"
-                        ? "destructive"
-                        : "outline"
-                  }
-                >
-                  {displayStatus}
-                </Badge>
-              }
-            />
-            {codexConnection.lastError ? (
-              <SettingsInfoPanel variant="destructive">
-                {codexConnection.lastError}
-              </SettingsInfoPanel>
-            ) : null}
-            {!codexConnection.canManageHost ? (
-              <SettingsInfoPanel>
-                <Trans>
-                  Desktop runtime required to manage Codex.
-                </Trans>
-              </SettingsInfoPanel>
-            ) : null}
-            <Accordion
-              type="multiple"
-              onValueChange={setAccordionValue}
-              value={accordionValue}
-              className="rounded-lg border px-3"
-            >
-              <AccordionItem value="workspace">
-                <AccordionTrigger>
-                  <Trans>Workspace Root</Trans>
-                </AccordionTrigger>
-                <AccordionContent className="grid gap-3">
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    <Trans>
-                      Codex starts inside this AgentHTML workspace root. Leave it
-                      blank to use the default AppData workspace.
-                    </Trans>
-                  </p>
-                  <div className="grid gap-2">
-                    <Label htmlFor="workspace-root">
-                      <Trans>Custom workspace root</Trans>
-                    </Label>
-                    <Input
-                      id="workspace-root"
-                      onChange={(event) =>
-                        setDraftWorkspaceRootPath(event.target.value)
-                      }
-                      placeholder={
-                        codexConnection.workspaceRootStatus?.defaultRootPath ??
-                        ""
-                      }
-                      value={draftWorkspaceRootPath}
-                    />
-                  </div>
-                  <SettingsDiagnosticsList
-                    items={[
-                      {
-                        label: <Trans>Opened root</Trans>,
-                        span: "full",
-                        value:
-                          codexConnection.workspaceRootStatus?.rootPath ??
-                          _({ id: "unknown" }),
-                      },
-                      {
-                        label: <Trans>Next startup root</Trans>,
-                        span: "full",
-                        value:
-                          codexConnection.workspaceRootStatus?.pendingRootPath ??
-                          _({ id: "unknown" }),
-                      },
-                      {
-                        label: <Trans>Default root</Trans>,
-                        span: "full",
-                        value:
-                          codexConnection.workspaceRootStatus?.defaultRootPath ??
-                          _({ id: "unknown" }),
-                      },
-                    ]}
-                  />
-                  {workspaceRootNotice ? (
-                    <SettingsInfoPanel>{workspaceRootNotice}</SettingsInfoPanel>
-                  ) : null}
-                  <div>
-                    <Button
-                      disabled={!codexConnection.canManageHost}
-                      onClick={saveWorkspaceRootDraft}
-                      type="button"
-                      variant="outline"
-                    >
-                      <Trans>Save workspace root</Trans>
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="advanced">
-                <AccordionTrigger>
-                  <Trans>Advanced Connection</Trans>
-                </AccordionTrigger>
-                <AccordionContent className="grid gap-3">
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    <Trans>
-                      Codex model, approval, sandbox, profile, and trust settings
-                      stay in the official Codex config. Agent-HTML only manages
-                      the local host lifecycle.
-                    </Trans>
-                  </p>
-                  <div className="grid gap-2">
-                    <Label htmlFor="codex-command">
-                      <Trans>Codex command</Trans>
-                    </Label>
-                    <Input
-                      id="codex-command"
-                      onChange={updateTextSetting("codexCommand")}
-                      value={draftSettings.codexCommand}
-                    />
-                  </div>
-                  <div>
-                    <Button
-                      disabled={codexConnection.isBusy}
-                      onClick={() => void runAction(codexConnection.test)}
-                      type="button"
-                      variant="outline"
-                    >
-                      <CableIcon />
-                      <Trans>Test connection</Trans>
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="diagnostics">
-                <AccordionTrigger>
-                  <Trans>Diagnostics</Trans>
-                </AccordionTrigger>
-                <AccordionContent className="grid gap-3">
-                  <div className="flex min-w-0 items-start justify-between gap-3">
-                    <p className="min-w-0 text-xs leading-5 text-muted-foreground">
-                      <Trans>
-                        Runtime details are read from the official App Server APIs.
-                      </Trans>
-                    </p>
-                    <Button
-                      className="shrink-0"
-                      disabled={
-                        codexConnection.status !== "connected" ||
-                        runtimeStatus.status === "loading"
-                      }
-                      onClick={() => void codexConnection.refreshRuntimeStatus()}
-                      type="button"
-                      variant="outline"
-                    >
-                      <RefreshCwIcon />
-                      <Trans>Refresh</Trans>
-                    </Button>
-                  </div>
-                  <SettingsDiagnosticsSection title="Connection">
-                    <SettingsDiagnosticsList
-                      items={[
-                        {
-                          label: <Trans>App server</Trans>,
-                          value: codexConnection.health?.appServerRunning
-                            ? _({ id: "running" })
-                            : _({ id: "off" }),
-                        },
-                        {
-                          label: <Trans>Thread</Trans>,
-                          span: "full",
-                          value:
-                            codexConnection.activeThreadId ?? _({ id: "none" }),
-                        },
-                        {
-                          label: <Trans>Codex command</Trans>,
-                          span: "full",
-                          value:
-                            codexConnection.health?.codexCommand ??
-                            _({ id: "unknown" }),
-                        },
-                        {
-                          label: <Trans>Codex cwd</Trans>,
-                          span: "full",
-                          value:
-                            codexConnection.health?.cwd ?? _({ id: "unknown" }),
-                        },
-                      ]}
-                    />
-                  </SettingsDiagnosticsSection>
-                  <SettingsDiagnosticsSection title="Runtime">
-                    <SettingsDiagnosticsList
-                      items={[
-                        {
-                          label: <Trans>Runtime status</Trans>,
-                          value: runtimeStatus.status,
-                        },
-                        {
-                          label: <Trans>Model</Trans>,
-                          value:
-                            runtimeStatus.config.model ?? _({ id: "unknown" }),
-                        },
-                        {
-                          label: <Trans>Model provider</Trans>,
-                          value:
-                            runtimeStatus.config.modelProvider ??
-                            _({ id: "unknown" }),
-                        },
-                        {
-                          label: <Trans>Sandbox</Trans>,
-                          value:
-                            runtimeStatus.config.sandboxMode ??
-                            runtimeStatus.config.sandboxModeDiagnostic ??
-                            _({ id: "unknown" }),
-                        },
-                        {
-                          label: <Trans>Approvals</Trans>,
-                          value:
-                            runtimeStatus.config.approvalPolicy ??
-                            runtimeStatus.config.approvalPolicyDiagnostic ??
-                            _({ id: "unknown" }),
-                        },
-                      ]}
-                    />
-                  </SettingsDiagnosticsSection>
-                  <SettingsDiagnosticsSection title="Capabilities">
-                    <SettingsDiagnosticsList
-                      items={[
-                        {
-                          label: <Trans>Models</Trans>,
-                          value: formatCapability(
-                            runtimeStatus.capabilities.models,
-                            _
-                          ),
-                        },
-                        {
-                          label: <Trans>MCP servers</Trans>,
-                          value: formatCapability(
-                            runtimeStatus.capabilities.mcpServers,
-                            _
-                          ),
-                        },
-                        {
-                          label: <Trans>Skills</Trans>,
-                          value: formatCapability(
-                            runtimeStatus.capabilities.skills,
-                            _
-                          ),
-                        },
-                        {
-                          label: <Trans>Plugins</Trans>,
-                          value: formatCapability(
-                            runtimeStatus.capabilities.plugins,
-                            _
-                          ),
-                        },
-                        {
-                          label: <Trans>Apps</Trans>,
-                          value: formatCapability(
-                            runtimeStatus.capabilities.apps,
-                            _
-                          ),
-                        },
-                        {
-                          label: <Trans>Collaboration modes</Trans>,
-                          value: formatCapability(
-                            runtimeStatus.capabilities.collaborationModes,
-                            _
-                          ),
-                        },
-                        {
-                          label: <Trans>Config API</Trans>,
-                          value: formatCapability(
-                            runtimeStatus.capabilities.config,
-                            _
-                          ),
-                        },
-                      ]}
-                    />
-                  </SettingsDiagnosticsSection>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        </ScrollArea>
-        <DialogFooter className="items-center sm:justify-between">
-          <Button onClick={saveDraft} type="button" variant="outline">
-            <Trans>Save</Trans>
-          </Button>
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button
-              disabled={
-                codexConnection.isBusy ||
-                !codexConnection.isLoaded ||
-                codexConnection.status === "disconnected"
-              }
-              onClick={() => void runAction(codexConnection.stop)}
-              type="button"
-              variant="outline"
-            >
-              <SquareIcon />
-              <Trans>Stop</Trans>
-            </Button>
-            <Button
-              disabled={codexConnection.isBusy || !codexConnection.isLoaded}
-              onClick={() => void runAction(codexConnection.restart)}
-              type="button"
-            >
-              <RefreshCwIcon />
-              <Trans>Restart</Trans>
-            </Button>
-          </div>
-        </DialogFooter>
+        <PetSettingsContent
+          initialView="Connection"
+          onClose={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   )

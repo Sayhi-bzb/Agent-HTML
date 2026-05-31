@@ -1,14 +1,9 @@
-# docs-template
+# AgentHTML Docs
 
-This is a React Router application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+Documentation site for the AgentHTML app and runtime.
 
 Run development server:
 
 ```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
+npm run dev:docs
 ```

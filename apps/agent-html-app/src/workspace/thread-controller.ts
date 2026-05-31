@@ -4,7 +4,6 @@ import { useCodexConnection } from "@/app/codex/connection"
 import type { CodexConnectionContextValue } from "@/app/codex/connection/types"
 import { isCodexThreadNotFoundError } from "@/app/workspace/agent-intent"
 import { createWorkspaceStore } from "@/app/workspace/store"
-import type { WorkspaceProjectView } from "./types"
 
 const workspaceStore = createWorkspaceStore()
 
@@ -29,17 +28,13 @@ function getErrorMessage(error: unknown) {
   return String(error)
 }
 
-export function useWorkspaceThreadController({
-  activeProject: _activeProject,
-}: {
-  activeProject: WorkspaceProjectView | null
-}) {
+export function useWorkspaceThreadController() {
   const codexConnection = useCodexConnection()
   const [companyAgentError, setCompanyAgentError] = React.useState<
     string | null
   >(null)
   const [isCompanyAgentStateLoading, setIsCompanyAgentStateLoading] =
-    React.useState(false)
+    React.useState(true)
   const [threadRenameError, setThreadRenameError] = React.useState<string | null>(
     null
   )
@@ -76,8 +71,6 @@ export function useWorkspaceThreadController({
 
   React.useEffect(() => {
     let isCurrent = true
-    setIsCompanyAgentStateLoading(true)
-    setCompanyAgentError(null)
 
     workspaceStore
       .getCompanyAgentState()

@@ -307,10 +307,12 @@ export function useWorkspaceDocumentController({
 
   React.useEffect(() => {
     if (!activeProject || !activeSection || !activeTabId) {
-      setDocumentState({ status: "idle" })
-      setPendingDocumentState({ status: "idle" })
-      setSaveState({ status: "clean" })
-      return
+      const animationFrameId = window.requestAnimationFrame(() => {
+        setDocumentState({ status: "idle" })
+        setPendingDocumentState({ status: "idle" })
+        setSaveState({ status: "clean" })
+      })
+      return () => window.cancelAnimationFrame(animationFrameId)
     }
 
     let isCurrent = true

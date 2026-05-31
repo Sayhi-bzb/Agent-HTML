@@ -378,26 +378,47 @@ export function useGalleryController({
     />
   )
 
-  return {
-    activeViewId,
-    appliedThemeCssVariables,
-    headerTabs,
-    panel,
-    requestEnterGallery,
-    requestExitGallery,
-    selectViewTab,
-    sidebarContent,
-    sidebarFooterContent,
-    sidebarHeaderContent,
-    themeDraft: appThemeDraft,
-    themeExitDialog: {
-      isOpen: isExitDialogOpen,
-      onOpenChange: closeExitDialog,
-      onDiscard: discardAndExit,
-      onSave: saveAndExit,
-    },
-  }
+  return React.useMemo(
+    () => ({
+      activeViewId,
+      appliedThemeCssVariables,
+      headerTabs,
+      panel,
+      requestEnterGallery,
+      requestExitGallery,
+      selectViewTab,
+      sidebarContent,
+      sidebarFooterContent,
+      sidebarHeaderContent,
+      themeDraft: appThemeDraft,
+      themeExitDialog: {
+        isOpen: isExitDialogOpen,
+        onOpenChange: closeExitDialog,
+        onDiscard: discardAndExit,
+        onSave: saveAndExit,
+      },
+    }),
+    [
+      activeViewId,
+      appliedThemeCssVariables,
+      appThemeDraft,
+      closeExitDialog,
+      discardAndExit,
+      headerTabs,
+      isExitDialogOpen,
+      panel,
+      requestEnterGallery,
+      requestExitGallery,
+      saveAndExit,
+      selectViewTab,
+      sidebarContent,
+      sidebarFooterContent,
+      sidebarHeaderContent,
+    ]
+  )
 }
+
+export type GalleryController = ReturnType<typeof useGalleryController>
 
 function GallerySidebarFallback() {
   return <div className="min-h-32" />

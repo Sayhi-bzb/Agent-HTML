@@ -1,5 +1,13 @@
 {
   "title": "Reference",
   "root": true,
-  "pages": ["index", "shell-map", "states-and-status", "language", "release", "troubleshooting", "glossary"]
+  "pages": [
+    "index",
+    "shell-map",
+    "states-and-status",
+    "language",
+    "release",
+    "troubleshooting",
+    "glossary"
+  ]
 }

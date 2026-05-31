@@ -421,12 +421,8 @@ export function useWorkspaceController({
     [onActivateWorkspace, projects]
   )
 
-  const renameProject = React.useCallback(
+  const renameProjectAction = React.useCallback(
     async ({ name, projectId }: { name: string; projectId: string }) => {
-      if (guardStructureEdit(() => void renameProject({ name, projectId }))) {
-        return
-      }
-
       const renamedProject = await workspaceStore.renameProject({
         name,
         projectId,
@@ -439,15 +435,26 @@ export function useWorkspaceController({
       )
       setActionError(null)
     },
-    [guardStructureEdit]
+    []
   )
 
-  const deleteProject = React.useCallback(
-    async ({ projectId }: { projectId: string }) => {
-      if (guardStructureEdit(() => void deleteProject({ projectId }))) {
+  const renameProject = React.useCallback(
+    async ({ name, projectId }: { name: string; projectId: string }) => {
+      if (
+        guardStructureEdit(() =>
+          void renameProjectAction({ name, projectId })
+        )
+      ) {
         return
       }
 
+      await renameProjectAction({ name, projectId })
+    },
+    [guardStructureEdit, renameProjectAction]
+  )
+
+  const deleteProjectAction = React.useCallback(
+    async ({ projectId }: { projectId: string }) => {
       await workspaceStore.deleteProject({ projectId })
 
       const removedTabIds = new Set(
@@ -461,17 +468,22 @@ export function useWorkspaceController({
       removeTabs(removedTabIds)
       setActionError(null)
     },
-    [guardStructureEdit, openTabs, removeTabs]
+    [openTabs, removeTabs]
   )
 
-  const createProjectSection = React.useCallback(
-    async ({ projectId, title }: { projectId: string; title: string }) => {
-      if (
-        guardStructureEdit(() => void createProjectSection({ projectId, title }))
-      ) {
+  const deleteProject = React.useCallback(
+    async ({ projectId }: { projectId: string }) => {
+      if (guardStructureEdit(() => void deleteProjectAction({ projectId }))) {
         return
       }
 
+      await deleteProjectAction({ projectId })
+    },
+    [deleteProjectAction, guardStructureEdit]
+  )
+
+  const createProjectSectionAction = React.useCallback(
+    async ({ projectId, title }: { projectId: string; title: string }) => {
       const section = await workspaceStore.createProjectSection({
         projectId,
         title,
@@ -497,10 +509,25 @@ export function useWorkspaceController({
       onActivateWorkspace()
       setActionError(null)
     },
-    [guardStructureEdit, onActivateWorkspace]
+    [onActivateWorkspace]
   )
 
-  const renameProjectSection = React.useCallback(
+  const createProjectSection = React.useCallback(
+    async ({ projectId, title }: { projectId: string; title: string }) => {
+      if (
+        guardStructureEdit(() =>
+          void createProjectSectionAction({ projectId, title })
+        )
+      ) {
+        return
+      }
+
+      await createProjectSectionAction({ projectId, title })
+    },
+    [createProjectSectionAction, guardStructureEdit]
+  )
+
+  const renameProjectSectionAction = React.useCallback(
     async ({
       projectId,
       sectionId,
@@ -510,14 +537,6 @@ export function useWorkspaceController({
       sectionId: string
       title: string
     }) => {
-      if (
-        guardStructureEdit(
-          () => void renameProjectSection({ projectId, sectionId, title })
-        )
-      ) {
-        return
-      }
-
       const renamedSection = await workspaceStore.renameProjectSection({
         projectId,
         sectionId,
@@ -545,10 +564,33 @@ export function useWorkspaceController({
       )
       setActionError(null)
     },
-    [guardStructureEdit]
+    []
   )
 
-  const deleteProjectSection = React.useCallback(
+  const renameProjectSection = React.useCallback(
+    async ({
+      projectId,
+      sectionId,
+      title,
+    }: {
+      projectId: string
+      sectionId: string
+      title: string
+    }) => {
+      if (
+        guardStructureEdit(
+          () => void renameProjectSectionAction({ projectId, sectionId, title })
+        )
+      ) {
+        return
+      }
+
+      await renameProjectSectionAction({ projectId, sectionId, title })
+    },
+    [guardStructureEdit, renameProjectSectionAction]
+  )
+
+  const deleteProjectSectionAction = React.useCallback(
     async ({
       projectId,
       sectionId,
@@ -556,14 +598,6 @@ export function useWorkspaceController({
       projectId: string
       sectionId: string
     }) => {
-      if (
-        guardStructureEdit(
-          () => void deleteProjectSection({ projectId, sectionId })
-        )
-      ) {
-        return
-      }
-
       await workspaceStore.deleteProjectSection({ projectId, sectionId })
       const removedTabId = getSectionTabId(sectionId)
 
@@ -582,10 +616,10 @@ export function useWorkspaceController({
       removeTabs(new Set([removedTabId]))
       setActionError(null)
     },
-    [guardStructureEdit, removeTabs]
+    [removeTabs]
   )
 
-  const duplicateProjectSection = React.useCallback(
+  const deleteProjectSection = React.useCallback(
     async ({
       projectId,
       sectionId,
@@ -595,12 +629,25 @@ export function useWorkspaceController({
     }) => {
       if (
         guardStructureEdit(
-          () => void duplicateProjectSection({ projectId, sectionId })
+          () => void deleteProjectSectionAction({ projectId, sectionId })
         )
       ) {
         return
       }
 
+      await deleteProjectSectionAction({ projectId, sectionId })
+    },
+    [deleteProjectSectionAction, guardStructureEdit]
+  )
+
+  const duplicateProjectSectionAction = React.useCallback(
+    async ({
+      projectId,
+      sectionId,
+    }: {
+      projectId: string
+      sectionId: string
+    }) => {
       const section = await workspaceStore.duplicateProjectSection({
         projectId,
         sectionId,
@@ -626,7 +673,28 @@ export function useWorkspaceController({
       onActivateWorkspace()
       setActionError(null)
     },
-    [guardStructureEdit, onActivateWorkspace]
+    [onActivateWorkspace]
+  )
+
+  const duplicateProjectSection = React.useCallback(
+    async ({
+      projectId,
+      sectionId,
+    }: {
+      projectId: string
+      sectionId: string
+    }) => {
+      if (
+        guardStructureEdit(
+          () => void duplicateProjectSectionAction({ projectId, sectionId })
+        )
+      ) {
+        return
+      }
+
+      await duplicateProjectSectionAction({ projectId, sectionId })
+    },
+    [duplicateProjectSectionAction, guardStructureEdit]
   )
 
   const selectTab = React.useCallback((tabId: string) => {

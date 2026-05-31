@@ -17,6 +17,15 @@
         "decorations": false,
         "width": 1280,
         "height": 820
+      },
+      {
+        "label": "thread-panel",
+        "title": "Thread Panel",
+        "decorations": false,
+        "visible": false,
+        "width": 960,
+        "height": 640,
+        "url": "/?window=thread-panel"
       }
     ],
     "security": {

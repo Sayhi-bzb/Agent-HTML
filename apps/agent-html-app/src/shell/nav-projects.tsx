@@ -105,10 +105,6 @@ function InlineNameInput({
   const [localError, setLocalError] = React.useState<string | null>(null)
   const isSubmittingRef = React.useRef(false)
 
-  React.useEffect(() => {
-    setDraft(value)
-  }, [value])
-
   const submit = React.useCallback(async () => {
     const nextValue = draft.trim()
     if (isSubmitting) {
@@ -130,7 +126,7 @@ function InlineNameInput({
       isSubmittingRef.current = false
       setIsSubmitting(false)
     }
-  }, [draft, isSubmitting, onSubmit])
+  }, [draft, isSubmitting, onSubmit, placeholder])
 
   return (
     <div className="min-w-0 flex-1">

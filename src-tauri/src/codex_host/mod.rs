@@ -199,8 +199,13 @@ mod tests {
 
     #[test]
     fn codex_host_start_syncs_managed_agent_html_skill() {
-        assert!(SERVICE_SOURCE.contains("store.ensure_agent_html_skill()?"));
-        assert!(SERVICE_SOURCE.find("store.ensure_agent_html_skill()?").unwrap()
-            < SERVICE_SOURCE.find("spawn_codex_process(").unwrap());
+        let sync_index = SERVICE_SOURCE
+            .find(".ensure_agent_html_skill()")
+            .expect("start syncs AgentHTML skill");
+        let spawn_index = SERVICE_SOURCE
+            .find("spawn_codex_process(")
+            .expect("start spawns Codex process");
+
+        assert!(sync_index < spawn_index);
     }
 }

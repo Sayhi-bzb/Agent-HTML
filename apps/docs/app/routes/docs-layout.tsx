@@ -1,8 +1,8 @@
+import type { Root } from 'fumadocs-core/page-tree';
+import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
+import { getLayoutTabs } from 'fumadocs-ui/layouts/shared';
 import type { ReactNode } from 'react';
 import { Outlet } from 'react-router';
-import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
-import type { Root } from 'fumadocs-core/page-tree';
-import { getLayoutTabs } from 'fumadocs-ui/layouts/shared';
 import { baseOptions } from '@/lib/layout.shared';
 import { getProductByPathname } from '@/lib/products';
 import type { Route } from './+types/docs-layout';
@@ -29,7 +29,9 @@ export default function Layout({
   const { nav, ...base } = baseOptions();
   const tree = loaderData.tree as Root;
   const tabs = getLayoutTabs(tree).filter(
-    (tab) => tab.url === loaderData.productRoot || tab.url.startsWith(`${loaderData.productRoot}/`),
+    (tab) =>
+      tab.url === loaderData.productRoot ||
+      tab.url.startsWith(`${loaderData.productRoot}/`),
   );
 
   return (

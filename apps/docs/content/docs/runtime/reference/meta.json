@@ -1,5 +1,13 @@
 {
   "title": "Reference",
   "root": true,
-  "pages": ["index", "module-boundaries", "elements", "attributes", "validation-errors", "public-exports", "glossary"]
+  "pages": [
+    "index",
+    "module-boundaries",
+    "elements",
+    "attributes",
+    "validation-errors",
+    "public-exports",
+    "glossary"
+  ]
 }

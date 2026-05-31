@@ -1,12 +1,14 @@
 import { isTauri } from "@tauri-apps/api/core"
+import { emitTo, listen } from "@tauri-apps/api/event"
 
-import type { AgentHtmlAgentPromptSubmitInput } from "@/agent-html"
 import type { ThreadPanelAction, ThreadPanelSurfaceSnapshot } from "@/app/pet/host/pet-thread-panel-content"
 import type { ThreadTranscriptState } from "@/app/workspace/thread-transcript"
 
 export const THREAD_PANEL_WINDOW_LABEL = "thread-panel"
 export const THREAD_PANEL_SNAPSHOT_EVENT = "thread-panel://snapshot"
 export const THREAD_PANEL_ACTION_EVENT = "thread-panel://action"
+export const THREAD_PANEL_SNAPSHOT_STORAGE_KEY =
+  "agent-html:thread-panel-native-snapshot"
 
 export type ThreadPanelNativeSnapshot = {
   composer: {
@@ -19,14 +21,69 @@ export type ThreadPanelNativeSnapshot = {
   >
 }
 
-export type ThreadPanelNativeAction =
-  | ThreadPanelAction
-  | { draft: string; type: "set-message-draft" }
-  | { submit: AgentHtmlAgentPromptSubmitInput; type: "submit-prompt" }
-  | { type: "interrupt-turn" }
+export type ThreadPanelNativeAction = ThreadPanelAction
+
+let latestThreadPanelNativeSnapshot: ThreadPanelNativeSnapshot | null = null
 
 export function canUseThreadPanelNativeWindow() {
   return isTauri()
+}
+
+export function getLatestThreadPanelNativeSnapshot() {
+  return latestThreadPanelNativeSnapshot ?? readThreadPanelNativeSnapshotCache()
+}
+
+export function setLatestThreadPanelNativeSnapshot(
+  snapshot: ThreadPanelNativeSnapshot | null
+) {
+  latestThreadPanelNativeSnapshot = snapshot
+  writeThreadPanelNativeSnapshotCache(snapshot)
+}
+
+export function readThreadPanelNativeSnapshotCache() {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  const rawSnapshot = window.localStorage.getItem(
+    THREAD_PANEL_SNAPSHOT_STORAGE_KEY
+  )
+  if (!rawSnapshot) {
+    return null
+  }
+
+  try {
+    return JSON.parse(rawSnapshot) as ThreadPanelNativeSnapshot
+  } catch {
+    window.localStorage.removeItem(THREAD_PANEL_SNAPSHOT_STORAGE_KEY)
+    return null
+  }
+}
+
+function writeThreadPanelNativeSnapshotCache(
+  snapshot: ThreadPanelNativeSnapshot | null
+) {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  if (!snapshot) {
+    window.localStorage.removeItem(THREAD_PANEL_SNAPSHOT_STORAGE_KEY)
+    return
+  }
+
+  window.localStorage.setItem(
+    THREAD_PANEL_SNAPSHOT_STORAGE_KEY,
+    JSON.stringify(snapshot)
+  )
+}
+
+export function preloadThreadPanelNativeWindowApp() {
+  if (!canUseThreadPanelNativeWindow()) {
+    return
+  }
+
+  void import("@/app/pet/host/thread-panel-window-app")
 }
 
 export async function openThreadPanelNativeWindow() {
@@ -34,41 +91,60 @@ export async function openThreadPanelNativeWindow() {
     return false
   }
 
+  try {
+    const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow")
+    const existingWindow = await WebviewWindow.getByLabel(
+      THREAD_PANEL_WINDOW_LABEL
+    )
+    if (existingWindow) {
+      await existingWindow.show()
+      await existingWindow.setFocus()
+      return true
+    }
+
+    const threadPanelWindow = new WebviewWindow(THREAD_PANEL_WINDOW_LABEL, {
+      decorations: false,
+      height: 640,
+      title: "Thread Panel",
+      url: "/?window=thread-panel",
+      width: 960,
+    })
+
+    await new Promise<void>((resolve, reject) => {
+      void threadPanelWindow.once("tauri://created", () => resolve())
+      void threadPanelWindow.once("tauri://error", (event) => {
+        reject(event.payload)
+      })
+    })
+    await threadPanelWindow.show()
+    await threadPanelWindow.setFocus()
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function closeThreadPanelNativeWindow() {
+  if (!canUseThreadPanelNativeWindow()) {
+    return
+  }
+
   const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow")
   const existingWindow = await WebviewWindow.getByLabel(
     THREAD_PANEL_WINDOW_LABEL
   )
-  if (existingWindow) {
-    await existingWindow.setFocus()
-    return true
-  }
-
-  const threadPanelWindow = new WebviewWindow(THREAD_PANEL_WINDOW_LABEL, {
-    decorations: false,
-    height: 640,
-    title: "Thread Panel",
-    url: "/?window=thread-panel",
-    width: 960,
-  })
-
-  await new Promise<void>((resolve, reject) => {
-    void threadPanelWindow.once("tauri://created", () => resolve())
-    void threadPanelWindow.once("tauri://error", (event) => {
-      reject(event.payload)
-    })
-  })
-  await threadPanelWindow.setFocus()
-  return true
+  await existingWindow?.hide()
 }
 
 export async function publishThreadPanelNativeSnapshot(
   snapshot: ThreadPanelNativeSnapshot
 ) {
+  setLatestThreadPanelNativeSnapshot(snapshot)
+
   if (!canUseThreadPanelNativeWindow()) {
     return
   }
 
-  const { emitTo } = await import("@tauri-apps/api/event")
   await emitTo(
     THREAD_PANEL_WINDOW_LABEL,
     THREAD_PANEL_SNAPSHOT_EVENT,
@@ -83,7 +159,6 @@ export async function dispatchThreadPanelNativeAction(
     return
   }
 
-  const { emitTo } = await import("@tauri-apps/api/event")
   await emitTo("main", THREAD_PANEL_ACTION_EVENT, action)
 }
 
@@ -94,7 +169,6 @@ export async function subscribeThreadPanelNativeActions(
     return () => {}
   }
 
-  const { listen } = await import("@tauri-apps/api/event")
   return listen<ThreadPanelNativeAction>(THREAD_PANEL_ACTION_EVENT, (event) => {
     handler(event.payload)
   })
@@ -107,7 +181,6 @@ export async function subscribeThreadPanelNativeSnapshots(
     return () => {}
   }
 
-  const { listen } = await import("@tauri-apps/api/event")
   return listen<ThreadPanelNativeSnapshot>(
     THREAD_PANEL_SNAPSHOT_EVENT,
     (event) => {

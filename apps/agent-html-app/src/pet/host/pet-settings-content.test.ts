@@ -42,16 +42,46 @@ describe("pet settings content", () => {
   })
 
   it("exposes sidebar navigation for agent configuration views", () => {
-    for (const label of [
-      "Instructions",
-      "Skills",
-      "MCP",
-      "Plugins",
-      "Runtime",
-    ]) {
-      expect(settingsContentSource).toContain(`"${label}"`)
-    }
+    expect(settingsContentSource).toContain('"AGENTS.md",')
+    expect(settingsContentSource).toContain('"MCP",')
+    expect(settingsContentSource).toContain('"Skills",')
+    expect(settingsContentSource).toContain('"Plugins",')
+    expect(settingsContentSource).toContain('"Runtime",')
+    expect(settingsContentSource).toContain('"Connection",')
+    expect(settingsContentSource.indexOf('"AGENTS.md",')).toBeLessThan(
+      settingsContentSource.indexOf('"MCP",')
+    )
+    expect(settingsContentSource.indexOf('"MCP",')).toBeLessThan(
+      settingsContentSource.indexOf('"Skills",')
+    )
+    expect(settingsContentSource.indexOf('"Skills",')).toBeLessThan(
+      settingsContentSource.indexOf('"Plugins",')
+    )
+    expect(settingsContentSource.indexOf('"Plugins",')).toBeLessThan(
+      settingsContentSource.indexOf('"Runtime",')
+    )
+    expect(settingsContentSource.indexOf('"Runtime",')).toBeLessThan(
+      settingsContentSource.indexOf('"Connection",')
+    )
+    expect(settingsContentSource).toContain("type SettingsView")
+    expect(settingsContentSource).toContain('initialView = "AGENTS.md"')
+    expect(settingsContentSource).toContain("activeView")
+    expect(settingsContentSource).toContain("setActiveView(view)")
     expect(settingsContentSource).toContain("SettingsViewContent")
+    expect(settingsContentSource).toContain('activeView === "AGENTS.md"')
+    expect(settingsContentSource).toContain('activeView === "MCP"')
+    expect(settingsContentSource).toContain('activeView === "Skills"')
+    expect(settingsContentSource).toContain('activeView === "Plugins"')
+    expect(settingsContentSource).toContain('activeView === "Runtime"')
+    expect(settingsContentSource).toContain("SettingsViewContent")
+    expect(settingsContentSource).toContain("ConnectionView")
+    expect(settingsContentSource).toContain("AgentsMdView")
+    expect(settingsContentSource).toContain("<McpView")
+    expect(settingsContentSource).toContain("<SkillsView")
+    expect(settingsContentSource).toContain("<PluginsView")
+    expect(settingsContentSource).toContain("<RuntimeView")
+    expect(settingsContentSource).toContain("Custom workspace root")
+    expect(settingsContentSource).toContain("Test connection")
     expect(settingsContentSource).not.toContain("TabsList")
     expect(settingsContentSource).not.toContain("TabsTrigger")
     expect(settingsContentSource).not.toContain("TabsContent")

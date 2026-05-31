@@ -82,7 +82,7 @@ export function WorkspaceSurface({
     onCreateSection,
   })
   const [messageDraft, setMessageDraft] = useState("")
-  const threadController = useWorkspaceThreadController({ activeProject })
+  const threadController = useWorkspaceThreadController()
   const displayedSection =
     activeProject && documentState.status === "ready"
       ? activeProject.sections.find(

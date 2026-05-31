@@ -1,3 +1,4 @@
+import { RootProvider } from 'fumadocs-ui/provider/react-router';
 import {
   isRouteErrorResponse,
   Links,
@@ -6,12 +7,11 @@ import {
   Scripts,
   ScrollRestoration,
 } from 'react-router';
-import { RootProvider } from 'fumadocs-ui/provider/react-router';
 import type { Route } from './+types/root';
 import './app.css';
 import { isMarkdownPreferred, rewritePath } from 'fumadocs-core/negotiation';
-import NotFound from './routes/not-found';
 import { docsContentRoute, docsRoute } from '@/lib/shared';
+import NotFound from './routes/not-found';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -83,7 +83,10 @@ const { rewrite: rewriteSuffix } = rewritePath(
   `${docsRoute}{/*path}.md`,
   `${docsContentRoute}{/*path}/content.md`,
 );
-const serverMiddleware: Route.MiddlewareFunction = async ({ request }, next) => {
+const serverMiddleware: Route.MiddlewareFunction = async (
+  { request },
+  next,
+) => {
   const url = new URL(request.url);
   const suffixPath = rewriteSuffix(url.pathname);
   if (suffixPath) return Response.redirect(new URL(suffixPath, url));

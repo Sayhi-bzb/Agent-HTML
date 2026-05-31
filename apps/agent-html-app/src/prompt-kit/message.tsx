@@ -75,7 +75,7 @@ const MessageContent = (props: MessageContentProps) => {
     return <Markdown className={classNames} children={props.children} />
   }
 
-  const { children, markdown: _markdown, ...divProps } = props
+  const { children, ...divProps } = props
 
   return (
     <div className={classNames} {...divProps}>

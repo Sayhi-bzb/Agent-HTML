@@ -8,13 +8,22 @@ import {
 import { PetThreadTranscriptContent } from "@/app/pet/host/pet-thread-transcript-content"
 import {
   dispatchThreadPanelNativeAction,
+  readThreadPanelNativeSnapshotCache,
   subscribeThreadPanelNativeSnapshots,
   type ThreadPanelNativeSnapshot,
 } from "@/app/pet/host/thread-panel-native-bridge"
+import { hideWindow } from "@/app/shared/lib/window-controls"
+import {
+  WindowChromeFrame,
+  WindowTitlebar,
+} from "@/app/shared/ui/window-chrome"
 
 export function ThreadPanelWindowApp() {
   const [snapshot, setSnapshot] =
-    React.useState<ThreadPanelNativeSnapshot | null>(null)
+    React.useState<ThreadPanelNativeSnapshot | null>(
+      readThreadPanelNativeSnapshotCache
+    )
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false)
 
   React.useEffect(() => {
     let isMounted = true
@@ -36,21 +45,40 @@ export function ThreadPanelWindowApp() {
 
   if (!snapshot) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background px-6 text-center text-xs text-muted-foreground">
+      <WindowChromeFrame className="items-center justify-center px-6 text-center text-xs text-muted-foreground">
         Waiting for thread panel state.
-      </div>
+      </WindowChromeFrame>
     )
   }
 
-  const bridge: ThreadPanelBridge = {
-    dispatch: dispatchThreadPanelNativeAction,
-    snapshot: snapshot.surface,
-  }
+  const bridge = {
+    dispatch: (action) => {
+      if (action.type === "set-search-open") {
+        setIsSearchOpen(action.open)
+        return
+      }
+      if (action.type === "close") {
+        void dispatchThreadPanelNativeAction(action)
+        void hideWindow()
+        return
+      }
+      return dispatchThreadPanelNativeAction(action)
+    },
+    snapshot: {
+      ...snapshot.surface,
+      searchOpen: isSearchOpen,
+    },
+  } satisfies ThreadPanelBridge
 
   return (
-    <div className="h-screen min-h-0 w-screen min-w-0 overflow-hidden bg-background">
+    <WindowChromeFrame>
       <ThreadPanelSurface
         bridge={bridge}
+        headerSlot={(header) => (
+          <WindowTitlebar className="bg-muted/30 text-foreground">
+            {header}
+          </WindowTitlebar>
+        )}
         chat={({ onSearchOpenChange, searchOpen }) => (
           <PetThreadTranscriptContent
             composer={
@@ -81,6 +109,6 @@ export function ThreadPanelWindowApp() {
           />
         )}
       />
-    </div>
+    </WindowChromeFrame>
   )
 }

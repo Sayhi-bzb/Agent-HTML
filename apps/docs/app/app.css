@@ -1,6 +1,6 @@
-@import 'tailwindcss';
-@import 'fumadocs-ui/css/shadcn.css';
-@import 'fumadocs-ui/css/preset.css';
+@import "tailwindcss";
+@import "fumadocs-ui/css/shadcn.css";
+@import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -11,7 +11,9 @@ html {
 }
 
 html > body[data-scroll-locked] {
+  /* biome-ignore lint/complexity/noImportantStyles: Radix scroll locking writes inline body compensation; docs shell must neutralize it. */
   margin-right: 0px !important;
+  /* biome-ignore lint/complexity/noImportantStyles: Keep the Radix scrollbar compensation variable aligned with the forced body margin. */
   --removed-body-scroll-bar-size: 0px !important;
 }
 

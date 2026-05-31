@@ -58,10 +58,6 @@ function getInitialLanguage(
   return defaultLanguage
 }
 
-function resolveLanguage(language: AppLanguage): ResolvedAppLocale {
-  return language === "system" ? getSystemLocale() : language
-}
-
 export function getResolvedAppLocaleLabel(locale: ResolvedAppLocale) {
   return locale === "zh" ? "中文" : "English"
 }
@@ -94,9 +90,10 @@ export function LanguageProvider({
   const [language, setLanguageState] = React.useState<AppLanguage>(() =>
     getInitialLanguage(storageKey, defaultLanguage)
   )
-  const [resolvedLocale, setResolvedLocale] = React.useState<ResolvedAppLocale>(
-    () => resolveLanguage(language)
+  const [systemLocale, setSystemLocale] = React.useState<ResolvedAppLocale>(
+    getSystemLocale
   )
+  const resolvedLocale = language === "system" ? systemLocale : language
 
   const setLanguage = React.useCallback(
     (nextLanguage: AppLanguage) => {
@@ -107,10 +104,8 @@ export function LanguageProvider({
   )
 
   React.useEffect(() => {
-    const nextLocale = resolveLanguage(language)
-    setResolvedLocale(nextLocale)
-    activateLocale(nextLocale)
-  }, [language])
+    activateLocale(resolvedLocale)
+  }, [resolvedLocale])
 
   React.useEffect(() => {
     if (language !== "system") {
@@ -118,9 +113,7 @@ export function LanguageProvider({
     }
 
     const handleLanguageChange = () => {
-      const nextLocale = resolveLanguage("system")
-      setResolvedLocale(nextLocale)
-      activateLocale(nextLocale)
+      setSystemLocale(getSystemLocale())
     }
 
     window.addEventListener("languagechange", handleLanguageChange)

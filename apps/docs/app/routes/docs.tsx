@@ -1,4 +1,4 @@
-import type { Route } from './+types/docs';
+import browserCollections from 'collections/browser';
 import {
   DocsBody,
   DocsDescription,
@@ -7,11 +7,11 @@ import {
   MarkdownCopyButton,
   ViewOptionsPopover,
 } from 'fumadocs-ui/layouts/notebook/page';
-import { getPageMarkdownUrl, source } from '@/lib/source';
-import browserCollections from 'collections/browser';
-import { gitConfig } from '@/lib/shared';
+import { getMDXComponents } from '@/components/mdx';
 import { getPageImagePath } from '@/lib/og';
-import { useMDXComponents } from '@/components/mdx';
+import { gitConfig } from '@/lib/shared';
+import { getPageMarkdownUrl, source } from '@/lib/source';
+import type { Route } from './+types/docs';
 
 export async function loader({ params }: Route.LoaderArgs) {
   const slugs = params['*'].split('/').filter((v) => v.length > 0);
@@ -39,6 +39,8 @@ const clientLoader = browserCollections.docs.createClientLoader({
       imagePath: string;
     },
   ) {
+    const mdxComponents = getMDXComponents();
+
     return (
       <DocsPage toc={toc}>
         <title>{frontmatter.title}</title>
@@ -54,7 +56,7 @@ const clientLoader = browserCollections.docs.createClientLoader({
           />
         </div>
         <DocsBody>
-          <Mdx components={useMDXComponents()} />
+          <Mdx components={mdxComponents} />
         </DocsBody>
       </DocsPage>
     );

@@ -188,12 +188,30 @@
     @apply border-border outline-ring/50;
   }
 
-  [data-tauri-drag-region] {
-    app-region: drag;
+  html,
+  body,
+  #root {
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
   [data-tauri-no-drag] {
     app-region: no-drag;
+  }
+
+  [data-window-chrome-root] {
+    overscroll-behavior: none;
+  }
+
+  [data-window-titlebar] {
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
+  [data-window-drag-handle] {
+    user-select: none;
   }
 
   [data-selection="none"] {

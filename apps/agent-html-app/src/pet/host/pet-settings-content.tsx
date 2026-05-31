@@ -7,7 +7,10 @@ import type {
   CodexRuntimeStatus,
 } from "@/app/codex/connection"
 import type { CodexRuntimeCapabilityItem } from "@/app/codex/connection/types"
+import { Badge } from "@/app/shared/ui/badge"
 import { Button } from "@/app/shared/ui/button"
+import { Input } from "@/app/shared/ui/input"
+import { Label } from "@/app/shared/ui/label"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import { Separator } from "@/app/shared/ui/separator"
 import {
@@ -27,11 +30,12 @@ import { createWorkspaceStore } from "@/app/workspace/store"
 const workspaceStore = createWorkspaceStore()
 
 const settingsViews = [
-  "Instructions",
-  "Skills",
+  "AGENTS.md",
   "MCP",
+  "Skills",
   "Plugins",
   "Runtime",
+  "Connection",
 ] as const
 
 type SettingsView = (typeof settingsViews)[number]
@@ -176,17 +180,50 @@ function PathInfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function PetSettingsContent({ onClose }: { onClose?: () => void }) {
+export function PetSettingsContent({
+  initialView = "AGENTS.md",
+  onClose,
+}: {
+  initialView?: SettingsView
+  onClose?: () => void
+}) {
   const codexConnection = useCodexConnection()
+
+  return (
+    <PetSettingsContentSession
+      codexConnection={codexConnection}
+      initialView={initialView}
+      key={`${codexConnection.settings.codexCommand}:${codexConnection.workspaceRootStatus?.settings.rootPath ?? ""}`}
+      onClose={onClose}
+    />
+  )
+}
+
+function PetSettingsContentSession({
+  codexConnection,
+  initialView,
+  onClose,
+}: {
+  codexConnection: ReturnType<typeof useCodexConnection>
+  initialView: SettingsView
+  onClose?: () => void
+}) {
   const runtimeStatus = codexConnection.runtimeStatus
   const [activeView, setActiveView] =
-    React.useState<SettingsView>("Instructions")
+    React.useState<SettingsView>(initialView)
   const [baseline, setBaseline] = React.useState("")
   const [draft, setDraft] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
   const [status, setStatus] = React.useState<"idle" | "saved">("idle")
+  const [draftSettings, setDraftSettings] = React.useState(
+    codexConnection.settings
+  )
+  const [draftWorkspaceRootPath, setDraftWorkspaceRootPath] =
+    React.useState("")
+  const [workspaceRootNotice, setWorkspaceRootNotice] =
+    React.useState<string | null>(null)
 
   const isDirty = draft !== baseline
 
@@ -237,6 +274,29 @@ export function PetSettingsContent({ onClose }: { onClose?: () => void }) {
   const refreshRuntimeStatus = React.useCallback(() => {
     void codexConnection.refreshRuntimeStatus()
   }, [codexConnection])
+  const saveCodexSettings = React.useCallback(() => {
+    void codexConnection.updateSettings(draftSettings)
+  }, [codexConnection, draftSettings])
+  const saveWorkspaceRoot = React.useCallback(() => {
+    void codexConnection
+      .updateWorkspaceRootSettings({ rootPath: draftWorkspaceRootPath })
+      .then(() =>
+        setWorkspaceRootNotice(
+          "Restart Agent-HTML for the workspace root change to take effect."
+        )
+      )
+  }, [codexConnection, draftWorkspaceRootPath])
+  const runCodexAction = React.useCallback(
+    async (action: (settingsOverride?: typeof draftSettings) => Promise<void>) => {
+      await codexConnection.updateSettings(draftSettings)
+      try {
+        await action(draftSettings)
+      } catch {
+        // The connection provider owns the visible error state.
+      }
+    },
+    [codexConnection, draftSettings]
+  )
   const isRuntimeRefreshDisabled =
     codexConnection.status !== "connected" || runtimeStatus.status === "loading"
   const subtitle =
@@ -331,20 +391,42 @@ export function PetSettingsContent({ onClose }: { onClose?: () => void }) {
           >
             <SettingsViewContent
               activeView={activeView}
+              canManageHost={codexConnection.canManageHost}
               codexCommand={codexConnection.health?.codexCommand ?? "unknown"}
+              codexConnectionStatus={codexConnection.status}
               connectionStatus={codexConnection.status}
               cwd={codexConnection.health?.cwd ?? "unknown"}
               draft={draft}
+              draftCodexCommand={draftSettings.codexCommand}
+              draftWorkspaceRootPath={draftWorkspaceRootPath}
               error={error}
+              healthAppServerRunning={codexConnection.health?.appServerRunning}
+              isCodexBusy={codexConnection.isBusy}
+              isCodexLoaded={codexConnection.isLoaded}
               isDirty={isDirty}
               isLoading={isLoading}
               isSaving={isSaving}
+              lastError={codexConnection.lastError}
               loadInstructions={loadInstructions}
+              onDraftCodexCommandChange={(value) =>
+                setDraftSettings((current) => ({
+                  ...current,
+                  codexCommand: value,
+                }))
+              }
+              onDraftWorkspaceRootPathChange={setDraftWorkspaceRootPath}
+              onRestart={() => void runCodexAction(codexConnection.restart)}
+              onSaveCodexSettings={saveCodexSettings}
+              onSaveWorkspaceRoot={saveWorkspaceRoot}
+              onStop={() => void runCodexAction(codexConnection.stop)}
+              onTestConnection={() => void runCodexAction(codexConnection.test)}
               runtimeStatus={runtimeStatus}
               saveInstructions={saveInstructions}
               setDraft={setDraft}
               setStatus={setStatus}
               status={status}
+              workspaceRootNotice={workspaceRootNotice}
+              workspaceRootStatus={codexConnection.workspaceRootStatus}
             />
           </ScrollArea>
         </main>
@@ -355,40 +437,74 @@ export function PetSettingsContent({ onClose }: { onClose?: () => void }) {
 
 function SettingsViewContent({
   activeView,
+  canManageHost,
   codexCommand,
+  codexConnectionStatus,
   connectionStatus,
   cwd,
   draft,
+  draftCodexCommand,
+  draftWorkspaceRootPath,
   error,
+  healthAppServerRunning,
+  isCodexBusy,
+  isCodexLoaded,
   isDirty,
   isLoading,
   isSaving,
+  lastError,
   loadInstructions,
+  onDraftCodexCommandChange,
+  onDraftWorkspaceRootPathChange,
+  onRestart,
+  onSaveCodexSettings,
+  onSaveWorkspaceRoot,
+  onStop,
+  onTestConnection,
   runtimeStatus,
   saveInstructions,
   setDraft,
   setStatus,
   status,
+  workspaceRootNotice,
+  workspaceRootStatus,
 }: {
   activeView: SettingsView
+  canManageHost: boolean
   codexCommand: string
+  codexConnectionStatus: string
   connectionStatus: string
   cwd: string
   draft: string
+  draftCodexCommand: string
+  draftWorkspaceRootPath: string
   error: string | null
+  healthAppServerRunning?: boolean
+  isCodexBusy: boolean
+  isCodexLoaded: boolean
   isDirty: boolean
   isLoading: boolean
   isSaving: boolean
+  lastError?: string | null
   loadInstructions: () => Promise<void>
+  onDraftCodexCommandChange: (value: string) => void
+  onDraftWorkspaceRootPathChange: (value: string) => void
+  onRestart: () => void
+  onSaveCodexSettings: () => void
+  onSaveWorkspaceRoot: () => void
+  onStop: () => void
+  onTestConnection: () => void
   runtimeStatus: CodexRuntimeStatus
   saveInstructions: () => void
   setDraft: (draft: string) => void
   setStatus: (status: "idle" | "saved") => void
   status: "idle" | "saved"
+  workspaceRootNotice?: string | null
+  workspaceRootStatus: ReturnType<typeof useCodexConnection>["workspaceRootStatus"]
 }) {
-  if (activeView === "Instructions") {
+  if (activeView === "AGENTS.md") {
     return (
-      <InstructionsView
+      <AgentsMdView
         draft={draft}
         error={error}
         isDirty={isDirty}
@@ -403,29 +519,56 @@ function SettingsViewContent({
     )
   }
 
-  if (activeView === "Skills") {
-    return <SkillsView runtimeStatus={runtimeStatus} />
-  }
-
   if (activeView === "MCP") {
     return <McpView runtimeStatus={runtimeStatus} />
+  }
+
+  if (activeView === "Skills") {
+    return <SkillsView runtimeStatus={runtimeStatus} />
   }
 
   if (activeView === "Plugins") {
     return <PluginsView runtimeStatus={runtimeStatus} />
   }
 
+  if (activeView === "Runtime") {
+    return (
+      <RuntimeView
+        codexCommand={codexCommand}
+        connectionStatus={connectionStatus}
+        cwd={cwd}
+        runtimeStatus={runtimeStatus}
+      />
+    )
+  }
+
   return (
-    <RuntimeView
+    <ConnectionView
+      canManageHost={canManageHost}
       codexCommand={codexCommand}
+      codexConnectionStatus={codexConnectionStatus}
       connectionStatus={connectionStatus}
       cwd={cwd}
-      runtimeStatus={runtimeStatus}
+      draftCodexCommand={draftCodexCommand}
+      draftWorkspaceRootPath={draftWorkspaceRootPath}
+      healthAppServerRunning={healthAppServerRunning}
+      isCodexBusy={isCodexBusy}
+      isCodexLoaded={isCodexLoaded}
+      lastError={lastError}
+      onDraftCodexCommandChange={onDraftCodexCommandChange}
+      onDraftWorkspaceRootPathChange={onDraftWorkspaceRootPathChange}
+      onRestart={onRestart}
+      onSaveCodexSettings={onSaveCodexSettings}
+      onSaveWorkspaceRoot={onSaveWorkspaceRoot}
+      onStop={onStop}
+      onTestConnection={onTestConnection}
+      workspaceRootNotice={workspaceRootNotice}
+      workspaceRootStatus={workspaceRootStatus}
     />
   )
 }
 
-function InstructionsView({
+function AgentsMdView({
   draft,
   error,
   isDirty,
@@ -511,6 +654,174 @@ function InstructionsView({
           {isSaving ? "Saving" : "Save"}
         </Button>
       </footer>
+    </div>
+  )
+}
+
+function ConnectionView({
+  canManageHost,
+  codexCommand,
+  codexConnectionStatus,
+  connectionStatus,
+  cwd,
+  draftCodexCommand,
+  draftWorkspaceRootPath,
+  healthAppServerRunning,
+  isCodexBusy,
+  isCodexLoaded,
+  lastError,
+  onDraftCodexCommandChange,
+  onDraftWorkspaceRootPathChange,
+  onRestart,
+  onSaveCodexSettings,
+  onSaveWorkspaceRoot,
+  onStop,
+  onTestConnection,
+  workspaceRootNotice,
+  workspaceRootStatus,
+}: {
+  canManageHost: boolean
+  codexCommand: string
+  codexConnectionStatus: string
+  connectionStatus: string
+  cwd: string
+  draftCodexCommand: string
+  draftWorkspaceRootPath: string
+  healthAppServerRunning?: boolean
+  isCodexBusy: boolean
+  isCodexLoaded: boolean
+  lastError?: string | null
+  onDraftCodexCommandChange: (value: string) => void
+  onDraftWorkspaceRootPathChange: (value: string) => void
+  onRestart: () => void
+  onSaveCodexSettings: () => void
+  onSaveWorkspaceRoot: () => void
+  onStop: () => void
+  onTestConnection: () => void
+  workspaceRootNotice?: string | null
+  workspaceRootStatus: ReturnType<typeof useCodexConnection>["workspaceRootStatus"]
+}) {
+  return (
+    <div className="grid gap-4">
+      <section className="grid gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-sm font-medium">Status</h3>
+          <Badge
+            variant={
+              codexConnectionStatus === "connected"
+                ? "default"
+                : codexConnectionStatus === "error"
+                  ? "destructive"
+                  : "outline"
+            }
+          >
+            {codexConnectionStatus}
+          </Badge>
+        </div>
+        {lastError ? (
+          <SettingsInfoPanel variant="destructive">{lastError}</SettingsInfoPanel>
+        ) : null}
+        {!canManageHost ? (
+          <SettingsInfoPanel>
+            Desktop runtime required to manage Codex.
+          </SettingsInfoPanel>
+        ) : null}
+      </section>
+
+      <section className="grid gap-3">
+        <h3 className="text-sm font-medium">Workspace</h3>
+        <div className="grid gap-2">
+          <Label htmlFor="pet-settings-workspace-root">
+            Custom workspace root
+          </Label>
+          <Input
+            id="pet-settings-workspace-root"
+            onChange={(event) =>
+              onDraftWorkspaceRootPathChange(event.target.value)
+            }
+            placeholder={workspaceRootStatus?.defaultRootPath ?? ""}
+            value={draftWorkspaceRootPath}
+          />
+        </div>
+        <PathInfoRow
+          label="Opened root"
+          value={workspaceRootStatus?.rootPath ?? "unknown"}
+        />
+        <PathInfoRow
+          label="Next startup root"
+          value={workspaceRootStatus?.pendingRootPath ?? "unknown"}
+        />
+        <PathInfoRow
+          label="Default root"
+          value={workspaceRootStatus?.defaultRootPath ?? "unknown"}
+        />
+        {workspaceRootNotice ? (
+          <SettingsInfoPanel>{workspaceRootNotice}</SettingsInfoPanel>
+        ) : null}
+        <div>
+          <Button
+            disabled={!canManageHost}
+            onClick={onSaveWorkspaceRoot}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Save workspace root
+          </Button>
+        </div>
+      </section>
+
+      <section className="grid gap-3">
+        <h3 className="text-sm font-medium">Host</h3>
+        <div className="grid gap-2">
+          <Label htmlFor="pet-settings-codex-command">Codex command</Label>
+          <Input
+            id="pet-settings-codex-command"
+            onChange={(event) => onDraftCodexCommandChange(event.target.value)}
+            value={draftCodexCommand}
+          />
+        </div>
+        <PathInfoRow label="Codex command" value={codexCommand} />
+        <PathInfoRow label="Codex cwd" value={cwd} />
+        <PathInfoRow
+          label="App server"
+          value={healthAppServerRunning ? "running" : "off"}
+        />
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button onClick={onSaveCodexSettings} size="sm" type="button" variant="outline">
+            Save
+          </Button>
+          <Button
+            disabled={isCodexBusy}
+            onClick={onTestConnection}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Test connection
+          </Button>
+          <Button
+            disabled={
+              isCodexBusy || !isCodexLoaded || connectionStatus === "disconnected"
+            }
+            onClick={onStop}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Stop
+          </Button>
+          <Button
+            disabled={isCodexBusy || !isCodexLoaded}
+            onClick={onRestart}
+            size="sm"
+            type="button"
+          >
+            Restart
+          </Button>
+        </div>
+      </section>
+
     </div>
   )
 }

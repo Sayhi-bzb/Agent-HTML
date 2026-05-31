@@ -158,9 +158,10 @@ describe("prompt-kit message", () => {
   it("combines thread list and transcript in one thread panel shell", () => {
     expect(threadPanelSource).toContain("PetThreadPanelContent")
     expect(threadPanelSource).toContain("chat")
-    expect(threadPanelSource).toContain("<header")
     expect(threadPanelSource).toContain("<main")
-    expect(threadPanelSource.match(/<header/g)?.length).toBe(1)
+    expect(threadPanelSource).toContain("ThreadPanelHeaderSlot")
+    expect(threadPanelSource).toContain("headerSlot")
+    expect(threadPanelSource).toContain("ThreadPanelHeader")
     expect(threadPanelSource).toContain("Search transcript")
     expect(threadPanelSource).toContain("New thread")
     expect(threadPanelSource).toContain("Toggle thread sidebar")

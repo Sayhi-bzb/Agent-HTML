@@ -1,11 +1,14 @@
-import { index, prefix, route, type RouteConfig } from '@react-router/dev/routes';
+import {
+  index,
+  prefix,
+  type RouteConfig,
+  route,
+} from '@react-router/dev/routes';
 
 export default [
   index('routes/home.tsx'),
   ...prefix('docs', [
-    route('', 'routes/docs-layout.tsx', [
-      route('*', 'routes/docs.tsx'),
-    ]),
+    route('', 'routes/docs-layout.tsx', [route('*', 'routes/docs.tsx')]),
   ]),
   route('api/search', 'routes/search.ts'),
   route('og/docs/*', 'routes/og.docs.tsx'),

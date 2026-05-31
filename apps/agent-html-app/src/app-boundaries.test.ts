@@ -10,6 +10,14 @@ const appSidebarSource = readFileSync(
   fileURLToPath(new URL("./shell/app-sidebar.tsx", import.meta.url)),
   "utf8"
 )
+const galleryModeSource = readFileSync(
+  fileURLToPath(new URL("./gallery/gallery-mode.tsx", import.meta.url)),
+  "utf8"
+)
+const rootAppSource = readFileSync(
+  fileURLToPath(new URL("./root-app.tsx", import.meta.url)),
+  "utf8"
+)
 const verifyAppBundleSource = readFileSync(
   fileURLToPath(new URL("../../../tools/verify-app-bundle.mjs", import.meta.url)),
   "utf8"
@@ -60,7 +68,10 @@ describe("App source boundaries", () => {
   })
 
   it("keeps gallery ownership in the gallery controller", () => {
-    expect(appSource).toContain("useGalleryController")
+    expect(appSource).toContain("React.lazy")
+    expect(appSource).toContain('import("@/app/gallery/gallery-mode")')
+    expect(appSource).not.toContain("useGalleryController")
+    expect(galleryModeSource).toContain("useGalleryController")
     expect(appSource).not.toContain("createGalleryComponentMarketStore")
     expect(appSource).not.toContain("GalleryEditorPanel")
     expect(appSource).not.toContain("GalleryMarketSidebar")
@@ -82,6 +93,16 @@ describe("App source boundaries", () => {
     expect(appSidebarSource).toContain('import("@/app/shell/settings-menu")')
     expect(appSidebarSource).not.toContain(
       'import { SettingsMenu } from "@/app/shell/settings-menu"'
+    )
+  })
+
+  it("keeps secondary window apps behind the root lazy boundary", () => {
+    expect(rootAppSource).toContain("React.lazy")
+    expect(rootAppSource).toContain(
+      'import("@/app/pet/host/thread-panel-window-app")'
+    )
+    expect(rootAppSource).not.toContain(
+      'import { ThreadPanelWindowApp } from "@/app/pet/host/thread-panel-window-app"'
     )
   })
 

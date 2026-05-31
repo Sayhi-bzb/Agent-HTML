@@ -5,7 +5,6 @@ import {
   DndContext,
   DragOverlay,
   defaultDropAnimationSideEffects,
-  type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
   type DraggableSyntheticListeners,
@@ -278,7 +277,7 @@ function Kanban({ children }: { children?: React.ReactNode }) {
     )
   }
 
-  function handleDragEnd(_event: DragEndEvent) {
+  function handleDragEnd() {
     const itemValue = activeItem?.value
     if (itemValue) {
       const previousPosition = dragStartPositionRef.current

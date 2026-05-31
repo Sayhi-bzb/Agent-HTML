@@ -37,7 +37,6 @@ AgentHTML/
         artifact.agent-html
         AGENTS.md
   .agent-world/
-    workspace.sqlite3
     tmp/
     logs/
 ```
@@ -57,10 +56,10 @@ by AgentHTML from the current enabled component set. The other listed files are
 managed skill resources from the app's resource list and are created when
 missing.
 
-`.agent-world/` is the AgentHTML internal space. It stores workspace metadata,
-the local workspace database, diagnostics, temporary files, and logs. Agents
-should only edit `.agent-world/` when the task explicitly concerns workspace
-internals. It is not the agent-facing runtime contract.
+`.agent-world/` is the AgentHTML internal space. It stores diagnostics,
+temporary files, logs, and other app-managed workspace state. Agents should only
+edit `.agent-world/` when the task explicitly concerns workspace internals. It
+is not the agent-facing runtime contract.
 
 ## Codex Layers
 

@@ -1,12 +1,9 @@
-const galleryTypographyFamilies = {
-  courier: '"Courier New", monospace',
-  geist: '"Geist Variable", sans-serif',
-  georgia: '"Georgia", serif',
-  times: '"Times New Roman", serif',
-  trebuchet: '"Trebuchet MS", sans-serif',
-} as const
-
-type GalleryTypographyFontId = keyof typeof galleryTypographyFamilies
+type GalleryTypographyFontId =
+  | "courier"
+  | "geist"
+  | "georgia"
+  | "times"
+  | "trebuchet"
 
 type GalleryTypographyBaseSizeValue =
   | "0.9375rem"

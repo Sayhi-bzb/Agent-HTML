@@ -1,6 +1,6 @@
-import type { Route } from './+types/search';
 import { createFromSource } from 'fumadocs-core/search/server';
 import { source } from '@/lib/source';
+import type { Route } from './+types/search';
 
 const server = createFromSource(source, {
   // https://docs.orama.com/docs/orama-js/supported-languages

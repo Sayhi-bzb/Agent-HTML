@@ -26,13 +26,17 @@ type HoverCardState = {
   visible: boolean
 }
 
+function getPrefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+}
+
 function usePrefersReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(
+    getPrefersReducedMotion
+  )
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
-
-    setPrefersReducedMotion(mediaQuery.matches)
 
     const handleChange = () => {
       setPrefersReducedMotion(mediaQuery.matches)
@@ -70,6 +74,9 @@ export const RenderPanel = React.memo(function RenderPanel({
   const cleanupAutoUpdateRef = React.useRef<(() => void) | null>(null)
   const previousSideRef = React.useRef<HoverCardSide | undefined>(undefined)
   const placementRequestRef = React.useRef(0)
+  const updatePlacementRef = React.useRef<(block: HTMLElement | null) => void>(
+    () => undefined
+  )
   const [hoverCard, setHoverCard] = React.useState<HoverCardState>({
     placement: null,
     summary: "",
@@ -108,7 +115,7 @@ export const RenderPanel = React.memo(function RenderPanel({
     if (hoveredBlockRef.current !== block) {
       cleanupAutoUpdateRef.current?.()
       cleanupAutoUpdateRef.current = autoUpdate(block, hoverCardElement, () => {
-        updatePlacement(hoveredBlockRef.current)
+        updatePlacementRef.current(hoveredBlockRef.current)
       })
     }
 
@@ -171,12 +178,19 @@ export const RenderPanel = React.memo(function RenderPanel({
     invalidateHoverCardRequest,
   ])
 
+  React.useEffect(() => {
+    updatePlacementRef.current = updatePlacement
+  }, [updatePlacement])
+
   const handleScroll = React.useCallback(() => {
     invalidateHoverCardRequest()
   }, [invalidateHoverCardRequest])
 
   React.useEffect(() => {
-    updatePlacement(getHoveredBlockElement())
+    const animationFrameId = window.requestAnimationFrame(() => {
+      updatePlacement(getHoveredBlockElement())
+    })
+    return () => window.cancelAnimationFrame(animationFrameId)
   }, [
     blockSummaries,
     getHoveredBlockElement,
@@ -190,7 +204,10 @@ export const RenderPanel = React.memo(function RenderPanel({
       return
     }
 
-    invalidateHoverCardRequest()
+    const animationFrameId = window.requestAnimationFrame(() => {
+      invalidateHoverCardRequest()
+    })
+    return () => window.cancelAnimationFrame(animationFrameId)
   }, [activePath, invalidateHoverCardRequest])
 
   React.useEffect(() => {

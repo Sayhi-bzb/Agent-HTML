@@ -39,7 +39,7 @@ type AppPresetThemeDraft = {
 
 export type AppThemeDraft = AppPresetThemeDraft | AppTokenThemeDraft
 
-const appliedAppThemeStorageKey = "app:applied-theme"
+export const appliedAppThemeStorageKey = "app:applied-theme"
 const appAppliedThemeStyleId = "app-applied-theme-vars"
 const appColorFamilySet = new Set<string>(appColorFamilies)
 const appColorStepSet = new Set<string>(appColorSteps)

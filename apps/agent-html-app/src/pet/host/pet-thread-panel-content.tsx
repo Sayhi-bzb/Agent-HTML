@@ -44,11 +44,14 @@ import {
   type ThreadPreviewState,
 } from "@/app/workspace/thread-picker-model"
 import type { CodexThreadSummary } from "@/app/codex/connection"
+import type { AgentHtmlAgentPromptSubmitInput } from "@/agent-html"
 
 export type ThreadPanelChatRender = (input: {
   onSearchOpenChange: (open: boolean) => void
   searchOpen: boolean
 }) => ReactNode
+
+export type ThreadPanelHeaderSlot = (header: ReactNode) => ReactNode
 
 export type ThreadPanelSurfaceSnapshot = {
   activeThreadId?: string | null
@@ -70,6 +73,9 @@ export type ThreadPanelSurfaceSnapshot = {
 
 export type ThreadPanelAction =
   | { type: "close" }
+  | { draft: string; type: "set-message-draft" }
+  | { submit: AgentHtmlAgentPromptSubmitInput; type: "submit-prompt" }
+  | { type: "interrupt-turn" }
   | { type: "new-thread" }
   | { threadId: string; type: "resume-thread" }
   | { name: string; threadId: string; type: "rename-thread" }
@@ -156,6 +162,10 @@ export function PetThreadPanelContent({
       case "close":
         onClose?.()
         return
+      case "set-message-draft":
+      case "submit-prompt":
+      case "interrupt-turn":
+        return
       case "new-thread":
         onNewThread()
         return
@@ -184,9 +194,11 @@ export function PetThreadPanelContent({
 export function ThreadPanelSurface({
   bridge,
   chat,
+  headerSlot,
 }: {
   bridge: ThreadPanelBridge
   chat: ReactNode | ThreadPanelChatRender
+  headerSlot?: ThreadPanelHeaderSlot
 }) {
   const [editingThreadId, setEditingThreadId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState("")
@@ -199,6 +211,7 @@ export function ThreadPanelSurface({
         activeThreadName={snapshot.activeThreadName}
         chat={chat}
         dispatch={dispatch}
+        headerSlot={headerSlot}
         isSearchOpen={snapshot.searchOpen}
         subtitle={snapshot.subtitle}
       >
@@ -230,6 +243,7 @@ function ThreadPanelShell({
   chat,
   children,
   dispatch,
+  headerSlot,
   isSearchOpen,
   subtitle,
 }: {
@@ -237,10 +251,27 @@ function ThreadPanelShell({
   chat: ReactNode | ThreadPanelChatRender
   children: ReactNode
   dispatch: ThreadPanelDispatch
+  headerSlot?: ThreadPanelHeaderSlot
   isSearchOpen: boolean
   subtitle: string
 }) {
   const { open, toggleSidebar } = useSidebar()
+  const header = (
+    <ThreadPanelHeader
+      activeThreadName={activeThreadName}
+      isSearchOpen={isSearchOpen}
+      isSidebarOpen={open}
+      onClose={() => dispatch({ type: "close" })}
+      onSearchOpenChange={(nextOpen) =>
+        dispatch({
+          open: nextOpen,
+          type: "set-search-open",
+        })
+      }
+      onToggleSidebar={toggleSidebar}
+      subtitle={subtitle}
+    />
+  )
 
   return (
     <section
@@ -256,71 +287,7 @@ function ThreadPanelShell({
         } as CSSProperties
       }
     >
-      <header
-        className="flex min-h-14 cursor-grab items-center gap-3 bg-muted/30 px-4 active:cursor-grabbing"
-        data-selection="none"
-      >
-        <Button
-          aria-label="Toggle thread sidebar"
-          aria-pressed={open}
-          data-popover-no-drag
-          onClick={toggleSidebar}
-          size="icon-sm"
-          type="button"
-          variant="ghost"
-        >
-          <PanelLeftIcon className="size-4" aria-hidden="true" />
-        </Button>
-        <Avatar size="default">
-          <AvatarImage alt="Thread transcript" src="/avatars/ai.png" />
-          <AvatarFallback>AI</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-sm font-medium leading-5">
-            {activeThreadName}
-          </h2>
-          <p className="truncate text-xs leading-4 text-muted-foreground">
-            {subtitle}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            aria-label="Search transcript"
-            aria-pressed={isSearchOpen}
-            data-popover-no-drag
-            onClick={() =>
-              dispatch({
-                open: !isSearchOpen,
-                type: "set-search-open",
-              })
-            }
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <SearchIcon className="size-4" aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label="More thread actions"
-            data-popover-no-drag
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <MoreHorizontalIcon className="size-4" aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label="Close thread panel"
-            data-popover-no-drag
-            onClick={() => dispatch({ type: "close" })}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <XIcon className="size-4" aria-hidden="true" />
-          </Button>
-        </div>
-      </header>
+      {headerSlot ? headerSlot(header) : header}
       <Separator />
       <main className="flex min-h-0 flex-1">
         <aside
@@ -350,6 +317,93 @@ function ThreadPanelShell({
         </div>
       </main>
     </section>
+  )
+}
+
+function ThreadPanelHeader({
+  activeThreadName,
+  isSearchOpen,
+  isSidebarOpen,
+  onClose,
+  onSearchOpenChange,
+  onToggleSidebar,
+  subtitle,
+}: {
+  activeThreadName: string
+  isSearchOpen: boolean
+  isSidebarOpen: boolean
+  onClose: () => void
+  onSearchOpenChange: (open: boolean) => void
+  onToggleSidebar: () => void
+  subtitle: string
+}) {
+  return (
+    <div
+      className="flex min-h-14 w-full min-w-0 items-center gap-3 bg-muted/30 px-4"
+      data-selection="none"
+    >
+      <Button
+        aria-label="Toggle thread sidebar"
+        aria-pressed={isSidebarOpen}
+        data-popover-no-drag
+        data-tauri-no-drag
+        data-window-no-drag
+        onClick={onToggleSidebar}
+        size="icon-sm"
+        type="button"
+        variant="ghost"
+      >
+        <PanelLeftIcon className="size-4" aria-hidden="true" />
+      </Button>
+      <Avatar size="default">
+        <AvatarImage alt="Thread transcript" src="/avatars/ai.png" />
+        <AvatarFallback>AI</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <h2 className="truncate text-sm font-medium leading-5">
+          {activeThreadName}
+        </h2>
+        <p className="truncate text-xs leading-4 text-muted-foreground">
+          {subtitle}
+        </p>
+      </div>
+      <div
+        className="flex shrink-0 items-center gap-1"
+        data-tauri-no-drag
+        data-window-no-drag
+      >
+        <Button
+          aria-label="Search transcript"
+          aria-pressed={isSearchOpen}
+          data-popover-no-drag
+          onClick={() => onSearchOpenChange(!isSearchOpen)}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
+          <SearchIcon className="size-4" aria-hidden="true" />
+        </Button>
+        <Button
+          aria-label="More thread actions"
+          data-popover-no-drag
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
+          <MoreHorizontalIcon className="size-4" aria-hidden="true" />
+        </Button>
+        <Button
+          aria-label="Close thread panel"
+          data-popover-no-drag
+          onClick={onClose}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
+          <XIcon className="size-4" aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
   )
 }
 

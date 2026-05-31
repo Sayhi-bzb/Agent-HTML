@@ -2,7 +2,9 @@ import { isTauri } from "@tauri-apps/api/core"
 
 type TauriWindowHandle = {
   close: () => Promise<void>
+  hide: () => Promise<void>
   minimize: () => Promise<void>
+  startDragging: () => Promise<void>
   toggleMaximize: () => Promise<void>
 }
 
@@ -10,21 +12,38 @@ function isTauriRuntime(): boolean {
   return isTauri()
 }
 
+let currentWindowHandlePromise: Promise<TauriWindowHandle | null> | null = null
+
+export function preloadCurrentWindowHandle(): void {
+  if (!isTauriRuntime() || currentWindowHandlePromise) {
+    return
+  }
+
+  currentWindowHandlePromise = import("@tauri-apps/api/window").then(
+    (tauriWindow) => tauriWindow.getCurrentWindow()
+  )
+}
+
 async function getCurrentWindowHandle(): Promise<TauriWindowHandle | null> {
   if (!isTauriRuntime()) {
     return null
   }
 
-  const tauriWindow = await import("@tauri-apps/api/window")
-  return tauriWindow.getCurrentWindow()
+  preloadCurrentWindowHandle()
+  return currentWindowHandlePromise
 }
 
 export function isDesktopRuntime(): boolean {
   return isTauriRuntime()
 }
 
-export function getDragRegionProps(): Record<string, string> {
-  return isDesktopRuntime() ? { "data-tauri-drag-region": "" } : {}
+export async function startWindowDrag(): Promise<void> {
+  const currentWindow = await getCurrentWindowHandle()
+  if (!currentWindow) {
+    return
+  }
+
+  await currentWindow.startDragging()
 }
 
 export async function minimizeWindow(): Promise<void> {
@@ -52,4 +71,13 @@ export async function closeWindow(): Promise<void> {
   }
 
   await currentWindow.close()
+}
+
+export async function hideWindow(): Promise<void> {
+  const currentWindow = await getCurrentWindowHandle()
+  if (!currentWindow) {
+    return
+  }
+
+  await currentWindow.hide()
 }

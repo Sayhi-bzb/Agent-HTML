@@ -1,9 +1,9 @@
-import type { Route } from './+types/not-found';
 import { HomeLayout } from 'fumadocs-ui/layouts/home';
-import { baseOptions } from '@/lib/layout.shared';
 import { DefaultNotFound } from 'fumadocs-ui/layouts/home/not-found';
+import { baseOptions } from '@/lib/layout.shared';
+import type { Route } from './+types/not-found';
 
-export function meta({}: Route.MetaArgs) {
+export function meta(_args: Route.MetaArgs) {
   return [{ title: 'Not Found' }];
 }
 

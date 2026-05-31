@@ -86,31 +86,27 @@ export const appThemeVariableDefaults: AppThemeCssVariables = {
   "--spacing": "0.25rem",
 }
 
-const appThemeEditableVariableNames = [
-  "--font-sans",
-  "--font-serif",
-  "--font-mono",
-  "--radius",
-  "--shadow-x",
-  "--shadow-y",
-  "--shadow-blur",
-  "--shadow-spread",
-  "--shadow-opacity",
-  "--shadow-color",
-  "--shadow-2xs",
-  "--shadow-xs",
-  "--shadow-sm",
-  "--shadow",
-  "--shadow-md",
-  "--shadow-lg",
-  "--shadow-xl",
-  "--shadow-2xl",
-  "--tracking-normal",
-  "--spacing",
-] as const satisfies readonly AppThemeVariableName[]
-
 export type AppThemeEditableVariableName =
-  (typeof appThemeEditableVariableNames)[number]
+  | "--font-sans"
+  | "--font-serif"
+  | "--font-mono"
+  | "--radius"
+  | "--shadow-x"
+  | "--shadow-y"
+  | "--shadow-blur"
+  | "--shadow-spread"
+  | "--shadow-opacity"
+  | "--shadow-color"
+  | "--shadow-2xs"
+  | "--shadow-xs"
+  | "--shadow-sm"
+  | "--shadow"
+  | "--shadow-md"
+  | "--shadow-lg"
+  | "--shadow-xl"
+  | "--shadow-2xl"
+  | "--tracking-normal"
+  | "--spacing"
 
 export const appThemeFontOptions = [
   {

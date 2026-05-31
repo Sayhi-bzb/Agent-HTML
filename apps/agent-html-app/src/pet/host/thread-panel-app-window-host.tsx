@@ -4,7 +4,7 @@ import { GripIcon } from "lucide-react"
 import { cn } from "@/app/shared/lib/utils"
 
 const THREAD_PANEL_WINDOW_NO_DRAG_SELECTOR =
-  'button,input,textarea,select,a,[role="menu"],[role="menuitem"],[data-thread-panel-window-no-drag],[data-popover-no-drag],[data-pet-settings-no-drag],[data-thread-picker-no-drag]'
+  'button,input,textarea,select,a,[role="menu"],[role="menuitem"],[data-window-no-drag],[data-thread-panel-window-no-drag],[data-popover-no-drag],[data-pet-settings-no-drag],[data-thread-picker-no-drag]'
 
 type ThreadPanelWindowPosition = {
   x: number
