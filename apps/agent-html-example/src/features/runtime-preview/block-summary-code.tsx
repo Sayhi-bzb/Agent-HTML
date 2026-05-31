@@ -1,20 +1,6 @@
 import * as React from "react"
-import { codeToHtml } from "shiki"
 
 import { cn } from "@/agent-html/lib/utils"
-
-async function highlightBlockSummary(summary: string) {
-  return await Promise.all([
-    codeToHtml(summary, {
-      lang: "xml",
-      theme: "one-light",
-    }),
-    codeToHtml(summary, {
-      lang: "xml",
-      theme: "one-dark-pro",
-    }),
-  ])
-}
 
 export const BlockSummaryCode = React.memo(function BlockSummaryCode({
   className,
@@ -31,7 +17,8 @@ export const BlockSummaryCode = React.memo(function BlockSummaryCode({
 
     setHtml("")
     setDarkHtml("")
-    highlightBlockSummary(summary)
+    import("@/agent-html/runtime/ui/code-highlighter")
+      .then(({ highlightCodeToHtml }) => highlightCodeToHtml(summary, "xml"))
       .then(([light, dark]) => {
         if (!mounted) {
           return

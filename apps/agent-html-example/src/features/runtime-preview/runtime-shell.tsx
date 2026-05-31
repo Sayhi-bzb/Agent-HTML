@@ -5,12 +5,17 @@ import type { AgentHtmlExampleLocale } from "@example/cases"
 import type { ExampleThemeId } from "@example/theme/theme-presets"
 import { RenderPanel } from "@example/features/runtime-preview/render-panel"
 import { RuntimeHeader } from "@example/features/runtime-preview/runtime-header"
-import { SourceDialog } from "@example/features/runtime-preview/source-dialog"
 import {
   isSourceTabValue,
   type SourceTabValue,
 } from "@example/features/source-viewer/types"
 import { Dialog, Tabs } from "@example/ui"
+
+const SourceDialog = React.lazy(() =>
+  import("@example/features/runtime-preview/source-dialog").then((module) => ({
+    default: module.SourceDialog,
+  }))
+)
 
 export function RuntimeShell({
   ahtmlMetrics,
@@ -80,15 +85,17 @@ export function RuntimeShell({
         <main className="mt-3 min-h-0 w-full min-w-0 flex-1">
           <RenderPanel blockSummaries={blockSummaries}>{children}</RenderPanel>
         </main>
-        <SourceDialog
-          ahtmlMetrics={ahtmlMetrics}
-          artifactSource={artifactSource}
-          htmlMetrics={htmlMetrics}
-          htmlSource={htmlSource}
-          reactMetrics={reactMetrics}
-          reactSource={reactSource}
-          visitedTabs={visitedTabs}
-        />
+        <React.Suspense fallback={null}>
+          <SourceDialog
+            ahtmlMetrics={ahtmlMetrics}
+            artifactSource={artifactSource}
+            htmlMetrics={htmlMetrics}
+            htmlSource={htmlSource}
+            reactMetrics={reactMetrics}
+            reactSource={reactSource}
+            visitedTabs={visitedTabs}
+          />
+        </React.Suspense>
       </Tabs>
     </Dialog>
   )

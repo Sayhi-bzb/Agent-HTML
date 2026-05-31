@@ -8,9 +8,17 @@ const radialMenuPath = fileURLToPath(
 const ghostPetPath = fileURLToPath(
   new URL("./workspace-ghost-pet.tsx", import.meta.url)
 )
+const hostSessionPath = fileURLToPath(
+  new URL("../host/workspace-pet-host-session.tsx", import.meta.url)
+)
+const windowHostPath = fileURLToPath(
+  new URL("../host/thread-panel-app-window-host.tsx", import.meta.url)
+)
 
 const radialMenuSource = readFileSync(radialMenuPath, "utf8")
 const ghostPetSource = readFileSync(ghostPetPath, "utf8")
+const hostSessionSource = readFileSync(hostSessionPath, "utf8")
+const windowHostSource = readFileSync(windowHostPath, "utf8")
 
 describe("ghost radial menu", () => {
   it("exposes an interrupt action", () => {
@@ -26,22 +34,27 @@ describe("ghost radial menu", () => {
     expect(radialMenuSource).toContain('label: "Settings"')
   })
 
-  it("exposes a transcript action", () => {
-    expect(radialMenuSource).toContain("ActivityIcon")
-    expect(radialMenuSource).toContain('id: "transcript"')
-    expect(radialMenuSource).toContain('label: "Transcript"')
+  it("exposes a single threads action for the unified thread panel", () => {
+    expect(radialMenuSource).toContain("WaypointsIcon")
+    expect(radialMenuSource).toContain('id: "threads"')
+    expect(radialMenuSource).toContain('label: "Threads"')
+    expect(radialMenuSource).not.toContain("ActivityIcon")
+    expect(radialMenuSource).not.toContain('id: "transcript"')
+    expect(radialMenuSource).not.toContain('label: "Transcript"')
   })
 
-  it("routes thread and transcript selections to the unified thread panel", () => {
+  it("routes the threads selection to the unified thread panel", () => {
     expect(ghostPetSource).toContain('if (item === "interrupt")')
     expect(ghostPetSource).toContain("onInterruptTurn?.()")
     expect(ghostPetSource).toContain('if (item === "settings")')
     expect(ghostPetSource).toContain("onSettingsOpenChange?.(true)")
     expect(ghostPetSource).toContain("settingsContent")
     expect(ghostPetSource).toContain('if (item === "threads")')
-    expect(ghostPetSource).toContain('if (item === "transcript")')
+    expect(ghostPetSource).not.toContain('if (item === "transcript")')
     expect(ghostPetSource).toContain("onThreadPanelOpenChange?.(true)")
-    expect(ghostPetSource).toContain("threadPanelContent")
+    expect(ghostPetSource).not.toContain("threadPanelContent")
+    expect(hostSessionSource).toContain("threadPanelContent")
+    expect(hostSessionSource).toContain("ThreadPanelAppWindowHost")
     expect(ghostPetSource).not.toContain("onTranscriptOpenChange?.(true)")
     expect(ghostPetSource).not.toContain("transcriptContent")
   })
@@ -64,7 +77,10 @@ describe("ghost radial menu", () => {
     expect(ghostPetSource).toContain("pendingPositionRef")
     expect(ghostPetSource).toContain("positionRef.current")
     expect(ghostPetSource).toContain("getGhostTransform")
-    expect(ghostPetSource).toContain("pendingThreadPanelOffsetRef")
+    expect(ghostPetSource).not.toContain("pendingThreadPanelOffsetRef")
+    expect(windowHostSource).toContain("requestAnimationFrame")
+    expect(windowHostSource).toContain("pendingPositionRef")
+    expect(windowHostSource).toContain("pendingSizeRef")
     expect(ghostPetSource).toContain("pendingSettingsOffsetRef")
   })
 })

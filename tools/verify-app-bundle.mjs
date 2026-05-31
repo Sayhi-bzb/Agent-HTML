@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { gzipSync } from "node:zlib"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const dist = path.join(root, "dist")
@@ -18,6 +19,14 @@ const forbiddenMarkers = [
 ]
 
 const expectedMarkers = ["AgentHTML", "root"]
+const maxEntryBundleGzipBytes = 365 * 1024
+const maxEntryBundleRawBytes = 1.25 * 1024 * 1024
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`
+  return `${(bytes / 1024 / 1024).toFixed(2)} MiB`
+}
 
 function fail(message) {
   console.error(`verify:app-bundle failed: ${message}`)
@@ -43,18 +52,27 @@ function readBundleFiles() {
       fail(`referenced bundle does not exist: ${match[1]}`)
     }
 
+    const content = fs.readFileSync(scriptPath)
+
     return {
       name: match[1],
-      content: fs.readFileSync(scriptPath, "utf8"),
+      content,
+      raw: content.byteLength,
     }
   })
 }
 
 const bundles = readBundleFiles()
-const combinedBundle = bundles.map((bundle) => bundle.content).join("\n")
+const combinedBundle = bundles
+  .map((bundle) => bundle.content.toString("utf8"))
+  .join("\n")
 const forbidden = forbiddenMarkers.find(({ marker }) =>
   combinedBundle.includes(marker),
 )
+const largestEntryBundle = bundles.reduce((largest, bundle) =>
+  bundle.raw > largest.raw ? bundle : largest
+)
+const largestEntryBundleGzip = gzipSync(largestEntryBundle.content).byteLength
 
 if (forbidden) {
   fail(`bundle contains ${forbidden.reason} marker: ${forbidden.marker}`)
@@ -64,6 +82,26 @@ if (!expectedMarkers.some((marker) => combinedBundle.includes(marker))) {
   fail("bundle does not contain expected app markers")
 }
 
+if (largestEntryBundle.raw > maxEntryBundleRawBytes) {
+  fail(
+    `entry bundle raw size ${formatBytes(largestEntryBundle.raw)} exceeds ${formatBytes(
+      maxEntryBundleRawBytes,
+    )}: ${largestEntryBundle.name}`,
+  )
+}
+
+if (largestEntryBundleGzip > maxEntryBundleGzipBytes) {
+  fail(
+    `entry bundle gzip size ${formatBytes(largestEntryBundleGzip)} exceeds ${formatBytes(
+      maxEntryBundleGzipBytes,
+    )}: ${largestEntryBundle.name}`,
+  )
+}
+
 console.log(
-  `verify:app-bundle passed (${bundles.map((bundle) => bundle.name).join(", ")})`,
+  `verify:app-bundle passed (${bundles
+    .map((bundle) => bundle.name)
+    .join(", ")}; largest entry ${formatBytes(
+    largestEntryBundle.raw,
+  )} raw / ${formatBytes(largestEntryBundleGzip)} gzip)`,
 )

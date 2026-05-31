@@ -14,7 +14,7 @@ import type {
 } from "@/app/workspace/thread-picker-model"
 import type { ThreadTranscriptTurn } from "@/app/workspace/thread-transcript"
 
-export type WorkspacePetThreadPanelState = {
+type WorkspacePetThreadPanelState = {
   activeThreadId?: string | null
   canSelectThread: boolean
   codexThreadError?: string | null

@@ -1,47 +1,8 @@
 import { CheckIcon, CopyIcon } from "lucide-react"
 import * as React from "react"
-import { type BundledLanguage, codeToHtml, type ShikiTransformer } from "shiki"
 
 import type { SourceTabValue } from "@example/features/source-viewer/types"
 import { Button } from "@example/ui/button"
-
-const lineNumberTransformer: ShikiTransformer = {
-  name: "line-numbers",
-  line(node, line) {
-    node.children.unshift({
-      type: "element",
-      tagName: "span",
-      properties: {
-        className: [
-          "inline-block",
-          "min-w-10",
-          "mr-4",
-          "text-right",
-          "select-none",
-          "text-muted-foreground",
-        ],
-      },
-      children: [{ type: "text", value: String(line) }],
-    })
-  },
-}
-
-async function highlightCode(code: string, language: BundledLanguage) {
-  const transformers: ShikiTransformer[] = [lineNumberTransformer]
-
-  return await Promise.all([
-    codeToHtml(code, {
-      lang: language,
-      theme: "one-light",
-      transformers,
-    }),
-    codeToHtml(code, {
-      lang: language,
-      theme: "one-dark-pro",
-      transformers,
-    }),
-  ])
-}
 
 export const CodeBlock = React.memo(function CodeBlock({
   language,
@@ -50,7 +11,7 @@ export const CodeBlock = React.memo(function CodeBlock({
   language: SourceTabValue
   source: string
 }) {
-  const syntaxLanguage: BundledLanguage =
+  const syntaxLanguage =
     language === "react" ? "tsx" : language === "html" ? "html" : "xml"
   const [html, setHtml] = React.useState("")
   const [darkHtml, setDarkHtml] = React.useState("")
@@ -59,14 +20,26 @@ export const CodeBlock = React.memo(function CodeBlock({
   React.useEffect(() => {
     let mounted = true
 
-    highlightCode(source, syntaxLanguage).then(([light, dark]) => {
-      if (!mounted) {
-        return
-      }
+    import("@/agent-html/runtime/ui/code-highlighter")
+      .then(({ highlightCodeToHtml }) =>
+        highlightCodeToHtml(source, syntaxLanguage)
+      )
+      .then(([light, dark]) => {
+        if (!mounted) {
+          return
+        }
 
-      setHtml(light)
-      setDarkHtml(dark)
-    })
+        setHtml(light)
+        setDarkHtml(dark)
+      })
+      .catch(() => {
+        if (!mounted) {
+          return
+        }
+
+        setHtml("")
+        setDarkHtml("")
+      })
 
     return () => {
       mounted = false

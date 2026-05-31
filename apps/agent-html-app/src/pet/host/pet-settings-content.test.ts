@@ -19,14 +19,29 @@ describe("pet settings content", () => {
     expect(settingsContentSource).toContain("AgentHTML/AGENTS.md")
   })
 
-  it("uses formal pet panel and settings surface structure", () => {
-    expect(settingsContentSource).toContain("PetPanelHeader")
-    expect(settingsContentSource).toContain("PetPanelBody")
-    expect(settingsContentSource).toContain("PetPanelFooter")
+  it("uses the thread panel window shell for settings", () => {
+    expect(settingsContentSource).toContain("<section")
+    expect(settingsContentSource).toContain("<header")
+    expect(settingsContentSource).toContain("<main")
+    expect(settingsContentSource).toContain("ScrollArea")
+    expect(settingsContentSource).toContain("Separator")
+    expect(settingsContentSource).toContain("SidebarContent")
+    expect(settingsContentSource).toContain("SidebarGroup")
+    expect(settingsContentSource).toContain("SidebarGroupContent")
+    expect(settingsContentSource).toContain("SidebarGroupLabel")
+    expect(settingsContentSource).toContain("SidebarMenu")
+    expect(settingsContentSource).toContain("SidebarMenuButton")
+    expect(settingsContentSource).toContain("SidebarMenuItem")
+    expect(settingsContentSource).toContain("SidebarStateProvider")
+    expect(settingsContentSource).toContain("onClose?: () => void")
+    expect(settingsContentSource).toContain("Close settings")
     expect(settingsContentSource).toContain("SettingsInfoPanel")
+    expect(settingsContentSource).not.toContain("PetPanelHeader")
+    expect(settingsContentSource).not.toContain("PetPanelBody")
+    expect(settingsContentSource).not.toContain("PetPanelFooter")
   })
 
-  it("exposes header tabs for agent configuration views", () => {
+  it("exposes sidebar navigation for agent configuration views", () => {
     for (const label of [
       "Instructions",
       "Skills",
@@ -36,9 +51,10 @@ describe("pet settings content", () => {
     ]) {
       expect(settingsContentSource).toContain(`"${label}"`)
     }
-    expect(settingsContentSource).toContain("TabsList")
-    expect(settingsContentSource).toContain("TabsTrigger")
-    expect(settingsContentSource).toContain("TabsContent")
+    expect(settingsContentSource).toContain("SettingsViewContent")
+    expect(settingsContentSource).not.toContain("TabsList")
+    expect(settingsContentSource).not.toContain("TabsTrigger")
+    expect(settingsContentSource).not.toContain("TabsContent")
   })
 
   it("surfaces Codex app-server capabilities without owning config writes", () => {

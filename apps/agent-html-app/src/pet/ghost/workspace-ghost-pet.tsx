@@ -74,7 +74,6 @@ export function WorkspaceGhostPet({
   isMessageOpen = false,
   isInterruptingTurn = false,
   isSettingsOpen = false,
-  isThreadPanelOpen = false,
   messageContent,
   onInterruptTurn,
   onMessageOpenChange,
@@ -84,7 +83,6 @@ export function WorkspaceGhostPet({
   presence = idlePresence,
   settingsContent,
   speechBubbles = [],
-  threadPanelContent,
 }: {
   canInterruptTurn?: boolean
   approval?: CodexApprovalRequest | null
@@ -92,7 +90,6 @@ export function WorkspaceGhostPet({
   isMessageOpen?: boolean
   isInterruptingTurn?: boolean
   isSettingsOpen?: boolean
-  isThreadPanelOpen?: boolean
   messageContent?: React.ReactNode
   onInterruptTurn?: () => void
   onMessageOpenChange?: (open: boolean) => void
@@ -102,13 +99,11 @@ export function WorkspaceGhostPet({
   presence?: PetPresence
   settingsContent?: React.ReactNode
   speechBubbles?: PetSpeechBubble[]
-  threadPanelContent?: React.ReactNode
 }) {
   const statusMessage = presence.message?.text
   const hasSpeechBubbles = speechBubbles.length > 0
   const dragStateRef = useRef<GhostPetDragState | null>(null)
   const settingsDragStateRef = useRef<PopoverDragState | null>(null)
-  const threadPanelDragStateRef = useRef<PopoverDragState | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = useState<GhostPetPosition>(loadStoredPosition)
   const positionRef = useRef<GhostPetPosition>(position)
@@ -124,13 +119,6 @@ export function WorkspaceGhostPet({
   const pendingSettingsOffsetRef = useRef<GhostPetPosition>(settingsOffset)
   const settingsAnimationFrameRef = useRef<number | null>(null)
   const [isSettingsDragging, setIsSettingsDragging] = useState(false)
-  const [threadPanelOffset, setThreadPanelOffset] =
-    useState<GhostPetPosition>({ x: 0, y: 0 })
-  const threadPanelOffsetRef = useRef<GhostPetPosition>(threadPanelOffset)
-  const pendingThreadPanelOffsetRef =
-    useRef<GhostPetPosition>(threadPanelOffset)
-  const threadPanelAnimationFrameRef = useRef<number | null>(null)
-  const [isThreadPanelDragging, setIsThreadPanelDragging] = useState(false)
 
   const applyPositionFrame = useCallback((nextPosition: GhostPetPosition) => {
     pendingPositionRef.current = nextPosition
@@ -161,42 +149,6 @@ export function WorkspaceGhostPet({
     }
     setPosition(nextPosition)
   }, [])
-
-  const applyThreadPanelOffsetFrame = useCallback(
-    (nextOffset: GhostPetPosition) => {
-      pendingThreadPanelOffsetRef.current = nextOffset
-      if (threadPanelAnimationFrameRef.current !== null) {
-        return
-      }
-
-      threadPanelAnimationFrameRef.current = window.requestAnimationFrame(
-        () => {
-          threadPanelAnimationFrameRef.current = null
-          const frameOffset = pendingThreadPanelOffsetRef.current
-          threadPanelOffsetRef.current = frameOffset
-          const element = threadPanelDragStateRef.current?.element
-          if (element) {
-            element.style.translate = getOffsetTranslate(frameOffset)
-          }
-        }
-      )
-    },
-    []
-  )
-
-  const commitThreadPanelOffset = useCallback(
-    (nextOffset: GhostPetPosition) => {
-      if (threadPanelAnimationFrameRef.current !== null) {
-        window.cancelAnimationFrame(threadPanelAnimationFrameRef.current)
-        threadPanelAnimationFrameRef.current = null
-      }
-
-      threadPanelOffsetRef.current = nextOffset
-      pendingThreadPanelOffsetRef.current = nextOffset
-      setThreadPanelOffset(nextOffset)
-    },
-    []
-  )
 
   const applySettingsOffsetFrame = useCallback(
     (nextOffset: GhostPetPosition) => {
@@ -248,9 +200,6 @@ export function WorkspaceGhostPet({
       }
       if (settingsAnimationFrameRef.current !== null) {
         window.cancelAnimationFrame(settingsAnimationFrameRef.current)
-      }
-      if (threadPanelAnimationFrameRef.current !== null) {
-        window.cancelAnimationFrame(threadPanelAnimationFrameRef.current)
       }
     },
     []
@@ -346,19 +295,12 @@ export function WorkspaceGhostPet({
       if (item === "threads") {
         onMessageOpenChange?.(false)
         onSettingsOpenChange?.(false)
-        commitThreadPanelOffset({ x: 0, y: 0 })
         onThreadPanelOpenChange?.(true)
       }
       if (item === "settings") {
         onMessageOpenChange?.(false)
         commitSettingsOffset({ x: 0, y: 0 })
         onSettingsOpenChange?.(true)
-      }
-      if (item === "transcript") {
-        onMessageOpenChange?.(false)
-        onSettingsOpenChange?.(false)
-        commitThreadPanelOffset({ x: 0, y: 0 })
-        onThreadPanelOpenChange?.(true)
       }
       if (item === "interrupt") {
         onInterruptTurn?.()
@@ -370,20 +312,7 @@ export function WorkspaceGhostPet({
       onSettingsOpenChange,
       onThreadPanelOpenChange,
       commitSettingsOffset,
-      commitThreadPanelOffset,
     ]
-  )
-
-  const handleThreadPanelOpenChange = useCallback(
-    (open: boolean) => {
-      if (!open) {
-        threadPanelDragStateRef.current = null
-        setIsThreadPanelDragging(false)
-        return
-      }
-      onThreadPanelOpenChange?.(open)
-    },
-    [onThreadPanelOpenChange]
   )
 
   const handleSettingsOpenChange = useCallback(
@@ -430,28 +359,6 @@ export function WorkspaceGhostPet({
     setIsDragging(false)
   }, [commitPosition])
 
-  const handleThreadPanelPointerDown = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0 || !isPopoverDragTarget(event.target)) {
-        return
-      }
-
-      event.preventDefault()
-      event.currentTarget.setPointerCapture(event.pointerId)
-      const startOffset = threadPanelOffsetRef.current
-      pendingThreadPanelOffsetRef.current = startOffset
-      threadPanelDragStateRef.current = {
-        element: event.currentTarget,
-        pointerId: event.pointerId,
-        startClientX: event.clientX,
-        startClientY: event.clientY,
-        startOffset,
-      }
-      setIsThreadPanelDragging(true)
-    },
-    []
-  )
-
   const handleSettingsPointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (event.button !== 0 || !isPopoverDragTarget(event.target)) {
@@ -474,21 +381,6 @@ export function WorkspaceGhostPet({
     []
   )
 
-  const handleThreadPanelPointerMove = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      const dragState = threadPanelDragStateRef.current
-      if (!dragState || dragState.pointerId !== event.pointerId) {
-        return
-      }
-
-      applyThreadPanelOffsetFrame({
-        x: dragState.startOffset.x + event.clientX - dragState.startClientX,
-        y: dragState.startOffset.y + event.clientY - dragState.startClientY,
-      })
-    },
-    [applyThreadPanelOffsetFrame]
-  )
-
   const handleSettingsPointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       const dragState = settingsDragStateRef.current
@@ -502,24 +394,6 @@ export function WorkspaceGhostPet({
       })
     },
     [applySettingsOffsetFrame]
-  )
-
-  const finishThreadPanelDrag = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      const dragState = threadPanelDragStateRef.current
-      if (!dragState || dragState.pointerId !== event.pointerId) {
-        return
-      }
-
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId)
-      }
-
-      commitThreadPanelOffset(pendingThreadPanelOffsetRef.current)
-      setIsThreadPanelDragging(false)
-      threadPanelDragStateRef.current = null
-    },
-    [commitThreadPanelOffset]
   )
 
   const finishSettingsDrag = useCallback(
@@ -627,35 +501,6 @@ export function WorkspaceGhostPet({
             sideOffset={12}
           >
             {messageContent}
-          </PopoverContent>
-        ) : null}
-      </Popover>
-      <Popover
-        open={isThreadPanelOpen}
-        onOpenChange={handleThreadPanelOpenChange}
-      >
-        <PopoverAnchor asChild>
-          <div className="relative size-0" />
-        </PopoverAnchor>
-        {threadPanelContent ? (
-          <PopoverContent
-            align="end"
-            className={[
-              "pointer-events-auto w-auto p-0 select-none",
-              isThreadPanelDragging ? "cursor-grabbing" : "cursor-grab",
-            ].join(" ")}
-            onPointerCancel={finishThreadPanelDrag}
-            onPointerDown={handleThreadPanelPointerDown}
-            onPointerMove={handleThreadPanelPointerMove}
-            onPointerUp={finishThreadPanelDrag}
-            side="left"
-            sideOffset={12}
-            style={{
-              translate: getOffsetTranslate(threadPanelOffset),
-              willChange: isThreadPanelDragging ? "translate" : undefined,
-            }}
-          >
-            {threadPanelContent}
           </PopoverContent>
         ) : null}
       </Popover>

@@ -34,19 +34,19 @@ describe("WorkspaceGhostPet status placement", () => {
     )
   })
 
-  it("uses a single draggable thread panel popover", () => {
-    expect(petSource).toContain("isThreadPanelOpen")
-    expect(petSource).toContain("threadPanelContent")
-    expect(petSource).toContain("isThreadPanelDragging")
+  it("delegates the thread panel surface to an app window host", () => {
+    expect(petSource).toContain("onThreadPanelOpenChange?.(true)")
+    expect(petSource).not.toContain("isThreadPanelOpen")
+    expect(petSource).not.toContain("threadPanelContent")
+    expect(petSource).not.toContain("isThreadPanelDragging")
+    expect(petSource).not.toContain("pendingThreadPanelOffsetRef")
     expect(petSource).not.toContain("isThreadPickerOpen")
     expect(petSource).not.toContain("isTranscriptOpen")
   })
 
-  it("keeps the thread panel open until the panel closes it", () => {
-    expect(petSource).toContain("if (!open) {")
-    expect(petSource).toContain("return")
-    expect(petSource).toContain("onThreadPanelOpenChange?.(open)")
+  it("does not close the thread panel from the pet popover lifecycle", () => {
     expect(petSource).not.toContain("isTranscriptPinned")
     expect(petSource).not.toContain("onThreadPanelOpenChange?.(false)")
+    expect(petSource).not.toContain("handleThreadPanelOpenChange")
   })
 })

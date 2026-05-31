@@ -1,7 +1,15 @@
-import type { ReactNode } from "react"
-import { CheckIcon, MoreHorizontalIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react"
+import type { CSSProperties, ReactNode } from "react"
+import {
+  CheckIcon,
+  MoreHorizontalIcon,
+  PanelLeftIcon,
+  PlusIcon,
+  SearchIcon,
+  XIcon,
+} from "lucide-react"
 import { useState } from "react"
 
+import { cn } from "@/app/shared/lib/utils"
 import {
   Avatar,
   AvatarFallback,
@@ -19,16 +27,62 @@ import { Input } from "@/app/shared/ui/input"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import { Separator } from "@/app/shared/ui/separator"
 import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarStateProvider,
+  useSidebar,
+} from "@/app/shared/ui/sidebar"
+import {
   getThreadSummaryById,
   type CodexThreadPickerItem,
   type ThreadPreviewState,
 } from "@/app/workspace/thread-picker-model"
 import type { CodexThreadSummary } from "@/app/codex/connection"
 
-type ThreadPanelChatRender = (input: {
+export type ThreadPanelChatRender = (input: {
   onSearchOpenChange: (open: boolean) => void
   searchOpen: boolean
 }) => ReactNode
+
+export type ThreadPanelSurfaceSnapshot = {
+  activeThreadId?: string | null
+  activeThreadName: string
+  canSelectThread: boolean
+  codexThreadError?: string | null
+  companyAgentError?: string | null
+  isLoading: boolean
+  isSelectingThread: boolean
+  items: CodexThreadPickerItem[]
+  optimisticThreadNames: Record<string, string>
+  renameError?: string | null
+  renamingThreadId?: string | null
+  searchOpen: boolean
+  subtitle: string
+  threadSelectionError?: string | null
+  threadSummaries: CodexThreadSummary[]
+}
+
+export type ThreadPanelAction =
+  | { type: "close" }
+  | { type: "new-thread" }
+  | { threadId: string; type: "resume-thread" }
+  | { name: string; threadId: string; type: "rename-thread" }
+  | { open: boolean; type: "set-search-open" }
+
+export type ThreadPanelDispatch = (
+  action: ThreadPanelAction
+) => Promise<void> | void
+
+export type ThreadPanelBridge = {
+  dispatch: ThreadPanelDispatch
+  snapshot: ThreadPanelSurfaceSnapshot
+}
 
 function copyThreadId(threadId: string) {
   void navigator.clipboard?.writeText(threadId).catch(() => {
@@ -74,246 +128,436 @@ export function PetThreadPanelContent({
   threadSelectionError?: string | null
   threadSummaries: CodexThreadSummary[]
 }) {
-  const [editingThreadId, setEditingThreadId] = useState<string | null>(null)
-  const [editingName, setEditingName] = useState("")
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const activeThread = items.find((item) => item.threadId === activeThreadId)
-  const subtitle = activeThread?.previewText || activeThreadId || "No thread selected"
+  const subtitle =
+    activeThread?.previewText || activeThreadId || "No thread selected"
+
+  const snapshot: ThreadPanelSurfaceSnapshot = {
+    activeThreadId,
+    activeThreadName: activeThread?.displayName ?? "Thread",
+    canSelectThread,
+    codexThreadError,
+    companyAgentError,
+    isLoading,
+    isSelectingThread,
+    items,
+    optimisticThreadNames,
+    renameError,
+    renamingThreadId,
+    searchOpen: isSearchOpen,
+    subtitle,
+    threadSelectionError,
+    threadSummaries,
+  }
+
+  const dispatch: ThreadPanelDispatch = (action) => {
+    switch (action.type) {
+      case "close":
+        onClose?.()
+        return
+      case "new-thread":
+        onNewThread()
+        return
+      case "resume-thread":
+        onResumeThread(action.threadId)
+        return
+      case "rename-thread":
+        return onRenameThread({
+          name: action.name,
+          threadId: action.threadId,
+        })
+      case "set-search-open":
+        setIsSearchOpen(action.open)
+        return
+    }
+  }
+
+  const bridge: ThreadPanelBridge = {
+    dispatch,
+    snapshot,
+  }
+
+  return <ThreadPanelSurface bridge={bridge} chat={chat} />
+}
+
+export function ThreadPanelSurface({
+  bridge,
+  chat,
+}: {
+  bridge: ThreadPanelBridge
+  chat: ReactNode | ThreadPanelChatRender
+}) {
+  const [editingThreadId, setEditingThreadId] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState("")
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const { dispatch, snapshot } = bridge
 
   return (
-    <section className="flex h-[min(38rem,calc(100vh-5rem))] min-h-96 w-[min(58rem,calc(100vw-4rem))] overflow-hidden rounded-lg border bg-background text-foreground shadow-sm">
-      <aside className="flex w-72 shrink-0 flex-col border-r bg-muted/20">
-        <div className="flex min-h-14 items-center justify-between gap-3 px-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">Threads</p>
-          </div>
+    <SidebarStateProvider open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+      <ThreadPanelShell
+        activeThreadName={snapshot.activeThreadName}
+        chat={chat}
+        dispatch={dispatch}
+        isSearchOpen={snapshot.searchOpen}
+        subtitle={snapshot.subtitle}
+      >
+        <ThreadPanelSidebar
+          canSelectThread={snapshot.canSelectThread}
+          codexThreadError={snapshot.codexThreadError}
+          companyAgentError={snapshot.companyAgentError}
+          editingName={editingName}
+          editingThreadId={editingThreadId}
+          isLoading={snapshot.isLoading}
+          isSelectingThread={snapshot.isSelectingThread}
+          items={snapshot.items}
+          dispatch={dispatch}
+          onEditingNameChange={setEditingName}
+          onEditingThreadIdChange={setEditingThreadId}
+          optimisticThreadNames={snapshot.optimisticThreadNames}
+          renameError={snapshot.renameError}
+          renamingThreadId={snapshot.renamingThreadId}
+          threadSelectionError={snapshot.threadSelectionError}
+          threadSummaries={snapshot.threadSummaries}
+        />
+      </ThreadPanelShell>
+    </SidebarStateProvider>
+  )
+}
+
+function ThreadPanelShell({
+  activeThreadName,
+  chat,
+  children,
+  dispatch,
+  isSearchOpen,
+  subtitle,
+}: {
+  activeThreadName: string
+  chat: ReactNode | ThreadPanelChatRender
+  children: ReactNode
+  dispatch: ThreadPanelDispatch
+  isSearchOpen: boolean
+  subtitle: string
+}) {
+  const { open, toggleSidebar } = useSidebar()
+
+  return (
+    <section
+      className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-lg border bg-background text-foreground shadow-sm"
+      style={
+        {
+          "--sidebar": "var(--background)",
+          "--sidebar-foreground": "var(--foreground)",
+          "--sidebar-accent": "var(--muted)",
+          "--sidebar-accent-foreground": "var(--foreground)",
+          "--sidebar-border": "var(--border)",
+          "--sidebar-ring": "var(--ring)",
+        } as CSSProperties
+      }
+    >
+      <header
+        className="flex min-h-14 cursor-grab items-center gap-3 bg-muted/30 px-4 active:cursor-grabbing"
+        data-selection="none"
+      >
+        <Button
+          aria-label="Toggle thread sidebar"
+          aria-pressed={open}
+          data-popover-no-drag
+          onClick={toggleSidebar}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
+          <PanelLeftIcon className="size-4" aria-hidden="true" />
+        </Button>
+        <Avatar size="default">
+          <AvatarImage alt="Thread transcript" src="/avatars/ai.png" />
+          <AvatarFallback>AI</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-sm font-medium leading-5">
+            {activeThreadName}
+          </h2>
+          <p className="truncate text-xs leading-4 text-muted-foreground">
+            {subtitle}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
           <Button
-            aria-label="New thread"
+            aria-label="Search transcript"
+            aria-pressed={isSearchOpen}
             data-popover-no-drag
-            disabled={!canSelectThread || isSelectingThread}
-            onClick={onNewThread}
+            onClick={() =>
+              dispatch({
+                open: !isSearchOpen,
+                type: "set-search-open",
+              })
+            }
             size="icon-sm"
-            title={canSelectThread ? undefined : "Codex is starting"}
             type="button"
             variant="ghost"
           >
-            <PlusIcon className="size-4" aria-hidden="true" />
+            <SearchIcon className="size-4" aria-hidden="true" />
+          </Button>
+          <Button
+            aria-label="More thread actions"
+            data-popover-no-drag
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <MoreHorizontalIcon className="size-4" aria-hidden="true" />
+          </Button>
+          <Button
+            aria-label="Close thread panel"
+            data-popover-no-drag
+            onClick={() => dispatch({ type: "close" })}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <XIcon className="size-4" aria-hidden="true" />
           </Button>
         </div>
-        <Separator />
-        <ThreadPanelErrors
-          codexThreadError={codexThreadError}
-          companyAgentError={companyAgentError}
-          renameError={renameError}
-          threadSelectionError={threadSelectionError}
-        />
-        <ScrollArea
-          className="min-h-0 flex-1"
-          data-popover-no-drag
-          data-thread-picker-no-drag=""
-          viewportClassName="p-2"
+      </header>
+      <Separator />
+      <main className="flex min-h-0 flex-1">
+        <aside
+          className={cn(
+            "group flex shrink-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-[width] duration-200",
+            open ? "w-72" : "w-0"
+          )}
+          data-collapsible={open ? "" : "icon"}
+          data-state={open ? "expanded" : "collapsed"}
         >
-          <div className="flex min-w-0 flex-col gap-1">
-            {!canSelectThread ? (
-              <ThreadPanelMutedText text="Connecting to Codex..." />
-            ) : isLoading ? (
-              <ThreadPanelMutedText text="Loading threads..." />
-            ) : items.length > 0 ? (
-              items.map((item) => {
-                const summary = getThreadSummaryById(
-                  threadSummaries,
-                  item.threadId
-                )
-                const isEditing = editingThreadId === item.threadId
-                const isRenaming = renamingThreadId === item.threadId
-
-                return (
-                  <div
-                    className={[
-                      "group min-w-0 rounded-md px-2.5 py-2 text-xs transition-colors",
-                      item.isCurrentThread
-                        ? "bg-background text-foreground shadow-sm"
-                        : "bg-transparent hover:bg-background/70",
-                    ].join(" ")}
-                    key={item.threadId}
-                  >
-                    <div className="flex min-w-0 items-center gap-2">
-                      {isEditing ? (
-                        <form
-                          className="flex min-w-0 flex-1 items-center gap-1.5"
-                          onSubmit={(event) => {
-                            event.preventDefault()
-                            const nextName = editingName.trim()
-                            if (!nextName || isRenaming) {
-                              return
-                            }
-                            void onRenameThread({
-                              name: nextName,
-                              threadId: item.threadId,
-                            }).then(() => setEditingThreadId(null))
-                          }}
-                        >
-                          <Input
-                            autoFocus
-                            className="h-7 min-w-0 flex-1 px-2 text-xs"
-                            disabled={isRenaming}
-                            onChange={(event) =>
-                              setEditingName(event.target.value)
-                            }
-                            value={editingName}
-                          />
-                          <Button
-                            className="size-7 p-0"
-                            disabled={isRenaming || !editingName.trim()}
-                            type="submit"
-                            variant="ghost"
-                          >
-                            <CheckIcon className="size-3.5" />
-                          </Button>
-                          <Button
-                            className="size-7 p-0"
-                            disabled={isRenaming}
-                            onClick={() => setEditingThreadId(null)}
-                            type="button"
-                            variant="ghost"
-                          >
-                            <XIcon className="size-3.5" />
-                          </Button>
-                        </form>
-                      ) : (
-                        <>
-                          <button
-                            aria-current={
-                              item.isCurrentThread ? "true" : undefined
-                            }
-                            className="flex min-w-0 flex-1 flex-col gap-1 text-left"
-                            disabled={!canSelectThread || isSelectingThread}
-                            onClick={() => onResumeThread(item.threadId)}
-                            type="button"
-                          >
-                            <span className="flex min-w-0 items-center gap-2">
-                              <span className="min-w-0 flex-1 truncate font-medium">
-                                {item.displayName}
-                              </span>
-                              <span className="shrink-0 text-[10px] text-muted-foreground">
-                                {item.timestamp}
-                              </span>
-                            </span>
-                            <span className="truncate text-muted-foreground">
-                              {item.previewText}
-                            </span>
-                          </button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                aria-label="Thread actions"
-                                className="size-7 shrink-0 p-0 opacity-70 hover:opacity-100"
-                                data-popover-no-drag
-                                title="Thread actions"
-                                type="button"
-                                variant="ghost"
-                              >
-                                <MoreHorizontalIcon className="size-3.5" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" sideOffset={6}>
-                              <DropdownMenuItem
-                                onSelect={() => copyThreadId(item.threadId)}
-                              >
-                                Copy thread id
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                disabled={
-                                  !canSelectThread ||
-                                  isSelectingThread ||
-                                  isRenaming
-                                }
-                                onSelect={() => {
-                                  setEditingThreadId(item.threadId)
-                                  setEditingName(
-                                    optimisticThreadNames[item.threadId] ??
-                                      summary?.name?.trim() ??
-                                      ""
-                                  )
-                                }}
-                              >
-                                Rename
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )
-              })
-            ) : (
-              <ThreadPanelMutedText text="No Codex threads yet." />
-            )}
-          </div>
-        </ScrollArea>
-      </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header
-          className="flex min-h-14 cursor-grab items-center gap-3 bg-muted/30 px-4 active:cursor-grabbing"
-          data-selection="none"
-        >
-          <Avatar size="default">
-            <AvatarImage alt="Thread transcript" src="/avatars/ai.png" />
-            <AvatarFallback>AI</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-sm font-medium leading-5">
-              {activeThread?.displayName ?? "Thread"}
-            </h2>
-            <p className="truncate text-xs leading-4 text-muted-foreground">
-              {subtitle}
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <Button
-              aria-label="Search transcript"
-              aria-pressed={isSearchOpen}
-              data-popover-no-drag
-              onClick={() => setIsSearchOpen((current) => !current)}
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              <SearchIcon className="size-4" aria-hidden="true" />
-            </Button>
-            <Button
-              aria-label="More thread actions"
-              data-popover-no-drag
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              <MoreHorizontalIcon className="size-4" aria-hidden="true" />
-            </Button>
-            <Button
-              aria-label="Close thread panel"
-              data-popover-no-drag
-              onClick={onClose}
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              <XIcon className="size-4" aria-hidden="true" />
-            </Button>
-          </div>
-        </header>
-        <Separator />
+          {open ? children : null}
+        </aside>
         <div
-          className="min-h-0 flex-1"
+          className="min-h-0 min-w-0 flex-1"
           data-thread-panel-search-open={isSearchOpen}
         >
           {typeof chat === "function"
-            ? chat({ onSearchOpenChange: setIsSearchOpen, searchOpen: isSearchOpen })
+            ? chat({
+                onSearchOpenChange: (open) =>
+                  dispatch({
+                    open,
+                    type: "set-search-open",
+                  }),
+                searchOpen: isSearchOpen,
+              })
             : chat}
         </div>
-      </div>
+      </main>
     </section>
+  )
+}
+
+function ThreadPanelSidebar({
+  canSelectThread,
+  codexThreadError,
+  companyAgentError,
+  editingName,
+  editingThreadId,
+  dispatch,
+  isLoading,
+  isSelectingThread,
+  items,
+  onEditingNameChange,
+  onEditingThreadIdChange,
+  optimisticThreadNames,
+  renameError,
+  renamingThreadId,
+  threadSelectionError,
+  threadSummaries,
+}: {
+  canSelectThread: boolean
+  codexThreadError?: string | null
+  companyAgentError?: string | null
+  editingName: string
+  editingThreadId: string | null
+  dispatch: ThreadPanelDispatch
+  isLoading: boolean
+  isSelectingThread: boolean
+  items: CodexThreadPickerItem[]
+  onEditingNameChange: (name: string) => void
+  onEditingThreadIdChange: (threadId: string | null) => void
+  optimisticThreadNames: Record<string, string>
+  renameError?: string | null
+  renamingThreadId?: string | null
+  threadSelectionError?: string | null
+  threadSummaries: CodexThreadSummary[]
+}) {
+  return (
+    <>
+      <ThreadPanelErrors
+        codexThreadError={codexThreadError}
+        companyAgentError={companyAgentError}
+        renameError={renameError}
+        threadSelectionError={threadSelectionError}
+      />
+      <SidebarContent data-popover-no-drag data-thread-picker-no-drag="">
+        <SidebarGroup>
+          <SidebarGroupLabel>Codex threads</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <ScrollArea className="min-h-0 flex-1" viewportClassName="pr-1">
+              <SidebarMenu className="gap-1">
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    data-popover-no-drag
+                    disabled={!canSelectThread || isSelectingThread}
+                    onClick={() => dispatch({ type: "new-thread" })}
+                    title={canSelectThread ? undefined : "Codex is starting"}
+                    type="button"
+                  >
+                    <PlusIcon aria-hidden="true" />
+                    <span className="truncate font-medium">New thread</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                {!canSelectThread ? (
+                  <ThreadPanelMutedText text="Connecting to Codex..." />
+                ) : isLoading ? (
+                  <ThreadPanelMutedText text="Loading threads..." />
+                ) : items.length > 0 ? (
+                  items.map((item) => {
+                    const summary = getThreadSummaryById(
+                      threadSummaries,
+                      item.threadId
+                    )
+                    const isEditing = editingThreadId === item.threadId
+                    const isRenaming = renamingThreadId === item.threadId
+
+                    return (
+                      <SidebarMenuItem key={item.threadId}>
+                        {isEditing ? (
+                          <form
+                            className="flex min-w-0 flex-1 items-center gap-1.5"
+                            onSubmit={(event) => {
+                              event.preventDefault()
+                              const nextName = editingName.trim()
+                              if (!nextName || isRenaming) {
+                                return
+                              }
+                              void Promise.resolve(
+                                dispatch({
+                                  name: nextName,
+                                  threadId: item.threadId,
+                                  type: "rename-thread",
+                                })
+                              ).then(() => onEditingThreadIdChange(null))
+                            }}
+                          >
+                            <Input
+                              autoFocus
+                              className="h-7 min-w-0 flex-1 px-2 text-xs"
+                              disabled={isRenaming}
+                              onChange={(event) =>
+                                onEditingNameChange(event.target.value)
+                              }
+                              value={editingName}
+                            />
+                            <Button
+                              className="size-7 p-0"
+                              disabled={isRenaming || !editingName.trim()}
+                              type="submit"
+                              variant="ghost"
+                            >
+                              <CheckIcon className="size-3.5" />
+                            </Button>
+                            <Button
+                              className="size-7 p-0"
+                              disabled={isRenaming}
+                              onClick={() => onEditingThreadIdChange(null)}
+                              type="button"
+                              variant="ghost"
+                            >
+                              <XIcon className="size-3.5" />
+                            </Button>
+                          </form>
+                        ) : (
+                          <>
+                            <SidebarMenuButton
+                              aria-current={
+                                item.isCurrentThread ? "true" : undefined
+                              }
+                              disabled={!canSelectThread || isSelectingThread}
+                              isActive={item.isCurrentThread}
+                              onClick={() =>
+                                dispatch({
+                                  threadId: item.threadId,
+                                  type: "resume-thread",
+                                })
+                              }
+                              type="button"
+                            >
+                              <span className="grid size-6 shrink-0 place-items-center rounded-md bg-sidebar-accent text-[10px] font-medium text-sidebar-accent-foreground">
+                                {getThreadInitial(item.displayName)}
+                              </span>
+                              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                                <span className="flex min-w-0 items-center gap-2">
+                                  <span className="min-w-0 flex-1 truncate font-medium">
+                                    {item.displayName}
+                                  </span>
+                                  <span className="shrink-0 text-[10px] text-sidebar-foreground/50">
+                                    {item.timestamp}
+                                  </span>
+                                </span>
+                                <span className="truncate text-xs text-sidebar-foreground/60">
+                                  {item.previewText}
+                                </span>
+                              </span>
+                            </SidebarMenuButton>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <SidebarMenuAction
+                                  aria-label="Thread actions"
+                                  data-popover-no-drag
+                                  showOnHover
+                                  title="Thread actions"
+                                  type="button"
+                                >
+                                  <MoreHorizontalIcon className="size-3.5" />
+                                </SidebarMenuAction>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" sideOffset={6}>
+                                <DropdownMenuItem
+                                  onSelect={() => copyThreadId(item.threadId)}
+                                >
+                                  Copy thread id
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  disabled={
+                                    !canSelectThread ||
+                                    isSelectingThread ||
+                                    isRenaming
+                                  }
+                                  onSelect={() => {
+                                    onEditingThreadIdChange(item.threadId)
+                                    onEditingNameChange(
+                                      optimisticThreadNames[item.threadId] ??
+                                        summary?.name?.trim() ??
+                                        ""
+                                    )
+                                  }}
+                                >
+                                  Rename
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </>
+                        )}
+                      </SidebarMenuItem>
+                    )
+                  })
+                ) : (
+                  <ThreadPanelMutedText text="No Codex threads yet." />
+                )}
+              </SidebarMenu>
+            </ScrollArea>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </>
   )
 }
 
@@ -342,7 +586,11 @@ function ThreadPanelErrors({
   return (
     <div className="flex flex-col gap-1 px-3 py-2">
       {errors.map((error) => (
-        <Badge className="justify-start truncate" key={error} variant="destructive">
+        <Badge
+          className="justify-start truncate"
+          key={error}
+          variant="destructive"
+        >
           {error}
         </Badge>
       ))}
@@ -351,5 +599,9 @@ function ThreadPanelErrors({
 }
 
 function ThreadPanelMutedText({ text }: { text: string }) {
-  return <p className="px-2 py-2 text-xs text-muted-foreground">{text}</p>
+  return <p className="px-2 py-2 text-xs text-sidebar-foreground/60">{text}</p>
+}
+
+function getThreadInitial(name: string) {
+  return name.trim().charAt(0).toUpperCase() || "T"
 }

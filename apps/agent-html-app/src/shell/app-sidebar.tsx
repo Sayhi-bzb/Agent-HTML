@@ -4,7 +4,6 @@ import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
 import { NavProjects } from "@/app/shell/nav-projects"
 import { NewProjectDialog } from "@/app/shell/new-project-dialog"
 import { SearchCommand } from "@/app/shell/search-command"
-import { SettingsMenu } from "@/app/shell/settings-menu"
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +15,12 @@ import {
 } from "@/app/shared/ui/sidebar"
 import type { WorkspaceSection } from "@/app/workspace/types"
 import { ArrowLeftIcon, SparklesIcon } from "lucide-react"
+
+const SettingsMenu = React.lazy(() =>
+  import("@/app/shell/settings-menu").then((module) => ({
+    default: module.SettingsMenu,
+  }))
+)
 
 type ProjectNavItem = {
   id: string
@@ -152,7 +157,9 @@ export function AppSidebar({
                 <span>Gallery</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SettingsMenu />
+            <React.Suspense fallback={null}>
+              <SettingsMenu />
+            </React.Suspense>
           </FooterMenuStack>
         )}
       </SidebarFooter>

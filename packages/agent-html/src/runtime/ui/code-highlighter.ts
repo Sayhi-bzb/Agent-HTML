@@ -139,3 +139,11 @@ export async function highlightCode(
     }),
   }
 }
+
+export async function highlightCodeToHtml(code: string, language: string) {
+  const highlightedCode = await highlightCode(code, language)
+
+  return highlightedCode
+    ? [highlightedCode.html, highlightedCode.darkHtml]
+    : ["", ""]
+}

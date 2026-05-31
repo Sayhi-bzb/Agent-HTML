@@ -1,5 +1,5 @@
 import * as React from "react"
-import { RotateCwIcon, SaveIcon } from "lucide-react"
+import { RotateCwIcon, SaveIcon, SettingsIcon, XIcon } from "lucide-react"
 
 import { useCodexConnection } from "@/app/codex/connection"
 import type {
@@ -7,13 +7,19 @@ import type {
   CodexRuntimeStatus,
 } from "@/app/codex/connection"
 import type { CodexRuntimeCapabilityItem } from "@/app/codex/connection/types"
-import {
-  PetPanelBody,
-  PetPanelFooter,
-  PetPanelHeader,
-} from "@/app/pet/host/pet-panel"
 import { Button } from "@/app/shared/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/shared/ui/tabs"
+import { ScrollArea } from "@/app/shared/ui/scroll-area"
+import { Separator } from "@/app/shared/ui/separator"
+import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarStateProvider,
+} from "@/app/shared/ui/sidebar"
 import { Textarea } from "@/app/shared/ui/textarea"
 import { SettingsInfoPanel } from "@/app/shell/settings-surface"
 import { createWorkspaceStore } from "@/app/workspace/store"
@@ -170,7 +176,7 @@ function PathInfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function PetSettingsContent() {
+export function PetSettingsContent({ onClose }: { onClose?: () => void }) {
   const codexConnection = useCodexConnection()
   const runtimeStatus = codexConnection.runtimeStatus
   const [activeView, setActiveView] =
@@ -233,75 +239,189 @@ export function PetSettingsContent() {
   }, [codexConnection])
   const isRuntimeRefreshDisabled =
     codexConnection.status !== "connected" || runtimeStatus.status === "loading"
+  const subtitle =
+    runtimeStatus.status === "loading"
+      ? "Loading runtime"
+      : `${activeView} settings`
 
   return (
-    <Tabs
-      className="min-h-0 gap-0"
-      data-pet-settings-no-drag=""
-      onValueChange={(value) => setActiveView(value as SettingsView)}
-      value={activeView}
-    >
-      <PetPanelHeader
-        actions={
-          <Button
-            disabled={isRuntimeRefreshDisabled}
-            onClick={refreshRuntimeStatus}
-            size="sm"
-            type="button"
-            variant="outline"
-          >
-            <RotateCwIcon aria-hidden="true" className="size-3.5" />
-            {runtimeStatus.status === "loading" ? "Loading" : "Refresh"}
-          </Button>
+    <SidebarStateProvider>
+      <section
+        className="flex h-[min(34rem,calc(100vh-5rem))] min-h-96 w-[min(52rem,calc(100vw-4rem))] flex-col overflow-hidden rounded-lg border bg-background text-foreground shadow-sm"
+        style={
+          {
+            "--sidebar": "var(--background)",
+            "--sidebar-foreground": "var(--foreground)",
+            "--sidebar-accent": "var(--muted)",
+            "--sidebar-accent-foreground": "var(--foreground)",
+            "--sidebar-border": "var(--border)",
+            "--sidebar-ring": "var(--ring)",
+          } as React.CSSProperties
         }
-        className="px-0 py-0"
-        description="Review the workspace files and Codex app-server surfaces this pet can reach."
-        title="AgentHTML settings"
-      />
-      <TabsList
-        aria-label="AgentHTML settings views"
-        className="mt-3 grid h-auto w-full grid-cols-5"
       >
-        {settingsViews.map((view) => (
-          <TabsTrigger className="text-xs" key={view} value={view}>
-            {view}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      <PetPanelBody className="mt-3 px-0 py-0" scroll={false}>
-        <TabsContent value="Instructions">
-          <InstructionsView
-            draft={draft}
-            error={error}
-            isDirty={isDirty}
-            isLoading={isLoading}
-            isSaving={isSaving}
-            loadInstructions={loadInstructions}
-            saveInstructions={saveInstructions}
-            setDraft={setDraft}
-            setStatus={setStatus}
-            status={status}
-          />
-        </TabsContent>
-        <TabsContent value="Skills">
-          <SkillsView runtimeStatus={runtimeStatus} />
-        </TabsContent>
-        <TabsContent value="MCP">
-          <McpView runtimeStatus={runtimeStatus} />
-        </TabsContent>
-        <TabsContent value="Plugins">
-          <PluginsView runtimeStatus={runtimeStatus} />
-        </TabsContent>
-        <TabsContent value="Runtime">
-          <RuntimeView
-            codexCommand={codexConnection.health?.codexCommand ?? "unknown"}
-            connectionStatus={codexConnection.status}
-            cwd={codexConnection.health?.cwd ?? "unknown"}
-            runtimeStatus={runtimeStatus}
-          />
-        </TabsContent>
-      </PetPanelBody>
-    </Tabs>
+        <header
+          className="flex min-h-14 cursor-grab items-center gap-3 bg-muted/30 px-4 active:cursor-grabbing"
+          data-selection="none"
+        >
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
+            <SettingsIcon aria-hidden="true" className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-sm font-medium leading-5">
+              AgentHTML settings
+            </h2>
+            <p className="truncate text-xs leading-4 text-muted-foreground">
+              {subtitle}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              data-popover-no-drag
+              disabled={isRuntimeRefreshDisabled}
+              onClick={refreshRuntimeStatus}
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+            >
+              <RotateCwIcon aria-hidden="true" className="size-4" />
+              <span className="sr-only">
+                {runtimeStatus.status === "loading" ? "Loading" : "Refresh"}
+              </span>
+            </Button>
+            <Button
+              aria-label="Close settings"
+              data-popover-no-drag
+              onClick={onClose}
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+            >
+              <XIcon aria-hidden="true" className="size-4" />
+            </Button>
+          </div>
+        </header>
+        <Separator />
+        <main className="flex min-h-0 flex-1">
+          <aside className="flex w-44 shrink-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground">
+            <SidebarContent data-pet-settings-no-drag="">
+              <SidebarGroup>
+                <SidebarGroupLabel>Settings</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu className="gap-1">
+                    {settingsViews.map((view) => (
+                      <SidebarMenuItem key={view}>
+                        <SidebarMenuButton
+                          isActive={activeView === view}
+                          onClick={() => setActiveView(view)}
+                          type="button"
+                        >
+                          <span className="truncate">{view}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+          </aside>
+          <ScrollArea
+            className="min-h-0 min-w-0 flex-1"
+            data-pet-settings-no-drag=""
+            viewportClassName="p-4"
+          >
+            <SettingsViewContent
+              activeView={activeView}
+              codexCommand={codexConnection.health?.codexCommand ?? "unknown"}
+              connectionStatus={codexConnection.status}
+              cwd={codexConnection.health?.cwd ?? "unknown"}
+              draft={draft}
+              error={error}
+              isDirty={isDirty}
+              isLoading={isLoading}
+              isSaving={isSaving}
+              loadInstructions={loadInstructions}
+              runtimeStatus={runtimeStatus}
+              saveInstructions={saveInstructions}
+              setDraft={setDraft}
+              setStatus={setStatus}
+              status={status}
+            />
+          </ScrollArea>
+        </main>
+      </section>
+    </SidebarStateProvider>
+  )
+}
+
+function SettingsViewContent({
+  activeView,
+  codexCommand,
+  connectionStatus,
+  cwd,
+  draft,
+  error,
+  isDirty,
+  isLoading,
+  isSaving,
+  loadInstructions,
+  runtimeStatus,
+  saveInstructions,
+  setDraft,
+  setStatus,
+  status,
+}: {
+  activeView: SettingsView
+  codexCommand: string
+  connectionStatus: string
+  cwd: string
+  draft: string
+  error: string | null
+  isDirty: boolean
+  isLoading: boolean
+  isSaving: boolean
+  loadInstructions: () => Promise<void>
+  runtimeStatus: CodexRuntimeStatus
+  saveInstructions: () => void
+  setDraft: (draft: string) => void
+  setStatus: (status: "idle" | "saved") => void
+  status: "idle" | "saved"
+}) {
+  if (activeView === "Instructions") {
+    return (
+      <InstructionsView
+        draft={draft}
+        error={error}
+        isDirty={isDirty}
+        isLoading={isLoading}
+        isSaving={isSaving}
+        loadInstructions={loadInstructions}
+        saveInstructions={saveInstructions}
+        setDraft={setDraft}
+        setStatus={setStatus}
+        status={status}
+      />
+    )
+  }
+
+  if (activeView === "Skills") {
+    return <SkillsView runtimeStatus={runtimeStatus} />
+  }
+
+  if (activeView === "MCP") {
+    return <McpView runtimeStatus={runtimeStatus} />
+  }
+
+  if (activeView === "Plugins") {
+    return <PluginsView runtimeStatus={runtimeStatus} />
+  }
+
+  return (
+    <RuntimeView
+      codexCommand={codexCommand}
+      connectionStatus={connectionStatus}
+      cwd={cwd}
+      runtimeStatus={runtimeStatus}
+    />
   )
 }
 
@@ -367,7 +487,10 @@ function InstructionsView({
       {!error && status === "saved" ? (
         <SettingsInfoPanel>Saved to AgentHTML/AGENTS.md.</SettingsInfoPanel>
       ) : null}
-      <PetPanelFooter className="px-0 py-0">
+      <footer
+        className="flex shrink-0 items-center justify-end gap-2"
+        data-selection="none"
+      >
         <Button
           disabled={isLoading || isSaving}
           onClick={loadInstructions}
@@ -387,7 +510,7 @@ function InstructionsView({
           <SaveIcon aria-hidden="true" className="size-3.5" />
           {isSaving ? "Saving" : "Save"}
         </Button>
-      </PetPanelFooter>
+      </footer>
     </div>
   )
 }

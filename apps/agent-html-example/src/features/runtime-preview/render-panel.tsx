@@ -1,6 +1,5 @@
 import * as React from "react"
 import { autoUpdate, computePosition, offset } from "@floating-ui/react"
-import { motion, useReducedMotion } from "motion/react"
 
 import {
   selectHoverCardPlacement,
@@ -17,20 +16,6 @@ const hoverCardSize = {
   width: 224,
 } as const
 
-const hoverCardMotionTransition = {
-  opacity: { duration: 0.14, ease: "easeOut" },
-  scale: { duration: 0.16, ease: "easeOut" },
-  x: { damping: 42, mass: 0.7, stiffness: 520, type: "spring" },
-  y: { damping: 42, mass: 0.7, stiffness: 520, type: "spring" },
-} as const
-
-const reducedHoverCardMotionTransition = {
-  opacity: { duration: 0.1, ease: "easeOut" },
-  scale: { duration: 0 },
-  x: { duration: 0 },
-  y: { duration: 0 },
-} as const
-
 type HoverCardState = {
   placement: {
     left: number
@@ -39,6 +24,28 @@ type HoverCardState = {
   } | null
   summary: string
   visible: boolean
+}
+
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false)
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+
+    setPrefersReducedMotion(mediaQuery.matches)
+
+    const handleChange = () => {
+      setPrefersReducedMotion(mediaQuery.matches)
+    }
+
+    mediaQuery.addEventListener("change", handleChange)
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange)
+    }
+  }, [])
+
+  return prefersReducedMotion
 }
 
 export const RenderPanel = React.memo(function RenderPanel({
@@ -56,7 +63,7 @@ export const RenderPanel = React.memo(function RenderPanel({
     hoveredMotionKey,
     hoveredPath,
   } = blockRuntime
-  const shouldReduceMotion = useReducedMotion()
+  const shouldReduceMotion = usePrefersReducedMotion()
   const viewportRef = React.useRef<HTMLDivElement | null>(null)
   const hoverCardRef = React.useRef<HTMLDivElement | null>(null)
   const hoveredBlockRef = React.useRef<HTMLElement | null>(null)
@@ -193,30 +200,23 @@ export const RenderPanel = React.memo(function RenderPanel({
   }, [])
 
   const hoverCardOverlay = (
-    <motion.div
-      animate={{
-        opacity: hoverCard.visible ? 1 : 0,
-        scale: shouldReduceMotion || hoverCard.visible ? 1 : 0.96,
-        x: hoverCard.placement?.left ?? 0,
-        y: hoverCard.placement?.top ?? 0,
-      }}
+    <div
       aria-hidden="true"
-      className="pointer-events-none fixed z-50 max-h-56 w-56 overflow-hidden rounded-lg border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[var(--card)] px-3 py-2 shadow-[0_18px_36px_-24px_color-mix(in_oklab,var(--foreground)_35%,transparent)] ring-1 ring-[color-mix(in_oklab,var(--foreground)_10%,transparent)]"
+      className="pointer-events-none fixed z-50 max-h-56 w-56 overflow-hidden rounded-lg border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[var(--card)] px-3 py-2 opacity-0 shadow-[0_18px_36px_-24px_color-mix(in_oklab,var(--foreground)_35%,transparent)] ring-1 ring-[color-mix(in_oklab,var(--foreground)_10%,transparent)] transition-[opacity,transform] duration-150 ease-out"
       data-agent-html-hover-card="true"
-      initial={false}
       ref={hoverCardRef}
-      transition={
-        shouldReduceMotion
-          ? reducedHoverCardMotionTransition
-          : hoverCardMotionTransition
-      }
       style={{
         left: 0,
+        opacity: hoverCard.visible ? 1 : 0,
         top: 0,
+        transform: `translate3d(${hoverCard.placement?.left ?? 0}px, ${
+          hoverCard.placement?.top ?? 0
+        }px, 0) scale(${shouldReduceMotion || hoverCard.visible ? 1 : 0.96})`,
+        transitionDuration: shouldReduceMotion ? "0ms" : undefined,
       }}
     >
       <BlockSummaryCode summary={hoverCard.summary} />
-    </motion.div>
+    </div>
   )
 
   return (
