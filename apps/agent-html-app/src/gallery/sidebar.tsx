@@ -1,3 +1,5 @@
+import * as React from "react"
+
 import {
   type AppThemePresetId,
 } from "@/app/shared/app-theme/tokens"
@@ -18,11 +20,9 @@ import {
 } from "@/app/shared/ui/sidebar"
 import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
 import {
+  type EnabledGalleryComponentTags,
   type GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
-import {
-  GalleryComponentMarketSidebar,
-} from "@/app/gallery/component-market-sidebar"
 import type { GalleryViewId } from "@/app/gallery/views"
 import {
   galleryThemeEditorSections,
@@ -34,10 +34,23 @@ import {
   PawPrintIcon,
 } from "lucide-react"
 
-export {
-  GalleryComponentMarketSidebarFooter,
-  GalleryComponentMarketSidebarHeader,
-} from "@/app/gallery/component-market-sidebar"
+const GalleryComponentMarketSidebar = React.lazy(() =>
+  import("@/app/gallery/component-market-sidebar").then((module) => ({
+    default: module.GalleryComponentMarketSidebar,
+  }))
+)
+
+const GalleryComponentMarketSidebarFooter = React.lazy(() =>
+  import("@/app/gallery/component-market-sidebar").then((module) => ({
+    default: module.GalleryComponentMarketSidebarFooter,
+  }))
+)
+
+const GalleryComponentMarketSidebarHeader = React.lazy(() =>
+  import("@/app/gallery/component-market-sidebar").then((module) => ({
+    default: module.GalleryComponentMarketSidebarHeader,
+  }))
+)
 
 type AppThemePresetNavItem = {
   id: AppThemePresetId
@@ -52,6 +65,47 @@ const galleryThemeSidebarSelectItemClassName =
 
 const galleryThemeSidebarSelectMenuButtonClassName =
   "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+
+function GalleryLazySidebarFallback() {
+  return <div className="min-h-20" />
+}
+
+export function GalleryLazyComponentMarketSidebarHeader({
+  componentMarketFilters,
+  enabledComponentTags,
+  onComponentMarketFiltersChange,
+  onSearchQueryCommit,
+}: {
+  componentMarketFilters: GalleryComponentMarketFilters
+  enabledComponentTags: EnabledGalleryComponentTags
+  onComponentMarketFiltersChange: (filters: GalleryComponentMarketFilters) => void
+  onSearchQueryCommit: (query: string) => void
+}) {
+  return (
+    <React.Suspense fallback={<GalleryLazySidebarFallback />}>
+      <GalleryComponentMarketSidebarHeader
+        componentMarketFilters={componentMarketFilters}
+        enabledComponentTags={enabledComponentTags}
+        onComponentMarketFiltersChange={onComponentMarketFiltersChange}
+        onSearchQueryCommit={onSearchQueryCommit}
+      />
+    </React.Suspense>
+  )
+}
+
+export function GalleryLazyComponentMarketSidebarFooter({
+  enabledComponentTags,
+}: {
+  enabledComponentTags: EnabledGalleryComponentTags
+}) {
+  return (
+    <React.Suspense fallback={null}>
+      <GalleryComponentMarketSidebarFooter
+        enabledComponentTags={enabledComponentTags}
+      />
+    </React.Suspense>
+  )
+}
 
 export function GalleryThemeSidebarHeader({
   activePresetId,
@@ -201,10 +255,12 @@ export function GalleryMarketSidebar({
 }) {
   if (viewId === "components") {
     return (
-      <GalleryComponentMarketSidebar
-        filters={componentMarketFilters}
-        onFiltersChange={onComponentMarketFiltersChange}
-      />
+      <React.Suspense fallback={<GalleryLazySidebarFallback />}>
+        <GalleryComponentMarketSidebar
+          filters={componentMarketFilters}
+          onFiltersChange={onComponentMarketFiltersChange}
+        />
+      </React.Suspense>
     )
   }
 

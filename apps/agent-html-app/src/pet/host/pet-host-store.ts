@@ -1,15 +1,40 @@
-import * as React from "react"
-
 import type {
   CodexApprovalDecision,
   CodexApprovalRequest,
+  CodexThreadSummary,
 } from "@/app/codex/connection/types"
 import type {
   PetPresence,
   PetSpeechBubble,
 } from "@/app/workspace/agent-presence"
-import type { CodexThreadPickerItem } from "@/app/workspace/thread-picker-model"
 import type { AgentHtmlAgentPromptSubmitInput } from "@/agent-html"
+import type {
+  CodexThreadPickerItem,
+  ThreadPreviewState,
+} from "@/app/workspace/thread-picker-model"
+import type { ThreadTranscriptTurn } from "@/app/workspace/thread-transcript"
+
+export type WorkspacePetThreadPanelState = {
+  activeThreadId?: string | null
+  canSelectThread: boolean
+  codexThreadError?: string | null
+  companyAgentError?: string | null
+  isLoading: boolean
+  isSelectingThread: boolean
+  items: CodexThreadPickerItem[]
+  optimisticThreadNames: Record<string, string>
+  renameError?: string | null
+  renamingThreadId?: string | null
+  threadRequestPreviews: Record<string, ThreadPreviewState>
+  threadSelectionError?: string | null
+  threadSummaries: CodexThreadSummary[]
+  transcript: {
+    error?: string | null
+    isLoading: boolean
+    threadId?: string | null
+    turns: ThreadTranscriptTurn[]
+  }
+}
 
 export type WorkspacePetHostSnapshot = {
   canInterruptTurn?: boolean
@@ -28,16 +53,7 @@ export type WorkspacePetHostSnapshot = {
   approval?: CodexApprovalRequest | null
   approvalError?: string | null
   speechBubbles?: PetSpeechBubble[]
-  renderTranscriptContent?: (input: { onClose: () => void }) => React.ReactNode
-  threadPickerContent?: React.ReactNode
-  transcriptContent?: React.ReactNode
-  threads?: {
-    canSelectThread: boolean
-    error?: string | null
-    isLoading: boolean
-    isSelectingThread: boolean
-    items: CodexThreadPickerItem[]
-  }
+  threadPanel?: WorkspacePetThreadPanelState
 }
 
 const disabledSnapshot: WorkspacePetHostSnapshot = {

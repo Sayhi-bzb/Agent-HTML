@@ -45,8 +45,11 @@ type TranscriptMessageView = {
 export function PetThreadTranscriptContent({
   composer,
   error,
+  hideHeader = false,
   isLoading,
   onClose,
+  onSearchOpenChange,
+  searchOpen,
   threadId,
   turns,
 }: Pick<
@@ -54,11 +57,15 @@ export function PetThreadTranscriptContent({
   "error" | "isLoading" | "threadId" | "turns"
 > & {
   composer?: ReactNode
+  hideHeader?: boolean
   onClose?: () => void
+  onSearchOpenChange?: (open: boolean) => void
+  searchOpen?: boolean
 }) {
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [uncontrolledSearchOpen, setUncontrolledSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeMatchIndex, setActiveMatchIndex] = useState(0)
+  const isSearchOpen = searchOpen ?? uncontrolledSearchOpen
   const subtitle = getTranscriptSubtitle({ threadId })
   const transcriptSearch = useMemo(
     () => buildTranscriptSearch(turns, searchQuery),
@@ -80,64 +87,81 @@ export function PetThreadTranscriptContent({
     setActiveMatchIndex((current) => (current + direction + matchCount) % matchCount)
   }
 
+  function setSearchOpen(open: boolean) {
+    setUncontrolledSearchOpen(open)
+    onSearchOpenChange?.(open)
+  }
+
   return (
-    <section className="flex h-[min(34rem,calc(100vh-5rem))] min-h-80 w-[34rem] flex-col overflow-hidden rounded-lg border bg-background text-foreground shadow-sm">
-      <header
-        className="flex cursor-grab items-center gap-3 bg-muted/30 px-4 py-3 active:cursor-grabbing"
-        data-selection="none"
-      >
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <Avatar size="default">
-            <AvatarImage alt="Thread transcript" src="/avatars/ai.png" />
-            <AvatarFallback>AI</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-sm font-medium leading-5">
-              Thread Transcript
-            </h2>
-            <p className="truncate text-xs leading-4 text-muted-foreground">
-              {subtitle}
-            </p>
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            aria-label="Search transcript"
-            aria-pressed={isSearchOpen}
-            data-popover-no-drag
-            onClick={() => setIsSearchOpen((current) => !current)}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <SearchIcon className="size-4" aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label="More transcript actions"
-            data-popover-no-drag
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <MoreHorizontalIcon className="size-4" aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label="Close transcript"
-            data-popover-no-drag
-            onClick={onClose}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <XIcon className="size-4" aria-hidden="true" />
-          </Button>
-        </div>
-      </header>
-      {isSearchOpen ? (
+    <section
+      className={cn(
+        "flex flex-col overflow-hidden bg-background text-foreground",
+        hideHeader
+          ? "h-full min-h-0 w-full"
+          : "h-[min(34rem,calc(100vh-5rem))] min-h-80 w-[34rem] rounded-lg border shadow-sm"
+      )}
+    >
+      {!hideHeader ? (
         <>
+          <header
+            className="flex cursor-grab items-center gap-3 bg-muted/30 px-4 py-3 active:cursor-grabbing"
+            data-selection="none"
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <Avatar size="default">
+                <AvatarImage alt="Thread transcript" src="/avatars/ai.png" />
+                <AvatarFallback>AI</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-sm font-medium leading-5">
+                  Thread Transcript
+                </h2>
+                <p className="truncate text-xs leading-4 text-muted-foreground">
+                  {subtitle}
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                aria-label="Search transcript"
+                aria-pressed={isSearchOpen}
+                data-popover-no-drag
+                onClick={() => setSearchOpen(!isSearchOpen)}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+              >
+                <SearchIcon className="size-4" aria-hidden="true" />
+              </Button>
+              <Button
+                aria-label="More transcript actions"
+                data-popover-no-drag
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+              >
+                <MoreHorizontalIcon className="size-4" aria-hidden="true" />
+              </Button>
+              <Button
+                aria-label="Close transcript"
+                data-popover-no-drag
+                onClick={onClose}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+              >
+                <XIcon className="size-4" aria-hidden="true" />
+              </Button>
+            </div>
+          </header>
           <Separator />
+        </>
+      ) : null}
+
+      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-background">
+        {isSearchOpen ? (
           <div
-            className="flex items-center gap-2 bg-muted/20 px-3 py-2"
+            className="absolute inset-x-3 top-3 z-20 flex items-center gap-2 rounded-lg border bg-background/95 px-3 py-2 shadow-sm backdrop-blur"
             data-popover-no-drag
             data-selection="none"
           >
@@ -186,7 +210,7 @@ export function PetThreadTranscriptContent({
               aria-label="Close transcript search"
               data-popover-no-drag
               onClick={() => {
-                setIsSearchOpen(false)
+                setSearchOpen(false)
                 setSearchQuery("")
                 setActiveMatchIndex(0)
               }}
@@ -197,17 +221,14 @@ export function PetThreadTranscriptContent({
               <XIcon className="size-4" aria-hidden="true" />
             </Button>
           </div>
-        </>
-      ) : null}
-      <Separator />
-
-      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-background">
+        ) : null}
         <ScrollArea
           className="h-full min-w-0 w-full max-w-full"
+          containIntrinsicWidth
           data-popover-no-drag
           data-selection="text"
           viewportClassName={cn(
-            "min-w-0 w-full max-w-full p-3 [&>div]:!block [&>div]:!min-w-0 [&>div]:!w-full [&>div]:!max-w-full",
+            "min-w-0 w-full max-w-full p-3",
             composer && "pb-32"
           )}
         >

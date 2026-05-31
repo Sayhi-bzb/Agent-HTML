@@ -32,15 +32,18 @@ describe("ghost radial menu", () => {
     expect(radialMenuSource).toContain('label: "Transcript"')
   })
 
-  it("routes settings selection to the settings popover", () => {
+  it("routes thread and transcript selections to the unified thread panel", () => {
     expect(ghostPetSource).toContain('if (item === "interrupt")')
     expect(ghostPetSource).toContain("onInterruptTurn?.()")
     expect(ghostPetSource).toContain('if (item === "settings")')
     expect(ghostPetSource).toContain("onSettingsOpenChange?.(true)")
     expect(ghostPetSource).toContain("settingsContent")
+    expect(ghostPetSource).toContain('if (item === "threads")')
     expect(ghostPetSource).toContain('if (item === "transcript")')
-    expect(ghostPetSource).toContain("onTranscriptOpenChange?.(true)")
-    expect(ghostPetSource).toContain("transcriptContent")
+    expect(ghostPetSource).toContain("onThreadPanelOpenChange?.(true)")
+    expect(ghostPetSource).toContain("threadPanelContent")
+    expect(ghostPetSource).not.toContain("onTranscriptOpenChange?.(true)")
+    expect(ghostPetSource).not.toContain("transcriptContent")
   })
 
   it("maps pet cursor actions to stable commands", () => {
@@ -61,7 +64,7 @@ describe("ghost radial menu", () => {
     expect(ghostPetSource).toContain("pendingPositionRef")
     expect(ghostPetSource).toContain("positionRef.current")
     expect(ghostPetSource).toContain("getGhostTransform")
-    expect(ghostPetSource).toContain("pendingThreadPickerOffsetRef")
+    expect(ghostPetSource).toContain("pendingThreadPanelOffsetRef")
     expect(ghostPetSource).toContain("pendingSettingsOffsetRef")
   })
 })

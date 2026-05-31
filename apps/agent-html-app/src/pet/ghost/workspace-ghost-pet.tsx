@@ -74,20 +74,17 @@ export function WorkspaceGhostPet({
   isMessageOpen = false,
   isInterruptingTurn = false,
   isSettingsOpen = false,
-  isThreadPickerOpen = false,
-  isTranscriptOpen = false,
+  isThreadPanelOpen = false,
   messageContent,
   onInterruptTurn,
   onMessageOpenChange,
   onRespondToApproval,
   onSettingsOpenChange,
-  onThreadPickerOpenChange,
-  onTranscriptOpenChange,
+  onThreadPanelOpenChange,
   presence = idlePresence,
   settingsContent,
   speechBubbles = [],
-  threadPickerContent,
-  transcriptContent,
+  threadPanelContent,
 }: {
   canInterruptTurn?: boolean
   approval?: CodexApprovalRequest | null
@@ -95,27 +92,23 @@ export function WorkspaceGhostPet({
   isMessageOpen?: boolean
   isInterruptingTurn?: boolean
   isSettingsOpen?: boolean
-  isThreadPickerOpen?: boolean
-  isTranscriptOpen?: boolean
+  isThreadPanelOpen?: boolean
   messageContent?: React.ReactNode
   onInterruptTurn?: () => void
   onMessageOpenChange?: (open: boolean) => void
   onRespondToApproval?: (decision: CodexApprovalDecision) => void
   onSettingsOpenChange?: (open: boolean) => void
-  onThreadPickerOpenChange?: (open: boolean) => void
-  onTranscriptOpenChange?: (open: boolean) => void
+  onThreadPanelOpenChange?: (open: boolean) => void
   presence?: PetPresence
   settingsContent?: React.ReactNode
   speechBubbles?: PetSpeechBubble[]
-  threadPickerContent?: React.ReactNode
-  transcriptContent?: React.ReactNode
+  threadPanelContent?: React.ReactNode
 }) {
   const statusMessage = presence.message?.text
   const hasSpeechBubbles = speechBubbles.length > 0
   const dragStateRef = useRef<GhostPetDragState | null>(null)
   const settingsDragStateRef = useRef<PopoverDragState | null>(null)
-  const threadPickerDragStateRef = useRef<PopoverDragState | null>(null)
-  const transcriptDragStateRef = useRef<PopoverDragState | null>(null)
+  const threadPanelDragStateRef = useRef<PopoverDragState | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = useState<GhostPetPosition>(loadStoredPosition)
   const positionRef = useRef<GhostPetPosition>(position)
@@ -131,23 +124,13 @@ export function WorkspaceGhostPet({
   const pendingSettingsOffsetRef = useRef<GhostPetPosition>(settingsOffset)
   const settingsAnimationFrameRef = useRef<number | null>(null)
   const [isSettingsDragging, setIsSettingsDragging] = useState(false)
-  const [threadPickerOffset, setThreadPickerOffset] =
+  const [threadPanelOffset, setThreadPanelOffset] =
     useState<GhostPetPosition>({ x: 0, y: 0 })
-  const threadPickerOffsetRef =
-    useRef<GhostPetPosition>(threadPickerOffset)
-  const pendingThreadPickerOffsetRef =
-    useRef<GhostPetPosition>(threadPickerOffset)
-  const threadPickerAnimationFrameRef = useRef<number | null>(null)
-  const [isThreadPickerDragging, setIsThreadPickerDragging] = useState(false)
-  const [transcriptOffset, setTranscriptOffset] = useState<GhostPetPosition>({
-    x: 0,
-    y: 0,
-  })
-  const transcriptOffsetRef = useRef<GhostPetPosition>(transcriptOffset)
-  const pendingTranscriptOffsetRef =
-    useRef<GhostPetPosition>(transcriptOffset)
-  const transcriptAnimationFrameRef = useRef<number | null>(null)
-  const [isTranscriptDragging, setIsTranscriptDragging] = useState(false)
+  const threadPanelOffsetRef = useRef<GhostPetPosition>(threadPanelOffset)
+  const pendingThreadPanelOffsetRef =
+    useRef<GhostPetPosition>(threadPanelOffset)
+  const threadPanelAnimationFrameRef = useRef<number | null>(null)
+  const [isThreadPanelDragging, setIsThreadPanelDragging] = useState(false)
 
   const applyPositionFrame = useCallback((nextPosition: GhostPetPosition) => {
     pendingPositionRef.current = nextPosition
@@ -179,19 +162,19 @@ export function WorkspaceGhostPet({
     setPosition(nextPosition)
   }, [])
 
-  const applyThreadPickerOffsetFrame = useCallback(
+  const applyThreadPanelOffsetFrame = useCallback(
     (nextOffset: GhostPetPosition) => {
-      pendingThreadPickerOffsetRef.current = nextOffset
-      if (threadPickerAnimationFrameRef.current !== null) {
+      pendingThreadPanelOffsetRef.current = nextOffset
+      if (threadPanelAnimationFrameRef.current !== null) {
         return
       }
 
-      threadPickerAnimationFrameRef.current = window.requestAnimationFrame(
+      threadPanelAnimationFrameRef.current = window.requestAnimationFrame(
         () => {
-          threadPickerAnimationFrameRef.current = null
-          const frameOffset = pendingThreadPickerOffsetRef.current
-          threadPickerOffsetRef.current = frameOffset
-          const element = threadPickerDragStateRef.current?.element
+          threadPanelAnimationFrameRef.current = null
+          const frameOffset = pendingThreadPanelOffsetRef.current
+          threadPanelOffsetRef.current = frameOffset
+          const element = threadPanelDragStateRef.current?.element
           if (element) {
             element.style.translate = getOffsetTranslate(frameOffset)
           }
@@ -201,16 +184,16 @@ export function WorkspaceGhostPet({
     []
   )
 
-  const commitThreadPickerOffset = useCallback(
+  const commitThreadPanelOffset = useCallback(
     (nextOffset: GhostPetPosition) => {
-      if (threadPickerAnimationFrameRef.current !== null) {
-        window.cancelAnimationFrame(threadPickerAnimationFrameRef.current)
-        threadPickerAnimationFrameRef.current = null
+      if (threadPanelAnimationFrameRef.current !== null) {
+        window.cancelAnimationFrame(threadPanelAnimationFrameRef.current)
+        threadPanelAnimationFrameRef.current = null
       }
 
-      threadPickerOffsetRef.current = nextOffset
-      pendingThreadPickerOffsetRef.current = nextOffset
-      setThreadPickerOffset(nextOffset)
+      threadPanelOffsetRef.current = nextOffset
+      pendingThreadPanelOffsetRef.current = nextOffset
+      setThreadPanelOffset(nextOffset)
     },
     []
   )
@@ -246,37 +229,6 @@ export function WorkspaceGhostPet({
     setSettingsOffset(nextOffset)
   }, [])
 
-  const applyTranscriptOffsetFrame = useCallback(
-    (nextOffset: GhostPetPosition) => {
-      pendingTranscriptOffsetRef.current = nextOffset
-      if (transcriptAnimationFrameRef.current !== null) {
-        return
-      }
-
-      transcriptAnimationFrameRef.current = window.requestAnimationFrame(() => {
-        transcriptAnimationFrameRef.current = null
-        const frameOffset = pendingTranscriptOffsetRef.current
-        transcriptOffsetRef.current = frameOffset
-        const element = transcriptDragStateRef.current?.element
-        if (element) {
-          element.style.translate = getOffsetTranslate(frameOffset)
-        }
-      })
-    },
-    []
-  )
-
-  const commitTranscriptOffset = useCallback((nextOffset: GhostPetPosition) => {
-    if (transcriptAnimationFrameRef.current !== null) {
-      window.cancelAnimationFrame(transcriptAnimationFrameRef.current)
-      transcriptAnimationFrameRef.current = null
-    }
-
-    transcriptOffsetRef.current = nextOffset
-    pendingTranscriptOffsetRef.current = nextOffset
-    setTranscriptOffset(nextOffset)
-  }, [])
-
   useEffect(() => {
     const handleResize = () => {
       const nextPosition = clampPosition(positionRef.current)
@@ -297,11 +249,8 @@ export function WorkspaceGhostPet({
       if (settingsAnimationFrameRef.current !== null) {
         window.cancelAnimationFrame(settingsAnimationFrameRef.current)
       }
-      if (threadPickerAnimationFrameRef.current !== null) {
-        window.cancelAnimationFrame(threadPickerAnimationFrameRef.current)
-      }
-      if (transcriptAnimationFrameRef.current !== null) {
-        window.cancelAnimationFrame(transcriptAnimationFrameRef.current)
+      if (threadPanelAnimationFrameRef.current !== null) {
+        window.cancelAnimationFrame(threadPanelAnimationFrameRef.current)
       }
     },
     []
@@ -365,13 +314,11 @@ export function WorkspaceGhostPet({
       event.stopPropagation()
       onMessageOpenChange?.(false)
       onSettingsOpenChange?.(false)
-      onThreadPickerOpenChange?.(false)
       setIsMenuOpen((current) => !current)
     },
     [
       onMessageOpenChange,
       onSettingsOpenChange,
-      onThreadPickerOpenChange,
     ]
   )
 
@@ -380,14 +327,12 @@ export function WorkspaceGhostPet({
       event.preventDefault()
       event.stopPropagation()
       onSettingsOpenChange?.(false)
-      onThreadPickerOpenChange?.(false)
       setIsMenuOpen(false)
       onMessageOpenChange?.(true)
     },
     [
       onMessageOpenChange,
       onSettingsOpenChange,
-      onThreadPickerOpenChange,
     ]
   )
 
@@ -396,27 +341,24 @@ export function WorkspaceGhostPet({
       setIsMenuOpen(false)
       if (item === "message") {
         onSettingsOpenChange?.(false)
-        onThreadPickerOpenChange?.(false)
         onMessageOpenChange?.(true)
       }
       if (item === "threads") {
         onMessageOpenChange?.(false)
         onSettingsOpenChange?.(false)
-        commitThreadPickerOffset({ x: 0, y: 0 })
-        onThreadPickerOpenChange?.(true)
+        commitThreadPanelOffset({ x: 0, y: 0 })
+        onThreadPanelOpenChange?.(true)
       }
       if (item === "settings") {
         onMessageOpenChange?.(false)
-        onThreadPickerOpenChange?.(false)
         commitSettingsOffset({ x: 0, y: 0 })
         onSettingsOpenChange?.(true)
       }
       if (item === "transcript") {
         onMessageOpenChange?.(false)
         onSettingsOpenChange?.(false)
-        onThreadPickerOpenChange?.(false)
-        commitTranscriptOffset({ x: 0, y: 0 })
-        onTranscriptOpenChange?.(true)
+        commitThreadPanelOffset({ x: 0, y: 0 })
+        onThreadPanelOpenChange?.(true)
       }
       if (item === "interrupt") {
         onInterruptTurn?.()
@@ -426,23 +368,22 @@ export function WorkspaceGhostPet({
       onInterruptTurn,
       onMessageOpenChange,
       onSettingsOpenChange,
-      onThreadPickerOpenChange,
-      onTranscriptOpenChange,
+      onThreadPanelOpenChange,
       commitSettingsOffset,
-      commitThreadPickerOffset,
-      commitTranscriptOffset,
+      commitThreadPanelOffset,
     ]
   )
 
-  const handleThreadPickerOpenChange = useCallback(
+  const handleThreadPanelOpenChange = useCallback(
     (open: boolean) => {
       if (!open) {
-        threadPickerDragStateRef.current = null
-        setIsThreadPickerDragging(false)
+        threadPanelDragStateRef.current = null
+        setIsThreadPanelDragging(false)
+        return
       }
-      onThreadPickerOpenChange?.(open)
+      onThreadPanelOpenChange?.(open)
     },
-    [onThreadPickerOpenChange]
+    [onThreadPanelOpenChange]
   )
 
   const handleSettingsOpenChange = useCallback(
@@ -454,18 +395,6 @@ export function WorkspaceGhostPet({
       onSettingsOpenChange?.(open)
     },
     [onSettingsOpenChange]
-  )
-
-  const handleTranscriptOpenChange = useCallback(
-    (open: boolean) => {
-      if (!open) {
-        transcriptDragStateRef.current = null
-        setIsTranscriptDragging(false)
-        return
-      }
-      onTranscriptOpenChange?.(open)
-    },
-    [onTranscriptOpenChange]
   )
 
   const handlePointerMove = useCallback(
@@ -501,7 +430,7 @@ export function WorkspaceGhostPet({
     setIsDragging(false)
   }, [commitPosition])
 
-  const handleThreadPickerPointerDown = useCallback(
+  const handleThreadPanelPointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (event.button !== 0 || !isPopoverDragTarget(event.target)) {
         return
@@ -509,16 +438,16 @@ export function WorkspaceGhostPet({
 
       event.preventDefault()
       event.currentTarget.setPointerCapture(event.pointerId)
-      const startOffset = threadPickerOffsetRef.current
-      pendingThreadPickerOffsetRef.current = startOffset
-      threadPickerDragStateRef.current = {
+      const startOffset = threadPanelOffsetRef.current
+      pendingThreadPanelOffsetRef.current = startOffset
+      threadPanelDragStateRef.current = {
         element: event.currentTarget,
         pointerId: event.pointerId,
         startClientX: event.clientX,
         startClientY: event.clientY,
         startOffset,
       }
-      setIsThreadPickerDragging(true)
+      setIsThreadPanelDragging(true)
     },
     []
   )
@@ -545,41 +474,19 @@ export function WorkspaceGhostPet({
     []
   )
 
-  const handleTranscriptPointerDown = useCallback(
+  const handleThreadPanelPointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0 || !isPopoverDragTarget(event.target)) {
-        return
-      }
-
-      event.preventDefault()
-      event.currentTarget.setPointerCapture(event.pointerId)
-      const startOffset = transcriptOffsetRef.current
-      pendingTranscriptOffsetRef.current = startOffset
-      transcriptDragStateRef.current = {
-        element: event.currentTarget,
-        pointerId: event.pointerId,
-        startClientX: event.clientX,
-        startClientY: event.clientY,
-        startOffset,
-      }
-      setIsTranscriptDragging(true)
-    },
-    []
-  )
-
-  const handleThreadPickerPointerMove = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      const dragState = threadPickerDragStateRef.current
+      const dragState = threadPanelDragStateRef.current
       if (!dragState || dragState.pointerId !== event.pointerId) {
         return
       }
 
-      applyThreadPickerOffsetFrame({
+      applyThreadPanelOffsetFrame({
         x: dragState.startOffset.x + event.clientX - dragState.startClientX,
         y: dragState.startOffset.y + event.clientY - dragState.startClientY,
       })
     },
-    [applyThreadPickerOffsetFrame]
+    [applyThreadPanelOffsetFrame]
   )
 
   const handleSettingsPointerMove = useCallback(
@@ -597,24 +504,9 @@ export function WorkspaceGhostPet({
     [applySettingsOffsetFrame]
   )
 
-  const handleTranscriptPointerMove = useCallback(
+  const finishThreadPanelDrag = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      const dragState = transcriptDragStateRef.current
-      if (!dragState || dragState.pointerId !== event.pointerId) {
-        return
-      }
-
-      applyTranscriptOffsetFrame({
-        x: dragState.startOffset.x + event.clientX - dragState.startClientX,
-        y: dragState.startOffset.y + event.clientY - dragState.startClientY,
-      })
-    },
-    [applyTranscriptOffsetFrame]
-  )
-
-  const finishThreadPickerDrag = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      const dragState = threadPickerDragStateRef.current
+      const dragState = threadPanelDragStateRef.current
       if (!dragState || dragState.pointerId !== event.pointerId) {
         return
       }
@@ -623,11 +515,11 @@ export function WorkspaceGhostPet({
         event.currentTarget.releasePointerCapture(event.pointerId)
       }
 
-      commitThreadPickerOffset(pendingThreadPickerOffsetRef.current)
-      setIsThreadPickerDragging(false)
-      threadPickerDragStateRef.current = null
+      commitThreadPanelOffset(pendingThreadPanelOffsetRef.current)
+      setIsThreadPanelDragging(false)
+      threadPanelDragStateRef.current = null
     },
-    [commitThreadPickerOffset]
+    [commitThreadPanelOffset]
   )
 
   const finishSettingsDrag = useCallback(
@@ -646,24 +538,6 @@ export function WorkspaceGhostPet({
       settingsDragStateRef.current = null
     },
     [commitSettingsOffset]
-  )
-
-  const finishTranscriptDrag = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      const dragState = transcriptDragStateRef.current
-      if (!dragState || dragState.pointerId !== event.pointerId) {
-        return
-      }
-
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId)
-      }
-
-      commitTranscriptOffset(pendingTranscriptOffsetRef.current)
-      setIsTranscriptDragging(false)
-      transcriptDragStateRef.current = null
-    },
-    [commitTranscriptOffset]
   )
 
   return (
@@ -757,31 +631,31 @@ export function WorkspaceGhostPet({
         ) : null}
       </Popover>
       <Popover
-        open={isThreadPickerOpen}
-        onOpenChange={handleThreadPickerOpenChange}
+        open={isThreadPanelOpen}
+        onOpenChange={handleThreadPanelOpenChange}
       >
         <PopoverAnchor asChild>
           <div className="relative size-0" />
         </PopoverAnchor>
-        {threadPickerContent ? (
+        {threadPanelContent ? (
           <PopoverContent
             align="end"
             className={[
               "pointer-events-auto w-auto p-0 select-none",
-              isThreadPickerDragging ? "cursor-grabbing" : "cursor-grab",
+              isThreadPanelDragging ? "cursor-grabbing" : "cursor-grab",
             ].join(" ")}
-            onPointerCancel={finishThreadPickerDrag}
-            onPointerDown={handleThreadPickerPointerDown}
-            onPointerMove={handleThreadPickerPointerMove}
-            onPointerUp={finishThreadPickerDrag}
+            onPointerCancel={finishThreadPanelDrag}
+            onPointerDown={handleThreadPanelPointerDown}
+            onPointerMove={handleThreadPanelPointerMove}
+            onPointerUp={finishThreadPanelDrag}
             side="left"
             sideOffset={12}
             style={{
-              translate: getOffsetTranslate(threadPickerOffset),
-              willChange: isThreadPickerDragging ? "translate" : undefined,
+              translate: getOffsetTranslate(threadPanelOffset),
+              willChange: isThreadPanelDragging ? "translate" : undefined,
             }}
           >
-            {threadPickerContent}
+            {threadPanelContent}
           </PopoverContent>
         ) : null}
       </Popover>
@@ -808,29 +682,6 @@ export function WorkspaceGhostPet({
             }}
           >
             {settingsContent}
-          </PopoverContent>
-        ) : null}
-      </Popover>
-      <Popover open={isTranscriptOpen} onOpenChange={handleTranscriptOpenChange}>
-        <PopoverAnchor asChild>
-          <div className="relative size-0" />
-        </PopoverAnchor>
-        {transcriptContent ? (
-          <PopoverContent
-            align="end"
-            className="pointer-events-auto w-auto p-0"
-            onPointerCancel={finishTranscriptDrag}
-            onPointerDown={handleTranscriptPointerDown}
-            onPointerMove={handleTranscriptPointerMove}
-            onPointerUp={finishTranscriptDrag}
-            side="left"
-            sideOffset={12}
-            style={{
-              translate: getOffsetTranslate(transcriptOffset),
-              willChange: isTranscriptDragging ? "translate" : undefined,
-            }}
-          >
-            {transcriptContent}
           </PopoverContent>
         ) : null}
       </Popover>

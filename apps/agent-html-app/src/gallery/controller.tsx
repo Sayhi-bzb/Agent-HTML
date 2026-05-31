@@ -12,11 +12,10 @@ import {
   type GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
 import { createGalleryComponentMarketStore } from "@/app/gallery/component-market-store"
-import { GalleryEditorPanel } from "@/app/gallery/editor"
 import { GalleryPanel } from "@/app/gallery/panel"
 import {
-  GalleryComponentMarketSidebarHeader,
-  GalleryComponentMarketSidebarFooter,
+  GalleryLazyComponentMarketSidebarFooter,
+  GalleryLazyComponentMarketSidebarHeader,
   GalleryMarketSidebar,
   GalleryThemeSidebarFooter,
   GalleryThemeSidebarHeader,
@@ -60,6 +59,12 @@ const galleryViewIcons: Record<
 }
 
 const galleryComponentMarketStore = createGalleryComponentMarketStore()
+
+const GalleryEditorPanel = React.lazy(() =>
+  import("@/app/gallery/editor").then((module) => ({
+    default: module.GalleryEditorPanel,
+  }))
+)
 
 function getInitialAppliedAppTheme() {
   if (typeof window === "undefined") {
@@ -293,7 +298,7 @@ export function useGalleryController({
         presets={appThemePresets}
       />
     ) : activeViewId === "components" ? (
-      <GalleryComponentMarketSidebarHeader
+      <GalleryLazyComponentMarketSidebarHeader
         componentMarketFilters={componentMarketFilters}
         enabledComponentTags={enabledComponentTags}
         onComponentMarketFiltersChange={setComponentMarketFilters}
@@ -303,46 +308,48 @@ export function useGalleryController({
 
   const sidebarContent =
     activeViewId === "theme" ? (
-      <GalleryEditorPanel
-        colorTokenValues={colorTokenValues}
-        cssVariables={themeCssVariables}
-        onColorTokenValueChange={(
-          token: AppColorTokenName,
-          value: AppColorTokenValue
-        ) =>
-          setAppThemeDraft((current) =>
-            updateAppThemeDraftColorTokenValue({
-              draft: current,
-              resolvedMode: resolvedTheme,
-              token,
-              value,
-            })
-          )
-        }
-        onCssVariableChange={(
-          name: AppThemeEditableVariableName,
-          value: string
-        ) =>
-          setAppThemeDraft((current) =>
-            updateAppThemeDraftCssVariable({
-              draft: current,
-              name,
-              resolvedMode: resolvedTheme,
-              value,
-            })
-          )
-        }
-        onCssVariablesChange={(values) =>
-          setAppThemeDraft((current) =>
-            updateAppThemeDraftCssVariables({
-              draft: current,
-              resolvedMode: resolvedTheme,
-              values,
-            })
-          )
-        }
-        sectionId={activeThemeEditorSectionId}
-      />
+      <React.Suspense fallback={<GallerySidebarFallback />}>
+        <GalleryEditorPanel
+          colorTokenValues={colorTokenValues}
+          cssVariables={themeCssVariables}
+          onColorTokenValueChange={(
+            token: AppColorTokenName,
+            value: AppColorTokenValue
+          ) =>
+            setAppThemeDraft((current) =>
+              updateAppThemeDraftColorTokenValue({
+                draft: current,
+                resolvedMode: resolvedTheme,
+                token,
+                value,
+              })
+            )
+          }
+          onCssVariableChange={(
+            name: AppThemeEditableVariableName,
+            value: string
+          ) =>
+            setAppThemeDraft((current) =>
+              updateAppThemeDraftCssVariable({
+                draft: current,
+                name,
+                resolvedMode: resolvedTheme,
+                value,
+              })
+            )
+          }
+          onCssVariablesChange={(values) =>
+            setAppThemeDraft((current) =>
+              updateAppThemeDraftCssVariables({
+                draft: current,
+                resolvedMode: resolvedTheme,
+                values,
+              })
+            )
+          }
+          sectionId={activeThemeEditorSectionId}
+        />
+      </React.Suspense>
     ) : (
       <GalleryMarketSidebar
         componentMarketFilters={componentMarketFilters}
@@ -355,7 +362,7 @@ export function useGalleryController({
     activeViewId === "theme" ? (
       <GalleryThemeSidebarFooter isDirty={isThemeDirty} onApply={applyTheme} />
     ) : activeViewId === "components" ? (
-      <GalleryComponentMarketSidebarFooter
+      <GalleryLazyComponentMarketSidebarFooter
         enabledComponentTags={enabledComponentTags}
       />
     ) : null
@@ -390,4 +397,8 @@ export function useGalleryController({
       onSave: saveAndExit,
     },
   }
+}
+
+function GallerySidebarFallback() {
+  return <div className="min-h-32" />
 }

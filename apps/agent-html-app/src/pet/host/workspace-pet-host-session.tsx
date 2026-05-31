@@ -9,6 +9,8 @@ import {
 import { PetMessageComposer } from "@/app/pet/host/pet-message-composer"
 import { PetPanel } from "@/app/pet/host/pet-panel"
 import { PetSettingsContent } from "@/app/pet/host/pet-settings-content"
+import { PetThreadPanelContent } from "@/app/pet/host/pet-thread-panel-content"
+import { PetThreadTranscriptContent } from "@/app/pet/host/pet-thread-transcript-content"
 
 export function WorkspacePetHostSessionRoot() {
   const snapshot = React.useSyncExternalStore(
@@ -35,12 +37,16 @@ function WorkspacePetHostSession({
 }) {
   const [isMessageOpen, setIsMessageOpen] = React.useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
-  const [isThreadPickerOpen, setIsThreadPickerOpen] = React.useState(false)
-  const [isTranscriptOpen, setIsTranscriptOpen] = React.useState(false)
-  const transcriptContent =
-    snapshot.renderTranscriptContent?.({
-      onClose: () => setIsTranscriptOpen(false),
-    }) ?? snapshot.transcriptContent
+  const [isThreadPanelOpen, setIsThreadPanelOpen] = React.useState(false)
+  const threadPanel = snapshot.threadPanel
+  const threadPanelComposer = (
+    <PetMessageComposer
+      draft={snapshot.messageDraft}
+      onDraftChange={snapshot.onMessageDraftChange}
+      onPromptSubmit={snapshot.onPromptSubmit}
+      surface="floating"
+    />
+  )
 
   return (
     <WorkspaceGhostPet
@@ -48,8 +54,7 @@ function WorkspacePetHostSession({
       approvalError={snapshot.approvalError}
       isMessageOpen={isMessageOpen}
       isSettingsOpen={isSettingsOpen}
-      isThreadPickerOpen={isThreadPickerOpen}
-      isTranscriptOpen={isTranscriptOpen}
+      isThreadPanelOpen={isThreadPanelOpen}
       messageContent={
         <PetMessageComposer
           draft={snapshot.messageDraft}
@@ -65,8 +70,7 @@ function WorkspacePetHostSession({
       onInterruptTurn={snapshot.onInterruptTurn}
       onSettingsOpenChange={setIsSettingsOpen}
       onRespondToApproval={snapshot.onRespondToApproval}
-      onThreadPickerOpenChange={setIsThreadPickerOpen}
-      onTranscriptOpenChange={setIsTranscriptOpen}
+      onThreadPanelOpenChange={setIsThreadPanelOpen}
       presence={snapshot.presence}
       settingsContent={
         <PetPanel size="auto">
@@ -76,14 +80,45 @@ function WorkspacePetHostSession({
         </PetPanel>
       }
       speechBubbles={snapshot.speechBubbles}
-      threadPickerContent={
-        snapshot.threadPickerContent ? (
-          <PetPanel size="compact">
-            <div className="p-3">{snapshot.threadPickerContent}</div>
-          </PetPanel>
+      threadPanelContent={
+        threadPanel ? (
+          <PetThreadPanelContent
+            activeThreadId={threadPanel.activeThreadId}
+            canSelectThread={threadPanel.canSelectThread}
+            chat={({ onSearchOpenChange, searchOpen }) => (
+              <PetThreadTranscriptContent
+                composer={threadPanelComposer}
+                error={threadPanel.transcript.error}
+                hideHeader
+                isLoading={threadPanel.transcript.isLoading}
+                onSearchOpenChange={onSearchOpenChange}
+                searchOpen={searchOpen}
+                threadId={threadPanel.transcript.threadId}
+                turns={threadPanel.transcript.turns}
+              />
+            )}
+            codexThreadError={threadPanel.codexThreadError}
+            companyAgentError={threadPanel.companyAgentError}
+            isLoading={threadPanel.isLoading}
+            isSelectingThread={threadPanel.isSelectingThread}
+            items={threadPanel.items}
+            onClose={() => setIsThreadPanelOpen(false)}
+            onNewThread={snapshot.onNewThread ?? noop}
+            onRenameThread={snapshot.onRenameThread ?? noopRenameThread}
+            onResumeThread={snapshot.onResumeThread ?? noop}
+            optimisticThreadNames={threadPanel.optimisticThreadNames}
+            renameError={threadPanel.renameError}
+            renamingThreadId={threadPanel.renamingThreadId}
+            threadRequestPreviews={threadPanel.threadRequestPreviews}
+            threadSelectionError={threadPanel.threadSelectionError}
+            threadSummaries={threadPanel.threadSummaries}
+          />
         ) : undefined
       }
-      transcriptContent={transcriptContent}
     />
   )
 }
+
+function noop() {}
+
+async function noopRenameThread() {}

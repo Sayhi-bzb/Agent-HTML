@@ -1,11 +1,23 @@
-import { GalleryWorkspaceSurface } from "@/app/gallery/workspace-surface"
-import { GalleryComponentMarketView } from "@/app/gallery/component-market-view"
+import * as React from "react"
+
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import type { GalleryViewId } from "@/app/gallery/views"
 import type {
   EnabledGalleryComponentTags,
   GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
+
+const GalleryWorkspaceSurface = React.lazy(() =>
+  import("@/app/gallery/workspace-surface").then((module) => ({
+    default: module.GalleryWorkspaceSurface,
+  }))
+)
+
+const GalleryComponentMarketView = React.lazy(() =>
+  import("@/app/gallery/component-market-view").then((module) => ({
+    default: module.GalleryComponentMarketView,
+  }))
+)
 
 export function GalleryPanel({
   activeViewId,
@@ -26,26 +38,38 @@ export function GalleryPanel({
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex min-h-full flex-col p-4 md:p-6">
-          {activeViewId === "theme" ? (
-            <GalleryWorkspaceSurface />
-          ) : activeViewId === "components" ? (
-            <GalleryComponentMarketView
-              enabledTags={enabledComponentTags}
-              filters={componentMarketFilters}
-              searchQuery={componentMarketSearchQuery}
-              onEnabledTagsChange={onEnabledComponentTagsChange}
-              onFiltersChange={onComponentMarketFiltersChange}
-            />
-          ) : (
-            <GalleryMarketPlaceholder viewId={activeViewId} />
-          )}
+          <React.Suspense fallback={<GalleryPanelFallback />}>
+            {activeViewId === "theme" ? (
+              <GalleryWorkspaceSurface />
+            ) : activeViewId === "components" ? (
+              <GalleryComponentMarketView
+                enabledTags={enabledComponentTags}
+                filters={componentMarketFilters}
+                searchQuery={componentMarketSearchQuery}
+                onEnabledTagsChange={onEnabledComponentTagsChange}
+                onFiltersChange={onComponentMarketFiltersChange}
+              />
+            ) : (
+              <GalleryMarketPlaceholder viewId={activeViewId} />
+            )}
+          </React.Suspense>
         </div>
       </ScrollArea>
     </div>
   )
 }
 
-function GalleryMarketPlaceholder({ viewId }: { viewId: Exclude<GalleryViewId, "theme"> }) {
+function GalleryPanelFallback() {
+  return (
+    <div className="min-h-[24rem] rounded-lg border bg-background" />
+  )
+}
+
+function GalleryMarketPlaceholder({
+  viewId,
+}: {
+  viewId: Exclude<GalleryViewId, "theme">
+}) {
   const copy =
     viewId === "components"
       ? {

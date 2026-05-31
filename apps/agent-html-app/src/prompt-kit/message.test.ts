@@ -7,10 +7,14 @@ const markdownPath = fileURLToPath(new URL("./markdown.tsx", import.meta.url))
 const transcriptPath = fileURLToPath(
   new URL("../pet/host/pet-thread-transcript-content.tsx", import.meta.url)
 )
+const threadPanelPath = fileURLToPath(
+  new URL("../pet/host/pet-thread-panel-content.tsx", import.meta.url)
+)
 
 const messageSource = readFileSync(messagePath, "utf8")
 const markdownSource = readFileSync(markdownPath, "utf8")
 const transcriptSource = readFileSync(transcriptPath, "utf8")
+const threadPanelSource = readFileSync(threadPanelPath, "utf8")
 
 describe("prompt-kit message", () => {
   it("keeps message primitives in the prompt-kit layer", () => {
@@ -54,7 +58,8 @@ describe("prompt-kit message", () => {
     expect(transcriptSource).toContain(
       "min-w-0 w-full max-w-full p-3"
     )
-    expect(transcriptSource).toContain(
+    expect(transcriptSource).toContain("containIntrinsicWidth")
+    expect(transcriptSource).not.toContain(
       "[&>div]:!block [&>div]:!min-w-0 [&>div]:!w-full [&>div]:!max-w-full"
     )
     expect(transcriptSource).toContain(
@@ -85,6 +90,11 @@ describe("prompt-kit message", () => {
     expect(transcriptSource).toContain("buildTranscriptSearch")
     expect(transcriptSource).toContain("highlightTranscriptText")
     expect(transcriptSource).toContain("No matches in this transcript.")
+    expect(transcriptSource).toContain(
+      "absolute inset-x-3 top-3 z-20 flex items-center gap-2"
+    )
+    expect(transcriptSource).toContain("bg-background/95")
+    expect(transcriptSource).toContain("backdrop-blur")
     expect(transcriptSource).toContain("onClose?: () => void")
     expect(transcriptSource).toContain("onClick={onClose}")
     expect(transcriptSource).not.toContain("PinIcon")
@@ -143,5 +153,21 @@ describe("prompt-kit message", () => {
     expect(transcriptSource).not.toContain("TranscriptSystemCard")
     expect(transcriptSource).not.toContain("ThumbsUp")
     expect(transcriptSource).not.toContain("ThumbsDown")
+  })
+
+  it("combines thread list and transcript in one thread panel shell", () => {
+    expect(threadPanelSource).toContain("PetThreadPanelContent")
+    expect(threadPanelSource).toContain("Threads")
+    expect(threadPanelSource).toContain("chat")
+    expect(threadPanelSource).toContain("Search transcript")
+    expect(threadPanelSource).toContain("New thread")
+    expect(threadPanelSource).toContain("Close thread panel")
+    expect(threadPanelSource).toContain("@/app/shared/ui/scroll-area")
+    expect(threadPanelSource).toContain("@/app/shared/ui/dropdown-menu")
+    expect(threadPanelSource).toContain("getThreadSummaryById")
+    expect(threadPanelSource).toContain("onResumeThread(item.threadId)")
+    expect(threadPanelSource).toContain("onSearchOpenChange")
+    expect(threadPanelSource).not.toContain("PetPanel")
+    expect(threadPanelSource).not.toContain("@/app/shared/ui/card")
   })
 })

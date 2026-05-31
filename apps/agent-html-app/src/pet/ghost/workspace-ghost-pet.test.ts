@@ -34,18 +34,19 @@ describe("WorkspaceGhostPet status placement", () => {
     )
   })
 
-  it("does not make the transcript popover globally draggable or unselectable", () => {
-    expect(petSource).toContain('className="pointer-events-auto w-auto p-0"')
-    expect(petSource).not.toContain(
-      '"pointer-events-auto w-auto p-0 select-none",\n              isTranscriptDragging ? "cursor-grabbing" : "cursor-grab"'
-    )
+  it("uses a single draggable thread panel popover", () => {
+    expect(petSource).toContain("isThreadPanelOpen")
+    expect(petSource).toContain("threadPanelContent")
+    expect(petSource).toContain("isThreadPanelDragging")
+    expect(petSource).not.toContain("isThreadPickerOpen")
+    expect(petSource).not.toContain("isTranscriptOpen")
   })
 
-  it("keeps transcript open until the transcript window closes it", () => {
+  it("keeps the thread panel open until the panel closes it", () => {
     expect(petSource).toContain("if (!open) {")
     expect(petSource).toContain("return")
-    expect(petSource).toContain("onTranscriptOpenChange?.(open)")
+    expect(petSource).toContain("onThreadPanelOpenChange?.(open)")
     expect(petSource).not.toContain("isTranscriptPinned")
-    expect(petSource).not.toContain("onTranscriptOpenChange?.(false)")
+    expect(petSource).not.toContain("onThreadPanelOpenChange?.(false)")
   })
 })

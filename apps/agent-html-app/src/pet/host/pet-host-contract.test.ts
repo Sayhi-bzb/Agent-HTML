@@ -45,8 +45,8 @@ describe("pet host contract", () => {
     expect(hostSessionSource).toContain("PetMessageComposer")
     expect(hostSessionSource).toContain("PetSettingsContent")
     expect(hostSessionSource).toContain("settingsContent")
-    expect(hostSessionSource).toContain("threadPickerContent")
-    expect(hostSessionSource).toContain("transcriptContent")
+    expect(hostSessionSource).toContain("threadPanelContent")
+    expect(hostSessionSource).toContain("PetThreadPanelContent")
     expect(hostSessionSource).toContain("onPromptSubmit")
     expect(hostSessionSource).toContain("onInterruptTurn")
     expect(hostSource).not.toContain("WebviewWindow")
@@ -73,12 +73,12 @@ describe("pet host contract", () => {
     expect(composerSource).not.toContain("target:")
   })
 
-  it("shares the pet message composer with the transcript footer", () => {
+  it("shares the pet message composer with the thread panel", () => {
     expect(surfaceSource).toContain("messageDraft")
     expect(surfaceSource).toContain("setMessageDraft")
-    expect(surfaceSource).toContain("transcriptComposer")
-    expect(surfaceSource).toContain("composer={transcriptComposer}")
-    expect(surfaceSource).toContain('surface="floating"')
+    expect(hostSessionSource).toContain("threadPanelComposer")
+    expect(hostSessionSource).toContain("composer={threadPanelComposer}")
+    expect(hostSessionSource).toContain('surface="floating"')
     expect(surfaceSource).not.toContain(
       "bg-background/80 shadow-none backdrop-blur-sm"
     )
@@ -89,11 +89,22 @@ describe("pet host contract", () => {
     )
   })
 
-  it("passes transcript close behavior through the pet host", () => {
-    expect(surfaceSource).toContain("renderTranscriptContent")
-    expect(surfaceSource).toContain("onClose={onClose}")
-    expect(hostSessionSource).toContain("snapshot.renderTranscriptContent?.({")
-    expect(hostSessionSource).toContain("onClose: () => setIsTranscriptOpen(false)")
+  it("passes thread panel close behavior through the pet host", () => {
+    expect(surfaceSource).toContain("threadPanel")
+    expect(surfaceSource).not.toContain("PetThreadPanelContent")
+    expect(surfaceSource).not.toContain("renderThreadPanelContent")
+    expect(hostSessionSource).toContain("snapshot.threadPanel")
+    expect(hostSessionSource).toContain("PetThreadPanelContent")
+    expect(hostSessionSource).toContain("PetThreadTranscriptContent")
+    expect(hostSessionSource).toContain("onClose: () => setIsThreadPanelOpen(false)")
+    expect(hostSessionSource).toContain("isThreadPanelOpen")
+    expect(hostSessionSource).toContain("onThreadPanelOpenChange")
+    expect(hostSessionSource).not.toContain("isThreadPickerOpen")
+    expect(hostSessionSource).not.toContain("isTranscriptOpen")
+    expect(hostSessionSource).not.toContain("renderThreadPanelContent")
+    expect(hostSessionSource).not.toContain("renderTranscriptContent")
+    expect(hostSessionSource).not.toContain("threadPickerContent")
+    expect(hostSessionSource).not.toContain("transcriptContent")
     expect(surfaceSource).not.toContain("isTranscriptPinned")
     expect(surfaceSource).not.toContain("setIsTranscriptPinned")
     expect(surfaceSource).not.toContain("onPinnedChange")

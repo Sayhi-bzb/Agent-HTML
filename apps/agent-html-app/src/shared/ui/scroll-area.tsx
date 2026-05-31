@@ -6,30 +6,44 @@ import { cn } from "@/app/shared/lib/utils"
 const ScrollArea = React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & {
+    containIntrinsicWidth?: boolean
     viewportClassName?: string
   }
->(({ className, children, viewportClassName, ...props }, ref) => {
-  return (
-    <ScrollAreaPrimitive.Root
-      data-slot="scroll-area"
-      className={cn("relative overflow-hidden", className)}
-      ref={ref}
-      {...props}
-    >
-      <ScrollAreaPrimitive.Viewport
-        data-slot="scroll-area-viewport"
-        className={cn(
-          "size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1",
-          viewportClassName
-        )}
+>(
+  (
+    {
+      className,
+      children,
+      containIntrinsicWidth = false,
+      viewportClassName,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <ScrollAreaPrimitive.Root
+        data-slot="scroll-area"
+        className={cn("relative overflow-hidden", className)}
+        ref={ref}
+        {...props}
       >
-        {children}
-      </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
-    </ScrollAreaPrimitive.Root>
-  )
-})
+        <ScrollAreaPrimitive.Viewport
+          data-slot="scroll-area-viewport"
+          className={cn(
+            "size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1",
+            containIntrinsicWidth &&
+              "[&>div]:!block [&>div]:!min-w-0 [&>div]:!w-full [&>div]:!max-w-full",
+            viewportClassName
+          )}
+        >
+          {children}
+        </ScrollAreaPrimitive.Viewport>
+        <ScrollBar />
+        <ScrollAreaPrimitive.Corner />
+      </ScrollAreaPrimitive.Root>
+    )
+  }
+)
 ScrollArea.displayName = "ScrollArea"
 
 function ScrollBar({

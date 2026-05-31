@@ -5,8 +5,6 @@ import {
   clearWorkspacePetHost,
   publishWorkspacePetHost,
 } from "@/app/pet/host/pet-host-store"
-import { PetMessageComposer } from "@/app/pet/host/pet-message-composer"
-import { PetThreadTranscriptContent } from "@/app/pet/host/pet-thread-transcript-content"
 import { useWorkspaceAgentController } from "@/app/workspace/agent-controller"
 import {
   useWorkspaceDocumentController,
@@ -14,7 +12,6 @@ import {
 } from "@/app/workspace/document-controller"
 import { useAgentDocumentRefresh } from "@/app/workspace/agent-document-refresh"
 import { useWorkspaceSectionCreation } from "@/app/workspace/section-creation-controller"
-import { CodexThreadPickerContent } from "@/app/workspace/thread-picker"
 import { buildCodexThreadPickerItems } from "@/app/workspace/thread-picker-model"
 import { useThreadTranscript } from "@/app/workspace/thread-transcript"
 import { useWorkspaceThreadController } from "@/app/workspace/thread-controller"
@@ -114,56 +111,13 @@ export function WorkspaceSurface({
     context: activeTurnContext,
     reloadDocumentFromDisk,
   })
-  const threadPickerContent = useMemo(
-    () => <CodexThreadPickerContent {...threadController.threadPickerProps} />,
-    [threadController.threadPickerProps]
-  )
   const threadTranscript = useThreadTranscript({
     codexConnection: threadController.codexConnection,
     threadId: threadController.threadPickerProps.activeThreadId,
   })
-  const transcriptComposer = useMemo(
-    () => (
-      <PetMessageComposer
-        draft={messageDraft}
-        onDraftChange={setMessageDraft}
-        onPromptSubmit={handlePromptSubmit}
-        surface="floating"
-      />
-    ),
-    [handlePromptSubmit, messageDraft]
-  )
-  const renderTranscriptContent = useMemo(
-    () =>
-      ({ onClose }: { onClose: () => void }) => (
-      <PetThreadTranscriptContent
-        composer={transcriptComposer}
-        error={threadTranscript.error}
-        isLoading={threadTranscript.isLoading}
-        onClose={onClose}
-        threadId={threadTranscript.threadId}
-        turns={threadTranscript.turns}
-      />
-    ),
-    [
-      threadTranscript.error,
-      threadTranscript.isLoading,
-      threadTranscript.threadId,
-      threadTranscript.turns,
-      transcriptComposer,
-    ]
-  )
-  const petThreads = useMemo(
+  const threadPanel = useMemo(
     () => ({
-      canSelectThread: threadController.threadPickerProps.canSelectThread,
-      error:
-        threadController.threadPickerProps.codexThreadError ??
-        threadController.threadPickerProps.companyAgentError ??
-        threadController.threadPickerProps.threadSelectionError ??
-        threadController.threadPickerProps.renameError ??
-        null,
-      isLoading: threadController.threadPickerProps.isLoading,
-      isSelectingThread: threadController.threadPickerProps.isSelectingThread,
+      ...threadController.threadPickerProps,
       items: buildCodexThreadPickerItems({
         activeThreadId: threadController.threadPickerProps.activeThreadId,
         optimisticThreadNames:
@@ -172,19 +126,19 @@ export function WorkspaceSurface({
           threadController.threadPickerProps.threadRequestPreviews,
         threadSummaries: threadController.threadPickerProps.threadSummaries,
       }),
+      transcript: {
+        error: threadTranscript.error,
+        isLoading: threadTranscript.isLoading,
+        threadId: threadTranscript.threadId,
+        turns: threadTranscript.turns,
+      },
     }),
     [
-      threadController.threadPickerProps.canSelectThread,
-      threadController.threadPickerProps.codexThreadError,
-      threadController.threadPickerProps.companyAgentError,
-      threadController.threadPickerProps.isLoading,
-      threadController.threadPickerProps.isSelectingThread,
-      threadController.threadPickerProps.optimisticThreadNames,
-      threadController.threadPickerProps.renameError,
-      threadController.threadPickerProps.activeThreadId,
-      threadController.threadPickerProps.threadRequestPreviews,
-      threadController.threadPickerProps.threadSelectionError,
-      threadController.threadPickerProps.threadSummaries,
+      threadController.threadPickerProps,
+      threadTranscript.error,
+      threadTranscript.isLoading,
+      threadTranscript.threadId,
+      threadTranscript.turns,
     ]
   )
   const petDraftScope =
@@ -217,9 +171,7 @@ export function WorkspaceSurface({
       approval: petApproval,
       approvalError: petApprovalError,
       speechBubbles: petSpeechBubbles,
-      threadPickerContent,
-      renderTranscriptContent,
-      threads: petThreads,
+      threadPanel,
     })
 
     return () => clearWorkspacePetHost()
@@ -233,9 +185,7 @@ export function WorkspaceSurface({
     petDraftScope,
     petPresence,
     petSpeechBubbles,
-    petThreads,
-    renderTranscriptContent,
-    threadPickerContent,
+    threadPanel,
     threadController.threadPickerProps.onNewThread,
     threadController.threadPickerProps.onRenameThread,
     threadController.threadPickerProps.onResumeThread,
