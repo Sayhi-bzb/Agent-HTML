@@ -31,7 +31,7 @@ export function GalleryComponentMarketView({
         filters,
         searchQuery,
       }),
-    [enabledTags, filters.category, filters.status, searchQuery]
+    [enabledTags, filters, searchQuery]
   )
   const componentTokenCounts = React.useMemo(
     () =>

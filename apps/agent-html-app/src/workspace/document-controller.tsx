@@ -324,10 +324,12 @@ export function useWorkspaceDocumentController({
       activeTabDraft.projectId === activeProject.id &&
       activeTabDraft.sectionId === activeSection.id
     ) {
-      setDocumentState({ document: activeTabDraft.document, status: "ready" })
-      setPendingDocumentState({ status: "idle" })
-      setSaveState(activeTabDraft.saveState)
-      return
+      const animationFrameId = window.requestAnimationFrame(() => {
+        setDocumentState({ document: activeTabDraft.document, status: "ready" })
+        setPendingDocumentState({ status: "idle" })
+        setSaveState(activeTabDraft.saveState)
+      })
+      return () => window.cancelAnimationFrame(animationFrameId)
     }
 
     if (hasDisplayedDocument) {

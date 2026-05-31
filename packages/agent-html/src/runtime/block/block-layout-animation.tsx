@@ -237,7 +237,13 @@ export function useAgentHtmlBlockLayoutAnimation({
   })
 
   React.useLayoutEffect(() => {
-    runLandingTransition()
+    const animationFrameId = window.requestAnimationFrame(() => {
+      runLandingTransition()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId)
+    }
   }, [runLandingTransition])
 
   const landingOverlayLayer = landingPreview ? (

@@ -71,7 +71,7 @@ export function AgentHtmlRuntimeViewport({
 
   React.useEffect(() => {
     return registerOverlayElement(rootRef.current)
-  }, [registerOverlayElement])
+  }, [registerOverlayElement, rootRef])
 
   React.useEffect(() => {
     const scrollViewport = scrollRootRef.current?.querySelector<HTMLElement>(
@@ -98,7 +98,13 @@ export function AgentHtmlRuntimeViewport({
     return () => {
       scrollViewport.removeEventListener("scroll", handleScroll)
     }
-  }, [activePath, onScroll, refreshDragIntent, setHoveredBlock])
+  }, [
+    activePath,
+    onScroll,
+    refreshDragIntent,
+    scrollRootRef,
+    setHoveredBlock,
+  ])
 
   return (
     <div

@@ -47,7 +47,7 @@ import {
 } from "@/app/shared/app-theme/theme"
 import type { AppThemeEditableVariableName } from "@/app/shared/app-theme/variables"
 import type { HeaderTab } from "@/app/shell/site-header"
-import { useTheme } from "@/app/shared/theme-provider"
+import { useTheme } from "@/app/shared/theme-context"
 
 const galleryViewIcons: Record<
   GalleryViewId,
@@ -288,94 +288,126 @@ export function useGalleryController({
     [enabledComponentTags]
   )
 
-  const sidebarHeaderContent =
-    activeViewId === "theme" ? (
-      <GalleryThemeSidebarHeader
-        activePresetId={activeThemePresetId}
-        activeSectionId={activeThemeEditorSectionId}
-        onSelectPreset={selectThemePreset}
-        onSelectSection={setActiveThemeEditorSectionId}
-        presets={appThemePresets}
-      />
-    ) : activeViewId === "components" ? (
-      <GalleryLazyComponentMarketSidebarHeader
-        componentMarketFilters={componentMarketFilters}
-        enabledComponentTags={enabledComponentTags}
-        onComponentMarketFiltersChange={setComponentMarketFilters}
-        onSearchQueryCommit={setComponentMarketSearchQuery}
-      />
-    ) : null
-
-  const sidebarContent =
-    activeViewId === "theme" ? (
-      <React.Suspense fallback={<GallerySidebarFallback />}>
-        <GalleryEditorPanel
-          colorTokenValues={colorTokenValues}
-          cssVariables={themeCssVariables}
-          onColorTokenValueChange={(
-            token: AppColorTokenName,
-            value: AppColorTokenValue
-          ) =>
-            setAppThemeDraft((current) =>
-              updateAppThemeDraftColorTokenValue({
-                draft: current,
-                resolvedMode: resolvedTheme,
-                token,
-                value,
-              })
-            )
-          }
-          onCssVariableChange={(
-            name: AppThemeEditableVariableName,
-            value: string
-          ) =>
-            setAppThemeDraft((current) =>
-              updateAppThemeDraftCssVariable({
-                draft: current,
-                name,
-                resolvedMode: resolvedTheme,
-                value,
-              })
-            )
-          }
-          onCssVariablesChange={(values) =>
-            setAppThemeDraft((current) =>
-              updateAppThemeDraftCssVariables({
-                draft: current,
-                resolvedMode: resolvedTheme,
-                values,
-              })
-            )
-          }
-          sectionId={activeThemeEditorSectionId}
+  const sidebarHeaderContent = React.useMemo(
+    () =>
+      activeViewId === "theme" ? (
+        <GalleryThemeSidebarHeader
+          activePresetId={activeThemePresetId}
+          activeSectionId={activeThemeEditorSectionId}
+          onSelectPreset={selectThemePreset}
+          onSelectSection={setActiveThemeEditorSectionId}
+          presets={appThemePresets}
         />
-      </React.Suspense>
-    ) : (
-      <GalleryMarketSidebar
+      ) : activeViewId === "components" ? (
+        <GalleryLazyComponentMarketSidebarHeader
+          componentMarketFilters={componentMarketFilters}
+          enabledComponentTags={enabledComponentTags}
+          onComponentMarketFiltersChange={setComponentMarketFilters}
+          onSearchQueryCommit={setComponentMarketSearchQuery}
+        />
+      ) : null,
+    [
+      activeThemePresetId,
+      activeThemeEditorSectionId,
+      activeViewId,
+      componentMarketFilters,
+      enabledComponentTags,
+      selectThemePreset,
+    ]
+  )
+
+  const sidebarContent = React.useMemo(
+    () =>
+      activeViewId === "theme" ? (
+        <React.Suspense fallback={<GallerySidebarFallback />}>
+          <GalleryEditorPanel
+            colorTokenValues={colorTokenValues}
+            cssVariables={themeCssVariables}
+            onColorTokenValueChange={(
+              token: AppColorTokenName,
+              value: AppColorTokenValue
+            ) =>
+              setAppThemeDraft((current) =>
+                updateAppThemeDraftColorTokenValue({
+                  draft: current,
+                  resolvedMode: resolvedTheme,
+                  token,
+                  value,
+                })
+              )
+            }
+            onCssVariableChange={(
+              name: AppThemeEditableVariableName,
+              value: string
+            ) =>
+              setAppThemeDraft((current) =>
+                updateAppThemeDraftCssVariable({
+                  draft: current,
+                  name,
+                  resolvedMode: resolvedTheme,
+                  value,
+                })
+              )
+            }
+            onCssVariablesChange={(values) =>
+              setAppThemeDraft((current) =>
+                updateAppThemeDraftCssVariables({
+                  draft: current,
+                  resolvedMode: resolvedTheme,
+                  values,
+                })
+              )
+            }
+            sectionId={activeThemeEditorSectionId}
+          />
+        </React.Suspense>
+      ) : (
+        <GalleryMarketSidebar
+          componentMarketFilters={componentMarketFilters}
+          onComponentMarketFiltersChange={setComponentMarketFilters}
+          viewId={activeViewId}
+        />
+      ),
+    [
+      activeThemeEditorSectionId,
+      activeViewId,
+      colorTokenValues,
+      componentMarketFilters,
+      resolvedTheme,
+      themeCssVariables,
+    ]
+  )
+
+  const sidebarFooterContent = React.useMemo(
+    () =>
+      activeViewId === "theme" ? (
+        <GalleryThemeSidebarFooter isDirty={isThemeDirty} onApply={applyTheme} />
+      ) : activeViewId === "components" ? (
+        <GalleryLazyComponentMarketSidebarFooter
+          enabledComponentTags={enabledComponentTags}
+        />
+      ) : null,
+    [activeViewId, applyTheme, enabledComponentTags, isThemeDirty]
+  )
+
+  const panel = React.useMemo(
+    () => (
+      <GalleryPanel
+        activeViewId={activeViewId}
         componentMarketFilters={componentMarketFilters}
-        onComponentMarketFiltersChange={setComponentMarketFilters}
-        viewId={activeViewId}
-      />
-    )
-
-  const sidebarFooterContent =
-    activeViewId === "theme" ? (
-      <GalleryThemeSidebarFooter isDirty={isThemeDirty} onApply={applyTheme} />
-    ) : activeViewId === "components" ? (
-      <GalleryLazyComponentMarketSidebarFooter
+        componentMarketSearchQuery={componentMarketSearchQuery}
         enabledComponentTags={enabledComponentTags}
+        onComponentMarketFiltersChange={setComponentMarketFilters}
+        onEnabledComponentTagsChange={changeEnabledComponentTags}
       />
-    ) : null
-
-  const panel = (
-    <GalleryPanel
-      activeViewId={activeViewId}
-      componentMarketFilters={componentMarketFilters}
-      componentMarketSearchQuery={componentMarketSearchQuery}
-      enabledComponentTags={enabledComponentTags}
-      onComponentMarketFiltersChange={setComponentMarketFilters}
-      onEnabledComponentTagsChange={changeEnabledComponentTags}
-    />
+    ),
+    [
+      activeViewId,
+      changeEnabledComponentTags,
+      componentMarketFilters,
+      componentMarketSearchQuery,
+      enabledComponentTags,
+    ]
   )
 
   return React.useMemo(

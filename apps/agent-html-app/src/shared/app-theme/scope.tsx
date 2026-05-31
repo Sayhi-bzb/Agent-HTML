@@ -4,7 +4,7 @@ import {
   resolveAppThemeCssVariables,
   type AppThemeDraft,
 } from "@/app/shared/app-theme/theme"
-import { useTheme } from "@/app/shared/theme-provider"
+import { useTheme } from "@/app/shared/theme-context"
 
 export function AppThemeScope({
   children,

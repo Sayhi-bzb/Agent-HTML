@@ -4,22 +4,14 @@ import * as React from "react"
 
 import { messages as enMessages } from "@/app/locales/en/messages.mjs"
 import { messages as zhMessages } from "@/app/locales/zh/messages.mjs"
-
-export type AppLanguage = "en" | "system" | "zh"
-export type ResolvedAppLocale = "en" | "zh"
-
-type LanguageProviderState = {
-  language: AppLanguage
-  resolvedLocale: ResolvedAppLocale
-  setLanguage: (language: AppLanguage) => void
-}
+import {
+  type AppLanguage,
+  LanguageProviderContext,
+  type ResolvedAppLocale,
+} from "@/app/shared/language-context"
 
 const LANGUAGE_STORAGE_KEY = "agent-html.language"
 const LANGUAGE_VALUES: AppLanguage[] = ["system", "en", "zh"]
-
-const LanguageProviderContext = React.createContext<
-  LanguageProviderState | undefined
->(undefined)
 
 i18n.load({
   en: enMessages,
@@ -56,21 +48,6 @@ function getInitialLanguage(
   }
 
   return defaultLanguage
-}
-
-export function getResolvedAppLocaleLabel(locale: ResolvedAppLocale) {
-  return locale === "zh" ? "中文" : "English"
-}
-
-export function getAppLanguageLabel(
-  language: AppLanguage,
-  resolvedLocale: ResolvedAppLocale
-) {
-  if (language === "system") {
-    return `System · ${getResolvedAppLocaleLabel(resolvedLocale)}`
-  }
-
-  return getResolvedAppLocaleLabel(language)
 }
 
 function activateLocale(locale: ResolvedAppLocale) {
@@ -161,12 +138,3 @@ export function LanguageProvider({
   )
 }
 
-export function useLanguage() {
-  const context = React.useContext(LanguageProviderContext)
-
-  if (context === undefined) {
-    throw new Error("useLanguage must be used within a LanguageProvider")
-  }
-
-  return context
-}

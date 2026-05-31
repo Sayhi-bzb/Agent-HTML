@@ -9,6 +9,12 @@ const LazyThreadPanelWindowApp = React.lazy(() =>
   }))
 )
 
+const LazyPetSettingsWindowApp = React.lazy(() =>
+  import("@/app/pet/host/pet-settings-window-app").then((module) => ({
+    default: module.PetSettingsWindowApp,
+  }))
+)
+
 export function RootApp() {
   const windowName = new URLSearchParams(window.location.search).get("window")
 
@@ -16,6 +22,14 @@ export function RootApp() {
     return (
       <React.Suspense fallback={null}>
         <LazyThreadPanelWindowApp />
+      </React.Suspense>
+    )
+  }
+
+  if (windowName === "pet-settings") {
+    return (
+      <React.Suspense fallback={null}>
+        <LazyPetSettingsWindowApp />
       </React.Suspense>
     )
   }

@@ -25,8 +25,8 @@ import {
   useLanguage,
   type AppLanguage,
   type ResolvedAppLocale,
-} from "@/app/shared/language-provider"
-import { useTheme, type Theme } from "@/app/shared/theme-provider"
+} from "@/app/shared/language-context"
+import { useTheme, type Theme } from "@/app/shared/theme-context"
 import {
   SidebarMenuButton,
   SidebarMenuItem,

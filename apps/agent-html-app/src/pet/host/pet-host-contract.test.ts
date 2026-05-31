@@ -36,6 +36,15 @@ const threadPanelNativeBridgePath = fileURLToPath(
 const threadPanelWindowAppPath = fileURLToPath(
   new URL("./thread-panel-window-app.tsx", import.meta.url)
 )
+const petSettingsPath = fileURLToPath(
+  new URL("./pet-settings-content.tsx", import.meta.url)
+)
+const petSettingsNativeBridgePath = fileURLToPath(
+  new URL("./pet-settings-native-bridge.ts", import.meta.url)
+)
+const petSettingsWindowAppPath = fileURLToPath(
+  new URL("./pet-settings-window-app.tsx", import.meta.url)
+)
 const composerPath = fileURLToPath(
   new URL("./pet-message-composer.tsx", import.meta.url)
 )
@@ -47,6 +56,9 @@ const siteHeaderPath = fileURLToPath(
 )
 const windowChromePath = fileURLToPath(
   new URL("../../shared/ui/window-chrome.tsx", import.meta.url)
+)
+const secondaryWindowPath = fileURLToPath(
+  new URL("../../shared/window/secondary-window.ts", import.meta.url)
 )
 
 const appFrameSource = readFileSync(appFramePath, "utf8")
@@ -75,9 +87,19 @@ const threadPanelWindowAppSource = readFileSync(
   threadPanelWindowAppPath,
   "utf8"
 )
+const petSettingsSource = readFileSync(petSettingsPath, "utf8")
+const petSettingsNativeBridgeSource = readFileSync(
+  petSettingsNativeBridgePath,
+  "utf8"
+)
+const petSettingsWindowAppSource = readFileSync(
+  petSettingsWindowAppPath,
+  "utf8"
+)
 const surfaceSource = readFileSync(surfacePath, "utf8")
 const siteHeaderSource = readFileSync(siteHeaderPath, "utf8")
 const windowChromeSource = readFileSync(windowChromePath, "utf8")
+const secondaryWindowSource = readFileSync(secondaryWindowPath, "utf8")
 
 describe("pet host contract", () => {
   it("keeps pet mounted inside the app frame", () => {
@@ -89,9 +111,8 @@ describe("pet host contract", () => {
 
   it("applies the saved app theme across every app root", () => {
     expect(mainSource).toContain("AppliedAppThemeProvider")
-    expect(appliedThemeProviderSource).toContain("loadAppliedAppTheme")
+    expect(appliedThemeProviderSource).toContain("readAppliedAppTheme")
     expect(appliedThemeProviderSource).toContain("applyAppTheme")
-    expect(appliedThemeProviderSource).toContain("createDefaultAppThemeDraft")
     expect(appliedThemeProviderSource).toContain("appliedAppThemeStorageKey")
     expect(appliedThemeProviderSource).toContain('window.addEventListener("storage"')
     expect(appliedThemeProviderSource).toContain(
@@ -100,24 +121,32 @@ describe("pet host contract", () => {
     expect(threadPanelWindowAppSource).not.toContain("AppThemeScope")
   })
 
-  it("only routes the thread panel through a native secondary window", () => {
+  it("routes pet secondary surfaces through native secondary windows", () => {
     expect(mainSource).not.toContain("PetWindowApp")
     expect(mainSource).not.toContain("PetPanelWindowApp")
     expect(rootAppSource).not.toContain('windowName === "pet"')
     expect(rootAppSource).not.toContain('windowName === "pet-panel"')
     expect(rootAppSource).toContain('get("window")')
     expect(rootAppSource).toContain('"thread-panel"')
+    expect(rootAppSource).toContain('"pet-settings"')
     expect(rootAppSource).toContain("React.lazy")
     expect(rootAppSource).toContain(
       'import("@/app/pet/host/thread-panel-window-app")'
     )
+    expect(rootAppSource).toContain(
+      'import("@/app/pet/host/pet-settings-window-app")'
+    )
     expect(rootAppSource).toContain("LazyThreadPanelWindowApp")
+    expect(rootAppSource).toContain("LazyPetSettingsWindowApp")
     expect(rootAppSource).not.toContain(
       'import { ThreadPanelWindowApp } from "@/app/pet/host/thread-panel-window-app"'
     )
     expect(tauriConfigSource).toContain('"label": "thread-panel"')
     expect(tauriConfigSource).toContain('"url": "/?window=thread-panel"')
+    expect(tauriConfigSource).toContain('"label": "pet-settings"')
+    expect(tauriConfigSource).toContain('"url": "/?window=pet-settings"')
     expect(tauriCapabilitySource).toContain('"thread-panel"')
+    expect(tauriCapabilitySource).toContain('"pet-settings"')
     expect(tauriCapabilitySource).toContain('"core:window:allow-show"')
     expect(tauriCapabilitySource).toContain('"core:window:allow-set-focus"')
     expect(tauriCapabilitySource).toContain('"core:window:allow-hide"')
@@ -130,9 +159,24 @@ describe("pet host contract", () => {
     expect(hostSessionSource).toContain("WorkspaceGhostPet")
     expect(hostSessionSource).toContain("PetMessageComposer")
     expect(hostSessionSource).toContain("PetSettingsContent")
-    expect(hostSessionSource).toContain("settingsContent")
-    expect(hostSessionSource).toContain(
-      "onClose={() => setIsSettingsOpen(false)}"
+    expect(hostSessionSource).toContain("PetSettingsSurface")
+    expect(hostSessionSource).toContain("PetSettingsBridge")
+    expect(hostSessionSource).toContain("PetSettingsDispatch")
+    expect(hostSessionSource).toContain("PetSettingsSurfaceSnapshot")
+    expect(hostSessionSource).toContain("settingsDispatchRef")
+    expect(hostSessionSource).toContain("setSettingsSnapshot")
+    expect(hostSessionSource).toContain("handleSettingsClose")
+    expect(hostSessionSource).toContain("handleSettingsBridgeChange")
+    expect(hostSessionSource).toContain("publishPetSettingsNativeSnapshot")
+    expect(hostSessionSource).toContain("subscribePetSettingsNativeActions")
+    expect(hostSessionSource).toContain("useNativeSettingsFallback")
+    expect(hostSessionSource).toContain("active={isSettingsOpen}")
+    expect(hostSessionSource).toContain("renderSurface={false}")
+    expect(hostSessionSource).toContain("<PetSettingsSurface bridge={settingsBridge} />")
+    expect(hostSessionSource).toContain("onClose={handleSettingsClose}")
+    expect(hostSessionSource).not.toContain("setSettingsBridge")
+    expect(hostSessionSource).not.toContain(
+      "useState<PetSettingsBridge | null>"
     )
     expect(hostSessionSource).toContain("threadPanelContent")
     expect(hostSessionSource).toContain("PetThreadPanelContent")
@@ -149,8 +193,12 @@ describe("pet host contract", () => {
     expect(hostSessionSource).not.toContain("<PetPanel size=\"auto\">")
     expect(threadPanelWindowHostSource).not.toContain("WebviewWindow")
     expect(threadPanelWindowHostSource).not.toContain("emitTo")
-    expect(threadPanelNativeBridgeSource).toContain("WebviewWindow")
-    expect(threadPanelNativeBridgeSource).toContain("emitTo")
+    expect(threadPanelNativeBridgeSource).not.toContain("WebviewWindow")
+    expect(threadPanelNativeBridgeSource).not.toContain("emitTo")
+    expect(petSettingsNativeBridgeSource).not.toContain("WebviewWindow")
+    expect(petSettingsNativeBridgeSource).not.toContain("emitTo")
+    expect(secondaryWindowSource).toContain("WebviewWindow")
+    expect(secondaryWindowSource).toContain("emitTo")
   })
 
   it("treats pet message send as a floating interaction", () => {
@@ -226,6 +274,16 @@ describe("pet host contract", () => {
   })
 
   it("keeps native thread panel transport behind the bridge protocol", () => {
+    expect(secondaryWindowSource).toContain(
+      "export function createSecondaryWindowSurface"
+    )
+    expect(secondaryWindowSource).toContain("WebviewWindow")
+    expect(secondaryWindowSource).toContain("localStorage.setItem")
+    expect(secondaryWindowSource).toContain("localStorage.getItem")
+    expect(secondaryWindowSource).toContain("existingWindow.show()")
+    expect(secondaryWindowSource).toContain("existingWindow.setFocus()")
+    expect(secondaryWindowSource).toContain("existingWindow?.hide()")
+    expect(secondaryWindowSource).toContain("return false")
     expect(threadPanelNativeBridgeSource).toContain(
       'THREAD_PANEL_WINDOW_LABEL = "thread-panel"'
     )
@@ -239,15 +297,15 @@ describe("pet host contract", () => {
       'THREAD_PANEL_SNAPSHOT_STORAGE_KEY ='
     )
     expect(threadPanelNativeBridgeSource).toContain(
+      "createSecondaryWindowSurface"
+    )
+    expect(threadPanelNativeBridgeSource).toContain(
       "ThreadPanelNativeSnapshot"
     )
     expect(threadPanelNativeBridgeSource).toContain("ThreadPanelNativeAction")
     expect(threadPanelNativeBridgeSource).toContain(
       "openThreadPanelNativeWindow"
     )
-    expect(threadPanelNativeBridgeSource).toContain("try {")
-    expect(threadPanelNativeBridgeSource).toContain("catch {")
-    expect(threadPanelNativeBridgeSource).toContain("return false")
     expect(threadPanelNativeBridgeSource).toContain(
       "closeThreadPanelNativeWindow"
     )
@@ -256,9 +314,6 @@ describe("pet host contract", () => {
     )
     expect(threadPanelNativeBridgeSource).toContain(
       "readThreadPanelNativeSnapshotCache"
-    )
-    expect(threadPanelNativeBridgeSource).toContain(
-      "writeThreadPanelNativeSnapshotCache"
     )
     expect(threadPanelNativeBridgeSource).toContain(
       "setLatestThreadPanelNativeSnapshot"
@@ -275,12 +330,16 @@ describe("pet host contract", () => {
     expect(threadPanelNativeBridgeSource).toContain(
       "preloadThreadPanelNativeWindowApp"
     )
-    expect(threadPanelNativeBridgeSource).toContain("localStorage.setItem")
-    expect(threadPanelNativeBridgeSource).toContain("localStorage.getItem")
-    expect(threadPanelNativeBridgeSource).toContain("existingWindow?.hide()")
-    expect(threadPanelNativeBridgeSource).not.toContain("existingWindow?.close()")
-    expect(threadPanelNativeBridgeSource).toContain("existingWindow.show()")
-    expect(threadPanelNativeBridgeSource).toContain("existingWindow.setFocus()")
+    expect(threadPanelNativeBridgeSource).not.toContain("WebviewWindow")
+    expect(threadPanelNativeBridgeSource).not.toContain("localStorage.setItem")
+    expect(threadPanelNativeBridgeSource).not.toContain("localStorage.getItem")
+    expect(threadPanelNativeBridgeSource).not.toContain("existingWindow.show()")
+    expect(threadPanelNativeBridgeSource).not.toContain(
+      "existingWindow.setFocus()"
+    )
+    expect(threadPanelNativeBridgeSource).not.toContain("existingWindow?.hide()")
+    expect(threadPanelNativeBridgeSource).not.toContain("emitTo")
+    expect(threadPanelNativeBridgeSource).not.toContain("listen<")
   })
 
   it("reuses the thread panel surface in the native window root", () => {
@@ -335,6 +394,38 @@ describe("pet host contract", () => {
     expect(threadPanelSource).toContain(
       "className=\"flex h-full min-h-0 w-full min-w-0 flex-col"
     )
+  })
+
+  it("keeps pet settings UI behind a secondary-window surface boundary", () => {
+    expect(petSettingsSource).toContain("export function PetSettingsSurface")
+    expect(petSettingsSource).toContain("PetSettingsSurfaceSnapshot")
+    expect(petSettingsSource).toContain("PetSettingsAction")
+    expect(petSettingsSource).toContain("PetSettingsBridge")
+    expect(petSettingsSource).toContain("onBridgeChange")
+    expect(petSettingsSource).toContain("renderSurface")
+    expect(petSettingsNativeBridgeSource).toContain(
+      'PET_SETTINGS_WINDOW_LABEL = "pet-settings"'
+    )
+    expect(petSettingsNativeBridgeSource).toContain(
+      'PET_SETTINGS_SNAPSHOT_EVENT = "pet-settings://snapshot"'
+    )
+    expect(petSettingsNativeBridgeSource).toContain(
+      'PET_SETTINGS_ACTION_EVENT = "pet-settings://action"'
+    )
+    expect(petSettingsNativeBridgeSource).toContain(
+      "createSecondaryWindowSurface"
+    )
+    expect(petSettingsWindowAppSource).toContain("PetSettingsSurface")
+    expect(petSettingsWindowAppSource).toContain("WindowChromeFrame")
+    expect(petSettingsWindowAppSource).toContain("WindowTitlebar")
+    expect(petSettingsWindowAppSource).toContain(
+      "readPetSettingsNativeSnapshotCache"
+    )
+    expect(petSettingsWindowAppSource).toContain(
+      "dispatchPetSettingsNativeAction"
+    )
+    expect(petSettingsWindowAppSource).not.toContain("CodexConnectionProvider")
+    expect(petSettingsWindowAppSource).not.toContain("useCodexConnection")
   })
 
   it("keeps native window chrome outside business surfaces", () => {

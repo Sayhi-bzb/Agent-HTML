@@ -3,10 +3,16 @@ import { RotateCwIcon, SaveIcon, SettingsIcon, XIcon } from "lucide-react"
 
 import { useCodexConnection } from "@/app/codex/connection"
 import type {
+  CodexConnectionSettings,
+  CodexConnectionStatus,
+  CodexHostHealth,
   CodexRuntimeCapabilityStatus,
   CodexRuntimeStatus,
 } from "@/app/codex/connection"
-import type { CodexRuntimeCapabilityItem } from "@/app/codex/connection/types"
+import type {
+  CodexRuntimeCapabilityItem,
+  WorkspaceRootStatus,
+} from "@/app/codex/connection/types"
 import { Badge } from "@/app/shared/ui/badge"
 import { Button } from "@/app/shared/ui/button"
 import { Input } from "@/app/shared/ui/input"
@@ -25,6 +31,7 @@ import {
 } from "@/app/shared/ui/sidebar"
 import { Textarea } from "@/app/shared/ui/textarea"
 import { SettingsInfoPanel } from "@/app/shell/settings-surface"
+import { cn } from "@/app/shared/lib/utils"
 import { createWorkspaceStore } from "@/app/workspace/store"
 
 const workspaceStore = createWorkspaceStore()
@@ -39,6 +46,55 @@ const settingsViews = [
 ] as const
 
 type SettingsView = (typeof settingsViews)[number]
+
+export type PetSettingsView = SettingsView
+
+export type PetSettingsSurfaceSnapshot = {
+  activeView: SettingsView
+  agents: {
+    draft: string
+    error: string | null
+    isDirty: boolean
+    isLoading: boolean
+    isSaving: boolean
+    status: "idle" | "saved"
+  }
+  codex: {
+    canManageHost: boolean
+    draftSettings: CodexConnectionSettings
+    draftWorkspaceRootPath: string
+    health: CodexHostHealth | null
+    isBusy: boolean
+    isLoaded: boolean
+    lastError: string | null
+    runtimeStatus: CodexRuntimeStatus
+    status: CodexConnectionStatus
+    workspaceRootNotice: string | null
+    workspaceRootStatus: WorkspaceRootStatus | null
+  }
+}
+
+export type PetSettingsAction =
+  | { type: "close" }
+  | { type: "refresh-runtime-status" }
+  | { type: "reload-agents-instructions" }
+  | { draft: string; type: "set-agents-draft" }
+  | { type: "save-agents-instructions" }
+  | { command: string; type: "set-codex-command" }
+  | { path: string; type: "set-workspace-root-path" }
+  | { type: "save-codex-settings" }
+  | { type: "save-workspace-root" }
+  | { type: "restart-codex" }
+  | { type: "stop-codex" }
+  | { type: "test-codex" }
+  | { type: "set-active-view"; view: SettingsView }
+
+export type PetSettingsDispatch = (action: PetSettingsAction) => void
+
+export type PetSettingsBridge = {
+  dispatch: PetSettingsDispatch
+  snapshot: PetSettingsSurfaceSnapshot
+}
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -181,32 +237,47 @@ function PathInfoRow({ label, value }: { label: string; value: string }) {
 }
 
 export function PetSettingsContent({
+  active = true,
   initialView = "AGENTS.md",
+  onBridgeChange,
   onClose,
+  renderSurface = true,
 }: {
+  active?: boolean
   initialView?: SettingsView
+  onBridgeChange?: (bridge: PetSettingsBridge) => void
   onClose?: () => void
+  renderSurface?: boolean
 }) {
   const codexConnection = useCodexConnection()
 
   return (
     <PetSettingsContentSession
       codexConnection={codexConnection}
+      active={active}
       initialView={initialView}
       key={`${codexConnection.settings.codexCommand}:${codexConnection.workspaceRootStatus?.settings.rootPath ?? ""}`}
+      onBridgeChange={onBridgeChange}
       onClose={onClose}
+      renderSurface={renderSurface}
     />
   )
 }
 
 function PetSettingsContentSession({
+  active,
   codexConnection,
   initialView,
+  onBridgeChange,
   onClose,
+  renderSurface,
 }: {
+  active: boolean
   codexConnection: ReturnType<typeof useCodexConnection>
   initialView: SettingsView
+  onBridgeChange?: (bridge: PetSettingsBridge) => void
   onClose?: () => void
+  renderSurface: boolean
 }) {
   const runtimeStatus = codexConnection.runtimeStatus
   const [activeView, setActiveView] =
@@ -250,8 +321,12 @@ function PetSettingsContentSession({
   }, [readInstructions])
 
   React.useEffect(() => {
+    if (!active) {
+      return
+    }
+
     void readInstructions()
-  }, [readInstructions])
+  }, [active, readInstructions])
 
   const saveInstructions = React.useCallback(() => {
     setError(null)
@@ -297,17 +372,210 @@ function PetSettingsContentSession({
     },
     [codexConnection, draftSettings]
   )
-  const isRuntimeRefreshDisabled =
-    codexConnection.status !== "connected" || runtimeStatus.status === "loading"
   const subtitle =
     runtimeStatus.status === "loading"
       ? "Loading runtime"
       : `${activeView} settings`
 
+  const snapshot = React.useMemo<PetSettingsSurfaceSnapshot>(
+    () => ({
+      activeView,
+      agents: {
+        draft,
+        error,
+        isDirty,
+        isLoading,
+        isSaving,
+        status,
+      },
+      codex: {
+        canManageHost: codexConnection.canManageHost,
+        draftSettings,
+        draftWorkspaceRootPath,
+        health: codexConnection.health,
+        isBusy: codexConnection.isBusy,
+        isLoaded: codexConnection.isLoaded,
+        lastError: codexConnection.lastError,
+        runtimeStatus,
+        status: codexConnection.status,
+        workspaceRootNotice,
+        workspaceRootStatus: codexConnection.workspaceRootStatus,
+      },
+    }),
+    [
+      activeView,
+      codexConnection.canManageHost,
+      codexConnection.health,
+      codexConnection.isBusy,
+      codexConnection.isLoaded,
+      codexConnection.lastError,
+      codexConnection.status,
+      codexConnection.workspaceRootStatus,
+      draft,
+      draftSettings,
+      draftWorkspaceRootPath,
+      error,
+      isDirty,
+      isLoading,
+      isSaving,
+      runtimeStatus,
+      status,
+      workspaceRootNotice,
+    ]
+  )
+
+  const dispatch = React.useCallback<PetSettingsDispatch>(
+    (action) => {
+      switch (action.type) {
+        case "close":
+          onClose?.()
+          return
+        case "refresh-runtime-status":
+          refreshRuntimeStatus()
+          return
+        case "reload-agents-instructions":
+          void loadInstructions()
+          return
+        case "set-agents-draft":
+          setDraft(action.draft)
+          setStatus("idle")
+          return
+        case "save-agents-instructions":
+          saveInstructions()
+          return
+        case "set-codex-command":
+          setDraftSettings((current) => ({
+            ...current,
+            codexCommand: action.command,
+          }))
+          return
+        case "set-workspace-root-path":
+          setDraftWorkspaceRootPath(action.path)
+          return
+        case "save-codex-settings":
+          saveCodexSettings()
+          return
+        case "save-workspace-root":
+          saveWorkspaceRoot()
+          return
+        case "restart-codex":
+          void runCodexAction(codexConnection.restart)
+          return
+        case "stop-codex":
+          void runCodexAction(codexConnection.stop)
+          return
+        case "test-codex":
+          void runCodexAction(codexConnection.test)
+          return
+        case "set-active-view":
+          setActiveView(action.view)
+          return
+      }
+    },
+    [
+      codexConnection.restart,
+      codexConnection.stop,
+      codexConnection.test,
+      loadInstructions,
+      onClose,
+      refreshRuntimeStatus,
+      runCodexAction,
+      saveCodexSettings,
+      saveInstructions,
+      saveWorkspaceRoot,
+    ]
+  )
+
+  const bridge = React.useMemo<PetSettingsBridge>(
+    () => ({ dispatch, snapshot }),
+    [dispatch, snapshot]
+  )
+
+  React.useEffect(() => {
+    onBridgeChange?.(bridge)
+  }, [bridge, onBridgeChange])
+
+  if (!renderSurface) {
+    return null
+  }
+
+  return <PetSettingsSurface bridge={bridge} subtitle={subtitle} />
+}
+
+export function PetSettingsSurface({
+  bridge,
+  className,
+  headerSlot,
+  subtitle,
+}: {
+  bridge: PetSettingsBridge
+  className?: string
+  headerSlot?: (header: React.ReactNode) => React.ReactNode
+  subtitle?: string
+}) {
+  const { dispatch, snapshot } = bridge
+  const { activeView, agents, codex } = snapshot
+  const runtimeStatus = codex.runtimeStatus
+  const isRuntimeRefreshDisabled =
+    codex.status !== "connected" || runtimeStatus.status === "loading"
+  const resolvedSubtitle =
+    subtitle ??
+    (runtimeStatus.status === "loading"
+      ? "Loading runtime"
+      : `${activeView} settings`)
+  const header = (
+    <header
+      className="flex min-h-14 cursor-grab items-center gap-3 bg-muted/30 px-4 active:cursor-grabbing"
+      data-selection="none"
+    >
+      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
+        <SettingsIcon aria-hidden="true" className="size-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <h2 className="truncate text-sm font-medium leading-5">
+          AgentHTML settings
+        </h2>
+        <p className="truncate text-xs leading-4 text-muted-foreground">
+          {resolvedSubtitle}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
+        <Button
+          data-popover-no-drag
+          data-window-no-drag
+          disabled={isRuntimeRefreshDisabled}
+          onClick={() => dispatch({ type: "refresh-runtime-status" })}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
+          <RotateCwIcon aria-hidden="true" className="size-4" />
+          <span className="sr-only">
+            {runtimeStatus.status === "loading" ? "Loading" : "Refresh"}
+          </span>
+        </Button>
+        <Button
+          aria-label="Close settings"
+          data-popover-no-drag
+          data-window-no-drag
+          onClick={() => dispatch({ type: "close" })}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
+          <XIcon aria-hidden="true" className="size-4" />
+        </Button>
+      </div>
+    </header>
+  )
+
   return (
     <SidebarStateProvider>
       <section
-        className="flex h-[min(34rem,calc(100vh-5rem))] min-h-96 w-[min(52rem,calc(100vw-4rem))] flex-col overflow-hidden rounded-lg border bg-background text-foreground shadow-sm"
+        className={cn(
+          "flex h-[min(34rem,calc(100vh-5rem))] min-h-96 w-[min(52rem,calc(100vw-4rem))] flex-col overflow-hidden rounded-lg border bg-background text-foreground shadow-sm",
+          className
+        )}
         style={
           {
             "--sidebar": "var(--background)",
@@ -319,47 +587,7 @@ function PetSettingsContentSession({
           } as React.CSSProperties
         }
       >
-        <header
-          className="flex min-h-14 cursor-grab items-center gap-3 bg-muted/30 px-4 active:cursor-grabbing"
-          data-selection="none"
-        >
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
-            <SettingsIcon aria-hidden="true" className="size-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-sm font-medium leading-5">
-              AgentHTML settings
-            </h2>
-            <p className="truncate text-xs leading-4 text-muted-foreground">
-              {subtitle}
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <Button
-              data-popover-no-drag
-              disabled={isRuntimeRefreshDisabled}
-              onClick={refreshRuntimeStatus}
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              <RotateCwIcon aria-hidden="true" className="size-4" />
-              <span className="sr-only">
-                {runtimeStatus.status === "loading" ? "Loading" : "Refresh"}
-              </span>
-            </Button>
-            <Button
-              aria-label="Close settings"
-              data-popover-no-drag
-              onClick={onClose}
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              <XIcon aria-hidden="true" className="size-4" />
-            </Button>
-          </div>
-        </header>
+        {headerSlot ? headerSlot(header) : header}
         <Separator />
         <main className="flex min-h-0 flex-1">
           <aside className="flex w-44 shrink-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground">
@@ -372,7 +600,9 @@ function PetSettingsContentSession({
                       <SidebarMenuItem key={view}>
                         <SidebarMenuButton
                           isActive={activeView === view}
-                          onClick={() => setActiveView(view)}
+                          onClick={() =>
+                            dispatch({ type: "set-active-view", view })
+                          }
                           type="button"
                         >
                           <span className="truncate">{view}</span>
@@ -391,42 +621,50 @@ function PetSettingsContentSession({
           >
             <SettingsViewContent
               activeView={activeView}
-              canManageHost={codexConnection.canManageHost}
-              codexCommand={codexConnection.health?.codexCommand ?? "unknown"}
-              codexConnectionStatus={codexConnection.status}
-              connectionStatus={codexConnection.status}
-              cwd={codexConnection.health?.cwd ?? "unknown"}
-              draft={draft}
-              draftCodexCommand={draftSettings.codexCommand}
-              draftWorkspaceRootPath={draftWorkspaceRootPath}
-              error={error}
-              healthAppServerRunning={codexConnection.health?.appServerRunning}
-              isCodexBusy={codexConnection.isBusy}
-              isCodexLoaded={codexConnection.isLoaded}
-              isDirty={isDirty}
-              isLoading={isLoading}
-              isSaving={isSaving}
-              lastError={codexConnection.lastError}
-              loadInstructions={loadInstructions}
-              onDraftCodexCommandChange={(value) =>
-                setDraftSettings((current) => ({
-                  ...current,
-                  codexCommand: value,
-                }))
+              canManageHost={codex.canManageHost}
+              codexCommand={codex.health?.codexCommand ?? "unknown"}
+              codexConnectionStatus={codex.status}
+              connectionStatus={codex.status}
+              cwd={codex.health?.cwd ?? "unknown"}
+              draft={agents.draft}
+              draftCodexCommand={codex.draftSettings.codexCommand}
+              draftWorkspaceRootPath={codex.draftWorkspaceRootPath}
+              error={agents.error}
+              healthAppServerRunning={codex.health?.appServerRunning}
+              isCodexBusy={codex.isBusy}
+              isCodexLoaded={codex.isLoaded}
+              isDirty={agents.isDirty}
+              isLoading={agents.isLoading}
+              isSaving={agents.isSaving}
+              lastError={codex.lastError}
+              loadInstructions={() => {
+                dispatch({ type: "reload-agents-instructions" })
+              }}
+              onDraftCodexCommandChange={(command) =>
+                dispatch({ command, type: "set-codex-command" })
               }
-              onDraftWorkspaceRootPathChange={setDraftWorkspaceRootPath}
-              onRestart={() => void runCodexAction(codexConnection.restart)}
-              onSaveCodexSettings={saveCodexSettings}
-              onSaveWorkspaceRoot={saveWorkspaceRoot}
-              onStop={() => void runCodexAction(codexConnection.stop)}
-              onTestConnection={() => void runCodexAction(codexConnection.test)}
+              onDraftWorkspaceRootPathChange={(path) =>
+                dispatch({ path, type: "set-workspace-root-path" })
+              }
+              onRestart={() => dispatch({ type: "restart-codex" })}
+              onSaveCodexSettings={() =>
+                dispatch({ type: "save-codex-settings" })
+              }
+              onSaveWorkspaceRoot={() =>
+                dispatch({ type: "save-workspace-root" })
+              }
+              onStop={() => dispatch({ type: "stop-codex" })}
+              onTestConnection={() => dispatch({ type: "test-codex" })}
               runtimeStatus={runtimeStatus}
-              saveInstructions={saveInstructions}
-              setDraft={setDraft}
-              setStatus={setStatus}
-              status={status}
-              workspaceRootNotice={workspaceRootNotice}
-              workspaceRootStatus={codexConnection.workspaceRootStatus}
+              saveInstructions={() => {
+                dispatch({ type: "save-agents-instructions" })
+              }}
+              setDraft={(draft) =>
+                dispatch({ draft, type: "set-agents-draft" })
+              }
+              status={agents.status}
+              workspaceRootNotice={codex.workspaceRootNotice}
+              workspaceRootStatus={codex.workspaceRootStatus}
             />
           </ScrollArea>
         </main>
@@ -464,7 +702,6 @@ function SettingsViewContent({
   runtimeStatus,
   saveInstructions,
   setDraft,
-  setStatus,
   status,
   workspaceRootNotice,
   workspaceRootStatus,
@@ -486,7 +723,7 @@ function SettingsViewContent({
   isLoading: boolean
   isSaving: boolean
   lastError?: string | null
-  loadInstructions: () => Promise<void>
+  loadInstructions: () => Promise<void> | void
   onDraftCodexCommandChange: (value: string) => void
   onDraftWorkspaceRootPathChange: (value: string) => void
   onRestart: () => void
@@ -497,7 +734,6 @@ function SettingsViewContent({
   runtimeStatus: CodexRuntimeStatus
   saveInstructions: () => void
   setDraft: (draft: string) => void
-  setStatus: (status: "idle" | "saved") => void
   status: "idle" | "saved"
   workspaceRootNotice?: string | null
   workspaceRootStatus: ReturnType<typeof useCodexConnection>["workspaceRootStatus"]
@@ -513,7 +749,6 @@ function SettingsViewContent({
         loadInstructions={loadInstructions}
         saveInstructions={saveInstructions}
         setDraft={setDraft}
-        setStatus={setStatus}
         status={status}
       />
     )
@@ -577,7 +812,6 @@ function AgentsMdView({
   loadInstructions,
   saveInstructions,
   setDraft,
-  setStatus,
   status,
 }: {
   draft: string
@@ -585,10 +819,9 @@ function AgentsMdView({
   isDirty: boolean
   isLoading: boolean
   isSaving: boolean
-  loadInstructions: () => Promise<void>
+  loadInstructions: () => Promise<void> | void
   saveInstructions: () => void
   setDraft: (draft: string) => void
-  setStatus: (status: "idle" | "saved") => void
   status: "idle" | "saved"
 }) {
   return (
@@ -617,7 +850,6 @@ function AgentsMdView({
           id="pet-agent-instructions"
           onChange={(event) => {
             setDraft(event.target.value)
-            setStatus("idle")
           }}
           placeholder="Loading AGENTS.md..."
           spellCheck={false}

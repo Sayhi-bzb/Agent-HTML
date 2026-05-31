@@ -3,7 +3,7 @@ import * as React from "react"
 import type { GalleryController } from "@/app/gallery/controller"
 import { AppFrame } from "@/app/shell/app-frame"
 import type { HeaderTab } from "@/app/shell/site-header"
-import { useAppliedAppThemeCssVariables } from "@/app/shared/app-theme/applied-theme-provider"
+import { useAppliedAppThemeCssVariables } from "@/app/shared/app-theme/applied-theme-hooks"
 import { closeWindow } from "@/app/shared/lib/window-controls"
 import { useWorkspaceController } from "@/app/workspace/controller"
 

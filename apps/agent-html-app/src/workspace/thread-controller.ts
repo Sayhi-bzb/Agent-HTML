@@ -30,6 +30,13 @@ function getErrorMessage(error: unknown) {
 
 export function useWorkspaceThreadController() {
   const codexConnection = useCodexConnection()
+  const {
+    refreshThreads,
+    request,
+    resumeThread: resumeCodexThread,
+    startNewThread: startNewCodexThread,
+    status: codexStatus,
+  } = codexConnection
   const [companyAgentError, setCompanyAgentError] = React.useState<
     string | null
   >(null)
@@ -79,13 +86,13 @@ export function useWorkspaceThreadController() {
           return
         }
         const threadId = state.activeThreadId ?? null
-        if (!threadId || codexConnection.status !== "connected") {
+        if (!threadId || codexStatus !== "connected") {
           setActiveThreadId(threadId)
           return
         }
 
         try {
-          await codexConnection.request("thread/read", {
+          await request("thread/read", {
             includeTurns: false,
             threadId,
           })
@@ -125,16 +132,15 @@ export function useWorkspaceThreadController() {
     }
   }, [
     clearCompanyAgentThread,
-    codexConnection.request,
-    codexConnection.status,
+    codexStatus,
     persistActiveThreadId,
+    request,
   ])
 
   const startNewThread = React.useCallback(() => {
     setThreadSelectionError(null)
     setIsSelectingThread(true)
-    codexConnection
-      .startNewThread()
+    startNewCodexThread()
       .then((threadId) => persistActiveThreadId(threadId))
       .then(() => setIsThreadPickerOpen(false))
       .catch((error: unknown) => {
@@ -143,15 +149,14 @@ export function useWorkspaceThreadController() {
         )
       })
       .finally(() => setIsSelectingThread(false))
-  }, [codexConnection, persistActiveThreadId])
+  }, [persistActiveThreadId, startNewCodexThread])
 
   const resumeThread = React.useCallback(
     (threadId: string) => {
       setThreadSelectionError(null)
       setIsSelectingThread(true)
-      codexConnection
-        .request("thread/read", { includeTurns: false, threadId })
-        .then(() => codexConnection.resumeThread(threadId))
+      request("thread/read", { includeTurns: false, threadId })
+        .then(() => resumeCodexThread(threadId))
         .then(() => persistActiveThreadId(threadId))
         .then(() => setIsThreadPickerOpen(false))
         .catch((error: unknown) => {
@@ -161,14 +166,14 @@ export function useWorkspaceThreadController() {
         })
         .finally(() => setIsSelectingThread(false))
     },
-    [codexConnection, persistActiveThreadId]
+    [persistActiveThreadId, request, resumeCodexThread]
   )
 
   const ensureCompanyAgentThread = React.useCallback(async () => {
-    const threadId = await codexConnection.startNewThread()
+    const threadId = await startNewCodexThread()
     await persistActiveThreadId(threadId)
     return threadId
-  }, [codexConnection, persistActiveThreadId])
+  }, [persistActiveThreadId, startNewCodexThread])
 
   const renameThread = React.useCallback(
     async ({ name, threadId }: { name: string; threadId: string }) => {
@@ -180,7 +185,7 @@ export function useWorkspaceThreadController() {
       setThreadRenameError(null)
       setRenamingThreadId(threadId)
       try {
-        await codexConnection.request("thread/name/set", {
+        await request("thread/name/set", {
           name: nextName,
           threadId,
         })
@@ -188,7 +193,7 @@ export function useWorkspaceThreadController() {
           ...currentNames,
           [threadId]: nextName,
         }))
-        void codexConnection.refreshThreads()
+        void refreshThreads()
       } catch (error) {
         setThreadRenameError(
           `Unable to rename Codex thread: ${getErrorMessage(error)}`
@@ -198,7 +203,7 @@ export function useWorkspaceThreadController() {
         setRenamingThreadId(null)
       }
     },
-    [codexConnection.refreshThreads, codexConnection.request]
+    [refreshThreads, request]
   )
 
   const threadSummaries = React.useMemo(

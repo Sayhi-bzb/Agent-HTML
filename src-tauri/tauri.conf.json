@@ -26,6 +26,15 @@
         "width": 960,
         "height": 640,
         "url": "/?window=thread-panel"
+      },
+      {
+        "label": "pet-settings",
+        "title": "Pet Settings",
+        "decorations": false,
+        "visible": false,
+        "width": 880,
+        "height": 640,
+        "url": "/?window=pet-settings"
       }
     ],
     "security": {
