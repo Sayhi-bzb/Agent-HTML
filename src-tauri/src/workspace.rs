@@ -78,31 +78,13 @@ impl WorkspaceStore {
             .join(".agents")
             .join("skills")
             .join("agent-html");
-        let references_path = skill_path.join("references");
-        let scripts_path = skill_path.join("scripts");
-        std::fs::create_dir_all(&references_path)?;
-        std::fs::create_dir_all(&scripts_path)?;
-
-        write_managed_text(
-            &references_path.join("examples.md"),
-            &agent_html_examples_reference_content(),
-            is_agenthtml_managed_examples_reference,
-        )?;
-        write_managed_text(
-            &references_path.join("icons.md"),
-            &agent_html_icons_reference_content(),
-            is_agenthtml_managed_icons_reference,
-        )?;
-        write_managed_text(
-            &references_path.join("icon-names.txt"),
-            &agent_html_icon_names_reference_content(),
-            is_agenthtml_managed_icon_names_reference,
-        )?;
-        write_managed_text(
-            &scripts_path.join("search_icons.py"),
-            &agent_html_search_icons_script_content(),
-            is_agenthtml_managed_search_icons_script,
-        )?;
+        for resource in agent_html_skill_resources() {
+            write_managed_text(
+                &skill_path.join(resource.relative_path),
+                resource.content,
+                resource.is_managed,
+            )?;
+        }
 
         let skill_file_path = skill_path.join("SKILL.md");
         let content = agent_html_skill_content();
@@ -412,45 +394,40 @@ fn agent_html_skill_content() -> String {
     .join("\n")
 }
 
-fn agent_html_examples_reference_content() -> String {
-    [
-        "# AgentHTML Examples",
-        "",
-        "Use these pattern names as orientation before drafting new structure.",
-        "",
-        "## Valid Patterns",
-        "",
-        "- `minimal-page`: root Page with a single Section.",
-        "- `card-tabs-grid`: Cards inside Grid with nested Tabs.",
-        "- `complex-dashboard`: mixed layout, cards, metrics, and charts.",
-        "- `timeline-basic`: Timeline with status and optional icon attrs.",
-        "- `kanban-basic`: Kanban columns and items with stable values.",
-        "- `codeblock-basic`: CodeBlock with raw code text.",
-        "- `image-basic`: Image with src, alt, and fit.",
-        "",
-        "## Invalid Patterns",
-        "",
-        "- Bare text directly under `Page`, `Section`, `Stack`, `Cluster`, or `Grid`.",
-        "- Unknown tags or attrs.",
-        "- JSX expressions, imports, hooks, `class`, `className`, or `style`.",
-        "- Missing required attrs like `Page:title`, `Image:src`, or `Image:alt`.",
-        "- Invalid enum attrs such as unknown variants, widths, status, or language values.",
-        "- Unknown Lucide icon names.",
-        "",
+struct AgentHtmlSkillResource {
+    relative_path: &'static str,
+    content: &'static str,
+    is_managed: fn(&str) -> bool,
+}
+
+fn agent_html_skill_resources() -> Vec<AgentHtmlSkillResource> {
+    vec![
+        AgentHtmlSkillResource {
+            relative_path: "references/examples.md",
+            content: include_str!("../../.agents/skills/agent-html/references/examples.md"),
+            is_managed: is_agenthtml_managed_examples_reference,
+        },
+        AgentHtmlSkillResource {
+            relative_path: "references/icons.md",
+            content: include_str!("../../.agents/skills/agent-html/references/icons.md"),
+            is_managed: is_agenthtml_managed_icons_reference,
+        },
+        AgentHtmlSkillResource {
+            relative_path: "references/icon-names.txt",
+            content: include_str!("../../.agents/skills/agent-html/references/icon-names.txt"),
+            is_managed: is_agenthtml_managed_icon_names_reference,
+        },
+        AgentHtmlSkillResource {
+            relative_path: "scripts/search_icons.py",
+            content: include_str!("../../.agents/skills/agent-html/scripts/search_icons.py"),
+            is_managed: is_agenthtml_managed_search_icons_script,
+        },
+        AgentHtmlSkillResource {
+            relative_path: "agents/openai.yaml",
+            content: include_str!("../../.agents/skills/agent-html/agents/openai.yaml"),
+            is_managed: is_agenthtml_managed_openai_agent,
+        },
     ]
-    .join("\n")
-}
-
-fn agent_html_icons_reference_content() -> String {
-    include_str!("../../.agents/skills/agent-html/references/icons.md").to_string()
-}
-
-fn agent_html_icon_names_reference_content() -> String {
-    include_str!("../../.agents/skills/agent-html/references/icon-names.txt").to_string()
-}
-
-fn agent_html_search_icons_script_content() -> String {
-    include_str!("../../.agents/skills/agent-html/scripts/search_icons.py").to_string()
 }
 
 fn write_managed_text(
@@ -494,10 +471,18 @@ fn is_agenthtml_managed_icon_names_reference(content: &str) -> bool {
 
 fn is_agenthtml_managed_search_icons_script(content: &str) -> bool {
     content.contains("def search_icons(")
-        && content.contains("lucide-react")
-        && (content.contains("parents[3]")
-            || content.contains("find_repo_root")
-            || content.contains("dynamicIconImports"))
+        && ((content.contains("bundled_icon_names_path")
+            && content.contains("references")
+            && content.contains("icon-names.txt"))
+            || (content.contains("lucide-react")
+                && (content.contains("parents[3]")
+                    || content.contains("find_repo_root")
+                    || content.contains("dynamicIconImports"))))
+}
+
+fn is_agenthtml_managed_openai_agent(content: &str) -> bool {
+    content.contains("display_name: \"Agent HTML\"")
+        && content.contains("default_prompt: \"Use $agent-html")
 }
 
 fn is_agenthtml_managed_root_instructions(content: &str) -> bool {
@@ -775,6 +760,13 @@ mod tests {
             .join("scripts")
             .join("search_icons.py")
             .exists());
+        assert!(root
+            .join(".agents")
+            .join("skills")
+            .join("agent-html")
+            .join("agents")
+            .join("openai.yaml")
+            .exists());
         assert!(store
             .document_root()
             .join("projects")
@@ -791,9 +783,11 @@ mod tests {
         let skill_dir = root.join(".agents").join("skills").join("agent-html");
         let references_dir = skill_dir.join("references");
         let scripts_dir = skill_dir.join("scripts");
+        let agents_dir = skill_dir.join("agents");
         std::fs::create_dir_all(&skill_dir).expect("create skill dir");
         std::fs::create_dir_all(&references_dir).expect("create references dir");
         std::fs::create_dir_all(&scripts_dir).expect("create scripts dir");
+        std::fs::create_dir_all(&agents_dir).expect("create agents dir");
         std::fs::write(skill_dir.join("SKILL.md"), "# Custom AgentHTML Skill\n")
             .expect("write custom skill");
         std::fs::write(references_dir.join("examples.md"), "# Custom Examples\n")
@@ -804,6 +798,8 @@ mod tests {
             .expect("write custom icon names");
         std::fs::write(scripts_dir.join("search_icons.py"), "print('custom')\n")
             .expect("write custom icon script");
+        std::fs::write(agents_dir.join("openai.yaml"), "interface:\n  custom: true\n")
+            .expect("write custom openai agent");
 
         WorkspaceStore::open(root.clone()).expect("open workspace root");
         let skill = std::fs::read_to_string(skill_dir.join("SKILL.md")).expect("read skill");
@@ -829,6 +825,11 @@ mod tests {
                 .expect("read custom icon script"),
             "print('custom')\n"
         );
+        assert_eq!(
+            std::fs::read_to_string(agents_dir.join("openai.yaml"))
+                .expect("read custom openai agent"),
+            "interface:\n  custom: true\n"
+        );
     }
 
     #[test]
@@ -838,6 +839,7 @@ mod tests {
         let skill_dir = root.join(".agents").join("skills").join("agent-html");
         let references_dir = skill_dir.join("references");
         let scripts_dir = skill_dir.join("scripts");
+        let agents_dir = skill_dir.join("agents");
         std::fs::create_dir_all(&skill_dir).expect("create skill dir");
         std::fs::create_dir_all(&references_dir).expect("create references dir");
         std::fs::create_dir_all(&scripts_dir).expect("create scripts dir");
@@ -903,6 +905,8 @@ mod tests {
             std::fs::read_to_string(scripts_dir.join("search_icons.py")).expect("read script");
         let icon_names = std::fs::read_to_string(references_dir.join("icon-names.txt"))
             .expect("read icon names");
+        let openai_agent =
+            std::fs::read_to_string(agents_dir.join("openai.yaml")).expect("read openai agent");
 
         assert!(skill.contains(
             "Read `.agents/skills/agent-html/references/prompt-schema.md`"
@@ -911,15 +915,17 @@ mod tests {
         assert!(!skill.contains("Use raw fixture files"));
         assert!(icons.contains("Runtime workspaces do not"));
         assert!(icon_names.contains("workflow"));
-        assert!(script.contains("def find_repo_root"));
         assert!(script.contains("bundled_icon_names_path"));
-        assert!(script.contains("def lucide_metadata_candidates"));
-        assert!(script.contains("dynamicIconImports.mjs"));
-        assert!(script.contains("def read_metadata_text"));
+        assert!(!script.contains("def find_repo_root"));
+        assert!(!script.contains("def lucide_metadata_candidates"));
+        assert!(!script.contains("dynamicIconImports.mjs"));
+        assert!(!script.contains("def read_metadata_text"));
+        assert!(!script.contains("node_modules"));
         assert!(!script.contains("parents[3]"));
-        assert!(skill_dir.join("references").join("examples.md").exists());
-        assert!(skill_dir.join("references").join("icons.md").exists());
-        assert!(skill_dir.join("scripts").join("search_icons.py").exists());
+        assert!(openai_agent.contains("display_name: \"Agent HTML\""));
+        for resource in agent_html_skill_resources() {
+            assert!(skill_dir.join(resource.relative_path).exists());
+        }
     }
 
     #[test]

@@ -1,6 +1,6 @@
 import { generatedAppThemePresets } from "@/app/shared/app-theme/theme-presets.generated"
 
-export type ColorRoleGroupItem = {
+type ColorRoleGroupItem = {
   id: string
   label: string
   token: string

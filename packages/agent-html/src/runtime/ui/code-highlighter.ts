@@ -1,16 +1,6 @@
 import { createHighlighterCore, type ShikiTransformer } from "shiki/core"
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript"
-
-import bash from "shiki/langs/bash.mjs"
-import html from "shiki/langs/html.mjs"
-import javascript from "shiki/langs/javascript.mjs"
-import json from "shiki/langs/json.mjs"
-import jsx from "shiki/langs/jsx.mjs"
-import tsx from "shiki/langs/tsx.mjs"
-import typescript from "shiki/langs/typescript.mjs"
-import xml from "shiki/langs/xml.mjs"
-import oneDarkPro from "shiki/themes/one-dark-pro.mjs"
-import oneLight from "shiki/themes/one-light.mjs"
+import type { LanguageInput, ThemeInput } from "shiki/types"
 
 type HighlightLanguage =
   | "bash"
@@ -21,6 +11,8 @@ type HighlightLanguage =
   | "tsx"
   | "typescript"
   | "xml"
+
+type HighlightTheme = "one-light" | "one-dark-pro"
 
 export type HighlightedCode = {
   darkHtml: string
@@ -61,11 +53,61 @@ const languageAliases: Record<string, HighlightLanguage> = {
   tsx: "tsx",
 }
 
+const languageLoaders: Record<HighlightLanguage, () => Promise<LanguageInput>> = {
+  bash: () => import("shiki/langs/bash.mjs"),
+  html: () => import("shiki/langs/html.mjs"),
+  javascript: () => import("shiki/langs/javascript.mjs"),
+  json: () => import("shiki/langs/json.mjs"),
+  jsx: () => import("shiki/langs/jsx.mjs"),
+  tsx: () => import("shiki/langs/tsx.mjs"),
+  typescript: () => import("shiki/langs/typescript.mjs"),
+  xml: () => import("shiki/langs/xml.mjs"),
+}
+
+const themeLoaders: Record<HighlightTheme, () => Promise<ThemeInput>> = {
+  "one-dark-pro": () => import("shiki/themes/one-dark-pro.mjs"),
+  "one-light": () => import("shiki/themes/one-light.mjs"),
+}
+
 const highlighter = createHighlighterCore({
   engine: createJavaScriptRegexEngine(),
-  langs: [bash, html, javascript, json, jsx, tsx, typescript, xml],
-  themes: [oneLight, oneDarkPro],
+  langs: [],
+  themes: [],
 })
+
+const loadedLanguages = new Set<HighlightLanguage>()
+const loadedThemes = new Set<HighlightTheme>()
+
+async function loadDefaultThemes() {
+  const highlighterInstance = await highlighter
+  const themes = await Promise.all(
+    (["one-light", "one-dark-pro"] as const)
+      .filter((theme) => !loadedThemes.has(theme))
+      .map(async (theme) => {
+        const themeModule = await themeLoaders[theme]()
+        loadedThemes.add(theme)
+        return themeModule
+      })
+  )
+
+  if (themes.length > 0) {
+    await highlighterInstance.loadTheme(...themes)
+  }
+
+  return highlighterInstance
+}
+
+async function loadLanguage(language: HighlightLanguage) {
+  const highlighterInstance = await loadDefaultThemes()
+
+  if (!loadedLanguages.has(language)) {
+    const languageModule = await languageLoaders[language]()
+    await highlighterInstance.loadLanguage(languageModule)
+    loadedLanguages.add(language)
+  }
+
+  return highlighterInstance
+}
 
 export function canHighlightCode(language: string) {
   return language in languageAliases
@@ -81,7 +123,7 @@ export async function highlightCode(
     return null
   }
 
-  const highlighterInstance = await highlighter
+  const highlighterInstance = await loadLanguage(syntaxLanguage)
   const transformers: ShikiTransformer[] = [lineNumberTransformer]
 
   return {

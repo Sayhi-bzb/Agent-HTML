@@ -50,30 +50,35 @@ const MessageAvatar = ({
   )
 }
 
-export type MessageContentProps = {
-  children: React.ReactNode
-  markdown?: boolean
+type BaseMessageContentProps = {
   className?: string
-} & React.ComponentProps<typeof Markdown> &
-  React.HTMLProps<HTMLDivElement>
+} & Omit<React.HTMLProps<HTMLDivElement>, "children">
 
-const MessageContent = ({
-  children,
-  markdown = false,
-  className,
-  ...props
-}: MessageContentProps) => {
+export type MessageContentProps =
+  | ({
+      children: string
+      markdown: true
+    } & BaseMessageContentProps)
+  | ({
+      children: React.ReactNode
+      markdown?: false
+    } & BaseMessageContentProps)
+
+const MessageContent = (props: MessageContentProps) => {
+  const { className } = props
   const classNames = cn(
     "rounded-lg p-2 text-foreground bg-secondary prose break-words whitespace-normal",
     className
   )
 
-  return markdown ? (
-    <Markdown className={classNames} {...props}>
-      {children as string}
-    </Markdown>
-  ) : (
-    <div className={classNames} {...props}>
+  if (props.markdown) {
+    return <Markdown className={classNames} children={props.children} />
+  }
+
+  const { children, markdown: _markdown, ...divProps } = props
+
+  return (
+    <div className={classNames} {...divProps}>
       {children}
     </div>
   )

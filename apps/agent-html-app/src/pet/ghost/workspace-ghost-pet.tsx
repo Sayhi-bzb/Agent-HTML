@@ -366,14 +366,12 @@ export function WorkspaceGhostPet({
       onMessageOpenChange?.(false)
       onSettingsOpenChange?.(false)
       onThreadPickerOpenChange?.(false)
-      onTranscriptOpenChange?.(false)
       setIsMenuOpen((current) => !current)
     },
     [
       onMessageOpenChange,
       onSettingsOpenChange,
       onThreadPickerOpenChange,
-      onTranscriptOpenChange,
     ]
   )
 
@@ -383,7 +381,6 @@ export function WorkspaceGhostPet({
       event.stopPropagation()
       onSettingsOpenChange?.(false)
       onThreadPickerOpenChange?.(false)
-      onTranscriptOpenChange?.(false)
       setIsMenuOpen(false)
       onMessageOpenChange?.(true)
     },
@@ -391,7 +388,6 @@ export function WorkspaceGhostPet({
       onMessageOpenChange,
       onSettingsOpenChange,
       onThreadPickerOpenChange,
-      onTranscriptOpenChange,
     ]
   )
 
@@ -401,20 +397,17 @@ export function WorkspaceGhostPet({
       if (item === "message") {
         onSettingsOpenChange?.(false)
         onThreadPickerOpenChange?.(false)
-        onTranscriptOpenChange?.(false)
         onMessageOpenChange?.(true)
       }
       if (item === "threads") {
         onMessageOpenChange?.(false)
         onSettingsOpenChange?.(false)
-        onTranscriptOpenChange?.(false)
         commitThreadPickerOffset({ x: 0, y: 0 })
         onThreadPickerOpenChange?.(true)
       }
       if (item === "settings") {
         onMessageOpenChange?.(false)
         onThreadPickerOpenChange?.(false)
-        onTranscriptOpenChange?.(false)
         commitSettingsOffset({ x: 0, y: 0 })
         onSettingsOpenChange?.(true)
       }
@@ -468,6 +461,7 @@ export function WorkspaceGhostPet({
       if (!open) {
         transcriptDragStateRef.current = null
         setIsTranscriptDragging(false)
+        return
       }
       onTranscriptOpenChange?.(open)
     },
@@ -754,7 +748,7 @@ export function WorkspaceGhostPet({
         {messageContent ? (
           <PopoverContent
             align="end"
-            className="pointer-events-auto w-90 p-0"
+            className="pointer-events-auto w-90 border-0 bg-transparent p-0 shadow-none"
             side="left"
             sideOffset={12}
           >

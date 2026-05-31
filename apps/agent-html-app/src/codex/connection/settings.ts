@@ -1,12 +1,12 @@
 import type { CodexConnectionSettings } from "./types"
 
-export function getDefaultCodexCommand(): string {
+function getDefaultCodexCommand(): string {
   return typeof navigator !== "undefined" && navigator.platform.includes("Win")
     ? "codex.cmd"
     : "codex"
 }
 
-export function getDefaultSettings(): CodexConnectionSettings {
+function getDefaultSettings(): CodexConnectionSettings {
   return {
     codexCommand: getDefaultCodexCommand(),
   }

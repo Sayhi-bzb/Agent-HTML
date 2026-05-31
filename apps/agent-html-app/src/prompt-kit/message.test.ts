@@ -37,10 +37,67 @@ describe("prompt-kit message", () => {
   it("moves thread transcript onto a shadcn shell with prompt-kit messages", () => {
     expect(transcriptSource).toContain("Message")
     expect(transcriptSource).toContain("MessageContent")
-    expect(transcriptSource).toContain("@/app/shared/ui/card")
+    expect(transcriptSource).toContain("@/app/shared/ui/avatar")
+    expect(transcriptSource).toContain("@/app/shared/ui/button")
     expect(transcriptSource).toContain("@/app/shared/ui/scroll-area")
     expect(transcriptSource).toContain("@/app/shared/ui/separator")
     expect(transcriptSource).toContain("@/app/shared/ui/accordion")
+    expect(transcriptSource).not.toContain("@/app/shared/ui/card")
+    expect(transcriptSource).toContain("<section")
+    expect(transcriptSource).toContain("<header")
+    expect(transcriptSource).toContain("<footer")
+    expect(transcriptSource).toContain("composer?: ReactNode")
+    expect(transcriptSource).toContain(
+      "relative min-h-0 min-w-0 flex-1 overflow-hidden bg-background"
+    )
+    expect(transcriptSource).toContain("h-full min-w-0 w-full max-w-full")
+    expect(transcriptSource).toContain(
+      "min-w-0 w-full max-w-full p-3"
+    )
+    expect(transcriptSource).toContain(
+      "[&>div]:!block [&>div]:!min-w-0 [&>div]:!w-full [&>div]:!max-w-full"
+    )
+    expect(transcriptSource).toContain(
+      "flex min-w-0 w-full max-w-full flex-col gap-4"
+    )
+    expect(transcriptSource).toContain(
+      "flex min-w-0 w-full max-w-full flex-col gap-2"
+    )
+    expect(transcriptSource).toContain(
+      "flex min-w-0 w-full max-w-full flex-col gap-2.5"
+    )
+    expect(transcriptSource).toContain('"min-w-0 w-full"')
+    expect(transcriptSource).toContain('composer && "pb-32"')
+    expect(transcriptSource).toContain(
+      "absolute inset-x-0 bottom-0 z-10 px-3 pb-3"
+    )
+    expect(transcriptSource).toContain("{!composer ? (")
+    expect(transcriptSource).toContain("Thread Transcript")
+    expect(transcriptSource).toContain("SearchIcon")
+    expect(transcriptSource).toContain("MoreHorizontalIcon")
+    expect(transcriptSource).toContain("XIcon")
+    expect(transcriptSource).toContain("Search transcript")
+    expect(transcriptSource).toContain("More transcript actions")
+    expect(transcriptSource).toContain("Close transcript")
+    expect(transcriptSource).toContain("isSearchOpen")
+    expect(transcriptSource).toContain("searchQuery")
+    expect(transcriptSource).toContain("activeMatchIndex")
+    expect(transcriptSource).toContain("buildTranscriptSearch")
+    expect(transcriptSource).toContain("highlightTranscriptText")
+    expect(transcriptSource).toContain("No matches in this transcript.")
+    expect(transcriptSource).toContain("onClose?: () => void")
+    expect(transcriptSource).toContain("onClick={onClose}")
+    expect(transcriptSource).not.toContain("PinIcon")
+    expect(transcriptSource).not.toContain("Pin transcript")
+    expect(transcriptSource).not.toContain("onPinnedChange")
+    expect(transcriptSource).not.toContain("isPinned")
+    expect(transcriptSource).not.toContain("RefreshCwIcon")
+    expect(transcriptSource).not.toContain("Refresh transcript")
+    expect(transcriptSource).not.toContain("onReload")
+    expect(transcriptSource).toContain("Read-only transcript")
+    expect(transcriptSource).toContain("return threadId")
+    expect(transcriptSource).not.toContain('return "Loading transcript..."')
+    expect(transcriptSource).not.toContain('return "Unable to load transcript"')
     expect(transcriptSource).toContain("TurnDivider")
     expect(transcriptSource).toContain("TranscriptSystemActivity")
     expect(transcriptSource).toContain("TranscriptSystemContent")
@@ -48,6 +105,16 @@ describe("prompt-kit message", () => {
     expect(transcriptSource).toContain("isFallback")
     expect(transcriptSource).toContain("fallbackName")
     expect(transcriptSource).toContain('"completed" ? undefined : status')
+    expect(transcriptSource).toContain("hasMarkdownCodeBlock")
+    expect(transcriptSource).toContain('"flex max-w-[88%] flex-col gap-1.5"')
+    expect(transcriptSource).toContain("flex w-full max-w-[88%] flex-col")
+    expect(transcriptSource).toContain(
+      "min-w-0 w-full max-w-full text-xs leading-5"
+    )
+    expect(transcriptSource).toContain('"max-w-full text-xs leading-5"')
+    expect(transcriptSource.indexOf("turn.items.length")).toBeLessThan(
+      transcriptSource.indexOf("<TurnDivider")
+    )
     expect(transcriptSource).toContain('"Plan"')
     expect(transcriptSource).toContain('"Reasoning"')
     expect(transcriptSource).toContain('"File changes"')

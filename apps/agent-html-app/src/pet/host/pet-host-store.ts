@@ -16,7 +16,9 @@ export type WorkspacePetHostSnapshot = {
   draftScope: string | null
   enabled: boolean
   isInterruptingTurn?: boolean
+  messageDraft: string
   onInterruptTurn?: () => void
+  onMessageDraftChange: (draft: string) => void
   onNewThread?: () => void
   onPromptSubmit?: (submit: AgentHtmlAgentPromptSubmitInput) => void
   onRespondToApproval?: (decision: CodexApprovalDecision) => void
@@ -26,6 +28,7 @@ export type WorkspacePetHostSnapshot = {
   approval?: CodexApprovalRequest | null
   approvalError?: string | null
   speechBubbles?: PetSpeechBubble[]
+  renderTranscriptContent?: (input: { onClose: () => void }) => React.ReactNode
   threadPickerContent?: React.ReactNode
   transcriptContent?: React.ReactNode
   threads?: {
@@ -40,6 +43,8 @@ export type WorkspacePetHostSnapshot = {
 const disabledSnapshot: WorkspacePetHostSnapshot = {
   draftScope: null,
   enabled: false,
+  messageDraft: "",
+  onMessageDraftChange: () => {},
 }
 
 let currentSnapshot = disabledSnapshot

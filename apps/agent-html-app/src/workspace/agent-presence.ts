@@ -1,4 +1,4 @@
-export type PetMood = "failed" | "idle" | "review" | "waiting" | "working"
+type PetMood = "failed" | "idle" | "review" | "waiting" | "working"
 
 export type PetActionKind =
   | "editing"

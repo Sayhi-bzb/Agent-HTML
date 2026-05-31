@@ -6,12 +6,12 @@ import type {
   CodexTurnStartResult,
 } from "./types"
 
-export type CodexRpcRequest = (
+type CodexRpcRequest = (
   method: string,
   params: unknown
 ) => Promise<unknown>
 
-export type CodexThreadListResult = {
+type CodexThreadListResult = {
   items: CodexThreadSummary[]
 }
 

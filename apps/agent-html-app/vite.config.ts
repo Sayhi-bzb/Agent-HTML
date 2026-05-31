@@ -1,13 +1,16 @@
 import path from "path"
+import { fileURLToPath } from "url"
 import { lingui } from "@lingui/vite-plugin"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
+const configDir = path.dirname(fileURLToPath(import.meta.url))
+
 export default defineConfig({
-  root: __dirname,
+  root: configDir,
   build: {
-    outDir: path.resolve(__dirname, "../../dist"),
+    outDir: path.resolve(configDir, "../../dist"),
     emptyOutDir: true,
   },
   plugins: [
@@ -17,7 +20,7 @@ export default defineConfig({
       },
     }),
     lingui({
-      configPath: path.resolve(__dirname, "../../config/lingui.config.ts"),
+      configPath: path.resolve(configDir, "../../config/lingui.config.ts"),
     }),
     tailwindcss(),
   ],
@@ -25,11 +28,11 @@ export default defineConfig({
     alias: [
       {
         find: "@/app",
-        replacement: path.resolve(__dirname, "src"),
+        replacement: path.resolve(configDir, "src"),
       },
       {
         find: "@/agent-html",
-        replacement: path.resolve(__dirname, "../../packages/agent-html/src"),
+        replacement: path.resolve(configDir, "../../packages/agent-html/src"),
       },
     ],
   },

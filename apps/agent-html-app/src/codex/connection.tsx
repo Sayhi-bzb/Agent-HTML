@@ -10,8 +10,6 @@ export type {
   CodexConnectionSettings,
   CodexConnectionStatus,
   CodexHostHealth,
-  CodexRuntimeCapability,
-  CodexRuntimeCapabilityItem,
   CodexRuntimeCapabilityStatus,
   CodexRuntimeStatus,
   CodexThreadListState,

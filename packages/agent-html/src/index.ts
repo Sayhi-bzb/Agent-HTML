@@ -45,6 +45,7 @@ export {
   type AgentHtmlBlockRuntimeState,
   type AgentHtmlColorCssVariables,
 } from "@/agent-html/runtime"
+export type { AgentHtmlPromptComposerSurface } from "@/agent-html/runtime"
 export {
   agentHtmlColorTokenDefaults,
   type AgentHtmlColorFamily,

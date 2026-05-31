@@ -86,7 +86,7 @@ export const appThemeVariableDefaults: AppThemeCssVariables = {
   "--spacing": "0.25rem",
 }
 
-export const appThemeEditableVariableNames = [
+const appThemeEditableVariableNames = [
   "--font-sans",
   "--font-serif",
   "--font-mono",

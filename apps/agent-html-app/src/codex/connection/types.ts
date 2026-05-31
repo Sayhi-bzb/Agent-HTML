@@ -31,7 +31,7 @@ export type CodexHostHealth = {
   status: CodexConnectionStatus
 }
 
-export type CodexRuntimeCapability =
+type CodexRuntimeCapability =
   | "apps"
   | "collaborationModes"
   | "config"
@@ -96,7 +96,7 @@ export type CodexApprovalDecision =
   | "cancel"
   | "decline"
 
-export type CodexApprovalRequestKind = "command" | "fileChange" | "toolInput"
+type CodexApprovalRequestKind = "command" | "fileChange" | "toolInput"
 
 export type CodexApprovalRequest = {
   availableDecisions: CodexApprovalDecision[]

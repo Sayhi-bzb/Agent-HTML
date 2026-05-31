@@ -17,7 +17,7 @@ export const workspaceSeedProjects: WorkspaceProject[] = [
   },
 ]
 
-export const workspaceSeedSections: WorkspaceSection[] = [
+const workspaceSeedSections: WorkspaceSection[] = [
   {
     groupTitle: "Example Cases",
     id: "introduce-agent-html",
@@ -41,9 +41,7 @@ export const workspaceSeedSections: WorkspaceSection[] = [
   },
 ]
 
-export const defaultWorkspaceSectionId = workspaceSeedSections[0].id
-
-export const workspaceSeedDocuments: ProjectSectionDocument[] = [
+const workspaceSeedDocuments: ProjectSectionDocument[] = [
   {
     filePath:
       "AgentHTML/projects/agent-html-example/introduce-agent-html/artifact.agent-html",

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   emptyThreadTranscriptState,
+  getThreadTranscriptLoadKey,
   normalizeThreadTranscriptTurns,
   reduceThreadTranscriptNotification,
 } from "@/app/workspace/thread-transcript"
@@ -137,5 +138,41 @@ describe("thread transcript", () => {
     )
 
     expect(state.turns).toEqual([])
+  })
+
+  it("uses only thread id and connection status for automatic load identity", () => {
+    expect(
+      getThreadTranscriptLoadKey({
+        connectionStatus: "connected",
+        threadId: "thr_1",
+      })
+    ).toBe(
+      getThreadTranscriptLoadKey({
+        connectionStatus: "connected",
+        threadId: "thr_1",
+      })
+    )
+    expect(
+      getThreadTranscriptLoadKey({
+        connectionStatus: "connected",
+        threadId: "thr_1",
+      })
+    ).not.toBe(
+      getThreadTranscriptLoadKey({
+        connectionStatus: "connected",
+        threadId: "thr_2",
+      })
+    )
+    expect(
+      getThreadTranscriptLoadKey({
+        connectionStatus: "connecting",
+        threadId: "thr_1",
+      })
+    ).not.toBe(
+      getThreadTranscriptLoadKey({
+        connectionStatus: "connected",
+        threadId: "thr_1",
+      })
+    )
   })
 })

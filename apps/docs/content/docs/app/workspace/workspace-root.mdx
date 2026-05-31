@@ -23,8 +23,11 @@ AgentHTML/
           prompt-schema.md
           examples.md
           icons.md
+          icon-names.txt
         scripts/
           search_icons.py
+        agents/
+          openai.yaml
   plugins/
   projects/
     {project-id}/
@@ -50,8 +53,9 @@ projects/{project-id}/{section-id}/artifact.agent-html
 
 `.agents/skills/agent-html/` is the AgentHTML runtime bridge for Codex. Its
 `SKILL.md` is the agent entrypoint. `references/prompt-schema.md` is generated
-by AgentHTML from the current enabled component set. `examples.md`, `icons.md`,
-and `scripts/search_icons.py` are stable skill resources created when missing.
+by AgentHTML from the current enabled component set. The other listed files are
+managed skill resources from the app's resource list and are created when
+missing.
 
 `.agent-world/` is the AgentHTML internal space. It stores workspace metadata,
 the local workspace database, diagnostics, temporary files, and logs. Agents

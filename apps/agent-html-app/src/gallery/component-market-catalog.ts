@@ -16,7 +16,7 @@ export type EnabledGalleryComponentTags = ReadonlySet<AgentHtmlTag>
 export type GalleryComponentMarketCategory =
   GalleryComponentMarketItem["market"]["category"]
 
-export type GalleryComponentMarketStatus = "all" | "available" | "installed"
+type GalleryComponentMarketStatus = "all" | "available" | "installed"
 
 export type GalleryComponentMarketFilters = {
   category: GalleryComponentMarketCategory | "all"
@@ -46,7 +46,7 @@ export const defaultEnabledGalleryComponentTags = new Set<AgentHtmlTag>([
   "Chart",
 ])
 
-export const galleryComponentMarketTags = new Set<AgentHtmlTag>(
+const galleryComponentMarketTags = new Set<AgentHtmlTag>(
   galleryComponentMarketCatalog.map((component) => component.tag)
 )
 

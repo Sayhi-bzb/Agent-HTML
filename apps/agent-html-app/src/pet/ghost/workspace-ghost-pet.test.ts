@@ -28,10 +28,24 @@ describe("WorkspaceGhostPet status placement", () => {
     expect(petSource).toContain("{presence.action.label}")
   })
 
+  it("lets the message input own its floating surface", () => {
+    expect(petSource).toContain(
+      'className="pointer-events-auto w-90 border-0 bg-transparent p-0 shadow-none"'
+    )
+  })
+
   it("does not make the transcript popover globally draggable or unselectable", () => {
     expect(petSource).toContain('className="pointer-events-auto w-auto p-0"')
     expect(petSource).not.toContain(
       '"pointer-events-auto w-auto p-0 select-none",\n              isTranscriptDragging ? "cursor-grabbing" : "cursor-grab"'
     )
+  })
+
+  it("keeps transcript open until the transcript window closes it", () => {
+    expect(petSource).toContain("if (!open) {")
+    expect(petSource).toContain("return")
+    expect(petSource).toContain("onTranscriptOpenChange?.(open)")
+    expect(petSource).not.toContain("isTranscriptPinned")
+    expect(petSource).not.toContain("onTranscriptOpenChange?.(false)")
   })
 })

@@ -27,7 +27,7 @@ type AgentHtmlPromptSchemaArtifact = {
   path: string
 }
 
-export type GalleryComponentMarketStore = {
+type GalleryComponentMarketStore = {
   loadEnabledComponentTags: () => Promise<Set<AgentHtmlTag>>
   saveEnabledComponentTags: (
     enabledTags: EnabledGalleryComponentTags

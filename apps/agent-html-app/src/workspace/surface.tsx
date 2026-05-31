@@ -1,10 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import {
   clearWorkspacePetHost,
   publishWorkspacePetHost,
 } from "@/app/pet/host/pet-host-store"
+import { PetMessageComposer } from "@/app/pet/host/pet-message-composer"
 import { PetThreadTranscriptContent } from "@/app/pet/host/pet-thread-transcript-content"
 import { useWorkspaceAgentController } from "@/app/workspace/agent-controller"
 import {
@@ -83,6 +84,7 @@ export function WorkspaceSurface({
     activeProject,
     onCreateSection,
   })
+  const [messageDraft, setMessageDraft] = useState("")
   const threadController = useWorkspaceThreadController({ activeProject })
   const displayedSection =
     activeProject && documentState.status === "ready"
@@ -120,12 +122,25 @@ export function WorkspaceSurface({
     codexConnection: threadController.codexConnection,
     threadId: threadController.threadPickerProps.activeThreadId,
   })
-  const transcriptContent = useMemo(
+  const transcriptComposer = useMemo(
     () => (
+      <PetMessageComposer
+        draft={messageDraft}
+        onDraftChange={setMessageDraft}
+        onPromptSubmit={handlePromptSubmit}
+        surface="floating"
+      />
+    ),
+    [handlePromptSubmit, messageDraft]
+  )
+  const renderTranscriptContent = useMemo(
+    () =>
+      ({ onClose }: { onClose: () => void }) => (
       <PetThreadTranscriptContent
+        composer={transcriptComposer}
         error={threadTranscript.error}
         isLoading={threadTranscript.isLoading}
-        onReload={threadTranscript.reload}
+        onClose={onClose}
         threadId={threadTranscript.threadId}
         turns={threadTranscript.turns}
       />
@@ -133,9 +148,9 @@ export function WorkspaceSurface({
     [
       threadTranscript.error,
       threadTranscript.isLoading,
-      threadTranscript.reload,
       threadTranscript.threadId,
       threadTranscript.turns,
+      transcriptComposer,
     ]
   )
   const petThreads = useMemo(
@@ -190,7 +205,9 @@ export function WorkspaceSurface({
       enabled: true,
       canInterruptTurn,
       isInterruptingTurn,
+      messageDraft,
       onInterruptTurn: handleInterruptTurn,
+      onMessageDraftChange: setMessageDraft,
       onNewThread: threadController.threadPickerProps.onNewThread,
       onPromptSubmit: handlePromptSubmit,
       onRespondToApproval: respondToPetApproval,
@@ -201,7 +218,7 @@ export function WorkspaceSurface({
       approvalError: petApprovalError,
       speechBubbles: petSpeechBubbles,
       threadPickerContent,
-      transcriptContent,
+      renderTranscriptContent,
       threads: petThreads,
     })
 
@@ -212,12 +229,13 @@ export function WorkspaceSurface({
     handleInterruptTurn,
     handlePromptSubmit,
     isInterruptingTurn,
+    messageDraft,
     petDraftScope,
     petPresence,
     petSpeechBubbles,
     petThreads,
+    renderTranscriptContent,
     threadPickerContent,
-    transcriptContent,
     threadController.threadPickerProps.onNewThread,
     threadController.threadPickerProps.onRenameThread,
     threadController.threadPickerProps.onResumeThread,

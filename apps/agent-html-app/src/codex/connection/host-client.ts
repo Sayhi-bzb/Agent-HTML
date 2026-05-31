@@ -15,7 +15,7 @@ export type CodexHostCommand =
   | "codex_host_start"
   | "codex_host_stop"
 
-export type CodexRpcRequestInput = {
+type CodexRpcRequestInput = {
   method: string
   params: unknown
   settings: CodexConnectionSettings

@@ -48,6 +48,16 @@ export const emptyThreadTranscriptState: ThreadTranscriptState = {
   turns: [],
 }
 
+export function getThreadTranscriptLoadKey({
+  connectionStatus,
+  threadId,
+}: {
+  connectionStatus: CodexConnectionContextValue["status"]
+  threadId?: string | null
+}) {
+  return `${connectionStatus}:${threadId ?? ""}`
+}
+
 function readArrayFromKeys(value: unknown, keys: string[]) {
   const object = readObject(value)
   if (!object) {
@@ -476,13 +486,24 @@ export function useThreadTranscript({
   codexConnection: CodexConnectionContextValue
   threadId?: string | null
 }) {
+  const codexConnectionRef = React.useRef(codexConnection)
   const [state, setState] = React.useState<ThreadTranscriptState>({
     ...emptyThreadTranscriptState,
     threadId,
   })
+  const connectionStatus = codexConnection.status
+  const loadKey = getThreadTranscriptLoadKey({
+    connectionStatus,
+    threadId,
+  })
+
+  React.useEffect(() => {
+    codexConnectionRef.current = codexConnection
+  }, [codexConnection])
 
   const reload = React.useCallback(() => {
-    if (!threadId || codexConnection.status !== "connected") {
+    const currentConnection = codexConnectionRef.current
+    if (!threadId || currentConnection.status !== "connected") {
       setState({
         ...emptyThreadTranscriptState,
         threadId,
@@ -498,7 +519,7 @@ export function useThreadTranscript({
       threadId,
     }))
 
-    void loadThreadTurns({ codexConnection, threadId })
+    void loadThreadTurns({ codexConnection: currentConnection, threadId })
       .then((turns) => {
         if (!isCurrent) {
           return
@@ -525,7 +546,7 @@ export function useThreadTranscript({
     return () => {
       isCurrent = false
     }
-  }, [codexConnection, threadId])
+  }, [threadId])
 
   React.useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -533,7 +554,7 @@ export function useThreadTranscript({
     }, 0)
 
     return () => window.clearTimeout(timeoutId)
-  }, [reload])
+  }, [loadKey, reload])
 
   React.useEffect(() => {
     if (!isTauri() || !threadId) {

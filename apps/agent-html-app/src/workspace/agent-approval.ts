@@ -14,7 +14,7 @@ import {
   type CodexNotification,
 } from "@/app/workspace/agent-activity"
 
-export const codexServerRequestEventName = "codex://server-request"
+const codexServerRequestEventName = "codex://server-request"
 
 export type CodexApprovalState = {
   items: CodexApprovalRequest[]

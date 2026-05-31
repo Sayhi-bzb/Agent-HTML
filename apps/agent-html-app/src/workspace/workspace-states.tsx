@@ -23,7 +23,7 @@ export function RuntimeValidationErrors({
   )
 }
 
-export function WorkspaceStatus({
+function WorkspaceStatus({
   detail,
   title,
 }: {

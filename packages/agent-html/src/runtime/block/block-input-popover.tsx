@@ -157,6 +157,7 @@ export function useAgentHtmlBlockInputPopover({
         onPointerDown={(event) => {
           event.stopPropagation()
         }}
+        surface="floating"
       />
     </div>
   ) : null

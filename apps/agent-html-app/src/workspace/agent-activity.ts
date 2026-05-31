@@ -16,7 +16,7 @@ const SPEECH_BUBBLE_EXIT_MS = 300
 const SPEECH_BUBBLE_FINAL_TTL_MS = 4000
 const MAX_STREAMING_MESSAGE_LENGTH = 4000
 
-export type AgentActivityScope =
+type AgentActivityScope =
   | { blockPath: string; sectionId?: string; type: "block" }
   | { documentId: string; type: "document" }
   | { type: "system" }
@@ -34,7 +34,7 @@ export type CodexNotification = {
   params?: unknown
 }
 
-export type AgentActivityEvent = {
+type AgentActivityEvent = {
   id: string
   itemId?: string
   method: string

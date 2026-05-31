@@ -1,12 +1,19 @@
 import type * as React from "react"
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/app/shared/ui/accordion"
+
 type PetMarkdownInline =
   | { text: string; type: "code" | "strong" | "text" }
 
 type PetMarkdownBlock =
   | { children: PetMarkdownInline[]; type: "paragraph" }
   | { items: PetMarkdownInline[][]; type: "ordered-list" | "unordered-list" }
-  | { text: string; type: "code-block" }
+  | { text: string; title: string; type: "code-block" }
 
 const unorderedListPattern = /^\s*[-*]\s+(.+)$/
 const orderedListPattern = /^\s*\d+\.\s+(.+)$/
@@ -25,6 +32,7 @@ export function parsePetMarkdown(text: string): PetMarkdownBlock[] {
     }
 
     if (line.trimStart().startsWith("```")) {
+      const title = getCodeBlockTitle(line)
       const codeLines: string[] = []
       index += 1
       while (
@@ -37,7 +45,7 @@ export function parsePetMarkdown(text: string): PetMarkdownBlock[] {
       if (index < lines.length) {
         index += 1
       }
-      blocks.push({ text: codeLines.join("\n"), type: "code-block" })
+      blocks.push({ text: codeLines.join("\n"), title, type: "code-block" })
       continue
     }
 
@@ -199,7 +207,7 @@ export function PetMarkdownText({ text }: { text: string }) {
   const blocks = parsePetMarkdown(text)
 
   return (
-    <div className="space-y-1 text-left leading-4">
+    <div className="min-w-0 w-full max-w-full space-y-1 text-left leading-4">
       {blocks.map((block, index) => (
         <PetMarkdownBlockView block={block} key={index} />
       ))}
@@ -211,9 +219,24 @@ function PetMarkdownBlockView({ block }: { block: PetMarkdownBlock }) {
   switch (block.type) {
     case "code-block":
       return (
-        <pre className="max-w-full overflow-x-auto rounded-md bg-muted/70 px-2 py-1 text-left font-mono text-[10px] leading-4 whitespace-pre-wrap text-foreground">
-          <code>{block.text}</code>
-        </pre>
+        <Accordion
+          className="min-w-0 w-full max-w-full"
+          collapsible
+          type="single"
+        >
+          <AccordionItem className="min-w-0 w-full border-0" value="code">
+            <AccordionTrigger className="min-w-0 w-full py-1 text-[10px] text-foreground hover:no-underline">
+              <span className="min-w-0 truncate">{block.title}</span>
+            </AccordionTrigger>
+            <AccordionContent className="min-w-0 w-full max-w-full pb-0">
+              <div className="min-w-0 w-full max-w-full overflow-x-auto rounded-md bg-muted/70">
+                <pre className="w-max min-w-0 px-2 py-1 pb-3 text-left font-mono text-[10px] leading-4 whitespace-pre text-foreground">
+                  <code>{block.text}</code>
+                </pre>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       )
 
     case "unordered-list":
@@ -241,6 +264,10 @@ function PetMarkdownBlockView({ block }: { block: PetMarkdownBlock }) {
         </p>
       )
   }
+}
+
+function getCodeBlockTitle(openingLine: string) {
+  return openingLine.trimStart().slice(3).trim() || "Code"
 }
 
 function renderInlineNodes(nodes: PetMarkdownInline[]) {

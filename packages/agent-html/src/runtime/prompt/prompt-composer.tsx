@@ -15,15 +15,30 @@ import {
   TooltipTrigger,
 } from "@/agent-html/runtime/ui/tooltip"
 
+export type AgentHtmlPromptComposerSurface = "default" | "floating"
+
+const promptComposerSurfaceClassName: Record<
+  AgentHtmlPromptComposerSurface,
+  string
+> = {
+  default:
+    "bg-background/95 shadow-[0_18px_48px_-30px_color-mix(in_oklab,var(--foreground)_45%,transparent)] backdrop-blur",
+  floating: "bg-background/75 shadow-none backdrop-blur-md",
+}
+
 export function AgentHtmlPromptComposer({
+  className,
   onPointerDown,
   onSend,
   onValueChange,
+  surface = "default",
   value,
 }: {
+  className?: string
   onPointerDown?: React.PointerEventHandler<HTMLDivElement>
   onSend?: (prompt: string) => void
   onValueChange?: (value: string) => void
+  surface?: AgentHtmlPromptComposerSurface
   value?: string
 }) {
   const [uncontrolledPrompt, setUncontrolledPrompt] = React.useState("")
@@ -53,7 +68,7 @@ export function AgentHtmlPromptComposer({
   return (
     <TooltipProvider>
       <InputGroup
-        className="bg-background/95 shadow-[0_18px_48px_-30px_color-mix(in_oklab,var(--foreground)_45%,transparent)] backdrop-blur"
+        className={cn(promptComposerSurfaceClassName[surface], className)}
         onPointerDown={onPointerDown}
       >
         <InputGroupTextarea

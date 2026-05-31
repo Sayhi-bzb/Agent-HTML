@@ -26,9 +26,18 @@
     "**/build/**",
     "**/.react-router/**",
     "**/.vite/**",
+    "apps/agent-html-app/src/locales/messages.d.ts",
+    "apps/agent-html-example/public/_worker.js",
+    "config/apps/**",
     "apps/docs/vite.config.ts",
     "src-tauri/**"
   ],
+  "ignoreIssues": {
+    "apps/agent-html-app/src/shared/ui/**": ["exports", "types"],
+    "apps/agent-html-example/src/ui/**": ["exports", "types"],
+    "apps/agent-html-example/src/cases/introduce-agent-html.react.tsx": ["exports"],
+    "apps/agent-html-app/src/pet/host/pet-panel.tsx": ["exports"]
+  },
   "ignoreDependencies": [
     "@tauri-apps/cli",
     "shadcn",

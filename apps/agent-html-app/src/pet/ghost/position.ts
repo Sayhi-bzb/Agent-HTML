@@ -3,7 +3,7 @@ import type { GhostPetPosition } from "@/app/pet/ghost/types"
 const GHOST_POSITION_STORAGE_KEY = "agent-html.workspace-ghost-pet-position"
 const GHOST_VIEWPORT_MARGIN = 24
 
-export function getDefaultPosition(): GhostPetPosition {
+function getDefaultPosition(): GhostPetPosition {
   if (typeof window === "undefined") {
     return { x: 0, y: 0 }
   }

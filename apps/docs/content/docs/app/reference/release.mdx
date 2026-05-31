@@ -5,19 +5,29 @@ description: Desktop alpha release rules for GitHub prereleases.
 
 This page is the canonical source for desktop alpha releases.
 
-An alpha release is one clean commit, one matching tag, one matching installer,
-and release notes.
+An alpha release is one scoped release commit, one matching tag, and the
+desktop packages produced by the `Build Desktop` GitHub Actions workflow.
 
 ## Rules
 
 - Keep release commits scoped to release work.
 - Keep versions in sync across npm, Cargo, and Tauri files.
-- The Git tag points to the installer commit.
+- The Git tag points to the release commit.
 - Alpha versions use `vX.Y.Z-alpha.N`.
-- Windows alpha releases ship only the NSIS installer.
-- Windows alpha builds are unsigned.
-- Release notes mention unknown publisher or SmartScreen warnings.
+- Push `v*` tags to publish desktop packages.
 - Stable tags do not move.
+- Alpha packages are unsigned.
+- Release notes mention Windows SmartScreen and macOS Gatekeeper warnings.
+
+## Packages
+
+The release workflow publishes these assets:
+
+- Windows x64 NSIS installer: `Agent.HTML_X.Y.Z-alpha.N_x64-setup.exe`
+- macOS universal DMG: `Agent.HTML_X.Y.Z-alpha.N_universal.dmg`
+- macOS universal app archive: `Agent.HTML_universal.app.tar.gz`
+
+The macOS package is built for `universal-apple-darwin`.
 
 ## Local Gates
 
@@ -29,12 +39,21 @@ npm run build
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
 
-## Build Installer
+## Prepare
+
+Update the version to `X.Y.Z-alpha.N` in:
+
+- `package.json`
+- `package-lock.json`
+- `src-tauri/Cargo.toml`
+- `src-tauri/Cargo.lock`
+- `src-tauri/tauri.conf.json`
+
+Create one scoped release commit:
 
 ```powershell
-$env:CARGO_TARGET_DIR='D:\tmp\agent-html-tauri-alpha-target'
-$env:CARGO_BUILD_JOBS='1'
-npx tauri build --ci --no-sign --bundles nsis
+git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json
+git commit -m "chore: prepare vX.Y.Z-alpha.N desktop release"
 ```
 
 ## Publish
@@ -43,19 +62,20 @@ npx tauri build --ci --no-sign --bundles nsis
 git tag vX.Y.Z-alpha.N
 git push origin main
 git push origin vX.Y.Z-alpha.N
-gh release create vX.Y.Z-alpha.N `
-  "D:\tmp\agent-html-tauri-alpha-target\release\bundle\nsis\Agent HTML_X.Y.Z-alpha.N_x64-setup.exe" `
-  --repo Sayhi-bzb/Agent-HTML `
-  --title "Agent HTML vX.Y.Z-alpha.N" `
-  --notes-file RELEASE_NOTES.md `
-  --prerelease
 ```
 
-Verify:
+Pushing the tag triggers `.github/workflows/build-desktop.yml`. The workflow
+creates or updates the GitHub prerelease and uploads the desktop packages.
+
+Manual reruns use the same workflow with a required `tag` input.
+
+## Verify
 
 ```powershell
+gh run list --repo Sayhi-bzb/Agent-HTML --workflow "Build Desktop" --limit 3
 gh release view vX.Y.Z-alpha.N --repo Sayhi-bzb/Agent-HTML
 git rev-parse HEAD vX.Y.Z-alpha.N origin/main
 ```
 
-The three revisions must match.
+The three revisions must match. The release must contain the Windows installer,
+macOS DMG, and macOS app archive.

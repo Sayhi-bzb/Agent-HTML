@@ -30,7 +30,7 @@ export type AppTokenThemeDraft = {
   kind: "tokens"
 }
 
-export type AppPresetThemeDraft = {
+type AppPresetThemeDraft = {
   darkCssVariables: AppThemeCssVariables
   id: AppThemePresetId
   kind: "preset"
@@ -413,7 +413,7 @@ export function createAppPresetThemeDraft(
   }
 }
 
-export function resolveAppColorTokenCssVariables(
+function resolveAppColorTokenCssVariables(
   values: AppColorTokenValues
 ) {
   return Object.fromEntries(
@@ -424,7 +424,7 @@ export function resolveAppColorTokenCssVariables(
   ) as Record<`--${string}`, string>
 }
 
-export function resolveAppTokenThemeCssVariables(draft: AppTokenThemeDraft) {
+function resolveAppTokenThemeCssVariables(draft: AppTokenThemeDraft) {
   return {
     ...appThemeVariableDefaults,
     ...draft.cssVariables,
@@ -432,7 +432,7 @@ export function resolveAppTokenThemeCssVariables(draft: AppTokenThemeDraft) {
   }
 }
 
-export function createAppTokenThemeDraftFromCssVariables(
+function createAppTokenThemeDraftFromCssVariables(
   cssVariables: AppThemeCssVariables
 ): AppTokenThemeDraft {
   const colorTokenValues = { ...appColorTokenDefaults }
