@@ -41,7 +41,7 @@ jobs:
         run: npm ci
 
       - name: Build and publish Windows installer
-        uses: tauri-apps/tauri-action@v1
+        uses: tauri-apps/tauri-action@action-v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -77,7 +77,7 @@ jobs:
         run: npm ci
 
       - name: Build and publish macOS bundle
-        uses: tauri-apps/tauri-action@v1
+        uses: tauri-apps/tauri-action@action-v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
