@@ -1,7 +1,7 @@
 {
   "name": "agent-html",
   "private": true,
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "license": "Apache-2.0",
   "type": "module",
   "workspaces": [
@@ -22,6 +22,7 @@
     "i18n:extract": "lingui extract --config config/lingui.config.ts",
     "i18n:compile": "lingui compile --config config/lingui.config.ts --namespace es",
     "lint": "eslint . --config config/eslint.config.js",
+    "knip": "knip",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "test": "vitest run --config config/vitest.config.mjs",
     "tauri": "tauri",
@@ -73,6 +74,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^16.5.0",
+    "knip": "^6.14.2",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "typescript": "~5.9.3",
