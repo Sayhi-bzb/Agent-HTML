@@ -196,6 +196,45 @@ describe("reduceCodexNotification", () => {
     expect(completed.presence?.message).toBeUndefined()
   })
 
+  it("clears the speaking action when an agent message item completes", () => {
+    const speaking = reduceCodexNotification(
+      createInitialAgentActivityState(),
+      {
+        method: "item/agentMessage/delta",
+        params: {
+          delta: "Hello",
+          itemId: "item_1",
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:00.000Z"
+    )
+    const completed = reduceCodexNotification(
+      speaking,
+      {
+        method: "item/completed",
+        params: {
+          item: {
+            id: "item_1",
+            type: "agentMessage",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:01.000Z"
+    )
+
+    expect(speaking.presence?.action).toEqual({
+      kind: "speaking",
+      label: "writing response",
+    })
+    expect(completed.presence).toBeUndefined()
+  })
+
   it("keeps approval and error messages in PetPresence", () => {
     const waiting = reduceCodexNotification(
       createInitialAgentActivityState(),
@@ -279,14 +318,19 @@ describe("reduceCodexNotification", () => {
     ])
   })
 
-  it("maps command item started to a running action", () => {
+  it("maps command item started to a stable running action label", () => {
     const state = reduceCodexNotification(
       createInitialAgentActivityState(),
       {
         method: "item/started",
         params: {
           item: {
-            command: ["npm", "test"],
+            command: [
+              "powershell",
+              "-NoProfile",
+              "-Command",
+              "Get-Content very-long-path-that-should-not-render.agent-html",
+            ],
             id: "item_1",
             type: "commandExecution",
           },
@@ -301,9 +345,74 @@ describe("reduceCodexNotification", () => {
     expect(state.presence?.mood).toBe("working")
     expect(state.presence?.action).toEqual({
       kind: "running",
-      label: "npm test",
+      label: "running command",
     })
     expect(state.speechBubbles).toEqual([])
+  })
+
+  it("maps tool, search, and unknown items to stable action labels", () => {
+    const tool = reduceCodexNotification(
+      createInitialAgentActivityState(),
+      {
+        method: "item/started",
+        params: {
+          item: {
+            id: "item_1",
+            tool: "very_long_tool_name_that_should_not_render",
+            type: "mcpToolCall",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:00.000Z"
+    )
+    const search = reduceCodexNotification(
+      createInitialAgentActivityState(),
+      {
+        method: "item/started",
+        params: {
+          item: {
+            id: "item_2",
+            type: "webSearch",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:01.000Z"
+    )
+    const unknown = reduceCodexNotification(
+      createInitialAgentActivityState(),
+      {
+        method: "item/started",
+        params: {
+          item: {
+            id: "item_3",
+            type: "longRawItemTypeThatShouldNotRender",
+          },
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:02.000Z"
+    )
+
+    expect(tool.presence?.action).toEqual({
+      kind: "running",
+      label: "using tool",
+    })
+    expect(search.presence?.action).toEqual({
+      kind: "searching",
+      label: "searching web",
+    })
+    expect(unknown.presence?.action).toEqual({
+      kind: "thinking",
+      label: "working",
+    })
   })
 
   it("maps approval requests to waiting presence", () => {
@@ -325,8 +434,22 @@ describe("reduceCodexNotification", () => {
   })
 
   it("hides successful turn completion but shows failures", () => {
-    const done = reduceCodexNotification(
+    const speaking = reduceCodexNotification(
       createInitialAgentActivityState(),
+      {
+        method: "item/agentMessage/delta",
+        params: {
+          delta: "Hello",
+          itemId: "item_1",
+          threadId: "thr_1",
+          turnId: "turn_1",
+        },
+      },
+      { threadId: "thr_1", turnId: "turn_1" },
+      "2026-05-28T00:00:00.000Z"
+    )
+    const done = reduceCodexNotification(
+      speaking,
       {
         method: "turn/completed",
         params: {
@@ -336,7 +459,7 @@ describe("reduceCodexNotification", () => {
         },
       },
       { threadId: "thr_1", turnId: "turn_1" },
-      "2026-05-28T00:00:00.000Z"
+      "2026-05-28T00:00:01.000Z"
     )
     const failed = reduceCodexNotification(
       done,
@@ -349,9 +472,10 @@ describe("reduceCodexNotification", () => {
         },
       },
       { threadId: "thr_1", turnId: "turn_1" },
-      "2026-05-28T00:00:01.000Z"
+      "2026-05-28T00:00:02.000Z"
     )
 
+    expect(speaking.presence?.action?.label).toBe("writing response")
     expect(done.presence).toBeUndefined()
     expect(failed.presence?.mood).toBe("failed")
     expect(failed.presence?.message?.text).toBe("nope")

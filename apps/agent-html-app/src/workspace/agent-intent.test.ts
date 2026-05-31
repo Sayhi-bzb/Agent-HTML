@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { deliverAgentHtmlIntent } from "@/app/workspace/agent-intent"
+import {
+  deliverAgentHtmlIntent,
+  isCodexThreadNotFoundError,
+} from "@/app/workspace/agent-intent"
 import { parseAgentHtml } from "@/agent-html"
 
 const document = {
@@ -227,6 +230,89 @@ describe("deliverAgentHtmlIntent", () => {
         ok: false,
       })
     )
+  })
+
+  it("recognizes stale Codex thread errors", () => {
+    expect(isCodexThreadNotFoundError("process error: thread notfound")).toBe(
+      true
+    )
+    expect(isCodexThreadNotFoundError("Thread not found")).toBe(true)
+    expect(isCodexThreadNotFoundError("thread_not_found")).toBe(true)
+    expect(isCodexThreadNotFoundError("required MCP server failed")).toBe(false)
+  })
+
+  it("clears a stale thread and retries once with a new thread", async () => {
+    const startTurn = vi
+      .fn()
+      .mockRejectedValueOnce("process error: thread notfound")
+      .mockResolvedValueOnce({
+        threadId: "thr_new",
+        turnId: "turn_new",
+      })
+    const clearStaleThread = vi.fn().mockResolvedValue(undefined)
+    const ensureThread = vi.fn().mockResolvedValue("thr_new")
+
+    const result = await deliverAgentHtmlIntent({
+      clearStaleThread,
+      document,
+      ensureThread,
+      project,
+      section,
+      startTurn,
+      submit: {
+        prompt: "Try again.",
+      },
+      threadId: "thr_old",
+      workspaceRootPath: "D:\\AgentHTML",
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        ok: true,
+        threadId: "thr_new",
+        turnId: "turn_new",
+      })
+    )
+    expect(clearStaleThread).toHaveBeenCalledWith("thr_old")
+    expect(ensureThread).toHaveBeenCalledTimes(1)
+    expect(startTurn).toHaveBeenNthCalledWith(1, {
+      promptText: "Try again.",
+      threadId: "thr_old",
+    })
+    expect(startTurn).toHaveBeenNthCalledWith(2, {
+      promptText: "Try again.",
+      threadId: "thr_new",
+    })
+  })
+
+  it("does not retry non-stale Codex turn errors", async () => {
+    const startTurn = vi.fn().mockRejectedValue("required MCP server failed")
+    const clearStaleThread = vi.fn().mockResolvedValue(undefined)
+    const ensureThread = vi.fn().mockResolvedValue("thr_new")
+
+    const result = await deliverAgentHtmlIntent({
+      clearStaleThread,
+      document,
+      ensureThread,
+      project,
+      section,
+      startTurn,
+      submit: {
+        prompt: "Try again.",
+      },
+      threadId: "thr_old",
+      workspaceRootPath: "D:\\AgentHTML",
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        error: "required MCP server failed",
+        ok: false,
+      })
+    )
+    expect(clearStaleThread).not.toHaveBeenCalled()
+    expect(ensureThread).not.toHaveBeenCalled()
+    expect(startTurn).toHaveBeenCalledTimes(1)
   })
 
   it("starts a pet Codex turn with the plain request", async () => {

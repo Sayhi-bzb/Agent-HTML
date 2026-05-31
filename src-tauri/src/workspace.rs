@@ -71,7 +71,7 @@ impl WorkspaceStore {
         Ok(())
     }
 
-    fn ensure_agent_html_skill(&self) -> WorkspaceResult<()> {
+    pub(crate) fn ensure_agent_html_skill(&self) -> WorkspaceResult<()> {
         let skill_path = self
             .documents
             .root()
@@ -83,17 +83,25 @@ impl WorkspaceStore {
         std::fs::create_dir_all(&references_path)?;
         std::fs::create_dir_all(&scripts_path)?;
 
-        write_text_if_missing(
+        write_managed_text(
             &references_path.join("examples.md"),
             &agent_html_examples_reference_content(),
+            is_agenthtml_managed_examples_reference,
         )?;
-        write_text_if_missing(
+        write_managed_text(
             &references_path.join("icons.md"),
             &agent_html_icons_reference_content(),
+            is_agenthtml_managed_icons_reference,
         )?;
-        write_text_if_missing(
+        write_managed_text(
+            &references_path.join("icon-names.txt"),
+            &agent_html_icon_names_reference_content(),
+            is_agenthtml_managed_icon_names_reference,
+        )?;
+        write_managed_text(
             &scripts_path.join("search_icons.py"),
             &agent_html_search_icons_script_content(),
+            is_agenthtml_managed_search_icons_script,
         )?;
 
         let skill_file_path = skill_path.join("SKILL.md");
@@ -434,70 +442,27 @@ fn agent_html_examples_reference_content() -> String {
 }
 
 fn agent_html_icons_reference_content() -> String {
-    [
-        "# AgentHTML Icons",
-        "",
-        "`Icon:name=string -> none` uses Lucide icon names.",
-        "",
-        "Do not guess icon names. Search with:",
-        "",
-        "```bash",
-        "python .agents/skills/agent-html/scripts/search_icons.py \"alert\"",
-        "```",
-        "",
-        "Prefer exact returned names such as `alert-circle`, `check`, or `sparkles`.",
-        "",
-    ]
-    .join("\n")
+    include_str!("../../.agents/skills/agent-html/references/icons.md").to_string()
+}
+
+fn agent_html_icon_names_reference_content() -> String {
+    include_str!("../../.agents/skills/agent-html/references/icon-names.txt").to_string()
 }
 
 fn agent_html_search_icons_script_content() -> String {
-    [
-        "from pathlib import Path",
-        "import re",
-        "import sys",
-        "",
-        "",
-        "def load_icon_names() -> list[str]:",
-        "    repo_root = Path(__file__).resolve().parents[3]",
-        "    dynamic_file = repo_root / \"node_modules\" / \"lucide-react\" / \"dist\" / \"esm\" / \"dynamicIconImports.mjs\"",
-        "    text = dynamic_file.read_text(encoding=\"utf-8\")",
-        "    return re.findall(r'\"([^\"]+)\": \\(\\) => import', text)",
-        "",
-        "",
-        "def search_icons(query: str, limit: int = 24) -> list[str]:",
-        "    names = load_icon_names()",
-        "    query = query.strip().lower()",
-        "    if not query:",
-        "        return names[:limit]",
-        "",
-        "    exact = [name for name in names if name == query]",
-        "    prefix = [name for name in names if name != query and name.startswith(query)]",
-        "    contains = [",
-        "        name",
-        "        for name in names",
-        "        if name != query and not name.startswith(query) and query in name",
-        "    ]",
-        "    return (exact + prefix + contains)[:limit]",
-        "",
-        "",
-        "def main() -> int:",
-        "    query = sys.argv[1] if len(sys.argv) > 1 else \"\"",
-        "    for name in search_icons(query):",
-        "        print(name)",
-        "    return 0",
-        "",
-        "",
-        "if __name__ == \"__main__\":",
-        "    raise SystemExit(main())",
-        "",
-    ]
-    .join("\n")
+    include_str!("../../.agents/skills/agent-html/scripts/search_icons.py").to_string()
 }
 
-fn write_text_if_missing(path: &Path, content: &str) -> WorkspaceResult<()> {
+fn write_managed_text(
+    path: &Path,
+    content: &str,
+    is_managed: fn(&str) -> bool,
+) -> WorkspaceResult<()> {
     if path.exists() {
-        return Ok(());
+        let existing = std::fs::read_to_string(path)?;
+        if !is_managed(&existing) || existing == content {
+            return Ok(());
+        }
     }
 
     if let Some(parent) = path.parent() {
@@ -511,6 +476,28 @@ fn is_agenthtml_managed_skill(content: &str) -> bool {
     content.contains("name: agent-html")
         && (content.contains("This skill is the Codex bridge for the AgentHTML runtime contract.")
             || content.contains("Use when Codex needs to compose XML-like preview layouts"))
+}
+
+fn is_agenthtml_managed_examples_reference(content: &str) -> bool {
+    content.contains("# AgentHTML Examples")
+        && (content.contains("Valid Patterns") || content.contains("Invalid Patterns"))
+}
+
+fn is_agenthtml_managed_icons_reference(content: &str) -> bool {
+    content.contains("# AgentHTML Icons")
+        && content.contains("python .agents/skills/agent-html/scripts/search_icons.py")
+}
+
+fn is_agenthtml_managed_icon_names_reference(content: &str) -> bool {
+    content.starts_with("# AgentHTML managed Lucide icon index.")
+}
+
+fn is_agenthtml_managed_search_icons_script(content: &str) -> bool {
+    content.contains("def search_icons(")
+        && content.contains("lucide-react")
+        && (content.contains("parents[3]")
+            || content.contains("find_repo_root")
+            || content.contains("dynamicIconImports"))
 }
 
 fn is_agenthtml_managed_root_instructions(content: &str) -> bool {
@@ -778,6 +765,13 @@ mod tests {
             .join(".agents")
             .join("skills")
             .join("agent-html")
+            .join("references")
+            .join("icon-names.txt")
+            .exists());
+        assert!(root
+            .join(".agents")
+            .join("skills")
+            .join("agent-html")
             .join("scripts")
             .join("search_icons.py")
             .exists());
@@ -806,6 +800,8 @@ mod tests {
             .expect("write custom examples");
         std::fs::write(references_dir.join("icons.md"), "# Custom Icons\n")
             .expect("write custom icons");
+        std::fs::write(references_dir.join("icon-names.txt"), "custom-icon\n")
+            .expect("write custom icon names");
         std::fs::write(scripts_dir.join("search_icons.py"), "print('custom')\n")
             .expect("write custom icon script");
 
@@ -824,6 +820,11 @@ mod tests {
             "# Custom Icons\n"
         );
         assert_eq!(
+            std::fs::read_to_string(references_dir.join("icon-names.txt"))
+                .expect("read custom icon names"),
+            "custom-icon\n"
+        );
+        assert_eq!(
             std::fs::read_to_string(scripts_dir.join("search_icons.py"))
                 .expect("read custom icon script"),
             "print('custom')\n"
@@ -835,7 +836,11 @@ mod tests {
         let temp_dir = tempfile::tempdir().expect("create temp workspace");
         let root = temp_dir.path().join("AgentHTML");
         let skill_dir = root.join(".agents").join("skills").join("agent-html");
+        let references_dir = skill_dir.join("references");
+        let scripts_dir = skill_dir.join("scripts");
         std::fs::create_dir_all(&skill_dir).expect("create skill dir");
+        std::fs::create_dir_all(&references_dir).expect("create references dir");
+        std::fs::create_dir_all(&scripts_dir).expect("create scripts dir");
         std::fs::write(
             skill_dir.join("SKILL.md"),
             [
@@ -852,15 +857,66 @@ mod tests {
             .join("\n"),
         )
         .expect("write old managed skill");
+        std::fs::write(
+            references_dir.join("icons.md"),
+            [
+                "# AgentHTML Icons",
+                "",
+                "`Icon:name=string -> none` uses Lucide icon names.",
+                "",
+                "Do not guess icon names. Search with:",
+                "",
+                "```bash",
+                "python .agents/skills/agent-html/scripts/search_icons.py \"alert\"",
+                "```",
+                "",
+            ]
+            .join("\n"),
+        )
+        .expect("write old managed icons");
+        std::fs::write(
+            scripts_dir.join("search_icons.py"),
+            [
+                "from pathlib import Path",
+                "import re",
+                "import sys",
+                "",
+                "def load_icon_names() -> list[str]:",
+                "    repo_root = Path(__file__).resolve().parents[3]",
+                "    dynamic_file = repo_root / \"node_modules\" / \"lucide-react\" / \"dist\" / \"esm\" / \"dynamicIconImports.mjs\"",
+                "    text = dynamic_file.read_text(encoding=\"utf-8\")",
+                "    return re.findall(r'\"([^\"]+)\": \\(\\) => import', text)",
+                "",
+                "def search_icons(query: str, limit: int = 24) -> list[str]:",
+                "    return []",
+                "",
+            ]
+            .join("\n"),
+        )
+        .expect("write old managed icon script");
 
         WorkspaceStore::open(root.clone()).expect("open workspace root");
         let skill = std::fs::read_to_string(skill_dir.join("SKILL.md")).expect("read skill");
+        let icons =
+            std::fs::read_to_string(references_dir.join("icons.md")).expect("read icons ref");
+        let script =
+            std::fs::read_to_string(scripts_dir.join("search_icons.py")).expect("read script");
+        let icon_names = std::fs::read_to_string(references_dir.join("icon-names.txt"))
+            .expect("read icon names");
 
         assert!(skill.contains(
             "Read `.agents/skills/agent-html/references/prompt-schema.md`"
         ));
         assert!(skill.contains("Edit `projects/{project-id}/{section-id}/artifact.agent-html`"));
         assert!(!skill.contains("Use raw fixture files"));
+        assert!(icons.contains("Runtime workspaces do not"));
+        assert!(icon_names.contains("workflow"));
+        assert!(script.contains("def find_repo_root"));
+        assert!(script.contains("bundled_icon_names_path"));
+        assert!(script.contains("def lucide_metadata_candidates"));
+        assert!(script.contains("dynamicIconImports.mjs"));
+        assert!(script.contains("def read_metadata_text"));
+        assert!(!script.contains("parents[3]"));
         assert!(skill_dir.join("references").join("examples.md").exists());
         assert!(skill_dir.join("references").join("icons.md").exists());
         assert!(skill_dir.join("scripts").join("search_icons.py").exists());

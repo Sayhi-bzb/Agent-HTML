@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { useCodexConnection } from "@/app/codex/connection"
 import type { CodexConnectionContextValue } from "@/app/codex/connection/types"
+import { isCodexThreadNotFoundError } from "@/app/workspace/agent-intent"
 import { createWorkspaceStore } from "@/app/workspace/store"
 import type { WorkspaceProjectView } from "./types"
 
@@ -63,6 +64,16 @@ export function useWorkspaceThreadController({
     return state.activeThreadId ?? null
   }, [])
 
+  const clearCompanyAgentThread = React.useCallback(
+    async (threadId?: string | null) => {
+      if (threadId && activeThreadId && threadId !== activeThreadId) {
+        return
+      }
+      await persistActiveThreadId(null)
+    },
+    [activeThreadId, persistActiveThreadId]
+  )
+
   React.useEffect(() => {
     let isCurrent = true
     setIsCompanyAgentStateLoading(true)
@@ -70,11 +81,37 @@ export function useWorkspaceThreadController({
 
     workspaceStore
       .getCompanyAgentState()
-      .then((state) => {
+      .then(async (state) => {
         if (!isCurrent) {
           return
         }
-        setActiveThreadId(state.activeThreadId ?? null)
+        const threadId = state.activeThreadId ?? null
+        if (!threadId || codexConnection.status !== "connected") {
+          setActiveThreadId(threadId)
+          return
+        }
+
+        try {
+          await codexConnection.request("thread/read", {
+            includeTurns: false,
+            threadId,
+          })
+          if (isCurrent) {
+            setActiveThreadId(threadId)
+          }
+        } catch (error) {
+          if (!isCurrent) {
+            return
+          }
+          const message = getErrorMessage(error)
+          if (isCodexThreadNotFoundError(message)) {
+            await clearCompanyAgentThread(threadId)
+            return
+          }
+          setCompanyAgentError(
+            `Unable to resume Codex thread: ${message}`
+          )
+        }
       })
       .catch((error: unknown) => {
         if (!isCurrent) {
@@ -93,7 +130,12 @@ export function useWorkspaceThreadController({
     return () => {
       isCurrent = false
     }
-  }, [])
+  }, [
+    clearCompanyAgentThread,
+    codexConnection.request,
+    codexConnection.status,
+    persistActiveThreadId,
+  ])
 
   const startNewThread = React.useCallback(() => {
     setThreadSelectionError(null)
@@ -178,6 +220,7 @@ export function useWorkspaceThreadController({
 
   return {
     activeThreadId,
+    clearCompanyAgentThread,
     codexConnection,
     ensureCompanyAgentThread,
     isThreadPickerOpen,

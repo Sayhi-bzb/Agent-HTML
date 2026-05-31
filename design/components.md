@@ -66,7 +66,7 @@ Rules:
 
 ## Card and Panel Standard
 
-Cards are a common content container, not the default shell surface.
+Cards are a common content container, not the default shell surface or default wrapper.
 
 Characteristics:
 
@@ -84,6 +84,13 @@ Rules:
 - dashed internal blocks MAY be used for placeholders or segmentation only
 - sidebar-hosted editor panels MAY use shell-facing surfaces instead of workspace cards when they
   belong to the shell itself
+- cards SHOULD represent real modules, objects, list items, placeholders, or disclosures rather than
+  being applied to every subsection by default
+- card-inside-card structures SHOULD be avoided unless the inner card has independent object
+  identity, explicit placeholder semantics, or a separate interaction scope
+- panels and cards SHOULD preserve the low-chrome layered-plane model from `DESIGN.md`: once a
+  surface owns a module, its internal hierarchy should usually come from spacing, typography,
+  separators, alignment, and state treatment rather than additional visible containers
 
 ## Information Density Standard
 

@@ -124,22 +124,6 @@ function getAgentMessageDelta(params: unknown) {
   )
 }
 
-function getCommandLabel(params: unknown) {
-  const command = readString(params, ["item", "command"])
-  if (command) {
-    return command
-  }
-
-  if (isRecord(params) && isRecord(params.item)) {
-    const commandValue = params.item.command
-    if (Array.isArray(commandValue)) {
-      return commandValue.filter((part) => typeof part === "string").join(" ")
-    }
-  }
-
-  return undefined
-}
-
 function appendStreamingMessage(current: string | undefined, delta: string) {
   const next = `${current ?? ""}${delta}`
   if (next.length <= MAX_STREAMING_MESSAGE_LENGTH) {
@@ -333,7 +317,7 @@ function actionFromItem(params: unknown): {
   if (itemType === "commandExecution") {
     return {
       kind: "running",
-      label: getCommandLabel(params) ?? "running command",
+      label: "running command",
     }
   }
 
@@ -344,10 +328,21 @@ function actionFromItem(params: unknown): {
     }
   }
 
-  if (itemType === "mcpToolCall" || itemType === "dynamicToolCall") {
+  if (
+    itemType === "mcpToolCall" ||
+    itemType === "dynamicToolCall" ||
+    itemType === "collabToolCall"
+  ) {
     return {
       kind: "running",
-      label: readString(params, ["item", "tool"]) ?? "using tool",
+      label: "using tool",
+    }
+  }
+
+  if (itemType === "webSearch") {
+    return {
+      kind: "searching",
+      label: "searching web",
     }
   }
 
@@ -365,16 +360,44 @@ function actionFromItem(params: unknown): {
     }
   }
 
+  if (itemType === "plan") {
+    return {
+      kind: "thinking",
+      label: "updating plan",
+    }
+  }
+
+  if (itemType === "contextCompaction") {
+    return {
+      kind: "thinking",
+      label: "compacting context",
+    }
+  }
+
+  if (itemType === "imageView") {
+    return {
+      kind: "reading",
+      label: "viewing image",
+    }
+  }
+
+  if (itemType === "enteredReviewMode" || itemType === "exitedReviewMode") {
+    return {
+      kind: "thinking",
+      label: "reviewing",
+    }
+  }
+
   return {
     kind: "thinking",
-    label: itemType ?? "working",
+    label: "working",
   }
 }
 
 function presenceForNotification(
   state: AgentActivityState,
   notification: CodexNotification
-): PetPresence | undefined {
+): PetPresence | null | undefined {
   const { method, params } = notification
 
   if (
@@ -412,7 +435,7 @@ function presenceForNotification(
       }
     }
 
-    return undefined
+    return null
   }
 
   if (method === "thread/status/changed") {
@@ -463,12 +486,7 @@ function presenceForNotification(
     }
 
     if (getItemType(params) === "agentMessage") {
-      return state.presence
-        ? {
-            ...state.presence,
-            message: undefined,
-          }
-        : undefined
+      return null
     }
 
     return state.presence
@@ -523,6 +541,12 @@ export function reduceCodexNotification(
   const nextPresence = shouldMapPresence
     ? presenceForNotification(state, notification)
     : undefined
+  const presence =
+    nextPresence === null
+      ? undefined
+      : nextPresence !== undefined
+        ? nextPresence
+        : state.presence
   const speechBubbles = updateSpeechBubblesForNotification({
     eventId,
     itemId,
@@ -544,7 +568,7 @@ export function reduceCodexNotification(
     events,
     latestError: getError(notification.params) ?? state.latestError,
     latestStatus: getStatus(notification.params) ?? state.latestStatus,
-    presence: nextPresence ?? state.presence,
+    presence,
     speechBubbles,
     streamingMessage: delta
       ? appendStreamingMessage(state.streamingMessage, delta)

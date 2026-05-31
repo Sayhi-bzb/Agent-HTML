@@ -3,7 +3,7 @@ use tauri::State;
 
 use crate::workspace::WorkspaceStore;
 
-use super::error::CodexHostResult;
+use super::error::{CodexHostError, CodexHostResult};
 use super::health::{process_status_from_state, CodexHostProcessStatus};
 use super::process::{check_codex_process, spawn_codex_process, stop_codex_process};
 use super::rpc::{
@@ -23,6 +23,9 @@ pub(crate) fn start(
 ) -> CodexHostResult<CodexHostProcessStatus> {
     let settings = normalize_codex_settings(&settings);
     let workspace_cwd = resolve_workspace_cwd(&store)?;
+    store
+        .ensure_agent_html_skill()
+        .map_err(|error| CodexHostError::Process(error.to_string()))?;
     bind_connection_trace_path(&store)?;
     append_connection_trace(
         "host:start:entry",

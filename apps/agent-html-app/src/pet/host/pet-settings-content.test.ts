@@ -19,10 +19,10 @@ describe("pet settings content", () => {
     expect(settingsContentSource).toContain("AgentHTML/AGENTS.md")
   })
 
-  it("uses formal popover and settings surface structure", () => {
-    expect(settingsContentSource).toContain("PopoverHeader")
-    expect(settingsContentSource).toContain("PopoverTitle")
-    expect(settingsContentSource).toContain("PopoverDescription")
+  it("uses formal pet panel and settings surface structure", () => {
+    expect(settingsContentSource).toContain("PetPanelHeader")
+    expect(settingsContentSource).toContain("PetPanelBody")
+    expect(settingsContentSource).toContain("PetPanelFooter")
     expect(settingsContentSource).toContain("SettingsInfoPanel")
   })
 
@@ -36,8 +36,9 @@ describe("pet settings content", () => {
     ]) {
       expect(settingsContentSource).toContain(`"${label}"`)
     }
-    expect(settingsContentSource).toContain('role="tablist"')
-    expect(settingsContentSource).toContain('role="tab"')
+    expect(settingsContentSource).toContain("TabsList")
+    expect(settingsContentSource).toContain("TabsTrigger")
+    expect(settingsContentSource).toContain("TabsContent")
   })
 
   it("surfaces Codex app-server capabilities without owning config writes", () => {

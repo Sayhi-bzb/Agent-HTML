@@ -43,6 +43,19 @@ describe("ghost radial menu", () => {
     expect(ghostPetSource).toContain("transcriptContent")
   })
 
+  it("maps pet cursor actions to stable commands", () => {
+    const doubleClickHandler = ghostPetSource.slice(
+      ghostPetSource.indexOf("const handleDoubleClick"),
+      ghostPetSource.indexOf("const handleMenuSelect")
+    )
+
+    expect(doubleClickHandler).toContain("onMessageOpenChange?.(true)")
+    expect(doubleClickHandler).toContain("setIsMenuOpen(false)")
+    expect(doubleClickHandler).not.toContain("setIsMenuOpen((current) => !current)")
+    expect(radialMenuSource).toContain('data-cursor=')
+    expect(radialMenuSource).toContain("cursor-not-allowed")
+  })
+
   it("keeps drag motion on animation frames instead of pointermove renders", () => {
     expect(ghostPetSource).toContain("requestAnimationFrame")
     expect(ghostPetSource).toContain("pendingPositionRef")

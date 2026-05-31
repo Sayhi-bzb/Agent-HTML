@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { WorkspaceGhostPet } from "@/app/pet/ghost"
+import { PetPanel } from "@/app/pet/host/pet-panel"
 import { PetSettingsContent } from "@/app/pet/host/pet-settings-content"
 import {
   getWorkspacePetHostSnapshot,
@@ -66,9 +67,21 @@ function WorkspacePetHostSession({
       onThreadPickerOpenChange={setIsThreadPickerOpen}
       onTranscriptOpenChange={setIsTranscriptOpen}
       presence={snapshot.presence}
-      settingsContent={<PetSettingsContent />}
+      settingsContent={
+        <PetPanel size="auto">
+          <div className="w-[30rem] p-3">
+            <PetSettingsContent />
+          </div>
+        </PetPanel>
+      }
       speechBubbles={snapshot.speechBubbles}
-      threadPickerContent={snapshot.threadPickerContent}
+      threadPickerContent={
+        snapshot.threadPickerContent ? (
+          <PetPanel size="compact">
+            <div className="p-3">{snapshot.threadPickerContent}</div>
+          </PetPanel>
+        ) : undefined
+      }
       transcriptContent={snapshot.transcriptContent}
     />
   )

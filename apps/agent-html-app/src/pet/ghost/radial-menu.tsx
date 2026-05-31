@@ -66,8 +66,10 @@ export function GhostRadialMenu({
             <TooltipTrigger asChild>
               <button
                 aria-label={label}
+                data-cursor={id === "interrupt" && isInterrupting ? undefined : "action"}
                 className={[
                   "absolute -mt-5 -ml-5 grid size-10 place-items-center rounded-full border border-border/70 bg-background/95 text-muted-foreground shadow-lg shadow-black/15 backdrop-blur transition-[opacity,transform,background-color,color,border-color,box-shadow]",
+                  id === "interrupt" && isInterrupting ? "cursor-not-allowed" : "",
                   "hover:border-primary/50 hover:bg-primary hover:text-primary-foreground hover:shadow-xl",
                   isOpen
                     ? "pointer-events-auto scale-100 opacity-100"

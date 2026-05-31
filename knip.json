@@ -1,0 +1,37 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "apps/agent-html-app/src/main.tsx",
+    "apps/agent-html-app/vite.config.ts",
+    "apps/agent-html-example/src/app/main.tsx",
+    "apps/agent-html-example/vite.config.ts",
+    "packages/agent-html/src/index.ts",
+    "tools/*.mjs",
+    "config/*.js",
+    "config/*.ts",
+    "config/*.mjs"
+  ],
+  "project": [
+    "apps/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}",
+    "packages/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}",
+    "tools/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}",
+    "config/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
+  ],
+  "ignoreWorkspaces": [
+    "apps/docs"
+  ],
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.react-router/**",
+    "**/.vite/**",
+    "apps/docs/vite.config.ts",
+    "src-tauri/**"
+  ],
+  "ignoreDependencies": [
+    "@tauri-apps/cli",
+    "shadcn",
+    "wrangler"
+  ]
+}

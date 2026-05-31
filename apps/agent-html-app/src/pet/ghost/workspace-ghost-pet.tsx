@@ -30,10 +30,6 @@ import type {
 } from "@/app/workspace/agent-presence"
 
 const idlePresence: PetPresence = {
-  message: {
-    mode: "transient",
-    text: "watching this canvas",
-  },
   mood: "idle",
 }
 
@@ -58,26 +54,6 @@ function getGhostTransform(position: GhostPetPosition) {
 
 function getOffsetTranslate(offset: GhostPetPosition) {
   return `${offset.x}px ${offset.y}px`
-}
-
-function getPresenceMessage(presence: PetPresence) {
-  if (presence.message?.text) {
-    return presence.message.text
-  }
-
-  if (presence.mood === "waiting") {
-    return "waiting for input"
-  }
-
-  if (presence.mood === "failed") {
-    return "something needs attention"
-  }
-
-  if (presence.mood === "review") {
-    return "ready for review"
-  }
-
-  return idlePresence.message?.text ?? ""
 }
 
 function getSpeechBubbleStyle(index: number, total: number) {
@@ -134,7 +110,7 @@ export function WorkspaceGhostPet({
   threadPickerContent?: React.ReactNode
   transcriptContent?: React.ReactNode
 }) {
-  const message = getPresenceMessage(presence)
+  const statusMessage = presence.message?.text
   const hasSpeechBubbles = speechBubbles.length > 0
   const dragStateRef = useRef<GhostPetDragState | null>(null)
   const settingsDragStateRef = useRef<PopoverDragState | null>(null)
@@ -405,11 +381,11 @@ export function WorkspaceGhostPet({
     (event: React.MouseEvent<HTMLDivElement>) => {
       event.preventDefault()
       event.stopPropagation()
-      onMessageOpenChange?.(false)
       onSettingsOpenChange?.(false)
       onThreadPickerOpenChange?.(false)
       onTranscriptOpenChange?.(false)
-      setIsMenuOpen((current) => !current)
+      setIsMenuOpen(false)
+      onMessageOpenChange?.(true)
     },
     [
       onMessageOpenChange,
@@ -718,8 +694,8 @@ export function WorkspaceGhostPet({
                   error={approvalError}
                   onRespond={onRespondToApproval}
                 />
-              ) : hasSpeechBubbles
-                ? speechBubbles.map((bubble, index) => (
+              ) : hasSpeechBubbles ? (
+                speechBubbles.map((bubble, index) => (
                     <div
                       className={[
                         "max-w-full rounded-2xl bg-background/95 px-3 py-1.5 text-left text-[11px] font-medium whitespace-pre-wrap text-muted-foreground shadow-sm backdrop-blur break-words transition-[opacity,transform] duration-300 ease-out will-change-transform",
@@ -737,13 +713,7 @@ export function WorkspaceGhostPet({
                       <PetMarkdownText text={bubble.text} />
                     </div>
                   ))
-                : message
-                  ? (
-                      <div className="max-w-full rounded-2xl bg-background/95 px-3 py-1.5 text-left text-[11px] font-medium whitespace-pre-wrap text-muted-foreground backdrop-blur break-words">
-                        <PetMarkdownText text={message} />
-                      </div>
-                    )
-                  : null}
+              ) : null}
             </div>
             <div
               className={[
@@ -765,9 +735,18 @@ export function WorkspaceGhostPet({
               isOpen={isMenuOpen}
               onSelect={handleMenuSelect}
             />
-            {presence.action ? (
-              <div className="absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-full bg-background/80 px-2.5 py-1 text-[10px] font-medium whitespace-nowrap text-muted-foreground backdrop-blur">
-                {presence.action.label}
+            {statusMessage || presence.action ? (
+              <div className="absolute top-full left-1/2 mt-2 flex max-w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 flex-col items-center gap-1">
+                {statusMessage ? (
+                  <div className="max-w-full rounded-full bg-background/80 px-2.5 py-1 text-center text-[10px] font-medium whitespace-normal text-muted-foreground backdrop-blur break-words">
+                    {statusMessage}
+                  </div>
+                ) : null}
+                {presence.action ? (
+                  <div className="max-w-full rounded-full bg-background/80 px-2.5 py-1 text-center text-[10px] font-medium whitespace-nowrap text-muted-foreground backdrop-blur">
+                    {presence.action.label}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -794,7 +773,7 @@ export function WorkspaceGhostPet({
           <PopoverContent
             align="end"
             className={[
-              "pointer-events-auto w-80 p-3 select-none",
+              "pointer-events-auto w-auto p-0 select-none",
               isThreadPickerDragging ? "cursor-grabbing" : "cursor-grab",
             ].join(" ")}
             onPointerCancel={finishThreadPickerDrag}
@@ -820,7 +799,7 @@ export function WorkspaceGhostPet({
           <PopoverContent
             align="end"
             className={[
-              "pointer-events-auto w-[30rem] p-3 select-none",
+              "pointer-events-auto w-auto p-0 select-none",
               isSettingsDragging ? "cursor-grabbing" : "cursor-grab",
             ].join(" ")}
             onPointerCancel={finishSettingsDrag}
@@ -845,10 +824,7 @@ export function WorkspaceGhostPet({
         {transcriptContent ? (
           <PopoverContent
             align="end"
-            className={[
-              "pointer-events-auto w-auto p-0 select-none",
-              isTranscriptDragging ? "cursor-grabbing" : "cursor-grab",
-            ].join(" ")}
+            className="pointer-events-auto w-auto p-0"
             onPointerCancel={finishTranscriptDrag}
             onPointerDown={handleTranscriptPointerDown}
             onPointerMove={handleTranscriptPointerMove}

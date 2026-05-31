@@ -1,14 +1,41 @@
+import type { ReactNode } from "react"
 import { ActivityIcon, RefreshCwIcon } from "lucide-react"
 
-import { PetMarkdownText } from "@/app/pet/ghost/pet-markdown-text"
+import { Message, MessageContent } from "@/app/prompt-kit/message"
+import { cn } from "@/app/shared/lib/utils"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/app/shared/ui/accordion"
 import { Badge } from "@/app/shared/ui/badge"
 import { Button } from "@/app/shared/ui/button"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/app/shared/ui/card"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
+import { Separator } from "@/app/shared/ui/separator"
 import type {
   ThreadTranscriptItem,
   ThreadTranscriptState,
   ThreadTranscriptTurn,
 } from "@/app/workspace/thread-transcript"
+
+type TranscriptMessageView = {
+  align: "left" | "right"
+  fallbackName?: string
+  isFallback?: boolean
+  kind: "agent" | "command" | "system" | "user"
+  markdown: boolean
+  prelude?: string
+  text: string
+}
 
 export function PetThreadTranscriptContent({
   error,
@@ -23,69 +50,82 @@ export function PetThreadTranscriptContent({
   onReload?: () => void
 }) {
   return (
-    <section className="flex h-[min(34rem,calc(100vh-5rem))] min-h-80 w-[34rem] flex-col overflow-hidden rounded-md border border-border/70 bg-popover text-popover-foreground shadow-2xl shadow-black/20">
-      <header
-        className="flex shrink-0 items-center justify-between gap-3 border-b border-border/70 px-4 py-3"
-        data-popover-no-drag
+    <Card className="h-[min(34rem,calc(100vh-5rem))] min-h-80 w-[34rem] gap-0 py-0">
+      <CardHeader
+        className="cursor-grab px-4 py-3 active:cursor-grabbing"
+        data-selection="none"
       >
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <ActivityIcon className="size-4 text-primary" aria-hidden="true" />
-            <h2 className="truncate text-sm font-semibold">Thread transcript</h2>
-          </div>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {threadId ? threadId : "No thread selected"}
-          </p>
-        </div>
-        <Button
-          aria-label="Refresh transcript"
-          data-popover-no-drag
-          disabled={!threadId || isLoading}
-          onClick={onReload}
-          size="icon-sm"
-          type="button"
-          variant="ghost"
-        >
-          <RefreshCwIcon
-            className={["size-4", isLoading ? "animate-spin" : ""].join(" ")}
+        <div className="flex min-w-0 items-center gap-2">
+          <ActivityIcon
+            className="size-4 shrink-0 text-muted-foreground"
             aria-hidden="true"
           />
-        </Button>
-      </header>
-
-      <ScrollArea
-        className="min-h-0 flex-1"
-        data-popover-no-drag
-        viewportClassName="p-3"
-      >
-        <div className="space-y-3" data-popover-no-drag>
-          {!threadId ? <TranscriptEmptyState text="No thread selected." /> : null}
-          {threadId && error ? (
-            <TranscriptEmptyState text={`Unable to load transcript: ${error}`} />
-          ) : null}
-          {threadId && !error && isLoading && turns.length === 0 ? (
-            <TranscriptEmptyState text="Loading transcript..." />
-          ) : null}
-          {threadId && !error && !isLoading && turns.length === 0 ? (
-            <TranscriptEmptyState text="No turns in this thread yet." />
-          ) : null}
-          {turns.map((turn, index) => (
-            <TranscriptTurnView
-              index={index}
-              key={turn.id}
-              turn={turn}
-            />
-          ))}
+          <CardTitle className="truncate text-sm">Thread transcript</CardTitle>
         </div>
-      </ScrollArea>
-    </section>
+        <CardDescription className="truncate text-xs">
+          {threadId ? threadId : "No thread selected"}
+        </CardDescription>
+        <CardAction>
+          <Button
+            aria-label="Refresh transcript"
+            data-popover-no-drag
+            disabled={!threadId || isLoading}
+            onClick={onReload}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <RefreshCwIcon
+              className={["size-4", isLoading ? "animate-spin" : ""].join(" ")}
+              aria-hidden="true"
+            />
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <Separator />
+
+      <CardContent className="min-h-0 flex-1 px-0">
+        <ScrollArea
+          className="h-full"
+          data-popover-no-drag
+          data-selection="text"
+          viewportClassName="p-3"
+        >
+          <div
+            className="flex flex-col gap-4"
+            data-popover-no-drag
+            data-selection="text"
+          >
+            {!threadId ? (
+              <TranscriptEmptyState text="No thread selected." />
+            ) : null}
+            {threadId && error ? (
+              <TranscriptEmptyState
+                text={`Unable to load transcript: ${error}`}
+              />
+            ) : null}
+            {threadId && !error && isLoading && turns.length === 0 ? (
+              <TranscriptEmptyState text="Loading transcript..." />
+            ) : null}
+            {threadId && !error && !isLoading && turns.length === 0 ? (
+              <TranscriptEmptyState text="No turns in this thread yet." />
+            ) : null}
+            {turns.map((turn, index) => (
+              <TranscriptTurnView index={index} key={turn.id} turn={turn} />
+            ))}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   )
 }
 
 function TranscriptEmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-md border border-dashed border-border/80 bg-muted/30 px-3 py-8 text-center text-xs text-muted-foreground">
-      {text}
+    <div className="flex min-h-32 items-center justify-center px-3 py-8 text-center text-xs text-muted-foreground">
+      <p className="max-w-60" data-cursor="text">
+        {text}
+      </p>
     </div>
   )
 }
@@ -98,91 +138,244 @@ function TranscriptTurnView({
   turn: ThreadTranscriptTurn
 }) {
   return (
-    <article className="rounded-md border border-border/70 bg-background/70">
-      <div className="flex items-center justify-between gap-2 border-b border-border/60 px-3 py-2">
-        <div className="text-xs font-medium text-foreground">Turn {index + 1}</div>
-        {turn.status ? (
+    <div className="flex flex-col gap-2">
+      <TurnDivider index={index} status={turn.status} />
+      {turn.items.length > 0 ? (
+        <div className="flex flex-col gap-2.5">
+          {turn.items.map((item) => (
+            <TranscriptItemView item={item} key={item.id} />
+          ))}
+        </div>
+      ) : (
+        <p className="px-1 text-xs text-muted-foreground" data-cursor="text">
+          No items reported.
+        </p>
+      )}
+    </div>
+  )
+}
+
+function TurnDivider({
+  index,
+  status,
+}: {
+  index: number
+  status?: string
+}) {
+  const visibleStatus = getVisibleTranscriptStatus(status)
+
+  return (
+    <div className="flex items-center gap-2 py-1" data-selection="none">
+      <Separator className="flex-1" />
+      <div className="flex shrink-0 items-center gap-2 text-[10px] font-medium text-muted-foreground">
+        <span>Turn {index + 1}</span>
+        {visibleStatus ? (
           <Badge variant="outline" className="h-5 text-[10px]">
-            {turn.status}
+            {visibleStatus}
           </Badge>
         ) : null}
       </div>
-      <div className="space-y-2 p-2">
-        {turn.items.length > 0 ? (
-          turn.items.map((item) => (
-            <TranscriptItemView item={item} key={item.id} />
-          ))
-        ) : (
-          <div className="px-2 py-3 text-xs text-muted-foreground">
-            No items reported.
-          </div>
-        )}
-      </div>
-    </article>
+      <Separator className="flex-1" />
+    </div>
   )
 }
 
 function TranscriptItemView({ item }: { item: ThreadTranscriptItem }) {
-  if (item.type === "userMessage") {
+  const view = getTranscriptMessageView(item)
+  const isUser = view.align === "right"
+
+  if (view.kind === "command") {
     return (
-      <TranscriptBubble align="right" label="You">
-        <TranscriptText text={item.contentText ?? "User message"} />
-      </TranscriptBubble>
+      <TranscriptSystemActivity
+        prelude={view.prelude}
+        status={item.status}
+      >
+        <pre
+          className="max-h-48 overflow-auto rounded-md bg-muted/50 px-2.5 py-2 font-mono text-[10px] leading-4 whitespace-pre-wrap text-foreground"
+          data-cursor="text"
+          data-selection="text"
+        >
+          {view.text}
+        </pre>
+      </TranscriptSystemActivity>
     )
+  }
+
+  if (view.kind === "system") {
+    return (
+      <TranscriptSystemActivity status={item.status}>
+        <TranscriptSystemContent view={view} />
+      </TranscriptSystemActivity>
+    )
+  }
+
+  return (
+    <Message
+      className={isUser ? "justify-end" : "justify-start"}
+      data-popover-no-drag
+    >
+      <div
+        className={[
+          "flex max-w-[88%] flex-col gap-1.5",
+          isUser ? "items-end" : "items-start",
+        ].join(" ")}
+      >
+        {view.prelude ? (
+          <div
+            className="max-w-full px-1 text-[10px] text-muted-foreground break-all"
+            data-cursor="text"
+          >
+            {view.prelude}
+          </div>
+        ) : null}
+        <MessageContent
+          className={cn(
+            "max-w-full text-xs leading-5",
+            isUser ? "bg-primary text-primary-foreground" : "bg-transparent p-0"
+          )}
+          data-cursor="text"
+          markdown={view.markdown}
+        >
+          {view.text}
+        </MessageContent>
+      </div>
+    </Message>
+  )
+}
+
+function TranscriptSystemActivity({
+  children,
+  prelude,
+  status,
+}: {
+  children: ReactNode
+  prelude?: string
+  status?: string
+}) {
+  const visibleStatus = getVisibleTranscriptStatus(status)
+
+  return (
+    <div className="flex flex-col gap-1 px-1" data-popover-no-drag>
+      {visibleStatus ? (
+        <div className="flex min-w-0 items-center gap-2 text-[10px] font-medium text-muted-foreground">
+          <Badge className="h-5 text-[10px]" variant="outline">
+            {visibleStatus}
+          </Badge>
+        </div>
+      ) : null}
+      {prelude ? (
+        <div
+          className="text-[10px] text-muted-foreground break-all"
+          data-cursor="text"
+        >
+          {prelude}
+        </div>
+      ) : null}
+      {children}
+    </div>
+  )
+}
+
+function TranscriptSystemContent({ view }: { view: TranscriptMessageView }) {
+  if (view.isFallback && view.fallbackName) {
+    return (
+      <Accordion className="text-muted-foreground" collapsible type="single">
+        <AccordionItem className="border-0" value="fallback">
+          <AccordionTrigger className="py-1 text-[10px] text-muted-foreground hover:no-underline">
+            {view.fallbackName}
+          </AccordionTrigger>
+          <AccordionContent className="pb-0">
+            <MessageContent
+              className="max-w-full bg-transparent p-0 text-xs leading-5 text-muted-foreground"
+              data-cursor="text"
+              markdown={view.markdown}
+            >
+              {view.text}
+            </MessageContent>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    )
+  }
+
+  return (
+    <MessageContent
+      className="max-w-full bg-transparent p-0 text-xs leading-5 text-muted-foreground"
+      data-cursor="text"
+      markdown={view.markdown}
+    >
+      {view.text}
+    </MessageContent>
+  )
+}
+
+function getVisibleTranscriptStatus(status: string | undefined) {
+  return status === "completed" ? undefined : status
+}
+
+function getTranscriptMessageView(
+  item: ThreadTranscriptItem
+): TranscriptMessageView {
+  if (item.type === "userMessage") {
+    const text = item.contentText ?? "User message"
+    return {
+      align: "right",
+      kind: "user",
+      markdown: true,
+      text,
+    }
   }
 
   if (item.type === "agentMessage") {
-    return (
-      <TranscriptBubble align="left" label={item.phase ?? "Codex"}>
-        <TranscriptText text={item.contentText ?? "Writing response..."} />
-      </TranscriptBubble>
-    )
-  }
-
-  if (item.type === "plan") {
-    return (
-      <TranscriptSystemCard item={item} label="Plan">
-        <TranscriptText text={item.contentText ?? "Planning..."} />
-      </TranscriptSystemCard>
-    )
+    const text = item.contentText ?? "Writing response..."
+    return {
+      align: "left",
+      kind: "agent",
+      markdown: true,
+      text,
+    }
   }
 
   if (item.type === "commandExecution") {
-    return (
-      <TranscriptSystemCard item={item} label={item.command ?? "Command"}>
-        {item.cwd ? (
-          <p className="mb-1 text-[10px] text-muted-foreground">{item.cwd}</p>
-        ) : null}
-        {item.aggregatedOutput ? (
-          <pre className="max-h-36 overflow-auto rounded bg-muted/70 p-2 font-mono text-[10px] whitespace-pre-wrap text-foreground">
-            {item.aggregatedOutput}
-          </pre>
-        ) : null}
-      </TranscriptSystemCard>
+    const text = item.aggregatedOutput ?? "Command running..."
+    return {
+      align: "left",
+      kind: "command",
+      markdown: false,
+      prelude: item.cwd,
+      text,
+    }
+  }
+
+  if (item.type === "plan") {
+    return createSystemMessageView(
+      item.contentText ?? "Planning...",
+      true,
+      item.contentText === undefined ? "Plan" : undefined
     )
   }
 
   if (item.type === "reasoning") {
-    return (
-      <TranscriptSystemCard item={item} label="Reasoning">
-        <TranscriptText text={item.summaryText ?? "Thinking..."} />
-      </TranscriptSystemCard>
+    return createSystemMessageView(
+      item.summaryText ?? "Thinking...",
+      true,
+      item.summaryText === undefined ? "Reasoning" : undefined
     )
   }
 
   if (item.type === "fileChange") {
-    return (
-      <TranscriptSystemCard item={item} label="File changes">
-        <TranscriptText text={item.summaryText ?? "Editing files"} />
-      </TranscriptSystemCard>
+    return createSystemMessageView(
+      item.summaryText ?? "Editing files",
+      true,
+      item.summaryText === undefined ? "File changes" : undefined
     )
   }
 
   if (item.type === "webSearch") {
-    return (
-      <TranscriptSystemCard item={item} label="Web search">
-        <TranscriptText text={item.query ?? "Search request"} />
-      </TranscriptSystemCard>
+    return createSystemMessageView(
+      item.query ?? "Search request",
+      false,
+      item.query === undefined ? "Web search" : undefined
     )
   }
 
@@ -191,83 +384,59 @@ function TranscriptItemView({ item }: { item: ThreadTranscriptItem }) {
     item.type === "dynamicToolCall" ||
     item.type === "collabToolCall"
   ) {
-    return (
-      <TranscriptSystemCard item={item} label={item.tool ?? "Tool call"}>
-        <TranscriptText
-          text={
-            item.resultText ??
-            item.argumentsText ??
-            item.server ??
-            "Tool call in progress"
-          }
-        />
-      </TranscriptSystemCard>
+    const text =
+      item.resultText ??
+      item.argumentsText ??
+      item.server ??
+      "Tool call in progress"
+    const fallbackName =
+      item.type === "mcpToolCall"
+        ? "MCP tool call"
+        : item.type === "dynamicToolCall"
+          ? "Dynamic tool call"
+          : "Collab tool call"
+
+    return createSystemMessageView(
+      text,
+      true,
+      item.resultText === undefined &&
+        item.argumentsText === undefined &&
+        item.server === undefined
+        ? fallbackName
+        : undefined
     )
   }
 
-  return (
-    <TranscriptSystemCard item={item} label={item.type}>
-      <TranscriptText
-        text={item.contentText ?? item.summaryText ?? item.resultText ?? item.status ?? ""}
-      />
-    </TranscriptSystemCard>
+  const text =
+    item.contentText ??
+    item.summaryText ??
+    item.resultText ??
+    item.status ??
+    "No content."
+
+  return createSystemMessageView(
+    text,
+    true,
+    item.contentText === undefined &&
+      item.summaryText === undefined &&
+      item.resultText === undefined &&
+      item.status === undefined
+      ? "No content"
+      : undefined
   )
 }
 
-function TranscriptBubble({
-  align,
-  children,
-  label,
-}: {
-  align: "left" | "right"
-  children: React.ReactNode
-  label: string
-}) {
-  return (
-    <div className={align === "right" ? "flex justify-end" : "flex justify-start"}>
-      <div
-        className={[
-          "max-w-[88%] rounded-md px-3 py-2 text-xs leading-5",
-          align === "right"
-            ? "bg-primary text-primary-foreground"
-            : "border border-border/70 bg-muted/50 text-foreground",
-        ].join(" ")}
-      >
-        <div className="mb-1 text-[10px] font-medium opacity-70">{label}</div>
-        {children}
-      </div>
-    </div>
-  )
-}
-
-function TranscriptSystemCard({
-  children,
-  item,
-  label,
-}: {
-  children: React.ReactNode
-  item: ThreadTranscriptItem
-  label: string
-}) {
-  return (
-    <div className="rounded-md border border-border/70 bg-muted/25 px-3 py-2 text-xs">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <div className="truncate font-medium text-foreground">{label}</div>
-        {item.status ? (
-          <Badge variant="outline" className="h-5 text-[10px]">
-            {item.status}
-          </Badge>
-        ) : null}
-      </div>
-      <div className="text-muted-foreground">{children}</div>
-    </div>
-  )
-}
-
-function TranscriptText({ text }: { text: string }) {
-  if (!text.trim()) {
-    return <span className="text-muted-foreground">No content.</span>
+function createSystemMessageView(
+  text: string,
+  markdown: boolean,
+  fallbackName?: string
+): TranscriptMessageView {
+  return {
+    align: "left" as const,
+    fallbackName,
+    isFallback: fallbackName !== undefined,
+    kind: "system" as const,
+    markdown,
+    text,
   }
-
-  return <PetMarkdownText text={text} />
 }

@@ -31,6 +31,16 @@ export type AgentHtmlIntentDeliveryResult =
       provider: "codex_app_server"
     }
 
+export function isCodexThreadNotFoundError(error: string) {
+  const normalized = error.toLowerCase()
+  return (
+    normalized.includes("thread notfound") ||
+    normalized.includes("thread not found") ||
+    normalized.includes("thread_not_found") ||
+    normalized.includes("thread not_found")
+  )
+}
+
 function createEventId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID()
@@ -141,7 +151,9 @@ function createBlockPromptText({
 }
 
 export async function deliverAgentHtmlIntent(input: {
+  clearStaleThread?: (threadId: string) => Promise<void>
   document: ProjectSectionDocument
+  ensureThread?: () => Promise<string>
   parsedDocument?: AgentHtmlDocument
   project: WorkspaceProjectView
   section: WorkspaceSection
@@ -173,11 +185,14 @@ export async function deliverAgentHtmlIntent(input: {
       })
     : input.submit.prompt
 
-  try {
-    const turn = await input.startTurn({
+  const startTurn = async (threadId: string) =>
+    input.startTurn({
       promptText,
-      threadId: input.threadId,
+      threadId,
     })
+
+  try {
+    const turn = await startTurn(input.threadId)
 
     return {
       eventId,
@@ -188,8 +203,36 @@ export async function deliverAgentHtmlIntent(input: {
       turnId: turn.turnId ?? null,
     }
   } catch (error) {
+    const message = getErrorMessage(error)
+    if (
+      input.ensureThread &&
+      isCodexThreadNotFoundError(message)
+    ) {
+      await input.clearStaleThread?.(input.threadId)
+      try {
+        const nextThreadId = await input.ensureThread()
+        const turn = await startTurn(nextThreadId)
+        return {
+          eventId,
+          ok: true,
+          promptText,
+          provider: "codex_app_server",
+          threadId: turn.threadId,
+          turnId: turn.turnId ?? null,
+        }
+      } catch (retryError) {
+        return {
+          error: getErrorMessage(retryError),
+          eventId,
+          ok: false,
+          promptText,
+          provider: "codex_app_server",
+        }
+      }
+    }
+
     return {
-      error: getErrorMessage(error),
+      error: message,
       eventId,
       ok: false,
       promptText,

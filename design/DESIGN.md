@@ -42,6 +42,7 @@ The system should continue to feel:
 - border-defined rather than shadow-defined
 - utility-dense rather than airy
 - modular rather than narrative
+- low-chrome rather than container-heavy
 - consistent across modes rather than visually reinvented per view
 
 Accent color should remain sparse and purposeful.
@@ -130,6 +131,17 @@ uniform `card` surface.
 
 The interface should feel assembled from calm planes rather than carved into many outlined boxes.
 
+The preferred surface model is low-chrome layered planes: a small number of stable surfaces should
+carry the shell, workspace, and module hierarchy. Avoid nested container UI, where each region is
+wrapped in another visible card, panel, border, radius, or background merely to create depth.
+This stacked-cake effect weakens scan speed and makes the product feel heavier than its operating
+model requires.
+
+Containers are still valid when they express a real structural boundary, object identity, or
+interaction scope. They should not be used as the default way to make every subsection visible.
+Inside an existing module, prefer spacing, typography, separators, alignment, and state treatment
+before adding another container surface.
+
 ## 9. Interaction Philosophy
 Interaction feedback should reinforce spatial roles instead of competing with them.
 
@@ -158,6 +170,7 @@ The system should stay aligned with these principles:
 - Prefer stable shell patterns over one-off page expression.
 - Prefer mode swaps inside the shell over fragmenting the product into unrelated frames.
 - Prefer compositional discipline over stylistic novelty.
+- Prefer low-chrome layered planes over nested container depth.
 
 Implementation rules, token structure, typography roles, layout standards, and component standards
 are defined in `design/`.

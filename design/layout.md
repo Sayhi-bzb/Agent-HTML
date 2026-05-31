@@ -147,6 +147,10 @@ Panels are the standard content container at the layout level.
 - spacing inside panels SHOULD stay consistent across pages
 - panels inside the workspace SHOULD feel like secondary structure inside the main work surface,
   not like peers of the shell itself
+- panels SHOULD use internal spacing, headings, separators, alignment, and state markers before
+  introducing another visible container layer
+- panels MUST NOT default to card-inside-card or section-inside-section structures unless the inner
+  surface represents a distinct object, placeholder, disclosure, or interaction scope
 
 ## Responsive Rules
 
@@ -179,6 +183,8 @@ The following should be rejected by default:
   surface
 - oversized empty whitespace bands
 - inconsistent card padding from page to page
+- nested container or stacked-cake layouts where visual hierarchy comes from repeated cards,
+  borders, backgrounds, and radii instead of stable planes and clear structure
 - bespoke breakpoint logic for one screen
 - decorative asymmetry without task value
 - creating a second shell for a mode change that could live inside the current operating frame

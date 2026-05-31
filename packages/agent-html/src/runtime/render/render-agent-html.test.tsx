@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs"
 import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
 import { inferAgentHtmlInteractionUnits } from "@/agent-html/interaction/infer-interaction-units"
@@ -100,6 +100,7 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("Typography block")
     expect(html).toContain("data-slot=\"text\"")
     expect(html).toContain("data-variant=\"h2\"")
+    expect(html).toContain("data-selection=\"none\"")
     expect(html).toContain("<code")
   })
 
@@ -139,6 +140,7 @@ describe("renderAgentHtml", () => {
 
     const html = renderToStaticMarkup(renderAgentHtml(document))
     expect(html).toContain("data-slot=\"code-block\"")
+    expect(html).toContain("data-selection=\"text\"")
     expect(html).toContain("data-slot=\"intrinsic-scroll-frame\"")
     expect(html).toContain("data-slot=\"code-block-copy\"")
     expect(html).toContain("Example.tsx")

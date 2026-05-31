@@ -26,7 +26,7 @@ type AgentDeliveryState =
   | { status: "idle" }
   | { status: "sending" }
   | { status: "interrupting" }
-  | { detail: string; status: "sent" }
+  | { status: "sent" }
   | { detail: string; status: "error" }
 
 type InterruptTarget = {
@@ -47,10 +47,6 @@ function getAgentDeliveryPresence(
         kind: "running",
         label: "starting turn",
       },
-      message: {
-        mode: "transient",
-        text: "Sending request to Codex.",
-      },
       mood: "working",
     }
   }
@@ -70,13 +66,7 @@ function getAgentDeliveryPresence(
   }
 
   if (agentDeliveryState.status === "sent") {
-    return {
-      message: {
-        mode: "final",
-        text: agentDeliveryState.detail,
-      },
-      mood: "review",
-    }
+    return undefined
   }
 
   return {
@@ -176,6 +166,8 @@ export function useWorkspaceAgentController({
         .then((threadId) =>
           deliverAgentHtmlIntent({
             document,
+            clearStaleThread: threadController.clearCompanyAgentThread,
+            ensureThread: threadController.ensureCompanyAgentThread,
             parsedDocument: runtime.parsedDocument,
             project: activeProject,
             section: activeSection,
@@ -200,10 +192,7 @@ export function useWorkspaceAgentController({
               threadId: result.threadId,
               turnId: result.turnId,
             })
-            setAgentDeliveryState({
-              detail: "Sent to Codex.",
-              status: "sent",
-            })
+            setAgentDeliveryState({ status: "sent" })
             lastInteractionRef.current = null
             return
           }

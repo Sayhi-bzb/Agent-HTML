@@ -23,6 +23,7 @@
     "i18n:compile": "lingui compile --config config/lingui.config.ts --namespace es",
     "lint": "eslint . --config config/eslint.config.js",
     "knip": "knip",
+    "knip:report": "knip --no-exit-code --reporter compact",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "test": "vitest run --config config/vitest.config.mjs",
     "tauri": "tauri",

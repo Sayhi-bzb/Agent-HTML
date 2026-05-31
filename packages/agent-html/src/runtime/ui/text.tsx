@@ -44,7 +44,7 @@ function getTextProps({ className, variant, ...props }: TextProps) {
   return {
     "data-slot": "text",
     "data-variant": variant ?? "p",
-    "data-selection": "text",
+    "data-selection": "none",
     className: cn(textVariants({ variant }), className),
     ...props,
   }

@@ -196,4 +196,11 @@ mod tests {
         assert!(!TRACE_SOURCE.contains("resolve_workspace_root"));
         assert!(!WORKSPACE_SOURCE.contains("resolve_workspace_root"));
     }
+
+    #[test]
+    fn codex_host_start_syncs_managed_agent_html_skill() {
+        assert!(SERVICE_SOURCE.contains("store.ensure_agent_html_skill()?"));
+        assert!(SERVICE_SOURCE.find("store.ensure_agent_html_skill()?").unwrap()
+            < SERVICE_SOURCE.find("spawn_codex_process(").unwrap());
+    }
 }

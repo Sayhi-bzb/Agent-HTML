@@ -7,12 +7,13 @@ import type {
   CodexRuntimeStatus,
 } from "@/app/codex/connection"
 import type { CodexRuntimeCapabilityItem } from "@/app/codex/connection/types"
-import { Button } from "@/app/shared/ui/button"
 import {
-  PopoverDescription,
-  PopoverHeader,
-  PopoverTitle,
-} from "@/app/shared/ui/popover"
+  PetPanelBody,
+  PetPanelFooter,
+  PetPanelHeader,
+} from "@/app/pet/host/pet-panel"
+import { Button } from "@/app/shared/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/shared/ui/tabs"
 import { Textarea } from "@/app/shared/ui/textarea"
 import { SettingsInfoPanel } from "@/app/shell/settings-surface"
 import { createWorkspaceStore } from "@/app/workspace/store"
@@ -234,85 +235,73 @@ export function PetSettingsContent() {
     codexConnection.status !== "connected" || runtimeStatus.status === "loading"
 
   return (
-    <div className="flex flex-col gap-3" data-pet-settings-no-drag="">
-      <div className="flex items-start justify-between gap-3">
-        <PopoverHeader className="min-w-0 flex-1" data-selection="none">
-          <PopoverTitle>AgentHTML settings</PopoverTitle>
-          <PopoverDescription>
-            Review the workspace files and Codex app-server surfaces this pet can
-            reach.
-          </PopoverDescription>
-        </PopoverHeader>
-        <Button
-          disabled={isRuntimeRefreshDisabled}
-          onClick={refreshRuntimeStatus}
-          size="sm"
-          type="button"
-          variant="outline"
-        >
-          <RotateCwIcon aria-hidden="true" className="size-3.5" />
-          {runtimeStatus.status === "loading" ? "Loading" : "Refresh"}
-        </Button>
-      </div>
-      <div
+    <Tabs
+      className="min-h-0 gap-0"
+      data-pet-settings-no-drag=""
+      onValueChange={(value) => setActiveView(value as SettingsView)}
+      value={activeView}
+    >
+      <PetPanelHeader
+        actions={
+          <Button
+            disabled={isRuntimeRefreshDisabled}
+            onClick={refreshRuntimeStatus}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            <RotateCwIcon aria-hidden="true" className="size-3.5" />
+            {runtimeStatus.status === "loading" ? "Loading" : "Refresh"}
+          </Button>
+        }
+        className="px-0 py-0"
+        description="Review the workspace files and Codex app-server surfaces this pet can reach."
+        title="AgentHTML settings"
+      />
+      <TabsList
         aria-label="AgentHTML settings views"
-        className="grid grid-cols-5 gap-1 rounded-lg border border-border/60 bg-muted/20 p-1"
-        data-selection="none"
-        role="tablist"
+        className="mt-3 grid h-auto w-full grid-cols-5"
       >
         {settingsViews.map((view) => (
-          <button
-            aria-selected={activeView === view}
-            className={[
-              "rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors",
-              "hover:bg-background hover:text-foreground",
-              activeView === view
-                ? "bg-background text-foreground shadow-sm"
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            key={view}
-            onClick={() => setActiveView(view)}
-            role="tab"
-            type="button"
-          >
+          <TabsTrigger className="text-xs" key={view} value={view}>
             {view}
-          </button>
+          </TabsTrigger>
         ))}
-      </div>
-      {activeView === "Instructions" ? (
-        <InstructionsView
-          draft={draft}
-          error={error}
-          isDirty={isDirty}
-          isLoading={isLoading}
-          isSaving={isSaving}
-          loadInstructions={loadInstructions}
-          saveInstructions={saveInstructions}
-          setDraft={setDraft}
-          setStatus={setStatus}
-          status={status}
-        />
-      ) : null}
-      {activeView === "Skills" ? (
-        <SkillsView runtimeStatus={runtimeStatus} />
-      ) : null}
-      {activeView === "MCP" ? (
-        <McpView runtimeStatus={runtimeStatus} />
-      ) : null}
-      {activeView === "Plugins" ? (
-        <PluginsView runtimeStatus={runtimeStatus} />
-      ) : null}
-      {activeView === "Runtime" ? (
-        <RuntimeView
-          codexCommand={codexConnection.health?.codexCommand ?? "unknown"}
-          connectionStatus={codexConnection.status}
-          cwd={codexConnection.health?.cwd ?? "unknown"}
-          runtimeStatus={runtimeStatus}
-        />
-      ) : null}
-    </div>
+      </TabsList>
+      <PetPanelBody className="mt-3 px-0 py-0" scroll={false}>
+        <TabsContent value="Instructions">
+          <InstructionsView
+            draft={draft}
+            error={error}
+            isDirty={isDirty}
+            isLoading={isLoading}
+            isSaving={isSaving}
+            loadInstructions={loadInstructions}
+            saveInstructions={saveInstructions}
+            setDraft={setDraft}
+            setStatus={setStatus}
+            status={status}
+          />
+        </TabsContent>
+        <TabsContent value="Skills">
+          <SkillsView runtimeStatus={runtimeStatus} />
+        </TabsContent>
+        <TabsContent value="MCP">
+          <McpView runtimeStatus={runtimeStatus} />
+        </TabsContent>
+        <TabsContent value="Plugins">
+          <PluginsView runtimeStatus={runtimeStatus} />
+        </TabsContent>
+        <TabsContent value="Runtime">
+          <RuntimeView
+            codexCommand={codexConnection.health?.codexCommand ?? "unknown"}
+            connectionStatus={codexConnection.status}
+            cwd={codexConnection.health?.cwd ?? "unknown"}
+            runtimeStatus={runtimeStatus}
+          />
+        </TabsContent>
+      </PetPanelBody>
+    </Tabs>
   )
 }
 
@@ -340,7 +329,7 @@ function InstructionsView({
   status: "idle" | "saved"
 }) {
   return (
-    <>
+    <div className="flex flex-col gap-3">
       <PathInfoRow label="File" value="AgentHTML/AGENTS.md" />
       <div className="flex min-h-0 flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
@@ -378,10 +367,7 @@ function InstructionsView({
       {!error && status === "saved" ? (
         <SettingsInfoPanel>Saved to AgentHTML/AGENTS.md.</SettingsInfoPanel>
       ) : null}
-      <div
-        className="flex items-center justify-end gap-2"
-        data-selection="none"
-      >
+      <PetPanelFooter className="px-0 py-0">
         <Button
           disabled={isLoading || isSaving}
           onClick={loadInstructions}
@@ -401,8 +387,8 @@ function InstructionsView({
           <SaveIcon aria-hidden="true" className="size-3.5" />
           {isSaving ? "Saving" : "Save"}
         </Button>
-      </div>
-    </>
+      </PetPanelFooter>
+    </div>
   )
 }
 

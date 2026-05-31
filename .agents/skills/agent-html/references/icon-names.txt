@@ -1,0 +1,4 @@
+# AgentHTML managed Lucide icon index.
+folder
+workflow
+panel-top
