@@ -45,6 +45,9 @@ const threadPanelWindowAppPath = fileURLToPath(
 const petSettingsPath = fileURLToPath(
   new URL("./pet-settings-content.tsx", import.meta.url)
 )
+const petSettingsSessionPath = fileURLToPath(
+  new URL("./settings/pet-settings-session.tsx", import.meta.url)
+)
 const petSettingsNativeBridgePath = fileURLToPath(
   new URL("./pet-settings-native-bridge.ts", import.meta.url)
 )
@@ -102,6 +105,7 @@ const threadPanelWindowAppSource = readFileSync(
   "utf8"
 )
 const petSettingsSource = readFileSync(petSettingsPath, "utf8")
+const petSettingsSessionSource = readFileSync(petSettingsSessionPath, "utf8")
 const petSettingsNativeBridgeSource = readFileSync(
   petSettingsNativeBridgePath,
   "utf8"
@@ -194,7 +198,8 @@ describe("pet host contract", () => {
     expect(hostSessionSource).toContain("PetSettingsBridge")
     expect(hostSessionSource).toContain("PetSettingsDispatch")
     expect(hostSessionSource).toContain("PetSettingsSurfaceSnapshot")
-    expect(hostSessionSource).toContain("settingsDispatchRef")
+    expect(hostSessionSource).toContain("settingsDispatch")
+    expect(hostSessionSource).toContain("setSettingsDispatch")
     expect(hostSessionSource).toContain("setSettingsSnapshot")
     expect(hostSessionSource).toContain("handleSettingsClose")
     expect(hostSessionSource).toContain("handleSettingsBridgeChange")
@@ -440,12 +445,18 @@ describe("pet host contract", () => {
   })
 
   it("keeps pet settings UI behind a secondary-window surface boundary", () => {
-    expect(petSettingsSource).toContain("export function PetSettingsSurface")
+    expect(petSettingsSource).toContain(
+      'from "./settings/pet-settings-surface"'
+    )
+    expect(petSettingsSource).toContain(
+      'from "./settings/pet-settings-session"'
+    )
+    expect(petSettingsSource).toContain('from "./settings/types"')
     expect(petSettingsSource).toContain("PetSettingsSurfaceSnapshot")
     expect(petSettingsSource).toContain("PetSettingsAction")
     expect(petSettingsSource).toContain("PetSettingsBridge")
-    expect(petSettingsSource).toContain("onBridgeChange")
-    expect(petSettingsSource).toContain("renderSurface")
+    expect(petSettingsSessionSource).toContain("onBridgeChange")
+    expect(petSettingsSessionSource).toContain("renderSurface")
     expect(petSettingsNativeBridgeSource).toContain(
       'PET_SETTINGS_WINDOW_LABEL = "pet-settings"'
     )

@@ -35,7 +35,7 @@ export function PetSettingsSurface({
   subtitle?: string
 }) {
   const { dispatch, snapshot } = bridge
-  const { activeView, agents, codex } = snapshot
+  const { activeView, codex } = snapshot
   const runtimeStatus = codex.runtimeStatus
   const isRuntimeRefreshDisabled =
     codex.status !== "connected" || runtimeStatus.status === "loading"
@@ -147,56 +147,8 @@ export function PetSettingsSurface({
                 </SettingsInfoPanel>
               ) : null}
               <SettingsViewContent
-                activeView={activeView}
-                agentsPath={agents.path}
-                canManageHost={codex.canManageHost}
-                codexCommand={codex.health?.codexCommand ?? "unknown"}
-                codexConnectionStatus={codex.status}
-                connectionStatus={codex.status}
-                cwd={codex.health?.cwd ?? "unknown"}
-                draft={agents.draft}
-                draftCodexCommand={codex.draftSettings.codexCommand}
-                draftWorkspaceRootPath={codex.draftWorkspaceRootPath}
-                error={agents.error}
-                healthAppServerRunning={codex.health?.appServerRunning}
-                isCodexBusy={codex.isBusy}
-                isCodexLoaded={codex.isLoaded}
-                isDirty={agents.isDirty}
-                isLoading={agents.isLoading}
-                isSaving={agents.isSaving}
-                lastError={codex.lastError}
-                loadInstructions={() => {
-                  dispatch({ type: "reload-agents-instructions" })
-                }}
-                onDraftCodexCommandChange={(command) =>
-                  dispatch({ command, type: "set-codex-command" })
-                }
-                onDraftWorkspaceRootPathChange={(path) =>
-                  dispatch({ path, type: "set-workspace-root-path" })
-                }
-                onRestart={() => dispatch({ type: "restart-codex" })}
-                onSaveCodexSettings={() =>
-                  dispatch({ type: "save-codex-settings" })
-                }
-                onSaveWorkspaceRoot={() =>
-                  dispatch({ type: "save-workspace-root" })
-                }
-                onStop={() => dispatch({ type: "stop-codex" })}
-                onTestConnection={() => dispatch({ type: "test-codex" })}
-                queueMutation={(mutation) =>
-                  dispatch({ mutation, type: "queue-mutation" })
-                }
-                runtimeStatus={runtimeStatus}
-                saveInstructions={() => {
-                  dispatch({ type: "save-agents-instructions" })
-                }}
-                source={agents.source}
-                setDraft={(draft) =>
-                  dispatch({ draft, type: "set-agents-draft" })
-                }
-                status={agents.status}
-                workspaceRootNotice={codex.workspaceRootNotice}
-                workspaceRootStatus={codex.workspaceRootStatus}
+                dispatch={dispatch}
+                snapshot={snapshot}
               />
             </div>
           </ScrollArea>
