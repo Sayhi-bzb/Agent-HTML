@@ -1,10 +1,7 @@
 import * as React from "react"
 import { BrushIcon, PackageIcon, SparklesIcon } from "lucide-react"
 
-import type {
-  AgentHtmlColorCssVariables,
-  AgentHtmlColorTokenValues,
-} from "@/agent-html"
+import type { AgentHtmlColorTokenValues } from "@/agent-html"
 import {
   defaultEnabledGalleryComponentTags,
   galleryComponentMarketAllCategory,
@@ -12,7 +9,11 @@ import {
   type GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
 import { createGalleryComponentMarketStore } from "@/app/gallery/component-market-store"
-import { GalleryPanel } from "@/app/gallery/panel"
+import {
+  GalleryPanel,
+  preloadGalleryComponentMarketView,
+  preloadGalleryWorkspaceSurface,
+} from "@/app/gallery/panel"
 import {
   GalleryLazyComponentMarketSidebarFooter,
   GalleryLazyComponentMarketSidebarHeader,
@@ -33,21 +34,19 @@ import {
   type AppThemePresetId,
 } from "@/app/shared/app-theme/tokens"
 import {
-  applyAppTheme,
   areAppThemeDraftsEqual,
   createAppPresetThemeDraft,
-  createDefaultAppThemeDraft,
-  loadAppliedAppTheme,
   resolveAppThemeColorTokenValues,
   resolveAppThemeCssVariables,
-  saveAppliedAppTheme,
   updateAppThemeDraftColorTokenValue,
   updateAppThemeDraftCssVariable,
   updateAppThemeDraftCssVariables,
 } from "@/app/shared/app-theme/theme"
 import type { AppThemeEditableVariableName } from "@/app/shared/app-theme/variables"
 import type { HeaderTab } from "@/app/shell/site-header"
-import { useTheme } from "@/app/shared/theme-context"
+import { useAppliedAppTheme } from "@/app/shared/app-theme/applied-theme-context"
+import { useColorMode } from "@/app/shared/color-mode-context"
+import { Skeleton } from "@/app/shared/ui/skeleton"
 
 const galleryViewIcons: Record<
   GalleryViewId,
@@ -60,19 +59,20 @@ const galleryViewIcons: Record<
 
 const galleryComponentMarketStore = createGalleryComponentMarketStore()
 
+function preloadGalleryEditorPanel() {
+  void import("@/app/gallery/editor")
+}
+
+function preloadGalleryThemeView() {
+  preloadGalleryEditorPanel()
+  preloadGalleryWorkspaceSurface()
+}
+
 const GalleryEditorPanel = React.lazy(() =>
   import("@/app/gallery/editor").then((module) => ({
     default: module.GalleryEditorPanel,
   }))
 )
-
-function getInitialAppliedAppTheme() {
-  if (typeof window === "undefined") {
-    return createDefaultAppThemeDraft()
-  }
-
-  return loadAppliedAppTheme() ?? createDefaultAppThemeDraft()
-}
 
 export function useGalleryController({
   canLeaveWorkspace,
@@ -83,11 +83,14 @@ export function useGalleryController({
   onActivateGallery: () => void
   onActivateWorkspace: () => void
 }) {
-  const { resolvedTheme } = useTheme()
-  const [appliedAppThemeDraft, setAppliedAppThemeDraft] =
-    React.useState(getInitialAppliedAppTheme)
+  const { resolvedColorMode } = useColorMode()
+  const {
+    appliedThemeCssVariables,
+    appliedThemeDraft,
+    saveAppliedThemeDraft,
+  } = useAppliedAppTheme()
   const [appThemeDraft, setAppThemeDraft] = React.useState(
-    () => appliedAppThemeDraft
+    () => appliedThemeDraft
   )
   const [isExitDialogOpen, setIsExitDialogOpen] = React.useState(false)
   const [activeViewId, setActiveViewId] = React.useState<GalleryViewId>("theme")
@@ -106,10 +109,7 @@ export function useGalleryController({
     React.useState<GalleryThemeEditorSectionId>("color")
   const [pendingViewId, setPendingViewId] =
     React.useState<GalleryViewId | null>(null)
-
-  React.useEffect(() => {
-    applyAppTheme(appliedAppThemeDraft)
-  }, [appliedAppThemeDraft])
+  const [, startThemeTransition] = React.useTransition()
 
   React.useEffect(() => {
     let isCurrent = true
@@ -135,31 +135,22 @@ export function useGalleryController({
   }, [])
 
   const isThemeDirty = React.useMemo(
-    () => !areAppThemeDraftsEqual(appThemeDraft, appliedAppThemeDraft),
-    [appliedAppThemeDraft, appThemeDraft]
+    () => !areAppThemeDraftsEqual(appThemeDraft, appliedThemeDraft),
+    [appliedThemeDraft, appThemeDraft]
   )
 
   const colorTokenValues = React.useMemo(
     () =>
       resolveAppThemeColorTokenValues(
         appThemeDraft,
-        resolvedTheme
+        resolvedColorMode
       ) as AgentHtmlColorTokenValues,
-    [appThemeDraft, resolvedTheme]
-  )
-
-  const appliedThemeCssVariables = React.useMemo(
-    () =>
-      resolveAppThemeCssVariables(
-        appliedAppThemeDraft,
-        resolvedTheme
-      ) as AgentHtmlColorCssVariables,
-    [appliedAppThemeDraft, resolvedTheme]
+    [appThemeDraft, resolvedColorMode]
   )
 
   const themeCssVariables = React.useMemo(
-    () => resolveAppThemeCssVariables(appThemeDraft, resolvedTheme),
-    [appThemeDraft, resolvedTheme]
+    () => resolveAppThemeCssVariables(appThemeDraft, resolvedColorMode),
+    [appThemeDraft, resolvedColorMode]
   )
 
   const activeThemePresetId =
@@ -183,12 +174,11 @@ export function useGalleryController({
       return
     }
 
-    setAppThemeDraft(appliedAppThemeDraft)
     setIsExitDialogOpen(false)
     setPendingViewId(null)
-    setActiveViewId("theme")
+    preloadGalleryThemeView()
     onActivateGallery()
-  }, [appliedAppThemeDraft, canLeaveWorkspace, onActivateGallery])
+  }, [canLeaveWorkspace, onActivateGallery])
 
   const requestExitGallery = React.useCallback(() => {
     if (activeViewId === "theme" && isThemeDirty) {
@@ -197,9 +187,9 @@ export function useGalleryController({
       return
     }
 
-    setAppThemeDraft(appliedAppThemeDraft)
+    setAppThemeDraft(appliedThemeDraft)
     onActivateWorkspace()
-  }, [activeViewId, appliedAppThemeDraft, isThemeDirty, onActivateWorkspace])
+  }, [activeViewId, appliedThemeDraft, isThemeDirty, onActivateWorkspace])
 
   const selectViewTab = React.useCallback(
     (tabId: string) => {
@@ -211,6 +201,13 @@ export function useGalleryController({
         setPendingViewId(tabId)
         setIsExitDialogOpen(true)
         return
+      }
+
+      if (tabId === "theme") {
+        preloadGalleryThemeView()
+      }
+      if (tabId === "components") {
+        preloadGalleryComponentMarketView()
       }
 
       setActiveViewId(tabId)
@@ -226,13 +223,11 @@ export function useGalleryController({
   }, [])
 
   const applyTheme = React.useCallback(() => {
-    saveAppliedAppTheme(appThemeDraft)
-    setAppliedAppThemeDraft(appThemeDraft)
-  }, [appThemeDraft])
+    saveAppliedThemeDraft(appThemeDraft)
+  }, [appThemeDraft, saveAppliedThemeDraft])
 
   const saveAndExit = React.useCallback(() => {
-    saveAppliedAppTheme(appThemeDraft)
-    setAppliedAppThemeDraft(appThemeDraft)
+    saveAppliedThemeDraft(appThemeDraft)
     setIsExitDialogOpen(false)
     if (pendingViewId) {
       setActiveViewId(pendingViewId)
@@ -241,10 +236,10 @@ export function useGalleryController({
     }
 
     onActivateWorkspace()
-  }, [appThemeDraft, onActivateWorkspace, pendingViewId])
+  }, [appThemeDraft, onActivateWorkspace, pendingViewId, saveAppliedThemeDraft])
 
   const discardAndExit = React.useCallback(() => {
-    setAppThemeDraft(appliedAppThemeDraft)
+    setAppThemeDraft(appliedThemeDraft)
     setIsExitDialogOpen(false)
     if (pendingViewId) {
       setActiveViewId(pendingViewId)
@@ -253,7 +248,7 @@ export function useGalleryController({
     }
 
     onActivateWorkspace()
-  }, [appliedAppThemeDraft, onActivateWorkspace, pendingViewId])
+  }, [appliedThemeDraft, onActivateWorkspace, pendingViewId])
 
   const selectThemePreset = React.useCallback((presetId: AppThemePresetId) => {
     const draft = createAppPresetThemeDraft(presetId)
@@ -261,8 +256,10 @@ export function useGalleryController({
       return
     }
 
-    setAppThemeDraft(draft)
-  }, [])
+    startThemeTransition(() => {
+      setAppThemeDraft(draft)
+    })
+  }, [startThemeTransition])
 
   const changeEnabledComponentTags = React.useCallback(
     (nextEnabledTags: EnabledGalleryComponentTags) => {
@@ -327,36 +324,42 @@ export function useGalleryController({
               token: AppColorTokenName,
               value: AppColorTokenValue
             ) =>
-              setAppThemeDraft((current) =>
-                updateAppThemeDraftColorTokenValue({
-                  draft: current,
-                  resolvedMode: resolvedTheme,
-                  token,
-                  value,
-                })
-              )
+              startThemeTransition(() => {
+                setAppThemeDraft((current) =>
+                  updateAppThemeDraftColorTokenValue({
+                    draft: current,
+                    resolvedMode: resolvedColorMode,
+                    token,
+                    value,
+                  })
+                )
+              })
             }
             onCssVariableChange={(
               name: AppThemeEditableVariableName,
               value: string
             ) =>
-              setAppThemeDraft((current) =>
-                updateAppThemeDraftCssVariable({
-                  draft: current,
-                  name,
-                  resolvedMode: resolvedTheme,
-                  value,
-                })
-              )
+              startThemeTransition(() => {
+                setAppThemeDraft((current) =>
+                  updateAppThemeDraftCssVariable({
+                    draft: current,
+                    name,
+                    resolvedMode: resolvedColorMode,
+                    value,
+                  })
+                )
+              })
             }
             onCssVariablesChange={(values) =>
-              setAppThemeDraft((current) =>
-                updateAppThemeDraftCssVariables({
-                  draft: current,
-                  resolvedMode: resolvedTheme,
-                  values,
-                })
-              )
+              startThemeTransition(() => {
+                setAppThemeDraft((current) =>
+                  updateAppThemeDraftCssVariables({
+                    draft: current,
+                    resolvedMode: resolvedColorMode,
+                    values,
+                  })
+                )
+              })
             }
             sectionId={activeThemeEditorSectionId}
           />
@@ -373,7 +376,8 @@ export function useGalleryController({
       activeViewId,
       colorTokenValues,
       componentMarketFilters,
-      resolvedTheme,
+      resolvedColorMode,
+      startThemeTransition,
       themeCssVariables,
     ]
   )
@@ -453,5 +457,21 @@ export function useGalleryController({
 export type GalleryController = ReturnType<typeof useGalleryController>
 
 function GallerySidebarFallback() {
-  return <div className="min-h-32" />
+  return (
+    <div className="flex flex-col gap-4 px-2 py-2" data-selection="none">
+      {Array.from({ length: 3 }).map((_, groupIndex) => (
+        <div className="space-y-2" key={groupIndex}>
+          <Skeleton className="h-3 w-24" />
+          <div className="space-y-1.5">
+            {Array.from({ length: 3 }).map((__, rowIndex) => (
+              <div className="flex items-center gap-2" key={rowIndex}>
+                <Skeleton className="size-5 rounded-full" />
+                <Skeleton className="h-8 flex-1" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }

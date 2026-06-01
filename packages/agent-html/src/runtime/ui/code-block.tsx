@@ -4,6 +4,32 @@ import { CheckIcon, CopyIcon } from "lucide-react"
 import { cn } from "@/agent-html/lib/utils"
 import { buttonVariants } from "@/agent-html/runtime/ui/button"
 import { IntrinsicScrollFrame } from "@/agent-html/runtime/ui/intrinsic-scroll-frame"
+import { schedulePostReadyTask } from "@/agent-html/runtime/scheduling/post-ready-task-scheduler"
+
+type HighlightedCode = {
+  darkHtml: string
+  html: string
+}
+
+const highlightedCodeCache = new Map<string, HighlightedCode>()
+const maxHighlightedCodeCacheEntries = 32
+
+function writeHighlightedCodeCache(key: string, highlightedCode: HighlightedCode) {
+  if (!highlightedCode.html || !highlightedCode.darkHtml) {
+    return
+  }
+
+  highlightedCodeCache.set(key, highlightedCode)
+
+  if (highlightedCodeCache.size <= maxHighlightedCodeCacheEntries) {
+    return
+  }
+
+  const [oldestKey] = highlightedCodeCache.keys()
+  if (oldestKey) {
+    highlightedCodeCache.delete(oldestKey)
+  }
+}
 
 function CodeBlockFallback({ code }: { code: string }) {
   return (
@@ -46,33 +72,60 @@ function CodeBlock({
   const [darkHtml, setDarkHtml] = React.useState("")
   const code = React.Children.toArray(children).join("")
   const label = title || language
+  const highlightCacheKey = `${language}\n${code}`
 
   React.useEffect(() => {
     let mounted = true
+    const cachedHighlightedCode = highlightedCodeCache.get(highlightCacheKey)
 
-    import("@/agent-html/runtime/ui/code-highlighter")
-      .then(({ highlightCode }) => highlightCode(code, language))
-      .then((highlightedCode) => {
-        if (!mounted) {
-          return
-        }
+    if (cachedHighlightedCode) {
+      setHtml(cachedHighlightedCode.html)
+      setDarkHtml(cachedHighlightedCode.darkHtml)
+      return () => {
+        mounted = false
+      }
+    }
 
-        setHtml(highlightedCode?.html ?? "")
-        setDarkHtml(highlightedCode?.darkHtml ?? "")
-      })
-      .catch(() => {
-        if (!mounted) {
-          return
-        }
+    setHtml("")
+    setDarkHtml("")
+    const scheduledHighlight = schedulePostReadyTask({
+      delay: 500,
+      id: `code-highlight:${highlightCacheKey}`,
+      idleTimeout: 1800,
+      priority: "visible-enhancement",
+      run: () => {
+        import("@/agent-html/runtime/ui/code-highlighter")
+          .then(({ highlightCode }) => highlightCode(code, language))
+          .then((highlightedCode) => {
+            if (!mounted) {
+              return
+            }
 
-        setHtml("")
-        setDarkHtml("")
-      })
+            const nextHighlightedCode = {
+              html: highlightedCode?.html ?? "",
+              darkHtml: highlightedCode?.darkHtml ?? "",
+            }
+
+            writeHighlightedCodeCache(highlightCacheKey, nextHighlightedCode)
+            setHtml(nextHighlightedCode.html)
+            setDarkHtml(nextHighlightedCode.darkHtml)
+          })
+          .catch(() => {
+            if (!mounted) {
+              return
+            }
+
+            setHtml("")
+            setDarkHtml("")
+          })
+      },
+    })
 
     return () => {
       mounted = false
+      scheduledHighlight.cancel()
     }
-  }, [code, language])
+  }, [code, highlightCacheKey, language])
 
   const handleCopy = React.useCallback(() => {
     if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {

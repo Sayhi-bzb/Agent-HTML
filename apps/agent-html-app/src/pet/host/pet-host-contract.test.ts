@@ -10,6 +10,12 @@ const rootAppPath = fileURLToPath(new URL("../../root-app.tsx", import.meta.url)
 const appliedThemeProviderPath = fileURLToPath(
   new URL("../../shared/app-theme/applied-theme-provider.tsx", import.meta.url)
 )
+const appliedThemeContextPath = fileURLToPath(
+  new URL("../../shared/app-theme/applied-theme-context.ts", import.meta.url)
+)
+const storageSyncPath = fileURLToPath(
+  new URL("../../shared/storage-sync.ts", import.meta.url)
+)
 const appCssPath = fileURLToPath(new URL("../../index.css", import.meta.url))
 const tauriConfigPath = fileURLToPath(
   new URL("../../../../../src-tauri/tauri.conf.json", import.meta.url)
@@ -69,6 +75,8 @@ const appliedThemeProviderSource = readFileSync(
   appliedThemeProviderPath,
   "utf8"
 )
+const appliedThemeContextSource = readFileSync(appliedThemeContextPath, "utf8")
+const storageSyncSource = readFileSync(storageSyncPath, "utf8")
 const appCssSource = readFileSync(appCssPath, "utf8")
 const tauriConfigSource = readFileSync(tauriConfigPath, "utf8")
 const tauriCapabilitySource = readFileSync(tauriCapabilityPath, "utf8")
@@ -100,6 +108,10 @@ const surfaceSource = readFileSync(surfacePath, "utf8")
 const siteHeaderSource = readFileSync(siteHeaderPath, "utf8")
 const windowChromeSource = readFileSync(windowChromePath, "utf8")
 const secondaryWindowSource = readFileSync(secondaryWindowPath, "utf8")
+const appThemeScopeSource = readFileSync(
+  fileURLToPath(new URL("../../shared/app-theme/scope.tsx", import.meta.url)),
+  "utf8"
+)
 
 describe("pet host contract", () => {
   it("keeps pet mounted inside the app frame", () => {
@@ -111,14 +123,20 @@ describe("pet host contract", () => {
 
   it("applies the saved app theme across every app root", () => {
     expect(mainSource).toContain("AppliedAppThemeProvider")
-    expect(appliedThemeProviderSource).toContain("readAppliedAppTheme")
-    expect(appliedThemeProviderSource).toContain("applyAppTheme")
-    expect(appliedThemeProviderSource).toContain("appliedAppThemeStorageKey")
-    expect(appliedThemeProviderSource).toContain('window.addEventListener("storage"')
+    expect(appliedThemeProviderSource).toContain("readSyncedStorageValue")
+    expect(appliedThemeProviderSource).toContain("writeSyncedStorageValue")
+    expect(appliedThemeProviderSource).toContain("subscribeSyncedStorageKey")
     expect(appliedThemeProviderSource).toContain(
-      "event.key !== appliedAppThemeStorageKey"
+      "applyAppliedAppThemeToDocument"
     )
+    expect(appliedThemeProviderSource).toContain("appliedAppThemeStorageKey")
+    expect(appliedThemeContextSource).toContain("useAppliedAppTheme")
+    expect(appliedThemeContextSource).toContain("appliedThemeCssVariables")
+    expect(storageSyncSource).toContain("agent-html:storage-sync")
+    expect(storageSyncSource).toContain('window.addEventListener("storage"')
     expect(threadPanelWindowAppSource).not.toContain("AppThemeScope")
+    expect(appFrameSource).not.toContain("AppThemeScope")
+    expect(appThemeScopeSource).not.toContain("document.body.style")
   })
 
   it("routes pet secondary surfaces through native secondary windows", () => {
@@ -130,6 +148,9 @@ describe("pet host contract", () => {
     expect(rootAppSource).toContain('"thread-panel"')
     expect(rootAppSource).toContain('"pet-settings"')
     expect(rootAppSource).toContain("React.lazy")
+    expect(rootAppSource).toContain("ThreadPanelWindowStartupSkeleton")
+    expect(rootAppSource).toContain("PetSettingsWindowStartupSkeleton")
+    expect(rootAppSource).not.toContain("fallback={null}")
     expect(rootAppSource).toContain(
       'import("@/app/pet/host/thread-panel-window-app")'
     )
@@ -418,12 +439,18 @@ describe("pet host contract", () => {
     expect(petSettingsWindowAppSource).toContain("PetSettingsSurface")
     expect(petSettingsWindowAppSource).toContain("WindowChromeFrame")
     expect(petSettingsWindowAppSource).toContain("WindowTitlebar")
+    expect(petSettingsWindowAppSource).toContain("WindowControls")
+    expect(petSettingsWindowAppSource).toContain("renderHeader={false}")
+    expect(petSettingsWindowAppSource).toContain("AgentHTML settings")
+    expect(petSettingsWindowAppSource).not.toContain("getSettingsSubtitle")
     expect(petSettingsWindowAppSource).toContain(
       "readPetSettingsNativeSnapshotCache"
     )
     expect(petSettingsWindowAppSource).toContain(
       "dispatchPetSettingsNativeAction"
     )
+    expect(petSettingsWindowAppSource).toContain("hideWindow")
+    expect(petSettingsWindowAppSource).not.toContain("closeWindow")
     expect(petSettingsWindowAppSource).not.toContain("CodexConnectionProvider")
     expect(petSettingsWindowAppSource).not.toContain("useCodexConnection")
   })
@@ -433,8 +460,14 @@ describe("pet host contract", () => {
     expect(windowChromeSource).toContain("export function WindowTitlebar")
     expect(windowChromeSource).toContain("export function WindowDragHandle")
     expect(windowChromeSource).toContain("export function WindowControls")
+    expect(windowChromeSource).toContain("subscribeWindowMaximizedState")
     expect(windowChromeSource).toContain("startWindowDrag")
     expect(windowChromeSource).toContain("preloadCurrentWindowHandle")
+    expect(windowChromeSource).toContain("data-window-chrome-surface")
+    expect(windowChromeSource).toContain("style?: React.CSSProperties")
+    expect(windowChromeSource).toContain("rounded-[var(--window-chrome-radius)]")
+    expect(windowChromeSource).not.toContain("border border-border/70")
+    expect(windowChromeSource).toContain("data-window-maximized")
     expect(windowChromeSource).toContain("onMouseDown")
     expect(windowChromeSource).toContain("data-window-drag-handle")
     expect(windowChromeSource).toContain("data-window-no-drag")
@@ -455,9 +488,22 @@ describe("pet host contract", () => {
     expect(siteHeaderSource).not.toContain("sticky top-0")
     expect(siteHeaderSource).not.toContain("getDragRegionProps")
     expect(siteHeaderSource).not.toContain("data-tauri-drag-region")
-    expect(appCssSource).toContain("html,\n  body,\n  #root")
+    expect(appCssSource).toMatch(/html,\s+body,\s+#root/)
+    expect(appCssSource).toContain("background: transparent")
+    expect(appCssSource).toContain("[data-window-chrome-surface]")
+    expect(appCssSource).toContain("[data-window-chrome-surface]::after")
+    expect(appCssSource).toContain("inset: 1px")
+    expect(appCssSource).toContain(
+      "border-radius: max(0px, calc(var(--window-chrome-radius) - 1px))"
+    )
+    expect(appCssSource).toContain("[data-window-chrome-root][data-window-maximized]")
+    expect(appCssSource).toContain("--window-chrome-inset: 0px")
+    expect(appCssSource).toContain("--window-chrome-radius: var(--radius-xl)")
+    expect(appCssSource).not.toContain("--window-chrome-radius: calc(var(--radius)")
+    expect(appCssSource).toContain("--window-chrome-shadow: none")
     expect(appCssSource).toContain("overflow: hidden")
     expect(appCssSource).toContain("overscroll-behavior: none")
+    expect(tauriConfigSource).toContain('"transparent": true')
   })
 
   it("routes thread panel behavior through a snapshot and action protocol", () => {

@@ -18,6 +18,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/app/shared/ui/sidebar"
+import { Skeleton } from "@/app/shared/ui/skeleton"
 import { FooterMenuStack } from "@/app/shell/footer-menu-stack"
 import {
   type EnabledGalleryComponentTags,
@@ -67,7 +68,26 @@ const galleryThemeSidebarSelectMenuButtonClassName =
   "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 
 function GalleryLazySidebarFallback() {
-  return <div className="min-h-20" />
+  return (
+    <div className="flex flex-col gap-3 px-2 py-2" data-selection="none">
+      <div className="space-y-1.5">
+        <Skeleton className="h-3 w-20" />
+        <div className="space-y-1">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div className="flex h-8 items-center gap-2 px-2" key={index}>
+              <Skeleton className="size-4 shrink-0" />
+              <Skeleton className="h-3 flex-1" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+    </div>
+  )
 }
 
 export function GalleryLazyComponentMarketSidebarHeader({

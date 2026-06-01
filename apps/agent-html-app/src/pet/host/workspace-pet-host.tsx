@@ -4,6 +4,7 @@ import {
   getWorkspacePetHostSnapshot,
   subscribeWorkspacePetHost,
 } from "@/app/pet/host/pet-host-store"
+import { schedulePostReadyTask } from "@/agent-html/runtime/scheduling/post-ready-task-scheduler"
 
 const LazyWorkspacePetHostSessionRoot = React.lazy(() =>
   import("@/app/pet/host/workspace-pet-host-session").then((module) => ({
@@ -17,8 +18,30 @@ export function WorkspacePetHost() {
     getWorkspacePetHostSnapshot,
     getWorkspacePetHostSnapshot
   )
+  const [canLoadSession, setCanLoadSession] = React.useState(false)
 
-  if (!snapshot.enabled) {
+  React.useEffect(() => {
+    if (!snapshot.enabled) {
+      setCanLoadSession(false)
+      return
+    }
+
+    const scheduledLoad = schedulePostReadyTask({
+      delay: 1400,
+      id: "workspace-pet-host-session",
+      idleTimeout: 2400,
+      priority: "ambient",
+      run: () => {
+        setCanLoadSession(true)
+      },
+    })
+
+    return () => {
+      scheduledLoad.cancel()
+    }
+  }, [snapshot.enabled])
+
+  if (!snapshot.enabled || !canLoadSession) {
     return null
   }
 

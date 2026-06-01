@@ -13,12 +13,32 @@ import type {
   CodexRuntimeCapabilityItem,
   WorkspaceRootStatus,
 } from "@/app/codex/connection/types"
+import type { CodexSettingsMutation } from "@/app/codex/connection/codex-settings-service"
+import {
+  createConfigValueWriteMutation,
+  createSkillConfigMutation,
+  createWriteCodexTextFileMutation,
+  readCodexTextFile,
+  resolveRootAgentsPath,
+} from "@/app/codex/connection/codex-settings-service"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/app/shared/ui/alert-dialog"
 import { Badge } from "@/app/shared/ui/badge"
 import { Button } from "@/app/shared/ui/button"
 import { Input } from "@/app/shared/ui/input"
 import { Label } from "@/app/shared/ui/label"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import { Separator } from "@/app/shared/ui/separator"
+import { Skeleton } from "@/app/shared/ui/skeleton"
+import { Spinner } from "@/app/shared/ui/spinner"
 import {
   SidebarContent,
   SidebarGroup,
@@ -32,9 +52,6 @@ import {
 import { Textarea } from "@/app/shared/ui/textarea"
 import { SettingsInfoPanel } from "@/app/shell/settings-surface"
 import { cn } from "@/app/shared/lib/utils"
-import { createWorkspaceStore } from "@/app/workspace/store"
-
-const workspaceStore = createWorkspaceStore()
 
 const settingsViews = [
   "AGENTS.md",
@@ -57,6 +74,7 @@ export type PetSettingsSurfaceSnapshot = {
     isDirty: boolean
     isLoading: boolean
     isSaving: boolean
+    path: string | null
     status: "idle" | "saved"
   }
   codex: {
@@ -67,6 +85,8 @@ export type PetSettingsSurfaceSnapshot = {
     isBusy: boolean
     isLoaded: boolean
     lastError: string | null
+    mutationError: string | null
+    pendingMutation: CodexSettingsMutation | null
     runtimeStatus: CodexRuntimeStatus
     status: CodexConnectionStatus
     workspaceRootNotice: string | null
@@ -76,8 +96,11 @@ export type PetSettingsSurfaceSnapshot = {
 
 export type PetSettingsAction =
   | { type: "close" }
+  | { type: "cancel-mutation" }
+  | { type: "confirm-mutation" }
   | { type: "refresh-runtime-status" }
   | { type: "reload-agents-instructions" }
+  | { mutation: CodexSettingsMutation; type: "queue-mutation" }
   | { draft: string; type: "set-agents-draft" }
   | { type: "save-agents-instructions" }
   | { command: string; type: "set-codex-command" }
@@ -117,7 +140,7 @@ function formatCapability(
   }
 
   if (runtimeStatus === "loading") {
-    return "Loading..."
+    return ""
   }
 
   if (!capability.ok) {
@@ -150,19 +173,30 @@ function CapabilityRow({
         data-cursor={isUnavailable ? "text" : undefined}
         data-selection={isUnavailable ? "text" : "none"}
       >
-        {formatCapability(status, runtimeStatus)}
+        {runtimeStatus === "loading" ? (
+          <Skeleton className="h-3 w-16" />
+        ) : (
+          formatCapability(status, runtimeStatus)
+        )}
       </span>
     </div>
   )
 }
 
-function CapabilityItemList({
+function CapabilityNameList({
   emptyLabel = "No items reported",
   items,
+  onCreateToggleMutation,
+  onQueueMutation,
   runtimeStatus,
 }: {
   emptyLabel?: string
   items?: CodexRuntimeCapabilityItem[]
+  onCreateToggleMutation?: (
+    item: CodexRuntimeCapabilityItem,
+    enabled: boolean
+  ) => CodexSettingsMutation | null
+  onQueueMutation?: (mutation: CodexSettingsMutation) => void
   runtimeStatus: CodexRuntimeStatus["status"]
 }) {
   if (runtimeStatus === "idle" || runtimeStatus === "loading") {
@@ -181,45 +215,87 @@ function CapabilityItemList({
   }
 
   return (
-    <div className="grid max-h-40 gap-1.5 overflow-auto rounded-lg border border-border/60 bg-background/60 p-2">
+    <ScrollArea className="max-h-40 rounded-lg border border-border/60 bg-background/60">
+      <div className="grid gap-1.5 p-2">
       {items.map((item) => (
         <div
-          className="grid min-w-0 gap-1 rounded-md bg-muted/30 px-2.5 py-1.5 text-xs"
-          key={`${item.id ?? item.name}:${item.source ?? ""}:${item.status ?? ""}`}
+          className="flex min-w-0 items-center justify-between gap-3 rounded-md bg-muted/30 px-2.5 py-1.5 text-xs"
+          key={`${item.id ?? item.name}:${item.path ?? item.source ?? ""}`}
         >
-          <div className="flex min-w-0 items-center justify-between gap-3">
-            <span
-              className="min-w-0 truncate font-medium"
-              data-cursor="text"
-              data-selection="text"
-              title={item.name}
-            >
-              {item.name}
-            </span>
-            {item.status ? (
-              <span
-                className="shrink-0 text-muted-foreground"
-                data-cursor="text"
-                data-selection="text"
-                title={item.status}
-              >
-                {item.status}
-              </span>
-            ) : null}
-          </div>
-          {item.source ? (
-            <span
-              className="min-w-0 truncate text-[11px] text-muted-foreground"
-              data-cursor="text"
-              data-selection="text"
-              title={item.source}
-            >
-              {item.source}
-            </span>
+          <span
+            className="block min-w-0 flex-1 truncate font-medium"
+            data-cursor="text"
+            data-selection="text"
+            title={item.name}
+          >
+            {item.name}
+          </span>
+          {onCreateToggleMutation ? (
+            <CapabilitySwitch
+              item={item}
+              onCreateMutation={onCreateToggleMutation}
+              onQueueMutation={onQueueMutation}
+            />
           ) : null}
         </div>
       ))}
-    </div>
+      </div>
+    </ScrollArea>
+  )
+}
+
+function CapabilitySwitch({
+  item,
+  onCreateMutation,
+  onQueueMutation,
+}: {
+  item: CodexRuntimeCapabilityItem
+  onCreateMutation: (
+    item: CodexRuntimeCapabilityItem,
+    enabled: boolean
+  ) => CodexSettingsMutation | null
+  onQueueMutation?: (mutation: CodexSettingsMutation) => void
+}) {
+  const enabled = item.enabled !== false
+  const nextEnabled = !enabled
+  const mutation = onCreateMutation(item, nextEnabled)
+
+  if (!mutation) {
+    return (
+      <span className="shrink-0 text-[0.6875rem] text-muted-foreground">
+        Read-only
+      </span>
+    )
+  }
+
+  return (
+    <button
+      aria-checked={enabled}
+      aria-label={`${enabled ? "Disable" : "Enable"} ${item.name}`}
+      className={cn(
+        "inline-flex h-5 w-9 shrink-0 items-center rounded-full border px-0.5 transition-colors",
+        enabled
+          ? "border-primary bg-primary"
+          : "border-border bg-muted"
+      )}
+      data-popover-no-drag
+      data-window-no-drag
+      onClick={() => {
+        const nextMutation = onCreateMutation(item, nextEnabled)
+        if (nextMutation) {
+          onQueueMutation?.(nextMutation)
+        }
+      }}
+      role="switch"
+      type="button"
+    >
+      <span
+        className={cn(
+          "size-4 rounded-full bg-background shadow-sm transition-transform",
+          enabled ? "translate-x-4" : "translate-x-0"
+        )}
+      />
+    </button>
   )
 }
 
@@ -284,9 +360,13 @@ function PetSettingsContentSession({
     React.useState<SettingsView>(initialView)
   const [baseline, setBaseline] = React.useState("")
   const [draft, setDraft] = React.useState("")
+  const [agentsPath, setAgentsPath] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
+  const [mutationError, setMutationError] = React.useState<string | null>(null)
+  const [pendingMutation, setPendingMutation] =
+    React.useState<CodexSettingsMutation | null>(null)
   const [status, setStatus] = React.useState<"idle" | "saved">("idle")
   const [draftSettings, setDraftSettings] = React.useState(
     codexConnection.settings
@@ -299,8 +379,16 @@ function PetSettingsContentSession({
   const isDirty = draft !== baseline
 
   const readInstructions = React.useCallback(() => {
-    return workspaceStore
-      .getRootAgentsInstructions()
+    const path = resolveRootAgentsPath(codexConnection.workspaceRootStatus)
+    setAgentsPath(path)
+
+    if (!path) {
+      setError("Workspace root is unavailable.")
+      setIsLoading(false)
+      return Promise.resolve()
+    }
+
+    return readCodexTextFile(codexConnection.request, path)
       .then((source) => {
         setBaseline(source)
         setDraft(source)
@@ -312,7 +400,7 @@ function PetSettingsContentSession({
       .finally(() => {
         setIsLoading(false)
       })
-  }, [])
+  }, [codexConnection.request, codexConnection.workspaceRootStatus])
 
   const loadInstructions = React.useCallback(() => {
     setError(null)
@@ -330,21 +418,53 @@ function PetSettingsContentSession({
 
   const saveInstructions = React.useCallback(() => {
     setError(null)
-    setIsSaving(true)
-    workspaceStore
-      .updateRootAgentsInstructions({ source: draft })
-      .then((source) => {
-        setBaseline(source)
-        setDraft(source)
+    if (!agentsPath) {
+      setError("Workspace root AGENTS.md path is unavailable.")
+      return
+    }
+
+    setPendingMutation(createWriteCodexTextFileMutation(agentsPath, draft))
+  }, [agentsPath, draft])
+
+  const queueMutation = React.useCallback((mutation: CodexSettingsMutation) => {
+    setMutationError(null)
+    setPendingMutation(mutation)
+  }, [])
+
+  const cancelMutation = React.useCallback(() => {
+    setPendingMutation(null)
+  }, [])
+
+  const confirmMutation = React.useCallback(async () => {
+    if (!pendingMutation) {
+      return
+    }
+
+    setMutationError(null)
+    if (pendingMutation.method === "fs/writeFile") {
+      setError(null)
+      setIsSaving(true)
+    }
+
+    try {
+      await codexConnection.request(pendingMutation.method, pendingMutation.params)
+      if (pendingMutation.method === "fs/writeFile") {
+        setBaseline(draft)
         setStatus("saved")
-      })
-      .catch((saveError: unknown) => {
-        setError(getErrorMessage(saveError))
-      })
-      .finally(() => {
-        setIsSaving(false)
-      })
-  }, [draft])
+      }
+      setPendingMutation(null)
+      void codexConnection.refreshRuntimeStatus()
+    } catch (mutationFailure: unknown) {
+      const message = getErrorMessage(mutationFailure)
+      if (pendingMutation.method === "fs/writeFile") {
+        setError(message)
+      } else {
+        setMutationError(message)
+      }
+    } finally {
+      setIsSaving(false)
+    }
+  }, [codexConnection, draft, pendingMutation])
 
   const refreshRuntimeStatus = React.useCallback(() => {
     void codexConnection.refreshRuntimeStatus()
@@ -386,6 +506,7 @@ function PetSettingsContentSession({
         isDirty,
         isLoading,
         isSaving,
+        path: agentsPath,
         status,
       },
       codex: {
@@ -396,6 +517,8 @@ function PetSettingsContentSession({
         isBusy: codexConnection.isBusy,
         isLoaded: codexConnection.isLoaded,
         lastError: codexConnection.lastError,
+        mutationError,
+        pendingMutation,
         runtimeStatus,
         status: codexConnection.status,
         workspaceRootNotice,
@@ -404,6 +527,7 @@ function PetSettingsContentSession({
     }),
     [
       activeView,
+      agentsPath,
       codexConnection.canManageHost,
       codexConnection.health,
       codexConnection.isBusy,
@@ -418,6 +542,8 @@ function PetSettingsContentSession({
       isDirty,
       isLoading,
       isSaving,
+      mutationError,
+      pendingMutation,
       runtimeStatus,
       status,
       workspaceRootNotice,
@@ -430,11 +556,20 @@ function PetSettingsContentSession({
         case "close":
           onClose?.()
           return
+        case "cancel-mutation":
+          cancelMutation()
+          return
+        case "confirm-mutation":
+          void confirmMutation()
+          return
         case "refresh-runtime-status":
           refreshRuntimeStatus()
           return
         case "reload-agents-instructions":
           void loadInstructions()
+          return
+        case "queue-mutation":
+          queueMutation(action.mutation)
           return
         case "set-agents-draft":
           setDraft(action.draft)
@@ -476,8 +611,11 @@ function PetSettingsContentSession({
       codexConnection.restart,
       codexConnection.stop,
       codexConnection.test,
+      cancelMutation,
+      confirmMutation,
       loadInstructions,
       onClose,
+      queueMutation,
       refreshRuntimeStatus,
       runCodexAction,
       saveCodexSettings,
@@ -506,11 +644,13 @@ export function PetSettingsSurface({
   bridge,
   className,
   headerSlot,
+  renderHeader = true,
   subtitle,
 }: {
   bridge: PetSettingsBridge
   className?: string
   headerSlot?: (header: React.ReactNode) => React.ReactNode
+  renderHeader?: boolean
   subtitle?: string
 }) {
   const { dispatch, snapshot } = bridge
@@ -587,8 +727,8 @@ export function PetSettingsSurface({
           } as React.CSSProperties
         }
       >
-        {headerSlot ? headerSlot(header) : header}
-        <Separator />
+        {renderHeader ? (headerSlot ? headerSlot(header) : header) : null}
+        {renderHeader ? <Separator /> : null}
         <main className="flex min-h-0 flex-1">
           <aside className="flex w-44 shrink-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground">
             <SidebarContent data-pet-settings-no-drag="">
@@ -619,62 +759,79 @@ export function PetSettingsSurface({
             data-pet-settings-no-drag=""
             viewportClassName="p-4"
           >
-            <SettingsViewContent
-              activeView={activeView}
-              canManageHost={codex.canManageHost}
-              codexCommand={codex.health?.codexCommand ?? "unknown"}
-              codexConnectionStatus={codex.status}
-              connectionStatus={codex.status}
-              cwd={codex.health?.cwd ?? "unknown"}
-              draft={agents.draft}
-              draftCodexCommand={codex.draftSettings.codexCommand}
-              draftWorkspaceRootPath={codex.draftWorkspaceRootPath}
-              error={agents.error}
-              healthAppServerRunning={codex.health?.appServerRunning}
-              isCodexBusy={codex.isBusy}
-              isCodexLoaded={codex.isLoaded}
-              isDirty={agents.isDirty}
-              isLoading={agents.isLoading}
-              isSaving={agents.isSaving}
-              lastError={codex.lastError}
-              loadInstructions={() => {
-                dispatch({ type: "reload-agents-instructions" })
-              }}
-              onDraftCodexCommandChange={(command) =>
-                dispatch({ command, type: "set-codex-command" })
-              }
-              onDraftWorkspaceRootPathChange={(path) =>
-                dispatch({ path, type: "set-workspace-root-path" })
-              }
-              onRestart={() => dispatch({ type: "restart-codex" })}
-              onSaveCodexSettings={() =>
-                dispatch({ type: "save-codex-settings" })
-              }
-              onSaveWorkspaceRoot={() =>
-                dispatch({ type: "save-workspace-root" })
-              }
-              onStop={() => dispatch({ type: "stop-codex" })}
-              onTestConnection={() => dispatch({ type: "test-codex" })}
-              runtimeStatus={runtimeStatus}
-              saveInstructions={() => {
-                dispatch({ type: "save-agents-instructions" })
-              }}
-              setDraft={(draft) =>
-                dispatch({ draft, type: "set-agents-draft" })
-              }
-              status={agents.status}
-              workspaceRootNotice={codex.workspaceRootNotice}
-              workspaceRootStatus={codex.workspaceRootStatus}
-            />
+            <div className="grid gap-3">
+              {codex.mutationError ? (
+                <SettingsInfoPanel variant="destructive">
+                  {codex.mutationError}
+                </SettingsInfoPanel>
+              ) : null}
+              <SettingsViewContent
+                activeView={activeView}
+                agentsPath={agents.path}
+                canManageHost={codex.canManageHost}
+                codexCommand={codex.health?.codexCommand ?? "unknown"}
+                codexConnectionStatus={codex.status}
+                connectionStatus={codex.status}
+                cwd={codex.health?.cwd ?? "unknown"}
+                draft={agents.draft}
+                draftCodexCommand={codex.draftSettings.codexCommand}
+                draftWorkspaceRootPath={codex.draftWorkspaceRootPath}
+                error={agents.error}
+                healthAppServerRunning={codex.health?.appServerRunning}
+                isCodexBusy={codex.isBusy}
+                isCodexLoaded={codex.isLoaded}
+                isDirty={agents.isDirty}
+                isLoading={agents.isLoading}
+                isSaving={agents.isSaving}
+                lastError={codex.lastError}
+                loadInstructions={() => {
+                  dispatch({ type: "reload-agents-instructions" })
+                }}
+                onDraftCodexCommandChange={(command) =>
+                  dispatch({ command, type: "set-codex-command" })
+                }
+                onDraftWorkspaceRootPathChange={(path) =>
+                  dispatch({ path, type: "set-workspace-root-path" })
+                }
+                onRestart={() => dispatch({ type: "restart-codex" })}
+                onSaveCodexSettings={() =>
+                  dispatch({ type: "save-codex-settings" })
+                }
+                onSaveWorkspaceRoot={() =>
+                  dispatch({ type: "save-workspace-root" })
+                }
+                onStop={() => dispatch({ type: "stop-codex" })}
+                onTestConnection={() => dispatch({ type: "test-codex" })}
+                queueMutation={(mutation) =>
+                  dispatch({ mutation, type: "queue-mutation" })
+                }
+                runtimeStatus={runtimeStatus}
+                saveInstructions={() => {
+                  dispatch({ type: "save-agents-instructions" })
+                }}
+                setDraft={(draft) =>
+                  dispatch({ draft, type: "set-agents-draft" })
+                }
+                status={agents.status}
+                workspaceRootNotice={codex.workspaceRootNotice}
+                workspaceRootStatus={codex.workspaceRootStatus}
+              />
+            </div>
           </ScrollArea>
         </main>
       </section>
+      <ConfirmSettingsMutationDialog
+        mutation={codex.pendingMutation}
+        onCancel={() => dispatch({ type: "cancel-mutation" })}
+        onConfirm={() => dispatch({ type: "confirm-mutation" })}
+      />
     </SidebarStateProvider>
   )
 }
 
 function SettingsViewContent({
   activeView,
+  agentsPath,
   canManageHost,
   codexCommand,
   codexConnectionStatus,
@@ -703,10 +860,12 @@ function SettingsViewContent({
   saveInstructions,
   setDraft,
   status,
+  queueMutation,
   workspaceRootNotice,
   workspaceRootStatus,
 }: {
   activeView: SettingsView
+  agentsPath: string | null
   canManageHost: boolean
   codexCommand: string
   codexConnectionStatus: string
@@ -735,6 +894,7 @@ function SettingsViewContent({
   saveInstructions: () => void
   setDraft: (draft: string) => void
   status: "idle" | "saved"
+  queueMutation: (mutation: CodexSettingsMutation) => void
   workspaceRootNotice?: string | null
   workspaceRootStatus: ReturnType<typeof useCodexConnection>["workspaceRootStatus"]
 }) {
@@ -747,6 +907,7 @@ function SettingsViewContent({
         isLoading={isLoading}
         isSaving={isSaving}
         loadInstructions={loadInstructions}
+        path={agentsPath}
         saveInstructions={saveInstructions}
         setDraft={setDraft}
         status={status}
@@ -755,15 +916,15 @@ function SettingsViewContent({
   }
 
   if (activeView === "MCP") {
-    return <McpView runtimeStatus={runtimeStatus} />
+    return <McpView queueMutation={queueMutation} runtimeStatus={runtimeStatus} />
   }
 
   if (activeView === "Skills") {
-    return <SkillsView runtimeStatus={runtimeStatus} />
+    return <SkillsView queueMutation={queueMutation} runtimeStatus={runtimeStatus} />
   }
 
   if (activeView === "Plugins") {
-    return <PluginsView runtimeStatus={runtimeStatus} />
+    return <PluginsView queueMutation={queueMutation} runtimeStatus={runtimeStatus} />
   }
 
   if (activeView === "Runtime") {
@@ -803,6 +964,37 @@ function SettingsViewContent({
   )
 }
 
+function ConfirmSettingsMutationDialog({
+  mutation,
+  onCancel,
+  onConfirm,
+}: {
+  mutation: CodexSettingsMutation | null
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <AlertDialog open={Boolean(mutation)} onOpenChange={(open) => !open && onCancel()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{mutation?.title ?? "Confirm change"}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {mutation?.description ??
+              "This will send a write request to the Codex app-server."}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="rounded-md border bg-muted/30 px-3 py-2 font-mono text-xs">
+          {mutation?.method ?? "unknown"}
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>Confirm</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 function AgentsMdView({
   draft,
   error,
@@ -810,6 +1002,7 @@ function AgentsMdView({
   isLoading,
   isSaving,
   loadInstructions,
+  path,
   saveInstructions,
   setDraft,
   status,
@@ -820,13 +1013,18 @@ function AgentsMdView({
   isLoading: boolean
   isSaving: boolean
   loadInstructions: () => Promise<void> | void
+  path: string | null
   saveInstructions: () => void
   setDraft: (draft: string) => void
   status: "idle" | "saved"
 }) {
+  if (isLoading) {
+    return <SettingsFormSkeleton />
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <PathInfoRow label="File" value="AgentHTML/AGENTS.md" />
+      <PathInfoRow label="File" value={path ?? "AGENTS.md"} />
       <div className="flex min-h-0 flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
           <label
@@ -860,7 +1058,7 @@ function AgentsMdView({
         <SettingsInfoPanel variant="destructive">{error}</SettingsInfoPanel>
       ) : null}
       {!error && status === "saved" ? (
-        <SettingsInfoPanel>Saved to AgentHTML/AGENTS.md.</SettingsInfoPanel>
+        <SettingsInfoPanel>Saved through Codex fs/writeFile.</SettingsInfoPanel>
       ) : null}
       <footer
         className="flex shrink-0 items-center justify-end gap-2"
@@ -882,9 +1080,32 @@ function AgentsMdView({
           size="sm"
           type="button"
         >
-          <SaveIcon aria-hidden="true" className="size-3.5" />
+          {isSaving ? (
+            <Spinner className="size-3.5" />
+          ) : (
+            <SaveIcon aria-hidden="true" className="size-3.5" />
+          )}
           {isSaving ? "Saving" : "Save"}
         </Button>
+      </footer>
+    </div>
+  )
+}
+
+function SettingsFormSkeleton() {
+  return (
+    <div className="flex flex-col gap-3" data-selection="none">
+      <Skeleton className="h-9 w-full" />
+      <div className="flex min-h-0 flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+        <Skeleton className="h-72 w-full rounded-lg" />
+      </div>
+      <footer className="flex shrink-0 items-center justify-end gap-2">
+        <Skeleton className="h-8 w-20" />
+        <Skeleton className="h-8 w-16" />
       </footer>
     </div>
   )
@@ -1059,8 +1280,10 @@ function ConnectionView({
 }
 
 function SkillsView({
+  queueMutation,
   runtimeStatus,
 }: {
+  queueMutation: (mutation: CodexSettingsMutation) => void
   runtimeStatus: CodexRuntimeStatus
 }) {
   return (
@@ -1070,8 +1293,11 @@ function SkillsView({
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.skills}
       />
-      <CapabilityItemList
+      <CapabilityNameList
+        emptyLabel="No skills reported"
         items={runtimeStatus.capabilities.skills.items}
+        onCreateToggleMutation={createSkillConfigMutation}
+        onQueueMutation={queueMutation}
         runtimeStatus={runtimeStatus.status}
       />
       <PathInfoRow
@@ -1092,8 +1318,10 @@ function SkillsView({
 }
 
 function McpView({
+  queueMutation,
   runtimeStatus,
 }: {
+  queueMutation: (mutation: CodexSettingsMutation) => void
   runtimeStatus: CodexRuntimeStatus
 }) {
   return (
@@ -1103,8 +1331,11 @@ function McpView({
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.mcpServers}
       />
-      <CapabilityItemList
+      <CapabilityNameList
+        emptyLabel="No MCP servers reported"
         items={runtimeStatus.capabilities.mcpServers.items}
+        onCreateToggleMutation={createMcpEnabledMutation}
+        onQueueMutation={queueMutation}
         runtimeStatus={runtimeStatus.status}
       />
       <PathInfoRow label="Codex config" value="~/.codex/config.toml" />
@@ -1118,8 +1349,10 @@ function McpView({
 }
 
 function PluginsView({
+  queueMutation,
   runtimeStatus,
 }: {
+  queueMutation: (mutation: CodexSettingsMutation) => void
   runtimeStatus: CodexRuntimeStatus
 }) {
   return (
@@ -1129,7 +1362,8 @@ function PluginsView({
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.plugins}
       />
-      <CapabilityItemList
+      <CapabilityNameList
+        emptyLabel="No plugins reported"
         items={runtimeStatus.capabilities.plugins.items}
         runtimeStatus={runtimeStatus.status}
       />
@@ -1138,18 +1372,59 @@ function PluginsView({
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.apps}
       />
-      <CapabilityItemList
+      <CapabilityNameList
+        emptyLabel="No apps reported"
         items={runtimeStatus.capabilities.apps.items}
+        onCreateToggleMutation={createAppEnabledMutation}
+        onQueueMutation={queueMutation}
         runtimeStatus={runtimeStatus.status}
       />
       <PathInfoRow label="Workspace plugins" value="AgentHTML/plugins/" />
       <SettingsInfoPanel>
         Local plugin packages may live under `plugins/`, but plugin listing,
         app listing, install state, and execution semantics belong to Codex.
-        This card only mirrors app-server availability.
+        App switches write official `apps.&lt;id&gt;.enabled` config values;
+        plugin switches are not exposed until the app-server protocol stabilizes.
       </SettingsInfoPanel>
     </div>
   )
+}
+
+function createMcpEnabledMutation(
+  item: CodexRuntimeCapabilityItem,
+  enabled: boolean
+) {
+  const id = item.id ?? item.name
+  if (!isConfigPathSegment(id)) {
+    return null
+  }
+
+  return createConfigValueWriteMutation({
+    description: `${enabled ? "Enable" : "Disable"} MCP server ${item.name}.`,
+    keyPath: `mcp_servers.${id}.enabled`,
+    title: `${enabled ? "Enable" : "Disable"} MCP server`,
+    value: enabled,
+  })
+}
+
+function createAppEnabledMutation(
+  item: CodexRuntimeCapabilityItem,
+  enabled: boolean
+) {
+  if (!isConfigPathSegment(item.id)) {
+    return null
+  }
+
+  return createConfigValueWriteMutation({
+    description: `${enabled ? "Enable" : "Disable"} app ${item.name}.`,
+    keyPath: `apps.${item.id}.enabled`,
+    title: `${enabled ? "Enable" : "Disable"} app`,
+    value: enabled,
+  })
+}
+
+function isConfigPathSegment(value: string | undefined) {
+  return Boolean(value && !value.includes("."))
 }
 
 function RuntimeView({

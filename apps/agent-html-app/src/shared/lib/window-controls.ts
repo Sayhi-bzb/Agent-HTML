@@ -3,7 +3,9 @@ import { isTauri } from "@tauri-apps/api/core"
 type TauriWindowHandle = {
   close: () => Promise<void>
   hide: () => Promise<void>
+  isMaximized: () => Promise<boolean>
   minimize: () => Promise<void>
+  onResized: (handler: () => void) => Promise<() => void>
   startDragging: () => Promise<void>
   toggleMaximize: () => Promise<void>
 }
@@ -35,6 +37,23 @@ async function getCurrentWindowHandle(): Promise<TauriWindowHandle | null> {
 
 export function isDesktopRuntime(): boolean {
   return isTauriRuntime()
+}
+
+export async function subscribeWindowMaximizedState(
+  onChange: (isMaximized: boolean) => void
+): Promise<() => void> {
+  const currentWindow = await getCurrentWindowHandle()
+  if (!currentWindow) {
+    onChange(false)
+    return () => {}
+  }
+
+  const publishState = () => {
+    void currentWindow.isMaximized().then(onChange)
+  }
+
+  publishState()
+  return currentWindow.onResized(publishState)
 }
 
 export async function startWindowDrag(): Promise<void> {

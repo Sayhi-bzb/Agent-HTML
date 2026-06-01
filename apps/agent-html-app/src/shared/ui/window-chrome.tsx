@@ -7,6 +7,7 @@ import {
   minimizeWindow,
   preloadCurrentWindowHandle,
   startWindowDrag,
+  subscribeWindowMaximizedState,
   toggleMaximizeWindow,
 } from "@/app/shared/lib/window-controls"
 import { cn } from "@/app/shared/lib/utils"
@@ -18,23 +19,52 @@ const WINDOW_NO_DRAG_SELECTOR =
 export function WindowChromeFrame({
   children,
   className,
+  style,
 }: {
   children: React.ReactNode
   className?: string
+  style?: React.CSSProperties
 }) {
+  const [isMaximized, setIsMaximized] = React.useState(false)
+
   React.useEffect(() => {
     preloadCurrentWindowHandle()
   }, [])
 
+  React.useEffect(() => {
+    let cleanup: (() => void) | undefined
+    let isMounted = true
+
+    void subscribeWindowMaximizedState((nextIsMaximized) => {
+      if (isMounted) {
+        setIsMaximized(nextIsMaximized)
+      }
+    }).then((unlisten) => {
+      cleanup = unlisten
+    })
+
+    return () => {
+      isMounted = false
+      cleanup?.()
+    }
+  }, [])
+
   return (
     <div
-      className={cn(
-        "flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background text-foreground",
-        className
-      )}
+      className="flex h-full min-h-0 w-full min-w-0 bg-transparent p-[var(--window-chrome-inset)] text-foreground"
       data-window-chrome-root=""
+      data-window-maximized={isMaximized ? "" : undefined}
+      style={style}
     >
-      {children}
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--window-chrome-radius)] bg-background shadow-[var(--window-chrome-shadow)]",
+          className
+        )}
+        data-window-chrome-surface=""
+      >
+        {children}
+      </div>
     </div>
   )
 }

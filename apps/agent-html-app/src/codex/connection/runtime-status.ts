@@ -1,4 +1,9 @@
-import { countItems, readEffectiveConfig, readRuntimeItems } from "./parsers"
+import {
+  countCapabilityItems,
+  countItems,
+  readCapabilityItems,
+  readEffectiveConfig,
+} from "./parsers"
 import type {
   CodexRuntimeReadSpec,
   CodexRuntimeStatus,
@@ -41,7 +46,7 @@ export const CODEX_RUNTIME_READS: CodexRuntimeReadSpec[] = [
   {
     capability: "mcpServers",
     method: "mcpServerStatus/list",
-    params: () => ({ detail: "toolsAndAuthOnly", limit: 100 }),
+    params: () => ({ limit: 100 }),
   },
 ]
 
@@ -78,7 +83,14 @@ export function createRuntimeStatusFromEntries(
   for (const entry of entries) {
     capabilities[entry.capability] = {
       ...entry.status,
-      items: entry.status.ok ? readRuntimeItems(entry.result) : undefined,
+      count:
+        entry.status.count ??
+        (entry.status.ok
+          ? countCapabilityItems(entry.capability, entry.result)
+          : undefined),
+      items: entry.status.ok
+        ? readCapabilityItems(entry.capability, entry.result)
+        : undefined,
     }
     if (entry.capability === "config" && entry.status.ok) {
       config = readEffectiveConfig(entry.result)

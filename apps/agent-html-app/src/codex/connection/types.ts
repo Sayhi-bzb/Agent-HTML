@@ -41,9 +41,17 @@ type CodexRuntimeCapability =
   | "skills"
 
 export type CodexRuntimeCapabilityItem = {
+  authStatus?: string
+  childrenCount?: number
+  enabled?: boolean
   id?: string
+  installed?: boolean
+  isAccessible?: boolean
   name: string
+  path?: string
+  scope?: string
   source?: string
+  sourceType?: string
   status?: string
 }
 

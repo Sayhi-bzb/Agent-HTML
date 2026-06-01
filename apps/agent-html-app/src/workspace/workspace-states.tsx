@@ -1,4 +1,5 @@
 import { Button } from "@/app/shared/ui/button"
+import { Skeleton } from "@/app/shared/ui/skeleton"
 import type { AgentHtmlValidationError } from "@/agent-html"
 
 export function RuntimeValidationErrors({
@@ -87,7 +88,53 @@ export function WorkspaceLoadingDocumentState({
 }: {
   detail: string
 }) {
-  return <WorkspaceStatus detail={detail} title="Loading workspace document" />
+  return (
+    <div
+      className="flex min-h-0 flex-1 flex-col p-4 md:p-6"
+      data-selection="none"
+    >
+      <div className="flex min-h-0 flex-1 flex-col rounded-xl border bg-background p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-5 w-52 max-w-full" />
+            <Skeleton className="h-3 w-72 max-w-full" />
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Skeleton className="h-8 w-20" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+        </div>
+        <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-11/12" />
+              <Skeleton className="h-3 w-4/5" />
+            </div>
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <Skeleton className="h-3 w-28" />
+              <div className="mt-3 space-y-2">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-5/6" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Skeleton className="h-24 rounded-lg" />
+              <Skeleton className="h-24 rounded-lg" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-20 rounded-lg" />
+            <Skeleton className="h-20 rounded-lg" />
+          </div>
+        </div>
+        <span className="sr-only">{detail}</span>
+      </div>
+    </div>
+  )
 }
 
 export function WorkspaceDocumentErrorState({ detail }: { detail: string }) {

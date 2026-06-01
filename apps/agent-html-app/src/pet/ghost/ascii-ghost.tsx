@@ -16,9 +16,9 @@ const GHOST_FONT_SIZE = "12px"
 
 export function AsciiGhost() {
   return (
-    <div
+    <pre
       aria-hidden="true"
-      className="grid select-none grid-cols-[repeat(8,var(--ghost-cell-width))] grid-rows-[repeat(5,var(--ghost-cell-height))] place-items-center leading-none"
+      className="m-0 select-none leading-[var(--ghost-row-height)] whitespace-pre text-center"
       lang="en"
       style={
         {
@@ -29,16 +29,13 @@ export function AsciiGhost() {
           fontSynthesis: "none",
           fontWeight: 700,
           fontVariantLigatures: "none",
-          "--ghost-cell-height": GHOST_CELL_HEIGHT,
-          "--ghost-cell-width": GHOST_CELL_WIDTH,
+          letterSpacing: "0",
+          "--ghost-row-height": GHOST_CELL_HEIGHT,
+          width: `calc(${GHOST_CELL_WIDTH} * 8)`,
         } as React.CSSProperties
       }
     >
-      {GHOST_GLYPH_ROWS.flatMap((row, rowIndex) =>
-        [...row].map((character, columnIndex) => (
-          <span key={`${rowIndex}:${columnIndex}`}>{character}</span>
-        ))
-      )}
-    </div>
+      {GHOST_GLYPH_ROWS.join("\n")}
+    </pre>
   )
 }

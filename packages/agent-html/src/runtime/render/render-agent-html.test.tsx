@@ -226,6 +226,20 @@ describe("renderAgentHtml", () => {
     expect(html.split("data-slot=\"card\"").length - 1).toBeGreaterThan(3)
   })
 
+  it("renders chart loading as a structural runtime skeleton", () => {
+    const document = parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
+    const validation = validateAgentHtml(document)
+
+    expect(validation.ok).toBe(true)
+
+    const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("data-chart-state=\"loading\"")
+    expect(html).toContain("data-slot=\"runtime-skeleton\"")
+    expect(html).toContain("aria-label=\"Chart loading\"")
+    expect(html).not.toContain("Loading chart")
+    expect(html).not.toContain("--color-chart-skeleton")
+  })
+
   it("throws for unsupported render tags", () => {
     const document = parseAgentHtml(
       "<Page title=\"Unsupported\"><ChartTooltip hideLabel=\"false\" /></Page>"

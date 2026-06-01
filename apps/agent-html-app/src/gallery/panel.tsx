@@ -1,11 +1,20 @@
 import * as React from "react"
 
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
+import { Skeleton } from "@/app/shared/ui/skeleton"
 import type { GalleryViewId } from "@/app/gallery/views"
 import type {
   EnabledGalleryComponentTags,
   GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
+
+export function preloadGalleryWorkspaceSurface() {
+  void import("@/app/gallery/workspace-surface")
+}
+
+export function preloadGalleryComponentMarketView() {
+  void import("@/app/gallery/component-market-view")
+}
 
 const GalleryWorkspaceSurface = React.lazy(() =>
   import("@/app/gallery/workspace-surface").then((module) => ({
@@ -61,7 +70,32 @@ export function GalleryPanel({
 
 function GalleryPanelFallback() {
   return (
-    <div className="min-h-[24rem] rounded-lg border bg-background" />
+    <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div
+          className="flex min-h-40 flex-col rounded-lg border bg-card p-3"
+          data-selection="none"
+          key={index}
+        >
+          <div className="flex items-start gap-3">
+            <Skeleton className="size-8 shrink-0 rounded-lg" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          </div>
+          <div className="mt-5 space-y-2">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-5/6" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+          <div className="mt-auto flex items-center justify-between gap-3 pt-5">
+            <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-7 w-16" />
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 

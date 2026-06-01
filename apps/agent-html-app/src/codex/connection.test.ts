@@ -7,6 +7,7 @@ import {
 } from "@/app/codex/connection"
 import {
   readEffectiveConfig,
+  readCapabilityItems,
   readRuntimeItems,
 } from "@/app/codex/connection/parsers"
 
@@ -103,97 +104,187 @@ describe("Codex runtime capability parsing", () => {
     })
   })
 
-  it("reads capability item names from app-server list shapes", () => {
+  it("reads generic capability item names from app-server list shapes", () => {
     expect(
       readRuntimeItems({
-        skills: [{ name: "agent-html" }],
+        items: [{ name: "agent-html" }],
       })
     ).toEqual([
       {
         id: "agent-html",
         name: "agent-html",
+        path: undefined,
         source: undefined,
+        sourceType: undefined,
         status: undefined,
       },
     ])
-    expect(
-      readRuntimeItems({
-        plugins: [{ id: "plugin-1", title: "Plugin One" }],
-      })
-    ).toEqual([
-      {
-        id: "plugin-1",
-        name: "Plugin One",
-        source: undefined,
-        status: undefined,
-      },
-    ])
-    expect(
-      readRuntimeItems({
-        servers: [{ name: "filesystem", status: "ready" }],
-      })
-    ).toEqual([
-      {
-        id: "filesystem",
-        name: "filesystem",
-        source: undefined,
-        status: "ready",
-      },
-    ])
+    expect(readRuntimeItems({ plugins: [{ id: "plugin-1" }] })).toEqual([])
     expect(readRuntimeItems(["plain-skill"])).toEqual([
-      { name: "plain-skill", source: undefined },
+      { name: "plain-skill" },
     ])
   })
 
-  it("reads nested runtime capability items with inherited sources", () => {
+  it("reads skill names without flattening unrelated nested entities", () => {
     expect(
-      readRuntimeItems({
-        items: [
+      readCapabilityItems("skills", {
+        skills: [
           {
-            cwd: "D:/codes/AgentHTML",
-            skills: [
-              { name: "agent-html", path: "AgentHTML/.agents/skills/agent-html" },
-            ],
-          },
-          {
-            cwd: null,
-            skills: [
-              { name: "commit", path: "C:/Users/Admin/.agents/skills/commit" },
-            ],
+            enabled: true,
+            name: "agent-html",
+            path: "AgentHTML/.agents/skills/agent-html",
+            tools: [{ name: "not-a-skill" }],
           },
         ],
       })
     ).toEqual([
       {
+        enabled: true,
         id: "agent-html",
         name: "agent-html",
+        path: "AgentHTML/.agents/skills/agent-html",
         source: "AgentHTML/.agents/skills/agent-html",
-        status: undefined,
-      },
-      {
-        id: "commit",
-        name: "commit",
-        source: "C:/Users/Admin/.agents/skills/commit",
+        sourceType: undefined,
         status: undefined,
       },
     ])
   })
 
-  it("reads plugin source metadata from nested source objects", () => {
+  it("reads cwd-grouped skills from skills/list without counting groups", () => {
     expect(
-      readRuntimeItems({
+      readCapabilityItems("skills", {
+        data: [
+          {
+            cwd: "D:/codes/Agent-HTML",
+            skills: [
+              {
+                description: "AgentHTML artifact skill",
+                enabled: true,
+                name: "agent-html",
+                path: "D:/codes/Agent-HTML/.agents/skills/agent-html",
+                scope: "project",
+              },
+            ],
+            errors: [],
+          },
+          {
+            cwd: "C:/Users/Admin",
+            skills: [
+              {
+                description: "Create skills",
+                enabled: false,
+                name: "skill-creator",
+                path: "C:/Users/Admin/.codex/skills/skill-creator",
+                scope: "user",
+              },
+            ],
+            errors: [],
+          },
+        ],
+      })
+    ).toEqual([
+      {
+        enabled: true,
+        id: "agent-html",
+        name: "agent-html",
+        path: "D:/codes/Agent-HTML/.agents/skills/agent-html",
+        source: "D:/codes/Agent-HTML/.agents/skills/agent-html",
+        sourceType: undefined,
+        scope: "project",
+        status: undefined,
+      },
+      {
+        enabled: false,
+        id: "skill-creator",
+        name: "skill-creator",
+        path: "C:/Users/Admin/.codex/skills/skill-creator",
+        source: "C:/Users/Admin/.codex/skills/skill-creator",
+        sourceType: undefined,
+        scope: "user",
+        status: undefined,
+      },
+    ])
+  })
+
+  it("reads MCP server names without flattening tools or resources", () => {
+    expect(
+      readCapabilityItems("mcpServers", {
+        data: [
+          {
+            authStatus: "authenticated",
+            name: "filesystem",
+            resources: [{ name: "not-a-server-resource" }],
+            status: "ready",
+            tools: [{ name: "not-a-server-tool" }],
+          },
+        ],
+      })
+    ).toEqual([
+      {
+        authStatus: "authenticated",
+        childrenCount: 2,
+        enabled: undefined,
+        id: "filesystem",
+        name: "filesystem",
+        path: undefined,
+        source: undefined,
+        sourceType: undefined,
+        status: "ready",
+      },
+    ])
+  })
+
+  it("reads plugin names without flattening bundled capabilities", () => {
+    expect(
+      readCapabilityItems("plugins", {
         plugins: [
           {
+            apps: [{ name: "not-a-plugin-app" }],
+            installed: true,
+            mcpServers: [{ name: "not-a-plugin-mcp" }],
             name: "browser-tools",
+            skills: [{ name: "not-a-plugin-skill" }],
             source: { path: "AgentHTML/plugins/browser-tools", type: "local" },
           },
         ],
       })
     ).toEqual([
       {
+        childrenCount: 3,
         id: "browser-tools",
+        installed: true,
         name: "browser-tools",
+        path: undefined,
         source: "AgentHTML/plugins/browser-tools",
+        sourceType: "local",
+        status: undefined,
+      },
+    ])
+  })
+
+  it("reads app names without exposing app metadata in the UI item name", () => {
+    expect(
+      readCapabilityItems("apps", {
+        data: [
+          {
+            description: "GitHub connector",
+            id: "github",
+            installUrl: "https://chatgpt.com/apps/github/github",
+            isAccessible: true,
+            isEnabled: false,
+            name: "GitHub",
+          },
+        ],
+      })
+    ).toEqual([
+      {
+        enabled: false,
+        id: "github",
+        isAccessible: true,
+        name: "GitHub",
+        path: undefined,
+        source: undefined,
+        sourceType: undefined,
         status: undefined,
       },
     ])

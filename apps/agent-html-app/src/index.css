@@ -193,6 +193,7 @@
   #root {
     height: 100%;
     min-height: 100%;
+    background: transparent;
     overflow: hidden;
     overscroll-behavior: none;
   }
@@ -202,7 +203,31 @@
   }
 
   [data-window-chrome-root] {
+    --window-chrome-inset: 0px;
+    --window-chrome-radius: var(--radius-xl);
+    --window-chrome-shadow: none;
     overscroll-behavior: none;
+  }
+
+  [data-window-chrome-root][data-window-maximized] {
+    --window-chrome-inset: 0px;
+    --window-chrome-radius: 0px;
+    --window-chrome-shadow: none;
+  }
+
+  [data-window-chrome-surface] {
+    min-width: 0;
+    isolation: isolate;
+    position: relative;
+  }
+
+  [data-window-chrome-surface]::after {
+    border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    border-radius: max(0px, calc(var(--window-chrome-radius) - 1px));
+    content: "";
+    inset: 1px;
+    pointer-events: none;
+    position: absolute;
   }
 
   [data-window-titlebar] {
@@ -239,9 +264,162 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: var(--font-sans);
     letter-spacing: var(--tracking-normal);
   }
 
+}
+
+.app-startup-shell {
+  align-items: stretch;
+  background: transparent;
+  color: var(--foreground);
+  display: flex;
+  height: 100%;
+  min-height: 100%;
+  padding: var(--window-chrome-inset, 0px);
+}
+
+.app-startup-surface {
+  background: var(--background);
+  border-radius: var(--window-chrome-radius, var(--radius-xl));
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-startup-header {
+  align-items: center;
+  background: var(--background);
+  display: flex;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 0.5rem;
+}
+
+.app-startup-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.app-startup-sidebar {
+  background: var(--background);
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.75rem;
+  width: 16rem;
+}
+
+.app-startup-workspace {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  padding: 0 0.5rem 0.5rem 0;
+}
+
+.app-startup-workspace-surface {
+  background: var(--background);
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.app-startup-skeleton {
+  animation: app-startup-pulse 1.6s ease-in-out infinite;
+  background: var(--muted);
+  border-radius: var(--radius-md);
+  display: block;
+}
+
+.app-startup-icon,
+.app-startup-control {
+  height: 1.75rem;
+  width: 1.75rem;
+}
+
+.app-startup-tab {
+  height: 1.75rem;
+  width: 8rem;
+}
+
+.app-startup-tab-short {
+  width: 5rem;
+}
+
+.app-startup-spacer {
+  flex: 1;
+}
+
+.app-startup-sidebar-title {
+  height: 0.75rem;
+  margin: 0.25rem 0.5rem;
+  width: 5rem;
+}
+
+.app-startup-sidebar-row {
+  height: 2rem;
+  width: 100%;
+}
+
+.app-startup-sidebar-row-short {
+  width: 75%;
+}
+
+.app-startup-sidebar-gap {
+  height: 0.75rem;
+}
+
+.app-startup-title {
+  height: 1.25rem;
+  width: 14rem;
+}
+
+.app-startup-subtitle {
+  height: 0.75rem;
+  width: 22rem;
+}
+
+.app-startup-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.75rem;
+}
+
+.app-startup-card {
+  height: 8rem;
+}
+
+.app-startup-line {
+  height: 0.75rem;
+  width: 100%;
+}
+
+.app-startup-line-medium {
+  width: 82%;
+}
+
+.app-startup-line-short {
+  width: 64%;
+}
+
+@keyframes app-startup-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
 }

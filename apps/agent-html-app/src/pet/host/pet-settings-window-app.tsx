@@ -12,6 +12,7 @@ import {
 } from "@/app/pet/host/pet-settings-native-bridge"
 import { hideWindow } from "@/app/shared/lib/window-controls"
 import {
+  WindowControls,
   WindowChromeFrame,
   WindowTitlebar,
 } from "@/app/shared/ui/window-chrome"
@@ -59,17 +60,26 @@ export function PetSettingsWindowApp() {
     },
     snapshot,
   } satisfies PetSettingsBridge
+  const handleCloseWindow = () => {
+    bridge.dispatch({ type: "close" })
+  }
 
   return (
     <WindowChromeFrame>
+      <WindowTitlebar className="border-b bg-muted/30 text-foreground">
+        <div className="flex h-12 w-full min-w-0 items-center gap-3 px-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-sm font-medium leading-5">
+              AgentHTML settings
+            </h1>
+          </div>
+          <WindowControls className="ml-auto" onClose={handleCloseWindow} />
+        </div>
+      </WindowTitlebar>
       <PetSettingsSurface
         bridge={bridge}
-        className="h-full min-h-0 w-full rounded-none border-0 shadow-none"
-        headerSlot={(header) => (
-          <WindowTitlebar className="bg-muted/30 text-foreground">
-            {header}
-          </WindowTitlebar>
-        )}
+        className="min-h-0 w-full flex-1 rounded-none border-0 shadow-none"
+        renderHeader={false}
       />
     </WindowChromeFrame>
   )

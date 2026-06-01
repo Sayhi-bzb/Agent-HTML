@@ -90,6 +90,7 @@ export function useWorkspaceController({
   onActivateWorkspace: () => void
 }) {
   const [projects, setProjects] = React.useState<WorkspaceProjectView[]>([])
+  const [isLoadingWorkspace, setIsLoadingWorkspace] = React.useState(true)
   const [loadError, setLoadError] = React.useState<string | null>(null)
   const [openTabs, setOpenTabs] = React.useState<WorkspaceTab[]>([])
   const [activeTabId, setActiveTabId] = React.useState<string | null>(null)
@@ -127,6 +128,7 @@ export function useWorkspaceController({
 
         setProjects(projectViews)
         setLoadError(null)
+        setIsLoadingWorkspace(false)
         markCodexStartupEvent("workspace-load-ready", {
           projectCount: projectViews.length,
           sectionCount: projectViews.reduce(
@@ -151,6 +153,7 @@ export function useWorkspaceController({
         }
       } catch (error) {
         if (isCurrent) {
+          setIsLoadingWorkspace(false)
           setLoadError(
             error instanceof Error ? error.message : "Unable to load workspace."
           )
@@ -748,6 +751,7 @@ export function useWorkspaceController({
     duplicateProjectSection,
     guardDocumentNavigation,
     hasUnsavedChanges,
+    isLoadingWorkspace,
     isTabDirty,
     loadError,
     openSection,

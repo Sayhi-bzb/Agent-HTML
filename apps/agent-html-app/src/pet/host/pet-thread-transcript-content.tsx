@@ -26,6 +26,7 @@ import { Button } from "@/app/shared/ui/button"
 import { Input } from "@/app/shared/ui/input"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import { Separator } from "@/app/shared/ui/separator"
+import { Skeleton } from "@/app/shared/ui/skeleton"
 import type {
   ThreadTranscriptItem,
   ThreadTranscriptState,
@@ -246,7 +247,7 @@ export function PetThreadTranscriptContent({
               />
             ) : null}
             {threadId && !error && isLoading && turns.length === 0 ? (
-              <TranscriptEmptyState text="Loading transcript..." />
+              <TranscriptLoadingSkeleton />
             ) : null}
             {threadId && !error && !isLoading && turns.length === 0 ? (
               <TranscriptEmptyState text="No turns in this thread yet." />
@@ -322,6 +323,37 @@ function TranscriptEmptyState({ text }: { text: string }) {
       <p className="max-w-60" data-cursor="text">
         {text}
       </p>
+    </div>
+  )
+}
+
+function TranscriptLoadingSkeleton() {
+  return (
+    <div className="flex flex-col gap-4 px-1 py-1" data-selection="none">
+      {Array.from({ length: 4 }).map((_, index) => {
+        const isUser = index % 3 === 1
+
+        return (
+          <div
+            className={cn("flex", isUser ? "justify-end" : "justify-start")}
+            key={index}
+          >
+            <div
+              className={cn(
+                "flex max-w-[88%] flex-col gap-1.5",
+                isUser ? "items-end" : "items-start"
+              )}
+            >
+              <Skeleton className="h-2.5 w-20" />
+              <div className="space-y-2 rounded-lg bg-secondary p-2">
+                <Skeleton className="h-3 w-56 max-w-full" />
+                <Skeleton className="h-3 w-64 max-w-full" />
+                <Skeleton className="h-3 w-40 max-w-full" />
+              </div>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

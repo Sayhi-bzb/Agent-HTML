@@ -15,6 +15,7 @@
         "label": "main",
         "title": "Agent HTML",
         "decorations": false,
+        "transparent": true,
         "width": 1280,
         "height": 820
       },
@@ -22,6 +23,7 @@
         "label": "thread-panel",
         "title": "Thread Panel",
         "decorations": false,
+        "transparent": true,
         "visible": false,
         "width": 960,
         "height": 640,
@@ -31,6 +33,7 @@
         "label": "pet-settings",
         "title": "Pet Settings",
         "decorations": false,
+        "transparent": true,
         "visible": false,
         "width": 880,
         "height": 640,

@@ -1,34 +1,52 @@
 import * as React from "react"
 
-import type { GalleryController } from "@/app/gallery/controller"
+import { useGalleryController } from "@/app/gallery/controller"
 import { AppFrame } from "@/app/shell/app-frame"
 import type { HeaderTab } from "@/app/shell/site-header"
-import { useAppliedAppThemeCssVariables } from "@/app/shared/app-theme/applied-theme-hooks"
+import { useAppliedAppTheme } from "@/app/shared/app-theme/applied-theme-context"
+import { resolveAppThemeCssVariables } from "@/app/shared/app-theme/theme"
+import { useColorMode } from "@/app/shared/color-mode-context"
 import { closeWindow } from "@/app/shared/lib/window-controls"
 import { useWorkspaceController } from "@/app/workspace/controller"
+import type { AgentHtmlColorCssVariables } from "@/agent-html"
 
 type SurfaceMode = "gallery" | "workspace"
-
-const GalleryMode = React.lazy(() =>
-  import("@/app/gallery/gallery-mode").then((module) => ({
-    default: module.GalleryMode,
-  }))
-)
 
 export function App() {
   const [surfaceMode, setSurfaceMode] = React.useState<SurfaceMode>("workspace")
   const handleActivateWorkspace = React.useCallback(() => {
     setSurfaceMode("workspace")
   }, [])
-  const [galleryController, setGalleryController] =
-    React.useState<GalleryController | null>(null)
-  const appliedThemeCssVariables = useAppliedAppThemeCssVariables()
+  const { appliedThemeDraft } = useAppliedAppTheme()
+  const { resolvedColorMode } = useColorMode()
   const workspace = useWorkspaceController({
     onActivateWorkspace: handleActivateWorkspace,
   })
+  const canLeaveWorkspaceForGallery = React.useCallback(
+    () => !workspace.guardDocumentNavigation(),
+    [workspace]
+  )
+  const handleActivateGallery = React.useCallback(() => {
+    setSurfaceMode("gallery")
+  }, [])
+  const galleryController = useGalleryController({
+    canLeaveWorkspace: canLeaveWorkspaceForGallery,
+    onActivateGallery: handleActivateGallery,
+    onActivateWorkspace: handleActivateWorkspace,
+  })
+  const activeThemeDraft =
+    surfaceMode === "gallery" ? galleryController.themeDraft : appliedThemeDraft
+  const activeThemeCssVariables = React.useMemo(
+    () =>
+      resolveAppThemeCssVariables(
+        activeThemeDraft,
+        resolvedColorMode
+      ) as AgentHtmlColorCssVariables,
+    [activeThemeDraft, resolvedColorMode]
+  )
 
   const headerTabs = React.useMemo<HeaderTab[]>(() => {
-    if (surfaceMode === "gallery" && galleryController) {
+    if (surfaceMode === "gallery") {
       return galleryController.headerTabs
     }
 
@@ -46,7 +64,7 @@ export function App() {
         return
       }
 
-      if (surfaceMode === "gallery" && galleryController) {
+      if (surfaceMode === "gallery") {
         galleryController.selectViewTab(tabId)
         return
       }
@@ -67,24 +85,9 @@ export function App() {
     [surfaceMode, workspace]
   )
 
-  const handleEnterGalleryMode = React.useCallback(() => {
-    if (
-      workspace.guardDocumentNavigation(() => {
-        setSurfaceMode("gallery")
-      })
-    ) {
-      return
-    }
-
-    setSurfaceMode("gallery")
-  }, [workspace])
-  const canLeaveWorkspaceForGallery = React.useCallback(
-    () => !workspace.guardDocumentNavigation(),
-    [workspace]
-  )
-  const handleActivateGallery = React.useCallback(() => {
-    setSurfaceMode("gallery")
-  }, [])
+  const handleEnterGallery = React.useCallback(() => {
+    galleryController.requestEnterGallery()
+  }, [galleryController])
 
   const handleCloseWindow = React.useCallback(() => {
     if (
@@ -101,11 +104,11 @@ export function App() {
   return (
     <>
       <AppFrame
-        appliedThemeCssVariables={appliedThemeCssVariables}
+        activeThemeCssVariables={activeThemeCssVariables}
         gallery={galleryController}
         headerTabs={headerTabs}
         onCloseWindow={handleCloseWindow}
-        onEnterGalleryMode={handleEnterGalleryMode}
+        onEnterGalleryMode={handleEnterGallery}
         onReorderWorkspaceTabs={
           surfaceMode === "workspace" ? handleReorderWorkspaceTabs : undefined
         }
@@ -113,16 +116,6 @@ export function App() {
         surfaceMode={surfaceMode}
         workspace={workspace}
       />
-      {surfaceMode === "gallery" ? (
-        <React.Suspense fallback={null}>
-          <GalleryMode
-            canLeaveWorkspace={canLeaveWorkspaceForGallery}
-            onActivateGallery={handleActivateGallery}
-            onActivateWorkspace={handleActivateWorkspace}
-            onControllerChange={setGalleryController}
-          />
-        </React.Suspense>
-      ) : null}
     </>
   )
 }

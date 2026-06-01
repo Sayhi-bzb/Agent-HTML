@@ -604,7 +604,7 @@ export function areAppThemeDraftsEqual(
   return JSON.stringify(left) === JSON.stringify(right)
 }
 
-export function applyAppTheme(draft: AppThemeDraft) {
+export function applyAppliedAppThemeToDocument(draft: AppThemeDraft) {
   const root = document.documentElement
 
   if (draft.kind === "preset") {
@@ -626,20 +626,15 @@ export function applyAppTheme(draft: AppThemeDraft) {
   }
 }
 
-export function loadAppliedAppTheme() {
-  const storedValue = localStorage.getItem(appliedAppThemeStorageKey)
-
-  if (!storedValue) {
-    return null
-  }
-
+export function parseAppliedAppTheme(value: string | null) {
+  if (!value) return null
   try {
-    return parseThemeDraft(JSON.parse(storedValue))
+    return parseThemeDraft(JSON.parse(value))
   } catch {
     return null
   }
 }
 
-export function saveAppliedAppTheme(draft: AppThemeDraft) {
-  localStorage.setItem(appliedAppThemeStorageKey, JSON.stringify(draft))
+export function serializeAppliedAppTheme(draft: AppThemeDraft) {
+  return JSON.stringify(draft)
 }

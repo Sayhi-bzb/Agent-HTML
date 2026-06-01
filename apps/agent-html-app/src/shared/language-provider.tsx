@@ -9,6 +9,11 @@ import {
   LanguageProviderContext,
   type ResolvedAppLocale,
 } from "@/app/shared/language-context"
+import {
+  readSyncedStorageValue,
+  subscribeSyncedStorageKey,
+  writeSyncedStorageValue,
+} from "@/app/shared/storage-sync"
 
 const LANGUAGE_STORAGE_KEY = "agent-html.language"
 const LANGUAGE_VALUES: AppLanguage[] = ["system", "en", "zh"]
@@ -42,12 +47,11 @@ function getInitialLanguage(
   storageKey: string,
   defaultLanguage: AppLanguage
 ): AppLanguage {
-  const storedLanguage = localStorage.getItem(storageKey)
-  if (isLanguage(storedLanguage)) {
-    return storedLanguage
-  }
-
-  return defaultLanguage
+  return readSyncedStorageValue({
+    defaultValue: defaultLanguage,
+    parse: (value) => (isLanguage(value) ? value : null),
+    storageKey,
+  })
 }
 
 function activateLocale(locale: ResolvedAppLocale) {
@@ -74,8 +78,10 @@ export function LanguageProvider({
 
   const setLanguage = React.useCallback(
     (nextLanguage: AppLanguage) => {
-      localStorage.setItem(storageKey, nextLanguage)
-      setLanguageState(nextLanguage)
+      writeSyncedStorageValue({
+        storageKey,
+        value: nextLanguage,
+      })
     },
     [storageKey]
   )
@@ -101,25 +107,9 @@ export function LanguageProvider({
   }, [language])
 
   React.useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.storageArea !== localStorage) {
-        return
-      }
-
-      if (event.key !== storageKey) {
-        return
-      }
-
-      setLanguageState(
-        isLanguage(event.newValue) ? event.newValue : defaultLanguage
-      )
-    }
-
-    window.addEventListener("storage", handleStorageChange)
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange)
-    }
+    return subscribeSyncedStorageKey(storageKey, () => {
+      setLanguageState(getInitialLanguage(storageKey, defaultLanguage))
+    })
   }, [defaultLanguage, storageKey])
 
   const value = React.useMemo(

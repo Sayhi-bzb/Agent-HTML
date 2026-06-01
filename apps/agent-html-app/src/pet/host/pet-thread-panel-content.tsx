@@ -26,6 +26,7 @@ import {
 import { Input } from "@/app/shared/ui/input"
 import { ScrollArea } from "@/app/shared/ui/scroll-area"
 import { Separator } from "@/app/shared/ui/separator"
+import { Skeleton } from "@/app/shared/ui/skeleton"
 import {
   SidebarContent,
   SidebarGroup,
@@ -469,9 +470,9 @@ function ThreadPanelSidebar({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 {!canSelectThread ? (
-                  <ThreadPanelMutedText text="Connecting to Codex..." />
+                  <ThreadPanelListSkeleton />
                 ) : isLoading ? (
-                  <ThreadPanelMutedText text="Loading threads..." />
+                  <ThreadPanelListSkeleton />
                 ) : items.length > 0 ? (
                   items.map((item) => {
                     const summary = getThreadSummaryById(
@@ -654,6 +655,27 @@ function ThreadPanelErrors({
 
 function ThreadPanelMutedText({ text }: { text: string }) {
   return <p className="px-2 py-2 text-xs text-sidebar-foreground/60">{text}</p>
+}
+
+function ThreadPanelListSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <SidebarMenuItem key={index}>
+          <div className="flex min-h-11 items-center gap-2 rounded-md px-2 py-1.5">
+            <Skeleton className="size-6 shrink-0 rounded-md" />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-2.5 w-10 shrink-0" />
+              </div>
+              <Skeleton className="h-2.5 w-4/5" />
+            </div>
+          </div>
+        </SidebarMenuItem>
+      ))}
+    </>
+  )
 }
 
 function getThreadInitial(name: string) {

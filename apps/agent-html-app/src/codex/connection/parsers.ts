@@ -1,19 +1,10 @@
 import type {
+  CodexRuntimeCapability,
   CodexRuntimeCapabilityItem,
   CodexRuntimeStatus,
   CodexThreadSummary,
 } from "./types"
 import { readObject, readScalarAsString, readString } from "./object-readers"
-
-const runtimeListKeys = [
-  "apps",
-  "collaborationModes",
-  "items",
-  "models",
-  "plugins",
-  "servers",
-  "skills",
-] as const
 
 const runtimeSourceKeys = [
   "cwd",
@@ -82,37 +73,130 @@ export function countItems(value: unknown): number | undefined {
   return readRuntimeItems(value).length
 }
 
-export function readRuntimeItems(value: unknown): CodexRuntimeCapabilityItem[] {
-  return readRuntimeItemsFromValue(value)
+export function countCapabilityItems(
+  capability: CodexRuntimeCapability,
+  value: unknown
+): number | undefined {
+  return readCapabilityItems(capability, value).length
 }
 
-function readRuntimeItemsFromValue(
-  value: unknown,
-  inheritedSource?: string
+export function readCapabilityItems(
+  capability: CodexRuntimeCapability,
+  value: unknown
 ): CodexRuntimeCapabilityItem[] {
-  if (typeof value === "string") {
-    return [{ name: value, source: inheritedSource }]
+  switch (capability) {
+    case "apps":
+      return readOfficialDataItems(value, readAppItem).concat(
+        readTopLevelItems(value, ["apps", "items"], readAppItem)
+      )
+    case "collaborationModes":
+      return readTopLevelItems(value, ["collaborationModes", "items", "data"])
+    case "models":
+      return readTopLevelItems(value, ["models", "items", "data"])
+    case "mcpServers":
+      return readOfficialDataItems(value, readMcpServerItem).concat(
+        readTopLevelItems(value, ["servers", "items"], readMcpServerItem)
+      )
+    case "plugins":
+      return readTopLevelItems(value, ["plugins", "items", "data"], readPluginItem)
+    case "skills":
+      return readSkillItems(value)
+    case "config":
+      return []
   }
+}
 
-  if (Array.isArray(value)) {
-    return value.flatMap((item) =>
-      readRuntimeItemsFromValue(item, inheritedSource)
-    )
-  }
+function readSkillItems(value: unknown): CodexRuntimeCapabilityItem[] {
+  return readTopLevelItems(value, ["skills"], readSkillItem).concat(
+    readSkillsFromGroups(value)
+  )
+}
 
-  const item = readObject(value)
-  if (!item) {
+function readSkillsFromGroups(value: unknown): CodexRuntimeCapabilityItem[] {
+  const result = readObject(value)
+  const groups =
+    (Array.isArray(result?.data) && result.data) ||
+    (Array.isArray(result?.items) && result.items) ||
+    (Array.isArray(result?.cwds) && result.cwds) ||
+    (Array.isArray(value) && value) ||
+    []
+
+  return groups.flatMap((rawGroup) => {
+    const group = readObject(rawGroup)
+    if (!group) {
+      return []
+    }
+
+    const source = readRuntimeItemSource(group)
+    const skills = group.skills
+    if (!Array.isArray(skills)) {
+      return []
+    }
+
+    return readTopLevelItems(skills, [], readSkillItem).map((skill) => ({
+      ...skill,
+      source: skill.source ?? source,
+    }))
+  })
+}
+
+function readOfficialDataItems(
+  value: unknown,
+  reader: (
+    item: Record<string, unknown>,
+    source?: string
+  ) => CodexRuntimeCapabilityItem | null
+) {
+  const result = readObject(value)
+  if (!Array.isArray(result?.data)) {
     return []
   }
 
-  const source = readRuntimeItemSource(item) ?? inheritedSource
-  const nestedItems = runtimeListKeys.flatMap((key) => {
-    const child = item[key]
-    return Array.isArray(child) ? readRuntimeItemsFromValue(child, source) : []
-  })
-  const ownItem = readRuntimeItem(item, source)
+  return readTopLevelItems(result.data, [], reader)
+}
 
-  return ownItem ? [ownItem, ...nestedItems] : nestedItems
+export function readRuntimeItems(value: unknown): CodexRuntimeCapabilityItem[] {
+  return readTopLevelItems(value, ["items", "data"])
+}
+
+function readTopLevelItems(
+  value: unknown,
+  keys: readonly string[],
+  reader: (
+    item: Record<string, unknown>,
+    source?: string
+  ) => CodexRuntimeCapabilityItem | null = readRuntimeItem
+): CodexRuntimeCapabilityItem[] {
+  if (typeof value === "string") {
+    return [{ name: value }]
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((rawItem) => {
+        if (typeof rawItem === "string") {
+          return { name: rawItem }
+        }
+        const item = readObject(rawItem)
+        return item ? reader(item, readRuntimeItemSource(item)) : null
+      })
+      .filter((item): item is CodexRuntimeCapabilityItem => item !== null)
+  }
+
+  const result = readObject(value)
+  if (!result) {
+    return []
+  }
+
+  for (const key of keys) {
+    const child = result[key]
+    if (Array.isArray(child)) {
+      return readTopLevelItems(child, [], reader)
+    }
+  }
+
+  const ownItem = reader(result, readRuntimeItemSource(result))
+  return ownItem ? [ownItem] : []
 }
 
 function readRuntimeItem(
@@ -135,12 +219,85 @@ function readRuntimeItem(
   return {
     id,
     name,
+    path: readScalarAsString(item, ["path"]),
     source,
+    sourceType: readSourceType(item),
     status:
       readScalarAsString(item, ["status"]) ??
       readScalarAsString(item, ["state"]) ??
       readScalarAsString(item, ["enabled"]) ??
       readScalarAsString(item, ["ok"]),
+  }
+}
+
+function readSkillItem(
+  item: Record<string, unknown>,
+  source?: string
+): CodexRuntimeCapabilityItem | null {
+  const runtimeItem = readRuntimeItem(item, source)
+  if (!runtimeItem) {
+    return null
+  }
+
+  return {
+    ...runtimeItem,
+    enabled: readBoolean(item, ["enabled"]),
+    path:
+      readScalarAsString(item, ["path"]) ??
+      readScalarAsString(item, ["root"]) ??
+      runtimeItem.path,
+    scope: readScalarAsString(item, ["scope"]),
+  }
+}
+
+function readMcpServerItem(
+  item: Record<string, unknown>,
+  source?: string
+): CodexRuntimeCapabilityItem | null {
+  const runtimeItem = readRuntimeItem(item, source)
+  if (!runtimeItem) {
+    return null
+  }
+
+  return {
+    ...runtimeItem,
+    authStatus:
+      readScalarAsString(item, ["authStatus"]) ??
+      readScalarAsString(item, ["auth_status"]),
+    childrenCount: countChildItems(item, ["tools", "resources"]),
+    enabled: readBoolean(item, ["enabled"]),
+  }
+}
+
+function readPluginItem(
+  item: Record<string, unknown>,
+  source?: string
+): CodexRuntimeCapabilityItem | null {
+  const runtimeItem = readRuntimeItem(item, source)
+  if (!runtimeItem) {
+    return null
+  }
+
+  return {
+    ...runtimeItem,
+    childrenCount: countChildItems(item, ["apps", "mcpServers", "skills", "tools"]),
+    installed: readBoolean(item, ["installed"]),
+  }
+}
+
+function readAppItem(
+  item: Record<string, unknown>,
+  source?: string
+): CodexRuntimeCapabilityItem | null {
+  const runtimeItem = readRuntimeItem(item, source)
+  if (!runtimeItem) {
+    return null
+  }
+
+  return {
+    ...runtimeItem,
+    isAccessible: readBoolean(item, ["isAccessible"]),
+    enabled: readBoolean(item, ["isEnabled"]) ?? readBoolean(item, ["enabled"]),
   }
 }
 
@@ -164,6 +321,31 @@ function readRuntimeItemSource(
     readScalarAsString(source, ["url"]) ??
     readScalarAsString(source, ["type"])
   )
+}
+
+function readBoolean(value: unknown, keys: string[]) {
+  let current = value
+  for (const key of keys) {
+    const object = readObject(current)
+    if (!object) {
+      return undefined
+    }
+    current = object[key]
+  }
+
+  return typeof current === "boolean" ? current : undefined
+}
+
+function countChildItems(item: Record<string, unknown>, keys: readonly string[]) {
+  return keys.reduce((count, key) => {
+    const child = item[key]
+    return count + (Array.isArray(child) ? child.length : 0)
+  }, 0)
+}
+
+function readSourceType(item: Record<string, unknown>) {
+  const source = readObject(item.source)
+  return source ? readScalarAsString(source, ["type"]) : undefined
 }
 
 export function readEffectiveConfig(

@@ -15,7 +15,7 @@ import type { AgentHtmlInteractionUnit } from "@/agent-html/interaction/types"
 import {
   agentHtmlBlockWrapperClassName,
 } from "@/agent-html/runtime/block"
-import { ChartRuntime } from "@/agent-html/runtime/render/chart-runtime"
+import { LazyChartRuntime } from "@/agent-html/runtime/render/lazy-chart-runtime"
 import { IconRuntime } from "@/agent-html/runtime/render/icon-runtime"
 import {
   ClusterRuntime,
@@ -192,7 +192,7 @@ function renderElement(
   }
 
   if (node.tag === "Chart") {
-    rendered = <ChartRuntime key={key} node={node} />
+    rendered = <LazyChartRuntime key={key} node={node} />
     return highlightBlock(rendered, key, path, context)
   }
 

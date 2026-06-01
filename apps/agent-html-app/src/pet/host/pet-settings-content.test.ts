@@ -5,18 +5,25 @@ import { describe, expect, it } from "vitest"
 const settingsContentPath = fileURLToPath(
   new URL("./pet-settings-content.tsx", import.meta.url)
 )
+const settingsServicePath = fileURLToPath(
+  new URL("../../codex/connection/codex-settings-service.ts", import.meta.url)
+)
 const storePath = fileURLToPath(
   new URL("../../workspace/store.ts", import.meta.url)
 )
 
 const settingsContentSource = readFileSync(settingsContentPath, "utf8")
+const settingsServiceSource = readFileSync(settingsServicePath, "utf8")
 const storeSource = readFileSync(storePath, "utf8")
 
 describe("pet settings content", () => {
-  it("loads and saves root AGENTS.md through the workspace store", () => {
-    expect(settingsContentSource).toContain("getRootAgentsInstructions")
-    expect(settingsContentSource).toContain("updateRootAgentsInstructions")
-    expect(settingsContentSource).toContain("AgentHTML/AGENTS.md")
+  it("loads and saves root AGENTS.md through the Codex fs API", () => {
+    expect(settingsContentSource).toContain("readCodexTextFile")
+    expect(settingsContentSource).toContain("createWriteCodexTextFileMutation")
+    expect(settingsContentSource).toContain("resolveRootAgentsPath")
+    expect(settingsContentSource).toContain('"fs/writeFile"')
+    expect(settingsContentSource).not.toContain("getRootAgentsInstructions")
+    expect(settingsContentSource).not.toContain("updateRootAgentsInstructions")
   })
 
   it("uses the thread panel window shell for settings", () => {
@@ -35,6 +42,9 @@ describe("pet settings content", () => {
     expect(settingsContentSource).toContain("SidebarStateProvider")
     expect(settingsContentSource).toContain("onClose?: () => void")
     expect(settingsContentSource).toContain("Close settings")
+    expect(settingsContentSource).toContain("renderHeader = true")
+    expect(settingsContentSource).toContain("renderHeader?: boolean")
+    expect(settingsContentSource).toContain("{renderHeader ?")
     expect(settingsContentSource).toContain("SettingsInfoPanel")
     expect(settingsContentSource).not.toContain("PetPanelHeader")
     expect(settingsContentSource).not.toContain("PetPanelBody")
@@ -88,21 +98,52 @@ describe("pet settings content", () => {
     expect(settingsContentSource).not.toContain("TabsContent")
   })
 
-  it("surfaces Codex app-server capabilities without owning config writes", () => {
+  it("surfaces Codex app-server capabilities with safe switches", () => {
     expect(settingsContentSource).toContain("useCodexConnection")
     expect(settingsContentSource).toContain("refreshRuntimeStatus")
-    expect(settingsContentSource).toContain("CapabilityItemList")
+    expect(settingsContentSource).toContain("ConfirmSettingsMutationDialog")
+    expect(settingsContentSource).toContain("CodexSettingsMutation")
+    expect(settingsContentSource).toContain("AlertDialog")
+    expect(settingsContentSource).toContain("CapabilityNameList")
+    expect(settingsContentSource).toContain("CapabilitySwitch")
+    expect(settingsContentSource).toContain('role="switch"')
+    expect(settingsContentSource).toContain("createSkillConfigMutation")
+    expect(settingsContentSource).toContain("createConfigValueWriteMutation")
+    expect(settingsContentSource).toContain("createMcpEnabledMutation")
+    expect(settingsContentSource).toContain("createAppEnabledMutation")
+    expect(settingsContentSource).toContain("`mcp_servers.${id}.enabled`")
+    expect(settingsContentSource).toContain("`apps.${item.id}.enabled`")
+    expect(settingsContentSource).toContain("Read-only")
     expect(settingsContentSource).toContain("No items reported")
     expect(settingsContentSource).toContain(".items")
-    expect(settingsContentSource).toContain("item.source")
+    expect(settingsContentSource).toContain("item.name")
     expect(settingsContentSource).toContain('runtimeStatus.status === "loading"')
     expect(settingsContentSource).toContain("Not loaded")
-    expect(settingsContentSource).toContain("Loading...")
+    expect(settingsContentSource).toContain("Skeleton")
+    expect(settingsContentSource).toContain("SettingsFormSkeleton")
+    expect(settingsContentSource).not.toContain("return \"Loading...\"")
     expect(settingsContentSource).toContain("mcpServers")
     expect(settingsContentSource).toContain("skills")
     expect(settingsContentSource).toContain("plugins")
     expect(settingsContentSource).toContain("apps")
+    expect(settingsContentSource).toContain("No MCP servers reported")
+    expect(settingsContentSource).toContain("No skills reported")
+    expect(settingsContentSource).toContain("No plugins reported")
+    expect(settingsContentSource).toContain("No apps reported")
     expect(settingsContentSource).toContain("~/.codex/config.toml")
+    expect(settingsContentSource).toContain(
+      "plugin switches are not exposed until the app-server protocol stabilizes"
+    )
+    expect(settingsContentSource).not.toContain("createMcpReloadMutation")
+    expect(settingsContentSource).not.toContain("createMcpOauthLoginMutation")
+    expect(settingsContentSource).not.toContain("createPluginInstallMutation")
+    expect(settingsContentSource).not.toContain("createPluginUninstallMutation")
+    expect(settingsServiceSource).toContain("config/value/write")
+    expect(settingsServiceSource).toContain("config/mcpServer/reload")
+    expect(settingsServiceSource).toContain("mcpServer/oauth/login")
+    expect(settingsServiceSource).toContain("skills/config/write")
+    expect(settingsServiceSource).toContain("plugin/install")
+    expect(settingsServiceSource).toContain("plugin/uninstall")
   })
 
   it("maps root AGENTS.md store calls to dedicated Tauri commands", () => {

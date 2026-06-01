@@ -26,7 +26,10 @@ import {
   type AppLanguage,
   type ResolvedAppLocale,
 } from "@/app/shared/language-context"
-import { useTheme, type Theme } from "@/app/shared/theme-context"
+import {
+  useColorMode,
+  type ColorMode,
+} from "@/app/shared/color-mode-context"
 import {
   SidebarMenuButton,
   SidebarMenuItem,
@@ -46,10 +49,10 @@ import * as React from "react"
 import { useLingui } from "@lingui/react"
 import { Trans } from "@lingui/react/macro"
 
-const themeItems: {
+const colorModeItems: {
   icon: typeof SunIcon
   label: string
-  value: Theme
+  value: ColorMode
 }[] = [
   {
     icon: SunIcon,
@@ -97,9 +100,9 @@ function getLanguageMenuLabel(
   return getAppLanguageLabel(language, resolvedLocale)
 }
 
-function getThemeMenuLabel(theme: Theme) {
-  if (theme === "light") return "Light"
-  if (theme === "dark") return "Dark"
+function getColorModeMenuLabel(colorMode: ColorMode) {
+  if (colorMode === "light") return "Light"
+  if (colorMode === "dark") return "Dark"
   return "System"
 }
 
@@ -157,7 +160,7 @@ function CodexConnectionDialog({
 export function SettingsMenu() {
   const { isMobile } = useSidebar()
   const { language, resolvedLocale, setLanguage } = useLanguage()
-  const { setTheme, theme } = useTheme()
+  const { colorMode, setColorMode } = useColorMode()
   const [codexOpen, setCodexOpen] = React.useState(false)
   const languageSummary = getLanguageMenuLabel(language, resolvedLocale)
 
@@ -246,17 +249,19 @@ export function SettingsMenu() {
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="w-44 rounded-lg">
-                {themeItems.map((item) => {
+                {colorModeItems.map((item) => {
                   const Icon = item.icon
 
                   return (
                     <DropdownMenuCheckboxItem
                       key={item.value}
-                      checked={theme === item.value}
-                      onCheckedChange={() => setTheme(item.value)}
+                      checked={colorMode === item.value}
+                      onCheckedChange={() => setColorMode(item.value)}
                     >
                       <Icon />
-                      <LocalizedThemeLabel label={getThemeMenuLabel(item.value)} />
+                      <LocalizedThemeLabel
+                        label={getColorModeMenuLabel(item.value)}
+                      />
                     </DropdownMenuCheckboxItem>
                   )
                 })}

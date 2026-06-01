@@ -372,6 +372,30 @@ For current shell navigation:
   existing font-weight active states are a normalization target
 - scene or project selection SHOULD remain readable through surface and foreground contrast
 
+## Loading State Standard
+
+Loading state is structural, not explanatory. It should preserve orientation and layout stability
+without making the user read system process text.
+
+Rules:
+
+- main workspace, Gallery, settings, and other primary panels MUST NOT use a blank surface, isolated
+  `Loading...` text, or a large explanatory card as their default loading state
+- predictable structures such as lists, card grids, forms, document shells, thread rows, and sidebar
+  editors SHOULD use skeletons that approximate the final content geometry
+- lazy and Suspense fallbacks SHOULD resemble the final region they are loading; a Gallery grid
+  should fall back to card-grid skeletons, and an editor sidebar should fall back to form/list
+  skeletons
+- action-scoped waits such as save, apply, refresh, connection test, or runtime start SHOULD use
+  local pending treatment on the triggering control or a compact status region rather than replacing
+  the whole surface
+- text explanations are for errors, empty states, permission problems, or blocked states; loading
+  copy SHOULD be avoided unless the result shape is genuinely unknown
+- skeletons SHOULD stay quiet: use muted surfaces, inherited radius, subtle pulse-like motion, and
+  no brand color, strong shimmer, heavy shadow, or additional container layer
+- loading indicators SHOULD be delayed for very short waits when possible, and once visible they
+  SHOULD remain stable long enough to avoid flicker
+
 ## Selection and Cursor Standard
 
 The app MUST NOT globally disable text selection.

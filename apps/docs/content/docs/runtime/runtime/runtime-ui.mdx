@@ -15,3 +15,21 @@ They render registry-backed Agent-HTML tags.
 - runtime-specific interaction affordances
 
 App primitives live under `apps/agent-html-app/src/shared/ui`.
+
+## Runtime Loading Fallbacks
+
+Runtime loading is a fallback for runtime-owned async boundaries. It is not an
+Agent-HTML content primitive and should not be expressed as a DSL tag.
+
+Rules:
+
+- async runtime boundaries should render structural fallback UI instead of blank
+  surfaces or explanatory loading copy
+- predictable output should use runtime-owned skeletons that approximate the
+  final geometry
+- runtime fallbacks must stay neutral and use host-provided tokens such as
+  `bg-muted`, `border`, and runtime CSS variables
+- runtime code must not import app primitives from
+  `apps/agent-html-app/src/shared/ui`
+- ordinary runtime UI components should not receive loading props unless the
+  component itself owns an async boundary
