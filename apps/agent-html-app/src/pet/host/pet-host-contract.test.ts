@@ -66,6 +66,12 @@ const windowChromePath = fileURLToPath(
 const secondaryWindowPath = fileURLToPath(
   new URL("../../shared/window/secondary-window.ts", import.meta.url)
 )
+const secondaryWindowBridgePath = fileURLToPath(
+  new URL(
+    "../../shared/window/use-secondary-window-bridge.ts",
+    import.meta.url
+  )
+)
 
 const appFrameSource = readFileSync(appFramePath, "utf8")
 const composerSource = readFileSync(composerPath, "utf8")
@@ -108,6 +114,10 @@ const surfaceSource = readFileSync(surfacePath, "utf8")
 const siteHeaderSource = readFileSync(siteHeaderPath, "utf8")
 const windowChromeSource = readFileSync(windowChromePath, "utf8")
 const secondaryWindowSource = readFileSync(secondaryWindowPath, "utf8")
+const secondaryWindowBridgeSource = readFileSync(
+  secondaryWindowBridgePath,
+  "utf8"
+)
 const appThemeScopeSource = readFileSync(
   fileURLToPath(new URL("../../shared/app-theme/scope.tsx", import.meta.url)),
   "utf8"
@@ -190,8 +200,12 @@ describe("pet host contract", () => {
     expect(hostSessionSource).toContain("handleSettingsBridgeChange")
     expect(hostSessionSource).toContain("publishPetSettingsNativeSnapshot")
     expect(hostSessionSource).toContain("subscribePetSettingsNativeActions")
-    expect(hostSessionSource).toContain("useNativeSettingsFallback")
-    expect(hostSessionSource).toContain("active={isSettingsOpen}")
+    expect(hostSessionSource).toContain("useSecondaryWindowBridge")
+    expect(hostSessionSource).toContain("settingsWindowBridge")
+    expect(hostSessionSource).toContain("threadPanelBridge")
+    expect(hostSessionSource).toContain(
+      "active={settingsWindowBridge.isOpen}"
+    )
     expect(hostSessionSource).toContain("renderSurface={false}")
     expect(hostSessionSource).toContain("<PetSettingsSurface bridge={settingsBridge} />")
     expect(hostSessionSource).toContain("onClose={handleSettingsClose}")
@@ -205,8 +219,9 @@ describe("pet host contract", () => {
     expect(hostSessionSource).toContain("onPromptSubmit")
     expect(hostSessionSource).toContain("onInterruptTurn")
     expect(hostSessionSource).toContain("preloadThreadPanelNativeWindowApp")
-    expect(hostSessionSource).toContain("useNativeThreadPanelFallback")
-    expect(hostSessionSource).toContain("setUseNativeThreadPanelFallback(true)")
+    expect(hostSessionSource).not.toContain("useNativeSettingsFallback")
+    expect(hostSessionSource).not.toContain("useNativeThreadPanelFallback")
+    expect(hostSessionSource).not.toContain("setUseNativeThreadPanelFallback(true)")
     expect(hostSource).not.toContain("WebviewWindow")
     expect(hostSource).not.toContain("emitTo")
     expect(hostSource).not.toContain("codex_host_stop")
@@ -220,6 +235,11 @@ describe("pet host contract", () => {
     expect(petSettingsNativeBridgeSource).not.toContain("emitTo")
     expect(secondaryWindowSource).toContain("WebviewWindow")
     expect(secondaryWindowSource).toContain("emitTo")
+    expect(secondaryWindowBridgeSource).toContain(
+      "export function useSecondaryWindowBridge"
+    )
+    expect(secondaryWindowBridgeSource).toContain("setUseNativeFallback(true)")
+    expect(secondaryWindowBridgeSource).toContain("publishSnapshot(snapshot)")
   })
 
   it("treats pet message send as a floating interaction", () => {
@@ -261,11 +281,13 @@ describe("pet host contract", () => {
     expect(hostSessionSource).toContain("snapshot.threadPanel")
     expect(hostSessionSource).toContain("PetThreadPanelContent")
     expect(hostSessionSource).toContain("PetThreadTranscriptContent")
-    expect(hostSessionSource).toContain("onClose={() => setIsThreadPanelOpen(false)}")
-    expect(hostSessionSource).toContain("isThreadPanelOpen")
+    expect(hostSessionSource).toContain(
+      "onClose={() => threadPanelCloseRef.current()}"
+    )
+    expect(hostSessionSource).toContain("threadPanelBridge.isOpen")
     expect(hostSessionSource).toContain("onThreadPanelOpenChange")
     expect(hostSessionSource).toContain("ThreadPanelAppWindowHost")
-    expect(hostSessionSource).toContain("canUseNativeThreadPanel")
+    expect(hostSessionSource).toContain("canUseThreadPanelNativeWindow")
     expect(hostSessionSource).not.toContain("isThreadPickerOpen")
     expect(hostSessionSource).not.toContain("isTranscriptOpen")
     expect(hostSessionSource).not.toContain("renderThreadPanelContent")

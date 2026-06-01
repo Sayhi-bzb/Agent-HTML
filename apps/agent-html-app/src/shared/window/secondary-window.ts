@@ -158,9 +158,14 @@ export function createSecondaryWindowSurface<TSnapshot, TAction>(
         return () => {}
       }
 
-      return listen<TSnapshot>(config.snapshotEvent, (event) => {
+      const unlisten = await listen<TSnapshot>(config.snapshotEvent, (event) => {
         handler(event.payload)
       })
+      const cachedSnapshot = readSnapshotCache()
+      if (cachedSnapshot) {
+        handler(cachedSnapshot)
+      }
+      return unlisten
     },
   }
 }

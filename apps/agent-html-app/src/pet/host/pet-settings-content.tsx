@@ -18,9 +18,14 @@ import {
   createConfigValueWriteMutation,
   createSkillConfigMutation,
   createWriteCodexTextFileMutation,
-  readCodexTextFile,
   resolveRootAgentsPath,
 } from "@/app/codex/connection/codex-settings-service"
+import {
+  AGENTS_READ_TIMEOUT_MS,
+  loadAgentsInstructions,
+  type AgentsInstructionsSource,
+} from "@/app/pet/host/agents-instructions-loader"
+import { writeConnectionTrace } from "@/app/codex/connection"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,6 +56,7 @@ import {
 } from "@/app/shared/ui/sidebar"
 import { Textarea } from "@/app/shared/ui/textarea"
 import { SettingsInfoPanel } from "@/app/shell/settings-surface"
+import { createWorkspaceStore } from "@/app/workspace/store"
 import { cn } from "@/app/shared/lib/utils"
 
 const settingsViews = [
@@ -75,6 +81,7 @@ export type PetSettingsSurfaceSnapshot = {
     isLoading: boolean
     isSaving: boolean
     path: string | null
+    source: AgentsInstructionsSource | null
     status: "idle" | "saved"
   }
   codex: {
@@ -131,6 +138,20 @@ function getErrorMessage(error: unknown) {
   return "Unable to update AGENTS.md."
 }
 
+function isNonBlockingCodexNoise(message: string | null | undefined) {
+  if (!message) {
+    return false
+  }
+
+  return (
+    message.includes("rmcp::transport::worker") ||
+    (message.includes("Transport channel closed") &&
+      message.includes("developers.openai.com/mcp")) ||
+    (message.includes("http/request failed") &&
+      message.includes("developers.openai.com/mcp"))
+  )
+}
+
 function formatCapability(
   capability: CodexRuntimeCapabilityStatus,
   runtimeStatus: CodexRuntimeStatus["status"]
@@ -152,7 +173,7 @@ function formatCapability(
     : "Available"
 }
 
-function CapabilityRow({
+function SettingsSectionHeader({
   label,
   runtimeStatus,
   status,
@@ -164,10 +185,10 @@ function CapabilityRow({
   const isUnavailable = runtimeStatus === "error" && !status.ok
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-xs">
-      <span className="font-medium" data-selection="none">
+    <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-2 text-xs">
+      <h3 className="text-sm font-medium" data-selection="none">
         {label}
-      </span>
+      </h3>
       <span
         className={isUnavailable ? "text-destructive" : "text-muted-foreground"}
         data-cursor={isUnavailable ? "text" : undefined}
@@ -215,32 +236,53 @@ function CapabilityNameList({
   }
 
   return (
-    <ScrollArea className="max-h-40 rounded-lg border border-border/60 bg-background/60">
-      <div className="grid gap-1.5 p-2">
-      {items.map((item) => (
-        <div
-          className="flex min-w-0 items-center justify-between gap-3 rounded-md bg-muted/30 px-2.5 py-1.5 text-xs"
-          key={`${item.id ?? item.name}:${item.path ?? item.source ?? ""}`}
-        >
-          <span
-            className="block min-w-0 flex-1 truncate font-medium"
-            data-cursor="text"
-            data-selection="text"
-            title={item.name}
+    <ScrollArea className="max-h-56">
+      <div className="grid gap-1.5">
+        {items.map((item) => (
+          <div
+            className="flex min-w-0 items-center justify-between gap-3 rounded-md px-2.5 py-1.5 text-xs hover:bg-muted/40"
+            key={`${item.id ?? item.name}:${item.path ?? item.source ?? ""}`}
           >
-            {item.name}
-          </span>
-          {onCreateToggleMutation ? (
-            <CapabilitySwitch
-              item={item}
-              onCreateMutation={onCreateToggleMutation}
-              onQueueMutation={onQueueMutation}
-            />
-          ) : null}
-        </div>
-      ))}
+            <span
+              className="block min-w-0 flex-1 truncate font-medium"
+              data-cursor="text"
+              data-selection="text"
+              title={item.name}
+            >
+              {item.name}
+            </span>
+            <CapabilityItemMeta item={item} />
+            {onCreateToggleMutation ? (
+              <CapabilitySwitch
+                item={item}
+                onCreateMutation={onCreateToggleMutation}
+                onQueueMutation={onQueueMutation}
+              />
+            ) : null}
+          </div>
+        ))}
       </div>
     </ScrollArea>
+  )
+}
+
+function CapabilityItemMeta({ item }: { item: CodexRuntimeCapabilityItem }) {
+  const label =
+    item.scope ??
+    item.authStatus ??
+    (typeof item.childrenCount === "number"
+      ? `${item.childrenCount} items`
+      : undefined) ??
+    item.status
+
+  if (!label) {
+    return null
+  }
+
+  return (
+    <Badge className="shrink-0 font-normal" variant="outline">
+      {label}
+    </Badge>
   )
 }
 
@@ -299,19 +341,6 @@ function CapabilitySwitch({
   )
 }
 
-function PathInfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-xs">
-      <span data-selection="none" className="text-muted-foreground">
-        {label}
-      </span>
-      <span data-cursor="text" data-selection="text" className="break-all">
-        {value}
-      </span>
-    </div>
-  )
-}
-
 export function PetSettingsContent({
   active = true,
   initialView = "AGENTS.md",
@@ -361,6 +390,8 @@ function PetSettingsContentSession({
   const [baseline, setBaseline] = React.useState("")
   const [draft, setDraft] = React.useState("")
   const [agentsPath, setAgentsPath] = React.useState<string | null>(null)
+  const [agentsSource, setAgentsSource] =
+    React.useState<AgentsInstructionsSource | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
@@ -375,32 +406,69 @@ function PetSettingsContentSession({
     React.useState("")
   const [workspaceRootNotice, setWorkspaceRootNotice] =
     React.useState<string | null>(null)
+  const readInstructionsSeqRef = React.useRef(0)
 
   const isDirty = draft !== baseline
 
   const readInstructions = React.useCallback(() => {
+    const sequence = readInstructionsSeqRef.current + 1
+    readInstructionsSeqRef.current = sequence
     const path = resolveRootAgentsPath(codexConnection.workspaceRootStatus)
     setAgentsPath(path)
 
-    if (!path) {
-      setError("Workspace root is unavailable.")
-      setIsLoading(false)
-      return Promise.resolve()
-    }
-
-    return readCodexTextFile(codexConnection.request, path)
-      .then((source) => {
-        setBaseline(source)
-        setDraft(source)
+    return loadAgentsInstructions({
+      codexRequest: codexConnection.request,
+      path,
+      readWorkspaceInstructions: () =>
+        createWorkspaceStore().getRootAgentsInstructions(),
+      sequence,
+      timeoutMs: AGENTS_READ_TIMEOUT_MS,
+      trace: writeConnectionTrace,
+    })
+      .then((result) => {
+        if (readInstructionsSeqRef.current !== sequence) {
+          writeConnectionTrace("settings:agents:final", {
+            isStale: true,
+            sequence,
+          })
+          return
+        }
+        setBaseline(result.text)
+        setDraft(result.text)
+        setAgentsSource(result.source)
         setStatus("idle")
+        writeConnectionTrace("settings:agents:final", {
+          isStale: false,
+          length: result.text.length,
+          sequence,
+          source: result.source,
+        })
       })
       .catch((loadError: unknown) => {
+        if (readInstructionsSeqRef.current !== sequence) {
+          writeConnectionTrace("settings:agents:final", {
+            isStale: true,
+            sequence,
+          })
+          return
+        }
+        setAgentsSource(null)
         setError(getErrorMessage(loadError))
+        writeConnectionTrace("settings:agents:final", {
+          error: getErrorMessage(loadError),
+          isStale: false,
+          sequence,
+        })
       })
       .finally(() => {
-        setIsLoading(false)
+        if (readInstructionsSeqRef.current === sequence) {
+          setIsLoading(false)
+        }
       })
-  }, [codexConnection.request, codexConnection.workspaceRootStatus])
+  }, [
+    codexConnection.request,
+    codexConnection.workspaceRootStatus,
+  ])
 
   const loadInstructions = React.useCallback(() => {
     setError(null)
@@ -418,13 +486,32 @@ function PetSettingsContentSession({
 
   const saveInstructions = React.useCallback(() => {
     setError(null)
-    if (!agentsPath) {
+    setStatus("idle")
+    if (!agentsPath && agentsSource !== "workspace") {
       setError("Workspace root AGENTS.md path is unavailable.")
       return
     }
 
+    if (agentsSource === "workspace") {
+      setIsSaving(true)
+      void createWorkspaceStore()
+        .updateRootAgentsInstructions({ source: draft })
+        .then((savedSource) => {
+          setBaseline(savedSource)
+          setDraft(savedSource)
+          setStatus("saved")
+        })
+        .catch((saveError: unknown) => {
+          setError(getErrorMessage(saveError))
+        })
+        .finally(() => {
+          setIsSaving(false)
+        })
+      return
+    }
+
     setPendingMutation(createWriteCodexTextFileMutation(agentsPath, draft))
-  }, [agentsPath, draft])
+  }, [agentsPath, agentsSource, draft])
 
   const queueMutation = React.useCallback((mutation: CodexSettingsMutation) => {
     setMutationError(null)
@@ -507,6 +594,7 @@ function PetSettingsContentSession({
         isLoading,
         isSaving,
         path: agentsPath,
+        source: agentsSource,
         status,
       },
       codex: {
@@ -528,6 +616,7 @@ function PetSettingsContentSession({
     [
       activeView,
       agentsPath,
+      agentsSource,
       codexConnection.canManageHost,
       codexConnection.health,
       codexConnection.isBusy,
@@ -809,6 +898,7 @@ export function PetSettingsSurface({
                 saveInstructions={() => {
                   dispatch({ type: "save-agents-instructions" })
                 }}
+                source={agents.source}
                 setDraft={(draft) =>
                   dispatch({ draft, type: "set-agents-draft" })
                 }
@@ -826,6 +916,39 @@ export function PetSettingsSurface({
         onConfirm={() => dispatch({ type: "confirm-mutation" })}
       />
     </SidebarStateProvider>
+  )
+}
+
+function DetailsBlock({
+  children,
+  label = "Details",
+}: {
+  children: React.ReactNode
+  label?: string
+}) {
+  return (
+    <details className="group text-xs text-muted-foreground">
+      <summary
+        className="cursor-pointer select-none py-1 font-medium text-foreground/80 marker:text-muted-foreground"
+        data-selection="none"
+      >
+        {label}
+      </summary>
+      <div className="mt-2 grid gap-1.5 border-l border-border/60 pl-3">
+        {children}
+      </div>
+    </details>
+  )
+}
+
+function CompactMetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid grid-cols-[7rem_minmax(0,1fr)] gap-3">
+      <span data-selection="none">{label}</span>
+      <span className="break-all text-foreground" data-cursor="text" data-selection="text">
+        {value}
+      </span>
+    </div>
   )
 }
 
@@ -859,6 +982,7 @@ function SettingsViewContent({
   runtimeStatus,
   saveInstructions,
   setDraft,
+  source,
   status,
   queueMutation,
   workspaceRootNotice,
@@ -893,6 +1017,7 @@ function SettingsViewContent({
   runtimeStatus: CodexRuntimeStatus
   saveInstructions: () => void
   setDraft: (draft: string) => void
+  source: AgentsInstructionsSource | null
   status: "idle" | "saved"
   queueMutation: (mutation: CodexSettingsMutation) => void
   workspaceRootNotice?: string | null
@@ -909,6 +1034,7 @@ function SettingsViewContent({
         loadInstructions={loadInstructions}
         path={agentsPath}
         saveInstructions={saveInstructions}
+        source={source}
         setDraft={setDraft}
         status={status}
       />
@@ -1005,6 +1131,7 @@ function AgentsMdView({
   path,
   saveInstructions,
   setDraft,
+  source,
   status,
 }: {
   draft: string
@@ -1016,6 +1143,7 @@ function AgentsMdView({
   path: string | null
   saveInstructions: () => void
   setDraft: (draft: string) => void
+  source: AgentsInstructionsSource | null
   status: "idle" | "saved"
 }) {
   if (isLoading) {
@@ -1024,7 +1152,6 @@ function AgentsMdView({
 
   return (
     <div className="flex flex-col gap-3">
-      <PathInfoRow label="File" value={path ?? "AGENTS.md"} />
       <div className="flex min-h-0 flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
           <label
@@ -1036,9 +1163,11 @@ function AgentsMdView({
           </label>
           <span
             className="text-xs text-muted-foreground"
-            data-selection="none"
+            data-cursor="text"
+            data-selection="text"
+            title={path ?? "AGENTS.md"}
           >
-            {isDirty ? "Unsaved changes" : "Current"}
+            {isDirty ? "Unsaved" : path ?? "AGENTS.md"}
           </span>
         </div>
         <Textarea
@@ -1058,7 +1187,9 @@ function AgentsMdView({
         <SettingsInfoPanel variant="destructive">{error}</SettingsInfoPanel>
       ) : null}
       {!error && status === "saved" ? (
-        <SettingsInfoPanel>Saved through Codex fs/writeFile.</SettingsInfoPanel>
+        <SettingsInfoPanel>
+          {source === "workspace" ? "Saved locally." : "Saved."}
+        </SettingsInfoPanel>
       ) : null}
       <footer
         className="flex shrink-0 items-center justify-end gap-2"
@@ -1154,6 +1285,9 @@ function ConnectionView({
   workspaceRootNotice?: string | null
   workspaceRootStatus: ReturnType<typeof useCodexConnection>["workspaceRootStatus"]
 }) {
+  const hiddenDiagnostic = isNonBlockingCodexNoise(lastError) ? lastError : null
+  const visibleError = hiddenDiagnostic ? null : lastError
+
   return (
     <div className="grid gap-4">
       <section className="grid gap-3">
@@ -1171,8 +1305,13 @@ function ConnectionView({
             {codexConnectionStatus}
           </Badge>
         </div>
-        {lastError ? (
-          <SettingsInfoPanel variant="destructive">{lastError}</SettingsInfoPanel>
+        {visibleError ? (
+          <SettingsInfoPanel variant="destructive">{visibleError}</SettingsInfoPanel>
+        ) : null}
+        {hiddenDiagnostic ? (
+          <DetailsBlock label="Diagnostics">
+            <CompactMetaRow label="Hidden" value={hiddenDiagnostic} />
+          </DetailsBlock>
         ) : null}
         {!canManageHost ? (
           <SettingsInfoPanel>
@@ -1181,8 +1320,10 @@ function ConnectionView({
         ) : null}
       </section>
 
-      <section className="grid gap-3">
-        <h3 className="text-sm font-medium">Workspace</h3>
+      <section className="grid gap-3 border-t border-border/60 pt-3">
+        <h3 className="text-sm font-medium" data-selection="none">
+          Workspace
+        </h3>
         <div className="grid gap-2">
           <Label htmlFor="pet-settings-workspace-root">
             Custom workspace root
@@ -1196,18 +1337,20 @@ function ConnectionView({
             value={draftWorkspaceRootPath}
           />
         </div>
-        <PathInfoRow
-          label="Opened root"
-          value={workspaceRootStatus?.rootPath ?? "unknown"}
-        />
-        <PathInfoRow
-          label="Next startup root"
-          value={workspaceRootStatus?.pendingRootPath ?? "unknown"}
-        />
-        <PathInfoRow
-          label="Default root"
-          value={workspaceRootStatus?.defaultRootPath ?? "unknown"}
-        />
+        <DetailsBlock>
+          <CompactMetaRow
+            label="Opened root"
+            value={workspaceRootStatus?.rootPath ?? "unknown"}
+          />
+          <CompactMetaRow
+            label="Next startup"
+            value={workspaceRootStatus?.pendingRootPath ?? "unknown"}
+          />
+          <CompactMetaRow
+            label="Default root"
+            value={workspaceRootStatus?.defaultRootPath ?? "unknown"}
+          />
+        </DetailsBlock>
         {workspaceRootNotice ? (
           <SettingsInfoPanel>{workspaceRootNotice}</SettingsInfoPanel>
         ) : null}
@@ -1224,8 +1367,10 @@ function ConnectionView({
         </div>
       </section>
 
-      <section className="grid gap-3">
-        <h3 className="text-sm font-medium">Host</h3>
+      <section className="grid gap-3 border-t border-border/60 pt-3">
+        <h3 className="text-sm font-medium" data-selection="none">
+          Host
+        </h3>
         <div className="grid gap-2">
           <Label htmlFor="pet-settings-codex-command">Codex command</Label>
           <Input
@@ -1234,12 +1379,14 @@ function ConnectionView({
             value={draftCodexCommand}
           />
         </div>
-        <PathInfoRow label="Codex command" value={codexCommand} />
-        <PathInfoRow label="Codex cwd" value={cwd} />
-        <PathInfoRow
-          label="App server"
-          value={healthAppServerRunning ? "running" : "off"}
-        />
+        <div className="grid gap-x-5 gap-y-2 text-xs sm:grid-cols-2">
+          <RuntimeField label="Command" value={codexCommand} />
+          <RuntimeField label="Cwd" value={cwd} />
+          <RuntimeField
+            label="App server"
+            value={healthAppServerRunning ? "running" : "off"}
+          />
+        </div>
         <div className="flex flex-wrap justify-end gap-2">
           <Button onClick={onSaveCodexSettings} size="sm" type="button" variant="outline">
             Save
@@ -1288,7 +1435,7 @@ function SkillsView({
 }) {
   return (
     <div className="grid gap-3">
-      <CapabilityRow
+      <SettingsSectionHeader
         label="Codex skills"
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.skills}
@@ -1300,19 +1447,16 @@ function SkillsView({
         onQueueMutation={queueMutation}
         runtimeStatus={runtimeStatus.status}
       />
-      <PathInfoRow
-        label="Managed skill"
-        value="AgentHTML/.agents/skills/agent-html/SKILL.md"
-      />
-      <PathInfoRow
-        label="Schema reference"
-        value="AgentHTML/.agents/skills/agent-html/references/prompt-schema.md"
-      />
-      <SettingsInfoPanel>
-        AgentHTML writes the managed `agent-html` skill for artifact work. Users
-        can add additional workspace skills under `.agents/skills/`; Codex owns
-        skill discovery and execution through the app-server.
-      </SettingsInfoPanel>
+      <DetailsBlock>
+        <CompactMetaRow
+          label="Managed skill"
+          value="AgentHTML/.agents/skills/agent-html/SKILL.md"
+        />
+        <CompactMetaRow
+          label="Schema"
+          value="AgentHTML/.agents/skills/agent-html/references/prompt-schema.md"
+        />
+      </DetailsBlock>
     </div>
   )
 }
@@ -1326,7 +1470,7 @@ function McpView({
 }) {
   return (
     <div className="grid gap-3">
-      <CapabilityRow
+      <SettingsSectionHeader
         label="MCP servers"
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.mcpServers}
@@ -1338,12 +1482,10 @@ function McpView({
         onQueueMutation={queueMutation}
         runtimeStatus={runtimeStatus.status}
       />
-      <PathInfoRow label="Codex config" value="~/.codex/config.toml" />
-      <SettingsInfoPanel>
-        MCP servers are managed by Codex config, including `[mcp_servers.*]`
-        entries and tool controls. AgentHTML reads `mcpServerStatus/list` from
-        the Codex app-server and does not edit MCP auth or server config here.
-      </SettingsInfoPanel>
+      <DetailsBlock>
+        <CompactMetaRow label="Config" value="~/.codex/config.toml" />
+        <CompactMetaRow label="Key" value="mcp_servers.<name>.enabled" />
+      </DetailsBlock>
     </div>
   )
 }
@@ -1357,7 +1499,7 @@ function PluginsView({
 }) {
   return (
     <div className="grid gap-3">
-      <CapabilityRow
+      <SettingsSectionHeader
         label="Codex plugins"
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.plugins}
@@ -1367,7 +1509,7 @@ function PluginsView({
         items={runtimeStatus.capabilities.plugins.items}
         runtimeStatus={runtimeStatus.status}
       />
-      <CapabilityRow
+      <SettingsSectionHeader
         label="Codex apps"
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.apps}
@@ -1379,13 +1521,11 @@ function PluginsView({
         onQueueMutation={queueMutation}
         runtimeStatus={runtimeStatus.status}
       />
-      <PathInfoRow label="Workspace plugins" value="AgentHTML/plugins/" />
-      <SettingsInfoPanel>
-        Local plugin packages may live under `plugins/`, but plugin listing,
-        app listing, install state, and execution semantics belong to Codex.
-        App switches write official `apps.&lt;id&gt;.enabled` config values;
-        plugin switches are not exposed until the app-server protocol stabilizes.
-      </SettingsInfoPanel>
+      <DetailsBlock>
+        <CompactMetaRow label="Workspace" value="AgentHTML/plugins/" />
+        <CompactMetaRow label="App key" value="apps.<id>.enabled" />
+        <CompactMetaRow label="Plugins" value="read-only" />
+      </DetailsBlock>
     </div>
   )
 }
@@ -1440,12 +1580,12 @@ function RuntimeView({
 }) {
   return (
     <div className="grid gap-3">
-      <CapabilityRow
+      <SettingsSectionHeader
         label="Runtime config"
         runtimeStatus={runtimeStatus.status}
         status={runtimeStatus.capabilities.config}
       />
-      <div className="grid gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-xs">
+      <div className="grid gap-x-5 gap-y-2 text-xs sm:grid-cols-2">
         <RuntimeField label="Connection" value={connectionStatus} />
         <RuntimeField label="Command" value={codexCommand} />
         <RuntimeField label="Cwd" value={cwd} />
@@ -1471,11 +1611,6 @@ function RuntimeView({
           }
         />
       </div>
-      <SettingsInfoPanel>
-        Runtime values are read from the Codex app-server with `config/read` and
-        related status APIs. AgentHTML starts Codex in the AgentHTML workspace
-        root and does not duplicate Codex model, sandbox, or approval ownership.
-      </SettingsInfoPanel>
     </div>
   )
 }

@@ -17,13 +17,20 @@ const settingsServiceSource = readFileSync(settingsServicePath, "utf8")
 const storeSource = readFileSync(storePath, "utf8")
 
 describe("pet settings content", () => {
-  it("loads and saves root AGENTS.md through the Codex fs API", () => {
-    expect(settingsContentSource).toContain("readCodexTextFile")
+  it("loads and saves root AGENTS.md through Codex with a workspace fallback", () => {
+    expect(settingsContentSource).toContain("loadAgentsInstructions")
     expect(settingsContentSource).toContain("createWriteCodexTextFileMutation")
     expect(settingsContentSource).toContain("resolveRootAgentsPath")
+    expect(settingsContentSource).toContain("createWorkspaceStore")
+    expect(settingsContentSource).toContain("getRootAgentsInstructions")
+    expect(settingsContentSource).toContain("updateRootAgentsInstructions")
+    expect(settingsContentSource).toContain("writeConnectionTrace")
+    expect(settingsContentSource).toContain("AGENTS_READ_TIMEOUT_MS")
+    expect(settingsContentSource).toContain("readInstructionsSeqRef")
+    expect(settingsContentSource).toContain("settings:agents:final")
+    expect(settingsContentSource).toContain('"workspace"')
+    expect(settingsContentSource).toContain("Saved locally.")
     expect(settingsContentSource).toContain('"fs/writeFile"')
-    expect(settingsContentSource).not.toContain("getRootAgentsInstructions")
-    expect(settingsContentSource).not.toContain("updateRootAgentsInstructions")
   })
 
   it("uses the thread panel window shell for settings", () => {
@@ -46,6 +53,12 @@ describe("pet settings content", () => {
     expect(settingsContentSource).toContain("renderHeader?: boolean")
     expect(settingsContentSource).toContain("{renderHeader ?")
     expect(settingsContentSource).toContain("SettingsInfoPanel")
+    expect(settingsContentSource).toContain("DetailsBlock")
+    expect(settingsContentSource).toContain("CompactMetaRow")
+    expect(settingsContentSource).toContain("SettingsSectionHeader")
+    expect(settingsContentSource).toContain("isNonBlockingCodexNoise")
+    expect(settingsContentSource).toContain("developers.openai.com/mcp")
+    expect(settingsContentSource).toContain('label="Diagnostics"')
     expect(settingsContentSource).not.toContain("PetPanelHeader")
     expect(settingsContentSource).not.toContain("PetPanelBody")
     expect(settingsContentSource).not.toContain("PetPanelFooter")
@@ -93,6 +106,8 @@ describe("pet settings content", () => {
     expect(settingsContentSource).toContain("<RuntimeView")
     expect(settingsContentSource).toContain("Custom workspace root")
     expect(settingsContentSource).toContain("Test connection")
+    expect(settingsContentSource).toContain("visibleError")
+    expect(settingsContentSource).toContain("hiddenDiagnostic")
     expect(settingsContentSource).not.toContain("TabsList")
     expect(settingsContentSource).not.toContain("TabsTrigger")
     expect(settingsContentSource).not.toContain("TabsContent")
@@ -131,9 +146,18 @@ describe("pet settings content", () => {
     expect(settingsContentSource).toContain("No plugins reported")
     expect(settingsContentSource).toContain("No apps reported")
     expect(settingsContentSource).toContain("~/.codex/config.toml")
-    expect(settingsContentSource).toContain(
-      "plugin switches are not exposed until the app-server protocol stabilizes"
+    expect(settingsContentSource).toContain('ScrollArea className="max-h-56"')
+    expect(settingsContentSource).not.toContain(
+      'ScrollArea className="max-h-56 rounded-md border border-border/60 bg-background/60"'
     )
+    expect(settingsContentSource).toContain("AgentHTML/plugins/")
+    expect(settingsContentSource).toContain("mcp_servers.<name>.enabled")
+    expect(settingsContentSource).toContain("apps.<id>.enabled")
+    expect(settingsContentSource).toContain("read-only")
+    expect(settingsContentSource).not.toContain("AgentHTML writes the managed")
+    expect(settingsContentSource).not.toContain("MCP servers are managed")
+    expect(settingsContentSource).not.toContain("Local plugin packages may live")
+    expect(settingsContentSource).not.toContain("Runtime values are read")
     expect(settingsContentSource).not.toContain("createMcpReloadMutation")
     expect(settingsContentSource).not.toContain("createMcpOauthLoginMutation")
     expect(settingsContentSource).not.toContain("createPluginInstallMutation")

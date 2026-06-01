@@ -37,6 +37,7 @@ import {
   type ThreadPanelNativeSnapshot,
 } from "@/app/pet/host/thread-panel-native-bridge"
 import type { ThreadPanelAction } from "@/app/pet/host/pet-thread-panel-content"
+import { useSecondaryWindowBridge } from "@/app/shared/window/use-secondary-window-bridge"
 
 export function WorkspacePetHostSessionRoot() {
   const snapshot = React.useSyncExternalStore(
@@ -62,20 +63,12 @@ function WorkspacePetHostSession({
   snapshot: WorkspacePetHostSnapshot
 }) {
   const [isMessageOpen, setIsMessageOpen] = React.useState(false)
-  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
-  const [isThreadPanelOpen, setIsThreadPanelOpen] = React.useState(false)
   const [settingsSnapshot, setSettingsSnapshot] =
     React.useState<PetSettingsSurfaceSnapshot | null>(null)
   const settingsDispatchRef = React.useRef<PetSettingsDispatch | null>(null)
-  const [useNativeSettingsFallback, setUseNativeSettingsFallback] =
-    React.useState(false)
-  const [useNativeThreadPanelFallback, setUseNativeThreadPanelFallback] =
-    React.useState(false)
+  const settingsCloseRef = React.useRef<() => void>(() => {})
+  const threadPanelCloseRef = React.useRef<() => void>(() => {})
   const threadPanel = snapshot.threadPanel
-  const canUseNativeThreadPanel =
-    canUseThreadPanelNativeWindow() && !useNativeThreadPanelFallback
-  const canUseNativeSettings =
-    canUsePetSettingsNativeWindow() && !useNativeSettingsFallback
   const threadPanelComposer = (
     <PetMessageComposer
       draft={snapshot.messageDraft}
@@ -106,7 +99,7 @@ function WorkspacePetHostSession({
       isLoading={threadPanel.isLoading}
       isSelectingThread={threadPanel.isSelectingThread}
       items={threadPanel.items}
-      onClose={() => setIsThreadPanelOpen(false)}
+      onClose={() => threadPanelCloseRef.current()}
       onNewThread={snapshot.onNewThread ?? noop}
       onRenameThread={snapshot.onRenameThread ?? noopRenameThread}
       onResumeThread={snapshot.onResumeThread ?? noop}
@@ -177,7 +170,7 @@ function WorkspacePetHostSession({
         default:
           dispatchThreadPanelAction({
             action,
-            onClose: () => setIsThreadPanelOpen(false),
+            onClose: () => threadPanelCloseRef.current(),
             onNewThread: snapshot.onNewThread ?? noop,
             onRenameThread: snapshot.onRenameThread ?? noopRenameThread,
             onResumeThread: snapshot.onResumeThread ?? noop,
@@ -187,74 +180,18 @@ function WorkspacePetHostSession({
     [snapshot]
   )
 
-  React.useEffect(() => {
-    if (!canUseNativeThreadPanel) {
-      return undefined
-    }
-
-    preloadThreadPanelNativeWindowApp()
-
-    let cleanup: (() => void) | undefined
-    void subscribeThreadPanelNativeActions(handleNativeThreadPanelAction).then(
-      (unlisten) => {
-        cleanup = unlisten
-      }
-    )
-
-    return () => cleanup?.()
-  }, [canUseNativeThreadPanel, handleNativeThreadPanelAction])
-
   const handleNativeSettingsAction = React.useCallback(
     (action: PetSettingsAction) => {
       if (action.type === "close") {
-        setIsSettingsOpen(false)
+        settingsCloseRef.current()
       }
       settingsDispatchRef.current?.(action)
     },
     []
   )
 
-  React.useEffect(() => {
-    if (!canUseNativeSettings) {
-      return undefined
-    }
-
-    preloadPetSettingsNativeWindowApp()
-
-    let cleanup: (() => void) | undefined
-    void subscribePetSettingsNativeActions(handleNativeSettingsAction).then(
-      (unlisten) => {
-        cleanup = unlisten
-      }
-    )
-
-    return () => cleanup?.()
-  }, [canUseNativeSettings, handleNativeSettingsAction])
-
-  React.useEffect(() => {
-    if (!isThreadPanelOpen || !canUseNativeThreadPanel || !nativeSnapshot) {
-      if (canUseNativeThreadPanel && (!isThreadPanelOpen || !nativeSnapshot)) {
-        void closeThreadPanelNativeWindow()
-      }
-      return
-    }
-
-    void publishThreadPanelNativeSnapshot(nativeSnapshot)
-  }, [canUseNativeThreadPanel, isThreadPanelOpen, nativeSnapshot])
-
-  React.useEffect(() => {
-    if (!isSettingsOpen || !canUseNativeSettings || !settingsSnapshot) {
-      if (canUseNativeSettings && !isSettingsOpen) {
-        void closePetSettingsNativeWindow()
-      }
-      return
-    }
-
-    void publishPetSettingsNativeSnapshot(settingsSnapshot)
-  }, [canUseNativeSettings, isSettingsOpen, settingsSnapshot])
-
   const handleSettingsClose = React.useCallback(() => {
-    setIsSettingsOpen(false)
+    settingsCloseRef.current()
   }, [])
 
   const handleSettingsBridgeChange = React.useCallback(
@@ -278,49 +215,29 @@ function WorkspacePetHostSession({
     }
   }, [settingsSnapshot])
 
-  const handleThreadPanelOpenChange = React.useCallback(
-    (open: boolean) => {
-      if (!open || !canUseNativeThreadPanel) {
-        setIsThreadPanelOpen(open)
-        return
-      }
+  const threadPanelBridge = useSecondaryWindowBridge({
+    canUseNativeWindow: canUseThreadPanelNativeWindow,
+    closeNativeWindow: closeThreadPanelNativeWindow,
+    onAction: handleNativeThreadPanelAction,
+    openNativeWindow: openThreadPanelNativeWindow,
+    preloadWindowApp: preloadThreadPanelNativeWindowApp,
+    publishSnapshot: publishThreadPanelNativeSnapshot,
+    snapshot: nativeSnapshot,
+    subscribeActions: subscribeThreadPanelNativeActions,
+  })
 
-      setIsThreadPanelOpen(true)
-      if (nativeSnapshot) {
-        void publishThreadPanelNativeSnapshot(nativeSnapshot)
-      }
-      void openThreadPanelNativeWindow().then((opened) => {
-        if (opened && nativeSnapshot) {
-          void publishThreadPanelNativeSnapshot(nativeSnapshot)
-          return
-        }
-        setUseNativeThreadPanelFallback(true)
-      })
-    },
-    [canUseNativeThreadPanel, nativeSnapshot]
-  )
-
-  const handleSettingsOpenChange = React.useCallback(
-    (open: boolean) => {
-      if (!open || !canUseNativeSettings) {
-        setIsSettingsOpen(open)
-        return
-      }
-
-      setIsSettingsOpen(true)
-      if (settingsSnapshot) {
-        void publishPetSettingsNativeSnapshot(settingsSnapshot)
-      }
-      void openPetSettingsNativeWindow().then((opened) => {
-        if (opened && settingsSnapshot) {
-          void publishPetSettingsNativeSnapshot(settingsSnapshot)
-          return
-        }
-        setUseNativeSettingsFallback(true)
-      })
-    },
-    [canUseNativeSettings, settingsSnapshot]
-  )
+  const settingsWindowBridge = useSecondaryWindowBridge({
+    canUseNativeWindow: canUsePetSettingsNativeWindow,
+    closeNativeWindow: closePetSettingsNativeWindow,
+    onAction: handleNativeSettingsAction,
+    openNativeWindow: openPetSettingsNativeWindow,
+    preloadWindowApp: preloadPetSettingsNativeWindowApp,
+    publishSnapshot: publishPetSettingsNativeSnapshot,
+    snapshot: settingsSnapshot,
+    subscribeActions: subscribePetSettingsNativeActions,
+  })
+  threadPanelCloseRef.current = threadPanelBridge.close
+  settingsCloseRef.current = settingsWindowBridge.close
 
   return (
     <>
@@ -328,7 +245,7 @@ function WorkspacePetHostSession({
         approval={snapshot.approval}
         approvalError={snapshot.approvalError}
         isMessageOpen={isMessageOpen}
-        isSettingsOpen={isSettingsOpen}
+        isSettingsOpen={settingsWindowBridge.isOpen}
         messageContent={
           <PetMessageComposer
             draft={snapshot.messageDraft}
@@ -342,25 +259,25 @@ function WorkspacePetHostSession({
         canInterruptTurn={snapshot.canInterruptTurn}
         isInterruptingTurn={snapshot.isInterruptingTurn}
         onInterruptTurn={snapshot.onInterruptTurn}
-        onSettingsOpenChange={handleSettingsOpenChange}
+        onSettingsOpenChange={settingsWindowBridge.setOpen}
         onRespondToApproval={snapshot.onRespondToApproval}
-        onThreadPanelOpenChange={handleThreadPanelOpenChange}
+        onThreadPanelOpenChange={threadPanelBridge.setOpen}
         presence={snapshot.presence}
         settingsContent={
-          !canUseNativeSettings && settingsBridge ? (
+          !settingsWindowBridge.useNativeWindow && settingsBridge ? (
             <PetSettingsSurface bridge={settingsBridge} />
           ) : null
         }
         speechBubbles={snapshot.speechBubbles}
       />
       <PetSettingsContent
-        active={isSettingsOpen}
+        active={settingsWindowBridge.isOpen}
         onBridgeChange={handleSettingsBridgeChange}
         onClose={handleSettingsClose}
         renderSurface={false}
       />
       <ThreadPanelAppWindowHost
-        open={isThreadPanelOpen && !canUseNativeThreadPanel}
+        open={threadPanelBridge.isOpen && !threadPanelBridge.useNativeWindow}
       >
         {threadPanelContent}
       </ThreadPanelAppWindowHost>
