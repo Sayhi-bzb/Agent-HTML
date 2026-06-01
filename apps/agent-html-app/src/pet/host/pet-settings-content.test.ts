@@ -5,6 +5,20 @@ import { describe, expect, it } from "vitest"
 const settingsContentPath = fileURLToPath(
   new URL("./pet-settings-content.tsx", import.meta.url)
 )
+const settingsModulePaths = [
+  "./pet-settings-content.tsx",
+  "./settings/agents-md-view.tsx",
+  "./settings/capability-views.tsx",
+  "./settings/connection-view.tsx",
+  "./settings/mutations.ts",
+  "./settings/pet-settings-session.tsx",
+  "./settings/pet-settings-surface.tsx",
+  "./settings/runtime-view.tsx",
+  "./settings/settings-shared.tsx",
+  "./settings/types.ts",
+  "./settings/utils.ts",
+  "./settings/views.tsx",
+].map((path) => fileURLToPath(new URL(path, import.meta.url)))
 const settingsServicePath = fileURLToPath(
   new URL("../../codex/connection/codex-settings-service.ts", import.meta.url)
 )
@@ -12,11 +26,24 @@ const storePath = fileURLToPath(
   new URL("../../workspace/store.ts", import.meta.url)
 )
 
-const settingsContentSource = readFileSync(settingsContentPath, "utf8")
+const settingsEntrySource = readFileSync(settingsContentPath, "utf8")
+const settingsContentSource = settingsModulePaths
+  .map((path) => readFileSync(path, "utf8"))
+  .join("\n")
 const settingsServiceSource = readFileSync(settingsServicePath, "utf8")
 const storeSource = readFileSync(storePath, "utf8")
 
 describe("pet settings content", () => {
+  it("keeps the public settings entrypoint as a narrow module boundary", () => {
+    expect(settingsEntrySource).toContain('from "./settings/types"')
+    expect(settingsEntrySource).toContain(
+      'from "./settings/pet-settings-session"'
+    )
+    expect(settingsEntrySource).toContain(
+      'from "./settings/pet-settings-surface"'
+    )
+  })
+
   it("loads and saves root AGENTS.md through Codex with a workspace fallback", () => {
     expect(settingsContentSource).toContain("loadAgentsInstructions")
     expect(settingsContentSource).toContain("createWriteCodexTextFileMutation")

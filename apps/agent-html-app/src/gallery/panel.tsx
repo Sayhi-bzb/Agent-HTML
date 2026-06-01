@@ -8,14 +8,6 @@ import type {
   GalleryComponentMarketFilters,
 } from "@/app/gallery/component-market-catalog"
 
-export function preloadGalleryWorkspaceSurface() {
-  void import("@/app/gallery/workspace-surface")
-}
-
-export function preloadGalleryComponentMarketView() {
-  void import("@/app/gallery/component-market-view")
-}
-
 const GalleryWorkspaceSurface = React.lazy(() =>
   import("@/app/gallery/workspace-surface").then((module) => ({
     default: module.GalleryWorkspaceSurface,

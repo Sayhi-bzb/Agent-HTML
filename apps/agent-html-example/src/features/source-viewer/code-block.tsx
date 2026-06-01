@@ -20,7 +20,7 @@ export const CodeBlock = React.memo(function CodeBlock({
   React.useEffect(() => {
     let mounted = true
 
-    import("@/agent-html/runtime/ui/code-highlighter")
+    import("@/agent-html/code-highlight")
       .then(({ highlightCodeToHtml }) =>
         highlightCodeToHtml(source, syntaxLanguage)
       )

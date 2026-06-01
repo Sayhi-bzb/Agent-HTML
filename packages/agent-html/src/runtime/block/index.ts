@@ -9,12 +9,16 @@ export {
 } from "@/agent-html/runtime/block/drag-intent"
 export {
   AgentHtmlBlockRuntimeProvider,
-  useAgentHtmlBlockRuntime,
 } from "@/agent-html/runtime/block/block-runtime-provider"
 export {
+  useAgentHtmlBlockRuntime,
+} from "@/agent-html/runtime/block/use-block-runtime"
+export {
   AgentHtmlBlockWrapper,
-  agentHtmlBlockWrapperClassName,
 } from "@/agent-html/runtime/block/block-wrapper"
+export {
+  agentHtmlBlockWrapperClassName,
+} from "@/agent-html/runtime/block/block-wrapper-class"
 export type {
   AgentHtmlBlockDropIndicator,
   AgentHtmlBlockRuntimeState,

@@ -149,14 +149,7 @@ pub(crate) fn codex_rpc_respond(
     input: CodexRpcRespondInput,
 ) -> CodexHostResult<()> {
     let settings = normalize_codex_settings(&settings);
-    service::rpc_respond(
-        app,
-        state,
-        store,
-        &settings,
-        input.request_id,
-        input.result,
-    )
+    service::rpc_respond(app, state, store, &settings, input.request_id, input.result)
 }
 
 #[cfg(test)]

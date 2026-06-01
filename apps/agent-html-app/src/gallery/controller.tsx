@@ -11,9 +11,12 @@ import {
 import { createGalleryComponentMarketStore } from "@/app/gallery/component-market-store"
 import {
   GalleryPanel,
-  preloadGalleryComponentMarketView,
-  preloadGalleryWorkspaceSurface,
 } from "@/app/gallery/panel"
+import { GalleryEditorPanel } from "@/app/gallery/lazy-editor-panel"
+import {
+  preloadGalleryComponentMarketView,
+  preloadGalleryThemeView,
+} from "@/app/gallery/preload"
 import {
   GalleryLazyComponentMarketSidebarFooter,
   GalleryLazyComponentMarketSidebarHeader,
@@ -21,6 +24,7 @@ import {
   GalleryThemeSidebarFooter,
   GalleryThemeSidebarHeader,
 } from "@/app/gallery/sidebar"
+import { GallerySidebarFallback } from "@/app/gallery/sidebar-fallback"
 import type { GalleryThemeEditorSectionId } from "@/app/gallery/theme-editor-sections"
 import {
   galleryViews,
@@ -46,7 +50,6 @@ import type { AppThemeEditableVariableName } from "@/app/shared/app-theme/variab
 import type { HeaderTab } from "@/app/shell/site-header"
 import { useAppliedAppTheme } from "@/app/shared/app-theme/applied-theme-context"
 import { useColorMode } from "@/app/shared/color-mode-context"
-import { Skeleton } from "@/app/shared/ui/skeleton"
 
 const galleryViewIcons: Record<
   GalleryViewId,
@@ -56,23 +59,7 @@ const galleryViewIcons: Record<
   pets: SparklesIcon,
   theme: BrushIcon,
 }
-
 const galleryComponentMarketStore = createGalleryComponentMarketStore()
-
-function preloadGalleryEditorPanel() {
-  void import("@/app/gallery/editor")
-}
-
-function preloadGalleryThemeView() {
-  preloadGalleryEditorPanel()
-  preloadGalleryWorkspaceSurface()
-}
-
-const GalleryEditorPanel = React.lazy(() =>
-  import("@/app/gallery/editor").then((module) => ({
-    default: module.GalleryEditorPanel,
-  }))
-)
 
 export function useGalleryController({
   canLeaveWorkspace,
@@ -451,27 +438,5 @@ export function useGalleryController({
       sidebarFooterContent,
       sidebarHeaderContent,
     ]
-  )
-}
-
-export type GalleryController = ReturnType<typeof useGalleryController>
-
-function GallerySidebarFallback() {
-  return (
-    <div className="flex flex-col gap-4 px-2 py-2" data-selection="none">
-      {Array.from({ length: 3 }).map((_, groupIndex) => (
-        <div className="space-y-2" key={groupIndex}>
-          <Skeleton className="h-3 w-24" />
-          <div className="space-y-1.5">
-            {Array.from({ length: 3 }).map((__, rowIndex) => (
-              <div className="flex items-center gap-2" key={rowIndex}>
-                <Skeleton className="size-5 rounded-full" />
-                <Skeleton className="h-8 flex-1" />
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
   )
 }

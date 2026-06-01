@@ -18,10 +18,9 @@ use crate::workspace::{
     create_project, create_project_section, delete_project, delete_project_codex_thread_link,
     delete_project_section, duplicate_project_section, get_company_agent_state,
     get_project_section_document, get_root_agents_instructions, list_project_codex_threads,
-    list_project_sections, list_projects,
-    rename_project, rename_project_section, touch_project_codex_thread_link,
-    update_company_agent_state, update_project_section_document, update_root_agents_instructions,
-    upsert_project_codex_thread_link, WorkspaceStore,
+    list_project_sections, list_projects, rename_project, rename_project_section,
+    touch_project_codex_thread_link, update_company_agent_state, update_project_section_document,
+    update_root_agents_instructions, upsert_project_codex_thread_link, WorkspaceStore,
 };
 use crate::workspace_root::{
     resolve_workspace_root, workspace_root_settings_load, workspace_root_settings_save,

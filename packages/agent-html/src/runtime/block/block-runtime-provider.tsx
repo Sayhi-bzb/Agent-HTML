@@ -10,13 +10,15 @@ import {
   useSensors,
 } from "@dnd-kit/core"
 
-import type { AgentHtmlDropIntent } from "@/agent-html/edit/types"
-import type { AgentHtmlInteractionUnit } from "@/agent-html/interaction/types"
 import { dispatchAgentHtmlInteractionEvent } from "@/agent-html/runtime/agent-events/browser-events"
-import type {
-  AgentHtmlAgentPromptSubmitInput,
-} from "@/agent-html/runtime/agent-events/types"
 import { AgentHtmlBlockDragOverlay } from "@/agent-html/runtime/block/block-drag-overlay"
+import {
+  AgentHtmlBlockRuntimeContext,
+  type AgentHtmlBlockRuntimeContextValue,
+  type AgentHtmlBlockRuntimeIdentity,
+  type AgentHtmlBlockRuntimeProviderProps,
+  type AgentHtmlClientPointer,
+} from "@/agent-html/runtime/block/block-runtime-context"
 import { useAgentHtmlBlockInputPopover } from "@/agent-html/runtime/block/block-input-popover"
 import {
   toAgentHtmlBlockLayoutRect,
@@ -25,60 +27,11 @@ import {
 import { inferAgentHtmlDropIntentFromPointer } from "@/agent-html/runtime/block/drag-intent"
 import { useAgentHtmlBlockRegistry } from "@/agent-html/runtime/block/block-registry"
 import type { AgentHtmlBlockLayoutRect } from "@/agent-html/runtime/block/layout-transition"
-import type {
-  AgentHtmlBlockDropIndicator,
-  AgentHtmlBlockRuntimeState,
-} from "@/agent-html/runtime/block/types"
-
-type AgentHtmlBlockRuntimeContextValue = AgentHtmlBlockRuntimeState & {
-  clearIndicator: () => void
-  closeBlockInput: () => void
-  getBlockElement: (path: string) => HTMLElement | null
-  getBlockElements: () => HTMLElement[]
-  getHoveredBlockElement: () => HTMLElement | null
-  getOverlayElement: () => HTMLElement | null
-  getVisibleBlockRects: () => DOMRect[]
-  registerBlockElement: (
-    path: string,
-    element: HTMLElement | null
-  ) => () => void
-  registerBlockPreview: (path: string, preview: React.ReactNode) => () => void
-  registerBlockUnit: (path: string, unit: AgentHtmlInteractionUnit) => () => void
-  registerOverlayElement: (element: HTMLElement | null) => () => void
-  openBlockInput: (path: string, anchorElement: HTMLElement) => void
-  refreshDragIntent: () => void
-  setActiveBlock: (block: AgentHtmlBlockRuntimeIdentity | null) => void
-  setHoveredBlock: (block: AgentHtmlBlockRuntimeIdentity | null) => void
-  setIndicator: (indicator: AgentHtmlBlockDropIndicator | null) => void
-}
-
-type AgentHtmlBlockRuntimeIdentity = {
-  motionKey: string
-  path: string
-}
-
-type AgentHtmlClientPointer = {
-  x: number
-  y: number
-}
-
-type AgentHtmlBlockRuntimeProviderProps = {
-  children: React.ReactNode
-  onDropIntent?: (input: {
-    intent: AgentHtmlDropIntent
-    sourcePath: string
-  }) => void
-  onPromptSubmit?: (input: AgentHtmlAgentPromptSubmitInput) => void
-}
-
-const AgentHtmlBlockRuntimeContext =
-  React.createContext<AgentHtmlBlockRuntimeContextValue | null>(null)
 
 type ActivePreview = {
   node: React.ReactNode
   rect: AgentHtmlBlockLayoutRect
 }
-
 export function AgentHtmlBlockRuntimeProvider({
   children,
   onDropIntent,
@@ -467,14 +420,3 @@ export function AgentHtmlBlockRuntimeProvider({
   )
 }
 
-export function useAgentHtmlBlockRuntime() {
-  const context = React.useContext(AgentHtmlBlockRuntimeContext)
-
-  if (!context) {
-    throw new Error(
-      "useAgentHtmlBlockRuntime must be used inside AgentHtmlBlockRuntimeProvider"
-    )
-  }
-
-  return context
-}

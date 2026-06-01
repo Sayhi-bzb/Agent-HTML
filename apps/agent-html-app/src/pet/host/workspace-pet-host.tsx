@@ -18,17 +18,21 @@ export function WorkspacePetHost() {
     getWorkspacePetHostSnapshot,
     getWorkspacePetHostSnapshot
   )
+
+  if (!snapshot.enabled) {
+    return null
+  }
+
+  return <WorkspacePetHostLoader scope={snapshot.draftScope ?? "workspace"} />
+}
+
+function WorkspacePetHostLoader({ scope }: { scope: string }) {
   const [canLoadSession, setCanLoadSession] = React.useState(false)
 
   React.useEffect(() => {
-    if (!snapshot.enabled) {
-      setCanLoadSession(false)
-      return
-    }
-
     const scheduledLoad = schedulePostReadyTask({
       delay: 1400,
-      id: "workspace-pet-host-session",
+      id: `workspace-pet-host-session:${scope}`,
       idleTimeout: 2400,
       priority: "ambient",
       run: () => {
@@ -39,9 +43,9 @@ export function WorkspacePetHost() {
     return () => {
       scheduledLoad.cancel()
     }
-  }, [snapshot.enabled])
+  }, [scope])
 
-  if (!snapshot.enabled || !canLoadSession) {
+  if (!canLoadSession) {
     return null
   }
 

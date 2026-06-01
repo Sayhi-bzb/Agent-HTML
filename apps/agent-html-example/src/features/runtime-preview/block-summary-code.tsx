@@ -17,7 +17,7 @@ export const BlockSummaryCode = React.memo(function BlockSummaryCode({
 
     setHtml("")
     setDarkHtml("")
-    import("@/agent-html/runtime/ui/code-highlighter")
+    import("@/agent-html/code-highlight")
       .then(({ highlightCodeToHtml }) => highlightCodeToHtml(summary, "xml"))
       .then(([light, dark]) => {
         if (!mounted) {

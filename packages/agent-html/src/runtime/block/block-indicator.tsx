@@ -1,5 +1,5 @@
 import { cn } from "@/agent-html/lib/utils"
-import { useAgentHtmlBlockRuntime } from "@/agent-html/runtime/block/block-runtime-provider"
+import { useAgentHtmlBlockRuntime } from "@/agent-html/runtime/block/use-block-runtime"
 
 export function AgentHtmlBlockIndicator() {
   const runtime = useAgentHtmlBlockRuntime()

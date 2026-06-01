@@ -11,6 +11,10 @@ type HighlightedCode = {
   html: string
 }
 
+type HighlightedCodeState = HighlightedCode & {
+  key: string
+}
+
 const highlightedCodeCache = new Map<string, HighlightedCode>()
 const maxHighlightedCodeCacheEntries = 32
 
@@ -68,26 +72,27 @@ function CodeBlock({
   title?: string
 }) {
   const [copied, setCopied] = React.useState(false)
-  const [html, setHtml] = React.useState("")
-  const [darkHtml, setDarkHtml] = React.useState("")
+  const [highlightedCodeState, setHighlightedCodeState] =
+    React.useState<HighlightedCodeState | null>(null)
   const code = React.Children.toArray(children).join("")
   const label = title || language
   const highlightCacheKey = `${language}\n${code}`
+  const cachedHighlightedCode = highlightedCodeCache.get(highlightCacheKey)
+  const highlightedCode =
+    cachedHighlightedCode ??
+    (highlightedCodeState?.key === highlightCacheKey
+      ? highlightedCodeState
+      : null)
 
   React.useEffect(() => {
     let mounted = true
-    const cachedHighlightedCode = highlightedCodeCache.get(highlightCacheKey)
 
     if (cachedHighlightedCode) {
-      setHtml(cachedHighlightedCode.html)
-      setDarkHtml(cachedHighlightedCode.darkHtml)
       return () => {
         mounted = false
       }
     }
 
-    setHtml("")
-    setDarkHtml("")
     const scheduledHighlight = schedulePostReadyTask({
       delay: 500,
       id: `code-highlight:${highlightCacheKey}`,
@@ -107,16 +112,21 @@ function CodeBlock({
             }
 
             writeHighlightedCodeCache(highlightCacheKey, nextHighlightedCode)
-            setHtml(nextHighlightedCode.html)
-            setDarkHtml(nextHighlightedCode.darkHtml)
+            setHighlightedCodeState({
+              ...nextHighlightedCode,
+              key: highlightCacheKey,
+            })
           })
           .catch(() => {
             if (!mounted) {
               return
             }
 
-            setHtml("")
-            setDarkHtml("")
+            setHighlightedCodeState({
+              darkHtml: "",
+              html: "",
+              key: highlightCacheKey,
+            })
           })
       },
     })
@@ -125,7 +135,7 @@ function CodeBlock({
       mounted = false
       scheduledHighlight.cancel()
     }
-  }, [code, highlightCacheKey, language])
+  }, [cachedHighlightedCode, code, highlightCacheKey, language])
 
   const handleCopy = React.useCallback(() => {
     if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
@@ -139,7 +149,7 @@ function CodeBlock({
   }, [code])
 
   const CopyStateIcon = copied ? CheckIcon : CopyIcon
-  const hasHighlightedCode = html && darkHtml
+  const hasHighlightedCode = highlightedCode?.html && highlightedCode.darkHtml
 
   return (
     <figure
@@ -180,7 +190,7 @@ function CodeBlock({
                 "[&_code]:font-mono [&_code]:text-sm"
               )}
               data-selection="text"
-              dangerouslySetInnerHTML={{ __html: html }}
+              dangerouslySetInnerHTML={{ __html: highlightedCode.html }}
             />
           </IntrinsicScrollFrame>
           <IntrinsicScrollFrame className="hidden dark:block">
@@ -190,7 +200,7 @@ function CodeBlock({
                 "[&_code]:font-mono [&_code]:text-sm"
               )}
               data-selection="text"
-              dangerouslySetInnerHTML={{ __html: darkHtml }}
+              dangerouslySetInnerHTML={{ __html: highlightedCode.darkHtml }}
             />
           </IntrinsicScrollFrame>
         </>

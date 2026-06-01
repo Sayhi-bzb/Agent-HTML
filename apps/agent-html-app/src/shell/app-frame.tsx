@@ -7,7 +7,7 @@ import { Skeleton } from "@/app/shared/ui/skeleton"
 import { AppSidebar } from "@/app/shell/app-sidebar"
 import { ConfirmationDialog } from "@/app/shell/confirmation-dialog"
 import { SiteHeader, type HeaderTab } from "@/app/shell/site-header"
-import type { GalleryController } from "@/app/gallery/controller"
+import type { GalleryController } from "@/app/gallery/controller-types"
 import {
   WorkspaceLoadErrorState,
   WorkspaceSurface,

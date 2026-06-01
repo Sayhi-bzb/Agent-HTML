@@ -62,6 +62,7 @@ function ChartRuntimeFallback({ node }: { node: AgentHtmlElementNode }) {
 export function LazyChartRuntime({ node }: { node: AgentHtmlElementNode }) {
   const rootRef = React.useRef<HTMLDivElement | null>(null)
   const [canLoadChartRuntime, setCanLoadChartRuntime] = React.useState(false)
+  const chartType = node.attrs.type
 
   React.useEffect(() => {
     if (typeof window === "undefined" || canLoadChartRuntime) {
@@ -76,7 +77,7 @@ export function LazyChartRuntime({ node }: { node: AgentHtmlElementNode }) {
 
       scheduledLoad = schedulePostReadyTask({
         delay: 900,
-        id: `chart-runtime:${node.attrs.type}`,
+        id: `chart-runtime:${chartType}`,
         idleTimeout: 2200,
         priority: "visible-enhancement",
         run: () => {
@@ -112,7 +113,7 @@ export function LazyChartRuntime({ node }: { node: AgentHtmlElementNode }) {
       observer.disconnect()
       scheduledLoad?.cancel()
     }
-  }, [canLoadChartRuntime])
+  }, [canLoadChartRuntime, chartType])
 
   return (
     <div ref={rootRef}>

@@ -16,6 +16,9 @@ export type {
 } from "@/agent-html/edit/types"
 export { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
 export {
+  highlightCodeToHtml,
+} from "@/agent-html/code-highlight"
+export {
   agentHtmlComponentRegistry,
 } from "@/agent-html/schema/component-registry"
 export {
