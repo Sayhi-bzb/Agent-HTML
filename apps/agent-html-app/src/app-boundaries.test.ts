@@ -196,6 +196,8 @@ describe("App source boundaries", () => {
 
   it("keeps startup loading covered before workspace data is ready", () => {
     expect(appHtmlSource).toContain("data-app-startup-shell")
+    expect(appHtmlSource).toContain("data-window-chrome-root")
+    expect(appHtmlSource).toContain("data-window-chrome-surface")
     expect(appHtmlSource).toContain("app-startup-workspace-surface")
     expect(workspaceControllerSource).toContain("isLoadingWorkspace")
     expect(appFrameSource).toContain("AppWorkspaceStartupSkeleton")

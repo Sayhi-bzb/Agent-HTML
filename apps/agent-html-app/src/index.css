@@ -221,15 +221,6 @@
     position: relative;
   }
 
-  [data-window-chrome-surface]::after {
-    border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
-    border-radius: max(0px, calc(var(--window-chrome-radius) - 1px));
-    content: "";
-    inset: 1px;
-    pointer-events: none;
-    position: absolute;
-  }
-
   [data-window-titlebar] {
     overscroll-behavior: none;
     touch-action: none;

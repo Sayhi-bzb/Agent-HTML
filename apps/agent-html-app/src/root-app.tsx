@@ -3,6 +3,7 @@ import * as React from "react"
 import App from "@/app/App"
 import { CodexConnectionProvider } from "@/app/codex/connection"
 import { Skeleton } from "@/app/shared/ui/skeleton"
+import { WindowChromeFrame } from "@/app/shared/ui/window-chrome"
 
 const LazyThreadPanelWindowApp = React.lazy(() =>
   import("@/app/pet/host/thread-panel-window-app").then((module) => ({
@@ -48,14 +49,11 @@ function SecondaryWindowStartupFrame({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex h-svh min-h-svh w-full bg-transparent p-[var(--window-chrome-inset)] text-foreground">
-      <section
-        className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--window-chrome-radius)] border bg-background shadow-[var(--window-chrome-shadow)]"
-        data-selection="none"
-      >
+    <WindowChromeFrame>
+      <div className="flex min-h-0 flex-1 flex-col" data-selection="none">
         {children}
-      </section>
-    </div>
+      </div>
+    </WindowChromeFrame>
   )
 }
 

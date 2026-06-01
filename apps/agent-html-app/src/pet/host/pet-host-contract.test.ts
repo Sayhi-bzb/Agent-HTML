@@ -170,6 +170,9 @@ describe("pet host contract", () => {
     expect(rootAppSource).toContain("React.lazy")
     expect(rootAppSource).toContain("ThreadPanelWindowStartupSkeleton")
     expect(rootAppSource).toContain("PetSettingsWindowStartupSkeleton")
+    expect(rootAppSource).toContain("WindowChromeFrame")
+    expect(rootAppSource).toContain("<WindowChromeFrame>")
+    expect(rootAppSource).not.toContain("rounded-[var(--window-chrome-radius)] border bg-background")
     expect(rootAppSource).not.toContain("fallback={null}")
     expect(rootAppSource).toContain(
       'import("@/app/pet/host/thread-panel-window-app")'
@@ -549,9 +552,9 @@ describe("pet host contract", () => {
     expect(appCssSource).toMatch(/html,\s+body,\s+#root/)
     expect(appCssSource).toContain("background: transparent")
     expect(appCssSource).toContain("[data-window-chrome-surface]")
-    expect(appCssSource).toContain("[data-window-chrome-surface]::after")
-    expect(appCssSource).toContain("inset: 1px")
-    expect(appCssSource).toContain(
+    expect(appCssSource).not.toContain("[data-window-chrome-surface]::after")
+    expect(appCssSource).not.toContain("inset: 1px")
+    expect(appCssSource).not.toContain(
       "border-radius: max(0px, calc(var(--window-chrome-radius) - 1px))"
     )
     expect(appCssSource).toContain(
