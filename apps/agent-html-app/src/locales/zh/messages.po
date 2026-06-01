@@ -34,8 +34,8 @@ msgid "Codex command"
 msgstr "Codex 命令"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Codex Connection"
-msgstr "Codex 连接"
+msgid "Agent Settings"
+msgstr "Agent 设置"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Codex cwd"

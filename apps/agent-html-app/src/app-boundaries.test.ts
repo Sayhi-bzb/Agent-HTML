@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync, statSync } from "node:fs"
+import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
@@ -85,6 +86,34 @@ const runtimeSkeletonSource = readFileSync(
   ),
   "utf8"
 )
+const appSharedPath = fileURLToPath(new URL("./shared", import.meta.url))
+const runtimeUiPath = fileURLToPath(
+  new URL("../../../packages/agent-html/src/runtime/ui", import.meta.url)
+)
+const appSharedUtilsSource = readFileSync(
+  fileURLToPath(new URL("./shared/lib/utils.ts", import.meta.url)),
+  "utf8"
+)
+
+function readSourceTree(root: string) {
+  let source = ""
+
+  for (const entry of readdirSync(root)) {
+    const entryPath = join(root, entry)
+    const stat = statSync(entryPath)
+
+    if (stat.isDirectory()) {
+      source += readSourceTree(entryPath)
+      continue
+    }
+
+    if (entryPath.endsWith(".ts") || entryPath.endsWith(".tsx")) {
+      source += readFileSync(entryPath, "utf8")
+    }
+  }
+
+  return source
+}
 
 function extractConstCallback(source: string, name: string) {
   const start = source.indexOf(`const ${name} = React.useCallback`)
@@ -214,5 +243,13 @@ describe("App source boundaries", () => {
     expect(runtimeLazyChartSource).not.toContain("@/app/shared/ui/skeleton")
     expect(runtimeLazyChartSource).not.toContain("@/app/shared/ui/spinner")
     expect(runtimeSkeletonSource).not.toContain("@/app/shared/ui")
+  })
+
+  it("keeps app shared primitives separate from runtime UI", () => {
+    expect(readSourceTree(appSharedPath)).not.toContain(
+      "@/agent-html/runtime/ui"
+    )
+    expect(appSharedUtilsSource).not.toContain("@/agent-html/lib/utils")
+    expect(readSourceTree(runtimeUiPath)).not.toContain("@/app/shared/ui")
   })
 })

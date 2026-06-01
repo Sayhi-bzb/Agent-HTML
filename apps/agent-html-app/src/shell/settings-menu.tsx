@@ -158,7 +158,7 @@ export function SettingsMenu() {
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => petSettingsWindow.open("Connection")}>
           <CableIcon />
-          <Trans>Codex Connection</Trans>
+          <Trans>Agent Settings</Trans>
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
