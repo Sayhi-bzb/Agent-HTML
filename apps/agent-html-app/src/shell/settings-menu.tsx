@@ -12,29 +12,19 @@ import {
   DropdownMenuTrigger,
 } from "@/app/shared/ui/dropdown-menu"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/app/shared/ui/dialog"
-import { PetSettingsContent } from "@/app/pet/host/pet-settings-content"
-import {
   getAppLanguageLabel,
   getResolvedAppLocaleLabel,
   useLanguage,
   type AppLanguage,
   type ResolvedAppLocale,
 } from "@/app/shared/language-context"
-import {
-  useColorMode,
-  type ColorMode,
-} from "@/app/shared/color-mode-context"
+import { useColorMode, type ColorMode } from "@/app/shared/color-mode-context"
 import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/app/shared/ui/sidebar"
+import { usePetSettingsWindow } from "@/app/shell/pet-settings-window"
 import {
   BellIcon,
   BadgeCheckIcon,
@@ -45,7 +35,6 @@ import {
   Settings2Icon,
   SunIcon,
 } from "lucide-react"
-import * as React from "react"
 import { useLingui } from "@lingui/react"
 import { Trans } from "@lingui/react/macro"
 
@@ -119,7 +108,11 @@ function LocalizedLanguageLabel({
   return _({ id: "中文" })
 }
 
-function LocalizedThemeLabel({ label }: { label: "Dark" | "Light" | "System" }) {
+function LocalizedThemeLabel({
+  label,
+}: {
+  label: "Dark" | "Light" | "System"
+}) {
   const { _ } = useLingui()
 
   if (label === "Light") return _({ id: "Light" })
@@ -127,150 +120,113 @@ function LocalizedThemeLabel({ label }: { label: "Dark" | "Light" | "System" }) 
   return _({ id: "System" })
 }
 
-function CodexConnectionDialog({
-  onOpenChange,
-  open,
-}: {
-  onOpenChange: (open: boolean) => void
-  open: boolean
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-0 bg-transparent p-0 shadow-none sm:max-w-none">
-        <DialogHeader>
-          <DialogTitle className="sr-only">
-            <Trans>Codex Connection</Trans>
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            <Trans>
-              Agent-HTML connects to Codex automatically and uses the official
-              Codex configuration files for agent behavior.
-            </Trans>
-          </DialogDescription>
-        </DialogHeader>
-        <PetSettingsContent
-          initialView="Connection"
-          onClose={() => onOpenChange(false)}
-        />
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 export function SettingsMenu() {
   const { isMobile } = useSidebar()
+  const petSettingsWindow = usePetSettingsWindow()
   const { language, resolvedLocale, setLanguage } = useLanguage()
   const { colorMode, setColorMode } = useColorMode()
-  const [codexOpen, setCodexOpen] = React.useState(false)
   const languageSummary = getLanguageMenuLabel(language, resolvedLocale)
 
   return (
-    <>
-      <DropdownMenu>
-        <SidebarMenuItem>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              type="button"
-            >
-              <Settings2Icon />
-              <span>
-                <Trans>Settings</Trans>
-              </span>
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-        </SidebarMenuItem>
-        <DropdownMenuContent
-          className="w-56 rounded-lg"
-          side={isMobile ? "bottom" : "right"}
-          align="end"
-          sideOffset={4}
-        >
-          <DropdownMenuItem>
-            <BadgeCheckIcon />
-            <Trans>Account</Trans>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <BellIcon />
-            <Trans>Notifications</Trans>
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setCodexOpen(true)}>
-            <CableIcon />
-            <Trans>Codex Connection</Trans>
-          </DropdownMenuItem>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <LanguagesIcon />
-              <span className="min-w-0 flex-1">
-                <Trans>Language</Trans>
-              </span>
-              <span className="max-w-28 shrink-0 truncate text-xs text-muted-foreground">
-                <LocalizedLanguageLabel
-                  label={
-                    languageSummary as
-                      | "English"
-                      | "System · English"
-                      | "System · 中文"
-                      | "中文"
-                  }
-                />
-              </span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent className="w-44 rounded-lg">
-                <DropdownMenuRadioGroup
-                  onValueChange={(value) => setLanguage(value as AppLanguage)}
-                  value={language}
-                >
-                  {languageItems.map((item) => {
-                    const label = getLanguageMenuLabel(
-                      item.value,
-                      resolvedLocale
-                    ) as
-                      | "English"
-                      | "System · English"
-                      | "System · 中文"
-                      | "中文"
-
-                    return (
-                      <DropdownMenuRadioItem key={item.value} value={item.value}>
-                        <LocalizedLanguageLabel label={label} />
-                      </DropdownMenuRadioItem>
-                    )
-                  })}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <SunIcon />
-              <Trans>Theme</Trans>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent className="w-44 rounded-lg">
-                {colorModeItems.map((item) => {
-                  const Icon = item.icon
+    <DropdownMenu>
+      <SidebarMenuItem>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuButton
+            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            type="button"
+          >
+            <Settings2Icon />
+            <span>
+              <Trans>Settings</Trans>
+            </span>
+          </SidebarMenuButton>
+        </DropdownMenuTrigger>
+      </SidebarMenuItem>
+      <DropdownMenuContent
+        className="w-56 rounded-lg"
+        side={isMobile ? "bottom" : "right"}
+        align="end"
+        sideOffset={4}
+      >
+        <DropdownMenuItem>
+          <BadgeCheckIcon />
+          <Trans>Account</Trans>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <BellIcon />
+          <Trans>Notifications</Trans>
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => petSettingsWindow.open("Connection")}>
+          <CableIcon />
+          <Trans>Codex Connection</Trans>
+        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <LanguagesIcon />
+            <span className="min-w-0 flex-1">
+              <Trans>Language</Trans>
+            </span>
+            <span className="max-w-28 shrink-0 truncate text-xs text-muted-foreground">
+              <LocalizedLanguageLabel
+                label={
+                  languageSummary as
+                    | "English"
+                    | "System · English"
+                    | "System · 中文"
+                    | "中文"
+                }
+              />
+            </span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent className="w-44 rounded-lg">
+              <DropdownMenuRadioGroup
+                onValueChange={(value) => setLanguage(value as AppLanguage)}
+                value={language}
+              >
+                {languageItems.map((item) => {
+                  const label = getLanguageMenuLabel(
+                    item.value,
+                    resolvedLocale
+                  ) as "English" | "System · English" | "System · 中文" | "中文"
 
                   return (
-                    <DropdownMenuCheckboxItem
-                      key={item.value}
-                      checked={colorMode === item.value}
-                      onCheckedChange={() => setColorMode(item.value)}
-                    >
-                      <Icon />
-                      <LocalizedThemeLabel
-                        label={getColorModeMenuLabel(item.value)}
-                      />
-                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuRadioItem key={item.value} value={item.value}>
+                      <LocalizedLanguageLabel label={label} />
+                    </DropdownMenuRadioItem>
                   )
                 })}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <CodexConnectionDialog open={codexOpen} onOpenChange={setCodexOpen} />
-    </>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <SunIcon />
+            <Trans>Theme</Trans>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent className="w-44 rounded-lg">
+              {colorModeItems.map((item) => {
+                const Icon = item.icon
+
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={item.value}
+                    checked={colorMode === item.value}
+                    onCheckedChange={() => setColorMode(item.value)}
+                  >
+                    <Icon />
+                    <LocalizedThemeLabel
+                      label={getColorModeMenuLabel(item.value)}
+                    />
+                  </DropdownMenuCheckboxItem>
+                )
+              })}
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

@@ -6,7 +6,9 @@ const appFramePath = fileURLToPath(
   new URL("../../shell/app-frame.tsx", import.meta.url)
 )
 const mainPath = fileURLToPath(new URL("../../main.tsx", import.meta.url))
-const rootAppPath = fileURLToPath(new URL("../../root-app.tsx", import.meta.url))
+const rootAppPath = fileURLToPath(
+  new URL("../../root-app.tsx", import.meta.url)
+)
 const appliedThemeProviderPath = fileURLToPath(
   new URL("../../shared/app-theme/applied-theme-provider.tsx", import.meta.url)
 )
@@ -21,12 +23,11 @@ const tauriConfigPath = fileURLToPath(
   new URL("../../../../../src-tauri/tauri.conf.json", import.meta.url)
 )
 const tauriCapabilityPath = fileURLToPath(
-  new URL(
-    "../../../../../src-tauri/capabilities/default.json",
-    import.meta.url
-  )
+  new URL("../../../../../src-tauri/capabilities/default.json", import.meta.url)
 )
-const hostPath = fileURLToPath(new URL("./workspace-pet-host.tsx", import.meta.url))
+const hostPath = fileURLToPath(
+  new URL("./workspace-pet-host.tsx", import.meta.url)
+)
 const hostSessionPath = fileURLToPath(
   new URL("./workspace-pet-host-session.tsx", import.meta.url)
 )
@@ -54,6 +55,9 @@ const petSettingsNativeBridgePath = fileURLToPath(
 const petSettingsWindowAppPath = fileURLToPath(
   new URL("./pet-settings-window-app.tsx", import.meta.url)
 )
+const petSettingsShellWindowPath = fileURLToPath(
+  new URL("../../shell/pet-settings-window.tsx", import.meta.url)
+)
 const composerPath = fileURLToPath(
   new URL("./pet-message-composer.tsx", import.meta.url)
 )
@@ -70,10 +74,7 @@ const secondaryWindowPath = fileURLToPath(
   new URL("../../shared/window/secondary-window.ts", import.meta.url)
 )
 const secondaryWindowBridgePath = fileURLToPath(
-  new URL(
-    "../../shared/window/use-secondary-window-bridge.ts",
-    import.meta.url
-  )
+  new URL("../../shared/window/use-secondary-window-bridge.ts", import.meta.url)
 )
 
 const appFrameSource = readFileSync(appFramePath, "utf8")
@@ -114,6 +115,10 @@ const petSettingsWindowAppSource = readFileSync(
   petSettingsWindowAppPath,
   "utf8"
 )
+const petSettingsShellWindowSource = readFileSync(
+  petSettingsShellWindowPath,
+  "utf8"
+)
 const surfaceSource = readFileSync(surfacePath, "utf8")
 const siteHeaderSource = readFileSync(siteHeaderPath, "utf8")
 const windowChromeSource = readFileSync(windowChromePath, "utf8")
@@ -131,6 +136,7 @@ describe("pet host contract", () => {
   it("keeps pet mounted inside the app frame", () => {
     expect(appFrameSource).toContain("WorkspacePetHost")
     expect(appFrameSource).toContain("<WorkspacePetHost />")
+    expect(appFrameSource).toContain("PetSettingsWindowProvider")
     expect(appFrameSource).toContain("WindowChromeFrame")
     expect(appFrameSource).not.toContain("WorkspacePetBridge")
   })
@@ -193,27 +199,25 @@ describe("pet host contract", () => {
     expect(hostSource).toContain("workspace-pet-host-session")
     expect(hostSessionSource).toContain("WorkspaceGhostPet")
     expect(hostSessionSource).toContain("PetMessageComposer")
-    expect(hostSessionSource).toContain("PetSettingsContent")
-    expect(hostSessionSource).toContain("PetSettingsSurface")
-    expect(hostSessionSource).toContain("PetSettingsBridge")
-    expect(hostSessionSource).toContain("PetSettingsDispatch")
-    expect(hostSessionSource).toContain("PetSettingsSurfaceSnapshot")
-    expect(hostSessionSource).toContain("settingsDispatch")
-    expect(hostSessionSource).toContain("setSettingsDispatch")
-    expect(hostSessionSource).toContain("setSettingsSnapshot")
-    expect(hostSessionSource).toContain("handleSettingsClose")
-    expect(hostSessionSource).toContain("handleSettingsBridgeChange")
-    expect(hostSessionSource).toContain("publishPetSettingsNativeSnapshot")
-    expect(hostSessionSource).toContain("subscribePetSettingsNativeActions")
+    expect(hostSessionSource).toContain("usePetSettingsWindow")
     expect(hostSessionSource).toContain("useSecondaryWindowBridge")
-    expect(hostSessionSource).toContain("settingsWindowBridge")
     expect(hostSessionSource).toContain("threadPanelBridge")
-    expect(hostSessionSource).toContain(
-      "active={settingsWindowBridge.isOpen}"
-    )
-    expect(hostSessionSource).toContain("renderSurface={false}")
-    expect(hostSessionSource).toContain("<PetSettingsSurface bridge={settingsBridge} />")
-    expect(hostSessionSource).toContain("onClose={handleSettingsClose}")
+    expect(hostSessionSource).toContain("petSettingsWindow.isOpen")
+    expect(hostSessionSource).toContain("petSettingsWindow.setOpen")
+    expect(hostSessionSource).not.toContain("PetSettingsContent")
+    expect(hostSessionSource).not.toContain("PetSettingsSurface")
+    expect(hostSessionSource).not.toContain("PetSettingsBridge")
+    expect(hostSessionSource).not.toContain("PetSettingsDispatch")
+    expect(hostSessionSource).not.toContain("PetSettingsSurfaceSnapshot")
+    expect(hostSessionSource).not.toContain("settingsDispatch")
+    expect(hostSessionSource).not.toContain("setSettingsDispatch")
+    expect(hostSessionSource).not.toContain("setSettingsSnapshot")
+    expect(hostSessionSource).not.toContain("handleSettingsClose")
+    expect(hostSessionSource).not.toContain("handleSettingsBridgeChange")
+    expect(hostSessionSource).not.toContain("publishPetSettingsNativeSnapshot")
+    expect(hostSessionSource).not.toContain("subscribePetSettingsNativeActions")
+    expect(hostSessionSource).not.toContain("settingsWindowBridge")
+    expect(hostSessionSource).not.toContain("renderSurface={false}")
     expect(hostSessionSource).not.toContain("setSettingsBridge")
     expect(hostSessionSource).not.toContain(
       "useState<PetSettingsBridge | null>"
@@ -226,12 +230,14 @@ describe("pet host contract", () => {
     expect(hostSessionSource).toContain("preloadThreadPanelNativeWindowApp")
     expect(hostSessionSource).not.toContain("useNativeSettingsFallback")
     expect(hostSessionSource).not.toContain("useNativeThreadPanelFallback")
-    expect(hostSessionSource).not.toContain("setUseNativeThreadPanelFallback(true)")
+    expect(hostSessionSource).not.toContain(
+      "setUseNativeThreadPanelFallback(true)"
+    )
     expect(hostSource).not.toContain("WebviewWindow")
     expect(hostSource).not.toContain("emitTo")
     expect(hostSource).not.toContain("codex_host_stop")
     expect(hostSessionSource).not.toContain("codex_host_stop")
-    expect(hostSessionSource).not.toContain("<PetPanel size=\"auto\">")
+    expect(hostSessionSource).not.toContain('<PetPanel size="auto">')
     expect(threadPanelWindowHostSource).not.toContain("WebviewWindow")
     expect(threadPanelWindowHostSource).not.toContain("emitTo")
     expect(threadPanelNativeBridgeSource).not.toContain("WebviewWindow")
@@ -248,7 +254,9 @@ describe("pet host contract", () => {
   })
 
   it("treats pet message send as a floating interaction", () => {
-    expect(hostSessionSource).toContain("onSent={() => setIsMessageOpen(false)}")
+    expect(hostSessionSource).toContain(
+      "onSent={() => setIsMessageOpen(false)}"
+    )
     expect(hostSessionSource).toContain('surface="floating"')
     expect(hostSessionSource).not.toContain(
       "bg-background/80 shadow-none backdrop-blur-sm"
@@ -342,14 +350,12 @@ describe("pet host contract", () => {
       'THREAD_PANEL_ACTION_EVENT = "thread-panel://action"'
     )
     expect(threadPanelNativeBridgeSource).toContain(
-      'THREAD_PANEL_SNAPSHOT_STORAGE_KEY ='
+      "THREAD_PANEL_SNAPSHOT_STORAGE_KEY ="
     )
     expect(threadPanelNativeBridgeSource).toContain(
       "createSecondaryWindowSurface"
     )
-    expect(threadPanelNativeBridgeSource).toContain(
-      "ThreadPanelNativeSnapshot"
-    )
+    expect(threadPanelNativeBridgeSource).toContain("ThreadPanelNativeSnapshot")
     expect(threadPanelNativeBridgeSource).toContain("ThreadPanelNativeAction")
     expect(threadPanelNativeBridgeSource).toContain(
       "openThreadPanelNativeWindow"
@@ -385,7 +391,9 @@ describe("pet host contract", () => {
     expect(threadPanelNativeBridgeSource).not.toContain(
       "existingWindow.setFocus()"
     )
-    expect(threadPanelNativeBridgeSource).not.toContain("existingWindow?.hide()")
+    expect(threadPanelNativeBridgeSource).not.toContain(
+      "existingWindow?.hide()"
+    )
     expect(threadPanelNativeBridgeSource).not.toContain("emitTo")
     expect(threadPanelNativeBridgeSource).not.toContain("listen<")
   })
@@ -394,12 +402,10 @@ describe("pet host contract", () => {
     expect(threadPanelWindowAppSource).toContain("ThreadPanelSurface")
     expect(threadPanelWindowAppSource).toContain("WindowChromeFrame")
     expect(threadPanelWindowAppSource).toContain("WindowTitlebar")
-    expect(threadPanelWindowAppSource).toContain(
-      "headerSlot={(header) =>"
-    )
+    expect(threadPanelWindowAppSource).toContain("headerSlot={(header) =>")
     expect(threadPanelWindowAppSource).not.toContain("WindowDragHandle")
     expect(threadPanelWindowAppSource).not.toContain("data-window-drag-handle")
-    expect(threadPanelWindowAppSource).not.toContain("data-cursor=\"drag\"")
+    expect(threadPanelWindowAppSource).not.toContain('data-cursor="drag"')
     expect(threadPanelWindowAppSource).not.toContain("getDragRegionProps")
     expect(threadPanelWindowAppSource).not.toContain("dragRegionProps")
     expect(threadPanelWindowAppSource).toContain(
@@ -440,11 +446,28 @@ describe("pet host contract", () => {
     expect(threadPanelSource).not.toContain("WebviewWindow")
     expect(threadPanelSource).not.toContain("emitTo")
     expect(threadPanelSource).toContain(
-      "className=\"flex h-full min-h-0 w-full min-w-0 flex-col"
+      'className="flex h-full min-h-0 w-full min-w-0 flex-col'
     )
   })
 
   it("keeps pet settings UI behind a secondary-window surface boundary", () => {
+    expect(petSettingsShellWindowSource).toContain(
+      "export function PetSettingsWindowProvider"
+    )
+    expect(petSettingsShellWindowSource).toContain(
+      "export function usePetSettingsWindow"
+    )
+    expect(petSettingsShellWindowSource).toContain("PetSettingsContent")
+    expect(petSettingsShellWindowSource).toContain("PetSettingsSurface")
+    expect(petSettingsShellWindowSource).toContain(
+      "publishPetSettingsNativeSnapshot"
+    )
+    expect(petSettingsShellWindowSource).toContain(
+      "subscribePetSettingsNativeActions"
+    )
+    expect(petSettingsShellWindowSource).toContain("useSecondaryWindowBridge")
+    expect(petSettingsShellWindowSource).toContain('type: "set-active-view"')
+    expect(petSettingsShellWindowSource).not.toContain("useCodexConnection")
     expect(petSettingsSource).toContain(
       'from "./settings/pet-settings-surface"'
     )
@@ -498,7 +521,9 @@ describe("pet host contract", () => {
     expect(windowChromeSource).toContain("preloadCurrentWindowHandle")
     expect(windowChromeSource).toContain("data-window-chrome-surface")
     expect(windowChromeSource).toContain("style?: React.CSSProperties")
-    expect(windowChromeSource).toContain("rounded-[var(--window-chrome-radius)]")
+    expect(windowChromeSource).toContain(
+      "rounded-[var(--window-chrome-radius)]"
+    )
     expect(windowChromeSource).not.toContain("border border-border/70")
     expect(windowChromeSource).toContain("data-window-maximized")
     expect(windowChromeSource).toContain("onMouseDown")
@@ -529,10 +554,14 @@ describe("pet host contract", () => {
     expect(appCssSource).toContain(
       "border-radius: max(0px, calc(var(--window-chrome-radius) - 1px))"
     )
-    expect(appCssSource).toContain("[data-window-chrome-root][data-window-maximized]")
+    expect(appCssSource).toContain(
+      "[data-window-chrome-root][data-window-maximized]"
+    )
     expect(appCssSource).toContain("--window-chrome-inset: 0px")
     expect(appCssSource).toContain("--window-chrome-radius: var(--radius-xl)")
-    expect(appCssSource).not.toContain("--window-chrome-radius: calc(var(--radius)")
+    expect(appCssSource).not.toContain(
+      "--window-chrome-radius: calc(var(--radius)"
+    )
     expect(appCssSource).toContain("--window-chrome-shadow: none")
     expect(appCssSource).toContain("overflow: hidden")
     expect(appCssSource).toContain("overscroll-behavior: none")

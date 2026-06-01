@@ -6,6 +6,7 @@ import { WindowChromeFrame } from "@/app/shared/ui/window-chrome"
 import { Skeleton } from "@/app/shared/ui/skeleton"
 import { AppSidebar } from "@/app/shell/app-sidebar"
 import { ConfirmationDialog } from "@/app/shell/confirmation-dialog"
+import { PetSettingsWindowProvider } from "@/app/shell/pet-settings-window"
 import { SiteHeader, type HeaderTab } from "@/app/shell/site-header"
 import type { GalleryController } from "@/app/gallery/controller-types"
 import {
@@ -177,7 +178,7 @@ export function AppFrame({
           } as React.CSSProperties
         }
       >
-        {surface}
+        <PetSettingsWindowProvider>{surface}</PetSettingsWindowProvider>
       </SidebarProvider>
     </WindowChromeFrame>
   )
@@ -187,7 +188,10 @@ export function AppFrame({
 
 function AppWorkspaceStartupSkeleton() {
   return (
-    <div className="flex min-h-0 flex-1 flex-col p-4 md:p-6" data-selection="none">
+    <div
+      className="flex min-h-0 flex-1 flex-col p-4 md:p-6"
+      data-selection="none"
+    >
       <div className="flex min-h-0 flex-1 flex-col rounded-xl border bg-background p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-2">
