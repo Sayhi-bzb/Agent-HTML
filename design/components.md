@@ -318,10 +318,10 @@ Tab roles are intentionally split:
 
 Rules:
 
-- the tab rail MAY host section document tabs or scene tabs
+- the tab rail MAY host section document tabs or fixed Gallery view tabs
 - workspace mode tab rail SHOULD host open section documents
 - Gallery mode tab rail SHOULD host first-level Gallery views
-- scene tabs MAY be non-closable when they represent shell mode state rather than document state
+- Gallery view tabs MAY be non-closable when they represent shell mode state rather than document state
 - Gallery view-local navigation, filters, and preview selectors SHOULD stay inside the active view
   instead of becoming header tabs
 - header zone, overflow, alignment, and protected window-control layout rules are owned by

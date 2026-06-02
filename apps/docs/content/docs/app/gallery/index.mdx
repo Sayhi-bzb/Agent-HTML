@@ -3,15 +3,18 @@ title: Gallery
 description: Understand the App gallery mode for design studies and preview scenes.
 ---
 
-Gallery mode has three views: Theme, Components, and Pets.
+Gallery mode has three header views: Theme, Components, and Pets.
 
 `useGalleryController` owns the active view, theme draft, component filters, and
-gallery sidebar content.
+gallery sidebar content. It also guards entry from Workspace and exit from dirty
+Theme edits.
 
 ## View Map
 
-- **Theme** edits app theme variables.
-- **Components** browses enabled runtime component tags.
-- **Pets** browses companion assets for workspace personalization.
+- **Theme** edits app theme color, typography, radius, spacing, and shadow
+  variables.
+- **Components** browses runtime component tags and persists the enabled tag set.
+- **Pets** is the companion asset market placeholder.
 
-Leaving Theme with unsaved changes opens a save/discard confirmation.
+Leaving dirty Theme opens a save/discard confirmation. Switching from Theme to
+another Gallery view uses the same confirmation path.

@@ -18,64 +18,16 @@ msgid "Account"
 msgstr "Account"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Advanced Connection"
-msgstr "Advanced Connection"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Agent-HTML connects to Codex automatically and uses the official Codex configuration files for agent behavior."
-msgstr "Agent-HTML connects to Codex automatically and uses the official Codex configuration files for agent behavior."
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "App server"
-msgstr "App server"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Codex command"
-msgstr "Codex command"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Agent Settings"
 msgstr "Agent Settings"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Codex cwd"
-msgstr "Codex cwd"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Codex event log path"
-msgstr "Codex event log path"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Codex model, approval, sandbox, profile, and trust settings are read by Codex from its official config layers, including user and project config files. Agent-HTML only manages the local Codex host lifecycle."
-msgstr "Codex model, approval, sandbox, profile, and trust settings are read by Codex from its official config layers, including user and project config files. Agent-HTML only manages the local Codex host lifecycle."
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Connected"
-msgstr "Connected"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Connection failed"
-msgstr "Connection failed"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Dark"
 msgstr "Dark"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Desktop runtime required to manage Codex."
-msgstr "Desktop runtime required to manage Codex."
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Enable event logs"
-msgstr "Enable event logs"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "English"
 msgstr "English"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Event log path"
-msgstr "Event log path"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Language"
@@ -86,64 +38,12 @@ msgid "Light"
 msgstr "Light"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Loading saved settings..."
-msgstr "Loading saved settings..."
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Logs & Diagnostics"
-msgstr "Logs & Diagnostics"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "none"
-msgstr "none"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Not connected"
-msgstr "Not connected"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Notifications"
 msgstr "Notifications"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "off"
-msgstr "off"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Open log folder"
-msgstr "Open log folder"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Provider"
-msgstr "Provider"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Restart"
-msgstr "Restart"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "running"
-msgstr "running"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Save"
-msgstr "Save"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Settings"
 msgstr "Settings"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Starting..."
-msgstr "Starting..."
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Status"
-msgstr "Status"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Stop"
-msgstr "Stop"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "System"
@@ -158,20 +58,8 @@ msgid "System · 中文"
 msgstr "System · 中文"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Test connection"
-msgstr "Test connection"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Theme"
 msgstr "Theme"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Thread"
-msgstr "Thread"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "unknown"
-msgstr "unknown"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "中文"

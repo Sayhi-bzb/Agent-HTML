@@ -40,8 +40,12 @@ directly.
 ## App Ownership
 
 - `apps/agent-html-app/src/gallery`: Gallery feature domain
+- `apps/agent-html-app/src/gallery/preview`: Gallery preview subdomain
+- `apps/agent-html-app/src/pet`: pet companion feature domain
+- `apps/agent-html-app/src/prompt-kit`: app chat/message primitives
 - `apps/agent-html-app/src/shared/ui`: shared primitives
 - `apps/agent-html-app/src/shell`: shell composites
+- `apps/agent-html-app/src/workspace`: workspace document, thread, and agent state
 - `apps/agent-html-app/src/App.tsx`: app orchestration
 
 ## Dependency Direction
@@ -51,6 +55,22 @@ app orchestration
   -> composites / feature domains
   -> primitives / shared utilities
 ```
+
+Feature domains may depend on `shared/*`.
+Feature domains should not depend on `shell/*` for shared primitives.
+Shared UI belongs in `shared/ui` or in the feature that owns it.
+
+Current app bridges:
+
+- `shell/app-frame.tsx` composes workspace, gallery, and pet host surfaces.
+- `workspace/surface.tsx` publishes a workspace-pet snapshot through
+  `pet/host/pet-host-store`.
+- `shell/pet-settings-window.tsx` hosts the pet settings secondary-window
+  provider.
+- `gallery/workspace-surface.tsx` is the top-level Gallery entry into
+  `gallery/preview`.
+
+Bridge files connect domains. Domain internals stay owned by their domain.
 
 ```text
 source string

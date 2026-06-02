@@ -99,6 +99,9 @@ It owns:
 - primitive slot styling
 - shared interaction surfaces
 
+Shared primitives used by feature domains belong here, not under
+`apps/agent-html-app/src/shell/*`.
+
 ### `apps/agent-html-app/src/shell/*`
 
 This directory is the composite UI layer.
@@ -113,6 +116,45 @@ It owns:
 It MUST NOT become a second primitive library.
 It also MUST NOT become the long-term storage area for gallery asset data that belongs in
 `apps/agent-html-app/src/gallery/*`.
+It MUST NOT become the place feature domains import shared primitives from.
+
+The current shell owns `AppFrame`, `AppSidebar`, `SiteHeader`, and secondary-window providers.
+Feature code should interact with those through explicit bridge contracts.
+
+### `apps/agent-html-app/src/workspace/*`
+
+This directory is the Workspace feature domain.
+
+It owns:
+
+- project and section state
+- document loading, drafts, validation, and save state
+- Codex thread selection and transcript state
+- agent prompt delivery and approval state
+- the workspace-to-pet snapshot publisher
+
+Workspace may publish app-hosted pet state through `pet/host/pet-host-store`, but the bridge
+contract should stay explicit.
+
+### `apps/agent-html-app/src/pet/*`
+
+This directory is the pet companion feature domain.
+
+It owns:
+
+- `pet/ghost/*` in-workspace companion UI and radial actions
+- `pet/host/*` app-hosted pet state, thread panel surfaces, and settings surfaces
+- pet secondary-window bridge protocols
+
+Pet is App behavior. It MUST NOT become Runtime schema or runtime UI.
+Pet-host surfaces may consume `shared/ui/*` and Codex connection contracts.
+
+### `apps/agent-html-app/src/prompt-kit/*`
+
+This directory is the app message and prompt-composition UI layer.
+
+It owns generic chat/message primitives used by app surfaces.
+It SHOULD NOT depend on pet-specific ghost UI or companion state.
 
 ### Page / App Layer
 
@@ -202,6 +244,20 @@ Stable shell patterns should be promoted into this layer, but feature-domain con
 the feature owner. Gallery asset content belongs in `apps/agent-html-app/src/gallery/*` even when a
 shell composite renders it.
 
+## Bridge Policy
+
+Cross-domain bridges are allowed when one product surface hosts another domain.
+
+Current intentional bridges are:
+
+- `shell/app-frame.tsx` composes workspace, gallery, and pet host surfaces.
+- `workspace/surface.tsx` publishes workspace pet state to `pet/host/pet-host-store`.
+- `shell/pet-settings-window.tsx` hosts the pet settings secondary-window provider.
+- `gallery/workspace-surface.tsx` adapts top-level Gallery routing to `gallery/preview/*`.
+
+New bridge files should make the dependency explicit in their name, props, or exported contract.
+Domain internals should stay owned by their domain.
+
 ## Review Checklist
 
 A UI review should verify:
@@ -214,6 +270,8 @@ A UI review should verify:
 - no accessibility behavior was lost during visual customization
 - no mode-specific shell behavior was implemented by forking the shell instead of extending the
   existing composites
+- no feature domain imports `shell/*` for shared primitives
+- no generic layer imports feature-specific UI or state
 
 ## Anti-Patterns
 
@@ -229,3 +287,6 @@ The following should be rejected by default:
 - storing gallery scene/example data ad hoc inside generic shell components when it belongs in
   `apps/agent-html-app/src/gallery/*`
 - importing `apps/agent-html-app/src/gallery/preview/ui/*` into top-level gallery editor or shell orchestration code
+- importing feature-specific UI into generic app primitives
+- importing shell internals where a shared primitive or feature-owned surface should exist
+- adding cross-domain imports outside an explicit bridge

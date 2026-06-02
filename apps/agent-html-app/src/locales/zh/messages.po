@@ -18,64 +18,16 @@ msgid "Account"
 msgstr "账号"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Advanced Connection"
-msgstr "高级连接"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Agent-HTML connects to Codex automatically and uses the official Codex configuration files for agent behavior."
-msgstr "Agent-HTML 会自动连接 Codex，并使用官方 Codex 配置文件管理 agent 行为。"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "App server"
-msgstr "App 服务器"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Codex command"
-msgstr "Codex 命令"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Agent Settings"
 msgstr "Agent 设置"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Codex cwd"
-msgstr "Codex 工作目录"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Codex event log path"
-msgstr "Codex 事件日志路径"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Codex model, approval, sandbox, profile, and trust settings are read by Codex from its official config layers, including user and project config files. Agent-HTML only manages the local Codex host lifecycle."
-msgstr "Codex 模型、审批、沙箱、配置档案和信任设置由 Codex 从官方配置层读取，包括用户和项目配置文件。Agent-HTML 只管理本地 Codex host 生命周期。"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Connected"
-msgstr "已连接"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Connection failed"
-msgstr "连接失败"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Dark"
 msgstr "深色"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Desktop runtime required to manage Codex."
-msgstr "需要桌面运行时来管理 Codex。"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Enable event logs"
-msgstr "启用事件日志"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "English"
 msgstr "English"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Event log path"
-msgstr "事件日志路径"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Language"
@@ -86,64 +38,12 @@ msgid "Light"
 msgstr "浅色"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Loading saved settings..."
-msgstr "正在加载已保存的设置..."
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Logs & Diagnostics"
-msgstr "日志和诊断"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "none"
-msgstr "无"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Not connected"
-msgstr "未连接"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Notifications"
 msgstr "通知"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "off"
-msgstr "关闭"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Open log folder"
-msgstr "打开日志文件夹"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Provider"
-msgstr "提供方"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Restart"
-msgstr "重启"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "running"
-msgstr "运行中"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Save"
-msgstr "保存"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Settings"
 msgstr "设置"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Starting..."
-msgstr "正在连接..."
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Status"
-msgstr "状态"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Stop"
-msgstr "停止"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "System"
@@ -158,20 +58,8 @@ msgid "System · 中文"
 msgstr "跟随系统 · 中文"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Test connection"
-msgstr "测试连接"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Theme"
 msgstr "主题"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "Thread"
-msgstr "线程"
-
-#: apps/agent-html-app/src/shell/settings-menu.tsx
-msgid "unknown"
-msgstr "未知"
 
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "中文"

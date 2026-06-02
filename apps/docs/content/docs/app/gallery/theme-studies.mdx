@@ -1,20 +1,21 @@
 ---
 title: Theme Studies
-description: How gallery theme studies help inspect color and surface decisions.
+description: How gallery theme studies help inspect app theme decisions.
 ---
 
 Theme edits use an app theme draft.
 
 The controller resolves draft values into runtime-compatible color token values
-and CSS variables.
+and CSS variables. The editor sections are Color, Typography, Radius, Spacing,
+and Shadow.
 
 Saved theme values flow through Applied App Theme. Gallery owns the draft;
 Applied App Theme owns the saved state used by Workspace and secondary app
-roots.
+roots. Browser and Tauri windows share the saved theme through synced storage.
 
 ## Actions
 
 - selecting a preset replaces the draft
-- editing a variable updates the draft
+- editing color tokens or CSS variables updates the draft
 - Apply saves and applies the draft
-- leaving dirty Theme requires save or discard
+- leaving dirty Theme requires save, discard, or cancel

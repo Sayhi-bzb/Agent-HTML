@@ -38,9 +38,9 @@ The current implementation has two first-class operating modes:
 ### Gallery Mode
 
 - header tabs represent gallery views such as Theme, Components, and Pets
-- sidebar header hosts a back action
+- sidebar header hosts a back action and active-view controls
 - sidebar body hosts the active view's editor, filters, or local navigation
-- sidebar footer hosts active-view actions when that view has commit state
+- sidebar footer hosts active-view actions or metrics when that view has commit state
 - content well hosts the active gallery view surface
 
 Mode changes SHOULD reuse the same shell rather than create a separate full-screen layout family.
@@ -70,10 +70,10 @@ The current shell uses these mode-aware continuity rules:
 
 The header is compact, structural, and persistent.
 
-- it SHOULD carry navigation context, shell actions, or scene tabs
+- it SHOULD carry navigation context, shell actions, or fixed Gallery view tabs
 - in Gallery mode, it SHOULD carry stable first-level Gallery views rather than view-local filters
   or preview scenes
-- it MAY switch between closable work tabs and non-closable scene tabs without changing its base
+- it MAY switch between closable work tabs and non-closable Gallery view tabs without changing its base
   shell treatment
 - it MUST preserve three structural zones: leading chrome, tab rail, and protected window controls
 - the tab rail MUST stay inside the middle zone and handle overflow within that zone

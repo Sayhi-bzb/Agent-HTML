@@ -35,7 +35,6 @@ import {
   Settings2Icon,
   SunIcon,
 } from "lucide-react"
-import { useLingui } from "@lingui/react"
 import { Trans } from "@lingui/react/macro"
 
 const colorModeItems: {
@@ -100,12 +99,10 @@ function LocalizedLanguageLabel({
 }: {
   label: "English" | "System · English" | "System · 中文" | "中文"
 }) {
-  const { _ } = useLingui()
-
-  if (label === "System · English") return _({ id: "System · English" })
-  if (label === "System · 中文") return _({ id: "System · 中文" })
-  if (label === "English") return _({ id: "English" })
-  return _({ id: "中文" })
+  if (label === "System · English") return <Trans>System · English</Trans>
+  if (label === "System · 中文") return <Trans>System · 中文</Trans>
+  if (label === "English") return <Trans>English</Trans>
+  return <Trans>中文</Trans>
 }
 
 function LocalizedThemeLabel({
@@ -113,11 +110,9 @@ function LocalizedThemeLabel({
 }: {
   label: "Dark" | "Light" | "System"
 }) {
-  const { _ } = useLingui()
-
-  if (label === "Light") return _({ id: "Light" })
-  if (label === "Dark") return _({ id: "Dark" })
-  return _({ id: "System" })
+  if (label === "Light") return <Trans>Light</Trans>
+  if (label === "Dark") return <Trans>Dark</Trans>
+  return <Trans>System</Trans>
 }
 
 export function SettingsMenu() {

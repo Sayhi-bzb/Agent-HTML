@@ -14,3 +14,8 @@ There are two current implementation areas:
 
 Pets are App behavior. They are not Agent-HTML tags and do not belong in Runtime
 schema.
+
+Workspace owns document, thread, and agent state. Pet host consumes that state
+through an explicit workspace-pet snapshot published by the workspace surface.
+Pet UI should not reach into unrelated workspace internals when the snapshot can
+carry the needed state or action.

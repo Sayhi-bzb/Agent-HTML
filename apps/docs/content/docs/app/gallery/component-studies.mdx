@@ -6,7 +6,19 @@ description: How gallery component studies support review of shared UI patterns.
 Components view uses the gallery component market.
 
 It loads enabled component tags, lets the user filter/search component cards,
-and writes the prompt schema artifact after enabled tags change.
+persists the enabled tag set, and writes the prompt schema artifact after
+enabled tags change.
+
+In Tauri, component-market settings are stored in app data as
+`component-market-settings.json`. The enabled prompt schema is written relative
+to the AgentHTML workspace root:
+
+```text
+.agents/skills/agent-html/references/prompt-schema.md
+```
+
+In browser mode, settings use `localStorage` and the prompt schema path is a
+browser-memory artifact.
 
 Preview-only UI stays under `gallery/preview`. Shared App primitives stay under
 `shared/ui`.
