@@ -3,6 +3,7 @@ import * as React from "react"
 import { markCodexStartupEvent } from "@/app/codex/connection"
 import { createWorkspaceStore } from "@/app/workspace/store"
 import introduceAgentHtmlSource from "@/app/workspace/fixtures/introduce-agent-html.ahtml?raw"
+import introduceAgentHtmlZhSource from "@/app/workspace/fixtures/introduce-agent-html-cn.ahtml?raw"
 import type {
   ProjectSectionDocument,
   WorkspaceProjectView,
@@ -72,6 +73,15 @@ function isLegacyManagedIntroduceAgentHtmlSource(source: string) {
   )
 }
 
+function isLegacyManagedIntroduceAgentHtmlZhSource(source: string) {
+  return (
+    source.includes('<Cell title="agent-html">') &&
+    source.includes("把布局节点变成类似 Notion 的可交互块") &&
+    source.includes("悬停任意区块") &&
+    source.includes("<Separator />")
+  )
+}
+
 function getSectionTabId(sectionId: string) {
   return `section:${sectionId}`
 }
@@ -127,6 +137,12 @@ function isBlock(node: AgentHtmlNode) {
 export function migrateWorkspaceDocumentSource(source: string) {
   if (isLegacyManagedIntroduceAgentHtmlSource(source)) {
     return introduceAgentHtmlSource === source ? null : introduceAgentHtmlSource
+  }
+
+  if (isLegacyManagedIntroduceAgentHtmlZhSource(source)) {
+    return introduceAgentHtmlZhSource === source
+      ? null
+      : introduceAgentHtmlZhSource
   }
 
   let document: AgentHtmlDocument

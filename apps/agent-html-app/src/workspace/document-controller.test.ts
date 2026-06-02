@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { parseAgentHtml, validateAgentHtml } from "@/agent-html"
 import introduceAgentHtmlSource from "@/app/workspace/fixtures/introduce-agent-html.ahtml?raw"
+import introduceAgentHtmlZhSource from "@/app/workspace/fixtures/introduce-agent-html-cn.ahtml?raw"
 import { migrateWorkspaceDocumentSource } from "@/app/workspace/document-controller"
 
 describe("migrateWorkspaceDocumentSource", () => {
@@ -60,6 +61,28 @@ describe("migrateWorkspaceDocumentSource", () => {
 
   it("leaves the current managed English introduce example unchanged", () => {
     expect(migrateWorkspaceDocumentSource(introduceAgentHtmlSource)).toBeNull()
+  })
+
+  it("migrates the old managed Chinese introduce example to explicit blocks", () => {
+    const nextSource = migrateWorkspaceDocumentSource(`<Cell title="agent-html">
+  <Block>
+    <Section width="content">
+      <Stack>
+        <Text variant="muted">这个预览不是静态页面。直接在页面里操作，感受 agent-html 如何把布局节点变成类似 Notion 的可交互块。</Text>
+        <Separator />
+        <Text variant="small">悬停任意区块，直到左侧控制按钮渐显。</Text>
+      </Stack>
+    </Section>
+  </Block>
+</Cell>`)
+
+    expect(nextSource).toBe(introduceAgentHtmlZhSource)
+    expect(nextSource?.match(/<Block>/g)?.length).toBeGreaterThan(1)
+    expect(validateAgentHtml(parseAgentHtml(nextSource ?? "")).ok).toBe(true)
+  })
+
+  it("leaves the current managed Chinese introduce example unchanged", () => {
+    expect(migrateWorkspaceDocumentSource(introduceAgentHtmlZhSource)).toBeNull()
   })
 
   it("does not split ordinary valid single-block user documents", () => {

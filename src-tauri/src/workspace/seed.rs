@@ -14,6 +14,11 @@ pub(crate) fn introduce_agent_html_source() -> &'static str {
     INTRODUCE_AGENT_HTML_SOURCE
 }
 
+#[cfg(test)]
+pub(crate) fn introduce_agent_html_zh_source() -> &'static str {
+    INTRODUCE_AGENT_HTML_ZH_SOURCE
+}
+
 pub(crate) fn migrate_managed_example_source(
     project_id: &str,
     section_id: &str,
@@ -26,6 +31,13 @@ pub(crate) fn migrate_managed_example_source(
         return Some(INTRODUCE_AGENT_HTML_SOURCE);
     }
 
+    if project_id == "agent-html-example"
+        && section_id == "introduce-agent-html-zh"
+        && is_legacy_managed_introduce_agent_html_zh_source(source)
+    {
+        return Some(INTRODUCE_AGENT_HTML_ZH_SOURCE);
+    }
+
     None
 }
 
@@ -33,6 +45,13 @@ fn is_legacy_managed_introduce_agent_html_source(source: &str) -> bool {
     source.contains("<Cell title=\"agent-html\">")
         && source.contains("turns layout nodes into Notion-like blocks")
         && source.contains("Hover any section")
+        && source.contains("<Separator />")
+}
+
+fn is_legacy_managed_introduce_agent_html_zh_source(source: &str) -> bool {
+    source.contains("<Cell title=\"agent-html\">")
+        && source.contains("把布局节点变成类似 Notion 的可交互块")
+        && source.contains("悬停任意区块")
         && source.contains("<Separator />")
 }
 

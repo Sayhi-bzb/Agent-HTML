@@ -553,6 +553,15 @@ fn seeds_introduce_agent_html_examples() {
         super::seed::introduce_agent_html_source()
     );
     assert!(document.source.matches("<Block>").count() > 1);
+
+    let zh_document = store
+        .get_project_section_document("agent-html-example", "introduce-agent-html-zh")
+        .expect("read Chinese introduce document");
+    assert_eq!(
+        zh_document.source,
+        super::seed::introduce_agent_html_zh_source()
+    );
+    assert!(zh_document.source.matches("<Block>").count() > 1);
 }
 
 #[test]
@@ -592,6 +601,47 @@ fn opening_workspace_updates_old_managed_introduce_example_source() {
     assert_eq!(
         document.source,
         super::seed::introduce_agent_html_source()
+    );
+    assert!(document.source.matches("<Block>").count() > 1);
+}
+
+#[test]
+fn opening_workspace_updates_old_managed_chinese_introduce_example_source() {
+    let temp_dir = tempfile::tempdir().expect("create temp workspace");
+    let root = temp_dir.path().join("AgentHTML");
+    {
+        let store = WorkspaceStore::open(root.clone()).expect("open workspace root");
+        let old_source = [
+            "<Cell title=\"agent-html\">",
+            "  <Block>",
+            "    <Section width=\"content\">",
+            "      <Stack>",
+            "        <Text variant=\"muted\">这个预览不是静态页面。直接在页面里操作，感受 agent-html 如何把布局节点变成类似 Notion 的可交互块。</Text>",
+            "        <Separator />",
+            "        <Text variant=\"small\">悬停任意区块，直到左侧控制按钮渐显。</Text>",
+            "      </Stack>",
+            "    </Section>",
+            "  </Block>",
+            "</Cell>",
+        ]
+        .join("\n");
+        store
+            .update_project_section_document(
+                "agent-html-example",
+                "introduce-agent-html-zh",
+                &old_source,
+            )
+            .expect("write old managed Chinese source");
+    }
+
+    let store = WorkspaceStore::open(root).expect("reopen workspace root");
+    let document = store
+        .get_project_section_document("agent-html-example", "introduce-agent-html-zh")
+        .expect("read synced Chinese introduce document");
+
+    assert_eq!(
+        document.source,
+        super::seed::introduce_agent_html_zh_source()
     );
     assert!(document.source.matches("<Block>").count() > 1);
 }

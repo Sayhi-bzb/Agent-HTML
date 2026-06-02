@@ -1,53 +1,56 @@
 <Cell title="agent-html">
-  <Stack>
-    <Block>
-      <Section width="content">
+  <Section width="content">
     <Stack>
-      <Stack>
-        <Text variant="h1">agent-html</Text>
-        <Text variant="lead">面向 Agent 的受约束 UI 语言与实时编辑界面：悬停任意块、拖拽把手、打开加号输入框，再从顶部切换主题。</Text>
-      </Stack>
+      <Block>
+        <Stack>
+          <Text variant="h1">agent-html</Text>
+          <Text variant="lead">面向 Agent 的受约束 UI 语言与实时编辑界面：悬停任意显式块、拖拽把手、打开加号输入框，再从顶部切换主题。</Text>
+        </Stack>
+      </Block>
 
-      <Separator />
+      <Block>
+        <Stack>
+          <Text variant="h3">柱状图</Text>
+          <Text variant="muted">同一个界面在不同创作方式下的 token 成本对比。</Text>
+          <Chart type="bar">
+            <ChartSeries key="ahtml" label="AHTML" />
+            <ChartSeries key="html" label="HTML" />
+            <ChartSeries key="react" label="React" />
+            <ChartRow label="源码 token" ahtml="3600" html="19871" react="4041" />
+            <ChartTooltip hideLabel="false" />
+          </Chart>
+        </Stack>
+      </Block>
 
-      <Stack>
-        <Grid columns="2">
-          <Stack>
-            <Text variant="h3">柱状图</Text>
-            <Text variant="muted">同一个界面在不同创作方式下的 token 成本对比。</Text>
-            <Chart type="bar">
-              <ChartSeries key="ahtml" label="AHTML" />
-              <ChartSeries key="html" label="HTML" />
-              <ChartSeries key="react" label="React" />
-              <ChartRow label="源码 token" ahtml="3600" html="19871" react="4041" />
-              <ChartTooltip hideLabel="false" />
-            </Chart>
-          </Stack>
+      <Block>
+        <Stack>
+          <Text variant="h3">趋势图</Text>
+          <Text variant="muted">随着界面结构变复杂，agent-html 更贴近组件意图。</Text>
+          <Chart type="area">
+            <ChartSeries key="ahtml" label="AHTML" />
+            <ChartSeries key="react" label="React" />
+            <ChartRow label="首屏" ahtml="24" react="58" />
+            <ChartRow label="卡片" ahtml="38" react="96" />
+            <ChartRow label="流程" ahtml="51" react="138" />
+            <ChartRow label="展示页" ahtml="69" react="188" />
+            <ChartTooltip hideLabel="false" />
+          </Chart>
+        </Stack>
+      </Block>
 
-          <Stack>
-            <Text variant="h3">趋势图</Text>
-            <Text variant="muted">随着界面结构变复杂，agent-html 更贴近组件意图。</Text>
-            <Chart type="area">
-              <ChartSeries key="ahtml" label="AHTML" />
-              <ChartSeries key="react" label="React" />
-              <ChartRow label="首屏" ahtml="24" react="58" />
-              <ChartRow label="卡片" ahtml="38" react="96" />
-              <ChartRow label="流程" ahtml="51" react="138" />
-              <ChartRow label="展示页" ahtml="69" react="188" />
-              <ChartTooltip hideLabel="false" />
-            </Chart>
-          </Stack>
-        </Grid>
-      </Stack>
+      <Block>
+        <Stack>
+          <Text variant="h2">体验编辑界面</Text>
+          <Text variant="muted">这个预览不是静态页面。直接在页面里操作，感受 agent-html 如何把显式块变成类似 Notion 的协作单元。</Text>
+        </Stack>
+      </Block>
 
-      <Stack>
-        <Text variant="h2">体验编辑界面</Text>
-        <Text variant="muted">这个预览不是静态页面。直接在页面里操作，感受 agent-html 如何把布局节点变成类似 Notion 的可交互块。</Text>
+      <Block>
         <Kanban>
           <KanbanColumn value="discover" title="发现">
             <KanbanItem value="hover-handle">
               <Stack>
-                <Text variant="small">悬停任意区块，直到左侧控制按钮渐显。</Text>
+                <Text variant="small">悬停任意显式块，直到左侧控制按钮渐显。</Text>
                 <Badge variant="secondary">块把手</Badge>
               </Stack>
             </KanbanItem>
@@ -87,12 +90,13 @@
             </KanbanItem>
           </KanbanColumn>
         </Kanban>
-      </Stack>
+      </Block>
 
-      <Stack>
-        <Text variant="h2">小源码，真组件</Text>
-        <Text variant="muted">Agent 编写的是紧凑的树结构。runtime 会在验证后把它渲染成真实 UI primitives。</Text>
-        <CodeBlock language="ahtml" title="一个小型创作界面">
+      <Block>
+        <Stack>
+          <Text variant="h2">小源码，真组件</Text>
+          <Text variant="muted">Agent 编写的是紧凑的树结构。runtime 会在验证后把它渲染成真实 UI primitives。</Text>
+          <CodeBlock language="ahtml" title="一个小型创作界面">
 <Cell title="Demo">
   <Stack>
     <Block>
@@ -105,175 +109,181 @@
     </Block>
   </Stack>
 </Cell>
-        </CodeBlock>
+          </CodeBlock>
+        </Stack>
+      </Block>
+
+      <Block>
         <Alert>
           <Icon name="shield-check" />
           <AlertTitle>渲染前先验证</AlertTitle>
           <AlertDescription>未知标签、非法属性、不安全图标和不支持的子结构都会在进入预览界面前失败。</AlertDescription>
         </Alert>
-      </Stack>
+      </Block>
 
-      <Stack>
-        <Text variant="h2">Runtime 流水线</Text>
-        <Text variant="muted">边界很明确：源码进入解析器，AST 经过验证，再由 runtime 组件渲染结果。</Text>
-        <Timeline>
-          <TimelineItem icon="code-xml" meta="创作" status="complete">
-            <TimelineTitle>受约束标记语言</TimelineTitle>
-            <TimelineDescription>Agent 编写嵌套标签、引号属性和插槽，而不是 class 名。</TimelineDescription>
-            <TimelineContent>
-              <Cluster wrap="true">
-                <Badge variant="secondary">Cell</Badge>
-                <Badge variant="outline">Grid</Badge>
-                <Badge variant="outline">Text</Badge>
-              </Cluster>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem icon="shield-check" meta="验证" status="current">
-            <TimelineTitle>渲染前检查 AST</TimelineTitle>
-            <TimelineDescription>非法结构会在 UI 出现前失败。</TimelineDescription>
-            <TimelineContent>
-              <Cluster wrap="true">
-                <Badge variant="secondary">标签</Badge>
-                <Badge variant="outline">属性</Badge>
-                <Badge variant="outline">子节点</Badge>
-              </Cluster>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem icon="component" meta="运行时" status="default">
-            <TimelineTitle>生产级 primitives</TimelineTitle>
-            <TimelineDescription>渲染结果使用与产品一致的组件系统。</TimelineDescription>
-          </TimelineItem>
-        </Timeline>
-      </Stack>
+      <Block>
+        <Stack>
+          <Text variant="h2">Runtime 流水线</Text>
+          <Text variant="muted">边界很明确：源码进入解析器，AST 经过验证，再由 runtime 组件渲染结果。</Text>
+          <Timeline>
+            <TimelineItem icon="code-xml" meta="创作" status="complete">
+              <TimelineTitle>受约束标记语言</TimelineTitle>
+              <TimelineDescription>Agent 编写嵌套标签、引号属性和插槽，而不是 class 名。</TimelineDescription>
+              <TimelineContent>
+                <Cluster wrap="true">
+                  <Badge variant="secondary">Cell</Badge>
+                  <Badge variant="outline">Grid</Badge>
+                  <Badge variant="outline">Text</Badge>
+                </Cluster>
+              </TimelineContent>
+            </TimelineItem>
+            <TimelineItem icon="shield-check" meta="验证" status="current">
+              <TimelineTitle>渲染前检查 AST</TimelineTitle>
+              <TimelineDescription>非法结构会在 UI 出现前失败。</TimelineDescription>
+              <TimelineContent>
+                <Cluster wrap="true">
+                  <Badge variant="secondary">标签</Badge>
+                  <Badge variant="outline">属性</Badge>
+                  <Badge variant="outline">子节点</Badge>
+                </Cluster>
+              </TimelineContent>
+            </TimelineItem>
+            <TimelineItem icon="component" meta="运行时" status="default">
+              <TimelineTitle>生产级 primitives</TimelineTitle>
+              <TimelineDescription>渲染结果使用与产品一致的组件系统。</TimelineDescription>
+            </TimelineItem>
+          </Timeline>
+        </Stack>
+      </Block>
 
-      <Stack>
-        <Text variant="h2">可组合组件生态</Text>
-        <Text variant="muted">表格、媒体、提示框、徽章、图表、时间线、标签页和折叠面板共享同一个受约束创作界面。</Text>
-        <Grid columns="3">
-          <Stack>
-            <Text variant="h3">表格</Text>
-            <Table>
-              <TableCaption>同一个界面，不同创作方式</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>格式</TableHead>
-                  <TableHead>优势</TableHead>
-                  <TableHead>代价</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>AHTML</TableCell>
-                  <TableCell>结构紧凑</TableCell>
-                  <TableCell>需要 runtime</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>HTML</TableCell>
-                  <TableCell>通用输出</TableCell>
-                  <TableCell>丢失组件意图</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>React</TableCell>
-                  <TableCell>完全控制</TableCell>
-                  <TableCell>token 成本最高</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </Stack>
+      <Block>
+        <Stack>
+          <Text variant="h2">可组合组件生态</Text>
+          <Text variant="muted">表格、媒体、提示框、徽章、图表、时间线、标签页和折叠面板共享同一个受约束创作界面。</Text>
+          <Text variant="h3">表格</Text>
+          <Table>
+            <TableCaption>同一个界面，不同创作方式</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>格式</TableHead>
+                <TableHead>优势</TableHead>
+                <TableHead>代价</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>AHTML</TableCell>
+                <TableCell>结构紧凑</TableCell>
+                <TableCell>需要 runtime</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>HTML</TableCell>
+                <TableCell>通用输出</TableCell>
+                <TableCell>丢失组件意图</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>React</TableCell>
+                <TableCell>完全控制</TableCell>
+                <TableCell>token 成本最高</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </Stack>
+      </Block>
 
-          <Stack>
-            <Text variant="h3">宽高比</Text>
-            <Text variant="muted">媒体内容在生成布局中保持稳定尺寸。</Text>
-            <AspectRatio ratio="1.777">
-              <Image src="/assets/blocks.png" alt="Agent HTML 块预览" fit="cover" />
-            </AspectRatio>
-          </Stack>
+      <Block>
+        <Stack>
+          <Text variant="h3">宽高比</Text>
+          <Text variant="muted">媒体内容在生成布局中保持稳定尺寸。</Text>
+          <AspectRatio ratio="1.777">
+            <Image src="/assets/blocks.png" alt="Agent HTML 块预览" fit="cover" />
+          </AspectRatio>
+        </Stack>
+      </Block>
 
-          <Stack>
-            <Text variant="h3">Runtime 契约</Text>
-            <Alert>
-              <Icon name="route" />
-              <AlertTitle>只消费公开表面</AlertTitle>
-              <AlertDescription>demo 只通过 runtime contract 工作，不触碰应用内部实现。</AlertDescription>
-            </Alert>
-            <Cluster wrap="true">
-              <Badge variant="secondary">解析器</Badge>
-              <Badge variant="outline">验证器</Badge>
-              <Badge variant="outline">渲染器</Badge>
-            </Cluster>
-          </Stack>
-        </Grid>
-      </Stack>
+      <Block>
+        <Stack>
+          <Text variant="h3">Runtime 契约</Text>
+          <Alert>
+            <Icon name="route" />
+            <AlertTitle>只消费公开表面</AlertTitle>
+            <AlertDescription>demo 只通过 runtime contract 工作，不触碰应用内部实现。</AlertDescription>
+          </Alert>
+          <Cluster wrap="true">
+            <Badge variant="secondary">解析器</Badge>
+            <Badge variant="outline">验证器</Badge>
+            <Badge variant="outline">渲染器</Badge>
+          </Cluster>
+        </Stack>
+      </Block>
 
-      <Stack>
-        <Text variant="h2">Runtime 交互 primitives</Text>
-        <Text variant="muted">Accordion 和 Tabs 保持声明式，交互行为由 runtime 提供。</Text>
-        <Grid columns="2">
-          <Stack>
-            <Text variant="h3">折叠面板</Text>
-            <Accordion type="single">
-              <AccordionItem value="html-shape">
-                <AccordionTrigger>为什么是 HTML 形态？</AccordionTrigger>
-                <AccordionContent>
-                  <Stack>
-                    <Badge variant="secondary">降低模型摩擦</Badge>
-                    <Text variant="small">LLM 已经理解嵌套标记、属性和闭合标签。</Text>
-                  </Stack>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="narrow-props">
-                <AccordionTrigger>为什么限制 props？</AccordionTrigger>
-                <AccordionContent>
-                  <Stack>
-                    <Badge variant="outline">可靠生成优先于无限灵活</Badge>
-                    <Text variant="small">小型 variant 集合让生成 UI 更容易验证和比较。</Text>
-                  </Stack>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="runtime">
-                <AccordionTrigger>为什么使用 runtime primitives？</AccordionTrigger>
-                <AccordionContent>
-                  <Stack>
-                    <Badge variant="secondary">不做第二套 UI kit</Badge>
-                    <Text variant="small">DSL 组合生产 primitives，而不是重新发明一套组件系统。</Text>
-                  </Stack>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </Stack>
-
-          <Stack>
-            <Text variant="h3">标签页</Text>
-            <Tabs defaultValue="author">
-              <TabsList>
-                <TabsTrigger value="author">创作</TabsTrigger>
-                <TabsTrigger value="validate">验证</TabsTrigger>
-                <TabsTrigger value="render">渲染</TabsTrigger>
-              </TabsList>
-              <TabsContent value="author">
+      <Block>
+        <Stack>
+          <Text variant="h2">Runtime 交互 primitives</Text>
+          <Text variant="muted">Accordion 和 Tabs 保持声明式，交互行为由 runtime 提供。</Text>
+          <Text variant="h3">折叠面板</Text>
+          <Accordion type="single">
+            <AccordionItem value="html-shape">
+              <AccordionTrigger>为什么是 HTML 形态？</AccordionTrigger>
+              <AccordionContent>
                 <Stack>
-                  <Badge variant="secondary">XML 形态</Badge>
-                  <Text variant="small">编写能直接映射到 runtime primitives 的标签和属性。</Text>
+                  <Badge variant="secondary">降低模型摩擦</Badge>
+                  <Text variant="small">LLM 已经理解嵌套标记、属性和闭合标签。</Text>
                 </Stack>
-              </TabsContent>
-              <TabsContent value="validate">
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="narrow-props">
+              <AccordionTrigger>为什么限制 props？</AccordionTrigger>
+              <AccordionContent>
                 <Stack>
-                  <Badge variant="outline">Schema 检查</Badge>
-                  <Text variant="small">在源码进入预览界面前阻断非法结构。</Text>
+                  <Badge variant="outline">可靠生成优先于无限灵活</Badge>
+                  <Text variant="small">小型 variant 集合让生成 UI 更容易验证和比较。</Text>
                 </Stack>
-              </TabsContent>
-              <TabsContent value="render">
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="runtime">
+              <AccordionTrigger>为什么使用 runtime primitives？</AccordionTrigger>
+              <AccordionContent>
                 <Stack>
-                  <Badge variant="secondary">Runtime 支撑</Badge>
-                  <Text variant="small">通过 shadcn primitives 渲染，并复用共享主题 token。</Text>
+                  <Badge variant="secondary">不做第二套 UI kit</Badge>
+                  <Text variant="small">DSL 组合生产 primitives，而不是重新发明一套组件系统。</Text>
                 </Stack>
-              </TabsContent>
-            </Tabs>
-          </Stack>
-        </Grid>
-      </Stack>
-      </Stack>
-      </Section>
-    </Block>
-  </Stack>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </Stack>
+      </Block>
+
+      <Block>
+        <Stack>
+          <Text variant="h3">标签页</Text>
+          <Tabs defaultValue="author">
+            <TabsList>
+              <TabsTrigger value="author">创作</TabsTrigger>
+              <TabsTrigger value="validate">验证</TabsTrigger>
+              <TabsTrigger value="render">渲染</TabsTrigger>
+            </TabsList>
+            <TabsContent value="author">
+              <Stack>
+                <Badge variant="secondary">XML 形态</Badge>
+                <Text variant="small">编写能直接映射到 runtime primitives 的标签和属性。</Text>
+              </Stack>
+            </TabsContent>
+            <TabsContent value="validate">
+              <Stack>
+                <Badge variant="outline">Schema 检查</Badge>
+                <Text variant="small">在源码进入预览界面前阻断非法结构。</Text>
+              </Stack>
+            </TabsContent>
+            <TabsContent value="render">
+              <Stack>
+                <Badge variant="secondary">Runtime 支撑</Badge>
+                <Text variant="small">通过 shadcn primitives 渲染，并复用共享主题 token。</Text>
+              </Stack>
+            </TabsContent>
+          </Tabs>
+        </Stack>
+      </Block>
+    </Stack>
+  </Section>
 </Cell>
