@@ -19,8 +19,21 @@ describe("AsciiGhost eye animation", () => {
     expect(asciiGhostSource).toContain('"╭──────╮"')
     expect(asciiGhostSource).toContain('"│      │"')
     expect(asciiGhostSource).toContain('"│╭╮╭╮╭╮│"')
+    expect(asciiGhostSource).toContain("<span ref={prefixRef}> </span>")
     expect(asciiGhostSource).toContain("<span ref={leftEyeRef}>█</span>")
+    expect(asciiGhostSource).toContain('<span ref={gapRef}>{"  "}</span>')
     expect(asciiGhostSource).toContain("<span ref={rightEyeRef}>█</span>")
+    expect(asciiGhostSource).toContain("<span ref={suffixRef}> </span>")
+  })
+
+  it("uses weighted single-event gaze holds", () => {
+    expect(asciiGhostSource).toContain("GHOST_GAZE_HOLD_MIN_MS = 2400")
+    expect(asciiGhostSource).toContain("GHOST_GAZE_HOLD_MAX_MS = 3200")
+    expect(asciiGhostSource).toContain("GHOST_GAZE_CENTER_WEIGHT = 0.45")
+    expect(asciiGhostSource).toContain("GHOST_GAZE_LEFT_WEIGHT_END = 0.725")
+    expect(asciiGhostSource).toContain("function getNextGazeHold()")
+    expect(asciiGhostSource).toContain('if (gaze === "center")')
+    expect(asciiGhostSource).not.toContain('"left", "center", "right"')
   })
 
   it("does not add character motion animation", () => {
