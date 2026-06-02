@@ -9,13 +9,15 @@ import { parseAgentHtml } from "@/agent-html"
 const document = {
   source: [
     "<Cell title=\"Test\">",
-    "  <Block>",
-    "    <Section>",
-    "      <Stack>",
-    "        <Text>Move faster</Text>",
-    "      </Stack>",
-    "    </Section>",
-    "  </Block>",
+    "  <Stack>",
+    "    <Block>",
+    "      <Section>",
+    "        <Stack>",
+    "          <Text>Move faster</Text>",
+    "        </Stack>",
+    "      </Section>",
+    "    </Block>",
+    "  </Stack>",
     "</Cell>",
     "",
   ].join("\n"),
@@ -71,7 +73,7 @@ describe("deliverAgentHtmlIntent", () => {
         interaction: null,
         prompt: "Make this tighter.",
         target: {
-          path: "/Cell/Block[0]",
+          path: "/Cell/Stack[0]/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -85,7 +87,8 @@ describe("deliverAgentHtmlIntent", () => {
       [
         "---",
         "filePath: projects/project-1/section-1/artifact.agent-html",
-        "blockPath: /Cell/Block[0]",
+        "blockPath: /Cell/Stack[0]/Block[0]",
+        "targetStatus: selected_explicit_block",
         "---",
       ].join("\n")
     )
@@ -107,7 +110,7 @@ describe("deliverAgentHtmlIntent", () => {
     const result = await deliverAgentHtmlIntent({
       document: {
         ...document,
-        source: "<Cell title=\"Changed\"><Block><Text>Changed source should not be parsed</Text></Block></Cell>",
+        source: "<Cell title=\"Changed\"><Stack><Block><Text>Changed source should not be parsed</Text></Block></Stack></Cell>",
       },
       parsedDocument,
       project,
@@ -116,7 +119,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "Explain this block.",
         target: {
-          path: "/Cell/Block[0]",
+          path: "/Cell/Stack[0]/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -146,7 +149,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "What is this?",
         target: {
-          path: "/Cell/Block[1]",
+          path: "/Cell/Stack[0]/Block[1]",
         },
       },
       threadId: "thr_123",
@@ -155,9 +158,39 @@ describe("deliverAgentHtmlIntent", () => {
 
     expect(result.ok).toBe(true)
     expect(startTurn.mock.calls[0][0].promptText).toContain(
-      "blockPath: /Cell/Block[1]"
+      "blockPath: /Cell/Stack[0]/Block[1]"
+    )
+    expect(startTurn.mock.calls[0][0].promptText).toContain(
+      "targetStatus: missing_explicit_block"
     )
     expect(startTurn.mock.calls[0][0].promptText).toMatch(/```ahtml\s+```/)
+  })
+
+  it("marks non-block target paths as missing explicit blocks", async () => {
+    const startTurn = vi.fn().mockResolvedValue({
+      threadId: "thr_123",
+      turnId: "turn_123",
+    })
+
+    await deliverAgentHtmlIntent({
+      document,
+      project,
+      section,
+      startTurn,
+      submit: {
+        prompt: "Explain this area.",
+        target: {
+          path: "/Cell/Stack[0]",
+        },
+      },
+      threadId: "thr_123",
+      workspaceRootPath: "D:\\AgentHTML",
+    })
+
+    const promptText = startTurn.mock.calls[0][0].promptText
+    expect(promptText).toContain("blockPath: /Cell/Stack[0]")
+    expect(promptText).toContain("targetStatus: missing_explicit_block")
+    expect(promptText).toMatch(/```ahtml\s+```/)
   })
 
   it("returns the Codex turn error when delivery fails", async () => {
@@ -179,7 +212,7 @@ describe("deliverAgentHtmlIntent", () => {
         },
         prompt: "Persist my ordering.",
         target: {
-          path: "/Cell/Block[0]",
+          path: "/Cell/Stack[0]/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -358,7 +391,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "Review this section.",
         target: {
-          path: "/Cell/Block[0]",
+          path: "/Cell/Stack[0]/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -385,7 +418,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "Review this section.",
         target: {
-          path: "/Cell/Block[0]",
+          path: "/Cell/Stack[0]/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -415,7 +448,7 @@ describe("deliverAgentHtmlIntent", () => {
         submit: {
           prompt: "Review this section.",
           target: {
-            path: "/Cell/Block[0]",
+            path: "/Cell/Stack[0]/Block[0]",
           },
         },
         threadId: "thr_123",

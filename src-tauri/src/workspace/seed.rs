@@ -9,6 +9,33 @@ const INTRODUCE_AGENT_HTML_ZH_SOURCE: &str = include_str!(
     "../../../apps/agent-html-app/src/workspace/fixtures/introduce-agent-html-cn.ahtml"
 );
 
+#[cfg(test)]
+pub(crate) fn introduce_agent_html_source() -> &'static str {
+    INTRODUCE_AGENT_HTML_SOURCE
+}
+
+pub(crate) fn migrate_managed_example_source(
+    project_id: &str,
+    section_id: &str,
+    source: &str,
+) -> Option<&'static str> {
+    if project_id == "agent-html-example"
+        && section_id == "introduce-agent-html"
+        && is_legacy_managed_introduce_agent_html_source(source)
+    {
+        return Some(INTRODUCE_AGENT_HTML_SOURCE);
+    }
+
+    None
+}
+
+fn is_legacy_managed_introduce_agent_html_source(source: &str) -> bool {
+    source.contains("<Cell title=\"agent-html\">")
+        && source.contains("turns layout nodes into Notion-like blocks")
+        && source.contains("Hover any section")
+        && source.contains("<Separator />")
+}
+
 pub(crate) fn seed_if_empty(connection: &mut Connection) -> WorkspaceResult<()> {
     let count: i64 = connection.query_row("SELECT COUNT(*) FROM projects", [], |row| row.get(0))?;
     if count > 0 {
@@ -139,21 +166,23 @@ pub(crate) fn seed_section(
 pub(crate) fn create_blank_project_source(project: &WorkspaceProject) -> String {
     format!(
         r#"<Cell title="{project_name}">
-  <Block>
-    <Section width="content">
-      <Stack>
+  <Stack>
+    <Block>
+      <Section width="content">
         <Stack>
-          <Text variant="h1">{project_name}</Text>
-          <Text variant="lead">Start shaping this workspace artifact from a blank Agent-HTML document.</Text>
+          <Stack>
+            <Text variant="h1">{project_name}</Text>
+            <Text variant="lead">Start shaping this workspace artifact from a blank Agent-HTML document.</Text>
+          </Stack>
+          <Alert>
+            <Icon name="file-plus-2" />
+            <AlertTitle>Blank project</AlertTitle>
+            <AlertDescription>This overview section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
+          </Alert>
         </Stack>
-        <Alert>
-          <Icon name="file-plus-2" />
-          <AlertTitle>Blank project</AlertTitle>
-          <AlertDescription>This overview section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
-        </Alert>
-      </Stack>
-    </Section>
-  </Block>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>"#,
         project_name = project.name,
     )
@@ -165,21 +194,23 @@ pub(crate) fn create_blank_section_source(
 ) -> String {
     format!(
         r#"<Cell title="{project_name} - {section_title}">
-  <Block>
-    <Section width="content">
-      <Stack>
+  <Stack>
+    <Block>
+      <Section width="content">
         <Stack>
-          <Text variant="h1">{section_title}</Text>
-          <Text variant="lead">Start shaping this workspace section from a blank Agent-HTML document.</Text>
+          <Stack>
+            <Text variant="h1">{section_title}</Text>
+            <Text variant="lead">Start shaping this workspace section from a blank Agent-HTML document.</Text>
+          </Stack>
+          <Alert>
+            <Icon name="file-text" />
+            <AlertTitle>Blank section</AlertTitle>
+            <AlertDescription>This section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
+          </Alert>
         </Stack>
-        <Alert>
-          <Icon name="file-text" />
-          <AlertTitle>Blank section</AlertTitle>
-          <AlertDescription>This section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
-        </Alert>
-      </Stack>
-    </Section>
-  </Block>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>"#,
         project_name = project.name,
         section_title = section.title,
@@ -274,41 +305,43 @@ pub(crate) fn create_seed_document_source(
 ) -> String {
     format!(
         r#"<Cell title="{project_name} - {section_title}">
-  <Block>
-    <Section width="content">
-      <Stack>
+  <Stack>
+    <Block>
+      <Section width="content">
         <Stack>
-          <Text variant="h1">{section_title}</Text>
-          <Text variant="lead">{project_name} workspace content rendered through the agent-html runtime.</Text>
+          <Stack>
+            <Text variant="h1">{section_title}</Text>
+            <Text variant="lead">{project_name} workspace content rendered through the agent-html runtime.</Text>
+          </Stack>
+          <Alert>
+            <Icon name="file-text" />
+            <AlertTitle>Workspace artifact</AlertTitle>
+            <AlertDescription>This section is loaded from artifact.agent-html in the AgentHTML workspace.</AlertDescription>
+          </Alert>
+          <Grid columns="3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Project</CardTitle>
+                <CardDescription>{project_name}</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Section</CardTitle>
+                <CardDescription>{group_title}</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Runtime</CardTitle>
+                <CardDescription>parse -> validate -> render</CardDescription>
+              </CardHeader>
+            </Card>
+          </Grid>
         </Stack>
-        <Alert>
-          <Icon name="file-text" />
-          <AlertTitle>Workspace artifact</AlertTitle>
-          <AlertDescription>This section is loaded from artifact.agent-html in the AgentHTML workspace.</AlertDescription>
-        </Alert>
-        <Grid columns="3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project</CardTitle>
-              <CardDescription>{project_name}</CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Section</CardTitle>
-              <CardDescription>{group_title}</CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Runtime</CardTitle>
-              <CardDescription>parse -> validate -> render</CardDescription>
-            </CardHeader>
-          </Card>
-        </Grid>
-      </Stack>
-    </Section>
-  </Block>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>"#,
         group_title = section.group_title,
         project_name = project.name,

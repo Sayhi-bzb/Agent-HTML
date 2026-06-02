@@ -1,6 +1,7 @@
 <Cell title="agent-html">
-  <Block>
-    <Section width="content">
+  <Stack>
+    <Block>
+      <Section width="content">
     <Stack>
       <Stack>
         <Text variant="h1">agent-html</Text>
@@ -93,14 +94,16 @@
         <Text variant="muted">Agent 编写的是紧凑的树结构。runtime 会在验证后把它渲染成真实 UI primitives。</Text>
         <CodeBlock language="ahtml" title="一个小型创作界面">
 <Cell title="Demo">
-  <Block>
-    <Section width="reader">
-      <Stack>
-        <Text variant="lead">用受约束标签描述界面。</Text>
-        <Badge variant="secondary">渲染前完成验证</Badge>
-      </Stack>
-    </Section>
-  </Block>
+  <Stack>
+    <Block>
+      <Section width="reader">
+        <Stack>
+          <Text variant="lead">用受约束标签描述界面。</Text>
+          <Badge variant="secondary">渲染前完成验证</Badge>
+        </Stack>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>
         </CodeBlock>
         <Alert>
@@ -269,7 +272,8 @@
           </Stack>
         </Grid>
       </Stack>
-    </Stack>
-    </Section>
-  </Block>
+      </Stack>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>

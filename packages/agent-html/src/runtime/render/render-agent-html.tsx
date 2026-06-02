@@ -91,7 +91,7 @@ function hasChildren(tag: AgentHtmlElementNode["tag"]) {
   )
 }
 
-function highlightBlock(
+function wrapInteractionBlock(
   rendered: ReactNode,
   key: string,
   path: string,
@@ -136,13 +136,13 @@ function renderElement(
   if (node.tag === "Cell") {
     const children = renderChildren(node.children, path, context)
     rendered = <CellRuntime key={key}>{children}</CellRuntime>
-    return highlightBlock(rendered, key, path, context)
+    return rendered
   }
 
   if (node.tag === "Block") {
     const children = renderChildren(node.children, path, context)
     rendered = <BlockRuntime key={key}>{children}</BlockRuntime>
-    return highlightBlock(rendered, key, path, context)
+    return wrapInteractionBlock(rendered, key, path, context)
   }
 
   if (node.tag === "Section") {
@@ -152,13 +152,13 @@ function renderElement(
         {children}
       </SectionRuntime>
     )
-    return highlightBlock(rendered, key, path, context)
+    return rendered
   }
 
   if (node.tag === "Stack") {
     const children = renderChildren(node.children, path, context)
     rendered = <StackRuntime key={key}>{children}</StackRuntime>
-    return highlightBlock(rendered, key, path, context)
+    return rendered
   }
 
   if (node.tag === "Cluster") {
@@ -172,7 +172,7 @@ function renderElement(
         {children}
       </ClusterRuntime>
     )
-    return highlightBlock(rendered, key, path, context)
+    return rendered
   }
 
   if (node.tag === "Grid") {
@@ -182,7 +182,7 @@ function renderElement(
         {children}
       </GridRuntime>
     )
-    return highlightBlock(rendered, key, path, context)
+    return rendered
   }
 
   if (
@@ -195,12 +195,12 @@ function renderElement(
 
   if (node.tag === "Icon") {
     rendered = <IconRuntime key={key} name={node.attrs.name} />
-    return highlightBlock(rendered, key, path, context)
+    return rendered
   }
 
   if (node.tag === "Chart") {
     rendered = <LazyChartRuntime key={key} node={node} />
-    return highlightBlock(rendered, key, path, context)
+    return rendered
   }
 
   const Component =
@@ -214,12 +214,12 @@ function renderElement(
 
   if (!hasChildren(node.tag)) {
     rendered = createElement(Component, { key, ...node.attrs })
-    return highlightBlock(rendered, key, path, context)
+    return rendered
   }
 
   const children = renderChildren(node.children, path, context)
   rendered = createElement(Component, { key, ...node.attrs }, ...children)
-  return highlightBlock(rendered, key, path, context)
+  return rendered
 }
 
 export function renderAgentHtml(

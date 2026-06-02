@@ -152,6 +152,24 @@ impl WorkspaceStore {
                     let source = seed::create_initial_document_source(&project, &section);
                     self.documents
                         .write_document(&section.project_id, &section.id, &source)?;
+                    continue;
+                }
+
+                let (source, _) = self
+                    .documents
+                    .read_document(&section.project_id, &section.id)?;
+                if let Some(next_source) = seed::migrate_managed_example_source(
+                    &section.project_id,
+                    &section.id,
+                    &source,
+                ) {
+                    if next_source != source {
+                        self.update_project_section_document(
+                            &section.project_id,
+                            &section.id,
+                            next_source,
+                        )?;
+                    }
                 }
             }
         }

@@ -1,6 +1,10 @@
 <Cell title="Invalid chart">
-  <Chart type="bar">
-    <ChartSeries key="publish" label="Publish" />
-    <ChartRow label="W1" publish="many" />
-  </Chart>
+  <Stack>
+    <Block>
+      <Chart type="bar">
+        <ChartSeries key="publish" label="Publish" />
+        <ChartRow label="W1" publish="many" />
+      </Chart>
+    </Block>
+  </Stack>
 </Cell>

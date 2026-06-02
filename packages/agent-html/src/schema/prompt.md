@@ -10,6 +10,7 @@
 - Do not use `class`, `className`, `style`, imports, fragments, hooks, JS expressions, or raw HTML.
 - Do not use unknown tags or unknown attrs.
 - Do not put bare text directly under `Cell`, `Block`, `Stack`, `Cluster`, or `Grid`.
+- `Cell` must contain layout. UI must be inside `Block`.
 
 ## Defaults
 
@@ -25,12 +26,12 @@
 
 ## Layout
 
-- `Cell:title=string -> Block | Layout | UI`
+- `Cell:title=string -> Layout`
 - `Block -> Layout | UI`
-- `Section:width?="full|content|reader" -> Layout | UI`
-- `Stack -> Layout | UI`
-- `Cluster:justify?="start|center|end|between", wrap?="true|false" -> Layout | UI`
-- `Grid:columns?="1|2|3|4" -> Layout | UI`
+- `Section:width?="full|content|reader" -> Block | Layout | UI`
+- `Stack -> Block | Layout | UI`
+- `Cluster:justify?="start|center|end|between", wrap?="true|false" -> Block | Layout | UI`
+- `Grid:columns?="1|2|3|4" -> Block | Layout | UI`
 
 ## UI
 
@@ -106,57 +107,57 @@
 
 ```xml
 <Cell title="Gallery Preview">
-  <Block>
-    <Section width="reader">
-      <Stack>
-        <Text variant="muted">Use Text for standalone copy inside layout nodes.</Text>
-        <Cluster wrap="true">
-          <Button>Save changes</Button>
-          <Button variant="outline" href="/docs">Read docs</Button>
-        </Cluster>
-        <CodeBlock language="tsx" title="Example.tsx">
+  <Stack>
+    <Block>
+      <Section width="reader">
+        <Stack>
+          <Text variant="muted">Use Text for standalone copy inside layout nodes.</Text>
+          <Cluster wrap="true">
+            <Button>Save changes</Button>
+            <Button variant="outline" href="/docs">Read docs</Button>
+          </Cluster>
+          <CodeBlock language="tsx" title="Example.tsx">
 function Example() {
   return <div>Hello</div>
 }
-        </CodeBlock>
-      </Stack>
-    </Section>
-  </Block>
+          </CodeBlock>
+        </Stack>
+      </Section>
+    </Block>
 
-  <Block>
-    <Section>
-      <Card>
-        <CardHeader>
-          <CardTitle>Controls</CardTitle>
-          <CardDescription>Preview action and state tokens.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="publish">
-            <TabsList>
-              <TabsTrigger value="publish">Publish</TabsTrigger>
-              <TabsTrigger value="review">Review</TabsTrigger>
-            </TabsList>
-            <TabsContent value="publish">
-              <Stack>
-                <Badge variant="secondary">82%</Badge>
-                <Progress value="82" />
-              </Stack>
-            </TabsContent>
-            <TabsContent value="review">
-              <Alert>
-                <AlertTitle>Review queue</AlertTitle>
-                <AlertDescription>5 items remain.</AlertDescription>
-              </Alert>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </Section>
-  </Block>
+    <Block>
+      <Section>
+        <Card>
+          <CardHeader>
+            <CardTitle>Controls</CardTitle>
+            <CardDescription>Preview action and state tokens.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="publish">
+              <TabsList>
+                <TabsTrigger value="publish">Publish</TabsTrigger>
+                <TabsTrigger value="review">Review</TabsTrigger>
+              </TabsList>
+              <TabsContent value="publish">
+                <Stack>
+                  <Badge variant="secondary">82%</Badge>
+                  <Progress value="82" />
+                </Stack>
+              </TabsContent>
+              <TabsContent value="review">
+                <Alert>
+                  <AlertTitle>Review queue</AlertTitle>
+                  <AlertDescription>5 items remain.</AlertDescription>
+                </Alert>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </Section>
+    </Block>
 
-  <Block>
-    <Section>
-      <Grid columns="2">
+    <Grid columns="2">
+      <Block>
         <Card>
           <CardContent>
             <Accordion type="single">
@@ -169,7 +170,9 @@ function Example() {
             </Accordion>
           </CardContent>
         </Card>
+      </Block>
 
+      <Block>
         <Card>
           <CardContent>
             <Table>
@@ -188,9 +191,9 @@ function Example() {
             </Table>
           </CardContent>
         </Card>
-      </Grid>
-    </Section>
-  </Block>
+      </Block>
+    </Grid>
+  </Stack>
 </Cell>
 ```
 
@@ -202,3 +205,4 @@ function Example() {
 - No unknown tags.
 - No `TabsPanel`.
 - No bare text under `Cell`, `Block`, `Stack`, `Cluster`, or `Grid`.
+- No UI directly under `Cell`, `Section`, `Stack`, `Cluster`, or `Grid` unless it is inside `Block`.

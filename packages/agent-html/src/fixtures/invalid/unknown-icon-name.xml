@@ -1,6 +1,10 @@
 <Cell title="Unknown icon">
-  <Alert>
-    <Icon name="not-a-real-lucide-icon" />
-    <AlertTitle>Broken icon</AlertTitle>
-  </Alert>
+  <Stack>
+    <Block>
+      <Alert>
+        <Icon name="not-a-real-lucide-icon" />
+        <AlertTitle>Broken icon</AlertTitle>
+      </Alert>
+    </Block>
+  </Stack>
 </Cell>

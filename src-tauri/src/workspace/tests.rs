@@ -521,7 +521,7 @@ fn reads_existing_file_as_document_source() {
         .join("artifact.agent-html");
     std::fs::create_dir_all(document_path.parent().expect("document parent"))
         .expect("create document parent");
-    let source = "<Cell title=\"File Source\"><Block></Block></Cell>";
+    let source = "<Cell title=\"File Source\"><Stack><Block></Block></Stack></Cell>";
     std::fs::write(&document_path, source).expect("write file source");
 
     let document = store
@@ -548,6 +548,76 @@ fn seeds_introduce_agent_html_examples() {
         .get_project_section_document("agent-html-example", "introduce-agent-html")
         .expect("read introduce document");
     assert!(document.source.contains("agent-html"));
+    assert_eq!(
+        document.source,
+        super::seed::introduce_agent_html_source()
+    );
+    assert!(document.source.matches("<Block>").count() > 1);
+}
+
+#[test]
+fn opening_workspace_updates_old_managed_introduce_example_source() {
+    let temp_dir = tempfile::tempdir().expect("create temp workspace");
+    let root = temp_dir.path().join("AgentHTML");
+    {
+        let store = WorkspaceStore::open(root.clone()).expect("open workspace root");
+        let old_source = [
+            "<Cell title=\"agent-html\">",
+            "  <Block>",
+            "    <Section width=\"content\">",
+            "      <Stack>",
+            "        <Text variant=\"muted\">This preview is interactive. Use the page itself to feel how agent-html turns layout nodes into Notion-like blocks.</Text>",
+            "        <Separator />",
+            "        <Text variant=\"small\">Hover any section until the left-side controls fade in.</Text>",
+            "      </Stack>",
+            "    </Section>",
+            "  </Block>",
+            "</Cell>",
+        ]
+        .join("\n");
+        store
+            .update_project_section_document(
+                "agent-html-example",
+                "introduce-agent-html",
+                &old_source,
+            )
+            .expect("write old managed source");
+    }
+
+    let store = WorkspaceStore::open(root).expect("reopen workspace root");
+    let document = store
+        .get_project_section_document("agent-html-example", "introduce-agent-html")
+        .expect("read synced introduce document");
+
+    assert_eq!(
+        document.source,
+        super::seed::introduce_agent_html_source()
+    );
+    assert!(document.source.matches("<Block>").count() > 1);
+}
+
+#[test]
+fn opening_workspace_preserves_custom_introduce_example_source() {
+    let temp_dir = tempfile::tempdir().expect("create temp workspace");
+    let root = temp_dir.path().join("AgentHTML");
+    let custom_source = "<Cell title=\"agent-html\"><Stack><Block><Text>Custom edited content.</Text></Block></Stack></Cell>";
+    {
+        let store = WorkspaceStore::open(root.clone()).expect("open workspace root");
+        store
+            .update_project_section_document(
+                "agent-html-example",
+                "introduce-agent-html",
+                custom_source,
+            )
+            .expect("write custom source");
+    }
+
+    let store = WorkspaceStore::open(root).expect("reopen workspace root");
+    let document = store
+        .get_project_section_document("agent-html-example", "introduce-agent-html")
+        .expect("read preserved introduce document");
+
+    assert_eq!(document.source, custom_source);
 }
 
 #[test]
@@ -752,7 +822,7 @@ fn deletes_last_project_section() {
 fn duplicates_project_section_from_saved_document() {
     let workspace = test_store();
     let store = &workspace.store;
-    let source = "<Cell title=\"Saved Copy\"><Block></Block></Cell>";
+    let source = "<Cell title=\"Saved Copy\"><Stack><Block></Block></Stack></Cell>";
     store
         .update_project_section_document("design-engineering", "installation", source)
         .expect("save source");
@@ -780,11 +850,13 @@ fn updates_project_section_document_source() {
     let workspace = test_store();
     let store = &workspace.store;
     let source = r#"<Cell title="Updated">
-  <Block>
-    <Section width="content">
-      <Text variant="h1">Updated</Text>
-    </Section>
-  </Block>
+  <Stack>
+    <Block>
+      <Section width="content">
+        <Text variant="h1">Updated</Text>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>"#;
 
     let document = store
@@ -803,7 +875,7 @@ fn updates_project_section_document_source() {
 fn writes_atomic_temp_files_under_agent_world_tmp() {
     let workspace = test_store();
     let store = &workspace.store;
-    let source = "<Cell title=\"Temp Location\"><Block></Block></Cell>";
+    let source = "<Cell title=\"Temp Location\"><Stack><Block></Block></Stack></Cell>";
     let section_path = store
         .document_root()
         .join("projects")
@@ -846,7 +918,7 @@ fn returns_error_when_updating_missing_document() {
         .update_project_section_document(
             "design-engineering",
             "missing",
-            "<Cell title=\"Missing\"><Block></Block></Cell>",
+            "<Cell title=\"Missing\"><Stack><Block></Block></Stack></Cell>",
         )
         .expect_err("missing update should fail");
 

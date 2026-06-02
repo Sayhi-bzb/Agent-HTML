@@ -1,10 +1,14 @@
 <Cell title="Invalid">
-  <Tabs>
-    <TabsList>
-      <TabsTrigger>Publish</TabsTrigger>
-    </TabsList>
-    <TabsContent value="publish">
-      <Badge>Ready</Badge>
-    </TabsContent>
-  </Tabs>
+  <Stack>
+    <Block>
+      <Tabs>
+        <TabsList>
+          <TabsTrigger>Publish</TabsTrigger>
+        </TabsList>
+        <TabsContent value="publish">
+          <Badge>Ready</Badge>
+        </TabsContent>
+      </Tabs>
+    </Block>
+  </Stack>
 </Cell>

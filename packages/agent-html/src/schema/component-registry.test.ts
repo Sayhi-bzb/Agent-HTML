@@ -208,9 +208,9 @@ describe("agentHtmlComponentRegistry", () => {
   it("builds prompt grammar from registered contracts", () => {
     const grammar = buildAgentHtmlPromptGrammar()
 
-    expect(grammar.layout).toContain("- `Cell:title=string -> Block | Layout | UI`")
+    expect(grammar.layout).toContain("- `Cell:title=string -> Layout`")
     expect(grammar.layout).toContain("- `Block -> Layout | UI`")
-    expect(grammar.layout).toContain("- `Grid:columns?=\"1|2|3|4\" -> Layout | UI`")
+    expect(grammar.layout).toContain("- `Grid:columns?=\"1|2|3|4\" -> Block | Layout | UI`")
     expect(grammar.ui).toContain("- `Button:variant?=\"default|outline|ghost|destructive|secondary|link\", href?=string, label?=string -> Text, Icon?`")
     expect(grammar.ui).toContain("- `Tabs:orientation?=\"horizontal|vertical\", defaultValue?=string -> TabsList, TabsContent+`")
     expect(grammar.ui).toContain(

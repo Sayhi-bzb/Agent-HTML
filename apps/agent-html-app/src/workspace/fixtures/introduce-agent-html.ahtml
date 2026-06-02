@@ -1,52 +1,56 @@
 <Cell title="agent-html">
-  <Block>
-    <Section width="content">
+  <Section width="content">
     <Stack>
-      <Stack>
-        <Text variant="h1">agent-html</Text>
-        <Text variant="lead">A constrained UI language and live editing surface for agents: hover any block, drag the handle, open the plus prompt, then switch themes from the header.</Text>
-      </Stack>
+    <Block>
+        <Stack>
+          <Text variant="h1">agent-html</Text>
+          <Text variant="lead">A constrained UI language and live editing surface for agents: hover any block, drag the handle, open the plus prompt, then switch themes from the header.</Text>
+        </Stack>
+    </Block>
 
-      <Separator />
+    <Block>
+        <Stack>
+          <Text variant="h3">Bar chart</Text>
+          <Text variant="muted">Token cost for the same interface across authoring surfaces.</Text>
+          <Chart type="bar">
+            <ChartSeries key="ahtml" label="AHTML" />
+            <ChartSeries key="html" label="HTML" />
+            <ChartSeries key="react" label="React" />
+            <ChartRow label="Source tokens" ahtml="3600" html="19871" react="4041" />
+            <ChartTooltip hideLabel="false" />
+          </Chart>
+        </Stack>
+    </Block>
 
-      <Stack>
-        <Grid columns="2">
-          <Stack>
-            <Text variant="h3">Bar chart</Text>
-            <Text variant="muted">Token cost for the same interface across authoring surfaces.</Text>
-            <Chart type="bar">
-              <ChartSeries key="ahtml" label="AHTML" />
-              <ChartSeries key="html" label="HTML" />
-              <ChartSeries key="react" label="React" />
-              <ChartRow label="Source tokens" ahtml="3600" html="19871" react="4041" />
-              <ChartTooltip hideLabel="false" />
-            </Chart>
-          </Stack>
+    <Block>
+        <Stack>
+          <Text variant="h3">Line chart</Text>
+          <Text variant="muted">As interface structure grows, agent-html stays closer to component intent.</Text>
+          <Chart type="area">
+            <ChartSeries key="ahtml" label="AHTML" />
+            <ChartSeries key="react" label="React" />
+            <ChartRow label="Hero" ahtml="24" react="58" />
+            <ChartRow label="Cards" ahtml="38" react="96" />
+            <ChartRow label="Flow" ahtml="51" react="138" />
+            <ChartRow label="Showcase" ahtml="69" react="188" />
+            <ChartTooltip hideLabel="false" />
+          </Chart>
+        </Stack>
+    </Block>
 
-          <Stack>
-            <Text variant="h3">Line chart</Text>
-            <Text variant="muted">As interface structure grows, agent-html stays closer to component intent.</Text>
-            <Chart type="area">
-              <ChartSeries key="ahtml" label="AHTML" />
-              <ChartSeries key="react" label="React" />
-              <ChartRow label="Hero" ahtml="24" react="58" />
-              <ChartRow label="Cards" ahtml="38" react="96" />
-              <ChartRow label="Flow" ahtml="51" react="138" />
-              <ChartRow label="Showcase" ahtml="69" react="188" />
-              <ChartTooltip hideLabel="false" />
-            </Chart>
-          </Stack>
-        </Grid>
-      </Stack>
+    <Block>
+        <Stack>
+          <Text variant="h2">Try the editor surface</Text>
+          <Text variant="muted">This preview is interactive. Use the page itself to feel how agent-html turns explicit blocks into Notion-like collaboration units.</Text>
+        </Stack>
+    </Block>
 
-      <Stack>
-        <Text variant="h2">Try the editor surface</Text>
-        <Text variant="muted">This preview is interactive. Use the page itself to feel how agent-html turns layout nodes into Notion-like blocks.</Text>
+    <Block>
         <Kanban>
           <KanbanColumn value="discover" title="Discover">
             <KanbanItem value="hover-handle">
               <Stack>
-                <Text variant="small">Hover any section until the left-side controls fade in.</Text>
+                <Text variant="small">Hover any block until the left-side controls fade in.</Text>
                 <Badge variant="secondary">Block handle</Badge>
               </Stack>
             </KanbanItem>
@@ -86,190 +90,200 @@
             </KanbanItem>
           </KanbanColumn>
         </Kanban>
-      </Stack>
+    </Block>
 
-      <Stack>
-        <Text variant="h2">Small source, real components</Text>
-        <Text variant="muted">Agents author a compact tree. The runtime turns it into real UI primitives after validation.</Text>
-        <CodeBlock language="ahtml" title="A small authoring surface">
+    <Block>
+        <Stack>
+          <Text variant="h2">Small source, real components</Text>
+          <Text variant="muted">Agents author a compact tree. The runtime turns it into real UI primitives after validation.</Text>
+          <CodeBlock language="ahtml" title="A small authoring surface">
 <Cell title="Demo">
-  <Block>
-    <Section width="reader">
-      <Stack>
-        <Text variant="lead">Describe the interface with constrained tags.</Text>
-        <Badge variant="secondary">Validated before render</Badge>
-      </Stack>
-    </Section>
-  </Block>
+  <Stack>
+    <Block>
+      <Section width="reader">
+        <Stack>
+          <Text variant="lead">Describe the interface with constrained tags.</Text>
+          <Badge variant="secondary">Validated before render</Badge>
+        </Stack>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>
-        </CodeBlock>
+          </CodeBlock>
+        </Stack>
+    </Block>
+
+    <Block>
         <Alert>
           <Icon name="shield-check" />
           <AlertTitle>Validation happens before render</AlertTitle>
           <AlertDescription>Unknown tags, invalid attrs, unsafe icons, and unsupported child structures fail before they reach the preview surface.</AlertDescription>
         </Alert>
-      </Stack>
+    </Block>
 
-      <Stack>
-        <Text variant="h2">Runtime pipeline</Text>
-        <Text variant="muted">The boundary is explicit: source enters the parser, the AST is validated, and runtime components render the result.</Text>
-        <Timeline>
-          <TimelineItem icon="code-xml" meta="Authoring" status="complete">
-            <TimelineTitle>Constrained markup</TimelineTitle>
-            <TimelineDescription>Agents write nested tags, quoted attrs, and slots instead of class names.</TimelineDescription>
-            <TimelineContent>
-              <Cluster wrap="true">
-                <Badge variant="secondary">Cell</Badge>
-                <Badge variant="outline">Grid</Badge>
-                <Badge variant="outline">Text</Badge>
-              </Cluster>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem icon="shield-check" meta="Validation" status="current">
-            <TimelineTitle>AST checked before render</TimelineTitle>
-            <TimelineDescription>Invalid structure fails before the UI appears.</TimelineDescription>
-            <TimelineContent>
-              <Cluster wrap="true">
-                <Badge variant="secondary">Tags</Badge>
-                <Badge variant="outline">Attrs</Badge>
-                <Badge variant="outline">Children</Badge>
-              </Cluster>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem icon="component" meta="Runtime" status="default">
-            <TimelineTitle>Production primitives</TimelineTitle>
-            <TimelineDescription>The rendered output uses the same component system as the rest of the product.</TimelineDescription>
-          </TimelineItem>
-        </Timeline>
-      </Stack>
+    <Block>
+        <Stack>
+          <Text variant="h2">Runtime pipeline</Text>
+          <Text variant="muted">The boundary is explicit: source enters the parser, the AST is validated, and runtime components render the result.</Text>
+          <Timeline>
+            <TimelineItem icon="code-xml" meta="Authoring" status="complete">
+              <TimelineTitle>Constrained markup</TimelineTitle>
+              <TimelineDescription>Agents write nested tags, quoted attrs, and slots instead of class names.</TimelineDescription>
+              <TimelineContent>
+                <Cluster wrap="true">
+                  <Badge variant="secondary">Cell</Badge>
+                  <Badge variant="outline">Grid</Badge>
+                  <Badge variant="outline">Text</Badge>
+                </Cluster>
+              </TimelineContent>
+            </TimelineItem>
+            <TimelineItem icon="shield-check" meta="Validation" status="current">
+              <TimelineTitle>AST checked before render</TimelineTitle>
+              <TimelineDescription>Invalid structure fails before the UI appears.</TimelineDescription>
+              <TimelineContent>
+                <Cluster wrap="true">
+                  <Badge variant="secondary">Tags</Badge>
+                  <Badge variant="outline">Attrs</Badge>
+                  <Badge variant="outline">Children</Badge>
+                </Cluster>
+              </TimelineContent>
+            </TimelineItem>
+            <TimelineItem icon="component" meta="Runtime" status="default">
+              <TimelineTitle>Production primitives</TimelineTitle>
+              <TimelineDescription>The rendered output uses the same component system as the rest of the product.</TimelineDescription>
+            </TimelineItem>
+          </Timeline>
+        </Stack>
+    </Block>
 
-      <Stack>
-        <Text variant="h2">Composable component ecosystem</Text>
-        <Text variant="muted">Tables, media, alerts, badges, charts, timelines, tabs, and accordions share one constrained authoring surface.</Text>
-        <Grid columns="3">
-          <Stack>
-            <Text variant="h3">Table</Text>
-            <Table>
-              <TableCaption>Same interface, different authoring surfaces</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Format</TableHead>
-                  <TableHead>Strength</TableHead>
-                  <TableHead>Tradeoff</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>AHTML</TableCell>
-                  <TableCell>Compact structure</TableCell>
-                  <TableCell>Requires runtime</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>HTML</TableCell>
-                  <TableCell>Universal output</TableCell>
-                  <TableCell>Loses component intent</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>React</TableCell>
-                  <TableCell>Full control</TableCell>
-                  <TableCell>Highest token cost</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </Stack>
+    <Block>
+        <Stack>
+          <Text variant="h2">Composable component ecosystem</Text>
+          <Text variant="muted">Tables, media, alerts, badges, charts, timelines, tabs, and accordions share one constrained authoring surface.</Text>
+          <Text variant="h3">Table</Text>
+          <Table>
+            <TableCaption>Same interface, different authoring surfaces</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Format</TableHead>
+                <TableHead>Strength</TableHead>
+                <TableHead>Tradeoff</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>AHTML</TableCell>
+                <TableCell>Compact structure</TableCell>
+                <TableCell>Requires runtime</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>HTML</TableCell>
+                <TableCell>Universal output</TableCell>
+                <TableCell>Loses component intent</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>React</TableCell>
+                <TableCell>Full control</TableCell>
+                <TableCell>Highest token cost</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </Stack>
+    </Block>
 
-          <Stack>
-            <Text variant="h3">Aspect ratio</Text>
-            <Text variant="muted">Media keeps stable dimensions inside generated layouts.</Text>
-            <AspectRatio ratio="1.777">
-              <Image src="/assets/blocks.png" alt="Agent HTML block preview" fit="cover" />
-            </AspectRatio>
-          </Stack>
+    <Block>
+        <Stack>
+          <Text variant="h3">Aspect ratio</Text>
+          <Text variant="muted">Media keeps stable dimensions inside generated layouts.</Text>
+          <AspectRatio ratio="1.777">
+            <Image src="/assets/blocks.png" alt="Agent HTML block preview" fit="cover" />
+          </AspectRatio>
+        </Stack>
+    </Block>
 
-          <Stack>
-            <Text variant="h3">Runtime contract</Text>
-            <Alert>
-              <Icon name="route" />
-              <AlertTitle>Public surface only</AlertTitle>
-              <AlertDescription>The demo consumes the runtime contract without reaching into app internals.</AlertDescription>
-            </Alert>
-            <Cluster wrap="true">
-              <Badge variant="secondary">Parser</Badge>
-              <Badge variant="outline">Validator</Badge>
-              <Badge variant="outline">Renderer</Badge>
-            </Cluster>
-          </Stack>
-        </Grid>
-      </Stack>
+    <Block>
+        <Stack>
+          <Text variant="h3">Runtime contract</Text>
+          <Alert>
+            <Icon name="route" />
+            <AlertTitle>Public surface only</AlertTitle>
+            <AlertDescription>The demo consumes the runtime contract without reaching into app internals.</AlertDescription>
+          </Alert>
+          <Cluster wrap="true">
+            <Badge variant="secondary">Parser</Badge>
+            <Badge variant="outline">Validator</Badge>
+            <Badge variant="outline">Renderer</Badge>
+          </Cluster>
+        </Stack>
+    </Block>
 
-      <Stack>
-        <Text variant="h2">Runtime interaction primitives</Text>
-        <Text variant="muted">Accordion and tabs stay declarative while the runtime supplies accessible interactive behavior.</Text>
-        <Grid columns="2">
-          <Stack>
-            <Text variant="h3">Accordion</Text>
-            <Accordion type="single">
-              <AccordionItem value="html-shape">
-                <AccordionTrigger>Why HTML-shaped?</AccordionTrigger>
-                <AccordionContent>
-                  <Stack>
-                    <Badge variant="secondary">Lower model friction</Badge>
-                    <Text variant="small">LLMs already understand nested markup, attributes, and closing tags.</Text>
-                  </Stack>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="narrow-props">
-                <AccordionTrigger>Why narrow props?</AccordionTrigger>
-                <AccordionContent>
-                  <Stack>
-                    <Badge variant="outline">Reliable generation beats flexibility</Badge>
-                    <Text variant="small">Small variant sets make generated UI easier to validate and compare.</Text>
-                  </Stack>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="runtime">
-                <AccordionTrigger>Why runtime primitives?</AccordionTrigger>
-                <AccordionContent>
-                  <Stack>
-                    <Badge variant="secondary">No parallel UI kit</Badge>
-                    <Text variant="small">The DSL composes production primitives instead of inventing a second component system.</Text>
-                  </Stack>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </Stack>
-
-          <Stack>
-            <Text variant="h3">Tabs</Text>
-            <Tabs defaultValue="author">
-              <TabsList>
-                <TabsTrigger value="author">Author</TabsTrigger>
-                <TabsTrigger value="validate">Validate</TabsTrigger>
-                <TabsTrigger value="render">Render</TabsTrigger>
-              </TabsList>
-              <TabsContent value="author">
+    <Block>
+        <Stack>
+          <Text variant="h2">Runtime interaction primitives</Text>
+          <Text variant="muted">Accordion and tabs stay declarative while the runtime supplies accessible interactive behavior.</Text>
+          <Text variant="h3">Accordion</Text>
+          <Accordion type="single">
+            <AccordionItem value="html-shape">
+              <AccordionTrigger>Why HTML-shaped?</AccordionTrigger>
+              <AccordionContent>
                 <Stack>
-                  <Badge variant="secondary">XML-shaped</Badge>
-                  <Text variant="small">Write tags and attrs that map directly to runtime primitives.</Text>
+                  <Badge variant="secondary">Lower model friction</Badge>
+                  <Text variant="small">LLMs already understand nested markup, attributes, and closing tags.</Text>
                 </Stack>
-              </TabsContent>
-              <TabsContent value="validate">
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="narrow-props">
+              <AccordionTrigger>Why narrow props?</AccordionTrigger>
+              <AccordionContent>
                 <Stack>
-                  <Badge variant="outline">Schema checked</Badge>
-                  <Text variant="small">Fail invalid source before it reaches the preview surface.</Text>
+                  <Badge variant="outline">Reliable generation beats flexibility</Badge>
+                  <Text variant="small">Small variant sets make generated UI easier to validate and compare.</Text>
                 </Stack>
-              </TabsContent>
-              <TabsContent value="render">
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="runtime">
+              <AccordionTrigger>Why runtime primitives?</AccordionTrigger>
+              <AccordionContent>
                 <Stack>
-                  <Badge variant="secondary">Runtime-backed</Badge>
-                  <Text variant="small">Render through shadcn primitives with shared theme tokens.</Text>
+                  <Badge variant="secondary">No parallel UI kit</Badge>
+                  <Text variant="small">The DSL composes production primitives instead of inventing a second component system.</Text>
                 </Stack>
-              </TabsContent>
-            </Tabs>
-          </Stack>
-        </Grid>
-      </Stack>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </Stack>
+    </Block>
+
+    <Block>
+        <Stack>
+          <Text variant="h3">Tabs</Text>
+          <Tabs defaultValue="author">
+            <TabsList>
+              <TabsTrigger value="author">Author</TabsTrigger>
+              <TabsTrigger value="validate">Validate</TabsTrigger>
+              <TabsTrigger value="render">Render</TabsTrigger>
+            </TabsList>
+            <TabsContent value="author">
+              <Stack>
+                <Badge variant="secondary">XML-shaped</Badge>
+                <Text variant="small">Write tags and attrs that map directly to runtime primitives.</Text>
+              </Stack>
+            </TabsContent>
+            <TabsContent value="validate">
+              <Stack>
+                <Badge variant="outline">Schema checked</Badge>
+                <Text variant="small">Fail invalid source before it reaches the preview surface.</Text>
+              </Stack>
+            </TabsContent>
+            <TabsContent value="render">
+              <Stack>
+                <Badge variant="secondary">Runtime-backed</Badge>
+                <Text variant="small">Render through shadcn primitives with shared theme tokens.</Text>
+              </Stack>
+            </TabsContent>
+          </Tabs>
+        </Stack>
+    </Block>
     </Stack>
-    </Section>
-  </Block>
+  </Section>
 </Cell>

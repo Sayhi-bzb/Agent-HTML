@@ -1,6 +1,7 @@
 <Cell title="Operations Console">
-  <Block>
-    <Stack>
+  <Stack>
+    <Block>
+      <Stack>
     <Cluster justify="between" wrap="true">
       <Badge variant="secondary">Synced 12m ago</Badge>
       <Badge variant="outline">4 teams active</Badge>
@@ -240,6 +241,7 @@
         </Chart>
       </CardContent>
     </Card>
-    </Stack>
-  </Block>
+      </Stack>
+    </Block>
+  </Stack>
 </Cell>

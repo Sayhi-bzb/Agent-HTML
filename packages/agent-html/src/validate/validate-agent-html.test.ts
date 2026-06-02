@@ -45,6 +45,20 @@ describe("validateAgentHtml", () => {
     expect(result.errors).toHaveLength(0)
   })
 
+  it("accepts blocks arranged by layout under Cell", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(`<Cell title="Arranged">
+  <Stack>
+    <Block><Text>One</Text></Block>
+    <Block><Text>Two</Text></Block>
+  </Stack>
+</Cell>`)
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
   it("accepts the complex dashboard fixture", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
@@ -132,7 +146,13 @@ describe("validateAgentHtml", () => {
     )
 
     expect(result.ok).toBe(false)
-    expect(result.errors[0]?.code).toBe("UNKNOWN_TAG")
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "UNKNOWN_TAG",
+        }),
+      ])
+    )
   })
 
   it("rejects roots other than Cell", () => {
@@ -155,11 +175,13 @@ describe("validateAgentHtml", () => {
   it("rejects nested explicit blocks", () => {
     const result = validateAgentHtml(
       parseAgentHtml(`<Cell title="Nested">
-  <Block>
-    <Stack>
-      <Block><Text>Nested</Text></Block>
-    </Stack>
-  </Block>
+  <Stack>
+    <Block>
+      <Stack>
+        <Block><Text>Nested</Text></Block>
+      </Stack>
+    </Block>
+  </Stack>
 </Cell>`)
     )
 
@@ -169,6 +191,44 @@ describe("validateAgentHtml", () => {
         expect.objectContaining({
           message: "Block cannot be nested inside Block",
           tag: "Block",
+        }),
+      ])
+    )
+  })
+
+  it("rejects direct blocks under Cell", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(`<Cell title="Direct">
+  <Block><Text>Direct block</Text></Block>
+</Cell>`)
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Cell can only contain layout elements",
+          tag: "Cell",
+        }),
+      ])
+    )
+  })
+
+  it("rejects UI outside Block", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(`<Cell title="No Block">
+  <Stack>
+    <Card><CardContent>Missing block</CardContent></Card>
+  </Stack>
+</Cell>`)
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "UI elements must be inside Block",
+          tag: "Stack",
         }),
       ])
     )
@@ -199,7 +259,7 @@ describe("validateAgentHtml", () => {
       new Set<AgentHtmlTag>(["Card"])
     )
     const result = validateAgentHtml(
-      parseAgentHtml(`<Cell title="Demo"><Block><Section><Tabs><TabsList><TabsTrigger value="one">One</TabsTrigger></TabsList><TabsContent value="one">One</TabsContent></Tabs></Section></Block></Cell>`),
+      parseAgentHtml(`<Cell title="Demo"><Stack><Block><Section><Tabs><TabsList><TabsTrigger value="one">One</TabsTrigger></TabsList><TabsContent value="one">One</TabsContent></Tabs></Section></Block></Stack></Cell>`),
       { registry: enabledRegistry }
     )
 

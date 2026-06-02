@@ -1,11 +1,13 @@
 <Cell title="CodeBlock">
-  <Block>
-    <Section width="reader">
-    <CodeBlock language="tsx" title="Example.tsx">
+  <Stack>
+    <Block>
+      <Section width="reader">
+        <CodeBlock language="tsx" title="Example.tsx">
 function App() {
   return <div>Hello</div>
 }
-    </CodeBlock>
-    </Section>
-  </Block>
+        </CodeBlock>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>

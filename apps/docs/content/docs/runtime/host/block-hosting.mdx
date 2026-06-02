@@ -5,6 +5,9 @@ description: Host responsibilities for block runtime state and editing affordanc
 
 `AgentHtmlBlockRuntimeProvider` hosts block interaction state.
 
+It does not infer blocks from UI or layout. Hosts receive paths for explicit
+`Block` elements and pass drop or prompt actions back to source-editing code.
+
 It owns:
 
 - active block

@@ -14,8 +14,18 @@ Current layout tags include:
 - `Cluster`
 - `Grid`
 
-`Block` is the explicit human-agent collaboration boundary. Runtime interaction
-units come from explicit `Block` elements.
+The active hierarchy is:
+
+```text
+Cell -> Layout
+Layout outside Block -> Block | Layout
+Block -> Layout | UI
+Layout inside Block -> Layout | UI
+```
+
+`Cell` is the root Runtime source boundary. Layout arranges blocks at the cell
+level. `Block` is the explicit human-agent collaboration boundary. UI must be
+inside a block. Runtime interaction units come from explicit `Block` elements.
 
 UI tags are registry entries with component contracts. Do not hard-code a second
 tag list outside Schema.

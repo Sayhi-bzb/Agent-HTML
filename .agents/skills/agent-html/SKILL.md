@@ -24,6 +24,7 @@ Write `agent-html` DSL, not JSX or HTML.
 - Do not use `class`, `className`, `style`, imports, hooks, JS expressions, or raw HTML tags.
 - Do not invent tags or attrs not present in the grammar reference.
 - Do not put bare text directly under `Cell`, `Block`, `Stack`, `Cluster`, or `Grid`.
+- Do not put UI directly under `Cell` or layout nodes; wrap UI in `Block`, then arrange blocks with layout.
 
 ## References
 

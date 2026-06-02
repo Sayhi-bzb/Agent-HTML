@@ -28,6 +28,7 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("Ready")
     expect(html).toContain("data-slot=\"card\"")
     expect(html).not.toContain("data-agent-html-block")
+    expect(html).toContain("data-slot=\"agent-html-block-content\"")
   })
 
   it("renders a Cell root with explicit blocks", () => {
@@ -54,6 +55,9 @@ describe("renderAgentHtml", () => {
 
     expect(html).toContain("data-agent-html-block=\"true\"")
     expect(html.match(/data-agent-html-block="true"/g)).toHaveLength(
+      interactionUnits.blocks.length
+    )
+    expect(html.match(/data-slot="agent-html-block-content"/g)).toHaveLength(
       interactionUnits.blocks.length
     )
   })
@@ -86,6 +90,40 @@ describe("renderAgentHtml", () => {
     expect(html).toContain("data-test-block-path")
     expect(html).toContain("data-test-block-role")
     expect(wrapperClassNames.every((className) => className === "")).toBe(true)
+  })
+
+  it("does not wrap non-Block paths even if an interaction unit is provided", () => {
+    const document = parseAgentHtml(`<Cell title="Render">
+  <Stack>
+    <Block>
+      <Stack><Text>Inside block</Text></Stack>
+    </Block>
+  </Stack>
+</Cell>`)
+    const html = renderToStaticMarkup(
+      renderAgentHtml(document, {
+        highlightBlocks: true,
+        interactionUnits: {
+          diagnostics: {
+            duplicateBlocks: [],
+            nestedBlocks: [],
+            ok: true,
+          },
+          blocks: [
+            {
+              kind: "block",
+              motionKey: "Stack:invalid",
+              path: "/Cell/Stack[0]",
+              role: "flow-block",
+              tag: "Stack",
+            },
+          ],
+        },
+      })
+    )
+
+    expect(html).not.toContain("data-agent-html-block=\"true\"")
+    expect(html).toContain("data-slot=\"agent-html-block-content\"")
   })
 
   it("renders the icon basic fixture", () => {
@@ -254,7 +292,9 @@ describe("renderAgentHtml", () => {
       "Block",
     ])
     expect(html.match(/data-agent-html-block="true"/g)).toHaveLength(2)
-    expect(html).toContain("data-agent-html-block-path=\"/Cell/Block[0]\"")
+    expect(html).toContain(
+      "data-agent-html-block-path=\"/Cell/Stack[0]/Block[0]\""
+    )
   })
 
   it("renders chart loading as a structural runtime skeleton", () => {

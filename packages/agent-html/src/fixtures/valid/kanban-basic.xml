@@ -1,32 +1,34 @@
 <Cell title="Kanban">
-  <Block>
-    <Section>
-    <Kanban>
-      <KanbanColumn value="todo" title="Todo">
-        <KanbanItem value="audit-copy">
-          <Stack>
-            <Text variant="small">Audit prompt copy</Text>
-            <Badge variant="outline">Docs</Badge>
-          </Stack>
-        </KanbanItem>
-        <KanbanItem value="draft-tests">
-          <Text>Draft parser fixtures</Text>
-        </KanbanItem>
-      </KanbanColumn>
-      <KanbanColumn value="doing" title="Doing">
-        <KanbanItem value="button-runtime">
-          <Stack>
-            <Text variant="small">Wire Button runtime</Text>
-            <Badge variant="secondary">Runtime</Badge>
-          </Stack>
-        </KanbanItem>
-      </KanbanColumn>
-      <KanbanColumn value="done" title="Done">
-        <KanbanItem value="section-width">
-          <Text>Ship Section width</Text>
-        </KanbanItem>
-      </KanbanColumn>
-    </Kanban>
-    </Section>
-  </Block>
+  <Stack>
+    <Block>
+      <Section>
+        <Kanban>
+          <KanbanColumn value="todo" title="Todo">
+            <KanbanItem value="audit-copy">
+              <Stack>
+                <Text variant="small">Audit prompt copy</Text>
+                <Badge variant="outline">Docs</Badge>
+              </Stack>
+            </KanbanItem>
+            <KanbanItem value="draft-tests">
+              <Text>Draft parser fixtures</Text>
+            </KanbanItem>
+          </KanbanColumn>
+          <KanbanColumn value="doing" title="Doing">
+            <KanbanItem value="button-runtime">
+              <Stack>
+                <Text variant="small">Wire Button runtime</Text>
+                <Badge variant="secondary">Runtime</Badge>
+              </Stack>
+            </KanbanItem>
+          </KanbanColumn>
+          <KanbanColumn value="done" title="Done">
+            <KanbanItem value="section-width">
+              <Text>Ship Section width</Text>
+            </KanbanItem>
+          </KanbanColumn>
+        </Kanban>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>

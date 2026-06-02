@@ -1,7 +1,11 @@
 <Cell title="Invalid chart">
-  <Chart type="bar">
-    <ChartSeries key="review" label="Review" />
-    <ChartSeries key="publish" label="Publish" />
-    <ChartRow label="W1" review="12" />
-  </Chart>
+  <Stack>
+    <Block>
+      <Chart type="bar">
+        <ChartSeries key="review" label="Review" />
+        <ChartSeries key="publish" label="Publish" />
+        <ChartRow label="W1" review="12" />
+      </Chart>
+    </Block>
+  </Stack>
 </Cell>

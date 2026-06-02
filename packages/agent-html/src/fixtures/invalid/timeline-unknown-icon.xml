@@ -1,7 +1,11 @@
 <Cell title="Timeline unknown icon">
-  <Timeline>
-    <TimelineItem icon="not-a-real-icon">
-      <TimelineTitle>Unknown icon</TimelineTitle>
-    </TimelineItem>
-  </Timeline>
+  <Stack>
+    <Block>
+      <Timeline>
+        <TimelineItem icon="not-a-real-icon">
+          <TimelineTitle>Unknown icon</TimelineTitle>
+        </TimelineItem>
+      </Timeline>
+    </Block>
+  </Stack>
 </Cell>

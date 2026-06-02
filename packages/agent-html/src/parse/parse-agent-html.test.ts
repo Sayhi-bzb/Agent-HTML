@@ -28,7 +28,7 @@ describe("parseAgentHtml", () => {
     expect(document.root.tag).toBe("Cell")
     expect(document.root.children[0]).toMatchObject({
       type: "element",
-      tag: "Block",
+      tag: "Stack",
     })
   })
 
@@ -39,7 +39,7 @@ describe("parseAgentHtml", () => {
     expect(document.root.attrs.title).toBe("Cell Blocks")
     expect(document.root.children[0]).toMatchObject({
       type: "element",
-      tag: "Block",
+      tag: "Stack",
     })
   })
 
@@ -50,13 +50,15 @@ describe("parseAgentHtml", () => {
     expect(document.root.attrs.title).toBe("Operations Console")
     expect(document.root.children[0]).toMatchObject({
       type: "element",
-      tag: "Block",
+      tag: "Stack",
     })
   })
 
   it("parses the text fixture", () => {
     const document = parseAgentHtml(fixture("valid", "text-basic.xml"))
-    const block = document.root.children[0]
+    const rootStack = document.root.children[0]
+    const block =
+      rootStack.type === "element" ? rootStack.children[0] : undefined
     const stack =
       block.type === "element" ? block.children[0] : undefined
 
@@ -73,7 +75,9 @@ describe("parseAgentHtml", () => {
 
   it("parses the section fixture", () => {
     const document = parseAgentHtml(fixture("valid", "section-width.xml"))
-    const block = document.root.children[0]
+    const rootStack = document.root.children[0]
+    const block =
+      rootStack.type === "element" ? rootStack.children[0] : undefined
 
     expect(block.type === "element" ? block.children[0] : undefined).toMatchObject({
       type: "element",
@@ -83,7 +87,9 @@ describe("parseAgentHtml", () => {
 
   it("parses raw text inside code blocks", () => {
     const document = parseAgentHtml(fixture("valid", "codeblock-basic.xml"))
-    const block = document.root.children[0]
+    const rootStack = document.root.children[0]
+    const block =
+      rootStack.type === "element" ? rootStack.children[0] : undefined
     const section = block.type === "element" ? block.children[0] : undefined
     const codeBlock =
       section?.type === "element" ? section.children[0] : undefined
@@ -105,7 +111,9 @@ describe("parseAgentHtml", () => {
 
   it("parses buttons", () => {
     const document = parseAgentHtml(fixture("valid", "button-basic.xml"))
-    const block = document.root.children[0]
+    const rootStack = document.root.children[0]
+    const block =
+      rootStack.type === "element" ? rootStack.children[0] : undefined
     const section = block.type === "element" ? block.children[0] : undefined
     const cluster =
       section?.type === "element" ? section.children[0] : undefined
@@ -121,7 +129,9 @@ describe("parseAgentHtml", () => {
 
   it("parses kanban boards", () => {
     const document = parseAgentHtml(fixture("valid", "kanban-basic.xml"))
-    const block = document.root.children[0]
+    const rootStack = document.root.children[0]
+    const block =
+      rootStack.type === "element" ? rootStack.children[0] : undefined
     const section = block.type === "element" ? block.children[0] : undefined
     const kanban =
       section?.type === "element" ? section.children[0] : undefined

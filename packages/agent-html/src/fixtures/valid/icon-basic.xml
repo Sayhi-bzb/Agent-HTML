@@ -1,21 +1,23 @@
 <Cell title="Icon basic">
-  <Block>
-    <Stack>
-    <Alert>
-      <Icon name="alert-circle" />
-      <AlertTitle>Runtime icon</AlertTitle>
-      <AlertDescription>Lucide icon lookup resolves at render time.</AlertDescription>
-    </Alert>
-    <Cluster wrap="true">
-      <Badge variant="secondary">
-        Synced
-        <Icon name="activity" />
-      </Badge>
-      <Badge variant="outline">
-        Review
-        <Icon name="search" />
-      </Badge>
-    </Cluster>
-    </Stack>
-  </Block>
+  <Stack>
+    <Block>
+      <Stack>
+        <Alert>
+          <Icon name="alert-circle" />
+          <AlertTitle>Runtime icon</AlertTitle>
+          <AlertDescription>Lucide icon lookup resolves at render time.</AlertDescription>
+        </Alert>
+        <Cluster wrap="true">
+          <Badge variant="secondary">
+            Synced
+            <Icon name="activity" />
+          </Badge>
+          <Badge variant="outline">
+            Review
+            <Icon name="search" />
+          </Badge>
+        </Cluster>
+      </Stack>
+    </Block>
+  </Stack>
 </Cell>

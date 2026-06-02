@@ -1,17 +1,19 @@
 <Cell title="Button basic">
-  <Block>
-    <Section>
-    <Cluster>
-      <Button>Save changes</Button>
-      <Button variant="outline" href="/docs">Read docs</Button>
-      <Button variant="ghost">
-        <Icon name="search" />
-        Search
-      </Button>
-      <Button variant="secondary" label="Open settings">
-        <Icon name="settings" />
-      </Button>
-    </Cluster>
-    </Section>
-  </Block>
+  <Stack>
+    <Block>
+      <Section>
+        <Cluster>
+          <Button>Save changes</Button>
+          <Button variant="outline" href="/docs">Read docs</Button>
+          <Button variant="ghost">
+            <Icon name="search" />
+            Search
+          </Button>
+          <Button variant="secondary" label="Open settings">
+            <Icon name="settings" />
+          </Button>
+        </Cluster>
+      </Section>
+    </Block>
+  </Stack>
 </Cell>

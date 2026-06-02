@@ -1,11 +1,13 @@
 <Cell title="Minimal">
-  <Block>
-    <Stack>
-      <Card>
-        <CardContent>
-          <Badge>Ready</Badge>
-        </CardContent>
-      </Card>
-    </Stack>
-  </Block>
+  <Stack>
+    <Block>
+      <Stack>
+        <Card>
+          <CardContent>
+            <Badge>Ready</Badge>
+          </CardContent>
+        </Card>
+      </Stack>
+    </Block>
+  </Stack>
 </Cell>

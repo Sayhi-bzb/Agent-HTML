@@ -1,5 +1,9 @@
 <Cell title="Invalid image child">
-  <Image src="https://example.com/runtime-preview.jpg" alt="Runtime preview">
-    <Text>Images cannot contain children.</Text>
-  </Image>
+  <Stack>
+    <Block>
+      <Image src="https://example.com/runtime-preview.jpg" alt="Runtime preview">
+        <Text>Images cannot contain children.</Text>
+      </Image>
+    </Block>
+  </Stack>
 </Cell>

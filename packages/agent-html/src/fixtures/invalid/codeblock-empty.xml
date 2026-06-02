@@ -1,3 +1,7 @@
 <Cell title="CodeBlock empty">
-  <CodeBlock language="tsx"></CodeBlock>
+  <Stack>
+    <Block>
+      <CodeBlock language="tsx"></CodeBlock>
+    </Block>
+  </Stack>
 </Cell>

@@ -11,3 +11,7 @@ description: How interactive runtime rendering differs from static rendering.
 
 Use it when the host needs block selection, prompt submission, or drag/drop
 feedback.
+
+Interaction units come only from explicit `Block` elements. Static rendering
+renders each `Block` as a stable content frame. Interactive rendering adds the
+outer wrapper that owns hover, handles, path registration, and drag/drop.

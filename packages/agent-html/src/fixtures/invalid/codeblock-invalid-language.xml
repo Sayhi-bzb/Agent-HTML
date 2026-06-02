@@ -1,5 +1,9 @@
 <Cell title="CodeBlock invalid language">
-  <CodeBlock language="python">
+  <Stack>
+    <Block>
+      <CodeBlock language="python">
 print("hello")
-  </CodeBlock>
+      </CodeBlock>
+    </Block>
+  </Stack>
 </Cell>

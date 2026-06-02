@@ -1,6 +1,10 @@
 <Cell title="Invalid chart">
-  <Chart type="bar">
-    <ChartRow label="W1" publish="12" />
-    <ChartTooltip hideLabel="false" />
-  </Chart>
+  <Stack>
+    <Block>
+      <Chart type="bar">
+        <ChartRow label="W1" publish="12" />
+        <ChartTooltip hideLabel="false" />
+      </Chart>
+    </Block>
+  </Stack>
 </Cell>

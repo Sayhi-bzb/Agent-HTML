@@ -6,36 +6,37 @@ import { parseAgentHtml } from "@/agent-html/parse/parse-agent-html"
 describe("inferAgentHtmlInteractionUnits", () => {
   it("uses explicit Block elements as collaboration units", () => {
     const document = parseAgentHtml(`<Cell title="Explicit">
-  <Block>
-    <Stack>
-      <Text variant="h2">Overview</Text>
-      <Grid columns="2">
-        <Stack><Text>Left</Text></Stack>
-        <Stack><Text>Right</Text></Stack>
-      </Grid>
-    </Stack>
-  </Block>
-  <Block>
-    <Card><CardContent>Second block</CardContent></Card>
-  </Block>
+  <Stack>
+    <Block>
+      <Stack>
+        <Text variant="h2">Overview</Text>
+        <Grid columns="2">
+          <Stack><Text>Left</Text></Stack>
+          <Stack><Text>Right</Text></Stack>
+        </Grid>
+      </Stack>
+    </Block>
+    <Block>
+      <Card><CardContent>Second block</CardContent></Card>
+    </Block>
+  </Stack>
 </Cell>`)
     const result = inferAgentHtmlInteractionUnits(document)
 
     expect(result.diagnostics.ok).toBe(true)
     expect(result.blocks.map((unit) => unit.path)).toEqual([
-      "/Cell/Block[0]",
-      "/Cell/Block[1]",
+      "/Cell/Stack[0]/Block[0]",
+      "/Cell/Stack[0]/Block[1]",
     ])
     expect(result.blocks.every((unit) => unit.tag === "Block")).toBe(true)
   })
 
-  it("does not create blocks from layouts or UI without explicit Block", () => {
-    const document = parseAgentHtml(`<Cell title="No automatic blocks">
+  it("does not create blocks from layout-only structure", () => {
+    const document = parseAgentHtml(`<Cell title="Layout only">
   <Stack>
-    <Text variant="h2">Overview</Text>
     <Grid columns="2">
-      <Stack><Text>Left</Text></Stack>
-      <Stack><Text>Right</Text></Stack>
+      <Stack />
+      <Stack />
     </Grid>
   </Stack>
 </Cell>`)
@@ -65,18 +66,22 @@ describe("inferAgentHtmlInteractionUnits", () => {
   it("keeps motion keys stable when the same explicit Block moves", () => {
     const before = inferAgentHtmlInteractionUnits(
       parseAgentHtml(`<Cell title="Motion">
-  <Block><Text>A</Text></Block>
-  <Block><Text>B</Text></Block>
+  <Stack>
+    <Block><Text>A</Text></Block>
+    <Block><Text>B</Text></Block>
+  </Stack>
 </Cell>`)
     )
     const after = inferAgentHtmlInteractionUnits(
       parseAgentHtml(`<Cell title="Motion">
-  <Block><Text>B</Text></Block>
-  <Block><Text>A</Text></Block>
+  <Stack>
+    <Block><Text>B</Text></Block>
+    <Block><Text>A</Text></Block>
+  </Stack>
 </Cell>`)
     )
-    const beforeA = before.blocks.find((unit) => unit.path === "/Cell/Block[0]")
-    const afterA = after.blocks.find((unit) => unit.path === "/Cell/Block[1]")
+    const beforeA = before.blocks.find((unit) => unit.path === "/Cell/Stack[0]/Block[0]")
+    const afterA = after.blocks.find((unit) => unit.path === "/Cell/Stack[0]/Block[1]")
 
     expect(beforeA?.motionKey).toBeDefined()
     expect(afterA?.motionKey).toBe(beforeA?.motionKey)

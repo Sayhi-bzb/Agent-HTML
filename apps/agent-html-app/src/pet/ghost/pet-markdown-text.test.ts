@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
-import { parsePetMarkdown } from "@/app/pet/ghost/pet-markdown-text"
+import { parsePetMarkdown } from "@/app/pet/ghost/pet-markdown-parser"
 
 const markdownTextPath = fileURLToPath(
   new URL("./pet-markdown-text.tsx", import.meta.url)

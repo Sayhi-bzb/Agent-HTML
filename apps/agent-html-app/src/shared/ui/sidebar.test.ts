@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
 const sidebarPath = fileURLToPath(new URL("./sidebar.tsx", import.meta.url))
-const sidebarSource = readFileSync(sidebarPath, "utf8")
+const sidebarSource = readFileSync(sidebarPath, "utf8").replace(/\r\n/g, "\n")
 const sidebarStateProviderSource = sidebarSource.slice(
   sidebarSource.indexOf("function SidebarStateProvider"),
   sidebarSource.indexOf("function SidebarProvider")
@@ -28,9 +28,8 @@ describe("SidebarProvider persistence", () => {
     expect(sidebarSource).toContain("SIDEBAR_COOKIE_NAME")
     expect(sidebarSource).toContain('storedValue === "true"')
     expect(sidebarSource).toContain('storedValue === "false"')
-    expect(sidebarProviderSource).toContain(
-      "React.useState(() =>\n    getStoredSidebarOpen(defaultOpen)\n  )"
-    )
+    expect(sidebarProviderSource).toContain("React.useState(() =>")
+    expect(sidebarProviderSource).toContain("getStoredSidebarOpen(defaultOpen)")
   })
 
   it("continues writing sidebar state changes to the same cookie", () => {

@@ -25,7 +25,14 @@ export function BlockRuntime({
 }: {
   children: ReactNode
 }) {
-  return <>{children}</>
+  return (
+    <div
+      className="w-full min-w-0 rounded-[14px]"
+      data-slot="agent-html-block-content"
+    >
+      {children}
+    </div>
+  )
 }
 
 export function SectionRuntime({

@@ -1,12 +1,14 @@
 <Cell title="Image">
-  <Block>
-    <Stack>
-    <AspectRatio ratio="1.777">
-      <Image src="https://example.com/runtime-preview.jpg" alt="Runtime preview" fit="cover" />
-    </AspectRatio>
-    <AspectRatio ratio="1">
-      <Image src="/vite.svg" alt="" fit="contain" />
-    </AspectRatio>
-    </Stack>
-  </Block>
+  <Stack>
+    <Block>
+      <Stack>
+        <AspectRatio ratio="1.777">
+          <Image src="https://example.com/runtime-preview.jpg" alt="Runtime preview" fit="cover" />
+        </AspectRatio>
+        <AspectRatio ratio="1">
+          <Image src="/vite.svg" alt="" fit="contain" />
+        </AspectRatio>
+      </Stack>
+    </Block>
+  </Stack>
 </Cell>

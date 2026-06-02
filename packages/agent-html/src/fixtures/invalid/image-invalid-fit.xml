@@ -1,3 +1,7 @@
 <Cell title="Invalid image fit">
-  <Image src="https://example.com/runtime-preview.jpg" alt="Runtime preview" fit="stretch" />
+  <Stack>
+    <Block>
+      <Image src="https://example.com/runtime-preview.jpg" alt="Runtime preview" fit="stretch" />
+    </Block>
+  </Stack>
 </Cell>

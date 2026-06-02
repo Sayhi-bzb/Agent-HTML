@@ -16,6 +16,24 @@ The structured document tree produced by parsing Agent-HTML source.
 The component registry, tags, attributes, defaults, validation, and prompt
 grammar.
 
+## Cell
+
+The root Runtime source element. A cell contains layout.
+
+## Block
+
+The explicit human-agent collaboration boundary inside a cell layout.
+
+## Layout
+
+Runtime tags that arrange blocks at cell level or arrange content inside a
+block, such as `Stack`, `Cluster`, and `Grid`.
+
+## UI
+
+Runtime tags that render semantic components, such as `Card`, `Table`,
+`Button`, and `Badge`. UI belongs inside `Block`.
+
 ## Runtime UI
 
 The React UI used to render validated Agent-HTML output.

@@ -124,12 +124,14 @@ function createBlockPromptText({
   filePath,
   request,
   selectedSource,
+  targetStatus,
   workspaceRootPath,
 }: {
   blockPath: string
   filePath: string
   request: string
   selectedSource: string | null
+  targetStatus: "missing_explicit_block" | "selected_explicit_block"
   workspaceRootPath: string
 }) {
   return [
@@ -139,6 +141,7 @@ function createBlockPromptText({
       workspaceRootPath
     )}`,
     `blockPath: ${blockPath}`,
+    `targetStatus: ${targetStatus}`,
     "---",
     "",
     "```ahtml",
@@ -170,17 +173,24 @@ export async function deliverAgentHtmlIntent(input: {
 }): Promise<AgentHtmlIntentDeliveryResult> {
   const eventId = createEventId()
   const blockPath = input.submit.target?.path
+  const parsedDocument = blockPath
+    ? input.parsedDocument ?? parseAgentHtml(input.document.source)
+    : null
+  const selectedNode =
+    blockPath && parsedDocument ? findElementByPath(parsedDocument, blockPath) : null
+  const selectedBlock =
+    selectedNode?.tag === "Block" ? selectedNode : null
   const promptText = blockPath
     ? createBlockPromptText({
         blockPath,
         filePath: input.document.filePath,
         request: input.submit.prompt,
-        selectedSource: (() => {
-          const parsedDocument =
-            input.parsedDocument ?? parseAgentHtml(input.document.source)
-          const selectedNode = findElementByPath(parsedDocument, blockPath)
-          return selectedNode ? serializeAgentHtml({ root: selectedNode }) : null
-        })(),
+        selectedSource: selectedBlock
+          ? serializeAgentHtml({ root: selectedBlock })
+          : null,
+        targetStatus: selectedBlock
+          ? "selected_explicit_block"
+          : "missing_explicit_block",
         workspaceRootPath: input.workspaceRootPath,
       })
     : input.submit.prompt

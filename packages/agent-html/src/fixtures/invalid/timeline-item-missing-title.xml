@@ -1,7 +1,11 @@
 <Cell title="Timeline missing title">
-  <Timeline>
-    <TimelineItem>
-      <TimelineDescription>Missing title.</TimelineDescription>
-    </TimelineItem>
-  </Timeline>
+  <Stack>
+    <Block>
+      <Timeline>
+        <TimelineItem>
+          <TimelineDescription>Missing title.</TimelineDescription>
+        </TimelineItem>
+      </Timeline>
+    </Block>
+  </Stack>
 </Cell>

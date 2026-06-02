@@ -91,6 +91,13 @@ const buttonVariants = new Set([
   "link",
 ])
 
+const flowLayoutTags = new Set<AgentHtmlTag>([
+  "Section",
+  "Stack",
+  "Cluster",
+  "Grid",
+])
+
 function validateNode(
   node: AgentHtmlNode,
   path: string,
@@ -134,6 +141,34 @@ function validateNode(
       path,
       tag,
     })
+  }
+
+  const isInsideBlock = ancestors.some((ancestor) => ancestor.tag === "Block")
+  if (knownTag === "Cell") {
+    for (const child of elementChildren(node)) {
+      if (!flowLayoutTags.has(child.tag as AgentHtmlTag)) {
+        errors.push({
+          code: "INVALID_CHILD",
+          message: "Cell can only contain layout elements",
+          path,
+          tag,
+        })
+      }
+    }
+  }
+
+  if (flowLayoutTags.has(knownTag) && !isInsideBlock) {
+    for (const child of elementChildren(node)) {
+      const childTag = child.tag as AgentHtmlTag
+      if (childTag !== "Block" && !flowLayoutTags.has(childTag)) {
+        errors.push({
+          code: "INVALID_CHILD",
+          message: "UI elements must be inside Block",
+          path,
+          tag,
+        })
+      }
+    }
   }
 
   const allowed = new Set(context.allowedAttrs[knownTag] ?? [])

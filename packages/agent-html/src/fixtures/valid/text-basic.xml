@@ -1,10 +1,12 @@
 <Cell title="Text basic">
-  <Block>
-    <Stack>
-    <Text variant="h2">Typography block</Text>
-    <Text>Plain paragraph copy renders through the controlled Text primitive.</Text>
-    <Text variant="muted">Muted supporting copy stays inside the DSL boundary.</Text>
-    <Text variant="inline-code">npm run build</Text>
-    </Stack>
-  </Block>
+  <Stack>
+    <Block>
+      <Stack>
+        <Text variant="h2">Typography block</Text>
+        <Text>Plain paragraph copy renders through the controlled Text primitive.</Text>
+        <Text variant="muted">Muted supporting copy stays inside the DSL boundary.</Text>
+        <Text variant="inline-code">npm run build</Text>
+      </Stack>
+    </Block>
+  </Stack>
 </Cell>

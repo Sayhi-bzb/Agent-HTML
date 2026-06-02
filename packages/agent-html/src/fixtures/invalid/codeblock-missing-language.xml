@@ -1,5 +1,9 @@
 <Cell title="CodeBlock missing language">
-  <CodeBlock>
+  <Stack>
+    <Block>
+      <CodeBlock>
 const ready = true
-  </CodeBlock>
+      </CodeBlock>
+    </Block>
+  </Stack>
 </Cell>

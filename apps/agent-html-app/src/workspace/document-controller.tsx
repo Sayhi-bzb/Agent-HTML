@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { markCodexStartupEvent } from "@/app/codex/connection"
 import { createWorkspaceStore } from "@/app/workspace/store"
+import introduceAgentHtmlSource from "@/app/workspace/fixtures/introduce-agent-html.ahtml?raw"
 import type {
   ProjectSectionDocument,
   WorkspaceProjectView,
@@ -15,6 +16,8 @@ import {
   validateAgentHtml,
   type AgentHtmlDocument,
   type AgentHtmlDropIntent,
+  type AgentHtmlElementNode,
+  type AgentHtmlNode,
   type AgentHtmlValidationError,
 } from "@/agent-html"
 
@@ -58,6 +61,16 @@ export type WorkspaceDocumentDraft = {
 }
 
 const workspaceStore = createWorkspaceStore()
+const cellLevelLayoutTags = new Set(["Section", "Stack", "Cluster", "Grid"])
+
+function isLegacyManagedIntroduceAgentHtmlSource(source: string) {
+  return (
+    source.includes('<Cell title="agent-html">') &&
+    source.includes("turns layout nodes into Notion-like blocks") &&
+    source.includes("Hover any section") &&
+    source.includes("<Separator />")
+  )
+}
 
 function getSectionTabId(sectionId: string) {
   return `section:${sectionId}`
@@ -89,6 +102,97 @@ export function renderWorkspaceDocument(
       status: "error",
     }
   }
+}
+
+function createElement(
+  tag: string,
+  children: AgentHtmlNode[]
+): AgentHtmlElementNode {
+  return {
+    attrs: {},
+    children,
+    tag,
+    type: "element",
+  }
+}
+
+function isCellLevelLayout(node: AgentHtmlNode) {
+  return node.type === "element" && cellLevelLayoutTags.has(node.tag)
+}
+
+function isBlock(node: AgentHtmlNode) {
+  return node.type === "element" && node.tag === "Block"
+}
+
+export function migrateWorkspaceDocumentSource(source: string) {
+  if (isLegacyManagedIntroduceAgentHtmlSource(source)) {
+    return introduceAgentHtmlSource === source ? null : introduceAgentHtmlSource
+  }
+
+  let document: AgentHtmlDocument
+
+  try {
+    document = parseAgentHtml(source)
+  } catch {
+    return null
+  }
+
+  const validation = validateAgentHtml(document)
+  if (validation.ok || document.root.tag !== "Cell") {
+    return null
+  }
+
+  const nextStackChildren: AgentHtmlNode[] = []
+  let pendingBlockChildren: AgentHtmlNode[] = []
+  let changed = false
+
+  function flushPendingBlockChildren() {
+    if (pendingBlockChildren.length === 0) {
+      return
+    }
+
+    nextStackChildren.push(createElement("Block", pendingBlockChildren))
+    pendingBlockChildren = []
+  }
+
+  for (const child of document.root.children) {
+    if (isCellLevelLayout(child)) {
+      flushPendingBlockChildren()
+      nextStackChildren.push(child)
+      continue
+    }
+
+    if (isBlock(child)) {
+      flushPendingBlockChildren()
+      nextStackChildren.push(child)
+      changed = true
+      continue
+    }
+
+    pendingBlockChildren.push(child)
+    changed = true
+  }
+
+  flushPendingBlockChildren()
+
+  if (!changed || nextStackChildren.length === 0) {
+    return null
+  }
+
+  const nextDocument: AgentHtmlDocument = {
+    root: {
+      ...document.root,
+      children: [createElement("Stack", nextStackChildren)],
+    },
+  }
+
+  const nextValidation = validateAgentHtml(nextDocument)
+  if (!nextValidation.ok) {
+    return null
+  }
+
+  const nextSource = serializeAgentHtml(nextDocument)
+  return nextSource === source ? null : nextSource
 }
 
 export function useWorkspaceDocumentController({
@@ -351,14 +455,23 @@ export function useWorkspaceDocumentController({
 
     workspaceStore
       .getProjectSectionDocument(activeProject.id, activeSection.id)
-      .then((document) => {
+      .then(async (document) => {
+        const migratedSource = migrateWorkspaceDocumentSource(document.source)
+        const nextDocument = migratedSource
+          ? await workspaceStore.updateProjectSectionDocument({
+              projectId: document.projectId,
+              sectionId: document.sectionId,
+              source: migratedSource,
+            })
+          : document
+
         if (isCurrent) {
           markCodexStartupEvent("workspace-document-ready", {
-            filePath: document.filePath,
+            filePath: nextDocument.filePath,
             projectId: activeProject.id,
             sectionId: activeSection.id,
           })
-          setDocumentState({ document, status: "ready" })
+          setDocumentState({ document: nextDocument, status: "ready" })
           setPendingDocumentState({ status: "idle" })
           setSaveState({ status: "clean" })
         }

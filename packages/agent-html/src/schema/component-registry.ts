@@ -9,7 +9,7 @@ export const agentHtmlComponentRegistry = [
     attrs: {
       title: { type: "string", required: true, prompt: true },
     },
-    children: { grammar: "Block | Layout | UI" },
+    children: { grammar: "Layout" },
   }),
   defineAgentHtmlComponent({
     tag: "Block",
@@ -31,14 +31,14 @@ export const agentHtmlComponentRegistry = [
         prompt: true,
       },
     },
-    children: { grammar: "Layout | UI" },
+    children: { grammar: "Block | Layout | UI" },
   }),
   defineAgentHtmlComponent({
     tag: "Stack",
     kind: "layout",
     role: "layout",
     runtime: "layout-special",
-    children: { grammar: "Layout | UI" },
+    children: { grammar: "Block | Layout | UI" },
   }),
   defineAgentHtmlComponent({
     tag: "Cluster",
@@ -59,7 +59,7 @@ export const agentHtmlComponentRegistry = [
         prompt: true,
       },
     },
-    children: { grammar: "Layout | UI" },
+    children: { grammar: "Block | Layout | UI" },
   }),
   defineAgentHtmlComponent({
     tag: "Grid",
@@ -74,7 +74,7 @@ export const agentHtmlComponentRegistry = [
         prompt: true,
       },
     },
-    children: { grammar: "Layout | UI" },
+    children: { grammar: "Block | Layout | UI" },
   }),
   defineAgentHtmlComponent({
     tag: "Accordion",

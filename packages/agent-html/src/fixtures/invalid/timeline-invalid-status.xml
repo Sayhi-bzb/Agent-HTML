@@ -1,7 +1,11 @@
 <Cell title="Timeline invalid status">
-  <Timeline>
-    <TimelineItem status="done">
-      <TimelineTitle>Invalid status</TimelineTitle>
-    </TimelineItem>
-  </Timeline>
+  <Stack>
+    <Block>
+      <Timeline>
+        <TimelineItem status="done">
+          <TimelineTitle>Invalid status</TimelineTitle>
+        </TimelineItem>
+      </Timeline>
+    </Block>
+  </Stack>
 </Cell>

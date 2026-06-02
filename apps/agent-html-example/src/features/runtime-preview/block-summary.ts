@@ -8,7 +8,6 @@ import { walkAgentHtmlElementPaths } from "@/agent-html/ast/paths"
 
 const hiddenSummaryTags = new Set<AgentHtmlTag>([
   "Cell",
-  "Block",
   "Section",
   "Stack",
   "Cluster",
@@ -56,10 +55,16 @@ function summarizeElement(node: AgentHtmlElementNode, level: number): string[] {
 }
 
 export function summarizeAgentHtmlBlock(node: AgentHtmlElementNode) {
-  const children = hiddenSummaryTags.has(node.tag as AgentHtmlTag)
-    ? visibleChildren(node)
-    : [node]
-  const lines = children.flatMap((child) => summarizeElement(child, 0))
+  const lines =
+    node.tag === "Block"
+      ? [
+          "<Block>",
+          ...visibleChildren(node).flatMap((child) =>
+            summarizeElement(child, 1)
+          ),
+          "</Block>",
+        ]
+      : summarizeElement(node, 0)
 
   if (lines.length <= maxSummaryLines) {
     return lines.join("\n")
@@ -72,6 +77,10 @@ export function createAgentHtmlBlockSummaryMap(document: AgentHtmlDocument) {
   const summaries: Record<string, string> = {}
 
   walkAgentHtmlElementPaths(document.root, (node, path) => {
+    if (node.tag !== "Block") {
+      return
+    }
+
     const summary = summarizeAgentHtmlBlock(node)
 
     if (summary) {
