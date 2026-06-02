@@ -7,7 +7,8 @@ import type {
 import { walkAgentHtmlElementPaths } from "@/agent-html/ast/paths"
 
 const hiddenSummaryTags = new Set<AgentHtmlTag>([
-  "Page",
+  "Cell",
+  "Block",
   "Section",
   "Stack",
   "Cluster",

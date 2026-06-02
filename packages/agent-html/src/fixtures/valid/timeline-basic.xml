@@ -1,5 +1,6 @@
-<Page title="Timeline">
-  <Section width="reader">
+<Cell title="Timeline">
+  <Block>
+    <Section width="reader">
     <Timeline>
       <TimelineItem icon="building" meta="TechCorp Solutions · 2023 - Present" status="complete">
         <TimelineTitle>Senior Full Stack Developer</TimelineTitle>
@@ -20,5 +21,6 @@
         <TimelineDescription>Monitor quality after rollout.</TimelineDescription>
       </TimelineItem>
     </Timeline>
-  </Section>
-</Page>
+    </Section>
+  </Block>
+</Cell>

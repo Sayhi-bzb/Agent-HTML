@@ -1,6 +1,6 @@
-<Page title="Invalid chart">
+<Cell title="Invalid chart">
   <Chart type="bar">
     <ChartSeries key="publish" label="Publish" />
     <ChartRow publish="12" />
   </Chart>
-</Page>
+</Cell>

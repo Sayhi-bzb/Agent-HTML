@@ -14,10 +14,10 @@ function fixture(...parts: string[]) {
 }
 
 describe("parseAgentHtml", () => {
-  it("parses a minimal valid page", () => {
-    const document = parseAgentHtml(fixture("valid", "minimal-page.xml"))
+  it("parses a minimal valid cell", () => {
+    const document = parseAgentHtml(fixture("valid", "minimal-cell.xml"))
 
-    expect(document.root.tag).toBe("Page")
+    expect(document.root.tag).toBe("Cell")
     expect(document.root.attrs.title).toBe("Minimal")
     expect(document.root.children).toHaveLength(1)
   })
@@ -25,27 +25,40 @@ describe("parseAgentHtml", () => {
   it("parses the canonical card/tabs/grid fixture", () => {
     const document = parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
 
-    expect(document.root.tag).toBe("Page")
+    expect(document.root.tag).toBe("Cell")
     expect(document.root.children[0]).toMatchObject({
       type: "element",
-      tag: "Stack",
+      tag: "Block",
+    })
+  })
+
+  it("parses a Cell root with explicit blocks", () => {
+    const document = parseAgentHtml(fixture("valid", "cell-blocks.xml"))
+
+    expect(document.root.tag).toBe("Cell")
+    expect(document.root.attrs.title).toBe("Cell Blocks")
+    expect(document.root.children[0]).toMatchObject({
+      type: "element",
+      tag: "Block",
     })
   })
 
   it("parses the complex dashboard fixture", () => {
     const document = parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
 
-    expect(document.root.tag).toBe("Page")
+    expect(document.root.tag).toBe("Cell")
     expect(document.root.attrs.title).toBe("Operations Console")
     expect(document.root.children[0]).toMatchObject({
       type: "element",
-      tag: "Stack",
+      tag: "Block",
     })
   })
 
   it("parses the text fixture", () => {
     const document = parseAgentHtml(fixture("valid", "text-basic.xml"))
-    const stack = document.root.children[0]
+    const block = document.root.children[0]
+    const stack =
+      block.type === "element" ? block.children[0] : undefined
 
     expect(stack).toMatchObject({
       type: "element",
@@ -60,8 +73,9 @@ describe("parseAgentHtml", () => {
 
   it("parses the section fixture", () => {
     const document = parseAgentHtml(fixture("valid", "section-width.xml"))
+    const block = document.root.children[0]
 
-    expect(document.root.children[0]).toMatchObject({
+    expect(block.type === "element" ? block.children[0] : undefined).toMatchObject({
       type: "element",
       tag: "Section",
     })
@@ -69,9 +83,10 @@ describe("parseAgentHtml", () => {
 
   it("parses raw text inside code blocks", () => {
     const document = parseAgentHtml(fixture("valid", "codeblock-basic.xml"))
-    const section = document.root.children[0]
+    const block = document.root.children[0]
+    const section = block.type === "element" ? block.children[0] : undefined
     const codeBlock =
-      section.type === "element" ? section.children[0] : undefined
+      section?.type === "element" ? section.children[0] : undefined
     const code =
       codeBlock?.type === "element" ? codeBlock.children[0] : undefined
 
@@ -90,9 +105,10 @@ describe("parseAgentHtml", () => {
 
   it("parses buttons", () => {
     const document = parseAgentHtml(fixture("valid", "button-basic.xml"))
-    const section = document.root.children[0]
+    const block = document.root.children[0]
+    const section = block.type === "element" ? block.children[0] : undefined
     const cluster =
-      section.type === "element" ? section.children[0] : undefined
+      section?.type === "element" ? section.children[0] : undefined
     const button =
       cluster?.type === "element" ? cluster.children[1] : undefined
 
@@ -105,9 +121,10 @@ describe("parseAgentHtml", () => {
 
   it("parses kanban boards", () => {
     const document = parseAgentHtml(fixture("valid", "kanban-basic.xml"))
-    const section = document.root.children[0]
+    const block = document.root.children[0]
+    const section = block.type === "element" ? block.children[0] : undefined
     const kanban =
-      section.type === "element" ? section.children[0] : undefined
+      section?.type === "element" ? section.children[0] : undefined
     const firstColumn =
       kanban?.type === "element" ? kanban.children[0] : undefined
 
@@ -124,12 +141,12 @@ describe("parseAgentHtml", () => {
 
   it("throws on multiple roots", () => {
     expect(() =>
-      parseAgentHtml("<Page title=\"A\" /><Page title=\"B\" />")
+      parseAgentHtml("<Cell title=\"A\" /><Cell title=\"B\" />")
     ).toThrow("Document must contain exactly one root element")
   })
 
   it("throws on mismatched closing tags", () => {
-    expect(() => parseAgentHtml("<Page title=\"A\"><Stack></Page>")).toThrow(
+    expect(() => parseAgentHtml("<Cell title=\"A\"><Stack></Cell>")).toThrow(
       "Mismatched closing tag"
     )
   })

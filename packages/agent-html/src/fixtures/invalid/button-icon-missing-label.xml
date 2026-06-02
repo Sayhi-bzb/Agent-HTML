@@ -1,7 +1,7 @@
-<Page title="Button icon missing label">
+<Cell title="Button icon missing label">
   <Section>
     <Button>
       <Icon name="search" />
     </Button>
   </Section>
-</Page>
+</Cell>

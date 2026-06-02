@@ -1,5 +1,5 @@
-<Page title="Invalid section">
+<Cell title="Invalid section">
   <Section width="wide">
     <Text>Wide is not supported yet.</Text>
   </Section>
-</Page>
+</Cell>

@@ -1,5 +1,6 @@
-<Page title="Operations Console">
-  <Stack>
+<Cell title="Operations Console">
+  <Block>
+    <Stack>
     <Cluster justify="between" wrap="true">
       <Badge variant="secondary">Synced 12m ago</Badge>
       <Badge variant="outline">4 teams active</Badge>
@@ -239,5 +240,6 @@
         </Chart>
       </CardContent>
     </Card>
-  </Stack>
-</Page>
+    </Stack>
+  </Block>
+</Cell>

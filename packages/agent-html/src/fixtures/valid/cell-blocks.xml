@@ -1,0 +1,18 @@
+<Cell title="Cell Blocks">
+  <Block>
+    <Stack>
+      <Text variant="h2">Overview</Text>
+      <Text variant="muted">Explicit blocks are collaboration boundaries.</Text>
+    </Stack>
+  </Block>
+  <Block>
+    <Grid columns="2">
+      <Card>
+        <CardContent>Left card</CardContent>
+      </Card>
+      <Card>
+        <CardContent>Right card</CardContent>
+      </Card>
+    </Grid>
+  </Block>
+</Cell>

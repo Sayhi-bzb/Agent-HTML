@@ -1,5 +1,5 @@
-<Page title="Invalid">
+<Cell title="Invalid">
   <Grid columns="2">
     hello
   </Grid>
-</Page>
+</Cell>

@@ -1,5 +1,6 @@
-<Page title="Gallery Preview">
-  <Stack>
+<Cell title="Gallery Preview">
+  <Block>
+    <Stack>
     <Text variant="muted">Use Text for standalone copy inside layout nodes.</Text>
 
     <Card>
@@ -62,5 +63,6 @@
         </CardContent>
       </Card>
     </Grid>
-  </Stack>
-</Page>
+    </Stack>
+  </Block>
+</Cell>

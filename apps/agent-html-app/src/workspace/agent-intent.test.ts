@@ -8,13 +8,15 @@ import { parseAgentHtml } from "@/agent-html"
 
 const document = {
   source: [
-    "<Page>",
-    "  <Section>",
-    "    <Stack>",
-    "      <Text>Move faster</Text>",
-    "    </Stack>",
-    "  </Section>",
-    "</Page>",
+    "<Cell title=\"Test\">",
+    "  <Block>",
+    "    <Section>",
+    "      <Stack>",
+    "        <Text>Move faster</Text>",
+    "      </Stack>",
+    "    </Section>",
+    "  </Block>",
+    "</Cell>",
     "",
   ].join("\n"),
   filePath: "D:\\AgentHTML\\projects\\project-1\\section-1\\artifact.agent-html",
@@ -69,7 +71,7 @@ describe("deliverAgentHtmlIntent", () => {
         interaction: null,
         prompt: "Make this tighter.",
         target: {
-          path: "/Page/Section[0]/Stack[0]",
+          path: "/Cell/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -83,11 +85,11 @@ describe("deliverAgentHtmlIntent", () => {
       [
         "---",
         "filePath: projects/project-1/section-1/artifact.agent-html",
-        "blockPath: /Page/Section[0]/Stack[0]",
+        "blockPath: /Cell/Block[0]",
         "---",
       ].join("\n")
     )
-    expect(promptText).toMatch(/```ahtml\s+<Stack>/)
+    expect(promptText).toMatch(/```ahtml\s+<Block>/)
     expect(promptText).toContain("<Text>Move faster</Text>")
     expect(promptText).toContain("\n```\n\nRequest:\nMake this tighter.")
     expect(promptText).not.toContain("当前文档 AHTML")
@@ -105,7 +107,7 @@ describe("deliverAgentHtmlIntent", () => {
     const result = await deliverAgentHtmlIntent({
       document: {
         ...document,
-        source: "<Page><Text>Changed source should not be parsed</Text></Page>",
+        source: "<Cell title=\"Changed\"><Block><Text>Changed source should not be parsed</Text></Block></Cell>",
       },
       parsedDocument,
       project,
@@ -114,7 +116,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "Explain this block.",
         target: {
-          path: "/Page/Section[0]/Stack[0]",
+          path: "/Cell/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -144,7 +146,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "What is this?",
         target: {
-          path: "/Page/Section[0]/Stack[1]",
+          path: "/Cell/Block[1]",
         },
       },
       threadId: "thr_123",
@@ -153,7 +155,7 @@ describe("deliverAgentHtmlIntent", () => {
 
     expect(result.ok).toBe(true)
     expect(startTurn.mock.calls[0][0].promptText).toContain(
-      "blockPath: /Page/Section[0]/Stack[1]"
+      "blockPath: /Cell/Block[1]"
     )
     expect(startTurn.mock.calls[0][0].promptText).toMatch(/```ahtml\s+```/)
   })
@@ -177,7 +179,7 @@ describe("deliverAgentHtmlIntent", () => {
         },
         prompt: "Persist my ordering.",
         target: {
-          path: "/Page/Section[0]/Stack[0]",
+          path: "/Cell/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -356,7 +358,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "Review this section.",
         target: {
-          path: "/Page/Section[0]/Stack[0]",
+          path: "/Cell/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -383,7 +385,7 @@ describe("deliverAgentHtmlIntent", () => {
       submit: {
         prompt: "Review this section.",
         target: {
-          path: "/Page/Section[0]/Stack[0]",
+          path: "/Cell/Block[0]",
         },
       },
       threadId: "thr_123",
@@ -413,7 +415,7 @@ describe("deliverAgentHtmlIntent", () => {
         submit: {
           prompt: "Review this section.",
           target: {
-            path: "/Page/Section[0]/Stack[0]",
+            path: "/Cell/Block[0]",
           },
         },
         threadId: "thr_123",

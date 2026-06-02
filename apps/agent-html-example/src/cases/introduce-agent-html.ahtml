@@ -1,5 +1,6 @@
-<Page title="agent-html">
-  <Section width="content">
+<Cell title="agent-html">
+  <Block>
+    <Section width="content">
     <Stack>
       <Stack>
         <Text variant="h1">agent-html</Text>
@@ -91,14 +92,16 @@
         <Text variant="h2">Small source, real components</Text>
         <Text variant="muted">Agents author a compact tree. The runtime turns it into real UI primitives after validation.</Text>
         <CodeBlock language="ahtml" title="A small authoring surface">
-<Page title="Demo">
-  <Section width="reader">
-    <Stack>
-      <Text variant="lead">Describe the interface with constrained tags.</Text>
-      <Badge variant="secondary">Validated before render</Badge>
-    </Stack>
-  </Section>
-</Page>
+<Cell title="Demo">
+  <Block>
+    <Section width="reader">
+      <Stack>
+        <Text variant="lead">Describe the interface with constrained tags.</Text>
+        <Badge variant="secondary">Validated before render</Badge>
+      </Stack>
+    </Section>
+  </Block>
+</Cell>
         </CodeBlock>
         <Alert>
           <Icon name="shield-check" />
@@ -116,7 +119,7 @@
             <TimelineDescription>Agents write nested tags, quoted attrs, and slots instead of class names.</TimelineDescription>
             <TimelineContent>
               <Cluster wrap="true">
-                <Badge variant="secondary">Page</Badge>
+                <Badge variant="secondary">Cell</Badge>
                 <Badge variant="outline">Grid</Badge>
                 <Badge variant="outline">Text</Badge>
               </Cluster>
@@ -267,5 +270,6 @@
         </Grid>
       </Stack>
     </Stack>
-  </Section>
-</Page>
+    </Section>
+  </Block>
+</Cell>

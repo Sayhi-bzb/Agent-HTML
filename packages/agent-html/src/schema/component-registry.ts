@@ -2,13 +2,20 @@ import { defineAgentHtmlComponent } from "@/agent-html/schema/component-contract
 
 export const agentHtmlComponentRegistry = [
   defineAgentHtmlComponent({
-    tag: "Page",
+    tag: "Cell",
     kind: "layout",
     role: "layout",
     runtime: "layout-special",
     attrs: {
       title: { type: "string", required: true, prompt: true },
     },
+    children: { grammar: "Block | Layout | UI" },
+  }),
+  defineAgentHtmlComponent({
+    tag: "Block",
+    kind: "layout",
+    role: "layout",
+    runtime: "layout-special",
     children: { grammar: "Layout | UI" },
   }),
   defineAgentHtmlComponent({

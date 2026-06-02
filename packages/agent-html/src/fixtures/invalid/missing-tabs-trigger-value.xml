@@ -1,4 +1,4 @@
-<Page title="Invalid">
+<Cell title="Invalid">
   <Tabs>
     <TabsList>
       <TabsTrigger>Publish</TabsTrigger>
@@ -7,4 +7,4 @@
       <Badge>Ready</Badge>
     </TabsContent>
   </Tabs>
-</Page>
+</Cell>

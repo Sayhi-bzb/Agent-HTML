@@ -1,9 +1,11 @@
-<Page title="CodeBlock">
-  <Section width="reader">
+<Cell title="CodeBlock">
+  <Block>
+    <Section width="reader">
     <CodeBlock language="tsx" title="Example.tsx">
 function App() {
   return <div>Hello</div>
 }
     </CodeBlock>
-  </Section>
-</Page>
+    </Section>
+  </Block>
+</Cell>

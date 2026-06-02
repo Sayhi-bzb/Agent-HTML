@@ -1,5 +1,5 @@
-<Page title="CodeBlock missing language">
+<Cell title="CodeBlock missing language">
   <CodeBlock>
 const ready = true
   </CodeBlock>
-</Page>
+</Cell>

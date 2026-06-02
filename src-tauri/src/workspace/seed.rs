@@ -138,21 +138,23 @@ pub(crate) fn seed_section(
 
 pub(crate) fn create_blank_project_source(project: &WorkspaceProject) -> String {
     format!(
-        r#"<Page title="{project_name}">
-  <Section width="content">
-    <Stack>
+        r#"<Cell title="{project_name}">
+  <Block>
+    <Section width="content">
       <Stack>
-        <Text variant="h1">{project_name}</Text>
-        <Text variant="lead">Start shaping this workspace artifact from a blank Agent-HTML document.</Text>
+        <Stack>
+          <Text variant="h1">{project_name}</Text>
+          <Text variant="lead">Start shaping this workspace artifact from a blank Agent-HTML document.</Text>
+        </Stack>
+        <Alert>
+          <Icon name="file-plus-2" />
+          <AlertTitle>Blank project</AlertTitle>
+          <AlertDescription>This overview section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
+        </Alert>
       </Stack>
-      <Alert>
-        <Icon name="file-plus-2" />
-        <AlertTitle>Blank project</AlertTitle>
-        <AlertDescription>This overview section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
-      </Alert>
-    </Stack>
-  </Section>
-</Page>"#,
+    </Section>
+  </Block>
+</Cell>"#,
         project_name = project.name,
     )
 }
@@ -162,21 +164,23 @@ pub(crate) fn create_blank_section_source(
     section: &WorkspaceSection,
 ) -> String {
     format!(
-        r#"<Page title="{project_name} - {section_title}">
-  <Section width="content">
-    <Stack>
+        r#"<Cell title="{project_name} - {section_title}">
+  <Block>
+    <Section width="content">
       <Stack>
-        <Text variant="h1">{section_title}</Text>
-        <Text variant="lead">Start shaping this workspace section from a blank Agent-HTML document.</Text>
+        <Stack>
+          <Text variant="h1">{section_title}</Text>
+          <Text variant="lead">Start shaping this workspace section from a blank Agent-HTML document.</Text>
+        </Stack>
+        <Alert>
+          <Icon name="file-text" />
+          <AlertTitle>Blank section</AlertTitle>
+          <AlertDescription>This section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
+        </Alert>
       </Stack>
-      <Alert>
-        <Icon name="file-text" />
-        <AlertTitle>Blank section</AlertTitle>
-        <AlertDescription>This section is stored as artifact.agent-html in the AgentHTML workspace.</AlertDescription>
-      </Alert>
-    </Stack>
-  </Section>
-</Page>"#,
+    </Section>
+  </Block>
+</Cell>"#,
         project_name = project.name,
         section_title = section.title,
     )
@@ -269,41 +273,43 @@ pub(crate) fn create_seed_document_source(
     section: &WorkspaceSection,
 ) -> String {
     format!(
-        r#"<Page title="{project_name} - {section_title}">
-  <Section width="content">
-    <Stack>
+        r#"<Cell title="{project_name} - {section_title}">
+  <Block>
+    <Section width="content">
       <Stack>
-        <Text variant="h1">{section_title}</Text>
-        <Text variant="lead">{project_name} workspace content rendered through the agent-html runtime.</Text>
+        <Stack>
+          <Text variant="h1">{section_title}</Text>
+          <Text variant="lead">{project_name} workspace content rendered through the agent-html runtime.</Text>
+        </Stack>
+        <Alert>
+          <Icon name="file-text" />
+          <AlertTitle>Workspace artifact</AlertTitle>
+          <AlertDescription>This section is loaded from artifact.agent-html in the AgentHTML workspace.</AlertDescription>
+        </Alert>
+        <Grid columns="3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Project</CardTitle>
+              <CardDescription>{project_name}</CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Section</CardTitle>
+              <CardDescription>{group_title}</CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Runtime</CardTitle>
+              <CardDescription>parse -> validate -> render</CardDescription>
+            </CardHeader>
+          </Card>
+        </Grid>
       </Stack>
-      <Alert>
-        <Icon name="file-text" />
-        <AlertTitle>Workspace artifact</AlertTitle>
-        <AlertDescription>This section is loaded from artifact.agent-html in the AgentHTML workspace.</AlertDescription>
-      </Alert>
-      <Grid columns="3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Project</CardTitle>
-            <CardDescription>{project_name}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Section</CardTitle>
-            <CardDescription>{group_title}</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Runtime</CardTitle>
-            <CardDescription>parse -> validate -> render</CardDescription>
-          </CardHeader>
-        </Card>
-      </Grid>
-    </Stack>
-  </Section>
-</Page>"#,
+    </Section>
+  </Block>
+</Cell>"#,
         group_title = section.group_title,
         project_name = project.name,
         section_title = section.title,

@@ -472,7 +472,8 @@ fn reads_project_section_document_source() {
 
     assert_eq!(document.project_id, "design-engineering");
     assert_eq!(document.section_id, "installation");
-    assert!(document.source.contains("<Page"));
+    assert!(document.source.contains("<Cell"));
+    assert!(document.source.contains("<Block"));
     assert!(
         document
             .file_path
@@ -520,13 +521,14 @@ fn reads_existing_file_as_document_source() {
         .join("artifact.agent-html");
     std::fs::create_dir_all(document_path.parent().expect("document parent"))
         .expect("create document parent");
-    std::fs::write(&document_path, "<Page title=\"File Source\" />").expect("write file source");
+    let source = "<Cell title=\"File Source\"><Block></Block></Cell>";
+    std::fs::write(&document_path, source).expect("write file source");
 
     let document = store
         .get_project_section_document("design-engineering", "installation")
         .expect("read document");
 
-    assert_eq!(document.source, "<Page title=\"File Source\" />");
+    assert_eq!(document.source, source);
 }
 
 #[test]
@@ -750,7 +752,7 @@ fn deletes_last_project_section() {
 fn duplicates_project_section_from_saved_document() {
     let workspace = test_store();
     let store = &workspace.store;
-    let source = "<Page title=\"Saved Copy\" />";
+    let source = "<Cell title=\"Saved Copy\"><Block></Block></Cell>";
     store
         .update_project_section_document("design-engineering", "installation", source)
         .expect("save source");
@@ -777,11 +779,13 @@ fn duplicates_project_section_from_saved_document() {
 fn updates_project_section_document_source() {
     let workspace = test_store();
     let store = &workspace.store;
-    let source = r#"<Page title="Updated">
-  <Section width="content">
-    <Text variant="h1">Updated</Text>
-  </Section>
-</Page>"#;
+    let source = r#"<Cell title="Updated">
+  <Block>
+    <Section width="content">
+      <Text variant="h1">Updated</Text>
+    </Section>
+  </Block>
+</Cell>"#;
 
     let document = store
         .update_project_section_document("design-engineering", "installation", source)
@@ -799,7 +803,7 @@ fn updates_project_section_document_source() {
 fn writes_atomic_temp_files_under_agent_world_tmp() {
     let workspace = test_store();
     let store = &workspace.store;
-    let source = "<Page title=\"Temp Location\" />";
+    let source = "<Cell title=\"Temp Location\"><Block></Block></Cell>";
     let section_path = store
         .document_root()
         .join("projects")
@@ -839,7 +843,11 @@ fn returns_error_when_updating_missing_document() {
     let store = &workspace.store;
 
     let error = store
-        .update_project_section_document("design-engineering", "missing", "<Page />")
+        .update_project_section_document(
+            "design-engineering",
+            "missing",
+            "<Cell title=\"Missing\"><Block></Block></Cell>",
+        )
         .expect_err("missing update should fail");
 
     assert!(matches!(error, WorkspaceError::DocumentNotFound { .. }));
@@ -855,7 +863,7 @@ fn links_codex_threads_to_projects() {
             "design-engineering",
             "thr_project",
             Some("installation"),
-            Some("/Page/Section[0]"),
+            Some("/Cell/Block[0]"),
             Some("D:\\workspace\\installation.agent-html"),
         )
         .expect("link thread");
@@ -863,7 +871,7 @@ fn links_codex_threads_to_projects() {
     assert_eq!(link.thread_id, "thr_project");
     assert_eq!(link.project_id, "design-engineering");
     assert_eq!(link.last_section_id.as_deref(), Some("installation"));
-    assert_eq!(link.last_block_path.as_deref(), Some("/Page/Section[0]"));
+    assert_eq!(link.last_block_path.as_deref(), Some("/Cell/Block[0]"));
     assert_eq!(link.origin, "agent-html");
 
     let links = store

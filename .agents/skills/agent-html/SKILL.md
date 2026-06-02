@@ -19,11 +19,11 @@ Write `agent-html` DSL, not JSX or HTML.
 
 - Output only `agent-html` DSL.
 - Use `PascalCase` tags.
-- Root must be `<Page>`.
+- Root must be `<Cell>`.
 - Use quoted scalar attrs like `columns="2"` or `value="82"`.
 - Do not use `class`, `className`, `style`, imports, hooks, JS expressions, or raw HTML tags.
 - Do not invent tags or attrs not present in the grammar reference.
-- Do not put bare text directly under `Page`, `Stack`, `Cluster`, or `Grid`.
+- Do not put bare text directly under `Cell`, `Block`, `Stack`, `Cluster`, or `Grid`.
 
 ## References
 

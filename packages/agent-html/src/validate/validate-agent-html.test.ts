@@ -18,9 +18,9 @@ function fixture(...parts: string[]) {
 }
 
 describe("validateAgentHtml", () => {
-  it("accepts the minimal valid page", () => {
+  it("accepts the minimal valid cell", () => {
     const result = validateAgentHtml(
-      parseAgentHtml(fixture("valid", "minimal-page.xml"))
+      parseAgentHtml(fixture("valid", "minimal-cell.xml"))
     )
 
     expect(result.ok).toBe(true)
@@ -30,6 +30,15 @@ describe("validateAgentHtml", () => {
   it("accepts the canonical card/tabs/grid fixture", () => {
     const result = validateAgentHtml(
       parseAgentHtml(fixture("valid", "card-tabs-grid.xml"))
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it("accepts a Cell root with explicit blocks", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(fixture("valid", "cell-blocks.xml"))
     )
 
     expect(result.ok).toBe(true)
@@ -126,13 +135,71 @@ describe("validateAgentHtml", () => {
     expect(result.errors[0]?.code).toBe("UNKNOWN_TAG")
   })
 
+  it("rejects roots other than Cell", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(`<Stack><Text>Invalid root</Text></Stack>`)
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Root element must be Cell",
+          path: "/",
+          tag: "Stack",
+        }),
+      ])
+    )
+  })
+
+  it("rejects nested explicit blocks", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(`<Cell title="Nested">
+  <Block>
+    <Stack>
+      <Block><Text>Nested</Text></Block>
+    </Stack>
+  </Block>
+</Cell>`)
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Block cannot be nested inside Block",
+          tag: "Block",
+        }),
+      ])
+    )
+  })
+
+  it("rejects unknown document roots", () => {
+    const result = validateAgentHtml(
+      parseAgentHtml(
+        `<Document title="Invalid"><Text>Invalid root</Text></Document>`
+      )
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Root element must be Cell",
+          path: "/",
+          tag: "Document",
+        }),
+      ])
+    )
+  })
+
   it("rejects disabled registered tags when validating against an enabled registry", () => {
     const enabledRegistry = createEnabledComponentRegistry(
       agentHtmlComponentRegistry,
       new Set<AgentHtmlTag>(["Card"])
     )
     const result = validateAgentHtml(
-      parseAgentHtml(`<Page title="Demo"><Section><Tabs><TabsList><TabsTrigger value="one">One</TabsTrigger></TabsList><TabsContent value="one">One</TabsContent></Tabs></Section></Page>`),
+      parseAgentHtml(`<Cell title="Demo"><Block><Section><Tabs><TabsList><TabsTrigger value="one">One</TabsTrigger></TabsList><TabsContent value="one">One</TabsContent></Tabs></Section></Block></Cell>`),
       { registry: enabledRegistry }
     )
 

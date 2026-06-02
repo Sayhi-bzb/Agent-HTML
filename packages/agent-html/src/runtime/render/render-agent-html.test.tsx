@@ -18,8 +18,8 @@ function fixture(...parts: string[]) {
 }
 
 describe("renderAgentHtml", () => {
-  it("renders the minimal valid page", () => {
-    const document = parseAgentHtml(fixture("valid", "minimal-page.xml"))
+  it("renders the minimal valid cell", () => {
+    const document = parseAgentHtml(fixture("valid", "minimal-cell.xml"))
     const validation = validateAgentHtml(document)
 
     expect(validation.ok).toBe(true)
@@ -30,7 +30,19 @@ describe("renderAgentHtml", () => {
     expect(html).not.toContain("data-agent-html-block")
   })
 
-  it("can lightly highlight inferred interaction blocks", () => {
+  it("renders a Cell root with explicit blocks", () => {
+    const document = parseAgentHtml(fixture("valid", "cell-blocks.xml"))
+    const validation = validateAgentHtml(document)
+
+    expect(validation.ok).toBe(true)
+
+    const html = renderToStaticMarkup(renderAgentHtml(document))
+    expect(html).toContain("Overview")
+    expect(html).toContain("Left card")
+    expect(html).toContain("Right card")
+  })
+
+  it("can lightly highlight explicit interaction blocks", () => {
     const document = parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
     const interactionUnits = inferAgentHtmlInteractionUnits(document)
     const html = renderToStaticMarkup(
@@ -226,6 +238,25 @@ describe("renderAgentHtml", () => {
     expect(html.split("data-slot=\"card\"").length - 1).toBeGreaterThan(3)
   })
 
+  it("can lightly highlight explicit Block elements", () => {
+    const document = parseAgentHtml(fixture("valid", "cell-blocks.xml"))
+    const interactionUnits = inferAgentHtmlInteractionUnits(document)
+    const html = renderToStaticMarkup(
+      renderAgentHtml(document, {
+        highlightBlocks: true,
+        interactionUnits,
+      })
+    )
+
+    expect(interactionUnits.blocks).toHaveLength(2)
+    expect(interactionUnits.blocks.map((unit) => unit.tag)).toEqual([
+      "Block",
+      "Block",
+    ])
+    expect(html.match(/data-agent-html-block="true"/g)).toHaveLength(2)
+    expect(html).toContain("data-agent-html-block-path=\"/Cell/Block[0]\"")
+  })
+
   it("renders chart loading as a structural runtime skeleton", () => {
     const document = parseAgentHtml(fixture("valid", "complex-dashboard.xml"))
     const validation = validateAgentHtml(document)
@@ -242,7 +273,7 @@ describe("renderAgentHtml", () => {
 
   it("throws for unsupported render tags", () => {
     const document = parseAgentHtml(
-      "<Page title=\"Unsupported\"><ChartTooltip hideLabel=\"false\" /></Page>"
+      "<Cell title=\"Unsupported\"><ChartTooltip hideLabel=\"false\" /></Cell>"
     )
 
     expect(() => renderAgentHtml(document)).toThrow("Unsupported render tag: ChartTooltip")

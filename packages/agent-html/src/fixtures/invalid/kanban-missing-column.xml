@@ -1,5 +1,5 @@
-<Page title="Kanban missing column">
+<Cell title="Kanban missing column">
   <Section>
     <Kanban />
   </Section>
-</Page>
+</Cell>

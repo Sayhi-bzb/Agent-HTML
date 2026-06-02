@@ -1,5 +1,6 @@
 export type AgentHtmlLayoutTag =
-  | "Page"
+  | "Cell"
+  | "Block"
   | "Section"
   | "Stack"
   | "Cluster"

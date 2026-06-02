@@ -21,7 +21,7 @@ describe("reduceCodexNotification", () => {
         },
       },
       {
-        blockPath: "/Page/Section[0]/Stack[0]",
+        blockPath: "/Cell/Block[0]",
         threadId: "thr_1",
         turnId: "turn_1",
       },
@@ -30,7 +30,7 @@ describe("reduceCodexNotification", () => {
 
     expect(state.presence).toBeUndefined()
     expect(state.events[0].scope).toEqual({
-      blockPath: "/Page/Section[0]/Stack[0]",
+      blockPath: "/Cell/Block[0]",
       type: "block",
     })
   })

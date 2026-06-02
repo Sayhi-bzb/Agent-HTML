@@ -1,7 +1,7 @@
-<Page title="Invalid chart">
+<Cell title="Invalid chart">
   <Chart type="bar">
     <ChartSeries key="review" label="Review" />
     <ChartSeries key="publish" label="Publish" />
     <ChartRow label="W1" review="12" />
   </Chart>
-</Page>
+</Cell>

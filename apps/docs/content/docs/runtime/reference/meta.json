@@ -8,6 +8,7 @@
     "attributes",
     "validation-errors",
     "public-exports",
+    "target-architecture",
     "glossary"
   ]
 }

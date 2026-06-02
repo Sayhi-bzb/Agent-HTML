@@ -1,8 +1,8 @@
-<Page title="Invalid text">
+<Cell title="Invalid text">
   <Stack>
     <Text>
       Label
       <Icon name="search" />
     </Text>
   </Stack>
-</Page>
+</Cell>

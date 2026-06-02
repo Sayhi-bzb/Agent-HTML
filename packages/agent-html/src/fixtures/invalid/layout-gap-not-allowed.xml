@@ -1,4 +1,4 @@
-<Page title="Old layout syntax">
+<Cell title="Old layout syntax">
   <Stack gap="sm">
     <Card>
       <CardContent>
@@ -6,4 +6,4 @@
       </CardContent>
     </Card>
   </Stack>
-</Page>
+</Cell>

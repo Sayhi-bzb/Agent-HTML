@@ -19,11 +19,11 @@ describe("AgentHtmlBlockWrapper", () => {
     const html = renderToStaticMarkup(
       <AgentHtmlBlockRuntimeProvider>
         <AgentHtmlBlockWrapper
-          path="/Page/Stack[0]"
+          path="/Cell/Block[0]"
           unit={{
             kind: "block",
             motionKey: "Stack:test",
-            path: "/Page/Stack[0]",
+            path: "/Cell/Block[0]",
             role: "flow-block",
             tag: "Stack",
           }}
@@ -34,7 +34,7 @@ describe("AgentHtmlBlockWrapper", () => {
     )
 
     expect(html).toContain("data-agent-html-block=\"true\"")
-    expect(html).toContain("data-agent-html-block-path=\"/Page/Stack[0]\"")
+    expect(html).toContain("data-agent-html-block-path=\"/Cell/Block[0]\"")
     expect(html).toContain("data-agent-html-block-handle=\"true\"")
     expect(html).toContain("data-agent-html-block-input-trigger=\"true\"")
     expect(html).toContain("aria-label=\"Block actions\"")

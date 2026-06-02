@@ -1,14 +1,15 @@
-<Page title="Sections">
-  <Section>
+<Cell title="Sections">
+  <Block>
+    <Section>
     <Stack>
       <Text variant="h1">Default content section</Text>
       <Text variant="lead">Section defaults to content width.</Text>
     </Stack>
   </Section>
-  <Section width="reader">
+    <Section width="reader">
     <Text>Reader width is for focused copy.</Text>
   </Section>
-  <Section width="full">
+    <Section width="full">
     <Grid columns="2">
       <Card>
         <CardContent>
@@ -21,5 +22,6 @@
         </CardContent>
       </Card>
     </Grid>
-  </Section>
-</Page>
+    </Section>
+  </Block>
+</Cell>

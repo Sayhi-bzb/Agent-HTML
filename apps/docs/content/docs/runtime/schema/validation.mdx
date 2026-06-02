@@ -7,6 +7,9 @@ description: How Agent-HTML validation checks parsed documents.
 
 Validation sits after parsing and before rendering.
 
+The root element must be `Cell`. `Block` is a layout tag but cannot be nested
+inside another `Block`.
+
 ## Validation Should Check
 
 - allowed tags

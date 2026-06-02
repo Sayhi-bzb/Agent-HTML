@@ -1,5 +1,5 @@
-<Page title="Button size not allowed">
+<Cell title="Button size not allowed">
   <Section>
     <Button size="sm">Save</Button>
   </Section>
-</Page>
+</Cell>

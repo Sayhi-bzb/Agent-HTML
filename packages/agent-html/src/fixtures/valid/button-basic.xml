@@ -1,5 +1,6 @@
-<Page title="Button basic">
-  <Section>
+<Cell title="Button basic">
+  <Block>
+    <Section>
     <Cluster>
       <Button>Save changes</Button>
       <Button variant="outline" href="/docs">Read docs</Button>
@@ -11,5 +12,6 @@
         <Icon name="settings" />
       </Button>
     </Cluster>
-  </Section>
-</Page>
+    </Section>
+  </Block>
+</Cell>

@@ -1,7 +1,7 @@
-<Page title="Timeline missing title">
+<Cell title="Timeline missing title">
   <Timeline>
     <TimelineItem>
       <TimelineDescription>Missing title.</TimelineDescription>
     </TimelineItem>
   </Timeline>
-</Page>
+</Cell>

@@ -8,7 +8,7 @@ import {
   sectionDefaults,
 } from "@/agent-html/schema/defaults"
 
-export function PageRuntime({
+export function CellRuntime({
   children,
 }: {
   children: ReactNode
@@ -18,6 +18,14 @@ export function PageRuntime({
       {children}
     </div>
   )
+}
+
+export function BlockRuntime({
+  children,
+}: {
+  children: ReactNode
+}) {
+  return <>{children}</>
 }
 
 export function SectionRuntime({

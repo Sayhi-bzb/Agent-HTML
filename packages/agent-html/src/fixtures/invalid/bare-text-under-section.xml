@@ -1,5 +1,5 @@
-<Page title="Invalid section text">
+<Cell title="Invalid section text">
   <Section>
     Bare text is not allowed here.
   </Section>
-</Page>
+</Cell>

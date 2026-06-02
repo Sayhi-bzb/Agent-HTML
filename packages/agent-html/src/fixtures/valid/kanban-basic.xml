@@ -1,5 +1,6 @@
-<Page title="Kanban">
-  <Section>
+<Cell title="Kanban">
+  <Block>
+    <Section>
     <Kanban>
       <KanbanColumn value="todo" title="Todo">
         <KanbanItem value="audit-copy">
@@ -26,5 +27,6 @@
         </KanbanItem>
       </KanbanColumn>
     </Kanban>
-  </Section>
-</Page>
+    </Section>
+  </Block>
+</Cell>

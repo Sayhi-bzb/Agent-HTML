@@ -16,7 +16,8 @@ function fixture(...parts: string[]) {
 
 describe("serializeAgentHtml", () => {
   it.each([
-    "minimal-page.xml",
+    "minimal-cell.xml",
+    "cell-blocks.xml",
     "card-tabs-grid.xml",
     "complex-dashboard.xml",
     "codeblock-basic.xml",

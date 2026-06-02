@@ -1,5 +1,6 @@
-<Page title="agent-html">
-  <Section width="content">
+<Cell title="agent-html">
+  <Block>
+    <Section width="content">
     <Stack>
       <Stack>
         <Text variant="h1">agent-html</Text>
@@ -91,14 +92,16 @@
         <Text variant="h2">小源码，真组件</Text>
         <Text variant="muted">Agent 编写的是紧凑的树结构。runtime 会在验证后把它渲染成真实 UI primitives。</Text>
         <CodeBlock language="ahtml" title="一个小型创作界面">
-<Page title="Demo">
-  <Section width="reader">
-    <Stack>
-      <Text variant="lead">用受约束标签描述界面。</Text>
-      <Badge variant="secondary">渲染前完成验证</Badge>
-    </Stack>
-  </Section>
-</Page>
+<Cell title="Demo">
+  <Block>
+    <Section width="reader">
+      <Stack>
+        <Text variant="lead">用受约束标签描述界面。</Text>
+        <Badge variant="secondary">渲染前完成验证</Badge>
+      </Stack>
+    </Section>
+  </Block>
+</Cell>
         </CodeBlock>
         <Alert>
           <Icon name="shield-check" />
@@ -116,7 +119,7 @@
             <TimelineDescription>Agent 编写嵌套标签、引号属性和插槽，而不是 class 名。</TimelineDescription>
             <TimelineContent>
               <Cluster wrap="true">
-                <Badge variant="secondary">Page</Badge>
+                <Badge variant="secondary">Cell</Badge>
                 <Badge variant="outline">Grid</Badge>
                 <Badge variant="outline">Text</Badge>
               </Cluster>
@@ -267,5 +270,6 @@
         </Grid>
       </Stack>
     </Stack>
-  </Section>
-</Page>
+    </Section>
+  </Block>
+</Cell>

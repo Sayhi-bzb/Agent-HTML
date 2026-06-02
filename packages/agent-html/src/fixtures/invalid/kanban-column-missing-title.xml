@@ -1,7 +1,7 @@
-<Page title="Kanban column missing title">
+<Cell title="Kanban column missing title">
   <Section>
     <Kanban>
       <KanbanColumn value="todo" />
     </Kanban>
   </Section>
-</Page>
+</Cell>

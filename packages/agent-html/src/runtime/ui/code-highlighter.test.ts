@@ -19,9 +19,9 @@ describe("code-highlighter", () => {
     expect(canHighlightCode("ahtml")).toBe(true)
     expect(canHighlightCode("react")).toBe(true)
 
-    await expect(highlightCode("<Page />", "ahtml")).resolves.toMatchObject({
-      html: expect.stringContaining("Page"),
-      darkHtml: expect.stringContaining("Page"),
+    await expect(highlightCode("<Cell />", "ahtml")).resolves.toMatchObject({
+      html: expect.stringContaining("Cell"),
+      darkHtml: expect.stringContaining("Cell"),
     })
   })
 

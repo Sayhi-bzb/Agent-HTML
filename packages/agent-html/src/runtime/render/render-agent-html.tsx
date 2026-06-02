@@ -18,9 +18,10 @@ import {
 import { LazyChartRuntime } from "@/agent-html/runtime/render/lazy-chart-runtime"
 import { IconRuntime } from "@/agent-html/runtime/render/icon-runtime"
 import {
+  BlockRuntime,
+  CellRuntime,
   ClusterRuntime,
   GridRuntime,
-  PageRuntime,
   SectionRuntime,
   StackRuntime,
 } from "@/agent-html/runtime/render/layout-runtime"
@@ -132,9 +133,15 @@ function renderElement(
 ): ReactNode {
   let rendered: ReactNode
 
-  if (node.tag === "Page") {
+  if (node.tag === "Cell") {
     const children = renderChildren(node.children, path, context)
-    rendered = <PageRuntime key={key}>{children}</PageRuntime>
+    rendered = <CellRuntime key={key}>{children}</CellRuntime>
+    return highlightBlock(rendered, key, path, context)
+  }
+
+  if (node.tag === "Block") {
+    const children = renderChildren(node.children, path, context)
+    rendered = <BlockRuntime key={key}>{children}</BlockRuntime>
     return highlightBlock(rendered, key, path, context)
   }
 

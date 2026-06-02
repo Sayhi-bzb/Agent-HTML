@@ -95,7 +95,8 @@ function validateNode(
   node: AgentHtmlNode,
   path: string,
   errors: AgentHtmlValidationError[],
-  context: ValidationContext
+  context: ValidationContext,
+  ancestors: AgentHtmlElementNode[] = []
 ) {
   if (node.type === "text") {
     return
@@ -123,6 +124,18 @@ function validateNode(
   }
 
   const knownTag = tag as AgentHtmlTag
+  if (
+    knownTag === "Block" &&
+    ancestors.some((ancestor) => ancestor.tag === "Block")
+  ) {
+    errors.push({
+      code: "INVALID_CHILD",
+      message: "Block cannot be nested inside Block",
+      path,
+      tag,
+    })
+  }
+
   const allowed = new Set(context.allowedAttrs[knownTag] ?? [])
   for (const attr of Object.keys(node.attrs)) {
     if (knownTag !== "ChartRow" && !allowed.has(attr)) {
@@ -741,7 +754,8 @@ function validateNode(
       child,
       child.type === "element" ? `${path}/${child.tag}` : `${path}/#text`,
       errors,
-      context
+      context,
+      [...ancestors, node]
     )
   }
 }
@@ -757,16 +771,16 @@ export function validateAgentHtml(
   )
   const errors: AgentHtmlValidationError[] = []
 
-  if (document.root.tag !== "Page") {
+  if (document.root.tag !== "Cell") {
     errors.push({
       code: "INVALID_CHILD",
-      message: "Root element must be Page",
+      message: "Root element must be Cell",
       path: "/",
       tag: document.root.tag,
     })
   }
 
-  validateNode(document.root, "/Page", errors, context)
+  validateNode(document.root, `/${document.root.tag}`, errors, context)
 
   return {
     ok: errors.length === 0,

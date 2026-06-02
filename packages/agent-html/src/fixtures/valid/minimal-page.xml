@@ -1,9 +1,0 @@
-<Page title="Minimal">
-  <Stack>
-    <Card>
-      <CardContent>
-        <Badge>Ready</Badge>
-      </CardContent>
-    </Card>
-  </Stack>
-</Page>

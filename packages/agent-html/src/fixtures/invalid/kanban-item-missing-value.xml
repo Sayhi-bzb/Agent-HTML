@@ -1,4 +1,4 @@
-<Page title="Kanban item missing value">
+<Cell title="Kanban item missing value">
   <Section>
     <Kanban>
       <KanbanColumn value="todo" title="Todo">
@@ -8,4 +8,4 @@
       </KanbanColumn>
     </Kanban>
   </Section>
-</Page>
+</Cell>

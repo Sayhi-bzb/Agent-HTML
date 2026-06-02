@@ -1,5 +1,6 @@
-<Page title="Runtime alignment">
-  <Section width="content">
+<Cell title="Runtime alignment">
+  <Block>
+    <Section width="content">
     <Stack>
       <Stack>
         <Text variant="h1">Runtime alignment</Text>
@@ -151,5 +152,6 @@
         </Kanban>
       </Stack>
     </Stack>
-  </Section>
-</Page>
+    </Section>
+  </Block>
+</Cell>

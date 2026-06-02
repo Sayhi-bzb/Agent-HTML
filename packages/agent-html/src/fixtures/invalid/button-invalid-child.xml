@@ -1,7 +1,7 @@
-<Page title="Invalid button child">
+<Cell title="Invalid button child">
   <Section>
     <Button>
       <Badge>Nested</Badge>
     </Button>
   </Section>
-</Page>
+</Cell>

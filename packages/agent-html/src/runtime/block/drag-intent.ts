@@ -1,5 +1,4 @@
 import type { AgentHtmlDropIntent } from "@/agent-html/edit/types"
-import type { AgentHtmlInteractionUnitRole } from "@/agent-html/interaction/types"
 
 export type AgentHtmlBlockRect = {
   bottom: number
@@ -13,7 +12,6 @@ export type AgentHtmlBlockRect = {
 export type AgentHtmlBlockIntentCandidate = {
   path: string
   rect: AgentHtmlBlockRect
-  role?: AgentHtmlInteractionUnitRole
 }
 
 export type AgentHtmlBlockPointer = {
@@ -71,10 +69,6 @@ function selectTarget(
     .sort((left, right) => left.distance - right.distance)[0]?.candidate
 }
 
-function isGridItem(candidate: AgentHtmlBlockIntentCandidate) {
-  return candidate.role === "grid-item"
-}
-
 export function inferAgentHtmlDropIntentFromPointer({
   candidates,
   pointer,
@@ -104,10 +98,6 @@ export function inferAgentHtmlDropIntentFromPointer({
 
   if (pointer.x >= rect.right - columnHotZone) {
     return { type: "column-after", targetPath: target.path }
-  }
-
-  if (isGridItem(target)) {
-    return { type: "inside", targetPath: target.path }
   }
 
   return {

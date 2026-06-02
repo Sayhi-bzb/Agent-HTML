@@ -1,5 +1,6 @@
-<Page title="Icon basic">
-  <Stack>
+<Cell title="Icon basic">
+  <Block>
+    <Stack>
     <Alert>
       <Icon name="alert-circle" />
       <AlertTitle>Runtime icon</AlertTitle>
@@ -15,5 +16,6 @@
         <Icon name="search" />
       </Badge>
     </Cluster>
-  </Stack>
-</Page>
+    </Stack>
+  </Block>
+</Cell>

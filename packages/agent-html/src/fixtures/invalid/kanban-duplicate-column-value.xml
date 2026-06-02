@@ -1,8 +1,8 @@
-<Page title="Kanban duplicate column value">
+<Cell title="Kanban duplicate column value">
   <Section>
     <Kanban>
       <KanbanColumn value="todo" title="Todo" />
       <KanbanColumn value="todo" title="Duplicate" />
     </Kanban>
   </Section>
-</Page>
+</Cell>

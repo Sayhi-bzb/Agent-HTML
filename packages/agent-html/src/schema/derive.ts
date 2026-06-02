@@ -21,7 +21,8 @@ function formatAttr(name: string, attr: AgentHtmlAttrContract) {
 }
 
 const layoutSpecialTags = new Set<AgentHtmlTag>([
-  "Page",
+  "Cell",
+  "Block",
   "Section",
   "Stack",
   "Cluster",

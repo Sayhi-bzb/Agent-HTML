@@ -57,6 +57,11 @@ pub(super) struct AgentHtmlSkillResource {
 pub(super) fn agent_html_skill_resources() -> Vec<AgentHtmlSkillResource> {
     vec![
         AgentHtmlSkillResource {
+            relative_path: "references/prompt-schema.md",
+            content: include_str!("../../../.agents/skills/agent-html/references/prompt-schema.md"),
+            is_managed: is_agenthtml_managed_prompt_schema_reference,
+        },
+        AgentHtmlSkillResource {
             relative_path: "references/examples.md",
             content: include_str!("../../../.agents/skills/agent-html/references/examples.md"),
             is_managed: is_agenthtml_managed_examples_reference,
@@ -112,6 +117,11 @@ pub(super) fn is_agenthtml_managed_skill(content: &str) -> bool {
 pub(super) fn is_agenthtml_managed_examples_reference(content: &str) -> bool {
     content.contains("# AgentHTML Examples")
         && (content.contains("Valid Patterns") || content.contains("Invalid Patterns"))
+}
+
+pub(super) fn is_agenthtml_managed_prompt_schema_reference(content: &str) -> bool {
+    content.contains("# Gallery Preview DSL")
+        && content.contains("AUTO-GENERATED FROM packages/agent-html/src/schema/prompt.md")
 }
 
 pub(super) fn is_agenthtml_managed_icons_reference(content: &str) -> bool {

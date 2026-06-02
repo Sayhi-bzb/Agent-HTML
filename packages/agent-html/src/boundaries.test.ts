@@ -63,7 +63,14 @@ describe("agent-html boundaries", () => {
   it("keeps registered runtime boundaries aligned with render implementations", () => {
     const runtimeTags = new Set(Object.keys(previewComponentRuntime))
     const boundary = deriveRuntimeBoundary(agentHtmlComponentRegistry)
-    const layoutSpecialTags = new Set(["Page", "Section", "Stack", "Cluster", "Grid"])
+    const layoutSpecialTags = new Set([
+      "Cell",
+      "Block",
+      "Section",
+      "Stack",
+      "Cluster",
+      "Grid",
+    ])
     const specialRendererTags = new Set(["Chart", "Icon"])
 
     expect(

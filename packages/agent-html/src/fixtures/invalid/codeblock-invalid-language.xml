@@ -1,5 +1,5 @@
-<Page title="CodeBlock invalid language">
+<Cell title="CodeBlock invalid language">
   <CodeBlock language="python">
 print("hello")
   </CodeBlock>
-</Page>
+</Cell>

@@ -16,7 +16,8 @@ import {
 } from "@/agent-html/schema/derive"
 
 const expectedTags: AgentHtmlTag[] = [
-  "Page",
+  "Cell",
+  "Block",
   "Section",
   "Stack",
   "Cluster",
@@ -79,14 +80,21 @@ const expectedTags: AgentHtmlTag[] = [
 describe("agentHtmlComponentRegistry", () => {
   it("derives the current tag sets", () => {
     expect([...allTags]).toEqual(expectedTags)
-    expect([...layoutTags]).toEqual(["Page", "Section", "Stack", "Cluster", "Grid"])
+    expect([...layoutTags]).toEqual([
+      "Cell",
+      "Block",
+      "Section",
+      "Stack",
+      "Cluster",
+      "Grid",
+    ])
   })
 
   it("derives allowed and required attrs", () => {
     expect(allowedAttrs.Button).toEqual(["variant", "href", "label"])
     expect(allowedAttrs.ChartRow).toEqual(["label"])
     expect(allowedAttrs.KanbanColumn).toEqual(["value", "title"])
-    expect(requiredAttrs.Page).toEqual(["title"])
+    expect(requiredAttrs.Cell).toEqual(["title"])
     expect(requiredAttrs.Image).toEqual(["src", "alt"])
     expect(requiredAttrs.KanbanItem).toEqual(["value"])
   })
@@ -147,7 +155,11 @@ describe("agentHtmlComponentRegistry", () => {
     const boundary = deriveRuntimeBoundary(agentHtmlComponentRegistry)
     const byTag = new Map(boundary.map((component) => [component.tag, component]))
 
-    expect(byTag.get("Page")).toMatchObject({
+    expect(byTag.get("Cell")).toMatchObject({
+      role: "layout",
+      runtime: "layout-special",
+    })
+    expect(byTag.get("Block")).toMatchObject({
       role: "layout",
       runtime: "layout-special",
     })
@@ -176,7 +188,8 @@ describe("agentHtmlComponentRegistry", () => {
     )
     const enabledTags = enabledRegistry.map((contract) => contract.tag)
 
-    expect(enabledTags).toContain("Page")
+    expect(enabledTags).toContain("Cell")
+    expect(enabledTags).toContain("Block")
     expect(enabledTags).toContain("Grid")
     expect(enabledTags).toContain("Icon")
     expect(enabledTags).toContain("Text")
@@ -195,6 +208,8 @@ describe("agentHtmlComponentRegistry", () => {
   it("builds prompt grammar from registered contracts", () => {
     const grammar = buildAgentHtmlPromptGrammar()
 
+    expect(grammar.layout).toContain("- `Cell:title=string -> Block | Layout | UI`")
+    expect(grammar.layout).toContain("- `Block -> Layout | UI`")
     expect(grammar.layout).toContain("- `Grid:columns?=\"1|2|3|4\" -> Layout | UI`")
     expect(grammar.ui).toContain("- `Button:variant?=\"default|outline|ghost|destructive|secondary|link\", href?=string, label?=string -> Text, Icon?`")
     expect(grammar.ui).toContain("- `Tabs:orientation?=\"horizontal|vertical\", defaultValue?=string -> TabsList, TabsContent+`")
