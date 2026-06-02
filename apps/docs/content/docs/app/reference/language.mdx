@@ -7,6 +7,10 @@ This page is the canonical source for App language rules.
 
 Lingui is used for app UI chrome under `apps/agent-html-app`.
 
+`LanguageProvider` owns language selection, system-language resolution, and
+catalog activation. Catalog source lives under
+`apps/agent-html-app/src/locales`.
+
 ## Translate
 
 - navigation and settings labels
@@ -30,14 +34,38 @@ file, wrap it with Lingui:
 - `<Trans>` from `@lingui/react/macro` for visible JSX text
 - `useLingui().t` for attributes, titles, alerts, and conditional strings
 
+Keep enum values and UI labels separate. Values stay stable; label renderers
+own translated text.
+
+Lingui extracts from `apps/agent-html-app/src/**/*.{ts,tsx}`. Tests, locales,
+and workspace fixtures are excluded.
+
+Use the untranslated-text baseline to keep existing debt visible without
+allowing new debt. `config/app-i18n-text-baseline.json` records current App UI
+text that is not yet wrapped with Lingui. Do not add to the baseline when a
+stable UI label can be translated now.
+
 ## Language Pass
 
 ```powershell
+npm run i18n:text:check
 npm run i18n:extract
 npm run i18n:compile
 ```
 
 Edit `.po` files. Do not hand-edit compiled `.mjs` catalogs.
+
+After intentionally approving a debt item, refresh the baseline:
+
+```powershell
+npm run i18n:text:update
+```
+
+Use the gate before finishing language work:
+
+```powershell
+npm run i18n:check
+```
 
 Release checks stay focused:
 

@@ -13,7 +13,12 @@ export default defineConfig({
   catalogs: [
     {
       path: "<rootDir>/apps/agent-html-app/src/locales/{locale}/messages",
-      include: ["<rootDir>/apps/agent-html-app/src/shell/settings-menu.tsx"],
+      include: ["<rootDir>/apps/agent-html-app/src/**/*.{ts,tsx}"],
+      exclude: [
+        "<rootDir>/apps/agent-html-app/src/**/*.test.{ts,tsx}",
+        "<rootDir>/apps/agent-html-app/src/locales/**",
+        "<rootDir>/apps/agent-html-app/src/workspace/fixtures/**",
+      ],
     },
   ],
   format: formatter({ lineNumbers: false }),

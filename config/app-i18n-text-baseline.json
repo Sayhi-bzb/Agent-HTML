@@ -1,0 +1,1450 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "file": "apps/agent-html-app/src/codex/connection/codex-settings-service.ts",
+      "kind": "property:description",
+      "text": "Reload MCP server configuration from disk and refresh loaded Codex threads."
+    },
+    {
+      "file": "apps/agent-html-app/src/codex/connection/codex-settings-service.ts",
+      "kind": "property:title",
+      "text": "Install plugin"
+    },
+    {
+      "file": "apps/agent-html-app/src/codex/connection/codex-settings-service.ts",
+      "kind": "property:title",
+      "text": "Reload MCP servers"
+    },
+    {
+      "file": "apps/agent-html-app/src/codex/connection/codex-settings-service.ts",
+      "kind": "property:title",
+      "text": "Save AGENTS.md"
+    },
+    {
+      "file": "apps/agent-html-app/src/codex/connection/codex-settings-service.ts",
+      "kind": "property:title",
+      "text": "Start MCP OAuth login"
+    },
+    {
+      "file": "apps/agent-html-app/src/codex/connection/codex-settings-service.ts",
+      "kind": "property:title",
+      "text": "Uninstall plugin"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-card.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Installed"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-card.tsx",
+      "kind": "jsx-text",
+      "text": "tokens"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-detail-popover.tsx",
+      "kind": "jsx-text",
+      "text": "tokens"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Search components..."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Search components"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "All components"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "Installed"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "No components found."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "Search"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "Tokens"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "property:label",
+      "text": "Categories"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "property:label",
+      "text": "Content"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "property:label",
+      "text": "Data"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "property:label",
+      "text": "Feedback"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "property:label",
+      "text": "Layout"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-sidebar.tsx",
+      "kind": "property:label",
+      "text": "Media and form"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-view.tsx",
+      "kind": "jsx-text",
+      "text": "Adjust the search, category, or status filters to show more registered components."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/component-market-view.tsx",
+      "kind": "jsx-text",
+      "text": "No components found"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/panel.tsx",
+      "kind": "property:title",
+      "text": "Companion assets are next"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/panel.tsx",
+      "kind": "property:title",
+      "text": "Component packs are next"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/accordion-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Accordion"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/accordion-showcase.tsx",
+      "kind": "property:title",
+      "text": "What makes the content meaningful?"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/accordion-showcase.tsx",
+      "kind": "property:title",
+      "text": "What should the trigger carry?"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/accordion-showcase.tsx",
+      "kind": "property:title",
+      "text": "Why a single-expand accordion?"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/alert-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Alert"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/alert-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "A destructive alert works when the warning carries a real action cost, not generic noise."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/alert-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Export route is missing a proof step"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/alert-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Inspect"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/alert-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Preview tokens are aligned with the current local scene and ready for comparison."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/alert-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Review lane is synchronized"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/aspect-ratio-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "AspectRatio"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Badge"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "3 labels live"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Linked"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Neutral"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Outline"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Primary"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Risk"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Secondary"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Shipment checklist"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/badge-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Use badges when the label must stay adjacent to the object it qualifies."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Card"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Compact cards are useful when density matters more than long-form reading."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Default size keeps room for title, supporting text, and a trailing action."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Header, content, and footer spacing remain distinct without extra utility wrappers."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Open"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Owner: Design systems"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Release narrative"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Small card variant"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Stage: Review"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "The content slot should feel like a clear reading lane rather than a generic div with padding."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/card-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "This variant compresses spacing without collapsing the internal slot model."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/carousel-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Carousel"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/carousel-showcase.tsx",
+      "kind": "property:title",
+      "text": "Scene 01"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/carousel-showcase.tsx",
+      "kind": "property:title",
+      "text": "Scene 02"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/carousel-showcase.tsx",
+      "kind": "property:title",
+      "text": "Scene 03"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/chart-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Chart"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/chart-showcase.tsx",
+      "kind": "property:label",
+      "text": "Publish"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/chart-showcase.tsx",
+      "kind": "property:label",
+      "text": "Review"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/progress-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Progress"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/progress-showcase.tsx",
+      "kind": "property:label",
+      "text": "Coverage"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/progress-showcase.tsx",
+      "kind": "property:label",
+      "text": "Proofing"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/progress-showcase.tsx",
+      "kind": "property:label",
+      "text": "Review"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/separator-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Separator"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/separator-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "A horizontal separator should create breathing room without pretending to be content."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/separator-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Artifacts"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/separator-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Overview"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/separator-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Proof"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/separator-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Section break"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/separator-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "This lower block reads as the next segment because the separator does real grouping work."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/table-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Table"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/table-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "19h"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/table-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Cycle effort"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/table-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Hours"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/table-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Owner"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/table-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Stage"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/table-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Three active workstreams in the current review cycle."
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/table-showcase.tsx",
+      "kind": "jsx-text",
+      "text": "Total"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/tabs-showcase.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Tabs"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/tabs-showcase.tsx",
+      "kind": "property:title",
+      "text": "Handoff"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/tabs-showcase.tsx",
+      "kind": "property:title",
+      "text": "Notes"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/preview/cards/tabs-showcase.tsx",
+      "kind": "property:title",
+      "text": "Summary"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/sidebar.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Theme editor section"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/sidebar.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Theme preset"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/sidebar.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Section"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/sidebar.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Theme"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "Section"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/sidebar.tsx",
+      "kind": "property:label",
+      "text": "Pet Market"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/theme-editor-sections.ts",
+      "kind": "property:label",
+      "text": "Color"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/theme-editor-sections.ts",
+      "kind": "property:label",
+      "text": "Radius"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/theme-editor-sections.ts",
+      "kind": "property:label",
+      "text": "Shadow"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/theme-editor-sections.ts",
+      "kind": "property:label",
+      "text": "Spacing"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/theme-editor-sections.ts",
+      "kind": "property:label",
+      "text": "Typography"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/views.ts",
+      "kind": "property:label",
+      "text": "Components"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/views.ts",
+      "kind": "property:label",
+      "text": "Pets"
+    },
+    {
+      "file": "apps/agent-html-app/src/gallery/views.ts",
+      "kind": "property:label",
+      "text": "Theme"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/ghost/radial-menu.tsx",
+      "kind": "property:label",
+      "text": "Interrupt"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/ghost/radial-menu.tsx",
+      "kind": "property:label",
+      "text": "Message"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/ghost/radial-menu.tsx",
+      "kind": "property:label",
+      "text": "Settings"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/ghost/radial-menu.tsx",
+      "kind": "property:label",
+      "text": "Threads"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/ghost/workspace-ghost-pet.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Agent presence"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-settings-native-bridge.ts",
+      "kind": "property:title",
+      "text": "Pet Settings"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-settings-window-app.tsx",
+      "kind": "jsx-text",
+      "text": "AgentHTML settings"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-settings-window-app.tsx",
+      "kind": "jsx-text",
+      "text": "Waiting for settings state."
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-attribute:alt",
+      "text": "Thread transcript"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Close thread panel"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "More thread actions"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Search transcript"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Thread actions"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Toggle thread sidebar"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Thread actions"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-text",
+      "text": "AI"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-text",
+      "text": "Codex threads"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-text",
+      "text": "Copy thread id"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-text",
+      "text": "New thread"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-panel-content.tsx",
+      "kind": "jsx-text",
+      "text": "Rename"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-attribute:alt",
+      "text": "Thread transcript"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Close transcript"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Close transcript search"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "More transcript actions"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Next transcript match"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Previous transcript match"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Search transcript"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Search transcript text"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Search transcript"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-text",
+      "text": "AI"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-text",
+      "text": "No items reported."
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-text",
+      "text": "Thread Transcript"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/pet-thread-transcript-content.tsx",
+      "kind": "jsx-text",
+      "text": "Turn"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/agents-md-view.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "AgentHTML AGENTS.md content"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/agents-md-view.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Loading AGENTS.md..."
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/agents-md-view.tsx",
+      "kind": "jsx-text",
+      "text": "Project instructions"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/agents-md-view.tsx",
+      "kind": "jsx-text",
+      "text": "Reload"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Codex command"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Custom workspace root"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Desktop runtime required to manage Codex."
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Host"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Restart"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Save"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Save workspace root"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Status"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Stop"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Test connection"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/connection-view.tsx",
+      "kind": "jsx-text",
+      "text": "Workspace"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/pet-settings-surface.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Close settings"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/pet-settings-surface.tsx",
+      "kind": "jsx-text",
+      "text": "AgentHTML settings"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/pet-settings-surface.tsx",
+      "kind": "jsx-text",
+      "text": "Settings"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/settings-shared.tsx",
+      "kind": "jsx-text",
+      "text": "Cancel"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/settings-shared.tsx",
+      "kind": "jsx-text",
+      "text": "Confirm"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/settings/settings-shared.tsx",
+      "kind": "jsx-text",
+      "text": "Read-only"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/thread-panel-app-window-host.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Resize thread panel"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/thread-panel-native-bridge.ts",
+      "kind": "property:title",
+      "text": "Thread Panel"
+    },
+    {
+      "file": "apps/agent-html-app/src/pet/host/thread-panel-window-app.tsx",
+      "kind": "jsx-text",
+      "text": "Waiting for thread panel state."
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/theme-presets.generated.ts",
+      "kind": "property:label",
+      "text": "Claude +"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/theme-presets.generated.ts",
+      "kind": "property:label",
+      "text": "Hex"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/theme-presets.generated.ts",
+      "kind": "property:label",
+      "text": "Light Green"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/theme-presets.generated.ts",
+      "kind": "property:label",
+      "text": "MX-Brutalist"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/theme-presets.generated.ts",
+      "kind": "property:label",
+      "text": "Party Rock"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/theme-presets.generated.ts",
+      "kind": "property:label",
+      "text": "Whatsapp"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/theme-presets.generated.ts",
+      "kind": "property:label",
+      "text": "Zen"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "accent"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "background"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "background"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "background"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "background"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "background"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "background"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "background"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "background"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "border"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "card"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "color"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "color"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "color"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "color"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "Default"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "destructive"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "foreground"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "foreground"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "foreground"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "foreground"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "foreground"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "foreground"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "foreground"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "input"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "muted"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "popover"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "primary"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "ring"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/tokens.ts",
+      "kind": "property:label",
+      "text": "secondary"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/variables.ts",
+      "kind": "property:label",
+      "text": "Geist"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/variables.ts",
+      "kind": "property:label",
+      "text": "Inter"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/variables.ts",
+      "kind": "property:label",
+      "text": "Mono"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/variables.ts",
+      "kind": "property:label",
+      "text": "Serif"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/app-theme/variables.ts",
+      "kind": "property:label",
+      "text": "System"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/carousel.tsx",
+      "kind": "jsx-text",
+      "text": "Next slide"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/carousel.tsx",
+      "kind": "jsx-text",
+      "text": "Previous slide"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/dialog.tsx",
+      "kind": "jsx-text",
+      "text": "Close"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/dialog.tsx",
+      "kind": "jsx-text",
+      "text": "Close"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/sheet.tsx",
+      "kind": "jsx-text",
+      "text": "Close"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/sidebar.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Toggle Sidebar"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/sidebar.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Toggle Sidebar"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "Displays the mobile sidebar."
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "Sidebar"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "Toggle Sidebar"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/spinner.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Loading"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/window-chrome.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Close window"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/window-chrome.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Minimize window"
+    },
+    {
+      "file": "apps/agent-html-app/src/shared/ui/window-chrome.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Toggle maximize window"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/app-frame.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Save theme changes?"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/app-frame.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Save workspace changes?"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/app-frame.tsx",
+      "kind": "property:label",
+      "text": "Discard"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/app-frame.tsx",
+      "kind": "property:label",
+      "text": "Discard"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/app-frame.tsx",
+      "kind": "property:label",
+      "text": "Save"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/app-frame.tsx",
+      "kind": "property:label",
+      "text": "Save"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/app-sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "Back"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/app-sidebar.tsx",
+      "kind": "jsx-text",
+      "text": "Gallery"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/document-tab-rail.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Open sections"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/document-tab-rail.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Unsaved changes"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/document-tab-rail.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Unsaved changes"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Duplicate section"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "New section"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Project actions"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Section actions"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Project name"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Section title"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Untitled Section"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Duplicate"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "New Section"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-text",
+      "text": "Delete"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-text",
+      "text": "Delete"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-text",
+      "text": "Duplicate"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-text",
+      "text": "New Section"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-text",
+      "text": "Rename"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/nav-projects.tsx",
+      "kind": "jsx-text",
+      "text": "Rename"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/new-project-dialog.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Research Notes"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/new-project-dialog.tsx",
+      "kind": "jsx-text",
+      "text": "Cancel"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/new-project-dialog.tsx",
+      "kind": "jsx-text",
+      "text": "Create an AgentHTML workspace project with a blank overview section."
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/new-project-dialog.tsx",
+      "kind": "jsx-text",
+      "text": "Name"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/new-project-dialog.tsx",
+      "kind": "jsx-text",
+      "text": "New Project"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/new-project-dialog.tsx",
+      "kind": "jsx-text",
+      "text": "New Project"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/search-command.tsx",
+      "kind": "jsx-attribute:placeholder",
+      "text": "Type a command or search..."
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/search-command.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Search"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/search-command.tsx",
+      "kind": "jsx-text",
+      "text": "No results found."
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/search-command.tsx",
+      "kind": "jsx-text",
+      "text": "Search"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/settings-menu.tsx",
+      "kind": "property:label",
+      "text": "Dark"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/settings-menu.tsx",
+      "kind": "property:label",
+      "text": "English"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/settings-menu.tsx",
+      "kind": "property:label",
+      "text": "Light"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/settings-menu.tsx",
+      "kind": "property:label",
+      "text": "System"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/settings-menu.tsx",
+      "kind": "property:label",
+      "text": "System"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/settings-menu.tsx",
+      "kind": "property:label",
+      "text": "中文"
+    },
+    {
+      "file": "apps/agent-html-app/src/shell/site-header.tsx",
+      "kind": "jsx-attribute:aria-label",
+      "text": "Toggle sidebar"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "compacting context"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "editing files"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "reviewing"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "running command"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "searching web"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "thinking"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "updating plan"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "using tool"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "viewing image"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "waiting"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "waiting for approval"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "working"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "working"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "writing response"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:label",
+      "text": "writing response"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-activity.ts",
+      "kind": "property:text",
+      "text": "Codex needs input."
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-approval.ts",
+      "kind": "property:title",
+      "text": "File change needs approval"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-controller.ts",
+      "kind": "property:label",
+      "text": "interrupting turn"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-controller.ts",
+      "kind": "property:label",
+      "text": "starting turn"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/agent-controller.ts",
+      "kind": "property:text",
+      "text": "Interrupting Codex."
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/section-creation-controller.ts",
+      "kind": "property:title",
+      "text": "Untitled Section"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/seed.ts",
+      "kind": "property:name",
+      "text": "Agent-HTML Example"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/seed.ts",
+      "kind": "property:title",
+      "text": "Introducing agent-html"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/seed.ts",
+      "kind": "property:title",
+      "text": "Runtime alignment"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/seed.ts",
+      "kind": "property:title",
+      "text": "介绍 agent-html"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/workspace-states.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "No workspace section selected"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/workspace-states.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Runtime error"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/workspace-states.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Unable to load document"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/workspace-states.tsx",
+      "kind": "jsx-attribute:title",
+      "text": "Unable to load workspace"
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/workspace-states.tsx",
+      "kind": "jsx-text",
+      "text": "Create a section to start editing this workspace project."
+    },
+    {
+      "file": "apps/agent-html-app/src/workspace/workspace-states.tsx",
+      "kind": "jsx-text",
+      "text": "No sections in this project"
+    }
+  ]
+}

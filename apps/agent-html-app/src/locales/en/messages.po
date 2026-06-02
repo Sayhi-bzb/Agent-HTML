@@ -21,6 +21,14 @@ msgstr "Account"
 msgid "Agent Settings"
 msgstr "Agent Settings"
 
+#: apps/agent-html-app/src/shell/pet-settings-window.tsx
+msgid "Agent-HTML settings for Codex connection and agent capabilities."
+msgstr "Agent-HTML settings for Codex connection and agent capabilities."
+
+#: apps/agent-html-app/src/shell/pet-settings-window.tsx
+msgid "AgentHTML settings"
+msgstr "AgentHTML settings"
+
 #: apps/agent-html-app/src/shell/settings-menu.tsx
 msgid "Dark"
 msgstr "Dark"
