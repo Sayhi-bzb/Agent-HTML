@@ -2,8 +2,8 @@ import * as React from "react"
 import { SparklesIcon } from "lucide-react"
 
 import { artifactRenderedEventName } from "./api"
-import { Button } from "./ui"
-import type { BlockOverlay, PromptTarget } from "./types"
+import { Button } from "./host-primitives"
+import type { BlockOverlay, PromptTarget } from "./host-contracts"
 
 export function useBlockOverlays(rootRef: React.RefObject<HTMLElement | null>) {
   const [overlays, setOverlays] = React.useState<BlockOverlay[]>([])

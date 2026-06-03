@@ -1,5 +1,10 @@
-import { Alert, AlertDescription, AlertTitle, Badge } from "./ui"
-import type { GuardIssue } from "./types"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Badge,
+} from "./host-primitives"
+import type { GuardIssue } from "./host-contracts"
 
 export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {
   if (issues.length === 0) {

@@ -3,7 +3,11 @@ import * as React from "react"
 import { artifactBundleUrl } from "./api"
 import { BlockOverlayLayer, useBlockOverlays } from "./block-overlay"
 import { GuardIssueList, HostStatusMessage } from "./status-surface"
-import type { ArtifactModule, GuardIssue, PromptTarget } from "./types"
+import type {
+  ArtifactModule,
+  GuardIssue,
+  PromptTarget,
+} from "./host-contracts"
 
 export function ArtifactSurface({
   activeFilePath,

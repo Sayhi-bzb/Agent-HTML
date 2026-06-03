@@ -1,7 +1,7 @@
 import * as React from "react"
 
-import { Button, Input } from "./ui"
-import type { PromptTarget } from "./types"
+import { Button, Input } from "./host-primitives"
+import type { PromptTarget } from "./host-contracts"
 
 export function PromptPanel({
   activeFilePath,

@@ -9,7 +9,7 @@ import { ArtifactSurface } from "./artifact-surface"
 import { PromptPanel } from "./prompt-panel"
 import { ReactCanvasSidebar } from "./sidebar"
 import { formatBlockPrompt } from "../react-canvas/prompt.mjs"
-import type { Artifact, GuardIssue, PromptTarget } from "./types"
+import type { Artifact, GuardIssue, PromptTarget } from "./host-contracts"
 
 export function ReactCanvasHostApp() {
   const [activeFilePath, setActiveFilePath] = React.useState<string | null>(

@@ -1,4 +1,4 @@
-import type { Artifact, GuardIssue } from "./types"
+import type { Artifact, GuardIssue } from "./host-contracts"
 
 export const hostApiRoutes = {
   artifactBundle: "/__agent-html/artifact.js",

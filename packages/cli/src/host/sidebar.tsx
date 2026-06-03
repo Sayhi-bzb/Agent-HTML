@@ -1,8 +1,8 @@
 import { FileCodeIcon, FileTextIcon, SparklesIcon } from "lucide-react"
 
 import { artifactLabel } from "./api"
-import { Button } from "./ui"
-import type { Artifact, GuardIssue } from "./types"
+import { Button } from "./host-primitives"
+import type { Artifact, GuardIssue } from "./host-contracts"
 
 export function ReactCanvasSidebar({
   activeFilePath,

@@ -81,7 +81,7 @@ describe("React Canvas architecture boundaries", () => {
     expect(filesMatching(".agent-html/examples", primitiveBypass)).toEqual([])
     expect(
       filesMatchingExcept("packages/cli/src/host", primitiveBypass, [
-        "packages/cli/src/host/ui.tsx",
+        "packages/cli/src/host/host-primitives.tsx",
       ])
     ).toEqual([])
   })
