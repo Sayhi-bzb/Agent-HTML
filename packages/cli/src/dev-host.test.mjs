@@ -35,7 +35,7 @@ describe("React Canvas dev host", () => {
         response.text()
       )
       expect(hostClient).toContain("ReactCanvasHostApp")
-      expect(hostClient).toContain("SidebarProvider")
+      expect(hostClient).toContain("ReactCanvasSidebar")
       expect(hostClient).toContain("formatBlockPrompt")
       expect(hostClient).not.toContain("WindowChromeFrame")
       expect(hostClient).not.toContain("DocumentTabRail")

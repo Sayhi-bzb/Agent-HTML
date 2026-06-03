@@ -1,6 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from "#agent-html-playground/ui/alert"
-import { Badge } from "#agent-html-playground/ui/badge"
-
+import { Alert, AlertDescription, AlertTitle, Badge } from "./ui"
 import type { GuardIssue } from "./types"
 
 export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {

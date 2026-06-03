@@ -48,6 +48,12 @@ function filesMatching(directory, pattern) {
   )
 }
 
+function filesMatchingExcept(directory, pattern, allowedFiles) {
+  return filesMatching(directory, pattern).filter(
+    (file) => !allowedFiles.includes(file)
+  )
+}
+
 describe("React Canvas architecture boundaries", () => {
   it("keeps the CLI off app, docs, example, and legacy runtime imports", () => {
     const forbidden =
@@ -56,13 +62,13 @@ describe("React Canvas architecture boundaries", () => {
     expect(filesMatching("packages/cli/src", forbidden)).toEqual([])
   })
 
-  it("keeps the CLI host on the explicit playground alias", () => {
+  it("keeps the CLI host off app and playground aliases", () => {
     expect(filesMatching("packages/cli/src/host", /from\s+["']@\/[^"']/)).toEqual(
       []
     )
     expect(
       filesMatching("packages/cli/src/host", /#agent-html-playground\/ui\//)
-    ).not.toEqual([])
+    ).toEqual([])
     expect(
       filesMatching("packages/cli/src/host", /@agent-html-playground\/ui\//)
     ).toEqual([])
@@ -73,7 +79,11 @@ describe("React Canvas architecture boundaries", () => {
 
     expect(filesMatching(".agent-html/artifacts", primitiveBypass)).toEqual([])
     expect(filesMatching(".agent-html/examples", primitiveBypass)).toEqual([])
-    expect(filesMatching("packages/cli/src/host", primitiveBypass)).toEqual([])
+    expect(
+      filesMatchingExcept("packages/cli/src/host", primitiveBypass, [
+        "packages/cli/src/host/ui.tsx",
+      ])
+    ).toEqual([])
   })
 
   it("keeps React Canvas surfaces on semantic token classes", () => {

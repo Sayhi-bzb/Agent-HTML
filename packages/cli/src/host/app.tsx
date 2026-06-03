@@ -1,7 +1,5 @@
 import * as React from "react"
 
-import { SidebarInset, SidebarProvider } from "#agent-html-playground/ui/sidebar"
-
 import {
   actionEventName,
   fetchArtifacts,
@@ -126,14 +124,14 @@ export function ReactCanvasHostApp() {
   }
 
   return (
-    <SidebarProvider>
+    <div className="flex min-h-svh overflow-hidden bg-background text-foreground">
       <ReactCanvasSidebar
         activeFilePath={resolvedActiveFilePath}
         artifacts={artifacts}
         guardIssues={guardIssues}
         onSelectArtifact={setActiveFilePath}
       />
-      <SidebarInset className="min-h-svh overflow-hidden">
+      <main className="min-h-svh min-w-0 flex-1 overflow-hidden">
         <ArtifactSurface
           activeFilePath={resolvedActiveFilePath}
           artifactCount={artifacts.length}
@@ -141,7 +139,7 @@ export function ReactCanvasHostApp() {
           loadError={loadError}
           onMessageBlock={openPrompt}
         />
-      </SidebarInset>
+      </main>
       {promptTarget ? (
         <PromptPanel
           activeFilePath={resolvedActiveFilePath}
@@ -160,6 +158,6 @@ export function ReactCanvasHostApp() {
           }}
         />
       ) : null}
-    </SidebarProvider>
+    </div>
   )
 }
