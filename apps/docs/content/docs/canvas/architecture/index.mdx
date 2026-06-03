@@ -1,0 +1,69 @@
+---
+title: Architecture
+description: Canvas layer model and ownership boundaries.
+---
+
+Canvas is organized by ownership:
+
+```text
+@agent-html/react
+  -> headless collaboration protocol
+
+.agent-html/*
+  -> agent-local consumable resources
+
+.agent-html/artifacts/*
+  -> artifact composition and content
+
+packages/cli/src/host/*
+  -> sandbox host, inspector, and prompt bridge
+```
+
+Each layer owns one decision. The protocol marks stable regions. The
+`.agent-html` workspace provides reusable resources. Artifacts compose those
+resources into UI. The host observes and operates on rendered metadata.
+
+## Protocol
+
+`Artifact`, `Block`, and `Action` are headless protocol markers.
+
+They own metadata, anchors, accessibility minimums, action dispatch, and props
+passthrough. They do not own width, spacing, colors, borders, radius, shadow,
+cards, panels, or grid structure.
+
+## Resources
+
+Canvas resources live under `.agent-html`:
+
+```text
+styles.css
+styles/theme.css
+ui/*
+hooks/*
+lib/*
+schema/*
+data/*
+examples/*
+```
+
+Artifacts should consume these resources before adding local one-off helpers.
+
+## Composition
+
+Artifacts decide layout explicitly:
+
+```tsx
+<Artifact className="mx-auto flex w-full max-w-6xl flex-col gap-4 bg-background text-foreground">
+  <Block id="summary" title="Summary">
+    <Card>...</Card>
+  </Block>
+</Artifact>
+```
+
+`Block` marks an inspectable region. It is not a card, panel, or section style.
+
+## Host
+
+The host renders artifacts, discovers blocks, displays guard issues, extracts
+source targets, and bridges prompts. Host controls use Canvas UI primitives; the
+host must not define artifact visual language.

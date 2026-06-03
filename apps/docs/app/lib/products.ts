@@ -12,6 +12,12 @@ export const products = [
     defaultHref: '/docs/runtime/source',
   },
   {
+    label: 'Canvas',
+    value: 'canvas',
+    root: '/docs/canvas',
+    defaultHref: '/docs/canvas/start',
+  },
+  {
     label: 'Design',
     value: 'design',
     root: '/docs/design',

@@ -1,0 +1,36 @@
+---
+title: Canvas
+description: Canvas constitution.
+---
+
+# Canvas
+
+Canvas governs the isolated React artifact sandbox for agents.
+
+App governs the human-facing workspace. Runtime governs the Agent-HTML DSL
+pipeline. Canvas governs `.agent-html`, React artifact composition, local
+resources, and host inspection.
+
+## Constitution
+
+### Isolated Artifact Workbench
+
+Canvas gives agents a bounded place to generate, preview, validate, and revise
+React artifacts without importing the app shell or old runtime UI.
+
+### Headless Protocol
+
+`Artifact`, `Block`, and `Action` mark collaboration boundaries. They provide
+metadata, host anchors, source extraction anchors, action dispatch,
+accessibility, and props passthrough. They do not provide visual treatment.
+
+### Local Resource Consumption
+
+Artifacts consume local sandbox resources: UI primitives, hooks, helpers,
+schemas, data, and semantic token classes.
+
+### Inspectable Host Boundary
+
+The host discovers artifacts, overlays blocks, extracts source targets, shows
+guard issues, and bridges prompts. It observes artifact metadata instead of
+owning artifact layout.

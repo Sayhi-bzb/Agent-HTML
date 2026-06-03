@@ -1,0 +1,58 @@
+---
+title: Workspace
+description: The .agent-html directory contract.
+---
+
+`.agent-html` is the Canvas workspace.
+
+It contains the resources an agent may consume while writing React artifacts:
+
+```text
+.agent-html/artifacts
+  -> authored artifact entrypoints
+
+.agent-html/examples
+  -> canonical examples
+
+.agent-html/ui
+  -> visual primitives
+
+.agent-html/hooks
+  -> reusable React behavior
+
+.agent-html/lib
+  -> pure helpers and transforms
+
+.agent-html/schema
+  -> typed contracts and validation
+
+.agent-html/data
+  -> fixtures and local datasets
+
+.agent-html/styles.css
+  -> CSS runtime entrypoint
+
+.agent-html/styles/theme.css
+  -> semantic token lookup
+```
+
+## Authoring Contract
+
+Artifacts import protocol from `@agent-html/react` and local resources by
+relative path:
+
+```ts
+import { Artifact, Block, Action } from "@agent-html/react"
+
+import { Button } from "../ui/button"
+import { useFilter } from "../hooks/use-filter"
+import { formatDate } from "../lib/format-date"
+import { artifactDataSchema } from "../schema/artifact-data"
+import rows from "../data/rows.json"
+```
+
+Use `Artifact` as the top-level wrapper. Wrap each major semantic region in
+`Block`. Use stable, unique, readable, kebab-case block ids.
+
+Artifact code must not call the filesystem, shell commands, MCP servers, Codex
+app-server, or privileged host APIs.

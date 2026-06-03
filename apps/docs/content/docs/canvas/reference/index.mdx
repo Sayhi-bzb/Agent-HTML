@@ -1,0 +1,52 @@
+---
+title: Reference
+description: Canvas import boundaries and guard rules.
+---
+
+Canvas keeps artifact code, local resources, and host code separated.
+
+## Artifact Imports
+
+Artifact and example code may consume:
+
+- `@agent-html/react`
+- `../ui/*`
+- `../hooks/*`
+- `../lib/*`
+- `../schema/*`
+- `../data/*`
+- semantic token classes
+
+Artifact and example code must not consume:
+
+- `apps/agent-html-app/src/*`
+- `packages/cli/src/host/*`
+- old runtime UI
+- old render APIs
+- `#agent-html-playground/*`
+- raw palette classes such as `bg-blue-500`
+- raw common primitives when a local UI primitive exists
+
+## Host Imports
+
+Host code may consume:
+
+- host-local composition modules
+- CLI prompt and API helpers
+- `#agent-html-playground/ui/*`
+
+Host code must not consume:
+
+- `@/app/*`
+- `apps/agent-html-app/src/*`
+- old runtime UI
+- old render APIs
+- `@agent-html-playground/*`
+- `#agent-html-playground/*` outside `#agent-html-playground/ui/*`
+- a host-local visual primitive layer
+
+## Review Checks
+
+Confirm that protocol remains headless, `.agent-html/ui/*` remains the visual
+primitive layer, `.agent-html/styles.css` remains the CSS runtime entrypoint,
+and artifact layout stays explicit in artifact composition.

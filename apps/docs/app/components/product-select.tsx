@@ -1,6 +1,6 @@
 'use client';
 
-import { BoxIcon, CpuIcon } from 'lucide-react';
+import { BoxIcon, CpuIcon, PaletteIcon, PanelsTopLeftIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import {
@@ -20,6 +20,8 @@ import {
 const productIcons = {
   app: BoxIcon,
   runtime: CpuIcon,
+  canvas: PanelsTopLeftIcon,
+  design: PaletteIcon,
 } satisfies Record<ProductValue, typeof BoxIcon>;
 
 function ProductIcon({ value }: { value: ProductValue }) {

@@ -1,0 +1,29 @@
+---
+title: Start
+description: Learn what Canvas is for and when to use it.
+---
+
+Canvas is the agent-authored React artifact workspace.
+
+Use Canvas when an agent should write normal React and TypeScript inside an
+isolated sandbox. Canvas artifacts live under `.agent-html`, consume local
+resources, and render in a host that can inspect blocks and route prompts.
+
+Use App docs for the product workspace, shell, gallery, pets, and human-facing
+flows.
+
+Use Runtime docs for the Agent-HTML DSL: source parsing, schema, validation,
+rendering, and host integration for DSL output.
+
+## When to Use Canvas Docs
+
+Use this section when you want to:
+
+- write or review `.agent-html/artifacts/*.agent.tsx`
+- understand the Canvas host and inspector
+- add local sandbox UI, hooks, helpers, schema, or data
+- maintain token and shadcn consumption rules
+- enforce import boundaries for agent-authored React artifacts
+
+Canvas is Storybook-like only as an isolated preview surface. Its primary role
+is an agent-friendly artifact workbench.

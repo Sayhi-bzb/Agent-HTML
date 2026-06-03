@@ -1,0 +1,37 @@
+---
+title: Host
+description: Canvas preview host and inspection boundary.
+---
+
+The Canvas host is the sandbox inspector and operation bridge.
+
+It owns:
+
+- artifact discovery
+- artifact rendering
+- guard issue display
+- block overlay
+- block source extraction
+- prompt disclosure
+- action event handling
+- sidebar navigation
+- stylesheet compilation
+
+The host understands artifacts through stable metadata:
+
+```text
+[data-agent-html-artifact="true"]
+[data-agent-html-block="true"]
+[data-agent-html-block-id]
+[data-agent-html-action="true"]
+```
+
+Host visual controls consume Canvas UI primitives through the local playground
+alias:
+
+```ts
+import { Button } from "#agent-html-playground/ui/button"
+```
+
+The host must not import the app shell, old runtime UI, old render APIs, or a
+host-local primitive layer.

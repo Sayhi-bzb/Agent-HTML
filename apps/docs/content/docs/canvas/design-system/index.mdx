@@ -1,0 +1,49 @@
+---
+title: Design System
+description: Canvas UI, token, and shadcn consumption rules.
+---
+
+Canvas uses local shadcn UI and CSS variables.
+
+```text
+styles/theme.css
+  -> semantic token values
+
+styles.css
+  -> CSS runtime entrypoint and Tailwind bridge
+
+ui/*
+  -> visual primitives
+
+artifact files
+  -> resource composition
+```
+
+## CSS Entry Points
+
+`.agent-html/styles/theme.css` is the smallest token lookup file. It defines
+semantic variables such as `--background`, `--foreground`, `--card`,
+`--primary`, `--border`, and sidebar tokens for light and dark modes.
+
+`.agent-html/styles.css` is the runtime CSS entrypoint. It imports Tailwind,
+shadcn CSS, fonts, and `styles/theme.css`; it also owns `@theme inline`,
+`@source`, dark variant wiring, and base styles.
+
+Artifacts do not import CSS files directly. They consume semantic token classes:
+
+```tsx
+className="bg-background text-foreground border-border"
+```
+
+## UI Primitives
+
+`.agent-html/ui/*` is the only visual primitive layer for Canvas. Artifacts and
+host controls should use these primitives before hand-writing common UI.
+
+Do not create raw primitive buttons, cards, badges, inputs, tables, sidebars, or
+dialog controls in artifacts when a local UI primitive exists.
+
+## Visual Boundary
+
+`Artifact`, `Block`, and `Action` are not visual components. Layout and visual
+treatment belong in artifact composition and `.agent-html/ui/*`.
