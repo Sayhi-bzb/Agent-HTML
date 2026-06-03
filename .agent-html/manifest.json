@@ -1,0 +1,5 @@
+{
+  "name": "agent-html-react-canvas",
+  "version": "0.0.1",
+  "artifacts": ".agent-html/artifacts/*.agent.tsx"
+}

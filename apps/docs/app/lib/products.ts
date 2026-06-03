@@ -11,6 +11,12 @@ export const products = [
     root: '/docs/runtime',
     defaultHref: '/docs/runtime/source',
   },
+  {
+    label: 'Design',
+    value: 'design',
+    root: '/docs/design',
+    defaultHref: '/docs/design',
+  },
 ] as const;
 
 export type Product = (typeof products)[number];

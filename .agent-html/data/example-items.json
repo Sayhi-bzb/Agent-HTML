@@ -1,0 +1,20 @@
+[
+  {
+    "date": "2026-06-03",
+    "name": "React Canvas",
+    "signal": "Mainline artifact route",
+    "status": "ready"
+  },
+  {
+    "date": "2026-06-03",
+    "name": "Legacy AHTML",
+    "signal": "Compatibility adapter",
+    "status": "watch"
+  },
+  {
+    "date": "2026-06-03",
+    "name": "Codex app-server",
+    "signal": "V1.1 bridge adapter",
+    "status": "risk"
+  }
+]

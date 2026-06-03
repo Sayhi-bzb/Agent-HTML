@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../node_modules/.tmp/tsconfig.react-canvas.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@/*": ["./.agent-html/*"],
+      "#agent-html-playground/*": ["./.agent-html/*"],
+      "#agent-html-playground/ui/*": ["./.agent-html/ui/*"],
+      "@agent-html/react": ["./packages/react/src/index.tsx"]
+    }
+  },
+  "include": [
+    "../../packages/cli/src/host/**/*.ts",
+    "../../packages/cli/src/host/**/*.tsx",
+    "../../packages/react/src",
+    "../../.agent-html/**/*.ts",
+    "../../.agent-html/**/*.tsx"
+  ],
+  "exclude": [
+    "../../packages/**/*.test.ts",
+    "../../packages/**/*.test.tsx"
+  ]
+}

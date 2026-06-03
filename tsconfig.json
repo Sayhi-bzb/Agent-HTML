@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "./config/tsconfig/tsconfig.app.json" },
+    { "path": "./config/tsconfig/tsconfig.react-canvas.json" },
     { "path": "./config/tsconfig/tsconfig.node.json" }
   ],
   "compilerOptions": {

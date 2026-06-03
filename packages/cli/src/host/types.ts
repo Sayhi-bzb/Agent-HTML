@@ -1,0 +1,29 @@
+export type Artifact = {
+  filePath: string
+}
+
+export type GuardIssue = {
+  filePath: string
+  line?: number
+  message: string
+  severity: string
+}
+
+export type ArtifactModule = {
+  mount: (element: HTMLElement) => () => void
+}
+
+export type BlockOverlay = {
+  height: number
+  id: string
+  title: string
+  width: number
+  x: number
+  y: number
+}
+
+export type PromptTarget = {
+  id: string
+  initialRequest?: string
+  title: string
+}
