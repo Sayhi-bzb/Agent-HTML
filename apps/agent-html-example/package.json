@@ -1,11 +1,28 @@
 {
   "name": "@agent-html/example",
   "private": true,
+  "version": "0.0.0",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit -p ../../config/tsconfig/tsconfig.agent-html-example.json && vite build",
     "verify": "node ../../tools/verify-example-build.mjs"
+  },
+  "dependencies": {
+    "@floating-ui/react": "^0.27.19",
+    "@tailwindcss/vite": "^4.2.1",
+    "@vitejs/plugin-react": "^5.2.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "embla-carousel-react": "^8.6.0",
+    "lucide-react": "^1.16.0",
+    "radix-ui": "^1.4.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "recharts": "^3.8.0",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.2.1",
+    "vite": "^7.3.1"
   }
 }
