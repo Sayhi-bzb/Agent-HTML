@@ -34,10 +34,7 @@ export function Artifact({ children, className, title, ...props }: ArtifactProps
     <main
       data-agent-html-artifact="true"
       data-agent-html-title={title}
-      className={cn(
-        "mx-auto flex w-full max-w-6xl flex-col gap-4 bg-background text-foreground",
-        className
-      )}
+      className={cn(className)}
       {...props}
     >
       {children}
@@ -51,7 +48,7 @@ export function Block({ children, className, id, title, ...props }: BlockProps) 
       data-agent-html-block="true"
       data-agent-html-block-id={id}
       data-agent-html-block-title={title ?? id}
-      className={cn("min-w-0 scroll-mt-4", className)}
+      className={cn(className)}
       {...props}
     >
       {children}

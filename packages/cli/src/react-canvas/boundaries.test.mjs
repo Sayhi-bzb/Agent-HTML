@@ -48,10 +48,17 @@ function filesMatching(directory, pattern) {
   )
 }
 
-function filesMatchingExcept(directory, pattern, allowedFiles) {
-  return filesMatching(directory, pattern).filter(
-    (file) => !allowedFiles.includes(file)
-  )
+function importedSpecifiers(source) {
+  const imports = []
+  const importPattern =
+    /import\s+(?:[^"']+\s+from\s+)?["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g
+  let match
+
+  while ((match = importPattern.exec(source)) !== null) {
+    imports.push(match[1] ?? match[2])
+  }
+
+  return imports
 }
 
 describe("React Canvas architecture boundaries", () => {
@@ -62,12 +69,15 @@ describe("React Canvas architecture boundaries", () => {
     expect(filesMatching("packages/cli/src", forbidden)).toEqual([])
   })
 
-  it("keeps the CLI host off app and playground aliases", () => {
+  it("keeps the CLI host off app aliases while using local React Canvas UI primitives", () => {
     expect(filesMatching("packages/cli/src/host", /from\s+["']@\/[^"']/)).toEqual(
       []
     )
     expect(
-      filesMatching("packages/cli/src/host", /#agent-html-playground\/ui\//)
+      filesMatching(
+        "packages/cli/src/host",
+        /from\s+["']#agent-html-playground\/(?!ui\/)/
+      )
     ).toEqual([])
     expect(
       filesMatching("packages/cli/src/host", /@agent-html-playground\/ui\//)
@@ -79,11 +89,34 @@ describe("React Canvas architecture boundaries", () => {
 
     expect(filesMatching(".agent-html/artifacts", primitiveBypass)).toEqual([])
     expect(filesMatching(".agent-html/examples", primitiveBypass)).toEqual([])
-    expect(
-      filesMatchingExcept("packages/cli/src/host", primitiveBypass, [
-        "packages/cli/src/host/host-primitives.tsx",
-      ])
-    ).toEqual([])
+    expect(filesMatching("packages/cli/src/host", primitiveBypass)).toEqual([])
+  })
+
+  it("keeps artifact and example imports inside the React Canvas playground contract", () => {
+    const allowedLocalImport =
+      /^\.\.\/(?:ui|hooks|lib|schema|data)(?:\/|$)/
+    const forbiddenImport =
+      /^(?:@\/|#agent-html-playground\/|@agent-html-playground\/|apps\/|packages\/|@\/app\/|@\/agent-html\/runtime)/
+
+    for (const file of [
+      ...implementationFilesUnder(".agent-html/artifacts"),
+      ...implementationFilesUnder(".agent-html/examples"),
+    ]) {
+      const specifiers = importedSpecifiers(readSource(file))
+      const invalid = specifiers.filter((specifier) => {
+        if (specifier === "@agent-html/react") {
+          return false
+        }
+
+        if (specifier.startsWith("../")) {
+          return !allowedLocalImport.test(specifier)
+        }
+
+        return forbiddenImport.test(specifier)
+      })
+
+      expect({ file, invalid }).toEqual({ file, invalid: [] })
+    }
   })
 
   it("keeps React Canvas surfaces on semantic token classes", () => {
@@ -126,6 +159,7 @@ describe("React Canvas architecture boundaries", () => {
     const playgroundComponents = JSON.parse(
       readSource(".agent-html/components.json")
     )
+    const playgroundStyles = readSource(".agent-html/styles.css")
     const reactCanvasTsconfig = JSON.parse(
       readSource("config/tsconfig/tsconfig.react-canvas.json")
     )
@@ -134,6 +168,12 @@ describe("React Canvas architecture boundaries", () => {
     expect(rootComponents.aliases.ui).toBe("@/app/shared/ui")
     expect(playgroundComponents.tailwind.css).toBe("styles.css")
     expect(playgroundComponents.aliases.ui).toBe("@/ui")
+    expect(playgroundStyles).toContain('@import "tailwindcss"')
+    expect(playgroundStyles).toContain('@import "tw-animate-css"')
+    expect(playgroundStyles).toContain('@import "shadcn/tailwind.css"')
+    expect(playgroundStyles).toContain('@import "@fontsource-variable/geist"')
+    expect(playgroundStyles).toContain("--color-background")
+    expect(playgroundStyles).toContain("--color-sidebar")
     expect(reactCanvasTsconfig.compilerOptions.paths["@/app/*"]).toBeUndefined()
     expect(
       reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/*"]

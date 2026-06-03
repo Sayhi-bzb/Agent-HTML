@@ -2,7 +2,7 @@ import * as React from "react"
 import { SparklesIcon } from "lucide-react"
 
 import { artifactRenderedEventName } from "./api"
-import { Button } from "./host-primitives"
+import { Button } from "#agent-html-playground/ui/button"
 import type { BlockOverlay, PromptTarget } from "./host-contracts"
 
 export function useBlockOverlays(rootRef: React.RefObject<HTMLElement | null>) {

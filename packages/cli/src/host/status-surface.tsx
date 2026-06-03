@@ -2,8 +2,8 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-  Badge,
-} from "./host-primitives"
+} from "#agent-html-playground/ui/alert"
+import { Badge } from "#agent-html-playground/ui/badge"
 import type { GuardIssue } from "./host-contracts"
 
 export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {

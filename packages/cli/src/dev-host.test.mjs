@@ -66,6 +66,8 @@ describe("React Canvas dev host", () => {
       expect(css).toContain("--sidebar-primary")
       expect(css).not.toContain("--window-chrome-radius")
       expect(css).toContain(".bg-primary")
+      expect(css).toContain(".bg-sidebar")
+      expect(css).toContain(".text-popover-foreground")
     } finally {
       await new Promise((resolve) => server.close(resolve))
     }

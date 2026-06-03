@@ -8,6 +8,7 @@ import {
 import { ArtifactSurface } from "./artifact-surface"
 import { PromptPanel } from "./prompt-panel"
 import { ReactCanvasSidebar } from "./sidebar"
+import { SidebarProvider } from "#agent-html-playground/ui/sidebar"
 import { formatBlockPrompt } from "../react-canvas/prompt.mjs"
 import type { Artifact, GuardIssue, PromptTarget } from "./host-contracts"
 
@@ -124,7 +125,7 @@ export function ReactCanvasHostApp() {
   }
 
   return (
-    <div className="flex min-h-svh overflow-hidden bg-background text-foreground">
+    <SidebarProvider className="overflow-hidden bg-background text-foreground">
       <ReactCanvasSidebar
         activeFilePath={resolvedActiveFilePath}
         artifacts={artifacts}
@@ -158,6 +159,6 @@ export function ReactCanvasHostApp() {
           }}
         />
       ) : null}
-    </div>
+    </SidebarProvider>
   )
 }

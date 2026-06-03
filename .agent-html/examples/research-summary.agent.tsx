@@ -5,7 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 
 export default function ResearchSummaryExample() {
   return (
-    <Artifact title="Research Summary Example">
+    <Artifact
+      className="mx-auto flex w-full max-w-6xl flex-col gap-4 bg-background text-foreground"
+      title="Research Summary Example"
+    >
       <Block id="findings" title="Findings">
         <Card>
           <CardHeader>

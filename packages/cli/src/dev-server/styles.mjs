@@ -1,10 +1,13 @@
 import fs from "node:fs/promises"
 import path from "node:path"
+import { createRequire } from "node:module"
 
 import { Scanner } from "@tailwindcss/oxide"
 import { compile } from "tailwindcss"
 
 import { hostRoot, repoRoot, requireFromRepo } from "./context.mjs"
+
+const requireFromCli = createRequire(import.meta.url)
 
 async function readFileIfExists(filePath) {
   try {
@@ -22,11 +25,18 @@ function resolvePackageStylesheet(id) {
   try {
     return requireFromRepo.resolve(id)
   } catch {
-    return null
+    try {
+      return requireFromCli.resolve(id)
+    } catch {
+      return null
+    }
   }
 }
 
 async function loadTailwindStylesheet(id, base) {
+  const packageRoot = id.startsWith("@")
+    ? id.split("/").slice(0, 2).join("/")
+    : id.split("/")[0]
   const candidates = [
     id === "tailwindcss"
       ? path.join(repoRoot, "node_modules", "tailwindcss", "index.css")
@@ -48,6 +58,16 @@ async function loadTailwindStylesheet(id, base) {
     path.resolve(base, `${id}.css`),
     path.join(repoRoot, "node_modules", id),
     path.join(repoRoot, "node_modules", id, "index.css"),
+    path.join(repoRoot, "node_modules", packageRoot, "index.css"),
+    path.join(repoRoot, "packages", "cli", "node_modules", id, "index.css"),
+    path.join(
+      repoRoot,
+      "packages",
+      "cli",
+      "node_modules",
+      packageRoot,
+      "index.css"
+    ),
   ].filter(Boolean)
 
   for (const candidate of candidates) {
@@ -58,6 +78,14 @@ async function loadTailwindStylesheet(id, base) {
         content,
         path: candidate,
       }
+    }
+  }
+
+  if (id.startsWith("@fontsource") || id.startsWith("@fontsource-variable")) {
+    return {
+      base,
+      content: "",
+      path: path.resolve(base, `${id}.css`),
     }
   }
 

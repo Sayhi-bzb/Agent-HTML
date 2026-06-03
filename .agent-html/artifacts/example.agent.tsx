@@ -66,7 +66,10 @@ export default function ExampleArtifact() {
   )
 
   return (
-    <Artifact title="React Canvas Example">
+    <Artifact
+      className="mx-auto flex w-full max-w-6xl flex-col gap-4 bg-background text-foreground"
+      title="React Canvas Example"
+    >
       <Block id="summary" title="Summary">
         <Card>
           <CardHeader>

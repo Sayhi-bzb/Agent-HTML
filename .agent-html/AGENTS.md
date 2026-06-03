@@ -17,6 +17,11 @@ import the app implementation:
 - `.agent-html/ui` is the only primitive layer for React Canvas.
 - Host and artifacts compose primitives; they do not create new primitive
   buttons, cards, badges, tables, sidebars, or inputs.
+- `Artifact`, `Block`, and `Action` from `@agent-html/react` are headless
+  collaboration protocol markers, not visual components. They provide metadata,
+  host anchors, source extraction anchors, action dispatch, accessibility, and
+  props passthrough. Put layout and visual treatment in artifact composition and
+  `.agent-html/ui` primitives.
 - Use semantic token utilities such as `bg-background`, `text-foreground`,
   `bg-card`, `text-muted-foreground`, `border-border`, `bg-popover`, and
   `text-popover-foreground`.

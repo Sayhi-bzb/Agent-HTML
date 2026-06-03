@@ -16,15 +16,17 @@ describe("@agent-html/react", () => {
 
     expect(html).toContain('data-agent-html-artifact="true"')
     expect(html).toContain('data-agent-html-title="Demo"')
-    expect(html).toContain(
-      'class="mx-auto flex w-full max-w-6xl flex-col gap-4 bg-background text-foreground"'
-    )
+    expect(html).not.toContain("mx-auto")
+    expect(html).not.toContain("max-w-6xl")
+    expect(html).not.toContain("bg-background")
+    expect(html).not.toContain("text-foreground")
     expect(html).toContain('data-agent-html-block-id="summary"')
-    expect(html).toContain('class="min-w-0 scroll-mt-4"')
+    expect(html).not.toContain("min-w-0")
+    expect(html).not.toContain("scroll-mt-4")
     expect(html).toContain("Hello")
   })
 
-  it("merges layout escape hatch classes without dropping metadata", () => {
+  it("passes explicit classes through without adding protocol defaults", () => {
     const html = renderToStaticMarkup(
       <Artifact className="max-w-4xl" title="Demo">
         <Block className="col-span-2" id="summary" title="Summary">
@@ -34,10 +36,10 @@ describe("@agent-html/react", () => {
     )
 
     expect(html).toContain('data-agent-html-artifact="true"')
-    expect(html).toContain("max-w-6xl")
     expect(html).toContain("max-w-4xl")
+    expect(html).not.toContain("max-w-6xl")
     expect(html).toContain('data-agent-html-block-id="summary"')
-    expect(html).toContain("scroll-mt-4")
+    expect(html).not.toContain("scroll-mt-4")
     expect(html).toContain("col-span-2")
   })
 
