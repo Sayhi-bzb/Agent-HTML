@@ -128,10 +128,13 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       /className=["'][^"']*(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|className=["'][^"']*(?:shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl))/
     const rawArtifactVisualClass =
       /className=["'][^"']*(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|className=["'][^"']*(?:shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|text-(?:[3-9]xl|[1-9][0-9]xl)|font-\w+|tracking-\w+|\[[^\]]+\])/
+    const textSelectionOverride = /selection:(?:bg|text)-/
 
     expect(filesMatching(".agent-html/artifacts", rawArtifactVisualClass)).toEqual([])
     expect(filesMatching(".agent-html/examples", rawArtifactVisualClass)).toEqual([])
     expect(filesMatching("packages/cli/src/host", rawSurfaceVisualClass)).toEqual([])
+    expect(filesMatching(".agent-html", textSelectionOverride)).toEqual([])
+    expect(filesMatching("packages/cli/src/host", textSelectionOverride)).toEqual([])
   })
 
   it("keeps the React API package independent from host and playground code", () => {
@@ -156,10 +159,15 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundPackage).toEqual({
       dependencies: {
         "@base-ui/react": "^1.5.0",
+        "@dnd-kit/core": "^6.3.1",
+        "@dnd-kit/modifiers": "^9.0.0",
+        "@dnd-kit/sortable": "^10.0.0",
+        "@dnd-kit/utilities": "^3.2.2",
         cmdk: "^1.1.1",
         "date-fns": "^4.4.0",
         "embla-carousel-react": "^8.6.0",
         "input-otp": "^1.4.2",
+        "radix-ui": "^1.4.3",
         "react-day-picker": "^10.0.1",
         "react-resizable-panels": "^4.11.2",
         vaul: "^1.1.2",
@@ -199,6 +207,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       readSource(".agent-html/components.json")
     )
     const playgroundStyles = readSource(".agent-html/styles/index.css")
+    const playgroundBaseStyles = readSource(".agent-html/styles/base.css")
     const playgroundTailwindTokens = readSource(
       ".agent-html/styles/tokens/tailwind.css"
     )
@@ -264,6 +273,13 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundStyles).toContain('@import "./internal/artifact.css"')
     expect(playgroundStyles).toContain('@import "./internal/host.css"')
     expect(playgroundStyles).toContain('@import "./internal/theme-editor.css"')
+    expect(playgroundBaseStyles).toContain("::selection")
+    expect(playgroundBaseStyles).toContain(
+      "background: var(--agent-html-text-selection-background)"
+    )
+    expect(playgroundBaseStyles).toContain(
+      "color: var(--agent-html-text-selection-foreground)"
+    )
     expect(playgroundTailwindTokens).toContain("--font-sans: var(--font-sans)")
     expect(playgroundTailwindTokens).toContain(
       "--font-heading: var(--font-heading)"
@@ -281,6 +297,12 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-y\s*:/)
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-blur\s*:/)
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-spread\s*:/)
+    expect(playgroundFoundationTokens).toContain(
+      "--agent-html-text-selection-background"
+    )
+    expect(playgroundFoundationTokens).toContain(
+      "--agent-html-text-selection-foreground"
+    )
     expect(playgroundFoundationTokens).toContain("--radius: 0.625rem")
     expect(playgroundFoundationTokens).not.toContain("--radius-base")
     expect(playgroundArtifactTokens).toContain("--canvas-artifact-max-width")

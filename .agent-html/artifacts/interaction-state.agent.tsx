@@ -109,6 +109,13 @@ import {
   InputOTPSlot,
 } from "../ui/input-otp"
 import {
+  Kanban,
+  KanbanBoard,
+  KanbanColumn,
+  KanbanItem,
+  KanbanOverlay,
+} from "../ui/kanban"
+import {
   Menubar,
   MenubarContent,
   MenubarGroup,
@@ -143,11 +150,20 @@ import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group"
 
 const promptDebugEventName = "agent-html:prompt-debug"
 const blockId = "interaction-controls"
+const kanbanBlockId = "kanban-board"
 const comboboxOptions = [
   { label: "Design", value: "design" },
   { label: "Runtime", value: "runtime" },
   { label: "Host", value: "host" },
 ]
+const initialKanbanColumns = {
+  todo: [
+    { id: "task-auth", title: "Auth flow" },
+    { id: "task-api", title: "API contract" },
+  ],
+  doing: [{ id: "task-copy", title: "Polish copy" }],
+  done: [{ id: "task-shell", title: "Shell layout" }],
+}
 
 export type TextEditChangeInput = Pick<
   ArtifactStateChangeInput,
@@ -181,6 +197,139 @@ export function createTextEditChange({
   }
 }
 
+type KanbanItemRecord = {
+  id: string
+  title: string
+}
+
+type KanbanColumns = Record<string, KanbanItemRecord[]>
+
+type KanbanMoveChangeInput = Pick<
+  ArtifactStateChangeInput,
+  "after" | "before" | "component" | "controlId" | "kind" | "semantic"
+>
+
+export function createKanbanMoveChange({
+  afterColumns,
+  beforeColumns,
+  controlId,
+}: {
+  afterColumns: KanbanColumns
+  beforeColumns: KanbanColumns
+  controlId: string
+}): KanbanMoveChangeInput | null {
+  const beforeOrder = Object.keys(beforeColumns)
+  const afterOrder = Object.keys(afterColumns)
+  const columnMove = findColumnMove({ afterOrder, beforeOrder })
+
+  if (columnMove) {
+    return {
+      after: columnMove.after,
+      before: columnMove.before,
+      component: "kanban",
+      controlId,
+      kind: "move",
+      semantic: "move-kanban-column",
+    }
+  }
+
+  const itemMove = findKanbanItemMove({ afterColumns, beforeColumns })
+
+  if (!itemMove) {
+    return null
+  }
+
+  return {
+    after: itemMove.after,
+    before: itemMove.before,
+    component: "kanban",
+    controlId,
+    kind: "move",
+    semantic: "move-kanban-item",
+  }
+}
+
+function findColumnMove({
+  afterOrder,
+  beforeOrder,
+}: {
+  afterOrder: string[]
+  beforeOrder: string[]
+}) {
+  if (
+    beforeOrder.length !== afterOrder.length ||
+    beforeOrder.every((columnId, index) => columnId === afterOrder[index])
+  ) {
+    return null
+  }
+
+  const movedColumnId = beforeOrder.find(
+    (columnId, index) => columnId !== afterOrder[index]
+  )
+
+  if (!movedColumnId) {
+    return null
+  }
+
+  return {
+    after: {
+      columnId: movedColumnId,
+      index: afterOrder.indexOf(movedColumnId),
+    },
+    before: {
+      columnId: movedColumnId,
+      index: beforeOrder.indexOf(movedColumnId),
+    },
+  }
+}
+
+function findKanbanItemMove({
+  afterColumns,
+  beforeColumns,
+}: {
+  afterColumns: KanbanColumns
+  beforeColumns: KanbanColumns
+}) {
+  for (const [beforeColumnId, beforeItems] of Object.entries(beforeColumns)) {
+    for (const [beforeIndex, item] of beforeItems.entries()) {
+      const afterLocation = findKanbanItemLocation(afterColumns, item.id)
+
+      if (
+        afterLocation &&
+        (afterLocation.columnId !== beforeColumnId ||
+          afterLocation.index !== beforeIndex)
+      ) {
+        return {
+          after: {
+            itemId: item.id,
+            columnId: afterLocation.columnId,
+            index: afterLocation.index,
+          },
+          before: {
+            itemId: item.id,
+            columnId: beforeColumnId,
+            index: beforeIndex,
+          },
+        }
+      }
+    }
+  }
+
+  return null
+}
+
+function findKanbanItemLocation(columns: KanbanColumns, itemId: string) {
+  for (const [columnId, items] of Object.entries(columns)) {
+    const index = items.findIndex((item) => item.id === itemId)
+
+    if (index !== -1) {
+      return { columnId, index }
+    }
+  }
+
+  return null
+}
+
 declare global {
   interface Window {
     __agentHtmlLastPrompt?: string
@@ -189,6 +338,7 @@ declare global {
 
 export default function InteractionStateArtifact() {
   const emitChange = useEmitArtifactStateChange({ blockId })
+  const emitKanbanChange = useEmitArtifactStateChange({ blockId: kanbanBlockId })
   const [carouselApi, setCarouselApi] = useState<{
     off: (eventName: "select", callback: () => void) => void
     on: (eventName: "select", callback: () => void) => void
@@ -227,6 +377,8 @@ export default function InteractionStateArtifact() {
     input: state.input,
     textarea: state.textarea,
   })
+  const [kanbanColumns, setKanbanColumns] =
+    useState<KanbanColumns>(initialKanbanColumns)
   const dateLabel = useMemo(
     () => state.calendar.toISOString().slice(0, 10),
     [state.calendar]
@@ -1006,8 +1158,122 @@ export default function InteractionStateArtifact() {
       <Block id="prompt-display" title="Prompt Display">
         <PromptDisplay />
       </Block>
+
+      <Block id={kanbanBlockId} title="Kanban Board">
+        <KanbanExample
+          columns={kanbanColumns}
+          onColumnsChange={(nextColumns) => {
+            const change = createKanbanMoveChange({
+              afterColumns: nextColumns,
+              beforeColumns: kanbanColumns,
+              controlId: "sprint-board",
+            })
+
+            if (change) {
+              emitKanbanChange({
+                ...change,
+                after: change.after,
+                before: change.before,
+              })
+            }
+
+            emitKanbanChange({
+              after: nextColumns,
+              before: kanbanColumns,
+              component: "kanban",
+              controlId: "sprint-board",
+              kind: "snapshot",
+              semantic: "set-kanban-board-state",
+            })
+            setKanbanColumns(nextColumns)
+          }}
+        />
+      </Block>
     </Artifact>
   )
+}
+
+function KanbanExample({
+  columns,
+  onColumnsChange,
+}: {
+  columns: KanbanColumns
+  onColumnsChange: (columns: KanbanColumns) => void
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Semantic Kanban</CardTitle>
+        <CardDescription>
+          Move a card to emit semantic before/after locations.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Kanban
+          getItemValue={(item) => item.id}
+          onValueChange={onColumnsChange}
+          value={columns}
+        >
+          <KanbanBoard className="min-h-72 items-start overflow-x-auto">
+            {Object.entries(columns).map(([columnId, items]) => (
+              <KanbanColumn
+                className="min-w-56 bg-muted/40"
+                key={columnId}
+                value={columnId}
+              >
+                <div className="canvas-stack-sm">
+                  <div className="canvas-cluster-md items-center justify-between">
+                    <span className="canvas-text-body">
+                      {columnId}
+                    </span>
+                    <Badge variant="secondary">{items.length}</Badge>
+                  </div>
+                  {items.map((item) => (
+                    <KanbanItem
+                      asHandle
+                      className="canvas-content-panel"
+                      key={item.id}
+                      value={item.id}
+                    >
+                      <p className="canvas-text-body">
+                        {item.title}
+                      </p>
+                      <p className="canvas-text-small text-muted-foreground">
+                        {item.id}
+                      </p>
+                    </KanbanItem>
+                  ))}
+                </div>
+              </KanbanColumn>
+            ))}
+          </KanbanBoard>
+          <KanbanOverlay>
+            {({ value }) => {
+              const item = findKanbanItemById(columns, String(value))
+
+              return item ? (
+                <div className="canvas-content-panel">
+                  <p className="canvas-text-body">{item.title}</p>
+                </div>
+              ) : null
+            }}
+          </KanbanOverlay>
+        </Kanban>
+      </CardContent>
+    </Card>
+  )
+}
+
+function findKanbanItemById(columns: KanbanColumns, itemId: string) {
+  for (const items of Object.values(columns)) {
+    const item = items.find((candidate) => candidate.id === itemId)
+
+    if (item) {
+      return item
+    }
+  }
+
+  return null
 }
 
 function SectionCard({

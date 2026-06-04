@@ -283,6 +283,61 @@ describe("React Canvas prompt bridge", () => {
     })
   })
 
+  it("keeps kanban move diffs while omitting board snapshot changes", () => {
+    expect(
+      compactInteractionSnapshot({
+        blockId: "kanban-board",
+        compactedChanges: [
+          {
+            component: "kanban",
+            controlId: "sprint-board",
+            from: { itemId: "task-auth", columnId: "todo", index: 0 },
+            kind: "move",
+            semantic: "move-kanban-item",
+            to: { itemId: "task-auth", columnId: "doing", index: 0 },
+          },
+          {
+            component: "kanban",
+            controlId: "sprint-board",
+            from: {
+              todo: [{ id: "task-auth", title: "Auth flow" }],
+              doing: [],
+            },
+            kind: "snapshot",
+            semantic: "set-kanban-board-state",
+            to: {
+              todo: [],
+              doing: [{ id: "task-auth", title: "Auth flow" }],
+            },
+          },
+        ],
+        currentState: {
+          "sprint-board": {
+            todo: [],
+            doing: [{ id: "task-auth", title: "Auth flow" }],
+          },
+        },
+        recentChanges: [],
+      })
+    ).toEqual({
+      actions: [],
+      finalState: {
+        "sprint-board": {
+          todo: [],
+          doing: [{ id: "task-auth", title: "Auth flow" }],
+        },
+      },
+      diff: [
+        {
+          controlId: "sprint-board",
+          from: { itemId: "task-auth", columnId: "todo", index: 0 },
+          semantic: "move-kanban-item",
+          to: { itemId: "task-auth", columnId: "doing", index: 0 },
+        },
+      ],
+    })
+  })
+
   it("omits no-op compact interaction diffs", () => {
     expect(
       compactInteractionSnapshot({

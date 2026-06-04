@@ -7,7 +7,7 @@ const toonEncodeOptions = {
   keyFolding: "off",
 }
 
-const viewStateKinds = new Set(["open"])
+const viewStateKinds = new Set(["open", "snapshot"])
 const viewStateComponents = new Set([
   "accordion",
   "alert-dialog",

@@ -110,12 +110,12 @@ function compactStateChanges({
   previous: CanvasInteractionSnapshot
 }) {
   const previousCompactedChange = previous.compactedChanges.find(
-    (compactedChange) => compactedChange.controlId === change.controlId
+    (compactedChange) => isSameCompactChange({ change, compactedChange })
   )
 
   return [
     ...previous.compactedChanges.filter(
-      (compactedChange) => compactedChange.controlId !== change.controlId
+      (compactedChange) => !isSameCompactChange({ change, compactedChange })
     ),
     {
       component: change.component,
@@ -128,6 +128,20 @@ function compactStateChanges({
       to: change.after,
     },
   ]
+}
+
+function isSameCompactChange({
+  change,
+  compactedChange,
+}: {
+  change: ArtifactStateChange
+  compactedChange: CanvasInteractionCompactChange
+}) {
+  return (
+    compactedChange.controlId === change.controlId &&
+    compactedChange.kind === change.kind &&
+    compactedChange.semantic === change.semantic
+  )
 }
 
 export function getCanvasInteractionSnapshot({

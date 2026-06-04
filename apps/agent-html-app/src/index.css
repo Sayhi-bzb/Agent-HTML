@@ -114,6 +114,12 @@
   --shadow-xl: 0px 1px 3px 0px rgb(0 0 0 / 0.1),
     0px 8px 10px -1px rgb(0 0 0 / 0.1);
   --shadow-2xl: 0px 1px 3px 0px rgb(0 0 0 / 0.25);
+  --agent-html-text-selection-background: color-mix(
+    in oklab,
+    var(--primary) 18%,
+    transparent
+  );
+  --agent-html-text-selection-foreground: var(--foreground);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
   --background: oklch(1 0 0);
@@ -181,6 +187,12 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --agent-html-text-selection-background: color-mix(
+    in oklab,
+    var(--primary) 28%,
+    transparent
+  );
+  --agent-html-text-selection-foreground: var(--foreground);
 }
 
 @layer base {
@@ -228,6 +240,11 @@
 
   [data-window-drag-handle] {
     user-select: none;
+  }
+
+  ::selection {
+    background: var(--agent-html-text-selection-background);
+    color: var(--agent-html-text-selection-foreground);
   }
 
   [data-selection="none"] {

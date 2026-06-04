@@ -568,6 +568,21 @@ describe("pet host contract", () => {
     expect(appCssSource).toContain("--window-chrome-shadow: none")
     expect(appCssSource).toContain("overflow: hidden")
     expect(appCssSource).toContain("overscroll-behavior: none")
+    expect(appCssSource).toContain(
+      "--agent-html-text-selection-background"
+    )
+    expect(appCssSource).toContain(
+      "--agent-html-text-selection-foreground"
+    )
+    expect(appCssSource).toContain("::selection")
+    expect(appCssSource).toContain(
+      "background: var(--agent-html-text-selection-background)"
+    )
+    expect(appCssSource).toContain(
+      "color: var(--agent-html-text-selection-foreground)"
+    )
+    expect(appCssSource).toContain("user-select: none")
+    expect(appCssSource).toContain("user-select: text")
     expect(tauriConfigSource).toContain('"transparent": true')
   })
 

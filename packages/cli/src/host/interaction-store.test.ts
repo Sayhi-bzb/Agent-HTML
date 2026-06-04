@@ -171,6 +171,45 @@ describe("Canvas interaction store", () => {
     })
   })
 
+  it("keeps multiple semantic changes for one control", () => {
+    recordCanvasInteractionChange({
+      change: {
+        after: { itemId: "task-auth", columnId: "doing", index: 0 },
+        before: { itemId: "task-auth", columnId: "todo", index: 0 },
+        blockId: "kanban",
+        component: "kanban",
+        controlId: "sprint-board",
+        kind: "move",
+        semantic: "move-kanban-item",
+        timestamp: 1,
+      },
+      filePath: ".agent-html/artifacts/demo.agent.tsx",
+    })
+    recordCanvasInteractionChange({
+      change: {
+        after: { todo: [], doing: [{ id: "task-auth" }] },
+        before: { todo: [{ id: "task-auth" }], doing: [] },
+        blockId: "kanban",
+        component: "kanban",
+        controlId: "sprint-board",
+        kind: "snapshot",
+        semantic: "set-kanban-board-state",
+        timestamp: 2,
+      },
+      filePath: ".agent-html/artifacts/demo.agent.tsx",
+    })
+
+    const snapshot = getCanvasInteractionSnapshot({
+      blockId: "kanban",
+      filePath: ".agent-html/artifacts/demo.agent.tsx",
+    })
+
+    expect(snapshot?.compactedChanges).toHaveLength(2)
+    expect(snapshot?.currentState).toEqual({
+      "sprint-board": { todo: [], doing: [{ id: "task-auth" }] },
+    })
+  })
+
   it("ignores changes without block ownership", () => {
     recordCanvasInteractionChange({
       change: {
