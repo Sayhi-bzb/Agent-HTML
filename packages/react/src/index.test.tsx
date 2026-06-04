@@ -16,18 +16,16 @@ describe("@agent-html/react", () => {
 
     expect(html).toContain('data-agent-html-artifact="true"')
     expect(html).toContain('data-agent-html-title="Demo"')
-    expect(html).toContain("mx-auto")
-    expect(html).toContain("max-w-2xl")
-    expect(html).toContain("gap-8")
-    expect(html).toContain("bg-background")
-    expect(html).toContain("text-foreground")
+    expect(html).toContain("agent-html-artifact")
+    expect(html).not.toContain("max-w-2xl")
+    expect(html).not.toContain("gap-8")
     expect(html).toContain('data-agent-html-block-id="summary"')
     expect(html).not.toContain("min-w-0")
     expect(html).not.toContain("scroll-mt-4")
     expect(html).toContain("Hello")
   })
 
-  it("keeps Artifact as a fixed reading container", () => {
+  it("keeps Artifact as a token-configured reading container", () => {
     const html = renderToStaticMarkup(
       <Artifact title="Demo">
         <Block id="summary" title="Summary">
@@ -39,7 +37,7 @@ describe("@agent-html/react", () => {
     )
 
     expect(html).toContain('data-agent-html-artifact="true"')
-    expect(html).toContain("max-w-2xl")
+    expect(html).toContain("agent-html-artifact")
     expect(html).not.toContain("max-w-4xl")
     expect(html).toContain('data-agent-html-block-id="summary"')
     expect(html).not.toContain("scroll-mt-4")
@@ -47,7 +45,7 @@ describe("@agent-html/react", () => {
   })
 
   it("does not type-check visual props on Artifact", () => {
-    // @ts-expect-error Artifact owns a fixed reading layout.
+    // @ts-expect-error Artifact owns token-configured reading layout.
     const element = <Artifact className="max-w-4xl" title="Demo" />
 
     expect(element.type).toBe(Artifact)

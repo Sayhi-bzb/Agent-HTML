@@ -12,13 +12,13 @@ export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {
   }
 
   return (
-    <Alert className="mb-3">
+    <Alert className="canvas-status">
       <AlertTitle>Guard issues</AlertTitle>
       <AlertDescription>
-        <div className="flex flex-col gap-1.5">
+        <div className="canvas-status-stack">
           {issues.map((issue, index) => (
             <p
-              className="flex min-w-0 items-center gap-2"
+              className="canvas-status-item"
               key={`${issue.filePath}:${issue.line ?? 0}:${index}`}
             >
               <Badge className="shrink-0" variant="secondary">

@@ -145,7 +145,7 @@ function collectArtifactProtocolIssues({ relativePath, source }) {
         createIssue({
           filePath: relativePath,
           line: lineForIndex(source, match.index),
-          message: "Artifact owns the fixed reading layout and must not receive className or style.",
+          message: "Artifact owns token-configured reading layout and must not receive className or style.",
           severity: "error",
           suggestion: "Remove visual props from Artifact; put content layout inside Blocks and local UI primitives.",
         })

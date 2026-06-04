@@ -104,8 +104,11 @@ The default strategy is:
 color/radius/font
   -> theme.css + styles.css token pipeline
 
-spacing/density/typography scale
-  -> agent usage rules + guard checks + local primitive conventions
+host/artifact composition spacing/density/typography scale
+  -> theme.css + styles.css Canvas semantic classes
+
+local primitive spacing/density/typography scale
+  -> low-modification shadcn conventions
 
 local UI source edits
   -> only for Canvas-required primitive APIs, correctness, or accessibility
@@ -115,30 +118,35 @@ Spacing, density, and typography scale are not fully tokenized by shadcn by
 default. Many components encode them as Tailwind utilities such as `gap-4`,
 `px-4`, `py-4`, `text-sm`, `text-base`, `font-medium`, and `leading-snug`.
 
-Canvas should keep those component-level conventions stable and constrain agent
-authored layout instead of refactoring every primitive.
+Canvas should keep those component-level conventions stable. Host chrome and
+artifact composition should consume `--canvas-*` token-backed semantic classes
+instead of scattering one-off spacing, typography, radius, panel, icon, or
+surface values through host and artifact files.
 
 ## Agent Scale Discipline
 
-Agents may use layout utilities when composing artifact structure:
+Agents use Canvas semantic classes for visual scale when composing artifact
+structure:
+
+```text
+canvas-stack-xs/sm/md/lg
+canvas-content-panel
+canvas-content-panel-sm
+canvas-grid-gap
+canvas-icon-box-sm/md
+canvas-text-title/heading/body/caption
+```
+
+Agents may still use behavior utilities when they express local structure or
+overflow behavior:
 
 ```text
 flex
 grid
-gap-2
-gap-3
-gap-4
-gap-6
-p-2
-p-3
-p-4
-p-6
-text-sm
-text-base
-leading-snug
-leading-normal
 min-w-0
 overflow-hidden
+flex-wrap
+shrink-0
 truncate
 ```
 

@@ -83,11 +83,11 @@ function FlowNode({
   summary: string
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-2 rounded-md border border-border p-3">
-      <div className="flex items-center gap-2">
+    <div className="canvas-stack-sm canvas-content-panel-sm min-w-0">
+      <div className="canvas-cluster-sm items-center">
         <Badge>{label}</Badge>
       </div>
-      <p className="text-sm leading-normal text-muted-foreground">{summary}</p>
+      <p className="canvas-text-body text-muted-foreground">{summary}</p>
     </div>
   )
 }
@@ -100,9 +100,9 @@ function SignalList({
   label: string
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-3 rounded-md border border-border p-3">
-      <p className="text-sm leading-normal">{label}</p>
-      <div className="flex flex-wrap gap-2">
+    <div className="canvas-stack-md canvas-content-panel-sm min-w-0">
+      <p className="canvas-text-body">{label}</p>
+      <div className="canvas-wrap-sm">
         {items.map((item) => (
           <Badge key={item} variant="secondary">
             {item}
@@ -125,7 +125,7 @@ export default function ProjectVisualExplainer() {
               inspectable React artifacts.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3 text-sm leading-normal">
+          <CardContent className="canvas-stack-md canvas-text-body">
             <p>
               AgentHTML is an agent artifact workspace. It gives agents a local
               operating context, a React Canvas preview host, and guardrails for
@@ -157,7 +157,7 @@ export default function ProjectVisualExplainer() {
               App consumes Runtime. Canvas is a separate React-first topology.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 lg:grid-cols-3">
+          <CardContent className="canvas-grid-gap lg:grid-cols-3">
             {topologyNodes.map((node) => (
               <FlowNode
                 key={node.label}
@@ -178,8 +178,8 @@ export default function ProjectVisualExplainer() {
               primitives, and explicit artifact composition.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <CardContent className="canvas-stack-lg">
+            <div className="canvas-grid-gap-md md:grid-cols-2 lg:grid-cols-3">
               {pipelineNodes.map((node) => (
                 <FlowNode
                   key={node.label}
@@ -189,7 +189,7 @@ export default function ProjectVisualExplainer() {
               ))}
             </div>
             <Separator />
-            <p className="text-sm leading-normal text-muted-foreground">
+            <p className="canvas-text-body text-muted-foreground">
               Color, font, and radius flow through explicit tokens. Spacing,
               density, and typography scale are kept stable through local
               primitives, agent instructions, and guard checks.
@@ -206,14 +206,14 @@ export default function ProjectVisualExplainer() {
               A request becomes durable source, then an inspectable canvas.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+          <CardContent className="canvas-stack-md">
             {workflowSteps.map((step, index) => (
               <div
-                className="flex min-w-0 items-start gap-3 rounded-md border border-border p-3"
+                className="canvas-cluster-md canvas-content-panel-sm min-w-0 items-start"
                 key={step}
               >
                 <Badge>{index + 1}</Badge>
-                <p className="text-sm leading-normal text-muted-foreground">
+                <p className="canvas-text-body text-muted-foreground">
                   {step}
                 </p>
               </div>
@@ -230,7 +230,7 @@ export default function ProjectVisualExplainer() {
               Agent freedom stays inside reusable Canvas boundaries.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
+          <CardContent className="canvas-grid-gap md:grid-cols-2">
             <SignalList items={allowedSignals} label="Use" />
             <SignalList items={blockedSignals} label="Avoid" />
           </CardContent>

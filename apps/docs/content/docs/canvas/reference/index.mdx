@@ -17,8 +17,10 @@ Artifact and example code may consume:
 - `../data/*`
 - `../assets/*`
 - semantic token classes
-- compact layout and type utilities such as `gap-4`, `p-4`, `text-sm`,
-  `text-base`, `leading-snug`, `min-w-0`, `overflow-hidden`, and `truncate`
+- Canvas semantic classes such as `canvas-stack-md`,
+  `canvas-content-panel`, `canvas-grid-gap`, and `canvas-text-body`
+- layout behavior utilities such as `flex`, `grid`, `min-w-0`,
+  `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate`
 
 Artifact and example code must not consume:
 
@@ -53,8 +55,8 @@ Host code must not consume:
 
 ## Review Checks
 
-Confirm that `Artifact` keeps the fixed readable root container, `Block` stays
-protocol-only, `.agent-html/ui/*` remains the visual primitive layer,
+Confirm that `Artifact` keeps the token-configured readable root container,
+`Block` stays protocol-only, `.agent-html/ui/*` remains the visual primitive layer,
 `.agent-html/styles.css` remains the CSS runtime entrypoint,
 `.agent-html/styles/theme.css` remains the semantic token value layer, font and
 radius values stay explicit tokens, and block content layout stays explicit in

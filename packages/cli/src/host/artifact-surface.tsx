@@ -81,12 +81,10 @@ export function ArtifactSurface({
   ])
 
   return (
-    <main
-      className="relative flex min-h-svh flex-1 overflow-hidden bg-background"
-    >
-      <ScrollArea className="h-svh min-w-0 flex-1">
+    <main className="canvas-surface-root">
+      <ScrollArea className="canvas-surface-scroll">
         <div
-          className="relative min-h-svh px-4 pt-14 pb-4"
+          className="canvas-surface-frame"
           onTransitionEnd={scheduleGeometryUpdate}
           ref={overlayRootRef}
         >

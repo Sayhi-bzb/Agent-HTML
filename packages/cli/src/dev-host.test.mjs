@@ -14,7 +14,7 @@ describe("React Canvas dev host", () => {
         response.json()
       )
       expect(artifacts.artifacts).toContainEqual({
-        filePath: ".agent-html/artifacts/example.agent.tsx",
+        filePath: ".agent-html/artifacts/project-visual-explainer.agent.tsx",
       })
 
       const removedRender = await fetch(`${url}/__agent-html/render`)
@@ -34,6 +34,9 @@ describe("React Canvas dev host", () => {
       )
       expect(hostClient).toContain("ReactCanvasHostApp")
       expect(hostClient).toContain("ReactCanvasSidebar")
+      expect(hostClient).toContain("ReactCanvasThemeEditor")
+      expect(hostClient).toContain("Reset preview")
+      expect(hostClient).toContain("react-canvas-theme-editor-preview")
       expect(hostClient).toContain("formatBlockPrompt")
       expect(hostClient).not.toContain("WindowChromeFrame")
       expect(hostClient).not.toContain("DocumentTabRail")
@@ -64,12 +67,11 @@ describe("React Canvas dev host", () => {
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(
         "filePath",
-        ".agent-html/artifacts/example.agent.tsx"
+        ".agent-html/artifacts/project-visual-explainer.agent.tsx"
       )
       const bundle = await fetch(bundleUrl).then((response) => response.text())
       expect(bundle).toContain("function mount")
-      expect(bundle).toContain("AgentHTML Workspace Brief")
-      expect(bundle).toContain("recharts")
+      expect(bundle).toContain("agent-html-artifact")
 
       const css = await fetch(`${url}/__agent-html/styles.css`).then((response) =>
         response.text()
@@ -79,8 +81,21 @@ describe("React Canvas dev host", () => {
       expect(css).not.toContain("--window-chrome-radius")
       expect(css).toContain(".bg-primary")
       expect(css).toContain(".bg-sidebar")
-      expect(css).toContain(".max-w-2xl")
-      expect(css).toContain(".gap-8")
+      expect(css).toContain("--canvas-artifact-max-width")
+      expect(css).toContain("--canvas-artifact-block-gap")
+      expect(css).toContain("--canvas-surface-padding-inline")
+      expect(css).toContain("--canvas-toolbar-inset-block-start")
+      expect(css).toContain("--canvas-block-action-offset")
+      expect(css).toContain("--canvas-content-gap-md")
+      expect(css).toContain("--canvas-content-panel-padding-md")
+      expect(css).toContain("--canvas-content-body-font-size")
+      expect(css).toContain("--canvas-theme-editor-popover-width-lg")
+      expect(css).toContain(".agent-html-artifact")
+      expect(css).toContain(".canvas-surface-frame")
+      expect(css).toContain(".canvas-block-action")
+      expect(css).toContain(".canvas-content-panel")
+      expect(css).toContain(".canvas-text-body")
+      expect(css).toContain(".canvas-theme-editor-option")
       expect(css).toContain(".text-popover-foreground")
     } finally {
       await new Promise((resolve) => server.close(resolve))

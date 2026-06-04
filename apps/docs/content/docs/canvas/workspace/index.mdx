@@ -20,7 +20,7 @@ while writing React artifacts:
   -> local TypeScript and editor discovery config
 
 .agent-html/styles.css
-  -> CSS runtime entrypoint
+  -> CSS runtime entrypoint and Canvas semantic class bridge
 
 .agent-html/styles/theme.css
   -> semantic token lookup
@@ -87,11 +87,19 @@ import rows from "../data/rows.json"
 import diagramUrl from "../assets/diagram.svg"
 ```
 
-Use `Artifact` as the top-level wrapper. It owns the fixed readable root
-container and accepts only `title` and children. Wrap each major semantic region
-in `Block`. Use stable, unique, readable, kebab-case block ids. `Block` is a
-protocol marker only: use `id`, `title`, and children, and put layout or visual
-treatment inside the block content.
+Use `Artifact` as the top-level wrapper. It owns the readable root container
+and accepts only `title` and children. Root width, block gap, background, and
+foreground are configured by `--canvas-artifact-*` tokens in
+`.agent-html/styles/theme.css`. Wrap each major semantic region in `Block`. Use
+stable, unique, readable, kebab-case block ids. `Block` is a protocol marker
+only: use `id`, `title`, and children, and put layout or visual treatment inside
+the block content.
+
+Artifact content uses Canvas semantic classes backed by `--canvas-content-*`
+tokens for spacing, typography, panel padding, panel radius, icon-box size, and
+grid gap. Host chrome uses `--canvas-*` host tokens for surface padding,
+toolbar offsets, status spacing, sidebar spacing, prompt output height, and
+block action placement.
 
 Artifact code must not call the filesystem, shell commands, MCP servers, Codex
 app-server, or privileged host APIs.

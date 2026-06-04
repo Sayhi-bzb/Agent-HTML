@@ -33,7 +33,7 @@ export function Artifact({ children, title }: ArtifactProps) {
     <main
       data-agent-html-artifact="true"
       data-agent-html-title={title}
-      className="mx-auto flex w-full max-w-2xl flex-col gap-8 bg-background text-foreground"
+      className="agent-html-artifact"
     >
       {children}
     </main>

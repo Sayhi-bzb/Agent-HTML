@@ -32,10 +32,11 @@ surface. The host observes and operates on rendered metadata.
 `Artifact`, `Block`, and `Action` are headless protocol markers.
 
 They own metadata, anchors, accessibility minimums, and action dispatch.
-`Artifact` also owns the fixed readable root container, so agents do not pass
-root layout or visual props. `Block` is fully protocol-only: it accepts `id`,
-`title`, and children. It does not own width, spacing, colors, borders, radius,
-shadow, cards, panels, grid structure, or props passthrough.
+`Artifact` also owns the readable root container, with layout parameters
+configured by Canvas CSS tokens instead of artifact source props. `Block` is
+fully protocol-only: it accepts `id`, `title`, and children. It does not own
+width, spacing, colors, borders, radius, shadow, cards, panels, grid structure,
+or props passthrough.
 
 ## Resources
 

@@ -8,7 +8,16 @@ import {
 import { ArtifactSurface } from "./artifact-surface"
 import { PromptPanel } from "./prompt-panel"
 import { ReactCanvasSidebar } from "./sidebar"
+import {
+  createEmptyCanvasThemeDraft,
+  isCanvasThemeDraftDirty,
+  updateCanvasThemeDraftVariable,
+  type CanvasThemeDraft,
+  type CanvasThemeVariableName,
+} from "./theme-draft"
+import { applyCanvasThemeEditorPreview } from "./theme-preview"
 import { applyCanvasThemePreset } from "./theme-preset"
+import type { CanvasThemeEditorSectionId } from "./theme-editor-sections"
 import {
   SidebarInset,
   SidebarProvider,
@@ -36,6 +45,14 @@ export function ReactCanvasHostApp() {
   const [promptStatus, setPromptStatus] = React.useState("")
   const [activeThemePresetId, setActiveThemePresetId] =
     React.useState<CanvasThemePresetId>("default")
+  const [activeSidebarView, setActiveSidebarView] = React.useState<
+    "artifacts" | "theme"
+  >("artifacts")
+  const [activeThemeEditorSectionId, setActiveThemeEditorSectionId] =
+    React.useState<CanvasThemeEditorSectionId>("color")
+  const [themeDraft, setThemeDraft] = React.useState<CanvasThemeDraft>(() =>
+    createEmptyCanvasThemeDraft()
+  )
   const [promptTarget, setPromptTarget] = React.useState<PromptTarget | null>(
     null
   )
@@ -83,6 +100,10 @@ export function ReactCanvasHostApp() {
   React.useEffect(() => {
     applyCanvasThemePreset(activeThemePreset)
   }, [activeThemePreset])
+
+  React.useEffect(() => {
+    applyCanvasThemeEditorPreview(themeDraft)
+  }, [themeDraft])
 
   React.useEffect(() => {
     const interval = window.setInterval(() => {
@@ -147,6 +168,25 @@ export function ReactCanvasHostApp() {
     setPromptTarget(null)
   }
 
+  function selectThemePreset(presetId: CanvasThemePresetId) {
+    setActiveThemePresetId(presetId)
+    setThemeDraft(createEmptyCanvasThemeDraft())
+  }
+
+  function resetThemePreview() {
+    setThemeDraft(createEmptyCanvasThemeDraft())
+  }
+
+  function updateThemeVariable(name: CanvasThemeVariableName, value: string) {
+    setThemeDraft((current) =>
+      updateCanvasThemeDraftVariable({
+        draft: current,
+        name,
+        value,
+      })
+    )
+  }
+
   async function submitPrompt(request: string) {
     if (!promptTarget || !resolvedActiveFilePath) {
       return
@@ -171,7 +211,7 @@ export function ReactCanvasHostApp() {
 
   return (
     <TooltipProvider>
-      <div className="flex min-h-svh overflow-hidden bg-background text-foreground">
+      <div className="canvas-host-shell">
         <SidebarProvider
           className="contents"
           keyboardShortcut={false}
@@ -180,18 +220,24 @@ export function ReactCanvasHostApp() {
         >
           <ReactCanvasSidebar
             activeFilePath={resolvedActiveFilePath}
+            activeSectionId={activeThemeEditorSectionId}
+            activeSidebarView={activeSidebarView}
             activeThemePresetId={activeThemePresetId}
             artifacts={artifacts}
             guardIssues={guardIssues}
-            onSelectThemePreset={(presetId) =>
-              setActiveThemePresetId(presetId)
-            }
             onSelectArtifact={setActiveFilePath}
+            onSelectSection={setActiveThemeEditorSectionId}
+            onSelectSidebarView={setActiveSidebarView}
+            onSelectThemePreset={selectThemePreset}
+            onThemeVariableChange={updateThemeVariable}
+            onResetThemePreview={resetThemePreview}
+            themeDraft={themeDraft}
+            themePreviewDirty={isCanvasThemeDraftDirty(themeDraft)}
             themePresets={canvasThemePresets}
           />
         </SidebarProvider>
         <SidebarInset className="min-h-svh min-w-0 overflow-hidden">
-          <div className="pointer-events-none absolute top-4 right-4 left-4 z-20 flex items-center justify-between">
+          <div className="canvas-host-toolbar">
             <Button
               aria-label={
                 leftSidebarOpen

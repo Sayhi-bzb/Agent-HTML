@@ -240,13 +240,13 @@ export function BlockOverlayLayer({
   }, [overlays])
 
   return (
-    <div className="pointer-events-none absolute inset-0" ref={rootRef}>
+    <div className="canvas-block-overlay-layer" ref={rootRef}>
       {overlays.map((overlay) => {
         const isHovered = overlay.id === hoveredBlockId
 
         return (
           <div
-            className="absolute rounded-canvas-block-highlight border border-transparent transition-colors data-[hovered=true]:border-canvas-block-highlight-border data-[hovered=true]:bg-canvas-block-highlight-background"
+            className="canvas-block-overlay"
             data-hovered={isHovered ? "true" : undefined}
             key={overlay.id}
             style={{
@@ -258,7 +258,7 @@ export function BlockOverlayLayer({
           >
             <Button
               aria-label={`Message ${overlay.title}`}
-              className="pointer-events-auto absolute top-2 left-2 rounded-full opacity-0 shadow-sm transition-opacity data-[hovered=true]:opacity-100"
+              className="canvas-block-action"
               data-hovered={isHovered ? "true" : undefined}
               onClick={() => onMessageBlock({ id: overlay.id, title: overlay.title })}
               size="icon-sm"

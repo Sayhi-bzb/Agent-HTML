@@ -45,12 +45,12 @@ export function PromptPanel({
 
   return (
     <Sidebar className="border-transparent" collapsible="offcanvas" side="right">
-      <SidebarHeader className="p-3">
+      <SidebarHeader className="canvas-sidebar-pad">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" type="button">
               <MessageSquareIcon />
-              <span className="min-w-0 truncate text-sm font-medium">
+              <span className="canvas-sidebar-body min-w-0 truncate font-medium">
                 AI Conversation
               </span>
             </SidebarMenuButton>
@@ -61,11 +61,11 @@ export function PromptPanel({
         <SidebarGroup>
           <SidebarGroupLabel>Target</SidebarGroupLabel>
           <SidebarGroupContent>
-            <div className="flex flex-col gap-1 px-2 text-sm">
+            <div className="canvas-sidebar-copy canvas-sidebar-stack">
               <p className="truncate font-medium">
                 {target?.title ?? "No block selected"}
               </p>
-              <p className="truncate text-xs text-sidebar-foreground/70">
+              <p className="canvas-sidebar-caption truncate text-sidebar-foreground/70">
                 {activeFilePath ?? "No active artifact"}
               </p>
             </div>
@@ -75,7 +75,7 @@ export function PromptPanel({
           <SidebarGroupLabel>Prompt</SidebarGroupLabel>
           <SidebarGroupContent>
             <form
-              className="flex gap-2 px-2"
+              className="canvas-sidebar-control-row"
               onSubmit={(event) => {
                 event.preventDefault()
                 const request = draft.trim()
@@ -105,7 +105,7 @@ export function PromptPanel({
           <SidebarGroup>
             <SidebarGroupLabel>Status</SidebarGroupLabel>
             <SidebarGroupContent>
-              <p className="px-2 text-xs text-sidebar-foreground/70">
+              <p className="canvas-sidebar-copy canvas-sidebar-caption text-sidebar-foreground/70">
                 {status}
               </p>
             </SidebarGroupContent>
@@ -115,8 +115,8 @@ export function PromptPanel({
           <SidebarGroup>
             <SidebarGroupLabel>Generated Prompt</SidebarGroupLabel>
             <SidebarGroupContent>
-              <ScrollArea className="mx-2 h-80 rounded-md bg-sidebar-accent">
-                <pre className="p-3 text-xs text-sidebar-accent-foreground">
+              <ScrollArea className="canvas-prompt-output">
+                <pre className="canvas-prompt-output-code">
                   {output}
                 </pre>
               </ScrollArea>
@@ -124,7 +124,7 @@ export function PromptPanel({
           </SidebarGroup>
         ) : null}
       </SidebarContent>
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="canvas-sidebar-pad">
         <Button
           disabled={!target}
           onClick={onClose}

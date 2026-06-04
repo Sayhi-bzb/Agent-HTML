@@ -1,21 +1,19 @@
+import { useMemo, useState } from "react"
 import { Artifact, Block, Action } from "@agent-html/react"
 import {
   ArrowRightIcon,
-  BlocksIcon,
   BotIcon,
+  BracesIcon,
+  ChevronDownIcon,
   ClipboardCheckIcon,
+  EyeIcon,
   FileCode2Icon,
   LayoutDashboardIcon,
-  PaintbrushIcon,
+  MessageSquareTextIcon,
+  RouteIcon,
   SparklesIcon,
 } from "lucide-react"
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion"
 import { Alert, AlertDescription } from "../ui/alert"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
@@ -28,11 +26,10 @@ import {
   CardTitle,
 } from "../ui/card"
 import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "../ui/chart"
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible"
 import {
   Dialog,
   DialogContent,
@@ -42,205 +39,311 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "../ui/hover-card"
 import { Progress } from "../ui/progress"
 import { Separator } from "../ui/separator"
+import { Slider } from "../ui/slider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { Textarea } from "../ui/textarea"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group"
 
-const coverageChartConfig = {
-  value: {
-    color: "var(--chart-1)",
-    label: "Readiness",
+type Perspective = "human" | "agent" | "runtime" | "host"
+
+const perspectives: Record<
+  Perspective,
+  {
+    title: string
+    summary: string
+    primary: string
+    secondary: string
+    icon: React.ReactNode
+  }
+> = {
+  human: {
+    title: "Human view",
+    summary: "Start with the claim, then inspect only the parts that need judgment.",
+    primary: "Scan the path and switch viewpoints only when confused.",
+    secondary: "Use block actions when one section needs a rewrite.",
+    icon: <EyeIcon />,
   },
-} satisfies ChartConfig
+  agent: {
+    title: "Agent view",
+    summary: "Work through stable blocks instead of rewriting the whole page.",
+    primary: "Read workspace rules, then change one target block.",
+    secondary: "Use primitives and semantic classes; never style Artifact or Block.",
+    icon: <BotIcon />,
+  },
+  runtime: {
+    title: "Runtime view",
+    summary: "Keep durable source, validation, and rendering separate from app chrome.",
+    primary: "Artifact source stays portable and inspectable.",
+    secondary: "Runtime owns the contract, not the shell around the artifact.",
+    icon: <BracesIcon />,
+  },
+  host: {
+    title: "Host view",
+    summary: "Own the frame around the artifact: sidebars, prompt handoff, and inspection.",
+    primary: "Keep navigation and AI chat outside artifact source.",
+    secondary: "Render the artifact in a readable surface with stable overlays.",
+    icon: <LayoutDashboardIcon />,
+  },
+}
 
-const coverageRows = [
-  { label: "source", value: 92 },
-  { label: "runtime", value: 86 },
-  { label: "host", value: 78 },
-  { label: "tokens", value: 88 },
+const pathSteps = [
+  {
+    id: "request",
+    from: "request",
+    to: "agent",
+    icon: <MessageSquareTextIcon />,
+    text: "The human asks for a visual explanation or a focused change.",
+    detail:
+      "The request should name the outcome, not the layout. The agent chooses the artifact structure from local primitives.",
+  },
+  {
+    id: "artifact",
+    from: "agent",
+    to: "artifact",
+    icon: <FileCode2Icon />,
+    text: "The agent edits durable artifact source with stable blocks.",
+    detail:
+      "Artifact and Block stay protocol-only. Layout, copy, and interaction live inside block content.",
+  },
+  {
+    id: "runtime",
+    from: "runtime",
+    to: "host",
+    icon: <BracesIcon />,
+    text: "The runtime keeps the source contract inspectable.",
+    detail:
+      "The runtime provides rendering semantics and validation boundaries without owning workspace chrome.",
+  },
+  {
+    id: "host",
+    from: "host",
+    to: "human",
+    icon: <RouteIcon />,
+    text: "The host renders sidebars, overlays, scroll protection, and prompt handoff.",
+    detail:
+      "The host is where review, chat, artifact selection, and block targeting become usable workspace behavior.",
+  },
 ]
 
-const ownershipRows = [
+const concepts = [
   {
-    icon: <FileCode2Icon />,
-    name: "Artifact source",
-    text: "The agent writes a durable artifact that can be reopened, reviewed, and changed by block.",
+    label: "Artifact",
+    short: "Durable source surface.",
+    medium:
+      "A React artifact that the host can render and the agent can revise without depending on chat state.",
+    deep: "Artifact owns no ad hoc styling in source. The readable root container is fixed by @agent-html/react and Canvas tokens.",
   },
   {
-    icon: <PaintbrushIcon />,
-    name: "Design pipeline",
-    text: "The artifact uses local primitives and semantic tokens instead of inventing color or layout rules.",
+    label: "Block",
+    short: "Stable address.",
+    medium:
+      "A block gives humans and agents a shared target for review, overlays, and focused rewrites.",
+    deep: "Block is protocol-only. It should carry id and title, while visual structure sits inside the block content.",
   },
   {
-    icon: <LayoutDashboardIcon />,
-    name: "Host shell",
-    text: "The host owns sidebars, scroll protection, floating controls, and inspection chrome.",
+    label: "Action",
+    short: "Prompt handoff.",
+    medium:
+      "An action turns a visible part of the artifact into a concrete next instruction for the agent.",
+    deep: "Good actions point at one target block and preserve the local primitive and token pipeline constraints.",
   },
 ]
 
 export default function ExampleArtifact() {
+  const [perspective, setPerspective] = useState<Perspective>("human")
+  const [detail, setDetail] = useState(2)
+  const current = perspectives[perspective]
+  const detailLabel = useMemo(() => {
+    if (detail <= 1) {
+      return "skim"
+    }
+
+    if (detail === 2) {
+      return "explain"
+    }
+
+    return "inspect"
+  }, [detail])
+
   return (
-    <Artifact title="AgentHTML Workspace Brief">
+    <Artifact title="AgentHTML Workspace Explainer">
       <Block id="brief" title="Brief">
-        <article className="flex flex-col gap-5">
-          <div className="flex flex-col gap-3">
+        <article className="canvas-stack-xl">
+          <div className="canvas-stack-md">
             <Badge className="w-fit" variant="secondary">
-              HTML artifact practice
+              interactive explainer
             </Badge>
-            <h1 className="text-2xl leading-snug">
-              AgentHTML turns agent output into a readable workspace.
+            <h1 className="canvas-text-title">
+              AgentHTML is a workspace for steering artifact work.
             </h1>
-            <p className="text-base leading-normal text-muted-foreground">
-              This example follows the HTML artifact idea without becoming a
-              dashboard. It uses a few structured surfaces so a human can read
-              the answer, inspect the boundaries, and ask the agent to change a
-              specific block.
+            <p className="canvas-text-body text-muted-foreground">
+              This example borrows the useful HTML artifact tricks: path first,
+              details on demand, reader perspective, and a prompt handoff that
+              targets one block.
             </p>
           </div>
 
           <Alert>
             <SparklesIcon />
             <AlertDescription>
-              The goal is not to show every component. The goal is to make the
-              agent result easier to understand than a long Markdown reply.
+              The artifact should make the next judgment obvious. It is not a
+              component gallery and not a long report.
             </AlertDescription>
           </Alert>
         </article>
       </Block>
 
-      <Block id="workspace-map" title="Workspace Map">
-        <Tabs defaultValue="story">
-          <TabsList>
-            <TabsTrigger value="story">Story</TabsTrigger>
-            <TabsTrigger value="boundary">Boundary</TabsTrigger>
-            <TabsTrigger value="readiness">Readiness</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="story">
-            <Card>
-              <CardHeader>
-                <CardTitle>How the workspace is meant to feel</CardTitle>
-                <CardDescription>
-                  A small surface for reading, steering, and preserving context.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-5">
-                <p className="text-sm leading-normal text-muted-foreground">
-                  The agent should not hand back a wall of text. It should hand
-                  back a compact artifact with named regions, visible state, and
-                  clear actions. The human can scan the result first, then open
-                  the parts that need judgment.
-                </p>
-                <div className="flex flex-col gap-3">
-                  <FlowStep
-                    from="request"
-                    icon={<BotIcon />}
-                    text="Help me explain this project visually."
-                    to="agent"
-                  />
-                  <FlowStep
-                    from="agent"
-                    icon={<BlocksIcon />}
-                    text="Builds a reviewable artifact, not a generic page."
-                    to="artifact"
-                  />
-                  <FlowStep
-                    from="host"
-                    icon={<LayoutDashboardIcon />}
-                    text="Keeps navigation, chat, and inspection outside the artifact."
-                    to="workspace"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="boundary">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ownership boundary</CardTitle>
-                <CardDescription>
-                  One layer should answer one kind of question.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                {ownershipRows.map((row) => (
-                  <OwnershipRow
-                    icon={row.icon}
-                    key={row.name}
-                    name={row.name}
-                    text={row.text}
-                  />
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="readiness">
-            <Card>
-              <CardHeader>
-                <CardTitle>What is already becoming explicit</CardTitle>
-                <CardDescription>
-                  A single chart is enough here. The detail belongs in docs and
-                  code, not in this reading surface.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-5">
-                <ChartContainer config={coverageChartConfig}>
-                  <BarChart accessibilityLayer data={coverageRows}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis dataKey="label" tickLine={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar
-                      dataKey="value"
-                      fill="var(--color-value)"
-                      radius={4}
-                    />
-                  </BarChart>
-                </ChartContainer>
-                <ProgressNote label="token pipeline" value={88} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </Block>
-
-      <Block id="decisions" title="Decisions">
+      <Block id="perspective-map" title="Perspective Map">
         <Card>
           <CardHeader>
-            <CardTitle>Decisions to keep visible</CardTitle>
+            <CardTitle>Choose the reader's question</CardTitle>
             <CardDescription>
-              These are the rules that prevent the artifact from drifting into a
-              dense component demo.
+              The same system becomes clearer when the artifact changes
+              viewpoint instead of adding paragraphs.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="content-first">
-                <AccordionTrigger>Content first, components second</AccordionTrigger>
-                <AccordionContent>
-                  Use UI primitives only when they clarify the explanation. A
-                  table, chart, or progress bar should earn its place.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="headless-contract">
-                <AccordionTrigger>Keep the protocol headless</AccordionTrigger>
-                <AccordionContent>
-                  Artifact, Block, and Action stay as collaboration markers.
-                  Visual structure belongs inside the block through local
-                  primitives and semantic token utilities.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="host-shell">
-                <AccordionTrigger>Let the host own the workspace chrome</AccordionTrigger>
-                <AccordionContent>
-                  Sidebars, scroll boundaries, block overlays, and prompt handoff
-                  belong to the host. Artifact content should remain portable.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+          <CardContent className="canvas-stack-xl">
+            <ToggleGroup
+              onValueChange={(value) => {
+                if (value) {
+                  setPerspective(value as Perspective)
+                }
+              }}
+              type="single"
+              value={perspective}
+              variant="outline"
+            >
+              <ToggleGroupItem value="human">Human</ToggleGroupItem>
+              <ToggleGroupItem value="agent">Agent</ToggleGroupItem>
+              <ToggleGroupItem value="runtime">Runtime</ToggleGroupItem>
+              <ToggleGroupItem value="host">Host</ToggleGroupItem>
+            </ToggleGroup>
+
+            <div className="canvas-cluster-lg canvas-content-panel">
+              <div className="canvas-icon-box-md">{current.icon}</div>
+              <div className="canvas-stack-md min-w-0">
+                <div className="canvas-stack-xs">
+                  <h2 className="canvas-text-heading">{current.title}</h2>
+                  <p className="canvas-text-body text-muted-foreground">
+                    {current.summary}
+                  </p>
+                </div>
+                <div className="canvas-stack-sm canvas-text-body">
+                  <div className="canvas-cluster-sm">
+                    <Badge variant="secondary">first</Badge>
+                    <span>{current.primary}</span>
+                  </div>
+                  <div className="canvas-cluster-sm">
+                    <Badge variant="outline">then</Badge>
+                    <span className="text-muted-foreground">
+                      {current.secondary}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </Block>
+
+      <Block id="request-path" title="Request Path">
+        <Card>
+          <CardHeader>
+            <CardTitle>Follow one request through the workspace</CardTitle>
+            <CardDescription>
+              This borrows the feature-explainer pattern: a path first, local
+              details only when the reader asks for them.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="canvas-stack-md">
+            {pathSteps.map((step) => (
+              <PathStep
+                detail={step.detail}
+                from={step.from}
+                icon={step.icon}
+                key={step.id}
+                text={step.text}
+                to={step.to}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      </Block>
+
+      <Block id="concept-sandbox" title="Concept Sandbox">
+        <Card>
+          <CardHeader>
+            <CardTitle>Adjust the explanation depth</CardTitle>
+            <CardDescription>
+              A small control can reduce cognitive load by matching the reader's
+              current need.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="canvas-stack-xl">
+            <div className="canvas-stack-sm">
+              <div className="canvas-cluster-md canvas-text-body items-center justify-between">
+                <span>detail level</span>
+                <Badge variant="outline">{detailLabel}</Badge>
+              </div>
+              <Slider
+                max={3}
+                min={1}
+                onValueChange={(value) => setDetail(value[0] ?? 2)}
+                step={1}
+                value={[detail]}
+              />
+            </div>
+
+            <Tabs defaultValue="artifact">
+              <TabsList>
+                <TabsTrigger value="artifact">Artifact</TabsTrigger>
+                <TabsTrigger value="block">Block</TabsTrigger>
+                <TabsTrigger value="action">Action</TabsTrigger>
+              </TabsList>
+              {concepts.map((concept) => (
+                <TabsContent
+                  key={concept.label}
+                  value={concept.label.toLowerCase()}
+                >
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>
+                        <HoverCard>
+                          <HoverCardTrigger asChild>
+                            <Button variant="outline">{concept.label}</Button>
+                          </HoverCardTrigger>
+                          <HoverCardContent align="start">
+                            <p className="canvas-text-body text-muted-foreground">
+                              {concept.medium}
+                            </p>
+                          </HoverCardContent>
+                        </HoverCard>
+                      </CardTitle>
+                      <CardDescription>{concept.short}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="canvas-stack-md">
+                      <p className="canvas-text-body text-muted-foreground">
+                        {detail === 1 ? concept.short : concept.medium}
+                      </p>
+                      {detail >= 3 ? (
+                        <div className="canvas-content-panel">
+                          <p className="canvas-text-body text-muted-foreground">
+                            {concept.deep}
+                          </p>
+                        </div>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              ))}
+            </Tabs>
           </CardContent>
         </Card>
       </Block>
@@ -248,14 +351,16 @@ export default function ExampleArtifact() {
       <Block id="agent-handoff" title="Agent Handoff">
         <Card>
           <CardHeader>
-            <CardTitle>Ask for a focused rewrite</CardTitle>
+            <CardTitle>Tune the next prompt</CardTitle>
             <CardDescription>
-              A readable artifact should still be easy to steer by block.
+              The prompt tuner pattern turns understanding into a focused
+              artifact change.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <Textarea placeholder="Ask the agent to make one block clearer, shorter, or more concrete." />
-            <div className="flex flex-wrap gap-2">
+          <CardContent className="canvas-stack-lg">
+            <ProgressNote label="current explainer clarity" value={86} />
+            <Textarea placeholder="Ask the agent to rewrite one block, add one example, or clarify one concept." />
+            <div className="canvas-wrap-sm">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button>
@@ -265,17 +370,17 @@ export default function ExampleArtifact() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Rewrite the workspace map</DialogTitle>
+                    <DialogTitle>Rewrite the request path</DialogTitle>
                     <DialogDescription>
-                      Keep the reading layout, remove unnecessary density, and
-                      make the ownership boundary easier to understand.
+                      Keep Artifact and Block unstyled. Preserve the path-first
+                      structure and make the expanded notes more concrete.
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter showCloseButton>
                     <Button asChild>
                       <Action
-                        prompt="Rewrite the workspace-map block into a clearer, less dense reading layout. Preserve local primitives, semantic token utilities, and stable block ids."
-                        target="workspace-map"
+                        prompt="Rewrite the request-path block so each step is easier to scan and each expanded note is more concrete. Keep Artifact and Block unstyled, use local primitives, and preserve stable block ids."
+                        target="request-path"
                       >
                         Send to agent
                       </Action>
@@ -285,19 +390,19 @@ export default function ExampleArtifact() {
               </Dialog>
               <Button asChild variant="outline">
                 <Action
-                  prompt="Shorten the brief block and make the product direction more concrete."
-                  target="brief"
+                  prompt="Add one short annotated example to concept-sandbox showing how the detail slider changes the explanation for a new reader versus an implementer."
+                  target="concept-sandbox"
                 >
-                  Tighten brief
+                  Add example
                 </Action>
               </Button>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col items-start gap-3">
+          <CardFooter className="canvas-stack-md items-start">
             <Separator />
-            <p className="text-sm leading-normal text-muted-foreground">
-              The host owns the prompt handoff. The artifact only exposes clear
-              block targets.
+            <p className="canvas-text-body text-muted-foreground">
+              The artifact preserves enough structure for a human to point at
+              the problem and for the agent to change only that part.
             </p>
           </CardFooter>
         </Card>
@@ -306,60 +411,52 @@ export default function ExampleArtifact() {
   )
 }
 
-function FlowStep({
+function PathStep({
+  detail,
   from,
   icon,
   text,
   to,
 }: {
+  detail: string
   from: string
   icon: React.ReactNode
   text: string
   to: string
 }) {
   return (
-    <div className="flex gap-3 rounded-md border border-border p-4">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-        {icon}
-      </div>
-      <div className="flex min-w-0 flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <Badge variant="secondary">{from}</Badge>
-          <ArrowRightIcon data-icon="inline-start" />
-          <Badge variant="outline">{to}</Badge>
+    <Collapsible>
+      <div className="canvas-content-panel">
+        <div className="canvas-cluster-md">
+          <div className="canvas-icon-box-sm">{icon}</div>
+          <div className="canvas-stack-sm min-w-0">
+            <div className="canvas-wrap-sm canvas-text-body items-center">
+              <Badge variant="secondary">{from}</Badge>
+              <ArrowRightIcon data-icon="inline-start" />
+              <Badge variant="outline">{to}</Badge>
+            </div>
+            <p className="canvas-text-body text-muted-foreground">{text}</p>
+          </div>
+          <CollapsibleTrigger asChild>
+            <Button size="icon-sm" variant="ghost">
+              <ChevronDownIcon />
+            </Button>
+          </CollapsibleTrigger>
         </div>
-        <p className="text-sm leading-normal text-muted-foreground">{text}</p>
+        <CollapsibleContent>
+          <div className="canvas-content-panel">
+            <p className="canvas-text-body text-muted-foreground">{detail}</p>
+          </div>
+        </CollapsibleContent>
       </div>
-    </div>
-  )
-}
-
-function OwnershipRow({
-  icon,
-  name,
-  text,
-}: {
-  icon: React.ReactNode
-  name: string
-  text: string
-}) {
-  return (
-    <div className="flex gap-3">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-        {icon}
-      </div>
-      <div className="flex min-w-0 flex-col gap-1">
-        <h3 className="text-base leading-snug">{name}</h3>
-        <p className="text-sm leading-normal text-muted-foreground">{text}</p>
-      </div>
-    </div>
+    </Collapsible>
   )
 }
 
 function ProgressNote({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-3 text-sm">
+    <div className="canvas-stack-sm">
+      <div className="canvas-cluster-md canvas-text-body items-center justify-between">
         <span>{label}</span>
         <span className="text-muted-foreground">{value}%</span>
       </div>

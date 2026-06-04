@@ -111,7 +111,7 @@ describe("React Canvas Guard", () => {
       }
     `)
 
-    expect(messages).toContain("Artifact owns the fixed reading layout and must not receive className or style.")
+    expect(messages).toContain("Artifact owns token-configured reading layout and must not receive className or style.")
   })
 
   it("reports layout or visual props on Block", () => {

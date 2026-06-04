@@ -66,8 +66,9 @@ artifacts and host
   shadcn-derived primitives low-modification unless Canvas needs a primitive
   API, correctness fix, or accessibility fix.
 - Available primitives include accordion, alert, badge, button, card, chart,
-  checkbox, dialog, input, label, popover, scroll-area, select, separator,
-  sheet, sidebar, skeleton, table, tabs, textarea, and tooltip.
+  checkbox, collapsible, dialog, hover-card, input, label, popover, progress,
+  scroll-area, select, separator, sheet, sidebar, skeleton, slider, table, tabs,
+  textarea, toggle, toggle-group, and tooltip.
 - Host and artifacts compose primitives; they do not create new primitive
   buttons, cards, badges, tables, sidebars, or inputs.
 - Host block hover highlighting is inspection chrome. It consumes Canvas tokens
@@ -75,11 +76,13 @@ artifacts and host
   artifact source or on `Block`.
 - `Artifact`, `Block`, and `Action` from `@agent-html/react` are headless
   collaboration protocol markers, not visual components. `Artifact` owns the
-  fixed readable root container and accepts only `title` and children. Do not
-  put `className`, `style`, width, spacing, padding, or color props on
-  `Artifact`. `Block` is fully protocol-only: use only `id`, `title`, and
-  children. Do not put `className`, `style`, layout, border, radius, or shadow
-  on `Block`. Put block content layout and visual treatment inside the block and
+  readable root container and accepts only `title` and children. Its width,
+  block gap, background, and foreground values come from
+  `.agent-html/styles/theme.css` through `.agent-html/styles.css`. Do not put
+  `className`, `style`, width, spacing, padding, or color props on `Artifact`.
+  `Block` is fully protocol-only: use only `id`, `title`, and children. Do not
+  put `className`, `style`, layout, border, radius, or shadow on `Block`. Put
+  block content layout and visual treatment inside the block and
   `.agent-html/ui` primitives.
 - Use semantic token utilities such as `bg-background`, `text-foreground`,
   `bg-card`, `text-muted-foreground`, `border-border`, `bg-popover`, and
@@ -89,10 +92,15 @@ artifacts and host
   `--radius`.
 - Do not use raw colors, decorative gradients, oversized shadows, or marketing
   hero composition.
-- Use compact scale utilities for artifact structure. Prefer `gap-2`, `gap-3`,
-  `gap-4`, `gap-6`, `p-2`, `p-3`, `p-4`, `p-6`, `text-sm`, `text-base`,
-  `leading-snug`, `leading-normal`, `min-w-0`, `overflow-hidden`, and
-  `truncate`.
+- Use Canvas semantic classes for artifact structure and host chrome. Content
+  spacing, panel padding, panel radius, icon-box size, typography scale, grid
+  gap, surface padding, toolbar offset, block action offset, status spacing,
+  sidebar spacing, and prompt output height come from explicit `--canvas-*`
+  tokens in `.agent-html/styles/theme.css` and classes in
+  `.agent-html/styles.css`.
+- Keep layout behavior classes such as `flex`, `grid`, `min-w-0`,
+  `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate` local to the
+  composition that needs them.
 - Do not use arbitrary values, oversized typography, custom fonts, manual
   tracking, oversized radius, or heavy shadows in artifacts.
 - Keep surfaces compact, neutral, task-oriented, accessible, and predictable.
@@ -116,7 +124,8 @@ Rules:
 - Import `Artifact`, `Block`, and `Action` from `@agent-html/react`.
 - Use `Artifact` as the top-level wrapper.
 - Keep `Artifact` static and unstyled. The root reading width, spacing, and
-  base token classes are fixed by `@agent-html/react`.
+  base colors are configured by `--canvas-artifact-*` tokens in
+  `.agent-html/styles/theme.css`.
 - Wrap every major semantic region in `Block`.
 - Keep `Block` static and unstyled. Layout belongs inside the block, not on the
   block marker.

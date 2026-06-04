@@ -26,12 +26,16 @@ The host understands artifacts through stable metadata:
 [data-agent-html-action="true"]
 ```
 
-Block hover highlighting is host inspection chrome. It is rendered in the host
-overlay, not in artifact source, and consumes Canvas CSS tokens from
-`.agent-html/styles/theme.css` through `.agent-html/styles.css`.
+Block hover highlighting and block action placement are host inspection chrome.
+They are rendered in the host overlay, not in artifact source, and consume
+Canvas CSS tokens from `.agent-html/styles/theme.css` through semantic classes
+in `.agent-html/styles.css`.
 
 The host owns preview boundary spacing around the artifact. `Artifact` owns the
-readable root width and block rhythm inside that preview.
+readable root width and block rhythm inside that preview. Host surface padding,
+toolbar inset, status spacing, sidebar local spacing, and prompt output height
+are `--canvas-*` token-backed host classes, not one-off utilities in host
+components.
 
 Host visual controls consume Canvas UI primitives through the local playground
 alias:

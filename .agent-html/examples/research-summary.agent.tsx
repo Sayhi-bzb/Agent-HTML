@@ -14,7 +14,7 @@ export default function ResearchSummaryExample() {
               A compact sample block built from local primitives.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+          <CardContent className="canvas-stack-md">
             <p>Use blocks for reviewable research sections.</p>
             <Badge>example</Badge>
           </CardContent>
