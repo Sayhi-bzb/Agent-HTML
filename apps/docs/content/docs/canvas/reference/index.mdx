@@ -15,6 +15,7 @@ Artifact and example code may consume:
 - `../lib/*`
 - `../schema/*`
 - `../data/*`
+- `../assets/*`
 - semantic token classes
 - compact layout and type utilities such as `gap-4`, `p-4`, `text-sm`,
   `text-base`, `leading-snug`, `min-w-0`, `overflow-hidden`, and `truncate`
@@ -30,6 +31,7 @@ Artifact and example code must not consume:
 - arbitrary value classes, decorative gradients, oversized typography,
   oversized radius, heavy shadows, custom fonts, or manual tracking
 - raw common primitives when a local UI primitive exists
+- `className` or `style` on `Artifact` or `Block`
 
 ## Host Imports
 
@@ -51,8 +53,9 @@ Host code must not consume:
 
 ## Review Checks
 
-Confirm that protocol remains headless, `.agent-html/ui/*` remains the visual
-primitive layer, `.agent-html/styles.css` remains the CSS runtime entrypoint,
+Confirm that `Artifact` keeps the fixed readable root container, `Block` stays
+protocol-only, `.agent-html/ui/*` remains the visual primitive layer,
+`.agent-html/styles.css` remains the CSS runtime entrypoint,
 `.agent-html/styles/theme.css` remains the semantic token value layer, font and
-radius values stay explicit tokens, and artifact layout stays explicit in
+radius values stay explicit tokens, and block content layout stays explicit in
 artifact composition.

@@ -98,7 +98,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
 
   it("keeps artifact and example imports inside the React Canvas playground contract", () => {
     const allowedLocalImport =
-      /^\.\.\/(?:ui|hooks|lib|schema|data)(?:\/|$)/
+      /^\.\.\/(?:ui|hooks|lib|schema|data|assets)(?:\/|$)/
     const forbiddenImport =
       /^(?:@\/|#agent-html-playground\/|@agent-html-playground\/|apps\/|packages\/|@\/app\/|@\/agent-html\/runtime)/
 
@@ -153,9 +153,18 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(existsSync(join(root, ".agent-html", "package-lock.json"))).toBe(
       false
     )
+    expect(existsSync(join(root, ".agent-html", "manifest.json"))).toBe(false)
     expect(existsSync(join(root, ".agent-html", "node_modules"))).toBe(false)
+    expect(existsSync(join(root, ".agent-html", "assets"))).toBe(true)
+    expect(existsSync(join(root, ".agent-html", "public"))).toBe(true)
 
     expect(filesMatching(".agent-html", /packages\/cli|@agent-html\/cli/)).toEqual(
+      []
+    )
+    expect(filesMatching(".agent-html/artifacts", /from\s+["']\.\.\/public(?:\/|["'])/)).toEqual(
+      []
+    )
+    expect(filesMatching(".agent-html/examples", /from\s+["']\.\.\/public(?:\/|["'])/)).toEqual(
       []
     )
   })
@@ -179,6 +188,8 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
 
     expect(rootComponents.tailwind.css).toBe("apps/agent-html-app/src/index.css")
     expect(rootComponents.aliases.ui).toBe("@/app/shared/ui")
+    expect(existsSync(join(root, ".agent-html", "components.json"))).toBe(true)
+    expect(existsSync(join(root, ".agent-html", "tsconfig.json"))).toBe(true)
     expect(playgroundComponents.tailwind.css).toBe("styles.css")
     expect(playgroundComponents.aliases.ui).toBe("@/ui")
     expect(playgroundStyles).toContain('@import "tailwindcss"')

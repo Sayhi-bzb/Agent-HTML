@@ -5,6 +5,8 @@ import { artifactRenderedEventName } from "./api"
 import { Button } from "#agent-html-playground/ui/button"
 import type { BlockOverlay, PromptTarget } from "./host-contracts"
 
+const defaultBlockHighlightPadding = 6
+
 export function findHoveredBlockOverlay({
   overlays,
   x,
@@ -28,6 +30,43 @@ export function findHoveredBlockOverlay({
   }
 
   return null
+}
+
+export function parseCssLengthInPixels(value: string, fallback: number) {
+  const trimmed = value.trim()
+
+  if (!trimmed) {
+    return fallback
+  }
+
+  if (trimmed.endsWith("px")) {
+    const parsed = Number.parseFloat(trimmed)
+
+    return Number.isFinite(parsed) ? parsed : fallback
+  }
+
+  if (trimmed.endsWith("rem")) {
+    const parsed = Number.parseFloat(trimmed)
+
+    return Number.isFinite(parsed) ? parsed * 16 : fallback
+  }
+
+  const parsed = Number.parseFloat(trimmed)
+
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+function getBlockHighlightPadding(root: HTMLElement) {
+  if (typeof window === "undefined") {
+    return defaultBlockHighlightPadding
+  }
+
+  return parseCssLengthInPixels(
+    window
+      .getComputedStyle(root)
+      .getPropertyValue("--canvas-block-highlight-padding"),
+    defaultBlockHighlightPadding
+  )
 }
 
 export function createAnimationFrameScheduler(callback: () => void) {
@@ -59,6 +98,7 @@ export function measureBlockOverlays(root: HTMLElement | null): BlockOverlay[] {
   }
 
   const rootRect = root.getBoundingClientRect()
+  const highlightPadding = getBlockHighlightPadding(root)
   const blocks = Array.from(
     root.querySelectorAll<HTMLElement>("[data-agent-html-block='true']")
   )
@@ -68,12 +108,12 @@ export function measureBlockOverlays(root: HTMLElement | null): BlockOverlay[] {
     const id = element.getAttribute("data-agent-html-block-id") ?? ""
 
     return {
-      height: rect.height,
+      height: rect.height + highlightPadding * 2,
       id,
       title: element.getAttribute("data-agent-html-block-title") ?? id,
-      width: rect.width,
-      x: rect.left - rootRect.left,
-      y: rect.top - rootRect.top,
+      width: rect.width + highlightPadding * 2,
+      x: rect.left - rootRect.left - highlightPadding,
+      y: rect.top - rootRect.top - highlightPadding,
     }
   })
 }

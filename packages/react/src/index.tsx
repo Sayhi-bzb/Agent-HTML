@@ -6,10 +6,8 @@ function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ")
 }
 
-export type ArtifactProps = Omit<
-  HTMLAttributes<HTMLElement>,
-  "title"
-> & {
+export type ArtifactProps = {
+  children?: ReactNode
   title: string
 }
 
@@ -30,13 +28,12 @@ export type ActionProps = ActionIntent &
   disabled?: boolean
 }
 
-export function Artifact({ children, className, title, ...props }: ArtifactProps) {
+export function Artifact({ children, title }: ArtifactProps) {
   return (
     <main
       data-agent-html-artifact="true"
       data-agent-html-title={title}
-      className={cn(className)}
-      {...props}
+      className="mx-auto flex w-full max-w-2xl flex-col gap-8 bg-background text-foreground"
     >
       {children}
     </main>

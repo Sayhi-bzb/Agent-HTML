@@ -47,6 +47,20 @@ describe("React Canvas dev host", () => {
       const removedBundle = await fetch(`${url}/__agent-html/client-bundle`)
       expect(removedBundle.status).toBe(404)
 
+      const publicFile = await fetch(`${url}/__agent-html/public/.gitkeep`)
+      expect(publicFile.status).toBe(200)
+
+      const publicMissing = await fetch(`${url}/__agent-html/public/missing.txt`)
+      expect(publicMissing.status).toBe(404)
+
+      const publicTraversal = await fetch(`${url}/__agent-html/public/../AGENTS.md`)
+      expect(publicTraversal.status).toBe(404)
+
+      const publicEncodedTraversal = await fetch(
+        `${url}/__agent-html/public/%2e%2e%2fAGENTS.md`
+      )
+      expect(publicEncodedTraversal.status).toBe(400)
+
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(
         "filePath",
@@ -54,7 +68,7 @@ describe("React Canvas dev host", () => {
       )
       const bundle = await fetch(bundleUrl).then((response) => response.text())
       expect(bundle).toContain("function mount")
-      expect(bundle).toContain("Usage Dashboard")
+      expect(bundle).toContain("AgentHTML Workspace Brief")
       expect(bundle).toContain("recharts")
 
       const css = await fetch(`${url}/__agent-html/styles.css`).then((response) =>
@@ -65,6 +79,8 @@ describe("React Canvas dev host", () => {
       expect(css).not.toContain("--window-chrome-radius")
       expect(css).toContain(".bg-primary")
       expect(css).toContain(".bg-sidebar")
+      expect(css).toContain(".max-w-2xl")
+      expect(css).toContain(".gap-8")
       expect(css).toContain(".text-popover-foreground")
     } finally {
       await new Promise((resolve) => server.close(resolve))

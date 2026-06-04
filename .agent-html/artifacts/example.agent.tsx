@@ -1,38 +1,38 @@
-import { useState } from "react"
 import { Artifact, Block, Action } from "@agent-html/react"
 import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  XAxis,
-  YAxis,
-} from "recharts"
+  ArrowRightIcon,
+  BlocksIcon,
+  BotIcon,
+  ClipboardCheckIcon,
+  FileCode2Icon,
+  LayoutDashboardIcon,
+  PaintbrushIcon,
+  SparklesIcon,
+} from "lucide-react"
 
-import items from "../data/example-items.json"
-import usageCsv from "../data/public.usage_dashboard_hourly.csv"
-import { useFilter } from "../hooks/use-filter"
-import { formatDate } from "../lib/format-date"
-import {
-  latestUsageRows,
-  parseUsageDashboardCsv,
-} from "../lib/usage-dashboard"
-import { Alert, AlertDescription } from "../ui/alert"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion"
+import { Alert, AlertDescription } from "../ui/alert"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card"
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
 } from "../ui/chart"
-import { Checkbox } from "../ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -42,321 +42,328 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog"
-import { Input } from "../ui/input"
-import { Label } from "../ui/label"
-import {
-  Popover,
-  PopoverContent,
-  PopoverDescription,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-} from "../ui/popover"
-import { ScrollArea } from "../ui/scroll-area"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select"
+import { Progress } from "../ui/progress"
 import { Separator } from "../ui/separator"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { Textarea } from "../ui/textarea"
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
-const usageRows = parseUsageDashboardCsv(usageCsv)
-const recentUsageRows = [...latestUsageRows(usageRows, 8)].reverse()
-
-type UsageRange = "24h" | "72h" | "7d"
-
-const usageRangeHours: Record<UsageRange, number> = {
-  "24h": 24,
-  "72h": 72,
-  "7d": 168,
-}
-
-const usageChartConfig = {
-  cost: {
+const coverageChartConfig = {
+  value: {
     color: "var(--chart-1)",
-    label: "Cost",
-  },
-  requests: {
-    color: "var(--chart-2)",
-    label: "Requests",
+    label: "Readiness",
   },
 } satisfies ChartConfig
 
-export default function ExampleArtifact() {
-  const [showCost, setShowCost] = useState(true)
-  const [usageRange, setUsageRange] = useState<UsageRange>("72h")
-  const { filteredItems, query, setQuery } = useFilter(
-    items,
-    (item) => `${item.name} ${item.signal} ${item.status}`
-  )
-  const usageChartRows = latestUsageRows(
-    usageRows,
-    usageRangeHours[usageRange]
-  )
+const coverageRows = [
+  { label: "source", value: 92 },
+  { label: "runtime", value: 86 },
+  { label: "host", value: 78 },
+  { label: "tokens", value: 88 },
+]
 
+const ownershipRows = [
+  {
+    icon: <FileCode2Icon />,
+    name: "Artifact source",
+    text: "The agent writes a durable artifact that can be reopened, reviewed, and changed by block.",
+  },
+  {
+    icon: <PaintbrushIcon />,
+    name: "Design pipeline",
+    text: "The artifact uses local primitives and semantic tokens instead of inventing color or layout rules.",
+  },
+  {
+    icon: <LayoutDashboardIcon />,
+    name: "Host shell",
+    text: "The host owns sidebars, scroll protection, floating controls, and inspection chrome.",
+  },
+]
+
+export default function ExampleArtifact() {
   return (
-    <Artifact
-      className="mx-auto flex w-full max-w-4xl flex-col gap-4 bg-background text-foreground"
-      title="React Canvas Example"
-    >
-      <Block id="summary" title="Summary">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-lg">React Canvas v1</h2>
-            <p className="text-sm text-muted-foreground">
-              Stable blocks, local primitives, and token-backed composition.
+    <Artifact title="AgentHTML Workspace Brief">
+      <Block id="brief" title="Brief">
+        <article className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3">
+            <Badge className="w-fit" variant="secondary">
+              HTML artifact practice
+            </Badge>
+            <h1 className="text-2xl leading-snug">
+              AgentHTML turns agent output into a readable workspace.
+            </h1>
+            <p className="text-base leading-normal text-muted-foreground">
+              This example follows the HTML artifact idea without becoming a
+              dashboard. It uses a few structured surfaces so a human can read
+              the answer, inspect the boundaries, and ask the agent to change a
+              specific block.
             </p>
           </div>
-          <p>This artifact is normal React wrapped in collaboration boundaries.</p>
+
           <Alert>
+            <SparklesIcon />
             <AlertDescription>
-              Blocks are stable addresses for review, prompts, and targeted
-              rewrites.
+              The goal is not to show every component. The goal is to make the
+              agent result easier to understand than a long Markdown reply.
             </AlertDescription>
           </Alert>
-          <div className="flex flex-wrap gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>Open workflow</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Artifact workflow</DialogTitle>
-                  <DialogDescription>
-                    Review stable blocks, choose a rewrite target, and hand the
-                    next action back to the agent.
-                  </DialogDescription>
-                </DialogHeader>
+        </article>
+      </Block>
+
+      <Block id="workspace-map" title="Workspace Map">
+        <Tabs defaultValue="story">
+          <TabsList>
+            <TabsTrigger value="story">Story</TabsTrigger>
+            <TabsTrigger value="boundary">Boundary</TabsTrigger>
+            <TabsTrigger value="readiness">Readiness</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="story">
+            <Card>
+              <CardHeader>
+                <CardTitle>How the workspace is meant to feel</CardTitle>
+                <CardDescription>
+                  A small surface for reading, steering, and preserving context.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-5">
+                <p className="text-sm leading-normal text-muted-foreground">
+                  The agent should not hand back a wall of text. It should hand
+                  back a compact artifact with named regions, visible state, and
+                  clear actions. The human can scan the result first, then open
+                  the parts that need judgment.
+                </p>
                 <div className="flex flex-col gap-3">
-                  <Label htmlFor="rewrite-note">Rewrite brief</Label>
-                  <Textarea
-                    id="rewrite-note"
-                    placeholder="Ask for a sharper summary, clearer data framing, or a denser review layout."
+                  <FlowStep
+                    from="request"
+                    icon={<BotIcon />}
+                    text="Help me explain this project visually."
+                    to="agent"
+                  />
+                  <FlowStep
+                    from="agent"
+                    icon={<BlocksIcon />}
+                    text="Builds a reviewable artifact, not a generic page."
+                    to="artifact"
+                  />
+                  <FlowStep
+                    from="host"
+                    icon={<LayoutDashboardIcon />}
+                    text="Keeps navigation, chat, and inspection outside the artifact."
+                    to="workspace"
                   />
                 </div>
-                <DialogFooter showCloseButton>
-                  <Button asChild>
-                    <Action
-                      prompt="Improve the summary block with sharper product language."
-                      target="summary"
-                    >
-                      Improve summary
-                    </Action>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="boundary">
+            <Card>
+              <CardHeader>
+                <CardTitle>Ownership boundary</CardTitle>
+                <CardDescription>
+                  One layer should answer one kind of question.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                {ownershipRows.map((row) => (
+                  <OwnershipRow
+                    icon={row.icon}
+                    key={row.name}
+                    name={row.name}
+                    text={row.text}
+                  />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="readiness">
+            <Card>
+              <CardHeader>
+                <CardTitle>What is already becoming explicit</CardTitle>
+                <CardDescription>
+                  A single chart is enough here. The detail belongs in docs and
+                  code, not in this reading surface.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-5">
+                <ChartContainer config={coverageChartConfig}>
+                  <BarChart accessibilityLayer data={coverageRows}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis dataKey="label" tickLine={false} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar
+                      dataKey="value"
+                      fill="var(--color-value)"
+                      radius={4}
+                    />
+                  </BarChart>
+                </ChartContainer>
+                <ProgressNote label="token pipeline" value={88} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </Block>
+
+      <Block id="decisions" title="Decisions">
+        <Card>
+          <CardHeader>
+            <CardTitle>Decisions to keep visible</CardTitle>
+            <CardDescription>
+              These are the rules that prevent the artifact from drifting into a
+              dense component demo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible>
+              <AccordionItem value="content-first">
+                <AccordionTrigger>Content first, components second</AccordionTrigger>
+                <AccordionContent>
+                  Use UI primitives only when they clarify the explanation. A
+                  table, chart, or progress bar should earn its place.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="headless-contract">
+                <AccordionTrigger>Keep the protocol headless</AccordionTrigger>
+                <AccordionContent>
+                  Artifact, Block, and Action stay as collaboration markers.
+                  Visual structure belongs inside the block through local
+                  primitives and semantic token utilities.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="host-shell">
+                <AccordionTrigger>Let the host own the workspace chrome</AccordionTrigger>
+                <AccordionContent>
+                  Sidebars, scroll boundaries, block overlays, and prompt handoff
+                  belong to the host. Artifact content should remain portable.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+        </Card>
+      </Block>
+
+      <Block id="agent-handoff" title="Agent Handoff">
+        <Card>
+          <CardHeader>
+            <CardTitle>Ask for a focused rewrite</CardTitle>
+            <CardDescription>
+              A readable artifact should still be easy to steer by block.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <Textarea placeholder="Ask the agent to make one block clearer, shorter, or more concrete." />
+            <div className="flex flex-wrap gap-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>
+                    <ClipboardCheckIcon data-icon="inline-start" />
+                    Prepare rewrite
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">Pipeline</Button>
-              </PopoverTrigger>
-              <PopoverContent align="start">
-                <PopoverHeader>
-                  <PopoverTitle>Design pipeline</PopoverTitle>
-                  <PopoverDescription>
-                    Artifacts compose local primitives. Colors, radius, and
-                    typography resolve through shared CSS tokens.
-                  </PopoverDescription>
-                </PopoverHeader>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-      </Block>
-
-      <Block id="usage-dashboard" title="Usage Dashboard">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-lg">Usage Dashboard</h2>
-            <p className="text-sm text-muted-foreground">
-              Local CSV data rendered with chart and table primitives.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex flex-col gap-2">
-              <Label>Range</Label>
-              <Select
-                onValueChange={(value) => setUsageRange(value as UsageRange)}
-                value={usageRange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Window</SelectLabel>
-                    <SelectItem value="24h">Last 24 hours</SelectItem>
-                    <SelectItem value="72h">Last 72 hours</SelectItem>
-                    <SelectItem value="7d">Last 7 days</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Rewrite the workspace map</DialogTitle>
+                    <DialogDescription>
+                      Keep the reading layout, remove unnecessary density, and
+                      make the ownership boundary easier to understand.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter showCloseButton>
+                    <Button asChild>
+                      <Action
+                        prompt="Rewrite the workspace-map block into a clearer, less dense reading layout. Preserve local primitives, semantic token utilities, and stable block ids."
+                        target="workspace-map"
+                      >
+                        Send to agent
+                      </Action>
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              <Button asChild variant="outline">
+                <Action
+                  prompt="Shorten the brief block and make the product direction more concrete."
+                  target="brief"
+                >
+                  Tighten brief
+                </Action>
+              </Button>
             </div>
-            <div className="flex items-center gap-2 pb-1">
-              <Checkbox
-                checked={showCost}
-                id="show-cost"
-                onCheckedChange={(checked) => setShowCost(checked === true)}
-              />
-              <Label htmlFor="show-cost">Show cost line</Label>
-              <Badge variant={showCost ? "secondary" : "outline"}>
-                {showCost ? "Cost line on" : "Cost line off"}
-              </Badge>
-            </div>
-          </div>
-
-          <Tabs defaultValue="chart">
-            <TabsList>
-              <TabsTrigger value="chart">Chart</TabsTrigger>
-              <TabsTrigger value="table">Table</TabsTrigger>
-              <TabsTrigger value="notes">Notes</TabsTrigger>
-            </TabsList>
-            <TabsContent value="chart">
-              <ChartContainer config={usageChartConfig}>
-                <ComposedChart accessibilityLayer data={usageChartRows}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    axisLine={false}
-                    dataKey="hour"
-                    interval="preserveStartEnd"
-                    tickLine={false}
-                  />
-                  <YAxis dataKey="requests" hide yAxisId="requests" />
-                  {showCost ? (
-                    <YAxis
-                      dataKey="cost"
-                      hide
-                      orientation="right"
-                      yAxisId="cost"
-                    />
-                  ) : null}
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar
-                    dataKey="requests"
-                    fill="var(--color-requests)"
-                    radius={4}
-                    yAxisId="requests"
-                  />
-                  {showCost ? (
-                    <Line
-                      dataKey="cost"
-                      dot={false}
-                      stroke="var(--color-cost)"
-                      strokeWidth={2}
-                      type="monotone"
-                      yAxisId="cost"
-                    />
-                  ) : null}
-                </ComposedChart>
-              </ChartContainer>
-            </TabsContent>
-            <TabsContent value="table">
-              <ScrollArea className="h-72">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Hour</TableHead>
-                      <TableHead>Requests</TableHead>
-                      <TableHead>Tokens</TableHead>
-                      <TableHead>Cost</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentUsageRows.map((row) => (
-                      <TableRow key={row.bucketStart}>
-                        <TableCell>{row.hour}</TableCell>
-                        <TableCell>{row.requests.toLocaleString()}</TableCell>
-                        <TableCell>{row.tokens.toLocaleString()}</TableCell>
-                        <TableCell>
-                          <Badge>${row.cost.toFixed(2)}</Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </TabsContent>
-            <TabsContent value="notes">
-              <Accordion type="single" collapsible defaultValue="scope">
-                <AccordionItem value="scope">
-                  <AccordionTrigger>What this block owns</AccordionTrigger>
-                  <AccordionContent>
-                    Usage data presentation, scan-friendly controls, and review
-                    actions for the dashboard block.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="agent">
-                  <AccordionTrigger>What the agent can rewrite</AccordionTrigger>
-                  <AccordionContent>
-                    The block can be regenerated without changing the runtime
-                    contract or the host layout.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </Block>
-
-      <Block id="signal-list" title="Signal List">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-lg">Implementation Signals</h2>
-            <p className="text-sm text-muted-foreground">
-              Filtered local data with stable row and status treatment.
+          </CardContent>
+          <CardFooter className="flex flex-col items-start gap-3">
+            <Separator />
+            <p className="text-sm leading-normal text-muted-foreground">
+              The host owns the prompt handoff. The artifact only exposes clear
+              block targets.
             </p>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="signal-filter">Filter</Label>
-            <Input
-              id="signal-filter"
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search signals"
-              value={query}
-            />
-          </div>
-          <Separator />
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Signal</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredItems.map((item) => (
-                <TableRow key={item.name}>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.signal}</TableCell>
-                  <TableCell>
-                    <Badge>{item.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <time>{formatDate(item.date)}</time>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+          </CardFooter>
+        </Card>
       </Block>
     </Artifact>
+  )
+}
+
+function FlowStep({
+  from,
+  icon,
+  text,
+  to,
+}: {
+  from: string
+  icon: React.ReactNode
+  text: string
+  to: string
+}) {
+  return (
+    <div className="flex gap-3 rounded-md border border-border p-4">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+        {icon}
+      </div>
+      <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <Badge variant="secondary">{from}</Badge>
+          <ArrowRightIcon data-icon="inline-start" />
+          <Badge variant="outline">{to}</Badge>
+        </div>
+        <p className="text-sm leading-normal text-muted-foreground">{text}</p>
+      </div>
+    </div>
+  )
+}
+
+function OwnershipRow({
+  icon,
+  name,
+  text,
+}: {
+  icon: React.ReactNode
+  name: string
+  text: string
+}) {
+  return (
+    <div className="flex gap-3">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+        {icon}
+      </div>
+      <div className="flex min-w-0 flex-col gap-1">
+        <h3 className="text-base leading-snug">{name}</h3>
+        <p className="text-sm leading-normal text-muted-foreground">{text}</p>
+      </div>
+    </div>
+  )
+}
+
+function ProgressNote({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span>{label}</span>
+        <span className="text-muted-foreground">{value}%</span>
+      </div>
+      <Progress value={value} />
+    </div>
   )
 }

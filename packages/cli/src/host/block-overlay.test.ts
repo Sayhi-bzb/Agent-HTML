@@ -4,6 +4,7 @@ import {
   createAnimationFrameScheduler,
   findHoveredBlockOverlay,
   measureBlockOverlays,
+  parseCssLengthInPixels,
 } from "./block-overlay"
 import type { BlockOverlay } from "./host-contracts"
 
@@ -39,7 +40,23 @@ describe("findHoveredBlockOverlay", () => {
 })
 
 describe("measureBlockOverlays", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it("converts block rects into overlay root coordinates", () => {
+    vi.stubGlobal("window", {
+      getComputedStyle() {
+        return {
+          getPropertyValue(propertyName: string) {
+            expect(propertyName).toBe("--canvas-block-highlight-padding")
+
+            return "6px"
+          },
+        }
+      },
+    })
+
     const block = {
       getAttribute(name: string) {
         return {
@@ -72,18 +89,68 @@ describe("measureBlockOverlays", () => {
 
     expect(measureBlockOverlays(root as unknown as HTMLElement)).toEqual([
       {
-        height: 80,
+        height: 92,
         id: "summary",
         title: "Summary",
-        width: 320,
-        x: 40,
-        y: 40,
+        width: 332,
+        x: 34,
+        y: 34,
       },
     ])
   })
 
   it("returns no overlays when the overlay root is missing", () => {
     expect(measureBlockOverlays(null)).toEqual([])
+  })
+
+  it("uses fallback highlight padding when computed styles are unavailable", () => {
+    const block = {
+      getAttribute(name: string) {
+        return name === "data-agent-html-block-id" ? "fallback" : null
+      },
+      getBoundingClientRect() {
+        return {
+          height: 20,
+          left: 16,
+          top: 16,
+          width: 40,
+        }
+      },
+    }
+    const root = {
+      getBoundingClientRect() {
+        return {
+          left: 10,
+          top: 10,
+        }
+      },
+      querySelectorAll() {
+        return [block]
+      },
+    }
+
+    expect(measureBlockOverlays(root as unknown as HTMLElement)).toEqual([
+      {
+        height: 32,
+        id: "fallback",
+        title: "fallback",
+        width: 52,
+        x: 0,
+        y: 0,
+      },
+    ])
+  })
+})
+
+describe("parseCssLengthInPixels", () => {
+  it("parses px and rem values", () => {
+    expect(parseCssLengthInPixels("8px", 6)).toBe(8)
+    expect(parseCssLengthInPixels("0.5rem", 6)).toBe(8)
+  })
+
+  it("falls back for missing or invalid values", () => {
+    expect(parseCssLengthInPixels("", 6)).toBe(6)
+    expect(parseCssLengthInPixels("bad", 6)).toBe(6)
   })
 })
 

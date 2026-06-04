@@ -5,6 +5,7 @@ const unstableBlockIds = new Set(["block1", "block2", "section1", "section2", "t
 const rawColorPattern = /\b(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/
 const unsafeClassPattern = /\b(?:gradient|shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|text-(?:[3-9]xl|[1-9][0-9]xl)|font-\w+|tracking-\w+|\[[^\]]+\])\b/
 const forbiddenImportPattern = /from\s+["'](?:@\/app\/|.*apps\/agent-html-app|@\/agent-html\/runtime\/ui|@\/agent-html\/runtime["'])/g
+const forbiddenPublicImportPattern = /from\s+["']\.\.\/public(?:\/|["'])/g
 const forbiddenRuntimeApiPattern = /\b(?:renderAgentHtml|renderInteractiveAgentHtml)\b/g
 const primitiveBypassPattern = /<(?:button|input|table|thead|tbody|tr|th|td)\b/g
 
@@ -92,6 +93,19 @@ function collectBoundaryIssues({ relativePath, source }) {
     forbiddenImportPattern.lastIndex = match.index + 1
   }
 
+  while ((match = forbiddenPublicImportPattern.exec(source)) !== null) {
+    issues.push(
+      createIssue({
+        filePath: relativePath,
+        line: lineForIndex(source, match.index),
+        message: "Public files must be referenced by URL, not imported.",
+        severity: "error",
+        suggestion: "Use /__agent-html/public/<file> for public files, or move bundle-time assets to .agent-html/assets.",
+      })
+    )
+    forbiddenPublicImportPattern.lastIndex = match.index + 1
+  }
+
   while ((match = forbiddenRuntimeApiPattern.exec(source)) !== null) {
     issues.push(
       createIssue({
@@ -115,6 +129,30 @@ function collectBoundaryIssues({ relativePath, source }) {
       })
     )
     primitiveBypassPattern.lastIndex = match.index + 1
+  }
+
+  return issues
+}
+
+function collectArtifactProtocolIssues({ relativePath, source }) {
+  const issues = []
+  const artifactPattern = /<Artifact\b([^>]*)>/g
+  let match
+
+  while ((match = artifactPattern.exec(source)) !== null) {
+    if (/\b(?:className|style)\s*=/.test(match[1])) {
+      issues.push(
+        createIssue({
+          filePath: relativePath,
+          line: lineForIndex(source, match.index),
+          message: "Artifact owns the fixed reading layout and must not receive className or style.",
+          severity: "error",
+          suggestion: "Remove visual props from Artifact; put content layout inside Blocks and local UI primitives.",
+        })
+      )
+    }
+
+    artifactPattern.lastIndex = match.index + 1
   }
 
   return issues
@@ -261,6 +299,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
   return [
     ...issues,
     ...collectBoundaryIssues({ relativePath, source }),
+    ...collectArtifactProtocolIssues({ relativePath, source }),
     ...collectBlockProtocolIssues({ relativePath, source }),
     ...collectVisualIssues({ relativePath, source }),
   ]

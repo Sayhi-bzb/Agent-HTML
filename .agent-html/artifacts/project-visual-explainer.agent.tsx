@@ -115,10 +115,7 @@ function SignalList({
 
 export default function ProjectVisualExplainer() {
   return (
-    <Artifact
-      className="mx-auto flex w-full max-w-4xl flex-col gap-4 bg-background p-4 text-foreground"
-      title="AgentHTML Project Visual Explainer"
-    >
+    <Artifact title="AgentHTML Project Visual Explainer">
       <Block id="project-purpose" title="Project Purpose">
         <Card>
           <CardHeader>

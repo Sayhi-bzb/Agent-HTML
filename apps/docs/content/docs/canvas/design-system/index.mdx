@@ -92,5 +92,10 @@ tracking, or one-off button, card, and table markup.
 
 ## Visual Boundary
 
-`Artifact`, `Block`, and `Action` are not visual components. Layout and visual
-treatment belong in artifact composition and `.agent-html/ui/*`.
+`Artifact` owns the fixed readable root container: `max-w-2xl`, `gap-8`, and
+base background and foreground tokens. Agents do not pass root layout or visual
+props to `Artifact`.
+
+`Block` and `Action` remain protocol markers. Block content layout and visual
+treatment belong inside blocks through artifact composition and
+`.agent-html/ui/*`.

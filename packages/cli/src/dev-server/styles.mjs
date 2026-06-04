@@ -101,8 +101,15 @@ async function compileAgentHtmlCss(root) {
 
   const cssBase = path.join(root, ".agent-html")
   const hostSourcePath = path.relative(cssBase, hostRoot).replaceAll("\\", "/")
-  const sourceWithHostScan = `${source}\n@source "${hostSourcePath}/**/*.{ts,tsx,js,jsx,css}";\n`
-  const compiler = await compile(sourceWithHostScan, {
+  const reactSourcePath = path
+    .relative(cssBase, path.join(repoRoot, "packages", "react", "src"))
+    .replaceAll("\\", "/")
+  const sourceWithRuntimeScan = [
+    source,
+    `@source "${hostSourcePath}/**/*.{ts,tsx,js,jsx,css}";`,
+    `@source "${reactSourcePath}/**/*.{ts,tsx,js,jsx}";`,
+  ].join("\n")
+  const compiler = await compile(sourceWithRuntimeScan, {
     base: cssBase,
     from: stylePath,
     loadStylesheet: loadTailwindStylesheet,

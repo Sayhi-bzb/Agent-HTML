@@ -28,9 +28,9 @@ React artifacts without importing the app shell or old runtime UI.
 
 `Artifact`, `Block`, and `Action` mark collaboration boundaries. They provide
 metadata, host anchors, source extraction anchors, action dispatch,
-and accessibility. `Block` is protocol-only: it accepts `id`, `title`, and
-children, and does not accept styling or layout props. Protocol markers do not
-provide visual treatment.
+and accessibility. `Artifact` owns the fixed readable root container and accepts
+only `title` and children. `Block` is protocol-only: it accepts `id`, `title`,
+and children, and does not accept styling or layout props.
 
 ### Local Resource Consumption
 

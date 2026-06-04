@@ -13,6 +13,12 @@ while writing React artifacts:
 .agent-html/AGENTS.md
   -> workspace rules and operating instructions
 
+.agent-html/components.json
+  -> shadcn workspace discovery config
+
+.agent-html/tsconfig.json
+  -> local TypeScript and editor discovery config
+
 .agent-html/styles.css
   -> CSS runtime entrypoint
 
@@ -37,6 +43,12 @@ while writing React artifacts:
 .agent-html/data
   -> fixtures and local datasets
 
+.agent-html/assets
+  -> bundle-time artifact assets imported by artifact source
+
+.agent-html/public
+  -> static files served by URL at /__agent-html/public/<path>
+
 .agent-html/examples
   -> canonical examples
 
@@ -44,9 +56,20 @@ while writing React artifacts:
   -> durable agent-authored work products
 ```
 
+`components.json` and `tsconfig.json` stay at the workspace root because shadcn,
+TypeScript, and editors discover them from there. They are configuration files,
+but moving them into a nested config directory would make discovery less
+reliable.
+
 The directory gives agents an explicit workspace instead of relying on a single
 prompt. Human-readable guidance and agent-consumable assets stay beside the
 artifacts they shape.
+
+Use `.agent-html/assets` for files that artifact source imports into the bundle,
+such as images or media used by React components. Use `.agent-html/public` for
+URL-addressed files that should stay static and be referenced as
+`/__agent-html/public/<path>`. Public files are not imported from artifact
+source.
 
 ## Authoring Contract
 
@@ -61,10 +84,12 @@ import { useFilter } from "../hooks/use-filter"
 import { formatDate } from "../lib/format-date"
 import { artifactDataSchema } from "../schema/artifact-data"
 import rows from "../data/rows.json"
+import diagramUrl from "../assets/diagram.svg"
 ```
 
-Use `Artifact` as the top-level wrapper. Wrap each major semantic region in
-`Block`. Use stable, unique, readable, kebab-case block ids. `Block` is a
+Use `Artifact` as the top-level wrapper. It owns the fixed readable root
+container and accepts only `title` and children. Wrap each major semantic region
+in `Block`. Use stable, unique, readable, kebab-case block ids. `Block` is a
 protocol marker only: use `id`, `title`, and children, and put layout or visual
 treatment inside the block content.
 

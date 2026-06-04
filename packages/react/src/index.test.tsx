@@ -16,19 +16,20 @@ describe("@agent-html/react", () => {
 
     expect(html).toContain('data-agent-html-artifact="true"')
     expect(html).toContain('data-agent-html-title="Demo"')
-    expect(html).not.toContain("mx-auto")
-    expect(html).not.toContain("max-w-6xl")
-    expect(html).not.toContain("bg-background")
-    expect(html).not.toContain("text-foreground")
+    expect(html).toContain("mx-auto")
+    expect(html).toContain("max-w-2xl")
+    expect(html).toContain("gap-8")
+    expect(html).toContain("bg-background")
+    expect(html).toContain("text-foreground")
     expect(html).toContain('data-agent-html-block-id="summary"')
     expect(html).not.toContain("min-w-0")
     expect(html).not.toContain("scroll-mt-4")
     expect(html).toContain("Hello")
   })
 
-  it("keeps Block protocol-only while Artifact can own page layout", () => {
+  it("keeps Artifact as a fixed reading container", () => {
     const html = renderToStaticMarkup(
-      <Artifact className="max-w-4xl" title="Demo">
+      <Artifact title="Demo">
         <Block id="summary" title="Summary">
           <div className="col-span-2">
             <p>Hello</p>
@@ -38,11 +39,18 @@ describe("@agent-html/react", () => {
     )
 
     expect(html).toContain('data-agent-html-artifact="true"')
-    expect(html).toContain("max-w-4xl")
-    expect(html).not.toContain("max-w-6xl")
+    expect(html).toContain("max-w-2xl")
+    expect(html).not.toContain("max-w-4xl")
     expect(html).toContain('data-agent-html-block-id="summary"')
     expect(html).not.toContain("scroll-mt-4")
     expect(html).toContain("col-span-2")
+  })
+
+  it("does not type-check visual props on Artifact", () => {
+    // @ts-expect-error Artifact owns a fixed reading layout.
+    const element = <Artifact className="max-w-4xl" title="Demo" />
+
+    expect(element.type).toBe(Artifact)
   })
 
   it("does not type-check visual props on Block", () => {

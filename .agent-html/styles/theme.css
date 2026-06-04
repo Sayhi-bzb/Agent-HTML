@@ -28,6 +28,7 @@
     --radius: var(--radius-base);
     --canvas-block-highlight-background: color-mix(in oklab, var(--ring) 5%, transparent);
     --canvas-block-highlight-border: color-mix(in oklab, var(--ring) 32%, transparent);
+    --canvas-block-highlight-padding: 0.375rem;
     --canvas-block-highlight-radius: var(--radius);
     --sidebar: var(--background);
     --sidebar-foreground: var(--foreground);

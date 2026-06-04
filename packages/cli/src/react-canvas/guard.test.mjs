@@ -82,7 +82,7 @@ describe("React Canvas Guard", () => {
       import { Artifact, Block } from "@agent-html/react"
       export default function Demo() {
         return (
-          <Artifact className="mx-auto flex max-w-4xl flex-col gap-4 bg-background p-4 text-foreground" title="Demo">
+          <Artifact title="Demo">
             <Block id="summary">
               <section className="grid min-w-0 gap-3 overflow-hidden text-sm leading-normal">
                 <p className="truncate text-muted-foreground">Summary</p>
@@ -95,6 +95,23 @@ describe("React Canvas Guard", () => {
 
     expect(messages.filter((message) => message.includes("Unsafe className"))).toEqual([])
     expect(messages).not.toContain("Inline visual style is not allowed in React Canvas artifacts.")
+  })
+
+  it("reports layout or visual props on Artifact", () => {
+    const messages = issueMessages(`
+      import { Artifact, Block } from "@agent-html/react"
+      export default function Demo() {
+        return (
+          <Artifact className="max-w-4xl" title="Demo" style={{ color: "red" }}>
+            <Block id="summary">
+              <section>Summary</section>
+            </Block>
+          </Artifact>
+        )
+      }
+    `)
+
+    expect(messages).toContain("Artifact owns the fixed reading layout and must not receive className or style.")
   })
 
   it("reports layout or visual props on Block", () => {
@@ -132,6 +149,36 @@ describe("React Canvas Guard", () => {
 
     expect(messages).toContain("Forbidden app or old runtime import in React Canvas artifact.")
     expect(messages).toContain("Old AHTML render API is not allowed in React Canvas artifacts.")
+  })
+
+  it("allows imported assets but reports imported public files", () => {
+    const assetMessages = issueMessages(`
+      import { Artifact, Block } from "@agent-html/react"
+      import diagramUrl from "../assets/diagram.svg"
+
+      export default function Demo() {
+        return (
+          <Artifact title="Demo">
+            <Block id="summary">{diagramUrl}</Block>
+          </Artifact>
+        )
+      }
+    `)
+    const publicMessages = issueMessages(`
+      import { Artifact, Block } from "@agent-html/react"
+      import logoUrl from "../public/logo.svg"
+
+      export default function Demo() {
+        return (
+          <Artifact title="Demo">
+            <Block id="summary">{logoUrl}</Block>
+          </Artifact>
+        )
+      }
+    `)
+
+    expect(assetMessages).not.toContain("Public files must be referenced by URL, not imported.")
+    expect(publicMessages).toContain("Public files must be referenced by URL, not imported.")
   })
 
   it("reports primitive bypasses for common controls and tables", () => {

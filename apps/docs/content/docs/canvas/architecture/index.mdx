@@ -31,10 +31,11 @@ surface. The host observes and operates on rendered metadata.
 
 `Artifact`, `Block`, and `Action` are headless protocol markers.
 
-They own metadata, anchors, accessibility minimums, and action dispatch. `Block`
-is fully protocol-only: it accepts `id`, `title`, and children. It does not own
-width, spacing, colors, borders, radius, shadow, cards, panels, grid structure,
-or props passthrough.
+They own metadata, anchors, accessibility minimums, and action dispatch.
+`Artifact` also owns the fixed readable root container, so agents do not pass
+root layout or visual props. `Block` is fully protocol-only: it accepts `id`,
+`title`, and children. It does not own width, spacing, colors, borders, radius,
+shadow, cards, panels, grid structure, or props passthrough.
 
 ## Resources
 
@@ -57,10 +58,10 @@ Artifacts should consume these resources before adding local one-off helpers.
 
 ## Composition
 
-Artifacts decide layout explicitly:
+Artifacts decide block content layout explicitly:
 
 ```tsx
-<Artifact className="mx-auto flex w-full max-w-6xl flex-col gap-4 bg-background text-foreground">
+<Artifact title="Project Brief">
   <Block id="summary" title="Summary">
     <Card>...</Card>
   </Block>

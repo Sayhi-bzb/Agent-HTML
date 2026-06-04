@@ -8,6 +8,15 @@ React Canvas uses the same design-system direction as the app, but it does not
 import the app implementation:
 
 ```text
+.agent-html/AGENTS.md
+  -> workspace rules and operating instructions
+
+.agent-html/components.json
+  -> shadcn workspace discovery config
+
+.agent-html/tsconfig.json
+  -> local TypeScript and editor discovery config
+
 .agent-html/styles/theme.css
   -> semantic token values
 
@@ -20,10 +29,31 @@ import the app implementation:
 .agent-html/ui
   -> local visual primitives
 
+.agent-html/hooks
+  -> reusable React behavior
+
+.agent-html/lib
+  -> pure helpers and transforms
+
+.agent-html/schema
+  -> typed contracts and validation
+
+.agent-html/data
+  -> fixtures and local datasets
+
+.agent-html/assets
+  -> bundle-time artifact assets imported by artifact source
+
+.agent-html/public
+  -> static files served by URL at /__agent-html/public/<path>
+
 artifacts and host
   -> primitive composition and semantic layout
 ```
 
+- `.agent-html/AGENTS.md`, `.agent-html/components.json`, and
+  `.agent-html/tsconfig.json` stay at the workspace root because agents,
+  shadcn, TypeScript, and editors discover them from there.
 - `.agent-html/styles/theme.css` owns semantic values such as color, font,
   radius, chart, and sidebar tokens.
 - `.agent-html/styles.css` is the runtime CSS bridge. It imports Tailwind,
@@ -44,10 +74,13 @@ artifacts and host
   from `theme.css` through `styles.css`; do not recreate block highlighting in
   artifact source or on `Block`.
 - `Artifact`, `Block`, and `Action` from `@agent-html/react` are headless
-  collaboration protocol markers, not visual components. `Block` is fully
-  protocol-only: use only `id`, `title`, and children. Do not put `className`,
-  `style`, layout, border, radius, or shadow on `Block`. Put layout and visual
-  treatment in artifact composition and `.agent-html/ui` primitives.
+  collaboration protocol markers, not visual components. `Artifact` owns the
+  fixed readable root container and accepts only `title` and children. Do not
+  put `className`, `style`, width, spacing, padding, or color props on
+  `Artifact`. `Block` is fully protocol-only: use only `id`, `title`, and
+  children. Do not put `className`, `style`, layout, border, radius, or shadow
+  on `Block`. Put block content layout and visual treatment inside the block and
+  `.agent-html/ui` primitives.
 - Use semantic token utilities such as `bg-background`, `text-foreground`,
   `bg-card`, `text-muted-foreground`, `border-border`, `bg-popover`, and
   `text-popover-foreground`.
@@ -73,17 +106,23 @@ artifacts and host
 - Text, code, generated output, and data values should stay selectable. Chrome,
   navigation rows, badges, and block action controls may disable accidental
   selection through primitives.
+- Put imported images, media, and bundle-time files in `.agent-html/assets` and
+  import them with relative `../assets/...` paths.
+- Put URL-addressed static files in `.agent-html/public` and reference them as
+  `/__agent-html/public/<path>`. Do not import from `../public`.
 
 Rules:
 
 - Import `Artifact`, `Block`, and `Action` from `@agent-html/react`.
 - Use `Artifact` as the top-level wrapper.
+- Keep `Artifact` static and unstyled. The root reading width, spacing, and
+  base token classes are fixed by `@agent-html/react`.
 - Wrap every major semantic region in `Block`.
 - Keep `Block` static and unstyled. Layout belongs inside the block, not on the
   block marker.
 - Use stable, unique, readable, kebab-case block ids.
-- Prefer local `../ui`, `../hooks`, `../lib`, `../schema`, and `../data`
-  imports before hand-writing common UI or utility code.
+- Prefer local `../ui`, `../hooks`, `../lib`, `../schema`, `../data`, and
+  `../assets` imports before hand-writing common UI or utility code.
 - Do not call Codex app-server, the filesystem, shell commands, MCP servers, or
   privileged host APIs from artifact code.
 - Do not import `@/app/*`, `apps/agent-html-app`, `@/agent-html/runtime/ui`,
