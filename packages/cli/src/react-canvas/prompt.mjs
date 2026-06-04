@@ -7,25 +7,80 @@ const toonEncodeOptions = {
   keyFolding: "off",
 }
 
+const viewStateKinds = new Set(["open"])
+const viewStateComponents = new Set([
+  "accordion",
+  "alert-dialog",
+  "collapsible",
+  "dialog",
+  "drawer",
+  "popover",
+  "sheet",
+  "tabs",
+])
+
+function isViewStateChange(change) {
+  return (
+    viewStateKinds.has(change.kind) || viewStateComponents.has(change.component)
+  )
+}
+
 export function compactInteractionSnapshot(snapshot) {
+  const compactedChanges = snapshot.compactedChanges ?? null
+
+  if (compactedChanges) {
+    return {
+      actions: snapshot.compactedActions ?? [],
+      finalState: snapshot.currentState ?? {},
+      diff: compactedChanges
+        .filter((change) => !isViewStateChange(change))
+        .filter((change) => !Object.is(change.from, change.to))
+        .map(({ controlId, from, semantic, to }) => ({
+          controlId,
+          from,
+          semantic,
+          to,
+        })),
+    }
+  }
+
   const changesByControl = new Map()
+  const actions = []
 
   for (const change of snapshot.recentChanges ?? []) {
+    if (change.kind === "action") {
+      actions.push({
+        controlId: change.controlId,
+        semantic: change.semantic,
+        value: change.after,
+      })
+      continue
+    }
+
     const previous = changesByControl.get(change.controlId)
 
     changesByControl.set(change.controlId, {
+      component: change.component,
       controlId: change.controlId,
       from: previous ? previous.from : change.before,
+      kind: change.kind,
       semantic: change.semantic,
       to: change.after,
     })
   }
 
   return {
+    actions,
     finalState: snapshot.currentState ?? {},
-    diff: Array.from(changesByControl.values()).filter(
-      (change) => !Object.is(change.from, change.to)
-    ),
+    diff: Array.from(changesByControl.values())
+      .filter((change) => !isViewStateChange(change))
+      .filter((change) => !Object.is(change.from, change.to))
+      .map(({ controlId, from, semantic, to }) => ({
+        controlId,
+        from,
+        semantic,
+        to,
+      })),
   }
 }
 
@@ -34,21 +89,15 @@ export function formatBlockPrompt(payload) {
     "---",
     `filePath: ${payload.filePath}`,
     `blockPath: ${payload.blockPath}`,
-    `targetStatus: ${payload.targetStatus}`,
     "---",
     "",
   ]
 
-  if (payload.selectedSource) {
-    lines.push("```tsx", payload.selectedSource, "```", "")
-  }
-
   if (payload.interactionSnapshot) {
     lines.push(
-      "Interaction Context:",
-      "```toon",
+      "```interaction",
       encode(
-        { interaction: compactInteractionSnapshot(payload.interactionSnapshot) },
+        compactInteractionSnapshot(payload.interactionSnapshot),
         toonEncodeOptions
       ),
       "```",

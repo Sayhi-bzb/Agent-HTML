@@ -6,26 +6,18 @@ const payload = {
   blockPath: "summary",
   filePath: ".agent-html/artifacts/example.agent.tsx",
   request: "Tighten this summary.",
-  selectedSource: '<Block id="summary">Summary</Block>',
-  targetStatus: "selected_block",
 }
 
 describe("React Canvas prompt bridge", () => {
-  it("formats selected block prompts as fenced tsx", () => {
-    expect(formatBlockPrompt(payload)).toContain("```tsx")
-    expect(formatBlockPrompt(payload)).toContain("blockPath: summary")
-    expect(formatBlockPrompt(payload)).toContain("Request:\nTighten this summary.")
-  })
+  it("formats block prompts as minimal intent packets", () => {
+    const prompt = formatBlockPrompt(payload)
 
-  it("omits source fence for missing blocks", () => {
-    const prompt = formatBlockPrompt({
-      ...payload,
-      selectedSource: null,
-      targetStatus: "missing_block",
-    })
-
-    expect(prompt).toContain("targetStatus: missing_block")
+    expect(prompt).toContain("filePath: .agent-html/artifacts/example.agent.tsx")
+    expect(prompt).toContain("blockPath: summary")
     expect(prompt).not.toContain("```tsx")
+    expect(prompt).not.toContain("targetStatus")
+    expect(prompt).not.toContain("sourceMode")
+    expect(prompt).toContain("Request:\nTighten this summary.")
   })
 
   it("uses one formatter for host display and clipboard output", () => {
@@ -57,13 +49,15 @@ describe("React Canvas prompt bridge", () => {
       },
     })
 
-    expect(prompt).toContain("Interaction Context:")
-    expect(prompt).toContain("```toon")
-    expect(prompt).toContain("interaction:")
+    expect(prompt).not.toContain("Interaction Context:")
+    expect(prompt).toContain("```interaction")
+    expect(prompt).not.toContain("interaction:")
     expect(prompt).toContain("finalState:")
     expect(prompt).toContain("status: doing")
     expect(prompt).toContain("diff[1]{controlId,from,semantic,to}:")
     expect(prompt).toContain("status,todo,set-status,doing")
+    expect(prompt).toContain("actions: []")
+    expect(prompt).not.toContain("```toon")
     expect(prompt).not.toContain("```json")
     expect(prompt).not.toContain("recentChanges")
     expect(prompt).not.toContain("timestamp")
@@ -108,6 +102,7 @@ describe("React Canvas prompt bridge", () => {
         ],
       })
     ).toEqual({
+      actions: [],
       finalState: {
         threshold: 60,
       },
@@ -116,6 +111,172 @@ describe("React Canvas prompt bridge", () => {
           controlId: "threshold",
           from: 40,
           semantic: "set-animation-threshold",
+          to: 60,
+        },
+      ],
+    })
+  })
+
+  it("uses persisted compact changes when recent changes were capped", () => {
+    expect(
+      compactInteractionSnapshot({
+        blockId: "bench",
+        compactedChanges: [
+          {
+            component: "checkbox",
+            controlId: "checkbox",
+            from: false,
+            kind: "toggle",
+            semantic: "toggle-checkbox",
+            to: true,
+          },
+          {
+            component: "select",
+            controlId: "select",
+            from: "draft",
+            kind: "select",
+            semantic: "set-select-status",
+            to: "ready",
+          },
+        ],
+        currentState: {
+          checkbox: true,
+          select: "ready",
+        },
+        recentChanges: [
+          {
+            after: "ready",
+            before: "review",
+            component: "select",
+            controlId: "select",
+            kind: "select",
+            semantic: "set-select-status",
+            timestamp: 25,
+          },
+        ],
+      })
+    ).toEqual({
+      actions: [],
+      finalState: {
+        checkbox: true,
+        select: "ready",
+      },
+      diff: [
+        {
+          controlId: "checkbox",
+          from: false,
+          semantic: "toggle-checkbox",
+          to: true,
+        },
+        {
+          controlId: "select",
+          from: "draft",
+          semantic: "set-select-status",
+          to: "ready",
+        },
+      ],
+    })
+  })
+
+  it("separates action intent from state diffs", () => {
+    expect(
+      compactInteractionSnapshot({
+        blockId: "bench",
+        compactedActions: [
+          {
+            controlId: "commandAction",
+            semantic: "run-command-action",
+            value: "rewrite",
+          },
+        ],
+        compactedChanges: [
+          {
+            component: "select",
+            controlId: "status",
+            from: "draft",
+            kind: "select",
+            semantic: "set-status",
+            to: "ready",
+          },
+        ],
+        currentState: {
+          commandAction: "rewrite",
+          status: "ready",
+        },
+        recentChanges: [],
+      })
+    ).toEqual({
+      actions: [
+        {
+          controlId: "commandAction",
+          semantic: "run-command-action",
+          value: "rewrite",
+        },
+      ],
+      finalState: {
+        commandAction: "rewrite",
+        status: "ready",
+      },
+      diff: [
+        {
+          controlId: "status",
+          from: "draft",
+          semantic: "set-status",
+          to: "ready",
+        },
+      ],
+    })
+  })
+
+  it("omits view state changes from prompt diffs", () => {
+    expect(
+      compactInteractionSnapshot({
+        blockId: "bench",
+        compactedChanges: [
+          {
+            component: "tabs",
+            controlId: "tabs",
+            from: "forms",
+            kind: "select",
+            semantic: "select-interaction-section",
+            to: "layout",
+          },
+          {
+            component: "dialog",
+            controlId: "dialogOpen",
+            from: false,
+            kind: "open",
+            semantic: "set-dialog-open",
+            to: true,
+          },
+          {
+            component: "slider",
+            controlId: "slider",
+            from: 40,
+            kind: "set",
+            semantic: "set-slider-threshold",
+            to: 60,
+          },
+        ],
+        currentState: {
+          dialogOpen: true,
+          slider: 60,
+          tabs: "layout",
+        },
+        recentChanges: [],
+      })
+    ).toEqual({
+      actions: [],
+      finalState: {
+        dialogOpen: true,
+        slider: 60,
+        tabs: "layout",
+      },
+      diff: [
+        {
+          controlId: "slider",
+          from: 40,
+          semantic: "set-slider-threshold",
           to: 60,
         },
       ],
@@ -151,6 +312,7 @@ describe("React Canvas prompt bridge", () => {
         ],
       })
     ).toEqual({
+      actions: [],
       finalState: {
         enabled: false,
       },

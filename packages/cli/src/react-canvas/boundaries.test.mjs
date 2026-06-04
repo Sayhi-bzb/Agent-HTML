@@ -149,7 +149,25 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
   })
 
   it("keeps .agent-html as source-only playground content", () => {
-    expect(existsSync(join(root, ".agent-html", "package.json"))).toBe(false)
+    const playgroundPackage = JSON.parse(
+      readFileSync(join(root, ".agent-html", "package.json"), "utf8")
+    )
+
+    expect(playgroundPackage).toEqual({
+      dependencies: {
+        "@base-ui/react": "^1.5.0",
+        cmdk: "^1.1.1",
+        "date-fns": "^4.4.0",
+        "embla-carousel-react": "^8.6.0",
+        "input-otp": "^1.4.2",
+        "react-day-picker": "^10.0.1",
+        "react-resizable-panels": "^4.11.2",
+        vaul: "^1.1.2",
+      },
+      name: "@agent-html/react-canvas-workspace",
+      private: true,
+      type: "module",
+    })
     expect(existsSync(join(root, ".agent-html", "package-lock.json"))).toBe(
       false
     )
@@ -212,6 +230,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const canvasMessageStore = readSource(
       "packages/cli/src/host/canvas-message-store.ts"
     )
+    const canvasHostApp = readSource("packages/cli/src/host/app.tsx")
     const floatingPrompt = readSource(
       "packages/cli/src/host/floating-prompt.tsx"
     )
@@ -315,6 +334,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     )
     expect(canvasMessageStore).toContain("CanvasMessageHostSnapshot")
     expect(canvasMessageStore).toContain("subscribeCanvasMessageHost")
+    expect(canvasHostApp).not.toContain("fetchBlockSource")
     expect(floatingPrompt).toContain("value: string")
     expect(floatingPrompt).toContain("onDraftChange: (draft: string) => void")
     expect(floatingPrompt).not.toContain('React.useState("")')

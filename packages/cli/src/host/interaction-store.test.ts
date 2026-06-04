@@ -32,6 +32,17 @@ describe("Canvas interaction store", () => {
       })
     ).toEqual({
       blockId: "settings",
+      compactedActions: [],
+      compactedChanges: [
+        {
+          component: "checkbox",
+          controlId: "enable-motion",
+          from: false,
+          kind: "toggle",
+          semantic: undefined,
+          to: true,
+        },
+      ],
       currentState: {
         "enable-motion": true,
       },
@@ -78,8 +89,86 @@ describe("Canvas interaction store", () => {
     })
 
     expect(snapshot?.currentState).toEqual({ threshold: 24 })
+    expect(snapshot?.compactedActions).toEqual([])
+    expect(snapshot?.compactedChanges).toEqual([
+      {
+        component: "slider",
+        controlId: "threshold",
+        from: -1,
+        kind: "set",
+        semantic: undefined,
+        to: 24,
+      },
+    ])
     expect(snapshot?.recentChanges).toHaveLength(20)
     expect(snapshot?.recentChanges[0]?.timestamp).toBe(5)
+  })
+
+  it("retains compact changes for controls after raw recent changes are capped", () => {
+    for (let index = 0; index < 25; index += 1) {
+      recordCanvasInteractionChange({
+        change: {
+          after: `after-${index}`,
+          before: `before-${index}`,
+          blockId: "bench",
+          component: "input",
+          controlId: `control-${index}`,
+          kind: "set",
+          semantic: "set-control",
+          timestamp: index,
+        },
+        filePath: ".agent-html/artifacts/demo.agent.tsx",
+      })
+    }
+
+    const snapshot = getCanvasInteractionSnapshot({
+      blockId: "bench",
+      filePath: ".agent-html/artifacts/demo.agent.tsx",
+    })
+
+    expect(snapshot?.recentChanges).toHaveLength(20)
+    expect(snapshot?.compactedChanges).toHaveLength(25)
+    expect(snapshot?.compactedChanges[0]).toEqual({
+      component: "input",
+      controlId: "control-0",
+      from: "before-0",
+      kind: "set",
+      semantic: "set-control",
+      to: "after-0",
+    })
+  })
+
+  it("stores action intent separately from state changes", () => {
+    recordCanvasInteractionChange({
+      change: {
+        after: "rewrite",
+        before: "none",
+        blockId: "bench",
+        component: "command",
+        controlId: "commandAction",
+        kind: "action",
+        semantic: "run-command-action",
+        timestamp: 1,
+      },
+      filePath: ".agent-html/artifacts/demo.agent.tsx",
+    })
+
+    const snapshot = getCanvasInteractionSnapshot({
+      blockId: "bench",
+      filePath: ".agent-html/artifacts/demo.agent.tsx",
+    })
+
+    expect(snapshot?.compactedChanges).toEqual([])
+    expect(snapshot?.compactedActions).toEqual([
+      {
+        controlId: "commandAction",
+        semantic: "run-command-action",
+        value: "rewrite",
+      },
+    ])
+    expect(snapshot?.currentState).toEqual({
+      commandAction: "rewrite",
+    })
   })
 
   it("ignores changes without block ownership", () => {

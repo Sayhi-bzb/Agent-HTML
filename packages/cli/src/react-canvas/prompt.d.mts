@@ -1,5 +1,18 @@
 export type BlockPromptInteractionSnapshot = {
   blockId: string
+  compactedActions?: Array<{
+    controlId: string
+    semantic?: string
+    value: unknown
+  }>
+  compactedChanges?: Array<{
+    component?: string
+    controlId: string
+    from: unknown
+    kind?: string
+    semantic?: string
+    to: unknown
+  }>
   currentState: Record<string, unknown>
   recentChanges: Array<{
     after: unknown
@@ -15,13 +28,18 @@ export type BlockPromptInteractionSnapshot = {
 }
 
 export type CompactBlockPromptInteraction = {
-  finalState: Record<string, unknown>
+  actions: Array<{
+    controlId: string
+    semantic?: string
+    value: unknown
+  }>
   diff: Array<{
     controlId: string
     from: unknown
     semantic?: string
     to: unknown
   }>
+  finalState: Record<string, unknown>
 }
 
 export type BlockPromptPayload = {
@@ -29,8 +47,6 @@ export type BlockPromptPayload = {
   filePath: string
   interactionSnapshot?: BlockPromptInteractionSnapshot | null
   request: string
-  selectedSource: string | null
-  targetStatus: "selected_block" | "missing_block"
 }
 
 export function compactInteractionSnapshot(

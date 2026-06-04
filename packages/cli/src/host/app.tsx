@@ -1,9 +1,6 @@
 import * as React from "react"
 
-import {
-  fetchArtifacts,
-  fetchBlockSource,
-} from "./api"
+import { fetchArtifacts } from "./api"
 import { ArtifactSurface } from "./artifact-surface"
 import {
   readCanvasHostPreferences,
@@ -251,10 +248,6 @@ export function ReactCanvasHostApp() {
     }
 
     try {
-      const data = await fetchBlockSource({
-        blockId: target.id,
-        filePath: resolvedActiveFilePath,
-      })
       const formatted = formatBlockPrompt({
         blockPath: target.id,
         filePath: resolvedActiveFilePath,
@@ -263,8 +256,6 @@ export function ReactCanvasHostApp() {
           filePath: resolvedActiveFilePath,
         }),
         request,
-        selectedSource: data.selectedSource ?? null,
-        targetStatus: data.selectedSource ? "selected_block" : "missing_block",
       })
 
       await navigator.clipboard.writeText(formatted)
