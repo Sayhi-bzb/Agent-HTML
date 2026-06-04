@@ -1,4 +1,60 @@
-import type { ReactNode } from "react"
+import * as React from "react"
+import type { ReactNode, RefObject } from "react"
+
+export const artifactInteractionEventName = "agent-html:state-change"
+
+export type ArtifactStateChangeKind =
+  | "set"
+  | "toggle"
+  | "select"
+  | "open"
+  | "action"
+  | "move"
+  | "resize"
+  | (string & {})
+
+export type ArtifactStateChange = {
+  after: unknown
+  before: unknown
+  blockId?: string
+  component: string
+  controlId: string
+  kind: ArtifactStateChangeKind
+  label?: string
+  semantic?: string
+  timestamp: number
+}
+
+export type ArtifactStateChangeInput = Omit<
+  ArtifactStateChange,
+  "timestamp"
+> & {
+  timestamp?: number
+}
+
+export type ArtifactInteractionSnapshot = {
+  blockId?: string
+  currentState: Record<string, unknown>
+  recentChanges: ArtifactStateChange[]
+}
+
+export type ArtifactInteractionRuntime = {
+  emitChange: (change: ArtifactStateChangeInput) => void
+  getSnapshot: (blockId?: string) => ArtifactInteractionSnapshot
+}
+
+const emptyInteractionSnapshot: ArtifactInteractionSnapshot = {
+  currentState: {},
+  recentChanges: [],
+}
+
+const noopInteractionRuntime: ArtifactInteractionRuntime = {
+  emitChange: dispatchArtifactStateChange,
+  getSnapshot: () => emptyInteractionSnapshot,
+}
+
+const ArtifactInteractionContext =
+  React.createContext<ArtifactInteractionRuntime>(noopInteractionRuntime)
 
 
 export type ArtifactProps = {
@@ -11,6 +67,177 @@ export type BlockProps = {
   id: string
   title?: string
 }
+
+export function createArtifactStateChange(
+  change: ArtifactStateChangeInput
+): ArtifactStateChange {
+  return {
+    ...change,
+    timestamp: change.timestamp ?? Date.now(),
+  }
+}
+
+export function dispatchArtifactStateChange(change: ArtifactStateChangeInput) {
+  const detail = createArtifactStateChange(change)
+
+  if (typeof window === "undefined") {
+    return detail
+  }
+
+  window.dispatchEvent(
+    new CustomEvent<ArtifactStateChange>(artifactInteractionEventName, {
+      detail,
+    })
+  )
+
+  return detail
+}
+
+export function InteractionProvider({
+  children,
+  onChange,
+}: {
+  children?: ReactNode
+  onChange?: (change: ArtifactStateChange) => void
+}) {
+  const snapshotsRef = React.useRef(new Map<string, ArtifactInteractionSnapshot>())
+
+  const emitChange = React.useCallback(
+    (input: ArtifactStateChangeInput) => {
+      const change = createArtifactStateChange(input)
+      const key = change.blockId ?? ""
+      const previous = snapshotsRef.current.get(key) ?? {
+        blockId: change.blockId,
+        currentState: {},
+        recentChanges: [],
+      }
+
+      snapshotsRef.current.set(key, {
+        blockId: change.blockId,
+        currentState: {
+          ...previous.currentState,
+          [change.controlId]: change.after,
+        },
+        recentChanges: [...previous.recentChanges, change].slice(-20),
+      })
+
+      onChange?.(change)
+      dispatchArtifactStateChange(change)
+    },
+    [onChange]
+  )
+
+  const getSnapshot = React.useCallback((blockId?: string) => {
+    return snapshotsRef.current.get(blockId ?? "") ?? emptyInteractionSnapshot
+  }, [])
+
+  const runtime = React.useMemo(
+    () => ({
+      emitChange,
+      getSnapshot,
+    }),
+    [emitChange, getSnapshot]
+  )
+
+  return (
+    <ArtifactInteractionContext.Provider value={runtime}>
+      {children}
+    </ArtifactInteractionContext.Provider>
+  )
+}
+
+export function useArtifactInteraction() {
+  return React.useContext(ArtifactInteractionContext)
+}
+
+export function findNearestBlockId(element: Element | null | undefined) {
+  return (
+    element
+      ?.closest("[data-agent-html-block='true']")
+      ?.getAttribute("data-agent-html-block-id") ?? undefined
+  )
+}
+
+export function useNearestBlockId<T extends Element>(
+  ref: RefObject<T | null>
+) {
+  const [blockId, setBlockId] = React.useState<string | undefined>()
+
+  React.useLayoutEffect(() => {
+    setBlockId(findNearestBlockId(ref.current))
+  })
+
+  return blockId
+}
+
+export function useEmitArtifactStateChange({
+  blockId,
+  elementRef,
+}: {
+  blockId?: string
+  elementRef?: RefObject<Element | null>
+} = {}) {
+  const runtime = useArtifactInteraction()
+
+  return React.useCallback(
+    (change: Omit<ArtifactStateChangeInput, "blockId"> & { blockId?: string }) => {
+      runtime.emitChange({
+        ...change,
+        blockId: change.blockId ?? blockId ?? findNearestBlockId(elementRef?.current),
+      })
+    },
+    [blockId, elementRef, runtime]
+  )
+}
+
+export function useInstrumentedValueChange<T>({
+  blockId,
+  component,
+  controlId,
+  elementRef,
+  kind = "set",
+  label,
+  onChange,
+  semantic,
+  value,
+}: {
+  blockId?: string
+  component: string
+  controlId: string
+  elementRef?: RefObject<Element | null>
+  kind?: ArtifactStateChangeKind
+  label?: string
+  onChange?: (value: T) => void
+  semantic?: string
+  value: T
+}) {
+  const emitChange = useEmitArtifactStateChange({ blockId, elementRef })
+  const previousValueRef = React.useRef(value)
+
+  React.useEffect(() => {
+    previousValueRef.current = value
+  }, [value])
+
+  return React.useCallback(
+    (nextValue: T) => {
+      const before = previousValueRef.current
+      previousValueRef.current = nextValue
+      onChange?.(nextValue)
+      emitChange({
+        after: nextValue,
+        before,
+        component,
+        controlId,
+        kind,
+        label,
+        semantic,
+      })
+    },
+    [component, controlId, emitChange, kind, label, onChange, semantic]
+  )
+}
+
+export const useInstrumentedCheckedChange = useInstrumentedValueChange
 
 export function Artifact({ children, title }: ArtifactProps) {
   return (

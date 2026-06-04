@@ -58,6 +58,54 @@
     gap: var(--canvas-status-item-gap);
   }
 
+  .canvas-artifact-skeleton {
+    display: flex;
+    width: min(100%, var(--canvas-artifact-skeleton-max-width));
+    flex-direction: column;
+    gap: var(--canvas-artifact-skeleton-gap);
+    margin-inline: auto;
+  }
+
+  .canvas-artifact-skeleton-kicker {
+    width: var(--canvas-artifact-skeleton-kicker-width);
+    height: var(--canvas-artifact-skeleton-kicker-height);
+  }
+
+  .canvas-artifact-skeleton-title {
+    width: var(--canvas-artifact-skeleton-title-width);
+    height: var(--canvas-artifact-skeleton-title-height);
+  }
+
+  .canvas-artifact-skeleton-line {
+    width: min(26rem, 72%);
+    height: var(--canvas-artifact-skeleton-line-height);
+  }
+
+  .canvas-artifact-skeleton-line-wide {
+    width: min(36rem, 92%);
+  }
+
+  .canvas-artifact-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--canvas-artifact-skeleton-gap);
+    margin-block-start: var(--canvas-artifact-skeleton-section-gap);
+  }
+
+  .canvas-artifact-skeleton-card {
+    height: var(--canvas-artifact-skeleton-card-height);
+  }
+
+  .canvas-artifact-skeleton-block {
+    height: var(--canvas-artifact-skeleton-block-height);
+    margin-block-start: var(--canvas-artifact-skeleton-section-gap);
+  }
+
+  .canvas-artifact-skeleton-block-short {
+    height: calc(var(--canvas-artifact-skeleton-block-height) * 0.72);
+    margin-block-start: 0;
+  }
+
   .canvas-sidebar-pad {
     padding: var(--canvas-sidebar-section-padding);
   }

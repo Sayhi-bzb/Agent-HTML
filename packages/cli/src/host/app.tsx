@@ -15,6 +15,13 @@ import {
   clearCanvasMessageHost,
   publishCanvasMessageHost,
 } from "./canvas-message-store"
+import {
+  canvasInteractionEventName,
+  clearCanvasInteractionSnapshots,
+  createCanvasInteractionEventListener,
+  getCanvasInteractionSnapshot,
+} from "./interaction-store"
+import { publishCanvasPromptDebug } from "./prompt-debug"
 import { ReactCanvasSidebar } from "./sidebar"
 import {
   createEmptyCanvasThemeDraft,
@@ -54,6 +61,7 @@ export function ReactCanvasHostApp() {
   const [activeFilePath, setActiveFilePath] = React.useState<string | null>(null)
   const [artifacts, setArtifacts] = React.useState<Artifact[]>([])
   const [guardIssues, setGuardIssues] = React.useState<GuardIssue[]>([])
+  const [artifactsLoading, setArtifactsLoading] = React.useState(true)
   const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(
     initialPreferences.leftSidebarOpen
   )
@@ -76,6 +84,7 @@ export function ReactCanvasHostApp() {
     React.useState<CanvasThemeResolvedVariables>({})
   const [promptTarget, setPromptTarget] =
     React.useState<FloatingPromptTarget | null>(null)
+  const activeFilePathRef = React.useRef<string | null>(null)
 
   const activeArtifact =
     artifacts.find((artifact) => artifact.filePath === activeFilePath) ??
@@ -89,28 +98,53 @@ export function ReactCanvasHostApp() {
     canvasThemePresets.find((preset) => preset.id === activeThemePresetId) ??
     canvasThemePresets[0]
 
-  const refreshArtifacts = React.useCallback(async () => {
-    const data = await fetchArtifacts()
+  activeFilePathRef.current = resolvedActiveFilePath
 
-    setArtifacts(data.artifacts ?? [])
-    setGuardIssues(data.guardIssues ?? [])
-    setLoadError(null)
-    setActiveFilePath((current) => {
-      if (
-        current &&
-        data.artifacts.some((artifact) => artifact.filePath === current)
-      ) {
-        return current
-      }
-
-      const storedPreferences = readCanvasHostPreferences({
-        artifacts: data.artifacts,
-      })
-
-      return (
-        storedPreferences.activeFilePath ?? data.artifacts[0]?.filePath ?? null
-      )
+  React.useEffect(() => {
+    const listener = createCanvasInteractionEventListener({
+      getActiveFilePath: () => activeFilePathRef.current,
     })
+
+    window.addEventListener(canvasInteractionEventName, listener)
+
+    return () => {
+      window.removeEventListener(canvasInteractionEventName, listener)
+      clearCanvasInteractionSnapshots()
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (resolvedActiveFilePath) {
+      clearCanvasInteractionSnapshots(resolvedActiveFilePath)
+    }
+  }, [resolvedActiveFilePath])
+
+  const refreshArtifacts = React.useCallback(async () => {
+    try {
+      const data = await fetchArtifacts()
+
+      setArtifacts(data.artifacts ?? [])
+      setGuardIssues(data.guardIssues ?? [])
+      setLoadError(null)
+      setActiveFilePath((current) => {
+        if (
+          current &&
+          data.artifacts.some((artifact) => artifact.filePath === current)
+        ) {
+          return current
+        }
+
+        const storedPreferences = readCanvasHostPreferences({
+          artifacts: data.artifacts,
+        })
+
+        return (
+          storedPreferences.activeFilePath ?? data.artifacts[0]?.filePath ?? null
+        )
+      })
+    } finally {
+      setArtifactsLoading(false)
+    }
   }, [])
 
   React.useEffect(() => {
@@ -224,12 +258,17 @@ export function ReactCanvasHostApp() {
       const formatted = formatBlockPrompt({
         blockPath: target.id,
         filePath: resolvedActiveFilePath,
+        interactionSnapshot: getCanvasInteractionSnapshot({
+          blockId: target.id,
+          filePath: resolvedActiveFilePath,
+        }),
         request,
         selectedSource: data.selectedSource ?? null,
         targetStatus: data.selectedSource ? "selected_block" : "missing_block",
       })
 
       await navigator.clipboard.writeText(formatted)
+      publishCanvasPromptDebug(formatted)
       writeCanvasMessageDraft({
         blockId: target.id,
         draft: "",
@@ -330,6 +369,7 @@ export function ReactCanvasHostApp() {
             activeSectionId={activeThemeEditorSectionId}
             activeSidebarView={activeSidebarView}
             activeThemePresetId={activeThemePresetId}
+            artifactsLoading={artifactsLoading}
             artifacts={artifacts}
             guardIssues={guardIssues}
             onSelectArtifact={setActiveFilePath}
@@ -364,6 +404,7 @@ export function ReactCanvasHostApp() {
           <ArtifactSurface
             activeFilePath={resolvedActiveFilePath}
             artifactCount={artifacts.length}
+            artifactsLoading={artifactsLoading}
             guardIssues={activeIssues}
             loadError={loadError}
           />

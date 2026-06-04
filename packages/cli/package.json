@@ -11,6 +11,7 @@
     "@agent-html/react": "0.0.1",
     "@fontsource-variable/geist": "^5.2.9",
     "@tailwindcss/oxide": "^4.2.1",
+    "@toon-format/toon": "^2.3.0",
     "esbuild": "^0.28.0",
     "lucide-react": "^1.16.0",
     "react": "^19.2.4",

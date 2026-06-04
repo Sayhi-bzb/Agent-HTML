@@ -2,7 +2,13 @@ import React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
-import { Artifact, Block } from "./index"
+import {
+  Artifact,
+  Block,
+  artifactInteractionEventName,
+  createArtifactStateChange,
+  dispatchArtifactStateChange,
+} from "./index"
 
 describe("@agent-html/react", () => {
   it("renders normal React children with host metadata", () => {
@@ -58,4 +64,48 @@ describe("@agent-html/react", () => {
     expect(element.type).toBe(Block)
   })
 
+  it("normalizes interaction changes with timestamps", () => {
+    expect(
+      createArtifactStateChange({
+        after: true,
+        before: false,
+        blockId: "settings",
+        component: "checkbox",
+        controlId: "enable-motion",
+        kind: "toggle",
+        timestamp: 123,
+      })
+    ).toEqual({
+      after: true,
+      before: false,
+      blockId: "settings",
+      component: "checkbox",
+      controlId: "enable-motion",
+      kind: "toggle",
+      timestamp: 123,
+    })
+  })
+
+  it("keeps interaction dispatch portable without a browser window", () => {
+    const change = dispatchArtifactStateChange({
+      after: "doing",
+      before: "todo",
+      blockId: "roadmap",
+      component: "select",
+      controlId: "status",
+      kind: "select",
+      timestamp: 456,
+    })
+
+    expect(change).toEqual({
+      after: "doing",
+      before: "todo",
+      blockId: "roadmap",
+      component: "select",
+      controlId: "status",
+      kind: "select",
+      timestamp: 456,
+    })
+    expect(artifactInteractionEventName).toBe("agent-html:state-change")
+  })
 })

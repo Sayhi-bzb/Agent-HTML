@@ -29,6 +29,7 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSkeleton,
 } from "#agent-html-playground/ui/sidebar"
 import type {
   CanvasThemePreset,
@@ -41,6 +42,7 @@ export function ReactCanvasSidebar({
   activeSectionId,
   activeSidebarView,
   activeThemePresetId,
+  artifactsLoading,
   artifacts,
   guardIssues,
   onSelectArtifact,
@@ -58,6 +60,7 @@ export function ReactCanvasSidebar({
   activeSectionId: CanvasThemeEditorSectionId
   activeSidebarView: "artifacts" | "theme"
   activeThemePresetId: CanvasThemePresetId
+  artifactsLoading: boolean
   artifacts: Artifact[]
   guardIssues: GuardIssue[]
   onSelectArtifact: (filePath: string) => void
@@ -137,31 +140,35 @@ export function ReactCanvasSidebar({
             <SidebarGroupLabel>Artifacts</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {artifacts.map((artifact) => {
-                  const issueCount = guardIssues.filter(
-                    (issue) => issue.filePath === artifact.filePath
-                  ).length
+                {artifactsLoading ? (
+                  <ReactCanvasArtifactListSkeleton />
+                ) : (
+                  artifacts.map((artifact) => {
+                    const issueCount = guardIssues.filter(
+                      (issue) => issue.filePath === artifact.filePath
+                    ).length
 
-                  return (
-                    <SidebarMenuItem key={artifact.filePath}>
-                      <SidebarMenuButton
-                        isActive={artifact.filePath === activeFilePath}
-                        onClick={() => onSelectArtifact(artifact.filePath)}
-                        title={artifact.filePath}
-                        tooltip={artifactLabel(artifact.filePath)}
-                        type="button"
-                      >
-                        <FileTextIcon />
-                        <span className="min-w-0 flex-1 truncate text-left">
-                          {artifactLabel(artifact.filePath)}
-                        </span>
-                      </SidebarMenuButton>
-                      {issueCount > 0 ? (
-                        <SidebarMenuBadge>{issueCount}</SidebarMenuBadge>
-                      ) : null}
-                    </SidebarMenuItem>
-                  )
-                })}
+                    return (
+                      <SidebarMenuItem key={artifact.filePath}>
+                        <SidebarMenuButton
+                          isActive={artifact.filePath === activeFilePath}
+                          onClick={() => onSelectArtifact(artifact.filePath)}
+                          title={artifact.filePath}
+                          tooltip={artifactLabel(artifact.filePath)}
+                          type="button"
+                        >
+                          <FileTextIcon />
+                          <span className="min-w-0 flex-1 truncate text-left">
+                            {artifactLabel(artifact.filePath)}
+                          </span>
+                        </SidebarMenuButton>
+                        {issueCount > 0 ? (
+                          <SidebarMenuBadge>{issueCount}</SidebarMenuBadge>
+                        ) : null}
+                      </SidebarMenuItem>
+                    )
+                  })
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -193,5 +200,17 @@ export function ReactCanvasSidebar({
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  )
+}
+
+function ReactCanvasArtifactListSkeleton() {
+  return (
+    <>
+      {["primary", "secondary", "tertiary", "quaternary"].map((row) => (
+        <SidebarMenuItem key={row}>
+          <SidebarMenuSkeleton showIcon />
+        </SidebarMenuItem>
+      ))}
+    </>
   )
 }
