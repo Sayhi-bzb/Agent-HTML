@@ -17,11 +17,17 @@ import the app implementation:
 .agent-html/tsconfig.json
   -> local TypeScript and editor discovery config
 
-.agent-html/styles/theme.css
-  -> semantic token values
+.agent-html/styles/index.css
+  -> Tailwind, shadcn CSS, font imports, and CSS pipeline imports
 
-.agent-html/styles.css
-  -> Tailwind, shadcn CSS, font imports, token bridge, and base styles
+.agent-html/styles/tokens
+  -> semantic token values split by feature
+
+.agent-html/styles/content.css
+  -> artifact-consumable Canvas semantic classes
+
+.agent-html/styles/internal
+  -> locked Canvas system chrome and protocol-adjacent styles
 
 .agent-html/theme
   -> host-owned theme preset resources
@@ -54,10 +60,23 @@ artifacts and host
 - `.agent-html/AGENTS.md`, `.agent-html/components.json`, and
   `.agent-html/tsconfig.json` stay at the workspace root because agents,
   shadcn, TypeScript, and editors discover them from there.
-- `.agent-html/styles/theme.css` owns semantic values such as color, font,
-  radius, chart, and sidebar tokens.
-- `.agent-html/styles.css` is the runtime CSS bridge. It imports Tailwind,
-  shadcn CSS, fonts, and theme values; it does not own component structure.
+- `.agent-html/styles/index.css` is the CSS runtime entrypoint discovered by
+  shadcn and the dev host. It imports Tailwind, shadcn CSS, fonts, token files,
+  Tailwind token mappings, base styles, public content classes, and locked
+  internal classes.
+- `.agent-html/styles/tokens` owns semantic values. Read
+  `tokens/foundation.css` for base color, font, radius, chart, and sidebar
+  values; read `tokens/content.css`, `tokens/artifact.css`,
+  `tokens/host.css`, or `tokens/theme-editor.css` for feature values.
+- `.agent-html/styles/tokens/tailwind.css` maps semantic values into Tailwind
+  tokens.
+- `.agent-html/styles/content.css` owns the public artifact style API. Read it
+  when artifact content needs reusable spacing, surface, icon-box, or text
+  scale classes.
+- `.agent-html/styles/internal` owns locked Canvas system styles. Read
+  `artifact.css`, `host.css`, or `theme-editor.css` only when editing the
+  Artifact reading container, host chrome, block hover/action chrome, sidebar,
+  toolbar, or theme editor.
 - `.agent-html/theme` owns Canvas theme preset resources. Host chrome may read
   presets from here and apply them to the token pipeline; artifacts should
   continue to consume semantic utilities and tokens instead of choosing preset
@@ -72,14 +91,15 @@ artifacts and host
 - Host and artifacts compose primitives; they do not create new primitive
   buttons, cards, badges, tables, sidebars, or inputs.
 - Host block hover highlighting is inspection chrome. It consumes Canvas tokens
-  from `theme.css` through `styles.css`; do not recreate block highlighting in
-  artifact source or on `Block`.
+  from `styles/tokens/host.css` through `styles/internal/host.css`; do
+  not recreate block highlighting in artifact source or on `Block`.
 - `Artifact`, `Block`, and `Action` from `@agent-html/react` are headless
   collaboration protocol markers, not visual components. `Artifact` owns the
   readable root container and accepts only `title` and children. Its width,
   block gap, background, and foreground values come from
-  `.agent-html/styles/theme.css` through `.agent-html/styles.css`. Do not put
-  `className`, `style`, width, spacing, padding, or color props on `Artifact`.
+  `styles/tokens/artifact.css` through `styles/internal/artifact.css`.
+  Do not put `className`, `style`, width, spacing, padding, or color props on
+  `Artifact`.
   `Block` is fully protocol-only: use only `id`, `title`, and children. Do not
   put `className`, `style`, layout, border, radius, or shadow on `Block`. Put
   block content layout and visual treatment inside the block and
@@ -88,16 +108,16 @@ artifacts and host
   `bg-card`, `text-muted-foreground`, `border-border`, `bg-popover`, and
   `text-popover-foreground`.
 - Font and radius flow through explicit tokens: `--font-sans-source`,
-  `--font-heading-source`, `--radius-base`, and the shadcn-compatible
-  `--radius`.
+  `--font-heading-source`, and the shadcn-compatible `--radius`.
 - Do not use raw colors, decorative gradients, oversized shadows, or marketing
   hero composition.
 - Use Canvas semantic classes for artifact structure and host chrome. Content
   spacing, panel padding, panel radius, icon-box size, typography scale, grid
   gap, surface padding, toolbar offset, block action offset, status spacing,
   sidebar spacing, and prompt output height come from explicit `--canvas-*`
-  tokens in `.agent-html/styles/theme.css` and classes in
-  `.agent-html/styles.css`.
+  tokens in `.agent-html/styles/tokens/*`, public artifact classes in
+  `.agent-html/styles/content.css`, and locked system classes in
+  `.agent-html/styles/internal/*`.
 - Keep layout behavior classes such as `flex`, `grid`, `min-w-0`,
   `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate` local to the
   composition that needs them.
@@ -125,7 +145,7 @@ Rules:
 - Use `Artifact` as the top-level wrapper.
 - Keep `Artifact` static and unstyled. The root reading width, spacing, and
   base colors are configured by `--canvas-artifact-*` tokens in
-  `.agent-html/styles/theme.css`.
+  `.agent-html/styles/tokens/artifact.css`.
 - Wrap every major semantic region in `Block`.
 - Keep `Block` static and unstyled. Layout belongs inside the block, not on the
   block marker.

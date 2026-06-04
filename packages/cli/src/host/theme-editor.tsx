@@ -15,6 +15,7 @@ import {
   tailwindColorFamilies,
   tailwindColorSteps,
   type CanvasThemeDraft,
+  type CanvasThemeResolvedVariables,
   type CanvasThemeVariableName,
   type TailwindColorTokenValue,
 } from "./theme-draft"
@@ -61,6 +62,8 @@ type NumericTokenItem = {
   step: number
   unit: string
 }
+
+type TailwindColorPanel = "family" | "step"
 
 function cn(...classes: (false | null | string | undefined)[]) {
   return classes.filter(Boolean).join(" ")
@@ -166,15 +169,7 @@ const fontOptions = [
 
 const radiusTokens: readonly NumericTokenItem[] = [
   {
-    label: "Base radius",
-    max: 2,
-    min: 0,
-    name: "--radius-base",
-    step: 0.025,
-    unit: "rem",
-  },
-  {
-    label: "Runtime radius",
+    label: "Radius",
     max: 2,
     min: 0,
     name: "--radius",
@@ -222,11 +217,6 @@ const canvasRangeTokens: readonly NumericTokenItem[] = [
     step: 0.125,
     unit: "rem",
   },
-]
-
-const canvasColorTokens: readonly ColorTokenItem[] = [
-  { label: "Artifact background", name: "--canvas-artifact-background" },
-  { label: "Artifact foreground", name: "--canvas-artifact-foreground" },
 ]
 
 const shadowRangeTokens: readonly NumericTokenItem[] = [
@@ -285,12 +275,19 @@ function getVariableValue({
   draft,
   name,
   preset,
+  runtimeVariables,
 }: {
   draft: CanvasThemeDraft
   name: CanvasThemeVariableName
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
-  return getCanvasThemeCssVariableValue({ draft, name, preset })
+  return getCanvasThemeCssVariableValue({
+    draft,
+    name,
+    preset,
+    runtimeVariables,
+  })
 }
 
 function ColorSwatch({
@@ -435,7 +432,7 @@ function SelectHeaderItem({
       </SidebarMenu>
       <SelectContent
         align="start"
-        className="canvas-sidebar-select-content w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)]"
+        className="canvas-sidebar-select-content"
         position="popper"
       >
         {options.map((option) => {
@@ -506,76 +503,31 @@ function ThemeSelectItem({
 
 function ColorOptionField<Option extends string>({
   getOptionColor,
+  isActive,
   label,
-  onValueChange,
-  options,
+  onActivate,
   value,
 }: {
   getOptionColor: (option: Option) => string
+  isActive: boolean
   label: string
-  onValueChange: (value: Option) => void
-  options: readonly Option[]
+  onActivate: () => void
   value: Option
 }) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          className="canvas-theme-editor-control-button"
-          type="button"
-          variant="outline"
-        >
-          <span className="canvas-theme-editor-value-stack items-start">
-            <span className="canvas-theme-editor-muted-caption font-medium">
-              {label}
-            </span>
-            <span className="canvas-theme-editor-inline-value">
-              <ColorSwatch className="canvas-theme-editor-swatch-xs" color={getOptionColor(value)} />
-              <span className="truncate">{value}</span>
-            </span>
-          </span>
-          <ChevronDownIcon className="canvas-theme-editor-icon text-muted-foreground" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="canvas-theme-editor-popover-sm"
-        side="right"
-        sideOffset={10}
-      >
-        <div className="canvas-theme-editor-popover-label">
-          {label}
-        </div>
-        <div className="canvas-theme-editor-popover-menu">
-          {options.map((option) => {
-            const isActive = option === value
-
-            return (
-              <Button
-                className={cn(
-                  editorOptionClassName,
-                  "justify-start",
-                  isActive && "bg-accent text-accent-foreground"
-                )}
-                key={option}
-                onClick={() => onValueChange(option)}
-                type="button"
-                variant="ghost"
-              >
-                <ColorSwatch
-                  className="canvas-theme-editor-swatch-xs"
-                  color={getOptionColor(option)}
-                />
-                <span className="min-w-0 flex-1 truncate text-left">
-                  {option}
-                </span>
-                {isActive ? <CheckIcon className="canvas-theme-editor-icon" /> : null}
-              </Button>
-            )
-          })}
-        </div>
-      </PopoverContent>
-    </Popover>
+    <Button
+      aria-expanded={isActive}
+      className="canvas-theme-editor-picker-tab"
+      data-active={isActive}
+      onClick={onActivate}
+      type="button"
+      variant="ghost"
+    >
+      <span className="canvas-theme-editor-inline-value justify-center">
+        <ColorSwatch className="canvas-theme-editor-swatch-xs" color={getOptionColor(value)} />
+        <span className="truncate">{label}</span>
+      </span>
+    </Button>
   )
 }
 
@@ -586,32 +538,107 @@ function TailwindColorEditor({
   onValueChange: (value: TailwindColorTokenValue) => void
   token: TailwindColorTokenValue
 }) {
+  const [activePanel, setActivePanel] =
+    React.useState<TailwindColorPanel>("family")
+
   return (
-    <div className="canvas-theme-editor-field-stack">
-      <ColorOptionField
-        getOptionColor={(family) =>
-          getTailwindColorValue({
-            family,
-            step: token.step,
-          })
-        }
-        label="Family"
-        onValueChange={(family) => onValueChange({ ...token, family })}
-        options={tailwindColorFamilies}
-        value={token.family}
-      />
-      <ColorOptionField
-        getOptionColor={(step) =>
-          getTailwindColorValue({
-            family: token.family,
-            step,
-          })
-        }
-        label="Step"
-        onValueChange={(step) => onValueChange({ ...token, step })}
-        options={tailwindColorSteps}
-        value={token.step}
-      />
+    <div className="canvas-theme-editor-color-picker">
+      <div className="canvas-theme-editor-picker-preview">
+        <ColorSwatch
+          className="canvas-theme-editor-swatch-sm"
+          color={getTailwindColorValue(token)}
+        />
+        <span className="min-w-0 flex-1 truncate">
+          {token.family} / {token.step}
+        </span>
+      </div>
+      <div className="canvas-theme-editor-picker-tabs">
+        <ColorOptionField
+          getOptionColor={(family) =>
+            getTailwindColorValue({
+              family,
+              step: token.step,
+            })
+          }
+          isActive={activePanel === "family"}
+          label="Family"
+          onActivate={() => setActivePanel("family")}
+          value={token.family}
+        />
+        <ColorOptionField
+          getOptionColor={(step) =>
+            getTailwindColorValue({
+              family: token.family,
+              step,
+            })
+          }
+          isActive={activePanel === "step"}
+          label="Step"
+          onActivate={() => setActivePanel("step")}
+          value={token.step}
+        />
+      </div>
+      <div className="canvas-theme-editor-popover-menu">
+        {activePanel === "family"
+          ? tailwindColorFamilies.map((family) => {
+              const isActive = family === token.family
+
+              return (
+                <Button
+                  className={cn(
+                    editorOptionClassName,
+                    "justify-start",
+                    isActive && "bg-accent text-accent-foreground"
+                  )}
+                  key={family}
+                  onClick={() => onValueChange({ ...token, family })}
+                  type="button"
+                  variant="ghost"
+                >
+                  <ColorSwatch
+                    className="canvas-theme-editor-swatch-xs"
+                    color={getTailwindColorValue({
+                      family,
+                      step: token.step,
+                    })}
+                  />
+                  <span className="min-w-0 flex-1 truncate text-left">
+                    {family}
+                  </span>
+                  {isActive ? <CheckIcon className="canvas-theme-editor-icon" /> : null}
+                </Button>
+              )
+            })
+          : tailwindColorSteps.map((step) => {
+              const isActive = step === token.step
+
+              return (
+                <Button
+                  className={cn(
+                    editorOptionClassName,
+                    "justify-start",
+                    isActive && "bg-accent text-accent-foreground"
+                  )}
+                  key={step}
+                  onClick={() => onValueChange({ ...token, step })}
+                  type="button"
+                  variant="ghost"
+                >
+                  <ColorSwatch
+                    className="canvas-theme-editor-swatch-xs"
+                    color={getTailwindColorValue({
+                      family: token.family,
+                      step,
+                    })}
+                  />
+                  <span className="min-w-0 flex-1 truncate text-left">
+                    {step}
+                  </span>
+                  {isActive ? <CheckIcon className="canvas-theme-editor-icon" /> : null}
+                </Button>
+              )
+            })}
+      </div>
     </div>
   )
 }
@@ -621,13 +648,20 @@ function ColorTokenRow({
   item,
   onVariableChange,
   preset,
+  runtimeVariables,
 }: {
   draft: CanvasThemeDraft
   item: ColorTokenItem
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
-  const value = getVariableValue({ draft, name: item.name, preset })
+  const value = getVariableValue({
+    draft,
+    name: item.name,
+    preset,
+    runtimeVariables,
+  })
   const tailwindToken = findNearestTailwindColor(value)
   const swatchColor = tailwindToken
     ? getTailwindColorValue(tailwindToken)
@@ -678,13 +712,20 @@ function RangeTokenRow({
   item,
   onVariableChange,
   preset,
+  runtimeVariables,
 }: {
   draft: CanvasThemeDraft
   item: NumericTokenItem
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
-  const value = getVariableValue({ draft, name: item.name, preset })
+  const value = getVariableValue({
+    draft,
+    name: item.name,
+    preset,
+    runtimeVariables,
+  })
   const numericValue = parseCanvasThemeCssNumber(value, item.min)
 
   return (
@@ -739,14 +780,16 @@ function TextTokenRow({
   name,
   onVariableChange,
   preset,
+  runtimeVariables,
 }: {
   draft: CanvasThemeDraft
   label: string
   name: CanvasThemeVariableName
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
-  const value = getVariableValue({ draft, name, preset })
+  const value = getVariableValue({ draft, name, preset, runtimeVariables })
 
   return (
     <EditorPopoverItem label={label} valueLabel={value}>
@@ -762,6 +805,7 @@ function ColorSection(props: {
   draft: CanvasThemeDraft
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
   return (
     <div className="canvas-theme-editor-section-stack">
@@ -787,6 +831,7 @@ function TypographySection(props: {
   draft: CanvasThemeDraft
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
   return (
     <div className="canvas-theme-editor-section-stack">
@@ -802,6 +847,7 @@ function TypographySection(props: {
               draft: props.draft,
               name: "--font-sans-source",
               preset: props.preset,
+              runtimeVariables: props.runtimeVariables,
             })}
           />
           <ThemeSelectItem
@@ -814,6 +860,7 @@ function TypographySection(props: {
               draft: props.draft,
               name: "--font-heading-source",
               preset: props.preset,
+              runtimeVariables: props.runtimeVariables,
             })}
           />
           <TextTokenRow label="Sans token" name="--font-sans" {...props} />
@@ -826,6 +873,7 @@ function TypographySection(props: {
               draft: props.draft,
               name: "--font-mono",
               preset: props.preset,
+              runtimeVariables: props.runtimeVariables,
             })}
           />
           {typographyRangeTokens.map((item) => (
@@ -847,6 +895,7 @@ function NumericSection({
   label: string
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
   return (
     <div className="canvas-theme-editor-section-stack">
@@ -865,6 +914,7 @@ function CanvasSection(props: {
   draft: CanvasThemeDraft
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
   return (
     <div className="canvas-theme-editor-section-stack">
@@ -872,13 +922,6 @@ function CanvasSection(props: {
         <SidebarMenu className="canvas-theme-editor-menu">
           {canvasRangeTokens.map((item) => (
             <RangeTokenRow key={item.name} item={item} {...props} />
-          ))}
-        </SidebarMenu>
-      </EditorSection>
-      <EditorSection label="Artifact color">
-        <SidebarMenu className="canvas-theme-editor-menu">
-          {canvasColorTokens.map((item) => (
-            <ColorTokenRow key={item.name} item={item} {...props} />
           ))}
         </SidebarMenu>
       </EditorSection>
@@ -890,6 +933,7 @@ function ShadowSection(props: {
   draft: CanvasThemeDraft
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
   return (
     <div className="canvas-theme-editor-section-stack">
@@ -953,16 +997,19 @@ export function ReactCanvasThemeEditor({
   draft,
   onVariableChange,
   preset,
+  runtimeVariables,
 }: {
   activeSectionId: CanvasThemeEditorSectionId
   draft: CanvasThemeDraft
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
   preset: CanvasThemePreset
+  runtimeVariables: CanvasThemeResolvedVariables
 }) {
   const props = {
     draft,
     onVariableChange,
     preset,
+    runtimeVariables,
   }
 
   if (activeSectionId === "typography") {

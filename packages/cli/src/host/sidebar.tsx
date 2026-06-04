@@ -14,6 +14,7 @@ import {
 import type { CanvasThemeEditorSectionId } from "./theme-editor-sections"
 import type {
   CanvasThemeDraft,
+  CanvasThemeResolvedVariables,
   CanvasThemeVariableName,
 } from "./theme-draft"
 import {
@@ -51,6 +52,7 @@ export function ReactCanvasSidebar({
   themeDraft,
   themePreviewDirty,
   themePresets,
+  themeRuntimeVariables,
 }: {
   activeFilePath: string | null
   activeSectionId: CanvasThemeEditorSectionId
@@ -70,6 +72,7 @@ export function ReactCanvasSidebar({
   themeDraft: CanvasThemeDraft
   themePreviewDirty: boolean
   themePresets: readonly CanvasThemePreset[]
+  themeRuntimeVariables: CanvasThemeResolvedVariables
 }) {
   const activeThemePreset =
     themePresets.find((preset) => preset.id === activeThemePresetId) ??
@@ -77,8 +80,8 @@ export function ReactCanvasSidebar({
 
   return (
     <Sidebar className="border-transparent" collapsible="offcanvas">
-      <SidebarHeader className="canvas-sidebar-pad">
-        <SidebarMenu>
+      <SidebarHeader className="canvas-sidebar-pad canvas-sidebar-header-stack">
+        <SidebarMenu className="canvas-sidebar-menu">
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" tooltip="AgentHTML">
               <FileCodeIcon />
@@ -127,6 +130,7 @@ export function ReactCanvasSidebar({
             draft={themeDraft}
             onVariableChange={onThemeVariableChange}
             preset={activeThemePreset}
+            runtimeVariables={themeRuntimeVariables}
           />
         ) : (
           <SidebarGroup>
@@ -181,8 +185,8 @@ export function ReactCanvasSidebar({
           ) : (
             <SidebarMenuItem>
               <SidebarMenuButton tooltip="React Canvas">
-              <SparklesIcon />
-              <span className="min-w-0 truncate">React Canvas</span>
+                <SparklesIcon />
+                <span className="min-w-0 truncate">React Canvas</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}

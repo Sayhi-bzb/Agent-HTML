@@ -9,6 +9,71 @@ export type CanvasThemeDraft = {
   cssVariables: CanvasThemeCssVariables
 }
 
+export const canvasThemeVariableNames = [
+  "--background",
+  "--foreground",
+  "--card",
+  "--card-foreground",
+  "--popover",
+  "--popover-foreground",
+  "--primary",
+  "--primary-foreground",
+  "--secondary",
+  "--secondary-foreground",
+  "--muted",
+  "--muted-foreground",
+  "--accent",
+  "--accent-foreground",
+  "--destructive",
+  "--border",
+  "--input",
+  "--ring",
+  "--chart-1",
+  "--chart-2",
+  "--chart-3",
+  "--chart-4",
+  "--chart-5",
+  "--sidebar",
+  "--sidebar-foreground",
+  "--sidebar-primary",
+  "--sidebar-primary-foreground",
+  "--sidebar-accent",
+  "--sidebar-accent-foreground",
+  "--sidebar-border",
+  "--sidebar-ring",
+  "--font-sans-source",
+  "--font-heading-source",
+  "--font-sans",
+  "--font-heading",
+  "--font-mono",
+  "--tracking-normal",
+  "--radius",
+  "--spacing",
+  "--canvas-artifact-max-width",
+  "--canvas-artifact-block-gap",
+  "--shadow-color",
+  "--shadow-opacity",
+  "--shadow-x",
+  "--shadow-y",
+  "--shadow-blur",
+  "--shadow-spread",
+  "--shadow-2xs",
+  "--shadow-xs",
+  "--shadow-sm",
+  "--shadow",
+  "--shadow-md",
+  "--shadow-lg",
+  "--shadow-xl",
+  "--shadow-2xl",
+] as const
+
+export type CanvasThemeVariableName =
+  (typeof canvasThemeVariableNames)[number]
+
+export type CanvasThemeResolvedVariables = Partial<
+  Record<CanvasThemeVariableName, string>
+>
+
 export type TailwindColorFamily = (typeof tailwindColorFamilies)[number]
 export type TailwindColorStep = (typeof tailwindColorSteps)[number]
 
@@ -62,71 +127,6 @@ const tailwindColorScales = Object.fromEntries(
     colors[family] as TailwindColorScale,
   ])
 ) as Record<TailwindColorFamily, TailwindColorScale>
-
-export const canvasThemeVariableDefaults = {
-  "--background": "oklch(1 0 0)",
-  "--foreground": "oklch(0.145 0 0)",
-  "--card": "oklch(1 0 0)",
-  "--card-foreground": "oklch(0.145 0 0)",
-  "--popover": "oklch(1 0 0)",
-  "--popover-foreground": "oklch(0.145 0 0)",
-  "--primary": "oklch(0.205 0 0)",
-  "--primary-foreground": "oklch(0.985 0 0)",
-  "--secondary": "oklch(0.97 0 0)",
-  "--secondary-foreground": "oklch(0.205 0 0)",
-  "--muted": "oklch(0.97 0 0)",
-  "--muted-foreground": "oklch(0.556 0 0)",
-  "--accent": "oklch(0.97 0 0)",
-  "--accent-foreground": "oklch(0.205 0 0)",
-  "--destructive": "oklch(0.577 0.245 27.325)",
-  "--border": "oklch(0.922 0 0)",
-  "--input": "oklch(0.922 0 0)",
-  "--ring": "oklch(0.708 0 0)",
-  "--chart-1": "oklch(0.87 0 0)",
-  "--chart-2": "oklch(0.556 0 0)",
-  "--chart-3": "oklch(0.439 0 0)",
-  "--chart-4": "oklch(0.371 0 0)",
-  "--chart-5": "oklch(0.269 0 0)",
-  "--sidebar": "var(--background)",
-  "--sidebar-foreground": "var(--foreground)",
-  "--sidebar-primary": "var(--primary)",
-  "--sidebar-primary-foreground": "var(--primary-foreground)",
-  "--sidebar-accent": "var(--accent)",
-  "--sidebar-accent-foreground": "var(--accent-foreground)",
-  "--sidebar-border": "var(--border)",
-  "--sidebar-ring": "var(--ring)",
-  "--font-sans-source": "'Geist Variable', sans-serif",
-  "--font-heading-source": "var(--font-sans-source)",
-  "--font-sans": "var(--font-sans-source)",
-  "--font-heading": "var(--font-heading-source)",
-  "--font-mono":
-    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-  "--tracking-normal": "0em",
-  "--radius-base": "0.625rem",
-  "--radius": "var(--radius-base)",
-  "--spacing": "0.25rem",
-  "--canvas-artifact-max-width": "42rem",
-  "--canvas-artifact-block-gap": "2rem",
-  "--canvas-artifact-background": "var(--background)",
-  "--canvas-artifact-foreground": "var(--foreground)",
-  "--shadow-color": "#000000",
-  "--shadow-opacity": "0.1",
-  "--shadow-x": "0px",
-  "--shadow-y": "1px",
-  "--shadow-blur": "3px",
-  "--shadow-spread": "0px",
-  "--shadow-2xs": "0px 1px 3px 0px rgb(0 0 0 / 0.05)",
-  "--shadow-xs": "0px 1px 3px 0px rgb(0 0 0 / 0.05)",
-  "--shadow-sm": "0px 1px 3px 0px rgb(0 0 0 / 0.10)",
-  "--shadow": "0px 1px 3px 0px rgb(0 0 0 / 0.10)",
-  "--shadow-md": "0px 2px 4px -1px rgb(0 0 0 / 0.10)",
-  "--shadow-lg": "0px 4px 6px -1px rgb(0 0 0 / 0.10)",
-  "--shadow-xl": "0px 8px 10px -1px rgb(0 0 0 / 0.10)",
-  "--shadow-2xl": "0px 16px 24px -1px rgb(0 0 0 / 0.16)",
-} as const satisfies CanvasThemeCssVariables
-
-export type CanvasThemeVariableName =
-  keyof typeof canvasThemeVariableDefaults
 
 const hexColorPattern = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 
@@ -272,12 +272,14 @@ export function createEmptyCanvasThemeDraft(): CanvasThemeDraft {
 export function resolveCanvasThemeCssVariables({
   draft,
   preset,
+  runtimeVariables = {},
 }: {
   draft: CanvasThemeDraft
   preset: CanvasThemePreset
+  runtimeVariables?: CanvasThemeResolvedVariables
 }) {
   return {
-    ...canvasThemeVariableDefaults,
+    ...runtimeVariables,
     ...preset.lightCssVariables,
     ...draft.cssVariables,
   } satisfies CanvasThemeCssVariables
@@ -287,17 +289,30 @@ export function getCanvasThemeCssVariableValue({
   draft,
   name,
   preset,
+  runtimeVariables = {},
 }: {
   draft: CanvasThemeDraft
   name: CanvasThemeVariableName
   preset: CanvasThemePreset
+  runtimeVariables?: CanvasThemeResolvedVariables
 }) {
   return (
     draft.cssVariables[name] ??
     preset.lightCssVariables[name] ??
-    canvasThemeVariableDefaults[name] ??
+    runtimeVariables[name] ??
     ""
   )
+}
+
+export function readCanvasThemeRuntimeVariables(
+  style: CSSStyleDeclaration
+): CanvasThemeResolvedVariables {
+  return Object.fromEntries(
+    canvasThemeVariableNames.flatMap((name) => {
+      const value = style.getPropertyValue(name).trim()
+      return value ? [[name, value]] : []
+    })
+  ) as CanvasThemeResolvedVariables
 }
 
 export function updateCanvasThemeDraftVariable({

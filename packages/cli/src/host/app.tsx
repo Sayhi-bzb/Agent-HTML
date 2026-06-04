@@ -11,8 +11,10 @@ import { ReactCanvasSidebar } from "./sidebar"
 import {
   createEmptyCanvasThemeDraft,
   isCanvasThemeDraftDirty,
+  readCanvasThemeRuntimeVariables,
   updateCanvasThemeDraftVariable,
   type CanvasThemeDraft,
+  type CanvasThemeResolvedVariables,
   type CanvasThemeVariableName,
 } from "./theme-draft"
 import { applyCanvasThemeEditorPreview } from "./theme-preview"
@@ -53,6 +55,8 @@ export function ReactCanvasHostApp() {
   const [themeDraft, setThemeDraft] = React.useState<CanvasThemeDraft>(() =>
     createEmptyCanvasThemeDraft()
   )
+  const [themeRuntimeVariables, setThemeRuntimeVariables] =
+    React.useState<CanvasThemeResolvedVariables>({})
   const [promptTarget, setPromptTarget] = React.useState<PromptTarget | null>(
     null
   )
@@ -99,6 +103,14 @@ export function ReactCanvasHostApp() {
 
   React.useEffect(() => {
     applyCanvasThemePreset(activeThemePreset)
+  }, [activeThemePreset])
+
+  React.useEffect(() => {
+    setThemeRuntimeVariables(
+      readCanvasThemeRuntimeVariables(
+        window.getComputedStyle(document.documentElement)
+      )
+    )
   }, [activeThemePreset])
 
   React.useEffect(() => {
@@ -234,6 +246,7 @@ export function ReactCanvasHostApp() {
             themeDraft={themeDraft}
             themePreviewDirty={isCanvasThemeDraftDirty(themeDraft)}
             themePresets={canvasThemePresets}
+            themeRuntimeVariables={themeRuntimeVariables}
           />
         </SidebarProvider>
         <SidebarInset className="min-h-svh min-w-0 overflow-hidden">

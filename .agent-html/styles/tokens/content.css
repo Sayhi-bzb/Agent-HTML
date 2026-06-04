@@ -1,0 +1,20 @@
+:root {
+  --canvas-content-gap-xs: 0.25rem;
+  --canvas-content-gap-sm: 0.5rem;
+  --canvas-content-gap-md: 0.75rem;
+  --canvas-content-gap-lg: 1rem;
+  --canvas-content-gap-xl: 1.25rem;
+  --canvas-content-panel-padding-sm: 0.75rem;
+  --canvas-content-panel-padding-md: 1rem;
+  --canvas-content-icon-box-size-sm: 2.25rem;
+  --canvas-content-icon-box-size-md: 2.5rem;
+  --canvas-content-title-font-size: 1.5rem;
+  --canvas-content-title-line-height: 1.375;
+  --canvas-content-heading-font-size: 1.125rem;
+  --canvas-content-heading-line-height: 1.375;
+  --canvas-content-body-font-size: 0.875rem;
+  --canvas-content-body-line-height: 1.5;
+  --canvas-content-caption-font-size: 0.75rem;
+  --canvas-content-caption-line-height: 1.5;
+  --canvas-content-grid-gap: 1rem;
+}

@@ -34,7 +34,7 @@ const pipelineNodes = [
   },
   {
     label: "styles.css",
-    summary: "Tailwind, shadcn CSS, font imports, token bridge, and base styles.",
+    summary: "Tailwind, shadcn CSS, font imports, token mappings, and base styles.",
   },
   {
     label: "ui/*",
@@ -174,7 +174,7 @@ export default function ProjectVisualExplainer() {
           <CardHeader>
             <CardTitle>Canvas Design Pipeline</CardTitle>
             <CardDescription>
-              Visual consistency comes from token values, a CSS bridge, local
+              Visual consistency comes from token values, CSS mappings, local
               primitives, and explicit artifact composition.
             </CardDescription>
           </CardHeader>

@@ -1,0 +1,226 @@
+@layer components {
+  .canvas-theme-editor-section {
+    padding-inline: 0;
+  }
+
+  .canvas-theme-editor-header-stack,
+  .canvas-theme-editor-field-stack,
+  .canvas-theme-editor-section-stack,
+  .canvas-theme-editor-popover-stack {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .canvas-theme-editor-header-stack {
+    gap: var(--canvas-sidebar-menu-gap);
+  }
+
+  .canvas-theme-editor-section-stack {
+    flex: 1 1 0%;
+    gap: var(--canvas-theme-editor-section-gap);
+    padding: var(--canvas-sidebar-content-padding-inline);
+  }
+
+  .canvas-theme-editor-field-stack {
+    gap: var(--canvas-theme-editor-field-gap);
+  }
+
+  .canvas-theme-editor-popover-stack {
+    gap: var(--canvas-theme-editor-popover-gap);
+  }
+
+  .canvas-theme-editor-value-stack {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: var(--canvas-sidebar-stack-gap);
+  }
+
+  .canvas-theme-editor-inline-value {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 0%;
+    align-items: center;
+    gap: var(--canvas-sidebar-control-gap);
+  }
+
+  .canvas-theme-editor-popover-sm {
+    width: var(--canvas-theme-editor-popover-width-sm);
+    padding: var(--canvas-theme-editor-popover-padding-sm);
+  }
+
+  .canvas-theme-editor-popover-md {
+    width: var(--canvas-theme-editor-popover-width-md);
+    overflow: visible;
+    padding: var(--canvas-theme-editor-popover-padding-md);
+  }
+
+  .canvas-theme-editor-popover-lg {
+    width: var(--canvas-theme-editor-popover-width-lg);
+    padding: var(--canvas-theme-editor-popover-padding-md);
+  }
+
+  .canvas-theme-editor-popover-lg-compact {
+    width: var(--canvas-theme-editor-popover-width-lg);
+    padding: var(--canvas-theme-editor-popover-padding-sm);
+  }
+
+  .canvas-theme-editor-popover-menu {
+    display: flex;
+    max-height: var(--canvas-theme-editor-menu-max-height);
+    flex-direction: column;
+    gap: var(--canvas-theme-editor-popover-gap);
+    overflow-y: auto;
+  }
+
+  .canvas-theme-editor-popover-label {
+    padding-block: var(--canvas-theme-editor-option-padding-block);
+    padding-inline: var(--canvas-theme-editor-option-padding-inline);
+    font-size: var(--canvas-sidebar-font-size-caption);
+    font-weight: 500;
+    color: var(--muted-foreground);
+  }
+
+  .canvas-theme-editor-option {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: var(--canvas-theme-editor-option-gap);
+    border-radius: var(--radius-md);
+    padding-block: var(--canvas-theme-editor-option-padding-block);
+    padding-inline: var(--canvas-theme-editor-option-padding-inline);
+    text-align: left;
+    font-size: var(--canvas-sidebar-font-size-body);
+    outline: none;
+    transition-property: color, background-color;
+    transition-duration: 150ms;
+  }
+
+  .canvas-theme-editor-option:hover,
+  .canvas-theme-editor-option:focus-visible {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  .canvas-theme-editor-popover-button {
+    min-height: var(--canvas-theme-editor-control-min-height);
+    height: auto;
+    align-items: flex-start;
+    padding-block: var(--canvas-theme-editor-row-padding-block);
+    color: color-mix(in oklab, var(--sidebar-foreground) 70%, transparent);
+  }
+
+  .canvas-theme-editor-popover-button:hover {
+    color: var(--sidebar-foreground);
+  }
+
+  .canvas-theme-editor-control-button {
+    min-height: var(--canvas-theme-editor-control-min-height);
+    height: auto;
+    width: 100%;
+    justify-content: space-between;
+    border-color: var(--input);
+    background: transparent;
+    padding-block: var(--canvas-theme-editor-control-padding-block);
+    padding-inline: var(--canvas-theme-editor-control-padding-inline);
+    font-size: var(--canvas-sidebar-font-size-body);
+  }
+
+  .canvas-theme-editor-control-button:hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  .canvas-theme-editor-caption {
+    font-size: var(--canvas-sidebar-font-size-caption);
+    color: color-mix(in oklab, var(--sidebar-foreground) 45%, transparent);
+  }
+
+  .canvas-theme-editor-muted-caption {
+    font-size: var(--canvas-sidebar-font-size-caption);
+    color: var(--muted-foreground);
+  }
+
+  .canvas-theme-editor-icon {
+    width: var(--canvas-theme-editor-icon-size);
+    height: var(--canvas-theme-editor-icon-size);
+    flex-shrink: 0;
+  }
+
+  .canvas-theme-editor-swatch-xs,
+  .canvas-theme-editor-swatch-sm {
+    flex-shrink: 0;
+    border-radius: 9999px;
+  }
+
+  .canvas-theme-editor-swatch-xs {
+    width: var(--canvas-theme-editor-swatch-size-xs);
+    height: var(--canvas-theme-editor-swatch-size-xs);
+  }
+
+  .canvas-theme-editor-swatch-sm {
+    width: var(--canvas-theme-editor-swatch-size-sm);
+    height: var(--canvas-theme-editor-swatch-size-sm);
+  }
+
+  .canvas-theme-editor-color-input {
+    height: var(--canvas-theme-editor-color-input-height);
+    cursor: pointer;
+    padding: var(--canvas-theme-editor-popover-padding-sm);
+  }
+
+  .canvas-theme-editor-range-input {
+    padding-inline: 0;
+    accent-color: var(--primary);
+  }
+
+  .canvas-theme-editor-number-row {
+    display: flex;
+    align-items: center;
+    gap: var(--canvas-sidebar-control-gap);
+  }
+
+  .canvas-theme-editor-color-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-theme-editor-field-gap);
+  }
+
+  .canvas-theme-editor-picker-preview {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--canvas-theme-editor-picker-preview-gap);
+  }
+
+  .canvas-theme-editor-picker-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--canvas-theme-editor-popover-gap);
+  }
+
+  .canvas-theme-editor-picker-tab {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding-block: var(--canvas-theme-editor-option-padding-block);
+    padding-inline: var(--canvas-theme-editor-option-padding-inline);
+    font-size: var(--canvas-sidebar-font-size-caption);
+  }
+
+  .canvas-theme-editor-picker-tab[data-active="true"] {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  .canvas-theme-editor-unit {
+    width: var(--canvas-theme-editor-unit-width);
+    flex-shrink: 0;
+    font-size: var(--canvas-sidebar-font-size-caption);
+    color: var(--muted-foreground);
+  }
+
+  .canvas-theme-editor-menu {
+    gap: var(--canvas-theme-editor-row-gap);
+  }
+}

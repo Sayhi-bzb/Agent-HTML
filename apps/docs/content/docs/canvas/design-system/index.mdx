@@ -6,11 +6,17 @@ description: Canvas UI, token, and shadcn consumption rules.
 Canvas uses local shadcn-derived UI and CSS variables without forking shadcn.
 
 ```text
-styles/theme.css
-  -> semantic token values
+styles/index.css
+  -> Tailwind, shadcn CSS, font imports, and CSS pipeline imports
 
-styles.css
-  -> Tailwind, shadcn CSS, font imports, token bridge, and base styles
+styles/tokens/*
+  -> semantic token values split by feature
+
+styles/content.css
+  -> artifact-consumable Canvas semantic classes
+
+styles/internal/*
+  -> locked Canvas system chrome and protocol-adjacent styles
 
 ui/*
   -> local visual primitives
@@ -21,26 +27,35 @@ artifact files
 
 ## CSS Entry Points
 
-`.agent-html/styles/theme.css` owns semantic token values. It defines variables
-such as `--background`, `--foreground`, `--card`, `--primary`, `--border`,
-`--ring`, `--chart-*`, `--sidebar-*`, `--font-sans-source`,
-`--font-heading-source`, `--radius-base`, and the shadcn-compatible `--radius`
-for light and dark modes.
+`.agent-html/styles/index.css` is the runtime CSS entrypoint. It imports
+Tailwind, shadcn CSS, fonts, token files, base styles, public content classes,
+and internal system classes.
 
-`.agent-html/styles.css` is the runtime CSS entrypoint. It imports Tailwind,
-shadcn CSS, fonts, and `styles/theme.css`; it also owns `@theme inline`,
-`@source`, dark variant wiring, and base styles. It maps semantic variables into
-Tailwind tokens; it does not own component structure.
+`.agent-html/styles/tokens/*` owns semantic token values. Read
+`tokens/foundation.css` for base color, font, radius, chart, and sidebar
+values; read `tokens/artifact.css`, `tokens/host.css`, `tokens/content.css`,
+and `tokens/theme-editor.css` for feature values.
+
+`.agent-html/styles/tokens/tailwind.css` maps semantic variables into Tailwind
+tokens.
+
+`.agent-html/styles/content.css` owns the public artifact style API. It contains the
+small set of semantic classes artifact agents may consume for layout rhythm,
+surfaces, icon boxes, and text scale.
+
+`.agent-html/styles/internal/*` owns locked Canvas chrome and protocol-adjacent
+styles. Artifact agents do not read it by default.
 
 Host inspection chrome, including surface padding, toolbar offsets, status
 spacing, sidebar local spacing, prompt output height, block hover highlighting,
 and block action placement, uses the same token pipeline. Canvas-specific host
-tokens start in `styles/theme.css` and are applied by semantic classes in
-`styles.css`.
+tokens start in `styles/tokens/host.css` and are applied by semantic
+classes in `styles/internal/host.css`.
 
-Artifact root layout also uses this pipeline. Root width, block rhythm,
-background, and foreground values are explicit `--canvas-artifact-*` tokens in
-`styles/theme.css` and are applied by `.agent-html-artifact` in `styles.css`.
+Artifact root layout also uses this pipeline. Root width and block rhythm are
+explicit `--canvas-artifact-*` tokens in `styles/tokens/artifact.css` and are
+applied by `.agent-html-artifact` in `styles/internal/artifact.css`. Artifact
+color follows the shared `--background` and `--foreground` foundation tokens.
 
 Artifact content composition uses Canvas semantic classes for spacing,
 typography, panel padding, panel radius, icon-box size, and grid gap. These
@@ -76,8 +91,8 @@ Color, radius, font, host chrome spacing, artifact root layout, and artifact
 content scale use the token pipeline. Local shadcn-derived primitives may still
 encode their internal spacing and typography as Tailwind utilities.
 
-Font and radius values start in `styles/theme.css` and are mapped in
-`styles.css`:
+Font and radius values start in `styles/tokens/foundation.css` and are mapped
+in `styles/tokens/tailwind.css`:
 
 ```text
 --font-sans-source
@@ -86,17 +101,16 @@ Font and radius values start in `styles/theme.css` and are mapped in
 --font-heading-source
   -> --font-heading
 
---radius-base
-  -> --radius
+--radius
   -> --radius-sm/md/lg/xl/2xl/3xl/4xl
 ```
 
 Artifacts use Canvas semantic classes such as `canvas-stack-md`,
 `canvas-content-panel`, `canvas-grid-gap`, `canvas-icon-box-sm`, and
-`canvas-text-body` for visual scale. Layout behavior utilities such as `flex`,
-`grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate`
-may stay in artifact code when they express local structure or overflow
-behavior.
+`canvas-text-body` from `styles/content.css` for visual scale. Layout behavior
+utilities such as `flex`, `grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`,
+`shrink-0`, and `truncate` may stay in artifact code when they express local
+structure or overflow behavior.
 
 Artifacts should not use raw palette classes, arbitrary values, decorative
 gradients, oversized radius, heavy shadows, custom font families, manual
@@ -105,9 +119,9 @@ tracking, or one-off button, card, and table markup.
 ## Visual Boundary
 
 `Artifact` owns the readable root container. Agents do not pass root layout or
-visual props to `Artifact`; update `--canvas-artifact-max-width`,
-`--canvas-artifact-block-gap`, `--canvas-artifact-background`, and
-`--canvas-artifact-foreground` instead.
+visual props to `Artifact`; update `--canvas-artifact-max-width` and
+`--canvas-artifact-block-gap` instead. Artifact color follows the shared
+`--background` and `--foreground` foundation tokens.
 
 `Block` and `Action` remain protocol markers. Block content layout and visual
 treatment belong inside blocks through artifact composition and

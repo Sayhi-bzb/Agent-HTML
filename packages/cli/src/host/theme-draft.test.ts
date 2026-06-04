@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest"
 
 import {
   createCanvasThemeDraftFromPreset,
+  createEmptyCanvasThemeDraft,
   findNearestTailwindColor,
   formatCanvasThemeCssNumber,
   getCanvasThemeCssVariableValue,
   parseCanvasThemeCssNumber,
+  readCanvasThemeRuntimeVariables,
   updateCanvasThemeDraftVariable,
 } from "./theme-draft"
 import type { CanvasThemePreset } from "#agent-html-playground/theme/presets"
@@ -20,18 +22,24 @@ const preset: CanvasThemePreset = {
 }
 
 describe("canvas theme draft", () => {
-  it("creates a draft from a preset and resolves edited variables", () => {
+  it("resolves css variables from draft, preset, then runtime css", () => {
     const draft = updateCanvasThemeDraftVariable({
-      draft: createCanvasThemeDraftFromPreset(preset),
+      draft: createEmptyCanvasThemeDraft(),
       name: "--canvas-artifact-max-width",
       value: "52rem",
     })
+    const runtimeVariables = {
+      "--background": "oklch(1 0 0)",
+      "--canvas-artifact-block-gap": "2rem",
+      "--canvas-artifact-max-width": "42rem",
+    }
 
     expect(
       getCanvasThemeCssVariableValue({
         draft,
         name: "--background",
         preset,
+        runtimeVariables,
       })
     ).toBe("#ffffff")
     expect(
@@ -39,8 +47,35 @@ describe("canvas theme draft", () => {
         draft,
         name: "--canvas-artifact-max-width",
         preset,
+        runtimeVariables,
       })
     ).toBe("52rem")
+    expect(
+      getCanvasThemeCssVariableValue({
+        draft,
+        name: "--canvas-artifact-block-gap",
+        preset,
+        runtimeVariables,
+      })
+    ).toBe("2rem")
+  })
+
+  it("creates a preview draft from preset variables", () => {
+    expect(createCanvasThemeDraftFromPreset(preset).cssVariables).toEqual(
+      preset.lightCssVariables
+    )
+  })
+
+  it("reads runtime variables from computed style", () => {
+    const style = {
+      getPropertyValue(name: string) {
+        return name === "--canvas-artifact-block-gap" ? " 2rem " : ""
+      },
+    } as CSSStyleDeclaration
+
+    expect(readCanvasThemeRuntimeVariables(style)).toEqual({
+      "--canvas-artifact-block-gap": "2rem",
+    })
   })
 
   it("maps hex values to Tailwind color tokens", () => {

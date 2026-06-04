@@ -1,0 +1,115 @@
+@layer components {
+  .canvas-stack-xs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-content-gap-xs);
+  }
+
+  .canvas-stack-sm {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-content-gap-sm);
+  }
+
+  .canvas-stack-md {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-content-gap-md);
+  }
+
+  .canvas-stack-lg {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-content-gap-lg);
+  }
+
+  .canvas-stack-xl {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-content-gap-xl);
+  }
+
+  .canvas-cluster-sm {
+    display: flex;
+    gap: var(--canvas-content-gap-sm);
+  }
+
+  .canvas-cluster-md {
+    display: flex;
+    gap: var(--canvas-content-gap-md);
+  }
+
+  .canvas-cluster-lg {
+    display: flex;
+    gap: var(--canvas-content-gap-lg);
+  }
+
+  .canvas-wrap-sm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--canvas-content-gap-sm);
+  }
+
+  .canvas-grid-gap {
+    display: grid;
+    gap: var(--canvas-content-grid-gap);
+  }
+
+  .canvas-grid-gap-md {
+    display: grid;
+    gap: var(--canvas-content-gap-md);
+  }
+
+  .canvas-content-panel {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: var(--canvas-content-panel-padding-md);
+  }
+
+  .canvas-content-panel-sm {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: var(--canvas-content-panel-padding-sm);
+  }
+
+  .canvas-icon-box-sm,
+  .canvas-icon-box-md {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    background: var(--muted);
+    color: var(--muted-foreground);
+  }
+
+  .canvas-icon-box-sm {
+    width: var(--canvas-content-icon-box-size-sm);
+    height: var(--canvas-content-icon-box-size-sm);
+  }
+
+  .canvas-icon-box-md {
+    width: var(--canvas-content-icon-box-size-md);
+    height: var(--canvas-content-icon-box-size-md);
+  }
+
+  .canvas-text-title {
+    font-size: var(--canvas-content-title-font-size);
+    line-height: var(--canvas-content-title-line-height);
+  }
+
+  .canvas-text-heading {
+    font-size: var(--canvas-content-heading-font-size);
+    line-height: var(--canvas-content-heading-line-height);
+  }
+
+  .canvas-text-body {
+    font-size: var(--canvas-content-body-font-size);
+    line-height: var(--canvas-content-body-line-height);
+  }
+
+  .canvas-text-caption {
+    font-size: var(--canvas-content-caption-font-size);
+    line-height: var(--canvas-content-caption-line-height);
+  }
+}

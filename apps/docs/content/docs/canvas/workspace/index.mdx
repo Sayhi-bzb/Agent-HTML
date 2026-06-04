@@ -19,11 +19,17 @@ while writing React artifacts:
 .agent-html/tsconfig.json
   -> local TypeScript and editor discovery config
 
-.agent-html/styles.css
-  -> CSS runtime entrypoint and Canvas semantic class bridge
+.agent-html/styles/index.css
+  -> CSS runtime entrypoint
 
-.agent-html/styles/theme.css
-  -> semantic token lookup
+.agent-html/styles/tokens
+  -> semantic token lookup split by feature
+
+.agent-html/styles/content.css
+  -> artifact-consumable Canvas semantic class lookup
+
+.agent-html/styles/internal
+  -> locked Canvas system chrome and protocol-adjacent styles
 
 .agent-html/theme
   -> host-owned theme preset resources
@@ -88,12 +94,12 @@ import diagramUrl from "../assets/diagram.svg"
 ```
 
 Use `Artifact` as the top-level wrapper. It owns the readable root container
-and accepts only `title` and children. Root width, block gap, background, and
-foreground are configured by `--canvas-artifact-*` tokens in
-`.agent-html/styles/theme.css`. Wrap each major semantic region in `Block`. Use
-stable, unique, readable, kebab-case block ids. `Block` is a protocol marker
-only: use `id`, `title`, and children, and put layout or visual treatment inside
-the block content.
+and accepts only `title` and children. Root width and block gap are configured
+by `--canvas-artifact-*` tokens in `.agent-html/styles/tokens/artifact.css`;
+background and foreground follow the shared foundation tokens. Wrap each major
+semantic region in `Block`. Use stable, unique, readable, kebab-case block ids.
+`Block` is a protocol marker only: use `id`, `title`, and children, and put
+layout or visual treatment inside the block content.
 
 Artifact content uses Canvas semantic classes backed by `--canvas-content-*`
 tokens for spacing, typography, panel padding, panel radius, icon-box size, and

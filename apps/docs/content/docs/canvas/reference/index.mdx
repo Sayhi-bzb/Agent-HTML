@@ -57,7 +57,8 @@ Host code must not consume:
 
 Confirm that `Artifact` keeps the token-configured readable root container,
 `Block` stays protocol-only, `.agent-html/ui/*` remains the visual primitive layer,
-`.agent-html/styles.css` remains the CSS runtime entrypoint,
-`.agent-html/styles/theme.css` remains the semantic token value layer, font and
-radius values stay explicit tokens, and block content layout stays explicit in
-artifact composition.
+`.agent-html/styles/index.css` remains the CSS runtime entrypoint,
+`.agent-html/styles/tokens/*` remains the semantic token value layer,
+`.agent-html/styles/tokens/tailwind.css` remains the Tailwind token mapping,
+font and radius values stay explicit tokens, and block content layout stays
+explicit in artifact composition.

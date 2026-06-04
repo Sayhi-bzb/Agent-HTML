@@ -21,6 +21,42 @@ async function readFileIfExists(filePath) {
   }
 }
 
+async function resolveAgentHtmlStyleEntry(root) {
+  const agentHtmlRoot = path.join(root, ".agent-html")
+  const componentsSource = await readFileIfExists(
+    path.join(agentHtmlRoot, "components.json")
+  )
+  const candidates = []
+
+  if (componentsSource) {
+    try {
+      const components = JSON.parse(componentsSource)
+      const configuredCss = components?.tailwind?.css
+
+      if (typeof configuredCss === "string" && configuredCss) {
+        candidates.push(path.join(agentHtmlRoot, configuredCss))
+      }
+    } catch {
+      // Fall through to default entry candidates.
+    }
+  }
+
+  candidates.push(
+    path.join(agentHtmlRoot, "styles", "index.css"),
+    path.join(agentHtmlRoot, "styles.css")
+  )
+
+  for (const candidate of [...new Set(candidates)]) {
+    const content = await readFileIfExists(candidate)
+
+    if (content) {
+      return { content, path: candidate }
+    }
+  }
+
+  return null
+}
+
 function resolvePackageStylesheet(id) {
   try {
     return requireFromRepo.resolve(id)
@@ -93,19 +129,19 @@ async function loadTailwindStylesheet(id, base) {
 }
 
 async function compileAgentHtmlCss(root) {
-  const stylePath = path.join(root, ".agent-html", "styles.css")
-  const source = await readFileIfExists(stylePath)
-  if (!source) {
+  const styleEntry = await resolveAgentHtmlStyleEntry(root)
+  if (!styleEntry) {
     return ""
   }
 
-  const cssBase = path.join(root, ".agent-html")
+  const stylePath = styleEntry.path
+  const cssBase = path.dirname(stylePath)
   const hostSourcePath = path.relative(cssBase, hostRoot).replaceAll("\\", "/")
   const reactSourcePath = path
     .relative(cssBase, path.join(repoRoot, "packages", "react", "src"))
     .replaceAll("\\", "/")
   const sourceWithRuntimeScan = [
-    source,
+    styleEntry.content,
     `@source "${hostSourcePath}/**/*.{ts,tsx,js,jsx,css}";`,
     `@source "${reactSourcePath}/**/*.{ts,tsx,js,jsx}";`,
   ].join("\n")

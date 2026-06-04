@@ -180,8 +180,35 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const playgroundComponents = JSON.parse(
       readSource(".agent-html/components.json")
     )
-    const playgroundStyles = readSource(".agent-html/styles.css")
-    const playgroundTheme = readSource(".agent-html/styles/theme.css")
+    const playgroundStyles = readSource(".agent-html/styles/index.css")
+    const playgroundTailwindTokens = readSource(
+      ".agent-html/styles/tokens/tailwind.css"
+    )
+    const playgroundFoundationTokens = readSource(
+      ".agent-html/styles/tokens/foundation.css"
+    )
+    const playgroundArtifactTokens = readSource(
+      ".agent-html/styles/tokens/artifact.css"
+    )
+    const playgroundHostTokens = readSource(
+      ".agent-html/styles/tokens/host.css"
+    )
+    const playgroundContentTokens = readSource(
+      ".agent-html/styles/tokens/content.css"
+    )
+    const playgroundThemeEditorTokens = readSource(
+      ".agent-html/styles/tokens/theme-editor.css"
+    )
+    const playgroundArtifactInternal = readSource(
+      ".agent-html/styles/internal/artifact.css"
+    )
+    const playgroundHostInternal = readSource(
+      ".agent-html/styles/internal/host.css"
+    )
+    const playgroundContent = readSource(".agent-html/styles/content.css")
+    const playgroundThemeEditorInternal = readSource(
+      ".agent-html/styles/internal/theme-editor.css"
+    )
     const reactCanvasTsconfig = JSON.parse(
       readSource("config/tsconfig/tsconfig.react-canvas.json")
     )
@@ -190,21 +217,73 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(rootComponents.aliases.ui).toBe("@/app/shared/ui")
     expect(existsSync(join(root, ".agent-html", "components.json"))).toBe(true)
     expect(existsSync(join(root, ".agent-html", "tsconfig.json"))).toBe(true)
-    expect(playgroundComponents.tailwind.css).toBe("styles.css")
+    expect(playgroundComponents.tailwind.css).toBe("styles/index.css")
     expect(playgroundComponents.aliases.ui).toBe("@/ui")
+    expect(existsSync(join(root, ".agent-html", "styles.css"))).toBe(false)
+    expect(existsSync(join(root, ".agent-html", "styles", "theme.css"))).toBe(
+      false
+    )
+    expect(existsSync(join(root, ".agent-html", "styles", "features"))).toBe(
+      false
+    )
+    expect(existsSync(join(root, ".agent-html", "styles", "use"))).toBe(false)
+    expect(existsSync(join(root, ".agent-html", "styles", "system"))).toBe(false)
+    expect(existsSync(join(root, ".agent-html", "styles", "bridge"))).toBe(false)
     expect(playgroundStyles).toContain('@import "tailwindcss"')
     expect(playgroundStyles).toContain('@import "tw-animate-css"')
     expect(playgroundStyles).toContain('@import "shadcn/tailwind.css"')
     expect(playgroundStyles).toContain('@import "@fontsource-variable/geist"')
-    expect(playgroundStyles).toContain("--font-sans: var(--font-sans-source)")
-    expect(playgroundStyles).toContain("--font-heading: var(--font-heading-source)")
-    expect(playgroundStyles).toContain("--color-background")
-    expect(playgroundStyles).toContain("--color-sidebar")
-    expect(playgroundStyles).toContain("--radius-lg: var(--radius)")
-    expect(playgroundTheme).toContain("--font-sans-source")
-    expect(playgroundTheme).toContain("--font-heading-source")
-    expect(playgroundTheme).toContain("--radius-base")
-    expect(playgroundTheme).toContain("--radius: var(--radius-base)")
+    expect(playgroundStyles).toContain('@import "./tokens/index.css"')
+    expect(playgroundStyles).toContain('@import "./tokens/tailwind.css"')
+    expect(playgroundStyles).toContain('@import "./content.css"')
+    expect(playgroundStyles).toContain('@import "./internal/artifact.css"')
+    expect(playgroundStyles).toContain('@import "./internal/host.css"')
+    expect(playgroundStyles).toContain('@import "./internal/theme-editor.css"')
+    expect(playgroundTailwindTokens).toContain(
+      "--font-sans: var(--font-sans-source)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--font-heading: var(--font-heading-source)"
+    )
+    expect(playgroundTailwindTokens).toContain("--color-background")
+    expect(playgroundTailwindTokens).toContain("--color-sidebar")
+    expect(playgroundTailwindTokens).toContain("--radius-lg: var(--radius)")
+    expect(playgroundFoundationTokens).toContain("--font-sans-source")
+    expect(playgroundFoundationTokens).toContain("--font-heading-source")
+    expect(playgroundFoundationTokens).toContain("--radius: 0.625rem")
+    expect(playgroundFoundationTokens).not.toContain("--radius-base")
+    expect(playgroundArtifactTokens).toContain("--canvas-artifact-max-width")
+    expect(playgroundArtifactTokens).not.toContain(
+      "--canvas-artifact-background"
+    )
+    expect(playgroundArtifactTokens).not.toContain(
+      "--canvas-artifact-foreground"
+    )
+    expect(playgroundHostTokens).toContain("--canvas-surface-padding-inline")
+    expect(playgroundHostTokens).not.toContain(
+      "--canvas-block-highlight-radius"
+    )
+    expect(playgroundContentTokens).toContain("--canvas-content-gap-md")
+    expect(playgroundContentTokens).not.toContain(
+      "--canvas-content-panel-radius"
+    )
+    expect(playgroundContentTokens).not.toContain(
+      "--canvas-content-panel-border"
+    )
+    expect(playgroundContentTokens).not.toContain(
+      "--canvas-content-icon-box-radius"
+    )
+    expect(playgroundThemeEditorTokens).toContain(
+      "--canvas-theme-editor-popover-width-lg"
+    )
+    expect(playgroundArtifactInternal).toContain(".agent-html-artifact")
+    expect(playgroundHostInternal).toContain(".canvas-surface-frame")
+    expect(playgroundContent).toContain(".canvas-stack-md")
+    expect(playgroundContent).toContain(".canvas-content-panel")
+    expect(playgroundContent).toContain(".canvas-text-body")
+    expect(playgroundThemeEditorInternal).toContain(
+      ".canvas-theme-editor-option"
+    )
     expect(reactCanvasTsconfig.compilerOptions.paths["@/app/*"]).toBeUndefined()
     expect(
       reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/*"]

@@ -1,0 +1,15 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "./tokens/index.css";
+@import "./tokens/tailwind.css";
+@import "./base.css";
+@import "./content.css";
+@import "./internal/artifact.css";
+@import "./internal/host.css";
+@import "./internal/theme-editor.css";
+
+@source "../**/*.{ts,tsx,js,jsx,json}";
+
+@custom-variant dark (&:is(.dark *));

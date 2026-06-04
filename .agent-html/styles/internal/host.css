@@ -1,0 +1,166 @@
+@layer components {
+  .canvas-host-shell {
+    display: flex;
+    min-height: 100svh;
+    overflow: hidden;
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  .canvas-host-toolbar {
+    pointer-events: none;
+    position: absolute;
+    inset-inline: var(--canvas-toolbar-inset-inline);
+    top: var(--canvas-toolbar-inset-block-start);
+    z-index: var(--canvas-toolbar-z-index);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .canvas-surface-root {
+    position: relative;
+    display: flex;
+    min-height: 100svh;
+    flex: 1 1 0%;
+    overflow: hidden;
+    background: var(--background);
+  }
+
+  .canvas-surface-scroll {
+    height: 100svh;
+    min-width: 0;
+    flex: 1 1 0%;
+  }
+
+  .canvas-surface-frame {
+    position: relative;
+    min-height: 100svh;
+    padding-inline: var(--canvas-surface-padding-inline);
+    padding-block-start: var(--canvas-surface-padding-block-start);
+    padding-block-end: var(--canvas-surface-padding-block-end);
+  }
+
+  .canvas-status {
+    margin-block-end: var(--canvas-status-margin-block-end);
+  }
+
+  .canvas-status-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-status-stack-gap);
+  }
+
+  .canvas-status-item {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--canvas-status-item-gap);
+  }
+
+  .canvas-sidebar-pad {
+    padding: var(--canvas-sidebar-section-padding);
+  }
+
+  .canvas-sidebar-header-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-sidebar-header-gap);
+  }
+
+  .canvas-sidebar-menu {
+    gap: var(--canvas-sidebar-menu-gap);
+  }
+
+  .canvas-sidebar-copy {
+    padding-inline: var(--canvas-sidebar-content-padding-inline);
+    font-size: var(--canvas-sidebar-font-size-body);
+  }
+
+  .canvas-sidebar-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-sidebar-stack-gap);
+  }
+
+  .canvas-sidebar-control-row {
+    display: flex;
+    gap: var(--canvas-sidebar-control-gap);
+    padding-inline: var(--canvas-sidebar-content-padding-inline);
+  }
+
+  .canvas-sidebar-select-content {
+    min-width: var(--radix-select-trigger-width);
+    width: var(--radix-select-trigger-width);
+    padding: var(--canvas-sidebar-select-padding);
+  }
+
+  .canvas-sidebar-select-item {
+    gap: var(--canvas-sidebar-control-gap);
+    padding-block: var(--canvas-sidebar-select-item-padding-block);
+    padding-inline-start: var(--canvas-sidebar-content-padding-inline);
+    padding-inline-end: calc(var(--canvas-sidebar-content-padding-inline) * 4);
+    font-size: var(--canvas-sidebar-font-size-body);
+  }
+
+  .canvas-sidebar-title {
+    font-size: var(--canvas-sidebar-font-size-title);
+    font-weight: 600;
+  }
+
+  .canvas-sidebar-body {
+    font-size: var(--canvas-sidebar-font-size-body);
+  }
+
+  .canvas-sidebar-caption {
+    font-size: var(--canvas-sidebar-font-size-caption);
+  }
+
+  .canvas-prompt-output {
+    margin-inline: var(--canvas-sidebar-content-padding-inline);
+    height: var(--canvas-prompt-output-height);
+    border-radius: var(--radius-md);
+    background: var(--sidebar-accent);
+  }
+
+  .canvas-prompt-output-code {
+    padding: var(--canvas-sidebar-section-padding);
+    font-size: var(--canvas-sidebar-font-size-caption);
+    color: var(--sidebar-accent-foreground);
+  }
+
+  .canvas-block-overlay-layer {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+  }
+
+  .canvas-block-overlay {
+    position: absolute;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    transition-property: color, background-color, border-color;
+    transition-duration: 150ms;
+  }
+
+  .canvas-block-overlay[data-hovered="true"] {
+    border-color: var(--canvas-block-highlight-border);
+    background: var(--canvas-block-highlight-background);
+  }
+
+  .canvas-block-action {
+    pointer-events: auto;
+    position: absolute;
+    top: var(--canvas-block-action-offset);
+    left: var(--canvas-block-action-offset);
+    border-radius: 9999px;
+    opacity: 0;
+    box-shadow: var(--canvas-block-action-shadow);
+    transition-property: opacity;
+    transition-duration: 150ms;
+  }
+
+  .canvas-block-action[data-hovered="true"] {
+    opacity: 1;
+  }
+}
