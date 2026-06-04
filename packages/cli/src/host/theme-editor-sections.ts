@@ -4,7 +4,6 @@ import {
   PaletteIcon,
   Rows3Icon,
   SquareDashedBottomCodeIcon,
-  SunMediumIcon,
 } from "lucide-react"
 import type * as React from "react"
 
@@ -14,7 +13,6 @@ export type CanvasThemeEditorSectionId =
   | "radius"
   | "spacing"
   | "canvas"
-  | "shadow"
 
 export const canvasThemeEditorSections = [
   {
@@ -41,11 +39,6 @@ export const canvasThemeEditorSections = [
     icon: SquareDashedBottomCodeIcon,
     id: "canvas",
     label: "Canvas",
-  },
-  {
-    icon: SunMediumIcon,
-    id: "shadow",
-    label: "Shadow",
   },
 ] as const satisfies readonly {
   icon: React.ComponentType<{ className?: string }>

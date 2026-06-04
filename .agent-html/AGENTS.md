@@ -107,8 +107,13 @@ artifacts and host
 - Use semantic token utilities such as `bg-background`, `text-foreground`,
   `bg-card`, `text-muted-foreground`, `border-border`, `bg-popover`, and
   `text-popover-foreground`.
-- Font and radius flow through explicit tokens: `--font-sans-source`,
-  `--font-heading-source`, and the shadcn-compatible `--radius`.
+- Font and radius flow through explicit tokens: `--font-sans`,
+  `--font-heading`, `--font-mono`, and the shadcn-compatible `--radius`.
+- Sidebar color variables are shadcn compatibility aliases derived from the
+  base color pipeline. Do not treat them as independent artifact-facing theme
+  controls unless the host adds a separate sidebar theme axis.
+- Shadow uses the static shadcn-style shadow scale. Do not edit source-like
+  shadow knobs unless they drive the full scale.
 - Do not use raw colors, decorative gradients, oversized shadows, or marketing
   hero composition.
 - Use Canvas semantic classes for artifact structure and host chrome. Content

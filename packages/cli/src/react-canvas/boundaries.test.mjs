@@ -239,17 +239,23 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundStyles).toContain('@import "./internal/artifact.css"')
     expect(playgroundStyles).toContain('@import "./internal/host.css"')
     expect(playgroundStyles).toContain('@import "./internal/theme-editor.css"')
+    expect(playgroundTailwindTokens).toContain("--font-sans: var(--font-sans)")
     expect(playgroundTailwindTokens).toContain(
-      "--font-sans: var(--font-sans-source)"
-    )
-    expect(playgroundTailwindTokens).toContain(
-      "--font-heading: var(--font-heading-source)"
+      "--font-heading: var(--font-heading)"
     )
     expect(playgroundTailwindTokens).toContain("--color-background")
     expect(playgroundTailwindTokens).toContain("--color-sidebar")
     expect(playgroundTailwindTokens).toContain("--radius-lg: var(--radius)")
-    expect(playgroundFoundationTokens).toContain("--font-sans-source")
-    expect(playgroundFoundationTokens).toContain("--font-heading-source")
+    expect(playgroundFoundationTokens).toContain("--font-sans")
+    expect(playgroundFoundationTokens).toContain("--font-heading")
+    expect(playgroundFoundationTokens).not.toContain("--font-sans-source")
+    expect(playgroundFoundationTokens).not.toContain("--font-heading-source")
+    expect(playgroundFoundationTokens).not.toMatch(/--shadow-color\s*:/)
+    expect(playgroundFoundationTokens).not.toMatch(/--shadow-opacity\s*:/)
+    expect(playgroundFoundationTokens).not.toMatch(/--shadow-x\s*:/)
+    expect(playgroundFoundationTokens).not.toMatch(/--shadow-y\s*:/)
+    expect(playgroundFoundationTokens).not.toMatch(/--shadow-blur\s*:/)
+    expect(playgroundFoundationTokens).not.toMatch(/--shadow-spread\s*:/)
     expect(playgroundFoundationTokens).toContain("--radius: 0.625rem")
     expect(playgroundFoundationTokens).not.toContain("--radius-base")
     expect(playgroundArtifactTokens).toContain("--canvas-artifact-max-width")
@@ -262,6 +268,15 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundHostTokens).toContain("--canvas-surface-padding-inline")
     expect(playgroundHostTokens).not.toContain(
       "--canvas-block-highlight-radius"
+    )
+    expect(playgroundHostTokens).not.toContain(
+      "--canvas-block-action-shadow"
+    )
+    expect(playgroundHostTokens).not.toContain(
+      "--canvas-sidebar-select-padding"
+    )
+    expect(playgroundHostTokens).not.toContain(
+      "--canvas-sidebar-select-item-padding-block"
     )
     expect(playgroundContentTokens).toContain("--canvas-content-gap-md")
     expect(playgroundContentTokens).not.toContain(

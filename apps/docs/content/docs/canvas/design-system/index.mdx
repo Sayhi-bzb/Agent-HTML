@@ -95,15 +95,22 @@ Font and radius values start in `styles/tokens/foundation.css` and are mapped
 in `styles/tokens/tailwind.css`:
 
 ```text
---font-sans-source
-  -> --font-sans
+--font-sans
 
---font-heading-source
-  -> --font-heading
+--font-heading
+
+--font-mono
 
 --radius
   -> --radius-sm/md/lg/xl/2xl/3xl/4xl
 ```
+
+Sidebar color variables remain shadcn compatibility aliases derived from the
+base color pipeline. They are not independent theme editor controls unless the
+host intentionally adds a separate sidebar theme axis.
+
+Shadow uses the static shadcn-style shadow scale. Source-like shadow knobs are
+not part of the Canvas theme editor unless they drive the full scale.
 
 Artifacts use Canvas semantic classes such as `canvas-stack-md`,
 `canvas-content-panel`, `canvas-grid-gap`, `canvas-icon-box-sm`, and

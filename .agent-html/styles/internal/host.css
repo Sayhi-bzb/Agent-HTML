@@ -92,12 +92,12 @@
   .canvas-sidebar-select-content {
     min-width: var(--radix-select-trigger-width);
     width: var(--radix-select-trigger-width);
-    padding: var(--canvas-sidebar-select-padding);
+    padding: 0.375rem;
   }
 
   .canvas-sidebar-select-item {
     gap: var(--canvas-sidebar-control-gap);
-    padding-block: var(--canvas-sidebar-select-item-padding-block);
+    padding-block: 0.375rem;
     padding-inline-start: var(--canvas-sidebar-content-padding-inline);
     padding-inline-end: calc(var(--canvas-sidebar-content-padding-inline) * 4);
     font-size: var(--canvas-sidebar-font-size-body);
@@ -155,7 +155,7 @@
     left: var(--canvas-block-action-offset);
     border-radius: 9999px;
     opacity: 0;
-    box-shadow: var(--canvas-block-action-shadow);
+    box-shadow: 0 1px 2px 0 oklch(0 0 0 / 8%);
     transition-property: opacity;
     transition-duration: 150ms;
   }

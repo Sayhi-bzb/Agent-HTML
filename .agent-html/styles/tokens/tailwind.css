@@ -1,6 +1,6 @@
 @theme inline {
-  --font-heading: var(--font-heading-source);
-  --font-sans: var(--font-sans-source);
+  --font-heading: var(--font-heading);
+  --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

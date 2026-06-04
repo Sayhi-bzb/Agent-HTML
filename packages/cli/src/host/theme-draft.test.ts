@@ -67,9 +67,15 @@ describe("canvas theme draft", () => {
   })
 
   it("reads runtime variables from computed style", () => {
+    const values: Record<string, string> = {
+      "--canvas-artifact-block-gap": " 2rem ",
+      "--font-sans-source": " ignored ",
+      "--shadow-opacity": " 0.5 ",
+      "--sidebar": " ignored ",
+    }
     const style = {
       getPropertyValue(name: string) {
-        return name === "--canvas-artifact-block-gap" ? " 2rem " : ""
+        return values[name] ?? ""
       },
     } as CSSStyleDeclaration
 

@@ -113,20 +113,6 @@ const colorTokenGroups: readonly ColorTokenGroup[] = [
     ],
   },
   {
-    id: "sidebar",
-    label: "Sidebar",
-    items: [
-      { label: "sidebar", name: "--sidebar" },
-      { label: "foreground", name: "--sidebar-foreground" },
-      { label: "primary", name: "--sidebar-primary" },
-      { label: "primary foreground", name: "--sidebar-primary-foreground" },
-      { label: "accent", name: "--sidebar-accent" },
-      { label: "accent foreground", name: "--sidebar-accent-foreground" },
-      { label: "border", name: "--sidebar-border" },
-      { label: "ring", name: "--sidebar-ring" },
-    ],
-  },
-  {
     id: "charts",
     label: "Charts",
     items: [
@@ -156,14 +142,6 @@ const fontOptions = [
     label: "Mono",
     value:
       "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-  },
-  {
-    label: "Use sans source",
-    value: "var(--font-sans-source)",
-  },
-  {
-    label: "Use heading source",
-    value: "var(--font-heading-source)",
   },
 ] as const
 
@@ -216,49 +194,6 @@ const canvasRangeTokens: readonly NumericTokenItem[] = [
     name: "--canvas-artifact-block-gap",
     step: 0.125,
     unit: "rem",
-  },
-]
-
-const shadowRangeTokens: readonly NumericTokenItem[] = [
-  {
-    label: "Opacity",
-    max: 1,
-    min: 0,
-    name: "--shadow-opacity",
-    step: 0.01,
-    unit: "",
-  },
-  {
-    label: "X",
-    max: 24,
-    min: -24,
-    name: "--shadow-x",
-    step: 1,
-    unit: "px",
-  },
-  {
-    label: "Y",
-    max: 32,
-    min: -24,
-    name: "--shadow-y",
-    step: 1,
-    unit: "px",
-  },
-  {
-    label: "Blur",
-    max: 64,
-    min: 0,
-    name: "--shadow-blur",
-    step: 1,
-    unit: "px",
-  },
-  {
-    label: "Spread",
-    max: 24,
-    min: -24,
-    name: "--shadow-spread",
-    step: 1,
-    unit: "px",
   },
 ]
 
@@ -774,33 +709,6 @@ function RangeTokenRow({
   )
 }
 
-function TextTokenRow({
-  draft,
-  label,
-  name,
-  onVariableChange,
-  preset,
-  runtimeVariables,
-}: {
-  draft: CanvasThemeDraft
-  label: string
-  name: CanvasThemeVariableName
-  onVariableChange: (name: CanvasThemeVariableName, value: string) => void
-  preset: CanvasThemePreset
-  runtimeVariables: CanvasThemeResolvedVariables
-}) {
-  const value = getVariableValue({ draft, name, preset, runtimeVariables })
-
-  return (
-    <EditorPopoverItem label={label} valueLabel={value}>
-      <Input
-        onChange={(event) => onVariableChange(name, event.currentTarget.value)}
-        value={value}
-      />
-    </EditorPopoverItem>
-  )
-}
-
 function ColorSection(props: {
   draft: CanvasThemeDraft
   onVariableChange: (name: CanvasThemeVariableName, value: string) => void
@@ -838,33 +746,31 @@ function TypographySection(props: {
       <EditorSection label="Typography">
         <SidebarMenu className="canvas-theme-editor-menu">
           <ThemeSelectItem
-            label="Sans source"
+            label="Sans"
             onValueChange={(value) =>
-              props.onVariableChange("--font-sans-source", value)
+              props.onVariableChange("--font-sans", value)
             }
             options={fontOptions}
             value={getVariableValue({
               draft: props.draft,
-              name: "--font-sans-source",
+              name: "--font-sans",
               preset: props.preset,
               runtimeVariables: props.runtimeVariables,
             })}
           />
           <ThemeSelectItem
-            label="Heading source"
+            label="Heading"
             onValueChange={(value) =>
-              props.onVariableChange("--font-heading-source", value)
+              props.onVariableChange("--font-heading", value)
             }
             options={fontOptions}
             value={getVariableValue({
               draft: props.draft,
-              name: "--font-heading-source",
+              name: "--font-heading",
               preset: props.preset,
               runtimeVariables: props.runtimeVariables,
             })}
           />
-          <TextTokenRow label="Sans token" name="--font-sans" {...props} />
-          <TextTokenRow label="Heading token" name="--font-heading" {...props} />
           <ThemeSelectItem
             label="Mono"
             onValueChange={(value) => props.onVariableChange("--font-mono", value)}
@@ -921,29 +827,6 @@ function CanvasSection(props: {
       <EditorSection label="Reading layout">
         <SidebarMenu className="canvas-theme-editor-menu">
           {canvasRangeTokens.map((item) => (
-            <RangeTokenRow key={item.name} item={item} {...props} />
-          ))}
-        </SidebarMenu>
-      </EditorSection>
-    </div>
-  )
-}
-
-function ShadowSection(props: {
-  draft: CanvasThemeDraft
-  onVariableChange: (name: CanvasThemeVariableName, value: string) => void
-  preset: CanvasThemePreset
-  runtimeVariables: CanvasThemeResolvedVariables
-}) {
-  return (
-    <div className="canvas-theme-editor-section-stack">
-      <EditorSection label="Shadow">
-        <SidebarMenu className="canvas-theme-editor-menu">
-          <ColorTokenRow
-            item={{ label: "Color", name: "--shadow-color" }}
-            {...props}
-          />
-          {shadowRangeTokens.map((item) => (
             <RangeTokenRow key={item.name} item={item} {...props} />
           ))}
         </SidebarMenu>
@@ -1026,10 +909,6 @@ export function ReactCanvasThemeEditor({
 
   if (activeSectionId === "canvas") {
     return <CanvasSection {...props} />
-  }
-
-  if (activeSectionId === "shadow") {
-    return <ShadowSection {...props} />
   }
 
   return <ColorSection {...props} />
