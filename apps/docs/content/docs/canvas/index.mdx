@@ -26,9 +26,9 @@ React artifacts without importing the app shell or old runtime UI.
 
 ### Headless Protocol
 
-`Artifact`, `Block`, and `Action` mark collaboration boundaries. They provide
-metadata, host anchors, source extraction anchors, action dispatch,
-and accessibility. `Artifact` owns the readable root container, accepts only
+`Artifact` and `Block` mark collaboration boundaries. They provide
+metadata, host anchors, source extraction anchors, and accessibility.
+`Artifact` owns the readable root container, accepts only
 `title` and children, and reads layout values from Canvas CSS tokens. `Block` is
 protocol-only: it accepts `id`, `title`, and children, and does not accept
 styling or layout props.

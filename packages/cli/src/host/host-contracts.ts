@@ -14,6 +14,7 @@ export type ArtifactModule = {
 }
 
 export type BlockOverlay = {
+  element: HTMLElement
   height: number
   id: string
   title: string
@@ -24,6 +25,10 @@ export type BlockOverlay = {
 
 export type PromptTarget = {
   id: string
-  initialRequest?: string
   title: string
+}
+
+export type FloatingPromptTarget = PromptTarget & {
+  anchorElement: HTMLElement
+  triggerElement: HTMLElement
 }

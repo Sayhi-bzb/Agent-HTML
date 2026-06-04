@@ -8,8 +8,12 @@ import {
 } from "./block-overlay"
 import type { BlockOverlay } from "./host-contracts"
 
+const summaryElement = {} as HTMLElement
+const detailsElement = {} as HTMLElement
+
 const overlays: BlockOverlay[] = [
   {
+    element: summaryElement,
     height: 120,
     id: "summary",
     title: "Summary",
@@ -18,6 +22,7 @@ const overlays: BlockOverlay[] = [
     y: 20,
   },
   {
+    element: detailsElement,
     height: 80,
     id: "details",
     title: "Details",
@@ -86,9 +91,11 @@ describe("measureBlockOverlays", () => {
         return [block]
       },
     }
+    const blockElement = block as unknown as HTMLElement
 
     expect(measureBlockOverlays(root as unknown as HTMLElement)).toEqual([
       {
+        element: blockElement,
         height: 92,
         id: "summary",
         title: "Summary",
@@ -128,9 +135,11 @@ describe("measureBlockOverlays", () => {
         return [block]
       },
     }
+    const blockElement = block as unknown as HTMLElement
 
     expect(measureBlockOverlays(root as unknown as HTMLElement)).toEqual([
       {
+        element: blockElement,
         height: 32,
         id: "fallback",
         title: "fallback",

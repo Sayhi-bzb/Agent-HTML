@@ -4,24 +4,18 @@ import { artifactBundleUrl } from "./api"
 import { BlockOverlayLayer, useBlockOverlays } from "./block-overlay"
 import { GuardIssueList, HostStatusMessage } from "./status-surface"
 import { ScrollArea } from "#agent-html-playground/ui/scroll-area"
-import type {
-  ArtifactModule,
-  GuardIssue,
-  PromptTarget,
-} from "./host-contracts"
+import type { ArtifactModule, GuardIssue } from "./host-contracts"
 
 export function ArtifactSurface({
   activeFilePath,
   artifactCount,
   guardIssues,
   loadError,
-  onMessageBlock,
 }: {
   activeFilePath: string | null
   artifactCount: number
   guardIssues: GuardIssue[]
   loadError: string | null
-  onMessageBlock: (target: PromptTarget) => void
 }) {
   const [error, setError] = React.useState<string | null>(null)
   const [mountedFilePath, setMountedFilePath] = React.useState<string | null>(
@@ -101,7 +95,7 @@ export function ArtifactSurface({
             />
           ) : null}
           <div ref={artifactRootRef} />
-          <BlockOverlayLayer onMessageBlock={onMessageBlock} overlays={overlays} />
+          <BlockOverlayLayer overlays={overlays} />
         </div>
       </ScrollArea>
     </main>

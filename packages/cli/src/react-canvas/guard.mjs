@@ -113,7 +113,7 @@ function collectBoundaryIssues({ relativePath, source }) {
         line: lineForIndex(source, match.index),
         message: "Old AHTML render API is not allowed in React Canvas artifacts.",
         severity: "error",
-        suggestion: "Render normal React through Artifact, Block, and Action markers.",
+        suggestion: "Render normal React through Artifact and Block markers.",
       })
     )
     forbiddenRuntimeApiPattern.lastIndex = match.index + 1

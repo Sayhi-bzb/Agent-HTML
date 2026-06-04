@@ -2,7 +2,7 @@ import React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
-import { Action, Artifact, Block } from "./index"
+import { Artifact, Block } from "./index"
 
 describe("@agent-html/react", () => {
   it("renders normal React children with host metadata", () => {
@@ -58,38 +58,4 @@ describe("@agent-html/react", () => {
     expect(element.type).toBe(Block)
   })
 
-  it("dispatches action intent for the host", () => {
-    const events: Array<{ detail: unknown; type: string }> = []
-    const previousWindow = globalThis.window
-    globalThis.window = {
-      dispatchEvent(event: Event) {
-        events.push({
-          detail: (event as CustomEvent).detail,
-          type: event.type,
-        })
-        return true
-      },
-    } as Window & typeof globalThis
-
-    try {
-      const element = Action({
-        prompt: "Update this block",
-        target: "summary",
-      })
-
-      element.props.onClick()
-    } finally {
-      globalThis.window = previousWindow
-    }
-
-    expect(events).toEqual([
-      {
-        detail: {
-          prompt: "Update this block",
-          target: "summary",
-        },
-        type: "agent-html:action",
-      },
-    ])
-  })
 })

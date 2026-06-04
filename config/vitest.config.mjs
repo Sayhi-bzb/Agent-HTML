@@ -12,6 +12,7 @@ export default defineConfig({
         new URL("../packages/agent-html/src", import.meta.url)
       ),
       "@/lib": fileURLToPath(new URL("../.agent-html/lib", import.meta.url)),
+      "@/ui": fileURLToPath(new URL("../.agent-html/ui", import.meta.url)),
       "@agent-html/react": fileURLToPath(
         new URL("../packages/react/src/index.tsx", import.meta.url)
       ),

@@ -85,15 +85,15 @@ artifacts and host
   shadcn-derived primitives low-modification unless Canvas needs a primitive
   API, correctness fix, or accessibility fix.
 - Available primitives include accordion, alert, badge, button, card, chart,
-  checkbox, collapsible, dialog, hover-card, input, label, popover, progress,
-  scroll-area, select, separator, sheet, sidebar, skeleton, slider, table, tabs,
-  textarea, toggle, toggle-group, and tooltip.
+  checkbox, collapsible, dialog, hover-card, input, input-group, label,
+  popover, progress, scroll-area, select, separator, sheet, sidebar, skeleton,
+  slider, table, tabs, textarea, toggle, toggle-group, and tooltip.
 - Host and artifacts compose primitives; they do not create new primitive
   buttons, cards, badges, tables, sidebars, or inputs.
 - Host block hover highlighting is inspection chrome. It consumes Canvas tokens
   from `styles/tokens/host.css` through `styles/internal/host.css`; do
   not recreate block highlighting in artifact source or on `Block`.
-- `Artifact`, `Block`, and `Action` from `@agent-html/react` are headless
+- `Artifact` and `Block` from `@agent-html/react` are headless
   collaboration protocol markers, not visual components. `Artifact` owns the
   readable root container and accepts only `title` and children. Its width,
   block gap, background, and foreground values come from
@@ -104,6 +104,8 @@ artifacts and host
   put `className`, `style`, layout, border, radius, or shadow on `Block`. Put
   block content layout and visual treatment inside the block and
   `.agent-html/ui` primitives.
+- Host block prompt actions are overlay chrome. Artifact source does not render
+  an action protocol marker.
 - Use semantic token utilities such as `bg-background`, `text-foreground`,
   `bg-card`, `text-muted-foreground`, `border-border`, `bg-popover`, and
   `text-popover-foreground`.
@@ -119,9 +121,9 @@ artifacts and host
 - Use Canvas semantic classes for artifact structure and host chrome. Content
   spacing, panel padding, panel radius, icon-box size, typography scale, grid
   gap, surface padding, toolbar offset, block action offset, status spacing,
-  sidebar spacing, and prompt output height come from explicit `--canvas-*`
-  tokens in `.agent-html/styles/tokens/*`, public artifact classes in
-  `.agent-html/styles/content.css`, and locked system classes in
+  sidebar spacing, and floating prompt surface values come from explicit
+  `--canvas-*` tokens in `.agent-html/styles/tokens/*`, public artifact
+  classes in `.agent-html/styles/content.css`, and locked system classes in
   `.agent-html/styles/internal/*`.
 - Keep layout behavior classes such as `flex`, `grid`, `min-w-0`,
   `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate` local to the
@@ -146,7 +148,7 @@ artifacts and host
 
 Rules:
 
-- Import `Artifact`, `Block`, and `Action` from `@agent-html/react`.
+- Import `Artifact` and `Block` from `@agent-html/react`.
 - Use `Artifact` as the top-level wrapper.
 - Keep `Artifact` static and unstyled. The root reading width, spacing, and
   base colors are configured by `--canvas-artifact-*` tokens in

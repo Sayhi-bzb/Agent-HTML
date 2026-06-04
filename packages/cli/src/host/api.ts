@@ -7,7 +7,6 @@ export const hostApiRoutes = {
 } as const
 
 export const artifactRenderedEventName = "agent-html:artifact-rendered"
-export const actionEventName = "agent-html:action"
 
 export async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url)

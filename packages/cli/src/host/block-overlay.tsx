@@ -2,8 +2,18 @@ import * as React from "react"
 import { SparklesIcon } from "lucide-react"
 
 import { artifactRenderedEventName } from "./api"
+import {
+  getCanvasMessageHostSnapshot,
+  subscribeCanvasMessageHost,
+} from "./canvas-message-store"
+import { FloatingPrompt } from "./floating-prompt"
 import { Button } from "#agent-html-playground/ui/button"
-import type { BlockOverlay, PromptTarget } from "./host-contracts"
+import {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+} from "#agent-html-playground/ui/popover"
+import type { BlockOverlay } from "./host-contracts"
 
 const defaultBlockHighlightPadding = 6
 
@@ -108,6 +118,7 @@ export function measureBlockOverlays(root: HTMLElement | null): BlockOverlay[] {
     const id = element.getAttribute("data-agent-html-block-id") ?? ""
 
     return {
+      element,
       height: rect.height + highlightPadding * 2,
       id,
       title: element.getAttribute("data-agent-html-block-title") ?? id,
@@ -185,14 +196,18 @@ export function useBlockOverlays(rootRef: React.RefObject<HTMLElement | null>) {
 }
 
 export function BlockOverlayLayer({
-  onMessageBlock,
   overlays,
 }: {
-  onMessageBlock: (target: PromptTarget) => void
   overlays: BlockOverlay[]
 }) {
   const [hoveredBlockId, setHoveredBlockId] = React.useState<string | null>(null)
   const rootRef = React.useRef<HTMLDivElement | null>(null)
+  const messageHost = React.useSyncExternalStore(
+    subscribeCanvasMessageHost,
+    getCanvasMessageHostSnapshot,
+    getCanvasMessageHostSnapshot
+  )
+  const promptTarget = messageHost.activeTarget
 
   React.useEffect(() => {
     setHoveredBlockId((current) =>
@@ -243,31 +258,67 @@ export function BlockOverlayLayer({
     <div className="canvas-block-overlay-layer" ref={rootRef}>
       {overlays.map((overlay) => {
         const isHovered = overlay.id === hoveredBlockId
+        const isPromptOpen = overlay.id === promptTarget?.id
 
         return (
-          <div
-            className="canvas-block-overlay"
-            data-hovered={isHovered ? "true" : undefined}
+          <Popover
             key={overlay.id}
-            style={{
-              height: overlay.height,
-              left: overlay.x,
-              top: overlay.y,
-              width: overlay.width,
+            open={isPromptOpen}
+            onOpenChange={(open) => {
+              if (!open && isPromptOpen) {
+                messageHost.onClose()
+              }
             }}
           >
-            <Button
-              aria-label={`Message ${overlay.title}`}
-              className="canvas-block-action"
-              data-hovered={isHovered ? "true" : undefined}
-              onClick={() => onMessageBlock({ id: overlay.id, title: overlay.title })}
-              size="icon-sm"
-              type="button"
-              variant="outline"
-            >
-              <SparklesIcon />
-            </Button>
-          </div>
+            <PopoverAnchor asChild>
+              <div
+                className="canvas-block-overlay"
+                data-hovered={isHovered || isPromptOpen ? "true" : undefined}
+                style={{
+                  height: overlay.height,
+                  left: overlay.x,
+                  top: overlay.y,
+                  width: overlay.width,
+                }}
+              >
+                <Button
+                  aria-label={`Message ${overlay.title}`}
+                  className="canvas-block-action"
+                  data-hovered={isHovered || isPromptOpen ? "true" : undefined}
+                  onClick={(event) => {
+                    messageHost.onOpenTarget({
+                      anchorElement: overlay.element,
+                      id: overlay.id,
+                      title: overlay.title,
+                      triggerElement: event.currentTarget,
+                    })
+                  }}
+                  size="icon-sm"
+                  type="button"
+                  variant="outline"
+                >
+                  <SparklesIcon />
+                </Button>
+              </div>
+            </PopoverAnchor>
+            {isPromptOpen && promptTarget ? (
+              <PopoverContent
+                align="start"
+                className="canvas-floating-prompt-popover"
+                collisionPadding={12}
+                side="right"
+                sideOffset={12}
+              >
+                <FloatingPrompt
+                  onDraftChange={messageHost.onDraftChange}
+                  onSubmit={messageHost.onPromptSubmit}
+                  status={messageHost.status}
+                  target={promptTarget}
+                  value={messageHost.draft}
+                />
+              </PopoverContent>
+            ) : null}
+          </Popover>
         )
       })}
     </div>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Artifact, Block, Action } from "@agent-html/react"
+import { Artifact, Block } from "@agent-html/react"
 import {
   ArrowRightIcon,
   BotIcon,
@@ -67,7 +67,7 @@ const perspectives: Record<
     title: "Human view",
     summary: "Start with the claim, then inspect only the parts that need judgment.",
     primary: "Scan the path and switch viewpoints only when confused.",
-    secondary: "Use block actions when one section needs a rewrite.",
+    secondary: "Use the host block prompt when one section needs a rewrite.",
     icon: <EyeIcon />,
   },
   agent: {
@@ -148,11 +148,11 @@ const concepts = [
     deep: "Block is protocol-only. It should carry id and title, while visual structure sits inside the block content.",
   },
   {
-    label: "Action",
-    short: "Prompt handoff.",
+    label: "Prompt",
+    short: "Host-owned handoff.",
     medium:
-      "An action turns a visible part of the artifact into a concrete next instruction for the agent.",
-    deep: "Good actions point at one target block and preserve the local primitive and token pipeline constraints.",
+      "The host overlay turns a visible block into a concrete next instruction for the agent.",
+    deep: "Good block prompts point at one target block and preserve the local primitive and token pipeline constraints.",
   },
 ]
 
@@ -305,7 +305,7 @@ export default function ExampleArtifact() {
               <TabsList>
                 <TabsTrigger value="artifact">Artifact</TabsTrigger>
                 <TabsTrigger value="block">Block</TabsTrigger>
-                <TabsTrigger value="action">Action</TabsTrigger>
+                <TabsTrigger value="prompt">Prompt</TabsTrigger>
               </TabsList>
               {concepts.map((concept) => (
                 <TabsContent
@@ -377,24 +377,12 @@ export default function ExampleArtifact() {
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter showCloseButton>
-                    <Button asChild>
-                      <Action
-                        prompt="Rewrite the request-path block so each step is easier to scan and each expanded note is more concrete. Keep Artifact and Block unstyled, use local primitives, and preserve stable block ids."
-                        target="request-path"
-                      >
-                        Send to agent
-                      </Action>
-                    </Button>
+                    <Button type="button">Use block overlay</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              <Button asChild variant="outline">
-                <Action
-                  prompt="Add one short annotated example to concept-sandbox showing how the detail slider changes the explanation for a new reader versus an implementer."
-                  target="concept-sandbox"
-                >
-                  Add example
-                </Action>
+              <Button type="button" variant="outline">
+                Add example
               </Button>
             </div>
           </CardContent>

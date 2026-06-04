@@ -116,19 +116,6 @@
     font-size: var(--canvas-sidebar-font-size-caption);
   }
 
-  .canvas-prompt-output {
-    margin-inline: var(--canvas-sidebar-content-padding-inline);
-    height: var(--canvas-prompt-output-height);
-    border-radius: var(--radius-md);
-    background: var(--sidebar-accent);
-  }
-
-  .canvas-prompt-output-code {
-    padding: var(--canvas-sidebar-section-padding);
-    font-size: var(--canvas-sidebar-font-size-caption);
-    color: var(--sidebar-accent-foreground);
-  }
-
   .canvas-block-overlay-layer {
     pointer-events: none;
     position: absolute;
@@ -162,5 +149,42 @@
 
   .canvas-block-action[data-hovered="true"] {
     opacity: 1;
+  }
+
+  .canvas-floating-prompt {
+    width: 100%;
+    border-radius: var(--canvas-floating-prompt-radius);
+    background: color-mix(in oklab, var(--background) 75%, transparent);
+    box-shadow: none;
+    backdrop-filter: blur(var(--canvas-floating-prompt-backdrop-blur));
+    color: var(--foreground);
+  }
+
+  [data-slot="popover-content"].canvas-floating-prompt-popover {
+    z-index: var(--canvas-floating-prompt-z-index);
+    width: min(
+      var(--canvas-floating-prompt-width),
+      var(--radix-popover-content-available-width, calc(100vw - 1.5rem))
+    ) !important;
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    outline: none;
+  }
+
+  .canvas-floating-prompt-input {
+    min-height: var(--canvas-floating-prompt-input-min-height);
+  }
+
+  .canvas-floating-prompt-status {
+    margin-block-start: var(--canvas-floating-prompt-status-margin-block-start);
+    padding-inline: var(--canvas-floating-prompt-status-padding-inline);
+    min-height: var(--canvas-floating-prompt-status-min-height);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--canvas-sidebar-font-size-caption);
+    color: var(--muted-foreground);
   }
 }

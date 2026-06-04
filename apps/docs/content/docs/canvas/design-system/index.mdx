@@ -47,10 +47,10 @@ surfaces, icon boxes, and text scale.
 styles. Artifact agents do not read it by default.
 
 Host inspection chrome, including surface padding, toolbar offsets, status
-spacing, sidebar local spacing, prompt output height, block hover highlighting,
-and block action placement, uses the same token pipeline. Canvas-specific host
-tokens start in `styles/tokens/host.css` and are applied by semantic
-classes in `styles/internal/host.css`.
+spacing, sidebar local spacing, floating prompt surface values, block hover
+highlighting, and block action placement, uses the same token pipeline.
+Canvas-specific host tokens start in `styles/tokens/host.css` and are applied
+by semantic classes in `styles/internal/host.css`.
 
 Artifact root layout also uses this pipeline. Root width and block rhythm are
 explicit `--canvas-artifact-*` tokens in `styles/tokens/artifact.css` and are
@@ -130,6 +130,6 @@ visual props to `Artifact`; update `--canvas-artifact-max-width` and
 `--canvas-artifact-block-gap` instead. Artifact color follows the shared
 `--background` and `--foreground` foundation tokens.
 
-`Block` and `Action` remain protocol markers. Block content layout and visual
-treatment belong inside blocks through artifact composition and
-`.agent-html/ui/*`.
+`Block` remains a protocol marker. Block content layout and visual treatment
+belong inside blocks through artifact composition and `.agent-html/ui/*`.
+Block prompt actions belong to host overlay chrome.

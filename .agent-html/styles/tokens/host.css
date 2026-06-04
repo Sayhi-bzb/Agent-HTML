@@ -21,5 +21,12 @@
   --canvas-sidebar-font-size-title: 1rem;
   --canvas-sidebar-font-size-body: 0.875rem;
   --canvas-sidebar-font-size-caption: 0.75rem;
-  --canvas-prompt-output-height: 20rem;
+  --canvas-floating-prompt-width: 22.5rem;
+  --canvas-floating-prompt-z-index: 50;
+  --canvas-floating-prompt-radius: var(--radius-lg);
+  --canvas-floating-prompt-backdrop-blur: 12px;
+  --canvas-floating-prompt-input-min-height: 6.5rem;
+  --canvas-floating-prompt-status-min-height: 1rem;
+  --canvas-floating-prompt-status-margin-block-start: 0.375rem;
+  --canvas-floating-prompt-status-padding-inline: 0.625rem;
 }

@@ -209,6 +209,12 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const playgroundThemeEditorInternal = readSource(
       ".agent-html/styles/internal/theme-editor.css"
     )
+    const canvasMessageStore = readSource(
+      "packages/cli/src/host/canvas-message-store.ts"
+    )
+    const floatingPrompt = readSource(
+      "packages/cli/src/host/floating-prompt.tsx"
+    )
     const reactCanvasTsconfig = JSON.parse(
       readSource("config/tsconfig/tsconfig.react-canvas.json")
     )
@@ -266,6 +272,10 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "--canvas-artifact-foreground"
     )
     expect(playgroundHostTokens).toContain("--canvas-surface-padding-inline")
+    expect(playgroundHostTokens).toContain("--canvas-floating-prompt-width")
+    expect(playgroundHostTokens).toContain(
+      "--canvas-floating-prompt-backdrop-blur"
+    )
     expect(playgroundHostTokens).not.toContain(
       "--canvas-block-highlight-radius"
     )
@@ -293,12 +303,21 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     )
     expect(playgroundArtifactInternal).toContain(".agent-html-artifact")
     expect(playgroundHostInternal).toContain(".canvas-surface-frame")
+    expect(playgroundHostInternal).toContain(".canvas-floating-prompt")
+    expect(playgroundHostInternal).not.toContain(
+      ".canvas-floating-prompt-composer"
+    )
     expect(playgroundContent).toContain(".canvas-stack-md")
     expect(playgroundContent).toContain(".canvas-content-panel")
     expect(playgroundContent).toContain(".canvas-text-body")
     expect(playgroundThemeEditorInternal).toContain(
       ".canvas-theme-editor-option"
     )
+    expect(canvasMessageStore).toContain("CanvasMessageHostSnapshot")
+    expect(canvasMessageStore).toContain("subscribeCanvasMessageHost")
+    expect(floatingPrompt).toContain("value: string")
+    expect(floatingPrompt).toContain("onDraftChange: (draft: string) => void")
+    expect(floatingPrompt).not.toContain('React.useState("")')
     expect(reactCanvasTsconfig.compilerOptions.paths["@/app/*"]).toBeUndefined()
     expect(
       reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/*"]

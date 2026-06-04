@@ -1,12 +1,20 @@
 import * as React from "react"
 
 import {
-  actionEventName,
   fetchArtifacts,
   fetchBlockSource,
 } from "./api"
 import { ArtifactSurface } from "./artifact-surface"
-import { PromptPanel } from "./prompt-panel"
+import {
+  readCanvasHostPreferences,
+  readCanvasMessageDraft,
+  writeCanvasHostPreferences,
+  writeCanvasMessageDraft,
+} from "./canvas-host-preferences"
+import {
+  clearCanvasMessageHost,
+  publishCanvasMessageHost,
+} from "./canvas-message-store"
 import { ReactCanvasSidebar } from "./sidebar"
 import {
   createEmptyCanvasThemeDraft,
@@ -30,36 +38,44 @@ import {
   canvasThemePresets,
   type CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
-import { MessageSquareIcon, PanelLeftIcon } from "lucide-react"
+import { PanelLeftIcon } from "lucide-react"
 import { formatBlockPrompt } from "../react-canvas/prompt.mjs"
-import type { Artifact, GuardIssue, PromptTarget } from "./host-contracts"
+import type {
+  Artifact,
+  FloatingPromptTarget,
+  GuardIssue,
+} from "./host-contracts"
 
 export function ReactCanvasHostApp() {
-  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(
-    null
+  const initialPreferences = React.useMemo(
+    () => readCanvasHostPreferences(),
+    []
   )
+  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(null)
   const [artifacts, setArtifacts] = React.useState<Artifact[]>([])
   const [guardIssues, setGuardIssues] = React.useState<GuardIssue[]>([])
-  const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(true)
+  const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(
+    initialPreferences.leftSidebarOpen
+  )
   const [loadError, setLoadError] = React.useState<string | null>(null)
-  const [promptOutput, setPromptOutput] = React.useState("")
-  const [rightSidebarOpen, setRightSidebarOpen] = React.useState(true)
+  const [messageDraft, setMessageDraft] = React.useState("")
   const [promptStatus, setPromptStatus] = React.useState("")
   const [activeThemePresetId, setActiveThemePresetId] =
-    React.useState<CanvasThemePresetId>("default")
+    React.useState<CanvasThemePresetId>(initialPreferences.activeThemePresetId)
   const [activeSidebarView, setActiveSidebarView] = React.useState<
     "artifacts" | "theme"
-  >("artifacts")
+  >(initialPreferences.activeSidebarView)
   const [activeThemeEditorSectionId, setActiveThemeEditorSectionId] =
-    React.useState<CanvasThemeEditorSectionId>("color")
+    React.useState<CanvasThemeEditorSectionId>(
+      initialPreferences.activeThemeEditorSectionId
+    )
   const [themeDraft, setThemeDraft] = React.useState<CanvasThemeDraft>(() =>
     createEmptyCanvasThemeDraft()
   )
   const [themeRuntimeVariables, setThemeRuntimeVariables] =
     React.useState<CanvasThemeResolvedVariables>({})
-  const [promptTarget, setPromptTarget] = React.useState<PromptTarget | null>(
-    null
-  )
+  const [promptTarget, setPromptTarget] =
+    React.useState<FloatingPromptTarget | null>(null)
 
   const activeArtifact =
     artifacts.find((artifact) => artifact.filePath === activeFilePath) ??
@@ -87,7 +103,13 @@ export function ReactCanvasHostApp() {
         return current
       }
 
-      return data.artifacts[0]?.filePath ?? null
+      const storedPreferences = readCanvasHostPreferences({
+        artifacts: data.artifacts,
+      })
+
+      return (
+        storedPreferences.activeFilePath ?? data.artifacts[0]?.filePath ?? null
+      )
     })
   }, [])
 
@@ -138,47 +160,30 @@ export function ReactCanvasHostApp() {
       }
 
       event.preventDefault()
-      const nextOpen = !(leftSidebarOpen && rightSidebarOpen)
-      setLeftSidebarOpen(nextOpen)
-      setRightSidebarOpen(nextOpen)
+      setLeftSidebarOpen((open) => !open)
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [leftSidebarOpen, rightSidebarOpen])
-
-  React.useEffect(() => {
-    const handleAction = (event: Event) => {
-      const detail = (
-        event as CustomEvent<{ prompt?: string; target?: string }>
-      ).detail
-      if (!detail?.target) {
-        return
-      }
-
-      openPrompt({
-        id: detail.target,
-        initialRequest: detail.prompt ?? "",
-        title: detail.target,
-      })
-    }
-
-    window.addEventListener(actionEventName, handleAction)
-    return () => window.removeEventListener(actionEventName, handleAction)
   }, [])
 
-  function openPrompt(target: PromptTarget) {
-    setPromptOutput("")
+  const openPrompt = React.useCallback((target: FloatingPromptTarget) => {
     setPromptStatus("")
+    setMessageDraft(
+      resolvedActiveFilePath
+        ? readCanvasMessageDraft({
+            blockId: target.id,
+            filePath: resolvedActiveFilePath,
+          })
+        : ""
+    )
     setPromptTarget(target)
-    setRightSidebarOpen(true)
-  }
+  }, [resolvedActiveFilePath])
 
-  function closePrompt() {
-    setPromptOutput("")
+  const closePrompt = React.useCallback(() => {
     setPromptStatus("")
     setPromptTarget(null)
-  }
+  }, [])
 
   function selectThemePreset(presetId: CanvasThemePresetId) {
     setActiveThemePresetId(presetId)
@@ -199,27 +204,117 @@ export function ReactCanvasHostApp() {
     )
   }
 
-  async function submitPrompt(request: string) {
-    if (!promptTarget || !resolvedActiveFilePath) {
+  const submitBlockPrompt = React.useCallback(async ({
+    request,
+    target,
+  }: {
+    request: string
+    target: FloatingPromptTarget
+  }) => {
+    if (!resolvedActiveFilePath) {
+      setPromptStatus("No active artifact.")
       return
     }
 
-    const data = await fetchBlockSource({
-      blockId: promptTarget.id,
-      filePath: resolvedActiveFilePath,
-    })
-    const formatted = formatBlockPrompt({
-      blockPath: promptTarget.id,
-      filePath: resolvedActiveFilePath,
-      request,
-      selectedSource: data.selectedSource ?? null,
-      targetStatus: data.selectedSource ? "selected_block" : "missing_block",
-    })
+    try {
+      const data = await fetchBlockSource({
+        blockId: target.id,
+        filePath: resolvedActiveFilePath,
+      })
+      const formatted = formatBlockPrompt({
+        blockPath: target.id,
+        filePath: resolvedActiveFilePath,
+        request,
+        selectedSource: data.selectedSource ?? null,
+        targetStatus: data.selectedSource ? "selected_block" : "missing_block",
+      })
 
-    setPromptOutput(formatted)
-    await navigator.clipboard.writeText(formatted)
-    setPromptStatus("Prompt copied to clipboard.")
-  }
+      await navigator.clipboard.writeText(formatted)
+      writeCanvasMessageDraft({
+        blockId: target.id,
+        draft: "",
+        filePath: resolvedActiveFilePath,
+      })
+      setPromptStatus("Prompt copied to clipboard.")
+    } catch (submitError: unknown) {
+      setPromptStatus(
+        submitError instanceof Error ? submitError.message : String(submitError)
+      )
+    }
+  }, [resolvedActiveFilePath])
+
+  const updateMessageDraft = React.useCallback((draft: string) => {
+    setMessageDraft(draft)
+
+    if (!resolvedActiveFilePath || !promptTarget) {
+      return
+    }
+
+    writeCanvasMessageDraft({
+      blockId: promptTarget.id,
+      draft,
+      filePath: resolvedActiveFilePath,
+    })
+  }, [promptTarget, resolvedActiveFilePath])
+
+  React.useEffect(() => {
+    if (artifacts.length === 0) {
+      return
+    }
+
+    writeCanvasHostPreferences({
+      activeFilePath: resolvedActiveFilePath,
+    })
+  }, [artifacts.length, resolvedActiveFilePath])
+
+  React.useEffect(() => {
+    writeCanvasHostPreferences({
+      leftSidebarOpen,
+    })
+  }, [leftSidebarOpen])
+
+  React.useEffect(() => {
+    writeCanvasHostPreferences({
+      activeSidebarView,
+    })
+  }, [activeSidebarView])
+
+  React.useEffect(() => {
+    writeCanvasHostPreferences({
+      activeThemeEditorSectionId,
+    })
+  }, [activeThemeEditorSectionId])
+
+  React.useEffect(() => {
+    writeCanvasHostPreferences({
+      activeThemePresetId,
+    })
+  }, [activeThemePresetId])
+
+  React.useEffect(() => {
+    publishCanvasMessageHost({
+      activeTarget: promptTarget,
+      draft: messageDraft,
+      enabled: true,
+      onClose: closePrompt,
+      onDraftChange: updateMessageDraft,
+      onOpenTarget: openPrompt,
+      onPromptSubmit: submitBlockPrompt,
+      status: promptStatus,
+    })
+  }, [
+    closePrompt,
+    messageDraft,
+    openPrompt,
+    promptStatus,
+    promptTarget,
+    submitBlockPrompt,
+    updateMessageDraft,
+  ])
+
+  React.useEffect(() => {
+    return () => clearCanvasMessageHost()
+  }, [])
 
   return (
     <TooltipProvider>
@@ -265,52 +360,14 @@ export function ReactCanvasHostApp() {
             >
               <PanelLeftIcon data-icon="inline-start" />
             </Button>
-            <Button
-              aria-label={
-                rightSidebarOpen
-                  ? "Collapse AI sidebar"
-                  : "Expand AI sidebar"
-              }
-              className="pointer-events-auto"
-              onClick={() => setRightSidebarOpen((open) => !open)}
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              <MessageSquareIcon data-icon="inline-start" />
-            </Button>
           </div>
           <ArtifactSurface
             activeFilePath={resolvedActiveFilePath}
             artifactCount={artifacts.length}
             guardIssues={activeIssues}
             loadError={loadError}
-            onMessageBlock={openPrompt}
           />
         </SidebarInset>
-        <SidebarProvider
-          className="contents"
-          keyboardShortcut={false}
-          open={rightSidebarOpen}
-          onOpenChange={setRightSidebarOpen}
-        >
-          <PromptPanel
-            activeFilePath={resolvedActiveFilePath}
-            output={promptOutput}
-            status={promptStatus}
-            target={promptTarget}
-            onClose={closePrompt}
-            onSubmit={(request) => {
-              void submitPrompt(request).catch((submitError: unknown) => {
-                setPromptStatus(
-                  submitError instanceof Error
-                    ? submitError.message
-                    : String(submitError)
-                )
-              })
-            }}
-          />
-        </SidebarProvider>
       </div>
     </TooltipProvider>
   )

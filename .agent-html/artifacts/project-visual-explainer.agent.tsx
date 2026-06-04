@@ -1,8 +1,7 @@
-import { Action, Artifact, Block } from "@agent-html/react"
+import { Artifact, Block } from "@agent-html/react"
 
 import { Alert, AlertDescription } from "../ui/alert"
 import { Badge } from "../ui/badge"
-import { Button } from "../ui/button"
 import {
   Card,
   CardContent,
@@ -46,7 +45,7 @@ const pipelineNodes = [
   },
   {
     label: "@agent-html/react",
-    summary: "Headless Artifact, Block, and Action collaboration protocol.",
+    summary: "Headless Artifact and Block collaboration protocol.",
   },
 ]
 
@@ -56,7 +55,7 @@ const workflowSteps = [
   "Artifact wraps semantic regions in stable Blocks.",
   "Guard checks structure, imports, primitives, and visual drift.",
   "Host renders the artifact and overlays inspectable Blocks.",
-  "Human gives block-level feedback or triggers an Action.",
+  "Human gives block-level feedback through the host overlay.",
 ]
 
 const allowedSignals = [
@@ -137,14 +136,10 @@ export default function ProjectVisualExplainer() {
                 reviewable, reusable, and continuously editable agent output.
               </AlertDescription>
             </Alert>
-            <Button asChild>
-              <Action
-                prompt="Tighten the project-purpose block into a shorter executive explanation."
-                target="project-purpose"
-              >
-                Improve purpose
-              </Action>
-            </Button>
+            <p className="canvas-text-body text-muted-foreground">
+              Use the host overlay icon on this block to ask for a focused
+              rewrite.
+            </p>
           </CardContent>
         </Card>
       </Block>

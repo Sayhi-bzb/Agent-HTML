@@ -29,9 +29,9 @@ surface. The host observes and operates on rendered metadata.
 
 ## Protocol
 
-`Artifact`, `Block`, and `Action` are headless protocol markers.
+`Artifact` and `Block` are headless protocol markers.
 
-They own metadata, anchors, accessibility minimums, and action dispatch.
+They own metadata, anchors, and accessibility minimums.
 `Artifact` also owns the readable root container, with layout parameters
 configured by Canvas CSS tokens instead of artifact source props. `Block` is
 fully protocol-only: it accepts `id`, `title`, and children. It does not own
@@ -77,7 +77,7 @@ Do not put layout classes on `Block`; put layout inside the block content.
 ## Host
 
 The host renders artifacts, discovers blocks, displays guard issues, extracts
-source targets, and bridges prompts. Host controls use Canvas UI primitives; the
+source targets, overlays block prompt actions, and bridges prompts. Host controls use Canvas UI primitives; the
 host must not define artifact visual language.
 
 Canvas is Storybook-like only as an isolated preview surface. Its primary value
