@@ -11,11 +11,15 @@ export default defineConfig({
       "@/agent-html": fileURLToPath(
         new URL("../packages/agent-html/src", import.meta.url)
       ),
+      "@/lib": fileURLToPath(new URL("../.agent-html/lib", import.meta.url)),
       "@agent-html/react": fileURLToPath(
         new URL("../packages/react/src/index.tsx", import.meta.url)
       ),
       "@example": fileURLToPath(
         new URL("../apps/agent-html-example/src", import.meta.url)
+      ),
+      "#agent-html-playground": fileURLToPath(
+        new URL("../.agent-html", import.meta.url)
       ),
     },
   },
@@ -27,6 +31,8 @@ export default defineConfig({
       "packages/react/src/**/*.test.ts",
       "packages/react/src/**/*.test.tsx",
       "packages/cli/src/**/*.test.mjs",
+      "packages/cli/src/**/*.test.ts",
+      "packages/cli/src/**/*.test.tsx",
       "apps/agent-html-app/src/**/*.test.ts",
       "apps/agent-html-app/src/**/*.test.tsx",
       "apps/agent-html-example/src/**/*.test.ts",

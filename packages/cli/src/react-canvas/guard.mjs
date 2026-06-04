@@ -1,9 +1,9 @@
 import { discoverReactArtifacts, parseRootArg, workspaceRelativePath } from "./paths.mjs"
-import { collectBlockIds, readTextFile } from "./source.mjs"
+import { collectBlockIds, readBlockOpenTags, readTextFile } from "./source.mjs"
 
 const unstableBlockIds = new Set(["block1", "block2", "section1", "section2", "temp", "top"])
 const rawColorPattern = /\b(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/
-const unsafeClassPattern = /\b(?:gradient|shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|font-\w+|tracking-\w+|\[[^\]]+\])\b/
+const unsafeClassPattern = /\b(?:gradient|shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|text-(?:[3-9]xl|[1-9][0-9]xl)|font-\w+|tracking-\w+|\[[^\]]+\])\b/
 const forbiddenImportPattern = /from\s+["'](?:@\/app\/|.*apps\/agent-html-app|@\/agent-html\/runtime\/ui|@\/agent-html\/runtime["'])/g
 const forbiddenRuntimeApiPattern = /\b(?:renderAgentHtml|renderInteractiveAgentHtml)\b/g
 const primitiveBypassPattern = /<(?:button|input|table|thead|tbody|tr|th|td)\b/g
@@ -48,7 +48,7 @@ function collectVisualIssues({ relativePath, source }) {
         filePath: relativePath,
         line: lineForIndex(source, match.index),
         message: "Inline visual style is not allowed in React Canvas artifacts.",
-        suggestion: "Move styling into local ui components or default AgentHTML styles.",
+        suggestion: "Use local UI primitives, semantic token classes, or Canvas scale utilities.",
       })
     )
   }
@@ -66,7 +66,7 @@ function collectVisualIssues({ relativePath, source }) {
           filePath: relativePath,
           line: lineForIndex(source, match.index),
           message: `Unsafe className in artifact source: ${classValue || "dynamic className"}`,
-          suggestion: "Use .agent-html/ui components before hand-written visual classes.",
+          suggestion: "Use semantic tokens and compact Canvas scale utilities; keep visual treatment in local UI primitives.",
         })
       )
     }
@@ -115,6 +115,26 @@ function collectBoundaryIssues({ relativePath, source }) {
       })
     )
     primitiveBypassPattern.lastIndex = match.index + 1
+  }
+
+  return issues
+}
+
+function collectBlockProtocolIssues({ relativePath, source }) {
+  const issues = []
+
+  for (const block of readBlockOpenTags(source)) {
+    if (/\b(?:className|style)\s*=/.test(block.attrs)) {
+      issues.push(
+        createIssue({
+          filePath: relativePath,
+          line: lineForIndex(source, block.index),
+          message: "Block is protocol-only and must not receive className or style.",
+          severity: "error",
+          suggestion: "Move layout and visual treatment inside the Block content.",
+        })
+      )
+    }
   }
 
   return issues
@@ -241,6 +261,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
   return [
     ...issues,
     ...collectBoundaryIssues({ relativePath, source }),
+    ...collectBlockProtocolIssues({ relativePath, source }),
     ...collectVisualIssues({ relativePath, source }),
   ]
 }

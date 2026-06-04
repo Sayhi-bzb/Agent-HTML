@@ -3,39 +3,45 @@ title: Architecture
 description: Canvas layer model and ownership boundaries.
 ---
 
-Canvas is organized by ownership:
+Canvas is organized as an isolated agent workspace topology:
 
 ```text
 @agent-html/react
   -> headless collaboration protocol
 
 .agent-html/*
-  -> agent-local consumable resources
+  -> agent operating context and reusable resources
 
 .agent-html/artifacts/*
-  -> artifact composition and content
+  -> durable artifact composition and content
+
+packages/cli/src/*
+  -> dev and guard command entrypoints
 
 packages/cli/src/host/*
   -> sandbox host, inspector, and prompt bridge
 ```
 
 Each layer owns one decision. The protocol marks stable regions. The
-`.agent-html` workspace provides reusable resources. Artifacts compose those
-resources into UI. The host observes and operates on rendered metadata.
+`.agent-html` workspace provides durable context agents can read and reuse.
+Artifacts compose those resources into UI. The CLI starts the guard and preview
+surface. The host observes and operates on rendered metadata.
 
 ## Protocol
 
 `Artifact`, `Block`, and `Action` are headless protocol markers.
 
-They own metadata, anchors, accessibility minimums, action dispatch, and props
-passthrough. They do not own width, spacing, colors, borders, radius, shadow,
-cards, panels, or grid structure.
+They own metadata, anchors, accessibility minimums, and action dispatch. `Block`
+is fully protocol-only: it accepts `id`, `title`, and children. It does not own
+width, spacing, colors, borders, radius, shadow, cards, panels, grid structure,
+or props passthrough.
 
 ## Resources
 
 Canvas resources live under `.agent-html`:
 
 ```text
+AGENTS.md
 styles.css
 styles/theme.css
 ui/*
@@ -44,6 +50,7 @@ lib/*
 schema/*
 data/*
 examples/*
+artifacts/*
 ```
 
 Artifacts should consume these resources before adding local one-off helpers.
@@ -61,9 +68,14 @@ Artifacts decide layout explicitly:
 ```
 
 `Block` marks an inspectable region. It is not a card, panel, or section style.
+Do not put layout classes on `Block`; put layout inside the block content.
 
 ## Host
 
 The host renders artifacts, discovers blocks, displays guard issues, extracts
 source targets, and bridges prompts. Host controls use Canvas UI primitives; the
 host must not define artifact visual language.
+
+Canvas is Storybook-like only as an isolated preview surface. Its primary value
+is making agent-authored output addressable, reviewable, reusable, and
+continuously editable through durable source files.

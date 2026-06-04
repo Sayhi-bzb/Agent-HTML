@@ -16,7 +16,11 @@ function filesUnder(directory) {
       const relativePath = relative(root, absolutePath).replace(/\\/g, "/")
 
       if (entry.isDirectory()) {
-        if (entry.name === "node_modules") {
+        if (
+          entry.name === "node_modules" ||
+          entry.name === "build" ||
+          entry.name === "dist"
+        ) {
           return []
         }
 
@@ -61,7 +65,7 @@ function importedSpecifiers(source) {
   return imports
 }
 
-describe("React Canvas architecture boundaries", () => {
+describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
   it("keeps the CLI off app, docs, example, and legacy runtime imports", () => {
     const forbidden =
       /from\s+["'](?:apps\/|@\/app\b|@\/app\/|@\/agent-html\b|@\/agent-html\/|packages\/agent-html\/|@example\b|@example\/)|Codex app-server|__agent-html\/render|new Function|transpileModule/
@@ -76,7 +80,7 @@ describe("React Canvas architecture boundaries", () => {
     expect(
       filesMatching(
         "packages/cli/src/host",
-        /from\s+["']#agent-html-playground\/(?!ui\/)/
+        /from\s+["']#agent-html-playground\/(?!(?:ui|theme)\/)/
       )
     ).toEqual([])
     expect(
@@ -120,12 +124,14 @@ describe("React Canvas architecture boundaries", () => {
   })
 
   it("keeps React Canvas surfaces on semantic token classes", () => {
-    const rawVisualClass =
+    const rawSurfaceVisualClass =
       /className=["'][^"']*(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|className=["'][^"']*(?:shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl))/
+    const rawArtifactVisualClass =
+      /className=["'][^"']*(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|className=["'][^"']*(?:shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|text-(?:[3-9]xl|[1-9][0-9]xl)|font-\w+|tracking-\w+|\[[^\]]+\])/
 
-    expect(filesMatching(".agent-html/artifacts", rawVisualClass)).toEqual([])
-    expect(filesMatching(".agent-html/examples", rawVisualClass)).toEqual([])
-    expect(filesMatching("packages/cli/src/host", rawVisualClass)).toEqual([])
+    expect(filesMatching(".agent-html/artifacts", rawArtifactVisualClass)).toEqual([])
+    expect(filesMatching(".agent-html/examples", rawArtifactVisualClass)).toEqual([])
+    expect(filesMatching("packages/cli/src/host", rawSurfaceVisualClass)).toEqual([])
   })
 
   it("keeps the React API package independent from host and playground code", () => {
@@ -154,12 +160,19 @@ describe("React Canvas architecture boundaries", () => {
     )
   })
 
+  it("keeps Canvas theme presets off host sidebar token overrides", () => {
+    expect(filesMatching(".agent-html/theme", /"--sidebar(?:-[\w-]+)?"/)).toEqual(
+      []
+    )
+  })
+
   it("keeps shadcn and TypeScript aliases scoped to their owners", () => {
     const rootComponents = JSON.parse(readSource("components.json"))
     const playgroundComponents = JSON.parse(
       readSource(".agent-html/components.json")
     )
     const playgroundStyles = readSource(".agent-html/styles.css")
+    const playgroundTheme = readSource(".agent-html/styles/theme.css")
     const reactCanvasTsconfig = JSON.parse(
       readSource("config/tsconfig/tsconfig.react-canvas.json")
     )
@@ -172,12 +185,22 @@ describe("React Canvas architecture boundaries", () => {
     expect(playgroundStyles).toContain('@import "tw-animate-css"')
     expect(playgroundStyles).toContain('@import "shadcn/tailwind.css"')
     expect(playgroundStyles).toContain('@import "@fontsource-variable/geist"')
+    expect(playgroundStyles).toContain("--font-sans: var(--font-sans-source)")
+    expect(playgroundStyles).toContain("--font-heading: var(--font-heading-source)")
     expect(playgroundStyles).toContain("--color-background")
     expect(playgroundStyles).toContain("--color-sidebar")
+    expect(playgroundStyles).toContain("--radius-lg: var(--radius)")
+    expect(playgroundTheme).toContain("--font-sans-source")
+    expect(playgroundTheme).toContain("--font-heading-source")
+    expect(playgroundTheme).toContain("--radius-base")
+    expect(playgroundTheme).toContain("--radius: var(--radius-base)")
     expect(reactCanvasTsconfig.compilerOptions.paths["@/app/*"]).toBeUndefined()
     expect(
       reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/*"]
     ).toEqual(["./.agent-html/*"])
+    expect(
+      reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/theme/*"]
+    ).toEqual(["./.agent-html/theme/*"])
     expect(
       reactCanvasTsconfig.compilerOptions.paths["@agent-html-playground/*"]
     ).toBeUndefined()

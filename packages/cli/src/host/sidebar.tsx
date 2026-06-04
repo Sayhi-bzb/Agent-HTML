@@ -1,80 +1,153 @@
-import { FileCodeIcon, FileTextIcon, SparklesIcon } from "lucide-react"
+import {
+  FileCodeIcon,
+  FileTextIcon,
+  PaletteIcon,
+  SparklesIcon,
+} from "lucide-react"
 
 import { artifactLabel } from "./api"
-import { Badge } from "#agent-html-playground/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#agent-html-playground/ui/select"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "#agent-html-playground/ui/sidebar"
+import type {
+  CanvasThemePreset,
+  CanvasThemePresetId,
+} from "#agent-html-playground/theme/presets"
 import type { Artifact, GuardIssue } from "./host-contracts"
 
 export function ReactCanvasSidebar({
   activeFilePath,
+  activeThemePresetId,
   artifacts,
   guardIssues,
   onSelectArtifact,
+  onSelectThemePreset,
+  themePresets,
 }: {
   activeFilePath: string | null
+  activeThemePresetId: CanvasThemePresetId
   artifacts: Artifact[]
   guardIssues: GuardIssue[]
   onSelectArtifact: (filePath: string) => void
+  onSelectThemePreset: (presetId: CanvasThemePresetId) => void
+  themePresets: readonly CanvasThemePreset[]
 }) {
-  return (
-    <Sidebar
-      className="min-h-svh border-r border-sidebar-border"
-      collapsible="none"
-    >
-      <SidebarHeader className="border-b border-sidebar-border p-3">
-        <div className="flex h-8 items-center gap-2 rounded-md px-1.5">
-          <FileCodeIcon className="size-4" />
-          <span className="min-w-0 truncate text-base font-semibold">
-            AgentHTML
-          </span>
-        </div>
-      </SidebarHeader>
-      <SidebarContent className="p-3">
-        <div className="mb-2 px-2 text-xs font-medium text-sidebar-foreground/70">
-          Artifacts
-        </div>
-        <SidebarMenu>
-          {artifacts.map((artifact) => {
-            const issueCount = guardIssues.filter(
-              (issue) => issue.filePath === artifact.filePath
-            ).length
+  const activeThemePreset =
+    themePresets.find((preset) => preset.id === activeThemePresetId) ??
+    themePresets[0]
 
-            return (
-              <SidebarMenuItem key={artifact.filePath}>
+  return (
+    <Sidebar className="border-transparent" collapsible="offcanvas">
+      <SidebarHeader className="p-3">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" tooltip="AgentHTML">
+              <FileCodeIcon />
+              <span className="min-w-0 truncate text-base font-semibold">
+                AgentHTML
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Select
+              onValueChange={(value) =>
+                onSelectThemePreset(value as CanvasThemePresetId)
+              }
+              value={activeThemePresetId}
+            >
+              <SelectTrigger asChild>
                 <SidebarMenuButton
-                  isActive={artifact.filePath === activeFilePath}
-                  onClick={() => onSelectArtifact(artifact.filePath)}
-                  title={artifact.filePath}
+                  aria-label="Theme preset"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   type="button"
                 >
-                  <FileTextIcon />
-                  <span className="min-w-0 flex-1 truncate text-left">
-                    {artifactLabel(artifact.filePath)}
-                  </span>
-                  {issueCount > 0 ? (
-                    <Badge className="shrink-0 bg-sidebar-primary text-sidebar-primary-foreground">
-                      {issueCount}
-                    </Badge>
-                  ) : null}
+                  <PaletteIcon />
+                  <SelectValue placeholder="Theme">
+                    <span className="min-w-0 flex-1 truncate text-left">
+                      {activeThemePreset?.label ?? "Theme"}
+                    </span>
+                  </SelectValue>
                 </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-          })}
+              </SelectTrigger>
+              <SelectContent
+                align="start"
+                className="w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)] p-1"
+                position="popper"
+              >
+                {themePresets.map((preset) => (
+                  <SelectItem
+                    className="gap-2 px-2 py-1 pr-8 text-sm"
+                    key={preset.id}
+                    value={preset.id}
+                  >
+                    <span className="min-w-0 truncate">{preset.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </SidebarMenuItem>
         </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Artifacts</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {artifacts.map((artifact) => {
+                const issueCount = guardIssues.filter(
+                  (issue) => issue.filePath === artifact.filePath
+                ).length
+
+                return (
+                  <SidebarMenuItem key={artifact.filePath}>
+                    <SidebarMenuButton
+                      isActive={artifact.filePath === activeFilePath}
+                      onClick={() => onSelectArtifact(artifact.filePath)}
+                      title={artifact.filePath}
+                      tooltip={artifactLabel(artifact.filePath)}
+                      type="button"
+                    >
+                      <FileTextIcon />
+                      <span className="min-w-0 flex-1 truncate text-left">
+                        {artifactLabel(artifact.filePath)}
+                      </span>
+                    </SidebarMenuButton>
+                    {issueCount > 0 ? (
+                      <SidebarMenuBadge>{issueCount}</SidebarMenuBadge>
+                    ) : null}
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-3">
-        <div className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm">
-          <SparklesIcon className="size-4" />
-          <span className="min-w-0 truncate">React Canvas</span>
-        </div>
+      <SidebarFooter className="p-3">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="React Canvas">
+              <SparklesIcon />
+              <span className="min-w-0 truncate">React Canvas</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   )

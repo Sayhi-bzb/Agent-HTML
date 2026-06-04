@@ -58,6 +58,62 @@ describe("React Canvas Guard", () => {
     expect(messages).toContain("Inline visual style is not allowed in React Canvas artifacts.")
   })
 
+  it("reports arbitrary values and oversized typography", () => {
+    const messages = issueMessages(`
+      import { Artifact, Block } from "@agent-html/react"
+      export default function Demo() {
+        return (
+          <Artifact title="Demo">
+            <Block id="summary">
+              <section className="p-[37px] text-6xl tracking-tight">
+                Oversized
+              </section>
+            </Block>
+          </Artifact>
+        )
+      }
+    `)
+
+    expect(messages.some((message) => message.includes("Unsafe className"))).toBe(true)
+  })
+
+  it("allows semantic tokens and compact layout scale", () => {
+    const messages = issueMessages(`
+      import { Artifact, Block } from "@agent-html/react"
+      export default function Demo() {
+        return (
+          <Artifact className="mx-auto flex max-w-4xl flex-col gap-4 bg-background p-4 text-foreground" title="Demo">
+            <Block id="summary">
+              <section className="grid min-w-0 gap-3 overflow-hidden text-sm leading-normal">
+                <p className="truncate text-muted-foreground">Summary</p>
+              </section>
+            </Block>
+          </Artifact>
+        )
+      }
+    `)
+
+    expect(messages.filter((message) => message.includes("Unsafe className"))).toEqual([])
+    expect(messages).not.toContain("Inline visual style is not allowed in React Canvas artifacts.")
+  })
+
+  it("reports layout or visual props on Block", () => {
+    const messages = issueMessages(`
+      import { Artifact, Block } from "@agent-html/react"
+      export default function Demo() {
+        return (
+          <Artifact title="Demo">
+            <Block className="grid gap-3" id="summary" style={{ display: "grid" }}>
+              <section>Summary</section>
+            </Block>
+          </Artifact>
+        )
+      }
+    `)
+
+    expect(messages).toContain("Block is protocol-only and must not receive className or style.")
+  })
+
   it("reports forbidden app and old runtime imports", () => {
     const messages = issueMessages(`
       import { Artifact, Block } from "@agent-html/react"

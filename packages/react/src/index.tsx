@@ -13,7 +13,8 @@ export type ArtifactProps = Omit<
   title: string
 }
 
-export type BlockProps = Omit<HTMLAttributes<HTMLElement>, "id"> & {
+export type BlockProps = {
+  children?: ReactNode
   id: string
   title?: string
 }
@@ -42,14 +43,12 @@ export function Artifact({ children, className, title, ...props }: ArtifactProps
   )
 }
 
-export function Block({ children, className, id, title, ...props }: BlockProps) {
+export function Block({ children, id, title }: BlockProps) {
   return (
     <section
       data-agent-html-block="true"
       data-agent-html-block-id={id}
       data-agent-html-block-title={title ?? id}
-      className={cn(className)}
-      {...props}
     >
       {children}
     </section>

@@ -3,19 +3,27 @@ title: Workspace
 description: The .agent-html directory contract.
 ---
 
-`.agent-html` is the Canvas workspace.
+`.agent-html` is the Canvas workspace: the agent's local operating context.
 
-It contains the resources an agent may consume while writing React artifacts:
+It is not just configuration. It contains the instructions, reusable resources,
+fixtures, examples, and durable work products an agent may read and compose
+while writing React artifacts:
 
 ```text
-.agent-html/artifacts
-  -> authored artifact entrypoints
+.agent-html/AGENTS.md
+  -> workspace rules and operating instructions
 
-.agent-html/examples
-  -> canonical examples
+.agent-html/styles.css
+  -> CSS runtime entrypoint
+
+.agent-html/styles/theme.css
+  -> semantic token lookup
+
+.agent-html/theme
+  -> host-owned theme preset resources
 
 .agent-html/ui
-  -> visual primitives
+  -> local visual primitives such as button, card, tabs, dialog, and select
 
 .agent-html/hooks
   -> reusable React behavior
@@ -29,12 +37,16 @@ It contains the resources an agent may consume while writing React artifacts:
 .agent-html/data
   -> fixtures and local datasets
 
-.agent-html/styles.css
-  -> CSS runtime entrypoint
+.agent-html/examples
+  -> canonical examples
 
-.agent-html/styles/theme.css
-  -> semantic token lookup
+.agent-html/artifacts
+  -> durable agent-authored work products
 ```
+
+The directory gives agents an explicit workspace instead of relying on a single
+prompt. Human-readable guidance and agent-consumable assets stay beside the
+artifacts they shape.
 
 ## Authoring Contract
 
@@ -52,7 +64,9 @@ import rows from "../data/rows.json"
 ```
 
 Use `Artifact` as the top-level wrapper. Wrap each major semantic region in
-`Block`. Use stable, unique, readable, kebab-case block ids.
+`Block`. Use stable, unique, readable, kebab-case block ids. `Block` is a
+protocol marker only: use `id`, `title`, and children, and put layout or visual
+treatment inside the block content.
 
 Artifact code must not call the filesystem, shell commands, MCP servers, Codex
 app-server, or privileged host APIs.

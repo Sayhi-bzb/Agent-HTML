@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 export default function ResearchSummaryExample() {
   return (
     <Artifact
-      className="mx-auto flex w-full max-w-6xl flex-col gap-4 bg-background text-foreground"
+      className="mx-auto flex w-full max-w-4xl flex-col gap-4 bg-background text-foreground"
       title="Research Summary Example"
     >
       <Block id="findings" title="Findings">

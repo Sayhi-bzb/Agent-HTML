@@ -3,31 +3,38 @@ title: Design System
 description: Canvas UI, token, and shadcn consumption rules.
 ---
 
-Canvas uses local shadcn UI and CSS variables.
+Canvas uses local shadcn-derived UI and CSS variables without forking shadcn.
 
 ```text
 styles/theme.css
   -> semantic token values
 
 styles.css
-  -> CSS runtime entrypoint and Tailwind bridge
+  -> Tailwind, shadcn CSS, font imports, token bridge, and base styles
 
 ui/*
-  -> visual primitives
+  -> local visual primitives
 
 artifact files
-  -> resource composition
+  -> primitive composition and semantic layout
 ```
 
 ## CSS Entry Points
 
-`.agent-html/styles/theme.css` is the smallest token lookup file. It defines
-semantic variables such as `--background`, `--foreground`, `--card`,
-`--primary`, `--border`, and sidebar tokens for light and dark modes.
+`.agent-html/styles/theme.css` owns semantic token values. It defines variables
+such as `--background`, `--foreground`, `--card`, `--primary`, `--border`,
+`--ring`, `--chart-*`, `--sidebar-*`, `--font-sans-source`,
+`--font-heading-source`, `--radius-base`, and the shadcn-compatible `--radius`
+for light and dark modes.
 
 `.agent-html/styles.css` is the runtime CSS entrypoint. It imports Tailwind,
 shadcn CSS, fonts, and `styles/theme.css`; it also owns `@theme inline`,
-`@source`, dark variant wiring, and base styles.
+`@source`, dark variant wiring, and base styles. It maps semantic variables into
+Tailwind tokens; it does not own component structure.
+
+Host inspection chrome, including block hover highlighting, uses the same token
+pipeline. Canvas-specific host tokens start in `styles/theme.css` and are
+bridged in `styles.css`.
 
 Artifacts do not import CSS files directly. They consume semantic token classes:
 
@@ -37,11 +44,51 @@ className="bg-background text-foreground border-border"
 
 ## UI Primitives
 
-`.agent-html/ui/*` is the only visual primitive layer for Canvas. Artifacts and
-host controls should use these primitives before hand-writing common UI.
+`.agent-html/ui/*` is the only visual primitive layer for Canvas. It is local
+source generated from shadcn conventions, but Canvas owns how it is consumed.
+Artifacts and host controls should use these primitives before hand-writing
+common UI.
 
 Do not create raw primitive buttons, cards, badges, inputs, tables, sidebars, or
 dialog controls in artifacts when a local UI primitive exists.
+
+Current Canvas primitives include accordion, alert, badge, button, card, chart,
+checkbox, dialog, input, label, popover, scroll-area, select, separator, sheet,
+sidebar, skeleton, table, tabs, textarea, and tooltip.
+
+Do not rewrite every local primitive to tokenize all spacing, density, or
+typography values. Keep local shadcn-derived primitives low-modification unless
+Canvas needs a primitive API, correctness fix, or accessibility fix.
+
+## Scale Discipline
+
+Color, radius, and font use the token pipeline. Spacing, density, and
+typography scale are constrained through agent usage rules, guard checks, and
+local primitive conventions.
+
+Font and radius values start in `styles/theme.css` and are mapped in
+`styles.css`:
+
+```text
+--font-sans-source
+  -> --font-sans
+
+--font-heading-source
+  -> --font-heading
+
+--radius-base
+  -> --radius
+  -> --radius-sm/md/lg/xl/2xl/3xl/4xl
+```
+
+Artifacts may use compact layout utilities such as `flex`, `grid`, `gap-2`,
+`gap-3`, `gap-4`, `gap-6`, `p-2`, `p-3`, `p-4`, `p-6`, `text-sm`,
+`text-base`, `leading-snug`, `leading-normal`, `min-w-0`, `overflow-hidden`,
+and `truncate`.
+
+Artifacts should not use raw palette classes, arbitrary values, decorative
+gradients, oversized radius, heavy shadows, custom font families, manual
+tracking, or one-off button, card, and table markup.
 
 ## Visual Boundary
 

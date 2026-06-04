@@ -3,6 +3,7 @@ import * as React from "react"
 import { artifactBundleUrl } from "./api"
 import { BlockOverlayLayer, useBlockOverlays } from "./block-overlay"
 import { GuardIssueList, HostStatusMessage } from "./status-surface"
+import { ScrollArea } from "#agent-html-playground/ui/scroll-area"
 import type {
   ArtifactModule,
   GuardIssue,
@@ -27,9 +28,10 @@ export function ArtifactSurface({
     null
   )
   const artifactRootRef = React.useRef<HTMLDivElement | null>(null)
-  const surfaceRef = React.useRef<HTMLElement | null>(null)
+  const overlayRootRef = React.useRef<HTMLDivElement | null>(null)
   const unmountArtifactRef = React.useRef<(() => void) | null>(null)
-  const { collectBlocks, overlays, setOverlays } = useBlockOverlays(surfaceRef)
+  const { measureBlocks, overlays, scheduleGeometryUpdate, setOverlays } =
+    useBlockOverlays(overlayRootRef)
 
   React.useEffect(() => {
     if (!activeFilePath || !artifactRootRef.current) {
@@ -37,7 +39,7 @@ export function ArtifactSurface({
     }
 
     if (mountedFilePath === activeFilePath) {
-      collectBlocks()
+      measureBlocks()
       return
     }
 
@@ -58,7 +60,7 @@ export function ArtifactSurface({
 
         unmountArtifactRef.current = module.mount(artifactRootRef.current)
         setMountedFilePath(activeFilePath)
-        window.requestAnimationFrame(collectBlocks)
+        scheduleGeometryUpdate()
       },
       (loadError: unknown) => {
         setError(
@@ -72,32 +74,38 @@ export function ArtifactSurface({
     }
   }, [
     activeFilePath,
-    collectBlocks,
+    measureBlocks,
     mountedFilePath,
+    scheduleGeometryUpdate,
     setOverlays,
   ])
 
   return (
     <main
       className="relative flex min-h-svh flex-1 overflow-hidden bg-background"
-      ref={surfaceRef}
     >
-      <div className="h-svh min-w-0 flex-1 overflow-auto p-4">
-        <GuardIssueList issues={guardIssues} />
-        {loadError || error ? (
-          <HostStatusMessage
-            message={loadError ?? error ?? ""}
-            title="Artifact unavailable"
-          />
-        ) : artifactCount === 0 ? (
-          <HostStatusMessage
-            message="Create a .agent-html/artifacts/*.agent.tsx file to preview it here."
-            title="No artifacts found"
-          />
-        ) : null}
-        <div ref={artifactRootRef} />
-      </div>
-      <BlockOverlayLayer onMessageBlock={onMessageBlock} overlays={overlays} />
+      <ScrollArea className="h-svh min-w-0 flex-1">
+        <div
+          className="relative min-h-svh px-4 pt-14 pb-4"
+          onTransitionEnd={scheduleGeometryUpdate}
+          ref={overlayRootRef}
+        >
+          <GuardIssueList issues={guardIssues} />
+          {loadError || error ? (
+            <HostStatusMessage
+              message={loadError ?? error ?? ""}
+              title="Artifact unavailable"
+            />
+          ) : artifactCount === 0 ? (
+            <HostStatusMessage
+              message="Create a .agent-html/artifacts/*.agent.tsx file to preview it here."
+              title="No artifacts found"
+            />
+          ) : null}
+          <div ref={artifactRootRef} />
+          <BlockOverlayLayer onMessageBlock={onMessageBlock} overlays={overlays} />
+        </div>
+      </ScrollArea>
     </main>
   )
 }

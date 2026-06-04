@@ -8,7 +8,18 @@ import {
 import { ArtifactSurface } from "./artifact-surface"
 import { PromptPanel } from "./prompt-panel"
 import { ReactCanvasSidebar } from "./sidebar"
-import { SidebarProvider } from "#agent-html-playground/ui/sidebar"
+import { applyCanvasThemePreset } from "./theme-preset"
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "#agent-html-playground/ui/sidebar"
+import { TooltipProvider } from "#agent-html-playground/ui/tooltip"
+import { Button } from "#agent-html-playground/ui/button"
+import {
+  canvasThemePresets,
+  type CanvasThemePresetId,
+} from "#agent-html-playground/theme/presets"
+import { MessageSquareIcon, PanelLeftIcon } from "lucide-react"
 import { formatBlockPrompt } from "../react-canvas/prompt.mjs"
 import type { Artifact, GuardIssue, PromptTarget } from "./host-contracts"
 
@@ -18,9 +29,13 @@ export function ReactCanvasHostApp() {
   )
   const [artifacts, setArtifacts] = React.useState<Artifact[]>([])
   const [guardIssues, setGuardIssues] = React.useState<GuardIssue[]>([])
+  const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(true)
   const [loadError, setLoadError] = React.useState<string | null>(null)
   const [promptOutput, setPromptOutput] = React.useState("")
+  const [rightSidebarOpen, setRightSidebarOpen] = React.useState(true)
   const [promptStatus, setPromptStatus] = React.useState("")
+  const [activeThemePresetId, setActiveThemePresetId] =
+    React.useState<CanvasThemePresetId>("default")
   const [promptTarget, setPromptTarget] = React.useState<PromptTarget | null>(
     null
   )
@@ -33,6 +48,9 @@ export function ReactCanvasHostApp() {
   const activeIssues = resolvedActiveFilePath
     ? guardIssues.filter((issue) => issue.filePath === resolvedActiveFilePath)
     : []
+  const activeThemePreset =
+    canvasThemePresets.find((preset) => preset.id === activeThemePresetId) ??
+    canvasThemePresets[0]
 
   const refreshArtifacts = React.useCallback(async () => {
     const data = await fetchArtifacts()
@@ -63,6 +81,10 @@ export function ReactCanvasHostApp() {
   }, [refreshArtifacts])
 
   React.useEffect(() => {
+    applyCanvasThemePreset(activeThemePreset)
+  }, [activeThemePreset])
+
+  React.useEffect(() => {
     const interval = window.setInterval(() => {
       void refreshArtifacts().catch((refreshError: unknown) => {
         setLoadError(
@@ -75,6 +97,22 @@ export function ReactCanvasHostApp() {
 
     return () => window.clearInterval(interval)
   }, [refreshArtifacts])
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "b" || (!event.metaKey && !event.ctrlKey)) {
+        return
+      }
+
+      event.preventDefault()
+      const nextOpen = !(leftSidebarOpen && rightSidebarOpen)
+      setLeftSidebarOpen(nextOpen)
+      setRightSidebarOpen(nextOpen)
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [leftSidebarOpen, rightSidebarOpen])
 
   React.useEffect(() => {
     const handleAction = (event: Event) => {
@@ -100,6 +138,13 @@ export function ReactCanvasHostApp() {
     setPromptOutput("")
     setPromptStatus("")
     setPromptTarget(target)
+    setRightSidebarOpen(true)
+  }
+
+  function closePrompt() {
+    setPromptOutput("")
+    setPromptStatus("")
+    setPromptTarget(null)
   }
 
   async function submitPrompt(request: string) {
@@ -125,40 +170,89 @@ export function ReactCanvasHostApp() {
   }
 
   return (
-    <SidebarProvider className="overflow-hidden bg-background text-foreground">
-      <ReactCanvasSidebar
-        activeFilePath={resolvedActiveFilePath}
-        artifacts={artifacts}
-        guardIssues={guardIssues}
-        onSelectArtifact={setActiveFilePath}
-      />
-      <main className="min-h-svh min-w-0 flex-1 overflow-hidden">
-        <ArtifactSurface
-          activeFilePath={resolvedActiveFilePath}
-          artifactCount={artifacts.length}
-          guardIssues={activeIssues}
-          loadError={loadError}
-          onMessageBlock={openPrompt}
-        />
-      </main>
-      {promptTarget ? (
-        <PromptPanel
-          activeFilePath={resolvedActiveFilePath}
-          output={promptOutput}
-          status={promptStatus}
-          target={promptTarget}
-          onClose={() => setPromptTarget(null)}
-          onSubmit={(request) => {
-            void submitPrompt(request).catch((submitError: unknown) => {
-              setPromptStatus(
-                submitError instanceof Error
-                  ? submitError.message
-                  : String(submitError)
-              )
-            })
-          }}
-        />
-      ) : null}
-    </SidebarProvider>
+    <TooltipProvider>
+      <div className="flex min-h-svh overflow-hidden bg-background text-foreground">
+        <SidebarProvider
+          className="contents"
+          keyboardShortcut={false}
+          open={leftSidebarOpen}
+          onOpenChange={setLeftSidebarOpen}
+        >
+          <ReactCanvasSidebar
+            activeFilePath={resolvedActiveFilePath}
+            activeThemePresetId={activeThemePresetId}
+            artifacts={artifacts}
+            guardIssues={guardIssues}
+            onSelectThemePreset={(presetId) =>
+              setActiveThemePresetId(presetId)
+            }
+            onSelectArtifact={setActiveFilePath}
+            themePresets={canvasThemePresets}
+          />
+        </SidebarProvider>
+        <SidebarInset className="min-h-svh min-w-0 overflow-hidden">
+          <div className="pointer-events-none absolute top-4 right-4 left-4 z-20 flex items-center justify-between">
+            <Button
+              aria-label={
+                leftSidebarOpen
+                  ? "Collapse artifact sidebar"
+                  : "Expand artifact sidebar"
+              }
+              className="pointer-events-auto"
+              onClick={() => setLeftSidebarOpen((open) => !open)}
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+            >
+              <PanelLeftIcon data-icon="inline-start" />
+            </Button>
+            <Button
+              aria-label={
+                rightSidebarOpen
+                  ? "Collapse AI sidebar"
+                  : "Expand AI sidebar"
+              }
+              className="pointer-events-auto"
+              onClick={() => setRightSidebarOpen((open) => !open)}
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+            >
+              <MessageSquareIcon data-icon="inline-start" />
+            </Button>
+          </div>
+          <ArtifactSurface
+            activeFilePath={resolvedActiveFilePath}
+            artifactCount={artifacts.length}
+            guardIssues={activeIssues}
+            loadError={loadError}
+            onMessageBlock={openPrompt}
+          />
+        </SidebarInset>
+        <SidebarProvider
+          className="contents"
+          keyboardShortcut={false}
+          open={rightSidebarOpen}
+          onOpenChange={setRightSidebarOpen}
+        >
+          <PromptPanel
+            activeFilePath={resolvedActiveFilePath}
+            output={promptOutput}
+            status={promptStatus}
+            target={promptTarget}
+            onClose={closePrompt}
+            onSubmit={(request) => {
+              void submitPrompt(request).catch((submitError: unknown) => {
+                setPromptStatus(
+                  submitError instanceof Error
+                    ? submitError.message
+                    : String(submitError)
+                )
+              })
+            }}
+          />
+        </SidebarProvider>
+      </div>
+    </TooltipProvider>
   )
 }

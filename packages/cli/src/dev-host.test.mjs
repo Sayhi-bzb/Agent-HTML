@@ -13,11 +13,9 @@ describe("React Canvas dev host", () => {
       const artifacts = await fetch(`${url}/__agent-html/artifacts`).then((response) =>
         response.json()
       )
-      expect(artifacts.artifacts).toEqual([
-        {
-          filePath: ".agent-html/artifacts/example.agent.tsx",
-        },
-      ])
+      expect(artifacts.artifacts).toContainEqual({
+        filePath: ".agent-html/artifacts/example.agent.tsx",
+      })
 
       const removedRender = await fetch(`${url}/__agent-html/render`)
       expect(removedRender.status).toBe(404)

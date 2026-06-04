@@ -26,11 +26,13 @@ describe("@agent-html/react", () => {
     expect(html).toContain("Hello")
   })
 
-  it("passes explicit classes through without adding protocol defaults", () => {
+  it("keeps Block protocol-only while Artifact can own page layout", () => {
     const html = renderToStaticMarkup(
       <Artifact className="max-w-4xl" title="Demo">
-        <Block className="col-span-2" id="summary" title="Summary">
-          <p>Hello</p>
+        <Block id="summary" title="Summary">
+          <div className="col-span-2">
+            <p>Hello</p>
+          </div>
         </Block>
       </Artifact>
     )
@@ -41,6 +43,13 @@ describe("@agent-html/react", () => {
     expect(html).toContain('data-agent-html-block-id="summary"')
     expect(html).not.toContain("scroll-mt-4")
     expect(html).toContain("col-span-2")
+  })
+
+  it("does not type-check visual props on Block", () => {
+    // @ts-expect-error Block is a protocol marker, not a layout surface.
+    const element = <Block className="col-span-2" id="summary" />
+
+    expect(element.type).toBe(Block)
   })
 
   it("dispatches action intent for the host", () => {
