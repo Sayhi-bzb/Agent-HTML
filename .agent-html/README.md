@@ -9,13 +9,15 @@ contain runtime install artifacts.
 ## Read First
 
 1. Read `AGENTS.md` for the operating rules.
-2. Read `examples/research-summary.agent.tsx` for the smallest canonical
+2. Read `index/README.md` for generated large-file routes, dependency
+   summaries, and compact API surfaces.
+3. Read `examples/research-summary.agent.tsx` for the smallest canonical
    artifact shape.
-3. Read `examples/interaction-state.agent.tsx` only when adding instrumented
+4. Read `examples/interaction-state.agent.tsx` only when adding instrumented
    artifact controls.
-4. Read `styles/README.md` before touching Canvas classes, tokens, or internal
+5. Read `styles/README.md` before touching Canvas classes, tokens, or internal
    chrome styles.
-5. Read the closest local primitive in `ui/*` before hand-writing common UI.
+6. Read the closest local primitive in `ui/*` before hand-writing common UI.
 
 ## Authoring Flow
 
@@ -23,6 +25,8 @@ contain runtime install artifacts.
 - Import `Artifact` and `Block` from `@agent-html/react`.
 - Wrap every major semantic region in a stable, literal, kebab-case `Block`.
 - Compose local primitives from `../ui/*` and Canvas semantic classes.
+- Use `index/large-files.md`, `index/dependency-summary.md`, and
+  `index/api-surface.md` before opening large source files.
 - Put reusable behavior in `hooks`, pure transforms in `lib`, schemas in
   `schema`, fixtures in `data`, bundle imports in `assets`, and URL-addressed
   static files in `public`.

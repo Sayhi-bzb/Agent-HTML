@@ -15,6 +15,9 @@ import the app implementation:
 .agent-html/AGENTS.md
   -> workspace rules and operating instructions
 
+.agent-html/index
+  -> generated large-file routes, dependency summaries, and compact API surfaces
+
 .agent-html/components.json
   -> shadcn workspace discovery config
 
@@ -64,6 +67,10 @@ artifacts and host
 - `.agent-html/AGENTS.md`, `.agent-html/components.json`, and
   `.agent-html/tsconfig.json` stay at the workspace root because agents,
   shadcn, TypeScript, and editors discover them from there.
+- `.agent-html/index` is the generated agent navigation layer. Read
+  `index/README.md`, `index/large-files.md`, `index/dependency-summary.md`,
+  and `index/api-surface.md` before opening broad or large Canvas source
+  files.
 - `.agent-html` is a portable source workspace, not a vendored runtime
   package. Do not add `node_modules`, lockfiles, generated bundles, `.vite`,
   `dist`, `build`, or vendored dependency folders inside it.

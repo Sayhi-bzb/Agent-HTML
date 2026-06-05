@@ -11,7 +11,10 @@
   "scripts": {
     "dev": "vite --config apps/agent-html-app/vite.config.ts",
     "react-canvas:dev": "node packages/cli/bin/agent-html.mjs dev",
+    "react-canvas:deps": "depcruise --config .dependency-cruiser.mjs --output-type err .agent-html",
     "react-canvas:guard": "node packages/cli/bin/agent-html.mjs guard",
+    "react-canvas:index": "node tools/generate-react-canvas-index.mjs",
+    "react-canvas:index:check": "node tools/generate-react-canvas-index.mjs --check",
     "react-canvas:typecheck": "tsc --noEmit -p config/tsconfig/tsconfig.react-canvas.json",
     "dev:docs": "npm --workspace @agent-html/docs run dev",
     "dev:example": "vite --config apps/agent-html-example/vite.config.ts",
@@ -55,6 +58,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.2.0",
+    "dependency-cruiser": "^17.4.3",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
