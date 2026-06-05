@@ -67,6 +67,17 @@ Intended spacing scale:
 - `space-5`
 - `space-6`
 
+Current utility baselines may still express these roles directly while the token layer is being
+normalized:
+
+- `p-4` to `p-6` for page and section padding
+- `p-5` for common card padding
+- `gap-6` for section separation
+- `gap-4` for local grid and card-group separation
+- `gap-2` and `gap-3` for dense inline UI
+- `gap-1` for sidebar item rhythm
+- `h-8` for standard sidebar item height
+
 ### Typography-Related Foundation Values
 
 Typography-specific scale values belong here as raw values only:
@@ -170,6 +181,8 @@ The current shell includes structural constants that are not general-purpose des
 - sidebar width
 - mobile sidebar width
 - collapsed icon-rail width
+- standard control height
+- standard sidebar item height
 
 These values:
 

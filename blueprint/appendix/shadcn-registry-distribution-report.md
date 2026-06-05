@@ -1,5 +1,9 @@
 # shadcn Registry 分发系统报告
 
+> Appendix reference only.
+> Current decision source: `../README.md`.
+> Do not treat this file as current implementation law.
+
 日期：2026-06-03
 
 ## 一句话结论

@@ -1,5 +1,11 @@
 # AgentHTML 物理世界映射
 
+> Appendix reference only.
+> Current decision source: `../README.md`.
+> Do not treat this file as current implementation law.
+> The note below says it belongs under `.secrets/`; that is historical wording.
+> This tracked copy is retained only as appendix reference material.
+
 这份本地笔记记录 AgentHTML 的共享世界观。它放在 `.secrets/` 下，
 不会进入 Git，用来帮助 agent 在开发时进入同一套剧本。
 

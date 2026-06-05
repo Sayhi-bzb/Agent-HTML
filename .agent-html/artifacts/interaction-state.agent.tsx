@@ -151,11 +151,12 @@ import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group"
 const promptDebugEventName = "agent-html:prompt-debug"
 const blockId = "interaction-controls"
 const kanbanBlockId = "kanban-board"
+type ComboboxOptionValue = "design" | "runtime" | "host"
 const comboboxOptions = [
   { label: "Design", value: "design" },
   { label: "Runtime", value: "runtime" },
   { label: "Host", value: "host" },
-]
+] satisfies { label: string; value: ComboboxOptionValue }[]
 const initialKanbanColumns = {
   todo: [
     { id: "task-auth", title: "Auth flow" },
@@ -700,7 +701,7 @@ export default function InteractionStateArtifact() {
                       <FieldLabel>Input OTP</FieldLabel>
                       <InputOTP
                         maxLength={6}
-                        onChange={(value) =>
+                        onChange={(value: string) =>
                           record({
                             component: "input-otp",
                             controlId: "otp",
@@ -731,7 +732,7 @@ export default function InteractionStateArtifact() {
                       </div>
                       <Calendar
                         mode="single"
-                        onSelect={(date) => {
+                        onSelect={(date: Date | undefined) => {
                           if (date) {
                             record({
                               component: "calendar",
@@ -750,12 +751,12 @@ export default function InteractionStateArtifact() {
                   <Field>
                     <FieldLabel>Combobox</FieldLabel>
                     <Combobox
-                      itemToStringValue={(value) =>
+                      itemToStringValue={(value: string) =>
                         comboboxOptions.find((option) => option.value === value)
                           ?.label ?? value
                       }
                       items={comboboxOptions.map((option) => option.value)}
-                      onValueChange={(value) => {
+                      onValueChange={(value: unknown) => {
                         if (typeof value !== "string") {
                           return
                         }
@@ -774,7 +775,7 @@ export default function InteractionStateArtifact() {
                       <ComboboxContent>
                         <ComboboxEmpty>No area found.</ComboboxEmpty>
                         <ComboboxList>
-                          {(value) => {
+                          {(value: string) => {
                             const option = comboboxOptions.find(
                               (item) => item.value === value
                             )
@@ -1012,7 +1013,7 @@ export default function InteractionStateArtifact() {
                     </Sheet>
 
                     <Drawer
-                      onOpenChange={(value) =>
+                      onOpenChange={(value: boolean) =>
                         record({
                           component: "drawer",
                           controlId: "drawerOpen",
@@ -1159,7 +1160,7 @@ export default function InteractionStateArtifact() {
         <PromptDisplay />
       </Block>
 
-      <Block id={kanbanBlockId} title="Kanban Board">
+      <Block id="kanban-board" title="Kanban Board">
         <KanbanExample
           columns={kanbanColumns}
           onColumnsChange={(nextColumns) => {

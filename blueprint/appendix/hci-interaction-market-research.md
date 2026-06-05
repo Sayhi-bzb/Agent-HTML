@@ -1,5 +1,9 @@
 # 人机交互模式市场调研
 
+> Appendix reference only.
+> Current decision source: `../README.md`.
+> Do not treat this file as current implementation law.
+
 这份调研用于判断 AgentHTML 的产品方向。参考起点是 Thariq Shihipar 的
 X 长帖：
 

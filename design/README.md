@@ -1,7 +1,6 @@
 # Design Standards
 
-This directory contains the implementation-facing design standards for the `agent-html` app as it
-exists today.
+This directory contains implementation-facing design and context governance for `agent-html`.
 
 The current product model is a dual-mode operating shell:
 
@@ -13,9 +12,10 @@ These documents should describe the real shell, not a historical placeholder con
 
 ## Ownership
 
-This package owns the frontend design rules for the app.
-High-level visual philosophy is defined in [`DESIGN.md`](./DESIGN.md), while the rest of this
-directory translates that philosophy into implementation-facing rules.
+This package owns app design governance and project code-context governance routes.
+High-level visual philosophy is defined in [`DESIGN.md`](./DESIGN.md). Project-level code-context
+governance is defined in [`context-governance.md`](./context-governance.md). The remaining files
+translate those principles into narrower implementation-facing rules.
 
 ## Reading Order
 
@@ -38,7 +38,7 @@ directory translates that philosophy into implementation-facing rules.
 - If the question is "what preview text role should this use," read [`../apps/agent-html-app/src/gallery/preview/rule/typography.md`](../apps/agent-html-app/src/gallery/preview/rule/typography.md).
 - If the question is "how should this shell or mode be structured," read `layout.md`.
 - If the question is "how should this component family behave," read `components.md`.
-- If the question is "where should this code live," read `code-structure.md`.
+- If the question is "where should App UI code live," read `code-structure.md`.
 
 ## Boundary Rule
 

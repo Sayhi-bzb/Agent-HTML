@@ -38,6 +38,23 @@ describe("React Canvas Guard", () => {
     expect(messages.filter((message) => message.includes("Duplicate Block id"))).toHaveLength(2)
   })
 
+  it("reports dynamic Block ids as non-static protocol metadata", () => {
+    const messages = issueMessages(`
+      import { Artifact, Block } from "@agent-html/react"
+      const blockId = "summary"
+      export default function Demo() {
+        return (
+          <Artifact title="Demo">
+            <Block id={blockId}>Summary</Block>
+          </Artifact>
+        )
+      }
+    `)
+
+    expect(messages).toContain("Block id must be a static string literal.")
+    expect(messages).not.toContain("Block is missing a stable id.")
+  })
+
   it("reports unsafe visual classes and inline style", () => {
     const messages = issueMessages(`
       import { Artifact, Block } from "@agent-html/react"

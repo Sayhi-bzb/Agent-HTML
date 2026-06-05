@@ -13,6 +13,9 @@ while writing React artifacts:
 .agent-html/AGENTS.md
   -> workspace rules and operating instructions
 
+.agent-html/README.md
+  -> cold-start reading path and portable source workspace contract
+
 .agent-html/components.json
   -> shadcn workspace discovery config
 
@@ -68,10 +71,21 @@ while writing React artifacts:
   -> durable agent-authored work products
 ```
 
-`components.json`, `tsconfig.json`, and `package.json` stay at the workspace
-root because shadcn, TypeScript, editors, and dependency tooling discover them
-from there. `.agent-html/package.json` is source metadata only; the workspace
-does not keep `package-lock.json`, `manifest.json`, or `node_modules`.
+`README.md`, `AGENTS.md`, `components.json`, `tsconfig.json`, and
+`package.json` stay at the workspace root because agents, shadcn, TypeScript,
+editors, and dependency tooling discover them from there.
+`.agent-html/package.json` is source dependency metadata only. `.agent-html` is
+a portable source workspace, not a vendored runtime package; it does not keep
+`package-lock.json`, `manifest.json`, `node_modules`, generated bundles,
+`.vite`, `dist`, `build`, or vendored dependency folders.
+
+Canvas CLI and host packages provide the runtime React, bundling, stylesheet,
+icon, and preview environment. Local Canvas primitives may list source
+dependencies in `.agent-html/package.json`; artifact authors should prefer
+existing `ui`, `hooks`, `lib`, `schema`, `data`, and `assets` resources before
+introducing a third-party dependency. New dependencies need an explicit owner:
+source-only workspace metadata when local Canvas source imports them, or
+CLI/host package dependencies when the runtime host must provide them.
 
 The directory gives agents an explicit workspace instead of relying on a single
 prompt. Human-readable guidance and agent-consumable assets stay beside the

@@ -1,5 +1,9 @@
 # Codex 市场调研报告
 
+> Appendix reference only.
+> Current decision source: `../README.md`.
+> Do not treat this file as current implementation law.
+
 日期：2026-06-02
 
 ## 一句话结论

@@ -1,6 +1,7 @@
 # AgentHTML React Canvas
 
 Write normal React artifacts in `.agent-html/artifacts/*.agent.tsx`.
+For cold start, read `.agent-html/README.md` first, then this file.
 
 ## Design contract
 
@@ -8,6 +9,9 @@ React Canvas uses the same design-system direction as the app, but it does not
 import the app implementation:
 
 ```text
+.agent-html/README.md
+  -> cold-start reading path and portable workspace contract
+
 .agent-html/AGENTS.md
   -> workspace rules and operating instructions
 
@@ -60,6 +64,12 @@ artifacts and host
 - `.agent-html/AGENTS.md`, `.agent-html/components.json`, and
   `.agent-html/tsconfig.json` stay at the workspace root because agents,
   shadcn, TypeScript, and editors discover them from there.
+- `.agent-html` is a portable source workspace, not a vendored runtime
+  package. Do not add `node_modules`, lockfiles, generated bundles, `.vite`,
+  `dist`, `build`, or vendored dependency folders inside it.
+- `.agent-html/package.json` is source dependency metadata. Canvas CLI and host
+  packages provide the runtime React, bundling, stylesheet, icon, and preview
+  environment. New third-party dependencies need an explicit owner.
 - `.agent-html/styles/index.css` is the CSS runtime entrypoint discovered by
   shadcn and the dev host. It imports Tailwind, shadcn CSS, fonts, token files,
   Tailwind token mappings, base styles, public content classes, and locked
@@ -84,10 +94,13 @@ artifacts and host
 - `.agent-html/ui` is the only primitive layer for React Canvas. Keep local
   shadcn-derived primitives low-modification unless Canvas needs a primitive
   API, correctness fix, or accessibility fix.
-- Available primitives include accordion, alert, badge, button, card, chart,
-  checkbox, collapsible, dialog, hover-card, input, input-group, label,
-  popover, progress, scroll-area, select, separator, sheet, sidebar, skeleton,
-  slider, table, tabs, textarea, toggle, toggle-group, and tooltip.
+- Available primitives include accordion, alert, alert-dialog, badge, button,
+  calendar, card, carousel, chart, checkbox, collapsible, combobox, command,
+  context-menu, dialog, drawer, dropdown-menu, field, hover-card, input,
+  input-group, input-otp, kanban, label, menubar, native-select, popover,
+  progress, radio-group, resizable, scroll-area, select, separator, sheet,
+  sidebar, skeleton, slider, switch, table, tabs, textarea, toggle,
+  toggle-group, and tooltip.
 - Host and artifacts compose primitives; they do not create new primitive
   buttons, cards, badges, tables, sidebars, or inputs.
 - Host block hover highlighting is inspection chrome. It consumes Canvas tokens
@@ -157,6 +170,13 @@ Rules:
 - Keep `Block` static and unstyled. Layout belongs inside the block, not on the
   block marker.
 - Use stable, unique, readable, kebab-case block ids.
+- Treat examples as policy. Canonical examples should be short, typed, and
+  easy to imitate; large coverage artifacts should still use stable literal
+  block ids and explicit handler types.
+- Imitate `examples/research-summary.agent.tsx` for compact static artifacts
+  and `examples/interaction-state.agent.tsx` for compact instrumented controls.
+  `artifacts/interaction-state.agent.tsx` is a coverage surface, not a style
+  template.
 - Prefer local `../ui`, `../hooks`, `../lib`, `../schema`, `../data`, and
   `../assets` imports before hand-writing common UI or utility code.
 - Do not call Codex app-server, the filesystem, shell commands, MCP servers, or

@@ -7,31 +7,16 @@ It exists so the design system remains enforceable in implementation.
 
 ## Ownership
 
-This document owns directory responsibilities, class-usage rules, variant management, promotion
-rules, and review anti-patterns.
+This document owns App UI directory responsibilities, class-usage rules, variant management,
+promotion rules, and review anti-patterns.
 It does not define visual philosophy, typography roles, or component-family appearance rules.
 Project-level code-context governance belongs to [`context-governance.md`](./context-governance.md).
 
 ## Directory Roles
 
-### Repository Root
-
-The repository root is an entrypoint layer, not a storage layer.
-
-It owns:
-
-- repository identity files such as package manifests, readmes, license, release notes, and agent
-  instructions
-- ecosystem files that rely on root discovery, such as `components.json`
-- first-level product boundaries such as `apps/`, `packages/`, `docs/`, `tools/`, `public/`, and
-  `src-tauri/`
-- the root TypeScript solution entrypoint, `tsconfig.json`
-
-Tooling configuration that does not require root discovery SHOULD live under `config/`.
-TypeScript subproject configs SHOULD live under `config/tsconfig/`.
-
-Generated output, local caches, temporary references, and tool runtime folders MUST be ignored
-rather than organized by hand in root.
+Project-level directory and import philosophy belongs to
+[`context-governance.md`](./context-governance.md). This document starts at the App UI source tree
+and only names repository-level structure when it affects frontend design enforcement.
 
 ### `apps/agent-html-app/src/gallery/*`
 
@@ -211,7 +196,8 @@ Variants belong to primitives first.
 
 ## Layout Constant Management
 
-Structural constants such as shell heights and widths MUST be centralized.
+Structural constant taxonomy belongs to `tokens.md`. This section governs where those constants
+live in App UI code.
 
 - layout constants SHOULD be declared close to the shell primitive that owns them
 - page code MUST NOT redefine shell structure constants ad hoc

@@ -179,8 +179,13 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(existsSync(join(root, ".agent-html", "package-lock.json"))).toBe(
       false
     )
+    expect(existsSync(join(root, ".agent-html", "pnpm-lock.yaml"))).toBe(false)
+    expect(existsSync(join(root, ".agent-html", "yarn.lock"))).toBe(false)
     expect(existsSync(join(root, ".agent-html", "manifest.json"))).toBe(false)
     expect(existsSync(join(root, ".agent-html", "node_modules"))).toBe(false)
+    expect(existsSync(join(root, ".agent-html", ".vite"))).toBe(false)
+    expect(existsSync(join(root, ".agent-html", "dist"))).toBe(false)
+    expect(existsSync(join(root, ".agent-html", "build"))).toBe(false)
     expect(existsSync(join(root, ".agent-html", "assets"))).toBe(true)
     expect(existsSync(join(root, ".agent-html", "public"))).toBe(true)
 

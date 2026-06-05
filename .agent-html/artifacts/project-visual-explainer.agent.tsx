@@ -28,11 +28,11 @@ const topologyNodes = [
 
 const pipelineNodes = [
   {
-    label: "theme.css",
-    summary: "Semantic values for color, font, radius, chart, and sidebar tokens.",
+    label: "styles/tokens/*",
+    summary: "Semantic values for color, font, radius, chart, host, artifact, and content tokens.",
   },
   {
-    label: "styles.css",
+    label: "styles/index.css",
     summary: "Tailwind, shadcn CSS, font imports, token mappings, and base styles.",
   },
   {

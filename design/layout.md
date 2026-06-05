@@ -7,8 +7,9 @@ It standardizes mode structure, spacing rhythm, grids, panel composition, and re
 
 ## Ownership
 
-This document owns shell structure, spacing roles, page archetypes, and responsive layout rules.
-It does not define component-family styling details or typography roles.
+This document owns shell structure, header spatial structure, spacing roles, page archetypes, and
+responsive layout rules.
+It does not define component-family styling details, tab component semantics, or typography roles.
 
 ## Layout Philosophy
 
@@ -114,20 +115,10 @@ Standard spacing roles include:
 - local item gap
 - dense control gap
 
-Current baseline roles:
-
-- `p-4` to `p-6` for page and section padding
-- `p-5` for common card padding
-- `gap-6` for section separation
-- `gap-4` for local grid and card-group separation
-- `gap-2` and `gap-3` for dense inline UI
-- `gap-1` for `SidebarMenu` item rhythm
-- `h-8` for standard sidebar item height
-
 Spacing SHOULD support density and orientation. Avoid using large gaps, tall minimum heights, or
 extra section padding as a substitute for clear alignment and information hierarchy.
 
-Token ownership for reusable spacing values belongs to `tokens.md`.
+Reusable spacing scales and structural constants belong to `tokens.md`.
 
 ## Grid Rules
 

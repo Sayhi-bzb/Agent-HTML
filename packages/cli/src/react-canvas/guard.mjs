@@ -226,13 +226,18 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
   const seen = new Map()
   for (const block of blocks) {
     if (!block.id) {
+      const hasDynamicId = block.hasIdAttribute
       issues.push(
         createIssue({
           filePath: relativePath,
           line: lineForIndex(source, block.index),
-          message: "Block is missing a stable id.",
+          message: hasDynamicId
+            ? "Block id must be a static string literal."
+            : "Block is missing a stable id.",
           severity: "error",
-          suggestion: 'Add a readable kebab-case id, such as id="next-steps".',
+          suggestion: hasDynamicId
+            ? 'Use a readable literal id that survives regeneration, such as id="next-steps".'
+            : 'Add a readable kebab-case id, such as id="next-steps".',
         })
       )
       continue

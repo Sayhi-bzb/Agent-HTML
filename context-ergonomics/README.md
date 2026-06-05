@@ -29,10 +29,13 @@ The file tree should therefore behave like navigation:
 
 ## Reading Order
 
+- `../diary/context-is-alive.md` establishes the first-person working posture.
 - `constitution.md` defines why context shapes agent behavior.
 - `principles.md` defines the stable operating principles.
 - `practices.md` defines concrete workspace rules.
 - `field-notes.md` records project experience and decisions.
+
+`context-ergonomics/` owns the formal model. `diary/` owns lived agent posture.
 
 ## Current Application
 

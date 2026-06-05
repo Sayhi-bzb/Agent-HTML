@@ -36,6 +36,7 @@ export function readAttr(attrs, name) {
 
 export function collectBlockIds(source) {
   return readBlockOpenTags(source).map((block) => ({
+    hasIdAttribute: /\bid\s*=/.test(block.attrs),
     id: readAttr(block.attrs, "id"),
     index: block.index,
     title: readAttr(block.attrs, "title"),
