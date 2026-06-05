@@ -19,8 +19,14 @@ while writing React artifacts:
 .agent-html/tsconfig.json
   -> local TypeScript and editor discovery config
 
+.agent-html/package.json
+  -> source-only workspace dependency metadata
+
 .agent-html/styles/index.css
   -> CSS runtime entrypoint
+
+.agent-html/styles/base.css
+  -> base stylesheet rules such as text selection
 
 .agent-html/styles/tokens
   -> semantic token lookup split by feature
@@ -29,7 +35,7 @@ while writing React artifacts:
   -> artifact-consumable Canvas semantic class lookup
 
 .agent-html/styles/internal
-  -> locked Canvas system chrome and protocol-adjacent styles
+  -> locked Canvas system chrome, Artifact root, and theme editor styles
 
 .agent-html/theme
   -> host-owned theme preset resources
@@ -62,10 +68,10 @@ while writing React artifacts:
   -> durable agent-authored work products
 ```
 
-`components.json` and `tsconfig.json` stay at the workspace root because shadcn,
-TypeScript, and editors discover them from there. They are configuration files,
-but moving them into a nested config directory would make discovery less
-reliable.
+`components.json`, `tsconfig.json`, and `package.json` stay at the workspace
+root because shadcn, TypeScript, editors, and dependency tooling discover them
+from there. `.agent-html/package.json` is source metadata only; the workspace
+does not keep `package-lock.json`, `manifest.json`, or `node_modules`.
 
 The directory gives agents an explicit workspace instead of relying on a single
 prompt. Human-readable guidance and agent-consumable assets stay beside the
@@ -79,11 +85,15 @@ source.
 
 ## Authoring Contract
 
-Artifacts import protocol from `@agent-html/react` and local resources by
-relative path:
+Artifacts import protocol and optional interaction helpers from
+`@agent-html/react`. Local resources use relative paths:
 
 ```ts
-import { Artifact, Block } from "@agent-html/react"
+import {
+  Artifact,
+  Block,
+  useInstrumentedValueChange,
+} from "@agent-html/react"
 
 import { Button } from "../ui/button"
 import { useFilter } from "../hooks/use-filter"
@@ -103,11 +113,16 @@ layout or visual treatment inside the block content.
 The host owns block prompt actions through its inspection overlay; artifact
 source does not render action markers.
 
+Use interaction helpers only for artifact-local control instrumentation. They
+emit `agent-html:state-change` events; they do not provide filesystem, shell,
+MCP, Codex app-server, or host API access.
+
 Artifact content uses Canvas semantic classes backed by `--canvas-content-*`
-tokens for spacing, typography, panel padding, panel radius, icon-box size, and
-grid gap. Host chrome uses `--canvas-*` host tokens for surface padding,
-toolbar offsets, status spacing, sidebar spacing, floating prompt placement,
-and block action placement.
+tokens for spacing, typography, panel padding, icon-box size, and grid gap.
+Panel radius, border, and icon-box color come from shared semantic tokens. Host
+chrome uses `--canvas-*` host tokens for surface padding, toolbar offsets,
+status spacing, sidebar spacing, floating prompt placement, and block action
+placement.
 
 Artifact code must not call the filesystem, shell commands, MCP servers, Codex
 app-server, or privileged host APIs.

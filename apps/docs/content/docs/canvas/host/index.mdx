@@ -14,6 +14,7 @@ It owns:
 - block source extraction
 - prompt disclosure
 - floating block prompt handling
+- theme preset application
 - sidebar navigation
 - stylesheet compilation
 
@@ -21,9 +22,15 @@ The host understands artifacts through stable metadata:
 
 ```text
 [data-agent-html-artifact="true"]
+[data-agent-html-title]
 [data-agent-html-block="true"]
 [data-agent-html-block-id]
+[data-agent-html-block-title]
 ```
+
+Instrumented artifact controls may also dispatch `agent-html:state-change`
+events. The host can observe these events without exposing privileged host APIs
+to artifact source.
 
 Block hover highlighting, block prompt action placement, and the floating
 prompt composer are host inspection chrome. They are rendered in the host
@@ -37,12 +44,15 @@ toolbar inset, status spacing, sidebar local spacing, and floating prompt
 placement are `--canvas-*` token-backed host classes, not one-off utilities in
 host components.
 
-Host visual controls consume Canvas UI primitives through the local playground
-alias:
+Host visual controls consume Canvas UI primitives and theme resources through
+local playground aliases:
 
 ```ts
 import { Button } from "#agent-html-playground/ui/button"
+import { canvasThemePresets } from "#agent-html-playground/theme/presets"
 ```
 
 The host must not import the app shell, old runtime UI, old render APIs, or a
-host-local primitive layer.
+host-local primitive layer. It must not use `@/app/*`,
+`@agent-html-playground/*`, or `#agent-html-playground/*` outside `ui/*` and
+`theme/*`.

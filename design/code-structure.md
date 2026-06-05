@@ -10,6 +10,7 @@ It exists so the design system remains enforceable in implementation.
 This document owns directory responsibilities, class-usage rules, variant management, promotion
 rules, and review anti-patterns.
 It does not define visual philosophy, typography roles, or component-family appearance rules.
+Project-level code-context governance belongs to [`context-governance.md`](./context-governance.md).
 
 ## Directory Roles
 

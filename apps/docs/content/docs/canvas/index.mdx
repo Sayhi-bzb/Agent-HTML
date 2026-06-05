@@ -26,12 +26,15 @@ React artifacts without importing the app shell or old runtime UI.
 
 ### Headless Protocol
 
-`Artifact` and `Block` mark collaboration boundaries. They provide
-metadata, host anchors, source extraction anchors, and accessibility.
-`Artifact` owns the readable root container, accepts only
-`title` and children, and reads layout values from Canvas CSS tokens. `Block` is
-protocol-only: it accepts `id`, `title`, and children, and does not accept
-styling or layout props.
+`Artifact` and `Block` mark collaboration boundaries. They provide rendered
+metadata, host anchors, and accessibility minimums. `Artifact` owns the
+readable root container, accepts only `title` and children, and reads layout
+values from Canvas CSS tokens. `Block` is protocol-only: it accepts `id`,
+`title`, and children, and does not accept styling or layout props.
+
+`@agent-html/react` also exposes interaction-state helpers for instrumented
+controls. They emit `agent-html:state-change` events without giving artifact
+source privileged host access.
 
 ### Local Resource Consumption
 
@@ -40,6 +43,7 @@ schemas, data, examples, and semantic token classes.
 
 ### Inspectable Host Boundary
 
-The host discovers artifacts, overlays blocks, extracts source targets, shows
-guard issues, and bridges prompts. It observes artifact metadata instead of
-owning artifact layout.
+The host discovers artifacts, renders bundles, overlays blocks, shows guard
+issues, handles floating block prompts, applies theme presets, and compiles the
+Canvas stylesheet. It observes artifact metadata instead of owning artifact
+layout.

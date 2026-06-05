@@ -16,6 +16,7 @@ Artifact and example code may consume:
 - `../schema/*`
 - `../data/*`
 - `../assets/*`
+- URL-addressed files from `/__agent-html/public/<path>`
 - semantic token classes
 - Canvas semantic classes such as `canvas-stack-md`,
   `canvas-content-panel`, `canvas-grid-gap`, and `canvas-text-body`
@@ -29,6 +30,8 @@ Artifact and example code must not consume:
 - old runtime UI
 - old render APIs
 - `#agent-html-playground/*`
+- `@agent-html-playground/*`
+- `../public/*`
 - raw palette classes such as `bg-blue-500`
 - arbitrary value classes, decorative gradients, oversized typography,
   oversized radius, heavy shadows, custom fonts, or manual tracking
@@ -42,6 +45,7 @@ Host code may consume:
 - host-local composition modules
 - CLI prompt and API helpers
 - `#agent-html-playground/ui/*`
+- `#agent-html-playground/theme/*`
 
 Host code must not consume:
 
@@ -50,7 +54,8 @@ Host code must not consume:
 - old runtime UI
 - old render APIs
 - `@agent-html-playground/*`
-- `#agent-html-playground/*` outside `#agent-html-playground/ui/*`
+- `#agent-html-playground/*` outside `#agent-html-playground/ui/*` and
+  `#agent-html-playground/theme/*`
 - a host-local visual primitive layer
 
 ## Review Checks
@@ -60,5 +65,6 @@ Confirm that `Artifact` keeps the token-configured readable root container,
 `.agent-html/styles/index.css` remains the CSS runtime entrypoint,
 `.agent-html/styles/tokens/*` remains the semantic token value layer,
 `.agent-html/styles/tokens/tailwind.css` remains the Tailwind token mapping,
-font and radius values stay explicit tokens, and block content layout stays
-explicit in artifact composition.
+`.agent-html/styles/base.css` remains the base selection layer, font and radius
+values stay explicit tokens, public files stay URL-addressed, and block content
+layout stays explicit in artifact composition.

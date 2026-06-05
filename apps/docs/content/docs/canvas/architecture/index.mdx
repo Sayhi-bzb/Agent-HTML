@@ -7,7 +7,7 @@ Canvas is organized as an isolated agent workspace topology:
 
 ```text
 @agent-html/react
-  -> headless collaboration protocol
+  -> headless collaboration protocol and interaction events
 
 .agent-html/*
   -> agent operating context and reusable resources
@@ -16,16 +16,17 @@ Canvas is organized as an isolated agent workspace topology:
   -> durable artifact composition and content
 
 packages/cli/src/*
-  -> dev and guard command entrypoints
+  -> dev server, bundler, guard, and stylesheet entrypoints
 
 packages/cli/src/host/*
   -> sandbox host, inspector, and prompt bridge
 ```
 
-Each layer owns one decision. The protocol marks stable regions. The
-`.agent-html` workspace provides durable context agents can read and reuse.
-Artifacts compose those resources into UI. The CLI starts the guard and preview
-surface. The host observes and operates on rendered metadata.
+Each layer owns one decision. The protocol marks stable regions and emits
+instrumented state changes. The `.agent-html` workspace provides durable
+context agents can read and reuse. Artifacts compose those resources into UI.
+The CLI discovers, guards, bundles, and serves artifacts. The host observes and
+operates on rendered metadata.
 
 ## Protocol
 
@@ -38,21 +39,33 @@ fully protocol-only: it accepts `id`, `title`, and children. It does not own
 width, spacing, colors, borders, radius, shadow, cards, panels, grid structure,
 or props passthrough.
 
+The same package exports `InteractionProvider`,
+`useArtifactInteraction`, `useEmitArtifactStateChange`,
+`useInstrumentedValueChange`, and `useInstrumentedCheckedChange`. These helpers
+record local control state and dispatch `agent-html:state-change` events.
+
 ## Resources
 
 Canvas resources live under `.agent-html`:
 
 ```text
 AGENTS.md
+package.json
+components.json
+tsconfig.json
 styles/index.css
+styles/base.css
 styles/tokens/*
 styles/content.css
 styles/internal/*
+theme/*
 ui/*
 hooks/*
 lib/*
 schema/*
 data/*
+assets/*
+public/*
 examples/*
 artifacts/*
 ```
@@ -76,9 +89,12 @@ Do not put layout classes on `Block`; put layout inside the block content.
 
 ## Host
 
-The host renders artifacts, discovers blocks, displays guard issues, extracts
-source targets, overlays block prompt actions, and bridges prompts. Host controls use Canvas UI primitives; the
-host must not define artifact visual language.
+The host renders artifacts, discovers blocks, displays guard issues, overlays
+block prompt actions, handles floating prompts, applies theme presets, and
+compiles stylesheets. Host controls use Canvas UI primitives and theme
+resources through `#agent-html-playground/ui/*` and
+`#agent-html-playground/theme/*`; the host must not define artifact visual
+language.
 
 Canvas is Storybook-like only as an isolated preview surface. Its primary value
 is making agent-authored output addressable, reviewable, reusable, and

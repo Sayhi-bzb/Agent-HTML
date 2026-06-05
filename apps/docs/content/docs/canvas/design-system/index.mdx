@@ -9,6 +9,9 @@ Canvas uses local shadcn-derived UI and CSS variables without forking shadcn.
 styles/index.css
   -> Tailwind, shadcn CSS, font imports, and CSS pipeline imports
 
+styles/base.css
+  -> base rules such as text selection
+
 styles/tokens/*
   -> semantic token values split by feature
 
@@ -16,7 +19,10 @@ styles/content.css
   -> artifact-consumable Canvas semantic classes
 
 styles/internal/*
-  -> locked Canvas system chrome and protocol-adjacent styles
+  -> locked Canvas system chrome, Artifact root, and theme editor styles
+
+theme/*
+  -> host-owned theme preset resources
 
 ui/*
   -> local visual primitives
@@ -31,6 +37,9 @@ artifact files
 Tailwind, shadcn CSS, fonts, token files, base styles, public content classes,
 and internal system classes.
 
+`.agent-html/styles/base.css` owns base stylesheet behavior that applies across
+the Canvas surface, including text selection colors.
+
 `.agent-html/styles/tokens/*` owns semantic token values. Read
 `tokens/foundation.css` for base color, font, radius, chart, and sidebar
 values; read `tokens/artifact.css`, `tokens/host.css`, `tokens/content.css`,
@@ -43,8 +52,12 @@ tokens.
 small set of semantic classes artifact agents may consume for layout rhythm,
 surfaces, icon boxes, and text scale.
 
-`.agent-html/styles/internal/*` owns locked Canvas chrome and protocol-adjacent
-styles. Artifact agents do not read it by default.
+`.agent-html/styles/internal/*` owns locked Canvas chrome, the Artifact reading
+container, and theme editor styles. Artifact agents do not read it by default.
+
+`.agent-html/theme/*` owns host theme preset resources. Host code may consume
+these through `#agent-html-playground/theme/*`; artifacts consume semantic
+tokens and do not choose preset values directly.
 
 Host inspection chrome, including surface padding, toolbar offsets, status
 spacing, sidebar local spacing, floating prompt surface values, block hover
@@ -58,8 +71,9 @@ applied by `.agent-html-artifact` in `styles/internal/artifact.css`. Artifact
 color follows the shared `--background` and `--foreground` foundation tokens.
 
 Artifact content composition uses Canvas semantic classes for spacing,
-typography, panel padding, panel radius, icon-box size, and grid gap. These
-classes are backed by `--canvas-content-*` tokens.
+typography, panel padding, icon-box size, and grid gap. These classes are
+backed by `--canvas-content-*` tokens. Panel radius, border, and icon-box color
+come from shared semantic tokens.
 
 Artifacts do not import CSS files directly. They consume semantic token classes:
 
@@ -77,9 +91,13 @@ common UI.
 Do not create raw primitive buttons, cards, badges, inputs, tables, sidebars, or
 dialog controls in artifacts when a local UI primitive exists.
 
-Current Canvas primitives include accordion, alert, badge, button, card, chart,
-checkbox, dialog, input, label, popover, scroll-area, select, separator, sheet,
-sidebar, skeleton, table, tabs, textarea, and tooltip.
+Current Canvas primitives include accordion, alert, alert-dialog, badge,
+button, calendar, card, carousel, chart, checkbox, collapsible, combobox,
+command, context-menu, dialog, drawer, dropdown-menu, field, hover-card, input,
+input-group, input-otp, kanban, label, menubar, native-select, popover,
+progress, radio-group, resizable, scroll-area, select, separator, sheet,
+sidebar, skeleton, slider, switch, table, tabs, textarea, toggle,
+toggle-group, and tooltip.
 
 Do not rewrite every local primitive to tokenize all spacing, density, or
 typography values. Keep local shadcn-derived primitives low-modification unless
@@ -132,4 +150,5 @@ visual props to `Artifact`; update `--canvas-artifact-max-width` and
 
 `Block` remains a protocol marker. Block content layout and visual treatment
 belong inside blocks through artifact composition and `.agent-html/ui/*`.
-Block prompt actions belong to host overlay chrome.
+Block hover highlighting, prompt actions, and floating prompt UI belong to host
+overlay chrome.
