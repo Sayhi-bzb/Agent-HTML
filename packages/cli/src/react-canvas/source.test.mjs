@@ -36,7 +36,7 @@ describe("React Canvas source helpers", () => {
 
     await expect(
       resolveBlockImplementationPath({
-        blockPath: "summary",
+        blockId: "summary",
         filePath: ".agent-html/artifacts/demo.agent.tsx",
         root,
       })
@@ -55,7 +55,7 @@ describe("React Canvas source helpers", () => {
 
     await expect(
       resolveBlockImplementationPath({
-        blockPath: "brief",
+        blockId: "brief",
         filePath: ".agent-html/examples/example.agent.tsx",
         root,
       })
@@ -67,7 +67,7 @@ describe("React Canvas source helpers", () => {
 
     await expect(
       resolveBlockImplementationPath({
-        blockPath: "summary",
+        blockId: "summary",
         filePath: ".agent-html/artifacts/demo.agent.tsx",
         root,
       })
@@ -79,7 +79,7 @@ describe("React Canvas source helpers", () => {
 
     await expect(
       resolveBlockImplementationPath({
-        blockPath: "../summary",
+        blockId: "../summary",
         filePath: ".agent-html/artifacts/demo.agent.tsx",
         root,
       })

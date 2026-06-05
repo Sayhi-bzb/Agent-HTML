@@ -104,7 +104,7 @@ describe("canvas host preferences", () => {
     const values = stubStorage()
 
     writeCanvasMessageDraft({
-      blockPath: "summary",
+      blockId: "summary",
       draft: "Improve this",
       filePath: ".agent-html/artifacts/example.agent.tsx",
     })
@@ -125,44 +125,44 @@ describe("canvas host preferences", () => {
     stubStorage()
 
     writeCanvasMessageDraft({
-      blockPath: "summary",
+      blockId: "summary",
       draft: "Improve summary",
       filePath: ".agent-html/artifacts/example.agent.tsx",
     })
     writeCanvasMessageDraft({
-      blockPath: "details",
+      blockId: "details",
       draft: "Improve details",
       filePath: ".agent-html/artifacts/example.agent.tsx",
     })
 
     expect(
       readCanvasMessageDraft({
-        blockPath: "summary",
+        blockId: "summary",
         filePath: ".agent-html/artifacts/example.agent.tsx",
       })
     ).toBe("Improve summary")
     expect(
       readCanvasMessageDraft({
-        blockPath: "details",
+        blockId: "details",
         filePath: ".agent-html/artifacts/example.agent.tsx",
       })
     ).toBe("Improve details")
 
     writeCanvasMessageDraft({
-      blockPath: "summary",
+      blockId: "summary",
       draft: "",
       filePath: ".agent-html/artifacts/example.agent.tsx",
     })
 
     expect(
       readCanvasMessageDraft({
-        blockPath: "summary",
+        blockId: "summary",
         filePath: ".agent-html/artifacts/example.agent.tsx",
       })
     ).toBe("")
     expect(
       readCanvasMessageDraft({
-        blockPath: "details",
+        blockId: "details",
         filePath: ".agent-html/artifacts/example.agent.tsx",
       })
     ).toBe("Improve details")

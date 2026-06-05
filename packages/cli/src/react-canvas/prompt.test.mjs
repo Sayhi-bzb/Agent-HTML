@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { compactInteractionSnapshot, formatBlockPrompt } from "./prompt.mjs"
 
 const payload = {
-  blockPath: "summary",
+  blockId: "summary",
   filePath: ".agent-html/artifacts/example.agent.tsx",
   request: "Tighten this summary.",
 }
@@ -13,7 +13,7 @@ describe("React Canvas prompt bridge", () => {
     const prompt = formatBlockPrompt(payload)
 
     expect(prompt).toContain("filePath: .agent-html/artifacts/example.agent.tsx")
-    expect(prompt).toContain("blockPath: summary")
+    expect(prompt).toContain("blockId: summary")
     expect(prompt).not.toContain("implementationPath:")
     expect(prompt).not.toContain("```tsx")
     expect(prompt).not.toContain("targetStatus")

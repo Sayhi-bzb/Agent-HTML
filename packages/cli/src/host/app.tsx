@@ -203,7 +203,7 @@ export function ReactCanvasHostApp() {
     setMessageDraft(
       resolvedActiveFilePath
         ? readCanvasMessageDraft({
-            blockPath: target.id,
+            blockId: target.id,
             filePath: resolvedActiveFilePath,
           })
         : ""
@@ -249,11 +249,11 @@ export function ReactCanvasHostApp() {
 
     try {
       const blockSource = await fetchBlockSource({
-        blockPath: target.id,
+        blockId: target.id,
         filePath: resolvedActiveFilePath,
       })
       const formatted = formatBlockPrompt({
-        blockPath: target.id,
+        blockId: target.id,
         filePath: resolvedActiveFilePath,
         implementationPath: blockSource.implementationPath ?? undefined,
         interactionSnapshot: getCanvasInteractionSnapshot({
@@ -266,7 +266,7 @@ export function ReactCanvasHostApp() {
       await navigator.clipboard.writeText(formatted)
       publishCanvasPromptDebug(formatted)
       writeCanvasMessageDraft({
-        blockPath: target.id,
+        blockId: target.id,
         draft: "",
         filePath: resolvedActiveFilePath,
       })
@@ -286,7 +286,7 @@ export function ReactCanvasHostApp() {
     }
 
     writeCanvasMessageDraft({
-      blockPath: promptTarget.id,
+      blockId: promptTarget.id,
       draft,
       filePath: resolvedActiveFilePath,
     })

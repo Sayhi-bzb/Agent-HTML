@@ -54,13 +54,13 @@ function isThemePresetId(value: unknown): value is CanvasThemePresetId {
 }
 
 function messageDraftKey({
-  blockPath,
+  blockId,
   filePath,
 }: {
-  blockPath: string
+  blockId: string
   filePath: string
 }) {
-  return `${encodeURIComponent(filePath)}::${encodeURIComponent(blockPath)}`
+  return `${encodeURIComponent(filePath)}::${encodeURIComponent(blockId)}`
 }
 
 function readStoredCanvasHostPreferences() {
@@ -176,29 +176,29 @@ export function writeCanvasHostPreferences(
 }
 
 export function readCanvasMessageDraft({
-  blockPath,
+  blockId,
   filePath,
 }: {
-  blockPath: string
+  blockId: string
   filePath: string
 }) {
   const preferences = readCanvasHostPreferences()
   return (
-    preferences.messageDrafts[messageDraftKey({ blockPath, filePath })] ?? ""
+    preferences.messageDrafts[messageDraftKey({ blockId, filePath })] ?? ""
   )
 }
 
 export function writeCanvasMessageDraft({
-  blockPath,
+  blockId,
   draft,
   filePath,
 }: {
-  blockPath: string
+  blockId: string
   draft: string
   filePath: string
 }) {
   const preferences = readCanvasHostPreferences()
-  const key = messageDraftKey({ blockPath, filePath })
+  const key = messageDraftKey({ blockId, filePath })
   const messageDrafts = { ...preferences.messageDrafts }
 
   if (draft) {

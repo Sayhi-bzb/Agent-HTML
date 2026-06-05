@@ -4,7 +4,6 @@ import path from "node:path"
 import { discoverReactArtifacts, workspaceRelativePath } from "../react-canvas/paths.mjs"
 import { runGuard } from "../react-canvas/guard.mjs"
 import {
-  extractBlockSource,
   readTextFile,
   resolveBlockImplementationPath,
 } from "../react-canvas/source.mjs"
@@ -145,19 +144,14 @@ export async function handleRequest({ request, response, root }) {
     }
 
     const absolutePath = assertInsideWorkspace(root, filePath)
-    const source = await readTextFile(absolutePath)
+    await readTextFile(absolutePath)
     const implementationPath = await resolveBlockImplementationPath({
-      blockPath: blockId,
+      blockId,
       filePath,
       root,
     })
-    const implementationSource = implementationPath
-      ? await readTextFile(assertInsideWorkspace(root, implementationPath))
-      : null
     sendJson(response, {
       implementationPath,
-      implementationSource,
-      selectedSource: extractBlockSource(source, blockId),
     })
     return
   }

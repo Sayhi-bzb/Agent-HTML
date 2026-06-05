@@ -88,7 +88,7 @@ export function formatBlockPrompt(payload) {
   const lines = [
     "---",
     `filePath: ${payload.filePath}`,
-    `blockPath: ${payload.blockPath}`,
+    `blockId: ${payload.blockId}`,
     payload.implementationPath
       ? `implementationPath: ${payload.implementationPath}`
       : null,

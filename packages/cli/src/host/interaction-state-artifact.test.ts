@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  createKanbanMoveChange,
-  createTextEditChange,
-} from "#agent-html-playground/artifacts/interaction-state.agent"
+import { createKanbanMoveChange } from "#agent-html-playground/artifacts/interaction-state/kanban-data"
+import { createTextEditChange } from "#agent-html-playground/artifacts/interaction-state/state-change"
 
 describe("interaction-state artifact interaction helpers", () => {
   it("creates input text diffs from focus start to blur value", () => {

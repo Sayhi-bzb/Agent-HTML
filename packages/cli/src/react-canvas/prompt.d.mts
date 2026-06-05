@@ -43,7 +43,7 @@ export type CompactBlockPromptInteraction = {
 }
 
 export type BlockPromptPayload = {
-  blockPath: string
+  blockId: string
   filePath: string
   implementationPath?: string
   interactionSnapshot?: BlockPromptInteractionSnapshot | null

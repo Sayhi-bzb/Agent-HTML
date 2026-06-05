@@ -24,7 +24,7 @@ export type BlockOverlay = {
 }
 
 export type CanvasTarget = {
-  blockPath: string
+  blockId: string
   filePath: string
   implementationPath?: string
 }

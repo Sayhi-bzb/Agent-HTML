@@ -96,11 +96,11 @@ function toPosixPath(value) {
 }
 
 export async function resolveBlockImplementationPath({
-  blockPath,
+  blockId,
   filePath,
   root,
 }) {
-  if (!isKebabCase(blockPath) || !isReactCanvasSourceRoot(filePath)) {
+  if (!isKebabCase(blockId) || !isReactCanvasSourceRoot(filePath)) {
     return null
   }
 
@@ -113,7 +113,7 @@ export async function resolveBlockImplementationPath({
   const candidateRelativePath = path.join(
     path.dirname(filePath),
     artifactName,
-    `${blockPath}.block.tsx`
+    `${blockId}.block.tsx`
   )
   const candidatePath = path.resolve(root, candidateRelativePath)
   const agentHtmlRoot = path.resolve(root, ".agent-html")

@@ -77,11 +77,10 @@ describe("React Canvas dev host", () => {
       const blockSource = await fetch(blockSourceUrl).then((response) =>
         response.json()
       )
-      expect(blockSource.selectedSource).toContain('<Block id="brief"')
       expect(blockSource.implementationPath).toBe(
         ".agent-html/examples/example/brief.block.tsx"
       )
-      expect(blockSource.implementationSource).toContain("BriefBlock")
+      expect(Object.keys(blockSource).sort()).toEqual(["implementationPath"])
 
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(
