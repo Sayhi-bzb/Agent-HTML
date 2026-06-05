@@ -88,4 +88,5 @@ Write normal React artifacts in `.agent-html/artifacts/*.agent.tsx`. For cold st
 ## Examples
 
 - Imitate `examples/example.agent.tsx` for split artifact structure.
-- Treat `artifacts/interaction-state.agent.tsx` as coverage, not style.
+- Treat `artifacts/interaction-state.agent.tsx` as a compact interaction example.
+- Use `docs/ui/README.md` for component choice before scanning the full primitive surface.

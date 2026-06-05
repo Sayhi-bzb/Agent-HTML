@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useState } from "react"
 import { useEmitArtifactStateChange } from "@agent-html/react"
 
 import {
@@ -18,9 +18,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../../ui/alert-dialog"
+import { Alert, AlertDescription, AlertTitle } from "../../ui/alert"
 import { Badge } from "../../ui/badge"
 import { Button } from "../../ui/button"
-import { Calendar } from "../../ui/calendar"
 import {
   Card,
   CardContent,
@@ -28,37 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../ui/card"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "../../ui/carousel"
 import { Checkbox } from "../../ui/checkbox"
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "../../ui/combobox"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../../ui/command"
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuGroup,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "../../ui/context-menu"
 import {
   Collapsible,
   CollapsibleContent,
@@ -74,22 +44,6 @@ import {
   DialogTrigger,
 } from "../../ui/dialog"
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "../../ui/drawer"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../ui/dropdown-menu"
-import {
   Field,
   FieldGroup,
   FieldLabel,
@@ -97,28 +51,9 @@ import {
   FieldSet,
 } from "../../ui/field"
 import { Input } from "../../ui/input"
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "../../ui/input-otp"
-import {
-  Menubar,
-  MenubarContent,
-  MenubarGroup,
-  MenubarItem,
-  MenubarMenu,
-  MenubarTrigger,
-} from "../../ui/menubar"
-import { NativeSelect } from "../../ui/native-select"
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover"
+import { Progress } from "../../ui/progress"
 import { RadioGroup, RadioGroupItem } from "../../ui/radio-group"
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "../../ui/resizable"
 import {
   Select,
   SelectContent,
@@ -135,22 +70,22 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../../ui/sheet"
+import { Skeleton } from "../../ui/skeleton"
 import { Slider } from "../../ui/slider"
 import { Switch } from "../../ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs"
 import { Textarea } from "../../ui/textarea"
-import { Toggle } from "../../ui/toggle"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../ui/tooltip"
 import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group"
 
 import { createTextEditChange } from "./state-change"
 
 const blockId = "interaction-controls"
-type ComboboxOptionValue = "design" | "runtime" | "host"
-const comboboxOptions = [
-  { label: "Design", value: "design" },
-  { label: "Runtime", value: "runtime" },
-  { label: "Host", value: "host" },
-] satisfies { label: string; value: ComboboxOptionValue }[]
 
 function SectionCard({
   children,
@@ -191,72 +126,28 @@ function RadioOption({
 
 export function InteractionControlsBlock() {
   const emitChange = useEmitArtifactStateChange({ blockId })
-  const [carouselApi, setCarouselApi] = useState<{
-    off: (eventName: "select", callback: () => void) => void
-    on: (eventName: "select", callback: () => void) => void
-    selectedScrollSnap: () => number
-  } | null>(null)
   const [state, setState] = useState({
-    accordion: "forms",
+    accordion: "summary",
     alertDialogOpen: false,
-    calendar: new Date(2026, 5, 4),
-    carouselSlide: 0,
     checkbox: false,
     collapsibleOpen: false,
-    combobox: "design",
-    commandAction: "none",
-    contextAction: "none",
     dialogOpen: false,
-    drawerOpen: false,
-    dropdownAction: "none",
     input: "Canvas",
-    menubarAction: "none",
-    nativeSelect: "draft",
-    otp: "",
+    mode: "compact",
     popoverOpen: false,
+    progress: 55,
     radio: "agent",
-    resizableLayout: "40/60",
     select: "review",
     sheetOpen: false,
     slider: 40,
     switch: false,
-    tabs: "forms",
+    tabs: "overview",
     textarea: "Try a short instruction.",
-    toggle: false,
-    toggleGroup: "compact",
   })
   const [textEditStart, setTextEditStart] = useState({
     input: state.input,
     textarea: state.textarea,
   })
-  const dateLabel = useMemo(
-    () => state.calendar.toISOString().slice(0, 10),
-    [state.calendar]
-  )
-
-  useEffect(() => {
-    const api = carouselApi
-
-    if (!api) {
-      return
-    }
-
-    function handleSelect() {
-      record({
-        component: "carousel",
-        controlId: "carouselSlide",
-        kind: "select",
-        semantic: "select-carousel-slide",
-        to: api!.selectedScrollSnap(),
-      })
-    }
-
-    api.on("select", handleSelect)
-
-    return () => {
-      api.off("select", handleSelect)
-    }
-  }, [carouselApi, state.carouselSlide])
 
   function record<T>({
     component,
@@ -303,20 +194,18 @@ export function InteractionControlsBlock() {
       to,
     })
 
-    if (!change) {
-      return
+    if (change) {
+      emitChange(change)
     }
-
-    emitChange(change)
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Full interaction test bench</CardTitle>
+        <CardTitle>Interaction patterns</CardTitle>
         <CardDescription>
-          Use these controls, then submit a block prompt to inspect the compact
-          interaction diff.
+          A compact example of default UI choices and instrumented state
+          changes.
         </CardDescription>
       </CardHeader>
       <CardContent className="canvas-stack-xl">
@@ -333,59 +222,82 @@ export function InteractionControlsBlock() {
           value={state.tabs}
         >
           <TabsList>
-            <TabsTrigger value="forms">Forms</TabsTrigger>
-            <TabsTrigger value="actions">Actions</TabsTrigger>
-            <TabsTrigger value="overlays">Overlays</TabsTrigger>
-            <TabsTrigger value="layout">Layout</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="input">Input</TabsTrigger>
+            <TabsTrigger value="disclosure">Disclosure</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="forms">
+          <TabsContent value="overview">
             <SectionCard
-              description="Value, boolean, choice, date, and text state."
-              title="Form controls"
+              description="Start with visible content and semantic status before using heavier interaction."
+              title="Start here"
             >
-              <FieldSet>
-                <FieldLegend>Boolean controls</FieldLegend>
-                <FieldGroup>
-                  <Field orientation="horizontal">
-                    <Checkbox
-                      checked={state.checkbox}
-                      id="capture-changes"
-                      onCheckedChange={(value) =>
-                        record({
-                          component: "checkbox",
-                          controlId: "checkbox",
-                          kind: "toggle",
-                          semantic: "toggle-checkbox",
-                          to: value === true,
-                        })
-                      }
-                    />
-                    <FieldLabel htmlFor="capture-changes">Checkbox</FieldLabel>
-                    <Badge variant="secondary">
-                      {state.checkbox ? "checked" : "unchecked"}
-                    </Badge>
-                  </Field>
-                  <Field orientation="horizontal">
-                    <Switch
-                      checked={state.switch}
-                      id="interaction-switch"
-                      onCheckedChange={(value) =>
-                        record({
-                          component: "switch",
-                          controlId: "switch",
-                          kind: "toggle",
-                          semantic: "toggle-switch",
-                          to: value,
-                        })
-                      }
-                    />
-                    <FieldLabel htmlFor="interaction-switch">Switch</FieldLabel>
-                  </Field>
-                </FieldGroup>
-              </FieldSet>
+              <Alert>
+                <AlertTitle>Default path</AlertTitle>
+                <AlertDescription>
+                  Use cards, badges, alerts, tables, tabs, separators, and
+                  progress states before reaching for specialized components.
+                </AlertDescription>
+              </Alert>
 
-              <FieldGroup className="canvas-grid-gap grid gap-4 md:grid-cols-2">
+              <div className="canvas-grid-gap md:grid-cols-3">
+                <div className="canvas-content-panel-sm canvas-stack-sm">
+                  <Badge>Review</Badge>
+                  <p className="canvas-text-body text-muted-foreground">
+                    Badge for read-only state.
+                  </p>
+                </div>
+                <div className="canvas-content-panel-sm canvas-stack-sm">
+                  <p className="canvas-text-body">Known progress</p>
+                  <Progress value={state.progress} />
+                </div>
+                <div className="canvas-content-panel-sm canvas-stack-sm">
+                  <p className="canvas-text-body">Loading placeholder</p>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </div>
+
+              <div className="canvas-wrap-sm">
+                <Button
+                  onClick={() =>
+                    record({
+                      component: "button",
+                      controlId: "progress",
+                      kind: "set",
+                      semantic: "advance-progress",
+                      to: Math.min(state.progress + 10, 100),
+                    })
+                  }
+                  type="button"
+                >
+                  Advance
+                </Button>
+                <Button
+                  onClick={() =>
+                    record({
+                      component: "button",
+                      controlId: "progress",
+                      kind: "set",
+                      semantic: "reset-progress",
+                      to: 55,
+                    })
+                  }
+                  type="button"
+                  variant="outline"
+                >
+                  Reset
+                </Button>
+              </div>
+            </SectionCard>
+          </TabsContent>
+
+          <TabsContent value="input">
+            <SectionCard
+              description="Choose form controls by the kind of value users provide."
+              title="Collect input"
+            >
+              <FieldGroup className="canvas-grid-gap md:grid-cols-2">
                 <Field>
                   <FieldLabel htmlFor="interaction-input">Input</FieldLabel>
                   <Input
@@ -444,7 +356,7 @@ export function InteractionControlsBlock() {
                 </Field>
               </FieldGroup>
 
-              <FieldGroup className="canvas-grid-gap grid gap-4 md:grid-cols-2">
+              <FieldGroup className="canvas-grid-gap md:grid-cols-2">
                 <Field>
                   <FieldLabel>Status select</FieldLabel>
                   <Select
@@ -472,44 +384,96 @@ export function InteractionControlsBlock() {
                   </Select>
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="native-status">Native select</FieldLabel>
-                  <NativeSelect
-                    id="native-status"
-                    onChange={(event) =>
-                      record({
-                        component: "native-select",
-                        controlId: "nativeSelect",
-                        kind: "select",
-                        semantic: "set-native-select-status",
-                        to: event.currentTarget.value,
-                      })
-                    }
-                    value={state.nativeSelect}
+                  <FieldLabel>Mode switch</FieldLabel>
+                  <ToggleGroup
+                    onValueChange={(value) => {
+                      if (value) {
+                        record({
+                          component: "toggle-group",
+                          controlId: "mode",
+                          kind: "select",
+                          semantic: "set-display-mode",
+                          to: value,
+                        })
+                      }
+                    }}
+                    type="single"
+                    value={state.mode}
                   >
-                    <option value="draft">Draft</option>
-                    <option value="review">Review</option>
-                    <option value="ready">Ready</option>
-                  </NativeSelect>
+                    <ToggleGroupItem value="compact">Compact</ToggleGroupItem>
+                    <ToggleGroupItem value="expanded">Expanded</ToggleGroupItem>
+                  </ToggleGroup>
                 </Field>
               </FieldGroup>
 
               <FieldSet>
-                <FieldLegend>Mode</FieldLegend>
-                <RadioGroup
-                  onValueChange={(value) =>
-                    record({
-                      component: "radio-group",
-                      controlId: "radio",
-                      kind: "select",
-                      semantic: "set-radio-mode",
-                      to: value,
-                    })
-                  }
-                  value={state.radio}
-                >
-                  <RadioOption id="radio-agent" label="Agent" value="agent" />
-                  <RadioOption id="radio-human" label="Human" value="human" />
-                </RadioGroup>
+                <FieldLegend>Choice and boolean values</FieldLegend>
+                <FieldGroup className="canvas-grid-gap md:grid-cols-2">
+                  <Field>
+                    <FieldLabel>Semantic single choice</FieldLabel>
+                    <RadioGroup
+                      onValueChange={(value) =>
+                        record({
+                          component: "radio-group",
+                          controlId: "radio",
+                          kind: "select",
+                          semantic: "set-radio-mode",
+                          to: value,
+                        })
+                      }
+                      value={state.radio}
+                    >
+                      <RadioOption
+                        id="radio-agent"
+                        label="Agent"
+                        value="agent"
+                      />
+                      <RadioOption
+                        id="radio-human"
+                        label="Human"
+                        value="human"
+                      />
+                    </RadioGroup>
+                  </Field>
+                  <div className="canvas-stack-md">
+                    <Field orientation="horizontal">
+                      <Checkbox
+                        checked={state.checkbox}
+                        id="capture-changes"
+                        onCheckedChange={(value) =>
+                          record({
+                            component: "checkbox",
+                            controlId: "checkbox",
+                            kind: "toggle",
+                            semantic: "toggle-form-checkbox",
+                            to: value === true,
+                          })
+                        }
+                      />
+                      <FieldLabel htmlFor="capture-changes">
+                        Form checkbox
+                      </FieldLabel>
+                    </Field>
+                    <Field orientation="horizontal">
+                      <Switch
+                        checked={state.switch}
+                        id="interaction-switch"
+                        onCheckedChange={(value) =>
+                          record({
+                            component: "switch",
+                            controlId: "switch",
+                            kind: "toggle",
+                            semantic: "toggle-immediate-setting",
+                            to: value,
+                          })
+                        }
+                      />
+                      <FieldLabel htmlFor="interaction-switch">
+                        Immediate setting
+                      </FieldLabel>
+                    </Field>
+                  </div>
+                </FieldGroup>
               </FieldSet>
 
               <Field>
@@ -539,252 +503,62 @@ export function InteractionControlsBlock() {
                   value={[state.slider]}
                 />
               </Field>
+            </SectionCard>
+          </TabsContent>
 
-              <FieldGroup className="canvas-grid-gap grid gap-4 md:grid-cols-2">
-                <Field>
-                  <FieldLabel>Input OTP</FieldLabel>
-                  <InputOTP
-                    maxLength={6}
-                    onChange={(value: string) =>
-                      record({
-                        component: "input-otp",
-                        controlId: "otp",
-                        kind: "set",
-                        semantic: "set-otp-code",
-                        to: value,
-                      })
-                    }
-                    value={state.otp}
-                  >
-                    <InputOTPGroup>
-                      {[0, 1, 2].map((index) => (
-                        <InputOTPSlot index={index} key={index} />
-                      ))}
-                    </InputOTPGroup>
-                    <InputOTPSeparator />
-                    <InputOTPGroup>
-                      {[3, 4, 5].map((index) => (
-                        <InputOTPSlot index={index} key={index} />
-                      ))}
-                    </InputOTPGroup>
-                  </InputOTP>
-                </Field>
-                <Field>
-                  <div className="canvas-cluster-md items-center justify-between">
-                    <FieldLabel>Calendar</FieldLabel>
-                    <Badge variant="outline">{dateLabel}</Badge>
+          <TabsContent value="disclosure">
+            <SectionCard
+              description="Hide or overlay content only when it makes the main path cheaper."
+              title="Reveal or overlay"
+            >
+              <Accordion
+                onValueChange={(value) =>
+                  record({
+                    component: "accordion",
+                    controlId: "accordion",
+                    kind: "open",
+                    semantic: "set-accordion-section",
+                    to: value,
+                  })
+                }
+                type="single"
+                value={state.accordion}
+              >
+                <AccordionItem value="summary">
+                  <AccordionTrigger>Optional implementation notes</AccordionTrigger>
+                  <AccordionContent>
+                    Use accordions for supporting detail, not content users
+                    must compare to complete the task.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+
+              <Collapsible
+                onOpenChange={(value) =>
+                  record({
+                    component: "collapsible",
+                    controlId: "collapsibleOpen",
+                    kind: "open",
+                    semantic: "set-collapsible-open",
+                    to: value,
+                  })
+                }
+                open={state.collapsibleOpen}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button type="button" variant="outline">
+                    Advanced controls
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="canvas-content-panel">
+                    <p className="canvas-text-body text-muted-foreground">
+                      Collapsible content is local and optional.
+                    </p>
                   </div>
-                  <Calendar
-                    mode="single"
-                    onSelect={(date: Date | undefined) => {
-                      if (date) {
-                        record({
-                          component: "calendar",
-                          controlId: "calendar",
-                          kind: "select",
-                          semantic: "select-calendar-date",
-                          to: date,
-                        })
-                      }
-                    }}
-                    selected={state.calendar}
-                  />
-                </Field>
-              </FieldGroup>
+                </CollapsibleContent>
+              </Collapsible>
 
-              <Field>
-                <FieldLabel>Combobox</FieldLabel>
-                <Combobox
-                  itemToStringValue={(value: string) =>
-                    comboboxOptions.find((option) => option.value === value)
-                      ?.label ?? value
-                  }
-                  items={comboboxOptions.map((option) => option.value)}
-                  onValueChange={(value: unknown) => {
-                    if (typeof value !== "string") {
-                      return
-                    }
-
-                    record({
-                      component: "combobox",
-                      controlId: "combobox",
-                      kind: "select",
-                      semantic: "select-combobox-option",
-                      to: value,
-                    })
-                  }}
-                  value={state.combobox}
-                >
-                  <ComboboxInput placeholder="Select area" />
-                  <ComboboxContent>
-                    <ComboboxEmpty>No area found.</ComboboxEmpty>
-                    <ComboboxList>
-                      {(value: string) => {
-                        const option = comboboxOptions.find(
-                          (item) => item.value === value
-                        )
-
-                        return (
-                          <ComboboxItem key={value} value={value}>
-                            {option?.label ?? value}
-                          </ComboboxItem>
-                        )
-                      }}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
-              </Field>
-            </SectionCard>
-          </TabsContent>
-
-          <TabsContent value="actions">
-            <SectionCard
-              description="Controls that produce action intent."
-              title="Action controls"
-            >
-              <div className="canvas-wrap-sm">
-                <Toggle
-                  onPressedChange={(value) =>
-                    record({
-                      component: "toggle",
-                      controlId: "toggle",
-                      kind: "toggle",
-                      semantic: "toggle-single-button",
-                      to: value,
-                    })
-                  }
-                  pressed={state.toggle}
-                >
-                  Toggle
-                </Toggle>
-                <ToggleGroup
-                  onValueChange={(value) => {
-                    if (value) {
-                      record({
-                        component: "toggle-group",
-                        controlId: "toggleGroup",
-                        kind: "select",
-                        semantic: "set-toggle-group-mode",
-                        to: value,
-                      })
-                    }
-                  }}
-                  type="single"
-                  value={state.toggleGroup}
-                >
-                  <ToggleGroupItem value="compact">Compact</ToggleGroupItem>
-                  <ToggleGroupItem value="expanded">Expanded</ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-
-              <Command className="border">
-                <CommandInput placeholder="Run command..." />
-                <CommandList>
-                  <CommandEmpty>No command found.</CommandEmpty>
-                  <CommandGroup>
-                    {["summarize", "rewrite", "validate"].map((action) => (
-                      <CommandItem
-                        key={action}
-                        onSelect={() =>
-                          record({
-                            component: "command",
-                            controlId: "commandAction",
-                            kind: "action",
-                            semantic: "run-command-action",
-                            to: action,
-                          })
-                        }
-                        value={action}
-                      >
-                        {action}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-
-              <div className="canvas-wrap-sm">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" variant="outline">
-                      Dropdown
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem
-                        onSelect={() =>
-                          record({
-                            component: "dropdown-menu",
-                            controlId: "dropdownAction",
-                            kind: "action",
-                            semantic: "select-dropdown-action",
-                            to: "copy",
-                          })
-                        }
-                      >
-                        Copy
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <ContextMenu>
-                  <ContextMenuTrigger asChild>
-                    <Button type="button" variant="outline">
-                      Context area
-                    </Button>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent>
-                    <ContextMenuGroup>
-                      <ContextMenuItem
-                        onSelect={() =>
-                          record({
-                            component: "context-menu",
-                            controlId: "contextAction",
-                            kind: "action",
-                            semantic: "select-context-action",
-                            to: "inspect",
-                          })
-                        }
-                      >
-                        Inspect
-                      </ContextMenuItem>
-                    </ContextMenuGroup>
-                  </ContextMenuContent>
-                </ContextMenu>
-
-                <Menubar>
-                  <MenubarMenu>
-                    <MenubarTrigger>File</MenubarTrigger>
-                    <MenubarContent>
-                      <MenubarGroup>
-                        <MenubarItem
-                          onSelect={() =>
-                            record({
-                              component: "menubar",
-                              controlId: "menubarAction",
-                              kind: "action",
-                              semantic: "select-menubar-action",
-                              to: "export",
-                            })
-                          }
-                        >
-                          Export
-                        </MenubarItem>
-                      </MenubarGroup>
-                    </MenubarContent>
-                  </MenubarMenu>
-                </Menubar>
-              </div>
-            </SectionCard>
-          </TabsContent>
-
-          <TabsContent value="overlays">
-            <SectionCard
-              description="Open state is captured for every overlay."
-              title="Overlay controls"
-            >
               <div className="canvas-wrap-sm">
                 <Dialog
                   onOpenChange={(value) =>
@@ -800,14 +574,14 @@ export function InteractionControlsBlock() {
                 >
                   <DialogTrigger asChild>
                     <Button type="button" variant="outline">
-                      Dialog
+                      Focused task
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Dialog</DialogTitle>
+                      <DialogTitle>Focused task</DialogTitle>
                       <DialogDescription>
-                        Dialog open state is tracked.
+                        Use Dialog for a task that needs modal focus.
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter showCloseButton />
@@ -828,14 +602,15 @@ export function InteractionControlsBlock() {
                 >
                   <AlertDialogTrigger asChild>
                     <Button type="button" variant="outline">
-                      Alert
+                      Confirm
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Confirm action</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This alert dialog tracks open state.
+                        Use AlertDialog for destructive or irreversible
+                        confirmation.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -859,46 +634,18 @@ export function InteractionControlsBlock() {
                 >
                   <SheetTrigger asChild>
                     <Button type="button" variant="outline">
-                      Sheet
+                      Side task
                     </Button>
                   </SheetTrigger>
                   <SheetContent>
                     <SheetHeader>
-                      <SheetTitle>Sheet</SheetTitle>
+                      <SheetTitle>Side task</SheetTitle>
                       <SheetDescription>
-                        Sheet state is tracked.
+                        Use Sheet when work should preserve the page context.
                       </SheetDescription>
                     </SheetHeader>
                   </SheetContent>
                 </Sheet>
-
-                <Drawer
-                  onOpenChange={(value: boolean) =>
-                    record({
-                      component: "drawer",
-                      controlId: "drawerOpen",
-                      kind: "open",
-                      semantic: "set-drawer-open",
-                      to: value,
-                    })
-                  }
-                  open={state.drawerOpen}
-                >
-                  <DrawerTrigger asChild>
-                    <Button type="button" variant="outline">
-                      Drawer
-                    </Button>
-                  </DrawerTrigger>
-                  <DrawerContent>
-                    <DrawerHeader>
-                      <DrawerTitle>Drawer</DrawerTitle>
-                      <DrawerDescription>
-                        Drawer state is tracked.
-                      </DrawerDescription>
-                    </DrawerHeader>
-                    <DrawerFooter />
-                  </DrawerContent>
-                </Drawer>
 
                 <Popover
                   onOpenChange={(value) =>
@@ -914,114 +661,27 @@ export function InteractionControlsBlock() {
                 >
                   <PopoverTrigger asChild>
                     <Button type="button" variant="outline">
-                      Popover
+                      Context
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent>
                     <p className="canvas-text-body text-muted-foreground">
-                      Popover state is tracked.
+                      Use Popover for richer contextual detail.
                     </p>
                   </PopoverContent>
                 </Popover>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button type="button" variant="ghost">
+                        Tooltip
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Short helper text only.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-
-              <Accordion
-                onValueChange={(value) =>
-                  record({
-                    component: "accordion",
-                    controlId: "accordion",
-                    kind: "open",
-                    semantic: "set-accordion-section",
-                    to: value,
-                  })
-                }
-                type="single"
-                value={state.accordion}
-              >
-                <AccordionItem value="forms">
-                  <AccordionTrigger>Accordion trigger</AccordionTrigger>
-                  <AccordionContent>
-                    Accordion state is tracked.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-
-              <Collapsible
-                onOpenChange={(value) =>
-                  record({
-                    component: "collapsible",
-                    controlId: "collapsibleOpen",
-                    kind: "open",
-                    semantic: "set-collapsible-open",
-                    to: value,
-                  })
-                }
-                open={state.collapsibleOpen}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button type="button" variant="outline">
-                    Collapsible
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="canvas-content-panel">
-                    <p className="canvas-text-body text-muted-foreground">
-                      Collapsible open state is tracked.
-                    </p>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </SectionCard>
-          </TabsContent>
-
-          <TabsContent value="layout">
-            <SectionCard
-              description="Layout and carousel state produce compact diffs."
-              title="Layout controls"
-            >
-              <div className="h-32 rounded-lg border">
-                <ResizablePanelGroup
-                  onLayoutChange={(layout: Record<string, number>) =>
-                    record({
-                      component: "resizable",
-                      controlId: "resizableLayout",
-                      kind: "resize",
-                      semantic: "set-resizable-layout",
-                      to: Object.values(layout).map(Math.round).join("/"),
-                    })
-                  }
-                  orientation="horizontal"
-                >
-                  <ResizablePanel defaultSize={40}>
-                    <div className="flex h-full items-center justify-center p-4">
-                      Left
-                    </div>
-                  </ResizablePanel>
-                  <ResizableHandle withHandle />
-                  <ResizablePanel defaultSize={60}>
-                    <div className="flex h-full items-center justify-center p-4">
-                      Right
-                    </div>
-                  </ResizablePanel>
-                </ResizablePanelGroup>
-              </div>
-
-              <Carousel
-                className="px-12"
-                setApi={(api) => setCarouselApi(api ?? null)}
-              >
-                <CarouselContent>
-                  {[0, 1, 2].map((item) => (
-                    <CarouselItem key={item}>
-                      <div className="canvas-content-panel text-center">
-                        Slide {item + 1}
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
             </SectionCard>
           </TabsContent>
         </Tabs>

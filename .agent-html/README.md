@@ -44,7 +44,7 @@ When touching Canvas classes, tokens, or internal chrome:
 ## Copy Policy
 
 - Copy `examples/example.agent.tsx` for artifacts that need an overview file and semantic block files.
-- Do not copy `artifacts/interaction-state.agent.tsx` as a style template; it is a broad coverage surface.
+- Use `artifacts/interaction-state.agent.tsx` as a compact interaction example and `docs/ui/README.md` for component choice.
 
 ## Workspace Contract
 
