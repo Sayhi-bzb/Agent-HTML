@@ -3,9 +3,9 @@ import os from "node:os"
 import path from "node:path"
 import { describe, expect, it } from "vitest"
 
-import { resolveBlockImplementationPath } from "./source.mjs"
+import { resolveBlockImplementationPath } from "./block-implementation.mjs"
 
-describe("React Canvas source helpers", () => {
+describe("React Canvas block implementation lookup", () => {
   it("resolves split artifact block implementation files", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-source-"))
     await fs.mkdir(path.join(root, ".agent-html", "artifacts", "demo"), {
@@ -56,7 +56,7 @@ describe("React Canvas source helpers", () => {
     ).resolves.toBeNull()
   })
 
-  it("does not resolve unsafe block paths", async () => {
+  it("does not resolve unsafe block ids", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-source-"))
 
     await expect(

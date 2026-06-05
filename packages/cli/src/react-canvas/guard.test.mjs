@@ -1,6 +1,14 @@
+import fs from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
 import { describe, expect, it } from "vitest"
 
-import { analyzeReactCanvasArtifact } from "./guard.mjs"
+import {
+  analyzeBlockImplementationSource,
+  analyzeReactCanvasArtifact,
+  reactCanvasGuardScopes,
+  runGuard,
+} from "./guard.mjs"
 
 function issueMessages(source) {
   return analyzeReactCanvasArtifact({
@@ -19,6 +27,97 @@ function issuesFor(source) {
 }
 
 describe("React Canvas Guard", () => {
+  it("labels artifact entry protocol issues with their guard scope", () => {
+    const issues = issuesFor(`
+      import { Block } from "@agent-html/react"
+      export default function Demo() {
+        return <Block id="summary">Summary</Block>
+      }
+    `)
+
+    expect(
+      issues.find((issue) => issue.message === "Artifact must use the Artifact wrapper.")
+        ?.guardScope
+    ).toBe(reactCanvasGuardScopes.artifactEntryProtocol)
+  })
+
+  it("labels workspace boundary issues with their guard scope", () => {
+    const issues = issuesFor(`
+      import { Artifact, Block } from "@agent-html/react"
+      import { Button } from "@/app/shared/ui/button"
+      export default function Demo() {
+        return (
+          <Artifact title="Demo">
+            <Block id="summary">{Button}</Block>
+          </Artifact>
+        )
+      }
+    `)
+
+    expect(
+      issues.find((issue) => issue.message === "Import crosses the React Canvas boundary.")
+        ?.guardScope
+    ).toBe(reactCanvasGuardScopes.workspaceBoundary)
+  })
+
+  it("checks split block implementation source boundaries", () => {
+    const issues = analyzeBlockImplementationSource({
+      relativePath: ".agent-html/artifacts/demo/summary.block.tsx",
+      source: `
+        export function SummaryBlock() {
+          return <section className="bg-purple-900 rounded-3xl">Unsafe</section>
+        }
+      `,
+    })
+
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        guardScope: reactCanvasGuardScopes.blockImplementationSource,
+        message: expect.stringContaining("Unsafe className"),
+      })
+    )
+  })
+
+  it("runs artifact entry protocol guard and block implementation source guard", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-guard-"))
+    await fs.mkdir(path.join(root, ".agent-html", "artifacts", "demo"), {
+      recursive: true,
+    })
+    await fs.writeFile(
+      path.join(root, ".agent-html", "artifacts", "demo.agent.tsx"),
+      `
+        import { Artifact, Block } from "@agent-html/react"
+        export default function Demo() {
+          return (
+            <Artifact title="Demo">
+              <Block id="summary">Summary</Block>
+            </Artifact>
+          )
+        }
+      `
+    )
+    await fs.writeFile(
+      path.join(root, ".agent-html", "artifacts", "demo", "summary.block.tsx"),
+      `
+        export function SummaryBlock() {
+          return <section className="bg-purple-900">Unsafe</section>
+        }
+      `
+    )
+
+    const report = await runGuard({ root })
+
+    expect(report.artifacts).toHaveLength(1)
+    expect(report.blockImplementations).toHaveLength(1)
+    expect(report.issues).toContainEqual(
+      expect.objectContaining({
+        filePath: ".agent-html/artifacts/demo/summary.block.tsx",
+        guardScope: reactCanvasGuardScopes.blockImplementationSource,
+        message: expect.stringContaining("Unsafe className"),
+      })
+    )
+  })
+
   it("reports a missing Artifact wrapper", () => {
     const messages = issueMessages(`
       import { Block } from "@agent-html/react"

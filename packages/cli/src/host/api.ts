@@ -3,7 +3,7 @@ import type { Artifact, GuardIssue } from "./host-contracts"
 export const hostApiRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
   artifacts: "/__agent-html/artifacts",
-  blockSource: "/__agent-html/block-source",
+  blockImplementation: "/__agent-html/block-implementation",
 } as const
 
 export const artifactRenderedEventName = "agent-html:artifact-rendered"
@@ -26,7 +26,7 @@ export async function fetchArtifacts() {
   }>(hostApiRoutes.artifacts)
 }
 
-export async function fetchBlockSource({
+export async function fetchBlockImplementation({
   blockId,
   filePath,
 }: {
@@ -37,7 +37,7 @@ export async function fetchBlockSource({
   return fetchJson<{
     implementationPath: string | null
   }>(
-    `${hostApiRoutes.blockSource}?${params}`
+    `${hostApiRoutes.blockImplementation}?${params}`
   )
 }
 

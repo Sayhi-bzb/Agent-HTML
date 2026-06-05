@@ -9,6 +9,60 @@ These notes are experience, not hard project rules. Canvas rules still live in
 `.agent-html/AGENTS.md`, `.agent-html/README.md`, `.agent-html/styles`, and the
 Canvas docs.
 
+## Component Clusters
+
+Clusters reduce the first search space. Selection rules choose the final
+primitive. Components may fit more than one idea; they are listed where an
+agent should consider them first.
+
+Start here for most artifacts: `Button`, `Card`, `Badge`, `Alert`, `Table`,
+`Tabs`, `Separator`, `ScrollArea`, `Skeleton`, and `Progress`.
+
+Collect input when users enter data, make choices, or need validation: `Field`,
+`FieldGroup`, `Label`, `Input`, `InputGroup`, `Textarea`, `Select`,
+`NativeSelect`, `Combobox`, `Checkbox`, `RadioGroup`, `Switch`, `ToggleGroup`,
+`Toggle`, `Slider`, `InputOTP`, and `Calendar`.
+
+Reveal or overlay content only when direct layout is not enough: `Accordion`,
+`Collapsible`, `Dialog`, `AlertDialog`, `Sheet`, `Drawer`, `Popover`,
+`HoverCard`, `Tooltip`, and `DropdownMenu`.
+
+Structure app space when the artifact needs durable navigation, command
+surfaces, app menus, or object-local context actions: `Sidebar`, `Menubar`,
+`ContextMenu`, and `Command`.
+
+Use specialized workflows only when the task asks for that interaction model:
+`Chart`, `Carousel`, `Kanban`, and `Resizable`.
+
+## Selection Questions
+
+Start with the user's interaction.
+
+- Text input -> `Input`.
+- Longer text input -> `Textarea`.
+- One semantic choice from a few visible options -> `RadioGroup`.
+- One choice from many known options -> `Select`.
+- One searchable choice from many options -> `Combobox`.
+- Yes/no value submitted with a form -> `Checkbox`.
+- Immediate on/off setting -> `Switch`.
+- Mode, view, or segmented option switch -> `ToggleGroup`.
+- Multiple related fields -> `FieldGroup` and `Field`.
+
+Then choose the display context.
+
+- Inline with other content -> simple controls, `Field`, `Card`, or `Table`.
+- Centered focused task -> `Dialog`.
+- Destructive confirmation -> `AlertDialog`.
+- Side task that preserves context -> `Sheet`.
+- Transient mobile-friendly panel -> `Drawer`.
+- Hover-only short help -> `Tooltip`.
+- Rich contextual detail -> `HoverCard` or `Popover`.
+- Contextual action list -> `DropdownMenu`.
+
+If the input needs validation or helper text, wrap it with `Field` and use the
+local form composition primitives. If it does not need validation, use the
+simple component directly.
+
 ## Default Choices
 
 Choose the smallest component that expresses the interaction.
@@ -22,6 +76,7 @@ Choose the smallest component that expresses the interaction.
 | Multiple independent choices | `Checkbox` group |
 | Binary setting with immediate effect | `Switch` |
 | Binary value submitted with a form | `Checkbox` |
+| Toggle between 2-7 modes or views | `ToggleGroup` |
 | Short free text | `Input` |
 | Longer free text | `Textarea` |
 | Numeric range or continuous value | `Slider` |
@@ -38,6 +93,7 @@ Choose the smallest component that expresses the interaction.
 | Important persistent message | `Alert` |
 | Loading placeholder | `Skeleton` |
 | Known progress value | `Progress` |
+| Unknown loading state or content placeholder | `Skeleton` |
 | Dense structured records | `Table` |
 | Repeated summary objects | `Card` |
 | Divide related regions | `Separator` |
@@ -77,8 +133,11 @@ context, and `Drawer` for transient bottom-sheet-like work.
 
 ## Common Forks
 
-Use `RadioGroup` instead of `Select` when the option count is small and seeing
-all choices improves confidence.
+Use `RadioGroup` for a semantic single-choice form question when the option
+count is small and seeing all choices improves confidence.
+
+Use `ToggleGroup` for 2-7 modes, views, density settings, periods, or segmented
+controls. Do not loop `Button` with manual active state for this job.
 
 Use `Select` instead of `Combobox` when the option set is known, short enough
 to scan, and search would add unnecessary interaction.
@@ -98,7 +157,7 @@ for one table or list; use filters, segmented controls, or form controls.
 Use `DropdownMenu` for actions. Do not use it when the user is choosing a form
 value; use `RadioGroup`, `Select`, `Combobox`, or `Checkbox` instead.
 
-## Deep Components
+## Use Later
 
 Use these only when the task explicitly asks for their interaction model:
 
@@ -107,13 +166,13 @@ Use these only when the task explicitly asks for their interaction model:
 - `Menubar` for application-style menu bars.
 - `Resizable` for split panes users can adjust.
 - `Kanban` for drag-and-drop board workflows.
-- `Carousel` for ordered media browsing.
+- `Carousel` for ordered media or card browsing in limited space.
 - `Calendar` for date picking or calendar views.
 - `Sidebar` for durable navigation chrome.
 
-Deep components are capability, not default context. If the requested artifact
-can be solved with `Card`, `Table`, `Tabs`, `Select`, or simple form controls,
-start there.
+These components are capability, not default context. If the requested
+artifact can be solved with `Card`, `Table`, `Tabs`, `Select`, or simple form
+controls, start there.
 
 ## Working Rule
 

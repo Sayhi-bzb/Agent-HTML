@@ -245,6 +245,9 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "packages/cli/src/host/canvas-message-store.ts"
     )
     const canvasHostApp = readSource("packages/cli/src/host/app.tsx")
+    const canvasInteractionStore = readSource(
+      "packages/cli/src/host/interaction-store.ts"
+    )
     const floatingPrompt = readSource(
       "packages/cli/src/host/floating-prompt.tsx"
     )
@@ -361,7 +364,11 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     )
     expect(canvasMessageStore).toContain("CanvasMessageHostSnapshot")
     expect(canvasMessageStore).toContain("subscribeCanvasMessageHost")
-    expect(canvasHostApp).toContain("fetchBlockSource")
+    expect(canvasHostApp).toContain("fetchBlockImplementation")
+    expect(canvasHostApp).toContain("getCanvasInteractionSnapshot")
+    expect(canvasHostApp).not.toContain("useArtifactInteraction")
+    expect(canvasInteractionStore).toContain("agent-html:state-change")
+    expect(canvasInteractionStore).toContain("recordCanvasInteractionChange")
     expect(floatingPrompt).toContain("value: string")
     expect(floatingPrompt).toContain("onDraftChange: (draft: string) => void")
     expect(floatingPrompt).not.toContain('React.useState("")')
@@ -443,5 +450,22 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(runtimePackage.dependencies.react).toBeTruthy()
     expect(runtimePackage.dependencies["@dnd-kit/core"]).toBeTruthy()
     expect(runtimePackage.dependencies.shiki).toBeTruthy()
+  })
+
+  it("keeps React Canvas source helpers split by pipeline ownership", () => {
+    expect(existsSync(join(root, "packages/cli/src/react-canvas/source.mjs"))).toBe(
+      false
+    )
+    expect(
+      existsSync(join(root, "packages/cli/src/react-canvas/block-tags.mjs"))
+    ).toBe(true)
+    expect(
+      existsSync(
+        join(root, "packages/cli/src/react-canvas/block-implementation.mjs")
+      )
+    ).toBe(true)
+    expect(
+      existsSync(join(root, "packages/cli/src/react-canvas/workspace-file.mjs"))
+    ).toBe(true)
   })
 })

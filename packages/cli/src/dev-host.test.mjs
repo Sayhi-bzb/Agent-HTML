@@ -54,6 +54,9 @@ describe("React Canvas dev host", () => {
       const removedBundle = await fetch(`${url}/__agent-html/client-bundle`)
       expect(removedBundle.status).toBe(404)
 
+      const removedBlockSource = await fetch(`${url}/__agent-html/block-source`)
+      expect(removedBlockSource.status).toBe(404)
+
       const publicFile = await fetch(`${url}/__agent-html/public/.gitkeep`)
       expect(publicFile.status).toBe(200)
 
@@ -68,19 +71,19 @@ describe("React Canvas dev host", () => {
       )
       expect(publicEncodedTraversal.status).toBe(400)
 
-      const blockSourceUrl = new URL(`${url}/__agent-html/block-source`)
-      blockSourceUrl.searchParams.set(
+      const blockImplementationUrl = new URL(`${url}/__agent-html/block-implementation`)
+      blockImplementationUrl.searchParams.set(
         "filePath",
         ".agent-html/examples/example.agent.tsx"
       )
-      blockSourceUrl.searchParams.set("blockId", "brief")
-      const blockSource = await fetch(blockSourceUrl).then((response) =>
+      blockImplementationUrl.searchParams.set("blockId", "brief")
+      const blockImplementation = await fetch(blockImplementationUrl).then((response) =>
         response.json()
       )
-      expect(blockSource.implementationPath).toBe(
+      expect(blockImplementation.implementationPath).toBe(
         ".agent-html/examples/example/brief.block.tsx"
       )
-      expect(Object.keys(blockSource).sort()).toEqual(["implementationPath"])
+      expect(Object.keys(blockImplementation).sort()).toEqual(["implementationPath"])
 
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(

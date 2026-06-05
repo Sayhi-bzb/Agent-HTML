@@ -1,5 +1,17 @@
-import { discoverReactArtifacts, parseRootArg, workspaceRelativePath } from "./paths.mjs"
-import { collectBlockIds, readBlockOpenTags, readTextFile } from "./source.mjs"
+import {
+  discoverReactArtifacts,
+  discoverReactBlockImplementations,
+  parseRootArg,
+  workspaceRelativePath,
+} from "./paths.mjs"
+import { collectBlockIds, readBlockOpenTags } from "./block-tags.mjs"
+import { readTextFile } from "./workspace-file.mjs"
+
+export const reactCanvasGuardScopes = {
+  artifactEntryProtocol: "artifact-entry-protocol",
+  blockImplementationSource: "block-implementation-source",
+  workspaceBoundary: "workspace-boundary",
+}
 
 const unstableBlockIds = new Set(["block1", "block2", "section1", "section2", "temp", "top"])
 const rawColorPattern = /\b(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/
@@ -11,9 +23,17 @@ const nativeControlPattern = /<(?:button|input)\b/
 const nativeTablePattern = /<(?:table|thead|tbody|tr|th|td)\b/
 const maxClassNameMessageLength = 96
 
-function createIssue({ filePath, line = 1, message, severity = "warning", suggestion }) {
+function createIssue({
+  filePath,
+  guardScope,
+  line = 1,
+  message,
+  severity = "warning",
+  suggestion,
+}) {
   return {
     filePath,
+    guardScope,
     line,
     message,
     severity,
@@ -47,7 +67,11 @@ function hasReactComponentDefaultExport(source) {
     /const\s+[A-Z][A-Za-z0-9_]*\s*=/.test(source)
 }
 
-function collectVisualIssues({ relativePath, source }) {
+function collectVisualIssues({
+  guardScope = reactCanvasGuardScopes.blockImplementationSource,
+  relativePath,
+  source,
+}) {
   const issues = []
   const stylePattern = /\bstyle\s*=\s*\{/g
   const classPattern = /\bclassName\s*=\s*(?:"([^"]*)"|'([^']*)'|`([^`]*)`|\{([^}]*)\})/g
@@ -57,6 +81,7 @@ function collectVisualIssues({ relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope,
         line: lineForIndex(source, match.index),
         message: "Inline visual style is not allowed in React Canvas artifacts.",
         suggestion: "Move visual treatment into local UI primitives.",
@@ -75,6 +100,7 @@ function collectVisualIssues({ relativePath, source }) {
       issues.push(
         createIssue({
           filePath: relativePath,
+          guardScope,
           line: lineForIndex(source, match.index),
           message: `Unsafe className: ${classValue ? compactClassNameForMessage(classValue) : "dynamic value"}`,
           suggestion: "Use semantic token classes.",
@@ -86,7 +112,7 @@ function collectVisualIssues({ relativePath, source }) {
   return issues
 }
 
-function collectBoundaryIssues({ relativePath, source }) {
+function collectWorkspaceBoundaryIssues({ relativePath, source }) {
   const issues = []
   let match
 
@@ -94,6 +120,7 @@ function collectBoundaryIssues({ relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.workspaceBoundary,
         line: lineForIndex(source, match.index),
         message: "Import crosses the React Canvas boundary.",
         severity: "error",
@@ -107,6 +134,7 @@ function collectBoundaryIssues({ relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.workspaceBoundary,
         line: lineForIndex(source, match.index),
         message: "Public files must be referenced by URL, not imported.",
         severity: "error",
@@ -120,6 +148,7 @@ function collectBoundaryIssues({ relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.workspaceBoundary,
         line: lineForIndex(source, match.index),
         message: "Old AHTML render API is not allowed in React Canvas artifacts.",
         severity: "error",
@@ -134,6 +163,7 @@ function collectBoundaryIssues({ relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.workspaceBoundary,
         line: lineForIndex(source, controlMatch.index),
         message: "Native form control bypasses local UI primitives.",
         suggestion: "Use the matching .agent-html/ui primitive.",
@@ -146,6 +176,7 @@ function collectBoundaryIssues({ relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.workspaceBoundary,
         line: lineForIndex(source, tableMatch.index),
         message: "Native table bypasses local UI table primitives.",
         suggestion: "Use .agent-html/ui/table.",
@@ -166,6 +197,7 @@ function collectArtifactProtocolIssues({ relativePath, source }) {
       issues.push(
         createIssue({
           filePath: relativePath,
+          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
           line: lineForIndex(source, match.index),
           message: "Artifact owns token-configured reading layout and must not receive className or style.",
           severity: "error",
@@ -188,6 +220,7 @@ function collectBlockProtocolIssues({ relativePath, source }) {
       issues.push(
         createIssue({
           filePath: relativePath,
+          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
           line: lineForIndex(source, block.index),
           message: "Block is protocol-only and must not receive className or style.",
           severity: "error",
@@ -200,13 +233,14 @@ function collectBlockProtocolIssues({ relativePath, source }) {
   return issues
 }
 
-export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
+export function analyzeArtifactEntryProtocol({ filePath, relativePath, source }) {
   const issues = []
 
   if (!hasDefaultExport(source)) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
         message: "Artifact file must have a default export.",
         severity: "error",
         suggestion: "Default export a React component.",
@@ -216,6 +250,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
         message: "Default export should be a React component.",
         suggestion: "Use a PascalCase function or component constant.",
       })
@@ -226,6 +261,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
         message: "Artifact must use the Artifact wrapper.",
         severity: "error",
         suggestion: 'Wrap content in <Artifact title="...">.',
@@ -238,6 +274,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
         message: "Artifact must contain at least one Block.",
         severity: "error",
         suggestion: 'Wrap major semantic regions in <Block id="summary">.',
@@ -252,6 +289,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
       issues.push(
         createIssue({
           filePath: relativePath,
+          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
           line: lineForIndex(source, block.index),
           message: hasDynamicId
             ? "Block id must be a static string literal."
@@ -269,6 +307,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
       issues.push(
         createIssue({
           filePath: relativePath,
+          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
           line: lineForIndex(source, block.index),
           message: `Block id is not readable kebab-case: ${block.id}`,
           suggestion: "Use a stable semantic id like competitor-map or risk-table.",
@@ -280,6 +319,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
       issues.push(
         createIssue({
           filePath: relativePath,
+          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
           line: lineForIndex(source, block.index),
           message: `Block id is unstable or positional: ${block.id}`,
           suggestion: "Use a semantic id that survives reordering.",
@@ -292,6 +332,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
       issues.push(
         createIssue({
           filePath: relativePath,
+          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
           line: lineForIndex(source, block.index),
           message: `Duplicate Block id: ${block.id}`,
           severity: "error",
@@ -301,6 +342,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
       issues.push(
         createIssue({
           filePath: relativePath,
+          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
           line: lineForIndex(source, firstIndex),
           message: `Duplicate Block id first appears here: ${block.id}`,
           severity: "error",
@@ -316,6 +358,7 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
     issues.push(
       createIssue({
         filePath: relativePath,
+        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
         line: lineForIndex(source, blocks[0].index),
         message: "Artifact appears to use one giant Block.",
         suggestion: "Split major semantic regions into separate Blocks.",
@@ -325,15 +368,48 @@ export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
 
   return [
     ...issues,
-    ...collectBoundaryIssues({ relativePath, source }),
     ...collectArtifactProtocolIssues({ relativePath, source }),
     ...collectBlockProtocolIssues({ relativePath, source }),
-    ...collectVisualIssues({ relativePath, source }),
+  ]
+}
+
+export function analyzeReactCanvasSourceBoundary({
+  guardScope = reactCanvasGuardScopes.blockImplementationSource,
+  relativePath,
+  source,
+}) {
+  return [
+    ...analyzeWorkspaceBoundarySource({ relativePath, source }),
+    ...collectVisualIssues({ guardScope, relativePath, source }),
+  ]
+}
+
+export function analyzeWorkspaceBoundarySource({ relativePath, source }) {
+  return collectWorkspaceBoundaryIssues({ relativePath, source })
+}
+
+export function analyzeBlockImplementationSource({ relativePath, source }) {
+  return analyzeReactCanvasSourceBoundary({
+    guardScope: reactCanvasGuardScopes.blockImplementationSource,
+    relativePath,
+    source,
+  })
+}
+
+export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
+  return [
+    ...analyzeArtifactEntryProtocol({ filePath, relativePath, source }),
+    ...analyzeReactCanvasSourceBoundary({
+      guardScope: reactCanvasGuardScopes.blockImplementationSource,
+      relativePath,
+      source,
+    }),
   ]
 }
 
 export async function runGuard({ root }) {
   const artifacts = await discoverReactArtifacts(root)
+  const blockImplementations = await discoverReactBlockImplementations(root)
   const issues = []
 
   for (const filePath of artifacts) {
@@ -347,7 +423,17 @@ export async function runGuard({ root }) {
     )
   }
 
-  return { artifacts, issues }
+  for (const filePath of blockImplementations) {
+    const source = await readTextFile(filePath)
+    issues.push(
+      ...analyzeBlockImplementationSource({
+        relativePath: workspaceRelativePath(root, filePath),
+        source,
+      })
+    )
+  }
+
+  return { artifacts, blockImplementations, issues }
 }
 
 export async function runGuardCommand({ args, cwd }) {
@@ -360,7 +446,9 @@ export async function runGuardCommand({ args, cwd }) {
   }
 
   if (report.issues.length === 0) {
-    console.log(`Guard passed ${report.artifacts.length} artifact(s).`)
+    console.log(
+      `Guard passed ${report.artifacts.length} artifact(s), ${report.blockImplementations.length} block implementation(s).`
+    )
     return { issueCount: 0 }
   }
 
@@ -368,6 +456,7 @@ export async function runGuardCommand({ args, cwd }) {
     console.log(
       [
         `${issue.severity.toUpperCase()} ${issue.filePath}:${issue.line}`,
+        issue.guardScope ? `Guard: ${issue.guardScope}` : null,
         issue.message,
         issue.suggestion ? `Fix: ${issue.suggestion}` : null,
         "",

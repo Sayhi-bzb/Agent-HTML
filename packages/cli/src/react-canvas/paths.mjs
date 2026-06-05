@@ -41,3 +41,52 @@ export async function discoverReactArtifacts(root) {
     .map((entry) => path.join(artifactsDir, entry.name))
     .sort((left, right) => left.localeCompare(right))
 }
+
+async function discoverFilesBySuffix(directory, suffix) {
+  let entries
+
+  try {
+    entries = await fs.readdir(directory, { withFileTypes: true })
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      return []
+    }
+    throw error
+  }
+
+  const files = await Promise.all(
+    entries.map(async (entry) => {
+      const entryPath = path.join(directory, entry.name)
+
+      if (entry.isDirectory()) {
+        if (
+          entry.name === "node_modules" ||
+          entry.name === "build" ||
+          entry.name === "dist" ||
+          entry.name === ".vite"
+        ) {
+          return []
+        }
+
+        return discoverFilesBySuffix(entryPath, suffix)
+      }
+
+      return entry.isFile() && entry.name.endsWith(suffix) ? [entryPath] : []
+    })
+  )
+
+  return files.flat().sort((left, right) => left.localeCompare(right))
+}
+
+export async function discoverReactBlockImplementations(root) {
+  const workspaceRoot = path.join(root, ".agent-html")
+  const roots = [
+    path.join(workspaceRoot, "artifacts"),
+    path.join(workspaceRoot, "examples"),
+  ]
+  const files = await Promise.all(
+    roots.map((sourceRoot) => discoverFilesBySuffix(sourceRoot, ".block.tsx"))
+  )
+
+  return files.flat().sort((left, right) => left.localeCompare(right))
+}

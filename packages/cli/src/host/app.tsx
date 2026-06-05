@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { fetchArtifacts, fetchBlockSource } from "./api"
+import { fetchArtifacts, fetchBlockImplementation } from "./api"
 import { ArtifactSurface } from "./artifact-surface"
 import {
   readCanvasHostPreferences,
@@ -248,14 +248,14 @@ export function ReactCanvasHostApp() {
     }
 
     try {
-      const blockSource = await fetchBlockSource({
+      const blockImplementation = await fetchBlockImplementation({
         blockId: target.id,
         filePath: resolvedActiveFilePath,
       })
       const formatted = formatBlockPrompt({
         blockId: target.id,
         filePath: resolvedActiveFilePath,
-        implementationPath: blockSource.implementationPath ?? undefined,
+        implementationPath: blockImplementation.implementationPath ?? undefined,
         interactionSnapshot: getCanvasInteractionSnapshot({
           blockId: target.id,
           filePath: resolvedActiveFilePath,

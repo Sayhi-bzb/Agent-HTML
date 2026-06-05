@@ -127,6 +127,11 @@ layout or visual treatment inside the block content.
 The host owns block prompt actions through its inspection overlay; artifact
 source does not render action markers.
 
+Overview artifact entries may delegate block content to split implementation
+files in a matching directory, using `<block-id>.block.tsx`. The Canvas prompt
+pipeline addresses these files through `artifactEntry + blockId` and may include
+the resolved `implementationPath` in prompt metadata.
+
 Use interaction helpers only for artifact-local control instrumentation. They
 emit `agent-html:state-change` events; they do not provide filesystem, shell,
 MCP, Codex app-server, or host API access.

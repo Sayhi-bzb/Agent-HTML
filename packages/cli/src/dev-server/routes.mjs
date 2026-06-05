@@ -3,10 +3,8 @@ import path from "node:path"
 
 import { discoverReactArtifacts, workspaceRelativePath } from "../react-canvas/paths.mjs"
 import { runGuard } from "../react-canvas/guard.mjs"
-import {
-  readTextFile,
-  resolveBlockImplementationPath,
-} from "../react-canvas/source.mjs"
+import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
+import { readTextFile } from "../react-canvas/workspace-file.mjs"
 import { hostRoot } from "./context.mjs"
 import { buildArtifactBundle, buildHostBundle } from "./bundler.mjs"
 import { sendError, sendJson, sendNotFound, sendText } from "./http.mjs"
@@ -16,7 +14,7 @@ import { assertInsideWorkspace } from "./workspace.mjs"
 export const hostRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
   artifacts: "/__agent-html/artifacts",
-  blockSource: "/__agent-html/block-source",
+  blockImplementation: "/__agent-html/block-implementation",
   hostBundle: "/__agent-html/host.js",
   publicAsset: "/__agent-html/public/",
   hostStyles: "/__agent-html/styles.css",
@@ -135,7 +133,7 @@ export async function handleRequest({ request, response, root }) {
     return
   }
 
-  if (requestUrl.pathname === hostRoutes.blockSource) {
+  if (requestUrl.pathname === hostRoutes.blockImplementation) {
     const filePath = requestUrl.searchParams.get("filePath")
     const blockId = requestUrl.searchParams.get("blockId")
     if (!filePath || !blockId) {

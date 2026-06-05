@@ -4,6 +4,7 @@ export type Artifact = {
 
 export type GuardIssue = {
   filePath: string
+  guardScope?: string
   line?: number
   message: string
   severity: string

@@ -99,3 +99,55 @@ language.
 Canvas is Storybook-like only as an isolated preview surface. Its primary value
 is making agent-authored output addressable, reviewable, reusable, and
 continuously editable through durable source files.
+
+## Pipeline Map
+
+This page is the authoritative Canvas pipeline map. The shared block prompt
+model is:
+
+```text
+artifactEntry + blockId + implementationPath + interactionSnapshot
+```
+
+| Pipeline | Owner | Input | Output | Forbidden dependencies | Primary tests |
+| --- | --- | --- | --- | --- | --- |
+| Workspace source | `.agent-html` | artifact entries, split block files, local resources | portable source workspace | generated bundles, lockfiles, vendored installs | `boundaries.test.mjs` |
+| Artifact discovery | `react-canvas/paths.mjs` | `.agent-html/artifacts/*.agent.tsx` | artifact entry file paths | app shell, runtime parser, host UI | `dev-host.test.mjs` |
+| Artifact entry protocol guard | `react-canvas/guard.mjs` | artifact entry source | issues scoped as `artifact-entry-protocol` | layout or style props on `Artifact` or `Block` | `guard.test.mjs` |
+| Block implementation source guard | `react-canvas/guard.mjs` | `.agent-html/{artifacts,examples}/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `boundaries.test.mjs` |
+| Workspace boundary guard | `react-canvas/guard.mjs` | artifact and block source imports | issues scoped as `workspace-boundary` | app imports, old runtime imports, public-file imports | `guard.test.mjs`, `boundaries.test.mjs` |
+| Bundle and render | dev server + host surface | artifact entry file path | mounted artifact DOM | app shell, old runtime render APIs | `dev-host.test.mjs` |
+| Block overlay | `packages/react` + host overlay | rendered `data-agent-html-block-*` metadata | hover highlight and prompt target | artifact source mutation, host APIs in artifacts | `block-overlay.test.ts`, `index.test.tsx` |
+| Block implementation lookup | dev server + host API | `artifactEntry`, `blockId` | `implementationPath` | selected source payloads, implementation source payloads | `block-implementation.test.mjs`, `dev-host.test.mjs` |
+| Block prompt | `react-canvas/prompt.mjs` | `artifactEntry`, `blockId`, optional `implementationPath`, host `interactionSnapshot` | minimal prompt packet | TSX source payloads, runtime DSL source payloads | `prompt.test.mjs` |
+| Interaction state | `packages/react` event protocol + host store | artifact-local control changes | host prompt interaction snapshot | filesystem, shell, MCP, privileged host APIs in artifact code | `index.test.tsx`, `interaction-store.test.ts`, `prompt.test.mjs` |
+| CSS/theme | `.agent-html/styles` + host theme editor | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `boundaries.test.mjs`, `theme-preset.test.ts` |
+
+Dev server routes are orchestration only. They may call discovery, guard,
+bundle, stylesheet, public asset, and block implementation lookup modules, but
+they do not own those pipeline contracts.
+
+## Guard Scopes
+
+Canvas guard reports one issue list with explicit scopes:
+
+- `artifact-entry-protocol`: validates the overview artifact entry, including
+  default export, `Artifact`, `Block`, stable `blockId`, and protocol-only
+  marker props.
+- `block-implementation-source`: validates split block implementation source
+  for source-level visual and primitive boundaries.
+- `workspace-boundary`: validates imports and workspace access boundaries
+  across artifact entries and block implementations.
+
+The dev host treats all guard issues as preview feedback, but the scope names
+identify which pipeline owns the failure.
+
+## Interaction Source Of Truth
+
+`@agent-html/react` owns portable instrumentation and the event protocol. Its
+artifact-local snapshot helps controls compose locally, but it is not the
+prompt context source of truth.
+
+The host interaction store owns prompt context. It records
+`agent-html:state-change` events by `artifactEntry + blockId`, compacts them,
+and passes the resulting `interactionSnapshot` into the block prompt pipeline.
