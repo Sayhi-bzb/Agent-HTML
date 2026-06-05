@@ -12,7 +12,7 @@ const tmpRoot = path.join(root, "node_modules", ".tmp", "agent-html-index-dts")
 const dtsWorkspaceRoot = path.join(tmpRoot, ".agent-html")
 const depsJsonPath = path.join(root, "node_modules", ".tmp", "agent-html-deps.json")
 const shouldCheck = process.argv.includes("--check")
-const largeFileThreshold = 8000
+const largeFileTokenThreshold = 2000
 
 const apiDirs = ["ui", "hooks", "lib", "schema", "theme"]
 const obsoleteGeneratedPaths = [
@@ -371,24 +371,32 @@ function buildLargeFilesMarkdown() {
     .filter((file) => !toWorkspacePath(file).startsWith("index/"))
     .map((file) => ({
       file: toRepoPath(file),
-      size: fs.statSync(file).size,
+      estimatedTokens: estimateTokens(fs.statSync(file).size),
     }))
-    .filter((entry) => entry.size >= largeFileThreshold)
-    .sort((a, b) => b.size - a.size || a.file.localeCompare(b.file))
+    .filter((entry) => entry.estimatedTokens >= largeFileTokenThreshold)
+    .sort(
+      (a, b) =>
+        b.estimatedTokens - a.estimatedTokens || a.file.localeCompare(b.file),
+    )
     .map((entry) => [
       `\`${entry.file}\``,
-      String(entry.size),
+      String(entry.estimatedTokens),
       suggestedRoute(entry.file),
     ])
 
   return [
     "<!-- generated: do not edit -->",
+    "",
     "# React Canvas Large Files",
     "",
-    `Files at or above ${largeFileThreshold} bytes. Read generated API or route docs before opening these wholesale.`,
+    `Files at or above about ${largeFileTokenThreshold} estimated tokens. Token counts are lightweight reading-cost estimates, not tokenizer-exact values. Read generated API or route docs before opening these wholesale.`,
     "",
-    markdownTable(["File", "Bytes", "Read First"], rows),
+    markdownTable(["File", "Est. Tokens", "Read First"], rows),
   ].join("\n")
+}
+
+function estimateTokens(byteLength) {
+  return Math.ceil(byteLength / 4)
 }
 
 function suggestedRoute(file) {
@@ -418,8 +426,7 @@ function buildReadme() {
     "",
     "Generated decision layer for `.agent-html`.",
     "",
-    "Use this directory to choose the next file to open. It is an agent-facing",
-    "index layer, not a source layer and not a full dependency dump.",
+    "Use this directory to choose the next file to open. It is an agent-facing index layer, not a source layer and not a full dependency dump.",
     "",
     "## Read Order",
     "",
@@ -434,9 +441,7 @@ function buildReadme() {
     "- `dependency-summary.md` maps dependency-cruiser graph health and high-gravity modules.",
     "- `api-surface.md` maps compact exported API surfaces.",
     "",
-    "Full declarations and dependency graphs are temporary machine inputs under",
-    "`node_modules/.tmp`, not committed agent context. Regenerate with",
-    "`npm run react-canvas:index`.",
+    "Full declarations and dependency graphs are temporary machine inputs under `node_modules/.tmp`, not committed agent context. Regenerate with `npm run react-canvas:index`.",
   ].join("\n")
 }
 

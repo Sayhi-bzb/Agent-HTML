@@ -17,6 +17,8 @@ Use this directory when a task needs the felt posture behind the rules:
 ## Reading Route
 
 - `context-is-alive.md` defines the base context-engineering posture.
+- `choice-overload.md` records when indexes become choice overload and how to
+  keep generated context as a decision path.
 
 Keep diary entries short, concrete, and operational. They should sound like an
 agent noticing its own work path, not like abstract philosophy or roleplay.

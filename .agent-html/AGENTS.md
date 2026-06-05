@@ -1,193 +1,91 @@
 # AgentHTML React Canvas
 
-Write normal React artifacts in `.agent-html/artifacts/*.agent.tsx`.
-For cold start, read `.agent-html/README.md` first, then this file.
+Write normal React artifacts in `.agent-html/artifacts/*.agent.tsx`. For cold start, read `.agent-html/README.md` first, then this file.
 
-## Design contract
+## Workspace Rules
 
-React Canvas uses the same design-system direction as the app, but it does not
-import the app implementation:
+- Keep `.agent-html` as a portable source workspace.
+- Do not add `node_modules`, lockfiles, generated bundles, `.vite`, `dist`, `build`, or vendored dependency folders inside `.agent-html`.
+- Keep `.agent-html/AGENTS.md`, `.agent-html/components.json`, and `.agent-html/tsconfig.json` at the workspace root for agent, shadcn, TypeScript, and editor discovery.
+- Use `.agent-html/index` as a generated decision layer. Do not treat temporary declaration or dependency graph output as committed agent context.
+- Use `.agent-html/package.json` only as source dependency metadata. New third-party dependencies need an explicit source or host owner.
 
-```text
-.agent-html/README.md
-  -> cold-start reading path and portable workspace contract
+## Documentation Maintenance
 
-.agent-html/AGENTS.md
-  -> workspace rules and operating instructions
+- Keep `README.md` as a conditional reading route, not a rulebook.
+- Keep `AGENTS.md` as hard executable rules, not a design essay.
+- Keep `index/*` as generated decision summaries, not full tool output.
+- Keep `examples/*` as copyable patterns, not broad policy documents.
+- Keep `styles/README.md` as the style route.
+- Do not add a new `.agent-html` doc unless it owns a distinct question.
+- Do not duplicate rules across README, AGENTS, index, examples, and styles docs. Link to the owning file instead.
+- Do not commit full generated graphs, declaration rollups, or tool dumps as agent context.
+- Do not manually hard-wrap prose. Use line breaks for Markdown structure, lists, tables, code blocks, and semantic separation only.
+- Use short, imperative, operational wording.
 
-.agent-html/index
-  -> generated large-file routes, dependency summaries, and compact API surfaces
+## Directory Ownership
 
-.agent-html/components.json
-  -> shadcn workspace discovery config
+- Put artifact source in `artifacts`.
+- Put copyable patterns in `examples`.
+- Put visual primitives in `ui`.
+- Put reusable React behavior in `hooks`.
+- Put pure helpers and transforms in `lib`.
+- Put typed contracts and validation in `schema`.
+- Put Canvas CSS, tokens, and style routes in `styles`.
+- Put theme preset resources in `theme`.
+- Put fixtures and local datasets in `data`.
+- Put bundle-time imports in `assets`.
+- Put URL-addressed static files in `public`.
 
-.agent-html/tsconfig.json
-  -> local TypeScript and editor discovery config
-
-.agent-html/styles/index.css
-  -> Tailwind, shadcn CSS, font imports, and CSS pipeline imports
-
-.agent-html/styles/tokens
-  -> semantic token values split by feature
-
-.agent-html/styles/content.css
-  -> artifact-consumable Canvas semantic classes
-
-.agent-html/styles/internal
-  -> locked Canvas system chrome and protocol-adjacent styles
-
-.agent-html/theme
-  -> host-owned theme preset resources
-
-.agent-html/ui
-  -> local visual primitives
-
-.agent-html/hooks
-  -> reusable React behavior
-
-.agent-html/lib
-  -> pure helpers and transforms
-
-.agent-html/schema
-  -> typed contracts and validation
-
-.agent-html/data
-  -> fixtures and local datasets
-
-.agent-html/assets
-  -> bundle-time artifact assets imported by artifact source
-
-.agent-html/public
-  -> static files served by URL at /__agent-html/public/<path>
-
-artifacts and host
-  -> primitive composition and semantic layout
-```
-
-- `.agent-html/AGENTS.md`, `.agent-html/components.json`, and
-  `.agent-html/tsconfig.json` stay at the workspace root because agents,
-  shadcn, TypeScript, and editors discover them from there.
-- `.agent-html/index` is the generated agent navigation layer. Read
-  `index/README.md`, `index/large-files.md`, `index/dependency-summary.md`,
-  and `index/api-surface.md` before opening broad or large Canvas source
-  files.
-- `.agent-html` is a portable source workspace, not a vendored runtime
-  package. Do not add `node_modules`, lockfiles, generated bundles, `.vite`,
-  `dist`, `build`, or vendored dependency folders inside it.
-- `.agent-html/package.json` is source dependency metadata. Canvas CLI and host
-  packages provide the runtime React, bundling, stylesheet, icon, and preview
-  environment. New third-party dependencies need an explicit owner.
-- `.agent-html/styles/index.css` is the CSS runtime entrypoint discovered by
-  shadcn and the dev host. It imports Tailwind, shadcn CSS, fonts, token files,
-  Tailwind token mappings, base styles, public content classes, and locked
-  internal classes.
-- `.agent-html/styles/tokens` owns semantic values. Read
-  `tokens/foundation.css` for base color, font, radius, chart, and sidebar
-  values; read `tokens/content.css`, `tokens/artifact.css`,
-  `tokens/host.css`, or `tokens/theme-editor.css` for feature values.
-- `.agent-html/styles/tokens/tailwind.css` maps semantic values into Tailwind
-  tokens.
-- `.agent-html/styles/content.css` owns the public artifact style API. Read it
-  when artifact content needs reusable spacing, surface, icon-box, or text
-  scale classes.
-- `.agent-html/styles/internal` owns locked Canvas system styles. Read
-  `artifact.css`, `host.css`, or `theme-editor.css` only when editing the
-  Artifact reading container, host chrome, block hover/action chrome, sidebar,
-  toolbar, or theme editor.
-- `.agent-html/theme` owns Canvas theme preset resources. Host chrome may read
-  presets from here and apply them to the token pipeline; artifacts should
-  continue to consume semantic utilities and tokens instead of choosing preset
-  values directly.
-- `.agent-html/ui` is the only primitive layer for React Canvas. Keep local
-  shadcn-derived primitives low-modification unless Canvas needs a primitive
-  API, correctness fix, or accessibility fix.
-- Available primitives include accordion, alert, alert-dialog, badge, button,
-  calendar, card, carousel, chart, checkbox, collapsible, combobox, command,
-  context-menu, dialog, drawer, dropdown-menu, field, hover-card, input,
-  input-group, input-otp, kanban, label, menubar, native-select, popover,
-  progress, radio-group, resizable, scroll-area, select, separator, sheet,
-  sidebar, skeleton, slider, switch, table, tabs, textarea, toggle,
-  toggle-group, and tooltip.
-- Host and artifacts compose primitives; they do not create new primitive
-  buttons, cards, badges, tables, sidebars, or inputs.
-- Host block hover highlighting is inspection chrome. It consumes Canvas tokens
-  from `styles/tokens/host.css` through `styles/internal/host.css`; do
-  not recreate block highlighting in artifact source or on `Block`.
-- `Artifact` and `Block` from `@agent-html/react` are headless
-  collaboration protocol markers, not visual components. `Artifact` owns the
-  readable root container and accepts only `title` and children. Its width,
-  block gap, background, and foreground values come from
-  `styles/tokens/artifact.css` through `styles/internal/artifact.css`.
-  Do not put `className`, `style`, width, spacing, padding, or color props on
-  `Artifact`.
-  `Block` is fully protocol-only: use only `id`, `title`, and children. Do not
-  put `className`, `style`, layout, border, radius, or shadow on `Block`. Put
-  block content layout and visual treatment inside the block and
-  `.agent-html/ui` primitives.
-- Host block prompt actions are overlay chrome. Artifact source does not render
-  an action protocol marker.
-- Use semantic token utilities such as `bg-background`, `text-foreground`,
-  `bg-card`, `text-muted-foreground`, `border-border`, `bg-popover`, and
-  `text-popover-foreground`.
-- Font and radius flow through explicit tokens: `--font-sans`,
-  `--font-heading`, `--font-mono`, and the shadcn-compatible `--radius`.
-- Sidebar color variables are shadcn compatibility aliases derived from the
-  base color pipeline. Do not treat them as independent artifact-facing theme
-  controls unless the host adds a separate sidebar theme axis.
-- Shadow uses the static shadcn-style shadow scale. Do not edit source-like
-  shadow knobs unless they drive the full scale.
-- Do not use raw colors, decorative gradients, oversized shadows, or marketing
-  hero composition.
-- Use Canvas semantic classes for artifact structure and host chrome. Content
-  spacing, panel padding, panel radius, icon-box size, typography scale, grid
-  gap, surface padding, toolbar offset, block action offset, status spacing,
-  sidebar spacing, and floating prompt surface values come from explicit
-  `--canvas-*` tokens in `.agent-html/styles/tokens/*`, public artifact
-  classes in `.agent-html/styles/content.css`, and locked system classes in
-  `.agent-html/styles/internal/*`.
-- Keep layout behavior classes such as `flex`, `grid`, `min-w-0`,
-  `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate` local to the
-  composition that needs them.
-- Do not use arbitrary values, oversized typography, custom fonts, manual
-  tracking, oversized radius, or heavy shadows in artifacts.
-- Keep surfaces compact, neutral, task-oriented, accessible, and predictable.
-- Use cards only for real modules, objects, list items, placeholders, or
-  disclosures. Avoid card-inside-card unless the inner surface has independent
-  object identity or interaction scope.
-- Treat the sidebar as a first-class component family. Use sidebar primitives
-  and `sidebar*` tokens for sidebar chrome only.
-- Treat prompt UI as a disclosure surface. Floating panels use `popover` tokens,
-  not sidebar tokens.
-- Text, code, generated output, and data values should stay selectable. Chrome,
-  navigation rows, badges, and block action controls may disable accidental
-  selection through primitives.
-- Put imported images, media, and bundle-time files in `.agent-html/assets` and
-  import them with relative `../assets/...` paths.
-- Put URL-addressed static files in `.agent-html/public` and reference them as
-  `/__agent-html/public/<path>`. Do not import from `../public`.
-
-Rules:
+## Artifact Rules
 
 - Import `Artifact` and `Block` from `@agent-html/react`.
 - Use `Artifact` as the top-level wrapper.
-- Keep `Artifact` static and unstyled. The root reading width, spacing, and
-  base colors are configured by `--canvas-artifact-*` tokens in
-  `.agent-html/styles/tokens/artifact.css`.
+- Keep `Artifact` static and unstyled.
+- Use only the supported `Artifact` props: `title` and children.
 - Wrap every major semantic region in `Block`.
-- Keep `Block` static and unstyled. Layout belongs inside the block, not on the
-  block marker.
 - Use stable, unique, readable, kebab-case block ids.
-- Treat examples as policy. Canonical examples should be short, typed, and
-  easy to imitate; large coverage artifacts should still use stable literal
-  block ids and explicit handler types.
-- Imitate `examples/research-summary.agent.tsx` for compact static artifacts
-  and `examples/interaction-state.agent.tsx` for compact instrumented controls.
-  `artifacts/interaction-state.agent.tsx` is a coverage surface, not a style
-  template.
-- Prefer local `../ui`, `../hooks`, `../lib`, `../schema`, `../data`, and
-  `../assets` imports before hand-writing common UI or utility code.
-- Do not call Codex app-server, the filesystem, shell commands, MCP servers, or
-  privileged host APIs from artifact code.
-- Do not import `@/app/*`, `apps/agent-html-app`, `@/agent-html/runtime/ui`,
-  `renderAgentHtml`, or `renderInteractiveAgentHtml`.
+- Keep `Block` protocol-only. Use only `id`, `title`, and children.
+- Do not put `className`, `style`, layout, border, radius, shadow, spacing, width, padding, or color props on `Artifact` or `Block`.
+- Put layout and visual treatment inside the block content and local `.agent-html/ui` primitives.
+- Do not render host block prompt actions or block hover chrome from artifact source.
 - Do not use old AHTML `<Cell>` DSL for React Canvas artifacts.
+
+## Primitive Rules
+
+- Prefer local `../ui`, `../hooks`, `../lib`, `../schema`, `../data`, and `../assets` imports before hand-writing common UI or utility code.
+- Check `index/api-surface.md` before adding, duplicating, or changing a local primitive.
+- Host and artifacts compose primitives. They do not create duplicate primitive buttons, cards, badges, tables, sidebars, inputs, or disclosure controls.
+- Keep local shadcn-derived primitives low-modification unless Canvas needs a primitive API, correctness fix, or accessibility fix.
+- Treat the sidebar as a component family. Use sidebar primitives and sidebar tokens for sidebar chrome only.
+- Treat prompt UI as a disclosure surface. Floating panels use popover tokens, not sidebar tokens.
+
+## Style Rules
+
+- Read `styles/README.md` before touching Canvas classes, tokens, or internal chrome.
+- Use `styles/content.css` classes for ordinary artifact content styling.
+- Use semantic token utilities such as `bg-background`, `text-foreground`, `bg-card`, `text-muted-foreground`, `border-border`, `bg-popover`, and `text-popover-foreground`.
+- Keep layout behavior classes such as `flex`, `grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate` local to the composition that needs them.
+- Do not use raw colors, decorative gradients, arbitrary values, custom fonts, manual tracking, oversized typography, oversized radius, or heavy shadows in artifacts.
+- Do not recreate root reading width, block hover highlighting, toolbar placement, sidebar chrome, or theme editor chrome in artifact source.
+- Keep surfaces compact, neutral, task-oriented, accessible, and predictable.
+- Use cards only for real modules, objects, list items, placeholders, or disclosures. Avoid card-inside-card unless the inner surface has independent object identity or interaction scope.
+- Keep text, code, generated output, and data values selectable. Chrome, navigation rows, badges, and block action controls may disable accidental selection through primitives.
+
+## Asset Rules
+
+- Put imported images, media, and bundle-time files in `.agent-html/assets` and import them with relative `../assets/...` paths.
+- Put URL-addressed static files in `.agent-html/public` and reference them as `/__agent-html/public/<path>`.
+- Do not import from `../public`.
+
+## Forbidden Imports And Actions
+
+- Do not call Codex app-server, the filesystem, shell commands, MCP servers, or privileged host APIs from artifact code.
+- Do not import `@/app/*`, `apps/agent-html-app`, `@/agent-html/runtime/ui`, `renderAgentHtml`, or `renderInteractiveAgentHtml`.
+- Do not import Canvas host internals from artifact source.
+
+## Examples
+
+- Imitate `examples/research-summary.agent.tsx` for compact static artifacts.
+- Imitate `examples/interaction-state.agent.tsx` for compact instrumented controls.
+- Treat `artifacts/interaction-state.agent.tsx` as coverage, not style.
