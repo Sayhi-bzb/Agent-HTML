@@ -89,9 +89,12 @@ export function formatBlockPrompt(payload) {
     "---",
     `filePath: ${payload.filePath}`,
     `blockPath: ${payload.blockPath}`,
+    payload.implementationPath
+      ? `implementationPath: ${payload.implementationPath}`
+      : null,
     "---",
     "",
-  ]
+  ].filter((line) => line !== null)
 
   if (payload.interactionSnapshot) {
     lines.push(

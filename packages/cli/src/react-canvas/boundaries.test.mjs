@@ -98,7 +98,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
 
   it("keeps artifact and example imports inside the React Canvas playground contract", () => {
     const allowedLocalImport =
-      /^\.\.\/(?:ui|hooks|lib|schema|data|assets)(?:\/|$)/
+      /^\.\.(?:\/\.\.)*\/(?:ui|hooks|lib|schema|data|assets)(?:\/|$)/
     const forbiddenImport =
       /^(?:@\/|#agent-html-playground\/|@agent-html-playground\/|apps\/|packages\/|@\/app\/|@\/agent-html\/runtime)/
 
@@ -361,7 +361,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     )
     expect(canvasMessageStore).toContain("CanvasMessageHostSnapshot")
     expect(canvasMessageStore).toContain("subscribeCanvasMessageHost")
-    expect(canvasHostApp).not.toContain("fetchBlockSource")
+    expect(canvasHostApp).toContain("fetchBlockSource")
     expect(floatingPrompt).toContain("value: string")
     expect(floatingPrompt).toContain("onDraftChange: (draft: string) => void")
     expect(floatingPrompt).not.toContain('React.useState("")')

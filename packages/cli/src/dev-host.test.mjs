@@ -68,6 +68,21 @@ describe("React Canvas dev host", () => {
       )
       expect(publicEncodedTraversal.status).toBe(400)
 
+      const blockSourceUrl = new URL(`${url}/__agent-html/block-source`)
+      blockSourceUrl.searchParams.set(
+        "filePath",
+        ".agent-html/examples/example.agent.tsx"
+      )
+      blockSourceUrl.searchParams.set("blockId", "brief")
+      const blockSource = await fetch(blockSourceUrl).then((response) =>
+        response.json()
+      )
+      expect(blockSource.selectedSource).toContain('<Block id="brief"')
+      expect(blockSource.implementationPath).toBe(
+        ".agent-html/examples/example/brief.block.tsx"
+      )
+      expect(blockSource.implementationSource).toContain("BriefBlock")
+
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(
         "filePath",

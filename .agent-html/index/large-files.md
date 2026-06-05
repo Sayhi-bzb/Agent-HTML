@@ -10,7 +10,6 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 | `.agent-html/ui/kanban.tsx` | 7897 | `index/api-surface.md` |
 | `.agent-html/data/public.usage_dashboard_hourly.csv` | 6420 | nearest README or source-specific notes |
 | `.agent-html/ui/sidebar.tsx` | 5321 | `index/api-surface.md` |
-| `.agent-html/artifacts/example.agent.tsx` | 4009 | `index/dependency-summary.md` |
 | `.agent-html/ui/chart.tsx` | 2621 | `index/api-surface.md` |
 | `.agent-html/ui/combobox.tsx` | 2333 | `index/api-surface.md` |
 | `.agent-html/ui/dropdown-menu.tsx` | 2271 | `index/api-surface.md` |

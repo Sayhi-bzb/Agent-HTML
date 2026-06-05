@@ -1,4 +1,5 @@
 import fs from "node:fs/promises"
+import path from "node:path"
 
 export function readBlockOpenTags(source) {
   const blocks = []
@@ -77,6 +78,59 @@ export function extractBlockSource(source, blockId) {
   }
 
   return null
+}
+
+function isKebabCase(value) {
+  return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(value)
+}
+
+function isReactCanvasSourceRoot(relativePath) {
+  return (
+    relativePath.startsWith(".agent-html/artifacts/") ||
+    relativePath.startsWith(".agent-html/examples/")
+  )
+}
+
+function toPosixPath(value) {
+  return value.split(path.sep).join("/")
+}
+
+export async function resolveBlockImplementationPath({
+  blockPath,
+  filePath,
+  root,
+}) {
+  if (!isKebabCase(blockPath) || !isReactCanvasSourceRoot(filePath)) {
+    return null
+  }
+
+  const entryName = path.basename(filePath)
+  if (!entryName.endsWith(".agent.tsx")) {
+    return null
+  }
+
+  const artifactName = entryName.slice(0, -".agent.tsx".length)
+  const candidateRelativePath = path.join(
+    path.dirname(filePath),
+    artifactName,
+    `${blockPath}.block.tsx`
+  )
+  const candidatePath = path.resolve(root, candidateRelativePath)
+  const agentHtmlRoot = path.resolve(root, ".agent-html")
+
+  if (
+    candidatePath !== agentHtmlRoot &&
+    !candidatePath.startsWith(`${agentHtmlRoot}${path.sep}`)
+  ) {
+    return null
+  }
+
+  try {
+    const stats = await fs.stat(candidatePath)
+    return stats.isFile() ? toPosixPath(candidateRelativePath) : null
+  } catch {
+    return null
+  }
 }
 
 export async function readTextFile(filePath) {

@@ -14,6 +14,7 @@ describe("React Canvas prompt bridge", () => {
 
     expect(prompt).toContain("filePath: .agent-html/artifacts/example.agent.tsx")
     expect(prompt).toContain("blockPath: summary")
+    expect(prompt).not.toContain("implementationPath:")
     expect(prompt).not.toContain("```tsx")
     expect(prompt).not.toContain("targetStatus")
     expect(prompt).not.toContain("sourceMode")
@@ -24,6 +25,17 @@ describe("React Canvas prompt bridge", () => {
     const formattedPrompt = formatBlockPrompt(payload)
 
     expect(formattedPrompt).toBe(formatBlockPrompt(payload))
+  })
+
+  it("includes split block implementation paths when available", () => {
+    const prompt = formatBlockPrompt({
+      ...payload,
+      implementationPath: ".agent-html/artifacts/example/summary.block.tsx",
+    })
+
+    expect(prompt).toContain(
+      "implementationPath: .agent-html/artifacts/example/summary.block.tsx"
+    )
   })
 
   it("includes compact interaction context when block state changes are available", () => {

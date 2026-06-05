@@ -10,6 +10,14 @@ function issueMessages(source) {
   }).map((issue) => issue.message)
 }
 
+function issuesFor(source) {
+  return analyzeReactCanvasArtifact({
+    filePath: "artifact.agent.tsx",
+    relativePath: ".agent-html/artifacts/artifact.agent.tsx",
+    source,
+  })
+}
+
 describe("React Canvas Guard", () => {
   it("reports a missing Artifact wrapper", () => {
     const messages = issueMessages(`
@@ -73,6 +81,30 @@ describe("React Canvas Guard", () => {
 
     expect(messages.some((message) => message.includes("Unsafe className"))).toBe(true)
     expect(messages).toContain("Inline visual style is not allowed in React Canvas artifacts.")
+  })
+
+  it("truncates long unsafe className messages", () => {
+    const issues = issuesFor(`
+      import { Artifact, Block } from "@agent-html/react"
+      export default function Demo() {
+        return (
+          <Artifact title="Demo">
+            <Block id="summary">
+              <section className="bg-purple-900 rounded-3xl shadow-2xl text-6xl tracking-tight p-[37px] m-[21px] border-red-500 font-display">
+                Oversized
+              </section>
+            </Block>
+          </Artifact>
+        )
+      }
+    `)
+    const unsafeIssue = issues.find((issue) =>
+      issue.message.startsWith("Unsafe className:")
+    )
+
+    expect(unsafeIssue?.message.length).toBeLessThanOrEqual(114)
+    expect(unsafeIssue?.message).toContain("…")
+    expect(unsafeIssue?.suggestion).toBe("Use semantic token classes.")
   })
 
   it("reports arbitrary values and oversized typography", () => {
@@ -164,7 +196,7 @@ describe("React Canvas Guard", () => {
       }
     `)
 
-    expect(messages).toContain("Forbidden app or old runtime import in React Canvas artifact.")
+    expect(messages).toContain("Import crosses the React Canvas boundary.")
     expect(messages).toContain("Old AHTML render API is not allowed in React Canvas artifacts.")
   })
 
@@ -198,7 +230,7 @@ describe("React Canvas Guard", () => {
     expect(publicMessages).toContain("Public files must be referenced by URL, not imported.")
   })
 
-  it("reports primitive bypasses for common controls and tables", () => {
+  it("aggregates primitive bypasses for common controls and tables", () => {
     const messages = issueMessages(`
       import { Artifact, Block } from "@agent-html/react"
 
@@ -214,6 +246,11 @@ describe("React Canvas Guard", () => {
       }
     `)
 
-    expect(messages.some((message) => message.includes("Primitive bypass"))).toBe(true)
+    expect(
+      messages.filter((message) => message.includes("bypasses local UI"))
+    ).toEqual([
+      "Native form control bypasses local UI primitives.",
+      "Native table bypasses local UI table primitives.",
+    ])
   })
 })

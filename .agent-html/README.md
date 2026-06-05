@@ -9,13 +9,9 @@ Always:
 - `AGENTS.md` for hard operating rules.
 - `index/README.md` for generated route summaries.
 
-When authoring a static artifact:
+When authoring an artifact:
 
-- `examples/research-summary.agent.tsx`
-
-When adding instrumented controls:
-
-- `examples/interaction-state.agent.tsx`
+- `examples/example.agent.tsx`
 
 When opening broad or large source files:
 
@@ -47,8 +43,7 @@ When touching Canvas classes, tokens, or internal chrome:
 
 ## Copy Policy
 
-- Copy `examples/research-summary.agent.tsx` for compact static artifacts.
-- Copy `examples/interaction-state.agent.tsx` for compact interaction-state artifacts.
+- Copy `examples/example.agent.tsx` for artifacts that need an overview file and semantic block files.
 - Do not copy `artifacts/interaction-state.agent.tsx` as a style template; it is a broad coverage surface.
 
 ## Workspace Contract

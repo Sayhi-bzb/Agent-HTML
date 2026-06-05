@@ -7,7 +7,9 @@ const unsafeClassPattern = /\b(?:gradient|shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl
 const forbiddenImportPattern = /from\s+["'](?:@\/app\/|.*apps\/agent-html-app|@\/agent-html\/runtime\/ui|@\/agent-html\/runtime["'])/g
 const forbiddenPublicImportPattern = /from\s+["']\.\.\/public(?:\/|["'])/g
 const forbiddenRuntimeApiPattern = /\b(?:renderAgentHtml|renderInteractiveAgentHtml)\b/g
-const primitiveBypassPattern = /<(?:button|input|table|thead|tbody|tr|th|td)\b/g
+const nativeControlPattern = /<(?:button|input)\b/
+const nativeTablePattern = /<(?:table|thead|tbody|tr|th|td)\b/
+const maxClassNameMessageLength = 96
 
 function createIssue({ filePath, line = 1, message, severity = "warning", suggestion }) {
   return {
@@ -25,6 +27,14 @@ function lineForIndex(source, index) {
 
 function isKebabCase(value) {
   return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(value)
+}
+
+function compactClassNameForMessage(classValue) {
+  if (classValue.length <= maxClassNameMessageLength) {
+    return classValue
+  }
+
+  return `${classValue.slice(0, maxClassNameMessageLength - 1)}…`
 }
 
 function hasDefaultExport(source) {
@@ -49,7 +59,7 @@ function collectVisualIssues({ relativePath, source }) {
         filePath: relativePath,
         line: lineForIndex(source, match.index),
         message: "Inline visual style is not allowed in React Canvas artifacts.",
-        suggestion: "Use local UI primitives, semantic token classes, or Canvas scale utilities.",
+        suggestion: "Move visual treatment into local UI primitives.",
       })
     )
   }
@@ -66,8 +76,8 @@ function collectVisualIssues({ relativePath, source }) {
         createIssue({
           filePath: relativePath,
           line: lineForIndex(source, match.index),
-          message: `Unsafe className in artifact source: ${classValue || "dynamic className"}`,
-          suggestion: "Use semantic tokens and compact Canvas scale utilities; keep visual treatment in local UI primitives.",
+          message: `Unsafe className: ${classValue ? compactClassNameForMessage(classValue) : "dynamic value"}`,
+          suggestion: "Use semantic token classes.",
         })
       )
     }
@@ -85,9 +95,9 @@ function collectBoundaryIssues({ relativePath, source }) {
       createIssue({
         filePath: relativePath,
         line: lineForIndex(source, match.index),
-        message: "Forbidden app or old runtime import in React Canvas artifact.",
+        message: "Import crosses the React Canvas boundary.",
         severity: "error",
-        suggestion: "Use @agent-html/react and local .agent-html/ui, hooks, lib, schema, or data imports.",
+        suggestion: "Import from @agent-html/react or local .agent-html source.",
       })
     )
     forbiddenImportPattern.lastIndex = match.index + 1
@@ -100,7 +110,7 @@ function collectBoundaryIssues({ relativePath, source }) {
         line: lineForIndex(source, match.index),
         message: "Public files must be referenced by URL, not imported.",
         severity: "error",
-        suggestion: "Use /__agent-html/public/<file> for public files, or move bundle-time assets to .agent-html/assets.",
+        suggestion: "Reference public files through /__agent-html/public/<file>.",
       })
     )
     forbiddenPublicImportPattern.lastIndex = match.index + 1
@@ -119,16 +129,28 @@ function collectBoundaryIssues({ relativePath, source }) {
     forbiddenRuntimeApiPattern.lastIndex = match.index + 1
   }
 
-  while ((match = primitiveBypassPattern.exec(source)) !== null) {
+  const controlMatch = nativeControlPattern.exec(source)
+  if (controlMatch) {
     issues.push(
       createIssue({
         filePath: relativePath,
-        line: lineForIndex(source, match.index),
-        message: `Primitive bypass in artifact source: ${match[0]}`,
-        suggestion: "Use local .agent-html/ui primitives instead of hand-written common controls or tables.",
+        line: lineForIndex(source, controlMatch.index),
+        message: "Native form control bypasses local UI primitives.",
+        suggestion: "Use the matching .agent-html/ui primitive.",
       })
     )
-    primitiveBypassPattern.lastIndex = match.index + 1
+  }
+
+  const tableMatch = nativeTablePattern.exec(source)
+  if (tableMatch) {
+    issues.push(
+      createIssue({
+        filePath: relativePath,
+        line: lineForIndex(source, tableMatch.index),
+        message: "Native table bypasses local UI table primitives.",
+        suggestion: "Use .agent-html/ui/table.",
+      })
+    )
   }
 
   return issues

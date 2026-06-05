@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { fetchArtifacts } from "./api"
+import { fetchArtifacts, fetchBlockSource } from "./api"
 import { ArtifactSurface } from "./artifact-surface"
 import {
   readCanvasHostPreferences,
@@ -203,7 +203,7 @@ export function ReactCanvasHostApp() {
     setMessageDraft(
       resolvedActiveFilePath
         ? readCanvasMessageDraft({
-            blockId: target.id,
+            blockPath: target.id,
             filePath: resolvedActiveFilePath,
           })
         : ""
@@ -248,9 +248,14 @@ export function ReactCanvasHostApp() {
     }
 
     try {
+      const blockSource = await fetchBlockSource({
+        blockPath: target.id,
+        filePath: resolvedActiveFilePath,
+      })
       const formatted = formatBlockPrompt({
         blockPath: target.id,
         filePath: resolvedActiveFilePath,
+        implementationPath: blockSource.implementationPath ?? undefined,
         interactionSnapshot: getCanvasInteractionSnapshot({
           blockId: target.id,
           filePath: resolvedActiveFilePath,
@@ -261,7 +266,7 @@ export function ReactCanvasHostApp() {
       await navigator.clipboard.writeText(formatted)
       publishCanvasPromptDebug(formatted)
       writeCanvasMessageDraft({
-        blockId: target.id,
+        blockPath: target.id,
         draft: "",
         filePath: resolvedActiveFilePath,
       })
@@ -281,7 +286,7 @@ export function ReactCanvasHostApp() {
     }
 
     writeCanvasMessageDraft({
-      blockId: promptTarget.id,
+      blockPath: promptTarget.id,
       draft,
       filePath: resolvedActiveFilePath,
     })

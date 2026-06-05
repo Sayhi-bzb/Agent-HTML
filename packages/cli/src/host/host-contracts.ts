@@ -23,6 +23,12 @@ export type BlockOverlay = {
   y: number
 }
 
+export type CanvasTarget = {
+  blockPath: string
+  filePath: string
+  implementationPath?: string
+}
+
 export type PromptTarget = {
   id: string
   title: string

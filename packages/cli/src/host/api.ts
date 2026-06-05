@@ -27,14 +27,18 @@ export async function fetchArtifacts() {
 }
 
 export async function fetchBlockSource({
-  blockId,
+  blockPath,
   filePath,
 }: {
-  blockId: string
+  blockPath: string
   filePath: string
 }) {
-  const params = new URLSearchParams({ blockId, filePath })
-  return fetchJson<{ selectedSource: string | null }>(
+  const params = new URLSearchParams({ blockId: blockPath, filePath })
+  return fetchJson<{
+    implementationPath: string | null
+    implementationSource: string | null
+    selectedSource: string | null
+  }>(
     `${hostApiRoutes.blockSource}?${params}`
   )
 }

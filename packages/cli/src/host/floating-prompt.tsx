@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowUpIcon, PlusIcon } from "lucide-react"
+import { ArrowUpIcon } from "lucide-react"
 
 import { Button } from "#agent-html-playground/ui/button"
 import {
@@ -70,24 +70,10 @@ export function FloatingPrompt({
               void submit()
             }
           }}
-          placeholder="Ask, Search or Chat..."
+          placeholder="Edit this block..."
           value={value}
         />
         <InputGroupAddon align="block-end">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                aria-label="Add context"
-                className="rounded-full"
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <PlusIcon />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Add context</TooltipContent>
-          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
