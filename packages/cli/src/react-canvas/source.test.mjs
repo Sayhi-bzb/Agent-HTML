@@ -3,27 +3,9 @@ import os from "node:os"
 import path from "node:path"
 import { describe, expect, it } from "vitest"
 
-import { extractBlockSource, resolveBlockImplementationPath } from "./source.mjs"
+import { resolveBlockImplementationPath } from "./source.mjs"
 
 describe("React Canvas source helpers", () => {
-  it("extracts a selected Block source slice", () => {
-    const source = `
-      <Artifact title="Demo">
-        <Block id="summary" title="Summary">
-          <p>Summary</p>
-        </Block>
-        <Block id="next-steps">Next</Block>
-      </Artifact>
-    `
-
-    expect(extractBlockSource(source, "summary")).toContain('<Block id="summary" title="Summary">')
-    expect(extractBlockSource(source, "summary")).toContain("</Block>")
-  })
-
-  it("returns null for a missing Block", () => {
-    expect(extractBlockSource("<Block id=\"summary\">Summary</Block>", "missing")).toBeNull()
-  })
-
   it("resolves split artifact block implementation files", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-source-"))
     await fs.mkdir(path.join(root, ".agent-html", "artifacts", "demo"), {

@@ -44,42 +44,6 @@ export function collectBlockIds(source) {
   }))
 }
 
-export function extractBlockSource(source, blockId) {
-  const blocks = readBlockOpenTags(source)
-  const target = blocks.find((block) => readAttr(block.attrs, "id") === blockId)
-
-  if (!target) {
-    return null
-  }
-
-  const tagPattern = /<\/?Block\b[^>]*>/g
-  tagPattern.lastIndex = target.index
-  let depth = 0
-  let match
-
-  while ((match = tagPattern.exec(source)) !== null) {
-    const tag = match[0]
-    if (tag.startsWith("</")) {
-      depth -= 1
-      if (depth === 0) {
-        return source.slice(target.index, match.index + tag.length)
-      }
-      continue
-    }
-
-    if (tag.endsWith("/>")) {
-      if (match.index === target.index) {
-        return tag
-      }
-      continue
-    }
-
-    depth += 1
-  }
-
-  return null
-}
-
 function isKebabCase(value) {
   return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(value)
 }
