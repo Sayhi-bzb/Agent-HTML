@@ -33,9 +33,9 @@ AgentHTML's main artifact route is React-first Canvas.
 - `Artifact` owns the readable root container and rendered metadata.
 - `Block` is protocol-only. It marks stable, addressable semantic regions and
   does not own layout or visual styling.
-- Canvas host owns artifact discovery, preview rendering, guard issue display,
-  block overlay, floating prompt bridge, theme preset application, and
-  stylesheet compilation.
+- Canvas host owns artifact discovery, Vite-served preview rendering, guard
+  issue display, block overlay, floating prompt bridge, theme preset
+  application, and stylesheet loading.
 - Artifact source must not call filesystem, shell, MCP, Codex app-server, or
   privileged host APIs.
 - Artifact visual language must flow through local Canvas resources: semantic

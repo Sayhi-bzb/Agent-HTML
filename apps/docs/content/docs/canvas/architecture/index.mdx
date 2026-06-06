@@ -16,7 +16,7 @@ agent-html/artifacts/*
   -> durable artifact composition and content
 
 packages/cli/src/*
-  -> dev server, bundler, guard, and stylesheet entrypoints
+  -> Vite middleware dev host, guard, and stylesheet entrypoints
 
 packages/cli/src/host/*
   -> sandbox host, inspector, and prompt bridge
@@ -25,8 +25,8 @@ packages/cli/src/host/*
 Each layer owns one decision. The protocol marks stable regions and emits
 instrumented state changes. The `agent-html` workspace provides durable
 context agents can read and reuse. Artifacts compose those resources into UI.
-The CLI discovers, guards, bundles, and serves artifacts. The host observes and
-operates on rendered metadata.
+The CLI discovers, guards, serves, and routes artifacts through Vite middleware.
+The host observes and operates on rendered metadata.
 
 ## Protocol
 
@@ -92,7 +92,7 @@ Do not put layout classes on `Block`; put layout inside the block content.
 
 The host renders artifacts, discovers blocks, displays guard issues, overlays
 block prompt actions, handles floating prompts, applies theme presets, and
-compiles stylesheets. Host controls use Canvas UI primitives and theme
+loads Canvas stylesheets. Host controls use Canvas UI primitives and theme
 resources through `#agent-html-playground/components/ui/*` and
 `#agent-html-playground/theme/*`; the host must not define artifact visual
 language.
@@ -117,7 +117,7 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Artifact entry protocol guard | `react-canvas/guard.mjs` | artifact entry source | issues scoped as `artifact-entry-protocol` | layout or style props on `Artifact` or `Block` | `guard.test.mjs` |
 | Block implementation source guard | `react-canvas/guard.mjs` | `agent-html/{artifacts,examples}/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `boundaries.test.mjs` |
 | Workspace boundary guard | `react-canvas/guard.mjs` | artifact and block source imports | issues scoped as `workspace-boundary` | app imports, old runtime imports, public-file imports | `guard.test.mjs`, `boundaries.test.mjs` |
-| Bundle and render | dev server + host surface | artifact entry file path | mounted artifact DOM | app shell, old runtime render APIs | `dev-host.test.mjs` |
+| Module transform and render | Vite middleware + host surface | artifact entry file path | mounted artifact DOM with HMR-capable module graph | app shell, old runtime render APIs | `dev-host.test.mjs` |
 | Block overlay | `packages/react` + host overlay | rendered `data-agent-html-block-*` metadata | hover highlight and prompt target | artifact source mutation, host APIs in artifacts | `block-overlay.test.ts`, `index.test.tsx` |
 | Block implementation lookup | dev server + host API | `artifactEntry`, `blockId` | `implementationPath` | selected source payloads, implementation source payloads | `block-implementation.test.mjs`, `dev-host.test.mjs` |
 | Block prompt | `react-canvas/prompt.mjs` | `artifactEntry`, `blockId`, optional `implementationPath`, host `interactionSnapshot` | minimal prompt packet | TSX source payloads, runtime DSL source payloads | `prompt.test.mjs` |
@@ -125,8 +125,9 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | CSS/theme | `agent-html/styles` + host theme editor | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `boundaries.test.mjs`, `theme-preset.test.ts` |
 
 Dev server routes are orchestration only. They may call discovery, guard,
-bundle, stylesheet, public asset, and block implementation lookup modules, but
-they do not own those pipeline contracts.
+stylesheet, public asset, and block implementation lookup modules, and they
+delegate host and artifact module transforms to Vite. They do not own those
+pipeline contracts.
 
 ## Guard Scopes
 

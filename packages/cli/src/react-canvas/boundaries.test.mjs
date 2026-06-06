@@ -443,7 +443,9 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     ).toEqual([])
 
     expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.0.1")
-    expect(cliPackage.dependencies.esbuild).toBeTruthy()
+    expect(cliPackage.dependencies.esbuild).toBeUndefined()
+    expect(cliPackage.dependencies.vite).toBeTruthy()
+    expect(cliPackage.dependencies["@vitejs/plugin-react"]).toBeTruthy()
     expect(cliPackage.dependencies.tailwindcss).toBeTruthy()
     expect(cliPackage.dependencies["@tailwindcss/oxide"]).toBeTruthy()
     expect(reactPackage.peerDependencies.react).toBeTruthy()

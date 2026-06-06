@@ -29,33 +29,17 @@ describe("React Canvas dev host", () => {
       const removedStyles = await fetch(`${url}/styles.css`)
       expect(removedStyles.status).toBe(404)
 
-      const hostClient = await fetch(`${url}/__agent-html/host.js`).then((response) =>
+      const html = await fetch(url).then((response) => response.text())
+      expect(html).toContain("/@vite/client")
+      expect(html).toContain("/__agent-html/host-entry.js")
+
+      const removedHostBundle = await fetch(`${url}/__agent-html/host.js`)
+      expect(removedHostBundle.status).toBe(404)
+
+      const hostEntry = await fetch(`${url}/__agent-html/host-entry.js`).then((response) =>
         response.text()
       )
-      expect(hostClient).toContain("ReactCanvasHostApp")
-      expect(hostClient).toContain("ReactCanvasSidebar")
-      expect(hostClient).toContain("SidebarMenuSkeleton")
-      expect(hostClient).toContain("ReactCanvasThemeEditor")
-      expect(hostClient).toContain("publishCanvasMessageHost")
-      expect(hostClient).toContain("FloatingPrompt")
-      expect(hostClient).toContain("Reset preview")
-      expect(hostClient).toContain("react-canvas-theme-editor-preview")
-      expect(hostClient).toContain("formatBlockPrompt")
-      expect(hostClient).toContain("startCodexTurn")
-      expect(hostClient).not.toContain("agent-html:action")
-      expect(hostClient).not.toContain("navigator.clipboard")
-      expect(hostClient).not.toContain("Prompt copied to clipboard")
-      expect(hostClient).not.toContain("CodexThreadWorkbench")
-      expect(hostClient).not.toContain("Codex thread window selection")
-      expect(hostClient).not.toContain("data-agent-html-codex-thread-window")
-      expect(hostClient).not.toContain("WindowChromeFrame")
-      expect(hostClient).not.toContain("DocumentTabRail")
-      expect(hostClient).not.toContain("@/app")
-      expect(hostClient).not.toContain("@/ui")
-      expect(hostClient).not.toContain("apps/agent-html-app")
-      expect(hostClient).not.toContain("@/agent-html/runtime/ui")
-      expect(hostClient).not.toContain("renderAgentHtml")
-      expect(hostClient).not.toContain("renderInteractiveAgentHtml")
+      expect(hostEntry).toContain("packages/cli/src/host/main.tsx")
 
       const removedBundle = await fetch(`${url}/__agent-html/client-bundle`)
       expect(removedBundle.status).toBe(404)
@@ -98,7 +82,10 @@ describe("React Canvas dev host", () => {
       )
       const bundle = await fetch(bundleUrl).then((response) => response.text())
       expect(bundle).toContain("function mount")
-      expect(bundle).toContain("agent-html-artifact")
+      expect(bundle).toContain("import.meta.hot")
+      expect(bundle).toContain(
+        "/agent-html/artifacts/project-visual-explainer.artifact.tsx"
+      )
 
       const css = await fetch(`${url}/__agent-html/styles.css`).then((response) =>
         response.text()

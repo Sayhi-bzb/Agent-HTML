@@ -4,6 +4,7 @@ import { parseRootArg } from "../react-canvas/paths.mjs"
 import { stopCodexBridge } from "./codex-bridge.mjs"
 import { sendError } from "./http.mjs"
 import { handleRequest } from "./routes.mjs"
+import { createAgentHtmlViteServer } from "./vite.mjs"
 
 export function parsePortArg(args) {
   const portIndex = args.indexOf("--port")
@@ -19,16 +20,86 @@ export function parsePortArg(args) {
   return value
 }
 
+async function waitForViteRuntimeIdle(vite) {
+  await vite.waitForRequestsIdle()
+
+  const optimizerPromises = Object.values(vite.environments ?? {}).flatMap(
+    (environment) => {
+      const optimizer = environment.depsOptimizer
+      if (!optimizer) {
+        return []
+      }
+
+      const discoveredProcessing = Object.values(
+        optimizer.metadata?.discovered ?? {}
+      )
+        .map((dependency) => dependency.processing)
+        .filter(Boolean)
+
+      return [optimizer.scanProcessing, ...discoveredProcessing].filter(Boolean)
+    }
+  )
+
+  await Promise.allSettled(optimizerPromises)
+  await vite.waitForRequestsIdle()
+}
+
 export async function startDevHost({ args, cwd }) {
   const root = parseRootArg({ args, cwd })
   const port = parsePortArg(args)
-  const server = http.createServer((request, response) => {
-    handleRequest({ request, response, root }).catch((error) => {
-      sendError(response, error)
+  const server = http.createServer()
+  const vite = await createAgentHtmlViteServer({ root, server })
+  const closeHttpServer = server.close.bind(server)
+  let closeRuntimePromise = null
+
+  function closeRuntime() {
+    if (!closeRuntimePromise) {
+      closeRuntimePromise = (async () => {
+        await waitForViteRuntimeIdle(vite)
+        await vite.close()
+        await stopCodexBridge()
+      })()
+    }
+
+    return closeRuntimePromise
+  }
+
+  server.close = (callback) => {
+    closeHttpServer((error) => {
+      closeRuntime().then(
+        () => callback?.(error),
+        (closeError) => callback?.(closeError)
+      )
     })
+
+    return server
+  }
+
+  server.on("request", (request, response) => {
+    handleRequest({ request, response, root, vite }).then(
+      (handled) => {
+        if (handled) {
+          return
+        }
+
+        vite.middlewares(request, response, (error) => {
+          if (error) {
+            vite.ssrFixStacktrace(error)
+            sendError(response, error)
+            return
+          }
+
+          sendError(response, "Not found", 404)
+        })
+      },
+      (error) => {
+        vite.ssrFixStacktrace(error)
+        sendError(response, error)
+      }
+    )
   })
   server.on("close", () => {
-    void stopCodexBridge()
+    void closeRuntime()
   })
 
   await new Promise((resolve) => {

@@ -11,10 +11,10 @@ import {
   startCodexTurn,
 } from "./codex-bridge.mjs"
 import { hostRoot } from "./context.mjs"
-import { buildArtifactBundle, buildHostBundle } from "./bundler.mjs"
 import { sendError, sendJson, sendNotFound, sendText } from "./http.mjs"
 import { loadHostStyles } from "./styles.mjs"
 import { assertInsideWorkspace } from "./workspace.mjs"
+import { artifactEntryModulePath, hostEntryModulePath } from "./vite.mjs"
 
 export const hostRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
@@ -23,7 +23,7 @@ export const hostRoutes = {
   codexThreads: "/__agent-html/codex/threads",
   codexTranscript: "/__agent-html/codex/transcript",
   codexTurn: "/__agent-html/codex/turn",
-  hostBundle: "/__agent-html/host.js",
+  hostEntry: "/__agent-html/host-entry.js",
   publicAsset: "/__agent-html/public/",
   hostStyles: "/__agent-html/styles.css",
 }
@@ -81,29 +81,53 @@ async function readJsonBody(request) {
   return JSON.parse(Buffer.concat(chunks).toString("utf8"))
 }
 
-export async function handleRequest({ request, response, root }) {
+async function sendTransformedModule({ response, url, vite }) {
+  const result = await vite.transformRequest(url)
+
+  if (!result) {
+    sendNotFound(response)
+    return
+  }
+
+  sendText(response, result.code, "text/javascript; charset=utf-8")
+}
+
+export async function handleRequest({ request, response, root, vite }) {
   const requestUrl = new URL(request.url ?? "/", "http://localhost")
 
   if (requestUrl.pathname === "/") {
     const html = await fs.readFile(path.join(hostRoot, "index.html"), "utf8")
-    sendText(response, html, "text/html; charset=utf-8")
-    return
+    sendText(
+      response,
+      await vite.transformIndexHtml("/", html, request.url),
+      "text/html; charset=utf-8"
+    )
+    return true
   }
 
   if (requestUrl.pathname === "/favicon.ico") {
     response.writeHead(204)
     response.end()
-    return
+    return true
   }
 
-  if (requestUrl.pathname === hostRoutes.hostBundle) {
-    sendText(response, await buildHostBundle({ root }), "text/javascript; charset=utf-8")
-    return
+  if (requestUrl.pathname === hostRoutes.hostEntry) {
+    await sendTransformedModule({
+      response,
+      url: hostEntryModulePath,
+      vite,
+    })
+    return true
+  }
+
+  if (requestUrl.pathname === artifactEntryModulePath) {
+    sendNotFound(response)
+    return true
   }
 
   if (requestUrl.pathname === hostRoutes.hostStyles) {
     sendText(response, await loadHostStyles(root), "text/css; charset=utf-8")
-    return
+    return true
   }
 
   if (requestUrl.pathname.startsWith(hostRoutes.publicAsset)) {
@@ -116,7 +140,7 @@ export async function handleRequest({ request, response, root }) {
       })
     } catch (error) {
       sendError(response, error, 400)
-      return
+      return true
     }
 
     try {
@@ -125,7 +149,7 @@ export async function handleRequest({ request, response, root }) {
     } catch {
       sendNotFound(response)
     }
-    return
+    return true
   }
 
   if (requestUrl.pathname === hostRoutes.artifacts) {
@@ -137,22 +161,23 @@ export async function handleRequest({ request, response, root }) {
       })),
       guardIssues: guard.issues,
     })
-    return
+    return true
   }
 
   if (requestUrl.pathname === hostRoutes.artifactBundle) {
     const filePath = requestUrl.searchParams.get("filePath")
     if (!filePath) {
       sendError(response, "filePath is required", 400)
-      return
+      return true
     }
 
-    sendText(
+    assertInsideWorkspace(root, filePath)
+    await sendTransformedModule({
       response,
-      await buildArtifactBundle({ filePath, root }),
-      "text/javascript; charset=utf-8"
-    )
-    return
+      url: `${artifactEntryModulePath}?filePath=${encodeURIComponent(filePath)}`,
+      vite,
+    })
+    return true
   }
 
   if (requestUrl.pathname === hostRoutes.blockImplementation) {
@@ -160,7 +185,7 @@ export async function handleRequest({ request, response, root }) {
     const blockId = requestUrl.searchParams.get("blockId")
     if (!filePath || !blockId) {
       sendError(response, "filePath and blockId are required", 400)
-      return
+      return true
     }
 
     const absolutePath = assertInsideWorkspace(root, filePath)
@@ -173,29 +198,29 @@ export async function handleRequest({ request, response, root }) {
     sendJson(response, {
       implementationPath,
     })
-    return
+    return true
   }
 
   if (requestUrl.pathname === hostRoutes.codexThreads) {
     sendJson(response, await listCodexThreads({ root }))
-    return
+    return true
   }
 
   if (requestUrl.pathname === hostRoutes.codexTranscript) {
     const threadId = requestUrl.searchParams.get("threadId")
     if (!threadId) {
       sendError(response, "threadId is required", 400)
-      return
+      return true
     }
 
     sendJson(response, await readCodexThreadTranscript({ threadId }))
-    return
+    return true
   }
 
   if (requestUrl.pathname === hostRoutes.codexTurn) {
     if (request.method !== "POST") {
       sendError(response, "POST is required", 405)
-      return
+      return true
     }
 
     const body = await readJsonBody(request)
@@ -207,12 +232,12 @@ export async function handleRequest({ request, response, root }) {
 
     if (!prompt.trim()) {
       sendError(response, "prompt is required", 400)
-      return
+      return true
     }
 
     sendJson(response, await startCodexTurn({ prompt, root, threadId }))
-    return
+    return true
   }
 
-  sendNotFound(response)
+  return false
 }
