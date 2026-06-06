@@ -4,7 +4,6 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  ReferenceLine,
   XAxis,
   YAxis,
 } from "recharts"
@@ -19,18 +18,17 @@ import {
 import type { UsageDashboardRow } from "../../lib/usage-dashboard"
 
 import {
+  dashboardMetricLabels,
   formatCurrency,
   formatNumber,
-  metricViewLabels,
-  type UsageMetricView,
+  type DashboardMetric,
 } from "./data"
 
-type TrendChartBlockProps = {
-  metricView: UsageMetricView
-  requestThreshold: number
+type TrendBlockProps = {
+  metric: DashboardMetric
+  rows: UsageDashboardRow[]
   selectedRow: UsageDashboardRow | null
   setSelectedRowKey: (key: string) => void
-  visibleRows: UsageDashboardRow[]
 }
 
 type ChartClickState = {
@@ -74,7 +72,7 @@ function isChartClickState(value: unknown): value is ChartClickState {
   return typeof value === "object" && value !== null && "activeTooltipIndex" in value
 }
 
-function pickActiveRow(value: unknown, rows: UsageDashboardRow[]) {
+function pickClickedRow(value: unknown, rows: UsageDashboardRow[]) {
   if (!isChartClickState(value)) {
     return null
   }
@@ -91,15 +89,14 @@ function pickActiveRow(value: unknown, rows: UsageDashboardRow[]) {
   return rows[index] ?? null
 }
 
-export function TrendChartBlock({
-  metricView,
-  requestThreshold,
+export function TrendBlock({
+  metric,
+  rows,
   selectedRow,
   setSelectedRowKey,
-  visibleRows,
-}: TrendChartBlockProps) {
-  function selectChartPoint(state: unknown) {
-    const row = pickActiveRow(state, visibleRows)
+}: TrendBlockProps) {
+  function selectPoint(value: unknown) {
+    const row = pickClickedRow(value, rows)
 
     if (row) {
       setSelectedRowKey(row.bucketStart)
@@ -110,25 +107,21 @@ export function TrendChartBlock({
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
         <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">{metricViewLabels[metricView]}</Badge>
+          <Badge variant="secondary">{dashboardMetricLabels[metric]}</Badge>
           {selectedRow ? (
             <Badge variant="outline">selected {selectedRow.hour}</Badge>
           ) : null}
         </div>
-        <h2 className="canvas-text-heading">Linked trend chart</h2>
+        <h2 className="canvas-text-heading">Trend analysis</h2>
         <p className="canvas-text-body text-muted-foreground">
-          Click a chart point to drive the table selection and inspector block.
+          Click a point to select the same record in the dashboard inspector.
         </p>
       </div>
 
       <div className="canvas-content-panel min-w-0">
-        {metricView === "traffic" ? (
+        {metric === "traffic" ? (
           <ChartContainer config={trafficConfig}>
-            <LineChart
-              accessibilityLayer
-              data={visibleRows}
-              onClick={selectChartPoint}
-            >
+            <LineChart accessibilityLayer data={rows} onClick={selectPoint}>
               <CartesianGrid vertical={false} />
               <XAxis
                 axisLine={false}
@@ -143,11 +136,6 @@ export function TrendChartBlock({
                 width={48}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <ReferenceLine
-                stroke="var(--muted-foreground)"
-                strokeDasharray="4 4"
-                y={requestThreshold}
-              />
               <Line
                 dataKey="requests"
                 dot={false}
@@ -166,13 +154,9 @@ export function TrendChartBlock({
           </ChartContainer>
         ) : null}
 
-        {metricView === "tokens" ? (
+        {metric === "tokens" ? (
           <ChartContainer config={tokenConfig}>
-            <AreaChart
-              accessibilityLayer
-              data={visibleRows}
-              onClick={selectChartPoint}
-            >
+            <AreaChart accessibilityLayer data={rows} onClick={selectPoint}>
               <CartesianGrid vertical={false} />
               <XAxis
                 axisLine={false}
@@ -207,13 +191,9 @@ export function TrendChartBlock({
           </ChartContainer>
         ) : null}
 
-        {metricView === "cost" ? (
+        {metric === "cost" ? (
           <ChartContainer config={costConfig}>
-            <AreaChart
-              accessibilityLayer
-              data={visibleRows}
-              onClick={selectChartPoint}
-            >
+            <AreaChart accessibilityLayer data={rows} onClick={selectPoint}>
               <CartesianGrid vertical={false} />
               <XAxis
                 axisLine={false}

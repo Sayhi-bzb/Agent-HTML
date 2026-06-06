@@ -1,6 +1,7 @@
 import { Artifact, Block } from "@agent-html/react"
 
 import { CodeBlockDemoBlock } from "./test/code-block-demo.block"
+import { DataTableDemoBlock } from "./test/data-table-demo.block"
 import { InteractionControlsBlock } from "./test/interaction-controls.block"
 import { KanbanBoardBlock } from "./test/kanban-board.block"
 import { UsageChartBlock } from "./test/usage-chart.block"
@@ -18,6 +19,10 @@ export default function TestArtifact() {
 
       <Block id="code-block-demo" title="Code Block Demo">
         <CodeBlockDemoBlock />
+      </Block>
+
+      <Block id="data-table-demo" title="Data Table Demo">
+        <DataTableDemoBlock />
       </Block>
 
       <Block id="usage-chart" title="Usage Chart">

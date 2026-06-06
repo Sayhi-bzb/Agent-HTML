@@ -9,6 +9,9 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@shikijs/transformers": "^4.1.0",
+    "@tanstack/react-table": "^8.21.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
     "embla-carousel-react": "^8.6.0",
@@ -17,7 +20,9 @@
     "react-day-picker": "^10.0.1",
     "react-resizable-panels": "^4.11.2",
     "recharts": "^3.8.1",
+    "shadcn": "^4.10.0",
     "shiki": "^4.1.0",
+    "tailwind-merge": "^3.6.0",
     "vaul": "^1.1.2"
   }
 }

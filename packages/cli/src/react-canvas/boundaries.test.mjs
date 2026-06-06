@@ -164,6 +164,8 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "@shikijs/transformers": "^4.1.0",
+        "class-variance-authority": "^0.7.1",
+        clsx: "^2.1.1",
         cmdk: "^1.1.1",
         "date-fns": "^4.4.0",
         "embla-carousel-react": "^8.6.0",
@@ -173,6 +175,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
         "react-resizable-panels": "^4.11.2",
         recharts: "^3.8.1",
         shiki: "^4.1.0",
+        "tailwind-merge": "^3.6.0",
         vaul: "^1.1.2",
       },
       name: "@agent-html/react-canvas-workspace",
@@ -458,6 +461,13 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(cliPackage.dependencies["@vitejs/plugin-react"]).toBeTruthy()
     expect(cliPackage.dependencies.tailwindcss).toBeTruthy()
     expect(cliPackage.dependencies["@tailwindcss/oxide"]).toBeTruthy()
+    expect(cliPackage.dependencies["class-variance-authority"]).toBeTruthy()
+    expect(cliPackage.dependencies.clsx).toBeTruthy()
+    expect(cliPackage.dependencies["tailwind-merge"]).toBeTruthy()
+    expect(cliPackage.files).toContain("src/**/*.html")
+    expect(cliPackage.files).toContain("src/**/*.css")
+    expect(cliPackage.files).toContain("!src/**/*.test.tsx")
+    expect(reactPackage.files).toContain("!src/**/*.test.tsx")
     expect(reactPackage.peerDependencies.react).toBeTruthy()
 
     expect(existsSync(join(root, "apps", "agent-html-app"))).toBe(false)

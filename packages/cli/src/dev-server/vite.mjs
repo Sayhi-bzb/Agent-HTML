@@ -108,6 +108,23 @@ function cacheDirForRoot(root) {
   return path.join(os.tmpdir(), "agent-html-vite", cacheKey)
 }
 
+function dependencyAllowRoots({ reactProtocolEntry, root }) {
+  return [
+    path.join(root, "node_modules"),
+    path.join(packageRoot, ".."),
+    path.dirname(reactProtocolEntry),
+  ]
+}
+
+export function createViteFsAllowList({ reactProtocolEntry, root }) {
+  return [
+    path.join(root, "agent-html"),
+    packageRoot,
+    ...dependencyAllowRoots({ reactProtocolEntry, root }),
+  ].map((entry) => path.resolve(entry))
+    .filter((entry, index, entries) => entries.indexOf(entry) === index)
+}
+
 function createAgentHtmlVitePlugin({ root }) {
   return {
     name: "agent-html-dev-host",
@@ -144,6 +161,7 @@ function createAgentHtmlVitePlugin({ root }) {
 
 export async function createAgentHtmlViteServer({ root, server }) {
   const reactProtocolEntry = resolvePackageModule("@agent-html/react")
+  const fsAllow = createViteFsAllowList({ reactProtocolEntry, root })
 
   return createViteServer({
     appType: "custom",
@@ -162,11 +180,7 @@ export async function createAgentHtmlViteServer({ root, server }) {
     },
     server: {
       fs: {
-        allow: [
-          path.join(root, "agent-html"),
-          packageRoot,
-          path.dirname(reactProtocolEntry),
-        ],
+        allow: fsAllow,
       },
       hmr: {
         server,

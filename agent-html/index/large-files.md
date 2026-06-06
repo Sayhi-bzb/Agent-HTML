@@ -10,6 +10,7 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 | `agent-html/data/public.usage_dashboard_hourly.csv` | 6420 | `data/README.md` |
 | `agent-html/artifacts/test/interaction-controls.block.tsx` | 5733 | `artifacts/README.md` |
 | `agent-html/components/ui/sidebar.tsx` | 5514 | `components/README.md` |
+| `agent-html/components/data-table.tsx` | 2861 | `components/README.md` |
 | `agent-html/components/ui/chart.tsx` | 2714 | `components/README.md` |
 | `agent-html/components/ui/combobox.tsx` | 2264 | `components/README.md` |
 | `agent-html/components/ui/dropdown-menu.tsx` | 2204 | `components/README.md` |

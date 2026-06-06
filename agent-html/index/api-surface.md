@@ -57,6 +57,7 @@ Full TypeScript declarations are generated only as temporary build input.
 | File | Exports |
 | --- | --- |
 | `agent-html/components/code-block.tsx` | `CodeBlock` |
+| `agent-html/components/data-table.tsx` | `DataTable`, `DataTableColumnHeader`, `DataTableColumnHeaderProps`, `DataTablePagination`, `DataTablePaginationProps`, `DataTableProps`, `DataTableViewOptions`, `DataTableViewOptionsProps` |
 | `agent-html/components/kanban.tsx` | `Kanban`, `KanbanBoard`, `KanbanColumn`, `KanbanColumnHandle`, `KanbanItem`, `KanbanItemHandle`, `KanbanOverlay`, `KanbanProps` |
 
 ## hooks

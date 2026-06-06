@@ -9,7 +9,10 @@ import { createAgentHtmlViteServer } from "./vite.mjs"
 export function parsePortArg(args) {
   const portIndex = args.indexOf("--port")
   if (portIndex === -1) {
-    return 5177
+    return {
+      explicit: false,
+      port: 5177,
+    }
   }
 
   const value = Number(args[portIndex + 1])
@@ -17,7 +20,59 @@ export function parsePortArg(args) {
     throw new Error("--port requires a positive integer")
   }
 
-  return value
+  return {
+    explicit: true,
+    port: value,
+  }
+}
+
+function isAddressInUseError(error) {
+  return error && error.code === "EADDRINUSE"
+}
+
+function listen(server, port) {
+  return new Promise((resolve, reject) => {
+    function cleanup() {
+      server.off("error", onError)
+    }
+
+    function onError(error) {
+      cleanup()
+      reject(error)
+    }
+
+    server.once("error", onError)
+    server.listen(port, "127.0.0.1", () => {
+      cleanup()
+      resolve(port)
+    })
+  })
+}
+
+async function listenWithPortFallback({ server, port, explicit }) {
+  const maxAttempts = explicit ? 1 : 20
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const candidatePort = port + attempt
+
+    try {
+      return await listen(server, candidatePort)
+    } catch (error) {
+      if (!isAddressInUseError(error)) {
+        throw error
+      }
+
+      if (explicit) {
+        throw new Error(
+          `Port ${candidatePort} is already in use. Try agent-html dev --port <other-port>.`
+        )
+      }
+    }
+  }
+
+  throw new Error(
+    `No available port found from ${port} to ${port + maxAttempts - 1}. Try agent-html dev --port <port>.`
+  )
 }
 
 async function waitForViteRuntimeIdle(vite) {
@@ -46,7 +101,7 @@ async function waitForViteRuntimeIdle(vite) {
 
 export async function startDevHost({ args, cwd }) {
   const root = parseRootArg({ args, cwd })
-  const port = parsePortArg(args)
+  const portConfig = parsePortArg(args)
   const server = http.createServer()
   const vite = await createAgentHtmlViteServer({ root, server })
   const closeHttpServer = server.close.bind(server)
@@ -102,9 +157,13 @@ export async function startDevHost({ args, cwd }) {
     void closeRuntime()
   })
 
-  await new Promise((resolve) => {
-    server.listen(port, "127.0.0.1", resolve)
-  })
+  let port
+  try {
+    port = await listenWithPortFallback({ server, ...portConfig })
+  } catch (error) {
+    await closeRuntime()
+    throw error
+  }
 
   const url = `http://127.0.0.1:${port}`
   console.log(`AgentHTML React Canvas host running at ${url}`)

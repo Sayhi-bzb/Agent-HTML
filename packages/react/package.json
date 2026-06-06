@@ -5,7 +5,11 @@
   "type": "module",
   "sideEffects": false,
   "files": [
-    "src"
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "!src/**/*.spec.ts",
+    "!src/**/*.spec.tsx"
   ],
   "exports": {
     ".": "./src/index.tsx"
