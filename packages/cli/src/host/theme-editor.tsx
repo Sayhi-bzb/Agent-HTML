@@ -19,17 +19,17 @@ import {
   type CanvasThemeVariableName,
   type TailwindColorTokenValue,
 } from "./theme-draft"
-import { Button } from "#agent-html-playground/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#agent-html-playground/ui/collapsible"
-import { Input } from "#agent-html-playground/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "#agent-html-playground/ui/popover"
+import { Button } from "#agent-html-playground/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#agent-html-playground/components/ui/collapsible"
+import { Input } from "#agent-html-playground/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "#agent-html-playground/components/ui/popover"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "#agent-html-playground/ui/select"
+} from "#agent-html-playground/components/ui/select"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -37,7 +37,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "#agent-html-playground/ui/sidebar"
+} from "#agent-html-playground/components/ui/sidebar"
 import type {
   CanvasThemePreset,
   CanvasThemePresetId,

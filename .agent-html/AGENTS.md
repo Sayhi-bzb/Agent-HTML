@@ -27,7 +27,7 @@ Write normal React artifacts in `.agent-html/artifacts/*.agent.tsx`. For cold st
 
 - Put artifact source in `artifacts`.
 - Put copyable patterns in `examples`.
-- Put visual primitives in `ui`.
+- Put visual primitives in `components/ui`.
 - Put reusable React behavior in `hooks`.
 - Put pure helpers and transforms in `lib`.
 - Put typed contracts and validation in `schema`.
@@ -48,13 +48,13 @@ Write normal React artifacts in `.agent-html/artifacts/*.agent.tsx`. For cold st
 - Keep compact artifacts single-file. Split broad artifacts into `name.agent.tsx` as the overview and `name/*.block.tsx` as semantic block files.
 - Keep `Block` protocol-only. Use only `id`, `title`, and children.
 - Do not put `className`, `style`, layout, border, radius, shadow, spacing, width, padding, or color props on `Artifact` or `Block`.
-- Put layout and visual treatment inside the block content and local `.agent-html/ui` primitives.
+- Put layout and visual treatment inside the block content and local `.agent-html/components/ui` primitives.
 - Do not render host block prompt actions or block hover chrome from artifact source.
 - Do not use old AHTML `<Cell>` DSL for React Canvas artifacts.
 
 ## Primitive Rules
 
-- Prefer local `.agent-html/ui`, `hooks`, `lib`, `schema`, `data`, and `assets` imports before hand-writing common UI or utility code.
+- Prefer local `.agent-html/components/ui`, `hooks`, `lib`, `schema`, `data`, and `assets` imports before hand-writing common UI or utility code.
 - Check `index/api-surface.md` before adding, duplicating, or changing a local primitive.
 - Host and artifacts compose primitives. They do not create duplicate primitive buttons, cards, badges, tables, sidebars, inputs, or disclosure controls.
 - Keep local shadcn-derived primitives low-modification unless Canvas needs a primitive API, correctness fix, or accessibility fix.

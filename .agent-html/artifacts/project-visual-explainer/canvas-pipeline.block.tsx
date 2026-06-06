@@ -1,12 +1,12 @@
-import { Badge } from "../../ui/badge"
+import { Badge } from "../../components/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../ui/card"
-import { Separator } from "../../ui/separator"
+} from "../../components/ui/card"
+import { Separator } from "../../components/ui/separator"
 
 const pipelineNodes = [
   {
@@ -20,7 +20,7 @@ const pipelineNodes = [
       "Tailwind, shadcn CSS, font imports, token mappings, and base styles.",
   },
   {
-    label: "ui/*",
+    label: "components/ui/*",
     summary:
       "Local shadcn-derived visual primitives used by artifacts and host.",
   },

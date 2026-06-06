@@ -43,7 +43,7 @@ while writing React artifacts:
 .agent-html/theme
   -> host-owned theme preset resources
 
-.agent-html/ui
+.agent-html/components/ui
   -> local visual primitives such as button, card, tabs, dialog, and select
 
 .agent-html/hooks
@@ -109,7 +109,7 @@ import {
   useInstrumentedValueChange,
 } from "@agent-html/react"
 
-import { Button } from "../ui/button"
+import { Button } from "../components/ui/button"
 import { useFilter } from "../hooks/use-filter"
 import { formatDate } from "../lib/format-date"
 import { artifactDataSchema } from "../schema/artifact-data"

@@ -31,7 +31,7 @@ When touching Canvas classes, tokens, or internal chrome:
 
 - `artifacts`: artifact source.
 - `examples`: compact patterns to imitate.
-- `ui`: local visual primitives.
+- `components/ui`: local visual primitives.
 - `hooks`: reusable React behavior.
 - `lib`: pure helpers and transforms.
 - `schema`: typed contracts and validation.

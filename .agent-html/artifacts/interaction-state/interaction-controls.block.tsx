@@ -6,7 +6,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "../../ui/accordion"
+} from "../../components/ui/accordion"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,23 +17,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "../../ui/alert-dialog"
-import { Alert, AlertDescription, AlertTitle } from "../../ui/alert"
-import { Badge } from "../../ui/badge"
-import { Button } from "../../ui/button"
+} from "../../components/ui/alert-dialog"
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert"
+import { Badge } from "../../components/ui/badge"
+import { Button } from "../../components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../ui/card"
-import { Checkbox } from "../../ui/checkbox"
+} from "../../components/ui/card"
+import { Checkbox } from "../../components/ui/checkbox"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../../ui/collapsible"
+} from "../../components/ui/collapsible"
 import {
   Dialog,
   DialogContent,
@@ -42,18 +42,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../ui/dialog"
+} from "../../components/ui/dialog"
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldLegend,
   FieldSet,
-} from "../../ui/field"
-import { Input } from "../../ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover"
-import { Progress } from "../../ui/progress"
-import { RadioGroup, RadioGroupItem } from "../../ui/radio-group"
+} from "../../components/ui/field"
+import { Input } from "../../components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover"
+import { Progress } from "../../components/ui/progress"
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
 import {
   Select,
   SelectContent,
@@ -61,7 +61,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../ui/select"
+} from "../../components/ui/select"
 import {
   Sheet,
   SheetContent,
@@ -69,19 +69,19 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../../ui/sheet"
-import { Skeleton } from "../../ui/skeleton"
-import { Slider } from "../../ui/slider"
-import { Switch } from "../../ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs"
-import { Textarea } from "../../ui/textarea"
+} from "../../components/ui/sheet"
+import { Skeleton } from "../../components/ui/skeleton"
+import { Slider } from "../../components/ui/slider"
+import { Switch } from "../../components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
+import { Textarea } from "../../components/ui/textarea"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../../ui/tooltip"
-import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group"
+} from "../../components/ui/tooltip"
+import { ToggleGroup, ToggleGroupItem } from "../../components/ui/toggle-group"
 
 import { createTextEditChange } from "./state-change"
 

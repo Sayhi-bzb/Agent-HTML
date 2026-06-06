@@ -2,8 +2,8 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "#agent-html-playground/ui/alert"
-import { Badge } from "#agent-html-playground/ui/badge"
+} from "#agent-html-playground/components/ui/alert"
+import { Badge } from "#agent-html-playground/components/ui/badge"
 import type { GuardIssue } from "./host-contracts"
 
 export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {

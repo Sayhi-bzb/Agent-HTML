@@ -17,9 +17,9 @@ preview, and host inspection.
 The current implementation docs remain the source of truth:
 
 - Canvas: `apps/docs/content/docs/canvas`
-- App: `apps/docs/content/docs/app`
-- Runtime: `apps/docs/content/docs/runtime`
-- Code-context governance: `design/context-governance.md`
+
+Retired App, Runtime, Example, and Design material is archived under `_archive`
+for historical reference only.
 
 ## Decision
 
@@ -67,9 +67,10 @@ This blueprint does not make AgentHTML:
 - a source of model selection, auth, permissions, or agent orchestration
 - a marketplace or package manager
 
-## Runtime and DSL Boundary
+## Archived Runtime and DSL Boundary
 
-The `.ahtml` Runtime remains valid for the Runtime documentation route:
+The retired `.ahtml` Runtime material remains available in `_archive/docs/runtime`
+for reconstructing historical DSL context:
 
 - parsing
 - schema
@@ -78,8 +79,8 @@ The `.ahtml` Runtime remains valid for the Runtime documentation route:
 - runtime host integration
 - DSL compatibility
 
-It is not the main Canvas artifact authoring route. Canvas authors normal React;
-Runtime preserves and evolves the Agent-HTML DSL pipeline.
+It is not the current Canvas artifact authoring route. Canvas authors normal
+React; archived Runtime material is not current implementation law.
 
 ## Codex Boundary
 
@@ -117,4 +118,4 @@ blueprint:
 - `appendix/concept-map.md`: historical metaphor and world model notes.
 
 Appendices may contain outdated wording, exploratory examples, or assumptions
-that have been superseded by Canvas, App, Runtime, and design docs.
+that have been superseded by Canvas docs.

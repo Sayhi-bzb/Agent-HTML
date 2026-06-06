@@ -1,18 +1,18 @@
 import * as React from "react"
 import { ArrowUpIcon } from "lucide-react"
 
-import { Button } from "#agent-html-playground/ui/button"
+import { Button } from "#agent-html-playground/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupTextarea,
-} from "#agent-html-playground/ui/input-group"
+} from "#agent-html-playground/components/ui/input-group"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "#agent-html-playground/ui/tooltip"
+} from "#agent-html-playground/components/ui/tooltip"
 import type { FloatingPromptTarget } from "./host-contracts"
 
 export function FloatingPrompt({

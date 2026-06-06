@@ -52,11 +52,11 @@ Host visual controls consume Canvas UI primitives and theme resources through
 local playground aliases:
 
 ```ts
-import { Button } from "#agent-html-playground/ui/button"
+import { Button } from "#agent-html-playground/components/ui/button"
 import { canvasThemePresets } from "#agent-html-playground/theme/presets"
 ```
 
 The host must not import the app shell, old runtime UI, old render APIs, or a
 host-local primitive layer. It must not use `@/app/*`,
-`@agent-html-playground/*`, or `#agent-html-playground/*` outside `ui/*` and
-`theme/*`.
+`@agent-html-playground/*`, or `#agent-html-playground/*` outside
+`components/ui/*` and `theme/*`.

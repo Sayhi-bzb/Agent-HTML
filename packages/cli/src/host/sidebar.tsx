@@ -30,7 +30,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSkeleton,
-} from "#agent-html-playground/ui/sidebar"
+} from "#agent-html-playground/components/ui/sidebar"
 import type {
   CanvasThemePreset,
   CanvasThemePresetId,

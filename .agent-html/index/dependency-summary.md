@@ -7,7 +7,7 @@ Dependency-cruiser summary for `.agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 74 |
+| Modules | 73 |
 | Dependencies | 252 |
 | Local edges | 131 |
 | External edges | 121 |
@@ -20,34 +20,34 @@ Dependency-cruiser summary for `.agent-html` source files.
 | Module | Inbound Local Edges |
 | --- | --- |
 | `.agent-html/lib/cn.ts` | 43 |
-| `.agent-html/ui/card.tsx` | 11 |
-| `.agent-html/ui/button.tsx` | 10 |
-| `.agent-html/ui/badge.tsx` | 8 |
-| `.agent-html/ui/separator.tsx` | 4 |
-| `.agent-html/ui/alert.tsx` | 3 |
-| `.agent-html/ui/dialog.tsx` | 3 |
-| `.agent-html/ui/input.tsx` | 3 |
-| `.agent-html/ui/textarea.tsx` | 3 |
+| `.agent-html/components/ui/card.tsx` | 11 |
+| `.agent-html/components/ui/button.tsx` | 10 |
+| `.agent-html/components/ui/badge.tsx` | 8 |
+| `.agent-html/components/ui/separator.tsx` | 4 |
+| `.agent-html/components/ui/alert.tsx` | 3 |
+| `.agent-html/components/ui/dialog.tsx` | 3 |
+| `.agent-html/components/ui/input.tsx` | 3 |
+| `.agent-html/components/ui/textarea.tsx` | 3 |
 | `.agent-html/examples/example/copy.ts` | 2 |
 | `.agent-html/examples/example/data.ts` | 2 |
-| `.agent-html/ui/input-group.tsx` | 2 |
+| `.agent-html/components/ui/input-group.tsx` | 2 |
 
 ## Highest Local Fanout
 
 | Module | Outbound Local Edges |
 | --- | --- |
 | `.agent-html/artifacts/interaction-state/interaction-controls.block.tsx` | 24 |
-| `.agent-html/ui/sidebar.tsx` | 8 |
+| `.agent-html/components/ui/sidebar.tsx` | 8 |
 | `.agent-html/examples/example/handoff.block.tsx` | 7 |
 | `.agent-html/artifacts/project-visual-explainer.agent.tsx` | 5 |
 | `.agent-html/examples/example.agent.tsx` | 4 |
 | `.agent-html/examples/example/brief.block.tsx` | 4 |
-| `.agent-html/ui/input-group.tsx` | 4 |
+| `.agent-html/components/ui/input-group.tsx` | 4 |
 | `.agent-html/artifacts/project-visual-explainer/canvas-pipeline.block.tsx` | 3 |
 | `.agent-html/examples/example/structure.block.tsx` | 3 |
 | `.agent-html/examples/example/workflow.block.tsx` | 3 |
-| `.agent-html/ui/combobox.tsx` | 3 |
-| `.agent-html/ui/command.tsx` | 3 |
+| `.agent-html/components/ui/combobox.tsx` | 3 |
+| `.agent-html/components/ui/command.tsx` | 3 |
 
 ## Top External Dependencies
 

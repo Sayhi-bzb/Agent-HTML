@@ -34,39 +34,34 @@ Apply these rules when writing or editing docs.
 
 Use these routes before searching broadly.
 
-- App constitution: `apps/docs/content/docs/app/index.mdx`
-- Runtime constitution: `apps/docs/content/docs/runtime/index.mdx`
-- App docs: `apps/docs/content/docs/app`
-- Runtime docs: `apps/docs/content/docs/runtime`
-- Design system: `design/README.md`
-- Design code structure: `design/code-structure.md`
-- Architecture: `apps/docs/content/docs/runtime/reference/module-boundaries.mdx`
-- Codex host: `apps/docs/content/docs/app/workspace/codex-host.mdx`
-- App language: `apps/docs/content/docs/app/reference/language.mdx`
-- Deployment: `apps/docs/content/docs/runtime/host/example-deployment.mdx`
-- Release: `apps/docs/content/docs/app/reference/release.mdx`
-- Runtime interactions: `apps/docs/content/docs/runtime/host/interaction-boundaries.mdx`
+- Canvas constitution: `apps/docs/content/docs/canvas/index.mdx`
+- Canvas docs: `apps/docs/content/docs/canvas`
+- Canvas architecture: `apps/docs/content/docs/canvas/architecture/index.mdx`
+- Canvas workspace: `apps/docs/content/docs/canvas/workspace/index.mdx`
+- Canvas host: `apps/docs/content/docs/canvas/host/index.mdx`
+- Canvas reference: `apps/docs/content/docs/canvas/reference/index.mdx`
+- Archive: `_archive/README.md`
+- Archived App docs: `_archive/docs/app`
+- Archived Runtime docs: `_archive/docs/runtime`
+- Archived App code: `_archive/apps/agent-html-app`
+- Archived Example code: `_archive/apps/agent-html-example`
+- Archived Runtime code: `_archive/packages/agent-html`
+- Archived Design docs: `_archive/design`
 
-# App Constitution
+# Canvas Constitution
 
-Canonical source: `apps/docs/content/docs/app/index.mdx`.
+Canonical source: `apps/docs/content/docs/canvas/index.mdx`.
 
-App governs human-agent collaboration around artifacts. Runtime governs artifact source, schema, rendering, and host behavior.
+Canvas governs the current isolated React artifact workspace for agents.
 
-Apply these rules when changing app docs, workspace behavior, shell UI, gallery, pets, or agent-facing app operations.
+Apply these rules when changing artifact source, block composition, Canvas docs, `.agent-html`, local Canvas resources, host inspection, block prompts, or artifact/block pipeline behavior.
 
-- Human-Agent Collaboration: app exists to make human-agent collaboration the primary working mode.
-- Cognitive Bandwidth: app abstracts model capability into surfaces humans can scan, compare, judge, and steer within their cognitive limits.
-- Parallel Work Surface: app replaces serial chat flow with a canvas-like workspace for persistent, parallel task context.
-- Shared Agency: app must be legible to humans and operable by agents through stable objects, routes, states, and actions.
+- Agent Operating Context: `.agent-html` is durable operating context for agents, not chat state.
+- Isolated Artifact Workbench: Canvas lets agents generate, preview, validate, and revise React artifacts without importing retired app or runtime surfaces.
+- Headless Protocol: `Artifact` and `Block` mark collaboration boundaries through stable metadata, titles, ids, and children.
+- Local Resource Consumption: artifacts consume local Canvas UI primitives, hooks, helpers, schemas, data, examples, and semantic token classes.
+- Inspectable Host Boundary: the host discovers artifacts, overlays blocks, routes prompts, applies theme presets, and observes artifact metadata instead of owning artifact layout.
 
-# Runtime Constitution
+# Archive Rule
 
-Canonical source: `apps/docs/content/docs/runtime/index.mdx`.
-
-Apply these rules when changing runtime docs, schema, rendering, host integration, or artifact behavior.
-
-- Durable Source: artifact state lives in durable source files, not chat state or runtime memory.
-- Semantic Contract: LLMs express meaning through stable tags, blocks, and attributes, not ad hoc layout or styling.
-- Block Composition: artifacts are composed from addressable blocks that can be inserted, removed, reordered, and regenerated.
-- Portable Inspection: artifacts can be shared, reopened, validated, and inspected across hosts, runtime versions, and agent sessions.
+`_archive/docs/app`, `_archive/docs/runtime`, `_archive/apps/agent-html-app`, `_archive/apps/agent-html-example`, `_archive/packages/agent-html`, and `_archive/design` are historical references only. Do not use archived App, Example, Runtime, or Design material as current architecture sources, package targets, product routes, navigation targets, or agent operating paths.

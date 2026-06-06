@@ -35,9 +35,9 @@ import type { CanvasThemeEditorSectionId } from "./theme-editor-sections"
 import {
   SidebarInset,
   SidebarProvider,
-} from "#agent-html-playground/ui/sidebar"
-import { TooltipProvider } from "#agent-html-playground/ui/tooltip"
-import { Button } from "#agent-html-playground/ui/button"
+} from "#agent-html-playground/components/ui/sidebar"
+import { TooltipProvider } from "#agent-html-playground/components/ui/tooltip"
+import { Button } from "#agent-html-playground/components/ui/button"
 import {
   canvasThemePresets,
   type CanvasThemePresetId,

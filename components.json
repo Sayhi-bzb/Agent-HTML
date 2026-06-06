@@ -5,7 +5,7 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "apps/agent-html-app/src/index.css",
+    "css": ".agent-html/styles/index.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""
@@ -13,11 +13,11 @@
   "iconLibrary": "lucide",
   "rtl": false,
   "aliases": {
-    "components": "@/app/shared",
-    "utils": "@/app/shared/lib/utils",
-    "ui": "@/app/shared/ui",
-    "lib": "@/app/shared/lib",
-    "hooks": "@/app/shared/hooks"
+    "components": "@/ui",
+    "utils": "@/lib/utils",
+    "ui": "@/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

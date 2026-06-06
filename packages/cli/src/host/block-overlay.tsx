@@ -7,12 +7,12 @@ import {
   subscribeCanvasMessageHost,
 } from "./canvas-message-store"
 import { FloatingPrompt } from "./floating-prompt"
-import { Button } from "#agent-html-playground/ui/button"
+import { Button } from "#agent-html-playground/components/ui/button"
 import {
   Popover,
   PopoverAnchor,
   PopoverContent,
-} from "#agent-html-playground/ui/popover"
+} from "#agent-html-playground/components/ui/popover"
 import type { BlockOverlay } from "./host-contracts"
 
 const defaultBlockHighlightPadding = 6

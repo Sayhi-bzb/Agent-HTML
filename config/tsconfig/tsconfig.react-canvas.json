@@ -25,7 +25,7 @@
       "@/*": ["./.agent-html/*"],
       "#agent-html-playground/*": ["./.agent-html/*"],
       "#agent-html-playground/theme/*": ["./.agent-html/theme/*"],
-      "#agent-html-playground/ui/*": ["./.agent-html/ui/*"],
+      "#agent-html-playground/components/ui/*": ["./.agent-html/components/ui/*"],
       "@agent-html/react": ["./packages/react/src/index.tsx"]
     }
   },

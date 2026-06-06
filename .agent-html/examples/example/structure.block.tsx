@@ -1,13 +1,13 @@
 import { FolderTreeIcon } from "lucide-react"
 
-import { Badge } from "../../ui/badge"
+import { Badge } from "../../components/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../ui/card"
+} from "../../components/ui/card"
 
 import { structureFiles } from "./data"
 

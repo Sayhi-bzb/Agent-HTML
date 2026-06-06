@@ -14,8 +14,6 @@ export default defineConfig([
     '**/dist/**',
     '**/node_modules/**',
     'apps/docs/**',
-    'apps/agent-html-app/src/locales/**/messages.mjs',
-    'src-tauri/target/**',
   ]),
   {
     files: ['**/*.{ts,tsx}'],

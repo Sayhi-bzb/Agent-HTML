@@ -23,9 +23,8 @@
     "noUncheckedSideEffectImports": true
   },
   "include": [
-    "../vite.config.ts",
-    "../vite.agent-html.config.ts",
-    "../../apps/agent-html-app/vite.config.ts",
-    "../../apps/agent-html-example/vite.config.ts"
+    "../../tools/**/*.mjs",
+    "../../packages/cli/**/*.mjs",
+    "../../packages/cli/**/*.ts"
   ]
 }

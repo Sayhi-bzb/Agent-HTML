@@ -1,16 +1,11 @@
 {
   "files": [],
   "references": [
-    { "path": "./config/tsconfig/tsconfig.app.json" },
     { "path": "./config/tsconfig/tsconfig.react-canvas.json" },
     { "path": "./config/tsconfig/tsconfig.node.json" }
   ],
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "@/app/*": ["./apps/agent-html-app/src/*"],
-      "@/agent-html": ["./packages/agent-html/src/index.ts"],
-      "@/agent-html/*": ["./packages/agent-html/src/*"]
-    }
+    "paths": {}
   }
 }

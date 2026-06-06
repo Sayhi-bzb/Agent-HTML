@@ -80,11 +80,11 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(
       filesMatching(
         "packages/cli/src/host",
-        /from\s+["']#agent-html-playground\/(?!(?:ui|theme)\/)/
+        /from\s+["']#agent-html-playground\/(?!(?:components\/ui|theme)\/)/
       )
     ).toEqual([])
     expect(
-      filesMatching("packages/cli/src/host", /@agent-html-playground\/ui\//)
+      filesMatching("packages/cli/src/host", /@agent-html-playground\/components\/ui\//)
     ).toEqual([])
   })
 
@@ -98,7 +98,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
 
   it("keeps artifact and example imports inside the React Canvas playground contract", () => {
     const allowedLocalImport =
-      /^\.\.(?:\/\.\.)*\/(?:ui|hooks|lib|schema|data|assets)(?:\/|$)/
+      /^\.\.(?:\/\.\.)*\/(?:components\/ui|hooks|lib|schema|data|assets)(?:\/|$)/
     const forbiddenImport =
       /^(?:@\/|#agent-html-playground\/|@agent-html-playground\/|apps\/|packages\/|@\/app\/|@\/agent-html\/runtime)/
 
@@ -255,12 +255,13 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       readSource("config/tsconfig/tsconfig.react-canvas.json")
     )
 
-    expect(rootComponents.tailwind.css).toBe("apps/agent-html-app/src/index.css")
-    expect(rootComponents.aliases.ui).toBe("@/app/shared/ui")
+    expect(rootComponents.tailwind.css).toBe(".agent-html/styles/index.css")
+    expect(rootComponents.aliases.ui).toBe("@/ui")
     expect(existsSync(join(root, ".agent-html", "components.json"))).toBe(true)
     expect(existsSync(join(root, ".agent-html", "tsconfig.json"))).toBe(true)
     expect(playgroundComponents.tailwind.css).toBe("styles/index.css")
-    expect(playgroundComponents.aliases.ui).toBe("@/ui")
+    expect(playgroundComponents.aliases.components).toBe("@/components")
+    expect(playgroundComponents.aliases.ui).toBe("@/components/ui")
     expect(existsSync(join(root, ".agent-html", "styles.css"))).toBe(false)
     expect(existsSync(join(root, ".agent-html", "styles", "theme.css"))).toBe(
       false
@@ -380,6 +381,14 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/theme/*"]
     ).toEqual(["./.agent-html/theme/*"])
     expect(
+      reactCanvasTsconfig.compilerOptions.paths[
+        "#agent-html-playground/components/ui/*"
+      ]
+    ).toEqual(["./.agent-html/components/ui/*"])
+    expect(
+      reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/ui/*"]
+    ).toBeUndefined()
+    expect(
       reactCanvasTsconfig.compilerOptions.paths["@agent-html-playground/*"]
     ).toBeUndefined()
   })
@@ -388,12 +397,14 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const rootPackage = JSON.parse(readSource("package.json"))
     const cliPackage = JSON.parse(readSource("packages/cli/package.json"))
     const reactPackage = JSON.parse(readSource("packages/react/package.json"))
-    const appPackage = JSON.parse(readSource("apps/agent-html-app/package.json"))
+    const archivedAppPackage = JSON.parse(
+      readSource("_archive/apps/agent-html-app/package.json")
+    )
     const examplePackage = JSON.parse(
-      readSource("apps/agent-html-example/package.json")
+      readSource("_archive/apps/agent-html-example/package.json")
     )
     const runtimePackage = JSON.parse(
-      readSource("packages/agent-html/package.json")
+      readSource("_archive/packages/agent-html/package.json")
     )
     const rootRuntimeDependencies = Object.keys(rootPackage.dependencies ?? {})
     const delegatedRuntimeDependencies = [
@@ -437,11 +448,14 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(cliPackage.dependencies["@tailwindcss/oxide"]).toBeTruthy()
     expect(reactPackage.peerDependencies.react).toBeTruthy()
 
-    expect(appPackage.version).toBe("0.0.0")
-    expect(appPackage.dependencies.react).toBeTruthy()
-    expect(appPackage.dependencies["@tauri-apps/api"]).toBeTruthy()
-    expect(appPackage.dependencies["@lingui/core"]).toBeTruthy()
-    expect(appPackage.dependencies.cmdk).toBeTruthy()
+    expect(existsSync(join(root, "apps", "agent-html-app"))).toBe(false)
+    expect(existsSync(join(root, "apps", "agent-html-example"))).toBe(false)
+    expect(existsSync(join(root, "packages", "agent-html"))).toBe(false)
+    expect(archivedAppPackage.version).toBe("0.0.0")
+    expect(archivedAppPackage.dependencies.react).toBeTruthy()
+    expect(archivedAppPackage.dependencies["@tauri-apps/api"]).toBeTruthy()
+    expect(archivedAppPackage.dependencies["@lingui/core"]).toBeTruthy()
+    expect(archivedAppPackage.dependencies.cmdk).toBeTruthy()
 
     expect(examplePackage.version).toBe("0.0.0")
     expect(examplePackage.dependencies.react).toBeTruthy()

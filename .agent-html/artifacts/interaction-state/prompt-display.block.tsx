@@ -6,8 +6,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../ui/card"
-import { ScrollArea } from "../../ui/scroll-area"
+} from "../../components/ui/card"
+import { ScrollArea } from "../../components/ui/scroll-area"
 
 const promptDebugEventName = "agent-html:prompt-debug"
 

@@ -1,11 +1,11 @@
-import { Alert, AlertDescription } from "../../ui/alert"
+import { Alert, AlertDescription } from "../../components/ui/alert"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../ui/card"
+} from "../../components/ui/card"
 
 export function ProjectPurposeBlock() {
   return (

@@ -1,8 +1,8 @@
 import { FileCode2Icon, SparklesIcon } from "lucide-react"
 
-import { Alert, AlertDescription } from "../../ui/alert"
-import { Badge } from "../../ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card"
+import { Alert, AlertDescription } from "../../components/ui/alert"
+import { Badge } from "../../components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 
 import { exampleCopy } from "./copy"
 

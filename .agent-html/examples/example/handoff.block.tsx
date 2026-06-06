@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { ClipboardCheckIcon } from "lucide-react"
 
-import { Button } from "../../ui/button"
+import { Button } from "../../components/ui/button"
 import {
   Card,
   CardContent,
@@ -9,7 +9,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../../ui/card"
+} from "../../components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -18,10 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../ui/dialog"
-import { Progress } from "../../ui/progress"
-import { Separator } from "../../ui/separator"
-import { Textarea } from "../../ui/textarea"
+} from "../../components/ui/dialog"
+import { Progress } from "../../components/ui/progress"
+import { Separator } from "../../components/ui/separator"
+import { Textarea } from "../../components/ui/textarea"
 
 import { exampleCopy } from "./copy"
 

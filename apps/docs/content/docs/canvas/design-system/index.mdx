@@ -24,7 +24,7 @@ styles/internal/*
 theme/*
   -> host-owned theme preset resources
 
-ui/*
+components/ui/*
   -> local visual primitives
 
 artifact files
@@ -83,7 +83,7 @@ className="bg-background text-foreground border-border"
 
 ## UI Primitives
 
-`.agent-html/ui/*` is the only visual primitive layer for Canvas. It is local
+`.agent-html/components/ui/*` is the only visual primitive layer for Canvas. It is local
 source generated from shadcn conventions, but Canvas owns how it is consumed.
 Artifacts and host controls should use these primitives before hand-writing
 common UI.
@@ -149,6 +149,6 @@ visual props to `Artifact`; update `--canvas-artifact-max-width` and
 `--background` and `--foreground` foundation tokens.
 
 `Block` remains a protocol marker. Block content layout and visual treatment
-belong inside blocks through artifact composition and `.agent-html/ui/*`.
+belong inside blocks through artifact composition and `.agent-html/components/ui/*`.
 Block hover highlighting, prompt actions, and floating prompt UI belong to host
 overlay chrome.
