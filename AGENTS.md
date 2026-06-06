@@ -38,6 +38,7 @@ Use these routes before searching broadly.
 - Canvas docs: `apps/docs/content/docs/canvas`
 - Canvas architecture: `apps/docs/content/docs/canvas/architecture/index.mdx`
 - Canvas workspace: `apps/docs/content/docs/canvas/workspace/index.mdx`
+- Canvas workspace source: `agent-html/README.md`
 - Canvas host: `apps/docs/content/docs/canvas/host/index.mdx`
 - Canvas reference: `apps/docs/content/docs/canvas/reference/index.mdx`
 - Taste: `taste/README.md`

@@ -21,6 +21,7 @@ export function PromptDisplayBlock() {
   const [prompt, setPrompt] = useState("")
 
   useEffect(() => {
+    // Special host debug bridge for this example only; do not copy into ordinary artifacts.
     setPrompt(window.__agentHtmlLastPrompt ?? "")
 
     function handlePromptDebug(event: Event) {

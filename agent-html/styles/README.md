@@ -10,7 +10,7 @@ Use `index.css` as the runtime entry map. Do not put feature rules or token valu
 - Artifact reading container: read `internal/artifact.css`.
 - Host chrome, sidebar, toolbar, block hover, and block actions: read `internal/host.css`.
 - Theme editor chrome: read `internal/theme-editor.css`.
-- Token values: read `tokens`.
+- Token values: read `tokens/README.md`.
 - Tailwind and shadcn token mapping: read `tokens/tailwind.css`.
 
 ## Public Style API

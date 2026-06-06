@@ -22,12 +22,14 @@ When opening broad or large source files:
 When using or changing primitives, hooks, helpers, schemas, or theme exports:
 
 - `components/README.md` for the component source route.
+- `index/reuse-surface.md` for reusable hook, helper, schema, and data choices.
 - `index/api-surface.md`
 - then the closest source file
 
 When using fixtures or local datasets:
 
 - `data/README.md`
+- `index/reuse-surface.md`
 - `index/api-surface.md`
 - then the closest source file
 

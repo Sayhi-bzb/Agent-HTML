@@ -88,6 +88,7 @@ Artifact work should usually route through:
 ```text
 agent-html/README.md
   -> agent-html/AGENTS.md
+  -> agent-html/index/README.md
   -> agent-html/artifacts/README.md
   -> agent-html/examples
   -> agent-html/artifacts
@@ -158,6 +159,7 @@ Expected route:
 ```text
 agent-html/README.md
   -> agent-html/AGENTS.md
+  -> agent-html/index/README.md
   -> agent-html/artifacts/README.md
   -> agent-html/examples
   -> agent-html/artifacts
@@ -184,6 +186,7 @@ Expected route:
 
 ```text
 artifact entry
+  -> index/large-files.md when the named block is large
   -> named block implementation
   -> interaction state only if the block records local control changes
 ```
@@ -194,8 +197,8 @@ source.
 Avoid route: editing the host overlay, rewriting the artifact entry, or loading
 unrelated block implementations.
 
-Pass: the agent keeps the change scoped to the block and preserves protocol
-metadata.
+Pass: the agent keeps the change scoped to the block, uses the large-file route
+for high-token blocks, and preserves protocol metadata.
 
 Failure smells: broad artifact rewrites; host APIs in artifact source; unrelated
 block changes.
@@ -233,7 +236,8 @@ data."
 Expected route:
 
 ```text
-agent-html/index/api-surface.md
+agent-html/index/reuse-surface.md
+  -> agent-html/index/api-surface.md
   -> data/README.md, hooks, lib, schema, or data
   -> source only after the API surface identifies a likely owner
 ```
@@ -258,6 +262,7 @@ Expected route:
 ```text
 agent-html/styles/README.md
   -> content.css for artifact-consumable classes
+  -> tokens/README.md for token ownership
   -> tokens/* for semantic values
   -> internal/* for locked Canvas chrome
 ```

@@ -6,6 +6,7 @@ Use it only after the task asks for fixture data, local datasets, parsing, or a 
 
 ## Read Route
 
+- Need reusable owners and signatures: read `../index/reuse-surface.md`.
 - Need available imports: read `../index/api-surface.md`.
 - Need typed contracts or validation: read `../schema`.
 - Need parsing or transforms: read `../lib`.
