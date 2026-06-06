@@ -237,6 +237,9 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const playgroundArtifactInternal = readSource(
       "agent-html/styles/internal/artifact.css"
     )
+    const playgroundCodeBlockInternal = readSource(
+      "agent-html/styles/internal/code-block.css"
+    )
     const playgroundHostInternal = readSource(
       "agent-html/styles/internal/host.css"
     )
@@ -282,6 +285,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundStyles).toContain('@import "./tokens/index.css"')
     expect(playgroundStyles).toContain('@import "./tokens/tailwind.css"')
     expect(playgroundStyles).toContain('@import "./content.css"')
+    expect(playgroundStyles).toContain('@import "./internal/code-block.css"')
     expect(playgroundStyles).toContain('@import "./internal/artifact.css"')
     expect(playgroundStyles).toContain('@import "./internal/host.css"')
     expect(playgroundStyles).toContain('@import "./internal/theme-editor.css"')
@@ -355,6 +359,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "--canvas-theme-editor-popover-width-lg"
     )
     expect(playgroundArtifactInternal).toContain(".agent-html-artifact")
+    expect(playgroundCodeBlockInternal).toContain(".canvas-code-block")
     expect(playgroundHostInternal).toContain(".canvas-surface-frame")
     expect(playgroundHostInternal).toContain(".canvas-floating-prompt")
     expect(playgroundHostInternal).not.toContain(

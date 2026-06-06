@@ -6,7 +6,7 @@
 @import "./tokens/tailwind.css";
 @import "./base.css";
 @import "./content.css";
-@import "./shiki.css";
+@import "./internal/code-block.css";
 @import "./internal/artifact.css";
 @import "./internal/host.css";
 @import "./internal/theme-editor.css";

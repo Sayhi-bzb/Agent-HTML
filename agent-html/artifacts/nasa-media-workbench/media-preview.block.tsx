@@ -1,0 +1,165 @@
+import { useEffect, useState } from "react"
+import { ExternalLinkIcon, ImageIcon, VideoIcon } from "lucide-react"
+
+import { Alert, AlertDescription } from "../../components/ui/alert"
+import { Badge } from "../../components/ui/badge"
+import { Button } from "../../components/ui/button"
+import { Separator } from "../../components/ui/separator"
+
+import {
+  buildNasaAssetUrl,
+  compactDescription,
+  formatNasaDate,
+  parseNasaAssetResponse,
+  type NasaMediaItem,
+} from "./data"
+
+type MediaPreviewBlockProps = {
+  item: NasaMediaItem | null
+}
+
+function MetadataRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="canvas-stack-xs min-w-0">
+      <span className="canvas-text-caption text-muted-foreground">{label}</span>
+      <span className="canvas-text-body">{value || "Unknown"}</span>
+    </div>
+  )
+}
+
+export function MediaPreviewBlock({ item }: MediaPreviewBlockProps) {
+  const [videoUrl, setVideoUrl] = useState("")
+  const [videoError, setVideoError] = useState("")
+
+  useEffect(() => {
+    let isCurrent = true
+
+    setVideoUrl("")
+    setVideoError("")
+
+    if (!item || item.mediaType !== "video") {
+      return () => {
+        isCurrent = false
+      }
+    }
+
+    fetch(buildNasaAssetUrl(item.nasaId))
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`NASA asset lookup failed with ${response.status}`)
+        }
+
+        return response.json()
+      })
+      .then((json) => {
+        if (!isCurrent) {
+          return
+        }
+
+        const asset = parseNasaAssetResponse(json)
+
+        if (asset.mp4) {
+          setVideoUrl(asset.mp4)
+          return
+        }
+
+        setVideoError("No playable MP4 rendition was found for this asset.")
+      })
+      .catch((error: unknown) => {
+        if (!isCurrent) {
+          return
+        }
+
+        setVideoError(
+          error instanceof Error ? error.message : "NASA asset lookup failed."
+        )
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [item])
+
+  if (!item) {
+    return (
+      <section className="canvas-content-panel canvas-stack-sm">
+        <h2 className="canvas-text-heading">No media selected</h2>
+        <p className="canvas-text-body text-muted-foreground">
+          Search NASA media to preview an image or video.
+        </p>
+      </section>
+    )
+  }
+
+  const KindIcon = item.mediaType === "video" ? VideoIcon : ImageIcon
+
+  return (
+    <section className="canvas-stack-lg">
+      <div className="canvas-stack-sm">
+        <div className="canvas-wrap-sm items-center">
+          <Badge>
+            <KindIcon data-icon="inline-start" />
+            {item.mediaType}
+          </Badge>
+          <Badge variant="outline">{item.center}</Badge>
+        </div>
+        <h2 className="canvas-text-title">{item.title}</h2>
+        <p className="canvas-text-body text-muted-foreground">
+          {compactDescription(item.description, 320)}
+        </p>
+      </div>
+
+      <div className="canvas-content-panel min-w-0">
+        {item.mediaType === "image" ? (
+          <img
+            alt={item.title}
+            className="max-h-96 w-full rounded-md object-cover"
+            src={item.thumbnailUrl}
+          />
+        ) : videoUrl ? (
+          <video className="max-h-96 w-full rounded-md" controls src={videoUrl}>
+            <track kind="captions" />
+          </video>
+        ) : (
+          <div className="canvas-stack-md">
+            <img
+              alt=""
+              className="max-h-96 w-full rounded-md object-cover"
+              src={item.thumbnailUrl}
+            />
+            <Alert>
+              <AlertDescription>
+                {videoError || "Looking up a playable NASA video rendition..."}
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+      </div>
+
+      <div className="canvas-grid-gap md:grid-cols-3">
+        <MetadataRow label="NASA ID" value={item.nasaId} />
+        <MetadataRow label="Date" value={formatNasaDate(item.dateCreated)} />
+        <MetadataRow label="Center" value={item.center} />
+      </div>
+
+      <Separator />
+
+      <div className="canvas-wrap-sm">
+        {item.keywords.slice(0, 8).map((keyword) => (
+          <Badge key={keyword} variant="secondary">
+            {keyword}
+          </Badge>
+        ))}
+      </div>
+
+      <div>
+        <Button asChild type="button" variant="outline">
+          <a href={item.assetUrl} rel="noreferrer" target="_blank">
+            <ExternalLinkIcon data-icon="inline-start" />
+            Open asset manifest
+          </a>
+        </Button>
+      </div>
+    </section>
+  )
+}
