@@ -44,6 +44,45 @@ heuristic, and smell. Route scripts should not turn every smell into a failure.
 These scripts currently audit `agent-html`. The method is general; concrete
 paths are project details. Hard rules remain in `agent-html/AGENTS.md`.
 
+### AgentHTML Route Governance
+
+Strong constraint placement:
+
+- `agent-html/AGENTS.md` owns hard executable rules.
+- `agent-html/README.md` routes by task condition and must not repeat full
+  rules.
+- `agent-html/components/README.md` owns component source routing.
+- `docs/ui/README.md` owns component choice guidance.
+- `agent-html/index/*` owns generated decision summaries, not design intent.
+- `examples/*` owns copyable patterns and should stay compact.
+
+Low-token constraint pattern:
+
+- Put a hard rule once in its owning file.
+- Make route files point to the owner instead of restating the rule.
+- Let route checks verify the path and failure smells.
+- Do not repeat the same constraint across README, guide, examples, index, and
+  AGENTS.
+
+Constraint strength policy:
+
+- Hard rules: protocol boundaries, host boundaries, forbidden imports,
+  generated-file editing, and source ownership.
+- Route defaults: first read path, expected route anchors, and generated index
+  before large source files.
+- Practices: component choice, reuse preference, and examples as copyable
+  policy.
+- Heuristics: large-file token thresholds and first-search-space reducers.
+- Smells: wrong-layer drift, broad scans, duplicated helpers, and guide/API
+  duplication.
+
+Priority route checks:
+
+- Highest priority: Cold Start, Artifact Authoring, UI Choice, and Reuse.
+- Regular checks: Block Editing, Style, Large File, and Generated Index.
+- Run route checks when changing workspace directories, route files, examples,
+  generated indexes, component layout, style ownership, or hard-rule surfaces.
+
 Artifact work should usually route through:
 
 ```text
@@ -71,11 +110,6 @@ Applied boundaries:
 
 Current route checks with the highest value are Artifact Authoring, Block
 Editing, UI Choice, Reuse, Style, Large File, and Generated Index.
-
-Priority checks:
-
-- Highest priority: Cold Start, Artifact Authoring, UI Choice, and Reuse.
-- Regular checks: Block Editing, Style, Large File, and Generated Index.
 
 Application smells:
 

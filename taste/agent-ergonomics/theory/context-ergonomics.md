@@ -1,20 +1,20 @@
 # Context Ergonomics
 
-上下文人体工学把项目上下文视为 agent 的工作界面。
+上下文人体工学把工作上下文视为 agent 的行为环境。
 
 它关注的不是目录是否整齐，而是 agent 在一次任务中能否用最少跳转命中正确上下文，避免无关文件进入工作记忆。
 
 ## Definition
 
-Context Ergonomics is the practice of shaping project information so agents can route each task to the smallest useful context.
+Context Ergonomics is the practice of shaping working context so agents can route each task to the smallest useful context.
 
-In this repo, it means:
+In practice, it means:
 
 - frequent working files stay shallow and predictable;
 - low-frequency or infrastructure files are folded into named domains;
 - each directory name acts as a stable context anchor;
 - each action loads the narrowest context that can complete the task;
-- docs and file layout reduce context entropy, not merely file count.
+- docs and layout reduce context entropy, not merely file count.
 
 ## Premise
 
@@ -75,16 +75,6 @@ Context behavior is shaped by a few recurring signal types:
 - Keep entry files as maps, not mixed-purpose knowledge dumps.
 - Preserve stable vocabulary across files, directories, docs, and examples.
 - Write boundaries as operational rules an agent can obey during an edit.
-
-## Field Notes
-
-`agent-html` is the first active application of this method. Its route design treats the workspace as an agent office: common artifact work should find examples, components, hooks, schemas, data, and generated indexes without entering host, runtime, token, or internal style layers by default.
-
-The CSS split is one example of this principle. A broad `styles.css` or `theme.css` anchor makes lookup simple but too noisy. A routed split lets ordinary artifact work avoid CSS, while style work can enter the exact content, token, or internal host layer.
-
-`Artifact`, `Block`, and `Action` are protocol markers. They should remain collaboration boundaries, while visual treatment belongs inside block content through local primitives and semantic utilities.
-
-Read `route-checks.md` for Context Route and Route Check. Read `vocabulary.md` for Constraint Level, Document Role, and Normative Example.
 
 ## Non-Claim
 

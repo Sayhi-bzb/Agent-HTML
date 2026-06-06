@@ -10,13 +10,10 @@ working context.
 
 ## Model
 
-AE has six core concepts:
+AE has six core concepts and one session-level extension:
 
 - **Context Ergonomics**: context is a behavioral environment. It asks what the
   agent sees, what stays out of context, and which signals shape judgment.
-- **Session Semantic Gravity**: conversation state is also a behavioral
-  environment. It asks how repeated semantic anchors in a session shape later
-  agent reasoning.
 - **Context Route**: the default path from task prompt to smallest useful
   context. It asks where a cold-start agent should go first.
 - **Constraint Level**: the strength of an instruction. It separates hard rules
@@ -29,19 +26,22 @@ AE has six core concepts:
 - **Route Check**: the audit script for testing whether the route works without
   broad search, duplicate truth, or wrong-layer drift.
 
-The files in this directory stay flat:
+Session Semantic Gravity extends Context Ergonomics to conversation state. It
+asks how repeated semantic anchors in a session shape later agent reasoning.
 
-- `context-ergonomics.md` owns Context Ergonomics.
-- `session-semantic-gravity.md` owns the session-level Context Ergonomics
-  concept.
+The files in this directory separate theory from application:
+
+- `theory/` owns independent theory concepts.
+- `theory/context-ergonomics.md` owns Context Ergonomics.
+- `theory/session-semantic-gravity.md` owns the session-level extension.
 - `route-checks.md` owns Context Route and Route Check.
 - `vocabulary.md` owns Constraint Level, Document Role, and Normative Example.
 
 ## Reading Order
 
-1. `context-ergonomics.md` for why context is a behavioral environment.
-2. `session-semantic-gravity.md` for how conversation anchors shape session
-   behavior.
+1. `theory/context-ergonomics.md` for why context is a behavioral environment.
+2. `theory/session-semantic-gravity.md` for how conversation anchors shape
+   session behavior.
 3. `route-checks.md` for route paths, route scripts, and priority checks.
 4. `vocabulary.md` for constraint levels, document roles, and example weight.
 

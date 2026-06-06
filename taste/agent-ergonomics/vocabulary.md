@@ -41,8 +41,8 @@ from the first route path.
 
 ## Constraint Levels
 
-- **Hard rule**: violation is wrong, such as styling protocol markers or
-  importing host internals from artifacts.
+- **Hard rule**: violation is wrong because it breaks an explicit owner,
+  protocol, safety, or compatibility boundary.
 - **Route default**: the expected first path unless the task clearly asks for
   another layer.
 - **Practice**: strong experience, but context may override it.
