@@ -20,7 +20,7 @@ describe("shouldShowArtifactSkeleton", () => {
   it("shows skeleton while the active artifact bundle is loading", () => {
     expect(
       shouldShowArtifactSkeleton({
-        activeFilePath: "agent-html/artifacts/example.agent.tsx",
+        activeFilePath: "agent-html/artifacts/example.artifact.tsx",
         artifactCount: 1,
         artifactLoading: true,
         artifactsLoading: false,
@@ -34,7 +34,7 @@ describe("shouldShowArtifactSkeleton", () => {
   it("hides skeleton for errors and empty completed loads", () => {
     expect(
       shouldShowArtifactSkeleton({
-        activeFilePath: "agent-html/artifacts/example.agent.tsx",
+        activeFilePath: "agent-html/artifacts/example.artifact.tsx",
         artifactCount: 1,
         artifactLoading: true,
         artifactsLoading: false,

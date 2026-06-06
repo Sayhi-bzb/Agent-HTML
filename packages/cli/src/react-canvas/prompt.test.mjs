@@ -4,7 +4,7 @@ import { compactInteractionSnapshot, formatBlockPrompt } from "./prompt.mjs"
 
 const payload = {
   blockId: "summary",
-  filePath: "agent-html/artifacts/example.agent.tsx",
+  filePath: "agent-html/artifacts/example.artifact.tsx",
   request: "Tighten this summary.",
 }
 
@@ -12,7 +12,7 @@ describe("React Canvas prompt bridge", () => {
   it("formats block prompts as minimal intent packets", () => {
     const prompt = formatBlockPrompt(payload)
 
-    expect(prompt).toContain("filePath: agent-html/artifacts/example.agent.tsx")
+    expect(prompt).toContain("filePath: agent-html/artifacts/example.artifact.tsx")
     expect(prompt).toContain("blockId: summary")
     expect(prompt).not.toContain("implementationPath:")
     expect(prompt).not.toContain("```tsx")
@@ -21,7 +21,7 @@ describe("React Canvas prompt bridge", () => {
     expect(prompt).toContain("Request:\nTighten this summary.")
   })
 
-  it("uses one formatter for host display and clipboard output", () => {
+  it("uses one formatter for host display and Codex turn submission", () => {
     const formattedPrompt = formatBlockPrompt(payload)
 
     expect(formattedPrompt).toBe(formatBlockPrompt(payload))

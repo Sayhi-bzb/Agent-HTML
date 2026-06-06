@@ -14,7 +14,7 @@ describe("React Canvas dev host", () => {
         response.json()
       )
       expect(artifacts.artifacts).toContainEqual({
-        filePath: "agent-html/artifacts/project-visual-explainer.agent.tsx",
+        filePath: "agent-html/artifacts/project-visual-explainer.artifact.tsx",
       })
 
       const removedRender = await fetch(`${url}/__agent-html/render`)
@@ -41,7 +41,13 @@ describe("React Canvas dev host", () => {
       expect(hostClient).toContain("Reset preview")
       expect(hostClient).toContain("react-canvas-theme-editor-preview")
       expect(hostClient).toContain("formatBlockPrompt")
+      expect(hostClient).toContain("startCodexTurn")
       expect(hostClient).not.toContain("agent-html:action")
+      expect(hostClient).not.toContain("navigator.clipboard")
+      expect(hostClient).not.toContain("Prompt copied to clipboard")
+      expect(hostClient).not.toContain("CodexThreadWorkbench")
+      expect(hostClient).not.toContain("Codex thread window selection")
+      expect(hostClient).not.toContain("data-agent-html-codex-thread-window")
       expect(hostClient).not.toContain("WindowChromeFrame")
       expect(hostClient).not.toContain("DocumentTabRail")
       expect(hostClient).not.toContain("@/app")
@@ -74,7 +80,7 @@ describe("React Canvas dev host", () => {
       const blockImplementationUrl = new URL(`${url}/__agent-html/block-implementation`)
       blockImplementationUrl.searchParams.set(
         "filePath",
-        "agent-html/examples/example.agent.tsx"
+        "agent-html/examples/example.artifact.tsx"
       )
       blockImplementationUrl.searchParams.set("blockId", "brief")
       const blockImplementation = await fetch(blockImplementationUrl).then((response) =>
@@ -88,7 +94,7 @@ describe("React Canvas dev host", () => {
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(
         "filePath",
-        "agent-html/artifacts/project-visual-explainer.agent.tsx"
+        "agent-html/artifacts/project-visual-explainer.artifact.tsx"
       )
       const bundle = await fetch(bundleUrl).then((response) => response.text())
       expect(bundle).toContain("function mount")

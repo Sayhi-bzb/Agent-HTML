@@ -37,7 +37,7 @@ export async function discoverReactArtifacts(root) {
   }
 
   return entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".agent.tsx"))
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".artifact.tsx"))
     .map((entry) => path.join(artifactsDir, entry.name))
     .sort((left, right) => left.localeCompare(right))
 }

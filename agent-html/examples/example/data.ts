@@ -2,7 +2,7 @@ import type { StructureFile, WorkflowStep } from "./types"
 
 export const structureFiles: StructureFile[] = [
   {
-    path: "example.agent.tsx",
+    path: "example.artifact.tsx",
     role: "Overview",
     readWhen: "Understand artifact order, block ids, and shared data flow.",
   },
@@ -31,9 +31,9 @@ export const structureFiles: StructureFile[] = [
 export const workflowSteps: WorkflowStep[] = [
   {
     id: "scan",
-    label: "Scan the overview",
+    label: "Scan the artifact entry",
     summary:
-      "Open the *.agent.tsx file first. It should show the artifact shape without burying the reader in card JSX.",
+      "Open the *.artifact.tsx file first. It should show the artifact shape without burying the reader in card JSX.",
   },
   {
     id: "target",

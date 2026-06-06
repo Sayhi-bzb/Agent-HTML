@@ -5,6 +5,11 @@ import { discoverReactArtifacts, workspaceRelativePath } from "../react-canvas/p
 import { runGuard } from "../react-canvas/guard.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
 import { readTextFile } from "../react-canvas/workspace-file.mjs"
+import {
+  listCodexThreads,
+  readCodexThreadTranscript,
+  startCodexTurn,
+} from "./codex-bridge.mjs"
 import { hostRoot } from "./context.mjs"
 import { buildArtifactBundle, buildHostBundle } from "./bundler.mjs"
 import { sendError, sendJson, sendNotFound, sendText } from "./http.mjs"
@@ -15,6 +20,9 @@ export const hostRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
   artifacts: "/__agent-html/artifacts",
   blockImplementation: "/__agent-html/block-implementation",
+  codexThreads: "/__agent-html/codex/threads",
+  codexTranscript: "/__agent-html/codex/transcript",
+  codexTurn: "/__agent-html/codex/turn",
   hostBundle: "/__agent-html/host.js",
   publicAsset: "/__agent-html/public/",
   hostStyles: "/__agent-html/styles.css",
@@ -57,6 +65,20 @@ function resolvePublicAssetPath({ root, requestPathname }) {
   }
 
   return resolvedPath
+}
+
+async function readJsonBody(request) {
+  const chunks = []
+
+  for await (const chunk of request) {
+    chunks.push(chunk)
+  }
+
+  if (chunks.length === 0) {
+    return {}
+  }
+
+  return JSON.parse(Buffer.concat(chunks).toString("utf8"))
 }
 
 export async function handleRequest({ request, response, root }) {
@@ -151,6 +173,44 @@ export async function handleRequest({ request, response, root }) {
     sendJson(response, {
       implementationPath,
     })
+    return
+  }
+
+  if (requestUrl.pathname === hostRoutes.codexThreads) {
+    sendJson(response, await listCodexThreads({ root }))
+    return
+  }
+
+  if (requestUrl.pathname === hostRoutes.codexTranscript) {
+    const threadId = requestUrl.searchParams.get("threadId")
+    if (!threadId) {
+      sendError(response, "threadId is required", 400)
+      return
+    }
+
+    sendJson(response, await readCodexThreadTranscript({ threadId }))
+    return
+  }
+
+  if (requestUrl.pathname === hostRoutes.codexTurn) {
+    if (request.method !== "POST") {
+      sendError(response, "POST is required", 405)
+      return
+    }
+
+    const body = await readJsonBody(request)
+    const prompt = typeof body.prompt === "string" ? body.prompt : ""
+    const threadId =
+      typeof body.threadId === "string" && body.threadId.trim()
+        ? body.threadId
+        : null
+
+    if (!prompt.trim()) {
+      sendError(response, "prompt is required", 400)
+      return
+    }
+
+    sendJson(response, await startCodexTurn({ prompt, root, threadId }))
     return
   }
 

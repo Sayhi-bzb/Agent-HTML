@@ -39,9 +39,9 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/interaction-state/interaction-controls.block.tsx` | 24 |
 | `agent-html/components/ui/sidebar.tsx` | 8 |
 | `agent-html/examples/example/handoff.block.tsx` | 7 |
-| `agent-html/artifacts/project-visual-explainer.agent.tsx` | 5 |
+| `agent-html/artifacts/project-visual-explainer.artifact.tsx` | 5 |
 | `agent-html/components/ui/input-group.tsx` | 4 |
-| `agent-html/examples/example.agent.tsx` | 4 |
+| `agent-html/examples/example.artifact.tsx` | 4 |
 | `agent-html/examples/example/brief.block.tsx` | 4 |
 | `agent-html/artifacts/project-visual-explainer/canvas-pipeline.block.tsx` | 3 |
 | `agent-html/components/ui/combobox.tsx` | 3 |

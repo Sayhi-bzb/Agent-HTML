@@ -26,11 +26,11 @@ export async function resolveBlockImplementationPath({
   }
 
   const entryName = path.basename(filePath)
-  if (!entryName.endsWith(".agent.tsx")) {
+  if (!entryName.endsWith(".artifact.tsx")) {
     return null
   }
 
-  const artifactName = entryName.slice(0, -".agent.tsx".length)
+  const artifactName = entryName.slice(0, -".artifact.tsx".length)
   const candidateRelativePath = path.join(
     path.dirname(filePath),
     artifactName,

@@ -19,7 +19,7 @@ describe("React Canvas block implementation lookup", () => {
     await expect(
       resolveBlockImplementationPath({
         blockId: "summary",
-        filePath: "agent-html/artifacts/demo.agent.tsx",
+        filePath: "agent-html/artifacts/demo.artifact.tsx",
         root,
       })
     ).resolves.toBe("agent-html/artifacts/demo/summary.block.tsx")
@@ -38,7 +38,7 @@ describe("React Canvas block implementation lookup", () => {
     await expect(
       resolveBlockImplementationPath({
         blockId: "brief",
-        filePath: "agent-html/examples/example.agent.tsx",
+        filePath: "agent-html/examples/example.artifact.tsx",
         root,
       })
     ).resolves.toBe("agent-html/examples/example/brief.block.tsx")
@@ -50,7 +50,7 @@ describe("React Canvas block implementation lookup", () => {
     await expect(
       resolveBlockImplementationPath({
         blockId: "summary",
-        filePath: "agent-html/artifacts/demo.agent.tsx",
+        filePath: "agent-html/artifacts/demo.artifact.tsx",
         root,
       })
     ).resolves.toBeNull()
@@ -62,6 +62,25 @@ describe("React Canvas block implementation lookup", () => {
     await expect(
       resolveBlockImplementationPath({
         blockId: "../summary",
+        filePath: "agent-html/artifacts/demo.artifact.tsx",
+        root,
+      })
+    ).resolves.toBeNull()
+  })
+
+  it("does not resolve legacy agent entry suffixes", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-source-"))
+    await fs.mkdir(path.join(root, "agent-html", "artifacts", "demo"), {
+      recursive: true,
+    })
+    await fs.writeFile(
+      path.join(root, "agent-html", "artifacts", "demo", "summary.block.tsx"),
+      "export function SummaryBlock() { return null }"
+    )
+
+    await expect(
+      resolveBlockImplementationPath({
+        blockId: "summary",
         filePath: "agent-html/artifacts/demo.agent.tsx",
         root,
       })

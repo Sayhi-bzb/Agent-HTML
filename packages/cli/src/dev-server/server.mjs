@@ -1,6 +1,7 @@
 import http from "node:http"
 
 import { parseRootArg } from "../react-canvas/paths.mjs"
+import { stopCodexBridge } from "./codex-bridge.mjs"
 import { sendError } from "./http.mjs"
 import { handleRequest } from "./routes.mjs"
 
@@ -25,6 +26,9 @@ export async function startDevHost({ args, cwd }) {
     handleRequest({ request, response, root }).catch((error) => {
       sendError(response, error)
     })
+  })
+  server.on("close", () => {
+    void stopCodexBridge()
   })
 
   await new Promise((resolve) => {

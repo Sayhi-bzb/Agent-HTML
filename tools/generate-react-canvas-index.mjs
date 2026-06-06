@@ -559,7 +559,7 @@ function suggestedRoute(file) {
     return "`index/api-surface.md`"
   }
 
-  if (file.endsWith(".agent.tsx")) {
+  if (file.endsWith(".artifact.tsx")) {
     return "`index/dependency-summary.md`"
   }
 

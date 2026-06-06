@@ -61,7 +61,7 @@ describe("canvas host preferences", () => {
   it("validates stored preference values", () => {
     stubStorage(
       JSON.stringify({
-        activeFilePath: "agent-html/artifacts/example.agent.tsx",
+        activeFilePath: "agent-html/artifacts/example.artifact.tsx",
         activeSidebarView: "bad",
         activeThemeEditorSectionId: "missing",
         activeThemePresetId: "missing",
@@ -74,7 +74,7 @@ describe("canvas host preferences", () => {
     )
 
     expect(readCanvasHostPreferences()).toEqual({
-      activeFilePath: "agent-html/artifacts/example.agent.tsx",
+      activeFilePath: "agent-html/artifacts/example.artifact.tsx",
       activeSidebarView: "artifacts",
       activeThemeEditorSectionId: "color",
       activeThemePresetId: "default",
@@ -88,12 +88,12 @@ describe("canvas host preferences", () => {
   it("restores an active file only when it still exists", () => {
     stubStorage(
       JSON.stringify({
-        activeFilePath: "agent-html/artifacts/missing.agent.tsx",
+        activeFilePath: "agent-html/artifacts/missing.artifact.tsx",
       })
     )
     const artifacts: Artifact[] = [
       {
-        filePath: "agent-html/artifacts/example.agent.tsx",
+        filePath: "agent-html/artifacts/example.artifact.tsx",
       },
     ]
 
@@ -106,7 +106,7 @@ describe("canvas host preferences", () => {
     writeCanvasMessageDraft({
       blockId: "summary",
       draft: "Improve this",
-      filePath: "agent-html/artifacts/example.agent.tsx",
+      filePath: "agent-html/artifacts/example.artifact.tsx",
     })
     writeCanvasHostPreferences({
       activeSidebarView: "theme",
@@ -127,43 +127,43 @@ describe("canvas host preferences", () => {
     writeCanvasMessageDraft({
       blockId: "summary",
       draft: "Improve summary",
-      filePath: "agent-html/artifacts/example.agent.tsx",
+      filePath: "agent-html/artifacts/example.artifact.tsx",
     })
     writeCanvasMessageDraft({
       blockId: "details",
       draft: "Improve details",
-      filePath: "agent-html/artifacts/example.agent.tsx",
+      filePath: "agent-html/artifacts/example.artifact.tsx",
     })
 
     expect(
       readCanvasMessageDraft({
         blockId: "summary",
-        filePath: "agent-html/artifacts/example.agent.tsx",
+        filePath: "agent-html/artifacts/example.artifact.tsx",
       })
     ).toBe("Improve summary")
     expect(
       readCanvasMessageDraft({
         blockId: "details",
-        filePath: "agent-html/artifacts/example.agent.tsx",
+        filePath: "agent-html/artifacts/example.artifact.tsx",
       })
     ).toBe("Improve details")
 
     writeCanvasMessageDraft({
       blockId: "summary",
       draft: "",
-      filePath: "agent-html/artifacts/example.agent.tsx",
+      filePath: "agent-html/artifacts/example.artifact.tsx",
     })
 
     expect(
       readCanvasMessageDraft({
         blockId: "summary",
-        filePath: "agent-html/artifacts/example.agent.tsx",
+        filePath: "agent-html/artifacts/example.artifact.tsx",
       })
     ).toBe("")
     expect(
       readCanvasMessageDraft({
         blockId: "details",
-        filePath: "agent-html/artifacts/example.agent.tsx",
+        filePath: "agent-html/artifacts/example.artifact.tsx",
       })
     ).toBe("Improve details")
   })

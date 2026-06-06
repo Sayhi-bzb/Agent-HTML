@@ -22,13 +22,13 @@ describe("Canvas interaction store", () => {
         kind: "toggle",
         timestamp: 1,
       },
-      filePath: "agent-html/artifacts/demo.agent.tsx",
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
     })
 
     expect(
       getCanvasInteractionSnapshot({
         blockId: "settings",
-        filePath: "agent-html/artifacts/demo.agent.tsx",
+        filePath: "agent-html/artifacts/demo.artifact.tsx",
       })
     ).toEqual({
       blockId: "settings",
@@ -62,7 +62,7 @@ describe("Canvas interaction store", () => {
     expect(
       getCanvasInteractionSnapshot({
         blockId: "settings",
-        filePath: "agent-html/artifacts/other.agent.tsx",
+        filePath: "agent-html/artifacts/other.artifact.tsx",
       })
     ).toBeNull()
   })
@@ -79,13 +79,13 @@ describe("Canvas interaction store", () => {
           kind: "set",
           timestamp: index,
         },
-        filePath: "agent-html/artifacts/demo.agent.tsx",
+        filePath: "agent-html/artifacts/demo.artifact.tsx",
       })
     }
 
     const snapshot = getCanvasInteractionSnapshot({
       blockId: "motion",
-      filePath: "agent-html/artifacts/demo.agent.tsx",
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
     })
 
     expect(snapshot?.currentState).toEqual({ threshold: 24 })
@@ -117,13 +117,13 @@ describe("Canvas interaction store", () => {
           semantic: "set-control",
           timestamp: index,
         },
-        filePath: "agent-html/artifacts/demo.agent.tsx",
+        filePath: "agent-html/artifacts/demo.artifact.tsx",
       })
     }
 
     const snapshot = getCanvasInteractionSnapshot({
       blockId: "bench",
-      filePath: "agent-html/artifacts/demo.agent.tsx",
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
     })
 
     expect(snapshot?.recentChanges).toHaveLength(20)
@@ -150,12 +150,12 @@ describe("Canvas interaction store", () => {
         semantic: "run-command-action",
         timestamp: 1,
       },
-      filePath: "agent-html/artifacts/demo.agent.tsx",
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
     })
 
     const snapshot = getCanvasInteractionSnapshot({
       blockId: "bench",
-      filePath: "agent-html/artifacts/demo.agent.tsx",
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
     })
 
     expect(snapshot?.compactedChanges).toEqual([])
@@ -183,7 +183,7 @@ describe("Canvas interaction store", () => {
         semantic: "move-kanban-item",
         timestamp: 1,
       },
-      filePath: "agent-html/artifacts/demo.agent.tsx",
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
     })
     recordCanvasInteractionChange({
       change: {
@@ -196,12 +196,12 @@ describe("Canvas interaction store", () => {
         semantic: "set-kanban-board-state",
         timestamp: 2,
       },
-      filePath: "agent-html/artifacts/demo.agent.tsx",
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
     })
 
     const snapshot = getCanvasInteractionSnapshot({
       blockId: "kanban",
-      filePath: "agent-html/artifacts/demo.agent.tsx",
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
     })
 
     expect(snapshot?.compactedChanges).toHaveLength(2)
@@ -220,13 +220,13 @@ describe("Canvas interaction store", () => {
         kind: "toggle",
         timestamp: 1,
       },
-      filePath: "agent-html/artifacts/demo.agent.tsx",
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
     })
 
     expect(
       getCanvasInteractionSnapshot({
         blockId: "settings",
-        filePath: "agent-html/artifacts/demo.agent.tsx",
+        filePath: "agent-html/artifacts/demo.artifact.tsx",
       })
     ).toBeNull()
   })

@@ -12,16 +12,16 @@ import {
 
 function issueMessages(source) {
   return analyzeReactCanvasArtifact({
-    filePath: "artifact.agent.tsx",
-    relativePath: "agent-html/artifacts/artifact.agent.tsx",
+    filePath: "demo.artifact.tsx",
+    relativePath: "agent-html/artifacts/demo.artifact.tsx",
     source,
   }).map((issue) => issue.message)
 }
 
 function issuesFor(source) {
   return analyzeReactCanvasArtifact({
-    filePath: "artifact.agent.tsx",
-    relativePath: "agent-html/artifacts/artifact.agent.tsx",
+    filePath: "demo.artifact.tsx",
+    relativePath: "agent-html/artifacts/demo.artifact.tsx",
     source,
   })
 }
@@ -84,7 +84,7 @@ describe("React Canvas Guard", () => {
       recursive: true,
     })
     await fs.writeFile(
-      path.join(root, "agent-html", "artifacts", "demo.agent.tsx"),
+      path.join(root, "agent-html", "artifacts", "demo.artifact.tsx"),
       `
         import { Artifact, Block } from "@agent-html/react"
         export default function Demo() {

@@ -1,9 +1,15 @@
-import type { Artifact, GuardIssue } from "./host-contracts"
+import type {
+  Artifact,
+  GuardIssue,
+} from "./host-contracts"
 
 export const hostApiRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
   artifacts: "/__agent-html/artifacts",
   blockImplementation: "/__agent-html/block-implementation",
+  codexThreads: "/__agent-html/codex/threads",
+  codexTranscript: "/__agent-html/codex/transcript",
+  codexTurn: "/__agent-html/codex/turn",
 } as const
 
 export const artifactRenderedEventName = "agent-html:artifact-rendered"
@@ -39,6 +45,33 @@ export async function fetchBlockImplementation({
   }>(
     `${hostApiRoutes.blockImplementation}?${params}`
   )
+}
+
+export async function startCodexTurn({
+  prompt,
+  threadId,
+}: {
+  prompt: string
+  threadId?: string | null
+}) {
+  const response = await fetch(hostApiRoutes.codexTurn, {
+    body: JSON.stringify({ prompt, threadId: threadId ?? null }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  })
+  const data = await response.json()
+
+  if (!response.ok || data.error) {
+    throw new Error(data.error ?? `Request failed: ${response.status}`)
+  }
+
+  return data as {
+    startedNewThread: boolean
+    threadId: string
+    turnId?: string | null
+  }
 }
 
 export function artifactBundleUrl(filePath: string) {

@@ -12,7 +12,7 @@ Always:
 When authoring an artifact:
 
 - `artifacts/README.md`
-- `examples/example.agent.tsx`
+- `examples/example.artifact.tsx`
 
 When opening broad or large source files:
 
@@ -54,9 +54,9 @@ When touching Canvas classes, tokens, or internal chrome:
 
 ## Copy Policy
 
-- Copy `examples/example.agent.tsx` for artifacts that need an overview file and semantic block files.
+- Copy `examples/example.artifact.tsx` for artifacts that need an artifact entry and semantic block files.
 - Use `artifacts/README.md` before opening large artifact source.
-- Use `artifacts/interaction-state.agent.tsx` as a compact interaction example, `components/README.md` for the component source route, and `docs/ui/README.md` for component choice.
+- Use `artifacts/interaction-state.artifact.tsx` as a compact interaction example, `components/README.md` for the component source route, and `docs/ui/README.md` for component choice.
 
 ## Workspace Contract
 

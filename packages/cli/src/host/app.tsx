@@ -1,6 +1,10 @@
 import * as React from "react"
 
-import { fetchArtifacts, fetchBlockImplementation } from "./api"
+import {
+  fetchArtifacts,
+  fetchBlockImplementation,
+  startCodexTurn,
+} from "./api"
 import { ArtifactSurface } from "./artifact-surface"
 import {
   readCanvasHostPreferences,
@@ -81,6 +85,8 @@ export function ReactCanvasHostApp() {
     React.useState<CanvasThemeResolvedVariables>({})
   const [promptTarget, setPromptTarget] =
     React.useState<FloatingPromptTarget | null>(null)
+  const [activeCodexThreadId, setActiveCodexThreadId] =
+    React.useState<string | null>(null)
   const activeFilePathRef = React.useRef<string | null>(null)
 
   const activeArtifact =
@@ -263,20 +269,32 @@ export function ReactCanvasHostApp() {
         request,
       })
 
-      await navigator.clipboard.writeText(formatted)
       publishCanvasPromptDebug(formatted)
+      const turn = await startCodexTurn({
+        prompt: formatted,
+        threadId: activeCodexThreadId,
+      })
+
+      setActiveCodexThreadId(turn.threadId)
       writeCanvasMessageDraft({
         blockId: target.id,
         draft: "",
         filePath: resolvedActiveFilePath,
       })
-      setPromptStatus("Prompt copied to clipboard.")
+      setPromptStatus(
+        turn.startedNewThread
+          ? "Started a new Codex thread."
+          : "Sent to Codex thread."
+      )
     } catch (submitError: unknown) {
       setPromptStatus(
         submitError instanceof Error ? submitError.message : String(submitError)
       )
     }
-  }, [resolvedActiveFilePath])
+  }, [
+    activeCodexThreadId,
+    resolvedActiveFilePath,
+  ])
 
   const updateMessageDraft = React.useCallback((draft: string) => {
     setMessageDraft(draft)

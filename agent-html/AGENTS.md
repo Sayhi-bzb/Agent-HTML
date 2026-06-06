@@ -1,6 +1,6 @@
 # AgentHTML React Canvas
 
-Write normal React artifacts in `agent-html/artifacts/*.agent.tsx`. For cold start, read `agent-html/README.md` first, then this file.
+Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold start, read `agent-html/README.md` first, then this file.
 
 ## Workspace Rules
 
@@ -48,7 +48,7 @@ Write normal React artifacts in `agent-html/artifacts/*.agent.tsx`. For cold sta
 - Use only the supported `Artifact` props: `title` and children.
 - Wrap every major semantic region in `Block`.
 - Use stable, unique, readable, kebab-case block ids.
-- Keep compact artifacts single-file. Split broad artifacts into `name.agent.tsx` as the overview and `name/*.block.tsx` as semantic block files.
+- Keep compact artifacts single-file. Split broad artifacts into `name.artifact.tsx` as the artifact entry and `name/*.block.tsx` as semantic block files.
 - Keep `Block` protocol-only. Use only `id`, `title`, and children.
 - Do not put `className`, `style`, layout, border, radius, shadow, spacing, width, padding, or color props on `Artifact` or `Block`.
 - Put layout and visual treatment inside the block content, local `agent-html/components/ui` primitives, and named rich components when the task needs that workflow.
@@ -91,7 +91,7 @@ Write normal React artifacts in `agent-html/artifacts/*.agent.tsx`. For cold sta
 
 ## Examples
 
-- Imitate `examples/example.agent.tsx` for split artifact structure.
+- Imitate `examples/example.artifact.tsx` for split artifact structure.
 - Read `artifacts/README.md` before opening large artifact source.
-- Treat `artifacts/interaction-state.agent.tsx` as a compact interaction example.
+- Treat `artifacts/interaction-state.artifact.tsx` as a compact interaction example.
 - Use `components/README.md` for the component source route and `docs/ui/README.md` for component choice before scanning the full primitive surface.
