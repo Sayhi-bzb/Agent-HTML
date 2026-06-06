@@ -4,7 +4,7 @@ import { compactInteractionSnapshot, formatBlockPrompt } from "./prompt.mjs"
 
 const payload = {
   blockId: "summary",
-  filePath: ".agent-html/artifacts/example.agent.tsx",
+  filePath: "agent-html/artifacts/example.agent.tsx",
   request: "Tighten this summary.",
 }
 
@@ -12,7 +12,7 @@ describe("React Canvas prompt bridge", () => {
   it("formats block prompts as minimal intent packets", () => {
     const prompt = formatBlockPrompt(payload)
 
-    expect(prompt).toContain("filePath: .agent-html/artifacts/example.agent.tsx")
+    expect(prompt).toContain("filePath: agent-html/artifacts/example.agent.tsx")
     expect(prompt).toContain("blockId: summary")
     expect(prompt).not.toContain("implementationPath:")
     expect(prompt).not.toContain("```tsx")
@@ -30,11 +30,11 @@ describe("React Canvas prompt bridge", () => {
   it("includes split block implementation paths when available", () => {
     const prompt = formatBlockPrompt({
       ...payload,
-      implementationPath: ".agent-html/artifacts/example/summary.block.tsx",
+      implementationPath: "agent-html/artifacts/example/summary.block.tsx",
     })
 
     expect(prompt).toContain(
-      "implementationPath: .agent-html/artifacts/example/summary.block.tsx"
+      "implementationPath: agent-html/artifacts/example/summary.block.tsx"
     )
   })
 

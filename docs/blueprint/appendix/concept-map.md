@@ -18,7 +18,7 @@
 | `project/` | 单个主题园区 / 制作现场 |
 | `section/` | 主题馆 / 电影厅 / 章节 / 维度容器 |
 | `components` | 建筑模块 / 舞台道具 |
-| `.agent-html` | 沙盘 / 剧本蓝图 |
+| `agent-html` | 沙盘 / 剧本蓝图 |
 | `agent` | 造景师 + 工程师 + 公司运营者 |
 | `human` | 观众导演 |
 | `runtime` | 舞台机械 / 显化设备 |
@@ -98,7 +98,7 @@ agent 的 artifact 单元。
 `components` 是建筑模块和舞台道具。它们应该承载语义，而不只是布局。一个
 component 的价值，在于它能帮助 agent 和 runtime 在多轮编辑中保留结构。
 
-`.agent-html` 是沙盘和剧本蓝图。它是 artifact 的 durable source。公司不应该
+`agent-html` 是沙盘和剧本蓝图。它是 artifact 的 durable source。公司不应该
 把聊天记忆或临时 runtime 状态当成世界真正的源头。
 
 `agent` 是造景师、工程师和公司运营者。agent 可以直接造景，也要改善公司本身：
@@ -136,7 +136,7 @@ Runtime 应该拥有 artifact source、schema、rendering、block identity 和�
 agent 在这家公司工作时，应该问：
 
 - 这个改动是否让 artifact 更容易被 human 定位、审阅、导演或比较？
-- 这个改动是否保留或改善了 `.agent-html` 蓝图，而不是把意义藏进临时输出？
+- 这个改动是否保留或改善了 `agent-html` 蓝图，而不是把意义藏进临时输出？
 - 这个改动是否让 `section/` 更像一个独立的可编排内容单元？
 - 这个改动是否尊重 runtime 作为舞台机械、app 作为导演控制台的职责？
 - 这个改动是否减少了下一位 agent 的交接成本，还是让下一班更需要猜？

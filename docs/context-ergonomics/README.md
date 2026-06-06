@@ -39,12 +39,12 @@ The file tree should therefore behave like navigation:
 
 ## Current Application
 
-The `.agent-html` workspace is the first active application of this method.
+The `agent-html` workspace is the first active application of this method.
 
 Artifact work should usually route through:
 
 ```text
-.agent-html/AGENTS.md
+agent-html/AGENTS.md
   -> artifacts or examples
   -> ui, hooks, lib, schema, data as needed
   -> styles/content.css only when reusable artifact style classes are needed

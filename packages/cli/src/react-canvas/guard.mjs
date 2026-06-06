@@ -124,7 +124,7 @@ function collectWorkspaceBoundaryIssues({ relativePath, source }) {
         line: lineForIndex(source, match.index),
         message: "Import crosses the React Canvas boundary.",
         severity: "error",
-        suggestion: "Import from @agent-html/react or local .agent-html source.",
+        suggestion: "Import from @agent-html/react or local agent-html source.",
       })
     )
     forbiddenImportPattern.lastIndex = match.index + 1
@@ -166,7 +166,7 @@ function collectWorkspaceBoundaryIssues({ relativePath, source }) {
         guardScope: reactCanvasGuardScopes.workspaceBoundary,
         line: lineForIndex(source, controlMatch.index),
         message: "Native form control bypasses local UI primitives.",
-        suggestion: "Use the matching .agent-html/components/ui primitive.",
+        suggestion: "Use the matching agent-html/components/ui primitive.",
       })
     )
   }
@@ -179,7 +179,7 @@ function collectWorkspaceBoundaryIssues({ relativePath, source }) {
         guardScope: reactCanvasGuardScopes.workspaceBoundary,
         line: lineForIndex(source, tableMatch.index),
         message: "Native table bypasses local UI table primitives.",
-        suggestion: "Use .agent-html/components/ui/table.",
+        suggestion: "Use agent-html/components/ui/table.",
       })
     )
   }

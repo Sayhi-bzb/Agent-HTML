@@ -28,7 +28,7 @@ React 是画面和交互底座。AgentHTML 是协作协议和护栏层。
 更具体地说：
 
 ```text
-.agent-html/ 是 agent 写 React artifact 的本地 playground。
+agent-html/ 是 agent 写 React artifact 的本地 playground。
 @agent-html/react 提供 Artifact / Block / Action 等协作标记。
 AgentHTML host 负责 localhost 预览、Guard、Block overlay 和 AI action bridge。
 Codex app-server 是可选执行后端，不是 artifact 直接调用的 API。
@@ -90,7 +90,7 @@ Agent 必须遵守：
 - 顶层使用 `Artifact`。
 - 关键区域使用 `Block id`。
 - `Block id` 稳定、唯一、可读。
-- 复用 `.agent-html/components`、`.agent-html/hooks`、`.agent-html/patterns` 中已有资产。
+- 复用 `agent-html/components`、`agent-html/hooks`、`agent-html/patterns` 中已有资产。
 - 不把整个页面写成一个无法局部反馈的大 block。
 - 不直接读写本地文件。
 - 不直接调用 Codex app-server。
@@ -104,7 +104,7 @@ Agent 必须遵守：
 而是：
 
 ```text
-.agent-html/artifacts/*.agent.tsx
+agent-html/artifacts/*.agent.tsx
   -> AgentHTML Guard
   -> React render
   -> AgentHTML host/canvas overlay
@@ -113,15 +113,15 @@ Agent 必须遵守：
   -> agent edits the same React source
 ```
 
-## `.agent-html/` Playground
+## `agent-html/` Playground
 
-`.agent-html/` 是放在用户 workspace 下的本地 React playground。这个 workspace 不一定是软件仓库，也可以是 Obsidian vault、研究资料夹、产品资料夹、课程资料夹或运营资料夹。
+`agent-html/` 是放在用户 workspace 下的本地 React playground。这个 workspace 不一定是软件仓库，也可以是 Obsidian vault、研究资料夹、产品资料夹、课程资料夹或运营资料夹。
 
 推荐结构：
 
 ```text
 user-workspace/
-  .agent-html/
+  agent-html/
     artifacts/
       market-research.agent.tsx
       roadmap.agent.tsx
@@ -215,7 +215,7 @@ agent-html init --preset shadcn
 - 初始化 React/Vite artifact playground。
 - 准备 `components/ui`。
 - 准备 semantic tokens。
-- 写入 `.agent-html/AGENTS.md`。
+- 写入 `agent-html/AGENTS.md`。
 - 写入 Guard 规则。
 - 放入多场景 examples。
 
@@ -540,7 +540,7 @@ React artifact
 这个 `Action` 不直接调用 Codex。它只表达用户意图。AgentHTML host 负责把它转换成：
 
 ```text
-Edit .agent-html/artifacts/market-research.agent.tsx.
+Edit agent-html/artifacts/market-research.agent.tsx.
 Target Block: competitors.
 User request: 补充 Claude Code 和 Gemini CLI，并比较它们和 Codex CLI 的入口差异。
 Keep unrelated blocks unchanged.
@@ -578,7 +578,7 @@ AgentHTML 不应该复制：
 AgentHTML 的状态仍然应该在文件里。
 
 ```text
-.agent-html/
+agent-html/
   artifacts/
     codex-market.agent.tsx
     roadmap.agent.tsx
@@ -702,7 +702,7 @@ Action
 
 ```text
 workspace/
-  .agent-html/
+  agent-html/
     artifacts/
       market-research.agent.tsx
       pr-review.agent.tsx
@@ -730,8 +730,8 @@ agent-html guard
 
 ```text
 human asks Codex / Claude Code / Gemini CLI
-  -> agent writes .agent-html/artifacts/foo.agent.tsx
-  -> agent reuses .agent-html/components, hooks, and patterns
+  -> agent writes agent-html/artifacts/foo.agent.tsx
+  -> agent reuses agent-html/components, hooks, and patterns
   -> agent-html guard checks structure and style
   -> agent-html dev serves localhost
   -> human reviews canvas
@@ -756,7 +756,7 @@ Host 至少展示：
 
 ## 给 Agent 的写作规则
 
-这些规则应该写进 `.agent-html/AGENTS.md` 或 skill。
+这些规则应该写进 `agent-html/AGENTS.md` 或 skill。
 
 ```text
 Write normal React.

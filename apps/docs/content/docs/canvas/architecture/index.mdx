@@ -9,10 +9,10 @@ Canvas is organized as an isolated agent workspace topology:
 @agent-html/react
   -> headless collaboration protocol and interaction events
 
-.agent-html/*
+agent-html/*
   -> agent operating context and reusable resources
 
-.agent-html/artifacts/*
+agent-html/artifacts/*
   -> durable artifact composition and content
 
 packages/cli/src/*
@@ -23,7 +23,7 @@ packages/cli/src/host/*
 ```
 
 Each layer owns one decision. The protocol marks stable regions and emits
-instrumented state changes. The `.agent-html` workspace provides durable
+instrumented state changes. The `agent-html` workspace provides durable
 context agents can read and reuse. Artifacts compose those resources into UI.
 The CLI discovers, guards, bundles, and serves artifacts. The host observes and
 operates on rendered metadata.
@@ -46,7 +46,7 @@ record local control state and dispatch `agent-html:state-change` events.
 
 ## Resources
 
-Canvas resources live under `.agent-html`:
+Canvas resources live under `agent-html`:
 
 ```text
 AGENTS.md
@@ -112,17 +112,17 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 
 | Pipeline | Owner | Input | Output | Forbidden dependencies | Primary tests |
 | --- | --- | --- | --- | --- | --- |
-| Workspace source | `.agent-html` | artifact entries, split block files, local resources | portable source workspace | generated bundles, lockfiles, vendored installs | `boundaries.test.mjs` |
-| Artifact discovery | `react-canvas/paths.mjs` | `.agent-html/artifacts/*.agent.tsx` | artifact entry file paths | app shell, runtime parser, host UI | `dev-host.test.mjs` |
+| Workspace source | `agent-html` | artifact entries, split block files, local resources | portable source workspace | generated bundles, lockfiles, vendored installs | `boundaries.test.mjs` |
+| Artifact discovery | `react-canvas/paths.mjs` | `agent-html/artifacts/*.agent.tsx` | artifact entry file paths | app shell, runtime parser, host UI | `dev-host.test.mjs` |
 | Artifact entry protocol guard | `react-canvas/guard.mjs` | artifact entry source | issues scoped as `artifact-entry-protocol` | layout or style props on `Artifact` or `Block` | `guard.test.mjs` |
-| Block implementation source guard | `react-canvas/guard.mjs` | `.agent-html/{artifacts,examples}/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `boundaries.test.mjs` |
+| Block implementation source guard | `react-canvas/guard.mjs` | `agent-html/{artifacts,examples}/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `boundaries.test.mjs` |
 | Workspace boundary guard | `react-canvas/guard.mjs` | artifact and block source imports | issues scoped as `workspace-boundary` | app imports, old runtime imports, public-file imports | `guard.test.mjs`, `boundaries.test.mjs` |
 | Bundle and render | dev server + host surface | artifact entry file path | mounted artifact DOM | app shell, old runtime render APIs | `dev-host.test.mjs` |
 | Block overlay | `packages/react` + host overlay | rendered `data-agent-html-block-*` metadata | hover highlight and prompt target | artifact source mutation, host APIs in artifacts | `block-overlay.test.ts`, `index.test.tsx` |
 | Block implementation lookup | dev server + host API | `artifactEntry`, `blockId` | `implementationPath` | selected source payloads, implementation source payloads | `block-implementation.test.mjs`, `dev-host.test.mjs` |
 | Block prompt | `react-canvas/prompt.mjs` | `artifactEntry`, `blockId`, optional `implementationPath`, host `interactionSnapshot` | minimal prompt packet | TSX source payloads, runtime DSL source payloads | `prompt.test.mjs` |
 | Interaction state | `packages/react` event protocol + host store | artifact-local control changes | host prompt interaction snapshot | filesystem, shell, MCP, privileged host APIs in artifact code | `index.test.tsx`, `interaction-store.test.ts`, `prompt.test.mjs` |
-| CSS/theme | `.agent-html/styles` + host theme editor | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `boundaries.test.mjs`, `theme-preset.test.ts` |
+| CSS/theme | `agent-html/styles` + host theme editor | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `boundaries.test.mjs`, `theme-preset.test.ts` |
 
 Dev server routes are orchestration only. They may call discovery, guard,
 bundle, stylesheet, public asset, and block implementation lookup modules, but

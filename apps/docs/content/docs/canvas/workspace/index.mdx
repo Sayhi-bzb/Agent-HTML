@@ -1,90 +1,90 @@
 ---
 title: Workspace
-description: The .agent-html directory contract.
+description: The agent-html directory contract.
 ---
 
-`.agent-html` is the Canvas workspace: the agent's local operating context.
+`agent-html` is the Canvas workspace: the agent's local operating context.
 
 It is not just configuration. It contains the instructions, reusable resources,
 fixtures, examples, and durable work products an agent may read and compose
 while writing React artifacts:
 
 ```text
-.agent-html/AGENTS.md
+agent-html/AGENTS.md
   -> workspace rules and operating instructions
 
-.agent-html/README.md
+agent-html/README.md
   -> cold-start reading path and portable source workspace contract
 
-.agent-html/components.json
+agent-html/components.json
   -> shadcn workspace discovery config
 
-.agent-html/tsconfig.json
+agent-html/tsconfig.json
   -> local TypeScript and editor discovery config
 
-.agent-html/package.json
+agent-html/package.json
   -> source-only workspace dependency metadata
 
-.agent-html/styles/index.css
+agent-html/styles/index.css
   -> CSS runtime entrypoint
 
-.agent-html/styles/base.css
+agent-html/styles/base.css
   -> base stylesheet rules such as text selection
 
-.agent-html/styles/tokens
+agent-html/styles/tokens
   -> semantic token lookup split by feature
 
-.agent-html/styles/content.css
+agent-html/styles/content.css
   -> artifact-consumable Canvas semantic class lookup
 
-.agent-html/styles/internal
+agent-html/styles/internal
   -> locked Canvas system chrome, Artifact root, and theme editor styles
 
-.agent-html/theme
+agent-html/theme
   -> host-owned theme preset resources
 
-.agent-html/components/ui
+agent-html/components/ui
   -> local visual primitives such as button, card, tabs, dialog, and select
 
-.agent-html/components/kanban.tsx
+agent-html/components/kanban.tsx
   -> rich drag-and-drop board workflow component
 
-.agent-html/hooks
+agent-html/hooks
   -> reusable React behavior
 
-.agent-html/lib
+agent-html/lib
   -> pure helpers and transforms
 
-.agent-html/schema
+agent-html/schema
   -> typed contracts and validation
 
-.agent-html/data
+agent-html/data
   -> fixtures and local datasets
 
-.agent-html/assets
+agent-html/assets
   -> bundle-time artifact assets imported by artifact source
 
-.agent-html/public
+agent-html/public
   -> static files served by URL at /__agent-html/public/<path>
 
-.agent-html/examples
+agent-html/examples
   -> canonical examples
 
-.agent-html/artifacts
+agent-html/artifacts
   -> durable agent-authored work products
 ```
 
 `README.md`, `AGENTS.md`, `components.json`, `tsconfig.json`, and
 `package.json` stay at the workspace root because agents, shadcn, TypeScript,
 editors, and dependency tooling discover them from there.
-`.agent-html/package.json` is source dependency metadata only. `.agent-html` is
+`agent-html/package.json` is source dependency metadata only. `agent-html` is
 a portable source workspace, not a vendored runtime package; it does not keep
 `package-lock.json`, `manifest.json`, `node_modules`, generated bundles,
 `.vite`, `dist`, `build`, or vendored dependency folders.
 
 Canvas CLI and host packages provide the runtime React, bundling, stylesheet,
 icon, and preview environment. Local Canvas primitives may list source
-dependencies in `.agent-html/package.json`; artifact authors should prefer
+dependencies in `agent-html/package.json`; artifact authors should prefer
 existing `ui`, `hooks`, `lib`, `schema`, `data`, and `assets` resources before
 introducing a third-party dependency. New dependencies need an explicit owner:
 source-only workspace metadata when local Canvas source imports them, or
@@ -94,8 +94,8 @@ The directory gives agents an explicit workspace instead of relying on a single
 prompt. Human-readable guidance and agent-consumable assets stay beside the
 artifacts they shape.
 
-Use `.agent-html/assets` for files that artifact source imports into the bundle,
-such as images or media used by React components. Use `.agent-html/public` for
+Use `agent-html/assets` for files that artifact source imports into the bundle,
+such as images or media used by React components. Use `agent-html/public` for
 URL-addressed files that should stay static and be referenced as
 `/__agent-html/public/<path>`. Public files are not imported from artifact
 source.
@@ -122,7 +122,7 @@ import diagramUrl from "../assets/diagram.svg"
 
 Use `Artifact` as the top-level wrapper. It owns the readable root container
 and accepts only `title` and children. Root width and block gap are configured
-by `--canvas-artifact-*` tokens in `.agent-html/styles/tokens/artifact.css`;
+by `--canvas-artifact-*` tokens in `agent-html/styles/tokens/artifact.css`;
 background and foreground follow the shared foundation tokens. Wrap each major
 semantic region in `Block`. Use stable, unique, readable, kebab-case block ids.
 `Block` is a protocol marker only: use `id`, `title`, and children, and put

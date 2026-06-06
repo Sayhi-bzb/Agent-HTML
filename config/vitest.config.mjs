@@ -5,13 +5,17 @@ import { defineConfig } from "vitest/config"
 export default defineConfig({
   resolve: {
     alias: {
-      "@/lib": fileURLToPath(new URL("../.agent-html/lib", import.meta.url)),
-      "@/ui": fileURLToPath(new URL("../.agent-html/ui", import.meta.url)),
+      "@/components": fileURLToPath(
+        new URL("../agent-html/components", import.meta.url)
+      ),
+      "@/hooks": fileURLToPath(new URL("../agent-html/hooks", import.meta.url)),
+      "@/lib": fileURLToPath(new URL("../agent-html/lib", import.meta.url)),
+      "@/ui": fileURLToPath(new URL("../agent-html/components/ui", import.meta.url)),
       "@agent-html/react": fileURLToPath(
         new URL("../packages/react/src/index.tsx", import.meta.url)
       ),
       "#agent-html-playground": fileURLToPath(
-        new URL("../.agent-html", import.meta.url)
+        new URL("../agent-html", import.meta.url)
       ),
     },
   },

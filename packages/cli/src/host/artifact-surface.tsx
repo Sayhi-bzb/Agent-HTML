@@ -110,7 +110,7 @@ export function ArtifactSurface({
             <ArtifactSurfaceSkeleton />
           ) : artifactCount === 0 ? (
             <HostStatusMessage
-              message="Create a .agent-html/artifacts/*.agent.tsx file to preview it here."
+              message="Create an agent-html/artifacts/*.agent.tsx file to preview it here."
               title="No artifacts found"
             />
           ) : null}

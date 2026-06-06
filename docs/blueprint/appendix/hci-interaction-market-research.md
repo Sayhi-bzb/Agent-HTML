@@ -18,7 +18,7 @@ AgentHTML 不应该被定义成四种开发模板。更大的机会是成为 age
 可交互工作产物载体。
 
 Codex CLI 是很强的首个入口，因为它天然运行在用户的工作目录里，能读取代码、
-文档、数据和上下文，也能写入 `.agent-html/`。但 AgentHTML 的市场不只在开发。
+文档、数据和上下文，也能写入 `agent-html/`。但 AgentHTML 的市场不只在开发。
 所有存在以下问题的工作都适合：
 
 - AI 输出很长，人类不愿读。
@@ -268,7 +268,7 @@ Codex CLI 是最自然的初始场景：
 
 ```text
 user-repo/
-  .agent-html/
+  agent-html/
     artifacts/
       market-research.agent.tsx
       pr-review.agent.tsx
@@ -315,7 +315,7 @@ OpenAI Codex 文档显示，Codex app-server 可以通过 localhost WebSocket �
 更实际的 v1 是：
 
 ```text
-codex / agent 在当前 repo 里生成 .agent-html/
+codex / agent 在当前 repo 里生成 agent-html/
 agent-html host 启动 localhost
 浏览器预览 artifact
 用户反馈具体 block 或 action
@@ -370,7 +370,7 @@ AgentHTML 是这个界面层和本地运行时。
 
 ### Phase 1: Repo-local artifact host
 
-- 支持 `.agent-html/artifacts/*.agent.tsx`。
+- 支持 `agent-html/artifacts/*.agent.tsx`。
 - 启动 localhost preview。
 - 自动索引 artifact。
 - 支持 React state、hooks 和浏览器事件。

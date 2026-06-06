@@ -24,7 +24,7 @@ export function workspaceRelativePath(root, filePath) {
 }
 
 export async function discoverReactArtifacts(root) {
-  const artifactsDir = path.join(root, ".agent-html", "artifacts")
+  const artifactsDir = path.join(root, "agent-html", "artifacts")
   let entries
 
   try {
@@ -79,7 +79,7 @@ async function discoverFilesBySuffix(directory, suffix) {
 }
 
 export async function discoverReactBlockImplementations(root) {
-  const workspaceRoot = path.join(root, ".agent-html")
+  const workspaceRoot = path.join(root, "agent-html")
   const roots = [
     path.join(workspaceRoot, "artifacts"),
     path.join(workspaceRoot, "examples"),

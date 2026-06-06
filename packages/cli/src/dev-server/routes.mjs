@@ -43,7 +43,7 @@ function contentTypeForPublicAsset(filePath) {
 }
 
 function resolvePublicAssetPath({ root, requestPathname }) {
-  const publicRoot = path.join(root, ".agent-html", "public")
+  const publicRoot = path.join(root, "agent-html", "public")
   const publicRelativePath = decodeURIComponent(
     requestPathname.slice(hostRoutes.publicAsset.length)
   )
@@ -53,7 +53,7 @@ function resolvePublicAssetPath({ root, requestPathname }) {
     resolvedPath !== publicRoot &&
     !resolvedPath.startsWith(`${publicRoot}${path.sep}`)
   ) {
-    throw new Error("Public asset path must stay inside .agent-html/public")
+    throw new Error("Public asset path must stay inside agent-html/public")
   }
 
   return resolvedPath

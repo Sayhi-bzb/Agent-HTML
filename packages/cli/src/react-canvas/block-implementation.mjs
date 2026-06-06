@@ -7,8 +7,8 @@ function isKebabCase(value) {
 
 function isReactCanvasSourceRoot(relativePath) {
   return (
-    relativePath.startsWith(".agent-html/artifacts/") ||
-    relativePath.startsWith(".agent-html/examples/")
+    relativePath.startsWith("agent-html/artifacts/") ||
+    relativePath.startsWith("agent-html/examples/")
   )
 }
 
@@ -37,7 +37,7 @@ export async function resolveBlockImplementationPath({
     `${blockId}.block.tsx`
   )
   const candidatePath = path.resolve(root, candidateRelativePath)
-  const agentHtmlRoot = path.resolve(root, ".agent-html")
+  const agentHtmlRoot = path.resolve(root, "agent-html")
 
   if (
     candidatePath !== agentHtmlRoot &&

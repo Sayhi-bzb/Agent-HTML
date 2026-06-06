@@ -5,7 +5,7 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": ".agent-html/styles/index.css",
+    "css": "agent-html/styles/index.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""

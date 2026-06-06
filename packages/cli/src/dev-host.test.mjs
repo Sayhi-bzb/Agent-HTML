@@ -14,7 +14,7 @@ describe("React Canvas dev host", () => {
         response.json()
       )
       expect(artifacts.artifacts).toContainEqual({
-        filePath: ".agent-html/artifacts/project-visual-explainer.agent.tsx",
+        filePath: "agent-html/artifacts/project-visual-explainer.agent.tsx",
       })
 
       const removedRender = await fetch(`${url}/__agent-html/render`)
@@ -74,21 +74,21 @@ describe("React Canvas dev host", () => {
       const blockImplementationUrl = new URL(`${url}/__agent-html/block-implementation`)
       blockImplementationUrl.searchParams.set(
         "filePath",
-        ".agent-html/examples/example.agent.tsx"
+        "agent-html/examples/example.agent.tsx"
       )
       blockImplementationUrl.searchParams.set("blockId", "brief")
       const blockImplementation = await fetch(blockImplementationUrl).then((response) =>
         response.json()
       )
       expect(blockImplementation.implementationPath).toBe(
-        ".agent-html/examples/example/brief.block.tsx"
+        "agent-html/examples/example/brief.block.tsx"
       )
       expect(Object.keys(blockImplementation).sort()).toEqual(["implementationPath"])
 
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(
         "filePath",
-        ".agent-html/artifacts/project-visual-explainer.agent.tsx"
+        "agent-html/artifacts/project-visual-explainer.agent.tsx"
       )
       const bundle = await fetch(bundleUrl).then((response) => response.text())
       expect(bundle).toContain("function mount")

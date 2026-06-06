@@ -22,10 +22,10 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": "../..",
     "paths": {
-      "@/*": ["./.agent-html/*"],
-      "#agent-html-playground/*": ["./.agent-html/*"],
-      "#agent-html-playground/theme/*": ["./.agent-html/theme/*"],
-      "#agent-html-playground/components/ui/*": ["./.agent-html/components/ui/*"],
+      "@/*": ["./agent-html/*"],
+      "#agent-html-playground/*": ["./agent-html/*"],
+      "#agent-html-playground/theme/*": ["./agent-html/theme/*"],
+      "#agent-html-playground/components/ui/*": ["./agent-html/components/ui/*"],
       "@agent-html/react": ["./packages/react/src/index.tsx"]
     }
   },
@@ -33,8 +33,8 @@
     "../../packages/cli/src/host/**/*.ts",
     "../../packages/cli/src/host/**/*.tsx",
     "../../packages/react/src",
-    "../../.agent-html/**/*.ts",
-    "../../.agent-html/**/*.tsx"
+    "../../agent-html/**/*.ts",
+    "../../agent-html/**/*.tsx"
   ],
   "exclude": [
     "../../packages/**/*.test.ts",

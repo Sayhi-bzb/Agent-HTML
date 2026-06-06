@@ -58,7 +58,7 @@ export default {
         path: "^\\.agent-html/(hooks|lib|schema)/",
       },
       to: {
-        path: "^\\.agent-html/ui/",
+        path: "^\\.agent-html/components/ui/",
         dependencyTypesNot: ["type-only", "type-import"],
       },
     },
@@ -66,7 +66,7 @@ export default {
       name: "react-canvas-ui-no-artifact-data",
       severity: "error",
       from: {
-        path: "^\\.agent-html/ui/",
+        path: "^\\.agent-html/components/ui/",
       },
       to: {
         path: "^\\.agent-html/(artifacts|examples|data)/",

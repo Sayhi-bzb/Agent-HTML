@@ -22,7 +22,7 @@ async function readFileIfExists(filePath) {
 }
 
 async function resolveAgentHtmlStyleEntry(root) {
-  const agentHtmlRoot = path.join(root, ".agent-html")
+  const agentHtmlRoot = path.join(root, "agent-html")
   const componentsSource = await readFileIfExists(
     path.join(agentHtmlRoot, "components.json")
   )

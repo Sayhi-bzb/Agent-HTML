@@ -8,40 +8,40 @@ import { resolveBlockImplementationPath } from "./block-implementation.mjs"
 describe("React Canvas block implementation lookup", () => {
   it("resolves split artifact block implementation files", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-source-"))
-    await fs.mkdir(path.join(root, ".agent-html", "artifacts", "demo"), {
+    await fs.mkdir(path.join(root, "agent-html", "artifacts", "demo"), {
       recursive: true,
     })
     await fs.writeFile(
-      path.join(root, ".agent-html", "artifacts", "demo", "summary.block.tsx"),
+      path.join(root, "agent-html", "artifacts", "demo", "summary.block.tsx"),
       "export function SummaryBlock() { return null }"
     )
 
     await expect(
       resolveBlockImplementationPath({
         blockId: "summary",
-        filePath: ".agent-html/artifacts/demo.agent.tsx",
+        filePath: "agent-html/artifacts/demo.agent.tsx",
         root,
       })
-    ).resolves.toBe(".agent-html/artifacts/demo/summary.block.tsx")
+    ).resolves.toBe("agent-html/artifacts/demo/summary.block.tsx")
   })
 
   it("resolves split example block implementation files", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-source-"))
-    await fs.mkdir(path.join(root, ".agent-html", "examples", "example"), {
+    await fs.mkdir(path.join(root, "agent-html", "examples", "example"), {
       recursive: true,
     })
     await fs.writeFile(
-      path.join(root, ".agent-html", "examples", "example", "brief.block.tsx"),
+      path.join(root, "agent-html", "examples", "example", "brief.block.tsx"),
       "export function BriefBlock() { return null }"
     )
 
     await expect(
       resolveBlockImplementationPath({
         blockId: "brief",
-        filePath: ".agent-html/examples/example.agent.tsx",
+        filePath: "agent-html/examples/example.agent.tsx",
         root,
       })
-    ).resolves.toBe(".agent-html/examples/example/brief.block.tsx")
+    ).resolves.toBe("agent-html/examples/example/brief.block.tsx")
   })
 
   it("returns null when no split implementation exists", async () => {
@@ -50,7 +50,7 @@ describe("React Canvas block implementation lookup", () => {
     await expect(
       resolveBlockImplementationPath({
         blockId: "summary",
-        filePath: ".agent-html/artifacts/demo.agent.tsx",
+        filePath: "agent-html/artifacts/demo.agent.tsx",
         root,
       })
     ).resolves.toBeNull()
@@ -62,7 +62,7 @@ describe("React Canvas block implementation lookup", () => {
     await expect(
       resolveBlockImplementationPath({
         blockId: "../summary",
-        filePath: ".agent-html/artifacts/demo.agent.tsx",
+        filePath: "agent-html/artifacts/demo.agent.tsx",
         root,
       })
     ).resolves.toBeNull()

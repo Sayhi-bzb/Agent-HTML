@@ -1,6 +1,6 @@
 # React Canvas Index
 
-Generated decision layer for `.agent-html`.
+Generated decision layer for `agent-html`.
 
 Use this directory to choose the next file to open. It is an agent-facing index layer, not a source layer and not a full dependency dump.
 

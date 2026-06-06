@@ -36,29 +36,29 @@ artifact files
 
 ## CSS Entry Points
 
-`.agent-html/styles/index.css` is the runtime CSS entrypoint. It imports
+`agent-html/styles/index.css` is the runtime CSS entrypoint. It imports
 Tailwind, shadcn CSS, fonts, token files, base styles, public content classes,
 and internal system classes.
 
-`.agent-html/styles/base.css` owns base stylesheet behavior that applies across
+`agent-html/styles/base.css` owns base stylesheet behavior that applies across
 the Canvas surface, including text selection colors.
 
-`.agent-html/styles/tokens/*` owns semantic token values. Read
+`agent-html/styles/tokens/*` owns semantic token values. Read
 `tokens/foundation.css` for base color, font, radius, chart, and sidebar
 values; read `tokens/artifact.css`, `tokens/host.css`, `tokens/content.css`,
 and `tokens/theme-editor.css` for feature values.
 
-`.agent-html/styles/tokens/tailwind.css` maps semantic variables into Tailwind
+`agent-html/styles/tokens/tailwind.css` maps semantic variables into Tailwind
 tokens.
 
-`.agent-html/styles/content.css` owns the public artifact style API. It contains the
+`agent-html/styles/content.css` owns the public artifact style API. It contains the
 small set of semantic classes artifact agents may consume for layout rhythm,
 surfaces, icon boxes, and text scale.
 
-`.agent-html/styles/internal/*` owns locked Canvas chrome, the Artifact reading
+`agent-html/styles/internal/*` owns locked Canvas chrome, the Artifact reading
 container, and theme editor styles. Artifact agents do not read it by default.
 
-`.agent-html/theme/*` owns host theme preset resources. Host code may consume
+`agent-html/theme/*` owns host theme preset resources. Host code may consume
 these through `#agent-html-playground/theme/*`; artifacts consume semantic
 tokens and do not choose preset values directly.
 
@@ -86,7 +86,7 @@ className="bg-background text-foreground border-border"
 
 ## UI Primitives
 
-`.agent-html/components/ui/*` is the only visual primitive layer for Canvas. It is local
+`agent-html/components/ui/*` is the only visual primitive layer for Canvas. It is local
 source generated from shadcn conventions, but Canvas owns how it is consumed.
 Artifacts and host controls should use these primitives before hand-writing
 common UI.
@@ -156,6 +156,6 @@ visual props to `Artifact`; update `--canvas-artifact-max-width` and
 `--background` and `--foreground` foundation tokens.
 
 `Block` remains a protocol marker. Block content layout and visual treatment
-belong inside blocks through artifact composition and `.agent-html/components/ui/*`.
+belong inside blocks through artifact composition and `agent-html/components/ui/*`.
 Block hover highlighting, prompt actions, and floating prompt UI belong to host
 overlay chrome.

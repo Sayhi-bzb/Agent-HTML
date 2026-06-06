@@ -7,7 +7,7 @@ export default {
   resolve: {
     alias: {
       "@agent-html/react": path.join(repoRoot, "packages", "react", "src", "index.tsx"),
-      "@": path.join(repoRoot, ".agent-html"),
+      "@": path.join(repoRoot, "agent-html"),
     },
     extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
   },

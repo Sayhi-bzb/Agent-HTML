@@ -7,9 +7,9 @@ import dependencyCruiserConfig from "../.dependency-cruiser.mjs"
 import dependencyCruiserResolveConfig from "../config/dependency-cruiser.react-canvas-resolve.mjs"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
-const workspaceRoot = path.join(root, ".agent-html")
+const workspaceRoot = path.join(root, "agent-html")
 const tmpRoot = path.join(root, "node_modules", ".tmp", "agent-html-index-dts")
-const dtsWorkspaceRoot = path.join(tmpRoot, ".agent-html")
+const dtsWorkspaceRoot = path.join(tmpRoot, "agent-html")
 const depsJsonPath = path.join(root, "node_modules", ".tmp", "agent-html-deps.json")
 const shouldCheck = process.argv.includes("--check")
 const largeFileTokenThreshold = 2000
@@ -172,7 +172,7 @@ function buildApiSurfaceMarkdown() {
     "<!-- generated: do not edit -->",
     "# React Canvas API Surface",
     "",
-    "Compact exported API surface for `.agent-html` source directories.",
+    "Compact exported API surface for `agent-html` source directories.",
     "Full TypeScript declarations are generated only as temporary build input.",
   ]
 
@@ -209,7 +209,7 @@ function sourcePathForDeclaration(dirName, declarationPath) {
     ? ".tsx"
     : ".ts"
 
-  return `.agent-html/${dirName}/${basePath}${sourceExt}`
+  return `agent-html/${dirName}/${basePath}${sourceExt}`
 }
 
 function extractExportedNames(content) {
@@ -245,7 +245,7 @@ function extractExportedNames(content) {
 
 async function cruiseDependencies() {
   const result = await cruise(
-    [".agent-html"],
+    ["agent-html"],
     {
       ruleSet: dependencyCruiserConfig,
       outputType: "json",
@@ -271,7 +271,7 @@ async function cruiseDependencies() {
 }
 
 function isWorkspaceModule(filePath) {
-  return filePath.startsWith(".agent-html/")
+  return filePath.startsWith("agent-html/")
 }
 
 function dependencyKind(dependency) {
@@ -318,7 +318,7 @@ function buildDependencySummaryMarkdown(dependencyGraph) {
     "<!-- generated: do not edit -->",
     "# React Canvas Dependency Summary",
     "",
-    "Dependency-cruiser summary for `.agent-html` source files.",
+    "Dependency-cruiser summary for `agent-html` source files.",
     "",
     "## Counts",
     "",
@@ -424,7 +424,7 @@ function buildReadme() {
   return [
     "# React Canvas Index",
     "",
-    "Generated decision layer for `.agent-html`.",
+    "Generated decision layer for `agent-html`.",
     "",
     "Use this directory to choose the next file to open. It is an agent-facing index layer, not a source layer and not a full dependency dump.",
     "",

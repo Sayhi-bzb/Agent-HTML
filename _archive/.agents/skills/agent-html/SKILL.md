@@ -1,6 +1,6 @@
 ---
 name: agent-html
-description: Use when editing AgentHTML artifacts, .agent-html files, Gallery Preview DSL, blocks, components, sections, prompt schema, or runtime-rendered artifact content. Before editing AgentHTML content, read `.agents/skills/agent-html/references/prompt-schema.md` for the current DSL contract and enabled component grammar.
+description: Use when editing AgentHTML artifacts, agent-html files, Gallery Preview DSL, blocks, components, sections, prompt schema, or runtime-rendered artifact content. Before editing AgentHTML content, read `.agents/skills/agent-html/references/prompt-schema.md` for the current DSL contract and enabled component grammar.
 ---
 
 # agent-html

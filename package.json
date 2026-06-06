@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "npm run react-canvas:dev",
     "react-canvas:dev": "node packages/cli/bin/agent-html.mjs dev",
-    "react-canvas:deps": "depcruise --config .dependency-cruiser.mjs --output-type err .agent-html",
+    "react-canvas:deps": "depcruise --config .dependency-cruiser.mjs --output-type err agent-html",
     "react-canvas:guard": "node packages/cli/bin/agent-html.mjs guard",
     "react-canvas:index": "node tools/generate-react-canvas-index.mjs",
     "react-canvas:index:check": "node tools/generate-react-canvas-index.mjs --check",

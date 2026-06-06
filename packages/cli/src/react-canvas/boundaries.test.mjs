@@ -91,8 +91,8 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
   it("keeps React Canvas surfaces from bypassing local primitives", () => {
     const primitiveBypass = /<(?:button|input|table|thead|tbody|tr|th|td)\b/
 
-    expect(filesMatching(".agent-html/artifacts", primitiveBypass)).toEqual([])
-    expect(filesMatching(".agent-html/examples", primitiveBypass)).toEqual([])
+    expect(filesMatching("agent-html/artifacts", primitiveBypass)).toEqual([])
+    expect(filesMatching("agent-html/examples", primitiveBypass)).toEqual([])
     expect(filesMatching("packages/cli/src/host", primitiveBypass)).toEqual([])
   })
 
@@ -103,8 +103,8 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       /^(?:@\/|#agent-html-playground\/|@agent-html-playground\/|apps\/|packages\/|@\/app\/|@\/agent-html\/runtime)/
 
     for (const file of [
-      ...implementationFilesUnder(".agent-html/artifacts"),
-      ...implementationFilesUnder(".agent-html/examples"),
+      ...implementationFilesUnder("agent-html/artifacts"),
+      ...implementationFilesUnder("agent-html/examples"),
     ]) {
       const specifiers = importedSpecifiers(readSource(file))
       const invalid = specifiers.filter((specifier) => {
@@ -130,16 +130,16 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       /className=["'][^"']*(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|className=["'][^"']*(?:shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|text-(?:[3-9]xl|[1-9][0-9]xl)|font-\w+|tracking-\w+|\[[^\]]+\])/
     const textSelectionOverride = /selection:(?:bg|text)-/
 
-    expect(filesMatching(".agent-html/artifacts", rawArtifactVisualClass)).toEqual([])
-    expect(filesMatching(".agent-html/examples", rawArtifactVisualClass)).toEqual([])
+    expect(filesMatching("agent-html/artifacts", rawArtifactVisualClass)).toEqual([])
+    expect(filesMatching("agent-html/examples", rawArtifactVisualClass)).toEqual([])
     expect(filesMatching("packages/cli/src/host", rawSurfaceVisualClass)).toEqual([])
-    expect(filesMatching(".agent-html", textSelectionOverride)).toEqual([])
+    expect(filesMatching("agent-html", textSelectionOverride)).toEqual([])
     expect(filesMatching("packages/cli/src/host", textSelectionOverride)).toEqual([])
   })
 
   it("keeps the React API package independent from host and playground code", () => {
     const forbidden =
-      /from\s+["'](?:packages\/cli|apps\/|@\/app\b|@\/app\/|\.agent-html\/|#agent-html-playground\/)/
+      /from\s+["'](?:packages\/cli|apps\/|@\/app\b|@\/app\/|\agent-html\/|#agent-html-playground\/)/
 
     expect(filesMatching("packages/react/src", forbidden)).toEqual([])
   })
@@ -151,9 +151,9 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(filesMatching("apps", forbidden)).toEqual([])
   })
 
-  it("keeps .agent-html as source-only playground content", () => {
+  it("keeps agent-html as source-only playground content", () => {
     const playgroundPackage = JSON.parse(
-      readFileSync(join(root, ".agent-html", "package.json"), "utf8")
+      readFileSync(join(root, "agent-html", "package.json"), "utf8")
     )
 
     expect(playgroundPackage).toEqual({
@@ -176,32 +176,32 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       private: true,
       type: "module",
     })
-    expect(existsSync(join(root, ".agent-html", "package-lock.json"))).toBe(
+    expect(existsSync(join(root, "agent-html", "package-lock.json"))).toBe(
       false
     )
-    expect(existsSync(join(root, ".agent-html", "pnpm-lock.yaml"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", "yarn.lock"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", "manifest.json"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", "node_modules"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", ".vite"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", "dist"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", "build"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", "assets"))).toBe(true)
-    expect(existsSync(join(root, ".agent-html", "public"))).toBe(true)
+    expect(existsSync(join(root, "agent-html", "pnpm-lock.yaml"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "yarn.lock"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "manifest.json"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "node_modules"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", ".vite"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "dist"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "build"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "assets"))).toBe(true)
+    expect(existsSync(join(root, "agent-html", "public"))).toBe(true)
 
-    expect(filesMatching(".agent-html", /packages\/cli|@agent-html\/cli/)).toEqual(
+    expect(filesMatching("agent-html", /packages\/cli|@agent-html\/cli/)).toEqual(
       []
     )
-    expect(filesMatching(".agent-html/artifacts", /from\s+["']\.\.\/public(?:\/|["'])/)).toEqual(
+    expect(filesMatching("agent-html/artifacts", /from\s+["']\.\.\/public(?:\/|["'])/)).toEqual(
       []
     )
-    expect(filesMatching(".agent-html/examples", /from\s+["']\.\.\/public(?:\/|["'])/)).toEqual(
+    expect(filesMatching("agent-html/examples", /from\s+["']\.\.\/public(?:\/|["'])/)).toEqual(
       []
     )
   })
 
   it("keeps Canvas theme presets off host sidebar token overrides", () => {
-    expect(filesMatching(".agent-html/theme", /"--sidebar(?:-[\w-]+)?"/)).toEqual(
+    expect(filesMatching("agent-html/theme", /"--sidebar(?:-[\w-]+)?"/)).toEqual(
       []
     )
   })
@@ -209,37 +209,37 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
   it("keeps shadcn and TypeScript aliases scoped to their owners", () => {
     const rootComponents = JSON.parse(readSource("components.json"))
     const playgroundComponents = JSON.parse(
-      readSource(".agent-html/components.json")
+      readSource("agent-html/components.json")
     )
-    const playgroundStyles = readSource(".agent-html/styles/index.css")
-    const playgroundBaseStyles = readSource(".agent-html/styles/base.css")
+    const playgroundStyles = readSource("agent-html/styles/index.css")
+    const playgroundBaseStyles = readSource("agent-html/styles/base.css")
     const playgroundTailwindTokens = readSource(
-      ".agent-html/styles/tokens/tailwind.css"
+      "agent-html/styles/tokens/tailwind.css"
     )
     const playgroundFoundationTokens = readSource(
-      ".agent-html/styles/tokens/foundation.css"
+      "agent-html/styles/tokens/foundation.css"
     )
     const playgroundArtifactTokens = readSource(
-      ".agent-html/styles/tokens/artifact.css"
+      "agent-html/styles/tokens/artifact.css"
     )
     const playgroundHostTokens = readSource(
-      ".agent-html/styles/tokens/host.css"
+      "agent-html/styles/tokens/host.css"
     )
     const playgroundContentTokens = readSource(
-      ".agent-html/styles/tokens/content.css"
+      "agent-html/styles/tokens/content.css"
     )
     const playgroundThemeEditorTokens = readSource(
-      ".agent-html/styles/tokens/theme-editor.css"
+      "agent-html/styles/tokens/theme-editor.css"
     )
     const playgroundArtifactInternal = readSource(
-      ".agent-html/styles/internal/artifact.css"
+      "agent-html/styles/internal/artifact.css"
     )
     const playgroundHostInternal = readSource(
-      ".agent-html/styles/internal/host.css"
+      "agent-html/styles/internal/host.css"
     )
-    const playgroundContent = readSource(".agent-html/styles/content.css")
+    const playgroundContent = readSource("agent-html/styles/content.css")
     const playgroundThemeEditorInternal = readSource(
-      ".agent-html/styles/internal/theme-editor.css"
+      "agent-html/styles/internal/theme-editor.css"
     )
     const canvasMessageStore = readSource(
       "packages/cli/src/host/canvas-message-store.ts"
@@ -255,23 +255,23 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       readSource("config/tsconfig/tsconfig.react-canvas.json")
     )
 
-    expect(rootComponents.tailwind.css).toBe(".agent-html/styles/index.css")
+    expect(rootComponents.tailwind.css).toBe("agent-html/styles/index.css")
     expect(rootComponents.aliases.ui).toBe("@/ui")
-    expect(existsSync(join(root, ".agent-html", "components.json"))).toBe(true)
-    expect(existsSync(join(root, ".agent-html", "tsconfig.json"))).toBe(true)
+    expect(existsSync(join(root, "agent-html", "components.json"))).toBe(true)
+    expect(existsSync(join(root, "agent-html", "tsconfig.json"))).toBe(true)
     expect(playgroundComponents.tailwind.css).toBe("styles/index.css")
     expect(playgroundComponents.aliases.components).toBe("@/components")
     expect(playgroundComponents.aliases.ui).toBe("@/components/ui")
-    expect(existsSync(join(root, ".agent-html", "styles.css"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", "styles", "theme.css"))).toBe(
+    expect(existsSync(join(root, "agent-html", "styles.css"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "styles", "theme.css"))).toBe(
       false
     )
-    expect(existsSync(join(root, ".agent-html", "styles", "features"))).toBe(
+    expect(existsSync(join(root, "agent-html", "styles", "features"))).toBe(
       false
     )
-    expect(existsSync(join(root, ".agent-html", "styles", "use"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", "styles", "system"))).toBe(false)
-    expect(existsSync(join(root, ".agent-html", "styles", "bridge"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "styles", "use"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "styles", "system"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "styles", "bridge"))).toBe(false)
     expect(playgroundStyles).toContain('@import "tailwindcss"')
     expect(playgroundStyles).toContain('@import "tw-animate-css"')
     expect(playgroundStyles).toContain('@import "shadcn/tailwind.css"')
@@ -376,15 +376,15 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(reactCanvasTsconfig.compilerOptions.paths["@/app/*"]).toBeUndefined()
     expect(
       reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/*"]
-    ).toEqual(["./.agent-html/*"])
+    ).toEqual(["./agent-html/*"])
     expect(
       reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/theme/*"]
-    ).toEqual(["./.agent-html/theme/*"])
+    ).toEqual(["./agent-html/theme/*"])
     expect(
       reactCanvasTsconfig.compilerOptions.paths[
         "#agent-html-playground/components/ui/*"
       ]
-    ).toEqual(["./.agent-html/components/ui/*"])
+    ).toEqual(["./agent-html/components/ui/*"])
     expect(
       reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/ui/*"]
     ).toBeUndefined()

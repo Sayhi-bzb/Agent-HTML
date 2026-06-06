@@ -29,7 +29,7 @@ agent 在本地源码套件里写 React artifact。
 
 @agent-html registry
   -> shadcn registry
-  -> 安装 .agent-html/ui、hooks、patterns、AGENTS.md、examples
+  -> 安装 agent-html/components/ui、hooks、patterns、AGENTS.md、examples
 ```
 
 这样 agent 不需要每次从零手搓 UI，也不需要被限制在旧 `.ahtml` DSL 里。
@@ -136,7 +136,7 @@ item 至少描述：
 `files` 声明 item 包含哪些文件。`target` 可以指定这些文件安装到用户项目里的
 目标路径。
 
-例如一个 AgentHTML base item 可以把文件安装到 `.agent-html/`：
+例如一个 AgentHTML base item 可以把文件安装到 `agent-html/`：
 
 ```json
 {
@@ -146,17 +146,17 @@ item 至少描述：
     {
       "path": "rules/AGENTS.md",
       "type": "registry:file",
-      "target": "~/.agent-html/AGENTS.md"
+      "target": "~/agent-html/AGENTS.md"
     },
     {
       "path": "ui/button.tsx",
       "type": "registry:ui",
-      "target": "~/.agent-html/ui/button.tsx"
+      "target": "~/agent-html/components/ui/button.tsx"
     },
     {
       "path": "hooks/use-filter.ts",
       "type": "registry:hook",
-      "target": "~/.agent-html/hooks/use-filter.ts"
+      "target": "~/agent-html/hooks/use-filter.ts"
     }
   ]
 }
@@ -372,20 +372,20 @@ agent 容易生成风格漂移的 JSX：
 <div className="rounded-3xl bg-purple-950 p-10 text-lime-200 shadow-2xl">
 ```
 
-registry 可以先把标准 UI 安装到 `.agent-html/ui/`：
+registry 可以先把标准 UI 安装到 `agent-html/components/ui/`：
 
 ```text
-.agent-html/ui/button.tsx
-.agent-html/ui/card.tsx
-.agent-html/ui/table.tsx
-.agent-html/ui/badge.tsx
-.agent-html/ui/dialog.tsx
+agent-html/components/ui/button.tsx
+agent-html/components/ui/card.tsx
+agent-html/components/ui/table.tsx
+agent-html/components/ui/badge.tsx
+agent-html/components/ui/dialog.tsx
 ```
 
-再通过 `.agent-html/AGENTS.md` 规定：
+再通过 `agent-html/AGENTS.md` 规定：
 
 ```text
-Use .agent-html/ui components before custom markup.
+Use agent-html/components/ui components before custom markup.
 Use Button for actions.
 Use Card for grouped content.
 Use Table for tabular data.
@@ -418,10 +418,10 @@ charts、tables 和普通 HTML。AgentHTML 只要求它们被放进稳定的 `Bl
 registry items 可以安装任何文件，因此可以分发：
 
 ```text
-.agent-html/AGENTS.md
-.agent-html/examples/market-research.agent.tsx
-.agent-html/examples/pr-review.agent.tsx
-.agent-html/examples/roadmap.agent.tsx
+agent-html/AGENTS.md
+agent-html/examples/market-research.agent.tsx
+agent-html/examples/pr-review.agent.tsx
+agent-html/examples/roadmap.agent.tsx
 ```
 
 这对 agent 很关键。agent 不只需要组件源码，也需要本地规则和可模仿示例。
@@ -429,7 +429,7 @@ registry items 可以安装任何文件，因此可以分发：
 推荐 base playground 安装后包含：
 
 ```text
-.agent-html/
+agent-html/
   AGENTS.md
   manifest.json
   ui/
@@ -451,7 +451,7 @@ AgentHTML 的本地规则和现成资产。
 目标：
 
 ```text
-.agent-html/
+agent-html/
   AGENTS.md
   manifest.json
   ui/
@@ -479,12 +479,12 @@ npx shadcn@latest add @agent-html/base-playground
 建议内容：
 
 ```text
-.agent-html/hooks/use-filter.ts
-.agent-html/hooks/use-selection.ts
-.agent-html/patterns/research-matrix.tsx
-.agent-html/patterns/evidence-panel.tsx
-.agent-html/patterns/citation-list.tsx
-.agent-html/artifacts/research-example.agent.tsx
+agent-html/hooks/use-filter.ts
+agent-html/hooks/use-selection.ts
+agent-html/patterns/research-matrix.tsx
+agent-html/patterns/evidence-panel.tsx
+agent-html/patterns/citation-list.tsx
+agent-html/artifacts/research-example.agent.tsx
 ```
 
 ### 3. Product kit
@@ -494,10 +494,10 @@ npx shadcn@latest add @agent-html/base-playground
 建议内容：
 
 ```text
-.agent-html/patterns/roadmap-board.tsx
-.agent-html/patterns/decision-table.tsx
-.agent-html/patterns/risk-register.tsx
-.agent-html/artifacts/product-roadmap-example.agent.tsx
+agent-html/patterns/roadmap-board.tsx
+agent-html/patterns/decision-table.tsx
+agent-html/patterns/risk-register.tsx
+agent-html/artifacts/product-roadmap-example.agent.tsx
 ```
 
 ### 4. Dev kit
@@ -507,10 +507,10 @@ npx shadcn@latest add @agent-html/base-playground
 建议内容：
 
 ```text
-.agent-html/patterns/pr-review-table.tsx
-.agent-html/patterns/code-path-card.tsx
-.agent-html/patterns/test-status-panel.tsx
-.agent-html/artifacts/pr-review-example.agent.tsx
+agent-html/patterns/pr-review-table.tsx
+agent-html/patterns/code-path-card.tsx
+agent-html/patterns/test-status-panel.tsx
+agent-html/artifacts/pr-review-example.agent.tsx
 ```
 
 ### 5. Learning kit
@@ -520,10 +520,10 @@ npx shadcn@latest add @agent-html/base-playground
 建议内容：
 
 ```text
-.agent-html/patterns/learning-explainer.tsx
-.agent-html/patterns/concept-map.tsx
-.agent-html/patterns/quiz-panel.tsx
-.agent-html/artifacts/lesson-example.agent.tsx
+agent-html/patterns/learning-explainer.tsx
+agent-html/patterns/concept-map.tsx
+agent-html/patterns/quiz-panel.tsx
+agent-html/artifacts/lesson-example.agent.tsx
 ```
 
 ## Agent 使用规则
@@ -535,9 +535,9 @@ Write normal React.
 Use Artifact as the top-level wrapper.
 Wrap every major semantic region in Block.
 Use stable kebab-case Block ids.
-Use .agent-html/ui components before custom markup.
-Use .agent-html/hooks before rewriting common state logic.
-Use .agent-html/patterns before inventing new work layouts.
+Use agent-html/components/ui components before custom markup.
+Use agent-html/hooks before rewriting common state logic.
+Use agent-html/patterns before inventing new work layouts.
 Use component variants and semantic tokens.
 Use className only for layout when necessary.
 Do not use raw colors, gradients, heavy shadows, large radius, or custom fonts.
@@ -591,7 +591,7 @@ AgentHTML 不应该自己重建一套 marketplace 或组件包管理系统。
 1. `@agent-html/react` 用 npm 分发稳定 API。
 2. AgentHTML registry 用 shadcn 分发本地源码套件。
 3. `agent-html init --preset shadcn` 调用或引导安装 base playground。
-4. `agent-html dev` 扫描 `.agent-html/artifacts/*.agent.tsx`。
+4. `agent-html dev` 扫描 `agent-html/artifacts/*.agent.tsx`。
 5. `agent-html guard` 检查 `Artifact`、`Block` 和视觉护栏。
 
 最终形态：
@@ -600,12 +600,12 @@ AgentHTML 不应该自己重建一套 marketplace 或组件包管理系统。
 agent-html init
   -> installs npm runtime
   -> installs registry playground
-  -> writes .agent-html/AGENTS.md
+  -> writes agent-html/AGENTS.md
 
 agent writes React artifact
-  -> reuses .agent-html/ui
-  -> reuses .agent-html/hooks
-  -> reuses .agent-html/patterns
+  -> reuses agent-html/components/ui
+  -> reuses agent-html/hooks
+  -> reuses agent-html/patterns
   -> marks Artifact / Block / Action
 
 agent-html dev
@@ -639,5 +639,5 @@ registry 提供本地可读、可改、可复用的工具箱。
 - 产品需要统一视觉和复用资产。
 - 系统不能回到旧 DSL 的表达限制。
 
-因此，AgentHTML 应把 shadcn registry 作为 `.agent-html/` playground 和 artifact kit
+因此，AgentHTML 应把 shadcn registry 作为 `agent-html/` playground 和 artifact kit
 的主要分发方式。

@@ -22,7 +22,7 @@ Codex 当前不是单一应用，而是一组互通的工作表面：
 | --- | --- | --- |
 | Codex App | macOS/Windows 桌面 app，作为 agentic coding command center | 证明 OpenAI 在做视觉化 review/control surface，但 AgentHTML 不必复刻完整 app |
 | IDE extension | VS Code、Cursor、Windsurf 等编辑器侧边栏 | 说明开发者入口仍在现有 IDE，不一定愿意换主工作台 |
-| CLI | 在 terminal 当前目录运行 Codex | 最适合 AgentHTML 的早期入口：repo-local、文件系统原生、可直接生成 `.agent-html/` |
+| CLI | 在 terminal 当前目录运行 Codex | 最适合 AgentHTML 的早期入口：repo-local、文件系统原生、可直接生成 `agent-html/` |
 | Cloud | 浏览器里运行后台任务、看日志、审 diff、创建 PR | 说明市场正在接受 long-running/background agent |
 | app-server | experimental 本地 app-server，支持 `stdio://`、`ws://IP:PORT`、`unix://` | 可做可选集成，不应成为 AgentHTML v1 的稳定依赖 |
 | mcp-server | Codex 自身可作为 MCP server 被其他 agent 消费 | 说明 agent-to-agent/tool integration 正在成为基础设施 |
@@ -39,7 +39,7 @@ Codex 的基本单位是用户项目目录或 GitHub repo。它不是让用户�
 
 ```text
 user-repo/
-  .agent-html/
+  agent-html/
     artifacts/
     data/
     manifest.json
@@ -95,9 +95,9 @@ Aman Mittal 在 2026-01-04 发布的《First few days with Codex CLI》提供了
 - `AGENTS.md`、`SKILL.md` 等规则文件可以被版本控制和复用。
 - 本地文件、外部工具、MCP 和 durable skills 可以组合成长期 workflow。
 
-文章还提到 Codex sessions 存在 `~/.codex/sessions/`，格式是 JSONL，并且 CLI 和 IDE/extension 表面共享这些 session。这个观察可以帮助理解 Codex 的 thread 机制，但 AgentHTML 不应把它当成稳定公开 API。更稳的做法仍然是让 AgentHTML 拥有自己的 `.agent-html/` durable source，把 Codex session 只作为可选上下文。
+文章还提到 Codex sessions 存在 `~/.codex/sessions/`，格式是 JSONL，并且 CLI 和 IDE/extension 表面共享这些 session。这个观察可以帮助理解 Codex 的 thread 机制，但 AgentHTML 不应把它当成稳定公开 API。更稳的做法仍然是让 AgentHTML 拥有自己的 `agent-html/` durable source，把 Codex session 只作为可选上下文。
 
-对 AgentHTML 最直接的启发是：`.agent-html/` 不应该只假设存在于 software repo。它也可以存在于 Obsidian vault、研究资料夹、产品资料夹、课程资料夹或任何需要 agent 反复加工的本地工作目录。
+对 AgentHTML 最直接的启发是：`agent-html/` 不应该只假设存在于 software repo。它也可以存在于 Obsidian vault、研究资料夹、产品资料夹、课程资料夹或任何需要 agent 反复加工的本地工作目录。
 
 ## 竞争格局
 
@@ -203,7 +203,7 @@ AgentHTML 复制这些只会进入高成本竞争。AgentHTML 应该站在 Codex
 
 ```text
 codex / claude / gemini / user
-  -> writes .agent-html/*
+  -> writes agent-html/*
   -> agent-html dev server indexes artifacts
   -> user opens localhost
   -> user reviews rendered artifact
@@ -214,7 +214,7 @@ codex / claude / gemini / user
 这样 AgentHTML 可以被 Codex CLI 自然运行：
 
 ```text
-codex "用 AgentHTML 做一份竞品调研报告，保存到 .agent-html/artifacts/codex-market.agent.tsx"
+codex "用 AgentHTML 做一份竞品调研报告，保存到 agent-html/artifacts/codex-market.agent.tsx"
 agent-html dev
 ```
 
@@ -285,7 +285,7 @@ agent-html build
 核心目录：
 
 ```text
-.agent-html/
+agent-html/
   artifacts/
     codex-market-research.agent.tsx
     product-roadmap.agent.tsx
@@ -343,7 +343,7 @@ agent-html build
 
 ### 风险 3：如果依赖 Codex 私有 thread，会被平台变化锁死
 
-Codex thread/session 是强上下文，但不是 AgentHTML 应拥有的 durable source。AgentHTML 应读取自己的 `.agent-html/` 文件，而不是把 Codex 历史当数据库。
+Codex thread/session 是强上下文，但不是 AgentHTML 应拥有的 durable source。AgentHTML 应读取自己的 `agent-html/` 文件，而不是把 Codex 历史当数据库。
 
 规避：Codex integration optional；artifact source independent。
 
@@ -377,9 +377,9 @@ AgentHTML 是 agent-generated interactive artifacts 的本地运行时。
 ## 推荐下一步
 
 1. 暂停把重点放在 `Project > Section > Cell > Block > UI` 的完整 app/workspace 层级上。
-2. 定义 `.agent-html/` repo-local 目录协议。
+2. 定义 `agent-html/` repo-local 目录协议。
 3. 定义 React artifact public API：`Artifact`、`Block`、`Citation`、`Action`。
-4. 做 `agent-html dev`：扫描 `.agent-html/artifacts/*.agent.tsx`，启动 localhost preview。
+4. 做 `agent-html dev`：扫描 `agent-html/artifacts/*.agent.tsx`，启动 localhost preview。
 5. 写一份 Codex CLI 使用说明，让 Codex 能在当前 repo 生成 artifact。
 6. 保留旧 `.ahtml` runtime 作为兼容能力，但新产品主线转向 React-first。
 

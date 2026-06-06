@@ -54,9 +54,9 @@ Canonical source: `apps/docs/content/docs/canvas/index.mdx`.
 
 Canvas governs the current isolated React artifact workspace for agents.
 
-Apply these rules when changing artifact source, block composition, Canvas docs, `.agent-html`, local Canvas resources, host inspection, block prompts, or artifact/block pipeline behavior.
+Apply these rules when changing artifact source, block composition, Canvas docs, `agent-html`, local Canvas resources, host inspection, block prompts, or artifact/block pipeline behavior.
 
-- Agent Operating Context: `.agent-html` is durable operating context for agents, not chat state.
+- Agent Operating Context: `agent-html` is durable operating context for agents, not chat state.
 - Isolated Artifact Workbench: Canvas lets agents generate, preview, validate, and revise React artifacts without importing retired app or runtime surfaces.
 - Headless Protocol: `Artifact` and `Block` mark collaboration boundaries through stable metadata, titles, ids, and children.
 - Local Resource Consumption: artifacts consume local Canvas UI primitives, hooks, helpers, schemas, data, examples, and semantic token classes.

@@ -4,7 +4,7 @@
 
 Every agent workspace should have a shallow route file.
 
-For `.agent-html`, that file is `.agent-html/AGENTS.md`. It should answer:
+For `agent-html`, that file is `agent-html/AGENTS.md`. It should answer:
 
 - where to create or edit artifacts;
 - which primitives and helpers are available;

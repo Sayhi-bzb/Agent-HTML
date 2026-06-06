@@ -9,7 +9,7 @@ import {
 
 const workflowSteps = [
   "Human asks for an artifact.",
-  "Agent writes normal React source in .agent-html/artifacts.",
+  "Agent writes normal React source in agent-html/artifacts.",
   "Artifact wraps semantic regions in stable Blocks.",
   "Guard checks structure, imports, primitives, and visual drift.",
   "Host renders the artifact and overlays inspectable Blocks.",

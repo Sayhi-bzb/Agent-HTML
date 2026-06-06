@@ -1,6 +1,6 @@
 # React Canvas Workspace
 
-`.agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, examples, data, assets, and source dependency metadata. It does not contain runtime install artifacts.
+`agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, examples, data, assets, and source dependency metadata. It does not contain runtime install artifacts.
 
 ## Read Route
 
@@ -49,6 +49,6 @@ When touching Canvas classes, tokens, or internal chrome:
 
 ## Workspace Contract
 
-`.agent-html/package.json` is source dependency metadata, not a standalone install target. Canvas CLI and host packages provide the runtime React, bundling, stylesheet, icon, and preview environment.
+`agent-html/package.json` is source dependency metadata, not a standalone install target. Canvas CLI and host packages provide the runtime React, bundling, stylesheet, icon, and preview environment.
 
-Do not add `node_modules`, lockfiles, generated bundles, `.vite`, `dist`, `build`, or vendored dependency folders inside `.agent-html`.
+Do not add `node_modules`, lockfiles, generated bundles, `.vite`, `dist`, `build`, or vendored dependency folders inside `agent-html`.

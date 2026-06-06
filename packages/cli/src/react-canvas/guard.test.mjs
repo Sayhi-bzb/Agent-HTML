@@ -13,7 +13,7 @@ import {
 function issueMessages(source) {
   return analyzeReactCanvasArtifact({
     filePath: "artifact.agent.tsx",
-    relativePath: ".agent-html/artifacts/artifact.agent.tsx",
+    relativePath: "agent-html/artifacts/artifact.agent.tsx",
     source,
   }).map((issue) => issue.message)
 }
@@ -21,7 +21,7 @@ function issueMessages(source) {
 function issuesFor(source) {
   return analyzeReactCanvasArtifact({
     filePath: "artifact.agent.tsx",
-    relativePath: ".agent-html/artifacts/artifact.agent.tsx",
+    relativePath: "agent-html/artifacts/artifact.agent.tsx",
     source,
   })
 }
@@ -62,7 +62,7 @@ describe("React Canvas Guard", () => {
 
   it("checks split block implementation source boundaries", () => {
     const issues = analyzeBlockImplementationSource({
-      relativePath: ".agent-html/artifacts/demo/summary.block.tsx",
+      relativePath: "agent-html/artifacts/demo/summary.block.tsx",
       source: `
         export function SummaryBlock() {
           return <section className="bg-purple-900 rounded-3xl">Unsafe</section>
@@ -80,11 +80,11 @@ describe("React Canvas Guard", () => {
 
   it("runs artifact entry protocol guard and block implementation source guard", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-guard-"))
-    await fs.mkdir(path.join(root, ".agent-html", "artifacts", "demo"), {
+    await fs.mkdir(path.join(root, "agent-html", "artifacts", "demo"), {
       recursive: true,
     })
     await fs.writeFile(
-      path.join(root, ".agent-html", "artifacts", "demo.agent.tsx"),
+      path.join(root, "agent-html", "artifacts", "demo.agent.tsx"),
       `
         import { Artifact, Block } from "@agent-html/react"
         export default function Demo() {
@@ -97,7 +97,7 @@ describe("React Canvas Guard", () => {
       `
     )
     await fs.writeFile(
-      path.join(root, ".agent-html", "artifacts", "demo", "summary.block.tsx"),
+      path.join(root, "agent-html", "artifacts", "demo", "summary.block.tsx"),
       `
         export function SummaryBlock() {
           return <section className="bg-purple-900">Unsafe</section>
@@ -111,7 +111,7 @@ describe("React Canvas Guard", () => {
     expect(report.blockImplementations).toHaveLength(1)
     expect(report.issues).toContainEqual(
       expect.objectContaining({
-        filePath: ".agent-html/artifacts/demo/summary.block.tsx",
+        filePath: "agent-html/artifacts/demo/summary.block.tsx",
         guardScope: reactCanvasGuardScopes.blockImplementationSource,
         message: expect.stringContaining("Unsafe className"),
       })

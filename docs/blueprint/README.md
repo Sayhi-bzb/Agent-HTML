@@ -25,8 +25,8 @@ for historical reference only.
 
 AgentHTML's main artifact route is React-first Canvas.
 
-- `.agent-html/` is the durable local artifact workspace.
-- Agents author `.agent-html/artifacts/*.agent.tsx` with ordinary React and
+- `agent-html/` is the durable local artifact workspace.
+- Agents author `agent-html/artifacts/*.agent.tsx` with ordinary React and
   TypeScript.
 - `@agent-html/react` provides the collaboration protocol surface:
   `Artifact`, `Block`, and interaction state events.
@@ -39,7 +39,7 @@ AgentHTML's main artifact route is React-first Canvas.
 - Artifact source must not call filesystem, shell, MCP, Codex app-server, or
   privileged host APIs.
 - Artifact visual language must flow through local Canvas resources: semantic
-  classes, CSS tokens, `.agent-html/ui/*`, hooks, helpers, schemas, data, and
+  classes, CSS tokens, `agent-html/components/ui/*`, hooks, helpers, schemas, data, and
   examples.
 
 ## Consequences

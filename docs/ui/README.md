@@ -2,11 +2,11 @@
 
 Common UI experience for choosing Canvas primitives.
 
-`.agent-html/index/api-surface.md` answers what can be imported. This page
+`agent-html/index/api-surface.md` answers what can be imported. This page
 answers what to choose first when an artifact task leaves the UI shape open.
 
 These notes are experience, not hard project rules. Canvas rules still live in
-`.agent-html/AGENTS.md`, `.agent-html/README.md`, `.agent-html/styles`, and the
+`agent-html/AGENTS.md`, `agent-html/README.md`, `agent-html/styles`, and the
 Canvas docs.
 
 ## Component Clusters

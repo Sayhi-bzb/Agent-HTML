@@ -1,8 +1,8 @@
 # Field Notes
 
-## `.agent-html` Is an Agent Workspace
+## `agent-html` Is an Agent Workspace
 
-The `.agent-html` directory is not only a source folder. It is an agent office.
+The `agent-html` directory is not only a source folder. It is an agent office.
 
 Its structure should help an agent answer:
 
@@ -38,11 +38,11 @@ This lets ordinary artifact work avoid CSS entirely, while style work can enter 
 For a normal request such as "make a visual explanation page", the expected route is:
 
 ```text
-.agent-html/AGENTS.md
-  -> .agent-html/artifacts
-  -> .agent-html/examples
-  -> .agent-html/ui
-  -> .agent-html/hooks, lib, schema, data if needed
+agent-html/AGENTS.md
+  -> agent-html/artifacts
+  -> agent-html/examples
+  -> agent-html/components/ui
+  -> agent-html/hooks, lib, schema, data if needed
 ```
 
 The agent should not inspect token internals unless the request mentions theme, scale, color, density, font, radius, or host chrome.

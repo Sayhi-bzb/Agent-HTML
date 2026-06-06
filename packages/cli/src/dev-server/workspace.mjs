@@ -43,12 +43,12 @@ export function resolveAgentHtmlModule(root, specifier) {
     ""
   )
   const resolvedPath = resolveLocalModuleFromDir(
-    path.join(root, ".agent-html"),
+    path.join(root, "agent-html"),
     `./${agentHtmlSpecifier.replace(/^@\//, "")}`
   )
 
   if (!resolvedPath) {
-    throw new Error(`Unable to resolve ${specifier} from .agent-html`)
+    throw new Error(`Unable to resolve ${specifier} from agent-html`)
   }
 
   return resolvedPath
