@@ -1,9 +1,10 @@
+import os from "node:os"
 import path from "node:path"
 
 import react from "@vitejs/plugin-react"
 import { createServer as createViteServer } from "vite"
 
-import { hostRoot, repoRoot } from "./context.mjs"
+import { hostRoot, packageRoot, resolvePackageModule } from "./context.mjs"
 
 export const hostEntryModulePath = "/__agent-html/host-entry.js"
 export const artifactEntryModulePath = "/__agent-html/vite-artifact-entry.js"
@@ -102,6 +103,11 @@ export function createArtifactEntryModule({ filePath, root }) {
   `
 }
 
+function cacheDirForRoot(root) {
+  const cacheKey = Buffer.from(path.resolve(root)).toString("base64url")
+  return path.join(os.tmpdir(), "agent-html-vite", cacheKey)
+}
+
 function createAgentHtmlVitePlugin({ root }) {
   return {
     name: "agent-html-dev-host",
@@ -137,9 +143,11 @@ function createAgentHtmlVitePlugin({ root }) {
 }
 
 export async function createAgentHtmlViteServer({ root, server }) {
+  const reactProtocolEntry = resolvePackageModule("@agent-html/react")
+
   return createViteServer({
     appType: "custom",
-    cacheDir: path.join(repoRoot, "node_modules", ".vite", "agent-html-dev"),
+    cacheDir: cacheDirForRoot(root),
     configFile: false,
     logLevel: "error",
     publicDir: false,
@@ -149,18 +157,16 @@ export async function createAgentHtmlViteServer({ root, server }) {
       alias: {
         "@": path.join(root, "agent-html"),
         "#agent-html-playground": path.join(root, "agent-html"),
-        "@agent-html/react": path.join(
-          repoRoot,
-          "packages",
-          "react",
-          "src",
-          "index.tsx"
-        ),
+        "@agent-html/react": reactProtocolEntry,
       },
     },
     server: {
       fs: {
-        allow: [root, repoRoot],
+        allow: [
+          path.join(root, "agent-html"),
+          packageRoot,
+          path.dirname(reactProtocolEntry),
+        ],
       },
       hmr: {
         server,

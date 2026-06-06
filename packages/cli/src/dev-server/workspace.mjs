@@ -13,6 +13,20 @@ export function assertInsideWorkspace(root, filePath) {
   return absolutePath
 }
 
+export function assertInsideAgentHtmlWorkspace(root, filePath) {
+  const absoluteRoot = path.join(path.resolve(root), "agent-html")
+  const absolutePath = path.resolve(root, filePath)
+
+  if (
+    absolutePath !== absoluteRoot &&
+    !absolutePath.startsWith(`${absoluteRoot}${path.sep}`)
+  ) {
+    throw new Error("Artifact path must stay inside agent-html")
+  }
+
+  return absolutePath
+}
+
 export function resolveLocalModuleFromDir(baseDir, specifier) {
   const base = path.resolve(baseDir, specifier)
   const candidates = [

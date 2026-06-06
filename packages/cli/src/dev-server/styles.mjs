@@ -5,7 +5,14 @@ import { createRequire } from "node:module"
 import { Scanner } from "@tailwindcss/oxide"
 import { compile } from "tailwindcss"
 
-import { hostRoot, repoRoot, requireFromRepo } from "./context.mjs"
+import {
+  hostRoot,
+  packageRoot,
+  repoRoot,
+  requireFromPackage,
+  requireFromRepo,
+  resolvePackageModule,
+} from "./context.mjs"
 
 const requireFromCli = createRequire(import.meta.url)
 
@@ -59,6 +66,12 @@ async function resolveAgentHtmlStyleEntry(root) {
 
 function resolvePackageStylesheet(id) {
   try {
+    return requireFromPackage.resolve(id)
+  } catch {
+    // Fall through to development and module-relative resolution.
+  }
+
+  try {
     return requireFromRepo.resolve(id)
   } catch {
     try {
@@ -70,7 +83,7 @@ function resolvePackageStylesheet(id) {
 }
 
 async function loadTailwindStylesheet(id, base) {
-  const packageRoot = id.startsWith("@")
+  const packageName = id.startsWith("@")
     ? id.split("/").slice(0, 2).join("/")
     : id.split("/")[0]
   const candidates = [
@@ -94,16 +107,19 @@ async function loadTailwindStylesheet(id, base) {
     path.resolve(base, `${id}.css`),
     path.join(repoRoot, "node_modules", id),
     path.join(repoRoot, "node_modules", id, "index.css"),
-    path.join(repoRoot, "node_modules", packageRoot, "index.css"),
+    path.join(repoRoot, "node_modules", packageName, "index.css"),
     path.join(repoRoot, "packages", "cli", "node_modules", id, "index.css"),
     path.join(
       repoRoot,
       "packages",
       "cli",
       "node_modules",
-      packageRoot,
+      packageName,
       "index.css"
     ),
+    path.join(packageRoot, "node_modules", id),
+    path.join(packageRoot, "node_modules", id, "index.css"),
+    path.join(packageRoot, "node_modules", packageName, "index.css"),
   ].filter(Boolean)
 
   for (const candidate of candidates) {
@@ -138,7 +154,7 @@ async function compileAgentHtmlCss(root) {
   const cssBase = path.dirname(stylePath)
   const hostSourcePath = path.relative(cssBase, hostRoot).replaceAll("\\", "/")
   const reactSourcePath = path
-    .relative(cssBase, path.join(repoRoot, "packages", "react", "src"))
+    .relative(cssBase, path.dirname(resolvePackageModule("@agent-html/react")))
     .replaceAll("\\", "/")
   const sourceWithRuntimeScan = [
     styleEntry.content,

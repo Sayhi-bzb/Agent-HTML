@@ -1,11 +1,28 @@
 {
-  "name": "@agent-html/cli",
-  "private": true,
+  "name": "agent-html",
   "version": "0.0.1",
   "license": "Apache-2.0",
   "type": "module",
   "bin": {
     "agent-html": "./bin/agent-html.mjs"
+  },
+  "files": [
+    "bin",
+    "src/**/*.mjs",
+    "src/**/*.mts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "!src/**/*.test.mjs",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "!src/**/*.spec.mjs",
+    "!src/**/*.spec.ts",
+    "!src/**/*.spec.tsx",
+    "template"
+  ],
+  "scripts": {
+    "prepack": "node scripts/prepare-template.mjs",
+    "postpack": "node scripts/clean-template.mjs"
   },
   "dependencies": {
     "@agent-html/react": "0.0.1",

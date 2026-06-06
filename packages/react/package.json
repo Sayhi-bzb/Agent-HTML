@@ -1,10 +1,12 @@
 {
   "name": "@agent-html/react",
-  "private": true,
   "version": "0.0.1",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
+  "files": [
+    "src"
+  ],
   "exports": {
     ".": "./src/index.tsx"
   },

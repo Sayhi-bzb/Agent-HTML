@@ -87,6 +87,17 @@ describe("React Canvas dev host", () => {
         "/agent-html/artifacts/project-visual-explainer.artifact.tsx"
       )
 
+      const appSourceBundleUrl = new URL(`${url}/__agent-html/artifact.js`)
+      appSourceBundleUrl.searchParams.set("filePath", "package.json")
+      const appSourceBundle = await fetch(appSourceBundleUrl)
+      expect(appSourceBundle.status).toBe(400)
+
+      const appSourceBlockUrl = new URL(`${url}/__agent-html/block-implementation`)
+      appSourceBlockUrl.searchParams.set("filePath", "package.json")
+      appSourceBlockUrl.searchParams.set("blockId", "summary")
+      const appSourceBlock = await fetch(appSourceBlockUrl)
+      expect(appSourceBlock.status).toBe(400)
+
       const css = await fetch(`${url}/__agent-html/styles.css`).then((response) =>
         response.text()
       )

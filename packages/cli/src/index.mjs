@@ -1,8 +1,14 @@
 import { startDevHost } from "./dev-host.mjs"
+import { runInitCommand } from "./init.mjs"
 import { runGuardCommand } from "./react-canvas/guard.mjs"
 
 export async function runAgentHtmlCli(args) {
   const [command, ...rest] = args
+
+  if (command === "init") {
+    await runInitCommand({ args: rest, cwd: process.cwd() })
+    return
+  }
 
   if (command === "guard") {
     const result = await runGuardCommand({ args: rest, cwd: process.cwd() })
@@ -20,6 +26,7 @@ export async function runAgentHtmlCli(args) {
   console.log(
     [
       "Usage:",
+      "  agent-html init [--root <path>]",
       "  agent-html guard [--root <path>]",
       "  agent-html dev [--root <path>] [--port <port>]",
     ].join("\n")

@@ -13,7 +13,7 @@ import {
 import { hostRoot } from "./context.mjs"
 import { sendError, sendJson, sendNotFound, sendText } from "./http.mjs"
 import { loadHostStyles } from "./styles.mjs"
-import { assertInsideWorkspace } from "./workspace.mjs"
+import { assertInsideAgentHtmlWorkspace } from "./workspace.mjs"
 import { artifactEntryModulePath, hostEntryModulePath } from "./vite.mjs"
 
 export const hostRoutes = {
@@ -178,7 +178,13 @@ export async function handleRequest({ request, response, root, vite }) {
       return true
     }
 
-    assertInsideWorkspace(root, filePath)
+    try {
+      assertInsideAgentHtmlWorkspace(root, filePath)
+    } catch (error) {
+      sendError(response, error, 400)
+      return true
+    }
+
     await sendTransformedModule({
       response,
       url: `${artifactEntryModulePath}?filePath=${encodeURIComponent(filePath)}`,
@@ -195,7 +201,14 @@ export async function handleRequest({ request, response, root, vite }) {
       return true
     }
 
-    const absolutePath = assertInsideWorkspace(root, filePath)
+    let absolutePath
+    try {
+      absolutePath = assertInsideAgentHtmlWorkspace(root, filePath)
+    } catch (error) {
+      sendError(response, error, 400)
+      return true
+    }
+
     await readTextFile(absolutePath)
     const implementationPath = await resolveBlockImplementationPath({
       blockId,
