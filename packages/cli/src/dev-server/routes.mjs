@@ -28,6 +28,8 @@ export const hostRoutes = {
   hostStyles: "/__agent-html/styles.css",
 }
 
+const removedLegacyRoutes = new Set(["/client.js", "/styles.css"])
+
 const publicContentTypes = new Map([
   [".avif", "image/avif"],
   [".css", "text/css; charset=utf-8"],
@@ -121,6 +123,11 @@ export async function handleRequest({ request, response, root, vite }) {
   }
 
   if (requestUrl.pathname === artifactEntryModulePath) {
+    sendNotFound(response)
+    return true
+  }
+
+  if (removedLegacyRoutes.has(requestUrl.pathname)) {
     sendNotFound(response)
     return true
   }
