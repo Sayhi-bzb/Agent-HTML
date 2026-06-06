@@ -88,6 +88,7 @@ Artifact work should usually route through:
 ```text
 agent-html/README.md
   -> agent-html/AGENTS.md
+  -> agent-html/artifacts/README.md
   -> agent-html/examples
   -> agent-html/artifacts
   -> agent-html/components/README.md when UI is needed
@@ -101,7 +102,9 @@ Applied boundaries:
 
 - `README.md` files route. They should not become rulebooks.
 - `AGENTS.md` owns hard operating rules.
+- `artifacts/README.md` owns artifact source routing.
 - `components/README.md` owns the component source route.
+- `data/README.md` owns fixture and dataset source routing.
 - `docs/ui/README.md` owns component choice guidance.
 - `index/api-surface.md` owns compact exports.
 - `index/large-files.md` owns large-file reading cost and suggested routes.
@@ -155,6 +158,7 @@ Expected route:
 ```text
 agent-html/README.md
   -> agent-html/AGENTS.md
+  -> agent-html/artifacts/README.md
   -> agent-html/examples
   -> agent-html/artifacts
   -> agent-html/components/README.md when UI is needed
@@ -230,7 +234,7 @@ Expected route:
 
 ```text
 agent-html/index/api-surface.md
-  -> hooks, lib, schema, or data
+  -> data/README.md, hooks, lib, schema, or data
   -> source only after the API surface identifies a likely owner
 ```
 
@@ -277,7 +281,7 @@ Expected route:
 
 ```text
 agent-html/index/large-files.md
-  -> suggested route file
+  -> suggested route file such as artifacts/README.md or data/README.md
   -> API surface or component route
   -> source
 ```

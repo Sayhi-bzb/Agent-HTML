@@ -425,6 +425,14 @@ function estimateTokens(byteLength) {
 }
 
 function suggestedRoute(file) {
+  if (file.includes("/artifacts/")) {
+    return "`artifacts/README.md`"
+  }
+
+  if (file.includes("/data/")) {
+    return "`data/README.md`"
+  }
+
   if (file.includes("/components/")) {
     return "`components/README.md`"
   }

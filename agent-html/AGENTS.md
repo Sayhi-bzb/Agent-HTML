@@ -15,6 +15,8 @@ Write normal React artifacts in `agent-html/artifacts/*.agent.tsx`. For cold sta
 - Keep `README.md` as a conditional reading route, not a rulebook.
 - Keep `AGENTS.md` as hard executable rules, not a design essay.
 - Keep `index/*` as generated decision summaries, not full tool output.
+- Keep `artifacts/README.md` as the artifact source route.
+- Keep `data/README.md` as the data source route.
 - Keep `examples/*` as copyable patterns, not broad policy documents.
 - Keep `styles/README.md` as the style route.
 - Do not add a new `agent-html` doc unless it owns a distinct question.
@@ -90,5 +92,6 @@ Write normal React artifacts in `agent-html/artifacts/*.agent.tsx`. For cold sta
 ## Examples
 
 - Imitate `examples/example.agent.tsx` for split artifact structure.
+- Read `artifacts/README.md` before opening large artifact source.
 - Treat `artifacts/interaction-state.agent.tsx` as a compact interaction example.
 - Use `components/README.md` for the component source route and `docs/ui/README.md` for component choice before scanning the full primitive surface.

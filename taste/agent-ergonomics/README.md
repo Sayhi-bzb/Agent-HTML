@@ -37,13 +37,25 @@ The files in this directory separate theory from application:
 - `route-checks.md` owns Context Route and Route Check.
 - `vocabulary.md` owns Constraint Level, Document Role, and Normative Example.
 
-## Reading Order
+## Reading Routes
+
+Choose the route by task. Do not load theory first when the task is an applied
+route check.
+
+For route evaluation:
+
+1. `route-checks.md` for route paths, route scripts, and priority checks.
+2. `vocabulary.md` for constraint levels, document roles, and example weight.
+
+For theory:
 
 1. `theory/context-ergonomics.md` for why context is a behavioral environment.
 2. `theory/session-semantic-gravity.md` for how conversation anchors shape
    session behavior.
-3. `route-checks.md` for route paths, route scripts, and priority checks.
-4. `vocabulary.md` for constraint levels, document roles, and example weight.
+
+For vocabulary-only questions:
+
+1. `vocabulary.md` for stable AE terms, document roles, and constraint levels.
 
 ## Boundary
 

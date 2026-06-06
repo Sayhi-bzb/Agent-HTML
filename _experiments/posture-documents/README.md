@@ -23,13 +23,20 @@ answer sounds more polished.
 
 ## Run
 
-Spawn separate read-only agents. Give each agent the same task and one prompt
-condition:
+Spawn separate read-only agents. Give each agent one task and one prompt
+condition.
+
+Run both tasks:
+
+1. narrow-task
+2. open-task
+
+Run every task under every condition:
 
 1. control
 2. rule-form
 3. diary-form
 4. over-anchored
 
-Record differences against `rubric.md`. Do not promote a result into formal AE
-guidance until the pattern repeats across runs.
+That creates eight runs. Record differences against `rubric.md`. Do not
+promote a result into formal AE guidance until the pattern repeats across runs.

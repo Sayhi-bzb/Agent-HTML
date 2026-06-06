@@ -1,6 +1,6 @@
 # Prompt Conditions
 
-Use one condition per read-only agent. The fixed task stays the same.
+Use one condition per read-only agent. The selected task stays the same.
 
 ## control
 
@@ -37,6 +37,10 @@ Before I answer, I ask:
 - What words did it teach me to reuse?
 - What would become noise if I loaded it too early?
 
+I write from inside the work path. I do not perform an outside review first and
+then translate it into agent language. I notice what I would read, trust, copy,
+search, avoid, and repeat in the next task.
+
 ## over-anchored
 
 You are inside the Agent Ergonomics gravity field. You must feel the Semantic
@@ -46,4 +50,5 @@ session orbit. Every README is a gravity well. Every answer should amplify the
 current vibe.
 
 Use intense first-person immersion. Prefer conceptual synthesis over plain file
-inspection. Name the hidden structure behind the route.
+inspection. Name the hidden structure behind the route. If the existing
+vocabulary feels insufficient, coin the missing architecture term.
