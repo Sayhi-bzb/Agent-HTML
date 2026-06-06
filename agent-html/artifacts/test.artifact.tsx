@@ -1,13 +1,14 @@
 import { Artifact, Block } from "@agent-html/react"
 
-import { CodeBlockDemoBlock } from "./interaction-state/code-block-demo.block"
-import { InteractionControlsBlock } from "./interaction-state/interaction-controls.block"
-import { KanbanBoardBlock } from "./interaction-state/kanban-board.block"
-import { PromptDisplayBlock } from "./interaction-state/prompt-display.block"
+import { CodeBlockDemoBlock } from "./test/code-block-demo.block"
+import { InteractionControlsBlock } from "./test/interaction-controls.block"
+import { KanbanBoardBlock } from "./test/kanban-board.block"
+import { PromptDisplayBlock } from "./test/prompt-display.block"
+import { UsageChartBlock } from "./test/usage-chart.block"
 
-export default function InteractionStateArtifact() {
+export default function TestArtifact() {
   return (
-    <Artifact title="Interaction State Example">
+    <Artifact title="Test">
       <Block id="interaction-controls" title="Interaction Controls">
         <InteractionControlsBlock />
       </Block>
@@ -18,6 +19,10 @@ export default function InteractionStateArtifact() {
 
       <Block id="code-block-demo" title="Code Block Demo">
         <CodeBlockDemoBlock />
+      </Block>
+
+      <Block id="usage-chart" title="Usage Chart">
+        <UsageChartBlock />
       </Block>
 
       <Block id="prompt-display" title="Prompt Display">

@@ -7,12 +7,12 @@ Use it after reading `../README.md` and `../AGENTS.md`. `AGENTS.md` owns hard ar
 ## Read Route
 
 - New artifact or broad artifact edit: start from `../examples/example.artifact.tsx`.
-- Compact interaction example: read `interaction-state.artifact.tsx`.
+- Compact interaction example: read `test.artifact.tsx`.
 - Existing split artifact: open the `*.artifact.tsx` artifact entry before opening block files.
 - Large block file: read `../index/large-files.md`, the artifact entry, and the block name first, then open only the block that owns the requested change.
 - UI choice: read `../components/README.md`, then `../../docs/ui/README.md`.
 - Reusable hooks, helpers, schemas, data, or rich components: read `../index/reuse-surface.md`, then `../index/api-surface.md`, before adding local code.
-- Prompt debug wiring in `interaction-state/prompt-display.block.tsx` is a special host debug bridge for that example only. Do not copy it into ordinary artifacts.
+- Prompt debug wiring in `test/prompt-display.block.tsx` is a special host debug bridge for that example only. Do not copy it into ordinary artifacts.
 
 ## Boundary
 

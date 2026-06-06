@@ -56,7 +56,7 @@ When touching Canvas classes, tokens, or internal chrome:
 
 - Copy `examples/example.artifact.tsx` for artifacts that need an artifact entry and semantic block files.
 - Use `artifacts/README.md` before opening large artifact source.
-- Use `artifacts/interaction-state.artifact.tsx` as a compact interaction example, `components/README.md` for the component source route, and `docs/ui/README.md` for component choice.
+- Use `artifacts/test.artifact.tsx` as a compact interaction example, `components/README.md` for the component source route, and `docs/ui/README.md` for component choice.
 
 ## Workspace Contract
 

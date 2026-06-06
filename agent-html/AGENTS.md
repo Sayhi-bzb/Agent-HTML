@@ -92,5 +92,5 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 - Imitate `examples/example.artifact.tsx` for split artifact structure and ownership.
 - Read `artifacts/README.md` before opening large artifact source.
-- Treat `artifacts/interaction-state.artifact.tsx` as a compact interaction example.
+- Treat `artifacts/test.artifact.tsx` as a compact interaction example.
 - Use `components/README.md` for the component source route and `docs/ui/README.md` for component choice before scanning the full primitive surface.

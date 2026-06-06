@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-import { createTextEditChange } from "../../../../agent-html/artifacts/interaction-state/state-change"
+import { createTextEditChange } from "../../../../agent-html/artifacts/test/state-change"
 
-describe("interaction-state artifact interaction helpers", () => {
+describe("test artifact interaction helpers", () => {
   it("creates input text diffs from focus start to blur value", () => {
     expect(
       createTextEditChange({

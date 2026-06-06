@@ -170,6 +170,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
         "radix-ui": "^1.4.3",
         "react-day-picker": "^10.0.1",
         "react-resizable-panels": "^4.11.2",
+        recharts: "^3.8.1",
         vaul: "^1.1.2",
       },
       name: "@agent-html/react-canvas-workspace",
