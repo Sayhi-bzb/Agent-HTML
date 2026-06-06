@@ -31,8 +31,11 @@ Structure app space when the artifact needs durable navigation, command
 surfaces, app menus, or object-local context actions: `Sidebar`, `Menubar`,
 `ContextMenu`, and `Command`.
 
-Use specialized workflows only when the task asks for that interaction model:
-`Chart`, `Carousel`, `Kanban`, and `Resizable`.
+Use specialized primitives only when the task asks for that interaction model:
+`Chart`, `Carousel`, and `Resizable`.
+
+Use rich workflow components only when the task needs the full object model and
+interaction behavior. Current rich components: `Kanban`.
 
 ## Selection Questions
 
@@ -165,10 +168,10 @@ Use these only when the task explicitly asks for their interaction model:
 - `ContextMenu` for right-click or object-local secondary actions.
 - `Menubar` for application-style menu bars.
 - `Resizable` for split panes users can adjust.
-- `Kanban` for drag-and-drop board workflows.
 - `Carousel` for ordered media or card browsing in limited space.
 - `Calendar` for date picking or calendar views.
 - `Sidebar` for durable navigation chrome.
+- `Kanban` for drag-and-drop board workflows.
 
 These components are capability, not default context. If the requested
 artifact can be solved with `Card`, `Table`, `Tabs`, `Select`, or simple form

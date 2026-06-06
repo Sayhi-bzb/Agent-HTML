@@ -1,0 +1,12 @@
+_archive/
+node_modules/
+dist/
+dist-agent-html/
+dist-docs/
+dist-ssr/
+apps/docs/build/
+apps/docs/.react-router/
+apps/docs/.source/
+.cache/
+.tmp/
+docs/ref-tmp/

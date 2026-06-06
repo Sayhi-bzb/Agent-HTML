@@ -27,6 +27,9 @@ theme/*
 components/ui/*
   -> local visual primitives
 
+components/kanban.tsx
+  -> rich workflow component
+
 artifact files
   -> primitive composition and Canvas semantic classes
 ```
@@ -94,10 +97,14 @@ dialog controls in artifacts when a local UI primitive exists.
 Current Canvas primitives include accordion, alert, alert-dialog, badge,
 button, calendar, card, carousel, chart, checkbox, collapsible, combobox,
 command, context-menu, dialog, drawer, dropdown-menu, field, hover-card, input,
-input-group, input-otp, kanban, label, menubar, native-select, popover,
-progress, radio-group, resizable, scroll-area, select, separator, sheet,
-sidebar, skeleton, slider, switch, table, tabs, textarea, toggle,
-toggle-group, and tooltip.
+input-group, input-otp, label, menubar, native-select, popover, progress,
+radio-group, resizable, scroll-area, select, separator, sheet, sidebar,
+skeleton, slider, switch, table, tabs, textarea, toggle, toggle-group, and
+tooltip.
+
+Rich workflow components live outside `components/ui`. `components/kanban.tsx`
+owns the drag-and-drop board component because it carries workflow structure,
+data movement, and dnd-kit behavior rather than primitive UI semantics.
 
 Do not rewrite every local primitive to tokenize all spacing, density, or
 typography values. Keep local shadcn-derived primitives low-modification unless

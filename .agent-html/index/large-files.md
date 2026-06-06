@@ -6,13 +6,13 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 
 | File | Est. Tokens | Read First |
 | --- | --- | --- |
-| `.agent-html/components/ui/kanban.tsx` | 7621 | `index/api-surface.md` |
+| `.agent-html/components/kanban.tsx` | 7621 | nearest README or source-specific notes |
 | `.agent-html/data/public.usage_dashboard_hourly.csv` | 6420 | nearest README or source-specific notes |
-| `.agent-html/artifacts/interaction-state/interaction-controls.block.tsx` | 5653 | nearest README or source-specific notes |
-| `.agent-html/components/ui/sidebar.tsx` | 5498 | `index/api-surface.md` |
+| `.agent-html/artifacts/interaction-state/interaction-controls.block.tsx` | 5716 | nearest README or source-specific notes |
+| `.agent-html/components/ui/sidebar.tsx` | 5514 | `index/api-surface.md` |
 | `.agent-html/components/ui/chart.tsx` | 2714 | `index/api-surface.md` |
-| `.agent-html/components/ui/combobox.tsx` | 2258 | `index/api-surface.md` |
+| `.agent-html/components/ui/combobox.tsx` | 2264 | `index/api-surface.md` |
 | `.agent-html/components/ui/dropdown-menu.tsx` | 2204 | `index/api-surface.md` |
 | `.agent-html/components/ui/menubar.tsx` | 2107 | `index/api-surface.md` |
 | `.agent-html/components/ui/context-menu.tsx` | 2075 | `index/api-surface.md` |
-| `.agent-html/components/ui/calendar.tsx` | 2044 | `index/api-surface.md` |
+| `.agent-html/components/ui/calendar.tsx` | 2047 | `index/api-surface.md` |

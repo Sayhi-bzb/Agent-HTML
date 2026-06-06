@@ -32,6 +32,7 @@ When touching Canvas classes, tokens, or internal chrome:
 - `artifacts`: artifact source.
 - `examples`: compact patterns to imitate.
 - `components/ui`: local visual primitives.
+- `components/<name>.tsx`: single-file rich workflow components such as kanban.
 - `hooks`: reusable React behavior.
 - `lib`: pure helpers and transforms.
 - `schema`: typed contracts and validation.

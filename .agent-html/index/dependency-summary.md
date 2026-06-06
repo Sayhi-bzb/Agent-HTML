@@ -28,9 +28,9 @@ Dependency-cruiser summary for `.agent-html` source files.
 | `.agent-html/components/ui/dialog.tsx` | 3 |
 | `.agent-html/components/ui/input.tsx` | 3 |
 | `.agent-html/components/ui/textarea.tsx` | 3 |
-| `.agent-html/examples/example/copy.ts` | 2 |
-| `.agent-html/examples/example/data.ts` | 2 |
 | `.agent-html/components/ui/input-group.tsx` | 2 |
+| `.agent-html/components/ui/progress.tsx` | 2 |
+| `.agent-html/components/ui/sheet.tsx` | 2 |
 
 ## Highest Local Fanout
 
@@ -40,14 +40,14 @@ Dependency-cruiser summary for `.agent-html` source files.
 | `.agent-html/components/ui/sidebar.tsx` | 8 |
 | `.agent-html/examples/example/handoff.block.tsx` | 7 |
 | `.agent-html/artifacts/project-visual-explainer.agent.tsx` | 5 |
+| `.agent-html/components/ui/input-group.tsx` | 4 |
 | `.agent-html/examples/example.agent.tsx` | 4 |
 | `.agent-html/examples/example/brief.block.tsx` | 4 |
-| `.agent-html/components/ui/input-group.tsx` | 4 |
 | `.agent-html/artifacts/project-visual-explainer/canvas-pipeline.block.tsx` | 3 |
-| `.agent-html/examples/example/structure.block.tsx` | 3 |
-| `.agent-html/examples/example/workflow.block.tsx` | 3 |
 | `.agent-html/components/ui/combobox.tsx` | 3 |
 | `.agent-html/components/ui/command.tsx` | 3 |
+| `.agent-html/components/ui/field.tsx` | 3 |
+| `.agent-html/examples/example/structure.block.tsx` | 3 |
 
 ## Top External Dependencies
 
