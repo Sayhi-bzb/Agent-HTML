@@ -1,12 +1,5 @@
 import { useEffect, useState } from "react"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card"
 import { ScrollArea } from "../../components/ui/scroll-area"
 
 const promptDebugEventName = "agent-html:prompt-debug"
@@ -44,26 +37,25 @@ export function PromptDisplayBlock() {
   }, [])
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Prompt display</CardTitle>
-        <CardDescription>
+    <section className="canvas-stack-lg">
+      <div className="canvas-stack-sm">
+        <h2 className="canvas-text-heading">Prompt display</h2>
+        <p className="canvas-text-body text-muted-foreground">
           Submit a block prompt to preview the generated request.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-96 rounded-lg border bg-muted/30">
-          {prompt ? (
-            <pre className="whitespace-pre-wrap p-4 text-sm">{prompt}</pre>
-          ) : (
-            <div className="p-4">
-              <p className="canvas-text-body text-muted-foreground">
-                No generated prompt yet.
-              </p>
-            </div>
-          )}
-        </ScrollArea>
-      </CardContent>
-    </Card>
+        </p>
+      </div>
+
+      <ScrollArea className="h-96 rounded-md border bg-muted/30">
+        {prompt ? (
+          <pre className="whitespace-pre-wrap p-4 text-sm">{prompt}</pre>
+        ) : (
+          <div className="p-4">
+            <p className="canvas-text-body text-muted-foreground">
+              No generated prompt yet.
+            </p>
+          </div>
+        )}
+      </ScrollArea>
+    </section>
   )
 }

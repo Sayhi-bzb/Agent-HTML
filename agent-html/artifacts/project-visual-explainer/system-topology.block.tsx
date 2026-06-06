@@ -1,11 +1,6 @@
+import { ArrowRightIcon } from "lucide-react"
+
 import { Badge } from "../../components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card"
 
 const topologyNodes = [
   {
@@ -24,11 +19,18 @@ const topologyNodes = [
   },
 ]
 
-function FlowNode({ label, summary }: { label: string; summary: string }) {
+function TopologyNode({ label, summary }: { label: string; summary: string }) {
   return (
-    <div className="canvas-stack-sm canvas-content-panel-sm min-w-0">
-      <div className="canvas-cluster-sm items-center">
-        <Badge>{label}</Badge>
+    <div className="canvas-content-panel canvas-stack-sm min-w-0">
+      <div className="canvas-wrap-sm items-center">
+        <Badge variant={label === "Canvas" ? "default" : "secondary"}>
+          {label}
+        </Badge>
+        {label === "Canvas" ? (
+          <span className="canvas-text-caption text-muted-foreground">
+            current route
+          </span>
+        ) : null}
       </div>
       <p className="canvas-text-body text-muted-foreground">{summary}</p>
     </div>
@@ -37,22 +39,32 @@ function FlowNode({ label, summary }: { label: string; summary: string }) {
 
 export function SystemTopologyBlock() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>System Topology</CardTitle>
-        <CardDescription>
+    <section className="canvas-stack-lg">
+      <div className="canvas-stack-sm">
+        <h2 className="canvas-text-heading">System topology</h2>
+        <p className="canvas-text-body text-muted-foreground">
           App consumes Runtime. Canvas is a separate React-first topology.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="canvas-grid-gap lg:grid-cols-3">
-        {topologyNodes.map((node) => (
-          <FlowNode
-            key={node.label}
-            label={node.label}
-            summary={node.summary}
-          />
+        </p>
+      </div>
+
+      <div className="canvas-grid-gap lg:grid-cols-3">
+        {topologyNodes.map((node, index) => (
+          <div className="canvas-stack-sm min-w-0" key={node.label}>
+            <TopologyNode label={node.label} summary={node.summary} />
+            {index < topologyNodes.length - 1 ? (
+              <div className="canvas-cluster-sm items-center text-muted-foreground lg:hidden">
+                <ArrowRightIcon data-icon="inline-start" />
+                <span className="canvas-text-caption">separate boundary</span>
+              </div>
+            ) : null}
+          </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+
+      <p className="canvas-text-body text-muted-foreground">
+        The archive can explain history, but current artifact work should route
+        through Canvas source, host, and guard contracts.
+      </p>
+    </section>
   )
 }

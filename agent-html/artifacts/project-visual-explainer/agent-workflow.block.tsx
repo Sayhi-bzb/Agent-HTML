@@ -1,11 +1,4 @@
 import { Badge } from "../../components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card"
 
 const workflowSteps = [
   "Human asks for an artifact.",
@@ -18,24 +11,29 @@ const workflowSteps = [
 
 export function AgentWorkflowBlock() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Agent Artifact Workflow</CardTitle>
-        <CardDescription>
+    <section className="canvas-stack-lg">
+      <div className="canvas-stack-sm">
+        <h2 className="canvas-text-heading">
+          Agent artifact workflow
+        </h2>
+        <p className="canvas-text-body text-muted-foreground">
           A request becomes durable source, then an inspectable canvas.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="canvas-stack-md">
+        </p>
+      </div>
+
+      <div className="canvas-grid-gap-md md:grid-cols-2">
         {workflowSteps.map((step, index) => (
           <div
             className="canvas-cluster-md canvas-content-panel-sm min-w-0 items-start"
             key={step}
           >
-            <Badge>{index + 1}</Badge>
+            <Badge variant={index === 0 ? "default" : "secondary"}>
+              {index + 1}
+            </Badge>
             <p className="canvas-text-body text-muted-foreground">{step}</p>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }

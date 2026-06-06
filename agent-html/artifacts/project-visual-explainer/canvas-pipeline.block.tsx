@@ -1,11 +1,4 @@
 import { Badge } from "../../components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card"
 import { Separator } from "../../components/ui/separator"
 
 const pipelineNodes = [
@@ -34,44 +27,59 @@ const pipelineNodes = [
   },
 ]
 
-function FlowNode({ label, summary }: { label: string; summary: string }) {
+function PipelineStep({
+  index,
+  label,
+  summary,
+}: {
+  index: number
+  label: string
+  summary: string
+}) {
   return (
-    <div className="canvas-stack-sm canvas-content-panel-sm min-w-0">
-      <div className="canvas-cluster-sm items-center">
-        <Badge>{label}</Badge>
+    <div className="canvas-cluster-md canvas-content-panel-sm min-w-0 items-start">
+      <Badge variant="secondary">{index}</Badge>
+      <div className="canvas-stack-sm min-w-0">
+        <code className="canvas-text-body">{label}</code>
+        <p className="canvas-text-body text-muted-foreground">{summary}</p>
       </div>
-      <p className="canvas-text-body text-muted-foreground">{summary}</p>
     </div>
   )
 }
 
 export function CanvasPipelineBlock() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Canvas Design Pipeline</CardTitle>
-        <CardDescription>
+    <section className="canvas-stack-lg">
+      <div className="canvas-stack-sm">
+        <h2 className="canvas-text-heading">
+          Canvas design pipeline
+        </h2>
+        <p className="canvas-text-body text-muted-foreground">
           Visual consistency comes from token values, CSS mappings, local
           primitives, and explicit artifact composition.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="canvas-stack-lg">
-        <div className="canvas-grid-gap-md md:grid-cols-2 lg:grid-cols-3">
-          {pipelineNodes.map((node) => (
-            <FlowNode
-              key={node.label}
-              label={node.label}
-              summary={node.summary}
-            />
-          ))}
-        </div>
-        <Separator />
-        <p className="canvas-text-body text-muted-foreground">
-          Color, font, and radius flow through explicit tokens. Spacing,
-          density, and typography scale are kept stable through local
-          primitives, agent instructions, and guard checks.
         </p>
-      </CardContent>
-    </Card>
+      </div>
+
+      <div className="canvas-grid-gap-md md:grid-cols-2">
+        {pipelineNodes.map((node, index) => (
+          <PipelineStep
+            index={index + 1}
+            key={node.label}
+            label={node.label}
+            summary={node.summary}
+          />
+        ))}
+      </div>
+
+      <Separator />
+
+      <div className="canvas-cluster-md canvas-content-panel items-start">
+        <Badge>rule</Badge>
+        <p className="canvas-text-body text-muted-foreground">
+          Color, font, radius, spacing, density, and typography should flow
+          through reusable Canvas layers before a block invents local treatment.
+        </p>
+      </div>
+    </section>
   )
 }

@@ -3,14 +3,6 @@ import { ClipboardCheckIcon } from "lucide-react"
 
 import { Button } from "../../components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card"
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -30,14 +22,15 @@ export function HandoffBlock() {
   const progressValue = draft.trim().length > 120 ? 92 : 68
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Block-level handoff</CardTitle>
-        <CardDescription>
+    <section className="canvas-stack-lg">
+      <div className="canvas-stack-sm">
+        <h2 className="canvas-text-heading">Block-level handoff</h2>
+        <p className="canvas-text-body text-muted-foreground">
           The prompt should name one block and preserve the split structure.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="canvas-stack-lg">
+        </p>
+      </div>
+
+      <div className="canvas-content-panel canvas-stack-lg">
         <div className="canvas-stack-sm">
           <div className="canvas-cluster-md canvas-text-body items-center justify-between">
             <span>handoff clarity</span>
@@ -68,14 +61,15 @@ export function HandoffBlock() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </CardContent>
-      <CardFooter className="canvas-stack-md items-start">
+      </div>
+
+      <div className="canvas-stack-md items-start">
         <Separator />
         <p className="canvas-text-body text-muted-foreground">
           Entry files preserve the map. Block files preserve the local working
           surface.
         </p>
-      </CardFooter>
-    </Card>
+      </div>
+    </section>
   )
 }

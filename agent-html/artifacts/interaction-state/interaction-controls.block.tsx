@@ -21,13 +21,6 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert"
 import { Badge } from "../../components/ui/badge"
 import { Button } from "../../components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card"
 import { Checkbox } from "../../components/ui/checkbox"
 import {
   Collapsible,
@@ -87,7 +80,7 @@ import { createTextEditChange } from "./state-change"
 
 const blockId = "interaction-controls"
 
-function SectionCard({
+function SectionFrame({
   children,
   description,
   title,
@@ -97,13 +90,13 @@ function SectionCard({
   title: string
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="canvas-stack-lg">{children}</CardContent>
-    </Card>
+    <section className="canvas-stack-lg">
+      <div className="canvas-stack-sm">
+        <h3 className="canvas-text-heading">{title}</h3>
+        <p className="canvas-text-body text-muted-foreground">{description}</p>
+      </div>
+      <div className="canvas-stack-lg">{children}</div>
+    </section>
   )
 }
 
@@ -200,15 +193,18 @@ export function InteractionControlsBlock() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Interaction patterns</CardTitle>
-        <CardDescription>
+    <section className="canvas-stack-xl">
+      <div className="canvas-stack-sm">
+        <h2 className="canvas-text-title">
+          Interaction patterns
+        </h2>
+        <p className="canvas-text-body text-muted-foreground">
           A compact example of default UI choices and instrumented state
           changes.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="canvas-stack-xl">
+        </p>
+      </div>
+
+      <div className="canvas-content-panel">
         <Tabs
           onValueChange={(value) =>
             record({
@@ -228,7 +224,7 @@ export function InteractionControlsBlock() {
           </TabsList>
 
           <TabsContent value="overview">
-            <SectionCard
+            <SectionFrame
               description="Start with visible content and semantic status before using heavier interaction."
               title="Start here"
             >
@@ -289,11 +285,11 @@ export function InteractionControlsBlock() {
                   Reset
                 </Button>
               </div>
-            </SectionCard>
+            </SectionFrame>
           </TabsContent>
 
           <TabsContent value="input">
-            <SectionCard
+            <SectionFrame
               description="Choose form controls by the kind of value users provide."
               title="Collect input"
             >
@@ -503,11 +499,11 @@ export function InteractionControlsBlock() {
                   value={[state.slider]}
                 />
               </Field>
-            </SectionCard>
+            </SectionFrame>
           </TabsContent>
 
           <TabsContent value="disclosure">
-            <SectionCard
+            <SectionFrame
               description="Hide or overlay content only when it makes the main path cheaper."
               title="Reveal or overlay"
             >
@@ -682,10 +678,10 @@ export function InteractionControlsBlock() {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-            </SectionCard>
+            </SectionFrame>
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }

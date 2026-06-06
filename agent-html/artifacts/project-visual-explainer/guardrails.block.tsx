@@ -1,11 +1,5 @@
 import { Badge } from "../../components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card"
+import { Separator } from "../../components/ui/separator"
 
 const allowedSignals = [
   "local ui primitives",
@@ -25,7 +19,7 @@ const blockedSignals = [
 
 function SignalList({ items, label }: { items: string[]; label: string }) {
   return (
-    <div className="canvas-stack-md canvas-content-panel-sm min-w-0">
+    <div className="canvas-stack-md min-w-0">
       <p className="canvas-text-body">{label}</p>
       <div className="canvas-wrap-sm">
         {items.map((item) => (
@@ -40,17 +34,19 @@ function SignalList({ items, label }: { items: string[]; label: string }) {
 
 export function GuardrailsBlock() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Guardrails</CardTitle>
-        <CardDescription>
+    <section className="canvas-stack-lg">
+      <div className="canvas-stack-sm">
+        <h2 className="canvas-text-heading">Guardrails</h2>
+        <p className="canvas-text-body text-muted-foreground">
           Agent freedom stays inside reusable Canvas boundaries.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="canvas-grid-gap md:grid-cols-2">
+        </p>
+      </div>
+
+      <div className="canvas-content-panel canvas-grid-gap md:grid-cols-2">
         <SignalList items={allowedSignals} label="Use" />
+        <Separator className="md:hidden" />
         <SignalList items={blockedSignals} label="Avoid" />
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }
