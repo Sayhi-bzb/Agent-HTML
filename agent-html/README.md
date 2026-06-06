@@ -20,6 +20,7 @@ When opening broad or large source files:
 
 When using or changing primitives, hooks, helpers, schemas, or theme exports:
 
+- `components/README.md` for the component source route.
 - `index/api-surface.md`
 - then the closest source file
 
@@ -45,7 +46,7 @@ When touching Canvas classes, tokens, or internal chrome:
 ## Copy Policy
 
 - Copy `examples/example.agent.tsx` for artifacts that need an overview file and semantic block files.
-- Use `artifacts/interaction-state.agent.tsx` as a compact interaction example and `docs/ui/README.md` for component choice.
+- Use `artifacts/interaction-state.agent.tsx` as a compact interaction example, `components/README.md` for the component source route, and `docs/ui/README.md` for component choice.
 
 ## Workspace Contract
 

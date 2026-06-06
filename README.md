@@ -72,6 +72,9 @@ the preview.
 
 - [Agent instructions](./AGENTS.md): content routes for product, engineering,
   design, and reference documentation.
+- [Taste](./taste/README.md): repo-level judgment systems.
+- [Agent Ergonomics](./taste/agent-ergonomics/README.md): AE, context
+  ergonomics, and route checks for agent-facing workspace ergonomics.
 
 ## Development
 

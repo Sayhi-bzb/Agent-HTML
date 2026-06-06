@@ -27,15 +27,23 @@ The file tree should therefore behave like navigation:
 - deeper directories reveal lower-level implementation only when needed;
 - feature boundaries prevent unrelated concerns from entering the same edit.
 
+## Place in AE
+
+Context Ergonomics is a subtheory of Agent Ergonomics. AE owns agent-facing
+workspace ergonomics; Context Ergonomics owns the context routing, noise,
+examples, generated indexes, and progressive disclosure model.
+
 ## Reading Order
 
-- `../diary/context-is-alive.md` establishes the first-person working posture.
+- `../../../docs/diary/context-is-alive.md` establishes the first-person working posture.
 - `constitution.md` defines why context shapes agent behavior.
 - `principles.md` defines the stable operating principles.
 - `practices.md` defines concrete workspace rules.
+- `../route-checks.md` defines how to audit routes.
 - `field-notes.md` records project experience and decisions.
 
-`context-ergonomics/` owns the formal model. `diary/` owns lived agent posture.
+`taste/agent-ergonomics/` owns the AE system. `context-ergonomics/` owns the formal
+context model. `diary/` owns lived agent posture.
 
 ## Current Application
 
@@ -46,7 +54,7 @@ Artifact work should usually route through:
 ```text
 agent-html/AGENTS.md
   -> artifacts or examples
-  -> ui, hooks, lib, schema, data as needed
+  -> components, hooks, lib, schema, data as needed
   -> styles/content.css only when reusable artifact style classes are needed
   -> styles/internal only when system chrome behavior is requested
   -> styles/tokens only when the token pipeline is being changed

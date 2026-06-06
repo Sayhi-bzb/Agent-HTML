@@ -14,11 +14,19 @@ const depsJsonPath = path.join(root, "node_modules", ".tmp", "agent-html-deps.js
 const shouldCheck = process.argv.includes("--check")
 const largeFileTokenThreshold = 2000
 
-const apiDirs = ["ui", "hooks", "lib", "schema", "theme"]
+const apiSections = [
+  { label: "components/ui", sourceDir: "components/ui" },
+  { label: "components", sourceDir: "components", directOnly: true },
+  { label: "hooks", sourceDir: "hooks" },
+  { label: "lib", sourceDir: "lib" },
+  { label: "schema", sourceDir: "schema" },
+  { label: "theme", sourceDir: "theme" },
+]
 const obsoleteGeneratedPaths = [
   "index/exports.md",
   "index/imports.md",
-  ...apiDirs.map((dirName) => `index/api/${dirName}.d.ts`),
+  "index/api/ui.d.ts",
+  ...apiSections.map(({ sourceDir }) => `index/api/${sourceDir}.d.ts`),
 ]
 
 function fail(message) {
@@ -176,23 +184,23 @@ function buildApiSurfaceMarkdown() {
     "Full TypeScript declarations are generated only as temporary build input.",
   ]
 
-  for (const dirName of apiDirs) {
-    const dir = path.join(dtsWorkspaceRoot, dirName)
-    const files = readAllFiles(dir).filter((file) => file.endsWith(".d.ts"))
+  for (const section of apiSections) {
+    const dir = path.join(dtsWorkspaceRoot, section.sourceDir)
+    const files = readApiSectionFiles(dir, section.directOnly)
     const rows = files
       .map((file) => {
         const content = fs.readFileSync(file, "utf8")
         const exports = extractExportedNames(content)
 
         return [
-          `\`${sourcePathForDeclaration(dirName, file)}\``,
+          `\`${sourcePathForDeclaration(section.sourceDir, file)}\``,
           exports.map((name) => `\`${name}\``).join(", "),
         ]
       })
       .filter((row) => row[1])
 
     sections.push("")
-    sections.push(`## ${dirName}`)
+    sections.push(`## ${section.label}`)
     sections.push("")
     sections.push(markdownTable(["File", "Exports"], rows))
   }
@@ -200,16 +208,33 @@ function buildApiSurfaceMarkdown() {
   return sections.join("\n")
 }
 
-function sourcePathForDeclaration(dirName, declarationPath) {
+function readApiSectionFiles(dir, directOnly = false) {
+  const files = directOnly
+    ? fs.existsSync(dir)
+      ? fs
+          .readdirSync(dir, { withFileTypes: true })
+          .filter((entry) => entry.isFile())
+          .map((entry) => path.join(dir, entry.name))
+      : []
+    : readAllFiles(dir)
+
+  return files
+    .filter((file) => file.endsWith(".d.ts"))
+    .sort((a, b) => toRepoPath(a).localeCompare(toRepoPath(b)))
+}
+
+function sourcePathForDeclaration(sourceDir, declarationPath) {
   const relative = path
-    .relative(path.join(dtsWorkspaceRoot, dirName), declarationPath)
+    .relative(path.join(dtsWorkspaceRoot, sourceDir), declarationPath)
     .replaceAll(path.sep, "/")
   const basePath = relative.replace(/\.d\.ts$/, "")
-  const sourceExt = fs.existsSync(path.join(workspaceRoot, dirName, `${basePath}.tsx`))
+  const sourceExt = fs.existsSync(
+    path.join(workspaceRoot, sourceDir, `${basePath}.tsx`),
+  )
     ? ".tsx"
     : ".ts"
 
-  return `agent-html/${dirName}/${basePath}${sourceExt}`
+  return `agent-html/${sourceDir}/${basePath}${sourceExt}`
 }
 
 function extractExportedNames(content) {
@@ -400,6 +425,10 @@ function estimateTokens(byteLength) {
 }
 
 function suggestedRoute(file) {
+  if (file.includes("/components/")) {
+    return "`components/README.md`"
+  }
+
   if (file.includes("/ui/")) {
     return "`index/api-surface.md`"
   }

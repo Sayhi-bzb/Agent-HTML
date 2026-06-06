@@ -40,13 +40,16 @@ Use these routes before searching broadly.
 - Canvas workspace: `apps/docs/content/docs/canvas/workspace/index.mdx`
 - Canvas host: `apps/docs/content/docs/canvas/host/index.mdx`
 - Canvas reference: `apps/docs/content/docs/canvas/reference/index.mdx`
+- Taste: `taste/README.md`
+- Taste Design: `taste/design/README.md`
+- Agent Ergonomics: `taste/agent-ergonomics/README.md`
+- AE route checks: `taste/agent-ergonomics/route-checks.md`
 - Archive: `_archive/README.md`
 - Archived App docs: `_archive/docs/app`
 - Archived Runtime docs: `_archive/docs/runtime`
 - Archived App code: `_archive/apps/agent-html-app`
 - Archived Example code: `_archive/apps/agent-html-example`
 - Archived Runtime code: `_archive/packages/agent-html`
-- Archived Design docs: `_archive/design`
 
 # Canvas Constitution
 
@@ -64,4 +67,4 @@ Apply these rules when changing artifact source, block composition, Canvas docs,
 
 # Archive Rule
 
-`_archive/docs/app`, `_archive/docs/runtime`, `_archive/apps/agent-html-app`, `_archive/apps/agent-html-example`, `_archive/packages/agent-html`, and `_archive/design` are historical references only. Do not use archived App, Example, Runtime, or Design material as current architecture sources, package targets, product routes, navigation targets, or agent operating paths.
+`_archive/docs/app`, `_archive/docs/runtime`, `_archive/apps/agent-html-app`, `_archive/apps/agent-html-example`, `_archive/packages/agent-html`, and `_archive/.agents/skills/agent-html` are historical references only. Do not use archived App, Example, Runtime, or AgentHTML runtime skill material as current architecture sources, package targets, product routes, navigation targets, or agent operating paths.

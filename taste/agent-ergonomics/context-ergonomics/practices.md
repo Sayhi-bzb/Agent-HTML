@@ -18,7 +18,7 @@ High-frequency files should require few jumps:
 - `AGENTS.md`
 - `artifacts`
 - `examples`
-- `ui`
+- `components`
 - `hooks`
 - `lib`
 - `schema`

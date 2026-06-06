@@ -55,6 +55,7 @@ Write normal React artifacts in `agent-html/artifacts/*.agent.tsx`. For cold sta
 
 ## Primitive Rules
 
+- Read `components/README.md` before scanning component source.
 - Prefer local `agent-html/components/ui`, named rich components, `hooks`, `lib`, `schema`, `data`, and `assets` imports before hand-writing common UI or utility code.
 - Check `index/api-surface.md` before adding, duplicating, or changing a local primitive.
 - Host and artifacts compose primitives. They do not create duplicate primitive buttons, cards, badges, tables, sidebars, inputs, or disclosure controls.
@@ -90,4 +91,4 @@ Write normal React artifacts in `agent-html/artifacts/*.agent.tsx`. For cold sta
 
 - Imitate `examples/example.agent.tsx` for split artifact structure.
 - Treat `artifacts/interaction-state.agent.tsx` as a compact interaction example.
-- Use `docs/ui/README.md` for component choice before scanning the full primitive surface.
+- Use `components/README.md` for the component source route and `docs/ui/README.md` for component choice before scanning the full primitive surface.
