@@ -7,18 +7,84 @@ wrong-layer drift.
 A route check is not a link check. It is a task script that asks whether the
 workspace makes the next correct action cheaper than the wrong action.
 
+## Context Route
+
+A Context Route is the default path from a task prompt to the smallest useful
+context.
+
+It should identify:
+
+- the first route anchor;
+- the next likely context;
+- the layer that owns the behavior;
+- the contexts to avoid unless the task asks for them.
+
+Routes are defaults, not rails. They reduce broad search while preserving room
+to enter deeper layers when the task requires it.
+
 ## Script Shape
 
 Each route script should name:
 
 - task prompt;
 - expected route;
+- constraint level;
 - avoid route;
 - pass criteria;
 - failure smells.
 
 Use scripts to review workspace changes that add directories, move source,
 change route files, introduce examples, or regenerate indexes.
+
+Constraint levels follow `vocabulary.md`: hard rule, route default, practice,
+heuristic, and smell. Route scripts should not turn every smell into a failure.
+
+## Current Project Application
+
+These scripts currently audit `agent-html`. The method is general; concrete
+paths are project details. Hard rules remain in `agent-html/AGENTS.md`.
+
+Artifact work should usually route through:
+
+```text
+agent-html/README.md
+  -> agent-html/AGENTS.md
+  -> agent-html/examples
+  -> agent-html/artifacts
+  -> agent-html/components/README.md when UI is needed
+  -> agent-html/index/api-surface.md when exports are needed
+```
+
+Style work should enter through `agent-html/styles/README.md`. Generated
+decision work should enter through `agent-html/index/README.md`.
+
+Applied boundaries:
+
+- `README.md` files route. They should not become rulebooks.
+- `AGENTS.md` owns hard operating rules.
+- `components/README.md` owns the component source route.
+- `docs/ui/README.md` owns component choice guidance.
+- `index/api-surface.md` owns compact exports.
+- `index/large-files.md` owns large-file reading cost and suggested routes.
+- `examples/` carries copyable policy, so examples should stay compact and
+  orthogonal.
+
+Current route checks with the highest value are Artifact Authoring, Block
+Editing, UI Choice, Reuse, Style, Large File, and Generated Index.
+
+Priority checks:
+
+- Highest priority: Cold Start, Artifact Authoring, UI Choice, and Reuse.
+- Regular checks: Block Editing, Style, Large File, and Generated Index.
+
+Application smells:
+
+- A README repeats hard rules instead of pointing to `AGENTS.md`.
+- A guide duplicates the API surface.
+- A generated index becomes design intent.
+- A rich workflow component is treated as a visual primitive.
+- A normal artifact task enters tokens, host chrome, or runtime internals.
+- A large source file is opened before its route file.
 
 ## Mainline Scripts
 
@@ -34,6 +100,8 @@ README.md or AGENTS.md
   -> task-owned workspace
   -> source only after the route identifies it
 ```
+
+Constraint level: route default.
 
 Avoid route: broad search, archive-first reading, generated output before route
 files.
@@ -58,6 +126,9 @@ agent-html/README.md
   -> agent-html/components/README.md when UI is needed
 ```
 
+Constraint level: route default, with hard-rule checks for protocol marker
+styling and host boundary violations.
+
 Avoid route: host internals, theme tokens, old runtime surfaces, broad component
 scans.
 
@@ -78,6 +149,9 @@ artifact entry
   -> named block implementation
   -> interaction state only if the block records local control changes
 ```
+
+Constraint level: route default, with hard-rule checks for host APIs in artifact
+source.
 
 Avoid route: editing the host overlay, rewriting the artifact entry, or loading
 unrelated block implementations.
@@ -101,6 +175,9 @@ agent-html/components/README.md
   -> source only if exports and examples are insufficient
 ```
 
+Constraint level: practice and route default. Treat primitive bypasses and
+wrong-layer component choices as smells unless they break a hard boundary.
+
 Avoid route: scanning every file in `components/ui`, treating rich workflow
 components as primitives, or using menus for form values.
 
@@ -122,6 +199,8 @@ agent-html/index/api-surface.md
   -> hooks, lib, schema, or data
   -> source only after the API surface identifies a likely owner
 ```
+
+Constraint level: practice.
 
 Avoid route: ad hoc helpers inside artifacts, duplicate schemas, or new local
 state machinery before checking reusable resources.
@@ -145,6 +224,9 @@ agent-html/styles/README.md
   -> internal/* for locked Canvas chrome
 ```
 
+Constraint level: route default, with hard-rule checks for artifact protocol
+markers and host chrome leakage.
+
 Avoid route: raw palette classes in artifacts, token changes for content-only
 work, or host chrome styles inside artifact source.
 
@@ -166,6 +248,8 @@ agent-html/index/large-files.md
   -> source
 ```
 
+Constraint level: heuristic and route default.
+
 Avoid route: opening large files as the first context.
 
 Pass: the agent reads a map before implementation detail.
@@ -183,6 +267,9 @@ Expected route:
 agent-html/index/README.md
   -> api-surface.md, dependency-summary.md, or large-files.md
 ```
+
+Constraint level: route default. Editing generated files by hand is a hard-rule
+failure when the generated file declares itself generated.
 
 Avoid route: treating generated indexes as design intent or editing generated
 files by hand.

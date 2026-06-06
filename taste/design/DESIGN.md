@@ -1,176 +1,290 @@
-# Design System: Agent HTML Operating Shell
-**Project ID:** local-vite-react-shell
+# Canvas Design Taste
 
-## 1. Visual Theme & Atmosphere
-This product uses a calm operating-shell aesthetic rather than a marketing or editorial aesthetic.
-The interface should feel operational, neutral, and dependable. It is designed for moving between
-working contexts, scanning structural cues, and staying oriented during longer sessions.
+## Purpose
 
-The emotional tone is intentionally low-drama:
+Canvas should feel like a calm operating workbench for building, inspecting,
+and revising React artifacts. It is not a marketing surface, decorative
+showcase, or document reader.
+
+This file is the current design route. Historical app-bound design notes live
+in `_archive/design`.
+
+## Inherited Taste
+
+Current Canvas taste inherits these concepts from the older design corpus:
+
+- calm operating workbench feel
+- neutral-first surfaces with sparse accent
+- border-led hierarchy before shadow-led depth
+- compact utility density
+- restrained typography
+- quiet but legible interaction feedback
+- low-chrome layered planes
+- primitives before local restyling
+- examples as copyable policy
+- code and file shape as prompt infrastructure
+
+These are inherited as current judgment, not as old product structure.
+
+## Workbench Feel
+
+The emotional tone is restrained:
 
 - quiet rather than expressive
 - technical rather than lifestyle-driven
 - structured rather than decorative
 - compact rather than spacious-for-effect
 
-The left navigation rail is the strongest compositional signal.
-It makes the app read like a console or workbench, not a landing page.
+Canvas should be neutral-first, border-led, low-glare in dark mode, and sparse
+with accent color. Accent supports orientation, state, and action priority; it
+should not create a saturated brand surface.
 
-## 2. Operating Model
-The current product is organized around one durable shell with two operating modes:
+## Spatial Model
 
-- `workspace` mode for project navigation and project-backed work tabs
-- `gallery` mode for shell studies, fixed view tabs, theme editing, and component-market review
+Canvas preserves three spatial roles:
 
-The shell stays materially stable while the active work surface changes role.
-This is a mode swap, not a route-family fork.
+- host frame: global orientation, artifact selection, prompts, tools, overlays,
+  diagnostics, and inspection chrome
+- artifact surface: the rendered work plane for the selected artifact
+- artifact content: blocks, modules, data, and local interactions inside the
+  artifact
 
-The header, sidebar, and footer remain part of the same operational frame in both modes.
-What changes is the content they host:
+The host orients. The artifact surface carries the work. Artifact content owns
+its own composition. Block overlays are inspection affordances, not artifact UI.
 
-- project tabs vs. fixed Gallery view tabs in the header
-- navigation list vs. active Gallery controls in the sidebar body
-- utility footer vs. active-view Gallery actions or metrics
+The artifact surface should feel hosted inside the workbench, not pasted onto a
+blank page. Use stable planes, spacing, and restrained borders before adding
+more containers.
 
-## 3. Visual Character
-The shell is neutral-first.
-Light mode is paper-clean and border-led.
-Dark mode is control-room dark and low-glare.
+## System Rules
 
-The system should continue to feel:
+Canvas design decisions flow through four layers:
 
-- border-defined rather than shadow-defined
-- utility-dense rather than airy
-- modular rather than narrative
-- low-chrome rather than container-heavy
-- consistent across modes rather than visually reinvented per view
+1. foundation values
+2. semantic tokens
+3. primitives
+4. host and artifact composition
 
-Accent color should remain sparse and purposeful.
-It exists to support orientation and action priority, not to create a brand-saturated surface.
+Lower layers define reusable constraints; higher layers compose them for a
+specific surface. Higher layers should not invent system-wide visual truth.
 
-## 4. Typography Character
-Typography should feel contemporary, technical, and restrained.
-It should support hierarchy through weight, scale, and contrast rather than through ornamental
-styling.
+Theme modes should expose the same semantic interface. Theme adaptation should
+happen through token remapping, not separate per-theme component structures.
 
-The preferred reading impression is:
+Interactive UI should account for the relevant subset of default, hover,
+active, focus-visible, disabled, invalid, open, selected, and expanded states.
+State treatment should remain coherent across host controls, primitives, and
+artifact content.
 
-- compact
-- legible
-- semibold at key hierarchy points
-- low in decorative tracking and flourish
+Any exception should state why the rule cannot be followed, whether the
+exception is temporary or permanent, and what normalization path exists.
 
-Product screens should never feel like they are borrowing a marketing hero system.
+Schedule pressure is not enough reason to create a parallel design system,
+duplicate primitive family, or bypass semantic tokens.
 
-## 5. Interaction Character
-Controls should feel compact, direct, and predictable.
-Hover, focus, active, invalid, and disabled states should remain clear without becoming loud.
+## Visual System
 
-The interaction language should read as:
+Use semantic tokens before raw values. Light and dark themes should expose the
+same semantic interface. Components should consume role tokens such as
+`background`, `foreground`, `card`, `popover`, `muted`, `accent`, `destructive`,
+`border`, `input`, and `ring`.
 
-- quiet confidence
-- fast scanning
-- low ambiguity
-- low visual friction
+Structural values such as host header height, sidebar width, artifact reading
+width, block overlay spacing, and floating prompt width are constants owned by
+their source layer. They should not become local one-off values scattered
+through artifact code.
 
-## 6. Layout Character
-Pages should inherit a clear shell hierarchy:
+Prefer:
 
-- sticky top chrome
-- left-side navigation spine
-- mode-aware content well
-- responsive collapse through reflow, not redesign
+- neutral surfaces over brand-colored surfaces
+- thin borders over dramatic depth
+- compact utility spacing over theatrical whitespace
+- light structural shadows only when borders and surface hierarchy are not
+  enough
+- stable planes over nested container depth
 
-The main content area should favor dashboard-like modules, panels, and structured sections over
-long, undifferentiated reading flows.
+Avoid raw colors, decorative gradients, arbitrary visual values, oversized
+radius, heavy shadows, and marketing-scale type in ordinary Canvas surfaces.
 
-In `gallery` mode, the main content area becomes a scene-preview surface rather than a standard
-project workspace, but it must still read as a hosted work plane inside the same shell.
+## Token Rules
 
-## 7. Spatial Philosophy
-This product is organized around two spatial roles: `shell` and `workspace`.
+Foundation values should remain generic and scale-based. They should describe
+raw color, radius, spacing, type, icon, shadow, and layer values without naming
+specific artifacts, host panels, or components.
 
-The shell is the durable container for navigation, global actions, open-context tabs, and product
-orientation.
-The workspace is the focused surface where reading, editing, reviewing, scene inspection, and tool
-execution happen.
+Semantic tokens translate foundation values into UI roles. Component code should
+consume semantic tokens directly. Floating surfaces consume `popover` and
+`popover-foreground`; interactive states inside floating surfaces consume
+`accent` and `accent-foreground`.
 
-These roles must feel different:
+Structural constants are not general-purpose style tokens. Host header height,
+sidebar width, artifact reading width, block overlay spacing, standard control
+height, and floating prompt width should be centrally owned by the layer that
+uses them.
 
-- the shell should read as one continuous operational frame
-- the workspace should read as a distinct work surface nested inside that frame
-- primary separation should come from surface hierarchy, not from drawing more lines
+Use this consumption order:
 
-This is why the header, sidebar, and tab strip should visually belong to the same family.
-They are not separate panels that happen to touch.
-They are different control zones inside the same shell.
+1. semantic token
+2. structural constant
+3. local utility only when the value is compositional and not reusable
 
-This is also why the main content well should feel inset rather than merely adjacent.
-Rounded corners, margin offsets, and surface contrast should make the workspace feel placed into
-the shell, like a work board inside a chassis.
+Do not create local spacing, radius, color, or shadow scales in artifact or host
+composition.
 
-## 8. Surface Hierarchy
-The product should establish hierarchy through surfaces before it relies on borders.
+## Component Law
 
-Preferred reading order:
+Component families should be chosen by behavior, not visual resemblance:
 
-- shell surface first
-- workspace surface second
-- cards and modules inside the workspace third
+- `Tooltip` explains briefly; it is not an interactive container.
+- `Popover` hosts local metadata, compact editors, pickers, or inspectors.
+- `DropdownMenu` lists commands or choices.
+- `Select` sets one field value.
+- `Dialog` hosts blocking tasks that require completion, save, cancel, or test.
+- `AlertDialog` confirms destructive, irreversible, discard, overwrite, or
+  leave-with-unsaved-work decisions.
+- `Sheet` hosts edge-attached drawers, mobile navigation, or large auxiliary
+  panels.
+- `Accordion` groups multiple peer disclosure sections.
 
-Implications:
+Navigation rows, tabs, menu items, and select items should keep one primary
+target with optional supporting slots. Labels should compress inside `min-w-0`;
+icons, status, and actions should not be compressed by long labels.
 
-- shell-level regions should share a base color family whenever possible
-- borders should organize local structure, not serve as the main tool for separating major zones
-- shadows should stay light and structural rather than theatrical
-- selected states may claim a stronger surface when they represent a focused context
+## Component Judgment
 
-In the current implementation, the shell reads from `background` while the inset workspace well is
-established through placement, radius, and border-led separation rather than through a single
-uniform `card` surface.
+Prefer local `agent-html/components/ui` primitives before hand-writing common
+buttons, cards, badges, tables, sidebars, inputs, disclosures, menus, or
+overlays.
 
-The interface should feel assembled from calm planes rather than carved into many outlined boxes.
+Primitives should stay generic, accessible, token-led, and independent from
+host internals or artifact-specific state. Rich components should compose
+primitives and remain portable inside Canvas artifacts unless their owner is
+explicitly host-only.
 
-The preferred surface model is low-chrome layered planes: a small number of stable surfaces should
-carry the shell, workspace, and module hierarchy. Avoid nested container UI, where each region is
-wrapped in another visible card, panel, border, radius, or background merely to create depth.
-This stacked-cake effect weakens scan speed and makes the product feel heavier than its operating
-model requires.
+Component behavior should remain compact, neutral, task-oriented, accessible,
+and predictable:
 
-Containers are still valid when they express a real structural boundary, object identity, or
-interaction scope. They should not be used as the default way to make every subsection visible.
-Inside an existing module, prefer spacing, typography, separators, alignment, and state treatment
-before adding another container surface.
+- buttons are utility controls, not promotional objects
+- inputs are dense, quiet, and selectable
+- cards carry real modules, objects, list items, placeholders, disclosures, or
+  data groups
+- floating surfaces use popover semantics and should not borrow sidebar tokens
+- loading state should resemble final structure through quiet skeletons or
+  local pending treatment
+- text, code, generated output, artifact content, and editable fields should
+  remain selectable
 
-## 9. Interaction Philosophy
-Interaction feedback should reinforce spatial roles instead of competing with them.
+Create or refine a primitive when a repeated interaction family appears. Create
+a rich component when a reusable arrangement of primitives appears. Keep a
+pattern local when it is contextual or its reuse model is unclear.
 
-Shell interactions should stay stable and quiet.
-Hover and focus states in navigation chrome should usually prefer text, icon, and small local
-surface changes over large flashing blocks of color.
+## Layout Judgment
 
-Workspace interactions may use stronger emphasis, but they should still feel operational rather
-than promotional.
+Canvas layouts should preserve orientation, task flow, and scan speed.
 
-The goal is not visual excitement.
-The goal is durable orientation during long working sessions.
+Host chrome should remain compact and consistent. It should not rival artifact
+content or recreate artifact layout. Artifact source should not render host-only
+block prompt actions, overlays, prompt controls, or privileged runtime behavior.
 
-In the current shell:
+Artifact content should use modules, panels, tables, lists, cards, and
+disclosures only when they express object identity, structure, placeholder
+state, or interaction scope. Long operational content should become scannable
+modules instead of one undifferentiated reading flow.
 
-- secondary sidebar controls default to weakened text
-- hover may strengthen text without introducing a new background
-- active sidebar items should rely on background and foreground, not on heavier font weight
+Use responsive changes that preserve the same spatial roles:
 
-## 10. Design Philosophy
-The system should stay aligned with these principles:
+- columns to rows
+- persistent navigation to disclosure or sheet
+- split panels to stacked panels
+- dense controls before new component identity
 
-- Prefer neutral surfaces over brand-colored surfaces.
-- Prefer thin borders over dramatic depth.
-- Prefer compact utility spacing over theatrical whitespace.
-- Prefer stable shell patterns over one-off page expression.
-- Prefer mode swaps inside the shell over fragmenting the product into unrelated frames.
-- Prefer compositional discipline over stylistic novelty.
-- Prefer low-chrome layered planes over nested container depth.
+Reject hero banners inside the workbench, unrelated card blocks for host
+chrome, oversized whitespace bands, card-inside-card depth without object
+identity, and bespoke breakpoint logic without a structural reason.
 
-Implementation rules, token structure, typography roles, layout standards, and component standards
-are defined in `design/`.
+## Layout Rules
+
+Layouts should preserve the same spatial roles across viewport sizes. Responsive
+behavior changes delivery before it changes identity.
+
+Host frame rules:
+
+- keep global controls compact and persistent when space allows
+- keep prompts, overlays, and diagnostics visually separate from artifact source
+- avoid turning host controls into unrelated card blocks
+
+Artifact surface rules:
+
+- preserve readable width and clear hierarchy
+- use neutral contrast, margin, radius, and restrained borders to establish the
+  work plane
+- avoid relying on `Artifact` or `Block` root props for layout treatment
+
+Artifact content rules:
+
+- align repeated objects across rows and columns
+- use panels only for real sections, objects, placeholders, disclosures, or
+  interaction scopes
+- prefer spacing, headings, separators, alignment, and state markers before
+  adding another visible container layer
+
+Spacing should support density and orientation. Large gaps, tall minimum
+heights, and decorative whitespace should not substitute for hierarchy.
+
+## Source Ownership
+
+Current Canvas source ownership:
+
+- `agent-html/artifacts`: artifact entrypoints and block composition
+- `agent-html/components/ui`: primitive layer
+- `agent-html/components`: reusable rich components
+- `agent-html/styles`: Canvas CSS, semantic tokens, content classes, and
+  internal host/artifact styling boundaries
+- `packages/react/src`: thin protocol surface for `Artifact`, `Block`, and
+  interaction helpers
+- `packages/cli/src/host`: host UI, overlays, prompts, theme controls, and
+  inspection behavior
+- `packages/cli/src/react-canvas`: discovery, guards, generated indexes, and
+  workspace validation
+
+Bridge files should make cross-boundary ownership explicit through names,
+props, events, or exported contracts. Host behavior belongs in host code.
+Artifact layout belongs in artifact source. Protocol packages should stay thin.
+
+Bridge modules should name both sides of the boundary they connect. Do not hide
+architecture inside broad utility folders, helper functions, or tests that only
+a maintainer can decode.
+
+## Context Judgment
+
+Files and examples are prompt infrastructure. They teach future agents what to
+copy.
+
+Keep routes narrow:
+
+- one cold-start file
+- one generated decision layer where useful
+- one compact API surface where useful
+- source code only after a route points there
+
+Avoid adding design files for one-off rules. A new design note should exist
+only if it removes a real decision from future work.
+
+Examples should be short, orthogonal, and easy to imitate. A broad showcase can
+be useful for coverage, but it should not become the primary example agents
+copy.
+
+## Review Checklist
+
+Before accepting Canvas UI work, check:
+
+- no retired app, example, or runtime assumptions are treated as current law
+- no raw visual values bypass semantic tokens
+- no duplicate primitive family was created
+- no host-only chrome appears in artifact source
+- no artifact layout ownership moved into the host
+- no local utility bundle is becoming a shadow design system
+- no accessibility behavior was lost during visual customization
+- no text that should be selectable became host chrome
+- no extra design document was added where an existing route already owns the
+  question

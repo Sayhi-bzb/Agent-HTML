@@ -8,7 +8,11 @@ Stable words reduce routing work. Use one term for one AE concept.
   load in project workspaces.
 - **Context Ergonomics**: the AE theory that project context shapes agent
   behavior.
-- **Route**: the default path from task prompt to smallest useful context.
+- **Session Semantic Gravity**: the session-level Context Ergonomics concept
+  for how repeated semantic anchors in conversation shape later agent
+  reasoning.
+- **Context Route**: the default path from task prompt to smallest useful
+  context.
 - **Route Check**: the audit method that tests whether a route works for a
   cold-start agent.
 - **Route Script**: one concrete route check scenario with expected path, avoid
@@ -26,6 +30,15 @@ Stable words reduce routing work. Use one term for one AE concept.
 - **Generated index**: decision summary from tooling. It is context, not design
   intent.
 
+## Normative Example
+
+Examples, fixtures, demos, README snippets, and gallery code carry normative
+weight because agents copy concrete patterns more readily than abstract rules.
+
+Good examples should be compact, current, and layer-correct. Bad or temporary
+examples may exist, but they should be isolated, named, marked, or kept away
+from the first route path.
+
 ## Constraint Levels
 
 - **Hard rule**: violation is wrong, such as styling protocol markers or
@@ -38,3 +51,7 @@ Stable words reduce routing work. Use one term for one AE concept.
 
 Do not promote practices or smells into hard rules unless violating them breaks
 an explicit boundary.
+
+Do not turn route checks into project law. If a rule must be enforced during
+implementation, put the rule in the owning `AGENTS.md` or feature contract and
+link to it from AE.
