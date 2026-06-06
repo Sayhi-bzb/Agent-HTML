@@ -98,7 +98,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
 
   it("keeps artifact and example imports inside the React Canvas playground contract", () => {
     const allowedLocalImport =
-      /^\.\.(?:\/\.\.)*\/(?:components\/(?:ui|kanban)|hooks|lib|schema|data|assets)(?:\/|$)/
+      /^\.\.(?:\/\.\.)*\/(?:components\/(?:ui|code-block|kanban)|hooks|lib|schema|data|assets)(?:\/|$)/
     const forbiddenImport =
       /^(?:@\/|#agent-html-playground\/|@agent-html-playground\/|apps\/|packages\/|@\/app\/|@\/agent-html\/runtime)/
 

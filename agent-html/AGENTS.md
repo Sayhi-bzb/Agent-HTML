@@ -58,9 +58,10 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 ## Primitive Rules
 
 - Read `components/README.md` before scanning component source.
-- Prefer local `agent-html/components/ui`, named rich components, `hooks`, `lib`, `schema`, `data`, and `assets` imports before hand-writing common UI or utility code.
+- Use local `agent-html/components/ui` for common interactive controls and reusable UI roles.
+- Use named rich components, `hooks`, `lib`, `schema`, `data`, and `assets` when they fit the artifact task.
 - Check `index/api-surface.md` before adding, duplicating, or changing a local primitive.
-- Host and artifacts compose primitives. They do not create duplicate primitive buttons, cards, badges, tables, sidebars, inputs, or disclosure controls.
+- Host and artifacts compose primitives. They do not create duplicate primitive buttons, inputs, menus, dialogs, or other common controls.
 - Keep local shadcn-derived primitives low-modification unless Canvas needs a primitive API, correctness fix, or accessibility fix.
 - Treat the sidebar as a component family. Use sidebar primitives and sidebar tokens for sidebar chrome only.
 - Treat prompt UI as a disclosure surface. Floating panels use popover tokens, not sidebar tokens.
@@ -68,13 +69,11 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 ## Style Rules
 
 - Read `styles/README.md` before touching Canvas classes, tokens, or internal chrome.
-- Use `styles/content.css` classes for ordinary artifact content styling.
-- Use semantic token utilities such as `bg-background`, `text-foreground`, `bg-card`, `text-muted-foreground`, `border-border`, `bg-popover`, and `text-popover-foreground`.
+- Use `styles/content.css` classes when they fit ordinary artifact content styling.
+- Use semantic token utilities such as `bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-popover`, and `text-popover-foreground` when applying token-backed treatment.
 - Keep layout behavior classes such as `flex`, `grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate` local to the composition that needs them.
-- Do not use raw colors, decorative gradients, arbitrary values, custom fonts, manual tracking, oversized typography, oversized radius, or heavy shadows in artifacts.
+- Do not use raw palette classes, arbitrary value classes, or inline visual styles in artifacts.
 - Do not recreate root reading width, block hover highlighting, toolbar placement, sidebar chrome, or theme editor chrome in artifact source.
-- Keep surfaces compact, neutral, task-oriented, accessible, and predictable.
-- Use cards only for real modules, objects, list items, placeholders, or disclosures. Avoid card-inside-card unless the inner surface has independent object identity or interaction scope.
 - Keep text, code, generated output, and data values selectable. Chrome, navigation rows, badges, and block action controls may disable accidental selection through primitives.
 
 ## Asset Rules
@@ -91,7 +90,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 ## Examples
 
-- Imitate `examples/example.artifact.tsx` for split artifact structure.
+- Imitate `examples/example.artifact.tsx` for split artifact structure and ownership.
 - Read `artifacts/README.md` before opening large artifact source.
 - Treat `artifacts/interaction-state.artifact.tsx` as a compact interaction example.
 - Use `components/README.md` for the component source route and `docs/ui/README.md` for component choice before scanning the full primitive surface.

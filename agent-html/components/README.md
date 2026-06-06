@@ -6,6 +6,7 @@ component layer before opening source files.
 ## Layers
 
 - `ui/*`: low-level visual primitives from shadcn-style conventions.
+- `code-block.tsx`: rich content component for code, commands, prompts, and generated text.
 - `kanban.tsx`: rich drag-and-drop board workflow component.
 
 ## Read Next
@@ -18,4 +19,6 @@ component layer before opening source files.
 
 Do not scan every component before choosing a layer. Use `ui/*` for ordinary
 actions, inputs, display, disclosure, overlays, and navigation primitives. Use
-`kanban.tsx` only when the artifact needs the full board workflow.
+`code-block.tsx` when the artifact needs selectable code, commands, prompts, or
+generated text. Use `kanban.tsx` only when the artifact needs the full board
+workflow.

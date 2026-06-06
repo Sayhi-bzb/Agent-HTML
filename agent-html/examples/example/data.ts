@@ -33,7 +33,7 @@ export const workflowSteps: WorkflowStep[] = [
     id: "scan",
     label: "Scan the artifact entry",
     summary:
-      "Open the *.artifact.tsx file first. It should show the artifact shape without burying the reader in card JSX.",
+      "Open the *.artifact.tsx file first. It should show block order, ids, and artifact shape before implementation details.",
   },
   {
     id: "target",
