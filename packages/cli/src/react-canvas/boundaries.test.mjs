@@ -36,6 +36,10 @@ function sourceFilesUnder(directory) {
   return filesUnder(directory).filter((file) => /\.(mjs|ts|tsx)$/.test(file))
 }
 
+function cssFilesUnder(directory) {
+  return filesUnder(directory).filter((file) => /\.css$/.test(file))
+}
+
 function implementationFilesUnder(directory) {
   return sourceFilesUnder(directory).filter(
     (file) => !/\.(test|spec)\.(mjs|ts|tsx)$/.test(file)
@@ -63,6 +67,52 @@ function importedSpecifiers(source) {
   }
 
   return imports
+}
+
+function stylesheetImportSpecifiers(source) {
+  return Array.from(source.matchAll(/@import\s+["']([^"']+)["']/g)).map(
+    (match) => match[1]
+  )
+}
+
+function runtimePackageName(specifier) {
+  if (
+    specifier.startsWith(".") ||
+    specifier.startsWith("/") ||
+    specifier.startsWith("@/") ||
+    specifier.startsWith("#agent-html-playground/") ||
+    specifier.startsWith("@agent-html-playground/") ||
+    specifier === "@agent-html/react"
+  ) {
+    return null
+  }
+
+  return specifier.startsWith("@")
+    ? specifier.split("/").slice(0, 2).join("/")
+    : specifier.split("/")[0]
+}
+
+function workspaceRuntimeImports() {
+  return [
+    ...implementationFilesUnder("agent-html").flatMap((file) =>
+      importedSpecifiers(readSource(file)).map((specifier) => ({
+        file,
+        specifier,
+      }))
+    ),
+    ...cssFilesUnder("agent-html").flatMap((file) =>
+      stylesheetImportSpecifiers(readSource(file)).map((specifier) => ({
+        file,
+        specifier,
+      }))
+    ),
+  ]
+    .map(({ file, specifier }) => ({
+      file,
+      packageName: runtimePackageName(specifier),
+      specifier,
+    }))
+    .filter((entry) => entry.packageName)
 }
 
 describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
@@ -98,7 +148,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
 
   it("keeps artifact and example imports inside the React Canvas playground contract", () => {
     const allowedLocalImport =
-      /^\.\.(?:\/\.\.)*\/(?:components\/(?:ui|code-block|kanban)|hooks|lib|schema|data|assets)(?:\/|$)/
+      /^\.\.(?:\/\.\.)*\/(?:components\/(?:ui|code-block|data-table|kanban)|hooks|lib|schema|data|assets)(?:\/|$)/
     const forbiddenImport =
       /^(?:@\/|#agent-html-playground\/|@agent-html-playground\/|apps\/|packages\/|@\/app\/|@\/agent-html\/runtime)/
 
@@ -164,6 +214,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "@shikijs/transformers": "^4.1.0",
+        "@tanstack/react-table": "^8.21.3",
         "class-variance-authority": "^0.7.1",
         clsx: "^2.1.1",
         cmdk: "^1.1.1",
@@ -174,9 +225,11 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
         "react-day-picker": "^10.0.1",
         "react-resizable-panels": "^4.11.2",
         recharts: "^3.8.1",
+        shadcn: "^4.10.0",
         shiki: "^4.1.0",
         "tailwind-merge": "^3.6.0",
         vaul: "^1.1.2",
+        zod: "^4.1.13",
       },
       name: "@agent-html/react-canvas-workspace",
       private: true,
@@ -426,6 +479,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "@lingui/core",
       "@lingui/react",
       "@shikijs/transformers",
+      "@tanstack/react-table",
       "@tailwindcss/vite",
       "@tauri-apps/api",
       "@vitejs/plugin-react",
@@ -442,6 +496,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "tailwind-merge",
       "tailwindcss",
       "vite",
+      "zod",
     ]
 
     expect(rootPackage.workspaces).toEqual(["apps/*", "packages/*"])
@@ -456,14 +511,22 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
 
     expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.0.1")
     expect(cliPackage.dependencies["@shikijs/transformers"]).toBeTruthy()
+    expect(cliPackage.dependencies["@tanstack/react-table"]).toBeTruthy()
     expect(cliPackage.dependencies.esbuild).toBeUndefined()
     expect(cliPackage.dependencies.vite).toBeTruthy()
     expect(cliPackage.dependencies["@vitejs/plugin-react"]).toBeTruthy()
     expect(cliPackage.dependencies.tailwindcss).toBeTruthy()
     expect(cliPackage.dependencies["@tailwindcss/oxide"]).toBeTruthy()
+    expect(cliPackage.dependencies.shadcn).toBeTruthy()
     expect(cliPackage.dependencies["class-variance-authority"]).toBeTruthy()
     expect(cliPackage.dependencies.clsx).toBeTruthy()
+    expect(cliPackage.dependencies.shiki).toBeTruthy()
     expect(cliPackage.dependencies["tailwind-merge"]).toBeTruthy()
+    expect(
+      workspaceRuntimeImports().filter(
+        ({ packageName }) => !cliPackage.dependencies[packageName]
+      )
+    ).toEqual([])
     expect(cliPackage.files).toContain("src/**/*.html")
     expect(cliPackage.files).toContain("src/**/*.css")
     expect(cliPackage.files).toContain("!src/**/*.test.tsx")

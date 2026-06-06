@@ -108,6 +108,8 @@ function cacheDirForRoot(root) {
   return path.join(os.tmpdir(), "agent-html-vite", cacheKey)
 }
 
+const optimizedDependencyCachePattern = /[\\/]agent-html-vite[\\/].*[\\/]deps[\\/]/
+
 function dependencyAllowRoots({ reactProtocolEntry, root }) {
   return [
     path.join(root, "node_modules"),
@@ -168,9 +170,26 @@ export async function createAgentHtmlViteServer({ root, server }) {
     cacheDir: cacheDirForRoot(root),
     configFile: false,
     logLevel: "error",
+    optimizeDeps: {
+      include: [
+        "react",
+        "react/jsx-dev-runtime",
+        "react-dom/client",
+        "class-variance-authority",
+        "clsx",
+        "lucide-react",
+        "shiki/bundle/web",
+        "tailwind-merge",
+      ],
+    },
     publicDir: false,
     root,
-    plugins: [createAgentHtmlVitePlugin({ root }), react()],
+    plugins: [
+      createAgentHtmlVitePlugin({ root }),
+      react({
+        exclude: [/node_modules/, optimizedDependencyCachePattern],
+      }),
+    ],
     resolve: {
       alias: {
         "@": path.join(root, "agent-html"),

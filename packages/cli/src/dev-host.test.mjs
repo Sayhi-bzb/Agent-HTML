@@ -1,12 +1,30 @@
 import fs from "node:fs/promises"
+import { execFile, spawn } from "node:child_process"
 import http from "node:http"
 import os from "node:os"
 import path from "node:path"
+import { promisify } from "node:util"
 
 import { describe, expect, it } from "vitest"
 
 import { startDevHost } from "./dev-host.mjs"
+import { hostRoot, packageRoot } from "./dev-server/context.mjs"
 import { createViteFsAllowList } from "./dev-server/vite.mjs"
+
+const reactPackageRoot = path.resolve(packageRoot, "..", "react")
+const execFileAsync = promisify(execFile)
+
+async function execNpm(args, options) {
+  if (process.env.npm_execpath) {
+    return execFileAsync(process.execPath, [process.env.npm_execpath, ...args], {
+      ...options,
+      windowsHide: true,
+    })
+  }
+
+  const npmExecutable = process.platform === "win32" ? "npm.cmd" : "npm"
+  return execFileAsync(npmExecutable, args, { ...options, windowsHide: true })
+}
 
 async function listenOnPort(port) {
   const server = http.createServer()
@@ -47,6 +65,56 @@ function viteFsPath(filePath) {
   return `/@fs/${path.resolve(filePath).replaceAll(path.sep, "/")}`
 }
 
+async function waitForDevHost(url, child, output, timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs
+
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) {
+      throw new Error(
+        `agent-html dev exited early with code ${child.exitCode}\n${output()}`
+      )
+    }
+
+    try {
+      const response = await fetch(url)
+
+      if (response.ok) {
+        return
+      }
+    } catch {
+      // Keep polling until the host starts or the timeout expires.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+
+  throw new Error(`Timed out waiting for ${url}\n${output()}`)
+}
+
+function parseNpmPackOutput(output) {
+  const start = output.indexOf("[")
+  const end = output.lastIndexOf("]")
+
+  if (start === -1 || end === -1) {
+    throw new Error(`Unable to parse npm pack output:\n${output}`)
+  }
+
+  return JSON.parse(output.slice(start, end + 1))
+}
+
+async function packPackage({ cwd, packDirectory }) {
+  const { stdout } = await execNpm(
+    ["pack", "--json", "--pack-destination", packDirectory],
+    { cwd }
+  )
+  const [{ filename }] = parseNpmPackOutput(stdout)
+
+  return path.join(packDirectory, filename)
+}
+
+const devHostIntegrationTimeout = 60_000
+const packageInstallSmokeTimeout = 180_000
+
 describe("React Canvas dev host", () => {
   it("scans and renders the example artifact", async () => {
     const { server, url } = await startDevHost({
@@ -85,6 +153,11 @@ describe("React Canvas dev host", () => {
         response.text()
       )
       expect(hostEntry).toContain("packages/cli/src/host/main.tsx")
+
+      const hostMain = await fetch(
+        `${url}${viteFsPath(path.join(hostRoot, "main.tsx"))}`
+      ).then((response) => response.text())
+      expect(hostMain).not.toContain("/node_modules/react-dom/client.js")
 
       const removedBundle = await fetch(`${url}/__agent-html/client-bundle`)
       expect(removedBundle.status).toBe(404)
@@ -128,6 +201,7 @@ describe("React Canvas dev host", () => {
       const bundle = await fetch(bundleUrl).then((response) => response.text())
       expect(bundle).toContain("function mount")
       expect(bundle).toContain("import.meta.hot")
+      expect(bundle).not.toContain("/node_modules/react-dom/client.js")
       expect(bundle).toContain(
         "/agent-html/artifacts/project-visual-explainer.artifact.tsx"
       )
@@ -174,7 +248,7 @@ describe("React Canvas dev host", () => {
     } finally {
       await new Promise((resolve) => server.close(resolve))
     }
-  }, 30_000)
+  }, devHostIntegrationTimeout)
 
   it("uses another port when the default port is occupied", async () => {
     let defaultPortBlocker = null
@@ -204,7 +278,7 @@ describe("React Canvas dev host", () => {
         await closeServer(defaultPortBlocker)
       }
     }
-  }, 30_000)
+  }, devHostIntegrationTimeout)
 
   it("reports a clear error when an explicit port is occupied", async () => {
     const { port, server } = await listenOnFreePort()
@@ -286,4 +360,107 @@ describe("React Canvas dev host", () => {
       await closeServer(server)
     }
   }, 30_000)
+
+  it("runs from the packed npm package in a fresh project", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-package-"))
+    const packDirectory = path.join(root, "pack")
+    const projectRoot = path.join(root, "project")
+    const reservedPort = await listenOnFreePort()
+    await closeServer(reservedPort.server)
+    const port = reservedPort.port
+
+    await fs.mkdir(packDirectory, { recursive: true })
+    await fs.mkdir(projectRoot, { recursive: true })
+    await fs.writeFile(
+      path.join(projectRoot, "package.json"),
+      `${JSON.stringify({ private: true, type: "module" }, null, 2)}\n`
+    )
+
+    const reactTarballPath = await packPackage({
+      cwd: reactPackageRoot,
+      packDirectory,
+    })
+    const cliTarballPath = await packPackage({
+      cwd: packageRoot,
+      packDirectory,
+    })
+
+    await execNpm(["install", reactTarballPath, cliTarballPath], {
+      cwd: projectRoot,
+    })
+    await execFileAsync(
+      process.execPath,
+      [
+        path.join(
+          projectRoot,
+          "node_modules",
+          "agent-html",
+          "bin",
+          "agent-html.mjs"
+        ),
+        "init",
+      ],
+      { cwd: projectRoot, windowsHide: true }
+    )
+
+    const outputChunks = []
+    const child = spawn(
+      process.execPath,
+      [
+        path.join(
+          projectRoot,
+          "node_modules",
+          "agent-html",
+          "bin",
+          "agent-html.mjs"
+        ),
+        "dev",
+        "--port",
+        String(port),
+      ],
+      {
+        cwd: projectRoot,
+        stdio: ["ignore", "pipe", "pipe"],
+        windowsHide: true,
+      }
+    )
+    const childClosed = new Promise((resolve) => child.once("close", resolve))
+    child.stdout.on("data", (chunk) => outputChunks.push(chunk.toString("utf8")))
+    child.stderr.on("data", (chunk) => outputChunks.push(chunk.toString("utf8")))
+    const output = () => outputChunks.join("")
+
+    try {
+      const url = `http://127.0.0.1:${port}`
+      await waitForDevHost(url, child, output)
+
+      const html = await fetch(url).then((response) => response.text())
+      expect(html).toContain("/__agent-html/host-entry.js")
+
+      const hostEntry = await fetch(`${url}/__agent-html/host-entry.js`).then(
+        (response) => response.text()
+      )
+      expect(hostEntry).not.toContain("/node_modules/react-dom/client.js")
+
+      const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
+      bundleUrl.searchParams.set(
+        "filePath",
+        "agent-html/artifacts/project-visual-explainer.artifact.tsx"
+      )
+      const bundle = await fetch(bundleUrl).then((response) => response.text())
+      expect(bundle).toContain("function mount")
+      expect(bundle).not.toContain("/node_modules/react-dom/client.js")
+
+      const css = await fetch(`${url}/__agent-html/styles.css`).then((response) =>
+        response.text()
+      )
+      expect(css).toContain(".canvas-surface-frame")
+      expect(css).toContain(".bg-primary")
+      expect(output()).not.toContain("[BABEL]")
+    } finally {
+      if (child.exitCode === null) {
+        child.kill()
+      }
+      await childClosed
+    }
+  }, packageInstallSmokeTimeout)
 })
