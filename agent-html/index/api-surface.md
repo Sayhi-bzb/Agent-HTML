@@ -74,6 +74,7 @@ Full TypeScript declarations are generated only as temporary build input.
 | `agent-html/lib/cn.ts` | `cn` |
 | `agent-html/lib/compose-refs.ts` | `composeRefs`, `useComposedRefs` |
 | `agent-html/lib/format-date.ts` | `formatDate` |
+| `agent-html/lib/shiki-highlighter.ts` | `highlightCode`, `normalizeLanguage` |
 | `agent-html/lib/usage-dashboard.ts` | `UsageDashboardRow`, `latestUsageRows`, `parseUsageDashboardCsv` |
 
 ## schema

@@ -163,6 +163,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
         "@dnd-kit/modifiers": "^9.0.0",
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
+        "@shikijs/transformers": "^4.1.0",
         cmdk: "^1.1.1",
         "date-fns": "^4.4.0",
         "embla-carousel-react": "^8.6.0",
@@ -171,6 +172,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
         "react-day-picker": "^10.0.1",
         "react-resizable-panels": "^4.11.2",
         recharts: "^3.8.1",
+        shiki: "^4.1.0",
         vaul: "^1.1.2",
       },
       name: "@agent-html/react-canvas-workspace",
@@ -415,6 +417,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "@floating-ui/react",
       "@lingui/core",
       "@lingui/react",
+      "@shikijs/transformers",
       "@tailwindcss/vite",
       "@tauri-apps/api",
       "@vitejs/plugin-react",
@@ -444,6 +447,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     ).toEqual([])
 
     expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.0.1")
+    expect(cliPackage.dependencies["@shikijs/transformers"]).toBeTruthy()
     expect(cliPackage.dependencies.esbuild).toBeUndefined()
     expect(cliPackage.dependencies.vite).toBeTruthy()
     expect(cliPackage.dependencies["@vitejs/plugin-react"]).toBeTruthy()

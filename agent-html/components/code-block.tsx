@@ -2,6 +2,7 @@ import * as React from "react"
 import { CheckIcon, CopyIcon } from "lucide-react"
 
 import { cn } from "../lib/cn"
+import { highlightCode } from "../lib/shiki-highlighter"
 import { Button } from "./ui/button"
 
 type CodeBlockProps = {
@@ -54,10 +55,35 @@ function CodeBlock({
   title,
   wrap = false,
 }: CodeBlockProps) {
+  const [highlightedHtml, setHighlightedHtml] = React.useState<string | null>(
+    null
+  )
   const [copied, setCopied] = React.useState(false)
   const copyTimeoutRef = React.useRef<number | null>(null)
   const label = title || language
   const CopyStateIcon = copied ? CheckIcon : CopyIcon
+
+  React.useEffect(() => {
+    let isCurrent = true
+
+    setHighlightedHtml(null)
+
+    void highlightCode({ code, language })
+      .then((html) => {
+        if (isCurrent) {
+          setHighlightedHtml(html)
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setHighlightedHtml(null)
+        }
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [code, language])
 
   React.useEffect(() => {
     return () => {
@@ -89,10 +115,12 @@ function CodeBlock({
   return (
     <figure
       className={cn(
-        "overflow-hidden rounded-md border bg-background text-foreground",
+        "canvas-code-block overflow-hidden rounded-md border bg-background text-foreground",
         className
       )}
+      data-line-numbers={showLineNumbers ? "true" : undefined}
       data-slot="code-block"
+      data-wrap={wrap ? "true" : undefined}
     >
       <div className="flex items-center justify-between gap-3 border-b bg-muted/30 px-3 py-2">
         <span className="truncate text-sm text-muted-foreground">{label}</span>
@@ -107,19 +135,28 @@ function CodeBlock({
         </Button>
       </div>
 
-      <div className="overflow-x-auto">
-        <pre
-          className={cn(
-            "m-0 p-4 text-sm",
-            wrap ? "whitespace-pre-wrap break-words" : "min-w-max whitespace-pre"
-          )}
-        >
-          <CodeLines
-            code={code}
-            showLineNumbers={showLineNumbers}
-            wrap={wrap}
+      <div className="canvas-code-block-scroll overflow-x-auto">
+        {highlightedHtml ? (
+          <div
+            className="canvas-code-block-highlight"
+            dangerouslySetInnerHTML={{ __html: highlightedHtml }}
           />
-        </pre>
+        ) : (
+          <pre
+            className={cn(
+              "m-0 p-4 text-sm",
+              wrap
+                ? "whitespace-pre-wrap break-words"
+                : "min-w-max whitespace-pre"
+            )}
+          >
+            <CodeLines
+              code={code}
+              showLineNumbers={showLineNumbers}
+              wrap={wrap}
+            />
+          </pre>
+        )}
       </div>
 
       {caption ? (

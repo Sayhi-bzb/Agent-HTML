@@ -7,11 +7,11 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 78 |
+| Modules | 79 |
 | Dependencies | 266 |
-| Local edges | 138 |
-| External edges | 128 |
-| Unresolved edges | 0 |
+| Local edges | 136 |
+| External edges | 129 |
+| Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
 
@@ -20,8 +20,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | Module | Inbound Local Edges |
 | --- | --- |
 | `agent-html/lib/cn.ts` | 44 |
-| `agent-html/components/ui/badge.tsx` | 12 |
 | `agent-html/components/ui/button.tsx` | 11 |
+| `agent-html/components/ui/badge.tsx` | 10 |
 | `agent-html/components/ui/separator.tsx` | 8 |
 | `agent-html/components/ui/alert.tsx` | 3 |
 | `agent-html/components/ui/dialog.tsx` | 3 |
@@ -40,12 +40,12 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/components/ui/sidebar.tsx` | 8 |
 | `agent-html/examples/example/handoff.block.tsx` | 6 |
 | `agent-html/artifacts/project-visual-explainer.artifact.tsx` | 5 |
-| `agent-html/artifacts/test.artifact.tsx` | 5 |
-| `agent-html/artifacts/test/usage-chart.block.tsx` | 5 |
+| `agent-html/artifacts/test.artifact.tsx` | 4 |
+| `agent-html/artifacts/test/usage-chart.block.tsx` | 4 |
 | `agent-html/components/ui/input-group.tsx` | 4 |
 | `agent-html/examples/example.artifact.tsx` | 4 |
 | `agent-html/artifacts/project-visual-explainer/project-purpose.block.tsx` | 3 |
-| `agent-html/artifacts/test/code-block-demo.block.tsx` | 3 |
+| `agent-html/components/code-block.tsx` | 3 |
 | `agent-html/components/ui/combobox.tsx` | 3 |
 | `agent-html/components/ui/command.tsx` | 3 |
 
@@ -63,5 +63,5 @@ Dependency-cruiser summary for `agent-html` source files.
 | `node_modules/@dnd-kit/core/dist/core.esm.js` | 1 |
 | `node_modules/@dnd-kit/sortable/dist/sortable.esm.js` | 1 |
 | `node_modules/@dnd-kit/utilities/dist/utilities.esm.js` | 1 |
+| `node_modules/@shikijs/transformers/dist/index.mjs` | 1 |
 | `node_modules/clsx/dist/clsx.mjs` | 1 |
-| `node_modules/cmdk/dist/index.mjs` | 1 |

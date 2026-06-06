@@ -1,0 +1,114 @@
+.canvas-code-block .shiki {
+  margin: 0;
+  min-width: max-content;
+  overflow: visible;
+  padding: 1rem;
+  background-color: transparent !important;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.canvas-code-block .shiki code {
+  display: block;
+  min-width: max-content;
+}
+
+.canvas-code-block .shiki .line {
+  padding-block: 0;
+}
+
+.canvas-code-block[data-wrap="true"] .shiki,
+.canvas-code-block[data-wrap="true"] .shiki code {
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.canvas-code-block[data-line-numbers="true"] .shiki {
+  counter-reset: canvas-code-line;
+}
+
+.canvas-code-block[data-line-numbers="true"] .shiki .line {
+  counter-increment: canvas-code-line;
+  display: inline-block;
+  width: 100%;
+  padding-left: 2rem;
+  text-indent: -2rem;
+}
+
+.canvas-code-block[data-line-numbers="true"] .shiki .line::before {
+  content: counter(canvas-code-line);
+  display: inline-block;
+  width: 1.5rem;
+  margin-right: 0.5rem;
+  color: var(--muted-foreground);
+  text-align: right;
+  text-indent: 0;
+  user-select: none;
+}
+
+.canvas-code-block pre.has-diff .line.diff {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.canvas-code-block pre.has-diff .line.diff::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 2px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.canvas-code-block pre.has-diff .line.diff.add {
+  background-color: color-mix(in oklab, var(--primary) 14%, transparent) !important;
+  color: color-mix(in oklab, var(--primary) 82%, var(--foreground));
+}
+
+.canvas-code-block pre.has-diff .line.diff.remove {
+  background-color: color-mix(in oklab, var(--destructive) 14%, transparent) !important;
+  color: color-mix(in oklab, var(--destructive) 82%, var(--foreground));
+}
+
+.canvas-code-block:not([data-line-numbers="true"]) pre.has-diff .line.diff {
+  padding-left: 1.5rem;
+}
+
+.canvas-code-block:not([data-line-numbers="true"]) pre.has-diff .line.diff.add::before,
+.canvas-code-block:not([data-line-numbers="true"]) pre.has-diff .line.diff.remove::before {
+  position: absolute;
+  inset-inline-start: 0.5rem;
+  color: currentColor;
+  font-weight: 500;
+  user-select: none;
+}
+
+.canvas-code-block:not([data-line-numbers="true"]) pre.has-diff .line.diff.add::before {
+  content: "+";
+}
+
+.canvas-code-block:not([data-line-numbers="true"]) pre.has-diff .line.diff.remove::before {
+  content: "-";
+}
+
+.canvas-code-block .shiki,
+.canvas-code-block .shiki span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+  text-decoration: var(--shiki-light-text-decoration);
+}
+
+.dark .canvas-code-block .shiki,
+.dark .canvas-code-block .shiki span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
+}

@@ -19,6 +19,28 @@ export default function ExampleArtifact() {
   )
 }`
 
+const jsonExample = `{
+  "artifact": "test",
+  "blocks": ["interaction-controls", "kanban-board", "code-block-demo"],
+  "collaboration": {
+    "mode": "agent-assisted",
+    "supportsText": true,
+    "supportsCode": true
+  }
+}`
+
+const commandExample = `npm run react-canvas:guard
+npm run react-canvas:typecheck
+npm run react-canvas:index:check`
+
+const diffExample = `const code = \`type Languages = "javascript" | "typescript";\`
+const highlighter = await highlight()
+const html = highlighter.codeToHtml(code, {
+  lang: "javascript", // [!code --]
+  lang: "typescript", // [!code ++]
+  theme: "one-light",
+})`
+
 export function CodeBlockDemoBlock() {
   return (
     <section className="canvas-stack-lg">
@@ -46,6 +68,32 @@ export function CodeBlockDemoBlock() {
         language="tsx"
         showLineNumbers
         title="Artifact skeleton"
+      />
+
+      <Separator />
+
+      <CodeBlock
+        caption="Structured collaboration state can be shown without forcing it into a card."
+        code={jsonExample}
+        language="json"
+        title="Collaboration payload"
+      />
+
+      <CodeBlock
+        caption="Commands stay copyable as a compact machine-readable surface."
+        code={commandExample}
+        language="bash"
+        title="Validation commands"
+        wrap
+      />
+
+      <Separator />
+
+      <CodeBlock
+        caption="Diff notation marks changed lines while hiding the Shiki markers."
+        code={diffExample}
+        language="ts"
+        title="Notation diff"
       />
     </section>
   )
