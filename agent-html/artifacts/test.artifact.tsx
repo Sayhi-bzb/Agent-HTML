@@ -3,7 +3,6 @@ import { Artifact, Block } from "@agent-html/react"
 import { CodeBlockDemoBlock } from "./test/code-block-demo.block"
 import { InteractionControlsBlock } from "./test/interaction-controls.block"
 import { KanbanBoardBlock } from "./test/kanban-board.block"
-import { PromptDisplayBlock } from "./test/prompt-display.block"
 import { UsageChartBlock } from "./test/usage-chart.block"
 
 export default function TestArtifact() {
@@ -23,10 +22,6 @@ export default function TestArtifact() {
 
       <Block id="usage-chart" title="Usage Chart">
         <UsageChartBlock />
-      </Block>
-
-      <Block id="prompt-display" title="Prompt Display">
-        <PromptDisplayBlock />
       </Block>
     </Artifact>
   )

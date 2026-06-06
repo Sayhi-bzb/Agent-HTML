@@ -15,7 +15,6 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "../../components/ui/chart"
-import { Badge } from "../../components/ui/badge"
 import { Separator } from "../../components/ui/separator"
 
 const usageRows = latestUsageRows(parseUsageDashboardCsv(usageCsv), 12)
@@ -62,10 +61,6 @@ export function UsageChartBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">csv fixture</Badge>
-          <Badge variant="outline">latest 12 hours</Badge>
-        </div>
         <h2 className="canvas-text-heading">Usage chart</h2>
         <p className="canvas-text-body text-muted-foreground">
           Local dashboard data from `agent-html/data` rendered through the

@@ -1,4 +1,3 @@
-import { Badge } from "../../components/ui/badge"
 import { CodeBlock } from "../../components/code-block"
 import { Separator } from "../../components/ui/separator"
 
@@ -24,10 +23,6 @@ export function CodeBlockDemoBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">rich content</Badge>
-          <Badge variant="outline">copyable</Badge>
-        </div>
         <h2 className="canvas-text-heading">Code block</h2>
         <p className="canvas-text-body text-muted-foreground">
           Use this component for code, commands, prompt packets, generated text,
