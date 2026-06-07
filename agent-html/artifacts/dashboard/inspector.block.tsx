@@ -1,17 +1,20 @@
 import { CodeBlock } from "../../components/code-block"
 import { Badge } from "../../components/ui/badge"
 import { Separator } from "../../components/ui/separator"
-import type { UsageDashboardRow } from "../../lib/usage-dashboard"
 
 import {
   formatCurrency,
   formatDuration,
   formatNumber,
+  getSeverityLabel,
   rowToPayload,
+  type DashboardSignalRow,
+  type DashboardSummary,
 } from "./data"
 
 type InspectorBlockProps = {
-  selectedRow: UsageDashboardRow | null
+  selectedRow: DashboardSignalRow | null
+  summary: DashboardSummary
 }
 
 function Detail({
@@ -29,22 +32,37 @@ function Detail({
   )
 }
 
-export function InspectorBlock({ selectedRow }: InspectorBlockProps) {
+export function InspectorBlock({ selectedRow, summary }: InspectorBlockProps) {
   const payload = JSON.stringify(rowToPayload(selectedRow), null, 2)
-  const tokensPerRequest = selectedRow?.requests
-    ? selectedRow.tokens / selectedRow.requests
-    : 0
+  const severityVariant =
+    selectedRow?.severity === "critical"
+      ? "destructive"
+      : selectedRow?.severity === "watch"
+        ? "secondary"
+        : "outline"
 
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
         <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">inspector</Badge>
-          {selectedRow ? <Badge variant="outline">{selectedRow.hour}</Badge> : null}
+          {selectedRow ? (
+            <>
+              <Badge variant={severityVariant}>
+                {getSeverityLabel(selectedRow.severity)}
+              </Badge>
+              <Badge variant="outline">{selectedRow.hour}</Badge>
+              {selectedRow.thresholdExceeded ? (
+                <Badge variant="destructive">threshold hit</Badge>
+              ) : null}
+            </>
+          ) : (
+            <Badge variant="outline">No selected hour</Badge>
+          )}
         </div>
-        <h2 className="canvas-text-heading">Selected record</h2>
+        <h2 className="canvas-text-heading">Selected-hour decision</h2>
         <p className="canvas-text-body text-muted-foreground">
-          The inspector updates from chart clicks and data-table row clicks.
+          The active row is interpreted against the filtered window baseline and
+          converted into a concrete operations action.
         </p>
       </div>
 
@@ -60,7 +78,15 @@ export function InspectorBlock({ selectedRow }: InspectorBlockProps) {
           <Detail label="Cost" value={formatCurrency(selectedRow.cost)} />
           <Detail
             label="Tokens/request"
-            value={formatNumber(tokensPerRequest)}
+            value={formatNumber(selectedRow.tokensPerRequest)}
+          />
+          <Detail
+            label="Cost/request"
+            value={formatCurrency(selectedRow.costPerRequest)}
+          />
+          <Detail
+            label="Pressure"
+            value={`${selectedRow.metricScore}%`}
           />
         </div>
       ) : (
@@ -70,6 +96,25 @@ export function InspectorBlock({ selectedRow }: InspectorBlockProps) {
           </p>
         </div>
       )}
+
+      {selectedRow ? (
+        <div className="canvas-grid-gap lg:grid-cols-2">
+          <div className="canvas-content-panel-sm canvas-stack-sm">
+            <span className="canvas-text-body">Local explanation</span>
+            <p className="canvas-text-body text-muted-foreground">
+              {selectedRow.anomalyReasons.length > 0
+                ? selectedRow.anomalyReasons.join(". ")
+                : `${selectedRow.hour} is within the current ${summary.healthLabel.toLowerCase()} operating envelope.`}
+            </p>
+          </div>
+          <div className="canvas-content-panel-sm canvas-stack-sm">
+            <span className="canvas-text-body">Next action</span>
+            <p className="canvas-text-body text-muted-foreground">
+              {selectedRow.nextAction}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <Separator />
 

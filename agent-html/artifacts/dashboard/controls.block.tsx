@@ -1,6 +1,12 @@
-import { BarChart3Icon, CalendarClockIcon } from "lucide-react"
+import {
+  BarChart3Icon,
+  CalendarClockIcon,
+  FilterIcon,
+  GaugeIcon,
+} from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
+import { Label } from "../../components/ui/label"
 import {
   Select,
   SelectContent,
@@ -12,6 +18,8 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "../../components/ui/toggle-group"
+import { Slider } from "../../components/ui/slider"
+import { Switch } from "../../components/ui/switch"
 
 import {
   dashboardMetricLabels,
@@ -21,31 +29,43 @@ import {
 } from "./data"
 
 type ControlsBlockProps = {
+  anomalyOnly: boolean
+  filteredRowCount: number
   metric: DashboardMetric
-  rowCount: number
+  setAnomalyOnly: (value: boolean) => void
   setMetric: (metric: DashboardMetric) => void
+  setThresholdPercent: (value: number) => void
   setWindow: (window: DashboardWindow) => void
+  sourceRowCount: number
+  thresholdPercent: number
   window: DashboardWindow
 }
 
 export function ControlsBlock({
+  anomalyOnly,
+  filteredRowCount,
   metric,
-  rowCount,
+  setAnomalyOnly,
   setMetric,
+  setThresholdPercent,
   setWindow,
+  sourceRowCount,
+  thresholdPercent,
   window,
 }: ControlsBlockProps) {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
         <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">controls</Badge>
-          <Badge variant="outline">{rowCount} rows</Badge>
+          <Badge variant="outline">{sourceRowCount} sampled hours</Badge>
+          <Badge variant={anomalyOnly ? "destructive" : "secondary"}>
+            {filteredRowCount} active rows
+          </Badge>
         </div>
-        <h2 className="canvas-text-heading">Dashboard controls</h2>
+        <h2 className="canvas-text-heading">Operating filters</h2>
         <p className="canvas-text-body text-muted-foreground">
-          Change the reporting window and metric lens. The chart, table, and
-          inspector stay linked through artifact state.
+          Tune the board around the window, metric pressure, and exception queue
+          that operations needs to explain next.
         </p>
       </div>
 
@@ -53,7 +73,7 @@ export function ControlsBlock({
         <div className="canvas-content-panel canvas-stack-sm">
           <div className="canvas-wrap-sm items-center">
             <CalendarClockIcon data-icon="inline-start" />
-            <span className="canvas-text-body">Window</span>
+            <span className="canvas-text-body">Time window</span>
           </div>
           <Select
             onValueChange={(value) => setWindow(value as DashboardWindow)}
@@ -74,7 +94,7 @@ export function ControlsBlock({
         <div className="canvas-content-panel canvas-stack-sm">
           <div className="canvas-wrap-sm items-center">
             <BarChart3Icon data-icon="inline-start" />
-            <span className="canvas-text-body">Metric</span>
+            <span className="canvas-text-body">Metric lens</span>
           </div>
           <ToggleGroup
             onValueChange={(value) => {
@@ -96,6 +116,51 @@ export function ControlsBlock({
               {dashboardMetricLabels.cost}
             </ToggleGroupItem>
           </ToggleGroup>
+        </div>
+
+        <div className="canvas-content-panel canvas-stack-sm">
+          <div className="canvas-wrap-sm items-center justify-between">
+            <div className="canvas-wrap-sm items-center">
+              <GaugeIcon data-icon="inline-start" />
+              <Label className="canvas-text-body" htmlFor="dashboard-threshold">
+                Pressure threshold
+              </Label>
+            </div>
+            <Badge variant="outline">{thresholdPercent}%</Badge>
+          </div>
+          <Slider
+            id="dashboard-threshold"
+            max={95}
+            min={35}
+            onValueChange={(value) => setThresholdPercent(value[0] ?? 70)}
+            step={5}
+            value={[thresholdPercent]}
+          />
+          <p className="canvas-text-caption text-muted-foreground">
+            Rows at or above this normalized metric pressure enter the exception
+            model.
+          </p>
+        </div>
+
+        <div className="canvas-content-panel canvas-stack-sm">
+          <div className="canvas-wrap-sm items-center justify-between">
+            <div className="canvas-wrap-sm items-center">
+              <FilterIcon data-icon="inline-start" />
+              <Label className="canvas-text-body" htmlFor="dashboard-anomalies">
+                Exception queue
+              </Label>
+            </div>
+            <Switch
+              checked={anomalyOnly}
+              id="dashboard-anomalies"
+              onCheckedChange={setAnomalyOnly}
+            />
+          </div>
+          <p className="canvas-text-caption text-muted-foreground">
+            {anomalyOnly
+              ? "Only records with pressure, spend, token, or latency exceptions remain."
+              : "All records remain visible while exceptions are still scored."}
+          </p>
         </div>
       </div>
     </section>

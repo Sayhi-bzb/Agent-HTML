@@ -7,18 +7,32 @@ import {
 } from "../../components/data-table"
 import { Badge } from "../../components/ui/badge"
 import { Button } from "../../components/ui/button"
-import type { UsageDashboardRow } from "../../lib/usage-dashboard"
 
-import { formatCurrency, formatDuration, formatNumber } from "./data"
+import {
+  formatCurrency,
+  formatDuration,
+  formatNumber,
+  getSeverityLabel,
+  type DashboardSeverity,
+  type DashboardSignalRow,
+} from "./data"
 
-type DashboardRecord = UsageDashboardRow & {
+type DashboardRecord = DashboardSignalRow & {
   selected: boolean
 }
 
 type RecordsBlockProps = {
-  rows: UsageDashboardRow[]
-  selectedRow: UsageDashboardRow | null
+  rows: DashboardSignalRow[]
+  selectedRow: DashboardSignalRow | null
   setSelectedRowKey: (key: string) => void
+}
+
+function severityVariant(severity: DashboardSeverity) {
+  return severity === "critical"
+    ? "destructive"
+    : severity === "watch"
+      ? "secondary"
+      : "outline"
 }
 
 function buildColumns(
@@ -35,6 +49,24 @@ function buildColumns(
       ),
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Hour" />
+      ),
+    },
+    {
+      accessorKey: "severity",
+      cell: ({ row }) => (
+        <Badge variant={severityVariant(row.original.severity)}>
+          {getSeverityLabel(row.original.severity)}
+        </Badge>
+      ),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="State" />
+      ),
+    },
+    {
+      accessorKey: "metricScore",
+      cell: ({ row }) => `${row.original.metricScore}%`,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Pressure" />
       ),
     },
     {
@@ -73,6 +105,16 @@ function buildColumns(
       ),
     },
     {
+      accessorKey: "anomalyReasons",
+      cell: ({ row }) =>
+        row.original.anomalyReasons.length > 0
+          ? row.original.anomalyReasons.join("; ")
+          : "None",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Exception" />
+      ),
+    },
+    {
       cell: ({ row }) => (
         <Button
           aria-label={`Inspect ${row.original.hour}`}
@@ -101,18 +143,21 @@ export function RecordsBlock({
     selected: selectedRow?.bucketStart === row.bucketStart,
   }))
   const columns = buildColumns(setSelectedRowKey)
+  const exceptionCount = rows.filter((row) => row.anomalyReasons.length > 0).length
 
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
         <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">records</Badge>
-          <Badge variant="outline">data table</Badge>
+          <Badge variant="outline">{rows.length} rows</Badge>
+          <Badge variant={exceptionCount > 0 ? "secondary" : "outline"}>
+            {exceptionCount} exceptions
+          </Badge>
         </div>
-        <h2 className="canvas-text-heading">Usage records</h2>
+        <h2 className="canvas-text-heading">Operating records</h2>
         <p className="canvas-text-body text-muted-foreground">
-          Sort, filter, paginate, hide columns, or click a row to inspect the
-          underlying usage record.
+          The record queue carries the same metric pressure and exception model
+          used by the trend and selected-hour inspector.
         </p>
       </div>
 

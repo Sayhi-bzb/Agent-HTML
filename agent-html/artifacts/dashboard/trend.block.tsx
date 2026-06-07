@@ -15,23 +15,28 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "../../components/ui/chart"
-import type { UsageDashboardRow } from "../../lib/usage-dashboard"
 
 import {
   dashboardMetricLabels,
   formatCurrency,
   formatNumber,
+  getSeverityLabel,
+  type DashboardSignalRow,
   type DashboardMetric,
 } from "./data"
 
 type TrendBlockProps = {
   metric: DashboardMetric
-  rows: UsageDashboardRow[]
-  selectedRow: UsageDashboardRow | null
+  rows: DashboardSignalRow[]
+  selectedRow: DashboardSignalRow | null
   setSelectedRowKey: (key: string) => void
+  thresholdPercent: number
 }
 
 type ChartClickState = {
+  activePayload?: Array<{
+    payload?: DashboardSignalRow
+  }>
   activeTooltipIndex?: number | string
 }
 
@@ -72,9 +77,17 @@ function isChartClickState(value: unknown): value is ChartClickState {
   return typeof value === "object" && value !== null && "activeTooltipIndex" in value
 }
 
-function pickClickedRow(value: unknown, rows: UsageDashboardRow[]) {
+function pickClickedRow(value: unknown, rows: DashboardSignalRow[]) {
   if (!isChartClickState(value)) {
     return null
+  }
+
+  const payloadRow = value.activePayload?.find(
+    (item) => item.payload?.bucketStart
+  )?.payload
+
+  if (payloadRow) {
+    return findSignalRow(rows, payloadRow.bucketStart)
   }
 
   const index =
@@ -89,11 +102,16 @@ function pickClickedRow(value: unknown, rows: UsageDashboardRow[]) {
   return rows[index] ?? null
 }
 
+function findSignalRow(rows: DashboardSignalRow[], bucketStart: string) {
+  return rows.find((row) => row.bucketStart === bucketStart) ?? null
+}
+
 export function TrendBlock({
   metric,
   rows,
   selectedRow,
   setSelectedRowKey,
+  thresholdPercent,
 }: TrendBlockProps) {
   function selectPoint(value: unknown) {
     const row = pickClickedRow(value, rows)
@@ -107,19 +125,38 @@ export function TrendBlock({
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
         <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">{dashboardMetricLabels[metric]}</Badge>
+          <Badge variant="outline">{dashboardMetricLabels[metric]}</Badge>
+          <Badge variant="outline">{thresholdPercent}% threshold</Badge>
+          <Badge variant="outline">{rows.length} plotted hours</Badge>
           {selectedRow ? (
-            <Badge variant="outline">selected {selectedRow.hour}</Badge>
+            <Badge
+              variant={
+                selectedRow.severity === "critical"
+                  ? "destructive"
+                  : selectedRow.severity === "watch"
+                    ? "secondary"
+                    : "outline"
+              }
+            >
+              {selectedRow.hour} · {getSeverityLabel(selectedRow.severity)}
+            </Badge>
           ) : null}
         </div>
-        <h2 className="canvas-text-heading">Trend analysis</h2>
+        <h2 className="canvas-text-heading">Pressure trend</h2>
         <p className="canvas-text-body text-muted-foreground">
-          Click a point to select the same record in the dashboard inspector.
+          The plotted window mirrors the active operating filters and keeps the
+          selected hour aligned with the records table.
         </p>
       </div>
 
       <div className="canvas-content-panel min-w-0">
-        {metric === "traffic" ? (
+        {rows.length === 0 ? (
+          <p className="canvas-text-body text-muted-foreground">
+            No trend rows match the current filter.
+          </p>
+        ) : null}
+
+        {rows.length > 0 && metric === "traffic" ? (
           <ChartContainer config={trafficConfig}>
             <LineChart accessibilityLayer data={rows} onClick={selectPoint}>
               <CartesianGrid vertical={false} />
@@ -154,7 +191,7 @@ export function TrendBlock({
           </ChartContainer>
         ) : null}
 
-        {metric === "tokens" ? (
+        {rows.length > 0 && metric === "tokens" ? (
           <ChartContainer config={tokenConfig}>
             <AreaChart accessibilityLayer data={rows} onClick={selectPoint}>
               <CartesianGrid vertical={false} />
@@ -191,7 +228,7 @@ export function TrendBlock({
           </ChartContainer>
         ) : null}
 
-        {metric === "cost" ? (
+        {rows.length > 0 && metric === "cost" ? (
           <ChartContainer config={costConfig}>
             <AreaChart accessibilityLayer data={rows} onClick={selectPoint}>
               <CartesianGrid vertical={false} />
