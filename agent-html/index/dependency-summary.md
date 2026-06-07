@@ -8,8 +8,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | Metric | Count |
 | --- | --- |
 | Modules | 102 |
-| Dependencies | 386 |
-| Local edges | 228 |
+| Dependencies | 387 |
+| Local edges | 229 |
 | External edges | 157 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |

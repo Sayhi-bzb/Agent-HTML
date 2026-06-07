@@ -51,5 +51,20 @@
     "vite": "^7.3.1",
     "vitest": "^4.1.7",
     "wrangler": "^4.94.0"
-  }
+  },
+  "description": "[English](./README.md)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML-Sandbox.git"
+  },
+  "keywords": [],
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/Sayhi-bzb/Agent-HTML-Sandbox/issues"
+  },
+  "homepage": "https://github.com/Sayhi-bzb/Agent-HTML-Sandbox#readme"
 }
