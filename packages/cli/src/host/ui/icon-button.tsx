@@ -11,23 +11,26 @@ export function HostIconButton({
   className,
   icon: Icon,
   label,
-  surface,
+  placement,
+  tone = "neutral",
   ...props
 }: Omit<React.ComponentProps<typeof Button>, "children"> & {
   icon: HostItemIcon
   label: string
-  surface?: "block-action" | "prompt-submit" | "toolbar"
+  placement?: "blockOverlay" | "prompt" | "toolbar"
+  tone?: "neutral" | "primary"
 }) {
   return (
     <Button
       aria-label={label}
       className={cn(
         "canvas-host-icon-button",
-        surface === "toolbar" && "canvas-host-toolbar-action",
-        surface === "block-action" && "canvas-block-action",
-        surface === "prompt-submit" && "canvas-floating-prompt-submit",
+        placement === "toolbar" && "canvas-host-toolbar-action",
+        placement === "blockOverlay" && "canvas-block-action",
+        placement === "prompt" && "canvas-floating-prompt-submit",
         className
       )}
+      data-tone={tone}
       type="button"
       {...props}
     >

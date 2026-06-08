@@ -21,18 +21,6 @@ export function HostPopoverContent({
   )
 }
 
-export function HostOverlayPopoverContent({
-  className,
-  ...props
-}: React.ComponentProps<typeof PopoverContent>) {
-  return (
-    <PopoverContent
-      className={cn("canvas-floating-prompt-popover", className)}
-      {...props}
-    />
-  )
-}
-
 export function HostPopoverAction({
   active = false,
   caption,

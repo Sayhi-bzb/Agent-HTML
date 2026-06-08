@@ -247,6 +247,16 @@
     flex-shrink: 0;
   }
 
+  .canvas-host-icon-button[data-tone="primary"] {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  .canvas-host-icon-button[data-tone="primary"]:hover {
+    background: color-mix(in oklab, var(--primary) 90%, var(--foreground));
+    color: var(--primary-foreground);
+  }
+
   .canvas-host-toolbar-action {
     pointer-events: auto;
   }

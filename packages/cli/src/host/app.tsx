@@ -408,8 +408,9 @@ export function ReactCanvasHostApp() {
                   : "Expand artifact sidebar"
               }
               onClick={() => setLeftSidebarOpen((open) => !open)}
+              placement="toolbar"
               size="icon-sm"
-              surface="toolbar"
+              tone="neutral"
               variant="ghost"
             />
           </div>

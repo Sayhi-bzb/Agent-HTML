@@ -79,8 +79,9 @@ export function FloatingPrompt({
                 onClick={() => {
                   void submit()
                 }}
+                placement="prompt"
                 size="icon-sm"
-                surface="prompt-submit"
+                tone="primary"
                 variant="default"
               />
             </TooltipTrigger>

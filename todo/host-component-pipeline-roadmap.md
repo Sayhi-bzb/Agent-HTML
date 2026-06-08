@@ -102,6 +102,25 @@ packages/cli/src/host/*
 
 ## Adapter Families
 
+### Variant Taxonomy
+
+Host feature modules express intent, not visual variants. Repeated visual
+decisions belong in host adapters and semantic CSS classes.
+
+Canonical host variant axes:
+
+- row controls use intent, active/open/disabled state, and content slots;
+- icon actions use placement and tone;
+- floating surfaces use kind, size, and placement;
+- status surfaces use tone and density;
+- prompt controls use prompt state and target context;
+- skeletons use target.
+
+Do not add feature-local visual variants such as `toolbar-danger`,
+`prompt-submit-primary`, or ad hoc active class names. If the same `className`
+pattern appears twice, promote it into a host adapter variant or semantic
+internal class.
+
 ### Shared Item Content
 
 Create `HostItemContent` as the common row content contract.
@@ -157,6 +176,18 @@ Standard:
 - text selection disabled for chrome controls;
 - editable inputs remain selectable.
 
+### Icon Actions
+
+Create icon-only host actions through `HostIconButton`.
+
+Allowed axes:
+
+- `placement`: `toolbar`, `blockOverlay`, `prompt`;
+- `tone`: `neutral`, `primary`.
+
+`placement` decides host chrome placement and sizing hooks. `tone` decides
+emphasis. Do not add combined values that mix placement and tone.
+
 ### Floating Content
 
 Create host wrappers for floating surfaces:
@@ -165,6 +196,7 @@ Create host wrappers for floating surfaces:
 - `HostDropdownContent`
 - `HostPopoverContent`
 - `HostCommandDialog`
+- `HostFloatingPromptPopoverContent`
 
 They keep primitive behavior but standardize host chrome:
 

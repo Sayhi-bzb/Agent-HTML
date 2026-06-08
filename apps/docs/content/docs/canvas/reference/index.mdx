@@ -57,7 +57,12 @@ Host code must not consume:
 - `@agent-html-playground/*`
 - `#agent-html-playground/*` outside `#agent-html-playground/components/ui/*` and
   `#agent-html-playground/theme/*`
-- a host-local visual primitive layer
+- a host-local visual primitive layer that bypasses Canvas UI primitives
+
+Host code may define host-only adapters over Canvas UI primitives in
+`packages/cli/src/host/ui/*`. These adapters are consumption contracts for host
+chrome; they are not artifact resources and must not become a replacement
+primitive library.
 
 ## Review Checks
 
