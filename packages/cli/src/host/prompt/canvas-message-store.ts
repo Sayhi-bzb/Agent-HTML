@@ -1,4 +1,4 @@
-import type { FloatingPromptTarget } from "./host-contracts"
+import type { FloatingPromptTarget } from "../host-contracts"
 
 export type CanvasMessageSubmitInput = {
   request: string

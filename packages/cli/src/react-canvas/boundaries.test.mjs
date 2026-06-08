@@ -304,14 +304,14 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "agent-html/styles/internal/theme-editor.css"
     )
     const canvasMessageStore = readSource(
-      "packages/cli/src/host/canvas-message-store.ts"
+      "packages/cli/src/host/prompt/canvas-message-store.ts"
     )
     const canvasHostApp = readSource("packages/cli/src/host/app.tsx")
     const canvasInteractionStore = readSource(
-      "packages/cli/src/host/interaction-store.ts"
+      "packages/cli/src/host/interaction/interaction-store.ts"
     )
     const floatingPrompt = readSource(
-      "packages/cli/src/host/floating-prompt.tsx"
+      "packages/cli/src/host/prompt/floating-prompt.tsx"
     )
     const reactCanvasTsconfig = JSON.parse(
       readSource("config/tsconfig/tsconfig.react-canvas.json")

@@ -7,7 +7,7 @@ import {
   writeCanvasHostPreferences,
   writeCanvasMessageDraft,
 } from "./canvas-host-preferences"
-import type { Artifact } from "./host-contracts"
+import type { Artifact } from "../host-contracts"
 
 function stubStorage(initialValue?: string) {
   const values = new Map<string, string>()

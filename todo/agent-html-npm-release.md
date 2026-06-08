@@ -122,22 +122,26 @@ on both published packages:
 {
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML-Sandbox.git"
+    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML.git"
   },
   "bugs": {
-    "url": "https://github.com/Sayhi-bzb/Agent-HTML-Sandbox/issues"
+    "url": "https://github.com/Sayhi-bzb/Agent-HTML/issues"
   },
-  "homepage": "https://github.com/Sayhi-bzb/Agent-HTML-Sandbox#readme"
+  "homepage": "https://github.com/Sayhi-bzb/Agent-HTML#readme"
 }
 ```
 
-Use the final public GitHub repository URL if the project moves out of the
-current sandbox repository.
+For monorepo packages, include `repository.directory`: `packages/cli` for
+`agent-html` and `packages/react` for `@agent-html/react`.
 
 Optional later step: enable npm trusted publishing / provenance from GitHub
 Actions. That would let GitHub Actions publish without storing long-lived npm
 tokens in the repo. Treat this as a release infrastructure task, not a
 requirement for the current alpha.
+
+GitHub Releases are created from Git tags, not npm metadata. The current
+desktop release workflow listens for `v*` tags and publishes release assets.
+After publishing npm packages, create and push the matching release tag.
 
 ## Token Handling
 

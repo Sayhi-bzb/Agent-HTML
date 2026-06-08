@@ -6,17 +6,17 @@ import {
   SparklesIcon,
 } from "lucide-react"
 
-import { artifactLabel } from "./api"
+import { artifactLabel } from "../api/api"
 import {
   ReactCanvasThemeEditor,
   ReactCanvasThemeEditorHeader,
-} from "./theme-editor"
-import type { CanvasThemeEditorSectionId } from "./theme-editor-sections"
+} from "../theme/theme-editor"
+import type { CanvasThemeEditorSectionId } from "../theme/theme-editor-sections"
 import type {
   CanvasThemeDraft,
   CanvasThemeResolvedVariables,
   CanvasThemeVariableName,
-} from "./theme-draft"
+} from "../theme/theme-draft"
 import {
   Sidebar,
   SidebarContent,
@@ -35,7 +35,7 @@ import type {
   CanvasThemePreset,
   CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
-import type { Artifact, GuardIssue } from "./host-contracts"
+import type { Artifact, GuardIssue } from "../host-contracts"
 
 export function ReactCanvasSidebar({
   activeFilePath,

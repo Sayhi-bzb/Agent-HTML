@@ -33,7 +33,7 @@ function CodeLines({
   return (
     <code className="grid">
       {lines.map((line, index) => (
-        <span className="grid grid-cols-[auto_1fr] gap-4" key={index}>
+        <span className="grid grid-cols-[1.5rem_1fr] gap-2" key={index}>
           <span className="select-none text-right text-muted-foreground">
             {index + 1}
           </span>

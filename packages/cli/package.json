@@ -26,6 +26,15 @@
     "prepack": "node scripts/prepare-template.mjs",
     "postpack": "node scripts/clean-template.mjs"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/Sayhi-bzb/Agent-HTML/issues"
+  },
+  "homepage": "https://github.com/Sayhi-bzb/Agent-HTML#readme",
   "dependencies": {
     "@agent-html/react": "0.0.1",
     "@base-ui/react": "^1.5.0",

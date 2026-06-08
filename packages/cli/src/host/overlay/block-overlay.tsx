@@ -1,19 +1,19 @@
 import * as React from "react"
 import { SparklesIcon } from "lucide-react"
 
-import { artifactRenderedEventName } from "./api"
+import { artifactRenderedEventName } from "../api/api"
 import {
   getCanvasMessageHostSnapshot,
   subscribeCanvasMessageHost,
-} from "./canvas-message-store"
-import { FloatingPrompt } from "./floating-prompt"
+} from "../prompt/canvas-message-store"
+import { FloatingPrompt } from "../prompt/floating-prompt"
 import { Button } from "#agent-html-playground/components/ui/button"
 import {
   Popover,
   PopoverAnchor,
   PopoverContent,
 } from "#agent-html-playground/components/ui/popover"
-import type { BlockOverlay } from "./host-contracts"
+import type { BlockOverlay } from "../host-contracts"
 
 const defaultBlockHighlightPadding = 6
 

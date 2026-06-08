@@ -4,26 +4,26 @@ import {
   fetchArtifacts,
   fetchBlockImplementation,
   startCodexTurn,
-} from "./api"
-import { ArtifactSurface } from "./artifact-surface"
+} from "./api/api"
+import { ArtifactSurface } from "./artifact/artifact-surface"
 import {
   readCanvasHostPreferences,
   readCanvasMessageDraft,
   writeCanvasHostPreferences,
   writeCanvasMessageDraft,
-} from "./canvas-host-preferences"
+} from "./preferences/canvas-host-preferences"
 import {
   clearCanvasMessageHost,
   publishCanvasMessageHost,
-} from "./canvas-message-store"
+} from "./prompt/canvas-message-store"
 import {
   canvasInteractionEventName,
   clearCanvasInteractionSnapshots,
   createCanvasInteractionEventListener,
   getCanvasInteractionSnapshot,
-} from "./interaction-store"
-import { publishCanvasPromptDebug } from "./prompt-debug"
-import { ReactCanvasSidebar } from "./sidebar"
+} from "./interaction/interaction-store"
+import { publishCanvasPromptDebug } from "./prompt/prompt-debug"
+import { ReactCanvasSidebar } from "./navigation/sidebar"
 import {
   createEmptyCanvasThemeDraft,
   isCanvasThemeDraftDirty,
@@ -32,10 +32,10 @@ import {
   type CanvasThemeDraft,
   type CanvasThemeResolvedVariables,
   type CanvasThemeVariableName,
-} from "./theme-draft"
-import { applyCanvasThemeEditorPreview } from "./theme-preview"
-import { applyCanvasThemePreset } from "./theme-preset"
-import type { CanvasThemeEditorSectionId } from "./theme-editor-sections"
+} from "./theme/theme-draft"
+import { applyCanvasThemeEditorPreview } from "./theme/theme-preview"
+import { applyCanvasThemePreset } from "./theme/theme-preset"
+import type { CanvasThemeEditorSectionId } from "./theme/theme-editor-sections"
 import {
   SidebarInset,
   SidebarProvider,

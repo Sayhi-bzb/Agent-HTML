@@ -1,11 +1,11 @@
 import * as React from "react"
 
-import { artifactBundleUrl } from "./api"
-import { BlockOverlayLayer, useBlockOverlays } from "./block-overlay"
+import { artifactBundleUrl } from "../api/api"
+import { BlockOverlayLayer, useBlockOverlays } from "../overlay/block-overlay"
 import { GuardIssueList, HostStatusMessage } from "./status-surface"
 import { ScrollArea } from "#agent-html-playground/components/ui/scroll-area"
 import { Skeleton } from "#agent-html-playground/components/ui/skeleton"
-import type { ArtifactModule, GuardIssue } from "./host-contracts"
+import type { ArtifactModule, GuardIssue } from "../host-contracts"
 
 export function ArtifactSurface({
   activeFilePath,

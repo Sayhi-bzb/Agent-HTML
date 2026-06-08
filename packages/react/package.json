@@ -14,6 +14,15 @@
   "exports": {
     ".": "./src/index.tsx"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML.git",
+    "directory": "packages/react"
+  },
+  "bugs": {
+    "url": "https://github.com/Sayhi-bzb/Agent-HTML/issues"
+  },
+  "homepage": "https://github.com/Sayhi-bzb/Agent-HTML#readme",
   "peerDependencies": {
     "react": "^19.0.0"
   }

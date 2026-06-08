@@ -1,8 +1,8 @@
-import type { Artifact } from "./host-contracts"
+import type { Artifact } from "../host-contracts"
 import {
   canvasThemeEditorSections,
   type CanvasThemeEditorSectionId,
-} from "./theme-editor-sections"
+} from "../theme/theme-editor-sections"
 import {
   canvasThemePresets,
   type CanvasThemePresetId,

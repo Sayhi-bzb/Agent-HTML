@@ -1,7 +1,7 @@
 import type {
   Artifact,
   GuardIssue,
-} from "./host-contracts"
+} from "../host-contracts"
 
 export const hostApiRoutes = {
   artifactBundle: "/__agent-html/artifact.js",

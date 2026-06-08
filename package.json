@@ -59,12 +59,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML-Sandbox.git"
+    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML.git"
   },
   "keywords": [],
   "author": "",
   "bugs": {
-    "url": "https://github.com/Sayhi-bzb/Agent-HTML-Sandbox/issues"
+    "url": "https://github.com/Sayhi-bzb/Agent-HTML/issues"
   },
-  "homepage": "https://github.com/Sayhi-bzb/Agent-HTML-Sandbox#readme"
+  "homepage": "https://github.com/Sayhi-bzb/Agent-HTML#readme"
 }

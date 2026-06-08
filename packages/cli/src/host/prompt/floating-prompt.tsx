@@ -13,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "#agent-html-playground/components/ui/tooltip"
-import type { FloatingPromptTarget } from "./host-contracts"
+import type { FloatingPromptTarget } from "../host-contracts"
 
 export function FloatingPrompt({
   onDraftChange,

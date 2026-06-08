@@ -6,7 +6,7 @@ import {
   measureBlockOverlays,
   parseCssLengthInPixels,
 } from "./block-overlay"
-import type { BlockOverlay } from "./host-contracts"
+import type { BlockOverlay } from "../host-contracts"
 
 const summaryElement = {} as HTMLElement
 const detailsElement = {} as HTMLElement
