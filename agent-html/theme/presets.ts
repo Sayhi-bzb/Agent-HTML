@@ -7,12 +7,6 @@ import mangaCss from "./presets/manga.css?raw"
 import { layout as mangaLayout } from "./presets/manga.layout"
 import mimiCss from "./presets/mimi.css?raw"
 import { layout as mimiLayout } from "./presets/mimi.layout"
-import realmorphismCss from "./presets/realmorphism.css?raw"
-import { layout as realmorphismLayout } from "./presets/realmorphism.layout"
-import sulavCss from "./presets/sulav.css?raw"
-import { layout as sulavLayout } from "./presets/sulav.layout"
-import vscodeCss from "./presets/vscode.css?raw"
-import { layout as vscodeLayout } from "./presets/vscode.layout"
 import whatsappCss from "./presets/whatsapp.css?raw"
 import { layout as whatsappLayout } from "./presets/whatsapp.layout"
 import wondrousCss from "./presets/wondrous.css?raw"
@@ -54,28 +48,10 @@ const cssPresetRegistrations = [
     layout: claudePlusLayout,
   },
   {
-    css: vscodeCss,
-    id: "vscode",
-    label: "VS Code",
-    layout: vscodeLayout,
-  },
-  {
     css: whatsappCss,
     id: "whatsapp",
     label: "WhatsApp",
     layout: whatsappLayout,
-  },
-  {
-    css: realmorphismCss,
-    id: "realmorphism",
-    label: "Realmorphism",
-    layout: realmorphismLayout,
-  },
-  {
-    css: sulavCss,
-    id: "sulav",
-    label: "Sulav",
-    layout: sulavLayout,
   },
   {
     css: wondrousCss,

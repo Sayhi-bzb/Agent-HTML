@@ -154,6 +154,14 @@ utilities such as `flex`, `grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`,
 `shrink-0`, and `truncate` may stay in artifact code when they express local
 structure or overflow behavior.
 
+Static artifact styling should stay as plain `className` strings. Use the local
+`cn` helper only when class names are conditional or need to merge with an
+incoming `className`; do not import `clsx` directly in artifacts. Repeated
+section, header, and panel shapes should stay as React snippets and semantic
+classes unless they carry reusable behavior. Shared artifact helpers should
+prefer local hooks and pure functions for fetch, selection, and status mapping
+over new visual wrapper components.
+
 Artifacts should not use raw palette classes, arbitrary values, decorative
 gradients, oversized radius, heavy shadows, custom font families, manual
 tracking, or one-off button, card, and table markup.

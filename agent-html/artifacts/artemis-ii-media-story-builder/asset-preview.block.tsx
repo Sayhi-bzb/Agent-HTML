@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import {
   ExternalLinkIcon,
   ImageIcon,
@@ -16,9 +15,9 @@ import {
   buildNasaAssetUrl,
   compactDescription,
   formatNasaDate,
-  parseNasaAssetResponse,
   type ArtemisMediaItem,
 } from "./data"
+import { useArtemisAssetRendition } from "./hooks"
 
 type AssetPreviewBlockProps = {
   addSelectedItemToStory: () => void
@@ -40,62 +39,7 @@ export function AssetPreviewBlock({
   item,
   setSourceFocusId,
 }: AssetPreviewBlockProps) {
-  const [renditionUrl, setRenditionUrl] = useState("")
-  const [renditionError, setRenditionError] = useState("")
-
-  useEffect(() => {
-    let isCurrent = true
-
-    setRenditionUrl("")
-    setRenditionError("")
-
-    if (!item) {
-      return () => {
-        isCurrent = false
-      }
-    }
-
-    fetch(buildNasaAssetUrl(item.nasaId))
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`NASA asset lookup failed with ${response.status}`)
-        }
-
-        return response.json()
-      })
-      .then((json) => {
-        if (!isCurrent) {
-          return
-        }
-
-        const asset = parseNasaAssetResponse(json)
-        const nextUrl = item.mediaType === "video" ? asset.mp4 : asset.image
-
-        if (nextUrl) {
-          setRenditionUrl(nextUrl)
-          return
-        }
-
-        setRenditionError(
-          "No direct rendition was found in the selected asset manifest."
-        )
-      })
-      .catch((error: unknown) => {
-        if (!isCurrent) {
-          return
-        }
-
-        setRenditionError(
-          error instanceof Error
-            ? error.message
-            : "NASA asset lookup is pending verification."
-        )
-      })
-
-    return () => {
-      isCurrent = false
-    }
-  }, [item])
+  const { renditionError, renditionUrl } = useArtemisAssetRendition(item)
 
   if (!item) {
     return (

@@ -24,6 +24,11 @@ Artifact and example code may consume:
 - layout behavior utilities such as `flex`, `grid`, `min-w-0`,
   `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate`
 
+Use static `className` strings for static artifact styling. When class names
+depend on state, selected rows, disabled controls, data values, or an incoming
+`className` prop, import `cn` from `../lib/cn` or `../../lib/cn` instead of
+importing `clsx` directly.
+
 Artifact and example code must not consume:
 
 - retired app shell source

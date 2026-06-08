@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import { ExternalLinkIcon, ImageIcon, VideoIcon } from "lucide-react"
 
 import { Alert, AlertDescription } from "../../components/ui/alert"
@@ -7,12 +6,11 @@ import { Button } from "../../components/ui/button"
 import { Separator } from "../../components/ui/separator"
 
 import {
-  buildNasaAssetUrl,
   compactDescription,
   formatNasaDate,
-  parseNasaAssetResponse,
   type NasaMediaItem,
 } from "./data"
+import { useNasaVideoRendition } from "./hooks"
 
 type MediaPreviewBlockProps = {
   item: NasaMediaItem | null
@@ -28,57 +26,7 @@ function MetadataRow({ label, value }: { label: string; value: string }) {
 }
 
 export function MediaPreviewBlock({ item }: MediaPreviewBlockProps) {
-  const [videoUrl, setVideoUrl] = useState("")
-  const [videoError, setVideoError] = useState("")
-
-  useEffect(() => {
-    let isCurrent = true
-
-    setVideoUrl("")
-    setVideoError("")
-
-    if (!item || item.mediaType !== "video") {
-      return () => {
-        isCurrent = false
-      }
-    }
-
-    fetch(buildNasaAssetUrl(item.nasaId))
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`NASA asset lookup failed with ${response.status}`)
-        }
-
-        return response.json()
-      })
-      .then((json) => {
-        if (!isCurrent) {
-          return
-        }
-
-        const asset = parseNasaAssetResponse(json)
-
-        if (asset.mp4) {
-          setVideoUrl(asset.mp4)
-          return
-        }
-
-        setVideoError("No playable MP4 rendition was found for this asset.")
-      })
-      .catch((error: unknown) => {
-        if (!isCurrent) {
-          return
-        }
-
-        setVideoError(
-          error instanceof Error ? error.message : "NASA asset lookup failed."
-        )
-      })
-
-    return () => {
-      isCurrent = false
-    }
-  }, [item])
+  const { videoError, videoUrl } = useNasaVideoRendition(item)
 
   if (!item) {
     return (

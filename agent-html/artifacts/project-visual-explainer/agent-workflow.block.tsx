@@ -18,6 +18,7 @@ export function AgentWorkflowBlock() {
         </h2>
         <p className="canvas-text-body text-muted-foreground">
           A request becomes durable source, then an inspectable canvas.
+          这是中文测试
         </p>
       </div>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {
   ImageIcon,
   Loader2Icon,
@@ -22,10 +22,10 @@ import {
   compactDescription,
   formatNasaDate,
   getPhaseSearchHint,
-  parseNasaSearchResponse,
   type ArtemisMediaFilter,
   type ArtemisMediaItem,
 } from "./data"
+import { useArtemisSearchResults } from "./hooks"
 
 type MediaDiscoveryBlockProps = {
   activePhaseId: string
@@ -65,58 +65,13 @@ export function MediaDiscoveryBlock({
   setSourceFocusId,
 }: MediaDiscoveryBlockProps) {
   const [draftQuery, setDraftQuery] = useState(query)
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    let isCurrent = true
-
-    setError("")
-    setIsLoading(true)
-
-    fetch(endpoint)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`NASA search failed with ${response.status}`)
-        }
-
-        return response.json()
-      })
-      .then((json) => {
-        if (!isCurrent) {
-          return
-        }
-
-        const nextItems = parseNasaSearchResponse(json).slice(0, 24)
-
-        setItems(nextItems)
-        setSelectedId(nextItems[0]?.nasaId ?? null)
-        setSourceFocusId(nextItems[0]?.nasaId ?? null)
-      })
-      .catch((fetchError: unknown) => {
-        if (!isCurrent) {
-          return
-        }
-
-        setItems([])
-        setSelectedId(null)
-        setSourceFocusId(null)
-        setError(
-          fetchError instanceof Error
-            ? fetchError.message
-            : "NASA Images API search is pending verification."
-        )
-      })
-      .finally(() => {
-        if (isCurrent) {
-          setIsLoading(false)
-        }
-      })
-
-    return () => {
-      isCurrent = false
-    }
-  }, [endpoint, setItems, setSelectedId, setSourceFocusId])
+  const { error, isLoading } = useArtemisSearchResults({
+    endpoint,
+    limit: 24,
+    setItems,
+    setSelectedId,
+    setSourceFocusId,
+  })
 
   function submitSearch() {
     setQuery(draftQuery)

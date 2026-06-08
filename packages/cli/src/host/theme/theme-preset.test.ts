@@ -164,7 +164,9 @@ describe("canvas theme preset", () => {
     const presetIds = canvasThemePresets.map((themePreset) => themePreset.id)
 
     expect(presetIds).toContain("claude-plus")
-    expect(presetIds).toContain("vscode")
+    expect(presetIds).not.toContain("realmorphism")
+    expect(presetIds).not.toContain("sulav")
+    expect(presetIds).not.toContain("vscode")
     expect(
       canvasThemePresets.find((themePreset) => themePreset.id === "manga")
         ?.layout

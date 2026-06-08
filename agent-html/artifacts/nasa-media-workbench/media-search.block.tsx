@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { ImageIcon, Loader2Icon, SearchIcon, VideoIcon } from "lucide-react"
 
 import { Alert, AlertDescription } from "../../components/ui/alert"
@@ -14,10 +14,10 @@ import {
 import {
   compactDescription,
   formatNasaDate,
-  parseNasaSearchResponse,
   type NasaMediaFilter,
   type NasaMediaItem,
 } from "./data"
+import { useNasaSearchResults } from "./hooks"
 
 type MediaSearchBlockProps = {
   endpoint: string
@@ -49,58 +49,12 @@ export function MediaSearchBlock({
   setSelectedId,
 }: MediaSearchBlockProps) {
   const [draftQuery, setDraftQuery] = useState(query)
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    let isCurrent = true
-
-    setError("")
-    setIsLoading(true)
-
-    fetch(endpoint)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`NASA search failed with ${response.status}`)
-        }
-
-        return response.json()
-      })
-      .then((json) => {
-        if (!isCurrent) {
-          return
-        }
-
-        const nextItems = parseNasaSearchResponse(json).slice(0, 18)
-
-        setItems(nextItems)
-
-        if (nextItems.length > 0) {
-          setSelectedId(nextItems[0].nasaId)
-        }
-      })
-      .catch((fetchError: unknown) => {
-        if (!isCurrent) {
-          return
-        }
-
-        setItems([])
-        setError(
-          fetchError instanceof Error
-            ? fetchError.message
-            : "NASA search request failed."
-        )
-      })
-      .finally(() => {
-        if (isCurrent) {
-          setIsLoading(false)
-        }
-      })
-
-    return () => {
-      isCurrent = false
-    }
-  }, [endpoint, setItems, setSelectedId])
+  const { error, isLoading } = useNasaSearchResults({
+    endpoint,
+    limit: 18,
+    setItems,
+    setSelectedId,
+  })
 
   function submitSearch() {
     setQuery(draftQuery)
