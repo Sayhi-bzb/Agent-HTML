@@ -73,7 +73,7 @@ import type {
 
 type CanvasHostMode = "artifact" | "create-artifact"
 const blockPromptPipelineMode = "test" as "test" | "real"
-const testBlockPromptPipelineDelayMs = 900
+const testBlockPromptPipelineDelayMs = 1400
 
 function waitForTestBlockPromptPipeline() {
   return new Promise<void>((resolve) => {

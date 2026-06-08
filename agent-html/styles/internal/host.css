@@ -83,15 +83,15 @@
     display: flex;
     width: min(100%, var(--canvas-create-artifact-composer-width));
     flex-direction: column;
-    gap: var(--canvas-sidebar-header-gap);
+    gap: var(--canvas-create-artifact-stack-gap);
   }
 
   .canvas-create-artifact-brand {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--canvas-sidebar-control-gap);
-    font-size: var(--canvas-sidebar-font-size-title);
+    gap: var(--canvas-create-artifact-brand-gap);
+    font-size: var(--canvas-create-artifact-brand-font-size);
     font-weight: 600;
   }
 
@@ -552,8 +552,13 @@
   }
 
   .canvas-block-message-badge[data-phase="running"] .canvas-block-message-badge-dot {
-    animation: canvas-block-message-pulse 1.15s ease-in-out infinite;
-    background: color-mix(in oklab, var(--ring) 72%, var(--background));
+    width: calc(var(--canvas-block-message-badge-size) + 0.125rem);
+    height: calc(var(--canvas-block-message-badge-size) + 0.125rem);
+    border: 1.5px solid color-mix(in oklab, var(--ring) 24%, transparent);
+    border-top-color: var(--ring);
+    animation: canvas-block-message-spin 0.85s linear infinite;
+    background: transparent;
+    box-shadow: none;
   }
 
   .canvas-block-message-badge[data-phase="failed"] .canvas-block-message-badge-dot {
@@ -645,16 +650,9 @@
     color: var(--muted-foreground);
   }
 
-  @keyframes canvas-block-message-pulse {
-    0%,
-    100% {
-      opacity: 0.55;
-      transform: scale(0.84);
-    }
-
-    50% {
-      opacity: 1;
-      transform: scale(1);
+  @keyframes canvas-block-message-spin {
+    to {
+      transform: rotate(1turn);
     }
   }
 
