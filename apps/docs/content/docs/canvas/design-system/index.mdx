@@ -22,7 +22,7 @@ styles/internal/*
   -> locked Canvas system chrome, Artifact root, and theme editor styles
 
 theme/*
-  -> host-owned theme preset resources
+  -> host-owned theme preset registry and shadcn CSS sources
 
 components/ui/*
   -> local visual primitives
@@ -59,9 +59,12 @@ layout rhythm, surfaces, icon boxes, and text scale.
 `agent-html/styles/internal/*` owns locked Canvas chrome, the Artifact reading
 container, and theme editor styles. Artifact agents do not read it by default.
 
-`agent-html/theme/*` owns host theme preset resources. Host code may consume
-these through `#agent-html-playground/theme/*`; artifacts consume semantic
-tokens and do not choose preset values directly.
+`agent-html/theme/*` owns host theme preset resources. Preset files under
+`theme/presets/*.css` use standard shadcn v4 CSS format. The preset registry
+parses `:root` and `.dark` variable blocks into Canvas theme variables instead
+of hand-writing TS variable objects. Host code may consume these through
+`#agent-html-playground/theme/*`; artifacts consume semantic tokens and do not
+choose preset values directly.
 
 Host inspection chrome, including surface padding, toolbar offsets, status
 spacing, sidebar local spacing, floating prompt surface values, block hover

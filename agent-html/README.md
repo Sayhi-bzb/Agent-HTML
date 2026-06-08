@@ -47,7 +47,7 @@ When touching Canvas classes, tokens, or internal chrome:
 - `lib`: pure helpers and transforms.
 - `schema`: typed contracts and validation.
 - `styles`: CSS pipeline and Canvas style API.
-- `theme`: host-owned theme preset resources.
+- `theme`: host-owned theme preset registry and shadcn CSS sources.
 - `data`: fixtures and local datasets.
 - `assets`: bundle-time imports.
 - `public`: URL-addressed static files.

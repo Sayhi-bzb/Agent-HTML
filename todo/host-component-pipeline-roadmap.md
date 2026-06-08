@@ -77,13 +77,19 @@ Current law remains:
 ## Target Pipeline
 
 ```text
+packages/cli/src/host/*
+  Feature modules own host state, data flow, and behavior.
+
+packages/cli/src/host/ui
+  Feature-facing families: HostChrome, HostPrompt, and HostFeedback.
+
+packages/cli/src/host/ui/*
+  Primitive-specific host adapters. These preserve primitive behavior while
+  defining host density, slots, and state presentation.
+
 agent-html/components/ui/*
   Generic local primitives: Button, Sidebar, Select, DropdownMenu, Command,
   Popover, Tooltip, Input, Collapsible, and related Radix/shadcn wrappers.
-
-packages/cli/src/host/ui/*
-  Host chrome adapters. These define host consumption, density, slots, and
-  state presentation while preserving primitive behavior.
 
 agent-html/styles/tokens/features/host.css
 agent-html/styles/tokens/features/theme-editor.css
@@ -94,10 +100,6 @@ agent-html/styles/internal/host.css
 agent-html/styles/internal/theme-editor.css
   Semantic classes consumed by host adapters. Feature code should not invent
   repeated item/control styling.
-
-packages/cli/src/host/*
-  Feature modules compose host adapters and own state, data flow, and host
-  behavior.
 ```
 
 ## Adapter Families
@@ -107,13 +109,11 @@ packages/cli/src/host/*
 Host feature modules import from `packages/cli/src/host/ui` only. The public
 host UI consumption surface is:
 
-- `HostAction` for sidebar rows, sidebar row buttons, and icon-only host
-  actions;
-- `HostMenu` for select, dropdown, command, and popover menu/picker pieces;
+- `HostChrome` for sidebar rows, sidebar row buttons, icon-only host actions,
+  select, dropdown, command, popover menu/picker pieces, and swatches;
 - `HostPrompt` for floating block prompt surfaces, textarea, actions, status,
   and prompt popover content;
-- `HostStatus` for host alert/status surfaces, lists, and items;
-- `HostDisplay` for swatches, skeletons, and shared display-only content.
+- `HostFeedback` for host alert/status surfaces, lists, items, and skeletons.
 
 Primitive-specific files may remain inside `host/ui`, but feature modules do
 not import from those files directly. This keeps behavior-specific

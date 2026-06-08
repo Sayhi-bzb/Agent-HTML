@@ -32,7 +32,7 @@ import type {
   CanvasThemePreset,
   CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
-import { HostAction, HostDisplay, HostMenu, type HostSelectOption } from "../ui"
+import { HostChrome, type HostSelectOption } from "../ui"
 
 type ColorTokenItem = {
   label: string
@@ -288,7 +288,7 @@ function EditorPopoverItem({
     <SidebarMenuItem>
       <Popover>
         <PopoverTrigger asChild>
-          <HostAction.SidebarButton
+          <HostChrome.SidebarButton
             caption={valueLabel}
             className={editorPopoverButtonClassName}
             label={label}
@@ -297,14 +297,14 @@ function EditorPopoverItem({
             type="button"
           />
         </PopoverTrigger>
-        <HostMenu.PopoverContent
+        <HostChrome.PopoverContent
           align="start"
           className={popoverClassName}
           side="right"
           sideOffset={10}
         >
           {children}
-        </HostMenu.PopoverContent>
+        </HostChrome.PopoverContent>
       </Popover>
     </SidebarMenuItem>
   )
@@ -331,7 +331,7 @@ function ThemeSelectItem({
     >
       <div className="canvas-theme-editor-popover-stack">
         {options.map((option) => (
-          <HostMenu.PopoverAction
+          <HostChrome.PopoverAction
             active={option.value === value}
             key={option.value}
             label={option.label}
@@ -357,7 +357,7 @@ function ColorOptionField<Option extends string>({
   value: Option
 }) {
   return (
-    <HostMenu.PopoverAction
+    <HostChrome.PopoverAction
       aria-expanded={isActive}
       className="canvas-theme-editor-picker-tab"
       data-active={isActive}
@@ -381,7 +381,7 @@ function TailwindColorEditor({
   return (
     <div className="canvas-theme-editor-color-picker">
       <div className="canvas-theme-editor-picker-preview">
-        <HostDisplay.Swatch
+        <HostChrome.Swatch
           color={getTailwindColorValue(token)}
           size="sm"
         />
@@ -421,7 +421,7 @@ function TailwindColorEditor({
               const isActive = family === token.family
 
               return (
-                <HostMenu.PopoverAction
+                <HostChrome.PopoverAction
                   active={isActive}
                   key={family}
                   label={family}
@@ -437,7 +437,7 @@ function TailwindColorEditor({
               const isActive = step === token.step
 
               return (
-                <HostMenu.PopoverAction
+                <HostChrome.PopoverAction
                   active={isActive}
                   key={step}
                   label={step}
@@ -486,7 +486,7 @@ function ColorTokenRow({
     <EditorPopoverItem
       label={item.label}
       popoverClassName="canvas-theme-editor-popover-md"
-      trailing={<HostDisplay.Swatch color={swatchColor} size="sm" />}
+      trailing={<HostChrome.Swatch color={swatchColor} size="sm" />}
       valueLabel={valueLabel}
     >
       {tailwindToken ? (
@@ -721,7 +721,7 @@ export function ReactCanvasThemePresetSelect({
   presets: readonly CanvasThemePreset[]
 }) {
   return (
-    <HostMenu.Select
+    <HostChrome.Select
       label="Theme preset"
       onValueChange={(value) => onSelectPreset(value as CanvasThemePresetId)}
       options={presets.map((preset) => ({
@@ -754,7 +754,7 @@ export function ReactCanvasThemeEditorHeader({
         onSelectPreset={onSelectPreset}
         presets={presets}
       />
-      <HostMenu.Select
+      <HostChrome.Select
         label="Theme section"
         onValueChange={(value) =>
           onSelectSection(value as CanvasThemeEditorSectionId)

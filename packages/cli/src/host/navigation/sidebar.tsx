@@ -51,7 +51,7 @@ import type {
 } from "#agent-html-playground/theme/presets"
 import type { Artifact, GuardIssue } from "../host-contracts"
 import type { CanvasSidebarView } from "../preferences/canvas-host-preferences"
-import { HostAction, HostMenu } from "../ui"
+import { HostChrome } from "../ui"
 
 export function ReactCanvasSidebar({
   activeFilePath,
@@ -103,7 +103,7 @@ export function ReactCanvasSidebar({
       <SidebarHeader className="canvas-sidebar-pad canvas-sidebar-header-stack">
         {isGalleryView ? (
           <SidebarMenu className="canvas-sidebar-menu">
-            <HostAction.Sidebar
+            <HostChrome.SidebarAction
               icon={ArrowLeftIcon}
               label="Back"
               onClick={() => onSelectSidebarView("artifacts")}
@@ -168,7 +168,7 @@ export function ReactCanvasSidebar({
                     ).length
 
                     return (
-                      <HostAction.Sidebar
+                      <HostChrome.SidebarAction
                         icon={FileTextIcon}
                         isActive={artifact.filePath === activeFilePath}
                         key={artifact.filePath}
@@ -181,7 +181,7 @@ export function ReactCanvasSidebar({
                         {issueCount > 0 ? (
                           <SidebarMenuBadge>{issueCount}</SidebarMenuBadge>
                         ) : null}
-                      </HostAction.Sidebar>
+                      </HostChrome.SidebarAction>
                     )
                   })
                 )}
@@ -193,7 +193,7 @@ export function ReactCanvasSidebar({
       <SidebarFooter className="canvas-sidebar-pad">
         <SidebarMenu>
           {isGalleryView ? (
-            <HostAction.Sidebar
+            <HostChrome.SidebarAction
               disabled={!themePreviewDirty}
               icon={SparklesIcon}
               label={themePreviewDirty ? "Reset preview" : "Preview clean"}
@@ -202,7 +202,7 @@ export function ReactCanvasSidebar({
             />
           ) : (
             <>
-              <HostAction.Sidebar
+              <HostChrome.SidebarAction
                 icon={PaletteIcon}
                 label="Gallery"
                 onClick={() => onSelectSidebarView("gallery")}
@@ -211,17 +211,17 @@ export function ReactCanvasSidebar({
               <SidebarMenuItem>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <HostAction.SidebarButton
+                    <HostChrome.SidebarButton
                       icon={Settings2Icon}
                       label="Settings"
                       type="button"
                     />
                   </DropdownMenuTrigger>
-                  <HostMenu.DropdownContent align="end" side="right">
+                  <HostChrome.DropdownContent align="end" side="right">
                     <DropdownMenuLabel>Settings</DropdownMenuLabel>
-                    <HostMenu.DropdownItem disabled label="Preferences" />
-                    <HostMenu.DropdownItem disabled label="About Agent-HTML" />
-                  </HostMenu.DropdownContent>
+                    <HostChrome.DropdownItem disabled label="Preferences" />
+                    <HostChrome.DropdownItem disabled label="About Agent-HTML" />
+                  </HostChrome.DropdownContent>
                 </DropdownMenu>
               </SidebarMenuItem>
             </>
@@ -246,14 +246,14 @@ function ReactCanvasArtifactSearch({
   return (
     <>
       <SidebarMenu className="canvas-sidebar-menu">
-        <HostAction.Sidebar
+        <HostChrome.SidebarAction
           icon={SearchIcon}
           label="Search"
           onClick={() => setOpen(true)}
           type="button"
         />
       </SidebarMenu>
-      <HostMenu.CommandDialog
+      <HostChrome.CommandDialog
         className="sm:max-w-md"
         description="Search Canvas artifacts."
         onOpenChange={setOpen}
@@ -269,7 +269,7 @@ function ReactCanvasArtifactSearch({
                 const label = artifactLabel(artifact.filePath)
 
                 return (
-                  <HostMenu.CommandItem
+                  <HostChrome.CommandItem
                     icon={FileTextIcon}
                     key={artifact.filePath}
                     keywords={[label, artifact.filePath]}
@@ -286,7 +286,7 @@ function ReactCanvasArtifactSearch({
             </CommandGroup>
           </CommandList>
         </Command>
-      </HostMenu.CommandDialog>
+      </HostChrome.CommandDialog>
     </>
   )
 }

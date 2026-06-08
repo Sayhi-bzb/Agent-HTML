@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "#agent-html-playground/components/ui/tooltip"
 import type { FloatingPromptTarget } from "../host-contracts"
-import { HostAction, HostPrompt } from "../ui"
+import { HostChrome, HostPrompt } from "../ui"
 
 export function FloatingPrompt({
   onDraftChange,
@@ -66,7 +66,7 @@ export function FloatingPrompt({
         <HostPrompt.Actions>
           <Tooltip>
             <TooltipTrigger asChild>
-              <HostAction.Icon
+              <HostChrome.Icon
                 disabled={!value.trim() || isSubmitting}
                 icon={ArrowUpIcon}
                 label="Send"

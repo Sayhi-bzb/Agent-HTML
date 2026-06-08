@@ -35,7 +35,8 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Put pure helpers and transforms in `lib`.
 - Put typed contracts and validation in `schema`.
 - Put Canvas CSS, tokens, and style routes in `styles`.
-- Put theme preset resources in `theme`.
+- Put theme preset resources in `theme`; keep preset source CSS in
+  `theme/presets` and let the registry normalize it.
 - Put fixtures and local datasets in `data`.
 - Put bundle-time imports in `assets`.
 - Put URL-addressed static files in `public`.

@@ -48,7 +48,7 @@ import {
 } from "#agent-html-playground/theme/presets"
 import { PanelLeftIcon } from "lucide-react"
 import { formatBlockPrompt } from "../react-canvas/prompt.mjs"
-import { HostAction } from "./ui"
+import { HostChrome } from "./ui"
 import type {
   Artifact,
   FloatingPromptTarget,
@@ -400,7 +400,7 @@ export function ReactCanvasHostApp() {
         </SidebarProvider>
         <SidebarInset className="min-h-svh min-w-0 overflow-hidden">
           <div className="canvas-host-toolbar">
-            <HostAction.Icon
+            <HostChrome.Icon
               icon={PanelLeftIcon}
               label={
                 leftSidebarOpen

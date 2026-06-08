@@ -12,7 +12,7 @@ import {
   PopoverAnchor,
 } from "#agent-html-playground/components/ui/popover"
 import type { BlockOverlay } from "../host-contracts"
-import { HostAction, HostPrompt } from "../ui"
+import { HostChrome, HostPrompt } from "../ui"
 
 const defaultBlockHighlightPadding = 6
 
@@ -280,7 +280,7 @@ export function BlockOverlayLayer({
                   width: overlay.width,
                 }}
               >
-                <HostAction.Icon
+                <HostChrome.Icon
                   data-hovered={isHovered || isPromptOpen ? "true" : undefined}
                   icon={SparklesIcon}
                   label={`Message ${overlay.title}`}

@@ -1,5 +1,5 @@
 import type { GuardIssue } from "../host-contracts"
-import { HostStatus } from "../ui"
+import { HostFeedback } from "../ui"
 
 export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {
   if (issues.length === 0) {
@@ -7,18 +7,18 @@ export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {
   }
 
   return (
-    <HostStatus.Surface className="canvas-status" title="Guard issues">
-      <HostStatus.List>
+    <HostFeedback.Status className="canvas-status" title="Guard issues">
+      <HostFeedback.StatusList>
         {issues.map((issue, index) => (
-          <HostStatus.Item
+          <HostFeedback.StatusItem
             badge={issue.severity}
             key={`${issue.filePath}:${issue.line ?? 0}:${index}`}
           >
             {issue.message}
-          </HostStatus.Item>
+          </HostFeedback.StatusItem>
         ))}
-      </HostStatus.List>
-    </HostStatus.Surface>
+      </HostFeedback.StatusList>
+    </HostFeedback.Status>
   )
 }
 
@@ -29,5 +29,5 @@ export function HostStatusMessage({
   message: string
   title: string
 }) {
-  return <HostStatus.Surface message={message} title={title} />
+  return <HostFeedback.Status message={message} title={title} />
 }

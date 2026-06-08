@@ -48,9 +48,3 @@ export function HostStatusItem({
     </p>
   )
 }
-
-export const HostStatus = {
-  Item: HostStatusItem,
-  List: HostStatusList,
-  Surface: HostStatusSurface,
-}
