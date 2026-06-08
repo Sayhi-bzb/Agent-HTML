@@ -10,6 +10,15 @@ import type {
 
 const cssVariableDeclarationPattern = /(--[a-zA-Z0-9-_]+)\s*:\s*([^;]+);/g
 const themeVariableNames = new Set<string>(canvasThemeVariableNames)
+const fontFallbacks = {
+  "--font-heading": "sans-serif",
+  "--font-mono": "ui-monospace, monospace",
+  "--font-sans": "ui-sans-serif, sans-serif",
+  "--font-serif": "ui-serif, serif",
+} as const satisfies Record<
+  NonNullable<CanvasThemePresetLayout["fonts"]>[number]["variable"],
+  string
+>
 
 function extractCssBlock(source: string, selector: string) {
   const selectorIndex = source.indexOf(selector)
@@ -57,6 +66,38 @@ function parseThemeVariables(block: string): CanvasThemeCssVariables {
   ) satisfies CanvasThemeCssVariables
 }
 
+function quoteFontFamily(family: string) {
+  const trimmedFamily = family.trim()
+
+  if (!trimmedFamily) {
+    return ""
+  }
+
+  if (/^["'].*["']$/.test(trimmedFamily)) {
+    return trimmedFamily
+  }
+
+  return /\s/.test(trimmedFamily)
+    ? `"${trimmedFamily.replaceAll('"', '\\"')}"`
+    : trimmedFamily
+}
+
+function createLayoutFontVariables(
+  layout: CanvasThemePresetLayout | undefined
+): CanvasThemeCssVariables {
+  return Object.fromEntries(
+    (layout?.fonts ?? []).flatMap((font) => {
+      const family = quoteFontFamily(font.family)
+
+      if (!family) {
+        return []
+      }
+
+      return [[font.variable, `${family}, ${fontFallbacks[font.variable]}`]]
+    })
+  ) satisfies CanvasThemeCssVariables
+}
+
 export function parseCanvasThemePresetCss(source: string) {
   return {
     darkCssVariables: parseThemeVariables(extractCssBlock(source, ".dark")),
@@ -79,12 +120,16 @@ export function createCanvasThemePresetFromCss({
   layout?: CanvasThemePresetLayout
 }): CanvasThemePreset {
   const parsedPreset = parseCanvasThemePresetCss(css)
+  const layoutFontVariables = createLayoutFontVariables(layout)
 
   return {
     id,
     label,
     ...(layout ? { layout } : {}),
-    lightCssVariables: parsedPreset.lightCssVariables,
+    lightCssVariables: {
+      ...layoutFontVariables,
+      ...parsedPreset.lightCssVariables,
+    },
     ...(Object.keys(parsedPreset.darkCssVariables).length
       ? { darkCssVariables: parsedPreset.darkCssVariables }
       : {}),

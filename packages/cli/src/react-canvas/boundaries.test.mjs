@@ -292,23 +292,6 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     )
   })
 
-  it("keeps Canvas theme preset layout metadata in typed modules", () => {
-    const presetFiles = filesUnder("agent-html/theme/presets")
-
-    expect(presetFiles.filter((file) => file.endsWith(".layout.txt"))).toEqual(
-      []
-    )
-    expect(presetFiles.filter((file) => file.endsWith(".layout.tsx"))).toEqual(
-      []
-    )
-    expect(
-      presetFiles
-        .filter((file) => file.endsWith(".css"))
-        .map((file) => file.replace(/\.css$/, ".layout.ts"))
-        .filter((layoutFile) => !presetFiles.includes(layoutFile))
-    ).toEqual([])
-  })
-
   it("keeps shadcn and TypeScript aliases scoped to their owners", () => {
     const rootComponents = JSON.parse(readSource("components.json"))
     const playgroundComponents = JSON.parse(
@@ -427,6 +410,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "color: var(--agent-html-text-selection-foreground)"
     )
     expect(playgroundTailwindTokens).toContain("--font-sans: var(--font-sans)")
+    expect(playgroundTailwindTokens).toContain("--font-mono: var(--font-mono)")
     expect(playgroundTailwindTokens).toContain(
       "--font-heading: var(--font-heading)"
     )

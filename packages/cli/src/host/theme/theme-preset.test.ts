@@ -128,6 +128,38 @@ describe("canvas theme preset", () => {
     })
   })
 
+  it("normalizes preset layout fonts into css variables", () => {
+    const normalizedPreset = createCanvasThemePresetFromCss({
+      css: `
+        :root {
+          --background: #ffffff;
+        }
+      `,
+      id: "source",
+      label: "Source",
+      layout: {
+        fonts: [
+          {
+            family: "Architects Daughter",
+            provider: "google",
+            variable: "--font-sans",
+          },
+          {
+            family: "JetBrains Mono",
+            provider: "google",
+            variable: "--font-mono",
+          },
+        ],
+      },
+    })
+
+    expect(normalizedPreset.lightCssVariables).toMatchObject({
+      "--background": "#ffffff",
+      "--font-mono": '"JetBrains Mono", ui-monospace, monospace',
+      "--font-sans": '"Architects Daughter", ui-sans-serif, sans-serif',
+    })
+  })
+
   it("loads css registered presets without sidebar overrides", () => {
     const presetIds = canvasThemePresets.map((themePreset) => themePreset.id)
 
