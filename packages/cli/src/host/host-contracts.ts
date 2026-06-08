@@ -30,6 +30,37 @@ export type BlockOverlay = {
   y: number
 }
 
+export type BlockMessageItemKind =
+  | "request"
+  | "reasoning"
+  | "tool_use"
+  | "observe"
+  | "action"
+  | "response"
+  | "status"
+
+export type BlockMessagePhase = "idle" | "running" | "done" | "failed"
+
+export type BlockMessageItem = {
+  id: string
+  kind: BlockMessageItemKind
+  status?: "done" | "failed" | "loading"
+  summary: string
+  title: string
+}
+
+export type BlockMessageThread = {
+  blockId: string
+  filePath: string
+  id: string
+  isOpen: boolean
+  items: BlockMessageItem[]
+  phase: BlockMessagePhase
+  title: string
+  threadId?: string
+  turnId?: string | null
+}
+
 export type CanvasTarget = {
   blockId: string
   filePath: string

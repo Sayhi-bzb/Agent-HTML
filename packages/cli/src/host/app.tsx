@@ -7,6 +7,7 @@ import {
   type CodexThread,
   startCodexTurn,
 } from "./api/api"
+import { CreateArtifactSurface } from "./artifact/create-artifact-surface"
 import { ArtifactSurface } from "./artifact/artifact-surface"
 import {
   readCanvasHostPreferences,
@@ -19,6 +20,14 @@ import {
   clearCanvasMessageHost,
   publishCanvasMessageHost,
 } from "./prompt/canvas-message-store"
+import {
+  failBlockMessageThread,
+  finishBlockMessageThread,
+  getBlockMessageStoreSnapshot,
+  setBlockMessageThreadOpen,
+  startBlockMessageThread,
+  subscribeBlockMessageStore,
+} from "./prompt/block-message-events"
 import {
   canvasInteractionEventName,
   clearCanvasInteractionSnapshots,
@@ -50,13 +59,27 @@ import {
   type CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
 import { PanelLeftIcon } from "lucide-react"
-import { formatBlockPrompt } from "../react-canvas/prompt.mjs"
+import {
+  createArtifactFilePath,
+  formatBlockPrompt,
+  formatCreateArtifactPrompt,
+} from "../react-canvas/prompt.mjs"
 import { HostIconButton } from "./ui/icon-button"
 import type {
   Artifact,
   FloatingPromptTarget,
   GuardIssue,
 } from "./host-contracts"
+
+type CanvasHostMode = "artifact" | "create-artifact"
+const blockPromptPipelineMode = "test" as "test" | "real"
+const testBlockPromptPipelineDelayMs = 900
+
+function waitForTestBlockPromptPipeline() {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, testBlockPromptPipelineDelayMs)
+  })
+}
 
 export function ReactCanvasHostApp() {
   const initialPreferences = React.useMemo(
@@ -73,6 +96,15 @@ export function ReactCanvasHostApp() {
   const [loadError, setLoadError] = React.useState<string | null>(null)
   const [messageDraft, setMessageDraft] = React.useState("")
   const [promptStatus, setPromptStatus] = React.useState("")
+  const [blockMessages, setBlockMessages] = React.useState(
+    getBlockMessageStoreSnapshot
+  )
+  const [createArtifactDraft, setCreateArtifactDraft] = React.useState("")
+  const [createArtifactStatus, setCreateArtifactStatus] = React.useState("")
+  const [pendingArtifactFilePath, setPendingArtifactFilePath] =
+    React.useState<string | null>(null)
+  const [activeHostMode, setActiveHostMode] =
+    React.useState<CanvasHostMode>("artifact")
   const [activeThemePresetId, setActiveThemePresetId] =
     React.useState<CanvasThemePresetId>(initialPreferences.activeThemePresetId)
   const [activeSidebarView, setActiveSidebarView] =
@@ -138,6 +170,15 @@ export function ReactCanvasHostApp() {
       setLoadError(null)
       setActiveFilePath((current) => {
         if (
+          pendingArtifactFilePath &&
+          data.artifacts.some(
+            (artifact) => artifact.filePath === pendingArtifactFilePath
+          )
+        ) {
+          return pendingArtifactFilePath
+        }
+
+        if (
           current &&
           data.artifacts.some((artifact) => artifact.filePath === current)
         ) {
@@ -152,10 +193,21 @@ export function ReactCanvasHostApp() {
           storedPreferences.activeFilePath ?? data.artifacts[0]?.filePath ?? null
         )
       })
+
+      if (
+        pendingArtifactFilePath &&
+        data.artifacts.some(
+          (artifact) => artifact.filePath === pendingArtifactFilePath
+        )
+      ) {
+        setActiveHostMode("artifact")
+        setPendingArtifactFilePath(null)
+        setCreateArtifactStatus("Artifact ready.")
+      }
     } finally {
       setArtifactsLoading(false)
     }
-  }, [])
+  }, [pendingArtifactFilePath])
 
   React.useEffect(() => {
     void refreshArtifacts().catch((refreshError: unknown) => {
@@ -266,6 +318,17 @@ export function ReactCanvasHostApp() {
     )
   }
 
+  const selectArtifact = React.useCallback((filePath: string) => {
+    setActiveHostMode("artifact")
+    setActiveFilePath(filePath)
+  }, [])
+
+  const selectCreateArtifact = React.useCallback(() => {
+    setPromptTarget(null)
+    setPromptStatus("")
+    setActiveHostMode("create-artifact")
+  }, [])
+
   const submitBlockPrompt = React.useCallback(async ({
     request,
     target,
@@ -279,6 +342,34 @@ export function ReactCanvasHostApp() {
     }
 
     try {
+      const messageTarget = {
+        blockId: target.id,
+        filePath: resolvedActiveFilePath,
+        title: target.title,
+      }
+
+      startBlockMessageThread({
+        request,
+        target: messageTarget,
+      })
+
+      if (blockPromptPipelineMode === "test") {
+        setPromptStatus("Sending to test pipeline...")
+        await waitForTestBlockPromptPipeline()
+        finishBlockMessageThread({
+          target: messageTarget,
+          threadId: "test-thread",
+          turnId: "test-turn",
+        })
+        writeCanvasMessageDraft({
+          blockId: target.id,
+          draft: "",
+          filePath: resolvedActiveFilePath,
+        })
+        setPromptStatus("Sent to test pipeline.")
+        return
+      }
+
       const blockImplementation = await fetchBlockImplementation({
         blockId: target.id,
         filePath: resolvedActiveFilePath,
@@ -300,6 +391,11 @@ export function ReactCanvasHostApp() {
         threadId: activeCodexThreadId,
       })
 
+      finishBlockMessageThread({
+        target: messageTarget,
+        threadId: turn.threadId,
+        turnId: turn.turnId,
+      })
       setActiveCodexThreadId(turn.threadId)
       void refreshCodexThreads()
       writeCanvasMessageDraft({
@@ -313,9 +409,17 @@ export function ReactCanvasHostApp() {
           : "Sent to Codex thread."
       )
     } catch (submitError: unknown) {
-      setPromptStatus(
+      const errorMessage =
         submitError instanceof Error ? submitError.message : String(submitError)
-      )
+      failBlockMessageThread({
+        error: errorMessage,
+        target: {
+          blockId: target.id,
+          filePath: resolvedActiveFilePath,
+          title: target.title,
+        },
+      })
+      setPromptStatus(errorMessage)
     }
   }, [
     activeCodexThreadId,
@@ -336,6 +440,37 @@ export function ReactCanvasHostApp() {
       filePath: resolvedActiveFilePath,
     })
   }, [promptTarget, resolvedActiveFilePath])
+
+  const submitCreateArtifactPrompt = React.useCallback(async (request: string) => {
+    const artifactFilePath = createArtifactFilePath({
+      existingFilePaths: artifacts.map((artifact) => artifact.filePath),
+      request,
+    })
+    const formatted = formatCreateArtifactPrompt({
+      filePath: artifactFilePath,
+      request,
+    })
+
+    try {
+      setCreateArtifactStatus("Sending to Codex...")
+      publishCanvasPromptDebug(formatted)
+      const turn = await startCodexTurn({
+        prompt: formatted,
+        threadId: activeCodexThreadId,
+      })
+
+      setActiveCodexThreadId(turn.threadId)
+      setPendingArtifactFilePath(artifactFilePath)
+      setCreateArtifactStatus(`Waiting for ${artifactFilePath}...`)
+      void refreshArtifacts()
+      void refreshCodexThreads()
+    } catch (submitError: unknown) {
+      setCreateArtifactStatus(
+        submitError instanceof Error ? submitError.message : String(submitError)
+      )
+      throw submitError
+    }
+  }, [activeCodexThreadId, artifacts, refreshArtifacts, refreshCodexThreads])
 
   React.useEffect(() => {
     if (artifacts.length === 0) {
@@ -378,22 +513,33 @@ export function ReactCanvasHostApp() {
   }, [activeCodexThreadId])
 
   React.useEffect(() => {
+    return subscribeBlockMessageStore(() => {
+      setBlockMessages(getBlockMessageStoreSnapshot())
+    })
+  }, [])
+
+  React.useEffect(() => {
     publishCanvasMessageHost({
+      activeFilePath: resolvedActiveFilePath,
       activeTarget: promptTarget,
+      blockMessages,
       draft: messageDraft,
       enabled: true,
       onClose: closePrompt,
       onDraftChange: updateMessageDraft,
       onOpenTarget: openPrompt,
       onPromptSubmit: submitBlockPrompt,
+      onThreadOpenChange: setBlockMessageThreadOpen,
       status: promptStatus,
     })
   }, [
+    blockMessages,
     closePrompt,
     messageDraft,
     openPrompt,
     promptStatus,
     promptTarget,
+    resolvedActiveFilePath,
     submitBlockPrompt,
     updateMessageDraft,
   ])
@@ -417,14 +563,16 @@ export function ReactCanvasHostApp() {
             activeCodexThreadId={activeCodexThreadId}
             activeSidebarView={activeSidebarView}
             activeThemePresetId={activeThemePresetId}
+            createArtifactActive={activeHostMode === "create-artifact"}
             artifactsLoading={artifactsLoading}
             artifacts={artifacts}
             codexThreads={codexThreads}
             codexThreadsError={codexThreadsError}
             codexThreadsLoading={codexThreadsLoading}
             guardIssues={guardIssues}
-            onSelectArtifact={setActiveFilePath}
+            onSelectArtifact={selectArtifact}
             onSelectCodexThread={setActiveCodexThreadId}
+            onSelectCreateArtifact={selectCreateArtifact}
             onSelectSection={setActiveThemeEditorSectionId}
             onSelectSidebarView={setActiveSidebarView}
             onSelectThemePreset={selectThemePreset}
@@ -452,14 +600,23 @@ export function ReactCanvasHostApp() {
               variant="ghost"
             />
           </div>
-          <ArtifactSurface
-            activeFilePath={resolvedActiveFilePath}
-            blocks={activeArtifact?.blocks}
-            artifactCount={artifacts.length}
-            artifactsLoading={artifactsLoading}
-            guardIssues={activeIssues}
-            loadError={loadError}
-          />
+          {activeHostMode === "create-artifact" ? (
+            <CreateArtifactSurface
+              draft={createArtifactDraft}
+              onDraftChange={setCreateArtifactDraft}
+              onSubmit={submitCreateArtifactPrompt}
+              status={createArtifactStatus}
+            />
+          ) : (
+            <ArtifactSurface
+              activeFilePath={resolvedActiveFilePath}
+              blocks={activeArtifact?.blocks}
+              artifactCount={artifacts.length}
+              artifactsLoading={artifactsLoading}
+              guardIssues={activeIssues}
+              loadError={loadError}
+            />
+          )}
         </SidebarInset>
       </div>
     </TooltipProvider>

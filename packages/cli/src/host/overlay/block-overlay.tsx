@@ -9,8 +9,13 @@ import { FloatingPrompt } from "../prompt/floating-prompt"
 import {
   Popover,
   PopoverAnchor,
+  PopoverContent,
 } from "#agent-html-playground/components/ui/popover"
-import type { BlockOverlay } from "../host-contracts"
+import type {
+  BlockMessageItem,
+  BlockMessageThread,
+  BlockOverlay,
+} from "../host-contracts"
 import { HostFloatingPromptPopoverContent } from "../ui/prompt"
 
 const defaultBlockHighlightPadding = 6
@@ -142,6 +147,49 @@ export function resolveBlockHandleHoverState({
   }
 
   return isPromptOpen ? currentHoveredBlockId : null
+}
+
+export function blockMessageThreadLabel(phase: BlockMessageThread["phase"]) {
+  return {
+    done: "Done",
+    failed: "Failed",
+    idle: "Idle",
+    running: "Running",
+  }[phase]
+}
+
+function BlockMessageEventItem({ item }: { item: BlockMessageItem }) {
+  return (
+    <li
+      className="canvas-block-message-item"
+      data-kind={item.kind}
+      data-status={item.status}
+    >
+      <span className="canvas-block-message-item-kind">{item.kind}</span>
+      <span className="canvas-block-message-item-body">
+        <span className="canvas-block-message-item-title">{item.title}</span>
+        <span className="canvas-block-message-item-summary">{item.summary}</span>
+      </span>
+    </li>
+  )
+}
+
+function BlockMessagePanel({ thread }: { thread: BlockMessageThread }) {
+  return (
+    <div className="canvas-block-message-panel">
+      <header className="canvas-block-message-panel-header">
+        <span className="canvas-block-message-panel-title">{thread.title}</span>
+        <span className="canvas-block-message-panel-status">
+          {blockMessageThreadLabel(thread.phase)}
+        </span>
+      </header>
+      <ol className="canvas-block-message-list">
+        {thread.items.map((item) => (
+          <BlockMessageEventItem item={item} key={item.id} />
+        ))}
+      </ol>
+    </div>
+  )
 }
 
 export function measureBlockOverlays(root: HTMLElement | null): BlockOverlay[] {
@@ -313,14 +361,29 @@ export function BlockOverlayLayer({
       {overlays.map((overlay) => {
         const isHovered = overlay.id === hoveredBlockId
         const isPromptOpen = overlay.id === promptTarget?.id
+        const messageThread = Object.values(
+          messageHost.blockMessages.threads
+        ).find(
+          (thread) =>
+            thread.blockId === overlay.id &&
+            thread.filePath === messageHost.activeFilePath
+        )
+        const isThreadOpen = Boolean(messageThread?.isOpen)
 
         return (
           <Popover
             key={overlay.id}
-            open={isPromptOpen}
+            open={isPromptOpen || isThreadOpen}
             onOpenChange={(open) => {
               if (!open && isPromptOpen) {
                 messageHost.onClose()
+              }
+              if (messageThread && !open) {
+                messageHost.onThreadOpenChange({
+                  blockId: messageThread.blockId,
+                  filePath: messageThread.filePath,
+                  isOpen: false,
+                })
               }
             }}
           >
@@ -389,6 +452,23 @@ export function BlockOverlayLayer({
                   }}
                   type="button"
                 />
+                {messageThread ? (
+                  <button
+                    aria-label={`Open agent events for ${overlay.title}`}
+                    className="canvas-block-message-badge"
+                    data-phase={messageThread.phase}
+                    onClick={() => {
+                      messageHost.onThreadOpenChange({
+                        blockId: messageThread.blockId,
+                        filePath: messageThread.filePath,
+                        isOpen: !messageThread.isOpen,
+                      })
+                    }}
+                    type="button"
+                  >
+                    <span className="canvas-block-message-badge-dot" />
+                  </button>
+                ) : null}
               </div>
             </PopoverAnchor>
             {isPromptOpen && promptTarget ? (
@@ -406,6 +486,16 @@ export function BlockOverlayLayer({
                   value={messageHost.draft}
                 />
               </HostFloatingPromptPopoverContent>
+            ) : messageThread && isThreadOpen ? (
+              <PopoverContent
+                align="start"
+                className="canvas-block-message-popover"
+                collisionPadding={12}
+                side="right"
+                sideOffset={12}
+              >
+                <BlockMessagePanel thread={messageThread} />
+              </PopoverContent>
             ) : null}
           </Popover>
         )

@@ -41,6 +41,8 @@
   --canvas-host-swatch-size-xs: 0.625rem;
   --canvas-host-swatch-size-sm: 0.75rem;
   --canvas-host-select-content-max-height: 18rem;
+  --canvas-create-artifact-composer-width: 44rem;
+  --canvas-create-artifact-brand-icon-size: 1.25rem;
   --canvas-floating-prompt-width: 22.5rem;
   --canvas-floating-prompt-z-index: 50;
   --canvas-floating-prompt-radius: var(--radius-lg);
@@ -49,4 +51,7 @@
   --canvas-floating-prompt-status-min-height: 1rem;
   --canvas-floating-prompt-status-margin-block-start: 0.375rem;
   --canvas-floating-prompt-status-padding-inline: 0.625rem;
+  --canvas-block-message-badge-size: 0.75rem;
+  --canvas-block-message-badge-offset: 0.5rem;
+  --canvas-block-message-panel-width: 20rem;
 }

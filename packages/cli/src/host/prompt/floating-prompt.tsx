@@ -16,39 +16,40 @@ import {
   HostFloatingPromptTextarea,
 } from "../ui/prompt"
 
-export function FloatingPrompt({
+export function PromptComposer({
+  disabled,
   onDraftChange,
   onSubmit,
+  placeholder,
   status,
-  target,
+  targetId,
   value,
 }: {
+  disabled?: boolean
   onDraftChange: (draft: string) => void
-  onSubmit: (input: {
-    request: string
-    target: FloatingPromptTarget
-  }) => Promise<void>
+  onSubmit: (request: string) => Promise<void>
+  placeholder: string
   status: string
-  target: FloatingPromptTarget
+  targetId: string
   value: string
 }) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   React.useEffect(() => {
     setIsSubmitting(false)
-  }, [target.id])
+  }, [targetId])
 
   async function submit() {
     const request = value.trim()
 
-    if (!request || !target || isSubmitting) {
+    if (!request || disabled || isSubmitting) {
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      await onSubmit({ request, target })
+      await onSubmit(request)
       onDraftChange("")
     } finally {
       setIsSubmitting(false)
@@ -57,8 +58,9 @@ export function FloatingPrompt({
 
   return (
     <TooltipProvider>
-      <HostFloatingPromptSurface targetId={target.id}>
+      <HostFloatingPromptSurface targetId={targetId}>
         <HostFloatingPromptTextarea
+          disabled={disabled || isSubmitting}
           onChange={(event) => onDraftChange(event.currentTarget.value)}
           onKeyDown={(event) => {
             if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -66,14 +68,14 @@ export function FloatingPrompt({
               void submit()
             }
           }}
-          placeholder="Edit this block..."
+          placeholder={placeholder}
           value={value}
         />
         <HostFloatingPromptActions>
           <Tooltip>
             <TooltipTrigger asChild>
               <HostIconButton
-                disabled={!value.trim() || isSubmitting}
+                disabled={disabled || !value.trim() || isSubmitting}
                 icon={ArrowUpIcon}
                 label="Send"
                 onClick={() => {
@@ -95,5 +97,33 @@ export function FloatingPrompt({
         </HostFloatingPromptStatus>
       ) : null}
     </TooltipProvider>
+  )
+}
+
+export function FloatingPrompt({
+  onDraftChange,
+  onSubmit,
+  status,
+  target,
+  value,
+}: {
+  onDraftChange: (draft: string) => void
+  onSubmit: (input: {
+    request: string
+    target: FloatingPromptTarget
+  }) => Promise<void>
+  status: string
+  target: FloatingPromptTarget
+  value: string
+}) {
+  return (
+    <PromptComposer
+      onDraftChange={onDraftChange}
+      onSubmit={(request) => onSubmit({ request, target })}
+      placeholder="Edit this block..."
+      status={status}
+      targetId={target.id}
+      value={value}
+    />
   )
 }

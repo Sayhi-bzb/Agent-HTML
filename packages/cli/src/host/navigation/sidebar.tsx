@@ -1,6 +1,7 @@
 import {
   ArrowLeftIcon,
   FileTextIcon,
+  FilePlus2Icon,
   PaletteIcon,
   SearchIcon,
   Settings2Icon,
@@ -71,6 +72,7 @@ export function ReactCanvasSidebar({
   activeSectionId,
   activeSidebarView,
   activeThemePresetId,
+  createArtifactActive,
   artifactsLoading,
   artifacts,
   codexThreads,
@@ -83,6 +85,7 @@ export function ReactCanvasSidebar({
   onSelectSidebarView,
   onSelectThemePreset,
   onResetThemePreview,
+  onSelectCreateArtifact,
   onThemeVariableChange,
   themeDraft,
   themePreviewDirty,
@@ -94,6 +97,7 @@ export function ReactCanvasSidebar({
   activeSectionId: CanvasThemeEditorSectionId
   activeSidebarView: CanvasSidebarView
   activeThemePresetId: CanvasThemePresetId
+  createArtifactActive: boolean
   artifactsLoading: boolean
   artifacts: Artifact[]
   codexThreads: CodexThread[]
@@ -106,6 +110,7 @@ export function ReactCanvasSidebar({
   onSelectSidebarView: (view: CanvasSidebarView) => void
   onSelectThemePreset: (presetId: CanvasThemePresetId) => void
   onResetThemePreview: () => void
+  onSelectCreateArtifact: () => void
   onThemeVariableChange: (
     name: CanvasThemeVariableName,
     value: string
@@ -235,6 +240,13 @@ export function ReactCanvasSidebar({
             )
           ) : (
             <>
+              <HostSidebarAction
+                icon={FilePlus2Icon}
+                isActive={createArtifactActive}
+                label="New artifact"
+                onClick={onSelectCreateArtifact}
+                type="button"
+              />
               <HostSidebarAction
                 icon={PaletteIcon}
                 label="Gallery"

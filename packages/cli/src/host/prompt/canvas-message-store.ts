@@ -1,4 +1,5 @@
 import type { FloatingPromptTarget } from "../host-contracts"
+import type { BlockMessageStoreSnapshot } from "./block-message-events"
 
 export type CanvasMessageSubmitInput = {
   request: string
@@ -7,12 +8,19 @@ export type CanvasMessageSubmitInput = {
 
 export type CanvasMessageHostSnapshot = {
   activeTarget: FloatingPromptTarget | null
+  activeFilePath: string | null
+  blockMessages: BlockMessageStoreSnapshot
   draft: string
   enabled: boolean
   onClose: () => void
   onDraftChange: (draft: string) => void
   onOpenTarget: (target: FloatingPromptTarget) => void
   onPromptSubmit: (input: CanvasMessageSubmitInput) => Promise<void>
+  onThreadOpenChange: (input: {
+    blockId: string
+    filePath: string
+    isOpen: boolean
+  }) => void
   status: string
 }
 
@@ -21,12 +29,15 @@ const noopSubmit = async () => {}
 
 const disabledSnapshot: CanvasMessageHostSnapshot = {
   activeTarget: null,
+  activeFilePath: null,
+  blockMessages: { threads: {} },
   draft: "",
   enabled: false,
   onClose: noop,
   onDraftChange: noop,
   onOpenTarget: noop,
   onPromptSubmit: noopSubmit,
+  onThreadOpenChange: noop,
   status: "",
 }
 

@@ -50,8 +50,27 @@ export type BlockPromptPayload = {
   request: string
 }
 
+export type CreateArtifactPromptPayload = {
+  filePath: string
+  request: string
+}
+
 export function compactInteractionSnapshot(
   snapshot: BlockPromptInteractionSnapshot
 ): CompactBlockPromptInteraction
 
+export function createArtifactSlug(
+  request: string,
+  existingFilePaths?: string[]
+): string
+
+export function createArtifactFilePath(input: {
+  existingFilePaths?: string[]
+  request: string
+}): string
+
 export function formatBlockPrompt(payload: BlockPromptPayload): string
+
+export function formatCreateArtifactPrompt(
+  payload: CreateArtifactPromptPayload
+): string
