@@ -27,7 +27,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Pack @agent-html/react
         run: npm pack ./packages/react --dry-run
