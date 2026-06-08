@@ -243,7 +243,7 @@ describe("React Canvas dev host", () => {
       expect(css).toContain(".canvas-floating-prompt")
       expect(css).toContain(".canvas-content-panel")
       expect(css).toContain(".canvas-text-body")
-      expect(css).toContain(".canvas-theme-editor-option")
+      expect(css).toContain(".canvas-theme-editor-popover-label")
       expect(css).toContain(".text-popover-foreground")
     } finally {
       await new Promise((resolve) => server.close(resolve))

@@ -29,6 +29,17 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Select npm dist-tag
+        id: dist-tag
+        shell: bash
+        run: |
+          version=$(node -p "require('./packages/cli/package.json').version")
+          if [[ "$version" == *-* ]]; then
+            echo "value=alpha" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=latest" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Pack @agent-html/react
         working-directory: packages/react
         run: npm pack --dry-run
@@ -41,10 +52,10 @@ jobs:
         working-directory: packages/react
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --tag alpha --provenance
+        run: npm publish --access public --tag ${{ steps.dist-tag.outputs.value }} --provenance
 
       - name: Publish agent-html
         working-directory: packages/cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --tag alpha --provenance
+        run: npm publish --access public --tag ${{ steps.dist-tag.outputs.value }} --provenance
