@@ -14,6 +14,7 @@ export const CANVAS_HOST_PREFERENCES_STORAGE_KEY =
 export type CanvasSidebarView = "artifacts" | "gallery"
 
 export type CanvasHostPreferences = {
+  activeCodexThreadId: string | null
   activeFilePath: string | null
   activeSidebarView: CanvasSidebarView
   activeThemeEditorSectionId: CanvasThemeEditorSectionId
@@ -23,6 +24,7 @@ export type CanvasHostPreferences = {
 }
 
 const defaultCanvasHostPreferences: CanvasHostPreferences = {
+  activeCodexThreadId: null,
   activeFilePath: null,
   activeSidebarView: "artifacts",
   activeThemeEditorSectionId: "color",
@@ -121,6 +123,10 @@ function readMessageDrafts(value: unknown) {
   )
 }
 
+function readOptionalString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value : null
+}
+
 function readActiveFilePath({
   artifacts,
   value,
@@ -152,6 +158,7 @@ export function readCanvasHostPreferences({
   }
 
   return {
+    activeCodexThreadId: readOptionalString(stored.activeCodexThreadId),
     activeFilePath: readActiveFilePath({
       artifacts,
       value: stored.activeFilePath,

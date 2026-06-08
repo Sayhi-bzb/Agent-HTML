@@ -93,12 +93,25 @@ function quoteFontFamily(family: string) {
     : trimmedFamily
 }
 
+function createFontFamilyValue(
+  font: NonNullable<CanvasThemePresetLayout["fonts"]>[number]
+) {
+  const families =
+    font.families?.map((fontFamily) => fontFamily.family) ??
+    (font.family ? [font.family, ...(font.fallbackFamilies ?? [])] : [])
+
+  return families
+    .map(quoteFontFamily)
+    .filter(Boolean)
+    .join(", ")
+}
+
 function createLayoutFontVariables(
   layout: CanvasThemePresetLayout | undefined
 ): CanvasThemeCssVariables {
   return Object.fromEntries(
     (layout?.fonts ?? []).flatMap((font) => {
-      const family = quoteFontFamily(font.family)
+      const family = createFontFamilyValue(font)
 
       if (!family) {
         return []
@@ -137,9 +150,9 @@ export function createCanvasThemePresetFromCss({
   const parsedPreset = parseCanvasThemePresetCss(css)
   const layoutFontVariables = createLayoutFontVariables(layout)
   const lightCssVariables = {
-    ...layoutFontVariables,
     ...parsedPreset.lightCssVariables,
     ...lightCssVariableOverrides,
+    ...layoutFontVariables,
   }
   const darkCssVariables = mirrorLightToDark
     ? lightCssVariables

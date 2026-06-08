@@ -168,6 +168,48 @@ describe("canvas theme preset layout", () => {
     ).toBeNull()
   })
 
+  it("loads google and zeoseven fonts from one font stack", () => {
+    vi.stubGlobal("HTMLLinkElement", Object)
+    vi.stubGlobal("document", createDocumentMock())
+
+    applyCanvasThemePresetLayout({
+      id: "stack-test",
+      label: "Stack Test",
+      layout: {
+        fonts: [
+          {
+            families: [
+              { family: "Architects Daughter", provider: "google" },
+              {
+                family: "Acy",
+                provider: "zeoseven",
+                stylesheetUrl:
+                  "https://fontsapi.zeoseven.com/250/main/result.css",
+              },
+            ],
+            variable: "--font-sans",
+          },
+        ],
+      },
+      lightCssVariables: {},
+    })
+
+    expect(
+      document.getElementById("react-canvas-theme-preset-fonts")
+    ).toMatchObject({
+      href: expect.stringContaining("family=Architects+Daughter"),
+      rel: "stylesheet",
+    })
+    expect(
+      document.getElementById(
+        "react-canvas-theme-preset-fonts-zeoseven-0"
+      )
+    ).toMatchObject({
+      href: "/__agent-html/font-stylesheet?url=https%3A%2F%2Ffontsapi.zeoseven.com%2F250%2Fmain%2Fresult.css",
+      rel: "preload",
+    })
+  })
+
   it("clears managed layout artifacts for presets without layout", () => {
     vi.stubGlobal("HTMLLinkElement", Object)
     vi.stubGlobal("document", createDocumentMock())

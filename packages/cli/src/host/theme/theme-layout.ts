@@ -1,6 +1,7 @@
 import type {
   CanvasThemePreset,
   CanvasThemePresetFont,
+  CanvasThemePresetFontFamily,
 } from "#agent-html-playground/theme/presets"
 
 const canvasThemePresetFontLinkId = "react-canvas-theme-preset-fonts"
@@ -14,10 +15,41 @@ function googleFontFamilyQuery(family: string) {
   return family.trim().replaceAll(" ", "+")
 }
 
+function getFontFamilies(font: CanvasThemePresetFont) {
+  if (font.families) {
+    return font.families
+  }
+
+  if (!font.family || !font.provider) {
+    return []
+  }
+
+  if (font.provider === "zeoseven") {
+    return [
+      {
+        family: font.family,
+        provider: font.provider,
+        stylesheetUrl: font.stylesheetUrl,
+      },
+    ]
+  }
+
+  return [
+    {
+      family: font.family,
+      provider: font.provider,
+    },
+  ] satisfies CanvasThemePresetFontFamily[]
+}
+
+function getPresetFontFamilies(fonts: readonly CanvasThemePresetFont[] = []) {
+  return fonts.flatMap(getFontFamilies)
+}
+
 function uniqueGoogleFonts(fonts: readonly CanvasThemePresetFont[] = []) {
   return Array.from(
     new Set(
-      fonts
+      getPresetFontFamilies(fonts)
         .filter((font) => font.provider === "google")
         .map((font) => font.family.trim())
         .filter(Boolean)
@@ -45,9 +77,12 @@ function getCanvasThemePresetZeosevenFontUrls(preset: CanvasThemePreset) {
   return Array.from(
     new Set(
       (preset.layout?.fonts ?? []).flatMap((font) =>
-        font.provider === "zeoseven" && font.stylesheetUrl.trim()
-          ? [font.stylesheetUrl.trim()]
-          : []
+        getFontFamilies(font).flatMap((fontFamily) =>
+          fontFamily.provider === "zeoseven" &&
+          fontFamily.stylesheetUrl.trim()
+            ? [fontFamily.stylesheetUrl.trim()]
+            : []
+        )
       )
     )
   )

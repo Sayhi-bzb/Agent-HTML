@@ -135,6 +135,7 @@ describe("canvas theme preset", () => {
       css: `
         :root {
           --background: #ffffff;
+          --font-sans: Inter, sans-serif;
         }
       `,
       id: "source",
@@ -152,9 +153,15 @@ describe("canvas theme preset", () => {
             variable: "--font-mono",
           },
           {
-            family: "Fusion Pixel 12px Mono latin",
-            provider: "zeoseven",
-            stylesheetUrl: "https://fontsapi.zeoseven.com/570/main/result.css",
+            families: [
+              { family: "Architects Daughter", provider: "google" },
+              {
+                family: "Fusion Pixel 12px Mono latin",
+                provider: "zeoseven",
+                stylesheetUrl:
+                  "https://fontsapi.zeoseven.com/570/main/result.css",
+              },
+            ],
             variable: "--font-heading",
           },
         ],
@@ -164,7 +171,7 @@ describe("canvas theme preset", () => {
     expect(normalizedPreset.lightCssVariables).toMatchObject({
       "--background": "#ffffff",
       "--font-heading":
-        '"Fusion Pixel 12px Mono latin", sans-serif',
+        '"Architects Daughter", "Fusion Pixel 12px Mono latin", sans-serif',
       "--font-mono": '"JetBrains Mono", ui-monospace, monospace',
       "--font-sans": '"Architects Daughter", ui-sans-serif, sans-serif',
     })
@@ -193,31 +200,45 @@ describe("canvas theme preset", () => {
         (themePreset) => themePreset.id === "pixel-quest"
       )?.darkCssVariables
     ).toMatchObject({
-      "--background": "#f3ead2",
-      "--foreground": "#1f1b16",
+      "--font-heading": '"Fusion Pixel 12px Mono latin", sans-serif',
+      "--font-sans": '"Fusion Pixel 12px Mono latin", ui-sans-serif, sans-serif',
     })
+    const mangaFonts = canvasThemePresets.find(
+      (themePreset) => themePreset.id === "manga"
+    )?.layout?.fonts
+
     expect(
-      canvasThemePresets.find((themePreset) => themePreset.id === "manga")
-        ?.layout
+      mangaFonts?.find((font) => font.variable === "--font-sans")
     ).toMatchObject({
-      bodyClassName: "antialiased",
-      fonts: [
+      families: [
+        { family: "Architects Daughter", provider: "google" },
         {
-          family: "Architects Daughter",
-          provider: "google",
-          variable: "--font-sans",
-        },
-        {
-          family: "Architects Daughter",
-          provider: "google",
-          variable: "--font-serif",
-        },
-        {
-          family: "Architects Daughter",
-          provider: "google",
-          variable: "--font-mono",
+          family: "Acy",
+          provider: "zeoseven",
+          stylesheetUrl: "https://fontsapi.zeoseven.com/250/main/result.css",
         },
       ],
+      variable: "--font-sans",
+    })
+    expect(
+      mangaFonts?.find((font) => font.variable === "--font-mono")
+    ).toMatchObject({
+      family: "Geist Mono",
+      provider: "google",
+      variable: "--font-mono",
+    })
+  })
+
+  it("normalizes manga Chinese handwriting fonts into css variables", () => {
+    const mangaPreset = canvasThemePresets.find(
+      (themePreset) => themePreset.id === "manga"
+    )
+
+    expect(mangaPreset?.lightCssVariables).toMatchObject({
+      "--font-heading": '"Architects Daughter", Acy, sans-serif',
+      "--font-mono": '"Geist Mono", ui-monospace, monospace',
+      "--font-sans": '"Architects Daughter", Acy, ui-sans-serif, sans-serif',
+      "--font-serif": '"Architects Daughter", Acy, ui-serif, serif',
     })
   })
 

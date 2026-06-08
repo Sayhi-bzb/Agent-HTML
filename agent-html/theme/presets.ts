@@ -13,7 +13,6 @@ import wondrousCss from "./presets/wondrous.css?raw"
 import { layout as wondrousLayout } from "./presets/wondrous.layout"
 import pixelQuestCss from "./presets/pixel-quest.css?raw"
 import { layout as pixelQuestLayout } from "./presets/pixel-quest.layout"
-import { lightCssVariables as pixelQuestLightCssVariables } from "./presets/pixel-quest.tokens"
 
 export type CanvasThemeCssVariables = Partial<Record<`--${string}`, string>>
 
@@ -32,18 +31,33 @@ export type CanvasThemePresetFontVariable =
   | "--font-serif"
 
 type CanvasThemePresetBaseFont = {
-  family: string
+  fallbackFamilies?: readonly string[]
+  family?: string
+  families?: readonly CanvasThemePresetFontFamily[]
   variable: CanvasThemePresetFontVariable
 }
 
-export type CanvasThemePresetFont =
-  | (CanvasThemePresetBaseFont & {
+export type CanvasThemePresetFontFamily =
+  | {
+      family: string
       provider: "google" | "system"
-    })
-  | (CanvasThemePresetBaseFont & {
+    }
+  | {
+      family: string
       provider: "zeoseven"
       stylesheetUrl: string
-    })
+    }
+
+export type CanvasThemePresetFont = CanvasThemePresetBaseFont &
+  (
+    | {
+        provider?: "google" | "system"
+      }
+    | {
+        provider: "zeoseven"
+        stylesheetUrl: string
+      }
+  )
 
 export type CanvasThemePresetLayout = {
   bodyClassName?: string
@@ -83,7 +97,6 @@ const cssPresetRegistrations = [
     id: "pixel-quest",
     label: "Pixel Quest",
     layout: pixelQuestLayout,
-    lightCssVariables: pixelQuestLightCssVariables,
     mirrorLightToDark: true,
   },
   {

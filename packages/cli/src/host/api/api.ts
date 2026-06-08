@@ -3,6 +3,15 @@ import type {
   GuardIssue,
 } from "../host-contracts"
 
+export type CodexThread = {
+  createdAt?: string
+  id: string
+  name: string | null
+  preview?: string
+  status: string | null
+  updatedAt?: string
+}
+
 export const hostApiRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
   artifacts: "/__agent-html/artifacts",
@@ -45,6 +54,13 @@ export async function fetchBlockImplementation({
   }>(
     `${hostApiRoutes.blockImplementation}?${params}`
   )
+}
+
+export async function fetchCodexThreads() {
+  return fetchJson<{
+    cwd: string
+    threads: CodexThread[]
+  }>(hostApiRoutes.codexThreads)
 }
 
 export async function startCodexTurn({

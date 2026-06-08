@@ -9,6 +9,7 @@ import {
 import * as React from "react"
 
 import { artifactLabel } from "../api/api"
+import type { CodexThread } from "../api/api"
 import {
   ReactCanvasThemeEditor,
   ReactCanvasThemeEditorHeader,
@@ -61,16 +62,23 @@ import {
   HostSidebarActionButton,
   HostSidebarStatus,
 } from "../ui/sidebar-action"
+import type { HostSelectOption } from "../ui/select"
+import { HostSelect } from "../ui/select"
 
 export function ReactCanvasSidebar({
   activeFilePath,
+  activeCodexThreadId,
   activeSectionId,
   activeSidebarView,
   activeThemePresetId,
   artifactsLoading,
   artifacts,
+  codexThreads,
+  codexThreadsError,
+  codexThreadsLoading,
   guardIssues,
   onSelectArtifact,
+  onSelectCodexThread,
   onSelectSection,
   onSelectSidebarView,
   onSelectThemePreset,
@@ -82,13 +90,18 @@ export function ReactCanvasSidebar({
   themeRuntimeVariables,
 }: {
   activeFilePath: string | null
+  activeCodexThreadId: string | null
   activeSectionId: CanvasThemeEditorSectionId
   activeSidebarView: CanvasSidebarView
   activeThemePresetId: CanvasThemePresetId
   artifactsLoading: boolean
   artifacts: Artifact[]
+  codexThreads: CodexThread[]
+  codexThreadsError: string | null
+  codexThreadsLoading: boolean
   guardIssues: GuardIssue[]
   onSelectArtifact: (filePath: string) => void
+  onSelectCodexThread: (threadId: string | null) => void
   onSelectSection: (sectionId: CanvasThemeEditorSectionId) => void
   onSelectSidebarView: (view: CanvasSidebarView) => void
   onSelectThemePreset: (presetId: CanvasThemePresetId) => void
@@ -136,6 +149,13 @@ export function ReactCanvasSidebar({
               artifacts={artifacts}
               onSelectArtifact={onSelectArtifact}
               onSelectSidebarView={onSelectSidebarView}
+            />
+            <ReactCanvasCodexThreadSelect
+              activeThreadId={activeCodexThreadId}
+              loading={codexThreadsLoading}
+              onSelectThread={onSelectCodexThread}
+              threads={codexThreads}
+              error={codexThreadsError}
             />
             <ReactCanvasThemePresetSelect
               activePresetId={activeThemePresetId}
@@ -245,6 +265,68 @@ export function ReactCanvasSidebar({
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  )
+}
+
+const newCodexThreadValue = "__agent-html-new-codex-thread__"
+
+function shortCodexThreadId(threadId: string) {
+  return threadId.length > 10 ? `${threadId.slice(0, 10)}...` : threadId
+}
+
+function codexThreadLabel(thread: CodexThread) {
+  return thread.name ?? thread.preview ?? shortCodexThreadId(thread.id)
+}
+
+function ReactCanvasCodexThreadSelect({
+  activeThreadId,
+  error,
+  loading,
+  onSelectThread,
+  threads,
+}: {
+  activeThreadId: string | null
+  error: string | null
+  loading: boolean
+  onSelectThread: (threadId: string | null) => void
+  threads: CodexThread[]
+}) {
+  const activeThread =
+    activeThreadId
+      ? threads.find((thread) => thread.id === activeThreadId)
+      : null
+  const activeThreadMissing = Boolean(activeThreadId && !activeThread && !loading)
+  const missingThreadOption: HostSelectOption[] =
+    activeThreadMissing && activeThreadId
+      ? [
+          {
+            label: `Current ${shortCodexThreadId(activeThreadId)}`,
+            value: activeThreadId,
+          },
+        ]
+      : []
+  const options: HostSelectOption[] = loading
+    ? [{ label: "Loading threads", value: newCodexThreadValue }]
+    : [
+        { label: "New thread", value: newCodexThreadValue },
+        ...missingThreadOption,
+        ...threads.map((thread) => ({
+          label: codexThreadLabel(thread),
+          value: thread.id,
+        })),
+      ]
+  const value = activeThreadId ?? newCodexThreadValue
+
+  return (
+    <HostSelect
+      disabled={loading}
+      label={error ? "Codex thread unavailable" : "Codex thread"}
+      onValueChange={(nextValue) =>
+        onSelectThread(nextValue === newCodexThreadValue ? null : nextValue)
+      }
+      options={options}
+      value={value}
+    />
   )
 }
 

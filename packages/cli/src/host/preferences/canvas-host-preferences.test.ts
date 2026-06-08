@@ -43,6 +43,7 @@ describe("canvas host preferences", () => {
 
   it("returns defaults when browser storage is unavailable", () => {
     expect(readCanvasHostPreferences()).toMatchObject({
+      activeCodexThreadId: null,
       activeFilePath: null,
       activeSidebarView: "artifacts",
       activeThemeEditorSectionId: "color",
@@ -62,6 +63,7 @@ describe("canvas host preferences", () => {
     stubStorage(
       JSON.stringify({
         activeFilePath: "agent-html/artifacts/example.artifact.tsx",
+        activeCodexThreadId: 42,
         activeSidebarView: "bad",
         activeThemeEditorSectionId: "missing",
         activeThemePresetId: "missing",
@@ -74,6 +76,7 @@ describe("canvas host preferences", () => {
     )
 
     expect(readCanvasHostPreferences()).toEqual({
+      activeCodexThreadId: null,
       activeFilePath: "agent-html/artifacts/example.artifact.tsx",
       activeSidebarView: "artifacts",
       activeThemeEditorSectionId: "color",
@@ -93,6 +96,16 @@ describe("canvas host preferences", () => {
     )
 
     expect(readCanvasHostPreferences().activeSidebarView).toBe("gallery")
+  })
+
+  it("restores an active Codex thread id", () => {
+    stubStorage(
+      JSON.stringify({
+        activeCodexThreadId: "thread-1",
+      })
+    )
+
+    expect(readCanvasHostPreferences().activeCodexThreadId).toBe("thread-1")
   })
 
   it("maps the legacy theme sidebar view to gallery", () => {
@@ -129,12 +142,14 @@ describe("canvas host preferences", () => {
       filePath: "agent-html/artifacts/example.artifact.tsx",
     })
     writeCanvasHostPreferences({
+      activeCodexThreadId: "thread-2",
       activeSidebarView: "gallery",
       leftSidebarOpen: false,
     })
 
     expect(readCanvasHostPreferences()).toMatchObject({
       activeSidebarView: "gallery",
+      activeCodexThreadId: "thread-2",
       leftSidebarOpen: false,
       messageDrafts: expect.any(Object),
     })

@@ -34,6 +34,7 @@
   --canvas-host-item-icon-size: 1rem;
   --canvas-host-swatch-size-xs: 0.625rem;
   --canvas-host-swatch-size-sm: 0.75rem;
+  --canvas-host-select-content-max-height: 18rem;
   --canvas-floating-prompt-width: 22.5rem;
   --canvas-floating-prompt-z-index: 50;
   --canvas-floating-prompt-radius: var(--radius-lg);

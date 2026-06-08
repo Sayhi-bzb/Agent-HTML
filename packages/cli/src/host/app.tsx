@@ -1,8 +1,10 @@
 import * as React from "react"
 
 import {
+  fetchCodexThreads,
   fetchArtifacts,
   fetchBlockImplementation,
+  type CodexThread,
   startCodexTurn,
 } from "./api/api"
 import { ArtifactSurface } from "./artifact/artifact-surface"
@@ -87,6 +89,10 @@ export function ReactCanvasHostApp() {
   const [promptTarget, setPromptTarget] =
     React.useState<FloatingPromptTarget | null>(null)
   const [activeCodexThreadId, setActiveCodexThreadId] =
+    React.useState<string | null>(initialPreferences.activeCodexThreadId)
+  const [codexThreads, setCodexThreads] = React.useState<CodexThread[]>([])
+  const [codexThreadsLoading, setCodexThreadsLoading] = React.useState(true)
+  const [codexThreadsError, setCodexThreadsError] =
     React.useState<string | null>(null)
   const activeFilePathRef = React.useRef<string | null>(null)
 
@@ -192,6 +198,23 @@ export function ReactCanvasHostApp() {
     return () => window.clearInterval(interval)
   }, [refreshArtifacts])
 
+  const refreshCodexThreads = React.useCallback(async () => {
+    setCodexThreadsLoading(true)
+    try {
+      const data = await fetchCodexThreads()
+      setCodexThreads(data.threads ?? [])
+      setCodexThreadsError(null)
+    } catch (error) {
+      setCodexThreadsError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setCodexThreadsLoading(false)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    void refreshCodexThreads()
+  }, [refreshCodexThreads])
+
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "b" || (!event.metaKey && !event.ctrlKey)) {
@@ -278,6 +301,7 @@ export function ReactCanvasHostApp() {
       })
 
       setActiveCodexThreadId(turn.threadId)
+      void refreshCodexThreads()
       writeCanvasMessageDraft({
         blockId: target.id,
         draft: "",
@@ -295,6 +319,7 @@ export function ReactCanvasHostApp() {
     }
   }, [
     activeCodexThreadId,
+    refreshCodexThreads,
     resolvedActiveFilePath,
   ])
 
@@ -347,6 +372,12 @@ export function ReactCanvasHostApp() {
   }, [activeThemePresetId])
 
   React.useEffect(() => {
+    writeCanvasHostPreferences({
+      activeCodexThreadId,
+    })
+  }, [activeCodexThreadId])
+
+  React.useEffect(() => {
     publishCanvasMessageHost({
       activeTarget: promptTarget,
       draft: messageDraft,
@@ -383,12 +414,17 @@ export function ReactCanvasHostApp() {
           <ReactCanvasSidebar
             activeFilePath={resolvedActiveFilePath}
             activeSectionId={activeThemeEditorSectionId}
+            activeCodexThreadId={activeCodexThreadId}
             activeSidebarView={activeSidebarView}
             activeThemePresetId={activeThemePresetId}
             artifactsLoading={artifactsLoading}
             artifacts={artifacts}
+            codexThreads={codexThreads}
+            codexThreadsError={codexThreadsError}
+            codexThreadsLoading={codexThreadsLoading}
             guardIssues={guardIssues}
             onSelectArtifact={setActiveFilePath}
+            onSelectCodexThread={setActiveCodexThreadId}
             onSelectSection={setActiveThemeEditorSectionId}
             onSelectSidebarView={setActiveSidebarView}
             onSelectThemePreset={selectThemePreset}

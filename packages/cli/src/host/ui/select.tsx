@@ -28,11 +28,13 @@ export type HostSelectOption = {
 }
 
 export function HostSelect({
+  disabled = false,
   label,
   onValueChange,
   options,
   value,
 }: {
+  disabled?: boolean
   label: string
   onValueChange: (value: string) => void
   options: readonly HostSelectOption[]
@@ -46,6 +48,7 @@ export function HostSelect({
         <SidebarMenuItem>
           <HostSelectTriggerRow
             activeOption={activeOption}
+            disabled={disabled}
             label={label}
           />
         </SidebarMenuItem>
@@ -67,15 +70,17 @@ export function HostSelect({
 
 function HostSelectTriggerRow({
   activeOption,
+  disabled,
   label,
 }: {
   activeOption?: HostSelectOption
+  disabled: boolean
   label: string
 }) {
   return (
     <SelectTrigger asChild>
       <HostControlTrigger asChild>
-        <SidebarMenuButton aria-label={label} type="button">
+        <SidebarMenuButton aria-label={label} disabled={disabled} type="button">
           <SelectValue placeholder={label}>
             <HostItemContent
               icon={activeOption?.icon}
@@ -120,7 +125,9 @@ export function HostSelectItem({
 }: HostSelectOption & { className?: string }) {
   return (
     <SelectItem className={cn("canvas-host-select-item", className)} value={value}>
-      <HostItemContent icon={icon} label={label} swatchColor={swatchColor} />
+      <span className="canvas-host-select-item-text">
+        <HostItemContent icon={icon} label={label} swatchColor={swatchColor} />
+      </span>
     </SelectItem>
   )
 }
