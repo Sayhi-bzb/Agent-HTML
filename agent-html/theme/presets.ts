@@ -9,8 +9,6 @@ import mimiCss from "./presets/mimi.css?raw"
 import { layout as mimiLayout } from "./presets/mimi.layout"
 import whatsappCss from "./presets/whatsapp.css?raw"
 import { layout as whatsappLayout } from "./presets/whatsapp.layout"
-import wondrousCss from "./presets/wondrous.css?raw"
-import { layout as wondrousLayout } from "./presets/wondrous.layout"
 import pixelQuestCss from "./presets/pixel-quest.css?raw"
 import { layout as pixelQuestLayout } from "./presets/pixel-quest.layout"
 
@@ -85,12 +83,6 @@ const cssPresetRegistrations = [
     id: "whatsapp",
     label: "WhatsApp",
     layout: whatsappLayout,
-  },
-  {
-    css: wondrousCss,
-    id: "wondrous",
-    label: "Wondrous",
-    layout: wondrousLayout,
   },
   {
     css: pixelQuestCss,

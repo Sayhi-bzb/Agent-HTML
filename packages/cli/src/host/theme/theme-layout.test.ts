@@ -210,6 +210,60 @@ describe("canvas theme preset layout", () => {
     })
   })
 
+  it("loads multiple zeoseven stylesheet urls from one preset", () => {
+    vi.stubGlobal("HTMLLinkElement", Object)
+    vi.stubGlobal("document", createDocumentMock())
+
+    applyCanvasThemePresetLayout({
+      id: "multi-zeoseven-test",
+      label: "Multi Zeoseven Test",
+      layout: {
+        fonts: [
+          {
+            families: [
+              { family: "Poppins", provider: "google" },
+              {
+                family: "Nowar Rounded TW Wc",
+                provider: "zeoseven",
+                stylesheetUrl:
+                  "https://fontsapi.zeoseven.com/387/main/result.css",
+              },
+            ],
+            variable: "--font-sans",
+          },
+          {
+            families: [
+              { family: "Lora", provider: "google" },
+              {
+                family: "Noto Serif CJK",
+                provider: "zeoseven",
+                stylesheetUrl:
+                  "https://fontsapi.zeoseven.com/285/main/result.css",
+              },
+            ],
+            variable: "--font-serif",
+          },
+        ],
+      },
+      lightCssVariables: {},
+    })
+
+    expect(
+      document.getElementById(
+        "react-canvas-theme-preset-fonts-zeoseven-0"
+      )
+    ).toMatchObject({
+      href: "/__agent-html/font-stylesheet?url=https%3A%2F%2Ffontsapi.zeoseven.com%2F387%2Fmain%2Fresult.css",
+    })
+    expect(
+      document.getElementById(
+        "react-canvas-theme-preset-fonts-zeoseven-1"
+      )
+    ).toMatchObject({
+      href: "/__agent-html/font-stylesheet?url=https%3A%2F%2Ffontsapi.zeoseven.com%2F285%2Fmain%2Fresult.css",
+    })
+  })
+
   it("clears managed layout artifacts for presets without layout", () => {
     vi.stubGlobal("HTMLLinkElement", Object)
     vi.stubGlobal("document", createDocumentMock())

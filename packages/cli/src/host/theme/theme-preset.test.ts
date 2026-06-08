@@ -185,6 +185,7 @@ describe("canvas theme preset", () => {
     expect(presetIds).not.toContain("realmorphism")
     expect(presetIds).not.toContain("sulav")
     expect(presetIds).not.toContain("vscode")
+    expect(presetIds).not.toContain("wondrous")
     expect(
       canvasThemePresets
         .find((themePreset) => themePreset.id === "pixel-quest")
@@ -239,6 +240,33 @@ describe("canvas theme preset", () => {
       "--font-mono": '"Geist Mono", ui-monospace, monospace',
       "--font-sans": '"Architects Daughter", Acy, ui-sans-serif, sans-serif',
       "--font-serif": '"Architects Daughter", Acy, ui-serif, serif',
+    })
+  })
+
+  it("normalizes Chinese-compatible font stacks for remaining presets", () => {
+    const claudePlusPreset = canvasThemePresets.find(
+      (themePreset) => themePreset.id === "claude-plus"
+    )
+    const hexPreset = canvasThemePresets.find(
+      (themePreset) => themePreset.id === "hex"
+    )
+    const mimiPreset = canvasThemePresets.find(
+      (themePreset) => themePreset.id === "mimi"
+    )
+
+    expect(claudePlusPreset?.lightCssVariables).toMatchObject({
+      "--font-heading": 'Outfit, "Maple Mono NF CN", sans-serif',
+      "--font-sans": 'Outfit, "Maple Mono NF CN", ui-sans-serif, sans-serif',
+    })
+    expect(hexPreset?.lightCssVariables).toMatchObject({
+      "--font-heading": 'Inter, "Maple Mono NF CN", sans-serif',
+      "--font-sans": 'Inter, "Maple Mono NF CN", ui-sans-serif, sans-serif',
+    })
+    expect(mimiPreset?.lightCssVariables).toMatchObject({
+      "--font-heading": 'Poppins, "Nowar Rounded TW Wc", sans-serif',
+      "--font-sans":
+        'Poppins, "Nowar Rounded TW Wc", ui-sans-serif, sans-serif',
+      "--font-serif": 'Lora, "Noto Serif CJK", ui-serif, serif',
     })
   })
 
