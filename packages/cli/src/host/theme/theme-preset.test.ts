@@ -133,6 +133,29 @@ describe("canvas theme preset", () => {
 
     expect(presetIds).toContain("claude-plus")
     expect(presetIds).toContain("vscode")
+    expect(
+      canvasThemePresets.find((themePreset) => themePreset.id === "manga")
+        ?.layout
+    ).toMatchObject({
+      bodyClassName: "antialiased",
+      fonts: [
+        {
+          family: "Architects Daughter",
+          provider: "google",
+          variable: "--font-sans",
+        },
+        {
+          family: "Architects Daughter",
+          provider: "google",
+          variable: "--font-serif",
+        },
+        {
+          family: "Architects Daughter",
+          provider: "google",
+          variable: "--font-mono",
+        },
+      ],
+    })
   })
 
   it("keeps sidebar tokens derived from the base theme pipeline", () => {

@@ -62,7 +62,9 @@ container, and theme editor styles. Artifact agents do not read it by default.
 `agent-html/theme/*` owns host theme preset resources. Preset files under
 `theme/presets/*.css` use standard shadcn v4 CSS format. The preset registry
 parses `:root` and `.dark` variable blocks into Canvas theme variables instead
-of hand-writing TS variable objects. Host code may consume these through
+of hand-writing TS variable objects. Matching `theme/presets/*.layout.ts`
+modules export Canvas-safe layout metadata such as font assets and
+`antialiased`. Host code may consume these through
 `#agent-html-playground/theme/*`; artifacts consume semantic tokens and do not
 choose preset values directly.
 

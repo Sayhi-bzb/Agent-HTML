@@ -12,7 +12,8 @@ import {
   PopoverAnchor,
 } from "#agent-html-playground/components/ui/popover"
 import type { BlockOverlay } from "../host-contracts"
-import { HostChrome, HostPrompt } from "../ui"
+import { HostIconButton } from "../ui/icon-button"
+import { HostFloatingPromptPopoverContent } from "../ui/prompt"
 
 const defaultBlockHighlightPadding = 6
 
@@ -280,7 +281,7 @@ export function BlockOverlayLayer({
                   width: overlay.width,
                 }}
               >
-                <HostChrome.Icon
+                <HostIconButton
                   data-hovered={isHovered || isPromptOpen ? "true" : undefined}
                   icon={SparklesIcon}
                   label={`Message ${overlay.title}`}
@@ -300,7 +301,7 @@ export function BlockOverlayLayer({
               </div>
             </PopoverAnchor>
             {isPromptOpen && promptTarget ? (
-              <HostPrompt.PopoverContent
+              <HostFloatingPromptPopoverContent
                 align="start"
                 collisionPadding={12}
                 side="right"
@@ -313,7 +314,7 @@ export function BlockOverlayLayer({
                   target={promptTarget}
                   value={messageHost.draft}
                 />
-              </HostPrompt.PopoverContent>
+              </HostFloatingPromptPopoverContent>
             ) : null}
           </Popover>
         )

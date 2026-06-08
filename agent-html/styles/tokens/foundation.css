@@ -32,6 +32,7 @@
   --spacing: 0.25rem;
   --font-sans: 'Geist Variable', sans-serif;
   --font-heading: var(--font-sans);
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --tracking-normal: 0em;
   --shadow-2xs: 0px 1px 3px 0px rgb(0 0 0 / 0.05);

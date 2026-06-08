@@ -69,6 +69,7 @@ describe("canvas theme draft", () => {
   it("reads runtime variables from computed style", () => {
     const values: Record<string, string> = {
       "--canvas-artifact-block-gap": " 2rem ",
+      "--font-serif": " Georgia, serif ",
       "--success": " oklch(0.62 0.17 145) ",
       "--font-sans-source": " ignored ",
       "--shadow-opacity": " 0.5 ",
@@ -82,6 +83,7 @@ describe("canvas theme draft", () => {
 
     expect(readCanvasThemeRuntimeVariables(style)).toEqual({
       "--canvas-artifact-block-gap": "2rem",
+      "--font-serif": "Georgia, serif",
       "--success": "oklch(0.62 0.17 145)",
     })
   })

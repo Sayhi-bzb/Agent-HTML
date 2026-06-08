@@ -5,12 +5,17 @@ import {
   SidebarMenuButton,
 } from "#agent-html-playground/components/ui/sidebar"
 import { HostControlTrigger } from "./control-trigger"
-import { HostItemContent, type HostItemIcon } from "./item-content"
+import {
+  HostItemContent,
+  type HostItemIcon,
+  type HostItemLayout,
+} from "./item-content"
 
 export function HostSidebarActionButton({
   caption,
   className,
   icon,
+  itemLayout,
   label,
   swatchColor,
   trailing,
@@ -18,6 +23,7 @@ export function HostSidebarActionButton({
 }: Omit<React.ComponentProps<typeof SidebarMenuButton>, "children"> & {
   caption?: React.ReactNode
   icon?: HostItemIcon
+  itemLayout?: HostItemLayout
   label: React.ReactNode
   swatchColor?: string
   trailing?: React.ReactNode
@@ -28,6 +34,7 @@ export function HostSidebarActionButton({
         <HostItemContent
           caption={caption}
           icon={icon}
+          layout={itemLayout}
           label={label}
           swatchColor={swatchColor}
           trailing={trailing}

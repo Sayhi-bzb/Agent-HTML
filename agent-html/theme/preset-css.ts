@@ -2,7 +2,11 @@ import {
   canvasThemeVariableNames,
   type CanvasThemeVariableName,
 } from "./theme-variables"
-import type { CanvasThemeCssVariables, CanvasThemePreset } from "./presets"
+import type {
+  CanvasThemeCssVariables,
+  CanvasThemePreset,
+  CanvasThemePresetLayout,
+} from "./presets"
 
 const cssVariableDeclarationPattern = /(--[a-zA-Z0-9-_]+)\s*:\s*([^;]+);/g
 const themeVariableNames = new Set<string>(canvasThemeVariableNames)
@@ -67,16 +71,19 @@ export function createCanvasThemePresetFromCss({
   css,
   id,
   label,
+  layout,
 }: {
   css: string
   id: string
   label: string
+  layout?: CanvasThemePresetLayout
 }): CanvasThemePreset {
   const parsedPreset = parseCanvasThemePresetCss(css)
 
   return {
     id,
     label,
+    ...(layout ? { layout } : {}),
     lightCssVariables: parsedPreset.lightCssVariables,
     ...(Object.keys(parsedPreset.darkCssVariables).length
       ? { darkCssVariables: parsedPreset.darkCssVariables }

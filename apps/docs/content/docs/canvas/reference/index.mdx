@@ -64,11 +64,6 @@ Host code may define host-only adapters over Canvas UI primitives in
 chrome; they are not artifact resources and must not become a replacement
 primitive library.
 
-Host feature modules should consume host adapters from the
-`packages/cli/src/host/ui` family entrypoint: `HostChrome`, `HostPrompt`, and
-`HostFeedback`. Primitive-specific adapter files under `host/ui` are
-implementation details for the adapter layer, not feature import targets.
-
 ## Review Checks
 
 Confirm that `Artifact` keeps the token-configured readable root container,

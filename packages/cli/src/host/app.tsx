@@ -35,6 +35,7 @@ import {
   type CanvasThemeVariableName,
 } from "./theme/theme-draft"
 import { applyCanvasThemeEditorPreview } from "./theme/theme-preview"
+import { applyCanvasThemePresetLayout } from "./theme/theme-layout"
 import { applyCanvasThemePreset } from "./theme/theme-preset"
 import type { CanvasThemeEditorSectionId } from "./theme/theme-editor-sections"
 import {
@@ -48,7 +49,7 @@ import {
 } from "#agent-html-playground/theme/presets"
 import { PanelLeftIcon } from "lucide-react"
 import { formatBlockPrompt } from "../react-canvas/prompt.mjs"
-import { HostChrome } from "./ui"
+import { HostIconButton } from "./ui/icon-button"
 import type {
   Artifact,
   FloatingPromptTarget,
@@ -162,6 +163,7 @@ export function ReactCanvasHostApp() {
 
   React.useEffect(() => {
     applyCanvasThemePreset(activeThemePreset)
+    applyCanvasThemePresetLayout(activeThemePreset)
   }, [activeThemePreset])
 
   React.useEffect(() => {
@@ -400,7 +402,7 @@ export function ReactCanvasHostApp() {
         </SidebarProvider>
         <SidebarInset className="min-h-svh min-w-0 overflow-hidden">
           <div className="canvas-host-toolbar">
-            <HostChrome.Icon
+            <HostIconButton
               icon={PanelLeftIcon}
               label={
                 leftSidebarOpen

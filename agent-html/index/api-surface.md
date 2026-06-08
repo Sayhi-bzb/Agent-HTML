@@ -89,5 +89,5 @@ Full TypeScript declarations are generated only as temporary build input.
 | File | Exports |
 | --- | --- |
 | `agent-html/theme/preset-css.ts` | `createCanvasThemePresetFromCss`, `parseCanvasThemePresetCss` |
-| `agent-html/theme/presets.ts` | `CanvasThemeCssVariables`, `CanvasThemePreset`, `CanvasThemePresetId`, `canvasThemePresets` |
+| `agent-html/theme/presets.ts` | `CanvasThemeCssVariables`, `CanvasThemePreset`, `CanvasThemePresetFont`, `CanvasThemePresetId`, `CanvasThemePresetLayout`, `canvasThemePresets` |
 | `agent-html/theme/theme-variables.ts` | `CanvasThemeVariableName`, `canvasThemeVariableNames` |

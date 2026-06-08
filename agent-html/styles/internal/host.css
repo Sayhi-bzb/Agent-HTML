@@ -179,12 +179,22 @@
     gap: var(--canvas-sidebar-stack-gap);
   }
 
+  .canvas-host-item-content[data-layout="inline"] .canvas-host-item-text {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--canvas-sidebar-control-gap);
+  }
+
   .canvas-host-item-label {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     text-align: left;
+  }
+
+  .canvas-host-item-content[data-layout="inline"] .canvas-host-item-label {
+    flex: 1 1 auto;
   }
 
   .canvas-host-item-caption {
@@ -194,6 +204,13 @@
     white-space: nowrap;
     font-size: var(--canvas-sidebar-font-size-caption);
     color: color-mix(in oklab, var(--sidebar-foreground) 45%, transparent);
+  }
+
+  .canvas-host-item-content[data-layout="inline"] .canvas-host-item-caption {
+    margin-inline-start: auto;
+    flex: 0 1 auto;
+    max-width: 45%;
+    text-align: right;
   }
 
   .canvas-host-item-icon {

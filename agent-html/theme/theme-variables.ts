@@ -30,6 +30,7 @@ export const canvasThemeVariableNames = [
   "--chart-5",
   "--font-sans",
   "--font-heading",
+  "--font-serif",
   "--font-mono",
   "--tracking-normal",
   "--radius",

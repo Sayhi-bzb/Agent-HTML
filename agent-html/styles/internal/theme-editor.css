@@ -85,7 +85,7 @@
   .canvas-theme-editor-popover-button {
     min-height: var(--canvas-theme-editor-control-min-height);
     height: auto;
-    align-items: flex-start;
+    align-items: center;
     padding-block: var(--canvas-theme-editor-row-padding-block);
     color: color-mix(in oklab, var(--sidebar-foreground) 70%, transparent);
   }
