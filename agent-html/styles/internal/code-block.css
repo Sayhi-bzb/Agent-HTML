@@ -64,13 +64,13 @@
 }
 
 .canvas-code-block pre.has-diff .line.diff.add {
-  background-color: color-mix(in oklab, var(--primary) 14%, transparent) !important;
-  color: color-mix(in oklab, var(--primary) 82%, var(--foreground));
+  background-color: var(--canvas-content-diff-add-background) !important;
+  color: var(--canvas-content-diff-add-foreground);
 }
 
 .canvas-code-block pre.has-diff .line.diff.remove {
-  background-color: color-mix(in oklab, var(--destructive) 14%, transparent) !important;
-  color: color-mix(in oklab, var(--destructive) 82%, var(--foreground));
+  background-color: var(--canvas-content-diff-remove-background) !important;
+  color: var(--canvas-content-diff-remove-foreground);
 }
 
 .canvas-code-block:not([data-line-numbers="true"]) pre.has-diff .line.diff {

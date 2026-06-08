@@ -83,5 +83,8 @@ export function artifactBundleUrl(filePath: string) {
 }
 
 export function artifactLabel(filePath: string) {
-  return filePath.split(/[\\/]/).at(-1) ?? filePath
+  const fileName = filePath.split(/[\\/]/).at(-1) ?? filePath
+  return fileName.endsWith(".artifact.tsx")
+    ? fileName.slice(0, -".artifact.tsx".length)
+    : fileName
 }

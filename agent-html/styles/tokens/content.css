@@ -17,4 +17,26 @@
   --canvas-content-caption-font-size: 0.75rem;
   --canvas-content-caption-line-height: 1.5;
   --canvas-content-grid-gap: 1rem;
+  --canvas-content-diff-add: oklch(0.62 0.17 145);
+  --canvas-content-diff-add-background: color-mix(
+    in oklab,
+    var(--canvas-content-diff-add) 14%,
+    transparent
+  );
+  --canvas-content-diff-add-foreground: color-mix(
+    in oklab,
+    var(--canvas-content-diff-add) 82%,
+    var(--foreground)
+  );
+  --canvas-content-diff-remove: var(--destructive);
+  --canvas-content-diff-remove-background: color-mix(
+    in oklab,
+    var(--canvas-content-diff-remove) 14%,
+    transparent
+  );
+  --canvas-content-diff-remove-foreground: color-mix(
+    in oklab,
+    var(--canvas-content-diff-remove) 82%,
+    var(--foreground)
+  );
 }

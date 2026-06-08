@@ -1,8 +1,8 @@
 import {
   FileStackIcon,
-  FileCodeIcon,
   FileTextIcon,
   PaletteIcon,
+  Settings2Icon,
   SparklesIcon,
 } from "lucide-react"
 
@@ -17,6 +17,13 @@ import type {
   CanvasThemeResolvedVariables,
   CanvasThemeVariableName,
 } from "../theme/theme-draft"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "#agent-html-playground/components/ui/dropdown-menu"
 import {
   Sidebar,
   SidebarContent,
@@ -84,15 +91,18 @@ export function ReactCanvasSidebar({
   return (
     <Sidebar className="border-transparent" collapsible="offcanvas">
       <SidebarHeader className="canvas-sidebar-pad canvas-sidebar-header-stack">
+        <div className="canvas-sidebar-brand">
+          <img
+            alt=""
+            aria-hidden="true"
+            className="canvas-sidebar-brand-icon"
+            src="/__agent-html/public/ghost.svg"
+          />
+          <span className="canvas-sidebar-title min-w-0 truncate">
+            Agent-HTML
+          </span>
+        </div>
         <SidebarMenu className="canvas-sidebar-menu">
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" tooltip="AgentHTML">
-              <FileCodeIcon />
-              <span className="canvas-sidebar-title min-w-0 truncate">
-                AgentHTML
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={activeSidebarView === "artifacts"}
@@ -191,10 +201,19 @@ export function ReactCanvasSidebar({
             </SidebarMenuItem>
           ) : (
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="React Canvas">
-                <SparklesIcon />
-                <span className="min-w-0 truncate">React Canvas</span>
-              </SidebarMenuButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton type="button">
+                    <Settings2Icon />
+                    <span className="min-w-0 truncate">Settings</span>
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" side="right">
+                  <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                  <DropdownMenuItem disabled>Preferences</DropdownMenuItem>
+                  <DropdownMenuItem disabled>About Agent-HTML</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </SidebarMenuItem>
           )}
         </SidebarMenu>
