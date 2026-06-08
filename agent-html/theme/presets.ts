@@ -13,6 +13,7 @@ import wondrousCss from "./presets/wondrous.css?raw"
 import { layout as wondrousLayout } from "./presets/wondrous.layout"
 import pixelQuestCss from "./presets/pixel-quest.css?raw"
 import { layout as pixelQuestLayout } from "./presets/pixel-quest.layout"
+import { lightCssVariables as pixelQuestLightCssVariables } from "./presets/pixel-quest.tokens"
 
 export type CanvasThemeCssVariables = Partial<Record<`--${string}`, string>>
 
@@ -54,6 +55,8 @@ type CanvasThemeCssPresetRegistration = {
   id: string
   label: string
   layout?: CanvasThemePresetLayout
+  lightCssVariables?: CanvasThemeCssVariables
+  mirrorLightToDark?: boolean
 }
 
 const cssPresetRegistrations = [
@@ -80,6 +83,8 @@ const cssPresetRegistrations = [
     id: "pixel-quest",
     label: "Pixel Quest",
     layout: pixelQuestLayout,
+    lightCssVariables: pixelQuestLightCssVariables,
+    mirrorLightToDark: true,
   },
   {
     css: mimiCss,

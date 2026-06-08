@@ -21,32 +21,43 @@ const fontFallbacks = {
 >
 
 function extractCssBlock(source: string, selector: string) {
-  const selectorIndex = source.indexOf(selector)
-  if (selectorIndex < 0) {
-    return ""
-  }
+  let searchIndex = 0
 
-  const openingBraceIndex = source.indexOf("{", selectorIndex)
-  if (openingBraceIndex < 0) {
-    return ""
-  }
-
-  let depth = 0
-
-  for (let index = openingBraceIndex; index < source.length; index += 1) {
-    const character = source[index]
-
-    if (character === "{") {
-      depth += 1
+  while (searchIndex < source.length) {
+    const selectorIndex = source.indexOf(selector, searchIndex)
+    if (selectorIndex < 0) {
+      return ""
     }
 
-    if (character === "}") {
-      depth -= 1
+    const afterSelectorIndex = selectorIndex + selector.length
+    const selectorSuffix = source.slice(afterSelectorIndex)
+    const match = selectorSuffix.match(/^\s*\{/)
 
-      if (depth === 0) {
-        return source.slice(openingBraceIndex + 1, index)
+    if (!match) {
+      searchIndex = afterSelectorIndex
+      continue
+    }
+
+    const openingBraceIndex = afterSelectorIndex + match[0].lastIndexOf("{")
+    let depth = 0
+
+    for (let index = openingBraceIndex; index < source.length; index += 1) {
+      const character = source[index]
+
+      if (character === "{") {
+        depth += 1
+      }
+
+      if (character === "}") {
+        depth -= 1
+
+        if (depth === 0) {
+          return source.slice(openingBraceIndex + 1, index)
+        }
       }
     }
+
+    return ""
   }
 
   return ""
@@ -113,25 +124,34 @@ export function createCanvasThemePresetFromCss({
   id,
   label,
   layout,
+  lightCssVariables: lightCssVariableOverrides,
+  mirrorLightToDark,
 }: {
   css: string
   id: string
   label: string
   layout?: CanvasThemePresetLayout
+  lightCssVariables?: CanvasThemeCssVariables
+  mirrorLightToDark?: boolean
 }): CanvasThemePreset {
   const parsedPreset = parseCanvasThemePresetCss(css)
   const layoutFontVariables = createLayoutFontVariables(layout)
+  const lightCssVariables = {
+    ...layoutFontVariables,
+    ...parsedPreset.lightCssVariables,
+    ...lightCssVariableOverrides,
+  }
+  const darkCssVariables = mirrorLightToDark
+    ? lightCssVariables
+    : parsedPreset.darkCssVariables
 
   return {
     id,
     label,
     ...(layout ? { layout } : {}),
-    lightCssVariables: {
-      ...layoutFontVariables,
-      ...parsedPreset.lightCssVariables,
-    },
-    ...(Object.keys(parsedPreset.darkCssVariables).length
-      ? { darkCssVariables: parsedPreset.darkCssVariables }
+    lightCssVariables,
+    ...(Object.keys(darkCssVariables).length
+      ? { darkCssVariables }
       : {}),
   }
 }

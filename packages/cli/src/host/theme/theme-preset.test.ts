@@ -75,6 +75,8 @@ describe("canvas theme preset", () => {
     const parsed = parseCanvasThemePresetCss(`
       @import "tailwindcss";
 
+      @custom-variant dark (&:is(.dark *));
+
       :root {
         --background: #ffffff;
         --foreground: #111111;
@@ -185,6 +187,14 @@ describe("canvas theme preset", () => {
       provider: "zeoseven",
       stylesheetUrl: "https://fontsapi.zeoseven.com/570/main/result.css",
       variable: "--font-sans",
+    })
+    expect(
+      canvasThemePresets.find(
+        (themePreset) => themePreset.id === "pixel-quest"
+      )?.darkCssVariables
+    ).toMatchObject({
+      "--background": "#f3ead2",
+      "--foreground": "#1f1b16",
     })
     expect(
       canvasThemePresets.find((themePreset) => themePreset.id === "manga")

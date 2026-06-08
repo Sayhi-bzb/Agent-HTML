@@ -53,12 +53,13 @@ import {
 } from "../ui/command"
 import {
   HostDropdownContent,
-  HostDropdownItem,
   HostDropdownLabel,
+  HostDropdownMeta,
 } from "../ui/dropdown"
 import {
   HostSidebarAction,
   HostSidebarActionButton,
+  HostSidebarStatus,
 } from "../ui/sidebar-action"
 
 export function ReactCanvasSidebar({
@@ -200,13 +201,19 @@ export function ReactCanvasSidebar({
       <SidebarFooter className="canvas-sidebar-pad">
         <SidebarMenu>
           {isGalleryView ? (
-            <HostSidebarAction
-              disabled={!themePreviewDirty}
-              icon={SparklesIcon}
-              label={themePreviewDirty ? "Reset preview" : "Preview clean"}
-              onClick={onResetThemePreview}
-              type="button"
-            />
+            themePreviewDirty ? (
+              <HostSidebarAction
+                icon={SparklesIcon}
+                label="Reset preview"
+                onClick={onResetThemePreview}
+                type="button"
+              />
+            ) : (
+              <HostSidebarStatus
+                icon={SparklesIcon}
+                label="Preview clean"
+              />
+            )
           ) : (
             <>
               <HostSidebarAction
@@ -226,8 +233,10 @@ export function ReactCanvasSidebar({
                   </DropdownMenuTrigger>
                   <HostDropdownContent align="end" side="right">
                     <HostDropdownLabel>Settings</HostDropdownLabel>
-                    <HostDropdownItem disabled label="Preferences" />
-                    <HostDropdownItem disabled label="About Agent-HTML" />
+                    <HostDropdownMeta
+                      caption="Local artifact workbench"
+                      label="Agent-HTML"
+                    />
                   </HostDropdownContent>
                 </DropdownMenu>
               </SidebarMenuItem>

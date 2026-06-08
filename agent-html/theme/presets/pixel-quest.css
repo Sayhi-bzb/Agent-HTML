@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
 :root {
   --background: #f3ead2;
   --foreground: #1f1b16;
@@ -46,44 +44,46 @@
 }
 
 .dark {
-  --background: #15111f;
-  --foreground: #fff3c4;
-  --card: #211a31;
-  --card-foreground: #fff3c4;
-  --popover: #211a31;
-  --popover-foreground: #fff3c4;
-  --primary: #7aa2ff;
-  --primary-foreground: #15111f;
-  --secondary: #ffd166;
-  --secondary-foreground: #15111f;
-  --muted: #352b4a;
-  --muted-foreground: #c8b98a;
-  --accent: #ff6b6b;
-  --accent-foreground: #15111f;
-  --success: #51cf66;
-  --success-foreground: #15111f;
-  --warning: #ffd166;
-  --warning-foreground: #15111f;
-  --info: #7aa2ff;
-  --info-foreground: #15111f;
-  --destructive: #ff6b6b;
-  --border: #fff3c4;
-  --input: #211a31;
-  --ring: #ffd166;
-  --chart-1: #7aa2ff;
-  --chart-2: #ffd166;
-  --chart-3: #ff6b6b;
-  --chart-4: #51cf66;
-  --chart-5: #c8b98a;
+  --background: #f3ead2;
+  --foreground: #1f1b16;
+  --card: #fff8dc;
+  --card-foreground: #1f1b16;
+  --popover: #fff8dc;
+  --popover-foreground: #1f1b16;
+  --primary: #2f5cff;
+  --primary-foreground: #fff8dc;
+  --secondary: #d9a441;
+  --secondary-foreground: #1f1b16;
+  --muted: #d8c7a3;
+  --muted-foreground: #5f533f;
+  --accent: #e8503a;
+  --accent-foreground: #fff8dc;
+  --success: #2f9e44;
+  --success-foreground: #fff8dc;
+  --warning: #d9a441;
+  --warning-foreground: #1f1b16;
+  --info: #2f5cff;
+  --info-foreground: #fff8dc;
+  --destructive: #c92a2a;
+  --border: #1f1b16;
+  --input: #fff8dc;
+  --ring: #2f5cff;
+  --chart-1: #2f5cff;
+  --chart-2: #d9a441;
+  --chart-3: #e8503a;
+  --chart-4: #2f9e44;
+  --chart-5: #5f533f;
   --radius: 0px;
   --spacing: 0.25rem;
   --tracking-normal: 0em;
-  --shadow-2xs: 2px 2px 0 0 #fff3c4;
-  --shadow-xs: 2px 2px 0 0 #fff3c4;
-  --shadow-sm: 3px 3px 0 0 #fff3c4;
-  --shadow: 4px 4px 0 0 #fff3c4;
-  --shadow-md: 5px 5px 0 0 #fff3c4;
-  --shadow-lg: 6px 6px 0 0 #fff3c4;
-  --shadow-xl: 8px 8px 0 0 #fff3c4;
-  --shadow-2xl: 10px 10px 0 0 #fff3c4;
+  --shadow-2xs: 2px 2px 0 0 #1f1b16;
+  --shadow-xs: 2px 2px 0 0 #1f1b16;
+  --shadow-sm: 3px 3px 0 0 #1f1b16;
+  --shadow: 4px 4px 0 0 #1f1b16;
+  --shadow-md: 5px 5px 0 0 #1f1b16;
+  --shadow-lg: 6px 6px 0 0 #1f1b16;
+  --shadow-xl: 8px 8px 0 0 #1f1b16;
+  --shadow-2xl: 10px 10px 0 0 #1f1b16;
 }
+
+@custom-variant dark (&:is(.dark *));

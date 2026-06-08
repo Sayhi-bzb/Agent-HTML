@@ -57,3 +57,36 @@ export function HostSidebarAction({
     </SidebarMenuItem>
   )
 }
+
+export function HostSidebarStatus({
+  caption,
+  className,
+  icon,
+  itemLayout,
+  label,
+  swatchColor,
+  trailing,
+}: {
+  caption?: React.ReactNode
+  className?: string
+  icon?: HostItemIcon
+  itemLayout?: HostItemLayout
+  label: React.ReactNode
+  swatchColor?: string
+  trailing?: React.ReactNode
+}) {
+  return (
+    <SidebarMenuItem>
+      <div className={["canvas-host-sidebar-status", className].filter(Boolean).join(" ")}>
+        <HostItemContent
+          caption={caption}
+          icon={icon}
+          layout={itemLayout}
+          label={label}
+          swatchColor={swatchColor}
+          trailing={trailing}
+        />
+      </div>
+    </SidebarMenuItem>
+  )
+}
