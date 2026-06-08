@@ -13,9 +13,9 @@ styles/base.css
   -> base rules such as text selection
 
 styles/tokens/*
-  -> semantic token values split by feature
+  -> foundation tokens, feature tokens, and Tailwind bridge
 
-styles/content.css
+styles/public/content.css
   -> artifact-consumable Canvas semantic classes
 
 styles/internal/*
@@ -45,15 +45,16 @@ the Canvas surface, including text selection colors.
 
 `agent-html/styles/tokens/*` owns semantic token values. Read
 `tokens/foundation.css` for base color, font, radius, chart, and sidebar
-values; read `tokens/artifact.css`, `tokens/host.css`, `tokens/content.css`,
-`tokens/code-block.css`, and `tokens/theme-editor.css` for feature values.
+values; read `tokens/features/artifact.css`, `tokens/features/host.css`,
+`tokens/features/content.css`, `tokens/features/code-block.css`, and
+`tokens/features/theme-editor.css` for feature values.
 
 `agent-html/styles/tokens/tailwind.css` maps semantic variables into Tailwind
 tokens.
 
-`agent-html/styles/content.css` owns the public artifact style API. It contains the
-small set of semantic classes artifact agents may consume for layout rhythm,
-surfaces, icon boxes, and text scale.
+`agent-html/styles/public/content.css` owns the public artifact style API. It
+contains the small set of semantic classes artifact agents may consume for
+layout rhythm, surfaces, icon boxes, and text scale.
 
 `agent-html/styles/internal/*` owns locked Canvas chrome, the Artifact reading
 container, and theme editor styles. Artifact agents do not read it by default.
@@ -65,12 +66,13 @@ tokens and do not choose preset values directly.
 Host inspection chrome, including surface padding, toolbar offsets, status
 spacing, sidebar local spacing, floating prompt surface values, block hover
 highlighting, and block action placement, uses the same token pipeline.
-Canvas-specific host tokens start in `styles/tokens/host.css` and are applied
-by semantic classes in `styles/internal/host.css`.
+Canvas-specific host tokens start in `styles/tokens/features/host.css` and are
+applied by semantic classes in `styles/internal/host.css`.
 
 Artifact root layout also uses this pipeline. Root width and block rhythm are
-explicit `--canvas-artifact-*` tokens in `styles/tokens/artifact.css` and are
-applied by `.agent-html-artifact` in `styles/internal/artifact.css`. Artifact
+explicit `--canvas-artifact-*` tokens in
+`styles/tokens/features/artifact.css` and are applied by
+`.agent-html-artifact` in `styles/internal/artifact.css`. Artifact
 color follows the shared `--background` and `--foreground` foundation tokens.
 
 Artifact content composition uses Canvas semantic classes for spacing,
@@ -79,7 +81,7 @@ backed by `--canvas-content-*` tokens. Panel radius, border, and icon-box color
 come from shared semantic tokens.
 
 Rich component implementation tokens use matching feature files, such as
-`tokens/code-block.css` for CodeBlock diff colors.
+`tokens/features/code-block.css` for CodeBlock diff colors.
 
 Artifacts do not import CSS files directly. They consume semantic token classes:
 
@@ -142,7 +144,7 @@ not part of the Canvas theme editor unless they drive the full scale.
 
 Artifacts use Canvas semantic classes such as `canvas-stack-md`,
 `canvas-content-panel`, `canvas-grid-gap`, `canvas-icon-box-sm`, and
-`canvas-text-body` from `styles/content.css` for visual scale. Layout behavior
+`canvas-text-body` from `styles/public/content.css` for visual scale. Layout behavior
 utilities such as `flex`, `grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`,
 `shrink-0`, and `truncate` may stay in artifact code when they express local
 structure or overflow behavior.

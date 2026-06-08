@@ -7,13 +7,13 @@ import {
   subscribeCanvasMessageHost,
 } from "../prompt/canvas-message-store"
 import { FloatingPrompt } from "../prompt/floating-prompt"
-import { Button } from "#agent-html-playground/components/ui/button"
 import {
   Popover,
   PopoverAnchor,
-  PopoverContent,
 } from "#agent-html-playground/components/ui/popover"
 import type { BlockOverlay } from "../host-contracts"
+import { HostIconButton } from "../ui/icon-button"
+import { HostOverlayPopoverContent } from "../ui/popover"
 
 const defaultBlockHighlightPadding = 6
 
@@ -281,10 +281,10 @@ export function BlockOverlayLayer({
                   width: overlay.width,
                 }}
               >
-                <Button
-                  aria-label={`Message ${overlay.title}`}
-                  className="canvas-block-action"
+                <HostIconButton
                   data-hovered={isHovered || isPromptOpen ? "true" : undefined}
+                  icon={SparklesIcon}
+                  label={`Message ${overlay.title}`}
                   onClick={(event) => {
                     messageHost.onOpenTarget({
                       anchorElement: overlay.element,
@@ -294,17 +294,14 @@ export function BlockOverlayLayer({
                     })
                   }}
                   size="icon-sm"
-                  type="button"
+                  surface="block-action"
                   variant="outline"
-                >
-                  <SparklesIcon />
-                </Button>
+                />
               </div>
             </PopoverAnchor>
             {isPromptOpen && promptTarget ? (
-              <PopoverContent
+              <HostOverlayPopoverContent
                 align="start"
-                className="canvas-floating-prompt-popover"
                 collisionPadding={12}
                 side="right"
                 sideOffset={12}
@@ -316,7 +313,7 @@ export function BlockOverlayLayer({
                   target={promptTarget}
                   value={messageHost.draft}
                 />
-              </PopoverContent>
+              </HostOverlayPopoverContent>
             ) : null}
           </Popover>
         )

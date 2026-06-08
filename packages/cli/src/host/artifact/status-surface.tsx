@@ -1,10 +1,9 @@
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "#agent-html-playground/components/ui/alert"
-import { Badge } from "#agent-html-playground/components/ui/badge"
 import type { GuardIssue } from "../host-contracts"
+import {
+  HostStatusItem,
+  HostStatusList,
+  HostStatusSurface,
+} from "../ui/status"
 
 export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {
   if (issues.length === 0) {
@@ -12,24 +11,18 @@ export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {
   }
 
   return (
-    <Alert className="canvas-status">
-      <AlertTitle>Guard issues</AlertTitle>
-      <AlertDescription>
-        <div className="canvas-status-stack">
-          {issues.map((issue, index) => (
-            <p
-              className="canvas-status-item"
-              key={`${issue.filePath}:${issue.line ?? 0}:${index}`}
-            >
-              <Badge className="shrink-0" variant="secondary">
-                {issue.severity}
-              </Badge>
-              <span className="min-w-0 truncate">{issue.message}</span>
-            </p>
-          ))}
-        </div>
-      </AlertDescription>
-    </Alert>
+    <HostStatusSurface className="canvas-status" title="Guard issues">
+      <HostStatusList>
+        {issues.map((issue, index) => (
+          <HostStatusItem
+            badge={issue.severity}
+            key={`${issue.filePath}:${issue.line ?? 0}:${index}`}
+          >
+            {issue.message}
+          </HostStatusItem>
+        ))}
+      </HostStatusList>
+    </HostStatusSurface>
   )
 }
 
@@ -40,10 +33,5 @@ export function HostStatusMessage({
   message: string
   title: string
 }) {
-  return (
-    <Alert>
-      <AlertTitle>{title}</AlertTitle>
-      <AlertDescription>{message}</AlertDescription>
-    </Alert>
-  )
+  return <HostStatusSurface message={message} title={title} />
 }

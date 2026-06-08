@@ -7,11 +7,11 @@ Use this route after `../README.md` when the task asks for color, type, radius, 
 ## Ownership
 
 - `foundation.css`: global semantic theme values.
-- `content.css`: artifact-consumable content tokens.
-- `code-block.css`: CodeBlock implementation tokens.
-- `artifact.css`: artifact reading container dimensions.
-- `host.css`: host, sidebar, prompt, toolbar, and block chrome tokens.
-- `theme-editor.css`: theme editor controls.
+- `features/content.css`: artifact-consumable content tokens.
+- `features/code-block.css`: CodeBlock implementation tokens.
+- `features/artifact.css`: artifact reading container dimensions.
+- `features/host.css`: host, sidebar, prompt, toolbar, and block chrome tokens.
+- `features/theme-editor.css`: theme editor controls.
 - `tailwind.css`: Tailwind and shadcn utility mapping only.
 - `index.css`: token import map only.
 

@@ -150,6 +150,19 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(filesMatching("packages/cli/src/host", primitiveBypass)).toEqual([])
   })
 
+  it("keeps host feature chrome on host UI adapters", () => {
+    const featureFiles = implementationFilesUnder("packages/cli/src/host").filter(
+      (file) => !file.startsWith("packages/cli/src/host/ui/")
+    )
+    const forbiddenChromeImports =
+      /#agent-html-playground\/components\/ui\/(?:alert|badge|button|input-group|skeleton)/
+    const bypassingFiles = featureFiles.filter((file) =>
+      forbiddenChromeImports.test(readSource(file))
+    )
+
+    expect(bypassingFiles).toEqual([])
+  })
+
   it("keeps artifact and example imports inside the React Canvas playground contract", () => {
     const allowedLocalImport =
       /^\.\.(?:\/\.\.)*\/(?:components\/(?:ui|code-block|data-table|kanban)|hooks|lib|schema|data|assets)(?:\/|$)/
@@ -293,22 +306,22 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "agent-html/styles/tokens/foundation.css"
     )
     const playgroundArtifactTokens = readSource(
-      "agent-html/styles/tokens/artifact.css"
+      "agent-html/styles/tokens/features/artifact.css"
     )
     const playgroundHostTokens = readSource(
-      "agent-html/styles/tokens/host.css"
+      "agent-html/styles/tokens/features/host.css"
     )
     const playgroundContentTokens = readSource(
-      "agent-html/styles/tokens/content.css"
+      "agent-html/styles/tokens/features/content.css"
     )
     const playgroundCodeBlockTokens = readSource(
-      "agent-html/styles/tokens/code-block.css"
+      "agent-html/styles/tokens/features/code-block.css"
     )
     const playgroundTokenImports = readSource(
       "agent-html/styles/tokens/index.css"
     )
     const playgroundThemeEditorTokens = readSource(
-      "agent-html/styles/tokens/theme-editor.css"
+      "agent-html/styles/tokens/features/theme-editor.css"
     )
     const playgroundArtifactInternal = readSource(
       "agent-html/styles/internal/artifact.css"
@@ -319,7 +332,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const playgroundHostInternal = readSource(
       "agent-html/styles/internal/host.css"
     )
-    const playgroundContent = readSource("agent-html/styles/content.css")
+    const playgroundContent = readSource("agent-html/styles/public/content.css")
     const playgroundThemeEditorInternal = readSource(
       "agent-html/styles/internal/theme-editor.css"
     )
@@ -345,12 +358,36 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundComponents.aliases.components).toBe("@/components")
     expect(playgroundComponents.aliases.ui).toBe("@/components/ui")
     expect(existsSync(join(root, "agent-html", "styles.css"))).toBe(false)
+    expect(existsSync(join(root, "agent-html", "styles", "content.css"))).toBe(
+      false
+    )
     expect(existsSync(join(root, "agent-html", "styles", "theme.css"))).toBe(
       false
     )
     expect(existsSync(join(root, "agent-html", "styles", "features"))).toBe(
       false
     )
+    expect(existsSync(join(root, "agent-html", "styles", "public"))).toBe(true)
+    expect(
+      existsSync(join(root, "agent-html", "styles", "tokens", "features"))
+    ).toBe(true)
+    expect(
+      existsSync(join(root, "agent-html", "styles", "tokens", "artifact.css"))
+    ).toBe(false)
+    expect(
+      existsSync(join(root, "agent-html", "styles", "tokens", "content.css"))
+    ).toBe(false)
+    expect(
+      existsSync(join(root, "agent-html", "styles", "tokens", "code-block.css"))
+    ).toBe(false)
+    expect(
+      existsSync(join(root, "agent-html", "styles", "tokens", "host.css"))
+    ).toBe(false)
+    expect(
+      existsSync(
+        join(root, "agent-html", "styles", "tokens", "theme-editor.css")
+      )
+    ).toBe(false)
     expect(existsSync(join(root, "agent-html", "styles", "use"))).toBe(false)
     expect(existsSync(join(root, "agent-html", "styles", "system"))).toBe(false)
     expect(existsSync(join(root, "agent-html", "styles", "bridge"))).toBe(false)
@@ -360,7 +397,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundStyles).toContain('@import "@fontsource-variable/geist"')
     expect(playgroundStyles).toContain('@import "./tokens/index.css"')
     expect(playgroundStyles).toContain('@import "./tokens/tailwind.css"')
-    expect(playgroundStyles).toContain('@import "./content.css"')
+    expect(playgroundStyles).toContain('@import "./public/content.css"')
     expect(playgroundStyles).toContain('@import "./internal/code-block.css"')
     expect(playgroundStyles).toContain('@import "./internal/artifact.css"')
     expect(playgroundStyles).toContain('@import "./internal/host.css"')
@@ -381,7 +418,13 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "--color-success: var(--success)"
     )
     expect(playgroundTailwindTokens).toContain("--color-sidebar")
-    expect(playgroundTokenImports).toContain('@import "./code-block.css"')
+    expect(playgroundTokenImports).toContain('@import "./features/artifact.css"')
+    expect(playgroundTokenImports).toContain('@import "./features/host.css"')
+    expect(playgroundTokenImports).toContain('@import "./features/content.css"')
+    expect(playgroundTokenImports).toContain('@import "./features/code-block.css"')
+    expect(playgroundTokenImports).toContain(
+      '@import "./features/theme-editor.css"'
+    )
     expect(playgroundTailwindTokens).toContain("--radius-lg: var(--radius)")
     expect(playgroundFoundationTokens).toContain("--font-sans")
     expect(playgroundFoundationTokens).toContain("--success")
@@ -456,7 +499,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundContent).toContain(".canvas-content-panel")
     expect(playgroundContent).toContain(".canvas-text-body")
     expect(playgroundThemeEditorInternal).toContain(
-      ".canvas-theme-editor-option"
+      ".canvas-theme-editor-popover-button"
     )
     expect(canvasMessageStore).toContain("CanvasMessageHostSnapshot")
     expect(canvasMessageStore).toContain("subscribeCanvasMessageHost")

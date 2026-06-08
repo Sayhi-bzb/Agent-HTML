@@ -31,6 +31,9 @@
   --canvas-sidebar-font-size-title: 1rem;
   --canvas-sidebar-font-size-body: 0.875rem;
   --canvas-sidebar-font-size-caption: 0.75rem;
+  --canvas-host-item-icon-size: 1rem;
+  --canvas-host-swatch-size-xs: 0.625rem;
+  --canvas-host-swatch-size-sm: 0.75rem;
   --canvas-floating-prompt-width: 22.5rem;
   --canvas-floating-prompt-z-index: 50;
   --canvas-floating-prompt-radius: var(--radius-lg);

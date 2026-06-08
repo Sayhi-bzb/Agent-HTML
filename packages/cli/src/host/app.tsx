@@ -42,13 +42,13 @@ import {
   SidebarProvider,
 } from "#agent-html-playground/components/ui/sidebar"
 import { TooltipProvider } from "#agent-html-playground/components/ui/tooltip"
-import { Button } from "#agent-html-playground/components/ui/button"
 import {
   canvasThemePresets,
   type CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
 import { PanelLeftIcon } from "lucide-react"
 import { formatBlockPrompt } from "../react-canvas/prompt.mjs"
+import { HostIconButton } from "./ui/icon-button"
 import type {
   Artifact,
   FloatingPromptTarget,
@@ -400,20 +400,18 @@ export function ReactCanvasHostApp() {
         </SidebarProvider>
         <SidebarInset className="min-h-svh min-w-0 overflow-hidden">
           <div className="canvas-host-toolbar">
-            <Button
-              aria-label={
+            <HostIconButton
+              icon={PanelLeftIcon}
+              label={
                 leftSidebarOpen
                   ? "Collapse artifact sidebar"
                   : "Expand artifact sidebar"
               }
-              className="pointer-events-auto"
               onClick={() => setLeftSidebarOpen((open) => !open)}
               size="icon-sm"
-              type="button"
+              surface="toolbar"
               variant="ghost"
-            >
-              <PanelLeftIcon data-icon="inline-start" />
-            </Button>
+            />
           </div>
           <ArtifactSurface
             activeFilePath={resolvedActiveFilePath}

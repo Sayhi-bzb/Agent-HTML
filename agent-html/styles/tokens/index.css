@@ -1,6 +1,6 @@
 @import "./foundation.css";
-@import "./artifact.css";
-@import "./host.css";
-@import "./content.css";
-@import "./code-block.css";
-@import "./theme-editor.css";
+@import "./features/artifact.css";
+@import "./features/host.css";
+@import "./features/content.css";
+@import "./features/code-block.css";
+@import "./features/theme-editor.css";

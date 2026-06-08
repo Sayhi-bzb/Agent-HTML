@@ -5,7 +5,7 @@
 @import "./tokens/index.css";
 @import "./tokens/tailwind.css";
 @import "./base.css";
-@import "./content.css";
+@import "./public/content.css";
 @import "./internal/code-block.css";
 @import "./internal/artifact.css";
 @import "./internal/host.css";

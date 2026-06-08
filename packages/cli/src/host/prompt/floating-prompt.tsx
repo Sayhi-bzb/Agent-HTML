@@ -1,12 +1,6 @@
 import * as React from "react"
 import { ArrowUpIcon } from "lucide-react"
 
-import { Button } from "#agent-html-playground/components/ui/button"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupTextarea,
-} from "#agent-html-playground/components/ui/input-group"
 import {
   Tooltip,
   TooltipContent,
@@ -14,6 +8,13 @@ import {
   TooltipTrigger,
 } from "#agent-html-playground/components/ui/tooltip"
 import type { FloatingPromptTarget } from "../host-contracts"
+import { HostIconButton } from "../ui/icon-button"
+import {
+  HostFloatingPromptActions,
+  HostFloatingPromptStatus,
+  HostFloatingPromptSurface,
+  HostFloatingPromptTextarea,
+} from "../ui/prompt"
 
 export function FloatingPrompt({
   onDraftChange,
@@ -56,13 +57,8 @@ export function FloatingPrompt({
 
   return (
     <TooltipProvider>
-      <InputGroup
-        className="canvas-floating-prompt"
-        data-agent-html-floating-prompt="true"
-        data-agent-html-floating-prompt-target={target.id}
-      >
-        <InputGroupTextarea
-          className="canvas-floating-prompt-input"
+      <HostFloatingPromptSurface targetId={target.id}>
+        <HostFloatingPromptTextarea
           onChange={(event) => onDraftChange(event.currentTarget.value)}
           onKeyDown={(event) => {
             if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -73,31 +69,29 @@ export function FloatingPrompt({
           placeholder="Edit this block..."
           value={value}
         />
-        <InputGroupAddon align="block-end">
+        <HostFloatingPromptActions>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                aria-label="Send"
-                className="ml-auto rounded-full"
+              <HostIconButton
                 disabled={!value.trim() || isSubmitting}
+                icon={ArrowUpIcon}
+                label="Send"
                 onClick={() => {
                   void submit()
                 }}
                 size="icon-sm"
-                type="button"
+                surface="prompt-submit"
                 variant="default"
-              >
-                <ArrowUpIcon />
-              </Button>
+              />
             </TooltipTrigger>
             <TooltipContent>Send</TooltipContent>
           </Tooltip>
-        </InputGroupAddon>
-      </InputGroup>
+        </HostFloatingPromptActions>
+      </HostFloatingPromptSurface>
       {status ? (
-        <p className="canvas-floating-prompt-status" role="status">
+        <HostFloatingPromptStatus>
           {status}
-        </p>
+        </HostFloatingPromptStatus>
       ) : null}
     </TooltipProvider>
   )

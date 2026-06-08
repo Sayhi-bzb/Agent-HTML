@@ -4,8 +4,8 @@ import { artifactBundleUrl } from "../api/api"
 import { BlockOverlayLayer, useBlockOverlays } from "../overlay/block-overlay"
 import { GuardIssueList, HostStatusMessage } from "./status-surface"
 import { ScrollArea } from "#agent-html-playground/components/ui/scroll-area"
-import { Skeleton } from "#agent-html-playground/components/ui/skeleton"
 import type { ArtifactModule, GuardIssue } from "../host-contracts"
+import { HostSurfaceSkeleton } from "../ui/surface-skeleton"
 
 export function ArtifactSurface({
   activeFilePath,
@@ -107,7 +107,7 @@ export function ArtifactSurface({
               title="Artifact unavailable"
             />
           ) : showSkeleton ? (
-            <ArtifactSurfaceSkeleton />
+            <HostSurfaceSkeleton />
           ) : artifactCount === 0 ? (
             <HostStatusMessage
               message="Create an agent-html/artifacts/*.artifact.tsx file to preview it here."
@@ -154,23 +154,3 @@ export function shouldShowArtifactSkeleton({
   return artifactLoading && mountedFilePath !== activeFilePath
 }
 
-function ArtifactSurfaceSkeleton() {
-  return (
-    <div
-      aria-hidden="true"
-      className="canvas-artifact-skeleton"
-      data-agent-html-artifact-skeleton="true"
-    >
-      <Skeleton className="canvas-artifact-skeleton-kicker" />
-      <Skeleton className="canvas-artifact-skeleton-title" />
-      <Skeleton className="canvas-artifact-skeleton-line canvas-artifact-skeleton-line-wide" />
-      <Skeleton className="canvas-artifact-skeleton-line" />
-      <div className="canvas-artifact-skeleton-grid">
-        <Skeleton className="canvas-artifact-skeleton-card" />
-        <Skeleton className="canvas-artifact-skeleton-card" />
-      </div>
-      <Skeleton className="canvas-artifact-skeleton-block" />
-      <Skeleton className="canvas-artifact-skeleton-block canvas-artifact-skeleton-block-short" />
-    </div>
-  )
-}

@@ -22,17 +22,13 @@ import type {
 } from "../theme/theme-draft"
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
 } from "#agent-html-playground/components/ui/command"
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "#agent-html-playground/components/ui/dropdown-menu"
@@ -46,7 +42,6 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuBadge,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "#agent-html-playground/components/ui/sidebar"
@@ -56,6 +51,12 @@ import type {
 } from "#agent-html-playground/theme/presets"
 import type { Artifact, GuardIssue } from "../host-contracts"
 import type { CanvasSidebarView } from "../preferences/canvas-host-preferences"
+import { HostCommandDialog, HostCommandItem } from "../ui/command"
+import { HostDropdownContent, HostDropdownItem } from "../ui/dropdown"
+import {
+  HostSidebarAction,
+  HostSidebarActionButton,
+} from "../ui/sidebar-action"
 
 export function ReactCanvasSidebar({
   activeFilePath,
@@ -107,15 +108,12 @@ export function ReactCanvasSidebar({
       <SidebarHeader className="canvas-sidebar-pad canvas-sidebar-header-stack">
         {isGalleryView ? (
           <SidebarMenu className="canvas-sidebar-menu">
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => onSelectSidebarView("artifacts")}
-                type="button"
-              >
-                <ArrowLeftIcon />
-                <span className="min-w-0 flex-1 truncate text-left">Back</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <HostSidebarAction
+              icon={ArrowLeftIcon}
+              label="Back"
+              onClick={() => onSelectSidebarView("artifacts")}
+              type="button"
+            />
           </SidebarMenu>
         ) : (
           <>
@@ -175,23 +173,20 @@ export function ReactCanvasSidebar({
                     ).length
 
                     return (
-                      <SidebarMenuItem key={artifact.filePath}>
-                        <SidebarMenuButton
-                          isActive={artifact.filePath === activeFilePath}
-                          onClick={() => onSelectArtifact(artifact.filePath)}
-                          title={artifact.filePath}
-                          tooltip={artifactLabel(artifact.filePath)}
-                          type="button"
-                        >
-                          <FileTextIcon />
-                          <span className="min-w-0 flex-1 truncate text-left">
-                            {artifactLabel(artifact.filePath)}
-                          </span>
-                        </SidebarMenuButton>
+                      <HostSidebarAction
+                        icon={FileTextIcon}
+                        isActive={artifact.filePath === activeFilePath}
+                        key={artifact.filePath}
+                        label={artifactLabel(artifact.filePath)}
+                        onClick={() => onSelectArtifact(artifact.filePath)}
+                        title={artifact.filePath}
+                        tooltip={artifactLabel(artifact.filePath)}
+                        type="button"
+                      >
                         {issueCount > 0 ? (
                           <SidebarMenuBadge>{issueCount}</SidebarMenuBadge>
                         ) : null}
-                      </SidebarMenuItem>
+                      </HostSidebarAction>
                     )
                   })
                 )}
@@ -203,42 +198,35 @@ export function ReactCanvasSidebar({
       <SidebarFooter className="canvas-sidebar-pad">
         <SidebarMenu>
           {isGalleryView ? (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                disabled={!themePreviewDirty}
-                onClick={onResetThemePreview}
-                type="button"
-              >
-                <SparklesIcon />
-                <span className="min-w-0 truncate">
-                  {themePreviewDirty ? "Reset preview" : "Preview clean"}
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <HostSidebarAction
+              disabled={!themePreviewDirty}
+              icon={SparklesIcon}
+              label={themePreviewDirty ? "Reset preview" : "Preview clean"}
+              onClick={onResetThemePreview}
+              type="button"
+            />
           ) : (
             <>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => onSelectSidebarView("gallery")}
-                  type="button"
-                >
-                  <PaletteIcon />
-                  <span className="min-w-0 truncate">Gallery</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <HostSidebarAction
+                icon={PaletteIcon}
+                label="Gallery"
+                onClick={() => onSelectSidebarView("gallery")}
+                type="button"
+              />
               <SidebarMenuItem>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton type="button">
-                      <Settings2Icon />
-                      <span className="min-w-0 truncate">Settings</span>
-                    </SidebarMenuButton>
+                    <HostSidebarActionButton
+                      icon={Settings2Icon}
+                      label="Settings"
+                      type="button"
+                    />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" side="right">
+                  <HostDropdownContent align="end" side="right">
                     <DropdownMenuLabel>Settings</DropdownMenuLabel>
-                    <DropdownMenuItem disabled>Preferences</DropdownMenuItem>
-                    <DropdownMenuItem disabled>About Agent-HTML</DropdownMenuItem>
-                  </DropdownMenuContent>
+                    <HostDropdownItem disabled label="Preferences" />
+                    <HostDropdownItem disabled label="About Agent-HTML" />
+                  </HostDropdownContent>
                 </DropdownMenu>
               </SidebarMenuItem>
             </>
@@ -263,14 +251,14 @@ function ReactCanvasArtifactSearch({
   return (
     <>
       <SidebarMenu className="canvas-sidebar-menu">
-        <SidebarMenuItem>
-          <SidebarMenuButton onClick={() => setOpen(true)} type="button">
-            <SearchIcon />
-            <span className="min-w-0 flex-1 truncate text-left">Search</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        <HostSidebarAction
+          icon={SearchIcon}
+          label="Search"
+          onClick={() => setOpen(true)}
+          type="button"
+        />
       </SidebarMenu>
-      <CommandDialog
+      <HostCommandDialog
         className="sm:max-w-md"
         description="Search Canvas artifacts."
         onOpenChange={setOpen}
@@ -286,25 +274,24 @@ function ReactCanvasArtifactSearch({
                 const label = artifactLabel(artifact.filePath)
 
                 return (
-                  <CommandItem
+                  <HostCommandItem
+                    icon={FileTextIcon}
                     key={artifact.filePath}
                     keywords={[label, artifact.filePath]}
+                    label={label}
                     onSelect={() => {
                       onSelectArtifact(artifact.filePath)
                       onSelectSidebarView("artifacts")
                       setOpen(false)
                     }}
                     value={artifact.filePath}
-                  >
-                    <FileTextIcon />
-                    <span className="min-w-0 flex-1 truncate">{label}</span>
-                  </CommandItem>
+                  />
                 )
               })}
             </CommandGroup>
           </CommandList>
         </Command>
-      </CommandDialog>
+      </HostCommandDialog>
     </>
   )
 }

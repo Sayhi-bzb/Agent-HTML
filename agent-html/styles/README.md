@@ -6,18 +6,19 @@ Use `index.css` as the runtime entry map. Do not put feature rules or token valu
 
 ## Agent Route
 
-- Artifact content style: read `content.css`.
+- Artifact content style: read `public/content.css`.
 - CodeBlock implementation style: read `internal/code-block.css`.
 - Artifact reading container: read `internal/artifact.css`.
 - Host chrome, sidebar, toolbar, block hover, and block actions: read `internal/host.css`.
 - Theme editor chrome: read `internal/theme-editor.css`.
 - Token values: read `tokens/README.md`.
-- CodeBlock token values: read `tokens/code-block.css`.
+- Feature token values: read `tokens/features`.
+- CodeBlock token values: read `tokens/features/code-block.css`.
 - Tailwind and shadcn token mapping: read `tokens/tailwind.css`.
 
 ## Public Style API
 
-`content.css` is the only style file intended for ordinary artifact consumption.
+`public/content.css` is the only style file intended for ordinary artifact consumption.
 
 - layout rhythm classes: stack, cluster, wrap, and grid gap;
 - surface classes: panels and icon boxes;
@@ -31,6 +32,7 @@ Artifact agents may use these classes with local UI primitives. They should not 
 component implementation styles.
 
 Rich component tokens stay in matching token files such as
-`tokens/code-block.css`; public content scale stays in `tokens/content.css`.
+`tokens/features/code-block.css`; public content scale stays in
+`tokens/features/content.css`.
 
 Artifact source should not recreate system responsibilities such as root reading width, block hover highlighting, toolbar placement, or sidebar chrome.

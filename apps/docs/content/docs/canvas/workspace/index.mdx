@@ -32,9 +32,9 @@ agent-html/styles/base.css
   -> base stylesheet rules such as text selection
 
 agent-html/styles/tokens
-  -> semantic token lookup split by feature
+  -> foundation tokens, feature tokens, and Tailwind bridge
 
-agent-html/styles/content.css
+agent-html/styles/public/content.css
   -> artifact-consumable Canvas semantic class lookup
 
 agent-html/styles/internal
@@ -122,8 +122,9 @@ import diagramUrl from "../assets/diagram.svg"
 
 Use `Artifact` as the top-level wrapper. It owns the readable root container
 and accepts only `title` and children. Root width and block gap are configured
-by `--canvas-artifact-*` tokens in `agent-html/styles/tokens/artifact.css`;
-background and foreground follow the shared foundation tokens. Wrap each major
+by `--canvas-artifact-*` tokens in
+`agent-html/styles/tokens/features/artifact.css`; background and foreground
+follow the shared foundation tokens. Wrap each major
 semantic region in `Block`. Use stable, unique, readable, kebab-case block ids.
 `Block` is a protocol marker only: use `id`, `title`, and children, and put
 layout or visual treatment inside the block content.

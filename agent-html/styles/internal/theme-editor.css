@@ -82,27 +82,6 @@
     color: var(--muted-foreground);
   }
 
-  .canvas-theme-editor-option {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: var(--canvas-theme-editor-option-gap);
-    border-radius: var(--radius-md);
-    padding-block: var(--canvas-theme-editor-option-padding-block);
-    padding-inline: var(--canvas-theme-editor-option-padding-inline);
-    text-align: left;
-    font-size: var(--canvas-sidebar-font-size-body);
-    outline: none;
-    transition-property: color, background-color;
-    transition-duration: 150ms;
-  }
-
-  .canvas-theme-editor-option:hover,
-  .canvas-theme-editor-option:focus-visible {
-    background: var(--accent);
-    color: var(--accent-foreground);
-  }
-
   .canvas-theme-editor-popover-button {
     min-height: var(--canvas-theme-editor-control-min-height);
     height: auto;
@@ -146,22 +125,6 @@
     width: var(--canvas-theme-editor-icon-size);
     height: var(--canvas-theme-editor-icon-size);
     flex-shrink: 0;
-  }
-
-  .canvas-theme-editor-swatch-xs,
-  .canvas-theme-editor-swatch-sm {
-    flex-shrink: 0;
-    border-radius: 9999px;
-  }
-
-  .canvas-theme-editor-swatch-xs {
-    width: var(--canvas-theme-editor-swatch-size-xs);
-    height: var(--canvas-theme-editor-swatch-size-xs);
-  }
-
-  .canvas-theme-editor-swatch-sm {
-    width: var(--canvas-theme-editor-swatch-size-sm);
-    height: var(--canvas-theme-editor-swatch-size-sm);
   }
 
   .canvas-theme-editor-color-input {

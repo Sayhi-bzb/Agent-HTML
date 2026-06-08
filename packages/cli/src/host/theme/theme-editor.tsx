@@ -1,5 +1,5 @@
 import * as React from "react"
-import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react"
+import { ChevronRightIcon } from "lucide-react"
 
 import {
   canvasThemeEditorSections,
@@ -10,7 +10,6 @@ import {
   formatCanvasThemeCssNumber,
   getCanvasThemeCssVariableValue,
   getTailwindColorValue,
-  isCssColorPreviewable,
   parseCanvasThemeCssNumber,
   tailwindColorFamilies,
   tailwindColorSteps,
@@ -19,29 +18,24 @@ import {
   type CanvasThemeVariableName,
   type TailwindColorTokenValue,
 } from "./theme-draft"
-import { Button } from "#agent-html-playground/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#agent-html-playground/components/ui/collapsible"
 import { Input } from "#agent-html-playground/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "#agent-html-playground/components/ui/popover"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "#agent-html-playground/components/ui/select"
+import { Popover, PopoverTrigger } from "#agent-html-playground/components/ui/popover"
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "#agent-html-playground/components/ui/sidebar"
 import type {
   CanvasThemePreset,
   CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
+import { HostPopoverAction, HostPopoverContent } from "../ui/popover"
+import { HostSelect, type HostSelectOption } from "../ui/select"
+import { HostSidebarActionButton } from "../ui/sidebar-action"
+import { HostSwatch } from "../ui/swatch"
 
 type ColorTokenItem = {
   label: string
@@ -64,17 +58,6 @@ type NumericTokenItem = {
 }
 
 type TailwindColorPanel = "family" | "step"
-
-type SelectHeaderOption = {
-  color?: string
-  icon?: React.ComponentType<{ className?: string }>
-  label: string
-  value: string
-}
-
-function cn(...classes: (false | null | string | undefined)[]) {
-  return classes.filter(Boolean).join(" ")
-}
 
 const colorTokenGroups: readonly ColorTokenGroup[] = [
   {
@@ -222,9 +205,6 @@ const editorPopoverButtonClassName =
 const editorSectionTriggerClassName =
   "group/label canvas-sidebar-body text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 
-const editorOptionClassName =
-  "canvas-theme-editor-option"
-
 const defaultThemePresetSwatchColor = "#18181b"
 
 function getThemePresetSwatchColor(preset: CanvasThemePreset) {
@@ -252,25 +232,6 @@ function getVariableValue({
     preset,
     runtimeVariables,
   })
-}
-
-function ColorSwatch({
-  className,
-  color,
-}: {
-  className?: string
-  color: string
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "shrink-0 rounded-full ring-1 ring-sidebar-border",
-        className
-      )}
-      style={{ backgroundColor: isCssColorPreviewable(color) ? color : "" }}
-    />
-  )
 }
 
 function EditorSection({
@@ -330,103 +291,25 @@ function EditorPopoverItem({
     <SidebarMenuItem>
       <Popover>
         <PopoverTrigger asChild>
-          <SidebarMenuButton
+          <HostSidebarActionButton
+            caption={valueLabel}
             className={editorPopoverButtonClassName}
+            label={label}
             size="sm"
+            trailing={trailing}
             type="button"
-          >
-            <span className="canvas-theme-editor-value-stack">
-              <span className="truncate">{label}</span>
-              <span className="canvas-theme-editor-caption truncate">
-                {valueLabel}
-              </span>
-            </span>
-            {trailing ? (
-              <span className="flex shrink-0 items-center">{trailing}</span>
-            ) : null}
-          </SidebarMenuButton>
+          />
         </PopoverTrigger>
-        <PopoverContent
+        <HostPopoverContent
           align="start"
           className={popoverClassName}
           side="right"
           sideOffset={10}
         >
           {children}
-        </PopoverContent>
+        </HostPopoverContent>
       </Popover>
     </SidebarMenuItem>
-  )
-}
-
-function SelectHeaderItem({
-  label,
-  onValueChange,
-  options,
-  value,
-}: {
-  label: string
-  onValueChange: (value: string) => void
-  options: readonly SelectHeaderOption[]
-  value: string
-}) {
-  const activeOption = options.find((option) => option.value === value)
-  const ActiveIcon = activeOption?.icon
-
-  return (
-    <Select onValueChange={onValueChange} value={value}>
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SelectTrigger asChild>
-            <SidebarMenuButton
-              aria-label={label}
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              type="button"
-            >
-              <SelectValue placeholder={label}>
-                <span className="canvas-theme-editor-inline-value text-left">
-                  {activeOption?.color ? (
-                    <ColorSwatch
-                      className="canvas-theme-editor-swatch-xs"
-                      color={activeOption.color}
-                    />
-                  ) : null}
-                  {ActiveIcon ? <ActiveIcon className="canvas-theme-editor-icon" /> : null}
-                  <span className="truncate">{activeOption?.label ?? label}</span>
-                </span>
-              </SelectValue>
-              <ChevronDownIcon className="canvas-theme-editor-icon ml-auto text-sidebar-foreground/60" />
-            </SidebarMenuButton>
-          </SelectTrigger>
-        </SidebarMenuItem>
-      </SidebarMenu>
-      <SelectContent
-        align="start"
-        className="canvas-sidebar-select-content"
-        position="popper"
-      >
-        {options.map((option) => {
-          const Icon = option.icon
-
-          return (
-            <SelectItem
-              className="canvas-sidebar-select-item"
-              key={option.value}
-              value={option.value}
-            >
-              {option.color ? (
-                <ColorSwatch
-                  className="canvas-theme-editor-swatch-xs"
-                  color={option.color}
-                />
-              ) : null}
-              {Icon ? <Icon className="canvas-theme-editor-icon" /> : null}
-              <span className="min-w-0 truncate">{option.label}</span>
-            </SelectItem>
-          )
-        })}
-      </SelectContent>
-    </Select>
   )
 }
 
@@ -450,28 +333,14 @@ function ThemeSelectItem({
       valueLabel={activeOption?.label ?? value}
     >
       <div className="canvas-theme-editor-popover-stack">
-        {options.map((option) => {
-          const isActive = option.value === value
-
-          return (
-            <Button
-              className={cn(
-                editorOptionClassName,
-                "justify-start",
-                isActive && "bg-accent text-accent-foreground"
-              )}
-              key={option.value}
-              onClick={() => onValueChange(option.value)}
-              type="button"
-              variant="ghost"
-            >
-              <span className="min-w-0 flex-1 truncate text-left">
-                {option.label}
-              </span>
-              {isActive ? <CheckIcon className="canvas-theme-editor-icon" /> : null}
-            </Button>
-          )
-        })}
+        {options.map((option) => (
+          <HostPopoverAction
+            active={option.value === value}
+            key={option.value}
+            label={option.label}
+            onClick={() => onValueChange(option.value)}
+          />
+        ))}
       </div>
     </EditorPopoverItem>
   )
@@ -491,19 +360,14 @@ function ColorOptionField<Option extends string>({
   value: Option
 }) {
   return (
-    <Button
+    <HostPopoverAction
       aria-expanded={isActive}
       className="canvas-theme-editor-picker-tab"
       data-active={isActive}
+      label={label}
       onClick={onActivate}
-      type="button"
-      variant="ghost"
-    >
-      <span className="canvas-theme-editor-inline-value justify-center">
-        <ColorSwatch className="canvas-theme-editor-swatch-xs" color={getOptionColor(value)} />
-        <span className="truncate">{label}</span>
-      </span>
-    </Button>
+      swatchColor={getOptionColor(value)}
+    />
   )
 }
 
@@ -520,9 +384,9 @@ function TailwindColorEditor({
   return (
     <div className="canvas-theme-editor-color-picker">
       <div className="canvas-theme-editor-picker-preview">
-        <ColorSwatch
-          className="canvas-theme-editor-swatch-sm"
+        <HostSwatch
           color={getTailwindColorValue(token)}
+          size="sm"
         />
         <span className="min-w-0 flex-1 truncate">
           {token.family} / {token.step}
@@ -560,58 +424,32 @@ function TailwindColorEditor({
               const isActive = family === token.family
 
               return (
-                <Button
-                  className={cn(
-                    editorOptionClassName,
-                    "justify-start",
-                    isActive && "bg-accent text-accent-foreground"
-                  )}
+                <HostPopoverAction
+                  active={isActive}
                   key={family}
+                  label={family}
                   onClick={() => onValueChange({ ...token, family })}
-                  type="button"
-                  variant="ghost"
-                >
-                  <ColorSwatch
-                    className="canvas-theme-editor-swatch-xs"
-                    color={getTailwindColorValue({
+                  swatchColor={getTailwindColorValue({
                       family,
                       step: token.step,
                     })}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-left">
-                    {family}
-                  </span>
-                  {isActive ? <CheckIcon className="canvas-theme-editor-icon" /> : null}
-                </Button>
+                />
               )
             })
           : tailwindColorSteps.map((step) => {
               const isActive = step === token.step
 
               return (
-                <Button
-                  className={cn(
-                    editorOptionClassName,
-                    "justify-start",
-                    isActive && "bg-accent text-accent-foreground"
-                  )}
+                <HostPopoverAction
+                  active={isActive}
                   key={step}
+                  label={step}
                   onClick={() => onValueChange({ ...token, step })}
-                  type="button"
-                  variant="ghost"
-                >
-                  <ColorSwatch
-                    className="canvas-theme-editor-swatch-xs"
-                    color={getTailwindColorValue({
+                  swatchColor={getTailwindColorValue({
                       family: token.family,
                       step,
                     })}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-left">
-                    {step}
-                  </span>
-                  {isActive ? <CheckIcon className="canvas-theme-editor-icon" /> : null}
-                </Button>
+                />
               )
             })}
       </div>
@@ -651,7 +489,7 @@ function ColorTokenRow({
     <EditorPopoverItem
       label={item.label}
       popoverClassName="canvas-theme-editor-popover-md"
-      trailing={<ColorSwatch className="canvas-theme-editor-swatch-sm" color={swatchColor} />}
+      trailing={<HostSwatch color={swatchColor} size="sm" />}
       valueLabel={valueLabel}
     >
       {tailwindToken ? (
@@ -886,12 +724,12 @@ export function ReactCanvasThemePresetSelect({
   presets: readonly CanvasThemePreset[]
 }) {
   return (
-    <SelectHeaderItem
+    <HostSelect
       label="Theme preset"
       onValueChange={(value) => onSelectPreset(value as CanvasThemePresetId)}
       options={presets.map((preset) => ({
-        color: getThemePresetSwatchColor(preset),
         label: preset.label,
+        swatchColor: getThemePresetSwatchColor(preset),
         value: preset.id,
       }))}
       value={activePresetId}
@@ -919,7 +757,7 @@ export function ReactCanvasThemeEditorHeader({
         onSelectPreset={onSelectPreset}
         presets={presets}
       />
-      <SelectHeaderItem
+      <HostSelect
         label="Theme section"
         onValueChange={(value) =>
           onSelectSection(value as CanvasThemeEditorSectionId)
@@ -928,7 +766,7 @@ export function ReactCanvasThemeEditorHeader({
           icon: section.icon,
           label: section.label,
           value: section.id,
-        }))}
+        } satisfies HostSelectOption))}
         value={activeSectionId}
       />
     </div>
