@@ -117,6 +117,50 @@
     margin-block-start: 0;
   }
 
+  .canvas-artifact-skeleton-block-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--canvas-artifact-skeleton-section-gap);
+    margin-block-start: var(--canvas-artifact-skeleton-section-gap);
+  }
+
+  .canvas-artifact-skeleton-block-list .canvas-artifact-skeleton-block {
+    display: flex;
+    min-height: var(--canvas-artifact-skeleton-block-height);
+    height: auto;
+    flex-direction: column;
+    gap: var(--canvas-artifact-skeleton-gap);
+    margin-block-start: 0;
+  }
+
+  .canvas-artifact-skeleton-block-title {
+    width: min(14rem, 52%);
+    height: var(--canvas-artifact-skeleton-line-height);
+  }
+
+  .canvas-artifact-skeleton-block-line {
+    width: min(24rem, 68%);
+    height: var(--canvas-artifact-skeleton-line-height);
+  }
+
+  .canvas-artifact-skeleton-block-line-wide {
+    width: min(34rem, 86%);
+  }
+
+  .canvas-artifact-skeleton-block-body {
+    flex: 1 1 auto;
+    min-height: calc(var(--canvas-artifact-skeleton-block-height) * 0.48);
+  }
+
+  .canvas-artifact-skeleton-block-body[data-variant="compact"] {
+    min-height: calc(var(--canvas-artifact-skeleton-block-height) * 0.36);
+  }
+
+  .canvas-artifact-skeleton-block-overflow {
+    width: min(18rem, 58%);
+    height: var(--canvas-artifact-skeleton-line-height);
+  }
+
   .canvas-sidebar-pad {
     padding: var(--canvas-sidebar-section-padding);
   }
@@ -426,16 +470,28 @@
     pointer-events: auto;
     position: absolute;
     top: var(--canvas-block-action-offset);
-    left: var(--canvas-block-action-offset);
+    left: var(--canvas-block-action-edge-offset);
+    width: var(--canvas-block-action-width);
+    height: var(--canvas-block-action-height);
+    padding: 0;
     border-radius: 9999px;
+    border: 0;
+    background: var(--canvas-block-highlight-border);
+    cursor: pointer;
     opacity: 0;
-    box-shadow: 0 1px 2px 0 oklch(0 0 0 / 8%);
-    transition-property: opacity;
+    outline: none;
+    transition-property: opacity, background-color, box-shadow;
     transition-duration: 150ms;
   }
 
   .canvas-block-action[data-hovered="true"] {
+    background: color-mix(in oklab, var(--ring) 54%, transparent);
     opacity: 1;
+  }
+
+  .canvas-block-action:focus-visible {
+    opacity: 1;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 24%, transparent);
   }
 
   .canvas-floating-prompt {

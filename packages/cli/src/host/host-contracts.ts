@@ -1,5 +1,11 @@
 export type Artifact = {
+  blocks: ArtifactBlock[]
   filePath: string
+}
+
+export type ArtifactBlock = {
+  id: string
+  title: string
 }
 
 export type GuardIssue = {

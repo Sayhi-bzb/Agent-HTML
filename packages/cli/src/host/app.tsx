@@ -454,6 +454,7 @@ export function ReactCanvasHostApp() {
           </div>
           <ArtifactSurface
             activeFilePath={resolvedActiveFilePath}
+            blocks={activeArtifact?.blocks}
             artifactCount={artifacts.length}
             artifactsLoading={artifactsLoading}
             guardIssues={activeIssues}

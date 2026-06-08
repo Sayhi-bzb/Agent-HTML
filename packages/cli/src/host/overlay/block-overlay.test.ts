@@ -5,6 +5,7 @@ import {
   findHoveredBlockOverlay,
   measureBlockOverlays,
   parseCssLengthInPixels,
+  resolveBlockHandleHoverState,
 } from "./block-overlay"
 import type { BlockOverlay } from "../host-contracts"
 
@@ -41,6 +42,85 @@ describe("findHoveredBlockOverlay", () => {
 
   it("returns null when the pointer is outside every overlay", () => {
     expect(findHoveredBlockOverlay({ overlays, x: 400, y: 300 })).toBeNull()
+  })
+
+  it("treats the left handle gutter as part of the overlay hit target", () => {
+    expect(
+      findHoveredBlockOverlay({
+        handleGutter: 10,
+        overlays,
+        x: 12,
+        y: 40,
+      })?.id
+    ).toBe("summary")
+  })
+
+  it("returns null when the pointer is left of the handle gutter", () => {
+    expect(
+      findHoveredBlockOverlay({
+        handleGutter: 10,
+        overlays,
+        x: 8,
+        y: 40,
+      })
+    ).toBeNull()
+  })
+
+  it("keeps topmost overlay ordering inside the handle gutter", () => {
+    expect(
+      findHoveredBlockOverlay({
+        handleGutter: 80,
+        overlays,
+        x: 10,
+        y: 80,
+      })?.id
+    ).toBe("details")
+  })
+})
+
+describe("resolveBlockHandleHoverState", () => {
+  it("keeps the handle active while the pointer or focus enters it", () => {
+    expect(
+      resolveBlockHandleHoverState({
+        blockId: "summary",
+        currentHoveredBlockId: null,
+        isPromptOpen: false,
+        phase: "enter",
+      })
+    ).toBe("summary")
+  })
+
+  it("clears the handle when it leaves and the prompt is closed", () => {
+    expect(
+      resolveBlockHandleHoverState({
+        blockId: "summary",
+        currentHoveredBlockId: "summary",
+        isPromptOpen: false,
+        phase: "leave",
+      })
+    ).toBeNull()
+  })
+
+  it("keeps the handle visible when it leaves while the prompt is open", () => {
+    expect(
+      resolveBlockHandleHoverState({
+        blockId: "summary",
+        currentHoveredBlockId: "summary",
+        isPromptOpen: true,
+        phase: "leave",
+      })
+    ).toBe("summary")
+  })
+
+  it("does not clear a newer active block from a stale handle leave", () => {
+    expect(
+      resolveBlockHandleHoverState({
+        blockId: "summary",
+        currentHoveredBlockId: "details",
+        isPromptOpen: false,
+        phase: "leave",
+      })
+    ).toBe("details")
   })
 })
 

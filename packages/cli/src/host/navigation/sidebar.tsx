@@ -197,7 +197,6 @@ export function ReactCanvasSidebar({
 
                     return (
                       <HostSidebarAction
-                        icon={FileTextIcon}
                         isActive={artifact.filePath === activeFilePath}
                         key={artifact.filePath}
                         label={artifactLabel(artifact.filePath)}
@@ -394,7 +393,7 @@ function ReactCanvasArtifactListSkeleton() {
     <>
       {["primary", "secondary", "tertiary", "quaternary"].map((row) => (
         <SidebarMenuItem key={row}>
-          <SidebarMenuSkeleton showIcon />
+          <SidebarMenuSkeleton />
         </SidebarMenuItem>
       ))}
     </>

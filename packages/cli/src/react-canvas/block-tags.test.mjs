@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { collectBlockIds, readAttr, readBlockOpenTags } from "./block-tags.mjs"
+import {
+  collectBlockIds,
+  collectStaticBlockMetadata,
+  readAttr,
+  readBlockOpenTags,
+} from "./block-tags.mjs"
 
 describe("React Canvas block tag parser", () => {
   it("collects static Block ids for artifact entry protocol guard", () => {
@@ -39,6 +44,19 @@ describe("React Canvas block tag parser", () => {
     expect(readAttr("id='summary'", "id")).toBe("summary")
     expect(readAttr('id={ "summary" }', "id")).toBe("summary")
     expect(readAttr("id={ 'summary' }", "id")).toBe("summary")
+  })
+
+  it("collects static Block metadata for host skeletons", () => {
+    expect(collectStaticBlockMetadata(`
+      <Artifact title="Demo">
+        <Block id="summary" title="Summary">One</Block>
+        <Block id="details">Two</Block>
+        <Block id={blockId} title="Dynamic">Three</Block>
+      </Artifact>
+    `)).toEqual([
+      { id: "summary", title: "Summary" },
+      { id: "details", title: "details" },
+    ])
   })
 
   it("returns Block open tags without parsing nested source", () => {

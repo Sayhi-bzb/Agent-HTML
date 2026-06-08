@@ -1,5 +1,4 @@
 import * as React from "react"
-import { SparklesIcon } from "lucide-react"
 
 import { artifactRenderedEventName } from "../api/api"
 import {
@@ -12,16 +11,19 @@ import {
   PopoverAnchor,
 } from "#agent-html-playground/components/ui/popover"
 import type { BlockOverlay } from "../host-contracts"
-import { HostIconButton } from "../ui/icon-button"
 import { HostFloatingPromptPopoverContent } from "../ui/prompt"
 
 const defaultBlockHighlightPadding = 6
+const defaultBlockActionWidth = 6
+const defaultBlockActionOutsideGap = 6
 
 export function findHoveredBlockOverlay({
+  handleGutter = 0,
   overlays,
   x,
   y,
 }: {
+  handleGutter?: number
   overlays: BlockOverlay[]
   x: number
   y: number
@@ -30,7 +32,7 @@ export function findHoveredBlockOverlay({
     const overlay = overlays[index]
 
     if (
-      x >= overlay.x &&
+      x >= overlay.x - handleGutter &&
       x <= overlay.x + overlay.width &&
       y >= overlay.y &&
       y <= overlay.y + overlay.height
@@ -79,6 +81,24 @@ function getBlockHighlightPadding(root: HTMLElement) {
   )
 }
 
+function getBlockActionHandleGutter(root: HTMLElement) {
+  if (typeof window === "undefined") {
+    return defaultBlockActionWidth + defaultBlockActionOutsideGap
+  }
+
+  const style = window.getComputedStyle(root)
+  const width = parseCssLengthInPixels(
+    style.getPropertyValue("--canvas-block-action-width"),
+    defaultBlockActionWidth
+  )
+  const gap = parseCssLengthInPixels(
+    style.getPropertyValue("--canvas-block-action-outside-gap"),
+    defaultBlockActionOutsideGap
+  )
+
+  return width + gap
+}
+
 export function createAnimationFrameScheduler(callback: () => void) {
   let frame: number | null = null
 
@@ -100,6 +120,28 @@ export function createAnimationFrameScheduler(callback: () => void) {
       })
     },
   }
+}
+
+export function resolveBlockHandleHoverState({
+  blockId,
+  currentHoveredBlockId,
+  isPromptOpen,
+  phase,
+}: {
+  blockId: string
+  currentHoveredBlockId: string | null
+  isPromptOpen: boolean
+  phase: "enter" | "leave"
+}) {
+  if (phase === "enter") {
+    return blockId
+  }
+
+  if (currentHoveredBlockId !== blockId) {
+    return currentHoveredBlockId
+  }
+
+  return isPromptOpen ? currentHoveredBlockId : null
 }
 
 export function measureBlockOverlays(root: HTMLElement | null): BlockOverlay[] {
@@ -202,6 +244,7 @@ export function BlockOverlayLayer({
 }) {
   const [hoveredBlockId, setHoveredBlockId] = React.useState<string | null>(null)
   const rootRef = React.useRef<HTMLDivElement | null>(null)
+  const handleGutterRef = React.useRef(defaultBlockActionWidth + defaultBlockActionOutsideGap)
   const messageHost = React.useSyncExternalStore(
     subscribeCanvasMessageHost,
     getCanvasMessageHostSnapshot,
@@ -226,15 +269,26 @@ export function BlockOverlayLayer({
       }
 
       const rect = root.getBoundingClientRect()
+      handleGutterRef.current = getBlockActionHandleGutter(root)
       const x = event.clientX - rect.left
       const y = event.clientY - rect.top
 
-      if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+      if (
+        x < -handleGutterRef.current ||
+        y < 0 ||
+        x > rect.width ||
+        y > rect.height
+      ) {
         setHoveredBlockId(null)
         return
       }
 
-      const hovered = findHoveredBlockOverlay({ overlays, x, y })
+      const hovered = findHoveredBlockOverlay({
+        handleGutter: handleGutterRef.current,
+        overlays,
+        x,
+        y,
+      })
 
       setHoveredBlockId(hovered?.id ?? null)
     }
@@ -281,10 +335,20 @@ export function BlockOverlayLayer({
                   width: overlay.width,
                 }}
               >
-                <HostIconButton
+                <button
+                  aria-label={`Message ${overlay.title}`}
+                  className="canvas-block-action"
                   data-hovered={isHovered || isPromptOpen ? "true" : undefined}
-                  icon={SparklesIcon}
-                  label={`Message ${overlay.title}`}
+                  onBlur={() => {
+                    setHoveredBlockId((currentHoveredBlockId) =>
+                      resolveBlockHandleHoverState({
+                        blockId: overlay.id,
+                        currentHoveredBlockId,
+                        isPromptOpen,
+                        phase: "leave",
+                      })
+                    )
+                  }}
                   onClick={(event) => {
                     messageHost.onOpenTarget({
                       anchorElement: overlay.element,
@@ -293,10 +357,37 @@ export function BlockOverlayLayer({
                       triggerElement: event.currentTarget,
                     })
                   }}
-                  placement="blockOverlay"
-                  size="icon-sm"
-                  tone="neutral"
-                  variant="outline"
+                  onFocus={() => {
+                    setHoveredBlockId((currentHoveredBlockId) =>
+                      resolveBlockHandleHoverState({
+                        blockId: overlay.id,
+                        currentHoveredBlockId,
+                        isPromptOpen,
+                        phase: "enter",
+                      })
+                    )
+                  }}
+                  onPointerEnter={() => {
+                    setHoveredBlockId((currentHoveredBlockId) =>
+                      resolveBlockHandleHoverState({
+                        blockId: overlay.id,
+                        currentHoveredBlockId,
+                        isPromptOpen,
+                        phase: "enter",
+                      })
+                    )
+                  }}
+                  onPointerLeave={() => {
+                    setHoveredBlockId((currentHoveredBlockId) =>
+                      resolveBlockHandleHoverState({
+                        blockId: overlay.id,
+                        currentHoveredBlockId,
+                        isPromptOpen,
+                        phase: "leave",
+                      })
+                    )
+                  }}
+                  type="button"
                 />
               </div>
             </PopoverAnchor>

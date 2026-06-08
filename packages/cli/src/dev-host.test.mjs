@@ -126,9 +126,18 @@ describe("React Canvas dev host", () => {
       const artifacts = await fetch(`${url}/__agent-html/artifacts`).then((response) =>
         response.json()
       )
-      expect(artifacts.artifacts).toContainEqual({
-        filePath: "agent-html/artifacts/project-visual-explainer.artifact.tsx",
-      })
+      expect(artifacts.artifacts).toContainEqual(
+        expect.objectContaining({
+          blocks: [
+            { id: "project-purpose", title: "Project Purpose" },
+            { id: "system-topology", title: "System Topology" },
+            { id: "canvas-pipeline", title: "Canvas Pipeline" },
+            { id: "agent-workflow", title: "Agent Workflow" },
+            { id: "guardrails", title: "Guardrails" },
+          ],
+          filePath: "agent-html/artifacts/project-visual-explainer.artifact.tsx",
+        })
+      )
 
       const removedRender = await fetch(`${url}/__agent-html/render`)
       expect(removedRender.status).toBe(404)

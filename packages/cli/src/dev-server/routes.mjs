@@ -4,6 +4,7 @@ import path from "node:path"
 import { discoverReactArtifacts, workspaceRelativePath } from "../react-canvas/paths.mjs"
 import { runGuard } from "../react-canvas/guard.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
+import { collectStaticBlockMetadata } from "../react-canvas/block-tags.mjs"
 import { readTextFile } from "../react-canvas/workspace-file.mjs"
 import {
   listCodexThreads,
@@ -281,10 +282,18 @@ export async function handleRequest({ request, response, root, vite }) {
   if (requestUrl.pathname === hostRoutes.artifacts) {
     const artifacts = await discoverReactArtifacts(root)
     const guard = await runGuard({ root })
+    const artifactsWithBlocks = await Promise.all(
+      artifacts.map(async (filePath) => {
+        const source = await fs.readFile(filePath, "utf8")
+
+        return {
+          blocks: collectStaticBlockMetadata(source),
+          filePath: workspaceRelativePath(root, filePath),
+        }
+      })
+    )
     sendJson(response, {
-      artifacts: artifacts.map((filePath) => ({
-        filePath: workspaceRelativePath(root, filePath),
-      })),
+      artifacts: artifactsWithBlocks,
       guardIssues: guard.issues,
     })
     return true

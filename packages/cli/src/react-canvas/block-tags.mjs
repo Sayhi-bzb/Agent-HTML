@@ -40,3 +40,12 @@ export function collectBlockIds(source) {
     title: readAttr(block.attrs, "title"),
   }))
 }
+
+export function collectStaticBlockMetadata(source) {
+  return collectBlockIds(source)
+    .filter((block) => block.id)
+    .map((block) => ({
+      id: block.id,
+      title: block.title ?? block.id,
+    }))
+}
