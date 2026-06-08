@@ -11,6 +11,8 @@ import whatsappCss from "./presets/whatsapp.css?raw"
 import { layout as whatsappLayout } from "./presets/whatsapp.layout"
 import wondrousCss from "./presets/wondrous.css?raw"
 import { layout as wondrousLayout } from "./presets/wondrous.layout"
+import pixelQuestCss from "./presets/pixel-quest.css?raw"
+import { layout as pixelQuestLayout } from "./presets/pixel-quest.layout"
 
 export type CanvasThemeCssVariables = Partial<Record<`--${string}`, string>>
 
@@ -22,11 +24,25 @@ export type CanvasThemePreset = {
   lightCssVariables: CanvasThemeCssVariables
 }
 
-export type CanvasThemePresetFont = {
+export type CanvasThemePresetFontVariable =
+  | "--font-heading"
+  | "--font-mono"
+  | "--font-sans"
+  | "--font-serif"
+
+type CanvasThemePresetBaseFont = {
   family: string
-  provider: "google" | "system"
-  variable: "--font-heading" | "--font-mono" | "--font-sans" | "--font-serif"
+  variable: CanvasThemePresetFontVariable
 }
+
+export type CanvasThemePresetFont =
+  | (CanvasThemePresetBaseFont & {
+      provider: "google" | "system"
+    })
+  | (CanvasThemePresetBaseFont & {
+      provider: "zeoseven"
+      stylesheetUrl: string
+    })
 
 export type CanvasThemePresetLayout = {
   bodyClassName?: string
@@ -58,6 +74,12 @@ const cssPresetRegistrations = [
     id: "wondrous",
     label: "Wondrous",
     layout: wondrousLayout,
+  },
+  {
+    css: pixelQuestCss,
+    id: "pixel-quest",
+    label: "Pixel Quest",
+    layout: pixelQuestLayout,
   },
   {
     css: mimiCss,

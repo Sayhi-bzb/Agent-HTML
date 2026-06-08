@@ -149,12 +149,20 @@ describe("canvas theme preset", () => {
             provider: "google",
             variable: "--font-mono",
           },
+          {
+            family: "Fusion Pixel 12px Mono latin",
+            provider: "zeoseven",
+            stylesheetUrl: "https://fontsapi.zeoseven.com/570/main/result.css",
+            variable: "--font-heading",
+          },
         ],
       },
     })
 
     expect(normalizedPreset.lightCssVariables).toMatchObject({
       "--background": "#ffffff",
+      "--font-heading":
+        '"Fusion Pixel 12px Mono latin", sans-serif',
       "--font-mono": '"JetBrains Mono", ui-monospace, monospace',
       "--font-sans": '"Architects Daughter", ui-sans-serif, sans-serif',
     })
@@ -164,9 +172,20 @@ describe("canvas theme preset", () => {
     const presetIds = canvasThemePresets.map((themePreset) => themePreset.id)
 
     expect(presetIds).toContain("claude-plus")
+    expect(presetIds).toContain("pixel-quest")
     expect(presetIds).not.toContain("realmorphism")
     expect(presetIds).not.toContain("sulav")
     expect(presetIds).not.toContain("vscode")
+    expect(
+      canvasThemePresets
+        .find((themePreset) => themePreset.id === "pixel-quest")
+        ?.layout?.fonts?.find((font) => font.variable === "--font-sans")
+    ).toMatchObject({
+      family: "Fusion Pixel 12px Mono latin",
+      provider: "zeoseven",
+      stylesheetUrl: "https://fontsapi.zeoseven.com/570/main/result.css",
+      variable: "--font-sans",
+    })
     expect(
       canvasThemePresets.find((themePreset) => themePreset.id === "manga")
         ?.layout

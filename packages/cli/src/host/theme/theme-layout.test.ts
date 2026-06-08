@@ -22,14 +22,17 @@ const preset: CanvasThemePreset = {
 }
 
 function createDocumentMock() {
-  let linkElement:
-    | {
-        href: string
-        id: string
-        rel: string
-        remove: () => void
-      }
-    | null = null
+  const linkElements: Array<{
+    as: string
+    crossOrigin: string | null
+    dataset: Record<string, string>
+    href: string
+    id: string
+    onload: (() => void) | null
+    rel: string
+    remove: () => void
+    removeAttribute: (name: string) => void
+  }> = []
   const classes = new Set<string>()
 
   return {
@@ -50,23 +53,44 @@ function createDocumentMock() {
       expect(tagName).toBe("link")
 
       return {
+        as: "",
+        crossOrigin: null,
+        dataset: {},
         href: "",
         id: "",
+        onload: null,
         rel: "",
         remove() {
-          if (linkElement === this) {
-            linkElement = null
+          const index = linkElements.indexOf(this)
+          if (index >= 0) {
+            linkElements.splice(index, 1)
+          }
+        },
+        removeAttribute(name: string) {
+          if (name === "as") {
+            this.as = ""
+          }
+          if (name === "crossorigin") {
+            this.crossOrigin = null
           }
         },
       }
     },
     getElementById(id: string) {
-      return linkElement?.id === id ? linkElement : null
+      return linkElements.find((linkElement) => linkElement.id === id) ?? null
     },
     head: {
-      appendChild(element: typeof linkElement) {
-        linkElement = element
+      appendChild(element: (typeof linkElements)[number]) {
+        linkElements.push(element)
       },
+    },
+    querySelectorAll(selector: string) {
+      expect(selector).toBe('link[data-canvas-theme-preset-font="true"]')
+
+      return linkElements.filter(
+        (linkElement) =>
+          linkElement.dataset.canvasThemePresetFont === "true"
+      )
     },
   } as unknown as Document
 }
@@ -97,6 +121,51 @@ describe("canvas theme preset layout", () => {
     })
     expect(document.body.classList.contains("antialiased")).toBe(true)
     expect(document.body.classList.contains("ignored-class")).toBe(false)
+  })
+
+  it("writes zeoseven preload links once per stylesheet url", () => {
+    vi.stubGlobal("HTMLLinkElement", Object)
+    vi.stubGlobal("document", createDocumentMock())
+
+    applyCanvasThemePresetLayout({
+      id: "pixel-test",
+      label: "Pixel Test",
+      layout: {
+        fonts: [
+          {
+            family: "Fusion Pixel 12px Mono latin",
+            provider: "zeoseven",
+            stylesheetUrl: "https://fontsapi.zeoseven.com/570/main/result.css",
+            variable: "--font-sans",
+          },
+          {
+            family: "Fusion Pixel 12px Mono latin",
+            provider: "zeoseven",
+            stylesheetUrl: "https://fontsapi.zeoseven.com/570/main/result.css",
+            variable: "--font-heading",
+          },
+        ],
+      },
+      lightCssVariables: {},
+    })
+
+    const linkElement = document.getElementById(
+      "react-canvas-theme-preset-fonts-zeoseven-0"
+    ) as HTMLLinkElement
+
+    expect(linkElement).toMatchObject({
+      as: "style",
+      crossOrigin: "anonymous",
+      href: "https://fontsapi.zeoseven.com/570/main/result.css",
+      rel: "preload",
+    })
+
+    linkElement.onload?.(new Event("load"))
+
+    expect(linkElement.rel).toBe("stylesheet")
+    expect(
+      document.getElementById("react-canvas-theme-preset-fonts-zeoseven-1")
+    ).toBeNull()
   })
 
   it("clears managed layout artifacts for presets without layout", () => {

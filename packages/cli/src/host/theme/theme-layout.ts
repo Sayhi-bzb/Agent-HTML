@@ -4,6 +4,7 @@ import type {
 } from "#agent-html-playground/theme/presets"
 
 const canvasThemePresetFontLinkId = "react-canvas-theme-preset-fonts"
+const canvasThemePresetFontLinkIdPrefix = `${canvasThemePresetFontLinkId}-`
 const canvasThemePresetAntialiasClass = "antialiased"
 const allowedBodyClassNames = new Set([canvasThemePresetAntialiasClass])
 
@@ -38,26 +39,89 @@ export function getCanvasThemePresetFontUrl(preset: CanvasThemePreset) {
   return `https://fonts.googleapis.com/css2?${familyQuery}&display=swap`
 }
 
-function applyCanvasThemePresetFonts(preset: CanvasThemePreset) {
-  const fontUrl = getCanvasThemePresetFontUrl(preset)
-  const existingLink = document.getElementById(canvasThemePresetFontLinkId)
+function getCanvasThemePresetZeosevenFontUrls(preset: CanvasThemePreset) {
+  return Array.from(
+    new Set(
+      (preset.layout?.fonts ?? []).flatMap((font) =>
+        font.provider === "zeoseven" && font.stylesheetUrl.trim()
+          ? [font.stylesheetUrl.trim()]
+          : []
+      )
+    )
+  )
+}
 
-  if (!fontUrl) {
-    existingLink?.remove()
-    return
+function getManagedFontLinks() {
+  return Array.from(
+    document.querySelectorAll<HTMLLinkElement>(
+      `link[data-canvas-theme-preset-font="true"]`
+    )
+  )
+}
+
+function removeStaleFontLinks(nextIds: Set<string>) {
+  for (const linkElement of getManagedFontLinks()) {
+    if (!nextIds.has(linkElement.id)) {
+      linkElement.remove()
+    }
+  }
+}
+
+function getOrCreateFontLink(id: string) {
+  const existingLink = document.getElementById(id)
+
+  if (existingLink instanceof HTMLLinkElement) {
+    return existingLink
   }
 
-  const linkElement =
-    existingLink instanceof HTMLLinkElement
-      ? existingLink
-      : document.createElement("link")
+  const linkElement = document.createElement("link")
+  linkElement.id = id
+  linkElement.dataset.canvasThemePresetFont = "true"
+  document.head.appendChild(linkElement)
 
-  linkElement.id = canvasThemePresetFontLinkId
+  return linkElement
+}
+
+function configureGoogleFontLink(id: string, href: string) {
+  const linkElement = getOrCreateFontLink(id)
   linkElement.rel = "stylesheet"
-  linkElement.href = fontUrl
+  linkElement.href = href
+  linkElement.removeAttribute("as")
+  linkElement.removeAttribute("crossorigin")
+  linkElement.onload = null
+}
 
-  if (!existingLink) {
-    document.head.appendChild(linkElement)
+function configureZeosevenFontLink(id: string, href: string) {
+  const linkElement = getOrCreateFontLink(id)
+  linkElement.rel = "preload"
+  linkElement.as = "style"
+  linkElement.href = href
+  linkElement.crossOrigin = "anonymous"
+  linkElement.onload = () => {
+    linkElement.rel = "stylesheet"
+  }
+}
+
+function applyCanvasThemePresetFonts(preset: CanvasThemePreset) {
+  const googleFontUrl = getCanvasThemePresetFontUrl(preset)
+  const zeosevenFontUrls = getCanvasThemePresetZeosevenFontUrls(preset)
+  const nextIds = new Set<string>()
+
+  if (googleFontUrl) {
+    nextIds.add(canvasThemePresetFontLinkId)
+    configureGoogleFontLink(canvasThemePresetFontLinkId, googleFontUrl)
+  }
+
+  zeosevenFontUrls.forEach((fontUrl, index) => {
+    const id = `${canvasThemePresetFontLinkIdPrefix}zeoseven-${index}`
+    nextIds.add(id)
+    configureZeosevenFontLink(id, fontUrl)
+  })
+
+  removeStaleFontLinks(nextIds)
+
+  if (!googleFontUrl) {
+    document.getElementById(canvasThemePresetFontLinkId)?.remove()
   }
 }
 
