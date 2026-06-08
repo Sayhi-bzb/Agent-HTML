@@ -5,6 +5,10 @@ import {
   getCanvasThemePresetCss,
 } from "./theme-preset"
 import {
+  createCanvasThemePresetFromCss,
+  parseCanvasThemePresetCss,
+} from "#agent-html-playground/theme/preset-css"
+import {
   canvasThemePresets,
   type CanvasThemePreset,
 } from "#agent-html-playground/theme/presets"
@@ -65,6 +69,70 @@ describe("canvas theme preset", () => {
     expect(getCanvasThemePresetCss(preset)).toContain(".dark")
     expect(getCanvasThemePresetCss(preset)).toContain("--background: #ffffff;")
     expect(getCanvasThemePresetCss(preset)).toContain("--background: #111111;")
+  })
+
+  it("normalizes shadcn css files into canvas theme variables", () => {
+    const parsed = parseCanvasThemePresetCss(`
+      @import "tailwindcss";
+
+      :root {
+        --background: #ffffff;
+        --foreground: #111111;
+        --sidebar: #eeeeee;
+        --radius: 0.5rem;
+      }
+
+      .dark {
+        --background: #111111;
+        --sidebar: #000000;
+      }
+
+      @theme inline {
+        --color-background: var(--background);
+      }
+
+      @layer base {
+        body {
+          @apply bg-background text-foreground;
+        }
+      }
+    `)
+
+    expect(parsed.lightCssVariables).toEqual({
+      "--background": "#ffffff",
+      "--foreground": "#111111",
+      "--radius": "0.5rem",
+    })
+    expect(parsed.darkCssVariables).toEqual({
+      "--background": "#111111",
+    })
+  })
+
+  it("creates registered presets from shadcn css sources", () => {
+    const normalizedPreset = createCanvasThemePresetFromCss({
+      css: `
+        :root {
+          --background: #ffffff;
+        }
+      `,
+      id: "source",
+      label: "Source",
+    })
+
+    expect(normalizedPreset).toEqual({
+      id: "source",
+      label: "Source",
+      lightCssVariables: {
+        "--background": "#ffffff",
+      },
+    })
+  })
+
+  it("loads css registered presets without sidebar overrides", () => {
+    const presetIds = canvasThemePresets.map((themePreset) => themePreset.id)
+
+    expect(presetIds).toContain("claude-plus")
+    expect(presetIds).toContain("vscode")
   })
 
   it("keeps sidebar tokens derived from the base theme pipeline", () => {

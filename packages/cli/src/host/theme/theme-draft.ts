@@ -4,61 +4,16 @@ import type {
   CanvasThemeCssVariables,
   CanvasThemePreset,
 } from "#agent-html-playground/theme/presets"
+import {
+  canvasThemeVariableNames,
+  type CanvasThemeVariableName,
+} from "#agent-html-playground/theme/theme-variables"
+
+export type { CanvasThemeVariableName }
 
 export type CanvasThemeDraft = {
   cssVariables: CanvasThemeCssVariables
 }
-
-export const canvasThemeVariableNames = [
-  "--background",
-  "--foreground",
-  "--card",
-  "--card-foreground",
-  "--popover",
-  "--popover-foreground",
-  "--primary",
-  "--primary-foreground",
-  "--secondary",
-  "--secondary-foreground",
-  "--muted",
-  "--muted-foreground",
-  "--accent",
-  "--accent-foreground",
-  "--success",
-  "--success-foreground",
-  "--warning",
-  "--warning-foreground",
-  "--info",
-  "--info-foreground",
-  "--destructive",
-  "--border",
-  "--input",
-  "--ring",
-  "--chart-1",
-  "--chart-2",
-  "--chart-3",
-  "--chart-4",
-  "--chart-5",
-  "--font-sans",
-  "--font-heading",
-  "--font-mono",
-  "--tracking-normal",
-  "--radius",
-  "--spacing",
-  "--canvas-artifact-max-width",
-  "--canvas-artifact-block-gap",
-  "--shadow-2xs",
-  "--shadow-xs",
-  "--shadow-sm",
-  "--shadow",
-  "--shadow-md",
-  "--shadow-lg",
-  "--shadow-xl",
-  "--shadow-2xl",
-] as const
-
-export type CanvasThemeVariableName =
-  (typeof canvasThemeVariableNames)[number]
 
 export type CanvasThemeResolvedVariables = Partial<
   Record<CanvasThemeVariableName, string>
