@@ -301,6 +301,12 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const playgroundContentTokens = readSource(
       "agent-html/styles/tokens/content.css"
     )
+    const playgroundCodeBlockTokens = readSource(
+      "agent-html/styles/tokens/code-block.css"
+    )
+    const playgroundTokenImports = readSource(
+      "agent-html/styles/tokens/index.css"
+    )
     const playgroundThemeEditorTokens = readSource(
       "agent-html/styles/tokens/theme-editor.css"
     )
@@ -375,6 +381,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "--color-success: var(--success)"
     )
     expect(playgroundTailwindTokens).toContain("--color-sidebar")
+    expect(playgroundTokenImports).toContain('@import "./code-block.css"')
     expect(playgroundTailwindTokens).toContain("--radius-lg: var(--radius)")
     expect(playgroundFoundationTokens).toContain("--font-sans")
     expect(playgroundFoundationTokens).toContain("--success")
@@ -422,8 +429,9 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "--canvas-sidebar-select-item-padding-block"
     )
     expect(playgroundContentTokens).toContain("--canvas-content-gap-md")
-    expect(playgroundContentTokens).toContain(
-      "--canvas-content-diff-add: var(--success)"
+    expect(playgroundContentTokens).not.toContain("--canvas-content-diff")
+    expect(playgroundCodeBlockTokens).toContain(
+      "--canvas-code-block-diff-add: var(--success)"
     )
     expect(playgroundContentTokens).not.toContain(
       "--canvas-content-panel-radius"

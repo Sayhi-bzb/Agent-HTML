@@ -1,0 +1,24 @@
+:root {
+  --canvas-code-block-diff-add: var(--success);
+  --canvas-code-block-diff-add-background: color-mix(
+    in oklab,
+    var(--canvas-code-block-diff-add) 14%,
+    transparent
+  );
+  --canvas-code-block-diff-add-foreground: color-mix(
+    in oklab,
+    var(--canvas-code-block-diff-add) 82%,
+    var(--foreground)
+  );
+  --canvas-code-block-diff-remove: var(--destructive);
+  --canvas-code-block-diff-remove-background: color-mix(
+    in oklab,
+    var(--canvas-code-block-diff-remove) 14%,
+    transparent
+  );
+  --canvas-code-block-diff-remove-foreground: color-mix(
+    in oklab,
+    var(--canvas-code-block-diff-remove) 82%,
+    var(--foreground)
+  );
+}

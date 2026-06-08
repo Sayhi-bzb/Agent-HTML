@@ -12,6 +12,7 @@ Use `index.css` as the runtime entry map. Do not put feature rules or token valu
 - Host chrome, sidebar, toolbar, block hover, and block actions: read `internal/host.css`.
 - Theme editor chrome: read `internal/theme-editor.css`.
 - Token values: read `tokens/README.md`.
+- CodeBlock token values: read `tokens/code-block.css`.
 - Tailwind and shadcn token mapping: read `tokens/tailwind.css`.
 
 ## Public Style API
@@ -28,5 +29,8 @@ Artifact agents may use these classes with local UI primitives. They should not 
 
 `internal` owns locked Canvas chrome, protocol-adjacent styling, and rich
 component implementation styles.
+
+Rich component tokens stay in matching token files such as
+`tokens/code-block.css`; public content scale stays in `tokens/content.css`.
 
 Artifact source should not recreate system responsibilities such as root reading width, block hover highlighting, toolbar placement, or sidebar chrome.

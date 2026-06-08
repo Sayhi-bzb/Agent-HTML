@@ -8,6 +8,7 @@ Use this route after `../README.md` when the task asks for color, type, radius, 
 
 - `foundation.css`: global semantic theme values.
 - `content.css`: artifact-consumable content tokens.
+- `code-block.css`: CodeBlock implementation tokens.
 - `artifact.css`: artifact reading container dimensions.
 - `host.css`: host, sidebar, prompt, toolbar, and block chrome tokens.
 - `theme-editor.css`: theme editor controls.

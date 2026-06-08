@@ -46,7 +46,7 @@ the Canvas surface, including text selection colors.
 `agent-html/styles/tokens/*` owns semantic token values. Read
 `tokens/foundation.css` for base color, font, radius, chart, and sidebar
 values; read `tokens/artifact.css`, `tokens/host.css`, `tokens/content.css`,
-and `tokens/theme-editor.css` for feature values.
+`tokens/code-block.css`, and `tokens/theme-editor.css` for feature values.
 
 `agent-html/styles/tokens/tailwind.css` maps semantic variables into Tailwind
 tokens.
@@ -77,6 +77,9 @@ Artifact content composition uses Canvas semantic classes for spacing,
 typography, panel padding, icon-box size, and grid gap. These classes are
 backed by `--canvas-content-*` tokens. Panel radius, border, and icon-box color
 come from shared semantic tokens.
+
+Rich component implementation tokens use matching feature files, such as
+`tokens/code-block.css` for CodeBlock diff colors.
 
 Artifacts do not import CSS files directly. They consume semantic token classes:
 
