@@ -13,6 +13,7 @@ packages under `packages/cli` and `packages/react`.
 Archived code includes:
 
 - `.agents/skills/agent-html`: retired AgentHTML runtime DSL skill.
+- `.github/workflows/build-desktop.yml`: retired Tauri desktop release workflow.
 - `apps/agent-html-app`: retired app shell.
 - `apps/agent-html-example`: retired standalone example app.
 - `packages/agent-html`: retired `.ahtml` runtime package.

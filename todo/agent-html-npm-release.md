@@ -67,8 +67,8 @@ treated as release blockers.
 
 Current published alpha packages:
 
-- `@agent-html/react@0.0.1`
-- `agent-html@0.0.1`
+- `@agent-html/react@0.0.2-alpha.0`
+- `agent-html@0.0.2-alpha.0`
 
 npm versions are immutable. Do not try to republish `0.0.1`; bump both packages
 before the next release.
@@ -83,15 +83,15 @@ Publish order:
 Commands:
 
 ```powershell
-npm publish .\packages\react --access public --tag alpha
-npm publish .\packages\cli --access public --tag alpha
+git tag v0.0.3-alpha.0
+git push origin v0.0.3-alpha.0
 ```
 
 Metadata checks:
 
 ```powershell
-npm view @agent-html/react@0.0.1 version dist-tags --registry https://registry.npmjs.org/
-npm view agent-html@0.0.1 version dist-tags --registry https://registry.npmjs.org/
+npm view @agent-html/react@alpha version dist-tags --registry https://registry.npmjs.org/
+npm view agent-html@alpha version dist-tags --registry https://registry.npmjs.org/
 ```
 
 Fresh install smoke:
@@ -134,14 +134,10 @@ on both published packages:
 For monorepo packages, include `repository.directory`: `packages/cli` for
 `agent-html` and `packages/react` for `@agent-html/react`.
 
-Optional later step: enable npm trusted publishing / provenance from GitHub
-Actions. That would let GitHub Actions publish without storing long-lived npm
-tokens in the repo. Treat this as a release infrastructure task, not a
-requirement for the current alpha.
-
-GitHub Releases are created from Git tags, not npm metadata. The current
-desktop release workflow listens for `v*` tags and publishes release assets.
-After publishing npm packages, create and push the matching release tag.
+`publish-npm.yml` owns the current `v*` tag publish path. The retired Tauri
+desktop release workflow is archived at
+`_archive/.github/workflows/build-desktop.yml`; archived desktop release docs
+remain under `_archive/docs/app/reference/release.mdx`.
 
 ## Token Handling
 
