@@ -509,7 +509,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       )
     ).toEqual([])
 
-    expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.0.1")
+    expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.0.2-alpha.0")
     expect(cliPackage.dependencies["@shikijs/transformers"]).toBeTruthy()
     expect(cliPackage.dependencies["@tanstack/react-table"]).toBeTruthy()
     expect(cliPackage.dependencies.esbuild).toBeUndefined()

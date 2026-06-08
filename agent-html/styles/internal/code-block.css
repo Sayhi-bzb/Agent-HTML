@@ -50,7 +50,6 @@
 
 .canvas-code-block pre.has-diff .line.diff {
   position: relative;
-  display: inline-block;
   width: 100%;
 }
 

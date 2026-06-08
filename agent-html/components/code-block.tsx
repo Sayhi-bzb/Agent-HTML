@@ -2,46 +2,80 @@ import * as React from "react"
 import { CheckIcon, CopyIcon } from "lucide-react"
 
 import { cn } from "../lib/cn"
-import { highlightCode } from "../lib/shiki-highlighter"
+import { highlightCode, type CodeBlockLanguage } from "../lib/shiki-highlighter"
 import { Button } from "./ui/button"
 
 type CodeBlockProps = {
   caption?: string
   className?: string
   code: string
-  language?: string
+  language?: CodeBlockLanguage
   showLineNumbers?: boolean
   title?: string
   wrap?: boolean
 }
 
+function getDiffLineClass(line: string) {
+  if (line.startsWith("+++") || line.startsWith("---")) {
+    return "line diff"
+  }
+
+  if (line.startsWith("+")) {
+    return "line diff add"
+  }
+
+  if (line.startsWith("-")) {
+    return "line diff remove"
+  }
+
+  return "line"
+}
+
+function isDiffLanguage(language: CodeBlockLanguage) {
+  return language === "diff" || language === "patch"
+}
+
 function CodeLines({
   code,
+  isDiff,
   showLineNumbers,
   wrap,
 }: {
   code: string
+  isDiff: boolean
   showLineNumbers: boolean
   wrap: boolean
 }) {
   const lines = code.split("\n")
 
-  if (!showLineNumbers) {
+  if (!showLineNumbers && !isDiff) {
     return <code>{code}</code>
   }
 
   return (
     <code className="grid">
-      {lines.map((line, index) => (
-        <span className="grid grid-cols-[1.5rem_1fr] gap-2" key={index}>
-          <span className="select-none text-right text-muted-foreground">
-            {index + 1}
+      {lines.map((line, index) =>
+        showLineNumbers ? (
+          <span
+            className={cn(
+              "grid grid-cols-[1.5rem_1fr] gap-2",
+              isDiff && getDiffLineClass(line)
+            )}
+            key={index}
+          >
+            <span className="select-none text-right text-muted-foreground">
+              {index + 1}
+            </span>
+            <span className={cn("min-w-0", wrap && "whitespace-pre-wrap")}>
+              {line || " "}
+            </span>
           </span>
-          <span className={cn("min-w-0", wrap && "whitespace-pre-wrap")}>
+        ) : (
+          <span className={getDiffLineClass(line)} key={index}>
             {line || " "}
           </span>
-        </span>
-      ))}
+        )
+      )}
     </code>
   )
 }
@@ -62,6 +96,7 @@ function CodeBlock({
   const copyTimeoutRef = React.useRef<number | null>(null)
   const label = title || language
   const CopyStateIcon = copied ? CheckIcon : CopyIcon
+  const isDiff = isDiffLanguage(language)
 
   React.useEffect(() => {
     let isCurrent = true
@@ -98,18 +133,21 @@ function CodeBlock({
       return
     }
 
-    void navigator.clipboard.writeText(code).then(() => {
-      setCopied(true)
+    void navigator.clipboard
+      .writeText(code)
+      .then(() => {
+        setCopied(true)
 
-      if (copyTimeoutRef.current !== null) {
-        window.clearTimeout(copyTimeoutRef.current)
-      }
+        if (copyTimeoutRef.current !== null) {
+          window.clearTimeout(copyTimeoutRef.current)
+        }
 
-      copyTimeoutRef.current = window.setTimeout(() => {
-        setCopied(false)
-        copyTimeoutRef.current = null
-      }, 1600)
-    })
+        copyTimeoutRef.current = window.setTimeout(() => {
+          setCopied(false)
+          copyTimeoutRef.current = null
+        }, 1600)
+      })
+      .catch(() => {})
   }
 
   return (
@@ -147,11 +185,13 @@ function CodeBlock({
               "m-0 p-4 text-sm",
               wrap
                 ? "whitespace-pre-wrap break-words"
-                : "min-w-max whitespace-pre"
+                : "min-w-max whitespace-pre",
+              isDiff && "has-diff"
             )}
           >
             <CodeLines
               code={code}
+              isDiff={isDiff}
               showLineNumbers={showLineNumbers}
               wrap={wrap}
             />

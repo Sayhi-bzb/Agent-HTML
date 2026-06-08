@@ -34,7 +34,8 @@ const languageAliases = {
 
 type ShikiLanguage = (typeof shikiLanguages)[number]
 type ShikiTheme = (typeof shikiThemes)[number]
-type CodeBlockLanguage = ShikiLanguage | "text"
+type PlainCodeBlockLanguage = "diff" | "patch" | "text"
+type CodeBlockLanguage = PlainCodeBlockLanguage | ShikiLanguage
 
 let highlighterPromise: Promise<Highlighter> | null = null
 
