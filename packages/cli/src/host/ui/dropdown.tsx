@@ -3,6 +3,7 @@ import type * as React from "react"
 import {
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
 } from "#agent-html-playground/components/ui/dropdown-menu"
 import { HostItemContent, type HostItemIcon } from "./item-content"
 
@@ -25,6 +26,18 @@ export function HostDropdownContent({
     >
       {children}
     </DropdownMenuContent>
+  )
+}
+
+export function HostDropdownLabel({
+  className,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuLabel>) {
+  return (
+    <DropdownMenuLabel
+      className={cn("canvas-host-dropdown-label", className)}
+      {...props}
+    />
   )
 }
 

@@ -23,6 +23,8 @@ export const hostRoutes = {
   codexThreads: "/__agent-html/codex/threads",
   codexTranscript: "/__agent-html/codex/transcript",
   codexTurn: "/__agent-html/codex/turn",
+  fontAsset: "/__agent-html/font-asset",
+  fontStylesheet: "/__agent-html/font-stylesheet",
   hostEntry: "/__agent-html/host-entry.js",
   publicAsset: "/__agent-html/public/",
   hostStyles: "/__agent-html/styles.css",
@@ -94,6 +96,113 @@ async function sendTransformedModule({ response, url, vite }) {
   sendText(response, result.code, "text/javascript; charset=utf-8")
 }
 
+function resolveProxiedZeosevenUrl(requestUrl, { errorMessage, pathnameTest }) {
+  const resourceUrl = requestUrl.searchParams.get("url")
+
+  if (!resourceUrl) {
+    throw new Error("url is required")
+  }
+
+  let parsedUrl
+  try {
+    parsedUrl = new URL(resourceUrl)
+  } catch {
+    throw new Error("url must be an absolute URL")
+  }
+
+  if (
+    parsedUrl.protocol !== "https:" ||
+    parsedUrl.hostname !== "fontsapi.zeoseven.com" ||
+    !pathnameTest(parsedUrl.pathname)
+  ) {
+    throw new Error(errorMessage)
+  }
+
+  return parsedUrl.toString()
+}
+
+function resolveProxiedFontStylesheetUrl(requestUrl) {
+  return resolveProxiedZeosevenUrl(requestUrl, {
+    errorMessage: "Only ZeoSeven FontsAPI result.css URLs are allowed",
+    pathnameTest: (pathname) => pathname.endsWith("/result.css"),
+  })
+}
+
+function resolveProxiedFontAssetUrl(requestUrl) {
+  return resolveProxiedZeosevenUrl(requestUrl, {
+    errorMessage: "Only ZeoSeven FontsAPI woff2 URLs are allowed",
+    pathnameTest: (pathname) => pathname.endsWith(".woff2"),
+  })
+}
+
+function proxiedFontAssetHref(fontAssetUrl) {
+  return `${hostRoutes.fontAsset}?url=${encodeURIComponent(fontAssetUrl)}`
+}
+
+function rewriteRelativeCssUrls(css, stylesheetUrl) {
+  return css.replace(
+    /url\(\s*(["']?)(?![a-zA-Z][a-zA-Z\d+.-]*:|\/\/|#)([^"')]+)\1\s*\)/g,
+    (_match, _quote, rawUrl) => {
+      const absoluteUrl = new URL(rawUrl.trim(), stylesheetUrl).toString()
+      return `url("${proxiedFontAssetHref(absoluteUrl)}")`
+    }
+  )
+}
+
+async function sendFontStylesheet({ requestUrl, response }) {
+  let stylesheetUrl
+
+  try {
+    stylesheetUrl = resolveProxiedFontStylesheetUrl(requestUrl)
+  } catch (error) {
+    sendError(response, error, 400)
+    return
+  }
+
+  try {
+    const fontResponse = await fetch(stylesheetUrl)
+    const css = rewriteRelativeCssUrls(await fontResponse.text(), stylesheetUrl)
+
+    response.writeHead(fontResponse.ok ? 200 : fontResponse.status, {
+      "Cache-Control": "public, max-age=600",
+      "Content-Type": "text/css; charset=utf-8",
+    })
+    response.end(css || `/* Empty font stylesheet: ${stylesheetUrl} */`)
+  } catch (error) {
+    response.writeHead(502, {
+      "Content-Type": "text/css; charset=utf-8",
+    })
+    response.end(`/* Unable to load font stylesheet: ${String(error)} */`)
+  }
+}
+
+async function sendFontAsset({ requestUrl, response }) {
+  let fontAssetUrl
+
+  try {
+    fontAssetUrl = resolveProxiedFontAssetUrl(requestUrl)
+  } catch (error) {
+    sendError(response, error, 400)
+    return
+  }
+
+  try {
+    const fontResponse = await fetch(fontAssetUrl)
+    const fontBytes = Buffer.from(await fontResponse.arrayBuffer())
+
+    response.writeHead(fontResponse.ok ? 200 : fontResponse.status, {
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Content-Type": "font/woff2",
+    })
+    response.end(fontBytes)
+  } catch (error) {
+    response.writeHead(502, {
+      "Content-Type": "text/plain; charset=utf-8",
+    })
+    response.end(`Unable to load font asset: ${String(error)}`)
+  }
+}
+
 export async function handleRequest({ request, response, root, vite }) {
   const requestUrl = new URL(request.url ?? "/", "http://localhost")
 
@@ -134,6 +243,16 @@ export async function handleRequest({ request, response, root, vite }) {
 
   if (requestUrl.pathname === hostRoutes.hostStyles) {
     sendText(response, await loadHostStyles(root), "text/css; charset=utf-8")
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.fontStylesheet) {
+    await sendFontStylesheet({ requestUrl, response })
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.fontAsset) {
+    await sendFontAsset({ requestUrl, response })
     return true
   }
 

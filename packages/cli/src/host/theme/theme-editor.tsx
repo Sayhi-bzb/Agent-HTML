@@ -35,7 +35,7 @@ import type {
 import { HostPopoverAction, HostPopoverContent } from "../ui/popover"
 import { HostSelect, type HostSelectOption } from "../ui/select"
 import { HostSidebarActionButton } from "../ui/sidebar-action"
-import { HostSwatch } from "../ui/swatch"
+import { hostSwatchFallbackColor, HostSwatch } from "../ui/swatch"
 
 type ColorTokenItem = {
   label: string
@@ -205,13 +205,11 @@ const editorPopoverButtonClassName =
 const editorSectionTriggerClassName =
   "group/label canvas-sidebar-body text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 
-const defaultThemePresetSwatchColor = "#18181b"
-
 function getThemePresetSwatchColor(preset: CanvasThemePreset) {
   return (
     preset.lightCssVariables["--primary"] ??
     preset.lightCssVariables["--ring"] ??
-    defaultThemePresetSwatchColor
+    hostSwatchFallbackColor
   )
 }
 
@@ -362,9 +360,10 @@ function ColorOptionField<Option extends string>({
 }) {
   return (
     <HostPopoverAction
-      aria-expanded={isActive}
+      activeSemantics="pressed"
       className="canvas-theme-editor-picker-tab"
       data-active={isActive}
+      active={isActive}
       label={label}
       onClick={onActivate}
       swatchColor={getOptionColor(value)}

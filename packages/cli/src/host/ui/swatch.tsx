@@ -1,3 +1,5 @@
+export const hostSwatchFallbackColor = "var(--muted)"
+
 function isColorPreviewable(value: string) {
   const trimmed = value.trim()
   return (
@@ -11,10 +13,10 @@ function isColorPreviewable(value: string) {
 }
 
 export function HostSwatch({
-  color,
+  color = hostSwatchFallbackColor,
   size = "xs",
 }: {
-  color: string
+  color?: string
   size?: "sm" | "xs"
 }) {
   return (

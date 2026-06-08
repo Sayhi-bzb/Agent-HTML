@@ -23,6 +23,7 @@ export function HostPopoverContent({
 
 export function HostPopoverAction({
   active = false,
+  activeSemantics = "selected",
   caption,
   className,
   icon,
@@ -31,17 +32,26 @@ export function HostPopoverAction({
   ...props
 }: Omit<React.ComponentProps<typeof Button>, "children"> & {
   active?: boolean
+  activeSemantics?: "none" | "pressed" | "selected"
   caption?: React.ReactNode
   icon?: HostItemIcon
   label: React.ReactNode
   swatchColor?: string
 }) {
+  const activeProps =
+    active && activeSemantics === "pressed"
+      ? { "aria-pressed": true }
+      : active && activeSemantics === "selected"
+        ? { "aria-selected": true }
+        : {}
+
   return (
     <Button
       className={cn("canvas-host-popover-action", className)}
       data-active={active || undefined}
       type="button"
       variant="ghost"
+      {...activeProps}
       {...props}
     >
       <HostItemContent

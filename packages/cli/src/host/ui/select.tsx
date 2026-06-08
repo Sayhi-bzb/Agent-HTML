@@ -44,20 +44,10 @@ export function HostSelect({
     <Select onValueChange={onValueChange} value={value}>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SelectTrigger asChild>
-            <HostControlTrigger asChild>
-              <SidebarMenuButton aria-label={label} type="button">
-                <SelectValue placeholder={label}>
-                  <HostItemContent
-                    icon={activeOption?.icon}
-                    label={activeOption?.label ?? label}
-                    swatchColor={activeOption?.swatchColor}
-                  />
-                </SelectValue>
-                <ChevronDownIcon className="canvas-host-item-icon canvas-host-item-trailing" />
-              </SidebarMenuButton>
-            </HostControlTrigger>
-          </SelectTrigger>
+          <HostSelectTriggerRow
+            activeOption={activeOption}
+            label={label}
+          />
         </SidebarMenuItem>
       </SidebarMenu>
       <HostSelectContent>
@@ -72,6 +62,31 @@ export function HostSelect({
         ))}
       </HostSelectContent>
     </Select>
+  )
+}
+
+function HostSelectTriggerRow({
+  activeOption,
+  label,
+}: {
+  activeOption?: HostSelectOption
+  label: string
+}) {
+  return (
+    <SelectTrigger asChild>
+      <HostControlTrigger asChild>
+        <SidebarMenuButton aria-label={label} type="button">
+          <SelectValue placeholder={label}>
+            <HostItemContent
+              icon={activeOption?.icon}
+              label={activeOption?.label ?? label}
+              swatchColor={activeOption?.swatchColor}
+            />
+          </SelectValue>
+          <ChevronDownIcon className="canvas-host-item-icon canvas-host-item-trailing" />
+        </SidebarMenuButton>
+      </HostControlTrigger>
+    </SelectTrigger>
   )
 }
 

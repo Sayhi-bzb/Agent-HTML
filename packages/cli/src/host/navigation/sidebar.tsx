@@ -21,15 +21,7 @@ import type {
   CanvasThemeVariableName,
 } from "../theme/theme-draft"
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandList,
-} from "#agent-html-playground/components/ui/command"
-import {
   DropdownMenu,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "#agent-html-playground/components/ui/dropdown-menu"
 import {
@@ -38,7 +30,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuBadge,
@@ -51,8 +42,20 @@ import type {
 } from "#agent-html-playground/theme/presets"
 import type { Artifact, GuardIssue } from "../host-contracts"
 import type { CanvasSidebarView } from "../preferences/canvas-host-preferences"
-import { HostCommandDialog, HostCommandItem } from "../ui/command"
-import { HostDropdownContent, HostDropdownItem } from "../ui/dropdown"
+import {
+  HostCommand,
+  HostCommandDialog,
+  HostCommandEmpty,
+  HostCommandGroup,
+  HostCommandInput,
+  HostCommandItem,
+  HostCommandList,
+} from "../ui/command"
+import {
+  HostDropdownContent,
+  HostDropdownItem,
+  HostDropdownLabel,
+} from "../ui/dropdown"
 import {
   HostSidebarAction,
   HostSidebarActionButton,
@@ -160,8 +163,7 @@ export function ReactCanvasSidebar({
             runtimeVariables={themeRuntimeVariables}
           />
         ) : (
-          <SidebarGroup>
-            <SidebarGroupLabel>Artifacts</SidebarGroupLabel>
+          <SidebarGroup className="canvas-sidebar-artifact-list">
             <SidebarGroupContent>
               <SidebarMenu>
                 {artifactsLoading ? (
@@ -223,7 +225,7 @@ export function ReactCanvasSidebar({
                     />
                   </DropdownMenuTrigger>
                   <HostDropdownContent align="end" side="right">
-                    <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                    <HostDropdownLabel>Settings</HostDropdownLabel>
                     <HostDropdownItem disabled label="Preferences" />
                     <HostDropdownItem disabled label="About Agent-HTML" />
                   </HostDropdownContent>
@@ -265,11 +267,11 @@ function ReactCanvasArtifactSearch({
         open={open}
         title="Search artifacts"
       >
-        <Command>
-          <CommandInput placeholder="Search artifacts..." />
-          <CommandList>
-            <CommandEmpty>No artifacts found.</CommandEmpty>
-            <CommandGroup heading="Artifacts">
+        <HostCommand>
+          <HostCommandInput placeholder="Search artifacts..." />
+          <HostCommandList>
+            <HostCommandEmpty>No artifacts found.</HostCommandEmpty>
+            <HostCommandGroup heading="Artifacts">
               {artifacts.map((artifact) => {
                 const label = artifactLabel(artifact.filePath)
 
@@ -288,9 +290,9 @@ function ReactCanvasArtifactSearch({
                   />
                 )
               })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
+            </HostCommandGroup>
+          </HostCommandList>
+        </HostCommand>
       </HostCommandDialog>
     </>
   )

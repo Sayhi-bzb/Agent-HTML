@@ -5,6 +5,8 @@ import type {
 
 const canvasThemePresetFontLinkId = "react-canvas-theme-preset-fonts"
 const canvasThemePresetFontLinkIdPrefix = `${canvasThemePresetFontLinkId}-`
+const canvasThemePresetFontStylesheetRoute =
+  "/__agent-html/font-stylesheet"
 const canvasThemePresetAntialiasClass = "antialiased"
 const allowedBodyClassNames = new Set([canvasThemePresetAntialiasClass])
 
@@ -95,7 +97,7 @@ function configureZeosevenFontLink(id: string, href: string) {
   const linkElement = getOrCreateFontLink(id)
   linkElement.rel = "preload"
   linkElement.as = "style"
-  linkElement.href = href
+  linkElement.href = `${canvasThemePresetFontStylesheetRoute}?url=${encodeURIComponent(href)}`
   linkElement.crossOrigin = "anonymous"
   linkElement.onload = () => {
     linkElement.rel = "stylesheet"

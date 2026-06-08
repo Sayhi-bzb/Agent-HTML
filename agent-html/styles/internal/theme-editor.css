@@ -29,22 +29,6 @@
     gap: var(--canvas-theme-editor-popover-gap);
   }
 
-  .canvas-theme-editor-value-stack {
-    display: flex;
-    min-width: 0;
-    flex: 1 1 0%;
-    flex-direction: column;
-    gap: var(--canvas-sidebar-stack-gap);
-  }
-
-  .canvas-theme-editor-inline-value {
-    display: flex;
-    min-width: 0;
-    flex: 1 1 0%;
-    align-items: center;
-    gap: var(--canvas-sidebar-control-gap);
-  }
-
   .canvas-theme-editor-popover-sm {
     width: var(--canvas-theme-editor-popover-width-sm);
     padding: var(--canvas-theme-editor-popover-padding-sm);
@@ -85,7 +69,6 @@
   .canvas-theme-editor-popover-button {
     min-height: var(--canvas-theme-editor-control-min-height);
     height: auto;
-    align-items: center;
     padding-block: var(--canvas-theme-editor-row-padding-block);
     color: color-mix(in oklab, var(--sidebar-foreground) 70%, transparent);
   }

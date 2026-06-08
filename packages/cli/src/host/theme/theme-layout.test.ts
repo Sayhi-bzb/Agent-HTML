@@ -156,7 +156,7 @@ describe("canvas theme preset layout", () => {
     expect(linkElement).toMatchObject({
       as: "style",
       crossOrigin: "anonymous",
-      href: "https://fontsapi.zeoseven.com/570/main/result.css",
+      href: "/__agent-html/font-stylesheet?url=https%3A%2F%2Ffontsapi.zeoseven.com%2F570%2Fmain%2Fresult.css",
       rel: "preload",
     })
 
