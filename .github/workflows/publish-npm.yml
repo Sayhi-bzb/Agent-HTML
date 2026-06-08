@@ -1,0 +1,42 @@
+name: Publish npm
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish npm packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org/
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pack @agent-html/react
+        run: npm pack ./packages/react --dry-run
+
+      - name: Pack agent-html
+        run: npm pack ./packages/cli --dry-run
+
+      - name: Publish @agent-html/react
+        run: npm publish ./packages/react --access public --tag alpha --provenance
+
+      - name: Publish agent-html
+        run: npm publish ./packages/cli --access public --tag alpha --provenance
