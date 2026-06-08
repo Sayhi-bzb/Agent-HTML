@@ -79,10 +79,10 @@ const cssPresetRegistrations = [
     layout: claudePlusLayout,
   },
   {
-    css: whatsappCss,
-    id: "whatsapp",
-    label: "WhatsApp",
-    layout: whatsappLayout,
+    css: mangaCss,
+    id: "manga",
+    label: "Manga",
+    layout: mangaLayout,
   },
   {
     css: pixelQuestCss,
@@ -92,22 +92,22 @@ const cssPresetRegistrations = [
     mirrorLightToDark: true,
   },
   {
-    css: mimiCss,
-    id: "mimi",
-    label: "Mimi",
-    layout: mimiLayout,
-  },
-  {
-    css: mangaCss,
-    id: "manga",
-    label: "Manga",
-    layout: mangaLayout,
+    css: whatsappCss,
+    id: "whatsapp",
+    label: "WhatsApp",
+    layout: whatsappLayout,
   },
   {
     css: hexCss,
     id: "hex",
     label: "Hex",
     layout: hexLayout,
+  },
+  {
+    css: mimiCss,
+    id: "mimi",
+    label: "Mimi",
+    layout: mimiLayout,
   },
 ] as const satisfies readonly CanvasThemeCssPresetRegistration[]
 
