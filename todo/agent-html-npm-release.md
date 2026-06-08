@@ -122,7 +122,7 @@ on both published packages:
 {
   "repository": {
     "type": "git",
-    "url": "https://github.com/Sayhi-bzb/Agent-HTML"
+    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML.git"
   },
   "bugs": {
     "url": "https://github.com/Sayhi-bzb/Agent-HTML/issues"

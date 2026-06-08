@@ -30,13 +30,17 @@ jobs:
         run: npm install
 
       - name: Pack @agent-html/react
-        run: npm pack ./packages/react --dry-run
+        working-directory: packages/react
+        run: npm pack --dry-run
 
       - name: Pack agent-html
-        run: npm pack ./packages/cli --dry-run
+        working-directory: packages/cli
+        run: npm pack --dry-run
 
       - name: Publish @agent-html/react
-        run: npm publish ./packages/react --access public --tag alpha --provenance
+        working-directory: packages/react
+        run: npm publish --access public --tag alpha --provenance
 
       - name: Publish agent-html
-        run: npm publish ./packages/cli --access public --tag alpha --provenance
+        working-directory: packages/cli
+        run: npm publish --access public --tag alpha --provenance

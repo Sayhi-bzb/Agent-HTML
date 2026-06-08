@@ -59,7 +59,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Sayhi-bzb/Agent-HTML"
+    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML.git"
   },
   "keywords": [],
   "author": "",
