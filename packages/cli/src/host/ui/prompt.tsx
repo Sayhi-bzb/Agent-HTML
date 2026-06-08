@@ -74,3 +74,11 @@ export function HostFloatingPromptStatus({
     </p>
   )
 }
+
+export const HostPrompt = {
+  Actions: HostFloatingPromptActions,
+  PopoverContent: HostFloatingPromptPopoverContent,
+  Status: HostFloatingPromptStatus,
+  Surface: HostFloatingPromptSurface,
+  Textarea: HostFloatingPromptTextarea,
+}

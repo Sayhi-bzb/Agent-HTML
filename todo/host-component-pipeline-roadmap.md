@@ -102,6 +102,23 @@ packages/cli/src/host/*
 
 ## Adapter Families
 
+### Consumer SKU Families
+
+Host feature modules import from `packages/cli/src/host/ui` only. The public
+host UI consumption surface is:
+
+- `HostAction` for sidebar rows, sidebar row buttons, and icon-only host
+  actions;
+- `HostMenu` for select, dropdown, command, and popover menu/picker pieces;
+- `HostPrompt` for floating block prompt surfaces, textarea, actions, status,
+  and prompt popover content;
+- `HostStatus` for host alert/status surfaces, lists, and items;
+- `HostDisplay` for swatches, skeletons, and shared display-only content.
+
+Primitive-specific files may remain inside `host/ui`, but feature modules do
+not import from those files directly. This keeps behavior-specific
+implementation without exposing every internal component as a consumer SKU.
+
 ### Variant Taxonomy
 
 Host feature modules express intent, not visual variants. Repeated visual

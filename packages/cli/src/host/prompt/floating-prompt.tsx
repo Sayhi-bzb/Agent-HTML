@@ -8,13 +8,7 @@ import {
   TooltipTrigger,
 } from "#agent-html-playground/components/ui/tooltip"
 import type { FloatingPromptTarget } from "../host-contracts"
-import { HostIconButton } from "../ui/icon-button"
-import {
-  HostFloatingPromptActions,
-  HostFloatingPromptStatus,
-  HostFloatingPromptSurface,
-  HostFloatingPromptTextarea,
-} from "../ui/prompt"
+import { HostAction, HostPrompt } from "../ui"
 
 export function FloatingPrompt({
   onDraftChange,
@@ -57,8 +51,8 @@ export function FloatingPrompt({
 
   return (
     <TooltipProvider>
-      <HostFloatingPromptSurface targetId={target.id}>
-        <HostFloatingPromptTextarea
+      <HostPrompt.Surface targetId={target.id}>
+        <HostPrompt.Textarea
           onChange={(event) => onDraftChange(event.currentTarget.value)}
           onKeyDown={(event) => {
             if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -69,10 +63,10 @@ export function FloatingPrompt({
           placeholder="Edit this block..."
           value={value}
         />
-        <HostFloatingPromptActions>
+        <HostPrompt.Actions>
           <Tooltip>
             <TooltipTrigger asChild>
-              <HostIconButton
+              <HostAction.Icon
                 disabled={!value.trim() || isSubmitting}
                 icon={ArrowUpIcon}
                 label="Send"
@@ -87,12 +81,12 @@ export function FloatingPrompt({
             </TooltipTrigger>
             <TooltipContent>Send</TooltipContent>
           </Tooltip>
-        </HostFloatingPromptActions>
-      </HostFloatingPromptSurface>
+        </HostPrompt.Actions>
+      </HostPrompt.Surface>
       {status ? (
-        <HostFloatingPromptStatus>
+        <HostPrompt.Status>
           {status}
-        </HostFloatingPromptStatus>
+        </HostPrompt.Status>
       ) : null}
     </TooltipProvider>
   )

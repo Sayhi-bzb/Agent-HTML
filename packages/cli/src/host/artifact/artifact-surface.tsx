@@ -5,7 +5,7 @@ import { BlockOverlayLayer, useBlockOverlays } from "../overlay/block-overlay"
 import { GuardIssueList, HostStatusMessage } from "./status-surface"
 import { ScrollArea } from "#agent-html-playground/components/ui/scroll-area"
 import type { ArtifactModule, GuardIssue } from "../host-contracts"
-import { HostSurfaceSkeleton } from "../ui/surface-skeleton"
+import { HostDisplay } from "../ui"
 
 export function ArtifactSurface({
   activeFilePath,
@@ -107,7 +107,7 @@ export function ArtifactSurface({
               title="Artifact unavailable"
             />
           ) : showSkeleton ? (
-            <HostSurfaceSkeleton />
+            <HostDisplay.SurfaceSkeleton />
           ) : artifactCount === 0 ? (
             <HostStatusMessage
               message="Create an agent-html/artifacts/*.artifact.tsx file to preview it here."
