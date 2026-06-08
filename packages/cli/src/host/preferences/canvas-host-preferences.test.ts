@@ -85,6 +85,26 @@ describe("canvas host preferences", () => {
     })
   })
 
+  it("restores the gallery sidebar view", () => {
+    stubStorage(
+      JSON.stringify({
+        activeSidebarView: "gallery",
+      })
+    )
+
+    expect(readCanvasHostPreferences().activeSidebarView).toBe("gallery")
+  })
+
+  it("maps the legacy theme sidebar view to gallery", () => {
+    stubStorage(
+      JSON.stringify({
+        activeSidebarView: "theme",
+      })
+    )
+
+    expect(readCanvasHostPreferences().activeSidebarView).toBe("gallery")
+  })
+
   it("restores an active file only when it still exists", () => {
     stubStorage(
       JSON.stringify({
@@ -109,12 +129,12 @@ describe("canvas host preferences", () => {
       filePath: "agent-html/artifacts/example.artifact.tsx",
     })
     writeCanvasHostPreferences({
-      activeSidebarView: "theme",
+      activeSidebarView: "gallery",
       leftSidebarOpen: false,
     })
 
     expect(readCanvasHostPreferences()).toMatchObject({
-      activeSidebarView: "theme",
+      activeSidebarView: "gallery",
       leftSidebarOpen: false,
       messageDrafts: expect.any(Object),
     })

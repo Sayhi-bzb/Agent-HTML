@@ -11,6 +11,7 @@ import {
   readCanvasMessageDraft,
   writeCanvasHostPreferences,
   writeCanvasMessageDraft,
+  type CanvasSidebarView,
 } from "./preferences/canvas-host-preferences"
 import {
   clearCanvasMessageHost,
@@ -71,9 +72,8 @@ export function ReactCanvasHostApp() {
   const [promptStatus, setPromptStatus] = React.useState("")
   const [activeThemePresetId, setActiveThemePresetId] =
     React.useState<CanvasThemePresetId>(initialPreferences.activeThemePresetId)
-  const [activeSidebarView, setActiveSidebarView] = React.useState<
-    "artifacts" | "theme"
-  >(initialPreferences.activeSidebarView)
+  const [activeSidebarView, setActiveSidebarView] =
+    React.useState<CanvasSidebarView>(initialPreferences.activeSidebarView)
   const [activeThemeEditorSectionId, setActiveThemeEditorSectionId] =
     React.useState<CanvasThemeEditorSectionId>(
       initialPreferences.activeThemeEditorSectionId

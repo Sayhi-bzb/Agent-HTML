@@ -65,6 +65,13 @@ type NumericTokenItem = {
 
 type TailwindColorPanel = "family" | "step"
 
+type SelectHeaderOption = {
+  color?: string
+  icon?: React.ComponentType<{ className?: string }>
+  label: string
+  value: string
+}
+
 function cn(...classes: (false | null | string | undefined)[]) {
   return classes.filter(Boolean).join(" ")
 }
@@ -99,6 +106,18 @@ const colorTokenGroups: readonly ColorTokenGroup[] = [
       { label: "primary foreground", name: "--primary-foreground" },
       { label: "secondary", name: "--secondary" },
       { label: "secondary foreground", name: "--secondary-foreground" },
+    ],
+  },
+  {
+    id: "state",
+    label: "State",
+    items: [
+      { label: "success", name: "--success" },
+      { label: "success foreground", name: "--success-foreground" },
+      { label: "warning", name: "--warning" },
+      { label: "warning foreground", name: "--warning-foreground" },
+      { label: "info", name: "--info" },
+      { label: "info foreground", name: "--info-foreground" },
       { label: "destructive", name: "--destructive" },
     ],
   },
@@ -205,6 +224,16 @@ const editorSectionTriggerClassName =
 
 const editorOptionClassName =
   "canvas-theme-editor-option"
+
+const defaultThemePresetSwatchColor = "#18181b"
+
+function getThemePresetSwatchColor(preset: CanvasThemePreset) {
+  return (
+    preset.lightCssVariables["--primary"] ??
+    preset.lightCssVariables["--ring"] ??
+    defaultThemePresetSwatchColor
+  )
+}
 
 function getVariableValue({
   draft,
@@ -338,7 +367,7 @@ function SelectHeaderItem({
 }: {
   label: string
   onValueChange: (value: string) => void
-  options: readonly { icon?: React.ComponentType<{ className?: string }>; label: string; value: string }[]
+  options: readonly SelectHeaderOption[]
   value: string
 }) {
   const activeOption = options.find((option) => option.value === value)
@@ -356,6 +385,12 @@ function SelectHeaderItem({
             >
               <SelectValue placeholder={label}>
                 <span className="canvas-theme-editor-inline-value text-left">
+                  {activeOption?.color ? (
+                    <ColorSwatch
+                      className="canvas-theme-editor-swatch-xs"
+                      color={activeOption.color}
+                    />
+                  ) : null}
                   {ActiveIcon ? <ActiveIcon className="canvas-theme-editor-icon" /> : null}
                   <span className="truncate">{activeOption?.label ?? label}</span>
                 </span>
@@ -379,6 +414,12 @@ function SelectHeaderItem({
               key={option.value}
               value={option.value}
             >
+              {option.color ? (
+                <ColorSwatch
+                  className="canvas-theme-editor-swatch-xs"
+                  color={option.color}
+                />
+              ) : null}
               {Icon ? <Icon className="canvas-theme-editor-icon" /> : null}
               <span className="min-w-0 truncate">{option.label}</span>
             </SelectItem>
@@ -835,6 +876,29 @@ function CanvasSection(props: {
   )
 }
 
+export function ReactCanvasThemePresetSelect({
+  activePresetId,
+  onSelectPreset,
+  presets,
+}: {
+  activePresetId: CanvasThemePresetId
+  onSelectPreset: (presetId: CanvasThemePresetId) => void
+  presets: readonly CanvasThemePreset[]
+}) {
+  return (
+    <SelectHeaderItem
+      label="Theme preset"
+      onValueChange={(value) => onSelectPreset(value as CanvasThemePresetId)}
+      options={presets.map((preset) => ({
+        color: getThemePresetSwatchColor(preset),
+        label: preset.label,
+        value: preset.id,
+      }))}
+      value={activePresetId}
+    />
+  )
+}
+
 export function ReactCanvasThemeEditorHeader({
   activePresetId,
   activeSectionId,
@@ -850,14 +914,10 @@ export function ReactCanvasThemeEditorHeader({
 }) {
   return (
     <div className="canvas-theme-editor-header-stack">
-      <SelectHeaderItem
-        label="Theme preset"
-        onValueChange={(value) => onSelectPreset(value as CanvasThemePresetId)}
-        options={presets.map((preset) => ({
-          label: preset.label,
-          value: preset.id,
-        }))}
-        value={activePresetId}
+      <ReactCanvasThemePresetSelect
+        activePresetId={activePresetId}
+        onSelectPreset={onSelectPreset}
+        presets={presets}
       />
       <SelectHeaderItem
         label="Theme section"

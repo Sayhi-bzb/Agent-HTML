@@ -17,7 +17,7 @@
   --canvas-content-caption-font-size: 0.75rem;
   --canvas-content-caption-line-height: 1.5;
   --canvas-content-grid-gap: 1rem;
-  --canvas-content-diff-add: oklch(0.62 0.17 145);
+  --canvas-content-diff-add: var(--success);
   --canvas-content-diff-add-background: color-mix(
     in oklab,
     var(--canvas-content-diff-add) 14%,

@@ -56,6 +56,10 @@ function filesMatching(directory, pattern) {
   )
 }
 
+function filesMatchingAny(files, pattern) {
+  return files.filter((file) => pattern.test(readSource(file)))
+}
+
 function importedSpecifiers(source) {
   const imports = []
   const importPattern =
@@ -181,6 +185,16 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const textSelectionOverride = /selection:(?:bg|text)-/
 
     expect(filesMatching("agent-html/artifacts", rawArtifactVisualClass)).toEqual([])
+    expect(
+      filesMatchingAny(
+        [
+          "agent-html/components/code-block.tsx",
+          "agent-html/components/data-table.tsx",
+          "agent-html/components/kanban.tsx",
+        ],
+        rawArtifactVisualClass
+      )
+    ).toEqual([])
     expect(filesMatching("agent-html/examples", rawArtifactVisualClass)).toEqual([])
     expect(filesMatching("packages/cli/src/host", rawSurfaceVisualClass)).toEqual([])
     expect(filesMatching("agent-html", textSelectionOverride)).toEqual([])
@@ -357,9 +371,15 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "--font-heading: var(--font-heading)"
     )
     expect(playgroundTailwindTokens).toContain("--color-background")
+    expect(playgroundTailwindTokens).toContain(
+      "--color-success: var(--success)"
+    )
     expect(playgroundTailwindTokens).toContain("--color-sidebar")
     expect(playgroundTailwindTokens).toContain("--radius-lg: var(--radius)")
     expect(playgroundFoundationTokens).toContain("--font-sans")
+    expect(playgroundFoundationTokens).toContain("--success")
+    expect(playgroundFoundationTokens).toContain("--warning")
+    expect(playgroundFoundationTokens).toContain("--info")
     expect(playgroundFoundationTokens).toContain("--font-heading")
     expect(playgroundFoundationTokens).not.toContain("--font-sans-source")
     expect(playgroundFoundationTokens).not.toContain("--font-heading-source")
@@ -402,6 +422,9 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "--canvas-sidebar-select-item-padding-block"
     )
     expect(playgroundContentTokens).toContain("--canvas-content-gap-md")
+    expect(playgroundContentTokens).toContain(
+      "--canvas-content-diff-add: var(--success)"
+    )
     expect(playgroundContentTokens).not.toContain(
       "--canvas-content-panel-radius"
     )

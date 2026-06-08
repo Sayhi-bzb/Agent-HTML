@@ -11,7 +11,7 @@ import {
 export const CANVAS_HOST_PREFERENCES_STORAGE_KEY =
   "agent-html:react-canvas:host-preferences:v1"
 
-export type CanvasSidebarView = "artifacts" | "theme"
+export type CanvasSidebarView = "artifacts" | "gallery"
 
 export type CanvasHostPreferences = {
   activeFilePath: string | null
@@ -40,7 +40,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isSidebarView(value: unknown): value is CanvasSidebarView {
-  return value === "artifacts" || value === "theme"
+  return value === "artifacts" || value === "gallery"
+}
+
+function readSidebarView(value: unknown): CanvasSidebarView {
+  if (value === "theme") {
+    return "gallery"
+  }
+
+  return isSidebarView(value)
+    ? value
+    : defaultCanvasHostPreferences.activeSidebarView
 }
 
 function isThemeEditorSectionId(
@@ -146,9 +156,7 @@ export function readCanvasHostPreferences({
       artifacts,
       value: stored.activeFilePath,
     }),
-    activeSidebarView: isSidebarView(stored.activeSidebarView)
-      ? stored.activeSidebarView
-      : defaultCanvasHostPreferences.activeSidebarView,
+    activeSidebarView: readSidebarView(stored.activeSidebarView),
     activeThemeEditorSectionId: isThemeEditorSectionId(
       stored.activeThemeEditorSectionId
     )
