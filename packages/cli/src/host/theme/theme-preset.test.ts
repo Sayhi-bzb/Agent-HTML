@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   applyCanvasThemePreset,
   getCanvasThemePresetCss,
+  resolveCanvasThemeModeDark,
 } from "./theme-preset"
 import {
   createCanvasThemePresetFromCss,
@@ -175,6 +176,15 @@ describe("canvas theme preset", () => {
       "--font-mono": '"JetBrains Mono", ui-monospace, monospace',
       "--font-sans": '"Architects Daughter", ui-sans-serif, sans-serif',
     })
+  })
+
+  it("resolves explicit and system theme modes", () => {
+    const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList)
+
+    expect(resolveCanvasThemeModeDark({ mode: "dark", matchMedia })).toBe(true)
+    expect(resolveCanvasThemeModeDark({ mode: "light", matchMedia })).toBe(false)
+    expect(resolveCanvasThemeModeDark({ mode: "system", matchMedia })).toBe(true)
+    expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)")
   })
 
   it("loads css registered presets without sidebar overrides", () => {

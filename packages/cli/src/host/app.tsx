@@ -1,9 +1,11 @@
 import * as React from "react"
 
 import {
+  deleteArtifact,
   fetchCodexThreads,
   fetchArtifacts,
   fetchBlockImplementation,
+  renameArtifact,
   type CodexThread,
   startCodexTurn,
 } from "./api/api"
@@ -14,6 +16,8 @@ import {
   readCanvasMessageDraft,
   writeCanvasHostPreferences,
   writeCanvasMessageDraft,
+  type CanvasHostLanguage,
+  type CanvasHostThemeMode,
   type CanvasSidebarView,
 } from "./preferences/canvas-host-preferences"
 import {
@@ -47,7 +51,11 @@ import {
 } from "./theme/theme-draft"
 import { applyCanvasThemeEditorPreview } from "./theme/theme-preview"
 import { applyCanvasThemePresetLayout } from "./theme/theme-layout"
-import { applyCanvasThemePreset } from "./theme/theme-preset"
+import {
+  applyCanvasThemeMode,
+  applyCanvasThemePreset,
+  watchCanvasSystemThemeMode,
+} from "./theme/theme-preset"
 import type { CanvasThemeEditorSectionId } from "./theme/theme-editor-sections"
 import {
   SidebarInset,
@@ -145,6 +153,10 @@ export function ReactCanvasHostApp() {
     React.useState<CanvasHostMode>("artifact")
   const [activeThemePresetId, setActiveThemePresetId] =
     React.useState<CanvasThemePresetId>(initialPreferences.activeThemePresetId)
+  const [activeThemeMode, setActiveThemeMode] =
+    React.useState<CanvasHostThemeMode>(initialPreferences.activeThemeMode)
+  const [activeLanguage] =
+    React.useState<CanvasHostLanguage>(initialPreferences.activeLanguage)
   const [activeSidebarView, setActiveSidebarView] =
     React.useState<CanvasSidebarView>(initialPreferences.activeSidebarView)
   const [activeThemeEditorSectionId, setActiveThemeEditorSectionId] =
@@ -251,6 +263,16 @@ export function ReactCanvasHostApp() {
   }, [activeThemePreset])
 
   React.useEffect(() => {
+    applyCanvasThemeMode(activeThemeMode)
+
+    if (activeThemeMode !== "system") {
+      return
+    }
+
+    return watchCanvasSystemThemeMode(() => applyCanvasThemeMode(activeThemeMode))
+  }, [activeThemeMode])
+
+  React.useEffect(() => {
     setThemeRuntimeVariables(
       readCanvasThemeRuntimeVariables(
         window.getComputedStyle(document.documentElement)
@@ -354,6 +376,25 @@ export function ReactCanvasHostApp() {
     setPromptStatus("")
     setActiveHostMode("create-artifact")
   }, [])
+
+  const renameExistingArtifact = React.useCallback(async ({
+    filePath,
+    nextFileName,
+  }: {
+    filePath: string
+    nextFileName: string
+  }) => {
+    const renamed = await renameArtifact({ filePath, nextFileName })
+    setActiveHostMode("artifact")
+    setActiveFilePath(renamed.filePath)
+    await refreshArtifacts()
+  }, [refreshArtifacts])
+
+  const deleteExistingArtifact = React.useCallback(async (filePath: string) => {
+    await deleteArtifact({ filePath })
+    setActiveFilePath((current) => (current === filePath ? null : current))
+    await refreshArtifacts()
+  }, [refreshArtifacts])
 
   const submitBlockPrompt = React.useCallback(async ({
     request,
@@ -535,6 +576,18 @@ export function ReactCanvasHostApp() {
 
   React.useEffect(() => {
     writeCanvasHostPreferences({
+      activeThemeMode,
+    })
+  }, [activeThemeMode])
+
+  React.useEffect(() => {
+    writeCanvasHostPreferences({
+      activeLanguage,
+    })
+  }, [activeLanguage])
+
+  React.useEffect(() => {
+    writeCanvasHostPreferences({
       activeCodexThreadId,
     })
   }, [activeCodexThreadId])
@@ -588,7 +641,9 @@ export function ReactCanvasHostApp() {
             activeFilePath={resolvedActiveFilePath}
             activeSectionId={activeThemeEditorSectionId}
             activeCodexThreadId={activeCodexThreadId}
+            activeLanguage={activeLanguage}
             activeSidebarView={activeSidebarView}
+            activeThemeMode={activeThemeMode}
             activeThemePresetId={activeThemePresetId}
             createArtifactActive={activeHostMode === "create-artifact"}
             artifactsLoading={artifactsLoading}
@@ -597,11 +652,14 @@ export function ReactCanvasHostApp() {
             codexThreadsError={codexThreadsError}
             codexThreadsLoading={codexThreadsLoading}
             guardIssues={guardIssues}
+            onDeleteArtifact={deleteExistingArtifact}
+            onRenameArtifact={renameExistingArtifact}
             onSelectArtifact={selectArtifact}
             onSelectCodexThread={setActiveCodexThreadId}
             onSelectCreateArtifact={selectCreateArtifact}
             onSelectSection={setActiveThemeEditorSectionId}
             onSelectSidebarView={setActiveSidebarView}
+            onSelectThemeMode={setActiveThemeMode}
             onSelectThemePreset={selectThemePreset}
             onThemeVariableChange={updateThemeVariable}
             onResetThemePreview={resetThemePreview}

@@ -359,6 +359,10 @@
     flex-shrink: 0;
   }
 
+  .canvas-host-button {
+    flex-shrink: 0;
+  }
+
   .canvas-host-icon-button[data-tone="primary"] {
     background: var(--primary);
     color: var(--primary-foreground);
@@ -418,6 +422,12 @@
     padding-inline: var(--canvas-sidebar-content-padding-inline);
     font-size: var(--canvas-sidebar-font-size-body);
     color: color-mix(in oklab, var(--sidebar-foreground) 60%, transparent);
+  }
+
+  .canvas-sidebar-dialog-status {
+    margin-block-start: 0.5rem;
+    font-size: var(--canvas-sidebar-font-size-caption);
+    color: var(--destructive);
   }
 
   .canvas-host-command-dialog [cmdk-input-wrapper] {

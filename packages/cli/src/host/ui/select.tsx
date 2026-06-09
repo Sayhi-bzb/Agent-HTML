@@ -34,6 +34,7 @@ export function HostSelect({
   layout = "sidebar",
   onValueChange,
   options,
+  triggerLabel,
   value,
 }: {
   disabled?: boolean
@@ -41,6 +42,7 @@ export function HostSelect({
   layout?: "floating" | "sidebar"
   onValueChange: (value: string) => void
   options: readonly HostSelectOption[]
+  triggerLabel?: string
   value: string
 }) {
   const activeOption = options.find((option) => option.value === value)
@@ -50,6 +52,7 @@ export function HostSelect({
       disabled={disabled}
       label={label}
       layout={layout}
+      triggerLabel={triggerLabel}
     />
   )
 
@@ -82,18 +85,21 @@ function HostSelectTriggerRow({
   disabled,
   label,
   layout,
+  triggerLabel,
 }: {
   activeOption?: HostSelectOption
   disabled: boolean
   label: string
   layout: "floating" | "sidebar"
+  triggerLabel?: string
 }) {
   const content = (
     <>
       <SelectValue placeholder={label}>
         <HostItemContent
+          caption={triggerLabel ? activeOption?.label : undefined}
           icon={activeOption?.icon}
-          label={activeOption?.label ?? label}
+          label={triggerLabel ?? activeOption?.label ?? label}
           swatchColor={activeOption?.swatchColor}
         />
       </SelectValue>

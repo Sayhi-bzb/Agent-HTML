@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { artifactLabel, fetchCodexThreads, hostApiRoutes } from "./api"
+import {
+  artifactLabel,
+  deleteArtifact,
+  fetchCodexThreads,
+  hostApiRoutes,
+  renameArtifact,
+} from "./api"
 
 describe("artifactLabel", () => {
   it("removes the artifact entry suffix from workspace paths", () => {
@@ -59,5 +65,59 @@ describe("fetchCodexThreads", () => {
         },
       ],
     })
+  })
+})
+
+describe("artifact file operations", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it("renames artifacts through the host API", async () => {
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      expect(url).toBe(hostApiRoutes.artifactRename)
+      expect(init?.method).toBe("POST")
+      expect(JSON.parse(String(init?.body))).toEqual({
+        filePath: "agent-html/artifacts/old.artifact.tsx",
+        nextFileName: "new",
+      })
+
+      return {
+        json: async () => ({
+          filePath: "agent-html/artifacts/new.artifact.tsx",
+        }),
+        ok: true,
+      } as Response
+    })
+
+    await expect(
+      renameArtifact({
+        filePath: "agent-html/artifacts/old.artifact.tsx",
+        nextFileName: "new",
+      })
+    ).resolves.toEqual({
+      filePath: "agent-html/artifacts/new.artifact.tsx",
+    })
+  })
+
+  it("deletes artifacts through the host API", async () => {
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      expect(url).toBe(hostApiRoutes.artifactDelete)
+      expect(init?.method).toBe("POST")
+      expect(JSON.parse(String(init?.body))).toEqual({
+        filePath: "agent-html/artifacts/remove.artifact.tsx",
+      })
+
+      return {
+        json: async () => ({ ok: true }),
+        ok: true,
+      } as Response
+    })
+
+    await expect(
+      deleteArtifact({
+        filePath: "agent-html/artifacts/remove.artifact.tsx",
+      })
+    ).resolves.toEqual({ ok: true })
   })
 })

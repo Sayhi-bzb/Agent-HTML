@@ -19,6 +19,8 @@ import { artifactEntryModulePath, hostEntryModulePath } from "./vite.mjs"
 
 export const hostRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
+  artifactDelete: "/__agent-html/artifact/delete",
+  artifactRename: "/__agent-html/artifact/rename",
   artifacts: "/__agent-html/artifacts",
   blockImplementation: "/__agent-html/block-implementation",
   codexThreads: "/__agent-html/codex/threads",
@@ -70,6 +72,63 @@ function resolvePublicAssetPath({ root, requestPathname }) {
   }
 
   return resolvedPath
+}
+
+function assertArtifactEntryPath(root, filePath) {
+  if (typeof filePath !== "string") {
+    throw new Error("Artifact filePath is required")
+  }
+
+  const absolutePath = assertInsideAgentHtmlWorkspace(root, filePath)
+  const artifactsRoot = path.join(path.resolve(root), "agent-html", "artifacts")
+
+  if (
+    !absolutePath.startsWith(`${artifactsRoot}${path.sep}`) ||
+    !filePath.replaceAll("\\", "/").endsWith(".artifact.tsx")
+  ) {
+    throw new Error("Artifact file must be an agent-html/artifacts/*.artifact.tsx file")
+  }
+
+  return absolutePath
+}
+
+function normalizeArtifactFileName(nextFileName) {
+  const trimmed = String(nextFileName ?? "").trim()
+  const fileName = trimmed.endsWith(".artifact.tsx")
+    ? trimmed
+    : `${trimmed}.artifact.tsx`
+
+  if (
+    !trimmed ||
+    fileName.includes("/") ||
+    fileName.includes("\\") ||
+    fileName === ".artifact.tsx" ||
+    path.basename(fileName) !== fileName
+  ) {
+    throw new Error("Artifact filename must be a basename")
+  }
+
+  if (!fileName.endsWith(".artifact.tsx")) {
+    throw new Error("Artifact filename must end with .artifact.tsx")
+  }
+
+  return fileName
+}
+
+function resolveRenamedArtifactPath({ root, sourceFilePath, nextFileName }) {
+  const sourcePath = assertArtifactEntryPath(root, sourceFilePath)
+  const fileName = normalizeArtifactFileName(nextFileName)
+  const targetPath = path.join(path.dirname(sourcePath), fileName)
+  const artifactsRoot = path.join(path.resolve(root), "agent-html", "artifacts")
+
+  if (
+    !targetPath.startsWith(`${artifactsRoot}${path.sep}`) ||
+    path.dirname(targetPath) !== path.dirname(sourcePath)
+  ) {
+    throw new Error("Renamed artifact must stay beside the original artifact")
+  }
+
+  return { sourcePath, targetPath }
 }
 
 async function readJsonBody(request) {
@@ -318,6 +377,57 @@ export async function handleRequest({ request, response, root, vite }) {
       url: `${artifactEntryModulePath}?filePath=${encodeURIComponent(filePath)}`,
       vite,
     })
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.artifactRename) {
+    if (request.method !== "POST") {
+      sendError(response, "POST is required", 405)
+      return true
+    }
+
+    try {
+      const body = await readJsonBody(request)
+      const { sourcePath, targetPath } = resolveRenamedArtifactPath({
+        nextFileName: body.nextFileName,
+        root,
+        sourceFilePath: body.filePath,
+      })
+      const targetExists = await fs.stat(targetPath).then(
+        () => true,
+        () => false
+      )
+
+      if (targetExists) {
+        throw new Error("Artifact filename already exists")
+      }
+
+      await fs.rename(sourcePath, targetPath)
+      sendJson(response, {
+        filePath: workspaceRelativePath(root, targetPath),
+      })
+    } catch (error) {
+      sendError(response, error, 400)
+    }
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.artifactDelete) {
+    if (request.method !== "POST") {
+      sendError(response, "POST is required", 405)
+      return true
+    }
+
+    try {
+      const body = await readJsonBody(request)
+      const filePath = typeof body.filePath === "string" ? body.filePath : ""
+      const absolutePath = assertArtifactEntryPath(root, filePath)
+
+      await fs.rm(absolutePath)
+      sendJson(response, { ok: true })
+    } catch (error) {
+      sendError(response, error, 400)
+    }
     return true
   }
 

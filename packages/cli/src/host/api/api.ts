@@ -14,6 +14,8 @@ export type CodexThread = {
 
 export const hostApiRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
+  artifactDelete: "/__agent-html/artifact/delete",
+  artifactRename: "/__agent-html/artifact/rename",
   artifacts: "/__agent-html/artifacts",
   blockImplementation: "/__agent-html/block-implementation",
   codexThreads: "/__agent-html/codex/threads",
@@ -87,6 +89,50 @@ export async function startCodexTurn({
     startedNewThread: boolean
     threadId: string
     turnId?: string | null
+  }
+}
+
+export async function renameArtifact({
+  filePath,
+  nextFileName,
+}: {
+  filePath: string
+  nextFileName: string
+}) {
+  const response = await fetch(hostApiRoutes.artifactRename, {
+    body: JSON.stringify({ filePath, nextFileName }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  })
+  const data = await response.json()
+
+  if (!response.ok || data.error) {
+    throw new Error(data.error ?? `Request failed: ${response.status}`)
+  }
+
+  return data as {
+    filePath: string
+  }
+}
+
+export async function deleteArtifact({ filePath }: { filePath: string }) {
+  const response = await fetch(hostApiRoutes.artifactDelete, {
+    body: JSON.stringify({ filePath }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  })
+  const data = await response.json()
+
+  if (!response.ok || data.error) {
+    throw new Error(data.error ?? `Request failed: ${response.status}`)
+  }
+
+  return data as {
+    ok: true
   }
 }
 

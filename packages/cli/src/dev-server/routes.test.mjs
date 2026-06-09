@@ -1,3 +1,7 @@
+import fs from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
+
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { handleRequest, hostRoutes } from "./routes.mjs"
@@ -13,6 +17,16 @@ function createResponseMock() {
     writeHead(statusCode, headers = {}) {
       this.statusCode = statusCode
       this.headers = headers
+    },
+  }
+}
+
+function createJsonRequest({ body, url }) {
+  return {
+    method: "POST",
+    url,
+    async *[Symbol.asyncIterator]() {
+      yield Buffer.from(JSON.stringify(body))
     },
   }
 }
@@ -182,5 +196,85 @@ describe("dev server routes", () => {
     expect(JSON.parse(response.body)).toEqual({
       error: "Only ZeoSeven FontsAPI result.css URLs are allowed",
     })
+  })
+
+  it("renames artifact entry files inside agent-html/artifacts", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const artifactsRoot = path.join(root, "agent-html", "artifacts")
+    await fs.mkdir(artifactsRoot, { recursive: true })
+    await fs.writeFile(
+      path.join(artifactsRoot, "old-name.artifact.tsx"),
+      "export default function Artifact() { return null }\n"
+    )
+
+    const response = createResponseMock()
+    const handled = await handleRequest({
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/artifacts/old-name.artifact.tsx",
+          nextFileName: "new-name",
+        },
+        url: hostRoutes.artifactRename,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(JSON.parse(response.body)).toEqual({
+      filePath: "agent-html/artifacts/new-name.artifact.tsx",
+    })
+    await expect(
+      fs.readFile(path.join(artifactsRoot, "new-name.artifact.tsx"), "utf8")
+    ).resolves.toContain("export default")
+  })
+
+  it("rejects artifact rename outside artifact entries", async () => {
+    const response = createResponseMock()
+
+    const handled = await handleRequest({
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/AGENTS.md",
+          nextFileName: "renamed",
+        },
+        url: hostRoutes.artifactRename,
+      }),
+      response,
+      root: process.cwd(),
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(400)
+    expect(JSON.parse(response.body).error).toContain(
+      "agent-html/artifacts/*.artifact.tsx"
+    )
+  })
+
+  it("deletes artifact entry files inside agent-html/artifacts", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const artifactsRoot = path.join(root, "agent-html", "artifacts")
+    const artifactPath = path.join(artifactsRoot, "delete-me.artifact.tsx")
+    await fs.mkdir(artifactsRoot, { recursive: true })
+    await fs.writeFile(artifactPath, "export default function Artifact() {}\n")
+
+    const response = createResponseMock()
+    const handled = await handleRequest({
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/artifacts/delete-me.artifact.tsx",
+        },
+        url: hostRoutes.artifactDelete,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(JSON.parse(response.body)).toEqual({ ok: true })
+    await expect(fs.stat(artifactPath)).rejects.toThrow()
   })
 })

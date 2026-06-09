@@ -45,8 +45,10 @@ describe("canvas host preferences", () => {
     expect(readCanvasHostPreferences()).toMatchObject({
       activeCodexThreadId: null,
       activeFilePath: null,
+      activeLanguage: "system",
       activeSidebarView: "artifacts",
       activeThemeEditorSectionId: "color",
+      activeThemeMode: "system",
       activeThemePresetId: "default",
       leftSidebarOpen: true,
       messageDrafts: {},
@@ -64,8 +66,10 @@ describe("canvas host preferences", () => {
       JSON.stringify({
         activeFilePath: "agent-html/artifacts/example.artifact.tsx",
         activeCodexThreadId: 42,
+        activeLanguage: "bad",
         activeSidebarView: "bad",
         activeThemeEditorSectionId: "missing",
+        activeThemeMode: "bad",
         activeThemePresetId: "missing",
         leftSidebarOpen: false,
         messageDrafts: {
@@ -78,8 +82,10 @@ describe("canvas host preferences", () => {
     expect(readCanvasHostPreferences()).toEqual({
       activeCodexThreadId: null,
       activeFilePath: "agent-html/artifacts/example.artifact.tsx",
+      activeLanguage: "system",
       activeSidebarView: "artifacts",
       activeThemeEditorSectionId: "color",
+      activeThemeMode: "system",
       activeThemePresetId: "default",
       leftSidebarOpen: false,
       messageDrafts: {
@@ -106,6 +112,20 @@ describe("canvas host preferences", () => {
     )
 
     expect(readCanvasHostPreferences().activeCodexThreadId).toBe("thread-1")
+  })
+
+  it("restores host theme and language settings", () => {
+    stubStorage(
+      JSON.stringify({
+        activeLanguage: "zh",
+        activeThemeMode: "dark",
+      })
+    )
+
+    expect(readCanvasHostPreferences()).toMatchObject({
+      activeLanguage: "zh",
+      activeThemeMode: "dark",
+    })
   })
 
   it("maps the legacy theme sidebar view to gallery", () => {

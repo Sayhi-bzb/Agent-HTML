@@ -1,6 +1,8 @@
 import type { CanvasThemePreset } from "#agent-html-playground/theme/presets"
+import type { CanvasHostThemeMode } from "../preferences/canvas-host-preferences"
 
 const canvasThemePresetStyleId = "react-canvas-theme-preset"
+const darkColorSchemeQuery = "(prefers-color-scheme: dark)"
 
 function formatCssVariables(variables: CanvasThemePreset["lightCssVariables"]) {
   return Object.entries(variables)
@@ -40,4 +42,37 @@ export function applyCanvasThemePreset(preset: CanvasThemePreset) {
   if (!existingStyle) {
     document.head.appendChild(styleElement)
   }
+}
+
+export function resolveCanvasThemeModeDark({
+  matchMedia = window.matchMedia.bind(window),
+  mode,
+}: {
+  matchMedia?: typeof window.matchMedia
+  mode: CanvasHostThemeMode
+}) {
+  if (mode === "dark") {
+    return true
+  }
+  if (mode === "light") {
+    return false
+  }
+
+  return matchMedia(darkColorSchemeQuery).matches
+}
+
+export function applyCanvasThemeMode(mode: CanvasHostThemeMode) {
+  document.documentElement.classList.toggle(
+    "dark",
+    resolveCanvasThemeModeDark({ mode })
+  )
+}
+
+export function watchCanvasSystemThemeMode(
+  onChange: () => void
+): (() => void) | undefined {
+  const query = window.matchMedia(darkColorSchemeQuery)
+
+  query.addEventListener("change", onChange)
+  return () => query.removeEventListener("change", onChange)
 }

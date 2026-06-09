@@ -12,12 +12,16 @@ export const CANVAS_HOST_PREFERENCES_STORAGE_KEY =
   "agent-html:react-canvas:host-preferences:v1"
 
 export type CanvasSidebarView = "artifacts" | "gallery"
+export type CanvasHostLanguage = "en" | "system" | "zh"
+export type CanvasHostThemeMode = "dark" | "light" | "system"
 
 export type CanvasHostPreferences = {
   activeCodexThreadId: string | null
   activeFilePath: string | null
+  activeLanguage: CanvasHostLanguage
   activeSidebarView: CanvasSidebarView
   activeThemeEditorSectionId: CanvasThemeEditorSectionId
+  activeThemeMode: CanvasHostThemeMode
   activeThemePresetId: CanvasThemePresetId
   leftSidebarOpen: boolean
   messageDrafts: Record<string, string>
@@ -26,8 +30,10 @@ export type CanvasHostPreferences = {
 const defaultCanvasHostPreferences: CanvasHostPreferences = {
   activeCodexThreadId: null,
   activeFilePath: null,
+  activeLanguage: "system",
   activeSidebarView: "artifacts",
   activeThemeEditorSectionId: "color",
+  activeThemeMode: "system",
   activeThemePresetId: "default",
   leftSidebarOpen: true,
   messageDrafts: {},
@@ -43,6 +49,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isSidebarView(value: unknown): value is CanvasSidebarView {
   return value === "artifacts" || value === "gallery"
+}
+
+function isHostLanguage(value: unknown): value is CanvasHostLanguage {
+  return value === "system" || value === "zh" || value === "en"
+}
+
+function isHostThemeMode(value: unknown): value is CanvasHostThemeMode {
+  return value === "system" || value === "light" || value === "dark"
 }
 
 function readSidebarView(value: unknown): CanvasSidebarView {
@@ -163,12 +177,18 @@ export function readCanvasHostPreferences({
       artifacts,
       value: stored.activeFilePath,
     }),
+    activeLanguage: isHostLanguage(stored.activeLanguage)
+      ? stored.activeLanguage
+      : defaultCanvasHostPreferences.activeLanguage,
     activeSidebarView: readSidebarView(stored.activeSidebarView),
     activeThemeEditorSectionId: isThemeEditorSectionId(
       stored.activeThemeEditorSectionId
     )
       ? stored.activeThemeEditorSectionId
       : defaultCanvasHostPreferences.activeThemeEditorSectionId,
+    activeThemeMode: isHostThemeMode(stored.activeThemeMode)
+      ? stored.activeThemeMode
+      : defaultCanvasHostPreferences.activeThemeMode,
     activeThemePresetId: isThemePresetId(stored.activeThemePresetId)
       ? stored.activeThemePresetId
       : defaultCanvasHostPreferences.activeThemePresetId,
