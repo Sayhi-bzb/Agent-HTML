@@ -28,8 +28,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build example site
-        run: npm run canvas:build:example
+      - name: Build public site
+        run: npm run canvas:build:site
 
       - name: Deploy to Cloudflare Pages
         env:

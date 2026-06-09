@@ -2,30 +2,38 @@
 
 [中文](./README.zh-CN.md)
 
-Agent-HTML is a Canvas workspace for agent-authored React artifacts. It gives agents a durable filesystem workspace for composing, previewing, validating, and revising artifacts with local UI primitives, data, assets, examples, and source-level rules.
+Markdown is great for prose, lists, and code. But many agent outputs need more than a document can carry: dashboards, data views, visual comparisons, workflows, product mockups, themed reports, and interfaces that invite review instead of just reading.
 
-Canvas artifacts live in `agent-html`, render through a local dev host, and expose inspectable `Artifact` and `Block` boundaries so humans and agents can review specific regions, route block prompts, and keep iterations grounded in source files.
+Agent-HTML gives those outputs an HTML-shaped home. It turns agent work into durable React artifacts that can show structure, carry interaction, use local data, apply themes, expose inspectable regions, and stay editable after the chat moves on.
 
 ![Canvas artifact preview](./public/block-dnd.gif)
 
-## What It Provides
+## Beyond Markdown
 
-- A portable `agent-html` source workspace for React and TypeScript artifacts.
-- Local Canvas resources: UI primitives, hooks, helpers, schemas, fixtures, semantic CSS classes, theme presets, assets, and examples.
-- A Vite-powered Canvas host for artifact discovery, preview, guard feedback, block overlays, prompt routing, and theme application.
-- A headless protocol through `@agent-html/react` where `Artifact` and `Block` mark collaboration boundaries without owning artifact layout.
+Markdown can explain an idea. HTML can make the idea visible, spatial, styled, stateful, and interactive.
+
+That difference matters when an agent is not just writing text, but making something a human needs to scan, compare, filter, inspect, present, or revise. A roadmap needs lanes. A report needs hierarchy. A dataset needs tables and charts. A product concept needs layout. A workflow needs controls. A review needs a target.
+
+Agent-HTML is for that richer expression layer: the point where an answer should become a surface.
+
+## How Canvas Works
+
+- `agent-html` is the portable source workspace where agents write React and TypeScript artifacts.
+- `@agent-html/react` provides the headless `Artifact` and `Block` protocol so rich HTML surfaces have stable, addressable regions.
+- The Canvas host discovers artifacts, renders them through Vite, shows guard feedback, overlays block inspection controls, routes block prompts, and applies theme presets.
+- Local Canvas resources keep the expression system coherent: UI primitives, hooks, helpers, schemas, fixtures, assets, semantic CSS classes, examples, and source rules live beside the artifacts that use them.
 
 ## Canvas Preview
 
-### Artifact Blocks
+### Inspectable Rich Surfaces
 
-Canvas makes artifact regions addressable through stable block metadata. The host can inspect blocks, place prompt actions, and route revision context without giving artifact source privileged host access.
+Rich artifacts need focused review. `Block` metadata lets the host target one visible region, place prompt actions, and pass compact context back into the agent workflow without exposing host privileges to artifact source.
 
 ![Artifact block inspection](./public/block-dnd.gif)
 
-### Artifact Examples
+### More Than Text Output
 
-Artifacts can compose dashboards, boards, reports, briefs, charts, tables, and other reviewable surfaces using local Canvas resources.
+Use Agent-HTML when the output wants layout, visual density, state, or interaction: operational dashboards, Kanban boards, data reports, briefs, charts, tables, comparison views, and focused internal tools.
 
 <table>
   <tr>
@@ -48,17 +56,25 @@ Artifacts can compose dashboards, boards, reports, briefs, charts, tables, and o
   </tr>
 </table>
 
-### Theme Presets
+### Presentation Is Part of the Artifact
 
-The Canvas host applies theme presets while artifact source continues to consume semantic tokens and local Canvas classes.
+Themes, spacing, typography, and surface treatment shape how a rich artifact is understood. The host can apply theme presets while artifact source stays on semantic tokens and Canvas classes.
 
 ![Theme presets](./public/theme.gif)
 
-### Block Prompt Flow
+### Revision Stays Close to the Surface
 
-The host observes artifact metadata and interaction state so prompts can target the right artifact entry, block id, optional implementation file, and compact interaction snapshot.
+Canvas prompt routing uses artifact metadata, block ids, optional implementation files, and compact interaction state so follow-up prompts can stay close to the part of the HTML surface that actually needs work.
 
 ![Block prompt flow](./public/interact%20with%20agent.gif)
+
+## Built for Agent Workflows
+
+- Durable context: rules, resources, examples, data, and artifacts live in the filesystem instead of disappearing into chat state.
+- Rich expression: artifacts can combine text, data, layout, media, controls, charts, and themed presentation.
+- Focused revision: blocks give agents and humans stable handles for targeted feedback.
+- Local reuse: Canvas makes the nearest correct primitive, hook, helper, schema, fixture, or asset easier to find.
+- Guarded boundaries: artifact source stays separate from host internals, old runtime surfaces, generated bundles, and privileged APIs.
 
 ## Documentation
 

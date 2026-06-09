@@ -7,6 +7,7 @@ const getUrl = createGetUrl('/docs');
 
 export default {
   ssr: true,
+  routeDiscovery: { mode: 'initial' },
   future: {
     v8_middleware: true,
   },

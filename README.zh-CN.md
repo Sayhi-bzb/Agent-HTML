@@ -2,30 +2,38 @@
 
 [English](./README.md)
 
-Agent-HTML 是面向 agent 编写 React artifact 的 Canvas 工作区。它为 agent 提供持久的文件系统上下文，用本地 UI primitives、数据、资产、示例和源码规则来组合、预览、校验和持续修订 artifact。
+Markdown 很适合承载文字、列表和代码。但很多 agent 输出需要的不只是文档：仪表盘、数据视图、视觉对比、工作流、产品 mockup、主题化报告，以及那些需要被审阅而不只是被阅读的界面。
 
-Canvas artifact 位于 `agent-html`，通过本地开发 host 渲染，并通过可检查的 `Artifact` 和 `Block` 边界让人和 agent 能够审阅具体区域、路由 block prompt，并把迭代保持在源码文件上。
+Agent-HTML 给这些输出一个 HTML 形态的承载空间。它把 agent 工作变成持久的 React artifacts，让内容可以呈现结构、携带交互、使用本地数据、应用主题、暴露可检查区域，并在对话结束后继续编辑。
 
 ![Canvas artifact 预览](./public/block-dnd.gif)
 
-## 提供什么
+## 不止 Markdown
 
-- 一个可移植的 `agent-html` 源码工作区，用于 React 和 TypeScript artifact。
-- 本地 Canvas 资源：UI primitives、hooks、helpers、schemas、fixtures、语义 CSS classes、主题 presets、assets 和 examples。
-- 基于 Vite 的 Canvas host，用于 artifact 发现、预览、guard 反馈、block overlay、prompt 路由和主题应用。
-- 来自 `@agent-html/react` 的 headless protocol：`Artifact` 和 `Block` 标记协作边界，但不拥有 artifact 布局。
+Markdown 可以解释一个想法。HTML 可以让这个想法变得可见、有空间结构、有样式、有状态，并且可以交互。
+
+当 agent 不只是写文字，而是在生成需要人扫描、比较、筛选、检查、展示或修订的东西时，这个差异会变得很重要。Roadmap 需要泳道，报告需要层级，数据集需要表格和图表，产品概念需要布局，工作流需要控件，审阅需要目标。
+
+Agent-HTML 面向的就是这一层更丰富的表达：当一个回答应该变成一个界面。
+
+## Canvas 如何工作
+
+- `agent-html` 是可移植源码工作区，agent 在这里编写 React 和 TypeScript artifacts。
+- `@agent-html/react` 提供 headless `Artifact` 和 `Block` protocol，让丰富的 HTML surface 拥有稳定、可寻址的区域。
+- Canvas host 发现 artifacts，通过 Vite 渲染，显示 guard 反馈，叠加 block 检查控件，路由 block prompts，并应用 theme presets。
+- 本地 Canvas 资源让表达系统保持一致：UI primitives、hooks、helpers、schemas、fixtures、assets、semantic CSS classes、examples 和源码规则都与使用它们的 artifacts 放在一起。
 
 ## Canvas 预览
 
-### Artifact Blocks
+### 可检查的丰富界面
 
-Canvas 通过稳定的 block metadata 让 artifact 区域可寻址。Host 可以检查 block、放置 prompt action、路由修订上下文，同时不向 artifact source 暴露特权 host 能力。
+丰富的 artifact 需要聚焦审阅。`Block` metadata 让 host 可以定位一个可见区域、放置 prompt actions，并把压缩后的上下文传回 agent 工作流，同时不向 artifact source 暴露 host 特权能力。
 
 ![Artifact block 检查](./public/block-dnd.gif)
 
-### Artifact Examples
+### 不只是文本输出
 
-Artifact 可以用本地 Canvas 资源组合仪表盘、看板、报告、简报、图表、表格和其他适合审阅的界面。
+当输出需要布局、视觉密度、状态或交互时，使用 Agent-HTML：运营仪表盘、Kanban、数据报告、简报、图表、表格、对比视图和聚焦的内部工具。
 
 <table>
   <tr>
@@ -48,17 +56,25 @@ Artifact 可以用本地 Canvas 资源组合仪表盘、看板、报告、简报
   </tr>
 </table>
 
-### 主题 Presets
+### 呈现也是 Artifact 的一部分
 
-Canvas host 应用主题 presets；artifact source 继续消费语义 tokens 和本地 Canvas classes。
+主题、间距、排版和界面处理方式会影响一个丰富 artifact 如何被理解。Host 可以应用 theme presets，而 artifact source 继续使用 semantic tokens 和 Canvas classes。
 
 ![主题 presets](./public/theme.gif)
 
-### Block Prompt Flow
+### 修订贴近界面本身
 
-Host 观察 artifact metadata 和 interaction state，让 prompt 可以定位正确的 artifact entry、block id、可选 implementation file，以及压缩后的 interaction snapshot。
+Canvas prompt routing 使用 artifact metadata、block ids、可选 implementation files 和压缩后的 interaction state，让后续 prompt 贴近真正需要修改的 HTML surface。
 
 ![Block prompt flow](./public/interact%20with%20agent.gif)
+
+## 为 Agent 工作流设计
+
+- 持久上下文：rules、resources、examples、data 和 artifacts 位于文件系统，而不是消失在聊天状态里。
+- 丰富表达：artifacts 可以组合文本、数据、布局、媒体、控件、图表和主题化呈现。
+- 聚焦修订：blocks 给 agent 和人提供稳定的反馈定位点。
+- 本地复用：Canvas 让最近的正确 primitive、hook、helper、schema、fixture 或 asset 更容易被找到。
+- 边界保护：artifact source 与 host internals、old runtime surfaces、generated bundles 和 privileged APIs 保持分离。
 
 ## 文档
 
