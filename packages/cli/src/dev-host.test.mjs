@@ -152,6 +152,10 @@ describe("React Canvas dev host", () => {
       expect(removedStyles.status).toBe(404)
 
       const html = await fetch(url).then((response) => response.text())
+      expect(html).toContain("<title>Agent-HTML</title>")
+      expect(html).toContain(
+        '<link rel="icon" href="/__agent-html/public/ghost.svg" type="image/svg+xml" />'
+      )
       expect(html).toContain("/@vite/client")
       expect(html).toContain("/__agent-html/host-entry.js")
 

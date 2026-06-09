@@ -53,7 +53,7 @@ import {
   HostCommandItem,
   HostCommandList,
 } from "../ui/command"
-import { HostDropdownLabel, HostDropdownMeta } from "../ui/dropdown"
+import { HostDropdownLabel } from "../ui/dropdown"
 import { HostPopoverContent } from "../ui/popover"
 import {
   HostSidebarAction,
@@ -196,8 +196,6 @@ export function ReactCanvasSidebar({
                         key={artifact.filePath}
                         label={artifactLabel(artifact.filePath)}
                         onClick={() => onSelectArtifact(artifact.filePath)}
-                        title={artifact.filePath}
-                        tooltip={artifactLabel(artifact.filePath)}
                         type="button"
                       >
                         {issueCount > 0 ? (
@@ -261,10 +259,6 @@ export function ReactCanvasSidebar({
                       loading={codexThreadsLoading}
                       onSelectThread={onSelectCodexThread}
                       threads={codexThreads}
-                    />
-                    <HostDropdownMeta
-                      caption="Local artifact workbench"
-                      label="Agent-HTML"
                     />
                   </HostPopoverContent>
                 </Popover>
