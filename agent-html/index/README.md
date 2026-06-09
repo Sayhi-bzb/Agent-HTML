@@ -19,4 +19,4 @@ Use this directory to choose the next file to open. It is an agent-facing index 
 - `reuse-surface.md` maps reusable source owners to use cases and minimal signatures.
 - `api-surface.md` maps compact exported API surfaces.
 
-Full declarations and dependency graphs are temporary machine inputs under `node_modules/.tmp`, not committed agent context. Regenerate with `npm run react-canvas:index`.
+Full declarations and dependency graphs are temporary machine inputs under `node_modules/.tmp`, not committed agent context. Regenerate with `npm run canvas:index`.

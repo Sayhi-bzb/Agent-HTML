@@ -30,7 +30,7 @@ const obsoleteGeneratedPaths = [
 ]
 
 function fail(message) {
-  console.error(`react-canvas:index failed: ${message}`)
+  console.error(`canvas:index failed: ${message}`)
   process.exit(1)
 }
 
@@ -54,13 +54,13 @@ function writeOrCheck(relativePath, content, writtenFiles) {
 
   if (shouldCheck) {
     if (!fs.existsSync(outputPath)) {
-      fail(`${toRepoPath(outputPath)} is missing; run npm run react-canvas:index`)
+      fail(`${toRepoPath(outputPath)} is missing; run npm run canvas:index`)
     }
 
     const current = fs.readFileSync(outputPath, "utf8").replace(/\r\n/g, "\n")
 
     if (current !== normalized) {
-      fail(`${toRepoPath(outputPath)} is stale; run npm run react-canvas:index`)
+      fail(`${toRepoPath(outputPath)} is stale; run npm run canvas:index`)
     }
 
     return
@@ -79,7 +79,7 @@ function cleanupObsoleteGeneratedFiles() {
     }
 
     if (shouldCheck) {
-      fail(`${toRepoPath(outputPath)} is obsolete; run npm run react-canvas:index`)
+      fail(`${toRepoPath(outputPath)} is obsolete; run npm run canvas:index`)
     }
 
     fs.rmSync(outputPath, { force: true })
@@ -589,7 +589,7 @@ function buildReadme() {
     "- `reuse-surface.md` maps reusable source owners to use cases and minimal signatures.",
     "- `api-surface.md` maps compact exported API surfaces.",
     "",
-    "Full declarations and dependency graphs are temporary machine inputs under `node_modules/.tmp`, not committed agent context. Regenerate with `npm run react-canvas:index`.",
+    "Full declarations and dependency graphs are temporary machine inputs under `node_modules/.tmp`, not committed agent context. Regenerate with `npm run canvas:index`.",
   ].join("\n")
 }
 
@@ -622,7 +622,7 @@ writeOrCheck("index/api-surface.md", buildApiSurfaceMarkdown(), writtenFiles)
 cleanupObsoleteGeneratedFiles()
 
 if (shouldCheck) {
-  console.log("react-canvas:index check passed")
+  console.log("canvas:index check passed")
 } else {
-  console.log(`react-canvas:index wrote ${writtenFiles.size} files`)
+  console.log(`canvas:index wrote ${writtenFiles.size} files`)
 }
