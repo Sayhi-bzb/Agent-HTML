@@ -4,6 +4,11 @@ import { Badge } from "../../components/ui/badge"
 import { sourceGroups } from "./data"
 import { SourceLinks } from "./source-links"
 
+const photosGroup = sourceGroups.find((group) => group.label === "Photos")
+const rightColumnGroups = sourceGroups.filter((group) =>
+  ["Maps and transit", "Official place context"].includes(group.label)
+)
+
 export function SourcesBlock() {
   return (
     <section className="canvas-stack-lg">
@@ -18,12 +23,21 @@ export function SourcesBlock() {
       </div>
 
       <div className="canvas-grid-gap md:grid-cols-2">
-        {sourceGroups.map((group) => (
-          <div className="canvas-stack-sm" key={group.label}>
-            <Badge variant="outline">{group.label}</Badge>
-            <SourceLinks links={group.links} />
+        {photosGroup ? (
+          <div className="canvas-stack-sm">
+            <Badge variant="outline">{photosGroup.label}</Badge>
+            <SourceLinks links={photosGroup.links} />
           </div>
-        ))}
+        ) : null}
+
+        <div className="canvas-stack-lg">
+          {rightColumnGroups.map((group) => (
+            <div className="canvas-stack-sm" key={group.label}>
+              <Badge variant="outline">{group.label}</Badge>
+              <SourceLinks links={group.links} />
+            </div>
+          ))}
+        </div>
       </div>
 
       <Alert>

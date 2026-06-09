@@ -22,7 +22,9 @@ export function QuietLayerBlock() {
             <Badge variant="secondary">quiet layer</Badge>
             <Badge variant="outline">Day 3</Badge>
           </div>
-          <h2 className="canvas-text-heading">东京也可以很低声量。</h2>
+          <h2 className="canvas-text-heading">
+            Tokyo can speak at a lower volume.
+          </h2>
           <Timeline activeIndex={1}>
             {quietRoute.map((stop) => (
               <TimelineItem key={stop.label}>

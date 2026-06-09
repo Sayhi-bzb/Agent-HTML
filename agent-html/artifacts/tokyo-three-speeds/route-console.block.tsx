@@ -185,11 +185,11 @@ export function RouteConsoleBlock() {
           <Badge variant="outline">three speeds</Badge>
         </div>
         <h1 className="canvas-text-title">
-          东京太丰富，所以真正的问题不是去哪，而是如何取舍。
+          Tokyo is too rich to conquer; the real question is how to choose.
         </h1>
       </div>
 
-      <div className="grid overflow-hidden rounded-md bg-sidebar md:min-h-[680px] md:grid-cols-[0.92fr_1.18fr]">
+      <div className="grid overflow-hidden rounded-md bg-sidebar md:min-h-[680px] md:grid-cols-[0.78fr_1.22fr]">
         <div className="canvas-stack-lg p-5 md:p-6">
           <div className="canvas-stack-md">
             <div className="canvas-wrap-sm items-center">
@@ -200,10 +200,52 @@ export function RouteConsoleBlock() {
               <Badge variant="outline">{routeStatusLabel}</Badge>
             </div>
             <p className="canvas-text-body">{selectedOption.route}</p>
-            <p className="canvas-text-caption text-muted-foreground">
-              Switch routes from the map line or route rows. Stops remain as
-              anchors; the content belongs to the selected route.
-            </p>
+
+            <div className="canvas-stack-sm">
+              {tokyoRoutes.map((route) => {
+                const isActive = route.id === selectedRoute.id
+                const geometry = routeGeometry[route.id]
+                const distance =
+                  formatDistance(geometry?.distance) ?? route.distanceLabel
+                const duration =
+                  formatDuration(geometry?.duration) ?? route.durationLabel
+
+                return (
+                  <Button
+                    className={
+                      isActive
+                        ? "justify-start gap-3 bg-foreground text-background"
+                        : "justify-start gap-3 bg-background/90"
+                    }
+                    key={route.id}
+                    onClick={() => selectRoute(route)}
+                    size="sm"
+                    variant={isActive ? "default" : "secondary"}
+                  >
+                    <span
+                      className={`h-4 w-1 rounded-full ${routeStripeClass[route.speed]}`}
+                    />
+                    <span className="canvas-wrap-sm items-center">
+                      <Clock data-icon="inline-start" />
+                      <span className="canvas-text-caption">{duration}</span>
+                    </span>
+                    <span
+                      className={
+                        isActive
+                          ? "canvas-wrap-sm items-center text-background/70"
+                          : "canvas-wrap-sm items-center text-muted-foreground"
+                      }
+                    >
+                      <RouteIcon data-icon="inline-start" />
+                      <span className="canvas-text-caption">{distance}</span>
+                    </span>
+                    <Badge variant={isActive ? "secondary" : "outline"}>
+                      {route.tag}
+                    </Badge>
+                  </Button>
+                )
+              })}
+            </div>
 
             <div className="canvas-wrap-sm items-center">
               {selectedOption.dayRewrite.map((item, index) => (
@@ -293,55 +335,6 @@ export function RouteConsoleBlock() {
               )
             })}
           </Map>
-            <div className="absolute top-3 left-3 canvas-stack-sm">
-              {tokyoRoutes.map((route) => {
-                const isActive = route.id === selectedRoute.id
-                const geometry = routeGeometry[route.id]
-                const distance =
-                  formatDistance(geometry?.distance) ?? route.distanceLabel
-                const duration =
-                  formatDuration(geometry?.duration) ?? route.durationLabel
-
-                return (
-                  <Button
-                    className={
-                      isActive
-                        ? "justify-start gap-3 bg-foreground text-background"
-                        : "justify-start gap-3 bg-background/90"
-                    }
-                    key={route.id}
-                    onClick={() => selectRoute(route)}
-                    size="sm"
-                    variant={isActive ? "default" : "secondary"}
-                  >
-                    <span
-                      className={`h-4 w-1 rounded-full ${routeStripeClass[route.speed]}`}
-                    />
-                    <span className="canvas-wrap-sm items-center">
-                      <Clock data-icon="inline-start" />
-                      <span className="canvas-text-caption">
-                        {duration}
-                      </span>
-                    </span>
-                    <span
-                      className={
-                        isActive
-                          ? "canvas-wrap-sm items-center text-background/70"
-                          : "canvas-wrap-sm items-center text-muted-foreground"
-                      }
-                    >
-                      <RouteIcon data-icon="inline-start" />
-                      <span className="canvas-text-caption">
-                        {distance}
-                      </span>
-                    </span>
-                    <Badge variant={isActive ? "secondary" : "outline"}>
-                      {route.tag}
-                    </Badge>
-                  </Button>
-                )
-              })}
-            </div>
             <p className="absolute right-3 bottom-3 rounded-sm bg-background/85 px-2 py-1 canvas-text-caption text-muted-foreground">
               © OpenStreetMap contributors
             </p>
@@ -404,7 +397,8 @@ function InspectorPhoto({ assetKey }: { assetKey: keyof typeof mediaAssets }) {
     <figure className="canvas-stack-xs">
       <img
         alt={asset.alt}
-        className="h-36 w-full rounded-md object-cover"
+        className="aspect-[16/9] w-full rounded-md object-cover"
+        key={assetKey}
         src={asset.src}
       />
       <p className="canvas-text-caption text-muted-foreground">

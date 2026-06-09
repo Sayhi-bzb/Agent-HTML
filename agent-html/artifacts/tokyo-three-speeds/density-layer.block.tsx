@@ -25,7 +25,7 @@ export function DensityLayerBlock() {
             <Badge variant="outline">Day 2</Badge>
           </div>
           <h2 className="canvas-text-heading">
-            在高密度东京，秩序本身就是风景。
+            In high-density Tokyo, order becomes the view.
           </h2>
           <Tabs defaultValue="Omotesando" className="canvas-stack-md">
             <TabsList>
