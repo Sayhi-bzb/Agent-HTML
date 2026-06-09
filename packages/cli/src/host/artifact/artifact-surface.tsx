@@ -11,6 +11,7 @@ import {
 import { BlockOverlayLayer } from "../overlay/block-overlay"
 import { useBlockOverlays } from "../overlay/block-overlay-geometry"
 import { GuardIssueList, HostStatusMessage } from "./status-surface"
+import { getHumanVisibleGuardIssues } from "../guard-visibility"
 import { ScrollArea } from "#agent-html-playground/components/ui/scroll-area"
 import type { ArtifactBlock, GuardIssue } from "../host-contracts"
 import { HostSurfaceSkeleton } from "../ui/surface-skeleton"
@@ -76,7 +77,7 @@ export function ArtifactSurface({
           onTransitionEnd={scheduleGeometryUpdate}
           ref={overlayRootRef}
         >
-          <GuardIssueList issues={guardIssues} />
+          <GuardIssueList issues={getHumanVisibleGuardIssues(guardIssues)} />
           {loadError || blocksCurrentArtifact ? (
             <HostStatusMessage
               message={loadError ?? error ?? ""}

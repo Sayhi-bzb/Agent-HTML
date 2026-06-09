@@ -1,4 +1,5 @@
 import type { CodexThread } from "../api/api"
+import { getGuardFixIssues } from "../guard-visibility"
 import {
   canvasPipelineConfig,
   type CanvasHostPipeline,
@@ -6,14 +7,17 @@ import {
 import {
   fetchCodexPipelineThreads,
   submitCodexBlockPrompt,
+  submitCodexGuardFixRequest,
 } from "./codex"
 import {
   fetchExamplePipelineThreads,
   submitExampleBlockPrompt,
+  submitExampleGuardFixRequest,
 } from "./example"
 import type {
   SubmitBlockPromptInput,
   SubmitBlockPromptResult,
+  SubmitGuardFixRequestInput,
 } from "./types"
 
 export {
@@ -48,4 +52,22 @@ export async function submitBlockPromptToPipeline({
   }
 
   return submitCodexBlockPrompt(input)
+}
+
+export async function submitGuardFixRequestToPipeline({
+  pipeline = canvasPipelineConfig.pipeline,
+  ...input
+}: SubmitGuardFixRequestInput & {
+  pipeline?: CanvasHostPipeline
+}): Promise<SubmitBlockPromptResult> {
+  const fixInput = {
+    ...input,
+    issues: getGuardFixIssues(input.issues),
+  }
+
+  if (pipeline === "example") {
+    return submitExampleGuardFixRequest(fixInput)
+  }
+
+  return submitCodexGuardFixRequest(fixInput)
 }

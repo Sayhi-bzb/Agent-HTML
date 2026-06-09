@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import { fileURLToPath } from "node:url"
+
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
@@ -5,6 +8,7 @@ import {
   findHoveredBlockOverlay,
   isBlockActionBadgeVisible,
   parseCssLengthInPixels,
+  resolveBlockMessagePopoverPlacement,
   shouldMarkBlockMessageThreadRead,
   shouldOpenBlockMessageThreadFromActionBadge,
 } from "./block-overlay-state"
@@ -16,6 +20,10 @@ import type { BlockMessageThread, BlockOverlay } from "../host-contracts"
 
 const summaryElement = {} as HTMLElement
 const detailsElement = {} as HTMLElement
+const blockOverlayCssPath = fileURLToPath(
+  new URL("../../../../../agent-html/styles/internal/host/block-overlay.css", import.meta.url)
+)
+const blockOverlayCssSource = readFileSync(blockOverlayCssPath, "utf8")
 
 const overlays: BlockOverlay[] = [
   {
@@ -51,6 +59,63 @@ describe("findHoveredBlockOverlay", () => {
 
   it("does not treat the retired left handle gutter as a hit target", () => {
     expect(findHoveredBlockOverlay({ overlays, x: 12, y: 40 })).toBeNull()
+  })
+})
+
+describe("block overlay message styles", () => {
+  it("wraps message summaries instead of truncating them", () => {
+    const summaryRule = blockOverlayCssSource.slice(
+      blockOverlayCssSource.indexOf(".canvas-block-message-item-summary"),
+      blockOverlayCssSource.indexOf(".canvas-block-message-tabs")
+    )
+
+    expect(summaryRule).toContain("overflow-wrap: anywhere")
+    expect(summaryRule).not.toContain("white-space: nowrap")
+    expect(summaryRule).not.toContain("text-overflow: ellipsis")
+  })
+})
+
+describe("resolveBlockMessagePopoverPlacement", () => {
+  it("prefers the right side when the trigger has enough inline space", () => {
+    expect(
+      resolveBlockMessagePopoverPlacement({
+        triggerRect: { right: 420 },
+        viewportWidth: 900,
+      })
+    ).toEqual({
+      align: "start",
+      collisionPadding: 12,
+      side: "right",
+      sideOffset: 12,
+    })
+  })
+
+  it("falls back near the trigger when the right side cannot fit the panel", () => {
+    expect(
+      resolveBlockMessagePopoverPlacement({
+        triggerRect: { right: 890 },
+        viewportWidth: 900,
+      })
+    ).toEqual({
+      align: "end",
+      collisionPadding: 12,
+      side: "bottom",
+      sideOffset: 8,
+    })
+  })
+
+  it("defaults to the right side before the trigger is measurable", () => {
+    expect(
+      resolveBlockMessagePopoverPlacement({
+        triggerRect: null,
+        viewportWidth: 900,
+      })
+    ).toEqual({
+      align: "start",
+      collisionPadding: 12,
+      side: "right",
+      sideOffset: 12,
+    })
   })
 })
 

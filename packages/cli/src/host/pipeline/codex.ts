@@ -10,6 +10,7 @@ import { formatBlockPrompt } from "../../react-canvas/prompt.mjs"
 import type {
   SubmitBlockPromptInput,
   SubmitBlockPromptResult,
+  SubmitGuardFixRequestInput,
 } from "./types"
 
 export async function fetchCodexPipelineThreads(): Promise<{
@@ -43,6 +44,56 @@ export async function submitCodexBlockPrompt({
   publishCanvasPromptDebug(formatted)
   return startCodexTurn({
     prompt: formatted,
+    threadId: activeThreadId,
+  })
+}
+
+export function formatGuardFixPrompt({
+  filePath,
+  issues,
+}: Omit<SubmitGuardFixRequestInput, "activeThreadId">) {
+  const lines = [
+    "---",
+    "task: fix-canvas-guard-errors",
+    `filePath: ${filePath}`,
+    "---",
+    "",
+    "Fix the Canvas guard errors listed below.",
+    "",
+    "Constraints:",
+    "- Edit only the affected Canvas artifact source.",
+    "- Preserve artifact intent and Block ids unless the issue requires changing them.",
+    "- Do not downgrade or ignore guard errors.",
+    "",
+    "Guard errors:",
+  ]
+
+  for (const issue of issues) {
+    lines.push(
+      `- ${issue.guardScope ?? "guard"}${issue.line ? ` line ${issue.line}` : ""}: ${issue.message}`
+    )
+
+    if (issue.suggestion) {
+      lines.push(`  Suggestion: ${issue.suggestion}`)
+    }
+  }
+
+  return lines.join("\n")
+}
+
+export async function submitCodexGuardFixRequest({
+  activeThreadId,
+  filePath,
+  issues,
+}: SubmitGuardFixRequestInput): Promise<SubmitBlockPromptResult> {
+  const prompt = formatGuardFixPrompt({
+    filePath,
+    issues,
+  })
+
+  publishCanvasPromptDebug(prompt)
+  return startCodexTurn({
+    prompt,
     threadId: activeThreadId,
   })
 }

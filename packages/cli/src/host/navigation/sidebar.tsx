@@ -71,6 +71,7 @@ import type {
   CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
 import type { Artifact, GuardIssue } from "../host-contracts"
+import { countHumanVisibleGuardIssues } from "../guard-visibility"
 import type {
   CanvasHostLanguage,
   CanvasHostThemeMode,
@@ -243,9 +244,11 @@ export function ReactCanvasSidebar({
                   <ReactCanvasArtifactListSkeleton />
                 ) : (
                   artifacts.map((artifact) => {
-                    const issueCount = guardIssues.filter(
+                    const artifactIssues = guardIssues.filter(
                       (issue) => issue.filePath === artifact.filePath
-                    ).length
+                    )
+                    const issueCount =
+                      countHumanVisibleGuardIssues(artifactIssues)
 
                     return (
                       <ArtifactSidebarItem

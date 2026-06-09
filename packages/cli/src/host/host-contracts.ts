@@ -14,6 +14,7 @@ export type GuardIssue = {
   line?: number
   message: string
   severity: string
+  suggestion?: string
 }
 
 export type ArtifactModule = {

@@ -2,6 +2,7 @@ import type { CodexThread } from "../api/api"
 import type {
   SubmitBlockPromptInput,
   SubmitBlockPromptResult,
+  SubmitGuardFixRequestInput,
 } from "./types"
 
 export async function fetchExamplePipelineThreads(): Promise<{
@@ -28,5 +29,15 @@ export async function submitExampleBlockPrompt({
     startedNewThread: !activeThreadId,
     threadId: activeThreadId ?? "example-thread",
     turnId: "example-turn",
+  }
+}
+
+export async function submitExampleGuardFixRequest({
+  activeThreadId,
+}: SubmitGuardFixRequestInput): Promise<SubmitBlockPromptResult> {
+  return {
+    startedNewThread: !activeThreadId,
+    threadId: activeThreadId ?? "example-thread",
+    turnId: "example-guard-fix-turn",
   }
 }

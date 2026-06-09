@@ -96,27 +96,31 @@
     padding: 0.75rem;
   }
 
-  .canvas-block-message-panel-header {
+  .canvas-block-message-item-summary {
+    overflow-wrap: anywhere;
+    font-size: var(--canvas-sidebar-font-size-caption);
+    color: var(--muted-foreground);
+  }
+
+  .canvas-block-message-tabs {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
     gap: 0.75rem;
   }
 
-  .canvas-block-message-panel-title {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--canvas-sidebar-font-size-body);
-    font-weight: 600;
+  .canvas-block-message-tab {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    font: inherit;
+    font-size: var(--canvas-sidebar-font-size-caption);
   }
 
-  .canvas-block-message-panel-status,
-  .canvas-block-message-item-kind,
-  .canvas-block-message-item-summary {
-    font-size: var(--canvas-sidebar-font-size-caption);
-    color: var(--muted-foreground);
+  .canvas-block-message-tab[data-active="true"],
+  .canvas-block-message-tab:hover,
+  .canvas-block-message-tab:focus-visible {
+    color: var(--popover-foreground);
   }
 
   .canvas-block-message-list {
@@ -129,14 +133,7 @@
   }
 
   .canvas-block-message-item {
-    display: grid;
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-    gap: 0.625rem;
-    align-items: start;
-  }
-
-  .canvas-block-message-item-kind {
-    text-transform: capitalize;
+    display: block;
   }
 
   .canvas-block-message-item-body {
@@ -144,17 +141,6 @@
     min-width: 0;
     flex-direction: column;
     gap: 0.125rem;
-  }
-
-  .canvas-block-message-item-title {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--canvas-sidebar-font-size-body);
-  }
-
-  .canvas-block-message-item[data-status="loading"] .canvas-block-message-item-title {
-    color: var(--muted-foreground);
   }
 
   @keyframes canvas-block-message-spin {

@@ -2,6 +2,60 @@ import type { BlockMessageThread, BlockOverlay } from "../host-contracts"
 
 export type BlockActionBadgeState = "default" | "running" | "done" | "failed"
 
+export type BlockMessagePopoverPlacement = {
+  align: "start" | "end"
+  collisionPadding: number
+  side: "right" | "bottom"
+  sideOffset: number
+}
+
+const defaultBlockMessagePopoverWidth = 360
+const defaultBlockMessagePopoverSideOffset = 12
+const defaultBlockMessagePopoverCollisionPadding = 12
+
+export function resolveBlockMessagePopoverPlacement({
+  contentWidth = defaultBlockMessagePopoverWidth,
+  sideOffset = defaultBlockMessagePopoverSideOffset,
+  triggerRect,
+  viewportWidth,
+}: {
+  contentWidth?: number
+  sideOffset?: number
+  triggerRect: Pick<DOMRectReadOnly, "right"> | null
+  viewportWidth: number
+}): BlockMessagePopoverPlacement {
+  if (!triggerRect) {
+    return {
+      align: "start",
+      collisionPadding: defaultBlockMessagePopoverCollisionPadding,
+      side: "right",
+      sideOffset,
+    }
+  }
+
+  const availableRight =
+    viewportWidth -
+    triggerRect.right -
+    sideOffset -
+    defaultBlockMessagePopoverCollisionPadding
+
+  if (availableRight >= contentWidth) {
+    return {
+      align: "start",
+      collisionPadding: defaultBlockMessagePopoverCollisionPadding,
+      side: "right",
+      sideOffset,
+    }
+  }
+
+  return {
+    align: "end",
+    collisionPadding: defaultBlockMessagePopoverCollisionPadding,
+    side: "bottom",
+    sideOffset: 8,
+  }
+}
+
 export function blockActionBadgeState(
   thread: BlockMessageThread | undefined
 ): BlockActionBadgeState {
@@ -108,13 +162,4 @@ export function parseCssLengthInPixels(value: string, fallback: number) {
   const parsed = Number.parseFloat(trimmed)
 
   return Number.isFinite(parsed) ? parsed : fallback
-}
-
-export function blockMessageThreadLabel(phase: BlockMessageThread["phase"]) {
-  return {
-    done: "Done",
-    failed: "Failed",
-    idle: "Idle",
-    running: "Running",
-  }[phase]
 }

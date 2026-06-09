@@ -32,6 +32,10 @@ describe("ReactCanvasSidebar artifact rows", () => {
     expect(artifactRowSource).toContain("<Dialog ")
     expect(artifactRowSource).toContain("<AlertDialog ")
   })
+
+  it("counts only human-visible guard issues in artifact row badges", () => {
+    expect(sidebarSource).toContain("countHumanVisibleGuardIssues")
+  })
 })
 
 describe("ReactCanvasSidebar thread selector", () => {

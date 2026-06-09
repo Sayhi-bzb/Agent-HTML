@@ -14,9 +14,9 @@ import type { CanvasMessageHostSnapshot } from "../prompt/canvas-message-store"
 import { FloatingPrompt } from "../prompt/floating-prompt"
 import {
   blockActionBadgeState,
-  blockMessageThreadLabel,
   findHoveredBlockOverlay,
   isBlockActionBadgeVisible,
+  resolveBlockMessagePopoverPlacement,
   shouldMarkBlockMessageThreadRead,
   shouldOpenBlockMessageThreadFromActionBadge,
   type BlockActionBadgeState,
@@ -71,33 +71,125 @@ function BlockActionBadgeIcon({ state }: { state: BlockActionBadgeState }) {
   )
 }
 
-function BlockMessageEventItem({ item }: { item: BlockMessageItem }) {
+type BlockMessagePanelSection = {
+  id: string
+  status?: BlockMessageItem["status"]
+  summary: string
+}
+
+function BlockMessageEventItem({ item }: { item: BlockMessagePanelSection }) {
   return (
     <li
       className="canvas-block-message-item"
-      data-kind={item.kind}
       data-status={item.status}
     >
-      <span className="canvas-block-message-item-kind">{item.kind}</span>
       <span className="canvas-block-message-item-body">
-        <span className="canvas-block-message-item-title">{item.title}</span>
         <span className="canvas-block-message-item-summary">{item.summary}</span>
       </span>
     </li>
   )
 }
 
+type BlockMessagePanelView = "messages" | "diff"
+
+function lastBlockMessageItem(
+  thread: BlockMessageThread,
+  predicate: (item: BlockMessageItem) => boolean
+) {
+  for (let index = thread.items.length - 1; index >= 0; index -= 1) {
+    const item = thread.items[index]
+
+    if (predicate(item)) {
+      return item
+    }
+  }
+
+  return undefined
+}
+
+function blockMessageReviewSummary(thread: BlockMessageThread) {
+  if (thread.phase === "failed") {
+    return "Review failed request details and retry when ready."
+  }
+
+  if (thread.phase === "running") {
+    return "Codex is working on this block request."
+  }
+
+  if (thread.phase === "done") {
+    return "Codex accepted this block request."
+  }
+
+  return "No review available yet."
+}
+
+function blockMessageDiffSummary(thread: BlockMessageThread) {
+  if (thread.threadId || thread.turnId) {
+    return "Codex thread diff available."
+  }
+
+  return "No diff available yet."
+}
+
+function blockMessageItems(thread: BlockMessageThread) {
+  const request = lastBlockMessageItem(thread, (item) => item.kind === "request")
+  const response = lastBlockMessageItem(thread, (item) => item.kind === "response")
+  const status = lastBlockMessageItem(thread, (item) => item.kind === "status")
+
+  return [
+    {
+      id: "request",
+      status: request?.status,
+      summary: request?.summary ?? "No request available.",
+    },
+    {
+      id: "result",
+      status: response?.status ?? status?.status,
+      summary: response?.summary ?? status?.summary ?? "No result available yet.",
+    },
+    {
+      id: "review",
+      status: thread.phase === "failed" ? "failed" : status?.status,
+      summary: blockMessageReviewSummary(thread),
+    },
+  ] satisfies BlockMessagePanelSection[]
+}
+
 function BlockMessagePanel({ thread }: { thread: BlockMessageThread }) {
+  const [view, setView] = React.useState<BlockMessagePanelView>("messages")
+  const items =
+    view === "messages"
+      ? blockMessageItems(thread)
+      : [
+          {
+            id: "diff",
+            status: thread.phase === "failed" ? "failed" : undefined,
+            summary: blockMessageDiffSummary(thread),
+          } satisfies BlockMessagePanelSection,
+        ]
+
   return (
     <div className="canvas-block-message-panel">
-      <header className="canvas-block-message-panel-header">
-        <span className="canvas-block-message-panel-title">{thread.title}</span>
-        <span className="canvas-block-message-panel-status">
-          {blockMessageThreadLabel(thread.phase)}
-        </span>
-      </header>
+      <div aria-label="Message view" className="canvas-block-message-tabs">
+        <button
+          className="canvas-block-message-tab"
+          data-active={view === "messages" ? "true" : undefined}
+          onClick={() => setView("messages")}
+          type="button"
+        >
+          Messages
+        </button>
+        <button
+          className="canvas-block-message-tab"
+          data-active={view === "diff" ? "true" : undefined}
+          onClick={() => setView("diff")}
+          type="button"
+        >
+          Diff
+        </button>
+      </div>
       <ol className="canvas-block-message-list">
-        {thread.items.map((item) => (
+        {items.map((item) => (
           <BlockMessageEventItem item={item} key={item.id} />
         ))}
       </ol>
@@ -218,6 +310,11 @@ function BlockOverlayItem({
     isThreadOpen,
     state: badgeState,
   })
+  const badgeRef = React.useRef<HTMLButtonElement | null>(null)
+  const popoverPlacement = resolveBlockMessagePopoverPlacement({
+    triggerRect: badgeRef.current?.getBoundingClientRect() ?? null,
+    viewportWidth: typeof window === "undefined" ? 0 : window.innerWidth,
+  })
 
   React.useEffect(() => {
     if (!messageThread) {
@@ -249,17 +346,17 @@ function BlockOverlayItem({
         }
       }}
     >
-      <PopoverAnchor asChild>
-        <div
-          className="canvas-block-overlay"
-          data-hovered={isHovered || isPromptOpen ? "true" : undefined}
-          style={{
-            height: overlay.height,
-            left: overlay.x,
-            top: overlay.y,
-            width: overlay.width,
-          }}
-        >
+      <div
+        className="canvas-block-overlay"
+        data-hovered={isHovered || isPromptOpen ? "true" : undefined}
+        style={{
+          height: overlay.height,
+          left: overlay.x,
+          top: overlay.y,
+          width: overlay.width,
+        }}
+      >
+        <PopoverAnchor asChild>
           <HostButton
             aria-label={`Reply to ${overlay.title}`}
             className="canvas-block-action-badge"
@@ -301,20 +398,21 @@ function BlockOverlayItem({
                 setHoveredBlockId(null)
               }
             }}
+            ref={badgeRef}
             size="icon-sm"
             type="button"
             variant="ghost"
           >
             <BlockActionBadgeIcon state={badgeState} />
           </HostButton>
-        </div>
-      </PopoverAnchor>
+        </PopoverAnchor>
+      </div>
       {isPromptOpen && promptTarget ? (
         <HostFloatingPromptPopoverContent
-          align="start"
-          collisionPadding={12}
-          side="right"
-          sideOffset={12}
+          align={popoverPlacement.align}
+          collisionPadding={popoverPlacement.collisionPadding}
+          side={popoverPlacement.side}
+          sideOffset={popoverPlacement.sideOffset}
         >
           <FloatingPrompt
             onDraftChange={messageHost.onDraftChange}
@@ -327,11 +425,11 @@ function BlockOverlayItem({
         </HostFloatingPromptPopoverContent>
       ) : messageThread && isThreadOpen ? (
         <PopoverContent
-          align="start"
+          align={popoverPlacement.align}
           className="canvas-block-message-popover"
-          collisionPadding={12}
-          side="right"
-          sideOffset={12}
+          collisionPadding={popoverPlacement.collisionPadding}
+          side={popoverPlacement.side}
+          sideOffset={popoverPlacement.sideOffset}
         >
           <BlockMessagePanel thread={messageThread} />
         </PopoverContent>
