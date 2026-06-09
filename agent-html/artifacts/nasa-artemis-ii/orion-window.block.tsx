@@ -1,0 +1,51 @@
+import { Badge } from "../../components/ui/badge"
+
+import { mediaAssets, missionTags, telemetryItems } from "./data"
+
+export function OrionWindowBlock() {
+  return (
+    <section className="canvas-stack-lg">
+      <figure className="canvas-stack-sm">
+        <img
+          alt={mediaAssets.opening.alt}
+          className="max-h-screen w-full rounded-md object-cover"
+          src={mediaAssets.opening.src}
+        />
+        <p className="canvas-text-caption text-muted-foreground">
+          {mediaAssets.opening.caption} {mediaAssets.opening.credit}.
+        </p>
+      </figure>
+
+      <div className="canvas-grid-gap md:grid-cols-[2fr_1fr]">
+        <div className="canvas-stack-md">
+          <div className="canvas-wrap-sm items-center">
+            {missionTags.map((tag) => (
+              <Badge key={tag} variant="secondary">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+          <h1 className="canvas-text-title">
+            人类正在重新学习如何抵达月球。
+          </h1>
+          <p className="canvas-text-body text-muted-foreground">
+            The page opens from Orion's point of view: Earth is already behind
+            the crew, and the mission becomes a return to human deep-space
+            flight before it becomes a list of parameters.
+          </p>
+        </div>
+
+        <div className="canvas-grid-gap-md">
+          {telemetryItems.map((item) => (
+            <div className="canvas-stack-xs min-w-0" key={item.label}>
+              <p className="canvas-text-caption text-muted-foreground">
+                {item.label}
+              </p>
+              <p className="canvas-text-body">{item.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
