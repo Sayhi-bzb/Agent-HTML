@@ -91,7 +91,7 @@ import {
   HostDropdownItem,
   HostDropdownLabel,
 } from "../ui/dropdown"
-import { HostPopoverContent } from "../ui/popover"
+import { HostPopoverAction, HostPopoverContent } from "../ui/popover"
 import {
   HostSidebarAction,
   HostSidebarActionButton,
@@ -202,6 +202,13 @@ export function ReactCanvasSidebar({
               onSelectArtifact={onSelectArtifact}
               onSelectSidebarView={onSelectSidebarView}
             />
+            <ReactCanvasCodexThreadSelect
+              activeThreadId={activeCodexThreadId}
+              error={codexThreadsError}
+              loading={codexThreadsLoading}
+              onSelectThread={onSelectCodexThread}
+              threads={codexThreads}
+            />
             <ReactCanvasThemePresetSelect
               activePresetId={activeThemePresetId}
               onSelectPreset={onSelectThemePreset}
@@ -305,14 +312,6 @@ export function ReactCanvasSidebar({
                       onSelectMode={onSelectThemeMode}
                     />
                     <ReactCanvasLanguageSelect activeLanguage={activeLanguage} />
-                    <ReactCanvasCodexThreadSelect
-                      activeThreadId={activeCodexThreadId}
-                      error={codexThreadsError}
-                      layout="floating"
-                      loading={codexThreadsLoading}
-                      onSelectThread={onSelectCodexThread}
-                      threads={codexThreads}
-                    />
                   </HostPopoverContent>
                 </Popover>
               </SidebarMenuItem>
@@ -510,12 +509,12 @@ function ReactCanvasThemeSelect({
   onSelectMode: (mode: CanvasHostThemeMode) => void
 }) {
   return (
-    <HostSelect
+    <ReactCanvasSettingsOptionPopover
+      activeValue={activeMode}
       label="Theme"
-      layout="floating"
-      onValueChange={(value) => onSelectMode(value as CanvasHostThemeMode)}
+      onSelectValue={(value) => onSelectMode(value as CanvasHostThemeMode)}
       options={themeModeOptions}
-      value={activeMode}
+      title="Theme"
     />
   )
 }
@@ -526,14 +525,29 @@ function ReactCanvasLanguageSelect({
   activeLanguage: CanvasHostLanguage
 }) {
   return (
-    <HostSelect
+    <ReactCanvasSettingsOptionPopover
+      activeValue={activeLanguage}
       disabled
       label="Language"
-      layout="floating"
-      onValueChange={() => {}}
+      onSelectValue={() => {}}
       options={languageOptions}
-      value={activeLanguage}
+      title="Language"
     />
+  )
+}
+
+function HostSettingsSelectRow({
+  children,
+  title,
+}: {
+  children: React.ReactNode
+  title: string
+}) {
+  return (
+    <div className="canvas-host-settings-row">
+      <span className="canvas-host-settings-row-title">{title}</span>
+      {children}
+    </div>
   )
 }
 
@@ -547,7 +561,7 @@ function ReactCanvasCodexThreadSelect({
 }: {
   activeThreadId: string | null
   error: string | null
-  layout?: "floating" | "sidebar"
+  layout?: "sidebar"
   loading: boolean
   onSelectThread: (threadId: string | null) => void
   threads: CodexThread[]
@@ -578,7 +592,7 @@ function ReactCanvasCodexThreadSelect({
       ]
   const value = activeThreadId ?? newCodexThreadValue
 
-  return (
+  const select = (
     <HostSelect
       disabled={loading}
       label={error ? "Codex thread unavailable" : "Codex thread"}
@@ -587,9 +601,70 @@ function ReactCanvasCodexThreadSelect({
         onSelectThread(nextValue === newCodexThreadValue ? null : nextValue)
       }
       options={options}
-      triggerLabel={layout === "floating" ? "Codex thread" : undefined}
       value={value}
     />
+  )
+
+  return select
+}
+
+function ReactCanvasSettingsOptionPopover({
+  activeValue,
+  disabled = false,
+  label,
+  onSelectValue,
+  options,
+  title,
+}: {
+  activeValue: string
+  disabled?: boolean
+  label: string
+  onSelectValue: (value: string) => void
+  options: readonly HostSelectOption[]
+  title: string
+}) {
+  const [open, setOpen] = React.useState(false)
+  const activeOption = options.find((option) => option.value === activeValue)
+
+  function selectValue(nextValue: string) {
+    onSelectValue(nextValue)
+    setOpen(false)
+  }
+
+  return (
+    <HostSettingsSelectRow title={title}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <HostButton
+            aria-label={label}
+            className="canvas-host-select-compact-trigger"
+            disabled={disabled}
+            type="button"
+            variant="ghost"
+          >
+            <span className="canvas-host-select-compact-value">
+              {activeOption?.label ?? label}
+            </span>
+          </HostButton>
+        </PopoverTrigger>
+        {disabled ? null : (
+          <HostPopoverContent
+            align="end"
+            className="canvas-host-settings-options-content"
+            side="right"
+          >
+            {options.map((option) => (
+              <HostPopoverAction
+                active={option.value === activeValue}
+                key={option.value}
+                label={option.label}
+                onClick={() => selectValue(option.value)}
+              />
+            ))}
+          </HostPopoverContent>
+        )}
+      </Popover>
+    </HostSettingsSelectRow>
   )
 }
 

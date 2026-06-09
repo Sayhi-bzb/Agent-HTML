@@ -28,6 +28,8 @@ export type HostSelectOption = {
   value: string
 }
 
+type HostSelectLayout = "compact" | "floating" | "sidebar"
+
 export function HostSelect({
   disabled = false,
   label,
@@ -39,7 +41,7 @@ export function HostSelect({
 }: {
   disabled?: boolean
   label: string
-  layout?: "floating" | "sidebar"
+  layout?: HostSelectLayout
   onValueChange: (value: string) => void
   options: readonly HostSelectOption[]
   triggerLabel?: string
@@ -90,10 +92,10 @@ function HostSelectTriggerRow({
   activeOption?: HostSelectOption
   disabled: boolean
   label: string
-  layout: "floating" | "sidebar"
+  layout: HostSelectLayout
   triggerLabel?: string
 }) {
-  const content = (
+  const rowContent = (
     <>
       <SelectValue placeholder={label}>
         <HostItemContent
@@ -106,15 +108,36 @@ function HostSelectTriggerRow({
       <ChevronDownIcon className="canvas-host-item-icon canvas-host-item-trailing" />
     </>
   )
+  const compactContent = (
+    <>
+      <SelectValue placeholder={label}>
+        <span className="canvas-host-select-compact-value">
+          {activeOption?.label ?? label}
+        </span>
+      </SelectValue>
+      <ChevronDownIcon className="canvas-host-item-icon canvas-host-item-trailing" />
+    </>
+  )
 
   return (
     <SelectTrigger asChild>
       {layout === "sidebar" ? (
         <HostControlTrigger asChild>
           <SidebarMenuButton aria-label={label} disabled={disabled} type="button">
-            {content}
+            {rowContent}
           </SidebarMenuButton>
         </HostControlTrigger>
+      ) : layout === "compact" ? (
+        <Button
+          aria-label={label}
+          className="canvas-host-select-compact-trigger"
+          disabled={disabled}
+          size="default"
+          type="button"
+          variant="ghost"
+        >
+          {compactContent}
+        </Button>
       ) : (
         <Button
           aria-label={label}
@@ -124,7 +147,7 @@ function HostSelectTriggerRow({
           type="button"
           variant="ghost"
         >
-          {content}
+          {rowContent}
         </Button>
       )}
     </SelectTrigger>

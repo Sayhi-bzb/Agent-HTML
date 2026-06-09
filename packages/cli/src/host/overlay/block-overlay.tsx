@@ -1,4 +1,5 @@
 import * as React from "react"
+import { MessageSquareReplyIcon } from "lucide-react"
 
 import { artifactRenderedEventName } from "../api/api"
 import {
@@ -16,19 +17,16 @@ import type {
   BlockMessageThread,
   BlockOverlay,
 } from "../host-contracts"
+import { HostButton } from "../ui/button"
 import { HostFloatingPromptPopoverContent } from "../ui/prompt"
 
 const defaultBlockHighlightPadding = 6
-const defaultBlockActionWidth = 6
-const defaultBlockActionOutsideGap = 6
 
 export function findHoveredBlockOverlay({
-  handleGutter = 0,
   overlays,
   x,
   y,
 }: {
-  handleGutter?: number
   overlays: BlockOverlay[]
   x: number
   y: number
@@ -37,7 +35,7 @@ export function findHoveredBlockOverlay({
     const overlay = overlays[index]
 
     if (
-      x >= overlay.x - handleGutter &&
+      x >= overlay.x &&
       x <= overlay.x + overlay.width &&
       y >= overlay.y &&
       y <= overlay.y + overlay.height
@@ -86,24 +84,6 @@ function getBlockHighlightPadding(root: HTMLElement) {
   )
 }
 
-function getBlockActionHandleGutter(root: HTMLElement) {
-  if (typeof window === "undefined") {
-    return defaultBlockActionWidth + defaultBlockActionOutsideGap
-  }
-
-  const style = window.getComputedStyle(root)
-  const width = parseCssLengthInPixels(
-    style.getPropertyValue("--canvas-block-action-width"),
-    defaultBlockActionWidth
-  )
-  const gap = parseCssLengthInPixels(
-    style.getPropertyValue("--canvas-block-action-outside-gap"),
-    defaultBlockActionOutsideGap
-  )
-
-  return width + gap
-}
-
 export function createAnimationFrameScheduler(callback: () => void) {
   let frame: number | null = null
 
@@ -125,28 +105,6 @@ export function createAnimationFrameScheduler(callback: () => void) {
       })
     },
   }
-}
-
-export function resolveBlockHandleHoverState({
-  blockId,
-  currentHoveredBlockId,
-  isPromptOpen,
-  phase,
-}: {
-  blockId: string
-  currentHoveredBlockId: string | null
-  isPromptOpen: boolean
-  phase: "enter" | "leave"
-}) {
-  if (phase === "enter") {
-    return blockId
-  }
-
-  if (currentHoveredBlockId !== blockId) {
-    return currentHoveredBlockId
-  }
-
-  return isPromptOpen ? currentHoveredBlockId : null
 }
 
 export function blockMessageThreadLabel(phase: BlockMessageThread["phase"]) {
@@ -292,7 +250,6 @@ export function BlockOverlayLayer({
 }) {
   const [hoveredBlockId, setHoveredBlockId] = React.useState<string | null>(null)
   const rootRef = React.useRef<HTMLDivElement | null>(null)
-  const handleGutterRef = React.useRef(defaultBlockActionWidth + defaultBlockActionOutsideGap)
   const messageHost = React.useSyncExternalStore(
     subscribeCanvasMessageHost,
     getCanvasMessageHostSnapshot,
@@ -317,12 +274,11 @@ export function BlockOverlayLayer({
       }
 
       const rect = root.getBoundingClientRect()
-      handleGutterRef.current = getBlockActionHandleGutter(root)
       const x = event.clientX - rect.left
       const y = event.clientY - rect.top
 
       if (
-        x < -handleGutterRef.current ||
+        x < 0 ||
         y < 0 ||
         x > rect.width ||
         y > rect.height
@@ -332,7 +288,6 @@ export function BlockOverlayLayer({
       }
 
       const hovered = findHoveredBlockOverlay({
-        handleGutter: handleGutterRef.current,
         overlays,
         x,
         y,
@@ -369,6 +324,8 @@ export function BlockOverlayLayer({
             thread.filePath === messageHost.activeFilePath
         )
         const isThreadOpen = Boolean(messageThread?.isOpen)
+        const isReplyVisible =
+          isHovered || isPromptOpen || Boolean(messageThread)
 
         return (
           <Popover
@@ -398,19 +355,15 @@ export function BlockOverlayLayer({
                   width: overlay.width,
                 }}
               >
-                <button
-                  aria-label={`Message ${overlay.title}`}
-                  className="canvas-block-action"
-                  data-hovered={isHovered || isPromptOpen ? "true" : undefined}
+                <HostButton
+                  aria-label={`Reply to ${overlay.title}`}
+                  className="canvas-block-reply-badge"
+                  data-phase={messageThread?.phase}
+                  data-visible={isReplyVisible ? "true" : undefined}
                   onBlur={() => {
-                    setHoveredBlockId((currentHoveredBlockId) =>
-                      resolveBlockHandleHoverState({
-                        blockId: overlay.id,
-                        currentHoveredBlockId,
-                        isPromptOpen,
-                        phase: "leave",
-                      })
-                    )
+                    if (!isPromptOpen) {
+                      setHoveredBlockId(null)
+                    }
                   }}
                   onClick={(event) => {
                     messageHost.onOpenTarget({
@@ -421,54 +374,31 @@ export function BlockOverlayLayer({
                     })
                   }}
                   onFocus={() => {
-                    setHoveredBlockId((currentHoveredBlockId) =>
-                      resolveBlockHandleHoverState({
-                        blockId: overlay.id,
-                        currentHoveredBlockId,
-                        isPromptOpen,
-                        phase: "enter",
-                      })
-                    )
+                    setHoveredBlockId(overlay.id)
                   }}
                   onPointerEnter={() => {
-                    setHoveredBlockId((currentHoveredBlockId) =>
-                      resolveBlockHandleHoverState({
-                        blockId: overlay.id,
-                        currentHoveredBlockId,
-                        isPromptOpen,
-                        phase: "enter",
-                      })
-                    )
+                    setHoveredBlockId(overlay.id)
                   }}
                   onPointerLeave={() => {
-                    setHoveredBlockId((currentHoveredBlockId) =>
-                      resolveBlockHandleHoverState({
-                        blockId: overlay.id,
-                        currentHoveredBlockId,
-                        isPromptOpen,
-                        phase: "leave",
-                      })
-                    )
+                    if (!isPromptOpen) {
+                      setHoveredBlockId(null)
+                    }
                   }}
+                  size="icon-sm"
                   type="button"
-                />
-                {messageThread ? (
-                  <button
-                    aria-label={`Open agent events for ${overlay.title}`}
-                    className="canvas-block-message-badge"
-                    data-phase={messageThread.phase}
-                    onClick={() => {
-                      messageHost.onThreadOpenChange({
-                        blockId: messageThread.blockId,
-                        filePath: messageThread.filePath,
-                        isOpen: !messageThread.isOpen,
-                      })
-                    }}
-                    type="button"
-                  >
-                    <span className="canvas-block-message-badge-dot" />
-                  </button>
-                ) : null}
+                  variant="ghost"
+                >
+                  <MessageSquareReplyIcon
+                    aria-hidden="true"
+                    className="canvas-block-reply-badge-icon"
+                  />
+                  {messageThread ? (
+                    <span
+                      aria-hidden="true"
+                      className="canvas-block-notification-dot"
+                    />
+                  ) : null}
+                </HostButton>
               </div>
             </PopoverAnchor>
             {isPromptOpen && promptTarget ? (
@@ -485,6 +415,9 @@ export function BlockOverlayLayer({
                   target={promptTarget}
                   value={messageHost.draft}
                 />
+                {messageThread ? (
+                  <BlockMessagePanel thread={messageThread} />
+                ) : null}
               </HostFloatingPromptPopoverContent>
             ) : messageThread && isThreadOpen ? (
               <PopoverContent

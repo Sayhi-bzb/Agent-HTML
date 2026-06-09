@@ -17,7 +17,7 @@ export function HostIconButton({
 }: Omit<React.ComponentProps<typeof Button>, "children"> & {
   icon: HostItemIcon
   label: string
-  placement?: "blockOverlay" | "prompt" | "toolbar"
+  placement?: "prompt" | "toolbar"
   tone?: "neutral" | "primary"
 }) {
   return (
@@ -26,7 +26,6 @@ export function HostIconButton({
       className={cn(
         "canvas-host-icon-button",
         placement === "toolbar" && "canvas-host-toolbar-action",
-        placement === "blockOverlay" && "canvas-block-action",
         placement === "prompt" && "canvas-floating-prompt-submit",
         className
       )}
