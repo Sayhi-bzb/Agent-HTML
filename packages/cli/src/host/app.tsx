@@ -75,6 +75,44 @@ type CanvasHostMode = "artifact" | "create-artifact"
 const blockPromptPipelineMode = "test" as "test" | "real"
 const testBlockPromptPipelineDelayMs = 1400
 
+export function resolveArtifactRefreshState({
+  artifacts,
+  currentFilePath,
+  pendingFilePath,
+  storedFilePath,
+}: {
+  artifacts: Artifact[]
+  currentFilePath: string | null
+  pendingFilePath: string | null
+  storedFilePath: string | null
+}) {
+  const artifactFilePaths = new Set(
+    artifacts.map((artifact) => artifact.filePath)
+  )
+  const pendingReady = Boolean(
+    pendingFilePath && artifactFilePaths.has(pendingFilePath)
+  )
+
+  if (pendingFilePath && pendingReady) {
+    return {
+      activeFilePath: pendingFilePath,
+      pendingReady,
+    }
+  }
+
+  if (currentFilePath && artifactFilePaths.has(currentFilePath)) {
+    return {
+      activeFilePath: currentFilePath,
+      pendingReady,
+    }
+  }
+
+  return {
+    activeFilePath: storedFilePath ?? artifacts[0]?.filePath ?? null,
+    pendingReady,
+  }
+}
+
 function waitForTestBlockPromptPipeline() {
   return new Promise<void>((resolve) => {
     window.setTimeout(resolve, testBlockPromptPipelineDelayMs)
@@ -164,42 +202,30 @@ export function ReactCanvasHostApp() {
   const refreshArtifacts = React.useCallback(async () => {
     try {
       const data = await fetchArtifacts()
+      const pendingReady = Boolean(
+        pendingArtifactFilePath &&
+          data.artifacts.some(
+            (artifact) => artifact.filePath === pendingArtifactFilePath
+          )
+      )
 
       setArtifacts(data.artifacts ?? [])
       setGuardIssues(data.guardIssues ?? [])
       setLoadError(null)
       setActiveFilePath((current) => {
-        if (
-          pendingArtifactFilePath &&
-          data.artifacts.some(
-            (artifact) => artifact.filePath === pendingArtifactFilePath
-          )
-        ) {
-          return pendingArtifactFilePath
-        }
-
-        if (
-          current &&
-          data.artifacts.some((artifact) => artifact.filePath === current)
-        ) {
-          return current
-        }
-
         const storedPreferences = readCanvasHostPreferences({
           artifacts: data.artifacts,
         })
 
-        return (
-          storedPreferences.activeFilePath ?? data.artifacts[0]?.filePath ?? null
-        )
+        return resolveArtifactRefreshState({
+          artifacts: data.artifacts ?? [],
+          currentFilePath: current,
+          pendingFilePath: pendingArtifactFilePath,
+          storedFilePath: storedPreferences.activeFilePath,
+        }).activeFilePath
       })
 
-      if (
-        pendingArtifactFilePath &&
-        data.artifacts.some(
-          (artifact) => artifact.filePath === pendingArtifactFilePath
-        )
-      ) {
+      if (pendingReady) {
         setActiveHostMode("artifact")
         setPendingArtifactFilePath(null)
         setCreateArtifactStatus("Artifact ready.")
@@ -452,7 +478,8 @@ export function ReactCanvasHostApp() {
     })
 
     try {
-      setCreateArtifactStatus("Sending to Codex...")
+      setPendingArtifactFilePath(artifactFilePath)
+      setCreateArtifactStatus("Creating artifact...")
       publishCanvasPromptDebug(formatted)
       const turn = await startCodexTurn({
         prompt: formatted,
@@ -460,11 +487,11 @@ export function ReactCanvasHostApp() {
       })
 
       setActiveCodexThreadId(turn.threadId)
-      setPendingArtifactFilePath(artifactFilePath)
-      setCreateArtifactStatus(`Waiting for ${artifactFilePath}...`)
+      setCreateArtifactStatus("Waiting for artifact...")
       void refreshArtifacts()
       void refreshCodexThreads()
     } catch (submitError: unknown) {
+      setPendingArtifactFilePath(null)
       setCreateArtifactStatus(
         submitError instanceof Error ? submitError.message : String(submitError)
       )
@@ -602,9 +629,11 @@ export function ReactCanvasHostApp() {
           </div>
           {activeHostMode === "create-artifact" ? (
             <CreateArtifactSurface
+              disabled={pendingArtifactFilePath !== null}
               draft={createArtifactDraft}
               onDraftChange={setCreateArtifactDraft}
               onSubmit={submitCreateArtifactPrompt}
+              pending={pendingArtifactFilePath !== null}
               status={createArtifactStatus}
             />
           ) : (

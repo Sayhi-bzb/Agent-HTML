@@ -101,6 +101,14 @@
     flex-shrink: 0;
   }
 
+  .canvas-create-artifact-pending {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--canvas-sidebar-font-size-caption);
+    color: var(--muted-foreground);
+  }
+
   .canvas-artifact-skeleton {
     display: flex;
     width: min(100%, var(--canvas-artifact-skeleton-max-width));
@@ -328,6 +336,11 @@
     color: var(--sidebar-accent-foreground);
   }
 
+  .canvas-host-floating-content .canvas-host-control-trigger[data-state="open"] {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
   .canvas-host-control-trigger [data-slot="select-value"] {
     min-width: 0;
     flex: 1 1 0%;
@@ -458,6 +471,7 @@
   }
 
   .canvas-host-popover-action {
+    display: flex;
     justify-content: flex-start;
   }
 

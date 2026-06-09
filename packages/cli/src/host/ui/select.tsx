@@ -30,29 +30,37 @@ export type HostSelectOption = {
 export function HostSelect({
   disabled = false,
   label,
+  layout = "sidebar",
   onValueChange,
   options,
   value,
 }: {
   disabled?: boolean
   label: string
+  layout?: "floating" | "sidebar"
   onValueChange: (value: string) => void
   options: readonly HostSelectOption[]
   value: string
 }) {
   const activeOption = options.find((option) => option.value === value)
+  const trigger = (
+    <HostSelectTriggerRow
+      activeOption={activeOption}
+      disabled={disabled}
+      label={label}
+      layout={layout}
+    />
+  )
 
   return (
     <Select onValueChange={onValueChange} value={value}>
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <HostSelectTriggerRow
-            activeOption={activeOption}
-            disabled={disabled}
-            label={label}
-          />
-        </SidebarMenuItem>
-      </SidebarMenu>
+      {layout === "sidebar" ? (
+        <SidebarMenu>
+          <SidebarMenuItem>{trigger}</SidebarMenuItem>
+        </SidebarMenu>
+      ) : (
+        trigger
+      )}
       <HostSelectContent>
         {options.map((option) => (
           <HostSelectItem
@@ -72,25 +80,44 @@ function HostSelectTriggerRow({
   activeOption,
   disabled,
   label,
+  layout,
 }: {
   activeOption?: HostSelectOption
   disabled: boolean
   label: string
+  layout: "floating" | "sidebar"
 }) {
+  const content = (
+    <>
+      <SelectValue placeholder={label}>
+        <HostItemContent
+          icon={activeOption?.icon}
+          label={activeOption?.label ?? label}
+          swatchColor={activeOption?.swatchColor}
+        />
+      </SelectValue>
+      <ChevronDownIcon className="canvas-host-item-icon canvas-host-item-trailing" />
+    </>
+  )
+
   return (
     <SelectTrigger asChild>
-      <HostControlTrigger asChild>
-        <SidebarMenuButton aria-label={label} disabled={disabled} type="button">
-          <SelectValue placeholder={label}>
-            <HostItemContent
-              icon={activeOption?.icon}
-              label={activeOption?.label ?? label}
-              swatchColor={activeOption?.swatchColor}
-            />
-          </SelectValue>
-          <ChevronDownIcon className="canvas-host-item-icon canvas-host-item-trailing" />
-        </SidebarMenuButton>
-      </HostControlTrigger>
+      {layout === "sidebar" ? (
+        <HostControlTrigger asChild>
+          <SidebarMenuButton aria-label={label} disabled={disabled} type="button">
+            {content}
+          </SidebarMenuButton>
+        </HostControlTrigger>
+      ) : (
+        <HostControlTrigger
+          aria-label={label}
+          className="canvas-host-popover-action"
+          disabled={disabled}
+          type="button"
+        >
+          {content}
+        </HostControlTrigger>
+      )}
     </SelectTrigger>
   )
 }

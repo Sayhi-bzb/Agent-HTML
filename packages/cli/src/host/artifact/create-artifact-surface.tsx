@@ -1,14 +1,18 @@
 import { PromptComposer } from "../prompt/floating-prompt"
 
 export function CreateArtifactSurface({
+  disabled = false,
   draft,
   onDraftChange,
   onSubmit,
+  pending,
   status,
 }: {
+  disabled?: boolean
   draft: string
   onDraftChange: (draft: string) => void
   onSubmit: (request: string) => Promise<void>
+  pending: boolean
   status: string
 }) {
   return (
@@ -24,7 +28,13 @@ export function CreateArtifactSurface({
             />
             <span>Agent-HTML</span>
           </div>
+          {pending ? (
+            <div className="canvas-create-artifact-pending" role="status">
+              Creating artifact
+            </div>
+          ) : null}
           <PromptComposer
+            disabled={disabled}
             onDraftChange={onDraftChange}
             onSubmit={onSubmit}
             placeholder="Describe the artifact to build..."

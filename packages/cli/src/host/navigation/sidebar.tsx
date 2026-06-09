@@ -23,9 +23,9 @@ import type {
   CanvasThemeVariableName,
 } from "../theme/theme-draft"
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-} from "#agent-html-playground/components/ui/dropdown-menu"
+  Popover,
+  PopoverTrigger,
+} from "#agent-html-playground/components/ui/popover"
 import {
   Sidebar,
   SidebarContent,
@@ -53,11 +53,8 @@ import {
   HostCommandItem,
   HostCommandList,
 } from "../ui/command"
-import {
-  HostDropdownContent,
-  HostDropdownLabel,
-  HostDropdownMeta,
-} from "../ui/dropdown"
+import { HostDropdownLabel, HostDropdownMeta } from "../ui/dropdown"
+import { HostPopoverContent } from "../ui/popover"
 import {
   HostSidebarAction,
   HostSidebarActionButton,
@@ -155,13 +152,6 @@ export function ReactCanvasSidebar({
               onSelectArtifact={onSelectArtifact}
               onSelectSidebarView={onSelectSidebarView}
             />
-            <ReactCanvasCodexThreadSelect
-              activeThreadId={activeCodexThreadId}
-              loading={codexThreadsLoading}
-              onSelectThread={onSelectCodexThread}
-              threads={codexThreads}
-              error={codexThreadsError}
-            />
             <ReactCanvasThemePresetSelect
               activePresetId={activeThemePresetId}
               onSelectPreset={onSelectThemePreset}
@@ -254,22 +244,30 @@ export function ReactCanvasSidebar({
                 type="button"
               />
               <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                <Popover>
+                  <PopoverTrigger asChild>
                     <HostSidebarActionButton
                       icon={Settings2Icon}
                       label="Settings"
                       type="button"
                     />
-                  </DropdownMenuTrigger>
-                  <HostDropdownContent align="end" side="right">
+                  </PopoverTrigger>
+                  <HostPopoverContent align="end" side="right">
                     <HostDropdownLabel>Settings</HostDropdownLabel>
+                    <ReactCanvasCodexThreadSelect
+                      activeThreadId={activeCodexThreadId}
+                      error={codexThreadsError}
+                      layout="floating"
+                      loading={codexThreadsLoading}
+                      onSelectThread={onSelectCodexThread}
+                      threads={codexThreads}
+                    />
                     <HostDropdownMeta
                       caption="Local artifact workbench"
                       label="Agent-HTML"
                     />
-                  </HostDropdownContent>
-                </DropdownMenu>
+                  </HostPopoverContent>
+                </Popover>
               </SidebarMenuItem>
             </>
           )}
@@ -292,12 +290,14 @@ function codexThreadLabel(thread: CodexThread) {
 function ReactCanvasCodexThreadSelect({
   activeThreadId,
   error,
+  layout = "sidebar",
   loading,
   onSelectThread,
   threads,
 }: {
   activeThreadId: string | null
   error: string | null
+  layout?: "floating" | "sidebar"
   loading: boolean
   onSelectThread: (threadId: string | null) => void
   threads: CodexThread[]
@@ -332,6 +332,7 @@ function ReactCanvasCodexThreadSelect({
     <HostSelect
       disabled={loading}
       label={error ? "Codex thread unavailable" : "Codex thread"}
+      layout={layout}
       onValueChange={(nextValue) =>
         onSelectThread(nextValue === newCodexThreadValue ? null : nextValue)
       }
