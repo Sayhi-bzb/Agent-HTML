@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   createInitializeParams,
+  createCodexSpawnOptions,
   createThreadListParams,
   isEmptyRolloutError,
   listCodexThreadsWithRequest,
@@ -28,6 +29,14 @@ describe("React Canvas Codex bridge", () => {
       limit: 25,
       sortKey: "updated_at",
       sourceKinds: ["appServer", "vscode", "cli"],
+    })
+  })
+
+  it("spawns codex app-server without a shell", () => {
+    expect(createCodexSpawnOptions({ PATH: "C:\\bin" })).toMatchObject({
+      shell: false,
+      stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
     })
   })
 

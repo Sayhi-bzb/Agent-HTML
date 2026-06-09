@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#agent-html-playground/components/ui/select"
+import { Button } from "#agent-html-playground/components/ui/button"
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -109,14 +110,16 @@ function HostSelectTriggerRow({
           </SidebarMenuButton>
         </HostControlTrigger>
       ) : (
-        <HostControlTrigger
+        <Button
           aria-label={label}
-          className="canvas-host-popover-action"
+          className="canvas-host-control-trigger canvas-host-popover-action"
           disabled={disabled}
+          size="default"
           type="button"
+          variant="ghost"
         >
           {content}
-        </HostControlTrigger>
+        </Button>
       )}
     </SelectTrigger>
   )

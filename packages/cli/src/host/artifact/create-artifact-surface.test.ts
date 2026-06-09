@@ -18,11 +18,10 @@ describe("CreateArtifactSurface copy", () => {
     expect(createArtifactSurfaceSource).not.toContain("Ask, Search or Chat")
   })
 
-  it("shows the pending target file path while creation is running", () => {
-    expect(createArtifactSurfaceSource).toContain("pendingFilePath")
+  it("shows pending creation without exposing the target file path", () => {
+    expect(createArtifactSurfaceSource).toContain("pending")
     expect(createArtifactSurfaceSource).toContain("Creating")
-    expect(createArtifactSurfaceSource).toContain(
-      "canvas-create-artifact-pending-path"
-    )
+    expect(createArtifactSurfaceSource).not.toContain("pendingFilePath")
+    expect(createArtifactSurfaceSource).not.toContain("artifact-pending-path")
   })
 })

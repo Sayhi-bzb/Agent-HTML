@@ -56,6 +56,15 @@ function createCodexProcessEnv(env = process.env) {
   }
 }
 
+export function createCodexSpawnOptions(env = process.env) {
+  return {
+    env: createCodexProcessEnv(env),
+    shell: false,
+    stdio: ["pipe", "pipe", "pipe"],
+    windowsHide: true,
+  }
+}
+
 function readObject(value) {
   return typeof value === "object" && value !== null ? value : null
 }
@@ -353,10 +362,7 @@ class CodexJsonlClient {
     this.pending = new Map()
     this.notifications = []
     this.process = spawn(resolveCodexCommand(), ["app-server"], {
-      env: createCodexProcessEnv(),
-      shell: process.platform === "win32",
-      stdio: ["pipe", "pipe", "pipe"],
-      windowsHide: true,
+      ...createCodexSpawnOptions(),
     })
     this.stderr = ""
 
