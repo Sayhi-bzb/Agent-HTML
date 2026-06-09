@@ -1,6 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion"
 import { Badge } from "../../components/ui/badge"
-import { Progress } from "../../components/ui/progress"
 import {
   Timeline,
   TimelineConnector,
@@ -12,7 +11,7 @@ import {
   TimelineTitle,
 } from "../../components/timeline"
 
-import { mediaAssets, quietMetrics, quietOptions, quietRoute } from "./data"
+import { mediaAssets, quietOptions, quietRoute } from "./data"
 
 export function QuietLayerBlock() {
   return (
@@ -37,6 +36,12 @@ export function QuietLayerBlock() {
                   <p className="canvas-text-caption text-muted-foreground">
                     {stop.note}
                   </p>
+                  <div className="canvas-wrap-sm items-center">
+                    <Badge variant="outline">{stop.dwell}</Badge>
+                    <span className="canvas-text-caption text-muted-foreground">
+                      {stop.whyStay}
+                    </span>
+                  </div>
                 </TimelineContent>
               </TimelineItem>
             ))}
@@ -54,28 +59,31 @@ export function QuietLayerBlock() {
               {mediaAssets.quiet.caption} {mediaAssets.quiet.credit}.
             </p>
           </figure>
-          {quietMetrics.map((metric) => (
-            <div className="canvas-stack-xs" key={metric.label}>
-              <div className="canvas-wrap-sm items-center justify-between">
-                <span className="canvas-text-caption text-muted-foreground">
-                  {metric.label}
-                </span>
-                <span className="canvas-text-caption">{metric.value}%</span>
-              </div>
-              <Progress value={metric.value} />
-            </div>
-          ))}
+          <div className="canvas-grid-gap-md sm:grid-cols-3">
+            <QuietDwell label="sit longer" value="Let the garden set the day speed." />
+            <QuietDwell label="skip transfer" value="Cut one movement before adding one stop." />
+            <QuietDwell label="leave unfinished" value="Keep the bookstore route open." />
+          </div>
         </div>
       </div>
 
       <Accordion type="single" collapsible>
         {quietOptions.map((option) => (
           <AccordionItem key={option.label} value={option.label}>
-            <AccordionTrigger>{option.label}</AccordionTrigger>
+            <AccordionTrigger>{option.choice}</AccordionTrigger>
             <AccordionContent>{option.note}</AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>
     </section>
+  )
+}
+
+function QuietDwell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="canvas-stack-xs">
+      <Badge variant="outline">{label}</Badge>
+      <p className="canvas-text-caption text-muted-foreground">{value}</p>
+    </div>
   )
 }

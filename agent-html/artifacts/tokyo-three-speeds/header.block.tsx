@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 
-import { Badge } from "../../components/ui/badge"
 import {
   Carousel,
   type CarouselApi,
@@ -25,63 +24,43 @@ export function TokyoHeaderBlock() {
   }, [carouselApi, isCarouselPaused])
 
   return (
-    <section className="canvas-stack-lg">
-      <div className="canvas-grid-gap md:grid-cols-[0.9fr_1.1fr]">
-        <div className="canvas-stack-md">
-          <div className="canvas-wrap-sm items-center">
-            <Badge variant="secondary">three speeds</Badge>
-            <Badge variant="outline">Tokyo rhythm plan</Badge>
-          </div>
-          <h1 className="canvas-text-title">
-            东京太丰富，所以真正的问题不是去哪，而是如何取舍。
-          </h1>
-          <p className="canvas-text-body text-muted-foreground">
-            Three days become three city speeds: Soft Landing, High Density, and
-            Quiet Tokyo. The plan is not a checklist; it is a way to manage
-            energy, movement, and attention.
-          </p>
-        </div>
-
-        <Carousel
-          onBlur={() => setIsCarouselPaused(false)}
-          onFocus={() => setIsCarouselPaused(true)}
-          onMouseEnter={() => setIsCarouselPaused(true)}
-          onMouseLeave={() => setIsCarouselPaused(false)}
-          onPointerCancel={() => setIsCarouselPaused(false)}
-          onPointerDown={() => setIsCarouselPaused(true)}
-          onPointerUp={() => setIsCarouselPaused(false)}
-          opts={{ align: "start", loop: true }}
-          setApi={setCarouselApi}
-        >
-          <CarouselContent>
-            {headerSlides.map((slide, index) => (
-              <CarouselItem key={slide.label}>
-                <figure className="canvas-stack-sm">
-                  <div className="relative aspect-[16/10] overflow-hidden rounded-md bg-muted">
-                    <img
-                      alt={slide.asset.alt}
-                      className="h-full w-full object-cover"
-                      src={slide.asset.src}
-                    />
-                    <div className="absolute top-3 left-3 canvas-wrap-sm items-center rounded-full bg-background/85 px-3 py-1 shadow-sm backdrop-blur">
-                      <span className="canvas-text-caption">{slide.label}</span>
-                      <span className="canvas-text-caption text-muted-foreground">
-                        {index + 1} / {headerSlides.length}
-                      </span>
-                    </div>
+    <section>
+      <Carousel
+        onBlur={() => setIsCarouselPaused(false)}
+        onFocus={() => setIsCarouselPaused(true)}
+        onMouseEnter={() => setIsCarouselPaused(true)}
+        onMouseLeave={() => setIsCarouselPaused(false)}
+        onPointerCancel={() => setIsCarouselPaused(false)}
+        onPointerDown={() => setIsCarouselPaused(true)}
+        onPointerUp={() => setIsCarouselPaused(false)}
+        opts={{ align: "start", loop: true }}
+        setApi={setCarouselApi}
+      >
+        <CarouselContent>
+          {headerSlides.map((slide, index) => (
+            <CarouselItem key={slide.label}>
+              <figure className="relative aspect-[16/9] min-h-[420px] overflow-hidden rounded-md bg-muted">
+                <img
+                  alt={slide.alt}
+                  className="h-full w-full object-cover"
+                  src={slide.src}
+                />
+                <figcaption className="absolute inset-x-0 bottom-0 bg-background/88 p-4 backdrop-blur md:p-5">
+                  <div className="canvas-wrap-sm items-center justify-between">
+                    <span className="canvas-text-body">{slide.label}</span>
+                    <span className="canvas-text-caption text-muted-foreground">
+                      {index + 1} / {headerSlides.length}
+                    </span>
                   </div>
-                  <figcaption className="canvas-stack-xs">
-                    <p className="canvas-text-body">{slide.note}</p>
-                    <p className="canvas-text-caption text-muted-foreground">
-                      {slide.asset.caption} {slide.asset.credit}.
-                    </p>
-                  </figcaption>
-                </figure>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
-      </div>
+                  <p className="canvas-text-caption text-muted-foreground">
+                    {slide.caption} {slide.credit}.
+                  </p>
+                </figcaption>
+              </figure>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
     </section>
   )
 }

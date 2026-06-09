@@ -54,6 +54,38 @@ export type TokyoRoute = {
 }
 
 export const mediaAssets = {
+  arrivalRoute: {
+    alt: "Tokyo Monorail near Haneda Airport seen from Keihinjima island.",
+    caption: "Soft landing is a moving edge between airport and city.",
+    credit: "Wikimedia Commons / Yamaguchi Yoshiaki / CC BY-SA 2.0",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Tokyo_monorail_-_Haneda_airport_view_from_Keihinjima_island_(488414141).jpg",
+    src: "/__agent-html/public/tokyo-three-speeds/route-arrival-haneda-monorail.jpg",
+  },
+  densityRoute: {
+    alt: "A view along Cat Street in Tokyo.",
+    caption: "High density works best when the route stays street-readable.",
+    credit: "Wikimedia Commons / Another Believer / CC BY-SA 4.0",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:View_along_Cat_Street_in_Tokyo,_2019_-_801.jpg",
+    src: "/__agent-html/public/tokyo-three-speeds/route-density-cat-street.jpg",
+  },
+  quietRoute: {
+    alt: "Books along a walkway in the Kanda-Jimbocho area of Tokyo.",
+    caption: "Quiet routes trade movement for time inside a neighborhood.",
+    credit: "Wikimedia Commons / Nick-D / CC BY-SA 3.0",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Books_along_a_walkway_in_the_Kanda-Jimbocho_area_of_Tokyo.JPG",
+    src: "/__agent-html/public/tokyo-three-speeds/open-loop-jimbocho-bookshop.jpg",
+  },
+  lowStimulusRoute: {
+    alt: "Yanaka Ginza Street seen from Yuyake Dandan in Tokyo.",
+    caption: "Low-stimulus Tokyo is neighborhood scale before it is itinerary.",
+    credit: "Wikimedia Commons / SuFlyer / CC0",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Yanaka_Ginza_Street_from_Yuyake_Dandan_(Oct_2024).jpg",
+    src: "/__agent-html/public/tokyo-three-speeds/route-low-stimulus-yanaka-ginza.jpg",
+  },
   arrival: {
     alt: "A Tokyo Monorail platform at Haneda Airport Terminal 3.",
     caption: "Airport rail makes arrival feel like a controlled first step.",
@@ -90,24 +122,43 @@ export const mediaAssets = {
 
 export const headerSlides = [
   {
-    asset: mediaAssets.arrival,
+    alt: "A train passenger looking out at Tokyo from a moving train.",
+    caption: "Arrival begins inside the transit rhythm, before the city opens.",
+    credit: "Unsplash",
     label: "Soft Landing",
     note: "Day 1 begins by letting the body arrive before the city expands.",
+    sourceUrl:
+      "https://unsplash.com/photos/a-man-standing-on-a-train-looking-out-the-window-PrgOionplMo",
+    src: "/__agent-html/public/tokyo-three-speeds/header-train-motion.jpg",
   },
   {
-    asset: mediaAssets.density,
+    alt: "A dense group of commuters moving through a subway station.",
+    caption: "Density is useful when movement, signs, and timing stay legible.",
+    credit: "Pexels / Dương Nhân",
     label: "High Density",
     note: "Day 2 uses density as structure: crowd flow, stations, commerce.",
+    sourceUrl: "https://www.pexels.com/photo/crowd-on-the-subway-1628032/",
+    src: "/__agent-html/public/tokyo-three-speeds/header-station-density.jpg",
   },
   {
-    asset: mediaAssets.quiet,
-    label: "Quiet Tokyo",
-    note: "Day 3 slows down through gardens, books, streets, and dwell time.",
+    alt: "Urban train tracks and power lines seen through a train window in Tokyo.",
+    caption: "The route is a moving frame, not only a list of stops.",
+    credit: "Pexels / Kaz Yura",
+    label: "Route Frame",
+    note: "The plan stays readable when movement becomes part of the image.",
+    sourceUrl:
+      "https://www.pexels.com/photo/urban-train-view-through-window-with-power-lines-33986319/",
+    src: "/__agent-html/public/tokyo-three-speeds/header-urban-route.jpg",
   },
   {
-    asset: mediaAssets.openLoop,
+    alt: "A quiet residential alleyway in Tokyo.",
+    caption: "Quiet Tokyo is made from smaller streets and lower volume.",
+    credit: "Pexels / Shottrotter",
     label: "Open Loop",
     note: "The route ends by preserving one unfinished reason to return.",
+    sourceUrl:
+      "https://www.pexels.com/photo/quiet-residential-alleyway-in-tokyo-japan-31403258/",
+    src: "/__agent-html/public/tokyo-three-speeds/header-quiet-street.jpg",
   },
 ]
 
@@ -124,7 +175,7 @@ export const tokyoPoints: TokyoPoint[] = [
   {
     coordinates: [139.7798, 35.5494],
     day: "D1",
-    evidenceKey: "arrival",
+    evidenceKey: "arrivalRoute",
     interestLabels: ["low stimulus"],
     label: "Haneda",
     note: "Soft landing begins with airport-to-city movement.",
@@ -134,7 +185,7 @@ export const tokyoPoints: TokyoPoint[] = [
   {
     coordinates: [139.7016, 35.6595],
     day: "D2",
-    evidenceKey: "density",
+    evidenceKey: "densityRoute",
     interestLabels: ["food", "nightlife"],
     label: "Shibuya",
     note: "Crowd flow and crossing logic.",
@@ -164,7 +215,7 @@ export const tokyoPoints: TokyoPoint[] = [
   {
     coordinates: [139.7975, 35.6817],
     day: "D3",
-    evidenceKey: "quiet",
+    evidenceKey: "quietRoute",
     interestLabels: ["bookstores", "low stimulus"],
     label: "Kiyosumi",
     note: "Garden pause and low-stimulus route anchor.",
@@ -184,7 +235,7 @@ export const tokyoPoints: TokyoPoint[] = [
   {
     coordinates: [139.7663, 35.7274],
     day: "D3",
-    evidenceKey: "quiet",
+    evidenceKey: "lowStimulusRoute",
     interestLabels: ["low stimulus"],
     label: "Yanaka",
     note: "Neighborhood texture at slower speed.",
@@ -322,64 +373,85 @@ export const densityAreas = [
     bestTime: "late afternoon",
     commercial: 84,
     crowd: 92,
+    exitRule: "Leave before the evening station exits become the plan.",
+    flow: "Use the crossing as a movement diagram: wait, release, split, reset.",
+    interface:
+      "Screens, storefronts, and station edges turn crowd pressure into readable direction.",
     note: "Use the crossing as flow evidence, not as a postcard.",
     transfer: 74,
+    useFor: "crowd logic and dinner energy",
+    avoidWhen: "fatigue is already high",
   },
   {
     area: "Shinjuku",
     bestTime: "evening",
     commercial: 88,
     crowd: 86,
+    exitRule: "Decide the return line before entering the night layer.",
+    flow: "The station is the city interface: exits, levels, and transfers carry the real route.",
+    interface:
+      "Neon matters less than the ordered sequence of gates, signs, corners, and returns.",
     note: "Station exits and return planning matter more than neon.",
     transfer: 91,
+    useFor: "night density with an exit plan",
+    avoidWhen: "the next morning must stay slow",
   },
   {
     area: "Omotesando",
     bestTime: "day to dusk",
     commercial: 78,
     crowd: 68,
+    exitRule: "Stop while the radius is still walkable.",
+    flow: "The route works as a tight surface walk: browse, pause, turn, compare.",
+    interface:
+      "Reflections, entrances, and glass edges make density feel designed instead of chaotic.",
     note: "Dense, legible, design-facing city interface.",
     transfer: 54,
+    useFor: "design-facing density",
+    avoidWhen: "the route needs cheap food first",
   },
 ]
 
 export const quietRoute = [
   {
+    dwell: "sit before choosing the next stop",
     label: "Kiyosumi",
     note: "Garden pause before the city gets loud again.",
     time: "morning",
+    whyStay: "A quiet route needs a first place where nothing needs to be optimized.",
   },
   {
+    dwell: "walk short streets without collecting landmarks",
     label: "Yanaka",
     note: "Low-speed streets and neighborhood texture.",
     time: "midday",
+    whyStay: "The value is neighborhood texture, not coverage.",
   },
   {
+    dwell: "leave one shelf unfinished",
     label: "Jimbocho",
     note: "Bookstores turn the route into dwell time.",
     time: "afternoon",
+    whyStay: "A bookstore route is better when it resists completion.",
   },
 ]
 
 export const quietOptions = [
   {
+    choice: "cut a transfer",
     label: "garden pause",
     note: "Best when fatigue or rain changes the plan.",
   },
   {
+    choice: "protect dwell time",
     label: "bookstore dwell",
     note: "Spend time in fewer places instead of crossing the city again.",
   },
   {
+    choice: "start before density",
     label: "morning street",
     note: "Use quiet hours to read the city before density returns.",
   },
-]
-
-export const quietMetrics: Metric[] = [
-  { label: "low stimulus", value: 82 },
-  { label: "walking", value: 46 },
-  { label: "dwell time", value: 76 },
 ]
 
 export const selectorOptions = [
@@ -469,6 +541,26 @@ export const sourceGroups = [
     label: "Photos",
     links: [
       {
+        label: "Tokyo Monorail near Haneda",
+        note: "Arrival route photo. Wikimedia Commons, Yamaguchi Yoshiaki, CC BY-SA 2.0.",
+        url: "https://commons.wikimedia.org/wiki/File:Tokyo_monorail_-_Haneda_airport_view_from_Keihinjima_island_(488414141).jpg",
+      },
+      {
+        label: "Cat Street, Tokyo",
+        note: "Density route photo. Wikimedia Commons, Another Believer, CC BY-SA 4.0.",
+        url: "https://commons.wikimedia.org/wiki/File:View_along_Cat_Street_in_Tokyo,_2019_-_801.jpg",
+      },
+      {
+        label: "Books along Kanda-Jimbocho walkway",
+        note: "Quiet route photo. Wikimedia Commons, Nick-D, CC BY-SA 3.0.",
+        url: "https://commons.wikimedia.org/wiki/File:Books_along_a_walkway_in_the_Kanda-Jimbocho_area_of_Tokyo.JPG",
+      },
+      {
+        label: "Yanaka Ginza from Yuyake Dandan",
+        note: "Low-stimulus route photo. Wikimedia Commons, SuFlyer, CC0.",
+        url: "https://commons.wikimedia.org/wiki/File:Yanaka_Ginza_Street_from_Yuyake_Dandan_(Oct_2024).jpg",
+      },
+      {
         label: "Tokyo Monorail Haneda platform",
         note: "Arrival photo. Wikimedia Commons, MaedaAkihiko, CC0.",
         url: "https://commons.wikimedia.org/wiki/File:Tokyo-Monorail_Haneda-Airport-Terminal-3-STA_Platforms.jpg",
@@ -487,6 +579,26 @@ export const sourceGroups = [
         label: "Kanda-Jimbocho bookshop",
         note: "Open loop photo. Wikimedia Commons, Nick-D, CC BY-SA 3.0.",
         url: "https://commons.wikimedia.org/wiki/File:Bookshop_in_Kanda-Jimbocho_area_of_Tokyo.JPG",
+      },
+      {
+        label: "Tokyo train motion",
+        note: "Header photo. Unsplash.",
+        url: "https://unsplash.com/photos/a-man-standing-on-a-train-looking-out-the-window-PrgOionplMo",
+      },
+      {
+        label: "Subway crowd",
+        note: "Header photo. Pexels, Dương Nhân.",
+        url: "https://www.pexels.com/photo/crowd-on-the-subway-1628032/",
+      },
+      {
+        label: "Urban train window",
+        note: "Header photo. Pexels, Kaz Yura.",
+        url: "https://www.pexels.com/photo/urban-train-view-through-window-with-power-lines-33986319/",
+      },
+      {
+        label: "Quiet residential alleyway",
+        note: "Header photo. Pexels, Shottrotter.",
+        url: "https://www.pexels.com/photo/quiet-residential-alleyway-in-tokyo-japan-31403258/",
       },
     ],
   },

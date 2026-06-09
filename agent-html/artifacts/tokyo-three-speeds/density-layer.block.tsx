@@ -1,5 +1,4 @@
 import { Badge } from "../../components/ui/badge"
-import { Progress } from "../../components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
@@ -39,9 +38,11 @@ export function DensityLayerBlock() {
             {densityAreas.map((area) => (
               <TabsContent className="canvas-stack-md" key={area.area} value={area.area}>
                 <p className="canvas-text-body">{area.note}</p>
-                <LayerMetric label="crowd" value={area.crowd} />
-                <LayerMetric label="transfer" value={area.transfer} />
-                <LayerMetric label="commercial" value={area.commercial} />
+                <div className="canvas-grid-gap-md sm:grid-cols-3">
+                  <DensityNote label="flow" value={area.flow} />
+                  <DensityNote label="interface" value={area.interface} />
+                  <DensityNote label="exit" value={area.exitRule} />
+                </div>
               </TabsContent>
             ))}
           </Tabs>
@@ -52,16 +53,18 @@ export function DensityLayerBlock() {
         <TableHeader>
           <TableRow>
             <TableHead>area</TableHead>
-            <TableHead>best time</TableHead>
-            <TableHead>route reason</TableHead>
+            <TableHead>use it for</TableHead>
+            <TableHead>avoid when</TableHead>
+            <TableHead>exit rule</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {densityAreas.map((area) => (
             <TableRow key={area.area}>
               <TableCell>{area.area}</TableCell>
-              <TableCell>{area.bestTime}</TableCell>
-              <TableCell>{area.note}</TableCell>
+              <TableCell>{area.useFor}</TableCell>
+              <TableCell>{area.avoidWhen}</TableCell>
+              <TableCell>{area.exitRule}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -70,14 +73,11 @@ export function DensityLayerBlock() {
   )
 }
 
-function LayerMetric({ label, value }: { label: string; value: number }) {
+function DensityNote({ label, value }: { label: string; value: string }) {
   return (
-    <div className="canvas-stack-xs">
-      <div className="canvas-wrap-sm items-center justify-between">
-        <span className="canvas-text-caption text-muted-foreground">{label}</span>
-        <span className="canvas-text-caption">{value}%</span>
-      </div>
-      <Progress value={value} />
+    <div className="canvas-stack-xs border-l pl-3">
+      <Badge variant="outline">{label}</Badge>
+      <p className="canvas-text-caption text-muted-foreground">{value}</p>
     </div>
   )
 }
