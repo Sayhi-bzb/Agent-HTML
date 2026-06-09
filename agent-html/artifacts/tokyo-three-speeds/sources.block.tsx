@@ -11,9 +11,9 @@ export function SourcesBlock() {
         <Badge variant="secondary">sources</Badge>
         <h2 className="canvas-text-heading">Tokyo media and data sources</h2>
         <p className="canvas-text-body text-muted-foreground">
-          Source details are collected here so the six city-speed scenes can
-          read continuously while imagery, map, video, and data sources remain
-          traceable.
+          Source details are collected here so the Tokyo route console layers
+          can read continuously while imagery, map, video, and data sources
+          remain traceable.
         </p>
       </div>
 

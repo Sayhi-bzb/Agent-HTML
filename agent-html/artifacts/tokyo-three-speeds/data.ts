@@ -293,72 +293,6 @@ export const tokyoRoutes: TokyoRoute[] = [
   },
 ]
 
-export const arrivalTimeline = [
-  {
-    label: "Haneda",
-    note: "First decision: finish airport-to-city movement before chasing Tokyo.",
-    time: "arrival",
-  },
-  {
-    label: "Monorail",
-    note: "A controlled transfer sets the first tempo.",
-    time: "13 min+",
-  },
-  {
-    label: "Hotel area",
-    note: "The first base is a neighborhood, not a landmark.",
-    time: "base",
-  },
-  {
-    label: "Dinner and sleep",
-    note: "Keep the radius short enough for the next two days to work.",
-    time: "night",
-  },
-]
-
-export const arrivalMetrics: Metric[] = [
-  { label: "energy load", value: 28 },
-  { label: "transfer load", value: 34 },
-  { label: "walking radius", value: 22 },
-]
-
-export const dayRhythms = [
-  {
-    day: "Day 1",
-    energy: 35,
-    mood: "Soft Landing",
-    range: "Haneda, hotel area, first dinner",
-    transfer: 32,
-    walking: 24,
-  },
-  {
-    day: "Day 2",
-    energy: 86,
-    mood: "High Density",
-    range: "Shibuya, Shinjuku, Omotesando",
-    transfer: 78,
-    walking: 72,
-  },
-  {
-    day: "Day 3",
-    energy: 48,
-    mood: "Quiet Tokyo",
-    range: "Yanaka, Kiyosumi, Jimbocho",
-    transfer: 38,
-    walking: 52,
-  },
-]
-
-export const mapRegions = [
-  { day: "D1", label: "Haneda", tone: "arrival" },
-  { day: "D2", label: "Shibuya", tone: "density" },
-  { day: "D2", label: "Shinjuku", tone: "density" },
-  { day: "D2", label: "Omotesando", tone: "density" },
-  { day: "D3", label: "Yanaka", tone: "quiet" },
-  { day: "D3", label: "Kiyosumi", tone: "quiet" },
-  { day: "D3", label: "Jimbocho", tone: "quiet" },
-]
-
 export const densityAreas = [
   {
     area: "Shibuya",
@@ -506,32 +440,6 @@ export const selectorOptions = [
 export type SelectorOption = (typeof selectorOptions)[number] & {
   evidenceKey: MediaAssetKey
 }
-
-export const defaultConsole = selectorOptions[2]
-
-export const routeComparison = selectorOptions.map((option) => ({
-  cost: option.load
-    .filter((metric) => metric.label !== "dwell")
-    .reduce((sum, metric) => sum + metric.value, 0),
-  dwell: option.load.find((metric) => metric.label === "dwell")?.value ?? 0,
-  label: option.label,
-  route: option.route,
-}))
-
-export const openLoopItems = [
-  {
-    label: "missed bookstore",
-    note: "Keep one Jimbocho shelf for next time.",
-  },
-  {
-    label: "morning neighborhood",
-    note: "Return before the city reaches full speed.",
-  },
-  {
-    label: "slower Tokyo",
-    note: "The next trip starts with less movement, not more.",
-  },
-]
 
 export const sourceGroups = [
   {

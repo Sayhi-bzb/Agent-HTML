@@ -8,8 +8,6 @@ import {
   MapMarker,
   MapRoute,
   MarkerContent,
-  MarkerLabel,
-  MarkerTooltip,
 } from "../../components/map"
 import { Badge } from "../../components/ui/badge"
 import { Button } from "../../components/ui/button"
@@ -21,7 +19,6 @@ import {
   tokyoMap,
   tokyoPoints,
   tokyoRoutes,
-  type TokyoPoint,
   type TokyoRoute,
 } from "./data"
 
@@ -33,16 +30,16 @@ type RouteGeometry = {
 }
 
 const markerClass = {
-  arrival: "bg-slate-500",
-  density: "bg-rose-600",
-  openLoop: "bg-amber-500",
-  quiet: "bg-emerald-600",
+  arrival: "bg-muted-foreground",
+  density: "bg-destructive",
+  openLoop: "bg-accent-foreground",
+  quiet: "bg-primary",
 }
 
 const routeStripeClass = {
-  arrival: "bg-slate-500",
-  density: "bg-rose-600",
-  quiet: "bg-emerald-600",
+  arrival: "bg-muted-foreground",
+  density: "bg-destructive",
+  quiet: "bg-primary",
 }
 
 function formatDistance(meters?: number) {
@@ -70,7 +67,6 @@ function buildOsrmUrl(waypoints: [number, number][]) {
 
 export function RouteConsoleBlock() {
   const [selectedInterest, setSelectedInterest] = useState("bookstores")
-  const [selectedPointLabel, setSelectedPointLabel] = useState("Jimbocho")
   const [selectedRouteId, setSelectedRouteId] = useState("quiet-route")
   const [routeGeometry, setRouteGeometry] = useState<
     Record<string, RouteGeometry>
@@ -97,13 +93,6 @@ export function RouteConsoleBlock() {
       tokyoRoutes.find((route) => route.id === selectedRouteId) ??
       tokyoRoutes[0],
     [selectedRouteId],
-  )
-  const selectedPoint = useMemo(
-    () =>
-      tokyoPoints.find((point) => point.label === selectedPointLabel) ??
-      tokyoPoints.find((point) => point.routeId === selectedRoute.id) ??
-      tokyoPoints[0],
-    [selectedPointLabel, selectedRoute.id],
   )
   const viewport = selectedRoute.viewport
 
@@ -164,18 +153,9 @@ export function RouteConsoleBlock() {
     }
   }, [])
 
-  function selectPoint(point: TokyoPoint) {
-    setSelectedPointLabel(point.label)
-    setSelectedRouteId(point.routeId)
-    if (!point.interestLabels.includes(selectedInterest)) {
-      setSelectedInterest(point.interestLabels[0])
-    }
-  }
-
   function selectRoute(route: TokyoRoute) {
     setSelectedRouteId(route.id)
     setSelectedInterest(route.interestLabel)
-    setSelectedPointLabel(route.pointLabels[0])
   }
 
   const sortedRoutes = useMemo(
@@ -217,13 +197,12 @@ export function RouteConsoleBlock() {
               <Badge variant="outline">
                 {selectedRoute.day} / {selectedRoute.speed}
               </Badge>
-              <Badge variant="outline">{selectedPoint.label}</Badge>
               <Badge variant="outline">{routeStatusLabel}</Badge>
             </div>
             <p className="canvas-text-body">{selectedOption.route}</p>
             <p className="canvas-text-caption text-muted-foreground">
-              Switch routes from the map. The inspector follows route clicks,
-              marker clicks, and route-option buttons.
+              Switch routes from the map line or route rows. Stops remain as
+              anchors; the content belongs to the selected route.
             </p>
 
             <div className="canvas-wrap-sm items-center">
@@ -239,14 +218,7 @@ export function RouteConsoleBlock() {
               ))}
             </div>
 
-            <InspectorPhoto assetKey={selectedPoint.evidenceKey} />
-
-            <div className="canvas-stack-xs">
-              <p className="canvas-text-caption text-muted-foreground">
-                active point
-              </p>
-              <p className="canvas-text-body">{selectedPoint.note}</p>
-            </div>
+            <InspectorPhoto assetKey={selectedRoute.evidenceKey} />
 
             <div className="canvas-stack-xs">
               <p className="canvas-text-caption text-muted-foreground">
@@ -301,35 +273,25 @@ export function RouteConsoleBlock() {
                 />
               ))}
 
-            {tokyoPoints.map((point) => (
+            {tokyoPoints.map((point) => {
+              const isActiveStop = point.routeId === selectedRoute.id
+
+              return (
                 <MapMarker
                   key={point.label}
                   latitude={point.coordinates[1]}
                   longitude={point.coordinates[0]}
-                  onClick={() => selectPoint(point)}
                 >
                 <MarkerContent>
                   <div
-                      className={`grid place-items-center rounded-full border border-white/90 text-[10px] font-semibold text-white shadow-sm ${
-                        point.label === selectedPoint.label ? "size-8 ring-2 ring-ring" : "size-6"
+                      className={`rounded-full border border-background ${
+                        isActiveStop ? "size-4 opacity-80" : "size-3 opacity-50"
                       } ${markerClass[point.speed]}`}
-                  >
-                    {point.day.replace("D", "")}
-                  </div>
-                  {point.label === selectedPoint.label ? (
-                    <MarkerLabel position="top">{point.label}</MarkerLabel>
-                  ) : null}
+                  />
                 </MarkerContent>
-                  <MarkerTooltip>
-                    <div className="space-y-1 text-xs">
-                      <p className="canvas-text-body">
-                        {point.day} / {point.label}
-                      </p>
-                      <p className="text-background/70">{point.note}</p>
-                    </div>
-                  </MarkerTooltip>
               </MapMarker>
-            ))}
+              )
+            })}
           </Map>
             <div className="absolute top-3 left-3 canvas-stack-sm">
               {tokyoRoutes.map((route) => {
