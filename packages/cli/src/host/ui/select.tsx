@@ -25,6 +25,7 @@ export type HostSelectOption = {
   icon?: HostItemIcon
   label: string
   swatchColor?: string
+  triggerLabel?: string
   value: string
 }
 
@@ -101,7 +102,7 @@ function HostSelectTriggerRow({
         <HostItemContent
           caption={triggerLabel ? activeOption?.label : undefined}
           icon={activeOption?.icon}
-          label={triggerLabel ?? activeOption?.label ?? label}
+          label={triggerLabel ?? activeOption?.triggerLabel ?? activeOption?.label ?? label}
           swatchColor={activeOption?.swatchColor}
         />
       </SelectValue>
@@ -112,7 +113,7 @@ function HostSelectTriggerRow({
     <>
       <SelectValue placeholder={label}>
         <span className="canvas-host-select-compact-value">
-          {activeOption?.label ?? label}
+          {activeOption?.triggerLabel ?? activeOption?.label ?? label}
         </span>
       </SelectValue>
       <ChevronDownIcon className="canvas-host-item-icon canvas-host-item-trailing" />

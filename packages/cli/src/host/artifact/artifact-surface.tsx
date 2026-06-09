@@ -54,7 +54,9 @@ export function ArtifactSurface({
 
     let cancelled = false
 
-    void import(artifactBundleUrl(activeFilePath)).then(
+    const bundleUrl = artifactBundleUrl(activeFilePath)
+
+    void import(bundleUrl).then(
       (module: ArtifactModule) => {
         if (cancelled || !artifactRootRef.current) {
           return
@@ -67,9 +69,7 @@ export function ArtifactSurface({
       },
       (loadError: unknown) => {
         setArtifactLoading(false)
-        setError(
-          loadError instanceof Error ? loadError.message : String(loadError)
-        )
+        setError(formatArtifactLoadError({ bundleUrl, error: loadError }))
       }
     )
 
@@ -122,6 +122,26 @@ export function ArtifactSurface({
       </ScrollArea>
     </main>
   )
+}
+
+export function formatArtifactLoadError({
+  bundleUrl,
+  error,
+}: {
+  bundleUrl: string
+  error: unknown
+}) {
+  const message = error instanceof Error ? error.message : String(error)
+
+  if (!message.includes("Failed to fetch dynamically imported module")) {
+    return message
+  }
+
+  return [
+    "Artifact module failed to load.",
+    message,
+    `Module: ${bundleUrl}`,
+  ].join("\n")
 }
 
 export function shouldShowArtifactSkeleton({

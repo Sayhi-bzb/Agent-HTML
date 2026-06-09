@@ -33,3 +33,26 @@ describe("ReactCanvasSidebar artifact rows", () => {
     expect(artifactRowSource).toContain("<AlertDialog ")
   })
 })
+
+describe("ReactCanvasSidebar thread selector", () => {
+  it("uses middle ellipsis for thread ids shown as trigger labels", () => {
+    const shortThreadIdSource = sidebarSource.slice(
+      sidebarSource.indexOf("function shortCodexThreadId"),
+      sidebarSource.indexOf("function codexThreadLabel")
+    )
+
+    expect(shortThreadIdSource).toContain("threadId.length > 18")
+    expect(shortThreadIdSource).toContain("threadId.slice(0, 10)")
+    expect(shortThreadIdSource).toContain("threadId.slice(-6)")
+  })
+
+  it("shows thread ids in the trigger and chat history labels in the options", () => {
+    const threadSelectSource = sidebarSource.slice(
+      sidebarSource.indexOf("function ReactCanvasCodexThreadSelect"),
+      sidebarSource.indexOf("function ReactCanvasSettingsOptionPopover")
+    )
+
+    expect(threadSelectSource).toContain("label: codexThreadLabel(thread)")
+    expect(threadSelectSource).toContain("triggerLabel: shortCodexThreadId(thread.id)")
+  })
+})

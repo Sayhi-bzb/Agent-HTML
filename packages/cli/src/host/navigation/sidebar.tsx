@@ -305,7 +305,11 @@ export function ReactCanvasSidebar({
                       type="button"
                     />
                   </PopoverTrigger>
-                  <HostPopoverContent align="end" side="right">
+                  <HostPopoverContent
+                    align="end"
+                    className="canvas-host-settings-popover-content"
+                    side="right"
+                  >
                     <HostDropdownLabel>Settings</HostDropdownLabel>
                     <ReactCanvasThemeSelect
                       activeMode={activeThemeMode}
@@ -494,7 +498,9 @@ function ArtifactSidebarItem({
 }
 
 function shortCodexThreadId(threadId: string) {
-  return threadId.length > 10 ? `${threadId.slice(0, 10)}...` : threadId
+  return threadId.length > 18
+    ? `${threadId.slice(0, 10)}...${threadId.slice(-6)}`
+    : threadId
 }
 
 function codexThreadLabel(thread: CodexThread) {
@@ -576,6 +582,7 @@ function ReactCanvasCodexThreadSelect({
       ? [
           {
             label: `Current ${shortCodexThreadId(activeThreadId)}`,
+            triggerLabel: shortCodexThreadId(activeThreadId),
             value: activeThreadId,
           },
         ]
@@ -587,6 +594,7 @@ function ReactCanvasCodexThreadSelect({
         ...missingThreadOption,
         ...threads.map((thread) => ({
           label: codexThreadLabel(thread),
+          triggerLabel: shortCodexThreadId(thread.id),
           value: thread.id,
         })),
       ]

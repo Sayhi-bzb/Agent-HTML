@@ -1,8 +1,13 @@
-import { describe, expect, it } from "vitest"
+import fs from "node:fs"
+import os from "node:os"
+import path from "node:path"
+
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   createInitializeParams,
   createCodexSpawnOptions,
+  resolveCodexAppServerSpawn,
   createThreadListParams,
   isEmptyRolloutError,
   listCodexThreadsWithRequest,
@@ -10,6 +15,10 @@ import {
 } from "./codex-bridge.mjs"
 
 describe("React Canvas Codex bridge", () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it("opts into experimental app-server APIs for transcript history", () => {
     expect(createInitializeParams()).toEqual({
       capabilities: {
@@ -37,6 +46,53 @@ describe("React Canvas Codex bridge", () => {
       shell: false,
       stdio: ["pipe", "pipe", "pipe"],
       windowsHide: true,
+    })
+  })
+
+  it("spawns the Codex JavaScript entry instead of the Windows cmd shim", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "agent-html-codex-"))
+    const npmBin = path.join(root, "npm")
+    const codexScript = path.join(
+      npmBin,
+      "node_modules",
+      "@openai",
+      "codex",
+      "bin",
+      "codex.js"
+    )
+
+    fs.mkdirSync(path.dirname(codexScript), { recursive: true })
+    fs.writeFileSync(path.join(npmBin, "codex.cmd"), "@echo off\n")
+    fs.writeFileSync(codexScript, "#!/usr/bin/env node\n")
+    vi.spyOn(process, "platform", "get").mockReturnValue("win32")
+
+    expect(resolveCodexAppServerSpawn({ PATH: npmBin })).toEqual({
+      args: [codexScript, "app-server"],
+      command: process.execPath,
+    })
+  })
+
+  it("falls back to the resolved command when the Windows shim script is missing", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "agent-html-codex-"))
+    const npmBin = path.join(root, "npm")
+    const codexCommand = path.join(npmBin, "codex.cmd")
+
+    fs.mkdirSync(npmBin, { recursive: true })
+    fs.writeFileSync(codexCommand, "@echo off\n")
+    vi.spyOn(process, "platform", "get").mockReturnValue("win32")
+
+    expect(resolveCodexAppServerSpawn({ PATH: npmBin })).toEqual({
+      args: ["app-server"],
+      command: codexCommand,
+    })
+  })
+
+  it("keeps non-Windows Codex app-server spawning unchanged", () => {
+    vi.spyOn(process, "platform", "get").mockReturnValue("linux")
+
+    expect(resolveCodexAppServerSpawn({ PATH: "" })).toEqual({
+      args: ["app-server"],
+      command: "codex",
     })
   })
 

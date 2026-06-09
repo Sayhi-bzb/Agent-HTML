@@ -34,6 +34,7 @@ function createJsonRequest({ body, url }) {
 describe("dev server routes", () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.restoreAllMocks()
   })
 
   it("proxies allowed ZeoSeven font stylesheets", async () => {
@@ -196,6 +197,73 @@ describe("dev server routes", () => {
     expect(JSON.parse(response.body)).toEqual({
       error: "Only ZeoSeven FontsAPI result.css URLs are allowed",
     })
+  })
+
+  it("reports host entry transform failures with Vite details", async () => {
+    const response = createResponseMock()
+    const error = new Error("spawn EPERM")
+    error.plugin = "vite:esbuild"
+    error.id = "D:/codes/Agent-HTML/packages/cli/src/host/main.tsx"
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+
+    const handled = await handleRequest({
+      request: { url: hostRoutes.hostEntry },
+      response,
+      root: process.cwd(),
+      vite: {
+        transformRequest: vi.fn(async () => {
+          throw error
+        }),
+      },
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(200)
+    expect(response.headers).toMatchObject({
+      "Content-Type": "text/javascript; charset=utf-8",
+    })
+    expect(response.body).toContain("throw new Error")
+    expect(response.body).toContain("Unable to transform module")
+    expect(response.body).toContain("packages/cli/src/host/main.tsx")
+    expect(response.body).toContain("spawn EPERM")
+    expect(response.body).toContain("Plugin: vite:esbuild")
+    expect(response.body).toContain("File: D:/codes/Agent-HTML/packages/cli/src/host/main.tsx")
+    expect(response.body).toContain("agent-html-vite")
+    expect(response.body).toContain("restart the dev host")
+    expect(consoleError).toHaveBeenCalledWith(
+      "[agent-html] module transform failed\n%s",
+      expect.stringContaining("spawn EPERM")
+    )
+  })
+
+  it("reports artifact bundle transform failures with artifact context", async () => {
+    const response = createResponseMock()
+    const filePath = "agent-html/artifacts/demo.artifact.tsx"
+    vi.spyOn(console, "error").mockImplementation(() => {})
+
+    const handled = await handleRequest({
+      request: {
+        url: `${hostRoutes.artifactBundle}?filePath=${encodeURIComponent(filePath)}`,
+      },
+      response,
+      root: process.cwd(),
+      vite: {
+        transformRequest: vi.fn(async () => {
+          throw new Error("Unexpected token")
+        }),
+      },
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(200)
+    expect(response.headers).toMatchObject({
+      "Content-Type": "text/javascript; charset=utf-8",
+    })
+    expect(response.body).toContain("throw new Error")
+    expect(response.body).toContain("Unable to transform module")
+    expect(response.body).toContain("/__agent-html/vite-artifact-entry.js")
+    expect(response.body).toContain(encodeURIComponent(filePath))
+    expect(response.body).toContain("Unexpected token")
   })
 
   it("renames artifact entry files inside agent-html/artifacts", async () => {

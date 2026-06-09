@@ -45,6 +45,44 @@ export function resolveCodexCommand(env = process.env) {
   return process.platform === "win32" ? "codex.cmd" : "codex"
 }
 
+function resolveCodexShimScript(command) {
+  if (process.platform !== "win32") {
+    return null
+  }
+
+  if (!command.toLowerCase().endsWith(".cmd")) {
+    return null
+  }
+
+  const scriptPath = path.join(
+    path.dirname(command),
+    "node_modules",
+    "@openai",
+    "codex",
+    "bin",
+    "codex.js"
+  )
+
+  return fs.existsSync(scriptPath) ? scriptPath : null
+}
+
+export function resolveCodexAppServerSpawn(env = process.env) {
+  const command = resolveCodexCommand(env)
+  const shimScript = resolveCodexShimScript(command)
+
+  if (shimScript) {
+    return {
+      args: [shimScript, "app-server"],
+      command: process.execPath,
+    }
+  }
+
+  return {
+    args: ["app-server"],
+    command,
+  }
+}
+
 function createCodexProcessEnv(env = process.env) {
   if (process.platform !== "win32") {
     return env
@@ -54,6 +92,11 @@ function createCodexProcessEnv(env = process.env) {
     ...env,
     PATH: getCodexPathEntries(env).join(path.delimiter),
   }
+}
+
+function createCodexAppServerStartError(error) {
+  const message = error instanceof Error ? error.message : String(error)
+  return new Error(`Unable to start Codex app-server: ${message}`)
 }
 
 export function createCodexSpawnOptions(env = process.env) {
@@ -361,9 +404,14 @@ class CodexJsonlClient {
     this.nextId = 1
     this.pending = new Map()
     this.notifications = []
-    this.process = spawn(resolveCodexCommand(), ["app-server"], {
-      ...createCodexSpawnOptions(),
-    })
+    const appServer = resolveCodexAppServerSpawn()
+    try {
+      this.process = spawn(appServer.command, appServer.args, {
+        ...createCodexSpawnOptions(),
+      })
+    } catch (error) {
+      throw createCodexAppServerStartError(error)
+    }
     this.stderr = ""
 
     const lines = readline.createInterface({
@@ -386,8 +434,9 @@ class CodexJsonlClient {
       clientPromise = null
     })
     this.process.on("error", (error) => {
+      const startError = createCodexAppServerStartError(error)
       for (const pending of this.pending.values()) {
-        pending.reject(error)
+        pending.reject(startError)
       }
       this.pending.clear()
       clientPromise = null

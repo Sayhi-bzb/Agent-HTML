@@ -396,6 +396,14 @@
     min-width: max(12rem, var(--radix-dropdown-menu-trigger-width, 0rem));
   }
 
+  [data-slot="popover-content"].canvas-host-settings-popover-content {
+    min-width: 0;
+    width: min(
+      14rem,
+      var(--radix-popover-content-available-width, calc(100vw - 1.5rem))
+    ) !important;
+  }
+
   .canvas-host-settings-options-content {
     min-width: max(12rem, var(--radix-popover-trigger-width, 0rem));
     max-height: min(
