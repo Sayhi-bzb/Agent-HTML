@@ -105,7 +105,7 @@ Read agent-html/README.md and agent-html/AGENTS.md first.
 
 ## Documentation
 
-- [Canvas docs](./apps/docs/content/docs/canvas/index.mdx): current Canvas constitution, architecture, workspace, host, design-system, and reference docs.
+- [Canvas docs](./apps/docs/content/docs/index.mdx): current Canvas constitution, architecture, workspace, host, design-system, and reference docs.
 - [Canvas workspace](./agent-html/README.md): cold-start route for authoring artifacts and using local Canvas resources.
 - [Agent instructions](./AGENTS.md): repository operating rules and content routes.
 - [Taste](./taste/README.md): repo-level judgment systems.

@@ -7,14 +7,22 @@ import {
   MarkdownCopyButton,
   ViewOptionsPopover,
 } from 'fumadocs-ui/layouts/notebook/page';
+import { redirect } from 'react-router';
 import { getMDXComponents } from '@/components/mdx';
 import { getPageImagePath } from '@/lib/og';
 import { gitConfig } from '@/lib/shared';
 import { getPageMarkdownUrl, source } from '@/lib/source';
 import type { Route } from './+types/docs';
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   const slugs = params['*'].split('/').filter((v) => v.length > 0);
+  if (slugs[0] === 'canvas') {
+    const url = new URL(request.url);
+    const nextPath = ['docs', ...slugs.slice(1)].join('/');
+
+    throw redirect(`/${nextPath}${url.search}`);
+  }
+
   const page = source.getPage(slugs);
   if (!page) throw new Response('Not found', { status: 404 });
 

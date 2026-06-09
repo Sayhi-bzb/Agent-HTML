@@ -4,12 +4,14 @@ import {
   BookOpenTextIcon,
   FileTextIcon,
   FilePlus2Icon,
+  LanguagesIcon,
   LoaderCircleIcon,
+  MoonIcon,
   PaletteIcon,
   PencilIcon,
   SearchIcon,
-  Settings2Icon,
   SparklesIcon,
+  SunIcon,
   Trash2Icon,
 } from "lucide-react"
 import * as React from "react"
@@ -95,7 +97,8 @@ import {
   HostDropdownItem,
   HostDropdownLabel,
 } from "../ui/dropdown"
-import { HostPopoverAction, HostPopoverContent } from "../ui/popover"
+import { HostIconButton } from "../ui/icon-button"
+import { HostPopoverContent } from "../ui/popover"
 import {
   HostSidebarAction,
   HostSidebarActionButton,
@@ -177,6 +180,7 @@ export function ReactCanvasSidebar({
     themePresets.find((preset) => preset.id === activeThemePresetId) ??
     themePresets[0]
   const isGalleryView = activeSidebarView === "gallery"
+  const resolvedThemeIsDark = isResolvedCanvasThemeDark(activeThemeMode)
 
   return (
     <Sidebar className="border-transparent" collapsible="offcanvas">
@@ -201,30 +205,6 @@ export function ReactCanvasSidebar({
                 <span className="canvas-sidebar-title min-w-0 truncate">
                   Agent-HTML
                 </span>
-              </div>
-              <div className="canvas-sidebar-brand-links">
-                <a
-                  aria-label="Open Agent-HTML docs"
-                  className="canvas-sidebar-brand-link"
-                  href="/docs"
-                >
-                  <BookOpenTextIcon
-                    aria-hidden="true"
-                    className="canvas-sidebar-brand-link-icon"
-                  />
-                </a>
-                <a
-                  aria-label="Open Agent-HTML on GitHub"
-                  className="canvas-sidebar-brand-link"
-                  href="https://github.com/Sayhi-bzb/Agent-HTML"
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  <GithubMarkIcon
-                    aria-hidden="true"
-                    className="canvas-sidebar-brand-link-icon"
-                  />
-                </a>
               </div>
             </div>
             <ReactCanvasArtifactSearch
@@ -337,27 +317,71 @@ export function ReactCanvasSidebar({
                 type="button"
               />
               <SidebarMenuItem>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <HostSidebarActionButton
-                      icon={Settings2Icon}
-                      label="Settings"
-                      type="button"
-                    />
-                  </PopoverTrigger>
-                  <HostPopoverContent
-                    align="end"
-                    className="canvas-host-settings-popover-content"
-                    side="right"
+                <div className="canvas-sidebar-footer-icon-group">
+                  <HostIconButton
+                    className="canvas-sidebar-footer-icon-button"
+                    icon={resolvedThemeIsDark ? SunIcon : MoonIcon}
+                    label={
+                      resolvedThemeIsDark
+                        ? "Switch to light theme"
+                        : "Switch to dark theme"
+                    }
+                    onClick={() =>
+                      onSelectThemeMode(
+                        isResolvedCanvasThemeDark(activeThemeMode)
+                          ? "light"
+                          : "dark"
+                      )
+                    }
+                    size="icon-sm"
+                    variant="ghost"
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <HostIconButton
+                        className="canvas-sidebar-footer-icon-button"
+                        icon={LanguagesIcon}
+                        label="Show language"
+                        size="icon-sm"
+                        variant="ghost"
+                      />
+                    </PopoverTrigger>
+                    <HostPopoverContent
+                      align="end"
+                      className="canvas-host-language-popover-content"
+                      side="right"
+                    >
+                      <HostDropdownLabel>Language</HostDropdownLabel>
+                      <div className="canvas-host-dropdown-meta">
+                        {languageLabel(activeLanguage)}
+                      </div>
+                    </HostPopoverContent>
+                  </Popover>
+                  <a
+                    aria-label="Open Agent-HTML docs"
+                    className="canvas-sidebar-footer-icon-link"
+                    href="https://agent-html.org/docs"
+                    rel="noreferrer"
+                    target="_blank"
                   >
-                    <HostDropdownLabel>Settings</HostDropdownLabel>
-                    <ReactCanvasThemeSelect
-                      activeMode={activeThemeMode}
-                      onSelectMode={onSelectThemeMode}
+                    <BookOpenTextIcon
+                      aria-hidden="true"
+                      className="canvas-sidebar-footer-icon"
                     />
-                    <ReactCanvasLanguageSelect activeLanguage={activeLanguage} />
-                  </HostPopoverContent>
-                </Popover>
+                  </a>
+                  <a
+                    aria-label="Open Agent-HTML on GitHub"
+                    className="canvas-sidebar-footer-icon-link"
+                    href="https://github.com/Sayhi-bzb/Agent-HTML"
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <GithubMarkIcon
+                      aria-hidden="true"
+                      className="canvas-sidebar-footer-icon"
+                    />
+                  </a>
+                </div>
               </SidebarMenuItem>
             </>
           )}
@@ -369,17 +393,29 @@ export function ReactCanvasSidebar({
 
 const newCodexThreadValue = "__agent-html-new-codex-thread__"
 
-const themeModeOptions = [
-  { label: "System", value: "system" },
-  { label: "Light", value: "light" },
-  { label: "Dark", value: "dark" },
-] satisfies readonly { label: string; value: CanvasHostThemeMode }[]
+const languageLabels = {
+  en: "English",
+  system: "System",
+  zh: "中文",
+} satisfies Record<CanvasHostLanguage, string>
 
-const languageOptions = [
-  { label: "System", value: "system" },
-  { label: "中文", value: "zh" },
-  { label: "English", value: "en" },
-] satisfies readonly { label: string; value: CanvasHostLanguage }[]
+function languageLabel(language: CanvasHostLanguage) {
+  return languageLabels[language]
+}
+
+function isResolvedCanvasThemeDark(mode: CanvasHostThemeMode) {
+  if (mode === "dark") {
+    return true
+  }
+
+  if (mode === "light") {
+    return false
+  }
+
+  return typeof document !== "undefined"
+    ? document.documentElement.classList.contains("dark")
+    : false
+}
 
 function artifactFileName(filePath: string) {
   return filePath.split(/[\\/]/).at(-1) ?? filePath
@@ -547,56 +583,6 @@ function codexThreadLabel(thread: CodexThread) {
   return thread.name ?? thread.preview ?? shortCodexThreadId(thread.id)
 }
 
-function ReactCanvasThemeSelect({
-  activeMode,
-  onSelectMode,
-}: {
-  activeMode: CanvasHostThemeMode
-  onSelectMode: (mode: CanvasHostThemeMode) => void
-}) {
-  return (
-    <ReactCanvasSettingsOptionPopover
-      activeValue={activeMode}
-      label="Theme"
-      onSelectValue={(value) => onSelectMode(value as CanvasHostThemeMode)}
-      options={themeModeOptions}
-      title="Theme"
-    />
-  )
-}
-
-function ReactCanvasLanguageSelect({
-  activeLanguage,
-}: {
-  activeLanguage: CanvasHostLanguage
-}) {
-  return (
-    <ReactCanvasSettingsOptionPopover
-      activeValue={activeLanguage}
-      disabled
-      label="Language"
-      onSelectValue={() => {}}
-      options={languageOptions}
-      title="Language"
-    />
-  )
-}
-
-function HostSettingsSelectRow({
-  children,
-  title,
-}: {
-  children: React.ReactNode
-  title: string
-}) {
-  return (
-    <div className="canvas-host-settings-row">
-      <span className="canvas-host-settings-row-title">{title}</span>
-      {children}
-    </div>
-  )
-}
-
 function ReactCanvasCodexThreadSelect({
   activeThreadId,
   error,
@@ -659,66 +645,6 @@ function ReactCanvasCodexThreadSelect({
       options={options}
       value={value}
     />
-  )
-}
-
-function ReactCanvasSettingsOptionPopover({
-  activeValue,
-  disabled = false,
-  label,
-  onSelectValue,
-  options,
-  title,
-}: {
-  activeValue: string
-  disabled?: boolean
-  label: string
-  onSelectValue: (value: string) => void
-  options: readonly HostSelectOption[]
-  title: string
-}) {
-  const [open, setOpen] = React.useState(false)
-  const activeOption = options.find((option) => option.value === activeValue)
-
-  function selectValue(nextValue: string) {
-    onSelectValue(nextValue)
-    setOpen(false)
-  }
-
-  return (
-    <HostSettingsSelectRow title={title}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <HostButton
-            aria-label={label}
-            className="canvas-host-select-compact-trigger"
-            disabled={disabled}
-            type="button"
-            variant="ghost"
-          >
-            <span className="canvas-host-select-compact-value">
-              {activeOption?.label ?? label}
-            </span>
-          </HostButton>
-        </PopoverTrigger>
-        {disabled ? null : (
-          <HostPopoverContent
-            align="end"
-            className="canvas-host-settings-options-content"
-            side="right"
-          >
-            {options.map((option) => (
-              <HostPopoverAction
-                active={option.value === activeValue}
-                key={option.value}
-                label={option.label}
-                onClick={() => selectValue(option.value)}
-              />
-            ))}
-          </HostPopoverContent>
-        )}
-      </Popover>
-    </HostSettingsSelectRow>
   )
 }
 

@@ -1,3 +1,10 @@
 {
-  "pages": ["index", "canvas"]
+  "pages": [
+    "start",
+    "architecture",
+    "workspace",
+    "design-system",
+    "host",
+    "reference"
+  ]
 }

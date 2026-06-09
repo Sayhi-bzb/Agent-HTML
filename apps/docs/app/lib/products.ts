@@ -2,8 +2,8 @@ export const products = [
   {
     label: 'Canvas',
     value: 'canvas',
-    root: '/docs/canvas',
-    defaultHref: '/docs/canvas/start',
+    root: '/docs',
+    defaultHref: '/docs/start',
   },
 ] as const;
 

@@ -34,13 +34,13 @@ Apply these rules when writing or editing docs.
 
 Use these routes before searching broadly.
 
-- Canvas constitution: `apps/docs/content/docs/canvas/index.mdx`
-- Canvas docs: `apps/docs/content/docs/canvas`
-- Canvas architecture: `apps/docs/content/docs/canvas/architecture/index.mdx`
-- Canvas workspace: `apps/docs/content/docs/canvas/workspace/index.mdx`
+- Canvas constitution: `apps/docs/content/docs/index.mdx`
+- Canvas docs: `apps/docs/content/docs`
+- Canvas architecture: `apps/docs/content/docs/architecture/index.mdx`
+- Canvas workspace: `apps/docs/content/docs/workspace/index.mdx`
 - Canvas workspace source: `agent-html/README.md`
-- Canvas host: `apps/docs/content/docs/canvas/host/index.mdx`
-- Canvas reference: `apps/docs/content/docs/canvas/reference/index.mdx`
+- Canvas host: `apps/docs/content/docs/host/index.mdx`
+- Canvas reference: `apps/docs/content/docs/reference/index.mdx`
 - Taste: `taste/README.md`
 - Taste Design: `taste/design/README.md`
 - Agent Ergonomics: `taste/agent-ergonomics/README.md`
@@ -54,7 +54,7 @@ Use these routes before searching broadly.
 
 # Canvas Constitution
 
-Canonical source: `apps/docs/content/docs/canvas/index.mdx`.
+Canonical source: `apps/docs/content/docs/index.mdx`.
 
 Canvas governs the current isolated React artifact workspace for agents.
 

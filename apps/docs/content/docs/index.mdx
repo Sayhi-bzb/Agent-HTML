@@ -1,14 +1,49 @@
 ---
-title: Agent-HTML Docs
-description: Canvas documentation for Agent-HTML.
+title: Canvas
+description: Canvas constitution.
 ---
 
-Agent-HTML turns agent output into durable, previewable artifacts.
+# Canvas
 
-Use **Canvas** docs when you want to work with the current React artifact
-workspace: `agent-html`, local UI primitives, block composition, prompt
-pipeline, and host inspection.
+Canvas governs the isolated React artifact workspace for agents.
 
-<Cards>
-  <Card title="Canvas" description="Build agent-authored React artifacts in the sandbox." href="/docs/canvas/start" />
-</Cards>
+Canvas governs `agent-html`, React artifact composition, local resources,
+block prompts, and host inspection. Retired App and Runtime docs live under
+`_archive/docs` for historical reference only.
+
+## Constitution
+
+### Agent Operating Context
+
+Canvas turns a filesystem directory into durable operating context for agents.
+Rules, resources, data, examples, and artifacts live in `agent-html` so agents
+can read, compose, revise, and continue work without depending on chat state.
+
+### Isolated Artifact Workbench
+
+Canvas gives agents a bounded place to generate, preview, validate, and revise
+React artifacts without importing the app shell or old runtime UI.
+
+### Headless Protocol
+
+`Artifact` and `Block` mark collaboration boundaries. They provide rendered
+metadata, host anchors, and accessibility minimums. `Artifact` owns the
+readable root container, accepts only `title` and children, and reads layout
+values from Canvas CSS tokens. `Block` is protocol-only: it accepts `id`,
+`title`, and children, and does not accept styling or layout props.
+
+`@agent-html/react` also exposes interaction-state helpers for instrumented
+controls. They emit `agent-html:state-change` events without giving artifact
+source privileged host access.
+
+### Local Resource Consumption
+
+Artifacts consume local workspace resources: UI primitives, hooks, helpers,
+schemas, data, examples, and semantic token classes.
+
+### Inspectable Host Boundary
+
+The host discovers artifacts, renders Vite-served modules, overlays blocks,
+shows guard issues, handles floating block prompts, applies theme presets, and
+loads the Canvas stylesheet. It observes artifact metadata instead of owning
+artifact layout.
