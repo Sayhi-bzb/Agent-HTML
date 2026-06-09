@@ -27,8 +27,8 @@ theme/*
 components/ui/*
   -> local visual primitives
 
-components/kanban.tsx
-  -> rich workflow component
+components/*.tsx
+  -> reusable rich components
 
 artifact files
   -> primitive composition and Canvas semantic classes
@@ -112,9 +112,9 @@ radio-group, resizable, scroll-area, select, separator, sheet, sidebar,
 skeleton, slider, switch, table, tabs, textarea, toggle, toggle-group, and
 tooltip.
 
-Rich workflow components live outside `components/ui`. `components/kanban.tsx`
-owns the drag-and-drop board component because it carries workflow structure,
-data movement, and dnd-kit behavior rather than primitive UI semantics.
+Rich components live outside `components/ui`. `agent-html/components/README.md`
+owns the current component route and identifies when to use a rich component
+instead of a primitive.
 
 Do not rewrite every local primitive to tokenize all spacing, density, or
 typography values. Keep local shadcn-derived primitives low-modification unless

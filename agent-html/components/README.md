@@ -12,7 +12,7 @@ component layer before opening source files.
 
 ## Read Next
 
-- Unsure which component fits the task: `../../docs/ui/README.md`.
+- Unsure which component fits the task: `../../taste/design/DESIGN.md`.
 - Need exact exports: `../index/api-surface.md`.
 - Opening large component files: `../index/large-files.md`.
 

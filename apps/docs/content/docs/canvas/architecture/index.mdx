@@ -60,7 +60,7 @@ styles/public/content.css
 styles/internal/*
 theme/*
 components/ui/*
-components/kanban.tsx
+components/*.tsx
 hooks/*
 lib/*
 schema/*
@@ -120,7 +120,7 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Module transform and render | Vite middleware + host surface | artifact entry file path | mounted artifact DOM with HMR-capable module graph | app shell, old runtime render APIs | `dev-host.test.mjs` |
 | Block overlay | `packages/react` + host overlay | rendered `data-agent-html-block-*` metadata | hover highlight and prompt target | artifact source mutation, host APIs in artifacts | `block-overlay.test.ts`, `index.test.tsx` |
 | Block implementation lookup | dev server + host API | `artifactEntry`, `blockId` | `implementationPath` | selected source payloads, implementation source payloads | `block-implementation.test.mjs`, `dev-host.test.mjs` |
-| Block prompt | `react-canvas/prompt.mjs` | `artifactEntry`, `blockId`, optional `implementationPath`, host `interactionSnapshot` | minimal prompt packet | TSX source payloads, runtime DSL source payloads | `prompt.test.mjs` |
+| Block prompt | `react-canvas/prompt.mjs` | `artifactEntry`, `blockId`, optional `implementationPath`, host `interactionSnapshot` | minimal prompt packet | selected source payloads, implementation source payloads | `prompt.test.mjs` |
 | Interaction state | `packages/react` event protocol + host store | artifact-local control changes | host prompt interaction snapshot | filesystem, shell, MCP, privileged host APIs in artifact code | `index.test.tsx`, `interaction-store.test.ts`, `prompt.test.mjs` |
 | CSS/theme | `agent-html/styles` + host theme editor | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `boundaries.test.mjs`, `theme-preset.test.ts` |
 

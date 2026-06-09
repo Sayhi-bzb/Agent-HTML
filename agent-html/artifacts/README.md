@@ -9,7 +9,7 @@ Use it after reading `../README.md` and `../AGENTS.md`. `AGENTS.md` owns hard ar
 - New artifact or broad artifact edit: start from `../examples/example.artifact.tsx`.
 - Existing split artifact: open the `*.artifact.tsx` artifact entry before opening block files.
 - Large block file: read `../index/large-files.md`, the artifact entry, and the block name first, then open only the block that owns the requested change.
-- UI choice: read `../components/README.md`, then `../../docs/ui/README.md`.
+- UI choice: read `../components/README.md`, then `../../taste/design/DESIGN.md` for component judgment.
 - Reusable hooks, helpers, schemas, data, or rich components: read `../index/reuse-surface.md`, then `../index/api-surface.md`, before adding local code.
 
 ## Boundary

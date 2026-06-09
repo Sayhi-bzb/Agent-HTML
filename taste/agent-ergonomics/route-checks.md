@@ -52,7 +52,7 @@ Strong constraint placement:
 - `agent-html/README.md` routes by task condition and must not repeat full
   rules.
 - `agent-html/components/README.md` owns component source routing.
-- `docs/ui/README.md` owns component choice guidance.
+- `taste/design/DESIGN.md` owns component judgment.
 - `agent-html/index/*` owns generated decision summaries, not design intent.
 - `examples/*` owns copyable patterns and should stay compact.
 
@@ -106,7 +106,7 @@ Applied boundaries:
 - `artifacts/README.md` owns artifact source routing.
 - `components/README.md` owns the component source route.
 - `data/README.md` owns fixture and dataset source routing.
-- `docs/ui/README.md` owns component choice guidance.
+- `taste/design/DESIGN.md` owns component judgment.
 - `index/api-surface.md` owns compact exports.
 - `index/large-files.md` owns large-file reading cost and suggested routes.
 - `examples/` carries copyable policy, so examples should stay compact and
@@ -211,7 +211,7 @@ Expected route:
 
 ```text
 agent-html/components/README.md
-  -> docs/ui/README.md
+  -> taste/design/DESIGN.md
   -> agent-html/index/api-surface.md
   -> source only if exports and examples are insufficient
 ```
@@ -297,8 +297,8 @@ Avoid route: opening large files as the first context.
 
 Pass: the agent reads a map before implementation detail.
 
-Failure smells: cold-starting in `kanban.tsx`, `sidebar.tsx`, or broad coverage
-artifacts.
+Failure smells: cold-starting in large rich components, `sidebar.tsx`, or broad
+coverage artifacts.
 
 ### Generated Index Route
 
