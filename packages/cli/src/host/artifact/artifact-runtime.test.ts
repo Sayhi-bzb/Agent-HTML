@@ -256,12 +256,26 @@ describe("ArtifactRuntimeController", () => {
   })
 
   it("reloads the mounted artifact when the registry version changes", async () => {
+    const firstMountedElement = { remove: vi.fn() }
+    const secondMountedElement = { remove: vi.fn() }
+    const element = {
+      appendChild: vi.fn(),
+      ownerDocument: {
+        createElement: vi
+          .fn()
+          .mockReturnValueOnce(firstMountedElement)
+          .mockReturnValueOnce(secondMountedElement),
+      },
+      replaceChildren: vi.fn(),
+    } as unknown as HTMLElement
+    const firstDispose = vi.fn()
+    const secondDispose = vi.fn()
     const importModule = vi
       .fn()
-      .mockResolvedValueOnce(moduleWithDispose())
-      .mockResolvedValueOnce(moduleWithDispose())
+      .mockResolvedValueOnce(moduleWithDispose(firstDispose))
+      .mockResolvedValueOnce(moduleWithDispose(secondDispose))
     const controller = new ArtifactRuntimeController({ importModule })
-    controller.setElement(createElement())
+    controller.setElement(element)
 
     await controller.load("agent-html/artifacts/demo.artifact.tsx", 1)
     await controller.load("agent-html/artifacts/demo.artifact.tsx", 2)
@@ -269,6 +283,14 @@ describe("ArtifactRuntimeController", () => {
     expect(importModule).toHaveBeenCalledTimes(2)
     expect(importModule.mock.calls[0]?.[0]).toContain("v=1")
     expect(importModule.mock.calls[1]?.[0]).toContain("v=2")
+    expect(firstDispose).toHaveBeenCalledOnce()
+    expect(secondDispose).not.toHaveBeenCalled()
+    expect(firstMountedElement.remove).toHaveBeenCalledOnce()
+    expect(secondMountedElement.remove).not.toHaveBeenCalled()
+    expect(controller.getSnapshot()).toMatchObject({
+      mountedFilePath: "agent-html/artifacts/demo.artifact.tsx",
+      status: "mounted",
+    })
   })
 
   it("does not retry module graph failures on a timer", async () => {

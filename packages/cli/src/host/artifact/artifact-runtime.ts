@@ -355,7 +355,7 @@ export class ArtifactRuntimeController {
       })
       this.#onMounted()
 
-      if (previousDispose && previousMountedFilePath !== filePath) {
+      if (previousDispose) {
         await this.#disposePrevious({
           dispose: previousDispose,
           filePath: previousMountedFilePath ?? filePath,

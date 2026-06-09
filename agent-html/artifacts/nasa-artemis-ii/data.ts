@@ -312,6 +312,48 @@ export const mediaAssets = {
       sourceUrl: "https://www.nasa.gov/image-detail/amf-art002e009301/",
       src: "https://images-assets.nasa.gov/image/art002e009301/art002e009301~large.jpg?crop=faces%2Cfocalpoint&fit=clip&h=1280&w=1920",
     },
+    gallery: [
+      {
+        alt: "Earth setting behind the Moon's horizon during the Artemis II lunar flyby.",
+        caption:
+          "Earthset through Orion's window makes the Moon a foreground landmark.",
+        credit: "Credit: NASA",
+        sourceUrl: "https://www.nasa.gov/image-detail/art002e009288/",
+        src: "https://images-assets.nasa.gov/image/art002e009288/art002e009288~large.jpg?crop=faces%2Cfocalpoint&fit=clip&h=1280&w=1920",
+      },
+      {
+        alt: "The Moon backlit by the Sun during an in-space solar eclipse, with Orion visible in the foreground.",
+        caption:
+          "A solar eclipse seen from Orion turns the flyby into a spacecraft-scale scene.",
+        credit: "Credit: NASA",
+        sourceUrl: "https://www.nasa.gov/image-detail/art002e009573/",
+        src: "https://images-assets.nasa.gov/image/art002e009573/art002e009573~large.jpg?crop=faces%2Cfocalpoint&fit=clip&h=1280&w=1920",
+      },
+      {
+        alt: "The Moon and Earth captured in one frame during the Artemis II lunar flyby.",
+        caption:
+          "Moon and Earth share one frame as Orion crosses lunar space.",
+        credit: "Credit: NASA",
+        sourceUrl: "https://www.nasa.gov/gallery/lunar-flyby/",
+        src: "https://images-assets.nasa.gov/image/art002e009567/art002e009567~large.jpg?crop=faces%2Cfocalpoint&fit=clip&h=1280&w=1920",
+      },
+      {
+        alt: "A detailed lunar surface view with a distant Earth setting in the background.",
+        caption:
+          "Cratered terrain and distant Earth compress the scale of the flyby.",
+        credit: "Credit: NASA",
+        sourceUrl: "https://www.nasa.gov/image-detail/art002e009289/",
+        src: "https://images-assets.nasa.gov/image/art002e009289/art002e009289~large.jpg?crop=faces%2Cfocalpoint&fit=clip&h=1280&w=1920",
+      },
+      {
+        alt: "The Moon peeking above the Orion spacecraft window sill during Artemis II.",
+        caption:
+          "The Orion window frame keeps the lunar pass tied to the crew's viewpoint.",
+        credit: "Credit: NASA",
+        sourceUrl: "https://www.nasa.gov/gallery/lunar-flyby/",
+        src: "https://images-assets.nasa.gov/image/art002e012278/art002e012278~large.jpg?crop=faces%2Cfocalpoint&fit=clip&h=1280&w=1920",
+      },
+    ],
   },
   opening: {
     alt: "Earth seen from Orion during Artemis II.",

@@ -1,8 +1,30 @@
+import { useEffect, useState } from "react"
+
 import { Badge } from "../../components/ui/badge"
+import {
+  Carousel,
+  type CarouselApi,
+  CarouselContent,
+  CarouselItem,
+} from "../../components/ui/carousel"
 
 import { lunarMediaBeats, mediaAssets } from "./data"
 
 export function LunarFlybyBlock() {
+  const gallery = mediaAssets.lunarFlyby.gallery
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false)
+
+  useEffect(() => {
+    if (!carouselApi || isCarouselPaused || gallery.length < 2) return
+
+    const intervalId = window.setInterval(() => {
+      carouselApi.scrollNext()
+    }, 4000)
+
+    return () => window.clearInterval(intervalId)
+  }, [carouselApi, gallery.length, isCarouselPaused])
+
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-md">
@@ -20,17 +42,39 @@ export function LunarFlybyBlock() {
           the Earth-Moon relationship.
         </p>
 
-        <figure className="canvas-stack-sm">
-          <img
-            alt={mediaAssets.lunarFlyby.earthset.alt}
-            className="max-h-screen w-full rounded-md object-cover"
-            src={mediaAssets.lunarFlyby.earthset.src}
-          />
-          <p className="canvas-text-caption text-muted-foreground">
-            {mediaAssets.lunarFlyby.earthset.caption}{" "}
-            {mediaAssets.lunarFlyby.earthset.credit}.
-          </p>
-        </figure>
+        <Carousel
+          onFocus={() => setIsCarouselPaused(true)}
+          onBlur={() => setIsCarouselPaused(false)}
+          onMouseEnter={() => setIsCarouselPaused(true)}
+          onMouseLeave={() => setIsCarouselPaused(false)}
+          onPointerCancel={() => setIsCarouselPaused(false)}
+          onPointerDown={() => setIsCarouselPaused(true)}
+          onPointerUp={() => setIsCarouselPaused(false)}
+          opts={{ align: "start", loop: true }}
+          setApi={setCarouselApi}
+        >
+          <CarouselContent>
+            {gallery.map((asset, index) => (
+              <CarouselItem key={asset.src}>
+                <figure className="canvas-stack-sm">
+                  <div className="relative aspect-[16/10] max-h-screen overflow-hidden rounded-md bg-muted">
+                    <img
+                      alt={asset.alt}
+                      className="h-full w-full object-cover"
+                      src={asset.src}
+                    />
+                    <div className="absolute top-3 left-3 rounded-full bg-background/85 px-3 py-1 text-xs text-foreground shadow-sm backdrop-blur">
+                      {index + 1} / {gallery.length}
+                    </div>
+                  </div>
+                  <p className="canvas-text-caption text-muted-foreground">
+                    {asset.caption} {asset.credit}.
+                  </p>
+                </figure>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
       </div>
 
       <div className="canvas-grid-gap md:grid-cols-2">
