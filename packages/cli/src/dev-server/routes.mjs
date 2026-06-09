@@ -1,10 +1,8 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
-import { discoverReactArtifacts, workspaceRelativePath } from "../react-canvas/paths.mjs"
-import { runGuard } from "../react-canvas/guard.mjs"
+import { workspaceRelativePath } from "../react-canvas/paths.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
-import { collectStaticBlockMetadata } from "../react-canvas/block-tags.mjs"
 import { readTextFile } from "../react-canvas/workspace-file.mjs"
 import {
   listCodexThreads,
@@ -146,7 +144,16 @@ async function readJsonBody(request) {
 }
 
 async function sendTransformedModule({ response, url, vite }) {
-  const result = await vite.transformRequest(url)
+  let result
+
+  try {
+    result = await vite.transformRequest(url)
+  } catch (error) {
+    const transformError = new Error(formatTransformError({ error, url }))
+    console.error("[agent-html] module transform failed\n%s", transformError.message)
+    sendError(response, transformError)
+    return
+  }
 
   if (!result) {
     sendNotFound(response)
@@ -154,6 +161,29 @@ async function sendTransformedModule({ response, url, vite }) {
   }
 
   sendText(response, result.code, "text/javascript; charset=utf-8")
+}
+
+function formatTransformError({ error, url }) {
+  const message = error instanceof Error ? error.message : String(error)
+  const lines = [`Unable to transform module: ${url}`, message]
+
+  if (error && typeof error === "object") {
+    if (typeof error.plugin === "string" && error.plugin) {
+      lines.push(`Plugin: ${error.plugin}`)
+    }
+
+    if (typeof error.id === "string" && error.id) {
+      lines.push(`File: ${error.id}`)
+    }
+  }
+
+  if (message.includes("spawn EPERM")) {
+    lines.push(
+      "Vite/esbuild could not spawn a worker process. Stop stale AgentHTML dev hosts, clear the agent-html-vite temp cache, and restart the dev host."
+    )
+  }
+
+  return lines.join("\n")
 }
 
 function resolveProxiedZeosevenUrl(requestUrl, { errorMessage, pathnameTest }) {
@@ -263,7 +293,7 @@ async function sendFontAsset({ requestUrl, response }) {
   }
 }
 
-export async function handleRequest({ request, response, root, vite }) {
+export async function handleRequest({ artifactRegistry, request, response, root, vite }) {
   const requestUrl = new URL(request.url ?? "/", "http://localhost")
 
   if (requestUrl.pathname === "/") {
@@ -339,22 +369,7 @@ export async function handleRequest({ request, response, root, vite }) {
   }
 
   if (requestUrl.pathname === hostRoutes.artifacts) {
-    const artifacts = await discoverReactArtifacts(root)
-    const guard = await runGuard({ root })
-    const artifactsWithBlocks = await Promise.all(
-      artifacts.map(async (filePath) => {
-        const source = await fs.readFile(filePath, "utf8")
-
-        return {
-          blocks: collectStaticBlockMetadata(source),
-          filePath: workspaceRelativePath(root, filePath),
-        }
-      })
-    )
-    sendJson(response, {
-      artifacts: artifactsWithBlocks,
-      guardIssues: guard.issues,
-    })
+    sendJson(response, artifactRegistry.getSnapshot())
     return true
   }
 
@@ -403,6 +418,7 @@ export async function handleRequest({ request, response, root, vite }) {
       }
 
       await fs.rename(sourcePath, targetPath)
+      await artifactRegistry.refresh({ reason: "artifact-rename" })
       sendJson(response, {
         filePath: workspaceRelativePath(root, targetPath),
       })
@@ -424,6 +440,7 @@ export async function handleRequest({ request, response, root, vite }) {
       const absolutePath = assertArtifactEntryPath(root, filePath)
 
       await fs.rm(absolutePath)
+      await artifactRegistry.refresh({ reason: "artifact-delete" })
       sendJson(response, { ok: true })
     } catch (error) {
       sendError(response, error, 400)

@@ -31,6 +31,25 @@ function createJsonRequest({ body, url }) {
   }
 }
 
+function createArtifactRegistryMock(snapshot = {
+  artifacts: [],
+  guardIssues: [],
+  status: "ready",
+  version: 1,
+}) {
+  return {
+    getSnapshot: vi.fn(() => snapshot),
+    refresh: vi.fn(async () => {}),
+  }
+}
+
+function handleRoute(options) {
+  return handleRequest({
+    artifactRegistry: createArtifactRegistryMock(),
+    ...options,
+  })
+}
+
 describe("dev server routes", () => {
   afterEach(() => {
     vi.unstubAllGlobals()
@@ -53,7 +72,7 @@ describe("dev server routes", () => {
 
     vi.stubGlobal("fetch", fetchMock)
 
-    const handled = await handleRequest({
+    const handled = await handleRoute({
       request: {
         url: `${hostRoutes.fontStylesheet}?url=${encodeURIComponent(
           "https://fontsapi.zeoseven.com/570/main/result.css"
@@ -97,7 +116,7 @@ describe("dev server routes", () => {
 
     vi.stubGlobal("fetch", fetchMock)
 
-    const handled = await handleRequest({
+    const handled = await handleRoute({
       request: {
         url: `${hostRoutes.fontAsset}?url=${encodeURIComponent(
           "https://fontsapi.zeoseven.com/570/main/test.woff2"
@@ -122,7 +141,7 @@ describe("dev server routes", () => {
   it("rejects non-ZeoSeven font asset proxy urls", async () => {
     const response = createResponseMock()
 
-    const handled = await handleRequest({
+    const handled = await handleRoute({
       request: {
         url: `${hostRoutes.fontAsset}?url=${encodeURIComponent(
           "https://example.com/font.woff2"
@@ -143,7 +162,7 @@ describe("dev server routes", () => {
   it("rejects non-woff2 font asset proxy urls", async () => {
     const response = createResponseMock()
 
-    const handled = await handleRequest({
+    const handled = await handleRoute({
       request: {
         url: `${hostRoutes.fontAsset}?url=${encodeURIComponent(
           "https://fontsapi.zeoseven.com/570/main/result.css"
@@ -164,7 +183,7 @@ describe("dev server routes", () => {
   it("rejects font stylesheet proxy requests without a url", async () => {
     const response = createResponseMock()
 
-    const handled = await handleRequest({
+    const handled = await handleRoute({
       request: { url: hostRoutes.fontStylesheet },
       response,
       root: process.cwd(),
@@ -181,7 +200,7 @@ describe("dev server routes", () => {
   it("rejects non-ZeoSeven font stylesheet proxy urls", async () => {
     const response = createResponseMock()
 
-    const handled = await handleRequest({
+    const handled = await handleRoute({
       request: {
         url: `${hostRoutes.fontStylesheet}?url=${encodeURIComponent(
           "https://example.com/font.css"
@@ -199,6 +218,93 @@ describe("dev server routes", () => {
     })
   })
 
+  it("serves artifacts from the registry snapshot", async () => {
+    const response = createResponseMock()
+    const snapshot = {
+      artifacts: [
+        {
+          blocks: [{ id: "summary", title: "Summary" }],
+          filePath: "agent-html/artifacts/demo.artifact.tsx",
+        },
+      ],
+      guardIssues: [],
+      status: "ready",
+      version: 7,
+    }
+    const artifactRegistry = createArtifactRegistryMock(snapshot)
+
+    const handled = await handleRequest({
+      artifactRegistry,
+      request: { url: hostRoutes.artifacts },
+      response,
+      root: process.cwd(),
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(artifactRegistry.getSnapshot).toHaveBeenCalledOnce()
+    expect(JSON.parse(response.body)).toEqual(snapshot)
+  })
+
+  it("reports host entry transform failures with Vite details", async () => {
+    const response = createResponseMock()
+    const error = new Error("spawn EPERM")
+    error.plugin = "vite:esbuild"
+    error.id = "D:/codes/Agent-HTML/packages/cli/src/host/main.tsx"
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+
+    const handled = await handleRoute({
+      request: { url: hostRoutes.hostEntry },
+      response,
+      root: process.cwd(),
+      vite: {
+        transformRequest: vi.fn(async () => {
+          throw error
+        }),
+      },
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(500)
+    const body = JSON.parse(response.body)
+    expect(body.error).toContain("Unable to transform module")
+    expect(body.error).toContain("packages/cli/src/host/main.tsx")
+    expect(body.error).toContain("spawn EPERM")
+    expect(body.error).toContain("Plugin: vite:esbuild")
+    expect(body.error).toContain("agent-html-vite")
+    expect(consoleError).toHaveBeenCalledWith(
+      "[agent-html] module transform failed\n%s",
+      body.error
+    )
+  })
+
+  it("reports artifact bundle transform failures with artifact context", async () => {
+    const response = createResponseMock()
+    const filePath = "agent-html/artifacts/demo.artifact.tsx"
+    vi.spyOn(console, "error").mockImplementation(() => {})
+
+    const handled = await handleRoute({
+      request: {
+        url: `${hostRoutes.artifactBundle}?filePath=${encodeURIComponent(filePath)}`,
+      },
+      response,
+      root: process.cwd(),
+      vite: {
+        transformRequest: vi.fn(async () => {
+          throw new Error("Unexpected token")
+        }),
+      },
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(500)
+    const body = JSON.parse(response.body)
+    expect(body.error).toContain("Unable to transform module")
+    expect(body.error).toContain("/__agent-html/vite-artifact-entry.js")
+    expect(body.error).toContain(encodeURIComponent(filePath))
+    expect(body.error).toContain("Unexpected token")
+  })
+
   it("renames artifact entry files inside agent-html/artifacts", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
     const artifactsRoot = path.join(root, "agent-html", "artifacts")
@@ -209,7 +315,7 @@ describe("dev server routes", () => {
     )
 
     const response = createResponseMock()
-    const handled = await handleRequest({
+    const handled = await handleRoute({
       request: createJsonRequest({
         body: {
           filePath: "agent-html/artifacts/old-name.artifact.tsx",
@@ -234,7 +340,7 @@ describe("dev server routes", () => {
   it("rejects artifact rename outside artifact entries", async () => {
     const response = createResponseMock()
 
-    const handled = await handleRequest({
+    const handled = await handleRoute({
       request: createJsonRequest({
         body: {
           filePath: "agent-html/AGENTS.md",
@@ -262,7 +368,7 @@ describe("dev server routes", () => {
     await fs.writeFile(artifactPath, "export default function Artifact() {}\n")
 
     const response = createResponseMock()
-    const handled = await handleRequest({
+    const handled = await handleRoute({
       request: createJsonRequest({
         body: {
           filePath: "agent-html/artifacts/delete-me.artifact.tsx",

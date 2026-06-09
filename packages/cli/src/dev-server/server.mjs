@@ -2,6 +2,7 @@ import http from "node:http"
 
 import { parseRootArg } from "../react-canvas/paths.mjs"
 import { stopCodexBridge } from "./codex-bridge.mjs"
+import { createArtifactRegistry } from "./artifact-registry.mjs"
 import { sendError } from "./http.mjs"
 import { handleRequest } from "./routes.mjs"
 import { createAgentHtmlViteServer } from "./vite.mjs"
@@ -119,6 +120,8 @@ export async function startDevHost({ args, cwd }) {
   const pipeline = parsePipelineArg(args)
   const server = http.createServer()
   const vite = await createAgentHtmlViteServer({ pipeline, root, server })
+  const artifactRegistry = createArtifactRegistry({ root, vite })
+  await artifactRegistry.start()
   const closeHttpServer = server.close.bind(server)
   let closeRuntimePromise = null
 
@@ -126,6 +129,7 @@ export async function startDevHost({ args, cwd }) {
     if (!closeRuntimePromise) {
       closeRuntimePromise = (async () => {
         await waitForViteRuntimeIdle(vite)
+        await artifactRegistry.close()
         await vite.close()
         await stopCodexBridge()
       })()
@@ -146,7 +150,7 @@ export async function startDevHost({ args, cwd }) {
   }
 
   server.on("request", (request, response) => {
-    handleRequest({ request, response, root, vite }).then(
+    handleRequest({ artifactRegistry, request, response, root, vite }).then(
       (handled) => {
         if (handled) {
           return

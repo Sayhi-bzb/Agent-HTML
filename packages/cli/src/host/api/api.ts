@@ -40,6 +40,8 @@ export async function fetchArtifacts() {
   return fetchJson<{
     artifacts: Artifact[]
     guardIssues: GuardIssue[]
+    status?: "checking" | "ready"
+    version?: number
   }>(hostApiRoutes.artifacts)
 }
 
@@ -136,10 +138,10 @@ export async function deleteArtifact({ filePath }: { filePath: string }) {
   }
 }
 
-export function artifactBundleUrl(filePath: string) {
+export function artifactBundleUrl(filePath: string, version: string | number = 0) {
   const params = new URLSearchParams({
     filePath,
-    v: String(Date.now()),
+    v: String(version),
   })
   return `${hostApiRoutes.artifactBundle}?${params}`
 }

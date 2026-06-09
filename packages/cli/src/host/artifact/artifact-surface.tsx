@@ -1,16 +1,20 @@
 import * as React from "react"
 
-import { artifactBundleUrl } from "../api/api"
+import {
+  formatArtifactRuntimeError,
+  useArtifactRuntime,
+} from "./artifact-runtime"
 import { BlockOverlayLayer, useBlockOverlays } from "../overlay/block-overlay"
 import { GuardIssueList, HostStatusMessage } from "./status-surface"
 import { ScrollArea } from "#agent-html-playground/components/ui/scroll-area"
-import type { ArtifactBlock, ArtifactModule, GuardIssue } from "../host-contracts"
+import type { ArtifactBlock, GuardIssue } from "../host-contracts"
 import { HostSurfaceSkeleton } from "../ui/surface-skeleton"
 
 export function ArtifactSurface({
   activeFilePath,
   blocks,
   artifactCount,
+  artifactRegistryVersion,
   artifactsLoading,
   guardIssues,
   loadError,
@@ -18,80 +22,45 @@ export function ArtifactSurface({
   activeFilePath: string | null
   blocks?: ArtifactBlock[]
   artifactCount: number
+  artifactRegistryVersion: number
   artifactsLoading: boolean
   guardIssues: GuardIssue[]
   loadError: string | null
 }) {
-  const [artifactLoading, setArtifactLoading] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
-  const [mountedFilePath, setMountedFilePath] = React.useState<string | null>(
-    null
-  )
-  const artifactRootRef = React.useRef<HTMLDivElement | null>(null)
   const overlayRootRef = React.useRef<HTMLDivElement | null>(null)
-  const unmountArtifactRef = React.useRef<(() => void) | null>(null)
   const { measureBlocks, overlays, scheduleGeometryUpdate, setOverlays } =
     useBlockOverlays(overlayRootRef)
+  const { runtime, setArtifactElement } = useArtifactRuntime({
+    activeFilePath,
+    artifactRegistryVersion,
+    onMounted: scheduleGeometryUpdate,
+  })
+  const error = runtime.error ? formatArtifactRuntimeError(runtime.error) : null
+  const blocksCurrentArtifact = shouldBlockArtifactWithError({
+    activeFilePath,
+    error,
+    loadError,
+    mountedFilePath: runtime.mountedFilePath,
+  })
 
   React.useEffect(() => {
-    if (!activeFilePath || !artifactRootRef.current) {
-      setArtifactLoading(false)
-      return
-    }
-
-    if (mountedFilePath === activeFilePath) {
-      measureBlocks()
-      return
-    }
-
-    unmountArtifactRef.current?.()
-    unmountArtifactRef.current = null
-    artifactRootRef.current.innerHTML = ""
-    setMountedFilePath(null)
     setOverlays([])
-    setError(null)
-    setArtifactLoading(true)
+  }, [activeFilePath, setOverlays])
 
-    let cancelled = false
-
-    void import(artifactBundleUrl(activeFilePath)).then(
-      (module: ArtifactModule) => {
-        if (cancelled || !artifactRootRef.current) {
-          return
-        }
-
-        unmountArtifactRef.current = module.mount(artifactRootRef.current)
-        setMountedFilePath(activeFilePath)
-        setArtifactLoading(false)
-        scheduleGeometryUpdate()
-      },
-      (loadError: unknown) => {
-        setArtifactLoading(false)
-        setError(
-          loadError instanceof Error ? loadError.message : String(loadError)
-        )
-      }
-    )
-
-    return () => {
-      cancelled = true
+  React.useEffect(() => {
+    if (runtime.status === "mounted") {
+      measureBlocks()
     }
-  }, [
-    activeFilePath,
-    measureBlocks,
-    mountedFilePath,
-    scheduleGeometryUpdate,
-    setOverlays,
-  ])
+  }, [measureBlocks, runtime.status])
 
   const showSkeleton = shouldShowArtifactSkeleton({
     activeFilePath,
     artifactCount,
-    artifactLoading,
     artifactsLoading,
     error,
     loadError,
-    mountedFilePath,
+    mountedFilePath: runtime.mountedFilePath,
+    status: runtime.status,
   })
 
   return (
@@ -103,10 +72,15 @@ export function ArtifactSurface({
           ref={overlayRootRef}
         >
           <GuardIssueList issues={guardIssues} />
-          {loadError || error ? (
+          {loadError || blocksCurrentArtifact ? (
             <HostStatusMessage
               message={loadError ?? error ?? ""}
               title="Artifact unavailable"
+            />
+          ) : error ? (
+            <HostStatusMessage
+              message={error}
+              title="Artifact load issue"
             />
           ) : showSkeleton ? (
             <HostSurfaceSkeleton blocks={blocks} />
@@ -116,7 +90,7 @@ export function ArtifactSurface({
               title="No artifacts found"
             />
           ) : null}
-          <div ref={artifactRootRef} />
+          <div ref={setArtifactElement} />
           <BlockOverlayLayer overlays={overlays} />
         </div>
       </ScrollArea>
@@ -127,19 +101,19 @@ export function ArtifactSurface({
 export function shouldShowArtifactSkeleton({
   activeFilePath,
   artifactCount,
-  artifactLoading,
   artifactsLoading,
   error,
   loadError,
   mountedFilePath,
+  status,
 }: {
   activeFilePath: string | null
   artifactCount: number
-  artifactLoading: boolean
   artifactsLoading: boolean
   error: string | null
   loadError: string | null
   mountedFilePath: string | null
+  status: "idle" | "loading" | "mounted" | "failed" | "disposing"
 }) {
   if (loadError || error) {
     return false
@@ -153,6 +127,31 @@ export function shouldShowArtifactSkeleton({
     return false
   }
 
-  return artifactLoading && mountedFilePath !== activeFilePath
+  return (
+    (status === "loading" || status === "disposing") &&
+    mountedFilePath !== activeFilePath
+  )
+}
+
+export function shouldBlockArtifactWithError({
+  activeFilePath,
+  error,
+  loadError,
+  mountedFilePath,
+}: {
+  activeFilePath: string | null
+  error: string | null
+  loadError: string | null
+  mountedFilePath: string | null
+}) {
+  if (loadError) {
+    return true
+  }
+
+  if (!error) {
+    return false
+  }
+
+  return mountedFilePath !== activeFilePath
 }
 

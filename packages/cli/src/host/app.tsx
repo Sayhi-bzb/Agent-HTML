@@ -82,6 +82,8 @@ import type {
 
 type CanvasHostMode = "artifact" | "create-artifact"
 
+const artifactsUpdatedEventName = "agent-html:artifacts-updated"
+
 export function resolveArtifactRefreshState({
   artifacts,
   currentFilePath,
@@ -127,6 +129,7 @@ export function ReactCanvasHostApp() {
   )
   const [activeFilePath, setActiveFilePath] = React.useState<string | null>(null)
   const [artifacts, setArtifacts] = React.useState<Artifact[]>([])
+  const [artifactRegistryVersion, setArtifactRegistryVersion] = React.useState(0)
   const [guardIssues, setGuardIssues] = React.useState<GuardIssue[]>([])
   const [artifactsLoading, setArtifactsLoading] = React.useState(true)
   const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(
@@ -170,6 +173,7 @@ export function ReactCanvasHostApp() {
   const [codexThreadsError, setCodexThreadsError] =
     React.useState<string | null>(null)
   const activeFilePathRef = React.useRef<string | null>(null)
+  const pendingArtifactFilePathRef = React.useRef<string | null>(null)
 
   const activeArtifact =
     artifacts.find((artifact) => artifact.filePath === activeFilePath) ??
@@ -184,6 +188,7 @@ export function ReactCanvasHostApp() {
     canvasThemePresets[0]
 
   activeFilePathRef.current = resolvedActiveFilePath
+  pendingArtifactFilePathRef.current = pendingArtifactFilePath
 
   React.useEffect(() => {
     const listener = createCanvasInteractionEventListener({
@@ -207,14 +212,16 @@ export function ReactCanvasHostApp() {
   const refreshArtifacts = React.useCallback(async () => {
     try {
       const data = await fetchArtifacts()
+      const pendingFilePath = pendingArtifactFilePathRef.current
       const pendingReady = Boolean(
-        pendingArtifactFilePath &&
+        pendingFilePath &&
           data.artifacts.some(
-            (artifact) => artifact.filePath === pendingArtifactFilePath
+            (artifact) => artifact.filePath === pendingFilePath
           )
       )
 
       setArtifacts(data.artifacts ?? [])
+      setArtifactRegistryVersion(data.version ?? 0)
       setGuardIssues(data.guardIssues ?? [])
       setLoadError(null)
       setActiveFilePath((current) => {
@@ -225,7 +232,7 @@ export function ReactCanvasHostApp() {
         return resolveArtifactRefreshState({
           artifacts: data.artifacts ?? [],
           currentFilePath: current,
-          pendingFilePath: pendingArtifactFilePath,
+          pendingFilePath,
           storedFilePath: storedPreferences.activeFilePath,
         }).activeFilePath
       })
@@ -238,7 +245,7 @@ export function ReactCanvasHostApp() {
     } finally {
       setArtifactsLoading(false)
     }
-  }, [pendingArtifactFilePath])
+  }, [])
 
   React.useEffect(() => {
     void refreshArtifacts().catch((refreshError: unknown) => {
@@ -278,7 +285,11 @@ export function ReactCanvasHostApp() {
   }, [themeDraft])
 
   React.useEffect(() => {
-    const interval = window.setInterval(() => {
+    if (!import.meta.hot) {
+      return
+    }
+
+    const onArtifactsUpdated = () => {
       void refreshArtifacts().catch((refreshError: unknown) => {
         setLoadError(
           refreshError instanceof Error
@@ -286,9 +297,13 @@ export function ReactCanvasHostApp() {
             : String(refreshError)
         )
       })
-    }, 2000)
+    }
 
-    return () => window.clearInterval(interval)
+    import.meta.hot.on(artifactsUpdatedEventName, onArtifactsUpdated)
+
+    return () => {
+      import.meta.hot?.off(artifactsUpdatedEventName, onArtifactsUpdated)
+    }
   }, [refreshArtifacts])
 
   const refreshCodexThreads = React.useCallback(async () => {
@@ -401,6 +416,8 @@ export function ReactCanvasHostApp() {
       return
     }
 
+    setPromptStatus("")
+
     try {
       const messageTarget = {
         blockId: target.id,
@@ -413,11 +430,6 @@ export function ReactCanvasHostApp() {
         target: messageTarget,
       })
 
-      setPromptStatus(
-        canvasPipelineConfig.pipeline === "example"
-          ? "Sending to example pipeline..."
-          : "Sending to Codex..."
-      )
       const turn = await submitBlockPromptToPipeline({
         activeThreadId: activeCodexThreadId,
         blockId: target.id,
@@ -437,15 +449,6 @@ export function ReactCanvasHostApp() {
         draft: "",
         filePath: resolvedActiveFilePath,
       })
-      if (canvasPipelineConfig.pipeline === "example") {
-        setPromptStatus("Sent to example pipeline.")
-      } else {
-        setPromptStatus(
-          turn.startedNewThread
-            ? "Started a new Codex thread."
-            : "Sent to Codex thread."
-        )
-      }
     } catch (submitError: unknown) {
       const errorMessage =
         submitError instanceof Error ? submitError.message : String(submitError)
@@ -678,6 +681,7 @@ export function ReactCanvasHostApp() {
               activeFilePath={resolvedActiveFilePath}
               blocks={activeArtifact?.blocks}
               artifactCount={artifacts.length}
+              artifactRegistryVersion={artifactRegistryVersion}
               artifactsLoading={artifactsLoading}
               guardIssues={activeIssues}
               loadError={loadError}

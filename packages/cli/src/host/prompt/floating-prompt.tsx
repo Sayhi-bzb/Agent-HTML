@@ -34,13 +34,21 @@ export function PromptComposer({
   value: string
 }) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [draftValue, setDraftValue] = React.useState(value)
+  const isComposingRef = React.useRef(false)
 
   React.useEffect(() => {
     setIsSubmitting(false)
   }, [targetId])
 
+  React.useEffect(() => {
+    if (!isComposingRef.current) {
+      setDraftValue(value)
+    }
+  }, [value])
+
   async function submit() {
-    const request = value.trim()
+    const request = draftValue.trim()
 
     if (!request || disabled || isSubmitting) {
       return
@@ -61,21 +69,43 @@ export function PromptComposer({
       <HostFloatingPromptSurface targetId={targetId}>
         <HostFloatingPromptTextarea
           disabled={disabled || isSubmitting}
-          onChange={(event) => onDraftChange(event.currentTarget.value)}
+          onChange={(event) => {
+            const nextDraft = event.currentTarget.value
+            setDraftValue(nextDraft)
+
+            if (!isComposingRef.current) {
+              onDraftChange(nextDraft)
+            }
+          }}
+          onCompositionEnd={(event) => {
+            isComposingRef.current = false
+            setDraftValue(event.currentTarget.value)
+            onDraftChange(event.currentTarget.value)
+          }}
+          onCompositionStart={() => {
+            isComposingRef.current = true
+          }}
           onKeyDown={(event) => {
+            if (
+              isComposingRef.current ||
+              event.nativeEvent.isComposing
+            ) {
+              return
+            }
+
             if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
               event.preventDefault()
               void submit()
             }
           }}
           placeholder={placeholder}
-          value={value}
+          value={draftValue}
         />
         <HostFloatingPromptActions>
           <Tooltip>
             <TooltipTrigger asChild>
               <HostIconButton
-                disabled={disabled || !value.trim() || isSubmitting}
+                disabled={disabled || !draftValue.trim() || isSubmitting}
                 icon={ArrowUpIcon}
                 label="Send"
                 onClick={() => {

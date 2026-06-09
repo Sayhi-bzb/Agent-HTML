@@ -17,4 +17,11 @@ describe("FloatingPrompt copy", () => {
     expect(floatingPromptSource).not.toContain("Add context")
     expect(floatingPromptSource).not.toContain("PlusIcon")
   })
+
+  it("keeps IME composition local until composition ends", () => {
+    expect(floatingPromptSource).toContain("onCompositionStart")
+    expect(floatingPromptSource).toContain("onCompositionEnd")
+    expect(floatingPromptSource).toContain("isComposingRef")
+    expect(floatingPromptSource).toContain("event.nativeEvent.isComposing")
+  })
 })
