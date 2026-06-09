@@ -76,6 +76,33 @@ Canvas prompt routing uses artifact metadata, block ids, optional implementation
 - Local reuse: Canvas makes the nearest correct primitive, hook, helper, schema, fixture, or asset easier to find.
 - Guarded boundaries: artifact source stays separate from host internals, old runtime surfaces, generated bundles, and privileged APIs.
 
+## Quick Start
+
+Install the npm package:
+
+```bash
+npm install agent-html
+```
+
+Create a local Canvas workspace:
+
+```bash
+npx agent-html init
+```
+
+Start the Canvas host:
+
+```bash
+npx agent-html dev
+```
+
+Then ask your agent to build or revise a React artifact in `agent-html/artifacts`:
+
+```text
+Build a dashboard artifact in agent-html/artifacts using Agent-HTML Canvas.
+Read agent-html/README.md and agent-html/AGENTS.md first.
+```
+
 ## Documentation
 
 - [Canvas docs](./apps/docs/content/docs/canvas/index.mdx): current Canvas constitution, architecture, workspace, host, design-system, and reference docs.

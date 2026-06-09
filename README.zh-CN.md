@@ -76,6 +76,33 @@ Canvas prompt routing 使用 artifact metadata、block ids、可选 implementati
 - 本地复用：Canvas 让最近的正确 primitive、hook、helper、schema、fixture 或 asset 更容易被找到。
 - 边界保护：artifact source 与 host internals、old runtime surfaces、generated bundles 和 privileged APIs 保持分离。
 
+## 快速开始
+
+安装 npm 包：
+
+```bash
+npm install agent-html
+```
+
+创建本地 Canvas 工作区：
+
+```bash
+npx agent-html init
+```
+
+启动 Canvas host：
+
+```bash
+npx agent-html dev
+```
+
+然后让你的 agent 在 `agent-html/artifacts` 里创建或修改 React artifact：
+
+```text
+使用 Agent-HTML Canvas 在 agent-html/artifacts 里创建一个 dashboard artifact。
+请先阅读 agent-html/README.md 和 agent-html/AGENTS.md。
+```
+
 ## 文档
 
 - [Canvas docs](./apps/docs/content/docs/canvas/index.mdx)：当前 Canvas constitution、architecture、workspace、host、design-system 和 reference docs。
