@@ -1,5 +1,3 @@
-import { ExternalLinkIcon } from "lucide-react"
-
 import type { SourceLink } from "./data"
 
 export function SourceLinks({ links }: { links: SourceLink[] }) {
@@ -14,7 +12,6 @@ export function SourceLinks({ links }: { links: SourceLink[] }) {
           target="_blank"
         >
           <span className="canvas-wrap-sm items-center">
-            <ExternalLinkIcon data-icon="inline-start" />
             <span className="canvas-text-body">{link.label}</span>
           </span>
           <span className="canvas-text-caption">{link.note}</span>

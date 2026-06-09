@@ -189,7 +189,7 @@ export function RouteConsoleBlock() {
         </h1>
       </div>
 
-      <div className="grid overflow-hidden rounded-md border bg-sidebar md:min-h-[680px] md:grid-cols-[0.92fr_1.18fr]">
+      <div className="grid overflow-hidden rounded-md bg-sidebar md:min-h-[680px] md:grid-cols-[0.92fr_1.18fr]">
         <div className="canvas-stack-lg p-5 md:p-6">
           <div className="canvas-stack-md">
             <div className="canvas-wrap-sm items-center">
