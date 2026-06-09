@@ -2,6 +2,10 @@ import type {
   BlockMessageItem,
   BlockMessageThread,
 } from "../host-contracts"
+import {
+  createHostTranslator,
+  type HostTranslator,
+} from "../i18n/host-i18n"
 
 export type BlockMessageTarget = {
   blockId: string
@@ -14,6 +18,7 @@ export type BlockMessageStoreSnapshot = {
 }
 
 const timers = new Map<string, ReturnType<typeof setTimeout>[]>()
+const defaultBlockMessageTranslator = createHostTranslator("en")
 let nextThreadId = 1
 let currentSnapshot: BlockMessageStoreSnapshot = {
   threads: {},
@@ -84,9 +89,11 @@ function createItem(
 export function startBlockMessageThread({
   request,
   target,
+  t = defaultBlockMessageTranslator,
 }: {
   request: string
   target: BlockMessageTarget
+  t?: HostTranslator
 }) {
   const key = blockMessageKey({
     blockId: target.blockId,
@@ -105,12 +112,12 @@ export function startBlockMessageThread({
     id: threadId,
     isOpen: false,
     items: [
-      createItem("request", "request", "Request", requestSummary),
+      createItem("request", "request", t("block.request"), requestSummary),
       createItem(
         "status-start",
         "status",
-        "Sent",
-        "Waiting for agent...",
+        t("block.sent"),
+        t("block.waitingForAgent"),
         "loading"
       ),
     ],
@@ -122,10 +129,12 @@ export function startBlockMessageThread({
 
 export function finishBlockMessageThread({
   target,
+  t = defaultBlockMessageTranslator,
   threadId,
   turnId,
 }: {
   target: BlockMessageTarget
+  t?: HostTranslator
   threadId: string
   turnId?: string | null
 }) {
@@ -144,8 +153,8 @@ export function finishBlockMessageThread({
       createItem(
         "status-done",
         "status",
-        "Done",
-        "Agent accepted this block request."
+        t("block.done"),
+        t("block.agentAccepted")
       ),
     ],
     phase: "done",
@@ -159,9 +168,11 @@ export function finishBlockMessageThread({
 export function failBlockMessageThread({
   error,
   target,
+  t = defaultBlockMessageTranslator,
 }: {
   error: string
   target: BlockMessageTarget
+  t?: HostTranslator
 }) {
   const key = blockMessageKey({
     blockId: target.blockId,
@@ -175,7 +186,7 @@ export function failBlockMessageThread({
     isOpen: thread?.isOpen ?? false,
     items: [
       ...(thread?.items.filter((item) => item.id !== "status-start") ?? []),
-      createItem("status-failed", "status", "Failed", error, "failed"),
+      createItem("status-failed", "status", t("block.failed"), error, "failed"),
     ],
     phase: "failed",
     readAt: null,

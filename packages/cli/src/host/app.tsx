@@ -451,6 +451,7 @@ function ReactCanvasHostWorkbench() {
 
       startBlockMessageThread({
         request,
+        t,
         target: messageTarget,
       })
 
@@ -462,6 +463,7 @@ function ReactCanvasHostWorkbench() {
       })
 
       finishBlockMessageThread({
+        t,
         target: messageTarget,
         threadId: turn.threadId,
         turnId: turn.turnId,
@@ -478,6 +480,7 @@ function ReactCanvasHostWorkbench() {
         submitError instanceof Error ? submitError.message : String(submitError)
       failBlockMessageThread({
         error: errorMessage,
+        t,
         target: {
           blockId: target.id,
           filePath: resolvedActiveFilePath,

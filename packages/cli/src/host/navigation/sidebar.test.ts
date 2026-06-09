@@ -26,9 +26,9 @@ describe("ReactCanvasSidebar artifact rows", () => {
     )
 
     expect(artifactRowSource).toContain("<DropdownMenu>")
-    expect(artifactRowSource).toContain("Artifact actions")
-    expect(artifactRowSource).toContain('label="Rename"')
-    expect(artifactRowSource).toContain('label="Delete"')
+    expect(artifactRowSource).toContain('t("sidebar.artifactActions"')
+    expect(artifactRowSource).toContain('label={t("sidebar.rename")}')
+    expect(artifactRowSource).toContain('label={t("sidebar.delete")}')
     expect(artifactRowSource).toContain("<Dialog ")
     expect(artifactRowSource).toContain("<AlertDialog ")
   })

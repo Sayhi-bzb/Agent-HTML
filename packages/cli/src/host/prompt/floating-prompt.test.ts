@@ -9,7 +9,9 @@ const floatingPromptSource = readFileSync(floatingPromptPath, "utf8")
 
 describe("FloatingPrompt copy", () => {
   it("uses block-edit prompt copy", () => {
-    expect(floatingPromptSource).toContain('placeholder="Edit this block..."')
+    expect(floatingPromptSource).toContain(
+      'placeholder={t("prompt.editBlock")}'
+    )
     expect(floatingPromptSource).not.toContain("Ask, Search or Chat")
   })
 

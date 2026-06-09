@@ -32,24 +32,26 @@ import type {
   CanvasThemePreset,
   CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
+import type { HostMessageKey } from "../i18n/messages"
+import { useHostI18n } from "../i18n/host-i18n"
 import { HostPopoverAction, HostPopoverContent } from "../ui/popover"
 import { HostSelect, type HostSelectOption } from "../ui/select"
 import { HostSidebarActionButton } from "../ui/sidebar-action"
 import { hostSwatchFallbackColor, HostSwatch } from "../ui/swatch"
 
 type ColorTokenItem = {
-  label: string
+  labelKey: HostMessageKey
   name: CanvasThemeVariableName
 }
 
 type ColorTokenGroup = {
   id: string
-  label: string
+  labelKey: HostMessageKey
   items: readonly ColorTokenItem[]
 }
 
 type NumericTokenItem = {
-  label: string
+  labelKey: HostMessageKey
   max: number
   min: number
   name: CanvasThemeVariableName
@@ -58,71 +60,75 @@ type NumericTokenItem = {
 }
 
 type TailwindColorPanel = "family" | "step"
+type HostThemeTranslator = ReturnType<typeof useHostI18n>["t"]
+type ThemeSelectOptionDefinition =
+  | { label: string; value: string }
+  | { labelKey: HostMessageKey; value: string }
 
 const colorTokenGroups: readonly ColorTokenGroup[] = [
   {
     id: "base",
-    label: "Base",
+    labelKey: "theme.base",
     items: [
-      { label: "background", name: "--background" },
-      { label: "foreground", name: "--foreground" },
-      { label: "border", name: "--border" },
-      { label: "input", name: "--input" },
-      { label: "ring", name: "--ring" },
+      { labelKey: "theme.background", name: "--background" },
+      { labelKey: "theme.foreground", name: "--foreground" },
+      { labelKey: "theme.border", name: "--border" },
+      { labelKey: "theme.input", name: "--input" },
+      { labelKey: "theme.ring", name: "--ring" },
     ],
   },
   {
     id: "surfaces",
-    label: "Surfaces",
+    labelKey: "theme.surfaces",
     items: [
-      { label: "card", name: "--card" },
-      { label: "card foreground", name: "--card-foreground" },
-      { label: "popover", name: "--popover" },
-      { label: "popover foreground", name: "--popover-foreground" },
+      { labelKey: "theme.card", name: "--card" },
+      { labelKey: "theme.cardForeground", name: "--card-foreground" },
+      { labelKey: "theme.popover", name: "--popover" },
+      { labelKey: "theme.popoverForeground", name: "--popover-foreground" },
     ],
   },
   {
     id: "actions",
-    label: "Actions",
+    labelKey: "theme.actions",
     items: [
-      { label: "primary", name: "--primary" },
-      { label: "primary foreground", name: "--primary-foreground" },
-      { label: "secondary", name: "--secondary" },
-      { label: "secondary foreground", name: "--secondary-foreground" },
+      { labelKey: "theme.primary", name: "--primary" },
+      { labelKey: "theme.primaryForeground", name: "--primary-foreground" },
+      { labelKey: "theme.secondary", name: "--secondary" },
+      { labelKey: "theme.secondaryForeground", name: "--secondary-foreground" },
     ],
   },
   {
     id: "state",
-    label: "State",
+    labelKey: "theme.state",
     items: [
-      { label: "success", name: "--success" },
-      { label: "success foreground", name: "--success-foreground" },
-      { label: "warning", name: "--warning" },
-      { label: "warning foreground", name: "--warning-foreground" },
-      { label: "info", name: "--info" },
-      { label: "info foreground", name: "--info-foreground" },
-      { label: "destructive", name: "--destructive" },
+      { labelKey: "theme.success", name: "--success" },
+      { labelKey: "theme.successForeground", name: "--success-foreground" },
+      { labelKey: "theme.warning", name: "--warning" },
+      { labelKey: "theme.warningForeground", name: "--warning-foreground" },
+      { labelKey: "theme.info", name: "--info" },
+      { labelKey: "theme.infoForeground", name: "--info-foreground" },
+      { labelKey: "theme.destructive", name: "--destructive" },
     ],
   },
   {
     id: "support",
-    label: "Support",
+    labelKey: "theme.support",
     items: [
-      { label: "muted", name: "--muted" },
-      { label: "muted foreground", name: "--muted-foreground" },
-      { label: "accent", name: "--accent" },
-      { label: "accent foreground", name: "--accent-foreground" },
+      { labelKey: "theme.muted", name: "--muted" },
+      { labelKey: "theme.mutedForeground", name: "--muted-foreground" },
+      { labelKey: "theme.accent", name: "--accent" },
+      { labelKey: "theme.accentForeground", name: "--accent-foreground" },
     ],
   },
   {
     id: "charts",
-    label: "Charts",
+    labelKey: "theme.charts",
     items: [
-      { label: "chart 1", name: "--chart-1" },
-      { label: "chart 2", name: "--chart-2" },
-      { label: "chart 3", name: "--chart-3" },
-      { label: "chart 4", name: "--chart-4" },
-      { label: "chart 5", name: "--chart-5" },
+      { labelKey: "theme.chart1", name: "--chart-1" },
+      { labelKey: "theme.chart2", name: "--chart-2" },
+      { labelKey: "theme.chart3", name: "--chart-3" },
+      { labelKey: "theme.chart4", name: "--chart-4" },
+      { labelKey: "theme.chart5", name: "--chart-5" },
     ],
   },
 ]
@@ -133,23 +139,33 @@ const fontOptions = [
     value: "'Geist Variable', sans-serif",
   },
   {
-    label: "System",
+    labelKey: "theme.system",
     value: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
   },
   {
-    label: "Serif",
+    labelKey: "theme.serif",
     value: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
   },
   {
-    label: "Mono",
+    labelKey: "theme.mono",
     value:
       "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
   },
-] as const
+] as const satisfies readonly ThemeSelectOptionDefinition[]
+
+function translateThemeOptions(
+  options: readonly ThemeSelectOptionDefinition[],
+  t: HostThemeTranslator
+) {
+  return options.map((option) => ({
+    label: "labelKey" in option ? t(option.labelKey) : option.label,
+    value: option.value,
+  }))
+}
 
 const radiusTokens: readonly NumericTokenItem[] = [
   {
-    label: "Radius",
+    labelKey: "theme.radius",
     max: 2,
     min: 0,
     name: "--radius",
@@ -160,7 +176,7 @@ const radiusTokens: readonly NumericTokenItem[] = [
 
 const spacingTokens: readonly NumericTokenItem[] = [
   {
-    label: "Base spacing",
+    labelKey: "theme.baseSpacing",
     max: 0.75,
     min: 0.125,
     name: "--spacing",
@@ -171,7 +187,7 @@ const spacingTokens: readonly NumericTokenItem[] = [
 
 const typographyRangeTokens: readonly NumericTokenItem[] = [
   {
-    label: "Tracking",
+    labelKey: "theme.tracking",
     max: 0.08,
     min: -0.05,
     name: "--tracking-normal",
@@ -182,7 +198,7 @@ const typographyRangeTokens: readonly NumericTokenItem[] = [
 
 const canvasRangeTokens: readonly NumericTokenItem[] = [
   {
-    label: "Artifact width",
+    labelKey: "theme.artifactWidth",
     max: 80,
     min: 30,
     name: "--canvas-artifact-max-width",
@@ -190,7 +206,7 @@ const canvasRangeTokens: readonly NumericTokenItem[] = [
     unit: "rem",
   },
   {
-    label: "Block gap",
+    labelKey: "theme.blockGap",
     max: 4,
     min: 0.5,
     name: "--canvas-artifact-block-gap",
@@ -378,6 +394,7 @@ function TailwindColorEditor({
   onValueChange: (value: TailwindColorTokenValue) => void
   token: TailwindColorTokenValue
 }) {
+  const { t } = useHostI18n()
   const [activePanel, setActivePanel] =
     React.useState<TailwindColorPanel>("family")
 
@@ -401,7 +418,7 @@ function TailwindColorEditor({
             })
           }
           isActive={activePanel === "family"}
-          label="Family"
+          label={t("theme.family")}
           onActivate={() => setActivePanel("family")}
           value={token.family}
         />
@@ -413,7 +430,7 @@ function TailwindColorEditor({
             })
           }
           isActive={activePanel === "step"}
-          label="Step"
+          label={t("theme.step")}
           onActivate={() => setActivePanel("step")}
           value={token.step}
         />
@@ -470,6 +487,7 @@ function ColorTokenRow({
   preset: CanvasThemePreset
   runtimeVariables: CanvasThemeResolvedVariables
 }) {
+  const { t } = useHostI18n()
   const value = getVariableValue({
     draft,
     name: item.name,
@@ -487,7 +505,7 @@ function ColorTokenRow({
 
   return (
     <EditorPopoverItem
-      label={item.label}
+      label={t(item.labelKey)}
       popoverClassName="canvas-theme-editor-popover-md"
       trailing={<HostSwatch color={swatchColor} size="sm" />}
       valueLabel={valueLabel}
@@ -534,6 +552,7 @@ function RangeTokenRow({
   preset: CanvasThemePreset
   runtimeVariables: CanvasThemeResolvedVariables
 }) {
+  const { t } = useHostI18n()
   const value = getVariableValue({
     draft,
     name: item.name,
@@ -543,7 +562,7 @@ function RangeTokenRow({
   const numericValue = parseCanvasThemeCssNumber(value, item.min)
 
   return (
-    <EditorPopoverItem label={item.label} valueLabel={value}>
+    <EditorPopoverItem label={t(item.labelKey)} valueLabel={value}>
       <div className="canvas-theme-editor-field-stack">
         <Input
           className="canvas-theme-editor-range-input"
@@ -580,7 +599,7 @@ function RangeTokenRow({
             value={numericValue}
           />
           <span className="canvas-theme-editor-unit">
-            {item.unit || "value"}
+            {item.unit || t("theme.value")}
           </span>
         </div>
       </div>
@@ -594,6 +613,8 @@ function ColorSection(props: {
   preset: CanvasThemePreset
   runtimeVariables: CanvasThemeResolvedVariables
 }) {
+  const { t } = useHostI18n()
+
   return (
     <div className="canvas-theme-editor-section-stack">
       {colorTokenGroups.map((group, index) => (
@@ -601,7 +622,7 @@ function ColorSection(props: {
           collapsible
           defaultOpen={index === 0}
           key={group.id}
-          label={group.label}
+          label={t(group.labelKey)}
         >
           <SidebarMenu className="canvas-theme-editor-menu">
             {group.items.map((item) => (
@@ -620,16 +641,22 @@ function TypographySection(props: {
   preset: CanvasThemePreset
   runtimeVariables: CanvasThemeResolvedVariables
 }) {
+  const { t } = useHostI18n()
+  const translatedFontOptions = React.useMemo(
+    () => translateThemeOptions(fontOptions, t),
+    [t]
+  )
+
   return (
     <div className="canvas-theme-editor-section-stack">
-      <EditorSection label="Typography">
+      <EditorSection label={t("theme.typography")}>
         <SidebarMenu className="canvas-theme-editor-menu">
           <ThemeSelectItem
-            label="Sans"
+            label={t("theme.sans")}
             onValueChange={(value) =>
               props.onVariableChange("--font-sans", value)
             }
-            options={fontOptions}
+            options={translatedFontOptions}
             value={getVariableValue({
               draft: props.draft,
               name: "--font-sans",
@@ -638,11 +665,11 @@ function TypographySection(props: {
             })}
           />
           <ThemeSelectItem
-            label="Heading"
+            label={t("theme.heading")}
             onValueChange={(value) =>
               props.onVariableChange("--font-heading", value)
             }
-            options={fontOptions}
+            options={translatedFontOptions}
             value={getVariableValue({
               draft: props.draft,
               name: "--font-heading",
@@ -651,9 +678,9 @@ function TypographySection(props: {
             })}
           />
           <ThemeSelectItem
-            label="Mono"
+            label={t("theme.mono")}
             onValueChange={(value) => props.onVariableChange("--font-mono", value)}
-            options={fontOptions}
+            options={translatedFontOptions}
             value={getVariableValue({
               draft: props.draft,
               name: "--font-mono",
@@ -701,9 +728,11 @@ function CanvasSection(props: {
   preset: CanvasThemePreset
   runtimeVariables: CanvasThemeResolvedVariables
 }) {
+  const { t } = useHostI18n()
+
   return (
     <div className="canvas-theme-editor-section-stack">
-      <EditorSection label="Reading layout">
+      <EditorSection label={t("theme.readingLayout")}>
         <SidebarMenu className="canvas-theme-editor-menu">
           {canvasRangeTokens.map((item) => (
             <RangeTokenRow key={item.name} item={item} {...props} />
@@ -723,9 +752,11 @@ export function ReactCanvasThemePresetSelect({
   onSelectPreset: (presetId: CanvasThemePresetId) => void
   presets: readonly CanvasThemePreset[]
 }) {
+  const { t } = useHostI18n()
+
   return (
     <HostSelect
-      label="Theme preset"
+      label={t("theme.themePreset")}
       onValueChange={(value) => onSelectPreset(value as CanvasThemePresetId)}
       options={presets.map((preset) => ({
         label: preset.label,
@@ -750,6 +781,8 @@ export function ReactCanvasThemeEditorHeader({
   onSelectSection: (sectionId: CanvasThemeEditorSectionId) => void
   presets: readonly CanvasThemePreset[]
 }) {
+  const { t } = useHostI18n()
+
   return (
     <div className="canvas-theme-editor-header-stack">
       <ReactCanvasThemePresetSelect
@@ -758,13 +791,13 @@ export function ReactCanvasThemeEditorHeader({
         presets={presets}
       />
       <HostSelect
-        label="Theme section"
+        label={t("theme.themeSection")}
         onValueChange={(value) =>
           onSelectSection(value as CanvasThemeEditorSectionId)
         }
         options={canvasThemeEditorSections.map((section) => ({
           icon: section.icon,
-          label: section.label,
+          label: t(section.labelKey),
           value: section.id,
         } satisfies HostSelectOption))}
         value={activeSectionId}
@@ -786,6 +819,7 @@ export function ReactCanvasThemeEditor({
   preset: CanvasThemePreset
   runtimeVariables: CanvasThemeResolvedVariables
 }) {
+  const { t } = useHostI18n()
   const props = {
     draft,
     onVariableChange,
@@ -798,11 +832,11 @@ export function ReactCanvasThemeEditor({
   }
 
   if (activeSectionId === "radius") {
-    return <NumericSection items={radiusTokens} label="Radius" {...props} />
+    return <NumericSection items={radiusTokens} label={t("theme.radius")} {...props} />
   }
 
   if (activeSectionId === "spacing") {
-    return <NumericSection items={spacingTokens} label="Spacing" {...props} />
+    return <NumericSection items={spacingTokens} label={t("theme.spacing")} {...props} />
   }
 
   if (activeSectionId === "canvas") {

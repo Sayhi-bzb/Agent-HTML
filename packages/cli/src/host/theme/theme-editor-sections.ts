@@ -6,6 +6,7 @@ import {
   SquareDashedBottomCodeIcon,
 } from "lucide-react"
 import type * as React from "react"
+import type { HostMessageKey } from "../i18n/messages"
 
 export type CanvasThemeEditorSectionId =
   | "color"
@@ -18,30 +19,30 @@ export const canvasThemeEditorSections = [
   {
     icon: PaletteIcon,
     id: "color",
-    label: "Color",
+    labelKey: "theme.color",
   },
   {
     icon: CaseSensitiveIcon,
     id: "typography",
-    label: "Typography",
+    labelKey: "theme.typography",
   },
   {
     icon: CircleIcon,
     id: "radius",
-    label: "Radius",
+    labelKey: "theme.radius",
   },
   {
     icon: Rows3Icon,
     id: "spacing",
-    label: "Spacing",
+    labelKey: "theme.spacing",
   },
   {
     icon: SquareDashedBottomCodeIcon,
     id: "canvas",
-    label: "Canvas",
+    labelKey: "theme.canvas",
   },
 ] as const satisfies readonly {
   icon: React.ComponentType<{ className?: string }>
   id: CanvasThemeEditorSectionId
-  label: string
+  labelKey: HostMessageKey
 }[]

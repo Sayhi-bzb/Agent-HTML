@@ -608,7 +608,7 @@ function ArtifactSidebarItem({
           </AlertDialogHeader>
           {status ? <p className="canvas-sidebar-dialog-status">{status}</p> : null}
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("sidebar.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault()

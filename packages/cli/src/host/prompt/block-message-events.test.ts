@@ -9,6 +9,7 @@ import {
   setBlockMessageThreadOpen,
   startBlockMessageThread,
 } from "./block-message-events"
+import { createHostTranslator } from "../i18n/host-i18n"
 
 const target = {
   blockId: "summary",
@@ -36,6 +37,27 @@ describe("block message events", () => {
     expect(thread.items[0]).toMatchObject({
       kind: "request",
       summary: "Update this block",
+    })
+  })
+
+  it("uses the provided translator for host-owned status labels", () => {
+    const t = createHostTranslator("zh")
+
+    startBlockMessageThread({
+      request: "Update this block",
+      target,
+      t,
+    })
+
+    const thread =
+      getBlockMessageStoreSnapshot().threads[blockMessageKey(target)]
+
+    expect(thread.items[0]).toMatchObject({
+      title: "请求",
+    })
+    expect(thread.items[1]).toMatchObject({
+      summary: "正在等待 agent...",
+      title: "已发送",
     })
   })
 
