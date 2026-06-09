@@ -21,6 +21,16 @@ export type ArtifactModule = {
   mount: (element: HTMLElement) => () => void
 }
 
+declare global {
+  interface Window {
+    __AGENT_HTML_STATIC_ARTIFACTS__?: Record<string, ArtifactModule>
+  }
+
+  var __AGENT_HTML_STATIC_ARTIFACTS__:
+    | Record<string, ArtifactModule>
+    | undefined
+}
+
 export type BlockOverlay = {
   element: HTMLElement
   height: number

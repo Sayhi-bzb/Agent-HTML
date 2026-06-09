@@ -1,13 +1,22 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
+import react from "@vitejs/plugin-react"
+import { build as viteBuild } from "vite"
+
 import { collectStaticBlockMetadata } from "./react-canvas/block-tags.mjs"
+import { resolveBlockImplementationPath } from "./react-canvas/block-implementation.mjs"
 import {
   discoverReactArtifacts,
   parseRootArg,
   workspaceRelativePath,
 } from "./react-canvas/paths.mjs"
+import {
+  hostRoot,
+  resolvePackageModule,
+} from "./dev-server/context.mjs"
 import { loadHostStyles } from "./dev-server/styles.mjs"
+import { createViteFsAllowList } from "./dev-server/vite.mjs"
 
 function parseOutDirArg({ args, cwd }) {
   const outDirIndex = args.indexOf("--out-dir")
@@ -26,139 +35,294 @@ async function readArtifactManifest(root) {
   return Promise.all(
     artifacts.map(async (filePath) => {
       const source = await fs.readFile(filePath, "utf8")
+      const relativeFilePath = workspaceRelativePath(root, filePath)
+      const blocks = collectStaticBlockMetadata(source)
+      const blockImplementations = Object.fromEntries(
+        await Promise.all(
+          blocks.map(async (block) => [
+            block.id,
+            await resolveBlockImplementationPath({
+              blockId: block.id,
+              filePath: relativeFilePath,
+              root,
+            }),
+          ])
+        )
+      )
 
       return {
-        blocks: collectStaticBlockMetadata(source),
-        filePath: workspaceRelativePath(root, filePath),
+        blocks,
+        blockImplementations,
+        filePath: relativeFilePath,
       }
     })
   )
 }
 
-function createDemoIndexHtml() {
-  const config = JSON.stringify({
-    contentSource: "artifacts",
-    pipeline: "example",
-  })
+function jsString(value) {
+  return JSON.stringify(value)
+}
 
+function createStaticApiModule({ artifacts }) {
+  const manifest = {
+    artifacts: artifacts.map(({ blockImplementations: _unused, ...artifact }) =>
+      artifact
+    ),
+    contentSource: "artifacts",
+    guardIssues: [],
+    pipeline: "example",
+    status: "ready",
+    version: 1,
+  }
+  const implementationEntries = artifacts.flatMap((artifact) =>
+    Object.entries(artifact.blockImplementations).map(
+      ([blockId, implementationPath]) => [
+        `${artifact.filePath}::${blockId}`,
+        implementationPath,
+      ]
+    )
+  )
+
+  return [
+    `const manifest = ${JSON.stringify(manifest)};`,
+    `const blockImplementations = new Map(${JSON.stringify(implementationEntries)});`,
+    "",
+    "function jsonResponse(data, init = {}) {",
+    "  return new Response(JSON.stringify(data), {",
+    "    ...init,",
+    "    headers: {",
+    '      "Content-Type": "application/json",',
+    "      ...(init.headers ?? {}),",
+    "    },",
+    "  });",
+    "}",
+    "",
+    "function errorResponse(message, status = 400) {",
+    "  return jsonResponse({ error: message }, { status });",
+    "}",
+    "",
+    "function installStaticFetch() {",
+    "  const originalFetch = globalThis.fetch.bind(globalThis);",
+    "  globalThis.fetch = async (input, init) => {",
+    "    const url = new URL(typeof input === 'string' ? input : input.url, globalThis.location.href);",
+    "    if (url.pathname === '/__agent-html/artifacts') {",
+    "      return jsonResponse(manifest);",
+    "    }",
+    "    if (url.pathname === '/__agent-html/block-implementation') {",
+    "      const key = `${url.searchParams.get('filePath') ?? ''}::${url.searchParams.get('blockId') ?? ''}`;",
+    "      return jsonResponse({ implementationPath: blockImplementations.get(key) ?? null });",
+    "    }",
+    "    if (url.pathname === '/__agent-html/artifact/rename' || url.pathname === '/__agent-html/artifact/delete') {",
+    "      return errorResponse('The example demo is read-only.', 405);",
+    "    }",
+    "    if (url.pathname === '/__agent-html/codex/turn') {",
+    "      return errorResponse('Codex turns are disabled in the example pipeline.', 405);",
+    "    }",
+    "    if (url.pathname === '/__agent-html/codex/threads') {",
+    "      return jsonResponse({ cwd: 'agent-html example', threads: [] });",
+    "    }",
+    "    return originalFetch(input, init);",
+    "  };",
+    "}",
+    "",
+    "installStaticFetch();",
+    "",
+  ].join("\n")
+}
+
+function createArtifactModules({ artifacts, root }) {
+  return artifacts.map((artifact, index) => {
+    const absolutePath = path.resolve(root, artifact.filePath)
+    return [
+      `import React from "react";`,
+      `import { createRoot } from "react-dom/client";`,
+      `import Component from ${jsString(absolutePath)};`,
+      "",
+      `export const filePath = ${jsString(artifact.filePath)};`,
+      "export function mount(element) {",
+      "  const root = createRoot(element);",
+      "  root.render(React.createElement(Component));",
+      "  requestAnimationFrame(() => {",
+      "    window.dispatchEvent(new CustomEvent('agent-html:artifact-rendered'));",
+      "  });",
+      "  return () => root.unmount();",
+      "}",
+      "",
+    ].join("\n")
+  })
+}
+
+function createArtifactRegistryModule({ artifacts }) {
+  const imports = artifacts
+    .map(
+      (artifact, index) =>
+        `import * as artifact${index} from "./artifact-${index}.tsx";`
+    )
+    .join("\n")
+  const entries = artifacts
+    .map((artifact, index) => `${jsString(artifact.filePath)}: artifact${index}`)
+    .join(",\n  ")
+
+  return [
+    imports,
+    "",
+    `const artifacts = {`,
+    `  ${entries}`,
+    `};`,
+    "",
+    "export function installStaticArtifactRegistry() {",
+    "  globalThis.__AGENT_HTML_STATIC_ARTIFACTS__ = artifacts;",
+    "}",
+    "",
+  ].join("\n")
+}
+
+function createEntryModule() {
+  const hostMainPath = path.join(hostRoot, "main.tsx")
+
+  return [
+    "import './styles.css';",
+    "import { installStaticArtifactRegistry } from './artifact-registry.js';",
+    "import './static-api.js';",
+    "",
+    "globalThis.__AGENT_HTML_HOST_CONFIG__ = {",
+    '  contentSource: "artifacts",',
+    '  pipeline: "example",',
+    "};",
+    "installStaticArtifactRegistry();",
+    `await import(${jsString(hostMainPath)});`,
+    "",
+  ].join("\n")
+}
+
+function createIndexHtml() {
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Agent-HTML Demo</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <title>Agent-HTML Example</title>
   </head>
   <body>
-    <main id="root" class="agent-html-demo" data-agent-html-demo-root>
-      <header class="agent-html-demo-header">
-        <p class="agent-html-demo-kicker">AgentHTML Example Pipeline</p>
-        <h1>Artifacts</h1>
-      </header>
-      <section id="artifact-list" class="agent-html-demo-list" aria-live="polite"></section>
-    </main>
-    <script>
-      globalThis.__AGENT_HTML_HOST_CONFIG__ = ${config};
-      async function renderArtifacts() {
-        const list = document.getElementById("artifact-list");
-        try {
-          const response = await fetch("./artifacts.json");
-          const data = await response.json();
-          list.replaceChildren(...data.artifacts.map((artifact) => {
-            const article = document.createElement("article");
-            article.className = "agent-html-demo-artifact";
-            const title = document.createElement("h2");
-            title.textContent = artifact.filePath
-              .split("/")
-              .pop()
-              .replace(".artifact.tsx", "");
-            const path = document.createElement("p");
-            path.className = "agent-html-demo-path";
-            path.textContent = artifact.filePath;
-            const blocks = document.createElement("ul");
-            blocks.className = "agent-html-demo-blocks";
-            for (const block of artifact.blocks) {
-              const item = document.createElement("li");
-              item.textContent = block.title || block.id;
-              blocks.append(item);
-            }
-            article.append(title, path, blocks);
-            return article;
-          }));
-        } catch (error) {
-          list.textContent = error instanceof Error ? error.message : String(error);
-        }
-      }
-      void renderArtifacts();
-    </script>
-    <script type="application/json" id="agent-html-artifacts">
-      {"artifactsPath":"./artifacts.json"}
-    </script>
+    <div id="root"></div>
+    <script type="module" src="./entry.js"></script>
   </body>
 </html>
 `
 }
 
-function createDemoStyles(hostStyles) {
-  return `${hostStyles}
+async function createBuildWorkspace({ artifacts, root }) {
+  const tempRoot = await fs.mkdtemp(
+    path.join(root, ".agent-html-demo-build-")
+  )
+  const artifactModules = createArtifactModules({ artifacts, root })
 
-.agent-html-demo {
-  width: min(100% - 2rem, 72rem);
-  margin-inline: auto;
-  padding-block: 3rem;
+  await fs.writeFile(path.join(tempRoot, "index.html"), createIndexHtml())
+  await fs.writeFile(path.join(tempRoot, "entry.js"), createEntryModule())
+  await fs.writeFile(
+    path.join(tempRoot, "static-api.js"),
+    createStaticApiModule({ artifacts })
+  )
+  await fs.writeFile(
+    path.join(tempRoot, "artifact-registry.js"),
+    createArtifactRegistryModule({ artifacts })
+  )
+  await fs.writeFile(path.join(tempRoot, "styles.css"), await loadHostStyles(root))
+
+  await Promise.all(
+    artifactModules.map((source, index) =>
+      fs.writeFile(path.join(tempRoot, `artifact-${index}.tsx`), source)
+    )
+  )
+
+  return tempRoot
 }
 
-.agent-html-demo-header {
-  margin-block-end: 2rem;
-}
+async function copyPublicAssets({ outDir, root }) {
+  const publicRoot = path.join(root, "agent-html", "public")
+  const publicOutDir = path.join(outDir, "__agent-html", "public")
 
-.agent-html-demo-kicker,
-.agent-html-demo-path {
-  color: var(--muted-foreground, #64748b);
-  font-size: 0.875rem;
-}
-
-.agent-html-demo-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.agent-html-demo-artifact {
-  border: 1px solid color-mix(in oklab, var(--foreground, #0f172a) 14%, transparent);
-  border-radius: 0.5rem;
-  padding: 1rem;
-}
-
-.agent-html-demo-artifact h2 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.agent-html-demo-blocks {
-  margin-block-end: 0;
-}
-`
+  await fs.mkdir(publicOutDir, { recursive: true })
+  try {
+    await fs.cp(publicRoot, publicOutDir, { recursive: true })
+  } catch (error) {
+    if (error?.code !== "ENOENT") {
+      throw error
+    }
+  }
 }
 
 export async function buildDemoHost({ args, cwd }) {
   const root = parseRootArg({ args, cwd })
   const outDir = parseOutDirArg({ args, cwd })
   const artifacts = await readArtifactManifest(root)
+  const buildRoot = await createBuildWorkspace({ artifacts, root })
+  const reactProtocolEntry = resolvePackageModule("@agent-html/react")
+  const reactEntry = resolvePackageModule("react")
+  const reactDomClientEntry = resolvePackageModule("react-dom/client")
+  const reactJsxRuntimeEntry = resolvePackageModule("react/jsx-runtime")
+  const reactJsxDevRuntimeEntry = resolvePackageModule("react/jsx-dev-runtime")
 
-  await fs.mkdir(outDir, { recursive: true })
-  await fs.writeFile(path.join(outDir, "index.html"), createDemoIndexHtml())
+  await fs.rm(outDir, { force: true, recursive: true })
+  await viteBuild({
+    base: "./",
+    build: {
+      emptyOutDir: true,
+      outDir,
+      rollupOptions: {
+        input: path.join(buildRoot, "index.html"),
+      },
+    },
+    configFile: false,
+    publicDir: false,
+    root,
+    plugins: [react()],
+    resolve: {
+      alias: [
+        { find: "@", replacement: path.join(root, "agent-html") },
+        {
+          find: "#agent-html-playground",
+          replacement: path.join(root, "agent-html"),
+        },
+        { find: "@agent-html/react", replacement: reactProtocolEntry },
+        { find: "react-dom/client", replacement: reactDomClientEntry },
+        { find: "react/jsx-runtime", replacement: reactJsxRuntimeEntry },
+        { find: "react/jsx-dev-runtime", replacement: reactJsxDevRuntimeEntry },
+        { find: /^react$/, replacement: reactEntry },
+      ],
+    },
+    server: {
+      fs: {
+        allow: createViteFsAllowList({ reactProtocolEntry, root }),
+      },
+    },
+  })
+  const builtIndexPath = path.join(
+    outDir,
+    path.basename(buildRoot),
+    "index.html"
+  )
+  const builtIndexHtml = await fs.readFile(builtIndexPath, "utf8")
+  await fs.writeFile(
+    path.join(outDir, "index.html"),
+    builtIndexHtml.replaceAll("../assets/", "./assets/")
+  )
+  await fs.rm(path.join(outDir, path.basename(buildRoot)), {
+    force: true,
+    recursive: true,
+  })
   await fs.writeFile(
     path.join(outDir, "artifacts.json"),
     `${JSON.stringify({
-      artifacts,
+      artifacts: artifacts.map(({ blockImplementations: _unused, ...artifact }) =>
+        artifact
+      ),
       contentSource: "artifacts",
       pipeline: "example",
     }, null, 2)}\n`
   )
-  await fs.writeFile(
-    path.join(outDir, "styles.css"),
-    createDemoStyles(await loadHostStyles(root))
-  )
+  await copyPublicAssets({ outDir, root })
+  await fs.rm(buildRoot, { force: true, recursive: true })
 
   console.log(`Built AgentHTML example demo at ${outDir}`)
   console.log(`Artifacts: ${artifacts.length}`)

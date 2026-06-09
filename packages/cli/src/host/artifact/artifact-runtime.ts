@@ -112,6 +112,20 @@ function createRuntimeError({
 }
 
 async function defaultImportModule(url: string) {
+  const staticArtifacts = globalThis.__AGENT_HTML_STATIC_ARTIFACTS__
+  if (staticArtifacts && url.startsWith("/__agent-html/artifact.js?")) {
+    const filePath = new URL(url, globalThis.location.href).searchParams.get(
+      "filePath"
+    )
+    const module = filePath ? staticArtifacts[filePath] : null
+
+    if (!module) {
+      throw new Error(`Static artifact not found: ${filePath ?? ""}`)
+    }
+
+    return module
+  }
+
   return import(/* @vite-ignore */ url) as Promise<ArtifactModule>
 }
 
