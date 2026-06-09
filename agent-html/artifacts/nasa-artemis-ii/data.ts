@@ -26,6 +26,14 @@ export type MediaAsset = {
   src: string
 }
 
+export type VideoAsset = {
+  caption: string
+  credit: string
+  sourceUrl: string
+  src: string
+  title: string
+}
+
 export const missionTags = [
   "ARTEMIS II",
   "CREWED LUNAR FLYBY",
@@ -199,6 +207,10 @@ export const sourceLinks = {
       label: "Artemis II Multimedia",
       url: "https://www.nasa.gov/artemis-ii-multimedia/",
     },
+    {
+      label: "Simulated Artemis II Lunar Flyby",
+      url: "https://svs.gsfc.nasa.gov/5536/",
+    },
   ],
   mediaUsage: [
     {
@@ -284,6 +296,14 @@ export const mediaAssets = {
       sourceUrl:
         "https://science.nasa.gov/earth/earth-observatory/earthset-from-the-lunar-far-side/",
       src: "https://assets.science.nasa.gov/content/dam/science/esd/eo/images/iotd/2026/earthset-from-the-lunar-far-side/earthset_55192132107_00dc598014_o.jpg",
+    },
+    flybyVideo: {
+      caption:
+        "A simulated Orion viewpoint turns the lunar flyby into motion, not only a still landmark.",
+      credit: "Credit: NASA Scientific Visualization Studio",
+      sourceUrl: "https://svs.gsfc.nasa.gov/5536/",
+      src: "https://svs.gsfc.nasa.gov/vis/a000000/a005500/a005536/a2_flyby_1min_1080p30.mp4",
+      title: "Simulated Artemis II Lunar Flyby",
     },
     moonView: {
       alt: "The Moon eclipsing the Sun as seen from Orion during Artemis II.",

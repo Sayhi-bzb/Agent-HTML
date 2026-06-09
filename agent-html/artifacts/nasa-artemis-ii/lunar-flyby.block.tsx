@@ -34,14 +34,18 @@ export function LunarFlybyBlock() {
 
       <div className="canvas-grid-gap md:grid-cols-2">
         <figure className="canvas-stack-sm">
-          <img
-            alt={mediaAssets.lunarFlyby.moonView.alt}
-            className="max-h-80 w-full rounded-md object-cover"
-            src={mediaAssets.lunarFlyby.moonView.src}
-          />
+          <video
+            className="max-h-80 w-full rounded-md"
+            controls
+            muted
+            preload="metadata"
+            src={mediaAssets.lunarFlyby.flybyVideo.src}
+          >
+            This browser cannot play the simulated Artemis II lunar flyby video.
+          </video>
           <p className="canvas-text-caption text-muted-foreground">
-            {mediaAssets.lunarFlyby.moonView.caption}{" "}
-            {mediaAssets.lunarFlyby.moonView.credit}.
+            {mediaAssets.lunarFlyby.flybyVideo.caption}{" "}
+            {mediaAssets.lunarFlyby.flybyVideo.credit}.
           </p>
         </figure>
         <div className="canvas-grid-gap-md">
