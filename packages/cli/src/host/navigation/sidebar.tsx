@@ -1,6 +1,7 @@
 import {
   EllipsisIcon,
   ArrowLeftIcon,
+  BookOpenTextIcon,
   FileTextIcon,
   FilePlus2Icon,
   LoaderCircleIcon,
@@ -201,18 +202,30 @@ export function ReactCanvasSidebar({
                   Agent-HTML
                 </span>
               </div>
-              <a
-                aria-label="Open Agent-HTML on GitHub"
-                className="canvas-sidebar-brand-link"
-                href="https://github.com/Sayhi-bzb/Agent-HTML"
-                rel="noreferrer"
-                target="_blank"
-              >
-                <GithubMarkIcon
-                  aria-hidden="true"
-                  className="canvas-sidebar-brand-link-icon"
-                />
-              </a>
+              <div className="canvas-sidebar-brand-links">
+                <a
+                  aria-label="Open Agent-HTML docs"
+                  className="canvas-sidebar-brand-link"
+                  href="/docs"
+                >
+                  <BookOpenTextIcon
+                    aria-hidden="true"
+                    className="canvas-sidebar-brand-link-icon"
+                  />
+                </a>
+                <a
+                  aria-label="Open Agent-HTML on GitHub"
+                  className="canvas-sidebar-brand-link"
+                  href="https://github.com/Sayhi-bzb/Agent-HTML"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <GithubMarkIcon
+                    aria-hidden="true"
+                    className="canvas-sidebar-brand-link-icon"
+                  />
+                </a>
+              </div>
             </div>
             <ReactCanvasArtifactSearch
               artifacts={artifacts}

@@ -8,8 +8,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | Metric | Count |
 | --- | --- |
 | Modules | 114 |
-| Dependencies | 382 |
-| Local edges | 226 |
+| Dependencies | 383 |
+| Local edges | 227 |
 | External edges | 155 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
@@ -47,7 +47,7 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/artemis-ii-media-story-builder/asset-preview.block.tsx` | 6 |
 | `agent-html/components/data-table.tsx` | 6 |
 | `agent-html/examples/example/handoff.block.tsx` | 6 |
-| `agent-html/artifacts/patch-handoff-workbench.artifact.tsx` | 5 |
+| `agent-html/artifacts/artemis-ii-media-story-builder/mission-timeline.block.tsx` | 5 |
 
 ## Top External Dependencies
 

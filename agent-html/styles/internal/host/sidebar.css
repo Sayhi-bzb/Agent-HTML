@@ -38,6 +38,13 @@
     color: var(--sidebar-foreground);
   }
 
+  .canvas-sidebar-brand-links {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
   .canvas-sidebar-brand-link {
     display: inline-flex;
     width: 1.75rem;
@@ -54,10 +61,10 @@
     color: var(--sidebar-accent-foreground);
   }
 
-.canvas-sidebar-brand-link-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
+  .canvas-sidebar-brand-link-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 
   .canvas-sidebar-copy {
     padding-inline: var(--canvas-sidebar-content-padding-inline);

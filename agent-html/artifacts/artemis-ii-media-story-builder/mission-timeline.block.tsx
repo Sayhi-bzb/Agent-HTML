@@ -2,6 +2,13 @@ import { CalendarDaysIcon, ImageIcon, VideoIcon } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
 import { Button } from "../../components/ui/button"
+import {
+  Timeline,
+  TimelineConnector,
+  TimelineContent,
+  TimelineDot,
+  TimelineItem,
+} from "../../components/timeline"
 import { Separator } from "../../components/ui/separator"
 
 import {
@@ -71,6 +78,10 @@ export function MissionTimelineBlock({
         Date.parse(left.dateCreated) - Date.parse(right.dateCreated)
     )
     .slice(0, 8)
+  const activePhaseIndex = Math.max(
+    artemisTimelinePhases.findIndex((phase) => phase.id === activePhaseId),
+    0
+  )
 
   return (
     <section className="canvas-stack-lg">
@@ -93,32 +104,38 @@ export function MissionTimelineBlock({
         </p>
       </div>
 
-      <div className="canvas-grid-gap md:grid-cols-2">
+      <Timeline activeIndex={activePhaseIndex}>
         {artemisTimelinePhases.map((phase) => {
           const beatCount = storyBeats.filter(
             (beat) => beat.phaseId === phase.id
           ).length
+          const active = activePhaseId === phase.id
 
           return (
-            <Button
-              aria-pressed={activePhaseId === phase.id}
-              className="canvas-stack-sm h-auto items-start justify-start whitespace-normal p-3 text-left"
-              key={phase.id}
-              onClick={() => setActivePhaseId(phase.id)}
-              type="button"
-              variant={activePhaseId === phase.id ? "default" : "outline"}
-            >
-              <span className="canvas-wrap-sm items-center">
-                <span>{phase.label}</span>
-                <Badge variant="outline">{beatCount} beats</Badge>
-              </span>
-              <span className="canvas-text-caption text-muted-foreground">
-                {phase.summary}
-              </span>
-            </Button>
+            <TimelineItem key={phase.id}>
+              <TimelineDot />
+              <TimelineConnector />
+              <TimelineContent>
+                <Button
+                  aria-pressed={active}
+                  className="canvas-stack-sm h-auto w-full items-start justify-start whitespace-normal p-3 text-left"
+                  onClick={() => setActivePhaseId(phase.id)}
+                  type="button"
+                  variant={active ? "default" : "outline"}
+                >
+                  <span className="canvas-wrap-sm items-center">
+                    <span>{phase.label}</span>
+                    <Badge variant="outline">{beatCount} beats</Badge>
+                  </span>
+                  <span className="canvas-text-caption text-muted-foreground">
+                    {phase.summary}
+                  </span>
+                </Button>
+              </TimelineContent>
+            </TimelineItem>
           )
         })}
-      </div>
+      </Timeline>
 
       <Separator />
 

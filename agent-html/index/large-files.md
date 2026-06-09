@@ -12,7 +12,7 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 | `agent-html/components/timeline.tsx` | 4554 | `components/README.md` |
 | `agent-html/components/data-table.tsx` | 2964 | `components/README.md` |
 | `agent-html/components/ui/chart.tsx` | 2714 | `components/README.md` |
-| `agent-html/styles/internal/host/sidebar.css` | 2568 | nearest README or source-specific notes |
+| `agent-html/styles/internal/host/sidebar.css` | 2602 | nearest README or source-specific notes |
 | `agent-html/components/ui/combobox.tsx` | 2338 | `components/README.md` |
 | `agent-html/artifacts/dashboard/data.ts` | 2316 | `artifacts/README.md` |
 | `agent-html/components/ui/dropdown-menu.tsx` | 2271 | `components/README.md` |
