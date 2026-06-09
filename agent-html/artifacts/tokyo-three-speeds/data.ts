@@ -17,6 +17,41 @@ export type Metric = {
   value: number
 }
 
+export type MediaAssetKey = keyof typeof mediaAssets
+
+export type TokyoPoint = {
+  coordinates: [number, number]
+  day: string
+  evidenceKey: MediaAssetKey
+  interestLabels: string[]
+  label: string
+  note: string
+  routeId: string
+  speed: "arrival" | "density" | "quiet" | "openLoop"
+}
+
+export type TokyoRoute = {
+  color: string
+  coordinates: [number, number][]
+  day: string
+  distanceLabel: string
+  durationLabel: string
+  evidenceKey: MediaAssetKey
+  id: string
+  interestLabel: string
+  label: string
+  opacity: number
+  pointLabels: string[]
+  speed: "arrival" | "density" | "quiet"
+  summary: string
+  tag: string
+  viewport: {
+    center: [number, number]
+    zoom: number
+  }
+  width: number
+}
+
 export const mediaAssets = {
   arrival: {
     alt: "A Tokyo Monorail platform at Haneda Airport Terminal 3.",
@@ -51,6 +86,191 @@ export const mediaAssets = {
     src: "/__agent-html/public/tokyo-three-speeds/open-loop-jimbocho-bookshop.jpg",
   },
 } satisfies Record<string, MediaAsset>
+
+export const tokyoMap = {
+  center: [139.745, 35.675] as [number, number],
+  zoom: 10.25,
+  styles: {
+    dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+    light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+  },
+}
+
+export const tokyoPoints: TokyoPoint[] = [
+  {
+    coordinates: [139.7798, 35.5494],
+    day: "D1",
+    evidenceKey: "arrival",
+    interestLabels: ["low stimulus"],
+    label: "Haneda",
+    note: "Soft landing begins with airport-to-city movement.",
+    routeId: "arrival-route",
+    speed: "arrival",
+  },
+  {
+    coordinates: [139.7016, 35.6595],
+    day: "D2",
+    evidenceKey: "density",
+    interestLabels: ["food", "nightlife"],
+    label: "Shibuya",
+    note: "Crowd flow and crossing logic.",
+    routeId: "density-route",
+    speed: "density",
+  },
+  {
+    coordinates: [139.7126, 35.6652],
+    day: "D2",
+    evidenceKey: "density",
+    interestLabels: ["design"],
+    label: "Omotesando",
+    note: "Dense but legible design-facing city interface.",
+    routeId: "density-route",
+    speed: "density",
+  },
+  {
+    coordinates: [139.7005, 35.6896],
+    day: "D2",
+    evidenceKey: "density",
+    interestLabels: ["nightlife"],
+    label: "Shinjuku",
+    note: "Station exits and return planning.",
+    routeId: "density-route",
+    speed: "density",
+  },
+  {
+    coordinates: [139.7975, 35.6817],
+    day: "D3",
+    evidenceKey: "quiet",
+    interestLabels: ["bookstores", "low stimulus"],
+    label: "Kiyosumi",
+    note: "Garden pause and low-stimulus route anchor.",
+    routeId: "quiet-route",
+    speed: "quiet",
+  },
+  {
+    coordinates: [139.7606, 35.6959],
+    day: "D3",
+    evidenceKey: "openLoop",
+    interestLabels: ["bookstores"],
+    label: "Jimbocho",
+    note: "Bookstore dwell and unfinished shelf.",
+    routeId: "quiet-route",
+    speed: "quiet",
+  },
+  {
+    coordinates: [139.7663, 35.7274],
+    day: "D3",
+    evidenceKey: "quiet",
+    interestLabels: ["low stimulus"],
+    label: "Yanaka",
+    note: "Neighborhood texture at slower speed.",
+    routeId: "quiet-route",
+    speed: "quiet",
+  },
+]
+
+export const tokyoRoutes: TokyoRoute[] = [
+  {
+    color: "#6b7280",
+    coordinates: [
+      [139.7798, 35.5494],
+      [139.7565, 35.6556],
+      [139.745, 35.675],
+    ],
+    day: "Day 1",
+    distanceLabel: "18 km",
+    durationLabel: "45 min",
+    evidenceKey: "arrival",
+    id: "arrival-route",
+    interestLabel: "low stimulus",
+    label: "Day 1 arrival",
+    opacity: 0.34,
+    pointLabels: ["Haneda"],
+    speed: "arrival",
+    summary: "Finish airport-to-city movement before chasing the city.",
+    tag: "Soft Landing",
+    viewport: {
+      center: [139.763, 35.61],
+      zoom: 10.4,
+    },
+    width: 4,
+  },
+  {
+    color: "#e11d48",
+    coordinates: [
+      [139.7016, 35.6595],
+      [139.7126, 35.6652],
+      [139.7005, 35.6896],
+    ],
+    day: "Day 2",
+    distanceLabel: "8.4 km",
+    durationLabel: "3h 40m",
+    evidenceKey: "density",
+    id: "density-route",
+    interestLabel: "design",
+    label: "Day 2 density",
+    opacity: 0.82,
+    pointLabels: ["Shibuya", "Omotesando", "Shinjuku"],
+    speed: "density",
+    summary: "Use density while it is useful: crowd flow, stations, commerce.",
+    tag: "High Density",
+    viewport: {
+      center: [139.705, 35.675],
+      zoom: 12.25,
+    },
+    width: 5,
+  },
+  {
+    color: "#059669",
+    coordinates: [
+      [139.7975, 35.6817],
+      [139.7606, 35.6959],
+      [139.7663, 35.7274],
+    ],
+    day: "Day 3",
+    distanceLabel: "6.6 km",
+    durationLabel: "4h 10m",
+    evidenceKey: "quiet",
+    id: "quiet-route",
+    interestLabel: "bookstores",
+    label: "Day 3 quiet",
+    opacity: 0.92,
+    pointLabels: ["Kiyosumi", "Jimbocho", "Yanaka"],
+    speed: "quiet",
+    summary: "Trade breadth for dwell time: garden, books, neighborhood texture.",
+    tag: "Quiet / Bookstores",
+    viewport: {
+      center: [139.774, 35.703],
+      zoom: 12,
+    },
+    width: 6,
+  },
+  {
+    color: "#0f766e",
+    coordinates: [
+      [139.745, 35.675],
+      [139.7975, 35.6817],
+      [139.7663, 35.7274],
+    ],
+    day: "Day 3",
+    distanceLabel: "5.1 km",
+    durationLabel: "3h 20m",
+    evidenceKey: "quiet",
+    id: "low-stimulus-route",
+    interestLabel: "low stimulus",
+    label: "Low stimulus",
+    opacity: 0.7,
+    pointLabels: ["Kiyosumi", "Yanaka"],
+    speed: "quiet",
+    summary: "Short radius, fewer transfers, and more sitting time.",
+    tag: "Low Stimulus",
+    viewport: {
+      center: [139.78, 35.704],
+      zoom: 11.7,
+    },
+    width: 5,
+  },
+]
 
 export const arrivalTimeline = [
   {
@@ -187,6 +407,7 @@ export const quietMetrics: Metric[] = [
 export const selectorOptions = [
   {
     dayRewrite: ["Tsukiji edge", "Shibuya dinner", "Jimbocho cafe"],
+    evidenceKey: "density",
     label: "food",
     load: [
       { label: "walking", value: 62 },
@@ -195,10 +416,13 @@ export const selectorOptions = [
       { label: "night", value: 48 },
       { label: "dwell", value: 42 },
     ],
+    pointLabels: ["Shibuya", "Jimbocho"],
+    routeId: "density-route",
     route: "Meals set the clock; queues become the real cost.",
   },
   {
     dayRewrite: ["Aoyama", "Omotesando", "gallery stop"],
+    evidenceKey: "density",
     label: "design",
     load: [
       { label: "walking", value: 66 },
@@ -207,10 +431,13 @@ export const selectorOptions = [
       { label: "night", value: 38 },
       { label: "dwell", value: 64 },
     ],
+    pointLabels: ["Omotesando", "Shibuya"],
+    routeId: "density-route",
     route: "Keep the radius tight and let storefronts become the map.",
   },
   {
     dayRewrite: ["Kiyosumi", "Jimbocho", "missed shelf"],
+    evidenceKey: "openLoop",
     label: "bookstores",
     load: [
       { label: "walking", value: 48 },
@@ -219,10 +446,13 @@ export const selectorOptions = [
       { label: "night", value: 16 },
       { label: "dwell", value: 86 },
     ],
+    pointLabels: ["Kiyosumi", "Jimbocho", "Yanaka"],
+    routeId: "quiet-route",
     route: "Trade breadth for time inside places.",
   },
   {
     dayRewrite: ["Shinjuku", "late train", "short morning"],
+    evidenceKey: "density",
     label: "nightlife",
     load: [
       { label: "walking", value: 72 },
@@ -231,10 +461,13 @@ export const selectorOptions = [
       { label: "night", value: 94 },
       { label: "dwell", value: 36 },
     ],
+    pointLabels: ["Shinjuku", "Shibuya"],
+    routeId: "density-route",
     route: "Night energy requires an exit plan.",
   },
   {
     dayRewrite: ["hotel area", "garden", "one bookstore"],
+    evidenceKey: "quiet",
     label: "low stimulus",
     load: [
       { label: "walking", value: 28 },
@@ -243,9 +476,17 @@ export const selectorOptions = [
       { label: "night", value: 10 },
       { label: "dwell", value: 78 },
     ],
+    pointLabels: ["Haneda", "Kiyosumi", "Yanaka"],
+    routeId: "low-stimulus-route",
     route: "Fewer transfers can make the day better, not smaller.",
   },
 ]
+
+export type SelectorOption = (typeof selectorOptions)[number] & {
+  evidenceKey: MediaAssetKey
+}
+
+export const defaultConsole = selectorOptions[2]
 
 export const routeComparison = selectorOptions.map((option) => ({
   cost: option.load
