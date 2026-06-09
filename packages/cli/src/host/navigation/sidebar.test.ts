@@ -43,6 +43,21 @@ describe("ReactCanvasSidebar artifact rows", () => {
     expect(sidebarSource).toContain('className="canvas-sidebar-spinner"')
     expect(sidebarSource).not.toContain('caption={createArtifactPending')
   })
+
+  it("keeps the language popover to a title and selectable items", () => {
+    expect(sidebarSource).toContain("<HostDropdownLabel>{t(\"sidebar.language\")}</HostDropdownLabel>")
+    expect(sidebarSource).toContain("canvasHostLanguageOptions.map")
+    expect(sidebarSource).not.toContain("canvas-host-dropdown-meta")
+    expect(sidebarSource).not.toContain("languageDisplayLabel")
+    expect(sidebarSource).not.toContain("sidebar.languageSystemResolved")
+  })
+
+  it("uses the shared icon button component for footer links", () => {
+    expect(sidebarSource).toContain('href="https://agent-html.org/docs"')
+    expect(sidebarSource).toContain('href="https://github.com/Sayhi-bzb/Agent-HTML"')
+    expect(sidebarSource).not.toContain("canvas-sidebar-footer-icon-link")
+    expect(sidebarSource).not.toContain('className="canvas-sidebar-footer-icon"')
+  })
 })
 
 describe("ReactCanvasSidebar thread selector", () => {

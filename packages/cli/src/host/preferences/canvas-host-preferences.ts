@@ -49,7 +49,7 @@ const defaultCanvasHostPreferences: CanvasHostPreferences = {
   activeSidebarView: "artifacts",
   activeThemeEditorSectionId: "color",
   activeThemeMode: "system",
-  activeThemePresetId: "default",
+  activeThemePresetId: "claude-plus",
   createArtifactJob: null,
   leftSidebarOpen: true,
   messageDrafts: {},

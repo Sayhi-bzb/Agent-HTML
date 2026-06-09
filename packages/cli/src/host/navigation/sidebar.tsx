@@ -179,17 +179,12 @@ export function ReactCanvasSidebar({
   themePresets: readonly CanvasThemePreset[]
   themeRuntimeVariables: CanvasThemeResolvedVariables
 }) {
-  const { locale, t } = useHostI18n()
+  const { t } = useHostI18n()
   const activeThemePreset =
     themePresets.find((preset) => preset.id === activeThemePresetId) ??
     themePresets[0]
   const isGalleryView = activeSidebarView === "gallery"
   const resolvedThemeIsDark = isResolvedCanvasThemeDark(activeThemeMode)
-  const activeLanguageLabel = languageDisplayLabel({
-    language: activeLanguage,
-    locale,
-    t,
-  })
 
   return (
     <Sidebar className="border-transparent" collapsible="offcanvas">
@@ -361,9 +356,6 @@ export function ReactCanvasSidebar({
                       side="right"
                     >
                       <HostDropdownLabel>{t("sidebar.language")}</HostDropdownLabel>
-                      <div className="canvas-host-dropdown-meta">
-                        {activeLanguageLabel}
-                      </div>
                       {canvasHostLanguageOptions.map((language) => (
                         <HostPopoverAction
                           active={language === activeLanguage}
@@ -374,30 +366,26 @@ export function ReactCanvasSidebar({
                       ))}
                     </HostPopoverContent>
                   </Popover>
-                  <a
-                    aria-label={t("sidebar.docs")}
-                    className="canvas-sidebar-footer-icon-link"
+                  <HostIconButton
+                    className="canvas-sidebar-footer-icon-button"
                     href="https://agent-html.org/docs"
+                    icon={BookOpenTextIcon}
+                    label={t("sidebar.docs")}
                     rel="noreferrer"
+                    size="icon-sm"
                     target="_blank"
-                  >
-                    <BookOpenTextIcon
-                      aria-hidden="true"
-                      className="canvas-sidebar-footer-icon"
-                    />
-                  </a>
-                  <a
-                    aria-label={t("sidebar.github")}
-                    className="canvas-sidebar-footer-icon-link"
+                    variant="ghost"
+                  />
+                  <HostIconButton
+                    className="canvas-sidebar-footer-icon-button"
                     href="https://github.com/Sayhi-bzb/Agent-HTML"
+                    icon={GithubMarkIcon}
+                    label={t("sidebar.github")}
                     rel="noreferrer"
+                    size="icon-sm"
                     target="_blank"
-                  >
-                    <GithubMarkIcon
-                      aria-hidden="true"
-                      className="canvas-sidebar-footer-icon"
-                    />
-                  </a>
+                    variant="ghost"
+                  />
                 </div>
               </SidebarMenuItem>
             </>
@@ -434,24 +422,6 @@ function languageOptionLabel({
   }
 
   return t("sidebar.languageSystem")
-}
-
-function languageDisplayLabel({
-  language,
-  locale,
-  t,
-}: {
-  language: CanvasHostLanguage
-  locale: "en" | "zh"
-  t: HostSidebarTranslator
-}) {
-  if (language === "system") {
-    return t("sidebar.languageSystemResolved", {
-      language: languageOptionLabel({ language: locale, t }),
-    })
-  }
-
-  return languageOptionLabel({ language, t })
 }
 
 function isResolvedCanvasThemeDark(mode: CanvasHostThemeMode) {

@@ -49,7 +49,7 @@ describe("canvas host preferences", () => {
       activeSidebarView: "artifacts",
       activeThemeEditorSectionId: "color",
       activeThemeMode: "system",
-      activeThemePresetId: "default",
+      activeThemePresetId: "claude-plus",
       leftSidebarOpen: true,
       messageDrafts: {},
     })
@@ -94,7 +94,7 @@ describe("canvas host preferences", () => {
       activeSidebarView: "artifacts",
       activeThemeEditorSectionId: "color",
       activeThemeMode: "system",
-      activeThemePresetId: "default",
+      activeThemePresetId: "claude-plus",
       createArtifactJob: {
         filePath: "agent-html/artifacts/new.artifact.tsx",
         phase: "waiting-for-artifact",
