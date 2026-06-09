@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   ArtifactRuntimeController,
@@ -54,6 +54,11 @@ function moduleWithDispose(dispose = vi.fn()): ArtifactModule {
 }
 
 describe("ArtifactRuntimeController", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
   it("ignores stale imports when a newer artifact is selected", async () => {
     const first = deferred<ArtifactModule>()
     const secondModule = moduleWithDispose()
@@ -281,7 +286,32 @@ describe("ArtifactRuntimeController", () => {
     await vi.advanceTimersByTimeAsync(1000)
 
     expect(importModule).toHaveBeenCalledOnce()
-    vi.useRealTimers()
+  })
+
+  it("classifies outdated optimized dependency failures as recoverable", async () => {
+    vi.stubGlobal("performance", {
+      getEntriesByType: vi.fn(() => [
+        {
+          name: "http://127.0.0.1:5177/@fs/cache/deps/@shikijs_transformers.js?v=old",
+          responseStatus: 504,
+        },
+      ]),
+    })
+    const controller = new ArtifactRuntimeController({
+      fetchBundle: vi.fn(async () => createResponse()),
+      importModule: vi.fn(async () => {
+        throw new Error("Failed to fetch dynamically imported module")
+      }),
+    })
+    controller.setElement(createElement())
+
+    await controller.load("agent-html/artifacts/demo.artifact.tsx", 1)
+
+    expect(controller.getSnapshot().error).toMatchObject({
+      kind: "optimized-dependency-outdated",
+      recoverable: true,
+      statusCode: 504,
+    })
   })
 
   it("stops automatic recovery after repeated server outages", async () => {
@@ -304,6 +334,5 @@ describe("ArtifactRuntimeController", () => {
     await vi.advanceTimersByTimeAsync(2000)
 
     expect(importModule).toHaveBeenCalledTimes(4)
-    vi.useRealTimers()
   })
 })

@@ -9,6 +9,7 @@ import {
 } from "./api/api"
 import { CreateArtifactSurface } from "./artifact/create-artifact-surface"
 import { ArtifactSurface } from "./artifact/artifact-surface"
+import { resolveArtifactRefreshState } from "./artifact/artifact-refresh-state"
 import {
   readCanvasHostPreferences,
   readCanvasMessageDraft,
@@ -83,44 +84,6 @@ import type {
 type CanvasHostMode = "artifact" | "create-artifact"
 
 const artifactsUpdatedEventName = "agent-html:artifacts-updated"
-
-export function resolveArtifactRefreshState({
-  artifacts,
-  currentFilePath,
-  pendingFilePath,
-  storedFilePath,
-}: {
-  artifacts: Artifact[]
-  currentFilePath: string | null
-  pendingFilePath: string | null
-  storedFilePath: string | null
-}) {
-  const artifactFilePaths = new Set(
-    artifacts.map((artifact) => artifact.filePath)
-  )
-  const pendingReady = Boolean(
-    pendingFilePath && artifactFilePaths.has(pendingFilePath)
-  )
-
-  if (pendingFilePath && pendingReady) {
-    return {
-      activeFilePath: pendingFilePath,
-      pendingReady,
-    }
-  }
-
-  if (currentFilePath && artifactFilePaths.has(currentFilePath)) {
-    return {
-      activeFilePath: currentFilePath,
-      pendingReady,
-    }
-  }
-
-  return {
-    activeFilePath: storedFilePath ?? artifacts[0]?.filePath ?? null,
-    pendingReady,
-  }
-}
 
 export function ReactCanvasHostApp() {
   const initialPreferences = React.useMemo(

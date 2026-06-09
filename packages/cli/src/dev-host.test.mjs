@@ -272,7 +272,7 @@ describe("React Canvas dev host", () => {
       expect(css).toContain(".agent-html-artifact")
       expect(css).toContain(".canvas-surface-frame")
       expect(css).toContain(".canvas-artifact-skeleton")
-      expect(css).toContain(".canvas-block-reply-badge")
+      expect(css).toContain(".canvas-block-action-badge")
       expect(css).toContain(".canvas-floating-prompt")
       expect(css).toContain(".canvas-content-panel")
       expect(css).toContain(".canvas-text-body")

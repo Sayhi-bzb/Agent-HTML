@@ -56,6 +56,7 @@ export type BlockMessageThread = {
   isOpen: boolean
   items: BlockMessageItem[]
   phase: BlockMessagePhase
+  readAt?: number | null
   title: string
   threadId?: string
   turnId?: string | null

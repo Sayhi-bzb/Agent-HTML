@@ -18,6 +18,7 @@ export type ArtifactRuntimeErrorStage =
 export type ArtifactRuntimeErrorKind =
   | "http-error"
   | "module-graph-error"
+  | "optimized-dependency-outdated"
   | "server-unavailable"
   | "transform-error"
   | "unknown"
@@ -42,6 +43,7 @@ export type ArtifactRuntimeSnapshot = {
 type ArtifactRuntimeListener = (snapshot: ArtifactRuntimeSnapshot) => void
 
 const maxAutomaticRecoveries = 3
+const optimizedDependencyOutdatedStatus = 504
 
 type ArtifactRuntimeOptions = {
   fetchBundle?: (url: string) => Promise<Response>
@@ -61,6 +63,29 @@ function errorMessage(error: unknown) {
 
 function errorStack(error: unknown) {
   return error instanceof Error && error.stack ? error.stack : undefined
+}
+
+function recentOptimizedDependencyFailure() {
+  if (
+    typeof performance === "undefined" ||
+    typeof performance.getEntriesByType !== "function"
+  ) {
+    return null
+  }
+
+  const entries = performance.getEntriesByType("resource")
+  for (let index = entries.length - 1; index >= 0; index -= 1) {
+    const entry = entries[index]
+    if (
+      "responseStatus" in entry &&
+      entry.responseStatus === optimizedDependencyOutdatedStatus &&
+      entry.name.includes("/deps/")
+    ) {
+      return entry.name
+    }
+  }
+
+  return null
 }
 
 function createRuntimeError({
@@ -117,6 +142,20 @@ async function classifyBundleLoadFailure({
         recoverable: response.status >= 500,
         stage: "bundle-load",
         statusCode: response.status,
+      }
+    }
+
+    const optimizedDependencyUrl = recentOptimizedDependencyFailure()
+    if (optimizedDependencyUrl) {
+      return {
+        details: optimizedDependencyUrl,
+        filePath,
+        kind: "optimized-dependency-outdated",
+        message: errorMessage(error),
+        recoverable: true,
+        stack: errorStack(error),
+        stage: "bundle-load",
+        statusCode: optimizedDependencyOutdatedStatus,
       }
     }
 
@@ -421,7 +460,8 @@ export class ArtifactRuntimeController {
   }) {
     if (
       !error.recoverable ||
-      error.kind !== "server-unavailable" ||
+      (error.kind !== "server-unavailable" &&
+        error.kind !== "optimized-dependency-outdated") ||
       typeof globalThis.setTimeout !== "function"
     ) {
       return

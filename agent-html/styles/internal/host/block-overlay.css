@@ -18,7 +18,7 @@
     background: var(--canvas-block-highlight-background);
   }
 
-  .canvas-block-reply-badge {
+  .canvas-block-action-badge {
     pointer-events: auto;
     position: absolute;
     top: calc(var(--canvas-block-reply-badge-offset) * -1);
@@ -39,46 +39,40 @@
     transition-duration: 150ms;
   }
 
-  .canvas-block-reply-badge[data-visible="true"],
-  .canvas-block-reply-badge:focus-visible {
+  .canvas-block-action-badge[data-visible="true"],
+  .canvas-block-action-badge:focus-visible {
     opacity: 1;
   }
 
-  .canvas-block-reply-badge:hover,
-  .canvas-block-reply-badge:focus-visible {
+  .canvas-block-action-badge:hover,
+  .canvas-block-action-badge:focus-visible {
     border-color: var(--canvas-block-highlight-border);
     background: color-mix(in oklab, var(--background) 94%, var(--ring));
     color: var(--foreground);
   }
 
-  .canvas-block-reply-badge-icon {
+  .canvas-block-action-badge[data-state="running"] {
+    color: var(--ring);
+  }
+
+  .canvas-block-action-badge[data-state="done"] {
+    border-color: color-mix(in oklab, var(--ring) 58%, transparent);
+    color: var(--ring);
+  }
+
+  .canvas-block-action-badge[data-state="failed"] {
+    border-color: color-mix(in oklab, var(--destructive) 58%, transparent);
+    color: var(--destructive);
+  }
+
+  .canvas-block-action-badge-icon {
     pointer-events: none;
     width: 0.875rem;
     height: 0.875rem;
   }
 
-  .canvas-block-notification-dot {
-    position: absolute;
-    top: -0.125rem;
-    right: -0.125rem;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 9999px;
-    background: var(--ring);
-    border: 1px solid var(--background);
-  }
-
-  .canvas-block-reply-badge[data-phase="running"] .canvas-block-notification-dot {
-    width: calc(0.5rem + 0.25rem);
-    height: calc(0.5rem + 0.25rem);
-    border: 1.5px solid color-mix(in oklab, var(--ring) 24%, transparent);
-    border-top-color: var(--ring);
+  .canvas-block-action-badge[data-state="running"] .canvas-block-action-badge-icon {
     animation: canvas-block-message-spin 0.85s linear infinite;
-    background: transparent;
-  }
-
-  .canvas-block-reply-badge[data-phase="failed"] .canvas-block-notification-dot {
-    background: var(--destructive);
   }
 
   [data-slot="popover-content"].canvas-block-message-popover {
@@ -87,11 +81,12 @@
       var(--canvas-block-message-panel-width),
       var(--radix-popover-content-available-width, calc(100vw - 1.5rem))
     ) !important;
-    border-color: color-mix(in oklab, var(--foreground) 10%, transparent) !important;
-    background: color-mix(in oklab, var(--popover) 96%, transparent) !important;
+    border: 0 !important;
+    background: transparent !important;
     color: var(--popover-foreground) !important;
     padding: 0 !important;
-    box-shadow: 0 1px 2px 0 oklch(0 0 0 / 8%) !important;
+    box-shadow: none !important;
+    outline: none;
   }
 
   .canvas-block-message-panel {

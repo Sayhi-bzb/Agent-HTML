@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { resolveArtifactRefreshState } from "./app"
+import { resolveArtifactRefreshState } from "./artifact/artifact-refresh-state"
 
 const exampleArtifacts = [
   {

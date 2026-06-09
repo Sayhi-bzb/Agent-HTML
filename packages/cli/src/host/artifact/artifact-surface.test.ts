@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   shouldBlockArtifactWithError,
   shouldShowArtifactSkeleton,
-} from "./artifact-surface"
+} from "./artifact-surface-state"
 
 describe("shouldShowArtifactSkeleton", () => {
   it("shows skeleton while the artifact list is loading", () => {

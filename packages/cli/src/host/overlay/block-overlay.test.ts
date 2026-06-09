@@ -1,12 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
-  createAnimationFrameScheduler,
+  blockActionBadgeState,
   findHoveredBlockOverlay,
-  measureBlockOverlays,
+  isBlockActionBadgeVisible,
   parseCssLengthInPixels,
-} from "./block-overlay"
-import type { BlockOverlay } from "../host-contracts"
+  shouldMarkBlockMessageThreadRead,
+  shouldOpenBlockMessageThreadFromActionBadge,
+} from "./block-overlay-state"
+import {
+  createAnimationFrameScheduler,
+  measureBlockOverlays,
+} from "./block-overlay-geometry"
+import type { BlockMessageThread, BlockOverlay } from "../host-contracts"
 
 const summaryElement = {} as HTMLElement
 const detailsElement = {} as HTMLElement
@@ -164,6 +170,102 @@ describe("parseCssLengthInPixels", () => {
   it("falls back for missing or invalid values", () => {
     expect(parseCssLengthInPixels("", 6)).toBe(6)
     expect(parseCssLengthInPixels("bad", 6)).toBe(6)
+  })
+})
+
+describe("blockActionBadgeState", () => {
+  const thread: BlockMessageThread = {
+    blockId: "summary",
+    filePath: "agent-html/artifacts/demo.artifact.tsx",
+    id: "block_message_1",
+    isOpen: false,
+    items: [],
+    phase: "running",
+    readAt: null,
+    title: "Summary",
+  }
+
+  it("uses default state without an unread terminal thread", () => {
+    expect(blockActionBadgeState(undefined)).toBe("default")
+    expect(
+      blockActionBadgeState({
+        ...thread,
+        phase: "done",
+        readAt: Date.now(),
+      })
+    ).toBe("default")
+  })
+
+  it("uses running state while the turn is active", () => {
+    expect(blockActionBadgeState(thread)).toBe("running")
+  })
+
+  it("uses terminal unread states until read", () => {
+    expect(blockActionBadgeState({ ...thread, phase: "done" })).toBe("done")
+    expect(blockActionBadgeState({ ...thread, phase: "failed" })).toBe("failed")
+  })
+
+  it("only marks threads read when the thread panel is explicitly open", () => {
+    expect(
+      shouldMarkBlockMessageThreadRead({
+        isThreadOpen: false,
+        thread: { ...thread, phase: "done" },
+      })
+    ).toBe(false)
+    expect(
+      shouldMarkBlockMessageThreadRead({
+        isThreadOpen: true,
+        thread: { ...thread, phase: "done" },
+      })
+    ).toBe(true)
+    expect(
+      shouldMarkBlockMessageThreadRead({
+        isThreadOpen: true,
+        thread,
+      })
+    ).toBe(false)
+  })
+
+  it("opens the thread panel from unread terminal badges", () => {
+    expect(shouldOpenBlockMessageThreadFromActionBadge(undefined)).toBe(false)
+    expect(shouldOpenBlockMessageThreadFromActionBadge(thread)).toBe(false)
+    expect(
+      shouldOpenBlockMessageThreadFromActionBadge({ ...thread, phase: "done" })
+    ).toBe(true)
+    expect(
+      shouldOpenBlockMessageThreadFromActionBadge({
+        ...thread,
+        phase: "done",
+        readAt: Date.now(),
+      })
+    ).toBe(false)
+  })
+
+  it("releases read default badges back to hover-only visibility", () => {
+    expect(
+      isBlockActionBadgeVisible({
+        isHovered: false,
+        isPromptOpen: false,
+        isThreadOpen: false,
+        state: "default",
+      })
+    ).toBe(false)
+    expect(
+      isBlockActionBadgeVisible({
+        isHovered: true,
+        isPromptOpen: false,
+        isThreadOpen: false,
+        state: "default",
+      })
+    ).toBe(true)
+    expect(
+      isBlockActionBadgeVisible({
+        isHovered: false,
+        isPromptOpen: false,
+        isThreadOpen: false,
+        state: "done",
+      })
+    ).toBe(true)
   })
 })
 

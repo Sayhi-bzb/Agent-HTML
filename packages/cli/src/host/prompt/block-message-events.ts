@@ -154,6 +154,7 @@ export function startBlockMessageThread({
       ),
     ],
     phase: "running",
+    readAt: null,
     title: target.title,
   }))
 
@@ -201,6 +202,7 @@ export function startBlockMessageThread({
                   ]),
             ],
             phase: isLast ? "done" : "running",
+            readAt: isLast ? null : thread.readAt ?? null,
           }
         })
       }, mockTimelineDelays[index])
@@ -237,6 +239,7 @@ export function finishBlockMessageThread({
       ),
     ],
     phase: "done",
+    readAt: null,
     threadId,
     title: target.title,
     turnId: turnId ?? null,
@@ -265,6 +268,7 @@ export function failBlockMessageThread({
       createItem("status-failed", "status", "Failed", error, "failed"),
     ],
     phase: "failed",
+    readAt: null,
     title: target.title,
   }))
 }
@@ -287,6 +291,10 @@ export function setBlockMessageThreadOpen({
   upsertThread(key, () => ({
     ...thread,
     isOpen,
+    readAt:
+      isOpen && thread.phase !== "running"
+        ? Date.now()
+        : thread.readAt ?? null,
   }))
 }
 

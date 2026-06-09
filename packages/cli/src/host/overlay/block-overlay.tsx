@@ -1,12 +1,26 @@
 import * as React from "react"
-import { MessageSquareReplyIcon } from "lucide-react"
+import {
+  CircleAlertIcon,
+  CircleCheckIcon,
+  LoaderCircleIcon,
+  MessageSquareReplyIcon,
+} from "lucide-react"
 
-import { artifactRenderedEventName } from "../api/api"
 import {
   getCanvasMessageHostSnapshot,
   subscribeCanvasMessageHost,
 } from "../prompt/canvas-message-store"
+import type { CanvasMessageHostSnapshot } from "../prompt/canvas-message-store"
 import { FloatingPrompt } from "../prompt/floating-prompt"
+import {
+  blockActionBadgeState,
+  blockMessageThreadLabel,
+  findHoveredBlockOverlay,
+  isBlockActionBadgeVisible,
+  shouldMarkBlockMessageThreadRead,
+  shouldOpenBlockMessageThreadFromActionBadge,
+  type BlockActionBadgeState,
+} from "./block-overlay-state"
 import {
   Popover,
   PopoverAnchor,
@@ -16,104 +30,45 @@ import type {
   BlockMessageItem,
   BlockMessageThread,
   BlockOverlay,
+  FloatingPromptTarget,
 } from "../host-contracts"
 import { HostButton } from "../ui/button"
 import { HostFloatingPromptPopoverContent } from "../ui/prompt"
 
-const defaultBlockHighlightPadding = 6
-
-export function findHoveredBlockOverlay({
-  overlays,
-  x,
-  y,
-}: {
-  overlays: BlockOverlay[]
-  x: number
-  y: number
-}) {
-  for (let index = overlays.length - 1; index >= 0; index -= 1) {
-    const overlay = overlays[index]
-
-    if (
-      x >= overlay.x &&
-      x <= overlay.x + overlay.width &&
-      y >= overlay.y &&
-      y <= overlay.y + overlay.height
-    ) {
-      return overlay
-    }
+function BlockActionBadgeIcon({ state }: { state: BlockActionBadgeState }) {
+  if (state === "running") {
+    return (
+      <LoaderCircleIcon
+        aria-hidden="true"
+        className="canvas-block-action-badge-icon"
+      />
+    )
   }
 
-  return null
-}
-
-export function parseCssLengthInPixels(value: string, fallback: number) {
-  const trimmed = value.trim()
-
-  if (!trimmed) {
-    return fallback
+  if (state === "done") {
+    return (
+      <CircleCheckIcon
+        aria-hidden="true"
+        className="canvas-block-action-badge-icon"
+      />
+    )
   }
 
-  if (trimmed.endsWith("px")) {
-    const parsed = Number.parseFloat(trimmed)
-
-    return Number.isFinite(parsed) ? parsed : fallback
+  if (state === "failed") {
+    return (
+      <CircleAlertIcon
+        aria-hidden="true"
+        className="canvas-block-action-badge-icon"
+      />
+    )
   }
 
-  if (trimmed.endsWith("rem")) {
-    const parsed = Number.parseFloat(trimmed)
-
-    return Number.isFinite(parsed) ? parsed * 16 : fallback
-  }
-
-  const parsed = Number.parseFloat(trimmed)
-
-  return Number.isFinite(parsed) ? parsed : fallback
-}
-
-function getBlockHighlightPadding(root: HTMLElement) {
-  if (typeof window === "undefined") {
-    return defaultBlockHighlightPadding
-  }
-
-  return parseCssLengthInPixels(
-    window
-      .getComputedStyle(root)
-      .getPropertyValue("--canvas-block-highlight-padding"),
-    defaultBlockHighlightPadding
+  return (
+    <MessageSquareReplyIcon
+      aria-hidden="true"
+      className="canvas-block-action-badge-icon"
+    />
   )
-}
-
-export function createAnimationFrameScheduler(callback: () => void) {
-  let frame: number | null = null
-
-  return {
-    cancel() {
-      if (frame !== null) {
-        window.cancelAnimationFrame(frame)
-        frame = null
-      }
-    },
-    schedule() {
-      if (frame !== null) {
-        window.cancelAnimationFrame(frame)
-      }
-
-      frame = window.requestAnimationFrame(() => {
-        frame = null
-        callback()
-      })
-    },
-  }
-}
-
-export function blockMessageThreadLabel(phase: BlockMessageThread["phase"]) {
-  return {
-    done: "Done",
-    failed: "Failed",
-    idle: "Idle",
-    running: "Running",
-  }[phase]
 }
 
 function BlockMessageEventItem({ item }: { item: BlockMessageItem }) {
@@ -148,99 +103,6 @@ function BlockMessagePanel({ thread }: { thread: BlockMessageThread }) {
       </ol>
     </div>
   )
-}
-
-export function measureBlockOverlays(root: HTMLElement | null): BlockOverlay[] {
-  if (!root) {
-    return []
-  }
-
-  const rootRect = root.getBoundingClientRect()
-  const highlightPadding = getBlockHighlightPadding(root)
-  const blocks = Array.from(
-    root.querySelectorAll<HTMLElement>("[data-agent-html-block='true']")
-  )
-
-  return blocks.map((element) => {
-    const rect = element.getBoundingClientRect()
-    const id = element.getAttribute("data-agent-html-block-id") ?? ""
-
-    return {
-      element,
-      height: rect.height + highlightPadding * 2,
-      id,
-      title: element.getAttribute("data-agent-html-block-title") ?? id,
-      width: rect.width + highlightPadding * 2,
-      x: rect.left - rootRect.left - highlightPadding,
-      y: rect.top - rootRect.top - highlightPadding,
-    }
-  })
-}
-
-export function useSurfaceGeometryInvalidation({
-  onInvalidate,
-  surfaceRef,
-}: {
-  onInvalidate: () => void
-  surfaceRef: React.RefObject<HTMLElement | null>
-}) {
-  React.useEffect(() => {
-    window.addEventListener("resize", onInvalidate)
-    window.addEventListener(artifactRenderedEventName, onInvalidate)
-
-    return () => {
-      window.removeEventListener("resize", onInvalidate)
-      window.removeEventListener(artifactRenderedEventName, onInvalidate)
-    }
-  }, [onInvalidate])
-
-  React.useEffect(() => {
-    const surface = surfaceRef.current
-
-    if (!surface || typeof ResizeObserver === "undefined") {
-      return
-    }
-
-    const observer = new ResizeObserver(onInvalidate)
-    observer.observe(surface)
-
-    return () => observer.disconnect()
-  }, [onInvalidate, surfaceRef])
-}
-
-export function useBlockOverlayMeasurements(
-  rootRef: React.RefObject<HTMLElement | null>
-) {
-  const [overlays, setOverlays] = React.useState<BlockOverlay[]>([])
-
-  const measureBlocks = React.useCallback(() => {
-    setOverlays(measureBlockOverlays(rootRef.current))
-  }, [rootRef])
-
-  return { measureBlocks, overlays, setOverlays }
-}
-
-export function useBlockOverlays(rootRef: React.RefObject<HTMLElement | null>) {
-  const { measureBlocks, overlays, setOverlays } =
-    useBlockOverlayMeasurements(rootRef)
-  const scheduler = React.useMemo(
-    () => createAnimationFrameScheduler(measureBlocks),
-    [measureBlocks]
-  )
-  const scheduleGeometryUpdate = React.useCallback(() => {
-    scheduler.schedule()
-  }, [scheduler])
-
-  useSurfaceGeometryInvalidation({
-    onInvalidate: scheduleGeometryUpdate,
-    surfaceRef: rootRef,
-  })
-
-  React.useEffect(() => {
-    return scheduler.cancel
-  }, [scheduler])
-
-  return { measureBlocks, overlays, scheduleGeometryUpdate, setOverlays }
 }
 
 export function BlockOverlayLayer({
@@ -313,126 +175,167 @@ export function BlockOverlayLayer({
 
   return (
     <div className="canvas-block-overlay-layer" ref={rootRef}>
-      {overlays.map((overlay) => {
-        const isHovered = overlay.id === hoveredBlockId
-        const isPromptOpen = overlay.id === promptTarget?.id
-        const messageThread = Object.values(
-          messageHost.blockMessages.threads
-        ).find(
-          (thread) =>
-            thread.blockId === overlay.id &&
-            thread.filePath === messageHost.activeFilePath
-        )
-        const isThreadOpen = Boolean(messageThread?.isOpen)
-        const isReplyVisible =
-          isHovered || isPromptOpen || Boolean(messageThread)
+      {overlays.map((overlay) => (
+        <BlockOverlayItem
+          hoveredBlockId={hoveredBlockId}
+          key={overlay.id}
+          messageHost={messageHost}
+          overlay={overlay}
+          promptTarget={promptTarget}
+          setHoveredBlockId={setHoveredBlockId}
+        />
+      ))}
+    </div>
+  )
+}
 
-        return (
-          <Popover
-            key={overlay.id}
-            open={isPromptOpen || isThreadOpen}
-            onOpenChange={(open) => {
-              if (!open && isPromptOpen) {
-                messageHost.onClose()
+function BlockOverlayItem({
+  hoveredBlockId,
+  messageHost,
+  overlay,
+  promptTarget,
+  setHoveredBlockId,
+}: {
+  hoveredBlockId: string | null
+  messageHost: CanvasMessageHostSnapshot
+  overlay: BlockOverlay
+  promptTarget: FloatingPromptTarget | null
+  setHoveredBlockId: React.Dispatch<React.SetStateAction<string | null>>
+}) {
+  const isHovered = overlay.id === hoveredBlockId
+  const isPromptOpen = overlay.id === promptTarget?.id
+  const messageThread = Object.values(messageHost.blockMessages.threads).find(
+    (thread) =>
+      thread.blockId === overlay.id &&
+      thread.filePath === messageHost.activeFilePath
+  )
+  const isThreadOpen = Boolean(messageThread?.isOpen)
+  const isPanelVisible = isPromptOpen || isThreadOpen
+  const badgeState = blockActionBadgeState(messageThread)
+  const isBadgeVisible = isBlockActionBadgeVisible({
+    isHovered,
+    isPromptOpen,
+    isThreadOpen,
+    state: badgeState,
+  })
+
+  React.useEffect(() => {
+    if (!messageThread) {
+      return
+    }
+
+    if (shouldMarkBlockMessageThreadRead({ isThreadOpen, thread: messageThread })) {
+      messageHost.onThreadOpenChange({
+        blockId: messageThread.blockId,
+        filePath: messageThread.filePath,
+        isOpen: true,
+      })
+    }
+  }, [isThreadOpen, messageHost, messageThread])
+
+  return (
+    <Popover
+      open={isPanelVisible}
+      onOpenChange={(open) => {
+        if (!open && isPromptOpen) {
+          messageHost.onClose()
+        }
+        if (messageThread && !open) {
+          messageHost.onThreadOpenChange({
+            blockId: messageThread.blockId,
+            filePath: messageThread.filePath,
+            isOpen: false,
+          })
+        }
+      }}
+    >
+      <PopoverAnchor asChild>
+        <div
+          className="canvas-block-overlay"
+          data-hovered={isHovered || isPromptOpen ? "true" : undefined}
+          style={{
+            height: overlay.height,
+            left: overlay.x,
+            top: overlay.y,
+            width: overlay.width,
+          }}
+        >
+          <HostButton
+            aria-label={`Reply to ${overlay.title}`}
+            className="canvas-block-action-badge"
+            data-state={badgeState}
+            data-visible={isBadgeVisible ? "true" : undefined}
+            onBlur={() => {
+              if (!isPromptOpen) {
+                setHoveredBlockId(null)
               }
-              if (messageThread && !open) {
+            }}
+            onClick={(event) => {
+              if (
+                messageThread &&
+                shouldOpenBlockMessageThreadFromActionBadge(messageThread)
+              ) {
+                messageHost.onClose()
                 messageHost.onThreadOpenChange({
                   blockId: messageThread.blockId,
                   filePath: messageThread.filePath,
-                  isOpen: false,
+                  isOpen: true,
+                })
+              } else {
+                messageHost.onOpenTarget({
+                  anchorElement: overlay.element,
+                  id: overlay.id,
+                  title: overlay.title,
+                  triggerElement: event.currentTarget,
                 })
               }
             }}
+            onFocus={() => {
+              setHoveredBlockId(overlay.id)
+            }}
+            onPointerEnter={() => {
+              setHoveredBlockId(overlay.id)
+            }}
+            onPointerLeave={() => {
+              if (!isPromptOpen) {
+                setHoveredBlockId(null)
+              }
+            }}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
           >
-            <PopoverAnchor asChild>
-              <div
-                className="canvas-block-overlay"
-                data-hovered={isHovered || isPromptOpen ? "true" : undefined}
-                style={{
-                  height: overlay.height,
-                  left: overlay.x,
-                  top: overlay.y,
-                  width: overlay.width,
-                }}
-              >
-                <HostButton
-                  aria-label={`Reply to ${overlay.title}`}
-                  className="canvas-block-reply-badge"
-                  data-phase={messageThread?.phase}
-                  data-visible={isReplyVisible ? "true" : undefined}
-                  onBlur={() => {
-                    if (!isPromptOpen) {
-                      setHoveredBlockId(null)
-                    }
-                  }}
-                  onClick={(event) => {
-                    messageHost.onOpenTarget({
-                      anchorElement: overlay.element,
-                      id: overlay.id,
-                      title: overlay.title,
-                      triggerElement: event.currentTarget,
-                    })
-                  }}
-                  onFocus={() => {
-                    setHoveredBlockId(overlay.id)
-                  }}
-                  onPointerEnter={() => {
-                    setHoveredBlockId(overlay.id)
-                  }}
-                  onPointerLeave={() => {
-                    if (!isPromptOpen) {
-                      setHoveredBlockId(null)
-                    }
-                  }}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <MessageSquareReplyIcon
-                    aria-hidden="true"
-                    className="canvas-block-reply-badge-icon"
-                  />
-                  {messageThread ? (
-                    <span
-                      aria-hidden="true"
-                      className="canvas-block-notification-dot"
-                    />
-                  ) : null}
-                </HostButton>
-              </div>
-            </PopoverAnchor>
-            {isPromptOpen && promptTarget ? (
-              <HostFloatingPromptPopoverContent
-                align="start"
-                collisionPadding={12}
-                side="right"
-                sideOffset={12}
-              >
-                <FloatingPrompt
-                  onDraftChange={messageHost.onDraftChange}
-                  onSubmit={messageHost.onPromptSubmit}
-                  status={messageHost.status}
-                  target={promptTarget}
-                  value={messageHost.draft}
-                />
-                {messageThread ? (
-                  <BlockMessagePanel thread={messageThread} />
-                ) : null}
-              </HostFloatingPromptPopoverContent>
-            ) : messageThread && isThreadOpen ? (
-              <PopoverContent
-                align="start"
-                className="canvas-block-message-popover"
-                collisionPadding={12}
-                side="right"
-                sideOffset={12}
-              >
-                <BlockMessagePanel thread={messageThread} />
-              </PopoverContent>
-            ) : null}
-          </Popover>
-        )
-      })}
-    </div>
+            <BlockActionBadgeIcon state={badgeState} />
+          </HostButton>
+        </div>
+      </PopoverAnchor>
+      {isPromptOpen && promptTarget ? (
+        <HostFloatingPromptPopoverContent
+          align="start"
+          collisionPadding={12}
+          side="right"
+          sideOffset={12}
+        >
+          <FloatingPrompt
+            onDraftChange={messageHost.onDraftChange}
+            onSubmit={messageHost.onPromptSubmit}
+            status={messageHost.status}
+            target={promptTarget}
+            value={messageHost.draft}
+          />
+          {messageThread ? <BlockMessagePanel thread={messageThread} /> : null}
+        </HostFloatingPromptPopoverContent>
+      ) : messageThread && isThreadOpen ? (
+        <PopoverContent
+          align="start"
+          className="canvas-block-message-popover"
+          collisionPadding={12}
+          side="right"
+          sideOffset={12}
+        >
+          <BlockMessagePanel thread={messageThread} />
+        </PopoverContent>
+      ) : null}
+    </Popover>
   )
 }

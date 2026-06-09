@@ -32,6 +32,7 @@ describe("block message events", () => {
       getBlockMessageStoreSnapshot().threads[blockMessageKey(target)]
 
     expect(thread.phase).toBe("running")
+    expect(thread.readAt).toBeNull()
     expect(thread.items[0]).toMatchObject({
       kind: "request",
       summary: "Update this block",
@@ -73,6 +74,7 @@ describe("block message events", () => {
 
     expect(thread).toMatchObject({
       phase: "done",
+      readAt: null,
       threadId: "thread_123",
       turnId: "turn_456",
     })
@@ -96,6 +98,7 @@ describe("block message events", () => {
       getBlockMessageStoreSnapshot().threads[blockMessageKey(target)]
 
     expect(thread.phase).toBe("failed")
+    expect(thread.readAt).toBeNull()
     expect(thread.items.at(-1)).toMatchObject({
       kind: "status",
       status: "failed",
@@ -134,5 +137,46 @@ describe("block message events", () => {
     expect(
       getBlockMessageStoreSnapshot().threads[blockMessageKey(target)].isOpen
     ).toBe(true)
+  })
+
+  it("marks completed threads read when opened", () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-06-09T12:00:00.000Z"))
+    startBlockMessageThread({
+      request: "Update this block",
+      target,
+    })
+    finishBlockMessageThread({
+      target,
+      threadId: "thread_123",
+      turnId: "turn_456",
+    })
+
+    setBlockMessageThreadOpen({
+      blockId: target.blockId,
+      filePath: target.filePath,
+      isOpen: true,
+    })
+
+    expect(
+      getBlockMessageStoreSnapshot().threads[blockMessageKey(target)].readAt
+    ).toBe(new Date("2026-06-09T12:00:00.000Z").getTime())
+  })
+
+  it("does not mark running threads read when opened", () => {
+    startBlockMessageThread({
+      request: "Update this block",
+      target,
+    })
+
+    setBlockMessageThreadOpen({
+      blockId: target.blockId,
+      filePath: target.filePath,
+      isOpen: true,
+    })
+
+    expect(
+      getBlockMessageStoreSnapshot().threads[blockMessageKey(target)].readAt
+    ).toBeNull()
   })
 })
