@@ -3,6 +3,11 @@ import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
 import { resolveArtifactRefreshState } from "./artifact/artifact-refresh-state"
+import {
+  canvasHostMobileDocsUrl,
+  canvasHostMobileMediaQuery,
+  shouldRedirectCanvasHostToDocs,
+} from "./mobile-docs-redirect"
 
 const appPath = fileURLToPath(new URL("./app.tsx", import.meta.url))
 const appSource = readFileSync(appPath, "utf8")
@@ -14,8 +19,27 @@ describe("ReactCanvasHostApp prompt status copy", () => {
     expect(appSource).not.toContain("Sent to Codex thread")
     expect(appSource).not.toContain("Started a new Codex thread")
     expect(appSource).not.toContain("Sent to example pipeline")
-    expect(appSource).toContain('setPromptStatus("No active artifact.")')
+    expect(appSource).toContain('setPromptStatus(t("app.noActiveArtifact"))')
     expect(appSource).toContain("setPromptStatus(errorMessage)")
+  })
+})
+
+describe("ReactCanvasHostApp mobile docs redirect", () => {
+  it("uses the public docs start route for mobile host visits", () => {
+    expect(canvasHostMobileDocsUrl).toBe("https://agent-html.org/docs/start")
+  })
+
+  it("redirects only when the mobile media query matches", () => {
+    const createViewport = (matches: boolean) => ({
+      matchMedia: (query: string) => {
+        expect(query).toBe(canvasHostMobileMediaQuery)
+        return { matches }
+      },
+    })
+
+    expect(shouldRedirectCanvasHostToDocs(createViewport(true))).toBe(true)
+    expect(shouldRedirectCanvasHostToDocs(createViewport(false))).toBe(false)
+    expect(shouldRedirectCanvasHostToDocs(null)).toBe(false)
   })
 })
 

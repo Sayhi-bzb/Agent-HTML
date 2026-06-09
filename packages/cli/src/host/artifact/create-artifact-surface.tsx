@@ -1,4 +1,5 @@
 import { PromptComposer } from "../prompt/floating-prompt"
+import { useHostI18n } from "../i18n/host-i18n"
 
 export function CreateArtifactSurface({
   disabled = false,
@@ -15,6 +16,8 @@ export function CreateArtifactSurface({
   pending: boolean
   status: string
 }) {
+  const { t } = useHostI18n()
+
   return (
     <main className="canvas-surface-root">
       <div className="canvas-create-artifact-frame">
@@ -30,14 +33,14 @@ export function CreateArtifactSurface({
           </div>
           {pending ? (
             <div className="canvas-create-artifact-pending" role="status">
-              Creating artifact
+              {t("artifact.createPending")}
             </div>
           ) : null}
           <PromptComposer
             disabled={disabled}
             onDraftChange={onDraftChange}
             onSubmit={onSubmit}
-            placeholder="Describe the artifact to build..."
+            placeholder={t("artifact.createPlaceholder")}
             status={status}
             targetId="new-artifact"
             value={draft}

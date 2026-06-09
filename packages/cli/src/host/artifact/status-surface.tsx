@@ -1,4 +1,5 @@
 import type { GuardIssue } from "../host-contracts"
+import { useHostI18n } from "../i18n/host-i18n"
 import {
   HostStatusItem,
   HostStatusList,
@@ -6,12 +7,14 @@ import {
 } from "../ui/status"
 
 export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {
+  const { t } = useHostI18n()
+
   if (issues.length === 0) {
     return null
   }
 
   return (
-    <HostStatusSurface className="canvas-status" title="Guard issues">
+    <HostStatusSurface className="canvas-status" title={t("artifact.guardIssues")}>
       <HostStatusList>
         {issues.map((issue, index) => (
           <HostStatusItem

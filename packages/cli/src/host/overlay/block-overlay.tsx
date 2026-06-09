@@ -32,8 +32,11 @@ import type {
   BlockOverlay,
   FloatingPromptTarget,
 } from "../host-contracts"
+import { useHostI18n } from "../i18n/host-i18n"
 import { HostButton } from "../ui/button"
 import { HostFloatingPromptPopoverContent } from "../ui/prompt"
+
+type HostOverlayTranslator = ReturnType<typeof useHostI18n>["t"]
 
 function BlockActionBadgeIcon({ state }: { state: BlockActionBadgeState }) {
   if (state === "running") {
@@ -107,31 +110,40 @@ function lastBlockMessageItem(
   return undefined
 }
 
-function blockMessageReviewSummary(thread: BlockMessageThread) {
+function blockMessageReviewSummary(
+  thread: BlockMessageThread,
+  t: HostOverlayTranslator
+) {
   if (thread.phase === "failed") {
-    return "Review failed request details and retry when ready."
+    return t("overlay.reviewFailed")
   }
 
   if (thread.phase === "running") {
-    return "Codex is working on this block request."
+    return t("overlay.codexWorking")
   }
 
   if (thread.phase === "done") {
-    return "Codex accepted this block request."
+    return t("overlay.codexAccepted")
   }
 
-  return "No review available yet."
+  return t("overlay.noReview")
 }
 
-function blockMessageDiffSummary(thread: BlockMessageThread) {
+function blockMessageDiffSummary(
+  thread: BlockMessageThread,
+  t: HostOverlayTranslator
+) {
   if (thread.threadId || thread.turnId) {
-    return "Codex thread diff available."
+    return t("overlay.codexDiffAvailable")
   }
 
-  return "No diff available yet."
+  return t("overlay.noDiff")
 }
 
-function blockMessageItems(thread: BlockMessageThread) {
+function blockMessageItems(
+  thread: BlockMessageThread,
+  t: HostOverlayTranslator
+) {
   const request = lastBlockMessageItem(thread, (item) => item.kind === "request")
   const response = lastBlockMessageItem(thread, (item) => item.kind === "response")
   const status = lastBlockMessageItem(thread, (item) => item.kind === "status")
@@ -140,44 +152,45 @@ function blockMessageItems(thread: BlockMessageThread) {
     {
       id: "request",
       status: request?.status,
-      summary: request?.summary ?? "No request available.",
+      summary: request?.summary ?? t("overlay.noRequest"),
     },
     {
       id: "result",
       status: response?.status ?? status?.status,
-      summary: response?.summary ?? status?.summary ?? "No result available yet.",
+      summary: response?.summary ?? status?.summary ?? t("overlay.noResult"),
     },
     {
       id: "review",
       status: thread.phase === "failed" ? "failed" : status?.status,
-      summary: blockMessageReviewSummary(thread),
+      summary: blockMessageReviewSummary(thread, t),
     },
   ] satisfies BlockMessagePanelSection[]
 }
 
 function BlockMessagePanel({ thread }: { thread: BlockMessageThread }) {
+  const { t } = useHostI18n()
   const [view, setView] = React.useState<BlockMessagePanelView>("messages")
   const items =
     view === "messages"
-      ? blockMessageItems(thread)
+      ? blockMessageItems(thread, t)
       : [
           {
             id: "diff",
             status: thread.phase === "failed" ? "failed" : undefined,
-            summary: blockMessageDiffSummary(thread),
+            summary: blockMessageDiffSummary(thread, t),
           } satisfies BlockMessagePanelSection,
         ]
 
   return (
     <div className="canvas-block-message-panel">
-      <div aria-label="Message view" className="canvas-block-message-tabs">
+      <div aria-label={t("overlay.messageView")} className="canvas-block-message-tabs">
         <button
           className="canvas-block-message-tab"
           data-active={view === "messages" ? "true" : undefined}
           onClick={() => setView("messages")}
           type="button"
         >
-          Messages
+          {t("overlay.messages")}
         </button>
         <button
           className="canvas-block-message-tab"
@@ -185,7 +198,7 @@ function BlockMessagePanel({ thread }: { thread: BlockMessageThread }) {
           onClick={() => setView("diff")}
           type="button"
         >
-          Diff
+          {t("overlay.diff")}
         </button>
       </div>
       <ol className="canvas-block-message-list">
@@ -294,6 +307,7 @@ function BlockOverlayItem({
   promptTarget: FloatingPromptTarget | null
   setHoveredBlockId: React.Dispatch<React.SetStateAction<string | null>>
 }) {
+  const { t } = useHostI18n()
   const isHovered = overlay.id === hoveredBlockId
   const isPromptOpen = overlay.id === promptTarget?.id
   const messageThread = Object.values(messageHost.blockMessages.threads).find(
@@ -393,7 +407,7 @@ function BlockOverlayItem({
           }}
         >
           <HostButton
-            aria-label={`Reply to ${overlay.title}`}
+            aria-label={t("overlay.replyTo", { title: overlay.title })}
             className="canvas-block-action-badge"
             data-state={badgeState}
             data-visible={isBadgeVisible ? "true" : undefined}

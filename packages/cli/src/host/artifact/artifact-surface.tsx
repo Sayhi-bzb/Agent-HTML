@@ -12,6 +12,7 @@ import { BlockOverlayLayer } from "../overlay/block-overlay"
 import { useBlockOverlays } from "../overlay/block-overlay-geometry"
 import { GuardIssueList, HostStatusMessage } from "./status-surface"
 import { getHumanVisibleGuardIssues } from "../guard-visibility"
+import { useHostI18n } from "../i18n/host-i18n"
 import { ScrollArea } from "#agent-html-playground/components/ui/scroll-area"
 import type { ArtifactBlock, GuardIssue } from "../host-contracts"
 import { HostSurfaceSkeleton } from "../ui/surface-skeleton"
@@ -33,6 +34,7 @@ export function ArtifactSurface({
   guardIssues: GuardIssue[]
   loadError: string | null
 }) {
+  const { t } = useHostI18n()
   const overlayRootRef = React.useRef<HTMLDivElement | null>(null)
   const { measureBlocks, overlays, scheduleGeometryUpdate, setOverlays } =
     useBlockOverlays(overlayRootRef)
@@ -81,19 +83,19 @@ export function ArtifactSurface({
           {loadError || blocksCurrentArtifact ? (
             <HostStatusMessage
               message={loadError ?? error ?? ""}
-              title="Artifact unavailable"
+              title={t("artifact.unavailable")}
             />
           ) : error ? (
             <HostStatusMessage
               message={error}
-              title="Artifact load issue"
+              title={t("artifact.loadIssue")}
             />
           ) : showSkeleton ? (
             <HostSurfaceSkeleton blocks={blocks} />
           ) : artifactCount === 0 ? (
             <HostStatusMessage
-              message="Create an agent-html/artifacts/*.artifact.tsx file to preview it here."
-              title="No artifacts found"
+              message={t("artifact.noArtifactsMessage")}
+              title={t("artifact.noArtifactsTitle")}
             />
           ) : null}
           <div ref={setArtifactElement} />

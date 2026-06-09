@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "#agent-html-playground/components/ui/tooltip"
 import type { FloatingPromptTarget } from "../host-contracts"
+import { useHostI18n } from "../i18n/host-i18n"
 import { HostIconButton } from "../ui/icon-button"
 import {
   HostFloatingPromptActions,
@@ -33,6 +34,7 @@ export function PromptComposer({
   targetId: string
   value: string
 }) {
+  const { t } = useHostI18n()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [draftValue, setDraftValue] = React.useState(value)
   const isComposingRef = React.useRef(false)
@@ -107,7 +109,7 @@ export function PromptComposer({
               <HostIconButton
                 disabled={disabled || !draftValue.trim() || isSubmitting}
                 icon={ArrowUpIcon}
-                label="Send"
+                label={t("prompt.send")}
                 onClick={() => {
                   void submit()
                 }}
@@ -117,7 +119,7 @@ export function PromptComposer({
                 variant="default"
               />
             </TooltipTrigger>
-            <TooltipContent>Send</TooltipContent>
+            <TooltipContent>{t("prompt.send")}</TooltipContent>
           </Tooltip>
         </HostFloatingPromptActions>
       </HostFloatingPromptSurface>
@@ -146,11 +148,13 @@ export function FloatingPrompt({
   target: FloatingPromptTarget
   value: string
 }) {
+  const { t } = useHostI18n()
+
   return (
     <PromptComposer
       onDraftChange={onDraftChange}
       onSubmit={(request) => onSubmit({ request, target })}
-      placeholder="Edit this block..."
+      placeholder={t("prompt.editBlock")}
       status={status}
       targetId={target.id}
       value={value}

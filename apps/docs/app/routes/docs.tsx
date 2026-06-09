@@ -16,6 +16,12 @@ import type { Route } from './+types/docs';
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const slugs = params['*'].split('/').filter((v) => v.length > 0);
+  if (slugs.length === 0) {
+    const url = new URL(request.url);
+
+    throw redirect(`/docs/start${url.search}`);
+  }
+
   if (slugs[0] === 'canvas') {
     const url = new URL(request.url);
     const nextPath = ['docs', ...slugs.slice(1)].join('/');
