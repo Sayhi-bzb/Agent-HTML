@@ -1,10 +1,10 @@
 @layer components {
   .canvas-floating-prompt {
     width: 100%;
-    border-radius: var(--canvas-floating-prompt-radius);
+    border-radius: var(--radius-lg);
     background: color-mix(in oklab, var(--background) 75%, transparent);
     box-shadow: none;
-    backdrop-filter: blur(var(--canvas-floating-prompt-backdrop-blur));
+    backdrop-filter: blur(12px);
     color: var(--foreground);
   }
 
@@ -27,13 +27,13 @@
   }
 
   .canvas-floating-prompt-input {
-    min-height: var(--canvas-floating-prompt-input-min-height);
+    min-height: 6.5rem;
   }
 
   .canvas-floating-prompt-status {
-    margin-block-start: var(--canvas-floating-prompt-status-margin-block-start);
-    padding-inline: var(--canvas-floating-prompt-status-padding-inline);
-    min-height: var(--canvas-floating-prompt-status-min-height);
+    margin-block-start: 0.375rem;
+    padding-inline: 0.625rem;
+    min-height: 1rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

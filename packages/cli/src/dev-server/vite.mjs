@@ -13,9 +13,16 @@ export function toViteFsPath(filePath) {
   return `/@fs/${path.resolve(filePath).replaceAll(path.sep, "/")}`
 }
 
-export function createHostEntryModule() {
+export function createHostEntryModule({ pipeline = "codex" } = {}) {
   const hostEntryPath = toViteFsPath(path.join(hostRoot, "main.tsx"))
-  return `import ${JSON.stringify(hostEntryPath)};\n`
+  return [
+    `globalThis.__AGENT_HTML_HOST_CONFIG__ = ${JSON.stringify({
+      contentSource: "artifacts",
+      pipeline,
+    })};`,
+    `import ${JSON.stringify(hostEntryPath)};`,
+    "",
+  ].join("\n")
 }
 
 export function createArtifactEntryModule({ filePath, root }) {
@@ -127,7 +134,7 @@ export function createViteFsAllowList({ reactProtocolEntry, root }) {
     .filter((entry, index, entries) => entries.indexOf(entry) === index)
 }
 
-function createAgentHtmlVitePlugin({ root }) {
+function createAgentHtmlVitePlugin({ pipeline, root }) {
   return {
     name: "agent-html-dev-host",
     resolveId(id) {
@@ -142,7 +149,7 @@ function createAgentHtmlVitePlugin({ root }) {
     },
     load(id) {
       if (id === hostEntryModulePath) {
-        return createHostEntryModule()
+        return createHostEntryModule({ pipeline })
       }
 
       if (id.startsWith(`${artifactEntryModulePath}?`)) {
@@ -161,7 +168,7 @@ function createAgentHtmlVitePlugin({ root }) {
   }
 }
 
-export async function createAgentHtmlViteServer({ root, server }) {
+export async function createAgentHtmlViteServer({ pipeline = "codex", root, server }) {
   const reactProtocolEntry = resolvePackageModule("@agent-html/react")
   const fsAllow = createViteFsAllowList({ reactProtocolEntry, root })
 
@@ -185,7 +192,7 @@ export async function createAgentHtmlViteServer({ root, server }) {
     publicDir: false,
     root,
     plugins: [
-      createAgentHtmlVitePlugin({ root }),
+      createAgentHtmlVitePlugin({ pipeline, root }),
       react({
         exclude: [/node_modules/, optimizedDependencyCachePattern],
       }),

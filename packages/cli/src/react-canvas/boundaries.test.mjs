@@ -346,6 +346,9 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "packages/cli/src/host/prompt/canvas-message-store.ts"
     )
     const canvasHostApp = readSource("packages/cli/src/host/app.tsx")
+    const canvasCodexPipeline = readSource(
+      "packages/cli/src/host/pipeline/codex.ts"
+    )
     const canvasInteractionStore = readSource(
       "packages/cli/src/host/interaction/interaction-store.ts"
     )
@@ -463,11 +466,15 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     )
     expect(playgroundHostTokens).toContain("--canvas-surface-padding-inline")
     expect(playgroundHostTokens).toContain("--canvas-floating-prompt-width")
-    expect(playgroundHostTokens).toContain(
+    expect(playgroundHostTokens).toContain("--canvas-sidebar-font-size-body")
+    expect(playgroundHostTokens).not.toContain(
+      "--canvas-block-highlight-radius"
+    )
+    expect(playgroundHostTokens).not.toContain(
       "--canvas-floating-prompt-backdrop-blur"
     )
     expect(playgroundHostTokens).not.toContain(
-      "--canvas-block-highlight-radius"
+      "--canvas-artifact-skeleton-max-width"
     )
     expect(playgroundHostTokens).not.toContain(
       "--canvas-block-action-shadow"
@@ -516,8 +523,8 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     )
     expect(canvasMessageStore).toContain("CanvasMessageHostSnapshot")
     expect(canvasMessageStore).toContain("subscribeCanvasMessageHost")
-    expect(canvasHostApp).toContain("fetchBlockImplementation")
-    expect(canvasHostApp).toContain("getCanvasInteractionSnapshot")
+    expect(canvasCodexPipeline).toContain("fetchBlockImplementation")
+    expect(canvasCodexPipeline).toContain("getCanvasInteractionSnapshot")
     expect(canvasHostApp).not.toContain("useArtifactInteraction")
     expect(canvasInteractionStore).toContain("agent-html:state-change")
     expect(canvasInteractionStore).toContain("recordCanvasInteractionChange")
@@ -653,5 +660,15 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(
       existsSync(join(root, "packages/cli/src/react-canvas/workspace-file.mjs"))
     ).toBe(true)
+  })
+
+  it("keeps example and Codex host pipelines physically separated", () => {
+    const examplePipeline = readSource("packages/cli/src/host/pipeline/example.ts")
+    const codexPipeline = readSource("packages/cli/src/host/pipeline/codex.ts")
+
+    expect(examplePipeline).not.toContain("fetchCodexThreads")
+    expect(examplePipeline).not.toContain("startCodexTurn")
+    expect(examplePipeline).not.toContain("fetchBlockImplementation")
+    expect(codexPipeline).toContain("startCodexTurn")
   })
 })

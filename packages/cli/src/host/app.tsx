@@ -2,9 +2,7 @@ import * as React from "react"
 
 import {
   deleteArtifact,
-  fetchCodexThreads,
   fetchArtifacts,
-  fetchBlockImplementation,
   renameArtifact,
   type CodexThread,
   startCodexTurn,
@@ -36,9 +34,13 @@ import {
   canvasInteractionEventName,
   clearCanvasInteractionSnapshots,
   createCanvasInteractionEventListener,
-  getCanvasInteractionSnapshot,
 } from "./interaction/interaction-store"
 import { publishCanvasPromptDebug } from "./prompt/prompt-debug"
+import {
+  canvasPipelineConfig,
+  fetchPipelineThreads,
+  submitBlockPromptToPipeline,
+} from "./pipeline"
 import { ReactCanvasSidebar } from "./navigation/sidebar"
 import {
   createEmptyCanvasThemeDraft,
@@ -69,7 +71,6 @@ import {
 import { PanelLeftIcon } from "lucide-react"
 import {
   createArtifactFilePath,
-  formatBlockPrompt,
   formatCreateArtifactPrompt,
 } from "../react-canvas/prompt.mjs"
 import { HostIconButton } from "./ui/icon-button"
@@ -80,8 +81,6 @@ import type {
 } from "./host-contracts"
 
 type CanvasHostMode = "artifact" | "create-artifact"
-const blockPromptPipelineMode = "test" as "test" | "real"
-const testBlockPromptPipelineDelayMs = 1400
 
 export function resolveArtifactRefreshState({
   artifacts,
@@ -119,12 +118,6 @@ export function resolveArtifactRefreshState({
     activeFilePath: storedFilePath ?? artifacts[0]?.filePath ?? null,
     pendingReady,
   }
-}
-
-function waitForTestBlockPromptPipeline() {
-  return new Promise<void>((resolve) => {
-    window.setTimeout(resolve, testBlockPromptPipelineDelayMs)
-  })
 }
 
 export function ReactCanvasHostApp() {
@@ -301,7 +294,7 @@ export function ReactCanvasHostApp() {
   const refreshCodexThreads = React.useCallback(async () => {
     setCodexThreadsLoading(true)
     try {
-      const data = await fetchCodexThreads()
+      const data = await fetchPipelineThreads()
       setCodexThreads(data.threads ?? [])
       setCodexThreadsError(null)
     } catch (error) {
@@ -420,42 +413,16 @@ export function ReactCanvasHostApp() {
         target: messageTarget,
       })
 
-      if (blockPromptPipelineMode === "test") {
-        setPromptStatus("Sending to test pipeline...")
-        await waitForTestBlockPromptPipeline()
-        finishBlockMessageThread({
-          target: messageTarget,
-          threadId: "test-thread",
-          turnId: "test-turn",
-        })
-        writeCanvasMessageDraft({
-          blockId: target.id,
-          draft: "",
-          filePath: resolvedActiveFilePath,
-        })
-        setPromptStatus("Sent to test pipeline.")
-        return
-      }
-
-      const blockImplementation = await fetchBlockImplementation({
+      setPromptStatus(
+        canvasPipelineConfig.pipeline === "example"
+          ? "Sending to example pipeline..."
+          : "Sending to Codex..."
+      )
+      const turn = await submitBlockPromptToPipeline({
+        activeThreadId: activeCodexThreadId,
         blockId: target.id,
         filePath: resolvedActiveFilePath,
-      })
-      const formatted = formatBlockPrompt({
-        blockId: target.id,
-        filePath: resolvedActiveFilePath,
-        implementationPath: blockImplementation.implementationPath ?? undefined,
-        interactionSnapshot: getCanvasInteractionSnapshot({
-          blockId: target.id,
-          filePath: resolvedActiveFilePath,
-        }),
         request,
-      })
-
-      publishCanvasPromptDebug(formatted)
-      const turn = await startCodexTurn({
-        prompt: formatted,
-        threadId: activeCodexThreadId,
       })
 
       finishBlockMessageThread({
@@ -470,11 +437,15 @@ export function ReactCanvasHostApp() {
         draft: "",
         filePath: resolvedActiveFilePath,
       })
-      setPromptStatus(
-        turn.startedNewThread
-          ? "Started a new Codex thread."
-          : "Sent to Codex thread."
-      )
+      if (canvasPipelineConfig.pipeline === "example") {
+        setPromptStatus("Sent to example pipeline.")
+      } else {
+        setPromptStatus(
+          turn.startedNewThread
+            ? "Started a new Codex thread."
+            : "Sent to Codex thread."
+        )
+      }
     } catch (submitError: unknown) {
       const errorMessage =
         submitError instanceof Error ? submitError.message : String(submitError)
@@ -509,6 +480,14 @@ export function ReactCanvasHostApp() {
   }, [promptTarget, resolvedActiveFilePath])
 
   const submitCreateArtifactPrompt = React.useCallback(async (request: string) => {
+    if (canvasPipelineConfig.pipeline === "example") {
+      const error = new Error(
+        "Artifact creation is disabled in the example pipeline."
+      )
+      setCreateArtifactStatus(error.message)
+      throw error
+    }
+
     const artifactFilePath = createArtifactFilePath({
       existingFilePaths: artifacts.map((artifact) => artifact.filePath),
       request,

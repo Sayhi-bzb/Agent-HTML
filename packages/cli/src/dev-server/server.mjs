@@ -26,6 +26,20 @@ export function parsePortArg(args) {
   }
 }
 
+export function parsePipelineArg(args) {
+  const pipelineIndex = args.indexOf("--pipeline")
+  if (pipelineIndex === -1) {
+    return "codex"
+  }
+
+  const pipeline = args[pipelineIndex + 1]
+  if (pipeline !== "codex" && pipeline !== "example") {
+    throw new Error("--pipeline requires either codex or example")
+  }
+
+  return pipeline
+}
+
 function isAddressInUseError(error) {
   return error && error.code === "EADDRINUSE"
 }
@@ -102,8 +116,9 @@ async function waitForViteRuntimeIdle(vite) {
 export async function startDevHost({ args, cwd }) {
   const root = parseRootArg({ args, cwd })
   const portConfig = parsePortArg(args)
+  const pipeline = parsePipelineArg(args)
   const server = http.createServer()
-  const vite = await createAgentHtmlViteServer({ root, server })
+  const vite = await createAgentHtmlViteServer({ pipeline, root, server })
   const closeHttpServer = server.close.bind(server)
   let closeRuntimePromise = null
 
@@ -174,6 +189,7 @@ export async function startDevHost({ args, cwd }) {
   }
 
   return {
+    pipeline,
     root,
     server,
     url,

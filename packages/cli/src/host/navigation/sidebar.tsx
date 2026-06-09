@@ -588,9 +588,17 @@ function ReactCanvasCodexThreadSelect({
         ]
       : []
   const options: HostSelectOption[] = loading
-    ? [{ label: "Loading threads", value: newCodexThreadValue }]
+    ? [
+        {
+          label: "Loading threads",
+          value: newCodexThreadValue,
+        },
+      ]
     : [
-        { label: "New thread", value: newCodexThreadValue },
+        {
+          label: "New thread",
+          value: newCodexThreadValue,
+        },
         ...missingThreadOption,
         ...threads.map((thread) => ({
           label: codexThreadLabel(thread),

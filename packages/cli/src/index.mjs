@@ -1,4 +1,5 @@
 import { startDevHost } from "./dev-host.mjs"
+import { buildDemoHost } from "./demo-build.mjs"
 import { runInitCommand } from "./init.mjs"
 import { runGuardCommand } from "./react-canvas/guard.mjs"
 
@@ -23,12 +24,18 @@ export async function runAgentHtmlCli(args) {
     return
   }
 
+  if (command === "demo-build") {
+    await buildDemoHost({ args: rest, cwd: process.cwd() })
+    return
+  }
+
   console.log(
     [
       "Usage:",
       "  agent-html init [--root <path>]",
       "  agent-html guard [--root <path>]",
-      "  agent-html dev [--root <path>] [--port <port>]",
+      "  agent-html dev [--root <path>] [--port <port>] [--pipeline codex|example]",
+      "  agent-html demo-build [--root <path>] [--out-dir <path>]",
     ].join("\n")
   )
 }
