@@ -88,6 +88,29 @@ export const mediaAssets = {
   },
 } satisfies Record<string, MediaAsset>
 
+export const headerSlides = [
+  {
+    asset: mediaAssets.arrival,
+    label: "Soft Landing",
+    note: "Day 1 begins by letting the body arrive before the city expands.",
+  },
+  {
+    asset: mediaAssets.density,
+    label: "High Density",
+    note: "Day 2 uses density as structure: crowd flow, stations, commerce.",
+  },
+  {
+    asset: mediaAssets.quiet,
+    label: "Quiet Tokyo",
+    note: "Day 3 slows down through gardens, books, streets, and dwell time.",
+  },
+  {
+    asset: mediaAssets.openLoop,
+    label: "Open Loop",
+    note: "The route ends by preserving one unfinished reason to return.",
+  },
+]
+
 export const tokyoMap = {
   center: [139.745, 35.675] as [number, number],
   zoom: 10.25,
