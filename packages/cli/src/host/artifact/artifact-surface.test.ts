@@ -1,34 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  formatArtifactLoadError,
-  shouldShowArtifactSkeleton,
-} from "./artifact-surface"
-
-describe("formatArtifactLoadError", () => {
-  it("adds artifact module context to dynamic import fetch failures", () => {
-    const bundleUrl =
-      "/__agent-html/artifact.js?filePath=agent-html%2Fartifacts%2Fdemo.artifact.tsx&v=1"
-
-    expect(
-      formatArtifactLoadError({
-        bundleUrl,
-        error: new Error(
-          "Failed to fetch dynamically imported module: http://127.0.0.1:5177/__agent-html/artifact.js"
-        ),
-      })
-    ).toContain(`Module: ${bundleUrl}`)
-  })
-
-  it("preserves specific thrown module errors", () => {
-    expect(
-      formatArtifactLoadError({
-        bundleUrl: "/__agent-html/artifact.js?filePath=demo",
-        error: new Error("Unable to transform module: /__agent-html/artifact.js"),
-      })
-    ).toBe("Unable to transform module: /__agent-html/artifact.js")
-  })
-})
+import { shouldShowArtifactSkeleton } from "./artifact-surface"
 
 describe("shouldShowArtifactSkeleton", () => {
   it("shows skeleton while the artifact list is loading", () => {

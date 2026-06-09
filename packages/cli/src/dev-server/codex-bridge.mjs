@@ -96,7 +96,7 @@ function createCodexProcessEnv(env = process.env) {
 
 function createCodexAppServerStartError(error) {
   const message = error instanceof Error ? error.message : String(error)
-  return new Error(`Unable to start Codex app-server: ${message}`)
+  return new Error(`Unable to start codex app-server: ${message}`)
 }
 
 export function createCodexSpawnOptions(env = process.env) {

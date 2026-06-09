@@ -146,16 +146,7 @@ async function readJsonBody(request) {
 }
 
 async function sendTransformedModule({ response, url, vite }) {
-  let result
-
-  try {
-    result = await vite.transformRequest(url)
-  } catch (error) {
-    const transformError = new Error(formatTransformError({ error, url }))
-    console.error("[agent-html] module transform failed\n%s", transformError.message)
-    sendTransformErrorModule(response, transformError)
-    return
-  }
+  const result = await vite.transformRequest(url)
 
   if (!result) {
     sendNotFound(response)
@@ -163,37 +154,6 @@ async function sendTransformedModule({ response, url, vite }) {
   }
 
   sendText(response, result.code, "text/javascript; charset=utf-8")
-}
-
-function sendTransformErrorModule(response, error) {
-  sendText(
-    response,
-    `throw new Error(${JSON.stringify(error.message)})\n`,
-    "text/javascript; charset=utf-8"
-  )
-}
-
-function formatTransformError({ error, url }) {
-  const message = error instanceof Error ? error.message : String(error)
-  const lines = [`Unable to transform module: ${url}`, message]
-
-  if (error && typeof error === "object") {
-    if (typeof error.plugin === "string" && error.plugin) {
-      lines.push(`Plugin: ${error.plugin}`)
-    }
-
-    if (typeof error.id === "string" && error.id) {
-      lines.push(`File: ${error.id}`)
-    }
-  }
-
-  if (message.includes("spawn EPERM")) {
-    lines.push(
-      "Vite/esbuild could not spawn a worker process. Stop stale AgentHTML dev hosts, clear the agent-html-vite temp cache, and restart the dev host."
-    )
-  }
-
-  return lines.join("\n")
 }
 
 function resolveProxiedZeosevenUrl(requestUrl, { errorMessage, pathnameTest }) {

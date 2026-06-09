@@ -1,0 +1,170 @@
+@layer components {
+  .canvas-block-overlay-layer {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+  }
+
+  .canvas-block-overlay {
+    position: absolute;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    transition-property: color, background-color, border-color;
+    transition-duration: 150ms;
+  }
+
+  .canvas-block-overlay[data-hovered="true"] {
+    border-color: var(--canvas-block-highlight-border);
+    background: var(--canvas-block-highlight-background);
+  }
+
+  .canvas-block-reply-badge {
+    pointer-events: auto;
+    position: absolute;
+    top: calc(var(--canvas-block-reply-badge-offset) * -0.5);
+    right: calc(var(--canvas-block-reply-badge-offset) * -0.5);
+    display: grid;
+    width: var(--canvas-block-reply-badge-size);
+    height: var(--canvas-block-reply-badge-size);
+    place-items: center;
+    padding: 0 !important;
+    border-radius: 9999px;
+    border: 1px solid var(--canvas-block-highlight-border);
+    background: var(--background);
+    color: color-mix(in oklab, var(--foreground) 62%, transparent);
+    cursor: pointer;
+    opacity: 0;
+    outline: none;
+    transition-property: color, opacity, background-color, border-color;
+    transition-duration: 150ms;
+  }
+
+  .canvas-block-reply-badge[data-visible="true"],
+  .canvas-block-reply-badge:focus-visible {
+    opacity: 1;
+  }
+
+  .canvas-block-reply-badge:hover,
+  .canvas-block-reply-badge:focus-visible {
+    border-color: var(--canvas-block-highlight-border);
+    background: color-mix(in oklab, var(--background) 94%, var(--ring));
+    color: var(--foreground);
+  }
+
+  .canvas-block-reply-badge-icon {
+    pointer-events: none;
+    width: var(--canvas-block-reply-badge-icon-size);
+    height: var(--canvas-block-reply-badge-icon-size);
+  }
+
+  .canvas-block-notification-dot {
+    position: absolute;
+    top: -0.125rem;
+    right: -0.125rem;
+    width: var(--canvas-block-notification-dot-size);
+    height: var(--canvas-block-notification-dot-size);
+    border-radius: 9999px;
+    background: var(--ring);
+    border: 1px solid var(--background);
+  }
+
+  .canvas-block-reply-badge[data-phase="running"] .canvas-block-notification-dot {
+    width: calc(var(--canvas-block-notification-dot-size) + 0.25rem);
+    height: calc(var(--canvas-block-notification-dot-size) + 0.25rem);
+    border: 1.5px solid color-mix(in oklab, var(--ring) 24%, transparent);
+    border-top-color: var(--ring);
+    animation: canvas-block-message-spin 0.85s linear infinite;
+    background: transparent;
+  }
+
+  .canvas-block-reply-badge[data-phase="failed"] .canvas-block-notification-dot {
+    background: var(--destructive);
+  }
+
+  [data-slot="popover-content"].canvas-block-message-popover {
+    z-index: var(--canvas-floating-prompt-z-index);
+    width: min(
+      var(--canvas-block-message-panel-width),
+      var(--radix-popover-content-available-width, calc(100vw - 1.5rem))
+    ) !important;
+    border-color: color-mix(in oklab, var(--foreground) 10%, transparent) !important;
+    background: color-mix(in oklab, var(--popover) 96%, transparent) !important;
+    color: var(--popover-foreground) !important;
+    padding: 0 !important;
+    box-shadow: 0 1px 2px 0 oklch(0 0 0 / 8%) !important;
+  }
+
+  .canvas-block-message-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 0.75rem;
+  }
+
+  .canvas-block-message-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .canvas-block-message-panel-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--canvas-sidebar-font-size-body);
+    font-weight: 600;
+  }
+
+  .canvas-block-message-panel-status,
+  .canvas-block-message-item-kind,
+  .canvas-block-message-item-summary {
+    font-size: var(--canvas-sidebar-font-size-caption);
+    color: var(--muted-foreground);
+  }
+
+  .canvas-block-message-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .canvas-block-message-item {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 0.625rem;
+    align-items: start;
+  }
+
+  .canvas-block-message-item-kind {
+    text-transform: capitalize;
+  }
+
+  .canvas-block-message-item-body {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .canvas-block-message-item-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--canvas-sidebar-font-size-body);
+  }
+
+  .canvas-block-message-item[data-status="loading"] .canvas-block-message-item-title {
+    color: var(--muted-foreground);
+  }
+
+  @keyframes canvas-block-message-spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+}

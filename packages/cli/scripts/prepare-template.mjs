@@ -27,9 +27,13 @@ function shouldCopy(relativePath) {
     .some((segment) => excludedSegments.has(segment))
 }
 
-const output = execFileSync("git", ["ls-files", "-z", "--", "agent-html"], {
-  cwd: repoRoot,
-})
+const output = execFileSync(
+  "git",
+  ["ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "agent-html"],
+  {
+    cwd: repoRoot,
+  }
+)
 const files = output
   .toString("utf8")
   .split("\0")

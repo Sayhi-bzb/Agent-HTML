@@ -332,6 +332,12 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const playgroundHostInternal = readSource(
       "agent-html/styles/internal/host.css"
     )
+    const playgroundHostSurfaceInternal = readSource(
+      "agent-html/styles/internal/host/surface.css"
+    )
+    const playgroundHostFloatingPromptInternal = readSource(
+      "agent-html/styles/internal/host/floating-prompt.css"
+    )
     const playgroundContent = readSource("agent-html/styles/public/content.css")
     const playgroundThemeEditorInternal = readSource(
       "agent-html/styles/internal/theme-editor.css"
@@ -491,8 +497,14 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     )
     expect(playgroundArtifactInternal).toContain(".agent-html-artifact")
     expect(playgroundCodeBlockInternal).toContain(".canvas-code-block")
-    expect(playgroundHostInternal).toContain(".canvas-surface-frame")
-    expect(playgroundHostInternal).toContain(".canvas-floating-prompt")
+    expect(playgroundHostInternal).toContain('@import "./host/surface.css"')
+    expect(playgroundHostInternal).toContain(
+      '@import "./host/floating-prompt.css"'
+    )
+    expect(playgroundHostSurfaceInternal).toContain(".canvas-surface-frame")
+    expect(playgroundHostFloatingPromptInternal).toContain(
+      ".canvas-floating-prompt"
+    )
     expect(playgroundHostInternal).not.toContain(
       ".canvas-floating-prompt-composer"
     )
