@@ -16,6 +16,8 @@
     "date-fns": "^4.4.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
+    "lucide-react": "^1.17.0",
+    "maplibre-gl": "^5.24.0",
     "media-chrome": "^4.19.1",
     "radix-ui": "^1.5.0",
     "react-day-picker": "^10.0.1",
