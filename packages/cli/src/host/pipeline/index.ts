@@ -7,16 +7,20 @@ import {
 import {
   fetchCodexPipelineThreads,
   submitCodexBlockPrompt,
+  submitCodexCreateArtifact,
   submitCodexGuardFixRequest,
 } from "./codex"
 import {
   fetchExamplePipelineThreads,
   submitExampleBlockPrompt,
+  submitExampleCreateArtifact,
   submitExampleGuardFixRequest,
 } from "./example"
 import type {
   SubmitBlockPromptInput,
   SubmitBlockPromptResult,
+  SubmitCreateArtifactInput,
+  SubmitCreateArtifactResult,
   SubmitGuardFixRequestInput,
 } from "./types"
 
@@ -52,6 +56,19 @@ export async function submitBlockPromptToPipeline({
   }
 
   return submitCodexBlockPrompt(input)
+}
+
+export async function submitCreateArtifactToPipeline({
+  pipeline = canvasPipelineConfig.pipeline,
+  ...input
+}: SubmitCreateArtifactInput & {
+  pipeline?: CanvasHostPipeline
+}): Promise<SubmitCreateArtifactResult> {
+  if (pipeline === "example") {
+    return submitExampleCreateArtifact(input)
+  }
+
+  return submitCodexCreateArtifact(input)
 }
 
 export async function submitGuardFixRequestToPipeline({

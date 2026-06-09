@@ -36,6 +36,13 @@ describe("ReactCanvasSidebar artifact rows", () => {
   it("counts only human-visible guard issues in artifact row badges", () => {
     expect(sidebarSource).toContain("countHumanVisibleGuardIssues")
   })
+
+  it("shows pending create artifact work on the New artifact action", () => {
+    expect(sidebarSource).toContain("createArtifactPending")
+    expect(sidebarSource).toContain("LoaderCircleIcon")
+    expect(sidebarSource).toContain('className="canvas-sidebar-spinner"')
+    expect(sidebarSource).not.toContain('caption={createArtifactPending')
+  })
 })
 
 describe("ReactCanvasSidebar thread selector", () => {

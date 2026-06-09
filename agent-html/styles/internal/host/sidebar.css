@@ -125,6 +125,12 @@
     height: var(--canvas-host-swatch-size-sm);
   }
 
+  .canvas-sidebar-spinner {
+    width: var(--canvas-host-item-icon-size);
+    height: var(--canvas-host-item-icon-size);
+    animation: canvas-sidebar-spin 0.85s linear infinite;
+  }
+
   .canvas-host-control-trigger {
     color: inherit;
   }
@@ -362,4 +368,9 @@
     font-size: var(--canvas-sidebar-font-size-caption);
   }
 
+  @keyframes canvas-sidebar-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }

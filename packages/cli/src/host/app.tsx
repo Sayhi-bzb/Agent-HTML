@@ -5,7 +5,6 @@ import {
   fetchArtifacts,
   renameArtifact,
   type CodexThread,
-  startCodexTurn,
 } from "./api/api"
 import { CreateArtifactSurface } from "./artifact/create-artifact-surface"
 import { ArtifactSurface } from "./artifact/artifact-surface"
@@ -15,6 +14,7 @@ import {
   readCanvasMessageDraft,
   writeCanvasHostPreferences,
   writeCanvasMessageDraft,
+  type CanvasCreateArtifactJob,
   type CanvasHostLanguage,
   type CanvasHostThemeMode,
   type CanvasSidebarView,
@@ -36,11 +36,10 @@ import {
   clearCanvasInteractionSnapshots,
   createCanvasInteractionEventListener,
 } from "./interaction/interaction-store"
-import { publishCanvasPromptDebug } from "./prompt/prompt-debug"
 import {
-  canvasPipelineConfig,
   fetchPipelineThreads,
   submitBlockPromptToPipeline,
+  submitCreateArtifactToPipeline,
 } from "./pipeline"
 import { ReactCanvasSidebar } from "./navigation/sidebar"
 import {
@@ -70,10 +69,7 @@ import {
   type CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
 import { PanelLeftIcon } from "lucide-react"
-import {
-  createArtifactFilePath,
-  formatCreateArtifactPrompt,
-} from "../react-canvas/prompt.mjs"
+import { createArtifactFilePath } from "../react-canvas/prompt.mjs"
 import { HostIconButton } from "./ui/icon-button"
 import type {
   Artifact,
@@ -105,9 +101,25 @@ export function ReactCanvasHostApp() {
     getBlockMessageStoreSnapshot
   )
   const [createArtifactDraft, setCreateArtifactDraft] = React.useState("")
-  const [createArtifactStatus, setCreateArtifactStatus] = React.useState("")
-  const [pendingArtifactFilePath, setPendingArtifactFilePath] =
-    React.useState<string | null>(null)
+  const [createArtifactStatus, setCreateArtifactStatus] = React.useState(() => {
+    const job = initialPreferences.createArtifactJob
+
+    if (!job) {
+      return ""
+    }
+
+    if (job.phase === "failed") {
+      return job.error ?? "Artifact creation failed."
+    }
+
+    return job.phase === "starting"
+      ? "Creating artifact..."
+      : "Waiting for artifact..."
+  })
+  const [createArtifactJob, setCreateArtifactJob] =
+    React.useState<CanvasCreateArtifactJob | null>(
+      initialPreferences.createArtifactJob
+    )
   const [activeHostMode, setActiveHostMode] =
     React.useState<CanvasHostMode>("artifact")
   const [activeThemePresetId, setActiveThemePresetId] =
@@ -136,7 +148,7 @@ export function ReactCanvasHostApp() {
   const [codexThreadsError, setCodexThreadsError] =
     React.useState<string | null>(null)
   const activeFilePathRef = React.useRef<string | null>(null)
-  const pendingArtifactFilePathRef = React.useRef<string | null>(null)
+  const createArtifactJobRef = React.useRef<CanvasCreateArtifactJob | null>(null)
 
   const activeArtifact =
     artifacts.find((artifact) => artifact.filePath === activeFilePath) ??
@@ -151,7 +163,7 @@ export function ReactCanvasHostApp() {
     canvasThemePresets[0]
 
   activeFilePathRef.current = resolvedActiveFilePath
-  pendingArtifactFilePathRef.current = pendingArtifactFilePath
+  createArtifactJobRef.current = createArtifactJob
 
   React.useEffect(() => {
     const listener = createCanvasInteractionEventListener({
@@ -175,7 +187,8 @@ export function ReactCanvasHostApp() {
   const refreshArtifacts = React.useCallback(async () => {
     try {
       const data = await fetchArtifacts()
-      const pendingFilePath = pendingArtifactFilePathRef.current
+      const pendingJob = createArtifactJobRef.current
+      const pendingFilePath = pendingJob?.filePath ?? null
       const pendingReady = Boolean(
         pendingFilePath &&
           data.artifacts.some(
@@ -201,8 +214,9 @@ export function ReactCanvasHostApp() {
       })
 
       if (pendingReady) {
+        createArtifactJobRef.current = null
         setActiveHostMode("artifact")
-        setPendingArtifactFilePath(null)
+        setCreateArtifactJob(null)
         setCreateArtifactStatus("Artifact ready.")
       }
     } finally {
@@ -446,44 +460,60 @@ export function ReactCanvasHostApp() {
   }, [promptTarget, resolvedActiveFilePath])
 
   const submitCreateArtifactPrompt = React.useCallback(async (request: string) => {
-    if (canvasPipelineConfig.pipeline === "example") {
-      const error = new Error(
-        "Artifact creation is disabled in the example pipeline."
-      )
-      setCreateArtifactStatus(error.message)
-      throw error
-    }
-
     const artifactFilePath = createArtifactFilePath({
       existingFilePaths: artifacts.map((artifact) => artifact.filePath),
       request,
     })
-    const formatted = formatCreateArtifactPrompt({
+    const nextJob: CanvasCreateArtifactJob = {
       filePath: artifactFilePath,
+      phase: "starting",
       request,
-    })
+      startedAt: Date.now(),
+    }
 
     try {
-      setPendingArtifactFilePath(artifactFilePath)
+      createArtifactJobRef.current = nextJob
+      setCreateArtifactJob(nextJob)
       setCreateArtifactStatus("Creating artifact...")
-      publishCanvasPromptDebug(formatted)
-      const turn = await startCodexTurn({
-        prompt: formatted,
-        threadId: activeCodexThreadId,
+      const turn = await submitCreateArtifactToPipeline({
+        activeThreadId: activeCodexThreadId,
+        filePath: artifactFilePath,
+        request,
       })
+      const waitingJob: CanvasCreateArtifactJob = {
+        ...nextJob,
+        phase: "waiting-for-artifact",
+        threadId: turn.threadId,
+        turnId: turn.turnId,
+      }
 
+      createArtifactJobRef.current = waitingJob
+      setCreateArtifactJob(waitingJob)
       setActiveCodexThreadId(turn.threadId)
       setCreateArtifactStatus("Waiting for artifact...")
       void refreshArtifacts()
       void refreshCodexThreads()
     } catch (submitError: unknown) {
-      setPendingArtifactFilePath(null)
-      setCreateArtifactStatus(
+      const errorMessage =
         submitError instanceof Error ? submitError.message : String(submitError)
-      )
+      const failedJob: CanvasCreateArtifactJob = {
+        ...nextJob,
+        error: errorMessage,
+        phase: "failed",
+      }
+
+      createArtifactJobRef.current = failedJob
+      setCreateArtifactJob(failedJob)
+      setCreateArtifactStatus(errorMessage)
       throw submitError
     }
   }, [activeCodexThreadId, artifacts, refreshArtifacts, refreshCodexThreads])
+
+  React.useEffect(() => {
+    writeCanvasHostPreferences({
+      createArtifactJob,
+    })
+  }, [createArtifactJob])
 
   React.useEffect(() => {
     if (artifacts.length === 0) {
@@ -591,6 +621,9 @@ export function ReactCanvasHostApp() {
             activeThemeMode={activeThemeMode}
             activeThemePresetId={activeThemePresetId}
             createArtifactActive={activeHostMode === "create-artifact"}
+            createArtifactPending={
+              createArtifactJob !== null && createArtifactJob.phase !== "failed"
+            }
             artifactsLoading={artifactsLoading}
             artifacts={artifacts}
             codexThreads={codexThreads}
@@ -632,11 +665,17 @@ export function ReactCanvasHostApp() {
           </div>
           {activeHostMode === "create-artifact" ? (
             <CreateArtifactSurface
-              disabled={pendingArtifactFilePath !== null}
+              disabled={
+                createArtifactJob !== null &&
+                createArtifactJob.phase !== "failed"
+              }
               draft={createArtifactDraft}
               onDraftChange={setCreateArtifactDraft}
               onSubmit={submitCreateArtifactPrompt}
-              pending={pendingArtifactFilePath !== null}
+              pending={
+                createArtifactJob !== null &&
+                createArtifactJob.phase !== "failed"
+              }
               status={createArtifactStatus}
             />
           ) : (

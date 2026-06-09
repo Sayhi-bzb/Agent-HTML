@@ -8,7 +8,7 @@ import {
   findHoveredBlockOverlay,
   isBlockActionBadgeVisible,
   parseCssLengthInPixels,
-  resolveBlockMessagePopoverPlacement,
+  shouldCloseBlockMessagePopoverForIntersection,
   shouldMarkBlockMessageThreadRead,
   shouldOpenBlockMessageThreadFromActionBadge,
 } from "./block-overlay-state"
@@ -72,50 +72,6 @@ describe("block overlay message styles", () => {
     expect(summaryRule).toContain("overflow-wrap: anywhere")
     expect(summaryRule).not.toContain("white-space: nowrap")
     expect(summaryRule).not.toContain("text-overflow: ellipsis")
-  })
-})
-
-describe("resolveBlockMessagePopoverPlacement", () => {
-  it("prefers the right side when the trigger has enough inline space", () => {
-    expect(
-      resolveBlockMessagePopoverPlacement({
-        triggerRect: { right: 420 },
-        viewportWidth: 900,
-      })
-    ).toEqual({
-      align: "start",
-      collisionPadding: 12,
-      side: "right",
-      sideOffset: 12,
-    })
-  })
-
-  it("falls back near the trigger when the right side cannot fit the panel", () => {
-    expect(
-      resolveBlockMessagePopoverPlacement({
-        triggerRect: { right: 890 },
-        viewportWidth: 900,
-      })
-    ).toEqual({
-      align: "end",
-      collisionPadding: 12,
-      side: "bottom",
-      sideOffset: 8,
-    })
-  })
-
-  it("defaults to the right side before the trigger is measurable", () => {
-    expect(
-      resolveBlockMessagePopoverPlacement({
-        triggerRect: null,
-        viewportWidth: 900,
-      })
-    ).toEqual({
-      align: "start",
-      collisionPadding: 12,
-      side: "right",
-      sideOffset: 12,
-    })
   })
 })
 
@@ -331,6 +287,27 @@ describe("blockActionBadgeState", () => {
         state: "done",
       })
     ).toBe(true)
+  })
+
+  it("closes visible message popovers when the anchor leaves the viewport", () => {
+    expect(
+      shouldCloseBlockMessagePopoverForIntersection({
+        isIntersecting: false,
+        isPanelVisible: true,
+      })
+    ).toBe(true)
+    expect(
+      shouldCloseBlockMessagePopoverForIntersection({
+        isIntersecting: true,
+        isPanelVisible: true,
+      })
+    ).toBe(false)
+    expect(
+      shouldCloseBlockMessagePopoverForIntersection({
+        isIntersecting: false,
+        isPanelVisible: false,
+      })
+    ).toBe(false)
   })
 })
 

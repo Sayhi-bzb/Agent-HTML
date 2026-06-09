@@ -16,8 +16,8 @@ import {
   blockActionBadgeState,
   findHoveredBlockOverlay,
   isBlockActionBadgeVisible,
-  resolveBlockMessagePopoverPlacement,
   shouldMarkBlockMessageThreadRead,
+  shouldCloseBlockMessagePopoverForIntersection,
   shouldOpenBlockMessageThreadFromActionBadge,
   type BlockActionBadgeState,
 } from "./block-overlay-state"
@@ -310,11 +310,6 @@ function BlockOverlayItem({
     isThreadOpen,
     state: badgeState,
   })
-  const badgeRef = React.useRef<HTMLButtonElement | null>(null)
-  const popoverPlacement = resolveBlockMessagePopoverPlacement({
-    triggerRect: badgeRef.current?.getBoundingClientRect() ?? null,
-    viewportWidth: typeof window === "undefined" ? 0 : window.innerWidth,
-  })
 
   React.useEffect(() => {
     if (!messageThread) {
@@ -329,6 +324,46 @@ function BlockOverlayItem({
       })
     }
   }, [isThreadOpen, messageHost, messageThread])
+
+  React.useEffect(() => {
+    if (!isPanelVisible || typeof IntersectionObserver === "undefined") {
+      return
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (
+        !shouldCloseBlockMessagePopoverForIntersection({
+          isIntersecting: Boolean(entry?.isIntersecting),
+          isPanelVisible,
+        })
+      ) {
+        return
+      }
+
+      if (isPromptOpen) {
+        messageHost.onClose()
+      }
+
+      if (messageThread && isThreadOpen) {
+        messageHost.onThreadOpenChange({
+          blockId: messageThread.blockId,
+          filePath: messageThread.filePath,
+          isOpen: false,
+        })
+      }
+    })
+
+    observer.observe(overlay.element)
+
+    return () => observer.disconnect()
+  }, [
+    isPanelVisible,
+    isPromptOpen,
+    isThreadOpen,
+    messageHost,
+    messageThread,
+    overlay.element,
+  ])
 
   return (
     <Popover
@@ -346,17 +381,17 @@ function BlockOverlayItem({
         }
       }}
     >
-      <div
-        className="canvas-block-overlay"
-        data-hovered={isHovered || isPromptOpen ? "true" : undefined}
-        style={{
-          height: overlay.height,
-          left: overlay.x,
-          top: overlay.y,
-          width: overlay.width,
-        }}
-      >
-        <PopoverAnchor asChild>
+      <PopoverAnchor asChild>
+        <div
+          className="canvas-block-overlay"
+          data-hovered={isHovered || isPromptOpen ? "true" : undefined}
+          style={{
+            height: overlay.height,
+            left: overlay.x,
+            top: overlay.y,
+            width: overlay.width,
+          }}
+        >
           <HostButton
             aria-label={`Reply to ${overlay.title}`}
             className="canvas-block-action-badge"
@@ -398,21 +433,21 @@ function BlockOverlayItem({
                 setHoveredBlockId(null)
               }
             }}
-            ref={badgeRef}
             size="icon-sm"
             type="button"
             variant="ghost"
           >
             <BlockActionBadgeIcon state={badgeState} />
           </HostButton>
-        </PopoverAnchor>
-      </div>
+        </div>
+      </PopoverAnchor>
       {isPromptOpen && promptTarget ? (
         <HostFloatingPromptPopoverContent
-          align={popoverPlacement.align}
-          collisionPadding={popoverPlacement.collisionPadding}
-          side={popoverPlacement.side}
-          sideOffset={popoverPlacement.sideOffset}
+          align="start"
+          collisionPadding={12}
+          hideWhenDetached
+          side="right"
+          sideOffset={12}
         >
           <FloatingPrompt
             onDraftChange={messageHost.onDraftChange}
@@ -425,11 +460,12 @@ function BlockOverlayItem({
         </HostFloatingPromptPopoverContent>
       ) : messageThread && isThreadOpen ? (
         <PopoverContent
-          align={popoverPlacement.align}
+          align="start"
           className="canvas-block-message-popover"
-          collisionPadding={popoverPlacement.collisionPadding}
-          side={popoverPlacement.side}
-          sideOffset={popoverPlacement.sideOffset}
+          collisionPadding={12}
+          hideWhenDetached
+          side="right"
+          sideOffset={12}
         >
           <BlockMessagePanel thread={messageThread} />
         </PopoverContent>

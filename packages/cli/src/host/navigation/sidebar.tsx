@@ -3,6 +3,7 @@ import {
   ArrowLeftIcon,
   FileTextIcon,
   FilePlus2Icon,
+  LoaderCircleIcon,
   PaletteIcon,
   PencilIcon,
   SearchIcon,
@@ -110,6 +111,7 @@ export function ReactCanvasSidebar({
   activeThemeMode,
   activeThemePresetId,
   createArtifactActive,
+  createArtifactPending,
   artifactsLoading,
   artifacts,
   codexThreads,
@@ -140,6 +142,7 @@ export function ReactCanvasSidebar({
   activeThemeMode: CanvasHostThemeMode
   activeThemePresetId: CanvasThemePresetId
   createArtifactActive: boolean
+  createArtifactPending: boolean
   artifactsLoading: boolean
   artifacts: Artifact[]
   codexThreads: CodexThread[]
@@ -291,6 +294,14 @@ export function ReactCanvasSidebar({
                 isActive={createArtifactActive}
                 label="New artifact"
                 onClick={onSelectCreateArtifact}
+                trailing={
+                  createArtifactPending ? (
+                    <LoaderCircleIcon
+                      aria-hidden="true"
+                      className="canvas-sidebar-spinner"
+                    />
+                  ) : null
+                }
                 type="button"
               />
               <HostSidebarAction

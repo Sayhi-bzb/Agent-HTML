@@ -71,6 +71,14 @@ describe("canvas host preferences", () => {
         activeThemeEditorSectionId: "missing",
         activeThemeMode: "bad",
         activeThemePresetId: "missing",
+        createArtifactJob: {
+          filePath: "agent-html/artifacts/new.artifact.tsx",
+          phase: "waiting-for-artifact",
+          request: "Build a dashboard",
+          startedAt: 123,
+          threadId: "thread-1",
+          turnId: "turn-1",
+        },
         leftSidebarOpen: false,
         messageDrafts: {
           valid: "draft",
@@ -87,6 +95,14 @@ describe("canvas host preferences", () => {
       activeThemeEditorSectionId: "color",
       activeThemeMode: "system",
       activeThemePresetId: "default",
+      createArtifactJob: {
+        filePath: "agent-html/artifacts/new.artifact.tsx",
+        phase: "waiting-for-artifact",
+        request: "Build a dashboard",
+        startedAt: 123,
+        threadId: "thread-1",
+        turnId: "turn-1",
+      },
       leftSidebarOpen: false,
       messageDrafts: {
         valid: "draft",
@@ -112,6 +128,20 @@ describe("canvas host preferences", () => {
     )
 
     expect(readCanvasHostPreferences().activeCodexThreadId).toBe("thread-1")
+  })
+
+  it("falls back from invalid create artifact jobs", () => {
+    stubStorage(
+      JSON.stringify({
+        createArtifactJob: {
+          filePath: "agent-html/artifacts/new.artifact.tsx",
+          phase: "done",
+          request: "Build a dashboard",
+        },
+      })
+    )
+
+    expect(readCanvasHostPreferences().createArtifactJob).toBeNull()
   })
 
   it("restores host theme and language settings", () => {
@@ -164,12 +194,24 @@ describe("canvas host preferences", () => {
     writeCanvasHostPreferences({
       activeCodexThreadId: "thread-2",
       activeSidebarView: "gallery",
+      createArtifactJob: {
+        filePath: "agent-html/artifacts/new.artifact.tsx",
+        phase: "starting",
+        request: "Build a dashboard",
+        startedAt: 456,
+      },
       leftSidebarOpen: false,
     })
 
     expect(readCanvasHostPreferences()).toMatchObject({
       activeSidebarView: "gallery",
       activeCodexThreadId: "thread-2",
+      createArtifactJob: {
+        filePath: "agent-html/artifacts/new.artifact.tsx",
+        phase: "starting",
+        request: "Build a dashboard",
+        startedAt: 456,
+      },
       leftSidebarOpen: false,
       messageDrafts: expect.any(Object),
     })

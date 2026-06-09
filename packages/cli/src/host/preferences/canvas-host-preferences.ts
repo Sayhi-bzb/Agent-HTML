@@ -14,6 +14,20 @@ export const CANVAS_HOST_PREFERENCES_STORAGE_KEY =
 export type CanvasSidebarView = "artifacts" | "gallery"
 export type CanvasHostLanguage = "en" | "system" | "zh"
 export type CanvasHostThemeMode = "dark" | "light" | "system"
+export type CanvasCreateArtifactJobPhase =
+  | "failed"
+  | "starting"
+  | "waiting-for-artifact"
+
+export type CanvasCreateArtifactJob = {
+  error?: string
+  filePath: string
+  phase: CanvasCreateArtifactJobPhase
+  request: string
+  startedAt: number
+  threadId?: string
+  turnId?: string | null
+}
 
 export type CanvasHostPreferences = {
   activeCodexThreadId: string | null
@@ -23,6 +37,7 @@ export type CanvasHostPreferences = {
   activeThemeEditorSectionId: CanvasThemeEditorSectionId
   activeThemeMode: CanvasHostThemeMode
   activeThemePresetId: CanvasThemePresetId
+  createArtifactJob: CanvasCreateArtifactJob | null
   leftSidebarOpen: boolean
   messageDrafts: Record<string, string>
 }
@@ -35,6 +50,7 @@ const defaultCanvasHostPreferences: CanvasHostPreferences = {
   activeThemeEditorSectionId: "color",
   activeThemeMode: "system",
   activeThemePresetId: "default",
+  createArtifactJob: null,
   leftSidebarOpen: true,
   messageDrafts: {},
 }
@@ -141,6 +157,58 @@ function readOptionalString(value: unknown) {
   return typeof value === "string" && value.trim() ? value : null
 }
 
+function isCreateArtifactJobPhase(
+  value: unknown
+): value is CanvasCreateArtifactJobPhase {
+  return (
+    value === "failed" ||
+    value === "starting" ||
+    value === "waiting-for-artifact"
+  )
+}
+
+function readCreateArtifactJob(value: unknown): CanvasCreateArtifactJob | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const filePath = readOptionalString(value.filePath)
+  const request = readOptionalString(value.request)
+  const phase = value.phase
+
+  if (!filePath || !request || !isCreateArtifactJobPhase(phase)) {
+    return null
+  }
+
+  const job: CanvasCreateArtifactJob = {
+    filePath,
+    phase,
+    request,
+    startedAt:
+      typeof value.startedAt === "number" && Number.isFinite(value.startedAt)
+        ? value.startedAt
+        : 0,
+  }
+  const threadId = readOptionalString(value.threadId)
+  const error = readOptionalString(value.error)
+
+  if (threadId) {
+    job.threadId = threadId
+  }
+
+  if (typeof value.turnId === "string") {
+    job.turnId = value.turnId
+  } else if (value.turnId === null) {
+    job.turnId = null
+  }
+
+  if (error) {
+    job.error = error
+  }
+
+  return job
+}
+
 function readActiveFilePath({
   artifacts,
   value,
@@ -192,6 +260,7 @@ export function readCanvasHostPreferences({
     activeThemePresetId: isThemePresetId(stored.activeThemePresetId)
       ? stored.activeThemePresetId
       : defaultCanvasHostPreferences.activeThemePresetId,
+    createArtifactJob: readCreateArtifactJob(stored.createArtifactJob),
     leftSidebarOpen:
       typeof stored.leftSidebarOpen === "boolean"
         ? stored.leftSidebarOpen

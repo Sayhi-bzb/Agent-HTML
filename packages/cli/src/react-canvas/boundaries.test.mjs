@@ -665,10 +665,12 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
   it("keeps example and Codex host pipelines physically separated", () => {
     const examplePipeline = readSource("packages/cli/src/host/pipeline/example.ts")
     const codexPipeline = readSource("packages/cli/src/host/pipeline/codex.ts")
+    const hostApp = readSource("packages/cli/src/host/app.tsx")
 
     expect(examplePipeline).not.toContain("fetchCodexThreads")
     expect(examplePipeline).not.toContain("startCodexTurn")
     expect(examplePipeline).not.toContain("fetchBlockImplementation")
+    expect(hostApp).not.toContain("startCodexTurn")
     expect(codexPipeline).toContain("startCodexTurn")
   })
 })
