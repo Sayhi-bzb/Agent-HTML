@@ -59,12 +59,15 @@ Full TypeScript declarations are generated only as temporary build input.
 | `agent-html/components/code-block.tsx` | `CodeBlock` |
 | `agent-html/components/data-table.tsx` | `DataTable`, `DataTableColumnHeader`, `DataTableColumnHeaderProps`, `DataTablePagination`, `DataTablePaginationProps`, `DataTableProps`, `DataTableViewOptions`, `DataTableViewOptionsProps` |
 | `agent-html/components/kanban.tsx` | `Kanban`, `KanbanBoard`, `KanbanColumn`, `KanbanColumnHandle`, `KanbanItem`, `KanbanItemHandle`, `KanbanOverlay`, `KanbanProps` |
+| `agent-html/components/timeline.tsx` | `Timeline`, `TimelineConnector`, `TimelineContent`, `TimelineDescription`, `TimelineDot`, `TimelineHeader`, `TimelineItem`, `TimelineProps`, `TimelineTime`, `TimelineTitle` |
 
 ## hooks
 
 | File | Exports |
 | --- | --- |
 | `agent-html/hooks/use-filter.ts` | `useFilter` |
+| `agent-html/hooks/use-isomorphic-layout-effect.ts` | `useIsomorphicLayoutEffect` |
+| `agent-html/hooks/use-lazy-ref.ts` | `useLazyRef` |
 | `agent-html/hooks/use-mobile.ts` | `useIsMobile` |
 | `agent-html/hooks/use-selection.ts` | `useSelection` |
 

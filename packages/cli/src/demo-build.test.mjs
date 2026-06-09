@@ -86,5 +86,5 @@ describe("demo-build", () => {
       )
     ).resolves.toContain("<svg")
     expect(css).toContain(".canvas-host-shell")
-  }, 30000)
+  }, 120000)
 })

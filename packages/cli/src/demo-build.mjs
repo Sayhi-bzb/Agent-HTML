@@ -212,8 +212,11 @@ function createIndexHtml() {
 }
 
 async function createBuildWorkspace({ artifacts, root }) {
+  const tempParent = path.join(root, ".tmp")
+
+  await fs.mkdir(tempParent, { recursive: true })
   const tempRoot = await fs.mkdtemp(
-    path.join(root, ".agent-html-demo-build-")
+    path.join(tempParent, "agent-html-demo-build-")
   )
   const artifactModules = createArtifactModules({ artifacts, root })
 
@@ -297,17 +300,17 @@ export async function buildDemoHost({ args, cwd }) {
       },
     },
   })
-  const builtIndexPath = path.join(
-    outDir,
-    path.basename(buildRoot),
-    "index.html"
-  )
+  const buildRootOutDir = path.join(outDir, path.relative(root, buildRoot))
+  const builtIndexPath = path.join(buildRootOutDir, "index.html")
   const builtIndexHtml = await fs.readFile(builtIndexPath, "utf8")
   await fs.writeFile(
     path.join(outDir, "index.html"),
-    builtIndexHtml.replaceAll("../assets/", "./assets/")
+    builtIndexHtml.replace(
+      /\b(src|href)="(?:\.\.\/)+(?:\.\/)?assets\//g,
+      '$1="./assets/'
+    )
   )
-  await fs.rm(path.join(outDir, path.basename(buildRoot)), {
+  await fs.rm(buildRootOutDir, {
     force: true,
     recursive: true,
   })
