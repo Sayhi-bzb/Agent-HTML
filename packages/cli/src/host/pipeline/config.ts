@@ -10,7 +10,7 @@ const defaultPipelineConfig: CanvasPipelineConfig = {
   pipeline: "codex",
 }
 
-export function readPipelineConfig(): CanvasPipelineConfig {
+function readPipelineConfig(): CanvasPipelineConfig {
   const config = globalThis.__AGENT_HTML_HOST_CONFIG__
 
   if (!config || typeof config !== "object") {

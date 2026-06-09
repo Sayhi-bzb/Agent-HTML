@@ -39,25 +39,6 @@ describe("block message events", () => {
     })
   })
 
-  it("does not run the mock timeline by default", () => {
-    vi.useFakeTimers()
-
-    startBlockMessageThread({
-      request: "Update this block",
-      target,
-    })
-    vi.advanceTimersByTime(2300)
-
-    const thread =
-      getBlockMessageStoreSnapshot().threads[blockMessageKey(target)]
-
-    expect(thread.phase).toBe("running")
-    expect(thread.items.map((item) => item.kind)).toEqual([
-      "request",
-      "status",
-    ])
-  })
-
   it("finishes a thread with real Codex ids", () => {
     startBlockMessageThread({
       request: "Update this block",

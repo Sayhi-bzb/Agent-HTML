@@ -214,22 +214,6 @@ export function createEmptyCanvasThemeDraft(): CanvasThemeDraft {
   }
 }
 
-export function resolveCanvasThemeCssVariables({
-  draft,
-  preset,
-  runtimeVariables = {},
-}: {
-  draft: CanvasThemeDraft
-  preset: CanvasThemePreset
-  runtimeVariables?: CanvasThemeResolvedVariables
-}) {
-  return {
-    ...runtimeVariables,
-    ...preset.lightCssVariables,
-    ...draft.cssVariables,
-  } satisfies CanvasThemeCssVariables
-}
-
 export function getCanvasThemeCssVariableValue({
   draft,
   name,
@@ -326,16 +310,4 @@ export function parseCanvasThemeCssNumber(
 export function formatCanvasThemeCssNumber(value: number, unit: string) {
   const rounded = Number(value.toFixed(3))
   return `${rounded}${unit}`
-}
-
-export function isCssColorPreviewable(value: string) {
-  const trimmed = value.trim()
-  return (
-    trimmed.startsWith("#") ||
-    trimmed.startsWith("rgb") ||
-    trimmed.startsWith("hsl") ||
-    trimmed.startsWith("oklch") ||
-    trimmed.startsWith("color-mix") ||
-    trimmed.startsWith("var(")
-  )
 }

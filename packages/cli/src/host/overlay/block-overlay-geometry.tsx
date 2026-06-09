@@ -69,7 +69,7 @@ export function measureBlockOverlays(root: HTMLElement | null): BlockOverlay[] {
   })
 }
 
-export function useSurfaceGeometryInvalidation({
+function useSurfaceGeometryInvalidation({
   onInvalidate,
   surfaceRef,
 }: {
@@ -100,7 +100,7 @@ export function useSurfaceGeometryInvalidation({
   }, [onInvalidate, surfaceRef])
 }
 
-export function useBlockOverlayMeasurements(
+function useBlockOverlayMeasurements(
   rootRef: React.RefObject<HTMLElement | null>
 ) {
   const [overlays, setOverlays] = React.useState<BlockOverlay[]>([])

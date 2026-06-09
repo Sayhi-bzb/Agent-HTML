@@ -13,9 +13,7 @@ export type BlockMessageStoreSnapshot = {
   threads: Record<string, BlockMessageThread>
 }
 
-const mockTimelineDelays = [400, 900, 1300, 1700, 2200]
 const timers = new Map<string, ReturnType<typeof setTimeout>[]>()
-export const enableMockBlockMessageTimeline = false
 let nextThreadId = 1
 let currentSnapshot: BlockMessageStoreSnapshot = {
   threads: {},
@@ -83,43 +81,6 @@ function createItem(
   }
 }
 
-function createMockItems(request: string): BlockMessageItem[] {
-  return [
-    createItem(
-      "reasoning",
-      "reasoning",
-      "Reasoning",
-      "Mapped the request to this block's implementation context."
-    ),
-    createItem(
-      "tool-use",
-      "tool_use",
-      "Tool use",
-      "Prepared block-scoped edit context and workspace checks."
-    ),
-    createItem(
-      "observe",
-      "observe",
-      "Observe",
-      "Observed current block state and available host metadata."
-    ),
-    createItem(
-      "action",
-      "action",
-      "Action",
-      "Applied the requested block-focused change path."
-    ),
-    createItem(
-      "response",
-      "response",
-      "Finish",
-      request.length > 64
-        ? `${request.slice(0, 61)}...`
-        : "Agent finished this block request."
-    ),
-  ]
-}
-
 export function startBlockMessageThread({
   request,
   target,
@@ -157,57 +118,6 @@ export function startBlockMessageThread({
     readAt: null,
     title: target.title,
   }))
-
-  if (!enableMockBlockMessageTimeline) {
-    return
-  }
-
-  const mockItems = createMockItems(request)
-  timers.set(
-    key,
-    mockItems.map((item, index) =>
-      setTimeout(() => {
-        upsertThread(key, (thread) => {
-          if (!thread || thread.id !== threadId || thread.phase !== "running") {
-            return thread as BlockMessageThread
-          }
-
-          const isLast = index === mockItems.length - 1
-          const items = thread.items.filter(
-            (existing) => existing.id !== "status-start"
-          )
-
-          return {
-            ...thread,
-            items: [
-              ...items,
-              item,
-              ...(isLast
-                ? [
-                    createItem(
-                      "status-done",
-                      "status",
-                      "Done",
-                      "Agent finished this block request."
-                    ),
-                  ]
-                : [
-                    createItem(
-                      "status-start",
-                      "status",
-                      "Working",
-                      "Agent is working...",
-                      "loading"
-                    ),
-                  ]),
-            ],
-            phase: isLast ? "done" : "running",
-            readAt: isLast ? null : thread.readAt ?? null,
-          }
-        })
-      }, mockTimelineDelays[index])
-    )
-  )
 }
 
 export function finishBlockMessageThread({

@@ -155,7 +155,7 @@ function HostSelectTriggerRow({
   )
 }
 
-export function HostSelectContent({
+function HostSelectContent({
   children,
   className,
 }: {
@@ -176,7 +176,7 @@ export function HostSelectContent({
   )
 }
 
-export function HostSelectItem({
+function HostSelectItem({
   className,
   icon,
   label,

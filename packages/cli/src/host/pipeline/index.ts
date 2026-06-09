@@ -24,11 +24,7 @@ import type {
   SubmitGuardFixRequestInput,
 } from "./types"
 
-export {
-  canvasPipelineConfig,
-  type CanvasHostPipeline,
-  type CanvasPipelineConfig,
-} from "./config"
+export { type CanvasHostPipeline, type CanvasPipelineConfig } from "./config"
 
 export async function fetchPipelineThreads({
   pipeline = canvasPipelineConfig.pipeline,

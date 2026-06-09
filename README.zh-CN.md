@@ -2,74 +2,77 @@
 
 [English](./README.md)
 
-Agent-HTML 是一个面向 AI 原生工件的工作区，用来把生成的 HTML 转成结构化、
-可编辑、可预览的文档。它把块编辑器、运行时预览、主题控制和 agent 反馈流程
-放在一起，让 HTML 输出可以像一个持续演进的工件一样被审阅和修改，而不是停留
-在一段静态回答里。
+Agent-HTML 是面向 agent 编写 React artifact 的 Canvas 工作区。它为 agent 提供持久的文件系统上下文，用本地 UI primitives、数据、资产、示例和源码规则来组合、预览、校验和持续修订 artifact。
 
-![像 Notion 一样编辑 HTML](./public/block-dnd.gif)
+Canvas artifact 位于 `agent-html`，通过本地开发 host 渲染，并通过可检查的 `Artifact` 和 `Block` 边界让人和 agent 能够审阅具体区域、路由 block prompt，并把迭代保持在源码文件上。
 
-像 Notion 一样编辑 HTML。
+![Canvas artifact 预览](./public/block-dnd.gif)
 
-## 能做什么
+## 提供什么
 
-- 通过可拖拽的块编辑生成的 HTML，而不是只能编辑原始源码。
-- 预览 Kanban、时间线、响应式布局组合等结构化工件。
-- 使用内置主题、自定义主题和宽高比预览控制来调整展示效果。
-- 让人和 agent 留在同一个审阅、反馈、迭代循环里。
+- 一个可移植的 `agent-html` 源码工作区，用于 React 和 TypeScript artifact。
+- 本地 Canvas 资源：UI primitives、hooks、helpers、schemas、fixtures、语义 CSS classes、主题 presets、assets 和 examples。
+- 基于 Vite 的 Canvas host，用于 artifact 发现、预览、guard 反馈、block overlay、prompt 路由和主题应用。
+- 来自 `@agent-html/react` 的 headless protocol：`Artifact` 和 `Block` 标记协作边界，但不拥有 artifact 布局。
 
-## 预览
+## Canvas 预览
 
-### 块编辑
+### Artifact Blocks
 
-把生成的 UI 当作块来移动，通过拖拽把手和落点预览，让工件编辑更接近页面搭建，
-而不是静态 HTML 预览。
+Canvas 通过稳定的 block metadata 让 artifact 区域可寻址。Host 可以检查 block、放置 prompt action、路由修订上下文，同时不向 artifact source 暴露特权 host 能力。
 
-![块拖拽](./public/block-dnd.gif)
+![Artifact block 检查](./public/block-dnd.gif)
 
-### 结构化组件
+### Artifact Examples
 
-Agent-HTML 面向工件形态的输出：仪表盘、看板、报告、简报，以及其他适合审阅的
-界面。
+Artifact 可以用本地 Canvas 资源组合仪表盘、看板、报告、简报、图表、表格和其他适合审阅的界面。
 
 <table>
   <tr>
     <td width="50%">
       <strong>Kanban</strong><br />
-      <img src="./public/components3-kanban.gif" alt="Kanban 看板组件工件" />
+      <img src="./public/components3-kanban.gif" alt="Kanban artifact 示例" />
     </td>
     <td width="50%">
       <strong>图表</strong><br />
-      <img src="./public/components2-chart.gif" alt="由数据渲染的图表组件" />
+      <img src="./public/components2-chart.gif" alt="图表 artifact 示例" />
     </td>
   </tr>
   <tr>
     <td width="50%">
       <strong>图片和表格</strong><br />
-      <img src="./public/components3-img%26table.gif" alt="图片和表格组件组合" />
+      <img src="./public/components3-img%26table.gif" alt="图片和表格 artifact 示例" />
     </td>
     <td width="50%">
     </td>
   </tr>
 </table>
 
-### 主题
+### 主题 Presets
 
-在内置主题之间切换，同时保持同一套底层工件结构。
+Canvas host 应用主题 presets；artifact source 继续消费语义 tokens 和本地 Canvas classes。
 
-![主题切换](./public/theme.gif)
+![主题 presets](./public/theme.gif)
 
-### Agent 协作
+### Block Prompt Flow
 
-审阅工件，指出需要修改的位置，并让下一轮迭代紧贴预览结果发生。
+Host 观察 artifact metadata 和 interaction state，让 prompt 可以定位正确的 artifact entry、block id、可选 implementation file，以及压缩后的 interaction snapshot。
 
-![与 agent 交互](./public/interact%20with%20agent.gif)
+![Block prompt flow](./public/interact%20with%20agent.gif)
 
 ## 文档
 
-- [Agent 指令](./AGENTS.md)：产品、工程、设计和参考文档的内容路由。
+- [Canvas docs](./apps/docs/content/docs/canvas/index.mdx)：当前 Canvas constitution、architecture、workspace、host、design-system 和 reference docs。
+- [Canvas workspace](./agent-html/README.md)：编写 artifact 和使用本地 Canvas 资源的冷启动路线。
+- [Agent 指令](./AGENTS.md)：仓库操作规则和内容路线。
+- [Taste](./taste/README.md)：仓库级判断系统。
+- [Agent Ergonomics](./taste/agent-ergonomics/README.md)：AE、context route 和面向 agent 工作区人体工学的 route checks。
+
+历史 App 和 Runtime 材料位于 `_archive`，仅作参考。
 
 ## 开发
+
+启动 Canvas dev host：
 
 ```bash
 npm run dev
@@ -85,8 +88,7 @@ npm run lint
 
 ## 许可证
 
-不同目录授权不同，请以根目录 [`LICENSE`](./LICENSE) 和各 package/目录内的
-授权声明为准。简单说：用哪个目录，就看哪个目录的声明。
+不同目录授权不同，请以根目录 [`LICENSE`](./LICENSE) 和各 package/目录内的授权声明为准。简单说：用哪个目录，就看哪个目录的声明。
 
 ## 致谢
 

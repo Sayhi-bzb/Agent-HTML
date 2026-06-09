@@ -71,28 +71,3 @@ export function HostDropdownItem({
     </DropdownMenuItem>
   )
 }
-
-export function HostDropdownMeta({
-  caption,
-  className,
-  icon,
-  label,
-  swatchColor,
-}: {
-  caption?: React.ReactNode
-  className?: string
-  icon?: HostItemIcon
-  label: React.ReactNode
-  swatchColor?: string
-}) {
-  return (
-    <div className={cn("canvas-host-dropdown-meta", className)}>
-      <HostItemContent
-        caption={caption}
-        icon={icon}
-        label={label}
-        swatchColor={swatchColor}
-      />
-    </div>
-  )
-}

@@ -79,6 +79,7 @@ import type {
   CanvasSidebarView,
 } from "../preferences/canvas-host-preferences"
 import { HostButton } from "../ui/button"
+import { AgentHtmlGhostIcon, GithubMarkIcon } from "../ui/brand-icons"
 import {
   HostCommand,
   HostCommandDialog,
@@ -191,15 +192,27 @@ export function ReactCanvasSidebar({
         ) : (
           <>
             <div className="canvas-sidebar-brand">
-              <img
-                alt=""
-                aria-hidden="true"
-                className="canvas-sidebar-brand-icon"
-                src="/__agent-html/public/ghost.svg"
-              />
-              <span className="canvas-sidebar-title min-w-0 truncate">
-                Agent-HTML
-              </span>
+              <div className="canvas-sidebar-brand-main">
+                <AgentHtmlGhostIcon
+                  aria-hidden="true"
+                  className="canvas-sidebar-brand-icon"
+                />
+                <span className="canvas-sidebar-title min-w-0 truncate">
+                  Agent-HTML
+                </span>
+              </div>
+              <a
+                aria-label="Open Agent-HTML on GitHub"
+                className="canvas-sidebar-brand-link"
+                href="https://github.com/Sayhi-bzb/Agent-HTML"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <GithubMarkIcon
+                  aria-hidden="true"
+                  className="canvas-sidebar-brand-link-icon"
+                />
+              </a>
             </div>
             <ReactCanvasArtifactSearch
               artifacts={artifacts}
@@ -622,7 +635,7 @@ function ReactCanvasCodexThreadSelect({
       ]
   const value = activeThreadId ?? newCodexThreadValue
 
-  const select = (
+  return (
     <HostSelect
       disabled={loading}
       label={error ? "Codex thread unavailable" : "Codex thread"}
@@ -634,8 +647,6 @@ function ReactCanvasCodexThreadSelect({
       value={value}
     />
   )
-
-  return select
 }
 
 function ReactCanvasSettingsOptionPopover({

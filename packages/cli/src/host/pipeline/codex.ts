@@ -75,7 +75,7 @@ export async function submitCodexCreateArtifact({
   }
 }
 
-export function formatGuardFixPrompt({
+function formatGuardFixPrompt({
   filePath,
   issues,
 }: Omit<SubmitGuardFixRequestInput, "activeThreadId">) {
