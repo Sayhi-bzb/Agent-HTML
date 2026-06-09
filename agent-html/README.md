@@ -13,6 +13,7 @@ When authoring an artifact:
 
 - `artifacts/README.md`
 - `examples/example.artifact.tsx`
+- `TASTE.md` for artifact composition and visual judgment.
 
 When opening broad or large source files:
 
@@ -22,6 +23,7 @@ When opening broad or large source files:
 When using or changing primitives, hooks, helpers, schemas, or theme exports:
 
 - `components/README.md` for the component source route.
+- `TASTE.md` for component choice and artifact layout judgment when UI composition is part of the task.
 - `index/reuse-surface.md` for reusable hook, helper, schema, and data choices.
 - `index/api-surface.md`
 - then the closest source file
@@ -56,7 +58,7 @@ When touching Canvas classes, tokens, or internal chrome:
 
 - Copy `examples/example.artifact.tsx` for artifacts that need an artifact entry and semantic block files.
 - Use `artifacts/README.md` before opening large artifact source.
-- Use `components/README.md` for the component source route and `taste/design/DESIGN.md` for component choice.
+- Use `components/README.md` for the component source route and `TASTE.md` for component choice.
 
 ## Workspace Contract
 

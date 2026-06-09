@@ -1,6 +1,6 @@
 {
   "name": "@agent-html/react",
-  "version": "0.0.3",
+  "version": "0.2.0",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,

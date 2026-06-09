@@ -14,6 +14,8 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 - Keep `README.md` as a conditional reading route, not a rulebook.
 - Keep `AGENTS.md` as hard executable rules, not a design essay.
+- Keep `TASTE.md` as artifact design judgment, not a hard-rule file or
+  primitive catalog.
 - Keep `index/*` as generated decision summaries, not full tool output.
 - Keep `artifacts/README.md` as the artifact source route.
 - Keep `data/README.md` as the data source route.
@@ -57,6 +59,13 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Do not render host block prompt actions or block hover chrome from artifact source.
 - Do not use old AHTML `<Cell>` DSL for React Canvas artifacts.
 
+## Taste Route
+
+- Read `TASTE.md` before changing artifact visual composition, media-heavy
+  blocks, layout density, component choice, source placement, or narrative UI.
+- Use `TASTE.md` for design judgment. Do not copy its guidance into `AGENTS.md`,
+  examples, component docs, or generated indexes.
+
 ## Primitive Rules
 
 - Read `components/README.md` before scanning component source.
@@ -94,4 +103,5 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 - Imitate `examples/example.artifact.tsx` for split artifact structure and ownership.
 - Read `artifacts/README.md` before opening large artifact source.
-- Use `components/README.md` for the component source route and `taste/design/DESIGN.md` for component choice before scanning the full primitive surface.
+- Use `components/README.md` for the component source route and `TASTE.md` for
+  component choice before scanning the full primitive surface.
