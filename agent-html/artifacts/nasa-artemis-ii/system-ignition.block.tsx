@@ -23,7 +23,7 @@ export function SystemIgnitionBlock() {
             <Badge variant="outline">system ignition</Badge>
           </div>
           <h2 className="canvas-text-heading">
-            一整套深空系统，从地面同时启动。
+            A full deep-space system comes alive from the ground.
           </h2>
           <p className="canvas-text-body text-muted-foreground">
             The launch image should show SLS, flame, smoke, tower structure, and

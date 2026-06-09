@@ -18,7 +18,7 @@ export function MissionRouteBlock() {
       <div className="canvas-stack-sm">
         <Badge variant="secondary">nine-day route</Badge>
         <h2 className="canvas-text-heading">
-          这不是一次直线旅行，而是一条被安全设计反复约束的深空路线。
+          This is not a straight trip, but a deep-space route shaped by safety.
         </h2>
         <p className="canvas-text-body text-muted-foreground">
           The route board uses the existing Timeline component while the

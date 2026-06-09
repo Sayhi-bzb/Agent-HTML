@@ -26,7 +26,7 @@ export function OrionWindowBlock() {
             ))}
           </div>
           <h1 className="canvas-text-title">
-            人类正在重新学习如何抵达月球。
+            Human spaceflight is learning how to reach the Moon again.
           </h1>
           <p className="canvas-text-body text-muted-foreground">
             The page opens from Orion's point of view: Earth is already behind

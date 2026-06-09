@@ -11,7 +11,8 @@ export function LunarFlybyBlock() {
           <Badge variant="outline">visual climax</Badge>
         </div>
         <h2 className="canvas-text-heading">
-          月球不再只是夜空里的远方，而是一次飞行中的真实地标。
+          The Moon is no longer a distant object in the night sky; it is a real
+          landmark in flight.
         </h2>
         <p className="canvas-text-body text-muted-foreground">
           This section should use fewer, stronger visuals: one primary lunar

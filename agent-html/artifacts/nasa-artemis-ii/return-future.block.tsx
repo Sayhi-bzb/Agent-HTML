@@ -8,7 +8,8 @@ export function ReturnFutureBlock() {
       <div className="canvas-stack-sm">
         <Badge variant="secondary">return and recovery</Badge>
         <h2 className="canvas-text-heading">
-          这次任务的终点，是下一次真正重返月面的起点。
+          The end of this mission becomes the starting point for a true return
+          to the lunar surface.
         </h2>
         <p className="canvas-text-body text-muted-foreground">
           The final scene returns from deep space to Earth, sea recovery, and

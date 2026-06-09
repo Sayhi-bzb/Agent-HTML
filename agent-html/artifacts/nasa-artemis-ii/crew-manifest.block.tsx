@@ -15,7 +15,7 @@ export function CrewManifestBlock() {
       <div className="canvas-stack-sm">
         <Badge variant="secondary">crew manifest</Badge>
         <h2 className="canvas-text-heading">
-          这一次，飞向月球的不只是技术系统，也是今天的人类。
+          This flight carries today's crew, not only a technical system.
         </h2>
         <p className="canvas-text-body text-muted-foreground">
           Four mission-pass panels identify who is flying without turning the
