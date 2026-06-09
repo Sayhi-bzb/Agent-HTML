@@ -99,7 +99,6 @@
     width: var(--canvas-host-item-icon-size);
     height: var(--canvas-host-item-icon-size);
     flex-shrink: 0;
-    color: var(--canvas-host-muted-icon);
   }
 
   .canvas-host-item-shortcut,
@@ -128,27 +127,15 @@
 
   .canvas-host-control-trigger {
     color: inherit;
-    transition-property: color, background-color, box-shadow;
-    transition-duration: 150ms;
-  }
-
-  .canvas-host-control-trigger:hover {
-    background: var(--canvas-host-soft-accent);
-  }
-
-  .canvas-host-control-trigger:hover .canvas-host-item-icon,
-  .canvas-host-control-trigger[data-active="true"] .canvas-host-item-icon,
-  .canvas-host-control-trigger[data-state="open"] .canvas-host-item-icon {
-    color: currentColor;
   }
 
   .canvas-host-control-trigger[data-state="open"] {
-    background: var(--canvas-host-soft-accent-strong);
+    background: var(--sidebar-accent);
     color: var(--sidebar-accent-foreground);
   }
 
   .canvas-host-floating-content .canvas-host-control-trigger[data-state="open"] {
-    background: var(--canvas-host-soft-accent-strong);
+    background: var(--accent);
     color: var(--accent-foreground);
   }
 
@@ -162,8 +149,8 @@
     background: var(--popover);
     color: var(--popover-foreground);
     box-shadow:
-      0 0 0 1px var(--canvas-host-soft-border),
-      var(--canvas-host-surface-shadow);
+      0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent),
+      0 1px 2px 0 oklch(0 0 0 / 8%);
   }
 
   .canvas-host-icon-button {
@@ -180,7 +167,7 @@
   }
 
   .canvas-host-icon-button[data-tone="primary"]:hover {
-    background: color-mix(in oklab, var(--primary) 86%, var(--foreground));
+    background: color-mix(in oklab, var(--primary) 90%, var(--foreground));
     color: var(--primary-foreground);
   }
 
@@ -315,7 +302,7 @@
   }
 
   .canvas-host-popover-action[data-active="true"] {
-    background: var(--canvas-host-soft-accent-strong);
+    background: var(--accent);
     color: var(--accent-foreground);
   }
 

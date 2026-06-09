@@ -18,3 +18,12 @@ Use this route after `../README.md` when the task asks for color, type, radius, 
 ## Boundary
 
 Do not change `tailwind.css` to tune a single artifact. Tune the owning token file first, then let the mapping consume it.
+
+## Feature Token Admission
+
+Keep feature tokens for values that define a reusable scale, semantic role, or
+theme-adjustable surface. Inline local implementation constants in
+`styles/internal/*` when a value only sizes one skeleton part, one icon, one
+status line, or one component-internal offset.
+
+Host tokens should describe host chrome scale, not every host CSS number.

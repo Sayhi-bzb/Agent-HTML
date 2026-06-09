@@ -9,7 +9,8 @@ import { describe, expect, it } from "vitest"
 
 import { startDevHost } from "./dev-host.mjs"
 import { hostRoot, packageRoot } from "./dev-server/context.mjs"
-import { createViteFsAllowList } from "./dev-server/vite.mjs"
+import { parsePipelineArg } from "./dev-server/server.mjs"
+import { createHostEntryModule, createViteFsAllowList } from "./dev-server/vite.mjs"
 
 const reactPackageRoot = path.resolve(packageRoot, "..", "react")
 const execFileAsync = promisify(execFile)
@@ -116,6 +117,25 @@ const devHostIntegrationTimeout = 60_000
 const packageInstallSmokeTimeout = 180_000
 
 describe("React Canvas dev host", () => {
+  it("parses explicit host pipeline modes", () => {
+    expect(parsePipelineArg([])).toBe("codex")
+    expect(parsePipelineArg(["--pipeline", "codex"])).toBe("codex")
+    expect(parsePipelineArg(["--pipeline", "example"])).toBe("example")
+    expect(() => parsePipelineArg(["--pipeline", "test"])).toThrow(
+      "--pipeline requires either codex or example"
+    )
+  })
+
+  it("injects the selected pipeline into the host entry module", () => {
+    expect(createHostEntryModule()).toContain('"pipeline":"codex"')
+    expect(createHostEntryModule({ pipeline: "example" })).toContain(
+      '"pipeline":"example"'
+    )
+    expect(createHostEntryModule({ pipeline: "example" })).toContain(
+      '"contentSource":"artifacts"'
+    )
+  })
+
   it("scans and renders the example artifact", async () => {
     const { server, url } = await startDevHost({
       args: ["--port", "5298"],
@@ -239,12 +259,12 @@ describe("React Canvas dev host", () => {
       expect(css).toContain(".bg-primary")
       expect(css).toContain(".bg-sidebar")
       expect(css).toContain("--canvas-artifact-max-width")
-      expect(css).toContain("--canvas-artifact-skeleton-max-width")
       expect(css).toContain("--canvas-artifact-block-gap")
       expect(css).toContain("--canvas-surface-padding-inline")
       expect(css).toContain("--canvas-toolbar-inset-block-start")
       expect(css).toContain("--canvas-block-reply-badge-offset")
       expect(css).toContain("--canvas-floating-prompt-width")
+      expect(css).not.toContain("--canvas-artifact-skeleton-max-width")
       expect(css).toContain("--canvas-content-gap-md")
       expect(css).toContain("--canvas-content-panel-padding-md")
       expect(css).toContain("--canvas-content-body-font-size")
@@ -262,6 +282,35 @@ describe("React Canvas dev host", () => {
       await new Promise((resolve) => server.close(resolve))
     }
   }, devHostIntegrationTimeout)
+
+  it("serves the example pipeline while reusing artifact content", async () => {
+    const { pipeline, server, url } = await startDevHost({
+      args: ["--port", String(await reserveFreePort()), "--pipeline", "example"],
+      cwd: process.cwd(),
+    })
+
+    try {
+      expect(pipeline).toBe("example")
+
+      const artifacts = await fetch(`${url}/__agent-html/artifacts`).then(
+        (response) => response.json()
+      )
+      expect(artifacts.artifacts).toContainEqual(
+        expect.objectContaining({
+          filePath: "agent-html/artifacts/project-visual-explainer.artifact.tsx",
+        })
+      )
+
+      const hostEntry = await fetch(`${url}/__agent-html/host-entry.js`).then(
+        (response) => response.text()
+      )
+      expect(hostEntry).toContain('"pipeline":"example"')
+      expect(hostEntry).toContain('"contentSource":"artifacts"')
+    } finally {
+      await closeServer(server)
+    }
+  }, devHostIntegrationTimeout)
+
 
   it("uses another port when the default port is occupied", async () => {
     let defaultPortBlocker = null

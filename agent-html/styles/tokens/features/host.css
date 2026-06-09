@@ -1,12 +1,6 @@
 :root {
-  --canvas-host-soft-accent: color-mix(in oklab, var(--foreground) 5%, transparent);
-  --canvas-host-soft-accent-strong: color-mix(in oklab, var(--foreground) 8%, transparent);
-  --canvas-host-soft-border: color-mix(in oklab, var(--foreground) 8%, transparent);
-  --canvas-host-soft-border-strong: color-mix(in oklab, var(--foreground) 14%, transparent);
-  --canvas-host-muted-icon: color-mix(in oklab, currentColor 58%, transparent);
-  --canvas-host-surface-shadow: 0 10px 30px -18px oklch(0 0 0 / 34%), 0 2px 8px -6px oklch(0 0 0 / 18%);
-  --canvas-block-highlight-background: color-mix(in oklab, var(--foreground) 3%, transparent);
-  --canvas-block-highlight-border: color-mix(in oklab, var(--foreground) 12%, transparent);
+  --canvas-block-highlight-background: color-mix(in oklab, var(--ring) 5%, transparent);
+  --canvas-block-highlight-border: color-mix(in oklab, var(--ring) 32%, transparent);
   --canvas-block-highlight-padding: 0.375rem;
   --canvas-block-reply-badge-offset: 0.625rem;
   --canvas-surface-padding-inline: 1rem;
