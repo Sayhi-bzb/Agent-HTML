@@ -337,6 +337,78 @@ describe("dev server routes", () => {
     ).resolves.toContain("export default")
   })
 
+  it("renames matching artifact block directories", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const artifactsRoot = path.join(root, "agent-html", "artifacts")
+    const sourceBlockDirectory = path.join(artifactsRoot, "old-name")
+    const targetBlockDirectory = path.join(artifactsRoot, "new-name")
+    await fs.mkdir(sourceBlockDirectory, { recursive: true })
+    await fs.writeFile(
+      path.join(artifactsRoot, "old-name.artifact.tsx"),
+      "export default function Artifact() { return null }\n"
+    )
+    await fs.writeFile(
+      path.join(sourceBlockDirectory, "summary.block.tsx"),
+      "export function SummaryBlock() { return null }\n"
+    )
+
+    const response = createResponseMock()
+    const handled = await handleRoute({
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/artifacts/old-name.artifact.tsx",
+          nextFileName: "new-name",
+        },
+        url: hostRoutes.artifactRename,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(JSON.parse(response.body)).toEqual({
+      filePath: "agent-html/artifacts/new-name.artifact.tsx",
+    })
+    await expect(fs.stat(sourceBlockDirectory)).rejects.toThrow()
+    await expect(
+      fs.readFile(path.join(targetBlockDirectory, "summary.block.tsx"), "utf8")
+    ).resolves.toContain("SummaryBlock")
+  })
+
+  it("rejects artifact rename when the target block directory exists", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const artifactsRoot = path.join(root, "agent-html", "artifacts")
+    await fs.mkdir(path.join(artifactsRoot, "new-name"), { recursive: true })
+    await fs.writeFile(
+      path.join(artifactsRoot, "old-name.artifact.tsx"),
+      "export default function Artifact() { return null }\n"
+    )
+
+    const response = createResponseMock()
+    const handled = await handleRoute({
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/artifacts/old-name.artifact.tsx",
+          nextFileName: "new-name",
+        },
+        url: hostRoutes.artifactRename,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(400)
+    expect(JSON.parse(response.body).error).toContain(
+      "Artifact block directory already exists"
+    )
+    await expect(
+      fs.readFile(path.join(artifactsRoot, "old-name.artifact.tsx"), "utf8")
+    ).resolves.toContain("export default")
+  })
+
   it("rejects artifact rename outside artifact entries", async () => {
     const response = createResponseMock()
 
@@ -383,5 +455,36 @@ describe("dev server routes", () => {
     expect(handled).toBe(true)
     expect(JSON.parse(response.body)).toEqual({ ok: true })
     await expect(fs.stat(artifactPath)).rejects.toThrow()
+  })
+
+  it("deletes matching artifact block directories", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const artifactsRoot = path.join(root, "agent-html", "artifacts")
+    const artifactPath = path.join(artifactsRoot, "delete-me.artifact.tsx")
+    const blockDirectory = path.join(artifactsRoot, "delete-me")
+    await fs.mkdir(blockDirectory, { recursive: true })
+    await fs.writeFile(artifactPath, "export default function Artifact() {}\n")
+    await fs.writeFile(
+      path.join(blockDirectory, "summary.block.tsx"),
+      "export function SummaryBlock() { return null }\n"
+    )
+
+    const response = createResponseMock()
+    const handled = await handleRoute({
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/artifacts/delete-me.artifact.tsx",
+        },
+        url: hostRoutes.artifactDelete,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(JSON.parse(response.body)).toEqual({ ok: true })
+    await expect(fs.stat(artifactPath)).rejects.toThrow()
+    await expect(fs.stat(blockDirectory)).rejects.toThrow()
   })
 })

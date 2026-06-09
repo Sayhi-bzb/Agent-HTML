@@ -316,7 +316,7 @@ export const mediaAssets = {
       {
         alt: "Earth setting behind the Moon's horizon during the Artemis II lunar flyby.",
         caption:
-          "Earthset through Orion's window makes the Moon a foreground landmark.",
+          "Earthset beyond the lunar horizon turns the Moon into a flight landmark.",
         credit: "Credit: NASA",
         sourceUrl: "https://www.nasa.gov/image-detail/art002e009288/",
         src: "https://images-assets.nasa.gov/image/art002e009288/art002e009288~large.jpg?crop=faces%2Cfocalpoint&fit=clip&h=1280&w=1920",
@@ -324,7 +324,7 @@ export const mediaAssets = {
       {
         alt: "The Moon backlit by the Sun during an in-space solar eclipse, with Orion visible in the foreground.",
         caption:
-          "A solar eclipse seen from Orion turns the flyby into a spacecraft-scale scene.",
+          "The Moon crossing the Sun makes the flyby feel precise and spacecraft-scale.",
         credit: "Credit: NASA",
         sourceUrl: "https://www.nasa.gov/image-detail/art002e009573/",
         src: "https://images-assets.nasa.gov/image/art002e009573/art002e009573~large.jpg?crop=faces%2Cfocalpoint&fit=clip&h=1280&w=1920",
@@ -348,7 +348,7 @@ export const mediaAssets = {
       {
         alt: "The Moon peeking above the Orion spacecraft window sill during Artemis II.",
         caption:
-          "The Orion window frame keeps the lunar pass tied to the crew's viewpoint.",
+          "A close lunar view keeps the pass tied to the crew's spacecraft perspective.",
         credit: "Credit: NASA",
         sourceUrl: "https://www.nasa.gov/gallery/lunar-flyby/",
         src: "https://images-assets.nasa.gov/image/art002e012278/art002e012278~large.jpg?crop=faces%2Cfocalpoint&fit=clip&h=1280&w=1920",

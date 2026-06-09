@@ -113,8 +113,45 @@ function normalizeArtifactFileName(nextFileName) {
   return fileName
 }
 
+function artifactNameFromEntryPath(entryPath) {
+  return path.basename(entryPath).slice(0, -".artifact.tsx".length)
+}
+
+function assertArtifactBlockDirectoryPath({ artifactsRoot, entryPath }) {
+  const directoryPath = path.join(
+    path.dirname(entryPath),
+    artifactNameFromEntryPath(entryPath)
+  )
+
+  if (
+    !directoryPath.startsWith(`${artifactsRoot}${path.sep}`) ||
+    path.dirname(directoryPath) !== path.dirname(entryPath)
+  ) {
+    throw new Error("Artifact block directory must stay beside the artifact")
+  }
+
+  return directoryPath
+}
+
+function resolveArtifactSourceUnit({ filePath, root }) {
+  const entryPath = assertArtifactEntryPath(root, filePath)
+  const artifactsRoot = path.join(path.resolve(root), "agent-html", "artifacts")
+  const blockDirectoryPath = assertArtifactBlockDirectoryPath({
+    artifactsRoot,
+    entryPath,
+  })
+
+  return { blockDirectoryPath, entryPath }
+}
+
 function resolveRenamedArtifactPath({ root, sourceFilePath, nextFileName }) {
-  const sourcePath = assertArtifactEntryPath(root, sourceFilePath)
+  const {
+    blockDirectoryPath: sourceBlockDirectoryPath,
+    entryPath: sourcePath,
+  } = resolveArtifactSourceUnit({
+    filePath: sourceFilePath,
+    root,
+  })
   const fileName = normalizeArtifactFileName(nextFileName)
   const targetPath = path.join(path.dirname(sourcePath), fileName)
   const artifactsRoot = path.join(path.resolve(root), "agent-html", "artifacts")
@@ -126,7 +163,24 @@ function resolveRenamedArtifactPath({ root, sourceFilePath, nextFileName }) {
     throw new Error("Renamed artifact must stay beside the original artifact")
   }
 
-  return { sourcePath, targetPath }
+  const targetBlockDirectoryPath = assertArtifactBlockDirectoryPath({
+    artifactsRoot,
+    entryPath: targetPath,
+  })
+
+  return {
+    sourceBlockDirectoryPath,
+    sourcePath,
+    targetBlockDirectoryPath,
+    targetPath,
+  }
+}
+
+async function pathExists(filePath) {
+  return fs.stat(filePath).then(
+    () => true,
+    () => false
+  )
 }
 
 async function readJsonBody(request) {
@@ -403,21 +457,35 @@ export async function handleRequest({ artifactRegistry, request, response, root,
 
     try {
       const body = await readJsonBody(request)
-      const { sourcePath, targetPath } = resolveRenamedArtifactPath({
+      const {
+        sourceBlockDirectoryPath,
+        sourcePath,
+        targetBlockDirectoryPath,
+        targetPath,
+      } = resolveRenamedArtifactPath({
         nextFileName: body.nextFileName,
         root,
         sourceFilePath: body.filePath,
       })
-      const targetExists = await fs.stat(targetPath).then(
-        () => true,
-        () => false
-      )
+      const [targetExists, sourceBlockDirectoryExists, targetBlockDirectoryExists] =
+        await Promise.all([
+          pathExists(targetPath),
+          pathExists(sourceBlockDirectoryPath),
+          pathExists(targetBlockDirectoryPath),
+        ])
 
       if (targetExists) {
         throw new Error("Artifact filename already exists")
       }
 
+      if (targetBlockDirectoryExists) {
+        throw new Error("Artifact block directory already exists")
+      }
+
       await fs.rename(sourcePath, targetPath)
+      if (sourceBlockDirectoryExists) {
+        await fs.rename(sourceBlockDirectoryPath, targetBlockDirectoryPath)
+      }
       await artifactRegistry.refresh({ reason: "artifact-rename" })
       sendJson(response, {
         filePath: workspaceRelativePath(root, targetPath),
@@ -437,9 +505,13 @@ export async function handleRequest({ artifactRegistry, request, response, root,
     try {
       const body = await readJsonBody(request)
       const filePath = typeof body.filePath === "string" ? body.filePath : ""
-      const absolutePath = assertArtifactEntryPath(root, filePath)
+      const { blockDirectoryPath, entryPath } = resolveArtifactSourceUnit({
+        filePath,
+        root,
+      })
 
-      await fs.rm(absolutePath)
+      await fs.rm(entryPath)
+      await fs.rm(blockDirectoryPath, { force: true, recursive: true })
       await artifactRegistry.refresh({ reason: "artifact-delete" })
       sendJson(response, { ok: true })
     } catch (error) {

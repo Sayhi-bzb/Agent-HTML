@@ -49,6 +49,7 @@ export type TokyoRoute = {
     center: [number, number]
     zoom: number
   }
+  waypoints: [number, number][]
   width: number
 }
 
@@ -193,6 +194,11 @@ export const tokyoRoutes: TokyoRoute[] = [
       center: [139.763, 35.61],
       zoom: 10.4,
     },
+    waypoints: [
+      [139.7798, 35.5494],
+      [139.7565, 35.6556],
+      [139.745, 35.675],
+    ],
     width: 4,
   },
   {
@@ -218,6 +224,11 @@ export const tokyoRoutes: TokyoRoute[] = [
       center: [139.705, 35.675],
       zoom: 12.25,
     },
+    waypoints: [
+      [139.7016, 35.6595],
+      [139.7126, 35.6652],
+      [139.7005, 35.6896],
+    ],
     width: 5,
   },
   {
@@ -243,6 +254,11 @@ export const tokyoRoutes: TokyoRoute[] = [
       center: [139.774, 35.703],
       zoom: 12,
     },
+    waypoints: [
+      [139.7975, 35.6817],
+      [139.7606, 35.6959],
+      [139.7663, 35.7274],
+    ],
     width: 6,
   },
   {
@@ -268,6 +284,11 @@ export const tokyoRoutes: TokyoRoute[] = [
       center: [139.78, 35.704],
       zoom: 11.7,
     },
+    waypoints: [
+      [139.745, 35.675],
+      [139.7975, 35.6817],
+      [139.7663, 35.7274],
+    ],
     width: 5,
   },
 ]

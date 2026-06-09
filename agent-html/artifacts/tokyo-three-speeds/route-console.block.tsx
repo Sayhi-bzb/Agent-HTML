@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { ArrowRight, Clock, MapPin, RouteIcon } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { ArrowRight, Clock, RouteIcon } from "lucide-react"
 
 import {
   Map,
@@ -25,6 +25,13 @@ import {
   type TokyoRoute,
 } from "./data"
 
+type RouteGeometry = {
+  coordinates: [number, number][]
+  distance?: number
+  duration?: number
+  status: "fallback" | "loaded" | "loading"
+}
+
 const markerClass = {
   arrival: "bg-slate-500",
   density: "bg-rose-600",
@@ -32,10 +39,52 @@ const markerClass = {
   quiet: "bg-emerald-600",
 }
 
+const routeStripeClass = {
+  arrival: "bg-slate-500",
+  density: "bg-rose-600",
+  quiet: "bg-emerald-600",
+}
+
+function formatDistance(meters?: number) {
+  if (!meters) return null
+  if (meters < 1000) return `${Math.round(meters)} m`
+  return `${(meters / 1000).toFixed(1)} km`
+}
+
+function formatDuration(seconds?: number) {
+  if (!seconds) return null
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  return remainingMinutes ? `${hours}h ${remainingMinutes}m` : `${hours}h`
+}
+
+function buildOsrmUrl(waypoints: [number, number][]) {
+  const coordinatePath = waypoints
+    .map(([longitude, latitude]) => `${longitude},${latitude}`)
+    .join(";")
+
+  return `https://router.project-osrm.org/route/v1/driving/${coordinatePath}?overview=full&geometries=geojson`
+}
+
 export function RouteConsoleBlock() {
   const [selectedInterest, setSelectedInterest] = useState("bookstores")
   const [selectedPointLabel, setSelectedPointLabel] = useState("Jimbocho")
   const [selectedRouteId, setSelectedRouteId] = useState("quiet-route")
+  const [routeGeometry, setRouteGeometry] = useState<
+    Record<string, RouteGeometry>
+  >(() =>
+    Object.fromEntries(
+      tokyoRoutes.map((route) => [
+        route.id,
+        {
+          coordinates: route.coordinates,
+          status: "loading",
+        },
+      ]),
+    ),
+  )
 
   const selectedOption = useMemo(
     () =>
@@ -58,15 +107,62 @@ export function RouteConsoleBlock() {
   )
   const viewport = selectedRoute.viewport
 
-  function selectInterest(value: string) {
-    if (!value) return
-    const nextOption =
-      selectorOptions.find((option) => option.label === value) ??
-      selectorOptions[0]
-    setSelectedInterest(nextOption.label)
-    setSelectedRouteId(nextOption.routeId)
-    setSelectedPointLabel(nextOption.pointLabels[0])
-  }
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadRoutes() {
+      const nextEntries = await Promise.all(
+        tokyoRoutes.map(async (route) => {
+          try {
+            const response = await fetch(buildOsrmUrl(route.waypoints))
+            const data = (await response.json()) as {
+              routes?: Array<{
+                distance?: number
+                duration?: number
+                geometry?: {
+                  coordinates?: [number, number][]
+                }
+              }>
+            }
+            const firstRoute = data.routes?.[0]
+            const coordinates = firstRoute?.geometry?.coordinates
+
+            if (!coordinates || coordinates.length < 2) {
+              throw new Error("OSRM returned no route geometry")
+            }
+
+            return [
+              route.id,
+              {
+                coordinates,
+                distance: firstRoute.distance,
+                duration: firstRoute.duration,
+                status: "loaded" as const,
+              },
+            ]
+          } catch {
+            return [
+              route.id,
+              {
+                coordinates: route.coordinates,
+                status: "fallback" as const,
+              },
+            ]
+          }
+        }),
+      )
+
+      if (!cancelled) {
+        setRouteGeometry(Object.fromEntries(nextEntries))
+      }
+    }
+
+    void loadRoutes()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   function selectPoint(point: TokyoPoint) {
     setSelectedPointLabel(point.label)
@@ -93,6 +189,13 @@ export function RouteConsoleBlock() {
         }),
     [selectedRoute.id],
   )
+  const selectedGeometry = routeGeometry[selectedRoute.id]
+  const routeStatusLabel =
+    selectedGeometry?.status === "loaded" ? "real road route" : "route preview"
+  const selectedDistance =
+    formatDistance(selectedGeometry?.distance) ?? selectedRoute.distanceLabel
+  const selectedDuration =
+    formatDuration(selectedGeometry?.duration) ?? selectedRoute.durationLabel
 
   return (
     <section className="canvas-stack-lg">
@@ -115,6 +218,7 @@ export function RouteConsoleBlock() {
                 {selectedRoute.day} / {selectedRoute.speed}
               </Badge>
               <Badge variant="outline">{selectedPoint.label}</Badge>
+              <Badge variant="outline">{routeStatusLabel}</Badge>
             </div>
             <p className="canvas-text-body">{selectedOption.route}</p>
             <p className="canvas-text-caption text-muted-foreground">
@@ -151,6 +255,11 @@ export function RouteConsoleBlock() {
               <p className="canvas-text-body">{selectedRoute.summary}</p>
             </div>
 
+            <div className="canvas-wrap-sm items-center">
+              <Badge variant="secondary">{selectedDuration}</Badge>
+              <Badge variant="secondary">{selectedDistance}</Badge>
+            </div>
+
             <div className="canvas-grid-gap-md sm:grid-cols-2">
               {selectedOption.load.map((metric) => (
                 <div className="canvas-stack-xs" key={metric.label}>
@@ -183,15 +292,12 @@ export function RouteConsoleBlock() {
               zoom={tokyoMap.zoom}
             >
               {sortedRoutes.map(({ route, isSelected }) => (
-                <MapRoute
-                  color={isSelected ? route.color : "#94a3b8"}
-                  coordinates={route.coordinates}
-                  id={route.id}
-                  interactive
+                <RouteLines
+                  isSelected={isSelected}
                   key={route.id}
-                  onClick={() => selectRoute(route)}
-                  opacity={isSelected ? 0.96 : 0.42}
-                  width={isSelected ? route.width + 2 : 4}
+                  onSelect={() => selectRoute(route)}
+                  route={route}
+                  routeGeometry={routeGeometry[route.id]}
                 />
               ))}
 
@@ -204,13 +310,15 @@ export function RouteConsoleBlock() {
                 >
                 <MarkerContent>
                   <div
-                      className={`grid place-items-center rounded-full border-2 border-white shadow-sm ${
-                        point.label === selectedPoint.label ? "size-9 ring-2 ring-ring" : "size-7"
+                      className={`grid place-items-center rounded-full border border-white/90 text-[10px] font-semibold text-white shadow-sm ${
+                        point.label === selectedPoint.label ? "size-8 ring-2 ring-ring" : "size-6"
                       } ${markerClass[point.speed]}`}
                   >
-                    <MapPin className="size-3.5 text-white" />
+                    {point.day.replace("D", "")}
                   </div>
-                  <MarkerLabel position="top">{point.label}</MarkerLabel>
+                  {point.label === selectedPoint.label ? (
+                    <MarkerLabel position="top">{point.label}</MarkerLabel>
+                  ) : null}
                 </MarkerContent>
                   <MarkerTooltip>
                     <div className="space-y-1 text-xs">
@@ -226,25 +334,43 @@ export function RouteConsoleBlock() {
             <div className="absolute top-3 left-3 canvas-stack-sm">
               {tokyoRoutes.map((route) => {
                 const isActive = route.id === selectedRoute.id
+                const geometry = routeGeometry[route.id]
+                const distance =
+                  formatDistance(geometry?.distance) ?? route.distanceLabel
+                const duration =
+                  formatDuration(geometry?.duration) ?? route.durationLabel
 
                 return (
                   <Button
-                    className="justify-start gap-3 bg-background/90"
+                    className={
+                      isActive
+                        ? "justify-start gap-3 bg-foreground text-background"
+                        : "justify-start gap-3 bg-background/90"
+                    }
                     key={route.id}
                     onClick={() => selectRoute(route)}
                     size="sm"
                     variant={isActive ? "default" : "secondary"}
                   >
+                    <span
+                      className={`h-4 w-1 rounded-full ${routeStripeClass[route.speed]}`}
+                    />
                     <span className="canvas-wrap-sm items-center">
                       <Clock data-icon="inline-start" />
                       <span className="canvas-text-caption">
-                        {route.durationLabel}
+                        {duration}
                       </span>
                     </span>
-                    <span className="canvas-wrap-sm items-center text-muted-foreground">
+                    <span
+                      className={
+                        isActive
+                          ? "canvas-wrap-sm items-center text-background/70"
+                          : "canvas-wrap-sm items-center text-muted-foreground"
+                      }
+                    >
                       <RouteIcon data-icon="inline-start" />
                       <span className="canvas-text-caption">
-                        {route.distanceLabel}
+                        {distance}
                       </span>
                     </span>
                     <Badge variant={isActive ? "secondary" : "outline"}>
@@ -261,6 +387,51 @@ export function RouteConsoleBlock() {
         </div>
       </div>
     </section>
+  )
+}
+
+function RouteLines({
+  isSelected,
+  onSelect,
+  route,
+  routeGeometry,
+}: {
+  isSelected: boolean
+  onSelect: () => void
+  route: TokyoRoute
+  routeGeometry?: RouteGeometry
+}) {
+  const geometry = routeGeometry ?? {
+    coordinates: route.coordinates,
+    status: "fallback" as const,
+  }
+  const isFallback = geometry.status === "fallback"
+  const coordinates = geometry.coordinates
+
+  return (
+    <>
+      {isSelected ? (
+        <MapRoute
+          color="#ffffff"
+          coordinates={coordinates}
+          dashArray={isFallback ? [1.2, 1.2] : undefined}
+          id={`${route.id}-case`}
+          interactive={false}
+          opacity={isFallback ? 0.32 : 0.56}
+          width={route.width + 7}
+        />
+      ) : null}
+      <MapRoute
+        color={isSelected ? route.color : "#94a3b8"}
+        coordinates={coordinates}
+        dashArray={isFallback ? [1.2, 1.4] : undefined}
+        id={route.id}
+        interactive
+        onClick={onSelect}
+        opacity={isSelected ? 0.96 : 0.36}
+        width={isSelected ? route.width + 1 : 3}
+      />
+    </>
   )
 }
 
