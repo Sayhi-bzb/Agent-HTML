@@ -14,6 +14,7 @@ import { docsContentRoute, docsRoute } from '@/lib/shared';
 import NotFound from './routes/not-found';
 
 export const links: Route.LinksFunction = () => [
+  { rel: 'icon', href: '/ghost.svg', type: 'image/svg+xml' },
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
     rel: 'preconnect',

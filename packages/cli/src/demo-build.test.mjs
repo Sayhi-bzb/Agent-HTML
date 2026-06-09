@@ -43,7 +43,10 @@ describe("demo-build", () => {
 
     expect(result.artifactCount).toBeGreaterThan(0)
     const html = await fs.readFile(path.join(outDir, "index.html"), "utf8")
-    expect(html).toContain("Agent-HTML Example")
+    expect(html).toContain("<title>Agent-HTML</title>")
+    expect(html).toContain(
+      '<link rel="icon" href="./__agent-html/public/ghost.svg" type="image/svg+xml" />'
+    )
     expect(html).toContain('src="./assets/')
 
     const manifest = JSON.parse(

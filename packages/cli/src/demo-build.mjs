@@ -201,7 +201,8 @@ function createIndexHtml() {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Agent-HTML Example</title>
+    <title>Agent-HTML</title>
+    <link rel="icon" href="./__agent-html/public/ghost.svg" type="image/svg+xml" />
   </head>
   <body>
     <div id="root"></div>
