@@ -41,6 +41,8 @@ export type ArtifactRuntimeSnapshot = {
 
 type ArtifactRuntimeListener = (snapshot: ArtifactRuntimeSnapshot) => void
 
+const maxAutomaticRecoveries = 3
+
 type ArtifactRuntimeOptions = {
   fetchBundle?: (url: string) => Promise<Response>
   importModule?: (url: string) => Promise<ArtifactModule>
@@ -152,15 +154,18 @@ async function disposeArtifact(dispose: (() => void) | null) {
 
 export class ArtifactRuntimeController {
   #activeFilePath: string | null = null
+  #activeVersion = 0
   #currentRequestId = 0
   #dispose: (() => void) | null = null
   #element: HTMLElement | null = null
+  #failureSeriesKey: string | null = null
   #fetchBundle: (url: string) => Promise<Response>
   #importModule: (url: string) => Promise<ArtifactModule>
   #listeners = new Set<ArtifactRuntimeListener>()
   #mountedElement: HTMLElement | null = null
   #mountedVersion: number | null = null
   #onMounted: () => void
+  #recoverableRetryCount = 0
   #retryTimer: number | null = null
   #snapshot = emptySnapshot
 
@@ -217,8 +222,6 @@ export class ArtifactRuntimeController {
     return this.#load(requestId, this.#activeFilePath, this.#activeVersion)
   }
 
-  #activeVersion = 0
-
   async #load(requestId: number, filePath: string | null, version: number) {
     this.#clearRetryTimer()
     this.#activeFilePath = filePath
@@ -269,7 +272,12 @@ export class ArtifactRuntimeController {
         mountedFilePath,
         status: "failed",
       })
-      this.#scheduleRecoverableRetry(runtimeError, requestId)
+      this.#scheduleRecoverableRetry({
+        error: runtimeError,
+        filePath,
+        requestId,
+        version,
+      })
       return
     }
 
@@ -286,6 +294,7 @@ export class ArtifactRuntimeController {
       this.#dispose = nextDispose
       this.#mountedElement = nextElement
       this.#mountedVersion = version
+      this.#resetRecoverableRetryState()
       this.#setSnapshot({
         error: null,
         mountedFilePath: filePath,
@@ -394,7 +403,22 @@ export class ArtifactRuntimeController {
     }
   }
 
-  #scheduleRecoverableRetry(error: ArtifactRuntimeError, requestId: number) {
+  #resetRecoverableRetryState() {
+    this.#failureSeriesKey = null
+    this.#recoverableRetryCount = 0
+  }
+
+  #scheduleRecoverableRetry({
+    error,
+    filePath,
+    requestId,
+    version,
+  }: {
+    error: ArtifactRuntimeError
+    filePath: string
+    requestId: number
+    version: number
+  }) {
     if (
       !error.recoverable ||
       error.kind !== "server-unavailable" ||
@@ -403,11 +427,24 @@ export class ArtifactRuntimeController {
       return
     }
 
+    const failureSeriesKey = `${filePath}\u0000${version}\u0000${error.kind}`
+    if (this.#failureSeriesKey !== failureSeriesKey) {
+      this.#failureSeriesKey = failureSeriesKey
+      this.#recoverableRetryCount = 0
+    }
+
+    if (this.#recoverableRetryCount >= maxAutomaticRecoveries) {
+      return
+    }
+
+    this.#recoverableRetryCount += 1
+    const delay = 500 * this.#recoverableRetryCount
+
     this.#retryTimer = globalThis.setTimeout(() => {
       if (requestId === this.#currentRequestId) {
         void this.retry()
       }
-    }, 750) as unknown as number
+    }, delay) as unknown as number
   }
 
   #createMountElement() {

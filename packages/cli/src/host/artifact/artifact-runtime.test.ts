@@ -64,9 +64,15 @@ describe("ArtifactRuntimeController", () => {
     const controller = new ArtifactRuntimeController({ importModule })
     controller.setElement(createElement())
 
-    const firstLoad = controller.load("agent-html/artifacts/first.artifact.tsx")
+    const firstLoad = controller.load(
+      "agent-html/artifacts/first.artifact.tsx",
+      1
+    )
     await Promise.resolve()
-    const secondLoad = controller.load("agent-html/artifacts/second.artifact.tsx")
+    const secondLoad = controller.load(
+      "agent-html/artifacts/second.artifact.tsx",
+      1
+    )
     first.resolve(moduleWithDispose())
     await Promise.all([firstLoad, secondLoad])
 
@@ -88,8 +94,8 @@ describe("ArtifactRuntimeController", () => {
     })
     controller.setElement(createElement())
 
-    await controller.load("agent-html/artifacts/demo.artifact.tsx")
-    await controller.load("agent-html/artifacts/demo.artifact.tsx")
+    await controller.load("agent-html/artifacts/demo.artifact.tsx", 1)
+    await controller.load("agent-html/artifacts/demo.artifact.tsx", 1)
 
     expect(importModule).toHaveBeenCalledOnce()
     expect(module.mount).toHaveBeenCalledOnce()
@@ -117,8 +123,8 @@ describe("ArtifactRuntimeController", () => {
     const controller = new ArtifactRuntimeController({ importModule })
     controller.setElement(createElement())
 
-    await controller.load("agent-html/artifacts/first.artifact.tsx")
-    await controller.load("agent-html/artifacts/second.artifact.tsx")
+    await controller.load("agent-html/artifacts/first.artifact.tsx", 1)
+    await controller.load("agent-html/artifacts/second.artifact.tsx", 1)
 
     expect(events).toEqual(["mount:first", "mount:second", "dispose:first"])
     expect(controller.getSnapshot()).toMatchObject({
@@ -140,8 +146,8 @@ describe("ArtifactRuntimeController", () => {
     })
     controller.setElement(createElement())
 
-    await controller.load("agent-html/artifacts/first.artifact.tsx")
-    await controller.load("agent-html/artifacts/second.artifact.tsx")
+    await controller.load("agent-html/artifacts/first.artifact.tsx", 1)
+    await controller.load("agent-html/artifacts/second.artifact.tsx", 1)
 
     expect(firstDispose).not.toHaveBeenCalled()
     expect(controller.getSnapshot()).toMatchObject({
@@ -165,7 +171,7 @@ describe("ArtifactRuntimeController", () => {
     })
     controller.setElement(createElement())
 
-    await controller.load("agent-html/artifacts/demo.artifact.tsx")
+    await controller.load("agent-html/artifacts/demo.artifact.tsx", 1)
 
     const error = controller.getSnapshot().error
     expect(controller.getSnapshot().status).toBe("failed")
@@ -190,7 +196,7 @@ describe("ArtifactRuntimeController", () => {
     })
     controller.setElement(createElement())
 
-    await controller.load("agent-html/artifacts/demo.artifact.tsx")
+    await controller.load("agent-html/artifacts/demo.artifact.tsx", 1)
 
     expect(controller.getSnapshot().error).toMatchObject({
       kind: "server-unavailable",
@@ -213,7 +219,7 @@ describe("ArtifactRuntimeController", () => {
     })
     controller.setElement(createElement())
 
-    await controller.load("agent-html/artifacts/demo.artifact.tsx")
+    await controller.load("agent-html/artifacts/demo.artifact.tsx", 1)
     await controller.retry()
 
     expect(importModule).toHaveBeenCalledTimes(2)
@@ -275,6 +281,29 @@ describe("ArtifactRuntimeController", () => {
     await vi.advanceTimersByTimeAsync(1000)
 
     expect(importModule).toHaveBeenCalledOnce()
+    vi.useRealTimers()
+  })
+
+  it("stops automatic recovery after repeated server outages", async () => {
+    vi.useFakeTimers()
+    const importModule = vi.fn(async () => {
+      throw new Error("Failed to fetch dynamically imported module")
+    })
+    const controller = new ArtifactRuntimeController({
+      fetchBundle: vi.fn(async () => {
+        throw new Error("connect ECONNREFUSED")
+      }),
+      importModule,
+    })
+    controller.setElement(createElement())
+
+    await controller.load("agent-html/artifacts/demo.artifact.tsx", 1)
+    await vi.advanceTimersByTimeAsync(500)
+    await vi.advanceTimersByTimeAsync(1000)
+    await vi.advanceTimersByTimeAsync(1500)
+    await vi.advanceTimersByTimeAsync(2000)
+
+    expect(importModule).toHaveBeenCalledTimes(4)
     vi.useRealTimers()
   })
 })

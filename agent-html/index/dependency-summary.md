@@ -7,9 +7,9 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 102 |
-| Dependencies | 387 |
-| Local edges | 229 |
+| Modules | 118 |
+| Dependencies | 406 |
+| Local edges | 248 |
 | External edges | 157 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
@@ -23,10 +23,10 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/components/ui/badge.tsx` | 24 |
 | `agent-html/components/ui/button.tsx` | 22 |
 | `agent-html/components/ui/separator.tsx` | 17 |
-| `agent-html/artifacts/artemis-ii-media-story-builder/data.ts` | 7 |
+| `agent-html/artifacts/artemis-ii-media-story-builder/data.ts` | 8 |
 | `agent-html/artifacts/dashboard/data.ts` | 6 |
+| `agent-html/artifacts/nasa-media-workbench/data.ts` | 6 |
 | `agent-html/components/ui/alert.tsx` | 6 |
-| `agent-html/artifacts/nasa-media-workbench/data.ts` | 5 |
 | `agent-html/artifacts/patch-handoff-workbench/data.ts` | 5 |
 | `agent-html/artifacts/patch-handoff-workbench/shared.tsx` | 5 |
 | `agent-html/components/code-block.tsx` | 5 |
@@ -36,18 +36,18 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Module | Outbound Local Edges |
 | --- | --- |
+| `agent-html/theme/presets.ts` | 13 |
 | `agent-html/artifacts/patch-handoff-workbench/issue-triage.block.tsx` | 9 |
+| `agent-html/artifacts/artemis-ii-media-story-builder/media-discovery.block.tsx` | 8 |
 | `agent-html/artifacts/dashboard.artifact.tsx` | 8 |
+| `agent-html/artifacts/nasa-media-workbench/media-search.block.tsx` | 8 |
 | `agent-html/components/ui/sidebar.tsx` | 8 |
 | `agent-html/artifacts/artemis-ii-media-story-builder.artifact.tsx` | 7 |
-| `agent-html/artifacts/artemis-ii-media-story-builder/media-discovery.block.tsx` | 7 |
 | `agent-html/artifacts/artemis-ii-media-story-builder/story-builder.block.tsx` | 7 |
 | `agent-html/artifacts/dashboard/controls.block.tsx` | 7 |
-| `agent-html/artifacts/nasa-media-workbench/media-search.block.tsx` | 7 |
+| `agent-html/artifacts/artemis-ii-media-story-builder/asset-preview.block.tsx` | 6 |
+| `agent-html/artifacts/nasa-media-workbench/media-preview.block.tsx` | 6 |
 | `agent-html/components/data-table.tsx` | 6 |
-| `agent-html/examples/example/handoff.block.tsx` | 6 |
-| `agent-html/artifacts/artemis-ii-media-story-builder/asset-preview.block.tsx` | 5 |
-| `agent-html/artifacts/nasa-media-workbench.artifact.tsx` | 5 |
 
 ## Top External Dependencies
 

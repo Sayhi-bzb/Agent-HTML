@@ -6,15 +6,15 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 
 | File | Est. Tokens | Read First |
 | --- | --- | --- |
-| `agent-html/components/kanban.tsx` | 7621 | `components/README.md` |
+| `agent-html/components/kanban.tsx` | 7892 | `components/README.md` |
 | `agent-html/data/public.usage_dashboard_hourly.csv` | 6420 | `data/README.md` |
 | `agent-html/components/ui/sidebar.tsx` | 5514 | `components/README.md` |
-| `agent-html/components/data-table.tsx` | 2861 | `components/README.md` |
+| `agent-html/components/data-table.tsx` | 2964 | `components/README.md` |
 | `agent-html/components/ui/chart.tsx` | 2714 | `components/README.md` |
-| `agent-html/components/ui/combobox.tsx` | 2264 | `components/README.md` |
-| `agent-html/artifacts/dashboard/data.ts` | 2230 | `artifacts/README.md` |
-| `agent-html/components/ui/dropdown-menu.tsx` | 2204 | `components/README.md` |
-| `agent-html/components/ui/menubar.tsx` | 2107 | `components/README.md` |
-| `agent-html/components/ui/context-menu.tsx` | 2075 | `components/README.md` |
-| `agent-html/components/ui/calendar.tsx` | 2047 | `components/README.md` |
-| `agent-html/artifacts/artemis-ii-media-story-builder/media-discovery.block.tsx` | 2033 | `artifacts/README.md` |
+| `agent-html/components/ui/combobox.tsx` | 2338 | `components/README.md` |
+| `agent-html/styles/internal/host/sidebar.css` | 2334 | nearest README or source-specific notes |
+| `agent-html/artifacts/dashboard/data.ts` | 2316 | `artifacts/README.md` |
+| `agent-html/components/ui/dropdown-menu.tsx` | 2271 | `components/README.md` |
+| `agent-html/components/ui/menubar.tsx` | 2176 | `components/README.md` |
+| `agent-html/components/ui/context-menu.tsx` | 2141 | `components/README.md` |
+| `agent-html/components/ui/calendar.tsx` | 2102 | `components/README.md` |
