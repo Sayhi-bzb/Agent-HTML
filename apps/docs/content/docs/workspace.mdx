@@ -89,6 +89,11 @@ existing `ui`, `hooks`, `lib`, `schema`, `data`, and `assets` resources before
 introducing a third-party dependency. New dependencies need an explicit owner:
 source-only workspace metadata when local Canvas source imports them, or
 CLI/host package dependencies when the runtime host must provide them.
+When a local Canvas source dependency is used at runtime, both owners are
+needed: `agent-html/package.json` records the source metadata and the CLI
+package provides the installed runtime dependency. The dev host resolves package
+imports with Vite import entries and exact package aliases; it must not rely on
+`agent-html/node_modules`.
 
 The directory gives agents an explicit workspace instead of relying on a single
 prompt. Human-readable guidance and agent-consumable assets stay beside the

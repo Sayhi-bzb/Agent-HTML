@@ -13,6 +13,7 @@ import { parsePipelineArg } from "./dev-server/server.mjs"
 import {
   createHostEntryModule,
   createPlaygroundDependencyAliases,
+  createPlaygroundOptimizeDepsInclude,
   createReactModuleResolutionAliases,
   createViteFsAllowList,
   resolvePackageImportModule,
@@ -209,6 +210,56 @@ describe("React Canvas dev host", () => {
     expect(
       resolvePackageImportModule("tailwind-merge").replaceAll("\\", "/")
     ).toContain("/node_modules/tailwind-merge/dist/bundle-mjs.mjs")
+  })
+
+  it("keeps playground optimize deps explicit and resolvable", () => {
+    const optimizeDeps = createPlaygroundOptimizeDepsInclude()
+
+    expect(optimizeDeps).toEqual([
+      "react",
+      "react/jsx-dev-runtime",
+      "react-dom/client",
+      "class-variance-authority",
+      "clsx",
+      "lucide-react",
+      "shiki/bundle/web",
+      "tailwind-merge",
+    ])
+    expect(
+      optimizeDeps.map((specifier) => [
+        specifier,
+        resolvePackageImportModule(specifier).replaceAll("\\", "/"),
+      ])
+    ).toEqual([
+      ["react", expect.stringContaining("/node_modules/react/index.js")],
+      [
+        "react/jsx-dev-runtime",
+        expect.stringContaining("/node_modules/react/jsx-dev-runtime.js"),
+      ],
+      [
+        "react-dom/client",
+        expect.stringContaining("/node_modules/react-dom/client.js"),
+      ],
+      [
+        "class-variance-authority",
+        expect.stringContaining(
+          "/node_modules/class-variance-authority/dist/index.mjs"
+        ),
+      ],
+      ["clsx", expect.stringContaining("/node_modules/clsx/dist/clsx.mjs")],
+      [
+        "lucide-react",
+        expect.stringContaining("/node_modules/lucide-react/dist/cjs/lucide-react.js"),
+      ],
+      [
+        "shiki/bundle/web",
+        expect.stringContaining("/node_modules/shiki/dist/bundle-web.mjs"),
+      ],
+      [
+        "tailwind-merge",
+        expect.stringContaining("/node_modules/tailwind-merge/dist/bundle-mjs.mjs"),
+      ],
+    ])
   })
 
   it("scans and renders the example artifact", async () => {

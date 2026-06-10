@@ -158,6 +158,19 @@ map, and carousel blocks. Those exceptions are not a new styling surface; new
 artifact code should prefer Canvas semantic classes and shrink that list when
 equivalent semantic classes exist.
 
+## Dependency Resolution
+
+`agent-html/package.json` records source dependency metadata for local Canvas
+resources. It is not an installation target. The dev host resolves those
+workspace imports through CLI-owned dependencies, exact package aliases, and
+Vite import-entry resolution. React and React DOM stay pinned through dedicated
+aliases so the host and artifacts share one renderer instance.
+
+The dependency contract is executable: `boundaries.test.mjs` checks source-only
+workspace files, source metadata, CLI runtime ownership, and forbidden vendored
+installs. `dev-host.test.mjs` checks Vite dependency aliases, ESM import entries,
+and fresh-project startup.
+
 ## Guard Scopes
 
 Canvas guard reports one issue list with explicit scopes:

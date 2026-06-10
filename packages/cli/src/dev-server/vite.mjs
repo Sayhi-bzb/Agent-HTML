@@ -118,6 +118,16 @@ function cacheDirForRoot(root) {
 }
 
 const optimizedDependencyCachePattern = /[\\/]agent-html-vite[\\/].*[\\/]deps[\\/]/
+export const playgroundOptimizeDeps = [
+  "react",
+  "react/jsx-dev-runtime",
+  "react-dom/client",
+  "class-variance-authority",
+  "clsx",
+  "lucide-react",
+  "shiki/bundle/web",
+  "tailwind-merge",
+]
 
 function dependencyAllowRoots({ reactProtocolEntry, root }) {
   return [
@@ -189,6 +199,10 @@ export function createPlaygroundDependencyAliases(root) {
   })
 }
 
+export function createPlaygroundOptimizeDepsInclude() {
+  return [...playgroundOptimizeDeps]
+}
+
 function createAgentHtmlVitePlugin({ pipeline, root }) {
   return {
     name: "agent-html-dev-host",
@@ -235,16 +249,7 @@ export async function createAgentHtmlViteServer({ pipeline = "codex", root, serv
     configFile: false,
     logLevel: "error",
     optimizeDeps: {
-      include: [
-        "react",
-        "react/jsx-dev-runtime",
-        "react-dom/client",
-        "class-variance-authority",
-        "clsx",
-        "lucide-react",
-        "shiki/bundle/web",
-        "tailwind-merge",
-      ],
+      include: createPlaygroundOptimizeDepsInclude(),
     },
     publicDir: false,
     root,

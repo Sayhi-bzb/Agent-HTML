@@ -109,8 +109,7 @@ function runtimePackageName(specifier) {
     specifier.startsWith("/") ||
     specifier.startsWith("@/") ||
     specifier.startsWith("#agent-html-playground/") ||
-    specifier.startsWith("@agent-html-playground/") ||
-    specifier === "@agent-html/react"
+    specifier.startsWith("@agent-html-playground/")
   ) {
     return null
   }
@@ -333,7 +332,9 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(playgroundPackage).not.toHaveProperty("scripts")
     expect(playgroundPackage).not.toHaveProperty("devDependencies")
     expect(playgroundPackage.dependencies).toMatchObject({
+      "@agent-html/react": expect.any(String),
       "@base-ui/react": expect.any(String),
+      "@fontsource-variable/geist": expect.any(String),
       "@dnd-kit/core": expect.any(String),
       "@tanstack/react-table": expect.any(String),
       "class-variance-authority": expect.any(String),
@@ -343,11 +344,20 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "maplibre-gl": expect.any(String),
       "media-chrome": expect.any(String),
       "radix-ui": expect.any(String),
+      react: expect.any(String),
+      "react-dom": expect.any(String),
       recharts: expect.any(String),
       shiki: expect.any(String),
       "tailwind-merge": expect.any(String),
+      tailwindcss: expect.any(String),
+      "tw-animate-css": expect.any(String),
       zod: expect.any(String),
     })
+    expect(
+      workspaceRuntimeImports().filter(
+        ({ packageName }) => !playgroundPackage.dependencies[packageName]
+      )
+    ).toEqual([])
     expect(existsSync(join(root, "agent-html", "package-lock.json"))).toBe(
       false
     )
