@@ -1,21 +1,9 @@
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-} from "recharts"
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "../../components/ui/chart"
 
 import { taxiData } from "./data"
+import { RoughBarHChart } from "./rough-viz-charts"
 import {
   SectionIntro,
   SketchNote,
@@ -24,17 +12,14 @@ import {
   formatPercent,
 } from "./sketch-components"
 
-const chartConfig = {
-  trips: {
-    color: "var(--chart-1)",
-    label: "trips",
-  },
-} satisfies ChartConfig
-
 const zoneRows = taxiData.pickupZones.slice(0, 10).map((zone) => ({
   ...zone,
   shortZone: zone.zone.replace("Midtown ", "M. "),
 }))
+const zoneChartData = {
+  labels: zoneRows.map((zone) => zone.shortZone),
+  values: zoneRows.map((zone) => zone.trips),
+}
 
 type PickupZoneRow = {
   averageDistance: number
@@ -103,24 +88,25 @@ export function WhereRidesStartBlock() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <SketchPanel>
-          <ChartContainer
-            className="h-96 w-full"
-            config={chartConfig}
-            initialDimension={{ height: 380, width: 640 }}
-          >
-            <BarChart accessibilityLayer data={zoneRows} layout="vertical">
-              <CartesianGrid horizontal={false} />
-              <XAxis dataKey="trips" tickFormatter={formatCompact} type="number" />
-              <YAxis
-                dataKey="shortZone"
-                tickLine={false}
-                type="category"
-                width={132}
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="trips" fill="var(--color-trips)" radius={2} />
-            </BarChart>
-          </ChartContainer>
+          <RoughBarHChart
+            axisFontSize=".78rem"
+            axisRoughness={1}
+            axisStrokeWidth={1}
+            color="var(--chart-1)"
+            data={zoneChartData}
+            fillStyle="hachure"
+            fillWeight={1}
+            heightClassName="min-h-[420px] [&_svg]:min-h-[420px]"
+            innerStrokeWidth={1}
+            margin={{ top: 44, right: 28, bottom: 52, left: 150 }}
+            roughness={2}
+            stroke="black"
+            strokeWidth={1}
+            title="Top pickup zones"
+            titleFontSize="17px"
+            tooltipFontSize=".8rem"
+            xValueFormat=".2s"
+          />
         </SketchPanel>
 
         <div className="canvas-stack-md">

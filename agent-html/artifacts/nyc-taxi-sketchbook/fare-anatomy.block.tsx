@@ -1,26 +1,11 @@
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
-
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "../../components/ui/chart"
-
 import { taxiData } from "./data"
+import { RoughBarChart } from "./rough-viz-charts"
 import {
   SectionIntro,
   SketchNote,
   SketchPanel,
   formatCurrency,
 } from "./sketch-components"
-
-const chartConfig = {
-  value: {
-    color: "var(--chart-2)",
-    label: "average amount",
-  },
-} satisfies ChartConfig
 
 const labels: Record<string, string> = {
   "airport fee": "airport",
@@ -37,6 +22,10 @@ const components = taxiData.fareComponents.map((item) => ({
   ...item,
   label: labels[item.key] ?? item.key,
 }))
+const componentChartData = {
+  labels: components.map((item) => item.label),
+  values: components.map((item) => item.value),
+}
 
 export function FareAnatomyBlock() {
   return (
@@ -48,19 +37,25 @@ export function FareAnatomyBlock() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         <SketchPanel className="lg:col-span-2">
-          <ChartContainer
-            className="h-80 w-full"
-            config={chartConfig}
-            initialDimension={{ height: 320, width: 720 }}
-          >
-            <BarChart accessibilityLayer data={components}>
-              <CartesianGrid vertical={false} />
-              <XAxis dataKey="label" tickLine={false} />
-              <YAxis tickFormatter={(value) => `$${value}`} tickLine={false} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="value" fill="var(--color-value)" radius={2} />
-            </BarChart>
-          </ChartContainer>
+          <RoughBarChart
+            axisFontSize=".78rem"
+            axisRoughness={1}
+            axisStrokeWidth={1}
+            color="var(--chart-2)"
+            data={componentChartData}
+            fillStyle="cross-hatch"
+            fillWeight={1}
+            heightClassName="min-h-[340px] [&_svg]:min-h-[340px]"
+            innerStrokeWidth={1}
+            margin={{ top: 44, right: 24, bottom: 76, left: 64 }}
+            roughness={2}
+            stroke="black"
+            strokeWidth={1}
+            title="Average fare components"
+            titleFontSize="17px"
+            tooltipFontSize=".8rem"
+            yValueFormat="$.2f"
+          />
         </SketchPanel>
 
         <div className="canvas-stack-md">
