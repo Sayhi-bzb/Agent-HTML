@@ -18,6 +18,11 @@ import {
 import { loadHostStyles } from "./dev-server/styles.mjs"
 import { createViteFsAllowList } from "./dev-server/vite.mjs"
 
+const defaultSiteDescription =
+  "A canvas with AI for building, previewing, and refining React artifacts."
+const defaultSiteThumbnailUrl = "/__agent-html/public/assets/blocks.png"
+const defaultSiteTitle = "Agent-HTML"
+
 function parseOutDirArg({ args, cwd }) {
   const outDirIndex = args.indexOf("--out-dir")
   const outDir = outDirIndex === -1 ? "dist-agent-html" : args[outDirIndex + 1]
@@ -64,14 +69,21 @@ function jsString(value) {
 }
 
 function createStaticApiModule({ artifacts }) {
+  const artifactManifest = artifacts.map(
+    ({ blockImplementations: _unused, ...artifact }) => ({
+      ...artifact,
+      thumbnailUrl: defaultSiteThumbnailUrl,
+    })
+  )
   const manifest = {
-    artifacts: artifacts.map(({ blockImplementations: _unused, ...artifact }) =>
-      artifact
-    ),
+    artifacts: artifactManifest,
     contentSource: "artifacts",
+    description: defaultSiteDescription,
     guardIssues: [],
     pipeline: "example",
     status: "ready",
+    thumbnailUrl: defaultSiteThumbnailUrl,
+    title: defaultSiteTitle,
     version: 1,
   }
   const implementationEntries = artifacts.flatMap((artifact) =>
@@ -112,7 +124,7 @@ function createStaticApiModule({ artifacts }) {
     "      const key = `${url.searchParams.get('filePath') ?? ''}::${url.searchParams.get('blockId') ?? ''}`;",
     "      return jsonResponse({ implementationPath: blockImplementations.get(key) ?? null });",
     "    }",
-    "    if (url.pathname === '/__agent-html/artifact/rename' || url.pathname === '/__agent-html/artifact/delete') {",
+    "    if (url.pathname === '/__agent-html/artifact/create' || url.pathname === '/__agent-html/artifact/rename' || url.pathname === '/__agent-html/artifact/delete') {",
     "      return errorResponse('The example demo is read-only.', 405);",
     "    }",
     "    if (url.pathname === '/__agent-html/codex/turn') {",
@@ -318,11 +330,15 @@ export async function buildDemoHost({ args, cwd }) {
   await fs.writeFile(
     path.join(outDir, "artifacts.json"),
     `${JSON.stringify({
-      artifacts: artifacts.map(({ blockImplementations: _unused, ...artifact }) =>
-        artifact
-      ),
+      artifacts: artifacts.map(({ blockImplementations: _unused, ...artifact }) => ({
+        ...artifact,
+        thumbnailUrl: defaultSiteThumbnailUrl,
+      })),
       contentSource: "artifacts",
+      description: defaultSiteDescription,
       pipeline: "example",
+      thumbnailUrl: defaultSiteThumbnailUrl,
+      title: defaultSiteTitle,
     }, null, 2)}\n`
   )
   await copyPublicAssets({ outDir, root })

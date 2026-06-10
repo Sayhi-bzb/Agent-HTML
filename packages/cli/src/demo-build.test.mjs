@@ -54,12 +54,23 @@ describe("demo-build", () => {
     )
     expect(manifest).toMatchObject({
       contentSource: "artifacts",
+      description:
+        "A canvas with AI for building, previewing, and refining React artifacts.",
       pipeline: "example",
+      thumbnailUrl: "/__agent-html/public/assets/blocks.png",
+      title: "Agent-HTML",
     })
-    expect(manifest.artifacts).toContainEqual(
-      expect.objectContaining({
-        filePath: "agent-html/artifacts/project-visual-explainer.artifact.tsx",
-      })
+    expect(manifest.artifacts.length).toBe(result.artifactCount)
+    expect(manifest.artifacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          blocks: expect.any(Array),
+          filePath: expect.stringMatching(
+            /^agent-html\/artifacts\/.+\.artifact\.tsx$/
+          ),
+          thumbnailUrl: "/__agent-html/public/assets/blocks.png",
+        }),
+      ])
     )
     const assets = await fs.readdir(path.join(outDir, "assets"))
     const css = (
@@ -80,7 +91,7 @@ describe("demo-build", () => {
       builtJavascriptIncludes(outDir, "The example demo is read-only.")
     ).resolves.toBe(true)
     await expect(
-      builtJavascriptIncludes(outDir, "/__agent-html/public/ghost.svg")
+      builtJavascriptIncludes(outDir, "/__agent-html/artifact/create")
     ).resolves.toBe(true)
     await expect(
       fs.readFile(
@@ -88,6 +99,11 @@ describe("demo-build", () => {
         "utf8"
       )
     ).resolves.toContain("<svg")
+    await expect(
+      fs.stat(path.join(outDir, "__agent-html", "public", "assets", "blocks.png"))
+    ).resolves.toMatchObject({
+      size: expect.any(Number),
+    })
     expect(css).toContain(".canvas-host-shell")
   }, 120000)
 })
