@@ -11,6 +11,53 @@ import {
 
 import { lifeContextFields } from "./data"
 
+const lifeContextIconByLabel: Record<string, { label: string; src: string }> = {
+  家庭病史: {
+    label: "病史记录图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/medical-records.svg",
+  },
+  近期感染: {
+    label: "发热感染图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/fever.svg",
+  },
+  睡眠与压力: {
+    label: "心理压力图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/psychology.svg",
+  },
+  用药与补充剂: {
+    label: "用药图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/medicine-bottle.svg",
+  },
+  运动: {
+    label: "运动图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/gym.svg",
+  },
+  饮食与饮酒: {
+    label: "饮食图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/i-utensils.svg",
+  },
+}
+
+function LifeContextIcon({ fieldLabel }: { fieldLabel: string }) {
+  const icon = lifeContextIconByLabel[fieldLabel]
+
+  if (!icon) {
+    return null
+  }
+
+  return (
+    <span
+      aria-label={icon.label}
+      className="size-6 shrink-0 bg-current text-muted-foreground [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]"
+      role="img"
+      style={{
+        WebkitMaskImage: `url(${icon.src})`,
+        maskImage: `url(${icon.src})`,
+      }}
+    />
+  )
+}
+
 export function LifeContextBlock() {
   return (
     <section className="canvas-stack-lg">
@@ -36,7 +83,12 @@ export function LifeContextBlock() {
           <TableBody>
             {lifeContextFields.map((field) => (
               <TableRow key={field.label}>
-                <TableCell className="font-medium">{field.label}</TableCell>
+                <TableCell className="font-medium">
+                  <span className="canvas-wrap-sm items-center">
+                    <LifeContextIcon fieldLabel={field.label} />
+                    {field.label}
+                  </span>
+                </TableCell>
                 <TableCell>{field.prompt}</TableCell>
                 <TableCell>{field.record}</TableCell>
               </TableRow>
