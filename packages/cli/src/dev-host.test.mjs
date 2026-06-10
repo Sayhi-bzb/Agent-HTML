@@ -212,6 +212,24 @@ describe("React Canvas dev host", () => {
     ).toContain("/node_modules/tailwind-merge/dist/bundle-mjs.mjs")
   })
 
+  it("provides runtime exports used by playground source imports", async () => {
+    const runtimeExportChecks = [
+      ["class-variance-authority", ["cva"]],
+      ["clsx", ["clsx"]],
+      ["tailwind-merge", ["twMerge"]],
+    ]
+
+    for (const [specifier, exportNames] of runtimeExportChecks) {
+      const module = await import(resolvePackageImportModule(specifier))
+
+      for (const exportName of exportNames) {
+        expect(module, `${specifier} should export ${exportName}`).toHaveProperty(
+          exportName
+        )
+      }
+    }
+  })
+
   it("keeps playground optimize deps explicit and resolvable", () => {
     const optimizeDeps = createPlaygroundOptimizeDepsInclude()
 

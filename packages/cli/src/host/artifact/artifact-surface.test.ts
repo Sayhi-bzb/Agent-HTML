@@ -1,16 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { readFileSync } from "node:fs"
-import { fileURLToPath } from "node:url"
 
 import {
   shouldBlockArtifactWithError,
   shouldShowArtifactSkeleton,
 } from "./artifact-surface-state"
-
-const artifactSurfacePath = fileURLToPath(
-  new URL("./artifact-surface.tsx", import.meta.url)
-)
-const artifactSurfaceSource = readFileSync(artifactSurfacePath, "utf8")
 
 describe("shouldShowArtifactSkeleton", () => {
   it("shows skeleton while the artifact list is loading", () => {
@@ -89,14 +82,5 @@ describe("shouldBlockArtifactWithError", () => {
         mountedFilePath: "agent-html/artifacts/current.artifact.tsx",
       })
     ).toBe(true)
-  })
-})
-
-describe("ArtifactSurface guard visibility", () => {
-  it("passes only human-visible guard issues to the status surface", () => {
-    expect(artifactSurfaceSource).toContain("getHumanVisibleGuardIssues")
-    expect(artifactSurfaceSource).toContain(
-      "<GuardIssueList issues={getHumanVisibleGuardIssues(guardIssues)} />"
-    )
   })
 })

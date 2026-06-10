@@ -31,6 +31,17 @@ export const hostRoutes = {
   hostStyles: "/__agent-html/styles.css",
 }
 
+export const devServerRoutePipelines = [
+  "host-shell",
+  "runtime-module",
+  "styles-and-assets",
+  "public-asset",
+  "artifact-registry-and-guard-report",
+  "artifact-source-mutation",
+  "block-lookup",
+  "codex-bridge",
+]
+
 const removedLegacyRoutes = new Set(["/client.js", "/styles.css"])
 
 const publicContentTypes = new Map([
@@ -347,9 +358,59 @@ async function sendFontAsset({ requestUrl, response }) {
   }
 }
 
-export async function handleRequest({ artifactRegistry, request, response, root, vite }) {
-  const requestUrl = new URL(request.url ?? "/", "http://localhost")
+export function classifyDevServerRoute(pathname) {
+  if (pathname === "/" || pathname === "/favicon.ico") {
+    return "host-shell"
+  }
 
+  if (
+    pathname === hostRoutes.hostEntry ||
+    pathname === artifactEntryModulePath ||
+    removedLegacyRoutes.has(pathname) ||
+    pathname === hostRoutes.artifactBundle
+  ) {
+    return "runtime-module"
+  }
+
+  if (
+    pathname === hostRoutes.hostStyles ||
+    pathname === hostRoutes.fontStylesheet ||
+    pathname === hostRoutes.fontAsset
+  ) {
+    return "styles-and-assets"
+  }
+
+  if (pathname.startsWith(hostRoutes.publicAsset)) {
+    return "public-asset"
+  }
+
+  if (pathname === hostRoutes.artifacts) {
+    return "artifact-registry-and-guard-report"
+  }
+
+  if (
+    pathname === hostRoutes.artifactRename ||
+    pathname === hostRoutes.artifactDelete
+  ) {
+    return "artifact-source-mutation"
+  }
+
+  if (pathname === hostRoutes.blockImplementation) {
+    return "block-lookup"
+  }
+
+  if (
+    pathname === hostRoutes.codexThreads ||
+    pathname === hostRoutes.codexTranscript ||
+    pathname === hostRoutes.codexTurn
+  ) {
+    return "codex-bridge"
+  }
+
+  return null
+}
+
+async function handleHostShellRoute({ request, requestUrl, response, vite }) {
   if (requestUrl.pathname === "/") {
     const html = await fs.readFile(path.join(hostRoot, "index.html"), "utf8")
     sendText(
@@ -366,6 +427,10 @@ export async function handleRequest({ artifactRegistry, request, response, root,
     return true
   }
 
+  return false
+}
+
+async function handleRuntimeModuleRoute({ requestUrl, response, root, vite }) {
   if (requestUrl.pathname === hostRoutes.hostEntry) {
     await sendTransformedModule({
       response,
@@ -382,48 +447,6 @@ export async function handleRequest({ artifactRegistry, request, response, root,
 
   if (removedLegacyRoutes.has(requestUrl.pathname)) {
     sendNotFound(response)
-    return true
-  }
-
-  if (requestUrl.pathname === hostRoutes.hostStyles) {
-    sendText(response, await loadHostStyles(root), "text/css; charset=utf-8")
-    return true
-  }
-
-  if (requestUrl.pathname === hostRoutes.fontStylesheet) {
-    await sendFontStylesheet({ requestUrl, response })
-    return true
-  }
-
-  if (requestUrl.pathname === hostRoutes.fontAsset) {
-    await sendFontAsset({ requestUrl, response })
-    return true
-  }
-
-  if (requestUrl.pathname.startsWith(hostRoutes.publicAsset)) {
-    let filePath
-
-    try {
-      filePath = resolvePublicAssetPath({
-        root,
-        requestPathname: requestUrl.pathname,
-      })
-    } catch (error) {
-      sendError(response, error, 400)
-      return true
-    }
-
-    try {
-      const content = await fs.readFile(filePath)
-      sendText(response, content, contentTypeForPublicAsset(filePath))
-    } catch {
-      sendNotFound(response)
-    }
-    return true
-  }
-
-  if (requestUrl.pathname === hostRoutes.artifacts) {
-    sendJson(response, artifactRegistry.getSnapshot())
     return true
   }
 
@@ -449,6 +472,70 @@ export async function handleRequest({ artifactRegistry, request, response, root,
     return true
   }
 
+  return false
+}
+
+async function handleStylesAndAssetsRoute({ requestUrl, response, root }) {
+  if (requestUrl.pathname === hostRoutes.hostStyles) {
+    sendText(response, await loadHostStyles(root), "text/css; charset=utf-8")
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.fontStylesheet) {
+    await sendFontStylesheet({ requestUrl, response })
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.fontAsset) {
+    await sendFontAsset({ requestUrl, response })
+    return true
+  }
+
+  return false
+}
+
+async function handlePublicAssetRoute({ requestUrl, response, root }) {
+  if (requestUrl.pathname.startsWith(hostRoutes.publicAsset)) {
+    let filePath
+
+    try {
+      filePath = resolvePublicAssetPath({
+        root,
+        requestPathname: requestUrl.pathname,
+      })
+    } catch (error) {
+      sendError(response, error, 400)
+      return true
+    }
+
+    try {
+      const content = await fs.readFile(filePath)
+      sendText(response, content, contentTypeForPublicAsset(filePath))
+    } catch {
+      sendNotFound(response)
+    }
+    return true
+  }
+
+  return false
+}
+
+async function handleArtifactRegistryRoute({ artifactRegistry, requestUrl, response }) {
+  if (requestUrl.pathname === hostRoutes.artifacts) {
+    sendJson(response, artifactRegistry.getSnapshot())
+    return true
+  }
+
+  return false
+}
+
+async function handleArtifactSourceMutationRoute({
+  artifactRegistry,
+  request,
+  requestUrl,
+  response,
+  root,
+}) {
   if (requestUrl.pathname === hostRoutes.artifactRename) {
     if (request.method !== "POST") {
       sendError(response, "POST is required", 405)
@@ -520,6 +607,10 @@ export async function handleRequest({ artifactRegistry, request, response, root,
     return true
   }
 
+  return false
+}
+
+async function handleBlockLookupRoute({ requestUrl, response, root }) {
   if (requestUrl.pathname === hostRoutes.blockImplementation) {
     const filePath = requestUrl.searchParams.get("filePath")
     const blockId = requestUrl.searchParams.get("blockId")
@@ -548,6 +639,10 @@ export async function handleRequest({ artifactRegistry, request, response, root,
     return true
   }
 
+  return false
+}
+
+async function handleCodexBridgeRoute({ request, requestUrl, response, root }) {
   if (requestUrl.pathname === hostRoutes.codexThreads) {
     sendJson(response, await listCodexThreads({ root }))
     return true
@@ -587,4 +682,33 @@ export async function handleRequest({ artifactRegistry, request, response, root,
   }
 
   return false
+}
+
+const routePipelineHandlers = {
+  "artifact-registry-and-guard-report": handleArtifactRegistryRoute,
+  "artifact-source-mutation": handleArtifactSourceMutationRoute,
+  "block-lookup": handleBlockLookupRoute,
+  "codex-bridge": handleCodexBridgeRoute,
+  "host-shell": handleHostShellRoute,
+  "public-asset": handlePublicAssetRoute,
+  "runtime-module": handleRuntimeModuleRoute,
+  "styles-and-assets": handleStylesAndAssetsRoute,
+}
+
+export async function handleRequest({ artifactRegistry, request, response, root, vite }) {
+  const requestUrl = new URL(request.url ?? "/", "http://localhost")
+  const pipeline = classifyDevServerRoute(requestUrl.pathname)
+
+  if (!pipeline) {
+    return false
+  }
+
+  return routePipelineHandlers[pipeline]({
+    artifactRegistry,
+    request,
+    requestUrl,
+    response,
+    root,
+    vite,
+  })
 }

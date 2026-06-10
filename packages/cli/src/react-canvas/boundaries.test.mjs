@@ -314,6 +314,30 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(artifactLayerEscapes).toEqual([])
   })
 
+  it("keeps the dev server as a runtime adapter instead of an ownership layer", () => {
+    const devServerImports = sourceImportRecords("packages/cli/src/dev-server")
+    const forbiddenImports = devServerImports.filter(
+      ({ specifier, target }) =>
+        specifier === "@agent-html/react" ||
+        target.startsWith("packages/react/src") ||
+        target.startsWith("packages/cli/src/host/") ||
+        target.startsWith("packages/cli/src/react-canvas/prompt") ||
+        target.startsWith("agent-html/artifacts/") ||
+        target.startsWith("agent-html/examples/") ||
+        target.startsWith("agent-html/components/") ||
+        target.startsWith("agent-html/theme/") ||
+        target.startsWith("apps/") ||
+        target.startsWith("_archive/")
+    )
+    const forbiddenOwnershipTerms =
+      /data-agent-html-block|useArtifactInteraction|InteractionProvider|agent-html:state-change|interactionSnapshot|CanvasInteraction|className=|canvas-content-|canvas-text-|canvas-stack-/
+
+    expect(forbiddenImports).toEqual([])
+    expect(
+      filesMatching("packages/cli/src/dev-server", forbiddenOwnershipTerms)
+    ).toEqual([])
+  })
+
   it("keeps apps from depending on the React Canvas CLI", () => {
     const forbidden =
       /from\s+["'](?:@agent-html\/cli|packages\/cli\/)|node\s+packages\/cli|agent-html\.mjs/
@@ -651,6 +675,9 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     const rootPackage = JSON.parse(readSource("package.json"))
     const cliPackage = JSON.parse(readSource("packages/cli/package.json"))
     const reactPackage = JSON.parse(readSource("packages/react/package.json"))
+    const playgroundPackage = JSON.parse(
+      readSource("agent-html/package.json")
+    )
     const archivedAppPackage = JSON.parse(
       readSource("_archive/apps/agent-html-app/package.json")
     )
@@ -678,6 +705,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       "cmdk",
       "embla-carousel-react",
       "lucide-react",
+      "media-chrome",
       "radix-ui",
       "react",
       "react-dom",
@@ -711,11 +739,17 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(cliPackage.dependencies["class-variance-authority"]).toBeTruthy()
     expect(cliPackage.dependencies.clsx).toBeTruthy()
     expect(cliPackage.dependencies["maplibre-gl"]).toBeTruthy()
+    expect(cliPackage.dependencies["media-chrome"]).toBeTruthy()
     expect(cliPackage.dependencies.shiki).toBeTruthy()
     expect(cliPackage.dependencies["tailwind-merge"]).toBeTruthy()
     expect(
       workspaceRuntimeImports().filter(
         ({ packageName }) => !cliPackage.dependencies[packageName]
+      )
+    ).toEqual([])
+    expect(
+      Object.keys(playgroundPackage.dependencies).filter(
+        (dependency) => !cliPackage.dependencies[dependency]
       )
     ).toEqual([])
     expect(cliPackage.files).toContain("src/**/*.html")

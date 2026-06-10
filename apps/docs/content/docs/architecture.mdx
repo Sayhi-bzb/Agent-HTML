@@ -124,10 +124,29 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Interaction state | `packages/react` event protocol + host store | artifact-local control changes | host prompt interaction snapshot | filesystem, shell, MCP, privileged host APIs in artifact code | `index.test.tsx`, `interaction-store.test.ts`, `prompt.test.mjs` |
 | CSS/theme | `agent-html/styles` + host theme editor | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `boundaries.test.mjs`, `theme-preset.test.ts` |
 
-Dev server routes are orchestration only. They may call discovery, guard,
-stylesheet, public asset, and block implementation lookup modules, and they
-delegate host and artifact module transforms to Vite. They do not own those
-pipeline contracts.
+Dev server routes are orchestration only. They are grouped into explicit
+runtime adapter pipelines:
+
+```text
+host-shell
+runtime-module
+styles-and-assets
+public-asset
+artifact-registry-and-guard-report
+artifact-source-mutation
+block-lookup
+codex-bridge
+```
+
+The dev server owns server lifecycle, route dispatch, Vite runtime creation,
+dependency supply, and asset serving. Host shell, artifact module, stylesheet,
+public asset, artifact registry and guard report, artifact mutation, block
+lookup, and Codex bridge requests enter through those named pipelines. The dev
+server delegates host and artifact module transforms to Vite.
+
+It does not own protocol semantics, host interaction state, artifact visual
+language, or block prompt meaning. Those remain owned by `@agent-html/react`,
+the host interaction store, Canvas styles/resources, and the prompt pipeline.
 
 ## Boundary Governance
 
@@ -161,15 +180,22 @@ equivalent semantic classes exist.
 ## Dependency Resolution
 
 `agent-html/package.json` records source dependency metadata for local Canvas
-resources. It is not an installation target. The dev host resolves those
-workspace imports through CLI-owned dependencies, exact package aliases, and
-Vite import-entry resolution. React and React DOM stay pinned through dedicated
-aliases so the host and artifacts share one renderer instance.
+resources. It is not an installation target. The CLI package provides runtime
+dependencies. The dev host is the only mapping layer between source imports and
+runtime modules: it resolves workspace imports through CLI-owned dependencies,
+exact package aliases, Vite import-entry resolution, and explicit
+`optimizeDeps`.
+
+React and React DOM stay pinned through dedicated aliases so the host and
+artifacts share one renderer instance. Named exports used by workspace source
+must be present on the resolved runtime entries; this catches ESM/CJS mismatch
+before browser module loading fails.
 
 The dependency contract is executable: `boundaries.test.mjs` checks source-only
 workspace files, source metadata, CLI runtime ownership, and forbidden vendored
-installs. `dev-host.test.mjs` checks Vite dependency aliases, ESM import entries,
-and fresh-project startup.
+installs. `routes.test.mjs` checks route pipeline ownership. `dev-host.test.mjs`
+checks Vite dependency aliases, ESM import entries, runtime exports,
+React singleton resolution, artifact rendering, and fresh-project startup.
 
 ## Guard Scopes
 

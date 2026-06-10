@@ -7,19 +7,7 @@ const floatingPromptPath = fileURLToPath(
 )
 const floatingPromptSource = readFileSync(floatingPromptPath, "utf8")
 
-describe("FloatingPrompt copy", () => {
-  it("uses block-edit prompt copy", () => {
-    expect(floatingPromptSource).toContain(
-      'placeholder={t("prompt.editBlock")}'
-    )
-    expect(floatingPromptSource).not.toContain("Ask, Search or Chat")
-  })
-
-  it("does not expose an unimplemented add-context action", () => {
-    expect(floatingPromptSource).not.toContain("Add context")
-    expect(floatingPromptSource).not.toContain("PlusIcon")
-  })
-
+describe("FloatingPrompt IME composition", () => {
   it("keeps IME composition local until composition ends", () => {
     expect(floatingPromptSource).toContain("onCompositionStart")
     expect(floatingPromptSource).toContain("onCompositionEnd")

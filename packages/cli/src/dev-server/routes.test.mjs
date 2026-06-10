@@ -4,7 +4,12 @@ import path from "node:path"
 
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { handleRequest, hostRoutes } from "./routes.mjs"
+import {
+  classifyDevServerRoute,
+  devServerRoutePipelines,
+  handleRequest,
+  hostRoutes,
+} from "./routes.mjs"
 
 function createResponseMock() {
   return {
@@ -54,6 +59,47 @@ describe("dev server routes", () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
+  })
+
+  it("classifies public routes into explicit dev-server pipelines", () => {
+    expect(devServerRoutePipelines).toEqual([
+      "host-shell",
+      "runtime-module",
+      "styles-and-assets",
+      "public-asset",
+      "artifact-registry-and-guard-report",
+      "artifact-source-mutation",
+      "block-lookup",
+      "codex-bridge",
+    ])
+    expect(classifyDevServerRoute("/")).toBe("host-shell")
+    expect(classifyDevServerRoute(hostRoutes.hostEntry)).toBe("runtime-module")
+    expect(classifyDevServerRoute(hostRoutes.artifactBundle)).toBe(
+      "runtime-module"
+    )
+    expect(classifyDevServerRoute(hostRoutes.hostStyles)).toBe(
+      "styles-and-assets"
+    )
+    expect(classifyDevServerRoute(hostRoutes.fontAsset)).toBe(
+      "styles-and-assets"
+    )
+    expect(classifyDevServerRoute(`${hostRoutes.publicAsset}ghost.svg`)).toBe(
+      "public-asset"
+    )
+    expect(classifyDevServerRoute(hostRoutes.artifacts)).toBe(
+      "artifact-registry-and-guard-report"
+    )
+    expect(classifyDevServerRoute(hostRoutes.artifactRename)).toBe(
+      "artifact-source-mutation"
+    )
+    expect(classifyDevServerRoute(hostRoutes.artifactDelete)).toBe(
+      "artifact-source-mutation"
+    )
+    expect(classifyDevServerRoute(hostRoutes.blockImplementation)).toBe(
+      "block-lookup"
+    )
+    expect(classifyDevServerRoute(hostRoutes.codexTurn)).toBe("codex-bridge")
+    expect(classifyDevServerRoute("/unknown")).toBe(null)
   })
 
   it("proxies allowed ZeoSeven font stylesheets", async () => {
