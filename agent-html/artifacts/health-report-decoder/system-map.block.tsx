@@ -71,6 +71,53 @@ function SystemMapIllustration() {
   )
 }
 
+const systemIconById: Record<string, { label: string; src: string }> = {
+  blood: {
+    label: "血液图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/blood-cells.svg",
+  },
+  cardio: {
+    label: "心脏图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/heart-organ.svg",
+  },
+  glucose: {
+    label: "胰腺图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/pancreas.svg",
+  },
+  kidney: {
+    label: "肾脏图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/kidneys.svg",
+  },
+  liver: {
+    label: "肝脏图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/liver.svg",
+  },
+  urine: {
+    label: "膀胱图标",
+    src: "/__agent-html/public/health-report-decoder/healthicons/bladder.svg",
+  },
+}
+
+function SystemHealthIcon({ systemId }: { systemId: string }) {
+  const icon = systemIconById[systemId]
+
+  if (!icon) {
+    return null
+  }
+
+  return (
+    <span
+      aria-label={icon.label}
+      className="size-8 shrink-0 bg-current text-muted-foreground [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]"
+      role="img"
+      style={{
+        WebkitMaskImage: `url(${icon.src})`,
+        maskImage: `url(${icon.src})`,
+      }}
+    />
+  )
+}
+
 export function SystemMapBlock() {
   return (
     <section className="canvas-stack-lg">
@@ -87,14 +134,14 @@ export function SystemMapBlock() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          {systems.map((system, index) => {
+          {systems.map((system) => {
             const items = labItemsBySystem(system.id)
             const flagged = items.filter((item) => item.status !== "normal")
 
             return (
               <div className="canvas-stack-xs p-2" key={system.id}>
                 <div className="canvas-wrap-sm items-center">
-                  <Badge>{index + 1}</Badge>
+                  <SystemHealthIcon systemId={system.id} />
                   <Badge variant="outline">{system.signal}</Badge>
                 </div>
                 <p className="font-medium">{system.label}</p>
