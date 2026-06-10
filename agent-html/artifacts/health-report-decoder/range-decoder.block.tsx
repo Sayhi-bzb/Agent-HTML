@@ -38,39 +38,39 @@ export function RangeDecoderBlock() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-            <div className="canvas-stack-sm">
-              <StatusBadge status={meta.status}>{activeItem.code}</StatusBadge>
-              <h3 className="canvas-text-heading">{activeItem.label}</h3>
-              <div className="canvas-wrap-sm items-end">
-                <span className="font-mono text-3xl">{activeItem.result}</span>
-                <Badge variant="outline">{activeItem.unit}</Badge>
-                <Badge variant="outline">{activeItem.rawNote}</Badge>
-              </div>
+        <div className="grid gap-6 sm:grid-cols-[0.72fr_1fr]">
+          <div className="canvas-stack-sm">
+            <StatusBadge status={meta.status}>{activeItem.code}</StatusBadge>
+            <h3 className="canvas-text-heading">{activeItem.label}</h3>
+            <div className="canvas-wrap-sm items-end">
+              <span className="font-mono text-3xl">{activeItem.result}</span>
+              <Badge variant="outline">{activeItem.unit}</Badge>
+              <Badge variant="outline">{activeItem.rawNote}</Badge>
             </div>
+          </div>
 
-            <div className="canvas-stack-sm">
-              <div className="canvas-stack-xs">
-                <div className="canvas-wrap-sm items-center justify-between">
-                  <span className="canvas-text-caption text-muted-foreground">
-                    报告上的参考范围
-                  </span>
-                  <span className="font-mono text-xs">{activeItem.referenceRange}</span>
-                </div>
-                <Progress value={78} />
-                <div className="grid grid-cols-4 gap-2 text-muted-foreground">
-                  <span className="canvas-text-caption">偏低</span>
-                  <span className="canvas-text-caption">范围内</span>
-                  <span className="canvas-text-caption">边缘</span>
-                  <span className="canvas-text-caption">标记</span>
-                </div>
+          <div className="canvas-stack-md">
+            <div className="canvas-stack-xs">
+              <div className="canvas-wrap-sm items-center justify-between">
+                <span className="canvas-text-caption text-muted-foreground">
+                  报告上的参考范围
+                </span>
+                <span className="font-mono text-xs">{activeItem.referenceRange}</span>
               </div>
-              <p className="canvas-text-body">{activeItem.whyItMatters}</p>
+              <Progress value={78} />
+              <div className="grid grid-cols-4 gap-2 text-muted-foreground">
+                <span className="canvas-text-caption">偏低</span>
+                <span className="canvas-text-caption">范围内</span>
+                <span className="canvas-text-caption">边缘</span>
+                <span className="canvas-text-caption">标记</span>
+              </div>
             </div>
+            <p className="canvas-text-body">{activeItem.whyItMatters}</p>
+          </div>
         </div>
       </div>
 
-      <div className="canvas-stack-md">
+      <div className="grid gap-6 md:grid-cols-[1.05fr_0.95fr]">
         <div className="canvas-stack-sm">
           <Badge variant="outline">同一组血脂</Badge>
           <Table>
@@ -96,7 +96,7 @@ export function RangeDecoderBlock() {
           </Table>
         </div>
 
-        <div className="canvas-stack-sm pt-2">
+        <div className="canvas-stack-sm">
           <Badge variant="outline">下次可以这样问</Badge>
           <p className="canvas-text-heading">{activeItem.doctorQuestion}</p>
           <p className="canvas-text-body text-muted-foreground">

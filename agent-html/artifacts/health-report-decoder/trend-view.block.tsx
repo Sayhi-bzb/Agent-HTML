@@ -29,13 +29,11 @@ const chartConfig = {
 export function TrendViewBlock() {
   return (
     <section className="canvas-stack-lg">
-      <div className="canvas-grid-gap md:grid-cols-2">
-        <div className="canvas-stack-sm">
-          <Badge variant="secondary">这几年有没有变</Badge>
-          <h2 className="canvas-text-heading">
-            有些项目要看今年，也要看前几年。
-          </h2>
-        </div>
+      <div className="canvas-stack-sm">
+        <Badge variant="secondary">这几年有没有变</Badge>
+        <h2 className="canvas-text-heading">
+          有些项目要看今年，也要看前几年。
+        </h2>
         <p className="canvas-text-body text-muted-foreground">
           把 2025 年这次结果放回旧记录里。上升、接近上沿、突然变化，都比一个箭头更适合带去问。
         </p>
