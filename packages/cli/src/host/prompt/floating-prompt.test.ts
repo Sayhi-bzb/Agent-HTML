@@ -1,17 +1,64 @@
-import { readFileSync } from "node:fs"
-import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
-const floatingPromptPath = fileURLToPath(
-  new URL("./floating-prompt.tsx", import.meta.url)
-)
-const floatingPromptSource = readFileSync(floatingPromptPath, "utf8")
+import {
+  shouldPublishPromptDraftChange,
+  shouldSubmitPromptShortcut,
+} from "./floating-prompt"
 
 describe("FloatingPrompt IME composition", () => {
-  it("keeps IME composition local until composition ends", () => {
-    expect(floatingPromptSource).toContain("onCompositionStart")
-    expect(floatingPromptSource).toContain("onCompositionEnd")
-    expect(floatingPromptSource).toContain("isComposingRef")
-    expect(floatingPromptSource).toContain("event.nativeEvent.isComposing")
+  it("keeps draft changes local while composition is active", () => {
+    expect(shouldPublishPromptDraftChange({ isComposing: true })).toBe(false)
+    expect(shouldPublishPromptDraftChange({ isComposing: false })).toBe(true)
+  })
+
+  it("does not submit keyboard shortcuts while composition is active", () => {
+    expect(
+      shouldSubmitPromptShortcut({
+        ctrlKey: true,
+        isComposing: true,
+        key: "Enter",
+        metaKey: false,
+        nativeIsComposing: false,
+      })
+    ).toBe(false)
+    expect(
+      shouldSubmitPromptShortcut({
+        ctrlKey: true,
+        isComposing: false,
+        key: "Enter",
+        metaKey: false,
+        nativeIsComposing: true,
+      })
+    ).toBe(false)
+  })
+
+  it("submits only command or control enter outside composition", () => {
+    expect(
+      shouldSubmitPromptShortcut({
+        ctrlKey: true,
+        isComposing: false,
+        key: "Enter",
+        metaKey: false,
+        nativeIsComposing: false,
+      })
+    ).toBe(true)
+    expect(
+      shouldSubmitPromptShortcut({
+        ctrlKey: false,
+        isComposing: false,
+        key: "Enter",
+        metaKey: true,
+        nativeIsComposing: false,
+      })
+    ).toBe(true)
+    expect(
+      shouldSubmitPromptShortcut({
+        ctrlKey: false,
+        isComposing: false,
+        key: "Enter",
+        metaKey: false,
+        nativeIsComposing: false,
+      })
+    ).toBe(false)
   })
 })

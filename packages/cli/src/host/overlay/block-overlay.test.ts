@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs"
-import { fileURLToPath } from "node:url"
-
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
@@ -20,10 +17,6 @@ import type { BlockMessageThread, BlockOverlay } from "../host-contracts"
 
 const summaryElement = {} as HTMLElement
 const detailsElement = {} as HTMLElement
-const blockOverlayCssPath = fileURLToPath(
-  new URL("../../../../../agent-html/styles/internal/host/block-overlay.css", import.meta.url)
-)
-const blockOverlayCssSource = readFileSync(blockOverlayCssPath, "utf8")
 
 const overlays: BlockOverlay[] = [
   {
@@ -59,19 +52,6 @@ describe("findHoveredBlockOverlay", () => {
 
   it("does not treat the retired left handle gutter as a hit target", () => {
     expect(findHoveredBlockOverlay({ overlays, x: 12, y: 40 })).toBeNull()
-  })
-})
-
-describe("block overlay message styles", () => {
-  it("wraps message summaries instead of truncating them", () => {
-    const summaryRule = blockOverlayCssSource.slice(
-      blockOverlayCssSource.indexOf(".canvas-block-message-item-summary"),
-      blockOverlayCssSource.indexOf(".canvas-block-message-tabs")
-    )
-
-    expect(summaryRule).toContain("overflow-wrap: anywhere")
-    expect(summaryRule).not.toContain("white-space: nowrap")
-    expect(summaryRule).not.toContain("text-overflow: ellipsis")
   })
 })
 

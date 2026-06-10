@@ -17,6 +17,34 @@ import {
   HostFloatingPromptTextarea,
 } from "../ui/prompt"
 
+export function shouldPublishPromptDraftChange({
+  isComposing,
+}: {
+  isComposing: boolean
+}) {
+  return !isComposing
+}
+
+export function shouldSubmitPromptShortcut({
+  ctrlKey,
+  isComposing,
+  key,
+  metaKey,
+  nativeIsComposing,
+}: {
+  ctrlKey: boolean
+  isComposing: boolean
+  key: string
+  metaKey: boolean
+  nativeIsComposing: boolean
+}) {
+  if (isComposing || nativeIsComposing) {
+    return false
+  }
+
+  return (metaKey || ctrlKey) && key === "Enter"
+}
+
 export function PromptComposer({
   disabled,
   onDraftChange,
@@ -75,7 +103,11 @@ export function PromptComposer({
             const nextDraft = event.currentTarget.value
             setDraftValue(nextDraft)
 
-            if (!isComposingRef.current) {
+            if (
+              shouldPublishPromptDraftChange({
+                isComposing: isComposingRef.current,
+              })
+            ) {
               onDraftChange(nextDraft)
             }
           }}
@@ -89,13 +121,14 @@ export function PromptComposer({
           }}
           onKeyDown={(event) => {
             if (
-              isComposingRef.current ||
-              event.nativeEvent.isComposing
+              shouldSubmitPromptShortcut({
+                ctrlKey: event.ctrlKey,
+                isComposing: isComposingRef.current,
+                key: event.key,
+                metaKey: event.metaKey,
+                nativeIsComposing: event.nativeEvent.isComposing,
+              })
             ) {
-              return
-            }
-
-            if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
               event.preventDefault()
               void submit()
             }
