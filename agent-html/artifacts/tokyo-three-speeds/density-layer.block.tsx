@@ -1,3 +1,5 @@
+import { LogOut, MousePointer2 } from "lucide-react"
+
 import { Badge } from "../../components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
@@ -37,10 +39,12 @@ export function DensityLayerBlock() {
             {densityAreas.map((area) => (
               <TabsContent className="canvas-stack-md" key={area.area} value={area.area}>
                 <p className="canvas-text-body">{area.note}</p>
-                <p className="canvas-text-body">
+                <p className="canvas-wrap-sm items-center canvas-text-body">
+                  <MousePointer2 data-icon="inline-start" />
                   Use it for: {area.useFor}
                 </p>
-                <p className="canvas-text-body">
+                <p className="canvas-wrap-sm items-center canvas-text-body">
+                  <LogOut data-icon="inline-start" />
                   Exit when: {area.exitRule}
                 </p>
               </TabsContent>

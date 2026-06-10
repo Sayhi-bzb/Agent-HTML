@@ -1,6 +1,22 @@
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Circle,
+  Undo2,
+  Waves,
+  type LucideIcon,
+} from "lucide-react"
+
 import { Badge } from "../../components/ui/badge"
 
 import { closureItems, mediaAssets } from "./data"
+
+const closureItemIcons: Record<string, LucideIcon> = {
+  "Next Artemis Step": ArrowUpRight,
+  Recovery: Waves,
+  Return: Undo2,
+  Validation: CheckCircle2,
+}
 
 export function ReturnFutureBlock() {
   return (
@@ -42,14 +58,21 @@ export function ReturnFutureBlock() {
       </div>
 
       <div className="canvas-grid-gap md:grid-cols-4">
-        {closureItems.map((item) => (
-          <article className="canvas-stack-xs" key={item.label}>
-            <Badge variant="outline">{item.label}</Badge>
-            <p className="canvas-text-caption text-muted-foreground">
-              {item.summary}
-            </p>
-          </article>
-        ))}
+        {closureItems.map((item) => {
+          const Icon = closureItemIcons[item.label] ?? Circle
+
+          return (
+            <article className="canvas-stack-xs" key={item.label}>
+              <p className="canvas-wrap-sm items-center canvas-text-body">
+                <Icon data-icon="inline-start" />
+                <span>{item.label}</span>
+              </p>
+              <p className="canvas-text-caption text-muted-foreground">
+                {item.summary}
+              </p>
+            </article>
+          )
+        })}
       </div>
     </section>
   )

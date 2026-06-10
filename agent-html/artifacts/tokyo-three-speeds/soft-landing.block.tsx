@@ -1,3 +1,5 @@
+import { MapPin, Moon, PlaneLanding } from "lucide-react"
+
 import { Badge } from "../../components/ui/badge"
 
 import { mediaAssets, tokyoRoutes } from "./data"
@@ -6,14 +8,17 @@ const arrivalRoute = tokyoRoutes.find((route) => route.id === "arrival-route")
 
 const landingNotes = [
   {
+    Icon: PlaneLanding,
     label: "Airport-to-city first",
     text: "Haneda to the city is already a route; keep it readable.",
   },
   {
+    Icon: MapPin,
     label: "One anchor is enough",
     text: "Choose a station, hotel area, or nearby meal that makes orientation easier.",
   },
   {
+    Icon: Moon,
     label: "Save density for Day 2",
     text: "Shibuya and Shinjuku work better after rest.",
   },
@@ -39,7 +44,10 @@ export function SoftLandingBlock() {
           <div className="canvas-grid-gap-md">
             {landingNotes.map((note) => (
               <article className="canvas-stack-xs border-l pl-4" key={note.label}>
-                <p className="canvas-text-body">{note.label}</p>
+                <p className="canvas-wrap-sm items-center canvas-text-body">
+                  <note.Icon data-icon="inline-start" />
+                  <span>{note.label}</span>
+                </p>
                 <p className="canvas-text-caption text-muted-foreground">
                   {note.text}
                 </p>

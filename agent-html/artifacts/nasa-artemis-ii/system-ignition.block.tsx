@@ -1,7 +1,23 @@
+import {
+  Circle,
+  RadioTower,
+  Rocket,
+  ShipWheel,
+  TowerControl,
+  type LucideIcon,
+} from "lucide-react"
+
 import { Badge } from "../../components/ui/badge"
 import { StatusBadge } from "../../components/ui/status-badge"
 
 import { mediaAssets, systemPanels } from "./data"
+
+const systemPanelIcons: Record<string, LucideIcon> = {
+  "Ground Systems": TowerControl,
+  "Mission Control": RadioTower,
+  Orion: ShipWheel,
+  SLS: Rocket,
+}
 
 export function SystemIgnitionBlock() {
   return (
@@ -34,14 +50,21 @@ export function SystemIgnitionBlock() {
         </div>
 
         <div className="canvas-grid-gap-md">
-          {systemPanels.map((panel) => (
-            <article className="canvas-stack-xs" key={panel.label}>
-              <Badge variant="outline">{panel.label}</Badge>
-              <p className="canvas-text-caption text-muted-foreground">
-                {panel.summary}
-              </p>
-            </article>
-          ))}
+          {systemPanels.map((panel) => {
+            const Icon = systemPanelIcons[panel.label] ?? Circle
+
+            return (
+              <article className="canvas-stack-xs" key={panel.label}>
+                <p className="canvas-wrap-sm items-center canvas-text-body">
+                  <Icon data-icon="inline-start" />
+                  <span>{panel.label}</span>
+                </p>
+                <p className="canvas-text-caption text-muted-foreground">
+                  {panel.summary}
+                </p>
+              </article>
+            )
+          })}
         </div>
       </div>
     </section>

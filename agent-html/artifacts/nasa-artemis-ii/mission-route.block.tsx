@@ -1,3 +1,5 @@
+import { ListChecks, RotateCcw, ShieldCheck } from "lucide-react"
+
 import { Badge } from "../../components/ui/badge"
 import { StatusBadge } from "../../components/ui/status-badge"
 import {
@@ -15,16 +17,19 @@ import { mediaAssets, missionRoutePhases } from "./data"
 
 const routeConstraints = [
   {
+    Icon: ShieldCheck,
     label: "Safety-shaped path",
     summary:
       "The route is built around proving deep-space systems without treating the Moon as a one-way target.",
   },
   {
+    Icon: ListChecks,
     label: "Checkout before commitment",
     summary:
       "Earth orbit testing gives Orion and the crew a close-to-home validation window before the outbound leg.",
   },
   {
+    Icon: RotateCcw,
     label: "Free-return logic",
     summary:
       "The return path is part of the route design, keeping recovery connected to every major decision.",
@@ -87,7 +92,10 @@ export function MissionRouteBlock() {
             <div className="canvas-grid-gap-md">
               {routeConstraints.map((constraint) => (
                 <article className="canvas-stack-xs" key={constraint.label}>
-                  <p className="canvas-text-body">{constraint.label}</p>
+                  <p className="canvas-wrap-sm items-center canvas-text-body">
+                    <constraint.Icon data-icon="inline-start" />
+                    <span>{constraint.label}</span>
+                  </p>
                   <p className="canvas-text-caption text-muted-foreground">
                     {constraint.summary}
                   </p>
