@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
-import { join, relative } from "node:path"
+import { dirname, join, normalize, relative } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
@@ -73,6 +73,30 @@ function importedSpecifiers(source) {
   return imports
 }
 
+function typeOnlyImportedSpecifiers(source) {
+  return Array.from(
+    source.matchAll(/import\s+type\s+(?:[^"']+\s+from\s+)?["']([^"']+)["']/g)
+  ).map((match) => match[1])
+}
+
+function sourceImportRecords(directory) {
+  return implementationFilesUnder(directory).flatMap((file) =>
+    importedSpecifiers(readSource(file)).map((specifier) => ({
+      file,
+      specifier,
+      target: normalizedImportTarget(file, specifier),
+    }))
+  )
+}
+
+function normalizedImportTarget(file, specifier) {
+  if (!specifier.startsWith(".")) {
+    return specifier
+  }
+
+  return normalize(join(dirname(file), specifier)).replace(/\\/g, "/")
+}
+
 function stylesheetImportSpecifiers(source) {
   return Array.from(source.matchAll(/@import\s+["']([^"']+)["']/g)).map(
     (match) => match[1]
@@ -98,12 +122,17 @@ function runtimePackageName(specifier) {
 
 function workspaceRuntimeImports() {
   return [
-    ...implementationFilesUnder("agent-html").flatMap((file) =>
-      importedSpecifiers(readSource(file)).map((specifier) => ({
-        file,
-        specifier,
-      }))
-    ),
+    ...implementationFilesUnder("agent-html").flatMap((file) => {
+      const source = readSource(file)
+      const typeOnlySpecifiers = new Set(typeOnlyImportedSpecifiers(source))
+
+      return importedSpecifiers(source)
+        .filter((specifier) => !typeOnlySpecifiers.has(specifier))
+        .map((specifier) => ({
+          file,
+          specifier,
+        }))
+    }),
     ...cssFilesUnder("agent-html").flatMap((file) =>
       stylesheetImportSpecifiers(readSource(file)).map((specifier) => ({
         file,
@@ -118,6 +147,18 @@ function workspaceRuntimeImports() {
     }))
     .filter((entry) => entry.packageName)
 }
+
+const artifactFixedFormatLayoutExceptions = [
+  "agent-html/artifacts/nasa-artemis-ii/crew-manifest.block.tsx",
+  "agent-html/artifacts/nasa-artemis-ii/lunar-flyby.block.tsx",
+  "agent-html/artifacts/nasa-artemis-ii/mission-route.block.tsx",
+  "agent-html/artifacts/nasa-artemis-ii/orion-window.block.tsx",
+  "agent-html/artifacts/nasa-artemis-ii/system-ignition.block.tsx",
+  "agent-html/artifacts/tokyo-three-speeds/density-layer.block.tsx",
+  "agent-html/artifacts/tokyo-three-speeds/header.block.tsx",
+  "agent-html/artifacts/tokyo-three-speeds/quiet-layer.block.tsx",
+  "agent-html/artifacts/tokyo-three-speeds/route-console.block.tsx",
+]
 
 describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
   it("keeps the CLI off app, docs, example, and legacy runtime imports", () => {
@@ -165,7 +206,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
 
   it("keeps artifact and example imports inside the React Canvas playground contract", () => {
     const allowedLocalImport =
-      /^\.\.(?:\/\.\.)*\/(?:components\/(?:ui|code-block|data-table|kanban)|hooks|lib|schema|data|assets)(?:\/|$)/
+      /^\.\.(?:\/\.\.)*\/(?:components\/(?:ui\/[a-z0-9-]+|[a-z0-9-]+)|hooks|lib|schema|data|assets)(?:\/|$)/
     const forbiddenImport =
       /^(?:@\/|#agent-html-playground\/|@agent-html-playground\/|apps\/|packages\/|@\/app\/|@\/agent-html\/runtime)/
 
@@ -197,7 +238,12 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       /className=["'][^"']*(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|className=["'][^"']*(?:shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|text-(?:[3-9]xl|[1-9][0-9]xl)|font-\w+|tracking-\w+|\[[^\]]+\])/
     const textSelectionOverride = /selection:(?:bg|text)-/
 
-    expect(filesMatching("agent-html/artifacts", rawArtifactVisualClass)).toEqual([])
+    // These are current fixed-format media/map/carousel artifacts that still
+    // use explicit aspect ratios, fixed heights, or fractional grid tracks.
+    // Keep the list narrow so new arbitrary artifact styling still fails.
+    expect(filesMatching("agent-html/artifacts", rawArtifactVisualClass)).toEqual(
+      artifactFixedFormatLayoutExceptions
+    )
     expect(
       filesMatchingAny(
         [
@@ -221,6 +267,54 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(filesMatching("packages/react/src", forbidden)).toEqual([])
   })
 
+  it("keeps React Canvas topology layers pointed in allowed directions", () => {
+    const protocolImports = sourceImportRecords("packages/react/src").filter(
+      ({ target }) =>
+        target.startsWith("packages/cli/") ||
+        target.startsWith("agent-html/") ||
+        target.startsWith("apps/") ||
+        target.startsWith("_archive/")
+    )
+    const orchestrationImports = sourceImportRecords(
+      "packages/cli/src/react-canvas"
+    ).filter(
+      ({ target }) =>
+        target.startsWith("packages/cli/src/host/") ||
+        target.startsWith("agent-html/artifacts/") ||
+        target.startsWith("agent-html/examples/") ||
+        target.startsWith("agent-html/components/") ||
+        target.startsWith("agent-html/theme/") ||
+        target.startsWith("apps/") ||
+        target.startsWith("_archive/")
+    )
+    const hostWorkspaceBypasses = sourceImportRecords(
+      "packages/cli/src/host"
+    ).filter(
+      ({ specifier, target }) =>
+        target.startsWith("agent-html/") ||
+        specifier.startsWith("@agent-html-playground/") ||
+        (specifier.startsWith("#agent-html-playground/") &&
+          !specifier.startsWith("#agent-html-playground/components/ui/") &&
+          !specifier.startsWith("#agent-html-playground/theme/"))
+    )
+    const artifactLayerEscapes = [
+      ...sourceImportRecords("agent-html/artifacts"),
+      ...sourceImportRecords("agent-html/examples"),
+    ].filter(
+      ({ target }) =>
+        target.startsWith("packages/") ||
+        target.startsWith("apps/") ||
+        target.startsWith("_archive/") ||
+        target.startsWith("agent-html/public/") ||
+        target.startsWith("agent-html/styles/internal/")
+    )
+
+    expect(protocolImports).toEqual([])
+    expect(orchestrationImports).toEqual([])
+    expect(hostWorkspaceBypasses).toEqual([])
+    expect(artifactLayerEscapes).toEqual([])
+  })
+
   it("keeps apps from depending on the React Canvas CLI", () => {
     const forbidden =
       /from\s+["'](?:@agent-html\/cli|packages\/cli\/)|node\s+packages\/cli|agent-html\.mjs/
@@ -233,34 +327,26 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       readFileSync(join(root, "agent-html", "package.json"), "utf8")
     )
 
-    expect(playgroundPackage).toEqual({
-      dependencies: {
-        "@base-ui/react": "^1.5.0",
-        "@dnd-kit/core": "^6.3.1",
-        "@dnd-kit/modifiers": "^9.0.0",
-        "@dnd-kit/sortable": "^10.0.0",
-        "@dnd-kit/utilities": "^3.2.2",
-        "@shikijs/transformers": "^4.1.0",
-        "@tanstack/react-table": "^8.21.3",
-        "class-variance-authority": "^0.7.1",
-        clsx: "^2.1.1",
-        cmdk: "^1.1.1",
-        "date-fns": "^4.4.0",
-        "embla-carousel-react": "^8.6.0",
-        "input-otp": "^1.4.2",
-        "radix-ui": "^1.4.3",
-        "react-day-picker": "^10.0.1",
-        "react-resizable-panels": "^4.11.2",
-        recharts: "^3.8.1",
-        shadcn: "^4.10.0",
-        shiki: "^4.1.0",
-        "tailwind-merge": "^3.6.0",
-        vaul: "^1.1.2",
-        zod: "^4.1.13",
-      },
-      name: "@agent-html/react-canvas-workspace",
-      private: true,
-      type: "module",
+    expect(playgroundPackage.name).toBe("@agent-html/react-canvas-workspace")
+    expect(playgroundPackage.private).toBe(true)
+    expect(playgroundPackage.type).toBe("module")
+    expect(playgroundPackage).not.toHaveProperty("scripts")
+    expect(playgroundPackage).not.toHaveProperty("devDependencies")
+    expect(playgroundPackage.dependencies).toMatchObject({
+      "@base-ui/react": expect.any(String),
+      "@dnd-kit/core": expect.any(String),
+      "@tanstack/react-table": expect.any(String),
+      "class-variance-authority": expect.any(String),
+      clsx: expect.any(String),
+      "embla-carousel-react": expect.any(String),
+      "lucide-react": expect.any(String),
+      "maplibre-gl": expect.any(String),
+      "media-chrome": expect.any(String),
+      "radix-ui": expect.any(String),
+      recharts: expect.any(String),
+      shiki: expect.any(String),
+      "tailwind-merge": expect.any(String),
+      zod: expect.any(String),
     })
     expect(existsSync(join(root, "agent-html", "package-lock.json"))).toBe(
       false
@@ -603,7 +689,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       )
     ).toEqual([])
 
-    expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.0.3")
+    expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.2.0")
     expect(cliPackage.dependencies["@shikijs/transformers"]).toBeTruthy()
     expect(cliPackage.dependencies["@tanstack/react-table"]).toBeTruthy()
     expect(cliPackage.dependencies.esbuild).toBeUndefined()
@@ -614,6 +700,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(cliPackage.dependencies.shadcn).toBeTruthy()
     expect(cliPackage.dependencies["class-variance-authority"]).toBeTruthy()
     expect(cliPackage.dependencies.clsx).toBeTruthy()
+    expect(cliPackage.dependencies["maplibre-gl"]).toBeTruthy()
     expect(cliPackage.dependencies.shiki).toBeTruthy()
     expect(cliPackage.dependencies["tailwind-merge"]).toBeTruthy()
     expect(

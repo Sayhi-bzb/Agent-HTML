@@ -129,6 +129,35 @@ stylesheet, public asset, and block implementation lookup modules, and they
 delegate host and artifact module transforms to Vite. They do not own those
 pipeline contracts.
 
+## Boundary Governance
+
+Canvas boundary checks follow the layer topology:
+
+```text
+packages/react
+  -> protocol only; no host, workspace, docs, app, or archive imports
+
+packages/cli/src/react-canvas
+  -> discovery, guard, prompt, and workspace path orchestration
+  -> no host UI, artifact source, Canvas UI, theme, docs, app, or archive imports
+
+packages/cli/src/host
+  -> host inspector chrome and pipeline calls
+  -> Canvas UI/theme only through #agent-html-playground/components/ui/* and
+     #agent-html-playground/theme/*
+
+agent-html/artifacts and agent-html/examples
+  -> artifact source and copyable examples
+  -> no host, app, docs, archive, public-file imports, or internal style imports
+```
+
+`packages/cli/src/react-canvas/boundaries.test.mjs` owns these topology checks.
+Use it as the executable boundary matrix before adding new guard behavior.
+It also records the current fixed-format artifact layout exceptions for media,
+map, and carousel blocks. Those exceptions are not a new styling surface; new
+artifact code should prefer Canvas semantic classes and shrink that list when
+equivalent semantic classes exist.
+
 ## Guard Scopes
 
 Canvas guard reports one issue list with explicit scopes:

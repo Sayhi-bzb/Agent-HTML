@@ -10,7 +10,13 @@ import { describe, expect, it } from "vitest"
 import { startDevHost } from "./dev-host.mjs"
 import { hostRoot, packageRoot } from "./dev-server/context.mjs"
 import { parsePipelineArg } from "./dev-server/server.mjs"
-import { createHostEntryModule, createViteFsAllowList } from "./dev-server/vite.mjs"
+import {
+  createHostEntryModule,
+  createPlaygroundDependencyAliases,
+  createReactModuleResolutionAliases,
+  createViteFsAllowList,
+  resolvePackageImportModule,
+} from "./dev-server/vite.mjs"
 
 const reactPackageRoot = path.resolve(packageRoot, "..", "react")
 const execFileAsync = promisify(execFile)
@@ -136,6 +142,75 @@ describe("React Canvas dev host", () => {
     )
   })
 
+  it("pins React module resolution to one canonical renderer instance", () => {
+    const aliases = createReactModuleResolutionAliases()
+
+    expect(aliases).toEqual([
+      {
+        find: "react-dom/client",
+        replacement: expect.stringContaining("react-dom"),
+      },
+      {
+        find: "react/jsx-runtime",
+        replacement: expect.stringContaining("react"),
+      },
+      {
+        find: "react/jsx-dev-runtime",
+        replacement: expect.stringContaining("react"),
+      },
+      {
+        find: /^react$/,
+        replacement: expect.stringContaining("react"),
+      },
+    ])
+    expect(aliases.map((alias) => String(alias.find))).toEqual([
+      "react-dom/client",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime",
+      "/^react$/",
+    ])
+  })
+
+  it("pins playground dependencies outside the source workspace", () => {
+    const aliases = createPlaygroundDependencyAliases(process.cwd())
+    const radixAlias = aliases.find(
+      (alias) => String(alias.find) === "/^radix-ui$/"
+    )
+    const clsxAlias = aliases.find((alias) => String(alias.find) === "/^clsx$/")
+    const tailwindMergeAlias = aliases.find(
+      (alias) => String(alias.find) === "/^tailwind-merge$/"
+    )
+    const cvaAlias = aliases.find(
+      (alias) => String(alias.find) === "/^class-variance-authority$/"
+    )
+
+    expect(radixAlias).toEqual({
+      find: /^radix-ui$/,
+      replacement: expect.stringContaining("node_modules"),
+    })
+    expect(radixAlias.replacement.replaceAll("\\", "/")).not.toContain(
+      "/agent-html/node_modules/"
+    )
+    expect(clsxAlias.replacement.replaceAll("\\", "/")).toContain(
+      "/node_modules/clsx/dist/clsx.mjs"
+    )
+    expect(tailwindMergeAlias.replacement.replaceAll("\\", "/")).toContain(
+      "/node_modules/tailwind-merge/dist/bundle-mjs.mjs"
+    )
+    expect(cvaAlias.replacement.replaceAll("\\", "/")).toContain(
+      "/node_modules/class-variance-authority/dist/index.mjs"
+    )
+  })
+
+  it("resolves playground package imports with ESM import entries first", () => {
+    expect(resolvePackageImportModule("clsx").replaceAll("\\", "/")).toContain(
+      "/node_modules/clsx/dist/clsx.mjs"
+    )
+    expect(
+      resolvePackageImportModule("tailwind-merge").replaceAll("\\", "/")
+    ).toContain("/node_modules/tailwind-merge/dist/bundle-mjs.mjs")
+  })
+
   it("scans and renders the example artifact", async () => {
     const { server, url } = await startDevHost({
       args: ["--port", "5298"],
@@ -149,13 +224,15 @@ describe("React Canvas dev host", () => {
       expect(artifacts.artifacts).toContainEqual(
         expect.objectContaining({
           blocks: [
-            { id: "project-purpose", title: "Project Purpose" },
-            { id: "system-topology", title: "System Topology" },
-            { id: "canvas-pipeline", title: "Canvas Pipeline" },
-            { id: "agent-workflow", title: "Agent Workflow" },
-            { id: "guardrails", title: "Guardrails" },
+            { id: "orion-window", title: "Orion Window" },
+            { id: "crew-manifest", title: "Crew Manifest" },
+            { id: "system-ignition", title: "System Ignition" },
+            { id: "mission-route", title: "Nine-Day Mission Route" },
+            { id: "lunar-flyby", title: "Lunar Flyby" },
+            { id: "return-future", title: "Return And Future" },
+            { id: "sources", title: "Sources" },
           ],
-          filePath: "agent-html/artifacts/project-visual-explainer.artifact.tsx",
+          filePath: "agent-html/artifacts/nasa-artemis-ii.artifact.tsx",
         })
       )
 
@@ -229,14 +306,14 @@ describe("React Canvas dev host", () => {
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(
         "filePath",
-        "agent-html/artifacts/project-visual-explainer.artifact.tsx"
+        "agent-html/artifacts/nasa-artemis-ii.artifact.tsx"
       )
       const bundle = await fetch(bundleUrl).then((response) => response.text())
       expect(bundle).toContain("function mount")
       expect(bundle).toContain("import.meta.hot")
       expect(bundle).not.toContain("/node_modules/react-dom/client.js")
       expect(bundle).toContain(
-        "/agent-html/artifacts/project-visual-explainer.artifact.tsx"
+        "/agent-html/artifacts/nasa-artemis-ii.artifact.tsx"
       )
 
       const appSourceBundleUrl = new URL(`${url}/__agent-html/artifact.js`)
@@ -297,7 +374,7 @@ describe("React Canvas dev host", () => {
       )
       expect(artifacts.artifacts).toContainEqual(
         expect.objectContaining({
-          filePath: "agent-html/artifacts/project-visual-explainer.artifact.tsx",
+          filePath: "agent-html/artifacts/nasa-artemis-ii.artifact.tsx",
         })
       )
 

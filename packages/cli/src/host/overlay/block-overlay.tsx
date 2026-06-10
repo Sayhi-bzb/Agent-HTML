@@ -34,6 +34,7 @@ import type {
 } from "../host-contracts"
 import { useHostI18n } from "../i18n/host-i18n"
 import { HostButton } from "../ui/button"
+import { HostControlTrigger } from "../ui/control-trigger"
 import { HostFloatingPromptPopoverContent } from "../ui/prompt"
 
 type HostOverlayTranslator = ReturnType<typeof useHostI18n>["t"]
@@ -184,22 +185,22 @@ function BlockMessagePanel({ thread }: { thread: BlockMessageThread }) {
   return (
     <div className="canvas-block-message-panel">
       <div aria-label={t("overlay.messageView")} className="canvas-block-message-tabs">
-        <button
+        <HostControlTrigger
           className="canvas-block-message-tab"
           data-active={view === "messages" ? "true" : undefined}
           onClick={() => setView("messages")}
           type="button"
         >
           {t("overlay.messages")}
-        </button>
-        <button
+        </HostControlTrigger>
+        <HostControlTrigger
           className="canvas-block-message-tab"
           data-active={view === "diff" ? "true" : undefined}
           onClick={() => setView("diff")}
           type="button"
         >
           {t("overlay.diff")}
-        </button>
+        </HostControlTrigger>
       </div>
       <ol className="canvas-block-message-list">
         {items.map((item) => (

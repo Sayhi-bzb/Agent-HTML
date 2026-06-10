@@ -153,6 +153,10 @@ Artifacts use Canvas semantic classes such as `canvas-stack-md`,
 utilities such as `flex`, `grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`,
 `shrink-0`, and `truncate` may stay in artifact code when they express local
 structure or overflow behavior.
+Fixed-format media, map, and carousel blocks may use narrow layout constraints
+already recorded in `packages/cli/src/react-canvas/boundaries.test.mjs`; do not
+add new arbitrary values when a Canvas semantic class or ordinary layout utility
+can express the same constraint.
 
 Static artifact styling should stay as plain `className` strings. Use the local
 `cn` helper only when class names are conditional or need to merge with an

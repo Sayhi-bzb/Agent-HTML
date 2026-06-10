@@ -1,5 +1,7 @@
+import { existsSync, readFileSync } from "node:fs"
 import os from "node:os"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 import react from "@vitejs/plugin-react"
 import { createServer as createViteServer } from "vite"
@@ -134,6 +136,59 @@ export function createViteFsAllowList({ reactProtocolEntry, root }) {
     .filter((entry, index, entries) => entries.indexOf(entry) === index)
 }
 
+export function createReactModuleResolutionAliases() {
+  const reactEntry = resolvePackageModule("react")
+  const reactDomClientEntry = resolvePackageModule("react-dom/client")
+  const reactJsxRuntimeEntry = resolvePackageModule("react/jsx-runtime")
+  const reactJsxDevRuntimeEntry = resolvePackageModule("react/jsx-dev-runtime")
+
+  return [
+    { find: "react-dom/client", replacement: reactDomClientEntry },
+    { find: "react/jsx-runtime", replacement: reactJsxRuntimeEntry },
+    { find: "react/jsx-dev-runtime", replacement: reactJsxDevRuntimeEntry },
+    { find: /^react$/, replacement: reactEntry },
+  ]
+}
+
+function exactPackageNamePattern(packageName) {
+  return new RegExp(
+    `^${packageName.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&")}$`
+  )
+}
+
+export function resolvePackageImportModule(specifier) {
+  try {
+    return fileURLToPath(import.meta.resolve(specifier))
+  } catch {
+    return resolvePackageModule(specifier)
+  }
+}
+
+export function createPlaygroundDependencyAliases(root) {
+  const playgroundPackagePath = path.join(root, "agent-html", "package.json")
+  if (!existsSync(playgroundPackagePath)) {
+    return []
+  }
+
+  const playgroundPackage = JSON.parse(
+    readFileSync(playgroundPackagePath, "utf8")
+  )
+  const dependencyNames = Object.keys(playgroundPackage.dependencies ?? {})
+
+  return dependencyNames.flatMap((dependencyName) => {
+    try {
+      return [
+        {
+          find: exactPackageNamePattern(dependencyName),
+          replacement: resolvePackageImportModule(dependencyName),
+        },
+      ]
+    } catch {
+      return []
+    }
+  })
+}
+
 function createAgentHtmlVitePlugin({ pipeline, root }) {
   return {
     name: "agent-html-dev-host",
@@ -171,6 +226,8 @@ function createAgentHtmlVitePlugin({ pipeline, root }) {
 export async function createAgentHtmlViteServer({ pipeline = "codex", root, server }) {
   const reactProtocolEntry = resolvePackageModule("@agent-html/react")
   const fsAllow = createViteFsAllowList({ reactProtocolEntry, root })
+  const reactModuleResolutionAliases = createReactModuleResolutionAliases()
+  const playgroundDependencyAliases = createPlaygroundDependencyAliases(root)
 
   return createViteServer({
     appType: "custom",
@@ -198,11 +255,23 @@ export async function createAgentHtmlViteServer({ pipeline = "codex", root, serv
       }),
     ],
     resolve: {
-      alias: {
-        "@": path.join(root, "agent-html"),
-        "#agent-html-playground": path.join(root, "agent-html"),
-        "@agent-html/react": reactProtocolEntry,
-      },
+      alias: [
+        { find: "@", replacement: path.join(root, "agent-html") },
+        {
+          find: "#agent-html-playground",
+          replacement: path.join(root, "agent-html"),
+        },
+        { find: "@agent-html/react", replacement: reactProtocolEntry },
+        ...playgroundDependencyAliases,
+        ...reactModuleResolutionAliases,
+      ],
+      dedupe: [
+        "react",
+        "react-dom",
+        "react-dom/client",
+        "react/jsx-runtime",
+        "react/jsx-dev-runtime",
+      ],
     },
     server: {
       fs: {
