@@ -13,15 +13,135 @@ import type {
 } from "../host-contracts"
 
 export const artifactsUpdatedEventName = "agent-html:artifacts-updated"
+export const pendingArtifactPollFailureLimit = 3
+export const pendingArtifactPollIntervalMs = 1500
+
+export function shouldPollPendingArtifact(pendingFilePath: string | null) {
+  return Boolean(pendingFilePath)
+}
+
+export function startPendingArtifactPolling({
+  clearIntervalFn,
+  intervalMs = pendingArtifactPollIntervalMs,
+  maxConsecutiveFailures = pendingArtifactPollFailureLimit,
+  onPollingFailed,
+  pendingFilePath,
+  refresh,
+  setIntervalFn,
+}: {
+  clearIntervalFn?: (
+    intervalId: ReturnType<typeof globalThis.setInterval>
+  ) => void
+  intervalMs?: number
+  maxConsecutiveFailures?: number
+  onPollingFailed?: (error: string) => void
+  pendingFilePath: string | null
+  refresh: () => boolean | Promise<boolean>
+  setIntervalFn?: (
+    handler: () => void,
+    timeout: number
+  ) => ReturnType<typeof globalThis.setInterval>
+}) {
+  if (!shouldPollPendingArtifact(pendingFilePath)) {
+    return () => {}
+  }
+
+  const scheduleInterval =
+    setIntervalFn ?? globalThis.setInterval.bind(globalThis)
+  const clearScheduledInterval =
+    clearIntervalFn ?? globalThis.clearInterval.bind(globalThis)
+  let consecutiveFailures = 0
+  let stopped = false
+  let intervalId: ReturnType<typeof globalThis.setInterval>
+  const stop = () => {
+    if (stopped) {
+      return
+    }
+
+    stopped = true
+    if (intervalId !== undefined) {
+      clearScheduledInterval(intervalId)
+    }
+  }
+  const runRefresh = () => {
+    let refreshResult: boolean | Promise<boolean>
+
+    try {
+      refreshResult = refresh()
+    } catch (error: unknown) {
+      refreshResult = Promise.reject(error)
+    }
+
+    void Promise.resolve(refreshResult)
+      .then((ok) => {
+        if (stopped) {
+          return
+        }
+
+        if (ok === false) {
+          consecutiveFailures += 1
+        } else {
+          consecutiveFailures = 0
+        }
+
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+          onPollingFailed?.(
+            `Artifact registry polling failed ${consecutiveFailures} times.`
+          )
+          stop()
+        }
+      })
+      .catch((error: unknown) => {
+        if (stopped) {
+          return
+        }
+
+        consecutiveFailures += 1
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+          onPollingFailed?.(
+            error instanceof Error ? error.message : String(error)
+          )
+          stop()
+        }
+      })
+  }
+
+  runRefresh()
+  intervalId = scheduleInterval(runRefresh, intervalMs)
+
+  return stop
+}
+
+export async function refreshPendingArtifactRegistry({
+  refreshArtifacts,
+  setLoadError,
+}: {
+  refreshArtifacts: (options: { forceRefresh: true }) => Promise<void>
+  setLoadError: (error: string) => void
+}) {
+  try {
+    await refreshArtifacts({ forceRefresh: true })
+    return true
+  } catch (refreshError: unknown) {
+    setLoadError(
+      refreshError instanceof Error
+        ? refreshError.message
+        : String(refreshError)
+    )
+    return false
+  }
+}
 
 export function useArtifactRegistry({
-  getPendingFilePath,
   onPendingArtifactReady,
+  onPendingArtifactFailure,
   onSelectArtifactMode,
+  pendingFilePath,
 }: {
-  getPendingFilePath: () => string | null
   onPendingArtifactReady: () => void
+  onPendingArtifactFailure: (error: string) => void
   onSelectArtifactMode: () => void
+  pendingFilePath: string | null
 }) {
   const [activeFilePath, setActiveFilePath] = React.useState<string | null>(null)
   const [artifacts, setArtifacts] = React.useState<Artifact[]>([])
@@ -44,12 +164,13 @@ export function useArtifactRegistry({
 
   const refreshArtifacts = React.useCallback(async ({
     currentFilePath = activeFilePathRef.current,
+    forceRefresh = false,
   }: {
     currentFilePath?: string | null
+    forceRefresh?: boolean
   } = {}) => {
     try {
-      const data = await fetchArtifacts()
-      const pendingFilePath = getPendingFilePath()
+      const data = await fetchArtifacts({ refresh: forceRefresh })
       const refreshState = resolveArtifactRefreshState({
         artifacts: data.artifacts ?? [],
         currentFilePath,
@@ -71,7 +192,7 @@ export function useArtifactRegistry({
     } finally {
       setArtifactsLoading(false)
     }
-  }, [getPendingFilePath, onPendingArtifactReady])
+  }, [onPendingArtifactReady, pendingFilePath])
 
   React.useEffect(() => {
     void refreshArtifacts().catch((refreshError: unknown) => {
@@ -104,6 +225,25 @@ export function useArtifactRegistry({
       import.meta.hot?.off(artifactsUpdatedEventName, onArtifactsUpdated)
     }
   }, [refreshArtifacts])
+
+  React.useEffect(() => {
+    if (!shouldPollPendingArtifact(pendingFilePath)) {
+      return
+    }
+
+    const refreshPendingArtifact = () => {
+      return refreshPendingArtifactRegistry({
+        refreshArtifacts,
+        setLoadError,
+      })
+    }
+
+    return startPendingArtifactPolling({
+      onPollingFailed: onPendingArtifactFailure,
+      pendingFilePath,
+      refresh: refreshPendingArtifact,
+    })
+  }, [onPendingArtifactFailure, pendingFilePath, refreshArtifacts])
 
   const selectArtifact = React.useCallback((filePath: string) => {
     onSelectArtifactMode()

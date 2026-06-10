@@ -1,8 +1,14 @@
 import * as React from "react"
 
 import type { CodexThread } from "./api/api"
+import { createArtifact } from "./api/api"
 import { CreateArtifactSurface } from "./artifact/create-artifact-surface"
 import { ArtifactSurface } from "./artifact/artifact-surface"
+import {
+  createArtifactPendingTimeoutMs,
+  failCreateArtifactJob,
+  shouldFailCreateArtifactJob,
+} from "./artifact/create-artifact-job"
 import { useArtifactRegistry } from "./artifact/use-artifact-registry"
 import {
   readCanvasHostPreferences,
@@ -21,7 +27,6 @@ import {
 import {
   createArtifactFilePathForRequest,
   fetchPipelineThreads,
-  submitCreateArtifactToPipeline,
 } from "./pipeline"
 import { ReactCanvasSidebar } from "./navigation/sidebar"
 import {
@@ -104,8 +109,9 @@ function ReactCanvasHostWorkbench() {
     React.useState<CanvasCreateArtifactJob | null>(
       initialPreferences.createArtifactJob
     )
-  const [activeHostMode, setActiveHostMode] =
-    React.useState<CanvasHostMode>("artifact")
+  const [activeHostMode, setActiveHostMode] = React.useState<CanvasHostMode>(
+    () => initialPreferences.createArtifactJob ? "create-artifact" : "artifact"
+  )
   const [activeThemePresetId, setActiveThemePresetId] =
     React.useState<CanvasThemePresetId>(initialPreferences.activeThemePresetId)
   const [activeThemeMode, setActiveThemeMode] =
@@ -136,10 +142,6 @@ function ReactCanvasHostWorkbench() {
     [activeLanguage]
   )
 
-  const getPendingArtifactFilePath = React.useCallback(
-    () => createArtifactJobRef.current?.filePath ?? null,
-    []
-  )
   const selectArtifactMode = React.useCallback(() => {
     setActiveHostMode("artifact")
   }, [])
@@ -149,6 +151,26 @@ function ReactCanvasHostWorkbench() {
     setCreateArtifactJob(null)
     setCreateArtifactStatus(t("app.artifactReady"))
   }, [t])
+  const handlePendingArtifactFailure = React.useCallback((error: string) => {
+    setCreateArtifactJob((currentJob) => {
+      if (!currentJob || currentJob.phase === "failed") {
+        return currentJob
+      }
+
+      const failedJob = failCreateArtifactJob({
+        error,
+        job: currentJob,
+      })
+      createArtifactJobRef.current = failedJob
+      setCreateArtifactStatus(error)
+      return failedJob
+    })
+  }, [])
+  const clearCreateArtifactJob = React.useCallback(() => {
+    createArtifactJobRef.current = null
+    setCreateArtifactJob(null)
+    setCreateArtifactStatus("")
+  }, [])
   const {
     activeArtifact,
     activeIssues,
@@ -163,9 +185,13 @@ function ReactCanvasHostWorkbench() {
     resolvedActiveFilePath,
     selectArtifact,
   } = useArtifactRegistry({
-    getPendingFilePath: getPendingArtifactFilePath,
+    onPendingArtifactFailure: handlePendingArtifactFailure,
     onPendingArtifactReady: handlePendingArtifactReady,
     onSelectArtifactMode: selectArtifactMode,
+    pendingFilePath:
+      createArtifactJob && createArtifactJob.phase !== "failed"
+        ? createArtifactJob.filePath
+        : null,
   })
   const {
     resetThemePreview,
@@ -199,6 +225,46 @@ function ReactCanvasHostWorkbench() {
       clearCanvasInteractionSnapshots(resolvedActiveFilePath)
     }
   }, [resolvedActiveFilePath])
+
+  React.useEffect(() => {
+    if (!createArtifactJob || createArtifactJob.phase === "failed") {
+      return
+    }
+
+    const failExpiredJob = () => {
+      setCreateArtifactJob((currentJob) => {
+        if (
+          !currentJob ||
+          !shouldFailCreateArtifactJob({
+            job: currentJob,
+            now: Date.now(),
+          })
+        ) {
+          return currentJob
+        }
+
+        const error = t("app.artifactCreationTimedOut", {
+          filePath: currentJob.filePath,
+        })
+        const failedJob = failCreateArtifactJob({
+          error,
+          job: currentJob,
+        })
+        createArtifactJobRef.current = failedJob
+        setCreateArtifactStatus(error)
+        return failedJob
+      })
+    }
+    const remainingMs = Math.max(
+      0,
+      createArtifactPendingTimeoutMs - (Date.now() - createArtifactJob.startedAt)
+    )
+    const timeoutId = window.setTimeout(failExpiredJob, remainingMs)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [createArtifactJob, t])
 
   const refreshCodexThreads = React.useCallback(async () => {
     setCodexThreadsLoading(true)
@@ -269,24 +335,27 @@ function ReactCanvasHostWorkbench() {
       createArtifactJobRef.current = nextJob
       setCreateArtifactJob(nextJob)
       setCreateArtifactStatus(t("app.creatingArtifact"))
-      const turn = await submitCreateArtifactToPipeline({
-        activeThreadId: activeCodexThreadId,
+      const createdArtifact = await createArtifact({
         filePath: artifactFilePath,
         request,
       })
       const waitingJob: CanvasCreateArtifactJob = {
         ...nextJob,
         phase: "waiting-for-artifact",
-        threadId: turn.threadId,
-        turnId: turn.turnId,
       }
 
       createArtifactJobRef.current = waitingJob
       setCreateArtifactJob(waitingJob)
-      setActiveCodexThreadId(turn.threadId)
       setCreateArtifactStatus(t("app.waitingForArtifact"))
-      void refreshArtifacts()
-      void refreshCodexThreads()
+      await refreshArtifacts({
+        currentFilePath: createdArtifact.filePath,
+        forceRefresh: true,
+      })
+      createArtifactJobRef.current = null
+      setCreateArtifactJob(null)
+      setCreateArtifactDraft("")
+      setActiveHostMode("artifact")
+      setCreateArtifactStatus(t("app.artifactReady"))
     } catch (submitError: unknown) {
       const errorMessage =
         submitError instanceof Error ? submitError.message : String(submitError)
@@ -301,7 +370,11 @@ function ReactCanvasHostWorkbench() {
       setCreateArtifactStatus(errorMessage)
       throw submitError
     }
-  }, [activeCodexThreadId, artifacts, refreshArtifacts, refreshCodexThreads, t])
+  }, [
+    artifacts,
+    refreshArtifacts,
+    t,
+  ])
 
   useCanvasHostPreferencesPersistence({
     activeCodexThreadId,
@@ -384,6 +457,7 @@ function ReactCanvasHostWorkbench() {
                 createArtifactJob.phase !== "failed"
               }
               draft={createArtifactDraft}
+              onClearPending={clearCreateArtifactJob}
               onDraftChange={setCreateArtifactDraft}
               onSubmit={submitCreateArtifactPrompt}
               pending={

@@ -109,6 +109,11 @@
     color: var(--muted-foreground);
   }
 
+  .canvas-create-artifact-actions {
+    display: flex;
+    justify-content: center;
+  }
+
   .canvas-artifact-skeleton {
     display: flex;
     width: min(100%, 56rem);

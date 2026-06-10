@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   artifactLabel,
   artifactBundleUrl,
+  createArtifact,
   deleteArtifact,
+  fetchArtifacts,
   fetchCodexThreads,
   fontStylesheetUrl,
   hostApiRoutes,
@@ -56,6 +58,64 @@ describe("host API route helpers", () => {
   it("owns public asset URLs", () => {
     expect(publicAssetUrl("ghost.svg")).toBe("/__agent-html/public/ghost.svg")
     expect(publicAssetUrl("/ghost.svg")).toBe("/__agent-html/public/ghost.svg")
+  })
+})
+
+describe("fetchArtifacts", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it("fetches the current artifact registry snapshot by default", async () => {
+    vi.stubGlobal("fetch", async (url: string) => {
+      expect(url).toBe(hostApiRoutes.artifacts)
+      return {
+        json: async () => ({
+          artifacts: [],
+          guardIssues: [],
+          status: "ready",
+          version: 1,
+        }),
+        ok: true,
+      } as Response
+    })
+
+    await expect(fetchArtifacts()).resolves.toMatchObject({
+      artifacts: [],
+      guardIssues: [],
+    })
+  })
+
+  it("requests a refreshed artifact registry snapshot for pending polling", async () => {
+    vi.stubGlobal("fetch", async (url: string) => {
+      expect(url).toBe(`${hostApiRoutes.artifacts}?refresh=1`)
+      return {
+        json: async () => ({
+          artifacts: [],
+          guardIssues: [],
+          status: "ready",
+          version: 2,
+        }),
+        ok: true,
+      } as Response
+    })
+
+    await expect(fetchArtifacts({ refresh: true })).resolves.toMatchObject({
+      version: 2,
+    })
+  })
+
+  it("reports HTML responses from host API routes explicitly", async () => {
+    vi.stubGlobal("fetch", async () => new Response("<!doctype html><html></html>", {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+      },
+      status: 200,
+    }))
+
+    await expect(fetchArtifacts()).rejects.toThrow(
+      "Host API route returned HTML instead of JSON: /__agent-html/artifacts"
+    )
   })
 })
 
@@ -123,6 +183,33 @@ describe("artifact file operations", () => {
       renameArtifact({
         filePath: "agent-html/artifacts/old.artifact.tsx",
         nextFileName: "new",
+      })
+    ).resolves.toEqual({
+      filePath: "agent-html/artifacts/new.artifact.tsx",
+    })
+  })
+
+  it("creates artifacts through the host API", async () => {
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      expect(url).toBe(hostApiRoutes.artifactCreate)
+      expect(init?.method).toBe("POST")
+      expect(JSON.parse(String(init?.body))).toEqual({
+        filePath: "agent-html/artifacts/new.artifact.tsx",
+        request: "Build a dashboard",
+      })
+
+      return {
+        json: async () => ({
+          filePath: "agent-html/artifacts/new.artifact.tsx",
+        }),
+        ok: true,
+      } as Response
+    })
+
+    await expect(
+      createArtifact({
+        filePath: "agent-html/artifacts/new.artifact.tsx",
+        request: "Build a dashboard",
       })
     ).resolves.toEqual({
       filePath: "agent-html/artifacts/new.artifact.tsx",

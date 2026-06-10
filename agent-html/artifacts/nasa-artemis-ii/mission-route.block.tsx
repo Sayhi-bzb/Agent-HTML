@@ -1,14 +1,15 @@
 import { Badge } from "../../components/ui/badge"
+import { StatusBadge } from "../../components/ui/status-badge"
 import {
   Timeline,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
+  TimelineDate,
   TimelineHeader,
+  TimelineIndicator,
   TimelineItem,
-  TimelineTime,
+  TimelineSeparator,
   TimelineTitle,
 } from "../../components/timeline"
+import { cn } from "../../lib/cn"
 
 import { mediaAssets, missionRoutePhases } from "./data"
 
@@ -41,29 +42,30 @@ export function MissionRouteBlock() {
           This is not a straight trip, but a deep-space route shaped by safety.
         </h2>
         <p className="canvas-text-body text-muted-foreground">
-          The route board uses the existing Timeline component while the
-          surrounding panels explain why each node matters.
+          The route timeline anchors each phase while the surrounding panels
+          explain why each node matters.
         </p>
       </div>
 
       <div className="canvas-grid-gap sm:grid-cols-[1.05fr_0.95fr]">
-        <Timeline activeIndex={3}>
-          {missionRoutePhases.map((phase) => (
-            <TimelineItem key={phase.id}>
-              <TimelineDot />
-              <TimelineConnector />
-              <TimelineContent>
-                <div className="canvas-stack-xs">
-                  <TimelineHeader>
-                    <TimelineTime>{phase.time}</TimelineTime>
-                    <TimelineTitle>{phase.label}</TimelineTitle>
-                  </TimelineHeader>
-                  <p className="canvas-text-body">{phase.note}</p>
-                  <p className="canvas-text-caption text-muted-foreground">
-                    Why it matters: {phase.why}
-                  </p>
-                </div>
-              </TimelineContent>
+        <Timeline className="w-full" defaultValue={4}>
+          {missionRoutePhases.map((phase, index) => (
+            <TimelineItem
+              className={cn(
+                "w-[calc(50%-1.5rem)] odd:ms-auto even:me-auto even:text-right even:group-data-[orientation=vertical]/timeline:ms-0 even:group-data-[orientation=vertical]/timeline:me-8",
+                "even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-indicator]:-right-6 even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-indicator]:left-auto",
+                "even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-indicator]:translate-x-1/2 even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-separator]:-right-6",
+                "even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-separator]:left-auto even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-separator]:translate-x-1/2"
+              )}
+              key={phase.id}
+              step={index + 1}
+            >
+              <TimelineHeader>
+                <TimelineSeparator />
+                <TimelineDate>{phase.time}</TimelineDate>
+                <TimelineTitle>{phase.label}</TimelineTitle>
+                <TimelineIndicator />
+              </TimelineHeader>
             </TimelineItem>
           ))}
         </Timeline>
@@ -96,7 +98,7 @@ export function MissionRouteBlock() {
 
           {activeLeg ? (
             <div className="canvas-stack-xs rounded-md border border-primary/30 bg-primary/5 p-4">
-              <Badge variant="outline">{activeLeg.time}</Badge>
+              <StatusBadge status="success">{activeLeg.time}</StatusBadge>
               <p className="canvas-text-body">Active leg: {activeLeg.label}</p>
               <p className="canvas-text-caption text-muted-foreground">
                 {activeLeg.why}

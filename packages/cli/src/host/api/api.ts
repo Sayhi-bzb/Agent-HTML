@@ -14,6 +14,7 @@ export type CodexThread = {
 
 export const hostApiRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
+  artifactCreate: "/__agent-html/artifact/create",
   artifactDelete: "/__agent-html/artifact/delete",
   artifactRename: "/__agent-html/artifact/rename",
   artifacts: "/__agent-html/artifacts",
@@ -27,24 +28,91 @@ export const hostApiRoutes = {
 
 export const artifactRenderedEventName = "agent-html:artifact-rendered"
 
-export async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url)
-  const data = await response.json()
+async function readHostJsonResponse<T>(
+  response: Response,
+  url: string
+): Promise<T> {
+  const contentType = response.headers?.get("Content-Type") ?? ""
+
+  if (contentType && !contentType.includes("application/json")) {
+    const body = typeof response.text === "function" ? await response.text() : ""
+    const returnedHtml =
+      contentType.includes("text/html") ||
+      body.trimStart().toLowerCase().startsWith("<!doctype html")
+
+    if (returnedHtml || contentType) {
+      const message = returnedHtml
+        ? `Host API route returned HTML instead of JSON: ${url}`
+        : `Host API route returned ${contentType}: ${url}`
+
+      throw new Error(message)
+    }
+
+    let data: { error?: string }
+    try {
+      data = JSON.parse(body)
+    } catch {
+      throw new Error(`Host API route returned non-JSON: ${url}`)
+    }
+
+    if (!response.ok || data.error) {
+      throw new Error(data.error ?? `Request failed: ${response.status}`)
+    }
+
+    return data as T
+  }
+
+  if (!contentType && typeof response.clone === "function") {
+    try {
+      const body = await response.clone().text()
+
+      if (body.trimStart().toLowerCase().startsWith("<!doctype html")) {
+        throw new Error(`Host API route returned HTML instead of JSON: ${url}`)
+      }
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.startsWith("Host API route returned HTML")
+      ) {
+        throw error
+      }
+    }
+  }
+
+  let data: { error?: string }
+  try {
+    data = await response.json()
+  } catch {
+    throw new Error(`Host API route returned non-JSON: ${url}`)
+  }
 
   if (!response.ok || data.error) {
     throw new Error(data.error ?? `Request failed: ${response.status}`)
   }
 
-  return data
+  return data as T
 }
 
-export async function fetchArtifacts() {
+export async function fetchJson<T>(url: string): Promise<T> {
+  const response = await fetch(url)
+  return readHostJsonResponse<T>(response, url)
+}
+
+export async function fetchArtifacts({
+  refresh = false,
+}: {
+  refresh?: boolean
+} = {}) {
+  const url = refresh
+    ? `${hostApiRoutes.artifacts}?refresh=1`
+    : hostApiRoutes.artifacts
+
   return fetchJson<{
     artifacts: Artifact[]
     guardIssues: GuardIssue[]
     status?: "checking" | "ready"
     version?: number
-  }>(hostApiRoutes.artifacts)
+  }>(url)
 }
 
 export async function fetchBlockImplementation({
@@ -83,17 +151,11 @@ export async function startCodexTurn({
     },
     method: "POST",
   })
-  const data = await response.json()
-
-  if (!response.ok || data.error) {
-    throw new Error(data.error ?? `Request failed: ${response.status}`)
-  }
-
-  return data as {
+  return readHostJsonResponse<{
     startedNewThread: boolean
     threadId: string
     turnId?: string | null
-  }
+  }>(response, hostApiRoutes.codexTurn)
 }
 
 export async function renameArtifact({
@@ -110,15 +172,28 @@ export async function renameArtifact({
     },
     method: "POST",
   })
-  const data = await response.json()
-
-  if (!response.ok || data.error) {
-    throw new Error(data.error ?? `Request failed: ${response.status}`)
-  }
-
-  return data as {
+  return readHostJsonResponse<{
     filePath: string
-  }
+  }>(response, hostApiRoutes.artifactRename)
+}
+
+export async function createArtifact({
+  filePath,
+  request,
+}: {
+  filePath: string
+  request: string
+}) {
+  const response = await fetch(hostApiRoutes.artifactCreate, {
+    body: JSON.stringify({ filePath, request }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  })
+  return readHostJsonResponse<{
+    filePath: string
+  }>(response, hostApiRoutes.artifactCreate)
 }
 
 export async function deleteArtifact({ filePath }: { filePath: string }) {
@@ -129,15 +204,9 @@ export async function deleteArtifact({ filePath }: { filePath: string }) {
     },
     method: "POST",
   })
-  const data = await response.json()
-
-  if (!response.ok || data.error) {
-    throw new Error(data.error ?? `Request failed: ${response.status}`)
-  }
-
-  return data as {
+  return readHostJsonResponse<{
     ok: true
-  }
+  }>(response, hostApiRoutes.artifactDelete)
 }
 
 export function artifactBundleUrl(filePath: string, version: string | number = 0) {

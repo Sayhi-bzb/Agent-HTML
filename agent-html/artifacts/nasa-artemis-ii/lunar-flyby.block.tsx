@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 
 import { Badge } from "../../components/ui/badge"
+import { StatusBadge } from "../../components/ui/status-badge"
 import {
   Carousel,
   type CarouselApi,
@@ -30,7 +31,7 @@ export function LunarFlybyBlock() {
       <div className="canvas-stack-md">
         <div className="canvas-wrap-sm items-center">
           <Badge variant="secondary">lunar flyby</Badge>
-          <Badge variant="outline">visual climax</Badge>
+          <StatusBadge status="info">visual climax</StatusBadge>
         </div>
         <h2 className="canvas-text-heading">
           The Moon is no longer a distant object in the night sky; it is a real

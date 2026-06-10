@@ -36,6 +36,19 @@ function createEmptySnapshot() {
   }
 }
 
+function snapshotContentEquals(left, right) {
+  return (
+    JSON.stringify({
+      artifacts: left.artifacts,
+      guardIssues: left.guardIssues,
+    }) ===
+    JSON.stringify({
+      artifacts: right.artifacts,
+      guardIssues: right.guardIssues,
+    })
+  )
+}
+
 export function createArtifactRegistry({ root, vite }) {
   const workspaceRoot = path.join(path.resolve(root), "agent-html")
   const artifactsRoot = path.join(workspaceRoot, "artifacts")
@@ -68,27 +81,36 @@ export function createArtifactRegistry({ root, vite }) {
     )
   }
 
-  function publishSnapshot({ reason }) {
+  function publishSnapshot({ broadcast = true, reason }) {
     const guardIssues = [
       ...artifactIssues.values(),
       ...blockIssues.values(),
     ].flat()
 
-    snapshot = {
+    const nextSnapshot = {
       artifacts: [...artifacts.values()].sort(sortByFilePath),
       guardIssues,
       status: "ready",
       version: snapshot.version + 1,
     }
+    const preserveVersion =
+      !broadcast && snapshotContentEquals(snapshot, nextSnapshot)
 
-    vite.ws.send({
-      event: artifactsUpdatedEventName,
-      type: "custom",
-      data: {
-        reason,
-        version: snapshot.version,
-      },
-    })
+    snapshot = {
+      ...nextSnapshot,
+      version: preserveVersion ? snapshot.version : nextSnapshot.version,
+    }
+
+    if (broadcast) {
+      vite.ws.send({
+        event: artifactsUpdatedEventName,
+        type: "custom",
+        data: {
+          reason,
+          version: snapshot.version,
+        },
+      })
+    }
   }
 
   async function indexArtifact(filePath) {
@@ -146,7 +168,7 @@ export function createArtifactRegistry({ root, vite }) {
     )
   }
 
-  async function refreshAll({ reason }) {
+  async function refreshAll({ broadcast = true, reason }) {
     snapshot = {
       ...snapshot,
       status: "checking",
@@ -166,7 +188,7 @@ export function createArtifactRegistry({ root, vite }) {
       ...blockImplementationPaths.map(indexBlockImplementation),
     ])
 
-    publishSnapshot({ reason })
+    publishSnapshot({ broadcast, reason })
   }
 
   async function refreshChangedPaths({ paths, reason }) {
@@ -255,8 +277,8 @@ export function createArtifactRegistry({ root, vite }) {
     getSnapshot() {
       return snapshot
     },
-    async refresh({ reason = "manual" } = {}) {
-      await refreshAll({ reason })
+    async refresh({ broadcast = true, reason = "manual" } = {}) {
+      await refreshAll({ broadcast, reason })
     },
     async start() {
       await refreshAll({ reason: "initial" })

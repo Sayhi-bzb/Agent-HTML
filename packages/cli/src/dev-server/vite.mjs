@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs"
+import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -112,12 +113,13 @@ export function createArtifactEntryModule({ filePath, root }) {
   `
 }
 
-function cacheDirForRoot(root) {
+export function cacheDirForRoot(root) {
   const cacheKey = Buffer.from(path.resolve(root)).toString("base64url")
   return path.join(os.tmpdir(), "agent-html-vite", cacheKey)
 }
 
 const optimizedDependencyCachePattern = /[\\/]agent-html-vite[\\/].*[\\/]deps[\\/]/
+const optimizedDependencyHeaderBytes = 256
 export const playgroundOptimizeDeps = [
   "react",
   "react/jsx-dev-runtime",
@@ -203,6 +205,100 @@ export function createPlaygroundOptimizeDepsInclude() {
   return [...playgroundOptimizeDeps]
 }
 
+export function isInvalidOptimizedDependencyCacheFile(buffer) {
+  if (buffer.length === 0) {
+    return true
+  }
+
+  if (buffer[0] === 0) {
+    return true
+  }
+
+  const sampleLength = Math.min(buffer.length, optimizedDependencyHeaderBytes)
+  let nullByteCount = 0
+
+  for (let index = 0; index < sampleLength; index += 1) {
+    if (buffer[index] === 0) {
+      nullByteCount += 1
+    }
+  }
+
+  return nullByteCount / sampleLength > 0.25
+}
+
+export async function findInvalidOptimizedDependencyCacheFiles(cacheDir) {
+  const depsDir = path.join(cacheDir, "deps")
+  let entries
+
+  try {
+    entries = await fs.readdir(depsDir, { withFileTypes: true })
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      return []
+    }
+
+    throw error
+  }
+
+  const invalidFiles = []
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith(".js")) {
+      continue
+    }
+
+    const filePath = path.join(depsDir, entry.name)
+    const file = await fs.open(filePath, "r")
+    try {
+      const buffer = Buffer.alloc(optimizedDependencyHeaderBytes)
+      const { bytesRead } = await file.read(buffer, 0, buffer.length, 0)
+      const header = buffer.subarray(0, bytesRead)
+
+      if (isInvalidOptimizedDependencyCacheFile(header)) {
+        invalidFiles.push(filePath)
+      }
+    } finally {
+      await file.close()
+    }
+  }
+
+  return invalidFiles
+}
+
+export async function clearInvalidOptimizedDependencyCache({ cacheDir }) {
+  const invalidFiles = await findInvalidOptimizedDependencyCacheFiles(cacheDir)
+
+  if (invalidFiles.length === 0) {
+    return {
+      cleared: false,
+      invalidFiles,
+    }
+  }
+
+  await fs.rm(cacheDir, { force: true, recursive: true })
+  return {
+    cleared: true,
+    invalidFiles,
+  }
+}
+
+async function ensureValidOptimizedDependencyCache(cacheDir) {
+  try {
+    const result = await clearInvalidOptimizedDependencyCache({ cacheDir })
+
+    if (result.cleared) {
+      console.warn(
+        "[agent-html] cleared corrupt Vite optimized dependency cache: %s",
+        cacheDir
+      )
+    }
+  } catch (error) {
+    console.warn(
+      "[agent-html] unable to inspect Vite optimized dependency cache: %s",
+      error instanceof Error ? error.message : String(error)
+    )
+  }
+}
+
 function createAgentHtmlVitePlugin({ pipeline, root }) {
   return {
     name: "agent-html-dev-host",
@@ -238,6 +334,8 @@ function createAgentHtmlVitePlugin({ pipeline, root }) {
 }
 
 export async function createAgentHtmlViteServer({ pipeline = "codex", root, server }) {
+  const cacheDir = cacheDirForRoot(root)
+  await ensureValidOptimizedDependencyCache(cacheDir)
   const reactProtocolEntry = resolvePackageModule("@agent-html/react")
   const fsAllow = createViteFsAllowList({ reactProtocolEntry, root })
   const reactModuleResolutionAliases = createReactModuleResolutionAliases()
@@ -245,7 +343,7 @@ export async function createAgentHtmlViteServer({ pipeline = "codex", root, serv
 
   return createViteServer({
     appType: "custom",
-    cacheDir: cacheDirForRoot(root),
+    cacheDir,
     configFile: false,
     logLevel: "error",
     optimizeDeps: {

@@ -1,5 +1,7 @@
 const en = {
   "app.artifactCreationFailed": "Artifact creation failed.",
+  "app.artifactCreationTimedOut":
+    "Artifact creation timed out before {filePath} appeared.",
   "app.artifactReady": "Artifact ready.",
   "app.creatingArtifact": "Creating artifact...",
   "app.collapseArtifactSidebar": "Collapse Artifact sidebar",
@@ -8,6 +10,7 @@ const en = {
   "app.waitingForArtifact": "Waiting for artifact...",
   "artifact.createPending": "Creating artifact",
   "artifact.createPlaceholder": "Describe the artifact to build...",
+  "artifact.clearPending": "Clear pending state",
   "artifact.guardIssues": "Guard issues",
   "artifact.loadIssue": "Artifact load issue",
   "artifact.noArtifactsMessage":
@@ -128,6 +131,8 @@ const en = {
 
 const zh = {
   "app.artifactCreationFailed": "Artifact 创建失败。",
+  "app.artifactCreationTimedOut":
+    "等待 {filePath} 出现超时，Artifact 创建已停止。",
   "app.artifactReady": "Artifact 就绪。",
   "app.creatingArtifact": "正在创建 Artifact...",
   "app.collapseArtifactSidebar": "收起 Artifact 侧边栏",
@@ -136,6 +141,7 @@ const zh = {
   "app.waitingForArtifact": "正在等待 Artifact...",
   "artifact.createPending": "正在创建 Artifact",
   "artifact.createPlaceholder": "描述要构建的 Artifact...",
+  "artifact.clearPending": "清除 pending 状态",
   "artifact.guardIssues": "Guard issues",
   "artifact.loadIssue": "Artifact 加载问题",
   "artifact.noArtifactsMessage":

@@ -119,6 +119,63 @@ describe("artifact registry", () => {
     await registry.close()
   })
 
+  it("refreshes route polling snapshots without broadcasting HMR updates", async () => {
+    const { artifactsRoot, root } = await createArtifactWorkspace()
+    await fs.writeFile(
+      path.join(artifactsRoot, "demo.artifact.tsx"),
+      artifactSource()
+    )
+    const vite = createViteMock()
+    const registry = createArtifactRegistry({ root, vite })
+    await registry.start()
+    vite.ws.send.mockClear()
+
+    await registry.refresh({
+      broadcast: false,
+      reason: "artifact-poll",
+    })
+
+    expect(registry.getSnapshot()).toMatchObject({
+      artifacts: [
+        {
+          filePath: "agent-html/artifacts/demo.artifact.tsx",
+        },
+      ],
+      status: "ready",
+      version: 1,
+    })
+    expect(vite.ws.send).not.toHaveBeenCalled()
+
+    await registry.close()
+  })
+
+  it("advances silent polling snapshots when discovery finds new artifacts", async () => {
+    const { artifactsRoot, root } = await createArtifactWorkspace()
+    await fs.writeFile(
+      path.join(artifactsRoot, "demo.artifact.tsx"),
+      artifactSource()
+    )
+    const vite = createViteMock()
+    const registry = createArtifactRegistry({ root, vite })
+    await registry.start()
+    vite.ws.send.mockClear()
+
+    await fs.writeFile(
+      path.join(artifactsRoot, "new-demo.artifact.tsx"),
+      artifactSource({ blockId: "new", title: "New" })
+    )
+    await registry.refresh({
+      broadcast: false,
+      reason: "artifact-poll",
+    })
+
+    expect(registry.getSnapshot().artifacts).toHaveLength(2)
+    expect(registry.getSnapshot().version).toBe(2)
+    expect(vite.ws.send).not.toHaveBeenCalled()
+
+    await registry.close()
+  })
+
   it("removes deleted artifacts from the snapshot", async () => {
     const { artifactsRoot, root } = await createArtifactWorkspace()
     const artifactPath = path.join(artifactsRoot, "demo.artifact.tsx")

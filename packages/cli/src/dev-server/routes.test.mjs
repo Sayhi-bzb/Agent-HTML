@@ -92,6 +92,9 @@ describe("dev server routes", () => {
     expect(classifyDevServerRoute(hostRoutes.artifactRename)).toBe(
       "artifact-source-mutation"
     )
+    expect(classifyDevServerRoute(hostRoutes.artifactCreate)).toBe(
+      "artifact-source-mutation"
+    )
     expect(classifyDevServerRoute(hostRoutes.artifactDelete)).toBe(
       "artifact-source-mutation"
     )
@@ -226,6 +229,24 @@ describe("dev server routes", () => {
     })
   })
 
+  it("returns JSON 404 for unknown internal AgentHTML routes", async () => {
+    const response = createResponseMock()
+
+    const handled = await handleRoute({
+      request: { url: "/__agent-html/missing-route" },
+      response,
+      root: process.cwd(),
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(404)
+    expect(response.headers).toEqual({
+      "Content-Type": "application/json; charset=utf-8",
+    })
+    expect(JSON.parse(response.body)).toEqual({ error: "Not found" })
+  })
+
   it("rejects font stylesheet proxy requests without a url", async () => {
     const response = createResponseMock()
 
@@ -290,6 +311,125 @@ describe("dev server routes", () => {
     expect(handled).toBe(true)
     expect(artifactRegistry.getSnapshot).toHaveBeenCalledOnce()
     expect(JSON.parse(response.body)).toEqual(snapshot)
+  })
+
+  it("refreshes the artifact registry before serving pending polling snapshots", async () => {
+    const response = createResponseMock()
+    const snapshot = {
+      artifacts: [
+        {
+          blocks: [{ id: "pending", title: "Pending" }],
+          filePath: "agent-html/artifacts/pending.artifact.tsx",
+        },
+      ],
+      guardIssues: [],
+      status: "ready",
+      version: 8,
+    }
+    const artifactRegistry = createArtifactRegistryMock(snapshot)
+
+    const handled = await handleRequest({
+      artifactRegistry,
+      request: { url: `${hostRoutes.artifacts}?refresh=1` },
+      response,
+      root: process.cwd(),
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(artifactRegistry.refresh).toHaveBeenCalledWith({
+      broadcast: false,
+      reason: "artifact-poll",
+    })
+    expect(artifactRegistry.getSnapshot).toHaveBeenCalledOnce()
+    expect(JSON.parse(response.body)).toEqual(snapshot)
+  })
+
+  it("creates artifact entry files inside agent-html/artifacts", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const artifactRegistry = createArtifactRegistryMock()
+    const response = createResponseMock()
+
+    const handled = await handleRequest({
+      artifactRegistry,
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/artifacts/build-dashboard.artifact.tsx",
+          request: "Build a dashboard",
+        },
+        url: hostRoutes.artifactCreate,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(JSON.parse(response.body)).toEqual({
+      filePath: "agent-html/artifacts/build-dashboard.artifact.tsx",
+    })
+    await expect(
+      fs.readFile(
+        path.join(root, "agent-html", "artifacts", "build-dashboard.artifact.tsx"),
+        "utf8"
+      )
+    ).resolves.toContain("Build a dashboard")
+    expect(artifactRegistry.refresh).toHaveBeenCalledWith({
+      reason: "artifact-create",
+    })
+  })
+
+  it("rejects artifact create when the target file exists", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const artifactsRoot = path.join(root, "agent-html", "artifacts")
+    await fs.mkdir(artifactsRoot, { recursive: true })
+    await fs.writeFile(
+      path.join(artifactsRoot, "existing.artifact.tsx"),
+      "export default function Existing() { return null }\n"
+    )
+
+    const response = createResponseMock()
+    const handled = await handleRoute({
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/artifacts/existing.artifact.tsx",
+          request: "Replace it",
+        },
+        url: hostRoutes.artifactCreate,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(400)
+    expect(JSON.parse(response.body).error).toContain(
+      "Artifact file already exists"
+    )
+  })
+
+  it("rejects artifact create outside artifact entries", async () => {
+    const response = createResponseMock()
+
+    const handled = await handleRoute({
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/AGENTS.md",
+          request: "Build a dashboard",
+        },
+        url: hostRoutes.artifactCreate,
+      }),
+      response,
+      root: process.cwd(),
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(400)
+    expect(JSON.parse(response.body).error).toContain(
+      "agent-html/artifacts/*.artifact.tsx"
+    )
   })
 
   it("reports host entry transform failures with Vite details", async () => {

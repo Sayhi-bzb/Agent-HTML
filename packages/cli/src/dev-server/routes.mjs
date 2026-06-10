@@ -17,6 +17,7 @@ import { artifactEntryModulePath, hostEntryModulePath } from "./vite.mjs"
 
 export const hostRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
+  artifactCreate: "/__agent-html/artifact/create",
   artifactDelete: "/__agent-html/artifact/delete",
   artifactRename: "/__agent-html/artifact/rename",
   artifacts: "/__agent-html/artifacts",
@@ -389,6 +390,7 @@ export function classifyDevServerRoute(pathname) {
   }
 
   if (
+    pathname === hostRoutes.artifactCreate ||
     pathname === hostRoutes.artifactRename ||
     pathname === hostRoutes.artifactDelete
   ) {
@@ -522,6 +524,13 @@ async function handlePublicAssetRoute({ requestUrl, response, root }) {
 
 async function handleArtifactRegistryRoute({ artifactRegistry, requestUrl, response }) {
   if (requestUrl.pathname === hostRoutes.artifacts) {
+    if (requestUrl.searchParams.get("refresh") === "1") {
+      await artifactRegistry.refresh({
+        broadcast: false,
+        reason: "artifact-poll",
+      })
+    }
+
     sendJson(response, artifactRegistry.getSnapshot())
     return true
   }
@@ -536,6 +545,47 @@ async function handleArtifactSourceMutationRoute({
   response,
   root,
 }) {
+  if (requestUrl.pathname === hostRoutes.artifactCreate) {
+    if (request.method !== "POST") {
+      sendError(response, "POST is required", 405)
+      return true
+    }
+
+    try {
+      const body = await readJsonBody(request)
+      const requestText = typeof body.request === "string" ? body.request : ""
+      const { entryPath } = resolveArtifactSourceUnit({
+        filePath: body.filePath,
+        root,
+      })
+
+      if (!requestText.trim()) {
+        throw new Error("Artifact request is required")
+      }
+
+      if (await pathExists(entryPath)) {
+        throw new Error("Artifact file already exists")
+      }
+
+      await fs.mkdir(path.dirname(entryPath), { recursive: true })
+      await fs.writeFile(
+        entryPath,
+        createArtifactScaffold({
+          entryPath,
+          request: requestText,
+        }),
+        "utf8"
+      )
+      await artifactRegistry.refresh({ reason: "artifact-create" })
+      sendJson(response, {
+        filePath: workspaceRelativePath(root, entryPath),
+      })
+    } catch (error) {
+      sendError(response, error, 400)
+    }
+    return true
+  }
+
   if (requestUrl.pathname === hostRoutes.artifactRename) {
     if (request.method !== "POST") {
       sendError(response, "POST is required", 405)
@@ -608,6 +658,52 @@ async function handleArtifactSourceMutationRoute({
   }
 
   return false
+}
+
+function createArtifactScaffold({ entryPath, request }) {
+  const title = artifactNameFromEntryPath(entryPath)
+  const componentName = createArtifactComponentName(title)
+
+  return [
+    'import { Artifact, Block } from "@agent-html/react"',
+    "",
+    `export default function ${componentName}() {`,
+    "  return (",
+    `    <Artifact title={${JSON.stringify(title)}}>`,
+    '      <Block id="overview" title="Overview">',
+    '        <main className="min-h-screen bg-background text-foreground">',
+    '          <section className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-4 px-6 py-16">',
+    '            <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">',
+    "              Request",
+    "            </p>",
+    '            <h1 className="text-3xl font-semibold">',
+    `              ${title}`,
+    "            </h1>",
+    '            <p className="text-muted-foreground">',
+    `              {${JSON.stringify(request.trim())}}`,
+    "            </p>",
+    "          </section>",
+    "        </main>",
+    "      </Block>",
+    "    </Artifact>",
+    "  )",
+    "}",
+    "",
+  ].join("\n")
+}
+
+function createArtifactComponentName(title) {
+  const name = title
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map((part) => `${part[0].toUpperCase()}${part.slice(1)}`)
+    .join("")
+
+  if (!name) {
+    return "GeneratedArtifact"
+  }
+
+  return /^[A-Z]/.test(name) ? `${name}Artifact` : `Generated${name}Artifact`
 }
 
 async function handleBlockLookupRoute({ requestUrl, response, root }) {
@@ -700,6 +796,11 @@ export async function handleRequest({ artifactRegistry, request, response, root,
   const pipeline = classifyDevServerRoute(requestUrl.pathname)
 
   if (!pipeline) {
+    if (requestUrl.pathname.startsWith("/__agent-html/")) {
+      sendNotFound(response)
+      return true
+    }
+
     return false
   }
 

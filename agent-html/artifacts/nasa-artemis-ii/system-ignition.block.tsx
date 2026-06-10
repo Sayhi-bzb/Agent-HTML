@@ -1,4 +1,5 @@
 import { Badge } from "../../components/ui/badge"
+import { StatusBadge } from "../../components/ui/status-badge"
 
 import { mediaAssets, systemPanels } from "./data"
 
@@ -20,7 +21,7 @@ export function SystemIgnitionBlock() {
         <div className="canvas-stack-md">
           <div className="canvas-wrap-sm items-center">
             <Badge variant="secondary">Launch Complex 39B</Badge>
-            <Badge variant="outline">system ignition</Badge>
+            <StatusBadge status="warning">system ignition</StatusBadge>
           </div>
           <h2 className="canvas-text-heading">
             A full deep-space system comes alive from the ground.

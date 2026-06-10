@@ -1,10 +1,12 @@
 import { publicAssetUrl } from "../api/api"
 import { PromptComposer } from "../prompt/floating-prompt"
 import { useHostI18n } from "../i18n/host-i18n"
+import { HostButton } from "../ui/button"
 
 export function CreateArtifactSurface({
   disabled = false,
   draft,
+  onClearPending,
   onDraftChange,
   onSubmit,
   pending,
@@ -12,6 +14,7 @@ export function CreateArtifactSurface({
 }: {
   disabled?: boolean
   draft: string
+  onClearPending: () => void
   onDraftChange: (draft: string) => void
   onSubmit: (request: string) => Promise<void>
   pending: boolean
@@ -35,6 +38,18 @@ export function CreateArtifactSurface({
           {pending ? (
             <div className="canvas-create-artifact-pending" role="status">
               {t("artifact.createPending")}
+            </div>
+          ) : null}
+          {!pending && status ? (
+            <div className="canvas-create-artifact-actions">
+              <HostButton
+                onClick={onClearPending}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                {t("artifact.clearPending")}
+              </HostButton>
             </div>
           ) : null}
           <PromptComposer

@@ -2,12 +2,12 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "..
 import { Badge } from "../../components/ui/badge"
 import {
   Timeline,
-  TimelineConnector,
   TimelineContent,
-  TimelineDot,
+  TimelineDate,
   TimelineHeader,
+  TimelineIndicator,
   TimelineItem,
-  TimelineTime,
+  TimelineSeparator,
   TimelineTitle,
 } from "../../components/timeline"
 
@@ -25,14 +25,14 @@ export function QuietLayerBlock() {
           <h2 className="canvas-text-heading">
             Tokyo can speak at a lower volume.
           </h2>
-          <Timeline activeIndex={1}>
-            {quietRoute.map((stop) => (
-              <TimelineItem key={stop.label}>
-                <TimelineDot />
-                <TimelineConnector />
+          <Timeline defaultValue={2}>
+            {quietRoute.map((stop, index) => (
+              <TimelineItem key={stop.label} step={index + 1}>
+                <TimelineIndicator />
+                <TimelineSeparator />
                 <TimelineContent>
                   <TimelineHeader>
-                    <TimelineTime>{stop.time}</TimelineTime>
+                    <TimelineDate>{stop.time}</TimelineDate>
                     <TimelineTitle>{stop.label}</TimelineTitle>
                   </TimelineHeader>
                   <p className="canvas-text-caption text-muted-foreground">

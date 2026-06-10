@@ -44,6 +44,8 @@ Full TypeScript declarations are generated only as temporary build input.
 | `agent-html/components/ui/sidebar.tsx` | `Sidebar`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupAction`, `SidebarGroupContent`, `SidebarGroupLabel`, `SidebarHeader`, `SidebarInput`, `SidebarInset`, `SidebarMenu`, `SidebarMenuAction`, `SidebarMenuBadge`, `SidebarMenuButton`, `SidebarMenuItem`, `SidebarMenuSkeleton`, `SidebarMenuSub`, `SidebarMenuSubButton`, `SidebarMenuSubItem`, `SidebarProvider`, `SidebarRail`, `SidebarSeparator`, `SidebarTrigger`, `useSidebar` |
 | `agent-html/components/ui/skeleton.tsx` | `Skeleton` |
 | `agent-html/components/ui/slider.tsx` | `Slider` |
+| `agent-html/components/ui/status-badge.tsx` | `StatusBadge`, `StatusBadgeProps` |
+| `agent-html/components/ui/status.tsx` | `Status`, `statusVariants` |
 | `agent-html/components/ui/switch.tsx` | `Switch` |
 | `agent-html/components/ui/table.tsx` | `Table`, `TableBody`, `TableCaption`, `TableCell`, `TableFooter`, `TableHead`, `TableHeader`, `TableRow` |
 | `agent-html/components/ui/tabs.tsx` | `Tabs`, `TabsContent`, `TabsList`, `TabsTrigger`, `tabsListVariants` |
@@ -59,7 +61,7 @@ Full TypeScript declarations are generated only as temporary build input.
 | `agent-html/components/code-block.tsx` | `CodeBlock` |
 | `agent-html/components/data-table.tsx` | `DataTable`, `DataTableColumnHeader`, `DataTableColumnHeaderProps`, `DataTablePagination`, `DataTablePaginationProps`, `DataTableProps`, `DataTableViewOptions`, `DataTableViewOptionsProps` |
 | `agent-html/components/kanban.tsx` | `Kanban`, `KanbanBoard`, `KanbanColumn`, `KanbanColumnHandle`, `KanbanItem`, `KanbanItemHandle`, `KanbanOverlay`, `KanbanProps` |
-| `agent-html/components/timeline.tsx` | `Timeline`, `TimelineConnector`, `TimelineContent`, `TimelineDescription`, `TimelineDot`, `TimelineHeader`, `TimelineItem`, `TimelineProps`, `TimelineTime`, `TimelineTitle` |
+| `agent-html/components/map.tsx` | `Map`, `MapArc`, `MapClusterLayer`, `MapControls`, `MapMarker`, `MapPopup`, `MapRoute`, `MarkerContent`, `MarkerLabel`, `MarkerPopup`, `MarkerTooltip`, `useMap` |
 
 ## hooks
 
