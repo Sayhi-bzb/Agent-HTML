@@ -11,6 +11,9 @@ describe("React Canvas pipeline ownership contract", { timeout: 15000 }, () => {
       false
     )
     expect(
+      existsSync(join(root, "packages/cli/src/react-canvas/paths.mjs"))
+    ).toBe(true)
+    expect(
       existsSync(join(root, "packages/cli/src/react-canvas/block-tags.mjs"))
     ).toBe(true)
     expect(
@@ -21,6 +24,45 @@ describe("React Canvas pipeline ownership contract", { timeout: 15000 }, () => {
     expect(
       existsSync(join(root, "packages/cli/src/react-canvas/workspace-file.mjs"))
     ).toBe(true)
+  })
+
+  it("keeps React Canvas orchestration owners narrow and independent", () => {
+    const paths = readSource("packages/cli/src/react-canvas/paths.mjs")
+    const guard = readSource("packages/cli/src/react-canvas/guard.mjs")
+    const prompt = readSource("packages/cli/src/react-canvas/prompt.mjs")
+    const workspaceFile = readSource(
+      "packages/cli/src/react-canvas/workspace-file.mjs"
+    )
+    const blockImplementation = readSource(
+      "packages/cli/src/react-canvas/block-implementation.mjs"
+    )
+
+    expect(paths).toContain("discoverReactArtifacts")
+    expect(paths).toContain("discoverReactBlockImplementations")
+    expect(paths).not.toContain("readTextFile")
+    expect(paths).not.toContain("formatBlockPrompt")
+
+    expect(guard).toContain('from "./paths.mjs"')
+    expect(guard).toContain('from "./block-tags.mjs"')
+    expect(guard).toContain('from "./workspace-file.mjs"')
+    expect(guard).not.toContain('from "./prompt.mjs"')
+    expect(guard).not.toContain('from "../host/')
+
+    expect(prompt).not.toContain("readTextFile")
+    expect(prompt).not.toContain("readFile")
+    expect(prompt).not.toContain("implementationSource")
+    expect(prompt).not.toContain("selectedSource")
+    expect(prompt).not.toContain("Host")
+
+    expect(workspaceFile).toContain("readFile")
+    expect(workspaceFile).not.toMatch(/\b(?:writeFile|readdir|stat|mkdir|rm)\b/)
+    expect(workspaceFile).not.toContain("path.")
+
+    expect(blockImplementation).toContain("resolveBlockImplementationPath")
+    expect(blockImplementation).not.toContain("readTextFile")
+    expect(blockImplementation).not.toContain("readFile")
+    expect(blockImplementation).not.toContain("formatBlockPrompt")
+    expect(blockImplementation).not.toContain('from "../host/')
   })
 
   it("keeps example and Codex host pipelines physically separated", () => {

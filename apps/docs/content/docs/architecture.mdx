@@ -150,16 +150,23 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Pipeline | Owner | Input | Output | Forbidden dependencies | Primary tests |
 | --- | --- | --- | --- | --- | --- |
 | Workspace source | `agent-html` | artifact entries, split block files, local resources | portable source workspace | generated bundles, lockfiles, vendored installs | `workspace-contract.test.mjs` |
-| Artifact discovery | `react-canvas/paths.mjs` | `agent-html/artifacts/*.artifact.tsx` | artifact entry file paths | app shell, runtime parser, host UI | `dev-host.test.mjs` |
+| Workspace file/path helpers | `react-canvas/paths.mjs` + `react-canvas/workspace-file.mjs` | root path or source file path | POSIX workspace path or text source | generic filesystem abstraction, mutation APIs, host state | `pipeline-ownership-contract.test.mjs`, `workspace-contract.test.mjs` |
+| Artifact discovery | `react-canvas/paths.mjs` | `agent-html/artifacts/*.artifact.tsx` | artifact entry file paths | app shell, runtime parser, host UI | `dev-host.test.mjs`, `pipeline-ownership-contract.test.mjs` |
 | Artifact entry protocol guard | `react-canvas/guard.mjs` | artifact entry source | issues scoped as `artifact-entry-protocol` | layout or style props on `Artifact` or `Block` | `guard.test.mjs` |
 | Block implementation source guard | `react-canvas/guard.mjs` | `agent-html/{artifacts,examples}/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `style-ownership-contract.test.mjs` |
 | Workspace boundary guard | `react-canvas/guard.mjs` | artifact and block source imports | issues scoped as `workspace-boundary` | app imports, old runtime imports, public-file imports | `guard.test.mjs`, `workspace-contract.test.mjs`, `architecture-boundaries.test.mjs` |
-| Module transform and render | Vite middleware + host surface | artifact entry file path | mounted artifact DOM with HMR-capable module graph | app shell, old runtime render APIs | `dev-host.test.mjs` |
+| Dependency resolution | `dev-server/vite.mjs` | source import specifier | CLI-provided runtime module | `agent-html/node_modules`, source-owned runtime installs | `runtime-resolution-contract.test.mjs` |
+| Module transform and render | Vite middleware + host artifact runtime | artifact entry file path | mounted artifact DOM with HMR-capable module graph | app shell, old runtime render APIs | `dev-host.test.mjs`, `artifact-runtime.test.ts` |
+| Public/static asset serving | `dev-server/routes.mjs` + `host/api` URL helpers | public asset path or proxied font URL | served asset response or host URL | direct Host endpoint strings outside `host/api` | `dev-host.test.mjs`, `routes.test.mjs`, `api.test.ts`, `architecture-boundaries.test.mjs` |
+| Artifact registry consumption | `host/artifact/use-artifact-registry.ts` | artifact registry response and pending artifact path | active artifact, guard issues, registry refresh operations | dev-server route implementation, workspace validation | `app.test.tsx`, `pipeline-ownership-contract.test.mjs` |
 | Block overlay | `packages/react` + host overlay | rendered `data-agent-html-block-*` metadata | hover highlight and prompt target | artifact source mutation, host APIs in artifacts | `block-overlay.test.ts`, `index.test.tsx` |
 | Block implementation lookup | dev server + host API | `artifactEntry`, `blockId` | `implementationPath` | selected source payloads, implementation source payloads | `block-implementation.test.mjs`, `dev-host.test.mjs` |
 | Block prompt | `react-canvas/prompt.mjs` | `artifactEntry`, `blockId`, optional `implementationPath`, host `interactionSnapshot` | minimal prompt packet | selected source payloads, implementation source payloads | `prompt.test.mjs` |
+| Create artifact | `host/pipeline` + `react-canvas/prompt.mjs` | create request and generated artifact file path | Codex/example turn request | dev-server implementation, artifact source mutation in Host | `pipeline.test.ts`, `app.test.tsx` |
+| Guard fix | `host/pipeline` + `react-canvas/prompt.mjs` | guard errors for one artifact | Codex/example turn request | warnings-only prompt payloads, host UI state payloads | `pipeline.test.ts`, `prompt.test.mjs` |
 | Interaction state | `packages/react` event protocol + host store | artifact-local control changes | host prompt interaction snapshot | filesystem, shell, MCP, privileged host APIs in artifact code | `index.test.tsx`, `interaction-store.test.ts`, `prompt.test.mjs` |
-| CSS/theme | `agent-html/styles` + host theme editor | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `style-ownership-contract.test.mjs`, `theme-preset.test.ts` |
+| Preferences persistence | `host/preferences` | local host preference state | persisted host preference patch | artifact source state, dev-server state | `canvas-host-preferences.test.ts`, `use-canvas-host-preferences.test.ts` |
+| CSS/theme | `agent-html/styles` + host theme owner | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `style-ownership-contract.test.mjs`, `style-resource-contract.test.mjs`, `theme-preset.test.ts`, `theme-layout.test.ts` |
 
 Dev server routes are orchestration only. They are grouped into explicit
 runtime adapter pipelines:
@@ -211,8 +218,10 @@ agent-html/artifacts and agent-html/examples
 topology checks. Use it as the executable boundary matrix before adding new
 guard behavior. Workspace source constraints live in
 `workspace-contract.test.mjs`, package/runtime ownership lives in
-`package-runtime-contract.test.mjs`, and style ownership lives in
-`style-ownership-contract.test.mjs`.
+`package-runtime-contract.test.mjs`, pipeline ownership lives in
+`pipeline-ownership-contract.test.mjs`, archive separation lives in
+`archive-runtime-boundary-contract.test.mjs`, and style ownership lives in
+`style-ownership-contract.test.mjs` plus `style-resource-contract.test.mjs`.
 
 `style-ownership-contract.test.mjs` also records the current fixed-format
 artifact layout exceptions for media, map, and carousel blocks. Those

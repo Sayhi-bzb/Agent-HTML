@@ -142,6 +142,13 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(workbenchSource).not.toMatch(forbiddenWorkbenchOwnership)
   })
 
+  it("keeps Host endpoint strings owned by the Host API layer", () => {
+    const hostEndpointOwners = implementationFilesUnder("packages/cli/src/host")
+      .filter((file) => /\/__agent-html\//.test(readSource(file)))
+
+    expect(hostEndpointOwners).toEqual(["packages/cli/src/host/api/api.ts"])
+  })
+
   it("keeps apps from depending on the React Canvas CLI", () => {
     const forbidden =
       /from\s+["'](?:@agent-html\/cli|packages\/cli\/)|node\s+packages\/cli|agent-html\.mjs/
