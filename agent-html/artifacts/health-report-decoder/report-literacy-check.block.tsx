@@ -20,23 +20,23 @@ function resultForScore(score: number, total: number): QuizResult {
 
   if (ratio >= 0.8) {
     return {
-      label: "Ready to discuss",
-      note: "你已经能把红箭头、参考范围、趋势和沟通问题分开处理。",
+      label: "可以准备沟通",
+      note: "你已经知道哪些先收好、哪些要复查、哪些要当面问。",
       status: "success",
     }
   }
 
   if (ratio >= 0.5) {
     return {
-      label: "Review the report lanes",
-      note: "建议回看 raw report、triage lanes 和 trend view，再整理医生问题。",
+      label: "回看报告摘录",
+      note: "建议再看一遍报告摘录和这几年变化，再写就诊问题。",
       status: "info",
     }
   }
 
   return {
-    label: "Bring questions to clinician",
-    note: "先不要急着解释结果，把问题、背景和历史记录带去沟通。",
+    label: "带问题去沟通",
+    note: "先把问题、近期背景和旧记录放在一起，再去沟通。",
     status: "warning",
   }
 }
@@ -57,17 +57,16 @@ export function ReportLiteracyCheckBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">report literacy check</Badge>
+        <Badge variant="secondary">读报告前自查</Badge>
         <h2 className="canvas-text-heading">
-          测一测你是否真的读懂了这份报告。
+          看完以后，确认自己没有只盯着红箭头。
         </h2>
         <p className="canvas-text-body text-muted-foreground">
-          这不是健康风险评分。它只检查你是否知道如何阅读红箭头、参考范围、趋势和医生沟通线索。
+          这些题只检查阅读方式：看范围、看旧记录、记背景、准备问题。
         </p>
       </div>
 
-      <div className="rounded-md border bg-background p-4">
-        <div className="canvas-stack-md">
+      <div className="canvas-stack-md">
           {quizQuestions.map((question, index) => {
             const selectedAnswer = answers[question.id]
             const isCorrect = selectedAnswer === question.correctOptionId
@@ -87,7 +86,7 @@ export function ReportLiteracyCheckBlock() {
                   ) : null}
                   {submitted ? (
                     <StatusBadge status={isCorrect ? "success" : "warning"}>
-                      {isCorrect ? "understood" : "needs review"}
+                      {isCorrect ? "已理解" : "需回看"}
                     </StatusBadge>
                   ) : null}
                 </div>
@@ -123,18 +122,18 @@ export function ReportLiteracyCheckBlock() {
               </article>
             )
           })}
-          <div className="canvas-stack-sm border-t pt-4">
+          <div className="canvas-stack-sm pt-2">
             <div className="canvas-wrap-sm items-center justify-between">
               <div className="canvas-wrap-sm items-center">
                 <StatusBadge status={submitted ? result.status : "info"}>
-                  {submitted ? result.label : "not submitted"}
+                  {submitted ? result.label : "未提交"}
                 </StatusBadge>
                 <Badge variant="outline">
-                  {answeredCount} / {quizQuestions.length} answered
+                  已答 {answeredCount} / {quizQuestions.length}
                 </Badge>
                 {submitted ? (
                   <Badge variant="outline">
-                    {score} / {quizQuestions.length} understood
+                    已理解 {score} / {quizQuestions.length}
                   </Badge>
                 ) : null}
               </div>
@@ -144,7 +143,7 @@ export function ReportLiteracyCheckBlock() {
                   onClick={() => setSubmitted(true)}
                   size="sm"
                 >
-                  Check answers
+                  检查答案
                 </Button>
                 <Button
                   onClick={() => {
@@ -154,17 +153,16 @@ export function ReportLiteracyCheckBlock() {
                   size="sm"
                   variant="outline"
                 >
-                  Reset
+                  重置
                 </Button>
               </div>
             </div>
             <p className="canvas-text-body text-muted-foreground">
               {submitted
                 ? result.note
-                : "答完所有题后，结果只会显示理解准备度，不会输出医学结论。"}
+                : "答完所有题后，只显示这份笔记还缺哪一步。"}
             </p>
           </div>
-        </div>
       </div>
     </section>
   )

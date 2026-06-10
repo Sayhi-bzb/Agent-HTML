@@ -22,7 +22,7 @@ import { labItemByCode, statusFor, trendSeries } from "./data"
 const chartConfig = {
   value: {
     color: "var(--chart-1)",
-    label: "result",
+    label: "结果",
   },
 } satisfies ChartConfig
 
@@ -31,13 +31,13 @@ export function TrendViewBlock() {
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-2">
         <div className="canvas-stack-sm">
-          <Badge variant="secondary">single red dot vs trend</Badge>
+          <Badge variant="secondary">这几年有没有变</Badge>
           <h2 className="canvas-text-heading">
-            身体不是一次截图，而是一条曲线。
+            有些项目要看今年，也要看前几年。
           </h2>
         </div>
         <p className="canvas-text-body text-muted-foreground">
-          同一个 flagged result 留在图表旁边，防止趋势变成抽象数据。这里看的是复查和沟通线索，不是预测。
+          把 2025 年这次结果放回旧记录里。上升、接近上沿、突然变化，都比一个箭头更适合带去问。
         </p>
       </div>
 
@@ -57,7 +57,7 @@ export function TrendViewBlock() {
 
           return (
             <TabsContent
-              className="grid gap-4 rounded-md border bg-background p-4 md:grid-cols-2"
+              className="grid gap-4 md:grid-cols-2"
               key={series.code}
               value={series.code}
             >
@@ -102,16 +102,16 @@ export function TrendViewBlock() {
                       {item.unit ? ` ${item.unit}` : ""}
                     </p>
                     <p className="font-mono text-sm text-muted-foreground">
-                      reference: {item.referenceRange}
+                      参考范围：{item.referenceRange}
                     </p>
                   </div>
                 ) : null}
 
-                <div className="canvas-stack-sm border-t pt-4">
-                  <Badge variant="outline">trend reading</Badge>
+                <div className="canvas-stack-sm pt-2">
+                  <Badge variant="outline">笔记</Badge>
                   <p className="canvas-text-body">{series.context}</p>
                   <p className="canvas-text-caption text-muted-foreground">
-                    示例曲线只说明如何阅读连续变化，不表达预测、评分或诊断。
+                    示例曲线只用来练习看连续变化。
                   </p>
                 </div>
               </div>

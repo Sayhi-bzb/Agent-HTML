@@ -1,11 +1,9 @@
 import { Badge } from "../../components/ui/badge"
-import { Checkbox } from "../../components/ui/checkbox"
 import { StatusBadge } from "../../components/ui/status-badge"
 
 import {
   doctorQueue,
   labItemByCode,
-  lifeContextFields,
   statusFor,
 } from "./data"
 
@@ -13,17 +11,16 @@ export function DoctorPrepBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">doctor handoff</Badge>
+        <Badge variant="secondary">下次就诊小纸条</Badge>
         <h2 className="canvas-text-heading">
-          最好的解读，是让你更会和医生沟通。
+          到诊室前，把要问的事写短一点。
         </h2>
         <p className="canvas-text-body text-muted-foreground">
-          这一幕是报告解码后的交付物：问题、背景、复查线索，而不是结论。
+          每条只保留项目、这次结果、一个问题。医生更容易接着看。
         </p>
       </div>
 
-      <div className="rounded-md border bg-background p-4">
-        <div className="canvas-stack-md">
+      <div className="canvas-stack-md">
           {doctorQueue.map((queueItem, index) => {
             const item = labItemByCode(queueItem.code)
             const meta = statusFor(queueItem.status)
@@ -48,31 +45,13 @@ export function DoctorPrepBlock() {
                   <p className="canvas-text-body">{queueItem.prompt}</p>
                   {item ? (
                     <p className="canvas-text-caption text-muted-foreground">
-                      Bring context: {item.rawNote}, reference {item.referenceRange}.
+                      报告标记：{item.rawNote}；参考范围 {item.referenceRange}。
                     </p>
                   ) : null}
                 </div>
               </div>
             )
           })}
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        {lifeContextFields.slice(0, 3).map((field) => (
-          <label
-            className="canvas-cluster-sm items-start"
-            key={field.label}
-          >
-            <Checkbox />
-            <span className="canvas-stack-xs">
-              <span className="font-medium">{field.label}</span>
-              <span className="canvas-text-caption text-muted-foreground">
-                {field.prompt}
-              </span>
-            </span>
-          </label>
-        ))}
       </div>
     </section>
   )

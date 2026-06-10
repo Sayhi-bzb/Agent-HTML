@@ -8,14 +8,12 @@ export function SourcesBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">sources</Badge>
+        <Badge variant="secondary">来源</Badge>
         <h2 className="canvas-text-heading">
-          Health information sources and boundaries
+          参考资料放在最后。
         </h2>
         <p className="canvas-text-body text-muted-foreground">
-          Source links are collected here so the report decoder can read
-          continuously while lab result literacy, public health communication,
-          and example test context remain traceable.
+          页面里的阅读方式参考了公开健康信息材料；外部标题保留原文，方便回查。
         </p>
       </div>
 
@@ -30,9 +28,7 @@ export function SourcesBlock() {
 
       <Alert>
         <AlertDescription>
-          These sources support report literacy and public health communication.
-          They do not replace clinician discussion, personal medical history, or
-          the reference ranges from a specific lab report.
+          这些资料只支持阅读方式。个人判断仍以原始报告、既往病史和医生沟通为准。
         </AlertDescription>
       </Alert>
     </section>

@@ -4,8 +4,8 @@ import { sourceGroups } from "./data"
 import { SourceLinks } from "./source-links"
 
 const photosGroup = sourceGroups.find((group) => group.label === "Photos")
-const rightColumnGroups = sourceGroups.filter((group) =>
-  ["Maps and transit", "Official place context"].includes(group.label)
+const rightColumnGroups = sourceGroups.filter(
+  (group) => group.label !== "Photos"
 )
 
 export function SourcesBlock() {

@@ -2,6 +2,36 @@ import { BookOpen, Bookmark, MapPinned, RouteOff } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
 
+const openDoodle = {
+  alt: "Illustration of a person moving slowly with loose, unfinished motion.",
+  caption:
+    "Leave one street, shelf, or garden path unresolved so the next visit already has a beginning.",
+}
+
+function OpenLoopDoodle() {
+  return (
+    <svg
+      aria-labelledby="open-loop-doodle-title open-loop-doodle-desc"
+      className="mx-auto max-h-48 w-full"
+      role="img"
+      viewBox="0 0 1024 768"
+    >
+      <title id="open-loop-doodle-title">
+        Unfinished route travel note
+      </title>
+      <desc id="open-loop-doodle-desc">{openDoodle.alt}</desc>
+      <use
+        className="fill-ring"
+        href="/__agent-html/public/tokyo-three-speeds/open-doodle-zombieing.svg#open-doodle-zombieing-accent"
+      />
+      <use
+        className="fill-foreground"
+        href="/__agent-html/public/tokyo-three-speeds/open-doodle-zombieing.svg#open-doodle-zombieing-ink"
+      />
+    </svg>
+  )
+}
+
 const travelNotes = [
   {
     Icon: MapPinned,
@@ -43,18 +73,35 @@ export function TravelNotesBlock() {
         </p>
       </div>
 
-      <div className="canvas-grid-gap md:grid-cols-2">
-        {travelNotes.map((note) => (
-          <article className="canvas-stack-sm border-l pl-4" key={note.label}>
-            <p className="canvas-wrap-sm items-center canvas-text-body">
-              <note.Icon data-icon="inline-start" />
-              <span>{note.label}</span>
-            </p>
-            <p className="canvas-text-caption text-muted-foreground">
-              {note.text}
-            </p>
-          </article>
-        ))}
+      <div
+        className="canvas-grid-gap items-center"
+        style={{
+          gridTemplateColumns: "minmax(8rem, 0.7fr) minmax(0, 1fr)",
+        }}
+      >
+        <figure className="canvas-stack-sm">
+          <div className="p-2">
+            <OpenLoopDoodle />
+          </div>
+          <figcaption className="canvas-stack-xs">
+            <Badge variant="outline">unfinished route</Badge>
+            <p className="canvas-text-body">{openDoodle.caption}</p>
+          </figcaption>
+        </figure>
+
+        <div className="canvas-grid-gap md:grid-cols-2">
+          {travelNotes.map((note) => (
+            <article className="canvas-stack-sm border-l pl-4" key={note.label}>
+              <p className="canvas-wrap-sm items-center canvas-text-body">
+                <note.Icon data-icon="inline-start" />
+                <span>{note.label}</span>
+              </p>
+              <p className="canvas-text-caption text-muted-foreground">
+                {note.text}
+              </p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   )

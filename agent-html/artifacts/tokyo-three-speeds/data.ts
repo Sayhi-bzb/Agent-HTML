@@ -628,6 +628,16 @@ export const sourceGroups = [
     ],
   },
   {
+    label: "Illustrations",
+    links: [
+      {
+        label: "Open Doodles Zombieing",
+        note: "Open Doodles illustration used as the open-loop travel note visual.",
+        url: "https://opendoodles.com/",
+      },
+    ],
+  },
+  {
     label: "Official place context",
     links: [
       {

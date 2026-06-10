@@ -11,36 +11,36 @@ import { TrendViewBlock } from "./health-report-decoder/trend-view.block"
 
 export default function HealthReportDecoderArtifact() {
   return (
-    <Artifact title="Health Report Decoder">
-      <Block id="report-triage" title="Report Triage">
+    <Artifact title="这次体检怎么记">
+      <Block id="report-triage" title="先记三件事">
         <ReportTriageBlock />
       </Block>
 
-      <Block id="system-map" title="Body System Map">
+      <Block id="system-map" title="按项目归好类">
         <SystemMapBlock />
       </Block>
 
-      <Block id="range-decoder" title="Range Decoder">
+      <Block id="range-decoder" title="这次先看 LDL-C">
         <RangeDecoderBlock />
       </Block>
 
-      <Block id="trend-view" title="Trend View">
+      <Block id="trend-view" title="这几年有没有变">
         <TrendViewBlock />
       </Block>
 
-      <Block id="report-literacy-check" title="Report Literacy Check">
+      <Block id="report-literacy-check" title="读报告前自查">
         <ReportLiteracyCheckBlock />
       </Block>
 
-      <Block id="doctor-prep" title="Doctor Prep">
+      <Block id="doctor-prep" title="下次就诊小纸条">
         <DoctorPrepBlock />
       </Block>
 
-      <Block id="life-context" title="Life Context">
+      <Block id="life-context" title="近期背景备忘">
         <LifeContextBlock />
       </Block>
 
-      <Block id="sources" title="Sources">
+      <Block id="sources" title="参考资料">
         <SourcesBlock />
       </Block>
     </Artifact>

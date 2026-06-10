@@ -15,12 +15,12 @@ export function LifeContextBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">context registry</Badge>
+        <Badge variant="secondary">近期背景备忘</Badge>
         <h2 className="canvas-text-heading">
-          健康管理从理解开始，不从恐惧开始。
+          复查前，先把最近两周写下来。
         </h2>
         <p className="canvas-text-body text-muted-foreground">
-          背景字段只帮助医生理解复查条件和生活背景，不把指标变化直接归因给某个习惯。
+          睡眠、饮食、运动、用药这些信息不负责解释结果，但能让下一次沟通少一点遗漏。
         </p>
       </div>
 
@@ -28,9 +28,9 @@ export function LifeContextBlock() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>field</TableHead>
-              <TableHead>question</TableHead>
-              <TableHead>record</TableHead>
+              <TableHead>字段</TableHead>
+              <TableHead>问题</TableHead>
+              <TableHead>记录内容</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -47,7 +47,7 @@ export function LifeContextBlock() {
 
       <Alert>
         <AlertDescription>
-          Interpretation boundary: example values are fictional. This artifact prepares questions and records for a clinician; it does not diagnose, prescribe, or replace medical care.
+          示例数值均为虚构；真实记录请按原始报告和医生建议处理。
         </AlertDescription>
       </Alert>
     </section>

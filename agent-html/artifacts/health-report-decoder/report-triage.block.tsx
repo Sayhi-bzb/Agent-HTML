@@ -20,27 +20,70 @@ import {
 } from "./data"
 
 const statusOrder: ReportStatus[] = ["normal", "watch", "recheck", "consult"]
+const priorityStatuses: ReportStatus[] = ["consult", "recheck", "watch"]
 
 export function ReportTriageBlock() {
+  const priorityItems = priorityStatuses.flatMap((status) =>
+    labItemsByStatus(status)
+  )
+
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
         <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">Health Report Decoder</Badge>
+          <Badge variant="secondary">体检后的小记录</Badge>
           <Badge variant="outline">{sampleReport.context}</Badge>
         </div>
-        <h1 className="canvas-text-title">先看层级，不急着害怕。</h1>
+        <h1 className="canvas-text-title">这次先记三件事。</h1>
         <p className="canvas-text-body text-muted-foreground">
-          同一份报告被拆成三层：左边保留原始噪声，中间把指标重新分层，右边生成可带去沟通的问题。
+          不急着给自己下结论。先把需要问、需要复查、需要下次对照的项目放在同一页。
         </p>
       </div>
 
-      <div className="canvas-stack-lg overflow-hidden rounded-md bg-sidebar p-4 md:p-5">
-        <div className="canvas-stack-md bg-background/90">
+      <div className="grid overflow-hidden rounded-md bg-background md:grid-cols-[0.78fr_1.22fr]">
+        <aside className="canvas-stack-md border-b md:border-r md:border-b-0">
           <div className="canvas-stack-xs">
-            <Badge variant="secondary">raw report</Badge>
+            <Badge variant="secondary">这次先看</Badge>
             <p className="canvas-text-caption text-muted-foreground">
-              缩写、单位、参考范围和箭头先原样保留。
+              把红箭头先变成几个可处理的事项。
+            </p>
+          </div>
+
+          <div className="canvas-stack-sm">
+            {priorityItems.map((item) => {
+              const meta = statusFor(item.status)
+
+              return (
+                <div className="canvas-stack-xs border-b pb-3 last:border-b-0 last:pb-0" key={item.code}>
+                  <div className="canvas-wrap-sm items-center justify-between">
+                    <StatusBadge status={meta.status}>{item.code}</StatusBadge>
+                    <Badge variant="outline">{meta.lane}</Badge>
+                  </div>
+                  <p className="canvas-text-body">{item.label}</p>
+                  <p className="canvas-text-caption text-muted-foreground">
+                    {item.result}
+                    {item.unit ? ` ${item.unit}` : ""} / {item.rawNote}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="canvas-stack-sm pt-2">
+            <Badge variant="secondary">下次要问</Badge>
+            {doctorQueue.slice(0, 3).map((item, index) => (
+              <p className="canvas-text-body" key={item.code}>
+                {index + 1}. {item.prompt}
+              </p>
+            ))}
+          </div>
+        </aside>
+
+        <div className="canvas-stack-lg">
+          <div className="canvas-stack-xs">
+            <Badge variant="secondary">报告摘录</Badge>
+            <p className="canvas-text-caption text-muted-foreground">
+              原来的缩写、单位和参考范围保留，方便回看纸质报告。
             </p>
           </div>
 
@@ -48,11 +91,11 @@ export function ReportTriageBlock() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>code</TableHead>
-                  <TableHead>item</TableHead>
-                  <TableHead>result</TableHead>
-                  <TableHead>range</TableHead>
-                  <TableHead>flag</TableHead>
+                  <TableHead>代码</TableHead>
+                  <TableHead>项目</TableHead>
+                  <TableHead>结果</TableHead>
+                  <TableHead>参考范围</TableHead>
+                  <TableHead>标记</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -85,32 +128,17 @@ export function ReportTriageBlock() {
               </TableBody>
             </Table>
           </div>
-        </div>
 
-        <div className="canvas-grid-gap md:grid-cols-2">
-        <div className="canvas-stack-md bg-background p-4 md:p-5">
-          <div className="canvas-stack-xs">
-            <Badge variant="secondary">triage lanes</Badge>
-            <p className="canvas-text-caption text-muted-foreground">
-              箭头被重新翻译成关注层级，而不是结论。
-            </p>
-          </div>
-
-          <div className="canvas-stack-sm">
+          <div className="canvas-grid-gap md:grid-cols-4">
             {statusOrder.map((status) => {
               const meta = statusMeta[status]
               const items = labItemsByStatus(status)
 
               return (
-                <div className="canvas-stack-xs border-b pb-3 last:border-b-0 last:pb-0" key={status}>
-                  <div className="canvas-wrap-sm items-center justify-between">
-                    <StatusBadge status={meta.status}>{meta.label}</StatusBadge>
-                    <span className="canvas-text-caption text-muted-foreground">
-                      {items.length} item{items.length === 1 ? "" : "s"}
-                    </span>
-                  </div>
+                <div className="canvas-stack-xs" key={status}>
+                  <StatusBadge status={meta.status}>{meta.label}</StatusBadge>
                   <p className="canvas-text-caption text-muted-foreground">
-                    {meta.lane}
+                    {items.length} 项 / {meta.lane}
                   </p>
                   <div className="canvas-wrap-sm">
                     {items.map((item) => (
@@ -123,43 +151,15 @@ export function ReportTriageBlock() {
               )
             })}
           </div>
-        </div>
 
-        <div className="canvas-stack-md bg-background/90 p-4 md:p-5">
-          <div className="canvas-stack-xs">
-            <Badge variant="secondary">doctor queue</Badge>
-            <p className="canvas-text-caption text-muted-foreground">
-              页面只生成沟通问题，不生成病名或处理方案。
-            </p>
-          </div>
-
-          <div className="canvas-stack-sm">
-            {doctorQueue.map((item, index) => {
-              const meta = statusFor(item.status)
-
-              return (
-                <div className="canvas-stack-xs border-b pb-3 last:border-b-0 last:pb-0" key={item.code}>
-                  <div className="canvas-wrap-sm items-center">
-                    <Badge>{String(index + 1).padStart(2, "0")}</Badge>
-                    <StatusBadge status={meta.status}>{item.code}</StatusBadge>
-                    <span className="canvas-text-caption text-muted-foreground">
-                      {item.label}
-                    </span>
-                  </div>
-                  <p className="canvas-text-body">{item.prompt}</p>
-                </div>
-              )
-            })}
-          </div>
-
-          <Alert>
-            <AlertDescription>
-              Interpretation boundary: this fictional report helps structure questions for a clinician. It does not diagnose, prescribe, or replace medical care.
-            </AlertDescription>
-          </Alert>
-        </div>
         </div>
       </div>
+
+      <Alert>
+        <AlertDescription>
+          这是一份虚构示例，用来整理问题和复查线索；真正判断仍以医生和原始报告为准。
+        </AlertDescription>
+      </Alert>
     </section>
   )
 }

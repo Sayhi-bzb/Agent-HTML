@@ -67,22 +67,22 @@ export type QuizQuestion = {
 export const statusMeta = {
   normal: {
     label: "正常",
-    lane: "background signal",
+    lane: "先收好",
     status: "success",
   },
   watch: {
     label: "需观察",
-    lane: "context check",
+    lane: "下次对照",
     status: "info",
   },
   recheck: {
     label: "建议复查",
-    lane: "repeat under known conditions",
+    lane: "约个复查",
     status: "warning",
   },
   consult: {
     label: "咨询医生",
-    lane: "bring to clinician",
+    lane: "当面问清",
     status: "destructive",
   },
 } as const satisfies Record<
@@ -95,62 +95,62 @@ export const systems: SystemGroup[] = [
     id: "blood",
     label: "血液与炎症",
     note: "看血细胞数量、贫血线索和炎症背景。",
-    signal: "blood signal",
+    signal: "血常规",
   },
   {
     id: "liver",
     label: "肝功能",
     note: "看肝细胞、胆道和近期生活背景相关线索。",
-    signal: "processing signal",
+    signal: "肝功能",
   },
   {
     id: "kidney",
     label: "肾功能",
     note: "看过滤、代谢废物和尿酸变化。",
-    signal: "filter signal",
+    signal: "肾功能",
   },
   {
     id: "glucose",
     label: "代谢与血糖",
     note: "看短期血糖和更长期糖代谢状态。",
-    signal: "energy signal",
+    signal: "血糖",
   },
   {
     id: "cardio",
     label: "心血管风险",
     note: "整理血脂、血压和家族史等长期沟通线索。",
-    signal: "long-view signal",
+    signal: "血脂",
   },
   {
     id: "urine",
     label: "尿检",
     note: "看采样、感染、排泄和代谢相关线索。",
-    signal: "sample signal",
+    signal: "尿检",
   },
 ]
 
 export const sampleReport = {
-  context: "annual checkup / fictional sample / no personal data",
+  context: "年度体检 / 虚构示例 / 不含个人数据",
   labItems: [
     {
       code: "WBC",
       doctorQuestion:
         "白细胞和近期感染、发热、疲劳背景是否需要一起看？",
       label: "白细胞计数",
-      rawNote: "within range",
+      rawNote: "范围内",
       referenceRange: "3.5-9.5",
       result: "5.8",
       status: "normal",
       systemId: "blood",
       unit: "10^9/L",
-      whyItMatters: "作为炎症和血液系统背景信号保留。",
+      whyItMatters: "先作为血常规背景值收好。",
     },
     {
       code: "HGB",
       doctorQuestion:
         "血红蛋白稳定时，是否只需要继续保留为背景值？",
       label: "血红蛋白",
-      rawNote: "within range",
+      rawNote: "范围内",
       referenceRange: "115-150",
       result: "132",
       status: "normal",
@@ -177,20 +177,20 @@ export const sampleReport = {
       doctorQuestion:
         "AST 未同步明显变化时，ALT 轻偏高是否先复查确认？",
       label: "天门冬氨酸氨基转移酶",
-      rawNote: "within range",
+      rawNote: "范围内",
       referenceRange: "0-40",
       result: "31",
       status: "normal",
       systemId: "liver",
       unit: "U/L",
-      whyItMatters: "和 ALT 一起帮助看肝功能信号是否成组变化。",
+      whyItMatters: "和 ALT 放在一起看，避免只盯一个数。",
     },
     {
       code: "CREA",
       doctorQuestion:
         "肌酐和 eGFR 是否需要结合饮水、运动和既往结果看？",
       label: "肌酐",
-      rawNote: "within range",
+      rawNote: "范围内",
       referenceRange: "45-84",
       result: "71",
       status: "normal",
@@ -203,7 +203,7 @@ export const sampleReport = {
       doctorQuestion:
         "尿酸接近上沿时，是否需要记录饮食、饮酒和复查条件？",
       label: "尿酸",
-      rawNote: "near upper edge",
+      rawNote: "接近上沿",
       referenceRange: "155-357",
       result: "352",
       status: "watch",
@@ -230,7 +230,7 @@ export const sampleReport = {
       doctorQuestion:
         "长期糖代谢指标稳定时，空腹血糖是否先观察和复查？",
       label: "糖化血红蛋白",
-      rawNote: "within range",
+      rawNote: "范围内",
       referenceRange: "4.0-6.0",
       result: "5.5",
       status: "normal",
@@ -257,7 +257,7 @@ export const sampleReport = {
       doctorQuestion:
         "HDL-C 和 LDL-C、甘油三酯是否需要一起讨论？",
       label: "高密度脂蛋白胆固醇",
-      rawNote: "within range",
+      rawNote: "范围内",
       referenceRange: ">1.0",
       result: "1.4",
       status: "normal",
@@ -270,13 +270,13 @@ export const sampleReport = {
       doctorQuestion:
         "甘油三酯是否受前一晚饮食、饮酒或空腹状态影响？",
       label: "甘油三酯",
-      rawNote: "within range",
+      rawNote: "范围内",
       referenceRange: "0-1.7",
       result: "1.3",
       status: "normal",
       systemId: "cardio",
       unit: "mmol/L",
-      whyItMatters: "帮助把血脂结果放进同一组信号。",
+      whyItMatters: "和 LDL-C、HDL-C 放在同一组看。",
     },
     {
       code: "UPRO",
@@ -300,7 +300,7 @@ export const activeIndicatorCode = "LDL-C"
 export const trendSeries: TrendSeries[] = [
   {
     code: "LDL-C",
-    context: "连续抬升比某一次红点更值得带去沟通。",
+    context: "连续几年往上走，比今年一个红点更值得问清楚。",
     points: [
       { year: "2021", value: 2.7 },
       { year: "2022", value: 3.0 },
@@ -311,7 +311,7 @@ export const trendSeries: TrendSeries[] = [
   },
   {
     code: "FPG",
-    context: "接近上沿时，下一步通常是确认是否持续。",
+    context: "接近上沿时，先看下次是不是还这样。",
     points: [
       { year: "2021", value: 5.1 },
       { year: "2022", value: 5.2 },
@@ -322,7 +322,7 @@ export const trendSeries: TrendSeries[] = [
   },
   {
     code: "ALT",
-    context: "一次升高要和运动、饮酒、用药、复查一起看。",
+    context: "一次升高先记下运动、饮酒、用药，再看复查。",
     points: [
       { year: "2021", value: 24 },
       { year: "2022", value: 28 },
@@ -510,41 +510,41 @@ export const quizQuestions: QuizQuestion[] = [
 
 export const sourceGroups = [
   {
-    label: "Lab result literacy",
+    label: "检验结果阅读",
     links: [
       {
         label: "MedlinePlus: How to Understand Your Lab Results",
-        note: "Reference range and lab result interpretation guidance.",
+        note: "关于参考范围和检验结果阅读方式的说明。",
         url: "https://medlineplus.gov/lab-tests/how-to-understand-your-lab-results/",
       },
       {
         label: "MedlinePlus Lab Tests",
-        note: "General explanations for common laboratory tests.",
+        note: "常见实验室检查的一般说明。",
         url: "https://medlineplus.gov/lab-tests/",
       },
     ],
   },
   {
-    label: "Public health communication",
+    label: "公共健康沟通",
     links: [
       {
         label: "CDC Visual Communication Resources",
-        note: "Plain, accessible public health visual communication guidance.",
+        note: "清晰、易读的公共健康视觉沟通指南。",
         url: "https://www.cdc.gov/health-literacy/php/develop-materials/visual-communication.html",
       },
       {
         label: "CDC/NCHS Health infographics",
-        note: "Health statistics infographic reference for low-noise trend communication.",
+        note: "健康统计图示参考，用于低噪声趋势沟通。",
         url: "https://www.cdc.gov/nchs/hus/resources/infographics.htm",
       },
     ],
   },
   {
-    label: "Example test context",
+    label: "示例检查背景",
     links: [
       {
         label: "Mayo Clinic: Complete Blood Count",
-        note: "CBC overview used as general context, not as diagnostic guidance.",
+        note: "血常规概览，仅作为一般背景，不当作个人结论。",
         url: "https://www.mayoclinic.org/tests-procedures/complete-blood-count/about/pac-20384919",
       },
     ],

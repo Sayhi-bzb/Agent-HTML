@@ -29,17 +29,16 @@ export function RangeDecoderBlock() {
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-2">
         <div className="canvas-stack-sm">
-          <Badge variant="secondary">active indicator</Badge>
+          <Badge variant="secondary">这次先看 LDL-C</Badge>
           <h2 className="canvas-text-heading">
-            红色箭头被拆成位置、组合和问题。
+            它不是最吓人的数字，但值得带着旧记录问一次。
           </h2>
           <p className="canvas-text-body text-muted-foreground">
-            这里不直接解释成疾病。先看它在报告里的原始位置，再看同系统指标和要问医生的问题。
+            这页只把 LDL-C 放回血脂这一组：数值、范围、同组指标，以及下次可以怎么问。
           </p>
         </div>
 
-        <div className="rounded-md border bg-background p-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
             <div className="canvas-stack-sm">
               <StatusBadge status={meta.status}>{activeItem.code}</StatusBadge>
               <h3 className="canvas-text-heading">{activeItem.label}</h3>
@@ -54,33 +53,32 @@ export function RangeDecoderBlock() {
               <div className="canvas-stack-xs">
                 <div className="canvas-wrap-sm items-center justify-between">
                   <span className="canvas-text-caption text-muted-foreground">
-                    report-specific reference
+                    报告上的参考范围
                   </span>
                   <span className="font-mono text-xs">{activeItem.referenceRange}</span>
                 </div>
                 <Progress value={78} />
                 <div className="grid grid-cols-4 gap-2 text-muted-foreground">
-                  <span className="canvas-text-caption">low</span>
-                  <span className="canvas-text-caption">inside</span>
-                  <span className="canvas-text-caption">edge</span>
-                  <span className="canvas-text-caption">flag</span>
+                  <span className="canvas-text-caption">偏低</span>
+                  <span className="canvas-text-caption">范围内</span>
+                  <span className="canvas-text-caption">边缘</span>
+                  <span className="canvas-text-caption">标记</span>
                 </div>
               </div>
               <p className="canvas-text-body">{activeItem.whyItMatters}</p>
             </div>
-          </div>
         </div>
       </div>
 
       <div className="canvas-stack-md">
         <div className="canvas-stack-sm">
-          <Badge variant="outline">same system signals</Badge>
+          <Badge variant="outline">同一组血脂</Badge>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>code</TableHead>
-                <TableHead>result</TableHead>
-                <TableHead>range</TableHead>
+                <TableHead>代码</TableHead>
+                <TableHead>结果</TableHead>
+                <TableHead>参考范围</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,11 +96,11 @@ export function RangeDecoderBlock() {
           </Table>
         </div>
 
-        <div className="canvas-stack-sm border-t pt-4">
-          <Badge variant="outline">question generated</Badge>
+        <div className="canvas-stack-sm pt-2">
+          <Badge variant="outline">下次可以这样问</Badge>
           <p className="canvas-text-heading">{activeItem.doctorQuestion}</p>
           <p className="canvas-text-body text-muted-foreground">
-            参考范围来自这份虚构报告。不同实验室、个人背景和医生判断可能改变解释方式。
+            先把问题记下来，比自己在页面上猜答案更有用。
           </p>
         </div>
       </div>

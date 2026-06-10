@@ -39,16 +39,16 @@ export function SystemMapBlock() {
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-2">
         <div className="canvas-stack-sm">
-          <Badge variant="secondary">system routing</Badge>
+          <Badge variant="secondary">按项目归好类</Badge>
           <h2 className="canvas-text-heading">
-            每个数字都被送回一个身体系统。
+            一张体检单，先分成几摞。
           </h2>
           <p className="canvas-text-body text-muted-foreground">
-            这一步不画病灶，也不模拟扫描。它只是把报告里的 code 路由到能解释它的系统区。
+            血常规、肝功能、血糖、血脂、尿检分开放。下次复查时，才知道该和哪一组旧记录对照。
           </p>
         </div>
 
-        <div className="grid gap-3 rounded-md bg-muted/30 p-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {systems.map((system, index) => {
             const items = labItemsBySystem(system.id)
             const flagged = items.filter((item) => item.status !== "normal")
@@ -73,7 +73,7 @@ export function SystemMapBlock() {
                   </div>
                 ) : (
                   <p className="canvas-text-caption text-muted-foreground">
-                    background only
+                    这次先收好
                   </p>
                 )}
               </div>
@@ -93,7 +93,7 @@ export function SystemMapBlock() {
 
         {systems.map((system) => (
           <TabsContent
-            className="grid gap-4 rounded-md border bg-background p-4 md:grid-cols-2"
+            className="grid gap-4 md:grid-cols-2"
             key={system.id}
             value={system.id}
           >
@@ -104,7 +104,7 @@ export function SystemMapBlock() {
                 {system.note}
               </p>
               <p className="canvas-text-caption text-muted-foreground">
-                系统分组只帮助定位问题范围，不说明原因，也不替代临床判断。
+                这里先做归档，不在页面里给原因下判断。
               </p>
             </div>
 
