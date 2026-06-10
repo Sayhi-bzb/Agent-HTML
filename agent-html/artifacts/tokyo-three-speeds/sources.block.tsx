@@ -1,4 +1,3 @@
-import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Badge } from "../../components/ui/badge"
 
 import { sourceGroups } from "./data"
@@ -16,9 +15,9 @@ export function SourcesBlock() {
         <Badge variant="secondary">sources</Badge>
         <h2 className="canvas-text-heading">Tokyo media and data sources</h2>
         <p className="canvas-text-body text-muted-foreground">
-          Source details are collected here so the Tokyo route console layers
-          can read continuously while imagery, map, and data sources
-          remain traceable.
+          Source details stay collected here so the route console can use
+          imagery, map layers, and tourism context without scattering
+          attribution through every block.
         </p>
       </div>
 
@@ -39,16 +38,6 @@ export function SourcesBlock() {
           ))}
         </div>
       </div>
-
-      <Alert>
-        <AlertDescription>
-          GO TOKYO stock photos may require application and prescribed credit.
-          Wikimedia files require file-level license checks. Unsplash credit is
-          recommended. OpenStreetMap requires © OpenStreetMap contributors and
-          compliant tile usage. ODPT and Tokyo tourism data require their stated
-          terms and attribution.
-        </AlertDescription>
-      </Alert>
     </section>
   )
 }

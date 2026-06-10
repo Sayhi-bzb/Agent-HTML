@@ -7,16 +7,17 @@ import {
   YAxis,
 } from "recharts"
 
+import { Badge } from "../../components/ui/badge"
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
 } from "../../components/ui/chart"
-import { Badge } from "../../components/ui/badge"
+import { StatusBadge } from "../../components/ui/status-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
-import { trendMetrics } from "./data"
+import { labItemByCode, statusFor, trendSeries } from "./data"
 
 const chartConfig = {
   value: {
@@ -28,47 +29,55 @@ const chartConfig = {
 export function TrendViewBlock() {
   return (
     <section className="canvas-stack-lg">
-      <div className="canvas-stack-sm">
-        <Badge variant="secondary">trend view</Badge>
-        <h2 className="canvas-text-heading">
-          趋势比一次结果更接近真实。
-        </h2>
+      <div className="canvas-grid-gap md:grid-cols-2">
+        <div className="canvas-stack-sm">
+          <Badge variant="secondary">single red dot vs trend</Badge>
+          <h2 className="canvas-text-heading">
+            身体不是一次截图，而是一条曲线。
+          </h2>
+        </div>
         <p className="canvas-text-body text-muted-foreground">
-          单次红点可能只是波动。连续变化、组合变化和复查条件，才更适合带去和医生确认。
+          同一个 flagged result 留在图表旁边，防止趋势变成抽象数据。这里看的是复查和沟通线索，不是预测。
         </p>
       </div>
 
-      <Tabs defaultValue={trendMetrics[0]?.label} className="canvas-stack-md">
+      <Tabs defaultValue={trendSeries[0]?.code} className="canvas-stack-md">
         <TabsList>
-          {trendMetrics.map((metric) => (
-            <TabsTrigger key={metric.label} value={metric.label}>
-              {metric.label}
+          {trendSeries.map((series) => (
+            <TabsTrigger key={series.code} value={series.code}>
+              {series.code}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {trendMetrics.map((metric) => (
-          <TabsContent className="canvas-grid-gap md:grid-cols-3" key={metric.label} value={metric.label}>
-            <div className="canvas-content-panel md:col-span-2">
+        {trendSeries.map((series) => {
+          const item = labItemByCode(series.code)
+          const meta = item ? statusFor(item.status) : null
+          const latest = series.points[series.points.length - 1]
+
+          return (
+            <TabsContent
+              className="grid gap-4 rounded-md border bg-background p-4 md:grid-cols-2"
+              key={series.code}
+              value={series.code}
+            >
               <ChartContainer
-                className="h-72 w-full"
+                className="h-80 w-full"
                 config={chartConfig}
-                initialDimension={{ height: 288, width: 640 }}
+                initialDimension={{ height: 320, width: 720 }}
               >
-                <LineChart accessibilityLayer data={metric.points}>
+                <LineChart accessibilityLayer data={series.points}>
                   <CartesianGrid vertical={false} />
                   <XAxis dataKey="year" tickLine={false} />
-                  <YAxis
-                    tickLine={false}
-                    width={36}
-                    tickFormatter={(value) => `${value}`}
-                  />
+                  <YAxis tickLine={false} width={38} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <ReferenceLine
-                    stroke="var(--border)"
-                    strokeDasharray="3 3"
-                    y={metric.points[metric.points.length - 1]?.value}
-                  />
+                  {latest ? (
+                    <ReferenceLine
+                      stroke="var(--border)"
+                      strokeDasharray="3 3"
+                      y={latest.value}
+                    />
+                  ) : null}
                   <Line
                     dataKey="value"
                     dot
@@ -78,20 +87,37 @@ export function TrendViewBlock() {
                   />
                 </LineChart>
               </ChartContainer>
-            </div>
 
-            <div className="canvas-content-panel-sm canvas-stack-sm">
-              <Badge variant="outline">{metric.unit}</Badge>
-              <h3 className="canvas-text-heading">{metric.label}</h3>
-              <p className="canvas-text-body text-muted-foreground">
-                {metric.note}
-              </p>
-              <p className="canvas-text-caption text-muted-foreground">
-                图中数值是虚构示例，只说明趋势阅读方式，不表达预测、评分或诊断。
-              </p>
-            </div>
-          </TabsContent>
-        ))}
+              <div className="canvas-stack-md">
+                {item ? (
+                  <div className="canvas-stack-sm">
+                    <div className="canvas-wrap-sm items-center">
+                      {meta ? (
+                        <StatusBadge status={meta.status}>{item.code}</StatusBadge>
+                      ) : null}
+                      <Badge variant="outline">{item.rawNote}</Badge>
+                    </div>
+                    <p className="canvas-text-heading">
+                      {item.result}
+                      {item.unit ? ` ${item.unit}` : ""}
+                    </p>
+                    <p className="font-mono text-sm text-muted-foreground">
+                      reference: {item.referenceRange}
+                    </p>
+                  </div>
+                ) : null}
+
+                <div className="canvas-stack-sm border-t pt-4">
+                  <Badge variant="outline">trend reading</Badge>
+                  <p className="canvas-text-body">{series.context}</p>
+                  <p className="canvas-text-caption text-muted-foreground">
+                    示例曲线只说明如何阅读连续变化，不表达预测、评分或诊断。
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+          )
+        })}
       </Tabs>
     </section>
   )

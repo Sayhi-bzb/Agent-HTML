@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { ArrowRight, Clock, RouteIcon } from "lucide-react"
+import { Clock, RouteIcon } from "lucide-react"
 
 import {
   Map,
@@ -162,8 +162,6 @@ export function RouteConsoleBlock() {
   const selectedGeometry = routeGeometry[selectedRoute.id]
   const routeStatusLabel =
     selectedGeometry?.status === "loaded" ? "road trace loaded" : "route preview"
-  const selectedDistance = selectedRoute.distanceLabel
-  const selectedDuration = selectedRoute.durationLabel
 
   return (
     <section className="canvas-stack-lg">
@@ -188,7 +186,6 @@ export function RouteConsoleBlock() {
               <Badge variant="outline">{routeStatusLabel}</Badge>
             </div>
             <p className="canvas-text-body">{selectedOption.route}</p>
-
             <div className="canvas-stack-sm">
               {tokyoRoutes.map((route) => {
                 const isActive = route.id === selectedRoute.id
@@ -199,8 +196,8 @@ export function RouteConsoleBlock() {
                   <Button
                     className={
                       isActive
-                        ? "justify-start gap-3 bg-foreground text-background"
-                        : "justify-start gap-3 bg-background/90"
+                        ? "h-auto min-h-14 w-full items-stretch justify-start gap-3 whitespace-normal bg-foreground px-3 py-2 text-background"
+                        : "h-auto min-h-14 w-full items-stretch justify-start gap-3 whitespace-normal bg-background/90 px-3 py-2"
                     }
                     key={route.id}
                     onClick={() => selectRoute(route)}
@@ -208,56 +205,30 @@ export function RouteConsoleBlock() {
                     variant={isActive ? "default" : "secondary"}
                   >
                     <span
-                      className={`h-4 w-1 rounded-full ${routeStripeClass[route.speed]}`}
+                      className={`w-1 self-stretch rounded-full ${routeStripeClass[route.speed]}`}
                     />
-                    <span className="canvas-wrap-sm items-center">
-                      <Clock data-icon="inline-start" />
-                      <span className="canvas-text-caption">{duration}</span>
+                    <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
+                      <span className="canvas-text-caption">{route.tag}</span>
+                      <span
+                        className={
+                          isActive
+                            ? "canvas-wrap-sm items-center text-background/70"
+                            : "canvas-wrap-sm items-center text-muted-foreground"
+                        }
+                      >
+                        <Clock data-icon="inline-start" />
+                        <span className="canvas-text-caption">{duration}</span>
+                        <RouteIcon data-icon="inline-start" />
+                        <span className="canvas-text-caption">{distance}</span>
+                      </span>
                     </span>
-                    <span
-                      className={
-                        isActive
-                          ? "canvas-wrap-sm items-center text-background/70"
-                          : "canvas-wrap-sm items-center text-muted-foreground"
-                      }
-                    >
-                      <RouteIcon data-icon="inline-start" />
-                      <span className="canvas-text-caption">{distance}</span>
-                    </span>
-                    <Badge variant={isActive ? "secondary" : "outline"}>
-                      {route.tag}
-                    </Badge>
                   </Button>
                 )
               })}
             </div>
 
-            <div className="canvas-wrap-sm items-center">
-              {selectedOption.dayRewrite.map((item, index) => (
-                <span className="canvas-wrap-sm items-center" key={item}>
-                  <span className="canvas-text-caption text-muted-foreground">
-                    {item}
-                  </span>
-                  {index < selectedOption.dayRewrite.length - 1 ? (
-                    <ArrowRight data-icon="inline-end" />
-                  ) : null}
-                </span>
-              ))}
-            </div>
-
             <InspectorPhoto assetKey={selectedRoute.evidenceKey} />
-
-            <div className="canvas-stack-xs">
-              <p className="canvas-text-caption text-muted-foreground">
-                next open loop
-              </p>
-              <p className="canvas-text-body">{selectedRoute.summary}</p>
-            </div>
-
-            <div className="canvas-wrap-sm items-center">
-              <Badge variant="secondary">{selectedDuration}</Badge>
-              <Badge variant="secondary">{selectedDistance}</Badge>
-            </div>
+            <p className="canvas-text-body">{selectedRoute.summary}</p>
 
             <div className="canvas-grid-gap-md sm:grid-cols-2">
               {selectedOption.load.map((metric) => (

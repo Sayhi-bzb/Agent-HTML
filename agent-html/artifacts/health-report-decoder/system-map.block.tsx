@@ -1,106 +1,121 @@
 import { Badge } from "../../components/ui/badge"
-import { Progress } from "../../components/ui/progress"
+import { StatusBadge } from "../../components/ui/status-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
-import { systemGroups } from "./data"
+import {
+  labItemsBySystem,
+  statusFor,
+  systems,
+  type LabItem,
+} from "./data"
+
+function SystemItem({ item }: { item: LabItem }) {
+  const meta = statusFor(item.status)
+
+  return (
+    <div className="canvas-stack-xs border-b py-3 last:border-b-0">
+      <div className="canvas-wrap-sm items-center justify-between">
+        <div className="canvas-wrap-sm items-center">
+          <StatusBadge status={meta.status}>{item.code}</StatusBadge>
+          <span className="font-medium">{item.label}</span>
+        </div>
+        <span className="font-mono text-sm">
+          {item.result}
+          {item.unit ? ` ${item.unit}` : ""}
+        </span>
+      </div>
+      <p className="canvas-text-caption text-muted-foreground">
+        {item.whyItMatters}
+      </p>
+      <p className="font-mono text-xs text-muted-foreground">
+        {item.referenceRange}
+      </p>
+    </div>
+  )
+}
 
 export function SystemMapBlock() {
   return (
     <section className="canvas-stack-lg">
-      <div className="canvas-stack-sm">
-        <Badge variant="secondary">body system map</Badge>
-        <h2 className="canvas-text-heading">
-          每个数字都在回答一个身体系统的问题。
-        </h2>
-        <p className="canvas-text-body text-muted-foreground">
-          指标不是孤立数字。先把它们放回身体系统，用户才知道该带着哪类问题继续看。
-        </p>
-      </div>
-
       <div className="canvas-grid-gap md:grid-cols-2">
-        <div className="canvas-content-panel canvas-stack-md">
-          <svg
-            aria-label="Body system locator diagram"
-            className="h-80 w-full text-muted-foreground"
-            role="img"
-            viewBox="0 0 320 420"
-          >
-            <path
-              className="fill-muted stroke-border"
-              d="M160 32c30 0 54 24 54 54 0 22-13 41-32 49v40h42c18 0 32 14 32 32v86c0 14-9 26-22 30l-22 7v54h-34v-92h-36v92h-34v-54l-22-7c-13-4-22-16-22-30v-86c0-18 14-32 32-32h42v-40c-19-8-32-27-32-49 0-30 24-54 54-54Z"
-            />
-            {systemGroups.map((group, index) => {
-              const x = index % 2 === 0 ? 84 : 236
-              const y = 92 + index * 48
-
-              return (
-                <g key={group.id}>
-                  <circle className="fill-background stroke-primary" cx={x} cy={y} r="17" />
-                  <text
-                    className="fill-foreground text-xs"
-                    textAnchor="middle"
-                    x={x}
-                    y={y + 4}
-                  >
-                    {index + 1}
-                  </text>
-                  <line
-                    className="stroke-border"
-                    x1={x}
-                    x2="160"
-                    y1={y}
-                    y2={y}
-                  />
-                </g>
-              )
-            })}
-          </svg>
-          <p className="canvas-text-caption text-muted-foreground">
-            示意图只帮助定位指标分组，不表达病灶、诊断或扫描结果。
+        <div className="canvas-stack-sm">
+          <Badge variant="secondary">system routing</Badge>
+          <h2 className="canvas-text-heading">
+            每个数字都被送回一个身体系统。
+          </h2>
+          <p className="canvas-text-body text-muted-foreground">
+            这一步不画病灶，也不模拟扫描。它只是把报告里的 code 路由到能解释它的系统区。
           </p>
         </div>
 
-        <Tabs defaultValue={systemGroups[0]?.id} className="canvas-stack-md">
-          <TabsList className="flex-wrap">
-            {systemGroups.map((group) => (
-              <TabsTrigger key={group.id} value={group.id}>
-                {group.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        <div className="grid gap-3 rounded-md bg-muted/30 p-3 sm:grid-cols-2">
+          {systems.map((system, index) => {
+            const items = labItemsBySystem(system.id)
+            const flagged = items.filter((item) => item.status !== "normal")
 
-          {systemGroups.map((group, index) => (
-            <TabsContent className="canvas-stack-md" key={group.id} value={group.id}>
-              <div className="canvas-content-panel canvas-stack-sm">
+            return (
+              <div className="canvas-stack-xs p-2" key={system.id}>
                 <div className="canvas-wrap-sm items-center">
                   <Badge>{index + 1}</Badge>
-                  <Badge variant="outline">{group.signal}</Badge>
+                  <Badge variant="outline">{system.signal}</Badge>
                 </div>
-                <h3 className="canvas-text-heading">{group.label}</h3>
-                <p className="canvas-text-body text-muted-foreground">
-                  {group.note}
+                <p className="font-medium">{system.label}</p>
+                <p className="canvas-text-caption text-muted-foreground">
+                  {items.map((item) => item.code).join(" / ")}
                 </p>
-                <div className="canvas-stack-xs">
-                  <p className="canvas-text-caption text-muted-foreground">
-                    示例指标
-                  </p>
+                {flagged.length ? (
                   <div className="canvas-wrap-sm">
-                    {group.indicators.map((indicator) => (
-                      <Badge key={indicator} variant="secondary">
-                        {indicator}
-                      </Badge>
+                    {flagged.map((item) => (
+                      <StatusBadge key={item.code} status={statusFor(item.status).status}>
+                        {item.code}
+                      </StatusBadge>
                     ))}
                   </div>
-                </div>
-                <Progress value={Math.min(95, 35 + index * 10)} />
-                <p className="canvas-text-caption text-muted-foreground">
-                  {group.question}
-                </p>
+                ) : (
+                  <p className="canvas-text-caption text-muted-foreground">
+                    background only
+                  </p>
+                )}
               </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+            )
+          })}
+        </div>
       </div>
+
+      <Tabs defaultValue={systems[0]?.id} className="canvas-stack-md">
+        <TabsList className="flex-wrap">
+          {systems.map((system) => (
+            <TabsTrigger key={system.id} value={system.id}>
+              {system.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {systems.map((system) => (
+          <TabsContent
+            className="grid gap-4 rounded-md border bg-background p-4 md:grid-cols-2"
+            key={system.id}
+            value={system.id}
+          >
+            <div className="canvas-stack-sm">
+              <Badge variant="secondary">{system.signal}</Badge>
+              <h3 className="canvas-text-heading">{system.label}</h3>
+              <p className="canvas-text-body text-muted-foreground">
+                {system.note}
+              </p>
+              <p className="canvas-text-caption text-muted-foreground">
+                系统分组只帮助定位问题范围，不说明原因，也不替代临床判断。
+              </p>
+            </div>
+
+            <div className="px-1">
+              {labItemsBySystem(system.id).map((item) => (
+                <SystemItem item={item} key={item.code} />
+              ))}
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
     </section>
   )
 }

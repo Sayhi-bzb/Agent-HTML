@@ -1,6 +1,14 @@
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Badge } from "../../components/ui/badge"
 import { StatusBadge } from "../../components/ui/status-badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table"
 
 import {
   doctorQueue,
@@ -8,36 +16,10 @@ import {
   sampleReport,
   statusFor,
   statusMeta,
-  type LabItem,
   type ReportStatus,
 } from "./data"
 
 const statusOrder: ReportStatus[] = ["normal", "watch", "recheck", "consult"]
-
-function RawReportRow({ item }: { item: LabItem }) {
-  const meta = statusFor(item.status)
-
-  return (
-    <div className="grid grid-cols-[0.7fr_0.9fr_0.8fr_1fr_0.5fr] items-center gap-3 border-b py-2 last:border-b-0">
-      <span className="font-mono text-sm">{item.code}</span>
-      <span className="min-w-0 truncate text-sm text-muted-foreground">
-        {item.label}
-      </span>
-      <span className="font-mono text-sm">
-        {item.result}
-        {item.unit ? <span className="text-muted-foreground"> {item.unit}</span> : null}
-      </span>
-      <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">
-        {item.referenceRange}
-      </span>
-      {item.flag ? (
-        <StatusBadge status={meta.status}>{item.rawNote}</StatusBadge>
-      ) : (
-        <Badge variant="outline">{item.rawNote}</Badge>
-      )}
-    </div>
-  )
-}
 
 export function ReportTriageBlock() {
   return (
@@ -53,8 +35,8 @@ export function ReportTriageBlock() {
         </p>
       </div>
 
-      <div className="grid overflow-hidden rounded-md border bg-sidebar md:min-h-[720px] md:grid-cols-3">
-        <div className="canvas-stack-md border-b bg-background/90 p-4 md:border-r md:border-b-0 md:p-5">
+      <div className="canvas-stack-lg overflow-hidden rounded-md bg-sidebar p-4 md:p-5">
+        <div className="canvas-stack-md bg-background/90">
           <div className="canvas-stack-xs">
             <Badge variant="secondary">raw report</Badge>
             <p className="canvas-text-caption text-muted-foreground">
@@ -62,21 +44,51 @@ export function ReportTriageBlock() {
             </p>
           </div>
 
-          <div className="rounded-md border bg-background px-3">
-            <div className="grid grid-cols-[0.7fr_0.9fr_0.8fr_1fr_0.5fr] gap-3 border-b py-2 text-xs text-muted-foreground">
-              <span>code</span>
-              <span>item</span>
-              <span>result</span>
-              <span>range</span>
-              <span>flag</span>
-            </div>
+          <div className="overflow-x-auto rounded-md border bg-background">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>code</TableHead>
+                  <TableHead>item</TableHead>
+                  <TableHead>result</TableHead>
+                  <TableHead>range</TableHead>
+                  <TableHead>flag</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
             {sampleReport.labItems.map((item) => (
-              <RawReportRow item={item} key={item.code} />
+              <TableRow key={item.code}>
+                <TableCell className="font-mono">{item.code}</TableCell>
+                <TableCell>
+                  <span className="whitespace-nowrap">{item.label}</span>
+                </TableCell>
+                <TableCell className="font-mono">
+                  {item.result}
+                  {item.unit ? (
+                    <span className="text-muted-foreground"> {item.unit}</span>
+                  ) : null}
+                </TableCell>
+                <TableCell className="font-mono text-xs">
+                  <span className="whitespace-nowrap">{item.referenceRange}</span>
+                </TableCell>
+                <TableCell>
+                  {item.flag ? (
+                    <StatusBadge status={statusFor(item.status).status}>
+                      {item.rawNote}
+                    </StatusBadge>
+                  ) : (
+                    <Badge variant="outline">{item.rawNote}</Badge>
+                  )}
+                </TableCell>
+              </TableRow>
             ))}
+              </TableBody>
+            </Table>
           </div>
         </div>
 
-        <div className="canvas-stack-md border-b bg-background p-4 md:border-r md:border-b-0 md:p-5">
+        <div className="canvas-grid-gap md:grid-cols-2">
+        <div className="canvas-stack-md bg-background p-4 md:p-5">
           <div className="canvas-stack-xs">
             <Badge variant="secondary">triage lanes</Badge>
             <p className="canvas-text-caption text-muted-foreground">
@@ -90,7 +102,7 @@ export function ReportTriageBlock() {
               const items = labItemsByStatus(status)
 
               return (
-                <div className="canvas-content-panel-sm canvas-stack-xs" key={status}>
+                <div className="canvas-stack-xs border-b pb-3 last:border-b-0 last:pb-0" key={status}>
                   <div className="canvas-wrap-sm items-center justify-between">
                     <StatusBadge status={meta.status}>{meta.label}</StatusBadge>
                     <span className="canvas-text-caption text-muted-foreground">
@@ -126,7 +138,7 @@ export function ReportTriageBlock() {
               const meta = statusFor(item.status)
 
               return (
-                <div className="canvas-content-panel-sm canvas-stack-xs" key={item.code}>
+                <div className="canvas-stack-xs border-b pb-3 last:border-b-0 last:pb-0" key={item.code}>
                   <div className="canvas-wrap-sm items-center">
                     <Badge>{String(index + 1).padStart(2, "0")}</Badge>
                     <StatusBadge status={meta.status}>{item.code}</StatusBadge>
@@ -145,6 +157,7 @@ export function ReportTriageBlock() {
               Interpretation boundary: this fictional report helps structure questions for a clinician. It does not diagnose, prescribe, or replace medical care.
             </AlertDescription>
           </Alert>
+        </div>
         </div>
       </div>
     </section>
