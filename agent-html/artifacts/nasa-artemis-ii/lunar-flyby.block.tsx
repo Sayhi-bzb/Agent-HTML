@@ -38,9 +38,9 @@ export function LunarFlybyBlock() {
           landmark in flight.
         </h2>
         <p className="canvas-text-body text-muted-foreground">
-          This section should use fewer, stronger visuals: one primary lunar
-          flyby image and supporting frames for distance, scale, solitude, and
-          the Earth-Moon relationship.
+          Fewer, stronger visuals carry the flyby: one primary lunar pass and
+          supporting frames for distance, scale, solitude, and the Earth-Moon
+          relationship.
         </p>
 
         <Carousel

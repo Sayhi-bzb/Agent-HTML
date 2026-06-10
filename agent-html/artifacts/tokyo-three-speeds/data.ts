@@ -124,7 +124,7 @@ export const headerSlides = [
   {
     alt: "A train passenger looking out at Tokyo from a moving train.",
     caption: "Arrival begins inside the transit rhythm, before the city opens.",
-    credit: "Unsplash",
+    credit: "Unsplash / taro ohtani",
     label: "Soft Landing",
     note: "Day 1 begins by letting the body arrive before the city expands.",
     sourceUrl:
@@ -134,7 +134,7 @@ export const headerSlides = [
   {
     alt: "A dense group of commuters moving through a subway station.",
     caption: "Density is useful when movement, signs, and timing stay legible.",
-    credit: "Pexels / Dương Nhân",
+    credit: "Pexels / Dex Planet",
     label: "High Density",
     note: "Day 2 uses density as structure: crowd flow, stations, commerce.",
     sourceUrl: "https://www.pexels.com/photo/crowd-on-the-subway-1628032/",
@@ -153,7 +153,7 @@ export const headerSlides = [
   {
     alt: "A quiet residential alleyway in Tokyo.",
     caption: "Quiet Tokyo is made from smaller streets and lower volume.",
-    credit: "Pexels / Shottrotter",
+    credit: "Pexels / Tom Swinnen",
     label: "Open Loop",
     note: "The route ends by preserving one unfinished reason to return.",
     sourceUrl:
@@ -215,7 +215,7 @@ export const tokyoPoints: TokyoPoint[] = [
   {
     coordinates: [139.7975, 35.6817],
     day: "D3",
-    evidenceKey: "quietRoute",
+    evidenceKey: "quiet",
     interestLabels: ["bookstores", "low stimulus"],
     label: "Kiyosumi",
     note: "Garden pause and low-stimulus route anchor.",
@@ -254,7 +254,7 @@ export const tokyoRoutes: TokyoRoute[] = [
     ],
     day: "Day 1",
     distanceLabel: "18 km",
-    durationLabel: "45 min",
+    durationLabel: "arrival window",
     evidenceKey: "arrivalRoute",
     id: "arrival-route",
     interestLabel: "low stimulus",
@@ -284,7 +284,7 @@ export const tokyoRoutes: TokyoRoute[] = [
     ],
     day: "Day 2",
     distanceLabel: "8.4 km",
-    durationLabel: "3h 40m",
+    durationLabel: "dense half-day",
     evidenceKey: "densityRoute",
     id: "density-route",
     interestLabel: "design",
@@ -314,7 +314,7 @@ export const tokyoRoutes: TokyoRoute[] = [
     ],
     day: "Day 3",
     distanceLabel: "6.6 km",
-    durationLabel: "4h 10m",
+    durationLabel: "quiet half-day",
     evidenceKey: "quietRoute",
     id: "quiet-route",
     interestLabel: "bookstores",
@@ -344,7 +344,7 @@ export const tokyoRoutes: TokyoRoute[] = [
     ],
     day: "Day 3",
     distanceLabel: "5.1 km",
-    durationLabel: "3h 20m",
+    durationLabel: "short radius",
     evidenceKey: "lowStimulusRoute",
     id: "low-stimulus-route",
     interestLabel: "low stimulus",
@@ -421,18 +421,18 @@ export const quietRoute = [
     whyStay: "A quiet route needs a first place where nothing needs to be optimized.",
   },
   {
-    dwell: "walk short streets without collecting landmarks",
-    label: "Yanaka",
-    note: "Low-speed streets and neighborhood texture.",
-    time: "midday",
-    whyStay: "The value is neighborhood texture, not coverage.",
-  },
-  {
     dwell: "leave one shelf unfinished",
     label: "Jimbocho",
     note: "Bookstores turn the route into dwell time.",
-    time: "afternoon",
+    time: "midday",
     whyStay: "A bookstore route is better when it resists completion.",
+  },
+  {
+    dwell: "walk short streets without collecting landmarks",
+    label: "Yanaka",
+    note: "Low-speed streets and neighborhood texture.",
+    time: "afternoon",
+    whyStay: "The value is neighborhood texture, not coverage.",
   },
 ]
 
@@ -456,7 +456,7 @@ export const quietOptions = [
 
 export const selectorOptions = [
   {
-    dayRewrite: ["Tsukiji edge", "Shibuya dinner", "Jimbocho cafe"],
+    dayRewrite: ["Shibuya lunch", "Omotesando pause", "Shinjuku dinner"],
     evidenceKey: "density",
     label: "food",
     load: [
@@ -466,9 +466,9 @@ export const selectorOptions = [
       { label: "night", value: 48 },
       { label: "dwell", value: 42 },
     ],
-    pointLabels: ["Shibuya", "Jimbocho"],
+    pointLabels: ["Shibuya", "Omotesando", "Shinjuku"],
     routeId: "density-route",
-    route: "Meals set the clock; queues become the real cost.",
+    route: "Meals set the clock; queues and return lines become the real cost.",
   },
   {
     dayRewrite: ["Aoyama", "Omotesando", "gallery stop"],
@@ -516,7 +516,7 @@ export const selectorOptions = [
     route: "Night energy requires an exit plan.",
   },
   {
-    dayRewrite: ["hotel area", "garden", "one bookstore"],
+    dayRewrite: ["hotel area", "garden", "Yanaka streets"],
     evidenceKey: "quiet",
     label: "low stimulus",
     load: [
@@ -526,7 +526,7 @@ export const selectorOptions = [
       { label: "night", value: 10 },
       { label: "dwell", value: 78 },
     ],
-    pointLabels: ["Haneda", "Kiyosumi", "Yanaka"],
+    pointLabels: ["Kiyosumi", "Yanaka"],
     routeId: "low-stimulus-route",
     route: "Fewer transfers can make the day better, not smaller.",
   },
@@ -587,7 +587,7 @@ export const sourceGroups = [
       },
       {
         label: "Subway crowd",
-        note: "Header photo. Pexels, Dương Nhân.",
+        note: "Header photo. Pexels, Dex Planet.",
         url: "https://www.pexels.com/photo/crowd-on-the-subway-1628032/",
       },
       {
@@ -597,7 +597,7 @@ export const sourceGroups = [
       },
       {
         label: "Quiet residential alleyway",
-        note: "Header photo. Pexels, Shottrotter.",
+        note: "Header photo. Pexels, Tom Swinnen.",
         url: "https://www.pexels.com/photo/quiet-residential-alleyway-in-tokyo-japan-31403258/",
       },
     ],
@@ -641,9 +641,29 @@ export const sourceGroups = [
         url: "https://www.gotokyo.org/en/destinations/western-tokyo/shibuya/index.html",
       },
       {
+        label: "GO TOKYO Shinjuku",
+        note: "Day 2 station, nightlife, and return-planning context.",
+        url: "https://www.gotokyo.org/en/destinations/western-tokyo/shinjuku/index.html",
+      },
+      {
+        label: "GO TOKYO Aoyama and Omotesando",
+        note: "Day 2 design-facing street context.",
+        url: "https://www.gotokyo.org/en/destinations/western-tokyo/aoyama-and-omotesando/index.html",
+      },
+      {
+        label: "GO TOKYO Kiyosumi-Shirakawa",
+        note: "Day 3 garden and quiet-route context.",
+        url: "https://www.gotokyo.org/en/destinations/eastern-tokyo/kiyosumi-shirakawa/index.html",
+      },
+      {
         label: "GO TOKYO Kanda and Jimbocho",
         note: "Quiet and open-loop route context.",
         url: "https://www.gotokyo.org/en/destinations/central-tokyo/kanda-and-jimbocho/index.html",
+      },
+      {
+        label: "GO TOKYO Yanaka and Nezu",
+        note: "Day 3 neighborhood-scale walking context.",
+        url: "https://www.gotokyo.org/en/destinations/northern-tokyo/yanaka-and-nezu/index.html",
       },
     ],
   },

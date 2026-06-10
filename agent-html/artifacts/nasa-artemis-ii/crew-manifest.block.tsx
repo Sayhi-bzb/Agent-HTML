@@ -15,10 +15,10 @@ export function CrewManifestBlock() {
       <div className="canvas-stack-sm">
         <Badge variant="secondary">crew manifest</Badge>
         <h2 className="canvas-text-heading">
-          This flight carries today's crew, not only a technical system.
+          This flight carried today's crew, not only a technical system.
         </h2>
         <p className="canvas-text-body text-muted-foreground">
-          Four mission-pass panels identify who is flying without turning the
+          Four mission-pass panels identify who flew without turning the
           section into long biography.
         </p>
       </div>

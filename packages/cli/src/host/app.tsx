@@ -52,6 +52,22 @@ import { HostIconButton } from "./ui/icon-button"
 
 type CanvasHostMode = "artifact" | "create-artifact"
 
+export const canvasHostCompactDesktopMediaQuery =
+  "(min-width: 768px) and (max-width: 1099px)"
+
+export function shouldAutoCollapseCanvasHostSidebar(
+  viewport:
+    | {
+        matchMedia?: (query: string) => { matches: boolean }
+      }
+    | null
+    | undefined
+) {
+  return Boolean(
+    viewport?.matchMedia?.(canvasHostCompactDesktopMediaQuery).matches
+  )
+}
+
 export function ReactCanvasHostApp() {
   if (
     shouldRedirectCanvasHostToDocs(
@@ -89,6 +105,12 @@ function ReactCanvasHostWorkbench() {
   const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(
     initialPreferences.leftSidebarOpen
   )
+  const [leftSidebarAutoCollapsed, setLeftSidebarAutoCollapsed] =
+    React.useState(() =>
+      shouldAutoCollapseCanvasHostSidebar(
+        typeof window === "undefined" ? null : window
+      )
+    )
   const [createArtifactDraft, setCreateArtifactDraft] = React.useState("")
   const [createArtifactStatus, setCreateArtifactStatus] = React.useState(() => {
     const job = initialPreferences.createArtifactJob
@@ -144,6 +166,12 @@ function ReactCanvasHostWorkbench() {
 
   const selectArtifactMode = React.useCallback(() => {
     setActiveHostMode("artifact")
+  }, [])
+  const effectiveLeftSidebarOpen =
+    leftSidebarOpen && !leftSidebarAutoCollapsed
+  const setEffectiveLeftSidebarOpen = React.useCallback((open: boolean) => {
+    setLeftSidebarAutoCollapsed(false)
+    setLeftSidebarOpen(open)
   }, [])
   const handlePendingArtifactReady = React.useCallback(() => {
     createArtifactJobRef.current = null
@@ -301,11 +329,27 @@ function ReactCanvasHostWorkbench() {
       }
 
       event.preventDefault()
-      setLeftSidebarOpen((open) => !open)
+      setEffectiveLeftSidebarOpen(!effectiveLeftSidebarOpen)
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [effectiveLeftSidebarOpen, setEffectiveLeftSidebarOpen])
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia(canvasHostCompactDesktopMediaQuery)
+    const syncCompactSidebar = () => {
+      if (mediaQuery.matches) {
+        setLeftSidebarAutoCollapsed(true)
+      }
+    }
+
+    syncCompactSidebar()
+    mediaQuery.addEventListener("change", syncCompactSidebar)
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncCompactSidebar)
+    }
   }, [])
 
   function selectThemePreset(presetId: CanvasThemePresetId) {
@@ -395,8 +439,8 @@ function ReactCanvasHostWorkbench() {
           <SidebarProvider
             className="contents"
             keyboardShortcut={false}
-            open={leftSidebarOpen}
-            onOpenChange={setLeftSidebarOpen}
+            open={effectiveLeftSidebarOpen}
+            onOpenChange={setEffectiveLeftSidebarOpen}
           >
             <ReactCanvasSidebar
               activeFilePath={resolvedActiveFilePath}
@@ -439,11 +483,13 @@ function ReactCanvasHostWorkbench() {
             <HostIconButton
               icon={PanelLeftIcon}
               label={
-                leftSidebarOpen
+                effectiveLeftSidebarOpen
                   ? t("app.collapseArtifactSidebar")
                   : t("app.expandArtifactSidebar")
               }
-              onClick={() => setLeftSidebarOpen((open) => !open)}
+              onClick={() =>
+                setEffectiveLeftSidebarOpen(!effectiveLeftSidebarOpen)
+              }
               placement="toolbar"
               size="icon-sm"
               tone="neutral"

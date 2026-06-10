@@ -12,6 +12,7 @@ import {
 import { Badge } from "../../components/ui/badge"
 import { Button } from "../../components/ui/button"
 import { Progress } from "../../components/ui/progress"
+import { Status } from "../../components/ui/status"
 
 import {
   mediaAssets,
@@ -29,33 +30,18 @@ type RouteGeometry = {
   status: "fallback" | "loaded" | "loading"
 }
 
-const markerClass = {
-  arrival: "bg-muted-foreground",
-  density: "bg-destructive",
-  openLoop: "bg-accent-foreground",
-  quiet: "bg-primary",
-}
-
 const routeStripeClass = {
   arrival: "bg-muted-foreground",
   density: "bg-destructive",
   quiet: "bg-primary",
 }
 
-function formatDistance(meters?: number) {
-  if (!meters) return null
-  if (meters < 1000) return `${Math.round(meters)} m`
-  return `${(meters / 1000).toFixed(1)} km`
-}
-
-function formatDuration(seconds?: number) {
-  if (!seconds) return null
-  const minutes = Math.round(seconds / 60)
-  if (minutes < 60) return `${minutes} min`
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = minutes % 60
-  return remainingMinutes ? `${hours}h ${remainingMinutes}m` : `${hours}h`
-}
+const markerStatusVariantBySpeed = {
+  arrival: "default",
+  density: "destructive",
+  openLoop: "info",
+  quiet: "success",
+} as const
 
 function buildOsrmUrl(waypoints: [number, number][]) {
   const coordinatePath = waypoints
@@ -75,7 +61,7 @@ export function RouteConsoleBlock() {
       tokyoRoutes.map((route) => [
         route.id,
         {
-          coordinates: route.coordinates,
+          coordinates: [],
           status: "loading",
         },
       ]),
@@ -104,6 +90,10 @@ export function RouteConsoleBlock() {
         tokyoRoutes.map(async (route) => {
           try {
             const response = await fetch(buildOsrmUrl(route.waypoints))
+            if (!response.ok) {
+              throw new Error("OSRM request failed")
+            }
+
             const data = (await response.json()) as {
               routes?: Array<{
                 distance?: number
@@ -171,11 +161,9 @@ export function RouteConsoleBlock() {
   )
   const selectedGeometry = routeGeometry[selectedRoute.id]
   const routeStatusLabel =
-    selectedGeometry?.status === "loaded" ? "real road route" : "route preview"
-  const selectedDistance =
-    formatDistance(selectedGeometry?.distance) ?? selectedRoute.distanceLabel
-  const selectedDuration =
-    formatDuration(selectedGeometry?.duration) ?? selectedRoute.durationLabel
+    selectedGeometry?.status === "loaded" ? "road trace loaded" : "route preview"
+  const selectedDistance = selectedRoute.distanceLabel
+  const selectedDuration = selectedRoute.durationLabel
 
   return (
     <section className="canvas-stack-lg">
@@ -204,11 +192,8 @@ export function RouteConsoleBlock() {
             <div className="canvas-stack-sm">
               {tokyoRoutes.map((route) => {
                 const isActive = route.id === selectedRoute.id
-                const geometry = routeGeometry[route.id]
-                const distance =
-                  formatDistance(geometry?.distance) ?? route.distanceLabel
-                const duration =
-                  formatDuration(geometry?.duration) ?? route.durationLabel
+                const distance = route.distanceLabel
+                const duration = route.durationLabel
 
                 return (
                   <Button
@@ -325,10 +310,10 @@ export function RouteConsoleBlock() {
                   longitude={point.coordinates[0]}
                 >
                 <MarkerContent>
-                  <div
-                      className={`rounded-full border border-background ${
-                        isActiveStop ? "size-4 opacity-80" : "size-3 opacity-50"
-                      } ${markerClass[point.speed]}`}
+                  <Status
+                    className={isActiveStop ? "opacity-90" : "opacity-55"}
+                    size={isActiveStop ? "lg" : "md"}
+                    variant={markerStatusVariantBySpeed[point.speed]}
                   />
                 </MarkerContent>
               </MapMarker>
@@ -357,11 +342,15 @@ function RouteLines({
   routeGeometry?: RouteGeometry
 }) {
   const geometry = routeGeometry ?? {
-    coordinates: route.coordinates,
-    status: "fallback" as const,
+    coordinates: [],
+    status: "loading" as const,
   }
   const isFallback = geometry.status === "fallback"
   const coordinates = geometry.coordinates
+
+  if (geometry.status === "loading" || coordinates.length < 2) {
+    return null
+  }
 
   return (
     <>

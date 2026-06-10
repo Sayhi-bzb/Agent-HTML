@@ -2,8 +2,6 @@ import type { CodexThread } from "../api/api"
 import type {
   SubmitBlockPromptInput,
   SubmitBlockPromptResult,
-  SubmitCreateArtifactInput,
-  SubmitCreateArtifactResult,
   SubmitGuardFixRequestInput,
 } from "./types"
 
@@ -32,12 +30,6 @@ export async function submitExampleBlockPrompt({
     threadId: activeThreadId ?? "example-thread",
     turnId: "example-turn",
   }
-}
-
-export async function submitExampleCreateArtifact(
-  _input: SubmitCreateArtifactInput
-): Promise<SubmitCreateArtifactResult> {
-  throw new Error("Artifact creation is disabled in the example pipeline.")
 }
 
 export async function submitExampleGuardFixRequest({

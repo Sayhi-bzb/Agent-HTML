@@ -6,15 +6,10 @@ import {
 } from "../api/api"
 import { getCanvasInteractionSnapshot } from "../interaction/interaction-store"
 import { publishCanvasPromptDebug } from "../prompt/prompt-debug"
-import {
-  formatBlockPrompt,
-  formatCreateArtifactPrompt,
-} from "../../react-canvas/prompt.mjs"
+import { formatBlockPrompt } from "../../react-canvas/prompt.mjs"
 import type {
   SubmitBlockPromptInput,
   SubmitBlockPromptResult,
-  SubmitCreateArtifactInput,
-  SubmitCreateArtifactResult,
   SubmitGuardFixRequestInput,
 } from "./types"
 
@@ -51,28 +46,6 @@ export async function submitCodexBlockPrompt({
     prompt: formatted,
     threadId: activeThreadId,
   })
-}
-
-export async function submitCodexCreateArtifact({
-  activeThreadId,
-  filePath,
-  request,
-}: SubmitCreateArtifactInput): Promise<SubmitCreateArtifactResult> {
-  const prompt = formatCreateArtifactPrompt({
-    filePath,
-    request,
-  })
-
-  publishCanvasPromptDebug(prompt)
-  const turn = await startCodexTurn({
-    prompt,
-    threadId: activeThreadId,
-  })
-
-  return {
-    ...turn,
-    filePath,
-  }
 }
 
 function formatGuardFixPrompt({

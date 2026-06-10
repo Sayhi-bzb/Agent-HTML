@@ -25,8 +25,6 @@ export type CanvasCreateArtifactJob = {
   phase: CanvasCreateArtifactJobPhase
   request: string
   startedAt: number
-  threadId?: string
-  turnId?: string | null
 }
 
 export type CanvasHostPreferences = {
@@ -189,18 +187,7 @@ function readCreateArtifactJob(value: unknown): CanvasCreateArtifactJob | null {
         ? value.startedAt
         : 0,
   }
-  const threadId = readOptionalString(value.threadId)
   const error = readOptionalString(value.error)
-
-  if (threadId) {
-    job.threadId = threadId
-  }
-
-  if (typeof value.turnId === "string") {
-    job.turnId = value.turnId
-  } else if (value.turnId === null) {
-    job.turnId = null
-  }
 
   if (error) {
     job.error = error

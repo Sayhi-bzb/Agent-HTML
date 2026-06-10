@@ -146,33 +146,3 @@ export function createArtifactFilePath({
     existingFilePaths
   )}.artifact.tsx`
 }
-
-export function formatCreateArtifactPrompt(payload) {
-  const lines = [
-    "---",
-    "task: create-canvas-artifact",
-    `filePath: ${payload.filePath}`,
-    "---",
-    "",
-    "Create a new Canvas React artifact at the filePath above.",
-    "",
-    "Required route:",
-    "- Read agent-html/README.md.",
-    "- Read agent-html/AGENTS.md.",
-    "- Read agent-html/artifacts/README.md.",
-    "- Use agent-html/examples/example.artifact.tsx as the copyable structure.",
-    "",
-    "Constraints:",
-    "- Write normal React source under agent-html/artifacts.",
-    "- Use Artifact and Block from @agent-html/react.",
-    "- Use stable, readable, kebab-case Block ids.",
-    "- Prefer local Canvas resources from agent-html/components, hooks, lib, schema, data, assets, and styles/public/content.css.",
-    "- Do not call backend bridges, filesystem, shell, MCP, or privileged host APIs from artifact code.",
-    "- Do not use archived app/runtime sources as current architecture.",
-    "",
-    "Request:",
-    payload.request,
-  ]
-
-  return lines.join("\n")
-}

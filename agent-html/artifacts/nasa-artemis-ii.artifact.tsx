@@ -23,7 +23,7 @@ export default function NasaArtemisIiArtifact() {
         <SystemIgnitionBlock />
       </Block>
 
-      <Block id="mission-route" title="Nine-Day Mission Route">
+      <Block id="mission-route" title="Mission Route">
         <MissionRouteBlock />
       </Block>
 

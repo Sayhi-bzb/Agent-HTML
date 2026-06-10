@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
 
+import {
+  canvasHostCompactDesktopMediaQuery,
+  shouldAutoCollapseCanvasHostSidebar,
+} from "./app"
 import { resolveArtifactRefreshState } from "./artifact/artifact-refresh-state"
 import {
   canvasHostMobileDocsUrl,
@@ -23,6 +27,27 @@ describe("ReactCanvasHostApp mobile docs redirect", () => {
     expect(shouldRedirectCanvasHostToDocs(createViewport(true))).toBe(true)
     expect(shouldRedirectCanvasHostToDocs(createViewport(false))).toBe(false)
     expect(shouldRedirectCanvasHostToDocs(null)).toBe(false)
+  })
+})
+
+describe("ReactCanvasHostApp compact desktop sidebar", () => {
+  it("uses the compact desktop media query for auto collapse", () => {
+    expect(canvasHostCompactDesktopMediaQuery).toBe(
+      "(min-width: 768px) and (max-width: 1099px)"
+    )
+  })
+
+  it("auto collapses only when the compact desktop query matches", () => {
+    const createViewport = (matches: boolean) => ({
+      matchMedia: (query: string) => {
+        expect(query).toBe(canvasHostCompactDesktopMediaQuery)
+        return { matches }
+      },
+    })
+
+    expect(shouldAutoCollapseCanvasHostSidebar(createViewport(true))).toBe(true)
+    expect(shouldAutoCollapseCanvasHostSidebar(createViewport(false))).toBe(false)
+    expect(shouldAutoCollapseCanvasHostSidebar(null)).toBe(false)
   })
 })
 

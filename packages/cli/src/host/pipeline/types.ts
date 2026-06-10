@@ -13,16 +13,6 @@ export type SubmitBlockPromptResult = {
   turnId?: string | null
 }
 
-export type SubmitCreateArtifactInput = {
-  activeThreadId: string | null
-  filePath: string
-  request: string
-}
-
-export type SubmitCreateArtifactResult = SubmitBlockPromptResult & {
-  filePath: string
-}
-
 export type SubmitGuardFixRequestInput = {
   activeThreadId: string | null
   filePath: string

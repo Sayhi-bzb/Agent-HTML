@@ -24,12 +24,12 @@ export function SystemIgnitionBlock() {
             <StatusBadge status="warning">system ignition</StatusBadge>
           </div>
           <h2 className="canvas-text-heading">
-            A full deep-space system comes alive from the ground.
+            A full deep-space system came alive from the ground.
           </h2>
           <p className="canvas-text-body text-muted-foreground">
-            The launch image should show SLS, flame, smoke, tower structure, and
-            mission environment together. It is the entry point to the system,
-            not the whole story.
+            SLS, flame, smoke, tower structure, and mission environment appear
+            together. Launch is the entry point to the system, not the whole
+            story.
           </p>
         </div>
 

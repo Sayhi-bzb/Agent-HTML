@@ -100,8 +100,6 @@ describe("canvas host preferences", () => {
         phase: "waiting-for-artifact",
         request: "Build a dashboard",
         startedAt: 123,
-        threadId: "thread-1",
-        turnId: "turn-1",
       },
       leftSidebarOpen: false,
       messageDrafts: {

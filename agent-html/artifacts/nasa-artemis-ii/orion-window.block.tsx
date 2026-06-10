@@ -26,12 +26,12 @@ export function OrionWindowBlock() {
             ))}
           </div>
           <h1 className="canvas-text-title">
-            Human spaceflight is learning how to reach the Moon again.
+            Human spaceflight relearned how to reach lunar space with crew.
           </h1>
           <p className="canvas-text-body text-muted-foreground">
             The page opens from Orion's point of view: Earth is already behind
-            the crew, and the mission becomes a return to human deep-space
-            flight before it becomes a list of parameters.
+            the crew, and the completed mission reads first as a return to
+            human deep-space flight before it becomes a list of parameters.
           </p>
         </div>
 

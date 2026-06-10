@@ -4,7 +4,6 @@ import type { CanvasCreateArtifactJob } from "../preferences/canvas-host-prefere
 import {
   createArtifactPendingTimeoutMs,
   failCreateArtifactJob,
-  resolveCreateArtifactThreadId,
   shouldFailCreateArtifactJob,
 } from "./create-artifact-job"
 
@@ -13,37 +12,9 @@ const pendingJob: CanvasCreateArtifactJob = {
   phase: "waiting-for-artifact",
   request: "New demo",
   startedAt: 1_000,
-  threadId: "thread-1",
-  turnId: "turn-1",
 }
 
 describe("create artifact job decisions", () => {
-  it("keeps a selected Codex thread only when it is still available", () => {
-    const threads = [
-      { id: "thread-1" },
-      { id: "thread-2" },
-    ]
-
-    expect(
-      resolveCreateArtifactThreadId({
-        activeThreadId: "thread-1",
-        threads,
-      })
-    ).toBe("thread-1")
-    expect(
-      resolveCreateArtifactThreadId({
-        activeThreadId: "missing-thread",
-        threads,
-      })
-    ).toBeNull()
-    expect(
-      resolveCreateArtifactThreadId({
-        activeThreadId: null,
-        threads,
-      })
-    ).toBeNull()
-  })
-
   it("fails pending jobs once the create artifact timeout elapses", () => {
     expect(
       shouldFailCreateArtifactJob({

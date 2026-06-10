@@ -37,9 +37,9 @@ export function MissionRouteBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">nine-day route</Badge>
+        <Badge variant="secondary">10-flight-day route</Badge>
         <h2 className="canvas-text-heading">
-          This is not a straight trip, but a deep-space route shaped by safety.
+          This was not a straight trip, but a deep-space route shaped by safety.
         </h2>
         <p className="canvas-text-body text-muted-foreground">
           The route timeline anchors each phase while the surrounding panels
@@ -99,7 +99,9 @@ export function MissionRouteBlock() {
           {activeLeg ? (
             <div className="canvas-stack-xs rounded-md border border-primary/30 bg-primary/5 p-4">
               <StatusBadge status="success">{activeLeg.time}</StatusBadge>
-              <p className="canvas-text-body">Active leg: {activeLeg.label}</p>
+              <p className="canvas-text-body">
+                Highlighted leg: {activeLeg.label}
+              </p>
               <p className="canvas-text-caption text-muted-foreground">
                 {activeLeg.why}
               </p>

@@ -5,7 +5,6 @@ import {
   createArtifactFilePath,
   createArtifactSlug,
   formatBlockPrompt,
-  formatCreateArtifactPrompt,
 } from "./prompt.mjs"
 
 const payload = {
@@ -25,23 +24,6 @@ describe("React Canvas prompt bridge", () => {
     expect(prompt).not.toContain("targetStatus")
     expect(prompt).not.toContain("sourceMode")
     expect(prompt).toContain("Request:\nTighten this summary.")
-  })
-
-  it("formats create artifact prompts without block-specific fields", () => {
-    const prompt = formatCreateArtifactPrompt({
-      filePath: "agent-html/artifacts/revenue-dashboard.artifact.tsx",
-      request: "Build a revenue dashboard.",
-    })
-
-    expect(prompt).toContain("task: create-canvas-artifact")
-    expect(prompt).toContain(
-      "filePath: agent-html/artifacts/revenue-dashboard.artifact.tsx"
-    )
-    expect(prompt).toContain("Read agent-html/AGENTS.md.")
-    expect(prompt).toContain("Use Artifact and Block from @agent-html/react.")
-    expect(prompt).toContain("Request:\nBuild a revenue dashboard.")
-    expect(prompt).not.toContain("blockId:")
-    expect(prompt).not.toContain("implementationPath:")
   })
 
   it("creates collision-safe artifact paths from requests", () => {
