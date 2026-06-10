@@ -178,6 +178,9 @@ export function RouteConsoleBlock() {
       <div className="grid overflow-hidden rounded-md bg-sidebar md:min-h-[680px] md:grid-cols-[0.78fr_1.22fr]">
         <div className="canvas-stack-lg p-5 md:p-6">
           <div className="canvas-stack-md">
+            <InspectorPhoto assetKey={selectedRoute.evidenceKey} />
+            <p className="canvas-text-body">{selectedRoute.summary}</p>
+
             <div className="canvas-wrap-sm items-center">
               <Badge>{selectedOption.label}</Badge>
               <Badge variant="outline">
@@ -226,9 +229,6 @@ export function RouteConsoleBlock() {
                 )
               })}
             </div>
-
-            <InspectorPhoto assetKey={selectedRoute.evidenceKey} />
-            <p className="canvas-text-body">{selectedRoute.summary}</p>
 
             <div className="canvas-grid-gap-md sm:grid-cols-2">
               {selectedOption.load.map((metric) => (

@@ -5,6 +5,7 @@ import { LifeContextBlock } from "./health-report-decoder/life-context.block"
 import { RangeDecoderBlock } from "./health-report-decoder/range-decoder.block"
 import { ReportLiteracyCheckBlock } from "./health-report-decoder/report-literacy-check.block"
 import { ReportTriageBlock } from "./health-report-decoder/report-triage.block"
+import { SourcesBlock } from "./health-report-decoder/sources.block"
 import { SystemMapBlock } from "./health-report-decoder/system-map.block"
 import { TrendViewBlock } from "./health-report-decoder/trend-view.block"
 
@@ -37,6 +38,10 @@ export default function HealthReportDecoderArtifact() {
 
       <Block id="life-context" title="Life Context">
         <LifeContextBlock />
+      </Block>
+
+      <Block id="sources" title="Sources">
+        <SourcesBlock />
       </Block>
     </Artifact>
   )

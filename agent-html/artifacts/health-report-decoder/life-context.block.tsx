@@ -1,12 +1,6 @@
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Badge } from "../../components/ui/badge"
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../../components/ui/accordion"
-import {
   Table,
   TableBody,
   TableCell,
@@ -15,8 +9,7 @@ import {
   TableRow,
 } from "../../components/ui/table"
 
-import { lifeContextFields, sourceGroups } from "./data"
-import { SourceLinks } from "./source-links"
+import { lifeContextFields } from "./data"
 
 export function LifeContextBlock() {
   return (
@@ -57,17 +50,6 @@ export function LifeContextBlock() {
           Interpretation boundary: example values are fictional. This artifact prepares questions and records for a clinician; it does not diagnose, prescribe, or replace medical care.
         </AlertDescription>
       </Alert>
-
-      <Accordion type="multiple">
-        {sourceGroups.map((group) => (
-          <AccordionItem key={group.label} value={group.label}>
-            <AccordionTrigger>{group.label}</AccordionTrigger>
-            <AccordionContent>
-              <SourceLinks links={group.links} />
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
     </section>
   )
 }
