@@ -7,6 +7,41 @@ import {
   statusFor,
 } from "./data"
 
+function DoctorPrepIllustration() {
+  return (
+    <svg
+      aria-labelledby="doctor-prep-illustration-title"
+      className="max-h-80 w-full object-contain"
+      role="img"
+      viewBox="0 0 738.21997 557.74675"
+    >
+      <title id="doctor-prep-illustration-title">
+        整理就诊问题的待办清单插图
+      </title>
+      <use
+        className="fill-border"
+        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-muted"
+      />
+      <use
+        className="fill-ring"
+        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-accent"
+      />
+      <use
+        className="fill-background"
+        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-contrast"
+      />
+      <use
+        className="fill-muted-foreground"
+        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-skin"
+      />
+      <use
+        className="fill-foreground"
+        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-ink"
+      />
+    </svg>
+  )
+}
+
 export function DoctorPrepBlock() {
   return (
     <section className="canvas-stack-lg">
@@ -20,7 +55,8 @@ export function DoctorPrepBlock() {
         </p>
       </div>
 
-      <div className="canvas-stack-md">
+      <div className="grid grid-cols-[1fr_0.72fr] gap-6 max-sm:grid-cols-1">
+        <div className="canvas-stack-md min-w-0">
           {doctorQueue.map((queueItem, index) => {
             const item = labItemByCode(queueItem.code)
             const meta = statusFor(queueItem.status)
@@ -52,6 +88,11 @@ export function DoctorPrepBlock() {
               </div>
             )
           })}
+        </div>
+
+        <figure className="flex items-center justify-center md:justify-end">
+          <DoctorPrepIllustration />
+        </figure>
       </div>
     </section>
   )

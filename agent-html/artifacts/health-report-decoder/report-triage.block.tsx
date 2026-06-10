@@ -40,8 +40,8 @@ export function ReportTriageBlock() {
         </p>
       </div>
 
-      <div className="grid overflow-hidden rounded-md bg-background md:grid-cols-[0.78fr_1.22fr]">
-        <aside className="canvas-stack-md border-b md:border-r md:border-b-0">
+      <div className="grid gap-6 overflow-hidden rounded-md bg-background md:grid-cols-[0.78fr_1.22fr]">
+        <aside className="canvas-stack-md border-b md:border-b-0">
           <div className="canvas-stack-xs">
             <Badge variant="secondary">这次先看</Badge>
             <p className="canvas-text-caption text-muted-foreground">

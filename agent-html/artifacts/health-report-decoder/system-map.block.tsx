@@ -34,6 +34,43 @@ function SystemItem({ item }: { item: LabItem }) {
   )
 }
 
+function SystemMapIllustration() {
+  return (
+    <svg
+      aria-labelledby="system-map-illustration-title"
+      className="max-h-56 w-full object-contain pt-3"
+      role="img"
+      viewBox="0 0 888 618.10603"
+    >
+      <title id="system-map-illustration-title">医疗护理记录插图</title>
+      <use
+        className="fill-border"
+        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-muted"
+      />
+      <use
+        className="fill-ring"
+        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-accent"
+      />
+      <use
+        className="fill-background"
+        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-contrast"
+      />
+      <use
+        className="fill-muted-foreground"
+        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-skin"
+      />
+      <use
+        className="fill-muted-foreground"
+        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-secondary"
+      />
+      <use
+        className="fill-foreground"
+        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-ink"
+      />
+    </svg>
+  )
+}
+
 export function SystemMapBlock() {
   return (
     <section className="canvas-stack-lg">
@@ -46,6 +83,7 @@ export function SystemMapBlock() {
           <p className="canvas-text-body text-muted-foreground">
             血常规、肝功能、血糖、血脂、尿检分开放。下次复查时，才知道该和哪一组旧记录对照。
           </p>
+          <SystemMapIllustration />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">

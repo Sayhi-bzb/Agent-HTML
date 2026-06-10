@@ -12,7 +12,7 @@ function OpenLoopDoodle() {
   return (
     <svg
       aria-labelledby="open-loop-doodle-title open-loop-doodle-desc"
-      className="mx-auto max-h-48 w-full"
+      className="mx-auto max-h-72 w-full"
       role="img"
       viewBox="0 0 1024 768"
     >
@@ -73,14 +73,9 @@ export function TravelNotesBlock() {
         </p>
       </div>
 
-      <div
-        className="canvas-grid-gap items-center"
-        style={{
-          gridTemplateColumns: "minmax(8rem, 0.7fr) minmax(0, 1fr)",
-        }}
-      >
+      <div className="canvas-grid-gap items-center md:grid-cols-[0.7fr_1fr]">
         <figure className="canvas-stack-sm">
-          <div className="p-2">
+          <div className="p-6">
             <OpenLoopDoodle />
           </div>
           <figcaption className="canvas-stack-xs">

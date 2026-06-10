@@ -67,6 +67,7 @@ export function ReportLiteracyCheckBlock() {
       </div>
 
       <div className="canvas-stack-md">
+        <div className="grid gap-6 md:grid-cols-2">
           {quizQuestions.map((question, index) => {
             const selectedAnswer = answers[question.id]
             const isCorrect = selectedAnswer === question.correctOptionId
@@ -76,7 +77,7 @@ export function ReportLiteracyCheckBlock() {
 
             return (
               <article
-                className="canvas-stack-md border-b pb-5 last:border-b-0 last:pb-0"
+                className="canvas-stack-md min-w-0"
                 key={question.id}
               >
                 <div className="canvas-wrap-sm items-center">
@@ -122,47 +123,49 @@ export function ReportLiteracyCheckBlock() {
               </article>
             )
           })}
-          <div className="canvas-stack-sm pt-2">
-            <div className="canvas-wrap-sm items-center justify-between">
-              <div className="canvas-wrap-sm items-center">
-                <StatusBadge status={submitted ? result.status : "info"}>
-                  {submitted ? result.label : "未提交"}
-                </StatusBadge>
+        </div>
+
+        <div className="canvas-stack-sm pt-2">
+          <div className="canvas-wrap-sm items-center justify-between">
+            <div className="canvas-wrap-sm items-center">
+              <StatusBadge status={submitted ? result.status : "info"}>
+                {submitted ? result.label : "未提交"}
+              </StatusBadge>
+              <Badge variant="outline">
+                已答 {answeredCount} / {quizQuestions.length}
+              </Badge>
+              {submitted ? (
                 <Badge variant="outline">
-                  已答 {answeredCount} / {quizQuestions.length}
+                  已理解 {score} / {quizQuestions.length}
                 </Badge>
-                {submitted ? (
-                  <Badge variant="outline">
-                    已理解 {score} / {quizQuestions.length}
-                  </Badge>
-                ) : null}
-              </div>
-              <div className="canvas-wrap-sm">
-                <Button
-                  disabled={answeredCount < quizQuestions.length}
-                  onClick={() => setSubmitted(true)}
-                  size="sm"
-                >
-                  检查答案
-                </Button>
-                <Button
-                  onClick={() => {
-                    setAnswers({})
-                    setSubmitted(false)
-                  }}
-                  size="sm"
-                  variant="outline"
-                >
-                  重置
-                </Button>
-              </div>
+              ) : null}
             </div>
-            <p className="canvas-text-body text-muted-foreground">
-              {submitted
-                ? result.note
-                : "答完所有题后，只显示这份笔记还缺哪一步。"}
-            </p>
+            <div className="canvas-wrap-sm">
+              <Button
+                disabled={answeredCount < quizQuestions.length}
+                onClick={() => setSubmitted(true)}
+                size="sm"
+              >
+                检查答案
+              </Button>
+              <Button
+                onClick={() => {
+                  setAnswers({})
+                  setSubmitted(false)
+                }}
+                size="sm"
+                variant="outline"
+              >
+                重置
+              </Button>
+            </div>
           </div>
+          <p className="canvas-text-body text-muted-foreground">
+            {submitted
+              ? result.note
+              : "答完所有题后，只显示这份笔记还缺哪一步。"}
+          </p>
+        </div>
       </div>
     </section>
   )
