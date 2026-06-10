@@ -23,8 +23,19 @@ import type {
   SubmitCreateArtifactResult,
   SubmitGuardFixRequestInput,
 } from "./types"
+import { createArtifactFilePath } from "../../react-canvas/prompt.mjs"
 
 export { type CanvasHostPipeline, type CanvasPipelineConfig } from "./config"
+
+export function createArtifactFilePathForRequest({
+  existingFilePaths,
+  request,
+}: {
+  existingFilePaths: string[]
+  request: string
+}) {
+  return createArtifactFilePath({ existingFilePaths, request })
+}
 
 export async function fetchPipelineThreads({
   pipeline = canvasPipelineConfig.pipeline,

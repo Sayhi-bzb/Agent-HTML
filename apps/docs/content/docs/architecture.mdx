@@ -101,6 +101,43 @@ Canvas is Storybook-like only as an isolated preview surface. Its primary value
 is making agent-authored output addressable, reviewable, reusable, and
 continuously editable through durable source files.
 
+Host workbench code is a consumer and composer of runtime pipelines. Its owner
+map is:
+
+```text
+host/api
+  -> dev-server API contract
+
+host/artifact
+  -> artifact registry consumption and artifact module runtime
+
+host/overlay
+  -> rendered Block metadata measurement and prompt anchors
+
+host/prompt
+  -> floating prompt host state, drafts, and block message lifecycle
+
+host/pipeline
+  -> Codex/example backend adapters and prompt formatting calls
+
+host/interaction
+  -> artifact state-change event snapshots for prompt context
+
+host/preferences
+  -> local host preference persistence
+
+host/theme
+  -> host theme mode, preset layout, draft preview, and runtime variables
+
+host/navigation
+  -> sidebar command surface
+```
+
+`ReactCanvasHostWorkbench` composes those owners. It should not directly own
+dev-server route semantics, workspace validation, prompt backend execution,
+message store publishing, theme side effects, artifact registry refresh rules,
+or Canvas protocol semantics.
+
 ## Pipeline Map
 
 This page is the authoritative Canvas pipeline map. The shared block prompt
@@ -112,17 +149,17 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 
 | Pipeline | Owner | Input | Output | Forbidden dependencies | Primary tests |
 | --- | --- | --- | --- | --- | --- |
-| Workspace source | `agent-html` | artifact entries, split block files, local resources | portable source workspace | generated bundles, lockfiles, vendored installs | `boundaries.test.mjs` |
+| Workspace source | `agent-html` | artifact entries, split block files, local resources | portable source workspace | generated bundles, lockfiles, vendored installs | `workspace-contract.test.mjs` |
 | Artifact discovery | `react-canvas/paths.mjs` | `agent-html/artifacts/*.artifact.tsx` | artifact entry file paths | app shell, runtime parser, host UI | `dev-host.test.mjs` |
 | Artifact entry protocol guard | `react-canvas/guard.mjs` | artifact entry source | issues scoped as `artifact-entry-protocol` | layout or style props on `Artifact` or `Block` | `guard.test.mjs` |
-| Block implementation source guard | `react-canvas/guard.mjs` | `agent-html/{artifacts,examples}/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `boundaries.test.mjs` |
-| Workspace boundary guard | `react-canvas/guard.mjs` | artifact and block source imports | issues scoped as `workspace-boundary` | app imports, old runtime imports, public-file imports | `guard.test.mjs`, `boundaries.test.mjs` |
+| Block implementation source guard | `react-canvas/guard.mjs` | `agent-html/{artifacts,examples}/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `style-ownership-contract.test.mjs` |
+| Workspace boundary guard | `react-canvas/guard.mjs` | artifact and block source imports | issues scoped as `workspace-boundary` | app imports, old runtime imports, public-file imports | `guard.test.mjs`, `workspace-contract.test.mjs`, `architecture-boundaries.test.mjs` |
 | Module transform and render | Vite middleware + host surface | artifact entry file path | mounted artifact DOM with HMR-capable module graph | app shell, old runtime render APIs | `dev-host.test.mjs` |
 | Block overlay | `packages/react` + host overlay | rendered `data-agent-html-block-*` metadata | hover highlight and prompt target | artifact source mutation, host APIs in artifacts | `block-overlay.test.ts`, `index.test.tsx` |
 | Block implementation lookup | dev server + host API | `artifactEntry`, `blockId` | `implementationPath` | selected source payloads, implementation source payloads | `block-implementation.test.mjs`, `dev-host.test.mjs` |
 | Block prompt | `react-canvas/prompt.mjs` | `artifactEntry`, `blockId`, optional `implementationPath`, host `interactionSnapshot` | minimal prompt packet | selected source payloads, implementation source payloads | `prompt.test.mjs` |
 | Interaction state | `packages/react` event protocol + host store | artifact-local control changes | host prompt interaction snapshot | filesystem, shell, MCP, privileged host APIs in artifact code | `index.test.tsx`, `interaction-store.test.ts`, `prompt.test.mjs` |
-| CSS/theme | `agent-html/styles` + host theme editor | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `boundaries.test.mjs`, `theme-preset.test.ts` |
+| CSS/theme | `agent-html/styles` + host theme editor | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `style-ownership-contract.test.mjs`, `theme-preset.test.ts` |
 
 Dev server routes are orchestration only. They are grouped into explicit
 runtime adapter pipelines:
@@ -170,12 +207,17 @@ agent-html/artifacts and agent-html/examples
   -> no host, app, docs, archive, public-file imports, or internal style imports
 ```
 
-`packages/cli/src/react-canvas/boundaries.test.mjs` owns these topology checks.
-Use it as the executable boundary matrix before adding new guard behavior.
-It also records the current fixed-format artifact layout exceptions for media,
-map, and carousel blocks. Those exceptions are not a new styling surface; new
-artifact code should prefer Canvas semantic classes and shrink that list when
-equivalent semantic classes exist.
+`packages/cli/src/react-canvas/architecture-boundaries.test.mjs` owns the
+topology checks. Use it as the executable boundary matrix before adding new
+guard behavior. Workspace source constraints live in
+`workspace-contract.test.mjs`, package/runtime ownership lives in
+`package-runtime-contract.test.mjs`, and style ownership lives in
+`style-ownership-contract.test.mjs`.
+
+`style-ownership-contract.test.mjs` also records the current fixed-format
+artifact layout exceptions for media, map, and carousel blocks. Those
+exceptions are not a new styling surface; new artifact code should prefer Canvas
+semantic classes and shrink that list when equivalent semantic classes exist.
 
 ## Dependency Resolution
 
@@ -191,11 +233,12 @@ artifacts share one renderer instance. Named exports used by workspace source
 must be present on the resolved runtime entries; this catches ESM/CJS mismatch
 before browser module loading fails.
 
-The dependency contract is executable: `boundaries.test.mjs` checks source-only
-workspace files, source metadata, CLI runtime ownership, and forbidden vendored
-installs. `routes.test.mjs` checks route pipeline ownership. `dev-host.test.mjs`
-checks Vite dependency aliases, ESM import entries, runtime exports,
-React singleton resolution, artifact rendering, and fresh-project startup.
+The dependency contract is executable: `workspace-contract.test.mjs` checks
+source-only workspace files, source metadata, and forbidden vendored installs.
+`package-runtime-contract.test.mjs` checks CLI runtime ownership.
+`routes.test.mjs` checks route pipeline ownership. `dev-host.test.mjs` checks
+Vite dependency aliases, ESM import entries, runtime exports, React singleton
+resolution, artifact rendering, and fresh-project startup.
 
 ## Guard Scopes
 

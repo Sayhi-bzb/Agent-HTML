@@ -1,44 +1,26 @@
 import * as React from "react"
 
-import {
-  deleteArtifact,
-  fetchArtifacts,
-  renameArtifact,
-  type CodexThread,
-} from "./api/api"
+import type { CodexThread } from "./api/api"
 import { CreateArtifactSurface } from "./artifact/create-artifact-surface"
 import { ArtifactSurface } from "./artifact/artifact-surface"
-import { resolveArtifactRefreshState } from "./artifact/artifact-refresh-state"
+import { useArtifactRegistry } from "./artifact/use-artifact-registry"
 import {
   readCanvasHostPreferences,
-  readCanvasMessageDraft,
-  writeCanvasHostPreferences,
-  writeCanvasMessageDraft,
   type CanvasCreateArtifactJob,
   type CanvasHostLanguage,
   type CanvasHostThemeMode,
   type CanvasSidebarView,
 } from "./preferences/canvas-host-preferences"
-import {
-  clearCanvasMessageHost,
-  publishCanvasMessageHost,
-} from "./prompt/canvas-message-store"
-import {
-  failBlockMessageThread,
-  finishBlockMessageThread,
-  getBlockMessageStoreSnapshot,
-  setBlockMessageThreadOpen,
-  startBlockMessageThread,
-  subscribeBlockMessageStore,
-} from "./prompt/block-message-events"
+import { useCanvasHostPreferencesPersistence } from "./preferences/use-canvas-host-preferences"
+import { useCanvasPromptLifecycle } from "./prompt/use-canvas-prompt-lifecycle"
 import {
   canvasInteractionEventName,
   clearCanvasInteractionSnapshots,
   createCanvasInteractionEventListener,
 } from "./interaction/interaction-store"
 import {
+  createArtifactFilePathForRequest,
   fetchPipelineThreads,
-  submitBlockPromptToPipeline,
   submitCreateArtifactToPipeline,
 } from "./pipeline"
 import { ReactCanvasSidebar } from "./navigation/sidebar"
@@ -46,22 +28,8 @@ import {
   canvasHostMobileDocsUrl,
   shouldRedirectCanvasHostToDocs,
 } from "./mobile-docs-redirect"
-import {
-  createEmptyCanvasThemeDraft,
-  isCanvasThemeDraftDirty,
-  readCanvasThemeRuntimeVariables,
-  updateCanvasThemeDraftVariable,
-  type CanvasThemeDraft,
-  type CanvasThemeResolvedVariables,
-  type CanvasThemeVariableName,
-} from "./theme/theme-draft"
-import { applyCanvasThemeEditorPreview } from "./theme/theme-preview"
-import { applyCanvasThemePresetLayout } from "./theme/theme-layout"
-import {
-  applyCanvasThemeMode,
-  applyCanvasThemePreset,
-  watchCanvasSystemThemeMode,
-} from "./theme/theme-preset"
+import { isCanvasThemeDraftDirty } from "./theme/theme-draft"
+import { useCanvasHostTheme } from "./theme/use-canvas-host-theme"
 import {
   createHostTranslator,
   HostI18nProvider,
@@ -73,22 +41,11 @@ import {
   SidebarProvider,
 } from "#agent-html-playground/components/ui/sidebar"
 import { TooltipProvider } from "#agent-html-playground/components/ui/tooltip"
-import {
-  canvasThemePresets,
-  type CanvasThemePresetId,
-} from "#agent-html-playground/theme/presets"
+import type { CanvasThemePresetId } from "#agent-html-playground/theme/presets"
 import { PanelLeftIcon } from "lucide-react"
-import { createArtifactFilePath } from "../react-canvas/prompt.mjs"
 import { HostIconButton } from "./ui/icon-button"
-import type {
-  Artifact,
-  FloatingPromptTarget,
-  GuardIssue,
-} from "./host-contracts"
 
 type CanvasHostMode = "artifact" | "create-artifact"
-
-const artifactsUpdatedEventName = "agent-html:artifacts-updated"
 
 export function ReactCanvasHostApp() {
   if (
@@ -124,19 +81,8 @@ function ReactCanvasHostWorkbench() {
       ),
     [initialPreferences.activeLanguage]
   )
-  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(null)
-  const [artifacts, setArtifacts] = React.useState<Artifact[]>([])
-  const [artifactRegistryVersion, setArtifactRegistryVersion] = React.useState(0)
-  const [guardIssues, setGuardIssues] = React.useState<GuardIssue[]>([])
-  const [artifactsLoading, setArtifactsLoading] = React.useState(true)
   const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(
     initialPreferences.leftSidebarOpen
-  )
-  const [loadError, setLoadError] = React.useState<string | null>(null)
-  const [messageDraft, setMessageDraft] = React.useState("")
-  const [promptStatus, setPromptStatus] = React.useState("")
-  const [blockMessages, setBlockMessages] = React.useState(
-    getBlockMessageStoreSnapshot
   )
   const [createArtifactDraft, setCreateArtifactDraft] = React.useState("")
   const [createArtifactStatus, setCreateArtifactStatus] = React.useState(() => {
@@ -172,13 +118,6 @@ function ReactCanvasHostWorkbench() {
     React.useState<CanvasThemeEditorSectionId>(
       initialPreferences.activeThemeEditorSectionId
     )
-  const [themeDraft, setThemeDraft] = React.useState<CanvasThemeDraft>(() =>
-    createEmptyCanvasThemeDraft()
-  )
-  const [themeRuntimeVariables, setThemeRuntimeVariables] =
-    React.useState<CanvasThemeResolvedVariables>({})
-  const [promptTarget, setPromptTarget] =
-    React.useState<FloatingPromptTarget | null>(null)
   const [activeCodexThreadId, setActiveCodexThreadId] =
     React.useState<string | null>(initialPreferences.activeCodexThreadId)
   const [codexThreads, setCodexThreads] = React.useState<CodexThread[]>([])
@@ -187,18 +126,6 @@ function ReactCanvasHostWorkbench() {
     React.useState<string | null>(null)
   const activeFilePathRef = React.useRef<string | null>(null)
   const createArtifactJobRef = React.useRef<CanvasCreateArtifactJob | null>(null)
-
-  const activeArtifact =
-    artifacts.find((artifact) => artifact.filePath === activeFilePath) ??
-    artifacts[0] ??
-    null
-  const resolvedActiveFilePath = activeFilePath ?? activeArtifact?.filePath ?? null
-  const activeIssues = resolvedActiveFilePath
-    ? guardIssues.filter((issue) => issue.filePath === resolvedActiveFilePath)
-    : []
-  const activeThemePreset =
-    canvasThemePresets.find((preset) => preset.id === activeThemePresetId) ??
-    canvasThemePresets[0]
   const t = React.useMemo(
     () =>
       createHostTranslator(
@@ -208,6 +135,48 @@ function ReactCanvasHostWorkbench() {
       ),
     [activeLanguage]
   )
+
+  const getPendingArtifactFilePath = React.useCallback(
+    () => createArtifactJobRef.current?.filePath ?? null,
+    []
+  )
+  const selectArtifactMode = React.useCallback(() => {
+    setActiveHostMode("artifact")
+  }, [])
+  const handlePendingArtifactReady = React.useCallback(() => {
+    createArtifactJobRef.current = null
+    setActiveHostMode("artifact")
+    setCreateArtifactJob(null)
+    setCreateArtifactStatus(t("app.artifactReady"))
+  }, [t])
+  const {
+    activeArtifact,
+    activeIssues,
+    artifactRegistryVersion,
+    artifacts,
+    artifactsLoading,
+    deleteExistingArtifact,
+    guardIssues,
+    loadError,
+    refreshArtifacts,
+    renameExistingArtifact,
+    resolvedActiveFilePath,
+    selectArtifact,
+  } = useArtifactRegistry({
+    getPendingFilePath: getPendingArtifactFilePath,
+    onPendingArtifactReady: handlePendingArtifactReady,
+    onSelectArtifactMode: selectArtifactMode,
+  })
+  const {
+    resetThemePreview,
+    themeDraft,
+    themePresets,
+    themeRuntimeVariables,
+    updateThemeVariable,
+  } = useCanvasHostTheme({
+    activeThemeMode,
+    activeThemePresetId,
+  })
 
   activeFilePathRef.current = resolvedActiveFilePath
   createArtifactJobRef.current = createArtifactJob
@@ -231,105 +200,6 @@ function ReactCanvasHostWorkbench() {
     }
   }, [resolvedActiveFilePath])
 
-  const refreshArtifacts = React.useCallback(async () => {
-    try {
-      const data = await fetchArtifacts()
-      const pendingJob = createArtifactJobRef.current
-      const pendingFilePath = pendingJob?.filePath ?? null
-      const pendingReady = Boolean(
-        pendingFilePath &&
-          data.artifacts.some(
-            (artifact) => artifact.filePath === pendingFilePath
-          )
-      )
-
-      setArtifacts(data.artifacts ?? [])
-      setArtifactRegistryVersion(data.version ?? 0)
-      setGuardIssues(data.guardIssues ?? [])
-      setLoadError(null)
-      setActiveFilePath((current) => {
-        const storedPreferences = readCanvasHostPreferences({
-          artifacts: data.artifacts,
-        })
-
-        return resolveArtifactRefreshState({
-          artifacts: data.artifacts ?? [],
-          currentFilePath: current,
-          pendingFilePath,
-          storedFilePath: storedPreferences.activeFilePath,
-        }).activeFilePath
-      })
-
-      if (pendingReady) {
-        createArtifactJobRef.current = null
-        setActiveHostMode("artifact")
-        setCreateArtifactJob(null)
-        setCreateArtifactStatus(t("app.artifactReady"))
-      }
-    } finally {
-      setArtifactsLoading(false)
-    }
-  }, [t])
-
-  React.useEffect(() => {
-    void refreshArtifacts().catch((refreshError: unknown) => {
-      setLoadError(
-        refreshError instanceof Error
-          ? refreshError.message
-          : String(refreshError)
-      )
-    })
-  }, [refreshArtifacts])
-
-  React.useEffect(() => {
-    applyCanvasThemePreset(activeThemePreset)
-    applyCanvasThemePresetLayout(activeThemePreset)
-  }, [activeThemePreset])
-
-  React.useEffect(() => {
-    applyCanvasThemeMode(activeThemeMode)
-
-    if (activeThemeMode !== "system") {
-      return
-    }
-
-    return watchCanvasSystemThemeMode(() => applyCanvasThemeMode(activeThemeMode))
-  }, [activeThemeMode])
-
-  React.useEffect(() => {
-    setThemeRuntimeVariables(
-      readCanvasThemeRuntimeVariables(
-        window.getComputedStyle(document.documentElement)
-      )
-    )
-  }, [activeThemePreset])
-
-  React.useEffect(() => {
-    applyCanvasThemeEditorPreview(themeDraft)
-  }, [themeDraft])
-
-  React.useEffect(() => {
-    if (!import.meta.hot) {
-      return
-    }
-
-    const onArtifactsUpdated = () => {
-      void refreshArtifacts().catch((refreshError: unknown) => {
-        setLoadError(
-          refreshError instanceof Error
-            ? refreshError.message
-            : String(refreshError)
-        )
-      })
-    }
-
-    import.meta.hot.on(artifactsUpdatedEventName, onArtifactsUpdated)
-
-    return () => {
-      import.meta.hot?.off(artifactsUpdatedEventName, onArtifactsUpdated)
-    }
-  }, [refreshArtifacts])
-
   const refreshCodexThreads = React.useCallback(async () => {
     setCodexThreadsLoading(true)
     try {
@@ -347,6 +217,17 @@ function ReactCanvasHostWorkbench() {
     void refreshCodexThreads()
   }, [refreshCodexThreads])
 
+  const {
+    setPromptStatus,
+    setPromptTarget,
+  } = useCanvasPromptLifecycle({
+    activeCodexThreadId,
+    onCodexThreadChange: setActiveCodexThreadId,
+    onThreadsRefresh: refreshCodexThreads,
+    resolvedActiveFilePath,
+    t,
+  })
+
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "b" || (!event.metaKey && !event.ctrlKey)) {
@@ -361,47 +242,10 @@ function ReactCanvasHostWorkbench() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [])
 
-  const openPrompt = React.useCallback((target: FloatingPromptTarget) => {
-    setPromptStatus("")
-    setMessageDraft(
-      resolvedActiveFilePath
-        ? readCanvasMessageDraft({
-            blockId: target.id,
-            filePath: resolvedActiveFilePath,
-          })
-        : ""
-    )
-    setPromptTarget(target)
-  }, [resolvedActiveFilePath])
-
-  const closePrompt = React.useCallback(() => {
-    setPromptStatus("")
-    setPromptTarget(null)
-  }, [])
-
   function selectThemePreset(presetId: CanvasThemePresetId) {
     setActiveThemePresetId(presetId)
-    setThemeDraft(createEmptyCanvasThemeDraft())
+    resetThemePreview()
   }
-
-  function resetThemePreview() {
-    setThemeDraft(createEmptyCanvasThemeDraft())
-  }
-
-  function updateThemeVariable(name: CanvasThemeVariableName, value: string) {
-    setThemeDraft((current) =>
-      updateCanvasThemeDraftVariable({
-        draft: current,
-        name,
-        value,
-      })
-    )
-  }
-
-  const selectArtifact = React.useCallback((filePath: string) => {
-    setActiveHostMode("artifact")
-    setActiveFilePath(filePath)
-  }, [])
 
   const selectCreateArtifact = React.useCallback(() => {
     setPromptTarget(null)
@@ -409,109 +253,8 @@ function ReactCanvasHostWorkbench() {
     setActiveHostMode("create-artifact")
   }, [])
 
-  const renameExistingArtifact = React.useCallback(async ({
-    filePath,
-    nextFileName,
-  }: {
-    filePath: string
-    nextFileName: string
-  }) => {
-    const renamed = await renameArtifact({ filePath, nextFileName })
-    setActiveHostMode("artifact")
-    setActiveFilePath(renamed.filePath)
-    await refreshArtifacts()
-  }, [refreshArtifacts])
-
-  const deleteExistingArtifact = React.useCallback(async (filePath: string) => {
-    await deleteArtifact({ filePath })
-    setActiveFilePath((current) => (current === filePath ? null : current))
-    await refreshArtifacts()
-  }, [refreshArtifacts])
-
-  const submitBlockPrompt = React.useCallback(async ({
-    request,
-    target,
-  }: {
-    request: string
-    target: FloatingPromptTarget
-  }) => {
-    if (!resolvedActiveFilePath) {
-      setPromptStatus(t("app.noActiveArtifact"))
-      return
-    }
-
-    setPromptStatus("")
-
-    try {
-      const messageTarget = {
-        blockId: target.id,
-        filePath: resolvedActiveFilePath,
-        title: target.title,
-      }
-
-      startBlockMessageThread({
-        request,
-        t,
-        target: messageTarget,
-      })
-
-      const turn = await submitBlockPromptToPipeline({
-        activeThreadId: activeCodexThreadId,
-        blockId: target.id,
-        filePath: resolvedActiveFilePath,
-        request,
-      })
-
-      finishBlockMessageThread({
-        t,
-        target: messageTarget,
-        threadId: turn.threadId,
-        turnId: turn.turnId,
-      })
-      setActiveCodexThreadId(turn.threadId)
-      void refreshCodexThreads()
-      writeCanvasMessageDraft({
-        blockId: target.id,
-        draft: "",
-        filePath: resolvedActiveFilePath,
-      })
-    } catch (submitError: unknown) {
-      const errorMessage =
-        submitError instanceof Error ? submitError.message : String(submitError)
-      failBlockMessageThread({
-        error: errorMessage,
-        t,
-        target: {
-          blockId: target.id,
-          filePath: resolvedActiveFilePath,
-          title: target.title,
-        },
-      })
-      setPromptStatus(errorMessage)
-    }
-  }, [
-    activeCodexThreadId,
-    refreshCodexThreads,
-    resolvedActiveFilePath,
-    t,
-  ])
-
-  const updateMessageDraft = React.useCallback((draft: string) => {
-    setMessageDraft(draft)
-
-    if (!resolvedActiveFilePath || !promptTarget) {
-      return
-    }
-
-    writeCanvasMessageDraft({
-      blockId: promptTarget.id,
-      draft,
-      filePath: resolvedActiveFilePath,
-    })
-  }, [promptTarget, resolvedActiveFilePath])
-
   const submitCreateArtifactPrompt = React.useCallback(async (request: string) => {
-    const artifactFilePath = createArtifactFilePath({
+    const artifactFilePath = createArtifactFilePathForRequest({
       existingFilePaths: artifacts.map((artifact) => artifact.filePath),
       request,
     })
@@ -560,99 +303,17 @@ function ReactCanvasHostWorkbench() {
     }
   }, [activeCodexThreadId, artifacts, refreshArtifacts, refreshCodexThreads, t])
 
-  React.useEffect(() => {
-    writeCanvasHostPreferences({
-      createArtifactJob,
-    })
-  }, [createArtifactJob])
-
-  React.useEffect(() => {
-    if (artifacts.length === 0) {
-      return
-    }
-
-    writeCanvasHostPreferences({
-      activeFilePath: resolvedActiveFilePath,
-    })
-  }, [artifacts.length, resolvedActiveFilePath])
-
-  React.useEffect(() => {
-    writeCanvasHostPreferences({
-      leftSidebarOpen,
-    })
-  }, [leftSidebarOpen])
-
-  React.useEffect(() => {
-    writeCanvasHostPreferences({
-      activeSidebarView,
-    })
-  }, [activeSidebarView])
-
-  React.useEffect(() => {
-    writeCanvasHostPreferences({
-      activeThemeEditorSectionId,
-    })
-  }, [activeThemeEditorSectionId])
-
-  React.useEffect(() => {
-    writeCanvasHostPreferences({
-      activeThemePresetId,
-    })
-  }, [activeThemePresetId])
-
-  React.useEffect(() => {
-    writeCanvasHostPreferences({
-      activeThemeMode,
-    })
-  }, [activeThemeMode])
-
-  React.useEffect(() => {
-    writeCanvasHostPreferences({
-      activeLanguage,
-    })
-  }, [activeLanguage])
-
-  React.useEffect(() => {
-    writeCanvasHostPreferences({
-      activeCodexThreadId,
-    })
-  }, [activeCodexThreadId])
-
-  React.useEffect(() => {
-    return subscribeBlockMessageStore(() => {
-      setBlockMessages(getBlockMessageStoreSnapshot())
-    })
-  }, [])
-
-  React.useEffect(() => {
-    publishCanvasMessageHost({
-      activeFilePath: resolvedActiveFilePath,
-      activeTarget: promptTarget,
-      blockMessages,
-      draft: messageDraft,
-      enabled: true,
-      onClose: closePrompt,
-      onDraftChange: updateMessageDraft,
-      onOpenTarget: openPrompt,
-      onPromptSubmit: submitBlockPrompt,
-      onThreadOpenChange: setBlockMessageThreadOpen,
-      status: promptStatus,
-    })
-  }, [
-    blockMessages,
-    closePrompt,
-    messageDraft,
-    openPrompt,
-    promptStatus,
-    promptTarget,
-    resolvedActiveFilePath,
-    submitBlockPrompt,
-    updateMessageDraft,
-  ])
-
-  React.useEffect(() => {
-    return () => clearCanvasMessageHost()
-  }, [])
+  useCanvasHostPreferencesPersistence({
+    activeCodexThreadId,
+    activeFilePath: artifacts.length === 0 ? undefined : resolvedActiveFilePath,
+    activeLanguage,
+    activeSidebarView,
+    activeThemeEditorSectionId,
+    activeThemeMode,
+    activeThemePresetId,
+    createArtifactJob,
+    leftSidebarOpen,
+  })
 
   return (
     <TooltipProvider>
@@ -696,7 +357,7 @@ function ReactCanvasHostWorkbench() {
               onResetThemePreview={resetThemePreview}
               themeDraft={themeDraft}
               themePreviewDirty={isCanvasThemeDraftDirty(themeDraft)}
-              themePresets={canvasThemePresets}
+              themePresets={themePresets}
               themeRuntimeVariables={themeRuntimeVariables}
             />
           </SidebarProvider>

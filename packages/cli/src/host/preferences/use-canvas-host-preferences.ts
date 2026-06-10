@@ -12,7 +12,7 @@ import type { CanvasThemeEditorSectionId } from "../theme/theme-editor-sections"
 
 export type CanvasHostPreferenceState = {
   activeCodexThreadId: string | null
-  activeFilePath: string | null
+  activeFilePath?: string | null
   activeLanguage: CanvasHostLanguage
   activeSidebarView: CanvasSidebarView
   activeThemeEditorSectionId: CanvasThemeEditorSectionId
@@ -34,9 +34,12 @@ export function useCanvasHostPreferencesPersistence({
   leftSidebarOpen,
 }: CanvasHostPreferenceState) {
   React.useEffect(() => {
+    const activeFilePathPatch =
+      activeFilePath === undefined ? {} : { activeFilePath }
+
     writeCanvasHostPreferences({
       activeCodexThreadId,
-      activeFilePath,
+      ...activeFilePathPatch,
       activeLanguage,
       activeSidebarView,
       activeThemeEditorSectionId,
