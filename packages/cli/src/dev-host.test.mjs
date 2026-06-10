@@ -10,14 +10,7 @@ import { describe, expect, it } from "vitest"
 import { startDevHost } from "./dev-host.mjs"
 import { hostRoot, packageRoot } from "./dev-server/context.mjs"
 import { parsePipelineArg } from "./dev-server/server.mjs"
-import {
-  createHostEntryModule,
-  createPlaygroundDependencyAliases,
-  createPlaygroundOptimizeDepsInclude,
-  createReactModuleResolutionAliases,
-  createViteFsAllowList,
-  resolvePackageImportModule,
-} from "./dev-server/vite.mjs"
+import { createHostEntryModule } from "./dev-server/vite.mjs"
 
 const reactPackageRoot = path.resolve(packageRoot, "..", "react")
 const execFileAsync = promisify(execFile)
@@ -143,146 +136,9 @@ describe("React Canvas dev host", () => {
     )
   })
 
-  it("pins React module resolution to one canonical renderer instance", () => {
-    const aliases = createReactModuleResolutionAliases()
-
-    expect(aliases).toEqual([
-      {
-        find: "react-dom/client",
-        replacement: expect.stringContaining("react-dom"),
-      },
-      {
-        find: "react/jsx-runtime",
-        replacement: expect.stringContaining("react"),
-      },
-      {
-        find: "react/jsx-dev-runtime",
-        replacement: expect.stringContaining("react"),
-      },
-      {
-        find: /^react$/,
-        replacement: expect.stringContaining("react"),
-      },
-    ])
-    expect(aliases.map((alias) => String(alias.find))).toEqual([
-      "react-dom/client",
-      "react/jsx-runtime",
-      "react/jsx-dev-runtime",
-      "/^react$/",
-    ])
-  })
-
-  it("pins playground dependencies outside the source workspace", () => {
-    const aliases = createPlaygroundDependencyAliases(process.cwd())
-    const radixAlias = aliases.find(
-      (alias) => String(alias.find) === "/^radix-ui$/"
-    )
-    const clsxAlias = aliases.find((alias) => String(alias.find) === "/^clsx$/")
-    const tailwindMergeAlias = aliases.find(
-      (alias) => String(alias.find) === "/^tailwind-merge$/"
-    )
-    const cvaAlias = aliases.find(
-      (alias) => String(alias.find) === "/^class-variance-authority$/"
-    )
-
-    expect(radixAlias).toEqual({
-      find: /^radix-ui$/,
-      replacement: expect.stringContaining("node_modules"),
-    })
-    expect(radixAlias.replacement.replaceAll("\\", "/")).not.toContain(
-      "/agent-html/node_modules/"
-    )
-    expect(clsxAlias.replacement.replaceAll("\\", "/")).toContain(
-      "/node_modules/clsx/dist/clsx.mjs"
-    )
-    expect(tailwindMergeAlias.replacement.replaceAll("\\", "/")).toContain(
-      "/node_modules/tailwind-merge/dist/bundle-mjs.mjs"
-    )
-    expect(cvaAlias.replacement.replaceAll("\\", "/")).toContain(
-      "/node_modules/class-variance-authority/dist/index.mjs"
-    )
-  })
-
-  it("resolves playground package imports with ESM import entries first", () => {
-    expect(resolvePackageImportModule("clsx").replaceAll("\\", "/")).toContain(
-      "/node_modules/clsx/dist/clsx.mjs"
-    )
-    expect(
-      resolvePackageImportModule("tailwind-merge").replaceAll("\\", "/")
-    ).toContain("/node_modules/tailwind-merge/dist/bundle-mjs.mjs")
-  })
-
-  it("provides runtime exports used by playground source imports", async () => {
-    const runtimeExportChecks = [
-      ["class-variance-authority", ["cva"]],
-      ["clsx", ["clsx"]],
-      ["tailwind-merge", ["twMerge"]],
-    ]
-
-    for (const [specifier, exportNames] of runtimeExportChecks) {
-      const module = await import(resolvePackageImportModule(specifier))
-
-      for (const exportName of exportNames) {
-        expect(module, `${specifier} should export ${exportName}`).toHaveProperty(
-          exportName
-        )
-      }
-    }
-  })
-
-  it("keeps playground optimize deps explicit and resolvable", () => {
-    const optimizeDeps = createPlaygroundOptimizeDepsInclude()
-
-    expect(optimizeDeps).toEqual([
-      "react",
-      "react/jsx-dev-runtime",
-      "react-dom/client",
-      "class-variance-authority",
-      "clsx",
-      "lucide-react",
-      "shiki/bundle/web",
-      "tailwind-merge",
-    ])
-    expect(
-      optimizeDeps.map((specifier) => [
-        specifier,
-        resolvePackageImportModule(specifier).replaceAll("\\", "/"),
-      ])
-    ).toEqual([
-      ["react", expect.stringContaining("/node_modules/react/index.js")],
-      [
-        "react/jsx-dev-runtime",
-        expect.stringContaining("/node_modules/react/jsx-dev-runtime.js"),
-      ],
-      [
-        "react-dom/client",
-        expect.stringContaining("/node_modules/react-dom/client.js"),
-      ],
-      [
-        "class-variance-authority",
-        expect.stringContaining(
-          "/node_modules/class-variance-authority/dist/index.mjs"
-        ),
-      ],
-      ["clsx", expect.stringContaining("/node_modules/clsx/dist/clsx.mjs")],
-      [
-        "lucide-react",
-        expect.stringContaining("/node_modules/lucide-react/dist/cjs/lucide-react.js"),
-      ],
-      [
-        "shiki/bundle/web",
-        expect.stringContaining("/node_modules/shiki/dist/bundle-web.mjs"),
-      ],
-      [
-        "tailwind-merge",
-        expect.stringContaining("/node_modules/tailwind-merge/dist/bundle-mjs.mjs"),
-      ],
-    ])
-  })
-
   it("scans and renders the example artifact", async () => {
     const { server, url } = await startDevHost({
-      args: ["--port", "5298"],
+      args: ["--port", String(await reserveFreePort())],
       cwd: process.cwd(),
     })
 
@@ -519,38 +375,6 @@ describe("React Canvas dev host", () => {
     await fs.mkdir(path.join(root, "agent-html"), { recursive: true })
     await fs.writeFile(dependencyPath, "export const label = 'dependency';\n")
     await fs.writeFile(appSourcePath, "export const label = 'app-source';\n")
-
-    expect(
-      createViteFsAllowList({
-        reactProtocolEntry: path.join(
-          root,
-          "node_modules",
-          "@agent-html",
-          "react",
-          "src",
-          "index.tsx"
-        ),
-        root,
-      })
-    ).toEqual(
-      expect.arrayContaining([
-        path.resolve(root, "agent-html"),
-        path.resolve(root, "node_modules"),
-      ])
-    )
-    expect(
-      createViteFsAllowList({
-        reactProtocolEntry: path.join(
-          root,
-          "node_modules",
-          "@agent-html",
-          "react",
-          "src",
-          "index.tsx"
-        ),
-        root,
-      })
-    ).not.toContain(path.resolve(root))
 
     const { server, url } = await startDevHost({
       args: ["--port", String(await reserveFreePort())],

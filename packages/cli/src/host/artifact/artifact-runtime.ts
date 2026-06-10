@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { artifactBundleUrl } from "../api/api"
+import { artifactBundleUrl, isArtifactBundleUrl } from "../api/api"
 import type { ArtifactModule } from "../host-contracts"
 
 export type ArtifactRuntimeStatus =
@@ -113,7 +113,7 @@ function createRuntimeError({
 
 async function defaultImportModule(url: string) {
   const staticArtifacts = globalThis.__AGENT_HTML_STATIC_ARTIFACTS__
-  if (staticArtifacts && url.startsWith("/__agent-html/artifact.js?")) {
+  if (staticArtifacts && isArtifactBundleUrl(url)) {
     const filePath = new URL(url, globalThis.location.href).searchParams.get(
       "filePath"
     )

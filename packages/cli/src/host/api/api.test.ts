@@ -2,9 +2,13 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   artifactLabel,
+  artifactBundleUrl,
   deleteArtifact,
   fetchCodexThreads,
+  fontStylesheetUrl,
   hostApiRoutes,
+  isArtifactBundleUrl,
+  publicAssetUrl,
   renameArtifact,
 } from "./api"
 
@@ -27,6 +31,31 @@ describe("artifactLabel", () => {
 
   it("keeps non-artifact filenames unchanged", () => {
     expect(artifactLabel("agent-html/artifacts/README.md")).toBe("README.md")
+  })
+})
+
+describe("host API route helpers", () => {
+  it("owns artifact bundle URLs", () => {
+    const url = artifactBundleUrl("agent-html/artifacts/example.artifact.tsx", 3)
+
+    expect(url).toBe(
+      "/__agent-html/artifact.js?filePath=agent-html%2Fartifacts%2Fexample.artifact.tsx&v=3"
+    )
+    expect(isArtifactBundleUrl(url)).toBe(true)
+    expect(isArtifactBundleUrl("/__agent-html/artifacts")).toBe(false)
+  })
+
+  it("owns proxied font stylesheet URLs", () => {
+    expect(
+      fontStylesheetUrl("https://fontsapi.zeoseven.com/570/main/result.css")
+    ).toBe(
+      "/__agent-html/font-stylesheet?url=https%3A%2F%2Ffontsapi.zeoseven.com%2F570%2Fmain%2Fresult.css"
+    )
+  })
+
+  it("owns public asset URLs", () => {
+    expect(publicAssetUrl("ghost.svg")).toBe("/__agent-html/public/ghost.svg")
+    expect(publicAssetUrl("/ghost.svg")).toBe("/__agent-html/public/ghost.svg")
   })
 })
 

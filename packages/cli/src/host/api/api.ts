@@ -21,6 +21,8 @@ export const hostApiRoutes = {
   codexThreads: "/__agent-html/codex/threads",
   codexTranscript: "/__agent-html/codex/transcript",
   codexTurn: "/__agent-html/codex/turn",
+  fontStylesheet: "/__agent-html/font-stylesheet",
+  publicAsset: "/__agent-html/public/",
 } as const
 
 export const artifactRenderedEventName = "agent-html:artifact-rendered"
@@ -144,6 +146,21 @@ export function artifactBundleUrl(filePath: string, version: string | number = 0
     v: String(version),
   })
   return `${hostApiRoutes.artifactBundle}?${params}`
+}
+
+export function isArtifactBundleUrl(url: string) {
+  return url.startsWith(`${hostApiRoutes.artifactBundle}?`)
+}
+
+export function fontStylesheetUrl(sourceUrl: string) {
+  const params = new URLSearchParams({
+    url: sourceUrl,
+  })
+  return `${hostApiRoutes.fontStylesheet}?${params}`
+}
+
+export function publicAssetUrl(pathname: string) {
+  return `${hostApiRoutes.publicAsset}${pathname.replace(/^\/+/, "")}`
 }
 
 export function artifactLabel(filePath: string) {

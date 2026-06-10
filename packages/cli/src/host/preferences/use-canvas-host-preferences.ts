@@ -34,20 +34,19 @@ export function useCanvasHostPreferencesPersistence({
   leftSidebarOpen,
 }: CanvasHostPreferenceState) {
   React.useEffect(() => {
-    const activeFilePathPatch =
-      activeFilePath === undefined ? {} : { activeFilePath }
-
-    writeCanvasHostPreferences({
-      activeCodexThreadId,
-      ...activeFilePathPatch,
-      activeLanguage,
-      activeSidebarView,
-      activeThemeEditorSectionId,
-      activeThemeMode,
-      activeThemePresetId,
-      createArtifactJob,
-      leftSidebarOpen,
-    })
+    writeCanvasHostPreferences(
+      createCanvasHostPreferencesPatch({
+        activeCodexThreadId,
+        activeFilePath,
+        activeLanguage,
+        activeSidebarView,
+        activeThemeEditorSectionId,
+        activeThemeMode,
+        activeThemePresetId,
+        createArtifactJob,
+        leftSidebarOpen,
+      })
+    )
   }, [
     activeCodexThreadId,
     activeFilePath,
@@ -59,4 +58,31 @@ export function useCanvasHostPreferencesPersistence({
     createArtifactJob,
     leftSidebarOpen,
   ])
+}
+
+export function createCanvasHostPreferencesPatch({
+  activeCodexThreadId,
+  activeFilePath,
+  activeLanguage,
+  activeSidebarView,
+  activeThemeEditorSectionId,
+  activeThemeMode,
+  activeThemePresetId,
+  createArtifactJob,
+  leftSidebarOpen,
+}: CanvasHostPreferenceState) {
+  const activeFilePathPatch =
+    activeFilePath === undefined ? {} : { activeFilePath }
+
+  return {
+    activeCodexThreadId,
+    ...activeFilePathPatch,
+    activeLanguage,
+    activeSidebarView,
+    activeThemeEditorSectionId,
+    activeThemeMode,
+    activeThemePresetId,
+    createArtifactJob,
+    leftSidebarOpen,
+  }
 }

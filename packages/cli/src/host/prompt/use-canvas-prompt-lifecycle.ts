@@ -20,6 +20,24 @@ import { submitBlockPromptToPipeline } from "../pipeline"
 import type { FloatingPromptTarget } from "../host-contracts"
 import type { HostTranslator } from "../i18n/host-i18n"
 
+export function createBlockMessageTarget({
+  filePath,
+  target,
+}: {
+  filePath: string | null
+  target: FloatingPromptTarget
+}) {
+  if (!filePath) {
+    return null
+  }
+
+  return {
+    blockId: target.id,
+    filePath,
+    title: target.title,
+  }
+}
+
 export function useCanvasPromptLifecycle({
   activeCodexThreadId,
   onCodexThreadChange,
@@ -72,14 +90,17 @@ export function useCanvasPromptLifecycle({
     }
 
     setPromptStatus("")
+    const messageTarget = createBlockMessageTarget({
+      filePath: resolvedActiveFilePath,
+      target,
+    })
+
+    if (!messageTarget) {
+      setPromptStatus(t("app.noActiveArtifact"))
+      return
+    }
 
     try {
-      const messageTarget = {
-        blockId: target.id,
-        filePath: resolvedActiveFilePath,
-        title: target.title,
-      }
-
       startBlockMessageThread({
         request,
         t,
@@ -112,11 +133,7 @@ export function useCanvasPromptLifecycle({
       failBlockMessageThread({
         error: errorMessage,
         t,
-        target: {
-          blockId: target.id,
-          filePath: resolvedActiveFilePath,
-          title: target.title,
-        },
+        target: messageTarget,
       })
       setPromptStatus(errorMessage)
     }

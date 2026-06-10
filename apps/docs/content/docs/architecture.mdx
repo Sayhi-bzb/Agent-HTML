@@ -236,9 +236,11 @@ before browser module loading fails.
 The dependency contract is executable: `workspace-contract.test.mjs` checks
 source-only workspace files, source metadata, and forbidden vendored installs.
 `package-runtime-contract.test.mjs` checks CLI runtime ownership.
-`routes.test.mjs` checks route pipeline ownership. `dev-host.test.mjs` checks
-Vite dependency aliases, ESM import entries, runtime exports, React singleton
-resolution, artifact rendering, and fresh-project startup.
+`runtime-resolution-contract.test.mjs` checks Vite dependency aliases, ESM
+import entries, runtime exports, React singleton resolution, explicit
+`optimizeDeps`, and filesystem allow-list boundaries. `routes.test.mjs` checks
+route pipeline ownership. `dev-host.test.mjs` checks artifact rendering and
+fresh-project startup through the real dev host.
 
 ## Guard Scopes
 

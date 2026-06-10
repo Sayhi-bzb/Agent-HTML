@@ -29,6 +29,7 @@ export function useArtifactRegistry({
   const [guardIssues, setGuardIssues] = React.useState<GuardIssue[]>([])
   const [artifactsLoading, setArtifactsLoading] = React.useState(true)
   const [loadError, setLoadError] = React.useState<string | null>(null)
+  const activeFilePathRef = React.useRef<string | null>(null)
 
   const activeArtifact =
     artifacts.find((artifact) => artifact.filePath === activeFilePath) ??
@@ -39,8 +40,10 @@ export function useArtifactRegistry({
     ? guardIssues.filter((issue) => issue.filePath === resolvedActiveFilePath)
     : []
 
+  activeFilePathRef.current = activeFilePath
+
   const refreshArtifacts = React.useCallback(async ({
-    currentFilePath = activeFilePath,
+    currentFilePath = activeFilePathRef.current,
   }: {
     currentFilePath?: string | null
   } = {}) => {
@@ -68,7 +71,7 @@ export function useArtifactRegistry({
     } finally {
       setArtifactsLoading(false)
     }
-  }, [activeFilePath, getPendingFilePath, onPendingArtifactReady])
+  }, [getPendingFilePath, onPendingArtifactReady])
 
   React.useEffect(() => {
     void refreshArtifacts().catch((refreshError: unknown) => {

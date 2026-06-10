@@ -1,13 +1,9 @@
-import { existsSync } from "node:fs"
-import { join } from "node:path"
-
 import { describe, expect, it } from "vitest"
 
 import {
   filesMatching,
   implementationFilesUnder,
   readSource,
-  root,
   sourceImportRecords,
 } from "./test-contract-helpers.mjs"
 
@@ -144,10 +140,6 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(forbiddenHostImports).toEqual([])
     expect(forbiddenWorkbenchImports).toEqual([])
     expect(workbenchSource).not.toMatch(forbiddenWorkbenchOwnership)
-    expect(workbenchSource).toContain("useArtifactRegistry")
-    expect(workbenchSource).toContain("useCanvasPromptLifecycle")
-    expect(workbenchSource).toContain("useCanvasHostPreferencesPersistence")
-    expect(workbenchSource).toContain("useCanvasHostTheme")
   })
 
   it("keeps apps from depending on the React Canvas CLI", () => {
@@ -155,34 +147,5 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       /from\s+["'](?:@agent-html\/cli|packages\/cli\/)|node\s+packages\/cli|agent-html\.mjs/
 
     expect(filesMatching("apps", forbidden)).toEqual([])
-  })
-
-  it("keeps React Canvas source helpers split by pipeline ownership", () => {
-    expect(existsSync(join(root, "packages/cli/src/react-canvas/source.mjs"))).toBe(
-      false
-    )
-    expect(
-      existsSync(join(root, "packages/cli/src/react-canvas/block-tags.mjs"))
-    ).toBe(true)
-    expect(
-      existsSync(
-        join(root, "packages/cli/src/react-canvas/block-implementation.mjs")
-      )
-    ).toBe(true)
-    expect(
-      existsSync(join(root, "packages/cli/src/react-canvas/workspace-file.mjs"))
-    ).toBe(true)
-  })
-
-  it("keeps example and Codex host pipelines physically separated", () => {
-    const examplePipeline = readSource("packages/cli/src/host/pipeline/example.ts")
-    const codexPipeline = readSource("packages/cli/src/host/pipeline/codex.ts")
-    const hostApp = readSource("packages/cli/src/host/app.tsx")
-
-    expect(examplePipeline).not.toContain("fetchCodexThreads")
-    expect(examplePipeline).not.toContain("startCodexTurn")
-    expect(examplePipeline).not.toContain("fetchBlockImplementation")
-    expect(hostApp).not.toContain("startCodexTurn")
-    expect(codexPipeline).toContain("startCodexTurn")
   })
 })

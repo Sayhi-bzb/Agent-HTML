@@ -1,3 +1,4 @@
+import { publicAssetUrl } from "../api/api"
 import { PromptComposer } from "../prompt/floating-prompt"
 import { useHostI18n } from "../i18n/host-i18n"
 
@@ -27,7 +28,7 @@ export function CreateArtifactSurface({
               alt=""
               aria-hidden="true"
               className="canvas-create-artifact-brand-icon"
-              src="/__agent-html/public/ghost.svg"
+              src={publicAssetUrl("ghost.svg")}
             />
             <span>Agent-HTML</span>
           </div>
