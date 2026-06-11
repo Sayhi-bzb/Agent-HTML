@@ -3,8 +3,10 @@ import {
   payment,
 } from "./data/generated-fare-anatomy"
 import { taxiKpis } from "./data/generated-trip-summary"
-import { roughSketchChartStyle, roughTaxiChartColors } from "./rough-theme"
-import { RoughBarChart, RoughPieChart } from "./rough-viz-charts"
+import { PieChart, type ChartConfig } from "../../components/chart"
+
+import { roughSketchChartStyle, roughSketchMarkOptions } from "./rough-theme"
+import { RoughBarChart } from "./rough-viz-charts"
 import {
   RoughRule,
   SectionIntro,
@@ -33,10 +35,15 @@ const componentChartData = {
   labels: components.map((item) => item.label),
   values: components.map((item) => item.value),
 }
-const paymentChartData = {
-  labels: payment.map((item) => item.label),
-  values: payment.map((item) => item.share),
-}
+const paymentChartConfig = Object.fromEntries(
+  payment.map((item, index) => [
+    item.label,
+    {
+      color: `var(--chart-${(index % 5) + 1})`,
+      label: item.label,
+    },
+  ])
+) satisfies ChartConfig
 const largestComponent = [...components].sort((a, b) => b.value - a.value)[0]
 const meterComponent = components.find((item) => item.key === "meter fare")
 const tipComponent = components.find((item) => item.key === "tip")
@@ -124,16 +131,15 @@ export function FareAnatomyBlock() {
           </SketchAnnotation>
 
           <div className="grid gap-4 sm:grid-cols-[minmax(220px,0.48fr)_minmax(0,0.52fr)] lg:grid-cols-1 xl:grid-cols-[minmax(200px,0.48fr)_minmax(0,0.52fr)]">
-            <RoughPieChart
-              {...roughSketchChartStyle}
-              colors={roughTaxiChartColors}
-              data={paymentChartData}
-              heightClassName="min-h-[220px] [&_svg]:min-h-[220px]"
+            <PieChart
+              aspectRatio="1 / 1"
+              config={paymentChartConfig}
+              data={payment}
               legend
-              margin={{ top: 40, right: 72, bottom: 22, left: 16 }}
-              title="Payment mix"
-              titleFontSize="15px"
-              tooltipFontSize=".8rem"
+              minHeight={220}
+              nameKey="label"
+              roughOptions={roughSketchMarkOptions}
+              valueKey="share"
             />
             <div className="canvas-stack-sm">
               <div>

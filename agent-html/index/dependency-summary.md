@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 159 |
-| Dependencies | 442 |
-| Local edges | 291 |
-| External edges | 150 |
+| Modules | 160 |
+| Dependencies | 447 |
+| Local edges | 295 |
+| External edges | 151 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -53,7 +53,7 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Module | Edges |
 | --- | --- |
-| `node_modules/react/index.js` | 58 |
+| `node_modules/react/index.js` | 59 |
 | `node_modules/radix-ui/dist/index.mjs` | 23 |
 | `node_modules/lucide-react/dist/esm/lucide-react.mjs` | 21 |
 | `node_modules/class-variance-authority/dist/index.mjs` | 7 |
