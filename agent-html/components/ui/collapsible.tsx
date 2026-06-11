@@ -11,8 +11,6 @@ function CollapsibleTrigger({
 }: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleTrigger>) {
   return (
     <CollapsiblePrimitive.CollapsibleTrigger
-      data-cursor="action"
-      data-selection="none"
       data-slot="collapsible-trigger"
       {...props}
     />
@@ -30,4 +28,4 @@ function CollapsibleContent({
   )
 }
 
-export { Collapsible, CollapsibleContent, CollapsibleTrigger }
+export { Collapsible, CollapsibleTrigger, CollapsibleContent }

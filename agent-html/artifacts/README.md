@@ -6,7 +6,7 @@ Use it after reading `../README.md` and `../AGENTS.md`. `AGENTS.md` owns hard ar
 
 ## Read Route
 
-- New artifact or broad artifact edit: start from `../examples/example.artifact.tsx`.
+- New artifact or broad artifact edit: start from this route and the closest existing artifact entry.
 - Existing split artifact: open the `*.artifact.tsx` artifact entry before opening block files.
 - Large block file: read `../index/large-files.md`, the artifact entry, and the block name first, then open only the block that owns the requested change.
 - UI choice: read `../components/README.md`, then `../TASTE.md` for component judgment.

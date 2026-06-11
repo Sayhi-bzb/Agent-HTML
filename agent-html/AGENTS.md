@@ -19,7 +19,6 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Keep `index/*` as generated decision summaries, not full tool output.
 - Keep `artifacts/README.md` as the artifact source route.
 - Keep `data/README.md` as the data source route.
-- Keep `examples/*` as copyable patterns, not broad policy documents.
 - Keep `styles/README.md` as the style route.
 - Do not add a new `agent-html` doc unless it owns a distinct question.
 - Do not duplicate rules across README, AGENTS, index, examples, and styles docs. Link to the owning file instead.
@@ -30,7 +29,6 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 ## Directory Ownership
 
 - Put artifact source in `artifacts`.
-- Put copyable patterns in `examples`.
 - Put visual primitives in `components/ui`.
 - Put single-file rich workflow components in `components/<name>.tsx`; split to `components/<name>/` only after they need multiple files.
 - Put reusable React behavior in `hooks`.
@@ -99,9 +97,8 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Do not import `@/app/*`, `apps/agent-html-app`, `@/agent-html/runtime/ui`, `renderAgentHtml`, or `renderInteractiveAgentHtml`.
 - Do not import Canvas host internals from artifact source.
 
-## Examples
+## Source Routes
 
-- Imitate `examples/example.artifact.tsx` for split artifact structure and ownership.
 - Read `artifacts/README.md` before opening large artifact source.
 - Use `components/README.md` for the component source route and `TASTE.md` for
   component choice before scanning the full primitive surface.

@@ -25,25 +25,6 @@ describe("React Canvas block implementation lookup", () => {
     ).resolves.toBe("agent-html/artifacts/demo/summary.block.tsx")
   })
 
-  it("resolves split example block implementation files", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-source-"))
-    await fs.mkdir(path.join(root, "agent-html", "examples", "example"), {
-      recursive: true,
-    })
-    await fs.writeFile(
-      path.join(root, "agent-html", "examples", "example", "brief.block.tsx"),
-      "export function BriefBlock() { return null }"
-    )
-
-    await expect(
-      resolveBlockImplementationPath({
-        blockId: "brief",
-        filePath: "agent-html/examples/example.artifact.tsx",
-        root,
-      })
-    ).resolves.toBe("agent-html/examples/example/brief.block.tsx")
-  })
-
   it("returns null when no split implementation exists", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-source-"))
 

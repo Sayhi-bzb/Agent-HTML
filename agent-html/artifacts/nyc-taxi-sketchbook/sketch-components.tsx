@@ -1,9 +1,14 @@
-import type { ReactNode } from "react"
+import { useCallback, type ReactNode } from "react"
 
 import { Badge } from "../../components/ui/badge"
 import { cn } from "../../lib/cn"
 
+import { roughSketchMarkOptions } from "./rough-theme"
+import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
+
 export const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+export const roughRuleHorizontalPath =
+  "M2 10 C48 5, 82 15, 126 9 S204 6, 256 11 S292 16, 318 8"
 
 export function formatCompact(value: number) {
   return Intl.NumberFormat("en", {
@@ -52,13 +57,62 @@ export function SketchPanel({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-md border border-border bg-background p-4 shadow-xs md:p-5",
-        "before:pointer-events-none before:absolute before:inset-0 before:bg-muted/20 before:opacity-40",
+        "relative overflow-hidden rounded-md bg-muted/15 p-4 md:p-5",
+        "before:pointer-events-none before:absolute before:inset-0 before:bg-background/45 before:opacity-50",
         className
       )}
     >
       <div className="relative">{children}</div>
     </div>
+  )
+}
+
+export function RoughRule({
+  className,
+  direction = "horizontal",
+  seed = 1,
+}: {
+  className?: string
+  direction?: "horizontal" | "vertical"
+  seed?: number
+}) {
+  const drawRule = useCallback<RoughSketchDraw>(
+    (roughSvg, group) => {
+      if (direction === "vertical") {
+        group.appendChild(
+          roughSvg.line(6, 4, 6, 116, {
+            ...roughSketchMarkOptions,
+            seed,
+            strokeWidth: 1,
+          })
+        )
+        return
+      }
+
+      group.appendChild(
+        roughSvg.path(roughRuleHorizontalPath, {
+          ...roughSketchMarkOptions,
+          fill: "none",
+          seed,
+          strokeWidth: 1,
+        })
+      )
+    },
+    [direction, seed]
+  )
+
+  return (
+    <svg
+      aria-hidden="true"
+      className={cn(
+        direction === "vertical" ? "h-full w-3" : "h-5 w-full",
+        className
+      )}
+      preserveAspectRatio="none"
+      viewBox={direction === "vertical" ? "0 0 12 120" : "0 0 320 20"}
+    >
+      <RoughSvgLayer draw={drawRule} />
+    </svg>
   )
 }
 
@@ -70,56 +124,73 @@ export function SketchNote({
   label?: string
 }) {
   return (
-    <div className="canvas-stack-xs border-l border-dashed border-border pl-4">
-      <Badge variant="outline">{label}</Badge>
-      <p className="canvas-text-caption text-muted-foreground">{children}</p>
+    <div className="relative pl-4">
+      <RoughRule
+        className="absolute inset-y-0 left-0 text-border"
+        direction="vertical"
+        seed={21}
+      />
+      <div className="canvas-stack-xs">
+        <Badge variant="outline">{label}</Badge>
+        <p className="canvas-text-caption text-muted-foreground">{children}</p>
+      </div>
     </div>
   )
 }
 
-export function MetricStrip({
-  items,
+export function SketchAnnotation({
+  children,
+  label,
 }: {
-  items: Array<{ label: string; value: string; note?: string }>
+  children: ReactNode
+  label: string
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {items.map((item) => (
-        <SketchPanel className="p-4" key={item.label}>
-          <div className="canvas-stack-xs">
-            <span className="canvas-text-caption text-muted-foreground">
-              {item.label}
-            </span>
-            <strong className="font-mono text-2xl font-semibold tracking-normal">
+    <div className="relative pl-4">
+      <RoughRule
+        className="absolute inset-y-0 left-0 text-border"
+        direction="vertical"
+        seed={34}
+      />
+      <div className="canvas-stack-xs">
+        <span className="canvas-text-caption text-muted-foreground">{label}</span>
+        <div>{children}</div>
+      </div>
+    </div>
+  )
+}
+
+export function LedgerRows({
+  items,
+}: {
+  items: Array<{ label: string; note?: string; value: ReactNode }>
+}) {
+  return (
+    <div className="canvas-stack-xs">
+      {items.map((item, index) => (
+        <div key={item.label}>
+          {index === 0 ? <RoughRule className="text-border/70" seed={55} /> : null}
+          <div className="grid gap-2 py-2 text-foreground sm:grid-cols-[minmax(0,1fr)_auto] sm:items-baseline">
+            <div className="canvas-stack-xs">
+              <span className="canvas-text-caption text-muted-foreground">
+                {item.label}
+              </span>
+              {item.note ? (
+                <span className="canvas-text-caption text-muted-foreground">
+                  {item.note}
+                </span>
+              ) : null}
+            </div>
+            <strong className="font-mono text-lg font-semibold tracking-normal">
               {item.value}
             </strong>
-            {item.note ? (
-              <span className="canvas-text-caption text-muted-foreground">
-                {item.note}
-              </span>
-            ) : null}
           </div>
-        </SketchPanel>
+        </div>
       ))}
     </div>
   )
 }
 
 export function ScratchLine({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={cn("h-4 w-full text-border", className)}
-      preserveAspectRatio="none"
-      viewBox="0 0 320 18"
-    >
-      <path
-        d="M2 10 C48 5, 82 15, 126 9 S204 6, 256 11 S300 14, 318 8"
-        fill="none"
-        stroke="currentColor"
-        strokeDasharray="5 6"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
+  return <RoughRule className={cn("text-border", className)} seed={8} />
 }

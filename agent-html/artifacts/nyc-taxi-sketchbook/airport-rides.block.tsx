@@ -6,9 +6,9 @@ import { taxiData } from "./data"
 import { roughSketchMarkOptions } from "./rough-theme"
 import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
 import {
+  LedgerRows,
   SectionIntro,
   SketchNote,
-  SketchPanel,
   formatCompact,
   formatCurrency,
 } from "./sketch-components"
@@ -49,49 +49,42 @@ function AirportRouteSketch() {
 export function AirportRidesBlock() {
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="05 / airport rides" title="机场把平均值往外拽。">
-        JFK、LaGuardia 和 Newark 的行程在数量上不是最大项，但它们距离更长、总额更高，也更容易解释凌晨高客单价。
+      <SectionIntro badge="05 / airport rides" title="机场行程抬高距离和总额">
+        JFK、LaGuardia 和 Newark 的行程不是最大数量项，但距离更长、总额更高，也解释了凌晨高客单价的一部分。
       </SectionIntro>
 
       <div className="grid gap-5 md:grid-cols-3">
         {taxiData.airport.map((airport) => (
-          <SketchPanel key={airport.airport}>
-            <div className="canvas-stack-md">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <Badge variant="outline">{airport.airport}</Badge>
-                  <p className="mt-3 font-mono text-3xl font-semibold tracking-normal">
-                    {formatCompact(airport.trips)}
-                  </p>
-                </div>
-                <AirportRouteSketch />
+          <div
+            className="canvas-stack-md py-2"
+            key={airport.airport}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <Badge variant="outline">{airport.airport}</Badge>
+                <p className="mt-3 font-mono text-3xl font-semibold tracking-normal">
+                  {formatCompact(airport.trips)}
+                </p>
               </div>
-              <div className="grid gap-3">
-                <div className="flex justify-between gap-3">
-                  <span className="canvas-text-caption text-muted-foreground">
-                    avg total
-                  </span>
-                  <strong className="font-mono">
-                    {formatCurrency(airport.averageTotal)}
-                  </strong>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <span className="canvas-text-caption text-muted-foreground">
-                    avg distance
-                  </span>
-                  <strong className="font-mono">{airport.averageDistance} mi</strong>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <span className="canvas-text-caption text-muted-foreground">
-                    avg tip
-                  </span>
-                  <strong className="font-mono">
-                    {formatCurrency(airport.averageTip)}
-                  </strong>
-                </div>
-              </div>
+              <AirportRouteSketch />
             </div>
-          </SketchPanel>
+            <LedgerRows
+              items={[
+                {
+                  label: "avg total",
+                  value: formatCurrency(airport.averageTotal),
+                },
+                {
+                  label: "avg distance",
+                  value: `${airport.averageDistance} mi`,
+                },
+                {
+                  label: "avg tip",
+                  value: formatCurrency(airport.averageTip),
+                },
+              ]}
+            />
+          </div>
         ))}
       </div>
 

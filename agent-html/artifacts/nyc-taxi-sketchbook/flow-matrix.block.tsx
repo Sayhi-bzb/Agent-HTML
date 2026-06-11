@@ -1,9 +1,11 @@
-import { useEffect, useId, useMemo } from "react"
+import { useCallback, useEffect, useId, useMemo } from "react"
 import * as roughViz from "rough-viz"
 
 import { taxiData } from "./data"
-import { roughSketchChartStyle } from "./rough-theme"
+import { roughSketchChartStyle, roughSketchMarkOptions } from "./rough-theme"
+import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
 import {
+  SketchAnnotation,
   SectionIntro,
   SketchNote,
   SketchPanel,
@@ -50,6 +52,48 @@ type TaxiNetworkLink = {
 
 function forceRadiusForTrips(trips: number, maxForceTrips: number) {
   return 3 + Math.sqrt(trips / maxForceTrips) * 7
+}
+
+function RoughMatrixCell({
+  item,
+  seed,
+}: {
+  item: (typeof matrixRows)[number][number]
+  seed: number
+}) {
+  const drawCell = useCallback<RoughSketchDraw>(
+    (roughSvg, group) => {
+      group.appendChild(
+        roughSvg.rectangle(2, 2, 96, 76, {
+          ...roughSketchMarkOptions,
+          fill: "currentColor",
+          hachureGap: 5,
+          seed,
+          strokeWidth: 0.8,
+        })
+      )
+    },
+    [seed]
+  )
+
+  return (
+    <div
+      className={`relative min-h-20 text-foreground ${opacityClass(item.trips)}`}
+    >
+      <svg
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full"
+        preserveAspectRatio="none"
+        viewBox="0 0 100 80"
+      >
+        <RoughSvgLayer draw={drawCell} />
+      </svg>
+      <div className="relative p-2 text-background">
+        <p className="font-mono text-sm">{formatCompact(item.trips)}</p>
+        <p className="text-xs">{item.averageDistance} mi</p>
+      </div>
+    </div>
+  )
 }
 
 function RoughNetworkChart({
@@ -148,8 +192,8 @@ export function FlowMatrixBlock() {
 
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="03 / origin to destination" title="最粗的流向，仍然很短。">
-        这里用 roughViz.Network：节点是主要 borough 和 EWR，泡泡越大，说明这个区域相关的 taxi volume 越强。
+      <SectionIntro badge="03 / origin to destination" title="主要流向先看网络，再查矩阵">
+        roughViz.Network 保留最强 OD links；下方矩阵继续保留方向关系和精确对照。
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -158,22 +202,17 @@ export function FlowMatrixBlock() {
         </SketchPanel>
 
         <div className="canvas-stack-md">
-          <SketchPanel>
-            <div className="canvas-stack-xs">
-              <span className="canvas-text-caption text-muted-foreground">
-                strongest cross-borough line
-              </span>
-              <strong className="font-mono text-2xl">
-                {strongest.from} {"->"} {strongest.to}
-              </strong>
-              <p className="canvas-text-body">
-                {formatCompact(strongest.trips)} 次，平均 {strongest.averageDistance}{" "}
-                mi，平均总额 ${strongest.averageTotal}。
-              </p>
-            </div>
-          </SketchPanel>
+          <SketchAnnotation label="strongest cross-borough line">
+            <strong className="font-mono text-2xl">
+              {strongest.from} {"->"} {strongest.to}
+            </strong>
+            <p className="canvas-text-caption text-muted-foreground">
+              {formatCompact(strongest.trips)} 次，平均 {strongest.averageDistance}{" "}
+              mi，平均总额 ${strongest.averageTotal}。
+            </p>
+          </SketchAnnotation>
           <SketchNote>
-            roughViz.Network 只保留最强的 OD links 作为粗略拉力；下方矩阵继续保留方向关系和精确对照。
+            EWR 保留在这里，是为了让机场边界对费用和距离的影响不被 borough 汇总吞掉。
           </SketchNote>
         </div>
       </div>
@@ -200,14 +239,12 @@ export function FlowMatrixBlock() {
                 <span className="canvas-text-caption text-muted-foreground">
                   {boroughs[index]}
                 </span>
-                {row.map((item) => (
-                  <div
-                    className={`min-h-20 rounded-sm border border-border bg-foreground p-2 text-background ${opacityClass(item.trips)}`}
+                {row.map((item, columnIndex) => (
+                  <RoughMatrixCell
+                    item={item}
                     key={`${item.from}-${item.to}`}
-                  >
-                    <p className="font-mono text-sm">{formatCompact(item.trips)}</p>
-                    <p className="text-xs">{item.averageDistance} mi</p>
-                  </div>
+                    seed={index * boroughs.length + columnIndex + 80}
+                  />
                 ))}
               </div>
             ))}

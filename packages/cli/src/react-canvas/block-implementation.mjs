@@ -6,10 +6,7 @@ function isKebabCase(value) {
 }
 
 function isReactCanvasSourceRoot(relativePath) {
-  return (
-    relativePath.startsWith("agent-html/artifacts/") ||
-    relativePath.startsWith("agent-html/examples/")
-  )
+  return relativePath.startsWith("agent-html/artifacts/")
 }
 
 function toPosixPath(value) {

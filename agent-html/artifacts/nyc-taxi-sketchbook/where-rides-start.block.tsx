@@ -6,6 +6,7 @@ import { taxiData } from "./data"
 import { roughSketchChartStyle } from "./rough-theme"
 import { RoughBarHChart } from "./rough-viz-charts"
 import {
+  LedgerRows,
   SectionIntro,
   SketchNote,
   SketchPanel,
@@ -83,8 +84,8 @@ const pickupZoneColumns: ColumnDef<PickupZoneRow>[] = [
 export function WhereRidesStartBlock() {
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="02 / pickup geography" title="上车点先把故事写偏了。">
-        黄出租的一个月不是全城均匀分布。高频 pickup 仍然被曼哈顿核心区、机场和几个交通节点拉住。
+      <SectionIntro badge="02 / pickup geography" title="pickup 仍集中在曼哈顿和机场">
+        高频 pickup 不是全城均匀分布。曼哈顿核心区给出短途密度，机场区域把距离和费用拉高。
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-2">
@@ -104,23 +105,13 @@ export function WhereRidesStartBlock() {
         </SketchPanel>
 
         <div className="canvas-stack-md">
-          <SketchPanel>
-            <div className="canvas-stack-sm">
-              {taxiData.pickupBoroughs.map((borough) => (
-                <div className="grid grid-cols-3 items-baseline gap-3" key={borough.borough}>
-                  <span className="canvas-text-caption text-muted-foreground">
-                    {borough.borough}
-                  </span>
-                  <strong className="font-mono">
-                    {formatCompact(borough.trips)}
-                  </strong>
-                  <span className="text-right font-mono text-sm">
-                    {formatPercent(borough.share)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </SketchPanel>
+          <LedgerRows
+            items={taxiData.pickupBoroughs.map((borough) => ({
+              label: borough.borough,
+              note: `${formatPercent(borough.share)} of pickups`,
+              value: formatCompact(borough.trips),
+            }))}
+          />
           <SketchNote>
             Manhattan 占比最高不意外；更值得看的是 Queens 和 EWR，它们把机场长距离行程带进费用结构。
           </SketchNote>

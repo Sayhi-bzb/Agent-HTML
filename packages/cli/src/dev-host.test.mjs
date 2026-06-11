@@ -217,14 +217,14 @@ describe("React Canvas dev host", () => {
       const blockImplementationUrl = new URL(`${url}/__agent-html/block-implementation`)
       blockImplementationUrl.searchParams.set(
         "filePath",
-        "agent-html/examples/example.artifact.tsx"
+        "agent-html/artifacts/nasa-artemis-ii.artifact.tsx"
       )
-      blockImplementationUrl.searchParams.set("blockId", "brief")
+      blockImplementationUrl.searchParams.set("blockId", "orion-window")
       const blockImplementation = await fetch(blockImplementationUrl).then((response) =>
         response.json()
       )
       expect(blockImplementation.implementationPath).toBe(
-        "agent-html/examples/example/brief.block.tsx"
+        "agent-html/artifacts/nasa-artemis-ii/orion-window.block.tsx"
       )
       expect(Object.keys(blockImplementation).sort()).toEqual(["implementationPath"])
 

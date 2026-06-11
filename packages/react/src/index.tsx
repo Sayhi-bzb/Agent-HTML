@@ -254,6 +254,7 @@ export function Artifact({ children, title }: ArtifactProps) {
 export function Block({ children, id, title }: BlockProps) {
   return (
     <section
+      id={id}
       data-agent-html-block="true"
       data-agent-html-block-id={id}
       data-agent-html-block-title={title ?? id}

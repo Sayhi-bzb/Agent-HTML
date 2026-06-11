@@ -1,8 +1,7 @@
 import { Alert, AlertDescription } from "../../components/ui/alert"
-import { Badge } from "../../components/ui/badge"
 
 import { taxiData } from "./data"
-import { SectionIntro, SketchPanel } from "./sketch-components"
+import { LedgerRows, SectionIntro } from "./sketch-components"
 
 const sources = [
   {
@@ -30,25 +29,21 @@ const sources = [
 export function SourcesBlock() {
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="source register" title="数据源和清洗口径留在纸边。">
+      <SectionIntro badge="source register" title="数据源和清洗口径">
         页面图表来自官方 TLC 原始数据的本地聚合，不包含虚构行程，也不提交原始 Parquet 大文件。
       </SectionIntro>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {sources.map((source) => (
-          <SketchPanel key={source.url}>
-            <div className="canvas-stack-xs">
-              <Badge variant="outline">{source.label}</Badge>
-              <p className="canvas-text-caption text-muted-foreground">
-                {source.note}
-              </p>
-              <a className="canvas-text-caption underline" href={source.url}>
-                {source.url}
-              </a>
-            </div>
-          </SketchPanel>
-        ))}
-      </div>
+      <LedgerRows
+        items={sources.map((source) => ({
+          label: source.label,
+          note: source.note,
+          value: (
+            <a className="canvas-text-caption underline" href={source.url}>
+              {source.url}
+            </a>
+          ),
+        }))}
+      />
 
       <Alert>
         <AlertDescription>

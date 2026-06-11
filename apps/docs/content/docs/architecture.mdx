@@ -67,7 +67,6 @@ schema/*
 data/*
 assets/*
 public/*
-examples/*
 artifacts/*
 ```
 
@@ -153,7 +152,7 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Workspace file/path helpers | `react-canvas/paths.mjs` + `react-canvas/workspace-file.mjs` | root path or source file path | POSIX workspace path or text source | generic filesystem abstraction, mutation APIs, host state | `pipeline-ownership-contract.test.mjs`, `workspace-contract.test.mjs` |
 | Artifact discovery | `react-canvas/paths.mjs` | `agent-html/artifacts/*.artifact.tsx` | artifact entry file paths | app shell, runtime parser, host UI | `dev-host.test.mjs`, `pipeline-ownership-contract.test.mjs` |
 | Artifact entry protocol guard | `react-canvas/guard.mjs` | artifact entry source | issues scoped as `artifact-entry-protocol` | layout or style props on `Artifact` or `Block` | `guard.test.mjs` |
-| Block implementation source guard | `react-canvas/guard.mjs` | `agent-html/{artifacts,examples}/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `style-ownership-contract.test.mjs` |
+| Block implementation source guard | `react-canvas/guard.mjs` | `agent-html/artifacts/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `style-ownership-contract.test.mjs` |
 | Workspace boundary guard | `react-canvas/guard.mjs` | artifact and block source imports | issues scoped as `workspace-boundary` | app imports, old runtime imports, public-file imports | `guard.test.mjs`, `workspace-contract.test.mjs`, `architecture-boundaries.test.mjs` |
 | Dependency resolution | `dev-server/vite.mjs` | source import specifier | CLI-provided runtime module | `agent-html/node_modules`, source-owned runtime installs | `runtime-resolution-contract.test.mjs` |
 | Module transform and render | Vite middleware + host artifact runtime | artifact entry file path | mounted artifact DOM with HMR-capable module graph | app shell, old runtime render APIs | `dev-host.test.mjs`, `artifact-runtime.test.ts` |
@@ -209,8 +208,8 @@ packages/cli/src/host
   -> Canvas UI/theme only through #agent-html-playground/components/ui/* and
      #agent-html-playground/theme/*
 
-agent-html/artifacts and agent-html/examples
-  -> artifact source and copyable examples
+agent-html/artifacts
+  -> artifact source
   -> no host, app, docs, archive, public-file imports, or internal style imports
 ```
 

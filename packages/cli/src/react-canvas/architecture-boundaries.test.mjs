@@ -22,7 +22,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(
       filesMatching(
         "packages/cli/src/host",
-        /from\s+["']#agent-html-playground\/(?!(?:components\/ui|theme)\/)/
+        /from\s+["']#agent-html-playground\/(?!(?:components\/ui\/|theme\/))/
       )
     ).toEqual([])
     expect(
@@ -64,7 +64,6 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
       ({ target }) =>
         target.startsWith("packages/cli/src/host/") ||
         target.startsWith("agent-html/artifacts/") ||
-        target.startsWith("agent-html/examples/") ||
         target.startsWith("agent-html/components/") ||
         target.startsWith("agent-html/theme/") ||
         target.startsWith("apps/") ||
@@ -82,7 +81,6 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     )
     const artifactLayerEscapes = [
       ...sourceImportRecords("agent-html/artifacts"),
-      ...sourceImportRecords("agent-html/examples"),
     ].filter(
       ({ target }) =>
         target.startsWith("packages/") ||
@@ -107,7 +105,6 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
         target.startsWith("packages/cli/src/host/") ||
         target.startsWith("packages/cli/src/react-canvas/prompt") ||
         target.startsWith("agent-html/artifacts/") ||
-        target.startsWith("agent-html/examples/") ||
         target.startsWith("agent-html/components/") ||
         target.startsWith("agent-html/theme/") ||
         target.startsWith("apps/") ||

@@ -14,6 +14,11 @@ import { GuardIssueList, HostStatusMessage } from "./status-surface"
 import { getHumanVisibleGuardIssues } from "../guard-visibility"
 import { useHostI18n } from "../i18n/host-i18n"
 import { ScrollArea } from "#agent-html-playground/components/ui/scroll-area"
+import {
+  TableOfContents,
+  TableOfContentsList,
+  useScrollSpy,
+} from "../ui/table-of-contents"
 import type { ArtifactBlock, GuardIssue } from "../host-contracts"
 import { HostSurfaceSkeleton } from "../ui/surface-skeleton"
 
@@ -36,6 +41,72 @@ export function ArtifactSurface({
 }) {
   const { t } = useHostI18n()
   const overlayRootRef = React.useRef<HTMLDivElement | null>(null)
+  const tocScrollHideTimeoutRef = React.useRef<number | null>(null)
+  const [scrollViewport, setScrollViewport] =
+    React.useState<HTMLElement | null>(null)
+  const [tocVisibleByScroll, setTocVisibleByScroll] = React.useState(false)
+  const tocItems = React.useMemo(
+    () => blocks?.map((block) => ({
+      depth: 2,
+      id: block.id,
+      title: block.title,
+    })) ?? [],
+    [blocks]
+  )
+  const activeTocId = useScrollSpy(
+    tocItems.map((item) => item.id),
+    {
+      root: scrollViewport,
+      rootMargin: "-24px 0px -80% 0px",
+    }
+  )
+  const setScrollAreaElement = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      setScrollViewport(
+        element?.querySelector<HTMLElement>("[data-slot='scroll-area-viewport']") ??
+          null
+      )
+    },
+    []
+  )
+
+  React.useEffect(() => {
+    if (!scrollViewport) {
+      setTocVisibleByScroll(false)
+      return
+    }
+
+    const clearHideTimeout = () => {
+      if (tocScrollHideTimeoutRef.current === null) {
+        return
+      }
+
+      window.clearTimeout(tocScrollHideTimeoutRef.current)
+      tocScrollHideTimeoutRef.current = null
+    }
+
+    const scheduleHide = () => {
+      clearHideTimeout()
+      tocScrollHideTimeoutRef.current = window.setTimeout(() => {
+        setTocVisibleByScroll(false)
+        tocScrollHideTimeoutRef.current = null
+      }, 900)
+    }
+
+    const handleScroll = () => {
+      setTocVisibleByScroll(true)
+      scheduleHide()
+    }
+
+    scrollViewport.addEventListener("scroll", handleScroll, { passive: true })
+
+    return () => {
+      clearHideTimeout()
+      scrollViewport.removeEventListener("scroll", handleScroll)
+      setTocVisibleByScroll(false)
+    }
+  }, [scrollViewport])
+
   const { measureBlocks, overlays, scheduleGeometryUpdate, setOverlays } =
     useBlockOverlays(overlayRootRef)
   const { runtime, setArtifactElement } = useArtifactRuntime({
@@ -73,7 +144,17 @@ export function ArtifactSurface({
 
   return (
     <main className="canvas-surface-root">
-      <ScrollArea className="canvas-surface-scroll">
+      {tocItems.length > 1 ? (
+        <aside
+          className="canvas-artifact-toc-layer"
+          data-scroll-visible={tocVisibleByScroll ? "" : undefined}
+        >
+          <TableOfContents activeId={activeTocId} items={tocItems}>
+            <TableOfContentsList />
+          </TableOfContents>
+        </aside>
+      ) : null}
+      <ScrollArea className="canvas-surface-scroll" ref={setScrollAreaElement}>
         <div
           className="canvas-surface-frame"
           onTransitionEnd={scheduleGeometryUpdate}

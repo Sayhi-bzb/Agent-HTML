@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   canvasHostCompactDesktopMediaQuery,
+  resolveInitialCanvasHostMode,
   shouldAutoCollapseCanvasHostSidebar,
 } from "./app"
 import { resolveArtifactRefreshState } from "./artifact/artifact-refresh-state"
@@ -10,6 +11,19 @@ import {
   canvasHostMobileMediaQuery,
   shouldRedirectCanvasHostToDocs,
 } from "./mobile-docs-redirect"
+import type { CanvasCreateArtifactJob } from "./preferences/canvas-host-preferences"
+
+function createArtifactJob(
+  phase: CanvasCreateArtifactJob["phase"]
+): CanvasCreateArtifactJob {
+  return {
+    error: phase === "failed" ? "Timed out" : undefined,
+    filePath: "agent-html/artifacts/pending.artifact.tsx",
+    phase,
+    request: "pending artifact",
+    startedAt: 1,
+  }
+}
 
 describe("ReactCanvasHostApp mobile docs redirect", () => {
   it("uses the public docs start route for mobile host visits", () => {
@@ -48,6 +62,30 @@ describe("ReactCanvasHostApp compact desktop sidebar", () => {
     expect(shouldAutoCollapseCanvasHostSidebar(createViewport(true))).toBe(true)
     expect(shouldAutoCollapseCanvasHostSidebar(createViewport(false))).toBe(false)
     expect(shouldAutoCollapseCanvasHostSidebar(null)).toBe(false)
+  })
+})
+
+describe("resolveInitialCanvasHostMode", () => {
+  it("opens the artifact surface when there is no create job", () => {
+    expect(resolveInitialCanvasHostMode(null)).toBe("artifact")
+  })
+
+  it("opens the artifact surface when the create job already failed", () => {
+    expect(resolveInitialCanvasHostMode(createArtifactJob("failed"))).toBe(
+      "artifact"
+    )
+  })
+
+  it("opens create mode while a create job is starting", () => {
+    expect(resolveInitialCanvasHostMode(createArtifactJob("starting"))).toBe(
+      "create-artifact"
+    )
+  })
+
+  it("opens create mode while waiting for a pending artifact", () => {
+    expect(
+      resolveInitialCanvasHostMode(createArtifactJob("waiting-for-artifact"))
+    ).toBe("create-artifact")
   })
 })
 

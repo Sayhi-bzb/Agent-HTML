@@ -13,16 +13,13 @@ import {
 } from "./test-contract-helpers.mjs"
 
 describe("React Canvas workspace contract", { timeout: 15000 }, () => {
-  it("keeps artifact and example imports inside the React Canvas playground contract", () => {
+  it("keeps artifact imports inside the React Canvas playground contract", () => {
     const allowedLocalImport =
       /^\.\.(?:\/\.\.)*\/(?:components\/(?:ui\/[a-z0-9-]+|[a-z0-9-]+)|hooks|lib|schema|data|assets)(?:\/|$)/
     const forbiddenImport =
       /^(?:@\/|#agent-html-playground\/|@agent-html-playground\/|apps\/|packages\/|@\/app\/|@\/agent-html\/runtime)/
 
-    for (const file of [
-      ...implementationFilesUnder("agent-html/artifacts"),
-      ...implementationFilesUnder("agent-html/examples"),
-    ]) {
+    for (const file of implementationFilesUnder("agent-html/artifacts")) {
       const specifiers = importedSpecifiers(readSource(file))
       const invalid = specifiers.filter((specifier) => {
         if (specifier === "@agent-html/react") {
@@ -92,9 +89,6 @@ describe("React Canvas workspace contract", { timeout: 15000 }, () => {
       []
     )
     expect(filesMatching("agent-html/artifacts", /from\s+["']\.\.\/public(?:\/|["'])/)).toEqual(
-      []
-    )
-    expect(filesMatching("agent-html/examples", /from\s+["']\.\.\/public(?:\/|["'])/)).toEqual(
       []
     )
   })

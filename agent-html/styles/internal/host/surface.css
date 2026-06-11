@@ -27,6 +27,35 @@
     background: var(--background);
   }
 
+  .canvas-artifact-toc-layer {
+    display: none;
+    position: absolute;
+    top: var(--canvas-surface-padding-block-start);
+    left: max(
+      var(--canvas-surface-padding-inline),
+      calc((100% - var(--canvas-artifact-max-width)) / 2 - 14rem)
+    );
+    z-index: calc(var(--canvas-toolbar-z-index) - 1);
+    width: 11rem;
+    max-height: calc(100svh - var(--canvas-surface-padding-block-start) - var(--canvas-surface-padding-block-end));
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: auto;
+    transition: opacity 260ms ease-out;
+  }
+
+  .canvas-artifact-toc-layer:hover,
+  .canvas-artifact-toc-layer:focus-within,
+  .canvas-artifact-toc-layer[data-scroll-visible] {
+    opacity: 1;
+  }
+
+  @media (min-width: 1280px) {
+    .canvas-artifact-toc-layer {
+      display: block;
+    }
+  }
+
   .canvas-surface-scroll {
     height: 100svh;
     min-width: 0;

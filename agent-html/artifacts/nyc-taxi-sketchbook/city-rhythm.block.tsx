@@ -1,6 +1,5 @@
 import { useCallback } from "react"
 
-import { Badge } from "../../components/ui/badge"
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +12,7 @@ import { roughSketchMarkOptions } from "./rough-theme"
 import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
 import {
   SectionIntro,
+  SketchAnnotation,
   SketchNote,
   SketchPanel,
   dayLabels,
@@ -73,13 +73,13 @@ export function CityRhythmBlock() {
 
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="01 / hour grid" title="城市不是平均醒来的。">
-        横向是一天 24 小时，纵向是星期。最深的格子不是“热闹”装饰，而是 pickup
-        发生的位置：纽约的出租车需求在通勤、晚餐和夜间活动之间换挡。
+      <SectionIntro badge="01 / hour grid" title="按星期和小时看 pickup 密度">
+        横向是一天 24 小时，纵向是星期。格子深浅只表示 pickup 数量，用来定位通勤、
+        晚餐和夜间活动的换挡点。
       </SectionIntro>
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        <SketchPanel className="lg:col-span-2">
+      <div className="canvas-stack-md">
+        <SketchPanel>
           <div className="overflow-x-auto">
             <TooltipProvider>
               <svg
@@ -147,19 +147,16 @@ export function CityRhythmBlock() {
           </div>
         </SketchPanel>
 
-        <div className="canvas-stack-md">
-          <SketchPanel>
-            <div className="canvas-stack-xs">
-              <Badge variant="outline">peak cell</Badge>
-              <p className="font-mono text-3xl font-semibold tracking-normal">
-                {dayLabels[peak.day]} {peak.hour}:00
-              </p>
-              <p className="canvas-text-body">
-                {peak.trips.toLocaleString()} 次 pickup，平均总额 $
-                {peak.averageTotal}。
-              </p>
-            </div>
-          </SketchPanel>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.34fr)]">
+          <SketchAnnotation label="peak cell">
+            <p className="font-mono text-2xl font-semibold tracking-normal">
+              {dayLabels[peak.day]} {peak.hour}:00
+            </p>
+            <p className="canvas-text-caption text-muted-foreground">
+              {peak.trips.toLocaleString()} 次 pickup，平均总额{" "}
+              {formatCurrency(peak.averageTotal)}。
+            </p>
+          </SketchAnnotation>
           <SketchNote>
             深色集中在工作日下午到夜间。凌晨格子变浅，但平均金额会上升，说明短途通勤之外还有机场和长距离行程。
           </SketchNote>

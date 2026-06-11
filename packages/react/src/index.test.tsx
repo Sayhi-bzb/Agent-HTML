@@ -25,6 +25,7 @@ describe("@agent-html/react", () => {
     expect(html).toContain("agent-html-artifact")
     expect(html).not.toContain("max-w-2xl")
     expect(html).not.toContain("gap-8")
+    expect(html).toContain('id="summary"')
     expect(html).toContain('data-agent-html-block-id="summary"')
     expect(html).not.toContain("min-w-0")
     expect(html).not.toContain("scroll-mt-4")

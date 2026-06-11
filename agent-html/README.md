@@ -1,6 +1,6 @@
 # React Canvas Workspace
 
-`agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, examples, data, assets, and source dependency metadata. It does not contain runtime install artifacts.
+`agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, data, assets, and source dependency metadata. It does not contain runtime install artifacts.
 
 ## Read Route
 
@@ -12,7 +12,6 @@ Always:
 When authoring an artifact:
 
 - `artifacts/README.md`
-- `examples/example.artifact.tsx`
 - `TASTE.md` for artifact composition and visual judgment.
 
 When opening broad or large source files:
@@ -42,7 +41,6 @@ When touching Canvas classes, tokens, or internal chrome:
 ## Source Placement
 
 - `artifacts`: artifact source.
-- `examples`: compact patterns to imitate.
 - `components/ui`: local visual primitives.
 - `components/<name>.tsx`: single-file rich workflow components such as kanban.
 - `hooks`: reusable React behavior.
@@ -56,7 +54,6 @@ When touching Canvas classes, tokens, or internal chrome:
 
 ## Copy Policy
 
-- Copy `examples/example.artifact.tsx` for artifacts that need an artifact entry and semantic block files.
 - Use `artifacts/README.md` before opening large artifact source.
 - Use `components/README.md` for the component source route and `TASTE.md` for component choice.
 

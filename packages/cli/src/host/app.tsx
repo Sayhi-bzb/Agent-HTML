@@ -52,6 +52,14 @@ import { HostIconButton } from "./ui/icon-button"
 
 type CanvasHostMode = "artifact" | "create-artifact"
 
+export function resolveInitialCanvasHostMode(
+  createArtifactJob: CanvasCreateArtifactJob | null
+): CanvasHostMode {
+  return createArtifactJob && createArtifactJob.phase !== "failed"
+    ? "create-artifact"
+    : "artifact"
+}
+
 export const canvasHostCompactDesktopMediaQuery =
   "(min-width: 768px) and (max-width: 1099px)"
 
@@ -132,7 +140,7 @@ function ReactCanvasHostWorkbench() {
       initialPreferences.createArtifactJob
     )
   const [activeHostMode, setActiveHostMode] = React.useState<CanvasHostMode>(
-    () => initialPreferences.createArtifactJob ? "create-artifact" : "artifact"
+    () => resolveInitialCanvasHostMode(initialPreferences.createArtifactJob)
   )
   const [activeThemePresetId, setActiveThemePresetId] =
     React.useState<CanvasThemePresetId>(initialPreferences.activeThemePresetId)

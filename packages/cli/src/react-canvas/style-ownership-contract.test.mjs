@@ -23,7 +23,6 @@ describe("React Canvas style ownership contract", { timeout: 15000 }, () => {
     const primitiveBypass = /<(?:button|input|table|thead|tbody|tr|th|td)\b/
 
     expect(filesMatching("agent-html/artifacts", primitiveBypass)).toEqual([])
-    expect(filesMatching("agent-html/examples", primitiveBypass)).toEqual([])
     expect(filesMatching("packages/cli/src/host", primitiveBypass)).toEqual([])
   })
 
@@ -44,7 +43,6 @@ describe("React Canvas style ownership contract", { timeout: 15000 }, () => {
         rawArtifactVisualClass
       )
     ).toEqual([])
-    expect(filesMatching("agent-html/examples", rawArtifactVisualClass)).toEqual([])
   })
 
   it("keeps host and workspace style ownership boundaries", () => {
