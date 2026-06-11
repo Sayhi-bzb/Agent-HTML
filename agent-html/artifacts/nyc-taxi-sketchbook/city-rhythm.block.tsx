@@ -86,9 +86,8 @@ export function CityRhythmBlock() {
         {
           ...roughSketchMarkOptions,
           fill: "currentColor",
-          hachureGap: 4,
           seed: cell.seed,
-          strokeWidth: 0.7,
+          strokeWidth: 1,
         }
       )
 

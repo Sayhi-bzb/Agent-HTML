@@ -10,16 +10,12 @@ import type {
 } from "d3-sankey";
 import { motion } from "motion/react";
 import {
-  createContext,
   memo,
   type CSSProperties,
-  type Dispatch,
   type MouseEvent,
   type ReactNode,
   type RefObject,
-  type SetStateAction,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -56,48 +52,64 @@ export interface SankeyData {
   links: SankeyLinkDatum[];
 }
 
+interface SankeyChartLayout {
+  aspectRatio?: string;
+  margin?: Partial<Margin>;
+  nodePadding?: number;
+  nodeRadius?: number;
+  nodeWidth?: number;
+}
+
 interface SankeyTooltipData {
   type: "node" | "link";
   nodeIndex?: number;
   linkIndex?: number;
-  x: number;
-  y: number;
-  data: SankeyNodeDatum | SankeyLinkDatum;
 }
 
-interface SankeyContextValue {
-  graph: SankeyGraph<SankeyNodeDatum, SankeyLinkDatum>;
-  nodes: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>[];
-  links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
+interface SankeyChartProps {
+  className?: string;
+  data: SankeyData;
+  getLinkColor?: (
+    link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>,
+    index: number
+  ) => string;
+  getNodeColor?: (
+    node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
+    index: number
+  ) => string;
+  layout?: SankeyChartLayout;
+  renderLinkTooltip?: (props: {
+    link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>;
+    index: number;
+  }) => ReactNode;
+  renderNodeTooltip?: (props: {
+    node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>;
+    index: number;
+  }) => ReactNode;
+  roughOptions?: RoughOptions;
+  strokeOpacity?: number;
+}
+
+interface SankeyChartCoreProps {
+  data: SankeyData;
+  getLinkColor?: SankeyChartProps["getLinkColor"];
+  getNodeColor?: SankeyChartProps["getNodeColor"];
+  margin: Margin;
+  nodePadding: number;
+  nodeRadius: number;
+  nodeWidth: number;
+  renderLinkTooltip?: SankeyChartProps["renderLinkTooltip"];
+  renderNodeTooltip?: SankeyChartProps["renderNodeTooltip"];
+  roughOptions?: RoughOptions;
+  strokeOpacity: number;
   width: number;
   height: number;
-  innerWidth: number;
-  innerHeight: number;
-  margin: Margin;
-  hoveredNodeIndex: number | null;
-  hoveredLinkIndex: number | null;
-  setHoveredNodeIndex: (index: number | null) => void;
-  setHoveredLinkIndex: (index: number | null) => void;
-  tooltipData: SankeyTooltipData | null;
-  setTooltipData: Dispatch<SetStateAction<SankeyTooltipData | null>>;
-  containerRef: RefObject<HTMLDivElement | null>;
-  mousePos: { x: number; y: number } | null;
-  createPath: (link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>) => string;
 }
 
 type NodeOrIndex = SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum> | number;
 
 const DEFAULT_MARGIN: Margin = { top: 40, right: 180, bottom: 40, left: 180 };
 const intFmt = new Intl.NumberFormat("en-US").format;
-const SankeyContext = createContext<SankeyContextValue | null>(null);
-
-function useSankey(): SankeyContextValue {
-  const context = useContext(SankeyContext);
-  if (!context) {
-    throw new Error("useSankey must be used within a SankeyChart");
-  }
-  return context;
-}
 
 function getNodeIndex(nodeOrIndex: NodeOrIndex): number | undefined {
   if (typeof nodeOrIndex === "number") {
@@ -115,175 +127,36 @@ function getNodeObject(
   return nodeOrIndex;
 }
 
-export interface SankeyChartProps {
-  data: SankeyData;
-  margin?: Partial<Margin>;
-  aspectRatio?: string;
-  nodeWidth?: number;
-  nodePadding?: number;
-  className?: string;
-  children: ReactNode;
-}
+function getNodeDisplayValue(
+  node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
+  nodeIndex: number,
+  links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[]
+) {
+  let displayValue = 0;
 
-interface SankeyChartInnerProps {
-  data: SankeyData;
-  width: number;
-  height: number;
-  margin: Margin;
-  nodeWidth: number;
-  nodePadding: number;
-  children: ReactNode;
-}
-
-function SankeyChartInner(props: SankeyChartInnerProps) {
-  const { width, height } = props;
-
-  if (width < 10 || height < 10) {
-    return null;
+  for (const link of links) {
+    const sourceIndex = getNodeIndex(link.source as NodeOrIndex);
+    const targetIndex = getNodeIndex(link.target as NodeOrIndex);
+    if (node.category === "source" && sourceIndex === nodeIndex) {
+      displayValue += link.value;
+    } else if (node.category !== "source" && targetIndex === nodeIndex) {
+      displayValue += link.value;
+    }
   }
 
-  return <SankeyChartCore {...props} />;
+  return displayValue;
 }
 
-const SankeyChartCore = memo(function SankeyChartCore({
-  data,
-  width,
-  height,
-  margin,
-  nodeWidth,
-  nodePadding,
-  children,
-}: SankeyChartInnerProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [hoveredNodeIndex, setHoveredNodeIndex] = useState<number | null>(null);
-  const [hoveredLinkIndex, setHoveredLinkIndex] = useState<number | null>(null);
-  const [tooltipData, setTooltipData] = useState<SankeyTooltipData | null>(
-    null
-  );
-  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(
-    null
-  );
-
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
-
-  const sankeyGenerator = useMemo(() => {
-    return sankey<SankeyNodeDatum, SankeyLinkDatum>()
-      .nodeWidth(nodeWidth)
-      .nodePadding(nodePadding)
-      .nodeAlign(sankeyCenter)
-      .extent([
-        [0, 0],
-        [innerWidth, innerHeight],
-      ]);
-  }, [innerWidth, innerHeight, nodeWidth, nodePadding]);
-
-  const graph = useMemo(() => {
-    const clonedData = {
-      nodes: data.nodes.map((node) => ({ ...node })),
-      links: data.links.map((link) => ({ ...link })),
-    };
-    return sankeyGenerator(clonedData);
-  }, [data, sankeyGenerator]);
-
-  const createPath = useCallback(
-    // biome-ignore lint/suspicious/noExplicitAny: d3-sankey types are complex.
-    (link: any) => {
-      try {
-        const pathGenerator = sankeyLinkHorizontal();
-        return pathGenerator(link) || "";
-      } catch {
-        return "";
-      }
-    },
-    []
-  );
-
-  const handleMouseMove = useCallback((event: MouseEvent) => {
-    const point = localPoint(event);
-    if (point) {
-      setMousePos({ x: point.x, y: point.y });
-    }
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setHoveredNodeIndex(null);
-    setHoveredLinkIndex(null);
-    setTooltipData(null);
-    setMousePos(null);
-  }, []);
-
-  const contextValue: SankeyContextValue = {
-    graph,
-    nodes: graph.nodes,
-    links: graph.links,
-    width,
-    height,
-    innerWidth,
-    innerHeight,
-    margin,
-    hoveredNodeIndex,
-    hoveredLinkIndex,
-    setHoveredNodeIndex,
-    setHoveredLinkIndex,
-    tooltipData,
-    setTooltipData,
-    containerRef,
-    mousePos,
-    createPath,
-  };
-
-  return (
-    <SankeyContext.Provider value={contextValue}>
-      <div className="relative h-full w-full" ref={containerRef}>
-        <svg
-          aria-hidden="true"
-          height={height}
-          onMouseLeave={handleMouseLeave}
-          onMouseMove={handleMouseMove}
-          width={width}
-        >
-          <g transform={`translate(${margin.left},${margin.top})`}>
-            {children}
-          </g>
-        </svg>
-      </div>
-    </SankeyContext.Provider>
-  );
-});
-
-export function SankeyChart({
-  data,
-  margin: marginProp,
-  aspectRatio = "2 / 1",
-  nodeWidth = 16,
-  nodePadding = 24,
-  className = "",
-  children,
-}: SankeyChartProps) {
-  const margin = { ...DEFAULT_MARGIN, ...marginProp };
-
-  return (
-    <div className={cn("relative w-full", className)} style={{ aspectRatio }}>
-      <ParentSize>
-        {({ width, height }) => (
-          <SankeyChartInner
-            data={data}
-            height={height}
-            margin={margin}
-            nodePadding={nodePadding}
-            nodeWidth={nodeWidth}
-            width={width}
-          >
-            {children}
-          </SankeyChartInner>
-        )}
-      </ParentSize>
-    </div>
-  );
+function createSankeyPath(
+  link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>
+) {
+  try {
+    const pathGenerator = sankeyLinkHorizontal();
+    return pathGenerator(link) || "";
+  } catch {
+    return "";
+  }
 }
-
-SankeyChart.displayName = "SankeyChart";
 
 function createRibbonPath(
   link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>
@@ -324,28 +197,31 @@ function createRibbonPath(
   ].join("");
 }
 
-export interface SankeyLinkProps {
-  strokeOpacity?: number;
-  fadedOpacity?: number;
-  getLinkColor?: (
-    link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>,
-    index: number
-  ) => string;
-  roughOptions?: RoughOptions;
-}
+function roundedRectPath(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  const r = Math.max(0, Math.min(radius, width / 2, height / 2));
 
-interface AnimatedLinkProps {
-  path: string;
-  roughPath?: string;
-  width: number;
-  stroke: string;
-  strokeOpacity: number;
-  isFaded: boolean;
-  isHighlighted: boolean;
-  fadedOpacity: number;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-  roughOptions?: RoughOptions;
+  if (r === 0) {
+    return `M${x},${y}H${x + width}V${y + height}H${x}Z`;
+  }
+
+  return [
+    `M${x + r},${y}`,
+    `H${x + width - r}`,
+    `Q${x + width},${y} ${x + width},${y + r}`,
+    `V${y + height - r}`,
+    `Q${x + width},${y + height} ${x + width - r},${y + height}`,
+    `H${x + r}`,
+    `Q${x},${y + height} ${x},${y + height - r}`,
+    `V${y + r}`,
+    `Q${x},${y} ${x + r},${y}`,
+    "Z",
+  ].join("");
 }
 
 function RoughLinkPath({
@@ -383,213 +259,6 @@ function RoughLinkPath({
   }, [path, roughOptions, stroke, width]);
 
   return <g ref={groupRef} />;
-}
-
-function AnimatedLink({
-  path,
-  roughPath,
-  width,
-  stroke,
-  strokeOpacity,
-  isFaded,
-  isHighlighted,
-  fadedOpacity,
-  onMouseEnter,
-  onMouseLeave,
-  roughOptions,
-}: AnimatedLinkProps) {
-  let targetOpacity = strokeOpacity;
-  if (isFaded) {
-    targetOpacity = fadedOpacity;
-  } else if (isHighlighted) {
-    targetOpacity = Math.min(1, strokeOpacity * 1.3);
-  }
-
-  if (roughOptions) {
-    return (
-      <motion.g
-        animate={{ opacity: targetOpacity }}
-        initial={{ opacity: strokeOpacity }}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        style={{ cursor: "pointer" }}
-        transition={{ duration: 0.18, ease: "easeOut" }}
-      >
-        <RoughLinkPath
-          path={roughPath ?? path}
-          roughOptions={roughOptions}
-          stroke={stroke}
-          width={width}
-        />
-        <path
-          d={path}
-          fill="none"
-          pointerEvents="stroke"
-          stroke="transparent"
-          strokeWidth={Math.max(8, width)}
-        />
-      </motion.g>
-    );
-  }
-
-  return (
-    <motion.path
-      animate={{ opacity: targetOpacity }}
-      d={path}
-      fill="none"
-      initial={{ opacity: strokeOpacity }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      stroke={stroke}
-      strokeWidth={Math.max(1, width)}
-      style={{ cursor: "pointer" }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-    />
-  );
-}
-
-export function SankeyLink({
-  strokeOpacity = 0.5,
-  fadedOpacity = 0.1,
-  getLinkColor,
-  roughOptions,
-}: SankeyLinkProps) {
-  const {
-    links,
-    hoveredNodeIndex,
-    hoveredLinkIndex,
-    setHoveredLinkIndex,
-    setTooltipData,
-    createPath,
-  } = useSankey();
-
-  const getLinkColorFn = useCallback(
-    (link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>, index: number) => {
-      if (getLinkColor) {
-        return getLinkColor(link, index);
-      }
-      return "var(--chart-line-primary)";
-    },
-    [getLinkColor]
-  );
-
-  const isAnyHovered = hoveredNodeIndex !== null || hoveredLinkIndex !== null;
-
-  return (
-    <g className="sankey-links">
-      {links.map((link, index) => {
-        const path = createPath(link);
-        const linkWidth = link.width ?? 1;
-        const roughPath = roughOptions ? createRibbonPath(link) : undefined;
-
-        if (!path || path.trim() === "") {
-          return null;
-        }
-
-        const sIdx = getNodeIndex(link.source as NodeOrIndex);
-        const tIdx = getNodeIndex(link.target as NodeOrIndex);
-        const sourceIdx =
-          sIdx ?? (typeof link.source === "number" ? link.source : -1);
-        const targetIdx =
-          tIdx ?? (typeof link.target === "number" ? link.target : -1);
-
-        const isHighlighted =
-          hoveredLinkIndex === index ||
-          hoveredNodeIndex === sourceIdx ||
-          hoveredNodeIndex === targetIdx;
-        const isFaded = isAnyHovered && !isHighlighted;
-
-        const handleMouseEnter = () => {
-          setHoveredLinkIndex(index);
-          setTooltipData({
-            type: "link",
-            linkIndex: index,
-            x: 0,
-            y: 0,
-            data: link,
-          });
-        };
-
-        const handleMouseLeave = () => {
-          setHoveredLinkIndex(null);
-          setTooltipData(null);
-        };
-
-        return (
-          <AnimatedLink
-            fadedOpacity={fadedOpacity}
-            isFaded={isFaded}
-            isHighlighted={isHighlighted}
-            key={`link-${sourceIdx}-${targetIdx}-${link.width ?? link.value ?? ""}`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            path={path}
-            roughPath={roughPath ?? undefined}
-            roughOptions={roughOptions}
-            stroke={getLinkColorFn(link, index)}
-            strokeOpacity={strokeOpacity}
-            width={linkWidth}
-          />
-        );
-      })}
-    </g>
-  );
-}
-
-SankeyLink.displayName = "SankeyLink";
-
-function roundedRectPath(
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number
-) {
-  const r = Math.max(0, Math.min(radius, width / 2, height / 2));
-
-  if (r === 0) {
-    return `M${x},${y}H${x + width}V${y + height}H${x}Z`;
-  }
-
-  return [
-    `M${x + r},${y}`,
-    `H${x + width - r}`,
-    `Q${x + width},${y} ${x + width},${y + r}`,
-    `V${y + height - r}`,
-    `Q${x + width},${y + height} ${x + width - r},${y + height}`,
-    `H${x + r}`,
-    `Q${x},${y + height} ${x},${y + height - r}`,
-    `V${y + r}`,
-    `Q${x},${y} ${x + r},${y}`,
-    "Z",
-  ].join("");
-}
-
-export interface SankeyNodeProps {
-  lineCap?: number;
-  fadedOpacity?: number;
-  getNodeColor?: (
-    node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
-    index: number
-  ) => string;
-  roughOptions?: RoughOptions;
-}
-
-interface AnimatedNodeProps {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fill: string;
-  rx: number;
-  isFaded: boolean;
-  fadedOpacity: number;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-  name: string;
-  value: number;
-  isLeftSide: boolean;
-  roughOptions?: RoughOptions;
 }
 
 function RoughNodeRect({
@@ -632,7 +301,226 @@ function RoughNodeRect({
   return <g ref={groupRef} />;
 }
 
-function AnimatedNode({
+function SankeyLinks({
+  getLinkColor,
+  hoveredLinkIndex,
+  hoveredNodeIndex,
+  links,
+  roughOptions,
+  setHoveredLinkIndex,
+  setTooltipData,
+  strokeOpacity,
+}: {
+  getLinkColor?: SankeyChartProps["getLinkColor"];
+  hoveredLinkIndex: number | null;
+  hoveredNodeIndex: number | null;
+  links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
+  roughOptions?: RoughOptions;
+  setHoveredLinkIndex: (index: number | null) => void;
+  setTooltipData: (data: SankeyTooltipData | null) => void;
+  strokeOpacity: number;
+}) {
+  const isAnyHovered = hoveredNodeIndex !== null || hoveredLinkIndex !== null;
+
+  return (
+    <g className="sankey-links">
+      {links.map((link, index) => {
+        const path = createSankeyPath(link);
+        if (!path || path.trim() === "") {
+          return null;
+        }
+
+        const linkWidth = link.width ?? 1;
+        const roughPath = roughOptions ? createRibbonPath(link) : undefined;
+        const sourceIndex = getNodeIndex(link.source as NodeOrIndex) ?? -1;
+        const targetIndex = getNodeIndex(link.target as NodeOrIndex) ?? -1;
+        const isHighlighted =
+          hoveredLinkIndex === index ||
+          hoveredNodeIndex === sourceIndex ||
+          hoveredNodeIndex === targetIndex;
+        const isFaded = isAnyHovered && !isHighlighted;
+        const stroke = getLinkColor
+          ? getLinkColor(link, index)
+          : "var(--chart-line-primary)";
+        let targetOpacity = strokeOpacity;
+
+        if (isFaded) {
+          targetOpacity = 0.1;
+        } else if (isHighlighted) {
+          targetOpacity = Math.min(1, strokeOpacity * 1.3);
+        }
+
+        const handleMouseEnter = () => {
+          setHoveredLinkIndex(index);
+          setTooltipData({ type: "link", linkIndex: index });
+        };
+        const handleMouseLeave = () => {
+          setHoveredLinkIndex(null);
+          setTooltipData(null);
+        };
+
+        if (roughOptions) {
+          return (
+            <motion.g
+              animate={{ opacity: targetOpacity }}
+              initial={{ opacity: strokeOpacity }}
+              key={`link-${sourceIndex}-${targetIndex}-${link.width ?? link.value ?? ""}`}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              style={{ cursor: "pointer" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
+              <RoughLinkPath
+                path={roughPath ?? path}
+                roughOptions={roughOptions}
+                stroke={stroke}
+                width={linkWidth}
+              />
+              <path
+                d={path}
+                fill="none"
+                pointerEvents="stroke"
+                stroke="transparent"
+                strokeWidth={Math.max(8, linkWidth)}
+              />
+            </motion.g>
+          );
+        }
+
+        return (
+          <motion.path
+            animate={{ opacity: targetOpacity }}
+            d={path}
+            fill="none"
+            initial={{ opacity: strokeOpacity }}
+            key={`link-${sourceIndex}-${targetIndex}-${link.width ?? link.value ?? ""}`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            stroke={stroke}
+            strokeWidth={Math.max(1, linkWidth)}
+            style={{ cursor: "pointer" }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+          />
+        );
+      })}
+    </g>
+  );
+}
+
+function SankeyNodes({
+  getNodeColor,
+  hoveredLinkIndex,
+  hoveredNodeIndex,
+  innerWidth,
+  links,
+  nodeRadius,
+  nodes,
+  roughOptions,
+  setHoveredNodeIndex,
+  setTooltipData,
+}: {
+  getNodeColor?: SankeyChartProps["getNodeColor"];
+  hoveredLinkIndex: number | null;
+  hoveredNodeIndex: number | null;
+  innerWidth: number;
+  links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
+  nodeRadius: number;
+  nodes: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>[];
+  roughOptions?: RoughOptions;
+  setHoveredNodeIndex: (index: number | null) => void;
+  setTooltipData: (data: SankeyTooltipData | null) => void;
+}) {
+  const isAnyHovered = hoveredNodeIndex !== null || hoveredLinkIndex !== null;
+
+  return (
+    <g className="sankey-nodes">
+      {nodes.map((node, index) => {
+        const nodeX = node.x0 ?? 0;
+        const nodeY = node.y0 ?? 0;
+        const nodeWidth = (node.x1 ?? 0) - nodeX;
+        const nodeHeight = (node.y1 ?? 0) - nodeY;
+        const isConnected = isNodeConnected({
+          hoveredLinkIndex,
+          hoveredNodeIndex,
+          links,
+          nodeIndex: index,
+        });
+        const isFaded = isAnyHovered && !isConnected;
+        const isLeftSide = nodeX < innerWidth / 2;
+        const fill = getNodeColor ? getNodeColor(node, index) : "var(--chart-1)";
+        const displayValue = getNodeDisplayValue(node, index, links);
+
+        const handleMouseEnter = () => {
+          setHoveredNodeIndex(index);
+          setTooltipData({ type: "node", nodeIndex: index });
+        };
+        const handleMouseLeave = () => {
+          setHoveredNodeIndex(null);
+          setTooltipData(null);
+        };
+
+        return (
+          <SankeyNodeShape
+            fill={fill}
+            height={nodeHeight}
+            isFaded={isFaded}
+            isLeftSide={isLeftSide}
+            key={`node-${node.name}`}
+            name={node.name}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            roughOptions={roughOptions}
+            rx={nodeRadius}
+            value={displayValue}
+            width={nodeWidth}
+            x={nodeX}
+            y={nodeY}
+          />
+        );
+      })}
+    </g>
+  );
+}
+
+function isNodeConnected({
+  hoveredLinkIndex,
+  hoveredNodeIndex,
+  links,
+  nodeIndex,
+}: {
+  hoveredLinkIndex: number | null;
+  hoveredNodeIndex: number | null;
+  links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
+  nodeIndex: number;
+}) {
+  if (hoveredNodeIndex !== null) {
+    if (hoveredNodeIndex === nodeIndex) {
+      return true;
+    }
+    return links.some((link) => {
+      const sourceIndex = getNodeIndex(link.source as NodeOrIndex);
+      const targetIndex = getNodeIndex(link.target as NodeOrIndex);
+      return (
+        (sourceIndex === hoveredNodeIndex && targetIndex === nodeIndex) ||
+        (targetIndex === hoveredNodeIndex && sourceIndex === nodeIndex)
+      );
+    });
+  }
+
+  if (hoveredLinkIndex !== null) {
+    const link = links[hoveredLinkIndex];
+    if (!link) {
+      return false;
+    }
+    const sourceIndex = getNodeIndex(link.source as NodeOrIndex);
+    const targetIndex = getNodeIndex(link.target as NodeOrIndex);
+    return sourceIndex === nodeIndex || targetIndex === nodeIndex;
+  }
+
+  return false;
+}
+
+function SankeyNodeShape({
   x,
   y,
   width,
@@ -640,19 +528,30 @@ function AnimatedNode({
   fill,
   rx,
   isFaded,
-  fadedOpacity,
   onMouseEnter,
   onMouseLeave,
   name,
   value,
   isLeftSide,
   roughOptions,
-}: AnimatedNodeProps) {
-  const nameLabelX = isLeftSide ? x - 12 : x + width + 12;
-  const valueLabelX = isLeftSide ? x - 12 : x + width + 12;
-  const nodeOpacity = isFaded ? fadedOpacity : 1;
-  const nameOpacity = isFaded ? fadedOpacity : 1;
-  const valueOpacity = isFaded ? fadedOpacity * 0.8 : 0.6;
+}: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill: string;
+  rx: number;
+  isFaded: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  name: string;
+  value: number;
+  isLeftSide: boolean;
+  roughOptions?: RoughOptions;
+}) {
+  const labelX = isLeftSide ? x - 12 : x + width + 12;
+  const nodeOpacity = isFaded ? 0.4 : 1;
+  const valueOpacity = isFaded ? 0.32 : 0.6;
 
   return (
     <motion.g
@@ -692,7 +591,7 @@ function AnimatedNode({
         />
       )}
       <motion.text
-        animate={{ opacity: nameOpacity, x: nameLabelX }}
+        animate={{ opacity: nodeOpacity, x: labelX }}
         className="fill-foreground font-medium text-[13px]"
         dy="0.35em"
         initial={false}
@@ -703,7 +602,7 @@ function AnimatedNode({
         {name}
       </motion.text>
       <motion.text
-        animate={{ opacity: valueOpacity, x: valueLabelX }}
+        animate={{ opacity: valueOpacity, x: labelX }}
         className="fill-foreground text-[11px]"
         dy="0.35em"
         initial={false}
@@ -716,132 +615,6 @@ function AnimatedNode({
     </motion.g>
   );
 }
-
-export function SankeyNode({
-  lineCap = 4,
-  fadedOpacity = 0.4,
-  getNodeColor: getNodeColorProp,
-  roughOptions,
-}: SankeyNodeProps) {
-  const {
-    nodes,
-    links,
-    width,
-    margin,
-    hoveredNodeIndex,
-    hoveredLinkIndex,
-    setHoveredNodeIndex,
-    setTooltipData,
-  } = useSankey();
-
-  const getColor = useCallback(
-    (
-      node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
-      index: number
-    ): string => {
-      if (getNodeColorProp) {
-        return getNodeColorProp(node, index);
-      }
-      return "var(--chart-1)";
-    },
-    [getNodeColorProp]
-  );
-
-  const isNodeConnected = useCallback(
-    (nodeIndex: number) => {
-      if (hoveredNodeIndex !== null) {
-        if (hoveredNodeIndex === nodeIndex) {
-          return true;
-        }
-        return links.some((link) => {
-          const sIdx = getNodeIndex(link.source as NodeOrIndex);
-          const tIdx = getNodeIndex(link.target as NodeOrIndex);
-          return (
-            (sIdx === hoveredNodeIndex && tIdx === nodeIndex) ||
-            (tIdx === hoveredNodeIndex && sIdx === nodeIndex)
-          );
-        });
-      }
-      if (hoveredLinkIndex !== null) {
-        const link = links[hoveredLinkIndex];
-        if (!link) {
-          return false;
-        }
-        const sIdx = getNodeIndex(link.source as NodeOrIndex);
-        const tIdx = getNodeIndex(link.target as NodeOrIndex);
-        return sIdx === nodeIndex || tIdx === nodeIndex;
-      }
-      return false;
-    },
-    [hoveredNodeIndex, hoveredLinkIndex, links]
-  );
-
-  const isAnyHovered = hoveredNodeIndex !== null || hoveredLinkIndex !== null;
-  const innerWidth = width - margin.left - margin.right;
-
-  return (
-    <g className="sankey-nodes">
-      {nodes.map((node, index) => {
-        const nodeX = node.x0 ?? 0;
-        const nodeY = node.y0 ?? 0;
-        const nodeWidth = (node.x1 ?? 0) - nodeX;
-        const nodeHeight = (node.y1 ?? 0) - nodeY;
-        const isConnected = isNodeConnected(index);
-        const isFaded = isAnyHovered && !isConnected;
-        const isLeftSide = nodeX < innerWidth / 2;
-
-        let displayValue = 0;
-        for (const link of links) {
-          const sIdx = getNodeIndex(link.source as NodeOrIndex);
-          const tIdx = getNodeIndex(link.target as NodeOrIndex);
-          if (node.category === "source" && sIdx === index) {
-            displayValue += link.value;
-          } else if (node.category !== "source" && tIdx === index) {
-            displayValue += link.value;
-          }
-        }
-
-        const handleMouseEnter = () => {
-          setHoveredNodeIndex(index);
-          setTooltipData({
-            type: "node",
-            nodeIndex: index,
-            x: 0,
-            y: 0,
-            data: node,
-          });
-        };
-
-        const handleMouseLeave = () => {
-          setHoveredNodeIndex(null);
-          setTooltipData(null);
-        };
-
-        return (
-          <AnimatedNode
-            fadedOpacity={fadedOpacity}
-            fill={getColor(node, index)}
-            height={nodeHeight}
-            isFaded={isFaded}
-            isLeftSide={isLeftSide}
-            key={`node-${node.name}`}
-            name={node.name}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            rx={lineCap}
-            roughOptions={roughOptions}
-            value={displayValue}
-            width={nodeWidth}
-            x={nodeX}
-            y={nodeY}
-          />
-        );
-      })}
-    </g>
-  );
-}
-
-SankeyNode.displayName = "SankeyNode";
 
 interface PositionedTooltipProps {
   x: number;
@@ -889,13 +662,13 @@ function PositionedTooltipInner({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const tooltipWidthRef = useRef(180);
   const tooltipHeightRef = useRef(80);
-  const tw = tooltipWidthRef.current;
-  const th = tooltipHeightRef.current;
-  const shouldFlipX = x + tw + offset > containerWidth;
-  const targetX = shouldFlipX ? x - offset - tw : x + offset;
+  const tooltipWidth = tooltipWidthRef.current;
+  const tooltipHeight = tooltipHeightRef.current;
+  const shouldFlipX = x + tooltipWidth + offset > containerWidth;
+  const targetX = shouldFlipX ? x - offset - tooltipWidth : x + offset;
   const targetY = Math.max(
     offset,
-    Math.min(y - th / 2, containerHeight - th - offset)
+    Math.min(y - tooltipHeight / 2, containerHeight - tooltipHeight - offset)
   );
   const [staticPosition, setStaticPosition] = useState({
     left: targetX,
@@ -907,23 +680,24 @@ function PositionedTooltipInner({
       return;
     }
     const el = tooltipRef.current;
-    const w = el.offsetWidth;
-    const h = el.offsetHeight;
-    if (w > 0) {
-      tooltipWidthRef.current = w;
+    const width = el.offsetWidth;
+    const height = el.offsetHeight;
+    if (width > 0) {
+      tooltipWidthRef.current = width;
     }
-    if (h > 0) {
-      tooltipHeightRef.current = h;
+    if (height > 0) {
+      tooltipHeightRef.current = height;
     }
-    const w2 = tooltipWidthRef.current;
-    const h2 = tooltipHeightRef.current;
-    const flip = x + w2 + offset > containerWidth;
-    const tx = flip ? x - offset - w2 : x + offset;
-    const ty = Math.max(
+
+    const measuredWidth = tooltipWidthRef.current;
+    const measuredHeight = tooltipHeightRef.current;
+    const shouldFlip = x + measuredWidth + offset > containerWidth;
+    const left = shouldFlip ? x - offset - measuredWidth : x + offset;
+    const top = Math.max(
       offset,
-      Math.min(y - h2 / 2, containerHeight - h2 - offset)
+      Math.min(y - measuredHeight / 2, containerHeight - measuredHeight - offset)
     );
-    setStaticPosition({ left: tx, top: ty });
+    setStaticPosition({ left, top });
   }, [x, y, containerWidth, containerHeight, offset]);
 
   return createPortal(
@@ -943,42 +717,36 @@ function PositionedTooltipInner({
   );
 }
 
-export interface SankeyTooltipProps {
-  nodeContent: (props: {
-    node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>;
-    index: number;
-  }) => ReactNode;
-  linkContent: (props: {
-    link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>;
-    index: number;
-  }) => ReactNode;
-  className?: string;
-}
-
-export function SankeyTooltip({
-  nodeContent,
-  linkContent,
-  className = "",
-}: SankeyTooltipProps) {
-  const {
-    tooltipData,
-    containerRef,
-    width,
-    height,
-    margin,
-    nodes,
-    links,
-    mousePos,
-  } = useSankey();
-
-  if (!tooltipData) {
+function SankeyTooltip({
+  containerRef,
+  height,
+  links,
+  mousePos,
+  nodes,
+  renderLinkTooltip,
+  renderNodeTooltip,
+  tooltipData,
+  width,
+}: {
+  containerRef: RefObject<HTMLDivElement | null>;
+  height: number;
+  links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
+  mousePos: { x: number; y: number } | null;
+  nodes: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>[];
+  renderLinkTooltip?: SankeyChartProps["renderLinkTooltip"];
+  renderNodeTooltip?: SankeyChartProps["renderNodeTooltip"];
+  tooltipData: SankeyTooltipData | null;
+  width: number;
+}) {
+  if (!tooltipData || !mousePos) {
     return null;
   }
 
-  const x = mousePos ? mousePos.x : tooltipData.x + margin.left;
-  const y = mousePos ? mousePos.y : tooltipData.y + margin.top;
-
-  if (tooltipData.type === "node" && tooltipData.nodeIndex !== undefined) {
+  if (
+    tooltipData.type === "node" &&
+    tooltipData.nodeIndex !== undefined &&
+    renderNodeTooltip
+  ) {
     const node = nodes[tooltipData.nodeIndex];
     if (!node) {
       return null;
@@ -986,20 +754,23 @@ export function SankeyTooltip({
 
     return (
       <PositionedTooltip
-        className={className}
         containerHeight={height}
         containerRef={containerRef}
         containerWidth={width}
         visible
-        x={x}
-        y={y}
+        x={mousePos.x}
+        y={mousePos.y}
       >
-        {nodeContent({ node, index: tooltipData.nodeIndex })}
+        {renderNodeTooltip({ node, index: tooltipData.nodeIndex })}
       </PositionedTooltip>
     );
   }
 
-  if (tooltipData.type === "link" && tooltipData.linkIndex !== undefined) {
+  if (
+    tooltipData.type === "link" &&
+    tooltipData.linkIndex !== undefined &&
+    renderLinkTooltip
+  ) {
     const link = links[tooltipData.linkIndex];
     if (!link) {
       return null;
@@ -1007,15 +778,14 @@ export function SankeyTooltip({
 
     return (
       <PositionedTooltip
-        className={className}
         containerHeight={height}
         containerRef={containerRef}
         containerWidth={width}
         visible
-        x={x}
-        y={y}
+        x={mousePos.x}
+        y={mousePos.y}
       >
-        {linkContent({ link, index: tooltipData.linkIndex })}
+        {renderLinkTooltip({ link, index: tooltipData.linkIndex })}
       </PositionedTooltip>
     );
   }
@@ -1023,6 +793,165 @@ export function SankeyTooltip({
   return null;
 }
 
-SankeyTooltip.displayName = "SankeyTooltip";
+function SankeyChartInner(props: SankeyChartCoreProps) {
+  const { width, height } = props;
+
+  if (width < 10 || height < 10) {
+    return null;
+  }
+
+  return <SankeyChartCore {...props} />;
+}
+
+const SankeyChartCore = memo(function SankeyChartCore({
+  data,
+  getLinkColor,
+  getNodeColor,
+  height,
+  margin,
+  nodePadding,
+  nodeRadius,
+  nodeWidth,
+  renderLinkTooltip,
+  renderNodeTooltip,
+  roughOptions,
+  strokeOpacity,
+  width,
+}: SankeyChartCoreProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [hoveredNodeIndex, setHoveredNodeIndex] = useState<number | null>(null);
+  const [hoveredLinkIndex, setHoveredLinkIndex] = useState<number | null>(null);
+  const [tooltipData, setTooltipData] = useState<SankeyTooltipData | null>(
+    null
+  );
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(
+    null
+  );
+
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+
+  const sankeyGenerator = useMemo(() => {
+    return sankey<SankeyNodeDatum, SankeyLinkDatum>()
+      .nodeWidth(nodeWidth)
+      .nodePadding(nodePadding)
+      .nodeAlign(sankeyCenter)
+      .extent([
+        [0, 0],
+        [innerWidth, innerHeight],
+      ]);
+  }, [innerWidth, innerHeight, nodePadding, nodeWidth]);
+
+  const graph: SankeyGraph<SankeyNodeDatum, SankeyLinkDatum> = useMemo(() => {
+    const clonedData = {
+      nodes: data.nodes.map((node) => ({ ...node })),
+      links: data.links.map((link) => ({ ...link })),
+    };
+    return sankeyGenerator(clonedData);
+  }, [data, sankeyGenerator]);
+
+  const handleMouseMove = useCallback((event: MouseEvent) => {
+    const point = localPoint(event);
+    if (point) {
+      setMousePos({ x: point.x, y: point.y });
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredNodeIndex(null);
+    setHoveredLinkIndex(null);
+    setTooltipData(null);
+    setMousePos(null);
+  }, []);
+
+  return (
+    <div className="relative h-full w-full" ref={containerRef}>
+      <svg
+        aria-hidden="true"
+        height={height}
+        onMouseLeave={handleMouseLeave}
+        onMouseMove={handleMouseMove}
+        width={width}
+      >
+        <g transform={`translate(${margin.left},${margin.top})`}>
+          <SankeyLinks
+            getLinkColor={getLinkColor}
+            hoveredLinkIndex={hoveredLinkIndex}
+            hoveredNodeIndex={hoveredNodeIndex}
+            links={graph.links}
+            roughOptions={roughOptions}
+            setHoveredLinkIndex={setHoveredLinkIndex}
+            setTooltipData={setTooltipData}
+            strokeOpacity={strokeOpacity}
+          />
+          <SankeyNodes
+            getNodeColor={getNodeColor}
+            hoveredLinkIndex={hoveredLinkIndex}
+            hoveredNodeIndex={hoveredNodeIndex}
+            innerWidth={innerWidth}
+            links={graph.links}
+            nodeRadius={nodeRadius}
+            nodes={graph.nodes}
+            roughOptions={roughOptions}
+            setHoveredNodeIndex={setHoveredNodeIndex}
+            setTooltipData={setTooltipData}
+          />
+        </g>
+      </svg>
+      <SankeyTooltip
+        containerRef={containerRef}
+        height={height}
+        links={graph.links}
+        mousePos={mousePos}
+        nodes={graph.nodes}
+        renderLinkTooltip={renderLinkTooltip}
+        renderNodeTooltip={renderNodeTooltip}
+        tooltipData={tooltipData}
+        width={width}
+      />
+    </div>
+  );
+});
+
+export function SankeyChart({
+  className = "",
+  data,
+  getLinkColor,
+  getNodeColor,
+  layout,
+  renderLinkTooltip,
+  renderNodeTooltip,
+  roughOptions,
+  strokeOpacity = 0.5,
+}: SankeyChartProps) {
+  const margin = { ...DEFAULT_MARGIN, ...layout?.margin };
+  const aspectRatio = layout?.aspectRatio ?? "2 / 1";
+
+  return (
+    <div className={cn("relative w-full", className)} style={{ aspectRatio }}>
+      <ParentSize>
+        {({ width, height }) => (
+          <SankeyChartInner
+            data={data}
+            getLinkColor={getLinkColor}
+            getNodeColor={getNodeColor}
+            height={height}
+            margin={margin}
+            nodePadding={layout?.nodePadding ?? 24}
+            nodeRadius={layout?.nodeRadius ?? 4}
+            nodeWidth={layout?.nodeWidth ?? 16}
+            renderLinkTooltip={renderLinkTooltip}
+            renderNodeTooltip={renderNodeTooltip}
+            roughOptions={roughOptions}
+            strokeOpacity={strokeOpacity}
+            width={width}
+          />
+        )}
+      </ParentSize>
+    </div>
+  );
+}
+
+SankeyChart.displayName = "SankeyChart";
 
 export default SankeyChart;

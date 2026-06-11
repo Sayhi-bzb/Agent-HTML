@@ -7,6 +7,8 @@ import { roughSketchChartStyle } from "./rough-theme"
 import { RoughBarHChart } from "./rough-viz-charts"
 import {
   LedgerRows,
+  RoughRule,
+  RoughTableShell,
   SectionIntro,
   SketchNote,
   SketchPanel,
@@ -22,6 +24,7 @@ const zoneChartData = {
   labels: zoneRows.map((zone) => zone.shortZone),
   values: zoneRows.map((zone) => zone.trips),
 }
+const pickupTableRuleSeeds = [120, 147, 131, 166, 139]
 
 type PickupZoneRow = {
   averageDistance: number
@@ -131,14 +134,25 @@ export function WhereRidesStartBlock() {
             </p>
           </div>
         </div>
-        <DataTable
-          columns={pickupZoneColumns}
-          data={pickupZoneTableRows}
-          emptyLabel="No pickup zones."
-          getRowId={(row) => `${row.borough}-${row.zone}`}
-          searchColumn="zone"
-          searchPlaceholder="Filter pickup zone..."
-        />
+        <RoughTableShell>
+          <DataTable
+            className="[&_thead_tr]:border-0"
+            columns={pickupZoneColumns}
+            data={pickupZoneTableRows}
+            emptyLabel="No pickup zones."
+            getRowId={(row) => `${row.borough}-${row.zone}`}
+            rowClassName="border-0"
+            rowSeparator={(_, index) => (
+              <RoughRule
+                className="h-3 text-border/60"
+                seed={pickupTableRuleSeeds[index % pickupTableRuleSeeds.length]}
+              />
+            )}
+            searchColumn="zone"
+            searchPlaceholder="Filter pickup zone..."
+            tableContainerClassName="border-0 bg-transparent"
+          />
+        </RoughTableShell>
       </div>
     </section>
   )

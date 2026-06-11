@@ -12,13 +12,13 @@ import {
 
 import { mediaAssets, quietRoute } from "./data"
 
-export function QuietLayerBlock() {
+export function QuietRouteBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-[1fr_1fr]">
         <div className="canvas-stack-md">
           <div className="canvas-wrap-sm items-center">
-            <Badge variant="secondary">quiet layer</Badge>
+            <Badge variant="secondary">quiet route</Badge>
             <Badge variant="outline">Day 3</Badge>
           </div>
           <h2 className="canvas-text-heading">

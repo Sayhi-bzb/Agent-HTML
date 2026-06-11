@@ -65,8 +65,11 @@ type DataTableProps<TData, TValue> = {
   enableViewOptions?: boolean
   getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string
   onRowClick?: (row: TData) => void
+  rowClassName?: string | ((row: Row<TData>, index: number) => string)
+  rowSeparator?: (row: Row<TData>, index: number) => React.ReactNode
   searchColumn?: string
   searchPlaceholder?: string
+  tableContainerClassName?: string
 }
 
 type DataTableColumnHeaderProps<TData, TValue> = {
@@ -275,8 +278,11 @@ function DataTable<TData, TValue>({
   enableViewOptions = true,
   getRowId,
   onRowClick,
+  rowClassName,
+  rowSeparator,
   searchColumn,
   searchPlaceholder,
+  tableContainerClassName,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] =
@@ -344,7 +350,9 @@ function DataTable<TData, TValue>({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-md border">
+      <div
+        className={cn("overflow-hidden rounded-md border", tableContainerClassName)}
+      >
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -364,22 +372,41 @@ function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  className={cn(onRowClick && "cursor-pointer")}
-                  data-state={row.getIsSelected() ? "selected" : undefined}
-                  key={row.id}
-                  onClick={(event) => handleRowClick(event, row)}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
+              table.getRowModel().rows.map((row, index) => (
+                <React.Fragment key={row.id}>
+                  <TableRow
+                    className={cn(
+                      onRowClick && "cursor-pointer",
+                      typeof rowClassName === "function"
+                        ? rowClassName(row, index)
+                        : rowClassName
+                    )}
+                    data-state={row.getIsSelected() ? "selected" : undefined}
+                    onClick={(event) => handleRowClick(event, row)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {rowSeparator ? (
+                    <TableRow
+                      aria-hidden="true"
+                      className="border-0 hover:bg-transparent"
+                    >
+                      <TableCell
+                        className="h-3 p-0"
+                        colSpan={visibleColumnCount}
+                      >
+                        <div className="px-2">{rowSeparator(row, index)}</div>
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </React.Fragment>
               ))
             ) : (
               <TableRow>

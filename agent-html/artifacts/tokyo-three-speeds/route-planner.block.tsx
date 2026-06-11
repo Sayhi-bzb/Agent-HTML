@@ -51,7 +51,7 @@ function buildOsrmUrl(waypoints: [number, number][]) {
   return `https://router.project-osrm.org/route/v1/driving/${coordinatePath}?overview=full&geometries=geojson`
 }
 
-export function RouteConsoleBlock() {
+export function RoutePlannerBlock() {
   const [selectedInterest, setSelectedInterest] = useState("bookstores")
   const [selectedRouteId, setSelectedRouteId] = useState("quiet-route")
   const [routeGeometry, setRouteGeometry] = useState<
@@ -167,7 +167,7 @@ export function RouteConsoleBlock() {
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
         <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">Tokyo Route Console</Badge>
+          <Badge variant="secondary">route planner</Badge>
           <Badge variant="outline">three speeds</Badge>
         </div>
         <h1 className="canvas-text-title">

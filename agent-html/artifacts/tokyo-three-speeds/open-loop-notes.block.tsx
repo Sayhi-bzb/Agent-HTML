@@ -55,12 +55,12 @@ const travelNotes = [
   },
 ]
 
-export function TravelNotesBlock() {
+export function OpenLoopNotesBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
         <div className="canvas-wrap-sm items-center">
-          <Badge variant="secondary">travel notes</Badge>
+          <Badge variant="secondary">open loop notes</Badge>
           <Badge variant="outline">Day 3</Badge>
         </div>
         <h2 className="canvas-text-heading">

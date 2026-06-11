@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 
 import { densityAreas, mediaAssets } from "./data"
 
-export function DensityLayerBlock() {
+export function HighDensityRouteBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-[0.95fr_1.05fr]">
@@ -22,7 +22,7 @@ export function DensityLayerBlock() {
 
         <div className="canvas-stack-md">
           <div className="canvas-wrap-sm items-center">
-            <Badge variant="secondary">density layer</Badge>
+            <Badge variant="secondary">high density route</Badge>
             <Badge variant="outline">Day 2</Badge>
           </div>
           <h2 className="canvas-text-heading">

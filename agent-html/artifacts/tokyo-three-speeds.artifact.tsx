@@ -1,42 +1,42 @@
 import { Artifact, Block } from "@agent-html/react"
 
-import { DensityLayerBlock } from "./tokyo-three-speeds/density-layer.block"
-import { TokyoHeaderBlock } from "./tokyo-three-speeds/header.block"
-import { QuietLayerBlock } from "./tokyo-three-speeds/quiet-layer.block"
-import { RouteConsoleBlock } from "./tokyo-three-speeds/route-console.block"
+import { HighDensityRouteBlock } from "./tokyo-three-speeds/high-density-route.block"
+import { MediaSourcesBlock } from "./tokyo-three-speeds/media-sources.block"
+import { OpenLoopNotesBlock } from "./tokyo-three-speeds/open-loop-notes.block"
+import { QuietRouteBlock } from "./tokyo-three-speeds/quiet-route.block"
+import { RoutePlannerBlock } from "./tokyo-three-speeds/route-planner.block"
 import { SoftLandingBlock } from "./tokyo-three-speeds/soft-landing.block"
-import { SourcesBlock } from "./tokyo-three-speeds/sources.block"
-import { TravelNotesBlock } from "./tokyo-three-speeds/travel-notes.block"
+import { SpeedOverviewBlock } from "./tokyo-three-speeds/speed-overview.block"
 
 export default function TokyoThreeSpeedsArtifact() {
   return (
     <Artifact title="Three Speeds of Tokyo">
-      <Block id="tokyo-header" title="Tokyo Header">
-        <TokyoHeaderBlock />
+      <Block id="speed-overview" title="Speed Overview">
+        <SpeedOverviewBlock />
       </Block>
 
-      <Block id="route-console" title="Tokyo Route Console">
-        <RouteConsoleBlock />
+      <Block id="route-planner" title="Route Planner">
+        <RoutePlannerBlock />
       </Block>
 
       <Block id="soft-landing" title="Soft Landing">
         <SoftLandingBlock />
       </Block>
 
-      <Block id="density-layer" title="Density Layer">
-        <DensityLayerBlock />
+      <Block id="high-density-route" title="High Density Route">
+        <HighDensityRouteBlock />
       </Block>
 
-      <Block id="quiet-layer" title="Quiet Layer">
-        <QuietLayerBlock />
+      <Block id="quiet-route" title="Quiet Route">
+        <QuietRouteBlock />
       </Block>
 
-      <Block id="travel-notes" title="Travel Notes">
-        <TravelNotesBlock />
+      <Block id="open-loop-notes" title="Open Loop Notes">
+        <OpenLoopNotesBlock />
       </Block>
 
-      <Block id="source-registry" title="Source Registry">
-        <SourcesBlock />
+      <Block id="media-sources" title="Media Sources">
+        <MediaSourcesBlock />
       </Block>
     </Artifact>
   )

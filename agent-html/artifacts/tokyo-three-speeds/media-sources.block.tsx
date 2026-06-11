@@ -8,11 +8,11 @@ const rightColumnGroups = sourceGroups.filter(
   (group) => group.label !== "Photos"
 )
 
-export function SourcesBlock() {
+export function MediaSourcesBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">sources</Badge>
+        <Badge variant="secondary">media sources</Badge>
         <h2 className="canvas-text-heading">Tokyo media and data sources</h2>
         <p className="canvas-text-body text-muted-foreground">
           Source details stay collected here so the route console can use

@@ -42,6 +42,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 ## Artifact Rules
 
+- Read `../rule/artifact.md` before adding or renaming artifacts or blocks.
 - Import `Artifact` and `Block` from `@agent-html/react`.
 - Use `Artifact` as the top-level wrapper.
 - Keep `Artifact` static and unstyled.

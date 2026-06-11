@@ -9,7 +9,7 @@ import {
 
 import { headerSlides } from "./data"
 
-export function TokyoHeaderBlock() {
+export function SpeedOverviewBlock() {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [isCarouselPaused, setIsCarouselPaused] = useState(false)
 

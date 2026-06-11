@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 118 |
-| Dependencies | 385 |
-| Local edges | 236 |
-| External edges | 148 |
+| Modules | 113 |
+| Dependencies | 368 |
+| Local edges | 225 |
+| External edges | 142 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -30,7 +30,7 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 7 |
 | `agent-html/artifacts/tokyo-three-speeds/data.ts` | 6 |
 | `agent-html/components/ui/alert.tsx` | 5 |
-| `agent-html/components/charts/sankey/sankey-context.tsx` | 4 |
+| `agent-html/components/ui/table.tsx` | 4 |
 
 ## Highest Local Fanout
 
@@ -42,7 +42,7 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/nasa-artemis-ii.artifact.tsx` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook.artifact.tsx` | 7 |
 | `agent-html/artifacts/tokyo-three-speeds.artifact.tsx` | 7 |
-| `agent-html/artifacts/tokyo-three-speeds/route-console.block.tsx` | 6 |
+| `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 6 |
 | `agent-html/components/data-table.tsx` | 6 |
 | `agent-html/artifacts/health-report-decoder/range-decoder.block.tsx` | 5 |
 | `agent-html/artifacts/health-report-decoder/report-literacy-check.block.tsx` | 5 |
@@ -53,15 +53,15 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Module | Edges |
 | --- | --- |
-| `node_modules/react/index.js` | 59 |
+| `node_modules/react/index.js` | 55 |
 | `node_modules/radix-ui/dist/index.mjs` | 23 |
 | `node_modules/lucide-react/dist/esm/lucide-react.mjs` | 21 |
 | `node_modules/class-variance-authority/dist/index.mjs` | 7 |
 | `packages/react/src/index.tsx` | 4 |
 | `node_modules/react-dom/index.js` | 3 |
-| `node_modules/roughjs/bundled/rough.esm.js` | 3 |
 | `node_modules/clsx/dist/clsx.mjs` | 2 |
-| `node_modules/motion/dist/es/react.mjs` | 2 |
 | `node_modules/recharts/es6/index.js` | 2 |
 | `node_modules/rough-viz/dist/roughviz.es.js` | 2 |
+| `node_modules/roughjs/bundled/rough.esm.js` | 2 |
 | `node_modules/tailwind-merge/dist/bundle-cjs.js` | 2 |
+| `node_modules/@base-ui/react/index.js` | 1 |

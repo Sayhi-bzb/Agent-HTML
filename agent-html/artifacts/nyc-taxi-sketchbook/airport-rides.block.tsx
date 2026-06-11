@@ -14,6 +14,8 @@ import {
   formatCurrency,
 } from "./sketch-components"
 
+const airportRuleSeeds = [73, 109, 88]
+
 function AirportRouteSketch({ className = "h-14 w-20" }: { className?: string }) {
   const drawAirportRoute = useCallback<RoughSketchDraw>((roughSvg, group) => {
     group.appendChild(
@@ -115,7 +117,10 @@ export function AirportRidesBlock() {
                   </span>
                 </div>
                 {index < taxiData.airport.length - 1 ? (
-                  <RoughRule className="text-border/70" seed={73 + index} />
+                  <RoughRule
+                    className="text-border/70"
+                    seed={airportRuleSeeds[index % airportRuleSeeds.length]}
+                  />
                 ) : null}
               </div>
             ))}

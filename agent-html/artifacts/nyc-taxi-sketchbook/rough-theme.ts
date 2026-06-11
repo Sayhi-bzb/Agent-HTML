@@ -4,6 +4,7 @@ import type { RoughVizBarOptions } from "rough-viz"
 const roughSketchBase = {
   fillStyle: "hachure",
   fillWeight: 1,
+  hachureGap: 3.5,
   roughness: 4,
   strokeWidth: 1,
 }

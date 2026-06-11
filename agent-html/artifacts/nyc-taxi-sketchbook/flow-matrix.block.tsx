@@ -3,9 +3,6 @@ import * as roughViz from "rough-viz"
 
 import {
   SankeyChart,
-  SankeyLink,
-  SankeyNode,
-  SankeyTooltip,
   type SankeyData,
 } from "../../components/sankey-chart"
 import { taxiData } from "./data"
@@ -106,52 +103,46 @@ function OdSankeyChart() {
   return (
     <div className="canvas-stack-sm">
       <SankeyChart
-        aspectRatio="5 / 2.2"
         data={sankeyData}
-        margin={{ top: 24, right: 148, bottom: 24, left: 148 }}
-        nodePadding={18}
-        nodeWidth={12}
-      >
-        <SankeyLink
-          getLinkColor={(link) => {
-            const flow = link as OdSankeyLink
-            return flow.sourceName === "EWR" || flow.targetName === "EWR"
-              ? "var(--chart-2)"
-              : "var(--chart-1)"
-          }}
-          roughOptions={roughSketchSankeyOptions}
-          strokeOpacity={0.64}
-        />
-        <SankeyNode
-          getNodeColor={(node) => sankeyNodeColor(node.name)}
-          lineCap={3}
-          roughOptions={roughSketchSankeyOptions}
-        />
-        <SankeyTooltip
-          linkContent={({ link }) => {
-            const flow = link as OdSankeyLink
+        getLinkColor={(link) => {
+          const flow = link as OdSankeyLink
+          return flow.sourceName === "EWR" || flow.targetName === "EWR"
+            ? "var(--chart-2)"
+            : "var(--chart-1)"
+        }}
+        getNodeColor={(node) => sankeyNodeColor(node.name)}
+        layout={{
+          aspectRatio: "5 / 2.2",
+          margin: { top: 24, right: 148, bottom: 24, left: 148 },
+          nodePadding: 18,
+          nodeRadius: 3,
+          nodeWidth: 12,
+        }}
+        renderLinkTooltip={({ link }) => {
+          const flow = link as OdSankeyLink
 
-            return (
-              <div className="grid gap-1 px-3 py-2.5 text-chart-tooltip-foreground">
-                <strong className="font-mono text-[0.75rem] tracking-normal">
-                  {flow.sourceName} {"->"} {flow.targetName}
-                </strong>
-                <span>{formatCompact(flow.value)} trips</span>
-                <span>{flow.averageDistance} mi average distance</span>
-                <span>${flow.averageTotal} average total</span>
-              </div>
-            )
-          }}
-          nodeContent={({ node }) => (
+          return (
             <div className="grid gap-1 px-3 py-2.5 text-chart-tooltip-foreground">
               <strong className="font-mono text-[0.75rem] tracking-normal">
-                {node.name}
+                {flow.sourceName} {"->"} {flow.targetName}
               </strong>
-              <span>{formatCompact(node.value ?? 0)} trips</span>
+              <span>{formatCompact(flow.value)} trips</span>
+              <span>{flow.averageDistance} mi average distance</span>
+              <span>${flow.averageTotal} average total</span>
             </div>
-          )}
-        />
-      </SankeyChart>
+          )
+        }}
+        renderNodeTooltip={({ node }) => (
+          <div className="grid gap-1 px-3 py-2.5 text-chart-tooltip-foreground">
+            <strong className="font-mono text-[0.75rem] tracking-normal">
+              {node.name}
+            </strong>
+            <span>{formatCompact(node.value ?? 0)} trips</span>
+          </div>
+        )}
+        roughOptions={roughSketchSankeyOptions}
+        strokeOpacity={0.64}
+      />
       <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
         <span className="canvas-text-caption inline-flex items-center gap-1.5">
           <span className="h-2 w-5 rounded-full bg-chart-1" />
