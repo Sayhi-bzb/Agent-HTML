@@ -1,18 +1,23 @@
-import { localPoint } from "@visx/event"
-import { Group } from "@visx/group"
 import { scalePoint } from "@visx/scale"
+import { LinePath } from "@visx/shape"
 import * as React from "react"
 
 import {
   type ChartAccessor,
   type ChartConfig,
+  ChartCartesianGroup,
   ChartContainer,
+  ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
+  ChartXAxisLabels,
+  ChartYAxisGrid,
   createLinearScale,
   createCartesianLayout,
   getChartCssVariable,
   getFiniteValues,
+  getNearestDatum,
+  getPointerPoint,
   getValue,
   isFiniteNumber,
 } from "./chart"
@@ -49,47 +54,6 @@ const valueFormatter = new Intl.NumberFormat("zh-CN", {
 
 function formatValue(value: number) {
   return valueFormatter.format(value)
-}
-
-function getNearestDatum<T>({
-  data,
-  pointerX,
-  x,
-}: {
-  data: T[]
-  pointerX: number
-  x: (datum: T) => number
-}) {
-  let nearestDatum: T | null = null
-  let nearestDistance = Number.POSITIVE_INFINITY
-
-  for (const datum of data) {
-    const distance = Math.abs(x(datum) - pointerX)
-
-    if (distance < nearestDistance) {
-      nearestDistance = distance
-      nearestDatum = datum
-    }
-  }
-
-  return nearestDatum
-}
-
-function createLinePath<T>({
-  data,
-  x,
-  y,
-}: {
-  data: T[]
-  x: (datum: T) => number
-  y: (datum: T) => number
-}) {
-  return data
-    .map((datum, index) => {
-      const command = index === 0 ? "M" : "L"
-      return `${command}${x(datum)},${y(datum)}`
-    })
-    .join(" ")
 }
 
 export function LineChart<T>({
@@ -138,7 +102,6 @@ export function LineChart<T>({
         const seriesKey = primarySeries?.key ?? "value"
         const seriesLabel = primarySeries?.label ?? seriesKey
         const color = getChartCssVariable(seriesKey)
-        const yTicks = yScale.ticks(4)
         const x = (datum: T) => xScale(getValue(datum, xKey)) ?? 0
         const y = (datum: T) => {
           const value = getValue(datum, yKey)
@@ -147,7 +110,7 @@ export function LineChart<T>({
         const handlePointerMove = (
           event: React.PointerEvent<SVGSVGElement>
         ) => {
-          const point = localPoint(event)
+          const point = getPointerPoint(event)
 
           if (!point) {
             return
@@ -169,56 +132,25 @@ export function LineChart<T>({
 
         return (
           <>
-            <svg
+            <ChartSvg
               aria-label="趋势折线图"
-              className="h-full w-full overflow-visible"
               onPointerLeave={() => setTooltip(null)}
               onPointerMove={handlePointerMove}
               role="img"
             >
-              <Group left={layout.margin.left} top={layout.margin.top}>
-                {yTicks.map((tick) => {
-                  const tickY = yScale(tick)
-
-                  return (
-                    <g key={tick}>
-                      <line
-                        className="stroke-border/50"
-                        strokeDasharray="3 3"
-                        x1={0}
-                        x2={layout.innerWidth}
-                        y1={tickY}
-                        y2={tickY}
-                      />
-                      <text
-                        className="fill-muted-foreground text-[0.68rem]"
-                        dy="0.32em"
-                        textAnchor="end"
-                        x={-8}
-                        y={tickY}
-                      >
-                        {yValueFormatter(tick)}
-                      </text>
-                    </g>
-                  )
-                })}
-
-                {data.map((datum) => {
-                  const value = getValue(datum, xKey)
-                  const tickX = x(datum)
-
-                  return (
-                    <text
-                      className="fill-muted-foreground text-[0.68rem]"
-                      key={value}
-                      textAnchor="middle"
-                      x={tickX}
-                      y={layout.innerHeight + 20}
-                    >
-                      {xLabelFormatter ? xLabelFormatter(value) : value}
-                    </text>
-                  )
-                })}
+              <ChartCartesianGroup layout={layout}>
+                <ChartYAxisGrid
+                  formatTick={yValueFormatter}
+                  innerWidth={layout.innerWidth}
+                  scale={yScale}
+                />
+                <ChartXAxisLabels
+                  data={data}
+                  formatTick={xLabelFormatter}
+                  innerHeight={layout.innerHeight}
+                  x={x}
+                  xKey={xKey}
+                />
 
                 {isFiniteNumber(referenceY) ? (
                   <line
@@ -231,17 +163,14 @@ export function LineChart<T>({
                   />
                 ) : null}
 
-                <path
-                  d={createLinePath({
-                    data: data.filter((datum) =>
-                      isFiniteNumber(getValue(datum, yKey))
-                    ),
-                    x,
-                    y,
-                  })}
+                <LinePath
+                  data={data}
+                  defined={(datum) => isFiniteNumber(getValue(datum, yKey))}
                   fill="none"
                   stroke={color}
                   strokeWidth={2}
+                  x={x}
+                  y={y}
                 />
 
                 {data.map((datum) => {
@@ -263,8 +192,8 @@ export function LineChart<T>({
                     />
                   )
                 })}
-              </Group>
-            </svg>
+              </ChartCartesianGroup>
+            </ChartSvg>
 
             <ChartTooltip
               visible={tooltip !== null}

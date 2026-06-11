@@ -3,10 +3,9 @@ import {
   payment,
 } from "./data/generated-fare-anatomy"
 import { taxiKpis } from "./data/generated-trip-summary"
-import { PieChart, type ChartConfig } from "../../components/chart"
+import { BarChart, PieChart, type ChartConfig } from "../../components/chart"
 
-import { roughSketchChartStyle, roughSketchMarkOptions } from "./rough-theme"
-import { RoughBarChart } from "./rough-viz-charts"
+import { roughSketchMarkOptions } from "./rough-theme"
 import {
   RoughRule,
   SectionIntro,
@@ -31,10 +30,12 @@ const components = fareComponents.map((item) => ({
   ...item,
   label: labels[item.key] ?? item.key,
 }))
-const componentChartData = {
-  labels: components.map((item) => item.label),
-  values: components.map((item) => item.value),
-}
+const componentChartConfig = {
+  value: {
+    color: "var(--chart-2)",
+    label: "Average fare",
+  },
+} satisfies ChartConfig
 const paymentChartConfig = Object.fromEntries(
   payment.map((item, index) => [
     item.label,
@@ -66,19 +67,21 @@ export function FareAnatomyBlock() {
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,0.62fr)_minmax(320px,0.38fr)]">
-        <SketchPanel className="p-0">
-          <RoughBarChart
-            {...roughSketchChartStyle}
-            axisFontSize=".78rem"
-            color="var(--chart-2)"
-            data={componentChartData}
-            fillStyle="cross-hatch"
-            heightClassName="min-h-[360px] [&_svg]:min-h-[360px]"
-            margin={{ top: 44, right: 24, bottom: 76, left: 64 }}
-            title="Average fare components"
-            titleFontSize="17px"
-            tooltipFontSize=".8rem"
-            yValueFormat="$.2f"
+        <SketchPanel className="p-5">
+          <BarChart
+            aspectRatio="16 / 9"
+            className="min-h-[360px]"
+            config={componentChartConfig}
+            data={components}
+            minHeight={320}
+            renderer="rough"
+            roughOptions={{
+              ...roughSketchMarkOptions,
+              fillStyle: "cross-hatch",
+            }}
+            xKey="label"
+            yKey="value"
+            yValueFormatter={formatCurrency}
           />
         </SketchPanel>
 
@@ -138,6 +141,7 @@ export function FareAnatomyBlock() {
               legend
               minHeight={220}
               nameKey="label"
+              renderer="rough"
               roughOptions={roughSketchMarkOptions}
               valueKey="share"
             />

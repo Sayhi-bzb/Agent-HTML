@@ -9,6 +9,7 @@ import {
   MapRoute,
   MarkerContent,
 } from "../../components/map"
+import { MediaFigure } from "../../components/media-figure"
 import { Badge } from "../../components/ui/badge"
 import { Button } from "../../components/ui/button"
 import { Progress } from "../../components/ui/progress"
@@ -354,16 +355,12 @@ function InspectorPhoto({ assetKey }: { assetKey: keyof typeof mediaAssets }) {
   const asset = mediaAssets[assetKey]
 
   return (
-    <figure className="canvas-stack-xs">
-      <img
-        alt={asset.alt}
-        className="aspect-[16/9] w-full rounded-md object-cover"
-        key={assetKey}
-        src={asset.src}
-      />
-      <p className="canvas-text-caption text-muted-foreground">
-        {asset.caption}
-      </p>
-    </figure>
+    <MediaFigure
+      asset={asset}
+      density="compact"
+      imageClassName="aspect-[16/9]"
+      key={assetKey}
+      showCredit={false}
+    />
   )
 }

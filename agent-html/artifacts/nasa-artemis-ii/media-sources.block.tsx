@@ -1,8 +1,8 @@
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Badge } from "../../components/ui/badge"
+import { SourceLinks } from "../../components/source-links"
 
 import { sourceLinks } from "./data/sources"
-import { SourceLinks } from "./source-links"
 
 const sourceGroups = [
   { label: "Opening", links: sourceLinks.opening },
@@ -29,7 +29,7 @@ export function MediaSourcesBlock() {
         {sourceGroups.map((group) => (
           <div className="canvas-stack-xs" key={group.label}>
             <Badge variant="outline">{group.label}</Badge>
-            <SourceLinks links={group.links} />
+            <SourceLinks density="compact" links={group.links} />
           </div>
         ))}
       </div>
@@ -41,7 +41,7 @@ export function MediaSourcesBlock() {
         </AlertDescription>
       </Alert>
 
-      <SourceLinks links={sourceLinks.mediaUsage} />
+      <SourceLinks density="compact" links={sourceLinks.mediaUsage} />
     </section>
   )
 }

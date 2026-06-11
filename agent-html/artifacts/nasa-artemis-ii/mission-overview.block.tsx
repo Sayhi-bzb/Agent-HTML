@@ -1,4 +1,5 @@
 import { Badge } from "../../components/ui/badge"
+import { MediaFigure } from "../../components/media-figure"
 
 import { mediaAssets } from "./data/media"
 import { missionTags, telemetryItems } from "./data/mission-overview"
@@ -6,16 +7,10 @@ import { missionTags, telemetryItems } from "./data/mission-overview"
 export function MissionOverviewBlock() {
   return (
     <section className="canvas-stack-lg">
-      <figure className="canvas-stack-sm">
-        <img
-          alt={mediaAssets.opening.alt}
-          className="max-h-screen w-full rounded-md object-cover"
-          src={mediaAssets.opening.src}
-        />
-        <p className="canvas-text-caption text-muted-foreground">
-          {mediaAssets.opening.caption} {mediaAssets.opening.credit}.
-        </p>
-      </figure>
+      <MediaFigure
+        asset={mediaAssets.opening}
+        imageClassName="max-h-screen"
+      />
 
       <div className="canvas-grid-gap md:grid-cols-[2fr_1fr]">
         <div className="canvas-stack-md">

@@ -1,6 +1,7 @@
 import { ListChecks, RotateCcw, ShieldCheck } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
+import { MediaFigure } from "../../components/media-figure"
 import { StatusBadge } from "../../components/ui/status-badge"
 import {
   Timeline,
@@ -77,16 +78,11 @@ export function MissionRouteBlock() {
         </Timeline>
 
         <aside className="canvas-stack-md">
-          <figure className="canvas-stack-sm">
-            <img
-              alt={mediaAssets.route.alt}
-              className="max-h-80 w-full rounded-md object-contain"
-              src={mediaAssets.route.src}
-            />
-            <p className="canvas-text-caption text-muted-foreground">
-              {mediaAssets.route.caption} {mediaAssets.route.credit}.
-            </p>
-          </figure>
+          <MediaFigure
+            asset={mediaAssets.route}
+            fit="contain"
+            imageClassName="max-h-80"
+          />
 
           <div className="canvas-stack-sm">
             <Badge variant="secondary">route constraints</Badge>

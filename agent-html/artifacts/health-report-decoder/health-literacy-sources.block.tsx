@@ -1,8 +1,8 @@
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Badge } from "../../components/ui/badge"
+import { SourceLinks } from "../../components/source-links"
 
 import { sourceGroups } from "./data/sources"
-import { SourceLinks } from "./source-links"
 
 export function HealthLiteracySourcesBlock() {
   return (

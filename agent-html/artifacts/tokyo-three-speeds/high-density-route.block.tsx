@@ -1,6 +1,7 @@
 import { LogOut, MousePointer2 } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
+import { MediaFigure } from "../../components/media-figure"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
 import { densityAreas } from "./data/high-density-route"
@@ -10,16 +11,10 @@ export function HighDensityRouteBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-[0.95fr_1.05fr]">
-        <figure className="canvas-stack-sm">
-          <img
-            alt={mediaAssets.density.alt}
-            className="max-h-[520px] w-full rounded-md object-cover"
-            src={mediaAssets.density.src}
-          />
-          <p className="canvas-text-caption text-muted-foreground">
-            {mediaAssets.density.caption} {mediaAssets.density.credit}.
-          </p>
-        </figure>
+        <MediaFigure
+          asset={mediaAssets.density}
+          imageClassName="max-h-[520px]"
+        />
 
         <div className="canvas-stack-md">
           <div className="canvas-wrap-sm items-center">

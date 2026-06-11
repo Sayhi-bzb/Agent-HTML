@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
+import { MediaFigure } from "../../components/media-figure"
 import { StatusBadge } from "../../components/ui/status-badge"
 
 import { systemPanels } from "./data/launch-system"
@@ -23,16 +24,7 @@ const systemPanelIcons: Record<string, LucideIcon> = {
 export function LaunchSystemBlock() {
   return (
     <section className="canvas-stack-lg">
-      <figure className="canvas-stack-sm">
-        <img
-          alt={mediaAssets.launch.alt}
-          className="max-h-screen w-full rounded-md object-cover"
-          src={mediaAssets.launch.src}
-        />
-        <p className="canvas-text-caption text-muted-foreground">
-          {mediaAssets.launch.caption} {mediaAssets.launch.credit}.
-        </p>
-      </figure>
+      <MediaFigure asset={mediaAssets.launch} imageClassName="max-h-screen" />
 
       <div className="canvas-grid-gap md:grid-cols-[2fr_1fr]">
         <div className="canvas-stack-md">

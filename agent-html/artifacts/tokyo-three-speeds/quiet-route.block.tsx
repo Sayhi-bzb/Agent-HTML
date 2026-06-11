@@ -1,4 +1,5 @@
 import { Badge } from "../../components/ui/badge"
+import { MediaFigure } from "../../components/media-figure"
 import {
   Timeline,
   TimelineContent,
@@ -45,16 +46,10 @@ export function QuietRouteBlock() {
         </div>
 
         <div className="canvas-stack-md">
-          <figure className="canvas-stack-sm">
-            <img
-              alt={mediaAssets.quiet.alt}
-              className="max-h-[420px] w-full rounded-md object-cover"
-              src={mediaAssets.quiet.src}
-            />
-            <p className="canvas-text-caption text-muted-foreground">
-              {mediaAssets.quiet.caption} {mediaAssets.quiet.credit}.
-            </p>
-          </figure>
+          <MediaFigure
+            asset={mediaAssets.quiet}
+            imageClassName="max-h-[420px]"
+          />
         </div>
       </div>
     </section>

@@ -1,3 +1,4 @@
+import { Pie } from "@visx/shape"
 import * as React from "react"
 import type { Options as RoughOptions } from "roughjs/bin/core"
 
@@ -7,6 +8,7 @@ import {
   ChartLegend,
   ChartTooltip,
   ChartTooltipContent,
+  createRoughOptionsByKey,
   getChartCssVariable,
   getValue,
   isFiniteNumber,
@@ -21,6 +23,7 @@ export interface PieChartProps<T> {
   legend?: boolean
   minHeight?: number
   nameKey: ChartAccessor<T, string>
+  renderer?: "rough" | "svg"
   roughOptions?: RoughOptions
   valueFormatter?: (value: number) => React.ReactNode
   valueKey: ChartAccessor<T, number>
@@ -28,10 +31,8 @@ export interface PieChartProps<T> {
 
 interface PieSlice<T> {
   datum: T
-  endAngle: number
   key: string
   label: React.ReactNode
-  startAngle: number
   value: number
 }
 
@@ -41,52 +42,8 @@ interface TooltipState<T> {
   y: number
 }
 
-const TAU = Math.PI * 2
-
 function formatValue(value: number) {
   return `${value}%`
-}
-
-function polarToCartesian({
-  angle,
-  cx,
-  cy,
-  radius,
-}: {
-  angle: number
-  cx: number
-  cy: number
-  radius: number
-}) {
-  return {
-    x: cx + radius * Math.cos(angle - Math.PI / 2),
-    y: cy + radius * Math.sin(angle - Math.PI / 2),
-  }
-}
-
-function createSectorPath({
-  cx,
-  cy,
-  endAngle,
-  radius,
-  startAngle,
-}: {
-  cx: number
-  cy: number
-  endAngle: number
-  radius: number
-  startAngle: number
-}) {
-  const start = polarToCartesian({ angle: startAngle, cx, cy, radius })
-  const end = polarToCartesian({ angle: endAngle, cx, cy, radius })
-  const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0
-
-  return [
-    `M ${cx} ${cy}`,
-    `L ${start.x} ${start.y}`,
-    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`,
-    "Z",
-  ].join(" ")
 }
 
 function createSlices<T>({
@@ -108,24 +65,15 @@ function createSlices<T>({
     }))
     .filter((row) => isFiniteNumber(row.value) && row.value > 0)
   const total = rows.reduce((sum, row) => sum + row.value, 0)
-  let cursor = 0
 
   if (total <= 0) {
     return []
   }
 
-  return rows.map<PieSlice<T>>((row) => {
-    const startAngle = cursor
-    const endAngle = cursor + (row.value / total) * TAU
-    cursor = endAngle
-
-    return {
-      ...row,
-      endAngle,
-      label: config[row.key]?.label ?? row.key,
-      startAngle,
-    }
-  })
+  return rows.map<PieSlice<T>>((row) => ({
+    ...row,
+    label: config[row.key]?.label ?? row.key,
+  }))
 }
 
 export function PieChart<T>({
@@ -136,11 +84,25 @@ export function PieChart<T>({
   legend = false,
   minHeight = 220,
   nameKey,
+  renderer = "svg",
   roughOptions,
   valueFormatter = formatValue,
   valueKey,
 }: PieChartProps<T>) {
   const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
+  const slices = React.useMemo(
+    () => createSlices({ config, data, nameKey, valueKey }),
+    [config, data, nameKey, valueKey]
+  )
+  const roughOptionsByKey = React.useMemo(
+    () =>
+      createRoughOptionsByKey({
+        getKey: (slice) => slice.key,
+        options: roughOptions,
+        rows: slices,
+      }) as Map<string, RoughOptions>,
+    [roughOptions, slices]
+  )
 
   return (
     <ChartContainer
@@ -155,10 +117,10 @@ export function PieChart<T>({
       minHeight={minHeight}
     >
       {({ height, series, width }) => {
-        const slices = createSlices({ config, data, nameKey, valueKey })
         const centerX = width / 2
         const centerY = height / 2
         const legendOffset = legend ? 48 : 0
+        const pieCenterY = centerY - legendOffset / 2
         const radius = Math.max(
           0,
           Math.min(width, height - legendOffset) / 2 - 12
@@ -172,44 +134,47 @@ export function PieChart<T>({
               onPointerLeave={() => setTooltip(null)}
               role="img"
             >
-              {slices.map((slice) => {
-                const middleAngle = (slice.startAngle + slice.endAngle) / 2
-                const labelPoint = polarToCartesian({
-                  angle: middleAngle,
-                  cx: centerX,
-                  cy: centerY - legendOffset / 2,
-                  radius: radius * 0.62,
-                })
-                const color = getChartCssVariable(slice.key)
+              <Pie
+                data={Array.from(slices)}
+                outerRadius={radius}
+                pieValue={(slice) => slice.value}
+              >
+                {({ arcs, path }) => (
+                  <g transform={`translate(${centerX}, ${pieCenterY})`}>
+                    {arcs.map((arc) => {
+                      const [centroidX, centroidY] = path.centroid(arc)
+                      const d = path(arc) ?? ""
+                      const color = getChartCssVariable(arc.data.key)
+                      const showTooltip = () =>
+                        setTooltip({
+                          slice: arc.data,
+                          x: centerX + centroidX + 12,
+                          y: pieCenterY + centroidY - 12,
+                        })
 
-                return (
-                  <g
-                    key={slice.key}
-                    onPointerEnter={() =>
-                      setTooltip({
-                        slice,
-                        x: labelPoint.x + 12,
-                        y: labelPoint.y - 12,
-                      })
-                    }
-                  >
-                    <RoughPath
-                      d={createSectorPath({
-                        cx: centerX,
-                        cy: centerY - legendOffset / 2,
-                        endAngle: slice.endAngle,
-                        radius,
-                        startAngle: slice.startAngle,
-                      })}
-                      options={{
-                        fill: color,
-                        stroke: color,
-                        ...roughOptions,
-                      }}
-                    />
+                      return (
+                        <g key={arc.data.key}>
+                          {renderer === "rough" ? (
+                            <RoughPath
+                              d={d}
+                              options={roughOptionsByKey.get(arc.data.key)}
+                            />
+                          ) : (
+                            <path d={d} fill={color} stroke={color} />
+                          )}
+                          <path
+                            d={d}
+                            fill="transparent"
+                            onPointerEnter={showTooltip}
+                            pointerEvents="all"
+                            stroke="transparent"
+                          />
+                        </g>
+                      )
+                    })}
                   </g>
-                )
-              })}
+                )}
+              </Pie>
             </svg>
 
             <ChartTooltip

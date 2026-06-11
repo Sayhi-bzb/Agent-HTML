@@ -1,4 +1,5 @@
 import { Badge } from "../../components/ui/badge"
+import { MediaFigure } from "../../components/media-figure"
 
 import { crewMembers } from "./data/crew-manifest"
 import { mediaAssets } from "./data/media"
@@ -23,16 +24,12 @@ export function CrewManifestBlock() {
 
           return (
             <article className="canvas-stack-sm" key={member.name}>
-              <figure className="canvas-stack-xs">
-                <img
-                  alt={portrait.alt}
-                  className="aspect-[4/5] w-full rounded-md object-cover"
-                  src={portrait.src}
-                />
-                <p className="canvas-text-caption text-muted-foreground">
-                  {portrait.credit}
-                </p>
-              </figure>
+              <MediaFigure
+                asset={portrait}
+                density="compact"
+                imageClassName="aspect-[4/5]"
+                showCaption={false}
+              />
               <div className="canvas-stack-xs">
                 <p className="canvas-text-body">{member.name}</p>
                 <div className="canvas-wrap-sm items-center">

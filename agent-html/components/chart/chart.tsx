@@ -1,3 +1,5 @@
+import { localPoint } from "@visx/event"
+import { Group } from "@visx/group"
 import { scaleBand, scaleLinear, scalePoint, scaleTime } from "@visx/scale"
 import { ParentSize } from "@visx/responsive"
 import * as React from "react"
@@ -345,6 +347,18 @@ export function ChartLegend({
   )
 }
 
+export function ChartSvg({
+  children,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={cn("h-full w-full overflow-visible", className)} {...props}>
+      {children}
+    </svg>
+  )
+}
+
 export interface ChartMargin {
   bottom: number
   left: number
@@ -390,6 +404,96 @@ export function createCartesianLayout({
   }
 }
 
+export function ChartCartesianGroup({
+  children,
+  layout,
+}: {
+  children: ReactNode
+  layout: CartesianLayout
+}) {
+  return (
+    <Group left={layout.margin.left} top={layout.margin.top}>
+      {children}
+    </Group>
+  )
+}
+
+export function ChartYAxisGrid({
+  formatTick,
+  innerWidth,
+  scale,
+  ticks = 4,
+}: {
+  formatTick: (value: number) => ReactNode
+  innerWidth: number
+  scale: ReturnType<typeof scaleLinear<number>>
+  ticks?: number
+}) {
+  return (
+    <>
+      {scale.ticks(ticks).map((tick) => {
+        const tickY = scale(tick)
+
+        return (
+          <g key={tick}>
+            <line
+              className="stroke-border/50"
+              strokeDasharray="3 3"
+              x1={0}
+              x2={innerWidth}
+              y1={tickY}
+              y2={tickY}
+            />
+            <text
+              className="fill-muted-foreground text-[0.68rem]"
+              dy="0.32em"
+              textAnchor="end"
+              x={-8}
+              y={tickY}
+            >
+              {formatTick(tick)}
+            </text>
+          </g>
+        )
+      })}
+    </>
+  )
+}
+
+export function ChartXAxisLabels<T>({
+  data,
+  formatTick,
+  innerHeight,
+  x,
+  xKey,
+}: {
+  data: readonly T[]
+  formatTick?: (value: string) => ReactNode
+  innerHeight: number
+  x: (datum: T) => number
+  xKey: ChartAccessor<T, string>
+}) {
+  return (
+    <>
+      {data.map((datum) => {
+        const value = getValue(datum, xKey)
+
+        return (
+          <text
+            className="fill-muted-foreground text-[0.68rem]"
+            key={value}
+            textAnchor="middle"
+            x={x(datum)}
+            y={innerHeight + 20}
+          >
+            {formatTick ? formatTick(value) : value}
+          </text>
+        )
+      })}
+    </>
+  )
+}
+
 export type ChartAccessor<T, TValue> = keyof T | ((datum: T) => TValue)
 
 export function getValue<T, TValue>(
@@ -412,6 +516,60 @@ export function getFiniteValues<T>(
   accessor: ChartAccessor<T, number>
 ) {
   return data.map((datum) => getValue(datum, accessor)).filter(isFiniteNumber)
+}
+
+export function getPointerPoint(event: React.PointerEvent<SVGElement>) {
+  return localPoint(event)
+}
+
+export function getNearestDatum<T>({
+  data,
+  pointerX,
+  x,
+}: {
+  data: readonly T[]
+  pointerX: number
+  x: (datum: T) => number
+}) {
+  let nearestDatum: T | null = null
+  let nearestDistance = Number.POSITIVE_INFINITY
+
+  for (const datum of data) {
+    const distance = Math.abs(x(datum) - pointerX)
+
+    if (distance < nearestDistance) {
+      nearestDistance = distance
+      nearestDatum = datum
+    }
+  }
+
+  return nearestDatum
+}
+
+export function createRoughOptionsByKey<T, TOptions extends object>({
+  getKey,
+  options,
+  rows,
+}: {
+  getKey: (row: T) => string
+  options?: TOptions
+  rows: readonly T[]
+}) {
+  return new Map(
+    rows.map((row) => {
+      const key = getKey(row)
+      const color = getChartCssVariable(key)
+
+      return [
+        key,
+        {
+          fill: color,
+          stroke: color,
+          ...options,
+        },
+      ] as const
+    })
+  )
 }
 
 export function getNumberDomain(values: number[]) {

@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 160 |
-| Dependencies | 447 |
+| Modules | 158 |
+| Dependencies | 449 |
 | Local edges | 295 |
-| External edges | 151 |
+| External edges | 153 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -63,5 +63,5 @@ Dependency-cruiser summary for `agent-html` source files.
 | `node_modules/@visx/event/esm/index.js` | 2 |
 | `node_modules/@visx/responsive/esm/index.js` | 2 |
 | `node_modules/@visx/scale/esm/index.js` | 2 |
+| `node_modules/@visx/shape/esm/index.js` | 2 |
 | `node_modules/clsx/dist/clsx.mjs` | 2 |
-| `node_modules/rough-viz/dist/roughviz.es.js` | 2 |

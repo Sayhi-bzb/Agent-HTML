@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
+import { MediaFigure } from "../../components/media-figure"
 
 import { mediaAssets } from "./data/media"
 import { closureItems } from "./data/recovery-validation"
@@ -36,26 +37,16 @@ export function RecoveryValidationBlock() {
       </div>
 
       <div className="canvas-grid-gap md:grid-cols-2">
-        <figure className="canvas-stack-xs">
-          <img
-            alt={mediaAssets.splashdown.alt}
-            className="max-h-96 w-full rounded-md object-cover"
-            src={mediaAssets.splashdown.src}
-          />
-          <p className="canvas-text-caption text-muted-foreground">
-            {mediaAssets.splashdown.caption} {mediaAssets.splashdown.credit}.
-          </p>
-        </figure>
-        <figure className="canvas-stack-xs">
-          <img
-            alt={mediaAssets.recovery.alt}
-            className="max-h-96 w-full rounded-md object-cover"
-            src={mediaAssets.recovery.src}
-          />
-          <p className="canvas-text-caption text-muted-foreground">
-            {mediaAssets.recovery.caption} {mediaAssets.recovery.credit}.
-          </p>
-        </figure>
+        <MediaFigure
+          asset={mediaAssets.splashdown}
+          density="compact"
+          imageClassName="max-h-96"
+        />
+        <MediaFigure
+          asset={mediaAssets.recovery}
+          density="compact"
+          imageClassName="max-h-96"
+        />
       </div>
 
       <div className="canvas-grid-gap md:grid-cols-4">

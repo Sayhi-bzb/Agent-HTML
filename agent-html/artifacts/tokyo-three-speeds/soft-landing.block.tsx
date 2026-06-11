@@ -1,6 +1,7 @@
 import { MapPin, Moon, PlaneLanding } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
+import { MediaFigure } from "../../components/media-figure"
 
 import { tokyoRoutes } from "./data/map"
 import { mediaAssets } from "./data/media"
@@ -57,16 +58,10 @@ export function SoftLandingBlock() {
           </div>
         </div>
 
-        <figure className="canvas-stack-sm">
-          <img
-            alt={mediaAssets.arrival.alt}
-            className="h-full max-h-[460px] min-h-64 w-full rounded-md object-cover"
-            src={mediaAssets.arrival.src}
-          />
-          <p className="canvas-text-caption text-muted-foreground">
-            {mediaAssets.arrival.caption} {mediaAssets.arrival.credit}.
-          </p>
-        </figure>
+        <MediaFigure
+          asset={mediaAssets.arrival}
+          imageClassName="h-full max-h-[460px] min-h-64"
+        />
       </div>
     </section>
   )

@@ -1,7 +1,7 @@
 import { Badge } from "../../components/ui/badge"
+import { SourceLinks } from "../../components/source-links"
 
 import { sourceGroups } from "./data/sources"
-import { SourceLinks } from "./source-links"
 
 const photosGroup = sourceGroups.find((group) => group.label === "Photos")
 const rightColumnGroups = sourceGroups.filter(
