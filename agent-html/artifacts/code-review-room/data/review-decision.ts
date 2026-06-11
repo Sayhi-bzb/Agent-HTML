@@ -1,4 +1,11 @@
-import type { EvidenceMatrixItem, EvidenceRow, ReleaseRoute, ReviewLane } from "./types"
+import type {
+  EvidenceMatrixItem,
+  EvidenceRow,
+  PackageTimelineStep,
+  ReleaseRoute,
+  ReviewGateColumn,
+  ReviewLane,
+} from "./types"
 
 export const evidenceCategories = ["dependency", "runtime"]
 
@@ -6,37 +13,37 @@ export const evidenceMatrix = [
   {
     evidence: "covered",
     impact: "high impact",
-    note: "LOC and cyclomatic pressure identify map, kanban, and sankey surfaces.",
+    note: "Code metrics identify Canvas rich components: map, kanban, sankey, data-table.",
     status: "success",
   },
   {
     evidence: "partial",
     impact: "high impact",
-    note: "GitNexus process traces show flows, but index is behind HEAD.",
+    note: "GitNexus traces CodeReviewRoomArtifact flows, but package index freshness still matters.",
     status: "warning",
   },
   {
     evidence: "missing",
     impact: "high impact",
-    note: "No committed per-symbol MI pipeline exists yet.",
+    note: "No committed generator yet turns Canvas metrics into a reproducible package dataset.",
     status: "destructive",
   },
   {
     evidence: "covered",
     impact: "medium impact",
-    note: "Fan-out is estimated from imports for TypeScript and TSX files.",
+    note: "Dependency summary records local edges, external edges, and zero circular edges.",
     status: "success",
   },
   {
     evidence: "partial",
     impact: "medium impact",
-    note: "Fan-in needs GitNexus graph enrichment before ranking shared primitives.",
+    note: "Fan-in still needs GitNexus plus dependency-cruiser before ranking primitives.",
     status: "warning",
   },
   {
     evidence: "missing",
     impact: "medium impact",
-    note: "No runtime benchmark confirms table interaction cost.",
+    note: "No package benchmark confirms table/search interaction cost under large artifact data.",
     status: "destructive",
   },
 ] satisfies EvidenceMatrixItem[]
@@ -46,85 +53,185 @@ export const evidenceRows = [
     evidence: "covered",
     impact: "high",
     missingCheck: "none",
-    risk: "map.tsx has highest LOC and cyclomatic score",
+    risk: "components/map.tsx has the highest LOC and cyclomatic score",
   },
   {
     evidence: "partial",
     impact: "high",
-    missingCheck: "fan-in graph refresh",
-    risk: "data-table.tsx is shared but fan-in is not in the local metric pass",
+    missingCheck: "GitNexus + dependency-cruiser fan-in refresh",
+    risk: "components/data-table.tsx is shared across artifact evidence surfaces",
   },
   {
     evidence: "missing",
     impact: "medium",
-    missingCheck: "per-symbol metric generator",
-    risk: "large component files need function-level MI before refactor planning",
+    missingCheck: "committed Canvas metrics generator",
+    risk: "package metrics are currently a generated snapshot, not a repeatable script",
   },
 ] satisfies EvidenceRow[]
 
 export const reviewLanes = [
   {
     count: "2",
-    detail: "Generate per-symbol metrics before splitting shared primitives.",
+    detail: "Keep metrics artifact-local until a package generator exists.",
     label: "blocking",
     status: "destructive",
   },
   {
     count: "3",
-    detail: "Confirm whether map and sankey are intended as rich components or demos.",
+    detail: "Confirm map and sankey remain rich components, not artifact-only demos.",
     label: "question",
     status: "warning",
   },
   {
     count: "2",
-    detail: "Move generated statistical data away from authored block logic.",
+    detail: "Keep generated data outside authored block implementation files.",
     label: "follow-up",
     status: "default",
   },
   {
     count: "1",
-    detail: "Normalize metric labels before exposing them in the artifact copy.",
+    detail: "Use stable Canvas package names in visible metric labels.",
     label: "nit",
     status: "default",
   },
 ] satisfies ReviewLane[]
 
+export const reviewGateColumns = [
+  {
+    cards: [
+      {
+        detail: "Artifact and Block stay protocol-only; no layout props on host wrappers.",
+        id: "artifact-protocol",
+        label: "@agent-html/react protocol",
+        status: "destructive",
+      },
+      {
+        detail: "No artifact imports app-server, host internals, or privileged APIs.",
+        id: "host-boundary",
+        label: "host boundary",
+        status: "destructive",
+      },
+    ],
+    id: "blocking",
+    label: "blocking",
+    status: "destructive",
+  },
+  {
+    cards: [
+      {
+        detail: "Should map and sankey stay shared rich components after metric pressure?",
+        id: "rich-component-scope",
+        label: "rich component scope",
+        status: "warning",
+      },
+      {
+        detail: "Does the metrics snapshot need a committed generator before reuse?",
+        id: "metrics-generator",
+        label: "metrics generator",
+        status: "warning",
+      },
+      {
+        detail: "Is dependency-cruiser enough for package fan-in, or should GitNexus own it?",
+        id: "fan-in-source",
+        label: "fan-in source",
+        status: "warning",
+      },
+    ],
+    id: "question",
+    label: "question",
+    status: "warning",
+  },
+  {
+    cards: [
+      {
+        detail: "Keep generated data under data/generated-* and out of block source.",
+        id: "generated-data",
+        label: "generated data",
+        status: "default",
+      },
+      {
+        detail: "Run canvas:index:check after changing artifact block order or imports.",
+        id: "index-check",
+        label: "index check",
+        status: "default",
+      },
+    ],
+    id: "follow-up",
+    label: "follow-up",
+    status: "default",
+  },
+  {
+    cards: [
+      {
+        detail: "Use stable package names: components/ui, rich components, artifacts.",
+        id: "label-vocabulary",
+        label: "label vocabulary",
+        status: "default",
+      },
+    ],
+    id: "nit",
+    label: "nit",
+    status: "default",
+  },
+] satisfies ReviewGateColumn[]
+
 export const reviewChecks = [
-  "Code metrics data is artifact-local",
-  "Block files import data instead of defining large arrays",
-  "Low-MI candidates link back to real Agent-HTML paths",
-  "GitNexus staleness is visible in the evidence note",
+  "Artifact and Block usage stays inside @agent-html/react protocol",
+  "Block files import artifact-local data instead of defining large arrays",
+  "No artifact imports Canvas host internals or app-server APIs",
+  "canvas:typecheck, canvas:guard, canvas:index:check, and canvas:deps stay green",
 ]
 
 export const releaseRoutes = [
   {
     badge: "fastest",
-    condition: "Keep the data snapshot static and review only the top files.",
+    condition: "Keep changes inside code-review-room/data and artifact copy only.",
     metrics: [
       { label: "time cost", value: 32 },
       { label: "risk reduction", value: 54 },
       { label: "confidence", value: 58 },
     ],
-    value: "snapshot review",
+    value: "artifact-only pass",
   },
   {
     badge: "draft pick",
-    condition: "Add a small generator, then let the artifact consume generated TS data.",
+    condition: "Add a package metrics generator, then refresh generated TS data.",
     metrics: [
       { label: "time cost", value: 62 },
       { label: "risk reduction", value: 82 },
       { label: "confidence", value: 76 },
     ],
-    value: "generated dataset",
+    value: "workspace index refresh",
   },
   {
     badge: "strictest",
-    condition: "Refresh GitNexus and build a per-symbol metric pipeline first.",
+    condition: "Open a package-level RFC before splitting shared primitives.",
     metrics: [
       { label: "time cost", value: 88 },
       { label: "risk reduction", value: 94 },
       { label: "confidence", value: 68 },
     ],
-    value: "index-first refactor",
+    value: "primitive refactor RFC",
   },
 ] satisfies ReleaseRoute[]
+
+export const packageTimelineSteps = [
+  {
+    detail: "Keep the review inside code-review-room data and copy while the package surface remains untouched.",
+    label: "artifact-only pass",
+    step: 1,
+    time: "local",
+  },
+  {
+    detail: "Refresh generated metrics, dependency summaries, and Canvas indexes when the dataset becomes reusable.",
+    label: "workspace index refresh",
+    step: 2,
+    time: "workspace",
+  },
+  {
+    detail: "Open a package-level refactor path before splitting shared primitives such as map, kanban, or sankey.",
+    label: "primitive refactor RFC",
+    step: 3,
+    time: "package",
+  },
+] satisfies PackageTimelineStep[]

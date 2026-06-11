@@ -2,68 +2,68 @@ import type { RiskFile } from "./types"
 
 export const riskFiles = [
   {
-    consequence: "large interactive surface with many branches",
+    consequence: "shared Map primitive touches marker, route, popup, and control APIs",
     file: "agent-html/components/map.tsx",
     lines: "1,587 LOC",
     risk: "high",
     size: "h-32 w-52",
     status: "destructive",
     tone: "bg-destructive/35",
-    type: "component",
+    type: "rich component",
   },
   {
-    consequence: "dense drag-and-drop workflow state",
+    consequence: "rich workflow component wraps dnd-kit state for Canvas artifacts",
     file: "agent-html/components/kanban.tsx",
     lines: "958 LOC",
     risk: "high",
     size: "h-28 w-48",
     status: "destructive",
     tone: "bg-destructive/30",
-    type: "component",
+    type: "rich component",
   },
   {
-    consequence: "wide chart API and Sankey layout coupling",
+    consequence: "shared Sankey primitive mixes visx layout, rough overlays, and token styling",
     file: "agent-html/components/sankey-chart.tsx",
     lines: "881 LOC",
     risk: "high",
     size: "h-24 w-44",
     status: "destructive",
     tone: "bg-destructive/25",
-    type: "component",
+    type: "rich component",
   },
   {
-    consequence: "sorting, filtering, pagination, and row behavior meet",
+    consequence: "local primitive used for artifact inspection tables and evidence review",
     file: "agent-html/components/data-table.tsx",
     lines: "410 LOC",
     risk: "medium",
     size: "h-20 w-40",
     status: "warning",
     tone: "bg-chart-3/30",
-    type: "primitive",
+    type: "components/ui",
   },
   {
-    consequence: "route planning state drives several visual regions",
+    consequence: "artifact block stresses local data, route controls, and Canvas composition taste",
     file: "agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx",
     lines: "336 LOC",
     risk: "medium",
     size: "h-20 w-44",
     status: "warning",
     tone: "bg-chart-3/25",
-    type: "artifact",
+    type: "artifact block",
   },
   {
-    consequence: "syntax rendering and copy interactions are shared",
+    consequence: "shared code primitive binds Shiki output, language normalization, and copy UX",
     file: "agent-html/components/code-block.tsx",
     lines: "188 LOC",
     risk: "medium",
     size: "h-16 w-36",
     status: "warning",
     tone: "bg-chart-3/20",
-    type: "component",
+    type: "rich component",
   },
 ] satisfies RiskFile[]
 
-export const fileTypes = ["component", "primitive", "artifact"]
+export const fileTypes = ["rich component", "components/ui", "artifact block"]
 
 export const selectedDiff = `--- agent-html/components/data-table.tsx
 +++ agent-html/components/data-table.tsx

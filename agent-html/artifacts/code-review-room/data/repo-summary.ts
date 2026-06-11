@@ -1,37 +1,37 @@
 import type { IntakeItem, SummaryItem } from "./types"
 
 export const reviewSubject = {
-  badge: "Agent-HTML / repo-derived review",
-  evidenceCompleteness: 64,
+  badge: "Agent-HTML / Canvas package review",
+  evidenceCompleteness: 72,
   evidenceNote:
-    "GitNexus supplies real structure and process data; local static analysis supplies code-health metrics for TypeScript and TSX files.",
+    "Evidence combines GitNexus structure, local TypeScript/TSX metrics, Canvas package scripts, and the artifact protocol rules from agent-html.",
   subtitle:
-    "A review surface for finding refactor candidates in the Canvas runtime by reading risk, dependency shape, and evidence before opening files.",
+    "A review surface for the React Canvas workspace package: artifact source, local primitives, rich workflow components, theme tokens, and CLI guard rails.",
   title: "Code Review Room",
 }
 
 export const summaryItems = [
-  { label: "files scanned", value: "373" },
+  { label: "package", value: "agent-html" },
   { label: "symbols indexed", value: "2,778" },
-  { label: "processes", value: "219" },
+  { label: "canvas scripts", value: "4" },
   { label: "risk candidates", value: "8" },
 ] satisfies SummaryItem[]
 
 export const intakeItems = [
   {
-    label: "repository",
-    value: "Agent-HTML",
+    label: "package surface",
+    value: "agent-html workspace + @agent-html/react artifact protocol",
   },
   {
-    label: "analysis source",
-    value: "GitNexus index + local TypeScript/TSX metric pass",
+    label: "required gates",
+    value: "canvas:typecheck, canvas:guard, canvas:index:check, canvas:deps",
   },
   {
     label: "review focus",
-    value: "Canvas components and artifact blocks with high LOC, fan-out, or MI pressure.",
+    value: "artifacts, components/ui primitives, rich components, styles, and theme presets.",
   },
   {
     label: "decision target",
-    value: "Choose which code-health candidates should be split, tested, or left alone.",
+    value: "Decide whether a change stays artifact-local or crosses a package boundary.",
   },
 ] satisfies IntakeItem[]

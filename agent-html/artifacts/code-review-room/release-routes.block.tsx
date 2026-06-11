@@ -1,18 +1,48 @@
 import { Badge } from "../../components/ui/badge"
 import { Progress } from "../../components/ui/progress"
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
-import { releaseRoutes } from "./data/review-decision"
+import {
+  Timeline,
+  TimelineContent,
+  TimelineDate,
+  TimelineHeader,
+  TimelineIndicator,
+  TimelineItem,
+  TimelineSeparator,
+  TimelineTitle,
+} from "../../components/timeline"
+import { packageTimelineSteps, releaseRoutes } from "./data/review-decision"
 
 export function ReleaseRoutesBlock() {
   return (
     <section className="canvas-stack-md">
       <div className="canvas-stack-xs">
         <p className="canvas-text-caption text-muted-foreground">
-          release routes
+          package routes
         </p>
         <h2 className="canvas-text-subheading">
-          The decision is a route, not a verdict.
+          The path depends on which Canvas package boundary is touched.
         </h2>
+      </div>
+
+      <div className="rounded-md bg-background p-4">
+        <Timeline className="w-full" defaultValue={2} orientation="horizontal">
+          {packageTimelineSteps.map((step) => (
+            <TimelineItem key={step.label} step={step.step}>
+              <TimelineIndicator />
+              <TimelineSeparator />
+              <TimelineContent>
+                <TimelineHeader>
+                  <TimelineDate>{step.time}</TimelineDate>
+                  <TimelineTitle>{step.label}</TimelineTitle>
+                </TimelineHeader>
+                <p className="canvas-text-caption text-muted-foreground">
+                  {step.detail}
+                </p>
+              </TimelineContent>
+            </TimelineItem>
+          ))}
+        </Timeline>
       </div>
 
       <RadioGroup

@@ -24,7 +24,7 @@ export function PrOverviewBlock() {
           <div className="flex flex-wrap gap-2">
             <StatusBadge status="warning">risk review</StatusBadge>
             <StatusBadge status="success">ci passing</StatusBadge>
-            <StatusBadge status="default">owner pending</StatusBadge>
+            <StatusBadge status="default">workspace owner review</StatusBadge>
           </div>
         </div>
 

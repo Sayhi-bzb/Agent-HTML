@@ -58,6 +58,18 @@ export type BlastRadiusLayer = {
   value: string
 }
 
+export type PackageSankeyData = {
+  links: Array<{
+    source: number
+    target: number
+    value: number
+  }>
+  nodes: Array<{
+    category?: "landing" | "outcome" | "source"
+    name: string
+  }>
+}
+
 export type EvidenceMatrixItem = {
   evidence: string
   impact: string
@@ -77,6 +89,27 @@ export type ReviewLane = {
   detail: string
   label: string
   status: "default" | "destructive" | "success" | "warning"
+}
+
+export type ReviewGateCard = {
+  detail: string
+  id: string
+  label: string
+  status: "default" | "destructive" | "success" | "warning"
+}
+
+export type ReviewGateColumn = {
+  cards: ReviewGateCard[]
+  id: string
+  label: string
+  status: "default" | "destructive" | "success" | "warning"
+}
+
+export type PackageTimelineStep = {
+  detail: string
+  label: string
+  step: number
+  time: string
 }
 
 export type ReleaseRoute = {
