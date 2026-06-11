@@ -1,5 +1,10 @@
 import type { Transition } from "motion/react";
-import { DEFAULT_CHART_ENTER_TRANSITION } from "./animation";
+
+export const DEFAULT_CHART_ENTER_TRANSITION: Transition = {
+  type: "spring",
+  stiffness: 60,
+  damping: 20,
+};
 
 export function transitionWithDelay(
   transition: Transition | undefined,

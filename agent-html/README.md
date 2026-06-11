@@ -1,6 +1,6 @@
 # React Canvas Workspace
 
-`agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, data, assets, and source dependency metadata. It does not contain runtime install artifacts.
+`agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, data, public static files, and source dependency metadata. It does not contain runtime install artifacts.
 
 ## Read Route
 
@@ -50,7 +50,7 @@ When touching Canvas classes, tokens, or internal chrome:
 - `theme`: host-owned theme preset registry and shadcn CSS sources.
 - `data`: fixtures and local datasets.
 - `artifacts/<artifact>/data.ts`: artifact-private display data.
-- `assets`: bundle-time imports.
+- `assets`: bundle-time imports, only when an artifact needs imported files.
 - `public`: URL-addressed static files.
 
 ## Copy Policy

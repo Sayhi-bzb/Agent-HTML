@@ -39,7 +39,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
   `theme/presets` and let the registry normalize it. Put preset layout metadata
   in matching `*.layout.ts` modules.
 - Put fixtures and local datasets in `data`.
-- Put bundle-time imports in `assets`.
+- Put bundle-time imports in `assets` only when an artifact needs imported files.
 - Put URL-addressed static files in `public`.
 
 ## Artifact Rules
@@ -68,7 +68,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 - Read `components/README.md` before scanning component source.
 - Use local `agent-html/components/ui` for common interactive controls and reusable UI roles.
-- Use named rich components, `hooks`, `lib`, `schema`, `data`, and `assets` when they fit the artifact task.
+- Use named rich components, `hooks`, `lib`, `schema`, and `data` when they fit the artifact task.
 - Check `index/api-surface.md` before adding, duplicating, or changing a local primitive.
 - Host and artifacts compose primitives. They do not create duplicate primitive buttons, inputs, menus, dialogs, or other common controls.
 - Keep local shadcn-derived primitives low-modification unless Canvas needs a primitive API, correctness fix, or accessibility fix.
@@ -87,7 +87,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 ## Asset Rules
 
-- Put imported images, media, and bundle-time files in `agent-html/assets` and import them with relative `../assets/...` paths.
+- Create `agent-html/assets` only for imported images, media, and bundle-time files, then import them with relative `../assets/...` paths.
 - Put URL-addressed static files in `agent-html/public` and reference them as `/__agent-html/public/<path>`.
 - Do not import from `../public`.
 

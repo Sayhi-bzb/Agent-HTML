@@ -8,11 +8,32 @@ import {
   formatCurrency,
 } from "./sketch-components"
 
+const taxiHeroImage = {
+  alt: "Abstract composition used as the NYC taxi sketchbook header image.",
+  src: "https://www.dropbox.com/s/1ymi9xx2ywqkxbj/composition-10.svg?raw=1",
+}
+
 export function TaxiHeaderBlock() {
   const { kpis, meta } = taxiData
 
   return (
     <section className="canvas-stack-lg">
+      <figure className="relative min-h-[420px] overflow-hidden rounded-md bg-background md:min-h-[520px]">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklab,var(--chart-2)_20%,transparent),transparent_34%),linear-gradient(135deg,color-mix(in_oklab,var(--chart-1)_16%,var(--background)),var(--background)_56%,color-mix(in_oklab,var(--chart-3)_18%,var(--background)))]"
+        />
+        <img
+          alt={taxiHeroImage.alt}
+          className="absolute inset-0 h-full w-full object-cover opacity-90 mix-blend-multiply dark:mix-blend-screen"
+          src={taxiHeroImage.src}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,var(--background)_100%)]"
+        />
+      </figure>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="canvas-stack-md">
           <div className="canvas-stack-sm">
