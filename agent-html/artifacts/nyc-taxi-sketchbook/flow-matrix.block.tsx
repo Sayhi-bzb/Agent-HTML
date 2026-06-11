@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo } from "react"
 import * as roughViz from "rough-viz"
 
 import { taxiData } from "./data"
-import { roughSketchChartStyle } from "./rough-viz-charts"
+import { roughSketchChartStyle } from "./rough-theme"
 import {
   SectionIntro,
   SketchNote,

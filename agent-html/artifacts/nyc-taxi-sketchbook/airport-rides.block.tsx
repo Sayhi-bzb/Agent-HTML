@@ -3,11 +3,8 @@ import { useCallback } from "react"
 import { Badge } from "../../components/ui/badge"
 
 import { taxiData } from "./data"
-import {
-  RoughSvgLayer,
-  roughSketchMarkOptions,
-  type RoughSketchDraw,
-} from "./roughjs-sketch"
+import { roughSketchMarkOptions } from "./rough-theme"
+import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
 import {
   SectionIntro,
   SketchNote,

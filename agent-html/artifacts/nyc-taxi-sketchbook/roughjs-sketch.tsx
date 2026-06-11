@@ -4,14 +4,6 @@ import type { RoughSVG } from "roughjs/bin/svg"
 
 export type RoughSketchDraw = (roughSvg: RoughSVG, group: SVGGElement) => void
 
-export const roughSketchMarkOptions = {
-  fillStyle: "hachure",
-  fillWeight: 1,
-  roughness: 4,
-  stroke: "currentColor",
-  strokeWidth: 1,
-}
-
 export function RoughSvgLayer({
   draw,
 }: {

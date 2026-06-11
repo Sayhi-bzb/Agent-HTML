@@ -1,10 +1,6 @@
 import { taxiData } from "./data"
-import {
-  RoughBarChart,
-  RoughPieChart,
-  roughSketchChartStyle,
-  roughTaxiChartColors,
-} from "./rough-viz-charts"
+import { roughSketchChartStyle, roughTaxiChartColors } from "./rough-theme"
+import { RoughBarChart, RoughPieChart } from "./rough-viz-charts"
 import {
   SectionIntro,
   SketchNote,

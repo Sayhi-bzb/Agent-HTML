@@ -1,14 +1,23 @@
 import { useCallback } from "react"
 
 import { Badge } from "../../components/ui/badge"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../components/ui/tooltip"
 
 import { taxiData } from "./data"
+import { roughSketchMarkOptions } from "./rough-theme"
+import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
 import {
-  RoughSvgLayer,
-  roughSketchMarkOptions,
-  type RoughSketchDraw,
-} from "./roughjs-sketch"
-import { SectionIntro, SketchNote, SketchPanel, dayLabels } from "./sketch-components"
+  SectionIntro,
+  SketchNote,
+  SketchPanel,
+  dayLabels,
+  formatCurrency,
+} from "./sketch-components"
 
 const hours = Array.from({ length: 24 }, (_, hour) => hour)
 const maxTrips = Math.max(...taxiData.hourDay.map((item) => item.trips))
@@ -28,13 +37,22 @@ const heatmapCells = dayLabels.flatMap((_, dayIndex) =>
     )
 
     return {
+      averageDistance: item?.averageDistance ?? 0,
+      averageTotal: item?.averageTotal ?? 0,
+      dayLabel: dayLabels[dayIndex],
+      hour,
       opacity: item ? cellOpacity(item.trips) : 0.08,
       seed: dayIndex * 24 + hour + 1,
+      trips: item?.trips ?? 0,
       x: leftPad + hour * (cellSize + gap),
       y: topPad + dayIndex * (cellSize + gap),
     }
   })
 )
+
+function formatHour(hour: number) {
+  return `${hour.toString().padStart(2, "0")}:00`
+}
 
 export function CityRhythmBlock() {
   const peak = [...taxiData.hourDay].sort((a, b) => b.trips - a.trips)[0]
@@ -63,37 +81,69 @@ export function CityRhythmBlock() {
       <div className="grid gap-5 lg:grid-cols-3">
         <SketchPanel className="lg:col-span-2">
           <div className="overflow-x-auto">
-            <svg
-              aria-label="Taxi pickup trips by weekday and hour"
-              className="min-w-full text-foreground"
-              role="img"
-              viewBox={`0 0 ${leftPad + hours.length * (cellSize + gap)} ${
-                topPad + dayLabels.length * (cellSize + gap)
-              }`}
-            >
-              <RoughSvgLayer draw={drawHourGrid} />
-              {hours.map((hour) => (
-                <text
-                  className="fill-muted-foreground text-xs"
-                  key={hour}
-                  textAnchor="middle"
-                  x={leftPad + hour * (cellSize + gap) + cellSize / 2}
-                  y="14"
-                >
-                  {hour % 3 === 0 ? hour : ""}
-                </text>
-              ))}
-              {dayLabels.map((day, dayIndex) => (
-                <text
-                  className="fill-muted-foreground text-xs"
-                  key={day}
-                  x="0"
-                  y={topPad + dayIndex * (cellSize + gap) + 16}
-                >
-                  {day}
-                </text>
-              ))}
-            </svg>
+            <TooltipProvider>
+              <svg
+                aria-label="Taxi pickup trips by weekday and hour"
+                className="min-w-full text-foreground"
+                role="img"
+                viewBox={`0 0 ${leftPad + hours.length * (cellSize + gap)} ${
+                  topPad + dayLabels.length * (cellSize + gap)
+                }`}
+              >
+                <RoughSvgLayer draw={drawHourGrid} />
+                {hours.map((hour) => (
+                  <text
+                    className="fill-muted-foreground text-xs"
+                    key={hour}
+                    textAnchor="middle"
+                    x={leftPad + hour * (cellSize + gap) + cellSize / 2}
+                    y="14"
+                  >
+                    {hour % 3 === 0 ? hour : ""}
+                  </text>
+                ))}
+                {dayLabels.map((day, dayIndex) => (
+                  <text
+                    className="fill-muted-foreground text-xs"
+                    key={day}
+                    x="0"
+                    y={topPad + dayIndex * (cellSize + gap) + 16}
+                  >
+                    {day}
+                  </text>
+                ))}
+                {heatmapCells.map((cell) => (
+                  <Tooltip key={`${cell.dayLabel}-${cell.hour}`}>
+                    <TooltipTrigger asChild>
+                      <rect
+                        aria-label={`${cell.dayLabel} ${formatHour(
+                          cell.hour
+                        )}: ${cell.trips.toLocaleString()} trips, ${formatCurrency(
+                          cell.averageTotal
+                        )} average total, ${cell.averageDistance} mi average distance`}
+                        className="fill-transparent outline-none focus-visible:stroke-foreground focus-visible:stroke-2"
+                        height={cellSize}
+                        pointerEvents="all"
+                        tabIndex={0}
+                        width={cellSize}
+                        x={cell.x}
+                        y={cell.y}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="items-start" sideOffset={6}>
+                      <div className="canvas-stack-xs">
+                        <strong className="font-mono">
+                          {cell.dayLabel} {formatHour(cell.hour)}
+                        </strong>
+                        <span>trips {cell.trips.toLocaleString()}</span>
+                        <span>avg total {formatCurrency(cell.averageTotal)}</span>
+                        <span>avg distance {cell.averageDistance} mi</span>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </svg>
+            </TooltipProvider>
           </div>
         </SketchPanel>
 

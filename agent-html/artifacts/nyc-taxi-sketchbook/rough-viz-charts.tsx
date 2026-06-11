@@ -7,6 +7,8 @@ import type {
   RoughVizPieOptions,
 } from "rough-viz"
 
+export { roughSketchChartStyle, roughTaxiChartColors } from "./rough-theme"
+
 type RoughBarCommonProps = Omit<RoughVizBarOptions, "data" | "element"> & {
   className?: string
   data: RoughVizBarData
@@ -18,25 +20,6 @@ type RoughPieChartProps = Omit<RoughVizPieOptions, "data" | "element"> & {
   data: RoughVizPieData
   heightClassName?: string
 }
-
-export const roughSketchChartStyle = {
-  axisRoughness: 1.2,
-  axisStrokeWidth: 1,
-  fillStyle: "hachure",
-  fillWeight: 1,
-  innerStrokeWidth: 1,
-  roughness: 4,
-  stroke: "var(--foreground)",
-  strokeWidth: 1,
-} satisfies Omit<RoughVizBarOptions, "data" | "element">
-
-export const roughTaxiChartColors = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--muted-foreground)",
-  "var(--border)",
-]
 
 function useRoughChartId(prefix: string) {
   const reactId = useId()

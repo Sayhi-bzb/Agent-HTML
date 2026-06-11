@@ -3,7 +3,8 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 
 import { taxiData } from "./data"
-import { RoughBarHChart, roughSketchChartStyle } from "./rough-viz-charts"
+import { roughSketchChartStyle } from "./rough-theme"
+import { RoughBarHChart } from "./rough-viz-charts"
 import {
   SectionIntro,
   SketchNote,
