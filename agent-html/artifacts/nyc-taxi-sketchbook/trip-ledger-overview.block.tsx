@@ -63,9 +63,15 @@ export function TripLedgerOverviewBlock() {
               A one-month ledger of NYC yellow taxi trips.
             </h1>
             <p className="canvas-text-body text-muted-foreground">
-              NYC TLC Yellow Taxi Trip Record Data, filtered down to 3.67
-              million trips. This sketchbook tracks pickup timing, geography,
-              fares, and the long airport rides that bend the averages.
+              NYC TLC Yellow Taxi Trip Record Data, filtered down to{" "}
+              <span className="text-foreground">3.67 million trips</span>. This
+              sketchbook tracks{" "}
+              <span className="text-foreground">
+                pickup timing, geography, fares
+              </span>
+              , and the{" "}
+              <span className="text-chart-2">long airport rides</span> that bend
+              the averages.
             </p>
           </div>
           <SketchNote label="data cut">

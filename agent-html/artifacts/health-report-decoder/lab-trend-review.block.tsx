@@ -101,7 +101,7 @@ export function LabTrendReviewBlock() {
                       {item.result}
                       {item.unit ? ` ${item.unit}` : ""}
                     </p>
-                    <p className="font-mono text-sm text-muted-foreground">
+                    <p className="canvas-text-caption text-muted-foreground">
                       参考范围：{item.referenceRange}
                     </p>
                   </div>

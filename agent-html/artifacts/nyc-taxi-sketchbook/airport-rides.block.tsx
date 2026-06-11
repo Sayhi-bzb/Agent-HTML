@@ -53,9 +53,9 @@ export function AirportRidesBlock() {
   return (
     <section className="canvas-stack-lg">
       <SectionIntro badge="05 / airport rides" title="Airport trips lift distance and total fare">
-        JFK, LaGuardia, and Newark are not the largest trip buckets, but their
-        rides run longer, cost more, and help explain part of the higher
-        overnight average.
+        <span className="text-chart-2">JFK, LaGuardia, and Newark</span> are
+        not the largest trip buckets, but their rides run longer, cost more, and
+        help explain part of the higher overnight average.
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(180px,0.28fr)_minmax(0,0.72fr)]">

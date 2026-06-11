@@ -65,12 +65,10 @@ export function LunarFlybyBlock() {
                       className="h-full w-full object-cover"
                       src={asset.src}
                     />
-                    <div className="absolute top-3 left-3 rounded-full bg-background/85 px-3 py-1 text-xs text-foreground shadow-sm backdrop-blur">
-                      {index + 1} / {gallery.length}
-                    </div>
                   </div>
                   <p className="canvas-text-caption text-muted-foreground">
-                    {asset.caption} {asset.credit}.
+                    Frame {index + 1} of {gallery.length}. {asset.caption}{" "}
+                    {asset.credit}.
                   </p>
                 </figure>
               </CarouselItem>

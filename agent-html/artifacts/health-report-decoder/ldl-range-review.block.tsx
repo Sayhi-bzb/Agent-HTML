@@ -40,7 +40,7 @@ export function LdlRangeReviewBlock() {
             <StatusBadge status={meta.status}>{activeItem.code}</StatusBadge>
             <h3 className="canvas-text-heading">{activeItem.label}</h3>
             <div className="canvas-wrap-sm items-end">
-              <span className="font-mono text-3xl">{activeItem.result}</span>
+              <span className="canvas-text-title">{activeItem.result}</span>
               <Badge variant="outline">{activeItem.unit}</Badge>
               <Badge variant="outline">{activeItem.rawNote}</Badge>
             </div>
@@ -52,7 +52,7 @@ export function LdlRangeReviewBlock() {
                 <span className="canvas-text-caption text-muted-foreground">
                   报告上的参考范围
                 </span>
-                <span className="font-mono text-xs">{activeItem.referenceRange}</span>
+                <span className="canvas-text-caption">{activeItem.referenceRange}</span>
               </div>
               <Progress value={78} />
               <div className="grid grid-cols-4 gap-2 text-muted-foreground">

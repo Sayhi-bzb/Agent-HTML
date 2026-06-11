@@ -45,10 +45,9 @@ export function LaunchSystemBlock() {
             alive from the ground.
           </h2>
           <p className="canvas-text-body text-muted-foreground">
-            <span className="font-mono text-foreground">SLS</span>, flame,
-            smoke, tower structure, and mission environment appear together.{" "}
-            <strong className="font-medium text-foreground">Launch</strong> is
-            the entry point to the system, not the whole story.
+            SLS, flame, smoke, tower structure, and mission environment appear
+            together. Launch is the entry point to the system, not the whole
+            story.
           </p>
         </div>
 
@@ -60,7 +59,7 @@ export function LaunchSystemBlock() {
               <article className="canvas-stack-xs" key={panel.label}>
                 <p className="canvas-wrap-sm items-center canvas-text-body">
                   <Icon data-icon="inline-start" />
-                  <span className="font-medium">{panel.label}</span>
+                  <span>{panel.label}</span>
                 </p>
                 <p className="canvas-text-caption text-muted-foreground">
                   {panel.summary}

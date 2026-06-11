@@ -300,8 +300,12 @@ export function BoroughFlowNetworkBlock() {
             <h3 className="canvas-text-subheading">Directed OD flow</h3>
             <p className="canvas-text-caption text-muted-foreground">
               The force sketch shows relationships; the Sankey view ranks the
-              strongest directed flows. Wider lines mean more trips, with
-              same-area trips separated by muted strokes.
+              {" "}
+              <span className="text-foreground">strongest directed flows</span>
+              . Wider lines mean more trips, with same-area trips separated by
+              muted strokes and the{" "}
+              <span className="text-chart-2">airport boundary</span> kept
+              visible.
             </p>
           </div>
           <OdSankeyChart />

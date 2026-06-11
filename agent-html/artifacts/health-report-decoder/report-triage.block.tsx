@@ -40,14 +40,14 @@ export function ReportTriageBlock() {
         </div>
         <h1 className="canvas-text-title">这次先记三件事。</h1>
         <p className="canvas-text-body text-muted-foreground">
-          不急着给自己下结论。先把<span className="font-medium text-foreground">需要问</span>
+          不急着给自己下结论。先把<span className="text-foreground">需要问</span>
           {"、"}
-          <span className="font-medium text-warning">需要复查</span>
+          <span className="text-warning">需要复查</span>
           {"、"}需要下次对照的项目放在同一页。
         </p>
       </div>
 
-      <div className="grid w-full min-w-0 gap-6 overflow-hidden rounded-md bg-background md:grid-cols-[0.62fr_1.38fr]">
+      <div className="canvas-grid-gap w-full min-w-0 md:grid-cols-[0.62fr_1.38fr]">
         <aside className="canvas-stack-md w-full min-w-0 border-b md:border-b-0">
           <div className="canvas-stack-xs">
             <Badge variant="secondary">这次先看</Badge>
@@ -68,7 +68,7 @@ export function ReportTriageBlock() {
                   </div>
                   <p className="canvas-text-body">{item.label}</p>
                   <p className="canvas-text-caption text-muted-foreground">
-                    <span className="font-mono text-foreground">
+                    <span className="text-foreground">
                       {item.result}
                     </span>
                     {item.unit ? ` ${item.unit}` : ""} / {item.rawNote}
@@ -92,7 +92,7 @@ export function ReportTriageBlock() {
           <div className="canvas-stack-xs w-full min-w-0">
             <Badge variant="secondary">报告摘录</Badge>
             <p className="canvas-text-caption text-muted-foreground">
-              原来的<span className="font-mono text-foreground">缩写</span>
+              原来的<span className="text-foreground">缩写</span>
               {"、"}单位和参考范围保留，方便回看纸质报告。
             </p>
           </div>
@@ -109,28 +109,28 @@ export function ReportTriageBlock() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-            {sampleReport.labItems.map((item) => (
-              <TableRow key={item.code}>
-                <TableCell className="font-mono">{item.code}</TableCell>
-                <TableCell>{item.label}</TableCell>
-                <TableCell className="font-mono">
-                  {item.result}
-                  {item.unit ? (
-                    <span className="text-muted-foreground"> {item.unit}</span>
-                  ) : null}
-                </TableCell>
-                <TableCell className="font-mono text-xs">{item.referenceRange}</TableCell>
-                <TableCell>
-                  {item.flag ? (
-                    <StatusBadge status={statusFor(item.status).status}>
-                      {item.rawNote}
-                    </StatusBadge>
-                  ) : (
-                    <Badge variant="outline">{item.rawNote}</Badge>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+                {sampleReport.labItems.map((item) => (
+                  <TableRow key={item.code}>
+                    <TableCell>{item.code}</TableCell>
+                    <TableCell>{item.label}</TableCell>
+                    <TableCell>
+                      {item.result}
+                      {item.unit ? (
+                        <span className="text-muted-foreground"> {item.unit}</span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>{item.referenceRange}</TableCell>
+                    <TableCell>
+                      {item.flag ? (
+                        <StatusBadge status={statusFor(item.status).status}>
+                          {item.rawNote}
+                        </StatusBadge>
+                      ) : (
+                        <Badge variant="outline">{item.rawNote}</Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>

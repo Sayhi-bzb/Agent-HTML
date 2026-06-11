@@ -17,9 +17,9 @@ function SystemItem({ item }: { item: LabItem }) {
       <div className="canvas-wrap-sm items-center justify-between">
         <div className="canvas-wrap-sm items-center">
           <StatusBadge status={meta.status}>{item.code}</StatusBadge>
-          <span className="font-medium">{item.label}</span>
+          <span>{item.label}</span>
         </div>
-        <span className="font-mono text-sm">
+        <span className="canvas-text-caption">
           {item.result}
           {item.unit ? ` ${item.unit}` : ""}
         </span>
@@ -27,7 +27,7 @@ function SystemItem({ item }: { item: LabItem }) {
       <p className="canvas-text-caption text-muted-foreground">
         {item.whyItMatters}
       </p>
-      <p className="font-mono text-xs text-muted-foreground">
+      <p className="canvas-text-caption text-muted-foreground">
         {item.referenceRange}
       </p>
     </div>
@@ -106,14 +106,10 @@ function SystemHealthIcon({ systemId }: { systemId: string }) {
   }
 
   return (
-    <span
-      aria-label={icon.label}
-      className="size-8 shrink-0 bg-current text-muted-foreground [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]"
-      role="img"
-      style={{
-        WebkitMaskImage: `url(${icon.src})`,
-        maskImage: `url(${icon.src})`,
-      }}
+    <img
+      alt={icon.label}
+      className="size-8 shrink-0 opacity-70"
+      src={icon.src}
     />
   )
 }
@@ -139,12 +135,12 @@ export function LabSystemMapBlock() {
             const flagged = items.filter((item) => item.status !== "normal")
 
             return (
-              <div className="canvas-stack-xs p-2" key={system.id}>
+              <div className="canvas-stack-xs" key={system.id}>
                 <div className="canvas-wrap-sm items-center">
                   <SystemHealthIcon systemId={system.id} />
                   <Badge variant="outline">{system.signal}</Badge>
                 </div>
-                <p className="font-medium">{system.label}</p>
+                <p className="canvas-text-body">{system.label}</p>
                 <p className="canvas-text-caption text-muted-foreground">
                   {items.map((item) => item.code).join(" / ")}
                 </p>

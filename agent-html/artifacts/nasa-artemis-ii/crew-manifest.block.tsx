@@ -3,13 +3,6 @@ import { Badge } from "../../components/ui/badge"
 import { crewMembers } from "./data/crew-manifest"
 import { mediaAssets } from "./data/media"
 
-const crewPortraits = [
-  mediaAssets.crew.reidWiseman,
-  mediaAssets.crew.victorGlover,
-  mediaAssets.crew.christinaKoch,
-  mediaAssets.crew.jeremyHansen,
-]
-
 export function CrewManifestBlock() {
   return (
     <section className="canvas-stack-lg">
@@ -25,8 +18,8 @@ export function CrewManifestBlock() {
       </div>
 
       <div className="canvas-grid-gap md:grid-cols-4">
-        {crewMembers.map((member, index) => {
-          const portrait = crewPortraits[index]
+        {crewMembers.map((member) => {
+          const portrait = mediaAssets.crew[member.portraitKey]
 
           return (
             <article className="canvas-stack-sm" key={member.name}>

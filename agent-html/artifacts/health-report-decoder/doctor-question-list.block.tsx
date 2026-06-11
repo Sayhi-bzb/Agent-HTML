@@ -72,7 +72,7 @@ export function DoctorQuestionListBlock() {
                     <StatusBadge status={meta.status}>{queueItem.code}</StatusBadge>
                     <Badge variant="outline">{queueItem.label}</Badge>
                     {item ? (
-                      <span className="font-mono text-sm text-muted-foreground">
+                      <span className="canvas-text-caption text-muted-foreground">
                         {item.result}
                         {item.unit ? ` ${item.unit}` : ""}
                       </span>

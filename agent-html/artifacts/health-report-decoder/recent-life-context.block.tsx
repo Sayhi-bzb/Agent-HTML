@@ -46,14 +46,10 @@ function LifeContextIcon({ fieldLabel }: { fieldLabel: string }) {
   }
 
   return (
-    <span
-      aria-label={icon.label}
-      className="size-6 shrink-0 bg-current text-muted-foreground [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]"
-      role="img"
-      style={{
-        WebkitMaskImage: `url(${icon.src})`,
-        maskImage: `url(${icon.src})`,
-      }}
+    <img
+      alt={icon.label}
+      className="size-6 shrink-0 opacity-70"
+      src={icon.src}
     />
   )
 }
@@ -83,7 +79,7 @@ export function RecentLifeContextBlock() {
           <TableBody>
             {lifeContextFields.map((field) => (
               <TableRow key={field.label}>
-                <TableCell className="font-medium">
+                <TableCell>
                   <span className="canvas-wrap-sm items-center">
                     <LifeContextIcon fieldLabel={field.label} />
                     {field.label}

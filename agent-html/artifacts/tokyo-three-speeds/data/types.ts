@@ -2,7 +2,6 @@ export type MediaAsset = {
   alt: string
   caption: string
   credit: string
-  sourceUrl: string
   src: string
 }
 
@@ -29,11 +28,7 @@ export type MediaAssetKey =
 
 export type TokyoPoint = {
   coordinates: [number, number]
-  day: string
-  evidenceKey: MediaAssetKey
-  interestLabels: string[]
   label: string
-  note: string
   routeId: string
   speed: "arrival" | "density" | "quiet" | "openLoop"
 }
@@ -47,9 +42,6 @@ export type TokyoRoute = {
   evidenceKey: MediaAssetKey
   id: string
   interestLabel: string
-  label: string
-  opacity: number
-  pointLabels: string[]
   speed: "arrival" | "density" | "quiet"
   summary: string
   tag: string
@@ -62,12 +54,8 @@ export type TokyoRoute = {
 }
 
 export type SelectorOption = {
-  dayRewrite: string[]
-  evidenceKey: MediaAssetKey
   label: string
   load: Metric[]
-  pointLabels: string[]
   route: string
   routeId: string
 }
-

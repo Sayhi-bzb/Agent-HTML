@@ -34,7 +34,6 @@ export type TrendSeries = {
   code: string
   context: string
   points: Array<{
-    marker?: "flagged"
     value: number
     year: string
   }>
@@ -63,4 +62,3 @@ export type QuizQuestion = {
   prompt: string
   relatedCode?: string
 }
-

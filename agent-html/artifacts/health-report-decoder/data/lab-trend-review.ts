@@ -9,7 +9,7 @@ export const trendSeries: TrendSeries[] = [
       { year: "2022", value: 3.0 },
       { year: "2023", value: 3.2 },
       { year: "2024", value: 3.5 },
-      { marker: "flagged", year: "2025", value: 3.6 },
+      { year: "2025", value: 3.6 },
     ],
   },
   {
@@ -20,7 +20,7 @@ export const trendSeries: TrendSeries[] = [
       { year: "2022", value: 5.2 },
       { year: "2023", value: 5.6 },
       { year: "2024", value: 5.7 },
-      { marker: "flagged", year: "2025", value: 5.9 },
+      { year: "2025", value: 5.9 },
     ],
   },
   {
@@ -31,8 +31,7 @@ export const trendSeries: TrendSeries[] = [
       { year: "2022", value: 28 },
       { year: "2023", value: 26 },
       { year: "2024", value: 33 },
-      { marker: "flagged", year: "2025", value: 48 },
+      { year: "2025", value: 48 },
     ],
   },
 ]
-

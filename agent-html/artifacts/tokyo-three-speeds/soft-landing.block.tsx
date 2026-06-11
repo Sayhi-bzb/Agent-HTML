@@ -44,7 +44,7 @@ export function SoftLandingBlock() {
 
           <div className="canvas-grid-gap-md">
             {landingNotes.map((note) => (
-              <article className="canvas-stack-xs border-l pl-4" key={note.label}>
+              <article className="canvas-content-panel canvas-stack-xs" key={note.label}>
                 <p className="canvas-wrap-sm items-center canvas-text-body">
                   <note.Icon data-icon="inline-start" />
                   <span>{note.label}</span>

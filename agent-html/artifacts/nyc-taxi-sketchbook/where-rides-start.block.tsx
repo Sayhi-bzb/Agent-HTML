@@ -119,8 +119,10 @@ export function WhereRidesStartBlock() {
             }))}
           />
           <SketchNote>
-            Manhattan leads as expected; Queens and EWR are the sharper read
-            because they pull long airport trips into the fare structure.
+            <span className="text-foreground">Manhattan</span> leads as
+            expected; <span className="text-chart-2">Queens and EWR</span> are
+            the sharper read because they pull long airport trips into the fare
+            structure.
           </SketchNote>
         </div>
       </div>

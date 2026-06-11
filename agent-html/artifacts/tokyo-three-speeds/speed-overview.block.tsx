@@ -39,13 +39,15 @@ export function SpeedOverviewBlock() {
         <CarouselContent>
           {headerSlides.map((slide, index) => (
             <CarouselItem key={slide.label}>
-              <figure className="relative aspect-[16/9] min-h-[420px] overflow-hidden rounded-md bg-muted">
-                <img
-                  alt={slide.alt}
-                  className="h-full w-full object-cover"
-                  src={slide.src}
-                />
-                <figcaption className="absolute inset-x-0 bottom-0 bg-background/88 p-4 backdrop-blur md:p-5">
+              <figure className="canvas-stack-sm">
+                <div className="aspect-[16/9] min-h-[420px] overflow-hidden rounded-md bg-muted">
+                  <img
+                    alt={slide.alt}
+                    className="h-full w-full object-cover"
+                    src={slide.src}
+                  />
+                </div>
+                <figcaption className="canvas-stack-xs">
                   <div className="canvas-wrap-sm items-center justify-between">
                     <span className="canvas-text-body">{slide.label}</span>
                     <span className="canvas-text-caption text-muted-foreground">

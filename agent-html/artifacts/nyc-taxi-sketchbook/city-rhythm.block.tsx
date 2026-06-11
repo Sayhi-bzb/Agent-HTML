@@ -204,9 +204,13 @@ export function CityRhythmBlock() {
           />
         </div>
         <SketchNote>
-          The darkest cells cluster from weekday afternoons into evening.
-          Overnight volume thins out, but average totals rise, pointing to
-          airport and longer-distance trips beyond short city commutes.
+          The darkest cells cluster from{" "}
+          <span className="text-foreground">
+            weekday afternoons into evening
+          </span>
+          . Overnight volume thins out, but average totals rise, pointing to{" "}
+          <span className="text-chart-3">airport and longer-distance trips</span>{" "}
+          beyond short city commutes.
         </SketchNote>
       </div>
     </section>

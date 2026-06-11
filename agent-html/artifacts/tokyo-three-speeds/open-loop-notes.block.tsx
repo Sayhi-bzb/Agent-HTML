@@ -68,9 +68,8 @@ export function OpenLoopNotesBlock() {
         </h2>
         <p className="canvas-text-body text-muted-foreground">
           <span className="text-foreground">Day 3</span> works best as a travel
-          note instead of a checklist. Pick{" "}
-          <strong className="font-medium text-foreground">one anchor</strong>,
-          let the route stay short, and treat{" "}
+          note instead of a checklist. Pick one anchor, let the route stay
+          short, and treat{" "}
           <em className="text-foreground">unfinished places</em> as part of the
           design rather than a failure of planning.
         </p>
@@ -86,18 +85,17 @@ export function OpenLoopNotesBlock() {
             <p className="canvas-text-body">
               Leave one street, shelf, or garden path{" "}
               <em className="text-muted-foreground">unresolved</em> so the next
-              visit already has{" "}
-              <strong className="font-medium">a beginning</strong>.
+              visit already has a beginning.
             </p>
           </figcaption>
         </figure>
 
         <div className="canvas-grid-gap md:grid-cols-2">
           {travelNotes.map((note) => (
-            <article className="canvas-stack-sm border-l pl-4" key={note.label}>
+            <article className="canvas-content-panel canvas-stack-sm" key={note.label}>
               <p className="canvas-wrap-sm items-center canvas-text-body">
                 <note.Icon data-icon="inline-start" />
-                <span className="font-medium">{note.label}</span>
+                <span>{note.label}</span>
               </p>
               <p className="canvas-text-caption text-muted-foreground">
                 {note.text}

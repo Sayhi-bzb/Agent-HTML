@@ -106,7 +106,7 @@ export function MissionRouteBlock() {
           </div>
 
           {activeLeg ? (
-            <div className="canvas-stack-xs rounded-md border border-primary/30 bg-primary/5 p-4">
+            <div className="canvas-content-panel canvas-stack-xs">
               <StatusBadge status="success">{activeLeg.time}</StatusBadge>
               <p className="canvas-text-body">
                 Highlighted leg: {activeLeg.label}

@@ -52,8 +52,10 @@ export function FareAnatomyBlock() {
     <section className="canvas-stack-lg">
       <SectionIntro badge="04 / fare anatomy" title="Average totals stack meter fare with fees">
         The average trip total is about {formatCurrency(taxiKpis.averageTotal)}.
-        Meter fare is the base, but tips, congestion charges, airport fees, and
-        tolls change how different ride scenarios feel in practice.
+        {" "}
+        <span className="text-foreground">Meter fare</span> is the base, but{" "}
+        <span className="text-chart-2">tips, congestion charges, airport fees</span>
+        , and tolls change how different ride scenarios feel in practice.
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,0.62fr)_minmax(320px,0.38fr)]">
@@ -160,8 +162,9 @@ export function FareAnatomyBlock() {
             </div>
           </div>
           <SketchNote label="field note">
-            `tip_amount` is not every tip. It mainly records credit-card tips,
-            so tip behavior on cash-paid trips is undercounted.
+            <span className="text-chart-2">`tip_amount`</span> is not every
+            tip. It mainly records credit-card tips, so tip behavior on
+            cash-paid trips is undercounted.
           </SketchNote>
         </div>
       </div>
