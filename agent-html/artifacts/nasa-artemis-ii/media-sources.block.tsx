@@ -1,7 +1,7 @@
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Badge } from "../../components/ui/badge"
 
-import { sourceLinks } from "./data"
+import { sourceLinks } from "./data/sources"
 import { SourceLinks } from "./source-links"
 
 const sourceGroups = [

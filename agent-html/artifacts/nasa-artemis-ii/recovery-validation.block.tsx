@@ -9,7 +9,8 @@ import {
 
 import { Badge } from "../../components/ui/badge"
 
-import { closureItems, mediaAssets } from "./data"
+import { mediaAssets } from "./data/media"
+import { closureItems } from "./data/recovery-validation"
 
 const closureItemIcons: Record<string, LucideIcon> = {
   "Next Artemis Step": ArrowUpRight,

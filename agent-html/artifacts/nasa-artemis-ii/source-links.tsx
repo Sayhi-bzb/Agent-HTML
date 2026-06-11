@@ -1,4 +1,4 @@
-import type { SourceLink } from "./data"
+import type { SourceLink } from "./data/types"
 
 export function SourceLinks({ links }: { links: SourceLink[] }) {
   return (

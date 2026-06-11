@@ -13,7 +13,8 @@ import {
 } from "../../components/timeline"
 import { cn } from "../../lib/cn"
 
-import { mediaAssets, missionRoutePhases } from "./data"
+import { mediaAssets } from "./data/media"
+import { missionRoutePhases } from "./data/mission-route"
 
 const routeConstraints = [
   {

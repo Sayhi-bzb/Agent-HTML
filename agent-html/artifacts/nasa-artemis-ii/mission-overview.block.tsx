@@ -1,6 +1,7 @@
 import { Badge } from "../../components/ui/badge"
 
-import { mediaAssets, missionTags, telemetryItems } from "./data"
+import { mediaAssets } from "./data/media"
+import { missionTags, telemetryItems } from "./data/mission-overview"
 
 export function MissionOverviewBlock() {
   return (

@@ -9,7 +9,8 @@ import {
   CarouselItem,
 } from "../../components/ui/carousel"
 
-import { lunarMediaBeats, mediaAssets } from "./data"
+import { lunarMediaBeats } from "./data/lunar-flyby"
+import { mediaAssets } from "./data/media"
 
 export function LunarFlybyBlock() {
   const gallery = mediaAssets.lunarFlyby.gallery

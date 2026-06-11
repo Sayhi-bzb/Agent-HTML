@@ -1,6 +1,7 @@
 import { Badge } from "../../components/ui/badge"
 
-import { crewMembers, mediaAssets } from "./data"
+import { crewMembers } from "./data/crew-manifest"
+import { mediaAssets } from "./data/media"
 
 const crewPortraits = [
   mediaAssets.crew.reidWiseman,

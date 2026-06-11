@@ -10,7 +10,8 @@ import {
 import { Badge } from "../../components/ui/badge"
 import { StatusBadge } from "../../components/ui/status-badge"
 
-import { mediaAssets, systemPanels } from "./data"
+import { systemPanels } from "./data/launch-system"
+import { mediaAssets } from "./data/media"
 
 const systemPanelIcons: Record<string, LucideIcon> = {
   "Ground Systems": TowerControl,
