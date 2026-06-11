@@ -49,6 +49,7 @@ When touching Canvas classes, tokens, or internal chrome:
 - `styles`: CSS pipeline and Canvas style API.
 - `theme`: host-owned theme preset registry and shadcn CSS sources.
 - `data`: fixtures and local datasets.
+- `artifacts/<artifact>/data.ts`: artifact-private display data.
 - `assets`: bundle-time imports.
 - `public`: URL-addressed static files.
 

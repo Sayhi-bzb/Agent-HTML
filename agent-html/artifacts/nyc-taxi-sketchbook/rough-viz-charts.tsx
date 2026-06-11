@@ -37,7 +37,7 @@ function RoughChartShell({
 }) {
   return (
     <div
-      className={`${heightClassName} w-full [&_svg]:w-full ${className ?? ""}`}
+      className={`${heightClassName} w-full [&_.tooltip]:!rounded-md [&_.tooltip]:!border-border [&_.tooltip]:!bg-background [&_.tooltip]:!px-2 [&_.tooltip]:!py-1 [&_.tooltip]:!text-foreground [&_svg]:w-full ${className ?? ""}`}
       id={id}
     />
   )

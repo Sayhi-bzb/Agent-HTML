@@ -27,6 +27,7 @@
     "bridge:claude-channel": "node tools/agent-html-claude-channel-bridge.mjs",
     "lint": "eslint . --config config/eslint.config.js",
     "knip": "knip",
+    "knip:agent-html": "knip --no-exit-code --reporter compact --include files,exports",
     "knip:report": "knip --no-exit-code --reporter compact",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "test": "vitest run --config config/vitest.config.mjs",
@@ -34,8 +35,20 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@number-flow/react": "^0.6.0",
+    "@visx/event": "^4.0.1-alpha.0",
+    "@visx/gradient": "^4.0.1-alpha.0",
+    "@visx/pattern": "^4.0.1-alpha.0",
+    "@visx/responsive": "^4.0.1-alpha.0",
+    "@visx/sankey": "^4.0.1-alpha.0",
+    "@visx/scale": "^4.0.1-alpha.0",
+    "clsx": "^2.1.1",
+    "d3-array": "^3.2.4",
+    "d3-sankey": "^0.12.3",
+    "motion": "^12.40.0",
+    "rough-viz": "^2.0.5",
     "roughjs": "^4.6.6",
-    "rough-viz": "^2.0.5"
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

@@ -2,14 +2,16 @@ import { useEffect, useId, useMemo } from "react"
 import * as roughViz from "rough-viz"
 
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../components/ui/tooltip"
+  SankeyChart,
+  SankeyLink,
+  SankeyNode,
+  SankeyTooltip,
+  type SankeyData,
+} from "../../components/charts/sankey"
 import { taxiData } from "./data"
 import { roughSketchChartStyle } from "./rough-theme"
 import {
+  LedgerRows,
   SketchAnnotation,
   SectionIntro,
   SketchNote,
@@ -31,7 +33,6 @@ const matrixRows = boroughs.map((from) =>
     )
   })
 )
-const maxTrips = Math.max(...matrixRows.flat().map((item) => item.trips))
 
 type TaxiForceNode = {
   category: "Borough" | "Airport"
@@ -46,122 +47,122 @@ type TaxiNetworkLink = {
   trips: number
 }
 
+type OdSankeyLink = SankeyData["links"][number] & {
+  averageDistance: number
+  averageTotal: number
+  sourceName: string
+  targetName: string
+}
+
 function forceRadiusForTrips(trips: number, maxForceTrips: number) {
   return 3 + Math.sqrt(trips / maxForceTrips) * 7
 }
 
-function heatmapCellBackground(trips: number) {
-  if (!trips) {
-    return "var(--muted)"
+function sankeyNodeColor(name: string) {
+  if (name.includes("EWR")) {
+    return "var(--chart-2)"
   }
 
-  const intensity = Math.round(18 + Math.sqrt(trips / maxTrips) * 72)
-  return `color-mix(in oklab, var(--chart-1) ${intensity}%, var(--background))`
+  return "var(--chart-1)"
 }
 
-function heatmapCellForeground(trips: number) {
-  if (!trips) {
-    return "var(--muted-foreground)"
-  }
+function OdSankeyChart() {
+  const sankeyData = useMemo<SankeyData>(() => {
+    const origins = boroughs.map((borough) => ({
+      category: "source" as const,
+      name: `${borough} pickup`,
+    }))
+    const destinations = boroughs.map((borough) => ({
+      category: "outcome" as const,
+      name: `${borough} dropoff`,
+    }))
+    const destinationOffset = origins.length
 
-  return trips / maxTrips > 0.36 ? "var(--background)" : "var(--foreground)"
-}
+    const links = matrixRows
+      .flat()
+      .filter((item) => item.from !== item.to)
+      .filter((item) => item.trips > 0)
+      .sort((a, b) => b.trips - a.trips)
+      .slice(0, 12)
+      .map<OdSankeyLink>((item) => ({
+        averageDistance: item.averageDistance,
+        averageTotal: item.averageTotal,
+        source: boroughs.indexOf(item.from),
+        sourceName: item.from,
+        target: destinationOffset + boroughs.indexOf(item.to),
+        targetName: item.to,
+        value: item.trips,
+      }))
 
-function OdHeatmapCell({
-  item,
-}: {
-  item: (typeof matrixRows)[number][number]
-}) {
-  const isDiagonal = item.from === item.to
+    return {
+      nodes: [...origins, ...destinations],
+      links,
+    }
+  }, [])
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          aria-label={`${item.from} to ${item.to}: ${formatCompact(item.trips)} trips`}
-          className="group relative flex min-h-20 w-full flex-col justify-between rounded-sm border border-border/70 p-2 text-left transition-[border-color,box-shadow,translate] hover:-translate-y-0.5 hover:border-foreground/60 hover:shadow-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-          style={{
-            backgroundColor: heatmapCellBackground(item.trips),
-            color: heatmapCellForeground(item.trips),
+    <div className="canvas-stack-sm">
+      <SankeyChart
+        animationDuration={900}
+        aspectRatio="5 / 2.2"
+        data={sankeyData}
+        margin={{ top: 24, right: 148, bottom: 24, left: 148 }}
+        nodePadding={18}
+        nodeWidth={12}
+      >
+        <SankeyLink
+          getLinkColor={(link) => {
+            const flow = link as OdSankeyLink
+            return flow.sourceName === "EWR" || flow.targetName === "EWR"
+              ? "var(--chart-2)"
+              : "var(--chart-1)"
           }}
-          type="button"
-        >
-          {isDiagonal ? (
-            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-current opacity-80" />
-          ) : null}
-          <span className="font-mono text-sm font-semibold tracking-normal">
-            {item.trips ? formatCompact(item.trips) : "0"}
-          </span>
-          <span className="text-xs opacity-85">{item.averageDistance} mi</span>
-        </button>
-      </TooltipTrigger>
-      <TooltipContent className="items-start" sideOffset={6}>
-        <div className="grid gap-1">
-          <strong className="font-mono text-[0.75rem] tracking-normal">
-            {item.from} {"->"} {item.to}
-          </strong>
-          <span>{formatCompact(item.trips)} trips</span>
-          <span>{item.averageDistance} mi average distance</span>
-          <span>${item.averageTotal} average total</span>
-          {isDiagonal ? <span>same-area trips</span> : null}
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  )
-}
-
-function OdHeatmap() {
-  return (
-    <TooltipProvider>
-      <div className="overflow-x-auto">
-        <div
-          aria-label="Directed origin-destination heatmap by borough"
-          className="grid min-w-[680px] gap-2"
-          role="img"
-        >
-          <div className="grid grid-cols-[6.5rem_repeat(5,minmax(5.75rem,1fr))] gap-2">
-            <span />
-            {boroughs.map((borough) => (
-              <span
-                className="canvas-text-caption text-muted-foreground"
-                key={borough}
-              >
-                to {borough}
-              </span>
-            ))}
-          </div>
-          {matrixRows.map((row, index) => (
-            <div
-              className="grid grid-cols-[6.5rem_repeat(5,minmax(5.75rem,1fr))] gap-2"
-              key={boroughs[index]}
-            >
-              <span className="canvas-text-caption flex min-h-20 items-center text-muted-foreground">
-                from {boroughs[index]}
-              </span>
-              {row.map((item) => (
-                <OdHeatmapCell item={item} key={`${item.from}-${item.to}`} />
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
-        <span className="canvas-text-caption">low trips</span>
-        <span
-          aria-hidden="true"
-          className="h-2 w-28 rounded-full border border-border"
-          style={{
-            background:
-              "linear-gradient(90deg, color-mix(in oklab, var(--chart-1) 18%, var(--background)), color-mix(in oklab, var(--chart-1) 90%, var(--background)))",
-          }}
+          strokeOpacity={0.64}
+          useGradient={false}
         />
-        <span className="canvas-text-caption">high trips</span>
+        <SankeyNode
+          getNodeColor={(node) => sankeyNodeColor(node.name)}
+          lineCap={3}
+          showLabels
+        />
+        <SankeyTooltip
+          formatValue={(value) => `${formatCompact(value)} trips`}
+          linkContent={({ link }) => {
+            const flow = link as OdSankeyLink
+
+            return (
+              <div className="grid gap-1 px-3 py-2.5 text-chart-tooltip-foreground">
+                <strong className="font-mono text-[0.75rem] tracking-normal">
+                  {flow.sourceName} {"->"} {flow.targetName}
+                </strong>
+                <span>{formatCompact(flow.value)} trips</span>
+                <span>{flow.averageDistance} mi average distance</span>
+                <span>${flow.averageTotal} average total</span>
+              </div>
+            )
+          }}
+          nodeContent={({ node }) => (
+            <div className="grid gap-1 px-3 py-2.5 text-chart-tooltip-foreground">
+              <strong className="font-mono text-[0.75rem] tracking-normal">
+                {node.name}
+              </strong>
+              <span>{formatCompact(node.value ?? 0)} trips</span>
+            </div>
+          )}
+        />
+      </SankeyChart>
+      <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
         <span className="canvas-text-caption inline-flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
-          same-area trips
+          <span className="h-2 w-5 rounded-full bg-chart-1" />
+          cross-area flow
         </span>
+        <span className="canvas-text-caption inline-flex items-center gap-1.5">
+          <span className="h-2 w-5 rounded-full bg-chart-2" />
+          airport flow
+        </span>
+        <span className="canvas-text-caption">line width = trip volume</span>
       </div>
-    </TooltipProvider>
+    </div>
   )
 }
 
@@ -193,9 +194,9 @@ function RoughNetworkChart({
         { color: "var(--chart-2)", text: "Airport boundary" },
       ],
       links: links.map((link) => ({ ...link })),
-      margin: { top: 92, right: 92, bottom: 76, left: 92 },
+      margin: { top: 72, right: 72, bottom: 58, left: 72 },
       radius: "forceRadius",
-      radiusExtent: [20, 44],
+      radiusExtent: [18, 38],
       textCallback: (datum) => `${datum.label}: ${formatCompact(datum.trips)}`,
       title: "roughViz.Network / TLC OD pull",
     })
@@ -208,7 +209,7 @@ function RoughNetworkChart({
 
   return (
     <div
-      className="min-h-[560px] w-full [&_svg]:min-h-[560px] [&_svg]:w-full"
+      className="min-h-[400px] w-full [&_svg]:min-h-[400px] [&_svg]:w-full"
       id={elementId}
     />
   )
@@ -258,6 +259,11 @@ export function FlowMatrixBlock() {
     .flat()
     .filter((item) => item.from !== item.to)
     .sort((a, b) => b.trips - a.trips)[0]
+  const topFlows = matrixRows
+    .flat()
+    .filter((item) => item.from !== item.to)
+    .sort((a, b) => b.trips - a.trips)
+    .slice(0, 5)
 
   return (
     <section className="canvas-stack-lg">
@@ -266,8 +272,8 @@ export function FlowMatrixBlock() {
         directionality and exact cross-checks.
       </SectionIntro>
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        <SketchPanel className="lg:col-span-2">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.64fr)_minmax(300px,0.36fr)]">
+        <SketchPanel>
           <RoughNetworkChart data={networkNodes} links={networkLinks} />
         </SketchPanel>
 
@@ -281,6 +287,13 @@ export function FlowMatrixBlock() {
               {strongest.averageDistance} mi and ${strongest.averageTotal} total.
             </p>
           </SketchAnnotation>
+          <LedgerRows
+            items={topFlows.map((flow) => ({
+              label: `${flow.from} -> ${flow.to}`,
+              note: `${flow.averageDistance} mi avg / $${flow.averageTotal} avg total`,
+              value: formatCompact(flow.trips),
+            }))}
+          />
           <SketchNote>
             EWR stays visible here so the airport boundary's effect on fares
             and distances does not disappear inside borough rollups.
@@ -291,14 +304,14 @@ export function FlowMatrixBlock() {
       <SketchPanel>
         <div className="canvas-stack-md">
           <div className="canvas-stack-xs">
-            <h3 className="canvas-text-subheading">Directed OD heatmap</h3>
+            <h3 className="canvas-text-subheading">Directed OD flow</h3>
             <p className="canvas-text-caption text-muted-foreground">
-              The force sketch shows relationships; the heatmap keeps exact
-              direction and comparable trip density. The dot marks same-area
-              trips on the diagonal.
+              The force sketch shows relationships; the Sankey view ranks the
+              strongest directed flows. Wider lines mean more trips, with
+              same-area trips separated by muted strokes.
             </p>
           </div>
-          <OdHeatmap />
+          <OdSankeyChart />
         </div>
       </SketchPanel>
     </section>

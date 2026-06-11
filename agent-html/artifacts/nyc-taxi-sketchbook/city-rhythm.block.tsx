@@ -11,11 +11,13 @@ import { taxiData } from "./data"
 import { roughSketchMarkOptions } from "./rough-theme"
 import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
 import {
+  LedgerRows,
   SectionIntro,
   SketchAnnotation,
   SketchNote,
   SketchPanel,
   dayLabels,
+  formatCompact,
   formatCurrency,
 } from "./sketch-components"
 
@@ -54,8 +56,26 @@ function formatHour(hour: number) {
   return `${hour.toString().padStart(2, "0")}:00`
 }
 
+function weightedAverageTotal(
+  items: ReadonlyArray<{ averageTotal: number; trips: number }>
+) {
+  const trips = items.reduce((sum, item) => sum + item.trips, 0)
+  const total = items.reduce(
+    (sum, item) => sum + item.trips * item.averageTotal,
+    0
+  )
+
+  return total / trips
+}
+
 export function CityRhythmBlock() {
   const peak = [...taxiData.hourDay].sort((a, b) => b.trips - a.trips)[0]
+  const priciest = [...taxiData.hourDay].sort(
+    (a, b) => b.averageTotal - a.averageTotal
+  )[0]
+  const overnightItems = taxiData.hourDay.filter((item) => item.hour < 6)
+  const overnightTrips = overnightItems.reduce((sum, item) => sum + item.trips, 0)
+  const overnightAverageTotal = weightedAverageTotal(overnightItems)
   const drawHourGrid = useCallback<RoughSketchDraw>((roughSvg, group) => {
     heatmapCells.forEach((cell) => {
       const node = roughSvg.rectangle(cell.x, cell.y, cellSize, cellSize, {
@@ -148,7 +168,7 @@ export function CityRhythmBlock() {
           </div>
         </SketchPanel>
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.34fr)]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.7fr)_minmax(260px,0.3fr)]">
           <SketchAnnotation label="peak cell">
             <p className="font-mono text-2xl font-semibold tracking-normal">
               {dayLabels[peak.day]} {peak.hour}:00
@@ -158,12 +178,31 @@ export function CityRhythmBlock() {
               {formatCurrency(peak.averageTotal)}.
             </p>
           </SketchAnnotation>
-          <SketchNote>
-            The darkest cells cluster from weekday afternoons into evening.
-            Overnight volume thins out, but average totals rise, pointing to
-            airport and longer-distance trips beyond short city commutes.
-          </SketchNote>
+          <LedgerRows
+            items={[
+              {
+                label: "highest average total",
+                note: `${dayLabels[priciest.day]} ${formatHour(priciest.hour)}`,
+                value: formatCurrency(priciest.averageTotal),
+              },
+              {
+                label: "overnight trips",
+                note: "00:00-05:59 across the month",
+                value: formatCompact(overnightTrips),
+              },
+              {
+                label: "overnight avg total",
+                note: "weighted by trips",
+                value: formatCurrency(overnightAverageTotal),
+              },
+            ]}
+          />
         </div>
+        <SketchNote>
+          The darkest cells cluster from weekday afternoons into evening.
+          Overnight volume thins out, but average totals rise, pointing to
+          airport and longer-distance trips beyond short city commutes.
+        </SketchNote>
       </div>
     </section>
   )

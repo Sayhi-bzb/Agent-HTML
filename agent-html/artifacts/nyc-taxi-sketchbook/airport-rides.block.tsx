@@ -6,14 +6,15 @@ import { taxiData } from "./data"
 import { roughSketchMarkOptions } from "./rough-theme"
 import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
 import {
-  LedgerRows,
+  RoughRule,
   SectionIntro,
   SketchNote,
+  SketchPanel,
   formatCompact,
   formatCurrency,
 } from "./sketch-components"
 
-function AirportRouteSketch() {
+function AirportRouteSketch({ className = "h-14 w-20" }: { className?: string }) {
   const drawAirportRoute = useCallback<RoughSketchDraw>((roughSvg, group) => {
     group.appendChild(
       roughSvg.path("M8 42 C30 30, 52 26, 88 22", {
@@ -38,7 +39,7 @@ function AirportRouteSketch() {
   return (
     <svg
       aria-hidden="true"
-      className="h-14 w-20 text-muted-foreground"
+      className={`${className} text-muted-foreground`}
       viewBox="0 0 96 64"
     >
       <RoughSvgLayer draw={drawAirportRoute} />
@@ -55,39 +56,66 @@ export function AirportRidesBlock() {
         overnight average.
       </SectionIntro>
 
-      <div className="grid gap-5 md:grid-cols-3">
-        {taxiData.airport.map((airport) => (
-          <div
-            className="canvas-stack-md py-2"
-            key={airport.airport}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <Badge variant="outline">{airport.airport}</Badge>
-                <p className="mt-3 font-mono text-3xl font-semibold tracking-normal">
-                  {formatCompact(airport.trips)}
-                </p>
-              </div>
-              <AirportRouteSketch />
+      <div className="grid gap-5 lg:grid-cols-[minmax(180px,0.28fr)_minmax(0,0.72fr)]">
+        <SketchPanel>
+          <div className="flex h-full min-h-48 flex-col justify-between gap-5">
+            <div className="canvas-stack-xs">
+              <Badge variant="outline">airport comparison</Badge>
+              <p className="canvas-text-caption text-muted-foreground">
+                Same fields, one row per airport, so the long-haul premium is
+                visible without three separate cards.
+              </p>
             </div>
-            <LedgerRows
-              items={[
-                {
-                  label: "avg total",
-                  value: formatCurrency(airport.averageTotal),
-                },
-                {
-                  label: "avg distance",
-                  value: `${airport.averageDistance} mi`,
-                },
-                {
-                  label: "avg tip",
-                  value: formatCurrency(airport.averageTip),
-                },
-              ]}
-            />
+            <AirportRouteSketch className="h-24 w-36 self-end" />
           </div>
-        ))}
+        </SketchPanel>
+
+        <div className="overflow-x-auto">
+          <div className="min-w-[620px]">
+            <div className="grid grid-cols-[minmax(180px,1.2fr)_repeat(4,minmax(90px,1fr))] gap-3 px-3 py-2">
+              <span className="canvas-text-caption text-muted-foreground">
+                airport
+              </span>
+              <span className="canvas-text-caption text-right text-muted-foreground">
+                trips
+              </span>
+              <span className="canvas-text-caption text-right text-muted-foreground">
+                avg total
+              </span>
+              <span className="canvas-text-caption text-right text-muted-foreground">
+                avg distance
+              </span>
+              <span className="canvas-text-caption text-right text-muted-foreground">
+                avg tip
+              </span>
+            </div>
+            <RoughRule className="text-border" seed={72} />
+            {taxiData.airport.map((airport, index) => (
+              <div className="canvas-stack-xs" key={airport.airport}>
+                <div className="grid grid-cols-[minmax(180px,1.2fr)_repeat(4,minmax(90px,1fr))] items-center gap-3 px-3 py-3">
+                  <span>
+                    <Badge variant="outline">{airport.airport}</Badge>
+                  </span>
+                  <span className="text-right font-mono text-lg font-semibold tracking-normal">
+                    {formatCompact(airport.trips)}
+                  </span>
+                  <span className="text-right font-mono">
+                    {formatCurrency(airport.averageTotal)}
+                  </span>
+                  <span className="text-right font-mono">
+                    {airport.averageDistance} mi
+                  </span>
+                  <span className="text-right font-mono">
+                    {formatCurrency(airport.averageTip)}
+                  </span>
+                </div>
+                {index < taxiData.airport.length - 1 ? (
+                  <RoughRule className="text-border/70" seed={73 + index} />
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <SketchNote>

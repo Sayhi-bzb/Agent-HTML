@@ -39,10 +39,17 @@ export function SectionIntro({
   title: string
 }) {
   return (
-    <div className="canvas-stack-sm">
-      <Badge variant="secondary">{badge}</Badge>
-      <h2 className="canvas-text-heading">{title}</h2>
-      <p className="canvas-text-body text-muted-foreground">{children}</p>
+    <div className="canvas-stack-xs">
+      <div className="grid gap-3 md:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)] md:items-end">
+        <div className="canvas-stack-xs">
+          <Badge variant="secondary">{badge}</Badge>
+          <h2 className="canvas-text-subheading">{title}</h2>
+        </div>
+        <p className="canvas-text-caption text-muted-foreground md:max-w-2xl">
+          {children}
+        </p>
+      </div>
+      <RoughRule className="text-border/70" seed={13} />
     </div>
   )
 }
@@ -57,8 +64,7 @@ export function SketchPanel({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-md bg-muted/15 p-4 md:p-5",
-        "before:pointer-events-none before:absolute before:inset-0 before:bg-background/45 before:opacity-50",
+        "relative overflow-hidden rounded-md bg-background p-4 md:p-5",
         className
       )}
     >

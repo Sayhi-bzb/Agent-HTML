@@ -34,7 +34,7 @@ Each route script should name:
 - failure smells.
 
 Use scripts to review workspace changes that add directories, move source,
-change route files, introduce examples, or regenerate indexes.
+change route files, introduce artifact patterns, or regenerate indexes.
 
 Constraint levels follow `vocabulary.md`: hard rule, route default, practice,
 heuristic, and smell. Route scripts should not turn every smell into a failure.
@@ -54,15 +54,14 @@ Strong constraint placement:
 - `agent-html/components/README.md` owns component source routing.
 - `taste/design/DESIGN.md` owns component judgment.
 - `agent-html/index/*` owns generated decision summaries, not design intent.
-- `examples/*` owns copyable patterns and should stay compact.
+- Existing artifacts carry copyable weight and should stay compact.
 
 Low-token constraint pattern:
 
 - Put a hard rule once in its owning file.
 - Make route files point to the owner instead of restating the rule.
 - Let route checks verify the path and failure smells.
-- Do not repeat the same constraint across README, guide, examples, index, and
-  AGENTS.
+- Do not repeat the same constraint across README, guide, index, and AGENTS.
 
 Constraint strength policy:
 
@@ -70,8 +69,8 @@ Constraint strength policy:
   generated-file editing, and source ownership.
 - Route defaults: first read path, expected route anchors, and generated index
   before large source files.
-- Practices: component choice, reuse preference, and examples as copyable
-  policy.
+- Practices: component choice, reuse preference, and existing artifacts as
+  copyable patterns.
 - Heuristics: large-file token thresholds and first-search-space reducers.
 - Smells: wrong-layer drift, broad scans, duplicated helpers, and guide/API
   duplication.
@@ -80,8 +79,9 @@ Priority route checks:
 
 - Highest priority: Cold Start, Artifact Authoring, UI Choice, and Reuse.
 - Regular checks: Block Editing, Style, Large File, and Generated Index.
-- Run route checks when changing workspace directories, route files, examples,
-  generated indexes, component layout, style ownership, or hard-rule surfaces.
+- Run route checks when changing workspace directories, route files, artifact
+  patterns, generated indexes, component layout, style ownership, or hard-rule
+  surfaces.
 
 Artifact work should usually route through:
 
@@ -90,8 +90,7 @@ agent-html/README.md
   -> agent-html/AGENTS.md
   -> agent-html/index/README.md
   -> agent-html/artifacts/README.md
-  -> agent-html/examples
-  -> agent-html/artifacts
+  -> closest existing artifact entry
   -> agent-html/components/README.md when UI is needed
   -> agent-html/index/api-surface.md when exports are needed
 ```
@@ -109,8 +108,8 @@ Applied boundaries:
 - `taste/design/DESIGN.md` owns component judgment.
 - `index/api-surface.md` owns compact exports.
 - `index/large-files.md` owns large-file reading cost and suggested routes.
-- `examples/` carries copyable policy, so examples should stay compact and
-  orthogonal.
+- Existing artifacts carry copyable policy, so artifact patterns should stay
+  compact and orthogonal.
 
 Current route checks with the highest value are Artifact Authoring, Block
 Editing, UI Choice, Reuse, Style, Large File, and Generated Index.
@@ -161,8 +160,7 @@ agent-html/README.md
   -> agent-html/AGENTS.md
   -> agent-html/index/README.md
   -> agent-html/artifacts/README.md
-  -> agent-html/examples
-  -> agent-html/artifacts
+  -> closest existing artifact entry
   -> agent-html/components/README.md when UI is needed
 ```
 
@@ -172,8 +170,9 @@ styling and host boundary violations.
 Avoid route: host internals, theme tokens, old runtime surfaces, broad component
 scans.
 
-Pass: the agent can create or edit an artifact using `Artifact`, `Block`, a
-copyable example, and local resources without styling protocol markers.
+Pass: the agent can create or edit an artifact using `Artifact`, `Block`, the
+closest existing artifact pattern, and local resources without styling protocol
+markers.
 
 Failure smells: `className` on `Artifact` or `Block`; one-off primitive markup;
 opening style internals for ordinary content work.
@@ -213,7 +212,7 @@ Expected route:
 agent-html/components/README.md
   -> taste/design/DESIGN.md
   -> agent-html/index/api-surface.md
-  -> source only if exports and examples are insufficient
+  -> source only if exports and existing artifact patterns are insufficient
 ```
 
 Constraint level: practice and route default. Treat primitive bypasses and

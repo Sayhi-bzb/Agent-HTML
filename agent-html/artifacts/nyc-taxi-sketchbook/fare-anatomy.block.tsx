@@ -2,8 +2,9 @@ import { taxiData } from "./data"
 import { roughSketchChartStyle, roughTaxiChartColors } from "./rough-theme"
 import { RoughBarChart, RoughPieChart } from "./rough-viz-charts"
 import {
-  LedgerRows,
+  RoughRule,
   SectionIntro,
+  SketchAnnotation,
   SketchNote,
   SketchPanel,
   formatCurrency,
@@ -32,6 +33,15 @@ const paymentChartData = {
   labels: taxiData.payment.map((item) => item.label),
   values: taxiData.payment.map((item) => item.share),
 }
+const largestComponent = [...components].sort((a, b) => b.value - a.value)[0]
+const meterComponent = components.find((item) => item.key === "meter fare")
+const tipComponent = components.find((item) => item.key === "tip")
+const feeComponents = components.filter(
+  (item) => item.key !== "meter fare" && item.key !== "tip"
+)
+const feeTotal = feeComponents.reduce((sum, item) => sum + item.value, 0)
+const cardPayment = taxiData.payment.find((item) => item.label === "Credit card")
+const cashPayment = taxiData.payment.find((item) => item.label === "Cash")
 
 export function FareAnatomyBlock() {
   return (
@@ -42,15 +52,15 @@ export function FareAnatomyBlock() {
         tolls change how different ride scenarios feel in practice.
       </SectionIntro>
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        <SketchPanel className="lg:col-span-2">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.62fr)_minmax(320px,0.38fr)]">
+        <SketchPanel className="p-0">
           <RoughBarChart
             {...roughSketchChartStyle}
             axisFontSize=".78rem"
             color="var(--chart-2)"
             data={componentChartData}
             fillStyle="cross-hatch"
-            heightClassName="min-h-[340px] [&_svg]:min-h-[340px]"
+            heightClassName="min-h-[360px] [&_svg]:min-h-[360px]"
             margin={{ top: 44, right: 24, bottom: 76, left: 64 }}
             title="Average fare components"
             titleFontSize="17px"
@@ -60,34 +70,91 @@ export function FareAnatomyBlock() {
         </SketchPanel>
 
         <div className="canvas-stack-md">
-          <div className="canvas-stack-sm">
+          <div className="canvas-stack-xs">
+            <span className="canvas-text-caption text-muted-foreground">
+              average trip total
+            </span>
+            <strong className="font-mono text-5xl font-semibold tracking-normal">
+              {formatCurrency(taxiData.kpis.averageTotal)}
+            </strong>
+          </div>
+          <RoughRule className="text-border/70" seed={91} />
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+            <div>
+              <span className="canvas-text-caption text-muted-foreground">
+                meter
+              </span>
+              <p className="font-mono text-xl font-semibold tracking-normal">
+                {formatCurrency(meterComponent?.value ?? 0)}
+              </p>
+            </div>
+            <div>
+              <span className="canvas-text-caption text-muted-foreground">
+                tip
+              </span>
+              <p className="font-mono text-xl font-semibold tracking-normal">
+                {formatCurrency(tipComponent?.value ?? 0)}
+              </p>
+            </div>
+            <div>
+              <span className="canvas-text-caption text-muted-foreground">
+                fees
+              </span>
+              <p className="font-mono text-xl font-semibold tracking-normal">
+                {formatCurrency(feeTotal)}
+              </p>
+            </div>
+          </div>
+
+          <SketchAnnotation label="largest component">
+            <strong className="font-mono text-2xl font-semibold tracking-normal">
+              {largestComponent.label} {formatCurrency(largestComponent.value)}
+            </strong>
+            <p className="canvas-text-caption text-muted-foreground">
+              {largestComponent.shareOfTotal}% of the average total before the
+              smaller fees are stacked in.
+            </p>
+          </SketchAnnotation>
+
+          <div className="grid gap-4 sm:grid-cols-[minmax(220px,0.48fr)_minmax(0,0.52fr)] lg:grid-cols-1 xl:grid-cols-[minmax(200px,0.48fr)_minmax(0,0.52fr)]">
             <RoughPieChart
               {...roughSketchChartStyle}
               colors={roughTaxiChartColors}
               data={paymentChartData}
-              heightClassName="min-h-[300px] [&_svg]:min-h-[300px]"
+              heightClassName="min-h-[220px] [&_svg]:min-h-[220px]"
               legend
-              margin={{ top: 52, right: 72, bottom: 32, left: 32 }}
+              margin={{ top: 40, right: 72, bottom: 22, left: 16 }}
               title="Payment mix"
-              titleFontSize="16px"
+              titleFontSize="15px"
               tooltipFontSize=".8rem"
             />
-            <LedgerRows
-              items={taxiData.payment.slice(0, 4).map((item) => ({
-                label: item.label,
-                note: `${formatCurrency(item.averageTotal)} avg total`,
-                value: `${item.share}%`,
-              }))}
-            />
+            <div className="canvas-stack-sm">
+              <div>
+                <span className="canvas-text-caption text-muted-foreground">
+                  card share
+                </span>
+                <p className="font-mono text-xl font-semibold tracking-normal">
+                  {cardPayment?.share}%
+                </p>
+                <p className="canvas-text-caption text-muted-foreground">
+                  {formatCurrency(cardPayment?.averageTotal ?? 0)} avg total
+                </p>
+              </div>
+              <RoughRule className="text-border/60" seed={92} />
+              <div>
+                <span className="canvas-text-caption text-muted-foreground">
+                  cash share
+                </span>
+                <p className="font-mono text-xl font-semibold tracking-normal">
+                  {cashPayment?.share}%
+                </p>
+                <p className="canvas-text-caption text-muted-foreground">
+                  {formatCurrency(cashPayment?.averageTotal ?? 0)} avg total
+                </p>
+              </div>
+            </div>
           </div>
-
-          <LedgerRows
-            items={components.map((item) => ({
-              label: item.label,
-              note: `${item.shareOfTotal}% of average total`,
-              value: formatCurrency(item.value),
-            }))}
-          />
           <SketchNote label="field note">
             `tip_amount` is not every tip. It mainly records credit-card tips,
             so tip behavior on cash-paid trips is undercounted.

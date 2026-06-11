@@ -21,18 +21,11 @@ Full TypeScript declarations are generated only as temporary build input.
 | `agent-html/components/ui/collapsible.tsx` | `Collapsible`, `CollapsibleContent`, `CollapsibleTrigger` |
 | `agent-html/components/ui/combobox.tsx` | `Combobox`, `ComboboxChip`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxTrigger`, `ComboboxValue`, `useComboboxAnchor` |
 | `agent-html/components/ui/command.tsx` | `Command`, `CommandDialog`, `CommandEmpty`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandSeparator`, `CommandShortcut` |
-| `agent-html/components/ui/context-menu.tsx` | `ContextMenu`, `ContextMenuCheckboxItem`, `ContextMenuContent`, `ContextMenuGroup`, `ContextMenuItem`, `ContextMenuLabel`, `ContextMenuPortal`, `ContextMenuRadioGroup`, `ContextMenuRadioItem`, `ContextMenuSeparator`, `ContextMenuShortcut`, `ContextMenuSub`, `ContextMenuSubContent`, `ContextMenuSubTrigger`, `ContextMenuTrigger` |
 | `agent-html/components/ui/dialog.tsx` | `Dialog`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger` |
-| `agent-html/components/ui/drawer.tsx` | `Drawer`, `DrawerClose`, `DrawerContent`, `DrawerDescription`, `DrawerFooter`, `DrawerHeader`, `DrawerOverlay`, `DrawerPortal`, `DrawerTitle`, `DrawerTrigger` |
 | `agent-html/components/ui/dropdown-menu.tsx` | `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger` |
-| `agent-html/components/ui/field.tsx` | `Field`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldLabel`, `FieldLegend`, `FieldSeparator`, `FieldSet`, `FieldTitle` |
 | `agent-html/components/ui/hover-card.tsx` | `HoverCard`, `HoverCardContent`, `HoverCardTrigger` |
 | `agent-html/components/ui/input-group.tsx` | `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea` |
-| `agent-html/components/ui/input-otp.tsx` | `InputOTP`, `InputOTPGroup`, `InputOTPSeparator`, `InputOTPSlot` |
 | `agent-html/components/ui/input.tsx` | `Input` |
-| `agent-html/components/ui/label.tsx` | `Label` |
-| `agent-html/components/ui/menubar.tsx` | `Menubar`, `MenubarCheckboxItem`, `MenubarContent`, `MenubarGroup`, `MenubarItem`, `MenubarLabel`, `MenubarMenu`, `MenubarPortal`, `MenubarRadioGroup`, `MenubarRadioItem`, `MenubarSeparator`, `MenubarShortcut`, `MenubarSub`, `MenubarSubContent`, `MenubarSubTrigger`, `MenubarTrigger` |
-| `agent-html/components/ui/native-select.tsx` | `NativeSelect`, `NativeSelectOptGroup`, `NativeSelectOption` |
 | `agent-html/components/ui/popover.tsx` | `Popover`, `PopoverAnchor`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger` |
 | `agent-html/components/ui/progress.tsx` | `Progress` |
 | `agent-html/components/ui/radio-group.tsx` | `RadioGroup`, `RadioGroupItem` |
@@ -50,7 +43,6 @@ Full TypeScript declarations are generated only as temporary build input.
 | `agent-html/components/ui/table.tsx` | `Table`, `TableBody`, `TableCaption`, `TableCell`, `TableFooter`, `TableHead`, `TableHeader`, `TableRow` |
 | `agent-html/components/ui/tabs.tsx` | `Tabs`, `TabsContent`, `TabsList`, `TabsTrigger`, `tabsListVariants` |
 | `agent-html/components/ui/textarea.tsx` | `Textarea` |
-| `agent-html/components/ui/toggle-group.tsx` | `ToggleGroup`, `ToggleGroupItem` |
 | `agent-html/components/ui/toggle.tsx` | `Toggle`, `toggleVariants` |
 | `agent-html/components/ui/tooltip.tsx` | `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger` |
 
@@ -83,6 +75,7 @@ Full TypeScript declarations are generated only as temporary build input.
 | `agent-html/lib/format-date.ts` | `formatDate` |
 | `agent-html/lib/shiki-highlighter.ts` | `highlightCode`, `normalizeLanguage` |
 | `agent-html/lib/usage-dashboard.ts` | `UsageDashboardRow`, `latestUsageRows`, `parseUsageDashboardCsv` |
+| `agent-html/lib/utils.ts` | `cn` |
 
 ## schema
 

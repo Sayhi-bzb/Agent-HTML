@@ -21,7 +21,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Keep `data/README.md` as the data source route.
 - Keep `styles/README.md` as the style route.
 - Do not add a new `agent-html` doc unless it owns a distinct question.
-- Do not duplicate rules across README, AGENTS, index, examples, and styles docs. Link to the owning file instead.
+- Do not duplicate rules across README, AGENTS, index, and styles docs. Link to the owning file instead.
 - Do not commit full generated graphs, declaration rollups, or tool dumps as agent context.
 - Do not manually hard-wrap prose. Use line breaks for Markdown structure, lists, tables, code blocks, and semantic separation only.
 - Use short, imperative, operational wording.
@@ -62,7 +62,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Read `TASTE.md` before changing artifact visual composition, media-heavy
   blocks, layout density, component choice, source placement, or narrative UI.
 - Use `TASTE.md` for design judgment. Do not copy its guidance into `AGENTS.md`,
-  examples, component docs, or generated indexes.
+  component docs, or generated indexes.
 
 ## Primitive Rules
 

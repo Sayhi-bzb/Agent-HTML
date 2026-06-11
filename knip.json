@@ -29,5 +29,46 @@
   "ignoreDependencies": [
     "shadcn",
     "wrangler"
-  ]
+  ],
+  "workspaces": {
+    ".": {
+      "entry": [
+        "packages/cli/bin/agent-html.mjs",
+        "packages/react/src/index.tsx",
+        "tools/*.mjs",
+        "config/*.js",
+        "config/*.ts",
+        "config/*.mjs"
+      ],
+      "project": [
+        "apps/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}",
+        "packages/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}",
+        "tools/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}",
+        "config/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
+      ],
+      "ignore": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/.react-router/**",
+        "**/.vite/**",
+        "config/apps/**",
+        "apps/docs/vite.config.ts"
+      ],
+      "ignoreDependencies": [
+        "shadcn",
+        "wrangler"
+      ]
+    },
+    "agent-html": {
+      "entry": [
+        "../packages/cli/src/host/app.tsx",
+        "artifacts/*.artifact.tsx"
+      ],
+      "project": [
+        "../packages/cli/src/host/**/*.{ts,tsx}",
+        "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
+      ]
+    }
+  }
 }
