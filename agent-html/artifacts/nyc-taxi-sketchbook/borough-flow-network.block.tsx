@@ -207,7 +207,7 @@ function RoughNetworkChart({
   )
 }
 
-export function FlowMatrixBlock() {
+export function BoroughFlowNetworkBlock() {
   const { links: networkLinks, nodes: networkNodes } = useMemo(() => {
     const tripsByBorough = new Map<string, number>(
       taxiData.pickupBoroughs.map((item) => [item.borough, item.trips])

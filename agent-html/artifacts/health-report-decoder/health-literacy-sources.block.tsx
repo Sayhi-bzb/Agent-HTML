@@ -4,11 +4,11 @@ import { Badge } from "../../components/ui/badge"
 import { sourceGroups } from "./data"
 import { SourceLinks } from "./source-links"
 
-export function SourcesBlock() {
+export function HealthLiteracySourcesBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">来源</Badge>
+        <Badge variant="secondary">健康阅读资料</Badge>
         <h2 className="canvas-text-heading">
           参考资料放在最后。
         </h2>

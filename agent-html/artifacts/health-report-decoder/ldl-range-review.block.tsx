@@ -22,14 +22,14 @@ const relatedItems = sampleReport.labItems.filter(
   (item) => item.systemId === activeItem.systemId && item.code !== activeItem.code
 )
 
-export function RangeDecoderBlock() {
+export function LdlRangeReviewBlock() {
   const meta = statusFor(activeItem.status)
 
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-2">
         <div className="canvas-stack-sm">
-          <Badge variant="secondary">这次先看 LDL-C</Badge>
+          <Badge variant="secondary">LDL-C 范围复核</Badge>
           <h2 className="canvas-text-heading">
             它不是最吓人的数字，但值得带着旧记录问一次。
           </h2>

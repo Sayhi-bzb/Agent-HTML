@@ -8,19 +8,19 @@ import {
   formatCurrency,
 } from "./sketch-components"
 
-const taxiHeroImage = {
-  alt: "Abstract composition used as the NYC taxi sketchbook header image.",
+const tripLedgerOverviewImage = {
+  alt: "Abstract composition used as the NYC taxi sketchbook overview composition.",
   hrefBase:
-    "/__agent-html/public/nyc-taxi-sketchbook/open-doodle-composition-10.svg",
+    "/__agent-html/public/nyc-taxi-sketchbook/trip-ledger-overview-composition.svg",
 }
 
-export function TaxiHeaderBlock() {
+export function TripLedgerOverviewBlock() {
   const { kpis, meta } = taxiData
 
   return (
     <section className="canvas-stack-lg">
       <figure
-        aria-label={taxiHeroImage.alt}
+        aria-label={tripLedgerOverviewImage.alt}
         className="relative min-h-[420px] overflow-hidden rounded-md bg-background md:min-h-[520px]"
         role="img"
       >
@@ -32,23 +32,23 @@ export function TaxiHeaderBlock() {
         >
           <use
             className="fill-muted"
-            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-background`}
+            href={`${tripLedgerOverviewImage.hrefBase}#nyc-taxi-composition-background`}
           />
           <use
             className="fill-background"
-            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-shapes`}
+            href={`${tripLedgerOverviewImage.hrefBase}#nyc-taxi-composition-shapes`}
           />
           <use
             className="fill-chart-1"
-            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-accent`}
+            href={`${tripLedgerOverviewImage.hrefBase}#nyc-taxi-composition-accent`}
           />
           <use
             className="fill-foreground"
-            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-ink`}
+            href={`${tripLedgerOverviewImage.hrefBase}#nyc-taxi-composition-ink`}
           />
           <use
             className="fill-chart-3 opacity-70 mix-blend-overlay"
-            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-glow`}
+            href={`${tripLedgerOverviewImage.hrefBase}#nyc-taxi-composition-glow`}
           />
         </svg>
         <div

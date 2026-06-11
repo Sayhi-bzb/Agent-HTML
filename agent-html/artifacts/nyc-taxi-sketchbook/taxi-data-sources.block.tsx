@@ -3,7 +3,7 @@ import { Alert, AlertDescription } from "../../components/ui/alert"
 import { taxiData } from "./data"
 import { LedgerRows, SectionIntro } from "./sketch-components"
 
-const sources = [
+const taxiDataSources = [
   {
     label: "NYC TLC Trip Record Data",
     note: "Official monthly taxi trip data page.",
@@ -26,17 +26,17 @@ const sources = [
   },
 ]
 
-export function SourcesBlock() {
+export function TaxiDataSourcesBlock() {
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="source register" title="Data sources and cleaning rules">
+      <SectionIntro badge="taxi data sources" title="Data sources and cleaning rules">
         Charts on this page come from local aggregates of official TLC raw
         data. No trips are fabricated, and the original Parquet file is not
         committed.
       </SectionIntro>
 
       <LedgerRows
-        items={sources.map((source) => ({
+        items={taxiDataSources.map((source) => ({
           label: source.label,
           note: source.note,
           value: (

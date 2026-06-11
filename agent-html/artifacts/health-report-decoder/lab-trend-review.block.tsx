@@ -26,11 +26,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function TrendViewBlock() {
+export function LabTrendReviewBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">这几年有没有变</Badge>
+        <Badge variant="secondary">检验趋势复核</Badge>
         <h2 className="canvas-text-heading">
           有些项目要看今年，也要看前几年。
         </h2>

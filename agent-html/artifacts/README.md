@@ -15,8 +15,7 @@ Use it after reading `../README.md` and `../AGENTS.md`. `AGENTS.md` owns hard ar
 
 ## Data Placement
 
-- Put artifact-private display data in `artifacts/<artifact>/data.ts`.
-- Create `../data` only for fixtures or local datasets shared by multiple artifacts.
+- Read `../../rule/data.md` before adding, splitting, or moving artifact data.
 - Put typed contracts and validation in `../schema`.
 - Put pure parsing, normalization, and transforms in `../lib`.
 - Keep tiny block-only constants inside the block when they do not create a reusable data surface.

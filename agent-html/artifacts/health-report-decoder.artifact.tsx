@@ -1,47 +1,47 @@
 import { Artifact, Block } from "@agent-html/react"
 
-import { DoctorPrepBlock } from "./health-report-decoder/doctor-prep.block"
-import { LifeContextBlock } from "./health-report-decoder/life-context.block"
-import { RangeDecoderBlock } from "./health-report-decoder/range-decoder.block"
+import { DoctorQuestionListBlock } from "./health-report-decoder/doctor-question-list.block"
+import { HealthLiteracySourcesBlock } from "./health-report-decoder/health-literacy-sources.block"
+import { LabSystemMapBlock } from "./health-report-decoder/lab-system-map.block"
+import { LabTrendReviewBlock } from "./health-report-decoder/lab-trend-review.block"
+import { LdlRangeReviewBlock } from "./health-report-decoder/ldl-range-review.block"
+import { RecentLifeContextBlock } from "./health-report-decoder/recent-life-context.block"
 import { ReportLiteracyCheckBlock } from "./health-report-decoder/report-literacy-check.block"
 import { ReportTriageBlock } from "./health-report-decoder/report-triage.block"
-import { SourcesBlock } from "./health-report-decoder/sources.block"
-import { SystemMapBlock } from "./health-report-decoder/system-map.block"
-import { TrendViewBlock } from "./health-report-decoder/trend-view.block"
 
 export default function HealthReportDecoderArtifact() {
   return (
     <Artifact title="这次体检怎么记">
-      <Block id="report-triage" title="先记三件事">
+      <Block id="report-triage" title="报告优先级">
         <ReportTriageBlock />
       </Block>
 
-      <Block id="system-map" title="按项目归好类">
-        <SystemMapBlock />
+      <Block id="lab-system-map" title="检验项目分组">
+        <LabSystemMapBlock />
       </Block>
 
-      <Block id="range-decoder" title="这次先看 LDL-C">
-        <RangeDecoderBlock />
+      <Block id="ldl-range-review" title="LDL-C 范围复核">
+        <LdlRangeReviewBlock />
       </Block>
 
-      <Block id="trend-view" title="这几年有没有变">
-        <TrendViewBlock />
+      <Block id="lab-trend-review" title="检验趋势复核">
+        <LabTrendReviewBlock />
       </Block>
 
-      <Block id="report-literacy-check" title="读报告前自查">
+      <Block id="report-literacy-check" title="报告阅读自查">
         <ReportLiteracyCheckBlock />
       </Block>
 
-      <Block id="doctor-prep" title="下次就诊小纸条">
-        <DoctorPrepBlock />
+      <Block id="doctor-question-list" title="就诊问题清单">
+        <DoctorQuestionListBlock />
       </Block>
 
-      <Block id="life-context" title="近期背景备忘">
-        <LifeContextBlock />
+      <Block id="recent-life-context" title="近期生活背景">
+        <RecentLifeContextBlock />
       </Block>
 
-      <Block id="sources" title="参考资料">
-        <SourcesBlock />
+      <Block id="health-literacy-sources" title="健康阅读资料">
+        <HealthLiteracySourcesBlock />
       </Block>
     </Artifact>
   )

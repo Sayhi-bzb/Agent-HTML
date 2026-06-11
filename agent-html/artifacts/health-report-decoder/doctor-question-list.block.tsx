@@ -10,12 +10,12 @@ import {
 function DoctorPrepIllustration() {
   return (
     <svg
-      aria-labelledby="doctor-prep-illustration-title"
+      aria-labelledby="doctor-question-list-illustration-title"
       className="max-h-80 w-full object-contain"
       role="img"
       viewBox="0 0 738.21997 557.74675"
     >
-      <title id="doctor-prep-illustration-title">
+      <title id="doctor-question-list-illustration-title">
         整理就诊问题的待办清单插图
       </title>
       <use
@@ -42,11 +42,11 @@ function DoctorPrepIllustration() {
   )
 }
 
-export function DoctorPrepBlock() {
+export function DoctorQuestionListBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">下次就诊小纸条</Badge>
+        <Badge variant="secondary">就诊问题清单</Badge>
         <h2 className="canvas-text-heading">
           到诊室前，把要问的事写短一点。
         </h2>

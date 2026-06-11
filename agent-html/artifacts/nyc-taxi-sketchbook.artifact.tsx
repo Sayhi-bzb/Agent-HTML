@@ -1,18 +1,18 @@
 import { Artifact, Block } from "@agent-html/react"
 
 import { AirportRidesBlock } from "./nyc-taxi-sketchbook/airport-rides.block"
+import { BoroughFlowNetworkBlock } from "./nyc-taxi-sketchbook/borough-flow-network.block"
 import { CityRhythmBlock } from "./nyc-taxi-sketchbook/city-rhythm.block"
 import { FareAnatomyBlock } from "./nyc-taxi-sketchbook/fare-anatomy.block"
-import { FlowMatrixBlock } from "./nyc-taxi-sketchbook/flow-matrix.block"
-import { TaxiHeaderBlock } from "./nyc-taxi-sketchbook/header.block"
-import { SourcesBlock } from "./nyc-taxi-sketchbook/sources.block"
+import { TaxiDataSourcesBlock } from "./nyc-taxi-sketchbook/taxi-data-sources.block"
+import { TripLedgerOverviewBlock } from "./nyc-taxi-sketchbook/trip-ledger-overview.block"
 import { WhereRidesStartBlock } from "./nyc-taxi-sketchbook/where-rides-start.block"
 
 export default function NycTaxiSketchbookArtifact() {
   return (
     <Artifact title="NYC Taxi Data Sketchbook">
-      <Block id="taxi-header" title="NYC Taxi Data Sketchbook">
-        <TaxiHeaderBlock />
+      <Block id="trip-ledger-overview" title="Trip Ledger Overview">
+        <TripLedgerOverviewBlock />
       </Block>
 
       <Block id="city-rhythm" title="City Rhythm">
@@ -23,8 +23,8 @@ export default function NycTaxiSketchbookArtifact() {
         <WhereRidesStartBlock />
       </Block>
 
-      <Block id="flow-matrix" title="Flow Matrix">
-        <FlowMatrixBlock />
+      <Block id="borough-flow-network" title="Borough Flow Network">
+        <BoroughFlowNetworkBlock />
       </Block>
 
       <Block id="fare-anatomy" title="Fare Anatomy">
@@ -35,8 +35,8 @@ export default function NycTaxiSketchbookArtifact() {
         <AirportRidesBlock />
       </Block>
 
-      <Block id="source-register" title="Source Register">
-        <SourcesBlock />
+      <Block id="taxi-data-sources" title="Taxi Data Sources">
+        <TaxiDataSourcesBlock />
       </Block>
     </Artifact>
   )

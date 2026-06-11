@@ -44,10 +44,10 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/tokyo-three-speeds.artifact.tsx` | 7 |
 | `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 6 |
 | `agent-html/components/data-table.tsx` | 6 |
-| `agent-html/artifacts/health-report-decoder/range-decoder.block.tsx` | 5 |
+| `agent-html/artifacts/health-report-decoder/lab-trend-review.block.tsx` | 5 |
+| `agent-html/artifacts/health-report-decoder/ldl-range-review.block.tsx` | 5 |
 | `agent-html/artifacts/health-report-decoder/report-literacy-check.block.tsx` | 5 |
 | `agent-html/artifacts/health-report-decoder/report-triage.block.tsx` | 5 |
-| `agent-html/artifacts/health-report-decoder/trend-view.block.tsx` | 5 |
 
 ## Top External Dependencies
 

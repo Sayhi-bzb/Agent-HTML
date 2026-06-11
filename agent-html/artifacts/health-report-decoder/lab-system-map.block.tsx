@@ -37,12 +37,12 @@ function SystemItem({ item }: { item: LabItem }) {
 function SystemMapIllustration() {
   return (
     <svg
-      aria-labelledby="system-map-illustration-title"
+      aria-labelledby="lab-system-map-illustration-title"
       className="max-h-56 w-full object-contain pt-3"
       role="img"
       viewBox="0 0 888 618.10603"
     >
-      <title id="system-map-illustration-title">医疗护理记录插图</title>
+      <title id="lab-system-map-illustration-title">医疗护理记录插图</title>
       <use
         className="fill-border"
         href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-muted"
@@ -118,12 +118,12 @@ function SystemHealthIcon({ systemId }: { systemId: string }) {
   )
 }
 
-export function SystemMapBlock() {
+export function LabSystemMapBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-2">
         <div className="canvas-stack-sm">
-          <Badge variant="secondary">按项目归好类</Badge>
+          <Badge variant="secondary">检验项目分组</Badge>
           <h2 className="canvas-text-heading">
             一张体检单，先分成几摞。
           </h2>

@@ -42,6 +42,7 @@ Use these routes before searching broadly.
 - Canvas host: `apps/docs/content/docs/host/index.mdx`
 - Canvas reference: `apps/docs/content/docs/reference/index.mdx`
 - Artifact rules: `rule/artifact.md`
+- Data rules: `rule/data.md`
 - Taste: `taste/README.md`
 - Taste Design: `taste/design/README.md`
 - Agent Ergonomics: `taste/agent-ergonomics/README.md`

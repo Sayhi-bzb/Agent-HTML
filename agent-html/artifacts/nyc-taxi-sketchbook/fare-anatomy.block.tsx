@@ -78,7 +78,7 @@ export function FareAnatomyBlock() {
               {formatCurrency(taxiData.kpis.averageTotal)}
             </strong>
           </div>
-          <RoughRule className="text-border/70" seed={91} />
+          <RoughRule seed={91} tone="section" />
 
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             <div>
@@ -141,7 +141,7 @@ export function FareAnatomyBlock() {
                   {formatCurrency(cardPayment?.averageTotal ?? 0)} avg total
                 </p>
               </div>
-              <RoughRule className="text-border/60" seed={92} />
+              <RoughRule seed={92} tone="table" />
               <div>
                 <span className="canvas-text-caption text-muted-foreground">
                   cash share

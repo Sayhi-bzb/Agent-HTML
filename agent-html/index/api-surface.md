@@ -54,7 +54,7 @@ Full TypeScript declarations are generated only as temporary build input.
 | `agent-html/components/data-table.tsx` | `DataTable`, `DataTableColumnHeader`, `DataTableColumnHeaderProps`, `DataTablePagination`, `DataTablePaginationProps`, `DataTableProps`, `DataTableViewOptions`, `DataTableViewOptionsProps` |
 | `agent-html/components/kanban.tsx` | `Kanban`, `KanbanBoard`, `KanbanColumn`, `KanbanColumnHandle`, `KanbanItem`, `KanbanItemHandle`, `KanbanOverlay`, `KanbanProps` |
 | `agent-html/components/map.tsx` | `Map`, `MapArc`, `MapClusterLayer`, `MapControls`, `MapMarker`, `MapPopup`, `MapRoute`, `MarkerContent`, `MarkerLabel`, `MarkerPopup`, `MarkerTooltip`, `useMap` |
-| `agent-html/components/sankey-chart.tsx` | `SankeyChart`, `SankeyChartProps`, `SankeyData`, `SankeyLink`, `SankeyLinkProps`, `SankeyNode`, `SankeyNodeProps`, `SankeyTooltip`, `SankeyTooltipProps` |
+| `agent-html/components/sankey-chart.tsx` | `SankeyChart`, `SankeyData` |
 | `agent-html/components/timeline.tsx` | `Timeline`, `TimelineContent`, `TimelineDate`, `TimelineHeader`, `TimelineIndicator`, `TimelineItem`, `TimelineSeparator`, `TimelineTitle` |
 
 ## hooks

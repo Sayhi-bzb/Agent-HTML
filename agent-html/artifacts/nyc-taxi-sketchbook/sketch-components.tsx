@@ -22,11 +22,33 @@ const roughPanelPaths = [
   "M8 12 C103 7, 196 11, 322 8 S520 5, 632 12 L630 151 C532 146, 421 153, 311 148 S108 154, 11 146 Z",
   "M12 7 C95 13, 215 4, 318 10 S520 12, 634 7 L637 148 C548 154, 405 146, 302 152 S96 144, 7 150 Z",
 ]
-const roughCornerPaths = [
-  "M1 14 C10 8, 18 6, 31 7 M7 1 C6 10, 8 18, 12 27",
-  "M2 9 C12 12, 22 8, 31 3 M13 1 C9 10, 9 19, 15 27",
-  "M1 21 C9 12, 18 10, 30 13 M4 3 C10 8, 9 18, 7 27",
-]
+type RoughLineTone = "annotation" | "section" | "structure" | "table"
+
+const roughLineTones: Record<
+  RoughLineTone,
+  { className: string; stroke: string; strokeWidth: number }
+> = {
+  annotation: {
+    className: "text-chart-3/75",
+    stroke: "var(--chart-3)",
+    strokeWidth: 1.1,
+  },
+  section: {
+    className: "text-foreground/70",
+    stroke: "var(--foreground)",
+    strokeWidth: 1,
+  },
+  structure: {
+    className: "text-muted-foreground/35",
+    stroke: "var(--muted-foreground)",
+    strokeWidth: 0.8,
+  },
+  table: {
+    className: "text-border/45",
+    stroke: "var(--border)",
+    strokeWidth: 0.75,
+  },
+}
 
 function pickSketchVariant<T>(items: readonly T[], seed: number) {
   return items[Math.abs(seed) % items.length]
@@ -71,7 +93,7 @@ export function SectionIntro({
           {children}
         </p>
       </div>
-      <RoughRule className="text-border/70" seed={13} />
+      <RoughRule seed={13} tone="section" />
     </div>
   )
 }
@@ -92,8 +114,8 @@ export function SketchPanel({
         hachureGap: 9,
         roughness: 3.5,
         seed: 44,
-        stroke: "var(--border)",
-        strokeWidth: 0.8,
+        stroke: roughLineTones.structure.stroke,
+        strokeWidth: 0.25,
       })
     )
   }, [])
@@ -107,7 +129,7 @@ export function SketchPanel({
     >
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-70"
+        className="pointer-events-none absolute inset-0 h-full w-full opacity-45"
         preserveAspectRatio="none"
         viewBox="0 0 640 160"
       >
@@ -132,8 +154,8 @@ export function RoughTableShell({
         hachureGap: 10,
         roughness: 3.8,
         seed: 68,
-        stroke: "var(--border)",
-        strokeWidth: 0.9,
+        stroke: roughLineTones.structure.stroke,
+        strokeWidth: 0.2,
       })
     )
   }, [])
@@ -142,7 +164,7 @@ export function RoughTableShell({
     <div className="relative overflow-hidden rounded-md bg-background p-3">
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-75"
+        className="pointer-events-none absolute inset-0 h-full w-full opacity-40"
         preserveAspectRatio="none"
         viewBox="0 0 640 160"
       >
@@ -157,11 +179,14 @@ export function RoughRule({
   className,
   direction = "horizontal",
   seed = 1,
+  tone = "table",
 }: {
   className?: string
   direction?: "horizontal" | "vertical"
   seed?: number
+  tone?: RoughLineTone
 }) {
+  const toneStyle = roughLineTones[tone]
   const drawRule = useCallback<RoughSketchDraw>(
     (roughSvg, group) => {
       if (direction === "vertical") {
@@ -170,7 +195,8 @@ export function RoughRule({
             ...roughSketchMarkOptions,
             fill: "none",
             seed,
-            strokeWidth: 1,
+            stroke: toneStyle.stroke,
+            strokeWidth: toneStyle.strokeWidth,
           })
         )
         return
@@ -181,11 +207,12 @@ export function RoughRule({
           ...roughSketchMarkOptions,
           fill: "none",
           seed,
-          strokeWidth: 1,
+          stroke: toneStyle.stroke,
+          strokeWidth: toneStyle.strokeWidth,
         })
       )
     },
-    [direction, seed]
+    [direction, seed, toneStyle]
   )
 
   return (
@@ -193,39 +220,13 @@ export function RoughRule({
       aria-hidden="true"
       className={cn(
         direction === "vertical" ? "h-full w-3" : "h-5 w-full",
+        toneStyle.className,
         className
       )}
       preserveAspectRatio="none"
       viewBox={direction === "vertical" ? "0 0 12 120" : "0 0 320 20"}
     >
       <RoughSvgLayer draw={drawRule} />
-    </svg>
-  )
-}
-
-function RoughCorner({ seed }: { seed: number }) {
-  const drawCorner = useCallback<RoughSketchDraw>(
-    (roughSvg, group) => {
-      group.appendChild(
-        roughSvg.path(pickSketchVariant(roughCornerPaths, seed), {
-          ...roughSketchMarkOptions,
-          fill: "none",
-          seed,
-          strokeWidth: 1,
-        })
-      )
-    },
-    [seed]
-  )
-
-  return (
-    <svg
-      aria-hidden="true"
-      className="absolute right-0 top-0 h-7 w-8 text-border/80"
-      preserveAspectRatio="none"
-      viewBox="0 0 32 28"
-    >
-      <RoughSvgLayer draw={drawCorner} />
     </svg>
   )
 }
@@ -239,11 +240,11 @@ export function SketchNote({
 }) {
   return (
     <div className="relative pl-4">
-      <RoughCorner seed={22} />
       <RoughRule
-        className="absolute inset-y-0 left-0 text-border"
+        className="absolute inset-y-0 left-0"
         direction="vertical"
         seed={21}
+        tone="annotation"
       />
       <div className="canvas-stack-xs">
         <Badge variant="outline">{label}</Badge>
@@ -262,11 +263,11 @@ export function SketchAnnotation({
 }) {
   return (
     <div className="relative pl-4">
-      <RoughCorner seed={35} />
       <RoughRule
-        className="absolute inset-y-0 left-0 text-border"
+        className="absolute inset-y-0 left-0"
         direction="vertical"
         seed={34}
+        tone="annotation"
       />
       <div className="canvas-stack-xs">
         <span className="canvas-text-caption text-muted-foreground">{label}</span>
@@ -285,10 +286,12 @@ export function LedgerRows({
     <div className="canvas-stack-xs">
       {items.map((item, index) => (
         <div key={item.label}>
-          <RoughRule
-            className="text-border/70"
-            seed={ledgerRuleSeeds[index % ledgerRuleSeeds.length] + index}
-          />
+          {index === 0 ? (
+            <RoughRule
+              seed={ledgerRuleSeeds[index % ledgerRuleSeeds.length] + index}
+              tone="table"
+            />
+          ) : null}
           <div className="grid gap-2 py-2 text-foreground sm:grid-cols-[minmax(0,1fr)_auto] sm:items-baseline">
             <div className="canvas-stack-xs">
               <span className="canvas-text-caption text-muted-foreground">
@@ -311,5 +314,5 @@ export function LedgerRows({
 }
 
 export function ScratchLine({ className }: { className?: string }) {
-  return <RoughRule className={cn("text-border", className)} seed={8} />
+  return <RoughRule className={className} seed={8} tone="section" />
 }

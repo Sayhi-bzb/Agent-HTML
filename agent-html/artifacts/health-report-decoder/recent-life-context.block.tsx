@@ -58,11 +58,11 @@ function LifeContextIcon({ fieldLabel }: { fieldLabel: string }) {
   )
 }
 
-export function LifeContextBlock() {
+export function RecentLifeContextBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">近期背景备忘</Badge>
+        <Badge variant="secondary">近期生活背景</Badge>
         <h2 className="canvas-text-heading">
           复查前，先把最近两周写下来。
         </h2>

@@ -96,7 +96,7 @@ export function AirportRidesBlock() {
                 avg tip
               </span>
             </div>
-            <RoughRule className="text-border" seed={72} />
+            <RoughRule seed={72} tone="section" />
             {taxiData.airport.map((airport, index) => (
               <div className="canvas-stack-xs" key={airport.airport}>
                 <div className="grid grid-cols-[minmax(180px,1.2fr)_repeat(4,minmax(90px,1fr))] items-center gap-3 px-3 py-3">
@@ -118,8 +118,8 @@ export function AirportRidesBlock() {
                 </div>
                 {index < taxiData.airport.length - 1 ? (
                   <RoughRule
-                    className="text-border/70"
                     seed={airportRuleSeeds[index % airportRuleSeeds.length]}
+                    tone="table"
                   />
                 ) : null}
               </div>
