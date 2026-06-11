@@ -10,18 +10,8 @@ import {
 
 const taxiHeroImage = {
   alt: "Abstract composition used as the NYC taxi sketchbook header image.",
-  maskUrl: "https://www.dropbox.com/s/1ymi9xx2ywqkxbj/composition-10.svg?raw=1",
-}
-
-const taxiHeroMaskStyle = {
-  WebkitMaskImage: `url("${taxiHeroImage.maskUrl}")`,
-  WebkitMaskPosition: "center",
-  WebkitMaskRepeat: "no-repeat",
-  WebkitMaskSize: "cover",
-  maskImage: `url("${taxiHeroImage.maskUrl}")`,
-  maskPosition: "center",
-  maskRepeat: "no-repeat",
-  maskSize: "cover",
+  hrefBase:
+    "/__agent-html/public/nyc-taxi-sketchbook/open-doodle-composition-10.svg",
 }
 
 export function TaxiHeaderBlock() {
@@ -34,20 +24,33 @@ export function TaxiHeaderBlock() {
         className="relative min-h-[420px] overflow-hidden rounded-md bg-background md:min-h-[520px]"
         role="img"
       >
-        <div
+        <svg
           aria-hidden="true"
-          className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklab,var(--chart-2)_20%,transparent),transparent_34%),linear-gradient(135deg,color-mix(in_oklab,var(--chart-1)_16%,var(--background)),var(--background)_56%,color-mix(in_oklab,var(--chart-3)_18%,var(--background)))]"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-foreground/85"
-          style={taxiHeroMaskStyle}
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 translate-x-3 translate-y-2 bg-chart-1/35 mix-blend-multiply dark:mix-blend-screen"
-          style={taxiHeroMaskStyle}
-        />
+          className="absolute inset-0 h-full w-full"
+          preserveAspectRatio="xMidYMid slice"
+          viewBox="0 0 3871 2367"
+        >
+          <use
+            className="fill-muted"
+            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-background`}
+          />
+          <use
+            className="fill-secondary opacity-85"
+            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-shapes`}
+          />
+          <use
+            className="fill-chart-1"
+            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-accent`}
+          />
+          <use
+            className="fill-foreground"
+            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-ink`}
+          />
+          <use
+            className="fill-chart-3 opacity-70 mix-blend-overlay"
+            href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-glow`}
+          />
+        </svg>
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,var(--background)_100%)]"

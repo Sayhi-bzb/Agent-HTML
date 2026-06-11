@@ -4,11 +4,10 @@ import type {
   SankeyLink as SankeyLinkType,
   SankeyNode as SankeyNodeType,
 } from "d3-sankey";
-import { motion, useTransform } from "motion/react";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 import rough from "roughjs";
 import type { Options as RoughOptions } from "roughjs/bin/core";
-import { useMountProgress } from "../use-mount-progress";
 import {
   type SankeyLinkDatum,
   type SankeyNodeDatum,
@@ -93,12 +92,9 @@ interface AnimatedLinkProps {
   width: number;
   stroke: string;
   strokeOpacity: number;
-  index: number;
-  totalLinks: number;
   isFaded: boolean;
   isHighlighted: boolean;
   fadedOpacity: number;
-  animationDuration: number;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   roughOptions?: RoughOptions;
@@ -145,40 +141,13 @@ function AnimatedLink({
   width,
   stroke,
   strokeOpacity,
-  index,
-  totalLinks,
   isFaded,
   isHighlighted,
   fadedOpacity,
-  animationDuration,
   onMouseEnter,
   onMouseLeave,
   roughOptions,
 }: AnimatedLinkProps) {
-  const { enterTransition, revealEpoch } = useSankey();
-  const pathRef = useRef<SVGPathElement>(null);
-  const [pathLength, setPathLength] = useState(0);
-
-  // Links animate during the last 80% of total duration, starting at 20%
-  const linkStartDelay = animationDuration * 0.2;
-  const linkAnimDuration = animationDuration * 0.8;
-  const staggerDelaySeconds =
-    (linkStartDelay + (index / totalLinks) * linkAnimDuration * 0.4) / 1000;
-
-  useLayoutEffect(() => {
-    if (pathRef.current) {
-      const length = pathRef.current.getTotalLength();
-      setPathLength(length);
-    }
-  });
-
-  const progress = useMountProgress(
-    enterTransition,
-    staggerDelaySeconds,
-    `${revealEpoch}-${index}`
-  );
-  const strokeDashoffset = useTransform(progress, [0, 1], [pathLength, 0]);
-
   // Calculate target opacity
   const getTargetOpacity = () => {
     if (isFaded) {
@@ -190,9 +159,6 @@ function AnimatedLink({
     return strokeOpacity;
   };
   const targetOpacity = getTargetOpacity();
-
-  // Dasharray for path reveal
-  const dashArray = pathLength > 0 ? `${pathLength} ${pathLength}` : "none";
 
   // Ensure opacity values are always numbers
   const initialOpacity = strokeOpacity ?? 0.5;
@@ -233,14 +199,9 @@ function AnimatedLink({
       initial={{ opacity: initialOpacity }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      ref={pathRef}
       stroke={stroke}
-      strokeDasharray={dashArray}
       strokeWidth={Math.max(1, width)}
-      style={{
-        cursor: "pointer",
-        strokeDashoffset,
-      }}
+      style={{ cursor: "pointer" }}
       transition={{ duration: 0.18, ease: "easeOut" }}
     />
   );
@@ -258,7 +219,6 @@ export function SankeyLink({
     hoveredLinkIndex,
     setHoveredLinkIndex,
     setTooltipData,
-    animationDuration,
     createPath,
   } = useSankey();
 
@@ -324,9 +284,7 @@ export function SankeyLink({
 
         return (
           <AnimatedLink
-            animationDuration={animationDuration}
             fadedOpacity={fadedOpacity}
-            index={index}
             isFaded={isFaded}
             isHighlighted={isHighlighted}
             key={`link-${sourceIdx}-${targetIdx}-${link.width ?? link.value ?? ""}`}
@@ -337,7 +295,6 @@ export function SankeyLink({
             roughOptions={roughOptions}
             stroke={linkStroke}
             strokeOpacity={strokeOpacity}
-            totalLinks={links.length}
             width={linkWidth}
           />
         );

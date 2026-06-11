@@ -6,7 +6,6 @@ import { useCallback, useLayoutEffect, useRef } from "react";
 import rough from "roughjs";
 import type { Options as RoughOptions } from "roughjs/bin/core";
 import { intFmt } from "../chart-formatters";
-import { transitionWithDelay } from "../motion-utils";
 import {
   type SankeyLinkDatum,
   type SankeyNodeDatum,
@@ -73,11 +72,8 @@ interface AnimatedNodeProps {
   height: number;
   fill: string;
   rx: number;
-  index: number;
-  totalNodes: number;
   isFaded: boolean;
   fadedOpacity: number;
-  animationDuration: number;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   name: string;
@@ -134,11 +130,8 @@ function AnimatedNode({
   height,
   fill,
   rx,
-  index,
-  totalNodes,
   isFaded,
   fadedOpacity,
-  animationDuration,
   onMouseEnter,
   onMouseLeave,
   name,
@@ -147,18 +140,6 @@ function AnimatedNode({
   showLabels,
   roughOptions,
 }: AnimatedNodeProps) {
-  const { enterTransition, revealEpoch } = useSankey();
-
-  const nodeAnimDuration = animationDuration * 0.6;
-  const staggerDelaySec =
-    ((index / totalNodes) * nodeAnimDuration * 0.4) / 1000;
-  const nameLabelDelaySec =
-    staggerDelaySec + (nodeAnimDuration * 0.6 * 0.3) / 1000;
-  const valueLabelDelaySec = nameLabelDelaySec + 0.06;
-
-  const nodeEnter = transitionWithDelay(enterTransition, staggerDelaySec);
-  const nameEnter = transitionWithDelay(enterTransition, nameLabelDelaySec);
-  const valueEnter = transitionWithDelay(enterTransition, valueLabelDelaySec);
   const nameLabelX = isLeftSide ? x - 12 : x + width + 12;
   const valueLabelX = isLeftSide ? x - 12 : x + width + 12;
   const nodeOpacity = isFaded ? fadedOpacity : 1;
@@ -173,11 +154,10 @@ function AnimatedNode({
     >
       {roughOptions ? (
         <motion.g
-          animate={{ opacity: nodeOpacity, scaleY: 1 }}
-          initial={{ opacity: 0, scaleY: 0 }}
-          key={`rough-node-${index}-${revealEpoch}`}
-          style={{ color: fill, originY: 0.5 }}
-          transition={nodeEnter}
+          animate={{ opacity: nodeOpacity }}
+          initial={false}
+          style={{ color: fill }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
         >
           <RoughNodeRect
             fill={fill}
@@ -191,15 +171,13 @@ function AnimatedNode({
         </motion.g>
       ) : (
         <motion.rect
-          animate={{ opacity: nodeOpacity, scaleY: 1 }}
+          animate={{ opacity: nodeOpacity }}
           fill={fill}
           height={height}
-          initial={{ opacity: 0, scaleY: 0 }}
-          key={`node-${index}-${revealEpoch}`}
+          initial={false}
           rx={rx}
           ry={rx}
-          style={{ originY: 0.5 }}
-          transition={nodeEnter}
+          transition={{ duration: 0.18, ease: "easeOut" }}
           width={width}
           x={x}
           y={y}
@@ -211,10 +189,9 @@ function AnimatedNode({
             animate={{ opacity: nameOpacity, x: nameLabelX }}
             className="fill-foreground font-medium text-[13px]"
             dy="0.35em"
-            initial={{ opacity: 0, x: isLeftSide ? x + 8 : x + width - 8 }}
-            key={`name-${index}-${revealEpoch}`}
+            initial={false}
             textAnchor={isLeftSide ? "end" : "start"}
-            transition={nameEnter}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             y={y + height / 2}
           >
             {name}
@@ -223,10 +200,9 @@ function AnimatedNode({
             animate={{ opacity: valueOpacity, x: valueLabelX }}
             className="fill-foreground text-[11px]"
             dy="0.35em"
-            initial={{ opacity: 0, x: isLeftSide ? x + 8 : x + width - 8 }}
-            key={`value-${index}-${revealEpoch}`}
+            initial={false}
             textAnchor={isLeftSide ? "end" : "start"}
-            transition={valueEnter}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             y={y + height / 2 + 16}
           >
             {intFmt(value)} sessions
@@ -253,7 +229,6 @@ export function SankeyNode({
     hoveredLinkIndex,
     setHoveredNodeIndex,
     setTooltipData,
-    animationDuration,
   } = useSankey();
 
   // Get color for a node
@@ -345,11 +320,9 @@ export function SankeyNode({
 
         return (
           <AnimatedNode
-            animationDuration={animationDuration}
             fadedOpacity={fadedOpacity}
             fill={getColor(node, index)}
             height={nodeHeight}
-            index={index}
             isFaded={isFaded}
             isLeftSide={isLeftSide}
             key={`node-${node.name}`}
@@ -359,7 +332,6 @@ export function SankeyNode({
             rx={lineCap}
             roughOptions={roughOptions}
             showLabels={showLabels}
-            totalNodes={nodes.length}
             value={displayValue}
             width={nodeWidth}
             x={nodeX}

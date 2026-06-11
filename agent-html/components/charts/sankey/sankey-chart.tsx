@@ -30,8 +30,6 @@ export interface SankeyChartProps {
   data: SankeyData;
   /** Chart margins */
   margin?: Partial<Margin>;
-  /** Animation duration in milliseconds. Default: 1100 */
-  animationDuration?: number;
   /** Aspect ratio as "width / height". Default: "2 / 1" */
   aspectRatio?: string;
   /** Node width in pixels. Default: 16 */
@@ -51,7 +49,6 @@ interface SankeyChartInnerProps {
   width: number;
   height: number;
   margin: Margin;
-  animationDuration: number;
   nodeWidth: number;
   nodePadding: number;
   children: ReactNode;
@@ -72,7 +69,6 @@ const SankeyChartCore = memo(function SankeyChartCore({
   width,
   height,
   margin,
-  animationDuration,
   nodeWidth,
   nodePadding,
   children,
@@ -152,8 +148,6 @@ const SankeyChartCore = memo(function SankeyChartCore({
     tooltipData,
     setTooltipData,
     containerRef,
-    animationDuration,
-    revealEpoch: 0,
     mousePos,
     createPath,
   };
@@ -180,7 +174,6 @@ const SankeyChartCore = memo(function SankeyChartCore({
 export function SankeyChart({
   data,
   margin: marginProp,
-  animationDuration = 1100,
   aspectRatio = "2 / 1",
   nodeWidth = 16,
   nodePadding = 24,
@@ -194,7 +187,6 @@ export function SankeyChart({
       <ParentSize>
         {({ width, height }) => (
           <SankeyChartInner
-            animationDuration={animationDuration}
             data={data}
             height={height}
             margin={margin}

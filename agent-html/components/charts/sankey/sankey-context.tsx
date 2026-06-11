@@ -1,7 +1,6 @@
 "use client";
 
 import type { SankeyGraph, SankeyLink, SankeyNode } from "d3-sankey";
-import type { Transition } from "motion/react";
 import {
   createContext,
   type Dispatch,
@@ -62,13 +61,6 @@ export interface SankeyContextValue {
   tooltipData: SankeyTooltipData | null;
   setTooltipData: Dispatch<SetStateAction<SankeyTooltipData | null>>;
   containerRef: RefObject<HTMLDivElement | null>;
-
-  // Animation
-  animationDuration: number;
-  /** Motion enter transition (spring or cubic-bezier tween). */
-  enterTransition?: Transition;
-  /** Increments when enter animation should replay. */
-  revealEpoch: number;
 
   // Mouse position for dynamic tooltips
   mousePos: { x: number; y: number } | null;

@@ -106,7 +106,6 @@ function OdSankeyChart() {
   return (
     <div className="canvas-stack-sm">
       <SankeyChart
-        animationDuration={900}
         aspectRatio="5 / 2.2"
         data={sankeyData}
         margin={{ top: 24, right: 148, bottom: 24, left: 148 }}
