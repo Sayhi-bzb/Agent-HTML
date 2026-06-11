@@ -31,7 +31,24 @@ declare module "rough-viz" {
     title?: string
   }
 
+  type RoughVizNetworkLink = {
+    source: number | string
+    target: number | string
+  }
+
+  type RoughVizNetworkOptions<
+    TData extends Record<string, unknown>,
+    TLink extends RoughVizNetworkLink = RoughVizNetworkLink,
+  > = RoughVizForceOptions<TData> & {
+    links: TLink[]
+  }
+
   type RoughVizBarData = {
+    labels: string[]
+    values: number[]
+  }
+
+  type RoughVizPieData = {
     labels: string[]
     values: number[]
   }
@@ -67,6 +84,32 @@ declare module "rough-viz" {
     yValueFormat?: string
   }
 
+  type RoughVizPieOptions = {
+    axisRoughness?: number
+    axisStrokeWidth?: number
+    colors?: string[]
+    data: RoughVizPieData
+    element: string
+    fillStyle?: string
+    fillWeight?: number
+    highlight?: string
+    innerStrokeWidth?: number
+    legend?: boolean
+    legendPosition?: "left" | "right"
+    margin?: {
+      bottom: number
+      left: number
+      right: number
+      top: number
+    }
+    roughness?: number
+    stroke?: string
+    strokeWidth?: number
+    title?: string
+    titleFontSize?: string
+    tooltipFontSize?: string
+  }
+
   class Bar {
     constructor(options: RoughVizBarOptions)
     remove(): void
@@ -77,8 +120,21 @@ declare module "rough-viz" {
     remove(): void
   }
 
+  class Pie {
+    constructor(options: RoughVizPieOptions)
+    remove(): void
+  }
+
   class Force<TData extends Record<string, unknown>> {
     constructor(options: RoughVizForceOptions<TData>)
+    remove(): void
+  }
+
+  class Network<
+    TData extends Record<string, unknown>,
+    TLink extends RoughVizNetworkLink = RoughVizNetworkLink,
+  > {
+    constructor(options: RoughVizNetworkOptions<TData, TLink>)
     remove(): void
   }
 
@@ -86,9 +142,15 @@ declare module "rough-viz" {
     Bar,
     BarH,
     Force,
+    Network,
+    Pie,
     type RoughVizBarData,
     type RoughVizBarOptions,
     type RoughVizForceOptions,
+    type RoughVizNetworkLink,
+    type RoughVizNetworkOptions,
+    type RoughVizPieData,
+    type RoughVizPieOptions,
     type RoughVizLegendItem,
   }
 }

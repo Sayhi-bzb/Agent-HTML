@@ -1,11 +1,42 @@
 import { useEffect, useId } from "react"
-import { Bar, BarH, type RoughVizBarData, type RoughVizBarOptions } from "rough-viz"
+import * as roughViz from "rough-viz"
+import type {
+  RoughVizBarData,
+  RoughVizBarOptions,
+  RoughVizPieData,
+  RoughVizPieOptions,
+} from "rough-viz"
 
 type RoughBarCommonProps = Omit<RoughVizBarOptions, "data" | "element"> & {
   className?: string
   data: RoughVizBarData
   heightClassName?: string
 }
+
+type RoughPieChartProps = Omit<RoughVizPieOptions, "data" | "element"> & {
+  className?: string
+  data: RoughVizPieData
+  heightClassName?: string
+}
+
+export const roughSketchChartStyle = {
+  axisRoughness: 1.2,
+  axisStrokeWidth: 1,
+  fillStyle: "hachure",
+  fillWeight: 1,
+  innerStrokeWidth: 1,
+  roughness: 4,
+  stroke: "var(--foreground)",
+  strokeWidth: 1,
+} satisfies Omit<RoughVizBarOptions, "data" | "element">
+
+export const roughTaxiChartColors = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--muted-foreground)",
+  "var(--border)",
+]
 
 function useRoughChartId(prefix: string) {
   const reactId = useId()
@@ -48,7 +79,7 @@ export function RoughBarChart({
 
     element.replaceChildren()
 
-    const chart = new Bar({
+    const chart = new roughViz.Bar({
       data,
       element: `#${elementId}`,
       ...options,
@@ -84,7 +115,43 @@ export function RoughBarHChart({
 
     element.replaceChildren()
 
-    const chart = new BarH({
+    const chart = new roughViz.BarH({
+      data,
+      element: `#${elementId}`,
+      ...options,
+    })
+
+    return () => {
+      chart.remove()
+      element.replaceChildren()
+    }
+  }, [data, elementId, options, renderKey])
+
+  return (
+    <RoughChartShell
+      className={className}
+      heightClassName={heightClassName}
+      id={elementId}
+    />
+  )
+}
+
+export function RoughPieChart({
+  className,
+  data,
+  heightClassName = "min-h-[380px] [&_svg]:min-h-[380px]",
+  ...options
+}: RoughPieChartProps) {
+  const elementId = useRoughChartId("rough-pie")
+  const renderKey = optionsKey(options)
+
+  useEffect(() => {
+    const element = document.getElementById(elementId)
+    if (!element) return
+
+    element.replaceChildren()
+
+    const chart = new roughViz.Pie({
       data,
       element: `#${elementId}`,
       ...options,

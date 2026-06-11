@@ -1,6 +1,13 @@
+import { useCallback } from "react"
+
 import { Badge } from "../../components/ui/badge"
 
 import { taxiData } from "./data"
+import {
+  RoughSvgLayer,
+  roughSketchMarkOptions,
+  type RoughSketchDraw,
+} from "./roughjs-sketch"
 import {
   SectionIntro,
   SketchNote,
@@ -8,6 +15,39 @@ import {
   formatCompact,
   formatCurrency,
 } from "./sketch-components"
+
+function AirportRouteSketch() {
+  const drawAirportRoute = useCallback<RoughSketchDraw>((roughSvg, group) => {
+    group.appendChild(
+      roughSvg.path("M8 42 C30 30, 52 26, 88 22", {
+        ...roughSketchMarkOptions,
+        fill: "none",
+        seed: 11,
+        strokeLineDash: [4, 5],
+        strokeLineDashOffset: 0,
+        strokeWidth: 1.2,
+      })
+    )
+    group.appendChild(
+      roughSvg.path("M62 16 L88 22 L62 30 L68 23 Z", {
+        ...roughSketchMarkOptions,
+        fill: "currentColor",
+        hachureGap: 4,
+        seed: 17,
+      })
+    )
+  }, [])
+
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-14 w-20 text-muted-foreground"
+      viewBox="0 0 96 64"
+    >
+      <RoughSvgLayer draw={drawAirportRoute} />
+    </svg>
+  )
+}
 
 export function AirportRidesBlock() {
   return (
@@ -27,25 +67,7 @@ export function AirportRidesBlock() {
                     {formatCompact(airport.trips)}
                   </p>
                 </div>
-                <svg
-                  aria-hidden="true"
-                  className="h-14 w-20 text-muted-foreground"
-                  viewBox="0 0 96 64"
-                >
-                  <path
-                    d="M8 42 C30 30, 52 26, 88 22"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeDasharray="4 5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M62 16 L88 22 L62 30 L68 23 Z"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <AirportRouteSketch />
               </div>
               <div className="grid gap-3">
                 <div className="flex justify-between gap-3">

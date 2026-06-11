@@ -1,6 +1,13 @@
+import { useCallback } from "react"
+
 import { Badge } from "../../components/ui/badge"
 
 import { taxiData } from "./data"
+import {
+  RoughSvgLayer,
+  roughSketchMarkOptions,
+  type RoughSketchDraw,
+} from "./roughjs-sketch"
 import { SectionIntro, SketchNote, SketchPanel, dayLabels } from "./sketch-components"
 
 const hours = Array.from({ length: 24 }, (_, hour) => hour)
@@ -14,11 +21,37 @@ function cellOpacity(trips: number) {
   return 0.14 + (trips / maxTrips) * 0.76
 }
 
+const heatmapCells = dayLabels.flatMap((_, dayIndex) =>
+  hours.map((hour) => {
+    const item = taxiData.hourDay.find(
+      (candidate) => candidate.day === dayIndex && candidate.hour === hour
+    )
+
+    return {
+      opacity: item ? cellOpacity(item.trips) : 0.08,
+      seed: dayIndex * 24 + hour + 1,
+      x: leftPad + hour * (cellSize + gap),
+      y: topPad + dayIndex * (cellSize + gap),
+    }
+  })
+)
+
 export function CityRhythmBlock() {
-  const byKey = new Map(
-    taxiData.hourDay.map((item) => [`${item.day}-${item.hour}`, item])
-  )
   const peak = [...taxiData.hourDay].sort((a, b) => b.trips - a.trips)[0]
+  const drawHourGrid = useCallback<RoughSketchDraw>((roughSvg, group) => {
+    heatmapCells.forEach((cell) => {
+      const node = roughSvg.rectangle(cell.x, cell.y, cellSize, cellSize, {
+        ...roughSketchMarkOptions,
+        fill: "currentColor",
+        hachureGap: 4,
+        seed: cell.seed,
+        strokeWidth: 0.7,
+      })
+
+      node.setAttribute("opacity", cell.opacity.toFixed(2))
+      group.appendChild(node)
+    })
+  }, [])
 
   return (
     <section className="canvas-stack-lg">
@@ -38,6 +71,7 @@ export function CityRhythmBlock() {
                 topPad + dayLabels.length * (cellSize + gap)
               }`}
             >
+              <RoughSvgLayer draw={drawHourGrid} />
               {hours.map((hour) => (
                 <text
                   className="fill-muted-foreground text-xs"
@@ -59,23 +93,6 @@ export function CityRhythmBlock() {
                   {day}
                 </text>
               ))}
-              {dayLabels.flatMap((day, dayIndex) =>
-                hours.map((hour) => {
-                  const item = byKey.get(`${dayIndex}-${hour}`)
-                  return (
-                    <rect
-                      fill="currentColor"
-                      height={cellSize}
-                      key={`${day}-${hour}`}
-                      opacity={item ? cellOpacity(item.trips) : 0.08}
-                      rx="2"
-                      width={cellSize}
-                      x={leftPad + hour * (cellSize + gap)}
-                      y={topPad + dayIndex * (cellSize + gap)}
-                    />
-                  )
-                })
-              )}
             </svg>
           </div>
         </SketchPanel>

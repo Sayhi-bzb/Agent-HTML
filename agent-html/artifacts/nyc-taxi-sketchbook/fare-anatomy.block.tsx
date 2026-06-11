@@ -1,5 +1,10 @@
 import { taxiData } from "./data"
-import { RoughBarChart } from "./rough-viz-charts"
+import {
+  RoughBarChart,
+  RoughPieChart,
+  roughSketchChartStyle,
+  roughTaxiChartColors,
+} from "./rough-viz-charts"
 import {
   SectionIntro,
   SketchNote,
@@ -26,6 +31,10 @@ const componentChartData = {
   labels: components.map((item) => item.label),
   values: components.map((item) => item.value),
 }
+const paymentChartData = {
+  labels: taxiData.payment.map((item) => item.label),
+  values: taxiData.payment.map((item) => item.share),
+}
 
 export function FareAnatomyBlock() {
   return (
@@ -38,19 +47,13 @@ export function FareAnatomyBlock() {
       <div className="grid gap-5 lg:grid-cols-3">
         <SketchPanel className="lg:col-span-2">
           <RoughBarChart
+            {...roughSketchChartStyle}
             axisFontSize=".78rem"
-            axisRoughness={1}
-            axisStrokeWidth={1}
             color="var(--chart-2)"
             data={componentChartData}
             fillStyle="cross-hatch"
-            fillWeight={1}
             heightClassName="min-h-[340px] [&_svg]:min-h-[340px]"
-            innerStrokeWidth={1}
             margin={{ top: 44, right: 24, bottom: 76, left: 64 }}
-            roughness={2}
-            stroke="black"
-            strokeWidth={1}
             title="Average fare components"
             titleFontSize="17px"
             tooltipFontSize=".8rem"
@@ -59,6 +62,32 @@ export function FareAnatomyBlock() {
         </SketchPanel>
 
         <div className="canvas-stack-md">
+          <SketchPanel>
+            <div className="canvas-stack-sm">
+              <RoughPieChart
+                {...roughSketchChartStyle}
+                colors={roughTaxiChartColors}
+                data={paymentChartData}
+                heightClassName="min-h-[300px] [&_svg]:min-h-[300px]"
+                legend
+                margin={{ top: 52, right: 72, bottom: 32, left: 32 }}
+                title="Payment mix"
+                titleFontSize="16px"
+                tooltipFontSize=".8rem"
+              />
+              <div className="canvas-grid-gap-sm grid-cols-2">
+                {taxiData.payment.map((item) => (
+                  <div className="canvas-stack-xs" key={item.label}>
+                    <span className="canvas-text-caption text-muted-foreground">
+                      {item.label}
+                    </span>
+                    <strong className="font-mono">{item.share}%</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </SketchPanel>
+
           <SketchPanel>
             <div className="canvas-stack-sm">
               {components.map((item) => (

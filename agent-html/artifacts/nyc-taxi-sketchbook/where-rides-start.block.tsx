@@ -3,7 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 
 import { taxiData } from "./data"
-import { RoughBarHChart } from "./rough-viz-charts"
+import { RoughBarHChart, roughSketchChartStyle } from "./rough-viz-charts"
 import {
   SectionIntro,
   SketchNote,
@@ -89,19 +89,12 @@ export function WhereRidesStartBlock() {
       <div className="grid gap-5 lg:grid-cols-2">
         <SketchPanel>
           <RoughBarHChart
+            {...roughSketchChartStyle}
             axisFontSize=".78rem"
-            axisRoughness={1}
-            axisStrokeWidth={1}
             color="var(--chart-1)"
             data={zoneChartData}
-            fillStyle="hachure"
-            fillWeight={1}
             heightClassName="min-h-[420px] [&_svg]:min-h-[420px]"
-            innerStrokeWidth={1}
             margin={{ top: 44, right: 28, bottom: 52, left: 150 }}
-            roughness={2}
-            stroke="black"
-            strokeWidth={1}
             title="Top pickup zones"
             titleFontSize="17px"
             tooltipFontSize=".8rem"

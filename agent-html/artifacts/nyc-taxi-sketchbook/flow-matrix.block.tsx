@@ -1,7 +1,8 @@
 import { useEffect, useId, useMemo } from "react"
-import { Force } from "rough-viz"
+import * as roughViz from "rough-viz"
 
 import { taxiData } from "./data"
+import { roughSketchChartStyle } from "./rough-viz-charts"
 import {
   SectionIntro,
   SketchNote,
@@ -41,13 +42,25 @@ type TaxiForceNode = {
   trips: number
 }
 
+type TaxiNetworkLink = {
+  source: number
+  target: number
+  trips: number
+}
+
 function forceRadiusForTrips(trips: number, maxForceTrips: number) {
   return 3 + Math.sqrt(trips / maxForceTrips) * 7
 }
 
-function RoughForceChart({ data }: { data: TaxiForceNode[] }) {
+function RoughNetworkChart({
+  data,
+  links,
+}: {
+  data: TaxiForceNode[]
+  links: TaxiNetworkLink[]
+}) {
   const reactId = useId()
-  const elementId = `rough-force-${reactId.replace(/:/g, "")}`
+  const elementId = `rough-network-${reactId.replace(/:/g, "")}`
 
   useEffect(() => {
     const element = document.getElementById(elementId)
@@ -55,36 +68,30 @@ function RoughForceChart({ data }: { data: TaxiForceNode[] }) {
 
     element.replaceChildren()
 
-    const chart = new Force<TaxiForceNode>({
-      axisRoughness: 1,
-      axisStrokeWidth: 1,
-      collision: 1.8,
+    const chart = new roughViz.Network<TaxiForceNode, TaxiNetworkLink>({
+      ...roughSketchChartStyle,
+      collision: 2.8,
       colorCallback: (datum) =>
         datum.category === "Airport" ? "var(--chart-2)" : "var(--chart-1)",
       data: data.map((datum) => ({ ...datum })),
       element: `#${elementId}`,
-      fillStyle: "hachure",
-      fillWeight: 1,
-      innerStrokeWidth: 1,
       legend: [
         { color: "var(--chart-1)", text: "Borough pickup volume" },
-        { color: "var(--chart-2)", text: "Airport trips" },
+        { color: "var(--chart-2)", text: "Airport boundary" },
       ],
-      margin: { top: 72, right: 48, bottom: 48, left: 48 },
+      links: links.map((link) => ({ ...link })),
+      margin: { top: 92, right: 92, bottom: 76, left: 92 },
       radius: "forceRadius",
-      radiusExtent: [18, 52],
-      roughness: 2.5,
-      stroke: "black",
-      strokeWidth: 0,
+      radiusExtent: [20, 44],
       textCallback: (datum) => `${datum.label}: ${formatCompact(datum.trips)}`,
-      title: "roughViz.Force / TLC trip volume",
+      title: "roughViz.Network / TLC OD pull",
     })
 
     return () => {
       chart.remove()
       element.replaceChildren()
     }
-  }, [data, elementId])
+  }, [data, elementId, links])
 
   return (
     <div
@@ -95,40 +102,43 @@ function RoughForceChart({ data }: { data: TaxiForceNode[] }) {
 }
 
 export function FlowMatrixBlock() {
-  const forceData = useMemo<TaxiForceNode[]>(() => {
-    const forceSourceTrips = [
-      ...taxiData.pickupBoroughs
-        .filter((item) =>
-          ["Manhattan", "Queens", "Brooklyn"].includes(
-            item.borough
-          )
-        )
-        .map((item) => item.trips),
-      ...taxiData.airport.map((item) => item.trips),
-    ]
+  const { links: networkLinks, nodes: networkNodes } = useMemo(() => {
+    const tripsByBorough = new Map<string, number>(
+      taxiData.pickupBoroughs.map((item) => [item.borough, item.trips])
+    )
+    const forceSourceTrips = boroughs.map(
+      (borough) => tripsByBorough.get(borough) ?? 0
+    )
     const maxForceTrips = Math.max(...forceSourceTrips)
 
-    const boroughNodes = taxiData.pickupBoroughs
-      .filter((item) =>
-        ["Manhattan", "Queens", "Brooklyn"].includes(
-          item.borough
-        )
+    const nodes = boroughs.map((borough) => {
+      const trips = tripsByBorough.get(borough) ?? 0
+
+      return {
+        category: borough === "EWR" ? ("Airport" as const) : ("Borough" as const),
+        forceRadius: forceRadiusForTrips(trips, maxForceTrips),
+        label: borough,
+        trips,
+      }
+    })
+    const nodeIndexByLabel = new Map<string, number>(
+      nodes.map((node, index) => [node.label, index])
+    )
+    const links = taxiData.od
+      .filter((item) => item.from !== item.to)
+      .filter(
+        (item) =>
+          nodeIndexByLabel.has(item.from) && nodeIndexByLabel.has(item.to)
       )
+      .sort((a, b) => b.trips - a.trips)
+      .slice(0, 12)
       .map((item) => ({
-        category: "Borough" as const,
-        forceRadius: forceRadiusForTrips(item.trips, maxForceTrips),
-        label: item.borough,
+        source: nodeIndexByLabel.get(item.from) ?? 0,
+        target: nodeIndexByLabel.get(item.to) ?? 0,
         trips: item.trips,
       }))
 
-    const airportNodes = taxiData.airport.map((item) => ({
-      category: "Airport" as const,
-      forceRadius: forceRadiusForTrips(item.trips, maxForceTrips),
-      label: item.airport.replace(" Airport", ""),
-      trips: item.trips,
-    }))
-
-    return [...boroughNodes, ...airportNodes]
+    return { links, nodes }
   }, [])
 
   const strongest = matrixRows
@@ -139,12 +149,12 @@ export function FlowMatrixBlock() {
   return (
     <section className="canvas-stack-lg">
       <SectionIntro badge="03 / origin to destination" title="最粗的流向，仍然很短。">
-        这里用真实的 roughViz.Force：节点是主要 borough 和机场，泡泡越大，说明这个区域相关的 taxi volume 越强。
+        这里用 roughViz.Network：节点是主要 borough 和 EWR，泡泡越大，说明这个区域相关的 taxi volume 越强。
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-3">
         <SketchPanel className="lg:col-span-2">
-          <RoughForceChart data={forceData} />
+          <RoughNetworkChart data={networkNodes} links={networkLinks} />
         </SketchPanel>
 
         <div className="canvas-stack-md">
@@ -163,7 +173,7 @@ export function FlowMatrixBlock() {
             </div>
           </SketchPanel>
           <SketchNote>
-            roughViz.Force 画的是 force bubble，不消费 OD links；下方矩阵继续保留方向关系和精确对照。
+            roughViz.Network 只保留最强的 OD links 作为粗略拉力；下方矩阵继续保留方向关系和精确对照。
           </SketchNote>
         </div>
       </div>
