@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 121 |
-| Dependencies | 389 |
-| Local edges | 238 |
-| External edges | 150 |
+| Modules | 118 |
+| Dependencies | 385 |
+| Local edges | 236 |
+| External edges | 148 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -53,15 +53,15 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Module | Edges |
 | --- | --- |
-| `node_modules/react/index.js` | 60 |
+| `node_modules/react/index.js` | 59 |
 | `node_modules/radix-ui/dist/index.mjs` | 23 |
 | `node_modules/lucide-react/dist/esm/lucide-react.mjs` | 21 |
 | `node_modules/class-variance-authority/dist/index.mjs` | 7 |
 | `packages/react/src/index.tsx` | 4 |
-| `node_modules/motion/dist/es/react.mjs` | 3 |
 | `node_modules/react-dom/index.js` | 3 |
 | `node_modules/roughjs/bundled/rough.esm.js` | 3 |
 | `node_modules/clsx/dist/clsx.mjs` | 2 |
+| `node_modules/motion/dist/es/react.mjs` | 2 |
 | `node_modules/recharts/es6/index.js` | 2 |
 | `node_modules/rough-viz/dist/roughviz.es.js` | 2 |
 | `node_modules/tailwind-merge/dist/bundle-cjs.js` | 2 |

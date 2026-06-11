@@ -24,6 +24,7 @@ import {
 const hours = Array.from({ length: 24 }, (_, hour) => hour)
 const maxTrips = Math.max(...taxiData.hourDay.map((item) => item.trips))
 const cellSize = 24
+const dotSize = 20
 const gap = 4
 const leftPad = 46
 const topPad = 28
@@ -78,13 +79,18 @@ export function CityRhythmBlock() {
   const overnightAverageTotal = weightedAverageTotal(overnightItems)
   const drawHourGrid = useCallback<RoughSketchDraw>((roughSvg, group) => {
     heatmapCells.forEach((cell) => {
-      const node = roughSvg.rectangle(cell.x, cell.y, cellSize, cellSize, {
-        ...roughSketchMarkOptions,
-        fill: "currentColor",
-        hachureGap: 4,
-        seed: cell.seed,
-        strokeWidth: 0.7,
-      })
+      const node = roughSvg.circle(
+        cell.x + cellSize / 2,
+        cell.y + cellSize / 2,
+        dotSize,
+        {
+          ...roughSketchMarkOptions,
+          fill: "currentColor",
+          hachureGap: 4,
+          seed: cell.seed,
+          strokeWidth: 0.7,
+        }
+      )
 
       node.setAttribute("opacity", cell.opacity.toFixed(2))
       group.appendChild(node)

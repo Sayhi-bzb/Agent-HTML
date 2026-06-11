@@ -1,26 +1,26 @@
 import { Artifact, Block } from "@agent-html/react"
 
 import { CrewManifestBlock } from "./nasa-artemis-ii/crew-manifest.block"
+import { LaunchSystemBlock } from "./nasa-artemis-ii/launch-system.block"
 import { LunarFlybyBlock } from "./nasa-artemis-ii/lunar-flyby.block"
+import { MediaSourcesBlock } from "./nasa-artemis-ii/media-sources.block"
+import { MissionOverviewBlock } from "./nasa-artemis-ii/mission-overview.block"
 import { MissionRouteBlock } from "./nasa-artemis-ii/mission-route.block"
-import { OrionWindowBlock } from "./nasa-artemis-ii/orion-window.block"
-import { ReturnFutureBlock } from "./nasa-artemis-ii/return-future.block"
-import { SourcesBlock } from "./nasa-artemis-ii/sources.block"
-import { SystemIgnitionBlock } from "./nasa-artemis-ii/system-ignition.block"
+import { RecoveryValidationBlock } from "./nasa-artemis-ii/recovery-validation.block"
 
 export default function NasaArtemisIiArtifact() {
   return (
     <Artifact title="Artemis II: Returning to Lunar Space">
-      <Block id="orion-window" title="Orion Window">
-        <OrionWindowBlock />
+      <Block id="mission-overview" title="Mission Overview">
+        <MissionOverviewBlock />
       </Block>
 
       <Block id="crew-manifest" title="Crew Manifest">
         <CrewManifestBlock />
       </Block>
 
-      <Block id="system-ignition" title="System Ignition">
-        <SystemIgnitionBlock />
+      <Block id="launch-system" title="Launch System">
+        <LaunchSystemBlock />
       </Block>
 
       <Block id="mission-route" title="Mission Route">
@@ -31,12 +31,12 @@ export default function NasaArtemisIiArtifact() {
         <LunarFlybyBlock />
       </Block>
 
-      <Block id="return-future" title="Return And Future">
-        <ReturnFutureBlock />
+      <Block id="recovery-validation" title="Recovery Validation">
+        <RecoveryValidationBlock />
       </Block>
 
-      <Block id="sources" title="Sources">
-        <SourcesBlock />
+      <Block id="media-sources" title="Media Sources">
+        <MediaSourcesBlock />
       </Block>
     </Artifact>
   )

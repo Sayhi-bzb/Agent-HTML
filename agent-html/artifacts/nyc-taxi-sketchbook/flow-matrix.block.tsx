@@ -7,7 +7,7 @@ import {
   SankeyNode,
   SankeyTooltip,
   type SankeyData,
-} from "../../components/charts/sankey"
+} from "../../components/sankey-chart"
 import { taxiData } from "./data"
 import {
   roughSketchChartStyle,

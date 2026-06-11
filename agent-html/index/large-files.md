@@ -16,11 +16,10 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 | `agent-html/components/data-table.tsx` | 2964 | `components/README.md` |
 | `agent-html/artifacts/tokyo-three-speeds/route-console.block.tsx` | 2937 | `artifacts/README.md` |
 | `agent-html/components/ui/chart.tsx` | 2714 | `components/README.md` |
-| `agent-html/components/charts/sankey/sankey-node.tsx` | 2532 | `components/README.md` |
-| `agent-html/artifacts/nyc-taxi-sketchbook/flow-matrix.block.tsx` | 2470 | `artifacts/README.md` |
+| `agent-html/artifacts/nyc-taxi-sketchbook/flow-matrix.block.tsx` | 2440 | `artifacts/README.md` |
 | `agent-html/components/ui/combobox.tsx` | 2338 | `components/README.md` |
 | `agent-html/styles/internal/host/sidebar.css` | 2338 | nearest README or source-specific notes |
-| `agent-html/components/charts/sankey/sankey-link.tsx` | 2335 | `components/README.md` |
 | `agent-html/components/ui/dropdown-menu.tsx` | 2271 | `components/README.md` |
+| `agent-html/components/charts/sankey/sankey-node.tsx` | 2183 | `components/README.md` |
 | `agent-html/components/ui/calendar.tsx` | 2102 | `components/README.md` |
-| `agent-html/components/charts/sankey/sankey-tooltip.tsx` | 2062 | `components/README.md` |
+| `agent-html/components/charts/sankey/sankey-link.tsx` | 2024 | `components/README.md` |
