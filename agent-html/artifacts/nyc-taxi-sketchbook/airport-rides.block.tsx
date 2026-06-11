@@ -66,6 +66,11 @@ export function AirportRidesBlock() {
                 visible without three separate cards.
               </p>
             </div>
+            <SketchNote>
+              Newark appears in the TLC zone lookup, but it is not an NYC
+              borough. EWR is kept here so airport flows and fare structure
+              stay complete.
+            </SketchNote>
             <AirportRouteSketch className="h-24 w-36 self-end" />
           </div>
         </SketchPanel>
@@ -117,11 +122,6 @@ export function AirportRidesBlock() {
           </div>
         </div>
       </div>
-
-      <SketchNote>
-        Newark appears in the TLC zone lookup, but it is not an NYC borough.
-        EWR is kept here so airport flows and fare structure stay complete.
-      </SketchNote>
     </section>
   )
 }

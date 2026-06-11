@@ -113,7 +113,12 @@ describe("React Canvas runtime resolution contract", () => {
       "react-dom/client",
       "class-variance-authority",
       "clsx",
+      "@visx/event",
+      "@visx/responsive",
+      "@visx/sankey",
+      "d3-sankey",
       "lucide-react",
+      "motion/react",
       "shiki/bundle/web",
       "tailwind-merge",
     ])
@@ -140,8 +145,28 @@ describe("React Canvas runtime resolution contract", () => {
       ],
       ["clsx", expect.stringContaining("/node_modules/clsx/dist/clsx.mjs")],
       [
+        "@visx/event",
+        expect.stringContaining("/node_modules/@visx/event/esm/index.js"),
+      ],
+      [
+        "@visx/responsive",
+        expect.stringContaining("/node_modules/@visx/responsive/esm/index.js"),
+      ],
+      [
+        "@visx/sankey",
+        expect.stringContaining("/node_modules/@visx/sankey/esm/index.js"),
+      ],
+      [
+        "d3-sankey",
+        expect.stringContaining("/node_modules/d3-sankey/dist/d3-sankey.js"),
+      ],
+      [
         "lucide-react",
         expect.stringContaining("/node_modules/lucide-react/dist/cjs/lucide-react.js"),
+      ],
+      [
+        "motion/react",
+        expect.stringContaining("/node_modules/motion/dist/es/react.mjs"),
       ],
       [
         "shiki/bundle/web",

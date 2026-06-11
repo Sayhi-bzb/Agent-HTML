@@ -2,7 +2,9 @@
 
 import type { SankeyNode as SankeyNodeType } from "d3-sankey";
 import { motion } from "motion/react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import rough from "roughjs";
+import type { Options as RoughOptions } from "roughjs/bin/core";
 import { intFmt } from "../chart-formatters";
 import { transitionWithDelay } from "../motion-utils";
 import {
@@ -21,6 +23,33 @@ function getNodeIndex(nodeOrIndex: NodeOrIndex): number | undefined {
   return nodeOrIndex.index;
 }
 
+function roundedRectPath(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+
+  if (r === 0) {
+    return `M${x},${y}H${x + width}V${y + height}H${x}Z`;
+  }
+
+  return [
+    `M${x + r},${y}`,
+    `H${x + width - r}`,
+    `Q${x + width},${y} ${x + width},${y + r}`,
+    `V${y + height - r}`,
+    `Q${x + width},${y + height} ${x + width - r},${y + height}`,
+    `H${x + r}`,
+    `Q${x},${y + height} ${x},${y + height - r}`,
+    `V${y + r}`,
+    `Q${x},${y} ${x + r},${y}`,
+    "Z",
+  ].join("");
+}
+
 export interface SankeyNodeProps {
   /** Fill color for nodes. Default: uses theme colors */
   fill?: string;
@@ -35,6 +64,8 @@ export interface SankeyNodeProps {
     node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
     index: number
   ) => string;
+  /** Draw nodes with roughjs while preserving Sankey layout and hover state. */
+  roughOptions?: RoughOptions;
 }
 
 interface AnimatedNodeProps {
@@ -55,6 +86,47 @@ interface AnimatedNodeProps {
   value: number;
   isLeftSide: boolean;
   showLabels: boolean;
+  roughOptions?: RoughOptions;
+}
+
+function RoughNodeRect({
+  x,
+  y,
+  width,
+  height,
+  fill,
+  rx,
+  roughOptions,
+}: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill: string;
+  rx: number;
+  roughOptions: RoughOptions;
+}) {
+  const groupRef = useRef<SVGGElement>(null);
+
+  useLayoutEffect(() => {
+    const group = groupRef.current;
+    const svg = group?.ownerSVGElement;
+    if (!(group && svg)) {
+      return;
+    }
+
+    group.replaceChildren();
+    const roughSvg = rough.svg(svg);
+    const roughRect = roughSvg.path(roundedRectPath(x, y, width, height, rx), {
+      ...roughOptions,
+      fill,
+      stroke: roughOptions.stroke ?? fill,
+      strokeWidth: roughOptions.strokeWidth ?? 1,
+    });
+    group.appendChild(roughRect);
+  }, [fill, height, roughOptions, rx, width, x, y]);
+
+  return <g ref={groupRef} />;
 }
 
 function AnimatedNode({
@@ -75,6 +147,7 @@ function AnimatedNode({
   value,
   isLeftSide,
   showLabels,
+  roughOptions,
 }: AnimatedNodeProps) {
   const { enterTransition, revealEpoch } = useSankey();
 
@@ -100,20 +173,40 @@ function AnimatedNode({
       onMouseLeave={onMouseLeave}
       style={{ cursor: "pointer" }}
     >
-      <motion.rect
-        animate={{ opacity: nodeOpacity, scaleY: 1 }}
-        fill={fill}
-        height={height}
-        initial={{ opacity: 0, scaleY: 0 }}
-        key={`node-${index}-${revealEpoch}`}
-        rx={rx}
-        ry={rx}
-        style={{ originY: 0.5 }}
-        transition={nodeEnter}
-        width={width}
-        x={x}
-        y={y}
-      />
+      {roughOptions ? (
+        <motion.g
+          animate={{ opacity: nodeOpacity, scaleY: 1 }}
+          initial={{ opacity: 0, scaleY: 0 }}
+          key={`rough-node-${index}-${revealEpoch}`}
+          style={{ color: fill, originY: 0.5 }}
+          transition={nodeEnter}
+        >
+          <RoughNodeRect
+            fill={fill}
+            height={height}
+            roughOptions={roughOptions}
+            rx={rx}
+            width={width}
+            x={x}
+            y={y}
+          />
+        </motion.g>
+      ) : (
+        <motion.rect
+          animate={{ opacity: nodeOpacity, scaleY: 1 }}
+          fill={fill}
+          height={height}
+          initial={{ opacity: 0, scaleY: 0 }}
+          key={`node-${index}-${revealEpoch}`}
+          rx={rx}
+          ry={rx}
+          style={{ originY: 0.5 }}
+          transition={nodeEnter}
+          width={width}
+          x={x}
+          y={y}
+        />
+      )}
       {showLabels && (
         <>
           <motion.text
@@ -152,6 +245,7 @@ export function SankeyNode({
   fadedOpacity = 0.4,
   showLabels = true,
   getNodeColor: getNodeColorProp,
+  roughOptions,
 }: SankeyNodeProps) {
   const {
     nodes,
@@ -281,6 +375,7 @@ export function SankeyNode({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             rx={lineCap}
+            roughOptions={roughOptions}
             showLabels={showLabels}
             totalNodes={nodes.length}
             value={displayValue}

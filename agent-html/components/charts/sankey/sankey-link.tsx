@@ -6,6 +6,8 @@ import type {
 } from "d3-sankey";
 import { motion, useTransform } from "motion/react";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import rough from "roughjs";
+import type { Options as RoughOptions } from "roughjs/bin/core";
 import { useMountProgress } from "../use-mount-progress";
 import {
   type SankeyLinkDatum,
@@ -48,6 +50,45 @@ function getDefaultNodeColor(
   return defaultColors[index % defaultColors.length] ?? "var(--chart-1)";
 }
 
+function createRibbonPath(
+  link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>
+) {
+  const sourceNode = getNodeObject(link.source as NodeOrIndex);
+  const targetNode = getNodeObject(link.target as NodeOrIndex);
+  const width = link.width ?? 0;
+  const sourceY = link.y0;
+  const targetY = link.y1;
+
+  if (
+    !sourceNode ||
+    !targetNode ||
+    sourceNode.x1 === undefined ||
+    targetNode.x0 === undefined ||
+    sourceY === undefined ||
+    targetY === undefined ||
+    width <= 0
+  ) {
+    return null;
+  }
+
+  const sourceX = sourceNode.x1;
+  const targetX = targetNode.x0;
+  const midX = (sourceX + targetX) / 2;
+  const halfWidth = Math.max(1, width / 2);
+  const sourceTop = sourceY - halfWidth;
+  const sourceBottom = sourceY + halfWidth;
+  const targetTop = targetY - halfWidth;
+  const targetBottom = targetY + halfWidth;
+
+  return [
+    `M${sourceX},${sourceTop}`,
+    `C${midX},${sourceTop} ${midX},${targetTop} ${targetX},${targetTop}`,
+    `L${targetX},${targetBottom}`,
+    `C${midX},${targetBottom} ${midX},${sourceBottom} ${sourceX},${sourceBottom}`,
+    "Z",
+  ].join("");
+}
+
 export interface SankeyLinkProps {
   /** Stroke color for links (overrides gradient). Default: uses gradient */
   stroke?: string;
@@ -74,10 +115,13 @@ export interface SankeyLinkProps {
     link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>,
     index: number
   ) => string | null | undefined;
+  /** Draw links with roughjs while preserving Sankey layout and hover state. */
+  roughOptions?: RoughOptions;
 }
 
 interface AnimatedLinkProps {
   path: string;
+  roughPath?: string;
   width: number;
   stroke: string;
   strokeOpacity: number;
@@ -89,10 +133,47 @@ interface AnimatedLinkProps {
   animationDuration: number;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  roughOptions?: RoughOptions;
+}
+
+function RoughLinkPath({
+  path,
+  stroke,
+  width,
+  roughOptions,
+}: {
+  path: string;
+  stroke: string;
+  width: number;
+  roughOptions: RoughOptions;
+}) {
+  const groupRef = useRef<SVGGElement>(null);
+
+  useLayoutEffect(() => {
+    const group = groupRef.current;
+    const svg = group?.ownerSVGElement;
+    if (!(group && svg)) {
+      return;
+    }
+
+    group.replaceChildren();
+    const roughSvg = rough.svg(svg);
+    const isRibbon = path.trim().endsWith("Z");
+    const roughPath = roughSvg.path(path, {
+      ...roughOptions,
+      fill: isRibbon ? stroke : "none",
+      stroke,
+      strokeWidth: isRibbon ? (roughOptions.strokeWidth ?? 1) : Math.max(1, width),
+    });
+    group.appendChild(roughPath);
+  }, [path, roughOptions, stroke, width]);
+
+  return <g ref={groupRef} />;
 }
 
 function AnimatedLink({
   path,
+  roughPath,
   width,
   stroke,
   strokeOpacity,
@@ -104,6 +185,7 @@ function AnimatedLink({
   animationDuration,
   onMouseEnter,
   onMouseLeave,
+  roughOptions,
 }: AnimatedLinkProps) {
   const { enterTransition, revealEpoch } = useSankey();
   const pathRef = useRef<SVGPathElement>(null);
@@ -148,6 +230,33 @@ function AnimatedLink({
   const initialOpacity = strokeOpacity ?? 0.5;
   const animatedOpacity = targetOpacity ?? initialOpacity;
 
+  if (roughOptions) {
+    return (
+      <motion.g
+        animate={{ opacity: animatedOpacity }}
+        initial={{ opacity: initialOpacity }}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        style={{ cursor: "pointer" }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+      >
+        <RoughLinkPath
+          path={roughPath ?? path}
+          roughOptions={roughOptions}
+          stroke={stroke}
+          width={width}
+        />
+        <path
+          d={path}
+          fill="none"
+          pointerEvents="stroke"
+          stroke="transparent"
+          strokeWidth={Math.max(8, width)}
+        />
+      </motion.g>
+    );
+  }
+
   return (
     <motion.path
       animate={{ opacity: animatedOpacity }}
@@ -178,6 +287,7 @@ export function SankeyLink({
   getLinkColor,
   patterns,
   getLinkPattern,
+  roughOptions,
 }: SankeyLinkProps) {
   const {
     links,
@@ -268,6 +378,7 @@ export function SankeyLink({
       {links.map((link, index) => {
         const path = createPath(link);
         const linkWidth = link.width ?? 1;
+        const roughPath = roughOptions ? createRibbonPath(link) : undefined;
 
         // Skip if path is empty
         if (!path || path.trim() === "") {
@@ -329,6 +440,8 @@ export function SankeyLink({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             path={path}
+            roughPath={roughPath ?? undefined}
+            roughOptions={roughOptions}
             stroke={linkStroke}
             strokeOpacity={strokeOpacity}
             totalLinks={links.length}

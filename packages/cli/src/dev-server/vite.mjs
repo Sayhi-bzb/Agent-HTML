@@ -126,7 +126,12 @@ export const playgroundOptimizeDeps = [
   "react-dom/client",
   "class-variance-authority",
   "clsx",
+  "@visx/event",
+  "@visx/responsive",
+  "@visx/sankey",
+  "d3-sankey",
   "lucide-react",
+  "motion/react",
   "shiki/bundle/web",
   "tailwind-merge",
 ]

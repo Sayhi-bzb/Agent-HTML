@@ -46,50 +46,51 @@ export function TaxiHeaderBlock() {
             </div>
             <Badge variant="outline">{meta.vehicle}</Badge>
           </div>
-          <LedgerRows
-            items={[
-              {
-                label: "median trip",
-                value: `${kpis.medianDistance} mi`,
-              },
-              {
-                label: "median total",
-                value: formatCurrency(kpis.medianTotal),
-              },
-              {
-                label: "card tip rate",
-                note: "cash tips are not fully captured",
-                value: `${kpis.cardTipRate}%`,
-              },
-            ]}
-          />
+          <div className="grid gap-x-5 sm:grid-cols-2">
+            <LedgerRows
+              items={[
+                {
+                  label: "clean trips",
+                  value: formatCompact(kpis.keptTrips),
+                  note: "after filters",
+                },
+                {
+                  label: "avg total",
+                  value: formatCurrency(kpis.averageTotal),
+                  note: "fare + fees + tip",
+                },
+                {
+                  label: "avg distance",
+                  value: `${kpis.averageDistance} mi`,
+                  note: "mean trip_distance",
+                },
+              ]}
+            />
+            <LedgerRows
+              items={[
+                {
+                  label: "median trip",
+                  value: `${kpis.medianDistance} mi`,
+                },
+                {
+                  label: "median total",
+                  value: formatCurrency(kpis.medianTotal),
+                },
+                {
+                  label: "card tip rate",
+                  note: "cash tips are not fully captured",
+                  value: `${kpis.cardTipRate}%`,
+                },
+                {
+                  label: "avg passenger",
+                  value: String(kpis.averagePassengers),
+                  note: "reported count",
+                },
+              ]}
+            />
+          </div>
         </div>
       </div>
-
-      <LedgerRows
-        items={[
-          {
-            label: "clean trips",
-            value: formatCompact(kpis.keptTrips),
-            note: "after filters",
-          },
-          {
-            label: "avg total",
-            value: formatCurrency(kpis.averageTotal),
-            note: "fare + fees + tip",
-          },
-          {
-            label: "avg distance",
-            value: `${kpis.averageDistance} mi`,
-            note: "mean trip_distance",
-          },
-          {
-            label: "avg passenger",
-            value: String(kpis.averagePassengers),
-            note: "reported count",
-          },
-        ]}
-      />
     </section>
   )
 }

@@ -9,7 +9,10 @@ import {
   type SankeyData,
 } from "../../components/charts/sankey"
 import { taxiData } from "./data"
-import { roughSketchChartStyle } from "./rough-theme"
+import {
+  roughSketchChartStyle,
+  roughSketchSankeyOptions,
+} from "./rough-theme"
 import {
   LedgerRows,
   SketchAnnotation,
@@ -117,12 +120,14 @@ function OdSankeyChart() {
               ? "var(--chart-2)"
               : "var(--chart-1)"
           }}
+          roughOptions={roughSketchSankeyOptions}
           strokeOpacity={0.64}
           useGradient={false}
         />
         <SankeyNode
           getNodeColor={(node) => sankeyNodeColor(node.name)}
           lineCap={3}
+          roughOptions={roughSketchSankeyOptions}
           showLabels
         />
         <SankeyTooltip

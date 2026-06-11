@@ -21,6 +21,11 @@ export const roughSketchMarkOptions = {
   stroke: "currentColor",
 } satisfies RoughOptions
 
+export const roughSketchSankeyOptions = {
+  ...roughSketchMarkOptions,
+  hachureGap: 4,
+} satisfies RoughOptions
+
 export const roughTaxiChartColors = [
   "var(--chart-1)",
   "var(--chart-2)",
