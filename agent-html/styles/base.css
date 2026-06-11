@@ -12,7 +12,7 @@
   }
 
   ::selection {
-    background: var(--agent-html-text-selection-background);
-    color: var(--agent-html-text-selection-foreground);
+    background: var(--canvas-text-selection-background);
+    color: var(--canvas-text-selection-foreground);
   }
 }

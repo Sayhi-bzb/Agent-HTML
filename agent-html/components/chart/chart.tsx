@@ -181,8 +181,11 @@ export function ChartContainer({
   children,
   className,
   config,
-  empty = null,
+  empty: legacyEmpty,
+  emptyData = legacyEmpty ?? null,
+  emptySize = null,
   id,
+  isEmpty = false,
   minHeight = 240,
   minWidth = 10,
   series,
@@ -191,8 +194,12 @@ export function ChartContainer({
   children: (bounds: ChartBounds) => React.ReactNode
   className?: string
   config: ChartConfig
+  /** @deprecated Use emptyData for data fallback or emptySize for measurement fallback. */
   empty?: React.ReactNode
+  emptyData?: React.ReactNode
+  emptySize?: React.ReactNode
   id?: string
+  isEmpty?: boolean
   minHeight?: number
   minWidth?: number
   series?: ChartSeries[]
@@ -217,8 +224,12 @@ export function ChartContainer({
         <ChartStyle config={config} id={chartId} />
         <ParentSize>
           {({ height, width }) => {
+            if (isEmpty) {
+              return emptyData
+            }
+
             if (width < minWidth || height < minHeight) {
-              return empty
+              return emptySize
             }
 
             return children({
@@ -507,6 +518,48 @@ export function ChartYAxisGrid({
   )
 }
 
+export function ChartXAxisGrid({
+  formatTick,
+  innerHeight,
+  scale,
+  ticks = 4,
+}: {
+  formatTick: (value: number) => ReactNode
+  innerHeight: number
+  scale: ReturnType<typeof scaleLinear<number>>
+  ticks?: number
+}) {
+  return (
+    <>
+      {scale.ticks(ticks).map((tick) => {
+        const tickX = scale(tick)
+
+        return (
+          <g key={tick}>
+            <line
+              className="stroke-border/50"
+              strokeDasharray="3 3"
+              x1={tickX}
+              x2={tickX}
+              y1={0}
+              y2={innerHeight}
+            />
+            <text
+              className="fill-muted-foreground text-[0.68rem]"
+              dy="0.72em"
+              textAnchor="middle"
+              x={tickX}
+              y={innerHeight + 12}
+            >
+              {formatTick(tick)}
+            </text>
+          </g>
+        )
+      })}
+    </>
+  )
+}
+
 export function ChartReferenceLine({
   innerWidth,
   y,
@@ -561,6 +614,8 @@ export function ChartXAxisLabels<T>({
 }
 
 export type ChartAccessor<T, TValue> = keyof T | ((datum: T) => TValue)
+
+export type SvgOnlyChartRenderer = Extract<ChartRenderer, "svg">
 
 export function getValue<T, TValue>(
   datum: T,

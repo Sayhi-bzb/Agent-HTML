@@ -33,7 +33,7 @@ export function LaunchSystemBlock() {
             <StatusBadge status="warning">launch system</StatusBadge>
           </div>
           <h2 className="canvas-text-heading">
-            A full <span className="text-ring">deep-space system</span> came
+            A full <span className="text-primary">deep-space system</span> came
             alive from the ground.
           </h2>
           <p className="canvas-text-body text-muted-foreground">

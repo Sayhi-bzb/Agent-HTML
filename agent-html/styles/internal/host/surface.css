@@ -134,7 +134,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--canvas-sidebar-font-size-caption);
+    font-size: var(--canvas-sidebar-caption-font-size);
     color: var(--muted-foreground);
   }
 

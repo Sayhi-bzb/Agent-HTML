@@ -111,11 +111,12 @@ export function PieChart<T>({
       aspectRatio={aspectRatio}
       className={className}
       config={config}
-      empty={
+      emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No share data
         </div>
       }
+      isEmpty={slices.length === 0}
       minHeight={minHeight}
     >
       {({ height, series, width }) => {

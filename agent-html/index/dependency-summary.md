@@ -7,9 +7,9 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 161 |
-| Dependencies | 468 |
-| Local edges | 309 |
+| Modules | 162 |
+| Dependencies | 470 |
+| Local edges | 311 |
 | External edges | 158 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
@@ -25,12 +25,12 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/components/ui/button.tsx` | 12 |
 | `agent-html/components/media-figure.tsx` | 9 |
 | `agent-html/artifacts/health-report-decoder/data/report.ts` | 7 |
-| `agent-html/artifacts/nyc-taxi-sketchbook/rough-theme.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 7 |
 | `agent-html/artifacts/nasa-artemis-ii/data/media.ts` | 6 |
+| `agent-html/artifacts/nyc-taxi-sketchbook/rough-theme.ts` | 6 |
+| `agent-html/components/chart/chart.tsx` | 6 |
 | `agent-html/artifacts/health-report-decoder/data/status.ts` | 5 |
 | `agent-html/artifacts/tokyo-three-speeds/data/media.ts` | 5 |
-| `agent-html/components/chart/chart.tsx` | 5 |
 
 ## Highest Local Fanout
 
@@ -57,8 +57,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | `node_modules/radix-ui/dist/index.mjs` | 23 |
 | `node_modules/lucide-react/dist/esm/lucide-react.mjs` | 21 |
 | `node_modules/class-variance-authority/dist/index.mjs` | 7 |
+| `node_modules/@visx/shape/esm/index.js` | 5 |
 | `packages/react/src/index.tsx` | 5 |
-| `node_modules/@visx/shape/esm/index.js` | 4 |
 | `node_modules/@visx/scale/esm/index.js` | 3 |
 | `node_modules/react-dom/index.js` | 3 |
 | `node_modules/roughjs/bundled/rough.esm.js` | 3 |

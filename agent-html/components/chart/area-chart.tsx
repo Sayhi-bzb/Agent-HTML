@@ -8,7 +8,6 @@ import {
   ChartCartesianGroup,
   ChartContainer,
   ChartReferenceLine,
-  type ChartRenderer,
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
@@ -22,6 +21,7 @@ import {
   getPointerPoint,
   getValue,
   isFiniteNumber,
+  type SvgOnlyChartRenderer,
 } from "./chart"
 
 export interface AreaChartProps<T> {
@@ -31,7 +31,7 @@ export interface AreaChartProps<T> {
   data: readonly T[]
   minHeight?: number
   referenceY?: number
-  renderer?: Extract<ChartRenderer, "svg">
+  renderer?: SvgOnlyChartRenderer
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -78,11 +78,12 @@ export function AreaChart<T>({
       aspectRatio={aspectRatio}
       className={className}
       config={config}
-      empty={
+      emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No area data
         </div>
       }
+      isEmpty={data.length === 0}
       minHeight={minHeight}
     >
       {({ height, series, width }) => {

@@ -36,3 +36,5 @@ Rich component tokens stay in matching token files such as
 `tokens/features/content.css`.
 
 Artifact source should not recreate system responsibilities such as root reading width, block hover highlighting, toolbar placement, or sidebar chrome.
+Artifact source should not consume sidebar chrome utilities such as
+`bg-sidebar`, `text-sidebar-*`, `border-sidebar-*`, or `ring-sidebar-*`.

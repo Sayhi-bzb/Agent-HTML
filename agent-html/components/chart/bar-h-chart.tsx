@@ -13,8 +13,7 @@ import {
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
-  ChartXAxisLabels,
-  ChartYAxisGrid,
+  ChartXAxisGrid,
   createBandScale,
   createCartesianLayout,
   createLinearScale,
@@ -26,7 +25,7 @@ import {
 } from "./chart"
 import { RoughRect } from "./rough-renderers"
 
-export interface BarChartProps<T> {
+export interface BarHChartProps<T> {
   aspectRatio?: string
   className?: string
   config: ChartConfig
@@ -35,10 +34,10 @@ export interface BarChartProps<T> {
   minHeight?: number
   renderer?: ChartRenderer
   roughOptions?: RoughOptions
-  xKey: ChartAccessor<T, string>
-  xLabelFormatter?: (value: string) => React.ReactNode
-  yKey: ChartAccessor<T, number>
-  yValueFormatter?: (value: number) => React.ReactNode
+  xKey: ChartAccessor<T, number>
+  xValueFormatter?: (value: number) => React.ReactNode
+  yKey: ChartAccessor<T, string>
+  yLabelFormatter?: (value: string) => React.ReactNode
 }
 
 interface TooltipState<T> {
@@ -48,45 +47,46 @@ interface TooltipState<T> {
 }
 
 const DEFAULT_MARGIN = {
-  bottom: 42,
-  left: 42,
-  right: 16,
+  bottom: 28,
+  left: 150,
+  right: 24,
   top: 16,
 }
 
 const valueFormatter = new Intl.NumberFormat("zh-CN", {
   maximumFractionDigits: 2,
+  notation: "compact",
 })
 
 function formatValue(value: number) {
   return valueFormatter.format(value)
 }
 
-export function BarChart<T>({
-  aspectRatio = "9 / 4",
+export function BarHChart<T>({
+  aspectRatio = "9 / 5",
   className,
   config,
   data,
   legend = false,
-  minHeight = 320,
+  minHeight = 360,
   renderer = "svg",
   roughOptions,
   xKey,
-  xLabelFormatter,
+  xValueFormatter = formatValue,
   yKey,
-  yValueFormatter = formatValue,
-}: BarChartProps<T>) {
+  yLabelFormatter,
+}: BarHChartProps<T>) {
   const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const roughOptionsByKey = React.useMemo(
     () =>
       createRoughOptionsByKey({
         getColorKey: () => seriesKey,
-        getKey: (datum: T) => getValue(datum, xKey),
+        getKey: (datum: T) => getValue(datum, yKey),
         options: roughOptions,
         rows: data,
       }) as Map<string, RoughOptions>,
-    [data, roughOptions, seriesKey, xKey]
+    [data, roughOptions, seriesKey, yKey]
   )
 
   return (
@@ -96,7 +96,7 @@ export function BarChart<T>({
       config={config}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
-          No bar data
+          No horizontal bar data
         </div>
       }
       isEmpty={data.length === 0}
@@ -108,57 +108,68 @@ export function BarChart<T>({
           margin: DEFAULT_MARGIN,
           width,
         })
-        const xScale = createBandScale({
+        const xScale = createLinearScale({
+          range: [0, layout.innerWidth],
+          values: getFiniteValues(Array.from(data), xKey),
+        })
+        const yScale = createBandScale({
           data: Array.from(data),
           padding: 0.28,
-          range: [0, layout.innerWidth],
-          x: xKey,
-        })
-        const yScale = createLinearScale({
-          range: [layout.innerHeight, 0],
-          values: getFiniteValues(Array.from(data), yKey),
+          range: [0, layout.innerHeight],
+          x: yKey,
         })
         const seriesLabel = config[seriesKey]?.label ?? series[0]?.label ?? seriesKey
         const color = getChartCssVariable(seriesKey)
-        const x = (datum: T) => xScale(getValue(datum, xKey)) ?? 0
+        const y = (datum: T) => yScale(getValue(datum, yKey)) ?? 0
 
         return (
           <div className="relative h-full w-full">
             <ChartSvg
-              aria-label="柱形图"
+              aria-label="水平柱形图"
               onPointerLeave={() => setTooltip(null)}
               role="img"
             >
               <ChartCartesianGroup layout={layout}>
-                <ChartYAxisGrid
-                  formatTick={yValueFormatter}
-                  innerWidth={layout.innerWidth}
-                  scale={yScale}
-                />
-                <ChartXAxisLabels
-                  data={data}
-                  formatTick={xLabelFormatter}
+                <ChartXAxisGrid
+                  formatTick={xValueFormatter}
                   innerHeight={layout.innerHeight}
-                  x={(datum) => x(datum) + xScale.bandwidth() / 2}
-                  xKey={xKey}
+                  scale={xScale}
                 />
 
                 {data.map((datum) => {
-                  const category = getValue(datum, xKey)
-                  const value = getValue(datum, yKey)
+                  const label = getValue(datum, yKey)
+                  const labelY = y(datum) + yScale.bandwidth() / 2
+
+                  return (
+                    <text
+                      className="fill-muted-foreground text-[0.68rem]"
+                      dy="0.32em"
+                      key={label}
+                      textAnchor="end"
+                      x={-8}
+                      y={labelY}
+                    >
+                      {yLabelFormatter ? yLabelFormatter(label) : label}
+                    </text>
+                  )
+                })}
+
+                {data.map((datum) => {
+                  const category = getValue(datum, yKey)
+                  const value = getValue(datum, xKey)
 
                   if (!isFiniteNumber(value)) {
                     return null
                   }
 
-                  const barX = x(datum)
-                  const barY = yScale(value)
-                  const barHeight = layout.innerHeight - barY
-                  const barWidth = xScale.bandwidth()
+                  const barX = 0
+                  const barY = y(datum)
+                  const barHeight = yScale.bandwidth()
+                  const barWidth = xScale(value)
                   const showTooltip = () =>
                     setTooltip({
                       datum,
-                      x: layout.margin.left + barX + barWidth / 2 + 12,
+                      x: layout.margin.left + barWidth + 12,
                       y: layout.margin.top + barY - 12,
                     })
 
@@ -206,13 +217,13 @@ export function BarChart<T>({
                       color,
                       key: seriesKey,
                       label: seriesLabel,
-                      value: yValueFormatter(getValue(tooltip.datum, yKey)),
+                      value: xValueFormatter(getValue(tooltip.datum, xKey)),
                     },
                   ]}
                   label={
-                    xLabelFormatter
-                      ? xLabelFormatter(getValue(tooltip.datum, xKey))
-                      : getValue(tooltip.datum, xKey)
+                    yLabelFormatter
+                      ? yLabelFormatter(getValue(tooltip.datum, yKey))
+                      : getValue(tooltip.datum, yKey)
                   }
                 />
               ) : null}

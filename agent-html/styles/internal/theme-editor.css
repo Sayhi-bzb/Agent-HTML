@@ -61,7 +61,7 @@
   .canvas-theme-editor-popover-label {
     padding-block: var(--canvas-theme-editor-option-padding-block);
     padding-inline: var(--canvas-theme-editor-option-padding-inline);
-    font-size: var(--canvas-sidebar-font-size-caption);
+    font-size: var(--canvas-sidebar-caption-font-size);
     font-weight: 500;
     color: var(--muted-foreground);
   }
@@ -86,7 +86,7 @@
     background: transparent;
     padding-block: var(--canvas-theme-editor-control-padding-block);
     padding-inline: var(--canvas-theme-editor-control-padding-inline);
-    font-size: var(--canvas-sidebar-font-size-body);
+    font-size: var(--canvas-sidebar-body-font-size);
   }
 
   .canvas-theme-editor-control-button:hover {
@@ -95,12 +95,12 @@
   }
 
   .canvas-theme-editor-caption {
-    font-size: var(--canvas-sidebar-font-size-caption);
+    font-size: var(--canvas-sidebar-caption-font-size);
     color: color-mix(in oklab, var(--sidebar-foreground) 45%, transparent);
   }
 
   .canvas-theme-editor-muted-caption {
-    font-size: var(--canvas-sidebar-font-size-caption);
+    font-size: var(--canvas-sidebar-caption-font-size);
     color: var(--muted-foreground);
   }
 
@@ -151,7 +151,7 @@
     border: 1px solid var(--border);
     padding-block: var(--canvas-theme-editor-option-padding-block);
     padding-inline: var(--canvas-theme-editor-option-padding-inline);
-    font-size: var(--canvas-sidebar-font-size-caption);
+    font-size: var(--canvas-sidebar-caption-font-size);
   }
 
   .canvas-theme-editor-picker-tab[data-active="true"] {
@@ -162,7 +162,7 @@
   .canvas-theme-editor-unit {
     width: var(--canvas-theme-editor-unit-width);
     flex-shrink: 0;
-    font-size: var(--canvas-sidebar-font-size-caption);
+    font-size: var(--canvas-sidebar-caption-font-size);
     color: var(--muted-foreground);
   }
 

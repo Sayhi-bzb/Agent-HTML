@@ -19,6 +19,12 @@ Use this route after `../README.md` when the task asks for color, type, radius, 
 
 Do not change `tailwind.css` to tune a single artifact. Tune the owning token file first, then let the mapping consume it.
 
+Canvas-owned semantic tokens use the `--canvas-*` namespace. Unprefixed tokens
+are shadcn-compatible theme primitives. `sidebar` tokens are host chrome tokens
+only; artifact content must use public content classes or theme primitives such
+as `background`, `card`, and `muted`. `ring` is reserved for focus, outline, and
+host highlight affordances, not body text emphasis.
+
 ## Feature Token Admission
 
 Keep feature tokens for values that define a reusable scale, semantic role, or

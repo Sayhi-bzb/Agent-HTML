@@ -176,7 +176,7 @@ export function RoutePlannerBlock() {
         </h1>
       </div>
 
-      <div className="grid overflow-hidden rounded-md bg-sidebar md:min-h-[680px] md:grid-cols-[0.78fr_1.22fr]">
+      <div className="grid overflow-hidden rounded-md bg-muted/40 md:min-h-[680px] md:grid-cols-[0.78fr_1.22fr]">
         <div className="canvas-stack-lg p-5 md:p-6">
           <div className="canvas-stack-md">
             <InspectorPhoto assetKey={selectedRoute.evidenceKey} />

@@ -37,7 +37,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--canvas-sidebar-font-size-caption);
+    font-size: var(--canvas-sidebar-caption-font-size);
     color: var(--muted-foreground);
   }
 }

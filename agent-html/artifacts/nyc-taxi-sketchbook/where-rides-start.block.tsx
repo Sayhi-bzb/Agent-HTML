@@ -1,13 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
+import { BarHChart, type ChartConfig } from "../../components/chart"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 
 import {
   pickupBoroughs,
   pickupZones,
 } from "./data/generated-pickup-geography"
-import { roughSketchChartStyle } from "./rough-theme"
-import { RoughBarHChart } from "./rough-viz-charts"
+import { roughSketchMarkOptions } from "./rough-theme"
 import {
   LedgerRows,
   RoughTableShell,
@@ -22,10 +22,12 @@ const zoneRows = pickupZones.slice(0, 10).map((zone) => ({
   ...zone,
   shortZone: zone.zone.replace("Midtown ", "M. "),
 }))
-const zoneChartData = {
-  labels: zoneRows.map((zone) => zone.shortZone),
-  values: zoneRows.map((zone) => zone.trips),
-}
+const zoneChartConfig = {
+  trips: {
+    color: "var(--chart-1)",
+    label: "Trips",
+  },
+} satisfies ChartConfig
 
 type PickupZoneRow = {
   averageDistance: number
@@ -96,17 +98,17 @@ export function WhereRidesStartBlock() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <SketchPanel>
-          <RoughBarHChart
-            {...roughSketchChartStyle}
-            axisFontSize=".78rem"
-            color="var(--chart-1)"
-            data={zoneChartData}
-            heightClassName="min-h-[420px] [&_svg]:min-h-[420px]"
-            margin={{ top: 44, right: 28, bottom: 52, left: 150 }}
-            title="Top pickup zones"
-            titleFontSize="17px"
-            tooltipFontSize=".8rem"
-            xValueFormat=".2s"
+          <BarHChart
+            aspectRatio="4 / 3"
+            className="min-h-[420px]"
+            config={zoneChartConfig}
+            data={zoneRows}
+            minHeight={420}
+            renderer="rough"
+            roughOptions={roughSketchMarkOptions}
+            xKey="trips"
+            xValueFormatter={formatCompact}
+            yKey="shortZone"
           />
         </SketchPanel>
 

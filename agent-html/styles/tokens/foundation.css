@@ -52,12 +52,12 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
-  --agent-html-text-selection-background: color-mix(
+  --canvas-text-selection-background: color-mix(
     in oklab,
     var(--primary) 18%,
     transparent
   );
-  --agent-html-text-selection-foreground: var(--foreground);
+  --canvas-text-selection-foreground: var(--foreground);
 }
 
 .dark {
@@ -99,10 +99,10 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
-  --agent-html-text-selection-background: color-mix(
+  --canvas-text-selection-background: color-mix(
     in oklab,
     var(--primary) 28%,
     transparent
   );
-  --agent-html-text-selection-foreground: var(--foreground);
+  --canvas-text-selection-foreground: var(--foreground);
 }
