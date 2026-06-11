@@ -2,7 +2,7 @@
 
 import type { SankeyNode as SankeyNodeType } from "d3-sankey";
 import { motion } from "motion/react";
-import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 import rough from "roughjs";
 import type { Options as RoughOptions } from "roughjs/bin/core";
 import { intFmt } from "../chart-formatters";
@@ -51,8 +51,6 @@ function roundedRectPath(
 }
 
 export interface SankeyNodeProps {
-  /** Fill color for nodes. Default: uses theme colors */
-  fill?: string;
   /** Corner radius for nodes. Default: 4 */
   lineCap?: number;
   /** Opacity when another node/link is hovered. Default: 0.4 */
@@ -240,7 +238,6 @@ function AnimatedNode({
 }
 
 export function SankeyNode({
-  fill,
   lineCap = 4,
   fadedOpacity = 0.4,
   showLabels = true,
@@ -259,34 +256,19 @@ export function SankeyNode({
     animationDuration,
   } = useSankey();
 
-  // Default colors using CSS variables
-  const defaultColors = useMemo(
-    () => [
-      "var(--chart-1)",
-      "var(--chart-2)",
-      "var(--chart-3)",
-      "var(--chart-4)",
-      "var(--chart-5)",
-    ],
-    []
-  );
-
   // Get color for a node
   const getColor = useCallback(
     (
       node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
-      index: number
-    ): string => {
-      if (fill) {
-        return fill;
-      }
+    index: number
+  ): string => {
       if (getNodeColorProp) {
         return getNodeColorProp(node, index);
       }
 
-      return defaultColors[index % defaultColors.length] ?? "var(--chart-1)";
+      return "var(--chart-1)";
     },
-    [fill, getNodeColorProp, defaultColors]
+    [getNodeColorProp]
   );
 
   // Check if a node is connected to the hovered element

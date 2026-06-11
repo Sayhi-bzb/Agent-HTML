@@ -18,7 +18,6 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
   primitive catalog.
 - Keep `index/*` as generated decision summaries, not full tool output.
 - Keep `artifacts/README.md` as the artifact source route.
-- Keep `data/README.md` as the data source route.
 - Keep `styles/README.md` as the style route.
 - Do not add a new `agent-html` doc unless it owns a distinct question.
 - Do not duplicate rules across README, AGENTS, index, and styles docs. Link to the owning file instead.
@@ -37,8 +36,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Put Canvas CSS, tokens, and style routes in `styles`.
 - Put theme preset resources in `theme`; keep preset source CSS in
   `theme/presets` and let the registry normalize it. Put preset layout metadata
-  in matching `*.layout.ts` modules.
-- Put fixtures and local datasets in `data`.
+- Create `data` only for fixtures or local datasets shared by multiple artifacts.
 - Put bundle-time imports in `assets` only when an artifact needs imported files.
 - Put URL-addressed static files in `public`.
 
@@ -68,7 +66,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 - Read `components/README.md` before scanning component source.
 - Use local `agent-html/components/ui` for common interactive controls and reusable UI roles.
-- Use named rich components, `hooks`, `lib`, `schema`, and `data` when they fit the artifact task.
+- Use named rich components, `hooks`, `lib`, `schema`, and shared data when they fit the artifact task.
 - Check `index/api-surface.md` before adding, duplicating, or changing a local primitive.
 - Host and artifacts compose primitives. They do not create duplicate primitive buttons, inputs, menus, dialogs, or other common controls.
 - Keep local shadcn-derived primitives low-modification unless Canvas needs a primitive API, correctness fix, or accessibility fix.

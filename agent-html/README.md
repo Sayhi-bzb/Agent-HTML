@@ -1,6 +1,6 @@
 # React Canvas Workspace
 
-`agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, data, public static files, and source dependency metadata. It does not contain runtime install artifacts.
+`agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, public static files, and source dependency metadata. It does not contain runtime install artifacts.
 
 ## Read Route
 
@@ -19,18 +19,11 @@ When opening broad or large source files:
 - `index/large-files.md`
 - `index/dependency-summary.md`
 
-When using or changing primitives, hooks, helpers, schemas, or theme exports:
+When using or changing primitives, hooks, helpers, or theme exports:
 
 - `components/README.md` for the component source route.
 - `TASTE.md` for component choice and artifact layout judgment when UI composition is part of the task.
-- `index/reuse-surface.md` for reusable hook, helper, schema, and data choices.
-- `index/api-surface.md`
-- then the closest source file
-
-When using fixtures or local datasets:
-
-- `data/README.md`
-- `index/reuse-surface.md`
+- `index/reuse-surface.md` for reusable hook and helper choices.
 - `index/api-surface.md`
 - then the closest source file
 
@@ -45,10 +38,8 @@ When touching Canvas classes, tokens, or internal chrome:
 - `components/<name>.tsx`: single-file rich workflow components such as kanban.
 - `hooks`: reusable React behavior.
 - `lib`: pure helpers and transforms.
-- `schema`: typed contracts and validation.
 - `styles`: CSS pipeline and Canvas style API.
 - `theme`: host-owned theme preset registry and shadcn CSS sources.
-- `data`: fixtures and local datasets.
 - `artifacts/<artifact>/data.ts`: artifact-private display data.
 - `assets`: bundle-time imports, only when an artifact needs imported files.
 - `public`: URL-addressed static files.

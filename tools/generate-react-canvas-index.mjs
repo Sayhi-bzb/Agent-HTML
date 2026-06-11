@@ -471,7 +471,7 @@ function buildReuseSurfaceMarkdown() {
     "",
     "# React Canvas Reuse Surface",
     "",
-    "Decision surface for reusable `agent-html` hooks, helpers, schemas, and data.",
+    "Decision surface for reusable `agent-html` hooks and helpers.",
     "Use this file to decide whether an existing owner fits before opening source.",
     "",
     "## Hooks",
@@ -529,42 +529,6 @@ function buildReuseSurfaceMarkdown() {
           "`formatDate(value) -> string`",
           "`lib/format-date.ts`",
         ],
-        [
-          "Parse usage dashboard CSV",
-          "`parseUsageDashboardCsv`, `latestUsageRows`",
-          "`agent-html/lib/usage-dashboard.ts`",
-          "`parseUsageDashboardCsv(csv) -> UsageDashboardRow[]`",
-          "`data/README.md`, then `lib/usage-dashboard.ts`",
-        ],
-      ],
-    ),
-    "",
-    "## Schema And Data",
-    "",
-    markdownTable(
-      ["Need", "Use", "Import", "Minimal Signature", "Read Next"],
-      [
-        [
-          "Validate research-style artifact items",
-          "`researchItemSchema`, `researchItemsSchema`",
-          "`agent-html/schema/artifact-data.ts`",
-          "`researchItemsSchema.parse(value) -> ResearchItem[]`",
-          "`schema/artifact-data.ts`, `data/example-items.json`",
-        ],
-        [
-          "Use sample research items",
-          "`example-items.json`",
-          "`agent-html/data/example-items.json`",
-          "`ResearchItem[]` fixture",
-          "`data/README.md`",
-        ],
-        [
-          "Use usage dashboard rows",
-          "`public.usage_dashboard_hourly.csv`",
-          "`agent-html/data/public.usage_dashboard_hourly.csv`",
-          "Raw CSV for `parseUsageDashboardCsv`",
-          "`data/README.md`, then `lib/usage-dashboard.ts`",
-        ],
       ],
     ),
     "",
@@ -583,10 +547,6 @@ function suggestedRoute(file) {
     return "`artifacts/README.md`"
   }
 
-  if (file.includes("/data/")) {
-    return "`data/README.md`"
-  }
-
   if (file.includes("/components/")) {
     return "`components/README.md`"
   }
@@ -598,7 +558,6 @@ function suggestedRoute(file) {
   if (
     file.includes("/hooks/") ||
     file.includes("/lib/") ||
-    file.includes("/schema/") ||
     file.includes("/theme/")
   ) {
     return "`index/api-surface.md`"
@@ -623,8 +582,8 @@ function buildReadme() {
     "",
     "1. Read `large-files.md` before opening broad coverage artifacts or large primitives.",
     "2. Read `dependency-summary.md` before broad dependency or boundary work.",
-    "3. Read `reuse-surface.md` when choosing reusable hooks, helpers, schemas, or data.",
-    "4. Read `api-surface.md` when checking component, hook, helper, schema, or theme exports.",
+    "3. Read `reuse-surface.md` when choosing reusable hooks or helpers.",
+    "4. Read `api-surface.md` when checking component, hook, helper, or theme exports.",
     "5. Open source only after the index identifies the relevant file.",
     "",
     "## Files",

@@ -55,12 +55,6 @@ agent-html/hooks
 agent-html/lib
   -> pure helpers and transforms
 
-agent-html/schema
-  -> typed contracts and validation
-
-agent-html/data
-  -> fixtures and local datasets
-
 agent-html/assets
   -> bundle-time artifact assets imported by artifact source
 
@@ -82,7 +76,7 @@ a portable source workspace, not a vendored runtime package; it does not keep
 Canvas CLI and host packages provide the runtime React, bundling, stylesheet,
 icon, and preview environment. Local Canvas primitives may list source
 dependencies in `agent-html/package.json`; artifact authors should prefer
-existing `ui`, `hooks`, `lib`, `schema`, `data`, and `assets` resources before
+existing `ui`, `hooks`, `lib`, and `assets` resources before
 introducing a third-party dependency. New dependencies need an explicit owner:
 source-only workspace metadata when local Canvas source imports them, or
 CLI/host package dependencies when the runtime host must provide them.
@@ -117,8 +111,7 @@ import {
 import { Button } from "../components/ui/button"
 import { useFilter } from "../hooks/use-filter"
 import { formatDate } from "../lib/format-date"
-import { artifactDataSchema } from "../schema/artifact-data"
-import rows from "../data/rows.json"
+import rows from "./data"
 import diagramUrl from "../assets/diagram.svg"
 ```
 

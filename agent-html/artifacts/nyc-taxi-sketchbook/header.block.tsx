@@ -10,7 +10,18 @@ import {
 
 const taxiHeroImage = {
   alt: "Abstract composition used as the NYC taxi sketchbook header image.",
-  src: "https://www.dropbox.com/s/1ymi9xx2ywqkxbj/composition-10.svg?raw=1",
+  maskUrl: "https://www.dropbox.com/s/1ymi9xx2ywqkxbj/composition-10.svg?raw=1",
+}
+
+const taxiHeroMaskStyle = {
+  WebkitMaskImage: `url("${taxiHeroImage.maskUrl}")`,
+  WebkitMaskPosition: "center",
+  WebkitMaskRepeat: "no-repeat",
+  WebkitMaskSize: "cover",
+  maskImage: `url("${taxiHeroImage.maskUrl}")`,
+  maskPosition: "center",
+  maskRepeat: "no-repeat",
+  maskSize: "cover",
 }
 
 export function TaxiHeaderBlock() {
@@ -18,15 +29,24 @@ export function TaxiHeaderBlock() {
 
   return (
     <section className="canvas-stack-lg">
-      <figure className="relative min-h-[420px] overflow-hidden rounded-md bg-background md:min-h-[520px]">
+      <figure
+        aria-label={taxiHeroImage.alt}
+        className="relative min-h-[420px] overflow-hidden rounded-md bg-background md:min-h-[520px]"
+        role="img"
+      >
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklab,var(--chart-2)_20%,transparent),transparent_34%),linear-gradient(135deg,color-mix(in_oklab,var(--chart-1)_16%,var(--background)),var(--background)_56%,color-mix(in_oklab,var(--chart-3)_18%,var(--background)))]"
         />
-        <img
-          alt={taxiHeroImage.alt}
-          className="absolute inset-0 h-full w-full object-cover opacity-90 mix-blend-multiply dark:mix-blend-screen"
-          src={taxiHeroImage.src}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-foreground/85"
+          style={taxiHeroMaskStyle}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 translate-x-3 translate-y-2 bg-chart-1/35 mix-blend-multiply dark:mix-blend-screen"
+          style={taxiHeroMaskStyle}
         />
         <div
           aria-hidden="true"

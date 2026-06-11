@@ -64,7 +64,6 @@ export interface SankeyContextValue {
   containerRef: RefObject<HTMLDivElement | null>;
 
   // Animation
-  isLoaded: boolean;
   animationDuration: number;
   /** Motion enter transition (spring or cubic-bezier tween). */
   enterTransition?: Transition;
@@ -99,12 +98,3 @@ export function useSankey(): SankeyContextValue {
   }
   return context;
 }
-
-// CSS variables for sankey theming
-export const sankeyCssVars = {
-  background: "var(--chart-background)",
-  foreground: "var(--chart-foreground)",
-  nodePrimary: "var(--chart-line-primary)",
-  nodeSecondary: "var(--chart-line-secondary)",
-  linkColor: "var(--chart-foreground-muted, hsl(0, 0%, 50%))",
-};

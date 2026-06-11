@@ -5,7 +5,7 @@ import type {
   SankeyNode as SankeyNodeType,
 } from "d3-sankey";
 import { motion, useTransform } from "motion/react";
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import rough from "roughjs";
 import type { Options as RoughOptions } from "roughjs/bin/core";
 import { useMountProgress } from "../use-mount-progress";
@@ -32,22 +32,6 @@ function getNodeObject(
     return null;
   }
   return nodeOrIndex;
-}
-
-// Default node color palette using CSS variables
-const defaultColors = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-];
-
-function getDefaultNodeColor(
-  node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>
-): string {
-  const index = node.index ?? 0;
-  return defaultColors[index % defaultColors.length] ?? "var(--chart-1)";
 }
 
 function createRibbonPath(
@@ -90,31 +74,15 @@ function createRibbonPath(
 }
 
 export interface SankeyLinkProps {
-  /** Stroke color for links (overrides gradient). Default: uses gradient */
-  stroke?: string;
   /** Stroke opacity. Default: 0.5 */
   strokeOpacity?: number;
   /** Opacity when another link/node is hovered. Default: 0.1 */
   fadedOpacity?: number;
-  /** Use gradient from source to target color. Default: true */
-  useGradient?: boolean;
-  /** Custom function to get node color (for gradient) */
-  getNodeColor?: (
-    node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
-    index: number
-  ) => string;
   /** Custom link color function (overrides gradient) */
   getLinkColor?: (
     link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>,
     index: number
   ) => string;
-  /** Pattern definitions to render in defs. Use @visx/pattern components (PatternLines, PatternCircles, etc.) */
-  patterns?: React.ReactNode;
-  /** Return pattern ID for a link, or null/undefined to use gradient/solid color */
-  getLinkPattern?: (
-    link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>,
-    index: number
-  ) => string | null | undefined;
   /** Draw links with roughjs while preserving Sankey layout and hover state. */
   roughOptions?: RoughOptions;
 }
@@ -279,14 +247,9 @@ function AnimatedLink({
 }
 
 export function SankeyLink({
-  stroke,
   strokeOpacity = 0.5,
   fadedOpacity = 0.1,
-  useGradient = true,
-  getNodeColor,
   getLinkColor,
-  patterns,
-  getLinkPattern,
   roughOptions,
 }: SankeyLinkProps) {
   const {
@@ -299,81 +262,22 @@ export function SankeyLink({
     createPath,
   } = useSankey();
 
-  // Get color for a node (for gradients)
-  const getNodeColorFn = useCallback(
-    (node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>): string => {
-      if (getNodeColor) {
-        return getNodeColor(node, node.index ?? 0);
-      }
-      return getDefaultNodeColor(node);
-    },
-    [getNodeColor]
-  );
-
   // Get color for a link (solid color, when not using gradient)
   const getLinkColorFn = useCallback(
     (link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>, index: number) => {
       if (getLinkColor) {
         return getLinkColor(link, index);
       }
-      return stroke || "var(--chart-line-primary)";
+      return "var(--chart-line-primary)";
     },
-    [getLinkColor, stroke]
+    [getLinkColor]
   );
 
   // Check if any element is hovered
   const isAnyHovered = hoveredNodeIndex !== null || hoveredLinkIndex !== null;
 
-  // Build gradient definitions for all links
-  const gradientDefs = useMemo(() => {
-    if (!useGradient || stroke || getLinkColor) {
-      return null;
-    }
-
-    return links.map((link, index) => {
-      const sourceNode = getNodeObject(link.source as NodeOrIndex);
-      const targetNode = getNodeObject(link.target as NodeOrIndex);
-
-      // Always define a gradient so `url(#...)` never points to a missing id.
-      // Use fallback colors if nodes can't be resolved
-      const sourceColor = sourceNode
-        ? getNodeColorFn(sourceNode)
-        : "var(--chart-1)";
-      const targetColor = targetNode
-        ? getNodeColorFn(targetNode)
-        : "var(--chart-1)";
-      const gradientId = `link-gradient-${index}`;
-
-      // Get absolute x positions for gradient
-      // Use userSpaceOnUse to avoid issues with horizontal links (where bounding box has zero height)
-      const x1 = sourceNode?.x1 ?? 0;
-      const x2 = targetNode?.x0 ?? 100;
-
-      return (
-        <linearGradient
-          gradientUnits="userSpaceOnUse"
-          id={gradientId}
-          key={gradientId}
-          x1={x1}
-          x2={x2}
-          y1="0"
-          y2="0"
-        >
-          <stop offset="0%" stopColor={sourceColor} stopOpacity={1} />
-          <stop offset="100%" stopColor={targetColor} stopOpacity={1} />
-        </linearGradient>
-      );
-    });
-  }, [links, useGradient, stroke, getLinkColor, getNodeColorFn]);
-
   return (
     <g className="sankey-links">
-      {/* Pattern and gradient definitions */}
-      <defs>
-        {patterns}
-        {gradientDefs}
-      </defs>
-
       {/* Links */}
       {links.map((link, index) => {
         const path = createPath(link);
@@ -416,18 +320,7 @@ export function SankeyLink({
           setTooltipData(null);
         };
 
-        // Determine stroke color (pattern URL, gradient URL, or solid color)
-        let linkStroke: string;
-        const patternId = getLinkPattern?.(link, index);
-        if (patternId) {
-          // Use pattern fill
-          linkStroke = `url(#${patternId})`;
-        } else if (useGradient && !stroke && !getLinkColor) {
-          // Use gradient
-          linkStroke = `url(#link-gradient-${index})`;
-        } else {
-          linkStroke = getLinkColorFn(link, index);
-        }
+        const linkStroke = getLinkColorFn(link, index);
 
         return (
           <AnimatedLink

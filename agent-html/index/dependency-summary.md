@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 128 |
-| Dependencies | 395 |
-| Local edges | 242 |
-| External edges | 152 |
+| Modules | 121 |
+| Dependencies | 389 |
+| Local edges | 238 |
+| External edges | 150 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -28,9 +28,9 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/nyc-taxi-sketchbook/data.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/rough-theme.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 7 |
-| `agent-html/artifacts/tokyo-three-speeds/data.ts` | 5 |
-| `agent-html/components/charts/sankey/sankey-context.tsx` | 5 |
+| `agent-html/artifacts/tokyo-three-speeds/data.ts` | 6 |
 | `agent-html/components/ui/alert.tsx` | 5 |
+| `agent-html/components/charts/sankey/sankey-context.tsx` | 4 |
 
 ## Highest Local Fanout
 
@@ -57,8 +57,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | `node_modules/radix-ui/dist/index.mjs` | 23 |
 | `node_modules/lucide-react/dist/esm/lucide-react.mjs` | 21 |
 | `node_modules/class-variance-authority/dist/index.mjs` | 7 |
-| `node_modules/motion/dist/es/react.mjs` | 4 |
 | `packages/react/src/index.tsx` | 4 |
+| `node_modules/motion/dist/es/react.mjs` | 3 |
 | `node_modules/react-dom/index.js` | 3 |
 | `node_modules/roughjs/bundled/rough.esm.js` | 3 |
 | `node_modules/clsx/dist/clsx.mjs` | 2 |

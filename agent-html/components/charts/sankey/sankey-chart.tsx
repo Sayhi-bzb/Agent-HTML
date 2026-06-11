@@ -3,12 +3,10 @@
 import { localPoint } from "@visx/event";
 import { ParentSize } from "@visx/responsive";
 import { sankey, sankeyCenter, sankeyLinkHorizontal } from "@visx/sankey";
-import type { Transition } from "motion/react";
 import {
   memo,
   type ReactNode,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -34,10 +32,6 @@ export interface SankeyChartProps {
   margin?: Partial<Margin>;
   /** Animation duration in milliseconds. Default: 1100 */
   animationDuration?: number;
-  /** Motion enter transition (spring or cubic-bezier tween). */
-  enterTransition?: Transition;
-  /** Signature of motion URL state — triggers enter replay when it changes. */
-  revealSignature?: string;
   /** Aspect ratio as "width / height". Default: "2 / 1" */
   aspectRatio?: string;
   /** Node width in pixels. Default: 16 */
@@ -48,10 +42,6 @@ export interface SankeyChartProps {
   className?: string;
   /** Child components (SankeyNode, SankeyLink, SankeyTooltip) */
   children: ReactNode;
-  /** Controlled hovered node index (e.g. from ChartLegend). */
-  hoveredNodeIndex?: number | null;
-  /** Called when node hover changes from the chart surface. */
-  onNodeHoverChange?: (index: number | null) => void;
 }
 
 const DEFAULT_MARGIN: Margin = { top: 40, right: 180, bottom: 40, left: 180 };
@@ -62,13 +52,9 @@ interface SankeyChartInnerProps {
   height: number;
   margin: Margin;
   animationDuration: number;
-  enterTransition?: Transition;
-  revealSignature?: string;
   nodeWidth: number;
   nodePadding: number;
   children: ReactNode;
-  hoveredNodeIndexProp?: number | null;
-  onNodeHoverChange?: (index: number | null) => void;
 }
 
 function SankeyChartInner(props: SankeyChartInnerProps) {
@@ -87,34 +73,12 @@ const SankeyChartCore = memo(function SankeyChartCore({
   height,
   margin,
   animationDuration,
-  enterTransition,
-  revealSignature = "",
   nodeWidth,
   nodePadding,
   children,
-  hoveredNodeIndexProp,
-  onNodeHoverChange,
 }: SankeyChartInnerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [revealEpoch, setRevealEpoch] = useState(0);
-  const [internalHoveredNodeIndex, setInternalHoveredNodeIndex] = useState<
-    number | null
-  >(null);
-  const isNodeHoverControlled = hoveredNodeIndexProp !== undefined;
-  const hoveredNodeIndex = isNodeHoverControlled
-    ? hoveredNodeIndexProp
-    : internalHoveredNodeIndex;
-  const setHoveredNodeIndex = useCallback(
-    (index: number | null) => {
-      if (isNodeHoverControlled) {
-        onNodeHoverChange?.(index);
-      } else {
-        setInternalHoveredNodeIndex(index);
-      }
-    },
-    [isNodeHoverControlled, onNodeHoverChange]
-  );
+  const [hoveredNodeIndex, setHoveredNodeIndex] = useState<number | null>(null);
   const [hoveredLinkIndex, setHoveredLinkIndex] = useState<number | null>(null);
   const [tooltipData, setTooltipData] = useState<SankeyTooltipData | null>(
     null
@@ -125,16 +89,6 @@ const SankeyChartCore = memo(function SankeyChartCore({
 
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: revealSignature
-  useEffect(() => {
-    setRevealEpoch((n) => n + 1);
-    setIsLoaded(false);
-    const timeout = setTimeout(() => {
-      setIsLoaded(true);
-    }, animationDuration);
-    return () => clearTimeout(timeout);
-  }, [animationDuration, revealSignature]);
 
   const sankeyGenerator = useMemo(() => {
     return sankey<SankeyNodeDatum, SankeyLinkDatum>()
@@ -198,10 +152,8 @@ const SankeyChartCore = memo(function SankeyChartCore({
     tooltipData,
     setTooltipData,
     containerRef,
-    isLoaded,
     animationDuration,
-    enterTransition,
-    revealEpoch,
+    revealEpoch: 0,
     mousePos,
     createPath,
   };
@@ -229,15 +181,11 @@ export function SankeyChart({
   data,
   margin: marginProp,
   animationDuration = 1100,
-  enterTransition,
-  revealSignature,
   aspectRatio = "2 / 1",
   nodeWidth = 16,
   nodePadding = 24,
   className = "",
   children,
-  hoveredNodeIndex,
-  onNodeHoverChange,
 }: SankeyChartProps) {
   const margin = { ...DEFAULT_MARGIN, ...marginProp };
 
@@ -248,14 +196,10 @@ export function SankeyChart({
           <SankeyChartInner
             animationDuration={animationDuration}
             data={data}
-            enterTransition={enterTransition}
             height={height}
-            hoveredNodeIndexProp={hoveredNodeIndex}
             margin={margin}
             nodePadding={nodePadding}
             nodeWidth={nodeWidth}
-            onNodeHoverChange={onNodeHoverChange}
-            revealSignature={revealSignature}
             width={width}
           >
             {children}

@@ -122,7 +122,6 @@ function OdSankeyChart() {
           }}
           roughOptions={roughSketchSankeyOptions}
           strokeOpacity={0.64}
-          useGradient={false}
         />
         <SankeyNode
           getNodeColor={(node) => sankeyNodeColor(node.name)}
