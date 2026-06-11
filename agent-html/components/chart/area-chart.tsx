@@ -1,5 +1,5 @@
 import { scalePoint } from "@visx/scale"
-import { LinePath } from "@visx/shape"
+import { AreaClosed, LinePath } from "@visx/shape"
 import * as React from "react"
 
 import {
@@ -8,13 +8,14 @@ import {
   ChartCartesianGroup,
   ChartContainer,
   ChartReferenceLine,
+  type ChartRenderer,
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
   ChartXAxisLabels,
   ChartYAxisGrid,
-  createLinearScale,
   createCartesianLayout,
+  createLinearScale,
   getChartCssVariable,
   getFiniteValues,
   getNearestDatum,
@@ -23,13 +24,14 @@ import {
   isFiniteNumber,
 } from "./chart"
 
-export interface LineChartProps<T> {
+export interface AreaChartProps<T> {
   aspectRatio?: string
   className?: string
   config: ChartConfig
-  data: T[]
+  data: readonly T[]
   minHeight?: number
   referenceY?: number
+  renderer?: Extract<ChartRenderer, "svg">
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -57,7 +59,7 @@ function formatValue(value: number) {
   return valueFormatter.format(value)
 }
 
-export function LineChart<T>({
+export function AreaChart<T>({
   aspectRatio = "9 / 4",
   className,
   config,
@@ -68,7 +70,7 @@ export function LineChart<T>({
   xLabelFormatter,
   yKey,
   yValueFormatter = formatValue,
-}: LineChartProps<T>) {
+}: AreaChartProps<T>) {
   const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
 
   return (
@@ -78,20 +80,21 @@ export function LineChart<T>({
       config={config}
       empty={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
-          No trend data
+          No area data
         </div>
       }
       minHeight={minHeight}
     >
       {({ height, series, width }) => {
+        const chartData = Array.from(data)
         const layout = createCartesianLayout({
           height,
           margin: DEFAULT_MARGIN,
           width,
         })
-        const values = getFiniteValues(data, yKey)
+        const values = getFiniteValues(chartData, yKey)
         const xScale = scalePoint<string>({
-          domain: data.map((datum) => getValue(datum, xKey)),
+          domain: chartData.map((datum) => getValue(datum, xKey)),
           padding: 0.5,
           range: [0, layout.innerWidth],
         })
@@ -118,7 +121,7 @@ export function LineChart<T>({
           }
 
           const pointerX = point.x - layout.margin.left
-          const datum = getNearestDatum({ data, pointerX, x })
+          const datum = getNearestDatum({ data: chartData, pointerX, x })
 
           if (!datum) {
             return
@@ -134,7 +137,7 @@ export function LineChart<T>({
         return (
           <>
             <ChartSvg
-              aria-label="趋势折线图"
+              aria-label="面积趋势图"
               onPointerLeave={() => setTooltip(null)}
               onPointerMove={handlePointerMove}
               role="img"
@@ -146,7 +149,7 @@ export function LineChart<T>({
                   scale={yScale}
                 />
                 <ChartXAxisLabels
-                  data={data}
+                  data={chartData}
                   formatTick={xLabelFormatter}
                   innerHeight={layout.innerHeight}
                   x={x}
@@ -160,8 +163,18 @@ export function LineChart<T>({
                   />
                 ) : null}
 
+                <AreaClosed
+                  data={chartData}
+                  defined={(datum) => isFiniteNumber(getValue(datum, yKey))}
+                  fill={color}
+                  fillOpacity={0.16}
+                  stroke="transparent"
+                  x={x}
+                  y={y}
+                  yScale={yScale}
+                />
                 <LinePath
-                  data={data}
+                  data={chartData}
                   defined={(datum) => isFiniteNumber(getValue(datum, yKey))}
                   fill="none"
                   stroke={color}
@@ -169,26 +182,6 @@ export function LineChart<T>({
                   x={x}
                   y={y}
                 />
-
-                {data.map((datum) => {
-                  const value = getValue(datum, yKey)
-
-                  if (!isFiniteNumber(value)) {
-                    return null
-                  }
-
-                  return (
-                    <circle
-                      className="fill-background"
-                      cx={x(datum)}
-                      cy={y(datum)}
-                      key={`${getValue(datum, xKey)}-${value}`}
-                      r={3.5}
-                      stroke={color}
-                      strokeWidth={2}
-                    />
-                  )
-                })}
               </ChartCartesianGroup>
             </ChartSvg>
 

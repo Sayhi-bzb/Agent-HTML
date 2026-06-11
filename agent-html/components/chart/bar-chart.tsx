@@ -1,35 +1,40 @@
-import { scalePoint } from "@visx/scale"
-import { LinePath } from "@visx/shape"
+import { Bar } from "@visx/shape"
 import * as React from "react"
+import type { Options as RoughOptions } from "roughjs/bin/core"
 
 import {
   type ChartAccessor,
   type ChartConfig,
   ChartCartesianGroup,
   ChartContainer,
-  ChartReferenceLine,
+  ChartHitRect,
+  ChartLegend,
+  type ChartRenderer,
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
   ChartXAxisLabels,
   ChartYAxisGrid,
-  createLinearScale,
+  createBandScale,
   createCartesianLayout,
+  createLinearScale,
+  createRoughOptionsByKey,
   getChartCssVariable,
   getFiniteValues,
-  getNearestDatum,
-  getPointerPoint,
   getValue,
   isFiniteNumber,
 } from "./chart"
+import { RoughRect } from "./rough-renderers"
 
-export interface LineChartProps<T> {
+export interface BarChartProps<T> {
   aspectRatio?: string
   className?: string
   config: ChartConfig
-  data: T[]
+  data: readonly T[]
+  legend?: boolean
   minHeight?: number
-  referenceY?: number
+  renderer?: ChartRenderer
+  roughOptions?: RoughOptions
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -43,8 +48,8 @@ interface TooltipState<T> {
 }
 
 const DEFAULT_MARGIN = {
-  bottom: 28,
-  left: 38,
+  bottom: 42,
+  left: 42,
   right: 16,
   top: 16,
 }
@@ -57,19 +62,32 @@ function formatValue(value: number) {
   return valueFormatter.format(value)
 }
 
-export function LineChart<T>({
+export function BarChart<T>({
   aspectRatio = "9 / 4",
   className,
   config,
   data,
+  legend = false,
   minHeight = 320,
-  referenceY,
+  renderer = "svg",
+  roughOptions,
   xKey,
   xLabelFormatter,
   yKey,
   yValueFormatter = formatValue,
-}: LineChartProps<T>) {
+}: BarChartProps<T>) {
   const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
+  const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
+  const roughOptionsByKey = React.useMemo(
+    () =>
+      createRoughOptionsByKey({
+        getColorKey: () => seriesKey,
+        getKey: (datum: T) => getValue(datum, xKey),
+        options: roughOptions,
+        rows: data,
+      }) as Map<string, RoughOptions>,
+    [data, roughOptions, seriesKey, xKey]
+  )
 
   return (
     <ChartContainer
@@ -78,7 +96,7 @@ export function LineChart<T>({
       config={config}
       empty={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
-          No trend data
+          No bar data
         </div>
       }
       minHeight={minHeight}
@@ -89,54 +107,25 @@ export function LineChart<T>({
           margin: DEFAULT_MARGIN,
           width,
         })
-        const values = getFiniteValues(data, yKey)
-        const xScale = scalePoint<string>({
-          domain: data.map((datum) => getValue(datum, xKey)),
-          padding: 0.5,
+        const xScale = createBandScale({
+          data: Array.from(data),
+          padding: 0.28,
           range: [0, layout.innerWidth],
+          x: xKey,
         })
         const yScale = createLinearScale({
           range: [layout.innerHeight, 0],
-          values,
+          values: getFiniteValues(Array.from(data), yKey),
         })
-        const primarySeries = series[0]
-        const seriesKey = primarySeries?.key ?? "value"
-        const seriesLabel = primarySeries?.label ?? seriesKey
+        const seriesLabel = config[seriesKey]?.label ?? series[0]?.label ?? seriesKey
         const color = getChartCssVariable(seriesKey)
         const x = (datum: T) => xScale(getValue(datum, xKey)) ?? 0
-        const y = (datum: T) => {
-          const value = getValue(datum, yKey)
-          return isFiniteNumber(value) ? yScale(value) : 0
-        }
-        const handlePointerMove = (
-          event: React.PointerEvent<SVGSVGElement>
-        ) => {
-          const point = getPointerPoint(event)
-
-          if (!point) {
-            return
-          }
-
-          const pointerX = point.x - layout.margin.left
-          const datum = getNearestDatum({ data, pointerX, x })
-
-          if (!datum) {
-            return
-          }
-
-          setTooltip({
-            datum,
-            x: layout.margin.left + x(datum) + 12,
-            y: layout.margin.top + y(datum) - 12,
-          })
-        }
 
         return (
-          <>
+          <div className="relative h-full w-full">
             <ChartSvg
-              aria-label="趋势折线图"
+              aria-label="柱形图"
               onPointerLeave={() => setTooltip(null)}
-              onPointerMove={handlePointerMove}
               role="img"
             >
               <ChartCartesianGroup layout={layout}>
@@ -149,44 +138,56 @@ export function LineChart<T>({
                   data={data}
                   formatTick={xLabelFormatter}
                   innerHeight={layout.innerHeight}
-                  x={x}
+                  x={(datum) => x(datum) + xScale.bandwidth() / 2}
                   xKey={xKey}
                 />
 
-                {isFiniteNumber(referenceY) ? (
-                  <ChartReferenceLine
-                    innerWidth={layout.innerWidth}
-                    y={yScale(referenceY)}
-                  />
-                ) : null}
-
-                <LinePath
-                  data={data}
-                  defined={(datum) => isFiniteNumber(getValue(datum, yKey))}
-                  fill="none"
-                  stroke={color}
-                  strokeWidth={2}
-                  x={x}
-                  y={y}
-                />
-
                 {data.map((datum) => {
+                  const category = getValue(datum, xKey)
                   const value = getValue(datum, yKey)
 
                   if (!isFiniteNumber(value)) {
                     return null
                   }
 
+                  const barX = x(datum)
+                  const barY = yScale(value)
+                  const barHeight = layout.innerHeight - barY
+                  const barWidth = xScale.bandwidth()
+                  const showTooltip = () =>
+                    setTooltip({
+                      datum,
+                      x: layout.margin.left + barX + barWidth / 2 + 12,
+                      y: layout.margin.top + barY - 12,
+                    })
+
                   return (
-                    <circle
-                      className="fill-background"
-                      cx={x(datum)}
-                      cy={y(datum)}
-                      key={`${getValue(datum, xKey)}-${value}`}
-                      r={3.5}
-                      stroke={color}
-                      strokeWidth={2}
-                    />
+                    <g key={category}>
+                      {renderer === "rough" ? (
+                        <RoughRect
+                          height={barHeight}
+                          options={roughOptionsByKey.get(category)}
+                          width={barWidth}
+                          x={barX}
+                          y={barY}
+                        />
+                      ) : (
+                        <Bar
+                          fill={color}
+                          height={barHeight}
+                          width={barWidth}
+                          x={barX}
+                          y={barY}
+                        />
+                      )}
+                      <ChartHitRect
+                        height={barHeight}
+                        onPointerEnter={showTooltip}
+                        width={barWidth}
+                        x={barX}
+                        y={barY}
+                      />
+                    </g>
                   )
                 })}
               </ChartCartesianGroup>
@@ -215,7 +216,14 @@ export function LineChart<T>({
                 />
               ) : null}
             </ChartTooltip>
-          </>
+
+            {legend ? (
+              <ChartLegend
+                className="absolute inset-x-0 bottom-0 justify-center"
+                series={series}
+              />
+            ) : null}
+          </div>
         )
       }}
     </ChartContainer>

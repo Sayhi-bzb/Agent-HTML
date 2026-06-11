@@ -36,6 +36,8 @@ export interface ChartResolvedSeries {
   icon?: ComponentType
 }
 
+export type ChartRenderer = "svg" | "rough"
+
 export const chartThemes = THEMES
 
 export const defaultChartColors = [
@@ -359,6 +361,51 @@ export function ChartSvg({
   )
 }
 
+export function ChartHitPath({
+  d,
+  onPointerEnter,
+}: {
+  d: string
+  onPointerEnter?: React.PointerEventHandler<SVGPathElement>
+}) {
+  return (
+    <path
+      d={d}
+      fill="transparent"
+      onPointerEnter={onPointerEnter}
+      pointerEvents="all"
+      stroke="transparent"
+    />
+  )
+}
+
+export function ChartHitRect({
+  height,
+  onPointerEnter,
+  width,
+  x,
+  y,
+}: {
+  height: number
+  onPointerEnter?: React.PointerEventHandler<SVGRectElement>
+  width: number
+  x: number
+  y: number
+}) {
+  return (
+    <rect
+      fill="transparent"
+      height={height}
+      onPointerEnter={onPointerEnter}
+      pointerEvents="all"
+      stroke="transparent"
+      width={width}
+      x={x}
+      y={y}
+    />
+  )
+}
+
 export interface ChartMargin {
   bottom: number
   left: number
@@ -460,6 +507,25 @@ export function ChartYAxisGrid({
   )
 }
 
+export function ChartReferenceLine({
+  innerWidth,
+  y,
+}: {
+  innerWidth: number
+  y: number
+}) {
+  return (
+    <line
+      className="stroke-border"
+      strokeDasharray="3 3"
+      x1={0}
+      x2={innerWidth}
+      y1={y}
+      y2={y}
+    />
+  )
+}
+
 export function ChartXAxisLabels<T>({
   data,
   formatTick,
@@ -547,18 +613,22 @@ export function getNearestDatum<T>({
 }
 
 export function createRoughOptionsByKey<T, TOptions extends object>({
+  getColorKey,
   getKey,
   options,
   rows,
 }: {
+  getColorKey?: (row: T) => string
   getKey: (row: T) => string
   options?: TOptions
   rows: readonly T[]
 }) {
+  const resolveColorKey = getColorKey ?? getKey
+
   return new Map(
     rows.map((row) => {
       const key = getKey(row)
-      const color = getChartCssVariable(key)
+      const color = getChartCssVariable(resolveColorKey(row))
 
       return [
         key,

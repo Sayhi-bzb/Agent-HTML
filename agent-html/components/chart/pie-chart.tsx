@@ -2,10 +2,12 @@ import { Pie } from "@visx/shape"
 import * as React from "react"
 import type { Options as RoughOptions } from "roughjs/bin/core"
 
-import type { ChartAccessor, ChartConfig } from "./chart"
+import type { ChartAccessor, ChartConfig, ChartRenderer } from "./chart"
 import {
   ChartContainer,
+  ChartHitPath,
   ChartLegend,
+  ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
   createRoughOptionsByKey,
@@ -23,7 +25,7 @@ export interface PieChartProps<T> {
   legend?: boolean
   minHeight?: number
   nameKey: ChartAccessor<T, string>
-  renderer?: "rough" | "svg"
+  renderer?: ChartRenderer
   roughOptions?: RoughOptions
   valueFormatter?: (value: number) => React.ReactNode
   valueKey: ChartAccessor<T, number>
@@ -111,7 +113,7 @@ export function PieChart<T>({
       config={config}
       empty={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
-          暂无占比数据
+          No share data
         </div>
       }
       minHeight={minHeight}
@@ -128,9 +130,8 @@ export function PieChart<T>({
 
         return (
           <div className="relative h-full w-full">
-            <svg
+            <ChartSvg
               aria-label="占比饼图"
-              className="h-full w-full overflow-visible"
               onPointerLeave={() => setTooltip(null)}
               role="img"
             >
@@ -162,12 +163,9 @@ export function PieChart<T>({
                           ) : (
                             <path d={d} fill={color} stroke={color} />
                           )}
-                          <path
+                          <ChartHitPath
                             d={d}
-                            fill="transparent"
                             onPointerEnter={showTooltip}
-                            pointerEvents="all"
-                            stroke="transparent"
                           />
                         </g>
                       )
@@ -175,7 +173,7 @@ export function PieChart<T>({
                   </g>
                 )}
               </Pie>
-            </svg>
+            </ChartSvg>
 
             <ChartTooltip
               visible={tooltip !== null}
