@@ -87,7 +87,7 @@ export function SectionIntro({
       <div className="grid gap-3 md:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)] md:items-end">
         <div className="canvas-stack-xs">
           <Badge variant="secondary">{badge}</Badge>
-          <h2 className="canvas-text-subheading">{title}</h2>
+          <h2 className="canvas-text-heading">{title}</h2>
         </div>
         <p className="canvas-text-caption text-muted-foreground md:max-w-2xl">
           {children}

@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 162 |
-| Dependencies | 470 |
-| Local edges | 311 |
-| External edges | 158 |
+| Modules | 164 |
+| Dependencies | 478 |
+| Local edges | 322 |
+| External edges | 155 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -26,11 +26,11 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/components/media-figure.tsx` | 9 |
 | `agent-html/artifacts/health-report-decoder/data/report.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 7 |
+| `agent-html/components/chart/chart.tsx` | 7 |
+| `agent-html/lib/public-url.ts` | 7 |
 | `agent-html/artifacts/nasa-artemis-ii/data/media.ts` | 6 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/rough-theme.ts` | 6 |
-| `agent-html/components/chart/chart.tsx` | 6 |
-| `agent-html/artifacts/health-report-decoder/data/status.ts` | 5 |
-| `agent-html/artifacts/tokyo-three-speeds/data/media.ts` | 5 |
+| `agent-html/components/chart/index.ts` | 6 |
 
 ## Highest Local Fanout
 
@@ -41,13 +41,13 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/health-report-decoder.artifact.tsx` | 8 |
 | `agent-html/components/ui/sidebar.tsx` | 8 |
 | `agent-html/artifacts/code-review-room.artifact.tsx` | 7 |
+| `agent-html/artifacts/health-report-decoder/lab-system-map.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/lab-trend-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/ldl-range-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/report-triage.block.tsx` | 7 |
 | `agent-html/artifacts/nasa-artemis-ii.artifact.tsx` | 7 |
 | `agent-html/artifacts/nasa-artemis-ii/mission-route.block.tsx` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook.artifact.tsx` | 7 |
-| `agent-html/artifacts/tokyo-three-speeds.artifact.tsx` | 7 |
 
 ## Top External Dependencies
 
@@ -60,8 +60,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | `node_modules/@visx/shape/esm/index.js` | 5 |
 | `packages/react/src/index.tsx` | 5 |
 | `node_modules/@visx/scale/esm/index.js` | 3 |
-| `node_modules/react-dom/index.js` | 3 |
-| `node_modules/roughjs/bundled/rough.esm.js` | 3 |
 | `node_modules/@visx/event/esm/index.js` | 2 |
-| `node_modules/@visx/responsive/esm/index.js` | 2 |
 | `node_modules/clsx/dist/clsx.mjs` | 2 |
+| `node_modules/react-dom/index.js` | 2 |
+| `node_modules/roughjs/bundled/rough.esm.js` | 2 |
+| `node_modules/tailwind-merge/dist/bundle-cjs.js` | 2 |

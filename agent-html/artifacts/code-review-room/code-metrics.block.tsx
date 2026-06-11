@@ -159,7 +159,7 @@ export function CodeMetricsBlock() {
         <p className="canvas-text-caption text-muted-foreground">
           code metrics
         </p>
-        <h2 className="canvas-text-subheading">
+        <h2 className="canvas-text-heading">
           Maintainability is visible before the refactor starts.
         </h2>
         <p className="canvas-text-body text-muted-foreground">

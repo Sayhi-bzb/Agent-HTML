@@ -1,4 +1,5 @@
 import { Badge } from "../../components/ui/badge"
+import { artifactPublicUrlFactory } from "../../lib/public-url"
 
 import { taxiKpis, taxiMeta } from "./data/generated-trip-summary"
 import {
@@ -8,10 +9,11 @@ import {
   formatCurrency,
 } from "./sketch-components"
 
+const publicUrl = artifactPublicUrlFactory("nyc-taxi-sketchbook")
+
 const tripLedgerOverviewImage = {
   alt: "Abstract composition used as the NYC taxi sketchbook overview composition.",
-  hrefBase:
-    "/__agent-html/artifacts/nyc-taxi-sketchbook/public/trip-ledger-overview-composition.svg",
+  hrefBase: publicUrl("trip-ledger-overview-composition.svg"),
 }
 
 export function TripLedgerOverviewBlock() {
@@ -63,20 +65,15 @@ export function TripLedgerOverviewBlock() {
               A one-month ledger of NYC yellow taxi trips.
             </h1>
             <p className="canvas-text-body text-muted-foreground">
-              NYC TLC Yellow Taxi Trip Record Data, filtered down to{" "}
-              <span className="text-foreground">3.67 million trips</span>. This
-              sketchbook tracks{" "}
-              <span className="text-foreground">
+              NYC TLC Yellow Taxi Trip Record Data, filtered down to <span className="text-foreground">3.67 million trips</span>. This
+              sketchbook tracks <span className="text-foreground">
                 pickup timing, geography, fares
-              </span>
-              , and the{" "}
-              <span className="text-chart-2">long airport rides</span> that bend
+              </span>, and the <span className="text-chart-2">long airport rides</span> that bend
               the averages.
             </p>
           </div>
           <SketchNote label="data cut">
-            Started with {formatCompact(taxiKpis.rawTrips)} rows; kept{" "}
-            {formatCompact(taxiKpis.keptTrips)} after filtering bad timestamps,
+            Started with {formatCompact(taxiKpis.rawTrips)} rows; kept {formatCompact(taxiKpis.keptTrips)} after filtering bad timestamps,
             invalid zones, non-positive fares/distances, and extreme values.
             The reporting window is fixed to {taxiMeta.month}.
           </SketchNote>

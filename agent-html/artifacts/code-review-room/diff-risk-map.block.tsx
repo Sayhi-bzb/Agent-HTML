@@ -11,7 +11,7 @@ export function DiffRiskMapBlock() {
         <p className="canvas-text-caption text-muted-foreground">
           diff risk map
         </p>
-        <h2 className="canvas-text-subheading">
+        <h2 className="canvas-text-heading">
           Changed lines show size. Heat shows consequence.
         </h2>
       </div>

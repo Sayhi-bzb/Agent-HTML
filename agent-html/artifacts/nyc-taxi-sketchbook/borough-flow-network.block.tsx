@@ -4,7 +4,7 @@ import * as roughViz from "rough-viz"
 import {
   SankeyChart,
   type SankeyData,
-} from "../../components/sankey-chart"
+} from "../../components/chart"
 import { od } from "./data/generated-borough-flow"
 import { pickupBoroughs } from "./data/generated-pickup-geography"
 import {
@@ -276,8 +276,7 @@ export function BoroughFlowNetworkBlock() {
               {strongest.from} {"->"} {strongest.to}
             </strong>
             <p className="canvas-text-caption text-muted-foreground">
-              {formatCompact(strongest.trips)} trips, averaging{" "}
-              {strongest.averageDistance} mi and ${strongest.averageTotal} total.
+              {formatCompact(strongest.trips)} trips, averaging {strongest.averageDistance} mi and ${strongest.averageTotal} total.
             </p>
           </SketchAnnotation>
           <LedgerRows
@@ -297,15 +296,11 @@ export function BoroughFlowNetworkBlock() {
       <SketchPanel>
         <div className="canvas-stack-md">
           <div className="canvas-stack-xs">
-            <h3 className="canvas-text-subheading">Directed OD flow</h3>
+            <h3 className="canvas-text-heading">Directed OD flow</h3>
             <p className="canvas-text-caption text-muted-foreground">
-              The force sketch shows relationships; the Sankey view ranks the
-              {" "}
-              <span className="text-foreground">strongest directed flows</span>
-              . Wider lines mean more trips, with same-area trips separated by
-              muted strokes and the{" "}
-              <span className="text-chart-2">airport boundary</span> kept
-              visible.
+              The force sketch shows relationships; the Sankey view ranks the <span className="text-foreground">strongest directed flows</span>.
+              Wider lines mean more trips, with same-area trips separated by
+              muted strokes and the <span className="text-chart-2">airport boundary</span> kept visible.
             </p>
           </div>
           <OdSankeyChart />

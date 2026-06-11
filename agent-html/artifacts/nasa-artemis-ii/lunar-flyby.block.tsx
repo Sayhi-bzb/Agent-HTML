@@ -67,8 +67,7 @@ export function LunarFlybyBlock() {
                     />
                   </div>
                   <p className="canvas-text-caption text-muted-foreground">
-                    Frame {index + 1} of {gallery.length}. {asset.caption}{" "}
-                    {asset.credit}.
+                    Frame {index + 1} of {gallery.length}. {asset.caption} {asset.credit}.
                   </p>
                 </figure>
               </CarouselItem>
@@ -89,8 +88,7 @@ export function LunarFlybyBlock() {
             This browser cannot play the simulated Artemis II lunar flyby video.
           </video>
           <p className="canvas-text-caption text-muted-foreground">
-            {mediaAssets.lunarFlyby.flybyVideo.caption}{" "}
-            {mediaAssets.lunarFlyby.flybyVideo.credit}.
+            {mediaAssets.lunarFlyby.flybyVideo.caption} {mediaAssets.lunarFlyby.flybyVideo.credit}.
           </p>
         </figure>
         <div className="canvas-grid-gap-md">

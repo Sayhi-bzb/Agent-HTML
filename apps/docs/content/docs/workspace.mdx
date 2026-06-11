@@ -96,9 +96,11 @@ artifacts they shape.
 Use `agent-html/assets` for files that artifact source imports into the bundle,
 such as images or media used by React components. Use
 `agent-html/artifacts/<artifact>/public` for artifact-owned URL-addressed files
-that should stay static and be referenced as
+that should stay static and be referenced through `artifactPublicUrlFactory`
+from `agent-html/lib/public-url`. The helper resolves to
 `/__agent-html/artifacts/<artifact>/public/<path>`. Use `agent-html/public` only
-for shared URL-addressed files such as host icons or cross-artifact resources.
+for shared URL-addressed files such as host icons or cross-artifact resources,
+and reference them through `sharedPublicUrl`.
 Public files are not imported from artifact source.
 
 ## Authoring Contract

@@ -130,8 +130,8 @@ export function AreaChart<T>({
 
           setTooltip({
             datum,
-            x: layout.margin.left + x(datum) + 12,
-            y: layout.margin.top + y(datum) - 12,
+            x: layout.margin.left + x(datum),
+            y: layout.margin.top + y(datum),
           })
         }
 
@@ -187,6 +187,7 @@ export function AreaChart<T>({
             </ChartSvg>
 
             <ChartTooltip
+              bounds={{ height, width }}
               visible={tooltip !== null}
               x={tooltip?.x ?? 0}
               y={tooltip?.y ?? 0}

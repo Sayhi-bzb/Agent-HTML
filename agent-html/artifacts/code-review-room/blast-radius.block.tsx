@@ -1,4 +1,4 @@
-import { SankeyChart } from "../../components/sankey-chart"
+import { SankeyChart } from "../../components/chart"
 import {
   Tabs,
   TabsContent,
@@ -26,7 +26,7 @@ export function BlastRadiusBlock() {
         <p className="canvas-text-caption text-muted-foreground">
           blast radius
         </p>
-        <h2 className="canvas-text-subheading">
+        <h2 className="canvas-text-heading">
           The edit is only the center point.
         </h2>
       </div>

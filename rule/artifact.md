@@ -27,7 +27,8 @@ Split broad artifacts as one source unit:
 - `artifacts/<artifact>/data/`: artifact-private display data.
 - `artifacts/<artifact>/public/`: artifact-owned URL static files.
 
-Reference artifact-owned public files as
+Reference artifact-owned public files with `artifactPublicUrlFactory` from
+`agent-html/lib/public-url`. It resolves to
 `/__agent-html/artifacts/<artifact>/public/<path>`. Use `agent-html/public`
 only for shared host or cross-artifact files.
 

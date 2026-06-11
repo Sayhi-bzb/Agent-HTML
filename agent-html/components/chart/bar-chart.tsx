@@ -5,6 +5,7 @@ import type { Options as RoughOptions } from "roughjs/bin/core"
 import {
   type ChartAccessor,
   type ChartConfig,
+  type ChartHoverState,
   ChartCartesianGroup,
   ChartContainer,
   ChartHitRect,
@@ -19,6 +20,9 @@ import {
   createCartesianLayout,
   createLinearScale,
   createRoughOptionsByKey,
+  chartHoverTransition,
+  getChartHoverOpacity,
+  getChartHoverPresence,
   getChartCssVariable,
   getFiniteValues,
   getValue,
@@ -77,6 +81,7 @@ export function BarChart<T>({
   yValueFormatter = formatValue,
 }: BarChartProps<T>) {
   const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
+  const [hover, setHover] = React.useState<ChartHoverState<"bar"> | null>(null)
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const roughOptionsByKey = React.useMemo(
     () =>
@@ -126,7 +131,10 @@ export function BarChart<T>({
           <div className="relative h-full w-full">
             <ChartSvg
               aria-label="柱形图"
-              onPointerLeave={() => setTooltip(null)}
+              onPointerLeave={() => {
+                setHover(null)
+                setTooltip(null)
+              }}
               role="img"
             >
               <ChartCartesianGroup layout={layout}>
@@ -155,32 +163,46 @@ export function BarChart<T>({
                   const barY = yScale(value)
                   const barHeight = layout.innerHeight - barY
                   const barWidth = xScale.bandwidth()
-                  const showTooltip = () =>
+                  const presence = getChartHoverPresence({
+                    hover,
+                    isRelated: hover?.key === category,
+                  })
+                  const opacity = getChartHoverOpacity({ presence })
+                  const showTooltip = () => {
+                    setHover({ key: category, type: "bar" })
                     setTooltip({
                       datum,
-                      x: layout.margin.left + barX + barWidth / 2 + 12,
-                      y: layout.margin.top + barY - 12,
+                      x: layout.margin.left + barX + barWidth / 2,
+                      y: layout.margin.top + barY,
                     })
+                  }
 
                   return (
                     <g key={category}>
-                      {renderer === "rough" ? (
-                        <RoughRect
-                          height={barHeight}
-                          options={roughOptionsByKey.get(category)}
-                          width={barWidth}
-                          x={barX}
-                          y={barY}
-                        />
-                      ) : (
-                        <Bar
-                          fill={color}
-                          height={barHeight}
-                          width={barWidth}
-                          x={barX}
-                          y={barY}
-                        />
-                      )}
+                      <g
+                        opacity={opacity}
+                        style={{
+                          transition: `opacity ${chartHoverTransition.duration}s ease-out`,
+                        }}
+                      >
+                        {renderer === "rough" ? (
+                          <RoughRect
+                            height={barHeight}
+                            options={roughOptionsByKey.get(category)}
+                            width={barWidth}
+                            x={barX}
+                            y={barY}
+                          />
+                        ) : (
+                          <Bar
+                            fill={color}
+                            height={barHeight}
+                            width={barWidth}
+                            x={barX}
+                            y={barY}
+                          />
+                        )}
+                      </g>
                       <ChartHitRect
                         height={barHeight}
                         onPointerEnter={showTooltip}
@@ -195,6 +217,7 @@ export function BarChart<T>({
             </ChartSvg>
 
             <ChartTooltip
+              bounds={{ height, width }}
               visible={tooltip !== null}
               x={tooltip?.x ?? 0}
               y={tooltip?.y ?? 0}

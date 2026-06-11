@@ -53,7 +53,7 @@ export function RiskEvidenceBlock() {
         <p className="canvas-text-caption text-muted-foreground">
           risk evidence
         </p>
-        <h2 className="canvas-text-subheading">
+        <h2 className="canvas-text-heading">
           Passing tests are not the same as covered risks.
         </h2>
       </div>

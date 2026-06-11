@@ -17,8 +17,9 @@ Target consumption chain:
 ## Layers
 
 - `chart.tsx`: shared Canvas chart protocol: config, scoped color variables,
-  responsive frame, tooltip, legend, SVG shell, hit layers, cartesian layout,
-  empty data/size separation, interaction helpers, and scale helpers.
+  responsive frame, bounds-aware tooltip, legend, SVG shell, hit layers,
+  cartesian layout, shared hover state/opacity protocol, empty data/size
+  separation, interaction helpers, and scale helpers.
 - `rough-renderers.tsx`: internal RoughJS SVG render helpers. Rough is an
   optional renderer branch inside supported chart components, not a public
   artifact entrypoint and not the chart protocol.
@@ -27,6 +28,8 @@ Target consumption chain:
 - `bar-chart.tsx`: reusable vertical bar chart using `@visx/shape/Bar`.
 - `bar-h-chart.tsx`: reusable horizontal bar chart using `@visx/shape/Bar`.
 - `pie-chart.tsx`: reusable pie chart using `@visx/shape/Pie`.
+- `sankey-chart.tsx`: reusable Sankey chart using `@visx/sankey`, shared
+  container, SVG shell, tooltip positioning, and internal rough rendering.
 
 Artifact blocks should import only semantic chart components from
 `components/chart`. They should not import `@visx/*` packages or
@@ -40,6 +43,8 @@ Use visx primitives by responsibility:
   `chart.tsx` when they support the shared chart foundation.
 - `@visx/shape` belongs in concrete chart components because shape choice is
   chart semantics.
+- `@visx/sankey` belongs in `sankey-chart.tsx`; Sankey graph layout, node/link
+  adjacency, and ribbon paths are chart-specific semantics.
 - `@visx/axis` and `@visx/grid` are available, but v1 uses Canvas-owned axis and
   grid helpers to keep DOM shape, Tailwind styling, and artifact ergonomics
   stable. Revisit only if a chart needs richer axis behavior.
@@ -52,9 +57,20 @@ Use visx primitives by responsibility:
   and stable rough options.
 - `BarHChart` supports `renderer="svg" | "rough"` with a transparent hit rect
   and stable rough options.
+- `SankeyChart` supports rough rendering through `roughOptions`, with
+  transparent link/node hit layers and shared tooltip positioning.
 - `LineChart` and `AreaChart` are SVG-only in v1 and do not expose rough as a
   valid renderer. Add rough support only after path hit testing and redraw
   stability are handled the same way as pie/bar.
+
+## Hover Policy
+
+- `chart.tsx` owns generic hover state, presence, opacity, and transition
+  tokens.
+- `BarChart`, `BarHChart`, `PieChart`, and `SankeyChart` consume the shared
+  hover protocol for highlighted and faded marks.
+- Concrete charts own item relationship logic, such as Sankey node/link
+  adjacency or pie slice identity.
 
 ## Migration Notes
 

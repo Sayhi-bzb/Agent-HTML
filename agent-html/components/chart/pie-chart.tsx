@@ -2,7 +2,12 @@ import { Pie } from "@visx/shape"
 import * as React from "react"
 import type { Options as RoughOptions } from "roughjs/bin/core"
 
-import type { ChartAccessor, ChartConfig, ChartRenderer } from "./chart"
+import type {
+  ChartAccessor,
+  ChartConfig,
+  ChartHoverState,
+  ChartRenderer,
+} from "./chart"
 import {
   ChartContainer,
   ChartHitPath,
@@ -11,6 +16,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   createRoughOptionsByKey,
+  chartHoverTransition,
+  getChartHoverOpacity,
+  getChartHoverPresence,
   getChartCssVariable,
   getValue,
   isFiniteNumber,
@@ -92,6 +100,9 @@ export function PieChart<T>({
   valueKey,
 }: PieChartProps<T>) {
   const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
+  const [hover, setHover] = React.useState<ChartHoverState<"slice"> | null>(
+    null
+  )
   const slices = React.useMemo(
     () => createSlices({ config, data, nameKey, valueKey }),
     [config, data, nameKey, valueKey]
@@ -133,7 +144,10 @@ export function PieChart<T>({
           <div className="relative h-full w-full">
             <ChartSvg
               aria-label="占比饼图"
-              onPointerLeave={() => setTooltip(null)}
+              onPointerLeave={() => {
+                setHover(null)
+                setTooltip(null)
+              }}
               role="img"
             >
               <Pie
@@ -147,23 +161,37 @@ export function PieChart<T>({
                       const [centroidX, centroidY] = path.centroid(arc)
                       const d = path(arc) ?? ""
                       const color = getChartCssVariable(arc.data.key)
-                      const showTooltip = () =>
+                      const presence = getChartHoverPresence({
+                        hover,
+                        isRelated: hover?.key === arc.data.key,
+                      })
+                      const opacity = getChartHoverOpacity({ presence })
+                      const showTooltip = () => {
+                        setHover({ key: arc.data.key, type: "slice" })
                         setTooltip({
                           slice: arc.data,
-                          x: centerX + centroidX + 12,
-                          y: pieCenterY + centroidY - 12,
+                          x: centerX + centroidX,
+                          y: pieCenterY + centroidY,
                         })
+                      }
 
                       return (
                         <g key={arc.data.key}>
-                          {renderer === "rough" ? (
-                            <RoughPath
-                              d={d}
-                              options={roughOptionsByKey.get(arc.data.key)}
-                            />
-                          ) : (
-                            <path d={d} fill={color} stroke={color} />
-                          )}
+                          <g
+                            opacity={opacity}
+                            style={{
+                              transition: `opacity ${chartHoverTransition.duration}s ease-out`,
+                            }}
+                          >
+                            {renderer === "rough" ? (
+                              <RoughPath
+                                d={d}
+                                options={roughOptionsByKey.get(arc.data.key)}
+                              />
+                            ) : (
+                              <path d={d} fill={color} stroke={color} />
+                            )}
+                          </g>
                           <ChartHitPath
                             d={d}
                             onPointerEnter={showTooltip}
@@ -177,6 +205,7 @@ export function PieChart<T>({
             </ChartSvg>
 
             <ChartTooltip
+              bounds={{ height, width }}
               visible={tooltip !== null}
               x={tooltip?.x ?? 0}
               y={tooltip?.y ?? 0}

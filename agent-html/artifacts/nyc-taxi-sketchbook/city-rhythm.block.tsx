@@ -179,8 +179,7 @@ export function CityRhythmBlock() {
               {dayLabels[peak.day]} {peak.hour}:00
             </p>
             <p className="canvas-text-caption text-muted-foreground">
-              {peak.trips.toLocaleString()} pickups, with an average total of{" "}
-              {formatCurrency(peak.averageTotal)}.
+              {peak.trips.toLocaleString()} pickups, with an average total of {formatCurrency(peak.averageTotal)}.
             </p>
           </SketchAnnotation>
           <LedgerRows
@@ -204,13 +203,10 @@ export function CityRhythmBlock() {
           />
         </div>
         <SketchNote>
-          The darkest cells cluster from{" "}
-          <span className="text-foreground">
+          The darkest cells cluster from <span className="text-foreground">
             weekday afternoons into evening
-          </span>
-          . Overnight volume thins out, but average totals rise, pointing to{" "}
-          <span className="text-chart-3">airport and longer-distance trips</span>{" "}
-          beyond short city commutes.
+          </span>. Overnight volume thins out, but average totals rise,
+          pointing to <span className="text-chart-3">airport and longer-distance trips</span> beyond short city commutes.
         </SketchNote>
       </div>
     </section>

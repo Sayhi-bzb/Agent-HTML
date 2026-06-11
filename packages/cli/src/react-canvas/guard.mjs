@@ -139,7 +139,7 @@ function collectWorkspaceBoundaryIssues({ relativePath, source }) {
         message: "Public files must be referenced by URL, not imported.",
         severity: "error",
         suggestion:
-          "Reference artifact public files through /__agent-html/artifacts/<artifact>/public/<file> or shared public files through /__agent-html/public/<file>.",
+          "Use agent-html/lib/public-url helpers for public files, or reference the served /__agent-html/... URL.",
       })
     )
     forbiddenPublicImportPattern.lastIndex = match.index + 1

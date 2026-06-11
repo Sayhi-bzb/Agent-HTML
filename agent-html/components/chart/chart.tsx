@@ -6,6 +6,7 @@ import * as React from "react"
 import type { ComponentType, ReactNode } from "react"
 
 import { cn } from "@/lib/cn"
+import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect"
 
 const THEMES = { light: "", dark: ".dark" } as const
 
@@ -37,6 +38,60 @@ export interface ChartResolvedSeries {
 }
 
 export type ChartRenderer = "svg" | "rough"
+
+export type ChartHoverKey = string | number
+
+export interface ChartHoverState<TType extends string = string> {
+  key: ChartHoverKey
+  type: TType
+}
+
+export type ChartHoverPresence = "idle" | "highlighted" | "faded"
+
+export const chartHoverOpacity = {
+  activeMultiplier: 1.3,
+  faded: 0.1,
+  idle: 1,
+  textFaded: 0.32,
+  visualFaded: 0.4,
+} as const
+
+export const chartHoverTransition = {
+  duration: 0.18,
+  ease: "easeOut",
+} as const
+
+export function getChartHoverPresence({
+  hover,
+  isRelated,
+}: {
+  hover: ChartHoverState | null
+  isRelated: boolean
+}): ChartHoverPresence {
+  if (!hover) {
+    return "idle"
+  }
+
+  return isRelated ? "highlighted" : "faded"
+}
+
+export function getChartHoverOpacity({
+  baseOpacity = chartHoverOpacity.idle,
+  presence,
+}: {
+  baseOpacity?: number
+  presence: ChartHoverPresence
+}) {
+  if (presence === "faded") {
+    return chartHoverOpacity.faded
+  }
+
+  if (presence === "highlighted") {
+    return Math.min(1, baseOpacity * chartHoverOpacity.activeMultiplier)
+  }
+
+  return baseOpacity
+}
 
 export const chartThemes = THEMES
 
@@ -297,26 +352,71 @@ export function ChartTooltipContent({
 }
 
 export function ChartTooltip({
+  bounds,
   children,
   className,
+  offset = 12,
+  padding = 8,
   visible,
   x,
   y,
 }: {
+  bounds?: { height: number; width: number }
   children: ReactNode
   className?: string
+  offset?: number
+  padding?: number
   visible: boolean
   x: number
   y: number
 }) {
+  const tooltipRef = React.useRef<HTMLDivElement>(null)
+  const [{ height, width }, setMeasuredSize] = React.useState({
+    height: 80,
+    width: 180,
+  })
+
+  useIsomorphicLayoutEffect(() => {
+    if (!visible || !tooltipRef.current) {
+      return
+    }
+
+    const nextWidth = tooltipRef.current.offsetWidth
+    const nextHeight = tooltipRef.current.offsetHeight
+
+    if (
+      nextWidth > 0 &&
+      nextHeight > 0 &&
+      (nextWidth !== width || nextHeight !== height)
+    ) {
+      setMeasuredSize({ height: nextHeight, width: nextWidth })
+    }
+  }, [children, height, visible, width, x, y])
+
   if (!visible) {
     return null
+  }
+
+  let left = x
+  let top = y
+
+  if (bounds) {
+    left = x + offset
+    top = y - height / 2
+
+    if (left + width + padding > bounds.width) {
+      left = x - width - offset
+    }
+
+    left = Math.max(padding, Math.min(left, bounds.width - width - padding))
+    top = Math.max(padding, Math.min(top, bounds.height - height - padding))
   }
 
   return (
     <div
       className={cn("pointer-events-none absolute z-50", className)}
-      style={{ left: x, top: y }}
+      ref={tooltipRef}
+      style={{ left, top }}
     >
       {children}
     </div>

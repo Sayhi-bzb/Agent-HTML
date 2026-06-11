@@ -132,7 +132,7 @@ export function WhereRidesStartBlock() {
       <div className="canvas-stack-sm">
         <div className="canvas-wrap-sm items-end justify-between">
           <div className="canvas-stack-xs">
-            <h3 className="canvas-text-subheading">Top pickup zones, inspectable</h3>
+            <h3 className="canvas-text-heading">Top pickup zones, inspectable</h3>
             <p className="canvas-text-caption text-muted-foreground">
               This table uses the same official aggregate, with searchable
               zones and sortable trip, total, and distance fields.

@@ -20,7 +20,7 @@ export function ReleaseRoutesBlock() {
         <p className="canvas-text-caption text-muted-foreground">
           package routes
         </p>
-        <h2 className="canvas-text-subheading">
+        <h2 className="canvas-text-heading">
           The path depends on which Canvas package boundary is touched.
         </h2>
       </div>

@@ -59,11 +59,7 @@ export function FareAnatomyBlock() {
   return (
     <section className="canvas-stack-lg">
       <SectionIntro badge="04 / fare anatomy" title="Average totals stack meter fare with fees">
-        The average trip total is about {formatCurrency(taxiKpis.averageTotal)}.
-        {" "}
-        <span className="text-foreground">Meter fare</span> is the base, but{" "}
-        <span className="text-chart-2">tips, congestion charges, airport fees</span>
-        , and tolls change how different ride scenarios feel in practice.
+        The average trip total is about {formatCurrency(taxiKpis.averageTotal)}. <span className="text-foreground">Meter fare</span> is the base, but <span className="text-chart-2">tips, congestion charges, airport fees</span>, and tolls change how different ride scenarios feel in practice.
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,0.62fr)_minmax(320px,0.38fr)]">

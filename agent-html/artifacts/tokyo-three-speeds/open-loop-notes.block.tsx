@@ -1,6 +1,9 @@
 import { BookOpen, Bookmark, MapPinned, RouteOff } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
+import { artifactPublicUrlFactory } from "../../lib/public-url"
+
+const publicUrl = artifactPublicUrlFactory("tokyo-three-speeds")
 
 const openDoodle = {
   alt: "Illustration of a person moving slowly with loose, unfinished motion.",
@@ -22,11 +25,11 @@ function OpenLoopDoodle() {
       <desc id="open-loop-doodle-desc">{openDoodle.alt}</desc>
       <use
         className="fill-ring"
-        href="/__agent-html/artifacts/tokyo-three-speeds/public/open-doodle-zombieing.svg#open-doodle-zombieing-accent"
+        href={publicUrl("open-doodle-zombieing.svg#open-doodle-zombieing-accent")}
       />
       <use
         className="fill-foreground"
-        href="/__agent-html/artifacts/tokyo-three-speeds/public/open-doodle-zombieing.svg#open-doodle-zombieing-ink"
+        href={publicUrl("open-doodle-zombieing.svg#open-doodle-zombieing-ink")}
       />
     </svg>
   )
@@ -69,8 +72,7 @@ export function OpenLoopNotesBlock() {
         <p className="canvas-text-body text-muted-foreground">
           <span className="text-foreground">Day 3</span> works best as a travel
           note instead of a checklist. Pick one anchor, let the route stay
-          short, and treat{" "}
-          <em className="text-foreground">unfinished places</em> as part of the
+          short, and treat <em className="text-foreground">unfinished places</em> as part of the
           design rather than a failure of planning.
         </p>
       </div>
@@ -83,8 +85,7 @@ export function OpenLoopNotesBlock() {
           <figcaption className="canvas-stack-xs">
             <Badge variant="outline">unfinished route</Badge>
             <p className="canvas-text-body">
-              Leave one street, shelf, or garden path{" "}
-              <em className="text-muted-foreground">unresolved</em> so the next
+              Leave one street, shelf, or garden path <em className="text-muted-foreground">unresolved</em> so the next
               visit already has a beginning.
             </p>
           </figcaption>

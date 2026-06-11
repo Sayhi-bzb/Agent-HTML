@@ -44,7 +44,7 @@ export function ReviewGateBlock() {
         <p className="canvas-text-caption text-muted-foreground">
           review gate
         </p>
-        <h2 className="canvas-text-subheading">
+        <h2 className="canvas-text-heading">
           Review comments become Canvas package gates.
         </h2>
       </div>

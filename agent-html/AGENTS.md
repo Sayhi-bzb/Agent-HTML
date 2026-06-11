@@ -88,8 +88,8 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 ## Asset Rules
 
 - Create `agent-html/assets` only for imported images, media, and bundle-time files, then import them with relative `../assets/...` paths.
-- Put artifact-owned URL static files in `agent-html/artifacts/<artifact>/public` and reference them as `/__agent-html/artifacts/<artifact>/public/<path>`.
-- Put only shared URL static files in `agent-html/public` and reference them as `/__agent-html/public/<path>`.
+- Put artifact-owned URL static files in `agent-html/artifacts/<artifact>/public` and reference them with `artifactPublicUrlFactory` from `agent-html/lib/public-url`.
+- Put only shared URL static files in `agent-html/public` and reference them with `sharedPublicUrl` from `agent-html/lib/public-url`.
 - Do not import from `../public` or `./public`.
 
 ## Forbidden Imports And Actions
