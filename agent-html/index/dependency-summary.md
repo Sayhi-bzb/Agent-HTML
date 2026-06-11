@@ -7,9 +7,9 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 148 |
-| Dependencies | 415 |
-| Local edges | 271 |
+| Modules | 155 |
+| Dependencies | 425 |
+| Local edges | 281 |
 | External edges | 143 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
@@ -21,7 +21,7 @@ Dependency-cruiser summary for `agent-html` source files.
 | --- | --- |
 | `agent-html/lib/cn.ts` | 42 |
 | `agent-html/components/ui/badge.tsx` | 28 |
-| `agent-html/components/ui/status-badge.tsx` | 13 |
+| `agent-html/components/ui/status-badge.tsx` | 14 |
 | `agent-html/components/ui/button.tsx` | 12 |
 | `agent-html/artifacts/health-report-decoder/data/report.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/rough-theme.ts` | 7 |
@@ -40,13 +40,13 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/health-report-decoder.artifact.tsx` | 8 |
 | `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 8 |
 | `agent-html/components/ui/sidebar.tsx` | 8 |
+| `agent-html/artifacts/code-review-room.artifact.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/lab-trend-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/ldl-range-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/report-triage.block.tsx` | 7 |
 | `agent-html/artifacts/nasa-artemis-ii.artifact.tsx` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook.artifact.tsx` | 7 |
 | `agent-html/artifacts/tokyo-three-speeds.artifact.tsx` | 7 |
-| `agent-html/artifacts/code-review-room.artifact.tsx` | 6 |
 | `agent-html/artifacts/health-report-decoder/lab-system-map.block.tsx` | 6 |
 
 ## Top External Dependencies

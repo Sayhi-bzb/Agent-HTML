@@ -1,6 +1,6 @@
 import type { EvidenceMatrixItem, EvidenceRow, ReleaseRoute, ReviewLane } from "./types"
 
-export const evidenceCategories = ["metrics", "dependency", "runtime"]
+export const evidenceCategories = ["dependency", "runtime"]
 
 export const evidenceMatrix = [
   {

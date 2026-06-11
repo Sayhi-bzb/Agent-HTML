@@ -1,6 +1,7 @@
 import { Artifact, Block } from "@agent-html/react"
 
 import { BlastRadiusBlock } from "./code-review-room/blast-radius.block"
+import { CodeMetricsBlock } from "./code-review-room/code-metrics.block"
 import { DiffRiskMapBlock } from "./code-review-room/diff-risk-map.block"
 import { PrOverviewBlock } from "./code-review-room/pr-overview.block"
 import { ReleaseRoutesBlock } from "./code-review-room/release-routes.block"
@@ -16,6 +17,10 @@ export default function CodeReviewRoomArtifact() {
 
       <Block id="diff-risk-map" title="Diff Risk Map">
         <DiffRiskMapBlock />
+      </Block>
+
+      <Block id="code-metrics" title="Code Metrics">
+        <CodeMetricsBlock />
       </Block>
 
       <Block id="blast-radius" title="Blast Radius">

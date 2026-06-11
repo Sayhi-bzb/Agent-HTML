@@ -22,11 +22,11 @@ function OpenLoopDoodle() {
       <desc id="open-loop-doodle-desc">{openDoodle.alt}</desc>
       <use
         className="fill-ring"
-        href="/__agent-html/public/tokyo-three-speeds/open-doodle-zombieing.svg#open-doodle-zombieing-accent"
+        href="/__agent-html/artifacts/tokyo-three-speeds/public/open-doodle-zombieing.svg#open-doodle-zombieing-accent"
       />
       <use
         className="fill-foreground"
-        href="/__agent-html/public/tokyo-three-speeds/open-doodle-zombieing.svg#open-doodle-zombieing-ink"
+        href="/__agent-html/artifacts/tokyo-three-speeds/public/open-doodle-zombieing.svg#open-doodle-zombieing-ink"
       />
     </svg>
   )

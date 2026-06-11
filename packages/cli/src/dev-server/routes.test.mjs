@@ -86,6 +86,11 @@ describe("dev server routes", () => {
     expect(classifyDevServerRoute(`${hostRoutes.publicAsset}ghost.svg`)).toBe(
       "public-asset"
     )
+    expect(
+      classifyDevServerRoute(
+        `${hostRoutes.artifactPublicAsset}demo/public/diagram.svg`
+      )
+    ).toBe("public-asset")
     expect(classifyDevServerRoute(hostRoutes.artifacts)).toBe(
       "artifact-registry-and-guard-report"
     )
@@ -103,6 +108,90 @@ describe("dev server routes", () => {
     )
     expect(classifyDevServerRoute(hostRoutes.codexTurn)).toBe("codex-bridge")
     expect(classifyDevServerRoute("/unknown")).toBe(null)
+  })
+
+  it("serves global and artifact-local public assets", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    await fs.mkdir(path.join(root, "agent-html", "public"), { recursive: true })
+    await fs.mkdir(
+      path.join(root, "agent-html", "artifacts", "demo", "public"),
+      { recursive: true }
+    )
+    await fs.writeFile(path.join(root, "agent-html", "public", "global.txt"), "global")
+    await fs.writeFile(
+      path.join(root, "agent-html", "artifacts", "demo", "public", "local.svg"),
+      "<svg />"
+    )
+
+    const globalResponse = createResponseMock()
+    const globalHandled = await handleRoute({
+      request: { url: `${hostRoutes.publicAsset}global.txt` },
+      response: globalResponse,
+      root,
+      vite: {},
+    })
+
+    expect(globalHandled).toBe(true)
+    expect(globalResponse.statusCode).toBe(200)
+    expect(globalResponse.headers).toMatchObject({
+      "Content-Type": "text/plain; charset=utf-8",
+    })
+    expect(globalResponse.body).toEqual(Buffer.from("global"))
+
+    const artifactResponse = createResponseMock()
+    const artifactHandled = await handleRoute({
+      request: {
+        url: `${hostRoutes.artifactPublicAsset}demo/public/local.svg`,
+      },
+      response: artifactResponse,
+      root,
+      vite: {},
+    })
+
+    expect(artifactHandled).toBe(true)
+    expect(artifactResponse.statusCode).toBe(200)
+    expect(artifactResponse.headers).toMatchObject({
+      "Content-Type": "image/svg+xml",
+    })
+    expect(artifactResponse.body).toEqual(Buffer.from("<svg />"))
+  })
+
+  it("returns 404 for missing artifact-local public assets", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const response = createResponseMock()
+
+    const handled = await handleRoute({
+      request: {
+        url: `${hostRoutes.artifactPublicAsset}demo/public/missing.svg`,
+      },
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(404)
+    expect(JSON.parse(response.body)).toEqual({ error: "Not found" })
+  })
+
+  it("rejects artifact-local public asset traversal", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const response = createResponseMock()
+
+    const handled = await handleRoute({
+      request: {
+        url: `${hostRoutes.artifactPublicAsset}demo/public/%2e%2e%2fAGENTS.md`,
+      },
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(400)
+    expect(JSON.parse(response.body).error).toContain(
+      "Artifact public asset path must stay inside artifact public directory"
+    )
   })
 
   it("proxies allowed ZeoSeven font stylesheets", async () => {

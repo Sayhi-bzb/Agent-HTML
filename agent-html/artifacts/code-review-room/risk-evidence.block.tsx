@@ -8,52 +8,12 @@ import {
   TabsList,
   TabsTrigger,
 } from "../../components/ui/tabs"
-import { codeMetricRows } from "./data/generated-code-metrics"
 import {
   evidenceCategories,
   evidenceMatrix,
   evidenceRows,
 } from "./data/review-decision"
-import type { CodeMetricRow, EvidenceRow } from "./data/types"
-
-const codeMetricColumns: ColumnDef<CodeMetricRow>[] = [
-  {
-    accessorKey: "mi",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="MI" />
-    ),
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" />
-    ),
-  },
-  {
-    accessorKey: "loc",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="LOC" />
-    ),
-  },
-  {
-    accessorKey: "cyclomatic",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="CC" />
-    ),
-  },
-  {
-    accessorKey: "cognitive",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cog" />
-    ),
-  },
-  {
-    accessorKey: "fanOut",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Out" />
-    ),
-  },
-]
+import type { EvidenceRow } from "./data/types"
 
 const evidenceColumns: ColumnDef<EvidenceRow>[] = [
   {
@@ -124,16 +84,6 @@ export function RiskEvidenceBlock() {
               </TabsTrigger>
             ))}
           </TabsList>
-          <TabsContent value="metrics">
-            <DataTable
-              columns={codeMetricColumns}
-              data={codeMetricRows}
-              enablePagination={false}
-              enableViewOptions={false}
-              searchColumn="name"
-              searchPlaceholder="Filter code metric..."
-            />
-          </TabsContent>
           <TabsContent value="dependency">
             <DataTable
               columns={evidenceColumns}

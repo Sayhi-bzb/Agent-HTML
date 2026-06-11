@@ -59,10 +59,13 @@ agent-html/assets
   -> bundle-time artifact assets imported by artifact source
 
 agent-html/public
-  -> static files served by URL at /__agent-html/public/<path>
+  -> shared static files served by URL at /__agent-html/public/<path>
 
 agent-html/artifacts
   -> durable agent-authored work products
+
+agent-html/artifacts/<artifact>/public
+  -> artifact-owned static files served by URL at /__agent-html/artifacts/<artifact>/public/<path>
 ```
 
 `README.md`, `AGENTS.md`, `components.json`, `tsconfig.json`, and
@@ -91,10 +94,12 @@ prompt. Human-readable guidance and agent-consumable assets stay beside the
 artifacts they shape.
 
 Use `agent-html/assets` for files that artifact source imports into the bundle,
-such as images or media used by React components. Use `agent-html/public` for
-URL-addressed files that should stay static and be referenced as
-`/__agent-html/public/<path>`. Public files are not imported from artifact
-source.
+such as images or media used by React components. Use
+`agent-html/artifacts/<artifact>/public` for artifact-owned URL-addressed files
+that should stay static and be referenced as
+`/__agent-html/artifacts/<artifact>/public/<path>`. Use `agent-html/public` only
+for shared URL-addressed files such as host icons or cross-artifact resources.
+Public files are not imported from artifact source.
 
 ## Authoring Contract
 

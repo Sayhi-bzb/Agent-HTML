@@ -45,27 +45,27 @@ function SystemMapIllustration() {
       <title id="lab-system-map-illustration-title">医疗护理记录插图</title>
       <use
         className="fill-border"
-        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-muted"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_medical-care.svg#undraw-medical-care-muted"
       />
       <use
         className="fill-ring"
-        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-accent"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_medical-care.svg#undraw-medical-care-accent"
       />
       <use
         className="fill-background"
-        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-contrast"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_medical-care.svg#undraw-medical-care-contrast"
       />
       <use
         className="fill-muted-foreground"
-        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-skin"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_medical-care.svg#undraw-medical-care-skin"
       />
       <use
         className="fill-muted-foreground"
-        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-secondary"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_medical-care.svg#undraw-medical-care-secondary"
       />
       <use
         className="fill-foreground"
-        href="/__agent-html/public/health-report-decoder/undraw_medical-care.svg#undraw-medical-care-ink"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_medical-care.svg#undraw-medical-care-ink"
       />
     </svg>
   )
@@ -74,27 +74,27 @@ function SystemMapIllustration() {
 const systemIconById: Record<string, { label: string; src: string }> = {
   blood: {
     label: "血液图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/blood-cells.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/blood-cells.svg",
   },
   cardio: {
     label: "心脏图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/heart-organ.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/heart-organ.svg",
   },
   glucose: {
     label: "胰腺图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/pancreas.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/pancreas.svg",
   },
   kidney: {
     label: "肾脏图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/kidneys.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/kidneys.svg",
   },
   liver: {
     label: "肝脏图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/liver.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/liver.svg",
   },
   urine: {
     label: "膀胱图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/bladder.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/bladder.svg",
   },
 }
 

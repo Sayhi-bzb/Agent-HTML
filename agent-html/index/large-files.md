@@ -15,6 +15,7 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 | `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 2957 | `artifacts/README.md` |
 | `agent-html/components/ui/chart.tsx` | 2714 | `components/README.md` |
 | `agent-html/artifacts/nyc-taxi-sketchbook/borough-flow-network.block.tsx` | 2401 | `artifacts/README.md` |
+| `agent-html/artifacts/code-review-room/code-metrics.block.tsx` | 2358 | `artifacts/README.md` |
 | `agent-html/components/ui/combobox.tsx` | 2338 | `components/README.md` |
 | `agent-html/styles/internal/host/sidebar.css` | 2338 | nearest README or source-specific notes |
 | `agent-html/components/ui/dropdown-menu.tsx` | 2271 | `components/README.md` |

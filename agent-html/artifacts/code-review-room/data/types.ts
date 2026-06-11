@@ -27,6 +27,15 @@ export type CodeMetricRow = {
   vol: number
 }
 
+export type ModuleStat = {
+  cells: number
+  dependedBy: number
+  dependsOn: number
+  loc: number
+  module: string
+  title: string
+}
+
 export type RiskFile = {
   consequence: string
   file: string

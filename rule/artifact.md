@@ -18,6 +18,19 @@ signals that shape future artifact authors.
 - Use `PascalCaseBlock` component names derived from the same words as the
   block id.
 
+## Source Unit Contract
+
+Split broad artifacts as one source unit:
+
+- `artifacts/<artifact>.artifact.tsx`: artifact entry.
+- `artifacts/<artifact>/*.block.tsx`: semantic block implementations.
+- `artifacts/<artifact>/data/`: artifact-private display data.
+- `artifacts/<artifact>/public/`: artifact-owned URL static files.
+
+Reference artifact-owned public files as
+`/__agent-html/artifacts/<artifact>/public/<path>`. Use `agent-html/public`
+only for shared host or cross-artifact files.
+
 ## Good Block Names
 
 Use domain object plus responsibility:

@@ -14,27 +14,27 @@ import { lifeContextFields } from "./data/recent-life-context"
 const lifeContextIconByLabel: Record<string, { label: string; src: string }> = {
   家庭病史: {
     label: "病史记录图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/medical-records.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/medical-records.svg",
   },
   近期感染: {
     label: "发热感染图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/fever.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/fever.svg",
   },
   睡眠与压力: {
     label: "心理压力图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/psychology.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/psychology.svg",
   },
   用药与补充剂: {
     label: "用药图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/medicine-bottle.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/medicine-bottle.svg",
   },
   运动: {
     label: "运动图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/gym.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/gym.svg",
   },
   饮食与饮酒: {
     label: "饮食图标",
-    src: "/__agent-html/public/health-report-decoder/healthicons/i-utensils.svg",
+    src: "/__agent-html/artifacts/health-report-decoder/public/healthicons/i-utensils.svg",
   },
 }
 

@@ -87,6 +87,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
         target.startsWith("apps/") ||
         target.startsWith("_archive/") ||
         target.startsWith("agent-html/public/") ||
+        /^agent-html\/artifacts\/[^/]+\/public\//.test(target) ||
         target.startsWith("agent-html/styles/internal/")
     )
 

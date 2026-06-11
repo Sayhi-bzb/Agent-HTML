@@ -315,18 +315,23 @@ describe("React Canvas Guard", () => {
     const publicMessages = issueMessages(`
       import { Artifact, Block } from "@agent-html/react"
       import logoUrl from "../public/logo.svg"
+      import localLogoUrl from "./public/logo.svg"
 
       export default function Demo() {
         return (
           <Artifact title="Demo">
-            <Block id="summary">{logoUrl}</Block>
+            <Block id="summary">{logoUrl}{localLogoUrl}</Block>
           </Artifact>
         )
       }
     `)
 
     expect(assetMessages).not.toContain("Public files must be referenced by URL, not imported.")
-    expect(publicMessages).toContain("Public files must be referenced by URL, not imported.")
+    expect(
+      publicMessages.filter(
+        (message) => message === "Public files must be referenced by URL, not imported."
+      )
+    ).toHaveLength(2)
   })
 
   it("aggregates primitive bypasses for common controls and tables", () => {

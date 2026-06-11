@@ -38,7 +38,8 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
   `theme/presets` and let the registry normalize it. Put preset layout metadata
 - Read `../rule/data.md` before adding, splitting, or moving artifact data.
 - Put bundle-time imports in `assets` only when an artifact needs imported files.
-- Put URL-addressed static files in `public`.
+- Put artifact-owned URL static files in `artifacts/<artifact>/public`.
+- Put shared URL static files in `public`.
 
 ## Artifact Rules
 
@@ -87,8 +88,9 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 ## Asset Rules
 
 - Create `agent-html/assets` only for imported images, media, and bundle-time files, then import them with relative `../assets/...` paths.
-- Put URL-addressed static files in `agent-html/public` and reference them as `/__agent-html/public/<path>`.
-- Do not import from `../public`.
+- Put artifact-owned URL static files in `agent-html/artifacts/<artifact>/public` and reference them as `/__agent-html/artifacts/<artifact>/public/<path>`.
+- Put only shared URL static files in `agent-html/public` and reference them as `/__agent-html/public/<path>`.
+- Do not import from `../public` or `./public`.
 
 ## Forbidden Imports And Actions
 

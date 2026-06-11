@@ -11,7 +11,7 @@ import {
 const tripLedgerOverviewImage = {
   alt: "Abstract composition used as the NYC taxi sketchbook overview composition.",
   hrefBase:
-    "/__agent-html/public/nyc-taxi-sketchbook/trip-ledger-overview-composition.svg",
+    "/__agent-html/artifacts/nyc-taxi-sketchbook/public/trip-ledger-overview-composition.svg",
 }
 
 export function TripLedgerOverviewBlock() {

@@ -1,4 +1,4 @@
-import type { CodeMetricRow } from "./types"
+import type { CodeMetricRow, ModuleStat } from "./types"
 
 export const codeMetricRows = [
   {
@@ -133,4 +133,12 @@ export const moduleStats = [
     module: "Components",
     title: "Reusable Canvas component surface",
   },
-]
+] satisfies ModuleStat[]
+
+export const codeMetricChartDomain = {
+  cyclomaticMax: 340,
+  locMax: 1600,
+  locMin: 100,
+  miMax: 85,
+  miMin: 20,
+} as const

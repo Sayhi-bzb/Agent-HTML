@@ -17,7 +17,7 @@ const unstableBlockIds = new Set(["block1", "block2", "section1", "section2", "t
 const rawColorPattern = /\b(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/
 const unsafeClassPattern = /\b(?:gradient|shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|text-(?:[3-9]xl|[1-9][0-9]xl)|font-\w+|tracking-\w+|\[[^\]]+\])\b/
 const forbiddenImportPattern = /from\s+["'](?:@\/app\/|.*apps\/agent-html-app|@\/agent-html\/runtime\/ui|@\/agent-html\/runtime["'])/g
-const forbiddenPublicImportPattern = /from\s+["']\.\.\/public(?:\/|["'])/g
+const forbiddenPublicImportPattern = /from\s+["'](?:\.\.\/|\.\/)public(?:\/|["'])/g
 const forbiddenRuntimeApiPattern = /\b(?:renderAgentHtml|renderInteractiveAgentHtml)\b/g
 const nativeControlPattern = /<(?:button|input)\b/
 const nativeTablePattern = /<(?:table|thead|tbody|tr|th|td)\b/
@@ -138,7 +138,8 @@ function collectWorkspaceBoundaryIssues({ relativePath, source }) {
         line: lineForIndex(source, match.index),
         message: "Public files must be referenced by URL, not imported.",
         severity: "error",
-        suggestion: "Reference public files through /__agent-html/public/<file>.",
+        suggestion:
+          "Reference artifact public files through /__agent-html/artifacts/<artifact>/public/<file> or shared public files through /__agent-html/public/<file>.",
       })
     )
     forbiddenPublicImportPattern.lastIndex = match.index + 1

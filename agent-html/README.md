@@ -34,6 +34,7 @@ When touching Canvas classes, tokens, or internal chrome:
 ## Source Placement
 
 - `artifacts`: artifact source.
+- `artifacts/<artifact>/public/`: artifact-owned URL static files.
 - `components/ui`: local visual primitives.
 - `components/<name>.tsx`: single-file rich workflow components such as kanban.
 - `hooks`: reusable React behavior.
@@ -42,7 +43,7 @@ When touching Canvas classes, tokens, or internal chrome:
 - `theme`: host-owned theme preset registry and shadcn CSS sources.
 - `artifacts/<artifact>/data/`: artifact-private display data for broad artifacts.
 - `assets`: bundle-time imports, only when an artifact needs imported files.
-- `public`: URL-addressed static files.
+- `public`: shared URL static files.
 
 ## Copy Policy
 

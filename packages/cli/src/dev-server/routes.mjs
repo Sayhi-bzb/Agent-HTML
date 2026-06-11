@@ -22,6 +22,7 @@ export const hostRoutes = {
   artifactDelete: "/__agent-html/artifact/delete",
   artifactRename: "/__agent-html/artifact/rename",
   artifacts: "/__agent-html/artifacts",
+  artifactPublicAsset: "/__agent-html/artifacts/",
   blockImplementation: "/__agent-html/block-implementation",
   codexThreads: "/__agent-html/codex/threads",
   codexTranscript: "/__agent-html/codex/transcript",
@@ -80,6 +81,42 @@ function resolvePublicAssetPath({ root, requestPathname }) {
     !resolvedPath.startsWith(`${publicRoot}${path.sep}`)
   ) {
     throw new Error("Public asset path must stay inside agent-html/public")
+  }
+
+  return resolvedPath
+}
+
+function artifactPublicAssetMatch(requestPathname) {
+  return /^\/__agent-html\/artifacts\/([a-z0-9]+(?:-[a-z0-9]+)*)\/public\/(.+)$/.exec(
+    requestPathname
+  )
+}
+
+function resolveArtifactPublicAssetPath({ root, requestPathname }) {
+  const match = artifactPublicAssetMatch(requestPathname)
+
+  if (!match) {
+    throw new Error(
+      "Artifact public asset path must match /__agent-html/artifacts/<artifact>/public/<path>"
+    )
+  }
+
+  const [, artifactId, encodedRelativePath] = match
+  const publicRoot = path.join(
+    root,
+    "agent-html",
+    "artifacts",
+    artifactId,
+    "public"
+  )
+  const publicRelativePath = decodeURIComponent(encodedRelativePath)
+  const resolvedPath = path.resolve(publicRoot, publicRelativePath)
+
+  if (
+    resolvedPath !== publicRoot &&
+    !resolvedPath.startsWith(`${publicRoot}${path.sep}`)
+  ) {
+    throw new Error("Artifact public asset path must stay inside artifact public directory")
   }
 
   return resolvedPath
@@ -382,7 +419,10 @@ export function classifyDevServerRoute(pathname) {
     return "styles-and-assets"
   }
 
-  if (pathname.startsWith(hostRoutes.publicAsset)) {
+  if (
+    pathname.startsWith(hostRoutes.publicAsset) ||
+    artifactPublicAssetMatch(pathname)
+  ) {
     return "public-asset"
   }
 
@@ -498,14 +538,21 @@ async function handleStylesAndAssetsRoute({ requestUrl, response, root }) {
 }
 
 async function handlePublicAssetRoute({ requestUrl, response, root }) {
-  if (requestUrl.pathname.startsWith(hostRoutes.publicAsset)) {
+  const artifactMatch = artifactPublicAssetMatch(requestUrl.pathname)
+
+  if (requestUrl.pathname.startsWith(hostRoutes.publicAsset) || artifactMatch) {
     let filePath
 
     try {
-      filePath = resolvePublicAssetPath({
-        root,
-        requestPathname: requestUrl.pathname,
-      })
+      filePath = artifactMatch
+        ? resolveArtifactPublicAssetPath({
+            root,
+            requestPathname: requestUrl.pathname,
+          })
+        : resolvePublicAssetPath({
+            root,
+            requestPathname: requestUrl.pathname,
+          })
     } catch (error) {
       sendError(response, error, 400)
       return true

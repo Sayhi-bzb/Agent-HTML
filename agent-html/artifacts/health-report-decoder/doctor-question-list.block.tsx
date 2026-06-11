@@ -20,23 +20,23 @@ function DoctorPrepIllustration() {
       </title>
       <use
         className="fill-border"
-        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-muted"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_chore-list.svg#undraw-chore-list-muted"
       />
       <use
         className="fill-ring"
-        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-accent"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_chore-list.svg#undraw-chore-list-accent"
       />
       <use
         className="fill-background"
-        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-contrast"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_chore-list.svg#undraw-chore-list-contrast"
       />
       <use
         className="fill-muted-foreground"
-        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-skin"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_chore-list.svg#undraw-chore-list-skin"
       />
       <use
         className="fill-foreground"
-        href="/__agent-html/public/health-report-decoder/undraw_chore-list.svg#undraw-chore-list-ink"
+        href="/__agent-html/artifacts/health-report-decoder/public/undraw_chore-list.svg#undraw-chore-list-ink"
       />
     </svg>
   )
