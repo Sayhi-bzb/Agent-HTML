@@ -19,7 +19,7 @@ const systemPanelIcons: Record<string, LucideIcon> = {
   SLS: Rocket,
 }
 
-export function SystemIgnitionBlock() {
+export function LaunchSystemBlock() {
   return (
     <section className="canvas-stack-lg">
       <figure className="canvas-stack-sm">
@@ -37,7 +37,7 @@ export function SystemIgnitionBlock() {
         <div className="canvas-stack-md">
           <div className="canvas-wrap-sm items-center">
             <Badge variant="secondary">Launch Complex 39B</Badge>
-            <StatusBadge status="warning">system ignition</StatusBadge>
+            <StatusBadge status="warning">launch system</StatusBadge>
           </div>
           <h2 className="canvas-text-heading">
             A full <span className="text-ring">deep-space system</span> came

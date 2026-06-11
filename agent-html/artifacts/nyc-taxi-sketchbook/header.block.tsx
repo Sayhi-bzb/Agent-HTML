@@ -35,7 +35,7 @@ export function TaxiHeaderBlock() {
             href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-background`}
           />
           <use
-            className="fill-secondary opacity-85"
+            className="fill-background"
             href={`${taxiHeroImage.hrefBase}#nyc-taxi-composition-shapes`}
           />
           <use

@@ -2,7 +2,7 @@ import { Badge } from "../../components/ui/badge"
 
 import { mediaAssets, missionTags, telemetryItems } from "./data"
 
-export function OrionWindowBlock() {
+export function MissionOverviewBlock() {
   return (
     <section className="canvas-stack-lg">
       <figure className="canvas-stack-sm">

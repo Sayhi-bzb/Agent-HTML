@@ -12,15 +12,6 @@ import {
   useSankey,
 } from "./sankey-context";
 
-type NodeOrIndex = SankeyNode<SankeyNodeDatum, SankeyLinkDatum> | number;
-
-function getNodeName(nodeOrIndex: NodeOrIndex, fallbackIndex: number): string {
-  if (typeof nodeOrIndex === "number") {
-    return `Node ${nodeOrIndex}`;
-  }
-  return nodeOrIndex.name ?? `Node ${fallbackIndex}`;
-}
-
 interface PositionedTooltipProps {
   x: number;
   y: number;
@@ -192,16 +183,6 @@ export function SankeyTooltip({
     if (!link) {
       return null;
     }
-
-    // Get source and target names
-    const sourceName = getNodeName(
-      link.source as NodeOrIndex,
-      tooltipData.linkIndex
-    );
-    const targetName = getNodeName(
-      link.target as NodeOrIndex,
-      tooltipData.linkIndex
-    );
 
     return (
       <PositionedTooltip

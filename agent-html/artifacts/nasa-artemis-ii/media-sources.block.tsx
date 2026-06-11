@@ -13,11 +13,11 @@ const sourceGroups = [
   { label: "Return", links: sourceLinks.return },
 ]
 
-export function SourcesBlock() {
+export function MediaSourcesBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">
-        <Badge variant="secondary">sources</Badge>
+        <Badge variant="secondary">media sources</Badge>
         <h2 className="canvas-text-heading">NASA media sources and usage</h2>
         <p className="canvas-text-body text-muted-foreground">
           Source links are collected here so the mission story can read
