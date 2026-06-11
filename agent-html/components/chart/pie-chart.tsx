@@ -22,6 +22,7 @@ import {
   getChartCssVariable,
   getValue,
   isFiniteNumber,
+  useChartPointerTooltip,
 } from "./chart"
 import { RoughPath } from "./rough-renderers"
 
@@ -48,8 +49,6 @@ interface PieSlice<T> {
 
 interface TooltipState<T> {
   slice: PieSlice<T>
-  x: number
-  y: number
 }
 
 function formatValue(value: number) {
@@ -103,6 +102,11 @@ export function PieChart<T>({
   const [hover, setHover] = React.useState<ChartHoverState<"slice"> | null>(
     null
   )
+  const {
+    clearPoint: clearTooltipPoint,
+    point: tooltipPoint,
+    setPointFromEvent: setTooltipPointFromEvent,
+  } = useChartPointerTooltip()
   const slices = React.useMemo(
     () => createSlices({ config, data, nameKey, valueKey }),
     [config, data, nameKey, valueKey]
@@ -147,6 +151,7 @@ export function PieChart<T>({
               onPointerLeave={() => {
                 setHover(null)
                 setTooltip(null)
+                clearTooltipPoint()
               }}
               role="img"
             >
@@ -158,7 +163,6 @@ export function PieChart<T>({
                 {({ arcs, path }) => (
                   <g transform={`translate(${centerX}, ${pieCenterY})`}>
                     {arcs.map((arc) => {
-                      const [centroidX, centroidY] = path.centroid(arc)
                       const d = path(arc) ?? ""
                       const color = getChartCssVariable(arc.data.key)
                       const presence = getChartHoverPresence({
@@ -166,12 +170,13 @@ export function PieChart<T>({
                         isRelated: hover?.key === arc.data.key,
                       })
                       const opacity = getChartHoverOpacity({ presence })
-                      const showTooltip = () => {
+                      const showTooltip = (
+                        event: React.PointerEvent<SVGPathElement>
+                      ) => {
                         setHover({ key: arc.data.key, type: "slice" })
+                        setTooltipPointFromEvent(event)
                         setTooltip({
                           slice: arc.data,
-                          x: centerX + centroidX,
-                          y: pieCenterY + centroidY,
                         })
                       }
 
@@ -195,6 +200,7 @@ export function PieChart<T>({
                           <ChartHitPath
                             d={d}
                             onPointerEnter={showTooltip}
+                            onPointerMove={setTooltipPointFromEvent}
                           />
                         </g>
                       )
@@ -206,9 +212,9 @@ export function PieChart<T>({
 
             <ChartTooltip
               bounds={{ height, width }}
-              visible={tooltip !== null}
-              x={tooltip?.x ?? 0}
-              y={tooltip?.y ?? 0}
+              visible={tooltip !== null && tooltipPoint !== null}
+              x={tooltipPoint?.x ?? 0}
+              y={tooltipPoint?.y ?? 0}
             >
               {tooltip ? (
                 <ChartTooltipContent

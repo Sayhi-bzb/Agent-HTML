@@ -17,9 +17,10 @@ Target consumption chain:
 ## Layers
 
 - `chart.tsx`: shared Canvas chart protocol: config, scoped color variables,
-  responsive frame, bounds-aware tooltip, legend, SVG shell, hit layers,
-  cartesian layout, shared hover state/opacity protocol, empty data/size
-  separation, interaction helpers, and scale helpers.
+  responsive frame, bounds-aware tooltip, tooltip panel variants, pointer
+  tooltip tracking, legend, SVG shell, hit layers, cartesian layout, shared
+  hover state/opacity protocol, empty data/size separation, interaction
+  helpers, and scale helpers.
 - `rough-renderers.tsx`: internal RoughJS SVG render helpers. Rough is an
   optional renderer branch inside supported chart components, not a public
   artifact entrypoint and not the chart protocol.
@@ -71,6 +72,13 @@ Use visx primitives by responsibility:
   hover protocol for highlighted and faded marks.
 - Concrete charts own item relationship logic, such as Sankey node/link
   adjacency or pie slice identity.
+
+## Tooltip Policy
+
+- `ChartTooltip` owns positioning and container bounds.
+- `ChartTooltipPanel` owns shared tooltip shell variants.
+- `useChartPointerTooltip` owns cursor-follow point tracking.
+- Concrete charts own active item selection and tooltip content.
 
 ## Migration Notes
 

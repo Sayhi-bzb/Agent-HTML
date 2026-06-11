@@ -307,6 +307,55 @@ export interface ChartTooltipItem {
   value: ReactNode
 }
 
+export interface ChartTooltipPoint {
+  x: number
+  y: number
+}
+
+export function useChartPointerTooltip() {
+  const [point, setPoint] = React.useState<ChartTooltipPoint | null>(null)
+
+  const setPointFromEvent = React.useCallback(
+    (event: React.MouseEvent<Element> | React.PointerEvent<Element>) => {
+      const nextPoint = localPoint(event)
+
+      if (nextPoint) {
+        setPoint({ x: nextPoint.x, y: nextPoint.y })
+      }
+    },
+    []
+  )
+
+  const clearPoint = React.useCallback(() => {
+    setPoint(null)
+  }, [])
+
+  return { clearPoint, point, setPoint, setPointFromEvent }
+}
+
+export function ChartTooltipPanel({
+  children,
+  className,
+  variant = "default",
+}: {
+  children: ReactNode
+  className?: string
+  variant?: "default" | "inverse"
+}) {
+  return (
+    <div
+      className={cn(
+        variant === "inverse"
+          ? "min-w-[140px] max-w-xs overflow-hidden rounded-md bg-foreground text-background shadow-md"
+          : "grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+        className
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
 export function ChartTooltipContent({
   className,
   hideIndicator = false,
@@ -323,12 +372,7 @@ export function ChartTooltipContent({
   }
 
   return (
-    <div
-      className={cn(
-        "grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
-        className
-      )}
-    >
+    <ChartTooltipPanel className={className}>
       {label ? <div className="font-medium">{label}</div> : null}
       <div className="grid gap-1.5">
         {items.map((item) => (
@@ -347,7 +391,7 @@ export function ChartTooltipContent({
           </div>
         ))}
       </div>
-    </div>
+    </ChartTooltipPanel>
   )
 }
 
@@ -475,15 +519,21 @@ export function ChartSvg({
 export function ChartHitPath({
   d,
   onPointerEnter,
+  onPointerLeave,
+  onPointerMove,
 }: {
   d: string
   onPointerEnter?: React.PointerEventHandler<SVGPathElement>
+  onPointerLeave?: React.PointerEventHandler<SVGPathElement>
+  onPointerMove?: React.PointerEventHandler<SVGPathElement>
 }) {
   return (
     <path
       d={d}
       fill="transparent"
       onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+      onPointerMove={onPointerMove}
       pointerEvents="all"
       stroke="transparent"
     />
@@ -493,12 +543,16 @@ export function ChartHitPath({
 export function ChartHitRect({
   height,
   onPointerEnter,
+  onPointerLeave,
+  onPointerMove,
   width,
   x,
   y,
 }: {
   height: number
   onPointerEnter?: React.PointerEventHandler<SVGRectElement>
+  onPointerLeave?: React.PointerEventHandler<SVGRectElement>
+  onPointerMove?: React.PointerEventHandler<SVGRectElement>
   width: number
   x: number
   y: number
@@ -508,6 +562,8 @@ export function ChartHitRect({
       fill="transparent"
       height={height}
       onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+      onPointerMove={onPointerMove}
       pointerEvents="all"
       stroke="transparent"
       width={width}

@@ -27,6 +27,7 @@ import {
   getFiniteValues,
   getValue,
   isFiniteNumber,
+  useChartPointerTooltip,
 } from "./chart"
 import { RoughRect } from "./rough-renderers"
 
@@ -47,8 +48,6 @@ export interface BarChartProps<T> {
 
 interface TooltipState<T> {
   datum: T
-  x: number
-  y: number
 }
 
 const DEFAULT_MARGIN = {
@@ -82,6 +81,11 @@ export function BarChart<T>({
 }: BarChartProps<T>) {
   const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
   const [hover, setHover] = React.useState<ChartHoverState<"bar"> | null>(null)
+  const {
+    clearPoint: clearTooltipPoint,
+    point: tooltipPoint,
+    setPointFromEvent: setTooltipPointFromEvent,
+  } = useChartPointerTooltip()
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const roughOptionsByKey = React.useMemo(
     () =>
@@ -134,6 +138,7 @@ export function BarChart<T>({
               onPointerLeave={() => {
                 setHover(null)
                 setTooltip(null)
+                clearTooltipPoint()
               }}
               role="img"
             >
@@ -168,12 +173,13 @@ export function BarChart<T>({
                     isRelated: hover?.key === category,
                   })
                   const opacity = getChartHoverOpacity({ presence })
-                  const showTooltip = () => {
+                  const showTooltip = (
+                    event: React.PointerEvent<SVGRectElement>
+                  ) => {
                     setHover({ key: category, type: "bar" })
+                    setTooltipPointFromEvent(event)
                     setTooltip({
                       datum,
-                      x: layout.margin.left + barX + barWidth / 2,
-                      y: layout.margin.top + barY,
                     })
                   }
 
@@ -206,6 +212,7 @@ export function BarChart<T>({
                       <ChartHitRect
                         height={barHeight}
                         onPointerEnter={showTooltip}
+                        onPointerMove={setTooltipPointFromEvent}
                         width={barWidth}
                         x={barX}
                         y={barY}
@@ -218,9 +225,9 @@ export function BarChart<T>({
 
             <ChartTooltip
               bounds={{ height, width }}
-              visible={tooltip !== null}
-              x={tooltip?.x ?? 0}
-              y={tooltip?.y ?? 0}
+              visible={tooltip !== null && tooltipPoint !== null}
+              x={tooltipPoint?.x ?? 0}
+              y={tooltipPoint?.y ?? 0}
             >
               {tooltip ? (
                 <ChartTooltipContent

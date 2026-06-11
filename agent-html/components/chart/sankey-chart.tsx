@@ -1,6 +1,5 @@
 "use client";
 
-import { localPoint } from "@visx/event";
 import { sankey, sankeyCenter, sankeyLinkHorizontal } from "@visx/sankey";
 import type {
   SankeyGraph,
@@ -10,7 +9,6 @@ import type {
 import { motion } from "motion/react";
 import {
   memo,
-  type MouseEvent,
   type ReactNode,
   useCallback,
   useMemo,
@@ -23,10 +21,12 @@ import {
   ChartContainer,
   ChartSvg,
   ChartTooltip,
+  ChartTooltipPanel,
   chartHoverOpacity,
   chartHoverTransition,
   getChartHoverOpacity,
   getChartHoverPresence,
+  useChartPointerTooltip,
 } from "./chart";
 import { RoughPath } from "./rough-renderers";
 
@@ -540,8 +540,8 @@ function SankeyNodeShape({
 function SankeyTooltip({
   height,
   links,
-  mousePos,
   nodes,
+  point,
   renderLinkTooltip,
   renderNodeTooltip,
   tooltipData,
@@ -549,14 +549,14 @@ function SankeyTooltip({
 }: {
   height: number;
   links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
-  mousePos: { x: number; y: number } | null;
   nodes: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>[];
+  point: { x: number; y: number } | null;
   renderLinkTooltip?: SankeyChartProps["renderLinkTooltip"];
   renderNodeTooltip?: SankeyChartProps["renderNodeTooltip"];
   tooltipData: SankeyTooltipData | null;
   width: number;
 }) {
-  if (!tooltipData || !mousePos) {
+  if (!tooltipData || !point) {
     return null;
   }
 
@@ -575,12 +575,12 @@ function SankeyTooltip({
         bounds={{ height, width }}
         offset={16}
         visible
-        x={mousePos.x}
-        y={mousePos.y}
+        x={point.x}
+        y={point.y}
       >
-        <div className="min-w-[140px] max-w-xs overflow-hidden rounded-md bg-foreground text-background shadow-md">
+        <ChartTooltipPanel variant="inverse">
           {renderNodeTooltip({ node, index: tooltipData.nodeIndex })}
-        </div>
+        </ChartTooltipPanel>
       </ChartTooltip>
     );
   }
@@ -600,12 +600,12 @@ function SankeyTooltip({
         bounds={{ height, width }}
         offset={16}
         visible
-        x={mousePos.x}
-        y={mousePos.y}
+        x={point.x}
+        y={point.y}
       >
-        <div className="min-w-[140px] max-w-xs overflow-hidden rounded-md bg-foreground text-background shadow-md">
+        <ChartTooltipPanel variant="inverse">
           {renderLinkTooltip({ link, index: tooltipData.linkIndex })}
-        </div>
+        </ChartTooltipPanel>
       </ChartTooltip>
     );
   }
@@ -705,9 +705,11 @@ const SankeyChartCore = memo(function SankeyChartCore({
   const [tooltipData, setTooltipData] = useState<SankeyTooltipData | null>(
     null
   );
-  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(
-    null
-  );
+  const {
+    clearPoint: clearTooltipPoint,
+    point: tooltipPoint,
+    setPointFromEvent: setTooltipPointFromEvent,
+  } = useChartPointerTooltip();
 
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -779,18 +781,11 @@ const SankeyChartCore = memo(function SankeyChartCore({
     );
   }, [getNodeColor, graph.nodes, roughOptions]);
 
-  const handleMouseMove = useCallback((event: MouseEvent) => {
-    const point = localPoint(event);
-    if (point) {
-      setMousePos({ x: point.x, y: point.y });
-    }
-  }, []);
-
   const handleMouseLeave = useCallback(() => {
     setHover(null);
     setTooltipData(null);
-    setMousePos(null);
-  }, []);
+    clearTooltipPoint();
+  }, [clearTooltipPoint]);
   const handleHoverChange = useCallback((nextHover: SankeyHoverState | null) => {
     setHover(nextHover);
   }, []);
@@ -805,7 +800,7 @@ const SankeyChartCore = memo(function SankeyChartCore({
     <div
       className="relative h-full w-full"
       onMouseLeave={handleMouseLeave}
-      onMouseMove={handleMouseMove}
+      onMouseMove={setTooltipPointFromEvent}
     >
       <SankeyVisualLayer
         getLinkColor={getLinkColor}
@@ -827,8 +822,8 @@ const SankeyChartCore = memo(function SankeyChartCore({
       <SankeyTooltip
         height={height}
         links={graph.links}
-        mousePos={mousePos}
         nodes={graph.nodes}
+        point={tooltipPoint}
         renderLinkTooltip={renderLinkTooltip}
         renderNodeTooltip={renderNodeTooltip}
         tooltipData={tooltipData}
