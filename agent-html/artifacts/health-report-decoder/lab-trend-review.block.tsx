@@ -17,7 +17,9 @@ import {
 import { StatusBadge } from "../../components/ui/status-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
-import { labItemByCode, statusFor, trendSeries } from "./data"
+import { trendSeries } from "./data/lab-trend-review"
+import { labItemByCode } from "./data/report"
+import { statusFor } from "./data/status"
 
 const chartConfig = {
   value: {

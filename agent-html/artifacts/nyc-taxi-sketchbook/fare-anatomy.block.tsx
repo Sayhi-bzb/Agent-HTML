@@ -1,4 +1,8 @@
-import { taxiData } from "./data"
+import {
+  fareComponents,
+  payment,
+} from "./data/generated-fare-anatomy"
+import { taxiKpis } from "./data/generated-trip-summary"
 import { roughSketchChartStyle, roughTaxiChartColors } from "./rough-theme"
 import { RoughBarChart, RoughPieChart } from "./rough-viz-charts"
 import {
@@ -21,7 +25,7 @@ const labels: Record<string, string> = {
   tolls: "tolls",
 }
 
-const components = taxiData.fareComponents.map((item) => ({
+const components = fareComponents.map((item) => ({
   ...item,
   label: labels[item.key] ?? item.key,
 }))
@@ -30,8 +34,8 @@ const componentChartData = {
   values: components.map((item) => item.value),
 }
 const paymentChartData = {
-  labels: taxiData.payment.map((item) => item.label),
-  values: taxiData.payment.map((item) => item.share),
+  labels: payment.map((item) => item.label),
+  values: payment.map((item) => item.share),
 }
 const largestComponent = [...components].sort((a, b) => b.value - a.value)[0]
 const meterComponent = components.find((item) => item.key === "meter fare")
@@ -40,14 +44,14 @@ const feeComponents = components.filter(
   (item) => item.key !== "meter fare" && item.key !== "tip"
 )
 const feeTotal = feeComponents.reduce((sum, item) => sum + item.value, 0)
-const cardPayment = taxiData.payment.find((item) => item.label === "Credit card")
-const cashPayment = taxiData.payment.find((item) => item.label === "Cash")
+const cardPayment = payment.find((item) => item.label === "Credit card")
+const cashPayment = payment.find((item) => item.label === "Cash")
 
 export function FareAnatomyBlock() {
   return (
     <section className="canvas-stack-lg">
       <SectionIntro badge="04 / fare anatomy" title="Average totals stack meter fare with fees">
-        The average trip total is about {formatCurrency(taxiData.kpis.averageTotal)}.
+        The average trip total is about {formatCurrency(taxiKpis.averageTotal)}.
         Meter fare is the base, but tips, congestion charges, airport fees, and
         tolls change how different ride scenarios feel in practice.
       </SectionIntro>
@@ -75,7 +79,7 @@ export function FareAnatomyBlock() {
               average trip total
             </span>
             <strong className="font-mono text-5xl font-semibold tracking-normal">
-              {formatCurrency(taxiData.kpis.averageTotal)}
+              {formatCurrency(taxiKpis.averageTotal)}
             </strong>
           </div>
           <RoughRule seed={91} tone="section" />

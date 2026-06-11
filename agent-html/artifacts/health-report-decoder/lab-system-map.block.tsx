@@ -4,10 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 
 import {
   labItemsBySystem,
-  statusFor,
-  systems,
-  type LabItem,
-} from "./data"
+} from "./data/report"
+import { statusFor } from "./data/status"
+import { systems } from "./data/lab-system-map"
+import type { LabItem } from "./data/types"
 
 function SystemItem({ item }: { item: LabItem }) {
   const meta = statusFor(item.status)

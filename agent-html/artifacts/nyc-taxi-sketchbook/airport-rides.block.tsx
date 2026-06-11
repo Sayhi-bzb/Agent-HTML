@@ -2,7 +2,7 @@ import { useCallback } from "react"
 
 import { Badge } from "../../components/ui/badge"
 
-import { taxiData } from "./data"
+import { airport } from "./data/generated-airport-rides"
 import { roughSketchMarkOptions } from "./rough-theme"
 import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
 import {
@@ -97,26 +97,26 @@ export function AirportRidesBlock() {
               </span>
             </div>
             <RoughRule seed={72} tone="section" />
-            {taxiData.airport.map((airport, index) => (
-              <div className="canvas-stack-xs" key={airport.airport}>
+            {airport.map((airportRide, index) => (
+              <div className="canvas-stack-xs" key={airportRide.airport}>
                 <div className="grid grid-cols-[minmax(180px,1.2fr)_repeat(4,minmax(90px,1fr))] items-center gap-3 px-3 py-3">
                   <span>
-                    <Badge variant="outline">{airport.airport}</Badge>
+                    <Badge variant="outline">{airportRide.airport}</Badge>
                   </span>
                   <span className="text-right font-mono text-lg font-semibold tracking-normal">
-                    {formatCompact(airport.trips)}
+                    {formatCompact(airportRide.trips)}
                   </span>
                   <span className="text-right font-mono">
-                    {formatCurrency(airport.averageTotal)}
+                    {formatCurrency(airportRide.averageTotal)}
                   </span>
                   <span className="text-right font-mono">
-                    {airport.averageDistance} mi
+                    {airportRide.averageDistance} mi
                   </span>
                   <span className="text-right font-mono">
-                    {formatCurrency(airport.averageTip)}
+                    {formatCurrency(airportRide.averageTip)}
                   </span>
                 </div>
-                {index < taxiData.airport.length - 1 ? (
+                {index < airport.length - 1 ? (
                   <RoughRule
                     seed={airportRuleSeeds[index % airportRuleSeeds.length]}
                     tone="table"

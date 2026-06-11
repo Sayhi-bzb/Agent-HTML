@@ -2,7 +2,10 @@ import type { ColumnDef } from "@tanstack/react-table"
 
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 
-import { taxiData } from "./data"
+import {
+  pickupBoroughs,
+  pickupZones,
+} from "./data/generated-pickup-geography"
 import { roughSketchChartStyle } from "./rough-theme"
 import { RoughBarHChart } from "./rough-viz-charts"
 import {
@@ -15,7 +18,7 @@ import {
   formatPercent,
 } from "./sketch-components"
 
-const zoneRows = taxiData.pickupZones.slice(0, 10).map((zone) => ({
+const zoneRows = pickupZones.slice(0, 10).map((zone) => ({
   ...zone,
   shortZone: zone.zone.replace("Midtown ", "M. "),
 }))
@@ -32,7 +35,7 @@ type PickupZoneRow = {
   zone: string
 }
 
-const pickupZoneTableRows: PickupZoneRow[] = taxiData.pickupZones.map((zone) => ({
+const pickupZoneTableRows: PickupZoneRow[] = pickupZones.map((zone) => ({
   averageDistance: zone.averageDistance,
   averageTotal: zone.averageTotal,
   borough: zone.borough,
@@ -109,7 +112,7 @@ export function WhereRidesStartBlock() {
 
         <div className="canvas-stack-md">
           <LedgerRows
-            items={taxiData.pickupBoroughs.map((borough) => ({
+            items={pickupBoroughs.map((borough) => ({
               label: borough.borough,
               note: `${formatPercent(borough.share)} of pickups`,
               value: formatCompact(borough.trips),

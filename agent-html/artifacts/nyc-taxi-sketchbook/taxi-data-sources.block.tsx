@@ -1,9 +1,9 @@
 import { Alert, AlertDescription } from "../../components/ui/alert"
 
-import { taxiData } from "./data"
+import { taxiMeta } from "./data/generated-trip-summary"
 import { LedgerRows, SectionIntro } from "./sketch-components"
 
-const taxiDataSources = [
+const taxiSourceLinks = [
   {
     label: "NYC TLC Trip Record Data",
     note: "Official monthly taxi trip data page.",
@@ -17,12 +17,12 @@ const taxiDataSources = [
   {
     label: "yellow_tripdata_2024-10.parquet",
     note: "Raw monthly Parquet file used by this artifact.",
-    url: taxiData.meta.generatedFrom,
+    url: taxiMeta.generatedFrom,
   },
   {
     label: "Taxi zone lookup",
     note: "Official LocationID mapping to borough, zone, and service zone.",
-    url: taxiData.meta.zoneLookup,
+    url: taxiMeta.zoneLookup,
   },
 ]
 
@@ -36,7 +36,7 @@ export function TaxiDataSourcesBlock() {
       </SectionIntro>
 
       <LedgerRows
-        items={taxiDataSources.map((source) => ({
+        items={taxiSourceLinks.map((source) => ({
           label: source.label,
           note: source.note,
           value: (
@@ -49,7 +49,7 @@ export function TaxiDataSourcesBlock() {
 
       <Alert>
         <AlertDescription>
-          Cleaning rules: {taxiData.meta.filters} {taxiData.meta.note}
+          Cleaning rules: {taxiMeta.filters} {taxiMeta.note}
         </AlertDescription>
       </Alert>
     </section>

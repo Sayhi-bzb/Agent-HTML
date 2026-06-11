@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "../../components/ui/table"
 
-import { lifeContextFields } from "./data"
+import { lifeContextFields } from "./data/recent-life-context"
 
 const lifeContextIconByLabel: Record<string, { label: string; src: string }> = {
   家庭病史: {

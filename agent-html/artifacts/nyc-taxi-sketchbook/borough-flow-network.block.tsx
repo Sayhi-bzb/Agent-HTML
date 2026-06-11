@@ -5,7 +5,8 @@ import {
   SankeyChart,
   type SankeyData,
 } from "../../components/sankey-chart"
-import { taxiData } from "./data"
+import { od } from "./data/generated-borough-flow"
+import { pickupBoroughs } from "./data/generated-pickup-geography"
 import {
   roughSketchChartStyle,
   roughSketchSankeyOptions,
@@ -23,7 +24,7 @@ const boroughs = ["Manhattan", "Queens", "Brooklyn", "Bronx", "EWR"]
 const matrixRows = boroughs.map((from) =>
   boroughs.map((to) => {
     return (
-      taxiData.od.find((item) => item.from === from && item.to === to) ?? {
+      od.find((item) => item.from === from && item.to === to) ?? {
         averageDistance: 0,
         averageTotal: 0,
         from,
@@ -210,7 +211,7 @@ function RoughNetworkChart({
 export function BoroughFlowNetworkBlock() {
   const { links: networkLinks, nodes: networkNodes } = useMemo(() => {
     const tripsByBorough = new Map<string, number>(
-      taxiData.pickupBoroughs.map((item) => [item.borough, item.trips])
+      pickupBoroughs.map((item) => [item.borough, item.trips])
     )
     const forceSourceTrips = boroughs.map(
       (borough) => tripsByBorough.get(borough) ?? 0
@@ -230,7 +231,7 @@ export function BoroughFlowNetworkBlock() {
     const nodeIndexByLabel = new Map<string, number>(
       nodes.map((node, index) => [node.label, index])
     )
-    const links = taxiData.od
+    const links = od
       .filter((item) => item.from !== item.to)
       .filter(
         (item) =>

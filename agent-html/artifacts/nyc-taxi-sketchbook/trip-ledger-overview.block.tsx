@@ -1,6 +1,6 @@
 import { Badge } from "../../components/ui/badge"
 
-import { taxiData } from "./data"
+import { taxiKpis, taxiMeta } from "./data/generated-trip-summary"
 import {
   LedgerRows,
   SketchNote,
@@ -15,8 +15,6 @@ const tripLedgerOverviewImage = {
 }
 
 export function TripLedgerOverviewBlock() {
-  const { kpis, meta } = taxiData
-
   return (
     <section className="canvas-stack-lg">
       <figure
@@ -71,10 +69,10 @@ export function TripLedgerOverviewBlock() {
             </p>
           </div>
           <SketchNote label="data cut">
-            Started with {formatCompact(kpis.rawTrips)} rows; kept{" "}
-            {formatCompact(kpis.keptTrips)} after filtering bad timestamps,
+            Started with {formatCompact(taxiKpis.rawTrips)} rows; kept{" "}
+            {formatCompact(taxiKpis.keptTrips)} after filtering bad timestamps,
             invalid zones, non-positive fares/distances, and extreme values.
-            The reporting window is fixed to {meta.month}.
+            The reporting window is fixed to {taxiMeta.month}.
           </SketchNote>
         </div>
 
@@ -85,27 +83,27 @@ export function TripLedgerOverviewBlock() {
                 recorded total amount
               </p>
               <p className="font-mono text-4xl font-semibold tracking-normal">
-                {formatCurrency(kpis.totalAmount)}
+                {formatCurrency(taxiKpis.totalAmount)}
               </p>
             </div>
-            <Badge variant="outline">{meta.vehicle}</Badge>
+            <Badge variant="outline">{taxiMeta.vehicle}</Badge>
           </div>
           <div className="grid gap-x-5 sm:grid-cols-2">
             <LedgerRows
               items={[
                 {
                   label: "clean trips",
-                  value: formatCompact(kpis.keptTrips),
+                  value: formatCompact(taxiKpis.keptTrips),
                   note: "after filters",
                 },
                 {
                   label: "avg total",
-                  value: formatCurrency(kpis.averageTotal),
+                  value: formatCurrency(taxiKpis.averageTotal),
                   note: "fare + fees + tip",
                 },
                 {
                   label: "avg distance",
-                  value: `${kpis.averageDistance} mi`,
+                  value: `${taxiKpis.averageDistance} mi`,
                   note: "mean trip_distance",
                 },
               ]}
@@ -114,20 +112,20 @@ export function TripLedgerOverviewBlock() {
               items={[
                 {
                   label: "median trip",
-                  value: `${kpis.medianDistance} mi`,
+                  value: `${taxiKpis.medianDistance} mi`,
                 },
                 {
                   label: "median total",
-                  value: formatCurrency(kpis.medianTotal),
+                  value: formatCurrency(taxiKpis.medianTotal),
                 },
                 {
                   label: "card tip rate",
                   note: "cash tips are not fully captured",
-                  value: `${kpis.cardTipRate}%`,
+                  value: `${taxiKpis.cardTipRate}%`,
                 },
                 {
                   label: "avg passenger",
-                  value: String(kpis.averagePassengers),
+                  value: String(taxiKpis.averagePassengers),
                   note: "reported count",
                 },
               ]}

@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "../../components/ui/tooltip"
 
-import { taxiData } from "./data"
+import { hourDay } from "./data/generated-city-rhythm"
 import { roughSketchMarkOptions } from "./rough-theme"
 import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
 import {
@@ -22,7 +22,7 @@ import {
 } from "./sketch-components"
 
 const hours = Array.from({ length: 24 }, (_, hour) => hour)
-const maxTrips = Math.max(...taxiData.hourDay.map((item) => item.trips))
+const maxTrips = Math.max(...hourDay.map((item) => item.trips))
 const cellSize = 24
 const dotSize = 20
 const gap = 4
@@ -35,7 +35,7 @@ function cellOpacity(trips: number) {
 
 const heatmapCells = dayLabels.flatMap((_, dayIndex) =>
   hours.map((hour) => {
-    const item = taxiData.hourDay.find(
+    const item = hourDay.find(
       (candidate) => candidate.day === dayIndex && candidate.hour === hour
     )
 
@@ -70,11 +70,11 @@ function weightedAverageTotal(
 }
 
 export function CityRhythmBlock() {
-  const peak = [...taxiData.hourDay].sort((a, b) => b.trips - a.trips)[0]
-  const priciest = [...taxiData.hourDay].sort(
+  const peak = [...hourDay].sort((a, b) => b.trips - a.trips)[0]
+  const priciest = [...hourDay].sort(
     (a, b) => b.averageTotal - a.averageTotal
   )[0]
-  const overnightItems = taxiData.hourDay.filter((item) => item.hour < 6)
+  const overnightItems = hourDay.filter((item) => item.hour < 6)
   const overnightTrips = overnightItems.reduce((sum, item) => sum + item.trips, 0)
   const overnightAverageTotal = weightedAverageTotal(overnightItems)
   const drawHourGrid = useCallback<RoughSketchDraw>((roughSvg, group) => {

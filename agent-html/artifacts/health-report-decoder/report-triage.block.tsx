@@ -12,12 +12,16 @@ import {
 
 import {
   doctorQueue,
+} from "./data/doctor-question-list"
+import {
   labItemsByStatus,
   sampleReport,
+} from "./data/report"
+import {
   statusFor,
   statusMeta,
-  type ReportStatus,
-} from "./data"
+} from "./data/status"
+import type { ReportStatus } from "./data/types"
 
 const statusOrder: ReportStatus[] = ["normal", "watch", "recheck", "consult"]
 const priorityStatuses: ReportStatus[] = ["consult", "recheck", "watch"]

@@ -3,9 +3,9 @@ import { StatusBadge } from "../../components/ui/status-badge"
 
 import {
   doctorQueue,
-  labItemByCode,
-  statusFor,
-} from "./data"
+} from "./data/doctor-question-list"
+import { labItemByCode } from "./data/report"
+import { statusFor } from "./data/status"
 
 function DoctorPrepIllustration() {
   return (

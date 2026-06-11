@@ -7,7 +7,8 @@ import { Button } from "../../components/ui/button"
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
 import { StatusBadge } from "../../components/ui/status-badge"
 
-import { labItemByCode, quizQuestions } from "./data"
+import { labItemByCode } from "./data/report"
+import { quizQuestions } from "./data/report-literacy-check"
 
 type QuizResult = {
   label: string

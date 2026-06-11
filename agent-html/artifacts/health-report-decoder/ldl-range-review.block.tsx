@@ -10,12 +10,9 @@ import {
   TableRow,
 } from "../../components/ui/table"
 
-import {
-  activeIndicatorCode,
-  labItemByCode,
-  sampleReport,
-  statusFor,
-} from "./data"
+import { activeIndicatorCode } from "./data/ldl-range-review"
+import { labItemByCode, sampleReport } from "./data/report"
+import { statusFor } from "./data/status"
 
 const activeItem = labItemByCode(activeIndicatorCode) ?? sampleReport.labItems[0]
 const relatedItems = sampleReport.labItems.filter(
