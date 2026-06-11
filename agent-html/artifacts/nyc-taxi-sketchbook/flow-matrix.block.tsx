@@ -126,10 +126,8 @@ function OdSankeyChart() {
           getNodeColor={(node) => sankeyNodeColor(node.name)}
           lineCap={3}
           roughOptions={roughSketchSankeyOptions}
-          showLabels
         />
         <SankeyTooltip
-          formatValue={(value) => `${formatCompact(value)} trips`}
           linkContent={({ link }) => {
             const flow = link as OdSankeyLink
 

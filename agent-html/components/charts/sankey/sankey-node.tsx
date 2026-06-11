@@ -2,15 +2,17 @@
 
 import type { SankeyNode as SankeyNodeType } from "d3-sankey";
 import { motion } from "motion/react";
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import rough from "roughjs";
 import type { Options as RoughOptions } from "roughjs/bin/core";
-import { intFmt } from "../chart-formatters";
+import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect";
 import {
   type SankeyLinkDatum,
   type SankeyNodeDatum,
   useSankey,
 } from "./sankey-context";
+
+const intFmt = new Intl.NumberFormat("en-US").format;
 
 // Helper to get node index from link source/target
 type NodeOrIndex = SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum> | number;
@@ -54,8 +56,6 @@ export interface SankeyNodeProps {
   lineCap?: number;
   /** Opacity when another node/link is hovered. Default: 0.4 */
   fadedOpacity?: number;
-  /** Show node labels. Default: true */
-  showLabels?: boolean;
   /** Custom node color function */
   getNodeColor?: (
     node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
@@ -79,7 +79,6 @@ interface AnimatedNodeProps {
   name: string;
   value: number;
   isLeftSide: boolean;
-  showLabels: boolean;
   roughOptions?: RoughOptions;
 }
 
@@ -102,7 +101,7 @@ function RoughNodeRect({
 }) {
   const groupRef = useRef<SVGGElement>(null);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const group = groupRef.current;
     const svg = group?.ownerSVGElement;
     if (!(group && svg)) {
@@ -137,7 +136,6 @@ function AnimatedNode({
   name,
   value,
   isLeftSide,
-  showLabels,
   roughOptions,
 }: AnimatedNodeProps) {
   const nameLabelX = isLeftSide ? x - 12 : x + width + 12;
@@ -183,32 +181,28 @@ function AnimatedNode({
           y={y}
         />
       )}
-      {showLabels && (
-        <>
-          <motion.text
-            animate={{ opacity: nameOpacity, x: nameLabelX }}
-            className="fill-foreground font-medium text-[13px]"
-            dy="0.35em"
-            initial={false}
-            textAnchor={isLeftSide ? "end" : "start"}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            y={y + height / 2}
-          >
-            {name}
-          </motion.text>
-          <motion.text
-            animate={{ opacity: valueOpacity, x: valueLabelX }}
-            className="fill-foreground text-[11px]"
-            dy="0.35em"
-            initial={false}
-            textAnchor={isLeftSide ? "end" : "start"}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            y={y + height / 2 + 16}
-          >
-            {intFmt(value)} sessions
-          </motion.text>
-        </>
-      )}
+      <motion.text
+        animate={{ opacity: nameOpacity, x: nameLabelX }}
+        className="fill-foreground font-medium text-[13px]"
+        dy="0.35em"
+        initial={false}
+        textAnchor={isLeftSide ? "end" : "start"}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+        y={y + height / 2}
+      >
+        {name}
+      </motion.text>
+      <motion.text
+        animate={{ opacity: valueOpacity, x: valueLabelX }}
+        className="fill-foreground text-[11px]"
+        dy="0.35em"
+        initial={false}
+        textAnchor={isLeftSide ? "end" : "start"}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+        y={y + height / 2 + 16}
+      >
+        {intFmt(value)} sessions
+      </motion.text>
     </motion.g>
   );
 }
@@ -216,7 +210,6 @@ function AnimatedNode({
 export function SankeyNode({
   lineCap = 4,
   fadedOpacity = 0.4,
-  showLabels = true,
   getNodeColor: getNodeColorProp,
   roughOptions,
 }: SankeyNodeProps) {
@@ -331,7 +324,6 @@ export function SankeyNode({
             onMouseLeave={handleMouseLeave}
             rx={lineCap}
             roughOptions={roughOptions}
-            showLabels={showLabels}
             value={displayValue}
             width={nodeWidth}
             x={nodeX}

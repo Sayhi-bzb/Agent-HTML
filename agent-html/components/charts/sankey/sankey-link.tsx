@@ -5,9 +5,10 @@ import type {
   SankeyNode as SankeyNodeType,
 } from "d3-sankey";
 import { motion } from "motion/react";
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import rough from "roughjs";
 import type { Options as RoughOptions } from "roughjs/bin/core";
+import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect";
 import {
   type SankeyLinkDatum,
   type SankeyNodeDatum,
@@ -113,7 +114,7 @@ function RoughLinkPath({
 }) {
   const groupRef = useRef<SVGGElement>(null);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const group = groupRef.current;
     const svg = group?.ownerSVGElement;
     if (!(group && svg)) {

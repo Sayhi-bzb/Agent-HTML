@@ -2,10 +2,10 @@
 
 import type { SankeyLink, SankeyNode } from "d3-sankey";
 import type { ReactNode, RefObject } from "react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect";
 import { cn } from "@/lib/utils";
-import { intFmt } from "../chart-formatters";
 import {
   type SankeyLinkDatum,
   type SankeyNodeDatum,
@@ -19,12 +19,6 @@ function getNodeName(nodeOrIndex: NodeOrIndex, fallbackIndex: number): string {
     return `Node ${nodeOrIndex}`;
   }
   return nodeOrIndex.name ?? `Node ${fallbackIndex}`;
-}
-
-interface TooltipRow {
-  color: string;
-  label: string;
-  value: string | number;
 }
 
 interface PositionedTooltipProps {
@@ -86,7 +80,7 @@ function PositionedTooltipInner({
     top: targetY,
   });
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!tooltipRef.current) {
       return;
     }
@@ -133,62 +127,15 @@ function PositionedTooltipInner({
   );
 }
 
-function TooltipRows({
-  title,
-  rows,
-  children,
-}: {
-  title?: string;
-  rows: TooltipRow[];
-  children?: ReactNode;
-}) {
-  return (
-    <div className="overflow-hidden">
-      <div className="flex flex-col gap-2 px-3 py-2 text-xs">
-        {title && <div className="font-medium">{title}</div>}
-        <div className="flex flex-col gap-1.5">
-          {rows.map((row) => (
-            <div
-              className="flex items-center justify-between gap-4"
-              key={`${row.label}-${row.color}`}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: row.color }}
-                />
-                <span className="opacity-80">{row.label}</span>
-              </div>
-              <span className="font-medium tabular-nums">
-                {typeof row.value === "number" ? intFmt(row.value) : row.value}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {children && (
-          <div className="mt-2 transition-opacity duration-200 ease-out">
-            {children}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export interface SankeyTooltipProps {
-  /** Custom content renderer for node tooltips */
-  nodeContent?: (props: {
+  nodeContent: (props: {
     node: SankeyNode<SankeyNodeDatum, SankeyLinkDatum>;
     index: number;
   }) => ReactNode;
-  /** Custom content renderer for link tooltips */
-  linkContent?: (props: {
+  linkContent: (props: {
     link: SankeyLink<SankeyNodeDatum, SankeyLinkDatum>;
     index: number;
   }) => ReactNode;
-  /** Value formatter function */
-  formatValue?: (value: number) => string;
   /** Custom class name */
   className?: string;
 }
@@ -196,7 +143,6 @@ export interface SankeyTooltipProps {
 export function SankeyTooltip({
   nodeContent,
   linkContent,
-  formatValue = intFmt,
   className = "",
 }: SankeyTooltipProps) {
   const {
@@ -225,35 +171,6 @@ export function SankeyTooltip({
       return null;
     }
 
-    // Calculate total value flowing through this node
-    const totalValue = node.value ?? 0;
-
-    // Custom content
-    if (nodeContent) {
-      return (
-        <PositionedTooltip
-          className={className}
-          containerHeight={height}
-          containerRef={containerRef}
-          containerWidth={width}
-          visible
-          x={x}
-          y={y}
-        >
-          {nodeContent({ node, index: tooltipData.nodeIndex })}
-        </PositionedTooltip>
-      );
-    }
-
-    // Default node tooltip
-    const rows: TooltipRow[] = [
-      {
-        color: "var(--chart-line-primary)",
-        label: "Sessions",
-        value: formatValue(totalValue),
-      },
-    ];
-
     return (
       <PositionedTooltip
         className={className}
@@ -264,7 +181,7 @@ export function SankeyTooltip({
         x={x}
         y={y}
       >
-        <TooltipRows rows={rows} title={node.name} />
+        {nodeContent({ node, index: tooltipData.nodeIndex })}
       </PositionedTooltip>
     );
   }
@@ -286,32 +203,6 @@ export function SankeyTooltip({
       tooltipData.linkIndex
     );
 
-    // Custom content
-    if (linkContent) {
-      return (
-        <PositionedTooltip
-          className={className}
-          containerHeight={height}
-          containerRef={containerRef}
-          containerWidth={width}
-          visible
-          x={x}
-          y={y}
-        >
-          {linkContent({ link, index: tooltipData.linkIndex })}
-        </PositionedTooltip>
-      );
-    }
-
-    // Default link tooltip
-    const rows: TooltipRow[] = [
-      {
-        color: "var(--chart-foreground-muted)",
-        label: "Flow",
-        value: formatValue(link.value),
-      },
-    ];
-
     return (
       <PositionedTooltip
         className={className}
@@ -322,7 +213,7 @@ export function SankeyTooltip({
         x={x}
         y={y}
       >
-        <TooltipRows rows={rows} title={`${sourceName} → ${targetName}`} />
+        {linkContent({ link, index: tooltipData.linkIndex })}
       </PositionedTooltip>
     );
   }
