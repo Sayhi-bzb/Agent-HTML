@@ -16,7 +16,6 @@ Full TypeScript declarations are generated only as temporary build input.
 | `agent-html/components/ui/calendar.tsx` | `Calendar`, `CalendarDayButton` |
 | `agent-html/components/ui/card.tsx` | `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle` |
 | `agent-html/components/ui/carousel.tsx` | `Carousel`, `CarouselApi`, `CarouselContent`, `CarouselItem`, `CarouselNext`, `CarouselPrevious`, `useCarousel` |
-| `agent-html/components/ui/chart.tsx` | `ChartConfig`, `ChartContainer`, `ChartLegend`, `ChartLegendContent`, `ChartStyle`, `ChartTooltip`, `ChartTooltipContent` |
 | `agent-html/components/ui/checkbox.tsx` | `Checkbox` |
 | `agent-html/components/ui/collapsible.tsx` | `Collapsible`, `CollapsibleContent`, `CollapsibleTrigger` |
 | `agent-html/components/ui/combobox.tsx` | `Combobox`, `ComboboxChip`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxTrigger`, `ComboboxValue`, `useComboboxAnchor` |

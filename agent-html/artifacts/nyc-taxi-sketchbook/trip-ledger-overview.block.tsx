@@ -45,7 +45,7 @@ export function TripLedgerOverviewBlock() {
             href={`${tripLedgerOverviewImage.hrefBase}#nyc-taxi-composition-ink`}
           />
           <use
-            className="fill-chart-3 opacity-70 mix-blend-overlay"
+            className="fill-chart-3 opacity-70"
             href={`${tripLedgerOverviewImage.hrefBase}#nyc-taxi-composition-glow`}
           />
         </svg>

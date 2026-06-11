@@ -30,7 +30,6 @@ describe("React Canvas package runtime contract", { timeout: 15000 }, () => {
       "radix-ui",
       "react",
       "react-dom",
-      "recharts",
       "shiki",
       "tailwind-merge",
       "tailwindcss",

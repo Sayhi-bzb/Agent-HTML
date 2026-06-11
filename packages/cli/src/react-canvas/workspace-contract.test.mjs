@@ -60,7 +60,6 @@ describe("React Canvas workspace contract", { timeout: 15000 }, () => {
       "radix-ui": expect.any(String),
       react: expect.any(String),
       "react-dom": expect.any(String),
-      recharts: expect.any(String),
       shiki: expect.any(String),
       "tailwind-merge": expect.any(String),
       tailwindcss: expect.any(String),

@@ -26,7 +26,6 @@
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.4",
     "react-resizable-panels": "^4.11.2",
-    "recharts": "^3.8.1",
     "rough-viz": "^2.0.5",
     "roughjs": "^4.6.6",
     "shadcn": "^4.10.0",

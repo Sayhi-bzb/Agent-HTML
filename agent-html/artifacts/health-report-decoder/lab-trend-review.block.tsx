@@ -1,19 +1,5 @@
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ReferenceLine,
-  XAxis,
-  YAxis,
-} from "recharts"
-
+import { LineChart, type ChartConfig } from "../../components/chart"
 import { Badge } from "../../components/ui/badge"
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "../../components/ui/chart"
 import { StatusBadge } from "../../components/ui/status-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
@@ -61,32 +47,14 @@ export function LabTrendReviewBlock() {
               key={series.code}
               value={series.code}
             >
-              <ChartContainer
+              <LineChart
                 className="h-80 w-full"
                 config={chartConfig}
-                initialDimension={{ height: 320, width: 720 }}
-              >
-                <LineChart accessibilityLayer data={series.points}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="year" tickLine={false} />
-                  <YAxis tickLine={false} width={38} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  {latest ? (
-                    <ReferenceLine
-                      stroke="var(--border)"
-                      strokeDasharray="3 3"
-                      y={latest.value}
-                    />
-                  ) : null}
-                  <Line
-                    dataKey="value"
-                    dot
-                    stroke="var(--color-value)"
-                    strokeWidth={2}
-                    type="monotone"
-                  />
-                </LineChart>
-              </ChartContainer>
+                data={series.points}
+                referenceY={latest?.value}
+                xKey="year"
+                yKey="value"
+              />
 
               <div className="canvas-stack-md">
                 {item ? (
