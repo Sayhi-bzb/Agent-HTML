@@ -49,8 +49,10 @@ function AirportRouteSketch() {
 export function AirportRidesBlock() {
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="05 / airport rides" title="机场行程抬高距离和总额">
-        JFK、LaGuardia 和 Newark 的行程不是最大数量项，但距离更长、总额更高，也解释了凌晨高客单价的一部分。
+      <SectionIntro badge="05 / airport rides" title="Airport trips lift distance and total fare">
+        JFK, LaGuardia, and Newark are not the largest trip buckets, but their
+        rides run longer, cost more, and help explain part of the higher
+        overnight average.
       </SectionIntro>
 
       <div className="grid gap-5 md:grid-cols-3">
@@ -89,7 +91,8 @@ export function AirportRidesBlock() {
       </div>
 
       <SketchNote>
-        Newark 出现在 TLC zone lookup 里，但它不是 NYC borough。这里保留 EWR，是为了让机场流向和费用结构完整。
+        Newark appears in the TLC zone lookup, but it is not an NYC borough.
+        EWR is kept here so airport flows and fare structure stay complete.
       </SketchNote>
     </section>
   )

@@ -1,9 +1,14 @@
-import { useCallback, useEffect, useId, useMemo } from "react"
+import { useEffect, useId, useMemo } from "react"
 import * as roughViz from "rough-viz"
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../components/ui/tooltip"
 import { taxiData } from "./data"
-import { roughSketchChartStyle, roughSketchMarkOptions } from "./rough-theme"
-import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
+import { roughSketchChartStyle } from "./rough-theme"
 import {
   SketchAnnotation,
   SectionIntro,
@@ -27,15 +32,6 @@ const matrixRows = boroughs.map((from) =>
   })
 )
 const maxTrips = Math.max(...matrixRows.flat().map((item) => item.trips))
-function opacityClass(trips: number) {
-  if (!trips) return "opacity-10"
-  const ratio = trips / maxTrips
-  if (ratio > 0.8) return "opacity-90"
-  if (ratio > 0.6) return "opacity-75"
-  if (ratio > 0.4) return "opacity-60"
-  if (ratio > 0.2) return "opacity-45"
-  return "opacity-25"
-}
 
 type TaxiForceNode = {
   category: "Borough" | "Airport"
@@ -54,45 +50,118 @@ function forceRadiusForTrips(trips: number, maxForceTrips: number) {
   return 3 + Math.sqrt(trips / maxForceTrips) * 7
 }
 
-function RoughMatrixCell({
+function heatmapCellBackground(trips: number) {
+  if (!trips) {
+    return "var(--muted)"
+  }
+
+  const intensity = Math.round(18 + Math.sqrt(trips / maxTrips) * 72)
+  return `color-mix(in oklab, var(--chart-1) ${intensity}%, var(--background))`
+}
+
+function heatmapCellForeground(trips: number) {
+  if (!trips) {
+    return "var(--muted-foreground)"
+  }
+
+  return trips / maxTrips > 0.36 ? "var(--background)" : "var(--foreground)"
+}
+
+function OdHeatmapCell({
   item,
-  seed,
 }: {
   item: (typeof matrixRows)[number][number]
-  seed: number
 }) {
-  const drawCell = useCallback<RoughSketchDraw>(
-    (roughSvg, group) => {
-      group.appendChild(
-        roughSvg.rectangle(2, 2, 96, 76, {
-          ...roughSketchMarkOptions,
-          fill: "currentColor",
-          hachureGap: 5,
-          seed,
-          strokeWidth: 0.8,
-        })
-      )
-    },
-    [seed]
-  )
+  const isDiagonal = item.from === item.to
 
   return (
-    <div
-      className={`relative min-h-20 text-foreground ${opacityClass(item.trips)}`}
-    >
-      <svg
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full"
-        preserveAspectRatio="none"
-        viewBox="0 0 100 80"
-      >
-        <RoughSvgLayer draw={drawCell} />
-      </svg>
-      <div className="relative p-2 text-background">
-        <p className="font-mono text-sm">{formatCompact(item.trips)}</p>
-        <p className="text-xs">{item.averageDistance} mi</p>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          aria-label={`${item.from} to ${item.to}: ${formatCompact(item.trips)} trips`}
+          className="group relative flex min-h-20 w-full flex-col justify-between rounded-sm border border-border/70 p-2 text-left transition-[border-color,box-shadow,translate] hover:-translate-y-0.5 hover:border-foreground/60 hover:shadow-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          style={{
+            backgroundColor: heatmapCellBackground(item.trips),
+            color: heatmapCellForeground(item.trips),
+          }}
+          type="button"
+        >
+          {isDiagonal ? (
+            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-current opacity-80" />
+          ) : null}
+          <span className="font-mono text-sm font-semibold tracking-normal">
+            {item.trips ? formatCompact(item.trips) : "0"}
+          </span>
+          <span className="text-xs opacity-85">{item.averageDistance} mi</span>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="items-start" sideOffset={6}>
+        <div className="grid gap-1">
+          <strong className="font-mono text-[0.75rem] tracking-normal">
+            {item.from} {"->"} {item.to}
+          </strong>
+          <span>{formatCompact(item.trips)} trips</span>
+          <span>{item.averageDistance} mi average distance</span>
+          <span>${item.averageTotal} average total</span>
+          {isDiagonal ? <span>same-area trips</span> : null}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+function OdHeatmap() {
+  return (
+    <TooltipProvider>
+      <div className="overflow-x-auto">
+        <div
+          aria-label="Directed origin-destination heatmap by borough"
+          className="grid min-w-[680px] gap-2"
+          role="img"
+        >
+          <div className="grid grid-cols-[6.5rem_repeat(5,minmax(5.75rem,1fr))] gap-2">
+            <span />
+            {boroughs.map((borough) => (
+              <span
+                className="canvas-text-caption text-muted-foreground"
+                key={borough}
+              >
+                to {borough}
+              </span>
+            ))}
+          </div>
+          {matrixRows.map((row, index) => (
+            <div
+              className="grid grid-cols-[6.5rem_repeat(5,minmax(5.75rem,1fr))] gap-2"
+              key={boroughs[index]}
+            >
+              <span className="canvas-text-caption flex min-h-20 items-center text-muted-foreground">
+                from {boroughs[index]}
+              </span>
+              {row.map((item) => (
+                <OdHeatmapCell item={item} key={`${item.from}-${item.to}`} />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+      <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
+        <span className="canvas-text-caption">low trips</span>
+        <span
+          aria-hidden="true"
+          className="h-2 w-28 rounded-full border border-border"
+          style={{
+            background:
+              "linear-gradient(90deg, color-mix(in oklab, var(--chart-1) 18%, var(--background)), color-mix(in oklab, var(--chart-1) 90%, var(--background)))",
+          }}
+        />
+        <span className="canvas-text-caption">high trips</span>
+        <span className="canvas-text-caption inline-flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
+          same-area trips
+        </span>
+      </div>
+    </TooltipProvider>
   )
 }
 
@@ -192,8 +261,9 @@ export function FlowMatrixBlock() {
 
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="03 / origin to destination" title="主要流向先看网络，再查矩阵">
-        roughViz.Network 保留最强 OD links；下方矩阵继续保留方向关系和精确对照。
+      <SectionIntro badge="03 / origin to destination" title="Read the major flows as a network, then audit the matrix">
+        roughViz.Network keeps the strongest OD links; the matrix below keeps
+        directionality and exact cross-checks.
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -207,12 +277,13 @@ export function FlowMatrixBlock() {
               {strongest.from} {"->"} {strongest.to}
             </strong>
             <p className="canvas-text-caption text-muted-foreground">
-              {formatCompact(strongest.trips)} 次，平均 {strongest.averageDistance}{" "}
-              mi，平均总额 ${strongest.averageTotal}。
+              {formatCompact(strongest.trips)} trips, averaging{" "}
+              {strongest.averageDistance} mi and ${strongest.averageTotal} total.
             </p>
           </SketchAnnotation>
           <SketchNote>
-            EWR 保留在这里，是为了让机场边界对费用和距离的影响不被 borough 汇总吞掉。
+            EWR stays visible here so the airport boundary's effect on fares
+            and distances does not disappear inside borough rollups.
           </SketchNote>
         </div>
       </div>
@@ -220,35 +291,14 @@ export function FlowMatrixBlock() {
       <SketchPanel>
         <div className="canvas-stack-md">
           <div className="canvas-stack-xs">
-            <h3 className="canvas-text-subheading">OD matrix audit</h3>
+            <h3 className="canvas-text-subheading">Directed OD heatmap</h3>
             <p className="canvas-text-caption text-muted-foreground">
-              force sketch 看关系，矩阵保留精确对照。对角线越深，说明行程更多在同一区域内部完成。
+              The force sketch shows relationships; the heatmap keeps exact
+              direction and comparable trip density. The dot marks same-area
+              trips on the diagonal.
             </p>
           </div>
-          <div className="grid gap-2">
-            <div className="grid grid-cols-6 gap-2">
-              <span />
-              {boroughs.map((borough) => (
-                <span className="canvas-text-caption text-muted-foreground" key={borough}>
-                  {borough}
-                </span>
-              ))}
-            </div>
-            {matrixRows.map((row, index) => (
-              <div className="grid grid-cols-6 gap-2" key={boroughs[index]}>
-                <span className="canvas-text-caption text-muted-foreground">
-                  {boroughs[index]}
-                </span>
-                {row.map((item, columnIndex) => (
-                  <RoughMatrixCell
-                    item={item}
-                    key={`${item.from}-${item.to}`}
-                    seed={index * boroughs.length + columnIndex + 80}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
+          <OdHeatmap />
         </div>
       </SketchPanel>
     </section>

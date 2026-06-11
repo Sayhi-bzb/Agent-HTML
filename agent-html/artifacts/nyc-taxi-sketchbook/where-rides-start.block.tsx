@@ -84,8 +84,10 @@ const pickupZoneColumns: ColumnDef<PickupZoneRow>[] = [
 export function WhereRidesStartBlock() {
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="02 / pickup geography" title="pickup 仍集中在曼哈顿和机场">
-        高频 pickup 不是全城均匀分布。曼哈顿核心区给出短途密度，机场区域把距离和费用拉高。
+      <SectionIntro badge="02 / pickup geography" title="Pickups still cluster in Manhattan and at airports">
+        High-frequency pickups are not evenly spread across the city. Core
+        Manhattan zones supply short-hop density, while airport zones lift
+        distance and fare totals.
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-2">
@@ -113,7 +115,8 @@ export function WhereRidesStartBlock() {
             }))}
           />
           <SketchNote>
-            Manhattan 占比最高不意外；更值得看的是 Queens 和 EWR，它们把机场长距离行程带进费用结构。
+            Manhattan leads as expected; Queens and EWR are the sharper read
+            because they pull long airport trips into the fare structure.
           </SketchNote>
         </div>
       </div>
@@ -123,7 +126,8 @@ export function WhereRidesStartBlock() {
           <div className="canvas-stack-xs">
             <h3 className="canvas-text-subheading">Top pickup zones, inspectable</h3>
             <p className="canvas-text-caption text-muted-foreground">
-              这张表直接使用同一份官方聚合数据，可搜索 zone、排序行程数和均值字段。
+              This table uses the same official aggregate, with searchable
+              zones and sortable trip, total, and distance fields.
             </p>
           </div>
         </div>

@@ -13,6 +13,33 @@ const dtsWorkspaceRoot = path.join(tmpRoot, "agent-html")
 const depsJsonPath = path.join(root, "node_modules", ".tmp", "agent-html-deps.json")
 const shouldCheck = process.argv.includes("--check")
 const largeFileTokenThreshold = 2000
+const ignoredWorkspaceDirectories = new Set([
+  ".vite",
+  "build",
+  "dist",
+  "node_modules",
+])
+const ignoredLargeFileExtensions = new Set([
+  ".avif",
+  ".gif",
+  ".ico",
+  ".jpeg",
+  ".jpg",
+  ".map",
+  ".mov",
+  ".mp3",
+  ".mp4",
+  ".otf",
+  ".png",
+  ".svg",
+  ".ttf",
+  ".wasm",
+  ".wav",
+  ".webm",
+  ".webp",
+  ".woff",
+  ".woff2",
+])
 
 const apiSections = [
   { label: "components/ui", sourceDir: "components/ui" },
@@ -107,6 +134,10 @@ function readAllFiles(dir) {
     const entryPath = path.join(dir, entry.name)
 
     if (entry.isDirectory()) {
+      if (ignoredWorkspaceDirectories.has(entry.name)) {
+        continue
+      }
+
       files.push(...readAllFiles(entryPath))
       continue
     }
@@ -296,7 +327,20 @@ async function cruiseDependencies() {
 }
 
 function isWorkspaceModule(filePath) {
-  return filePath.startsWith("agent-html/")
+  const workspacePath = filePath.replaceAll(path.sep, "/")
+
+  return (
+    workspacePath.startsWith("agent-html/") &&
+    !workspacePath
+      .split("/")
+      .some((segment) => ignoredWorkspaceDirectories.has(segment))
+  )
+}
+
+function isLargeFileIndexCandidate(file) {
+  const extension = path.extname(file).toLowerCase()
+
+  return !ignoredLargeFileExtensions.has(extension)
 }
 
 function dependencyKind(dependency) {
@@ -394,6 +438,7 @@ function topCounts(counts, limit) {
 function buildLargeFilesMarkdown() {
   const rows = readAllFiles(workspaceRoot)
     .filter((file) => !toWorkspacePath(file).startsWith("index/"))
+    .filter(isLargeFileIndexCandidate)
     .map((file) => ({
       file: toRepoPath(file),
       estimatedTokens: estimateTokens(fs.statSync(file).size),

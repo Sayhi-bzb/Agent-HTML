@@ -18,17 +18,19 @@ export function TaxiHeaderBlock() {
           <div className="canvas-stack-sm">
             <Badge variant="secondary">NYC TLC / October 2024</Badge>
             <h1 className="text-4xl font-semibold tracking-normal text-foreground md:text-5xl">
-              纽约黄出租，一个月的行程账本。
+              A one-month ledger of NYC yellow taxi trips.
             </h1>
             <p className="canvas-text-body text-muted-foreground">
-              NYC TLC Yellow Taxi Trip Record Data，清洗后保留 367 万次行程。
-              这页只看上车时间、地点、费用和机场长距离行程如何改变均值。
+              NYC TLC Yellow Taxi Trip Record Data, filtered down to 3.67
+              million trips. This sketchbook tracks pickup timing, geography,
+              fares, and the long airport rides that bend the averages.
             </p>
           </div>
           <SketchNote label="data cut">
-            原始 {formatCompact(kpis.rawTrips)}
-            行；过滤时间越界、无效区域、非正金额/里程和极端值后保留{" "}
-            {formatCompact(kpis.keptTrips)} 行。口径固定为 {meta.month}。
+            Started with {formatCompact(kpis.rawTrips)} rows; kept{" "}
+            {formatCompact(kpis.keptTrips)} after filtering bad timestamps,
+            invalid zones, non-positive fares/distances, and extreme values.
+            The reporting window is fixed to {meta.month}.
           </SketchNote>
         </div>
 

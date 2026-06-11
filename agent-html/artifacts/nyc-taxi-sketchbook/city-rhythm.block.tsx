@@ -73,9 +73,10 @@ export function CityRhythmBlock() {
 
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="01 / hour grid" title="按星期和小时看 pickup 密度">
-        横向是一天 24 小时，纵向是星期。格子深浅只表示 pickup 数量，用来定位通勤、
-        晚餐和夜间活动的换挡点。
+      <SectionIntro badge="01 / hour grid" title="Pickup density by weekday and hour">
+        Columns run across the 24 hours of a day; rows run down the week. The
+        darker cells only encode pickup volume, making commute, dinner, and
+        late-night shift changes easier to spot.
       </SectionIntro>
 
       <div className="canvas-stack-md">
@@ -153,12 +154,14 @@ export function CityRhythmBlock() {
               {dayLabels[peak.day]} {peak.hour}:00
             </p>
             <p className="canvas-text-caption text-muted-foreground">
-              {peak.trips.toLocaleString()} 次 pickup，平均总额{" "}
-              {formatCurrency(peak.averageTotal)}。
+              {peak.trips.toLocaleString()} pickups, with an average total of{" "}
+              {formatCurrency(peak.averageTotal)}.
             </p>
           </SketchAnnotation>
           <SketchNote>
-            深色集中在工作日下午到夜间。凌晨格子变浅，但平均金额会上升，说明短途通勤之外还有机场和长距离行程。
+            The darkest cells cluster from weekday afternoons into evening.
+            Overnight volume thins out, but average totals rise, pointing to
+            airport and longer-distance trips beyond short city commutes.
           </SketchNote>
         </div>
       </div>

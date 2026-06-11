@@ -36,9 +36,10 @@ const paymentChartData = {
 export function FareAnatomyBlock() {
   return (
     <section className="canvas-stack-lg">
-      <SectionIntro badge="04 / fare anatomy" title="平均总额由计价器和费用叠加">
-        单次平均总额约 {formatCurrency(taxiData.kpis.averageTotal)}。计价器费用是主体，
-        但小费、拥堵费、机场费和 tolls 会改变不同场景的真实体感。
+      <SectionIntro badge="04 / fare anatomy" title="Average totals stack meter fare with fees">
+        The average trip total is about {formatCurrency(taxiData.kpis.averageTotal)}.
+        Meter fare is the base, but tips, congestion charges, airport fees, and
+        tolls change how different ride scenarios feel in practice.
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -88,7 +89,8 @@ export function FareAnatomyBlock() {
             }))}
           />
           <SketchNote label="field note">
-            `tip_amount` 不等于全部小费，它主要记录刷卡小费。现金支付行程的小费行为会被低估。
+            `tip_amount` is not every tip. It mainly records credit-card tips,
+            so tip behavior on cash-paid trips is undercounted.
           </SketchNote>
         </div>
       </div>
