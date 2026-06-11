@@ -8,101 +8,58 @@ import {
   TabsList,
   TabsTrigger,
 } from "../../components/ui/tabs"
+import { codeMetricRows } from "./data/generated-code-metrics"
+import {
+  evidenceCategories,
+  evidenceMatrix,
+  evidenceRows,
+} from "./data/review-decision"
+import type { CodeMetricRow, EvidenceRow } from "./data/types"
 
-const categories = ["payment", "cache", "webhook"]
-const evidenceMatrix = [
+const codeMetricColumns: ColumnDef<CodeMetricRow>[] = [
   {
-    evidence: "covered",
-    impact: "high impact",
-    note: "card replay blocks duplicate intent writes",
-    status: "success" as const,
+    accessorKey: "mi",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="MI" />
+    ),
   },
   {
-    evidence: "happy path",
-    impact: "high impact",
-    note: "checkout smoke misses second-click session reuse",
-    status: "warning" as const,
+    accessorKey: "name",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Name" />
+    ),
   },
   {
-    evidence: "missing",
-    impact: "high impact",
-    note: "duplicate charge regression is not represented",
-    status: "destructive" as const,
+    accessorKey: "loc",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="LOC" />
+    ),
   },
   {
-    evidence: "covered",
-    impact: "medium impact",
-    note: "cache flush is asserted after successful payment",
-    status: "success" as const,
+    accessorKey: "cyclomatic",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="CC" />
+    ),
   },
   {
-    evidence: "happy path",
-    impact: "medium impact",
-    note: "button state only covers loading behavior",
-    status: "warning" as const,
+    accessorKey: "cognitive",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cog" />
+    ),
   },
   {
-    evidence: "missing",
-    impact: "medium impact",
-    note: "stale intent replay lacks a focused test",
-    status: "destructive" as const,
-  },
-  {
-    evidence: "covered",
-    impact: "low impact",
-    note: "owner note exists for support handoff",
-    status: "success" as const,
-  },
-  {
-    evidence: "happy path",
-    impact: "low impact",
-    note: "retry path has a single successful replay",
-    status: "warning" as const,
-  },
-  {
-    evidence: "missing",
-    impact: "low impact",
-    note: "dashboard alert threshold is undecided",
-    status: "destructive" as const,
+    accessorKey: "fanOut",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Out" />
+    ),
   },
 ]
-type EvidenceRow = {
-  evidence: "covered" | "missing" | "partial"
-  impact: string
-  missingCheck: string
-  risk: string
-}
-const evidenceRows: EvidenceRow[] = [
-  {
-    evidence: "missing",
-    impact: "high",
-    missingCheck: "duplicate charge regression",
-    risk: "same cart creates two active sessions",
-  },
-  {
-    evidence: "partial",
-    impact: "medium",
-    missingCheck: "webhook retry with stale cache",
-    risk: "subscription state updates after retry",
-  },
-  {
-    evidence: "covered",
-    impact: "low",
-    missingCheck: "none",
-    risk: "checkout button disabled while loading",
-  },
-]
+
 const evidenceColumns: ColumnDef<EvidenceRow>[] = [
   {
     accessorKey: "risk",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="risk item" />
-    ),
-  },
-  {
-    accessorKey: "impact",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="impact" />
     ),
   },
   {
@@ -159,26 +116,44 @@ export function RiskEvidenceBlock() {
           ))}
         </div>
 
-        <Tabs defaultValue={categories[0]}>
+        <Tabs defaultValue={evidenceCategories[0]}>
           <TabsList>
-            {categories.map((category) => (
+            {evidenceCategories.map((category) => (
               <TabsTrigger key={category} value={category}>
                 {category}
               </TabsTrigger>
             ))}
           </TabsList>
-          {categories.map((category) => (
-            <TabsContent key={category} value={category}>
-              <DataTable
-                columns={evidenceColumns}
-                data={evidenceRows}
-                enablePagination={false}
-                enableViewOptions={false}
-                searchColumn="risk"
-                searchPlaceholder={`Filter ${category} risk...`}
-              />
-            </TabsContent>
-          ))}
+          <TabsContent value="metrics">
+            <DataTable
+              columns={codeMetricColumns}
+              data={codeMetricRows}
+              enablePagination={false}
+              enableViewOptions={false}
+              searchColumn="name"
+              searchPlaceholder="Filter code metric..."
+            />
+          </TabsContent>
+          <TabsContent value="dependency">
+            <DataTable
+              columns={evidenceColumns}
+              data={evidenceRows}
+              enablePagination={false}
+              enableViewOptions={false}
+              searchColumn="risk"
+              searchPlaceholder="Filter dependency evidence..."
+            />
+          </TabsContent>
+          <TabsContent value="runtime">
+            <DataTable
+              columns={evidenceColumns}
+              data={evidenceRows}
+              enablePagination={false}
+              enableViewOptions={false}
+              searchColumn="risk"
+              searchPlaceholder="Filter runtime evidence..."
+            />
+          </TabsContent>
         </Tabs>
       </div>
     </section>

@@ -4,40 +4,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "../../components/ui/tabs"
-
-const nodes = [
-  { cx: 50, cy: 50, label: "session" },
-  { cx: 31, cy: 34, label: "checkout" },
-  { cx: 70, cy: 31, label: "payment" },
-  { cx: 24, cy: 72, label: "retry job" },
-  { cx: 75, cy: 70, label: "customer" },
-]
-const layers = [
-  {
-    items: [
-      ["Checkout page", "starts session creation"],
-      ["Subscription upgrade", "reuses session helper"],
-      ["Admin replay", "can re-run stale intents"],
-    ],
-    value: "callers",
-  },
-  {
-    items: [
-      ["Payment adapter", "receives idempotency key"],
-      ["Webhook retry", "reads intent state"],
-      ["Session cache", "stores reusable lookup"],
-    ],
-    value: "downstream",
-  },
-  {
-    items: [
-      ["Duplicate charge", "highest severity failure mode"],
-      ["Stale subscription", "state mismatch after retry"],
-      ["Support ticket", "customer-visible recovery"],
-    ],
-    value: "impact",
-  },
-]
+import { blastRadiusLayers, blastRadiusNodes } from "./data/blast-radius"
 
 export function BlastRadiusBlock() {
   return (
@@ -53,7 +20,7 @@ export function BlastRadiusBlock() {
 
       <div className="grid gap-5 rounded-md bg-background p-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(240px,0.38fr)]">
         <svg
-          aria-label="Checkout change blast radius"
+          aria-label="Agent-HTML code-health blast radius"
           className="min-h-80 w-full text-foreground"
           viewBox="0 0 100 100"
         >
@@ -67,7 +34,7 @@ export function BlastRadiusBlock() {
               strokeDasharray="2 3"
             />
           ))}
-          {nodes.map((node) => (
+          {blastRadiusNodes.map((node) => (
             <g key={node.label}>
               <circle
                 className="fill-muted stroke-foreground"
@@ -86,16 +53,20 @@ export function BlastRadiusBlock() {
           ))}
         </svg>
 
-        <Tabs defaultValue={layers[0].value}>
+        <Tabs defaultValue={blastRadiusLayers[0].value}>
           <TabsList>
-            {layers.map((layer) => (
+            {blastRadiusLayers.map((layer) => (
               <TabsTrigger key={layer.value} value={layer.value}>
                 {layer.value}
               </TabsTrigger>
             ))}
           </TabsList>
-          {layers.map((layer) => (
-            <TabsContent className="canvas-stack-sm" key={layer.value} value={layer.value}>
+          {blastRadiusLayers.map((layer) => (
+            <TabsContent
+              className="canvas-stack-sm"
+              key={layer.value}
+              value={layer.value}
+            >
               {layer.items.map(([name, detail]) => (
                 <div className="rounded-md bg-muted/40 p-3" key={name}>
                   <p className="canvas-text-caption text-muted-foreground">

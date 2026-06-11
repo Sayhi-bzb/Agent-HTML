@@ -1,76 +1,7 @@
 import { CodeBlock } from "../../components/code-block"
 import { Badge } from "../../components/ui/badge"
 import { StatusBadge } from "../../components/ui/status-badge"
-
-const files = [
-  {
-    consequence: "writes payment intent state",
-    file: "api/checkout/session.ts",
-    lines: "+96 -28",
-    risk: "high",
-    size: "h-28 w-44",
-    status: "destructive" as const,
-    tone: "bg-destructive/35",
-    type: "api",
-  },
-  {
-    consequence: "changes idempotency key path",
-    file: "billing/payment-client.ts",
-    lines: "+42 -13",
-    risk: "high",
-    size: "h-20 w-36",
-    status: "destructive" as const,
-    tone: "bg-destructive/25",
-    type: "service",
-  },
-  {
-    consequence: "replays stale checkout state",
-    file: "jobs/webhook-retry.ts",
-    lines: "+68 -31",
-    risk: "medium",
-    size: "h-24 w-32",
-    status: "warning" as const,
-    tone: "bg-chart-3/35",
-    type: "job",
-  },
-  {
-    consequence: "changes cache lookup shape",
-    file: "cache/session-key.ts",
-    lines: "+24 -9",
-    risk: "medium",
-    size: "h-16 w-28",
-    status: "warning" as const,
-    tone: "bg-chart-3/25",
-    type: "cache",
-  },
-  {
-    consequence: "loading state copy only",
-    file: "checkout-button.tsx",
-    lines: "+18 -14",
-    risk: "low",
-    size: "h-14 w-24",
-    status: "default" as const,
-    tone: "bg-muted",
-    type: "ui",
-  },
-  {
-    consequence: "covers happy path only",
-    file: "checkout-session.test.ts",
-    lines: "+52 -0",
-    risk: "evidence",
-    size: "h-11 w-36",
-    status: "success" as const,
-    tone: "bg-chart-1/25",
-    type: "test",
-  },
-]
-const fileTypes = ["api", "service", "job", "cache", "ui", "test"]
-const selectedDiff = `--- api/checkout/session.ts
-+++ api/checkout/session.ts
-- return createSession(cart, user)
-+ const session = await createSession(cart, user, { reuseKey })
-+ await recordSessionIntent(session.id, cart.id)
-+ return session`
+import { fileTypes, riskFiles, selectedDiff } from "./data/risk-map"
 
 export function DiffRiskMapBlock() {
   return (
@@ -94,7 +25,7 @@ export function DiffRiskMapBlock() {
             ))}
           </div>
           <div className="flex min-h-72 flex-wrap items-end gap-3">
-            {files.map((file) => (
+            {riskFiles.map((file) => (
               <div
                 className={`${file.size} ${file.tone} flex flex-col justify-between rounded-sm p-2`}
                 key={file.file}
@@ -116,11 +47,10 @@ export function DiffRiskMapBlock() {
           </div>
         </div>
         <CodeBlock
-          caption="Selected diff skeleton: the changed lines are small, but the session intent write creates downstream review questions."
+          caption="Selected candidate: the file is not the largest surface, but sorting, filtering, pagination, search, and row behavior converge here."
           code={selectedDiff}
           language="diff"
-          showLineNumbers
-          title="selected.diff"
+          title="selected-candidate.diff"
         />
       </div>
     </section>

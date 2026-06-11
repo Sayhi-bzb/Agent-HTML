@@ -1,45 +1,24 @@
 import { Badge } from "../../components/ui/badge"
 import { Progress } from "../../components/ui/progress"
 import { StatusBadge } from "../../components/ui/status-badge"
-
-const summaryItems = [
-  { label: "files", value: "8" },
-  { label: "lines", value: "+420 / -180" },
-  { label: "systems", value: "5" },
-  { label: "open risks", value: "4" },
-]
-const intakeItems = [
-  {
-    label: "PR metadata",
-    value: "Refactor checkout session handling",
-  },
-  {
-    label: "changed areas",
-    value: "API route, payment adapter, webhook retry, cache key",
-  },
-  {
-    label: "risk signal",
-    value: "Small service edit reaches billing state and async recovery paths.",
-  },
-  {
-    label: "review objective",
-    value: "Decide what must be proven before this can ship.",
-  },
-]
+import {
+  intakeItems,
+  reviewSubject,
+  summaryItems,
+} from "./data/repo-summary"
 
 export function PrOverviewBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,0.58fr)_minmax(280px,0.42fr)] lg:items-end">
         <div className="canvas-stack-md">
-          <Badge variant="secondary">developer review / draft</Badge>
+          <Badge variant="secondary">{reviewSubject.badge}</Badge>
           <div className="canvas-stack-sm">
             <h1 className="text-4xl font-semibold tracking-normal text-foreground md:text-5xl">
-              Code Review Room
+              {reviewSubject.title}
             </h1>
             <p className="canvas-text-body text-muted-foreground">
-              A review surface that starts from risk, evidence, and release
-              choices instead of reading a diff top-down.
+              {reviewSubject.subtitle}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -68,11 +47,10 @@ export function PrOverviewBlock() {
           <span className="canvas-text-caption text-muted-foreground">
             evidence completeness
           </span>
-          <Progress value={42} />
+          <Progress value={reviewSubject.evidenceCompleteness} />
         </div>
         <p className="canvas-text-caption text-muted-foreground">
-          Current evidence is enough to focus review, but not enough to choose a
-          release path without more targeted checks.
+          {reviewSubject.evidenceNote}
         </p>
       </div>
 
