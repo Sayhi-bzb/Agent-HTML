@@ -10,7 +10,8 @@ import {
   TimelineTitle,
 } from "../../components/timeline"
 
-import { mediaAssets, quietRoute } from "./data"
+import { mediaAssets } from "./data/media"
+import { quietRoute } from "./data/quiet-route"
 
 export function QuietRouteBlock() {
   return (

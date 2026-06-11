@@ -2,7 +2,8 @@ import { MapPin, Moon, PlaneLanding } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
 
-import { mediaAssets, tokyoRoutes } from "./data"
+import { tokyoRoutes } from "./data/map"
+import { mediaAssets } from "./data/media"
 
 const arrivalRoute = tokyoRoutes.find((route) => route.id === "arrival-route")
 

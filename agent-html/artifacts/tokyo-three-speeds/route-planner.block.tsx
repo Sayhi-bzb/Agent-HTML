@@ -15,13 +15,13 @@ import { Progress } from "../../components/ui/progress"
 import { Status } from "../../components/ui/status"
 
 import {
-  mediaAssets,
-  selectorOptions,
   tokyoMap,
   tokyoPoints,
   tokyoRoutes,
-  type TokyoRoute,
-} from "./data"
+} from "./data/map"
+import { mediaAssets } from "./data/media"
+import { selectorOptions } from "./data/route-planner"
+import type { TokyoRoute } from "./data/types"
 
 type RouteGeometry = {
   coordinates: [number, number][]

@@ -10,12 +10,10 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 | `agent-html/artifacts/nyc-taxi-sketchbook/data.ts` | 9592 | `artifacts/README.md` |
 | `agent-html/components/kanban.tsx` | 7892 | `components/README.md` |
 | `agent-html/components/sankey-chart.tsx` | 6285 | `components/README.md` |
-| `agent-html/artifacts/tokyo-three-speeds/data.ts` | 5772 | `artifacts/README.md` |
 | `agent-html/components/ui/sidebar.tsx` | 5514 | `components/README.md` |
 | `agent-html/artifacts/health-report-decoder/data.ts` | 4053 | `artifacts/README.md` |
 | `agent-html/components/data-table.tsx` | 3240 | `components/README.md` |
-| `agent-html/artifacts/nasa-artemis-ii/data.ts` | 3133 | `artifacts/README.md` |
-| `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 2935 | `artifacts/README.md` |
+| `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 2957 | `artifacts/README.md` |
 | `agent-html/components/ui/chart.tsx` | 2714 | `components/README.md` |
 | `agent-html/artifacts/nyc-taxi-sketchbook/borough-flow-network.block.tsx` | 2387 | `artifacts/README.md` |
 | `agent-html/components/ui/combobox.tsx` | 2338 | `components/README.md` |

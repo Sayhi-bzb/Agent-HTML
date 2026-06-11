@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 113 |
-| Dependencies | 368 |
-| Local edges | 225 |
-| External edges | 142 |
+| Modules | 134 |
+| Dependencies | 400 |
+| Local edges | 256 |
+| External edges | 143 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -20,17 +20,17 @@ Dependency-cruiser summary for `agent-html` source files.
 | Module | Inbound Local Edges |
 | --- | --- |
 | `agent-html/lib/cn.ts` | 42 |
-| `agent-html/components/ui/badge.tsx` | 25 |
+| `agent-html/components/ui/badge.tsx` | 28 |
 | `agent-html/components/ui/button.tsx` | 12 |
-| `agent-html/components/ui/status-badge.tsx` | 9 |
+| `agent-html/components/ui/status-badge.tsx` | 12 |
 | `agent-html/artifacts/health-report-decoder/data.ts` | 8 |
-| `agent-html/artifacts/nasa-artemis-ii/data.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/data.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/rough-theme.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 7 |
-| `agent-html/artifacts/tokyo-three-speeds/data.ts` | 6 |
+| `agent-html/artifacts/nasa-artemis-ii/data/media.ts` | 6 |
+| `agent-html/artifacts/tokyo-three-speeds/data/media.ts` | 5 |
 | `agent-html/components/ui/alert.tsx` | 5 |
-| `agent-html/components/ui/table.tsx` | 4 |
+| `agent-html/components/ui/tabs.tsx` | 5 |
 
 ## Highest Local Fanout
 
@@ -38,16 +38,16 @@ Dependency-cruiser summary for `agent-html` source files.
 | --- | --- |
 | `agent-html/theme/presets.ts` | 13 |
 | `agent-html/artifacts/health-report-decoder.artifact.tsx` | 8 |
+| `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 8 |
 | `agent-html/components/ui/sidebar.tsx` | 8 |
 | `agent-html/artifacts/nasa-artemis-ii.artifact.tsx` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook.artifact.tsx` | 7 |
 | `agent-html/artifacts/tokyo-three-speeds.artifact.tsx` | 7 |
-| `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 6 |
+| `agent-html/artifacts/code-review-room.artifact.tsx` | 6 |
+| `agent-html/artifacts/nasa-artemis-ii/mission-route.block.tsx` | 6 |
 | `agent-html/components/data-table.tsx` | 6 |
 | `agent-html/artifacts/health-report-decoder/lab-trend-review.block.tsx` | 5 |
 | `agent-html/artifacts/health-report-decoder/ldl-range-review.block.tsx` | 5 |
-| `agent-html/artifacts/health-report-decoder/report-literacy-check.block.tsx` | 5 |
-| `agent-html/artifacts/health-report-decoder/report-triage.block.tsx` | 5 |
 
 ## Top External Dependencies
 
@@ -57,7 +57,7 @@ Dependency-cruiser summary for `agent-html` source files.
 | `node_modules/radix-ui/dist/index.mjs` | 23 |
 | `node_modules/lucide-react/dist/esm/lucide-react.mjs` | 21 |
 | `node_modules/class-variance-authority/dist/index.mjs` | 7 |
-| `packages/react/src/index.tsx` | 4 |
+| `packages/react/src/index.tsx` | 5 |
 | `node_modules/react-dom/index.js` | 3 |
 | `node_modules/clsx/dist/clsx.mjs` | 2 |
 | `node_modules/recharts/es6/index.js` | 2 |

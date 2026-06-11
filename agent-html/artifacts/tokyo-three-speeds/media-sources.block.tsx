@@ -1,6 +1,6 @@
 import { Badge } from "../../components/ui/badge"
 
-import { sourceGroups } from "./data"
+import { sourceGroups } from "./data/sources"
 import { SourceLinks } from "./source-links"
 
 const photosGroup = sourceGroups.find((group) => group.label === "Photos")

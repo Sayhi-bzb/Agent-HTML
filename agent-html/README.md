@@ -40,7 +40,7 @@ When touching Canvas classes, tokens, or internal chrome:
 - `lib`: pure helpers and transforms.
 - `styles`: CSS pipeline and Canvas style API.
 - `theme`: host-owned theme preset registry and shadcn CSS sources.
-- `artifacts/<artifact>/data.ts`: artifact-private display data.
+- `artifacts/<artifact>/data/`: artifact-private display data for broad artifacts.
 - `assets`: bundle-time imports, only when an artifact needs imported files.
 - `public`: URL-addressed static files.
 

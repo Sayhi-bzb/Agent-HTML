@@ -3,7 +3,8 @@ import { LogOut, MousePointer2 } from "lucide-react"
 import { Badge } from "../../components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
-import { densityAreas, mediaAssets } from "./data"
+import { densityAreas } from "./data/high-density-route"
+import { mediaAssets } from "./data/media"
 
 export function HighDensityRouteBlock() {
   return (

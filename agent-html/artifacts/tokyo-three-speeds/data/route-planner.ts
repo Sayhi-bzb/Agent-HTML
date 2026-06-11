@@ -1,0 +1,80 @@
+import type { SelectorOption } from "./types"
+
+export const selectorOptions = [
+  {
+    dayRewrite: ["Shibuya lunch", "Omotesando pause", "Shinjuku dinner"],
+    evidenceKey: "density",
+    label: "food",
+    load: [
+      { label: "walking", value: 62 },
+      { label: "transfer", value: 58 },
+      { label: "queue", value: 78 },
+      { label: "night", value: 48 },
+      { label: "dwell", value: 42 },
+    ],
+    pointLabels: ["Shibuya", "Omotesando", "Shinjuku"],
+    routeId: "density-route",
+    route: "Meals set the clock; queues and return lines become the real cost.",
+  },
+  {
+    dayRewrite: ["Aoyama", "Omotesando", "gallery stop"],
+    evidenceKey: "density",
+    label: "design",
+    load: [
+      { label: "walking", value: 66 },
+      { label: "transfer", value: 44 },
+      { label: "queue", value: 36 },
+      { label: "night", value: 38 },
+      { label: "dwell", value: 64 },
+    ],
+    pointLabels: ["Omotesando", "Shibuya"],
+    routeId: "density-route",
+    route: "Keep the radius tight and let storefronts become the map.",
+  },
+  {
+    dayRewrite: ["Kiyosumi", "Jimbocho", "missed shelf"],
+    evidenceKey: "openLoop",
+    label: "bookstores",
+    load: [
+      { label: "walking", value: 48 },
+      { label: "transfer", value: 34 },
+      { label: "queue", value: 18 },
+      { label: "night", value: 16 },
+      { label: "dwell", value: 86 },
+    ],
+    pointLabels: ["Kiyosumi", "Jimbocho", "Yanaka"],
+    routeId: "quiet-route",
+    route: "Trade breadth for time inside places.",
+  },
+  {
+    dayRewrite: ["Shinjuku", "late train", "short morning"],
+    evidenceKey: "density",
+    label: "nightlife",
+    load: [
+      { label: "walking", value: 72 },
+      { label: "transfer", value: 82 },
+      { label: "queue", value: 58 },
+      { label: "night", value: 94 },
+      { label: "dwell", value: 36 },
+    ],
+    pointLabels: ["Shinjuku", "Shibuya"],
+    routeId: "density-route",
+    route: "Night energy requires an exit plan.",
+  },
+  {
+    dayRewrite: ["hotel area", "garden", "Yanaka streets"],
+    evidenceKey: "quiet",
+    label: "low stimulus",
+    load: [
+      { label: "walking", value: 28 },
+      { label: "transfer", value: 22 },
+      { label: "queue", value: 12 },
+      { label: "night", value: 10 },
+      { label: "dwell", value: 78 },
+    ],
+    pointLabels: ["Kiyosumi", "Yanaka"],
+    routeId: "low-stimulus-route",
+    route: "Fewer transfers can make the day better, not smaller.",
+  },
+] satisfies SelectorOption[]
+

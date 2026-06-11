@@ -7,7 +7,7 @@ import {
   CarouselItem,
 } from "../../components/ui/carousel"
 
-import { headerSlides } from "./data"
+import { headerSlides } from "./data/media"
 
 export function SpeedOverviewBlock() {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
