@@ -52,10 +52,10 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundStyles).toContain('@import "./internal/theme-editor.css"')
     expect(playgroundBaseStyles).toContain("::selection")
     expect(playgroundBaseStyles).toContain(
-      "background: var(--agent-html-text-selection-background)"
+      "background: var(--canvas-text-selection-background)"
     )
     expect(playgroundBaseStyles).toContain(
-      "color: var(--agent-html-text-selection-foreground)"
+      "color: var(--canvas-text-selection-foreground)"
     )
     expect(playgroundTailwindTokens).toContain("--font-sans: var(--font-sans)")
     expect(playgroundTailwindTokens).toContain("--font-mono: var(--font-mono)")
@@ -82,10 +82,10 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundFoundationTokens).toContain("--info")
     expect(playgroundFoundationTokens).toContain("--radius: 0.625rem")
     expect(playgroundFoundationTokens).toContain(
-      "--agent-html-text-selection-background"
+      "--canvas-text-selection-background"
     )
     expect(playgroundFoundationTokens).toContain(
-      "--agent-html-text-selection-foreground"
+      "--canvas-text-selection-foreground"
     )
     expect(playgroundFoundationTokens).not.toContain("--font-sans-source")
     expect(playgroundFoundationTokens).not.toContain("--font-heading-source")
@@ -130,6 +130,9 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
       "agent-html/styles/internal/host/floating-prompt.css"
     )
     const playgroundContent = readSource("agent-html/styles/public/content.css")
+    const playgroundComposition = readSource(
+      "agent-html/styles/public/composition.css"
+    )
     const playgroundThemeEditorInternal = readSource(
       "agent-html/styles/internal/theme-editor.css"
     )
@@ -160,7 +163,7 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     )
     expect(playgroundHostTokens).toContain("--canvas-surface-padding-inline")
     expect(playgroundHostTokens).toContain("--canvas-floating-prompt-width")
-    expect(playgroundHostTokens).toContain("--canvas-sidebar-font-size-body")
+    expect(playgroundHostTokens).toContain("--canvas-sidebar-body-font-size")
     expect(playgroundHostTokens).not.toContain(
       "--canvas-block-highlight-radius"
     )
@@ -195,9 +198,10 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundHostInternal).not.toContain(
       ".canvas-floating-prompt-composer"
     )
-    expect(playgroundContent).toContain(".canvas-stack-md")
-    expect(playgroundContent).toContain(".canvas-content-panel")
-    expect(playgroundContent).toContain(".canvas-text-body")
+    expect(playgroundContent).toContain('@import "./composition.css"')
+    expect(playgroundComposition).toContain(".canvas-stack-md")
+    expect(playgroundComposition).toContain(".canvas-content-panel")
+    expect(playgroundComposition).toContain(".canvas-text-body")
     expect(playgroundThemeEditorInternal).toContain(
       ".canvas-theme-editor-popover-button"
     )

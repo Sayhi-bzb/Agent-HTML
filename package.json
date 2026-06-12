@@ -36,6 +36,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@number-flow/react": "^0.6.0",
+    "@react-spring/web": "^10.1.1",
     "@visx/axis": "^4.0.1-alpha.0",
     "@visx/clip-path": "^4.0.1-alpha.0",
     "@visx/event": "^4.0.1-alpha.0",
@@ -48,7 +49,8 @@
     "@visx/sankey": "^4.0.1-alpha.0",
     "@visx/scale": "^4.0.1-alpha.0",
     "@visx/shape": "^4.0.1-alpha.0",
-    "@visx/tooltip": "^4.0.0",
+    "@visx/tooltip": "^4.0.1-alpha.0",
+    "@visx/xychart": "^4.0.1-alpha.0",
     "clsx": "^2.1.1",
     "d3-array": "^3.2.4",
     "d3-sankey": "^0.12.3",

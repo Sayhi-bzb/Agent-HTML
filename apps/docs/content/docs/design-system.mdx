@@ -16,7 +16,10 @@ styles/tokens/*
   -> foundation tokens, feature tokens, and Tailwind bridge
 
 styles/public/content.css
-  -> artifact-consumable Canvas semantic classes
+  -> artifact style API entrypoint
+
+styles/public/composition.css
+  -> artifact-consumable L2 composition classes
 
 styles/internal/*
   -> locked Canvas system chrome, Artifact root, and theme editor styles
@@ -31,7 +34,7 @@ components/*.tsx
   -> reusable rich components
 
 artifact files
-  -> primitive composition and Canvas semantic classes
+  -> primitive composition and Canvas public classes
 ```
 
 ## CSS Entry Points
@@ -52,9 +55,13 @@ values; read `tokens/features/artifact.css`, `tokens/features/host.css`,
 `agent-html/styles/tokens/tailwind.css` maps semantic variables into Tailwind
 tokens.
 
-`agent-html/styles/public/content.css` owns the public artifact style API. It
-contains the small set of semantic classes artifact agents may consume for
-layout rhythm, surfaces, icon boxes, and text scale.
+`agent-html/styles/public/content.css` owns the public artifact style API
+entrypoint. It imports narrower public class owners.
+
+`agent-html/styles/public/composition.css` owns the current L2 composition
+classes artifact agents may consume for layout rhythm, surfaces, icon boxes,
+and text scale. L3 semantic role classes are intentionally not part of the
+current public style API.
 
 `agent-html/styles/internal/*` owns locked Canvas chrome, the Artifact reading
 container, and theme editor styles. Artifact agents do not read it by default.
@@ -80,7 +87,7 @@ explicit `--canvas-artifact-*` tokens in
 `.agent-html-artifact` in `styles/internal/artifact.css`. Artifact
 color follows the shared `--background` and `--foreground` foundation tokens.
 
-Artifact content composition uses Canvas semantic classes for spacing,
+Artifact content composition uses Canvas public composition classes for spacing,
 typography, panel padding, icon-box size, and grid gap. These classes are
 backed by `--canvas-content-*` tokens. Panel radius, border, and icon-box color
 come from shared semantic tokens.
@@ -147,12 +154,12 @@ host intentionally adds a separate sidebar theme axis.
 Shadow uses the static shadcn-style shadow scale. Source-like shadow knobs are
 not part of the Canvas theme editor unless they drive the full scale.
 
-Artifacts use Canvas semantic classes such as `canvas-stack-md`,
+Artifacts use Canvas public composition classes such as `canvas-stack-md`,
 `canvas-content-panel`, `canvas-grid-gap`, `canvas-icon-box-sm`, and
-`canvas-text-body` from `styles/public/content.css` for visual scale. Layout behavior
-utilities such as `flex`, `grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`,
-`shrink-0`, and `truncate` may stay in artifact code when they express local
-structure or overflow behavior.
+`canvas-text-body` through `styles/public/content.css` for visual scale. Layout
+behavior utilities such as `flex`, `grid`, `min-w-0`, `overflow-hidden`,
+`flex-wrap`, `shrink-0`, and `truncate` may stay in artifact code when they
+express local structure or overflow behavior.
 Fixed-format media, map, and carousel blocks may use narrow layout constraints
 already recorded in
 `packages/cli/src/react-canvas/style-ownership-contract.test.mjs`; do not add

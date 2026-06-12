@@ -5,6 +5,7 @@ import { Group } from "@visx/group"
 import { scaleBand, scaleLinear, scalePoint, scaleTime } from "@visx/scale"
 import { ParentSize } from "@visx/responsive"
 import { TooltipWithBounds, useTooltip } from "@visx/tooltip"
+import { buildChartTheme } from "@visx/xychart"
 import * as React from "react"
 import type { ComponentType, ReactNode } from "react"
 
@@ -104,6 +105,24 @@ export const defaultChartColors = [
   "var(--chart-4)",
   "var(--chart-5)",
 ] as const
+
+export const chartXYTheme = buildChartTheme({
+  backgroundColor: "var(--background)",
+  colors: [...defaultChartColors],
+  gridColor: "var(--border)",
+  gridColorDark: "var(--border)",
+  gridStyles: {
+    strokeDasharray: "3 3",
+  },
+  svgLabelSmall: {
+    className: "fill-muted-foreground text-[0.68rem]",
+    fill: "var(--muted-foreground)",
+    fontSize: 10.88,
+    fontWeight: 400,
+    letterSpacing: 0,
+  },
+  tickLength: 0,
+})
 
 export function getChartConfigItem(config: ChartConfig, key: string) {
   return config[key]

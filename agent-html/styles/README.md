@@ -18,11 +18,18 @@ Use `index.css` as the runtime entry map. Do not put feature rules or token valu
 
 ## Public Style API
 
-`public/content.css` is the only style file intended for ordinary artifact consumption.
+`public/content.css` is the stable artifact style API entrypoint. It imports
+public artifact classes from narrower owner files.
+
+`public/composition.css` owns L2 composition classes for ordinary artifact
+content:
 
 - layout rhythm classes: stack, cluster, wrap, and grid gap;
 - surface classes: panels and icon boxes;
 - type scale classes: title, heading, body, and caption.
+
+L1 token values stay in `tokens/*`. L3 semantic role classes are not part of
+the current public style API.
 
 Artifact agents may use these classes with local UI primitives. They should not import CSS files directly.
 

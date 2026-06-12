@@ -1,27 +1,26 @@
-import { scalePoint } from "@visx/scale"
-import { LinePath } from "@visx/shape"
+import { GlyphCircle } from "@visx/glyph"
+import {
+  Axis,
+  DataContext,
+  GlyphSeries,
+  Grid,
+  LineSeries,
+  Tooltip,
+  XYChart,
+} from "@visx/xychart"
 import * as React from "react"
 
 import {
   type ChartAccessor,
   type ChartConfig,
-  ChartCartesianGroup,
   ChartContainer,
-  ChartReferenceLine,
-  ChartSvg,
-  ChartTooltip,
   ChartTooltipContent,
-  ChartXAxisLabels,
-  ChartYAxisGrid,
-  createLinearScale,
-  createCartesianLayout,
+  chartXYTheme,
   getChartCssVariable,
   getFiniteValues,
-  getNearestDatum,
-  getPointerPoint,
+  getNumberDomain,
   getValue,
   isFiniteNumber,
-  useChartTooltip,
 } from "./chart"
 
 export interface LineChartProps<T> {
@@ -35,10 +34,6 @@ export interface LineChartProps<T> {
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
   yValueFormatter?: (value: number) => React.ReactNode
-}
-
-interface TooltipState<T> {
-  datum: T
 }
 
 const DEFAULT_MARGIN = {
@@ -56,7 +51,27 @@ function formatValue(value: number) {
   return valueFormatter.format(value)
 }
 
-export function LineChart<T>({
+function ChartXYReferenceLine({ yValue }: { yValue: number }) {
+  const { margin, width, yScale } = React.useContext(DataContext)
+  const y = yScale ? Number(yScale(yValue)) : NaN
+
+  if (!margin || !width || !isFiniteNumber(y)) {
+    return null
+  }
+
+  return (
+    <line
+      className="stroke-border"
+      strokeDasharray="3 3"
+      x1={margin.left}
+      x2={width - margin.right}
+      y1={y}
+      y2={y}
+    />
+  )
+}
+
+export function LineChart<T extends object>({
   aspectRatio = "9 / 4",
   className,
   config,
@@ -68,15 +83,6 @@ export function LineChart<T>({
   yKey,
   yValueFormatter = formatValue,
 }: LineChartProps<T>) {
-  const {
-    hideTooltip,
-    showTooltipFromEvent,
-    tooltipData: tooltip,
-    tooltipLeft,
-    tooltipOpen,
-    tooltipTop,
-  } = useChartTooltip<TooltipState<T>>()
-
   return (
     <ChartContainer
       aspectRatio={aspectRatio}
@@ -91,136 +97,117 @@ export function LineChart<T>({
       minHeight={minHeight}
     >
       {({ height, series, width }) => {
-        const layout = createCartesianLayout({
-          height,
-          margin: DEFAULT_MARGIN,
-          width,
-        })
-        const values = getFiniteValues(data, yKey)
-        const xScale = scalePoint<string>({
-          domain: data.map((datum) => getValue(datum, xKey)),
-          padding: 0.5,
-          range: [0, layout.innerWidth],
-        })
-        const yScale = createLinearScale({
-          range: [layout.innerHeight, 0],
-          values,
-        })
+        const chartData = data.filter((datum) =>
+          isFiniteNumber(getValue(datum, yKey))
+        )
+        const values = getFiniteValues(chartData, yKey)
         const primarySeries = series[0]
         const seriesKey = primarySeries?.key ?? "value"
         const seriesLabel = primarySeries?.label ?? seriesKey
         const color = getChartCssVariable(seriesKey)
-        const x = (datum: T) => xScale(getValue(datum, xKey)) ?? 0
-        const y = (datum: T) => {
-          const value = getValue(datum, yKey)
-          return isFiniteNumber(value) ? yScale(value) : 0
-        }
-        const handlePointerMove = (
-          event: React.PointerEvent<SVGSVGElement>
-        ) => {
-          const point = getPointerPoint(event)
-
-          if (!point) {
-            return
-          }
-
-          const pointerX = point.x - layout.margin.left
-          const datum = getNearestDatum({ data, pointerX, x })
-
-          if (!datum) {
-            return
-          }
-
-          showTooltipFromEvent(event, {
-            datum,
-          })
-        }
+        const xAccessor = (datum: T) => getValue(datum, xKey)
+        const yAccessor = (datum: T) => getValue(datum, yKey)
 
         return (
-          <>
-            <ChartSvg
-              aria-label="趋势折线图"
-              onPointerLeave={hideTooltip}
-              onPointerMove={handlePointerMove}
-              role="img"
-            >
-              <ChartCartesianGroup layout={layout}>
-                <ChartYAxisGrid
-                  formatTick={yValueFormatter}
-                  innerWidth={layout.innerWidth}
-                  scale={yScale}
-                />
-                <ChartXAxisLabels
-                  data={data}
-                  formatTick={xLabelFormatter}
-                  innerHeight={layout.innerHeight}
-                  x={x}
-                  xKey={xKey}
-                />
+          <XYChart
+            accessibilityLabel="趋势折线图"
+            height={height}
+            margin={DEFAULT_MARGIN}
+            theme={chartXYTheme}
+            width={width}
+            xScale={{ padding: 0.5, type: "point" }}
+            yScale={{
+              domain: getNumberDomain(values),
+              nice: true,
+              type: "linear",
+            }}
+          >
+            <Grid columns={false} numTicks={4} />
+            <Axis
+              hideAxisLine
+              hideTicks
+              numTicks={4}
+              orientation="left"
+              tickFormat={(value) => String(yValueFormatter(Number(value)))}
+            />
+            <Axis
+              hideAxisLine
+              hideTicks
+              orientation="bottom"
+              tickFormat={(value) => {
+                const label = String(value)
+                return String(xLabelFormatter ? xLabelFormatter(label) : label)
+              }}
+            />
 
-                {isFiniteNumber(referenceY) ? (
-                  <ChartReferenceLine
-                    innerWidth={layout.innerWidth}
-                    y={yScale(referenceY)}
-                  />
-                ) : null}
+            {isFiniteNumber(referenceY) ? (
+              <ChartXYReferenceLine yValue={referenceY} />
+            ) : null}
 
-                <LinePath
-                  data={data}
-                  defined={(datum) => isFiniteNumber(getValue(datum, yKey))}
-                  fill="none"
-                  stroke={color}
+            <LineSeries
+              colorAccessor={() => color}
+              data={chartData}
+              dataKey={seriesKey}
+              fill="none"
+              strokeWidth={2}
+              xAccessor={xAccessor}
+              yAccessor={yAccessor}
+            />
+            <GlyphSeries
+              colorAccessor={() => color}
+              data={chartData}
+              dataKey={`${seriesKey}-glyphs`}
+              enableEvents={false}
+              renderGlyph={({ color: glyphColor, key, x, y }) => (
+                <GlyphCircle
+                  className="fill-background"
+                  key={key}
+                  left={x}
+                  size={38}
+                  stroke={glyphColor}
                   strokeWidth={2}
-                  x={x}
-                  y={y}
+                  top={y}
                 />
+              )}
+              xAccessor={xAccessor}
+              yAccessor={yAccessor}
+            />
 
-                {data.map((datum) => {
-                  const value = getValue(datum, yKey)
+            <Tooltip<T>
+              applyPositionStyle
+              className="pointer-events-none z-50"
+              detectBounds
+              renderTooltip={({ tooltipData }) => {
+                const tooltip = tooltipData?.datumByKey[seriesKey]?.datum
 
-                  if (!isFiniteNumber(value)) {
-                    return null
-                  }
+                if (!tooltip) {
+                  return null
+                }
 
-                  return (
-                    <circle
-                      className="fill-background"
-                      cx={x(datum)}
-                      cy={y(datum)}
-                      key={`${getValue(datum, xKey)}-${value}`}
-                      r={3.5}
-                      stroke={color}
-                      strokeWidth={2}
-                    />
-                  )
-                })}
-              </ChartCartesianGroup>
-            </ChartSvg>
-
-            <ChartTooltip
-              visible={tooltipOpen}
-              x={tooltipLeft ?? 0}
-              y={tooltipTop ?? 0}
-            >
-              {tooltip ? (
-                <ChartTooltipContent
-                  items={[
-                    {
-                      color,
-                      key: seriesKey,
-                      label: seriesLabel,
-                      value: yValueFormatter(getValue(tooltip.datum, yKey)),
-                    },
-                  ]}
-                  label={
-                    xLabelFormatter
-                      ? xLabelFormatter(getValue(tooltip.datum, xKey))
-                      : getValue(tooltip.datum, xKey)
-                  }
-                />
-              ) : null}
-            </ChartTooltip>
-          </>
+                return (
+                  <ChartTooltipContent
+                    items={[
+                      {
+                        color,
+                        key: seriesKey,
+                        label: seriesLabel,
+                        value: yValueFormatter(getValue(tooltip, yKey)),
+                      },
+                    ]}
+                    label={
+                      xLabelFormatter
+                        ? xLabelFormatter(getValue(tooltip, xKey))
+                        : getValue(tooltip, xKey)
+                    }
+                  />
+                )
+              }}
+              showDatumGlyph
+              snapTooltipToDatumX
+              snapTooltipToDatumY
+              unstyled
+            />
+          </XYChart>
         )
       }}
     </ChartContainer>

@@ -35,7 +35,10 @@ agent-html/styles/tokens
   -> foundation tokens, feature tokens, and Tailwind bridge
 
 agent-html/styles/public/content.css
-  -> artifact-consumable Canvas semantic class lookup
+  -> artifact public style API entrypoint
+
+agent-html/styles/public/composition.css
+  -> artifact-consumable L2 composition classes
 
 agent-html/styles/internal
   -> locked Canvas system chrome, Artifact root, and theme editor styles
@@ -142,8 +145,9 @@ Use interaction helpers only for artifact-local control instrumentation. They
 emit `agent-html:state-change` events; they do not provide filesystem, shell,
 MCP, Codex app-server, or host API access.
 
-Artifact content uses Canvas semantic classes backed by `--canvas-content-*`
-tokens for spacing, typography, panel padding, icon-box size, and grid gap.
+Artifact content uses Canvas public composition classes backed by
+`--canvas-content-*` tokens for spacing, typography, panel padding,
+icon-box size, and grid gap.
 Panel radius, border, and icon-box color come from shared semantic tokens. Host
 chrome uses `--canvas-*` host tokens for surface padding, toolbar offsets,
 status spacing, sidebar spacing, floating prompt placement, and block action
