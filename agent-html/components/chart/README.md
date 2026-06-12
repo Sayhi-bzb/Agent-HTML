@@ -1,14 +1,15 @@
 # Chart Components
 
-This directory owns Canvas-native chart infrastructure.
+This directory owns Canvas-native semantic chart components.
 
-Use this directory for Canvas chart components and their shared protocol.
+Use this directory for concrete Canvas chart components. Shared chart protocol
+lives in `../ui/chart.tsx`.
 
 Target consumption chain:
 
 ```txt
 low-level @visx primitives
-  -> chart.tsx foundation
+  -> components/ui/chart.tsx foundation
   -> semantic chart components
   -> optional rough SVG branch inside supported charts
   -> artifact blocks
@@ -23,41 +24,45 @@ specialized @visx packages
 
 high-level @visx/xychart
   -> selected cartesian chart components
-  + chart.tsx Canvas protocol and theme
+  + components/ui/chart.tsx Canvas protocol and theme
   -> artifact blocks
 ```
 
 The dependency direction is intentional. Artifacts consume Canvas semantic
-charts, not visualization libraries. `chart.tsx` absorbs shared Canvas protocol:
-container measurement, config, tokens, tooltip shell, hover language, scale
-helpers, and shared axis/grid style. Concrete chart files absorb chart semantics:
+charts, not visualization libraries. `components/ui/chart.tsx` absorbs shared
+Canvas protocol: container measurement, config, tokens, tooltip shell, hover
+language, scale helpers, and shared axis/grid style. Concrete chart files absorb chart semantics:
 which marks exist, which visx shape or layout package owns them, and how hover
 relationships map to the data.
 
 Use visx to remove chart engineering work, not to leak implementation detail up
-the stack. Low-level primitives belong in `chart.tsx` when they make every chart
-more consistent. Specialized visx packages belong in the matching chart file
+the stack. Low-level primitives belong in `components/ui/chart.tsx` when they
+make every chart more consistent. Specialized visx packages belong in the matching chart file
 when their shape or layout is the chart's semantic core. `@visx/xychart` is a
 high-level exception: use it only for cartesian charts where it deletes local
 scale, event, nearest-datum, axis/grid, or tooltip machinery while still obeying
-the Canvas protocol exposed by `chart.tsx`.
+the Canvas protocol exposed by `components/ui/chart.tsx`.
 
 ## Layers
 
-- `chart.tsx`: shared Canvas chart protocol: config, scoped color variables,
+- `../ui/chart.tsx`: shared Canvas chart protocol: config, scoped color variables,
   responsive frame, bounds-aware tooltip, tooltip panel variants, pointer
-  tooltip tracking, legend, SVG shell, hit layers, cartesian layout, shared
-  hover state/opacity protocol, empty data/size separation, scale helpers, and
-  `@visx/xychart` theme.
+  tooltip tracking, interaction roots, legend, SVG shell, hit layers, cartesian
+  layout, shared hover state/opacity protocol, empty data/size separation,
+  scale helpers, and `@visx/xychart` theme.
 - `../../lib/rough-svg.tsx`: low-level RoughJS SVG lifecycle bridge. It owns
   RoughJS-to-React rendering only, not chart semantics, chart config, layout, or
   tooltip behavior.
 - `line-chart.tsx`: reusable line chart using `@visx/xychart` for cartesian
   series, axis/grid, pointer events, and tooltip state, while consuming
-  `chart.tsx` for Canvas theme and tooltip content.
+  `../ui/chart.tsx` for Canvas theme and tooltip content.
 - `area-chart.tsx`: reusable area chart using `@visx/xychart` for cartesian
   series, axis/grid, pointer events, and tooltip state, while consuming
-  `chart.tsx` for Canvas theme and tooltip content.
+  `../ui/chart.tsx` for Canvas theme and tooltip content.
+- `scatter-chart.tsx`: reusable scatter chart using `@visx/xychart` for
+  numeric scale, axis/grid, glyph placement, pointer events, and tooltip state,
+  while artifact blocks pass only semantic accessors, domains, ticks, and
+  tooltip fields.
 - `bar-chart.tsx`: reusable vertical and horizontal bar charts using
   `@visx/shape/Bar` with one shared internal bar core.
 - `pie-chart.tsx`: reusable pie chart using `@visx/shape/Pie`.
@@ -70,15 +75,15 @@ the Canvas protocol exposed by `chart.tsx`.
   container, SVG shell, tooltip positioning, and internal rough rendering.
 
 Artifact blocks should import only semantic chart components from
-`components/chart`. They should not import `@visx/*` packages or
-chart-specific renderer internals.
+`components/chart` and shared chart protocol types from `components/ui/chart`.
+They should not import `@visx/*` packages or chart-specific renderer internals.
 
 ## Visx Policy
 
 Use visx primitives by responsibility:
 
 - `@visx/responsive`, `@visx/group`, `@visx/scale`, and `@visx/event` belong in
-  `chart.tsx` when they support the shared chart foundation.
+  `components/ui/chart.tsx` when they support the shared chart foundation.
 - `@visx/shape` belongs in concrete chart components because shape choice is
   chart semantics.
 - `@visx/sankey` belongs in `sankey-chart.tsx`; Sankey graph layout, node/link
@@ -92,21 +97,40 @@ Use visx primitives by responsibility:
   exposing visx axis/grid directly to artifact blocks. Categorical labels stay
   Canvas-owned until chart wrappers pass real categorical scales.
 - `@visx/xychart` may own cartesian chart internals only when it keeps the
-  semantic chart API stable and avoids duplicating `chart.tsx` protocol.
+  semantic chart API stable and avoids duplicating `components/ui/chart.tsx`
+  protocol.
   Xychart-only addons live in the concrete chart that renders them.
+- `@visx/xychart/GlyphSeries` owns reusable scatter mark placement and event
+  registration. Artifact blocks should not hand-roll scatter SVG coordinates,
+  log scales, or native SVG titles.
+
+## Interaction Ownership
+
+- Visx owns geometry, layout, scale, axis, grid, and primitive mark generation.
+- Canvas owns interaction lifecycle: hit layers, hover state, tooltip state,
+  tooltip shell, container leave cleanup, and unmount cleanup.
+- Discrete mark charts use Canvas hit layers (`ChartHitRect`, `ChartHitPath`,
+  `ChartHitCircle`) and `ChartInteractionRoot`.
+- `@visx/xychart` tooltip is reserved for whole-chart nearest-datum models such
+  as line and area charts. Do not use it as the default interaction model for
+  discrete mark charts.
+- Artifact blocks pass data semantics and tooltip fields. They should not own
+  tooltip positioning, portal behavior, or mark cleanup.
 
 ## Boundary Rules
 
 - Artifact blocks import semantic chart components from `components/chart`.
+- Artifact blocks import shared chart protocol types from `components/ui/chart`.
 - Artifact blocks do not import `@visx/*` packages or chart-specific renderer
   internals.
-- `chart.tsx` does not own concrete chart business semantics.
+- `components/ui/chart.tsx` does not own concrete chart business semantics.
+- `components/chart` does not re-export shared chart protocol APIs.
 - Concrete chart components do not re-invent shared chart protocol when a
-  `chart.tsx` helper already owns it.
+  `components/ui/chart.tsx` helper already owns it.
 - Rough rendering remains an internal branch of supported semantic charts, not a
   public artifact dependency.
 - Rough option shaping that depends on concrete data keys belongs in the
-  concrete chart, not in `chart.tsx`.
+  concrete chart, not in `components/ui/chart.tsx`.
 - `lib/rough-svg.tsx` may be used by artifact-local sketch decoration when the
   artifact owns the decorative drawing and no semantic chart component applies.
 
@@ -128,7 +152,7 @@ Use visx primitives by responsibility:
 
 ## Hover Policy
 
-- `chart.tsx` owns generic hover state, presence, opacity, and transition
+- `components/ui/chart.tsx` owns generic hover state, presence, opacity, and transition
   tokens.
 - `BarChart`, `BarHChart`, `PieChart`, `HeatmapChart`, `NetworkChart`, and
   `SankeyChart` consume the shared hover protocol for highlighted and faded
@@ -142,6 +166,9 @@ Use visx primitives by responsibility:
 - `ChartTooltipPanel` owns shared tooltip shell variants.
 - `useChartTooltip` owns tooltip open state, data, cursor-follow point tracking,
   and positioning through `@visx/tooltip`.
+- `ChartTooltipField` and `resolveChartTooltipItems` let semantic charts expose
+  declarative tooltip field APIs without leaking tooltip shell components into
+  artifact blocks.
 - Concrete charts own active item selection and tooltip content.
 
 ## Migration Notes

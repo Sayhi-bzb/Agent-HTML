@@ -1,4 +1,5 @@
-import { LineChart, type ChartConfig } from "../../components/chart"
+import { LineChart } from "../../components/chart"
+import type { ChartConfig } from "../../components/ui/chart"
 import { Badge } from "../../components/ui/badge"
 import { StatusBadge } from "../../components/ui/status-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"

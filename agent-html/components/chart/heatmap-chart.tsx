@@ -15,7 +15,7 @@ import {
   getValue,
   isFiniteNumber,
   useChartMarkTooltip,
-} from "./chart"
+} from "../ui/chart"
 import { RoughCircle } from "@/lib/rough-svg"
 
 export interface HeatmapChartProps<T> {

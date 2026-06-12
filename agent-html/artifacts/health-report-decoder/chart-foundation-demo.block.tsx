@@ -4,8 +4,8 @@ import {
   BarHChart,
   LineChart,
   PieChart,
-  type ChartConfig,
 } from "../../components/chart"
+import type { ChartConfig } from "../../components/ui/chart"
 
 const trendData = [
   { month: "Jan", value: 42 },

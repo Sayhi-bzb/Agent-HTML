@@ -31,6 +31,11 @@ When touching Canvas classes, tokens, or internal chrome:
 
 - `styles/README.md`
 
+When changing workspace conventions, route files, generated indexes, artifact
+or data patterns, or copyable examples:
+
+- `GOVERNANCE.md`
+
 ## Source Placement
 
 - `artifacts`: artifact source.

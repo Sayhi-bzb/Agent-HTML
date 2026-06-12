@@ -26,7 +26,7 @@ import {
   getChartHoverOpacity,
   getChartHoverPresence,
   useChartMarkTooltip,
-} from "./chart";
+} from "../ui/chart";
 import { RoughPath } from "@/lib/rough-svg";
 
 interface Margin {

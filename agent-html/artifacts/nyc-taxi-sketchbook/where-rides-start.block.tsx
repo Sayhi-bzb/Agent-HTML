@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
-import { BarHChart, type ChartConfig } from "../../components/chart"
+import { BarHChart } from "../../components/chart"
+import type { ChartConfig } from "../../components/ui/chart"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 
 import {

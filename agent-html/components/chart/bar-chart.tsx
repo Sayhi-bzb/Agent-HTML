@@ -26,7 +26,7 @@ import {
   getValue,
   isFiniteNumber,
   useChartMarkTooltip,
-} from "./chart"
+} from "../ui/chart"
 import { RoughRect } from "@/lib/rough-svg"
 
 export interface BarChartProps<T> {

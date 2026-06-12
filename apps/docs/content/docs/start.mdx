@@ -1,9 +1,12 @@
 ---
 title: Start
-description: Learn what Canvas is for and when to use it.
+description: Canvas agent route entry.
 ---
 
 Canvas is the agent-authored React artifact workspace.
+
+Canvas docs are agent-facing operating context. Optimize them for routes,
+owners, and boundaries.
 
 Use Canvas when an agent should write normal React and TypeScript inside an
 isolated filesystem workspace. Canvas artifacts live under `agent-html`,
@@ -13,15 +16,12 @@ prompts.
 Historical App and Runtime docs are archived under `_archive/docs`. They are
 kept for reference only and are not current Canvas architecture sources.
 
-## When to Use Canvas Docs
+## Use This Route For
 
-Use this section when you want to:
-
-- write or review `agent-html/artifacts/*.artifact.tsx`
-- understand the Canvas host and inspector
-- add local sandbox UI, hooks, helpers, schema, or data
-- maintain token and shadcn consumption rules
-- enforce import boundaries for agent-authored React artifacts
-
-Canvas is Storybook-like only as an isolated preview surface. Its primary role
-is a durable agent operating context for addressable artifact work.
+- Artifact authoring or review: `agent-html/artifacts/*.artifact.tsx`.
+- Host inspection and prompt routing: `host.mdx`.
+- Local sandbox UI, hooks, helpers, types, assets, or artifact-local data:
+  `workspace.mdx`.
+- Token, shadcn, primitive, and public composition rules:
+  `design-system.mdx`.
+- Import boundaries and guard checks: `reference.mdx`.

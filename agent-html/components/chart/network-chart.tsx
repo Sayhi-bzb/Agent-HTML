@@ -16,7 +16,7 @@ import {
   getChartHoverPresence,
   isFiniteNumber,
   useChartMarkTooltip,
-} from "./chart"
+} from "../ui/chart"
 import { RoughCircle, RoughPath } from "@/lib/rough-svg"
 
 type NetworkHoverState = ChartHoverState<"node" | "link">

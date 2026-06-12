@@ -328,6 +328,14 @@ export interface ChartTooltipItem {
   value: ReactNode
 }
 
+export interface ChartTooltipField<T> {
+  color?: string | ((datum: T) => string)
+  formatter?: (value: unknown, datum: T) => ReactNode
+  key: string
+  label: ReactNode
+  value: ChartAccessor<T, unknown> | ((datum: T) => ReactNode)
+}
+
 export interface ChartTooltipContentProps {
   className?: string
   hideIndicator?: boolean
@@ -426,9 +434,12 @@ export function useChartMarkTooltip<
     activeTooltipData,
     currentTooltipData: tooltipData ?? activeTooltipData,
     followTooltip,
+    hideMark: hideTooltip,
     hideTooltip,
     hover,
+    moveMark: followTooltip,
     setHover,
+    showMark: showTooltip,
     showTooltip,
     tooltipLeft,
     tooltipOpen,
@@ -493,6 +504,39 @@ export function ChartTooltipContent({
   )
 }
 
+export function resolveChartTooltipItems<T>({
+  color,
+  datum,
+  fields,
+}: {
+  color: string
+  datum: T
+  fields: readonly ChartTooltipField<T>[]
+}): ChartTooltipItem[] {
+  return fields.map((field) => {
+    const value = getValue(datum, field.value)
+    const formattedValue = field.formatter
+      ? field.formatter(value, datum)
+      : typeof value === "string" ||
+          typeof value === "number" ||
+          typeof value === "bigint"
+        ? value
+        : value == null
+          ? null
+          : String(value)
+
+    return {
+      color:
+        typeof field.color === "function"
+          ? field.color(datum)
+          : field.color ?? color,
+      key: field.key,
+      label: field.label,
+      value: formattedValue,
+    }
+  })
+}
+
 export function ChartTooltip({
   children,
   className,
@@ -524,6 +568,27 @@ export function ChartTooltip({
     >
       {children}
     </TooltipWithBounds>
+  )
+}
+
+export function ChartInteractionRoot({
+  children,
+  className,
+  onPointerLeave,
+}: {
+  children: ReactNode
+  className?: string
+  onPointerLeave: () => void
+}) {
+  React.useEffect(() => onPointerLeave, [onPointerLeave])
+
+  return (
+    <div
+      className={cn("relative h-full w-full", className)}
+      onPointerLeave={onPointerLeave}
+    >
+      {children}
+    </div>
   )
 }
 
@@ -629,6 +694,36 @@ export function ChartHitRect({
       width={width}
       x={x}
       y={y}
+    />
+  )
+}
+
+export function ChartHitCircle({
+  cx,
+  cy,
+  onPointerEnter,
+  onPointerLeave,
+  onPointerMove,
+  r,
+}: {
+  cx: number
+  cy: number
+  onPointerEnter?: React.PointerEventHandler<SVGCircleElement>
+  onPointerLeave?: React.PointerEventHandler<SVGCircleElement>
+  onPointerMove?: React.PointerEventHandler<SVGCircleElement>
+  r: number
+}) {
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      fill="transparent"
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+      onPointerMove={onPointerMove}
+      pointerEvents="all"
+      r={r}
+      stroke="transparent"
     />
   )
 }

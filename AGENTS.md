@@ -25,6 +25,10 @@ Apply these rules when writing or editing docs.
 - Keep one source of truth for each fact, principle, or decision; link to it instead of restating it.
 - Keep one stable name for each concept.
 - Keep route files narrow: one page should own one kind of question.
+- Write docs as agent context routes and owner maps. Human-readable prose is the
+  interface agents parse, cite, and follow.
+- Avoid human-oriented background or tutorial framing unless it changes the
+  next correct agent action.
 - Prefer restrained, minimal, sufficient writing over exhaustive explanation.
 
 # Content Routes

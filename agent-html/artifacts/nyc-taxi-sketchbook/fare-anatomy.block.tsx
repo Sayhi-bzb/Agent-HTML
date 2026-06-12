@@ -3,7 +3,8 @@ import {
   payment,
 } from "./data/generated-fare-anatomy"
 import { taxiKpis } from "./data/generated-trip-summary"
-import { BarChart, PieChart, type ChartConfig } from "../../components/chart"
+import { BarChart, PieChart } from "../../components/chart"
+import type { ChartConfig } from "../../components/ui/chart"
 
 import { roughSketchMarkOptions } from "./rough-theme"
 import {

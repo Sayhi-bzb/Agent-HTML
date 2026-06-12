@@ -6,7 +6,7 @@ import type {
   ChartAccessor,
   ChartConfig,
   ChartRenderer,
-} from "./chart"
+} from "../ui/chart"
 import {
   ChartContainer,
   ChartHitPath,
@@ -21,7 +21,7 @@ import {
   getValue,
   isFiniteNumber,
   useChartMarkTooltip,
-} from "./chart"
+} from "../ui/chart"
 import { RoughPath } from "@/lib/rough-svg"
 
 export interface PieChartProps<T> {

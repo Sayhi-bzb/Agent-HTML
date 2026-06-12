@@ -20,7 +20,7 @@ import {
   getValue,
   isFiniteNumber,
   type SvgOnlyChartRenderer,
-} from "./chart"
+} from "../ui/chart"
 
 export interface AreaChartProps<T> {
   aspectRatio?: string

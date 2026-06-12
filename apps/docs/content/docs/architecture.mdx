@@ -39,7 +39,7 @@ fully protocol-only: it accepts `id`, `title`, and children. It does not own
 width, spacing, colors, borders, radius, shadow, cards, panels, grid structure,
 or props passthrough.
 
-The same package exports `InteractionProvider`,
+`@agent-html/react` exports `InteractionProvider`,
 `useArtifactInteraction`, `useEmitArtifactStateChange`,
 `useInstrumentedValueChange`, and `useInstrumentedCheckedChange`. These helpers
 record local control state and dispatch `agent-html:state-change` events.
@@ -64,11 +64,11 @@ components/ui/*
 components/*.tsx
 hooks/*
 lib/*
-schema/*
-data/*
+types/*
 assets/*
 public/*
 artifacts/*
+artifacts/*/data/*
 ```
 
 Artifacts should consume these resources before adding local one-off helpers.
@@ -96,10 +96,6 @@ loads Canvas stylesheets. Host controls use Canvas UI primitives and theme
 resources through `#agent-html-playground/components/ui/*` and
 `#agent-html-playground/theme/*`; the host must not define artifact visual
 language.
-
-Canvas is Storybook-like only as an isolated preview surface. Its primary value
-is making agent-authored output addressable, reviewable, reusable, and
-continuously editable through durable source files.
 
 Host workbench code is a consumer and composer of runtime pipelines. Its owner
 map is:

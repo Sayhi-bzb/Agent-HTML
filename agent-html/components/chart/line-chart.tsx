@@ -21,7 +21,7 @@ import {
   getNumberDomain,
   getValue,
   isFiniteNumber,
-} from "./chart"
+} from "../ui/chart"
 
 export interface LineChartProps<T> {
   aspectRatio?: string
