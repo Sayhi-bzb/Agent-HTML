@@ -21,9 +21,9 @@ import {
   chartMotion,
   chartXYTheme,
   getChartCssVariable,
-  getChartHoverOpacity,
-  getChartHoverPresence,
-  getFiniteValues,
+  getChartMarkKey,
+  getChartMarkOpacity,
+  getChartMarkPresence,
   getNumberDomain,
   getValue,
   isFiniteNumber,
@@ -75,6 +75,15 @@ export interface ScatterChartProps<T> {
 interface TooltipState<T> {
   color: string
   datum: T
+  xValue: number
+  yValue: number
+}
+
+interface ScatterPoint<T> {
+  color: string
+  datum: T
+  key: string
+  radius: number
   xValue: number
   yValue: number
 }
@@ -176,10 +185,6 @@ function getPointRadius<T>({
   return Math.max(5, Math.min(18, 4 + value * 0.55))
 }
 
-function getScatterPointKey(seriesKey: string, index: number) {
-  return `${seriesKey}-${index}`
-}
-
 function ScatterReferenceLine({ yValue }: { yValue: number }) {
   const { margin, width, yScale } = React.useContext(DataContext)
   const y = yScale ? Number(yScale(yValue)) : NaN
@@ -241,25 +246,17 @@ function ScatterAxisLabels({
 }
 
 function ScatterHitLayer<T extends object>({
-  getColor,
-  radiusKey,
   setHover,
   showMark,
-  data,
   hideMark,
   moveMark,
-  seriesKey,
-  xKey,
-  yKey,
+  points,
 }: {
-  data: T[]
-  getColor: (datum: T) => string
   hideMark: () => void
   moveMark: (
     event: React.MouseEvent<Element> | React.PointerEvent<Element>
   ) => void
-  radiusKey?: ChartAccessor<T, number>
-  seriesKey: string
+  points: Array<ScatterPoint<T>>
   setHover: React.Dispatch<
     React.SetStateAction<ChartHoverState<"point"> | null>
   >
@@ -267,8 +264,6 @@ function ScatterHitLayer<T extends object>({
     event: React.MouseEvent<Element> | React.PointerEvent<Element>,
     data: TooltipState<T>
   ) => void
-  xKey: ChartAccessor<T, number>
-  yKey: ChartAccessor<T, number>
 }) {
   const { xScale, yScale } = React.useContext(DataContext)
 
@@ -278,36 +273,31 @@ function ScatterHitLayer<T extends object>({
 
   return (
     <>
-      {data.map((datum, index) => {
-        const xValue = getValue(datum, xKey)
-        const yValue = getValue(datum, yKey)
-        const cx = Number(xScale(xValue))
-        const cy = Number(yScale(yValue))
+      {points.map((point) => {
+        const cx = Number(xScale(point.xValue))
+        const cy = Number(yScale(point.yValue))
 
         if (!isFiniteNumber(cx) || !isFiniteNumber(cy)) {
           return null
         }
 
-        const key = getScatterPointKey(seriesKey, index)
-        const radius = getPointRadius({ datum, radiusKey })
-
         return (
           <ChartHitCircle
             cx={cx}
             cy={cy}
-            key={key}
+            key={point.key}
             onPointerEnter={(event) => {
-              setHover({ key, type: "point" })
+              setHover({ key: point.key, type: "point" })
               showMark(event, {
-                color: getColor(datum),
-                datum,
-                xValue,
-                yValue,
+                color: point.color,
+                datum: point.datum,
+                xValue: point.xValue,
+                yValue: point.yValue,
               })
             }}
             onPointerLeave={hideMark}
             onPointerMove={moveMark}
-            r={Math.max(radius + 5, 14)}
+            r={Math.max(point.radius + 5, 14)}
           />
         )
       })}
@@ -381,11 +371,24 @@ export function ScatterChart<T extends object>({
         const seriesKey = primarySeries?.key ?? "value"
         const seriesLabel = primarySeries?.label ?? seriesKey
         const fallbackColor = getChartCssVariable(seriesKey)
-        const xValues = getFiniteValues(chartData, xKey)
-        const yValues = getFiniteValues(chartData, yKey)
-        const xAccessor = (datum: T) => getValue(datum, xKey)
-        const yAccessor = (datum: T) => getValue(datum, yKey)
         const getColor = (datum: T) => getPointColor?.(datum) ?? fallbackColor
+        const points = chartData.map<ScatterPoint<T>>((datum, index) => {
+          const xValue = getValue(datum, xKey)
+          const yValue = getValue(datum, yKey)
+
+          return {
+            color: getColor(datum),
+            datum,
+            key: getChartMarkKey("point", seriesKey, index),
+            radius: getPointRadius({ datum, radiusKey }),
+            xValue,
+            yValue,
+          }
+        })
+        const xValues = points.map((point) => point.xValue)
+        const yValues = points.map((point) => point.yValue)
+        const xAccessor = (point: ScatterPoint<T>) => point.xValue
+        const yAccessor = (point: ScatterPoint<T>) => point.yValue
 
         return (
           <ChartInteractionRoot onPointerLeave={hideMark}>
@@ -444,21 +447,16 @@ export function ScatterChart<T extends object>({
               ) : null}
 
               <GlyphSeries
-                colorAccessor={(datum) => getColor(datum)}
-                data={chartData}
+                colorAccessor={(point) => point.color}
+                data={points}
                 dataKey={seriesKey}
                 enableEvents={false}
-                renderGlyph={({ color, datum, key, x, y }) => {
-                  const radius = getPointRadius({ datum, radiusKey })
-                  const pointKey = getScatterPointKey(
-                    seriesKey,
-                    chartData.indexOf(datum)
-                  )
-                  const presence = getChartHoverPresence({
+                renderGlyph={({ color, datum: point, key, x, y }) => {
+                  const presence = getChartMarkPresence({
                     hover,
-                    isRelated: hover?.key === pointKey,
+                    key: point.key,
                   })
-                  const opacity = getChartHoverOpacity({
+                  const opacity = getChartMarkOpacity({
                     baseOpacity: 0.82,
                     presence,
                   })
@@ -468,7 +466,7 @@ export function ScatterChart<T extends object>({
                     <ChartMotionCircle
                       animate={{
                         opacity,
-                        r: isActive ? radius + 1.5 : radius,
+                        r: isActive ? point.radius + 1.5 : point.radius,
                         strokeOpacity: isActive ? 1 : 0.8,
                       }}
                       className="stroke-foreground"
@@ -486,16 +484,11 @@ export function ScatterChart<T extends object>({
                 yAccessor={yAccessor}
               />
               <ScatterHitLayer
-                data={chartData}
-                getColor={getColor}
                 hideMark={hideMark}
                 moveMark={moveMark}
-                radiusKey={radiusKey}
-                seriesKey={seriesKey}
+                points={points}
                 setHover={setHover}
                 showMark={showMark}
-                xKey={xKey}
-                yKey={yKey}
               />
 
               <ScatterAxisLabels

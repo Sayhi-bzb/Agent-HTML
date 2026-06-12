@@ -176,6 +176,9 @@ Use visx primitives by responsibility:
 
 - `components/ui/chart.tsx` owns generic hover state, presence, opacity, and transition
   tokens.
+- `components/ui/chart.tsx` owns mark identity helpers. Discrete charts use
+  `getChartMarkKey`, `getChartMarkPresence`, and `getChartMarkOpacity` instead
+  of hand-built hover keys or local opacity branches.
 - `BarChart`, `BarHChart`, `PieChart`, `HeatmapChart`, `NetworkChart`, and
   `SankeyChart` consume the shared hover protocol for highlighted and faded
   marks.

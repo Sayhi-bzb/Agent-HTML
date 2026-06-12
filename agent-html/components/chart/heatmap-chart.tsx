@@ -16,6 +16,9 @@ import {
   ChartTooltipPanel,
   chartMotion,
   getChartCssVariable,
+  getChartMarkKey,
+  getChartMarkOpacity,
+  getChartMarkPresence,
   getValue,
   isFiniteNumber,
   useChartMarkTooltip,
@@ -238,9 +241,19 @@ export function HeatmapChart<T>({
                     <>
                       {heatmap.flatMap((column) =>
                         column.map((cell) => {
-                          const key = `${cell.datum.key}-${cell.bin.key}`
-                          const isActive = hover?.key === key
-                          const opacity = isActive ? 1 : cell.opacity
+                          const key = getChartMarkKey(
+                            "cell",
+                            cell.datum.key,
+                            cell.bin.key
+                          )
+                          const presence = getChartMarkPresence({
+                            hover,
+                            key,
+                          })
+                          const opacity = getChartMarkOpacity({
+                            baseOpacity: cell.opacity,
+                            presence,
+                          })
 
                           return (
                             <g key={key}>

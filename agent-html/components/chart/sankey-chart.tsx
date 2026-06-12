@@ -27,8 +27,9 @@ import {
   ChartTooltipPanel,
   chartHoverOpacity,
   chartMotion,
-  getChartHoverOpacity,
-  getChartHoverPresence,
+  getChartMarkKey,
+  getChartMarkOpacity,
+  getChartMarkPresence,
   useChartMarkTooltip,
 } from "../ui/chart";
 import { RoughPath } from "@/lib/rough-svg";
@@ -118,6 +119,14 @@ type NodeOrIndex = SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum> | number;
 
 const DEFAULT_MARGIN: Margin = { top: 40, right: 180, bottom: 40, left: 180 };
 const intFmt = new Intl.NumberFormat("en-US").format;
+
+function getSankeyLinkKey(index: number) {
+  return getChartMarkKey("link", index);
+}
+
+function getSankeyNodeKey(index: number) {
+  return getChartMarkKey("node", index);
+}
 
 function getNodeIndex(nodeOrIndex: NodeOrIndex): number | undefined {
   if (typeof nodeOrIndex === "number") {
@@ -349,23 +358,26 @@ function SankeyLinks({
         const roughPath = roughOptions ? createRibbonPath(link) : undefined;
         const sourceIndex = getNodeIndex(link.source as NodeOrIndex) ?? -1;
         const targetIndex = getNodeIndex(link.target as NodeOrIndex) ?? -1;
-        const presence = getChartHoverPresence({
+        const linkKey = getSankeyLinkKey(index);
+        const presence = getChartMarkPresence({
           hover,
+          key: linkKey,
           isRelated:
-            hover?.type === "link"
-              ? hover.key === index
-              : hover?.key === sourceIndex || hover?.key === targetIndex,
+            hover?.type === "node"
+              ? hover.key === getSankeyNodeKey(sourceIndex) ||
+                hover.key === getSankeyNodeKey(targetIndex)
+              : undefined,
         });
         const stroke = getLinkColor
           ? getLinkColor(link, index)
           : "var(--chart-line-primary)";
-        const targetOpacity = getChartHoverOpacity({
+        const targetOpacity = getChartMarkOpacity({
           baseOpacity: strokeOpacity,
           presence,
         });
 
         const handlePointerEnter = (event: React.PointerEvent<Element>) => {
-          setHover({ key: index, type: "link" });
+          setHover({ key: linkKey, type: "link" });
           showTooltip(event, { type: "link", linkIndex: index });
         };
         const handlePointerLeave = () => {
@@ -379,7 +391,7 @@ function SankeyLinks({
             <ChartMotionGroup
               animate={{ opacity: targetOpacity }}
               initial={{ opacity: strokeOpacity }}
-              key={`link-${sourceIndex}-${targetIndex}-${link.width ?? link.value ?? ""}`}
+              key={linkKey}
               onPointerEnter={handlePointerEnter}
               onPointerLeave={handlePointerLeave}
               style={{ cursor: "pointer" }}
@@ -406,7 +418,7 @@ function SankeyLinks({
             d={path}
             fill="none"
             initial={{ opacity: strokeOpacity }}
-            key={`link-${sourceIndex}-${targetIndex}-${link.width ?? link.value ?? ""}`}
+            key={linkKey}
             onPointerEnter={handlePointerEnter}
             onPointerLeave={handlePointerLeave}
             stroke={stroke}
@@ -455,8 +467,10 @@ function SankeyNodes({
         const nodeY = node.y0 ?? 0;
         const nodeWidth = (node.x1 ?? 0) - nodeX;
         const nodeHeight = (node.y1 ?? 0) - nodeY;
-        const presence = getChartHoverPresence({
+        const nodeKey = getSankeyNodeKey(index);
+        const presence = getChartMarkPresence({
           hover,
+          key: nodeKey,
           isRelated: isNodeConnected({ hover, links, nodeIndex: index }),
         });
         const isLeftSide = nodeX < innerWidth / 2;
@@ -468,7 +482,7 @@ function SankeyNodes({
           presence === "faded" ? chartHoverOpacity.textFaded : 0.6;
 
         const handlePointerEnter = (event: React.PointerEvent<Element>) => {
-          setHover({ key: index, type: "node" });
+          setHover({ key: nodeKey, type: "node" });
           showTooltip(event, { type: "node", nodeIndex: index });
         };
         const handlePointerLeave = () => {
@@ -514,20 +528,24 @@ function isNodeConnected({
   }
 
   if (hover.type === "node") {
-    if (hover.key === nodeIndex) {
+    if (hover.key === getSankeyNodeKey(nodeIndex)) {
       return true;
     }
     return links.some((link) => {
       const sourceIndex = getNodeIndex(link.source as NodeOrIndex);
       const targetIndex = getNodeIndex(link.target as NodeOrIndex);
       return (
-        (sourceIndex === hover.key && targetIndex === nodeIndex) ||
-        (targetIndex === hover.key && sourceIndex === nodeIndex)
+        (sourceIndex !== undefined &&
+          getSankeyNodeKey(sourceIndex) === hover.key &&
+          targetIndex === nodeIndex) ||
+        (targetIndex !== undefined &&
+          getSankeyNodeKey(targetIndex) === hover.key &&
+          sourceIndex === nodeIndex)
       );
     });
   }
 
-  const link = links[Number(hover.key)];
+  const link = links.find((_, index) => getSankeyLinkKey(index) === hover.key);
   if (!link) {
     return false;
   }

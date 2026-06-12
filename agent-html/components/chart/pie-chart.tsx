@@ -17,9 +17,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   chartMotion,
-  getChartHoverOpacity,
-  getChartHoverPresence,
   getChartCssVariable,
+  getChartMarkKey,
+  getChartMarkOpacity,
+  getChartMarkPresence,
   getValue,
   isFiniteNumber,
   useChartMarkTooltip,
@@ -180,15 +181,16 @@ export function PieChart<T>({
                     {arcs.map((arc) => {
                       const d = path(arc) ?? ""
                       const color = getChartCssVariable(arc.data.key)
-                      const presence = getChartHoverPresence({
+                      const key = getChartMarkKey("slice", arc.data.key)
+                      const presence = getChartMarkPresence({
                         hover,
-                        isRelated: hover?.key === arc.data.key,
+                        key,
                       })
-                      const opacity = getChartHoverOpacity({ presence })
+                      const opacity = getChartMarkOpacity({ presence })
                       const showTooltip = (
                         event: React.PointerEvent<SVGPathElement>
                       ) => {
-                        setHover({ key: arc.data.key, type: "slice" })
+                        setHover({ key, type: "slice" })
                         showMarkTooltip(event, {
                           slice: arc.data,
                         })

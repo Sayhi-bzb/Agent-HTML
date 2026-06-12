@@ -16,8 +16,9 @@ import {
   ChartTooltipPanel,
   type ChartRenderer,
   chartMotion,
-  getChartHoverOpacity,
-  getChartHoverPresence,
+  getChartMarkKey,
+  getChartMarkOpacity,
+  getChartMarkPresence,
   isFiniteNumber,
   useChartMarkTooltip,
 } from "../ui/chart"
@@ -223,7 +224,7 @@ function resolveNetworkGraph<
 
     return {
       datum: link,
-      key: `${link.source}-${link.target}-${index}`,
+      key: getChartMarkKey("link", link.source, link.target, index),
       source,
       target,
       width,
@@ -231,13 +232,6 @@ function resolveNetworkGraph<
   })
 
   return { links, nodes }
-}
-
-function isLinkRelatedToNode<
-  TNode extends NetworkNodeDatum,
-  TLink extends NetworkLinkDatum,
->(link: PositionedLink<TNode, TLink>, nodeId: string) {
-  return link.source.id === nodeId || link.target.id === nodeId
 }
 
 function isNodeRelatedToLink<
@@ -335,16 +329,16 @@ function NetworkLinkMark<
     showTooltip,
   } = useNetworkRenderContext<TNode, TLink>()
   const linkIndex = graph.links.indexOf(link)
-  const presence = getChartHoverPresence({
+  const presence = getChartMarkPresence({
     hover,
+    key: link.key,
     isRelated:
-      hover?.type === "link"
-        ? hover.key === link.key
-        : hover?.type === "node"
-          ? isLinkRelatedToNode(link, String(hover.key))
-          : false,
+      hover?.type === "node"
+        ? hover.key === getChartMarkKey("node", link.source.id) ||
+          hover.key === getChartMarkKey("node", link.target.id)
+        : undefined,
   })
-  const opacity = getChartHoverOpacity({
+  const opacity = getChartMarkOpacity({
     baseOpacity: 0.72,
     presence,
   })
@@ -411,19 +405,19 @@ function NetworkNodeMark<TNode extends NetworkNodeDatum>({
     showTooltip,
   } = useNetworkRenderContext<TNode, NetworkLinkDatum>()
   const nodeIndex = graph.nodes.indexOf(node)
-  const presence = getChartHoverPresence({
+  const nodeKey = getChartMarkKey("node", node.id)
+  const presence = getChartMarkPresence({
     hover,
+    key: nodeKey,
     isRelated:
-      hover?.type === "node"
-        ? hover.key === node.id
-        : hover?.type === "link" && activeLink
-          ? isNodeRelatedToLink(node, activeLink)
-          : false,
+      hover?.type === "link" && activeLink
+        ? isNodeRelatedToLink(node, activeLink)
+        : undefined,
   })
-  const opacity = getChartHoverOpacity({ presence })
+  const opacity = getChartMarkOpacity({ presence })
   const color = getNodeColor?.(node, nodeIndex) ?? getDefaultNodeColor(node)
   const handlePointerEnter = (event: React.PointerEvent<SVGCircleElement>) => {
-    setHover({ key: node.id, type: "node" })
+    setHover({ key: nodeKey, type: "node" })
     showTooltip(event, {
       index: nodeIndex,
       type: "node",

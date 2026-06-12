@@ -21,9 +21,10 @@ import {
   createBandScale,
   createCartesianLayout,
   createLinearScale,
-  getChartHoverOpacity,
-  getChartHoverPresence,
   getChartCssVariable,
+  getChartMarkKey,
+  getChartMarkOpacity,
+  getChartMarkPresence,
   getFiniteValues,
   getValue,
   isFiniteNumber,
@@ -361,15 +362,16 @@ function BarChartCore<T>({
                   }
 
                   const rect = model.getBarRect(datum, value)
-                  const presence = getChartHoverPresence({
+                  const key = getChartMarkKey("bar", category)
+                  const presence = getChartMarkPresence({
                     hover,
-                    isRelated: hover?.key === category,
+                    key,
                   })
-                  const opacity = getChartHoverOpacity({ presence })
+                  const opacity = getChartMarkOpacity({ presence })
                   const showTooltip = (
                     event: React.PointerEvent<SVGRectElement>
                   ) => {
-                    setHover({ key: category, type: "bar" })
+                    setHover({ key, type: "bar" })
                     showMarkTooltip(event, {
                       datum,
                     })
