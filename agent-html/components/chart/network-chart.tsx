@@ -15,9 +15,9 @@ import {
   getChartHoverOpacity,
   getChartHoverPresence,
   isFiniteNumber,
-  useChartTooltip,
+  useChartMarkTooltip,
 } from "./chart"
-import { RoughCircle, RoughPath } from "./rough-renderers"
+import { RoughCircle, RoughPath } from "@/lib/rough-svg"
 
 type NetworkHoverState = ChartHoverState<"node" | "link">
 
@@ -253,6 +253,326 @@ function getDefaultLinkColor(link: PositionedLink<NetworkNodeDatum, NetworkLinkD
     : "var(--chart-1)"
 }
 
+function getNetworkLinkPath<
+  TNode extends NetworkNodeDatum,
+  TLink extends NetworkLinkDatum,
+>(link: PositionedLink<TNode, TLink>) {
+  return `M${link.source.x},${link.source.y} L${link.target.x},${link.target.y}`
+}
+
+function getNetworkTooltipModel<
+  TNode extends NetworkNodeDatum,
+  TLink extends NetworkLinkDatum,
+>({
+  graph,
+  tooltipData,
+}: {
+  graph: NetworkGraph<TNode, TLink>
+  tooltipData?: TooltipState
+}) {
+  return {
+    activeLink:
+      tooltipData?.type === "link" ? graph.links[tooltipData.index] : null,
+    activeNode:
+      tooltipData?.type === "node" ? graph.nodes[tooltipData.index] : null,
+  }
+}
+
+function NetworkChartSurface<
+  TNode extends NetworkNodeDatum,
+  TLink extends NetworkLinkDatum,
+>({
+  data,
+  followTooltip,
+  getLinkColor,
+  getNodeColor,
+  height,
+  hideTooltip,
+  hover,
+  layout,
+  renderLinkTooltip,
+  renderNodeTooltip,
+  renderer,
+  roughOptions,
+  setHover,
+  showTooltip,
+  tooltipData,
+  tooltipLeft,
+  tooltipOpen,
+  tooltipTop,
+  width,
+}: {
+  data: NetworkChartData<TNode, TLink>
+  followTooltip: (
+    event: React.MouseEvent<Element> | React.PointerEvent<Element>
+  ) => void
+  getLinkColor?: (link: PositionedLink<TNode, TLink>, index: number) => string
+  getNodeColor?: (node: PositionedNode<TNode>, index: number) => string
+  height: number
+  hideTooltip: () => void
+  hover: NetworkHoverState | null
+  layout?: NetworkChartLayout
+  renderLinkTooltip?: NetworkChartProps<TNode, TLink>["renderLinkTooltip"]
+  renderNodeTooltip?: NetworkChartProps<TNode, TLink>["renderNodeTooltip"]
+  renderer: ChartRenderer
+  roughOptions?: RoughOptions
+  setHover: React.Dispatch<React.SetStateAction<NetworkHoverState | null>>
+  showTooltip: (
+    event: React.MouseEvent<Element> | React.PointerEvent<Element>,
+    data: TooltipState
+  ) => void
+  tooltipData: TooltipState | null | undefined
+  tooltipLeft?: number
+  tooltipOpen: boolean
+  tooltipTop?: number
+  width: number
+}) {
+  const graph = React.useMemo(
+    () => resolveNetworkGraph({ data, height, layout, width }),
+    [data, height, layout, width]
+  )
+  const roughLinkOptionsByKey = React.useMemo(() => {
+    if (renderer !== "rough") {
+      return undefined
+    }
+
+    return new Map(
+      graph.links.map((link, index) => {
+        const color = getLinkColor?.(link, index) ?? getDefaultLinkColor(link)
+
+        return [
+          link.key,
+          {
+            ...roughOptions,
+            stroke: color,
+            strokeWidth: link.width,
+          },
+        ] as const
+      })
+    )
+  }, [getLinkColor, graph.links, renderer, roughOptions])
+  const roughNodeOptionsById = React.useMemo(() => {
+    if (renderer !== "rough") {
+      return undefined
+    }
+
+    return new Map(
+      graph.nodes.map((node, index) => {
+        const color = getNodeColor?.(node, index) ?? getDefaultNodeColor(node)
+
+        return [
+          node.id,
+          {
+            ...roughOptions,
+            fill: color,
+            stroke: roughOptions?.stroke ?? color,
+          },
+        ] as const
+      })
+    )
+  }, [getNodeColor, graph.nodes, renderer, roughOptions])
+  const { activeLink, activeNode } = getNetworkTooltipModel({
+    graph,
+    tooltipData: tooltipData ?? undefined,
+  })
+  const NetworkLinkMark = React.useCallback(
+    ({ link }: { link: PositionedLink<TNode, TLink> }) => {
+      const linkIndex = graph.links.indexOf(link)
+      const presence = getChartHoverPresence({
+        hover,
+        isRelated:
+          hover?.type === "link"
+            ? hover.key === link.key
+            : hover?.type === "node"
+              ? isLinkRelatedToNode(link, String(hover.key))
+              : false,
+      })
+      const opacity = getChartHoverOpacity({
+        baseOpacity: 0.72,
+        presence,
+      })
+      const color = getLinkColor?.(link, linkIndex) ?? getDefaultLinkColor(link)
+      const path = getNetworkLinkPath(link)
+      const handlePointerEnter = (
+        event: React.PointerEvent<SVGLineElement>
+      ) => {
+        setHover({ key: link.key, type: "link" })
+        showTooltip(event, {
+          index: linkIndex,
+          type: "link",
+        })
+      }
+
+      return (
+        <g
+          opacity={opacity}
+          style={{
+            transition: `opacity ${chartHoverTransition.duration}s ease-out`,
+          }}
+        >
+          {renderer === "rough" ? (
+            <RoughPath
+              d={path}
+              options={roughLinkOptionsByKey?.get(link.key)}
+            />
+          ) : (
+            <line
+              stroke={color}
+              strokeLinecap="round"
+              strokeOpacity={0.72}
+              strokeWidth={link.width}
+              x1={link.source.x}
+              x2={link.target.x}
+              y1={link.source.y}
+              y2={link.target.y}
+            />
+          )}
+          <line
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={hideTooltip}
+            pointerEvents="stroke"
+            stroke="transparent"
+            strokeLinecap="round"
+            strokeWidth={Math.max(16, link.width + 10)}
+            x1={link.source.x}
+            x2={link.target.x}
+            y1={link.source.y}
+            y2={link.target.y}
+          />
+        </g>
+      )
+    },
+    [
+      getLinkColor,
+      graph.links,
+      hideTooltip,
+      hover,
+      renderer,
+      roughLinkOptionsByKey,
+      setHover,
+      showTooltip,
+    ]
+  )
+  const NetworkNodeMark = React.useCallback(
+    ({ node }: { node: PositionedNode<TNode> }) => {
+      const nodeIndex = graph.nodes.indexOf(node)
+      const presence = getChartHoverPresence({
+        hover,
+        isRelated:
+          hover?.type === "node"
+            ? hover.key === node.id
+            : hover?.type === "link" && activeLink
+              ? isNodeRelatedToLink(node, activeLink)
+              : false,
+      })
+      const opacity = getChartHoverOpacity({ presence })
+      const color = getNodeColor?.(node, nodeIndex) ?? getDefaultNodeColor(node)
+      const handlePointerEnter = (
+        event: React.PointerEvent<SVGCircleElement>
+      ) => {
+        setHover({ key: node.id, type: "node" })
+        showTooltip(event, {
+          index: nodeIndex,
+          type: "node",
+        })
+      }
+
+      return (
+        <g
+          opacity={opacity}
+          style={{
+            transition: `opacity ${chartHoverTransition.duration}s ease-out`,
+          }}
+        >
+          {renderer === "rough" ? (
+            <RoughCircle
+              diameter={node.radius * 2}
+              options={roughNodeOptionsById?.get(node.id)}
+              x={0}
+              y={0}
+            />
+          ) : (
+            <circle fill={color} r={node.radius} />
+          )}
+          <circle
+            fill="transparent"
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={hideTooltip}
+            pointerEvents="all"
+            r={Math.max(16, node.radius)}
+          />
+          {node.label ? (
+            <text
+              className="fill-foreground text-[0.68rem]"
+              dy={node.radius + 14}
+              textAnchor="middle"
+            >
+              {node.label}
+            </text>
+          ) : null}
+        </g>
+      )
+    },
+    [
+      activeLink,
+      getNodeColor,
+      graph.nodes,
+      hideTooltip,
+      hover,
+      renderer,
+      roughNodeOptionsById,
+      setHover,
+      showTooltip,
+    ]
+  )
+
+  return (
+    <div
+      className="relative h-full w-full"
+      onPointerLeave={hideTooltip}
+      onPointerMove={followTooltip}
+    >
+      <ChartSvg
+        aria-label="network chart"
+        onPointerLeave={hideTooltip}
+        role="img"
+      >
+        <Graph
+          graph={graph}
+          linkComponent={NetworkLinkMark}
+          nodeComponent={NetworkNodeMark}
+        />
+      </ChartSvg>
+
+      <ChartTooltip
+        visible={tooltipOpen}
+        x={tooltipLeft ?? 0}
+        y={tooltipTop ?? 0}
+      >
+        <ChartTooltipPanel>
+          {tooltipData?.type === "node" && activeNode
+            ? renderNodeTooltip?.({
+                index: tooltipData.index,
+                node: activeNode,
+              }) ?? <strong>{activeNode.label ?? activeNode.id}</strong>
+            : null}
+          {tooltipData?.type === "link" && activeLink
+            ? renderLinkTooltip?.({
+                index: tooltipData.index,
+                link: activeLink,
+              }) ?? (
+                <strong>
+                  {activeLink.source.label ?? activeLink.source.id} {"->"}{" "}
+                  {activeLink.target.label ?? activeLink.target.id}
+                </strong>
+              )
+            : null}
+        </ChartTooltipPanel>
+      </ChartTooltip>
+    </div>
+  )
+}
+
 export function NetworkChart<
   TNode extends NetworkNodeDatum = NetworkNodeDatum,
   TLink extends NetworkLinkDatum = NetworkLinkDatum,
@@ -272,19 +592,17 @@ export function NetworkChart<
   renderer = "svg",
   roughOptions,
 }: NetworkChartProps<TNode, TLink>) {
-  const [hover, setHover] = React.useState<NetworkHoverState | null>(null)
   const {
-    hideTooltip: hideChartTooltip,
-    showTooltipFromEvent,
-    tooltipData,
+    currentTooltipData,
+    followTooltip,
+    hideTooltip,
+    hover,
+    setHover,
+    showTooltip,
     tooltipLeft,
     tooltipOpen,
     tooltipTop,
-  } = useChartTooltip<TooltipState>()
-  const hideTooltip = React.useCallback(() => {
-    setHover(null)
-    hideChartTooltip()
-  }, [hideChartTooltip])
+  } = useChartMarkTooltip<TooltipState, "node" | "link">()
 
   return (
     <ChartContainer
@@ -299,198 +617,29 @@ export function NetworkChart<
       isEmpty={data.nodes.length === 0}
       minHeight={minHeight}
     >
-      {({ height, width }) => {
-        const graph = resolveNetworkGraph({ data, height, layout, width })
-        const activeLink =
-          tooltipData?.type === "link" ? graph.links[tooltipData.index] : null
-        const activeNode =
-          tooltipData?.type === "node" ? graph.nodes[tooltipData.index] : null
-
-        return (
-          <div className="relative h-full w-full">
-            <ChartSvg
-              aria-label="network chart"
-              onPointerLeave={hideTooltip}
-              role="img"
-            >
-              <Graph
-                graph={graph}
-                linkComponent={({ link }) => {
-                  const linkIndex = graph.links.indexOf(link)
-                  const presence = getChartHoverPresence({
-                    hover,
-                    isRelated:
-                      hover?.type === "link"
-                        ? hover.key === link.key
-                        : hover?.type === "node"
-                          ? isLinkRelatedToNode(link, String(hover.key))
-                          : false,
-                  })
-                  const opacity = getChartHoverOpacity({
-                    baseOpacity: 0.72,
-                    presence,
-                  })
-                  const color = getLinkColor?.(link, linkIndex) ?? getDefaultLinkColor(link)
-                  const path = `M${link.source.x},${link.source.y} L${link.target.x},${link.target.y}`
-                  const showTooltip = (
-                    event: React.PointerEvent<SVGLineElement>
-                  ) => {
-                    setHover({ key: link.key, type: "link" })
-                    showTooltipFromEvent(event, {
-                      index: linkIndex,
-                      type: "link",
-                    })
-                  }
-
-                  return (
-                    <g
-                      opacity={opacity}
-                      style={{
-                        transition: `opacity ${chartHoverTransition.duration}s ease-out`,
-                      }}
-                    >
-                      {renderer === "rough" ? (
-                        <RoughPath
-                          d={path}
-                          options={{
-                            stroke: color,
-                            strokeWidth: link.width,
-                            ...roughOptions,
-                          }}
-                        />
-                      ) : (
-                        <line
-                          stroke={color}
-                          strokeLinecap="round"
-                          strokeOpacity={0.72}
-                          strokeWidth={link.width}
-                          x1={link.source.x}
-                          x2={link.target.x}
-                          y1={link.source.y}
-                          y2={link.target.y}
-                        />
-                      )}
-                      <line
-                        onPointerEnter={showTooltip}
-                        onPointerLeave={hideTooltip}
-                        onPointerMove={(event) => {
-                          showTooltipFromEvent(event, {
-                            index: linkIndex,
-                            type: "link",
-                          })
-                        }}
-                        pointerEvents="stroke"
-                        stroke="transparent"
-                        strokeLinecap="round"
-                        strokeWidth={Math.max(16, link.width + 10)}
-                        x1={link.source.x}
-                        x2={link.target.x}
-                        y1={link.source.y}
-                        y2={link.target.y}
-                      />
-                    </g>
-                  )
-                }}
-                nodeComponent={({ node }) => {
-                  const nodeIndex = graph.nodes.indexOf(node)
-                  const presence = getChartHoverPresence({
-                    hover,
-                    isRelated:
-                      hover?.type === "node"
-                        ? hover.key === node.id
-                        : hover?.type === "link" && activeLink
-                          ? isNodeRelatedToLink(node, activeLink)
-                          : false,
-                  })
-                  const opacity = getChartHoverOpacity({ presence })
-                  const color = getNodeColor?.(node, nodeIndex) ?? getDefaultNodeColor(node)
-                  const showTooltip = (
-                    event: React.PointerEvent<SVGCircleElement>
-                  ) => {
-                    setHover({ key: node.id, type: "node" })
-                    showTooltipFromEvent(event, {
-                      index: nodeIndex,
-                      type: "node",
-                    })
-                  }
-
-                  return (
-                    <g
-                      opacity={opacity}
-                      style={{
-                        transition: `opacity ${chartHoverTransition.duration}s ease-out`,
-                      }}
-                    >
-                      {renderer === "rough" ? (
-                        <RoughCircle
-                          diameter={node.radius * 2}
-                          options={{
-                            fill: color,
-                            stroke: color,
-                            ...roughOptions,
-                          }}
-                          x={0}
-                          y={0}
-                        />
-                      ) : (
-                        <circle fill={color} r={node.radius} />
-                      )}
-                      <circle
-                        fill="transparent"
-                        onPointerEnter={showTooltip}
-                        onPointerLeave={hideTooltip}
-                        onPointerMove={(event) => {
-                          showTooltipFromEvent(event, {
-                            index: nodeIndex,
-                            type: "node",
-                          })
-                        }}
-                        pointerEvents="all"
-                        r={Math.max(16, node.radius)}
-                      />
-                      {node.label ? (
-                        <text
-                          className="fill-foreground text-[0.68rem]"
-                          dy={node.radius + 14}
-                          textAnchor="middle"
-                        >
-                          {node.label}
-                        </text>
-                      ) : null}
-                    </g>
-                  )
-                }}
-              />
-            </ChartSvg>
-
-            <ChartTooltip
-              visible={tooltipOpen}
-              x={tooltipLeft ?? 0}
-              y={tooltipTop ?? 0}
-            >
-              <ChartTooltipPanel>
-                {tooltipData?.type === "node" && activeNode
-                  ? renderNodeTooltip?.({
-                      index: tooltipData.index,
-                      node: activeNode,
-                    }) ?? <strong>{activeNode.label ?? activeNode.id}</strong>
-                  : null}
-                {tooltipData?.type === "link" && activeLink
-                  ? renderLinkTooltip?.({
-                      index: tooltipData.index,
-                      link: activeLink,
-                    }) ?? (
-                      <strong>
-                        {activeLink.source.label ?? activeLink.source.id} {"->"}{" "}
-                        {activeLink.target.label ?? activeLink.target.id}
-                      </strong>
-                    )
-                  : null}
-              </ChartTooltipPanel>
-            </ChartTooltip>
-          </div>
-        )
-      }}
+      {({ height, width }) => (
+        <NetworkChartSurface
+          data={data}
+          followTooltip={followTooltip}
+          getLinkColor={getLinkColor}
+          getNodeColor={getNodeColor}
+          height={height}
+          hideTooltip={hideTooltip}
+          hover={hover}
+          layout={layout}
+          renderLinkTooltip={renderLinkTooltip}
+          renderNodeTooltip={renderNodeTooltip}
+          renderer={renderer}
+          roughOptions={roughOptions}
+          setHover={setHover}
+          showTooltip={showTooltip}
+          tooltipData={currentTooltipData}
+          tooltipLeft={tooltipLeft}
+          tooltipOpen={tooltipOpen}
+          tooltipTop={tooltipTop}
+          width={width}
+        />
+      )}
     </ChartContainer>
   )
 }

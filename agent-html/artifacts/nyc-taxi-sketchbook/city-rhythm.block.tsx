@@ -9,7 +9,7 @@ import {
 
 import { hourDay } from "./data/generated-city-rhythm"
 import { roughSketchMarkOptions } from "./rough-theme"
-import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
+import { RoughSvgLayer, type RoughSvgDraw } from "../../lib/rough-svg"
 import {
   LedgerRows,
   SectionIntro,
@@ -77,7 +77,7 @@ export function CityRhythmBlock() {
   const overnightItems = hourDay.filter((item) => item.hour < 6)
   const overnightTrips = overnightItems.reduce((sum, item) => sum + item.trips, 0)
   const overnightAverageTotal = weightedAverageTotal(overnightItems)
-  const drawHourGrid = useCallback<RoughSketchDraw>((roughSvg, group) => {
+  const drawHourGrid = useCallback<RoughSvgDraw>((roughSvg, group) => {
     heatmapCells.forEach((cell) => {
       const node = roughSvg.circle(
         cell.x + cellSize / 2,

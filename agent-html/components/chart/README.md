@@ -10,8 +10,12 @@ Target consumption chain:
 low-level @visx primitives
   -> chart.tsx foundation
   -> semantic chart components
-  -> optional rough renderer branch inside supported charts
+  -> optional rough SVG branch inside supported charts
   -> artifact blocks
+
+roughjs
+  -> lib/rough-svg.tsx
+  -> semantic chart rough branches or artifact-local sketch decoration
 
 specialized @visx packages
   -> matching semantic chart components
@@ -45,9 +49,9 @@ the Canvas protocol exposed by `chart.tsx`.
   tooltip tracking, legend, SVG shell, hit layers, cartesian layout, shared
   hover state/opacity protocol, empty data/size separation, scale helpers, and
   `@visx/xychart` theme.
-- `rough-renderers.tsx`: internal RoughJS SVG render helpers. Rough is an
-  optional renderer branch inside supported chart components, not a public
-  artifact entrypoint and not the chart protocol.
+- `../../lib/rough-svg.tsx`: low-level RoughJS SVG lifecycle bridge. It owns
+  RoughJS-to-React rendering only, not chart semantics, chart config, layout, or
+  tooltip behavior.
 - `line-chart.tsx`: reusable line chart using `@visx/xychart` for cartesian
   series, axis/grid, pointer events, and tooltip state, while consuming
   `chart.tsx` for Canvas theme and tooltip content.
@@ -65,7 +69,7 @@ the Canvas protocol exposed by `chart.tsx`.
 
 Artifact blocks should import only semantic chart components from
 `components/chart`. They should not import `@visx/*` packages or
-`rough-renderers.tsx` directly.
+chart-specific renderer internals.
 
 ## Visx Policy
 
@@ -89,12 +93,15 @@ Use visx primitives by responsibility:
 ## Boundary Rules
 
 - Artifact blocks import semantic chart components from `components/chart`.
-- Artifact blocks do not import `@visx/*` packages or `rough-renderers.tsx`.
+- Artifact blocks do not import `@visx/*` packages or chart-specific renderer
+  internals.
 - `chart.tsx` does not own concrete chart business semantics.
 - Concrete chart components do not re-invent shared chart protocol when a
   `chart.tsx` helper already owns it.
 - Rough rendering remains an internal branch of supported semantic charts, not a
   public artifact dependency.
+- `lib/rough-svg.tsx` may be used by artifact-local sketch decoration when the
+  artifact owns the decorative drawing and no semantic chart component applies.
 
 ## Rough Policy
 
@@ -114,8 +121,8 @@ Use visx primitives by responsibility:
 
 - `chart.tsx` owns generic hover state, presence, opacity, and transition
   tokens.
-- `BarChart`, `BarHChart`, `PieChart`, and `SankeyChart` consume the shared
-  hover protocol for highlighted and faded marks.
+- `BarChart`, `BarHChart`, `PieChart`, `NetworkChart`, and `SankeyChart`
+  consume the shared hover protocol for highlighted and faded marks.
 - Concrete charts own item relationship logic, such as Sankey node/link
   adjacency or pie slice identity.
 

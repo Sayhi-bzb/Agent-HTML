@@ -5,7 +5,6 @@ import type { Options as RoughOptions } from "roughjs/bin/core"
 import {
   type ChartAccessor,
   type ChartConfig,
-  type ChartHoverState,
   ChartCartesianGroup,
   ChartContainer,
   ChartHitRect,
@@ -28,9 +27,9 @@ import {
   getFiniteValues,
   getValue,
   isFiniteNumber,
-  useChartTooltip,
+  useChartMarkTooltip,
 } from "./chart"
-import { RoughRect } from "./rough-renderers"
+import { RoughRect } from "@/lib/rough-svg"
 
 export interface BarChartProps<T> {
   aspectRatio?: string
@@ -99,6 +98,14 @@ interface BarCoreProps<T> {
   valueKey: ChartAccessor<T, number>
 }
 
+interface BarModelOptions<T> {
+  categoryKey: ChartAccessor<T, string>
+  data: T[]
+  layout: ReturnType<typeof createCartesianLayout>
+  orientation: BarOrientation
+  valueKey: ChartAccessor<T, number>
+}
+
 const VERTICAL_MARGIN = {
   bottom: 42,
   left: 42,
@@ -144,6 +151,61 @@ function formatCategory<T>({
   return categoryFormatter ? categoryFormatter(category) : category
 }
 
+function createBarModel<T>({
+  categoryKey,
+  data,
+  layout,
+  orientation,
+  valueKey,
+}: BarModelOptions<T>) {
+  const categoryScale = createBandScale({
+    data,
+    padding: 0.28,
+    range:
+      orientation === "vertical"
+        ? [0, layout.innerWidth]
+        : [0, layout.innerHeight],
+    x: categoryKey,
+  })
+  const valueScale = createLinearScale({
+    range:
+      orientation === "vertical"
+        ? [layout.innerHeight, 0]
+        : [0, layout.innerWidth],
+    values: getFiniteValues(data, valueKey),
+  })
+  const getCategoryPosition = (datum: T) =>
+    categoryScale(getValue(datum, categoryKey)) ?? 0
+  const getBarRect = (datum: T, value: number): BarRect => {
+    const categoryPosition = getCategoryPosition(datum)
+
+    if (orientation === "vertical") {
+      const y = valueScale(value)
+
+      return {
+        height: layout.innerHeight - y,
+        width: categoryScale.bandwidth(),
+        x: categoryPosition,
+        y,
+      }
+    }
+
+    return {
+      height: categoryScale.bandwidth(),
+      width: valueScale(value),
+      x: 0,
+      y: categoryPosition,
+    }
+  }
+
+  return {
+    categoryScale,
+    getBarRect,
+    getCategoryPosition,
+    valueScale,
+  }
+}
+
 function BarChartCore<T>({
   ariaLabel,
   aspectRatio,
@@ -162,19 +224,17 @@ function BarChartCore<T>({
   valueFormatter,
   valueKey,
 }: BarCoreProps<T>) {
-  const [hover, setHover] = React.useState<ChartHoverState<"bar"> | null>(null)
   const {
-    hideTooltip: hideChartTooltip,
-    showTooltipFromEvent,
-    tooltipData: tooltip,
+    currentTooltipData: tooltip,
+    followTooltip,
+    hideTooltip,
+    hover,
+    setHover,
+    showTooltip: showMarkTooltip,
     tooltipLeft,
     tooltipOpen,
     tooltipTop,
-  } = useChartTooltip<TooltipState<T>>()
-  const hideTooltip = React.useCallback(() => {
-    setHover(null)
-    hideChartTooltip()
-  }, [hideChartTooltip])
+  } = useChartMarkTooltip<TooltipState<T>, "bar">()
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const rows = React.useMemo(() => Array.from(data), [data])
   const roughOptionsByKey = React.useMemo(
@@ -207,47 +267,15 @@ function BarChartCore<T>({
           margin,
           width,
         })
-        const categoryScale = createBandScale({
+        const model = createBarModel({
+          categoryKey,
           data: rows,
-          padding: 0.28,
-          range:
-            orientation === "vertical"
-              ? [0, layout.innerWidth]
-              : [0, layout.innerHeight],
-          x: categoryKey,
-        })
-        const valueScale = createLinearScale({
-          range:
-            orientation === "vertical"
-              ? [layout.innerHeight, 0]
-              : [0, layout.innerWidth],
-          values: getFiniteValues(rows, valueKey),
+          layout,
+          orientation,
+          valueKey,
         })
         const seriesLabel = config[seriesKey]?.label ?? series[0]?.label ?? seriesKey
         const color = getChartCssVariable(seriesKey)
-        const getCategoryPosition = (datum: T) =>
-          categoryScale(getValue(datum, categoryKey)) ?? 0
-        const getBarRect = (datum: T, value: number): BarRect => {
-          const categoryPosition = getCategoryPosition(datum)
-
-          if (orientation === "vertical") {
-            const y = valueScale(value)
-
-            return {
-              height: layout.innerHeight - y,
-              width: categoryScale.bandwidth(),
-              x: categoryPosition,
-              y,
-            }
-          }
-
-          return {
-            height: categoryScale.bandwidth(),
-            width: valueScale(value),
-            x: 0,
-            y: categoryPosition,
-          }
-        }
 
         return (
           <div className="relative h-full w-full">
@@ -262,14 +290,15 @@ function BarChartCore<T>({
                     <ChartYAxisGrid
                       formatTick={valueFormatter}
                       innerWidth={layout.innerWidth}
-                      scale={valueScale}
+                      scale={model.valueScale}
                     />
                     <ChartXAxisLabels
                       data={data}
                       formatTick={categoryFormatter}
                       innerHeight={layout.innerHeight}
                       x={(datum) =>
-                        getCategoryPosition(datum) + categoryScale.bandwidth() / 2
+                        model.getCategoryPosition(datum) +
+                        model.categoryScale.bandwidth() / 2
                       }
                       xKey={categoryKey}
                     />
@@ -279,12 +308,13 @@ function BarChartCore<T>({
                     <ChartXAxisGrid
                       formatTick={valueFormatter}
                       innerHeight={layout.innerHeight}
-                      scale={valueScale}
+                      scale={model.valueScale}
                     />
                     {data.map((datum) => {
                       const label = getValue(datum, categoryKey)
                       const labelY =
-                        getCategoryPosition(datum) + categoryScale.bandwidth() / 2
+                        model.getCategoryPosition(datum) +
+                        model.categoryScale.bandwidth() / 2
 
                       return (
                         <text
@@ -310,7 +340,7 @@ function BarChartCore<T>({
                     return null
                   }
 
-                  const rect = getBarRect(datum, value)
+                  const rect = model.getBarRect(datum, value)
                   const presence = getChartHoverPresence({
                     hover,
                     isRelated: hover?.key === category,
@@ -320,7 +350,7 @@ function BarChartCore<T>({
                     event: React.PointerEvent<SVGRectElement>
                   ) => {
                     setHover({ key: category, type: "bar" })
-                    showTooltipFromEvent(event, {
+                    showMarkTooltip(event, {
                       datum,
                     })
                   }
@@ -355,9 +385,7 @@ function BarChartCore<T>({
                         height={rect.height}
                         onPointerEnter={showTooltip}
                         onPointerLeave={hideTooltip}
-                        onPointerMove={(event) => {
-                          showTooltipFromEvent(event, { datum })
-                        }}
+                        onPointerMove={followTooltip}
                         width={rect.width}
                         x={rect.x}
                         y={rect.y}

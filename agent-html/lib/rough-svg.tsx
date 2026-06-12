@@ -1,17 +1,42 @@
 import { useRef } from "react"
 import rough from "roughjs"
 import type { Options as RoughOptions } from "roughjs/bin/core"
+import type { RoughSVG } from "roughjs/bin/svg"
 
 import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect"
 
-export const defaultRoughOptions: RoughOptions = {
+export type RoughSvgDraw = (roughSvg: RoughSVG, group: SVGGElement) => void
+
+export const defaultRoughSvgOptions: RoughOptions = {
   bowing: 0.8,
   fillStyle: "hachure",
   roughness: 1.3,
 }
 
+export function RoughSvgLayer({ draw }: { draw: RoughSvgDraw }) {
+  const groupRef = useRef<SVGGElement>(null)
+
+  useIsomorphicLayoutEffect(() => {
+    const group = groupRef.current
+    const svg = group?.ownerSVGElement
+
+    if (!(group && svg)) {
+      return
+    }
+
+    group.replaceChildren()
+    draw(rough.svg(svg), group)
+
+    return () => {
+      group.replaceChildren()
+    }
+  }, [draw])
+
+  return <g ref={groupRef} />
+}
+
 function useRoughElement(
-  draw: (roughSvg: ReturnType<typeof rough.svg>) => SVGElement | null,
+  draw: (roughSvg: RoughSVG) => SVGElement | null,
   dependencies: readonly unknown[]
 ) {
   const groupRef = useRef<SVGGElement>(null)
@@ -47,7 +72,7 @@ export function RoughPath({
   options?: RoughOptions
 }) {
   const groupRef = useRoughElement(
-    (roughSvg) => roughSvg.path(d, { ...defaultRoughOptions, ...options }),
+    (roughSvg) => roughSvg.path(d, { ...defaultRoughSvgOptions, ...options }),
     [d, options]
   )
 
@@ -70,7 +95,7 @@ export function RoughRect({
   const groupRef = useRoughElement(
     (roughSvg) =>
       roughSvg.rectangle(x, y, width, height, {
-        ...defaultRoughOptions,
+        ...defaultRoughSvgOptions,
         ...options,
       }),
     [height, options, width, x, y]
@@ -93,7 +118,7 @@ export function RoughCircle({
   const groupRef = useRoughElement(
     (roughSvg) =>
       roughSvg.circle(x, y, diameter, {
-        ...defaultRoughOptions,
+        ...defaultRoughSvgOptions,
         ...options,
       }),
     [diameter, options, x, y]
@@ -112,7 +137,7 @@ export function RoughPolygon({
   const groupRef = useRoughElement(
     (roughSvg) =>
       roughSvg.polygon(points, {
-        ...defaultRoughOptions,
+        ...defaultRoughSvgOptions,
         ...options,
       }),
     [options, points]

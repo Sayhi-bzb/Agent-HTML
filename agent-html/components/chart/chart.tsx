@@ -400,6 +400,62 @@ export function useChartTooltip<TooltipData>() {
   }
 }
 
+export function useChartMarkTooltip<
+  TooltipData,
+  THoverType extends string = string,
+>() {
+  const [hover, setHover] = React.useState<ChartHoverState<THoverType> | null>(
+    null
+  )
+  const [activeTooltipData, setActiveTooltipData] =
+    React.useState<TooltipData | null>(null)
+  const {
+    hideTooltip: hideChartTooltip,
+    showTooltipFromEvent,
+    tooltipData,
+    tooltipLeft,
+    tooltipOpen,
+    tooltipTop,
+  } = useChartTooltip<TooltipData>()
+
+  const hideTooltip = React.useCallback(() => {
+    setHover(null)
+    setActiveTooltipData(null)
+    hideChartTooltip()
+  }, [hideChartTooltip])
+  const showTooltip = React.useCallback(
+    (
+      event: React.MouseEvent<Element> | React.PointerEvent<Element>,
+      data: TooltipData
+    ) => {
+      setActiveTooltipData(data)
+      showTooltipFromEvent(event, data)
+    },
+    [showTooltipFromEvent]
+  )
+  const followTooltip = React.useCallback(
+    (event: React.MouseEvent<Element> | React.PointerEvent<Element>) => {
+      if (activeTooltipData) {
+        showTooltipFromEvent(event, activeTooltipData)
+      }
+    },
+    [activeTooltipData, showTooltipFromEvent]
+  )
+
+  return {
+    activeTooltipData,
+    currentTooltipData: tooltipData ?? activeTooltipData,
+    followTooltip,
+    hideTooltip,
+    hover,
+    setHover,
+    showTooltip,
+    tooltipLeft,
+    tooltipOpen,
+    tooltipTop,
+  }
+}
+
 export function ChartTooltipPanel({
   children,
   className,

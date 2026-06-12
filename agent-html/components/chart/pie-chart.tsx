@@ -5,7 +5,6 @@ import type { Options as RoughOptions } from "roughjs/bin/core"
 import type {
   ChartAccessor,
   ChartConfig,
-  ChartHoverState,
   ChartRenderer,
 } from "./chart"
 import {
@@ -22,9 +21,9 @@ import {
   getChartCssVariable,
   getValue,
   isFiniteNumber,
-  useChartTooltip,
+  useChartMarkTooltip,
 } from "./chart"
-import { RoughPath } from "./rough-renderers"
+import { RoughPath } from "@/lib/rough-svg"
 
 export interface PieChartProps<T> {
   aspectRatio?: string
@@ -49,6 +48,13 @@ interface PieSlice<T> {
 
 interface TooltipState<T> {
   slice: PieSlice<T>
+}
+
+interface PieModel<T> {
+  centerX: number
+  pieCenterY: number
+  radius: number
+  slices: PieSlice<T>[]
 }
 
 function formatValue(value: number) {
@@ -85,6 +91,31 @@ function createSlices<T>({
   }))
 }
 
+function createPieModel<T>({
+  height,
+  legend,
+  slices,
+  width,
+}: {
+  height: number
+  legend: boolean
+  slices: PieSlice<T>[]
+  width: number
+}): PieModel<T> {
+  const centerX = width / 2
+  const centerY = height / 2
+  const legendOffset = legend ? 48 : 0
+  const pieCenterY = centerY - legendOffset / 2
+  const radius = Math.max(0, Math.min(width, height - legendOffset) / 2 - 12)
+
+  return {
+    centerX,
+    pieCenterY,
+    radius,
+    slices,
+  }
+}
+
 export function PieChart<T>({
   aspectRatio = "1 / 1",
   className,
@@ -98,21 +129,17 @@ export function PieChart<T>({
   valueFormatter = formatValue,
   valueKey,
 }: PieChartProps<T>) {
-  const [hover, setHover] = React.useState<ChartHoverState<"slice"> | null>(
-    null
-  )
   const {
-    hideTooltip: hideChartTooltip,
-    showTooltipFromEvent,
-    tooltipData: tooltip,
+    currentTooltipData: tooltip,
+    followTooltip,
+    hideTooltip,
+    hover,
+    setHover,
+    showTooltip: showMarkTooltip,
     tooltipLeft,
     tooltipOpen,
     tooltipTop,
-  } = useChartTooltip<TooltipState<T>>()
-  const hideTooltip = React.useCallback(() => {
-    setHover(null)
-    hideChartTooltip()
-  }, [hideChartTooltip])
+  } = useChartMarkTooltip<TooltipState<T>, "slice">()
   const slices = React.useMemo(
     () => createSlices({ config, data, nameKey, valueKey }),
     [config, data, nameKey, valueKey]
@@ -141,14 +168,12 @@ export function PieChart<T>({
       minHeight={minHeight}
     >
       {({ height, series, width }) => {
-        const centerX = width / 2
-        const centerY = height / 2
-        const legendOffset = legend ? 48 : 0
-        const pieCenterY = centerY - legendOffset / 2
-        const radius = Math.max(
-          0,
-          Math.min(width, height - legendOffset) / 2 - 12
-        )
+        const model = createPieModel({
+          height,
+          legend,
+          slices,
+          width,
+        })
 
         return (
           <div className="relative h-full w-full">
@@ -158,12 +183,12 @@ export function PieChart<T>({
               role="img"
             >
               <Pie
-                data={Array.from(slices)}
-                outerRadius={radius}
+                data={model.slices}
+                outerRadius={model.radius}
                 pieValue={(slice) => slice.value}
               >
                 {({ arcs, path }) => (
-                  <g transform={`translate(${centerX}, ${pieCenterY})`}>
+                  <g transform={`translate(${model.centerX}, ${model.pieCenterY})`}>
                     {arcs.map((arc) => {
                       const d = path(arc) ?? ""
                       const color = getChartCssVariable(arc.data.key)
@@ -176,7 +201,7 @@ export function PieChart<T>({
                         event: React.PointerEvent<SVGPathElement>
                       ) => {
                         setHover({ key: arc.data.key, type: "slice" })
-                        showTooltipFromEvent(event, {
+                        showMarkTooltip(event, {
                           slice: arc.data,
                         })
                       }
@@ -202,9 +227,7 @@ export function PieChart<T>({
                             d={d}
                             onPointerEnter={showTooltip}
                             onPointerLeave={hideTooltip}
-                            onPointerMove={(event) => {
-                              showTooltipFromEvent(event, { slice: arc.data })
-                            }}
+                            onPointerMove={followTooltip}
                           />
                         </g>
                       )

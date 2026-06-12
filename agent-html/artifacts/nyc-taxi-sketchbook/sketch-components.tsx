@@ -4,7 +4,7 @@ import { Badge } from "../../components/ui/badge"
 import { cn } from "../../lib/cn"
 
 import { roughSketchMarkOptions } from "./rough-theme"
-import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
+import { RoughSvgLayer, type RoughSvgDraw } from "../../lib/rough-svg"
 
 export const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const ledgerRuleSeeds = [55, 83, 62, 97]
@@ -105,7 +105,7 @@ export function SketchPanel({
   children: ReactNode
   className?: string
 }) {
-  const drawPanel = useCallback<RoughSketchDraw>((roughSvg, group) => {
+  const drawPanel = useCallback<RoughSvgDraw>((roughSvg, group) => {
     group.appendChild(
       roughSvg.path(pickSketchVariant(roughPanelPaths, 44), {
         ...roughSketchMarkOptions,
@@ -145,7 +145,7 @@ export function RoughTableShell({
 }: {
   children: ReactNode
 }) {
-  const drawTableShell = useCallback<RoughSketchDraw>((roughSvg, group) => {
+  const drawTableShell = useCallback<RoughSvgDraw>((roughSvg, group) => {
     group.appendChild(
       roughSvg.path(pickSketchVariant(roughPanelPaths, 68), {
         ...roughSketchMarkOptions,
@@ -187,7 +187,7 @@ export function RoughRule({
   tone?: RoughLineTone
 }) {
   const toneStyle = roughLineTones[tone]
-  const drawRule = useCallback<RoughSketchDraw>(
+  const drawRule = useCallback<RoughSvgDraw>(
     (roughSvg, group) => {
       if (direction === "vertical") {
         group.appendChild(

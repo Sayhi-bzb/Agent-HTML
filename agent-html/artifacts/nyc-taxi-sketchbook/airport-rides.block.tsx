@@ -4,7 +4,7 @@ import { Badge } from "../../components/ui/badge"
 
 import { airport } from "./data/generated-airport-rides"
 import { roughSketchMarkOptions } from "./rough-theme"
-import { RoughSvgLayer, type RoughSketchDraw } from "./roughjs-sketch"
+import { RoughSvgLayer, type RoughSvgDraw } from "../../lib/rough-svg"
 import {
   RoughRule,
   SectionIntro,
@@ -17,7 +17,7 @@ import {
 const airportRuleSeeds = [73, 109, 88]
 
 function AirportRouteSketch({ className = "h-14 w-20" }: { className?: string }) {
-  const drawAirportRoute = useCallback<RoughSketchDraw>((roughSvg, group) => {
+  const drawAirportRoute = useCallback<RoughSvgDraw>((roughSvg, group) => {
     group.appendChild(
       roughSvg.path("M8 42 C30 30, 52 26, 88 22", {
         ...roughSketchMarkOptions,
