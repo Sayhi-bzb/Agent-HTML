@@ -1,6 +1,7 @@
 export * from "./chart"
 export { AreaChart, type AreaChartProps } from "./area-chart"
 export { BarChart, BarHChart, type BarChartProps, type BarHChartProps } from "./bar-chart"
+export { HeatmapChart, type HeatmapChartProps } from "./heatmap-chart"
 export { LineChart, type LineChartProps } from "./line-chart"
 export {
   NetworkChart,

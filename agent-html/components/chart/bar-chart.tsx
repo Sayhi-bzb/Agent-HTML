@@ -14,12 +14,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   ChartXAxisGrid,
-  ChartXAxisLabels,
   ChartYAxisGrid,
   createBandScale,
   createCartesianLayout,
   createLinearScale,
-  createRoughOptionsByKey,
   chartHoverTransition,
   getChartHoverOpacity,
   getChartHoverPresence,
@@ -149,6 +147,70 @@ function formatCategory<T>({
   const category = getValue(datum, categoryKey)
 
   return categoryFormatter ? categoryFormatter(category) : category
+}
+
+function createRoughOptionsByKey<T, TOptions extends object>({
+  getColorKey,
+  getKey,
+  options,
+  rows,
+}: {
+  getColorKey?: (row: T) => string
+  getKey: (row: T) => string
+  options?: TOptions
+  rows: readonly T[]
+}) {
+  const resolveColorKey = getColorKey ?? getKey
+
+  return new Map(
+    rows.map((row) => {
+      const key = getKey(row)
+      const color = getChartCssVariable(resolveColorKey(row))
+
+      return [
+        key,
+        {
+          fill: color,
+          stroke: color,
+          ...options,
+        },
+      ] as const
+    })
+  )
+}
+
+function BarXAxisLabels<T>({
+  data,
+  formatTick,
+  innerHeight,
+  x,
+  xKey,
+}: {
+  data: readonly T[]
+  formatTick?: (value: string) => React.ReactNode
+  innerHeight: number
+  x: (datum: T) => number
+  xKey: ChartAccessor<T, string>
+}) {
+  return (
+    <>
+      {data.map((datum) => {
+        const value = getValue(datum, xKey)
+
+        return (
+          <text
+            className="fill-muted-foreground text-[0.68rem]"
+            key={value}
+            textAnchor="middle"
+            x={x(datum)}
+            y={innerHeight + 20}
+          >
+            {formatTick ? formatTick(value) : value}
+          </text>
+        )
+      })}
+    </>
+  )
 }
 
 function createBarModel<T>({
@@ -292,7 +354,7 @@ function BarChartCore<T>({
                       innerWidth={layout.innerWidth}
                       scale={model.valueScale}
                     />
-                    <ChartXAxisLabels
+                    <BarXAxisLabels
                       data={data}
                       formatTick={categoryFormatter}
                       innerHeight={layout.innerHeight}

@@ -7,7 +7,7 @@ Use it after reading `../README.md` and `../AGENTS.md`. `AGENTS.md` owns hard ar
 ## Read Route
 
 - New artifact or broad artifact edit: start from this route and the closest existing artifact entry.
-- New or renamed artifact/block: read `../AGENTS.md` and `../../rule/artifact.md`.
+- New or renamed artifact/block: use `../AGENTS.md` artifact defaults and protocol rules.
 - Existing split artifact: open the `*.artifact.tsx` artifact entry before opening block files.
 - Large block file: read `../index/large-files.md`, the artifact entry, and the block name first, then open only the block that owns the requested change.
 - UI choice: read `../components/README.md`, then `../TASTE.md` for component judgment.
@@ -15,7 +15,7 @@ Use it after reading `../README.md` and `../AGENTS.md`. `AGENTS.md` owns hard ar
 
 ## Data Placement
 
-- Read `../../rule/data.md` before adding, splitting, or moving artifact data.
+- Use `../AGENTS.md` data defaults before adding, splitting, or moving artifact data.
 - Put typed contracts and validation in `../schema`.
 - Put pure parsing, normalization, and transforms in `../lib`.
 - Keep tiny block-only constants inside the block when they do not create a reusable data surface.

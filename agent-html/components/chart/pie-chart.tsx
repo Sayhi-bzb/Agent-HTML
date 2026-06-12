@@ -14,7 +14,6 @@ import {
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
-  createRoughOptionsByKey,
   chartHoverTransition,
   getChartHoverOpacity,
   getChartHoverPresence,
@@ -89,6 +88,36 @@ function createSlices<T>({
     ...row,
     label: config[row.key]?.label ?? row.key,
   }))
+}
+
+function createRoughOptionsByKey<T, TOptions extends object>({
+  getColorKey,
+  getKey,
+  options,
+  rows,
+}: {
+  getColorKey?: (row: T) => string
+  getKey: (row: T) => string
+  options?: TOptions
+  rows: readonly T[]
+}) {
+  const resolveColorKey = getColorKey ?? getKey
+
+  return new Map(
+    rows.map((row) => {
+      const key = getKey(row)
+      const color = getChartCssVariable(resolveColorKey(row))
+
+      return [
+        key,
+        {
+          fill: color,
+          stroke: color,
+          ...options,
+        },
+      ] as const
+    })
+  )
 }
 
 function createPieModel<T>({

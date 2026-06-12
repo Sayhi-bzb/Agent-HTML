@@ -1,6 +1,7 @@
 import { GlyphCircle } from "@visx/glyph"
 import {
   Axis,
+  DataContext,
   GlyphSeries,
   Grid,
   LineSeries,
@@ -14,7 +15,6 @@ import {
   type ChartConfig,
   ChartContainer,
   ChartTooltipContent,
-  ChartXYReferenceLine,
   chartXYTheme,
   getChartCssVariable,
   getFiniteValues,
@@ -49,6 +49,26 @@ const valueFormatter = new Intl.NumberFormat("zh-CN", {
 
 function formatValue(value: number) {
   return valueFormatter.format(value)
+}
+
+function LineReferenceLine({ yValue }: { yValue: number }) {
+  const { margin, width, yScale } = React.useContext(DataContext)
+  const y = yScale ? Number(yScale(yValue)) : NaN
+
+  if (!margin || !width || !isFiniteNumber(y)) {
+    return null
+  }
+
+  return (
+    <line
+      className="stroke-border"
+      strokeDasharray="3 3"
+      x1={margin.left}
+      x2={width - margin.right}
+      y1={y}
+      y2={y}
+    />
+  )
 }
 
 export function LineChart<T extends object>({
@@ -121,7 +141,7 @@ export function LineChart<T extends object>({
             />
 
             {isFiniteNumber(referenceY) ? (
-              <ChartXYReferenceLine yValue={referenceY} />
+              <LineReferenceLine yValue={referenceY} />
             ) : null}
 
             <LineSeries

@@ -35,22 +35,37 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Put typed contracts and validation in `schema`.
 - Put Canvas CSS, tokens, and style routes in `styles`.
 - Put theme preset resources in `theme`; keep preset source CSS in
-  `theme/presets` and let the registry normalize it. Put preset layout metadata
-- Read `../rule/data.md` before adding, splitting, or moving artifact data.
+  `theme/presets` and let the registry normalize it.
 - Put bundle-time imports in `assets` only when an artifact needs imported files.
 - Put artifact-owned URL static files in `artifacts/<artifact>/public`.
 - Put shared URL static files in `public`.
 
-## Artifact Rules
+## Artifact Defaults
 
-- Read `../rule/artifact.md` before adding or renaming artifacts or blocks.
+- Name artifacts by subject, not template, format, or page type.
+- Name blocks by semantic work area, not position, layout, or container shape.
+- Keep split artifact file names, component names, `Block` ids, and `Block`
+  titles aligned to the same work area.
+- Keep compact artifacts single-file. Split broad artifacts into
+  `name.artifact.tsx` as the artifact entry and `name/*.block.tsx` as semantic
+  block files.
+
+## Data Defaults
+
+- Keep artifact data artifact-local by default.
+- Use a single `data.ts` only for small data surfaces.
+- Split broad data into artifact-local `data/` files by owner.
+- Keep generated or raw data separate from authored interpretation.
+- Add workspace-level shared data only when multiple artifacts consume it.
+
+## Artifact Protocol Rules
+
 - Import `Artifact` and `Block` from `@agent-html/react`.
 - Use `Artifact` as the top-level wrapper.
 - Keep `Artifact` static and unstyled.
 - Use only the supported `Artifact` props: `title` and children.
 - Wrap every major semantic region in `Block`.
 - Use stable, unique, readable, kebab-case block ids.
-- Keep compact artifacts single-file. Split broad artifacts into `name.artifact.tsx` as the artifact entry and `name/*.block.tsx` as semantic block files.
 - Keep `Block` protocol-only. Use only `id`, `title`, and children.
 - Do not put `className`, `style`, layout, border, radius, shadow, spacing, width, padding, or color props on `Artifact` or `Block`.
 - Put layout and visual treatment inside the block content, local `agent-html/components/ui` primitives, and named rich components when the task needs that workflow.

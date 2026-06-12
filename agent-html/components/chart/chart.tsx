@@ -5,7 +5,7 @@ import { Group } from "@visx/group"
 import { scaleBand, scaleLinear } from "@visx/scale"
 import { ParentSize } from "@visx/responsive"
 import { TooltipWithBounds, useTooltip } from "@visx/tooltip"
-import { DataContext, buildChartTheme } from "@visx/xychart"
+import { buildChartTheme } from "@visx/xychart"
 import * as React from "react"
 import type { ComponentType, ReactNode } from "react"
 
@@ -123,26 +123,6 @@ export const chartXYTheme = buildChartTheme({
   },
   tickLength: 0,
 })
-
-export function ChartXYReferenceLine({ yValue }: { yValue: number }) {
-  const { margin, width, yScale } = React.useContext(DataContext)
-  const y = yScale ? Number(yScale(yValue)) : NaN
-
-  if (!margin || !width || !isFiniteNumber(y)) {
-    return null
-  }
-
-  return (
-    <line
-      className="stroke-border"
-      strokeDasharray="3 3"
-      x1={margin.left}
-      x2={width - margin.right}
-      y1={y}
-      y2={y}
-    />
-  )
-}
 
 export function getChartConfigItem(config: ChartConfig, key: string) {
   return config[key]
@@ -788,39 +768,6 @@ export function ChartXAxisGrid({
   )
 }
 
-export function ChartXAxisLabels<T>({
-  data,
-  formatTick,
-  innerHeight,
-  x,
-  xKey,
-}: {
-  data: readonly T[]
-  formatTick?: (value: string) => ReactNode
-  innerHeight: number
-  x: (datum: T) => number
-  xKey: ChartAccessor<T, string>
-}) {
-  return (
-    <>
-      {data.map((datum) => {
-        const value = getValue(datum, xKey)
-
-        return (
-          <text
-            className="fill-muted-foreground text-[0.68rem]"
-            key={value}
-            textAnchor="middle"
-            x={x(datum)}
-            y={innerHeight + 20}
-          >
-            {formatTick ? formatTick(value) : value}
-          </text>
-        )
-      })}
-    </>
-  )
-}
 export type ChartAccessor<T, TValue> = keyof T | ((datum: T) => TValue)
 
 export type SvgOnlyChartRenderer = Extract<ChartRenderer, "svg">
@@ -845,36 +792,6 @@ export function getFiniteValues<T>(
   accessor: ChartAccessor<T, number>
 ) {
   return data.map((datum) => getValue(datum, accessor)).filter(isFiniteNumber)
-}
-
-export function createRoughOptionsByKey<T, TOptions extends object>({
-  getColorKey,
-  getKey,
-  options,
-  rows,
-}: {
-  getColorKey?: (row: T) => string
-  getKey: (row: T) => string
-  options?: TOptions
-  rows: readonly T[]
-}) {
-  const resolveColorKey = getColorKey ?? getKey
-
-  return new Map(
-    rows.map((row) => {
-      const key = getKey(row)
-      const color = getChartCssVariable(resolveColorKey(row))
-
-      return [
-        key,
-        {
-          fill: color,
-          stroke: color,
-          ...options,
-        },
-      ] as const
-    })
-  )
 }
 
 export function getNumberDomain(values: number[]) {

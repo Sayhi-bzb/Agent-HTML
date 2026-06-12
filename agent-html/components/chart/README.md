@@ -61,6 +61,8 @@ the Canvas protocol exposed by `chart.tsx`.
 - `bar-chart.tsx`: reusable vertical and horizontal bar charts using
   `@visx/shape/Bar` with one shared internal bar core.
 - `pie-chart.tsx`: reusable pie chart using `@visx/shape/Pie`.
+- `heatmap-chart.tsx`: reusable heatmap chart using `@visx/heatmap` for cell
+  placement while Canvas owns labels, tooltip, hover, and color protocol.
 - `network-chart.tsx`: reusable network chart using `@visx/network` for graph
   rendering and Canvas-owned deterministic layout, tooltip, hover, and rough
   rendering.
@@ -83,12 +85,15 @@ Use visx primitives by responsibility:
   adjacency, and ribbon paths are chart-specific semantics.
 - `@visx/network` belongs in `network-chart.tsx`; it renders graphs but does
   not provide layout, so Canvas owns deterministic node placement.
+- `@visx/heatmap` belongs in `heatmap-chart.tsx`; heatmap cell generation is
+  chart-specific, while artifact blocks pass semantic row and column data.
 - `@visx/axis` and `@visx/grid` own numeric axis and grid rendering inside
   Canvas wrappers. Keep Canvas-owned token classes and wrapper APIs instead of
   exposing visx axis/grid directly to artifact blocks. Categorical labels stay
   Canvas-owned until chart wrappers pass real categorical scales.
 - `@visx/xychart` may own cartesian chart internals only when it keeps the
   semantic chart API stable and avoids duplicating `chart.tsx` protocol.
+  Xychart-only addons live in the concrete chart that renders them.
 
 ## Boundary Rules
 
@@ -100,6 +105,8 @@ Use visx primitives by responsibility:
   `chart.tsx` helper already owns it.
 - Rough rendering remains an internal branch of supported semantic charts, not a
   public artifact dependency.
+- Rough option shaping that depends on concrete data keys belongs in the
+  concrete chart, not in `chart.tsx`.
 - `lib/rough-svg.tsx` may be used by artifact-local sketch decoration when the
   artifact owns the decorative drawing and no semantic chart component applies.
 
@@ -111,6 +118,8 @@ Use visx primitives by responsibility:
   and stable rough options.
 - `BarHChart` supports `renderer="svg" | "rough"` with a transparent hit rect
   and stable rough options.
+- `HeatmapChart` supports `renderer="svg" | "rough"` with `@visx/heatmap`
+  cell layout, rough circle marks, and transparent hit circles.
 - `SankeyChart` supports rough rendering through `roughOptions`, with
   transparent link/node hit layers and shared tooltip positioning.
 - `LineChart` and `AreaChart` are SVG-only in v1 and do not expose rough as a
@@ -121,8 +130,9 @@ Use visx primitives by responsibility:
 
 - `chart.tsx` owns generic hover state, presence, opacity, and transition
   tokens.
-- `BarChart`, `BarHChart`, `PieChart`, `NetworkChart`, and `SankeyChart`
-  consume the shared hover protocol for highlighted and faded marks.
+- `BarChart`, `BarHChart`, `PieChart`, `HeatmapChart`, `NetworkChart`, and
+  `SankeyChart` consume the shared hover protocol for highlighted and faded
+  marks.
 - Concrete charts own item relationship logic, such as Sankey node/link
   adjacency or pie slice identity.
 
