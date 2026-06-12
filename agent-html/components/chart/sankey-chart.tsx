@@ -330,7 +330,7 @@ function SankeyLinks({
   links,
   roughOptions,
   roughOptionsByIndex,
-  showTooltip,
+  showMark,
   strokeOpacity,
 }: {
   getLinkColor?: SankeyChartProps["getLinkColor"];
@@ -340,7 +340,7 @@ function SankeyLinks({
   links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
   roughOptions?: RoughOptions;
   roughOptionsByIndex?: Map<number, RoughOptions>;
-  showTooltip: SankeyMarkInteraction["showMark"];
+  showMark: SankeyMarkInteraction["showMark"];
   strokeOpacity: number;
 }) {
   return (
@@ -371,7 +371,7 @@ function SankeyLinks({
         const targetOpacity = markState.opacity;
 
         const handlePointerEnter = (event: React.PointerEvent<Element>) => {
-          showTooltip({
+          showMark({
             data: { type: "link", linkIndex: index },
             event,
             key: linkKey,
@@ -441,7 +441,7 @@ function SankeyNodes({
   nodes,
   roughOptions,
   roughOptionsByIndex,
-  showTooltip,
+  showMark,
 }: {
   getNodeColor?: SankeyChartProps["getNodeColor"];
   getMarkState: SankeyMarkInteraction["getMarkState"];
@@ -453,7 +453,7 @@ function SankeyNodes({
   nodes: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>[];
   roughOptions?: RoughOptions;
   roughOptionsByIndex?: Map<number, RoughOptions>;
-  showTooltip: SankeyMarkInteraction["showMark"];
+  showMark: SankeyMarkInteraction["showMark"];
 }) {
   return (
     <g className="sankey-nodes">
@@ -476,7 +476,7 @@ function SankeyNodes({
           markState.isFaded ? chartHoverOpacity.textFaded : 0.6;
 
         const handlePointerEnter = (event: React.PointerEvent<Element>) => {
-          showTooltip({
+          showMark({
             data: { type: "node", nodeIndex: index },
             event,
             key: nodeKey,
@@ -743,7 +743,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
   roughOptions,
   roughLinkOptionsByIndex,
   roughNodeOptionsByIndex,
-  showTooltip,
+  showMark,
   strokeOpacity,
   width,
 }: {
@@ -760,7 +760,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
   roughOptions?: RoughOptions;
   roughLinkOptionsByIndex?: Map<number, RoughOptions>;
   roughNodeOptionsByIndex?: Map<number, RoughOptions>;
-  showTooltip: SankeyMarkInteraction["showMark"];
+  showMark: SankeyMarkInteraction["showMark"];
   strokeOpacity: number;
   width: number;
 }) {
@@ -775,7 +775,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
           links={graph.links}
           roughOptions={roughOptions}
           roughOptionsByIndex={roughLinkOptionsByIndex}
-          showTooltip={showTooltip}
+          showMark={showMark}
           strokeOpacity={strokeOpacity}
         />
         <SankeyNodes
@@ -789,7 +789,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
           nodes={graph.nodes}
           roughOptions={roughOptions}
           roughOptionsByIndex={roughNodeOptionsByIndex}
-          showTooltip={showTooltip}
+          showMark={showMark}
         />
       </g>
     </ChartSvg>
@@ -869,7 +869,7 @@ const SankeyChartCore = memo(function SankeyChartCore({
         roughLinkOptionsByIndex={roughLinkOptionsByIndex}
         roughNodeOptionsByIndex={roughNodeOptionsByIndex}
         roughOptions={roughOptions}
-        showTooltip={showMark}
+        showMark={showMark}
         strokeOpacity={strokeOpacity}
         width={width}
       />
