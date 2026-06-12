@@ -10,16 +10,17 @@ import {
   ChartHitRect,
   ChartInteractionRoot,
   ChartLegend,
+  ChartMotionGroup,
   type ChartRenderer,
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
   ChartXAxisGrid,
   ChartYAxisGrid,
+  chartMotion,
   createBandScale,
   createCartesianLayout,
   createLinearScale,
-  chartHoverTransition,
   getChartHoverOpacity,
   getChartHoverPresence,
   getChartCssVariable,
@@ -376,11 +377,10 @@ function BarChartCore<T>({
 
                   return (
                     <g key={category}>
-                      <g
-                        opacity={opacity}
-                        style={{
-                          transition: `opacity ${chartHoverTransition.duration}s ease-out`,
-                        }}
+                      <ChartMotionGroup
+                        animate={{ opacity }}
+                        initial={false}
+                        transition={chartMotion.hover}
                       >
                         {renderer === "rough" ? (
                           <RoughRect
@@ -403,7 +403,7 @@ function BarChartCore<T>({
                             y={rect.y}
                           />
                         )}
-                      </g>
+                      </ChartMotionGroup>
                       <ChartHitRect
                         height={rect.height}
                         onPointerEnter={showTooltip}

@@ -21,8 +21,8 @@
   .canvas-block-action-badge {
     pointer-events: auto;
     position: absolute;
-    top: calc(var(--canvas-block-reply-badge-offset) * -1);
-    right: calc(var(--canvas-block-reply-badge-offset) * -1);
+    top: calc(var(--canvas-block-action-badge-offset) * -1);
+    right: calc(var(--canvas-block-action-badge-offset) * -1);
     display: grid;
     width: 1.75rem;
     height: 1.75rem;

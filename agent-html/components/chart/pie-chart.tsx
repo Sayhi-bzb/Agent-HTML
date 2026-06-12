@@ -12,10 +12,11 @@ import {
   ChartHitPath,
   ChartInteractionRoot,
   ChartLegend,
+  ChartMotionGroup,
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
-  chartHoverTransition,
+  chartMotion,
   getChartHoverOpacity,
   getChartHoverPresence,
   getChartCssVariable,
@@ -195,11 +196,10 @@ export function PieChart<T>({
 
                       return (
                         <g key={arc.data.key}>
-                          <g
-                            opacity={opacity}
-                            style={{
-                              transition: `opacity ${chartHoverTransition.duration}s ease-out`,
-                            }}
+                          <ChartMotionGroup
+                            animate={{ opacity }}
+                            initial={false}
+                            transition={chartMotion.hover}
                           >
                             {renderer === "rough" ? (
                               <RoughPath
@@ -213,7 +213,7 @@ export function PieChart<T>({
                             ) : (
                               <path d={d} fill={color} stroke={color} />
                             )}
-                          </g>
+                          </ChartMotionGroup>
                           <ChartHitPath
                             d={d}
                             onPointerEnter={showTooltip}

@@ -1,4 +1,5 @@
 :root {
+  /* Theme primitives */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -13,6 +14,8 @@
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
+
+  /* Status primitives */
   --success: oklch(0.62 0.17 145);
   --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.75 0.16 85);
@@ -24,11 +27,15 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+
+  /* Chart primitives */
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+
+  /* Shape, spacing, type, and depth */
   --radius: 0.625rem;
   --spacing: 0.25rem;
   --font-sans: 'Geist Variable', sans-serif;
@@ -44,6 +51,8 @@
   --shadow-lg: 0px 4px 6px -1px rgb(0 0 0 / 0.10);
   --shadow-xl: 0px 8px 10px -1px rgb(0 0 0 / 0.10);
   --shadow-2xl: 0px 16px 24px -1px rgb(0 0 0 / 0.16);
+
+  /* Shadcn compatibility aliases */
   --sidebar: var(--background);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
@@ -52,6 +61,8 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+
+  /* Canvas base affordances */
   --canvas-text-selection-background: color-mix(
     in oklab,
     var(--primary) 18%,
@@ -61,6 +72,7 @@
 }
 
 .dark {
+  /* Theme primitives */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -75,6 +87,8 @@
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
+
+  /* Status primitives */
   --success: oklch(0.72 0.16 145);
   --success-foreground: oklch(0.145 0 0);
   --warning: oklch(0.8 0.15 85);
@@ -86,11 +100,15 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
+
+  /* Chart primitives */
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+
+  /* Shadcn compatibility aliases */
   --sidebar: var(--background);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
@@ -99,6 +117,8 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+
+  /* Canvas base affordances */
   --canvas-text-selection-background: color-mix(
     in oklab,
     var(--primary) 28%,

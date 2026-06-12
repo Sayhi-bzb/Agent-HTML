@@ -9,10 +9,12 @@ import {
   ChartContainer,
   ChartHitCircle,
   ChartInteractionRoot,
+  ChartMotionGroup,
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
   ChartTooltipPanel,
+  chartMotion,
   getChartCssVariable,
   getValue,
   isFiniteNumber,
@@ -242,7 +244,11 @@ export function HeatmapChart<T>({
 
                           return (
                             <g key={key}>
-                              <g opacity={opacity}>
+                              <ChartMotionGroup
+                                animate={{ opacity }}
+                                initial={false}
+                                transition={chartMotion.hover}
+                              >
                                 {renderer === "rough" ? (
                                   <RoughCircle
                                     diameter={cell.r * 2}
@@ -262,7 +268,7 @@ export function HeatmapChart<T>({
                                     r={cell.r}
                                   />
                                 )}
-                              </g>
+                              </ChartMotionGroup>
                               <ChartHitCircle
                                 ariaLabel={`${cell.datum.label} ${cell.bin.label}: ${valueFormatter(
                                   cell.bin.value

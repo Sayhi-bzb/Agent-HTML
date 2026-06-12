@@ -12,15 +12,13 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 ## Documentation Maintenance
 
-- Keep `README.md` as a conditional reading route, not a rulebook.
-- Keep `AGENTS.md` as hard executable rules, not a design essay.
-- Keep `TASTE.md` as artifact design judgment, not a hard-rule file or
-  primitive catalog.
-- Keep `index/*` as generated decision summaries, not full tool output.
-- Keep `artifacts/README.md` as the artifact source route.
-- Keep `styles/README.md` as the style route.
-- Do not add a new `agent-html` doc unless it owns a distinct question.
-- Do not duplicate rules across README, AGENTS, index, and styles docs. Link to the owning file instead.
+- Keep this file focused on hard rules and default behavior.
+- Keep `README.md` as the conditional reading route.
+- Keep `TASTE.md` as artifact design judgment.
+- Use `GOVERNANCE.md` before changing workspace conventions, route files,
+  generated indexes, artifact or data patterns, or copyable examples.
+- Do not duplicate rules across `README.md`, `AGENTS.md`, `TASTE.md`,
+  `GOVERNANCE.md`, source route files, and `index/*`.
 - Do not commit full generated graphs, declaration rollups, or tool dumps as agent context.
 - Do not manually hard-wrap prose. Use line breaks for Markdown structure, lists, tables, code blocks, and semantic separation only.
 - Use short, imperative, operational wording.
@@ -32,7 +30,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Put single-file rich workflow components in `components/<name>.tsx`; split to `components/<name>/` only after they need multiple files.
 - Put reusable React behavior in `hooks`.
 - Put pure helpers and transforms in `lib`.
-- Put typed contracts and validation in `schema`.
+- Put shared source types in `types`.
 - Put Canvas CSS, tokens, and style routes in `styles`.
 - Put theme preset resources in `theme`; keep preset source CSS in
   `theme/presets` and let the registry normalize it.
@@ -56,7 +54,8 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Use a single `data.ts` only for small data surfaces.
 - Split broad data into artifact-local `data/` files by owner.
 - Keep generated or raw data separate from authored interpretation.
-- Add workspace-level shared data only when multiple artifacts consume it.
+- Add a shared data owner only when multiple artifacts consume it and a route
+  names that owner.
 
 ## Artifact Protocol Rules
 
@@ -72,19 +71,11 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Do not render host block prompt actions or block hover chrome from artifact source.
 - Do not use old AHTML `<Cell>` DSL for React Canvas artifacts.
 
-## Taste Route
-
-- Read `TASTE.md` before changing artifact visual composition, media-heavy
-  blocks, layout density, component choice, source placement, or narrative UI.
-- Use `TASTE.md` for design judgment. Do not copy its guidance into `AGENTS.md`,
-  component docs, or generated indexes.
-
 ## Primitive Rules
 
-- Read `components/README.md` before scanning component source.
 - Use local `agent-html/components/ui` for common interactive controls and reusable UI roles.
-- Use named rich components, `hooks`, `lib`, `schema`, and shared data when they fit the artifact task.
-- Check `index/api-surface.md` before adding, duplicating, or changing a local primitive.
+- Use named rich components, `hooks`, `lib`, and `types` when they fit the artifact task.
+- Check `index/api-surface.md` before adding, duplicating, or changing a local primitive or reusable helper.
 - Host and artifacts compose primitives. They do not create duplicate primitive buttons, inputs, menus, dialogs, or other common controls.
 - Keep local shadcn-derived primitives low-modification unless Canvas needs a primitive API, correctness fix, or accessibility fix.
 - Treat the sidebar as a component family. Use sidebar primitives and sidebar tokens for sidebar chrome only.
@@ -92,7 +83,6 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 ## Style Rules
 
-- Read `styles/README.md` before touching Canvas classes, tokens, or internal chrome.
 - Use `styles/public/content.css` L2 composition classes when they fit ordinary artifact content styling.
 - Use semantic token utilities such as `bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-popover`, and `text-popover-foreground` when applying token-backed treatment.
 - Keep layout behavior classes such as `flex`, `grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate` local to the composition that needs them.
@@ -113,8 +103,8 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Do not import `@/app/*`, `apps/agent-html-app`, `@/agent-html/runtime/ui`, `renderAgentHtml`, or `renderInteractiveAgentHtml`.
 - Do not import Canvas host internals from artifact source.
 
-## Source Routes
+## Route Safeguards
 
-- Read `artifacts/README.md` before opening large artifact source.
-- Use `components/README.md` for the component source route and `TASTE.md` for
-  component choice before scanning the full primitive surface.
+- Read the owner route before broad source scans.
+- Use `TASTE.md` before changing artifact visual composition, media-heavy
+  blocks, layout density, component choice, source placement, or narrative UI.

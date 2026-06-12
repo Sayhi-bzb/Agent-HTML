@@ -44,7 +44,7 @@
   --color-canvas-block-highlight-background: var(--canvas-block-highlight-background);
   --color-canvas-block-highlight-border: var(--canvas-block-highlight-border);
   --spacing-canvas-block-highlight-padding: var(--canvas-block-highlight-padding);
-  --spacing-canvas-block-reply-badge-offset: var(--canvas-block-reply-badge-offset);
+  --spacing-canvas-block-action-badge-offset: var(--canvas-block-action-badge-offset);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);

@@ -6,6 +6,7 @@ import { scaleBand, scaleLinear } from "@visx/scale"
 import { ParentSize } from "@visx/responsive"
 import { TooltipWithBounds, useTooltip } from "@visx/tooltip"
 import { buildChartTheme } from "@visx/xychart"
+import { motion } from "motion/react"
 import * as React from "react"
 import type { ComponentType, ReactNode } from "react"
 
@@ -59,10 +60,22 @@ export const chartHoverOpacity = {
   visualFaded: 0.4,
 } as const
 
-export const chartHoverTransition = {
-  duration: 0.18,
-  ease: "easeOut",
+export const chartMotion = {
+  hover: {
+    damping: 34,
+    mass: 0.7,
+    stiffness: 420,
+    type: "spring",
+  },
+  layout: {
+    damping: 30,
+    mass: 0.9,
+    stiffness: 260,
+    type: "spring",
+  },
 } as const
+
+export const chartHoverTransition = chartMotion.hover
 
 export function getChartHoverPresence({
   hover,
@@ -94,6 +107,40 @@ export function getChartHoverOpacity({
   }
 
   return baseOpacity
+}
+
+export function getChartMarkKey(
+  ...parts: Array<ChartHoverKey | null | undefined>
+) {
+  return parts
+    .filter((part): part is ChartHoverKey => part !== null && part !== undefined)
+    .map((part) => encodeURIComponent(String(part)))
+    .join(":")
+}
+
+export function getChartMarkPresence({
+  hover,
+  isRelated,
+  key,
+}: {
+  hover: ChartHoverState | null
+  isRelated?: boolean
+  key: ChartHoverKey
+}) {
+  return getChartHoverPresence({
+    hover,
+    isRelated: isRelated ?? hover?.key === key,
+  })
+}
+
+export function getChartMarkOpacity({
+  baseOpacity,
+  presence,
+}: {
+  baseOpacity?: number
+  presence: ChartHoverPresence
+}) {
+  return getChartHoverOpacity({ baseOpacity, presence })
 }
 
 export const chartThemes = THEMES
@@ -643,6 +690,16 @@ export function ChartSvg({
     </svg>
   )
 }
+
+export const ChartMotionGroup = motion.g
+
+export const ChartMotionPath = motion.path
+
+export const ChartMotionRect = motion.rect
+
+export const ChartMotionCircle = motion.circle
+
+export const ChartMotionText = motion.text
 
 export function ChartHitPath({
   d,

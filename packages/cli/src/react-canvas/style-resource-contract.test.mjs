@@ -68,6 +68,22 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
       "--color-success: var(--success)"
     )
     expect(playgroundTailwindTokens).toContain("--radius-lg: var(--radius)")
+    expect(playgroundTailwindTokens).toContain(
+      "--spacing-canvas-block-action-badge-offset"
+    )
+    expect(playgroundTailwindTokens).not.toContain(
+      "--spacing-canvas-block-reply-badge-offset"
+    )
+    expect(playgroundTailwindTokens).not.toMatch(/oklch\(/)
+    expect(playgroundTailwindTokens).not.toMatch(/rgb\(/)
+    expect(playgroundTailwindTokens).not.toMatch(/#[0-9A-Fa-f]{3,8}/)
+    expect(playgroundTailwindTokens).not.toMatch(/color-mix\(/)
+    expect(playgroundTailwindTokens).not.toMatch(/\b\d*\.?\d+rem\b/)
+    expect(playgroundTailwindTokens).not.toMatch(/\b\d*\.?\d+px\b/)
+    expect(playgroundTailwindTokens).not.toMatch(/\b\d*\.?\d+%\b/)
+    expect(playgroundTailwindTokens).toMatch(
+      /--radius-sm:\s*calc\(var\(--radius\) \* 0\.6\)/
+    )
     expect(playgroundTokenImports).toContain('@import "./features/artifact.css"')
     expect(playgroundTokenImports).toContain('@import "./features/host.css"')
     expect(playgroundTokenImports).toContain('@import "./features/content.css"')
@@ -80,6 +96,15 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundFoundationTokens).toContain("--success")
     expect(playgroundFoundationTokens).toContain("--warning")
     expect(playgroundFoundationTokens).toContain("--info")
+    expect(playgroundFoundationTokens).toContain("/* Theme primitives */")
+    expect(playgroundFoundationTokens).toContain("/* Status primitives */")
+    expect(playgroundFoundationTokens).toContain("/* Chart primitives */")
+    expect(playgroundFoundationTokens).toContain(
+      "/* Shadcn compatibility aliases */"
+    )
+    expect(playgroundFoundationTokens).toContain(
+      "/* Canvas base affordances */"
+    )
     expect(playgroundFoundationTokens).toContain("--radius: 0.625rem")
     expect(playgroundFoundationTokens).toContain(
       "--canvas-text-selection-background"
@@ -90,6 +115,9 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundFoundationTokens).not.toContain("--font-sans-source")
     expect(playgroundFoundationTokens).not.toContain("--font-heading-source")
     expect(playgroundFoundationTokens).not.toContain("--radius-base")
+    expect(playgroundFoundationTokens).not.toContain("--canvas-content-gap")
+    expect(playgroundFoundationTokens).not.toContain("--canvas-artifact-max-width")
+    expect(playgroundFoundationTokens).not.toContain("--canvas-floating-prompt-width")
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-color\s*:/)
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-opacity\s*:/)
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-x\s*:/)
@@ -164,6 +192,12 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundHostTokens).toContain("--canvas-surface-padding-inline")
     expect(playgroundHostTokens).toContain("--canvas-floating-prompt-width")
     expect(playgroundHostTokens).toContain("--canvas-sidebar-body-font-size")
+    expect(playgroundHostTokens).toContain(
+      "--canvas-block-action-badge-offset"
+    )
+    expect(playgroundHostTokens).not.toContain(
+      "--canvas-block-reply-badge-offset"
+    )
     expect(playgroundHostTokens).not.toContain(
       "--canvas-block-highlight-radius"
     )

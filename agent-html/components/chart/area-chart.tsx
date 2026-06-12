@@ -15,8 +15,10 @@ import {
   type ChartAccessor,
   type ChartConfig,
   ChartContainer,
+  ChartMotionCircle,
   ChartTooltipContent,
   type ChartRenderer,
+  chartMotion,
   chartXYTheme,
   getChartCssVariable,
   getFiniteValues,
@@ -255,6 +257,25 @@ export function AreaChart<T extends object>({
               applyPositionStyle
               className="pointer-events-none z-50"
               detectBounds
+              renderGlyph={({ color: glyphColor, key, x, y }) => (
+                <ChartMotionCircle
+                  animate={{
+                    opacity: 1,
+                    r: 5,
+                  }}
+                  cx={x}
+                  cy={y}
+                  fill="var(--background)"
+                  initial={{
+                    opacity: 0,
+                    r: 0,
+                  }}
+                  key={key}
+                  stroke={glyphColor}
+                  strokeWidth={2}
+                  transition={chartMotion.hover}
+                />
+              )}
               renderTooltip={({ tooltipData }) => {
                 const tooltip = tooltipData?.datumByKey[seriesKey]?.datum
 
@@ -280,6 +301,7 @@ export function AreaChart<T extends object>({
                   />
                 )
               }}
+              showDatumGlyph
               snapTooltipToDatumX
               snapTooltipToDatumY
               unstyled

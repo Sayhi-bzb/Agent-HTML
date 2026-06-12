@@ -264,7 +264,7 @@ describe("React Canvas dev host", () => {
       expect(css).toContain("--canvas-artifact-block-gap")
       expect(css).toContain("--canvas-surface-padding-inline")
       expect(css).toContain("--canvas-toolbar-inset-block-start")
-      expect(css).toContain("--canvas-block-reply-badge-offset")
+      expect(css).toContain("--canvas-block-action-badge-offset")
       expect(css).toContain("--canvas-floating-prompt-width")
       expect(css).not.toContain("--canvas-artifact-skeleton-max-width")
       expect(css).toContain("--canvas-content-gap-md")

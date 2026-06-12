@@ -14,11 +14,15 @@ import {
   ChartContainer,
   ChartHitCircle,
   ChartInteractionRoot,
+  ChartMotionCircle,
   ChartTooltip,
   type ChartTooltipField,
   ChartTooltipContent,
+  chartMotion,
   chartXYTheme,
   getChartCssVariable,
+  getChartHoverOpacity,
+  getChartHoverPresence,
   getFiniteValues,
   getNumberDomain,
   getValue,
@@ -172,6 +176,10 @@ function getPointRadius<T>({
   return Math.max(5, Math.min(18, 4 + value * 0.55))
 }
 
+function getScatterPointKey(seriesKey: string, index: number) {
+  return `${seriesKey}-${index}`
+}
+
 function ScatterReferenceLine({ yValue }: { yValue: number }) {
   const { margin, width, yScale } = React.useContext(DataContext)
   const y = yScale ? Number(yScale(yValue)) : NaN
@@ -280,7 +288,7 @@ function ScatterHitLayer<T extends object>({
           return null
         }
 
-        const key = `${seriesKey}-${index}`
+        const key = getScatterPointKey(seriesKey, index)
         const radius = getPointRadius({ datum, radiusKey })
 
         return (
@@ -442,19 +450,35 @@ export function ScatterChart<T extends object>({
                 enableEvents={false}
                 renderGlyph={({ color, datum, key, x, y }) => {
                   const radius = getPointRadius({ datum, radiusKey })
-                  const isActive = hover?.key === key
+                  const pointKey = getScatterPointKey(
+                    seriesKey,
+                    chartData.indexOf(datum)
+                  )
+                  const presence = getChartHoverPresence({
+                    hover,
+                    isRelated: hover?.key === pointKey,
+                  })
+                  const opacity = getChartHoverOpacity({
+                    baseOpacity: 0.82,
+                    presence,
+                  })
+                  const isActive = presence === "highlighted"
 
                   return (
-                    <circle
+                    <ChartMotionCircle
+                      animate={{
+                        opacity,
+                        r: isActive ? radius + 1.5 : radius,
+                        strokeOpacity: isActive ? 1 : 0.8,
+                      }}
                       className="stroke-foreground"
                       cx={x}
                       cy={y}
                       fill={color}
-                      fillOpacity={isActive ? 1 : 0.82}
+                      initial={false}
                       key={key}
                       pointerEvents="none"
-                      r={radius}
-                      strokeOpacity={isActive ? 1 : 0.8}
+                      transition={chartMotion.hover}
                     />
                   )
                 }}

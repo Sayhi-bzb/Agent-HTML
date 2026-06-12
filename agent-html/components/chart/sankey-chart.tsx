@@ -6,7 +6,6 @@ import type {
   SankeyLink as SankeyLinkType,
   SankeyNode as SankeyNodeType,
 } from "d3-sankey";
-import { motion } from "motion/react";
 import {
   memo,
   type ReactNode,
@@ -19,11 +18,15 @@ import {
   type ChartHoverState,
   ChartContainer,
   ChartInteractionRoot,
+  ChartMotionGroup,
+  ChartMotionPath,
+  ChartMotionRect,
+  ChartMotionText,
   ChartSvg,
   ChartTooltip,
   ChartTooltipPanel,
   chartHoverOpacity,
-  chartHoverTransition,
+  chartMotion,
   getChartHoverOpacity,
   getChartHoverPresence,
   useChartMarkTooltip,
@@ -373,14 +376,14 @@ function SankeyLinks({
           const linkRoughOptions = roughOptionsByIndex?.get(index);
 
           return (
-            <motion.g
+            <ChartMotionGroup
               animate={{ opacity: targetOpacity }}
               initial={{ opacity: strokeOpacity }}
               key={`link-${sourceIndex}-${targetIndex}-${link.width ?? link.value ?? ""}`}
               onPointerEnter={handlePointerEnter}
               onPointerLeave={handlePointerLeave}
               style={{ cursor: "pointer" }}
-              transition={chartHoverTransition}
+              transition={chartMotion.hover}
             >
               <RoughPath
                 d={roughPath ?? path}
@@ -393,12 +396,12 @@ function SankeyLinks({
                 stroke="transparent"
                 strokeWidth={Math.max(8, linkWidth)}
               />
-            </motion.g>
+            </ChartMotionGroup>
           );
         }
 
         return (
-          <motion.path
+          <ChartMotionPath
             animate={{ opacity: targetOpacity }}
             d={path}
             fill="none"
@@ -409,7 +412,7 @@ function SankeyLinks({
             stroke={stroke}
             strokeWidth={Math.max(1, linkWidth)}
             style={{ cursor: "pointer" }}
-            transition={chartHoverTransition}
+            transition={chartMotion.hover}
           />
         );
       })}
@@ -569,60 +572,60 @@ function SankeyNodeShape({
   const labelX = isLeftSide ? x - 12 : x + width + 12;
 
   return (
-    <motion.g
+    <ChartMotionGroup
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
       style={{ cursor: "pointer" }}
     >
       {roughOptions ? (
-        <motion.g
+        <ChartMotionGroup
           animate={{ opacity: nodeOpacity }}
           initial={false}
           style={{ color: fill }}
-          transition={chartHoverTransition}
+          transition={chartMotion.hover}
         >
           <RoughPath
             d={roundedRectPath(x, y, width, height, rx)}
             options={nodeRoughOptions}
           />
-        </motion.g>
+        </ChartMotionGroup>
       ) : (
-        <motion.rect
+        <ChartMotionRect
           animate={{ opacity: nodeOpacity }}
           fill={fill}
           height={height}
           initial={false}
           rx={rx}
           ry={rx}
-          transition={chartHoverTransition}
+          transition={chartMotion.hover}
           width={width}
           x={x}
           y={y}
         />
       )}
-      <motion.text
+      <ChartMotionText
         animate={{ opacity: nodeOpacity, x: labelX }}
         className="fill-foreground font-medium text-[13px]"
         dy="0.35em"
         initial={false}
         textAnchor={isLeftSide ? "end" : "start"}
-        transition={chartHoverTransition}
+        transition={chartMotion.hover}
         y={y + height / 2}
       >
         {name}
-      </motion.text>
-      <motion.text
+      </ChartMotionText>
+      <ChartMotionText
         animate={{ opacity: valueOpacity, x: labelX }}
         className="fill-foreground text-[11px]"
         dy="0.35em"
         initial={false}
         textAnchor={isLeftSide ? "end" : "start"}
-        transition={chartHoverTransition}
+        transition={chartMotion.hover}
         y={y + height / 2 + 16}
       >
         {intFmt(value)} sessions
-      </motion.text>
-    </motion.g>
+      </ChartMotionText>
+    </ChartMotionGroup>
   );
 }
 

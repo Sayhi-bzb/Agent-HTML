@@ -8,6 +8,11 @@ lives in `../ui/chart.tsx`.
 Target consumption chain:
 
 ```txt
+Motion runtime + chartMotion spring protocol
+  -> semantic chart interaction and mark motion
+  -> renderer option: svg | rough
+  -> artifact blocks
+
 low-level @visx primitives
   -> components/ui/chart.tsx foundation
   -> semantic chart components
@@ -49,7 +54,8 @@ the Canvas protocol exposed by `components/ui/chart.tsx`.
   responsive frame, bounds-aware tooltip, tooltip panel variants, pointer
   tooltip tracking, interaction roots, legend, SVG shell, hit layers, cartesian
   layout, shared hover state/opacity protocol, empty data/size separation,
-  scale helpers, and `@visx/xychart` theme.
+  required Motion runtime wrappers, spring motion protocol, scale helpers, and
+  `@visx/xychart` theme.
 - `../../lib/rough-svg.tsx`: low-level RoughJS SVG lifecycle bridge. It owns
   RoughJS-to-React rendering only, not chart semantics, chart config, layout, or
   tooltip behavior.
@@ -109,6 +115,10 @@ Use visx primitives by responsibility:
 - Visx owns geometry, layout, scale, axis, grid, and primitive mark generation.
 - Canvas owns interaction lifecycle: hit layers, hover state, tooltip state,
   tooltip shell, container leave cleanup, and unmount cleanup.
+- Canvas Motion wrappers and spring presets are required chart infrastructure,
+  not artifact options and not renderers. Concrete charts consume
+  `ChartMotion*` and `chartMotion` for chart-owned hover, fade, and layout
+  transitions.
 - Discrete mark charts use Canvas hit layers (`ChartHitRect`, `ChartHitPath`,
   `ChartHitCircle`, `ChartHitLine`) and `ChartInteractionRoot`.
 - Curved or compound paths may keep local transparent path hit geometry, but
@@ -116,6 +126,8 @@ Use visx primitives by responsibility:
 - `@visx/xychart` tooltip is reserved for whole-chart nearest-datum models such
   as line and area charts. Do not use it as the default interaction model for
   discrete mark charts.
+- Nearest-datum charts animate active affordances, such as tooltip glyphs,
+  rather than fading unrelated marks.
 - Artifact blocks pass data semantics and tooltip fields. They should not own
   tooltip positioning, portal behavior, or mark cleanup.
 
@@ -125,6 +137,8 @@ Use visx primitives by responsibility:
 - Artifact blocks import shared chart protocol types from `components/ui/chart`.
 - Artifact blocks do not import `@visx/*` packages or chart-specific renderer
   internals.
+- Artifact blocks do not import `motion/react`; Motion is consumed through
+  Canvas chart protocol wrappers.
 - `components/ui/chart.tsx` does not own concrete chart business semantics.
 - `components/chart` does not re-export shared chart protocol APIs.
 - Concrete chart components do not re-invent shared chart protocol when a
@@ -137,6 +151,10 @@ Use visx primitives by responsibility:
   artifact owns the decorative drawing and no semantic chart component applies.
 
 ## Rough Policy
+
+- `renderer` is a visual material choice. Keep public renderer values limited to
+  `svg` and `rough`; Motion and spring belong below this layer as required
+  chart motion.
 
 - `PieChart` supports `renderer="svg" | "rough"` with a transparent hit path
   and stable rough options.
@@ -161,6 +179,8 @@ Use visx primitives by responsibility:
 - `BarChart`, `BarHChart`, `PieChart`, `HeatmapChart`, `NetworkChart`, and
   `SankeyChart` consume the shared hover protocol for highlighted and faded
   marks.
+- `LineChart` and other nearest-datum charts keep xychart hover ownership and
+  consume Canvas Motion only for active datum affordances.
 - Concrete charts own item relationship logic, such as Sankey node/link
   adjacency or pie slice identity.
 

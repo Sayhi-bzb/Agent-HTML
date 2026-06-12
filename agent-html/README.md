@@ -38,25 +38,5 @@ or data patterns, or copyable examples:
 
 ## Source Placement
 
-- `artifacts`: artifact source.
-- `artifacts/<artifact>/public/`: artifact-owned URL static files.
-- `components/ui`: local visual primitives.
-- `components/<name>.tsx`: single-file rich workflow components such as kanban.
-- `hooks`: reusable React behavior.
-- `lib`: pure helpers and transforms.
-- `styles`: CSS pipeline and Canvas style API.
-- `theme`: host-owned theme preset registry and shadcn CSS sources.
-- `artifacts/<artifact>/data/`: artifact-private display data for broad artifacts.
-- `assets`: bundle-time imports, only when an artifact needs imported files.
-- `public`: shared URL static files.
-
-## Copy Policy
-
-- Use `artifacts/README.md` before opening large artifact source.
-- Use `components/README.md` for the component source route and `TASTE.md` for component choice.
-
-## Workspace Contract
-
-`agent-html/package.json` is source dependency metadata, not a standalone install target. Canvas CLI and host packages provide the runtime React, bundling, stylesheet, icon, and preview environment.
-
-Do not add `node_modules`, lockfiles, generated bundles, `.vite`, `dist`, `build`, or vendored dependency folders inside `agent-html`.
+Source placement defaults live in `AGENTS.md`. Use the route above to choose
+the smallest owner before opening source.
