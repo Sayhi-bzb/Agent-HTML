@@ -2,11 +2,11 @@ import { localPoint } from "@visx/event"
 import { Group } from "@visx/group"
 import { scaleBand, scaleLinear, scalePoint, scaleTime } from "@visx/scale"
 import { ParentSize } from "@visx/responsive"
+import { TooltipWithBounds, useTooltip } from "@visx/tooltip"
 import * as React from "react"
 import type { ComponentType, ReactNode } from "react"
 
 import { cn } from "@/lib/cn"
-import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect"
 
 const THEMES = { light: "", dark: ".dark" } as const
 
@@ -307,30 +307,56 @@ export interface ChartTooltipItem {
   value: ReactNode
 }
 
+export interface ChartTooltipContentProps {
+  className?: string
+  hideIndicator?: boolean
+  items: ChartTooltipItem[]
+  label?: ReactNode
+}
+
 export interface ChartTooltipPoint {
   x: number
   y: number
 }
 
-export function useChartPointerTooltip() {
-  const [point, setPoint] = React.useState<ChartTooltipPoint | null>(null)
+export function useChartTooltip<TooltipData>() {
+  const {
+    hideTooltip,
+    showTooltip,
+    tooltipData,
+    tooltipLeft,
+    tooltipOpen,
+    tooltipTop,
+  } = useTooltip<TooltipData>()
 
-  const setPointFromEvent = React.useCallback(
-    (event: React.MouseEvent<Element> | React.PointerEvent<Element>) => {
-      const nextPoint = localPoint(event)
+  const showTooltipFromEvent = React.useCallback(
+    (
+      event: React.MouseEvent<Element> | React.PointerEvent<Element>,
+      data: TooltipData
+    ) => {
+      const point = localPoint(event)
 
-      if (nextPoint) {
-        setPoint({ x: nextPoint.x, y: nextPoint.y })
+      if (!point) {
+        return
       }
+
+      showTooltip({
+        tooltipData: data,
+        tooltipLeft: point.x,
+        tooltipTop: point.y,
+      })
     },
-    []
+    [showTooltip]
   )
 
-  const clearPoint = React.useCallback(() => {
-    setPoint(null)
-  }, [])
-
-  return { clearPoint, point, setPoint, setPointFromEvent }
+  return {
+    hideTooltip,
+    showTooltipFromEvent,
+    tooltipData,
+    tooltipLeft,
+    tooltipOpen,
+    tooltipTop,
+  }
 }
 
 export function ChartTooltipPanel({
@@ -361,12 +387,7 @@ export function ChartTooltipContent({
   hideIndicator = false,
   items,
   label,
-}: {
-  className?: string
-  hideIndicator?: boolean
-  items: ChartTooltipItem[]
-  label?: ReactNode
-}) {
+}: ChartTooltipContentProps) {
   if (items.length === 0) {
     return null
   }
@@ -396,74 +417,36 @@ export function ChartTooltipContent({
 }
 
 export function ChartTooltip({
-  bounds,
   children,
   className,
   offset = 12,
-  padding = 8,
   visible,
   x,
   y,
 }: {
-  bounds?: { height: number; width: number }
   children: ReactNode
   className?: string
   offset?: number
-  padding?: number
   visible: boolean
   x: number
   y: number
 }) {
-  const tooltipRef = React.useRef<HTMLDivElement>(null)
-  const [{ height, width }, setMeasuredSize] = React.useState({
-    height: 80,
-    width: 180,
-  })
-
-  useIsomorphicLayoutEffect(() => {
-    if (!visible || !tooltipRef.current) {
-      return
-    }
-
-    const nextWidth = tooltipRef.current.offsetWidth
-    const nextHeight = tooltipRef.current.offsetHeight
-
-    if (
-      nextWidth > 0 &&
-      nextHeight > 0 &&
-      (nextWidth !== width || nextHeight !== height)
-    ) {
-      setMeasuredSize({ height: nextHeight, width: nextWidth })
-    }
-  }, [children, height, visible, width, x, y])
-
   if (!visible) {
     return null
   }
 
-  let left = x
-  let top = y
-
-  if (bounds) {
-    left = x + offset
-    top = y - height / 2
-
-    if (left + width + padding > bounds.width) {
-      left = x - width - offset
-    }
-
-    left = Math.max(padding, Math.min(left, bounds.width - width - padding))
-    top = Math.max(padding, Math.min(top, bounds.height - height - padding))
-  }
-
   return (
-    <div
-      className={cn("pointer-events-none absolute z-50", className)}
-      ref={tooltipRef}
-      style={{ left, top }}
+    <TooltipWithBounds
+      applyPositionStyle
+      className={cn("pointer-events-none z-50", className)}
+      left={x}
+      offsetLeft={offset}
+      offsetTop={offset}
+      top={y}
+      unstyled
     >
       {children}
-    </div>
+    </TooltipWithBounds>
   )
 }
 

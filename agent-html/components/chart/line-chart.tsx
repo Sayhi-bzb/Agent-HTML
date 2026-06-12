@@ -21,7 +21,7 @@ import {
   getPointerPoint,
   getValue,
   isFiniteNumber,
-  useChartPointerTooltip,
+  useChartTooltip,
 } from "./chart"
 
 export interface LineChartProps<T> {
@@ -68,12 +68,14 @@ export function LineChart<T>({
   yKey,
   yValueFormatter = formatValue,
 }: LineChartProps<T>) {
-  const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
   const {
-    clearPoint: clearTooltipPoint,
-    point: tooltipPoint,
-    setPointFromEvent: setTooltipPointFromEvent,
-  } = useChartPointerTooltip()
+    hideTooltip,
+    showTooltipFromEvent,
+    tooltipData: tooltip,
+    tooltipLeft,
+    tooltipOpen,
+    tooltipTop,
+  } = useChartTooltip<TooltipState<T>>()
 
   return (
     <ChartContainer
@@ -129,20 +131,16 @@ export function LineChart<T>({
             return
           }
 
-          setTooltip({
+          showTooltipFromEvent(event, {
             datum,
           })
-          setTooltipPointFromEvent(event)
         }
 
         return (
           <>
             <ChartSvg
               aria-label="趋势折线图"
-              onPointerLeave={() => {
-                setTooltip(null)
-                clearTooltipPoint()
-              }}
+              onPointerLeave={hideTooltip}
               onPointerMove={handlePointerMove}
               role="img"
             >
@@ -200,10 +198,9 @@ export function LineChart<T>({
             </ChartSvg>
 
             <ChartTooltip
-              bounds={{ height, width }}
-              visible={tooltip !== null && tooltipPoint !== null}
-              x={tooltipPoint?.x ?? 0}
-              y={tooltipPoint?.y ?? 0}
+              visible={tooltipOpen}
+              x={tooltipLeft ?? 0}
+              y={tooltipTop ?? 0}
             >
               {tooltip ? (
                 <ChartTooltipContent

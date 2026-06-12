@@ -123,10 +123,8 @@ function OdSankeyChart() {
           const flow = link as OdSankeyLink
 
           return (
-            <div className="grid gap-1 px-3 py-2.5 text-chart-tooltip-foreground">
-              <strong className="font-mono text-[0.75rem] tracking-normal">
-                {flow.sourceName} {"->"} {flow.targetName}
-              </strong>
+            <div className="grid gap-1">
+              <strong>{flow.sourceName} {"->"} {flow.targetName}</strong>
               <span>{formatCompact(flow.value)} trips</span>
               <span>{flow.averageDistance} mi average distance</span>
               <span>${flow.averageTotal} average total</span>
@@ -134,10 +132,8 @@ function OdSankeyChart() {
           )
         }}
         renderNodeTooltip={({ node }) => (
-          <div className="grid gap-1 px-3 py-2.5 text-chart-tooltip-foreground">
-            <strong className="font-mono text-[0.75rem] tracking-normal">
-              {node.name}
-            </strong>
+          <div className="grid gap-1">
+            <strong>{node.name}</strong>
             <span>{formatCompact(node.value ?? 0)} trips</span>
           </div>
         )}

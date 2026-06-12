@@ -77,7 +77,8 @@ Use visx primitives by responsibility:
 
 - `ChartTooltip` owns positioning and container bounds.
 - `ChartTooltipPanel` owns shared tooltip shell variants.
-- `useChartPointerTooltip` owns cursor-follow point tracking.
+- `useChartTooltip` owns tooltip open state, data, cursor-follow point tracking,
+  and positioning through `@visx/tooltip`.
 - Concrete charts own active item selection and tooltip content.
 
 ## Migration Notes

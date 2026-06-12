@@ -22,7 +22,7 @@ import {
   getChartCssVariable,
   getValue,
   isFiniteNumber,
-  useChartPointerTooltip,
+  useChartTooltip,
 } from "./chart"
 import { RoughPath } from "./rough-renderers"
 
@@ -98,15 +98,21 @@ export function PieChart<T>({
   valueFormatter = formatValue,
   valueKey,
 }: PieChartProps<T>) {
-  const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
   const [hover, setHover] = React.useState<ChartHoverState<"slice"> | null>(
     null
   )
   const {
-    clearPoint: clearTooltipPoint,
-    point: tooltipPoint,
-    setPointFromEvent: setTooltipPointFromEvent,
-  } = useChartPointerTooltip()
+    hideTooltip: hideChartTooltip,
+    showTooltipFromEvent,
+    tooltipData: tooltip,
+    tooltipLeft,
+    tooltipOpen,
+    tooltipTop,
+  } = useChartTooltip<TooltipState<T>>()
+  const hideTooltip = React.useCallback(() => {
+    setHover(null)
+    hideChartTooltip()
+  }, [hideChartTooltip])
   const slices = React.useMemo(
     () => createSlices({ config, data, nameKey, valueKey }),
     [config, data, nameKey, valueKey]
@@ -148,11 +154,7 @@ export function PieChart<T>({
           <div className="relative h-full w-full">
             <ChartSvg
               aria-label="占比饼图"
-              onPointerLeave={() => {
-                setHover(null)
-                setTooltip(null)
-                clearTooltipPoint()
-              }}
+              onPointerLeave={hideTooltip}
               role="img"
             >
               <Pie
@@ -174,8 +176,7 @@ export function PieChart<T>({
                         event: React.PointerEvent<SVGPathElement>
                       ) => {
                         setHover({ key: arc.data.key, type: "slice" })
-                        setTooltipPointFromEvent(event)
-                        setTooltip({
+                        showTooltipFromEvent(event, {
                           slice: arc.data,
                         })
                       }
@@ -200,7 +201,10 @@ export function PieChart<T>({
                           <ChartHitPath
                             d={d}
                             onPointerEnter={showTooltip}
-                            onPointerMove={setTooltipPointFromEvent}
+                            onPointerLeave={hideTooltip}
+                            onPointerMove={(event) => {
+                              showTooltipFromEvent(event, { slice: arc.data })
+                            }}
                           />
                         </g>
                       )
@@ -211,10 +215,9 @@ export function PieChart<T>({
             </ChartSvg>
 
             <ChartTooltip
-              bounds={{ height, width }}
-              visible={tooltip !== null && tooltipPoint !== null}
-              x={tooltipPoint?.x ?? 0}
-              y={tooltipPoint?.y ?? 0}
+              visible={tooltipOpen}
+              x={tooltipLeft ?? 0}
+              y={tooltipTop ?? 0}
             >
               {tooltip ? (
                 <ChartTooltipContent

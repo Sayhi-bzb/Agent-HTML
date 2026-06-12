@@ -22,7 +22,7 @@ import {
   getValue,
   isFiniteNumber,
   type SvgOnlyChartRenderer,
-  useChartPointerTooltip,
+  useChartTooltip,
 } from "./chart"
 
 export interface AreaChartProps<T> {
@@ -70,12 +70,14 @@ export function AreaChart<T>({
   yKey,
   yValueFormatter = formatValue,
 }: AreaChartProps<T>) {
-  const [tooltip, setTooltip] = React.useState<TooltipState<T> | null>(null)
   const {
-    clearPoint: clearTooltipPoint,
-    point: tooltipPoint,
-    setPointFromEvent: setTooltipPointFromEvent,
-  } = useChartPointerTooltip()
+    hideTooltip,
+    showTooltipFromEvent,
+    tooltipData: tooltip,
+    tooltipLeft,
+    tooltipOpen,
+    tooltipTop,
+  } = useChartTooltip<TooltipState<T>>()
 
   return (
     <ChartContainer
@@ -132,20 +134,16 @@ export function AreaChart<T>({
             return
           }
 
-          setTooltip({
+          showTooltipFromEvent(event, {
             datum,
           })
-          setTooltipPointFromEvent(event)
         }
 
         return (
           <>
             <ChartSvg
               aria-label="面积趋势图"
-              onPointerLeave={() => {
-                setTooltip(null)
-                clearTooltipPoint()
-              }}
+              onPointerLeave={hideTooltip}
               onPointerMove={handlePointerMove}
               role="img"
             >
@@ -193,10 +191,9 @@ export function AreaChart<T>({
             </ChartSvg>
 
             <ChartTooltip
-              bounds={{ height, width }}
-              visible={tooltip !== null && tooltipPoint !== null}
-              x={tooltipPoint?.x ?? 0}
-              y={tooltipPoint?.y ?? 0}
+              visible={tooltipOpen}
+              x={tooltipLeft ?? 0}
+              y={tooltipTop ?? 0}
             >
               {tooltip ? (
                 <ChartTooltipContent

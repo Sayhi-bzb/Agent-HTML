@@ -26,7 +26,7 @@ import {
   chartHoverTransition,
   getChartHoverOpacity,
   getChartHoverPresence,
-  useChartPointerTooltip,
+  useChartTooltip,
 } from "./chart";
 import { RoughPath } from "./rough-renderers";
 
@@ -538,25 +538,25 @@ function SankeyNodeShape({
 }
 
 function SankeyTooltip({
-  height,
   links,
   nodes,
-  point,
   renderLinkTooltip,
   renderNodeTooltip,
   tooltipData,
-  width,
+  tooltipLeft,
+  tooltipOpen,
+  tooltipTop,
 }: {
-  height: number;
   links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
   nodes: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>[];
-  point: { x: number; y: number } | null;
   renderLinkTooltip?: SankeyChartProps["renderLinkTooltip"];
   renderNodeTooltip?: SankeyChartProps["renderNodeTooltip"];
   tooltipData: SankeyTooltipData | null;
-  width: number;
+  tooltipLeft?: number;
+  tooltipOpen: boolean;
+  tooltipTop?: number;
 }) {
-  if (!tooltipData || !point) {
+  if (!tooltipData || !tooltipOpen) {
     return null;
   }
 
@@ -572,13 +572,12 @@ function SankeyTooltip({
 
     return (
       <ChartTooltip
-        bounds={{ height, width }}
         offset={16}
         visible
-        x={point.x}
-        y={point.y}
+        x={tooltipLeft ?? 0}
+        y={tooltipTop ?? 0}
       >
-        <ChartTooltipPanel variant="inverse">
+        <ChartTooltipPanel>
           {renderNodeTooltip({ node, index: tooltipData.nodeIndex })}
         </ChartTooltipPanel>
       </ChartTooltip>
@@ -597,13 +596,12 @@ function SankeyTooltip({
 
     return (
       <ChartTooltip
-        bounds={{ height, width }}
         offset={16}
         visible
-        x={point.x}
-        y={point.y}
+        x={tooltipLeft ?? 0}
+        y={tooltipTop ?? 0}
       >
-        <ChartTooltipPanel variant="inverse">
+        <ChartTooltipPanel>
           {renderLinkTooltip({ link, index: tooltipData.linkIndex })}
         </ChartTooltipPanel>
       </ChartTooltip>
@@ -702,14 +700,16 @@ const SankeyChartCore = memo(function SankeyChartCore({
   width,
 }: SankeyChartCoreProps) {
   const [hover, setHover] = useState<SankeyHoverState | null>(null);
-  const [tooltipData, setTooltipData] = useState<SankeyTooltipData | null>(
-    null
-  );
+  const [activeTooltipData, setActiveTooltipData] =
+    useState<SankeyTooltipData | null>(null);
   const {
-    clearPoint: clearTooltipPoint,
-    point: tooltipPoint,
-    setPointFromEvent: setTooltipPointFromEvent,
-  } = useChartPointerTooltip();
+    hideTooltip,
+    showTooltipFromEvent,
+    tooltipData,
+    tooltipLeft,
+    tooltipOpen,
+    tooltipTop,
+  } = useChartTooltip<SankeyTooltipData>();
 
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -783,24 +783,31 @@ const SankeyChartCore = memo(function SankeyChartCore({
 
   const handleMouseLeave = useCallback(() => {
     setHover(null);
-    setTooltipData(null);
-    clearTooltipPoint();
-  }, [clearTooltipPoint]);
+    setActiveTooltipData(null);
+    hideTooltip();
+  }, [hideTooltip]);
   const handleHoverChange = useCallback((nextHover: SankeyHoverState | null) => {
     setHover(nextHover);
   }, []);
   const handleTooltipDataChange = useCallback(
     (data: SankeyTooltipData | null) => {
-      setTooltipData(data);
+      setActiveTooltipData(data);
+      if (!data) {
+        hideTooltip();
+      }
     },
-    []
+    [hideTooltip]
   );
 
   return (
     <div
       className="relative h-full w-full"
       onMouseLeave={handleMouseLeave}
-      onMouseMove={setTooltipPointFromEvent}
+      onMouseMove={(event) => {
+        if (activeTooltipData) {
+          showTooltipFromEvent(event, activeTooltipData);
+        }
+      }}
     >
       <SankeyVisualLayer
         getLinkColor={getLinkColor}
@@ -820,14 +827,14 @@ const SankeyChartCore = memo(function SankeyChartCore({
         width={width}
       />
       <SankeyTooltip
-        height={height}
         links={graph.links}
         nodes={graph.nodes}
-        point={tooltipPoint}
         renderLinkTooltip={renderLinkTooltip}
         renderNodeTooltip={renderNodeTooltip}
-        tooltipData={tooltipData}
-        width={width}
+        tooltipData={tooltipData ?? activeTooltipData}
+        tooltipLeft={tooltipLeft}
+        tooltipOpen={tooltipOpen}
+        tooltipTop={tooltipTop}
       />
     </div>
   );

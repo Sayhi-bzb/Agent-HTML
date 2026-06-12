@@ -44,18 +44,14 @@ export function BlastRadiusBlock() {
             nodeWidth: 12,
           }}
           renderLinkTooltip={({ link }) => (
-            <div className="grid gap-1 px-3 py-2.5 text-chart-tooltip-foreground">
-              <strong className="font-mono text-[0.75rem] tracking-normal">
-                package edge
-              </strong>
+            <div className="grid gap-1">
+              <strong>package edge</strong>
               <span>{link.value} review signals</span>
             </div>
           )}
           renderNodeTooltip={({ node }) => (
-            <div className="grid gap-1 px-3 py-2.5 text-chart-tooltip-foreground">
-              <strong className="font-mono text-[0.75rem] tracking-normal">
-                {node.name}
-              </strong>
+            <div className="grid gap-1">
+              <strong>{node.name}</strong>
               <span>{node.value ?? 0} connected signals</span>
             </div>
           )}
