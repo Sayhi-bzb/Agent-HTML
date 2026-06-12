@@ -14,14 +14,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   ChartTooltipPanel,
-  chartMotion,
   getChartCssVariable,
-  getChartMarkKey,
-  getChartMarkOpacity,
-  getChartMarkPresence,
   getValue,
   isFiniteNumber,
-  useChartMarkTooltip,
+  useChartMarkInteraction,
 } from "../ui/chart"
 import { RoughCircle } from "@/lib/rough-svg"
 
@@ -133,14 +129,14 @@ export function HeatmapChart<T>({
   const {
     currentTooltipData: tooltip,
     followTooltip,
+    getMarkKey,
+    getMarkMotion,
     hideTooltip,
-    hover,
-    setHover,
-    showTooltip,
+    showMark,
     tooltipLeft,
     tooltipOpen,
     tooltipTop,
-  } = useChartMarkTooltip<TooltipState<T>, "cell">()
+  } = useChartMarkInteraction<TooltipState<T>, "cell">()
   const columns = React.useMemo(
     () =>
       createHeatmapColumns({
@@ -241,26 +237,20 @@ export function HeatmapChart<T>({
                     <>
                       {heatmap.flatMap((column) =>
                         column.map((cell) => {
-                          const key = getChartMarkKey(
+                          const key = getMarkKey(
                             "cell",
                             cell.datum.key,
                             cell.bin.key
                           )
-                          const presence = getChartMarkPresence({
-                            hover,
-                            key,
-                          })
-                          const opacity = getChartMarkOpacity({
+                          const markMotion = getMarkMotion({
                             baseOpacity: cell.opacity,
-                            presence,
+                            key,
                           })
 
                           return (
                             <g key={key}>
                               <ChartMotionGroup
-                                animate={{ opacity }}
-                                initial={false}
-                                transition={chartMotion.hover}
+                                {...markMotion}
                               >
                                 {renderer === "rough" ? (
                                   <RoughCircle
@@ -290,10 +280,14 @@ export function HeatmapChart<T>({
                                 cx={cell.cx}
                                 cy={cell.cy}
                                 onPointerEnter={(event) => {
-                                  setHover({ key, type: "cell" })
-                                  showTooltip(event, {
-                                    bin: cell.bin,
-                                    column: cell.datum,
+                                  showMark({
+                                    data: {
+                                      bin: cell.bin,
+                                      column: cell.datum,
+                                    },
+                                    event,
+                                    key,
+                                    type: "cell",
                                   })
                                 }}
                                 onPointerLeave={hideTooltip}

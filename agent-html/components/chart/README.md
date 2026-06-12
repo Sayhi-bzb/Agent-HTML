@@ -179,6 +179,9 @@ Use visx primitives by responsibility:
 - `components/ui/chart.tsx` owns mark identity helpers. Discrete charts use
   `getChartMarkKey`, `getChartMarkPresence`, and `getChartMarkOpacity` instead
   of hand-built hover keys or local opacity branches.
+- `useChartMarkInteraction` is the default discrete-mark interaction protocol:
+  it owns mark key generation, mark state, mark motion props, hover writes, and
+  tooltip binding.
 - `BarChart`, `BarHChart`, `PieChart`, `HeatmapChart`, `NetworkChart`, and
   `SankeyChart` consume the shared hover protocol for highlighted and faded
   marks.

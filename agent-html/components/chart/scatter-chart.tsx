@@ -10,7 +10,6 @@ import * as React from "react"
 import {
   type ChartAccessor,
   type ChartConfig,
-  type ChartHoverState,
   ChartContainer,
   ChartHitCircle,
   ChartInteractionRoot,
@@ -21,15 +20,12 @@ import {
   chartMotion,
   chartXYTheme,
   getChartCssVariable,
-  getChartMarkKey,
-  getChartMarkOpacity,
-  getChartMarkPresence,
   getNumberDomain,
   getValue,
   isFiniteNumber,
   resolveChartTooltipItems,
   type SvgOnlyChartRenderer,
-  useChartMarkTooltip,
+  useChartMarkInteraction,
 } from "../ui/chart"
 
 export type ScatterScaleType = "linear" | "log"
@@ -246,7 +242,6 @@ function ScatterAxisLabels({
 }
 
 function ScatterHitLayer<T extends object>({
-  setHover,
   showMark,
   hideMark,
   moveMark,
@@ -257,12 +252,13 @@ function ScatterHitLayer<T extends object>({
     event: React.MouseEvent<Element> | React.PointerEvent<Element>
   ) => void
   points: Array<ScatterPoint<T>>
-  setHover: React.Dispatch<
-    React.SetStateAction<ChartHoverState<"point"> | null>
-  >
   showMark: (
-    event: React.MouseEvent<Element> | React.PointerEvent<Element>,
-    data: TooltipState<T>
+    options: {
+      data: TooltipState<T>
+      event: React.MouseEvent<Element> | React.PointerEvent<Element>
+      key: string
+      type: "point"
+    }
   ) => void
 }) {
   const { xScale, yScale } = React.useContext(DataContext)
@@ -287,12 +283,16 @@ function ScatterHitLayer<T extends object>({
             cy={cy}
             key={point.key}
             onPointerEnter={(event) => {
-              setHover({ key: point.key, type: "point" })
-              showMark(event, {
-                color: point.color,
-                datum: point.datum,
-                xValue: point.xValue,
-                yValue: point.yValue,
+              showMark({
+                data: {
+                  color: point.color,
+                  datum: point.datum,
+                  xValue: point.xValue,
+                  yValue: point.yValue,
+                },
+                event,
+                key: point.key,
+                type: "point",
               })
             }}
             onPointerLeave={hideMark}
@@ -332,15 +332,15 @@ export function ScatterChart<T extends object>({
 }: ScatterChartProps<T>) {
   const {
     currentTooltipData: tooltip,
+    getMarkKey,
+    getMarkState,
     hideMark,
-    hover,
     moveMark,
-    setHover,
     showMark,
     tooltipLeft,
     tooltipOpen,
     tooltipTop,
-  } = useChartMarkTooltip<TooltipState<T>, "point">()
+  } = useChartMarkInteraction<TooltipState<T>, "point">()
 
   return (
     <ChartContainer
@@ -379,7 +379,7 @@ export function ScatterChart<T extends object>({
           return {
             color: getColor(datum),
             datum,
-            key: getChartMarkKey("point", seriesKey, index),
+            key: getMarkKey("point", seriesKey, index),
             radius: getPointRadius({ datum, radiusKey }),
             xValue,
             yValue,
@@ -452,22 +452,19 @@ export function ScatterChart<T extends object>({
                 dataKey={seriesKey}
                 enableEvents={false}
                 renderGlyph={({ color, datum: point, key, x, y }) => {
-                  const presence = getChartMarkPresence({
-                    hover,
+                  const markState = getMarkState({
+                    baseOpacity: 0.82,
                     key: point.key,
                   })
-                  const opacity = getChartMarkOpacity({
-                    baseOpacity: 0.82,
-                    presence,
-                  })
-                  const isActive = presence === "highlighted"
 
                   return (
                     <ChartMotionCircle
                       animate={{
-                        opacity,
-                        r: isActive ? point.radius + 1.5 : point.radius,
-                        strokeOpacity: isActive ? 1 : 0.8,
+                        opacity: markState.opacity,
+                        r: markState.isHighlighted
+                          ? point.radius + 1.5
+                          : point.radius,
+                        strokeOpacity: markState.isHighlighted ? 1 : 0.8,
                       }}
                       className="stroke-foreground"
                       cx={x}
@@ -487,7 +484,6 @@ export function ScatterChart<T extends object>({
                 hideMark={hideMark}
                 moveMark={moveMark}
                 points={points}
-                setHover={setHover}
                 showMark={showMark}
               />
 

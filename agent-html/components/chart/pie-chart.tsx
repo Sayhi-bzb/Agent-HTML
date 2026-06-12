@@ -16,14 +16,10 @@ import {
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
-  chartMotion,
   getChartCssVariable,
-  getChartMarkKey,
-  getChartMarkOpacity,
-  getChartMarkPresence,
   getValue,
   isFiniteNumber,
-  useChartMarkTooltip,
+  useChartMarkInteraction,
 } from "../ui/chart"
 import { RoughPath } from "@/lib/rough-svg"
 
@@ -134,14 +130,14 @@ export function PieChart<T>({
   const {
     currentTooltipData: tooltip,
     followTooltip,
+    getMarkKey,
+    getMarkMotion,
     hideTooltip,
-    hover,
-    setHover,
-    showTooltip: showMarkTooltip,
+    showMark,
     tooltipLeft,
     tooltipOpen,
     tooltipTop,
-  } = useChartMarkTooltip<TooltipState<T>, "slice">()
+  } = useChartMarkInteraction<TooltipState<T>, "slice">()
   const slices = React.useMemo(
     () => createSlices({ config, data, nameKey, valueKey }),
     [config, data, nameKey, valueKey]
@@ -181,27 +177,23 @@ export function PieChart<T>({
                     {arcs.map((arc) => {
                       const d = path(arc) ?? ""
                       const color = getChartCssVariable(arc.data.key)
-                      const key = getChartMarkKey("slice", arc.data.key)
-                      const presence = getChartMarkPresence({
-                        hover,
-                        key,
-                      })
-                      const opacity = getChartMarkOpacity({ presence })
+                      const key = getMarkKey("slice", arc.data.key)
+                      const markMotion = getMarkMotion({ key })
                       const showTooltip = (
                         event: React.PointerEvent<SVGPathElement>
                       ) => {
-                        setHover({ key, type: "slice" })
-                        showMarkTooltip(event, {
-                          slice: arc.data,
+                        showMark({
+                          data: { slice: arc.data },
+                          event,
+                          key,
+                          type: "slice",
                         })
                       }
 
                       return (
                         <g key={arc.data.key}>
                           <ChartMotionGroup
-                            animate={{ opacity }}
-                            initial={false}
-                            transition={chartMotion.hover}
+                            {...markMotion}
                           >
                             {renderer === "rough" ? (
                               <RoughPath

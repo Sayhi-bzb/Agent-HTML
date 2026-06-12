@@ -9,7 +9,6 @@ import type {
 import {
   memo,
   type ReactNode,
-  useCallback,
   useMemo,
 } from "react";
 import type { Options as RoughOptions } from "roughjs/bin/core";
@@ -28,9 +27,7 @@ import {
   chartHoverOpacity,
   chartMotion,
   getChartMarkKey,
-  getChartMarkOpacity,
-  getChartMarkPresence,
-  useChartMarkTooltip,
+  useChartMarkInteraction,
 } from "../ui/chart";
 import { RoughPath } from "@/lib/rough-svg";
 
@@ -116,6 +113,9 @@ interface SankeyChartCoreProps {
 }
 
 type NodeOrIndex = SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum> | number;
+type SankeyMarkInteraction = ReturnType<
+  typeof useChartMarkInteraction<SankeyTooltipData, "node" | "link">
+>;
 
 const DEFAULT_MARGIN: Margin = { top: 40, right: 180, bottom: 40, left: 180 };
 const intFmt = new Intl.NumberFormat("en-US").format;
@@ -324,26 +324,23 @@ function createSankeyRoughNodeOptions({
 
 function SankeyLinks({
   getLinkColor,
+  getMarkState,
   hideTooltip,
   hover,
   links,
   roughOptions,
   roughOptionsByIndex,
-  setHover,
   showTooltip,
   strokeOpacity,
 }: {
   getLinkColor?: SankeyChartProps["getLinkColor"];
+  getMarkState: SankeyMarkInteraction["getMarkState"];
   hideTooltip: () => void;
   hover: SankeyHoverState | null;
   links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
   roughOptions?: RoughOptions;
   roughOptionsByIndex?: Map<number, RoughOptions>;
-  setHover: (hover: SankeyHoverState | null) => void;
-  showTooltip: (
-    event: React.MouseEvent<Element> | React.PointerEvent<Element>,
-    data: SankeyTooltipData
-  ) => void;
+  showTooltip: SankeyMarkInteraction["showMark"];
   strokeOpacity: number;
 }) {
   return (
@@ -359,8 +356,8 @@ function SankeyLinks({
         const sourceIndex = getNodeIndex(link.source as NodeOrIndex) ?? -1;
         const targetIndex = getNodeIndex(link.target as NodeOrIndex) ?? -1;
         const linkKey = getSankeyLinkKey(index);
-        const presence = getChartMarkPresence({
-          hover,
+        const markState = getMarkState({
+          baseOpacity: strokeOpacity,
           key: linkKey,
           isRelated:
             hover?.type === "node"
@@ -371,14 +368,15 @@ function SankeyLinks({
         const stroke = getLinkColor
           ? getLinkColor(link, index)
           : "var(--chart-line-primary)";
-        const targetOpacity = getChartMarkOpacity({
-          baseOpacity: strokeOpacity,
-          presence,
-        });
+        const targetOpacity = markState.opacity;
 
         const handlePointerEnter = (event: React.PointerEvent<Element>) => {
-          setHover({ key: linkKey, type: "link" });
-          showTooltip(event, { type: "link", linkIndex: index });
+          showTooltip({
+            data: { type: "link", linkIndex: index },
+            event,
+            key: linkKey,
+            type: "link",
+          });
         };
         const handlePointerLeave = () => {
           hideTooltip();
@@ -434,6 +432,7 @@ function SankeyLinks({
 
 function SankeyNodes({
   getNodeColor,
+  getMarkState,
   hideTooltip,
   hover,
   innerWidth,
@@ -442,10 +441,10 @@ function SankeyNodes({
   nodes,
   roughOptions,
   roughOptionsByIndex,
-  setHover,
   showTooltip,
 }: {
   getNodeColor?: SankeyChartProps["getNodeColor"];
+  getMarkState: SankeyMarkInteraction["getMarkState"];
   hideTooltip: () => void;
   hover: SankeyHoverState | null;
   innerWidth: number;
@@ -454,11 +453,7 @@ function SankeyNodes({
   nodes: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>[];
   roughOptions?: RoughOptions;
   roughOptionsByIndex?: Map<number, RoughOptions>;
-  setHover: (hover: SankeyHoverState | null) => void;
-  showTooltip: (
-    event: React.MouseEvent<Element> | React.PointerEvent<Element>,
-    data: SankeyTooltipData
-  ) => void;
+  showTooltip: SankeyMarkInteraction["showMark"];
 }) {
   return (
     <g className="sankey-nodes">
@@ -468,8 +463,7 @@ function SankeyNodes({
         const nodeWidth = (node.x1 ?? 0) - nodeX;
         const nodeHeight = (node.y1 ?? 0) - nodeY;
         const nodeKey = getSankeyNodeKey(index);
-        const presence = getChartMarkPresence({
-          hover,
+        const markState = getMarkState({
           key: nodeKey,
           isRelated: isNodeConnected({ hover, links, nodeIndex: index }),
         });
@@ -477,13 +471,17 @@ function SankeyNodes({
         const fill = getNodeColor ? getNodeColor(node, index) : "var(--chart-1)";
         const displayValue = getNodeDisplayValue(node, index, links);
         const nodeOpacity =
-          presence === "faded" ? chartHoverOpacity.visualFaded : 1;
+          markState.isFaded ? chartHoverOpacity.visualFaded : 1;
         const valueOpacity =
-          presence === "faded" ? chartHoverOpacity.textFaded : 0.6;
+          markState.isFaded ? chartHoverOpacity.textFaded : 0.6;
 
         const handlePointerEnter = (event: React.PointerEvent<Element>) => {
-          setHover({ key: nodeKey, type: "node" });
-          showTooltip(event, { type: "node", nodeIndex: index });
+          showTooltip({
+            data: { type: "node", nodeIndex: index },
+            event,
+            key: nodeKey,
+            type: "node",
+          });
         };
         const handlePointerLeave = () => {
           hideTooltip();
@@ -733,6 +731,7 @@ function SankeyChartInner(props: SankeyChartCoreProps) {
 
 const SankeyVisualLayer = memo(function SankeyVisualLayer({
   getLinkColor,
+  getMarkState,
   getNodeColor,
   graph,
   height,
@@ -744,12 +743,12 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
   roughOptions,
   roughLinkOptionsByIndex,
   roughNodeOptionsByIndex,
-  setHover,
   showTooltip,
   strokeOpacity,
   width,
 }: {
   getLinkColor?: SankeyChartProps["getLinkColor"];
+  getMarkState: SankeyMarkInteraction["getMarkState"];
   getNodeColor?: SankeyChartProps["getNodeColor"];
   graph: SankeyGraph<SankeyNodeDatum, SankeyLinkDatum>;
   height: number;
@@ -761,11 +760,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
   roughOptions?: RoughOptions;
   roughLinkOptionsByIndex?: Map<number, RoughOptions>;
   roughNodeOptionsByIndex?: Map<number, RoughOptions>;
-  setHover: (hover: SankeyHoverState | null) => void;
-  showTooltip: (
-    event: React.MouseEvent<Element> | React.PointerEvent<Element>,
-    data: SankeyTooltipData
-  ) => void;
+  showTooltip: SankeyMarkInteraction["showMark"];
   strokeOpacity: number;
   width: number;
 }) {
@@ -774,17 +769,18 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
       <g transform={`translate(${margin.left},${margin.top})`}>
         <SankeyLinks
           getLinkColor={getLinkColor}
+          getMarkState={getMarkState}
           hideTooltip={hideTooltip}
           hover={hover}
           links={graph.links}
           roughOptions={roughOptions}
           roughOptionsByIndex={roughLinkOptionsByIndex}
-          setHover={setHover}
           showTooltip={showTooltip}
           strokeOpacity={strokeOpacity}
         />
         <SankeyNodes
           getNodeColor={getNodeColor}
+          getMarkState={getMarkState}
           hideTooltip={hideTooltip}
           hover={hover}
           innerWidth={innerWidth}
@@ -793,7 +789,6 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
           nodes={graph.nodes}
           roughOptions={roughOptions}
           roughOptionsByIndex={roughNodeOptionsByIndex}
-          setHover={setHover}
           showTooltip={showTooltip}
         />
       </g>
@@ -819,14 +814,14 @@ const SankeyChartCore = memo(function SankeyChartCore({
   const {
     currentTooltipData,
     followTooltip,
+    getMarkState,
     hideTooltip,
     hover,
-    setHover,
-    showTooltip,
+    showMark,
     tooltipLeft,
     tooltipOpen,
     tooltipTop,
-  } = useChartMarkTooltip<SankeyTooltipData, "node" | "link">();
+  } = useChartMarkInteraction<SankeyTooltipData, "node" | "link">();
 
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -855,10 +850,6 @@ const SankeyChartCore = memo(function SankeyChartCore({
     [getNodeColor, graph, roughOptions]
   );
 
-  const handleHoverChange = useCallback((nextHover: SankeyHoverState | null) => {
-    setHover(nextHover);
-  }, [setHover]);
-
   return (
     <ChartInteractionRoot
       onPointerLeave={hideTooltip}
@@ -866,6 +857,7 @@ const SankeyChartCore = memo(function SankeyChartCore({
     >
       <SankeyVisualLayer
         getLinkColor={getLinkColor}
+        getMarkState={getMarkState}
         getNodeColor={getNodeColor}
         graph={graph}
         height={height}
@@ -877,8 +869,7 @@ const SankeyChartCore = memo(function SankeyChartCore({
         roughLinkOptionsByIndex={roughLinkOptionsByIndex}
         roughNodeOptionsByIndex={roughNodeOptionsByIndex}
         roughOptions={roughOptions}
-        setHover={handleHoverChange}
-        showTooltip={showTooltip}
+        showTooltip={showMark}
         strokeOpacity={strokeOpacity}
         width={width}
       />

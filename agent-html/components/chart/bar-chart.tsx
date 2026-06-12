@@ -17,18 +17,14 @@ import {
   ChartTooltipContent,
   ChartXAxisGrid,
   ChartYAxisGrid,
-  chartMotion,
   createBandScale,
   createCartesianLayout,
   createLinearScale,
   getChartCssVariable,
-  getChartMarkKey,
-  getChartMarkOpacity,
-  getChartMarkPresence,
   getFiniteValues,
   getValue,
   isFiniteNumber,
-  useChartMarkTooltip,
+  useChartMarkInteraction,
 } from "../ui/chart"
 import { RoughRect } from "@/lib/rough-svg"
 
@@ -262,14 +258,14 @@ function BarChartCore<T>({
   const {
     currentTooltipData: tooltip,
     followTooltip,
+    getMarkKey,
+    getMarkMotion,
     hideTooltip,
-    hover,
-    setHover,
-    showTooltip: showMarkTooltip,
+    showMark,
     tooltipLeft,
     tooltipOpen,
     tooltipTop,
-  } = useChartMarkTooltip<TooltipState<T>, "bar">()
+  } = useChartMarkInteraction<TooltipState<T>, "bar">()
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const rows = React.useMemo(() => Array.from(data), [data])
 
@@ -362,27 +358,23 @@ function BarChartCore<T>({
                   }
 
                   const rect = model.getBarRect(datum, value)
-                  const key = getChartMarkKey("bar", category)
-                  const presence = getChartMarkPresence({
-                    hover,
-                    key,
-                  })
-                  const opacity = getChartMarkOpacity({ presence })
+                  const key = getMarkKey("bar", category)
+                  const markMotion = getMarkMotion({ key })
                   const showTooltip = (
                     event: React.PointerEvent<SVGRectElement>
                   ) => {
-                    setHover({ key, type: "bar" })
-                    showMarkTooltip(event, {
-                      datum,
+                    showMark({
+                      data: { datum },
+                      event,
+                      key,
+                      type: "bar",
                     })
                   }
 
                   return (
                     <g key={category}>
                       <ChartMotionGroup
-                        animate={{ opacity }}
-                        initial={false}
-                        transition={chartMotion.hover}
+                        {...markMotion}
                       >
                         {renderer === "rough" ? (
                           <RoughRect

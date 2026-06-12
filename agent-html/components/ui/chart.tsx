@@ -494,6 +494,91 @@ export function useChartMarkTooltip<
   }
 }
 
+export interface ChartMarkState {
+  isFaded: boolean
+  isHighlighted: boolean
+  opacity: number
+  presence: ChartHoverPresence
+}
+
+export function useChartMarkInteraction<
+  TooltipData,
+  THoverType extends string = string,
+>() {
+  const markTooltip = useChartMarkTooltip<TooltipData, THoverType>()
+  const getMarkKey = React.useCallback(
+    (...parts: Array<ChartHoverKey | null | undefined>) =>
+      getChartMarkKey(...parts),
+    []
+  )
+  const getMarkState = React.useCallback(
+    ({
+      baseOpacity,
+      isRelated,
+      key,
+    }: {
+      baseOpacity?: number
+      isRelated?: boolean
+      key: ChartHoverKey
+    }): ChartMarkState => {
+      const presence = getChartMarkPresence({
+        hover: markTooltip.hover,
+        isRelated,
+        key,
+      })
+
+      return {
+        isFaded: presence === "faded",
+        isHighlighted: presence === "highlighted",
+        opacity: getChartMarkOpacity({ baseOpacity, presence }),
+        presence,
+      }
+    },
+    [markTooltip.hover]
+  )
+  const getMarkMotion = React.useCallback(
+    (options: {
+      baseOpacity?: number
+      isRelated?: boolean
+      key: ChartHoverKey
+    }) => {
+      const state = getMarkState(options)
+
+      return {
+        animate: { opacity: state.opacity },
+        initial: false,
+        transition: chartMotion.hover,
+      } as const
+    },
+    [getMarkState]
+  )
+  const showMark = React.useCallback(
+    ({
+      data,
+      event,
+      key,
+      type,
+    }: {
+      data: TooltipData
+      event: React.MouseEvent<Element> | React.PointerEvent<Element>
+      key: ChartHoverKey
+      type: THoverType
+    }) => {
+      markTooltip.setHover({ key, type })
+      markTooltip.showTooltip(event, data)
+    },
+    [markTooltip]
+  )
+
+  return {
+    ...markTooltip,
+    getMarkKey,
+    getMarkMotion,
+    getMarkState,
+    showMark,
+  }
+}
+
 export function ChartTooltipPanel({
   children,
   className,
