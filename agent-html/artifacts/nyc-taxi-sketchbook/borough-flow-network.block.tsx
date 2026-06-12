@@ -1,14 +1,17 @@
-import { useEffect, useId, useMemo } from "react"
-import * as roughViz from "rough-viz"
+import { useMemo } from "react"
 
 import {
+  NetworkChart,
+  type NetworkChartData,
+  type NetworkLinkDatum,
+  type NetworkNodeDatum,
   SankeyChart,
   type SankeyData,
 } from "../../components/chart"
 import { od } from "./data/generated-borough-flow"
 import { pickupBoroughs } from "./data/generated-pickup-geography"
 import {
-  roughSketchChartStyle,
+  roughSketchMarkOptions,
   roughSketchSankeyOptions,
 } from "./rough-theme"
 import {
@@ -35,16 +38,18 @@ const matrixRows = boroughs.map((from) =>
   })
 )
 
-type TaxiForceNode = {
+type TaxiForceNode = NetworkNodeDatum & {
   category: "Borough" | "Airport"
-  forceRadius: number
+  radius: number
   label: string
   trips: number
 }
 
-type TaxiNetworkLink = {
-  source: number
-  target: number
+type TaxiNetworkLink = NetworkLinkDatum & {
+  averageDistance: number
+  averageTotal: number
+  sourceName: string
+  targetName: string
   trips: number
 }
 
@@ -155,52 +160,63 @@ function OdSankeyChart() {
   )
 }
 
-function RoughNetworkChart({
+function TaxiNetworkChart({
   data,
-  links,
 }: {
-  data: TaxiForceNode[]
-  links: TaxiNetworkLink[]
+  data: NetworkChartData<TaxiForceNode, TaxiNetworkLink>
 }) {
-  const reactId = useId()
-  const elementId = `rough-network-${reactId.replace(/:/g, "")}`
-
-  useEffect(() => {
-    const element = document.getElementById(elementId)
-    if (!element) return
-
-    element.replaceChildren()
-
-    const chart = new roughViz.Network<TaxiForceNode, TaxiNetworkLink>({
-      ...roughSketchChartStyle,
-      collision: 2.8,
-      colorCallback: (datum) =>
-        datum.category === "Airport" ? "var(--chart-2)" : "var(--chart-1)",
-      data: data.map((datum) => ({ ...datum })),
-      element: `#${elementId}`,
-      legend: [
-        { color: "var(--chart-1)", text: "Borough pickup volume" },
-        { color: "var(--chart-2)", text: "Airport boundary" },
-      ],
-      links: links.map((link) => ({ ...link })),
-      margin: { top: 72, right: 72, bottom: 58, left: 72 },
-      radius: "forceRadius",
-      radiusExtent: [18, 38],
-      textCallback: (datum) => `${datum.label}: ${formatCompact(datum.trips)}`,
-      title: "roughViz.Network / TLC OD pull",
-    })
-
-    return () => {
-      chart.remove()
-      element.replaceChildren()
-    }
-  }, [data, elementId, links])
-
   return (
-    <div
-      className="min-h-[400px] w-full [&_svg]:min-h-[400px] [&_svg]:w-full"
-      id={elementId}
-    />
+    <div className="canvas-stack-sm">
+      <NetworkChart
+        config={{
+          airport: { color: "var(--chart-2)", label: "Airport boundary" },
+          borough: { color: "var(--chart-1)", label: "Borough pickup volume" },
+        }}
+        data={data}
+        getLinkColor={(link) =>
+          link.source.category === "Airport" || link.target.category === "Airport"
+            ? "var(--chart-2)"
+            : "var(--chart-1)"
+        }
+        getNodeColor={(node) =>
+          node.category === "Airport" ? "var(--chart-2)" : "var(--chart-1)"
+        }
+        layout={{
+          aspectRatio: "5 / 3.2",
+          linkWidthRange: [2, 10],
+          margin: { top: 58, right: 72, bottom: 58, left: 72 },
+          radiusRange: [18, 38],
+        }}
+        minHeight={400}
+        renderLinkTooltip={({ link }) => (
+          <div className="grid gap-1">
+            <strong>{link.datum.sourceName} {"->"} {link.datum.targetName}</strong>
+            <span>{formatCompact(link.datum.trips)} trips</span>
+            <span>{link.datum.averageDistance} mi average distance</span>
+            <span>${link.datum.averageTotal} average total</span>
+          </div>
+        )}
+        renderNodeTooltip={({ node }) => (
+          <div className="grid gap-1">
+            <strong>{node.label}</strong>
+            <span>{formatCompact(node.trips)} pickup trips</span>
+          </div>
+        )}
+        renderer="rough"
+        roughOptions={roughSketchMarkOptions}
+      />
+      <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
+        <span className="canvas-text-caption inline-flex items-center gap-1.5">
+          <span className="h-2 w-5 rounded-full bg-chart-1" />
+          borough pickup volume
+        </span>
+        <span className="canvas-text-caption inline-flex items-center gap-1.5">
+          <span className="h-2 w-5 rounded-full bg-chart-2" />
+          airport boundary
+        </span>
+        <span className="canvas-text-caption">node size = pickup trips</span>
+      </div>
+    </div>
   )
 }
 
@@ -219,29 +235,33 @@ export function BoroughFlowNetworkBlock() {
 
       return {
         category: borough === "EWR" ? ("Airport" as const) : ("Borough" as const),
-        forceRadius: forceRadiusForTrips(trips, maxForceTrips),
+        id: borough,
         label: borough,
+        radius: forceRadiusForTrips(trips, maxForceTrips),
         trips,
       }
     })
-    const nodeIndexByLabel = new Map<string, number>(
-      nodes.map((node, index) => [node.label, index])
-    )
+    const nodeIds = new Set(nodes.map((node) => node.id))
     const links = od
       .filter((item) => item.from !== item.to)
-      .filter(
-        (item) =>
-          nodeIndexByLabel.has(item.from) && nodeIndexByLabel.has(item.to)
-      )
+      .filter((item) => nodeIds.has(item.from) && nodeIds.has(item.to))
       .sort((a, b) => b.trips - a.trips)
       .slice(0, 12)
       .map((item) => ({
-        source: nodeIndexByLabel.get(item.from) ?? 0,
-        target: nodeIndexByLabel.get(item.to) ?? 0,
+        averageDistance: item.averageDistance,
+        averageTotal: item.averageTotal,
+        source: item.from,
+        sourceName: item.from,
+        target: item.to,
+        targetName: item.to,
         trips: item.trips,
+        value: item.trips,
       }))
 
-    return { links, nodes }
+    return {
+      links,
+      nodes,
+    } satisfies NetworkChartData<TaxiForceNode, TaxiNetworkLink>
   }, [])
 
   const strongest = matrixRows
@@ -257,13 +277,13 @@ export function BoroughFlowNetworkBlock() {
   return (
     <section className="canvas-stack-lg">
       <SectionIntro badge="03 / origin to destination" title="Read the major flows as a network, then audit the matrix">
-        roughViz.Network keeps the strongest OD links; the matrix below keeps
+        NetworkChart keeps the strongest OD links; the matrix below keeps
         directionality and exact cross-checks.
       </SectionIntro>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,0.64fr)_minmax(300px,0.36fr)]">
         <SketchPanel>
-          <RoughNetworkChart data={networkNodes} links={networkLinks} />
+          <TaxiNetworkChart data={{ links: networkLinks, nodes: networkNodes }} />
         </SketchPanel>
 
         <div className="canvas-stack-md">
@@ -294,7 +314,7 @@ export function BoroughFlowNetworkBlock() {
           <div className="canvas-stack-xs">
             <h3 className="canvas-text-heading">Directed OD flow</h3>
             <p className="canvas-text-caption text-muted-foreground">
-              The force sketch shows relationships; the Sankey view ranks the <span className="text-foreground">strongest directed flows</span>.
+              The network sketch shows relationships; the Sankey view ranks the <span className="text-foreground">strongest directed flows</span>.
               Wider lines mean more trips, with same-area trips separated by
               muted strokes and the <span className="text-chart-2">airport boundary</span> kept visible.
             </p>

@@ -44,6 +44,7 @@
     "@visx/gradient": "^4.0.1-alpha.0",
     "@visx/grid": "^4.0.1-alpha.0",
     "@visx/group": "^4.0.1-alpha.0",
+    "@visx/network": "^4.0.1-alpha.0",
     "@visx/pattern": "^4.0.1-alpha.0",
     "@visx/responsive": "^4.0.1-alpha.0",
     "@visx/sankey": "^4.0.1-alpha.0",
@@ -55,7 +56,6 @@
     "d3-array": "^3.2.4",
     "d3-sankey": "^0.12.3",
     "motion": "^12.40.0",
-    "rough-viz": "^2.0.5",
     "roughjs": "^4.6.6",
     "tailwind-merge": "^3.6.0"
   },

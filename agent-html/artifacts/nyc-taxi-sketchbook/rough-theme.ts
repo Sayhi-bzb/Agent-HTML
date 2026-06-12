@@ -1,5 +1,4 @@
 import type { Options as RoughOptions } from "roughjs/bin/core"
-import type { RoughVizBarOptions } from "rough-viz"
 
 const roughSketchBase = {
   fillStyle: "hachure",
@@ -8,14 +7,6 @@ const roughSketchBase = {
   roughness: 4,
   strokeWidth: 1,
 }
-
-export const roughSketchChartStyle = {
-  ...roughSketchBase,
-  axisRoughness: 1.2,
-  axisStrokeWidth: 1,
-  innerStrokeWidth: 1,
-  stroke: "var(--foreground)",
-} satisfies Omit<RoughVizBarOptions, "data" | "element">
 
 export const roughSketchMarkOptions = {
   ...roughSketchBase,

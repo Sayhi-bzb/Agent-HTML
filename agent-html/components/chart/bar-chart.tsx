@@ -14,6 +14,7 @@ import {
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
+  ChartXAxisGrid,
   ChartXAxisLabels,
   ChartYAxisGrid,
   createBandScale,
@@ -46,39 +47,121 @@ export interface BarChartProps<T> {
   yValueFormatter?: (value: number) => React.ReactNode
 }
 
+export interface BarHChartProps<T> {
+  aspectRatio?: string
+  className?: string
+  config: ChartConfig
+  data: readonly T[]
+  legend?: boolean
+  minHeight?: number
+  renderer?: ChartRenderer
+  roughOptions?: RoughOptions
+  xKey: ChartAccessor<T, number>
+  xValueFormatter?: (value: number) => React.ReactNode
+  yKey: ChartAccessor<T, string>
+  yLabelFormatter?: (value: string) => React.ReactNode
+}
+
 interface TooltipState<T> {
   datum: T
 }
 
-const DEFAULT_MARGIN = {
+interface BarRect {
+  height: number
+  width: number
+  x: number
+  y: number
+}
+
+type BarOrientation = "vertical" | "horizontal"
+
+interface BarCoreProps<T> {
+  ariaLabel: string
+  aspectRatio: string
+  categoryFormatter?: (value: string) => React.ReactNode
+  categoryKey: ChartAccessor<T, string>
+  className?: string
+  config: ChartConfig
+  data: readonly T[]
+  emptyLabel: string
+  legend: boolean
+  margin: {
+    bottom: number
+    left: number
+    right: number
+    top: number
+  }
+  minHeight: number
+  orientation: BarOrientation
+  renderer: ChartRenderer
+  roughOptions?: RoughOptions
+  valueFormatter: (value: number) => React.ReactNode
+  valueKey: ChartAccessor<T, number>
+}
+
+const VERTICAL_MARGIN = {
   bottom: 42,
   left: 42,
   right: 16,
   top: 16,
 }
 
-const valueFormatter = new Intl.NumberFormat("zh-CN", {
+const HORIZONTAL_MARGIN = {
+  bottom: 28,
+  left: 150,
+  right: 24,
+  top: 16,
+}
+
+const verticalValueFormatter = new Intl.NumberFormat("zh-CN", {
   maximumFractionDigits: 2,
 })
 
-function formatValue(value: number) {
-  return valueFormatter.format(value)
+const horizontalValueFormatter = new Intl.NumberFormat("zh-CN", {
+  maximumFractionDigits: 2,
+  notation: "compact",
+})
+
+function formatVerticalValue(value: number) {
+  return verticalValueFormatter.format(value)
 }
 
-export function BarChart<T>({
-  aspectRatio = "9 / 4",
+function formatHorizontalValue(value: number) {
+  return horizontalValueFormatter.format(value)
+}
+
+function formatCategory<T>({
+  categoryFormatter,
+  categoryKey,
+  datum,
+}: {
+  categoryFormatter?: (value: string) => React.ReactNode
+  categoryKey: ChartAccessor<T, string>
+  datum: T
+}) {
+  const category = getValue(datum, categoryKey)
+
+  return categoryFormatter ? categoryFormatter(category) : category
+}
+
+function BarChartCore<T>({
+  ariaLabel,
+  aspectRatio,
+  categoryFormatter,
+  categoryKey,
   className,
   config,
   data,
-  legend = false,
-  minHeight = 320,
-  renderer = "svg",
+  emptyLabel,
+  legend,
+  margin,
+  minHeight,
+  orientation,
+  renderer,
   roughOptions,
-  xKey,
-  xLabelFormatter,
-  yKey,
-  yValueFormatter = formatValue,
-}: BarChartProps<T>) {
+  valueFormatter,
+  valueKey,
+}: BarCoreProps<T>) {
   const [hover, setHover] = React.useState<ChartHoverState<"bar"> | null>(null)
   const {
     hideTooltip: hideChartTooltip,
@@ -93,15 +176,16 @@ export function BarChart<T>({
     hideChartTooltip()
   }, [hideChartTooltip])
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
+  const rows = React.useMemo(() => Array.from(data), [data])
   const roughOptionsByKey = React.useMemo(
     () =>
       createRoughOptionsByKey({
         getColorKey: () => seriesKey,
-        getKey: (datum: T) => getValue(datum, xKey),
+        getKey: (datum: T) => getValue(datum, categoryKey),
         options: roughOptions,
         rows: data,
       }) as Map<string, RoughOptions>,
-    [data, roughOptions, seriesKey, xKey]
+    [categoryKey, data, roughOptions, seriesKey]
   )
 
   return (
@@ -111,7 +195,7 @@ export function BarChart<T>({
       config={config}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
-          No bar data
+          {emptyLabel}
         </div>
       }
       isEmpty={data.length === 0}
@@ -120,56 +204,113 @@ export function BarChart<T>({
       {({ height, series, width }) => {
         const layout = createCartesianLayout({
           height,
-          margin: DEFAULT_MARGIN,
+          margin,
           width,
         })
-        const xScale = createBandScale({
-          data: Array.from(data),
+        const categoryScale = createBandScale({
+          data: rows,
           padding: 0.28,
-          range: [0, layout.innerWidth],
-          x: xKey,
+          range:
+            orientation === "vertical"
+              ? [0, layout.innerWidth]
+              : [0, layout.innerHeight],
+          x: categoryKey,
         })
-        const yScale = createLinearScale({
-          range: [layout.innerHeight, 0],
-          values: getFiniteValues(Array.from(data), yKey),
+        const valueScale = createLinearScale({
+          range:
+            orientation === "vertical"
+              ? [layout.innerHeight, 0]
+              : [0, layout.innerWidth],
+          values: getFiniteValues(rows, valueKey),
         })
         const seriesLabel = config[seriesKey]?.label ?? series[0]?.label ?? seriesKey
         const color = getChartCssVariable(seriesKey)
-        const x = (datum: T) => xScale(getValue(datum, xKey)) ?? 0
+        const getCategoryPosition = (datum: T) =>
+          categoryScale(getValue(datum, categoryKey)) ?? 0
+        const getBarRect = (datum: T, value: number): BarRect => {
+          const categoryPosition = getCategoryPosition(datum)
+
+          if (orientation === "vertical") {
+            const y = valueScale(value)
+
+            return {
+              height: layout.innerHeight - y,
+              width: categoryScale.bandwidth(),
+              x: categoryPosition,
+              y,
+            }
+          }
+
+          return {
+            height: categoryScale.bandwidth(),
+            width: valueScale(value),
+            x: 0,
+            y: categoryPosition,
+          }
+        }
 
         return (
           <div className="relative h-full w-full">
             <ChartSvg
-              aria-label="柱形图"
+              aria-label={ariaLabel}
               onPointerLeave={hideTooltip}
               role="img"
             >
               <ChartCartesianGroup layout={layout}>
-                <ChartYAxisGrid
-                  formatTick={yValueFormatter}
-                  innerWidth={layout.innerWidth}
-                  scale={yScale}
-                />
-                <ChartXAxisLabels
-                  data={data}
-                  formatTick={xLabelFormatter}
-                  innerHeight={layout.innerHeight}
-                  x={(datum) => x(datum) + xScale.bandwidth() / 2}
-                  xKey={xKey}
-                />
+                {orientation === "vertical" ? (
+                  <>
+                    <ChartYAxisGrid
+                      formatTick={valueFormatter}
+                      innerWidth={layout.innerWidth}
+                      scale={valueScale}
+                    />
+                    <ChartXAxisLabels
+                      data={data}
+                      formatTick={categoryFormatter}
+                      innerHeight={layout.innerHeight}
+                      x={(datum) =>
+                        getCategoryPosition(datum) + categoryScale.bandwidth() / 2
+                      }
+                      xKey={categoryKey}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <ChartXAxisGrid
+                      formatTick={valueFormatter}
+                      innerHeight={layout.innerHeight}
+                      scale={valueScale}
+                    />
+                    {data.map((datum) => {
+                      const label = getValue(datum, categoryKey)
+                      const labelY =
+                        getCategoryPosition(datum) + categoryScale.bandwidth() / 2
+
+                      return (
+                        <text
+                          className="fill-muted-foreground text-[0.68rem]"
+                          dy="0.32em"
+                          key={label}
+                          textAnchor="end"
+                          x={-8}
+                          y={labelY}
+                        >
+                          {categoryFormatter ? categoryFormatter(label) : label}
+                        </text>
+                      )
+                    })}
+                  </>
+                )}
 
                 {data.map((datum) => {
-                  const category = getValue(datum, xKey)
-                  const value = getValue(datum, yKey)
+                  const category = getValue(datum, categoryKey)
+                  const value = getValue(datum, valueKey)
 
                   if (!isFiniteNumber(value)) {
                     return null
                   }
 
-                  const barX = x(datum)
-                  const barY = yScale(value)
-                  const barHeight = layout.innerHeight - barY
-                  const barWidth = xScale.bandwidth()
+                  const rect = getBarRect(datum, value)
                   const presence = getChartHoverPresence({
                     hover,
                     isRelated: hover?.key === category,
@@ -194,32 +335,32 @@ export function BarChart<T>({
                       >
                         {renderer === "rough" ? (
                           <RoughRect
-                            height={barHeight}
+                            height={rect.height}
                             options={roughOptionsByKey.get(category)}
-                            width={barWidth}
-                            x={barX}
-                            y={barY}
+                            width={rect.width}
+                            x={rect.x}
+                            y={rect.y}
                           />
                         ) : (
                           <Bar
                             fill={color}
-                            height={barHeight}
-                            width={barWidth}
-                            x={barX}
-                            y={barY}
+                            height={rect.height}
+                            width={rect.width}
+                            x={rect.x}
+                            y={rect.y}
                           />
                         )}
                       </g>
                       <ChartHitRect
-                        height={barHeight}
+                        height={rect.height}
                         onPointerEnter={showTooltip}
                         onPointerLeave={hideTooltip}
                         onPointerMove={(event) => {
                           showTooltipFromEvent(event, { datum })
                         }}
-                        width={barWidth}
-                        x={barX}
-                        y={barY}
+                        width={rect.width}
+                        x={rect.x}
+                        y={rect.y}
                       />
                     </g>
                   )
@@ -239,14 +380,14 @@ export function BarChart<T>({
                       color,
                       key: seriesKey,
                       label: seriesLabel,
-                      value: yValueFormatter(getValue(tooltip.datum, yKey)),
+                      value: valueFormatter(getValue(tooltip.datum, valueKey)),
                     },
                   ]}
-                  label={
-                    xLabelFormatter
-                      ? xLabelFormatter(getValue(tooltip.datum, xKey))
-                      : getValue(tooltip.datum, xKey)
-                  }
+                  label={formatCategory({
+                    categoryFormatter,
+                    categoryKey,
+                    datum: tooltip.datum,
+                  })}
                 />
               ) : null}
             </ChartTooltip>
@@ -261,5 +402,77 @@ export function BarChart<T>({
         )
       }}
     </ChartContainer>
+  )
+}
+
+export function BarChart<T>({
+  aspectRatio = "9 / 4",
+  className,
+  config,
+  data,
+  legend = false,
+  minHeight = 320,
+  renderer = "svg",
+  roughOptions,
+  xKey,
+  xLabelFormatter,
+  yKey,
+  yValueFormatter = formatVerticalValue,
+}: BarChartProps<T>) {
+  return (
+    <BarChartCore
+      ariaLabel="柱形图"
+      aspectRatio={aspectRatio}
+      categoryFormatter={xLabelFormatter}
+      categoryKey={xKey}
+      className={className}
+      config={config}
+      data={data}
+      emptyLabel="No bar data"
+      legend={legend}
+      margin={VERTICAL_MARGIN}
+      minHeight={minHeight}
+      orientation="vertical"
+      renderer={renderer}
+      roughOptions={roughOptions}
+      valueFormatter={yValueFormatter}
+      valueKey={yKey}
+    />
+  )
+}
+
+export function BarHChart<T>({
+  aspectRatio = "9 / 5",
+  className,
+  config,
+  data,
+  legend = false,
+  minHeight = 360,
+  renderer = "svg",
+  roughOptions,
+  xKey,
+  xValueFormatter = formatHorizontalValue,
+  yKey,
+  yLabelFormatter,
+}: BarHChartProps<T>) {
+  return (
+    <BarChartCore
+      ariaLabel="水平柱形图"
+      aspectRatio={aspectRatio}
+      categoryFormatter={yLabelFormatter}
+      categoryKey={yKey}
+      className={className}
+      config={config}
+      data={data}
+      emptyLabel="No horizontal bar data"
+      legend={legend}
+      margin={HORIZONTAL_MARGIN}
+      minHeight={minHeight}
+      orientation="horizontal"
+      renderer={renderer}
+      roughOptions={roughOptions}
+      valueFormatter={xValueFormatter}
+      valueKey={xKey}
+    />
   )
 }

@@ -2,10 +2,10 @@ import { localPoint } from "@visx/event"
 import { AxisBottom, AxisLeft } from "@visx/axis"
 import { GridColumns, GridRows } from "@visx/grid"
 import { Group } from "@visx/group"
-import { scaleBand, scaleLinear, scalePoint, scaleTime } from "@visx/scale"
+import { scaleBand, scaleLinear } from "@visx/scale"
 import { ParentSize } from "@visx/responsive"
 import { TooltipWithBounds, useTooltip } from "@visx/tooltip"
-import { buildChartTheme } from "@visx/xychart"
+import { DataContext, buildChartTheme } from "@visx/xychart"
 import * as React from "react"
 import type { ComponentType, ReactNode } from "react"
 
@@ -123,6 +123,26 @@ export const chartXYTheme = buildChartTheme({
   },
   tickLength: 0,
 })
+
+export function ChartXYReferenceLine({ yValue }: { yValue: number }) {
+  const { margin, width, yScale } = React.useContext(DataContext)
+  const y = yScale ? Number(yScale(yValue)) : NaN
+
+  if (!margin || !width || !isFiniteNumber(y)) {
+    return null
+  }
+
+  return (
+    <line
+      className="stroke-border"
+      strokeDasharray="3 3"
+      x1={margin.left}
+      x2={width - margin.right}
+      y1={y}
+      y2={y}
+    />
+  )
+}
 
 export function getChartConfigItem(config: ChartConfig, key: string) {
   return config[key]
@@ -712,25 +732,6 @@ export function ChartXAxisGrid({
   )
 }
 
-export function ChartReferenceLine({
-  innerWidth,
-  y,
-}: {
-  innerWidth: number
-  y: number
-}) {
-  return (
-    <line
-      className="stroke-border"
-      strokeDasharray="3 3"
-      x1={0}
-      x2={innerWidth}
-      y1={y}
-      y2={y}
-    />
-  )
-}
-
 export function ChartXAxisLabels<T>({
   data,
   formatTick,
@@ -788,34 +789,6 @@ export function getFiniteValues<T>(
   accessor: ChartAccessor<T, number>
 ) {
   return data.map((datum) => getValue(datum, accessor)).filter(isFiniteNumber)
-}
-
-export function getPointerPoint(event: React.PointerEvent<SVGElement>) {
-  return localPoint(event)
-}
-
-export function getNearestDatum<T>({
-  data,
-  pointerX,
-  x,
-}: {
-  data: readonly T[]
-  pointerX: number
-  x: (datum: T) => number
-}) {
-  let nearestDatum: T | null = null
-  let nearestDistance = Number.POSITIVE_INFINITY
-
-  for (const datum of data) {
-    const distance = Math.abs(x(datum) - pointerX)
-
-    if (distance < nearestDistance) {
-      nearestDistance = distance
-      nearestDatum = datum
-    }
-  }
-
-  return nearestDatum
 }
 
 export function createRoughOptionsByKey<T, TOptions extends object>({
@@ -895,41 +868,3 @@ export function createBandScale<T>({
   })
 }
 
-export function createPointScale<T>({
-  data,
-  range,
-  x,
-}: {
-  data: T[]
-  range: [number, number]
-  x: ChartAccessor<T, string>
-}) {
-  return scalePoint<string>({
-    domain: data.map((datum) => getValue(datum, x)),
-    range,
-  })
-}
-
-export function createTimeScale<T>({
-  data,
-  range,
-  x,
-}: {
-  data: T[]
-  range: [number, number]
-  x: ChartAccessor<T, Date>
-}) {
-  const values = data
-    .map((datum) => getValue(datum, x).getTime())
-    .filter(isFiniteNumber)
-
-  const [min, max] =
-    values.length > 0
-      ? [Math.min(...values), Math.max(...values)]
-      : [Date.now(), Date.now() + 1]
-
-  return scaleTime({
-    domain: [new Date(min), new Date(max)],
-    range,
-  })
-}

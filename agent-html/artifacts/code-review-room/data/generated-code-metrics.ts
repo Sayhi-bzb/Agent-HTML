@@ -35,7 +35,7 @@ export const codeMetricRows = [
     fanOut: 22,
     loc: 881,
     mi: 20,
-    module: "agent-html/components/sankey-chart.tsx",
+    module: "agent-html/components/chart/sankey-chart.tsx",
     name: "sankey-chart.tsx",
     nesting: 1,
     vol: 4256,

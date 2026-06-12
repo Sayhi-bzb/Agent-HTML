@@ -23,7 +23,7 @@ export const riskFiles = [
   },
   {
     consequence: "shared Sankey primitive mixes visx layout, rough overlays, and token styling",
-    file: "agent-html/components/sankey-chart.tsx",
+    file: "agent-html/components/chart/sankey-chart.tsx",
     lines: "881 LOC",
     risk: "high",
     size: "h-24 w-44",
