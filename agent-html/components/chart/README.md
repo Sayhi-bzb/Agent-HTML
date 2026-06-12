@@ -46,9 +46,10 @@ Use visx primitives by responsibility:
   chart semantics.
 - `@visx/sankey` belongs in `sankey-chart.tsx`; Sankey graph layout, node/link
   adjacency, and ribbon paths are chart-specific semantics.
-- `@visx/axis` and `@visx/grid` are available, but v1 uses Canvas-owned axis and
-  grid helpers to keep DOM shape, Tailwind styling, and artifact ergonomics
-  stable. Revisit only if a chart needs richer axis behavior.
+- `@visx/axis` and `@visx/grid` own numeric axis and grid rendering inside
+  Canvas wrappers. Keep Canvas-owned token classes and wrapper APIs instead of
+  exposing visx axis/grid directly to artifact blocks. Categorical labels stay
+  Canvas-owned until chart wrappers pass real categorical scales.
 
 ## Rough Policy
 

@@ -1,4 +1,6 @@
 import { localPoint } from "@visx/event"
+import { AxisBottom, AxisLeft } from "@visx/axis"
+import { GridColumns, GridRows } from "@visx/grid"
 import { Group } from "@visx/group"
 import { scaleBand, scaleLinear, scalePoint, scaleTime } from "@visx/scale"
 import { ParentSize } from "@visx/responsive"
@@ -628,31 +630,27 @@ export function ChartYAxisGrid({
 }) {
   return (
     <>
-      {scale.ticks(ticks).map((tick) => {
-        const tickY = scale(tick)
-
-        return (
-          <g key={tick}>
-            <line
-              className="stroke-border/50"
-              strokeDasharray="3 3"
-              x1={0}
-              x2={innerWidth}
-              y1={tickY}
-              y2={tickY}
-            />
-            <text
-              className="fill-muted-foreground text-[0.68rem]"
-              dy="0.32em"
-              textAnchor="end"
-              x={-8}
-              y={tickY}
-            >
-              {formatTick(tick)}
-            </text>
-          </g>
-        )
-      })}
+      <GridRows
+        numTicks={ticks}
+        scale={scale}
+        stroke="var(--border)"
+        strokeDasharray="3 3"
+        strokeOpacity={0.5}
+        width={innerWidth}
+      />
+      <AxisLeft
+        hideAxisLine
+        hideTicks
+        numTicks={ticks}
+        scale={scale}
+        tickFormat={(value) => String(formatTick(Number(value)))}
+        tickLabelProps={() => ({
+          className: "fill-muted-foreground text-[0.68rem]",
+          dx: -8,
+          dy: "0.32em",
+          textAnchor: "end",
+        })}
+      />
     </>
   )
 }
@@ -670,31 +668,27 @@ export function ChartXAxisGrid({
 }) {
   return (
     <>
-      {scale.ticks(ticks).map((tick) => {
-        const tickX = scale(tick)
-
-        return (
-          <g key={tick}>
-            <line
-              className="stroke-border/50"
-              strokeDasharray="3 3"
-              x1={tickX}
-              x2={tickX}
-              y1={0}
-              y2={innerHeight}
-            />
-            <text
-              className="fill-muted-foreground text-[0.68rem]"
-              dy="0.72em"
-              textAnchor="middle"
-              x={tickX}
-              y={innerHeight + 12}
-            >
-              {formatTick(tick)}
-            </text>
-          </g>
-        )
-      })}
+      <GridColumns
+        height={innerHeight}
+        numTicks={ticks}
+        scale={scale}
+        stroke="var(--border)"
+        strokeDasharray="3 3"
+        strokeOpacity={0.5}
+      />
+      <AxisBottom
+        hideAxisLine
+        hideTicks
+        numTicks={ticks}
+        scale={scale}
+        tickFormat={(value) => String(formatTick(Number(value)))}
+        tickLabelProps={() => ({
+          className: "fill-muted-foreground text-[0.68rem]",
+          dy: "0.72em",
+          textAnchor: "middle",
+        })}
+        top={innerHeight}
+      />
     </>
   )
 }
@@ -751,7 +745,6 @@ export function ChartXAxisLabels<T>({
     </>
   )
 }
-
 export type ChartAccessor<T, TValue> = keyof T | ((datum: T) => TValue)
 
 export type SvgOnlyChartRenderer = Extract<ChartRenderer, "svg">
