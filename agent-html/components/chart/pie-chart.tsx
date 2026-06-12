@@ -91,36 +91,6 @@ function createSlices<T>({
   }))
 }
 
-function createRoughOptionsByKey<T, TOptions extends object>({
-  getColorKey,
-  getKey,
-  options,
-  rows,
-}: {
-  getColorKey?: (row: T) => string
-  getKey: (row: T) => string
-  options?: TOptions
-  rows: readonly T[]
-}) {
-  const resolveColorKey = getColorKey ?? getKey
-
-  return new Map(
-    rows.map((row) => {
-      const key = getKey(row)
-      const color = getChartCssVariable(resolveColorKey(row))
-
-      return [
-        key,
-        {
-          fill: color,
-          stroke: color,
-          ...options,
-        },
-      ] as const
-    })
-  )
-}
-
 function createPieModel<T>({
   height,
   legend,
@@ -173,15 +143,6 @@ export function PieChart<T>({
   const slices = React.useMemo(
     () => createSlices({ config, data, nameKey, valueKey }),
     [config, data, nameKey, valueKey]
-  )
-  const roughOptionsByKey = React.useMemo(
-    () =>
-      createRoughOptionsByKey({
-        getKey: (slice) => slice.key,
-        options: roughOptions,
-        rows: slices,
-      }) as Map<string, RoughOptions>,
-    [roughOptions, slices]
   )
 
   return (
@@ -243,7 +204,11 @@ export function PieChart<T>({
                             {renderer === "rough" ? (
                               <RoughPath
                                 d={d}
-                                options={roughOptionsByKey.get(arc.data.key)}
+                                options={{
+                                  fill: color,
+                                  stroke: color,
+                                  ...roughOptions,
+                                }}
                               />
                             ) : (
                               <path d={d} fill={color} stroke={color} />

@@ -334,7 +334,7 @@ function NetworkChartSurface<
     () => resolveNetworkGraph({ data, height, layout, width }),
     [data, height, layout, width]
   )
-  const roughLinkOptionsByKey = React.useMemo(() => {
+  const linkRoughOptionsByKey = React.useMemo(() => {
     if (renderer !== "rough") {
       return undefined
     }
@@ -354,7 +354,7 @@ function NetworkChartSurface<
       })
     )
   }, [getLinkColor, graph.links, renderer, roughOptions])
-  const roughNodeOptionsById = React.useMemo(() => {
+  const nodeRoughOptionsById = React.useMemo(() => {
     if (renderer !== "rough") {
       return undefined
     }
@@ -416,7 +416,7 @@ function NetworkChartSurface<
           {renderer === "rough" ? (
             <RoughPath
               d={path}
-              options={roughLinkOptionsByKey?.get(link.key)}
+              options={linkRoughOptionsByKey?.get(link.key)}
             />
           ) : (
             <line
@@ -447,8 +447,8 @@ function NetworkChartSurface<
       graph.links,
       hideTooltip,
       hover,
+      linkRoughOptionsByKey,
       renderer,
-      roughLinkOptionsByKey,
       setHover,
       showTooltip,
     ]
@@ -487,7 +487,7 @@ function NetworkChartSurface<
           {renderer === "rough" ? (
             <RoughCircle
               diameter={node.radius * 2}
-              options={roughNodeOptionsById?.get(node.id)}
+              options={nodeRoughOptionsById?.get(node.id)}
               x={0}
               y={0}
             />
@@ -519,8 +519,8 @@ function NetworkChartSurface<
       graph.nodes,
       hideTooltip,
       hover,
+      nodeRoughOptionsById,
       renderer,
-      roughNodeOptionsById,
       setHover,
       showTooltip,
     ]

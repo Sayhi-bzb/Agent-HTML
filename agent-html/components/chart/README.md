@@ -148,9 +148,11 @@ Use visx primitives by responsibility:
   cell layout, rough circle marks, and `ChartHitCircle` hit layers.
 - `SankeyChart` supports rough rendering through `roughOptions`, with
   Sankey-specific path hit geometry and shared tooltip positioning.
-- `LineChart` and `AreaChart` are SVG-only in v1 and do not expose rough as a
-  valid renderer. Add rough support only after path hit testing and redraw
-  stability are handled the same way as pie/bar.
+- `AreaChart` supports `renderer="svg" | "rough"` by letting `@visx/xychart`
+  compute area and line paths while `RoughPath` owns the rough visual path.
+- `LineChart` is SVG-only in v1 and does not expose rough as a valid renderer.
+  Add rough support only after path hit testing and redraw stability are handled
+  the same way as area/pie/bar.
 
 ## Hover Policy
 

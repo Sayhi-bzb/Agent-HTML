@@ -150,36 +150,6 @@ function formatCategory<T>({
   return categoryFormatter ? categoryFormatter(category) : category
 }
 
-function createRoughOptionsByKey<T, TOptions extends object>({
-  getColorKey,
-  getKey,
-  options,
-  rows,
-}: {
-  getColorKey?: (row: T) => string
-  getKey: (row: T) => string
-  options?: TOptions
-  rows: readonly T[]
-}) {
-  const resolveColorKey = getColorKey ?? getKey
-
-  return new Map(
-    rows.map((row) => {
-      const key = getKey(row)
-      const color = getChartCssVariable(resolveColorKey(row))
-
-      return [
-        key,
-        {
-          fill: color,
-          stroke: color,
-          ...options,
-        },
-      ] as const
-    })
-  )
-}
-
 function BarXAxisLabels<T>({
   data,
   formatTick,
@@ -300,16 +270,6 @@ function BarChartCore<T>({
   } = useChartMarkTooltip<TooltipState<T>, "bar">()
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const rows = React.useMemo(() => Array.from(data), [data])
-  const roughOptionsByKey = React.useMemo(
-    () =>
-      createRoughOptionsByKey({
-        getColorKey: () => seriesKey,
-        getKey: (datum: T) => getValue(datum, categoryKey),
-        options: roughOptions,
-        rows: data,
-      }) as Map<string, RoughOptions>,
-    [categoryKey, data, roughOptions, seriesKey]
-  )
 
   return (
     <ChartContainer
@@ -425,7 +385,11 @@ function BarChartCore<T>({
                         {renderer === "rough" ? (
                           <RoughRect
                             height={rect.height}
-                            options={roughOptionsByKey.get(category)}
+                            options={{
+                              fill: color,
+                              stroke: color,
+                              ...roughOptions,
+                            }}
                             width={rect.width}
                             x={rect.x}
                             y={rect.y}

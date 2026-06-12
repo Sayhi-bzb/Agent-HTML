@@ -370,7 +370,7 @@ function SankeyLinks({
         };
 
         if (roughOptions) {
-          const stableRoughOptions = roughOptionsByIndex?.get(index);
+          const linkRoughOptions = roughOptionsByIndex?.get(index);
 
           return (
             <motion.g
@@ -384,7 +384,7 @@ function SankeyLinks({
             >
               <RoughPath
                 d={roughPath ?? path}
-                options={stableRoughOptions}
+                options={linkRoughOptions}
               />
               <path
                 d={path}
@@ -483,7 +483,7 @@ function SankeyNodes({
             onPointerEnter={handlePointerEnter}
             onPointerLeave={handlePointerLeave}
             roughOptions={roughOptions}
-            stableRoughOptions={roughOptionsByIndex?.get(index)}
+            nodeRoughOptions={roughOptionsByIndex?.get(index)}
             rx={nodeRadius}
             value={displayValue}
             valueOpacity={valueOpacity}
@@ -548,7 +548,7 @@ function SankeyNodeShape({
   valueOpacity,
   isLeftSide,
   roughOptions,
-  stableRoughOptions,
+  nodeRoughOptions,
 }: {
   x: number;
   y: number;
@@ -564,7 +564,7 @@ function SankeyNodeShape({
   valueOpacity: number;
   isLeftSide: boolean;
   roughOptions?: RoughOptions;
-  stableRoughOptions?: RoughOptions;
+  nodeRoughOptions?: RoughOptions;
 }) {
   const labelX = isLeftSide ? x - 12 : x + width + 12;
 
@@ -583,7 +583,7 @@ function SankeyNodeShape({
         >
           <RoughPath
             d={roundedRectPath(x, y, width, height, rx)}
-            options={stableRoughOptions}
+            options={nodeRoughOptions}
           />
         </motion.g>
       ) : (

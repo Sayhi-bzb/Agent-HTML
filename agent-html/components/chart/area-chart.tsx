@@ -1,3 +1,5 @@
+import { curveMonotoneX } from "@visx/curve"
+import { Area, LinePath } from "@visx/shape"
 import {
   AreaSeries,
   Axis,
@@ -7,20 +9,22 @@ import {
   XYChart,
 } from "@visx/xychart"
 import * as React from "react"
+import type { Options as RoughOptions } from "roughjs/bin/core"
 
 import {
   type ChartAccessor,
   type ChartConfig,
   ChartContainer,
   ChartTooltipContent,
+  type ChartRenderer,
   chartXYTheme,
   getChartCssVariable,
   getFiniteValues,
   getNumberDomain,
   getValue,
   isFiniteNumber,
-  type SvgOnlyChartRenderer,
 } from "../ui/chart"
+import { RoughPath } from "@/lib/rough-svg"
 
 export interface AreaChartProps<T> {
   aspectRatio?: string
@@ -29,7 +33,8 @@ export interface AreaChartProps<T> {
   data: readonly T[]
   minHeight?: number
   referenceY?: number
-  renderer?: SvgOnlyChartRenderer
+  renderer?: ChartRenderer
+  roughOptions?: RoughOptions
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -71,6 +76,81 @@ function AreaReferenceLine({ yValue }: { yValue: number }) {
   )
 }
 
+function RoughAreaVisualLayer<T extends object>({
+  color,
+  data,
+  roughOptions,
+  xKey,
+  yKey,
+}: {
+  color: string
+  data: T[]
+  roughOptions?: RoughOptions
+  xKey: ChartAccessor<T, string>
+  yKey: ChartAccessor<T, number>
+}) {
+  const { xScale, yScale } = React.useContext(DataContext)
+
+  if (!xScale || !yScale) {
+    return null
+  }
+
+  const scaleX = xScale as (value: unknown) => unknown
+  const scaleY = yScale as (value: unknown) => unknown
+  const getX = (datum: T) => Number(scaleX(getValue(datum, xKey)))
+  const getY = (datum: T) => Number(scaleY(getValue(datum, yKey)))
+  const baseline = Number(scaleY(0))
+  const isDefined = (datum: T) =>
+    isFiniteNumber(getX(datum)) && isFiniteNumber(getY(datum))
+
+  return (
+    <g aria-hidden="true" pointerEvents="none">
+      <Area
+        curve={curveMonotoneX}
+        data={data}
+        defined={isDefined}
+        x={getX}
+        y0={() => baseline}
+        y1={getY}
+      >
+        {({ path }) => (
+          <RoughPath
+            d={path(data) ?? ""}
+            options={{
+              ...roughOptions,
+              fill: color,
+              fillStyle: roughOptions?.fillStyle ?? "hachure",
+              fillWeight: roughOptions?.fillWeight ?? 0.8,
+              hachureGap: roughOptions?.hachureGap ?? 5,
+              stroke: color,
+              strokeWidth: roughOptions?.strokeWidth ?? 1,
+            }}
+          />
+        )}
+      </Area>
+      <LinePath
+        curve={curveMonotoneX}
+        data={data}
+        defined={isDefined}
+        x={getX}
+        y={getY}
+      >
+        {({ path }) => (
+          <RoughPath
+            d={path(data) ?? ""}
+            options={{
+              ...roughOptions,
+              fill: "none",
+              stroke: color,
+              strokeWidth: 2,
+            }}
+          />
+        )}
+      </LinePath>
+    </g>
+  )
+}
+
 export function AreaChart<T extends object>({
   aspectRatio = "9 / 4",
   className,
@@ -78,6 +158,8 @@ export function AreaChart<T extends object>({
   data,
   minHeight = 320,
   referenceY,
+  renderer = "svg",
+  roughOptions,
   xKey,
   xLabelFormatter,
   yKey,
@@ -144,13 +226,23 @@ export function AreaChart<T extends object>({
               <AreaReferenceLine yValue={referenceY} />
             ) : null}
 
+            {renderer === "rough" ? (
+              <RoughAreaVisualLayer
+                color={color}
+                data={chartData}
+                roughOptions={roughOptions}
+                xKey={xKey}
+                yKey={yKey}
+              />
+            ) : null}
             <AreaSeries
+              curve={curveMonotoneX}
               data={chartData}
               dataKey={seriesKey}
-              fill={color}
-              fillOpacity={0.16}
+              fill={renderer === "rough" ? "transparent" : color}
+              fillOpacity={renderer === "rough" ? 0 : 0.16}
               lineProps={{
-                stroke: color,
+                stroke: renderer === "rough" ? "transparent" : color,
                 strokeWidth: 2,
               }}
               renderLine

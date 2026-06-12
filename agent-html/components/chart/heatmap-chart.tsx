@@ -158,24 +158,6 @@ export function HeatmapChart<T>({
   const maxValue = values.length > 0 ? Math.max(...values) : 1
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const color = getChartCssVariable(seriesKey)
-  const roughOptionsByKey = React.useMemo(() => {
-    if (renderer !== "rough") {
-      return undefined
-    }
-
-    return new Map<string, RoughOptions>(
-      columns.flatMap((column) =>
-        column.bins.map((bin) => [
-          `${column.key}-${bin.key}`,
-          {
-            ...roughOptions,
-            fill: color,
-            stroke: roughOptions?.stroke ?? color,
-          },
-        ] as const)
-      )
-    )
-  }, [color, columns, renderer, roughOptions])
 
   return (
     <ChartContainer
@@ -264,7 +246,11 @@ export function HeatmapChart<T>({
                                 {renderer === "rough" ? (
                                   <RoughCircle
                                     diameter={cell.r * 2}
-                                    options={roughOptionsByKey?.get(key)}
+                                    options={{
+                                      ...roughOptions,
+                                      fill: color,
+                                      stroke: roughOptions?.stroke ?? color,
+                                    }}
                                     x={cell.cx}
                                     y={cell.cy}
                                   />

@@ -39,6 +39,7 @@
     "@react-spring/web": "^10.1.1",
     "@visx/axis": "^4.0.1-alpha.0",
     "@visx/clip-path": "^4.0.1-alpha.0",
+    "@visx/curve": "^4.0.1-alpha.0",
     "@visx/event": "^4.0.1-alpha.0",
     "@visx/glyph": "^4.0.1-alpha.0",
     "@visx/gradient": "^4.0.1-alpha.0",

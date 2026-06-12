@@ -1,3 +1,4 @@
+import { curveMonotoneX } from "@visx/curve"
 import { GlyphCircle } from "@visx/glyph"
 import {
   Axis,
@@ -146,6 +147,7 @@ export function LineChart<T extends object>({
 
             <LineSeries
               colorAccessor={() => color}
+              curve={curveMonotoneX}
               data={chartData}
               dataKey={seriesKey}
               fill="none"
