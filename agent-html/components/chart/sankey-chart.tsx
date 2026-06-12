@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import {
   type ChartHoverState,
   ChartContainer,
+  ChartInteractionRoot,
   ChartSvg,
   ChartTooltip,
   ChartTooltipPanel,
@@ -328,7 +329,7 @@ function SankeyLinks({
   roughOptionsByIndex?: Map<number, RoughOptions>;
   setHover: (hover: SankeyHoverState | null) => void;
   showTooltip: (
-    event: React.MouseEvent<Element>,
+    event: React.MouseEvent<Element> | React.PointerEvent<Element>,
     data: SankeyTooltipData
   ) => void;
   strokeOpacity: number;
@@ -360,11 +361,11 @@ function SankeyLinks({
           presence,
         });
 
-        const handleMouseEnter = (event: React.MouseEvent<Element>) => {
+        const handlePointerEnter = (event: React.PointerEvent<Element>) => {
           setHover({ key: index, type: "link" });
           showTooltip(event, { type: "link", linkIndex: index });
         };
-        const handleMouseLeave = () => {
+        const handlePointerLeave = () => {
           hideTooltip();
         };
 
@@ -376,8 +377,8 @@ function SankeyLinks({
               animate={{ opacity: targetOpacity }}
               initial={{ opacity: strokeOpacity }}
               key={`link-${sourceIndex}-${targetIndex}-${link.width ?? link.value ?? ""}`}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
+              onPointerEnter={handlePointerEnter}
+              onPointerLeave={handlePointerLeave}
               style={{ cursor: "pointer" }}
               transition={chartHoverTransition}
             >
@@ -403,8 +404,8 @@ function SankeyLinks({
             fill="none"
             initial={{ opacity: strokeOpacity }}
             key={`link-${sourceIndex}-${targetIndex}-${link.width ?? link.value ?? ""}`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={handlePointerLeave}
             stroke={stroke}
             strokeWidth={Math.max(1, linkWidth)}
             style={{ cursor: "pointer" }}
@@ -440,7 +441,7 @@ function SankeyNodes({
   roughOptionsByIndex?: Map<number, RoughOptions>;
   setHover: (hover: SankeyHoverState | null) => void;
   showTooltip: (
-    event: React.MouseEvent<Element>,
+    event: React.MouseEvent<Element> | React.PointerEvent<Element>,
     data: SankeyTooltipData
   ) => void;
 }) {
@@ -463,11 +464,11 @@ function SankeyNodes({
         const valueOpacity =
           presence === "faded" ? chartHoverOpacity.textFaded : 0.6;
 
-        const handleMouseEnter = (event: React.MouseEvent<Element>) => {
+        const handlePointerEnter = (event: React.PointerEvent<Element>) => {
           setHover({ key: index, type: "node" });
           showTooltip(event, { type: "node", nodeIndex: index });
         };
-        const handleMouseLeave = () => {
+        const handlePointerLeave = () => {
           hideTooltip();
         };
 
@@ -479,8 +480,8 @@ function SankeyNodes({
             key={`node-${node.name}`}
             name={node.name}
             nodeOpacity={nodeOpacity}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={handlePointerLeave}
             roughOptions={roughOptions}
             stableRoughOptions={roughOptionsByIndex?.get(index)}
             rx={nodeRadius}
@@ -540,8 +541,8 @@ function SankeyNodeShape({
   fill,
   rx,
   nodeOpacity,
-  onMouseEnter,
-  onMouseLeave,
+  onPointerEnter,
+  onPointerLeave,
   name,
   value,
   valueOpacity,
@@ -556,8 +557,8 @@ function SankeyNodeShape({
   fill: string;
   rx: number;
   nodeOpacity: number;
-  onMouseEnter: React.MouseEventHandler<Element>;
-  onMouseLeave: () => void;
+  onPointerEnter: React.PointerEventHandler<Element>;
+  onPointerLeave: () => void;
   name: string;
   value: number;
   valueOpacity: number;
@@ -569,8 +570,8 @@ function SankeyNodeShape({
 
   return (
     <motion.g
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
       style={{ cursor: "pointer" }}
     >
       {roughOptions ? (
@@ -741,7 +742,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
   roughNodeOptionsByIndex?: Map<number, RoughOptions>;
   setHover: (hover: SankeyHoverState | null) => void;
   showTooltip: (
-    event: React.MouseEvent<Element>,
+    event: React.MouseEvent<Element> | React.PointerEvent<Element>,
     data: SankeyTooltipData
   ) => void;
   strokeOpacity: number;
@@ -838,10 +839,9 @@ const SankeyChartCore = memo(function SankeyChartCore({
   }, [setHover]);
 
   return (
-    <div
-      className="relative h-full w-full"
-      onMouseLeave={hideTooltip}
-      onMouseMove={followTooltip}
+    <ChartInteractionRoot
+      onPointerLeave={hideTooltip}
+      onPointerMove={followTooltip}
     >
       <SankeyVisualLayer
         getLinkColor={getLinkColor}
@@ -871,7 +871,7 @@ const SankeyChartCore = memo(function SankeyChartCore({
         tooltipOpen={tooltipOpen}
         tooltipTop={tooltipTop}
       />
-    </div>
+    </ChartInteractionRoot>
   );
 });
 

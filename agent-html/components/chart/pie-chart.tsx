@@ -10,6 +10,7 @@ import type {
 import {
   ChartContainer,
   ChartHitPath,
+  ChartInteractionRoot,
   ChartLegend,
   ChartSvg,
   ChartTooltip,
@@ -205,12 +206,8 @@ export function PieChart<T>({
         })
 
         return (
-          <div className="relative h-full w-full">
-            <ChartSvg
-              aria-label="占比饼图"
-              onPointerLeave={hideTooltip}
-              role="img"
-            >
+          <ChartInteractionRoot onPointerLeave={hideTooltip}>
+            <ChartSvg aria-label="占比饼图" role="img">
               <Pie
                 data={model.slices}
                 outerRadius={model.radius}
@@ -292,7 +289,7 @@ export function PieChart<T>({
                 series={series}
               />
             ) : null}
-          </div>
+          </ChartInteractionRoot>
         )
       }}
     </ChartContainer>

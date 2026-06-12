@@ -8,6 +8,7 @@ import {
   ChartCartesianGroup,
   ChartContainer,
   ChartHitRect,
+  ChartInteractionRoot,
   ChartLegend,
   type ChartRenderer,
   ChartSvg,
@@ -340,12 +341,8 @@ function BarChartCore<T>({
         const color = getChartCssVariable(seriesKey)
 
         return (
-          <div className="relative h-full w-full">
-            <ChartSvg
-              aria-label={ariaLabel}
-              onPointerLeave={hideTooltip}
-              role="img"
-            >
+          <ChartInteractionRoot onPointerLeave={hideTooltip}>
+            <ChartSvg aria-label={ariaLabel} role="img">
               <ChartCartesianGroup layout={layout}>
                 {orientation === "vertical" ? (
                   <>
@@ -488,7 +485,7 @@ function BarChartCore<T>({
                 series={series}
               />
             ) : null}
-          </div>
+          </ChartInteractionRoot>
         )
       }}
     </ChartContainer>

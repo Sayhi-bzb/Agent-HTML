@@ -7,6 +7,9 @@ import {
   type ChartConfig,
   type ChartHoverState,
   ChartContainer,
+  ChartHitCircle,
+  ChartHitLine,
+  ChartInteractionRoot,
   ChartSvg,
   ChartTooltip,
   ChartTooltipPanel,
@@ -427,12 +430,9 @@ function NetworkChartSurface<
               y2={link.target.y}
             />
           )}
-          <line
+          <ChartHitLine
             onPointerEnter={handlePointerEnter}
             onPointerLeave={hideTooltip}
-            pointerEvents="stroke"
-            stroke="transparent"
-            strokeLinecap="round"
             strokeWidth={Math.max(16, link.width + 10)}
             x1={link.source.x}
             x2={link.target.x}
@@ -494,11 +494,11 @@ function NetworkChartSurface<
           ) : (
             <circle fill={color} r={node.radius} />
           )}
-          <circle
-            fill="transparent"
+          <ChartHitCircle
+            cx={0}
+            cy={0}
             onPointerEnter={handlePointerEnter}
             onPointerLeave={hideTooltip}
-            pointerEvents="all"
             r={Math.max(16, node.radius)}
           />
           {node.label ? (
@@ -527,16 +527,11 @@ function NetworkChartSurface<
   )
 
   return (
-    <div
-      className="relative h-full w-full"
+    <ChartInteractionRoot
       onPointerLeave={hideTooltip}
       onPointerMove={followTooltip}
     >
-      <ChartSvg
-        aria-label="network chart"
-        onPointerLeave={hideTooltip}
-        role="img"
-      >
+      <ChartSvg aria-label="network chart" role="img">
         <Graph
           graph={graph}
           linkComponent={NetworkLinkMark}
@@ -569,7 +564,7 @@ function NetworkChartSurface<
             : null}
         </ChartTooltipPanel>
       </ChartTooltip>
-    </div>
+    </ChartInteractionRoot>
   )
 }
 

@@ -110,7 +110,9 @@ Use visx primitives by responsibility:
 - Canvas owns interaction lifecycle: hit layers, hover state, tooltip state,
   tooltip shell, container leave cleanup, and unmount cleanup.
 - Discrete mark charts use Canvas hit layers (`ChartHitRect`, `ChartHitPath`,
-  `ChartHitCircle`) and `ChartInteractionRoot`.
+  `ChartHitCircle`, `ChartHitLine`) and `ChartInteractionRoot`.
+- Curved or compound paths may keep local transparent path hit geometry, but
+  pointer events and cleanup still go through the shared hover/tooltip protocol.
 - `@visx/xychart` tooltip is reserved for whole-chart nearest-datum models such
   as line and area charts. Do not use it as the default interaction model for
   discrete mark charts.
@@ -143,9 +145,9 @@ Use visx primitives by responsibility:
 - `BarHChart` supports `renderer="svg" | "rough"` with a transparent hit rect
   and stable rough options.
 - `HeatmapChart` supports `renderer="svg" | "rough"` with `@visx/heatmap`
-  cell layout, rough circle marks, and transparent hit circles.
+  cell layout, rough circle marks, and `ChartHitCircle` hit layers.
 - `SankeyChart` supports rough rendering through `roughOptions`, with
-  transparent link/node hit layers and shared tooltip positioning.
+  Sankey-specific path hit geometry and shared tooltip positioning.
 - `LineChart` and `AreaChart` are SVG-only in v1 and do not expose rough as a
   valid renderer. Add rough support only after path hit testing and redraw
   stability are handled the same way as pie/bar.

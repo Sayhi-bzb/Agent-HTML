@@ -7,6 +7,8 @@ import {
   type ChartConfig,
   type ChartRenderer,
   ChartContainer,
+  ChartHitCircle,
+  ChartInteractionRoot,
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
@@ -198,8 +200,7 @@ export function HeatmapChart<T>({
         const seriesLabel = series[0]?.label ?? seriesKey
 
         return (
-          <div
-            className="relative h-full w-full"
+          <ChartInteractionRoot
             onPointerLeave={hideTooltip}
             onPointerMove={followTooltip}
           >
@@ -276,11 +277,11 @@ export function HeatmapChart<T>({
                                   />
                                 )}
                               </g>
-                              <circle
-                                aria-label={`${cell.datum.label} ${cell.bin.label}: ${valueFormatter(
+                              <ChartHitCircle
+                                ariaLabel={`${cell.datum.label} ${cell.bin.label}: ${valueFormatter(
                                   cell.bin.value
                                 )}`}
-                                className="fill-transparent outline-none focus-visible:stroke-foreground focus-visible:stroke-2"
+                                className="outline-none focus-visible:stroke-foreground focus-visible:stroke-2"
                                 cx={cell.cx}
                                 cy={cell.cy}
                                 onPointerEnter={(event) => {
@@ -291,7 +292,7 @@ export function HeatmapChart<T>({
                                   })
                                 }}
                                 onPointerLeave={hideTooltip}
-                                pointerEvents="all"
+                                onPointerMove={followTooltip}
                                 r={Math.max(cell.radius, 12)}
                                 tabIndex={0}
                               />
@@ -330,7 +331,7 @@ export function HeatmapChart<T>({
                 )
               ) : null}
             </ChartTooltip>
-          </div>
+          </ChartInteractionRoot>
         )
       }}
     </ChartContainer>
