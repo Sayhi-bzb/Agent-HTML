@@ -1,8 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
-import { ScatterChart } from "../../components/chart"
+import { ScatterChart } from "../../components/chart/scatter-chart"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
-import type { ChartConfig, ChartTooltipField } from "../../components/ui/chart"
+import type { ChartConfig, ChartTooltipField } from "../../components/chart/types"
 import { StatusBadge } from "../../components/ui/status-badge"
 import {
   codeMetricChartDomain,
@@ -170,6 +170,12 @@ export function CodeMetricsBlock() {
             minHeight={360}
             radiusKey="fanOut"
             referenceY={10}
+            renderer="texture"
+            texture={{
+              density: "dense",
+              kind: "circles",
+              opacity: 1,
+            }}
             tooltipFields={codeMetricTooltipFields}
             tooltipLabel={(row) => `${row.name} @ ${row.module}`}
             xAxisLabel="Lines of code"

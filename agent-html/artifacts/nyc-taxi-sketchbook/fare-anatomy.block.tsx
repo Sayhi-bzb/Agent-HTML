@@ -3,8 +3,9 @@ import {
   payment,
 } from "./data/generated-fare-anatomy"
 import { taxiKpis } from "./data/generated-trip-summary"
-import { BarChart, PieChart } from "../../components/chart"
-import type { ChartConfig } from "../../components/ui/chart"
+import { BarChart } from "../../components/chart/bar-chart"
+import { PieChart } from "../../components/chart/pie-chart"
+import type { ChartConfig } from "../../components/chart/types"
 
 import { roughSketchMarkOptions } from "./rough-theme"
 import {
@@ -72,7 +73,7 @@ export function FareAnatomyBlock() {
             data={components}
             minHeight={320}
             renderer="rough"
-            roughOptions={{
+            rough={{
               ...roughSketchMarkOptions,
               fillStyle: "cross-hatch",
             }}
@@ -139,7 +140,7 @@ export function FareAnatomyBlock() {
               minHeight={220}
               nameKey="label"
               renderer="rough"
-              roughOptions={roughSketchMarkOptions}
+              rough={roughSketchMarkOptions}
               valueKey="share"
             />
             <div className="canvas-stack-sm">

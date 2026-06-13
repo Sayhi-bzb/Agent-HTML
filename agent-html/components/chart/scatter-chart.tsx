@@ -8,12 +8,19 @@ import {
 import * as React from "react"
 
 import {
+  type ChartTextureOptions,
+  ChartRenderedCircle,
+  ChartRendererDefs,
+} from "./runtime"
+import {
   type ChartAccessor,
   type ChartConfig,
+  type ChartRoughOptions,
   ChartContainer,
   ChartHitCircle,
   ChartInteractionRoot,
   ChartMotionCircle,
+  ChartMotionGroup,
   ChartTooltip,
   type ChartTooltipField,
   ChartTooltipContent,
@@ -24,9 +31,10 @@ import {
   getValue,
   isFiniteNumber,
   resolveChartTooltipItems,
-  type SvgOnlyChartRenderer,
+  type ChartRenderer,
+  resolveChartRenderer,
   useChartMarkInteraction,
-} from "../ui/chart"
+} from "./runtime"
 
 export type ScatterScaleType = "linear" | "log"
 
@@ -47,13 +55,15 @@ export interface ScatterChartProps<T> {
   minHeight?: number
   radiusKey?: ChartAccessor<T, number>
   referenceY?: number
-  renderer?: SvgOnlyChartRenderer
+  renderer?: ChartRenderer
   renderTooltip?: (
     datum: T,
     context: ScatterTooltipContext
   ) => React.ReactNode
+  rough?: ChartRoughOptions
   tooltipFields?: readonly ChartTooltipField<T>[]
   tooltipLabel?: ChartAccessor<T, React.ReactNode>
+  texture?: ChartTextureOptions
   xAxisLabel?: React.ReactNode
   xDomain?: readonly [number, number]
   xKey: ChartAccessor<T, number>
@@ -314,9 +324,12 @@ export function ScatterChart<T extends object>({
   minHeight = 320,
   radiusKey,
   referenceY,
+  renderer,
   renderTooltip,
+  rough,
   tooltipFields,
   tooltipLabel,
+  texture,
   xAxisLabel,
   xDomain,
   xKey,
@@ -341,6 +354,12 @@ export function ScatterChart<T extends object>({
     tooltipOpen,
     tooltipTop,
   } = useChartMarkInteraction<TooltipState<T>, "point">()
+  const textureScopeId = React.useId()
+  const resolvedRenderer = resolveChartRenderer(renderer, [
+    "svg",
+    "rough",
+    "texture",
+  ])
 
   return (
     <ChartContainer
@@ -445,6 +464,17 @@ export function ScatterChart<T extends object>({
               isValidScaleValue(referenceY, yScaleType) ? (
                 <ScatterReferenceLine yValue={referenceY} />
               ) : null}
+              {points.map((point, index) => (
+                <ChartRendererDefs
+                  color={point.color}
+                  key={point.key}
+                  renderer={resolvedRenderer}
+                  textureIndex={index}
+                  textureKey={`scatter:${point.key}`}
+                  texture={texture}
+                  textureScopeId={textureScopeId}
+                />
+              ))}
 
               <GlyphSeries
                 colorAccessor={(point) => point.color}
@@ -456,9 +486,38 @@ export function ScatterChart<T extends object>({
                     baseOpacity: 0.82,
                     key: point.key,
                   })
-
                   return (
-                    <ChartMotionCircle
+                    resolvedRenderer === "rough" || resolvedRenderer === "texture" ? (
+                      <ChartMotionGroup
+                        animate={{
+                          opacity: markState.opacity,
+                        }}
+                        initial={false}
+                        key={key}
+                        pointerEvents="none"
+                        transition={chartMotion.hover}
+                        transform={`translate(${x}, ${y})`}
+                      >
+                        <ChartRenderedCircle
+                          color={point.color}
+                          cx={0}
+                          cy={0}
+                          renderer={resolvedRenderer}
+                          rough={rough}
+                          r={markState.isHighlighted
+                            ? point.radius + 1.5
+                            : point.radius}
+                          stroke={point.color}
+                          strokeOpacity={markState.isHighlighted ? 1 : 0.8}
+                          strokeWidth={1}
+                          textureIndex={points.indexOf(point)}
+                          textureKey={`scatter:${point.key}`}
+                          texture={texture}
+                          textureScopeId={textureScopeId}
+                        />
+                      </ChartMotionGroup>
+                    ) : (
+                      <ChartMotionCircle
                       animate={{
                         opacity: markState.opacity,
                         r: markState.isHighlighted
@@ -475,6 +534,7 @@ export function ScatterChart<T extends object>({
                       pointerEvents="none"
                       transition={chartMotion.hover}
                     />
+                    )
                   )
                 }}
                 xAccessor={xAccessor}

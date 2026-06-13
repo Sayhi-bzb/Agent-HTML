@@ -1,5 +1,5 @@
-import { AreaChart } from "../../components/chart"
-import type { ChartConfig } from "../../components/ui/chart"
+import { AreaChart } from "../../components/chart/area-chart"
+import type { ChartConfig } from "../../components/chart/types"
 import { Badge } from "../../components/ui/badge"
 import { Progress } from "../../components/ui/progress"
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
@@ -78,7 +78,7 @@ export function ReleaseRoutesBlock() {
           minHeight={260}
           referenceY={75}
           renderer="texture"
-          textureOptions={{
+          texture={{
             density: "normal",
             kind: "waves",
             opacity: 0.35,

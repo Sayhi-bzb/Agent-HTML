@@ -42,12 +42,16 @@ const ignoredLargeFileExtensions = new Set([
 ])
 
 const apiSections = [
+  {
+    label: "components/chart",
+    sourceDir: "components/chart",
+    include: ["types.d.ts", "*-chart.d.ts"],
+  },
   { label: "components/ui", sourceDir: "components/ui" },
   { label: "components", sourceDir: "components", directOnly: true },
   { label: "hooks", sourceDir: "hooks" },
   { label: "lib", sourceDir: "lib" },
   { label: "schema", sourceDir: "schema" },
-  { label: "theme", sourceDir: "theme" },
 ]
 const obsoleteGeneratedPaths = [
   "index/exports.md",
@@ -224,14 +228,14 @@ function buildApiSurfaceMarkdown() {
         const exports = extractExportedNames(content)
 
         return [
-          `\`${sourcePathForDeclaration(section.sourceDir, file)}\``,
+          `\`${relativeSourcePathForDeclaration(section.sourceDir, file)}\``,
           exports.map((name) => `\`${name}\``).join(", "),
         ]
       })
       .filter((row) => row[1])
 
     sections.push("")
-    sections.push(`## ${section.label}`)
+    sections.push(`## agent-html/${section.sourceDir}/`)
     sections.push("")
     sections.push(markdownTable(["File", "Exports"], rows))
   }
@@ -251,10 +255,40 @@ function readApiSectionFiles(dir, directOnly = false) {
 
   return files
     .filter((file) => file.endsWith(".d.ts"))
+    .filter((file) => matchesApiSectionInclude(dir, file))
     .sort((a, b) => toRepoPath(a).localeCompare(toRepoPath(b)))
 }
 
-function sourcePathForDeclaration(sourceDir, declarationPath) {
+function matchesApiSectionInclude(sectionDir, file) {
+  const section = apiSections.find(
+    ({ sourceDir }) =>
+      path.join(dtsWorkspaceRoot, sourceDir) === sectionDir
+  )
+
+  if (!section?.include) {
+    return true
+  }
+
+  const relative = path
+    .relative(sectionDir, file)
+    .replaceAll(path.sep, "/")
+
+  return section.include.some((pattern) => {
+    if (!pattern.includes("*")) {
+      return relative === pattern
+    }
+
+    const regex = new RegExp(
+      `^${pattern
+        .split("*")
+        .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join(".*")}$`
+    )
+    return regex.test(relative)
+  })
+}
+
+function relativeSourcePathForDeclaration(sourceDir, declarationPath) {
   const relative = path
     .relative(path.join(dtsWorkspaceRoot, sourceDir), declarationPath)
     .replaceAll(path.sep, "/")
@@ -265,12 +299,12 @@ function sourcePathForDeclaration(sourceDir, declarationPath) {
     ? ".tsx"
     : ".ts"
 
-  return `agent-html/${sourceDir}/${basePath}${sourceExt}`
+  return `${basePath}${sourceExt}`
 }
 
 function extractExportedNames(content) {
   const names = new Set()
-  const exportBlockPattern = /export\s*\{([^}]+)\};/g
+  const exportBlockPattern = /export\s+(?:type\s+)?\{([^}]+)\}(?:\s+from\s+["'][^"']+["'])?;/g
   let exportBlockMatch
 
   while ((exportBlockMatch = exportBlockPattern.exec(content))) {
@@ -583,7 +617,7 @@ function buildReadme() {
     "1. Read `large-files.md` before opening broad coverage artifacts or large primitives.",
     "2. Read `dependency-summary.md` before broad dependency or boundary work.",
     "3. Read `reuse-surface.md` when choosing reusable hooks or helpers.",
-    "4. Read `api-surface.md` when checking component, hook, helper, or theme exports.",
+    "4. Read `api-surface.md` when checking component, hook, helper, or schema exports.",
     "5. Open source only after the index identifies the relevant file.",
     "",
     "## Files",

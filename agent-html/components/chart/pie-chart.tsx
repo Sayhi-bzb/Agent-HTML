@@ -1,20 +1,17 @@
 import { Pie } from "@visx/shape"
 import * as React from "react"
-import type { Options as RoughOptions } from "roughjs/bin/core"
 
 import {
-  ChartTextureDefs,
-  ChartTexturePath,
-  createChartTextureId,
-  resolveChartTextureOptions,
+  type ChartRoughOptions,
   type ChartTextureOptions,
-} from "@/lib/chart-texture"
-import { RoughPath } from "@/lib/rough-svg"
+  ChartRenderedPath,
+  ChartRendererDefs,
+} from "./runtime"
 import type {
   ChartAccessor,
   ChartConfig,
   ChartRenderer,
-} from "../ui/chart"
+} from "./runtime"
 import {
   ChartContainer,
   ChartHitPath,
@@ -27,8 +24,9 @@ import {
   getChartCssVariable,
   getValue,
   isFiniteNumber,
+  resolveChartRenderer,
   useChartMarkInteraction,
-} from "../ui/chart"
+} from "./runtime"
 
 export interface PieChartProps<T> {
   aspectRatio?: string
@@ -39,8 +37,8 @@ export interface PieChartProps<T> {
   minHeight?: number
   nameKey: ChartAccessor<T, string>
   renderer?: ChartRenderer
-  roughOptions?: RoughOptions
-  textureOptions?: ChartTextureOptions
+  rough?: ChartRoughOptions
+  texture?: ChartTextureOptions
   valueFormatter?: (value: number) => React.ReactNode
   valueKey: ChartAccessor<T, number>
 }
@@ -131,11 +129,16 @@ export function PieChart<T>({
   minHeight = 220,
   nameKey,
   renderer = "svg",
-  roughOptions,
-  textureOptions,
+  rough,
+  texture,
   valueFormatter = formatValue,
   valueKey,
 }: PieChartProps<T>) {
+  const resolvedRenderer = resolveChartRenderer(renderer, [
+    "svg",
+    "rough",
+    "texture",
+  ])
   const {
     currentTooltipData: tooltip,
     followTooltip,
@@ -177,17 +180,17 @@ export function PieChart<T>({
         return (
           <ChartInteractionRoot onPointerLeave={hideTooltip}>
             <ChartSvg aria-label="占比饼图" role="img">
-              {renderer === "texture"
-                ? model.slices.map((slice, index) => (
-                    <ChartTextureDefs
-                      color={getChartCssVariable(slice.key)}
-                      id={createChartTextureId("pie", textureScopeId, slice.key)}
-                      index={index}
-                      key={slice.key}
-                      options={textureOptions}
-                    />
-                  ))
-                : null}
+              {model.slices.map((slice, index) => (
+                <ChartRendererDefs
+                  color={getChartCssVariable(slice.key)}
+                  key={slice.key}
+                  renderer={resolvedRenderer}
+                  textureIndex={index}
+                  textureKey={`pie:${slice.key}`}
+                  texture={texture}
+                  textureScopeId={textureScopeId}
+                />
+              ))}
               <Pie
                 data={model.slices}
                 outerRadius={model.radius}
@@ -200,15 +203,6 @@ export function PieChart<T>({
                       const color = getChartCssVariable(arc.data.key)
                       const key = getMarkKey("slice", arc.data.key)
                       const markMotion = getMarkMotion({ key })
-                      const textureId = createChartTextureId(
-                        "pie",
-                        textureScopeId,
-                        arc.data.key
-                      )
-                      const texture = resolveChartTextureOptions({
-                        index: arcs.indexOf(arc),
-                        options: textureOptions,
-                      })
                       const showTooltip = (
                         event: React.PointerEvent<SVGPathElement>
                       ) => {
@@ -225,24 +219,17 @@ export function PieChart<T>({
                           <ChartMotionGroup
                             {...markMotion}
                           >
-                            {renderer === "rough" ? (
-                              <RoughPath
-                                d={d}
-                                options={{
-                                  fill: color,
-                                  stroke: color,
-                                  ...roughOptions,
-                                }}
-                              />
-                            ) : renderer === "texture" ? (
-                              <ChartTexturePath
-                                d={d}
-                                id={textureId}
-                                opacity={texture.opacity}
-                              />
-                            ) : (
-                              <path d={d} fill={color} stroke={color} />
-                            )}
+                            <ChartRenderedPath
+                              color={color}
+                              d={d}
+                              renderer={resolvedRenderer}
+                              rough={rough}
+                              stroke={color}
+                              textureIndex={arcs.indexOf(arc)}
+                              textureKey={`pie:${arc.data.key}`}
+                              texture={texture}
+                              textureScopeId={textureScopeId}
+                            />
                           </ChartMotionGroup>
                           <ChartHitPath
                             d={d}

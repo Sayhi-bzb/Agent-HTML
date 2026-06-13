@@ -9,7 +9,7 @@ Use this directory to choose the next file to open. It is an agent-facing index 
 1. Read `large-files.md` before opening broad coverage artifacts or large primitives.
 2. Read `dependency-summary.md` before broad dependency or boundary work.
 3. Read `reuse-surface.md` when choosing reusable hooks or helpers.
-4. Read `api-surface.md` when checking component, hook, helper, or theme exports.
+4. Read `api-surface.md` when checking component, hook, helper, or schema exports.
 5. Open source only after the index identifies the relevant file.
 
 ## Files

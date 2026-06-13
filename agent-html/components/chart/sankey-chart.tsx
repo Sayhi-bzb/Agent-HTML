@@ -11,25 +11,25 @@ import {
   type ReactNode,
   useMemo,
 } from "react";
-import type { Options as RoughOptions } from "roughjs/bin/core";
 import { cn } from "@/lib/utils";
 import {
   type ChartHoverState,
+  type ChartRoughOptions,
   ChartContainer,
   ChartInteractionRoot,
   ChartMotionGroup,
-  ChartMotionPath,
-  ChartMotionRect,
   ChartMotionText,
   ChartSvg,
   ChartTooltip,
   ChartTooltipPanel,
+  type ChartRenderer,
   chartHoverOpacity,
   chartMotion,
   getChartMarkKey,
+  resolveChartRenderer,
   useChartMarkInteraction,
-} from "../ui/chart";
-import { RoughPath } from "@/lib/rough-svg";
+} from "./runtime";
+import { ChartRenderedPath } from "./runtime";
 
 interface Margin {
   top: number;
@@ -92,7 +92,8 @@ interface SankeyChartProps {
     node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>;
     index: number;
   }) => ReactNode;
-  roughOptions?: RoughOptions;
+  renderer?: ChartRenderer;
+  rough?: ChartRoughOptions;
   strokeOpacity?: number;
 }
 
@@ -106,7 +107,8 @@ interface SankeyChartCoreProps {
   nodeWidth: number;
   renderLinkTooltip?: SankeyChartProps["renderLinkTooltip"];
   renderNodeTooltip?: SankeyChartProps["renderNodeTooltip"];
-  roughOptions?: RoughOptions;
+  renderer: ChartRenderer;
+  rough?: ChartRoughOptions;
   strokeOpacity: number;
   width: number;
   height: number;
@@ -259,13 +261,13 @@ function createSankeyGraph({
 function createSankeyRoughLinkOptions({
   getLinkColor,
   graph,
-  roughOptions,
+  rough,
 }: {
   getLinkColor?: SankeyChartProps["getLinkColor"];
   graph: SankeyGraph<SankeyNodeDatum, SankeyLinkDatum>;
-  roughOptions?: RoughOptions;
+  rough?: ChartRoughOptions;
 }) {
-  if (!roughOptions) {
+  if (!rough) {
     return undefined;
   }
 
@@ -280,11 +282,11 @@ function createSankeyRoughLinkOptions({
       return [
         index,
         {
-          ...roughOptions,
+          ...rough,
           fill: roughPath ? stroke : "none",
           stroke,
           strokeWidth: roughPath
-            ? (roughOptions.strokeWidth ?? 1)
+            ? (rough.strokeWidth ?? 1)
             : Math.max(1, linkWidth),
         },
       ] as const;
@@ -295,13 +297,13 @@ function createSankeyRoughLinkOptions({
 function createSankeyRoughNodeOptions({
   getNodeColor,
   graph,
-  roughOptions,
+  rough,
 }: {
   getNodeColor?: SankeyChartProps["getNodeColor"];
   graph: SankeyGraph<SankeyNodeDatum, SankeyLinkDatum>;
-  roughOptions?: RoughOptions;
+  rough?: ChartRoughOptions;
 }) {
-  if (!roughOptions) {
+  if (!rough) {
     return undefined;
   }
 
@@ -312,10 +314,10 @@ function createSankeyRoughNodeOptions({
       return [
         index,
         {
-          ...roughOptions,
+          ...rough,
           fill,
-          stroke: roughOptions.stroke ?? fill,
-          strokeWidth: roughOptions.strokeWidth ?? 1,
+          stroke: rough.stroke ?? fill,
+          strokeWidth: rough.strokeWidth ?? 1,
         },
       ] as const;
     })
@@ -328,8 +330,8 @@ function SankeyLinks({
   hideTooltip,
   hover,
   links,
-  roughOptions,
-  roughOptionsByIndex,
+  roughByIndex,
+  renderer,
   showMark,
   strokeOpacity,
 }: {
@@ -338,8 +340,8 @@ function SankeyLinks({
   hideTooltip: () => void;
   hover: SankeyHoverState | null;
   links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
-  roughOptions?: RoughOptions;
-  roughOptionsByIndex?: Map<number, RoughOptions>;
+  roughByIndex?: Map<number, ChartRoughOptions>;
+  renderer: ChartRenderer;
   showMark: SankeyMarkInteraction["showMark"];
   strokeOpacity: number;
 }) {
@@ -352,7 +354,7 @@ function SankeyLinks({
         }
 
         const linkWidth = link.width ?? 1;
-        const roughPath = roughOptions ? createRibbonPath(link) : undefined;
+        const roughPath = renderer === "rough" ? createRibbonPath(link) : undefined;
         const sourceIndex = getNodeIndex(link.source as NodeOrIndex) ?? -1;
         const targetIndex = getNodeIndex(link.target as NodeOrIndex) ?? -1;
         const linkKey = getSankeyLinkKey(index);
@@ -382,48 +384,35 @@ function SankeyLinks({
           hideTooltip();
         };
 
-        if (roughOptions) {
-          const linkRoughOptions = roughOptionsByIndex?.get(index);
-
-          return (
-            <ChartMotionGroup
-              animate={{ opacity: targetOpacity }}
-              initial={{ opacity: strokeOpacity }}
-              key={linkKey}
-              onPointerEnter={handlePointerEnter}
-              onPointerLeave={handlePointerLeave}
-              style={{ cursor: "pointer" }}
-              transition={chartMotion.hover}
-            >
-              <RoughPath
-                d={roughPath ?? path}
-                options={linkRoughOptions}
-              />
-              <path
-                d={path}
-                fill="none"
-                pointerEvents="stroke"
-                stroke="transparent"
-                strokeWidth={Math.max(8, linkWidth)}
-              />
-            </ChartMotionGroup>
-          );
-        }
-
         return (
-          <ChartMotionPath
+          <ChartMotionGroup
             animate={{ opacity: targetOpacity }}
-            d={path}
-            fill="none"
             initial={{ opacity: strokeOpacity }}
             key={linkKey}
             onPointerEnter={handlePointerEnter}
             onPointerLeave={handlePointerLeave}
-            stroke={stroke}
-            strokeWidth={Math.max(1, linkWidth)}
             style={{ cursor: "pointer" }}
             transition={chartMotion.hover}
-          />
+          >
+            <ChartRenderedPath
+              color={stroke}
+              d={roughPath ?? path}
+              fill={renderer === "rough" && roughPath ? stroke : "none"}
+              renderer={renderer}
+              rough={roughByIndex?.get(index)}
+              stroke={stroke}
+              strokeWidth={Math.max(1, linkWidth)}
+              textureKey={`sankey-link:${index}`}
+              textureScopeId="sankey"
+            />
+            <path
+              d={path}
+              fill="none"
+              pointerEvents="stroke"
+              stroke="transparent"
+              strokeWidth={Math.max(8, linkWidth)}
+            />
+          </ChartMotionGroup>
         );
       })}
     </g>
@@ -439,8 +428,8 @@ function SankeyNodes({
   links,
   nodeRadius,
   nodes,
-  roughOptions,
-  roughOptionsByIndex,
+  renderer,
+  roughByIndex,
   showMark,
 }: {
   getNodeColor?: SankeyChartProps["getNodeColor"];
@@ -451,8 +440,8 @@ function SankeyNodes({
   links: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>[];
   nodeRadius: number;
   nodes: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>[];
-  roughOptions?: RoughOptions;
-  roughOptionsByIndex?: Map<number, RoughOptions>;
+  renderer: ChartRenderer;
+  roughByIndex?: Map<number, ChartRoughOptions>;
   showMark: SankeyMarkInteraction["showMark"];
 }) {
   return (
@@ -497,8 +486,8 @@ function SankeyNodes({
             nodeOpacity={nodeOpacity}
             onPointerEnter={handlePointerEnter}
             onPointerLeave={handlePointerLeave}
-            roughOptions={roughOptions}
-            nodeRoughOptions={roughOptionsByIndex?.get(index)}
+            renderer={renderer}
+            nodeRoughOptions={roughByIndex?.get(index)}
             rx={nodeRadius}
             value={displayValue}
             valueOpacity={valueOpacity}
@@ -566,8 +555,8 @@ function SankeyNodeShape({
   value,
   valueOpacity,
   isLeftSide,
-  roughOptions,
   nodeRoughOptions,
+  renderer,
 }: {
   x: number;
   y: number;
@@ -578,14 +567,15 @@ function SankeyNodeShape({
   nodeOpacity: number;
   onPointerEnter: React.PointerEventHandler<Element>;
   onPointerLeave: () => void;
+  renderer: ChartRenderer;
   name: string;
   value: number;
   valueOpacity: number;
   isLeftSide: boolean;
-  roughOptions?: RoughOptions;
-  nodeRoughOptions?: RoughOptions;
+  nodeRoughOptions?: ChartRoughOptions;
 }) {
   const labelX = isLeftSide ? x - 12 : x + width + 12;
+  const path = roundedRectPath(x, y, width, height, rx);
 
   return (
     <ChartMotionGroup
@@ -593,32 +583,21 @@ function SankeyNodeShape({
       onPointerLeave={onPointerLeave}
       style={{ cursor: "pointer" }}
     >
-      {roughOptions ? (
-        <ChartMotionGroup
-          animate={{ opacity: nodeOpacity }}
-          initial={false}
-          style={{ color: fill }}
-          transition={chartMotion.hover}
-        >
-          <RoughPath
-            d={roundedRectPath(x, y, width, height, rx)}
-            options={nodeRoughOptions}
-          />
-        </ChartMotionGroup>
-      ) : (
-        <ChartMotionRect
-          animate={{ opacity: nodeOpacity }}
-          fill={fill}
-          height={height}
-          initial={false}
-          rx={rx}
-          ry={rx}
-          transition={chartMotion.hover}
-          width={width}
-          x={x}
-          y={y}
+      <ChartMotionGroup
+        animate={{ opacity: nodeOpacity }}
+        initial={false}
+        style={{ color: fill }}
+        transition={chartMotion.hover}
+      >
+        <ChartRenderedPath
+          color={fill}
+          d={path}
+          renderer={renderer}
+          rough={nodeRoughOptions}
+          textureKey={`sankey-node:${name}`}
+          textureScopeId="sankey"
         />
-      )}
+      </ChartMotionGroup>
       <ChartMotionText
         animate={{ opacity: nodeOpacity, x: labelX }}
         className="fill-foreground font-medium text-[13px]"
@@ -740,7 +719,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
   innerWidth,
   margin,
   nodeRadius,
-  roughOptions,
+  renderer,
   roughLinkOptionsByIndex,
   roughNodeOptionsByIndex,
   showMark,
@@ -757,9 +736,9 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
   innerWidth: number;
   margin: Margin;
   nodeRadius: number;
-  roughOptions?: RoughOptions;
-  roughLinkOptionsByIndex?: Map<number, RoughOptions>;
-  roughNodeOptionsByIndex?: Map<number, RoughOptions>;
+  renderer: ChartRenderer;
+  roughLinkOptionsByIndex?: Map<number, ChartRoughOptions>;
+  roughNodeOptionsByIndex?: Map<number, ChartRoughOptions>;
   showMark: SankeyMarkInteraction["showMark"];
   strokeOpacity: number;
   width: number;
@@ -773,8 +752,8 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
           hideTooltip={hideTooltip}
           hover={hover}
           links={graph.links}
-          roughOptions={roughOptions}
-          roughOptionsByIndex={roughLinkOptionsByIndex}
+          renderer={renderer}
+          roughByIndex={roughLinkOptionsByIndex}
           showMark={showMark}
           strokeOpacity={strokeOpacity}
         />
@@ -787,8 +766,8 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
           links={graph.links}
           nodeRadius={nodeRadius}
           nodes={graph.nodes}
-          roughOptions={roughOptions}
-          roughOptionsByIndex={roughNodeOptionsByIndex}
+          renderer={renderer}
+          roughByIndex={roughNodeOptionsByIndex}
           showMark={showMark}
         />
       </g>
@@ -807,7 +786,8 @@ const SankeyChartCore = memo(function SankeyChartCore({
   nodeWidth,
   renderLinkTooltip,
   renderNodeTooltip,
-  roughOptions,
+  renderer,
+  rough,
   strokeOpacity,
   width,
 }: SankeyChartCoreProps) {
@@ -842,12 +822,18 @@ const SankeyChartCore = memo(function SankeyChartCore({
     [data, sankeyGenerator]
   );
   const roughLinkOptionsByIndex = useMemo(
-    () => createSankeyRoughLinkOptions({ getLinkColor, graph, roughOptions }),
-    [getLinkColor, graph, roughOptions]
+    () =>
+      renderer === "rough"
+        ? createSankeyRoughLinkOptions({ getLinkColor, graph, rough })
+        : undefined,
+    [getLinkColor, graph, renderer, rough]
   );
   const roughNodeOptionsByIndex = useMemo(
-    () => createSankeyRoughNodeOptions({ getNodeColor, graph, roughOptions }),
-    [getNodeColor, graph, roughOptions]
+    () =>
+      renderer === "rough"
+        ? createSankeyRoughNodeOptions({ getNodeColor, graph, rough })
+        : undefined,
+    [getNodeColor, graph, renderer, rough]
   );
 
   return (
@@ -866,9 +852,9 @@ const SankeyChartCore = memo(function SankeyChartCore({
         innerWidth={innerWidth}
         margin={margin}
         nodeRadius={nodeRadius}
+        renderer={renderer}
         roughLinkOptionsByIndex={roughLinkOptionsByIndex}
         roughNodeOptionsByIndex={roughNodeOptionsByIndex}
-        roughOptions={roughOptions}
         showMark={showMark}
         strokeOpacity={strokeOpacity}
         width={width}
@@ -895,12 +881,17 @@ export function SankeyChart({
   layout,
   renderLinkTooltip,
   renderNodeTooltip,
-  roughOptions,
+  renderer,
+  rough,
   strokeOpacity = 0.5,
 }: SankeyChartProps) {
   const margin = { ...DEFAULT_MARGIN, ...layout?.margin };
   const aspectRatio = layout?.aspectRatio ?? "2 / 1";
   const isEmpty = data.nodes.length === 0 || data.links.length === 0;
+  const resolvedRenderer = resolveChartRenderer(
+    renderer ?? (rough ? "rough" : undefined),
+    ["svg", "rough"]
+  );
 
   return (
     <ChartContainer
@@ -927,7 +918,8 @@ export function SankeyChart({
           nodeWidth={layout?.nodeWidth ?? 16}
           renderLinkTooltip={renderLinkTooltip}
           renderNodeTooltip={renderNodeTooltip}
-          roughOptions={roughOptions}
+          renderer={resolvedRenderer}
+          rough={rough}
           strokeOpacity={strokeOpacity}
           width={width}
         />

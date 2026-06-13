@@ -1,4 +1,4 @@
-import { HeatmapChart } from "../../components/chart"
+import { HeatmapChart } from "../../components/chart/heatmap-chart"
 import { hourDay } from "./data/generated-city-rhythm"
 import { roughSketchMarkOptions } from "./rough-theme"
 import {
@@ -71,7 +71,7 @@ export function CityRhythmBlock() {
                 </div>
               )}
               renderer="rough"
-              roughOptions={{
+              rough={{
                 ...roughSketchMarkOptions,
                 strokeWidth: 1,
               }}

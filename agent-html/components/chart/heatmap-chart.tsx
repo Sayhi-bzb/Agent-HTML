@@ -1,10 +1,15 @@
 import { HeatmapCircle } from "@visx/heatmap"
 import * as React from "react"
-import type { Options as RoughOptions } from "roughjs/bin/core"
 
+import {
+  type ChartTextureOptions,
+  ChartRenderedCircle,
+  ChartRendererDefs,
+} from "./runtime"
 import {
   type ChartAccessor,
   type ChartConfig,
+  type ChartRoughOptions,
   type ChartRenderer,
   ChartContainer,
   ChartHitCircle,
@@ -17,9 +22,9 @@ import {
   getChartCssVariable,
   getValue,
   isFiniteNumber,
+  resolveChartRenderer,
   useChartMarkInteraction,
-} from "../ui/chart"
-import { RoughCircle } from "@/lib/rough-svg"
+} from "./runtime"
 
 export interface HeatmapChartProps<T> {
   aspectRatio?: string
@@ -29,7 +34,8 @@ export interface HeatmapChartProps<T> {
   minHeight?: number
   renderTooltip?: (datum: T) => React.ReactNode
   renderer?: ChartRenderer
-  roughOptions?: RoughOptions
+  rough?: ChartRoughOptions
+  texture?: ChartTextureOptions
   valueFormatter?: (value: number) => React.ReactNode
   valueKey: ChartAccessor<T, number>
   xKey: ChartAccessor<T, string | number>
@@ -116,7 +122,8 @@ export function HeatmapChart<T>({
   minHeight = 220,
   renderTooltip,
   renderer = "svg",
-  roughOptions,
+  rough,
+  texture,
   valueFormatter = formatValue,
   valueKey,
   xKey,
@@ -159,6 +166,12 @@ export function HeatmapChart<T>({
   const maxValue = values.length > 0 ? Math.max(...values) : 1
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const color = getChartCssVariable(seriesKey)
+  const textureScopeId = React.useId()
+  const resolvedRenderer = resolveChartRenderer(renderer, [
+    "svg",
+    "rough",
+    "texture",
+  ])
 
   return (
     <ChartContainer
@@ -188,6 +201,13 @@ export function HeatmapChart<T>({
             onPointerMove={followTooltip}
           >
             <ChartSvg aria-label="heatmap chart" role="img">
+              <ChartRendererDefs
+                color={color}
+                renderer={resolvedRenderer}
+                textureKey={`heatmap:${seriesKey}`}
+                texture={texture}
+                textureScopeId={textureScopeId}
+              />
               {xLabels.map((label, index) => (
                 <text
                   className="fill-muted-foreground text-xs"
@@ -246,31 +266,22 @@ export function HeatmapChart<T>({
                             baseOpacity: cell.opacity,
                             key,
                           })
-
                           return (
                             <g key={key}>
                               <ChartMotionGroup
                                 {...markMotion}
                               >
-                                {renderer === "rough" ? (
-                                  <RoughCircle
-                                    diameter={cell.r * 2}
-                                    options={{
-                                      ...roughOptions,
-                                      fill: color,
-                                      stroke: roughOptions?.stroke ?? color,
-                                    }}
-                                    x={cell.cx}
-                                    y={cell.cy}
-                                  />
-                                ) : (
-                                  <circle
-                                    cx={cell.cx}
-                                    cy={cell.cy}
-                                    fill={cell.color}
-                                    r={cell.r}
-                                  />
-                                )}
+                                <ChartRenderedCircle
+                                  color={cell.color ?? color}
+                                  cx={cell.cx}
+                                  cy={cell.cy}
+                                  r={cell.r}
+                                  renderer={resolvedRenderer}
+                                  rough={rough}
+                                  textureKey={`heatmap:${seriesKey}`}
+                                  texture={texture}
+                                  textureScopeId={textureScopeId}
+                                />
                               </ChartMotionGroup>
                               <ChartHitCircle
                                 ariaLabel={`${cell.datum.label} ${cell.bin.label}: ${valueFormatter(

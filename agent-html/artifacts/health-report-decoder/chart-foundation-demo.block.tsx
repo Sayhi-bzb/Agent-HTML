@@ -1,11 +1,8 @@
-import {
-  AreaChart,
-  BarChart,
-  BarHChart,
-  LineChart,
-  PieChart,
-} from "../../components/chart"
-import type { ChartConfig } from "../../components/ui/chart"
+import { AreaChart } from "../../components/chart/area-chart"
+import { BarChart, BarHChart } from "../../components/chart/bar-chart"
+import { LineChart } from "../../components/chart/line-chart"
+import { PieChart } from "../../components/chart/pie-chart"
+import type { ChartConfig } from "../../components/chart/types"
 
 const trendData = [
   { month: "Jan", value: 42 },

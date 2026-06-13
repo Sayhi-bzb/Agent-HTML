@@ -5,9 +5,11 @@ import {
   type NetworkChartData,
   type NetworkLinkDatum,
   type NetworkNodeDatum,
+} from "../../components/chart/network-chart"
+import {
   SankeyChart,
   type SankeyData,
-} from "../../components/chart"
+} from "../../components/chart/sankey-chart"
 import { od } from "./data/generated-borough-flow"
 import { pickupBoroughs } from "./data/generated-pickup-geography"
 import {
@@ -142,7 +144,8 @@ function OdSankeyChart() {
             <span>{formatCompact(node.value ?? 0)} trips</span>
           </div>
         )}
-        roughOptions={roughSketchSankeyOptions}
+        renderer="rough"
+        rough={roughSketchSankeyOptions}
         strokeOpacity={0.64}
       />
       <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
@@ -203,7 +206,7 @@ function TaxiNetworkChart({
           </div>
         )}
         renderer="rough"
-        roughOptions={roughSketchMarkOptions}
+        rough={roughSketchMarkOptions}
       />
       <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
         <span className="canvas-text-caption inline-flex items-center gap-1.5">

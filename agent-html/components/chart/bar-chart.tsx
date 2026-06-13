@@ -1,18 +1,14 @@
-import { Bar } from "@visx/shape"
 import * as React from "react"
-import type { Options as RoughOptions } from "roughjs/bin/core"
 
 import {
-  ChartTextureDefs,
-  ChartTextureRect,
-  createChartTextureId,
-  resolveChartTextureOptions,
   type ChartTextureOptions,
-} from "@/lib/chart-texture"
-import { RoughRect } from "@/lib/rough-svg"
+  ChartRenderedRect,
+  ChartRendererDefs,
+} from "./runtime"
 import {
   type ChartAccessor,
   type ChartConfig,
+  type ChartRoughOptions,
   ChartCartesianGroup,
   ChartContainer,
   ChartHitRect,
@@ -32,8 +28,9 @@ import {
   getFiniteValues,
   getValue,
   isFiniteNumber,
+  resolveChartRenderer,
   useChartMarkInteraction,
-} from "../ui/chart"
+} from "./runtime"
 
 export interface BarChartProps<T> {
   aspectRatio?: string
@@ -43,8 +40,8 @@ export interface BarChartProps<T> {
   legend?: boolean
   minHeight?: number
   renderer?: ChartRenderer
-  roughOptions?: RoughOptions
-  textureOptions?: ChartTextureOptions
+  rough?: ChartRoughOptions
+  texture?: ChartTextureOptions
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -59,8 +56,8 @@ export interface BarHChartProps<T> {
   legend?: boolean
   minHeight?: number
   renderer?: ChartRenderer
-  roughOptions?: RoughOptions
-  textureOptions?: ChartTextureOptions
+  rough?: ChartRoughOptions
+  texture?: ChartTextureOptions
   xKey: ChartAccessor<T, number>
   xValueFormatter?: (value: number) => React.ReactNode
   yKey: ChartAccessor<T, string>
@@ -99,8 +96,8 @@ interface BarCoreProps<T> {
   minHeight: number
   orientation: BarOrientation
   renderer: ChartRenderer
-  roughOptions?: RoughOptions
-  textureOptions?: ChartTextureOptions
+  rough?: ChartRoughOptions
+  texture?: ChartTextureOptions
   valueFormatter: (value: number) => React.ReactNode
   valueKey: ChartAccessor<T, number>
 }
@@ -261,11 +258,16 @@ function BarChartCore<T>({
   minHeight,
   orientation,
   renderer,
-  roughOptions,
-  textureOptions,
+  rough,
+  texture,
   valueFormatter,
   valueKey,
 }: BarCoreProps<T>) {
+  const resolvedRenderer = resolveChartRenderer(renderer, [
+    "svg",
+    "rough",
+    "texture",
+  ])
   const {
     currentTooltipData: tooltip,
     followTooltip,
@@ -309,25 +311,18 @@ function BarChartCore<T>({
         })
         const seriesLabel = config[seriesKey]?.label ?? series[0]?.label ?? seriesKey
         const color = getChartCssVariable(seriesKey)
-        const textureId = createChartTextureId(
-          "bar",
-          textureScopeId,
-          orientation,
-          seriesKey,
-          renderer
-        )
-        const texture = resolveChartTextureOptions({ options: textureOptions })
+        const textureKey = `bar:${orientation}:${seriesKey}`
 
         return (
           <ChartInteractionRoot onPointerLeave={hideTooltip}>
             <ChartSvg aria-label={ariaLabel} role="img">
-              {renderer === "texture" ? (
-                <ChartTextureDefs
-                  color={color}
-                  id={textureId}
-                  options={textureOptions}
-                />
-              ) : null}
+              <ChartRendererDefs
+                color={color}
+                renderer={resolvedRenderer}
+                textureKey={textureKey}
+                texture={texture}
+                textureScopeId={textureScopeId}
+              />
               <ChartCartesianGroup layout={layout}>
                 {orientation === "vertical" ? (
                   <>
@@ -403,36 +398,18 @@ function BarChartCore<T>({
                       <ChartMotionGroup
                         {...markMotion}
                       >
-                        {renderer === "rough" ? (
-                          <RoughRect
-                            height={rect.height}
-                            options={{
-                              fill: color,
-                              stroke: color,
-                              ...roughOptions,
-                            }}
-                            width={rect.width}
-                            x={rect.x}
-                            y={rect.y}
-                          />
-                        ) : renderer === "texture" ? (
-                          <ChartTextureRect
-                            height={rect.height}
-                            id={textureId}
-                            opacity={texture.opacity}
-                            width={rect.width}
-                            x={rect.x}
-                            y={rect.y}
-                          />
-                        ) : (
-                          <Bar
-                            fill={color}
-                            height={rect.height}
-                            width={rect.width}
-                            x={rect.x}
-                            y={rect.y}
-                          />
-                        )}
+                        <ChartRenderedRect
+                          color={color}
+                          height={rect.height}
+                          renderer={resolvedRenderer}
+                          rough={rough}
+                          textureKey={textureKey}
+                          texture={texture}
+                          textureScopeId={textureScopeId}
+                          width={rect.width}
+                          x={rect.x}
+                          y={rect.y}
+                        />
                       </ChartMotionGroup>
                       <ChartHitRect
                         height={rect.height}
@@ -494,8 +471,8 @@ export function BarChart<T>({
   legend = false,
   minHeight = 320,
   renderer = "svg",
-  roughOptions,
-  textureOptions,
+  rough,
+  texture,
   xKey,
   xLabelFormatter,
   yKey,
@@ -516,8 +493,8 @@ export function BarChart<T>({
       minHeight={minHeight}
       orientation="vertical"
       renderer={renderer}
-      roughOptions={roughOptions}
-      textureOptions={textureOptions}
+      rough={rough}
+      texture={texture}
       valueFormatter={yValueFormatter}
       valueKey={yKey}
     />
@@ -532,8 +509,8 @@ export function BarHChart<T>({
   legend = false,
   minHeight = 360,
   renderer = "svg",
-  roughOptions,
-  textureOptions,
+  rough,
+  texture,
   xKey,
   xValueFormatter = formatHorizontalValue,
   yKey,
@@ -554,8 +531,8 @@ export function BarHChart<T>({
       minHeight={minHeight}
       orientation="horizontal"
       renderer={renderer}
-      roughOptions={roughOptions}
-      textureOptions={textureOptions}
+      rough={rough}
+      texture={texture}
       valueFormatter={xValueFormatter}
       valueKey={xKey}
     />

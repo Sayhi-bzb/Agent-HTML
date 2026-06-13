@@ -1,4 +1,5 @@
 import type { Options as RoughOptions } from "roughjs/bin/core"
+import type { ChartRoughOptions } from "../../components/chart/types"
 
 const roughSketchBase = {
   fillStyle: "hachure",
@@ -6,7 +7,7 @@ const roughSketchBase = {
   hachureGap: 3.5,
   roughness: 4,
   strokeWidth: 1,
-}
+} satisfies ChartRoughOptions
 
 export const roughSketchMarkOptions = {
   ...roughSketchBase,

@@ -9,7 +9,6 @@ import {
   XYChart,
 } from "@visx/xychart"
 import * as React from "react"
-import type { Options as RoughOptions } from "roughjs/bin/core"
 
 import {
   type ChartAccessor,
@@ -25,15 +24,15 @@ import {
   getNumberDomain,
   getValue,
   isFiniteNumber,
-} from "../ui/chart"
+  resolveChartRenderer,
+} from "./runtime"
 import { RoughPath } from "@/lib/rough-svg"
 import {
-  ChartTextureDefs,
-  ChartTexturePath,
-  createChartTextureId,
-  resolveChartTextureOptions,
+  type ChartRoughOptions,
   type ChartTextureOptions,
-} from "@/lib/chart-texture"
+  ChartRenderedPath,
+  ChartRendererDefs,
+} from "./runtime"
 
 export interface AreaChartProps<T> {
   aspectRatio?: string
@@ -43,8 +42,8 @@ export interface AreaChartProps<T> {
   minHeight?: number
   referenceY?: number
   renderer?: ChartRenderer
-  roughOptions?: RoughOptions
-  textureOptions?: ChartTextureOptions
+  rough?: ChartRoughOptions
+  texture?: ChartTextureOptions
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -89,13 +88,13 @@ function AreaReferenceLine({ yValue }: { yValue: number }) {
 function RoughAreaVisualLayer<T extends object>({
   color,
   data,
-  roughOptions,
+  rough,
   xKey,
   yKey,
 }: {
   color: string
   data: T[]
-  roughOptions?: RoughOptions
+  rough?: ChartRoughOptions
   xKey: ChartAccessor<T, string>
   yKey: ChartAccessor<T, number>
 }) {
@@ -127,13 +126,13 @@ function RoughAreaVisualLayer<T extends object>({
           <RoughPath
             d={path(data) ?? ""}
             options={{
-              ...roughOptions,
+              ...rough,
               fill: color,
-              fillStyle: roughOptions?.fillStyle ?? "hachure",
-              fillWeight: roughOptions?.fillWeight ?? 0.8,
-              hachureGap: roughOptions?.hachureGap ?? 5,
+              fillStyle: rough?.fillStyle ?? "hachure",
+              fillWeight: rough?.fillWeight ?? 0.8,
+              hachureGap: rough?.hachureGap ?? 5,
               stroke: color,
-              strokeWidth: roughOptions?.strokeWidth ?? 1,
+              strokeWidth: rough?.strokeWidth ?? 1,
             }}
           />
         )}
@@ -149,7 +148,7 @@ function RoughAreaVisualLayer<T extends object>({
           <RoughPath
             d={path(data) ?? ""}
             options={{
-              ...roughOptions,
+              ...rough,
               fill: "none",
               stroke: color,
               strokeWidth: 2,
@@ -166,7 +165,7 @@ function TextureAreaVisualLayer<T extends object>({
   data,
   seriesKey,
   textureScopeId,
-  textureOptions,
+  texture,
   xKey,
   yKey,
 }: {
@@ -174,7 +173,7 @@ function TextureAreaVisualLayer<T extends object>({
   data: T[]
   seriesKey: string
   textureScopeId: string
-  textureOptions?: ChartTextureOptions
+  texture?: ChartTextureOptions
   xKey: ChartAccessor<T, string>
   yKey: ChartAccessor<T, number>
 }) {
@@ -191,15 +190,16 @@ function TextureAreaVisualLayer<T extends object>({
   const baseline = Number(scaleY(0))
   const isDefined = (datum: T) =>
     isFiniteNumber(getX(datum)) && isFiniteNumber(getY(datum))
-  const textureId = createChartTextureId("area", textureScopeId, seriesKey)
-  const texture = resolveChartTextureOptions({ options: textureOptions })
+  const textureKey = `area:${seriesKey}`
 
   return (
     <g aria-hidden="true" pointerEvents="none">
-      <ChartTextureDefs
+      <ChartRendererDefs
         color={color}
-        id={textureId}
-        options={textureOptions}
+        renderer="texture"
+        textureKey={textureKey}
+        texture={texture}
+        textureScopeId={textureScopeId}
       />
       <Area
         curve={curveMonotoneX}
@@ -213,10 +213,13 @@ function TextureAreaVisualLayer<T extends object>({
           const d = path(data) ?? ""
 
           return (
-            <ChartTexturePath
+            <ChartRenderedPath
+              color={color}
               d={d}
-              id={textureId}
-              opacity={texture.opacity}
+              renderer="texture"
+              textureKey={textureKey}
+              texture={texture}
+              textureScopeId={textureScopeId}
             />
           )
         }}
@@ -249,14 +252,19 @@ export function AreaChart<T extends object>({
   minHeight = 320,
   referenceY,
   renderer = "svg",
-  roughOptions,
-  textureOptions,
+  rough,
+  texture,
   xKey,
   xLabelFormatter,
   yKey,
   yValueFormatter = formatValue,
 }: AreaChartProps<T>) {
   const textureScopeId = React.useId()
+  const resolvedRenderer = resolveChartRenderer(renderer, [
+    "svg",
+    "rough",
+    "texture",
+  ])
 
   return (
     <ChartContainer
@@ -319,22 +327,22 @@ export function AreaChart<T extends object>({
               <AreaReferenceLine yValue={referenceY} />
             ) : null}
 
-            {renderer === "rough" ? (
+            {resolvedRenderer === "rough" ? (
               <RoughAreaVisualLayer
                 color={color}
                 data={chartData}
-                roughOptions={roughOptions}
+                rough={rough}
                 xKey={xKey}
                 yKey={yKey}
               />
             ) : null}
-            {renderer === "texture" ? (
+            {resolvedRenderer === "texture" ? (
               <TextureAreaVisualLayer
                 color={color}
                 data={chartData}
                 seriesKey={seriesKey}
                 textureScopeId={textureScopeId}
-                textureOptions={textureOptions}
+                texture={texture}
                 xKey={xKey}
                 yKey={yKey}
               />
@@ -343,10 +351,10 @@ export function AreaChart<T extends object>({
               curve={curveMonotoneX}
               data={chartData}
               dataKey={seriesKey}
-              fill={renderer === "rough" || renderer === "texture" ? "transparent" : color}
-              fillOpacity={renderer === "rough" || renderer === "texture" ? 0 : 0.16}
+              fill={resolvedRenderer === "rough" || resolvedRenderer === "texture" ? "transparent" : color}
+              fillOpacity={resolvedRenderer === "rough" || resolvedRenderer === "texture" ? 0 : 0.16}
               lineProps={{
-                stroke: renderer === "rough" || renderer === "texture" ? "transparent" : color,
+                stroke: resolvedRenderer === "rough" || resolvedRenderer === "texture" ? "transparent" : color,
                 strokeWidth: 2,
               }}
               renderLine

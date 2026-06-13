@@ -17,6 +17,7 @@ import {
   ChartContainer,
   ChartMotionCircle,
   ChartTooltipContent,
+  type ChartRenderer,
   chartMotion,
   chartXYTheme,
   getChartCssVariable,
@@ -24,7 +25,8 @@ import {
   getNumberDomain,
   getValue,
   isFiniteNumber,
-} from "../ui/chart"
+  resolveChartRenderer,
+} from "./runtime"
 
 export interface LineChartProps<T> {
   aspectRatio?: string
@@ -33,6 +35,7 @@ export interface LineChartProps<T> {
   data: T[]
   minHeight?: number
   referenceY?: number
+  renderer?: ChartRenderer
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -81,11 +84,14 @@ export function LineChart<T extends object>({
   data,
   minHeight = 320,
   referenceY,
+  renderer,
   xKey,
   xLabelFormatter,
   yKey,
   yValueFormatter = formatValue,
 }: LineChartProps<T>) {
+  void resolveChartRenderer(renderer, ["svg"])
+
   return (
     <ChartContainer
       aspectRatio={aspectRatio}

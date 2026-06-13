@@ -4,95 +4,95 @@
 Compact exported API surface for `agent-html` source directories.
 Full TypeScript declarations are generated only as temporary build input.
 
-## components/ui
+## agent-html/components/chart/
 
 | File | Exports |
 | --- | --- |
-| `agent-html/components/ui/accordion.tsx` | `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger` |
-| `agent-html/components/ui/alert-dialog.tsx` | `AlertDialog`, `AlertDialogAction`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger` |
-| `agent-html/components/ui/alert.tsx` | `Alert`, `AlertAction`, `AlertDescription`, `AlertTitle` |
-| `agent-html/components/ui/badge.tsx` | `Badge`, `badgeVariants` |
-| `agent-html/components/ui/button.tsx` | `Button`, `buttonVariants` |
-| `agent-html/components/ui/calendar.tsx` | `Calendar`, `CalendarDayButton` |
-| `agent-html/components/ui/card.tsx` | `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle` |
-| `agent-html/components/ui/carousel.tsx` | `Carousel`, `CarouselApi`, `CarouselContent`, `CarouselItem`, `CarouselNext`, `CarouselPrevious`, `useCarousel` |
-| `agent-html/components/ui/checkbox.tsx` | `Checkbox` |
-| `agent-html/components/ui/collapsible.tsx` | `Collapsible`, `CollapsibleContent`, `CollapsibleTrigger` |
-| `agent-html/components/ui/combobox.tsx` | `Combobox`, `ComboboxChip`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxTrigger`, `ComboboxValue`, `useComboboxAnchor` |
-| `agent-html/components/ui/command.tsx` | `Command`, `CommandDialog`, `CommandEmpty`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandSeparator`, `CommandShortcut` |
-| `agent-html/components/ui/dialog.tsx` | `Dialog`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger` |
-| `agent-html/components/ui/dropdown-menu.tsx` | `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger` |
-| `agent-html/components/ui/hover-card.tsx` | `HoverCard`, `HoverCardContent`, `HoverCardTrigger` |
-| `agent-html/components/ui/input-group.tsx` | `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea` |
-| `agent-html/components/ui/input.tsx` | `Input` |
-| `agent-html/components/ui/popover.tsx` | `Popover`, `PopoverAnchor`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger` |
-| `agent-html/components/ui/progress.tsx` | `Progress` |
-| `agent-html/components/ui/radio-group.tsx` | `RadioGroup`, `RadioGroupItem` |
-| `agent-html/components/ui/resizable.tsx` | `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup` |
-| `agent-html/components/ui/scroll-area.tsx` | `ScrollArea`, `ScrollBar` |
-| `agent-html/components/ui/select.tsx` | `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue` |
-| `agent-html/components/ui/separator.tsx` | `Separator` |
-| `agent-html/components/ui/sheet.tsx` | `Sheet`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetTitle`, `SheetTrigger` |
-| `agent-html/components/ui/sidebar.tsx` | `Sidebar`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupAction`, `SidebarGroupContent`, `SidebarGroupLabel`, `SidebarHeader`, `SidebarInput`, `SidebarInset`, `SidebarMenu`, `SidebarMenuAction`, `SidebarMenuBadge`, `SidebarMenuButton`, `SidebarMenuItem`, `SidebarMenuSkeleton`, `SidebarMenuSub`, `SidebarMenuSubButton`, `SidebarMenuSubItem`, `SidebarProvider`, `SidebarRail`, `SidebarSeparator`, `SidebarTrigger`, `useSidebar` |
-| `agent-html/components/ui/skeleton.tsx` | `Skeleton` |
-| `agent-html/components/ui/slider.tsx` | `Slider` |
-| `agent-html/components/ui/status-badge.tsx` | `StatusBadge`, `StatusBadgeProps` |
-| `agent-html/components/ui/status.tsx` | `Status`, `statusVariants` |
-| `agent-html/components/ui/switch.tsx` | `Switch` |
-| `agent-html/components/ui/table.tsx` | `Table`, `TableBody`, `TableCaption`, `TableCell`, `TableFooter`, `TableHead`, `TableHeader`, `TableRow` |
-| `agent-html/components/ui/tabs.tsx` | `Tabs`, `TabsContent`, `TabsList`, `TabsTrigger`, `tabsListVariants` |
-| `agent-html/components/ui/textarea.tsx` | `Textarea` |
-| `agent-html/components/ui/toggle.tsx` | `Toggle`, `toggleVariants` |
-| `agent-html/components/ui/tooltip.tsx` | `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger` |
+| `area-chart.tsx` | `AreaChart`, `AreaChartProps` |
+| `bar-chart.tsx` | `BarChart`, `BarChartProps`, `BarHChart`, `BarHChartProps` |
+| `heatmap-chart.tsx` | `HeatmapChart`, `HeatmapChartProps` |
+| `line-chart.tsx` | `LineChart`, `LineChartProps` |
+| `network-chart.tsx` | `NetworkChart`, `NetworkChartData`, `NetworkChartProps`, `NetworkLinkDatum`, `NetworkNodeDatum` |
+| `pie-chart.tsx` | `PieChart`, `PieChartProps` |
+| `sankey-chart.tsx` | `SankeyChart`, `SankeyData` |
+| `scatter-chart.tsx` | `ScatterChart`, `ScatterChartProps`, `ScatterScaleType`, `ScatterTooltipContext` |
+| `types.ts` | `ChartAccessor`, `ChartConfig`, `ChartRenderer`, `ChartRoughOptions`, `ChartTextureOptions`, `ChartTooltipField` |
 
-## components
+## agent-html/components/ui/
 
 | File | Exports |
 | --- | --- |
-| `agent-html/components/code-block.tsx` | `CodeBlock` |
-| `agent-html/components/data-table.tsx` | `DataTable`, `DataTableColumnHeader`, `DataTableColumnHeaderProps`, `DataTablePagination`, `DataTablePaginationProps`, `DataTableProps`, `DataTableViewOptions`, `DataTableViewOptionsProps` |
-| `agent-html/components/kanban.tsx` | `Kanban`, `KanbanBoard`, `KanbanColumn`, `KanbanColumnHandle`, `KanbanItem`, `KanbanItemHandle`, `KanbanOverlay`, `KanbanProps` |
-| `agent-html/components/map.tsx` | `Map`, `MapArc`, `MapClusterLayer`, `MapControls`, `MapMarker`, `MapPopup`, `MapRoute`, `MarkerContent`, `MarkerLabel`, `MarkerPopup`, `MarkerTooltip`, `useMap` |
-| `agent-html/components/media-figure.tsx` | `MediaAsset`, `MediaFigure` |
-| `agent-html/components/source-links.tsx` | `SourceLinkItem`, `SourceLinks` |
-| `agent-html/components/timeline.tsx` | `Timeline`, `TimelineContent`, `TimelineDate`, `TimelineHeader`, `TimelineIndicator`, `TimelineItem`, `TimelineSeparator`, `TimelineTitle` |
+| `accordion.tsx` | `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger` |
+| `alert-dialog.tsx` | `AlertDialog`, `AlertDialogAction`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger` |
+| `alert.tsx` | `Alert`, `AlertAction`, `AlertDescription`, `AlertTitle` |
+| `badge.tsx` | `Badge`, `badgeVariants` |
+| `button.tsx` | `Button`, `buttonVariants` |
+| `calendar.tsx` | `Calendar`, `CalendarDayButton` |
+| `card.tsx` | `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle` |
+| `carousel.tsx` | `Carousel`, `CarouselApi`, `CarouselContent`, `CarouselItem`, `CarouselNext`, `CarouselPrevious`, `useCarousel` |
+| `checkbox.tsx` | `Checkbox` |
+| `collapsible.tsx` | `Collapsible`, `CollapsibleContent`, `CollapsibleTrigger` |
+| `combobox.tsx` | `Combobox`, `ComboboxChip`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxTrigger`, `ComboboxValue`, `useComboboxAnchor` |
+| `command.tsx` | `Command`, `CommandDialog`, `CommandEmpty`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandSeparator`, `CommandShortcut` |
+| `dialog.tsx` | `Dialog`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger` |
+| `dropdown-menu.tsx` | `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger` |
+| `hover-card.tsx` | `HoverCard`, `HoverCardContent`, `HoverCardTrigger` |
+| `input-group.tsx` | `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea` |
+| `input.tsx` | `Input` |
+| `popover.tsx` | `Popover`, `PopoverAnchor`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger` |
+| `progress.tsx` | `Progress` |
+| `radio-group.tsx` | `RadioGroup`, `RadioGroupItem` |
+| `resizable.tsx` | `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup` |
+| `scroll-area.tsx` | `ScrollArea`, `ScrollBar` |
+| `select.tsx` | `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue` |
+| `separator.tsx` | `Separator` |
+| `sheet.tsx` | `Sheet`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetTitle`, `SheetTrigger` |
+| `sidebar.tsx` | `Sidebar`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupAction`, `SidebarGroupContent`, `SidebarGroupLabel`, `SidebarHeader`, `SidebarInput`, `SidebarInset`, `SidebarMenu`, `SidebarMenuAction`, `SidebarMenuBadge`, `SidebarMenuButton`, `SidebarMenuItem`, `SidebarMenuSkeleton`, `SidebarMenuSub`, `SidebarMenuSubButton`, `SidebarMenuSubItem`, `SidebarProvider`, `SidebarRail`, `SidebarSeparator`, `SidebarTrigger`, `useSidebar` |
+| `skeleton.tsx` | `Skeleton` |
+| `slider.tsx` | `Slider` |
+| `status-badge.tsx` | `StatusBadge`, `StatusBadgeProps` |
+| `status.tsx` | `Status`, `statusVariants` |
+| `switch.tsx` | `Switch` |
+| `table.tsx` | `Table`, `TableBody`, `TableCaption`, `TableCell`, `TableFooter`, `TableHead`, `TableHeader`, `TableRow` |
+| `tabs.tsx` | `Tabs`, `TabsContent`, `TabsList`, `TabsTrigger`, `tabsListVariants` |
+| `textarea.tsx` | `Textarea` |
+| `toggle.tsx` | `Toggle`, `toggleVariants` |
+| `tooltip.tsx` | `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger` |
 
-## hooks
+## agent-html/components/
 
 | File | Exports |
 | --- | --- |
-| `agent-html/hooks/use-filter.ts` | `useFilter` |
-| `agent-html/hooks/use-isomorphic-layout-effect.ts` | `useIsomorphicLayoutEffect` |
-| `agent-html/hooks/use-lazy-ref.ts` | `useLazyRef` |
-| `agent-html/hooks/use-mobile.ts` | `useIsMobile` |
-| `agent-html/hooks/use-selection.ts` | `useSelection` |
+| `code-block.tsx` | `CodeBlock`, `CodeBlockProps` |
+| `data-table.tsx` | `DataTable`, `DataTableColumnHeader`, `DataTableColumnHeaderProps`, `DataTablePagination`, `DataTablePaginationProps`, `DataTableProps`, `DataTableViewOptions`, `DataTableViewOptionsProps` |
+| `kanban.tsx` | `Kanban`, `KanbanBoard`, `KanbanColumn`, `KanbanColumnHandle`, `KanbanItem`, `KanbanItemHandle`, `KanbanOverlay`, `KanbanProps` |
+| `map.tsx` | `Map`, `MapArc`, `MapArcDatum`, `MapArcEvent`, `MapClusterLayer`, `MapControls`, `MapMarker`, `MapPopup`, `MapRef`, `MapRoute`, `MapViewport`, `MarkerContent`, `MarkerLabel`, `MarkerPopup`, `MarkerTooltip`, `useMap` |
+| `media-figure.tsx` | `MediaAsset`, `MediaFigure` |
+| `source-links.tsx` | `SourceLinkItem`, `SourceLinks` |
+| `timeline.tsx` | `Timeline`, `TimelineContent`, `TimelineDate`, `TimelineHeader`, `TimelineIndicator`, `TimelineItem`, `TimelineSeparator`, `TimelineTitle` |
 
-## lib
-
-| File | Exports |
-| --- | --- |
-| `agent-html/lib/cn.ts` | `cn` |
-| `agent-html/lib/compose-refs.ts` | `composeRefs`, `useComposedRefs` |
-| `agent-html/lib/format-date.ts` | `formatDate` |
-| `agent-html/lib/public-url.ts` | `artifactPublicUrl`, `artifactPublicUrlFactory`, `sharedPublicUrl` |
-| `agent-html/lib/shiki-highlighter.ts` | `highlightCode`, `normalizeLanguage` |
-| `agent-html/lib/utils.ts` | `cn` |
-
-## schema
+## agent-html/hooks/
 
 | File | Exports |
 | --- | --- |
+| `use-filter.ts` | `useFilter` |
+| `use-isomorphic-layout-effect.ts` | `useIsomorphicLayoutEffect` |
+| `use-lazy-ref.ts` | `useLazyRef` |
+| `use-mobile.ts` | `useIsMobile` |
+| `use-selection.ts` | `useSelection` |
 
-## theme
+## agent-html/lib/
 
 | File | Exports |
 | --- | --- |
-| `agent-html/theme/preset-css.ts` | `createCanvasThemePresetFromCss`, `parseCanvasThemePresetCss` |
-| `agent-html/theme/presets.ts` | `CanvasThemeCssVariables`, `CanvasThemePreset`, `CanvasThemePresetFont`, `CanvasThemePresetFontFamily`, `CanvasThemePresetFontVariable`, `CanvasThemePresetId`, `CanvasThemePresetLayout`, `canvasThemePresets` |
-| `agent-html/theme/presets/claude-plus.layout.ts` | `layout` |
-| `agent-html/theme/presets/hex.layout.ts` | `layout` |
-| `agent-html/theme/presets/manga.layout.ts` | `layout` |
-| `agent-html/theme/presets/mimi.layout.ts` | `layout` |
-| `agent-html/theme/presets/pixel-quest.layout.ts` | `layout` |
-| `agent-html/theme/presets/whatsapp.layout.ts` | `layout` |
-| `agent-html/theme/theme-variables.ts` | `CanvasThemeVariableName`, `canvasThemeVariableNames` |
+| `cn.ts` | `cn` |
+| `compose-refs.ts` | `composeRefs`, `useComposedRefs` |
+| `format-date.ts` | `formatDate` |
+| `public-url.ts` | `artifactPublicUrl`, `artifactPublicUrlFactory`, `sharedPublicUrl` |
+| `shiki-highlighter.ts` | `CodeBlockLanguage`, `ShikiLanguage`, `ShikiTheme`, `highlightCode`, `normalizeLanguage` |
+| `utils.ts` | `cn` |
+
+## agent-html/schema/
+
+| File | Exports |
+| --- | --- |

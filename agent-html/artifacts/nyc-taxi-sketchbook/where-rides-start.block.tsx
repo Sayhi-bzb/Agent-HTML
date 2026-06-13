@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
-import { BarHChart } from "../../components/chart"
-import type { ChartConfig } from "../../components/ui/chart"
+import { BarHChart } from "../../components/chart/bar-chart"
+import type { ChartConfig } from "../../components/chart/types"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 
 import {
@@ -106,7 +106,7 @@ export function WhereRidesStartBlock() {
             data={zoneRows}
             minHeight={420}
             renderer="rough"
-            roughOptions={roughSketchMarkOptions}
+            rough={roughSketchMarkOptions}
             xKey="trips"
             xValueFormatter={formatCompact}
             yKey="shortZone"

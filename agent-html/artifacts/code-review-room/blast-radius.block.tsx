@@ -1,4 +1,4 @@
-import { SankeyChart } from "../../components/chart"
+import { SankeyChart } from "../../components/chart/sankey-chart"
 import {
   Tabs,
   TabsContent,
@@ -55,7 +55,8 @@ export function BlastRadiusBlock() {
               <span>{node.value ?? 0} connected signals</span>
             </div>
           )}
-          roughOptions={{
+          renderer="rough"
+          rough={{
             bowing: 1.2,
             fillStyle: "hachure",
             roughness: 1.8,

@@ -218,3 +218,29 @@ export function ChartTextureRect({
     />
   )
 }
+
+export function ChartTextureCircle({
+  cx,
+  cy,
+  id,
+  opacity,
+  r,
+}: {
+  cx: number
+  cy: number
+  id: string
+  opacity?: number
+  r: number
+}) {
+  return (
+    <circle
+      aria-hidden="true"
+      cx={cx}
+      cy={cy}
+      fill={getChartTextureFill(id)}
+      opacity={opacity}
+      pointerEvents="none"
+      r={r}
+    />
+  )
+}
