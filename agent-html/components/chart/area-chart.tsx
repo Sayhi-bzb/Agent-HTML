@@ -19,15 +19,16 @@ import {
   type ChartRenderer,
   chartMotion,
   chartXYTheme,
-  getChartCssVariable,
   getFiniteValues,
   getNumberDomain,
   getValue,
   isFiniteNumber,
   resolveChartRenderer,
+  useChartMaterialRegistry,
 } from "./runtime"
 import { RoughPath } from "@/lib/rough-svg"
 import {
+  type ChartMaterial,
   type ChartRoughOptions,
   type ChartTextureOptions,
   ChartRenderedPath,
@@ -37,7 +38,7 @@ import {
 export interface AreaChartProps<T> {
   aspectRatio?: string
   className?: string
-  config: ChartConfig
+  config?: ChartConfig
   data: readonly T[]
   minHeight?: number
   referenceY?: number
@@ -161,19 +162,13 @@ function RoughAreaVisualLayer<T extends object>({
 }
 
 function TextureAreaVisualLayer<T extends object>({
-  color,
   data,
-  seriesKey,
-  textureScopeId,
-  texture,
+  material,
   xKey,
   yKey,
 }: {
-  color: string
   data: T[]
-  seriesKey: string
-  textureScopeId: string
-  texture?: ChartTextureOptions
+  material: ChartMaterial
   xKey: ChartAccessor<T, string>
   yKey: ChartAccessor<T, number>
 }) {
@@ -190,16 +185,16 @@ function TextureAreaVisualLayer<T extends object>({
   const baseline = Number(scaleY(0))
   const isDefined = (datum: T) =>
     isFiniteNumber(getX(datum)) && isFiniteNumber(getY(datum))
-  const textureKey = `area:${seriesKey}`
 
   return (
     <g aria-hidden="true" pointerEvents="none">
       <ChartRendererDefs
-        color={color}
+        color={material.color}
         renderer="texture"
-        textureKey={textureKey}
-        texture={texture}
-        textureScopeId={textureScopeId}
+        textureIndex={material.textureIndex}
+        textureKey={material.textureKey}
+        texture={material.texture}
+        textureScopeId={material.textureScopeId}
       />
       <Area
         curve={curveMonotoneX}
@@ -214,12 +209,13 @@ function TextureAreaVisualLayer<T extends object>({
 
           return (
             <ChartRenderedPath
-              color={color}
+              color={material.color}
               d={d}
               renderer="texture"
-              textureKey={textureKey}
-              texture={texture}
-              textureScopeId={textureScopeId}
+              textureIndex={material.textureIndex}
+              textureKey={material.textureKey}
+              texture={material.texture}
+              textureScopeId={material.textureScopeId}
             />
           )
         }}
@@ -235,7 +231,7 @@ function TextureAreaVisualLayer<T extends object>({
           <path
             d={path(data) ?? ""}
             fill="none"
-            stroke={color}
+            stroke={material.color}
             strokeWidth={2}
           />
         )}
@@ -259,18 +255,30 @@ export function AreaChart<T extends object>({
   yKey,
   yValueFormatter = formatValue,
 }: AreaChartProps<T>) {
-  const textureScopeId = React.useId()
   const resolvedRenderer = resolveChartRenderer(renderer, [
     "svg",
     "rough",
     "texture",
   ])
+  const seriesKey = React.useMemo(
+    () => Object.keys(config ?? {})[0] ?? "value",
+    [config]
+  )
+  const materials = useChartMaterialRegistry({
+    config,
+    keys: [seriesKey],
+    renderer: resolvedRenderer,
+    rough,
+    scope: "area",
+    strategy: "single",
+    texture,
+  })
 
   return (
     <ChartContainer
       aspectRatio={aspectRatio}
       className={className}
-      config={config}
+      config={materials.resolvedConfig}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No area data
@@ -287,7 +295,8 @@ export function AreaChart<T extends object>({
         const primarySeries = series[0]
         const seriesKey = primarySeries?.key ?? "value"
         const seriesLabel = primarySeries?.label ?? seriesKey
-        const color = getChartCssVariable(seriesKey)
+        const material = materials.getMaterial(seriesKey)
+        const color = material.color
         const xAccessor = (datum: T) => getValue(datum, xKey)
         const yAccessor = (datum: T) => getValue(datum, yKey)
 
@@ -338,11 +347,8 @@ export function AreaChart<T extends object>({
             ) : null}
             {resolvedRenderer === "texture" ? (
               <TextureAreaVisualLayer
-                color={color}
                 data={chartData}
-                seriesKey={seriesKey}
-                textureScopeId={textureScopeId}
-                texture={texture}
+                material={material}
                 xKey={xKey}
                 yKey={yKey}
               />

@@ -173,9 +173,9 @@ export function ChartRenderedRect({
       <RoughRect
         height={height}
         options={{
-          fill: color,
-          stroke: color,
           ...rough,
+          fill: color,
+          stroke: rough?.stroke ?? color,
         }}
         width={width}
         x={x}

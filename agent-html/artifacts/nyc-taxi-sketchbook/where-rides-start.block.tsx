@@ -1,7 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { BarHChart } from "../../components/chart/bar-chart"
-import type { ChartConfig } from "../../components/chart/types"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 
 import {
@@ -23,13 +22,6 @@ const zoneRows = pickupZones.slice(0, 10).map((zone) => ({
   ...zone,
   shortZone: zone.zone.replace("Midtown ", "M. "),
 }))
-const zoneChartConfig = {
-  trips: {
-    color: "var(--chart-1)",
-    label: "Trips",
-  },
-} satisfies ChartConfig
-
 type PickupZoneRow = {
   averageDistance: number
   averageTotal: number
@@ -102,7 +94,6 @@ export function WhereRidesStartBlock() {
           <BarHChart
             aspectRatio="4 / 3"
             className="min-h-[420px]"
-            config={zoneChartConfig}
             data={zoneRows}
             minHeight={420}
             renderer="rough"

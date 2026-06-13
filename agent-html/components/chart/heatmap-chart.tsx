@@ -4,7 +4,6 @@ import * as React from "react"
 import {
   type ChartTextureOptions,
   ChartRenderedCircle,
-  ChartRendererDefs,
 } from "./runtime"
 import {
   type ChartAccessor,
@@ -19,18 +18,19 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   ChartTooltipPanel,
-  getChartCssVariable,
   getValue,
   isFiniteNumber,
   resolveChartRenderer,
+  getChartSequentialOpacity,
   useChartMarkInteraction,
+  useChartMaterialRegistry,
 } from "./runtime"
 
 export interface HeatmapChartProps<T> {
   aspectRatio?: string
   className?: string
   colorKey?: ChartAccessor<T, string>
-  config: ChartConfig
+  config?: ChartConfig
   data: readonly T[]
   minHeight?: number
   renderTooltip?: (datum: T) => React.ReactNode
@@ -166,8 +166,10 @@ export function HeatmapChart<T>({
     [columns]
   )
   const maxValue = values.length > 0 ? Math.max(...values) : 1
-  const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
-  const color = getChartCssVariable(seriesKey)
+  const seriesKey = React.useMemo(
+    () => Object.keys(config ?? {})[0] ?? "value",
+    [config]
+  )
   const getCellColorKey = React.useCallback(
     (datum: T | null) =>
       datum && colorKey ? getValue(datum, colorKey) : seriesKey,
@@ -184,18 +186,27 @@ export function HeatmapChart<T>({
 
     return Array.from(keys)
   }, [columns, getCellColorKey, seriesKey])
-  const textureScopeId = React.useId()
   const resolvedRenderer = resolveChartRenderer(renderer, [
     "svg",
     "rough",
     "texture",
   ])
+  const materials = useChartMaterialRegistry({
+    config,
+    keys: colorKeys,
+    renderer: resolvedRenderer,
+    rough,
+    scope: "heatmap",
+    strategy: colorKey ? "categorical" : "sequential",
+    texture,
+  })
+  const color = materials.getMaterial(seriesKey).color
 
   return (
     <ChartContainer
       aspectRatio={aspectRatio}
       className={className}
-      config={config}
+      config={materials.resolvedConfig}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No heatmap data
@@ -219,17 +230,7 @@ export function HeatmapChart<T>({
             onPointerMove={followTooltip}
           >
             <ChartSvg aria-label="heatmap chart" role="img">
-              {colorKeys.map((key, index) => (
-                <ChartRendererDefs
-                  color={getChartCssVariable(key)}
-                  key={key}
-                  renderer={resolvedRenderer}
-                  textureIndex={index}
-                  textureKey={`heatmap:${key}`}
-                  texture={texture}
-                  textureScopeId={textureScopeId}
-                />
-              ))}
+              {materials.defs}
               {xLabels.map((label, index) => (
                 <text
                   className="fill-muted-foreground text-xs"
@@ -262,11 +263,12 @@ export function HeatmapChart<T>({
                   count={(bin) => bin.value}
                   data={columns}
                   gap={gap}
-                  opacityScale={(value) => {
-                    const count = Number(value)
-
-                    return count > 0 ? 0.14 + (count / maxValue) * 0.76 : 0.08
-                  }}
+                  opacityScale={(value) =>
+                    getChartSequentialOpacity({
+                      max: maxValue,
+                      value: Number(value),
+                    })
+                  }
                   radius={radius}
                   xScale={(columnIndex) =>
                     columnIndex * columnStep + columnStep / 2 - radius
@@ -286,27 +288,28 @@ export function HeatmapChart<T>({
                           )
                           const isHighlighted = hover?.key === key
                           const cellColorKey = getCellColorKey(cell.bin.datum)
-                          const cellColor = getChartCssVariable(cellColorKey)
+                          const material = materials.getMaterial(cellColorKey)
                           return (
                             <g key={key}>
                               <ChartMotionGroup>
                                 <ChartRenderedCircle
-                                  color={cellColor}
+                                  color={material.color}
                                   cx={cell.cx}
                                   cy={cell.cy}
                                   opacity={cell.opacity}
                                   r={cell.r}
-                                  renderer={resolvedRenderer}
-                                  rough={rough}
+                                  renderer={material.renderer}
+                                  rough={material.rough}
                                   stroke={
                                     isHighlighted
                                       ? "var(--foreground)"
                                       : undefined
                                   }
                                   strokeWidth={isHighlighted ? 2 : undefined}
-                                  textureKey={`heatmap:${cellColorKey}`}
-                                  texture={texture}
-                                  textureScopeId={textureScopeId}
+                                  textureIndex={material.textureIndex}
+                                  textureKey={material.textureKey}
+                                  texture={material.texture}
+                                  textureScopeId={material.textureScopeId}
                                 />
                               </ChartMotionGroup>
                               <ChartHitCircle
@@ -356,9 +359,9 @@ export function HeatmapChart<T>({
                   <ChartTooltipContent
                     items={[
                       {
-                        color: getChartCssVariable(
+                        color: materials.getMaterial(
                           getCellColorKey(tooltip.bin.datum)
-                        ),
+                        ).color,
                         key: seriesKey,
                         label: seriesLabel,
                         value: valueFormatter(tooltip.bin.value),

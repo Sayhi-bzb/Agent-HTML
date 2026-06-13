@@ -4,9 +4,9 @@ import type { ReactNode } from "react"
 
 import {
   type ChartTextureOptions,
+  type ChartMaterialRegistry,
   ChartRenderedCircle,
   ChartRenderedPath,
-  ChartRendererDefs,
 } from "./runtime"
 import {
   type ChartConfig,
@@ -22,11 +22,11 @@ import {
   ChartTooltipPanel,
   type ChartRenderer,
   chartMotion,
-  getChartCssVariable,
   getChartMarkKey,
   isFiniteNumber,
   resolveChartRenderer,
   useChartMarkInteraction,
+  useChartMaterialRegistry,
 } from "./runtime"
 
 type NetworkHoverState = ChartHoverState<"node" | "link">
@@ -106,7 +106,7 @@ export interface NetworkChartProps<
   TLink extends NetworkLinkDatum = NetworkLinkDatum,
 > {
   className?: string
-  config: ChartConfig
+  config?: ChartConfig
   data: NetworkChartData<TNode, TLink>
   getLinkColorKey?: (link: PositionedLink<TNode, TLink>, index: number) => string
   getNodeColorKey?: (node: PositionedNode<TNode>, index: number) => string
@@ -299,17 +299,15 @@ interface NetworkRenderContextValue<
     typeof useChartMarkInteraction<TooltipState, "node" | "link">
   >["getMarkState"]
   getLinkColorKey?: (link: PositionedLink<TNode, TLink>, index: number) => string
+  getMaterial: ChartMaterialRegistry["getMaterial"]
   getNodeColorKey?: (node: PositionedNode<TNode>, index: number) => string
   graph: NetworkGraph<TNode, TLink>
   hideTooltip: () => void
   hover: NetworkHoverState | null
-  rough?: ChartRoughOptions
   renderer: ChartRenderer
   showMark: ReturnType<
     typeof useChartMarkInteraction<TooltipState, "node" | "link">
   >["showMark"]
-  textureScopeId: string
-  texture?: ChartTextureOptions
 }
 
 const NetworkRenderContext =
@@ -337,14 +335,12 @@ function NetworkLinkMark<
   const {
     getMarkState,
     getLinkColorKey,
+    getMaterial,
     graph,
     hideTooltip,
     hover,
-    rough,
     renderer,
     showMark,
-    textureScopeId,
-    texture,
   } = useNetworkRenderContext<TNode, TLink>()
   const linkIndex = graph.links.indexOf(link)
   const markState = getMarkState({
@@ -358,7 +354,8 @@ function NetworkLinkMark<
   })
   const colorKey =
     getLinkColorKey?.(link, linkIndex) ?? getDefaultLinkColorKey(link)
-  const color = getChartCssVariable(colorKey)
+  const material = getMaterial(colorKey)
+  const color = material.color
   const path = getNetworkLinkPath(link)
   const handlePointerEnter = (event: React.PointerEvent<Element>) => {
     showMark({
@@ -384,7 +381,7 @@ function NetworkLinkMark<
         fill="none"
         renderer={renderer}
         rough={{
-          ...rough,
+          ...material.rough,
           stroke: color,
           strokeWidth: link.width,
         }}
@@ -392,9 +389,10 @@ function NetworkLinkMark<
         strokeLinecap="round"
         strokeOpacity={0.72}
         strokeWidth={link.width}
-        textureKey={`link:${link.key}`}
-        texture={texture}
-        textureScopeId={textureScopeId}
+        textureIndex={material.textureIndex}
+        textureKey={material.textureKey}
+        texture={material.texture}
+        textureScopeId={material.textureScopeId}
       />
       <ChartHitLine
         onPointerEnter={handlePointerEnter}
@@ -417,15 +415,13 @@ function NetworkNodeMark<TNode extends NetworkNodeDatum>({
   const {
     activeLink,
     getMarkState,
+    getMaterial,
     getNodeColorKey,
     graph,
     hideTooltip,
     hover,
-    rough,
     renderer,
     showMark,
-    textureScopeId,
-    texture,
   } = useNetworkRenderContext<TNode, NetworkLinkDatum>()
   const nodeIndex = graph.nodes.indexOf(node)
   const nodeKey = getChartMarkKey("node", node.id)
@@ -438,7 +434,8 @@ function NetworkNodeMark<TNode extends NetworkNodeDatum>({
   })
   const colorKey =
     getNodeColorKey?.(node, nodeIndex) ?? getDefaultNodeColorKey(node)
-  const color = getChartCssVariable(colorKey)
+  const material = getMaterial(colorKey)
+  const color = material.color
   const handlePointerEnter = (event: React.PointerEvent<Element>) => {
     showMark({
       data: {
@@ -464,16 +461,16 @@ function NetworkNodeMark<TNode extends NetworkNodeDatum>({
         r={node.radius}
         renderer={renderer}
         rough={{
-          ...rough,
+          ...material.rough,
           fill: color,
-          stroke: rough?.stroke ?? color,
+          stroke: material.rough?.stroke ?? color,
         }}
         stroke={renderer === "texture" ? color : undefined}
         strokeWidth={renderer === "texture" ? 1 : undefined}
-        textureIndex={nodeIndex}
-        textureKey={`node:${node.id}`}
-        texture={texture}
-        textureScopeId={textureScopeId}
+        textureIndex={material.textureIndex}
+        textureKey={material.textureKey}
+        texture={material.texture}
+        textureScopeId={material.textureScopeId}
       />
       <ChartHitCircle
         cx={0}
@@ -500,8 +497,10 @@ function NetworkChartSurface<
   TLink extends NetworkLinkDatum,
 >({
   data,
+  defs,
   followTooltip,
   getMarkState,
+  getMaterial,
   getLinkColorKey,
   getNodeColorKey,
   height,
@@ -511,8 +510,6 @@ function NetworkChartSurface<
   renderLinkTooltip,
   renderNodeTooltip,
   renderer,
-  rough,
-  texture,
   showMark,
   tooltipData,
   tooltipLeft,
@@ -521,12 +518,14 @@ function NetworkChartSurface<
   width,
 }: {
   data: NetworkChartData<TNode, TLink>
+  defs: React.ReactNode
   followTooltip: (
     event: React.MouseEvent<Element> | React.PointerEvent<Element>
   ) => void
   getMarkState: ReturnType<
     typeof useChartMarkInteraction<TooltipState, "node" | "link">
   >["getMarkState"]
+  getMaterial: ChartMaterialRegistry["getMaterial"]
   getLinkColorKey?: (link: PositionedLink<TNode, TLink>, index: number) => string
   getNodeColorKey?: (node: PositionedNode<TNode>, index: number) => string
   height: number
@@ -536,8 +535,6 @@ function NetworkChartSurface<
   renderLinkTooltip?: NetworkChartProps<TNode, TLink>["renderLinkTooltip"]
   renderNodeTooltip?: NetworkChartProps<TNode, TLink>["renderNodeTooltip"]
   renderer: ChartRenderer
-  rough?: ChartRoughOptions
-  texture?: ChartTextureOptions
   showMark: ReturnType<
     typeof useChartMarkInteraction<TooltipState, "node" | "link">
   >["showMark"]
@@ -551,7 +548,6 @@ function NetworkChartSurface<
     () => resolveNetworkGraph({ data, height, layout, width }),
     [data, height, layout, width]
   )
-  const textureScopeId = React.useId()
   const { activeLink, activeNode } = getNetworkTooltipModel({
     graph,
     tooltipData: tooltipData ?? undefined,
@@ -561,29 +557,25 @@ function NetworkChartSurface<
       activeLink,
       getMarkState,
       getLinkColorKey,
+      getMaterial,
       getNodeColorKey,
       graph,
       hideTooltip,
       hover,
-      rough,
       renderer,
       showMark,
-      textureScopeId,
-      texture,
     }),
     [
       activeLink,
       getMarkState,
       getLinkColorKey,
+      getMaterial,
       getNodeColorKey,
       graph,
       hideTooltip,
       hover,
-      rough,
       renderer,
       showMark,
-      textureScopeId,
-      texture,
     ]
   )
 
@@ -593,19 +585,7 @@ function NetworkChartSurface<
       onPointerMove={followTooltip}
     >
       <ChartSvg aria-label="network chart" role="img">
-        {graph.nodes.map((node, index) => (
-          <ChartRendererDefs
-            color={getChartCssVariable(
-              getNodeColorKey?.(node, index) ?? getDefaultNodeColorKey(node)
-            )}
-            key={node.id}
-            renderer={renderer}
-            textureIndex={index}
-            textureKey={`node:${node.id}`}
-            texture={texture}
-            textureScopeId={textureScopeId}
-          />
-        ))}
+        {defs}
         <NetworkRenderContext.Provider value={renderContext}>
           <Graph
             graph={graph}
@@ -688,12 +668,40 @@ export function NetworkChart<
     tooltipOpen,
     tooltipTop,
   } = useChartMarkInteraction<TooltipState, "node" | "link">()
+  const colorKeys = React.useMemo(() => {
+    const keys = new Set<string>(["airport", "primary"])
+    const roughGraph = resolveNetworkGraph({
+      data,
+      height: 1,
+      layout,
+      width: 1,
+    })
+
+    roughGraph.nodes.forEach((node, index) => {
+      keys.add(getNodeColorKey?.(node, index) ?? getDefaultNodeColorKey(node))
+    })
+    roughGraph.links.forEach((link, index) => {
+      keys.add(getLinkColorKey?.(link, index) ?? getDefaultLinkColorKey(link))
+    })
+
+    return Array.from(keys)
+  }, [data, getLinkColorKey, getNodeColorKey, layout])
+  const materials = useChartMaterialRegistry({
+    config,
+    defaults: DEFAULT_NETWORK_CONFIG,
+    keys: colorKeys,
+    renderer: resolvedRenderer,
+    rough,
+    scope: "network",
+    strategy: "relational",
+    texture,
+  })
 
   return (
     <ChartContainer
       aspectRatio={layout?.aspectRatio ?? "5 / 3"}
       className={className}
-      config={{ ...DEFAULT_NETWORK_CONFIG, ...config }}
+      config={materials.resolvedConfig}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No network data
@@ -705,8 +713,10 @@ export function NetworkChart<
       {({ height, width }) => (
         <NetworkChartSurface
           data={data}
+          defs={materials.defs}
           followTooltip={followTooltip}
           getMarkState={getMarkState}
+          getMaterial={materials.getMaterial}
           getLinkColorKey={getLinkColorKey}
           getNodeColorKey={getNodeColorKey}
           height={height}
@@ -716,8 +726,6 @@ export function NetworkChart<
           renderLinkTooltip={renderLinkTooltip}
           renderNodeTooltip={renderNodeTooltip}
           renderer={resolvedRenderer}
-          rough={rough}
-          texture={texture}
           showMark={showMark}
           tooltipData={currentTooltipData}
           tooltipLeft={tooltipLeft}

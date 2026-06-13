@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 
 import { ScatterChart } from "../../components/chart/scatter-chart"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
-import type { ChartConfig, ChartTooltipField } from "../../components/chart/types"
+import type { ChartTooltipField } from "../../components/chart/types"
 import { StatusBadge } from "../../components/ui/status-badge"
 import {
   codeMetricChartDomain,
@@ -10,25 +10,6 @@ import {
   moduleStats,
 } from "./data/generated-code-metrics"
 import type { CodeMetricRow, ModuleStat } from "./data/types"
-
-const codeMetricScatterConfig = {
-  danger: {
-    color: "var(--destructive)",
-    label: "Low MI",
-  },
-  healthy: {
-    color: "var(--chart-1)",
-    label: "Smaller candidate",
-  },
-  metrics: {
-    color: "var(--chart-1)",
-    label: "Code metrics",
-  },
-  warning: {
-    color: "var(--chart-3)",
-    label: "Complexity pressure",
-  },
-} satisfies ChartConfig
 
 const codeMetricTooltipFields = [
   { key: "mi", label: "MI", value: "mi" },
@@ -41,18 +22,6 @@ const codeMetricTooltipFields = [
   { key: "fan-in", label: "Fan-in", value: "fanIn" },
   { key: "fan-out", label: "Fan-out", value: "fanOut" },
 ] satisfies ChartTooltipField<CodeMetricRow>[]
-
-function getMetricColorKey(row: CodeMetricRow) {
-  if (row.mi < 40) {
-    return "danger"
-  }
-
-  if (row.mi < 70) {
-    return "warning"
-  }
-
-  return "healthy"
-}
 
 const moduleColumns: ColumnDef<ModuleStat>[] = [
   {
@@ -176,8 +145,6 @@ export function CodeMetricsBlock() {
         <div className="canvas-stack-sm min-w-0">
           <ScatterChart
             aspectRatio="2 / 1"
-            colorKey={getMetricColorKey}
-            config={codeMetricScatterConfig}
             data={codeMetricRows}
             minHeight={360}
             radiusKey="fanOut"

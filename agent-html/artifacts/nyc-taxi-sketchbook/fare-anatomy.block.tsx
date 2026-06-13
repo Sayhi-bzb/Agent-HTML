@@ -5,7 +5,6 @@ import {
 import { taxiKpis } from "./data/trip-summary"
 import { BarChart } from "../../components/chart/bar-chart"
 import { PieChart } from "../../components/chart/pie-chart"
-import type { ChartConfig } from "../../components/chart/types"
 
 import { roughSketchMarkOptions } from "./rough-theme"
 import {
@@ -32,21 +31,6 @@ const components = fareComponents.map((item) => ({
   ...item,
   label: labels[item.key] ?? item.key,
 }))
-const componentChartConfig = {
-  value: {
-    color: "var(--chart-2)",
-    label: "Average fare",
-  },
-} satisfies ChartConfig
-const paymentChartConfig = Object.fromEntries(
-  payment.map((item, index) => [
-    item.label,
-    {
-      color: `var(--chart-${(index % 5) + 1})`,
-      label: item.label,
-    },
-  ])
-) satisfies ChartConfig
 const largestComponent = [...components].sort((a, b) => b.value - a.value)[0]
 const meterComponent = components.find((item) => item.key === "meter fare")
 const tipComponent = components.find((item) => item.key === "tip")
@@ -69,7 +53,6 @@ export function FareAnatomyBlock() {
           <BarChart
             aspectRatio="16 / 9"
             className="min-h-[360px]"
-            config={componentChartConfig}
             data={components}
             minHeight={320}
             renderer="rough"
@@ -134,7 +117,6 @@ export function FareAnatomyBlock() {
           <div className="grid gap-4 sm:grid-cols-[minmax(220px,0.48fr)_minmax(0,0.52fr)] lg:grid-cols-1 xl:grid-cols-[minmax(200px,0.48fr)_minmax(0,0.52fr)]">
             <PieChart
               aspectRatio="1 / 1"
-              config={paymentChartConfig}
               data={payment}
               legend
               minHeight={220}

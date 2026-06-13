@@ -23,7 +23,9 @@ integration: read `runtime/README.md`.
 
 ## Artifact Rules
 
-- Pass data semantics, accessors, config, renderer choice, and tooltip fields.
+- Pass data semantics, accessors, renderer choice, and tooltip fields.
+- Do not configure colors unless the artifact needs a deliberate semantic
+  override; charts choose default color strategy from their data role.
 - Keep layout and explanatory copy in the artifact block.
 - Use `renderer="svg"`, `renderer="rough"`, or `renderer="texture"` only when
   the chart supports that material.

@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 185 |
-| Dependencies | 506 |
-| Local edges | 342 |
-| External edges | 163 |
+| Modules | 187 |
+| Dependencies | 510 |
+| Local edges | 345 |
+| External edges | 164 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -36,8 +36,8 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Module | Outbound Local Edges |
 | --- | --- |
+| `agent-html/components/chart/runtime/index.ts` | 13 |
 | `agent-html/theme/presets.ts` | 13 |
-| `agent-html/components/chart/runtime/index.ts` | 12 |
 | `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 9 |
 | `agent-html/artifacts/health-report-decoder.artifact.tsx` | 8 |
 | `agent-html/components/ui/sidebar.tsx` | 8 |
@@ -53,7 +53,7 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Module | Edges |
 | --- | --- |
-| `node_modules/react/index.js` | 64 |
+| `node_modules/react/index.js` | 65 |
 | `node_modules/radix-ui/dist/index.mjs` | 23 |
 | `node_modules/lucide-react/dist/esm/lucide-react.mjs` | 21 |
 | `node_modules/class-variance-authority/dist/index.mjs` | 7 |

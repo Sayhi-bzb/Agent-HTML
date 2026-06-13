@@ -20,18 +20,18 @@ import {
   type ChartRenderer,
   chartMotion,
   chartXYTheme,
-  getChartCssVariable,
   getFiniteValues,
   getNumberDomain,
   getValue,
   isFiniteNumber,
   resolveChartRenderer,
+  useChartMaterialRegistry,
 } from "./runtime"
 
 export interface LineChartProps<T> {
   aspectRatio?: string
   className?: string
-  config: ChartConfig
+  config?: ChartConfig
   data: T[]
   minHeight?: number
   referenceY?: number
@@ -90,13 +90,24 @@ export function LineChart<T extends object>({
   yKey,
   yValueFormatter = formatValue,
 }: LineChartProps<T>) {
-  void resolveChartRenderer(renderer, ["svg"])
+  const resolvedRenderer = resolveChartRenderer(renderer, ["svg"])
+  const seriesKey = React.useMemo(
+    () => Object.keys(config ?? {})[0] ?? "value",
+    [config]
+  )
+  const materials = useChartMaterialRegistry({
+    config,
+    keys: [seriesKey],
+    renderer: resolvedRenderer,
+    scope: "line",
+    strategy: "single",
+  })
 
   return (
     <ChartContainer
       aspectRatio={aspectRatio}
       className={className}
-      config={config}
+      config={materials.resolvedConfig}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No trend data
@@ -113,7 +124,7 @@ export function LineChart<T extends object>({
         const primarySeries = series[0]
         const seriesKey = primarySeries?.key ?? "value"
         const seriesLabel = primarySeries?.label ?? seriesKey
-        const color = getChartCssVariable(seriesKey)
+        const color = materials.getMaterial(seriesKey).color
         const xAccessor = (datum: T) => getValue(datum, xKey)
         const yAccessor = (datum: T) => getValue(datum, yKey)
 

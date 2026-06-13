@@ -2,7 +2,6 @@ import { AreaChart } from "../../components/chart/area-chart"
 import { BarChart, BarHChart } from "../../components/chart/bar-chart"
 import { LineChart } from "../../components/chart/line-chart"
 import { PieChart } from "../../components/chart/pie-chart"
-import type { ChartConfig } from "../../components/chart/types"
 
 const trendData = [
   { month: "Jan", value: 42 },
@@ -23,30 +22,6 @@ const shareData = [
   { label: "Review", share: 11 },
 ]
 
-const valueConfig = {
-  value: {
-    color: "var(--chart-1)",
-    label: "Value",
-  },
-} satisfies ChartConfig
-
-const categoryConfig = {
-  value: {
-    color: "var(--chart-2)",
-    label: "Result",
-  },
-} satisfies ChartConfig
-
-const shareConfig = Object.fromEntries(
-  shareData.map((item, index) => [
-    item.label,
-    {
-      color: `var(--chart-${(index % 5) + 1})`,
-      label: item.label,
-    },
-  ])
-) satisfies ChartConfig
-
 export function ChartFoundationDemoBlock() {
   return (
     <section className="canvas-stack-lg">
@@ -61,21 +36,18 @@ export function ChartFoundationDemoBlock() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <LineChart
-          config={valueConfig}
           data={trendData}
           minHeight={260}
           xKey="month"
           yKey="value"
         />
         <AreaChart
-          config={valueConfig}
           data={trendData}
           minHeight={260}
           xKey="month"
           yKey="value"
         />
         <BarChart
-          config={categoryConfig}
           data={categoryData}
           minHeight={260}
           renderer="rough"
@@ -83,7 +55,6 @@ export function ChartFoundationDemoBlock() {
           yKey="value"
         />
         <BarHChart
-          config={categoryConfig}
           data={categoryData}
           minHeight={260}
           renderer="rough"
@@ -92,7 +63,6 @@ export function ChartFoundationDemoBlock() {
         />
         <PieChart
           className="lg:col-span-2"
-          config={shareConfig}
           data={shareData}
           legend
           minHeight={260}

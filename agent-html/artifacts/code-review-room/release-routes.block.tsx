@@ -1,5 +1,4 @@
 import { AreaChart } from "../../components/chart/area-chart"
-import type { ChartConfig } from "../../components/chart/types"
 import { Badge } from "../../components/ui/badge"
 import { Progress } from "../../components/ui/progress"
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
@@ -20,13 +19,6 @@ const decisionProfile =
   releaseRoutes.find((route) => route.value === defaultRouteValue)?.metrics ??
   releaseRoutes[0]?.metrics ??
   []
-
-const decisionProfileConfig = {
-  value: {
-    color: "var(--chart-2)",
-    label: "Decision strength",
-  },
-} satisfies ChartConfig
 
 export function ReleaseRoutesBlock() {
   return (
@@ -73,7 +65,6 @@ export function ReleaseRoutesBlock() {
         </div>
         <AreaChart
           aspectRatio="3 / 1"
-          config={decisionProfileConfig}
           data={decisionProfile}
           minHeight={260}
           referenceY={75}

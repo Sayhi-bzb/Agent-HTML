@@ -1,5 +1,4 @@
 import { LineChart } from "../../components/chart/line-chart"
-import type { ChartConfig } from "../../components/chart/types"
 import { Badge } from "../../components/ui/badge"
 import { StatusBadge } from "../../components/ui/status-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
@@ -7,13 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import { trendSeries } from "./data/lab-trend-review"
 import { labItemByCode } from "./data/report"
 import { statusFor } from "./data/status"
-
-const chartConfig = {
-  value: {
-    color: "var(--chart-1)",
-    label: "结果",
-  },
-} satisfies ChartConfig
 
 export function LabTrendReviewBlock() {
   return (
@@ -50,7 +42,6 @@ export function LabTrendReviewBlock() {
             >
               <LineChart
                 className="h-80 w-full"
-                config={chartConfig}
                 data={series.points}
                 referenceY={latest?.value}
                 xKey="year"

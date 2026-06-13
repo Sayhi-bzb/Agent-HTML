@@ -62,6 +62,17 @@ blocks.
 - Rough option shaping that depends on concrete data keys belongs in the
   concrete chart.
 
+## Material And Color
+
+- `material.tsx` owns chart color strategy, scoped CSS color variables, texture
+  definitions, and reusable renderer props.
+- Concrete charts declare their data role with a strategy: `single`,
+  `categorical`, `sequential`, or `relational`.
+- Artifact blocks should not pass color config for ordinary charts. `config`
+  remains an override for deliberate semantic color decisions.
+- Color config precedence is user config, chart semantic defaults, then runtime
+  strategy defaults.
+
 Current renderer support:
 
 - `BarChart`, `BarHChart`, `PieChart`, `AreaChart`, and `HeatmapChart`: `svg`,

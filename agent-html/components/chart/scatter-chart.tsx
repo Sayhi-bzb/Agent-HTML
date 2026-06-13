@@ -10,7 +10,6 @@ import * as React from "react"
 import {
   type ChartTextureOptions,
   ChartRenderedCircle,
-  ChartRendererDefs,
 } from "./runtime"
 import {
   type ChartAccessor,
@@ -26,14 +25,16 @@ import {
   ChartTooltipContent,
   chartMotion,
   chartXYTheme,
-  getChartCssVariable,
   getNumberDomain,
+  getChartRangeBucketKey,
+  getChartRangeBucketKeys,
   getValue,
   isFiniteNumber,
   resolveChartTooltipItems,
   type ChartRenderer,
   resolveChartRenderer,
   useChartMarkInteraction,
+  useChartMaterialRegistry,
 } from "./runtime"
 
 export type ScatterScaleType = "linear" | "log"
@@ -50,7 +51,7 @@ export interface ScatterChartProps<T> {
   aspectRatio?: string
   className?: string
   colorKey?: ChartAccessor<T, string>
-  config: ChartConfig
+  config?: ChartConfig
   data: readonly T[]
   minHeight?: number
   radiusKey?: ChartAccessor<T, number>
@@ -87,6 +88,7 @@ interface TooltipState<T> {
 
 interface ScatterPoint<T> {
   color: string
+  colorKey: string
   datum: T
   key: string
   radius: number
@@ -354,18 +356,51 @@ export function ScatterChart<T extends object>({
     tooltipOpen,
     tooltipTop,
   } = useChartMarkInteraction<TooltipState<T>, "point">()
-  const textureScopeId = React.useId()
   const resolvedRenderer = resolveChartRenderer(renderer, [
     "svg",
     "rough",
     "texture",
   ])
+  const defaultSeriesKey = React.useMemo(
+    () => Object.keys(config ?? {})[0] ?? "value",
+    [config]
+  )
+  const yColorValues = React.useMemo(
+    () =>
+      data
+        .map((datum) => getValue(datum, yKey))
+        .filter(
+          (value) =>
+            isFiniteNumber(value) && isValidScaleValue(value, yScaleType)
+        ),
+    [data, yKey, yScaleType]
+  )
+  const colorKeys = React.useMemo(() => {
+    if (colorKey) {
+      return data.map((datum) => getValue(datum, colorKey))
+    }
+
+    return getChartRangeBucketKeys({
+      fallbackKey: defaultSeriesKey,
+      reference: referenceY,
+      values: yColorValues,
+    })
+  }, [colorKey, data, defaultSeriesKey, referenceY, yColorValues])
+  const materials = useChartMaterialRegistry({
+    config,
+    keys: colorKeys,
+    renderer: resolvedRenderer,
+    rough,
+    scope: "scatter",
+    strategy: colorKeys.length > 1 || colorKey ? "categorical" : "single",
+    texture,
+  })
 
   return (
     <ChartContainer
       aspectRatio={aspectRatio}
       className={className}
-      config={config}
+      config={materials.resolvedConfig}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No scatter data
@@ -390,14 +425,23 @@ export function ScatterChart<T extends object>({
         const seriesKey = primarySeries?.key ?? "value"
         const seriesLabel = primarySeries?.label ?? seriesKey
         const getColorKey = (datum: T) =>
-          colorKey ? getValue(datum, colorKey) : seriesKey
-        const getColor = (datum: T) => getChartCssVariable(getColorKey(datum))
+          colorKey
+            ? getValue(datum, colorKey)
+            : getChartRangeBucketKey({
+                fallbackKey: seriesKey,
+                reference: referenceY,
+                value: getValue(datum, yKey),
+                values: yColorValues,
+              })
         const points = chartData.map<ScatterPoint<T>>((datum, index) => {
           const xValue = getValue(datum, xKey)
           const yValue = getValue(datum, yKey)
+          const colorKey = getColorKey(datum)
+          const material = materials.getMaterial(colorKey)
 
           return {
-            color: getColor(datum),
+            color: material.color,
+            colorKey,
             datum,
             key: getMarkKey("point", seriesKey, index),
             radius: getPointRadius({ datum, radiusKey }),
@@ -465,17 +509,7 @@ export function ScatterChart<T extends object>({
               isValidScaleValue(referenceY, yScaleType) ? (
                 <ScatterReferenceLine yValue={referenceY} />
               ) : null}
-              {points.map((point, index) => (
-                <ChartRendererDefs
-                  color={point.color}
-                  key={point.key}
-                  renderer={resolvedRenderer}
-                  textureIndex={index}
-                  textureKey={`scatter:${point.key}`}
-                  texture={texture}
-                  textureScopeId={textureScopeId}
-                />
-              ))}
+              {materials.defs}
 
               <GlyphSeries
                 colorAccessor={(point) => point.color}
@@ -487,6 +521,7 @@ export function ScatterChart<T extends object>({
                     baseOpacity: 0.82,
                     key: point.key,
                   })
+                  const material = materials.getMaterial(point.colorKey)
                   return (
                     resolvedRenderer === "rough" || resolvedRenderer === "texture" ? (
                       <ChartMotionGroup
@@ -500,21 +535,21 @@ export function ScatterChart<T extends object>({
                         transform={`translate(${x}, ${y})`}
                       >
                         <ChartRenderedCircle
-                          color={point.color}
+                          color={material.color}
                           cx={0}
                           cy={0}
-                          renderer={resolvedRenderer}
-                          rough={rough}
+                          renderer={material.renderer}
+                          rough={material.rough}
                           r={markState.isHighlighted
                             ? point.radius + 1.5
                             : point.radius}
-                          stroke={point.color}
+                          stroke={material.color}
                           strokeOpacity={markState.isHighlighted ? 1 : 0.8}
                           strokeWidth={1}
-                          textureIndex={points.indexOf(point)}
-                          textureKey={`scatter:${point.key}`}
-                          texture={texture}
-                          textureScopeId={textureScopeId}
+                          textureIndex={material.textureIndex}
+                          textureKey={material.textureKey}
+                          texture={material.texture}
+                          textureScopeId={material.textureScopeId}
                         />
                       </ChartMotionGroup>
                     ) : (

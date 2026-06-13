@@ -29,6 +29,12 @@ export interface ChartResolvedSeries {
   icon?: ComponentType
 }
 
+export type ChartColorStrategy =
+  | "categorical"
+  | "relational"
+  | "sequential"
+  | "single"
+
 export type ChartRenderer = "rough" | "svg" | "texture"
 
 export interface ChartRoughOptions {

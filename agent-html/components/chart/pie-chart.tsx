@@ -5,7 +5,6 @@ import {
   type ChartRoughOptions,
   type ChartTextureOptions,
   ChartRenderedPath,
-  ChartRendererDefs,
 } from "./runtime"
 import type {
   ChartAccessor,
@@ -21,17 +20,17 @@ import {
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
-  getChartCssVariable,
   getValue,
   isFiniteNumber,
   resolveChartRenderer,
   useChartMarkInteraction,
+  useChartMaterialRegistry,
 } from "./runtime"
 
 export interface PieChartProps<T> {
   aspectRatio?: string
   className?: string
-  config: ChartConfig
+  config?: ChartConfig
   data: readonly T[]
   legend?: boolean
   minHeight?: number
@@ -150,17 +149,35 @@ export function PieChart<T>({
     tooltipOpen,
     tooltipTop,
   } = useChartMarkInteraction<TooltipState<T>, "slice">()
-  const slices = React.useMemo(
-    () => createSlices({ config, data, nameKey, valueKey }),
-    [config, data, nameKey, valueKey]
+  const sliceKeys = React.useMemo(
+    () => data.map((datum) => getValue(datum, nameKey)),
+    [data, nameKey]
   )
-  const textureScopeId = React.useId()
+  const materials = useChartMaterialRegistry({
+    config,
+    keys: sliceKeys,
+    renderer: resolvedRenderer,
+    rough,
+    scope: "pie",
+    strategy: "categorical",
+    texture,
+  })
+  const slices = React.useMemo(
+    () =>
+      createSlices({
+        config: materials.resolvedConfig,
+        data,
+        nameKey,
+        valueKey,
+      }),
+    [materials.resolvedConfig, data, nameKey, valueKey]
+  )
 
   return (
     <ChartContainer
       aspectRatio={aspectRatio}
       className={className}
-      config={config}
+      config={materials.resolvedConfig}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No share data
@@ -180,17 +197,7 @@ export function PieChart<T>({
         return (
           <ChartInteractionRoot onPointerLeave={hideTooltip}>
             <ChartSvg aria-label="占比饼图" role="img">
-              {model.slices.map((slice, index) => (
-                <ChartRendererDefs
-                  color={getChartCssVariable(slice.key)}
-                  key={slice.key}
-                  renderer={resolvedRenderer}
-                  textureIndex={index}
-                  textureKey={`pie:${slice.key}`}
-                  texture={texture}
-                  textureScopeId={textureScopeId}
-                />
-              ))}
+              {materials.defs}
               <Pie
                 data={model.slices}
                 outerRadius={model.radius}
@@ -200,7 +207,7 @@ export function PieChart<T>({
                   <g transform={`translate(${model.centerX}, ${model.pieCenterY})`}>
                     {arcs.map((arc) => {
                       const d = path(arc) ?? ""
-                      const color = getChartCssVariable(arc.data.key)
+                      const material = materials.getMaterial(arc.data.key)
                       const key = getMarkKey("slice", arc.data.key)
                       const markMotion = getMarkMotion({ key })
                       const showTooltip = (
@@ -220,15 +227,15 @@ export function PieChart<T>({
                             {...markMotion}
                           >
                             <ChartRenderedPath
-                              color={color}
+                              color={material.color}
                               d={d}
-                              renderer={resolvedRenderer}
-                              rough={rough}
-                              stroke={color}
-                              textureIndex={arcs.indexOf(arc)}
-                              textureKey={`pie:${arc.data.key}`}
-                              texture={texture}
-                              textureScopeId={textureScopeId}
+                              renderer={material.renderer}
+                              rough={material.rough}
+                              stroke={material.color}
+                              textureIndex={material.textureIndex}
+                              textureKey={material.textureKey}
+                              texture={material.texture}
+                              textureScopeId={material.textureScopeId}
                             />
                           </ChartMotionGroup>
                           <ChartHitPath
@@ -254,7 +261,7 @@ export function PieChart<T>({
                 <ChartTooltipContent
                   items={[
                     {
-                      color: getChartCssVariable(tooltip.slice.key),
+                      color: materials.getMaterial(tooltip.slice.key).color,
                       key: tooltip.slice.key,
                       label: tooltip.slice.label,
                       value: valueFormatter(tooltip.slice.value),

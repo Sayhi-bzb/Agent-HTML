@@ -1,6 +1,8 @@
 import { buildChartTheme } from "@visx/xychart"
+import type { ReactNode } from "react"
 
 import type {
+  ChartColorStrategy,
   ChartConfig,
   ChartResolvedSeries,
   ChartSeries,
@@ -17,6 +19,75 @@ export const defaultChartColors = [
   "var(--chart-4)",
   "var(--chart-5)",
 ] as const
+
+const sequentialChartColors = [
+  "var(--chart-4)",
+  "var(--chart-3)",
+  "var(--chart-2)",
+  "var(--chart-1)",
+  "var(--foreground)",
+] as const
+
+function resolveStrategyColor({
+  index,
+  strategy,
+}: {
+  index: number
+  strategy: ChartColorStrategy
+}) {
+  if (strategy === "single") {
+    return defaultChartColors[0]
+  }
+
+  if (strategy === "sequential") {
+    return sequentialChartColors[
+      Math.min(index, sequentialChartColors.length - 1)
+    ]
+  }
+
+  return defaultChartColors[index % defaultChartColors.length]
+}
+
+export function createDefaultChartConfig(
+  keys: readonly string[],
+  labels: Partial<Record<string, ReactNode>> = {},
+  strategy: ChartColorStrategy = "categorical"
+): ChartConfig {
+  const uniqueKeys = Array.from(new Set(keys.filter(Boolean)))
+  const resolvedKeys = uniqueKeys.length > 0 ? uniqueKeys : ["value"]
+
+  return Object.fromEntries(
+    resolvedKeys.map((key, index) => [
+      key,
+      {
+        color: resolveStrategyColor({ index, strategy }),
+        label: labels[key] ?? key,
+      },
+    ])
+  ) satisfies ChartConfig
+}
+
+export function createChartColorConfig({
+  keys,
+  labels,
+  strategy = "categorical",
+}: {
+  keys: readonly string[]
+  labels?: Partial<Record<string, ReactNode>>
+  strategy?: ChartColorStrategy
+}) {
+  return createDefaultChartConfig(keys, labels, strategy)
+}
+
+export function mergeChartConfig(
+  defaultConfig: ChartConfig,
+  config?: ChartConfig
+): ChartConfig {
+  return {
+    ...defaultConfig,
+    ...config,
+  }
+}
 
 export const chartXYTheme = buildChartTheme({
   backgroundColor: "var(--background)",
@@ -92,8 +163,16 @@ export function resolveChartSeries({
   })
 }
 
+function getChartCssVariableKey(key: string) {
+  const encodedKey = encodeURIComponent(key)
+    .replace(/%/g, "_")
+    .replace(/[^A-Za-z0-9_-]/g, "_")
+
+  return encodedKey || "value"
+}
+
 export function getChartCssVariableName(key: string) {
-  return `--color-${key}`
+  return `--color-${getChartCssVariableKey(key)}`
 }
 
 export function getChartCssVariable(key: string) {

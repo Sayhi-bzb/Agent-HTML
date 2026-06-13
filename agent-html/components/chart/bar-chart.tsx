@@ -3,7 +3,6 @@ import * as React from "react"
 import {
   type ChartTextureOptions,
   ChartRenderedRect,
-  ChartRendererDefs,
 } from "./runtime"
 import {
   type ChartAccessor,
@@ -24,18 +23,18 @@ import {
   createBandScale,
   createCartesianLayout,
   createLinearScale,
-  getChartCssVariable,
   getFiniteValues,
   getValue,
   isFiniteNumber,
   resolveChartRenderer,
   useChartMarkInteraction,
+  useChartMaterialRegistry,
 } from "./runtime"
 
 export interface BarChartProps<T> {
   aspectRatio?: string
   className?: string
-  config: ChartConfig
+  config?: ChartConfig
   data: readonly T[]
   legend?: boolean
   minHeight?: number
@@ -51,7 +50,7 @@ export interface BarChartProps<T> {
 export interface BarHChartProps<T> {
   aspectRatio?: string
   className?: string
-  config: ChartConfig
+  config?: ChartConfig
   data: readonly T[]
   legend?: boolean
   minHeight?: number
@@ -83,7 +82,7 @@ interface BarCoreProps<T> {
   categoryFormatter?: (value: string) => React.ReactNode
   categoryKey: ChartAccessor<T, string>
   className?: string
-  config: ChartConfig
+  config?: ChartConfig
   data: readonly T[]
   emptyLabel: string
   legend: boolean
@@ -279,15 +278,26 @@ function BarChartCore<T>({
     tooltipOpen,
     tooltipTop,
   } = useChartMarkInteraction<TooltipState<T>, "bar">()
-  const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const rows = React.useMemo(() => Array.from(data), [data])
-  const textureScopeId = React.useId()
+  const categoryKeys = React.useMemo(
+    () => rows.map((datum) => getValue(datum, categoryKey)),
+    [categoryKey, rows]
+  )
+  const materials = useChartMaterialRegistry({
+    config,
+    keys: categoryKeys,
+    renderer: resolvedRenderer,
+    rough,
+    scope: `bar:${orientation}`,
+    strategy: "categorical",
+    texture,
+  })
 
   return (
     <ChartContainer
       aspectRatio={aspectRatio}
       className={className}
-      config={config}
+      config={materials.resolvedConfig}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           {emptyLabel}
@@ -309,20 +319,10 @@ function BarChartCore<T>({
           orientation,
           valueKey,
         })
-        const seriesLabel = config[seriesKey]?.label ?? series[0]?.label ?? seriesKey
-        const color = getChartCssVariable(seriesKey)
-        const textureKey = `bar:${orientation}:${seriesKey}`
-
         return (
           <ChartInteractionRoot onPointerLeave={hideTooltip}>
             <ChartSvg aria-label={ariaLabel} role="img">
-              <ChartRendererDefs
-                color={color}
-                renderer={resolvedRenderer}
-                textureKey={textureKey}
-                texture={texture}
-                textureScopeId={textureScopeId}
-              />
+              {materials.defs}
               <ChartCartesianGroup layout={layout}>
                 {orientation === "vertical" ? (
                   <>
@@ -382,6 +382,7 @@ function BarChartCore<T>({
                   const rect = model.getBarRect(datum, value)
                   const key = getMarkKey("bar", category)
                   const markMotion = getMarkMotion({ key })
+                  const material = materials.getMaterial(category)
                   const showTooltip = (
                     event: React.PointerEvent<SVGRectElement>
                   ) => {
@@ -399,13 +400,14 @@ function BarChartCore<T>({
                         {...markMotion}
                       >
                         <ChartRenderedRect
-                          color={color}
+                          color={material.color}
                           height={rect.height}
-                          renderer={resolvedRenderer}
-                          rough={rough}
-                          textureKey={textureKey}
-                          texture={texture}
-                          textureScopeId={textureScopeId}
+                          renderer={material.renderer}
+                          rough={material.rough}
+                          textureIndex={material.textureIndex}
+                          textureKey={material.textureKey}
+                          texture={material.texture}
+                          textureScopeId={material.textureScopeId}
                           width={rect.width}
                           x={rect.x}
                           y={rect.y}
@@ -432,21 +434,30 @@ function BarChartCore<T>({
               y={tooltipTop ?? 0}
             >
               {tooltip ? (
-                <ChartTooltipContent
-                  items={[
-                    {
-                      color,
-                      key: seriesKey,
-                      label: seriesLabel,
-                      value: valueFormatter(getValue(tooltip.datum, valueKey)),
-                    },
-                  ]}
-                  label={formatCategory({
+                (() => {
+                  const category = getValue(tooltip.datum, categoryKey)
+                  const label = formatCategory({
                     categoryFormatter,
                     categoryKey,
                     datum: tooltip.datum,
-                  })}
-                />
+                  })
+
+                  return (
+                    <ChartTooltipContent
+                      items={[
+                        {
+                          color: materials.getMaterial(category).color,
+                          key: category,
+                          label,
+                          value: valueFormatter(
+                            getValue(tooltip.datum, valueKey)
+                          ),
+                        },
+                      ]}
+                      label={label}
+                    />
+                  )
+                })()
               ) : null}
             </ChartTooltip>
 
