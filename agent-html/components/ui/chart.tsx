@@ -41,7 +41,7 @@ export interface ChartResolvedSeries {
   icon?: ComponentType
 }
 
-export type ChartRenderer = "svg" | "rough"
+export type ChartRenderer = "rough" | "svg" | "texture"
 
 export type ChartHoverKey = string | number
 

@@ -27,6 +27,13 @@ import {
   isFiniteNumber,
 } from "../ui/chart"
 import { RoughPath } from "@/lib/rough-svg"
+import {
+  ChartTextureDefs,
+  ChartTexturePath,
+  createChartTextureId,
+  resolveChartTextureOptions,
+  type ChartTextureOptions,
+} from "@/lib/chart-texture"
 
 export interface AreaChartProps<T> {
   aspectRatio?: string
@@ -37,6 +44,7 @@ export interface AreaChartProps<T> {
   referenceY?: number
   renderer?: ChartRenderer
   roughOptions?: RoughOptions
+  textureOptions?: ChartTextureOptions
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -153,6 +161,86 @@ function RoughAreaVisualLayer<T extends object>({
   )
 }
 
+function TextureAreaVisualLayer<T extends object>({
+  color,
+  data,
+  seriesKey,
+  textureScopeId,
+  textureOptions,
+  xKey,
+  yKey,
+}: {
+  color: string
+  data: T[]
+  seriesKey: string
+  textureScopeId: string
+  textureOptions?: ChartTextureOptions
+  xKey: ChartAccessor<T, string>
+  yKey: ChartAccessor<T, number>
+}) {
+  const { xScale, yScale } = React.useContext(DataContext)
+
+  if (!xScale || !yScale) {
+    return null
+  }
+
+  const scaleX = xScale as (value: unknown) => unknown
+  const scaleY = yScale as (value: unknown) => unknown
+  const getX = (datum: T) => Number(scaleX(getValue(datum, xKey)))
+  const getY = (datum: T) => Number(scaleY(getValue(datum, yKey)))
+  const baseline = Number(scaleY(0))
+  const isDefined = (datum: T) =>
+    isFiniteNumber(getX(datum)) && isFiniteNumber(getY(datum))
+  const textureId = createChartTextureId("area", textureScopeId, seriesKey)
+  const texture = resolveChartTextureOptions({ options: textureOptions })
+
+  return (
+    <g aria-hidden="true" pointerEvents="none">
+      <ChartTextureDefs
+        color={color}
+        id={textureId}
+        options={textureOptions}
+      />
+      <Area
+        curve={curveMonotoneX}
+        data={data}
+        defined={isDefined}
+        x={getX}
+        y0={() => baseline}
+        y1={getY}
+      >
+        {({ path }) => {
+          const d = path(data) ?? ""
+
+          return (
+            <ChartTexturePath
+              d={d}
+              id={textureId}
+              opacity={texture.opacity}
+            />
+          )
+        }}
+      </Area>
+      <LinePath
+        curve={curveMonotoneX}
+        data={data}
+        defined={isDefined}
+        x={getX}
+        y={getY}
+      >
+        {({ path }) => (
+          <path
+            d={path(data) ?? ""}
+            fill="none"
+            stroke={color}
+            strokeWidth={2}
+          />
+        )}
+      </LinePath>
+    </g>
+  )
+}
+
 export function AreaChart<T extends object>({
   aspectRatio = "9 / 4",
   className,
@@ -162,11 +250,14 @@ export function AreaChart<T extends object>({
   referenceY,
   renderer = "svg",
   roughOptions,
+  textureOptions,
   xKey,
   xLabelFormatter,
   yKey,
   yValueFormatter = formatValue,
 }: AreaChartProps<T>) {
+  const textureScopeId = React.useId()
+
   return (
     <ChartContainer
       aspectRatio={aspectRatio}
@@ -237,14 +328,25 @@ export function AreaChart<T extends object>({
                 yKey={yKey}
               />
             ) : null}
+            {renderer === "texture" ? (
+              <TextureAreaVisualLayer
+                color={color}
+                data={chartData}
+                seriesKey={seriesKey}
+                textureScopeId={textureScopeId}
+                textureOptions={textureOptions}
+                xKey={xKey}
+                yKey={yKey}
+              />
+            ) : null}
             <AreaSeries
               curve={curveMonotoneX}
               data={chartData}
               dataKey={seriesKey}
-              fill={renderer === "rough" ? "transparent" : color}
-              fillOpacity={renderer === "rough" ? 0 : 0.16}
+              fill={renderer === "rough" || renderer === "texture" ? "transparent" : color}
+              fillOpacity={renderer === "rough" || renderer === "texture" ? 0 : 0.16}
               lineProps={{
-                stroke: renderer === "rough" ? "transparent" : color,
+                stroke: renderer === "rough" || renderer === "texture" ? "transparent" : color,
                 strokeWidth: 2,
               }}
               renderLine

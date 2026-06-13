@@ -23,6 +23,11 @@ roughjs
   -> lib/rough-svg.tsx
   -> semantic chart rough branches or artifact-local sketch decoration
 
+@visx/pattern
+  -> lib/chart-texture.tsx
+  -> semantic chart texture branches
+  -> artifact blocks
+
 specialized @visx packages
   -> matching semantic chart components
   -> artifact blocks
@@ -58,6 +63,10 @@ the Canvas protocol exposed by `components/ui/chart.tsx`.
   `@visx/xychart` theme.
 - `../../lib/rough-svg.tsx`: low-level RoughJS SVG lifecycle bridge. It owns
   RoughJS-to-React rendering only, not chart semantics, chart config, layout, or
+  tooltip behavior.
+- `../../lib/chart-texture.tsx`: low-level `@visx/pattern` bridge for Canvas
+  texture material. It owns pattern ids, pattern defaults, SVG `url(#id)`
+  helpers, and pointer-transparent overlays, not chart semantics, layout, or
   tooltip behavior.
 - `line-chart.tsx`: reusable line chart using `@visx/xychart` for cartesian
   series, axis/grid, pointer events, and tooltip state, while consuming
@@ -109,6 +118,9 @@ Use visx primitives by responsibility:
 - `@visx/xychart/GlyphSeries` owns reusable scatter mark placement and event
   registration. Artifact blocks should not hand-roll scatter SVG coordinates,
   log scales, or native SVG titles.
+- `@visx/pattern` owns SVG pattern definitions for Canvas texture rendering.
+  Keep pattern ids, defs, and `url(#id)` wiring inside Canvas texture helpers
+  and semantic chart components, not artifact blocks.
 
 ## Interaction Ownership
 
@@ -150,11 +162,19 @@ Use visx primitives by responsibility:
 - `lib/rough-svg.tsx` may be used by artifact-local sketch decoration when the
   artifact owns the decorative drawing and no semantic chart component applies.
 
-## Rough Policy
+## Renderer Policy
 
 - `renderer` is a visual material choice. Keep public renderer values limited to
-  `svg` and `rough`; Motion and spring belong below this layer as required
-  chart motion.
+  `svg`, `rough`, and `texture`; Motion and spring belong below this layer as
+  required chart motion.
+
+- `svg` renders ordinary SVG marks.
+- `rough` renders RoughJS hand-drawn marks through `lib/rough-svg.tsx`.
+- `texture` renders ordinary SVG marks filled with `@visx/pattern` through
+  `lib/chart-texture.tsx`.
+- Artifact blocks select the renderer. They do not own RoughJS lifecycle,
+  pattern defs, pattern ids, texture URL wiring, hit layers, or Motion
+  synchronization.
 
 - `PieChart` supports `renderer="svg" | "rough"` with a transparent hit path
   and stable rough options.
@@ -162,6 +182,15 @@ Use visx primitives by responsibility:
   and stable rough options.
 - `BarHChart` supports `renderer="svg" | "rough"` with a transparent hit rect
   and stable rough options.
+- `PieChart` supports `renderer="texture"` with a pattern-filled path and
+  transparent hit path.
+- `BarChart` supports `renderer="texture"` with a pattern-filled rect and
+  transparent hit rect.
+- `BarHChart` supports `renderer="texture"` with a pattern-filled rect and
+  transparent hit rect.
+- `AreaChart` supports `renderer="texture"` by letting `@visx/xychart`
+  compute scales and tooltip state while Canvas renders a pattern-filled area
+  and line path.
 - `HeatmapChart` supports `renderer="svg" | "rough"` with `@visx/heatmap`
   cell layout, rough circle marks, and `ChartHitCircle` hit layers.
 - `SankeyChart` supports rough rendering through `roughOptions`, with

@@ -77,11 +77,11 @@ export function ReleaseRoutesBlock() {
           data={decisionProfile}
           minHeight={260}
           referenceY={75}
-          renderer="rough"
-          roughOptions={{
-            bowing: 0.7,
-            fillStyle: "hachure",
-            roughness: 1.1,
+          renderer="texture"
+          textureOptions={{
+            density: "normal",
+            kind: "waves",
+            opacity: 0.35,
           }}
           xKey="label"
           yKey="value"

@@ -2,6 +2,14 @@ import { Pie } from "@visx/shape"
 import * as React from "react"
 import type { Options as RoughOptions } from "roughjs/bin/core"
 
+import {
+  ChartTextureDefs,
+  ChartTexturePath,
+  createChartTextureId,
+  resolveChartTextureOptions,
+  type ChartTextureOptions,
+} from "@/lib/chart-texture"
+import { RoughPath } from "@/lib/rough-svg"
 import type {
   ChartAccessor,
   ChartConfig,
@@ -21,7 +29,6 @@ import {
   isFiniteNumber,
   useChartMarkInteraction,
 } from "../ui/chart"
-import { RoughPath } from "@/lib/rough-svg"
 
 export interface PieChartProps<T> {
   aspectRatio?: string
@@ -33,6 +40,7 @@ export interface PieChartProps<T> {
   nameKey: ChartAccessor<T, string>
   renderer?: ChartRenderer
   roughOptions?: RoughOptions
+  textureOptions?: ChartTextureOptions
   valueFormatter?: (value: number) => React.ReactNode
   valueKey: ChartAccessor<T, number>
 }
@@ -124,6 +132,7 @@ export function PieChart<T>({
   nameKey,
   renderer = "svg",
   roughOptions,
+  textureOptions,
   valueFormatter = formatValue,
   valueKey,
 }: PieChartProps<T>) {
@@ -142,6 +151,7 @@ export function PieChart<T>({
     () => createSlices({ config, data, nameKey, valueKey }),
     [config, data, nameKey, valueKey]
   )
+  const textureScopeId = React.useId()
 
   return (
     <ChartContainer
@@ -167,6 +177,17 @@ export function PieChart<T>({
         return (
           <ChartInteractionRoot onPointerLeave={hideTooltip}>
             <ChartSvg aria-label="占比饼图" role="img">
+              {renderer === "texture"
+                ? model.slices.map((slice, index) => (
+                    <ChartTextureDefs
+                      color={getChartCssVariable(slice.key)}
+                      id={createChartTextureId("pie", textureScopeId, slice.key)}
+                      index={index}
+                      key={slice.key}
+                      options={textureOptions}
+                    />
+                  ))
+                : null}
               <Pie
                 data={model.slices}
                 outerRadius={model.radius}
@@ -179,6 +200,15 @@ export function PieChart<T>({
                       const color = getChartCssVariable(arc.data.key)
                       const key = getMarkKey("slice", arc.data.key)
                       const markMotion = getMarkMotion({ key })
+                      const textureId = createChartTextureId(
+                        "pie",
+                        textureScopeId,
+                        arc.data.key
+                      )
+                      const texture = resolveChartTextureOptions({
+                        index: arcs.indexOf(arc),
+                        options: textureOptions,
+                      })
                       const showTooltip = (
                         event: React.PointerEvent<SVGPathElement>
                       ) => {
@@ -203,6 +233,12 @@ export function PieChart<T>({
                                   stroke: color,
                                   ...roughOptions,
                                 }}
+                              />
+                            ) : renderer === "texture" ? (
+                              <ChartTexturePath
+                                d={d}
+                                id={textureId}
+                                opacity={texture.opacity}
                               />
                             ) : (
                               <path d={d} fill={color} stroke={color} />
