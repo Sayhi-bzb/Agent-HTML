@@ -139,8 +139,8 @@ export function HeatmapChart<T>({
     currentTooltipData: tooltip,
     followTooltip,
     getMarkKey,
-    getMarkMotion,
     hideTooltip,
+    hover,
     showMark,
     tooltipLeft,
     tooltipOpen,
@@ -284,24 +284,26 @@ export function HeatmapChart<T>({
                             cell.datum.key,
                             cell.bin.key
                           )
-                          const markMotion = getMarkMotion({
-                            baseOpacity: cell.opacity,
-                            key,
-                          })
+                          const isHighlighted = hover?.key === key
                           const cellColorKey = getCellColorKey(cell.bin.datum)
                           const cellColor = getChartCssVariable(cellColorKey)
                           return (
                             <g key={key}>
-                              <ChartMotionGroup
-                                {...markMotion}
-                              >
+                              <ChartMotionGroup>
                                 <ChartRenderedCircle
                                   color={cellColor}
                                   cx={cell.cx}
                                   cy={cell.cy}
+                                  opacity={cell.opacity}
                                   r={cell.r}
                                   renderer={resolvedRenderer}
                                   rough={rough}
+                                  stroke={
+                                    isHighlighted
+                                      ? "var(--foreground)"
+                                      : undefined
+                                  }
+                                  strokeWidth={isHighlighted ? 2 : undefined}
                                   textureKey={`heatmap:${cellColorKey}`}
                                   texture={texture}
                                   textureScopeId={textureScopeId}

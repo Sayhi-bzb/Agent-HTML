@@ -92,9 +92,10 @@ export function ChartRenderedCircle({
       <RoughCircle
         diameter={r * 2}
         options={{
-          fill: color,
-          stroke: rough?.stroke ?? color,
           ...rough,
+          fill: color,
+          stroke: stroke ?? rough?.stroke ?? color,
+          strokeWidth: strokeWidth ?? rough?.strokeWidth,
         }}
         x={cx}
         y={cy}
