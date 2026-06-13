@@ -83,10 +83,52 @@ export function mergeChartConfig(
   defaultConfig: ChartConfig,
   config?: ChartConfig
 ): ChartConfig {
-  return {
-    ...defaultConfig,
-    ...config,
+  if (!config) {
+    return defaultConfig
   }
+
+  const keys = new Set([...Object.keys(defaultConfig), ...Object.keys(config)])
+
+  const mergedConfig: ChartConfig = {}
+
+  keys.forEach((key) => {
+    const defaultItem = defaultConfig[key]
+    const configItem = config[key]
+    const label = configItem?.label ?? defaultItem?.label
+    const icon = configItem?.icon ?? defaultItem?.icon
+
+    if (configItem?.theme) {
+      mergedConfig[key] = {
+        icon,
+        label,
+        theme: configItem.theme,
+      }
+      return
+    }
+
+    if (configItem?.color) {
+      mergedConfig[key] = {
+        color: configItem.color,
+        icon,
+        label,
+      }
+      return
+    }
+
+    mergedConfig[key] = defaultItem?.theme
+      ? {
+          icon,
+          label,
+          theme: defaultItem.theme,
+        }
+      : {
+          color: defaultItem?.color,
+          icon,
+          label,
+        }
+  })
+
+  return mergedConfig
 }
 
 export const chartXYTheme = buildChartTheme({

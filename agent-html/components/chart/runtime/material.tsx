@@ -157,9 +157,25 @@ export function getChartSequentialOpacity({
   return 0.14 + ratio * 0.76
 }
 
+function filterChartConfigByKeys(
+  config: ChartConfig | undefined,
+  keys: readonly string[]
+) {
+  if (!config) {
+    return undefined
+  }
+
+  const keySet = new Set(keys)
+
+  return Object.fromEntries(
+    Object.entries(config).filter(([key]) => keySet.has(key))
+  ) satisfies ChartConfig
+}
+
 export function useChartMaterialRegistry({
   config,
   defaults,
+  includeDefaultKeys = true,
   keys,
   renderer,
   rough,
@@ -169,6 +185,7 @@ export function useChartMaterialRegistry({
 }: {
   config?: ChartConfig
   defaults?: ChartConfig
+  includeDefaultKeys?: boolean
   keys: readonly string[]
   renderer: ChartRenderer
   rough?: ChartRoughOptions
@@ -182,11 +199,13 @@ export function useChartMaterialRegistry({
       mergeChartConfig(
         mergeChartConfig(
           createChartColorConfig({ keys, strategy }),
-          defaults
+          includeDefaultKeys
+            ? defaults
+            : filterChartConfigByKeys(defaults, keys)
         ),
         config
       ),
-    [config, defaults, keys, strategy]
+    [config, defaults, includeDefaultKeys, keys, strategy]
   )
   const series = React.useMemo(
     () => resolveChartSeries({ config: resolvedConfig }),

@@ -152,7 +152,7 @@ export function CodeMetricsBlock() {
             renderer="texture"
             texture={{
               density: "dense",
-              kind: "circles",
+              kind: "lines",
               opacity: 1,
             }}
             tooltipFields={codeMetricTooltipFields}

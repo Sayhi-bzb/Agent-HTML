@@ -98,6 +98,15 @@ function getPatternSize({
   return Math.max(4, Math.round(10 * scale))
 }
 
+function getHexagonPatternSize(density: ChartTextureDensity) {
+  const scale = densityScale[density]
+
+  return {
+    height: Math.max(2, Math.round(3 * scale)),
+    size: Math.max(6, Math.round(8 * scale)),
+  }
+}
+
 function getLineOrientations(orientation: ChartTextureOrientation) {
   if (orientation === "cross") {
     return ["diagonal", "diagonalRightToLeft"] as const
@@ -147,11 +156,13 @@ export function ChartTextureDefs({
   }
 
   if (texture.kind === "hexagons") {
+    const hexagonSize = getHexagonPatternSize(texture.density)
+
     return (
       <PatternHexagons
-        height={size}
+        height={hexagonSize.height}
         id={id}
-        size={Math.max(4, Math.round(size * 0.8))}
+        size={hexagonSize.size}
         stroke={color}
         strokeWidth={1}
       />

@@ -10,19 +10,15 @@ import { blastRadiusLayers, packageSankeyData } from "./data/blast-radius"
 
 const blastRadiusSankeyConfig = {
   link: {
-    color: "var(--chart-1)",
     label: "Package edge",
   },
   landing: {
-    color: "var(--chart-2)",
     label: "Landing",
   },
   outcome: {
-    color: "var(--chart-3)",
     label: "Outcome",
   },
   source: {
-    color: "var(--chart-1)",
     label: "Source",
   },
 } satisfies ChartConfig
@@ -76,13 +72,9 @@ export function BlastRadiusBlock() {
               <span>{node.value ?? 0} connected signals</span>
             </div>
           )}
-          renderer="rough"
-          rough={{
-            bowing: 1.2,
-            fillStyle: "hachure",
-            roughness: 1.8,
-          }}
+          renderer="texture"
           strokeOpacity={0.62}
+          texture={{ density: "dense", kind: "lines", opacity: 0.8 }}
         />
 
         <Tabs defaultValue={blastRadiusLayers[0].value}>

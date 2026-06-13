@@ -10,6 +10,7 @@ import {
   SankeyChart,
   type SankeyData,
 } from "../../components/chart/sankey-chart"
+import type { ChartConfig } from "../../components/chart/runtime"
 import { od } from "./data/borough-flow"
 import { pickupBoroughs } from "./data/pickup-geography"
 import {
@@ -26,6 +27,20 @@ import {
 } from "./sketch-components"
 
 const boroughs = ["Manhattan", "Queens", "Brooklyn", "Bronx", "EWR"]
+const airportFlowKey = "flow:airport"
+const networkConfig = Object.fromEntries(
+  [
+    ...boroughs.map((borough) => [
+      `borough:${borough}`,
+      { label: borough === "EWR" ? "EWR airport" : borough },
+    ]),
+    [airportFlowKey, { label: "Airport link" }],
+  ]
+) satisfies ChartConfig
+const sankeyConfig = {
+  ...networkConfig,
+  [airportFlowKey]: { label: "Airport flow" },
+} satisfies ChartConfig
 const matrixRows = boroughs.map((from) =>
   boroughs.map((to) => {
     return (
@@ -66,12 +81,18 @@ function forceRadiusForTrips(trips: number, maxForceTrips: number) {
   return 3 + Math.sqrt(trips / maxForceTrips) * 7
 }
 
-function getBoroughFlowColorKey(name: string) {
-  if (name.includes("EWR")) {
-    return "airport"
+function getBoroughColorKey(name: string) {
+  const borough = boroughs.find((item) => name.includes(item))
+
+  return `borough:${borough ?? boroughs[0]}`
+}
+
+function getFlowColorKey(sourceName: string, targetName: string) {
+  if (sourceName === "EWR" || targetName === "EWR") {
+    return airportFlowKey
   }
 
-  return "borough"
+  return getBoroughColorKey(sourceName)
 }
 
 function OdSankeyChart() {
@@ -111,18 +132,14 @@ function OdSankeyChart() {
   return (
     <div className="canvas-stack-sm">
       <SankeyChart
-        config={{
-          airport: { color: "var(--chart-2)", label: "Airport flow" },
-          borough: { color: "var(--chart-1)", label: "Cross-area flow" },
-        }}
+        config={sankeyConfig}
         data={sankeyData}
         getLinkColorKey={(link) => {
           const flow = link as OdSankeyLink
-          return flow.sourceName === "EWR" || flow.targetName === "EWR"
-            ? "airport"
-            : "borough"
+          return getFlowColorKey(flow.sourceName, flow.targetName)
         }}
-        getNodeColorKey={(node) => getBoroughFlowColorKey(node.name)}
+        getNodeColorKey={(node) => getBoroughColorKey(node.name)}
+        legend
         layout={{
           aspectRatio: "5 / 2.2",
           margin: { top: 24, right: 148, bottom: 24, left: 148 },
@@ -152,17 +169,9 @@ function OdSankeyChart() {
         rough={roughSketchSankeyOptions}
         strokeOpacity={0.64}
       />
-      <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
-        <span className="canvas-text-caption inline-flex items-center gap-1.5">
-          <span className="h-2 w-5 rounded-full bg-chart-1" />
-          cross-area flow
-        </span>
-        <span className="canvas-text-caption inline-flex items-center gap-1.5">
-          <span className="h-2 w-5 rounded-full bg-chart-2" />
-          airport flow
-        </span>
-        <span className="canvas-text-caption">line width = trip volume</span>
-      </div>
+      <p className="canvas-text-caption text-muted-foreground">
+        line width = trip volume
+      </p>
     </div>
   )
 }
@@ -175,19 +184,15 @@ function TaxiNetworkChart({
   return (
     <div className="canvas-stack-sm">
       <NetworkChart
-        config={{
-          airport: { color: "var(--chart-2)", label: "Airport boundary" },
-          borough: { color: "var(--chart-1)", label: "Borough pickup volume" },
-        }}
+        config={networkConfig}
         data={data}
         getLinkColorKey={(link) =>
           link.source.category === "Airport" || link.target.category === "Airport"
-            ? "airport"
-            : "borough"
+            ? airportFlowKey
+            : getFlowColorKey(link.source.id, link.target.id)
         }
-        getNodeColorKey={(node) =>
-          node.category === "Airport" ? "airport" : "borough"
-        }
+        getNodeColorKey={(node) => getBoroughColorKey(node.id)}
+        legend
         layout={{
           aspectRatio: "5 / 3.2",
           linkWidthRange: [2, 10],
@@ -212,17 +217,9 @@ function TaxiNetworkChart({
         renderer="rough"
         rough={roughSketchMarkOptions}
       />
-      <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
-        <span className="canvas-text-caption inline-flex items-center gap-1.5">
-          <span className="h-2 w-5 rounded-full bg-chart-1" />
-          borough pickup volume
-        </span>
-        <span className="canvas-text-caption inline-flex items-center gap-1.5">
-          <span className="h-2 w-5 rounded-full bg-chart-2" />
-          airport boundary
-        </span>
-        <span className="canvas-text-caption">node size = pickup trips</span>
-      </div>
+      <p className="canvas-text-caption text-muted-foreground">
+        node size = pickup trips
+      </p>
     </div>
   )
 }

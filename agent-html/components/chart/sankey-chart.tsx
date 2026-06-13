@@ -13,12 +13,14 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 import {
+  type ChartTextureOptions,
   type ChartConfig,
   type ChartHoverState,
   type ChartMaterialRegistry,
   type ChartRoughOptions,
   ChartContainer,
   ChartInteractionRoot,
+  ChartLegend,
   ChartMotionGroup,
   ChartMotionText,
   ChartSvg,
@@ -87,6 +89,7 @@ export interface SankeyChartProps {
     node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
     index: number
   ) => string;
+  legend?: boolean;
   layout?: SankeyChartLayout;
   renderLinkTooltip?: (props: {
     link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>;
@@ -99,10 +102,12 @@ export interface SankeyChartProps {
   renderer?: ChartRenderer;
   rough?: ChartRoughOptions;
   strokeOpacity?: number;
+  texture?: ChartTextureOptions;
 }
 
 interface SankeyChartCoreProps {
   data: SankeyData;
+  defs: ReactNode;
   getLinkColorKey?: SankeyChartProps["getLinkColorKey"];
   getMaterial: ChartMaterialRegistry["getMaterial"];
   getNodeColorKey?: SankeyChartProps["getNodeColorKey"];
@@ -127,16 +132,16 @@ type SankeyMarkInteraction = ReturnType<
 const DEFAULT_MARGIN: Margin = { top: 40, right: 180, bottom: 40, left: 180 };
 const DEFAULT_SANKEY_CONFIG = {
   landing: {
-    color: "var(--chart-2)",
+    label: "Landing",
   },
   link: {
-    color: "var(--chart-line-primary)",
+    label: "Link",
   },
   outcome: {
-    color: "var(--chart-3)",
+    label: "Outcome",
   },
   source: {
-    color: "var(--chart-1)",
+    label: "Source",
   },
 } satisfies ChartConfig;
 const intFmt = new Intl.NumberFormat("en-US").format;
@@ -287,6 +292,19 @@ function createSankeyGraph({
   return sankeyGenerator(clonedData);
 }
 
+function createSankeyMaterialKeyGraph(data: SankeyData) {
+  const sankeyGenerator = sankey<SankeyNodeDatum, SankeyLinkDatum>()
+    .nodeWidth(1)
+    .nodePadding(1)
+    .nodeAlign(sankeyCenter)
+    .extent([
+      [0, 0],
+      [1, 1],
+    ]);
+
+  return createSankeyGraph({ data, sankeyGenerator });
+}
+
 function createSankeyRoughLinkOptions({
   getLinkColorKey,
   getMaterial,
@@ -359,6 +377,38 @@ function createSankeyRoughNodeOptions({
   );
 }
 
+function getSankeyLinkMaterial({
+  getLinkColorKey,
+  getMaterial,
+  index,
+  link,
+}: {
+  getLinkColorKey?: SankeyChartProps["getLinkColorKey"];
+  getMaterial: ChartMaterialRegistry["getMaterial"];
+  index: number;
+  link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>;
+}) {
+  return getMaterial(
+    getLinkColorKey?.(link, index) ?? getDefaultSankeyLinkColorKey()
+  );
+}
+
+function getSankeyNodeMaterial({
+  getMaterial,
+  getNodeColorKey,
+  index,
+  node,
+}: {
+  getMaterial: ChartMaterialRegistry["getMaterial"];
+  getNodeColorKey?: SankeyChartProps["getNodeColorKey"];
+  index: number;
+  node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>;
+}) {
+  return getMaterial(
+    getNodeColorKey?.(node, index) ?? getDefaultSankeyNodeColorKey(node)
+  );
+}
+
 function SankeyLinks({
   getLinkColorKey,
   getMaterial,
@@ -392,6 +442,8 @@ function SankeyLinks({
 
         const linkWidth = link.width ?? 1;
         const roughPath = renderer === "rough" ? createRibbonPath(link) : undefined;
+        const texturePath =
+          renderer === "texture" ? createRibbonPath(link) : undefined;
         const sourceIndex = getNodeIndex(link.source as NodeOrIndex) ?? -1;
         const targetIndex = getNodeIndex(link.target as NodeOrIndex) ?? -1;
         const linkKey = getSankeyLinkKey(index);
@@ -404,9 +456,13 @@ function SankeyLinks({
                 hover.key === getSankeyNodeKey(targetIndex)
               : undefined,
         });
-        const stroke = getMaterial(
-          getLinkColorKey?.(link, index) ?? getDefaultSankeyLinkColorKey()
-        ).color;
+        const material = getSankeyLinkMaterial({
+          getLinkColorKey,
+          getMaterial,
+          index,
+          link,
+        });
+        const stroke = material.color;
         const targetOpacity = markState.opacity;
 
         const handlePointerEnter = (event: React.PointerEvent<Element>) => {
@@ -433,14 +489,21 @@ function SankeyLinks({
           >
             <ChartRenderedPath
               color={stroke}
-              d={roughPath ?? path}
-              fill={renderer === "rough" && roughPath ? stroke : "none"}
+              d={roughPath ?? texturePath ?? path}
+              fill={
+                (renderer === "rough" && roughPath) ||
+                (renderer === "texture" && texturePath)
+                  ? stroke
+                  : "none"
+              }
               renderer={renderer}
               rough={roughByIndex?.get(index)}
               stroke={stroke}
               strokeWidth={Math.max(1, linkWidth)}
-              textureKey={`sankey-link:${index}`}
-              textureScopeId="sankey"
+              textureIndex={material.textureIndex}
+              textureKey={material.textureKey}
+              texture={material.texture}
+              textureScopeId={material.textureScopeId}
             />
             <path
               d={path}
@@ -496,9 +559,13 @@ function SankeyNodes({
           isRelated: isNodeConnected({ hover, links, nodeIndex: index }),
         });
         const isLeftSide = nodeX < innerWidth / 2;
-        const fill = getMaterial(
-          getNodeColorKey?.(node, index) ?? getDefaultSankeyNodeColorKey(node)
-        ).color;
+        const material = getSankeyNodeMaterial({
+          getMaterial,
+          getNodeColorKey,
+          index,
+          node,
+        });
+        const fill = material.color;
         const displayValue = getNodeDisplayValue(node, index, links);
         const nodeOpacity =
           markState.isFaded ? chartHoverOpacity.visualFaded : 1;
@@ -529,6 +596,10 @@ function SankeyNodes({
             onPointerLeave={handlePointerLeave}
             renderer={renderer}
             nodeRoughOptions={roughByIndex?.get(index)}
+            textureIndex={material.textureIndex}
+            textureKey={material.textureKey}
+            texture={material.texture}
+            textureScopeId={material.textureScopeId}
             rx={nodeRadius}
             value={displayValue}
             valueOpacity={valueOpacity}
@@ -598,6 +669,10 @@ function SankeyNodeShape({
   isLeftSide,
   nodeRoughOptions,
   renderer,
+  texture,
+  textureIndex,
+  textureKey,
+  textureScopeId,
 }: {
   x: number;
   y: number;
@@ -614,6 +689,10 @@ function SankeyNodeShape({
   valueOpacity: number;
   isLeftSide: boolean;
   nodeRoughOptions?: ChartRoughOptions;
+  texture?: ChartTextureOptions;
+  textureIndex: number;
+  textureKey: string;
+  textureScopeId: string;
 }) {
   const labelX = isLeftSide ? x - 12 : x + width + 12;
   const path = roundedRectPath(x, y, width, height, rx);
@@ -635,8 +714,10 @@ function SankeyNodeShape({
           d={path}
           renderer={renderer}
           rough={nodeRoughOptions}
-          textureKey={`sankey-node:${name}`}
-          textureScopeId="sankey"
+          textureIndex={textureIndex}
+          textureKey={textureKey}
+          texture={texture}
+          textureScopeId={textureScopeId}
         />
       </ChartMotionGroup>
       <ChartMotionText
@@ -750,6 +831,7 @@ function SankeyChartInner(props: SankeyChartCoreProps) {
 }
 
 const SankeyVisualLayer = memo(function SankeyVisualLayer({
+  defs,
   getLinkColorKey,
   getMaterial,
   getMarkState,
@@ -768,6 +850,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
   strokeOpacity,
   width,
 }: {
+  defs: ReactNode;
   getLinkColorKey?: SankeyChartProps["getLinkColorKey"];
   getMaterial: ChartMaterialRegistry["getMaterial"];
   getMarkState: SankeyMarkInteraction["getMarkState"];
@@ -788,6 +871,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
 }) {
   return (
     <ChartSvg aria-hidden="true" height={height} width={width}>
+      {defs}
       <g transform={`translate(${margin.left},${margin.top})`}>
         <SankeyLinks
           getLinkColorKey={getLinkColorKey}
@@ -822,6 +906,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
 
 const SankeyChartCore = memo(function SankeyChartCore({
   data,
+  defs,
   getLinkColorKey,
   getMaterial,
   getNodeColorKey,
@@ -899,6 +984,7 @@ const SankeyChartCore = memo(function SankeyChartCore({
     >
       <SankeyVisualLayer
         getLinkColorKey={getLinkColorKey}
+        defs={defs}
         getMaterial={getMaterial}
         getMarkState={getMarkState}
         getNodeColorKey={getNodeColorKey}
@@ -936,32 +1022,50 @@ export function SankeyChart({
   data,
   getLinkColorKey,
   getNodeColorKey,
+  legend = false,
   layout,
   renderLinkTooltip,
   renderNodeTooltip,
   renderer,
   rough,
   strokeOpacity = 0.5,
+  texture,
 }: SankeyChartProps) {
   const margin = { ...DEFAULT_MARGIN, ...layout?.margin };
   const aspectRatio = layout?.aspectRatio ?? "2 / 1";
   const isEmpty = data.nodes.length === 0 || data.links.length === 0;
   const resolvedRenderer = resolveChartRenderer(
     renderer ?? (rough ? "rough" : undefined),
-    ["svg", "rough"]
+    ["svg", "rough", "texture"]
   );
-  const materialKeys = useMemo(
-    () => ["landing", "link", "outcome", "source"],
-    []
-  );
+  const materialKeys = useMemo(() => {
+    const keys = new Set<string>();
+
+    if (!isEmpty) {
+      const graph = createSankeyMaterialKeyGraph(data);
+
+      graph.links.forEach((link, index) => {
+        keys.add(getLinkColorKey?.(link, index) ?? getDefaultSankeyLinkColorKey());
+      });
+      graph.nodes.forEach((node, index) => {
+        keys.add(getNodeColorKey?.(node, index) ?? getDefaultSankeyNodeColorKey(node));
+      });
+    }
+
+    const resolvedKeys = Array.from(keys);
+
+    return resolvedKeys.length > 0 ? resolvedKeys : ["link"];
+  }, [data, getLinkColorKey, getNodeColorKey, isEmpty]);
   const materials = useChartMaterialRegistry({
     config,
     defaults: DEFAULT_SANKEY_CONFIG,
+    includeDefaultKeys: false,
     keys: materialKeys,
     renderer: resolvedRenderer,
     rough,
     scope: "sankey",
     strategy: "relational",
+    texture,
   });
 
   return (
@@ -977,24 +1081,33 @@ export function SankeyChart({
       isEmpty={isEmpty}
       minHeight={240}
     >
-      {({ height, width }) => (
-        <SankeyChartInner
-          data={data}
-          getLinkColorKey={getLinkColorKey}
-          getMaterial={materials.getMaterial}
-          getNodeColorKey={getNodeColorKey}
-          height={height}
-          margin={margin}
-          nodePadding={layout?.nodePadding ?? 24}
-          nodeRadius={layout?.nodeRadius ?? 4}
-          nodeWidth={layout?.nodeWidth ?? 16}
-          renderLinkTooltip={renderLinkTooltip}
-          renderNodeTooltip={renderNodeTooltip}
-          renderer={resolvedRenderer}
-          rough={rough}
-          strokeOpacity={strokeOpacity}
-          width={width}
-        />
+      {({ height, series, width }) => (
+        <>
+          <SankeyChartInner
+            data={data}
+            defs={materials.defs}
+            getLinkColorKey={getLinkColorKey}
+            getMaterial={materials.getMaterial}
+            getNodeColorKey={getNodeColorKey}
+            height={height}
+            margin={margin}
+            nodePadding={layout?.nodePadding ?? 24}
+            nodeRadius={layout?.nodeRadius ?? 4}
+            nodeWidth={layout?.nodeWidth ?? 16}
+            renderLinkTooltip={renderLinkTooltip}
+            renderNodeTooltip={renderNodeTooltip}
+            renderer={resolvedRenderer}
+            rough={rough}
+            strokeOpacity={strokeOpacity}
+            width={width}
+          />
+          {legend ? (
+            <ChartLegend
+              className="absolute inset-x-0 bottom-0 justify-center"
+              series={series}
+            />
+          ) : null}
+        </>
       )}
     </ChartContainer>
   );

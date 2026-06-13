@@ -16,6 +16,7 @@ import {
   ChartHitCircle,
   ChartHitLine,
   ChartInteractionRoot,
+  ChartLegend,
   ChartMotionGroup,
   ChartSvg,
   ChartTooltip,
@@ -111,6 +112,7 @@ export interface NetworkChartProps<
   getLinkColorKey?: (link: PositionedLink<TNode, TLink>, index: number) => string
   getNodeColorKey?: (node: PositionedNode<TNode>, index: number) => string
   layout?: NetworkChartLayout
+  legend?: boolean
   minHeight?: number
   renderLinkTooltip?: (props: {
     index: number
@@ -136,10 +138,10 @@ const DEFAULT_RADIUS_RANGE: [number, number] = [12, 30]
 const DEFAULT_LINK_WIDTH_RANGE: [number, number] = [1.4, 8]
 const DEFAULT_NETWORK_CONFIG = {
   airport: {
-    color: "var(--chart-2)",
+    label: "Airport",
   },
   primary: {
-    color: "var(--chart-1)",
+    label: "Primary",
   },
 } satisfies ChartConfig
 
@@ -645,6 +647,7 @@ export function NetworkChart<
   >["getLinkColorKey"],
   getNodeColorKey = getDefaultNodeColorKey,
   layout,
+  legend = false,
   minHeight = 360,
   renderLinkTooltip,
   renderNodeTooltip,
@@ -669,7 +672,7 @@ export function NetworkChart<
     tooltipTop,
   } = useChartMarkInteraction<TooltipState, "node" | "link">()
   const colorKeys = React.useMemo(() => {
-    const keys = new Set<string>(["airport", "primary"])
+    const keys = new Set<string>()
     const roughGraph = resolveNetworkGraph({
       data,
       height: 1,
@@ -684,11 +687,14 @@ export function NetworkChart<
       keys.add(getLinkColorKey?.(link, index) ?? getDefaultLinkColorKey(link))
     })
 
-    return Array.from(keys)
+    const resolvedKeys = Array.from(keys)
+
+    return resolvedKeys.length > 0 ? resolvedKeys : ["primary"]
   }, [data, getLinkColorKey, getNodeColorKey, layout])
   const materials = useChartMaterialRegistry({
     config,
     defaults: DEFAULT_NETWORK_CONFIG,
+    includeDefaultKeys: false,
     keys: colorKeys,
     renderer: resolvedRenderer,
     rough,
@@ -710,29 +716,37 @@ export function NetworkChart<
       isEmpty={data.nodes.length === 0}
       minHeight={minHeight}
     >
-      {({ height, width }) => (
-        <NetworkChartSurface
-          data={data}
-          defs={materials.defs}
-          followTooltip={followTooltip}
-          getMarkState={getMarkState}
-          getMaterial={materials.getMaterial}
-          getLinkColorKey={getLinkColorKey}
-          getNodeColorKey={getNodeColorKey}
-          height={height}
-          hideTooltip={hideTooltip}
-          hover={hover}
-          layout={layout}
-          renderLinkTooltip={renderLinkTooltip}
-          renderNodeTooltip={renderNodeTooltip}
-          renderer={resolvedRenderer}
-          showMark={showMark}
-          tooltipData={currentTooltipData}
-          tooltipLeft={tooltipLeft}
-          tooltipOpen={tooltipOpen}
-          tooltipTop={tooltipTop}
-          width={width}
-        />
+      {({ height, series, width }) => (
+        <>
+          <NetworkChartSurface
+            data={data}
+            defs={materials.defs}
+            followTooltip={followTooltip}
+            getMarkState={getMarkState}
+            getMaterial={materials.getMaterial}
+            getLinkColorKey={getLinkColorKey}
+            getNodeColorKey={getNodeColorKey}
+            height={height}
+            hideTooltip={hideTooltip}
+            hover={hover}
+            layout={layout}
+            renderLinkTooltip={renderLinkTooltip}
+            renderNodeTooltip={renderNodeTooltip}
+            renderer={resolvedRenderer}
+            showMark={showMark}
+            tooltipData={currentTooltipData}
+            tooltipLeft={tooltipLeft}
+            tooltipOpen={tooltipOpen}
+            tooltipTop={tooltipTop}
+            width={width}
+          />
+          {legend ? (
+            <ChartLegend
+              className="absolute inset-x-0 bottom-0 justify-center"
+              series={series}
+            />
+          ) : null}
+        </>
       )}
     </ChartContainer>
   )
