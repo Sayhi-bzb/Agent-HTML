@@ -18,6 +18,8 @@ export type { ChartTextureOptions } from "./texture"
 
 const ALL_RENDERERS = ["svg", "rough", "texture"] as const satisfies readonly ChartRenderer[]
 
+type ChartRenderedStroke = string | false
+
 interface ChartRendererBaseProps {
   color: string
   renderer: ChartRenderer | undefined
@@ -77,7 +79,7 @@ export function ChartRenderedCircle({
   cy: number
   opacity?: number
   r: number
-  stroke?: string
+  stroke?: ChartRenderedStroke
   strokeOpacity?: number
   strokeWidth?: number
 }) {
@@ -94,7 +96,7 @@ export function ChartRenderedCircle({
         options={{
           ...rough,
           fill: color,
-          stroke: stroke ?? rough?.stroke ?? color,
+          stroke: stroke === false ? "none" : stroke ?? rough?.stroke ?? color,
           strokeWidth: strokeWidth ?? rough?.strokeWidth,
         }}
         x={cx}
@@ -113,17 +115,17 @@ export function ChartRenderedCircle({
           opacity={opacity ?? resolvedTexture.opacity}
           r={r}
         />
-        {stroke || strokeWidth ? (
+        {stroke === false ? null : (
           <circle
             fill="transparent"
             r={r}
             stroke={stroke ?? color}
             strokeOpacity={strokeOpacity}
-            strokeWidth={strokeWidth}
+            strokeWidth={strokeWidth ?? 1}
             cx={cx}
             cy={cy}
           />
-        ) : null}
+        )}
       </>
     )
   }
@@ -135,7 +137,7 @@ export function ChartRenderedCircle({
       fill={color}
       opacity={opacity}
       r={r}
-      stroke={stroke}
+      stroke={stroke === false ? undefined : stroke}
       strokeOpacity={strokeOpacity}
       strokeWidth={strokeWidth}
     />
@@ -148,6 +150,9 @@ export function ChartRenderedRect({
   opacity,
   renderer,
   rough,
+  stroke,
+  strokeOpacity,
+  strokeWidth,
   textureIndex,
   textureKey,
   texture,
@@ -158,6 +163,9 @@ export function ChartRenderedRect({
 }: ChartRendererBaseProps & {
   height: number
   opacity?: number
+  stroke?: ChartRenderedStroke
+  strokeOpacity?: number
+  strokeWidth?: number
   width: number
   x: number
   y: number
@@ -175,7 +183,7 @@ export function ChartRenderedRect({
         options={{
           ...rough,
           fill: color,
-          stroke: rough?.stroke ?? color,
+          stroke: stroke === false ? "none" : stroke ?? rough?.stroke ?? color,
         }}
         width={width}
         x={x}
@@ -186,14 +194,28 @@ export function ChartRenderedRect({
 
   if (renderer === "texture") {
     return (
-      <ChartTextureRect
-        height={height}
-        id={textureId}
-        opacity={opacity ?? resolvedTexture.opacity}
-        width={width}
-        x={x}
-        y={y}
-      />
+      <>
+        <ChartTextureRect
+          height={height}
+          id={textureId}
+          opacity={opacity ?? resolvedTexture.opacity}
+          width={width}
+          x={x}
+          y={y}
+        />
+        {stroke === false ? null : (
+          <rect
+            fill="transparent"
+            height={height}
+            stroke={stroke ?? color}
+            strokeOpacity={strokeOpacity}
+            strokeWidth={strokeWidth ?? 1}
+            width={width}
+            x={x}
+            y={y}
+          />
+        )}
+      </>
     )
   }
 
@@ -228,7 +250,7 @@ export function ChartRenderedPath({
   d: string
   fill?: string
   opacity?: number
-  stroke?: string
+  stroke?: ChartRenderedStroke
   strokeLinecap?: React.SVGProps<SVGPathElement>["strokeLinecap"]
   strokeOpacity?: number
   strokeWidth?: number
@@ -245,7 +267,7 @@ export function ChartRenderedPath({
         d={d}
         options={{
           fill,
-          stroke: stroke ?? color,
+          stroke: stroke === false ? "none" : stroke ?? color,
           strokeWidth,
           ...rough,
         }}
@@ -255,6 +277,10 @@ export function ChartRenderedPath({
 
   if (renderer === "texture") {
     if (fill === "none") {
+      if (stroke === false) {
+        return null
+      }
+
       return (
         <path
           d={d}
@@ -269,11 +295,23 @@ export function ChartRenderedPath({
     }
 
     return (
-      <ChartTexturePath
-        d={d}
-        id={textureId}
-        opacity={opacity ?? resolvedTexture.opacity}
-      />
+      <>
+        <ChartTexturePath
+          d={d}
+          id={textureId}
+          opacity={opacity ?? resolvedTexture.opacity}
+        />
+        {stroke === false ? null : (
+          <path
+            d={d}
+            fill="none"
+            stroke={stroke ?? color}
+            strokeLinecap={strokeLinecap}
+            strokeOpacity={strokeOpacity}
+            strokeWidth={strokeWidth ?? 1}
+          />
+        )}
+      </>
     )
   }
 
@@ -282,7 +320,7 @@ export function ChartRenderedPath({
       d={d}
       fill={fill}
       opacity={opacity}
-      stroke={stroke}
+      stroke={stroke === false ? undefined : stroke}
       strokeLinecap={strokeLinecap}
       strokeOpacity={strokeOpacity}
       strokeWidth={strokeWidth}

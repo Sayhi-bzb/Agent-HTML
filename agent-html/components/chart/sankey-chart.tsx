@@ -499,7 +499,11 @@ function SankeyLinks({
               renderer={renderer}
               rough={roughByIndex?.get(index)}
               stroke={stroke}
-              strokeWidth={Math.max(1, linkWidth)}
+              strokeWidth={
+                renderer === "texture" && texturePath
+                  ? undefined
+                  : Math.max(1, linkWidth)
+              }
               textureIndex={material.textureIndex}
               textureKey={material.textureKey}
               texture={material.texture}

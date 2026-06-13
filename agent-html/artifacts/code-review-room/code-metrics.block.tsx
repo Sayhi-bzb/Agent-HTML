@@ -151,7 +151,7 @@ export function CodeMetricsBlock() {
             referenceY={10}
             renderer="texture"
             texture={{
-              density: "dense",
+              density: "normal",
               kind: "lines",
               opacity: 1,
             }}

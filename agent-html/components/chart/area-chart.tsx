@@ -212,6 +212,7 @@ function TextureAreaVisualLayer<T extends object>({
               color={material.color}
               d={d}
               renderer="texture"
+              stroke={false}
               textureIndex={material.textureIndex}
               textureKey={material.textureKey}
               texture={material.texture}
