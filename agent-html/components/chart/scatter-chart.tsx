@@ -49,9 +49,9 @@ export interface ScatterTooltipContext {
 export interface ScatterChartProps<T> {
   aspectRatio?: string
   className?: string
+  colorKey?: ChartAccessor<T, string>
   config: ChartConfig
   data: readonly T[]
-  getPointColor?: (datum: T) => string | null | undefined
   minHeight?: number
   radiusKey?: ChartAccessor<T, number>
   referenceY?: number
@@ -318,9 +318,9 @@ function ScatterHitLayer<T extends object>({
 export function ScatterChart<T extends object>({
   aspectRatio = "9 / 4",
   className,
+  colorKey,
   config,
   data,
-  getPointColor,
   minHeight = 320,
   radiusKey,
   referenceY,
@@ -389,8 +389,9 @@ export function ScatterChart<T extends object>({
         const primarySeries = series[0]
         const seriesKey = primarySeries?.key ?? "value"
         const seriesLabel = primarySeries?.label ?? seriesKey
-        const fallbackColor = getChartCssVariable(seriesKey)
-        const getColor = (datum: T) => getPointColor?.(datum) ?? fallbackColor
+        const getColorKey = (datum: T) =>
+          colorKey ? getValue(datum, colorKey) : seriesKey
+        const getColor = (datum: T) => getChartCssVariable(getColorKey(datum))
         const points = chartData.map<ScatterPoint<T>>((datum, index) => {
           const xValue = getValue(datum, xKey)
           const yValue = getValue(datum, yKey)

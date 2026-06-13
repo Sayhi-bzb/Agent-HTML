@@ -1,7 +1,7 @@
 import { Badge } from "../../components/ui/badge"
 import { artifactPublicUrlFactory } from "../../lib/public-url"
 
-import { taxiKpis, taxiMeta } from "./data/generated-trip-summary"
+import { taxiKpis, taxiMeta } from "./data/trip-summary"
 import {
   LedgerRows,
   SketchNote,

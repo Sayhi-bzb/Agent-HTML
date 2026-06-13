@@ -10,8 +10,8 @@ import {
   SankeyChart,
   type SankeyData,
 } from "../../components/chart/sankey-chart"
-import { od } from "./data/generated-borough-flow"
-import { pickupBoroughs } from "./data/generated-pickup-geography"
+import { od } from "./data/borough-flow"
+import { pickupBoroughs } from "./data/pickup-geography"
 import {
   roughSketchMarkOptions,
   roughSketchSankeyOptions,
@@ -66,12 +66,12 @@ function forceRadiusForTrips(trips: number, maxForceTrips: number) {
   return 3 + Math.sqrt(trips / maxForceTrips) * 7
 }
 
-function sankeyNodeColor(name: string) {
+function getBoroughFlowColorKey(name: string) {
   if (name.includes("EWR")) {
-    return "var(--chart-2)"
+    return "airport"
   }
 
-  return "var(--chart-1)"
+  return "borough"
 }
 
 function OdSankeyChart() {
@@ -111,14 +111,18 @@ function OdSankeyChart() {
   return (
     <div className="canvas-stack-sm">
       <SankeyChart
+        config={{
+          airport: { color: "var(--chart-2)", label: "Airport flow" },
+          borough: { color: "var(--chart-1)", label: "Cross-area flow" },
+        }}
         data={sankeyData}
-        getLinkColor={(link) => {
+        getLinkColorKey={(link) => {
           const flow = link as OdSankeyLink
           return flow.sourceName === "EWR" || flow.targetName === "EWR"
-            ? "var(--chart-2)"
-            : "var(--chart-1)"
+            ? "airport"
+            : "borough"
         }}
-        getNodeColor={(node) => sankeyNodeColor(node.name)}
+        getNodeColorKey={(node) => getBoroughFlowColorKey(node.name)}
         layout={{
           aspectRatio: "5 / 2.2",
           margin: { top: 24, right: 148, bottom: 24, left: 148 },
@@ -176,13 +180,13 @@ function TaxiNetworkChart({
           borough: { color: "var(--chart-1)", label: "Borough pickup volume" },
         }}
         data={data}
-        getLinkColor={(link) =>
+        getLinkColorKey={(link) =>
           link.source.category === "Airport" || link.target.category === "Airport"
-            ? "var(--chart-2)"
-            : "var(--chart-1)"
+            ? "airport"
+            : "borough"
         }
-        getNodeColor={(node) =>
-          node.category === "Airport" ? "var(--chart-2)" : "var(--chart-1)"
+        getNodeColorKey={(node) =>
+          node.category === "Airport" ? "airport" : "borough"
         }
         layout={{
           aspectRatio: "5 / 3.2",

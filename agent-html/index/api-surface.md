@@ -14,7 +14,7 @@ Full TypeScript declarations are generated only as temporary build input.
 | `line-chart.tsx` | `LineChart`, `LineChartProps` |
 | `network-chart.tsx` | `NetworkChart`, `NetworkChartData`, `NetworkChartProps`, `NetworkLinkDatum`, `NetworkNodeDatum` |
 | `pie-chart.tsx` | `PieChart`, `PieChartProps` |
-| `sankey-chart.tsx` | `SankeyChart`, `SankeyData` |
+| `sankey-chart.tsx` | `SankeyChart`, `SankeyChartProps`, `SankeyData` |
 | `scatter-chart.tsx` | `ScatterChart`, `ScatterChartProps`, `ScatterScaleType`, `ScatterTooltipContext` |
 | `types.ts` | `ChartAccessor`, `ChartConfig`, `ChartRenderer`, `ChartRoughOptions`, `ChartTextureOptions`, `ChartTooltipField` |
 
@@ -89,6 +89,7 @@ Full TypeScript declarations are generated only as temporary build input.
 | `compose-refs.ts` | `composeRefs`, `useComposedRefs` |
 | `format-date.ts` | `formatDate` |
 | `public-url.ts` | `artifactPublicUrl`, `artifactPublicUrlFactory`, `sharedPublicUrl` |
+| `rough-svg.tsx` | `RoughCircle`, `RoughPath`, `RoughPolygon`, `RoughRect`, `RoughSvgDraw`, `RoughSvgLayer`, `defaultRoughSvgOptions` |
 | `shiki-highlighter.ts` | `CodeBlockLanguage`, `ShikiLanguage`, `ShikiTheme`, `highlightCode`, `normalizeLanguage` |
 | `utils.ts` | `cn` |
 

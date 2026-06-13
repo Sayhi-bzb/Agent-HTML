@@ -1,8 +1,8 @@
 import {
   fareComponents,
   payment,
-} from "./data/generated-fare-anatomy"
-import { taxiKpis } from "./data/generated-trip-summary"
+} from "./data/fare-anatomy"
+import { taxiKpis } from "./data/trip-summary"
 import { BarChart } from "../../components/chart/bar-chart"
 import { PieChart } from "../../components/chart/pie-chart"
 import type { ChartConfig } from "../../components/chart/types"

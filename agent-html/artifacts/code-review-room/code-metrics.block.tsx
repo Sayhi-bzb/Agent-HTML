@@ -12,9 +12,21 @@ import {
 import type { CodeMetricRow, ModuleStat } from "./data/types"
 
 const codeMetricScatterConfig = {
+  danger: {
+    color: "var(--destructive)",
+    label: "Low MI",
+  },
+  healthy: {
+    color: "var(--chart-1)",
+    label: "Smaller candidate",
+  },
   metrics: {
     color: "var(--chart-1)",
     label: "Code metrics",
+  },
+  warning: {
+    color: "var(--chart-3)",
+    label: "Complexity pressure",
   },
 } satisfies ChartConfig
 
@@ -30,16 +42,16 @@ const codeMetricTooltipFields = [
   { key: "fan-out", label: "Fan-out", value: "fanOut" },
 ] satisfies ChartTooltipField<CodeMetricRow>[]
 
-function getMetricColor(row: CodeMetricRow) {
+function getMetricColorKey(row: CodeMetricRow) {
   if (row.mi < 40) {
-    return "var(--destructive)"
+    return "danger"
   }
 
   if (row.mi < 70) {
-    return "var(--chart-3)"
+    return "warning"
   }
 
-  return "var(--chart-1)"
+  return "healthy"
 }
 
 const moduleColumns: ColumnDef<ModuleStat>[] = [
@@ -164,9 +176,9 @@ export function CodeMetricsBlock() {
         <div className="canvas-stack-sm min-w-0">
           <ScatterChart
             aspectRatio="2 / 1"
+            colorKey={getMetricColorKey}
             config={codeMetricScatterConfig}
             data={codeMetricRows}
-            getPointColor={getMetricColor}
             minHeight={360}
             radiusKey="fanOut"
             referenceY={10}

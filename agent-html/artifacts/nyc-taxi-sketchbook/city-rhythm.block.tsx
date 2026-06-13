@@ -1,5 +1,5 @@
 import { HeatmapChart } from "../../components/chart/heatmap-chart"
-import { hourDay } from "./data/generated-city-rhythm"
+import { hourDay } from "./data/city-rhythm"
 import { roughSketchMarkOptions } from "./rough-theme"
 import {
   LedgerRows,
@@ -30,6 +30,24 @@ function weightedAverageTotal(
   return total / trips
 }
 
+function getTripDensityKey(cell: { trips: number }, peakTrips: number) {
+  const ratio = peakTrips > 0 ? cell.trips / peakTrips : 0
+
+  if (ratio >= 0.82) {
+    return "peak"
+  }
+
+  if (ratio >= 0.58) {
+    return "high"
+  }
+
+  if (ratio >= 0.32) {
+    return "mid"
+  }
+
+  return "low"
+}
+
 export function CityRhythmBlock() {
   const peak = [...hourDay].sort((a, b) => b.trips - a.trips)[0]
   const priciest = [...hourDay].sort(
@@ -43,8 +61,8 @@ export function CityRhythmBlock() {
     <section className="canvas-stack-lg">
       <SectionIntro badge="01 / hour grid" title="Pickup density by weekday and hour">
         Columns run across the 24 hours of a day; rows run down the week. The
-        darker cells only encode pickup volume, making commute, dinner, and
-        late-night shift changes easier to spot.
+        color bands and opacity both encode pickup volume, making commute,
+        dinner, and late-night shift changes easier to spot.
       </SectionIntro>
 
       <div className="canvas-stack-md">
@@ -53,10 +71,23 @@ export function CityRhythmBlock() {
             <HeatmapChart
               aspectRatio="4 / 1"
               className="min-w-[760px]"
+              colorKey={(cell) => getTripDensityKey(cell, peak.trips)}
               config={{
-                trips: {
+                high: {
+                  color: "var(--chart-3)",
+                  label: "high volume",
+                },
+                low: {
+                  color: "var(--chart-4)",
+                  label: "low volume",
+                },
+                mid: {
+                  color: "var(--chart-1)",
+                  label: "medium volume",
+                },
+                peak: {
                   color: "var(--foreground)",
-                  label: "trips",
+                  label: "peak volume",
                 },
               }}
               data={hourDay}

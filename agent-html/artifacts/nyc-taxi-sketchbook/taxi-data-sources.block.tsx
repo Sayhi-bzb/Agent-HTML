@@ -1,6 +1,6 @@
 import { Alert, AlertDescription } from "../../components/ui/alert"
 
-import { taxiMeta } from "./data/generated-trip-summary"
+import { taxiMeta } from "./data/trip-summary"
 import { LedgerRows, SectionIntro } from "./sketch-components"
 
 const taxiSourceLinks = [

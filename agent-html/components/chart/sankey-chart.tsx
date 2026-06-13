@@ -13,6 +13,7 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 import {
+  type ChartConfig,
   type ChartHoverState,
   type ChartRoughOptions,
   ChartContainer,
@@ -25,6 +26,7 @@ import {
   type ChartRenderer,
   chartHoverOpacity,
   chartMotion,
+  getChartCssVariable,
   getChartMarkKey,
   resolveChartRenderer,
   useChartMarkInteraction,
@@ -72,14 +74,15 @@ interface SankeyTooltipData {
 
 type SankeyHoverState = ChartHoverState<"node" | "link">;
 
-interface SankeyChartProps {
+export interface SankeyChartProps {
   className?: string;
+  config?: ChartConfig;
   data: SankeyData;
-  getLinkColor?: (
+  getLinkColorKey?: (
     link: SankeyLinkType<SankeyNodeDatum, SankeyLinkDatum>,
     index: number
   ) => string;
-  getNodeColor?: (
+  getNodeColorKey?: (
     node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
     index: number
   ) => string;
@@ -99,8 +102,8 @@ interface SankeyChartProps {
 
 interface SankeyChartCoreProps {
   data: SankeyData;
-  getLinkColor?: SankeyChartProps["getLinkColor"];
-  getNodeColor?: SankeyChartProps["getNodeColor"];
+  getLinkColorKey?: SankeyChartProps["getLinkColorKey"];
+  getNodeColorKey?: SankeyChartProps["getNodeColorKey"];
   margin: Margin;
   nodePadding: number;
   nodeRadius: number;
@@ -120,6 +123,20 @@ type SankeyMarkInteraction = ReturnType<
 >;
 
 const DEFAULT_MARGIN: Margin = { top: 40, right: 180, bottom: 40, left: 180 };
+const DEFAULT_SANKEY_CONFIG = {
+  landing: {
+    color: "var(--chart-2)",
+  },
+  link: {
+    color: "var(--chart-line-primary)",
+  },
+  outcome: {
+    color: "var(--chart-3)",
+  },
+  source: {
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig;
 const intFmt = new Intl.NumberFormat("en-US").format;
 
 function getSankeyLinkKey(index: number) {
@@ -128,6 +145,16 @@ function getSankeyLinkKey(index: number) {
 
 function getSankeyNodeKey(index: number) {
   return getChartMarkKey("node", index);
+}
+
+function getDefaultSankeyLinkColorKey() {
+  return "link";
+}
+
+function getDefaultSankeyNodeColorKey(
+  node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>
+) {
+  return node.category ?? "source";
 }
 
 function getNodeIndex(nodeOrIndex: NodeOrIndex): number | undefined {
@@ -259,11 +286,11 @@ function createSankeyGraph({
 }
 
 function createSankeyRoughLinkOptions({
-  getLinkColor,
+  getLinkColorKey,
   graph,
   rough,
 }: {
-  getLinkColor?: SankeyChartProps["getLinkColor"];
+  getLinkColorKey?: SankeyChartProps["getLinkColorKey"];
   graph: SankeyGraph<SankeyNodeDatum, SankeyLinkDatum>;
   rough?: ChartRoughOptions;
 }) {
@@ -275,9 +302,9 @@ function createSankeyRoughLinkOptions({
     graph.links.map((link, index) => {
       const roughPath = createRibbonPath(link);
       const linkWidth = link.width ?? 1;
-      const stroke = getLinkColor
-        ? getLinkColor(link, index)
-        : "var(--chart-line-primary)";
+      const stroke = getChartCssVariable(
+        getLinkColorKey?.(link, index) ?? getDefaultSankeyLinkColorKey()
+      );
 
       return [
         index,
@@ -295,11 +322,11 @@ function createSankeyRoughLinkOptions({
 }
 
 function createSankeyRoughNodeOptions({
-  getNodeColor,
+  getNodeColorKey,
   graph,
   rough,
 }: {
-  getNodeColor?: SankeyChartProps["getNodeColor"];
+  getNodeColorKey?: SankeyChartProps["getNodeColorKey"];
   graph: SankeyGraph<SankeyNodeDatum, SankeyLinkDatum>;
   rough?: ChartRoughOptions;
 }) {
@@ -309,7 +336,9 @@ function createSankeyRoughNodeOptions({
 
   return new Map(
     graph.nodes.map((node, index) => {
-      const fill = getNodeColor ? getNodeColor(node, index) : "var(--chart-1)";
+      const fill = getChartCssVariable(
+        getNodeColorKey?.(node, index) ?? getDefaultSankeyNodeColorKey(node)
+      );
 
       return [
         index,
@@ -325,7 +354,7 @@ function createSankeyRoughNodeOptions({
 }
 
 function SankeyLinks({
-  getLinkColor,
+  getLinkColorKey,
   getMarkState,
   hideTooltip,
   hover,
@@ -335,7 +364,7 @@ function SankeyLinks({
   showMark,
   strokeOpacity,
 }: {
-  getLinkColor?: SankeyChartProps["getLinkColor"];
+  getLinkColorKey?: SankeyChartProps["getLinkColorKey"];
   getMarkState: SankeyMarkInteraction["getMarkState"];
   hideTooltip: () => void;
   hover: SankeyHoverState | null;
@@ -367,9 +396,9 @@ function SankeyLinks({
                 hover.key === getSankeyNodeKey(targetIndex)
               : undefined,
         });
-        const stroke = getLinkColor
-          ? getLinkColor(link, index)
-          : "var(--chart-line-primary)";
+        const stroke = getChartCssVariable(
+          getLinkColorKey?.(link, index) ?? getDefaultSankeyLinkColorKey()
+        );
         const targetOpacity = markState.opacity;
 
         const handlePointerEnter = (event: React.PointerEvent<Element>) => {
@@ -420,7 +449,7 @@ function SankeyLinks({
 }
 
 function SankeyNodes({
-  getNodeColor,
+  getNodeColorKey,
   getMarkState,
   hideTooltip,
   hover,
@@ -432,7 +461,7 @@ function SankeyNodes({
   roughByIndex,
   showMark,
 }: {
-  getNodeColor?: SankeyChartProps["getNodeColor"];
+  getNodeColorKey?: SankeyChartProps["getNodeColorKey"];
   getMarkState: SankeyMarkInteraction["getMarkState"];
   hideTooltip: () => void;
   hover: SankeyHoverState | null;
@@ -457,7 +486,9 @@ function SankeyNodes({
           isRelated: isNodeConnected({ hover, links, nodeIndex: index }),
         });
         const isLeftSide = nodeX < innerWidth / 2;
-        const fill = getNodeColor ? getNodeColor(node, index) : "var(--chart-1)";
+        const fill = getChartCssVariable(
+          getNodeColorKey?.(node, index) ?? getDefaultSankeyNodeColorKey(node)
+        );
         const displayValue = getNodeDisplayValue(node, index, links);
         const nodeOpacity =
           markState.isFaded ? chartHoverOpacity.visualFaded : 1;
@@ -709,9 +740,9 @@ function SankeyChartInner(props: SankeyChartCoreProps) {
 }
 
 const SankeyVisualLayer = memo(function SankeyVisualLayer({
-  getLinkColor,
+  getLinkColorKey,
   getMarkState,
-  getNodeColor,
+  getNodeColorKey,
   graph,
   height,
   hideTooltip,
@@ -726,9 +757,9 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
   strokeOpacity,
   width,
 }: {
-  getLinkColor?: SankeyChartProps["getLinkColor"];
+  getLinkColorKey?: SankeyChartProps["getLinkColorKey"];
   getMarkState: SankeyMarkInteraction["getMarkState"];
-  getNodeColor?: SankeyChartProps["getNodeColor"];
+  getNodeColorKey?: SankeyChartProps["getNodeColorKey"];
   graph: SankeyGraph<SankeyNodeDatum, SankeyLinkDatum>;
   height: number;
   hideTooltip: () => void;
@@ -747,7 +778,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
     <ChartSvg aria-hidden="true" height={height} width={width}>
       <g transform={`translate(${margin.left},${margin.top})`}>
         <SankeyLinks
-          getLinkColor={getLinkColor}
+          getLinkColorKey={getLinkColorKey}
           getMarkState={getMarkState}
           hideTooltip={hideTooltip}
           hover={hover}
@@ -758,7 +789,7 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
           strokeOpacity={strokeOpacity}
         />
         <SankeyNodes
-          getNodeColor={getNodeColor}
+          getNodeColorKey={getNodeColorKey}
           getMarkState={getMarkState}
           hideTooltip={hideTooltip}
           hover={hover}
@@ -777,8 +808,8 @@ const SankeyVisualLayer = memo(function SankeyVisualLayer({
 
 const SankeyChartCore = memo(function SankeyChartCore({
   data,
-  getLinkColor,
-  getNodeColor,
+  getLinkColorKey,
+  getNodeColorKey,
   height,
   margin,
   nodePadding,
@@ -824,16 +855,16 @@ const SankeyChartCore = memo(function SankeyChartCore({
   const roughLinkOptionsByIndex = useMemo(
     () =>
       renderer === "rough"
-        ? createSankeyRoughLinkOptions({ getLinkColor, graph, rough })
+        ? createSankeyRoughLinkOptions({ getLinkColorKey, graph, rough })
         : undefined,
-    [getLinkColor, graph, renderer, rough]
+    [getLinkColorKey, graph, renderer, rough]
   );
   const roughNodeOptionsByIndex = useMemo(
     () =>
       renderer === "rough"
-        ? createSankeyRoughNodeOptions({ getNodeColor, graph, rough })
+        ? createSankeyRoughNodeOptions({ getNodeColorKey, graph, rough })
         : undefined,
-    [getNodeColor, graph, renderer, rough]
+    [getNodeColorKey, graph, renderer, rough]
   );
 
   return (
@@ -842,9 +873,9 @@ const SankeyChartCore = memo(function SankeyChartCore({
       onPointerMove={followTooltip}
     >
       <SankeyVisualLayer
-        getLinkColor={getLinkColor}
+        getLinkColorKey={getLinkColorKey}
         getMarkState={getMarkState}
-        getNodeColor={getNodeColor}
+        getNodeColorKey={getNodeColorKey}
         graph={graph}
         height={height}
         hideTooltip={hideTooltip}
@@ -875,9 +906,10 @@ const SankeyChartCore = memo(function SankeyChartCore({
 
 export function SankeyChart({
   className = "",
+  config,
   data,
-  getLinkColor,
-  getNodeColor,
+  getLinkColorKey,
+  getNodeColorKey,
   layout,
   renderLinkTooltip,
   renderNodeTooltip,
@@ -897,7 +929,7 @@ export function SankeyChart({
     <ChartContainer
       aspectRatio={aspectRatio}
       className={cn("relative w-full", className)}
-      config={{}}
+      config={{ ...DEFAULT_SANKEY_CONFIG, ...config }}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No sankey data
@@ -909,8 +941,8 @@ export function SankeyChart({
       {({ height, width }) => (
         <SankeyChartInner
           data={data}
-          getLinkColor={getLinkColor}
-          getNodeColor={getNodeColor}
+          getLinkColorKey={getLinkColorKey}
+          getNodeColorKey={getNodeColorKey}
           height={height}
           margin={margin}
           nodePadding={layout?.nodePadding ?? 24}

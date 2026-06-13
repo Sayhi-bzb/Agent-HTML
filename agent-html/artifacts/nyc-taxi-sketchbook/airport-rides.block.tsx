@@ -2,7 +2,7 @@ import { useCallback } from "react"
 
 import { Badge } from "../../components/ui/badge"
 
-import { airport } from "./data/generated-airport-rides"
+import { airport } from "./data/airport-rides"
 import { roughSketchMarkOptions } from "./rough-theme"
 import { RoughSvgLayer, type RoughSvgDraw } from "../../lib/rough-svg"
 import {

@@ -1,4 +1,5 @@
 import { SankeyChart } from "../../components/chart/sankey-chart"
+import type { ChartConfig } from "../../components/chart/types"
 import {
   Tabs,
   TabsContent,
@@ -7,16 +8,35 @@ import {
 } from "../../components/ui/tabs"
 import { blastRadiusLayers, packageSankeyData } from "./data/blast-radius"
 
-function nodeColor(category: unknown) {
+const blastRadiusSankeyConfig = {
+  link: {
+    color: "var(--chart-1)",
+    label: "Package edge",
+  },
+  landing: {
+    color: "var(--chart-2)",
+    label: "Landing",
+  },
+  outcome: {
+    color: "var(--chart-3)",
+    label: "Outcome",
+  },
+  source: {
+    color: "var(--chart-1)",
+    label: "Source",
+  },
+} satisfies ChartConfig
+
+function nodeColorKey(category: unknown) {
   if (category === "source") {
-    return "var(--chart-1)"
+    return "source"
   }
 
   if (category === "outcome") {
-    return "var(--chart-3)"
+    return "outcome"
   }
 
-  return "var(--chart-2)"
+  return "landing"
 }
 
 export function BlastRadiusBlock() {
@@ -33,9 +53,10 @@ export function BlastRadiusBlock() {
 
       <div className="grid gap-5 rounded-md bg-background p-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(240px,0.38fr)]">
         <SankeyChart
+          config={blastRadiusSankeyConfig}
           data={packageSankeyData}
-          getLinkColor={() => "var(--chart-1)"}
-          getNodeColor={(node) => nodeColor(node.category)}
+          getLinkColorKey={() => "link"}
+          getNodeColorKey={(node) => nodeColorKey(node.category)}
           layout={{
             aspectRatio: "5 / 2.4",
             margin: { top: 24, right: 156, bottom: 24, left: 156 },

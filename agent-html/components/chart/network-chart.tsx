@@ -22,6 +22,7 @@ import {
   ChartTooltipPanel,
   type ChartRenderer,
   chartMotion,
+  getChartCssVariable,
   getChartMarkKey,
   isFiniteNumber,
   resolveChartRenderer,
@@ -107,8 +108,8 @@ export interface NetworkChartProps<
   className?: string
   config: ChartConfig
   data: NetworkChartData<TNode, TLink>
-  getLinkColor?: (link: PositionedLink<TNode, TLink>, index: number) => string
-  getNodeColor?: (node: PositionedNode<TNode>, index: number) => string
+  getLinkColorKey?: (link: PositionedLink<TNode, TLink>, index: number) => string
+  getNodeColorKey?: (node: PositionedNode<TNode>, index: number) => string
   layout?: NetworkChartLayout
   minHeight?: number
   renderLinkTooltip?: (props: {
@@ -133,6 +134,14 @@ const DEFAULT_MARGIN: NetworkMargin = {
 
 const DEFAULT_RADIUS_RANGE: [number, number] = [12, 30]
 const DEFAULT_LINK_WIDTH_RANGE: [number, number] = [1.4, 8]
+const DEFAULT_NETWORK_CONFIG = {
+  airport: {
+    color: "var(--chart-2)",
+  },
+  primary: {
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig
 
 function resolveRangeValue({
   range,
@@ -246,14 +255,14 @@ function isNodeRelatedToLink<
   return node.id === link.source.id || node.id === link.target.id
 }
 
-function getDefaultNodeColor(node: NetworkNodeDatum) {
-  return node.category === "Airport" ? "var(--chart-2)" : "var(--chart-1)"
+function getDefaultNodeColorKey(node: NetworkNodeDatum) {
+  return node.category === "Airport" ? "airport" : "primary"
 }
 
-function getDefaultLinkColor(link: PositionedLink<NetworkNodeDatum, NetworkLinkDatum>) {
+function getDefaultLinkColorKey(link: PositionedLink<NetworkNodeDatum, NetworkLinkDatum>) {
   return link.source.category === "Airport" || link.target.category === "Airport"
-    ? "var(--chart-2)"
-    : "var(--chart-1)"
+    ? "airport"
+    : "primary"
 }
 
 function getNetworkLinkPath<
@@ -289,8 +298,8 @@ interface NetworkRenderContextValue<
   getMarkState: ReturnType<
     typeof useChartMarkInteraction<TooltipState, "node" | "link">
   >["getMarkState"]
-  getLinkColor?: (link: PositionedLink<TNode, TLink>, index: number) => string
-  getNodeColor?: (node: PositionedNode<TNode>, index: number) => string
+  getLinkColorKey?: (link: PositionedLink<TNode, TLink>, index: number) => string
+  getNodeColorKey?: (node: PositionedNode<TNode>, index: number) => string
   graph: NetworkGraph<TNode, TLink>
   hideTooltip: () => void
   hover: NetworkHoverState | null
@@ -327,7 +336,7 @@ function NetworkLinkMark<
 >({ link }: { link: PositionedLink<TNode, TLink> }) {
   const {
     getMarkState,
-    getLinkColor,
+    getLinkColorKey,
     graph,
     hideTooltip,
     hover,
@@ -347,7 +356,9 @@ function NetworkLinkMark<
           hover.key === getChartMarkKey("node", link.target.id)
         : undefined,
   })
-  const color = getLinkColor?.(link, linkIndex) ?? getDefaultLinkColor(link)
+  const colorKey =
+    getLinkColorKey?.(link, linkIndex) ?? getDefaultLinkColorKey(link)
+  const color = getChartCssVariable(colorKey)
   const path = getNetworkLinkPath(link)
   const handlePointerEnter = (event: React.PointerEvent<Element>) => {
     showMark({
@@ -406,7 +417,7 @@ function NetworkNodeMark<TNode extends NetworkNodeDatum>({
   const {
     activeLink,
     getMarkState,
-    getNodeColor,
+    getNodeColorKey,
     graph,
     hideTooltip,
     hover,
@@ -425,7 +436,9 @@ function NetworkNodeMark<TNode extends NetworkNodeDatum>({
         ? isNodeRelatedToLink(node, activeLink)
         : undefined,
   })
-  const color = getNodeColor?.(node, nodeIndex) ?? getDefaultNodeColor(node)
+  const colorKey =
+    getNodeColorKey?.(node, nodeIndex) ?? getDefaultNodeColorKey(node)
+  const color = getChartCssVariable(colorKey)
   const handlePointerEnter = (event: React.PointerEvent<Element>) => {
     showMark({
       data: {
@@ -489,8 +502,8 @@ function NetworkChartSurface<
   data,
   followTooltip,
   getMarkState,
-  getLinkColor,
-  getNodeColor,
+  getLinkColorKey,
+  getNodeColorKey,
   height,
   hideTooltip,
   hover,
@@ -514,8 +527,8 @@ function NetworkChartSurface<
   getMarkState: ReturnType<
     typeof useChartMarkInteraction<TooltipState, "node" | "link">
   >["getMarkState"]
-  getLinkColor?: (link: PositionedLink<TNode, TLink>, index: number) => string
-  getNodeColor?: (node: PositionedNode<TNode>, index: number) => string
+  getLinkColorKey?: (link: PositionedLink<TNode, TLink>, index: number) => string
+  getNodeColorKey?: (node: PositionedNode<TNode>, index: number) => string
   height: number
   hideTooltip: () => void
   hover: NetworkHoverState | null
@@ -547,8 +560,8 @@ function NetworkChartSurface<
     (): NetworkRenderContextValue<TNode, TLink> => ({
       activeLink,
       getMarkState,
-      getLinkColor,
-      getNodeColor,
+      getLinkColorKey,
+      getNodeColorKey,
       graph,
       hideTooltip,
       hover,
@@ -561,8 +574,8 @@ function NetworkChartSurface<
     [
       activeLink,
       getMarkState,
-      getLinkColor,
-      getNodeColor,
+      getLinkColorKey,
+      getNodeColorKey,
       graph,
       hideTooltip,
       hover,
@@ -582,7 +595,9 @@ function NetworkChartSurface<
       <ChartSvg aria-label="network chart" role="img">
         {graph.nodes.map((node, index) => (
           <ChartRendererDefs
-            color={getNodeColor?.(node, index) ?? getDefaultNodeColor(node)}
+            color={getChartCssVariable(
+              getNodeColorKey?.(node, index) ?? getDefaultNodeColorKey(node)
+            )}
             key={node.id}
             renderer={renderer}
             textureIndex={index}
@@ -644,11 +659,11 @@ export function NetworkChart<
   className,
   config,
   data,
-  getLinkColor = getDefaultLinkColor as NetworkChartProps<
+  getLinkColorKey = getDefaultLinkColorKey as NetworkChartProps<
     TNode,
     TLink
-  >["getLinkColor"],
-  getNodeColor = getDefaultNodeColor,
+  >["getLinkColorKey"],
+  getNodeColorKey = getDefaultNodeColorKey,
   layout,
   minHeight = 360,
   renderLinkTooltip,
@@ -678,7 +693,7 @@ export function NetworkChart<
     <ChartContainer
       aspectRatio={layout?.aspectRatio ?? "5 / 3"}
       className={className}
-      config={config}
+      config={{ ...DEFAULT_NETWORK_CONFIG, ...config }}
       emptyData={
         <div className="flex h-full min-h-40 items-center justify-center text-muted-foreground">
           No network data
@@ -692,8 +707,8 @@ export function NetworkChart<
           data={data}
           followTooltip={followTooltip}
           getMarkState={getMarkState}
-          getLinkColor={getLinkColor}
-          getNodeColor={getNodeColor}
+          getLinkColorKey={getLinkColorKey}
+          getNodeColorKey={getNodeColorKey}
           height={height}
           hideTooltip={hideTooltip}
           hover={hover}

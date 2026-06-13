@@ -29,6 +29,7 @@ import {
 export interface HeatmapChartProps<T> {
   aspectRatio?: string
   className?: string
+  colorKey?: ChartAccessor<T, string>
   config: ChartConfig
   data: readonly T[]
   minHeight?: number
@@ -117,6 +118,7 @@ function createHeatmapColumns<T>({
 export function HeatmapChart<T>({
   aspectRatio = "4 / 1",
   className,
+  colorKey,
   config,
   data,
   minHeight = 220,
@@ -166,6 +168,22 @@ export function HeatmapChart<T>({
   const maxValue = values.length > 0 ? Math.max(...values) : 1
   const seriesKey = React.useMemo(() => Object.keys(config)[0] ?? "value", [config])
   const color = getChartCssVariable(seriesKey)
+  const getCellColorKey = React.useCallback(
+    (datum: T | null) =>
+      datum && colorKey ? getValue(datum, colorKey) : seriesKey,
+    [colorKey, seriesKey]
+  )
+  const colorKeys = React.useMemo(() => {
+    const keys = new Set<string>([seriesKey])
+
+    for (const column of columns) {
+      for (const bin of column.bins) {
+        keys.add(getCellColorKey(bin.datum))
+      }
+    }
+
+    return Array.from(keys)
+  }, [columns, getCellColorKey, seriesKey])
   const textureScopeId = React.useId()
   const resolvedRenderer = resolveChartRenderer(renderer, [
     "svg",
@@ -201,13 +219,17 @@ export function HeatmapChart<T>({
             onPointerMove={followTooltip}
           >
             <ChartSvg aria-label="heatmap chart" role="img">
-              <ChartRendererDefs
-                color={color}
-                renderer={resolvedRenderer}
-                textureKey={`heatmap:${seriesKey}`}
-                texture={texture}
-                textureScopeId={textureScopeId}
-              />
+              {colorKeys.map((key, index) => (
+                <ChartRendererDefs
+                  color={getChartCssVariable(key)}
+                  key={key}
+                  renderer={resolvedRenderer}
+                  textureIndex={index}
+                  textureKey={`heatmap:${key}`}
+                  texture={texture}
+                  textureScopeId={textureScopeId}
+                />
+              ))}
               {xLabels.map((label, index) => (
                 <text
                   className="fill-muted-foreground text-xs"
@@ -266,19 +288,21 @@ export function HeatmapChart<T>({
                             baseOpacity: cell.opacity,
                             key,
                           })
+                          const cellColorKey = getCellColorKey(cell.bin.datum)
+                          const cellColor = getChartCssVariable(cellColorKey)
                           return (
                             <g key={key}>
                               <ChartMotionGroup
                                 {...markMotion}
                               >
                                 <ChartRenderedCircle
-                                  color={cell.color ?? color}
+                                  color={cellColor}
                                   cx={cell.cx}
                                   cy={cell.cy}
                                   r={cell.r}
                                   renderer={resolvedRenderer}
                                   rough={rough}
-                                  textureKey={`heatmap:${seriesKey}`}
+                                  textureKey={`heatmap:${cellColorKey}`}
                                   texture={texture}
                                   textureScopeId={textureScopeId}
                                 />
@@ -330,7 +354,9 @@ export function HeatmapChart<T>({
                   <ChartTooltipContent
                     items={[
                       {
-                        color,
+                        color: getChartCssVariable(
+                          getCellColorKey(tooltip.bin.datum)
+                        ),
                         key: seriesKey,
                         label: seriesLabel,
                         value: valueFormatter(tooltip.bin.value),

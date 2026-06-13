@@ -7,7 +7,7 @@ import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 import {
   pickupBoroughs,
   pickupZones,
-} from "./data/generated-pickup-geography"
+} from "./data/pickup-geography"
 import { roughSketchMarkOptions } from "./rough-theme"
 import {
   LedgerRows,
