@@ -17,6 +17,7 @@ integration: read `runtime/README.md`.
 - `area-chart.tsx`: ordered trends with accumulated magnitude.
 - `bar-chart.tsx`: category comparison; use `BarHChart` for long labels.
 - `pie-chart.tsx`: small part-of-whole comparisons.
+- `sunburst-chart.tsx`: hierarchical part-of-whole partitions.
 - `heatmap-chart.tsx`: matrix density or row-by-column intensity.
 - `network-chart.tsx`: node-link relationships.
 - `sankey-chart.tsx`: weighted flow between stages.

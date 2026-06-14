@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 187 |
-| Dependencies | 475 |
-| Local edges | 309 |
-| External edges | 165 |
+| Modules | 188 |
+| Dependencies | 480 |
+| Local edges | 311 |
+| External edges | 168 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -23,8 +23,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/components/ui/badge.tsx` | 28 |
 | `agent-html/components/ui/status-badge.tsx` | 14 |
 | `agent-html/components/ui/button.tsx` | 12 |
+| `agent-html/components/chart/runtime/index.ts` | 9 |
 | `agent-html/components/media-figure.tsx` | 9 |
-| `agent-html/components/chart/runtime/index.ts` | 8 |
 | `agent-html/artifacts/health-report-decoder/data/report.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 7 |
 | `agent-html/lib/public-url.ts` | 7 |
@@ -53,7 +53,7 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Module | Edges |
 | --- | --- |
-| `node_modules/react/index.js` | 65 |
+| `node_modules/react/index.js` | 66 |
 | `node_modules/radix-ui/dist/index.mjs` | 23 |
 | `node_modules/lucide-react/dist/esm/lucide-react.mjs` | 21 |
 | `node_modules/class-variance-authority/dist/index.mjs` | 7 |

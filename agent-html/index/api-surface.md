@@ -16,6 +16,7 @@ Full TypeScript declarations are generated only as temporary build input.
 | `pie-chart.tsx` | `PieChart`, `PieChartProps` |
 | `sankey-chart.tsx` | `SankeyChart`, `SankeyChartProps`, `SankeyData` |
 | `scatter-chart.tsx` | `ScatterChart`, `ScatterChartProps`, `ScatterScaleType`, `ScatterTooltipContext` |
+| `sunburst-chart.tsx` | `SunburstChart`, `SunburstChartProps`, `SunburstDatum`, `SunburstNode` |
 | `types.ts` | `ChartAccessor`, `ChartConfig`, `ChartRenderer`, `ChartRoughOptions`, `ChartTextureOptions`, `ChartTooltipField` |
 
 ## agent-html/components/ui/

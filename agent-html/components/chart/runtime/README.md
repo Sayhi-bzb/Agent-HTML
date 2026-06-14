@@ -75,11 +75,11 @@ blocks.
 
 Current renderer support:
 
-- `BarChart`, `BarHChart`, `PieChart`, `AreaChart`, and `HeatmapChart`: `svg`,
-  `rough`, and `texture`.
+- `BarChart`, `BarHChart`, `PieChart`, `AreaChart`, `HeatmapChart`, and
+  `SunburstChart`: `svg`, `rough`, and `texture`.
 - `NetworkChart`: `svg`, `rough`, and `texture`; texture applies to node fill.
 - `ScatterChart`: `svg`, `rough`, and `texture` with xychart-owned placement.
-- `SankeyChart`: `svg` and `rough`; texture resolves to `svg`.
+- `SankeyChart`: `svg`, `rough`, and `texture`.
 - `LineChart`: accepts `renderer` for API consistency and resolves to `svg`.
 
 ## Tooltip

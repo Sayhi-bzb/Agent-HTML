@@ -17,22 +17,22 @@ description: "Use when the user wants to know what will break if they change som
 ## Workflow
 
 ```
-1. impact({target: "X", direction: "upstream"})  → What depends on this
+1. gitnexus_impact({target: "X", direction: "upstream"})  → What depends on this
 2. READ gitnexus://repo/{name}/processes                   → Check affected execution flows
-3. detect_changes()                               → Map current git changes to affected flows
+3. gitnexus_detect_changes()                               → Map current git changes to affected flows
 4. Assess risk and report to user
 ```
 
-> If "Index is stale" → run `node .gitnexus/run.cjs analyze` in terminal.
+> If "Index is stale" → run `npx gitnexus analyze` in terminal.
 
 ## Checklist
 
 ```
-- [ ] impact({target, direction: "upstream"}) to find dependents
+- [ ] gitnexus_impact({target, direction: "upstream"}) to find dependents
 - [ ] Review d=1 items first (these WILL BREAK)
 - [ ] Check high-confidence (>0.8) dependencies
 - [ ] READ processes to check affected execution flows
-- [ ] detect_changes() for pre-commit check
+- [ ] gitnexus_detect_changes() for pre-commit check
 - [ ] Assess risk level and report to user
 ```
 
@@ -55,10 +55,10 @@ description: "Use when the user wants to know what will break if they change som
 
 ## Tools
 
-**impact** — the primary tool for symbol blast radius:
+**gitnexus_impact** — the primary tool for symbol blast radius:
 
 ```
-impact({
+gitnexus_impact({
   target: "validateUser",
   direction: "upstream",
   minConfidence: 0.8,
@@ -73,10 +73,10 @@ impact({
   - authRouter (src/routes/auth.ts:22) [CALLS, 95%]
 ```
 
-**detect_changes** — git-diff based impact analysis:
+**gitnexus_detect_changes** — git-diff based impact analysis:
 
 ```
-detect_changes({scope: "staged"})
+gitnexus_detect_changes({scope: "staged"})
 
 → Changed: 5 symbols in 3 files
 → Affected: LoginFlow, TokenRefresh, APIMiddlewarePipeline
@@ -86,7 +86,7 @@ detect_changes({scope: "staged"})
 ## Example: "What breaks if I change validateUser?"
 
 ```
-1. impact({target: "validateUser", direction: "upstream"})
+1. gitnexus_impact({target: "validateUser", direction: "upstream"})
    → d=1: loginHandler, apiMiddleware (WILL BREAK)
    → d=2: authRouter, sessionManager (LIKELY AFFECTED)
 

@@ -16,23 +16,23 @@ description: "Use when the user is debugging a bug, tracing an error, or asking 
 ## Workflow
 
 ```
-1. query({query: "<error or symptom>"})            → Find related execution flows
-2. context({name: "<suspect>"})                    → See callers/callees/processes
+1. gitnexus_query({query: "<error or symptom>"})            → Find related execution flows
+2. gitnexus_context({name: "<suspect>"})                    → See callers/callees/processes
 3. READ gitnexus://repo/{name}/process/{name}                → Trace execution flow
-4. cypher({query: "MATCH path..."})                 → Custom traces if needed
+4. gitnexus_cypher({query: "MATCH path..."})                 → Custom traces if needed
 ```
 
-> If "Index is stale" → run `node .gitnexus/run.cjs analyze` in terminal.
+> If "Index is stale" → run `npx gitnexus analyze` in terminal.
 
 ## Checklist
 
 ```
 - [ ] Understand the symptom (error message, unexpected behavior)
-- [ ] query for error text or related code
+- [ ] gitnexus_query for error text or related code
 - [ ] Identify the suspect function from returned processes
-- [ ] context to see callers and callees
+- [ ] gitnexus_context to see callers and callees
 - [ ] Trace execution flow via process resource if applicable
-- [ ] cypher for custom call chain traces if needed
+- [ ] gitnexus_cypher for custom call chain traces if needed
 - [ ] Read source files to confirm root cause
 ```
 
@@ -40,7 +40,7 @@ description: "Use when the user is debugging a bug, tracing an error, or asking 
 
 | Symptom              | GitNexus Approach                                          |
 | -------------------- | ---------------------------------------------------------- |
-| Error message        | `query` for error text → `context` on throw sites |
+| Error message        | `gitnexus_query` for error text → `context` on throw sites |
 | Wrong return value   | `context` on the function → trace callees for data flow    |
 | Intermittent failure | `context` → look for external calls, async deps            |
 | Performance issue    | `context` → find symbols with many callers (hot paths)     |
@@ -48,24 +48,24 @@ description: "Use when the user is debugging a bug, tracing an error, or asking 
 
 ## Tools
 
-**query** — find code related to error:
+**gitnexus_query** — find code related to error:
 
 ```
-query({query: "payment validation error"})
+gitnexus_query({query: "payment validation error"})
 → Processes: CheckoutFlow, ErrorHandling
 → Symbols: validatePayment, handlePaymentError, PaymentException
 ```
 
-**context** — full context for a suspect:
+**gitnexus_context** — full context for a suspect:
 
 ```
-context({name: "validatePayment"})
+gitnexus_context({name: "validatePayment"})
 → Incoming calls: processCheckout, webhookHandler
 → Outgoing calls: verifyCard, fetchRates (external API!)
 → Processes: CheckoutFlow (step 3/7)
 ```
 
-**cypher** — custom call chain traces:
+**gitnexus_cypher** — custom call chain traces:
 
 ```cypher
 MATCH path = (a)-[:CodeRelation {type: 'CALLS'}*1..2]->(b:Function {name: "validatePayment"})
@@ -75,11 +75,11 @@ RETURN [n IN nodes(path) | n.name] AS chain
 ## Example: "Payment endpoint returns 500 intermittently"
 
 ```
-1. query({query: "payment error handling"})
+1. gitnexus_query({query: "payment error handling"})
    → Processes: CheckoutFlow, ErrorHandling
    → Symbols: validatePayment, handlePaymentError
 
-2. context({name: "validatePayment"})
+2. gitnexus_context({name: "validatePayment"})
    → Outgoing calls: verifyCard, fetchRates (external API!)
 
 3. READ gitnexus://repo/my-app/process/CheckoutFlow

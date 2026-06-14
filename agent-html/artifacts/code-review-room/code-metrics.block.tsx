@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { ScatterChart } from "../../components/chart/scatter-chart"
+import { SunburstChart, type SunburstDatum } from "../../components/chart/sunburst-chart"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 import type { ChartTooltipField } from "../../components/chart/types"
 import { StatusBadge } from "../../components/ui/status-badge"
@@ -22,6 +23,132 @@ const codeMetricTooltipFields = [
   { key: "fan-in", label: "Fan-in", value: "fanIn" },
   { key: "fan-out", label: "Fan-out", value: "fanOut" },
 ] satisfies ChartTooltipField<CodeMetricRow>[]
+
+const bundleSizeTree = {
+  children: [
+    {
+      children: [
+        {
+          children: [
+            {
+              children: [
+                { name: "material", value: 8 },
+                { name: "texture", value: 7 },
+                { name: "tooltip", value: 5 },
+              ],
+              name: "runtime",
+            },
+            { name: "motion", value: 6 },
+            { name: "tokens", value: 9 },
+          ],
+          name: "shared",
+        },
+        {
+          children: [
+            { name: "bar", value: 8 },
+            { name: "area", value: 7 },
+            { name: "heatmap", value: 6 },
+            { name: "scatter", value: 5 },
+          ],
+          name: "cartesian",
+        },
+        {
+          children: [
+            { name: "sankey", value: 11 },
+            { name: "network", value: 9 },
+            { name: "sunburst", value: 9 },
+            { name: "pie", value: 4 },
+          ],
+          name: "relational",
+        },
+      ],
+      name: "charts",
+    },
+    {
+      children: [
+        {
+          children: [
+            { name: "table core", value: 14 },
+            { name: "headers", value: 6 },
+            { name: "filters", value: 6 },
+          ],
+          name: "tables",
+        },
+        {
+          children: [
+            { name: "buttons", value: 7 },
+            { name: "menus", value: 6 },
+            { name: "badges", value: 4 },
+            { name: "forms", value: 5 },
+          ],
+          name: "controls",
+        },
+        { name: "status primitives", value: 12 },
+      ],
+      name: "ui",
+    },
+    {
+      children: [
+        {
+          children: [
+            { name: "metrics", value: 7 },
+            { name: "tables", value: 5 },
+            { name: "review shell", value: 6 },
+          ],
+          name: "code-review-room",
+        },
+        {
+          children: [
+            { name: "map", value: 10 },
+            { name: "flow", value: 8 },
+            { name: "timeline", value: 6 },
+          ],
+          name: "nyc-taxi-sketchbook",
+        },
+        { name: "tokyo-three-speeds", value: 16 },
+      ],
+      name: "artifacts",
+    },
+    {
+      children: [
+        {
+          children: [
+            {
+              children: [
+                { name: "shape", value: 10 },
+                { name: "pattern", value: 8 },
+              ],
+              name: "svg primitives",
+            },
+            { name: "scale", value: 9 },
+            { name: "xychart", value: 17 },
+          ],
+          name: "visx",
+        },
+        {
+          children: [
+            { name: "hierarchy", value: 6 },
+            { name: "sankey", value: 6 },
+          ],
+          name: "d3 layout",
+        },
+        {
+          children: [
+            { name: "roughjs", value: 11 },
+            { name: "motion", value: 9 },
+          ],
+          name: "rough + motion",
+        },
+      ],
+      name: "external deps",
+    },
+  ],
+  name: "bundle size",
+} satisfies SunburstDatum
+
+function formatKilobytes(value: number) {
+  return `${value} KB`
+}
 
 const moduleColumns: ColumnDef<ModuleStat>[] = [
   {
@@ -176,14 +303,40 @@ export default function CodeMetricsBlock() {
           </div>
         </div>
 
-        <DataTable
-          columns={moduleColumns}
-          data={moduleStats}
-          enablePagination={false}
-          enableViewOptions={false}
-          searchColumn="module"
-          searchPlaceholder="Filter module..."
-        />
+        <div className="canvas-stack-sm min-w-0">
+          <div className="canvas-stack-xs">
+            <p className="canvas-text-caption text-muted-foreground">
+              bundle size surface
+            </p>
+            <p className="canvas-text-body">
+              Sunburst groups estimated package weight by runtime, charts,
+              artifact examples, and external dependencies.
+            </p>
+          </div>
+          <SunburstChart
+            centerLabel="estimated total"
+            centerValue={({ total }) => formatKilobytes(total)}
+            data={bundleSizeTree}
+            legend
+            minHeight={320}
+            renderer="texture"
+            sort="none"
+            texture={{
+              density: "normal",
+              kind: "hexagons",
+              opacity: 0.7,
+            }}
+            valueFormatter={formatKilobytes}
+          />
+          <DataTable
+            columns={moduleColumns}
+            data={moduleStats}
+            enablePagination={false}
+            enableViewOptions={false}
+            searchColumn="module"
+            searchPlaceholder="Filter module..."
+          />
+        </div>
       </div>
 
       <DataTable
