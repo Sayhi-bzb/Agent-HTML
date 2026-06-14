@@ -48,7 +48,7 @@ export default function FareAnatomyBlock() {
         The average trip total is about {formatCurrency(taxiKpis.averageTotal)}. <span className="text-foreground">Meter fare</span> is the base, but <span className="text-chart-2">tips, congestion charges, airport fees</span>, and tolls change how different ride scenarios feel in practice.
       </SectionIntro>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.62fr)_minmax(320px,0.38fr)]">
+      <div className="canvas-grid-main-aside-lg">
         <SketchPanel className="p-5">
           <BarChart
             aspectRatio="16 / 9"

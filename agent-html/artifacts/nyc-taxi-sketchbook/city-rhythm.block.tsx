@@ -117,7 +117,7 @@ export default function CityRhythmBlock() {
           </div>
         </SketchPanel>
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.7fr)_minmax(260px,0.3fr)]">
+        <div className="canvas-grid-main-aside-lg">
           <SketchAnnotation label="peak cell">
             <p className="canvas-text-heading font-mono">
               {dayLabels[peak.day]} {peak.hour}:00

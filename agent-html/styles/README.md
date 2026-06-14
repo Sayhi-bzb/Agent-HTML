@@ -33,7 +33,9 @@ content:
 - Stack remains the default vertical rhythm through `canvas-stack-*`.
 - Grid uses `canvas-grid-2`, `canvas-grid-2-lg`, `canvas-grid-3`,
   `canvas-grid-3-lg`, `canvas-grid-4`, `canvas-grid-main-aside`,
-  `canvas-grid-aside-main`, and `canvas-grid-cards`.
+  `canvas-grid-main-aside-lg`, `canvas-grid-main-aside-xl`,
+  `canvas-grid-aside-main`, `canvas-grid-aside-main-lg`, and
+  `canvas-grid-cards`.
 - Frame uses `canvas-frame-table`, `canvas-frame-wide`,
   `canvas-frame-chart`, `canvas-frame-chart-lg`, `canvas-frame-map`, and
   `canvas-frame-media`.

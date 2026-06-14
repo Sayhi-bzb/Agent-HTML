@@ -58,7 +58,7 @@ export default function AirportRidesBlock() {
         help explain part of the higher overnight average.
       </SectionIntro>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(180px,0.28fr)_minmax(0,0.72fr)]">
+      <div className="canvas-grid-aside-main-lg">
         <SketchPanel>
           <div className="flex h-full min-h-48 flex-col justify-between gap-5">
             <div className="canvas-stack-xs">

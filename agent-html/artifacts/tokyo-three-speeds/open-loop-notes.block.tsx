@@ -77,7 +77,7 @@ export default function OpenLoopNotesBlock() {
         </p>
       </div>
 
-      <div className="canvas-grid-gap items-center md:grid-cols-[0.7fr_1fr]">
+      <div className="canvas-grid-aside-main items-center">
         <figure className="canvas-stack-sm">
           <div className="p-6">
             <OpenLoopDoodle />

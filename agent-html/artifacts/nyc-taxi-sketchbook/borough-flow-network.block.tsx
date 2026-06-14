@@ -285,7 +285,7 @@ export default function BoroughFlowNetworkBlock() {
         directionality and exact cross-checks.
       </SectionIntro>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.64fr)_minmax(300px,0.36fr)]">
+      <div className="canvas-grid-main-aside-lg">
         <SketchPanel>
           <TaxiNetworkChart data={{ links: networkLinks, nodes: networkNodes }} />
         </SketchPanel>

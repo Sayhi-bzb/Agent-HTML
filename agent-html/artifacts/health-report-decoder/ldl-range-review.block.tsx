@@ -67,7 +67,7 @@ export default function LdlRangeReviewBlock() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[1.05fr_0.95fr]">
+      <div className="canvas-grid-2">
         <div className="canvas-stack-sm">
           <Badge variant="outline">同一组血脂</Badge>
           <Table>

@@ -47,7 +47,7 @@ export default function BlastRadiusBlock() {
         surfaces and required package gates.
       </ReviewSectionHeader>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,0.68fr)_minmax(260px,0.32fr)]">
+      <div className="canvas-grid-main-aside-xl">
         <ReviewStage>
           <SankeyChart
             config={blastRadiusSankeyConfig}

@@ -12,7 +12,7 @@ export default function MissionOverviewBlock() {
         imageClassName="max-h-screen"
       />
 
-      <div className="canvas-grid-gap md:grid-cols-[2fr_1fr]">
+      <div className="canvas-grid-main-aside">
         <div className="canvas-stack-md">
           <div className="canvas-wrap-sm items-center">
             {missionTags.map((tag) => (

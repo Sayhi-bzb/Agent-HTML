@@ -17,7 +17,7 @@ import { quietRoute } from "./data/quiet-route"
 export default function QuietRouteBlock() {
   return (
     <section className="canvas-stack-lg">
-      <div className="canvas-grid-gap md:grid-cols-[1fr_1fr]">
+      <div className="canvas-grid-2">
         <div className="canvas-stack-md">
           <div className="canvas-wrap-sm items-center">
             <Badge variant="secondary">quiet route</Badge>
