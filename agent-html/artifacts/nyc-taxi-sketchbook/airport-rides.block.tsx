@@ -103,16 +103,16 @@ export default function AirportRidesBlock() {
                   <span>
                     <Badge variant="outline">{airportRide.airport}</Badge>
                   </span>
-                  <span className="text-right font-mono text-lg font-semibold tracking-normal">
+                  <span className="canvas-text-body text-right font-mono">
                     {formatCompact(airportRide.trips)}
                   </span>
-                  <span className="text-right font-mono">
+                  <span className="canvas-text-body text-right font-mono">
                     {formatCurrency(airportRide.averageTotal)}
                   </span>
-                  <span className="text-right font-mono">
+                  <span className="canvas-text-body text-right font-mono">
                     {airportRide.averageDistance} mi
                   </span>
-                  <span className="text-right font-mono">
+                  <span className="canvas-text-body text-right font-mono">
                     {formatCurrency(airportRide.averageTip)}
                   </span>
                 </div>

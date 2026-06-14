@@ -19,9 +19,10 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 | `agent-html/components/chart/heatmap-chart.tsx` | 3035 | `components/README.md` |
 | `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 2941 | `artifacts/README.md` |
 | `agent-html/components/chart/area-chart.tsx` | 2888 | `components/README.md` |
-| `agent-html/artifacts/nyc-taxi-sketchbook/borough-flow-network.block.tsx` | 2612 | `artifacts/README.md` |
+| `agent-html/artifacts/nyc-taxi-sketchbook/borough-flow-network.block.tsx` | 2614 | `artifacts/README.md` |
 | `agent-html/styles/internal/host/sidebar.css` | 2323 | nearest README or source-specific notes |
 | `agent-html/components/ui/combobox.tsx` | 2264 | `components/README.md` |
 | `agent-html/components/ui/dropdown-menu.tsx` | 2204 | `components/README.md` |
-| `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 2163 | `artifacts/README.md` |
+| `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 2157 | `artifacts/README.md` |
+| `agent-html/artifacts/code-review-room/review-room-components.tsx` | 2057 | `artifacts/README.md` |
 | `agent-html/components/ui/calendar.tsx` | 2047 | `components/README.md` |

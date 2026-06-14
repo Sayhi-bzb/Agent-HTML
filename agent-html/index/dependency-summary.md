@@ -7,9 +7,9 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 189 |
-| Dependencies | 481 |
-| Local edges | 312 |
+| Modules | 188 |
+| Dependencies | 483 |
+| Local edges | 314 |
 | External edges | 168 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
@@ -20,17 +20,17 @@ Dependency-cruiser summary for `agent-html` source files.
 | Module | Inbound Local Edges |
 | --- | --- |
 | `agent-html/lib/cn.ts` | 46 |
-| `agent-html/components/ui/badge.tsx` | 28 |
+| `agent-html/components/ui/badge.tsx` | 29 |
 | `agent-html/components/ui/status-badge.tsx` | 14 |
 | `agent-html/components/ui/button.tsx` | 12 |
 | `agent-html/components/chart/runtime/index.ts` | 9 |
 | `agent-html/components/media-figure.tsx` | 9 |
+| `agent-html/artifacts/code-review-room/review-room-components.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/data/report.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 7 |
 | `agent-html/lib/public-url.ts` | 7 |
 | `agent-html/artifacts/nasa-artemis-ii/data/media.ts` | 6 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/rough-theme.ts` | 6 |
-| `agent-html/artifacts/health-report-decoder/data/status.ts` | 5 |
 
 ## Highest Local Fanout
 
@@ -45,9 +45,9 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/health-report-decoder/ldl-range-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/report-triage.block.tsx` | 7 |
 | `agent-html/artifacts/nasa-artemis-ii/mission-route.block.tsx` | 7 |
-| `agent-html/artifacts/code-review-room/code-metrics.block.tsx` | 6 |
 | `agent-html/artifacts/code-review-room/release-routes.block.tsx` | 6 |
 | `agent-html/artifacts/health-report-decoder/doctor-question-list.block.tsx` | 6 |
+| `agent-html/artifacts/health-report-decoder/report-literacy-check.block.tsx` | 6 |
 
 ## Top External Dependencies
 

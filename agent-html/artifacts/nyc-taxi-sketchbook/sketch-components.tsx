@@ -303,7 +303,7 @@ export function LedgerRows({
                 </span>
               ) : null}
             </div>
-            <strong className="font-mono text-lg font-semibold tracking-normal">
+            <strong className="canvas-text-body font-mono">
               {item.value}
             </strong>
           </div>

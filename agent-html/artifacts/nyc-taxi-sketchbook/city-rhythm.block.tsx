@@ -93,7 +93,7 @@ export default function CityRhythmBlock() {
               data={hourDay}
               renderTooltip={({ datum }) => (
                 <div className="canvas-stack-xs">
-                  <strong className="font-mono">
+                  <strong className="canvas-text-body font-mono">
                     {dayLabels[datum.day]} {formatHour(datum.hour)}
                   </strong>
                   <span>trips {datum.trips.toLocaleString()}</span>
@@ -119,7 +119,7 @@ export default function CityRhythmBlock() {
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,0.7fr)_minmax(260px,0.3fr)]">
           <SketchAnnotation label="peak cell">
-            <p className="font-mono text-2xl font-semibold tracking-normal">
+            <p className="canvas-text-heading font-mono">
               {dayLabels[peak.day]} {peak.hour}:00
             </p>
             <p className="canvas-text-caption text-muted-foreground">

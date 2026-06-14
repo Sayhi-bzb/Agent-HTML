@@ -54,7 +54,7 @@ const pickupZoneColumns: ColumnDef<PickupZoneRow>[] = [
   {
     accessorKey: "trips",
     cell: ({ row }) => (
-      <span className="font-mono">{formatCompact(row.original.trips)}</span>
+      <span className="canvas-text-body font-mono">{formatCompact(row.original.trips)}</span>
     ),
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="trips" />
@@ -63,7 +63,7 @@ const pickupZoneColumns: ColumnDef<PickupZoneRow>[] = [
   {
     accessorKey: "averageTotal",
     cell: ({ row }) => (
-      <span className="font-mono">${row.original.averageTotal}</span>
+      <span className="canvas-text-body font-mono">${row.original.averageTotal}</span>
     ),
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="avg total" />
@@ -72,7 +72,7 @@ const pickupZoneColumns: ColumnDef<PickupZoneRow>[] = [
   {
     accessorKey: "averageDistance",
     cell: ({ row }) => (
-      <span className="font-mono">{row.original.averageDistance} mi</span>
+      <span className="canvas-text-body font-mono">{row.original.averageDistance} mi</span>
     ),
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="avg distance" />

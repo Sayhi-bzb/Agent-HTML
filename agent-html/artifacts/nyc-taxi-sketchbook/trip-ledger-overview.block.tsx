@@ -61,7 +61,7 @@ export default function TripLedgerOverviewBlock() {
         <div className="canvas-stack-md">
           <div className="canvas-stack-sm">
             <Badge variant="secondary">NYC TLC / October 2024</Badge>
-            <h1 className="text-4xl font-semibold tracking-normal text-foreground md:text-5xl">
+            <h1 className="canvas-text-title text-foreground">
               A one-month ledger of NYC yellow taxi trips.
             </h1>
             <p className="canvas-text-body text-muted-foreground">
@@ -85,7 +85,7 @@ export default function TripLedgerOverviewBlock() {
               <p className="canvas-text-caption text-muted-foreground">
                 recorded total amount
               </p>
-              <p className="font-mono text-4xl font-semibold tracking-normal">
+              <p className="canvas-text-heading font-mono">
                 {formatCurrency(taxiKpis.totalAmount)}
               </p>
             </div>

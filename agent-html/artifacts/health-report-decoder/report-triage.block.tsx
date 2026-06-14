@@ -47,7 +47,7 @@ export default function ReportTriageBlock() {
         </p>
       </div>
 
-      <div className="canvas-grid-gap w-full min-w-0 md:grid-cols-[0.62fr_1.38fr]">
+      <div className="canvas-grid-gap w-full min-w-0 md:grid-cols-[minmax(12rem,0.48fr)_minmax(0,1.52fr)]">
         <aside className="canvas-stack-md w-full min-w-0 border-b md:border-b-0">
           <div className="canvas-stack-xs">
             <Badge variant="secondary">这次先看</Badge>
@@ -112,14 +112,14 @@ export default function ReportTriageBlock() {
                 {sampleReport.labItems.map((item) => (
                   <TableRow key={item.code}>
                     <TableCell>{item.code}</TableCell>
-                    <TableCell>{item.label}</TableCell>
+                    <TableCell className="whitespace-normal">{item.label}</TableCell>
                     <TableCell>
                       {item.result}
                       {item.unit ? (
                         <span className="text-muted-foreground"> {item.unit}</span>
                       ) : null}
                     </TableCell>
-                    <TableCell>{item.referenceRange}</TableCell>
+                    <TableCell className="whitespace-normal">{item.referenceRange}</TableCell>
                     <TableCell>
                       {item.flag ? (
                         <StatusBadge status={statusFor(item.status).status}>

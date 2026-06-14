@@ -71,7 +71,7 @@ export default function FareAnatomyBlock() {
             <span className="canvas-text-caption text-muted-foreground">
               average trip total
             </span>
-            <strong className="font-mono text-5xl font-semibold tracking-normal">
+            <strong className="canvas-text-title font-mono">
               {formatCurrency(taxiKpis.averageTotal)}
             </strong>
           </div>
@@ -82,7 +82,7 @@ export default function FareAnatomyBlock() {
               <span className="canvas-text-caption text-muted-foreground">
                 meter
               </span>
-              <p className="font-mono text-xl font-semibold tracking-normal">
+              <p className="canvas-text-body font-mono">
                 {formatCurrency(meterComponent?.value ?? 0)}
               </p>
             </div>
@@ -90,7 +90,7 @@ export default function FareAnatomyBlock() {
               <span className="canvas-text-caption text-muted-foreground">
                 tip
               </span>
-              <p className="font-mono text-xl font-semibold tracking-normal">
+              <p className="canvas-text-body font-mono">
                 {formatCurrency(tipComponent?.value ?? 0)}
               </p>
             </div>
@@ -98,14 +98,14 @@ export default function FareAnatomyBlock() {
               <span className="canvas-text-caption text-muted-foreground">
                 fees
               </span>
-              <p className="font-mono text-xl font-semibold tracking-normal">
+              <p className="canvas-text-body font-mono">
                 {formatCurrency(feeTotal)}
               </p>
             </div>
           </div>
 
           <SketchAnnotation label="largest component">
-            <strong className="font-mono text-2xl font-semibold tracking-normal">
+            <strong className="canvas-text-heading font-mono">
               {largestComponent.label} {formatCurrency(largestComponent.value)}
             </strong>
             <p className="canvas-text-caption text-muted-foreground">
@@ -130,7 +130,7 @@ export default function FareAnatomyBlock() {
                 <span className="canvas-text-caption text-muted-foreground">
                   card share
                 </span>
-                <p className="font-mono text-xl font-semibold tracking-normal">
+                <p className="canvas-text-body font-mono">
                   {cardPayment?.share}%
                 </p>
                 <p className="canvas-text-caption text-muted-foreground">
@@ -142,7 +142,7 @@ export default function FareAnatomyBlock() {
                 <span className="canvas-text-caption text-muted-foreground">
                   cash share
                 </span>
-                <p className="font-mono text-xl font-semibold tracking-normal">
+                <p className="canvas-text-body font-mono">
                   {cashPayment?.share}%
                 </p>
                 <p className="canvas-text-caption text-muted-foreground">
