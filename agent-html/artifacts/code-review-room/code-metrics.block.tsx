@@ -201,8 +201,8 @@ export default function CodeMetricsBlock() {
             renderer="texture"
             sort="none"
             texture={{
-              density: "normal",
-              kind: "hexagons",
+              density: "dense",
+              kind: "lines",
               opacity: 0.7,
             }}
             valueFormatter={formatKilobytes}
