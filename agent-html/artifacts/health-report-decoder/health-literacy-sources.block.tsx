@@ -4,7 +4,7 @@ import { SourceLinks } from "../../components/source-links"
 
 import { sourceGroups } from "./data/sources"
 
-export function HealthLiteracySourcesBlock() {
+export default function HealthLiteracySourcesBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">

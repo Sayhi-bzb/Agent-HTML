@@ -21,7 +21,7 @@ const systemPanelIcons: Record<string, LucideIcon> = {
   SLS: Rocket,
 }
 
-export function LaunchSystemBlock() {
+export default function LaunchSystemBlock() {
   return (
     <section className="canvas-stack-lg">
       <MediaFigure asset={mediaAssets.launch} imageClassName="max-h-screen" />

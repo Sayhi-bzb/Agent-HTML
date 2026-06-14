@@ -40,7 +40,7 @@ const routeConstraints = [
 
 const activeLeg = missionRoutePhases.find((phase) => phase.id === "lunar-flyby")
 
-export function MissionRouteBlock() {
+export default function MissionRouteBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">

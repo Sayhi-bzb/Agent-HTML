@@ -602,7 +602,7 @@ async function handleArtifactSourceMutationRoute({
     try {
       const body = await readJsonBody(request)
       const requestText = typeof body.request === "string" ? body.request : ""
-      const { entryPath } = resolveArtifactSourceUnit({
+      const { blockDirectoryPath, entryPath } = resolveArtifactSourceUnit({
         filePath: body.filePath,
         root,
       })
@@ -622,6 +622,17 @@ async function handleArtifactSourceMutationRoute({
           entryPath,
           request: requestText,
         }),
+        "utf8"
+      )
+      await fs.mkdir(blockDirectoryPath, { recursive: true })
+      await fs.writeFile(
+        path.join(blockDirectoryPath, "overview.block.tsx"),
+        [
+          "export default function OverviewBlock() {",
+          "  return null",
+          "}",
+          "",
+        ].join("\n"),
         "utf8"
       )
       await artifactRegistry.refresh({ reason: "artifact-create" })

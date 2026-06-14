@@ -41,7 +41,7 @@ const feeTotal = feeComponents.reduce((sum, item) => sum + item.value, 0)
 const cardPayment = payment.find((item) => item.label === "Credit card")
 const cashPayment = payment.find((item) => item.label === "Cash")
 
-export function FareAnatomyBlock() {
+export default function FareAnatomyBlock() {
   return (
     <section className="canvas-stack-lg">
       <SectionIntro badge="04 / fare anatomy" title="Average totals stack meter fare with fees">

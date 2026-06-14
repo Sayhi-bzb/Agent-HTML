@@ -68,6 +68,42 @@ export type BlockProps = {
   title?: string
 }
 
+export type ArtifactBlockDefinition =
+  | string
+  | {
+      id: string
+      title?: string
+    }
+
+export type ArtifactDefinition = {
+  blocks: ArtifactBlockDefinition[]
+  title: string
+}
+
+export type ArtifactBlockComponentMap = Record<string, React.ComponentType>
+
+function titleizeBlockId(id: string) {
+  return id
+    .split("-")
+    .filter(Boolean)
+    .map((part) => `${part[0].toUpperCase()}${part.slice(1)}`)
+    .join(" ")
+}
+
+function normalizeBlockDefinition(block: ArtifactBlockDefinition) {
+  if (typeof block === "string") {
+    return {
+      id: block,
+      title: titleizeBlockId(block),
+    }
+  }
+
+  return {
+    id: block.id,
+    title: block.title ?? titleizeBlockId(block.id),
+  }
+}
+
 export function createArtifactStateChange(
   change: ArtifactStateChangeInput
 ): ArtifactStateChange {
@@ -262,4 +298,27 @@ export function Block({ children, id, title }: BlockProps) {
       {children}
     </section>
   )
+}
+
+export function defineArtifact(definition: ArtifactDefinition) {
+  return function DefinedArtifact({
+    components = {},
+  }: {
+    components?: ArtifactBlockComponentMap
+  } = {}) {
+    return (
+      <Artifact title={definition.title}>
+        {definition.blocks.map((block) => {
+          const { id, title } = normalizeBlockDefinition(block)
+          const Component = components[id]
+
+          return (
+            <Block id={id} key={id} title={title}>
+              {Component ? <Component /> : null}
+            </Block>
+          )
+        })}
+      </Artifact>
+    )
+  }
 }

@@ -20,7 +20,7 @@ const closureItemIcons: Record<string, LucideIcon> = {
   Validation: CheckCircle2,
 }
 
-export function RecoveryValidationBlock() {
+export default function RecoveryValidationBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">

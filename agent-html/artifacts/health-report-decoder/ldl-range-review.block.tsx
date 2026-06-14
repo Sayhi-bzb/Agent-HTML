@@ -19,7 +19,7 @@ const relatedItems = sampleReport.labItems.filter(
   (item) => item.systemId === activeItem.systemId && item.code !== activeItem.code
 )
 
-export function LdlRangeReviewBlock() {
+export default function LdlRangeReviewBlock() {
   const meta = statusFor(activeItem.status)
 
   return (

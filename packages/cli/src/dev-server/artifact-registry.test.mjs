@@ -36,15 +36,14 @@ async function createArtifactWorkspace() {
 
 function artifactSource({ blockId = "summary", title = "Summary" } = {}) {
   return [
-    'import { Artifact, Block } from "@agent-html/react"',
+    'import { defineArtifact } from "@agent-html/react"',
     "",
-    "export default function DemoArtifact() {",
-    "  return (",
-    '    <Artifact title="Demo">',
-    `      <Block id="${blockId}" title="${title}">Content</Block>`,
-    "    </Artifact>",
-    "  )",
-    "}",
+    "export default defineArtifact({",
+    '  title: "Demo",',
+    "  blocks: [",
+    `    { id: "${blockId}", title: "${title}" },`,
+    "  ],",
+    "})",
     "",
   ].join("\n")
 }

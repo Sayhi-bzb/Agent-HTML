@@ -20,7 +20,7 @@ const decisionProfile =
   releaseRoutes[0]?.metrics ??
   []
 
-export function ReleaseRoutesBlock() {
+export default function ReleaseRoutesBlock() {
   return (
     <section className="canvas-stack-md">
       <div className="canvas-stack-xs">

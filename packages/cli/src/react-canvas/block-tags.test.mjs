@@ -1,67 +1,63 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  collectArtifactDefinition,
   collectBlockIds,
   collectStaticBlockMetadata,
-  readAttr,
-  readBlockOpenTags,
+  titleizeBlockId,
 } from "./block-tags.mjs"
 
-describe("React Canvas block tag parser", () => {
-  it("collects static Block ids for artifact entry protocol guard", () => {
+describe("React Canvas artifact definition parser", () => {
+  it("collects static block ids from defineArtifact entries", () => {
     const blocks = collectBlockIds(`
-      <Artifact title="Demo">
-        <Block id="summary" title="Summary">One</Block>
-        <Block id={"details"}>Two</Block>
-        <Block id={blockId}>Dynamic</Block>
-      </Artifact>
+      import { defineArtifact } from "@agent-html/react"
+
+      export default defineArtifact({
+        title: "Demo",
+        blocks: [
+          "summary",
+          { id: "deep-dive", title: "Deep Dive" },
+        ],
+      })
     `)
 
     expect(blocks).toEqual([
       {
-        hasIdAttribute: true,
         id: "summary",
         index: expect.any(Number),
-        title: "Summary",
-      },
-      {
-        hasIdAttribute: true,
-        id: "details",
-        index: expect.any(Number),
         title: null,
       },
       {
-        hasIdAttribute: true,
-        id: null,
+        id: "deep-dive",
         index: expect.any(Number),
-        title: null,
+        title: "Deep Dive",
       },
     ])
   })
 
-  it("reads quoted attribute forms", () => {
-    expect(readAttr('id="summary"', "id")).toBe("summary")
-    expect(readAttr("id='summary'", "id")).toBe("summary")
-    expect(readAttr('id={ "summary" }', "id")).toBe("summary")
-    expect(readAttr("id={ 'summary' }", "id")).toBe("summary")
-  })
+  it("collects artifact title and host metadata", () => {
+    const source = `
+      export default defineArtifact({
+        title: "Demo",
+        blocks: [
+          "summary",
+          { id: "custom-title", title: "Custom Title" },
+        ],
+      })
+    `
 
-  it("collects static Block metadata for host skeletons", () => {
-    expect(collectStaticBlockMetadata(`
-      <Artifact title="Demo">
-        <Block id="summary" title="Summary">One</Block>
-        <Block id="details">Two</Block>
-        <Block id={blockId} title="Dynamic">Three</Block>
-      </Artifact>
-    `)).toEqual([
+    expect(collectArtifactDefinition(source).title).toBe("Demo")
+    expect(collectStaticBlockMetadata(source)).toEqual([
       { id: "summary", title: "Summary" },
-      { id: "details", title: "details" },
+      { id: "custom-title", title: "Custom Title" },
     ])
   })
 
-  it("returns Block open tags without parsing nested source", () => {
-    expect(readBlockOpenTags('<Block id="summary"><Block id="nested">').map(
-      (block) => block.openTag
-    )).toEqual(['<Block id="summary">', '<Block id="nested">'])
+  it("titleizes kebab-case block ids", () => {
+    expect(titleizeBlockId("airport-rides")).toBe("Airport Rides")
+  })
+
+  it("returns empty metadata when defineArtifact is absent", () => {
+    expect(collectStaticBlockMetadata("export default function Demo() {}")).toEqual([])
   })
 })

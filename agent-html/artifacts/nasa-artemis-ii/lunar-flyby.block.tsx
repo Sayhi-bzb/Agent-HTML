@@ -12,7 +12,7 @@ import {
 import { lunarMediaBeats } from "./data/lunar-flyby"
 import { mediaAssets } from "./data/media"
 
-export function LunarFlybyBlock() {
+export default function LunarFlybyBlock() {
   const gallery = mediaAssets.lunarFlyby.gallery
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [isCarouselPaused, setIsCarouselPaused] = useState(false)

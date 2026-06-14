@@ -224,7 +224,7 @@ function TaxiNetworkChart({
   )
 }
 
-export function BoroughFlowNetworkBlock() {
+export default function BoroughFlowNetworkBlock() {
   const { links: networkLinks, nodes: networkNodes } = useMemo(() => {
     const tripsByBorough = new Map<string, number>(
       pickupBoroughs.map((item) => [item.borough, item.trips])

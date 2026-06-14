@@ -7,7 +7,7 @@ import { trendSeries } from "./data/lab-trend-review"
 import { labItemByCode } from "./data/report"
 import { statusFor } from "./data/status"
 
-export function LabTrendReviewBlock() {
+export default function LabTrendReviewBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">

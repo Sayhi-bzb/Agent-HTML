@@ -80,7 +80,7 @@ const pickupZoneColumns: ColumnDef<PickupZoneRow>[] = [
   },
 ]
 
-export function WhereRidesStartBlock() {
+export default function WhereRidesStartBlock() {
   return (
     <section className="canvas-stack-lg">
       <SectionIntro badge="02 / pickup geography" title="Pickups still cluster in Manhattan and at airports">

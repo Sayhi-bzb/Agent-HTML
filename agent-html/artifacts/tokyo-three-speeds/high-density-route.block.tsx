@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import { densityAreas } from "./data/high-density-route"
 import { mediaAssets } from "./data/media"
 
-export function HighDensityRouteBlock() {
+export default function HighDensityRouteBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-[0.95fr_1.05fr]">

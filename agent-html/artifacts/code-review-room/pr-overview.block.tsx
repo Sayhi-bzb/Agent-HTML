@@ -7,7 +7,7 @@ import {
   summaryItems,
 } from "./data/repo-summary"
 
-export function PrOverviewBlock() {
+export default function PrOverviewBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,0.58fr)_minmax(280px,0.42fr)] lg:items-end">

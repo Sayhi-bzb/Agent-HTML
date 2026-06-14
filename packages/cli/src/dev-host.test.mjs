@@ -149,13 +149,13 @@ describe("React Canvas dev host", () => {
       expect(artifacts.artifacts).toContainEqual(
         expect.objectContaining({
           blocks: [
-            { id: "orion-window", title: "Orion Window" },
+            { id: "mission-overview", title: "Mission Overview" },
             { id: "crew-manifest", title: "Crew Manifest" },
-            { id: "system-ignition", title: "System Ignition" },
-            { id: "mission-route", title: "Nine-Day Mission Route" },
+            { id: "launch-system", title: "Launch System" },
+            { id: "mission-route", title: "Mission Route" },
             { id: "lunar-flyby", title: "Lunar Flyby" },
-            { id: "return-future", title: "Return And Future" },
-            { id: "sources", title: "Sources" },
+            { id: "recovery-validation", title: "Recovery Validation" },
+            { id: "media-sources", title: "Media Sources" },
           ],
           filePath: "agent-html/artifacts/nasa-artemis-ii.artifact.tsx",
         })
@@ -219,12 +219,12 @@ describe("React Canvas dev host", () => {
         "filePath",
         "agent-html/artifacts/nasa-artemis-ii.artifact.tsx"
       )
-      blockImplementationUrl.searchParams.set("blockId", "orion-window")
+      blockImplementationUrl.searchParams.set("blockId", "mission-overview")
       const blockImplementation = await fetch(blockImplementationUrl).then((response) =>
         response.json()
       )
       expect(blockImplementation.implementationPath).toBe(
-        "agent-html/artifacts/nasa-artemis-ii/orion-window.block.tsx"
+        "agent-html/artifacts/nasa-artemis-ii/mission-overview.block.tsx"
       )
       expect(Object.keys(blockImplementation).sort()).toEqual(["implementationPath"])
 
@@ -476,7 +476,7 @@ describe("React Canvas dev host", () => {
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(
         "filePath",
-        "agent-html/artifacts/project-visual-explainer.artifact.tsx"
+        "agent-html/artifacts/example.artifact.tsx"
       )
       const bundle = await fetch(bundleUrl).then((response) => response.text())
       expect(bundle).toContain("function mount")

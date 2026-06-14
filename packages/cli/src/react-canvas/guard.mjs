@@ -4,7 +4,7 @@ import {
   parseRootArg,
   workspaceRelativePath,
 } from "./paths.mjs"
-import { collectBlockIds, readBlockOpenTags } from "./block-tags.mjs"
+import { collectArtifactDefinition, collectBlockIds } from "./block-tags.mjs"
 import { readTextFile } from "./workspace-file.mjs"
 
 export const reactCanvasGuardScopes = {
@@ -59,12 +59,6 @@ function compactClassNameForMessage(classValue) {
 
 function hasDefaultExport(source) {
   return /export\s+default\s+/.test(source)
-}
-
-function hasReactComponentDefaultExport(source) {
-  return /export\s+default\s+function\s+[A-Z]/.test(source) ||
-    /function\s+[A-Z][A-Za-z0-9_]*\s*\(/.test(source) ||
-    /const\s+[A-Z][A-Za-z0-9_]*\s*=/.test(source)
 }
 
 function collectVisualIssues({
@@ -188,54 +182,9 @@ function collectWorkspaceBoundaryIssues({ relativePath, source }) {
   return issues
 }
 
-function collectArtifactProtocolIssues({ relativePath, source }) {
-  const issues = []
-  const artifactPattern = /<Artifact\b([^>]*)>/g
-  let match
-
-  while ((match = artifactPattern.exec(source)) !== null) {
-    if (/\b(?:className|style)\s*=/.test(match[1])) {
-      issues.push(
-        createIssue({
-          filePath: relativePath,
-          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-          line: lineForIndex(source, match.index),
-          message: "Artifact owns token-configured reading layout and must not receive className or style.",
-          severity: "error",
-          suggestion: "Remove visual props from Artifact; put content layout inside Blocks and local UI primitives.",
-        })
-      )
-    }
-
-    artifactPattern.lastIndex = match.index + 1
-  }
-
-  return issues
-}
-
-function collectBlockProtocolIssues({ relativePath, source }) {
-  const issues = []
-
-  for (const block of readBlockOpenTags(source)) {
-    if (/\b(?:className|style)\s*=/.test(block.attrs)) {
-      issues.push(
-        createIssue({
-          filePath: relativePath,
-          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-          line: lineForIndex(source, block.index),
-          message: "Block is protocol-only and must not receive className or style.",
-          severity: "error",
-          suggestion: "Move layout and visual treatment inside the Block content.",
-        })
-      )
-    }
-  }
-
-  return issues
-}
-
 export function analyzeArtifactEntryProtocol({ filePath, relativePath, source }) {
   const issues = []
+  const definition = collectArtifactDefinition(source)
 
   if (!hasDefaultExport(source)) {
     issues.push(
@@ -247,25 +196,29 @@ export function analyzeArtifactEntryProtocol({ filePath, relativePath, source })
         suggestion: "Default export a React component.",
       })
     )
-  } else if (!hasReactComponentDefaultExport(source)) {
+  }
+
+  if (!/\bdefineArtifact\s*\(/.test(source)) {
     issues.push(
       createIssue({
         filePath: relativePath,
         guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-        message: "Default export should be a React component.",
-        suggestion: "Use a PascalCase function or component constant.",
+        message: "Artifact entry must use defineArtifact.",
+        severity: "error",
+        suggestion: 'Default export defineArtifact({ title: "...", blocks: ["summary"] }).',
       })
     )
   }
 
-  if (!/<Artifact\b/.test(source)) {
+  if (!definition.title) {
     issues.push(
       createIssue({
         filePath: relativePath,
         guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-        message: "Artifact must use the Artifact wrapper.",
+        line: definition.index === -1 ? 1 : lineForIndex(source, definition.index),
+        message: "Artifact definition is missing a static title.",
         severity: "error",
-        suggestion: 'Wrap content in <Artifact title="...">.',
+        suggestion: 'Use defineArtifact({ title: "Artifact Title", blocks: [...] }).',
       })
     )
   }
@@ -276,9 +229,9 @@ export function analyzeArtifactEntryProtocol({ filePath, relativePath, source })
       createIssue({
         filePath: relativePath,
         guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-        message: "Artifact must contain at least one Block.",
+        message: "Artifact definition must contain at least one block id.",
         severity: "error",
-        suggestion: 'Wrap major semantic regions in <Block id="summary">.',
+        suggestion: 'Add a readable block id to blocks, such as "summary".',
       })
     )
   }
@@ -286,19 +239,14 @@ export function analyzeArtifactEntryProtocol({ filePath, relativePath, source })
   const seen = new Map()
   for (const block of blocks) {
     if (!block.id) {
-      const hasDynamicId = block.hasIdAttribute
       issues.push(
         createIssue({
           filePath: relativePath,
           guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
           line: lineForIndex(source, block.index),
-          message: hasDynamicId
-            ? "Block id must be a static string literal."
-            : "Block is missing a stable id.",
+          message: "Block id must be a static string literal.",
           severity: "error",
-          suggestion: hasDynamicId
-            ? 'Use a readable literal id that survives regeneration, such as id="next-steps".'
-            : 'Add a readable kebab-case id, such as id="next-steps".',
+          suggestion: 'Use a readable literal id that survives regeneration, such as "next-steps".',
         })
       )
       continue
@@ -367,11 +315,7 @@ export function analyzeArtifactEntryProtocol({ filePath, relativePath, source })
     )
   }
 
-  return [
-    ...issues,
-    ...collectArtifactProtocolIssues({ relativePath, source }),
-    ...collectBlockProtocolIssues({ relativePath, source }),
-  ]
+  return issues
 }
 
 export function analyzeReactCanvasSourceBoundary({
@@ -398,14 +342,7 @@ export function analyzeBlockImplementationSource({ relativePath, source }) {
 }
 
 export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
-  return [
-    ...analyzeArtifactEntryProtocol({ filePath, relativePath, source }),
-    ...analyzeReactCanvasSourceBoundary({
-      guardScope: reactCanvasGuardScopes.blockImplementationSource,
-      relativePath,
-      source,
-    }),
-  ]
+  return analyzeArtifactEntryProtocol({ filePath, relativePath, source })
 }
 
 export async function runGuard({ root }) {

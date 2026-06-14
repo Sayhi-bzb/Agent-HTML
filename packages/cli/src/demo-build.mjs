@@ -145,15 +145,37 @@ function createStaticApiModule({ artifacts }) {
 function createArtifactModules({ artifacts, root }) {
   return artifacts.map((artifact, index) => {
     const absolutePath = path.resolve(root, artifact.filePath)
+    const componentEntries = Object.entries(artifact.blockImplementations).map(
+      ([blockId, implementationPath], componentIndex) => ({
+        blockId,
+        importName: `BlockComponent${componentIndex}`,
+        path: path.resolve(root, implementationPath),
+      })
+    )
+    const componentImports = componentEntries
+      .map(
+        (entry) =>
+          `import ${entry.importName} from ${jsString(entry.path)};`
+      )
+      .join("\n")
+    const componentMapEntries = componentEntries
+      .map((entry) => `${jsString(entry.blockId)}: ${entry.importName}`)
+      .join(",\n  ")
+
     return [
       `import React from "react";`,
       `import { createRoot } from "react-dom/client";`,
       `import Component from ${jsString(absolutePath)};`,
+      componentImports,
+      "",
+      `const components = {`,
+      `  ${componentMapEntries}`,
+      `};`,
       "",
       `export const filePath = ${jsString(artifact.filePath)};`,
       "export function mount(element) {",
       "  const root = createRoot(element);",
-      "  root.render(React.createElement(Component));",
+      "  root.render(React.createElement(Component, { components }));",
       "  requestAnimationFrame(() => {",
       "    window.dispatchEvent(new CustomEvent('agent-html:artifact-rendered'));",
       "  });",

@@ -58,7 +58,7 @@ const travelNotes = [
   },
 ]
 
-export function OpenLoopNotesBlock() {
+export default function OpenLoopNotesBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">

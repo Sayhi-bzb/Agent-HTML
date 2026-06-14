@@ -45,7 +45,7 @@ function DoctorPrepIllustration() {
   )
 }
 
-export function DoctorQuestionListBlock() {
+export default function DoctorQuestionListBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">

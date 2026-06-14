@@ -8,9 +8,9 @@ Dependency-cruiser summary for `agent-html` source files.
 | Metric | Count |
 | --- | --- |
 | Modules | 187 |
-| Dependencies | 510 |
-| Local edges | 345 |
-| External edges | 164 |
+| Dependencies | 475 |
+| Local edges | 309 |
+| External edges | 165 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -39,15 +39,15 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/components/chart/runtime/index.ts` | 13 |
 | `agent-html/theme/presets.ts` | 13 |
 | `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 9 |
-| `agent-html/artifacts/health-report-decoder.artifact.tsx` | 8 |
 | `agent-html/components/ui/sidebar.tsx` | 8 |
-| `agent-html/artifacts/code-review-room.artifact.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/lab-system-map.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/lab-trend-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/ldl-range-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/report-triage.block.tsx` | 7 |
-| `agent-html/artifacts/nasa-artemis-ii.artifact.tsx` | 7 |
 | `agent-html/artifacts/nasa-artemis-ii/mission-route.block.tsx` | 7 |
+| `agent-html/artifacts/code-review-room/release-routes.block.tsx` | 6 |
+| `agent-html/artifacts/health-report-decoder/doctor-question-list.block.tsx` | 6 |
+| `agent-html/artifacts/health-report-decoder/report-literacy-check.block.tsx` | 6 |
 
 ## Top External Dependencies
 
@@ -57,7 +57,7 @@ Dependency-cruiser summary for `agent-html` source files.
 | `node_modules/radix-ui/dist/index.mjs` | 23 |
 | `node_modules/lucide-react/dist/esm/lucide-react.mjs` | 21 |
 | `node_modules/class-variance-authority/dist/index.mjs` | 7 |
-| `packages/react/src/index.tsx` | 5 |
+| `packages/react/src/index.tsx` | 6 |
 | `node_modules/@visx/xychart/esm/index.js` | 4 |
 | `node_modules/@visx/curve/esm/index.js` | 2 |
 | `node_modules/@visx/shape/esm/index.js` | 2 |

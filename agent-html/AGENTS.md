@@ -59,14 +59,16 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 ## Artifact Protocol Rules
 
-- Import `Artifact` and `Block` from `@agent-html/react`.
-- Use `Artifact` as the top-level wrapper.
-- Keep `Artifact` static and unstyled.
-- Use only the supported `Artifact` props: `title` and children.
-- Wrap every major semantic region in `Block`.
-- Use stable, unique, readable, kebab-case block ids.
-- Keep `Block` protocol-only. Use only `id`, `title`, and children.
-- Do not put `className`, `style`, layout, border, radius, shadow, spacing, width, padding, or color props on `Artifact` or `Block`.
+- Import `defineArtifact` from `@agent-html/react` in
+  `artifacts/*.artifact.tsx`.
+- Default export `defineArtifact({ title, blocks })` from artifact entries.
+- Use artifact entries only for artifact title and block order.
+- Put block implementation in `artifacts/<artifact>/<block-id>.block.tsx`.
+- Default export the block component from each `*.block.tsx` file.
+- Use stable, unique, readable, kebab-case block ids in `blocks`.
+- Use string block entries when titleized id is correct.
+- Use `{ id, title }` only when the visible block title cannot be inferred
+  from the id.
 - Put layout and visual treatment inside the block content, local `agent-html/components/ui` primitives, and named rich components when the task needs that workflow.
 - Do not render host block prompt actions or block hover chrome from artifact source.
 - Do not use old AHTML `<Cell>` DSL for React Canvas artifacts.

@@ -49,7 +49,7 @@ function AirportRouteSketch({ className = "h-14 w-20" }: { className?: string })
   )
 }
 
-export function AirportRidesBlock() {
+export default function AirportRidesBlock() {
   return (
     <section className="canvas-stack-lg">
       <SectionIntro badge="05 / airport rides" title="Airport trips lift distance and total fare">

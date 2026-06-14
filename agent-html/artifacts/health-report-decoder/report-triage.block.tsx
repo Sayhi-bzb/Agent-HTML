@@ -26,7 +26,7 @@ import type { ReportStatus } from "./data/types"
 const statusOrder: ReportStatus[] = ["normal", "watch", "recheck", "consult"]
 const priorityStatuses: ReportStatus[] = ["consult", "recheck", "watch"]
 
-export function ReportTriageBlock() {
+export default function ReportTriageBlock() {
   const priorityItems = priorityStatuses.flatMap((status) =>
     labItemsByStatus(status)
   )

@@ -16,7 +16,7 @@ const tripLedgerOverviewImage = {
   hrefBase: publicUrl("trip-ledger-overview-composition.svg"),
 }
 
-export function TripLedgerOverviewBlock() {
+export default function TripLedgerOverviewBlock() {
   return (
     <section className="canvas-stack-lg">
       <figure

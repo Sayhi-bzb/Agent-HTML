@@ -9,7 +9,7 @@ import {
 
 import { headerSlides } from "./data/media"
 
-export function SpeedOverviewBlock() {
+export default function SpeedOverviewBlock() {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [isCarouselPaused, setIsCarouselPaused] = useState(false)
 

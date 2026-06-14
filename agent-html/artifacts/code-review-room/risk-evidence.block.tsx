@@ -46,7 +46,7 @@ const evidenceColumns: ColumnDef<EvidenceRow>[] = [
   },
 ]
 
-export function RiskEvidenceBlock() {
+export default function RiskEvidenceBlock() {
   return (
     <section className="canvas-stack-md">
       <div className="canvas-stack-xs">

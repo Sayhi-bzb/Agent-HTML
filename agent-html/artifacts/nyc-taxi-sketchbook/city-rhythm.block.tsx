@@ -48,7 +48,7 @@ function getTripDensityKey(cell: { trips: number }, peakTrips: number) {
   return "low"
 }
 
-export function CityRhythmBlock() {
+export default function CityRhythmBlock() {
   const peak = [...hourDay].sort((a, b) => b.trips - a.trips)[0]
   const priciest = [...hourDay].sort(
     (a, b) => b.averageTotal - a.averageTotal

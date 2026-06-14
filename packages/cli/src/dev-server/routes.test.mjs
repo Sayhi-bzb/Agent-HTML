@@ -462,7 +462,19 @@ describe("dev server routes", () => {
         path.join(root, "agent-html", "artifacts", "build-dashboard.artifact.tsx"),
         "utf8"
       )
-    ).resolves.toContain("Build a dashboard")
+    ).resolves.toContain("defineArtifact")
+    await expect(
+      fs.readFile(
+        path.join(
+          root,
+          "agent-html",
+          "artifacts",
+          "build-dashboard",
+          "overview.block.tsx"
+        ),
+        "utf8"
+      )
+    ).resolves.toContain("export default function OverviewBlock")
     expect(artifactRegistry.refresh).toHaveBeenCalledWith({
       reason: "artifact-create",
     })

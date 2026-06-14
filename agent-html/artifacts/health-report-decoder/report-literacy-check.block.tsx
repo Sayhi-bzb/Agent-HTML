@@ -42,7 +42,7 @@ function resultForScore(score: number, total: number): QuizResult {
   }
 }
 
-export function ReportLiteracyCheckBlock() {
+export default function ReportLiteracyCheckBlock() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
   const score = useMemo(

@@ -26,7 +26,7 @@ const taxiSourceLinks = [
   },
 ]
 
-export function TaxiDataSourcesBlock() {
+export default function TaxiDataSourcesBlock() {
   return (
     <section className="canvas-stack-lg">
       <SectionIntro badge="taxi data sources" title="Data sources and cleaning rules">

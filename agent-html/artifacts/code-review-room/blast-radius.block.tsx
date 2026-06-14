@@ -35,7 +35,7 @@ function nodeColorKey(category: unknown) {
   return "landing"
 }
 
-export function BlastRadiusBlock() {
+export default function BlastRadiusBlock() {
   return (
     <section className="canvas-stack-md">
       <div className="canvas-stack-xs">

@@ -4,7 +4,7 @@ import { CodeRiskTreemap } from "./code-risk-treemap"
 import { codeMetricRows } from "./data/generated-code-metrics"
 import { fileTypes, riskFiles, selectedDiff } from "./data/risk-map"
 
-export function DiffRiskMapBlock() {
+export default function DiffRiskMapBlock() {
   return (
     <section className="canvas-stack-md">
       <div className="canvas-stack-xs">

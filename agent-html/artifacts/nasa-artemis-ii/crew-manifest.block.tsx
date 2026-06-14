@@ -4,7 +4,7 @@ import { MediaFigure } from "../../components/media-figure"
 import { crewMembers } from "./data/crew-manifest"
 import { mediaAssets } from "./data/media"
 
-export function CrewManifestBlock() {
+export default function CrewManifestBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">

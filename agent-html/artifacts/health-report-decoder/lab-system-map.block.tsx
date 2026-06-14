@@ -117,7 +117,7 @@ function SystemHealthIcon({ systemId }: { systemId: string }) {
   )
 }
 
-export function LabSystemMapBlock() {
+export default function LabSystemMapBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-2">

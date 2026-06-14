@@ -26,7 +26,7 @@ const landingNotes = [
   },
 ]
 
-export function SoftLandingBlock() {
+export default function SoftLandingBlock() {
   return (
     <section>
       <div className="canvas-grid-gap grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">

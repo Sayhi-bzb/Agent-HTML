@@ -124,7 +124,7 @@ const metricColumns: ColumnDef<CodeMetricRow>[] = [
   },
 ]
 
-export function CodeMetricsBlock() {
+export default function CodeMetricsBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-xs">

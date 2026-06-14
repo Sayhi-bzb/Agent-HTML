@@ -15,9 +15,10 @@ describe("artifact scaffold", () => {
       request: "Build a dashboard",
     })
 
-    expect(source).toContain('import { Artifact, Block } from "@agent-html/react"')
-    expect(source).toContain("export default function BuildDashboardArtifact()")
-    expect(source).toContain('<Block id="overview" title="Overview">')
-    expect(source).toContain('{"Build a dashboard"}')
+    expect(source).toContain('import { defineArtifact } from "@agent-html/react"')
+    expect(source).toContain("export default defineArtifact({")
+    expect(source).toContain('title: "build-dashboard"')
+    expect(source).toContain('"overview"')
+    expect(source).toContain("// Request: Build a dashboard")
   })
 })

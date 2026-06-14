@@ -4,7 +4,7 @@ import { MediaFigure } from "../../components/media-figure"
 import { mediaAssets } from "./data/media"
 import { missionTags, telemetryItems } from "./data/mission-overview"
 
-export function MissionOverviewBlock() {
+export default function MissionOverviewBlock() {
   return (
     <section className="canvas-stack-lg">
       <MediaFigure

@@ -57,7 +57,7 @@ function LifeContextIcon({ fieldLabel }: { fieldLabel: string }) {
   )
 }
 
-export function RecentLifeContextBlock() {
+export default function RecentLifeContextBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">

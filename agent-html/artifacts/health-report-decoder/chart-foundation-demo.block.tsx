@@ -22,7 +22,7 @@ const shareData = [
   { label: "Review", share: 11 },
 ]
 
-export function ChartFoundationDemoBlock() {
+export default function ChartFoundationDemoBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-xs">

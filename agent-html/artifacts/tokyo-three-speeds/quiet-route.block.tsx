@@ -14,7 +14,7 @@ import {
 import { mediaAssets } from "./data/media"
 import { quietRoute } from "./data/quiet-route"
 
-export function QuietRouteBlock() {
+export default function QuietRouteBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-grid-gap md:grid-cols-[1fr_1fr]">

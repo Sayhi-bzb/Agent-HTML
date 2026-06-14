@@ -34,7 +34,7 @@ function findGateCard(
     .find((card) => card.id === id)
 }
 
-export function ReviewGateBlock() {
+export default function ReviewGateBlock() {
   const [columns, setColumns] =
     useState<Record<string, ReviewGateCard[]>>(initialGateColumns)
 

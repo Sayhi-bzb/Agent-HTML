@@ -8,7 +8,7 @@ const rightColumnGroups = sourceGroups.filter(
   (group) => group.label !== "Photos"
 )
 
-export function MediaSourcesBlock() {
+export default function MediaSourcesBlock() {
   return (
     <section className="canvas-stack-lg">
       <div className="canvas-stack-sm">

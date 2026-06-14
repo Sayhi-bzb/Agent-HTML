@@ -8,6 +8,8 @@ import react from "@vitejs/plugin-react"
 import { createServer as createViteServer } from "vite"
 
 import { hostRoot, packageRoot, resolvePackageModule } from "./context.mjs"
+import { collectStaticBlockMetadata } from "../react-canvas/block-tags.mjs"
+import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
 
 export const hostEntryModulePath = "/__agent-html/host-entry.js"
 export const artifactEntryModulePath = "/__agent-html/vite-artifact-entry.js"
@@ -28,13 +30,48 @@ export function createHostEntryModule({ pipeline = "codex" } = {}) {
   ].join("\n")
 }
 
-export function createArtifactEntryModule({ filePath, root }) {
+export async function createArtifactEntryModule({ filePath, root }) {
   const artifactPath = toViteFsPath(path.resolve(root, filePath))
+  const artifactSource = await fs.readFile(path.resolve(root, filePath), "utf8")
+  const blocks = collectStaticBlockMetadata(artifactSource)
+  const componentEntries = await Promise.all(
+    blocks.map(async (block, index) => {
+      const implementationPath = await resolveBlockImplementationPath({
+        blockId: block.id,
+        filePath,
+        root,
+      })
+
+      if (!implementationPath) {
+        throw new Error(`Missing block implementation for ${block.id}`)
+      }
+
+      return {
+        block,
+        importName: `BlockComponent${index}`,
+        modulePath: toViteFsPath(path.resolve(root, implementationPath)),
+      }
+    })
+  )
+  const componentImports = componentEntries
+    .map(
+      (entry) =>
+        `import ${entry.importName} from ${JSON.stringify(entry.modulePath)}`
+    )
+    .join("\n")
+  const componentMapEntries = componentEntries
+    .map((entry) => `${JSON.stringify(entry.block.id)}: ${entry.importName}`)
+    .join(",\n      ")
 
   return `
     import React from "react"
     import { createRoot } from "react-dom/client"
     import InitialComponent from ${JSON.stringify(artifactPath)}
+    ${componentImports}
+
+    const components = {
+      ${componentMapEntries}
+    }
 
     let Component = InitialComponent
     let mountedElement = null
@@ -60,7 +97,7 @@ export function createArtifactEntryModule({ filePath, root }) {
         return
       }
 
-      mountedRoot.render(React.createElement(Component))
+      mountedRoot.render(React.createElement(Component, { components }))
       notifyArtifactRendered()
     }
 
@@ -317,7 +354,7 @@ function createAgentHtmlVitePlugin({ pipeline, root }) {
 
       return null
     },
-    load(id) {
+    async load(id) {
       if (id === hostEntryModulePath) {
         return createHostEntryModule({ pipeline })
       }
