@@ -5,12 +5,6 @@ import { SunburstChart } from "../../components/chart/sunburst-chart"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 import type { ChartTooltipField } from "../../components/chart/types"
 import { StatusBadge } from "../../components/ui/status-badge"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../components/ui/tabs"
 import { bundleSizeTree } from "./data/bundle-size-tree"
 import {
   codeMetricChartDomain,
@@ -152,116 +146,112 @@ export default function CodeMetricsBlock() {
         package fan-out converge before a reviewer opens every file.
       </ReviewSectionHeader>
 
-      <ReviewStage className="canvas-stack-sm">
-        <ScatterChart
-          aspectRatio="2 / 1"
-          data={codeMetricRows}
-          minHeight={360}
-          radiusKey="fanOut"
-          referenceY={10}
-          renderer="texture"
-          texture={{
-            density: "normal",
-            kind: "lines",
-            opacity: 1,
-          }}
-          tooltipFields={codeMetricTooltipFields}
-          tooltipLabel={(row) => `${row.name} @ ${row.module}`}
-          xAxisLabel="Lines of code"
-          xDomain={[codeMetricChartDomain.locMin, codeMetricChartDomain.locMax]}
-          xKey="loc"
-          xScaleType="log"
-          xTicks={[80, 160, 320, 640, 1280]}
-          yAxisLabel="Cyclomatic complexity"
-          yDomain={[1, codeMetricChartDomain.cyclomaticMax]}
-          yKey="cyclomatic"
-          yScaleType="log"
-          yTicks={[10, 40, 100, 200]}
-        />
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.85fr)]">
+        <ReviewStage className="canvas-stack-sm">
+          <ScatterChart
+            aspectRatio="2 / 1"
+            data={codeMetricRows}
+            minHeight={360}
+            radiusKey="fanOut"
+            referenceY={10}
+            renderer="texture"
+            texture={{
+              density: "normal",
+              kind: "lines",
+              opacity: 1,
+            }}
+            tooltipFields={codeMetricTooltipFields}
+            tooltipLabel={(row) => `${row.name} @ ${row.module}`}
+            xAxisLabel="Lines of code"
+            xDomain={[
+              codeMetricChartDomain.locMin,
+              codeMetricChartDomain.locMax,
+            ]}
+            xKey="loc"
+            xScaleType="log"
+            xTicks={[80, 160, 320, 640, 1280]}
+            yAxisLabel="Cyclomatic complexity"
+            yDomain={[1, codeMetricChartDomain.cyclomaticMax]}
+            yKey="cyclomatic"
+            yScaleType="log"
+            yTicks={[10, 40, 100, 200]}
+          />
 
-        <div className="flex flex-wrap gap-2">
-          <StatusBadge status="destructive">low MI</StatusBadge>
-          <StatusBadge status="warning">complexity pressure</StatusBadge>
-          <StatusBadge status="success">smaller candidate</StatusBadge>
-        </div>
-      </ReviewStage>
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge status="destructive">low MI</StatusBadge>
+            <StatusBadge status="warning">complexity pressure</StatusBadge>
+            <StatusBadge status="success">smaller candidate</StatusBadge>
+          </div>
+        </ReviewStage>
 
-      <ReviewPanel className="min-w-0">
-        <Tabs className="canvas-stack-sm" defaultValue="bundle">
-          <TabsList className="flex-wrap">
-            <TabsTrigger value="bundle">bundle surface</TabsTrigger>
-            <TabsTrigger value="modules">module inventory</TabsTrigger>
-            <TabsTrigger value="metrics">metric table</TabsTrigger>
-          </TabsList>
+        <ReviewPanel className="canvas-stack-sm min-w-0">
+          <div className="canvas-stack-xs">
+            <p className="canvas-text-caption text-muted-foreground">
+              secondary signal: bundle surface
+            </p>
+            <p className="canvas-text-body">
+              Sunburst keeps package weight visible beside the complexity
+              scatter plot.
+            </p>
+          </div>
+          <SunburstChart
+            aspectRatio="4 / 3"
+            centerLabel="estimated total"
+            centerValue={({ total }) => formatKilobytes(total)}
+            data={bundleSizeTree}
+            legend
+            minHeight={320}
+            renderer="texture"
+            sort="none"
+            texture={{
+              density: "dense",
+              kind: "lines",
+              opacity: 0.7,
+            }}
+            valueFormatter={formatKilobytes}
+          />
+        </ReviewPanel>
+      </div>
 
-          <TabsContent className="canvas-stack-sm" value="bundle">
-            <div className="canvas-stack-xs">
-              <p className="canvas-text-caption text-muted-foreground">
-                secondary signal: bundle surface
-              </p>
-              <p className="canvas-text-body">
-                Sunburst keeps package weight visible without competing with
-                the complexity scatter plot.
-              </p>
-            </div>
-            <SunburstChart
-              aspectRatio="4 / 3"
-              centerLabel="estimated total"
-              centerValue={({ total }) => formatKilobytes(total)}
-              className="mx-auto max-w-xl"
-              data={bundleSizeTree}
-              legend
-              minHeight={320}
-              renderer="texture"
-              sort="none"
-              texture={{
-                density: "dense",
-                kind: "lines",
-                opacity: 0.7,
-              }}
-              valueFormatter={formatKilobytes}
-            />
-          </TabsContent>
+      <div className="canvas-stack-md">
+        <ReviewPanel className="canvas-stack-sm min-w-0">
+          <div className="canvas-stack-xs">
+            <p className="canvas-text-caption text-muted-foreground">
+              module inventory
+            </p>
+            <p className="canvas-text-body">
+              Module rows explain which authored surfaces feed the risk signal.
+            </p>
+          </div>
+          <DataTable
+            columns={moduleColumns}
+            data={moduleStats}
+            enablePagination={false}
+            enableViewOptions={false}
+            searchColumn="module"
+            searchPlaceholder="Filter module..."
+          />
+        </ReviewPanel>
 
-          <TabsContent className="canvas-stack-sm" value="modules">
-            <div className="canvas-stack-xs">
-              <p className="canvas-text-caption text-muted-foreground">
-                secondary signal: module inventory
-              </p>
-              <p className="canvas-text-body">
-                Module rows explain which authored surfaces feed the risk
-                signal.
-              </p>
-            </div>
-            <DataTable
-              columns={moduleColumns}
-              data={moduleStats}
-              enablePagination={false}
-              enableViewOptions={false}
-              searchColumn="module"
-              searchPlaceholder="Filter module..."
-            />
-          </TabsContent>
-
-          <TabsContent className="canvas-stack-sm" value="metrics">
-            <div className="canvas-stack-xs">
-              <p className="canvas-text-caption text-muted-foreground">
-                detail evidence
-              </p>
-              <p className="canvas-text-body">
-                The full metric table is a drill-down, not the headline.
-              </p>
-            </div>
-            <DataTable
-              columns={metricColumns}
-              data={codeMetricRows}
-              enableViewOptions={false}
-              searchColumn="name"
-              searchPlaceholder="Filter refactor candidate..."
-            />
-          </TabsContent>
-        </Tabs>
-      </ReviewPanel>
+        <ReviewStage className="canvas-stack-sm">
+          <div className="canvas-stack-xs">
+            <p className="canvas-text-caption text-muted-foreground">
+              detail evidence
+            </p>
+            <p className="canvas-text-body">
+              The full metric table is visible below the charts but remains
+              paginated.
+            </p>
+          </div>
+          <DataTable
+            columns={metricColumns}
+            data={codeMetricRows}
+            enableViewOptions={false}
+            searchColumn="name"
+            searchPlaceholder="Filter refactor candidate..."
+          />
+        </ReviewStage>
+      </div>
     </section>
   )
 }

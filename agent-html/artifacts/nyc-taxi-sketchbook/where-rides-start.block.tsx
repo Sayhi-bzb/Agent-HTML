@@ -89,7 +89,7 @@ export default function WhereRidesStartBlock() {
         distance and fare totals.
       </SectionIntro>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="canvas-grid-2-lg">
         <SketchPanel>
           <BarHChart
             aspectRatio="4 / 3"

@@ -36,7 +36,7 @@ export default function LabTrendReviewBlock() {
 
           return (
             <TabsContent
-              className="grid gap-4 md:grid-cols-2"
+              className="canvas-grid-2"
               key={series.code}
               value={series.code}
             >

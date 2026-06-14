@@ -40,6 +40,21 @@ export function ReviewPanel({
   )
 }
 
+export function ReviewMetricValue({
+  className,
+  ...props
+}: ComponentProps<"p">) {
+  return (
+    <p
+      className={cn(
+        "canvas-text-heading font-mono tabular-nums text-foreground",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 export function ReviewStage({
   className,
   ...props
@@ -58,7 +73,7 @@ export function ReviewRailGrid({
 }: ComponentProps<"div">) {
   return (
     <div
-      className={cn("grid gap-3 md:grid-cols-2 xl:grid-cols-4", className)}
+      className={cn("canvas-grid-cards", className)}
       {...props}
     />
   )

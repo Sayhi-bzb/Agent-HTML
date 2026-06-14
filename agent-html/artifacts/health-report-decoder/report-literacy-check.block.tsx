@@ -68,7 +68,7 @@ export default function ReportLiteracyCheckBlock() {
       </div>
 
       <div className="canvas-stack-md">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="canvas-grid-2">
           {quizQuestions.map((question, index) => {
             const selectedAnswer = answers[question.id]
             const isCorrect = selectedAnswer === question.correctOptionId

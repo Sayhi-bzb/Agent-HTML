@@ -85,7 +85,7 @@ export default function ReleaseRoutesBlock() {
       </ReviewPanel>
 
       <RadioGroup
-        className="grid gap-4 lg:grid-cols-3"
+        className="canvas-grid-3-lg"
         defaultValue={releaseRoutes[1].value}
       >
         {releaseRoutes.map((route) => (

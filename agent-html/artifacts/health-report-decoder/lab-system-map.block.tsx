@@ -177,7 +177,7 @@ export default function LabSystemMapBlock() {
 
         {systems.map((system) => (
           <TabsContent
-            className="grid gap-4 md:grid-cols-2"
+            className="canvas-grid-2"
             key={system.id}
             value={system.id}
           >

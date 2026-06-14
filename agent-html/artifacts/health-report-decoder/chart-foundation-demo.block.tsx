@@ -34,7 +34,7 @@ export default function ChartFoundationDemoBlock() {
         </h2>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="canvas-grid-2-lg">
         <LineChart
           data={trendData}
           minHeight={260}

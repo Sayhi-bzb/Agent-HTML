@@ -1,5 +1,9 @@
 @layer components {
   .canvas-grid-2,
+  .canvas-grid-2-lg,
+  .canvas-grid-3,
+  .canvas-grid-3-lg,
+  .canvas-grid-4,
   .canvas-grid-main-aside,
   .canvas-grid-aside-main,
   .canvas-grid-cards {
@@ -9,6 +13,10 @@
   }
 
   .canvas-grid-2 > *,
+  .canvas-grid-2-lg > *,
+  .canvas-grid-3 > *,
+  .canvas-grid-3-lg > *,
+  .canvas-grid-4 > *,
   .canvas-grid-main-aside > *,
   .canvas-grid-aside-main > *,
   .canvas-grid-cards > * {
@@ -18,6 +26,14 @@
   @media (min-width: 768px) {
     .canvas-grid-2 {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .canvas-grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .canvas-grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .canvas-grid-main-aside {
@@ -38,6 +54,14 @@
   }
 
   @media (min-width: 1024px) {
+    .canvas-grid-2-lg {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .canvas-grid-3-lg {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .canvas-grid-cards {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }

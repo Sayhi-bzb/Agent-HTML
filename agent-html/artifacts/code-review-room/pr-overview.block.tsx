@@ -6,7 +6,7 @@ import {
   reviewSubject,
   summaryItems,
 } from "./data/repo-summary"
-import { ReviewPanel, ReviewRailGrid } from "./review-layout"
+import { ReviewMetricValue, ReviewPanel, ReviewRailGrid } from "./review-layout"
 
 export default function PrOverviewBlock() {
   return (
@@ -14,7 +14,7 @@ export default function PrOverviewBlock() {
       <div className="canvas-stack-md">
         <Badge variant="secondary">{reviewSubject.badge}</Badge>
         <div className="canvas-stack-sm">
-          <h1 className="text-4xl font-semibold tracking-normal text-foreground md:text-5xl">
+          <h1 className="canvas-text-title">
             {reviewSubject.title}
           </h1>
           <p className="max-w-4xl canvas-text-body text-muted-foreground">
@@ -34,9 +34,9 @@ export default function PrOverviewBlock() {
             <p className="canvas-text-caption text-muted-foreground">
               {item.label}
             </p>
-            <p className="font-mono text-2xl font-semibold tracking-normal">
+            <ReviewMetricValue>
               {item.value}
-            </p>
+            </ReviewMetricValue>
           </ReviewPanel>
         ))}
       </ReviewRailGrid>

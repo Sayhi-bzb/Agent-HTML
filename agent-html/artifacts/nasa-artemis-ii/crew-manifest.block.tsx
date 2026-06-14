@@ -18,7 +18,7 @@ export default function CrewManifestBlock() {
         </p>
       </div>
 
-      <div className="canvas-grid-gap md:grid-cols-4">
+      <div className="canvas-grid-4">
         {crewMembers.map((member) => {
           const portrait = mediaAssets.crew[member.portraitKey]
 

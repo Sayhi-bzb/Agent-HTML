@@ -57,7 +57,7 @@ export default function TripLedgerOverviewBlock() {
         />
       </figure>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="canvas-grid-2-lg">
         <div className="canvas-stack-md">
           <div className="canvas-stack-sm">
             <Badge variant="secondary">NYC TLC / October 2024</Badge>

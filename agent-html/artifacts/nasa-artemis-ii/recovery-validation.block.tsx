@@ -49,7 +49,7 @@ export default function RecoveryValidationBlock() {
         />
       </div>
 
-      <div className="canvas-grid-gap md:grid-cols-4">
+      <div className="canvas-grid-4">
         {closureItems.map((item) => {
           const Icon = closureItemIcons[item.label] ?? Circle
 
