@@ -176,7 +176,7 @@ export default function RoutePlannerBlock() {
         </h1>
       </div>
 
-      <div className="grid overflow-hidden rounded-md bg-muted/40 md:min-h-[680px] md:grid-cols-[0.78fr_1.22fr]">
+      <div className="grid overflow-hidden rounded-md md:min-h-[680px] md:grid-cols-[0.78fr_1.22fr]">
         <div className="canvas-stack-lg p-5 md:p-6">
           <div className="canvas-stack-md">
             <InspectorPhoto assetKey={selectedRoute.evidenceKey} />
@@ -248,7 +248,7 @@ export default function RoutePlannerBlock() {
         </div>
 
         <div className="p-3 md:p-4">
-          <div className="relative h-[520px] overflow-hidden rounded-md border bg-background md:h-full">
+          <div className="relative h-[520px] overflow-hidden rounded-md border md:h-full">
             <Map
               center={tokyoMap.center}
               className="h-full"
@@ -292,7 +292,7 @@ export default function RoutePlannerBlock() {
               )
             })}
           </Map>
-            <p className="absolute right-3 bottom-3 rounded-sm bg-background/85 px-2 py-1 canvas-text-caption text-muted-foreground">
+            <p className="absolute right-3 bottom-3 rounded-sm px-2 py-1 canvas-text-caption text-muted-foreground">
               © OpenStreetMap contributors
             </p>
           </div>
