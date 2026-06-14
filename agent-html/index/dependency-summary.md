@@ -7,9 +7,9 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 188 |
-| Dependencies | 480 |
-| Local edges | 311 |
+| Modules | 189 |
+| Dependencies | 481 |
+| Local edges | 312 |
 | External edges | 168 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
@@ -45,9 +45,9 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/artifacts/health-report-decoder/ldl-range-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/report-triage.block.tsx` | 7 |
 | `agent-html/artifacts/nasa-artemis-ii/mission-route.block.tsx` | 7 |
+| `agent-html/artifacts/code-review-room/code-metrics.block.tsx` | 6 |
 | `agent-html/artifacts/code-review-room/release-routes.block.tsx` | 6 |
 | `agent-html/artifacts/health-report-decoder/doctor-question-list.block.tsx` | 6 |
-| `agent-html/artifacts/health-report-decoder/report-literacy-check.block.tsx` | 6 |
 
 ## Top External Dependencies
 
