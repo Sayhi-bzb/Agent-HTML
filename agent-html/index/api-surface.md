@@ -14,6 +14,7 @@ Full TypeScript declarations are generated only as temporary build input.
 | `line-chart.tsx` | `LineChart`, `LineChartProps` |
 | `network-chart.tsx` | `NetworkChart`, `NetworkChartData`, `NetworkChartProps`, `NetworkLinkDatum`, `NetworkNodeDatum` |
 | `pie-chart.tsx` | `PieChart`, `PieChartProps` |
+| `radar-chart.tsx` | `RadarChart`, `RadarChartProps` |
 | `sankey-chart.tsx` | `SankeyChart`, `SankeyChartProps`, `SankeyData` |
 | `scatter-chart.tsx` | `ScatterChart`, `ScatterChartProps` |
 | `sunburst-chart.tsx` | `SunburstChart`, `SunburstChartProps`, `SunburstDatum`, `SunburstNode` |

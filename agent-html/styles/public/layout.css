@@ -175,8 +175,24 @@
     max-height: var(--canvas-frame-media-lg-max-height);
   }
 
+  .canvas-frame-media-fill {
+    height: 100%;
+  }
+
+  .canvas-frame-media-min-sm {
+    min-height: var(--canvas-frame-media-sm-min-height);
+  }
+
   .canvas-frame-media-min-lg {
     min-height: var(--canvas-frame-media-lg-min-height);
+  }
+
+  .canvas-frame-media-md {
+    max-height: var(--canvas-frame-media-md-max-height);
+  }
+
+  .canvas-frame-media-screen {
+    max-height: 100vh;
   }
 
   .canvas-frame-media-xl {
