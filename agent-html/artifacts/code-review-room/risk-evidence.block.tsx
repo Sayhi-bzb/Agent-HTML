@@ -55,20 +55,22 @@ export default function RiskEvidenceBlock() {
         title="Passing tests are not the same as covered risks."
       />
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)]">
-        <ReviewPanel className="grid min-h-64 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="canvas-stack-md">
+        <ReviewPanel className="canvas-stack-xs">
           {evidenceMatrix.map((item) => (
             <div
-              className="canvas-stack-xs rounded-md bg-muted/45 p-3"
+              className="flex flex-col gap-2 rounded-md bg-muted/45 p-3 sm:flex-row sm:items-start sm:justify-between"
               key={`${item.impact}-${item.evidence}`}
             >
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex shrink-0 items-center justify-between gap-2 sm:w-48">
                 <span className="canvas-text-caption text-muted-foreground">
                   {item.impact}
                 </span>
                 <StatusBadge status={item.status}>{item.evidence}</StatusBadge>
               </div>
-              <p className="canvas-text-caption">{item.note}</p>
+              <p className="canvas-text-caption text-muted-foreground">
+                {item.note}
+              </p>
             </div>
           ))}
         </ReviewPanel>

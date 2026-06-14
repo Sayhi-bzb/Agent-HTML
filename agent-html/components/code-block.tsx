@@ -4,16 +4,39 @@ import { CheckIcon, CopyIcon } from "lucide-react"
 import { cn } from "../lib/cn"
 import { highlightCode, type CodeBlockLanguage } from "../lib/shiki-highlighter"
 import { Button } from "./ui/button"
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
 
-type CodeBlockProps = {
+type CodeBlockTab = {
   caption?: string
-  className?: string
   code: string
   language?: CodeBlockLanguage
+  title: string
+  value: string
+}
+
+type CodeBlockBaseProps = {
+  className?: string
   showLineNumbers?: boolean
-  title?: string
   wrap?: boolean
 }
+
+type CodeBlockSingleProps = CodeBlockBaseProps & {
+  caption?: string
+  code: string
+  language?: CodeBlockLanguage
+  tabs?: never
+  title?: string
+}
+
+type CodeBlockTabbedProps = CodeBlockBaseProps & {
+  caption?: never
+  code?: never
+  language?: never
+  tabs: readonly [CodeBlockTab, ...CodeBlockTab[]]
+  title?: never
+}
+
+type CodeBlockProps = CodeBlockSingleProps | CodeBlockTabbedProps
 
 function getDiffLineClass(line: string) {
   if (line.startsWith("+++") || line.startsWith("---")) {
@@ -80,23 +103,65 @@ function CodeLines({
   )
 }
 
+function resolveCodeBlockState({
+  activeTabValue,
+  props,
+}: {
+  activeTabValue: string
+  props: CodeBlockProps
+}) {
+  if (props.tabs !== undefined) {
+    const activeTab =
+      props.tabs.find((tab) => tab.value === activeTabValue) ?? props.tabs[0]
+
+    return {
+      activeTab,
+      caption: activeTab.caption,
+      code: activeTab.code,
+      label: activeTab.title,
+      language: activeTab.language ?? "text",
+    }
+  }
+
+  const language = props.language ?? "text"
+
+  return {
+    activeTab: undefined,
+    caption: props.caption,
+    code: props.code,
+    label: props.title ?? language,
+    language,
+  }
+}
+
 function CodeBlock({
-  caption,
   className,
-  code,
-  language = "text",
   showLineNumbers = false,
-  title,
   wrap = false,
+  ...props
 }: CodeBlockProps) {
+  const tabs = "tabs" in props ? props.tabs : undefined
+  const [activeTabValue, setActiveTabValue] = React.useState(
+    tabs?.[0].value ?? ""
+  )
   const [highlightedHtml, setHighlightedHtml] = React.useState<string | null>(
     null
   )
   const [copied, setCopied] = React.useState(false)
   const copyTimeoutRef = React.useRef<number | null>(null)
-  const label = title || language
+  const resolved = resolveCodeBlockState({ activeTabValue, props })
   const CopyStateIcon = copied ? CheckIcon : CopyIcon
-  const isDiff = isDiffLanguage(language)
+  const isDiff = isDiffLanguage(resolved.language)
+
+  React.useEffect(() => {
+    if (!tabs?.length) {
+      return
+    }
+
+    if (!tabs.some((tab) => tab.value === activeTabValue)) {
+      setActiveTabValue(tabs[0].value)
+    }
+  }, [activeTabValue, tabs])
 
   React.useEffect(() => {
     let isCurrent = true
@@ -109,7 +174,7 @@ function CodeBlock({
       }
     }
 
-    void highlightCode({ code, language })
+    void highlightCode({ code: resolved.code, language: resolved.language })
       .then((html) => {
         if (isCurrent) {
           setHighlightedHtml(html)
@@ -124,7 +189,7 @@ function CodeBlock({
     return () => {
       isCurrent = false
     }
-  }, [code, isDiff, language])
+  }, [isDiff, resolved.code, resolved.language])
 
   React.useEffect(() => {
     return () => {
@@ -140,7 +205,7 @@ function CodeBlock({
     }
 
     void navigator.clipboard
-      .writeText(code)
+      .writeText(resolved.code)
       .then(() => {
         setCopied(true)
 
@@ -167,7 +232,35 @@ function CodeBlock({
       data-wrap={wrap ? "true" : undefined}
     >
       <div className="flex items-center justify-between gap-3 border-b bg-muted/30 px-3 py-2">
-        <span className="truncate text-sm text-muted-foreground">{label}</span>
+        {tabs?.length ? (
+          <Tabs
+            className="min-w-0"
+            onValueChange={(value) => {
+              setActiveTabValue(value)
+              setCopied(false)
+            }}
+            value={resolved.activeTab?.value}
+          >
+            <TabsList className="flex-wrap" variant="line">
+              {tabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  onClick={() => {
+                    setActiveTabValue(tab.value)
+                    setCopied(false)
+                  }}
+                  value={tab.value}
+                >
+                  {tab.value}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        ) : (
+          <span className="truncate text-sm text-muted-foreground">
+            {resolved.label}
+          </span>
+        )}
         <Button
           aria-label={copied ? "Code copied" : "Copy code"}
           onClick={handleCopy}
@@ -196,7 +289,7 @@ function CodeBlock({
             )}
           >
             <CodeLines
-              code={code}
+              code={resolved.code}
               isDiff={isDiff}
               showLineNumbers={showLineNumbers}
               wrap={wrap}
@@ -205,9 +298,9 @@ function CodeBlock({
         )}
       </div>
 
-      {caption ? (
+      {resolved.caption ? (
         <figcaption className="border-t px-3 py-2 text-sm text-muted-foreground">
-          {caption}
+          {resolved.caption}
         </figcaption>
       ) : null}
     </figure>
@@ -215,4 +308,4 @@ function CodeBlock({
 }
 
 export { CodeBlock }
-export type { CodeBlockProps }
+export type { CodeBlockProps, CodeBlockTab }

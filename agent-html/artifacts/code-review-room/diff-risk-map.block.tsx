@@ -1,5 +1,5 @@
 import { CodeBlock } from "../../components/code-block"
-import { selectedDiff } from "./data/risk-map"
+import { diffEvidenceTabs } from "./data/risk-map"
 import { ReviewSectionHeader } from "./review-layout"
 
 export default function DiffRiskMapBlock() {
@@ -10,12 +10,7 @@ export default function DiffRiskMapBlock() {
         title="Changed lines show size. Heat shows consequence."
       />
 
-      <CodeBlock
-        caption="Selected candidate: the file is not the largest surface, but sorting, filtering, pagination, search, and row behavior converge here."
-        code={selectedDiff}
-        language="diff"
-        title="selected-candidate.diff"
-      />
+      <CodeBlock tabs={diffEvidenceTabs} />
     </section>
   )
 }

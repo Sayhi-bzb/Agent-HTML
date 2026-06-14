@@ -64,7 +64,7 @@ Full TypeScript declarations are generated only as temporary build input.
 
 | File | Exports |
 | --- | --- |
-| `code-block.tsx` | `CodeBlock`, `CodeBlockProps` |
+| `code-block.tsx` | `CodeBlock`, `CodeBlockProps`, `CodeBlockTab` |
 | `data-table.tsx` | `DataTable`, `DataTableColumnHeader`, `DataTableColumnHeaderProps`, `DataTablePagination`, `DataTablePaginationProps`, `DataTableProps`, `DataTableViewOptions`, `DataTableViewOptionsProps` |
 | `kanban.tsx` | `Kanban`, `KanbanBoard`, `KanbanColumn`, `KanbanColumnHandle`, `KanbanItem`, `KanbanItemHandle`, `KanbanOverlay`, `KanbanProps` |
 | `map.tsx` | `Map`, `MapArc`, `MapArcDatum`, `MapArcEvent`, `MapClusterLayer`, `MapControls`, `MapMarker`, `MapPopup`, `MapRef`, `MapRoute`, `MapViewport`, `MarkerContent`, `MarkerLabel`, `MarkerPopup`, `MarkerTooltip`, `useMap` |
