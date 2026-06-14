@@ -48,7 +48,7 @@ export default function QuietRouteBlock() {
         <div className="canvas-stack-md">
           <MediaFigure
             asset={mediaAssets.quiet}
-            imageClassName="max-h-[420px]"
+            imageClassName="canvas-frame-media-lg"
           />
         </div>
       </div>

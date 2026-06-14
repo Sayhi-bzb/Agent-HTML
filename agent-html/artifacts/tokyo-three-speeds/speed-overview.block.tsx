@@ -40,7 +40,7 @@ export default function SpeedOverviewBlock() {
           {headerSlides.map((slide, index) => (
             <CarouselItem key={slide.label}>
               <figure className="canvas-stack-sm">
-                <div className="aspect-[16/9] min-h-[420px] overflow-hidden rounded-md bg-muted">
+                <div className="canvas-frame-media canvas-frame-media-16-9 canvas-frame-media-min-lg">
                   <img
                     alt={slide.alt}
                     className="h-full w-full object-cover"

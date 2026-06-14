@@ -58,7 +58,7 @@ export default function DoctorQuestionListBlock() {
         </p>
       </div>
 
-      <div className="grid grid-cols-[1fr_0.72fr] gap-6 max-sm:grid-cols-1">
+      <div className="canvas-grid-main-aside">
         <div className="canvas-stack-md min-w-0">
           {doctorQueue.map((queueItem, index) => {
             const item = labItemByCode(queueItem.code)

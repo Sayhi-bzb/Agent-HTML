@@ -1,12 +1,14 @@
 @layer components {
   .canvas-grid-2,
   .canvas-grid-2-lg,
+  .canvas-grid-2-sm,
   .canvas-grid-3,
   .canvas-grid-3-lg,
   .canvas-grid-4,
   .canvas-grid-main-aside,
   .canvas-grid-main-aside-lg,
   .canvas-grid-main-aside-xl,
+  .canvas-grid-main-aside-xl-wide,
   .canvas-grid-aside-main,
   .canvas-grid-aside-main-lg,
   .canvas-grid-cards {
@@ -17,16 +19,24 @@
 
   .canvas-grid-2 > *,
   .canvas-grid-2-lg > *,
+  .canvas-grid-2-sm > *,
   .canvas-grid-3 > *,
   .canvas-grid-3-lg > *,
   .canvas-grid-4 > *,
   .canvas-grid-main-aside > *,
   .canvas-grid-main-aside-lg > *,
   .canvas-grid-main-aside-xl > *,
+  .canvas-grid-main-aside-xl-wide > *,
   .canvas-grid-aside-main > *,
   .canvas-grid-aside-main-lg > *,
   .canvas-grid-cards > * {
     min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .canvas-grid-2-sm {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (min-width: 768px) {
@@ -91,6 +101,12 @@
         minmax(0, 0.64fr)
         minmax(var(--canvas-layout-aside-min-width), 0.36fr);
     }
+
+    .canvas-grid-main-aside-xl-wide {
+      grid-template-columns:
+        minmax(0, 1.25fr)
+        minmax(0, 0.85fr);
+    }
   }
 
   .canvas-frame-wide,
@@ -134,6 +150,37 @@
 
   .canvas-frame-media {
     background: var(--muted);
+  }
+
+  .canvas-frame-media-16-9,
+  .canvas-frame-media-16-10,
+  .canvas-frame-media-portrait {
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .canvas-frame-media-16-9 {
+    aspect-ratio: 16 / 9;
+  }
+
+  .canvas-frame-media-16-10 {
+    aspect-ratio: 16 / 10;
+  }
+
+  .canvas-frame-media-portrait {
+    aspect-ratio: 4 / 5;
+  }
+
+  .canvas-frame-media-lg {
+    max-height: var(--canvas-frame-media-lg-max-height);
+  }
+
+  .canvas-frame-media-min-lg {
+    min-height: var(--canvas-frame-media-lg-min-height);
+  }
+
+  .canvas-frame-media-xl {
+    max-height: var(--canvas-frame-media-xl-max-height);
   }
 
   .canvas-frame-fill {

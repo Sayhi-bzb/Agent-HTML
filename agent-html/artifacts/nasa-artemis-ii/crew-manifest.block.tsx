@@ -27,7 +27,7 @@ export default function CrewManifestBlock() {
               <MediaFigure
                 asset={portrait}
                 density="compact"
-                imageClassName="aspect-[4/5]"
+                imageClassName="canvas-frame-media-portrait"
                 showCaption={false}
               />
               <div className="canvas-stack-xs">

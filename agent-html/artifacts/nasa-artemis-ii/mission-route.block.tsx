@@ -54,7 +54,7 @@ export default function MissionRouteBlock() {
         </p>
       </div>
 
-      <div className="canvas-grid-gap sm:grid-cols-[1.05fr_0.95fr]">
+      <div className="canvas-grid-2-sm">
         <Timeline className="w-full" defaultValue={4}>
           {missionRoutePhases.map((phase, index) => (
             <TimelineItem

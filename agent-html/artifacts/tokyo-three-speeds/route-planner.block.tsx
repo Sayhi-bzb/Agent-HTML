@@ -358,7 +358,7 @@ function InspectorPhoto({ assetKey }: { assetKey: keyof typeof mediaAssets }) {
     <MediaFigure
       asset={asset}
       density="compact"
-      imageClassName="aspect-[16/9]"
+      imageClassName="canvas-frame-media-16-9"
       key={assetKey}
       showCredit={false}
     />

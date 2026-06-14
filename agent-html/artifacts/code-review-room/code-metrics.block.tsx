@@ -146,7 +146,7 @@ export default function CodeMetricsBlock() {
         package fan-out converge before a reviewer opens every file.
       </ReviewSectionHeader>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.85fr)]">
+      <div className="canvas-grid-main-aside-xl-wide">
         <ReviewStage className="canvas-stack-sm">
           <ScatterChart
             aspectRatio="2 / 1"

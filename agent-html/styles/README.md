@@ -31,9 +31,10 @@ content:
 `public/layout.css` owns artifact auto-layout classes:
 
 - Stack remains the default vertical rhythm through `canvas-stack-*`.
-- Grid uses `canvas-grid-2`, `canvas-grid-2-lg`, `canvas-grid-3`,
-  `canvas-grid-3-lg`, `canvas-grid-4`, `canvas-grid-main-aside`,
-  `canvas-grid-main-aside-lg`, `canvas-grid-main-aside-xl`,
+- Grid uses `canvas-grid-2`, `canvas-grid-2-sm`, `canvas-grid-2-lg`,
+  `canvas-grid-3`, `canvas-grid-3-lg`, `canvas-grid-4`,
+  `canvas-grid-main-aside`, `canvas-grid-main-aside-lg`,
+  `canvas-grid-main-aside-xl`, `canvas-grid-main-aside-xl-wide`,
   `canvas-grid-aside-main`, `canvas-grid-aside-main-lg`, and
   `canvas-grid-cards`.
 - Frame uses `canvas-frame-table`, `canvas-frame-wide`,

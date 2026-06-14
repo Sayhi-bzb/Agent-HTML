@@ -22,5 +22,8 @@
   --canvas-frame-chart-min-height: 20rem;
   --canvas-frame-chart-lg-min-height: 26.25rem;
   --canvas-frame-map-min-height: 32.5rem;
+  --canvas-frame-media-lg-min-height: 26.25rem;
+  --canvas-frame-media-lg-max-height: 26.25rem;
+  --canvas-frame-media-xl-max-height: 32.5rem;
   --canvas-frame-wide-min-width: 38.75rem;
 }

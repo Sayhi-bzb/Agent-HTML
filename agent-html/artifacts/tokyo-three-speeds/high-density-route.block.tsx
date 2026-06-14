@@ -13,7 +13,7 @@ export default function HighDensityRouteBlock() {
       <div className="canvas-grid-2">
         <MediaFigure
           asset={mediaAssets.density}
-          imageClassName="max-h-[520px]"
+          imageClassName="canvas-frame-media-xl"
         />
 
         <div className="canvas-stack-md">
