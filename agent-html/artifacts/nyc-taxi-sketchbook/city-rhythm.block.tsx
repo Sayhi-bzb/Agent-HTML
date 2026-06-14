@@ -91,14 +91,14 @@ export default function CityRhythmBlock() {
                 },
               }}
               data={hourDay}
-              renderTooltip={(cell) => (
+              renderTooltip={({ datum }) => (
                 <div className="canvas-stack-xs">
                   <strong className="font-mono">
-                    {dayLabels[cell.day]} {formatHour(cell.hour)}
+                    {dayLabels[datum.day]} {formatHour(datum.hour)}
                   </strong>
-                  <span>trips {cell.trips.toLocaleString()}</span>
-                  <span>avg total {formatCurrency(cell.averageTotal)}</span>
-                  <span>avg distance {cell.averageDistance} mi</span>
+                  <span>trips {datum.trips.toLocaleString()}</span>
+                  <span>avg total {formatCurrency(datum.averageTotal)}</span>
+                  <span>avg distance {datum.averageDistance} mi</span>
                 </div>
               )}
               renderer="rough"

@@ -33,7 +33,7 @@ export interface HeatmapChartProps<T> {
   config?: ChartConfig
   data: readonly T[]
   minHeight?: number
-  renderTooltip?: (datum: T) => React.ReactNode
+  renderTooltip?: (props: { datum: T }) => React.ReactNode
   renderer?: ChartRenderer
   rough?: ChartRoughOptions
   texture?: ChartTextureOptions
@@ -353,7 +353,7 @@ export function HeatmapChart<T>({
               {tooltip ? (
                 tooltip.bin.datum && renderTooltip ? (
                   <ChartTooltipPanel>
-                    {renderTooltip(tooltip.bin.datum)}
+                    {renderTooltip({ datum: tooltip.bin.datum })}
                   </ChartTooltipPanel>
                 ) : (
                   <ChartTooltipContent

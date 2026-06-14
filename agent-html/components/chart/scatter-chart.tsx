@@ -37,15 +37,7 @@ import {
   useChartMaterialRegistry,
 } from "./runtime"
 
-export type ScatterScaleType = "linear" | "log"
-
-export interface ScatterTooltipContext {
-  color: string
-  seriesKey: string
-  seriesLabel: React.ReactNode
-  xValue: number
-  yValue: number
-}
+type ScatterScaleType = "linear" | "log"
 
 export interface ScatterChartProps<T> {
   aspectRatio?: string
@@ -57,10 +49,14 @@ export interface ScatterChartProps<T> {
   radiusKey?: ChartAccessor<T, number>
   referenceY?: number
   renderer?: ChartRenderer
-  renderTooltip?: (
-    datum: T,
-    context: ScatterTooltipContext
-  ) => React.ReactNode
+  renderTooltip?: (props: {
+    color: string
+    datum: T
+    seriesKey: string
+    seriesLabel: React.ReactNode
+    xValue: number
+    yValue: number
+  }) => React.ReactNode
   rough?: ChartRoughOptions
   tooltipFields?: readonly ChartTooltipField<T>[]
   tooltipLabel?: ChartAccessor<T, React.ReactNode>
@@ -596,8 +592,9 @@ export function ScatterChart<T extends object>({
             >
               {tooltip ? (
                 renderTooltip ? (
-                  renderTooltip(tooltip.datum, {
+                  renderTooltip({
                     color: tooltip.color,
+                    datum: tooltip.datum,
                     seriesKey,
                     seriesLabel,
                     xValue: tooltip.xValue,

@@ -32,7 +32,7 @@ export interface LineChartProps<T> {
   aspectRatio?: string
   className?: string
   config?: ChartConfig
-  data: T[]
+  data: readonly T[]
   minHeight?: number
   referenceY?: number
   renderer?: ChartRenderer
