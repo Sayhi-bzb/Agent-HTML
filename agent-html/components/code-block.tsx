@@ -103,6 +103,12 @@ function CodeBlock({
 
     setHighlightedHtml(null)
 
+    if (isDiff) {
+      return () => {
+        isCurrent = false
+      }
+    }
+
     void highlightCode({ code, language })
       .then((html) => {
         if (isCurrent) {
@@ -118,7 +124,7 @@ function CodeBlock({
     return () => {
       isCurrent = false
     }
-  }, [code, language])
+  }, [code, isDiff, language])
 
   React.useEffect(() => {
     return () => {

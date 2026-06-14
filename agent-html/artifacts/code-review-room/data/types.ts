@@ -36,17 +36,6 @@ export type ModuleStat = {
   title: string
 }
 
-export type RiskFile = {
-  consequence: string
-  file: string
-  lines: string
-  risk: string
-  size: string
-  status: "default" | "destructive" | "success" | "warning"
-  tone: string
-  type: string
-}
-
 export type BlastRadiusNode = {
   cx: number
   cy: number

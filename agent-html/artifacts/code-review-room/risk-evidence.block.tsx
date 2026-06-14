@@ -14,6 +14,7 @@ import {
   evidenceRows,
 } from "./data/review-decision"
 import type { EvidenceRow } from "./data/types"
+import { ReviewPanel, ReviewSectionHeader } from "./review-layout"
 
 const evidenceColumns: ColumnDef<EvidenceRow>[] = [
   {
@@ -48,18 +49,14 @@ const evidenceColumns: ColumnDef<EvidenceRow>[] = [
 
 export default function RiskEvidenceBlock() {
   return (
-    <section className="canvas-stack-md">
-      <div className="canvas-stack-xs">
-        <p className="canvas-text-caption text-muted-foreground">
-          risk evidence
-        </p>
-        <h2 className="canvas-text-heading">
-          Passing tests are not the same as covered risks.
-        </h2>
-      </div>
+    <section className="canvas-stack-lg">
+      <ReviewSectionHeader
+        eyebrow="risk evidence"
+        title="Passing tests are not the same as covered risks."
+      />
 
-      <div className="grid gap-5 rounded-md bg-background p-4 lg:grid-cols-[minmax(0,0.44fr)_minmax(0,0.56fr)]">
-        <div className="grid min-h-64 grid-cols-3 gap-3">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)]">
+        <ReviewPanel className="grid min-h-64 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {evidenceMatrix.map((item) => (
             <div
               className="canvas-stack-xs rounded-md bg-muted/45 p-3"
@@ -74,37 +71,39 @@ export default function RiskEvidenceBlock() {
               <p className="canvas-text-caption">{item.note}</p>
             </div>
           ))}
-        </div>
+        </ReviewPanel>
 
-        <Tabs defaultValue={evidenceCategories[0]}>
-          <TabsList>
-            {evidenceCategories.map((category) => (
-              <TabsTrigger key={category} value={category}>
-                {category}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value="dependency">
-            <DataTable
-              columns={evidenceColumns}
-              data={evidenceRows}
-              enablePagination={false}
-              enableViewOptions={false}
-              searchColumn="risk"
-              searchPlaceholder="Filter dependency evidence..."
-            />
-          </TabsContent>
-          <TabsContent value="runtime">
-            <DataTable
-              columns={evidenceColumns}
-              data={evidenceRows}
-              enablePagination={false}
-              enableViewOptions={false}
-              searchColumn="risk"
-              searchPlaceholder="Filter runtime evidence..."
-            />
-          </TabsContent>
-        </Tabs>
+        <ReviewPanel className="min-w-0">
+          <Tabs defaultValue={evidenceCategories[0]}>
+            <TabsList>
+              {evidenceCategories.map((category) => (
+                <TabsTrigger key={category} value={category}>
+                  {category}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value="dependency">
+              <DataTable
+                columns={evidenceColumns}
+                data={evidenceRows}
+                enablePagination={false}
+                enableViewOptions={false}
+                searchColumn="risk"
+                searchPlaceholder="Filter dependency evidence..."
+              />
+            </TabsContent>
+            <TabsContent value="runtime">
+              <DataTable
+                columns={evidenceColumns}
+                data={evidenceRows}
+                enablePagination={false}
+                enableViewOptions={false}
+                searchColumn="risk"
+                searchPlaceholder="Filter runtime evidence..."
+              />
+            </TabsContent>
+          </Tabs>
+        </ReviewPanel>
       </div>
     </section>
   )

@@ -53,6 +53,11 @@
   width: 100%;
 }
 
+.canvas-code-block pre.has-diff .line.diff:not(.add):not(.remove) {
+  background-color: color-mix(in oklab, var(--muted) 42%, transparent);
+  color: var(--muted-foreground);
+}
+
 .canvas-code-block pre.has-diff .line.diff::after {
   content: "";
   position: absolute;

@@ -12,6 +12,11 @@ import {
   moduleStats,
 } from "./data/generated-code-metrics"
 import type { CodeMetricRow, ModuleStat } from "./data/types"
+import {
+  ReviewPanel,
+  ReviewSectionHeader,
+  ReviewStage,
+} from "./review-layout"
 
 const codeMetricTooltipFields = [
   { key: "mi", label: "MI", value: "mi" },
@@ -133,56 +138,51 @@ const metricColumns: ColumnDef<CodeMetricRow>[] = [
 export default function CodeMetricsBlock() {
   return (
     <section className="canvas-stack-lg">
-      <div className="canvas-stack-xs">
-        <p className="canvas-text-caption text-muted-foreground">
-          code metrics
-        </p>
-        <h2 className="canvas-text-heading">
-          Maintainability is visible before the refactor starts.
-        </h2>
-        <p className="canvas-text-body text-muted-foreground">
-          Cell-by-cell code-health metrics for Agent-HTML authored modules:
-          LOC, cyclomatic complexity, cognitive complexity, nesting, Halstead
-          volume and difficulty, fan-in, fan-out, and maintainability index.
-        </p>
-      </div>
+      <ReviewSectionHeader
+        eyebrow="code metrics"
+        title="Maintainability is visible before the refactor starts."
+      >
+        Cell-by-cell code-health metrics for Agent-HTML authored modules: LOC,
+        cyclomatic complexity, cognitive complexity, nesting, Halstead volume
+        and difficulty, fan-in, fan-out, and maintainability index.
+      </ReviewSectionHeader>
 
-      <div className="grid gap-5 rounded-md bg-background p-4 xl:grid-cols-[minmax(0,0.64fr)_minmax(320px,0.36fr)]">
-        <div className="canvas-stack-sm min-w-0">
-          <ScatterChart
-            aspectRatio="2 / 1"
-            data={codeMetricRows}
-            minHeight={360}
-            radiusKey="fanOut"
-            referenceY={10}
-            renderer="texture"
-            texture={{
-              density: "normal",
-              kind: "lines",
-              opacity: 1,
-            }}
-            tooltipFields={codeMetricTooltipFields}
-            tooltipLabel={(row) => `${row.name} @ ${row.module}`}
-            xAxisLabel="Lines of code"
-            xDomain={[codeMetricChartDomain.locMin, codeMetricChartDomain.locMax]}
-            xKey="loc"
-            xScaleType="log"
-            xTicks={[80, 160, 320, 640, 1280]}
-            yAxisLabel="Cyclomatic complexity"
-            yDomain={[1, codeMetricChartDomain.cyclomaticMax]}
-            yKey="cyclomatic"
-            yScaleType="log"
-            yTicks={[10, 40, 100, 200]}
-          />
+      <ReviewStage className="canvas-stack-sm">
+        <ScatterChart
+          aspectRatio="2 / 1"
+          data={codeMetricRows}
+          minHeight={360}
+          radiusKey="fanOut"
+          referenceY={10}
+          renderer="texture"
+          texture={{
+            density: "normal",
+            kind: "lines",
+            opacity: 1,
+          }}
+          tooltipFields={codeMetricTooltipFields}
+          tooltipLabel={(row) => `${row.name} @ ${row.module}`}
+          xAxisLabel="Lines of code"
+          xDomain={[codeMetricChartDomain.locMin, codeMetricChartDomain.locMax]}
+          xKey="loc"
+          xScaleType="log"
+          xTicks={[80, 160, 320, 640, 1280]}
+          yAxisLabel="Cyclomatic complexity"
+          yDomain={[1, codeMetricChartDomain.cyclomaticMax]}
+          yKey="cyclomatic"
+          yScaleType="log"
+          yTicks={[10, 40, 100, 200]}
+        />
 
-          <div className="flex flex-wrap gap-2">
-            <StatusBadge status="destructive">low MI</StatusBadge>
-            <StatusBadge status="warning">complexity pressure</StatusBadge>
-            <StatusBadge status="success">smaller candidate</StatusBadge>
-          </div>
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge status="destructive">low MI</StatusBadge>
+          <StatusBadge status="warning">complexity pressure</StatusBadge>
+          <StatusBadge status="success">smaller candidate</StatusBadge>
         </div>
+      </ReviewStage>
 
-        <div className="canvas-stack-sm min-w-0">
+      <div className="grid gap-5 xl:grid-cols-[minmax(320px,0.42fr)_minmax(0,0.58fr)]">
+        <ReviewPanel className="canvas-stack-sm min-w-0">
           <div className="canvas-stack-xs">
             <p className="canvas-text-caption text-muted-foreground">
               bundle size surface
@@ -207,6 +207,9 @@ export default function CodeMetricsBlock() {
             }}
             valueFormatter={formatKilobytes}
           />
+        </ReviewPanel>
+
+        <ReviewPanel className="min-w-0">
           <DataTable
             columns={moduleColumns}
             data={moduleStats}
@@ -215,17 +218,19 @@ export default function CodeMetricsBlock() {
             searchColumn="module"
             searchPlaceholder="Filter module..."
           />
-        </div>
+        </ReviewPanel>
       </div>
 
-      <DataTable
-        columns={metricColumns}
-        data={codeMetricRows}
-        enablePagination={false}
-        enableViewOptions={false}
-        searchColumn="name"
-        searchPlaceholder="Filter refactor candidate..."
-      />
+      <ReviewStage>
+        <DataTable
+          columns={metricColumns}
+          data={codeMetricRows}
+          enablePagination={false}
+          enableViewOptions={false}
+          searchColumn="name"
+          searchPlaceholder="Filter refactor candidate..."
+        />
+      </ReviewStage>
     </section>
   )
 }

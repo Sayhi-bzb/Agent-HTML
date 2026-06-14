@@ -13,6 +13,11 @@ import {
   TimelineTitle,
 } from "../../components/timeline"
 import { packageTimelineSteps, releaseRoutes } from "./data/review-decision"
+import {
+  ReviewPanel,
+  ReviewSectionHeader,
+  ReviewStage,
+} from "./review-layout"
 
 const defaultRouteValue = "workspace index refresh"
 const decisionProfile =
@@ -22,17 +27,13 @@ const decisionProfile =
 
 export default function ReleaseRoutesBlock() {
   return (
-    <section className="canvas-stack-md">
-      <div className="canvas-stack-xs">
-        <p className="canvas-text-caption text-muted-foreground">
-          package routes
-        </p>
-        <h2 className="canvas-text-heading">
-          The path depends on which Canvas package boundary is touched.
-        </h2>
-      </div>
+    <section className="canvas-stack-lg">
+      <ReviewSectionHeader
+        eyebrow="package routes"
+        title="The path depends on which Canvas package boundary is touched."
+      />
 
-      <div className="rounded-md bg-background p-4">
+      <ReviewStage>
         <Timeline className="w-full" defaultValue={2} orientation="horizontal">
           {packageTimelineSteps.map((step) => (
             <TimelineItem key={step.label} step={step.step}>
@@ -50,9 +51,9 @@ export default function ReleaseRoutesBlock() {
             </TimelineItem>
           ))}
         </Timeline>
-      </div>
+      </ReviewStage>
 
-      <div className="grid gap-4 rounded-md bg-background p-4 lg:grid-cols-[minmax(0,0.32fr)_minmax(0,0.68fr)] lg:items-center">
+      <ReviewPanel className="grid gap-4 lg:grid-cols-[minmax(220px,0.28fr)_minmax(0,0.72fr)] lg:items-center">
         <div className="canvas-stack-xs">
           <p className="canvas-text-caption text-muted-foreground">
             workspace index refresh
@@ -78,41 +79,40 @@ export default function ReleaseRoutesBlock() {
           yKey="value"
           yValueFormatter={(value) => `${value}%`}
         />
-      </div>
+      </ReviewPanel>
 
       <RadioGroup
         className="grid gap-4 lg:grid-cols-3"
         defaultValue={releaseRoutes[1].value}
       >
         {releaseRoutes.map((route) => (
-          <label
-            className="canvas-stack-sm rounded-md bg-background p-4"
-            key={route.value}
-          >
-            <div>
-              <div className="flex items-center justify-between gap-3">
-                <p className="canvas-text-caption text-muted-foreground">
-                  option
+          <ReviewPanel className="p-0" key={route.value}>
+            <label className="canvas-stack-sm block p-4">
+              <div>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="canvas-text-caption text-muted-foreground">
+                    option
+                  </p>
+                  <RadioGroupItem value={route.value} />
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <h3 className="canvas-text-body">{route.value}</h3>
+                  <Badge variant="secondary">{route.badge}</Badge>
+                </div>
+                <p className="mt-2 canvas-text-caption text-muted-foreground">
+                  {route.condition}
                 </p>
-                <RadioGroupItem value={route.value} />
               </div>
-              <div className="mt-2 flex items-center gap-2">
-                <h3 className="canvas-text-body">{route.value}</h3>
-                <Badge variant="secondary">{route.badge}</Badge>
-              </div>
-              <p className="mt-2 canvas-text-caption text-muted-foreground">
-                {route.condition}
-              </p>
-            </div>
-            {route.metrics.map((item) => (
-              <div className="canvas-stack-xs" key={item.label}>
-                <span className="canvas-text-caption text-muted-foreground">
-                  {item.label}
-                </span>
-                <Progress value={item.value} />
-              </div>
-            ))}
-          </label>
+              {route.metrics.map((item) => (
+                <div className="canvas-stack-xs" key={item.label}>
+                  <span className="canvas-text-caption text-muted-foreground">
+                    {item.label}
+                  </span>
+                  <Progress value={item.value} />
+                </div>
+              ))}
+            </label>
+          </ReviewPanel>
         ))}
       </RadioGroup>
     </section>

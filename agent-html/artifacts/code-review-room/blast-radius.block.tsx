@@ -7,6 +7,12 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs"
 import { blastRadiusLayers, packageSankeyData } from "./data/blast-radius"
+import {
+  ReviewPanel,
+  ReviewRailGrid,
+  ReviewSectionHeader,
+  ReviewStage,
+} from "./review-layout"
 
 const blastRadiusSankeyConfig = {
   link: {
@@ -37,17 +43,13 @@ function nodeColorKey(category: unknown) {
 
 export default function BlastRadiusBlock() {
   return (
-    <section className="canvas-stack-md">
-      <div className="canvas-stack-xs">
-        <p className="canvas-text-caption text-muted-foreground">
-          blast radius
-        </p>
-        <h2 className="canvas-text-heading">
-          The edit is only the center point.
-        </h2>
-      </div>
+    <section className="canvas-stack-lg">
+      <ReviewSectionHeader
+        eyebrow="blast radius"
+        title="The edit is only the center point."
+      />
 
-      <div className="grid gap-5 rounded-md bg-background p-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(240px,0.38fr)]">
+      <ReviewStage>
         <SankeyChart
           config={blastRadiusSankeyConfig}
           data={packageSankeyData}
@@ -76,7 +78,9 @@ export default function BlastRadiusBlock() {
           strokeOpacity={0.62}
           texture={{ density: "dense", kind: "lines", opacity: 0.8 }}
         />
+      </ReviewStage>
 
+      <ReviewPanel>
         <Tabs defaultValue={blastRadiusLayers[0].value}>
           <TabsList>
             {blastRadiusLayers.map((layer) => (
@@ -87,22 +91,24 @@ export default function BlastRadiusBlock() {
           </TabsList>
           {blastRadiusLayers.map((layer) => (
             <TabsContent
-              className="canvas-stack-sm"
+              className="mt-4"
               key={layer.value}
               value={layer.value}
             >
-              {layer.items.map(([name, detail]) => (
-                <div className="rounded-md bg-muted/40 p-3" key={name}>
-                  <p className="canvas-text-caption text-muted-foreground">
-                    {name}
-                  </p>
-                  <p className="canvas-text-body">{detail}</p>
-                </div>
-              ))}
+              <ReviewRailGrid className="md:grid-cols-3 xl:grid-cols-3">
+                {layer.items.map(([name, detail]) => (
+                  <div className="rounded-md bg-muted/40 p-3" key={name}>
+                    <p className="canvas-text-caption text-muted-foreground">
+                      {name}
+                    </p>
+                    <p className="canvas-text-body">{detail}</p>
+                  </div>
+                ))}
+              </ReviewRailGrid>
             </TabsContent>
           ))}
         </Tabs>
-      </div>
+      </ReviewPanel>
     </section>
   )
 }

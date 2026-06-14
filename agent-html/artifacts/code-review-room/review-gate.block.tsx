@@ -15,6 +15,12 @@ import {
   reviewLanes,
 } from "./data/review-decision"
 import type { ReviewGateCard } from "./data/types"
+import {
+  ReviewPanel,
+  ReviewRailGrid,
+  ReviewSectionHeader,
+  ReviewStage,
+} from "./review-layout"
 
 function initialGateColumns(): Record<string, ReviewGateCard[]> {
   return Object.fromEntries(
@@ -39,17 +45,13 @@ export default function ReviewGateBlock() {
     useState<Record<string, ReviewGateCard[]>>(initialGateColumns)
 
   return (
-    <section className="canvas-stack-md">
-      <div className="canvas-stack-xs">
-        <p className="canvas-text-caption text-muted-foreground">
-          review gate
-        </p>
-        <h2 className="canvas-text-heading">
-          Review comments become Canvas package gates.
-        </h2>
-      </div>
+    <section className="canvas-stack-lg">
+      <ReviewSectionHeader
+        eyebrow="review gate"
+        title="Review comments become Canvas package gates."
+      />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.58fr)_minmax(260px,0.42fr)]">
+      <ReviewStage>
         <Kanban
           getItemValue={(item) => item.id}
           onValueChange={(nextColumns) => {
@@ -57,7 +59,7 @@ export default function ReviewGateBlock() {
           }}
           value={columns}
         >
-          <KanbanBoard className="min-h-72 overflow-x-auto rounded-md bg-background p-4">
+          <KanbanBoard className="min-h-80 overflow-x-auto">
             {reviewGateColumns.map((column) => (
               <KanbanColumn
                 className="min-w-48 bg-muted/40"
@@ -108,21 +110,34 @@ export default function ReviewGateBlock() {
             }}
           </KanbanOverlay>
         </Kanban>
+      </ReviewStage>
 
-        <div className="canvas-stack-sm rounded-md bg-background p-4">
-          <StatusBadge status="warning">ready after Canvas gates pass</StatusBadge>
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,0.58fr)_minmax(280px,0.42fr)]">
+        <ReviewRailGrid className="md:grid-cols-2 xl:grid-cols-4">
           {reviewLanes.map((lane) => (
-            <div className="canvas-text-caption text-muted-foreground" key={lane.label}>
-              {lane.label}: {lane.detail}
-            </div>
+            <ReviewPanel className="canvas-stack-xs" key={lane.label}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="canvas-text-caption text-muted-foreground">
+                  {lane.label}
+                </span>
+                <StatusBadge status={lane.status}>{lane.count}</StatusBadge>
+              </div>
+              <p className="canvas-text-caption text-muted-foreground">
+                {lane.detail}
+              </p>
+            </ReviewPanel>
           ))}
+        </ReviewRailGrid>
+
+        <ReviewPanel className="canvas-stack-sm">
+          <StatusBadge status="warning">ready after Canvas gates pass</StatusBadge>
           {reviewChecks.map((check) => (
             <label className="flex items-center gap-3" key={check}>
               <Checkbox />
               <span className="canvas-text-body">{check}</span>
             </label>
           ))}
-        </div>
+        </ReviewPanel>
       </div>
     </section>
   )

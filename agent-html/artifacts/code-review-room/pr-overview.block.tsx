@@ -6,6 +6,7 @@ import {
   reviewSubject,
   summaryItems,
 } from "./data/repo-summary"
+import { ReviewPanel, ReviewRailGrid } from "./review-layout"
 
 export default function PrOverviewBlock() {
   return (
@@ -42,7 +43,7 @@ export default function PrOverviewBlock() {
         </div>
       </div>
 
-      <div className="grid gap-4 rounded-md bg-background p-4 md:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)]">
+      <ReviewPanel className="grid gap-4 md:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)]">
         <div className="canvas-stack-xs">
           <span className="canvas-text-caption text-muted-foreground">
             evidence completeness
@@ -52,18 +53,18 @@ export default function PrOverviewBlock() {
         <p className="canvas-text-caption text-muted-foreground">
           {reviewSubject.evidenceNote}
         </p>
-      </div>
+      </ReviewPanel>
 
-      <div className="grid gap-3 rounded-md bg-background p-4 md:grid-cols-4">
+      <ReviewRailGrid>
         {intakeItems.map((item) => (
-          <div className="canvas-stack-xs" key={item.label}>
+          <ReviewPanel className="canvas-stack-xs" key={item.label}>
             <span className="canvas-text-caption text-muted-foreground">
               {item.label}
             </span>
             <p className="canvas-text-body">{item.value}</p>
-          </div>
+          </ReviewPanel>
         ))}
-      </div>
+      </ReviewRailGrid>
     </section>
   )
 }
