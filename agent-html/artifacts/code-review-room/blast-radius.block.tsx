@@ -42,7 +42,10 @@ export default function BlastRadiusBlock() {
       <ReviewSectionHeader
         eyebrow="blast radius"
         title="The edit is only the center point."
-      />
+      >
+        Impact is mapped from authored artifact code into shared Canvas
+        surfaces and required package gates.
+      </ReviewSectionHeader>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,0.68fr)_minmax(260px,0.32fr)]">
         <ReviewStage>
@@ -86,7 +89,7 @@ export default function BlastRadiusBlock() {
               Canvas surfaces and required gates.
             </p>
           </div>
-          <div className="grid gap-2">
+          <div className="canvas-stack-xs">
             {blastRadiusSummary.map(([label, detail]) => (
               <div className="rounded-md bg-muted/40 p-3" key={label}>
                 <p className="canvas-text-caption text-muted-foreground">

@@ -97,7 +97,7 @@ export default function ReportTriageBlock() {
             </p>
           </div>
 
-          <div className="w-full min-w-0 overflow-x-auto rounded-md border bg-background">
+          <div className="canvas-frame-table">
             <Table className="min-w-full">
               <TableHeader>
                 <TableRow>

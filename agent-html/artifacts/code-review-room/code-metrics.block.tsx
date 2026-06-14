@@ -5,6 +5,12 @@ import { SunburstChart } from "../../components/chart/sunburst-chart"
 import { DataTable, DataTableColumnHeader } from "../../components/data-table"
 import type { ChartTooltipField } from "../../components/chart/types"
 import { StatusBadge } from "../../components/ui/status-badge"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs"
 import { bundleSizeTree } from "./data/bundle-size-tree"
 import {
   codeMetricChartDomain,
@@ -140,11 +146,10 @@ export default function CodeMetricsBlock() {
     <section className="canvas-stack-lg">
       <ReviewSectionHeader
         eyebrow="code metrics"
-        title="Maintainability is visible before the refactor starts."
+        title="Metrics separate the review trigger from the noisy surface area."
       >
-        Cell-by-cell code-health metrics for Agent-HTML authored modules: LOC,
-        cyclomatic complexity, cognitive complexity, nesting, Halstead volume
-        and difficulty, fan-in, fan-out, and maintainability index.
+        The scatter plot is the primary risk signal: size, complexity, and
+        package fan-out converge before a reviewer opens every file.
       </ReviewSectionHeader>
 
       <ReviewStage className="canvas-stack-sm">
@@ -181,56 +186,82 @@ export default function CodeMetricsBlock() {
         </div>
       </ReviewStage>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(320px,0.42fr)_minmax(0,0.58fr)]">
-        <ReviewPanel className="canvas-stack-sm min-w-0">
-          <div className="canvas-stack-xs">
-            <p className="canvas-text-caption text-muted-foreground">
-              bundle size surface
-            </p>
-            <p className="canvas-text-body">
-              Sunburst groups estimated package weight by runtime, charts,
-              artifact examples, and external dependencies.
-            </p>
-          </div>
-          <SunburstChart
-            centerLabel="estimated total"
-            centerValue={({ total }) => formatKilobytes(total)}
-            data={bundleSizeTree}
-            legend
-            minHeight={320}
-            renderer="texture"
-            sort="none"
-            texture={{
-              density: "dense",
-              kind: "lines",
-              opacity: 0.7,
-            }}
-            valueFormatter={formatKilobytes}
-          />
-        </ReviewPanel>
+      <ReviewPanel className="min-w-0">
+        <Tabs className="canvas-stack-sm" defaultValue="bundle">
+          <TabsList className="flex-wrap">
+            <TabsTrigger value="bundle">bundle surface</TabsTrigger>
+            <TabsTrigger value="modules">module inventory</TabsTrigger>
+            <TabsTrigger value="metrics">metric table</TabsTrigger>
+          </TabsList>
 
-        <ReviewPanel className="min-w-0">
-          <DataTable
-            columns={moduleColumns}
-            data={moduleStats}
-            enablePagination={false}
-            enableViewOptions={false}
-            searchColumn="module"
-            searchPlaceholder="Filter module..."
-          />
-        </ReviewPanel>
-      </div>
+          <TabsContent className="canvas-stack-sm" value="bundle">
+            <div className="canvas-stack-xs">
+              <p className="canvas-text-caption text-muted-foreground">
+                secondary signal: bundle surface
+              </p>
+              <p className="canvas-text-body">
+                Sunburst keeps package weight visible without competing with
+                the complexity scatter plot.
+              </p>
+            </div>
+            <SunburstChart
+              aspectRatio="4 / 3"
+              centerLabel="estimated total"
+              centerValue={({ total }) => formatKilobytes(total)}
+              className="mx-auto max-w-xl"
+              data={bundleSizeTree}
+              legend
+              minHeight={320}
+              renderer="texture"
+              sort="none"
+              texture={{
+                density: "dense",
+                kind: "lines",
+                opacity: 0.7,
+              }}
+              valueFormatter={formatKilobytes}
+            />
+          </TabsContent>
 
-      <ReviewStage>
-        <DataTable
-          columns={metricColumns}
-          data={codeMetricRows}
-          enablePagination={false}
-          enableViewOptions={false}
-          searchColumn="name"
-          searchPlaceholder="Filter refactor candidate..."
-        />
-      </ReviewStage>
+          <TabsContent className="canvas-stack-sm" value="modules">
+            <div className="canvas-stack-xs">
+              <p className="canvas-text-caption text-muted-foreground">
+                secondary signal: module inventory
+              </p>
+              <p className="canvas-text-body">
+                Module rows explain which authored surfaces feed the risk
+                signal.
+              </p>
+            </div>
+            <DataTable
+              columns={moduleColumns}
+              data={moduleStats}
+              enablePagination={false}
+              enableViewOptions={false}
+              searchColumn="module"
+              searchPlaceholder="Filter module..."
+            />
+          </TabsContent>
+
+          <TabsContent className="canvas-stack-sm" value="metrics">
+            <div className="canvas-stack-xs">
+              <p className="canvas-text-caption text-muted-foreground">
+                detail evidence
+              </p>
+              <p className="canvas-text-body">
+                The full metric table is a drill-down, not the headline.
+              </p>
+            </div>
+            <DataTable
+              columns={metricColumns}
+              data={codeMetricRows}
+              enableViewOptions={false}
+              searchColumn="name"
+              searchPlaceholder="Filter refactor candidate..."
+            />
+          </TabsContent>
+        </Tabs>
+      </ReviewPanel>
     </section>
   )
 }

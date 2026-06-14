@@ -28,6 +28,19 @@ content:
 - surface classes: panels and icon boxes;
 - type scale classes: title, heading, body, and caption.
 
+`public/layout.css` owns artifact auto-layout classes:
+
+- Stack remains the default vertical rhythm through `canvas-stack-*`.
+- Grid uses `canvas-grid-2`, `canvas-grid-main-aside`,
+  `canvas-grid-aside-main`, and `canvas-grid-cards`.
+- Frame uses `canvas-frame-table`, `canvas-frame-wide`,
+  `canvas-frame-chart`, `canvas-frame-chart-lg`, `canvas-frame-map`, and
+  `canvas-frame-media`.
+
+Use Grid classes before writing arbitrary `grid-cols-[...]`. Use Frame classes
+before repeating `overflow-x-auto`, width guards, media clipping, or chart/map
+height scaffolding.
+
 L1 token values stay in `tokens/*`. L3 semantic role classes are not part of
 the current public style API.
 

@@ -31,7 +31,10 @@ export default function ReleaseRoutesBlock() {
       <ReviewSectionHeader
         eyebrow="package routes"
         title="The path depends on which Canvas package boundary is touched."
-      />
+      >
+        The final route is chosen after the changed surface, risk signals,
+        blast radius, evidence, and gates are visible.
+      </ReviewSectionHeader>
 
       <ReviewStage>
         <Timeline className="w-full" defaultValue={2} orientation="horizontal">
@@ -53,7 +56,7 @@ export default function ReleaseRoutesBlock() {
         </Timeline>
       </ReviewStage>
 
-      <ReviewPanel className="grid gap-4 lg:grid-cols-[minmax(220px,0.28fr)_minmax(0,0.72fr)] lg:items-center">
+      <ReviewPanel className="canvas-stack-sm">
         <div className="canvas-stack-xs">
           <p className="canvas-text-caption text-muted-foreground">
             workspace index refresh

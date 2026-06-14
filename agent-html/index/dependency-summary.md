@@ -8,8 +8,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | Metric | Count |
 | --- | --- |
 | Modules | 189 |
-| Dependencies | 485 |
-| Local edges | 316 |
+| Dependencies | 486 |
+| Local edges | 317 |
 | External edges | 168 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
@@ -39,8 +39,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | `agent-html/components/chart/runtime/index.ts` | 13 |
 | `agent-html/theme/presets.ts` | 13 |
 | `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 9 |
+| `agent-html/artifacts/code-review-room/code-metrics.block.tsx` | 8 |
 | `agent-html/components/ui/sidebar.tsx` | 8 |
-| `agent-html/artifacts/code-review-room/code-metrics.block.tsx` | 7 |
 | `agent-html/artifacts/code-review-room/release-routes.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/lab-system-map.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/lab-trend-review.block.tsx` | 7 |

@@ -76,7 +76,7 @@ export default function LunarFlybyBlock() {
         </Carousel>
       </div>
 
-      <div className="canvas-grid-gap md:grid-cols-2">
+      <div className="canvas-grid-2">
         <figure className="canvas-stack-sm">
           <video
             className="max-h-80 w-full rounded-md"

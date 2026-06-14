@@ -11,39 +11,37 @@ import { ReviewPanel, ReviewRailGrid } from "./review-layout"
 export default function PrOverviewBlock() {
   return (
     <section className="canvas-stack-lg">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.58fr)_minmax(280px,0.42fr)] lg:items-end">
-        <div className="canvas-stack-md">
-          <Badge variant="secondary">{reviewSubject.badge}</Badge>
-          <div className="canvas-stack-sm">
-            <h1 className="text-4xl font-semibold tracking-normal text-foreground md:text-5xl">
-              {reviewSubject.title}
-            </h1>
-            <p className="canvas-text-body text-muted-foreground">
-              {reviewSubject.subtitle}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <StatusBadge status="warning">risk review</StatusBadge>
-            <StatusBadge status="success">ci passing</StatusBadge>
-            <StatusBadge status="default">workspace owner review</StatusBadge>
-          </div>
+      <div className="canvas-stack-md">
+        <Badge variant="secondary">{reviewSubject.badge}</Badge>
+        <div className="canvas-stack-sm">
+          <h1 className="text-4xl font-semibold tracking-normal text-foreground md:text-5xl">
+            {reviewSubject.title}
+          </h1>
+          <p className="max-w-4xl canvas-text-body text-muted-foreground">
+            {reviewSubject.subtitle}
+          </p>
         </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          {summaryItems.map((item) => (
-            <div className="rounded-md bg-muted/40 p-4" key={item.label}>
-              <p className="canvas-text-caption text-muted-foreground">
-                {item.label}
-              </p>
-              <p className="font-mono text-2xl font-semibold tracking-normal">
-                {item.value}
-              </p>
-            </div>
-          ))}
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge status="warning">risk review</StatusBadge>
+          <StatusBadge status="success">ci passing</StatusBadge>
+          <StatusBadge status="default">workspace owner review</StatusBadge>
         </div>
       </div>
 
-      <ReviewPanel className="grid gap-4 md:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)]">
+      <ReviewRailGrid>
+        {summaryItems.map((item) => (
+          <ReviewPanel className="canvas-stack-xs" key={item.label}>
+            <p className="canvas-text-caption text-muted-foreground">
+              {item.label}
+            </p>
+            <p className="font-mono text-2xl font-semibold tracking-normal">
+              {item.value}
+            </p>
+          </ReviewPanel>
+        ))}
+      </ReviewRailGrid>
+
+      <ReviewPanel className="canvas-stack-sm">
         <div className="canvas-stack-xs">
           <span className="canvas-text-caption text-muted-foreground">
             evidence completeness
@@ -55,7 +53,7 @@ export default function PrOverviewBlock() {
         </p>
       </ReviewPanel>
 
-      <ReviewRailGrid>
+      <div className="canvas-stack-sm">
         {intakeItems.map((item) => (
           <ReviewPanel className="canvas-stack-xs" key={item.label}>
             <span className="canvas-text-caption text-muted-foreground">
@@ -64,7 +62,7 @@ export default function PrOverviewBlock() {
             <p className="canvas-text-body">{item.value}</p>
           </ReviewPanel>
         ))}
-      </ReviewRailGrid>
+      </div>
     </section>
   )
 }

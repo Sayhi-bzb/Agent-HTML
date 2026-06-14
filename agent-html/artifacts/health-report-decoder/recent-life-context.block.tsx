@@ -70,7 +70,7 @@ export default function RecentLifeContextBlock() {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-md border bg-background">
+      <div className="canvas-frame-table">
         <Table>
           <TableHeader>
             <TableRow>

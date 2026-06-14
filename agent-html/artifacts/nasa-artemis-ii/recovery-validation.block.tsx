@@ -36,7 +36,7 @@ export default function RecoveryValidationBlock() {
         </p>
       </div>
 
-      <div className="canvas-grid-gap md:grid-cols-2">
+      <div className="canvas-grid-2">
         <MediaFigure
           asset={mediaAssets.splashdown}
           density="compact"

@@ -91,7 +91,7 @@ export default function OpenLoopNotesBlock() {
           </figcaption>
         </figure>
 
-        <div className="canvas-grid-gap md:grid-cols-2">
+        <div className="canvas-grid-2">
           {travelNotes.map((note) => (
             <article className="canvas-content-panel canvas-stack-sm" key={note.label}>
               <p className="canvas-wrap-sm items-center canvas-text-body">

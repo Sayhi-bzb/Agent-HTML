@@ -17,7 +17,7 @@ export default function HealthLiteracySourcesBlock() {
         </p>
       </div>
 
-      <div className="canvas-grid-gap md:grid-cols-2">
+      <div className="canvas-grid-2">
         {sourceGroups.map((group) => (
           <div className="canvas-stack-xs" key={group.label}>
             <Badge variant="outline">{group.label}</Badge>

@@ -24,4 +24,5 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 | `agent-html/components/ui/combobox.tsx` | 2264 | `components/README.md` |
 | `agent-html/components/ui/dropdown-menu.tsx` | 2204 | `components/README.md` |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 2157 | `artifacts/README.md` |
+| `agent-html/artifacts/code-review-room/code-metrics.block.tsx` | 2086 | `artifacts/README.md` |
 | `agent-html/components/ui/calendar.tsx` | 2047 | `components/README.md` |

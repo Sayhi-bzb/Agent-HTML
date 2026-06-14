@@ -49,7 +49,10 @@ export default function ReviewGateBlock() {
       <ReviewSectionHeader
         eyebrow="review gate"
         title="Review comments become Canvas package gates."
-      />
+      >
+        The board holds actions; the checklist below is the package-level exit
+        condition.
+      </ReviewSectionHeader>
 
       <ReviewStage>
         <Kanban
@@ -112,7 +115,7 @@ export default function ReviewGateBlock() {
         </Kanban>
       </ReviewStage>
 
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,0.58fr)_minmax(280px,0.42fr)]">
+      <div className="canvas-stack-md">
         <ReviewRailGrid className="md:grid-cols-2 xl:grid-cols-4">
           {reviewLanes.map((lane) => (
             <ReviewPanel className="canvas-stack-xs" key={lane.label}>

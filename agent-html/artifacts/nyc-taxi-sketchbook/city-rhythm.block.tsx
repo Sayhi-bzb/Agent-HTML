@@ -67,7 +67,7 @@ export default function CityRhythmBlock() {
 
       <div className="canvas-stack-md">
         <SketchPanel>
-          <div className="overflow-x-auto">
+          <div className="canvas-frame-wide">
             <HeatmapChart
               aspectRatio="4 / 1"
               className="min-w-[760px]"

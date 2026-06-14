@@ -8,7 +8,11 @@ export default function DiffRiskMapBlock() {
       <ReviewSectionHeader
         eyebrow="diff risk map"
         title="Changed lines show size. Heat shows consequence."
-      />
+      >
+        This is the changed surface that starts the review. The code tab shows
+        the diff, the trigger tab shows the shared state path, and the gates tab
+        shows the package checks that must still agree.
+      </ReviewSectionHeader>
 
       <CodeBlock tabs={diffEvidenceTabs} />
     </section>

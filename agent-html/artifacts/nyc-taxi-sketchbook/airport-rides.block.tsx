@@ -77,7 +77,7 @@ export default function AirportRidesBlock() {
           </div>
         </SketchPanel>
 
-        <div className="overflow-x-auto">
+        <div className="canvas-frame-wide">
           <div className="min-w-[620px]">
             <div className="grid grid-cols-[minmax(180px,1.2fr)_repeat(4,minmax(90px,1fr))] gap-3 px-3 py-2">
               <span className="canvas-text-caption text-muted-foreground">

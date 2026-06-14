@@ -21,7 +21,7 @@ export default function MediaSourcesBlock() {
         </p>
       </div>
 
-      <div className="canvas-grid-gap md:grid-cols-2">
+      <div className="canvas-grid-2">
         {photosGroup ? (
           <div className="canvas-stack-sm">
             <Badge variant="outline">{photosGroup.label}</Badge>

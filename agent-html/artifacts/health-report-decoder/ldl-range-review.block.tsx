@@ -24,7 +24,7 @@ export default function LdlRangeReviewBlock() {
 
   return (
     <section className="canvas-stack-lg">
-      <div className="canvas-grid-gap md:grid-cols-2">
+      <div className="canvas-grid-2">
         <div className="canvas-stack-sm">
           <Badge variant="secondary">LDL-C 范围复核</Badge>
           <h2 className="canvas-text-heading">

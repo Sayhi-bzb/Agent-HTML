@@ -120,7 +120,7 @@ function SystemHealthIcon({ systemId }: { systemId: string }) {
 export default function LabSystemMapBlock() {
   return (
     <section className="canvas-stack-lg">
-      <div className="canvas-grid-gap md:grid-cols-2">
+      <div className="canvas-grid-2">
         <div className="canvas-stack-sm">
           <Badge variant="secondary">检验项目分组</Badge>
           <h2 className="canvas-text-heading">
