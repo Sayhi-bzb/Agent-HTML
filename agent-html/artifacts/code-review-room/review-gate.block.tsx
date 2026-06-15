@@ -115,8 +115,8 @@ export default function ReviewGateBlock() {
         </Kanban>
       </ReviewStage>
 
-      <div className="canvas-stack-md">
-        <ReviewRailGrid className="md:grid-cols-2 xl:grid-cols-4">
+      <div className="canvas-grid-2 items-start">
+        <ReviewRailGrid className="md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
           {reviewLanes.map((lane) => (
             <ReviewPanel className="canvas-stack-xs" key={lane.label}>
               <div className="flex items-center justify-between gap-2">

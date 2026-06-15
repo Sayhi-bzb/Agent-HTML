@@ -52,6 +52,11 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundStyles).not.toContain(
       '@import "./internal/theme-editor.css"'
     )
+    expect(playgroundStyles).not.toContain("--chart-background")
+    expect(playgroundStyles).not.toContain("--color-chart-background")
+    expect(playgroundStyles).not.toMatch(/--chart-[\w-]+\s*:/)
+    expect(playgroundStyles).not.toMatch(/--color-chart-[\w-]+\s*:/)
+    expect(playgroundStyles).not.toMatch(/oklch\(/)
     expect(playgroundBaseStyles).toContain("::selection")
     expect(playgroundBaseStyles).toContain(
       "background: var(--canvas-text-selection-background)"
@@ -68,6 +73,30 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundTailwindTokens).toContain("--color-sidebar")
     expect(playgroundTailwindTokens).toContain(
       "--color-success: var(--success)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--color-chart-background: var(--chart-background)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--color-chart-foreground: var(--chart-foreground)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--color-chart-foreground-muted: var(--chart-foreground-muted)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--color-chart-crosshair: var(--chart-crosshair)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--color-chart-grid: var(--chart-grid)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--color-chart-tooltip-background: var(--chart-tooltip-background)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--color-chart-marker-background: var(--chart-marker-background)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--color-chart-label: var(--chart-label)"
     )
     expect(playgroundTailwindTokens).toContain("--radius-lg: var(--radius)")
     expect(playgroundTailwindTokens).not.toContain(
@@ -100,6 +129,18 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundFoundationTokens).toContain("--success")
     expect(playgroundFoundationTokens).toContain("--warning")
     expect(playgroundFoundationTokens).toContain("--info")
+    expect(playgroundFoundationTokens).toContain("--chart-background")
+    expect(playgroundFoundationTokens).toContain("--chart-foreground")
+    expect(playgroundFoundationTokens).toContain("--chart-foreground-muted")
+    expect(playgroundFoundationTokens).toContain("--chart-line-primary")
+    expect(playgroundFoundationTokens).toContain("--chart-line-secondary")
+    expect(playgroundFoundationTokens).toContain("--chart-crosshair")
+    expect(playgroundFoundationTokens).toContain("--chart-grid")
+    expect(playgroundFoundationTokens).toContain("--chart-brush-border")
+    expect(playgroundFoundationTokens).toContain("--chart-tooltip-background")
+    expect(playgroundFoundationTokens).toContain("--chart-marker-background")
+    expect(playgroundFoundationTokens).toContain("--chart-ring-background")
+    expect(playgroundFoundationTokens).toContain("--chart-label")
     expect(playgroundFoundationTokens).toContain("/* Theme primitives */")
     expect(playgroundFoundationTokens).toContain("/* Status primitives */")
     expect(playgroundFoundationTokens).toContain("/* Chart primitives */")
