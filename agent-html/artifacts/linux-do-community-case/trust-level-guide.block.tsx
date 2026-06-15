@@ -1,3 +1,5 @@
+import { Badge } from "../../components/ui/badge"
+import { ShieldCheckIcon } from "lucide-react"
 import {
   Timeline,
   TimelineContent,
@@ -8,103 +10,110 @@ import {
   TimelineSeparator,
   TimelineTitle,
 } from "../../components/timeline"
-import { Badge } from "../../components/ui/badge"
-import { BarChart } from "../../components/chart/bar-chart"
-import { Progress } from "../../components/ui/progress"
+import { cn } from "../../lib/cn"
+import { artifactPublicUrlFactory } from "../../lib/public-url"
 
 import {
   CaseSection,
-  HandbookChartNote,
-  handbookRoughOptions,
-  MechanismPanel,
+  HandbookPanel,
 } from "./case-components"
-import { trustLevels } from "./data"
+import { trustLevels } from "./data/trust-level-guide"
+
+const publicUrl = artifactPublicUrlFactory("linux-do-community-case")
+
+function TrustLevelIllustration() {
+  return (
+    <svg
+      aria-labelledby="trust-level-illustration-title"
+      className="max-h-56 w-full object-contain"
+      role="img"
+      viewBox="0 0 800 600"
+    >
+      <title id="trust-level-illustration-title">信任等级逐步提升的插图</title>
+      <use
+        className="fill-border"
+        href={publicUrl("undraw_stepping-up.svg#undraw-stepping-up-muted")}
+      />
+      <use
+        className="fill-ring"
+        href={publicUrl("undraw_stepping-up.svg#undraw-stepping-up-accent")}
+      />
+      <use
+        className="fill-background"
+        href={publicUrl("undraw_stepping-up.svg#undraw-stepping-up-contrast")}
+      />
+      <use
+        className="fill-muted-foreground"
+        href={publicUrl("undraw_stepping-up.svg#undraw-stepping-up-skin")}
+      />
+      <use
+        className="fill-foreground"
+        href={publicUrl("undraw_stepping-up.svg#undraw-stepping-up-ink")}
+      />
+    </svg>
+  )
+}
 
 export default function TrustLevelGuideBlock() {
   return (
     <section className="canvas-stack-lg">
-      <CaseSection badge="04 / 信任等级" title="为什么新人权限一开始有限">
+      <CaseSection
+        badge="04 / 信任等级"
+        icon={<ShieldCheckIcon />}
+        title="为什么新人权限一开始有限"
+      >
         LINUX DO 使用信任等级来区分新账号、稳定参与者和高信任成员。它不是单纯的积分游戏，而是让社区先观察账号是否持续、真实、可靠。
       </CaseSection>
 
       <div className="canvas-grid-main-aside-lg">
-        <MechanismPanel>
-          <Timeline defaultValue={trustLevels.length}>
+        <HandbookPanel>
+          <Timeline className="w-full" defaultValue={trustLevels.length}>
             {trustLevels.map((level, index) => (
-              <TimelineItem key={level.level} step={index + 1}>
+              <TimelineItem
+                className={cn(
+                  "w-[calc(50%-1.5rem)] odd:ms-auto even:me-auto even:text-right even:group-data-[orientation=vertical]/timeline:ms-0 even:group-data-[orientation=vertical]/timeline:me-8",
+                  "even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-indicator]:-right-6 even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-indicator]:left-auto",
+                  "even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-indicator]:translate-x-1/2 even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-separator]:-right-6",
+                  "even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-separator]:left-auto even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-separator]:translate-x-1/2"
+                )}
+                key={level.level}
+                step={index + 1}
+              >
                 <TimelineHeader>
                   <TimelineSeparator />
                   <TimelineDate>{level.level}</TimelineDate>
                   <TimelineTitle>{level.title}</TimelineTitle>
                   <TimelineIndicator />
                 </TimelineHeader>
-                <TimelineContent>
-                  <span className="canvas-text-body text-foreground">
+                <TimelineContent className="canvas-stack-xs">
+                  <span className="canvas-text-body font-medium text-foreground">
                     {level.role}
                   </span>
-                  <span className="block">{level.value}</span>
+                  <span>{level.value}</span>
                 </TimelineContent>
               </TimelineItem>
             ))}
           </Timeline>
-        </MechanismPanel>
+        </HandbookPanel>
 
         <div className="canvas-stack-md">
-          <div className="canvas-stack-sm">
+          <figure className="flex items-center justify-center md:justify-end">
+            <TrustLevelIllustration />
+          </figure>
+          <HandbookPanel>
             <div className="canvas-wrap-sm items-center justify-between">
-              <h3 className="canvas-text-heading">新人策略</h3>
+              <h3 className="canvas-text-heading font-semibold">新人策略</h3>
               <Badge variant="outline">先读再发</Badge>
             </div>
-            <Progress value={65} />
             <p className="canvas-text-caption text-muted-foreground">
               如果你刚来，最有效的动作不是马上大量发帖，而是稳定阅读、收藏规则、参与少量高质量讨论。
             </p>
-          </div>
+          </HandbookPanel>
           <p className="canvas-text-body text-muted-foreground">
             当权限受限时，先去看信任等级说明。很多限制不是针对某个人，而是社区对新账号的默认保护。
           </p>
         </div>
       </div>
-
-      <MechanismPanel>
-        <div className="canvas-grid-main-aside-lg">
-          <div className="canvas-stack-sm">
-            <Badge variant="outline">成长阶梯图</Badge>
-            <h3 className="canvas-text-heading">从熟悉环境到承担维护责任</h3>
-            <HandbookChartNote>
-              阶梯图表达新人手册里的成长理解，不代表官方权限百分比或真实用户数据。
-            </HandbookChartNote>
-          </div>
-          <BarChart
-            data={trustLevels}
-            minHeight={300}
-            renderer="rough"
-            rough={handbookRoughOptions}
-            tooltipFields={[
-              {
-                key: "title",
-                label: "阶段",
-                value: "title",
-              },
-              {
-                key: "role",
-                label: "新人理解",
-                value: "role",
-              },
-              {
-                formatter: (value) => `${value}`,
-                key: "progress",
-                label: "手册进度",
-                value: "progress",
-              },
-            ]}
-            tooltipLabel="level"
-            xKey="level"
-            yValueFormatter={(value) => `${value}`}
-            yKey="progress"
-          />
-        </div>
-      </MechanismPanel>
     </section>
   )
 }

@@ -1,26 +1,31 @@
 import { Badge } from "../../components/ui/badge"
+import { HandshakeIcon } from "lucide-react"
 
-import { CaseSection } from "./case-components"
-import { culturePrinciples } from "./data"
+import { CaseSection, HandbookPanel } from "./case-components"
+import { culturePrinciples } from "./data/community-culture"
 
 export default function CommunityCultureBlock() {
   return (
     <section className="canvas-stack-lg">
-      <CaseSection badge="02 / 文化" title="这里鼓励什么样的相处方式">
+      <CaseSection
+        badge="02 / 文化"
+        icon={<HandshakeIcon />}
+        title="这里鼓励什么样的相处方式"
+      >
         LINUX DO 的社区文化可以先记成四个词：真诚、友善、团结、专业。新人不需要背文案，但要理解它们对应的发言方式。
       </CaseSection>
 
       <div className="canvas-grid-2">
         {culturePrinciples.map((principle) => (
-          <div className="canvas-stack-xs" key={principle.label}>
+          <HandbookPanel key={principle.label}>
             <div className="canvas-wrap-sm items-center justify-between">
-              <h3 className="canvas-text-heading">{principle.label}</h3>
+              <h3 className="canvas-text-heading font-semibold">{principle.label}</h3>
               <Badge variant="outline">{principle.role}</Badge>
             </div>
             <p className="canvas-text-body text-muted-foreground">
               {principle.interpretation}
             </p>
-          </div>
+          </HandbookPanel>
         ))}
       </div>
 

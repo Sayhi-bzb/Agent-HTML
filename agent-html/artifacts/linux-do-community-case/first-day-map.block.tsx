@@ -1,63 +1,55 @@
-import { Progress } from "../../components/ui/progress"
-import { PieChart } from "../../components/chart/pie-chart"
+import { MapIcon } from "lucide-react"
+import { artifactPublicUrlFactory } from "../../lib/public-url"
 
 import {
   CaseSection,
-  HandbookChartNote,
-  handbookRoughOptions,
-  MechanismPanel,
+  HandbookPanel,
   RouteStepCard,
 } from "./case-components"
-import { firstDayAllocation, firstDaySteps } from "./data"
+import { firstDaySteps } from "./data/first-day-map"
+
+const publicUrl = artifactPublicUrlFactory("linux-do-community-case")
+
+function FirstDayMapIllustration() {
+  return (
+    <svg
+      aria-labelledby="first-day-map-illustration-title"
+      className="size-14 shrink-0 fill-ring sm:size-16"
+      role="img"
+      viewBox="0 0 192.383 210.517"
+    >
+      <title id="first-day-map-illustration-title">人工智能标识插图</title>
+      <use
+        href={publicUrl(
+          "bouncy-artificial-intelligence-sign.svg#bouncy-artificial-intelligence-sign"
+        )}
+      />
+    </svg>
+  )
+}
 
 export default function FirstDayMapBlock() {
   return (
     <section className="canvas-stack-lg">
-      <CaseSection badge="01 / 第一天" title="新人第一天先做什么">
+      <CaseSection
+        badge="01 / 第一天"
+        icon={<MapIcon />}
+        title="新人第一天先做什么"
+      >
         第一天不用急着证明自己。先认路、读规则、理解信任等级，再开始发言，会比直接求助或转发资源更顺。
       </CaseSection>
 
-      <div className="canvas-grid-main-aside-lg">
-        <div className="canvas-stack-sm">
-          <div className="canvas-stack-sm">
-            <div className="canvas-wrap-sm items-center justify-between">
-              <h3 className="canvas-text-heading">完成度路线</h3>
-              <span className="canvas-text-caption text-muted-foreground">
-                4 个动作
-              </span>
-            </div>
-            <Progress value={100} />
-            <p className="canvas-text-body text-muted-foreground">
-              第一天的目标不是马上成为活跃成员，而是完成基本认路：知道哪里讨论、哪里查规则、哪里找工具。
-            </p>
-          </div>
+      <HandbookPanel>
+        <div className="canvas-wrap-sm items-center justify-between">
+          <h3 className="canvas-text-heading font-semibold">四步就够</h3>
+          <FirstDayMapIllustration />
         </div>
+        <p className="canvas-text-body text-muted-foreground">
+          第一天的目标不是马上成为活跃成员，而是完成基本认路：知道哪里讨论、哪里查规则、哪里找工具。
+        </p>
+      </HandbookPanel>
 
-        <MechanismPanel>
-          <div className="canvas-stack-sm">
-            <div className="canvas-wrap-sm items-center justify-between">
-              <h3 className="canvas-text-heading">第一天精力分配</h3>
-              <span className="canvas-text-caption text-muted-foreground">
-                建议比例
-              </span>
-            </div>
-            <PieChart
-              data={firstDayAllocation}
-              legend
-              minHeight={260}
-              nameKey="label"
-              renderer="rough"
-              rough={handbookRoughOptions}
-              valueKey="share"
-            />
-            <HandbookChartNote>
-              这是手册建议比例，用来提醒新人先认路、读规则，再开始深度参与。
-            </HandbookChartNote>
-          </div>
-        </MechanismPanel>
-      </div>
-
-      <div className="canvas-grid-2">
+      <div className="grid gap-5 md:grid-cols-4">
         {firstDaySteps.map((step) => (
           <RouteStepCard
             action={step.action}

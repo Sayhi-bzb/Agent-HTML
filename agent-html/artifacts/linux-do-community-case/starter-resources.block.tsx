@@ -1,23 +1,31 @@
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Badge } from "../../components/ui/badge"
+import { BookmarkIcon } from "lucide-react"
 import { SourceLinks } from "../../components/source-links"
 
-import { CaseSection, MechanismRows } from "./case-components"
-import { linuxDoSources, newcomerTips } from "./data"
+import { CaseSection, HandbookPanel, MechanismRows } from "./case-components"
+import { newcomerTips } from "./data/starter-resources"
+import { linuxDoSources } from "./data/sources"
 
 export default function StarterResourcesBlock() {
   return (
     <section className="canvas-stack-lg">
-      <CaseSection badge="06 / 收藏" title="新人可以先收藏这些入口">
+      <CaseSection
+        badge="06 / 收藏"
+        icon={<BookmarkIcon />}
+        title="新人可以先收藏这些入口"
+      >
         这份手册只负责帮你进入 LINUX DO。真正的规则、服务和工具仍以官方 Wiki 与社区页面为准。
       </CaseSection>
 
-      <MechanismRows
-        items={newcomerTips.map((tip) => ({
-          label: tip.label,
-          value: tip.value,
-        }))}
-      />
+      <HandbookPanel>
+        <MechanismRows
+          items={newcomerTips.map((tip) => ({
+            label: tip.label,
+            value: tip.value,
+          }))}
+        />
+      </HandbookPanel>
 
       <Alert>
         <AlertDescription>

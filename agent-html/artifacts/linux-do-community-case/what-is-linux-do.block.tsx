@@ -1,16 +1,59 @@
 import { Badge } from "../../components/ui/badge"
-import { BarHChart } from "../../components/chart/bar-chart"
 import { SourceLinks } from "../../components/source-links"
+import { CompassIcon } from "lucide-react"
+import { artifactPublicUrlFactory } from "../../lib/public-url"
 
 import {
   CaseSection,
-  EntryMap,
-  HandbookChartNote,
-  handbookRoughOptions,
-  MechanismPanel,
+  HandbookPanel,
   OpenRows,
 } from "./case-components"
-import { entryCards, entryUseChartData, linuxDoSources } from "./data"
+import { entryCards } from "./data/entry-overview"
+import { linuxDoSources } from "./data/sources"
+
+const publicUrl = artifactPublicUrlFactory("linux-do-community-case")
+
+function NewcomerHandbookIllustration() {
+  const asset =
+    "bouncy-delivered-boxes-and-phone-with-a-message-that-the-order-has-arrived-at-its-destination.svg"
+
+  return (
+    <svg
+      aria-labelledby="newcomer-handbook-illustration-title"
+      className="h-auto max-h-80 w-full object-contain"
+      role="img"
+      viewBox="0 0 2500 2500"
+    >
+      <title id="newcomer-handbook-illustration-title">
+        已送达包裹与手机消息插图
+      </title>
+      <use
+        className="fill-primary"
+        href={publicUrl(`${asset}#bouncy-delivered-boxes-primary`)}
+      />
+      <use
+        className="fill-accent"
+        href={publicUrl(`${asset}#bouncy-delivered-boxes-accent`)}
+      />
+      <use
+        className="fill-background"
+        href={publicUrl(`${asset}#bouncy-delivered-boxes-contrast`)}
+      />
+      <use
+        className="fill-ring"
+        href={publicUrl(`${asset}#bouncy-delivered-boxes-secondary`)}
+      />
+      <use
+        className="fill-muted-foreground"
+        href={publicUrl(`${asset}#bouncy-delivered-boxes-muted`)}
+      />
+      <use
+        className="fill-foreground"
+        href={publicUrl(`${asset}#bouncy-delivered-boxes-ink`)}
+      />
+    </svg>
+  )
+}
 
 export default function WhatIsLinuxDoBlock() {
   return (
@@ -19,23 +62,29 @@ export default function WhatIsLinuxDoBlock() {
         <div className="canvas-stack-md">
           <div className="canvas-stack-sm">
             <Badge variant="secondary">新人手册</Badge>
-            <h1 className="canvas-text-title">LINUX DO 是什么？</h1>
+            <h1 className="canvas-text-title font-semibold">LINUX DO 是什么？</h1>
             <p className="canvas-text-body text-muted-foreground">
               LINUX DO 是一个以技术讨论、资源分享和社区协作为核心的线上社区。新人可以把它先理解成三件事：论坛负责日常交流，Wiki 负责稳定说明，社区服务负责账号、工具和资源入口。
             </p>
           </div>
 
-          <CaseSection badge="先记住" title="不要只把它当成帖子列表">
+          <CaseSection
+            badge="先记住"
+            icon={<CompassIcon />}
+            title="不要只把它当成帖子列表"
+          >
             进入 LINUX DO 以后，先用 Wiki 找规则和入口，再到论坛参与讨论。这样比直接发帖更稳，也更容易得到有效回应。
           </CaseSection>
         </div>
 
-        <EntryMap />
+        <figure className="flex items-center justify-center md:justify-end">
+          <NewcomerHandbookIllustration />
+        </figure>
       </div>
 
-      <div className="canvas-stack-sm">
+      <HandbookPanel>
         <div className="canvas-wrap-sm items-center justify-between">
-          <h2 className="canvas-text-heading">三类入口</h2>
+          <h2 className="canvas-text-heading font-semibold">三类入口</h2>
           <Badge variant="outline">先认路</Badge>
         </div>
         <OpenRows
@@ -45,43 +94,7 @@ export default function WhatIsLinuxDoBlock() {
             value: item.value,
           }))}
         />
-      </div>
-
-      <MechanismPanel>
-        <div className="canvas-grid-main-aside-lg">
-          <div className="canvas-stack-sm">
-            <Badge variant="outline">入口用途图</Badge>
-            <h2 className="canvas-text-heading">先按任务选择入口</h2>
-            <HandbookChartNote>
-              这是新人手册建议权重，不是 LINUX DO 官方统计。分数只表达“新人遇到这个任务时，优先去哪里”。
-            </HandbookChartNote>
-          </div>
-          <BarHChart
-            aspectRatio="5 / 3"
-            data={entryUseChartData}
-            minHeight={300}
-            renderer="rough"
-            rough={handbookRoughOptions}
-            tooltipFields={[
-              {
-                key: "job",
-                label: "适合任务",
-                value: "job",
-              },
-              {
-                formatter: (value) => `${value}`,
-                key: "score",
-                label: "建议权重",
-                value: "score",
-              },
-            ]}
-            tooltipLabel="entry"
-            xKey="score"
-            xValueFormatter={(value) => `${value}`}
-            yKey="entry"
-          />
-        </div>
-      </MechanismPanel>
+      </HandbookPanel>
 
       <SourceLinks density="compact" links={linuxDoSources.core} />
     </section>
