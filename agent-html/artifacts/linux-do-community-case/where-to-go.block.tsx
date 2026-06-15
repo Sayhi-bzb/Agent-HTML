@@ -1,5 +1,11 @@
 import { Badge } from "../../components/ui/badge"
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs"
+import {
   Table,
   TableBody,
   TableCell,
@@ -9,8 +15,8 @@ import {
 } from "../../components/ui/table"
 import { SourceLinks } from "../../components/source-links"
 
-import { CaseSection, MechanismPanel } from "./case-components"
-import { entryRows, linuxDoSources } from "./data"
+import { CaseSection, MechanismPanel, OpenRows } from "./case-components"
+import { entryRows, linuxDoSources, navigationGroups } from "./data"
 
 export default function WhereToGoBlock() {
   return (
@@ -45,6 +51,29 @@ export default function WhereToGoBlock() {
           </TableBody>
         </Table>
       </MechanismPanel>
+
+      <div className="canvas-stack-sm">
+        <Tabs defaultValue={navigationGroups[0]?.id}>
+          <TabsList>
+            {navigationGroups.map((group) => (
+              <TabsTrigger key={group.id} value={group.id}>
+                {group.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {navigationGroups.map((group) => (
+            <TabsContent className="canvas-stack-sm" key={group.id} value={group.id}>
+              <OpenRows
+                items={group.rows.map((row) => ({
+                  label: row.target,
+                  meta: row.entry,
+                  value: row.detail,
+                }))}
+              />
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
 
       <div className="canvas-grid-2">
         <SourceLinks density="compact" links={linuxDoSources.handbook} />

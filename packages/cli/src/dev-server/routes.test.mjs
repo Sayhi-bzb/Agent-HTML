@@ -592,6 +592,34 @@ describe("dev server routes", () => {
     expect(body.error).toContain("Unexpected token")
   })
 
+  it("passes artifact bundle version through to the virtual module id", async () => {
+    const response = createResponseMock()
+    const filePath = "agent-html/artifacts/demo.artifact.tsx"
+    const transformRequest = vi.fn(async () => "export {}")
+
+    const handled = await handleRoute({
+      request: {
+        url:
+          `${hostRoutes.artifactBundle}?filePath=${encodeURIComponent(filePath)}` +
+          "&v=42",
+      },
+      response,
+      root: process.cwd(),
+      vite: {
+        transformRequest,
+      },
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(200)
+    expect(transformRequest).toHaveBeenCalledWith(
+      `${hostRoutes.artifactBundle.replace(
+        "artifact.js",
+        "vite-artifact-entry.js"
+      )}?filePath=${encodeURIComponent(filePath)}&v=42`
+    )
+  })
+
   it("renames artifact entry files inside agent-html/artifacts", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
     const artifactsRoot = path.join(root, "agent-html", "artifacts")

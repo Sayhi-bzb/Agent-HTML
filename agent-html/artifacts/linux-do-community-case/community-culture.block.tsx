@@ -1,6 +1,6 @@
 import { Badge } from "../../components/ui/badge"
 
-import { CaseSection, MechanismPanel } from "./case-components"
+import { CaseSection } from "./case-components"
 import { culturePrinciples } from "./data"
 
 export default function CommunityCultureBlock() {
@@ -12,17 +12,15 @@ export default function CommunityCultureBlock() {
 
       <div className="canvas-grid-2">
         {culturePrinciples.map((principle) => (
-          <MechanismPanel key={principle.label}>
-            <div className="canvas-stack-xs">
-              <div className="canvas-wrap-sm items-center justify-between">
-                <h3 className="canvas-text-heading">{principle.label}</h3>
-                <Badge variant="outline">{principle.role}</Badge>
-              </div>
-              <p className="canvas-text-body text-muted-foreground">
-                {principle.interpretation}
-              </p>
+          <div className="canvas-stack-xs" key={principle.label}>
+            <div className="canvas-wrap-sm items-center justify-between">
+              <h3 className="canvas-text-heading">{principle.label}</h3>
+              <Badge variant="outline">{principle.role}</Badge>
             </div>
-          </MechanismPanel>
+            <p className="canvas-text-body text-muted-foreground">
+              {principle.interpretation}
+            </p>
+          </div>
         ))}
       </div>
 

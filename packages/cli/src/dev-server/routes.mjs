@@ -495,6 +495,7 @@ async function handleRuntimeModuleRoute({ requestUrl, response, root, vite }) {
 
   if (requestUrl.pathname === hostRoutes.artifactBundle) {
     const filePath = requestUrl.searchParams.get("filePath")
+    const version = requestUrl.searchParams.get("v")
     if (!filePath) {
       sendError(response, "filePath is required", 400)
       return true
@@ -509,7 +510,9 @@ async function handleRuntimeModuleRoute({ requestUrl, response, root, vite }) {
 
     await sendTransformedModule({
       response,
-      url: `${artifactEntryModulePath}?filePath=${encodeURIComponent(filePath)}`,
+      url:
+        `${artifactEntryModulePath}?filePath=${encodeURIComponent(filePath)}` +
+        (version ? `&v=${encodeURIComponent(version)}` : ""),
       vite,
     })
     return true

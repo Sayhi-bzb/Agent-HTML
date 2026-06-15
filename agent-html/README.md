@@ -18,7 +18,6 @@ When using or changing primitives, hooks, helpers, or theme exports:
 
 - `components/README.md` for the component source route.
 - `TASTE.md` for component choice and artifact layout judgment when UI composition is part of the task.
-- `index/reuse-surface.md` for reusable hook and helper choices.
 - `index/api-surface.md`
 - then the closest source file
 

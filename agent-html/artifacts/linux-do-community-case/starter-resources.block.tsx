@@ -21,7 +21,7 @@ export default function StarterResourcesBlock() {
 
       <Alert>
         <AlertDescription>
-          手册边界：这里不统计社区规模、活跃数据或内部管理信息，只整理公开入口和新人行动建议。
+          手册边界：这里不统计社区规模、活跃数据，不复制人员名单或非公开细节；只整理公开入口和新人行动建议。
         </AlertDescription>
       </Alert>
 
