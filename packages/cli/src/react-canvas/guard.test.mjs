@@ -229,8 +229,8 @@ describe("React Canvas Guard", () => {
       }
     `)
     const publicMessages = blockIssueMessages(`
-      import logoUrl from "../public/logo.svg"
-      import localLogoUrl from "./public/logo.svg"
+      import logoUrl from "../layouts/logo.svg"
+      import localLogoUrl from "./layouts/logo.svg"
 
       export default function SummaryBlock() {
         return <section>{logoUrl}{localLogoUrl}</section>

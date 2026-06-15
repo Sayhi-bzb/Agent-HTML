@@ -121,40 +121,17 @@ function SystemHealthIcon({ systemId }: { systemId: string }) {
 
 function SystemRadarPanel() {
   return (
-    <div className="canvas-grid-main-aside">
-      <div className="canvas-stack-md min-w-0">
-        <div className="canvas-stack-xs">
-          <Badge variant="outline">系统关注度</Badge>
-          <p className="canvas-text-body text-muted-foreground">
-            按本次报告里每组最高关注项整理，不作为诊断分数。
-          </p>
-        </div>
-
-        <div className="grid gap-2 sm:grid-cols-2">
-          {reportRadarItems.map((item) => (
-            <div
-              className="canvas-wrap-sm items-center justify-between"
-              key={item.code}
-            >
-              <span className="canvas-text-caption">{item.label}</span>
-              <StatusBadge status={statusFor(item.status).status}>
-                {item.code}
-              </StatusBadge>
-            </div>
-          ))}
-        </div>
-      </div>
-
+    <div className="canvas-grid-2 items-start">
       <RadarChart
         angleKey="label"
-        aspectRatio="4 / 3"
+        aspectRatio="16 / 9"
         config={{
           value: {
             label: "关注度",
           },
         }}
         data={reportRadarItems}
-        minHeight={240}
+        minHeight={200}
         renderer="texture"
         renderTooltip={({ datum, label, value }) => (
           <div className="canvas-stack-xs">
@@ -176,6 +153,29 @@ function SystemRadarPanel() {
         valueFormatter={(value) => `${value}/100`}
         valueKey="value"
       />
+
+      <div className="canvas-stack-md min-w-0 self-start">
+        <div className="canvas-stack-xs">
+          <Badge variant="outline">系统关注度</Badge>
+          <p className="canvas-text-body text-muted-foreground">
+            按本次报告里每组最高关注项整理，不作为诊断分数。
+          </p>
+        </div>
+
+        <div className="canvas-stack-xs">
+          {reportRadarItems.map((item) => (
+            <div
+              className="canvas-wrap-sm items-center justify-between"
+              key={item.code}
+            >
+              <span className="canvas-text-caption">{item.label}</span>
+              <StatusBadge status={statusFor(item.status).status}>
+                {item.code}
+              </StatusBadge>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

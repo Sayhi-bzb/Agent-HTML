@@ -20,6 +20,9 @@ packages/cli/src/*
 
 packages/cli/src/host/*
   -> sandbox host, inspector, and prompt bridge
+
+packages/cli/src/host/styles/*
+  -> host chrome implementation styles that consume Canvas tokens
 ```
 
 Each layer owns one decision. The protocol marks stable regions and emits
@@ -55,9 +58,9 @@ components.json
 tsconfig.json
 styles/index.css
 styles/base.css
-styles/tokens/*
-styles/public/content.css
-styles/public/composition.css
+styles/materials/*
+styles/layouts/index.css
+styles/layouts/composition.css
 styles/internal/*
 theme/*
 components/ui/*
@@ -162,7 +165,7 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Guard fix | `host/pipeline` + `react-canvas/prompt.mjs` | guard errors for one artifact | Codex/example turn request | warnings-only prompt payloads, host UI state payloads | `pipeline.test.ts`, `prompt.test.mjs` |
 | Interaction state | `packages/react` event protocol + host store | artifact-local control changes | host prompt interaction snapshot | filesystem, shell, MCP, privileged host APIs in artifact code | `index.test.tsx`, `interaction-store.test.ts`, `prompt.test.mjs` |
 | Preferences persistence | `host/preferences` | local host preference state | persisted host preference patch | artifact source state, dev-server state | `canvas-host-preferences.test.ts`, `use-canvas-host-preferences.test.ts` |
-| CSS/theme | `agent-html/styles` + host theme owner | CSS tokens, content classes, theme presets | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides | `style-ownership-contract.test.mjs`, `style-resource-contract.test.mjs`, `theme-preset.test.ts`, `theme-layout.test.ts` |
+| CSS/theme | `agent-html/styles` + package host styles + host theme owner | CSS tokens, content classes, theme presets, host chrome CSS | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides, host chrome implementation in artifact context | `style-ownership-contract.test.mjs`, `style-resource-contract.test.mjs`, `theme-preset.test.ts`, `theme-layout.test.ts` |
 
 Dev server routes are orchestration only. They are grouped into explicit
 runtime adapter pipelines:

@@ -2,14 +2,13 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
-@import "./tokens/index.css";
-@import "./tokens/tailwind.css";
+@import "./materials/index.css";
+@import "./kits/index.css";
+@import "./materials/tailwind.css";
 @import "./base.css";
-@import "./public/content.css";
+@import "./layouts/index.css";
 @import "./internal/code-block.css";
 @import "./internal/artifact.css";
-@import "./internal/host.css";
-@import "./internal/theme-editor.css";
 
 @source "../**/*.{ts,tsx,js,jsx,json}";
 

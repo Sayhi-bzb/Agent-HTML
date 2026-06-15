@@ -38,9 +38,8 @@ does not return selected TSX source or block implementation source.
 
 Block hover highlighting, block prompt action placement, and the floating
 prompt composer are host inspection chrome. They are rendered in the host
-overlay, not in artifact source, and consume Canvas CSS tokens from
-`agent-html/styles/tokens/features/host.css` through semantic classes in
-`agent-html/styles/internal/host.css`.
+overlay, not in artifact source, and consume Canvas foundation tokens through
+package-owned host tokens and styles under `packages/cli/src/host/styles`.
 
 The host owns preview boundary spacing around the artifact. `Artifact` owns the
 readable root width and block rhythm inside that preview. Host surface padding,

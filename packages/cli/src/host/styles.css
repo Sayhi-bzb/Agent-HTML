@@ -1,3 +1,10 @@
+@import "./styles/tokens.css";
+@import "./styles/surface.css";
+@import "./styles/sidebar.css";
+@import "./styles/block-overlay.css";
+@import "./styles/floating-prompt.css";
+@import "./styles/theme-editor.css";
+
 #root {
   height: 100%;
   min-height: 100%;

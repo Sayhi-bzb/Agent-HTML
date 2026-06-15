@@ -30,17 +30,20 @@ agent-html/styles/index.css
 agent-html/styles/base.css
   -> base stylesheet rules such as text selection
 
-agent-html/styles/tokens
-  -> foundation tokens, feature tokens, and Tailwind bridge
+agent-html/styles/materials
+  -> raw material values and Tailwind bridge
 
-agent-html/styles/public/content.css
-  -> artifact public style API entrypoint
+agent-html/styles/kits
+  -> standard kits for artifact root, content scale, and rich component values
 
-agent-html/styles/public/composition.css
+agent-html/styles/layouts/index.css
+  -> artifact layout style API entrypoint
+
+agent-html/styles/layouts/composition.css
   -> artifact-consumable L2 composition classes
 
 agent-html/styles/internal
-  -> locked Canvas system chrome, Artifact root, and theme editor styles
+  -> Artifact root and artifact-adjacent implementation styles
 
 agent-html/theme
   -> host-owned theme preset registry and shadcn CSS sources
@@ -129,7 +132,7 @@ import diagramUrl from "../assets/diagram.svg"
 Use `Artifact` as the top-level wrapper. It owns the readable root container
 and accepts only `title` and children. Root width and block gap are configured
 by `--canvas-artifact-*` tokens in
-`agent-html/styles/tokens/features/artifact.css`; background and foreground
+`agent-html/styles/kits/artifact.css`; background and foreground
 follow the shared foundation tokens. Wrap each major
 semantic region in `Block`. Use stable, unique, readable, kebab-case block ids.
 `Block` is a protocol marker only: use `id`, `title`, and children, and put
@@ -150,9 +153,7 @@ Artifact content uses Canvas public composition classes backed by
 `--canvas-content-*` tokens for spacing, typography, panel padding,
 icon-box size, and grid gap.
 Panel radius, border, and icon-box color come from shared semantic tokens. Host
-chrome uses `--canvas-*` host tokens for surface padding, toolbar offsets,
-status spacing, sidebar spacing, floating prompt placement, and block action
-placement.
+chrome tokens and implementation styles live under `packages/cli/src/host/styles`.
 
 Artifact code must not call the filesystem, shell commands, MCP servers, Codex
 app-server, or privileged host APIs.

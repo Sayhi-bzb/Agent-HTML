@@ -22,9 +22,8 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 | `agent-html/components/chart/area-chart.tsx` | 2930 | `components/README.md` |
 | `agent-html/artifacts/nyc-taxi-sketchbook/borough-flow-network.block.tsx` | 2627 | `artifacts/README.md` |
 | `agent-html/components/ui/combobox.tsx` | 2338 | `components/README.md` |
-| `agent-html/styles/internal/host/sidebar.css` | 2338 | nearest README or source-specific notes |
 | `agent-html/components/ui/dropdown-menu.tsx` | 2271 | `components/README.md` |
-| `agent-html/artifacts/health-report-decoder/lab-system-map.block.tsx` | 2173 | `artifacts/README.md` |
+| `agent-html/artifacts/health-report-decoder/lab-system-map.block.tsx` | 2174 | `artifacts/README.md` |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 2157 | `artifacts/README.md` |
 | `agent-html/components/ui/calendar.tsx` | 2102 | `components/README.md` |
 | `agent-html/components/chart/runtime/tooltip.tsx` | 2007 | `components/README.md` |

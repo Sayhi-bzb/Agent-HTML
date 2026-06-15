@@ -85,7 +85,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 ## Style Rules
 
-- Use `styles/public/content.css` L2 composition classes when they fit ordinary artifact content styling.
+- Use `styles/layouts/index.css` L2 composition classes when they fit ordinary artifact content styling.
 - Use semantic token utilities such as `bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-popover`, and `text-popover-foreground` when applying token-backed treatment.
 - Keep layout behavior classes such as `flex`, `grid`, `min-w-0`, `overflow-hidden`, `flex-wrap`, `shrink-0`, and `truncate` local to the composition that needs them.
 - Do not use raw palette classes, arbitrary value classes, or inline visual styles in artifacts.

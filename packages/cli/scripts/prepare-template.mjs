@@ -45,9 +45,23 @@ await fs.rm(templateRoot, { force: true, recursive: true })
 for (const file of files) {
   const relativePath = path.relative("agent-html", file)
   const targetPath = path.join(templateRoot, relativePath)
+  const sourcePath = path.join(repoRoot, file)
+
+  try {
+    const stat = await fs.stat(sourcePath)
+    if (!stat.isFile()) {
+      continue
+    }
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      continue
+    }
+
+    throw error
+  }
 
   await fs.mkdir(path.dirname(targetPath), { recursive: true })
-  await fs.copyFile(path.join(repoRoot, file), targetPath)
+  await fs.copyFile(sourcePath, targetPath)
 }
 
 console.log(`Prepared agent-html template with ${files.length} files.`)

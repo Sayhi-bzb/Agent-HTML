@@ -24,7 +24,7 @@ export const blastRadiusLayers = [
   {
     items: [
       ["components/ui", "local shadcn primitives own common controls"],
-      ["styles/public", "semantic Canvas classes own content treatment"],
+      ["styles/layouts", "semantic Canvas classes own content treatment"],
       ["theme presets", "host layout and token presets stay package-owned"],
     ],
     value: "surface",

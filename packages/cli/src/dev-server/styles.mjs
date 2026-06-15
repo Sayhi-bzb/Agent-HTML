@@ -170,8 +170,20 @@ async function compileAgentHtmlCss(root) {
   return compiler.build(scanner.scan())
 }
 
+async function compileHostCss() {
+  const hostStylePath = path.join(hostRoot, "styles.css")
+  const hostCss = await fs.readFile(hostStylePath, "utf8")
+  const compiler = await compile(hostCss, {
+    base: path.dirname(hostStylePath),
+    from: hostStylePath,
+    loadStylesheet: loadTailwindStylesheet,
+  })
+  const scanner = new Scanner({ sources: compiler.sources })
+  return compiler.build(scanner.scan())
+}
+
 export async function loadHostStyles(root) {
-  const hostCss = await fs.readFile(path.join(hostRoot, "styles.css"), "utf8")
   const artifactCss = await compileAgentHtmlCss(root)
+  const hostCss = await compileHostCss()
   return `${artifactCss}\n${hostCss}`
 }
