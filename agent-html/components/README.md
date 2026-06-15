@@ -15,7 +15,7 @@ component layer before opening source files.
 
 - Unsure which component fits the task: `../../taste/design/DESIGN.md`.
 - Need exact exports: `../index/api-surface.md`.
-- Opening large component files: `../index/large-files.md`.
+- Open source only after choosing the component layer.
 
 ## Rule
 

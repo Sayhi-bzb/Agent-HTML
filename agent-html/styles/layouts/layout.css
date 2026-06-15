@@ -123,7 +123,6 @@
   }
 
   .canvas-frame-media-16-9,
-  .canvas-frame-media-16-10,
   .canvas-frame-media-portrait {
     width: 100%;
     object-fit: cover;
@@ -133,40 +132,8 @@
     aspect-ratio: 16 / 9;
   }
 
-  .canvas-frame-media-16-10 {
-    aspect-ratio: 16 / 10;
-  }
-
   .canvas-frame-media-portrait {
     aspect-ratio: 4 / 5;
-  }
-
-  .canvas-frame-media-lg {
-    max-height: var(--canvas-frame-media-lg-max-height);
-  }
-
-  .canvas-frame-media-fill {
-    height: 100%;
-  }
-
-  .canvas-frame-media-min-sm {
-    min-height: var(--canvas-frame-media-sm-min-height);
-  }
-
-  .canvas-frame-media-min-lg {
-    min-height: var(--canvas-frame-min-height-lg);
-  }
-
-  .canvas-frame-media-md {
-    max-height: var(--canvas-frame-media-md-max-height);
-  }
-
-  .canvas-frame-media-screen {
-    max-height: 100vh;
-  }
-
-  .canvas-frame-media-xl {
-    max-height: var(--canvas-frame-min-height-xl);
   }
 
 }

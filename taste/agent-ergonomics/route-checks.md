@@ -68,7 +68,7 @@ Constraint strength policy:
 - Hard rules: protocol boundaries, host boundaries, forbidden imports,
   generated-file editing, and source ownership.
 - Route defaults: first read path, expected route anchors, and generated index
-  before large source files.
+  before reusable source owners.
 - Practices: component choice, reuse preference, and existing artifacts as
   copyable patterns.
 - Heuristics: large-file token thresholds and first-search-space reducers.
@@ -78,7 +78,7 @@ Constraint strength policy:
 Priority route checks:
 
 - Highest priority: Cold Start, Artifact Authoring, UI Choice, and Reuse.
-- Regular checks: Block Editing, Style, Large File, and Generated Index.
+- Regular checks: Block Editing, Style, and Generated Index.
 - Run route checks when changing workspace directories, route files, artifact
   patterns, generated indexes, component layout, style ownership, or hard-rule
   surfaces.
@@ -107,12 +107,11 @@ Applied boundaries:
 - `data/README.md` owns fixture and dataset source routing.
 - `taste/design/DESIGN.md` owns component judgment.
 - `index/api-surface.md` owns compact exports.
-- `index/large-files.md` owns large-file reading cost and suggested routes.
 - Existing artifacts carry copyable policy, so artifact patterns should stay
   compact and orthogonal.
 
 Current route checks with the highest value are Artifact Authoring, Block
-Editing, UI Choice, Reuse, Style, Large File, and Generated Index.
+Editing, UI Choice, Reuse, Style, and Generated Index.
 
 Application smells:
 
@@ -185,7 +184,6 @@ Expected route:
 
 ```text
 artifact entry
-  -> index/large-files.md when the named block is large
   -> named block implementation
   -> interaction state only if the block records local control changes
 ```
@@ -196,8 +194,8 @@ source.
 Avoid route: editing the host overlay, rewriting the artifact entry, or loading
 unrelated block implementations.
 
-Pass: the agent keeps the change scoped to the block, uses the large-file route
-for high-token blocks, and preserves protocol metadata.
+Pass: the agent keeps the change scoped to the named block and preserves
+protocol metadata.
 
 Failure smells: broad artifact rewrites; host APIs in artifact source; unrelated
 block changes.
@@ -235,8 +233,7 @@ data."
 Expected route:
 
 ```text
-agent-html/index/reuse-surface.md
-  -> agent-html/index/api-surface.md
+agent-html/index/api-surface.md
   -> data/README.md, hooks, lib, schema, or data
   -> source only after the API surface identifies a likely owner
 ```
@@ -277,37 +274,15 @@ Pass: the agent enters the narrow style layer owned by the task.
 Failure smells: theme work during content tasks; arbitrary values in artifacts;
 sidebar tokens used for prompt UI.
 
-### Large File Route
-
-Task prompt: "Inspect or change a large component or artifact."
-
-Expected route:
-
-```text
-agent-html/index/large-files.md
-  -> suggested route file such as artifacts/README.md or data/README.md
-  -> API surface or component route
-  -> source
-```
-
-Constraint level: heuristic and route default.
-
-Avoid route: opening large files as the first context.
-
-Pass: the agent reads a map before implementation detail.
-
-Failure smells: cold-starting in large rich components, `sidebar.tsx`, or broad
-coverage artifacts.
-
 ### Generated Index Route
 
-Task prompt: "Find exports, dependency gravity, or large files."
+Task prompt: "Find exports, reusable owners, or default style classes."
 
 Expected route:
 
 ```text
 agent-html/index/README.md
-  -> api-surface.md, dependency-summary.md, or large-files.md
+  -> api-surface.md or style-surface.md
 ```
 
 Constraint level: route default. Editing generated files by hand is a hard-rule

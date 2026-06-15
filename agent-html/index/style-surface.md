@@ -3,7 +3,7 @@
 # React Canvas Style Surface
 
 Generated default CSS class surface for Canvas artifact authoring.
-Use default classes first. Rare classes are valid but should stay situational; open `styles/diagnostics/tier-surface.md` or CSS source only when changing class behavior.
+Use default classes first. Rare classes are valid but should stay situational; open CSS source only when changing class behavior.
 
 ## Default Classes
 
@@ -51,4 +51,4 @@ Use default classes first. Rare classes are valid but should stay situational; o
 
 ### Frame Media
 
-- `canvas-frame-media-16-9/16-10/portrait/fill/min-sm/min-lg/md/lg/xl/screen`
+- `canvas-frame-media-16-9/portrait`

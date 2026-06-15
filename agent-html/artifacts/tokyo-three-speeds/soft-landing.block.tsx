@@ -60,7 +60,7 @@ export default function SoftLandingBlock() {
 
         <MediaFigure
           asset={mediaAssets.arrival}
-          imageClassName="canvas-frame-media-fill canvas-frame-media-md canvas-frame-media-min-sm"
+          imageClassName="h-full min-h-[16rem] max-h-[28.75rem]"
         />
       </div>
     </section>

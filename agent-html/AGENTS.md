@@ -15,10 +15,8 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Keep this file focused on hard rules and default behavior.
 - Keep `README.md` as the conditional reading route.
 - Keep `TASTE.md` as artifact design judgment.
-- Use `GOVERNANCE.md` before changing workspace conventions, route files,
-  generated indexes, artifact or data patterns, or copyable examples.
-- Do not duplicate rules across `README.md`, `AGENTS.md`, `TASTE.md`,
-  `GOVERNANCE.md`, source route files, and `index/*`.
+- Use `GOVERNANCE.md` before changing workspace conventions, route files, generated indexes, artifact or data patterns, or copyable examples.
+- Do not duplicate rules across `README.md`, `AGENTS.md`, `TASTE.md`, `GOVERNANCE.md`, source route files, and `index/*`.
 - Do not commit full generated graphs, declaration rollups, or tool dumps as agent context.
 - Do not manually hard-wrap prose. Use line breaks for Markdown structure, lists, tables, code blocks, and semantic separation only.
 - Use short, imperative, operational wording.
@@ -32,8 +30,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Put pure helpers and transforms in `lib`.
 - Put shared source types in `types`.
 - Put Canvas CSS, tokens, and style routes in `styles`.
-- Put theme preset resources in `theme`; keep preset source CSS in
-  `theme/presets` and let the registry normalize it.
+- Put theme preset resources in `theme`; keep preset source CSS in `theme/presets` and let the registry normalize it.
 - Put bundle-time imports in `assets` only when an artifact needs imported files.
 - Put artifact-owned URL static files in `artifacts/<artifact>/public`.
 - Put shared URL static files in `public`.
@@ -42,11 +39,8 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 
 - Name artifacts by subject, not template, format, or page type.
 - Name blocks by semantic work area, not position, layout, or container shape.
-- Keep split artifact file names, component names, `Block` ids, and `Block`
-  titles aligned to the same work area.
-- Keep compact artifacts single-file. Split broad artifacts into
-  `name.artifact.tsx` as the artifact entry and `name/*.block.tsx` as semantic
-  block files.
+- Keep split artifact file names, component names, `Block` ids, and `Block` titles aligned to the same work area.
+- Keep compact artifacts single-file. Split broad artifacts into `name.artifact.tsx` as the artifact entry and `name/*.block.tsx` as semantic block files.
 
 ## Data Defaults
 
@@ -54,8 +48,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Use a single `data.ts` only for small data surfaces.
 - Split broad data into artifact-local `data/` files by owner.
 - Keep generated or raw data separate from authored interpretation.
-- Add a shared data owner only when multiple artifacts consume it and a route
-  names that owner.
+- Add a shared data owner only when multiple artifacts consume it and a route names that owner.
 
 ## Artifact Protocol Rules
 
@@ -67,8 +60,7 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 - Default export the block component from each `*.block.tsx` file.
 - Use stable, unique, readable, kebab-case block ids in `blocks`.
 - Use string block entries when titleized id is correct.
-- Use `{ id, title }` only when the visible block title cannot be inferred
-  from the id.
+- Use `{ id, title }` only when the visible block title cannot be inferred from the id.
 - Put layout and visual treatment inside the block content, local `agent-html/components/ui` primitives, and named rich components when the task needs that workflow.
 - Do not render host block prompt actions or block hover chrome from artifact source.
 - Do not use old AHTML `<Cell>` DSL for React Canvas artifacts.
@@ -108,5 +100,4 @@ Write normal React artifacts in `agent-html/artifacts/*.artifact.tsx`. For cold 
 ## Route Safeguards
 
 - Read the owner route before broad source scans.
-- Use `TASTE.md` before changing artifact visual composition, media-heavy
-  blocks, layout density, component choice, source placement, or narrative UI.
+- Use `TASTE.md` before changing artifact visual composition, media-heavy blocks, layout density, component choice, source placement, or narrative UI.

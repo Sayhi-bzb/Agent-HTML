@@ -14,11 +14,6 @@ When authoring an artifact:
 - `artifacts/README.md`
 - `TASTE.md` for artifact composition and visual judgment.
 
-When opening broad or large source files:
-
-- `index/large-files.md`
-- `index/dependency-summary.md`
-
 When using or changing primitives, hooks, helpers, or theme exports:
 
 - `components/README.md` for the component source route.
@@ -31,12 +26,10 @@ When touching Canvas classes, tokens, or internal chrome:
 
 - `styles/README.md`
 
-When changing workspace conventions, route files, generated indexes, artifact
-or data patterns, or copyable examples:
+When changing workspace conventions, route files, generated indexes, artifact or data patterns, or copyable examples:
 
 - `GOVERNANCE.md`
 
 ## Source Placement
 
-Source placement defaults live in `AGENTS.md`. Use the route above to choose
-the smallest owner before opening source.
+Source placement defaults live in `AGENTS.md`. Use the route above to choose the smallest owner before opening source.

@@ -16,16 +16,6 @@ values in it.
 - CodeBlock token values: read `kits/code-block.css`.
 - Tailwind and shadcn token mapping: read `materials/tailwind.css`.
 
-## Diagnostics
-
-Generated maintenance surfaces live in `diagnostics/`:
-
-- CSS token parameter names: read `diagnostics/token-surface.md`.
-- CSS scale value distribution: read `diagnostics/scale-surface.md`.
-- Artifact CSS class convergence tiers: read `diagnostics/tier-surface.md` before using rare classes.
-- Artifact CSS class usage: read `diagnostics/usage-surface.md`.
-- Artifact CSS class variants: read `diagnostics/variant-surface.md`.
-
 ## Public Style API
 
 `layouts/index.css` is the stable artifact layout API entrypoint. It imports

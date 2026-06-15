@@ -16,11 +16,5 @@
   --canvas-content-grid-gap: 1rem;
   --canvas-layout-aside-min-width: 16rem;
   --canvas-layout-narrow-aside-min-width: 12rem;
-  --canvas-frame-min-height-md: 20rem;
-  --canvas-frame-min-height-lg: 26.25rem;
-  --canvas-frame-min-height-xl: 32.5rem;
-  --canvas-frame-media-sm-min-height: 16rem;
-  --canvas-frame-media-md-max-height: 28.75rem;
-  --canvas-frame-media-lg-max-height: 26.25rem;
   --canvas-frame-wide-min-width: 38.75rem;
 }
