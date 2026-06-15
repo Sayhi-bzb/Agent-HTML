@@ -7,9 +7,9 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 192 |
-| Dependencies | 493 |
-| Local edges | 321 |
+| Modules | 191 |
+| Dependencies | 488 |
+| Local edges | 316 |
 | External edges | 171 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
@@ -21,14 +21,14 @@ Dependency-cruiser summary for `agent-html` source files.
 | --- | --- |
 | `agent-html/lib/cn.ts` | 47 |
 | `agent-html/components/ui/badge.tsx` | 27 |
-| `agent-html/components/ui/status-badge.tsx` | 13 |
 | `agent-html/components/ui/button.tsx` | 12 |
+| `agent-html/components/ui/status-badge.tsx` | 12 |
 | `agent-html/components/chart/runtime/index.ts` | 10 |
 | `agent-html/components/media-figure.tsx` | 9 |
 | `agent-html/artifacts/health-report-decoder/data/report.ts` | 8 |
-| `agent-html/artifacts/code-review-room/review-layout.tsx` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 7 |
 | `agent-html/lib/public-url.ts` | 7 |
+| `agent-html/artifacts/code-review-room/review-layout.tsx` | 6 |
 | `agent-html/artifacts/health-report-decoder/data/status.ts` | 6 |
 | `agent-html/artifacts/nasa-artemis-ii/data/media.ts` | 6 |
 

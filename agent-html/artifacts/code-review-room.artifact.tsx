@@ -7,7 +7,6 @@ export default defineArtifact({
     "diff-risk-map",
     "code-metrics",
     "blast-radius",
-    "risk-evidence",
     "review-gate",
     "release-routes",
   ],

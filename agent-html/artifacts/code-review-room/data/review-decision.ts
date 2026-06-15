@@ -1,73 +1,9 @@
 import type {
-  EvidenceMatrixItem,
-  EvidenceRow,
   PackageTimelineStep,
   ReleaseRoute,
   ReviewGateColumn,
   ReviewLane,
 } from "./types"
-
-export const evidenceCategories = ["dependency", "runtime"]
-
-export const evidenceMatrix = [
-  {
-    evidence: "covered",
-    impact: "high impact",
-    note: "Code metrics identify Canvas rich components: map, kanban, sankey, data-table.",
-    status: "success",
-  },
-  {
-    evidence: "partial",
-    impact: "high impact",
-    note: "GitNexus traces CodeReviewRoomArtifact flows, but package index freshness still matters.",
-    status: "warning",
-  },
-  {
-    evidence: "missing",
-    impact: "high impact",
-    note: "No committed generator yet turns Canvas metrics into a reproducible package dataset.",
-    status: "destructive",
-  },
-  {
-    evidence: "covered",
-    impact: "medium impact",
-    note: "Dependency summary records local edges, external edges, and zero circular edges.",
-    status: "success",
-  },
-  {
-    evidence: "partial",
-    impact: "medium impact",
-    note: "Fan-in still needs GitNexus plus dependency-cruiser before ranking primitives.",
-    status: "warning",
-  },
-  {
-    evidence: "missing",
-    impact: "medium impact",
-    note: "No package benchmark confirms table/search interaction cost under large artifact data.",
-    status: "destructive",
-  },
-] satisfies EvidenceMatrixItem[]
-
-export const evidenceRows = [
-  {
-    evidence: "covered",
-    impact: "high",
-    missingCheck: "none",
-    risk: "components/map.tsx has the highest LOC and cyclomatic score",
-  },
-  {
-    evidence: "partial",
-    impact: "high",
-    missingCheck: "GitNexus + dependency-cruiser fan-in refresh",
-    risk: "components/data-table.tsx is shared across artifact evidence surfaces",
-  },
-  {
-    evidence: "missing",
-    impact: "medium",
-    missingCheck: "committed Canvas metrics generator",
-    risk: "package metrics are currently a generated snapshot, not a repeatable script",
-  },
-] satisfies EvidenceRow[]
 
 export const reviewLanes = [
   {
@@ -77,7 +13,7 @@ export const reviewLanes = [
     status: "destructive",
   },
   {
-    count: "3",
+    count: "2",
     detail: "Confirm map and sankey remain rich components, not artifact-only demos.",
     label: "question",
     status: "warning",
@@ -128,12 +64,6 @@ export const reviewGateColumns = [
         detail: "Does the metrics snapshot need a committed generator before reuse?",
         id: "metrics-generator",
         label: "metrics generator",
-        status: "warning",
-      },
-      {
-        detail: "Is dependency-cruiser enough for package fan-in, or should GitNexus own it?",
-        id: "fan-in-source",
-        label: "fan-in source",
         status: "warning",
       },
     ],

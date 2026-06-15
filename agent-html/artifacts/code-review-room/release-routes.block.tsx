@@ -56,68 +56,70 @@ export default function ReleaseRoutesBlock() {
         </Timeline>
       </ReviewStage>
 
-      <ReviewPanel className="canvas-stack-sm">
-        <div className="canvas-stack-xs">
-          <p className="canvas-text-caption text-muted-foreground">
-            workspace index refresh
-          </p>
-          <h3 className="canvas-text-body">Decision profile</h3>
-          <p className="canvas-text-caption text-muted-foreground">
-            The draft route trades more time for stronger risk reduction and
-            review confidence.
-          </p>
-        </div>
-        <AreaChart
-          aspectRatio="3 / 1"
-          data={decisionProfile}
-          minHeight={260}
-          referenceY={75}
-          renderer="texture"
-          texture={{
-            density: "normal",
-            kind: "waves",
-            opacity: 0.35,
-          }}
-          xKey="label"
-          yKey="value"
-          yValueFormatter={(value) => `${value}%`}
-        />
-      </ReviewPanel>
+      <div className="canvas-grid-main-aside">
+        <ReviewPanel className="canvas-stack-sm h-full">
+          <div className="canvas-stack-xs">
+            <p className="canvas-text-caption text-muted-foreground">
+              workspace index refresh
+            </p>
+            <h3 className="canvas-text-body">Decision profile</h3>
+            <p className="canvas-text-caption text-muted-foreground">
+              The draft route trades more time for stronger risk reduction and
+              review confidence.
+            </p>
+          </div>
+          <AreaChart
+            aspectRatio="4 / 3"
+            data={decisionProfile}
+            minHeight={240}
+            referenceY={75}
+            renderer="texture"
+            texture={{
+              density: "normal",
+              kind: "waves",
+              opacity: 0.35,
+            }}
+            xKey="label"
+            yKey="value"
+            yValueFormatter={(value) => `${value}%`}
+          />
+        </ReviewPanel>
 
-      <RadioGroup
-        className="canvas-grid-3-lg"
-        defaultValue={releaseRoutes[1].value}
-      >
-        {releaseRoutes.map((route) => (
-          <ReviewPanel className="p-0" key={route.value}>
-            <label className="canvas-stack-sm block p-4">
-              <div>
-                <div className="flex items-center justify-between gap-3">
-                  <p className="canvas-text-caption text-muted-foreground">
-                    option
+        <RadioGroup
+          className="canvas-stack-sm"
+          defaultValue={releaseRoutes[1].value}
+        >
+          {releaseRoutes.map((route) => (
+            <ReviewPanel className="p-0" key={route.value}>
+              <label className="canvas-stack-sm block p-4">
+                <div>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="canvas-text-caption text-muted-foreground">
+                      option
+                    </p>
+                    <RadioGroupItem value={route.value} />
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <h3 className="canvas-text-body">{route.value}</h3>
+                    <Badge variant="secondary">{route.badge}</Badge>
+                  </div>
+                  <p className="mt-2 canvas-text-caption text-muted-foreground">
+                    {route.condition}
                   </p>
-                  <RadioGroupItem value={route.value} />
                 </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <h3 className="canvas-text-body">{route.value}</h3>
-                  <Badge variant="secondary">{route.badge}</Badge>
-                </div>
-                <p className="mt-2 canvas-text-caption text-muted-foreground">
-                  {route.condition}
-                </p>
-              </div>
-              {route.metrics.map((item) => (
-                <div className="canvas-stack-xs" key={item.label}>
-                  <span className="canvas-text-caption text-muted-foreground">
-                    {item.label}
-                  </span>
-                  <Progress value={item.value} />
-                </div>
-              ))}
-            </label>
-          </ReviewPanel>
-        ))}
-      </RadioGroup>
+                {route.metrics.map((item) => (
+                  <div className="canvas-stack-xs" key={item.label}>
+                    <span className="canvas-text-caption text-muted-foreground">
+                      {item.label}
+                    </span>
+                    <Progress value={item.value} />
+                  </div>
+                ))}
+              </label>
+            </ReviewPanel>
+          ))}
+        </RadioGroup>
+      </div>
     </section>
   )
 }

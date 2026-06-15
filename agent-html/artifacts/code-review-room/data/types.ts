@@ -59,20 +59,6 @@ export type PackageSankeyData = {
   }>
 }
 
-export type EvidenceMatrixItem = {
-  evidence: string
-  impact: string
-  note: string
-  status: "default" | "destructive" | "success" | "warning"
-}
-
-export type EvidenceRow = {
-  evidence: "covered" | "missing" | "partial"
-  impact: string
-  missingCheck: string
-  risk: string
-}
-
 export type ReviewLane = {
   count: string
   detail: string
