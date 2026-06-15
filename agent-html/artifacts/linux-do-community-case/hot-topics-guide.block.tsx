@@ -61,7 +61,7 @@ export default function HotTopicsGuideBlock() {
       <div className="canvas-stack-md">
         <Tabs defaultValue="all" className="canvas-stack-sm">
           <div className="canvas-wrap-sm items-center justify-between">
-            <h3 className="canvas-text-heading font-semibold">热门帖样本</h3>
+            <h3 className="canvas-text-heading font-semibold">热门帖</h3>
             <TabsList variant="line">
               {hotTopicFilters.map((filter) => (
                 <TabsTrigger key={filter.id} value={filter.id}>
