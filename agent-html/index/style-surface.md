@@ -7,44 +7,48 @@ Use default classes first. Rare classes are valid but should stay situational; o
 
 ## Default Classes
 
-- `canvas-text-caption`
-- `canvas-text-body`
-- `canvas-stack-sm`
-- `canvas-stack-xs`
+### Text
+
+- `canvas-text-caption/body/heading/title`
+
+### Stack
+
+- `canvas-stack-xs/sm/md/lg`
+
+### Wrap
+
 - `canvas-wrap-sm`
-- `canvas-stack-lg`
-- `canvas-text-heading`
-- `canvas-stack-md`
-- `canvas-grid-2`
-- `canvas-grid-gap`
-- `canvas-grid-main-aside`
-- `canvas-frame-media`
-- `canvas-text-title`
-- `canvas-grid-gap-md`
+
+### Content
+
 - `canvas-content-panel`
-- `canvas-grid-2-lg`
-- `canvas-grid-main-aside-lg`
+
+### Grid
+
+- `canvas-grid-2/2-lg/gap/gap-md/main-aside/main-aside-lg`
+
+### Frame Media
+
+- `canvas-frame-media`
 
 ## Rare Classes
 
+### Cluster
+
 - `canvas-cluster-sm`
-- `canvas-frame-media-16-9`
-- `canvas-frame-table`
-- `canvas-frame-wide`
-- `canvas-grid-4`
-- `canvas-grid-aside-main`
-- `canvas-grid-main-aside-xl`
-- `canvas-frame-media-16-10`
-- `canvas-frame-media-fill`
-- `canvas-frame-media-lg`
-- `canvas-frame-media-md`
-- `canvas-frame-media-min-lg`
-- `canvas-frame-media-min-sm`
-- `canvas-frame-media-portrait`
-- `canvas-frame-media-screen`
-- `canvas-frame-media-xl`
-- `canvas-grid-2-sm`
-- `canvas-grid-aside-main-lg`
-- `canvas-grid-cards`
-- `canvas-grid-main-aside-xl-wide`
+
+### Icon
+
 - `canvas-icon-box-sm`
+
+### Grid
+
+- `canvas-grid-2-sm/4/main-aside-xl/main-aside-xl-wide/aside-main/aside-main-lg/cards`
+
+### Frame
+
+- `canvas-frame-table/wide`
+
+### Frame Media
+
+- `canvas-frame-media-16-9/16-10/portrait/fill/min-sm/min-lg/md/lg/xl/screen`

@@ -688,18 +688,18 @@ function buildStyleSurfaceMarkdown() {
     "",
     "## Default Classes",
     "",
-    markdownList(defaultClasses.map(({ className }) => className)),
+    buildStyleSurfaceFamilyList(defaultClasses),
     "",
     "## Rare Classes",
     "",
-    markdownList(rareClasses.map(({ className }) => className)),
+    buildStyleSurfaceFamilyList(rareClasses),
   ]
 
   if (legacyClasses.length > 0) {
     sections.push("")
     sections.push("## Legacy Classes")
     sections.push("")
-    sections.push(markdownList(legacyClasses.map(({ className }) => className)))
+    sections.push(buildStyleSurfaceFamilyList(legacyClasses))
   }
 
   return sections.join("\n")
@@ -828,7 +828,7 @@ function buildStyleVariantSurfaceMarkdown() {
     "# React Canvas Style Variant Surface",
     "",
     "Generated variant matrix for high-branch Canvas CSS class families.",
-    "Use this with `style-usage-surface.md` before deciding whether a class should be default, rare, or legacy.",
+    "Use this with `usage-surface.md` before deciding whether a class should be default, rare, or legacy.",
     "",
     "## Frame Media Variants",
     "",
@@ -968,6 +968,118 @@ function styleUsageRows() {
       }
     })
     .sort((a, b) => b.uses - a.uses || a.className.localeCompare(b.className))
+}
+
+function buildStyleSurfaceFamilyList(rows) {
+  if (rows.length === 0) {
+    return "_None found._"
+  }
+
+  return [...Map.groupBy(rows, ({ family }) => family).entries()]
+    .sort(([a], [b]) => styleClassFamilyRank(a) - styleClassFamilyRank(b))
+    .map(([family, familyRows]) => [
+      `### ${styleClassFamilyLabel(family)}`,
+      "",
+      markdownList([formatStyleClassFamily(family, familyRows)]),
+    ].join("\n"))
+    .join("\n\n")
+}
+
+function formatStyleClassFamily(family, rows) {
+  const rootClassName = `canvas-${family}`
+  const variants = []
+  let hasRoot = false
+
+  for (const row of rows) {
+    if (row.className === rootClassName) {
+      hasRoot = true
+      continue
+    }
+
+    variants.push(row.className.replace(`${rootClassName}-`, ""))
+  }
+
+  variants.sort((a, b) =>
+    styleClassVariantRank(family, a) - styleClassVariantRank(family, b) ||
+    a.localeCompare(b)
+  )
+
+  if (variants.length === 0) {
+    return rootClassName
+  }
+
+  if (!hasRoot) {
+    return `${rootClassName}-${variants.join("/")}`
+  }
+
+  return `${rootClassName}, ${rootClassName}-${variants.join("/")}`
+}
+
+function styleClassFamilyRank(family) {
+  const familyOrder = [
+    "text",
+    "stack",
+    "wrap",
+    "cluster",
+    "content",
+    "icon",
+    "grid",
+    "frame",
+    "frame-media",
+    "other",
+  ]
+  const rank = familyOrder.indexOf(family)
+
+  return rank === -1 ? familyOrder.length : rank
+}
+
+function styleClassVariantRank(family, variant) {
+  const variantOrders = {
+    text: ["caption", "body", "heading", "title"],
+    stack: ["xs", "sm", "md", "lg", "xl"],
+    wrap: ["sm", "md", "lg"],
+    cluster: ["sm", "md", "lg"],
+    content: ["panel"],
+    icon: ["box-sm", "box-md", "box-lg"],
+    grid: [
+      "2",
+      "2-sm",
+      "2-lg",
+      "4",
+      "gap",
+      "gap-md",
+      "main-aside",
+      "main-aside-lg",
+      "main-aside-xl",
+      "main-aside-xl-wide",
+      "aside-main",
+      "aside-main-lg",
+      "cards",
+    ],
+    frame: ["table", "wide"],
+    "frame-media": [
+      "16-9",
+      "16-10",
+      "portrait",
+      "fill",
+      "min-sm",
+      "min-lg",
+      "md",
+      "lg",
+      "xl",
+      "screen",
+    ],
+  }
+  const rank = variantOrders[family]?.indexOf(variant) ?? -1
+
+  return rank === -1 ? Number.MAX_SAFE_INTEGER : rank
+}
+
+function styleClassFamilyLabel(family) {
+  return family
+    .split("-")
+    .map((part) => `${part[0].toUpperCase()}${part.slice(1)}`)
+    .join(" ")
 }
 
 function styleClassTier(uses) {

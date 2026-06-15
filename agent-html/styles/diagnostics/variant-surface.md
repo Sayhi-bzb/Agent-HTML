@@ -3,7 +3,7 @@
 # React Canvas Style Variant Surface
 
 Generated variant matrix for high-branch Canvas CSS class families.
-Use this with `style-usage-surface.md` before deciding whether a class should be default, rare, or legacy.
+Use this with `usage-surface.md` before deciding whether a class should be default, rare, or legacy.
 
 ## Frame Media Variants
 
