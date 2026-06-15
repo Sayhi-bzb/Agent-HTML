@@ -1,4 +1,12 @@
 import { useState } from "react"
+import {
+  AlertTriangle,
+  CircleDot,
+  HelpCircle,
+  ListTodo,
+  PencilLine,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 import {
   Kanban,
@@ -21,6 +29,13 @@ import {
   ReviewSectionHeader,
   ReviewStage,
 } from "./review-layout"
+
+const reviewLaneIcons: Record<string, LucideIcon> = {
+  blocking: AlertTriangle,
+  "follow-up": ListTodo,
+  nit: PencilLine,
+  question: HelpCircle,
+}
 
 function initialGateColumns(): Record<string, ReviewGateCard[]> {
   return Object.fromEntries(
@@ -117,19 +132,24 @@ export default function ReviewGateBlock() {
 
       <div className="canvas-grid-2 items-start">
         <ReviewRailGrid className="md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
-          {reviewLanes.map((lane) => (
-            <ReviewPanel className="canvas-stack-xs" key={lane.label}>
-              <div className="flex items-center justify-between gap-2">
-                <span className="canvas-text-caption text-muted-foreground">
-                  {lane.label}
-                </span>
-                <StatusBadge status={lane.status}>{lane.count}</StatusBadge>
-              </div>
-              <p className="canvas-text-caption text-muted-foreground">
-                {lane.detail}
-              </p>
-            </ReviewPanel>
-          ))}
+          {reviewLanes.map((lane) => {
+            const Icon = reviewLaneIcons[lane.label] ?? CircleDot
+
+            return (
+              <ReviewPanel className="canvas-stack-xs" key={lane.label}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="canvas-wrap-sm items-center canvas-text-caption text-muted-foreground">
+                    <Icon data-icon="inline-start" />
+                    <span>{lane.label}</span>
+                  </span>
+                  <StatusBadge status={lane.status}>{lane.count}</StatusBadge>
+                </div>
+                <p className="canvas-text-caption text-muted-foreground">
+                  {lane.detail}
+                </p>
+              </ReviewPanel>
+            )
+          })}
         </ReviewRailGrid>
 
         <ReviewPanel className="canvas-stack-sm">

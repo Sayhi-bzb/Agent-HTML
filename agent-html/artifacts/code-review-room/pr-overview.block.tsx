@@ -1,3 +1,11 @@
+import {
+  Binary,
+  FileCode2,
+  Package,
+  ShieldCheck,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+
 import { Badge } from "../../components/ui/badge"
 import { Progress } from "../../components/ui/progress"
 import { StatusBadge } from "../../components/ui/status-badge"
@@ -7,6 +15,13 @@ import {
   summaryItems,
 } from "./data/repo-summary"
 import { ReviewMetricValue, ReviewPanel } from "./review-layout"
+
+const summaryItemIcons: Record<string, LucideIcon> = {
+  "canvas scripts": FileCode2,
+  package: Package,
+  "risk candidates": ShieldCheck,
+  "symbols indexed": Binary,
+}
 
 export default function PrOverviewBlock() {
   return (
@@ -44,16 +59,21 @@ export default function PrOverviewBlock() {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {summaryItems.map((item) => (
-            <ReviewPanel className="canvas-stack-xs p-3" key={item.label}>
-              <p className="canvas-text-caption text-muted-foreground">
-                {item.label}
-              </p>
-              <ReviewMetricValue>
-                {item.value}
-              </ReviewMetricValue>
-            </ReviewPanel>
-          ))}
+          {summaryItems.map((item) => {
+            const Icon = summaryItemIcons[item.label]
+
+            return (
+              <ReviewPanel className="canvas-stack-xs p-3" key={item.label}>
+                <p className="canvas-wrap-sm items-center canvas-text-caption text-muted-foreground">
+                  {Icon ? <Icon data-icon="inline-start" /> : null}
+                  <span>{item.label}</span>
+                </p>
+                <ReviewMetricValue>
+                  {item.value}
+                </ReviewMetricValue>
+              </ReviewPanel>
+            )
+          })}
         </div>
       </div>
 

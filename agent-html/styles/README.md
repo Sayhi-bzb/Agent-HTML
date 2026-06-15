@@ -7,9 +7,7 @@ values in it.
 
 ## Agent Route
 
-- Artifact CSS class names: read `../index/style-surface.md`.
-- CSS token parameter names: read `../index/style-token-surface.md`.
-- CSS scale value distribution: read `../index/style-scale-surface.md`.
+- Default artifact CSS class names: read `../index/style-surface.md`.
 - Artifact content style: read `layouts/index.css`.
 - CodeBlock implementation style: read `internal/code-block.css`.
 - Artifact reading container: read `internal/artifact.css`.
@@ -17,6 +15,16 @@ values in it.
 - Standard kit values: read `kits`.
 - CodeBlock token values: read `kits/code-block.css`.
 - Tailwind and shadcn token mapping: read `materials/tailwind.css`.
+
+## Diagnostics
+
+Generated maintenance surfaces live in `diagnostics/`:
+
+- CSS token parameter names: read `diagnostics/token-surface.md`.
+- CSS scale value distribution: read `diagnostics/scale-surface.md`.
+- Artifact CSS class convergence tiers: read `diagnostics/tier-surface.md` before using rare classes.
+- Artifact CSS class usage: read `diagnostics/usage-surface.md`.
+- Artifact CSS class variants: read `diagnostics/variant-surface.md`.
 
 ## Public Style API
 
@@ -38,13 +46,11 @@ content:
   `canvas-grid-main-aside-xl`, `canvas-grid-main-aside-xl-wide`,
   `canvas-grid-aside-main`, `canvas-grid-aside-main-lg`, and
   `canvas-grid-cards`.
-- Frame uses `canvas-frame-table`, `canvas-frame-wide`,
-  `canvas-frame-chart`, `canvas-frame-chart-lg`, `canvas-frame-map`, and
-  `canvas-frame-media`.
+- Frame defaults to `canvas-frame-media`. Use `canvas-frame-table` or
+  `canvas-frame-wide` only for overflow and width guard cases.
 
 Use Grid classes before writing arbitrary `grid-cols-[...]`. Use Frame classes
-before repeating `overflow-x-auto`, width guards, media clipping, or chart/map
-height scaffolding.
+before repeating `overflow-x-auto`, width guards, or media clipping.
 
 Raw material values stay in `materials/*`. L3 semantic role classes are not part
 of the current artifact layout API.

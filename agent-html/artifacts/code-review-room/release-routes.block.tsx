@@ -1,4 +1,11 @@
 import { useMemo, useState } from "react"
+import {
+  FileCode2,
+  GitPullRequestArrow,
+  RefreshCcw,
+  Route,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 import { AreaChart } from "../../components/chart/area-chart"
 import { Badge } from "../../components/ui/badge"
@@ -22,6 +29,11 @@ import {
 } from "./review-layout"
 
 const defaultRouteValue = "workspace index refresh"
+const releaseRouteIcons: Record<string, LucideIcon> = {
+  "artifact-only pass": FileCode2,
+  "primitive refactor RFC": GitPullRequestArrow,
+  "workspace index refresh": RefreshCcw,
+}
 
 export default function ReleaseRoutesBlock() {
   const [selectedRouteValue, setSelectedRouteValue] =
@@ -97,9 +109,12 @@ export default function ReleaseRoutesBlock() {
           onValueChange={setSelectedRouteValue}
           value={selectedRouteValue}
         >
-          {releaseRoutes.map((route) => (
-            <ReviewPanel className="p-0" key={route.value}>
-              <label className="canvas-stack-sm block p-4">
+          {releaseRoutes.map((route) => {
+            const Icon = releaseRouteIcons[route.value] ?? Route
+
+            return (
+              <ReviewPanel className="p-0" key={route.value}>
+                <label className="canvas-stack-sm block p-4">
                 <div>
                   <div className="flex items-center justify-between gap-3">
                     <p className="canvas-text-caption text-muted-foreground">
@@ -108,7 +123,10 @@ export default function ReleaseRoutesBlock() {
                     <RadioGroupItem value={route.value} />
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <h3 className="canvas-text-body">{route.value}</h3>
+                    <h3 className="canvas-wrap-sm items-center canvas-text-body">
+                      <Icon data-icon="inline-start" />
+                      <span>{route.value}</span>
+                    </h3>
                     <Badge variant="secondary">{route.badge}</Badge>
                   </div>
                   <p className="mt-2 canvas-text-caption text-muted-foreground">
@@ -123,9 +141,10 @@ export default function ReleaseRoutesBlock() {
                     <Progress value={item.value} />
                   </div>
                 ))}
-              </label>
-            </ReviewPanel>
-          ))}
+                </label>
+              </ReviewPanel>
+            )
+          })}
         </RadioGroup>
       </div>
     </section>

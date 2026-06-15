@@ -54,9 +54,9 @@ Same value across different categories is not a merge signal by itself; runtime 
 | `16rem` | `--canvas-frame-media-sm-min-height` | `agent-html/styles/kits/content.css` |
 | `18rem` | `--canvas-host-select-content-max-height`, `--canvas-theme-editor-menu-max-height` | `packages/cli/src/host/styles/tokens/host.css`, `packages/cli/src/host/styles/tokens/theme-editor.css` |
 | `20rem` | `--canvas-frame-min-height-md` | `agent-html/styles/kits/content.css` |
-| `26.25rem` | `--canvas-frame-media-lg-max-height`, `--canvas-frame-media-lg-min-height`, `--canvas-frame-min-height-lg` | `agent-html/styles/kits/content.css` |
+| `26.25rem` | `--canvas-frame-media-lg-max-height`, `--canvas-frame-min-height-lg` | `agent-html/styles/kits/content.css` |
 | `28.75rem` | `--canvas-frame-media-md-max-height` | `agent-html/styles/kits/content.css` |
-| `32.5rem` | `--canvas-frame-media-xl-max-height`, `--canvas-frame-min-height-xl` | `agent-html/styles/kits/content.css` |
+| `32.5rem` | `--canvas-frame-min-height-xl` | `agent-html/styles/kits/content.css` |
 
 ## Size
 

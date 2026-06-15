@@ -72,10 +72,20 @@ const styleScaleSections = [
   { label: "packages/cli/src/host/styles/tokens/host.css", rootDir: root, sourceFile: "packages/cli/src/host/styles/tokens/host.css" },
   { label: "packages/cli/src/host/styles/tokens/theme-editor.css", rootDir: root, sourceFile: "packages/cli/src/host/styles/tokens/theme-editor.css" },
 ]
+const styleUsageRoots = [
+  "agent-html/artifacts",
+  "apps/docs/content",
+]
+const styleUsageSampleLimit = 5
 const obsoleteGeneratedPaths = [
   "index/exports.md",
   "index/imports.md",
   "index/api/ui.d.ts",
+  "index/style-token-surface.md",
+  "index/style-scale-surface.md",
+  "index/style-tier-surface.md",
+  "index/style-usage-surface.md",
+  "index/style-variant-surface.md",
   ...apiSections.map(({ sourceDir }) => `index/api/${sourceDir}.d.ts`),
 ]
 
@@ -664,22 +674,32 @@ function buildReuseSurfaceMarkdown() {
 }
 
 function buildStyleSurfaceMarkdown() {
+  const rows = styleUsageRows()
+  const defaultClasses = rows.filter(({ tier }) => tier === "default")
+  const rareClasses = rows.filter(({ tier }) => tier === "rare")
+  const legacyClasses = rows.filter(({ tier }) => tier === "legacy")
   const sections = [
     "<!-- generated: do not edit -->",
     "",
     "# React Canvas Style Surface",
     "",
-    "Generated public CSS class surface for Canvas artifact authoring.",
-    "Names are grouped by source owner; open CSS source only when changing class behavior.",
+    "Generated default CSS class surface for Canvas artifact authoring.",
+    "Use default classes first. Rare classes are valid but should stay situational; open `styles/diagnostics/tier-surface.md` or CSS source only when changing class behavior.",
     "",
-    "## Public Classes",
+    "## Default Classes",
+    "",
+    markdownList(defaultClasses.map(({ className }) => className)),
+    "",
+    "## Rare Classes",
+    "",
+    markdownList(rareClasses.map(({ className }) => className)),
   ]
 
-  for (const section of styleClassSections) {
+  if (legacyClasses.length > 0) {
     sections.push("")
-    sections.push(`### agent-html/${section.sourceFile}`)
+    sections.push("## Legacy Classes")
     sections.push("")
-    sections.push(markdownList(extractCssClasses(section.sourceFile)))
+    sections.push(markdownList(legacyClasses.map(({ className }) => className)))
   }
 
   return sections.join("\n")
@@ -736,6 +756,145 @@ function buildStyleScaleSurfaceMarkdown() {
   return sections.join("\n")
 }
 
+function buildStyleUsageSurfaceMarkdown() {
+  const usageRows = styleUsageRows()
+
+  const familyRows = [...Map.groupBy(usageRows, ({ family }) => family).entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([family, rows]) => [
+      `\`${family}\``,
+      String(rows.length),
+      String(rows.filter(({ uses }) => uses > 0).length),
+      String(rows.reduce((sum, { uses }) => sum + uses, 0)),
+    ])
+  const lowUseRows = usageRows
+    .filter(({ uses }) => uses <= 2)
+    .sort((a, b) => a.uses - b.uses || a.className.localeCompare(b.className))
+    .map(styleUsageTableRow)
+
+  return [
+    "<!-- generated: do not edit -->",
+    "",
+    "# React Canvas Style Usage Surface",
+    "",
+    "Generated usage map for public Canvas artifact CSS classes.",
+    "Counts scan artifact and docs authoring sources only; CSS definitions, generated indexes, build output, and host chrome are not counted.",
+    "",
+    "## Summary",
+    "",
+    markdownTable(
+      ["Metric", "Count"],
+      [
+        ["Public classes", String(usageRows.length)],
+        ["Used classes", String(usageRows.filter(({ uses }) => uses > 0).length)],
+        ["Unused classes", String(usageRows.filter(({ uses }) => uses === 0).length)],
+        ["Usage hits", String(usageRows.reduce((sum, { uses }) => sum + uses, 0))],
+      ],
+    ),
+    "",
+    "## Families",
+    "",
+    markdownTable(["Family", "Classes", "Used", "Hits"], familyRows),
+    "",
+    "## Low Use Classes",
+    "",
+    markdownTable(["Class", "Family", "Uses", "Files", "Sample Locations"], lowUseRows),
+    "",
+    "## All Classes",
+    "",
+    markdownTable(
+      ["Class", "Family", "Uses", "Files", "Sample Locations"],
+      usageRows.map(styleUsageTableRow),
+    ),
+  ].join("\n")
+}
+
+function buildStyleVariantSurfaceMarkdown() {
+  const usageRows = styleClassSections
+    .flatMap(({ sourceFile }) => extractCssClasses(sourceFile))
+    .map((className) => styleUsageForClass(className))
+  const frameMediaRows = usageRows
+    .filter(({ family }) => family === "frame-media")
+    .sort((a, b) => b.uses - a.uses || a.className.localeCompare(b.className))
+    .map((row) => styleVariantTableRow(row, frameMediaVariant(row.className)))
+  const gridRows = usageRows
+    .filter(({ family }) => family === "grid")
+    .sort((a, b) => b.uses - a.uses || a.className.localeCompare(b.className))
+    .map((row) => styleVariantTableRow(row, gridVariant(row.className)))
+
+  return [
+    "<!-- generated: do not edit -->",
+    "",
+    "# React Canvas Style Variant Surface",
+    "",
+    "Generated variant matrix for high-branch Canvas CSS class families.",
+    "Use this with `style-usage-surface.md` before deciding whether a class should be default, rare, or legacy.",
+    "",
+    "## Frame Media Variants",
+    "",
+    markdownTable(
+      ["Class", "Variant", "Uses", "Files", "Sample Locations"],
+      frameMediaRows,
+    ),
+    "",
+    "## Grid Variants",
+    "",
+    markdownTable(
+      ["Class", "Variant", "Uses", "Files", "Sample Locations"],
+      gridRows,
+    ),
+  ].join("\n")
+}
+
+function buildStyleTierSurfaceMarkdown() {
+  const usageRows = styleUsageRows()
+  const tierRows = [...Map.groupBy(usageRows, ({ tier }) => tier).entries()]
+    .sort(([a], [b]) => styleTierRank(a) - styleTierRank(b))
+    .map(([tier, rows]) => [
+      `\`${tier}\``,
+      String(rows.length),
+      String(rows.reduce((sum, { uses }) => sum + uses, 0)),
+      [...new Set(rows.map(({ family }) => family))]
+        .sort()
+        .map((family) => `\`${family}\``)
+        .join(", "),
+    ])
+
+  return [
+    "<!-- generated: do not edit -->",
+    "",
+    "# React Canvas Style Tier Surface",
+    "",
+    "Generated convergence map for public Canvas artifact CSS classes.",
+    "`default` is the normal authoring surface, `rare` is valid but should stay situational, and `legacy` has no scanned artifact/docs usage.",
+    "",
+    "## Summary",
+    "",
+    markdownTable(["Tier", "Classes", "Hits", "Families"], tierRows),
+    "",
+    "## Default Classes",
+    "",
+    markdownTable(
+      ["Class", "Family", "Uses", "Files", "Sample Locations"],
+      usageRows.filter(({ tier }) => tier === "default").map(styleUsageTableRow),
+    ),
+    "",
+    "## Rare Classes",
+    "",
+    markdownTable(
+      ["Class", "Family", "Uses", "Files", "Sample Locations"],
+      usageRows.filter(({ tier }) => tier === "rare").map(styleUsageTableRow),
+    ),
+    "",
+    "## Legacy Classes",
+    "",
+    markdownTable(
+      ["Class", "Family", "Uses", "Files", "Sample Locations"],
+      usageRows.filter(({ tier }) => tier === "legacy").map(styleUsageTableRow),
+    ),
+  ].join("\n")
+}
+
 function readWorkspaceText(relativePath) {
   const filePath = path.join(workspaceRoot, relativePath)
 
@@ -767,6 +926,196 @@ function extractCssClasses(relativePath) {
   }
 
   return [...classNames].sort()
+}
+
+function styleUsageForClass(className) {
+  const locations = []
+
+  for (const file of styleUsageFiles()) {
+    const content = fs.readFileSync(file, "utf8")
+
+    if (!content.includes(className)) {
+      continue
+    }
+
+    const lines = content.split(/\r?\n/)
+
+    lines.forEach((line, index) => {
+      if (line.includes(className)) {
+        locations.push(`${toRepoPath(file)}:${index + 1}`)
+      }
+    })
+  }
+
+  return {
+    className,
+    family: styleClassFamily(className),
+    files: new Set(locations.map((location) => location.split(":")[0])).size,
+    locations,
+    uses: locations.length,
+  }
+}
+
+function styleUsageRows() {
+  return styleClassSections
+    .flatMap(({ sourceFile }) => extractCssClasses(sourceFile))
+    .map((className) => {
+      const usage = styleUsageForClass(className)
+
+      return {
+        ...usage,
+        tier: styleClassTier(usage.uses),
+      }
+    })
+    .sort((a, b) => b.uses - a.uses || a.className.localeCompare(b.className))
+}
+
+function styleClassTier(uses) {
+  if (uses === 0) {
+    return "legacy"
+  }
+
+  if (uses <= 2) {
+    return "rare"
+  }
+
+  return "default"
+}
+
+function styleTierRank(tier) {
+  return {
+    default: 0,
+    rare: 1,
+    legacy: 2,
+  }[tier]
+}
+
+function styleUsageFiles() {
+  return styleUsageRoots
+    .flatMap((relativePath) => readAllFiles(path.join(root, relativePath)))
+    .filter((file) =>
+      [".js", ".jsx", ".md", ".mdx", ".ts", ".tsx"].includes(
+        path.extname(file),
+      )
+    )
+}
+
+function styleClassFamily(className) {
+  if (className.startsWith("canvas-frame-media")) {
+    return "frame-media"
+  }
+
+  if (className.startsWith("canvas-frame")) {
+    return "frame"
+  }
+
+  if (className.startsWith("canvas-grid")) {
+    return "grid"
+  }
+
+  if (className.startsWith("canvas-stack")) {
+    return "stack"
+  }
+
+  if (className.startsWith("canvas-text")) {
+    return "text"
+  }
+
+  if (className.startsWith("canvas-cluster")) {
+    return "cluster"
+  }
+
+  if (className.startsWith("canvas-wrap")) {
+    return "wrap"
+  }
+
+  if (className.startsWith("canvas-content")) {
+    return "content"
+  }
+
+  if (className.startsWith("canvas-icon")) {
+    return "icon"
+  }
+
+  return "other"
+}
+
+function styleUsageTableRow(row) {
+  return [
+    `\`${row.className}\``,
+    `\`${row.family}\``,
+    String(row.uses),
+    String(row.files),
+    row.locations
+      .slice(0, styleUsageSampleLimit)
+      .map((location) => `\`${location}\``)
+      .join(", "),
+  ]
+}
+
+function styleVariantTableRow(row, variant) {
+  return [
+    `\`${row.className}\``,
+    `\`${variant}\``,
+    String(row.uses),
+    String(row.files),
+    row.locations
+      .slice(0, styleUsageSampleLimit)
+      .map((location) => `\`${location}\``)
+      .join(", "),
+  ]
+}
+
+function frameMediaVariant(className) {
+  if (className === "canvas-frame-media") {
+    return "base"
+  }
+
+  const suffix = className.replace("canvas-frame-media-", "")
+
+  if (["16-9", "16-10", "portrait"].includes(suffix)) {
+    return `aspect:${suffix}`
+  }
+
+  if (["fill", "min-sm", "min-lg", "md", "lg", "xl", "screen"].includes(suffix)) {
+    return `height:${suffix}`
+  }
+
+  return "other"
+}
+
+function gridVariant(className) {
+  if (["canvas-grid-gap", "canvas-grid-gap-md"].includes(className)) {
+    return `base:${className.replace("canvas-grid-", "")}`
+  }
+
+  if (/^canvas-grid-2(?:-(sm|lg))?$/.test(className)) {
+    const breakpoint = className.match(/-(sm|lg)$/)?.[1]
+
+    return breakpoint ? `columns:2; breakpoint:${breakpoint}` : "columns:2"
+  }
+
+  if (className === "canvas-grid-4") {
+    return "columns:4"
+  }
+
+  if (className === "canvas-grid-cards") {
+    return "layout:cards"
+  }
+
+  const layoutMatch = className.match(
+    /^canvas-grid-(main-aside|aside-main)(?:-(lg|xl))?(?:-(wide))?$/,
+  )
+
+  if (layoutMatch) {
+    return [
+      `layout:${layoutMatch[1]}`,
+      layoutMatch[2] ? `breakpoint:${layoutMatch[2]}` : "",
+      layoutMatch[3] ? `ratio:${layoutMatch[3]}` : "",
+    ].filter(Boolean).join("; ")
+  }
+
+  return "other"
 }
 
 function extractCssCustomProperties(relativePath) {
@@ -913,10 +1262,8 @@ function buildReadme() {
     "2. Read `dependency-summary.md` before broad dependency or boundary work.",
     "3. Read `reuse-surface.md` when choosing reusable hooks or helpers.",
     "4. Read `api-surface.md` when checking component, hook, helper, or schema exports.",
-    "5. Read `style-surface.md` when checking Canvas artifact CSS classes.",
-    "6. Read `style-token-surface.md` when checking Canvas CSS token names.",
-    "7. Read `style-scale-surface.md` when comparing CSS scale values.",
-    "8. Open source only after the index identifies the relevant file.",
+    "5. Read `style-surface.md` when choosing default Canvas artifact CSS classes.",
+    "6. Open source only after the index identifies the relevant file.",
     "",
     "## Files",
     "",
@@ -925,8 +1272,6 @@ function buildReadme() {
     "- `reuse-surface.md` maps reusable source owners to use cases and minimal signatures.",
     "- `api-surface.md` maps compact exported API surfaces.",
     "- `style-surface.md` maps generated artifact CSS class names.",
-    "- `style-token-surface.md` maps generated CSS token parameter names.",
-    "- `style-scale-surface.md` maps generated CSS scale values to token names.",
     "",
     "Full declarations and dependency graphs are temporary machine inputs under `node_modules/.tmp`, not committed agent context. Regenerate with `npm run canvas:index`.",
   ].join("\n")
@@ -968,13 +1313,28 @@ writeOrCheck("index/reuse-surface.md", buildReuseSurfaceMarkdown(), writtenFiles
 writeOrCheck("index/api-surface.md", buildApiSurfaceMarkdown(), writtenFiles)
 writeOrCheck("index/style-surface.md", buildStyleSurfaceMarkdown(), writtenFiles)
 writeOrCheck(
-  "index/style-token-surface.md",
+  "styles/diagnostics/token-surface.md",
   buildStyleTokenSurfaceMarkdown(),
   writtenFiles,
 )
 writeOrCheck(
-  "index/style-scale-surface.md",
+  "styles/diagnostics/scale-surface.md",
   buildStyleScaleSurfaceMarkdown(),
+  writtenFiles,
+)
+writeOrCheck(
+  "styles/diagnostics/tier-surface.md",
+  buildStyleTierSurfaceMarkdown(),
+  writtenFiles,
+)
+writeOrCheck(
+  "styles/diagnostics/usage-surface.md",
+  buildStyleUsageSurfaceMarkdown(),
+  writtenFiles,
+)
+writeOrCheck(
+  "styles/diagnostics/variant-surface.md",
+  buildStyleVariantSurfaceMarkdown(),
   writtenFiles,
 )
 cleanupObsoleteGeneratedFiles()

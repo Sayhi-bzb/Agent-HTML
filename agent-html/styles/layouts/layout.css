@@ -114,29 +114,11 @@
     min-width: var(--canvas-frame-wide-min-width);
   }
 
-  .canvas-frame-chart,
-  .canvas-frame-chart-lg,
-  .canvas-frame-map,
   .canvas-frame-media {
     position: relative;
     min-width: 0;
     overflow: hidden;
     border-radius: var(--radius-md);
-  }
-
-  .canvas-frame-chart {
-    min-height: var(--canvas-frame-min-height-md);
-  }
-
-  .canvas-frame-chart-lg {
-    min-height: var(--canvas-frame-min-height-lg);
-  }
-
-  .canvas-frame-map {
-    min-height: var(--canvas-frame-min-height-xl);
-  }
-
-  .canvas-frame-media {
     background: var(--muted);
   }
 
@@ -172,7 +154,7 @@
   }
 
   .canvas-frame-media-min-lg {
-    min-height: var(--canvas-frame-media-lg-min-height);
+    min-height: var(--canvas-frame-min-height-lg);
   }
 
   .canvas-frame-media-md {
@@ -184,7 +166,7 @@
   }
 
   .canvas-frame-media-xl {
-    max-height: var(--canvas-frame-media-xl-max-height);
+    max-height: var(--canvas-frame-min-height-xl);
   }
 
 }

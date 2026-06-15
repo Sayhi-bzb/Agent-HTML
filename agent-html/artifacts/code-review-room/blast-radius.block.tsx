@@ -1,3 +1,10 @@
+import {
+  Boxes,
+  ClipboardCheck,
+  FileCode2,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+
 import { SankeyChart } from "../../components/chart/sankey-chart"
 import type { ChartConfig } from "../../components/chart/types"
 import { packageSankeyData } from "./data/blast-radius"
@@ -35,6 +42,14 @@ const blastRadiusSummary = [
   ["surface", "components/ui, styles, and theme presets"],
   ["gates", "typecheck, guard, index, and dependency checks"],
 ] as const
+const blastRadiusSummaryIcons: Record<
+  (typeof blastRadiusSummary)[number][0],
+  LucideIcon
+> = {
+  gates: ClipboardCheck,
+  source: FileCode2,
+  surface: Boxes,
+}
 
 export default function BlastRadiusBlock() {
   return (
@@ -90,14 +105,19 @@ export default function BlastRadiusBlock() {
             </p>
           </div>
           <div className="canvas-stack-xs">
-            {blastRadiusSummary.map(([label, detail]) => (
-              <div className="rounded-md bg-muted/40 p-3" key={label}>
-                <p className="canvas-text-caption text-muted-foreground">
-                  {label}
-                </p>
-                <p className="canvas-text-body">{detail}</p>
-              </div>
-            ))}
+            {blastRadiusSummary.map(([label, detail]) => {
+              const Icon = blastRadiusSummaryIcons[label]
+
+              return (
+                <div className="rounded-md bg-muted/40 p-3" key={label}>
+                  <p className="canvas-wrap-sm items-center canvas-text-caption text-muted-foreground">
+                    <Icon data-icon="inline-start" />
+                    <span>{label}</span>
+                  </p>
+                  <p className="canvas-text-body">{detail}</p>
+                </div>
+              )
+            })}
           </div>
         </ReviewPanel>
       </div>
