@@ -77,6 +77,7 @@ Current renderer support:
 
 - `BarChart`, `BarHChart`, `PieChart`, `AreaChart`, `HeatmapChart`, and
   `SunburstChart`: `svg`, `rough`, and `texture`.
+- `RadarChart`: `svg`, `rough`, and `texture`.
 - `NetworkChart`: `svg`, `rough`, and `texture`; texture applies to node fill.
 - `ScatterChart`: `svg`, `rough`, and `texture` with xychart-owned placement.
 - `SankeyChart`: `svg`, `rough`, and `texture`.

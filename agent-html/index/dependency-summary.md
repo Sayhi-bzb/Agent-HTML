@@ -7,10 +7,10 @@ Dependency-cruiser summary for `agent-html` source files.
 
 | Metric | Count |
 | --- | --- |
-| Modules | 192 |
-| Dependencies | 494 |
-| Local edges | 324 |
-| External edges | 169 |
+| Modules | 191 |
+| Dependencies | 492 |
+| Local edges | 321 |
+| External edges | 170 |
 | Unresolved edges | 1 |
 | Circular edges | 0 |
 | Rule violations | 0 |
@@ -20,16 +20,16 @@ Dependency-cruiser summary for `agent-html` source files.
 | Module | Inbound Local Edges |
 | --- | --- |
 | `agent-html/lib/cn.ts` | 47 |
-| `agent-html/components/ui/badge.tsx` | 28 |
-| `agent-html/components/ui/status-badge.tsx` | 14 |
+| `agent-html/components/ui/badge.tsx` | 27 |
+| `agent-html/components/ui/status-badge.tsx` | 13 |
 | `agent-html/components/ui/button.tsx` | 12 |
 | `agent-html/components/chart/runtime/index.ts` | 10 |
 | `agent-html/components/media-figure.tsx` | 9 |
 | `agent-html/artifacts/health-report-decoder/data/report.ts` | 8 |
 | `agent-html/artifacts/code-review-room/review-layout.tsx` | 7 |
-| `agent-html/artifacts/health-report-decoder/data/status.ts` | 7 |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 7 |
 | `agent-html/lib/public-url.ts` | 7 |
+| `agent-html/artifacts/health-report-decoder/data/status.ts` | 6 |
 | `agent-html/artifacts/nasa-artemis-ii/data/media.ts` | 6 |
 
 ## Highest Local Fanout
@@ -38,11 +38,11 @@ Dependency-cruiser summary for `agent-html` source files.
 | --- | --- |
 | `agent-html/components/chart/runtime/index.ts` | 13 |
 | `agent-html/theme/presets.ts` | 13 |
+| `agent-html/artifacts/health-report-decoder/lab-system-map.block.tsx` | 9 |
 | `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 9 |
 | `agent-html/components/ui/sidebar.tsx` | 8 |
 | `agent-html/artifacts/code-review-room/code-metrics.block.tsx` | 7 |
 | `agent-html/artifacts/code-review-room/release-routes.block.tsx` | 7 |
-| `agent-html/artifacts/health-report-decoder/lab-system-map.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/lab-trend-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/ldl-range-review.block.tsx` | 7 |
 | `agent-html/artifacts/health-report-decoder/report-triage.block.tsx` | 7 |
@@ -60,8 +60,8 @@ Dependency-cruiser summary for `agent-html` source files.
 | `packages/react/src/index.tsx` | 6 |
 | `node_modules/@visx/xychart/esm/index.js` | 4 |
 | `node_modules/@visx/curve/esm/index.js` | 2 |
+| `node_modules/@visx/scale/esm/index.js` | 2 |
 | `node_modules/@visx/shape/esm/index.js` | 2 |
 | `node_modules/clsx/dist/clsx.mjs` | 2 |
 | `node_modules/react-dom/index.js` | 2 |
 | `node_modules/tailwind-merge/dist/bundle-cjs.js` | 2 |
-| `node_modules/@base-ui/react/index.js` | 1 |

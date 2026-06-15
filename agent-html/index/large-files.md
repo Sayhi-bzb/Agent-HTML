@@ -6,23 +6,25 @@ Files at or above about 2000 estimated tokens. Token counts are lightweight read
 
 | File | Est. Tokens | Read First |
 | --- | --- | --- |
-| `agent-html/components/map.tsx` | 13279 | `components/README.md` |
+| `agent-html/components/map.tsx` | 13742 | `components/README.md` |
 | `agent-html/components/kanban.tsx` | 7892 | `components/README.md` |
-| `agent-html/components/chart/sankey-chart.tsx` | 7388 | `components/README.md` |
+| `agent-html/components/chart/sankey-chart.tsx` | 7498 | `components/README.md` |
 | `agent-html/components/ui/sidebar.tsx` | 5514 | `components/README.md` |
 | `agent-html/artifacts/nyc-taxi-sketchbook/data/city-rhythm.ts` | 5057 | `artifacts/README.md` |
-| `agent-html/components/chart/network-chart.tsx` | 4933 | `components/README.md` |
-| `agent-html/components/chart/scatter-chart.tsx` | 4422 | `components/README.md` |
-| `agent-html/components/chart/bar-chart.tsx` | 3595 | `components/README.md` |
+| `agent-html/components/chart/network-chart.tsx` | 5000 | `components/README.md` |
+| `agent-html/components/chart/scatter-chart.tsx` | 4463 | `components/README.md` |
+| `agent-html/components/chart/bar-chart.tsx` | 3630 | `components/README.md` |
+| `agent-html/components/chart/radar-chart.tsx` | 3554 | `components/README.md` |
+| `agent-html/components/chart/sunburst-chart.tsx` | 3324 | `components/README.md` |
 | `agent-html/components/data-table.tsx` | 3240 | `components/README.md` |
-| `agent-html/components/chart/sunburst-chart.tsx` | 3213 | `components/README.md` |
-| `agent-html/components/chart/heatmap-chart.tsx` | 3035 | `components/README.md` |
-| `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 2944 | `artifacts/README.md` |
-| `agent-html/components/chart/area-chart.tsx` | 2888 | `components/README.md` |
-| `agent-html/components/chart/radar-chart.tsx` | 2791 | `components/README.md` |
-| `agent-html/artifacts/nyc-taxi-sketchbook/borough-flow-network.block.tsx` | 2604 | `artifacts/README.md` |
-| `agent-html/styles/internal/host/sidebar.css` | 2323 | nearest README or source-specific notes |
-| `agent-html/components/ui/combobox.tsx` | 2264 | `components/README.md` |
-| `agent-html/components/ui/dropdown-menu.tsx` | 2204 | `components/README.md` |
+| `agent-html/components/chart/heatmap-chart.tsx` | 3071 | `components/README.md` |
+| `agent-html/artifacts/tokyo-three-speeds/route-planner.block.tsx` | 2938 | `artifacts/README.md` |
+| `agent-html/components/chart/area-chart.tsx` | 2930 | `components/README.md` |
+| `agent-html/artifacts/nyc-taxi-sketchbook/borough-flow-network.block.tsx` | 2627 | `artifacts/README.md` |
+| `agent-html/components/ui/combobox.tsx` | 2338 | `components/README.md` |
+| `agent-html/styles/internal/host/sidebar.css` | 2338 | nearest README or source-specific notes |
+| `agent-html/components/ui/dropdown-menu.tsx` | 2271 | `components/README.md` |
+| `agent-html/artifacts/health-report-decoder/lab-system-map.block.tsx` | 2173 | `artifacts/README.md` |
 | `agent-html/artifacts/nyc-taxi-sketchbook/sketch-components.tsx` | 2157 | `artifacts/README.md` |
-| `agent-html/components/ui/calendar.tsx` | 2047 | `components/README.md` |
+| `agent-html/components/ui/calendar.tsx` | 2102 | `components/README.md` |
+| `agent-html/components/chart/runtime/tooltip.tsx` | 2007 | `components/README.md` |

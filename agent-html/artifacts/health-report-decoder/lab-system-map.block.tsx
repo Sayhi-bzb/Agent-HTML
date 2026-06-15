@@ -1,3 +1,4 @@
+import { RadarChart } from "../../components/chart/radar-chart"
 import { Badge } from "../../components/ui/badge"
 import { StatusBadge } from "../../components/ui/status-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
@@ -6,6 +7,7 @@ import { artifactPublicUrlFactory } from "../../lib/public-url"
 import {
   labItemsBySystem,
 } from "./data/report"
+import { reportRadarItems } from "./data/report-radar"
 import { statusFor } from "./data/status"
 import { systems } from "./data/lab-system-map"
 import type { LabItem } from "./data/types"
@@ -117,6 +119,67 @@ function SystemHealthIcon({ systemId }: { systemId: string }) {
   )
 }
 
+function SystemRadarPanel() {
+  return (
+    <div className="canvas-grid-main-aside">
+      <div className="canvas-stack-md min-w-0">
+        <div className="canvas-stack-xs">
+          <Badge variant="outline">系统关注度</Badge>
+          <p className="canvas-text-body text-muted-foreground">
+            按本次报告里每组最高关注项整理，不作为诊断分数。
+          </p>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          {reportRadarItems.map((item) => (
+            <div
+              className="canvas-wrap-sm items-center justify-between"
+              key={item.code}
+            >
+              <span className="canvas-text-caption">{item.label}</span>
+              <StatusBadge status={statusFor(item.status).status}>
+                {item.code}
+              </StatusBadge>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <RadarChart
+        angleKey="label"
+        aspectRatio="4 / 3"
+        config={{
+          value: {
+            label: "关注度",
+          },
+        }}
+        data={reportRadarItems}
+        minHeight={240}
+        renderer="texture"
+        renderTooltip={({ datum, label, value }) => (
+          <div className="canvas-stack-xs">
+            <div className="canvas-wrap-sm items-center">
+              <span className="font-medium">{label}</span>
+              <StatusBadge status={statusFor(datum.status).status}>
+                {datum.statusLabel}
+              </StatusBadge>
+            </div>
+            <p className="font-mono text-foreground tabular-nums">
+              {value}/100
+            </p>
+            <p className="text-muted-foreground">
+              {datum.code}：{datum.note}
+            </p>
+          </div>
+        )}
+        valueDomain={[0, 100]}
+        valueFormatter={(value) => `${value}/100`}
+        valueKey="value"
+      />
+    </div>
+  )
+}
+
 export default function LabSystemMapBlock() {
   return (
     <section className="canvas-stack-lg">
@@ -165,6 +228,8 @@ export default function LabSystemMapBlock() {
           })}
         </div>
       </div>
+
+      <SystemRadarPanel />
 
       <Tabs defaultValue={systems[0]?.id} className="canvas-stack-md">
         <TabsList className="flex-wrap">
