@@ -18,6 +18,7 @@ import {
   ChartSvg,
   ChartTooltip,
   ChartTooltipContent,
+  type ChartTooltipField,
   ChartXAxisGrid,
   ChartYAxisGrid,
   createBandScale,
@@ -27,6 +28,7 @@ import {
   getValue,
   isFiniteNumber,
   resolveChartRenderer,
+  resolveChartTooltipItems,
   useChartMarkInteraction,
   useChartMaterialRegistry,
 } from "./runtime"
@@ -38,9 +40,17 @@ export interface BarChartProps<T> {
   data: readonly T[]
   legend?: boolean
   minHeight?: number
+  renderTooltip?: (props: {
+    category: string
+    datum: T
+    label: React.ReactNode
+    value: number
+  }) => React.ReactNode
   renderer?: ChartRenderer
   rough?: ChartRoughOptions
   texture?: ChartTextureOptions
+  tooltipFields?: readonly ChartTooltipField<T>[]
+  tooltipLabel?: ChartAccessor<T, React.ReactNode>
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -54,9 +64,17 @@ export interface BarHChartProps<T> {
   data: readonly T[]
   legend?: boolean
   minHeight?: number
+  renderTooltip?: (props: {
+    category: string
+    datum: T
+    label: React.ReactNode
+    value: number
+  }) => React.ReactNode
   renderer?: ChartRenderer
   rough?: ChartRoughOptions
   texture?: ChartTextureOptions
+  tooltipFields?: readonly ChartTooltipField<T>[]
+  tooltipLabel?: ChartAccessor<T, React.ReactNode>
   xKey: ChartAccessor<T, number>
   xValueFormatter?: (value: number) => React.ReactNode
   yKey: ChartAccessor<T, string>
@@ -94,9 +112,17 @@ interface BarCoreProps<T> {
   }
   minHeight: number
   orientation: BarOrientation
+  renderTooltip?: (props: {
+    category: string
+    datum: T
+    label: React.ReactNode
+    value: number
+  }) => React.ReactNode
   renderer: ChartRenderer
   rough?: ChartRoughOptions
   texture?: ChartTextureOptions
+  tooltipFields?: readonly ChartTooltipField<T>[]
+  tooltipLabel?: ChartAccessor<T, React.ReactNode>
   valueFormatter: (value: number) => React.ReactNode
   valueKey: ChartAccessor<T, number>
 }
@@ -256,9 +282,12 @@ function BarChartCore<T>({
   margin,
   minHeight,
   orientation,
+  renderTooltip,
   renderer,
   rough,
   texture,
+  tooltipFields,
+  tooltipLabel,
   valueFormatter,
   valueKey,
 }: BarCoreProps<T>) {
@@ -441,21 +470,40 @@ function BarChartCore<T>({
                     categoryKey,
                     datum: tooltip.datum,
                   })
+                  const tooltipHeader = tooltipLabel
+                    ? getValue(tooltip.datum, tooltipLabel)
+                    : label
+                  const value = getValue(tooltip.datum, valueKey)
 
                   return (
-                    <ChartTooltipContent
-                      items={[
-                        {
-                          color: materials.getMaterial(category).color,
-                          key: category,
-                          label,
-                          value: valueFormatter(
-                            getValue(tooltip.datum, valueKey)
-                          ),
-                        },
-                      ]}
-                      label={label}
-                    />
+                    renderTooltip ? (
+                      renderTooltip({
+                        category,
+                        datum: tooltip.datum,
+                        label: tooltipHeader,
+                        value,
+                      })
+                    ) : (
+                      <ChartTooltipContent
+                        items={
+                          tooltipFields
+                            ? resolveChartTooltipItems({
+                                color: materials.getMaterial(category).color,
+                                datum: tooltip.datum,
+                                fields: tooltipFields,
+                              })
+                            : [
+                                {
+                                  color: materials.getMaterial(category).color,
+                                  key: category,
+                                  label,
+                                  value: valueFormatter(value),
+                                },
+                              ]
+                        }
+                        label={tooltipHeader}
+                      />
+                    )
                   )
                 })()
               ) : null}
@@ -481,9 +529,12 @@ export function BarChart<T>({
   data,
   legend = false,
   minHeight = 320,
+  renderTooltip,
   renderer = "svg",
   rough,
   texture,
+  tooltipFields,
+  tooltipLabel,
   xKey,
   xLabelFormatter,
   yKey,
@@ -503,9 +554,12 @@ export function BarChart<T>({
       margin={VERTICAL_MARGIN}
       minHeight={minHeight}
       orientation="vertical"
+      renderTooltip={renderTooltip}
       renderer={renderer}
       rough={rough}
       texture={texture}
+      tooltipFields={tooltipFields}
+      tooltipLabel={tooltipLabel}
       valueFormatter={yValueFormatter}
       valueKey={yKey}
     />
@@ -519,9 +573,12 @@ export function BarHChart<T>({
   data,
   legend = false,
   minHeight = 360,
+  renderTooltip,
   renderer = "svg",
   rough,
   texture,
+  tooltipFields,
+  tooltipLabel,
   xKey,
   xValueFormatter = formatHorizontalValue,
   yKey,
@@ -541,9 +598,12 @@ export function BarHChart<T>({
       margin={HORIZONTAL_MARGIN}
       minHeight={minHeight}
       orientation="horizontal"
+      renderTooltip={renderTooltip}
       renderer={renderer}
       rough={rough}
       texture={texture}
+      tooltipFields={tooltipFields}
+      tooltipLabel={tooltipLabel}
       valueFormatter={xValueFormatter}
       valueKey={xKey}
     />

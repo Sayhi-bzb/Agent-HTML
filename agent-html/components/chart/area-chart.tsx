@@ -16,6 +16,7 @@ import {
   ChartContainer,
   ChartMotionCircle,
   ChartTooltipContent,
+  type ChartTooltipField,
   type ChartRenderer,
   chartMotion,
   chartXYTheme,
@@ -23,6 +24,7 @@ import {
   getNumberDomain,
   getValue,
   isFiniteNumber,
+  resolveChartTooltipItems,
   resolveChartRenderer,
   useChartMaterialRegistry,
 } from "./runtime"
@@ -42,9 +44,16 @@ export interface AreaChartProps<T> {
   data: readonly T[]
   minHeight?: number
   referenceY?: number
+  renderTooltip?: (props: {
+    datum: T
+    label: React.ReactNode
+    value: number
+  }) => React.ReactNode
   renderer?: ChartRenderer
   rough?: ChartRoughOptions
   texture?: ChartTextureOptions
+  tooltipFields?: readonly ChartTooltipField<T>[]
+  tooltipLabel?: ChartAccessor<T, React.ReactNode>
   xKey: ChartAccessor<T, string>
   xLabelFormatter?: (value: string) => React.ReactNode
   yKey: ChartAccessor<T, number>
@@ -248,9 +257,12 @@ export function AreaChart<T extends object>({
   data,
   minHeight = 320,
   referenceY,
+  renderTooltip,
   renderer = "svg",
   rough,
   texture,
+  tooltipFields,
+  tooltipLabel,
   xKey,
   xLabelFormatter,
   yKey,
@@ -401,21 +413,43 @@ export function AreaChart<T extends object>({
                 }
 
                 return (
-                  <ChartTooltipContent
-                    items={[
-                      {
-                        color,
-                        key: seriesKey,
-                        label: seriesLabel,
-                        value: yValueFormatter(getValue(tooltip, yKey)),
-                      },
-                    ]}
-                    label={
-                      xLabelFormatter
-                        ? xLabelFormatter(getValue(tooltip, xKey))
-                        : getValue(tooltip, xKey)
-                    }
-                  />
+                  renderTooltip ? (
+                    renderTooltip({
+                      datum: tooltip,
+                      label: tooltipLabel
+                        ? getValue(tooltip, tooltipLabel)
+                        : xLabelFormatter
+                          ? xLabelFormatter(getValue(tooltip, xKey))
+                          : getValue(tooltip, xKey),
+                      value: getValue(tooltip, yKey),
+                    })
+                  ) : (
+                    <ChartTooltipContent
+                      items={
+                        tooltipFields
+                          ? resolveChartTooltipItems({
+                              color,
+                              datum: tooltip,
+                              fields: tooltipFields,
+                            })
+                          : [
+                              {
+                                color,
+                                key: seriesKey,
+                                label: seriesLabel,
+                                value: yValueFormatter(getValue(tooltip, yKey)),
+                              },
+                            ]
+                      }
+                      label={
+                        tooltipLabel
+                          ? getValue(tooltip, tooltipLabel)
+                          : xLabelFormatter
+                            ? xLabelFormatter(getValue(tooltip, xKey))
+                            : getValue(tooltip, xKey)
+                      }
+                    />
+                  )
                 )
               }}
               showDatumGlyph

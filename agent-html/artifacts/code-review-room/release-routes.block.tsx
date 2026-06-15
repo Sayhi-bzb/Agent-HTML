@@ -1,3 +1,5 @@
+import { useMemo, useState } from "react"
+
 import { AreaChart } from "../../components/chart/area-chart"
 import { Badge } from "../../components/ui/badge"
 import { Progress } from "../../components/ui/progress"
@@ -20,20 +22,26 @@ import {
 } from "./review-layout"
 
 const defaultRouteValue = "workspace index refresh"
-const decisionProfile =
-  releaseRoutes.find((route) => route.value === defaultRouteValue)?.metrics ??
-  releaseRoutes[0]?.metrics ??
-  []
 
 export default function ReleaseRoutesBlock() {
+  const [selectedRouteValue, setSelectedRouteValue] =
+    useState(defaultRouteValue)
+  const selectedRoute = useMemo(
+    () =>
+      releaseRoutes.find((route) => route.value === selectedRouteValue) ??
+      releaseRoutes[0],
+    [selectedRouteValue]
+  )
+  const decisionProfile = selectedRoute?.metrics ?? []
+
   return (
     <section className="canvas-stack-lg">
       <ReviewSectionHeader
         eyebrow="package routes"
         title="The path depends on which Canvas package boundary is touched."
       >
-        The final route is chosen after the changed surface, risk signals,
-        blast radius, evidence, and gates are visible.
+        The final route is chosen after the changed surface, metrics, blast
+        radius, and gates are visible.
       </ReviewSectionHeader>
 
       <ReviewStage>
@@ -60,12 +68,11 @@ export default function ReleaseRoutesBlock() {
         <ReviewPanel className="canvas-stack-sm h-full">
           <div className="canvas-stack-xs">
             <p className="canvas-text-caption text-muted-foreground">
-              workspace index refresh
+              {selectedRoute?.value ?? defaultRouteValue}
             </p>
             <h3 className="canvas-text-body">Decision profile</h3>
             <p className="canvas-text-caption text-muted-foreground">
-              The draft route trades more time for stronger risk reduction and
-              review confidence.
+              {selectedRoute?.condition}
             </p>
           </div>
           <AreaChart
@@ -87,7 +94,8 @@ export default function ReleaseRoutesBlock() {
 
         <RadioGroup
           className="canvas-stack-sm"
-          defaultValue={releaseRoutes[1].value}
+          onValueChange={setSelectedRouteValue}
+          value={selectedRouteValue}
         >
           {releaseRoutes.map((route) => (
             <ReviewPanel className="p-0" key={route.value}>

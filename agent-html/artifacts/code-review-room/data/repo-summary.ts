@@ -4,7 +4,7 @@ export const reviewSubject = {
   badge: "Agent-HTML / Canvas package review",
   evidenceCompleteness: 72,
   evidenceNote:
-    "Evidence combines GitNexus structure, local TypeScript/TSX metrics, Canvas package scripts, and the artifact protocol rules from agent-html.",
+    "Readiness combines GitNexus structure, local TypeScript/TSX metrics, Canvas package scripts, and artifact protocol rules from agent-html.",
   subtitle:
     "A review surface for the React Canvas workspace package: artifact source, local primitives, rich workflow components, theme tokens, and CLI guard rails.",
   title: "Code Review Room",
@@ -14,7 +14,7 @@ export const summaryItems = [
   { label: "package", value: "agent-html" },
   { label: "symbols indexed", value: "2,778" },
   { label: "canvas scripts", value: "4" },
-  { label: "risk candidates", value: "8" },
+  { label: "risk candidates", value: "7" },
 ] satisfies SummaryItem[]
 
 export const intakeItems = [

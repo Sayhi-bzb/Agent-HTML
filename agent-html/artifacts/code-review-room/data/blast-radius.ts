@@ -49,7 +49,7 @@ export const packageSankeyData = {
     { category: "outcome", name: "canvas:typecheck" },
     { category: "outcome", name: "canvas:guard" },
     { category: "outcome", name: "canvas:index:check" },
-    { category: "outcome", name: "artifact evidence" },
+    { category: "outcome", name: "review signal" },
     { category: "outcome", name: "package route" },
   ],
   links: [

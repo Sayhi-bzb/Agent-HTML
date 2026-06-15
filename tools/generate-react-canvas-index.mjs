@@ -53,6 +53,25 @@ const apiSections = [
   { label: "lib", sourceDir: "lib" },
   { label: "schema", sourceDir: "schema" },
 ]
+const styleClassSections = [
+  { label: "layouts/composition.css", sourceFile: "styles/layouts/composition.css" },
+  { label: "layouts/layout.css", sourceFile: "styles/layouts/layout.css" },
+]
+const styleTokenSections = [
+  { label: "materials/foundation.css", sourceFile: "styles/materials/foundation.css" },
+  { label: "materials/tailwind.css", sourceFile: "styles/materials/tailwind.css" },
+  { label: "kits/artifact.css", sourceFile: "styles/kits/artifact.css" },
+  { label: "kits/content.css", sourceFile: "styles/kits/content.css" },
+  { label: "kits/code-block.css", sourceFile: "styles/kits/code-block.css" },
+]
+const styleScaleSections = [
+  { label: "agent-html/styles/kits/artifact.css", rootDir: workspaceRoot, sourceFile: "styles/kits/artifact.css" },
+  { label: "agent-html/styles/kits/content.css", rootDir: workspaceRoot, sourceFile: "styles/kits/content.css" },
+  { label: "agent-html/styles/materials/foundation.css", rootDir: workspaceRoot, sourceFile: "styles/materials/foundation.css" },
+  { label: "agent-html/styles/materials/tailwind.css", rootDir: workspaceRoot, sourceFile: "styles/materials/tailwind.css" },
+  { label: "packages/cli/src/host/styles/tokens/host.css", rootDir: root, sourceFile: "packages/cli/src/host/styles/tokens/host.css" },
+  { label: "packages/cli/src/host/styles/tokens/theme-editor.css", rootDir: root, sourceFile: "packages/cli/src/host/styles/tokens/theme-editor.css" },
+]
 const obsoleteGeneratedPaths = [
   "index/exports.md",
   "index/imports.md",
@@ -222,25 +241,97 @@ function buildApiSurfaceMarkdown() {
   for (const section of apiSections) {
     const dir = path.join(dtsWorkspaceRoot, section.sourceDir)
     const files = readApiSectionFiles(dir, section.directOnly)
-    const rows = files
-      .map((file) => {
-        const content = fs.readFileSync(file, "utf8")
-        const exports = extractExportedNames(content)
-
-        return [
-          `\`${relativeSourcePathForDeclaration(section.sourceDir, file)}\``,
-          exports.map((name) => `\`${name}\``).join(", "),
-        ]
-      })
-      .filter((row) => row[1])
 
     sections.push("")
     sections.push(`## agent-html/${section.sourceDir}/`)
     sections.push("")
-    sections.push(markdownTable(["File", "Exports"], rows))
+
+    if (section.sourceDir === "components/chart") {
+      sections.push(
+        "Chart exports are grouped by public role to distinguish components, props, and artifact-authored data types.",
+      )
+      sections.push("")
+      sections.push(buildChartApiSurfaceTable(section, files))
+      continue
+    }
+
+    sections.push(buildDefaultApiSurfaceTable(section, files))
   }
 
   return sections.join("\n")
+}
+
+function buildDefaultApiSurfaceTable(section, files) {
+  const rows = files
+    .map((file) => {
+      const content = fs.readFileSync(file, "utf8")
+      const exports = extractExportedNames(content)
+
+      return [
+        `\`${relativeSourcePathForDeclaration(section.sourceDir, file)}\``,
+        exports.map((name) => `\`${name}\``).join(", "),
+      ]
+    })
+    .filter((row) => row[1])
+
+  return markdownTable(["File", "Exports"], rows)
+}
+
+function buildChartApiSurfaceTable(section, files) {
+  const rows = files
+    .map((file) => {
+      const content = fs.readFileSync(file, "utf8")
+      const exports = extractExportedNames(content)
+      const grouped = groupChartExports(exports)
+
+      return [
+        `\`${relativeSourcePathForDeclaration(section.sourceDir, file)}\``,
+        formatExportGroup(grouped.components),
+        formatExportGroup(grouped.props),
+        formatExportGroup(grouped.dataTypes),
+        formatExportGroup(grouped.other),
+      ]
+    })
+    .filter((row) => row.slice(1).some((cell) => cell !== ""))
+
+  return markdownTable(
+    ["File", "Component Exports", "Props Exports", "Data Type Exports", "Other Exports"],
+    rows,
+  )
+}
+
+function groupChartExports(exports) {
+  const groups = {
+    components: [],
+    dataTypes: [],
+    other: [],
+    props: [],
+  }
+
+  for (const name of exports) {
+    if (/Chart$/.test(name)) {
+      groups.components.push(name)
+      continue
+    }
+
+    if (/Props$/.test(name)) {
+      groups.props.push(name)
+      continue
+    }
+
+    if (/(Data|Datum|Node|LinkDatum|NodeDatum)$/.test(name)) {
+      groups.dataTypes.push(name)
+      continue
+    }
+
+    groups.other.push(name)
+  }
+
+  return groups
+}
+
+function formatExportGroup(exports) {
+  return exports.map((name) => `\`${name}\``).join(", ")
 }
 
 function readApiSectionFiles(dir, directOnly = false) {
@@ -572,6 +663,210 @@ function buildReuseSurfaceMarkdown() {
   ].join("\n")
 }
 
+function buildStyleSurfaceMarkdown() {
+  const sections = [
+    "<!-- generated: do not edit -->",
+    "",
+    "# React Canvas Style Surface",
+    "",
+    "Generated public CSS class surface for Canvas artifact authoring.",
+    "Names are grouped by source owner; open CSS source only when changing class behavior.",
+    "",
+    "## Public Classes",
+  ]
+
+  for (const section of styleClassSections) {
+    sections.push("")
+    sections.push(`### agent-html/${section.sourceFile}`)
+    sections.push("")
+    sections.push(markdownList(extractCssClasses(section.sourceFile)))
+  }
+
+  return sections.join("\n")
+}
+
+function buildStyleTokenSurfaceMarkdown() {
+  const sections = [
+    "<!-- generated: do not edit -->",
+    "",
+    "# React Canvas Style Token Surface",
+    "",
+    "Generated CSS token surface for Canvas style maintenance and diagnostics.",
+    "Names are grouped by source owner; artifact authoring should usually start with `style-surface.md`.",
+    "",
+    "## Tokens",
+  ]
+
+  for (const section of styleTokenSections) {
+    sections.push("")
+    sections.push(`### agent-html/${section.sourceFile}`)
+    sections.push("")
+    sections.push(markdownList(extractCssCustomProperties(section.sourceFile)))
+  }
+
+  return sections.join("\n")
+}
+
+function buildStyleScaleSurfaceMarkdown() {
+  const scaleEntries = styleScaleSections.flatMap(extractCssRemScaleEntries)
+  const sections = [
+    "<!-- generated: do not edit -->",
+    "",
+    "# React Canvas Style Scale Surface",
+    "",
+    "Generated CSS scale map for Canvas style maintenance and diagnostics.",
+    "Values group directly-defined `rem` token definitions by token category.",
+    "Same value across different categories is not a merge signal by itself; runtime class authoring should usually start with `style-surface.md`.",
+    "",
+  ]
+
+  for (const category of styleScaleCategories) {
+    const entries = scaleEntries.filter((entry) => entry.category === category.id)
+
+    if (entries.length === 0) {
+      continue
+    }
+
+    sections.push(`## ${category.label}`)
+    sections.push("")
+    sections.push(buildStyleScaleTable(entries))
+    sections.push("")
+  }
+
+  return sections.join("\n")
+}
+
+function readWorkspaceText(relativePath) {
+  const filePath = path.join(workspaceRoot, relativePath)
+
+  if (!fs.existsSync(filePath)) {
+    return ""
+  }
+
+  return fs.readFileSync(filePath, "utf8")
+}
+
+function readText(rootDir, relativePath) {
+  const filePath = path.join(rootDir, relativePath)
+
+  if (!fs.existsSync(filePath)) {
+    return ""
+  }
+
+  return fs.readFileSync(filePath, "utf8")
+}
+
+function extractCssClasses(relativePath) {
+  const content = readWorkspaceText(relativePath)
+  const classNames = new Set()
+  const classPattern = /\.((?:canvas)-[A-Za-z0-9_-]+)\b/g
+  let match
+
+  while ((match = classPattern.exec(content))) {
+    classNames.add(match[1])
+  }
+
+  return [...classNames].sort()
+}
+
+function extractCssCustomProperties(relativePath) {
+  const content = readWorkspaceText(relativePath)
+  const properties = new Set()
+  const propertyPattern = /^\s*(--[A-Za-z0-9_-]+)\s*:/gm
+  let match
+
+  while ((match = propertyPattern.exec(content))) {
+    properties.add(match[1])
+  }
+
+  return [...properties].sort()
+}
+
+function extractCssRemScaleEntries(section) {
+  const content = readText(section.rootDir, section.sourceFile)
+  const entries = []
+  const propertyPattern = /^\s*(--[A-Za-z0-9_-]+)\s*:\s*(-?\d*\.?\d+rem)\s*;/gm
+  let match
+
+  while ((match = propertyPattern.exec(content))) {
+    entries.push({
+      category: styleScaleCategoryForToken(match[1]),
+      name: match[1],
+      source: section.label,
+      value: match[2],
+    })
+  }
+
+  return entries
+}
+
+const styleScaleCategories = [
+  { id: "spacing", label: "Spacing" },
+  { id: "font-size", label: "Font Size" },
+  { id: "line-height", label: "Line Height" },
+  { id: "width", label: "Width" },
+  { id: "height", label: "Height" },
+  { id: "size", label: "Size" },
+  { id: "radius", label: "Radius" },
+  { id: "shadow", label: "Shadow" },
+  { id: "other", label: "Other" },
+]
+
+function styleScaleCategoryForToken(tokenName) {
+  if (tokenName.includes("font-size")) {
+    return "font-size"
+  }
+
+  if (tokenName.includes("line-height")) {
+    return "line-height"
+  }
+
+  if (/(gap|padding|inset|offset|spacing)/.test(tokenName)) {
+    return "spacing"
+  }
+
+  if (tokenName.includes("width")) {
+    return "width"
+  }
+
+  if (tokenName.includes("height")) {
+    return "height"
+  }
+
+  if (tokenName.includes("size")) {
+    return "size"
+  }
+
+  if (tokenName.includes("radius")) {
+    return "radius"
+  }
+
+  if (tokenName.includes("shadow")) {
+    return "shadow"
+  }
+
+  return "other"
+}
+
+function buildStyleScaleTable(entries) {
+  const scaleGroups = Map.groupBy(entries, ({ value }) => value)
+  const rows = [...scaleGroups.entries()]
+    .sort(([a], [b]) => Number.parseFloat(a) - Number.parseFloat(b))
+    .map(([value, groupEntries]) => [
+      `\`${value}\``,
+      groupEntries
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(({ name }) => `\`${name}\``)
+        .join(", "),
+      groupEntries
+        .map(({ source }) => `\`${source}\``)
+        .filter((source, index, sources) => sources.indexOf(source) === index)
+        .join(", "),
+    ])
+
+  return markdownTable(["Value", "Tokens", "Sources"], rows)
+}
+
 function estimateTokens(byteLength) {
   return Math.ceil(byteLength / 4)
 }
@@ -618,7 +913,10 @@ function buildReadme() {
     "2. Read `dependency-summary.md` before broad dependency or boundary work.",
     "3. Read `reuse-surface.md` when choosing reusable hooks or helpers.",
     "4. Read `api-surface.md` when checking component, hook, helper, or schema exports.",
-    "5. Open source only after the index identifies the relevant file.",
+    "5. Read `style-surface.md` when checking Canvas artifact CSS classes.",
+    "6. Read `style-token-surface.md` when checking Canvas CSS token names.",
+    "7. Read `style-scale-surface.md` when comparing CSS scale values.",
+    "8. Open source only after the index identifies the relevant file.",
     "",
     "## Files",
     "",
@@ -626,6 +924,9 @@ function buildReadme() {
     "- `dependency-summary.md` maps dependency-cruiser graph health and high-gravity modules.",
     "- `reuse-surface.md` maps reusable source owners to use cases and minimal signatures.",
     "- `api-surface.md` maps compact exported API surfaces.",
+    "- `style-surface.md` maps generated artifact CSS class names.",
+    "- `style-token-surface.md` maps generated CSS token parameter names.",
+    "- `style-scale-surface.md` maps generated CSS scale values to token names.",
     "",
     "Full declarations and dependency graphs are temporary machine inputs under `node_modules/.tmp`, not committed agent context. Regenerate with `npm run canvas:index`.",
   ].join("\n")
@@ -643,6 +944,14 @@ function markdownCell(value) {
   return String(value).replaceAll("\n", " ").replaceAll("|", "\\|")
 }
 
+function markdownList(values) {
+  if (values.length === 0) {
+    return "_None found._"
+  }
+
+  return values.map((value) => `- \`${value}\``).join("\n")
+}
+
 emitDeclarations()
 
 const writtenFiles = new Map()
@@ -657,6 +966,17 @@ writeOrCheck(
 )
 writeOrCheck("index/reuse-surface.md", buildReuseSurfaceMarkdown(), writtenFiles)
 writeOrCheck("index/api-surface.md", buildApiSurfaceMarkdown(), writtenFiles)
+writeOrCheck("index/style-surface.md", buildStyleSurfaceMarkdown(), writtenFiles)
+writeOrCheck(
+  "index/style-token-surface.md",
+  buildStyleTokenSurfaceMarkdown(),
+  writtenFiles,
+)
+writeOrCheck(
+  "index/style-scale-surface.md",
+  buildStyleScaleSurfaceMarkdown(),
+  writtenFiles,
+)
 cleanupObsoleteGeneratedFiles()
 
 if (shouldCheck) {

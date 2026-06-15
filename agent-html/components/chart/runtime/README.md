@@ -91,6 +91,10 @@ Current renderer support:
   positioning through `@visx/tooltip`.
 - `ChartTooltipField` and `resolveChartTooltipItems` expose declarative fields
   without leaking tooltip shell components into artifact blocks.
+- Concrete charts that render datum-level tooltips should expose
+  `renderTooltip`, `tooltipFields`, and `tooltipLabel`. Custom renderers win,
+  declarative fields are the structured path, and chart defaults stay as the
+  compatibility fallback.
 
 ## Migration Notes
 

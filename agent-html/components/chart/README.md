@@ -34,3 +34,25 @@ integration: read `runtime/README.md`.
   rendering, texture ids, or Motion behavior in artifact blocks.
 - Do not add a new chart component for one artifact if an existing chart can
   express the data truth.
+
+## Public API Style
+
+Concrete charts should keep the artifact-facing surface predictable:
+
+- Every concrete chart exports `XChart` and `XChartProps`.
+- Export chart data types only when artifact authors must construct that shape.
+  Shared chart types are exported from `types.ts`.
+- Layout and material props use `className`, `aspectRatio`, `minHeight`,
+  `config`, `renderer`, `rough`, and `texture`.
+- Data props use `data` plus semantic accessors such as `xKey`, `yKey`,
+  `valueKey`, `angleKey`, `colorKey`, or graph-specific node/link accessors.
+- Formatter props name the formatted coordinate: `valueFormatter` for one-value
+  charts, `xValueFormatter` / `yValueFormatter` for numeric axes, and
+  `xLabelFormatter` / `yLabelFormatter` for categorical labels.
+- Datum-level tooltips should expose `renderTooltip`, `tooltipFields`, and
+  `tooltipLabel`. `renderTooltip` wins, `tooltipFields` supplies declarative
+  rows, and the chart default remains the fallback.
+- Domain props name the scale they control: `valueDomain`, `xDomain`, or
+  `yDomain`.
+- Existing public props stay compatible. Add aliases or additive props before
+  renaming an artifact-facing API.

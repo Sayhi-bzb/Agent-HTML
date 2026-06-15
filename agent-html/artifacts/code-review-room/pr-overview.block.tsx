@@ -30,7 +30,7 @@ export default function PrOverviewBlock() {
           <div className="canvas-stack-xs">
             <div className="flex items-center justify-between gap-3">
               <span className="canvas-text-caption text-muted-foreground">
-                evidence completeness
+                review readiness
               </span>
               <ReviewMetricValue className="canvas-text-body">
                 {reviewSubject.evidenceCompleteness}%

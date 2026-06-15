@@ -7,6 +7,9 @@ values in it.
 
 ## Agent Route
 
+- Artifact CSS class names: read `../index/style-surface.md`.
+- CSS token parameter names: read `../index/style-token-surface.md`.
+- CSS scale value distribution: read `../index/style-scale-surface.md`.
 - Artifact content style: read `layouts/index.css`.
 - CodeBlock implementation style: read `internal/code-block.css`.
 - Artifact reading container: read `internal/artifact.css`.
@@ -31,8 +34,7 @@ content:
 
 - Stack remains the default vertical rhythm through `canvas-stack-*`.
 - Grid uses `canvas-grid-2`, `canvas-grid-2-sm`, `canvas-grid-2-lg`,
-  `canvas-grid-3`, `canvas-grid-3-lg`, `canvas-grid-4`,
-  `canvas-grid-main-aside`, `canvas-grid-main-aside-lg`,
+  `canvas-grid-4`, `canvas-grid-main-aside`, `canvas-grid-main-aside-lg`,
   `canvas-grid-main-aside-xl`, `canvas-grid-main-aside-xl-wide`,
   `canvas-grid-aside-main`, `canvas-grid-aside-main-lg`, and
   `canvas-grid-cards`.

@@ -147,7 +147,7 @@ export default function CodeMetricsBlock() {
       </ReviewSectionHeader>
 
       <div className="canvas-grid-main-aside-xl-wide">
-        <ReviewStage className="canvas-stack-sm">
+        <ReviewPanel className="canvas-stack-sm min-w-0">
           <ScatterChart
             aspectRatio="2 / 1"
             data={codeMetricRows}
@@ -182,7 +182,7 @@ export default function CodeMetricsBlock() {
             <StatusBadge status="warning">complexity pressure</StatusBadge>
             <StatusBadge status="success">smaller candidate</StatusBadge>
           </div>
-        </ReviewStage>
+        </ReviewPanel>
 
         <ReviewPanel className="canvas-stack-sm min-w-0">
           <div className="canvas-stack-xs">
@@ -236,7 +236,7 @@ export default function CodeMetricsBlock() {
         <ReviewStage className="canvas-stack-sm">
           <div className="canvas-stack-xs">
             <p className="canvas-text-caption text-muted-foreground">
-              detail evidence
+              metric detail
             </p>
             <p className="canvas-text-body">
               The full metric table is visible below the charts but remains

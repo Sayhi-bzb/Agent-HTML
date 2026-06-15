@@ -3,11 +3,8 @@
   --canvas-content-gap-sm: 0.5rem;
   --canvas-content-gap-md: 0.75rem;
   --canvas-content-gap-lg: 1rem;
-  --canvas-content-gap-xl: 1.25rem;
-  --canvas-content-panel-padding-sm: 0.75rem;
   --canvas-content-panel-padding-md: 1rem;
   --canvas-content-icon-box-size-sm: 2.25rem;
-  --canvas-content-icon-box-size-md: 2.5rem;
   --canvas-content-title-font-size: 1.5rem;
   --canvas-content-title-line-height: 1.375;
   --canvas-content-heading-font-size: 1.125rem;
@@ -19,9 +16,9 @@
   --canvas-content-grid-gap: 1rem;
   --canvas-layout-aside-min-width: 16rem;
   --canvas-layout-narrow-aside-min-width: 12rem;
-  --canvas-frame-chart-min-height: 20rem;
-  --canvas-frame-chart-lg-min-height: 26.25rem;
-  --canvas-frame-map-min-height: 32.5rem;
+  --canvas-frame-min-height-md: 20rem;
+  --canvas-frame-min-height-lg: 26.25rem;
+  --canvas-frame-min-height-xl: 32.5rem;
   --canvas-frame-media-sm-min-height: 16rem;
   --canvas-frame-media-lg-min-height: 26.25rem;
   --canvas-frame-media-md-max-height: 28.75rem;
