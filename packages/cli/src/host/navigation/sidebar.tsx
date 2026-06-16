@@ -461,7 +461,7 @@ function ArtifactSidebarItem({
   onSelectArtifact: (filePath: string) => void
 }) {
   const { t } = useHostI18n()
-  const label = artifactLabel(artifact.filePath)
+  const label = artifact.title
   const [deleteOpen, setDeleteOpen] = React.useState(false)
   const [renameOpen, setRenameOpen] = React.useState(false)
   const [renameDraft, setRenameDraft] = React.useState(() =>
@@ -708,13 +708,14 @@ function ReactCanvasArtifactSearch({
             <HostCommandEmpty>{t("artifact.noArtifactsTitle")}</HostCommandEmpty>
             <HostCommandGroup heading={t("sidebar.artifacts")}>
               {artifacts.map((artifact) => {
-                const label = artifactLabel(artifact.filePath)
+                const label = artifact.title
+                const fileLabel = artifactLabel(artifact.filePath)
 
                 return (
                   <HostCommandItem
                     icon={FileTextIcon}
                     key={artifact.filePath}
-                    keywords={[label, artifact.filePath]}
+                    keywords={[label, fileLabel, artifact.filePath]}
                     label={label}
                     onSelect={() => {
                       onSelectArtifact(artifact.filePath)

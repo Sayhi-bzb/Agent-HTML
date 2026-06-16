@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   collectArtifactDefinition,
   collectBlockIds,
+  collectStaticArtifactMetadata,
   collectStaticBlockMetadata,
   titleizeBlockId,
 } from "./block-tags.mjs"
@@ -47,6 +48,13 @@ describe("React Canvas artifact definition parser", () => {
     `
 
     expect(collectArtifactDefinition(source).title).toBe("Demo")
+    expect(collectStaticArtifactMetadata(source)).toEqual({
+      blocks: [
+        { id: "summary", title: "Summary" },
+        { id: "custom-title", title: "Custom Title" },
+      ],
+      title: "Demo",
+    })
     expect(collectStaticBlockMetadata(source)).toEqual([
       { id: "summary", title: "Summary" },
       { id: "custom-title", title: "Custom Title" },
@@ -58,6 +66,10 @@ describe("React Canvas artifact definition parser", () => {
   })
 
   it("returns empty metadata when defineArtifact is absent", () => {
+    expect(collectStaticArtifactMetadata("export default function Demo() {}")).toEqual({
+      blocks: [],
+      title: null,
+    })
     expect(collectStaticBlockMetadata("export default function Demo() {}")).toEqual([])
   })
 })

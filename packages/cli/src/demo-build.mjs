@@ -4,7 +4,7 @@ import path from "node:path"
 import react from "@vitejs/plugin-react"
 import { build as viteBuild } from "vite"
 
-import { collectStaticBlockMetadata } from "./react-canvas/block-tags.mjs"
+import { collectStaticArtifactMetadata } from "./react-canvas/block-tags.mjs"
 import { resolveBlockImplementationPath } from "./react-canvas/block-implementation.mjs"
 import {
   discoverReactArtifacts,
@@ -22,6 +22,13 @@ const defaultSiteDescription =
   "A canvas with AI for building, previewing, and refining React artifacts."
 const defaultSiteThumbnailUrl = "/__agent-html/public/assets/blocks.png"
 const defaultSiteTitle = "Agent-HTML"
+
+function artifactLabelFromFilePath(filePath) {
+  const fileName = filePath.split(/[\\/]/).at(-1) ?? filePath
+  return fileName.endsWith(".artifact.tsx")
+    ? fileName.slice(0, -".artifact.tsx".length)
+    : fileName
+}
 
 function parseOutDirArg({ args, cwd }) {
   const outDirIndex = args.indexOf("--out-dir")
@@ -41,7 +48,8 @@ async function readArtifactManifest(root) {
     artifacts.map(async (filePath) => {
       const source = await fs.readFile(filePath, "utf8")
       const relativeFilePath = workspaceRelativePath(root, filePath)
-      const blocks = collectStaticBlockMetadata(source)
+      const metadata = collectStaticArtifactMetadata(source)
+      const blocks = metadata.blocks
       const blockImplementations = Object.fromEntries(
         await Promise.all(
           blocks.map(async (block) => [
@@ -59,6 +67,7 @@ async function readArtifactManifest(root) {
         blocks,
         blockImplementations,
         filePath: relativeFilePath,
+        title: metadata.title ?? artifactLabelFromFilePath(relativeFilePath),
       }
     })
   )

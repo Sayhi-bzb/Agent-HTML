@@ -10,13 +10,20 @@ import {
   discoverReactBlockImplementations,
   workspaceRelativePath,
 } from "../react-canvas/paths.mjs"
-import { collectStaticBlockMetadata } from "../react-canvas/block-tags.mjs"
+import { collectStaticArtifactMetadata } from "../react-canvas/block-tags.mjs"
 import { readTextFile } from "../react-canvas/workspace-file.mjs"
 
 export const artifactsUpdatedEventName = "agent-html:artifacts-updated"
 
 function sortByFilePath(left, right) {
   return left.filePath.localeCompare(right.filePath)
+}
+
+function artifactLabelFromFilePath(filePath) {
+  const fileName = filePath.split(/[\\/]/).at(-1) ?? filePath
+  return fileName.endsWith(".artifact.tsx")
+    ? fileName.slice(0, -".artifact.tsx".length)
+    : fileName
 }
 
 function normalizePath(filePath) {
@@ -130,9 +137,11 @@ export function createArtifactRegistry({ root, vite }) {
     }
 
     const relativePath = workspaceRelativePath(root, absolutePath)
+    const metadata = collectStaticArtifactMetadata(source)
     artifacts.set(absolutePath, {
-      blocks: collectStaticBlockMetadata(source),
+      blocks: metadata.blocks,
       filePath: relativePath,
+      title: metadata.title ?? artifactLabelFromFilePath(relativePath),
     })
     artifactIssues.set(
       absolutePath,

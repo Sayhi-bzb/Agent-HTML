@@ -159,3 +159,15 @@ export function collectStaticBlockMetadata(source) {
     title: block.title ?? titleizeBlockId(block.id),
   }))
 }
+
+export function collectStaticArtifactMetadata(source) {
+  const definition = collectArtifactDefinition(source)
+
+  return {
+    blocks: definition.blocks.map((block) => ({
+      id: block.id,
+      title: block.title ?? titleizeBlockId(block.id),
+    })),
+    title: definition.title,
+  }
+}

@@ -65,6 +65,7 @@ describe("artifact registry", () => {
         {
           blocks: [{ id: "summary", title: "Summary" }],
           filePath: "agent-html/artifacts/demo.artifact.tsx",
+          title: "Demo",
         },
       ],
       guardIssues: [],
@@ -103,6 +104,7 @@ describe("artifact registry", () => {
       {
         blocks: [{ id: "details", title: "Details" }],
         filePath: "agent-html/artifacts/demo.artifact.tsx",
+        title: "Demo",
       },
     ])
     expect(registry.getSnapshot().version).toBe(2)
@@ -138,12 +140,35 @@ describe("artifact registry", () => {
       artifacts: [
         {
           filePath: "agent-html/artifacts/demo.artifact.tsx",
+          title: "Demo",
         },
       ],
       status: "ready",
       version: 1,
     })
     expect(vite.ws.send).not.toHaveBeenCalled()
+
+    await registry.close()
+  })
+
+  it("falls back to the artifact filename when no artifact title is present", async () => {
+    const { artifactsRoot, root } = await createArtifactWorkspace()
+    await fs.writeFile(
+      path.join(artifactsRoot, "untitled-demo.artifact.tsx"),
+      "export default function UntitledDemo() { return null }\n"
+    )
+    const vite = createViteMock()
+    const registry = createArtifactRegistry({ root, vite })
+
+    await registry.start()
+
+    expect(registry.getSnapshot().artifacts).toEqual([
+      {
+        blocks: [],
+        filePath: "agent-html/artifacts/untitled-demo.artifact.tsx",
+        title: "untitled-demo",
+      },
+    ])
 
     await registry.close()
   })

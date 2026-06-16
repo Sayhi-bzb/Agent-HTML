@@ -1,6 +1,7 @@
 export type Artifact = {
   blocks: ArtifactBlock[]
   filePath: string
+  title: string
 }
 
 export type ArtifactBlock = {
