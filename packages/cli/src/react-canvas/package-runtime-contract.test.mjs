@@ -71,7 +71,7 @@ describe("React Canvas package runtime contract", { timeout: 15000 }, () => {
     const cliPackage = JSON.parse(readSource("packages/cli/package.json"))
     const reactPackage = JSON.parse(readSource("packages/react/package.json"))
 
-    expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.2.0")
+    expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.2.1")
     expect(cliPackage.dependencies["@shikijs/transformers"]).toBeTruthy()
     expect(cliPackage.dependencies["@tanstack/react-table"]).toBeTruthy()
     expect(cliPackage.dependencies.esbuild).toBeUndefined()
