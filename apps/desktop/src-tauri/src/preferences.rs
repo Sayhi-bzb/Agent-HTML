@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::{
+    collections::BTreeMap,
     fs,
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
@@ -10,7 +11,6 @@ use tauri::{AppHandle, Manager};
 #[serde(rename_all = "camelCase")]
 pub struct Preferences {
     pub language: String,
-    pub theme: String,
     pub pipeline: String,
     pub external_editor: String,
     pub automatic_updates: bool,
@@ -20,12 +20,22 @@ impl Default for Preferences {
     fn default() -> Self {
         Self {
             language: "en".into(),
-            theme: "system".into(),
             pipeline: "codex".into(),
             external_editor: String::new(),
             automatic_updates: false,
         }
     }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CanvasThemeSnapshot {
+    pub dark_css_variables: BTreeMap<String, String>,
+    pub draft_css_variables: BTreeMap<String, String>,
+    pub light_css_variables: BTreeMap<String, String>,
+    pub mode: String,
+    pub preset_id: String,
+    pub version: u8,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -41,9 +51,39 @@ pub struct RecentWorkspace {
 #[serde(rename_all = "camelCase")]
 pub struct StoredDesktopState {
     #[serde(default)]
+    pub canvas_theme: Option<CanvasThemeSnapshot>,
+    #[serde(default)]
     pub preferences: Preferences,
     #[serde(default)]
     pub recents: Vec<RecentWorkspace>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reads_legacy_preferences_without_requiring_desktop_theme() {
+        let stored: StoredDesktopState = serde_json::from_str(
+            r#"{"preferences":{"language":"en","theme":"dark","pipeline":"codex","externalEditor":"","automaticUpdates":false},"recents":[]}"#,
+        )
+        .expect("legacy desktop state should remain readable");
+
+        assert_eq!(stored.preferences.language, "en");
+        assert!(stored.canvas_theme.is_none());
+    }
+
+    #[test]
+    fn round_trips_canvas_theme_snapshot() {
+        let stored: StoredDesktopState = serde_json::from_str(
+            r##"{"canvasTheme":{"version":1,"mode":"system","presetId":"claude-plus","lightCssVariables":{"--background":"#fff"},"darkCssVariables":{"--background":"#111"},"draftCssVariables":{}},"preferences":{"language":"en","pipeline":"codex","externalEditor":"","automaticUpdates":false},"recents":[]}"##,
+        )
+        .expect("canvas theme snapshot should deserialize");
+
+        let theme = stored.canvas_theme.expect("canvas theme should exist");
+        assert_eq!(theme.preset_id, "claude-plus");
+        assert_eq!(theme.dark_css_variables["--background"], "#111");
+    }
 }
 
 fn settings_path(app: &AppHandle) -> Result<PathBuf, String> {

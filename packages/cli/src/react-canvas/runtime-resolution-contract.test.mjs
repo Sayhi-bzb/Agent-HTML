@@ -7,12 +7,15 @@ import { describe, expect, it } from "vitest"
 import {
   cacheDirForRoot,
   clearInvalidOptimizedDependencyCache,
-  createPlaygroundDependencyAliases,
+  createPlaygroundDependencyResolver,
+  createPlaygroundOptimizeDepsAliases,
   createPlaygroundOptimizeDepsInclude,
   createReactModuleResolutionAliases,
   createViteFsAllowList,
   findInvalidOptimizedDependencyCacheFiles,
   isInvalidOptimizedDependencyCacheFile,
+  playgroundCommonJsInteropDeps,
+  readRuntimeDependencyContract,
   resolvePackageImportModule,
 } from "../dev-server/vite.mjs"
 
@@ -23,6 +26,10 @@ describe("React Canvas runtime resolution contract", () => {
     expect(aliases).toEqual([
       {
         find: "react-dom/client",
+        replacement: expect.stringContaining("react-dom"),
+      },
+      {
+        find: /^react-dom$/,
         replacement: expect.stringContaining("react-dom"),
       },
       {
@@ -40,41 +47,113 @@ describe("React Canvas runtime resolution contract", () => {
     ])
     expect(aliases.map((alias) => String(alias.find))).toEqual([
       "react-dom/client",
+      "/^react-dom$/",
       "react/jsx-runtime",
       "react/jsx-dev-runtime",
       "/^react$/",
     ])
   })
 
-  it("pins playground dependencies outside the source workspace", () => {
-    const aliases = createPlaygroundDependencyAliases(process.cwd())
-    const radixAlias = aliases.find(
-      (alias) => String(alias.find) === "/^radix-ui$/"
+  it("resolves declared package roots and subpaths from the CLI runtime", async () => {
+    const resolver = createPlaygroundDependencyResolver(process.cwd())
+    const resolveFromRuntime = async (source) => ({
+      id: resolvePackageImportModule(source),
+    })
+    const context = { resolve: resolveFromRuntime }
+
+    expect(resolver).toMatchObject({
+      enforce: "pre",
+      name: "agent-html-playground-dependencies",
+    })
+    const mergeProps = await resolver.resolveId.call(
+      context,
+      "@base-ui/react/merge-props",
+      path.join(process.cwd(), "agent-html", "components", "timeline.tsx"),
+      {}
     )
-    const clsxAlias = aliases.find((alias) => String(alias.find) === "/^clsx$/")
-    const tailwindMergeAlias = aliases.find(
-      (alias) => String(alias.find) === "/^tailwind-merge$/"
+    const useRender = await resolver.resolveId.call(
+      context,
+      "@base-ui/react/use-render",
+      path.join(process.cwd(), "agent-html", "components", "timeline.tsx"),
+      {}
     )
-    const cvaAlias = aliases.find(
-      (alias) => String(alias.find) === "/^class-variance-authority$/"
+    const classnames = await resolver.resolveId.call(
+      context,
+      "classnames",
+      path.join(
+        process.cwd(),
+        "node_modules",
+        "@visx",
+        "shape",
+        "esm",
+        "shapes",
+        "Area.js"
+      ),
+      {}
     )
 
-    expect(radixAlias).toEqual({
-      find: /^radix-ui$/,
-      replacement: expect.stringContaining("node_modules"),
+    expect(mergeProps.id.replaceAll("\\", "/")).toContain(
+      "/node_modules/@base-ui/react/"
+    )
+    expect(mergeProps.id.replaceAll("\\", "/")).toContain(
+      "/merge-props/index.js"
+    )
+    expect(useRender.id.replaceAll("\\", "/")).toContain(
+      "/node_modules/@base-ui/react/"
+    )
+    expect(useRender.id.replaceAll("\\", "/")).toContain("/use-render/index.js")
+    expect(classnames.id.replaceAll("\\", "/")).toContain(
+      "/node_modules/classnames/index.js"
+    )
+    await expect(
+      resolver.resolveId.call(
+        context,
+        "react/jsx-runtime",
+        path.join(process.cwd(), "agent-html", "components", "timeline.tsx"),
+        {}
+      )
+    ).resolves.toBeNull()
+    await expect(
+      resolver.resolveId.call(
+        context,
+        "not-declared",
+        path.join(process.cwd(), "agent-html", "components", "timeline.tsx"),
+        {}
+      )
+    ).rejects.toThrow(
+      'Canvas source imports undeclared dependency "not-declared"'
+    )
+  })
+
+  it("keeps older workspaces compatible with canonical template dependencies", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-legacy-"))
+    const canvasRoot = path.join(root, "agent-html")
+    await fs.mkdir(canvasRoot, { recursive: true })
+    await fs.writeFile(
+      path.join(canvasRoot, "package.json"),
+      JSON.stringify({
+        dependencies: {
+          clsx: "^2.1.1",
+        },
+      })
+    )
+    const resolver = createPlaygroundDependencyResolver(root)
+    const context = {
+      resolve: async (source) => ({
+        id: resolvePackageImportModule(source),
+      }),
+    }
+
+    await expect(
+      resolver.resolveId.call(
+        context,
+        "@visx/curve",
+        path.join(canvasRoot, "components", "chart", "area-chart.tsx"),
+        {}
+      )
+    ).resolves.toEqual({
+      id: expect.stringContaining(path.join("node_modules", "@visx", "curve")),
     })
-    expect(radixAlias.replacement.replaceAll("\\", "/")).not.toContain(
-      "/agent-html/node_modules/"
-    )
-    expect(clsxAlias.replacement.replaceAll("\\", "/")).toContain(
-      "/node_modules/clsx/dist/clsx.mjs"
-    )
-    expect(tailwindMergeAlias.replacement.replaceAll("\\", "/")).toContain(
-      "/node_modules/tailwind-merge/dist/bundle-mjs.mjs"
-    )
-    expect(cvaAlias.replacement.replaceAll("\\", "/")).toContain(
-      "/node_modules/class-variance-authority/dist/index.mjs"
-    )
   })
 
   it("resolves playground package imports with ESM import entries first", () => {
@@ -97,14 +176,16 @@ describe("React Canvas runtime resolution contract", () => {
       const module = await import(resolvePackageImportModule(specifier))
 
       for (const exportName of exportNames) {
-        expect(module, `${specifier} should export ${exportName}`).toHaveProperty(
-          exportName
-        )
+        expect(
+          module,
+          `${specifier} should export ${exportName}`
+        ).toHaveProperty(exportName)
       }
     }
   })
 
   it("keeps playground optimize deps explicit and resolvable", () => {
+    const aliases = createPlaygroundOptimizeDepsAliases()
     const optimizeDeps = createPlaygroundOptimizeDepsInclude()
 
     expect(optimizeDeps).toEqual([
@@ -113,6 +194,9 @@ describe("React Canvas runtime resolution contract", () => {
       "react-dom/client",
       "class-variance-authority",
       "clsx",
+      "classnames",
+      "lodash/debounce",
+      "lodash/memoize",
       "@visx/event",
       "@visx/responsive",
       "@visx/sankey",
@@ -145,6 +229,18 @@ describe("React Canvas runtime resolution contract", () => {
       ],
       ["clsx", expect.stringContaining("/node_modules/clsx/dist/clsx.mjs")],
       [
+        "classnames",
+        expect.stringContaining("/node_modules/classnames/index.js"),
+      ],
+      [
+        "lodash/debounce",
+        expect.stringContaining("/node_modules/lodash/debounce"),
+      ],
+      [
+        "lodash/memoize",
+        expect.stringContaining("/node_modules/lodash/memoize"),
+      ],
+      [
         "@visx/event",
         expect.stringContaining("/node_modules/@visx/event/esm/index.js"),
       ],
@@ -162,7 +258,9 @@ describe("React Canvas runtime resolution contract", () => {
       ],
       [
         "lucide-react",
-        expect.stringContaining("/node_modules/lucide-react/dist/cjs/lucide-react.js"),
+        expect.stringContaining(
+          "/node_modules/lucide-react/dist/cjs/lucide-react.js"
+        ),
       ],
       [
         "motion/react",
@@ -174,16 +272,65 @@ describe("React Canvas runtime resolution contract", () => {
       ],
       [
         "tailwind-merge",
-        expect.stringContaining("/node_modules/tailwind-merge/dist/bundle-mjs.mjs"),
+        expect.stringContaining(
+          "/node_modules/tailwind-merge/dist/bundle-mjs.mjs"
+        ),
       ],
     ])
+    expect(playgroundCommonJsInteropDeps).toEqual([
+      "classnames",
+      "lodash/debounce",
+      "lodash/memoize",
+    ])
+    expect(
+      aliases.map((alias) => ({
+        ...alias,
+        replacement: alias.replacement.replaceAll("\\", "/"),
+      }))
+    ).toEqual(
+      expect.arrayContaining([
+        {
+          find: /^classnames$/,
+          replacement: expect.stringContaining(
+            "/node_modules/classnames/index.js"
+          ),
+        },
+        {
+          find: /^lodash\/debounce$/,
+          replacement: expect.stringContaining("/node_modules/lodash/debounce"),
+        },
+      ])
+    )
+  })
+
+  it("loads dependency ownership and prebundling from the runtime manifest", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "ahtml-manifest-"))
+    const manifestPath = path.join(root, "runtime-manifest.json")
+    await fs.writeFile(
+      manifestPath,
+      JSON.stringify({
+        dependencyContractVersion: 1,
+        canvasDependencies: ["@visx/curve"],
+        optimizeDeps: ["classnames"],
+      })
+    )
+
+    expect(readRuntimeDependencyContract(manifestPath)).toEqual({
+      canvasDependencies: ["@visx/curve"],
+      optimizeDeps: ["classnames"],
+    })
+    expect(
+      createPlaygroundOptimizeDepsInclude(
+        readRuntimeDependencyContract(manifestPath)
+      )
+    ).toEqual(["classnames"])
   })
 
   it("detects corrupt optimized dependency cache files", () => {
     expect(isInvalidOptimizedDependencyCacheFile(Buffer.alloc(0))).toBe(true)
-    expect(isInvalidOptimizedDependencyCacheFile(Buffer.from([0, 0, 0, 0]))).toBe(
-      true
-    )
+    expect(
+      isInvalidOptimizedDependencyCacheFile(Buffer.from([0, 0, 0, 0]))
+    ).toBe(true)
     expect(
       isInvalidOptimizedDependencyCacheFile(
         Buffer.from("export const ok = true;\n", "utf8")
@@ -192,7 +339,9 @@ describe("React Canvas runtime resolution contract", () => {
   })
 
   it("finds invalid optimized dependency files only under deps", async () => {
-    const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-cache-"))
+    const cacheDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "agent-html-cache-")
+    )
     await fs.mkdir(path.join(cacheDir, "deps"), { recursive: true })
     await fs.writeFile(
       path.join(cacheDir, "deps", "react_jsx-dev-runtime.js"),
@@ -236,6 +385,15 @@ describe("React Canvas runtime resolution contract", () => {
     await expect(
       fs.readFile(path.join(siblingCacheDir, "marker.js"), "utf8")
     ).resolves.toBe("ok\n")
+  })
+
+  it("versions the Vite cache when dependency interop changes", () => {
+    expect(cacheDirForRoot(process.cwd()).replaceAll("\\", "/")).toContain(
+      "/agent-html-vite-v5/"
+    )
+    expect(cacheDirForRoot(process.cwd(), "runtime-a")).not.toBe(
+      cacheDirForRoot(process.cwd(), "runtime-b")
+    )
   })
 
   it("allows workspace, package, and dependency roots without exposing project root", async () => {

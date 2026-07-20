@@ -182,6 +182,8 @@ preference persistence must not become artifact or workspace source state.
 
 - Open an existing workspace and render every discovered artifact.
 - Initialize a missing workspace without overwriting an existing directory.
+- Initialize transactionally through the real Desktop IPC with Windows verbatim,
+  UNC, Unicode, and spaced paths.
 - Recover from inaccessible paths, stale recent entries, occupied ports,
   compile failures, sidecar crashes, and incompatible protocol versions.
 - Switch projects without leaking watchers, servers, threads, or preferences.
@@ -201,6 +203,12 @@ explicit session and recovery states, preferences, runtime supervision, and
 the compact Canvas frame. The bundled Node runtime owns the existing CLI,
 registry, Guard, Codex bridge, and React Canvas Host behind a versioned,
 authenticated loopback contract.
+
+The Desktop runtime boundary uses a versioned bundle manifest and one Rust
+supervisor for platform path projection, command construction, output capture,
+readiness, exit classification, and shutdown. Workspace initialization stages
+the template and atomically publishes `agent-html/`; Desktop IPC returns typed
+phase and error codes instead of classifying error strings.
 
 The Linux release candidate builds as a 135 MB Deb. A clean extracted-package
 smoke test initializes a new project, starts the packaged authenticated runtime,

@@ -24,7 +24,9 @@ pub fn validate_workspace(root: &Path) -> Result<(), String> {
     }
     let canonical_workspace = fs::canonicalize(&workspace)
         .map_err(|error| format!("Workspace is inaccessible: {error}"))?;
-    if !canonical_workspace.starts_with(root) {
+    let canonical_root = fs::canonicalize(root)
+        .map_err(|error| format!("Selected folder is inaccessible: {error}"))?;
+    if !canonical_workspace.starts_with(&canonical_root) {
         return Err("agent-html/ must stay inside the selected project".into());
     }
     Ok(())

@@ -1,10 +1,35 @@
 @layer components {
   .canvas-host-shell {
+    --sidebar: var(--background);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--accent);
+    --sidebar-accent-foreground: var(--accent-foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
     display: flex;
-    min-height: 100svh;
+    height: 100%;
+    min-height: 0;
     overflow: hidden;
+    overscroll-behavior: none;
     background: var(--background);
     color: var(--foreground);
+  }
+
+  @media (any-pointer: coarse) {
+    .canvas-host-shell :is(
+      [data-slot="button"],
+      [data-slot="input"],
+      [data-slot="select-trigger"],
+      [data-slot="textarea"]
+    ) {
+      min-height: var(--canvas-host-touch-target-min);
+    }
+
+    .canvas-host-shell [data-slot="button"][data-size^="icon"] {
+      min-width: var(--canvas-host-touch-target-min);
+    }
   }
 
   .canvas-host-toolbar {
@@ -21,7 +46,8 @@
   .canvas-surface-root {
     position: relative;
     display: flex;
-    min-height: 100svh;
+    height: 100%;
+    min-height: 0;
     flex: 1 1 0%;
     overflow: hidden;
     background: var(--background);
@@ -37,7 +63,7 @@
     );
     z-index: calc(var(--canvas-toolbar-z-index) - 1);
     width: 11rem;
-    max-height: calc(100svh - var(--canvas-surface-padding-block-start) - var(--canvas-surface-padding-block-end));
+    max-height: calc(100% - var(--canvas-surface-padding-block-start) - var(--canvas-surface-padding-block-end));
     overflow: hidden;
     opacity: 0;
     pointer-events: auto;
@@ -57,14 +83,18 @@
   }
 
   .canvas-surface-scroll {
-    height: 100svh;
+    height: 100%;
     min-width: 0;
     flex: 1 1 0%;
   }
 
+  .canvas-surface-scroll [data-slot="scroll-area-viewport"] {
+    overscroll-behavior: none;
+  }
+
   .canvas-surface-frame {
     position: relative;
-    min-height: 100svh;
+    min-height: 100%;
     padding-inline: var(--canvas-surface-padding-inline);
     padding-block-start: var(--canvas-surface-padding-block-start);
     padding-block-end: var(--canvas-surface-padding-block-end);
@@ -101,7 +131,7 @@
   .canvas-create-artifact-frame {
     display: grid;
     width: 100%;
-    min-height: 100svh;
+    min-height: 100%;
     place-items: center;
     overflow: hidden;
     padding-inline: var(--canvas-surface-padding-inline);

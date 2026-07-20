@@ -26,7 +26,7 @@ packages/cli/src/host/styles/*
 
 apps/desktop
   -> project selection, session state, runtime supervision, preferences,
-     packaged Node, and Desktop chrome
+     packaged Node, Desktop chrome, and the persisted Canvas theme snapshot
 ```
 
 Each layer owns one decision. The protocol marks stable regions and emits
@@ -45,6 +45,54 @@ per-launch credentials, sidecar lifecycle, logs, capabilities, and packaging.
 The selected project remains the source owner. Desktop normalizes either a
 project root or its `agent-html/` directory to one canonical project root.
 Preferences and credentials never enter project source.
+
+Canvas Style is the single theme authority. The Host publishes a versioned,
+allowlisted snapshot of its active mode, preset variables, and live draft to
+its Desktop parent. Desktop accepts messages only from the active runtime
+frame and origin, applies the snapshot to its own root, and persists the last
+valid snapshot for Workspace Home before Canvas starts. Theme state flows from
+Canvas to Desktop only; Desktop does not send a competing theme into Canvas.
+
+Desktop resolves packaged runtime resources through a versioned manifest. Its
+runtime supervisor is the only owner of child-process path projection, command
+construction, output capture, readiness, exit classification, and shutdown.
+Canonical paths stay internal; child arguments receive platform-compatible
+paths at the process boundary. Workspace initialization is transactional and
+publishes `agent-html/` only after the template copy completes.
+
+Desktop Runtime is an immutable, content-addressed store under the app local
+data directory:
+
+```text
+runtime/
+  current.json
+  runtimes/<fingerprint>/
+    bin/node[.exe]
+    node_modules/
+    runtime-manifest.json
+```
+
+`runtime:build` publishes one verified fingerprint without selecting it.
+`runtime:ensure` single-flights the build, rechecks after the lock, and
+atomically selects it while retaining the previous fingerprint for recovery.
+`runtime:start` consumes only the selected manifest. `runtime:stage` copies the
+selected immutable version into the packaging seed and is forbidden from the
+development startup path. Cache hits do not run `npm install`; Canvas `init`
+never installs project dependencies.
+
+The manifest owns Node and CLI entries, protocol and schema versions, the
+dependency-lock hash, Canvas dependency names, and Vite prebundle entries.
+The fingerprint covers runtime source, dependency closure, Node binary, target,
+and the runtime build recipe.
+Rust passes its path and runtime fingerprint to the CLI. Vite keys optimized
+dependencies by runtime fingerprint plus workspace root and reads dependency
+ownership from the manifest. Runtime publication never replaces a directory
+used by a running sidecar.
+
+The Rust supervisor owns the full runtime process tree. Windows assigns it to a
+kill-on-close Job Object. Unix launches it through a new-session supervisor
+whose control pipe kills the process group when Desktop disappears. Graceful
+shutdown remains the primary path; forced cleanup is bounded and tree-wide.
 
 `agent-html runtime` is the controller contract. It binds a random loopback
 port, emits one JSON `runtime-ready` event, authenticates every request,
@@ -189,7 +237,7 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Preferences persistence | `host/preferences` | local host preference state | persisted host preference patch | artifact source state, dev-server state | `canvas-host-preferences.test.ts`, `use-canvas-host-preferences.test.ts` |
 | CSS/theme | `agent-html/styles` + package host styles + host theme owner | CSS tokens, content classes, theme presets, host chrome CSS | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides, host chrome implementation in artifact context | `style-ownership-contract.test.mjs`, `style-resource-contract.test.mjs`, `theme-preset.test.ts`, `theme-layout.test.ts` |
 | Runtime control | `dev-server/runtime-session.mjs` + `runtime-command.mjs` | per-launch credential, canonical root, pipeline | ready event, authenticated Host, health, graceful shutdown | persisted credentials, fixed ports, project Node | `runtime-session.test.mjs`, `runtime-server.test.mjs` |
-| Desktop session | `apps/desktop/src-tauri` + `apps/desktop/src/session.ts` | selected folder, initialization choice, preferences | one supervised workspace runtime | artifact layout, Host route semantics, project preferences, multiple active runtimes | Desktop Vitest and Cargo tests |
+| Desktop session | `apps/desktop/src-tauri` + `apps/desktop/src/session.ts` | selected folder, initialization choice, runtime manifest, preferences | one supervised workspace runtime and typed recovery errors | artifact layout, Host route semantics, project preferences, multiple active runtimes | Desktop Vitest, Cargo tests, runtime smoke, packaged E2E |
 | Desktop visual ownership | `apps/desktop/src/styles.css` + Desktop primitives | semantic and `--canvas-desktop-*` tokens | borderless product chrome | workspace UI imports, raw colors, palette utilities, local visual scales | `apps/desktop/src/style-ownership.test.ts` |
 
 Dev server routes are orchestration only. They are grouped into explicit

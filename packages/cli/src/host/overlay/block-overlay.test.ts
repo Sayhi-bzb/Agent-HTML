@@ -6,6 +6,7 @@ import {
   isBlockActionBadgeVisible,
   parseCssLengthInPixels,
   shouldCloseBlockMessagePopoverForIntersection,
+  shouldTrackBlockHoverPointer,
   shouldMarkBlockMessageThreadRead,
   shouldOpenBlockMessageThreadFromActionBadge,
 } from "./block-overlay-state"
@@ -52,6 +53,17 @@ describe("findHoveredBlockOverlay", () => {
 
   it("does not treat the retired left handle gutter as a hit target", () => {
     expect(findHoveredBlockOverlay({ overlays, x: 12, y: 40 })).toBeNull()
+  })
+})
+
+describe("shouldTrackBlockHoverPointer", () => {
+  it("does not convert touch drags into block hover", () => {
+    expect(shouldTrackBlockHoverPointer("touch")).toBe(false)
+  })
+
+  it("keeps mouse and pen hover tracking", () => {
+    expect(shouldTrackBlockHoverPointer("mouse")).toBe(true)
+    expect(shouldTrackBlockHoverPointer("pen")).toBe(true)
   })
 })
 

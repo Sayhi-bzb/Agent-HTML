@@ -1,60 +1,70 @@
-import {
-  FolderOpen,
-  Plus,
-  RotateCcw,
-  Settings,
-  X,
-} from "lucide-react"
+import { FolderOpen, Plus, RotateCcw, Settings, X } from "lucide-react"
 import { listen } from "@tauri-apps/api/event"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import {
+  readCanvasThemeSnapshot,
+  type CanvasThemeSnapshot,
+} from "../../../packages/cli/src/host/theme/theme-sync-contract"
 
 import {
   desktopApi,
   selectWorkspaceFolder,
   type DesktopSnapshot,
 } from "./desktop-api"
-import {
-  defaultPreferences,
-  type DesktopPreferences,
-} from "./preferences"
+import { defaultPreferences, type DesktopPreferences } from "./preferences"
 import {
   readySession,
   workspaceError,
+  type WorkspaceError,
   type WorkspaceSession,
 } from "./session"
 import { Button, Field, Status } from "./ui"
+import { readTrustedDesktopThemeMessage, watchDesktopTheme } from "./theme"
 
 const emptySnapshot: DesktopSnapshot = {
+  canvasTheme: null,
   logPath: "",
   preferences: defaultPreferences,
   recents: [],
   version: "development",
 }
 
+function normalizeDesktopSnapshot(snapshot: DesktopSnapshot): DesktopSnapshot {
+  return {
+    ...snapshot,
+    canvasTheme: readCanvasThemeSnapshot(snapshot.canvasTheme),
+  }
+}
+
 export default function App() {
   const [snapshot, setSnapshot] = useState(emptySnapshot)
   const [session, setSession] = useState<WorkspaceSession>({ status: "idle" })
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const runtimeFrameRef = useRef<HTMLIFrameElement>(null)
+  const themeSaveTimerRef = useRef<number | null>(null)
+  const pendingThemeRef = useRef<CanvasThemeSnapshot | null>(null)
   const busy = ["opening", "initializing", "starting", "closing"].includes(
     session.status
   )
 
   useEffect(() => {
-    desktopApi.snapshot().then(setSnapshot).catch(() => {})
+    desktopApi
+      .snapshot()
+      .then((nextSnapshot) => setSnapshot(normalizeDesktopSnapshot(nextSnapshot)))
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
-    const unlisten = listen<string>("desktop://runtime-crashed", (event) => {
-      setSession((current) => ({
-        status: "failed",
-        root: "root" in current ? current.root : undefined,
-        error: {
-          code: "runtime-crashed",
-          message: event.payload,
-          recoverable: true,
-        },
-      }))
-    })
+    const unlisten = listen<WorkspaceError>(
+      "desktop://runtime-crashed",
+      (event) => {
+        setSession((current) => ({
+          status: "failed",
+          root: "root" in current ? current.root : undefined,
+          error: event.payload,
+        }))
+      }
+    )
     return () => {
       void unlisten.then((dispose) => dispose())
     }
@@ -72,10 +82,55 @@ export default function App() {
     }
   }, [])
 
+  useLayoutEffect(() => {
+    return watchDesktopTheme({ snapshot: snapshot.canvasTheme })
+  }, [snapshot.canvasTheme])
+
   useEffect(() => {
-    document.documentElement.dataset.theme = snapshot.preferences.theme
+    if (session.status !== "ready") {
+      return
+    }
+
+    const expectedOrigin = new URL(session.bootstrapUrl).origin
+    const persistPendingTheme = () => {
+      if (!pendingThemeRef.current) {
+        return
+      }
+      void desktopApi.saveCanvasTheme(pendingThemeRef.current).catch(() => {})
+      pendingThemeRef.current = null
+      themeSaveTimerRef.current = null
+    }
+    const handleMessage = (event: MessageEvent<unknown>) => {
+      const canvasTheme = readTrustedDesktopThemeMessage({
+        event,
+        expectedOrigin,
+        expectedSource: runtimeFrameRef.current?.contentWindow ?? null,
+      })
+      if (!canvasTheme) {
+        return
+      }
+
+      setSnapshot((current) => ({ ...current, canvasTheme }))
+      pendingThemeRef.current = canvasTheme
+      if (themeSaveTimerRef.current !== null) {
+        window.clearTimeout(themeSaveTimerRef.current)
+      }
+      themeSaveTimerRef.current = window.setTimeout(persistPendingTheme, 250)
+    }
+
+    window.addEventListener("message", handleMessage)
+    return () => {
+      window.removeEventListener("message", handleMessage)
+      if (themeSaveTimerRef.current !== null) {
+        window.clearTimeout(themeSaveTimerRef.current)
+        persistPendingTheme()
+      }
+    }
+  }, [session])
+
+  useEffect(() => {
     document.documentElement.lang = snapshot.preferences.language
-  }, [snapshot.preferences])
+  }, [snapshot.preferences.language])
 
   const activeRoot = "root" in session ? session.root : undefined
   const title = useMemo(
@@ -92,7 +147,7 @@ export default function App() {
         pipeline: snapshot.preferences.pipeline,
       })
       setSession(readySession(runtime))
-      setSnapshot(await desktopApi.snapshot())
+      setSnapshot(normalizeDesktopSnapshot(await desktopApi.snapshot()))
     } catch (error) {
       setSession({ status: "failed", root: path, error: workspaceError(error) })
     }
@@ -103,21 +158,6 @@ export default function App() {
     if (path) await openWorkspace(path, initialize)
   }
 
-  async function closeWorkspace() {
-    if (!activeRoot) return
-    setSession({ status: "closing", root: activeRoot })
-    try {
-      await desktopApi.closeWorkspace()
-      setSession({ status: "idle" })
-    } catch (error) {
-      setSession({
-        status: "failed",
-        root: activeRoot,
-        error: workspaceError(error),
-      })
-    }
-  }
-
   async function savePreferences(preferences: DesktopPreferences) {
     await desktopApi.savePreferences(preferences)
     setSnapshot((current) => ({ ...current, preferences }))
@@ -126,129 +166,109 @@ export default function App() {
   if (session.status === "ready") {
     return (
       <main className="desktop-runtime">
-        <header className="desktop-runtime__bar">
-          <div>
-            <strong>{title}</strong>
-            <Status kind="success">Runtime ready</Status>
-          </div>
-          <div className="desktop-actions">
-            <Button
-              aria-label="Workspace settings"
-              onClick={() => setSettingsOpen(true)}
-            >
-              <Settings aria-hidden="true" size={16} />
-              Settings
-            </Button>
-            <Button onClick={closeWorkspace}>
-              <X aria-hidden="true" size={16} />
-              Switch workspace
-            </Button>
-          </div>
-        </header>
         <iframe
           className="desktop-runtime__canvas"
+          ref={runtimeFrameRef}
           src={session.bootstrapUrl}
           title={`${title} Canvas`}
         />
-        {settingsOpen && (
-          <SettingsDialog
-            close={() => setSettingsOpen(false)}
-            preferences={snapshot.preferences}
-            save={savePreferences}
-            snapshot={snapshot}
-          />
-        )}
       </main>
     )
   }
 
   return (
     <main className="desktop-home">
-      <header className="desktop-home__heading">
-        <p className="desktop-eyebrow">Artifact workbench</p>
-        <h1>Open a project. Shape the artifact.</h1>
-        <p>
-          AHTML connects the project&apos;s <code>agent-html/</code> workspace
-          to a supervised local Canvas runtime.
-        </p>
-      </header>
+      <Button
+        aria-label="Workspace settings"
+        className="desktop-home__settings"
+        onClick={() => setSettingsOpen(true)}
+      >
+        <Settings aria-hidden="true" size={17} />
+      </Button>
 
-      <section aria-labelledby="workspace-actions" className="desktop-section">
-        <h2 id="workspace-actions">Workspace</h2>
-        <div className="desktop-actions">
-          <Button
-            disabled={busy}
-            intent="primary"
-            onClick={() => chooseWorkspace(false)}
-          >
-            <FolderOpen aria-hidden="true" size={17} />
-            Open folder
-          </Button>
-          <Button disabled={busy} onClick={() => chooseWorkspace(true)}>
-            <Plus aria-hidden="true" size={17} />
-            Create workspace
-          </Button>
-          <Button onClick={() => setSettingsOpen(true)}>
-            <Settings aria-hidden="true" size={17} />
-            Settings
-          </Button>
-        </div>
-        {busy && <Status>Preparing {title}…</Status>}
-        {session.status === "failed" && (
-          <div className="desktop-recovery" role="alert">
-            <Status kind="error">{session.error.message}</Status>
-            <p>
-              Check access to the selected project, then retry or initialize
-              its Canvas workspace.
-            </p>
-            <div className="desktop-actions">
-              {session.root && session.error.recoverable && (
-                <Button
-                  intent="primary"
-                  onClick={() => openWorkspace(session.root!)}
-                >
-                  <RotateCcw aria-hidden="true" size={16} />
-                  Retry
-                </Button>
-              )}
-              {session.error.code === "missing-workspace" && session.root && (
-                <Button onClick={() => openWorkspace(session.root!, true)}>
-                  Initialize agent-html/
-                </Button>
-              )}
-            </div>
+      <div className="desktop-home__content">
+        <header className="desktop-home__heading">
+          <h1>AHTML</h1>
+          <p>
+            Open or create an <code>agent-html/</code> workspace.
+          </p>
+        </header>
+
+        <section aria-label="Workspace" className="desktop-section">
+          <div className="desktop-actions">
+            <Button
+              disabled={busy}
+              intent="primary"
+              onClick={() => chooseWorkspace(false)}
+            >
+              <FolderOpen aria-hidden="true" size={17} />
+              Open project
+            </Button>
+            <Button disabled={busy} onClick={() => chooseWorkspace(true)}>
+              <Plus aria-hidden="true" size={17} />
+              Create workspace
+            </Button>
           </div>
-        )}
-      </section>
+          {busy && <Status>Preparing {title}…</Status>}
+          {session.status === "failed" && (
+            <div className="desktop-recovery" role="alert">
+              <Status kind="error">{session.error.message}</Status>
+              <p>
+                Check access to the selected project, then retry or initialize
+                its Canvas workspace.
+              </p>
+              <div className="desktop-actions">
+                {session.root && session.error.recoverable && (
+                  <Button
+                    intent="primary"
+                    onClick={() => openWorkspace(session.root!)}
+                  >
+                    <RotateCcw aria-hidden="true" size={16} />
+                    Retry
+                  </Button>
+                )}
+                {session.error.code === "missing-workspace" && session.root && (
+                  <Button onClick={() => openWorkspace(session.root!, true)}>
+                    Initialize agent-html/
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
 
-      <section aria-labelledby="recent-workspaces" className="desktop-section">
-        <h2 id="recent-workspaces">Recent projects</h2>
-        {snapshot.recents.length === 0 ? (
-          <p className="desktop-muted">No recent projects yet.</p>
-        ) : (
-          <ul className="desktop-recents">
-            {snapshot.recents.map((workspace) => (
-              <li key={workspace.path}>
-                <Button
-                  aria-describedby={
-                    workspace.available ? undefined : `missing-${workspace.path}`
-                  }
-                  disabled={!workspace.available || busy}
-                  onClick={() => openWorkspace(workspace.path)}
-                >
-                  <span>
-                    <strong>{workspace.name}</strong>
-                    <small>{workspace.path}</small>
-                  </span>
-                  {!workspace.available && (
-                    <small id={`missing-${workspace.path}`}>Missing</small>
-                  )}
-                </Button>
-              </li>
-            ))}
-          </ul>
+        {snapshot.recents.length > 0 && (
+          <section
+            aria-labelledby="recent-workspaces"
+            className="desktop-section"
+          >
+            <h2 id="recent-workspaces">Recent</h2>
+            <ul className="desktop-recents">
+              {snapshot.recents.map((workspace) => (
+                <li key={workspace.path}>
+                  <Button
+                    aria-describedby={
+                      workspace.available
+                        ? undefined
+                        : `missing-${workspace.path}`
+                    }
+                    disabled={!workspace.available || busy}
+                    onClick={() => openWorkspace(workspace.path)}
+                  >
+                    <span>
+                      <strong>{workspace.name}</strong>
+                      <small>{workspace.path}</small>
+                    </span>
+                    {!workspace.available && (
+                      <small id={`missing-${workspace.path}`}>Missing</small>
+                    )}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
-      </section>
+      </div>
 
       {settingsOpen && (
         <SettingsDialog
@@ -310,26 +330,14 @@ function SettingsDialog({
             <select
               value={draft.language}
               onChange={(event) =>
-                setDraft({ ...draft, language: event.target.value as "en" | "zh-CN" })
+                setDraft({
+                  ...draft,
+                  language: event.target.value as "en" | "zh-CN",
+                })
               }
             >
               <option value="en">English</option>
               <option value="zh-CN">简体中文</option>
-            </select>
-          </Field>
-          <Field label="Theme">
-            <select
-              value={draft.theme}
-              onChange={(event) =>
-                setDraft({
-                  ...draft,
-                  theme: event.target.value as DesktopPreferences["theme"],
-                })
-              }
-            >
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
             </select>
           </Field>
           <Field label="Agent pipeline">
@@ -338,7 +346,8 @@ function SettingsDialog({
               onChange={(event) =>
                 setDraft({
                   ...draft,
-                  pipeline: event.target.value as DesktopPreferences["pipeline"],
+                  pipeline: event.target
+                    .value as DesktopPreferences["pipeline"],
                 })
               }
             >
@@ -364,7 +373,9 @@ function SettingsDialog({
             />
             Automatic updates require a signed release channel
           </label>
-          <p className="desktop-muted">Runtime log: {snapshot.logPath || "Not started"}</p>
+          <p className="desktop-muted">
+            Runtime log: {snapshot.logPath || "Not started"}
+          </p>
         </div>
         <footer className="desktop-actions">
           <Button onClick={() => desktopApi.showLog()}>Open log</Button>

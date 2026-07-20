@@ -8,6 +8,9 @@ import { readSource, root } from "./test-contract-helpers.mjs"
 describe("React Canvas style resource contract", { timeout: 15000 }, () => {
   it("keeps workspace style resources in their owned files", () => {
     const playgroundStyles = readSource("agent-html/styles/index.css")
+    const playgroundFoundationEntry = readSource(
+      "agent-html/styles/foundation.css"
+    )
     const playgroundBaseStyles = readSource("agent-html/styles/base.css")
     const playgroundTailwindTokens = readSource(
       "agent-html/styles/materials/tailwind.css"
@@ -41,8 +44,17 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundStyles).toContain('@import "tailwindcss"')
     expect(playgroundStyles).toContain('@import "tw-animate-css"')
     expect(playgroundStyles).toContain('@import "shadcn/tailwind.css"')
-    expect(playgroundStyles).toContain('@import "@fontsource-variable/geist"')
-    expect(playgroundStyles).toContain('@import "./materials/index.css"')
+    expect(playgroundStyles).toContain('@import "./foundation.css"')
+    expect(playgroundStyles).not.toContain(
+      '@import "@fontsource-variable/geist"'
+    )
+    expect(playgroundStyles).not.toContain('@import "./materials/index.css"')
+    expect(playgroundFoundationEntry).toContain(
+      '@import "@fontsource-variable/geist"'
+    )
+    expect(playgroundFoundationEntry).toContain(
+      '@import "./materials/index.css"'
+    )
     expect(playgroundStyles).toContain('@import "./kits/index.css"')
     expect(playgroundStyles).toContain('@import "./materials/tailwind.css"')
     expect(playgroundStyles).toContain('@import "./layouts/index.css"')
@@ -169,6 +181,39 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-y\s*:/)
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-blur\s*:/)
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-spread\s*:/)
+  })
+
+  it("assigns viewport scrolling and coarse-pointer targets to host owners", () => {
+    const playgroundBaseStyles = readSource("agent-html/styles/base.css")
+    const canvasHostApp = readSource("packages/cli/src/host/app.tsx")
+    const packageHostSurfaceStyles = readSource(
+      "packages/cli/src/host/styles/surface.css"
+    )
+    const packageHostBlockOverlayStyles = readSource(
+      "packages/cli/src/host/styles/block-overlay.css"
+    )
+    const packageHostTokens = readSource(
+      "packages/cli/src/host/styles/tokens/host.css"
+    )
+
+    expect(playgroundBaseStyles).toContain("overscroll-behavior: none")
+    expect(canvasHostApp).toContain(
+      'className="h-full min-h-0 min-w-0 overflow-hidden"'
+    )
+    expect(packageHostSurfaceStyles).toContain(
+      '.canvas-surface-scroll [data-slot="scroll-area-viewport"]'
+    )
+    expect(packageHostSurfaceStyles).toContain("overscroll-behavior: none")
+    expect(packageHostSurfaceStyles).not.toContain("100svh")
+    expect(packageHostTokens).toContain(
+      "--canvas-host-touch-target-min: 2.75rem"
+    )
+    expect(packageHostBlockOverlayStyles).toContain(
+      "@media (any-pointer: coarse)"
+    )
+    expect(packageHostBlockOverlayStyles).toContain("opacity: 1")
+    expect(playgroundBaseStyles).not.toContain("touch-action:")
+    expect(packageHostSurfaceStyles).not.toContain("touch-action:")
   })
 
   it("keeps material kits and internal styles scoped", () => {

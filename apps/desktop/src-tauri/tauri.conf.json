@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "dev.ahtml.desktop",
   "build": {
-    "beforeDevCommand": "npm run runtime:prepare && npm run dev",
-    "beforeBuildCommand": "npm run runtime:prepare && npm run build",
+    "beforeDevCommand": "npm run runtime:ensure && npm run dev",
+    "beforeBuildCommand": "npm run runtime:ensure && npm run runtime:stage && npm run build",
     "devUrl": "http://127.0.0.1:1420",
     "frontendDist": "../dist"
   },
@@ -30,7 +30,7 @@
     "externalBin": ["binaries/agent-html-runtime"],
     "icon": ["icons/icon.png"],
     "resources": {
-      "../runtime/node_modules": "runtime/node_modules"
+      "../runtime-bundle": "runtime"
     },
     "targets": "all"
   }

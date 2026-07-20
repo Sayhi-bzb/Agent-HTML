@@ -1,47 +1,96 @@
 import fs from "node:fs/promises"
+import os from "node:os"
 import path from "node:path"
-import { spawn } from "node:child_process"
-import { fileURLToPath } from "node:url"
+import { spawn, spawnSync } from "node:child_process"
 
-const appRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)))
-const repoRoot = path.resolve(appRoot, "../..")
-const workspaceRoot = process.env.AHTML_SMOKE_ROOT || repoRoot
-const binariesRoot = path.join(appRoot, "src-tauri", "binaries")
-const [binaryName] = process.env.AHTML_SIDECAR
-  ? []
-  : (await fs.readdir(binariesRoot)).filter((name) =>
-      name.startsWith("agent-html-runtime-")
-    )
-if (!process.env.AHTML_SIDECAR && !binaryName) {
-  throw new Error("Prepared runtime sidecar was not found")
+import {
+  readCurrentRuntime,
+  runtimeBundleRoot,
+  runtimeStorePaths,
+} from "./runtime-store.mjs"
+
+const temporaryRoot = process.env.AHTML_SMOKE_ROOT
+  ? null
+  : await fs.mkdtemp(path.join(os.tmpdir(), "ahtml-runtime-smoke-"))
+const workspaceRoot =
+  process.env.AHTML_SMOKE_ROOT || path.join(temporaryRoot, "project")
+await fs.mkdir(workspaceRoot, { recursive: true })
+const storePaths = runtimeStorePaths()
+const selection = await readCurrentRuntime(storePaths)
+if (!selection) throw new Error("Prepared runtime selection was not found")
+const runtimeRoot = runtimeBundleRoot(storePaths, selection.fingerprint)
+const manifest = JSON.parse(
+  await fs.readFile(path.join(runtimeRoot, "runtime-manifest.json"), "utf8")
+)
+if (manifest.schemaVersion !== 2 || manifest.runtimeProtocolVersion !== 1) {
+  throw new Error(`Unexpected runtime manifest: ${JSON.stringify(manifest)}`)
 }
-const binaryPath =
-  process.env.AHTML_SIDECAR || path.join(binariesRoot, binaryName)
+const binaryPath = process.env.AHTML_SIDECAR || path.join(runtimeRoot, manifest.nodeEntry)
 const cliPath =
-  process.env.AHTML_RUNTIME_CLI ||
-  path.join(appRoot, "runtime/node_modules/agent-html/bin/agent-html.mjs")
+  process.env.AHTML_RUNTIME_CLI || path.join(runtimeRoot, manifest.cliEntry)
+
+const initialized = spawnSync(
+  binaryPath,
+  [cliPath, "init", "--root", workspaceRoot],
+  { encoding: "utf8" }
+)
+if (initialized.status !== 0) {
+  throw new Error(
+    `Bundled workspace initializer failed: ${initialized.stderr || initialized.stdout}`
+  )
+}
+const canvasRoot = path.join(workspaceRoot, "agent-html")
+if (
+  await fs
+    .access(path.join(canvasRoot, "node_modules"))
+    .then(() => true, () => false)
+) {
+  throw new Error("Bundled workspace initializer installed project dependencies")
+}
+const canvasManifestPath = path.join(canvasRoot, "package.json")
+const canvasManifest = JSON.parse(await fs.readFile(canvasManifestPath, "utf8"))
+canvasManifest.dependencies = { clsx: canvasManifest.dependencies.clsx }
+await fs.writeFile(
+  canvasManifestPath,
+  `${JSON.stringify(canvasManifest, null, 2)}\n`
+)
 
 const token = "desktop-sidecar-smoke-token-with-enough-entropy"
 const child = spawn(
   binaryPath,
-  [
-    cliPath,
-    "runtime",
-    "--root",
-    workspaceRoot,
-    "--pipeline",
-    "example",
-  ],
+  [cliPath, "runtime", "--root", workspaceRoot, "--pipeline", "example"],
   {
-    env: { ...process.env, AGENT_HTML_RUNTIME_TOKEN: token },
+    env: {
+      ...process.env,
+      AGENT_HTML_RUNTIME_FINGERPRINT: manifest.fingerprint,
+      AGENT_HTML_RUNTIME_MANIFEST: path.join(
+        runtimeRoot,
+        "runtime-manifest.json"
+      ),
+      AGENT_HTML_RUNTIME_TOKEN: token,
+    },
     stdio: ["ignore", "pipe", "pipe"],
   }
 )
+const terminateChild = () => {
+  if (child.exitCode === null && child.signalCode === null) child.kill()
+}
+process.once("exit", terminateChild)
+process.once("SIGINT", () => {
+  terminateChild()
+  process.exit(130)
+})
+process.once("SIGTERM", () => {
+  terminateChild()
+  process.exit(143)
+})
 
 let stderr = ""
 child.stderr.on("data", (chunk) => {
   stderr += chunk
 })
+const runtimeFetch = (url, options = {}) =>
+  fetch(url, { ...options, signal: AbortSignal.timeout(20_000) })
 
 const ready = await Promise.race([
   new Promise((resolve, reject) => {
@@ -64,18 +113,88 @@ const ready = await Promise.race([
     )
   }),
   new Promise((_, reject) =>
-    setTimeout(() => reject(new Error(`Sidecar readiness timed out: ${stderr}`)), 45_000)
+    setTimeout(
+      () => reject(new Error(`Sidecar readiness timed out: ${stderr}`)),
+      45_000
+    )
   ),
 ])
 
-const health = await fetch(`${ready.url}/__agent-html/runtime/health`, {
+const health = await runtimeFetch(`${ready.url}/__agent-html/runtime/health`, {
   headers: { authorization: `Bearer ${token}` },
 }).then((response) => response.json())
 if (!health.ok || health.protocolVersion !== 1) {
   throw new Error(`Unexpected runtime health: ${JSON.stringify(health)}`)
 }
 
-await fetch(`${ready.url}/__agent-html/runtime/shutdown`, {
+const timelinePath = path
+  .resolve(canvasRoot, "components", "timeline.tsx")
+  .replaceAll(path.sep, "/")
+const timelineResponse = await runtimeFetch(`${ready.url}/@fs/${timelinePath}`, {
+  headers: { authorization: `Bearer ${token}` },
+})
+if (!timelineResponse.ok) {
+  throw new Error(
+    `Bundled runtime could not compile timeline.tsx (${timelineResponse.status}): ${await timelineResponse.text()}`
+  )
+}
+
+const radixPrimitivePath = path
+  .resolve(
+    runtimeRoot,
+    "node_modules",
+    "@radix-ui",
+    "react-primitive",
+    "dist",
+    "index.mjs"
+  )
+  .replaceAll(path.sep, "/")
+const radixPrimitiveResponse = await runtimeFetch(
+  `${ready.url}/@fs/${radixPrimitivePath}`,
+  {
+    headers: { authorization: `Bearer ${token}` },
+  }
+)
+if (!radixPrimitiveResponse.ok) {
+  throw new Error(
+    `Bundled runtime could not compile Radix primitive (${radixPrimitiveResponse.status}): ${await radixPrimitiveResponse.text()}`
+  )
+}
+
+const areaChartPath = path
+  .resolve(
+    canvasRoot,
+    "components",
+    "chart",
+    "area-chart.tsx"
+  )
+  .replaceAll(path.sep, "/")
+const areaChartResponse = await runtimeFetch(`${ready.url}/@fs/${areaChartPath}`, {
+  headers: { authorization: `Bearer ${token}` },
+})
+if (!areaChartResponse.ok) {
+  throw new Error(
+    `Bundled runtime could not compile area-chart.tsx (${areaChartResponse.status}): ${await areaChartResponse.text()}`
+  )
+}
+const classnamesPath = path
+  .join(
+    os.tmpdir(),
+    "agent-html-vite-v5",
+    Buffer.from(
+      `${path.resolve(workspaceRoot)}\0${manifest.fingerprint}`
+    ).toString("base64url"),
+    "deps",
+    "classnames.js"
+  )
+const classnamesModule = await fs.readFile(classnamesPath, "utf8")
+if (!/export\s+default\b/.test(classnamesModule)) {
+  throw new Error(
+    `Bundled runtime did not prebundle the classnames default export: ${classnamesModule}`
+  )
+}
+
+await runtimeFetch(`${ready.url}/__agent-html/runtime/shutdown`, {
   headers: { authorization: `Bearer ${token}` },
   method: "POST",
 })
@@ -88,3 +207,7 @@ await new Promise((resolve, reject) => {
 })
 
 console.log("Bundled Node sidecar smoke test passed")
+process.removeListener("exit", terminateChild)
+if (temporaryRoot) {
+  await fs.rm(temporaryRoot, { force: true, recursive: true })
+}

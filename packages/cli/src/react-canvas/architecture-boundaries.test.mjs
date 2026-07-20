@@ -153,7 +153,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
 
     expect(filesMatching("apps", forbidden)).toEqual([
       "apps/desktop/scripts/desktop-e2e.mjs",
-      "apps/desktop/scripts/runtime-sidecar-smoke.mjs",
+      "apps/desktop/scripts/runtime-store.mjs",
     ])
   })
 })

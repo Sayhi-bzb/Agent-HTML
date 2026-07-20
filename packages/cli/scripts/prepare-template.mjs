@@ -7,7 +7,9 @@ const cliRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   ".."
 )
-const repoRoot = path.resolve(cliRoot, "..", "..")
+const repoRoot = process.env.AHTML_TEMPLATE_SOURCE_ROOT
+  ? path.resolve(process.env.AHTML_TEMPLATE_SOURCE_ROOT)
+  : path.resolve(cliRoot, "..", "..")
 const templateRoot = path.join(cliRoot, "template", "agent-html")
 const excludedSegments = new Set([
   ".git",

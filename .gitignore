@@ -18,6 +18,8 @@ __pycache__/
 apps/docs/.react-router
 apps/docs/.source
 apps/docs/node_modules
+apps/desktop/runtime-bundle/*
+!apps/desktop/runtime-bundle/.gitkeep
 src-tauri/target/
 src-tauri/gen/
 _archive/**/node_modules/

@@ -26,19 +26,40 @@ describe("desktop session contract", () => {
       status: "failed",
       error: { code: "incompatible-runtime", recoverable: false },
     })
-    expect(workspaceError(new Error("agent-html/ is missing"))).toMatchObject({
-      code: "missing-workspace",
-      recoverable: true,
-    })
-    expect(workspaceError(new Error("Selected folder is inaccessible"))).toMatchObject({
-      code: "inaccessible",
-      recoverable: true,
-    })
     expect(
-      workspaceError(new Error("Runtime protocol is incompatible"))
+      workspaceError({
+        code: "missing-workspace",
+        phase: "workspace-selection",
+        message: "agent-html/ is missing",
+        recoverable: true,
+      })
+    ).toMatchObject({ code: "missing-workspace" })
+    expect(
+      workspaceError({
+        code: "inaccessible",
+        phase: "workspace-selection",
+        message: "Selected folder is inaccessible",
+        recoverable: true,
+      })
+    ).toMatchObject({ code: "inaccessible" })
+    expect(
+      workspaceError({
+        code: "incompatible-runtime",
+        phase: "runtime-readiness",
+        message: "Runtime protocol is incompatible",
+        recoverable: false,
+      })
     ).toMatchObject({
       code: "incompatible-runtime",
       recoverable: false,
+    })
+  })
+
+  it("uses an internal fallback without guessing from error text", () => {
+    expect(workspaceError(new Error("agent-html/ is missing"))).toMatchObject({
+      code: "internal",
+      phase: "runtime-start",
+      recoverable: true,
     })
   })
 })

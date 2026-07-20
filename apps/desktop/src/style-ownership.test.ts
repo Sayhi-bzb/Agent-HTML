@@ -46,4 +46,38 @@ describe("desktop visual ownership", () => {
     )
     expect(shadows).toEqual(["var(--canvas-desktop-overlay-shadow)"])
   })
+
+  it("consumes Canvas foundation without redefining semantic theme tokens", () => {
+    const css = fs.readFileSync(path.join(sourceRoot, "styles.css"), "utf8")
+    const semanticTokenDefinitions = [
+      "accent",
+      "accent-foreground",
+      "background",
+      "destructive",
+      "foreground",
+      "muted-foreground",
+      "primary",
+      "primary-foreground",
+      "ring",
+    ]
+
+    expect(css).toContain(
+      '@import "../../../agent-html/styles/foundation.css"'
+    )
+    expect(css).toContain("--canvas-desktop-radius: var(--radius)")
+    expect(css).toContain(
+      "--canvas-desktop-overlay-shadow: var(--shadow-2xl)"
+    )
+    expect(css).toContain("background: var(--primary)")
+    expect(css).toContain("color: var(--primary-foreground)")
+    expect(css).toMatch(
+      /\.desktop-dialog\s*\{[^}]*background: var\(--popover\)[^}]*color: var\(--popover-foreground\)/s
+    )
+
+    for (const token of semanticTokenDefinitions) {
+      expect(css).not.toMatch(
+        new RegExp(`^\\s*--${token}\\s*:`, "m")
+      )
+    }
+  })
 })

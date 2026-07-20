@@ -1,4 +1,4 @@
-import { execFileSync, spawn, spawnSync } from "node:child_process"
+import { execFileSync, spawn } from "node:child_process"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
@@ -8,18 +8,6 @@ const appRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)))
 const releaseRoot = path.join(appRoot, "src-tauri", "target", "release")
 const application =
   process.env.AHTML_DESKTOP_BINARY || path.join(releaseRoot, "ahtml-desktop")
-const sidecar =
-  process.env.AHTML_SIDECAR || path.join(releaseRoot, "agent-html-runtime")
-const cli =
-  process.env.AHTML_RUNTIME_CLI ||
-  path.join(
-    releaseRoot,
-    "runtime",
-    "node_modules",
-    "agent-html",
-    "bin",
-    "agent-html.mjs"
-  )
 const driver = process.env.AHTML_TAURI_DRIVER || "tauri-driver"
 const nativeDriver =
   process.env.AHTML_NATIVE_DRIVER || "/usr/bin/WebKitWebDriver"
@@ -35,14 +23,6 @@ let driverExit
 let sessionId
 
 await fs.mkdir(projectRoot)
-const initialized = spawnSync(sidecar, [cli, "init", "--root", projectRoot], {
-  encoding: "utf8",
-})
-if (initialized.status !== 0) {
-  throw new Error(
-    `Unable to initialize E2E workspace: ${initialized.stderr || initialized.stdout}`
-  )
-}
 const desktopConfigRoot = path.join(configRoot, "dev.ahtml.desktop")
 await fs.mkdir(desktopConfigRoot, { recursive: true })
 await fs.writeFile(
@@ -55,27 +35,13 @@ await fs.writeFile(
       pipeline: "example",
       theme: "system",
     },
-    recents: [
-      {
-        available: true,
-        lastOpenedAt: Math.floor(Date.now() / 1000),
-        name: "E2E project",
-        path: projectRoot,
-      },
-    ],
+    recents: [],
   })
 )
 
 const driverProcess = spawn(
   "xvfb-run",
-  [
-    "-a",
-    driver,
-    "--port",
-    String(driverPort),
-    "--native-driver",
-    nativeDriver,
-  ],
+  ["-a", driver, "--port", String(driverPort), "--native-driver", nativeDriver],
   {
     detached: process.platform !== "win32",
     env: { ...process.env, XDG_CONFIG_HOME: configRoot },
@@ -94,7 +60,8 @@ for (const stream of [driverProcess.stdout, driverProcess.stderr]) {
 async function webdriver(method, route, body) {
   const response = await fetch(`${driverUrl}${route}`, {
     body: body === undefined ? undefined : JSON.stringify(body),
-    headers: body === undefined ? undefined : { "content-type": "application/json" },
+    headers:
+      body === undefined ? undefined : { "content-type": "application/json" },
     method,
   })
   const payload = await response.json().catch(() => ({}))
@@ -130,6 +97,13 @@ async function execute(script, args = []) {
   })
 }
 
+async function executeAsync(script, args = []) {
+  return webdriver("POST", `/session/${sessionId}/execute/async`, {
+    args,
+    script,
+  })
+}
+
 async function find(using, value) {
   return webdriver("POST", `/session/${sessionId}/element`, { using, value })
 }
@@ -144,15 +118,12 @@ async function click(using, value) {
 }
 
 try {
-  await waitFor(
-    () => {
-      if (driverExit) {
-        throw new Error(`tauri-driver exited: ${JSON.stringify(driverExit)}`)
-      }
-      return fetch(`${driverUrl}/status`).then((response) => response.ok)
-    },
-    "tauri-driver"
-  )
+  await waitFor(() => {
+    if (driverExit) {
+      throw new Error(`tauri-driver exited: ${JSON.stringify(driverExit)}`)
+    }
+    return fetch(`${driverUrl}/status`).then((response) => response.ok)
+  }, "tauri-driver")
   const session = await webdriver("POST", "/session", {
     capabilities: {
       alwaysMatch: {
@@ -163,12 +134,15 @@ try {
   sessionId = session.sessionId
 
   await waitFor(
-    () => execute("return document.body.innerText").then((text) => text.includes("Open folder")),
+    () =>
+      execute("return document.body.innerText").then((text) =>
+        text.includes("Open project")
+      ),
     "Workspace Home",
     15_000
   )
 
-  await click("xpath", "//button[normalize-space(.)='Settings']")
+  await click("css selector", "button[aria-label='Workspace settings']")
   await waitFor(
     () => execute("return Boolean(document.querySelector('dialog[open]'))"),
     "open Settings dialog"
@@ -177,9 +151,41 @@ try {
     "return document.activeElement?.getAttribute('aria-label')"
   )
   if (focusedControl !== "Close settings") {
-    throw new Error(`Settings initial focus was ${JSON.stringify(focusedControl)}`)
+    throw new Error(
+      `Settings initial focus was ${JSON.stringify(focusedControl)}`
+    )
   }
   await click("css selector", "button[aria-label='Close settings']")
+
+  const initialized = await executeAsync(
+    `const done = arguments[arguments.length - 1];
+     window.__TAURI_INTERNALS__.invoke("open_workspace", { request: arguments[0] })
+       .then((value) => done({ ok: true, value }))
+       .catch((error) => done({ ok: false, error }));`,
+    [{ initialize: true, path: projectRoot, pipeline: "example" }]
+  )
+  if (!initialized?.ok) {
+    throw new Error(
+      `Desktop workspace initialization failed: ${JSON.stringify(initialized)}`
+    )
+  }
+  const closed = await executeAsync(
+    `const done = arguments[arguments.length - 1];
+     window.__TAURI_INTERNALS__.invoke("close_workspace")
+       .then(() => done({ ok: true }))
+       .catch((error) => done({ ok: false, error }));`
+  )
+  if (!closed?.ok) {
+    throw new Error(`Desktop workspace close failed: ${JSON.stringify(closed)}`)
+  }
+  await execute("location.reload(); return true")
+  await waitFor(
+    () =>
+      execute("return document.body.innerText").then((text) =>
+        text.includes(projectRoot)
+      ),
+    "initialized workspace recent entry"
+  )
 
   await click(
     "xpath",
@@ -187,10 +193,7 @@ try {
   )
 
   await waitFor(
-    () =>
-      execute("return document.body.innerText").then((text) =>
-        text.includes("Runtime ready")
-      ),
+    () => execute("return Boolean(document.querySelector('iframe'))"),
     "authenticated Canvas runtime",
     90_000
   )
@@ -198,7 +201,9 @@ try {
     "return document.querySelector('iframe')?.getAttribute('title')"
   )
   if (!frameTitle?.endsWith(" Canvas")) {
-    throw new Error(`Canvas iframe was not named: ${JSON.stringify(frameTitle)}`)
+    throw new Error(
+      `Canvas iframe was not named: ${JSON.stringify(frameTitle)}`
+    )
   }
 
   const runtimeProcess = execFileSync("ps", ["-eo", "pid=,args="], {
@@ -218,23 +223,35 @@ try {
   await waitFor(
     () =>
       execute("return document.body.innerText").then(
-        (text) => text.includes("Canvas runtime exited") && text.includes("Retry")
+        (text) =>
+          text.includes("Canvas runtime exited") && text.includes("Retry")
       ),
     "recoverable runtime crash"
   )
   await click("xpath", "//button[contains(normalize-space(.), 'Retry')]")
   await waitFor(
-    () =>
-      execute("return document.body.innerText").then((text) =>
-        text.includes("Runtime ready")
-      ),
+    () => execute("return Boolean(document.querySelector('iframe'))"),
     "runtime recovery",
     90_000
   )
 
-  await click("xpath", "//button[contains(normalize-space(.), 'Switch workspace')]")
+  const gracefullyClosed = await executeAsync(
+    `const done = arguments[arguments.length - 1];
+     window.__TAURI_INTERNALS__.invoke("close_workspace")
+       .then(() => done({ ok: true }))
+       .catch((error) => done({ ok: false, error }));`
+  )
+  if (!gracefullyClosed?.ok) {
+    throw new Error(
+      `Desktop workspace close failed: ${JSON.stringify(gracefullyClosed)}`
+    )
+  }
+  await execute("location.reload(); return true")
   await waitFor(
-    () => execute("return document.body.innerText").then((text) => text.includes("Recent projects")),
+    () =>
+      execute("return document.body.innerText").then((text) =>
+        text.includes("Open project")
+      ),
     "Workspace Home after graceful shutdown"
   )
   await new Promise((resolve) => setTimeout(resolve, 750))

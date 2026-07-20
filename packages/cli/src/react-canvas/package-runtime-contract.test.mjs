@@ -4,6 +4,7 @@ import {
   readSource,
   workspaceRuntimeImports,
 } from "./test-contract-helpers.mjs"
+import { resolvePackageImportModule } from "../dev-server/vite.mjs"
 
 describe("React Canvas package runtime contract", { timeout: 15000 }, () => {
   it("keeps root package dependencies out of delegated Canvas runtime ownership", () => {
@@ -61,10 +62,21 @@ describe("React Canvas package runtime contract", { timeout: 15000 }, () => {
     const workspaceDepsWithoutRuntime = Object.keys(
       playgroundPackage.dependencies
     ).filter((dependency) => !cliPackage.dependencies[dependency])
+    const unresolvableRuntimeImports = imports
+      .filter(({ file }) => !file.endsWith(".css"))
+      .filter(({ specifier }) => {
+        try {
+          resolvePackageImportModule(specifier)
+          return false
+        } catch {
+          return true
+        }
+      })
 
     expect(missingWorkspaceDeps).toEqual([])
     expect(missingRuntimeDeps).toEqual([])
     expect(workspaceDepsWithoutRuntime).toEqual([])
+    expect(unresolvableRuntimeImports).toEqual([])
   })
 
   it("keeps package publication boundaries explicit", () => {

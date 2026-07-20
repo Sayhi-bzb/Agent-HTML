@@ -2,6 +2,10 @@ import type { BlockMessageThread, BlockOverlay } from "../host-contracts"
 
 export type BlockActionBadgeState = "default" | "running" | "done" | "failed"
 
+export function shouldTrackBlockHoverPointer(pointerType: string) {
+  return pointerType !== "touch"
+}
+
 export function blockActionBadgeState(
   thread: BlockMessageThread | undefined
 ): BlockActionBadgeState {

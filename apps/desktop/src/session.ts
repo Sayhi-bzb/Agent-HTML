@@ -3,18 +3,31 @@ export const runtimeProtocolVersion = 1
 export type AgentPipeline = "codex" | "example"
 
 export type WorkspaceErrorCode =
-  | "cancelled"
+  | "invalid-selection"
   | "inaccessible"
   | "missing-workspace"
-  | "runtime-crashed"
-  | "runtime-start"
+  | "runtime-bundle-invalid"
+  | "initialization-failed"
+  | "runtime-start-failed"
+  | "runtime-exited"
+  | "runtime-timeout"
   | "incompatible-runtime"
-  | "unknown"
+  | "internal"
+
+export type WorkspaceErrorPhase =
+  | "workspace-selection"
+  | "workspace-initialization"
+  | "runtime-start"
+  | "runtime-readiness"
+  | "runtime-stop"
 
 export interface WorkspaceError {
   code: WorkspaceErrorCode
+  phase: WorkspaceErrorPhase
   message: string
   recoverable: boolean
+  logPath?: string
+  exitCode?: number
 }
 
 export type WorkspaceSession =
@@ -53,6 +66,7 @@ export function readySession(runtime: RuntimeReady): WorkspaceSession {
       root: runtime.root,
       error: {
         code: "incompatible-runtime",
+        phase: "runtime-readiness",
         message: `Runtime protocol ${runtime.protocolVersion} is not supported.`,
         recoverable: false,
       },
@@ -63,20 +77,24 @@ export function readySession(runtime: RuntimeReady): WorkspaceSession {
 }
 
 export function workspaceError(error: unknown): WorkspaceError {
+  if (isWorkspaceError(error)) return error
+
   const message = error instanceof Error ? error.message : String(error)
-  const normalized = message.toLowerCase()
-  const code: WorkspaceErrorCode = normalized.includes("agent-html")
-    ? "missing-workspace"
-    : normalized.includes("incompatible")
-      ? "incompatible-runtime"
-      : normalized.includes("inaccessible") ||
-          normalized.includes("permission denied") ||
-          normalized.includes("access is denied")
-        ? "inaccessible"
-        : "runtime-start"
   return {
-    code,
+    code: "internal",
+    phase: "runtime-start",
     message,
-    recoverable: code !== "incompatible-runtime",
+    recoverable: true,
   }
+}
+
+function isWorkspaceError(error: unknown): error is WorkspaceError {
+  if (!error || typeof error !== "object") return false
+  const candidate = error as Partial<WorkspaceError>
+  return (
+    typeof candidate.code === "string" &&
+    typeof candidate.phase === "string" &&
+    typeof candidate.message === "string" &&
+    typeof candidate.recoverable === "boolean"
+  )
 }

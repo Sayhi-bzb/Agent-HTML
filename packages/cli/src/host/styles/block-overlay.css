@@ -44,6 +44,14 @@
     opacity: 1;
   }
 
+  @media (any-pointer: coarse) {
+    .canvas-block-action-badge {
+      top: calc(var(--canvas-block-action-badge-touch-offset) * -1);
+      right: calc(var(--canvas-block-action-badge-touch-offset) * -1);
+      opacity: 1;
+    }
+  }
+
   .canvas-block-action-badge:hover,
   .canvas-block-action-badge:focus-visible {
     border-color: var(--canvas-block-highlight-border);

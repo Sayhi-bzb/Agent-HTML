@@ -6,6 +6,7 @@ import type {
   RuntimeReady,
 } from "./session"
 import type { DesktopPreferences } from "./preferences"
+import type { CanvasThemeSnapshot } from "../../../packages/cli/src/host/theme/theme-sync-contract"
 
 export interface RecentWorkspace {
   name: string
@@ -15,6 +16,7 @@ export interface RecentWorkspace {
 }
 
 export interface DesktopSnapshot {
+  canvasTheme: CanvasThemeSnapshot | null
   preferences: DesktopPreferences
   recents: RecentWorkspace[]
   version: string
@@ -37,5 +39,7 @@ export const desktopApi = {
   closeWorkspace: () => invoke<void>("close_workspace"),
   savePreferences: (preferences: DesktopPreferences) =>
     invoke<void>("save_preferences", { preferences }),
+  saveCanvasTheme: (canvasTheme: CanvasThemeSnapshot) =>
+    invoke<void>("save_canvas_theme", { canvasTheme }),
   showLog: () => invoke<void>("show_runtime_log"),
 }

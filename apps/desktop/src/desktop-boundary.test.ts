@@ -21,13 +21,17 @@ describe("desktop package boundary", () => {
     }
   })
 
-  it("packages Node, CLI, and runtime dependencies as app resources", () => {
+  it("packages an immutable runtime seed without staging it during dev", () => {
     const config = JSON.parse(
       fs.readFileSync(path.join(appRoot, "src-tauri/tauri.conf.json"), "utf8")
     )
     expect(config.bundle.externalBin).toEqual(["binaries/agent-html-runtime"])
-    expect(config.bundle.resources).toMatchObject({
-      "../runtime/node_modules": "runtime/node_modules",
+    expect(config.bundle.resources).toEqual({
+      "../runtime-bundle": "runtime",
     })
+    expect(config.build.beforeDevCommand).toBe(
+      "npm run runtime:ensure && npm run dev"
+    )
+    expect(config.build.beforeBuildCommand).toContain("npm run runtime:stage")
   })
 })

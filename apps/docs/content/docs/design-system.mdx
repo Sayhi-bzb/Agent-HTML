@@ -9,6 +9,9 @@ Canvas uses local shadcn-derived UI and CSS variables without forking shadcn.
 styles/index.css
   -> Tailwind, shadcn CSS, font imports, and CSS pipeline imports
 
+styles/foundation.css
+  -> shared font and semantic material entrypoint for Canvas and Desktop
+
 styles/base.css
   -> base rules such as text selection
 
@@ -32,7 +35,7 @@ packages/cli/src/host/styles/*
      implementation styles that consume Canvas tokens
 
 apps/desktop/src/styles.css
-  -> Desktop semantic mappings and centrally owned --canvas-desktop-* values
+  -> shared foundation consumer plus centrally owned --canvas-desktop-* values
 
 theme/*
   -> host-owned theme preset registry and shadcn CSS sources
@@ -50,8 +53,14 @@ artifact files
 ## CSS Entry Points
 
 `agent-html/styles/index.css` is the runtime CSS entrypoint. It imports
-Tailwind, shadcn CSS, fonts, material files, base styles, layout classes, and
-internal artifact-adjacent classes.
+Tailwind, shadcn CSS, the shared foundation entrypoint, base styles, layout
+classes, and internal artifact-adjacent classes.
+
+`agent-html/styles/foundation.css` is the reusable token entrypoint. It owns
+the Geist font import and delegates raw semantic values to
+`materials/index.css`. Canvas and the packaged Desktop consume this file at
+build time. At runtime Canvas Style sends Desktop an allowlisted theme snapshot;
+Desktop never reads or injects a selected workspace stylesheet.
 
 `agent-html/styles/base.css` owns base stylesheet behavior that applies across
 the Canvas surface, including text selection colors.
@@ -97,6 +106,13 @@ highlighting, and block action placement, uses the same foundation token
 pipeline. Canvas-specific host tokens and host styles live under
 `packages/cli/src/host/styles`.
 
+Canvas Style owns theme mode, preset selection, and live editor variables for
+both Canvas and Desktop. Canvas Host, sidebar, toolbar, artifact surface, and
+Desktop page structure share `--background` and its foreground/action pairs.
+Sidebar variables are compatibility aliases to the same semantic tokens, not
+an independent structural palette. Only transient overlays such as dialogs,
+popovers, and floating prompts use `--popover` or another elevated surface.
+
 Desktop chrome is borderless by default. Establish groups with spacing,
 alignment, typography, density, and foreground emphasis. Use token-driven
 boundaries only for focus-visible, selected, invalid, destructive, or overlay
@@ -105,6 +121,22 @@ background blocks, gradients, raw palette utilities, literal colors,
 component-local color mixing, or local visual scales. Desktop primitives are
 packaged app source and never import a selected workspace's
 `agent-html/components/ui`.
+
+Desktop consumes Canvas foundation variables for semantic color, font, radius,
+and depth. Desktop-only geometry and product chrome values remain under
+`--canvas-desktop-*`; Desktop must not redefine shared theme primitives.
+
+## Viewport And Touch Ownership
+
+Desktop and Canvas Host documents lock their root viewport. Desktop home and
+dialogs own their local overflow; the runtime iframe does not scroll its outer
+document. In Canvas Host, the artifact ScrollArea viewport is the sole vertical
+scroll owner and stops scroll chaining at its boundary.
+
+Do not set global `touch-action` or cancel pointer movement. Carousels, maps,
+sliders, drag surfaces, and pinch-capable content own their gestures. Touch
+movement does not produce block hover. When a coarse pointer is available, host
+controls use a minimum 44px hit target and block actions remain visible.
 
 Artifact root layout also uses this pipeline. Root width and block rhythm are
 explicit `--canvas-artifact-*` tokens in

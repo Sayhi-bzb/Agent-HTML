@@ -60,9 +60,9 @@ describe("agent-html init", () => {
         path.join(root, "agent-html", "artifacts", "example.artifact.tsx")
       )
     ).toBe(true)
-    expect(await exists(path.join(root, "agent-html", "package-lock.json"))).toBe(
-      false
-    )
+    expect(
+      await exists(path.join(root, "agent-html", "package-lock.json"))
+    ).toBe(false)
     expect(await exists(path.join(root, "agent-html", "node_modules"))).toBe(
       false
     )
@@ -80,6 +80,32 @@ describe("agent-html init", () => {
     await expect(
       initializeAgentHtmlWorkspace({ root, templateRoot })
     ).rejects.toThrow("agent-html/ already exists")
-    await expect(fs.readFile(existingReadme, "utf8")).resolves.toBe("existing\n")
+    await expect(fs.readFile(existingReadme, "utf8")).resolves.toBe(
+      "existing\n"
+    )
+  })
+
+  it("removes staging output when the template copy fails", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-init-"))
+    const templateRoot = await createTemplateRoot()
+
+    await expect(
+      initializeAgentHtmlWorkspace({
+        root,
+        templateRoot,
+        async copyWorkspace(_source, stagingRoot) {
+          await fs.mkdir(stagingRoot, { recursive: true })
+          await fs.writeFile(path.join(stagingRoot, "partial.txt"), "partial")
+          throw new Error("copy failed")
+        },
+      })
+    ).rejects.toThrow("copy failed")
+
+    expect(await exists(path.join(root, "agent-html"))).toBe(false)
+    expect(
+      (await fs.readdir(root)).some((entry) =>
+        entry.startsWith(".agent-html.init-")
+      )
+    ).toBe(false)
   })
 })

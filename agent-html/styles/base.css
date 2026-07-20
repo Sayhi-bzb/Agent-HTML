@@ -5,10 +5,19 @@
 
   body {
     @apply bg-background text-foreground;
+    overflow: hidden;
   }
 
   html {
     @apply font-sans;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    min-height: 0;
+    overscroll-behavior: none;
   }
 
   ::selection {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import path from "node:path"
 
 import { startDevHost } from "./server.mjs"
 
@@ -54,6 +55,14 @@ describe("authenticated runtime server", () => {
         workspaceRoot: process.cwd(),
       })
 
+      const timelinePath = path
+        .resolve("agent-html", "components", "timeline.tsx")
+        .replaceAll(path.sep, "/")
+      const timeline = await fetch(`${runtime.url}/@fs/${timelinePath}`, {
+        headers: { authorization: `Bearer ${token}` },
+      })
+      expect(timeline.status).toBe(200)
+
       const closed = new Promise((resolve) => runtime.server.once("close", resolve))
       const shutdown = await fetch(
         `${runtime.url}/__agent-html/runtime/shutdown`,
@@ -64,6 +73,7 @@ describe("authenticated runtime server", () => {
       )
       expect(shutdown.status).toBe(200)
       await closed
+      await runtime.closed
     } finally {
       if (runtime.server.listening) {
         await new Promise((resolve) => runtime.server.close(resolve))

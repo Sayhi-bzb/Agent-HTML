@@ -11,6 +11,8 @@ import {
 } from "./runtime-session.mjs"
 import { createAgentHtmlViteServer } from "./vite.mjs"
 
+const runtimeCloseTimeoutMs = 2_000
+
 export function parsePortArg(args) {
   const portIndex = args.indexOf("--port")
   if (portIndex === -1) {
@@ -99,30 +101,6 @@ async function listenWithPortFallback({ server, port, explicit }) {
   )
 }
 
-async function waitForViteRuntimeIdle(vite) {
-  await vite.waitForRequestsIdle()
-
-  const optimizerPromises = Object.values(vite.environments ?? {}).flatMap(
-    (environment) => {
-      const optimizer = environment.depsOptimizer
-      if (!optimizer) {
-        return []
-      }
-
-      const discoveredProcessing = Object.values(
-        optimizer.metadata?.discovered ?? {}
-      )
-        .map((dependency) => dependency.processing)
-        .filter(Boolean)
-
-      return [optimizer.scanProcessing, ...discoveredProcessing].filter(Boolean)
-    }
-  )
-
-  await Promise.allSettled(optimizerPromises)
-  await vite.waitForRequestsIdle()
-}
-
 export async function startDevHost({ args, cwd, runtime = {} }) {
   const root = parseRootArg({ args, cwd })
   const portConfig = Number.isInteger(runtime.port)
@@ -137,15 +115,26 @@ export async function startDevHost({ args, cwd, runtime = {} }) {
   await artifactRegistry.start()
   const closeHttpServer = server.close.bind(server)
   let closeRuntimePromise = null
+  let resolveRuntimeClosed
+  const runtimeClosed = new Promise((resolve) => {
+    resolveRuntimeClosed = resolve
+  })
 
   function closeRuntime() {
     if (!closeRuntimePromise) {
       closeRuntimePromise = (async () => {
-        await waitForViteRuntimeIdle(vite)
         await artifactRegistry.close()
-        await vite.close()
+        let closeTimeout
+        await Promise.race([
+          vite.close(),
+          new Promise((resolve) => {
+            closeTimeout = setTimeout(resolve, runtimeCloseTimeoutMs)
+          }),
+        ])
+        clearTimeout(closeTimeout)
         await stopCodexBridge()
       })()
+      closeRuntimePromise.then(resolveRuntimeClosed, resolveRuntimeClosed)
     }
 
     return closeRuntimePromise
@@ -162,9 +151,18 @@ export async function startDevHost({ args, cwd, runtime = {} }) {
     return server
   }
 
+  function requestRuntimeShutdown() {
+    server.close(() => {})
+    server.closeIdleConnections?.()
+    const closeConnections = setTimeout(() => {
+      server.closeAllConnections?.()
+    }, 250)
+    closeConnections.unref()
+  }
+
   const runtimeControl = {
     allowShutdown: runtime.allowShutdown === true,
-    requestShutdown: () => server.close(() => {}),
+    requestShutdown: requestRuntimeShutdown,
     root,
     startedAt,
   }
@@ -240,6 +238,7 @@ export async function startDevHost({ args, cwd, runtime = {} }) {
 
   return {
     bootstrapUrl,
+    closed: runtimeClosed,
     pipeline,
     protocolVersion: runtimeProtocolVersion,
     root,

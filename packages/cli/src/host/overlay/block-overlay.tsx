@@ -16,6 +16,7 @@ import {
   blockActionBadgeState,
   findHoveredBlockOverlay,
   isBlockActionBadgeVisible,
+  shouldTrackBlockHoverPointer,
   shouldMarkBlockMessageThreadRead,
   shouldCloseBlockMessagePopoverForIntersection,
   shouldOpenBlockMessageThreadFromActionBadge,
@@ -235,6 +236,11 @@ export function BlockOverlayLayer({
 
   React.useEffect(() => {
     function handlePointerMove(event: PointerEvent) {
+      if (!shouldTrackBlockHoverPointer(event.pointerType)) {
+        setHoveredBlockId(null)
+        return
+      }
+
       const root = rootRef.current
       if (!root) {
         setHoveredBlockId(null)

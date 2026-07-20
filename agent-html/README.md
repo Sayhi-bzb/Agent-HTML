@@ -2,6 +2,9 @@
 
 `agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, public static files, and source dependency metadata. It does not contain runtime install artifacts.
 
+The Agent HTML CLI supplies dependencies declared in `package.json`; do not
+install dependencies inside this directory.
+
 ## Read Route
 
 Always:

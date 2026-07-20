@@ -3,6 +3,7 @@ import crypto from "node:crypto"
 import { startDevHost } from "./server.mjs"
 
 export const runtimeTokenEnvironmentVariable = "AGENT_HTML_RUNTIME_TOKEN"
+const forcedRuntimeExitDelayMs = 2_500
 
 export function createRuntimeToken() {
   return crypto.randomBytes(32).toString("base64url")
@@ -46,6 +47,11 @@ export async function runRuntimeSidecar({
   runtime.server.once("close", () => {
     process.off("SIGINT", stop)
     process.off("SIGTERM", stop)
+
+    const forcedExit = setTimeout(() => {
+      process.exit(0)
+    }, forcedRuntimeExitDelayMs)
+    forcedExit.unref()
   })
 
   return runtime

@@ -486,51 +486,51 @@ function ReactCanvasHostWorkbench() {
               themeRuntimeVariables={themeRuntimeVariables}
             />
           </SidebarProvider>
-          <SidebarInset className="min-h-svh min-w-0 overflow-hidden">
-          <div className="canvas-host-toolbar">
-            <HostIconButton
-              icon={PanelLeftIcon}
-              label={
-                effectiveLeftSidebarOpen
-                  ? t("app.collapseArtifactSidebar")
-                  : t("app.expandArtifactSidebar")
-              }
-              onClick={() =>
-                setEffectiveLeftSidebarOpen(!effectiveLeftSidebarOpen)
-              }
-              placement="toolbar"
-              size="icon-sm"
-              tone="neutral"
-              variant="ghost"
-            />
-          </div>
-          {activeHostMode === "create-artifact" ? (
-            <CreateArtifactSurface
-              disabled={
-                createArtifactJob !== null &&
-                createArtifactJob.phase !== "failed"
-              }
-              draft={createArtifactDraft}
-              onClearPending={clearCreateArtifactJob}
-              onDraftChange={setCreateArtifactDraft}
-              onSubmit={submitCreateArtifactPrompt}
-              pending={
-                createArtifactJob !== null &&
-                createArtifactJob.phase !== "failed"
-              }
-              status={createArtifactStatus}
-            />
-          ) : (
-            <ArtifactSurface
-              activeFilePath={resolvedActiveFilePath}
-              blocks={activeArtifact?.blocks}
-              artifactCount={artifacts.length}
-              artifactRegistryVersion={artifactRegistryVersion}
-              artifactsLoading={artifactsLoading}
-              guardIssues={activeIssues}
-              loadError={loadError}
-            />
-          )}
+          <SidebarInset className="h-full min-h-0 min-w-0 overflow-hidden">
+            <div className="canvas-host-toolbar">
+              <HostIconButton
+                icon={PanelLeftIcon}
+                label={
+                  effectiveLeftSidebarOpen
+                    ? t("app.collapseArtifactSidebar")
+                    : t("app.expandArtifactSidebar")
+                }
+                onClick={() =>
+                  setEffectiveLeftSidebarOpen(!effectiveLeftSidebarOpen)
+                }
+                placement="toolbar"
+                size="icon-sm"
+                tone="neutral"
+                variant="ghost"
+              />
+            </div>
+            {activeHostMode === "create-artifact" ? (
+              <CreateArtifactSurface
+                disabled={
+                  createArtifactJob !== null &&
+                  createArtifactJob.phase !== "failed"
+                }
+                draft={createArtifactDraft}
+                onClearPending={clearCreateArtifactJob}
+                onDraftChange={setCreateArtifactDraft}
+                onSubmit={submitCreateArtifactPrompt}
+                pending={
+                  createArtifactJob !== null &&
+                  createArtifactJob.phase !== "failed"
+                }
+                status={createArtifactStatus}
+              />
+            ) : (
+              <ArtifactSurface
+                activeFilePath={resolvedActiveFilePath}
+                blocks={activeArtifact?.blocks}
+                artifactCount={artifacts.length}
+                artifactRegistryVersion={artifactRegistryVersion}
+                artifactsLoading={artifactsLoading}
+                guardIssues={activeIssues}
+                loadError={loadError}
+              />
+            )}
           </SidebarInset>
         </div>
       </HostI18nProvider>

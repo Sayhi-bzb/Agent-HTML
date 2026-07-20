@@ -1,2 +1,5 @@
 /node_modules/
 /package-lock.json
+/.node-modules-backup-*/
+/.prepare-*/
+/runtime-manifest.json
