@@ -2,6 +2,7 @@ import { startDevHost } from "./dev-host.mjs"
 import { buildDemoHost } from "./demo-build.mjs"
 import { runInitCommand } from "./init.mjs"
 import { runGuardCommand } from "./react-canvas/guard.mjs"
+import { runRuntimeSidecar } from "./dev-server/runtime-command.mjs"
 
 export async function runAgentHtmlCli(args) {
   const [command, ...rest] = args
@@ -24,6 +25,11 @@ export async function runAgentHtmlCli(args) {
     return
   }
 
+  if (command === "runtime") {
+    await runRuntimeSidecar({ args: rest, cwd: process.cwd() })
+    return
+  }
+
   if (command === "demo-build") {
     await buildDemoHost({ args: rest, cwd: process.cwd() })
     return
@@ -35,6 +41,7 @@ export async function runAgentHtmlCli(args) {
       "  agent-html init [--root <path>]",
       "  agent-html guard [--root <path>]",
       "  agent-html dev [--root <path>] [--port <port>] [--pipeline codex|example]",
+      "  agent-html runtime [--root <path>] [--pipeline codex|example]",
       "  agent-html demo-build [--root <path>] [--out-dir <path>]",
     ].join("\n")
   )

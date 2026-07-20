@@ -23,6 +23,10 @@ packages/cli/src/host/*
 
 packages/cli/src/host/styles/*
   -> host chrome implementation styles that consume Canvas tokens
+
+apps/desktop
+  -> project selection, session state, runtime supervision, preferences,
+     packaged Node, and Desktop chrome
 ```
 
 Each layer owns one decision. The protocol marks stable regions and emits
@@ -30,6 +34,24 @@ instrumented state changes. The `agent-html` workspace provides durable
 context agents can read and reuse. Artifacts compose those resources into UI.
 The CLI discovers, guards, serves, and routes artifacts through Vite middleware.
 The host observes and operates on rendered metadata.
+
+## Desktop
+
+`apps/desktop` is the packaged product shell. Its React renderer owns
+Workspace Home, recovery, switching, settings, and the compact frame around the
+existing Host. Its Tauri layer owns canonical project selection, recents,
+per-launch credentials, sidecar lifecycle, logs, capabilities, and packaging.
+
+The selected project remains the source owner. Desktop normalizes either a
+project root or its `agent-html/` directory to one canonical project root.
+Preferences and credentials never enter project source.
+
+`agent-html runtime` is the controller contract. It binds a random loopback
+port, emits one JSON `runtime-ready` event, authenticates every request,
+exposes versioned health and shutdown routes, and closes Vite, registry
+watchers, and agent bridges before exit. `agent-html dev` remains the
+unauthenticated development contract. The packaged app supplies Node and CLI
+resources; projects do not supply a script, install, or runtime.
 
 ## Protocol
 
@@ -166,6 +188,9 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Interaction state | `packages/react` event protocol + host store | artifact-local control changes | host prompt interaction snapshot | filesystem, shell, MCP, privileged host APIs in artifact code | `index.test.tsx`, `interaction-store.test.ts`, `prompt.test.mjs` |
 | Preferences persistence | `host/preferences` | local host preference state | persisted host preference patch | artifact source state, dev-server state | `canvas-host-preferences.test.ts`, `use-canvas-host-preferences.test.ts` |
 | CSS/theme | `agent-html/styles` + package host styles + host theme owner | CSS tokens, content classes, theme presets, host chrome CSS | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides, host chrome implementation in artifact context | `style-ownership-contract.test.mjs`, `style-resource-contract.test.mjs`, `theme-preset.test.ts`, `theme-layout.test.ts` |
+| Runtime control | `dev-server/runtime-session.mjs` + `runtime-command.mjs` | per-launch credential, canonical root, pipeline | ready event, authenticated Host, health, graceful shutdown | persisted credentials, fixed ports, project Node | `runtime-session.test.mjs`, `runtime-server.test.mjs` |
+| Desktop session | `apps/desktop/src-tauri` + `apps/desktop/src/session.ts` | selected folder, initialization choice, preferences | one supervised workspace runtime | artifact layout, Host route semantics, project preferences, multiple active runtimes | Desktop Vitest and Cargo tests |
+| Desktop visual ownership | `apps/desktop/src/styles.css` + Desktop primitives | semantic and `--canvas-desktop-*` tokens | borderless product chrome | workspace UI imports, raw colors, palette utilities, local visual scales | `apps/desktop/src/style-ownership.test.ts` |
 
 Dev server routes are orchestration only. They are grouped into explicit
 runtime adapter pipelines:
@@ -179,6 +204,7 @@ artifact-registry-and-guard-report
 artifact-source-mutation
 block-lookup
 codex-bridge
+runtime-control
 ```
 
 The dev server owns server lifecycle, route dispatch, Vite runtime creation,

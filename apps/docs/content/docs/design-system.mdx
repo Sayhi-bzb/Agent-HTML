@@ -31,6 +31,9 @@ packages/cli/src/host/styles/*
   -> host chrome tokens plus overlay, sidebar, prompt, and theme editor
      implementation styles that consume Canvas tokens
 
+apps/desktop/src/styles.css
+  -> Desktop semantic mappings and centrally owned --canvas-desktop-* values
+
 theme/*
   -> host-owned theme preset registry and shadcn CSS sources
 
@@ -93,6 +96,15 @@ spacing, sidebar local spacing, floating prompt surface values, block hover
 highlighting, and block action placement, uses the same foundation token
 pipeline. Canvas-specific host tokens and host styles live under
 `packages/cli/src/host/styles`.
+
+Desktop chrome is borderless by default. Establish groups with spacing,
+alignment, typography, density, and foreground emphasis. Use token-driven
+boundaries only for focus-visible, selected, invalid, destructive, or overlay
+ambiguity. Product composition must not add colored cards, decorative
+background blocks, gradients, raw palette utilities, literal colors,
+component-local color mixing, or local visual scales. Desktop primitives are
+packaged app source and never import a selected workspace's
+`agent-html/components/ui`.
 
 Artifact root layout also uses this pipeline. Root width and block rhythm are
 explicit `--canvas-artifact-*` tokens in

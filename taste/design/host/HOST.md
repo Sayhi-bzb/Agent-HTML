@@ -8,6 +8,10 @@ Its job is to keep orientation cheap: which artifact is active, which sidebar vi
 
 Formal host UI does not mean heavy UI. It means the same decision produces the same shape every time.
 
+Default grouping is borderless. Spacing, alignment, typography, density, and
+foreground emphasis establish hierarchy; boundaries communicate focus,
+selection, invalid or destructive state, or temporary spatial context.
+
 ## Sidebar As State
 
 The sidebar is not a bucket for controls. It is a compact state machine.

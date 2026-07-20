@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "desktop",
+  "description": "AHTML Desktop renderer permissions",
+  "windows": ["main"],
+  "permissions": ["core:default", "dialog:allow-open"]
+}

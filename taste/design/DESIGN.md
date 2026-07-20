@@ -15,7 +15,7 @@ Current Canvas taste inherits these concepts from the older design corpus:
 
 - calm operating workbench feel
 - neutral-first surfaces with sparse accent
-- border-led hierarchy before shadow-led depth
+- token-led hierarchy through spacing, alignment, type, and density
 - compact utility density
 - restrained typography
 - quiet but legible interaction feedback
@@ -35,7 +35,7 @@ The emotional tone is restrained:
 - structured rather than decorative
 - compact rather than spacious-for-effect
 
-Canvas should be neutral-first, border-led, low-glare in dark mode, and sparse
+Canvas should be neutral-first, borderless by default, low-glare in dark mode, and sparse
 with accent color. Accent supports orientation, state, and action priority; it
 should not create a saturated brand surface.
 
@@ -53,8 +53,8 @@ The host orients. The artifact surface carries the work. Artifact content owns
 its own composition. Block overlays are inspection affordances, not artifact UI.
 
 The artifact surface should feel hosted inside the workbench, not pasted onto a
-blank page. Use stable planes, spacing, and restrained borders before adding
-more containers.
+blank page. Use stable planes, spacing, alignment, and type before adding a
+boundary or container.
 
 ## System Rules
 
@@ -97,10 +97,9 @@ through artifact code.
 Prefer:
 
 - neutral surfaces over brand-colored surfaces
-- thin borders over dramatic depth
+- spacing and foreground emphasis over routine borders
 - compact utility spacing over theatrical whitespace
-- light structural shadows only when borders and surface hierarchy are not
-  enough
+- token-driven boundaries only for state or spatial ambiguity
 - stable planes over nested container depth
 
 Avoid raw colors, decorative gradients, arbitrary visual values, oversized

@@ -71,6 +71,7 @@ describe("dev server routes", () => {
       "artifact-source-mutation",
       "block-lookup",
       "codex-bridge",
+      "runtime-control",
     ])
     expect(classifyDevServerRoute("/")).toBe("host-shell")
     expect(classifyDevServerRoute(hostRoutes.hostEntry)).toBe("runtime-module")
@@ -107,7 +108,52 @@ describe("dev server routes", () => {
       "block-lookup"
     )
     expect(classifyDevServerRoute(hostRoutes.codexTurn)).toBe("codex-bridge")
+    expect(classifyDevServerRoute(hostRoutes.runtimeHealth)).toBe(
+      "runtime-control"
+    )
+    expect(classifyDevServerRoute(hostRoutes.runtimeShutdown)).toBe(
+      "runtime-control"
+    )
     expect(classifyDevServerRoute("/unknown")).toBe(null)
+  })
+
+  it("reports runtime health and supervises shutdown", async () => {
+    const healthResponse = createResponseMock()
+    const requestShutdown = vi.fn()
+    const runtimeControl = {
+      allowShutdown: true,
+      requestShutdown,
+      root: "/workspace",
+      startedAt: Date.now() - 50,
+    }
+
+    await handleRoute({
+      request: { method: "GET", url: hostRoutes.runtimeHealth },
+      response: healthResponse,
+      root: "/workspace",
+      runtimeControl,
+      vite: {},
+    })
+
+    expect(healthResponse.statusCode).toBe(200)
+    expect(JSON.parse(healthResponse.body)).toMatchObject({
+      ok: true,
+      protocolVersion: 1,
+      workspaceRoot: "/workspace",
+    })
+
+    const shutdownResponse = createResponseMock()
+    await handleRoute({
+      request: { method: "POST", url: hostRoutes.runtimeShutdown },
+      response: shutdownResponse,
+      root: "/workspace",
+      runtimeControl,
+      vite: {},
+    })
+    await new Promise((resolve) => setImmediate(resolve))
+
+    expect(shutdownResponse.statusCode).toBe(200)
+    expect(requestShutdown).toHaveBeenCalledOnce()
   })
 
   it("serves global and artifact-local public assets", async () => {

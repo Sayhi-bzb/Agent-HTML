@@ -13,6 +13,10 @@ import {
 import { hostRoot } from "./context.mjs"
 import { sendError, sendJson, sendNotFound, sendText } from "./http.mjs"
 import { loadHostStyles } from "./styles.mjs"
+import {
+  requireRuntimeShutdown,
+  runtimeProtocolVersion,
+} from "./runtime-session.mjs"
 import { assertInsideAgentHtmlWorkspace } from "./workspace.mjs"
 import { artifactEntryModulePath, hostEntryModulePath } from "./vite.mjs"
 
@@ -32,6 +36,8 @@ export const hostRoutes = {
   hostEntry: "/__agent-html/host-entry.js",
   publicAsset: "/__agent-html/public/",
   hostStyles: "/__agent-html/styles.css",
+  runtimeHealth: "/__agent-html/runtime/health",
+  runtimeShutdown: "/__agent-html/runtime/shutdown",
 }
 
 export const devServerRoutePipelines = [
@@ -43,6 +49,7 @@ export const devServerRoutePipelines = [
   "artifact-source-mutation",
   "block-lookup",
   "codex-bridge",
+  "runtime-control",
 ]
 
 const removedLegacyRoutes = new Set(["/client.js", "/styles.css"])
@@ -450,6 +457,13 @@ export function classifyDevServerRoute(pathname) {
     return "codex-bridge"
   }
 
+  if (
+    pathname === hostRoutes.runtimeHealth ||
+    pathname === hostRoutes.runtimeShutdown
+  ) {
+    return "runtime-control"
+  }
+
   return null
 }
 
@@ -796,6 +810,44 @@ async function handleCodexBridgeRoute({ request, requestUrl, response, root }) {
   return false
 }
 
+async function handleRuntimeControlRoute({
+  request,
+  requestUrl,
+  response,
+  runtimeControl,
+}) {
+  if (requestUrl.pathname === hostRoutes.runtimeHealth) {
+    sendJson(response, {
+      ok: true,
+      pid: process.pid,
+      protocolVersion: runtimeProtocolVersion,
+      startedAt: runtimeControl?.startedAt ?? null,
+      uptimeMs: runtimeControl?.startedAt
+        ? Date.now() - runtimeControl.startedAt
+        : 0,
+      workspaceRoot: runtimeControl?.root ?? null,
+    })
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.runtimeShutdown) {
+    if (request.method !== "POST") {
+      sendError(response, "POST is required", 405)
+      return true
+    }
+
+    if (!requireRuntimeShutdown(runtimeControl, response)) {
+      return true
+    }
+
+    sendJson(response, { ok: true })
+    setImmediate(() => runtimeControl.requestShutdown())
+    return true
+  }
+
+  return false
+}
+
 const routePipelineHandlers = {
   "artifact-registry-and-guard-report": handleArtifactRegistryRoute,
   "artifact-source-mutation": handleArtifactSourceMutationRoute,
@@ -804,10 +856,18 @@ const routePipelineHandlers = {
   "host-shell": handleHostShellRoute,
   "public-asset": handlePublicAssetRoute,
   "runtime-module": handleRuntimeModuleRoute,
+  "runtime-control": handleRuntimeControlRoute,
   "styles-and-assets": handleStylesAndAssetsRoute,
 }
 
-export async function handleRequest({ artifactRegistry, request, response, root, vite }) {
+export async function handleRequest({
+  artifactRegistry,
+  request,
+  response,
+  root,
+  runtimeControl,
+  vite,
+}) {
   const requestUrl = new URL(request.url ?? "/", "http://localhost")
   const pipeline = classifyDevServerRoute(requestUrl.pathname)
 
@@ -826,6 +886,7 @@ export async function handleRequest({ artifactRegistry, request, response, root,
     requestUrl,
     response,
     root,
+    runtimeControl,
     vite,
   })
 }

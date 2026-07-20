@@ -1,0 +1,24 @@
+[package]
+name = "ahtml-desktop"
+version = "0.1.0"
+description = "AHTML artifact workbench"
+authors = ["AHTML contributors"]
+edition = "2021"
+
+[lib]
+name = "ahtml_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+open = "5"
+rand = "0.8"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-shell = "2"
+tokio = { version = "1", features = ["time"] }

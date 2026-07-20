@@ -59,3 +59,6 @@ The host must not import the app shell, old runtime UI, old render APIs, or a
 host-local primitive layer. It must not use `@/app/*`,
 `@agent-html-playground/*`, or `#agent-html-playground/*` outside
 `components/ui/*` and `theme/*`.
+
+Desktop may frame the Host with runtime status and workspace switching. That
+frame stays outside Host route, artifact, overlay, prompt, and theme ownership.

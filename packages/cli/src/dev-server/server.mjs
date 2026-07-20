@@ -5,6 +5,10 @@ import { stopCodexBridge } from "./codex-bridge.mjs"
 import { createArtifactRegistry } from "./artifact-registry.mjs"
 import { sendError } from "./http.mjs"
 import { handleRequest } from "./routes.mjs"
+import {
+  createRuntimeSession,
+  runtimeProtocolVersion,
+} from "./runtime-session.mjs"
 import { createAgentHtmlViteServer } from "./vite.mjs"
 
 export function parsePortArg(args) {
@@ -59,7 +63,12 @@ function listen(server, port) {
     server.once("error", onError)
     server.listen(port, "127.0.0.1", () => {
       cleanup()
-      resolve(port)
+      const address = server.address()
+      if (!address || typeof address === "string") {
+        reject(new Error("Unable to resolve the runtime port"))
+        return
+      }
+      resolve(address.port)
     })
   })
 }
@@ -114,10 +123,14 @@ async function waitForViteRuntimeIdle(vite) {
   await vite.waitForRequestsIdle()
 }
 
-export async function startDevHost({ args, cwd }) {
+export async function startDevHost({ args, cwd, runtime = {} }) {
   const root = parseRootArg({ args, cwd })
-  const portConfig = parsePortArg(args)
+  const portConfig = Number.isInteger(runtime.port)
+    ? { explicit: true, port: runtime.port }
+    : parsePortArg(args)
   const pipeline = parsePipelineArg(args)
+  const runtimeSession = createRuntimeSession({ token: runtime.authToken })
+  const startedAt = Date.now()
   const server = http.createServer()
   const vite = await createAgentHtmlViteServer({ pipeline, root, server })
   const artifactRegistry = createArtifactRegistry({ root, vite })
@@ -149,8 +162,26 @@ export async function startDevHost({ args, cwd }) {
     return server
   }
 
+  const runtimeControl = {
+    allowShutdown: runtime.allowShutdown === true,
+    requestShutdown: () => server.close(() => {}),
+    root,
+    startedAt,
+  }
+
   server.on("request", (request, response) => {
-    handleRequest({ artifactRegistry, request, response, root, vite }).then(
+    if (!runtimeSession.authorize({ request, response })) {
+      return
+    }
+
+    handleRequest({
+      artifactRegistry,
+      request,
+      response,
+      root,
+      runtimeControl,
+      vite,
+    }).then(
       (handled) => {
         if (handled) {
           return
@@ -185,15 +216,32 @@ export async function startDevHost({ args, cwd }) {
   }
 
   const url = `http://127.0.0.1:${port}`
-  console.log(`AgentHTML React Canvas host running at ${url}`)
-  console.log(`Workspace root: ${root}`)
+  const bootstrapUrl = runtimeSession.bootstrapUrl(url)
+  if (runtime.machineReadable) {
+    runtime.writeLine?.(
+      JSON.stringify({
+        type: "runtime-ready",
+        bootstrapUrl,
+        pid: process.pid,
+        pipeline,
+        protocolVersion: runtimeProtocolVersion,
+        root,
+        url,
+      })
+    )
+  } else {
+    console.log(`AgentHTML React Canvas host running at ${url}`)
+    console.log(`Workspace root: ${root}`)
+  }
 
   if (process.env.AGENT_HTML_DEV_ONCE === "1") {
     await new Promise((resolve) => server.close(resolve))
   }
 
   return {
+    bootstrapUrl,
     pipeline,
+    protocolVersion: runtimeProtocolVersion,
     root,
     server,
     url,

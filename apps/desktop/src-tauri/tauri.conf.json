@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "AHTML",
+  "version": "0.1.0",
+  "identifier": "dev.ahtml.desktop",
+  "build": {
+    "beforeDevCommand": "npm run runtime:prepare && npm run dev",
+    "beforeBuildCommand": "npm run runtime:prepare && npm run build",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "security": {
+      "csp": "default-src 'self' customprotocol: asset:; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:* ws://127.0.0.1:*; frame-src http://127.0.0.1:*; img-src 'self' asset: data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
+    },
+    "windows": [
+      {
+        "title": "AHTML",
+        "width": 1180,
+        "height": 780,
+        "minWidth": 720,
+        "minHeight": 520,
+        "resizable": true
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "category": "DeveloperTool",
+    "externalBin": ["binaries/agent-html-runtime"],
+    "icon": ["icons/icon.png"],
+    "resources": {
+      "../runtime/node_modules": "runtime/node_modules"
+    },
+    "targets": "all"
+  }
+}

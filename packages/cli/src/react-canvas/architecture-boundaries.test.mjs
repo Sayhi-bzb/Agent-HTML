@@ -147,10 +147,13 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(hostEndpointOwners).toEqual(["packages/cli/src/host/api/api.ts"])
   })
 
-  it("keeps apps from depending on the React Canvas CLI", () => {
+  it("keeps app-to-CLI entry references in Desktop runtime tooling", () => {
     const forbidden =
       /from\s+["'](?:@agent-html\/cli|packages\/cli\/)|node\s+packages\/cli|agent-html\.mjs/
 
-    expect(filesMatching("apps", forbidden)).toEqual([])
+    expect(filesMatching("apps", forbidden)).toEqual([
+      "apps/desktop/scripts/desktop-e2e.mjs",
+      "apps/desktop/scripts/runtime-sidecar-smoke.mjs",
+    ])
   })
 })

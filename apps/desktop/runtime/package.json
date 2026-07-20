@@ -1,0 +1,9 @@
+{
+  "name": "@agent-html/desktop-runtime",
+  "private": true,
+  "version": "0.1.0",
+  "dependencies": {
+    "@agent-html/react": "file:../../../../../../../tmp/ahtml-runtime-pack-QHUtIm/agent-html-react-0.2.1.tgz",
+    "agent-html": "file:../../../../../../../tmp/ahtml-runtime-pack-QHUtIm/agent-html-0.2.1.tgz"
+  }
+}

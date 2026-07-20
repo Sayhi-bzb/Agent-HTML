@@ -1,0 +1,32 @@
+{
+  "name": "@agent-html/desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "dev": "vite",
+    "e2e": "node scripts/desktop-e2e.mjs",
+    "style:check": "vitest run src/style-ownership.test.ts",
+    "test": "vitest run",
+    "tauri": "tauri",
+    "runtime:prepare": "node scripts/prepare-runtime-sidecar.mjs",
+    "runtime:smoke": "npm run runtime:prepare && node scripts/runtime-sidecar-smoke.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.8.0",
+    "@tauri-apps/plugin-dialog": "^2.4.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.8.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.5",
+    "vitest": "^4.1.7"
+  }
+}
