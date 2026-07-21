@@ -1,3 +1,6 @@
+import fs from "node:fs"
+import path from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import {
@@ -9,7 +12,22 @@ import {
 } from "./canvas-flow-model"
 import { createCanvasStore } from "./canvas-store"
 
+const canvasSurfaceSource = fs.readFileSync(
+  path.resolve(import.meta.dirname, "canvas-surface.tsx"),
+  "utf8"
+)
+
 describe("React Flow Canvas adapter", () => {
+  it("hides React Flow attribution through its supported option", () => {
+    expect(canvasSurfaceSource).toContain(
+      "const canvasReactFlowProOptions = { hideAttribution: true }"
+    )
+    expect(canvasSurfaceSource).toContain(
+      "proOptions={canvasReactFlowProOptions}"
+    )
+    expect(canvasSurfaceSource).not.toContain(".react-flow__attribution")
+  })
+
   it("keeps parent-local geometry and parent-first projection", () => {
     const store = createCanvasStore("demo.canvas.tsx")
     store.runtime.upsertNode({ id: "child", parentId: "parent" })

@@ -19,6 +19,10 @@
   cursor: grab;
 }
 
+.canvas-workspace[data-space-pan] .react-flow {
+  touch-action: none;
+}
+
 .canvas-workspace[data-space-pan] .react-flow__pane:active {
   cursor: grabbing;
 }

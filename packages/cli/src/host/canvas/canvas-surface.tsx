@@ -116,6 +116,7 @@ function CanvasNodeShell({ data, id, selected }: NodeProps<CanvasFlowNode>) {
 const canvasFitViewPadding = 0.18
 const canvasMinZoom = 0.08
 const canvasMaxZoom = 2
+const canvasReactFlowProOptions = { hideAttribution: true }
 
 function canvasViewportAnimationDuration() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
@@ -536,6 +537,7 @@ function CanvasWorkspace({
           )}
           panActivationKeyCode={null}
           panOnDrag={[1]}
+          proOptions={canvasReactFlowProOptions}
           ref={reactFlowElementRef}
           selectionKeyCode={null}
           selectionOnDrag
