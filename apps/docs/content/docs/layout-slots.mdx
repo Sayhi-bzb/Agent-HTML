@@ -1,0 +1,94 @@
+---
+title: Layout Slots
+description: Stable names for Desktop and Canvas Host regions.
+---
+
+Use layout slot names to target positioning, scrolling, sizing, and ownership changes without relying on visual descriptions such as "the canvas" or "the sidebar icon."
+
+A layout slot is documentation vocabulary. It is not a React prop, a DOM `slot` attribute, or an artifact API. The tree records ownership; portals and positioned overlays may render outside their owner's DOM subtree.
+
+## Composition
+
+```text
+AHTMLDesktop
+├── NativeTitleBar
+└── DesktopContent
+    ├── WorkspaceHome
+    │   ├── WorkspaceHomeHeader
+    │   ├── WorkspaceActions
+    │   ├── WorkspaceRecents
+    │   └── SettingsDialog
+    └── DesktopCanvasFrame
+        └── CanvasHost
+            ├── CanvasSidebar
+            │   ├── CanvasSidebarHeader
+            │   ├── CanvasSidebarContent
+            │   │   └── ArtifactNavigation
+            │   │       └── ArtifactNavItem
+            │   └── CanvasSidebarFooter
+            │       └── UtilityActions
+            └── CanvasMain
+                ├── CanvasToolbar
+                │   └── SidebarToggle
+                └── ArtifactSurface
+                    ├── ArtifactTableOfContents
+                    └── ArtifactScrollArea
+                        ├── ArtifactViewport
+                        │   └── ArtifactFrame
+                        │       ├── GuardStatus
+                        │       ├── ArtifactMount
+                        │       │   └── Artifact
+                        │       │       └── Block
+                        │       └── BlockOverlayLayer
+                        │           └── BlockOverlay
+                        │               └── FloatingPrompt
+                        ├── ArtifactScrollbar
+                        └── ArtifactScrollCorner
+```
+
+```text
+╭─ NativeTitleBar ─────────────────────────────────────╮
+│ AHTML                                                │
+├─ CanvasSidebar ────────┬─ CanvasMain ────────────────┤
+│ CanvasSidebarHeader    │ CanvasToolbar               │
+│                        │  └── SidebarToggle          │
+├────────────────────────┤                             │
+│ CanvasSidebarContent   │ ArtifactSurface             │
+│   └── ArtifactNav      │  └── ArtifactScrollArea     │
+│                        │      └── ArtifactViewport   │
+│                        │          └── ArtifactFrame  │
+│                        │              └── Artifact   │
+│                        │                  └── Block  │
+├────────────────────────┤                             │
+│ CanvasSidebarFooter    │                             │
+│   └── UtilityActions   │                             │
+╰────────────────────────┴─────────────────────────────╯
+```
+
+`Canvas` names the product workspace, not the right-side region. Use `CanvasMain`, `ArtifactSurface`, or `ArtifactViewport` according to the target. `ArtifactScrollArea` names the ScrollArea root; `ArtifactViewport` names the element whose `scrollTop` changes. `SidebarToggle` names the CanvasToolbar control, while `UtilityActions` names the icon group in CanvasSidebarFooter.
+
+## Scroll Ownership
+
+`ArtifactViewport` is the primary vertical scroll owner. `CanvasSidebarContent` may scroll its own navigation content. DesktopContent, CanvasHost, CanvasMain, ArtifactSurface, CanvasSidebarHeader, and CanvasSidebarFooter do not scroll with artifact content. Read [Design System](/docs/design-system#viewport-and-touch-ownership) for the viewport and gesture contract.
+
+## Source Owners
+
+| Slots | Source owner |
+| --- | --- |
+| NativeTitleBar, DesktopContent, WorkspaceHome, DesktopCanvasFrame | `apps/desktop/src-tauri/tauri.conf.json`, `apps/desktop/src/App.tsx` |
+| CanvasHost, CanvasMain, CanvasToolbar, SidebarToggle | `packages/cli/src/host/app.tsx` |
+| CanvasSidebar and its Header, Content, Footer | `packages/cli/src/host/navigation/sidebar.tsx` |
+| ArtifactSurface, ArtifactScrollArea, ArtifactViewport, overlays | `packages/cli/src/host/artifact/artifact-surface.tsx` |
+| Sidebar and ScrollArea primitive structure | `agent-html/components/ui/sidebar.tsx`, `agent-html/components/ui/scroll-area.tsx` |
+
+## Command Form
+
+Prefer the narrowest owned slot:
+
+```text
+Keep CanvasSidebarFooter fixed; scroll only CanvasSidebarContent.
+Keep CanvasToolbar stationary while ArtifactViewport scrolls.
+Move SidebarToggle from CanvasToolbar to CanvasSidebarHeader.
+Anchor ArtifactTableOfContents to ArtifactSurface.
+Do not make DesktopContent or CanvasMain a scroll owner.
+```

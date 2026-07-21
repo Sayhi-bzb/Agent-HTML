@@ -203,6 +203,9 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(packageHostSurfaceStyles).toContain(
       '.canvas-surface-scroll [data-slot="scroll-area-viewport"]'
     )
+    expect(packageHostSurfaceStyles).toMatch(
+      /\.canvas-surface-scroll \[data-slot="scroll-area-viewport"\] > div\s*\{[^}]*display: block !important;[^}]*min-width: 0 !important;[^}]*width: 100%;[^}]*\}/
+    )
     expect(packageHostSurfaceStyles).toContain("overscroll-behavior: none")
     expect(packageHostSurfaceStyles).not.toContain("100svh")
     expect(packageHostTokens).toContain(

@@ -5,5 +5,5 @@ Documentation site for the AgentHTML app and runtime.
 Run development server:
 
 ```bash
-npm run dev:docs
+npm run docs:dev
 ```

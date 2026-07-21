@@ -27,7 +27,6 @@
   "bundle": {
     "active": true,
     "category": "DeveloperTool",
-    "externalBin": ["binaries/agent-html-runtime"],
     "icon": ["icons/icon.png"],
     "resources": {
       "../runtime-bundle": "runtime"

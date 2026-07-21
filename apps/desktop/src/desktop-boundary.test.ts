@@ -25,7 +25,7 @@ describe("desktop package boundary", () => {
     const config = JSON.parse(
       fs.readFileSync(path.join(appRoot, "src-tauri/tauri.conf.json"), "utf8")
     )
-    expect(config.bundle.externalBin).toEqual(["binaries/agent-html-runtime"])
+    expect(config.bundle).not.toHaveProperty("externalBin")
     expect(config.bundle.resources).toEqual({
       "../runtime-bundle": "runtime",
     })

@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-s
 node_modules
 dist
 dist-docs
@@ -37,14 +36,12 @@ _archive/**/.vite/
 .gitnexus
 .cache
 .tmp/
+/.tmp-*
 .codex-tmp/
 .secrets/
 .wrangler/
 ref-tmp/
 .vite-*.log
-.agent-html-dev.out
-.agent-html-dev.err
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

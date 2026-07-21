@@ -92,6 +92,12 @@
     overscroll-behavior: none;
   }
 
+  .canvas-surface-scroll [data-slot="scroll-area-viewport"] > div {
+    display: block !important;
+    min-width: 0 !important;
+    width: 100%;
+  }
+
   .canvas-surface-frame {
     position: relative;
     min-height: 100%;

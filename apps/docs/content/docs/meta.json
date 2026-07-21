@@ -2,6 +2,7 @@
   "pages": [
     "start",
     "architecture",
+    "layout-slots",
     "workspace",
     "design-system",
     "host",

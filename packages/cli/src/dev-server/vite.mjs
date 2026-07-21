@@ -15,9 +15,9 @@ import {
   resolveWorkspaceTemplateRoot,
 } from "./context.mjs"
 import {
+  createRuntimeDependencyContract,
+  packageNameFromImport,
   RUNTIME_DEPENDENCY_CONTRACT_VERSION,
-  playgroundCommonJsInteropDeps,
-  playgroundOptimizeDeps,
 } from "./runtime-dependency-contract.mjs"
 import { collectStaticBlockMetadata } from "../react-canvas/block-tags.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
@@ -163,19 +163,34 @@ export async function createArtifactEntryModule({ filePath, root }) {
 
 export function cacheDirForRoot(
   root,
-  runtimeFingerprint = process.env.AGENT_HTML_RUNTIME_FINGERPRINT || "source"
+  runtimeFingerprint = process.env.AGENT_HTML_RUNTIME_FINGERPRINT || "source",
+  contractDigest = readRuntimeDependencyContract().digest
 ) {
+  const identity =
+    runtimeFingerprint === "source"
+      ? `${path.resolve(root)}\0${runtimeFingerprint}\0${contractDigest}`
+      : `${path.resolve(packageRoot)}\0${runtimeFingerprint}\0${contractDigest}`
   const cacheKey = Buffer.from(
-    `${path.resolve(root)}\0${runtimeFingerprint}`
+    identity
   ).toString("base64url")
-  return path.join(os.tmpdir(), "agent-html-vite-v5", cacheKey)
+  const manifestPath = process.env.AGENT_HTML_RUNTIME_MANIFEST
+  const selectedRuntimeRoot = manifestPath && path.dirname(manifestPath)
+  const selectedRuntimesRoot = selectedRuntimeRoot && path.dirname(selectedRuntimeRoot)
+  const selectedStoreRoot = selectedRuntimesRoot && path.dirname(selectedRuntimesRoot)
+  const isSelectedRuntime =
+    selectedRuntimesRoot && path.basename(selectedRuntimesRoot) === "runtimes"
+  const cacheHome =
+    process.env.AGENT_HTML_RUNTIME_CACHE_HOME ||
+    (isSelectedRuntime ? path.join(selectedStoreRoot, "cache") : os.tmpdir())
+  return path.join(cacheHome, "agent-html-vite-v6", cacheKey)
 }
 
 const optimizedDependencyCachePattern =
-  /[\\/]agent-html-vite-v5[\\/].*[\\/]deps[\\/]/
+  /[\\/]agent-html-vite-v6[\\/].*[\\/]deps[\\/]/
 const optimizedDependencyHeaderBytes = 256
 const optimizedDependencyStartupTimeoutMs = 30_000
-export { playgroundCommonJsInteropDeps, playgroundOptimizeDeps }
+const optimizedDependencyLockStaleMs = 60_000
+const optimizedDependencyLockPollMs = 50
 
 function dependencyAllowRoots({ reactProtocolEntry, root }) {
   return [
@@ -215,32 +230,14 @@ export function resolvePackageImportModule(specifier) {
   try {
     return fileURLToPath(import.meta.resolve(specifier))
   } catch {
-    return resolvePackageModule(specifier)
+    try {
+      return resolvePackageModule(specifier)
+    } catch (error) {
+      const assetPath = runtimePackageAsset(specifier)
+      if (assetPath && existsSync(assetPath)) return assetPath
+      throw error
+    }
   }
-}
-
-function packageNameFromImport(specifier) {
-  const request = specifier.split(/[?#]/, 1)[0]
-  if (
-    !request ||
-    request.startsWith(".") ||
-    request.startsWith("/") ||
-    request.startsWith("\\") ||
-    request.startsWith("#") ||
-    request.includes("\0") ||
-    /^[a-z][a-z\d+.-]*:/i.test(request)
-  ) {
-    return null
-  }
-
-  const segments = request.split("/")
-  const packageName = request.startsWith("@")
-    ? segments.slice(0, 2).join("/")
-    : segments[0]
-
-  return /^(@[a-z\d._-]+\/[a-z\d._-]+|[a-z\d._-]+)$/i.test(packageName)
-    ? packageName
-    : null
 }
 
 function runtimePackageRoot(packageName) {
@@ -282,22 +279,44 @@ export function readRuntimeDependencyContract(
       manifest.dependencyContractVersion !==
         RUNTIME_DEPENDENCY_CONTRACT_VERSION ||
       !Array.isArray(manifest.canvasDependencies) ||
-      !Array.isArray(manifest.optimizeDeps)
+      !Array.isArray(manifest.browserEntries) ||
+      !Array.isArray(manifest.styleEntries) ||
+      typeof manifest.dependencyContractDigest !== "string"
     ) {
       throw new Error("Desktop runtime dependency contract is incompatible")
     }
     return {
       canvasDependencies: manifest.canvasDependencies,
-      optimizeDeps: manifest.optimizeDeps,
+      browserEntries: manifest.browserEntries,
+      digest: manifest.dependencyContractDigest,
+      styleEntries: manifest.styleEntries,
+      version: manifest.dependencyContractVersion,
     }
   }
 
-  return {
-    canvasDependencies: readDependencyNames(
-      path.join(resolveWorkspaceTemplateRoot(), "package.json")
-    ),
-    optimizeDeps: playgroundOptimizeDeps,
-  }
+  return createRuntimeDependencyContract(resolveWorkspaceTemplateRoot())
+}
+
+function runtimePackageAsset(specifier) {
+  const packageName = packageNameFromImport(specifier)
+  const packageRoot = packageName && runtimePackageRoot(packageName)
+  if (!packageRoot) return null
+  const subpath = specifier === packageName ? "" : specifier.slice(packageName.length + 1)
+  const manifest = JSON.parse(
+    readFileSync(path.join(packageRoot, "package.json"), "utf8")
+  )
+  const exported = manifest.exports?.[subpath ? `./${subpath}` : "."]
+  const exportTarget =
+    typeof exported === "string"
+      ? exported
+      : exported?.style || exported?.browser || exported?.default
+  const candidates = [
+    exportTarget && path.join(packageRoot, exportTarget),
+    subpath && path.join(packageRoot, subpath),
+    !subpath && manifest.style && path.join(packageRoot, manifest.style),
+    !subpath && manifest.main && path.join(packageRoot, manifest.main),
+  ].filter(Boolean)
+  return candidates.find((candidate) => existsSync(candidate)) || null
 }
 
 export function createPlaygroundDependencyResolver(
@@ -309,13 +328,16 @@ export function createPlaygroundDependencyResolver(
     return null
   }
 
-  const dependencyNames = new Set(
-    [
-      ...readDependencyNames(playgroundPackagePath),
-      ...runtimeContract.canvasDependencies,
-      ...playgroundCommonJsInteropDeps.map(packageNameFromImport),
-    ]
+  const workspaceDependencies = readDependencyNames(playgroundPackagePath)
+  const dependencyNames = new Set(runtimeContract.canvasDependencies)
+  const undeclaredRuntimeDependencies = workspaceDependencies.filter(
+    (dependencyName) => !dependencyNames.has(dependencyName)
   )
+  if (undeclaredRuntimeDependencies.length > 0) {
+    throw new Error(
+      `Canvas runtime does not provide declared dependencies: ${undeclaredRuntimeDependencies.join(", ")}`
+    )
+  }
   const missingDependencies = [...dependencyNames].filter(
     (dependencyName) => !runtimePackageRoot(dependencyName)
   )
@@ -326,36 +348,35 @@ export function createPlaygroundDependencyResolver(
   }
 
   const canvasRoot = path.resolve(root, "agent-html")
-  const runtimeImporter = path.join(packageRoot, "package.json")
+  const allowedEntries = new Set([
+    ...runtimeContract.browserEntries,
+    ...runtimeContract.styleEntries,
+  ])
 
   return {
     name: "agent-html-playground-dependencies",
     enforce: "pre",
     async resolveId(source, importer, options) {
       const packageName = packageNameFromImport(source)
-      if (!packageName || canonicalRendererPackages.has(packageName)) {
+      if (!packageName || !importer || !isPathInside(canvasRoot, importer)) {
         return null
       }
 
       if (!dependencyNames.has(packageName)) {
-        if (importer && isPathInside(canvasRoot, importer)) {
-          throw new Error(
-            `Canvas source imports undeclared dependency "${source}" from ${importer}`
-          )
-        }
-        return null
-      }
-
-      const resolved = await this.resolve(source, runtimeImporter, {
-        ...options,
-        skipSelf: true,
-      })
-      if (!resolved) {
         throw new Error(
-          `Canvas dependency "${source}" is declared but unavailable in the bundled runtime`
+          `Canvas source imports undeclared dependency "${source}" from ${importer}`
         )
       }
-      return resolved
+
+      if (canonicalRendererPackages.has(packageName)) return null
+
+      if (!allowedEntries.has(source)) {
+        throw new Error(
+          `Canvas dependency entry "${source}" is not supported by this runtime; rebuild or update the Desktop runtime`
+        )
+      }
+
+      return null
     },
   }
 }
@@ -363,13 +384,15 @@ export function createPlaygroundDependencyResolver(
 export function createPlaygroundOptimizeDepsInclude(
   runtimeContract = readRuntimeDependencyContract()
 ) {
-  return [...runtimeContract.optimizeDeps]
+  return runtimeContract.browserEntries.filter(
+    (specifier) => !canonicalRendererPackages.has(packageNameFromImport(specifier))
+  )
 }
 
-export function createPlaygroundOptimizeDepsAliases(
+export function createPlaygroundDependencyAliases(
   runtimeContract = readRuntimeDependencyContract()
 ) {
-  return runtimeContract.optimizeDeps
+  return [...runtimeContract.browserEntries, ...runtimeContract.styleEntries]
     .filter(
       (specifier) => !canonicalRendererPackages.has(packageNameFromImport(specifier))
     )
@@ -405,6 +428,79 @@ async function prebundlePlaygroundDependencies(vite) {
   } finally {
     clearTimeout(timeout)
   }
+}
+
+function optimizedDependencyReadyPath(cacheDir) {
+  return path.join(cacheDir, ".agent-html-ready.json")
+}
+
+async function isOptimizedDependencyCacheReady(cacheDir, runtimeContract) {
+  try {
+    const marker = JSON.parse(
+      await fs.readFile(optimizedDependencyReadyPath(cacheDir), "utf8")
+    )
+    return (
+      marker.digest === runtimeContract.digest &&
+      marker.version === RUNTIME_DEPENDENCY_CONTRACT_VERSION &&
+      marker.browserEntryCount ===
+        createPlaygroundOptimizeDepsInclude(runtimeContract).length &&
+      (await findInvalidOptimizedDependencyCacheFiles(cacheDir)).length === 0
+    )
+  } catch (error) {
+    if (error?.code === "ENOENT" || error instanceof SyntaxError) return false
+    throw error
+  }
+}
+
+async function acquireOptimizedDependencyCache(cacheDir, runtimeContract) {
+  if (await isOptimizedDependencyCacheReady(cacheDir, runtimeContract)) return null
+  const lockPath = `${cacheDir}.lock`
+  const deadline = Date.now() + optimizedDependencyStartupTimeoutMs
+  await fs.mkdir(path.dirname(cacheDir), { recursive: true })
+
+  while (Date.now() < deadline) {
+    try {
+      await fs.mkdir(lockPath)
+      return async () => fs.rm(lockPath, { force: true, recursive: true })
+    } catch (error) {
+      if (error?.code !== "EEXIST") throw error
+      if (await isOptimizedDependencyCacheReady(cacheDir, runtimeContract)) return null
+      const stat = await fs.stat(lockPath).catch(() => null)
+      if (stat && Date.now() - stat.mtimeMs > optimizedDependencyLockStaleMs) {
+        await fs.rm(lockPath, { force: true, recursive: true })
+        continue
+      }
+      await new Promise((resolve) => setTimeout(resolve, optimizedDependencyLockPollMs))
+    }
+  }
+
+  throw new Error("Timed out waiting for Canvas dependency cache lock")
+}
+
+async function publishOptimizedDependencyCacheReady(cacheDir, runtimeContract) {
+  const metadataPath = path.join(cacheDir, "deps", "_metadata.json")
+  const metadata = JSON.parse(await fs.readFile(metadataPath, "utf8"))
+  const optimized = new Set([
+    ...Object.keys(metadata.optimized ?? {}),
+    ...Object.keys(metadata.discovered ?? {}),
+  ])
+  const optimizedEntries = createPlaygroundOptimizeDepsInclude(runtimeContract)
+  const missing = optimizedEntries.filter(
+    (entry) => !optimized.has(entry)
+  )
+  if (missing.length > 0) {
+    throw new Error(
+      `Canvas dependency cache is incomplete: ${missing.join(", ")}`
+    )
+  }
+  await fs.writeFile(
+    optimizedDependencyReadyPath(cacheDir),
+    `${JSON.stringify({
+      browserEntryCount: optimizedEntries.length,
+      digest: runtimeContract.digest,
+      version: RUNTIME_DEPENDENCY_CONTRACT_VERSION,
+    })}\n`
+  )
 }
 
 export function isInvalidOptimizedDependencyCacheFile(buffer) {
@@ -504,7 +600,23 @@ async function ensureValidOptimizedDependencyCache(cacheDir) {
 function createAgentHtmlVitePlugin({ pipeline, root }) {
   return {
     name: "agent-html-dev-host",
-    resolveId(id) {
+    async resolveId(id, importer, options) {
+      if (id.startsWith("@/")) {
+        return this.resolve(path.join(root, "agent-html", id.slice(2)), importer, {
+          ...options,
+          skipSelf: true,
+        })
+      }
+      if (
+        id.startsWith("#agent-html-playground/") ||
+        id.startsWith("@agent-html-playground/")
+      ) {
+        return this.resolve(
+          path.join(root, "agent-html", id.split("/").slice(1).join("/")),
+          importer,
+          { ...options, skipSelf: true }
+        )
+      }
       if (
         id === hostEntryModulePath ||
         id.startsWith(`${artifactEntryModulePath}?`)
@@ -540,13 +652,27 @@ export async function createAgentHtmlViteServer({
   root,
   server,
 }) {
-  const cacheDir = cacheDirForRoot(root)
+  const runtimeContract = readRuntimeDependencyContract()
+  const cacheDir = cacheDirForRoot(
+    root,
+    process.env.AGENT_HTML_RUNTIME_FINGERPRINT || "source",
+    runtimeContract.digest
+  )
   await ensureValidOptimizedDependencyCache(cacheDir)
+  const releaseDependencyCache = await acquireOptimizedDependencyCache(
+    cacheDir,
+    runtimeContract
+  )
   const reactProtocolEntry = resolvePackageModule("@agent-html/react")
   const fsAllow = createViteFsAllowList({ reactProtocolEntry, root })
   const reactModuleResolutionAliases = createReactModuleResolutionAliases()
-  const playgroundOptimizeDepsAliases = createPlaygroundOptimizeDepsAliases()
-  const playgroundDependencyResolver = createPlaygroundDependencyResolver(root)
+  const playgroundDependencyAliases = createPlaygroundDependencyAliases(
+    runtimeContract
+  )
+  const playgroundDependencyResolver = createPlaygroundDependencyResolver(
+    root,
+    runtimeContract
+  )
 
   const vite = await createViteServer({
     appType: "custom",
@@ -554,10 +680,10 @@ export async function createAgentHtmlViteServer({
     configFile: false,
     logLevel: "error",
     optimizeDeps: {
-      include: createPlaygroundOptimizeDepsInclude(),
+      include: createPlaygroundOptimizeDepsInclude(runtimeContract),
     },
     publicDir: false,
-    root,
+    root: packageRoot,
     plugins: [
       createAgentHtmlVitePlugin({ pipeline, root }),
       ...(playgroundDependencyResolver ? [playgroundDependencyResolver] : []),
@@ -567,13 +693,8 @@ export async function createAgentHtmlViteServer({
     ],
     resolve: {
       alias: [
-        { find: "@", replacement: path.join(root, "agent-html") },
-        {
-          find: "#agent-html-playground",
-          replacement: path.join(root, "agent-html"),
-        },
         { find: "@agent-html/react", replacement: reactProtocolEntry },
-        ...playgroundOptimizeDepsAliases,
+        ...playgroundDependencyAliases,
         ...reactModuleResolutionAliases,
       ],
       dedupe: [
@@ -597,9 +718,14 @@ export async function createAgentHtmlViteServer({
 
   try {
     await prebundlePlaygroundDependencies(vite)
+    if (releaseDependencyCache) {
+      await publishOptimizedDependencyCacheReady(cacheDir, runtimeContract)
+    }
     return vite
   } catch (error) {
     await vite.close()
     throw error
+  } finally {
+    await releaseDependencyCache?.()
   }
 }

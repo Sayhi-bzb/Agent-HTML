@@ -2,6 +2,7 @@ import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { spawn, spawnSync } from "node:child_process"
+import { pathToFileURL } from "node:url"
 
 import {
   readCurrentRuntime,
@@ -172,26 +173,51 @@ const areaChartPath = path
 const areaChartResponse = await runtimeFetch(`${ready.url}/@fs/${areaChartPath}`, {
   headers: { authorization: `Bearer ${token}` },
 })
+const areaChartModule = await areaChartResponse.text()
 if (!areaChartResponse.ok) {
   throw new Error(
-    `Bundled runtime could not compile area-chart.tsx (${areaChartResponse.status}): ${await areaChartResponse.text()}`
+    `Bundled runtime could not compile area-chart.tsx (${areaChartResponse.status}): ${areaChartModule}`
   )
 }
-const classnamesPath = path
-  .join(
-    os.tmpdir(),
-    "agent-html-vite-v5",
-    Buffer.from(
-      `${path.resolve(workspaceRoot)}\0${manifest.fingerprint}`
-    ).toString("base64url"),
-    "deps",
-    "classnames.js"
-  )
+if (
+  !areaChartModule.includes("agent-html-vite-v6") ||
+  !areaChartModule.includes("@visx_xychart.js") ||
+  areaChartModule.includes("node_modules/reduce-css-calc/index.js")
+) {
+  throw new Error(`Bundled chart dependencies were not optimized: ${areaChartModule}`)
+}
+const runtimeViteModule = await import(
+  pathToFileURL(
+    path.join(
+      runtimeRoot,
+      "node_modules",
+      "agent-html",
+      "src",
+      "dev-server",
+      "vite.mjs"
+    )
+  ).href
+)
+const dependencyCache = runtimeViteModule.cacheDirForRoot(
+  workspaceRoot,
+  manifest.fingerprint,
+  manifest.dependencyContractDigest
+)
+const classnamesPath = path.join(dependencyCache, "deps", "classnames.js")
 const classnamesModule = await fs.readFile(classnamesPath, "utf8")
 if (!/export\s+default\b/.test(classnamesModule)) {
   throw new Error(
     `Bundled runtime did not prebundle the classnames default export: ${classnamesModule}`
   )
+}
+const dependencyChunks = await fs.readdir(path.join(dependencyCache, "deps"))
+const reduceCssCalcBundled = await Promise.all(
+  dependencyChunks
+    .filter((entry) => entry.endsWith(".js"))
+    .map((entry) => fs.readFile(path.join(dependencyCache, "deps", entry), "utf8"))
+).then((sources) => sources.some((source) => source.includes("reduce-css-calc")))
+if (!reduceCssCalcBundled) {
+  throw new Error("Bundled runtime did not include reduce-css-calc in the browser cache")
 }
 
 await runtimeFetch(`${ready.url}/__agent-html/runtime/shutdown`, {

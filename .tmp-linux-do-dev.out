@@ -1,6 +1,0 @@
-
-> agent-html@0.1.0-alpha.2 canvas:dev
-> node packages/cli/bin/agent-html.mjs dev --port 5199
-
-AgentHTML React Canvas host running at http://127.0.0.1:5199
-Workspace root: D:\codes\Agent-HTML

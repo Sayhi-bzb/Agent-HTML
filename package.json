@@ -1,46 +1,41 @@
 {
-  "name": "agent-html",
+  "name": "agent-html-monorepo",
   "private": true,
-  "version": "0.1.0-alpha.2",
+  "version": "0.0.0",
   "license": "Apache-2.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
     "dev": "npm run canvas:dev",
+    "build": "npm run typecheck && npm run docs:build && npm run desktop:build",
+    "test": "npm run canvas:test && npm run desktop:test",
+    "typecheck": "tsc --noEmit && npm --workspace @agent-html/docs run typecheck && npm --workspace @agent-html/desktop run typecheck",
+    "lint": "eslint agent-html apps/desktop packages tools config --config config/eslint.config.js && npm --workspace @agent-html/docs run lint",
+    "format": "prettier --write \"agent-html/**/*.{ts,tsx}\" \"packages/**/*.{ts,tsx}\" \"apps/desktop/**/*.{ts,tsx}\" \"config/**/*.{ts,tsx}\" && npm --workspace @agent-html/docs run format",
     "canvas:dev": "node packages/cli/bin/agent-html.mjs dev",
-    "canvas:dev:example": "node packages/cli/bin/agent-html.mjs dev --pipeline example",
-    "canvas:build:example": "node packages/cli/bin/agent-html.mjs demo-build --out-dir dist-agent-html",
-    "canvas:build:site": "npm run canvas:build:example && npm --workspace @agent-html/docs run build && node tools/build-agent-html-site.mjs",
-    "canvas:preview:example": "npx vite --host 127.0.0.1 dist-agent-html",
     "canvas:deps": "depcruise --config .dependency-cruiser.mjs --output-type err agent-html",
     "canvas:guard": "node packages/cli/bin/agent-html.mjs guard",
     "canvas:index": "node tools/generate-react-canvas-index.mjs",
     "canvas:index:check": "node tools/generate-react-canvas-index.mjs --check",
     "canvas:typecheck": "tsc --noEmit -p config/tsconfig/tsconfig.react-canvas.json",
-    "dev:docs": "npm --workspace @agent-html/docs run dev",
+    "canvas:test": "vitest run --config config/vitest.config.mjs",
+    "example:dev": "node packages/cli/bin/agent-html.mjs dev --pipeline example",
+    "example:build": "node packages/cli/bin/agent-html.mjs demo-build --out-dir dist-agent-html",
+    "site:build": "npm run example:build && npm run docs:build && node tools/build-agent-html-site.mjs",
+    "docs:dev": "npm --workspace @agent-html/docs run dev",
+    "docs:build": "npm --workspace @agent-html/docs run build",
     "desktop:build": "npm --workspace @agent-html/desktop run build",
     "desktop:dev": "npm --workspace @agent-html/desktop run tauri dev",
     "desktop:e2e": "npm --workspace @agent-html/desktop run e2e",
     "desktop:package": "npm --workspace @agent-html/desktop run tauri -- build",
-    "desktop:style:check": "npm --workspace @agent-html/desktop run style:check",
     "desktop:test": "npm --workspace @agent-html/desktop run test",
-    "build": "npm run canvas:typecheck && npm run build:docs",
-    "build:docs": "npm --workspace @agent-html/docs run build",
-    "bridge:agent": "node tools/agent-html-bridge.mjs",
-    "bridge:claude-channel": "node tools/agent-html-claude-channel-bridge.mjs",
-    "lint": "eslint . --config config/eslint.config.js",
-    "knip": "knip",
-    "knip:agent-html": "knip --no-exit-code --reporter compact --include files,exports",
-    "knip:report": "knip --no-exit-code --reporter compact",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "test": "vitest run --config config/vitest.config.mjs",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "knip": "knip"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -63,17 +58,10 @@
     "vitest": "^4.1.7",
     "wrangler": "^4.94.0"
   },
-  "description": "[English](./README.md)",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Sayhi-bzb/Agent-HTML.git"
   },
-  "keywords": [],
-  "author": "",
   "bugs": {
     "url": "https://github.com/Sayhi-bzb/Agent-HTML/issues"
   },

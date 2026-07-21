@@ -25,8 +25,7 @@ import {
 } from "./runtime-store.mjs"
 import { runOwnedProcess, terminateProcessTree } from "./runtime-process.mjs"
 import {
-  RUNTIME_DEPENDENCY_CONTRACT_VERSION,
-  playgroundOptimizeDeps,
+  createRuntimeDependencyContract,
 } from "../../../packages/cli/src/dev-server/runtime-dependency-contract.mjs"
 
 const appRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)))
@@ -195,22 +194,23 @@ async function buildIntoStaging({
       "utf8"
     )
   )
+  const dependencyContract = createRuntimeDependencyContract(
+    path.join(repoRoot, "agent-html")
+  )
   const manifest = createRuntimeManifest({
+    browserEntries: dependencyContract.browserEntries,
     builtAt: new Date().toISOString(),
-    canvasDependencies: Object.keys(
-      JSON.parse(
-        await fs.readFile(path.join(repoRoot, "agent-html", "package.json"), "utf8")
-      ).dependencies || {}
-    ).sort(),
+    canvasDependencies: dependencyContract.canvasDependencies,
     cliVersion: cliPackage.version,
-    dependencyContractVersion: RUNTIME_DEPENDENCY_CONTRACT_VERSION,
+    dependencyContractDigest: dependencyContract.digest,
+    dependencyContractVersion: dependencyContract.version,
     dependencyClosureHash,
     fingerprint,
     nodeFileName,
     nodeVersion: process.version,
-    optimizeDeps: playgroundOptimizeDeps,
     platform: process.platform,
     reactVersion: reactPackage.version,
+    styleEntries: dependencyContract.styleEntries,
     target,
   })
   await fs.writeFile(
@@ -290,6 +290,34 @@ async function publishImmutableBundle({
   }
 }
 
+async function preparePublishedRuntime(runtimeRoot, paths) {
+  const manifestPath = path.join(runtimeRoot, "runtime-manifest.json")
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"))
+  const nodeEntry = path.join(runtimeRoot, ...manifest.nodeEntry.split("/"))
+  const cliEntry = path.join(runtimeRoot, ...manifest.cliEntry.split("/"))
+  const workspaceTemplate = path.join(
+    runtimeRoot,
+    ...manifest.workspaceTemplate.split("/")
+  )
+  await runOwnedProcess(
+    nodeEntry,
+    [
+      cliEntry,
+      "runtime-prepare",
+      "--root",
+      path.dirname(workspaceTemplate),
+    ],
+    {
+      environment: {
+        ...process.env,
+        AGENT_HTML_RUNTIME_CACHE_HOME: path.join(paths.root, "cache"),
+        AGENT_HTML_RUNTIME_FINGERPRINT: manifest.fingerprint,
+        AGENT_HTML_RUNTIME_MANIFEST: manifestPath,
+      },
+    }
+  )
+}
+
 async function recoverStaleBuild(owner, paths) {
   for (const pid of owner?.childPids || []) terminateProcessTree(pid)
   for (const temporaryPath of owner?.temporaryPaths || []) {
@@ -350,6 +378,8 @@ export async function ensureRuntime({ publish = true } = {}) {
       onStaleOwner: (owner) => recoverStaleBuild(owner, paths),
     }
   )
+
+  await preparePublishedRuntime(result.runtimeRoot, paths)
 
   await writeJsonAtomic(paths.inputStatePath, {
     version: 2,

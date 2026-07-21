@@ -93,17 +93,19 @@ export function runtimeBundlePaths(root, nodeFileName) {
 }
 
 export function createRuntimeManifest({
+  browserEntries,
   builtAt,
   cliVersion,
   canvasDependencies,
+  dependencyContractDigest,
   dependencyContractVersion,
   dependencyClosureHash,
   fingerprint,
   nodeFileName,
   nodeVersion,
-  optimizeDeps,
   platform,
   reactVersion,
+  styleEntries,
   target,
 }) {
   assertFingerprint(fingerprint)
@@ -116,8 +118,10 @@ export function createRuntimeManifest({
     nodeVersion,
     dependencyClosureHash,
     dependencyContractVersion,
+    dependencyContractDigest,
     canvasDependencies,
-    optimizeDeps,
+    browserEntries,
+    styleEntries,
     nodeEntry: `bin/${nodeFileName}`,
     cliEntry: "node_modules/agent-html/bin/agent-html.mjs",
     workspaceTemplate: "node_modules/agent-html/template/agent-html",
@@ -137,8 +141,10 @@ export function validateRuntimeManifest(manifest, expectedFingerprint) {
   if (manifest.fingerprint !== expectedFingerprint) return false
   if (
     !Number.isInteger(manifest.dependencyContractVersion) ||
+    typeof manifest.dependencyContractDigest !== "string" ||
     !Array.isArray(manifest.canvasDependencies) ||
-    !Array.isArray(manifest.optimizeDeps)
+    !Array.isArray(manifest.browserEntries) ||
+    !Array.isArray(manifest.styleEntries)
   ) {
     return false
   }

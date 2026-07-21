@@ -7,17 +7,17 @@ import { describe, expect, it } from "vitest"
 import {
   cacheDirForRoot,
   clearInvalidOptimizedDependencyCache,
+  createPlaygroundDependencyAliases,
   createPlaygroundDependencyResolver,
-  createPlaygroundOptimizeDepsAliases,
   createPlaygroundOptimizeDepsInclude,
   createReactModuleResolutionAliases,
   createViteFsAllowList,
   findInvalidOptimizedDependencyCacheFiles,
   isInvalidOptimizedDependencyCacheFile,
-  playgroundCommonJsInteropDeps,
   readRuntimeDependencyContract,
   resolvePackageImportModule,
 } from "../dev-server/vite.mjs"
+import { packageNameFromImport } from "../dev-server/runtime-dependency-contract.mjs"
 
 describe("React Canvas runtime resolution contract", () => {
   it("pins React module resolution to one canonical renderer instance", () => {
@@ -92,19 +92,9 @@ describe("React Canvas runtime resolution contract", () => {
       {}
     )
 
-    expect(mergeProps.id.replaceAll("\\", "/")).toContain(
-      "/node_modules/@base-ui/react/"
-    )
-    expect(mergeProps.id.replaceAll("\\", "/")).toContain(
-      "/merge-props/index.js"
-    )
-    expect(useRender.id.replaceAll("\\", "/")).toContain(
-      "/node_modules/@base-ui/react/"
-    )
-    expect(useRender.id.replaceAll("\\", "/")).toContain("/use-render/index.js")
-    expect(classnames.id.replaceAll("\\", "/")).toContain(
-      "/node_modules/classnames/index.js"
-    )
+    expect(mergeProps).toBeNull()
+    expect(useRender).toBeNull()
+    expect(classnames).toBeNull()
     await expect(
       resolver.resolveId.call(
         context,
@@ -151,9 +141,7 @@ describe("React Canvas runtime resolution contract", () => {
         path.join(canvasRoot, "components", "chart", "area-chart.tsx"),
         {}
       )
-    ).resolves.toEqual({
-      id: expect.stringContaining(path.join("node_modules", "@visx", "curve")),
-    })
+    ).resolves.toBeNull()
   })
 
   it("resolves playground package imports with ESM import entries first", () => {
@@ -185,121 +173,44 @@ describe("React Canvas runtime resolution contract", () => {
   })
 
   it("keeps playground optimize deps explicit and resolvable", () => {
-    const aliases = createPlaygroundOptimizeDepsAliases()
-    const optimizeDeps = createPlaygroundOptimizeDepsInclude()
+    const contract = readRuntimeDependencyContract()
+    const aliases = createPlaygroundDependencyAliases(contract)
+    const optimizeDeps = createPlaygroundOptimizeDepsInclude(contract)
 
-    expect(optimizeDeps).toEqual([
-      "react",
-      "react/jsx-dev-runtime",
-      "react-dom/client",
-      "class-variance-authority",
-      "clsx",
-      "classnames",
-      "lodash/debounce",
-      "lodash/memoize",
-      "@visx/event",
-      "@visx/responsive",
-      "@visx/sankey",
-      "d3-sankey",
-      "lucide-react",
-      "motion/react",
-      "shiki/bundle/web",
-      "tailwind-merge",
-    ])
-    expect(
-      optimizeDeps.map((specifier) => [
-        specifier,
-        resolvePackageImportModule(specifier).replaceAll("\\", "/"),
-      ])
-    ).toEqual([
-      ["react", expect.stringContaining("/node_modules/react/index.js")],
-      [
-        "react/jsx-dev-runtime",
-        expect.stringContaining("/node_modules/react/jsx-dev-runtime.js"),
-      ],
-      [
-        "react-dom/client",
-        expect.stringContaining("/node_modules/react-dom/client.js"),
-      ],
-      [
-        "class-variance-authority",
-        expect.stringContaining(
-          "/node_modules/class-variance-authority/dist/index.mjs"
-        ),
-      ],
-      ["clsx", expect.stringContaining("/node_modules/clsx/dist/clsx.mjs")],
-      [
-        "classnames",
-        expect.stringContaining("/node_modules/classnames/index.js"),
-      ],
-      [
-        "lodash/debounce",
-        expect.stringContaining("/node_modules/lodash/debounce"),
-      ],
-      [
-        "lodash/memoize",
-        expect.stringContaining("/node_modules/lodash/memoize"),
-      ],
-      [
-        "@visx/event",
-        expect.stringContaining("/node_modules/@visx/event/esm/index.js"),
-      ],
-      [
-        "@visx/responsive",
-        expect.stringContaining("/node_modules/@visx/responsive/esm/index.js"),
-      ],
-      [
-        "@visx/sankey",
-        expect.stringContaining("/node_modules/@visx/sankey/esm/index.js"),
-      ],
-      [
-        "d3-sankey",
-        expect.stringContaining("/node_modules/d3-sankey/dist/d3-sankey.js"),
-      ],
-      [
-        "lucide-react",
-        expect.stringContaining(
-          "/node_modules/lucide-react/dist/cjs/lucide-react.js"
-        ),
-      ],
-      [
-        "motion/react",
-        expect.stringContaining("/node_modules/motion/dist/es/react.mjs"),
-      ],
-      [
-        "shiki/bundle/web",
-        expect.stringContaining("/node_modules/shiki/dist/bundle-web.mjs"),
-      ],
-      [
-        "tailwind-merge",
-        expect.stringContaining(
-          "/node_modules/tailwind-merge/dist/bundle-mjs.mjs"
-        ),
-      ],
-    ])
-    expect(playgroundCommonJsInteropDeps).toEqual([
-      "classnames",
-      "lodash/debounce",
-      "lodash/memoize",
-    ])
-    expect(
-      aliases.map((alias) => ({
-        ...alias,
-        replacement: alias.replacement.replaceAll("\\", "/"),
-      }))
-    ).toEqual(
+    expect(contract.version).toBe(2)
+    expect(contract.digest).toMatch(/^[a-f\d]{64}$/)
+    expect(optimizeDeps).toEqual(
+      contract.browserEntries.filter(
+        (entry) => !["@agent-html/react", "react", "react-dom"].includes(
+          entry.split("/").slice(0, entry.startsWith("@") ? 2 : 1).join("/")
+        )
+      )
+    )
+    expect(optimizeDeps).toEqual(
+      expect.arrayContaining(["@visx/axis", "@visx/text"].filter((entry) =>
+        contract.browserEntries.includes(entry)
+      ))
+    )
+    expect(optimizeDeps).toContain("@visx/axis")
+    expect(optimizeDeps).toContain("@visx/xychart")
+    expect(contract.styleEntries).toContain("maplibre-gl/dist/maplibre-gl.css")
+    expect(aliases.map((alias) => alias.replacement)).toEqual(
       expect.arrayContaining([
-        {
-          find: /^classnames$/,
-          replacement: expect.stringContaining(
-            "/node_modules/classnames/index.js"
-          ),
-        },
-        {
-          find: /^lodash\/debounce$/,
-          replacement: expect.stringContaining("/node_modules/lodash/debounce"),
-        },
+        expect.stringContaining(path.join("node_modules", "@visx", "axis")),
       ])
+    )
+  })
+
+  it("classifies every declared Canvas dependency into the browser contract", () => {
+    const contract = readRuntimeDependencyContract()
+    const coveredPackages = new Set(
+      [...contract.browserEntries, ...contract.styleEntries]
+        .map(packageNameFromImport)
+        .filter(Boolean)
+    )
+
+    expect([...coveredPackages].sort()).toEqual(
+      [...contract.canvasDependencies].sort()
     )
   })
 
@@ -309,21 +220,26 @@ describe("React Canvas runtime resolution contract", () => {
     await fs.writeFile(
       manifestPath,
       JSON.stringify({
-        dependencyContractVersion: 1,
+        dependencyContractVersion: 2,
+        dependencyContractDigest: "digest",
         canvasDependencies: ["@visx/curve"],
-        optimizeDeps: ["classnames"],
+        browserEntries: ["@visx/curve"],
+        styleEntries: ["maplibre-gl/dist/maplibre-gl.css"],
       })
     )
 
     expect(readRuntimeDependencyContract(manifestPath)).toEqual({
+      browserEntries: ["@visx/curve"],
       canvasDependencies: ["@visx/curve"],
-      optimizeDeps: ["classnames"],
+      digest: "digest",
+      styleEntries: ["maplibre-gl/dist/maplibre-gl.css"],
+      version: 2,
     })
     expect(
       createPlaygroundOptimizeDepsInclude(
         readRuntimeDependencyContract(manifestPath)
       )
-    ).toEqual(["classnames"])
+    ).toEqual(["@visx/curve"])
   })
 
   it("detects corrupt optimized dependency cache files", () => {
@@ -389,10 +305,16 @@ describe("React Canvas runtime resolution contract", () => {
 
   it("versions the Vite cache when dependency interop changes", () => {
     expect(cacheDirForRoot(process.cwd()).replaceAll("\\", "/")).toContain(
-      "/agent-html-vite-v5/"
+      "/agent-html-vite-v6/"
     )
     expect(cacheDirForRoot(process.cwd(), "runtime-a")).not.toBe(
       cacheDirForRoot(process.cwd(), "runtime-b")
+    )
+    expect(cacheDirForRoot("D:\\workspace-a", "runtime-a")).toBe(
+      cacheDirForRoot("D:\\workspace-b", "runtime-a")
+    )
+    expect(cacheDirForRoot("D:\\workspace-a", "source")).not.toBe(
+      cacheDirForRoot("D:\\workspace-b", "source")
     )
   })
 

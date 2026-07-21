@@ -118,17 +118,19 @@ describe("runtime publication", () => {
         bundle.manifestPath,
         JSON.stringify(
           createRuntimeManifest({
+            browserEntries: ["react"],
             builtAt: "2026-01-01T00:00:00.000Z",
             canvasDependencies: ["react"],
             cliVersion: "1.0.0",
-            dependencyContractVersion: 1,
+            dependencyContractDigest: "contract",
+            dependencyContractVersion: 2,
             dependencyClosureHash: "closure",
             fingerprint,
             nodeFileName,
             nodeVersion: process.version,
-            optimizeDeps: ["react"],
             platform: process.platform,
             reactVersion: "1.0.0",
+            styleEntries: [],
             target: "target",
           })
         )

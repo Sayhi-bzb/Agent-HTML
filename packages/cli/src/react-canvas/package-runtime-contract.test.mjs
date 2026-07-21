@@ -7,46 +7,11 @@ import {
 import { resolvePackageImportModule } from "../dev-server/vite.mjs"
 
 describe("React Canvas package runtime contract", { timeout: 15000 }, () => {
-  it("keeps root package dependencies out of delegated Canvas runtime ownership", () => {
+  it("keeps the private root package free of runtime dependencies", () => {
     const rootPackage = JSON.parse(readSource("package.json"))
-    const rootRuntimeDependencies = Object.keys(rootPackage.dependencies ?? {})
-    const delegatedRuntimeDependencies = [
-      "@dnd-kit/core",
-      "@dnd-kit/sortable",
-      "@dnd-kit/utilities",
-      "@floating-ui/react",
-      "@lingui/core",
-      "@lingui/react",
-      "@shikijs/transformers",
-      "@tanstack/react-table",
-      "@tailwindcss/vite",
-      "@tauri-apps/api",
-      "@vitejs/plugin-react",
-      "class-variance-authority",
-      "clsx",
-      "cmdk",
-      "embla-carousel-react",
-      "lucide-react",
-      "media-chrome",
-      "radix-ui",
-      "react",
-      "react-dom",
-      "shiki",
-      "tailwind-merge",
-      "tailwindcss",
-      "vite",
-      "zod",
-    ]
 
     expect(rootPackage.workspaces).toEqual(["apps/*", "packages/*"])
-    expect(rootPackage.dependencies).toEqual({
-      "@modelcontextprotocol/sdk": expect.any(String),
-    })
-    expect(
-      rootRuntimeDependencies.filter((dependency) =>
-        delegatedRuntimeDependencies.includes(dependency)
-      )
-    ).toEqual([])
+    expect(rootPackage.dependencies ?? {}).toEqual({})
   })
 
   it("keeps workspace runtime imports declared by the workspace and supplied by the CLI", () => {

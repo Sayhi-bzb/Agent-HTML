@@ -29,7 +29,7 @@ jobs:
         run: npm ci
 
       - name: Build public site
-        run: npm run canvas:build:site
+        run: npm run site:build
 
       - name: Deploy to Cloudflare Pages
         env:

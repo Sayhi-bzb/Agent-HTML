@@ -7,7 +7,7 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "types:check": "react-router typegen && fumadocs-mdx && tsc --noEmit",
+    "typecheck": "react-router typegen && fumadocs-mdx && tsc --noEmit",
     "postinstall": "fumadocs-mdx",
     "lint": "biome check",
     "format": "biome format --write"

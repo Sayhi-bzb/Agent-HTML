@@ -187,12 +187,21 @@ describe("React Canvas dev host", () => {
       const hostEntry = await fetch(`${url}/__agent-html/host-entry.js`).then((response) =>
         response.text()
       )
-      expect(hostEntry).toContain("packages/cli/src/host/main.tsx")
+      expect(hostEntry).toContain("/src/host/main.tsx")
 
       const hostMain = await fetch(
         `${url}${viteFsPath(path.join(hostRoot, "main.tsx"))}`
       ).then((response) => response.text())
       expect(hostMain).not.toContain("/node_modules/react-dom/client.js")
+
+      const areaChart = await fetch(
+        `${url}${viteFsPath(
+          path.join(process.cwd(), "agent-html", "components", "chart", "area-chart.tsx")
+        )}`
+      ).then((response) => response.text())
+      expect(areaChart).toContain("agent-html-vite-v6")
+      expect(areaChart).toContain("@visx_xychart.js")
+      expect(areaChart).not.toContain("node_modules/reduce-css-calc/index.js")
 
       const removedBundle = await fetch(`${url}/__agent-html/client-bundle`)
       expect(removedBundle.status).toBe(404)
