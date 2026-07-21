@@ -297,7 +297,7 @@ function formatTransformError({ error, url }) {
   return lines.join("\n")
 }
 
-function resolveProxiedZeosevenUrl(requestUrl, { errorMessage, pathnameTest }) {
+function resolveProxiedFontUrl(requestUrl, { errorMessage, isAllowed }) {
   const resourceUrl = requestUrl.searchParams.get("url")
 
   if (!resourceUrl) {
@@ -311,11 +311,7 @@ function resolveProxiedZeosevenUrl(requestUrl, { errorMessage, pathnameTest }) {
     throw new Error("url must be an absolute URL")
   }
 
-  if (
-    parsedUrl.protocol !== "https:" ||
-    parsedUrl.hostname !== "fontsapi.zeoseven.com" ||
-    !pathnameTest(parsedUrl.pathname)
-  ) {
+  if (parsedUrl.protocol !== "https:" || !isAllowed(parsedUrl)) {
     throw new Error(errorMessage)
   }
 
@@ -323,16 +319,22 @@ function resolveProxiedZeosevenUrl(requestUrl, { errorMessage, pathnameTest }) {
 }
 
 function resolveProxiedFontStylesheetUrl(requestUrl) {
-  return resolveProxiedZeosevenUrl(requestUrl, {
-    errorMessage: "Only ZeoSeven FontsAPI result.css URLs are allowed",
-    pathnameTest: (pathname) => pathname.endsWith("/result.css"),
+  return resolveProxiedFontUrl(requestUrl, {
+    errorMessage: "Only approved font stylesheet URLs are allowed",
+    isAllowed: (url) =>
+      (url.hostname === "fonts.googleapis.com" && url.pathname === "/css2") ||
+      (url.hostname === "fontsapi.zeoseven.com" &&
+        url.pathname.endsWith("/result.css")),
   })
 }
 
 function resolveProxiedFontAssetUrl(requestUrl) {
-  return resolveProxiedZeosevenUrl(requestUrl, {
-    errorMessage: "Only ZeoSeven FontsAPI woff2 URLs are allowed",
-    pathnameTest: (pathname) => pathname.endsWith(".woff2"),
+  return resolveProxiedFontUrl(requestUrl, {
+    errorMessage: "Only approved woff2 font asset URLs are allowed",
+    isAllowed: (url) =>
+      (url.hostname === "fonts.gstatic.com" ||
+        url.hostname === "fontsapi.zeoseven.com") &&
+      url.pathname.endsWith(".woff2"),
   })
 }
 
@@ -342,10 +344,27 @@ function proxiedFontAssetHref(fontAssetUrl) {
 
 function rewriteRelativeCssUrls(css, stylesheetUrl) {
   return css.replace(
-    /url\(\s*(["']?)(?![a-zA-Z][a-zA-Z\d+.-]*:|\/\/|#)([^"')]+)\1\s*\)/g,
+    /url\(\s*(["']?)([^"')]+)\1\s*\)/g,
     (_match, _quote, rawUrl) => {
-      const absoluteUrl = new URL(rawUrl.trim(), stylesheetUrl).toString()
-      return `url("${proxiedFontAssetHref(absoluteUrl)}")`
+      let absoluteUrl
+      try {
+        absoluteUrl = new URL(rawUrl.trim(), stylesheetUrl)
+      } catch {
+        return 'url("")'
+      }
+
+      if (
+        absoluteUrl.protocol !== "https:" ||
+        !(
+          (absoluteUrl.hostname === "fonts.gstatic.com" ||
+            absoluteUrl.hostname === "fontsapi.zeoseven.com") &&
+          absoluteUrl.pathname.endsWith(".woff2")
+        )
+      ) {
+        return 'url("")'
+      }
+
+      return `url("${proxiedFontAssetHref(absoluteUrl.toString())}")`
     }
   )
 }
@@ -365,6 +384,7 @@ async function sendFontStylesheet({ requestUrl, response }) {
     const css = rewriteRelativeCssUrls(await fontResponse.text(), stylesheetUrl)
 
     response.writeHead(fontResponse.ok ? 200 : fontResponse.status, {
+      "Access-Control-Allow-Origin": "*",
       "Cache-Control": "public, max-age=600",
       "Content-Type": "text/css; charset=utf-8",
     })
@@ -392,6 +412,7 @@ async function sendFontAsset({ requestUrl, response }) {
     const fontBytes = Buffer.from(await fontResponse.arrayBuffer())
 
     response.writeHead(fontResponse.ok ? 200 : fontResponse.status, {
+      "Access-Control-Allow-Origin": "*",
       "Cache-Control": "public, max-age=31536000, immutable",
       "Content-Type": "font/woff2",
     })

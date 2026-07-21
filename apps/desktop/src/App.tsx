@@ -2,9 +2,16 @@ import { FolderOpen, Plus, RotateCcw } from "lucide-react"
 import { listen } from "@tauri-apps/api/event"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import {
+  createCanvasThemeBootstrapMessage,
   readCanvasThemeSnapshot,
   type CanvasThemeSnapshot,
 } from "../../../packages/cli/src/host/theme/theme-sync-contract"
+import {
+  createCanvasNavigationCommandMessage,
+  createCanvasNavigationRequestMessage,
+  type CanvasNavigationCommand,
+  type CanvasNavigationSnapshot,
+} from "../../../packages/cli/src/host/navigation/navigation-sync-contract"
 
 import {
   desktopApi,
@@ -19,7 +26,13 @@ import {
   type WorkspaceSession,
 } from "./session"
 import { Button, Status } from "./ui"
-import { readTrustedDesktopThemeMessage, watchDesktopTheme } from "./theme"
+import { readTrustedDesktopNavigationSnapshot } from "./navigation"
+import {
+  readTrustedDesktopThemeMessage,
+  readTrustedDesktopThemeRequest,
+  resolveDesktopRuntimeOrigin,
+  watchDesktopTheme,
+} from "./theme"
 import { DesktopTitleBar } from "./title-bar"
 
 const emptySnapshot: DesktopSnapshot = {
@@ -38,19 +51,32 @@ function normalizeDesktopSnapshot(snapshot: DesktopSnapshot): DesktopSnapshot {
 export default function App() {
   const [snapshot, setSnapshot] = useState(emptySnapshot)
   const [session, setSession] = useState<WorkspaceSession>({ status: "idle" })
+  const [canvasNavigation, setCanvasNavigation] =
+    useState<CanvasNavigationSnapshot | null>(null)
   const runtimeFrameRef = useRef<HTMLIFrameElement>(null)
+  const canvasThemeRef = useRef<CanvasThemeSnapshot | null>(null)
   const themeSaveTimerRef = useRef<number | null>(null)
   const pendingThemeRef = useRef<CanvasThemeSnapshot | null>(null)
   const busy = ["opening", "initializing", "starting", "closing"].includes(
     session.status
   )
+  const runtimeOrigin =
+    session.status === "ready"
+      ? resolveDesktopRuntimeOrigin(session.bootstrapUrl)
+      : null
 
   useEffect(() => {
     desktopApi
       .snapshot()
-      .then((nextSnapshot) => setSnapshot(normalizeDesktopSnapshot(nextSnapshot)))
+      .then((nextSnapshot) =>
+        setSnapshot(normalizeDesktopSnapshot(nextSnapshot))
+      )
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    canvasThemeRef.current = snapshot.canvasTheme
+  }, [snapshot.canvasTheme])
 
   useEffect(() => {
     const unlisten = listen<WorkspaceError>(
@@ -81,15 +107,22 @@ export default function App() {
   }, [])
 
   useLayoutEffect(() => {
-    return watchDesktopTheme({ snapshot: snapshot.canvasTheme })
-  }, [snapshot.canvasTheme])
+    return watchDesktopTheme({
+      runtimeOrigin,
+      snapshot: snapshot.canvasTheme,
+    })
+  }, [runtimeOrigin, snapshot.canvasTheme])
 
   useEffect(() => {
     if (session.status !== "ready") {
       return
     }
 
-    const expectedOrigin = new URL(session.bootstrapUrl).origin
+    if (!runtimeOrigin) {
+      return
+    }
+
+    const expectedOrigin = runtimeOrigin
     const persistPendingTheme = () => {
       if (!pendingThemeRef.current) {
         return
@@ -99,6 +132,32 @@ export default function App() {
       themeSaveTimerRef.current = null
     }
     const handleMessage = (event: MessageEvent<unknown>) => {
+      const navigationSnapshot = readTrustedDesktopNavigationSnapshot({
+        event,
+        expectedOrigin,
+        expectedSource: runtimeFrameRef.current?.contentWindow ?? null,
+      })
+      if (navigationSnapshot) {
+        setCanvasNavigation(navigationSnapshot)
+        return
+      }
+
+      const themeRequest = readTrustedDesktopThemeRequest({
+        event,
+        expectedOrigin,
+        expectedSource: runtimeFrameRef.current?.contentWindow ?? null,
+      })
+      if (themeRequest) {
+        runtimeFrameRef.current?.contentWindow?.postMessage(
+          createCanvasThemeBootstrapMessage({
+            requestId: themeRequest.requestId,
+            snapshot: canvasThemeRef.current,
+          }),
+          expectedOrigin
+        )
+        return
+      }
+
       const canvasTheme = readTrustedDesktopThemeMessage({
         event,
         expectedOrigin,
@@ -124,7 +183,7 @@ export default function App() {
         persistPendingTheme()
       }
     }
-  }, [session])
+  }, [runtimeOrigin, session])
 
   useEffect(() => {
     document.documentElement.lang = snapshot.preferences.language
@@ -136,7 +195,29 @@ export default function App() {
     [activeRoot]
   )
 
+  function postCanvasNavigationCommand(command: CanvasNavigationCommand) {
+    if (!runtimeOrigin) {
+      return
+    }
+    runtimeFrameRef.current?.contentWindow?.postMessage(
+      createCanvasNavigationCommandMessage(command),
+      runtimeOrigin
+    )
+  }
+
+  function requestCanvasNavigationSnapshot() {
+    if (!runtimeOrigin) {
+      return
+    }
+    setCanvasNavigation(null)
+    runtimeFrameRef.current?.contentWindow?.postMessage(
+      createCanvasNavigationRequestMessage(crypto.randomUUID()),
+      runtimeOrigin
+    )
+  }
+
   async function openWorkspace(path: string, initialize = false) {
+    setCanvasNavigation(null)
     setSession({ status: initialize ? "initializing" : "opening", root: path })
     try {
       const runtime = await desktopApi.openWorkspace({
@@ -144,8 +225,9 @@ export default function App() {
         path,
         pipeline: snapshot.preferences.pipeline,
       })
+      const nextSnapshot = normalizeDesktopSnapshot(await desktopApi.snapshot())
+      setSnapshot(nextSnapshot)
       setSession(readySession(runtime))
-      setSnapshot(normalizeDesktopSnapshot(await desktopApi.snapshot()))
     } catch (error) {
       setSession({ status: "failed", root: path, error: workspaceError(error) })
     }
@@ -158,10 +240,28 @@ export default function App() {
 
   if (session.status === "ready") {
     return (
-      <DesktopShell>
+      <DesktopShell
+        navigation={canvasNavigation}
+        onCreateArtifact={() =>
+          postCanvasNavigationCommand({ type: "create-artifact" })
+        }
+        onRequestDeleteArtifact={(filePath) =>
+          postCanvasNavigationCommand({
+            filePath,
+            type: "request-delete-artifact",
+          })
+        }
+        onSelectArtifact={(filePath) =>
+          postCanvasNavigationCommand({ filePath, type: "select-artifact" })
+        }
+        onSetSidebarOpen={(open) =>
+          postCanvasNavigationCommand({ open, type: "set-sidebar-open" })
+        }
+      >
         <main className="desktop-runtime">
           <iframe
             className="desktop-runtime__canvas"
+            onLoad={requestCanvasNavigationSnapshot}
             ref={runtimeFrameRef}
             src={session.bootstrapUrl}
             title={`${title} Canvas`}
@@ -265,10 +365,30 @@ export default function App() {
   )
 }
 
-function DesktopShell({ children }: { children: React.ReactNode }) {
+function DesktopShell({
+  children,
+  navigation,
+  onCreateArtifact,
+  onRequestDeleteArtifact,
+  onSelectArtifact,
+  onSetSidebarOpen,
+}: {
+  children: React.ReactNode
+  navigation?: CanvasNavigationSnapshot | null
+  onCreateArtifact?: () => void
+  onRequestDeleteArtifact?: (filePath: string) => void
+  onSelectArtifact?: (filePath: string) => void
+  onSetSidebarOpen?: (open: boolean) => void
+}) {
   return (
     <div className="desktop-shell">
-      <DesktopTitleBar />
+      <DesktopTitleBar
+        navigation={navigation}
+        onCreateArtifact={onCreateArtifact}
+        onRequestDeleteArtifact={onRequestDeleteArtifact}
+        onSelectArtifact={onSelectArtifact}
+        onSetSidebarOpen={onSetSidebarOpen}
+      />
       {children}
     </div>
   )

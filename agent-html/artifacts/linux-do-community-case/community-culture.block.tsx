@@ -19,7 +19,7 @@ export default function CommunityCultureBlock() {
         {culturePrinciples.map((principle) => (
           <HandbookPanel key={principle.label}>
             <div className="canvas-wrap-sm items-center justify-between">
-              <h3 className="canvas-text-heading font-semibold">{principle.label}</h3>
+              <h3 className="canvas-text-heading canvas-text-strong">{principle.label}</h3>
               <Badge variant="outline">{principle.role}</Badge>
             </div>
             <p className="canvas-text-body text-muted-foreground">

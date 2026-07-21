@@ -9,7 +9,7 @@ Use default classes first. Rare classes are valid but should stay situational; o
 
 ### Text
 
-- `canvas-text-caption/body/heading/title`
+- `canvas-text-caption/body/heading/title/medium/mono/strong`
 
 ### Stack
 
@@ -25,7 +25,7 @@ Use default classes first. Rare classes are valid but should stay situational; o
 
 ### Grid
 
-- `canvas-grid-2/2-lg/gap/gap-md/main-aside/main-aside-lg`
+- `canvas-grid-2/2-lg/gap/gap-md/main-aside/main-aside-lg/sidebar`
 
 ### Frame Media
 
@@ -43,12 +43,16 @@ Use default classes first. Rare classes are valid but should stay situational; o
 
 ### Grid
 
-- `canvas-grid-2-sm/4/main-aside-xl/main-aside-xl-wide/aside-main/aside-main-lg/cards`
+- `canvas-grid-2-sm/4/main-aside-xl/main-aside-xl-wide/aside-main/aside-main-lg/cards/analysis/balanced/detail/label/metrics/report/summary/value`
 
 ### Frame
 
-- `canvas-frame-table/wide`
+- `canvas-frame-table/wide/tall`
 
 ### Frame Media
 
-- `canvas-frame-media-16-9/portrait`
+- `canvas-frame-media-16-9/portrait/8-5`
+
+### Other
+
+- `canvas-other-canvas-chart-md/canvas-chart-sm/canvas-chart-wide/canvas-floating-panel/canvas-media-fade/canvas-media-overview/canvas-route-map/canvas-route-workbench/canvas-table-clean-header/canvas-table-wide`

@@ -38,6 +38,8 @@ describe("runtime input selection", () => {
   it("tracks published sources and template inputs", () => {
     expect(isRuntimeInput("package-lock.json")).toBe(true)
     expect(isRuntimeInput("agent-html/components/ui/button.tsx")).toBe(true)
+    expect(isRuntimeInput("packages/kernel/package.json")).toBe(true)
+    expect(isRuntimeInput("packages/kernel/src/index.mjs")).toBe(true)
     expect(isRuntimeInput("packages/react/src/index.tsx")).toBe(true)
     expect(isRuntimeInput("packages/cli/src/index.mjs")).toBe(true)
     expect(isRuntimeInput("packages/cli/scripts/prepare-template.mjs")).toBe(true)
@@ -47,6 +49,7 @@ describe("runtime input selection", () => {
 
   it("ignores derived and test-only files", () => {
     expect(isRuntimeInput("agent-html/node_modules/example/index.js")).toBe(false)
+    expect(isRuntimeInput("packages/kernel/src/policy.test.mjs")).toBe(false)
     expect(isRuntimeInput("packages/react/src/index.test.tsx")).toBe(false)
     expect(isRuntimeInput("packages/cli/src/index.test.mjs")).toBe(false)
     expect(isRuntimeInput("packages/cli/agent-html-0.2.1.tgz")).toBe(false)

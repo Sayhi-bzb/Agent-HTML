@@ -11,6 +11,8 @@ import {
 import { applyCanvasThemeEditorPreview } from "./theme-preview"
 import { applyCanvasThemePresetLayout } from "./theme-layout"
 import { publishCanvasTheme } from "./publish-canvas-theme"
+import { startCanvasThemeBootstrap } from "./theme-bootstrap"
+import type { CanvasThemeMode } from "./theme-sync-contract"
 import {
   applyCanvasThemeMode,
   applyCanvasThemePreset,
@@ -25,9 +27,14 @@ import type { CanvasHostThemeMode } from "../preferences/canvas-host-preferences
 export function useCanvasHostTheme({
   activeThemeMode,
   activeThemePresetId,
+  restoreThemeSelection,
 }: {
   activeThemeMode: CanvasHostThemeMode
   activeThemePresetId: CanvasThemePresetId
+  restoreThemeSelection: (selection: {
+    mode: CanvasThemeMode
+    presetId: CanvasThemePresetId
+  }) => void
 }) {
   const [themeDraft, setThemeDraft] = React.useState<CanvasThemeDraft>(() =>
     createEmptyCanvasThemeDraft()
@@ -35,6 +42,9 @@ export function useCanvasHostTheme({
   const [themeRuntimeVariables, setThemeRuntimeVariables] =
     React.useState<CanvasThemeResolvedVariables>({})
   const [systemThemeRevision, setSystemThemeRevision] = React.useState(0)
+  const [themeBootstrapComplete, setThemeBootstrapComplete] = React.useState(
+    () => typeof window === "undefined" || window.parent === window
+  )
   const activeThemePreset =
     canvasThemePresets.find((preset) => preset.id === activeThemePresetId) ??
     canvasThemePresets[0]
@@ -62,11 +72,31 @@ export function useCanvasHostTheme({
   }, [themeDraft])
 
   React.useEffect(() => {
-    publishCanvasTheme({
-      draft: themeDraft,
-      mode: activeThemeMode,
-      preset: activeThemePreset,
+    return startCanvasThemeBootstrap({
+      onBootstrap(bootstrap) {
+        if (!bootstrap) {
+          return
+        }
+        restoreThemeSelection({
+          mode: bootstrap.mode,
+          presetId: bootstrap.presetId,
+        })
+        setThemeDraft(bootstrap.draft)
+      },
+      onComplete() {
+        setThemeBootstrapComplete(true)
+      },
     })
+  }, [restoreThemeSelection])
+
+  React.useEffect(() => {
+    if (themeBootstrapComplete) {
+      publishCanvasTheme({
+        draft: themeDraft,
+        mode: activeThemeMode,
+        preset: activeThemePreset,
+      })
+    }
 
     const frameId = window.requestAnimationFrame(() => {
       setThemeRuntimeVariables(
@@ -80,6 +110,7 @@ export function useCanvasHostTheme({
     activeThemeMode,
     activeThemePreset,
     systemThemeRevision,
+    themeBootstrapComplete,
     themeDraft,
   ])
 

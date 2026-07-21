@@ -1,42 +1,29 @@
 import * as React from "react"
 import type { ReactNode, RefObject } from "react"
 
-export const artifactInteractionEventName = "agent-html:state-change"
-
-export type ArtifactStateChangeKind =
-  | "set"
-  | "toggle"
-  | "select"
-  | "open"
-  | "action"
-  | "move"
-  | "resize"
-  | (string & {})
-
-export type ArtifactStateChange = {
-  after: unknown
-  before: unknown
-  blockId?: string
-  component: string
-  controlId: string
-  kind: ArtifactStateChangeKind
-  label?: string
-  semantic?: string
-  timestamp: number
-}
-
-export type ArtifactStateChangeInput = Omit<
+import {
+  canvasDomAttributes,
+  canvasInteractionEventName,
+} from "@agent-html/kernel"
+import type {
+  ArtifactBlockDefinition,
+  ArtifactDefinition,
+  ArtifactInteractionSnapshot,
   ArtifactStateChange,
-  "timestamp"
-> & {
-  timestamp?: number
-}
+  ArtifactStateChangeInput,
+  ArtifactStateChangeKind,
+} from "@agent-html/kernel"
 
-export type ArtifactInteractionSnapshot = {
-  blockId?: string
-  currentState: Record<string, unknown>
-  recentChanges: ArtifactStateChange[]
-}
+export type {
+  ArtifactBlockDefinition,
+  ArtifactDefinition,
+  ArtifactInteractionSnapshot,
+  ArtifactStateChange,
+  ArtifactStateChangeInput,
+  ArtifactStateChangeKind,
+} from "@agent-html/kernel"
+
+export const artifactInteractionEventName = canvasInteractionEventName
 
 export type ArtifactInteractionRuntime = {
   emitChange: (change: ArtifactStateChangeInput) => void
@@ -66,18 +53,6 @@ export type BlockProps = {
   children?: ReactNode
   id: string
   title?: string
-}
-
-export type ArtifactBlockDefinition =
-  | string
-  | {
-      id: string
-      title?: string
-    }
-
-export type ArtifactDefinition = {
-  blocks: ArtifactBlockDefinition[]
-  title: string
 }
 
 export type ArtifactBlockComponentMap = Record<string, React.ComponentType>
@@ -278,8 +253,10 @@ export const useInstrumentedCheckedChange = useInstrumentedValueChange
 export function Artifact({ children, title }: ArtifactProps) {
   return (
     <main
-      data-agent-html-artifact="true"
-      data-agent-html-title={title}
+      {...{
+        [canvasDomAttributes.artifact]: "true",
+        [canvasDomAttributes.artifactTitle]: title,
+      }}
       className="agent-html-artifact"
     >
       {children}
@@ -291,9 +268,11 @@ export function Block({ children, id, title }: BlockProps) {
   return (
     <section
       id={id}
-      data-agent-html-block="true"
-      data-agent-html-block-id={id}
-      data-agent-html-block-title={title ?? id}
+      {...{
+        [canvasDomAttributes.block]: "true",
+        [canvasDomAttributes.blockId]: id,
+        [canvasDomAttributes.blockTitle]: title ?? id,
+      }}
     >
       {children}
     </section>

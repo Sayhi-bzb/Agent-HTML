@@ -62,7 +62,7 @@ export default function WhatIsLinuxDoBlock() {
         <div className="canvas-stack-md">
           <div className="canvas-stack-sm">
             <Badge variant="secondary">新人手册</Badge>
-            <h1 className="canvas-text-title font-semibold">LINUX DO 是什么？</h1>
+            <h1 className="canvas-text-title canvas-text-strong">LINUX DO 是什么？</h1>
             <p className="canvas-text-body text-muted-foreground">
               LINUX DO 是一个以技术讨论、资源分享和社区协作为核心的线上社区。新人可以把它先理解成三件事：论坛负责日常交流，Wiki 负责稳定说明，社区服务负责账号、工具和资源入口。
             </p>
@@ -84,7 +84,7 @@ export default function WhatIsLinuxDoBlock() {
 
       <HandbookPanel>
         <div className="canvas-wrap-sm items-center justify-between">
-          <h2 className="canvas-text-heading font-semibold">三类入口</h2>
+          <h2 className="canvas-text-heading canvas-text-strong">三类入口</h2>
           <Badge variant="outline">先认路</Badge>
         </div>
         <OpenRows

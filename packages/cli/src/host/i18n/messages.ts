@@ -52,7 +52,7 @@ const en = {
   "sidebar.delete": "Delete",
   "sidebar.deleteArtifactDescription":
     "This removes the Artifact entry from the Canvas workspace.",
-  "sidebar.deleteArtifactTitle": "Delete Artifact?",
+  "sidebar.deleteArtifactTitle": "Delete “{label}”?",
   "sidebar.docs": "Open Agent-HTML docs",
   "sidebar.gallery": "Gallery",
   "sidebar.github": "Open Agent-HTML on GitHub",
@@ -188,7 +188,7 @@ const zh = {
   "sidebar.delete": "删除",
   "sidebar.deleteArtifactDescription":
     "这会从 Canvas workspace 中移除此 Artifact entry。",
-  "sidebar.deleteArtifactTitle": "删除 Artifact？",
+  "sidebar.deleteArtifactTitle": "删除“{label}”？",
   "sidebar.docs": "打开 Agent-HTML 文档",
   "sidebar.gallery": "主题库",
   "sidebar.github": "在 GitHub 打开 Agent-HTML",

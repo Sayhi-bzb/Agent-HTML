@@ -59,7 +59,7 @@ export default function LunarFlybyBlock() {
             {gallery.map((asset, index) => (
               <CarouselItem key={asset.src}>
                 <figure className="canvas-stack-sm">
-                  <div className="canvas-frame-media aspect-[16/10] max-h-screen">
+                  <div className="canvas-frame-media canvas-frame-media-8-5 max-h-screen">
                     <img
                       alt={asset.alt}
                       className="h-full w-full object-cover"

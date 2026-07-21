@@ -8,6 +8,13 @@ import {
 } from "./test-contract-helpers.mjs"
 
 describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
+  it("keeps the Kernel framework-neutral and independent", () => {
+    const forbidden =
+      /from\s+["'](?:react\b|react\/|packages\/cli|packages\/react|apps\/|agent-html\/|#agent-html-playground\/|node:fs|node:path)/
+
+    expect(filesMatching("packages/kernel/src", forbidden)).toEqual([])
+  })
+
   it("keeps the CLI off app, docs, example, and legacy runtime imports", () => {
     const forbidden =
       /from\s+["'](?:apps\/|@\/app\b|@\/app\/|@\/agent-html\b|@\/agent-html\/|packages\/agent-html\/|@example\b|@example\/)|Codex app-server|__agent-html\/render|new Function|transpileModule/

@@ -13,31 +13,6 @@
     gap: var(--canvas-sidebar-menu-gap);
   }
 
-  .canvas-sidebar-brand {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--canvas-sidebar-control-gap);
-    padding-inline: var(--canvas-sidebar-content-padding-inline);
-    padding-block: 0.375rem;
-  }
-
-  .canvas-sidebar-brand-main {
-    display: flex;
-    min-width: 0;
-    flex: 1 1 auto;
-    align-items: center;
-    gap: var(--agent-html-brand-gap);
-  }
-
-  .canvas-sidebar-brand-icon {
-    width: var(--agent-html-brand-icon-size);
-    height: var(--agent-html-brand-icon-size);
-    flex-shrink: 0;
-    color: var(--sidebar-foreground);
-  }
-
   .canvas-sidebar-copy {
     padding-inline: var(--canvas-sidebar-content-padding-inline);
     font-size: var(--canvas-sidebar-body-font-size);
@@ -346,14 +321,6 @@
   .canvas-host-popover-action[data-active="true"] {
     background: var(--accent);
     color: var(--accent-foreground);
-  }
-
-  .canvas-sidebar-title {
-    font-family: var(--agent-html-brand-font-family);
-    font-size: var(--agent-html-brand-font-size);
-    font-weight: var(--agent-html-brand-font-weight);
-    letter-spacing: var(--agent-html-brand-letter-spacing);
-    line-height: var(--agent-html-brand-line-height);
   }
 
   .canvas-sidebar-body {

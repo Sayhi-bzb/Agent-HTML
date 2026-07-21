@@ -5,6 +5,7 @@ import {
   type CanvasThemeMode,
 } from "./theme-sync-contract"
 import type { CanvasThemePreset } from "#agent-html-playground/theme/presets"
+import { getCanvasThemePresetFontStylesheetPaths } from "./theme-layout"
 
 type ThemeMessageTarget = Pick<Window, "postMessage">
 
@@ -22,6 +23,7 @@ export function publishCanvasTheme({
   const message = createCanvasThemeChangeMessage({
     darkCssVariables: preset.darkCssVariables ?? {},
     draftCssVariables: draft.cssVariables,
+    fontStylesheetPaths: getCanvasThemePresetFontStylesheetPaths(preset),
     lightCssVariables: preset.lightCssVariables,
     mode,
     presetId: preset.id,

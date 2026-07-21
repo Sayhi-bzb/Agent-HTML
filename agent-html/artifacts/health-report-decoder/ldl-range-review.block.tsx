@@ -35,7 +35,7 @@ export default function LdlRangeReviewBlock() {
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-[0.72fr_1fr]">
+        <div className="canvas-grid-analysis grid gap-6">
           <div className="canvas-stack-sm">
             <StatusBadge status={meta.status}>{activeItem.code}</StatusBadge>
             <h3 className="canvas-text-heading">{activeItem.label}</h3>

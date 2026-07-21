@@ -16,7 +16,6 @@ import {
 } from "lucide-react"
 import * as React from "react"
 
-import { agentHtmlBrandName } from "../../shared/brand"
 import { artifactLabel } from "../api/api"
 import type { CodexThread } from "../api/api"
 import {
@@ -30,16 +29,6 @@ import type {
   CanvasThemeResolvedVariables,
   CanvasThemeVariableName,
 } from "../theme/theme-draft"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../ui/alert-dialog"
 import {
   Dialog,
   DialogClose,
@@ -83,7 +72,7 @@ import type {
   CanvasSidebarView,
 } from "../preferences/canvas-host-preferences"
 import { HostButton } from "../ui/button"
-import { AgentHtmlGhostIcon, GithubMarkIcon } from "../ui/brand-icons"
+import { GithubMarkIcon } from "../ui/brand-icons"
 import {
   HostCommand,
   HostCommandDialog,
@@ -128,7 +117,7 @@ export function ReactCanvasSidebar({
   onSelectArtifact,
   onSelectCodexThread,
   onSelectLanguage,
-  onDeleteArtifact,
+  onRequestDeleteArtifact,
   onRenameArtifact,
   onSelectSection,
   onSelectSidebarView,
@@ -160,7 +149,7 @@ export function ReactCanvasSidebar({
   onSelectArtifact: (filePath: string) => void
   onSelectCodexThread: (threadId: string | null) => void
   onSelectLanguage: (language: CanvasHostLanguage) => void
-  onDeleteArtifact: (filePath: string) => Promise<void>
+  onRequestDeleteArtifact: (filePath: string) => void
   onRenameArtifact: (input: {
     filePath: string
     nextFileName: string
@@ -171,10 +160,7 @@ export function ReactCanvasSidebar({
   onSelectThemePreset: (presetId: CanvasThemePresetId) => void
   onResetThemePreview: () => void
   onSelectCreateArtifact: () => void
-  onThemeVariableChange: (
-    name: CanvasThemeVariableName,
-    value: string
-  ) => void
+  onThemeVariableChange: (name: CanvasThemeVariableName, value: string) => void
   themeDraft: CanvasThemeDraft
   themePreviewDirty: boolean
   themePresets: readonly CanvasThemePreset[]
@@ -201,17 +187,6 @@ export function ReactCanvasSidebar({
           </SidebarMenu>
         ) : (
           <>
-            <div className="canvas-sidebar-brand">
-              <div className="canvas-sidebar-brand-main">
-                <AgentHtmlGhostIcon
-                  aria-hidden="true"
-                  className="canvas-sidebar-brand-icon"
-                />
-                <span className="canvas-sidebar-title min-w-0 truncate">
-                  {agentHtmlBrandName}
-                </span>
-              </div>
-            </div>
             <ReactCanvasArtifactSearch
               artifacts={artifacts}
               onSelectArtifact={onSelectArtifact}
@@ -270,7 +245,7 @@ export function ReactCanvasSidebar({
                         issueCount={issueCount}
                         isActive={artifact.filePath === activeFilePath}
                         key={artifact.filePath}
-                        onDeleteArtifact={onDeleteArtifact}
+                        onRequestDeleteArtifact={onRequestDeleteArtifact}
                         onRenameArtifact={onRenameArtifact}
                         onSelectArtifact={onSelectArtifact}
                       />
@@ -356,7 +331,9 @@ export function ReactCanvasSidebar({
                       className="canvas-host-language-popover-content"
                       side="right"
                     >
-                      <HostDropdownLabel>{t("sidebar.language")}</HostDropdownLabel>
+                      <HostDropdownLabel>
+                        {t("sidebar.language")}
+                      </HostDropdownLabel>
                       {canvasHostLanguageOptions.map((language) => (
                         <HostPopoverAction
                           active={language === activeLanguage}
@@ -447,14 +424,14 @@ function ArtifactSidebarItem({
   artifact,
   issueCount,
   isActive,
-  onDeleteArtifact,
+  onRequestDeleteArtifact,
   onRenameArtifact,
   onSelectArtifact,
 }: {
   artifact: Artifact
   issueCount: number
   isActive: boolean
-  onDeleteArtifact: (filePath: string) => Promise<void>
+  onRequestDeleteArtifact: (filePath: string) => void
   onRenameArtifact: (input: {
     filePath: string
     nextFileName: string
@@ -463,7 +440,6 @@ function ArtifactSidebarItem({
 }) {
   const { t } = useHostI18n()
   const label = artifact.title
-  const [deleteOpen, setDeleteOpen] = React.useState(false)
   const [renameOpen, setRenameOpen] = React.useState(false)
   const [renameDraft, setRenameDraft] = React.useState(() =>
     artifactFileName(artifact.filePath)
@@ -492,17 +468,6 @@ function ArtifactSidebarItem({
     }
   }
 
-  async function confirmDelete() {
-    setStatus("")
-
-    try {
-      await onDeleteArtifact(artifact.filePath)
-      setDeleteOpen(false)
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : String(error))
-    }
-  }
-
   return (
     <SidebarMenuItem>
       <HostSidebarActionButton
@@ -511,7 +476,9 @@ function ArtifactSidebarItem({
         onClick={() => onSelectArtifact(artifact.filePath)}
         type="button"
       />
-      {issueCount > 0 ? <SidebarMenuBadge>{issueCount}</SidebarMenuBadge> : null}
+      {issueCount > 0 ? (
+        <SidebarMenuBadge>{issueCount}</SidebarMenuBadge>
+      ) : null}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <SidebarMenuAction
@@ -537,7 +504,7 @@ function ArtifactSidebarItem({
             label={t("sidebar.delete")}
             onSelect={(event) => {
               event.preventDefault()
-              setDeleteOpen(true)
+              onRequestDeleteArtifact(artifact.filePath)
             }}
             variant="destructive"
           />
@@ -557,7 +524,9 @@ function ArtifactSidebarItem({
               onChange={(event) => setRenameDraft(event.currentTarget.value)}
               value={renameDraft}
             />
-            {status ? <p className="canvas-sidebar-dialog-status">{status}</p> : null}
+            {status ? (
+              <p className="canvas-sidebar-dialog-status">{status}</p>
+            ) : null}
             <DialogFooter className="mt-4">
               <DialogClose asChild>
                 <HostButton type="button" variant="outline">
@@ -569,29 +538,6 @@ function ArtifactSidebarItem({
           </form>
         </DialogContent>
       </Dialog>
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("sidebar.deleteArtifactTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("sidebar.deleteArtifactDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {status ? <p className="canvas-sidebar-dialog-status">{status}</p> : null}
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("sidebar.cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(event) => {
-                event.preventDefault()
-                void confirmDelete()
-              }}
-              variant="destructive"
-            >
-              {t("sidebar.delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </SidebarMenuItem>
   )
 }
@@ -622,11 +568,12 @@ function ReactCanvasCodexThreadSelect({
   threads: CodexThread[]
 }) {
   const { t } = useHostI18n()
-  const activeThread =
-    activeThreadId
-      ? threads.find((thread) => thread.id === activeThreadId)
-      : null
-  const activeThreadMissing = Boolean(activeThreadId && !activeThread && !loading)
+  const activeThread = activeThreadId
+    ? threads.find((thread) => thread.id === activeThreadId)
+    : null
+  const activeThreadMissing = Boolean(
+    activeThreadId && !activeThread && !loading
+  )
   const missingThreadOption: HostSelectOption[] =
     activeThreadMissing && activeThreadId
       ? [
@@ -663,7 +610,9 @@ function ReactCanvasCodexThreadSelect({
   return (
     <HostSelect
       disabled={loading}
-      label={error ? t("sidebar.codexThreadUnavailable") : t("sidebar.codexThread")}
+      label={
+        error ? t("sidebar.codexThreadUnavailable") : t("sidebar.codexThread")
+      }
       layout={layout}
       onValueChange={(nextValue) =>
         onSelectThread(nextValue === newCodexThreadValue ? null : nextValue)
@@ -706,7 +655,9 @@ function ReactCanvasArtifactSearch({
         <HostCommand>
           <HostCommandInput placeholder={t("sidebar.searchPlaceholder")} />
           <HostCommandList>
-            <HostCommandEmpty>{t("artifact.noArtifactsTitle")}</HostCommandEmpty>
+            <HostCommandEmpty>
+              {t("artifact.noArtifactsTitle")}
+            </HostCommandEmpty>
             <HostCommandGroup heading={t("sidebar.artifacts")}>
               {artifacts.map((artifact) => {
                 const label = artifact.title

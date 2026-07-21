@@ -292,7 +292,7 @@ export default function BoroughFlowNetworkBlock() {
 
         <div className="canvas-stack-md">
           <SketchAnnotation label="strongest cross-borough line">
-            <strong className="canvas-text-heading font-mono">
+            <strong className="canvas-text-heading canvas-text-mono">
               {strongest.from} {"->"} {strongest.to}
             </strong>
             <p className="canvas-text-caption text-muted-foreground">

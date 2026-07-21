@@ -41,7 +41,7 @@ export default function FirstDayMapBlock() {
 
       <HandbookPanel>
         <div className="canvas-wrap-sm items-center justify-between">
-          <h3 className="canvas-text-heading font-semibold">四步就够</h3>
+          <h3 className="canvas-text-heading canvas-text-strong">四步就够</h3>
           <FirstDayMapIllustration />
         </div>
         <p className="canvas-text-body text-muted-foreground">

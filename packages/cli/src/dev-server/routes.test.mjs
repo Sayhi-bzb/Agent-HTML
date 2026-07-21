@@ -273,6 +273,7 @@ describe("dev server routes", () => {
     )
     expect(response.statusCode).toBe(200)
     expect(response.headers).toMatchObject({
+      "Access-Control-Allow-Origin": "*",
       "Content-Type": "text/css; charset=utf-8",
     })
     expect(response.body).toContain(
@@ -285,7 +286,36 @@ describe("dev server routes", () => {
       'url("/__agent-html/font-asset?url=https%3A%2F%2Ffontsapi.zeoseven.com%2F570%2Fmain%2Funquoted.woff2")'
     )
     expect(response.body).toContain(
-      "url(https://fontsapi.zeoseven.com/static.woff2)"
+      'url("/__agent-html/font-asset?url=https%3A%2F%2Ffontsapi.zeoseven.com%2Fstatic.woff2")'
+    )
+  })
+
+  it("proxies Google font stylesheets and gstatic assets", async () => {
+    const response = createResponseMock()
+    const fontUrl = "https://fonts.gstatic.com/s/inter/v20/test.woff2"
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      text: async () => `@font-face { src: url(${fontUrl}) format('woff2'); }`,
+    }))
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    const stylesheetUrl =
+      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap"
+    await handleRoute({
+      request: {
+        url: `${hostRoutes.fontStylesheet}?url=${encodeURIComponent(stylesheetUrl)}`,
+      },
+      response,
+      root: process.cwd(),
+      vite: {},
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(stylesheetUrl)
+    expect(response.statusCode).toBe(200)
+    expect(response.body).toContain(
+      `url("${hostRoutes.fontAsset}?url=${encodeURIComponent(fontUrl)}")`
     )
   })
 
@@ -317,12 +347,39 @@ describe("dev server routes", () => {
     )
     expect(response.statusCode).toBe(200)
     expect(response.headers).toMatchObject({
+      "Access-Control-Allow-Origin": "*",
       "Content-Type": "font/woff2",
     })
     expect(response.body).toEqual(Buffer.from(fontBytes))
   })
 
-  it("rejects non-ZeoSeven font asset proxy urls", async () => {
+  it("proxies allowed gstatic woff2 assets", async () => {
+    const response = createResponseMock()
+    const fontBytes = new Uint8Array([4, 5, 6]).buffer
+    const fontUrl = "https://fonts.gstatic.com/s/inter/v20/test.woff2"
+    const fetchMock = vi.fn(async () => ({
+      arrayBuffer: async () => fontBytes,
+      ok: true,
+      status: 200,
+    }))
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    await handleRoute({
+      request: {
+        url: `${hostRoutes.fontAsset}?url=${encodeURIComponent(fontUrl)}`,
+      },
+      response,
+      root: process.cwd(),
+      vite: {},
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(fontUrl)
+    expect(response.statusCode).toBe(200)
+    expect(response.body).toEqual(Buffer.from(fontBytes))
+  })
+
+  it("rejects non-approved font asset proxy urls", async () => {
     const response = createResponseMock()
 
     const handled = await handleRoute({
@@ -339,7 +396,7 @@ describe("dev server routes", () => {
     expect(handled).toBe(true)
     expect(response.statusCode).toBe(400)
     expect(JSON.parse(response.body)).toEqual({
-      error: "Only ZeoSeven FontsAPI woff2 URLs are allowed",
+      error: "Only approved woff2 font asset URLs are allowed",
     })
   })
 
@@ -360,7 +417,7 @@ describe("dev server routes", () => {
     expect(handled).toBe(true)
     expect(response.statusCode).toBe(400)
     expect(JSON.parse(response.body)).toEqual({
-      error: "Only ZeoSeven FontsAPI woff2 URLs are allowed",
+      error: "Only approved woff2 font asset URLs are allowed",
     })
   })
 
@@ -399,7 +456,7 @@ describe("dev server routes", () => {
     })
   })
 
-  it("rejects non-ZeoSeven font stylesheet proxy urls", async () => {
+  it("rejects non-approved font stylesheet proxy urls", async () => {
     const response = createResponseMock()
 
     const handled = await handleRoute({
@@ -416,7 +473,7 @@ describe("dev server routes", () => {
     expect(handled).toBe(true)
     expect(response.statusCode).toBe(400)
     expect(JSON.parse(response.body)).toEqual({
-      error: "Only ZeoSeven FontsAPI result.css URLs are allowed",
+      error: "Only approved font stylesheet URLs are allowed",
     })
   })
 

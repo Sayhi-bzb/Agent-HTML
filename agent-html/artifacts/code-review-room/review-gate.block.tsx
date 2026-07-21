@@ -120,7 +120,7 @@ export default function ReviewGateBlock() {
               }
 
               return (
-                <div className="canvas-stack-xs w-56 rounded-md bg-background p-3 shadow-lg">
+                <div className="canvas-floating-panel canvas-stack-xs w-56 rounded-md bg-background p-3">
                   <StatusBadge status={card.status}>{card.label}</StatusBadge>
                   <p className="canvas-text-body">{card.detail}</p>
                 </div>

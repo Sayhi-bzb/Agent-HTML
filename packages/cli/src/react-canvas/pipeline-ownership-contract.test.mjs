@@ -38,13 +38,14 @@ describe("React Canvas pipeline ownership contract", { timeout: 15000 }, () => {
     )
 
     expect(paths).toContain("discoverReactArtifacts")
-    expect(paths).toContain("discoverReactBlockImplementations")
+    expect(paths).toContain("discoverReactImplementationSources")
     expect(paths).not.toContain("readTextFile")
     expect(paths).not.toContain("formatBlockPrompt")
 
     expect(guard).toContain('from "./paths.mjs"')
-    expect(guard).toContain('from "./block-tags.mjs"')
+    expect(guard).toContain('from "@agent-html/kernel/validate"')
     expect(guard).toContain('from "./workspace-file.mjs"')
+    expect(guard).not.toContain('from "./block-tags.mjs"')
     expect(guard).not.toContain('from "./prompt.mjs"')
     expect(guard).not.toContain('from "../host/')
 

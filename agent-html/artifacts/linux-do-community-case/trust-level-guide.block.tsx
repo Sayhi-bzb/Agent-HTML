@@ -10,7 +10,6 @@ import {
   TimelineSeparator,
   TimelineTitle,
 } from "../../components/timeline"
-import { cn } from "../../lib/cn"
 import { artifactPublicUrlFactory } from "../../lib/public-url"
 
 import {
@@ -70,12 +69,7 @@ export default function TrustLevelGuideBlock() {
           <Timeline className="w-full" defaultValue={trustLevels.length}>
             {trustLevels.map((level, index) => (
               <TimelineItem
-                className={cn(
-                  "w-[calc(50%-1.5rem)] odd:ms-auto even:me-auto even:text-right even:group-data-[orientation=vertical]/timeline:ms-0 even:group-data-[orientation=vertical]/timeline:me-8",
-                  "even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-indicator]:-right-6 even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-indicator]:left-auto",
-                  "even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-indicator]:translate-x-1/2 even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-separator]:-right-6",
-                  "even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-separator]:left-auto even:group-data-[orientation=vertical]/timeline:**:data-[slot=timeline-separator]:translate-x-1/2"
-                )}
+                layout="alternating"
                 key={level.level}
                 step={index + 1}
               >
@@ -86,7 +80,7 @@ export default function TrustLevelGuideBlock() {
                   <TimelineIndicator />
                 </TimelineHeader>
                 <TimelineContent className="canvas-stack-xs">
-                  <span className="canvas-text-body font-medium text-foreground">
+                  <span className="canvas-text-body canvas-text-medium text-foreground">
                     {level.role}
                   </span>
                   <span>{level.value}</span>
@@ -102,7 +96,7 @@ export default function TrustLevelGuideBlock() {
           </figure>
           <HandbookPanel>
             <div className="canvas-wrap-sm items-center justify-between">
-              <h3 className="canvas-text-heading font-semibold">新人策略</h3>
+              <h3 className="canvas-text-heading canvas-text-strong">新人策略</h3>
               <Badge variant="outline">先读再发</Badge>
             </div>
             <p className="canvas-text-caption text-muted-foreground">

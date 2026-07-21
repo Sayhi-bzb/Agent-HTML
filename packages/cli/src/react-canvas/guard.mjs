@@ -1,406 +1,183 @@
+import fs from "node:fs/promises"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+
+import {
+  CANVAS_POLICY_VERSION,
+  canvasDiagnosticCodes,
+  canvasRuntimeCatalog
+} from "@agent-html/kernel"
+import {
+  validateArtifactEntry,
+  validateBlockImplementation
+} from "@agent-html/kernel/validate"
+
 import {
   discoverReactArtifacts,
-  discoverReactBlockImplementations,
+  discoverReactImplementationSources,
   parseRootArg,
-  workspaceRelativePath,
+  workspaceRelativePath
 } from "./paths.mjs"
-import { collectArtifactDefinition, collectBlockIds } from "./block-tags.mjs"
 import { readTextFile } from "./workspace-file.mjs"
 
-export const reactCanvasGuardScopes = {
+const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
+
+export const reactCanvasGuardScopes = Object.freeze({
   artifactEntryProtocol: "artifact-entry-protocol",
   blockImplementationSource: "block-implementation-source",
-  workspaceBoundary: "workspace-boundary",
+  workspaceBoundary: "workspace-boundary"
+})
+
+function guardScopeFor(issue, fallback) {
+  return issue.category === "workspace"
+    ? reactCanvasGuardScopes.workspaceBoundary
+    : fallback
 }
 
-const unstableBlockIds = new Set(["block1", "block2", "section1", "section2", "temp", "top"])
-const rawColorPattern = /\b(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/
-const unsafeClassPattern = /\b(?:gradient|shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|text-(?:[3-9]xl|[1-9][0-9]xl)|font-\w+|tracking-\w+|\[[^\]]+\])\b/
-const forbiddenImportPattern = /from\s+["'](?:@\/app\/|.*apps\/agent-html-app|@\/agent-html\/runtime\/ui|@\/agent-html\/runtime["'])/g
-const forbiddenPublicImportPattern = /from\s+["'](?:\.\.\/|\.\/)public(?:\/|["'])/g
-const forbiddenRuntimeApiPattern = /\b(?:renderAgentHtml|renderInteractiveAgentHtml)\b/g
-const nativeControlPattern = /<(?:button|input)\b/
-const nativeTablePattern = /<(?:table|thead|tbody|tr|th|td)\b/
-const maxClassNameMessageLength = 96
-
-function createIssue({
-  filePath,
-  guardScope,
-  line = 1,
-  message,
-  severity = "warning",
-  suggestion,
-}) {
+function asGuardIssue(issue, fallbackScope) {
   return {
-    filePath,
-    guardScope,
-    line,
-    message,
-    severity,
-    suggestion,
+    ...issue,
+    guardScope: guardScopeFor(issue, fallbackScope),
+    severity: "error"
   }
 }
 
-function lineForIndex(source, index) {
-  return source.slice(0, index).split(/\r?\n/).length
-}
-
-function isKebabCase(value) {
-  return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(value)
-}
-
-function compactClassNameForMessage(classValue) {
-  if (classValue.length <= maxClassNameMessageLength) {
-    return classValue
-  }
-
-  return `${classValue.slice(0, maxClassNameMessageLength - 1)}…`
-}
-
-function hasDefaultExport(source) {
-  return /export\s+default\s+/.test(source)
-}
-
-function collectVisualIssues({
-  guardScope = reactCanvasGuardScopes.blockImplementationSource,
-  relativePath,
-  source,
-}) {
-  const issues = []
-  const stylePattern = /\bstyle\s*=\s*\{/g
-  const classPattern = /\bclassName\s*=\s*(?:"([^"]*)"|'([^']*)'|`([^`]*)`|\{([^}]*)\})/g
-  let match
-
-  while ((match = stylePattern.exec(source)) !== null) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope,
-        line: lineForIndex(source, match.index),
-        message: "Inline visual style is not allowed in React Canvas artifacts.",
-        suggestion: "Move visual treatment into local UI primitives.",
-      })
-    )
-  }
-
-  while ((match = classPattern.exec(source)) !== null) {
-    const classValue = match.slice(1).find(Boolean) ?? ""
-    const unsafe =
-      classValue === "" ||
-      rawColorPattern.test(classValue) ||
-      unsafeClassPattern.test(classValue)
-
-    if (unsafe) {
-      issues.push(
-        createIssue({
-          filePath: relativePath,
-          guardScope,
-          line: lineForIndex(source, match.index),
-          message: `Unsafe className: ${classValue ? compactClassNameForMessage(classValue) : "dynamic value"}`,
-          suggestion: "Use semantic token classes.",
-        })
-      )
-    }
-  }
-
-  return issues
-}
-
-function collectWorkspaceBoundaryIssues({ relativePath, source }) {
-  const issues = []
-  let match
-
-  while ((match = forbiddenImportPattern.exec(source)) !== null) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.workspaceBoundary,
-        line: lineForIndex(source, match.index),
-        message: "Import crosses the React Canvas boundary.",
-        severity: "error",
-        suggestion: "Import from @agent-html/react or local agent-html source.",
-      })
-    )
-    forbiddenImportPattern.lastIndex = match.index + 1
-  }
-
-  while ((match = forbiddenPublicImportPattern.exec(source)) !== null) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.workspaceBoundary,
-        line: lineForIndex(source, match.index),
-        message: "Public files must be referenced by URL, not imported.",
-        severity: "error",
-        suggestion:
-          "Use agent-html/lib/public-url helpers for public files, or reference the served /__agent-html/... URL.",
-      })
-    )
-    forbiddenPublicImportPattern.lastIndex = match.index + 1
-  }
-
-  while ((match = forbiddenRuntimeApiPattern.exec(source)) !== null) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.workspaceBoundary,
-        line: lineForIndex(source, match.index),
-        message: "Old AHTML render API is not allowed in React Canvas artifacts.",
-        severity: "error",
-        suggestion: "Render normal React through Artifact and Block markers.",
-      })
-    )
-    forbiddenRuntimeApiPattern.lastIndex = match.index + 1
-  }
-
-  const controlMatch = nativeControlPattern.exec(source)
-  if (controlMatch) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.workspaceBoundary,
-        line: lineForIndex(source, controlMatch.index),
-        message: "Native form control bypasses local UI primitives.",
-        suggestion: "Use the matching agent-html/components/ui primitive.",
-      })
-    )
-  }
-
-  const tableMatch = nativeTablePattern.exec(source)
-  if (tableMatch) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.workspaceBoundary,
-        line: lineForIndex(source, tableMatch.index),
-        message: "Native table bypasses local UI table primitives.",
-        suggestion: "Use agent-html/components/ui/table.",
-      })
-    )
-  }
-
-  return issues
-}
-
-export function analyzeArtifactEntryProtocol({ filePath, relativePath, source }) {
-  const issues = []
-  const definition = collectArtifactDefinition(source)
-
-  if (!hasDefaultExport(source)) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-        message: "Artifact file must have a default export.",
-        severity: "error",
-        suggestion: "Default export a React component.",
-      })
-    )
-  }
-
-  if (!/\bdefineArtifact\s*\(/.test(source)) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-        message: "Artifact entry must use defineArtifact.",
-        severity: "error",
-        suggestion: 'Default export defineArtifact({ title: "...", blocks: ["summary"] }).',
-      })
-    )
-  }
-
-  if (!definition.title) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-        line: definition.index === -1 ? 1 : lineForIndex(source, definition.index),
-        message: "Artifact definition is missing a static title.",
-        severity: "error",
-        suggestion: 'Use defineArtifact({ title: "Artifact Title", blocks: [...] }).',
-      })
-    )
-  }
-
-  const blocks = collectBlockIds(source)
-  if (blocks.length === 0) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-        message: "Artifact definition must contain at least one block id.",
-        severity: "error",
-        suggestion: 'Add a readable block id to blocks, such as "summary".',
-      })
-    )
-  }
-
-  const seen = new Map()
-  for (const block of blocks) {
-    if (!block.id) {
-      issues.push(
-        createIssue({
-          filePath: relativePath,
-          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-          line: lineForIndex(source, block.index),
-          message: "Block id must be a static string literal.",
-          severity: "error",
-          suggestion: 'Use a readable literal id that survives regeneration, such as "next-steps".',
-        })
-      )
-      continue
-    }
-
-    if (!isKebabCase(block.id)) {
-      issues.push(
-        createIssue({
-          filePath: relativePath,
-          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-          line: lineForIndex(source, block.index),
-          message: `Block id is not readable kebab-case: ${block.id}`,
-          suggestion: "Use a stable semantic id like competitor-map or risk-table.",
-        })
-      )
-    }
-
-    if (unstableBlockIds.has(block.id)) {
-      issues.push(
-        createIssue({
-          filePath: relativePath,
-          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-          line: lineForIndex(source, block.index),
-          message: `Block id is unstable or positional: ${block.id}`,
-          suggestion: "Use a semantic id that survives reordering.",
-        })
-      )
-    }
-
-    const firstIndex = seen.get(block.id)
-    if (firstIndex !== undefined) {
-      issues.push(
-        createIssue({
-          filePath: relativePath,
-          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-          line: lineForIndex(source, block.index),
-          message: `Duplicate Block id: ${block.id}`,
-          severity: "error",
-          suggestion: "Every Block id must be unique within one artifact.",
-        })
-      )
-      issues.push(
-        createIssue({
-          filePath: relativePath,
-          guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-          line: lineForIndex(source, firstIndex),
-          message: `Duplicate Block id first appears here: ${block.id}`,
-          severity: "error",
-          suggestion: "Rename one of the duplicate blocks.",
-        })
-      )
-    } else {
-      seen.set(block.id, block.index)
-    }
-  }
-
-  if (blocks.length === 1 && source.length > 1800) {
-    issues.push(
-      createIssue({
-        filePath: relativePath,
-        guardScope: reactCanvasGuardScopes.artifactEntryProtocol,
-        line: lineForIndex(source, blocks[0].index),
-        message: "Artifact appears to use one giant Block.",
-        suggestion: "Split major semantic regions into separate Blocks.",
-      })
-    )
-  }
-
-  return issues
-}
-
-export function analyzeReactCanvasSourceBoundary({
-  guardScope = reactCanvasGuardScopes.blockImplementationSource,
-  relativePath,
-  source,
-}) {
-  return [
-    ...analyzeWorkspaceBoundarySource({ relativePath, source }),
-    ...collectVisualIssues({ guardScope, relativePath, source }),
-  ]
-}
-
-export function analyzeWorkspaceBoundarySource({ relativePath, source }) {
-  return collectWorkspaceBoundaryIssues({ relativePath, source })
+export function analyzeReactCanvasArtifact({ relativePath, source }) {
+  return validateArtifactEntry({ filePath: relativePath, source }).map((issue) =>
+    asGuardIssue(issue, reactCanvasGuardScopes.artifactEntryProtocol)
+  )
 }
 
 export function analyzeBlockImplementationSource({ relativePath, source }) {
-  return analyzeReactCanvasSourceBoundary({
-    guardScope: reactCanvasGuardScopes.blockImplementationSource,
-    relativePath,
-    source,
-  })
+  return validateBlockImplementation({ filePath: relativePath, source }).map((issue) =>
+    asGuardIssue(issue, reactCanvasGuardScopes.blockImplementationSource)
+  )
 }
 
-export function analyzeReactCanvasArtifact({ filePath, relativePath, source }) {
-  return analyzeArtifactEntryProtocol({ filePath, relativePath, source })
+export function analyzeWorkspaceBoundarySource({ relativePath, source }) {
+  return analyzeBlockImplementationSource({ relativePath, source }).filter(
+    (issue) => issue.category === "workspace"
+  )
+}
+
+export function analyzeReactCanvasSourceBoundary({ relativePath, source }) {
+  return analyzeBlockImplementationSource({ relativePath, source })
 }
 
 export async function runGuard({ root }) {
-  const artifacts = await discoverReactArtifacts(root)
-  const blockImplementations = await discoverReactBlockImplementations(root)
-  const issues = []
-
-  for (const filePath of artifacts) {
-    const source = await readTextFile(filePath)
-    issues.push(
-      ...analyzeReactCanvasArtifact({
-        filePath,
+  const [artifacts, implementationSources] = await Promise.all([
+    discoverReactArtifacts(root),
+    discoverReactImplementationSources(root)
+  ])
+  const artifactIssues = await Promise.all(
+    artifacts.map(async (filePath) =>
+      analyzeReactCanvasArtifact({
         relativePath: workspaceRelativePath(root, filePath),
-        source,
+        source: await readTextFile(filePath)
       })
     )
-  }
-
-  for (const filePath of blockImplementations) {
-    const source = await readTextFile(filePath)
-    issues.push(
-      ...analyzeBlockImplementationSource({
+  )
+  const blockIssues = await Promise.all(
+    implementationSources.map(async (filePath) =>
+      analyzeBlockImplementationSource({
         relativePath: workspaceRelativePath(root, filePath),
-        source,
+        source: await readTextFile(filePath)
       })
     )
+  )
+  return {
+    artifacts,
+    implementationSources,
+    issues: [...artifactIssues, ...blockIssues].flat()
   }
-
-  return { artifacts, blockImplementations, issues }
 }
 
-export async function runGuardCommand({ args, cwd }) {
-  const root = parseRootArg({ args, cwd })
-  const report = await runGuard({ root })
+function manifestDiagnostic({ filePath, message }) {
+  return asGuardIssue(
+    {
+      category: "manifest",
+      code: canvasDiagnosticCodes.manifestDrift,
+      column: 1,
+      filePath,
+      line: 1,
+      message,
+      policyVersion: CANVAS_POLICY_VERSION,
+      suggestion: "Run npm run canvas:catalog:sync and commit the generated manifests."
+    },
+    reactCanvasGuardScopes.workspaceBoundary
+  )
+}
 
-  if (report.artifacts.length === 0) {
-    console.log("No React Canvas artifacts found.")
-    return { issueCount: 0 }
+function dependencyEntries(manifest) {
+  return Object.fromEntries(
+    Object.entries(manifest.dependencies ?? {}).sort(([left], [right]) =>
+      left.localeCompare(right)
+    )
+  )
+}
+
+export async function validateRuntimeCatalog({ root }) {
+  const canvasPath = path.join(root, "agent-html", "package.json")
+  const cliPath = path.join(packageRoot, "package.json")
+  const [canvasManifest, cliManifest] = await Promise.all(
+    [canvasPath, cliPath].map(async (filePath) =>
+      JSON.parse(await fs.readFile(filePath, "utf8"))
+    )
+  )
+  const expected = JSON.stringify(dependencyEntries({ dependencies: canvasRuntimeCatalog }))
+  const actualCanvas = JSON.stringify(dependencyEntries(canvasManifest))
+  const issues = []
+  if (actualCanvas !== expected) {
+    issues.push(
+      manifestDiagnostic({
+        filePath: "agent-html/package.json",
+        message: "Canvas dependency metadata differs from the Kernel runtime catalog."
+      })
+    )
   }
+  for (const [dependency, version] of Object.entries(canvasRuntimeCatalog)) {
+    if (cliManifest.dependencies?.[dependency] === version) continue
+    issues.push(
+      manifestDiagnostic({
+        filePath: "packages/cli/package.json",
+        message: `CLI runtime dependency ${dependency} must be ${version}.`
+      })
+    )
+  }
+  return issues
+}
 
+export async function runCanvasValidation({ root }) {
+  const [guard, manifestIssues] = await Promise.all([
+    runGuard({ root }),
+    validateRuntimeCatalog({ root })
+  ])
+  return {
+    ...guard,
+    issues: [...guard.issues, ...manifestIssues]
+  }
+}
+
+export async function runValidateCommand({ args, cwd }) {
+  const root = parseRootArg({ args, cwd })
+  const report = await runCanvasValidation({ root })
   if (report.issues.length === 0) {
     console.log(
-      `Guard passed ${report.artifacts.length} artifact(s), ${report.blockImplementations.length} block implementation(s).`
+      `Canvas validation passed ${report.artifacts.length} artifact(s), ${report.implementationSources.length} implementation source(s), policy v${CANVAS_POLICY_VERSION}.`
     )
     return { issueCount: 0 }
   }
-
   for (const issue of report.issues) {
     console.log(
       [
-        `${issue.severity.toUpperCase()} ${issue.filePath}:${issue.line}`,
-        issue.guardScope ? `Guard: ${issue.guardScope}` : null,
+        `ERROR ${issue.code} ${issue.filePath}:${issue.line}:${issue.column}`,
         issue.message,
         issue.suggestion ? `Fix: ${issue.suggestion}` : null,
-        "",
-      ].filter(Boolean).join("\n")
+        ""
+      ]
+        .filter(Boolean)
+        .join("\n")
     )
   }
-
   return { issueCount: report.issues.length }
 }

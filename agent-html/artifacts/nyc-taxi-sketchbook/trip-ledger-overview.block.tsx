@@ -21,7 +21,7 @@ export default function TripLedgerOverviewBlock() {
     <section className="canvas-stack-lg">
       <figure
         aria-label={tripLedgerOverviewImage.alt}
-        className="relative min-h-[420px] overflow-hidden rounded-md bg-background md:min-h-[520px]"
+        className="canvas-media-overview relative overflow-hidden rounded-md bg-background"
         role="img"
       >
         <svg
@@ -53,7 +53,7 @@ export default function TripLedgerOverviewBlock() {
         </svg>
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,var(--background)_100%)]"
+          className="canvas-media-fade absolute inset-0"
         />
       </figure>
 
@@ -85,7 +85,7 @@ export default function TripLedgerOverviewBlock() {
               <p className="canvas-text-caption text-muted-foreground">
                 recorded total amount
               </p>
-              <p className="canvas-text-heading font-mono">
+              <p className="canvas-text-heading canvas-text-mono">
                 {formatCurrency(taxiKpis.totalAmount)}
               </p>
             </div>

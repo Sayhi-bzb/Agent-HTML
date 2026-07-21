@@ -128,15 +128,17 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
       /--radius-sm:\s*calc\(var\(--radius\) \* 0\.6\)/
     )
     expect(playgroundTokenImports).toContain('@import "./foundation.css"')
-    expect(playgroundTokenImports).not.toContain('@import "./kits/artifact.css"')
+    expect(playgroundTokenImports).not.toContain(
+      '@import "./kits/artifact.css"'
+    )
     expect(playgroundKitImports).toContain('@import "./artifact.css"')
     expect(playgroundKitImports).toContain('@import "./content.css"')
     expect(playgroundKitImports).toContain('@import "./code-block.css"')
     expect(playgroundKitImports).not.toContain('@import "./host.css"')
-    expect(playgroundKitImports).not.toContain(
-      '@import "./theme-editor.css"'
-    )
+    expect(playgroundKitImports).not.toContain('@import "./theme-editor.css"')
     expect(playgroundFoundationTokens).toContain("--font-sans")
+    expect(playgroundFoundationTokens).toContain("--font-size-xs: 0.75rem")
+    expect(playgroundFoundationTokens).toContain("--font-size-sm: 0.875rem")
     expect(playgroundFoundationTokens).toContain("--font-heading")
     expect(playgroundFoundationTokens).toContain("--success")
     expect(playgroundFoundationTokens).toContain("--warning")
@@ -173,8 +175,12 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundFoundationTokens).not.toContain("--font-heading-source")
     expect(playgroundFoundationTokens).not.toContain("--radius-base")
     expect(playgroundFoundationTokens).not.toContain("--canvas-content-gap")
-    expect(playgroundFoundationTokens).not.toContain("--canvas-artifact-max-width")
-    expect(playgroundFoundationTokens).not.toContain("--canvas-floating-prompt-width")
+    expect(playgroundFoundationTokens).not.toContain(
+      "--canvas-artifact-max-width"
+    )
+    expect(playgroundFoundationTokens).not.toContain(
+      "--canvas-floating-prompt-width"
+    )
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-color\s*:/)
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-opacity\s*:/)
     expect(playgroundFoundationTokens).not.toMatch(/--shadow-x\s*:/)
@@ -241,8 +247,9 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     const playgroundSidebarPrimitive = readSource(
       "agent-html/components/ui/sidebar.tsx"
     )
+    const desktopStyles = readSource("apps/desktop/src/styles.css")
 
-    expect(packageHostStyles).toContain('@import "../shared/brand.css"')
+    expect(packageHostStyles).not.toContain('@import "../shared/brand.css"')
     expect(brandStyles).toContain(
       "--agent-html-brand-font-family: var(--font-sans)"
     )
@@ -254,32 +261,30 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     )
     expect(brandStyles).toContain("--agent-html-brand-icon-size: 1.25rem")
     expect(brandStyles).toContain("--agent-html-brand-gap: 0.5rem")
-    expect(packageHostSidebarStyles).toContain(
+    expect(desktopStyles).toContain(
       "font-family: var(--agent-html-brand-font-family)"
     )
-    expect(packageHostSidebarStyles).toContain(
+    expect(desktopStyles).toContain(
       "font-size: var(--agent-html-brand-font-size)"
     )
-    expect(packageHostSidebarStyles).toContain(
+    expect(desktopStyles).toContain(
       "font-weight: var(--agent-html-brand-font-weight)"
     )
-    expect(packageHostSidebarStyles).toContain(
+    expect(desktopStyles).toContain(
       "letter-spacing: var(--agent-html-brand-letter-spacing)"
     )
-    expect(packageHostSidebarStyles).toContain(
+    expect(desktopStyles).toContain(
       "line-height: var(--agent-html-brand-line-height)"
     )
-    expect(packageHostSidebarStyles).toContain(
-      "height: var(--agent-html-brand-icon-size)"
-    )
-    expect(packageHostSidebarStyles).toContain(
-      "gap: var(--agent-html-brand-gap)"
-    )
+    expect(desktopStyles).toContain("height: var(--agent-html-brand-icon-size)")
+    expect(desktopStyles).toContain("gap: var(--agent-html-brand-gap)")
+    expect(packageHostSidebarStyles).not.toContain("--agent-html-brand-")
     expect(packageHostTokens).not.toContain("--canvas-sidebar-title-font-size")
-    expect(playgroundFoundationEntry).not.toContain("--agent-html-brand-")
-    expect(playgroundSidebarPrimitive).toContain(
-      "data-active:font-medium"
+    expect(packageHostTokens).toContain(
+      "--canvas-sidebar-caption-font-size: var(--font-size-xs)"
     )
+    expect(playgroundFoundationEntry).not.toContain("--agent-html-brand-")
+    expect(playgroundSidebarPrimitive).toContain("data-active:font-medium")
     expect(playgroundSidebarPrimitive).toMatch(
       /sidebarMenuButtonVariants = cva\([\s\S]*?\btext-sm\b/
     )
@@ -332,13 +337,17 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     )
 
     expect(
-      existsSync(join(root, "agent-html", "styles", "materials", "artifact.css"))
+      existsSync(
+        join(root, "agent-html", "styles", "materials", "artifact.css")
+      )
     ).toBe(false)
     expect(
       existsSync(join(root, "agent-html", "styles", "materials", "content.css"))
     ).toBe(false)
     expect(
-      existsSync(join(root, "agent-html", "styles", "materials", "code-block.css"))
+      existsSync(
+        join(root, "agent-html", "styles", "materials", "code-block.css")
+      )
     ).toBe(false)
     expect(
       existsSync(join(root, "agent-html", "styles", "materials", "host.css"))
@@ -379,15 +388,9 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(packageHostTokens).toContain("--canvas-surface-padding-inline")
     expect(packageHostTokens).toContain("--canvas-floating-prompt-width")
     expect(packageHostTokens).toContain("--canvas-sidebar-body-font-size")
-    expect(packageHostTokens).toContain(
-      "--canvas-block-action-badge-offset"
-    )
-    expect(packageHostTokens).not.toContain(
-      "--canvas-block-reply-badge-offset"
-    )
-    expect(packageHostTokens).not.toContain(
-      "--canvas-block-highlight-radius"
-    )
+    expect(packageHostTokens).toContain("--canvas-block-action-badge-offset")
+    expect(packageHostTokens).not.toContain("--canvas-block-reply-badge-offset")
+    expect(packageHostTokens).not.toContain("--canvas-block-highlight-radius")
     expect(packageHostTokens).not.toContain(
       "--canvas-floating-prompt-backdrop-blur"
     )
@@ -422,14 +425,14 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     ).toBe(true)
     expect(packageHostStyles).toContain('@import "./styles/tokens.css"')
     expect(packageHostStyles).toContain('@import "./styles/surface.css"')
-    expect(packageHostStyles).toContain('@import "./styles/floating-prompt.css"')
+    expect(packageHostStyles).toContain(
+      '@import "./styles/floating-prompt.css"'
+    )
     expect(packageHostStyles).toContain('@import "./styles/theme-editor.css"')
     expect(playgroundArtifactInternal).toContain(".agent-html-artifact")
     expect(playgroundCodeBlockInternal).toContain(".canvas-code-block")
     expect(packageHostSurfaceStyles).toContain(".canvas-surface-frame")
-    expect(packageHostFloatingPromptStyles).toContain(
-      ".canvas-floating-prompt"
-    )
+    expect(packageHostFloatingPromptStyles).toContain(".canvas-floating-prompt")
     expect(packageHostSurfaceStyles).toContain(
       "var(--canvas-surface-padding-inline)"
     )

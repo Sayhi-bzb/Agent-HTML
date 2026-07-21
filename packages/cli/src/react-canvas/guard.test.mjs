@@ -109,7 +109,7 @@ describe("React Canvas Guard", () => {
     const report = await runGuard({ root })
 
     expect(report.artifacts).toHaveLength(1)
-    expect(report.blockImplementations).toHaveLength(1)
+    expect(report.implementationSources).toHaveLength(1)
     expect(report.issues).toContainEqual(
       expect.objectContaining({
         filePath: "agent-html/artifacts/demo/summary.block.tsx",
@@ -229,8 +229,8 @@ describe("React Canvas Guard", () => {
       }
     `)
     const publicMessages = blockIssueMessages(`
-      import logoUrl from "../layouts/logo.svg"
-      import localLogoUrl from "./layouts/logo.svg"
+      import logoUrl from "../public/logo.svg"
+      import localLogoUrl from "./public/logo.svg"
 
       export default function SummaryBlock() {
         return <section>{logoUrl}{localLogoUrl}</section>

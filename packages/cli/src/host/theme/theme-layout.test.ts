@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   applyCanvasThemePresetLayout,
+  getCanvasThemePresetFontStylesheetPaths,
   getCanvasThemePresetFontUrl,
 } from "./theme-layout"
 import type { CanvasThemePreset } from "#agent-html-playground/theme/presets"
@@ -106,6 +107,9 @@ describe("canvas theme preset layout", () => {
     expect(fontUrl).toContain("family=Inter:wght@400;500;600;700")
     expect(fontUrl).toContain("family=Geist+Mono:wght@400;500;600;700")
     expect(fontUrl).not.toContain("Georgia")
+    expect(getCanvasThemePresetFontStylesheetPaths(preset)).toEqual([
+      `/__agent-html/font-stylesheet?url=${encodeURIComponent(fontUrl)}`,
+    ])
   })
 
   it("writes font link and allowed body classes", () => {
@@ -117,6 +121,9 @@ describe("canvas theme preset layout", () => {
     expect(
       document.getElementById("react-canvas-theme-preset-fonts")
     ).toMatchObject({
+      href: expect.stringMatching(
+        /^\/__agent-html\/font-stylesheet\?url=https%3A%2F%2Ffonts\.googleapis\.com/
+      ),
       rel: "stylesheet",
     })
     expect(document.body.classList.contains("antialiased")).toBe(true)
@@ -154,15 +161,11 @@ describe("canvas theme preset layout", () => {
     ) as HTMLLinkElement
 
     expect(linkElement).toMatchObject({
-      as: "style",
+      as: "",
       crossOrigin: "anonymous",
       href: "/__agent-html/font-stylesheet?url=https%3A%2F%2Ffontsapi.zeoseven.com%2F570%2Fmain%2Fresult.css",
-      rel: "preload",
+      rel: "stylesheet",
     })
-
-    linkElement.onload?.(new Event("load"))
-
-    expect(linkElement.rel).toBe("stylesheet")
     expect(
       document.getElementById("react-canvas-theme-preset-fonts-zeoseven-1")
     ).toBeNull()
@@ -197,7 +200,7 @@ describe("canvas theme preset layout", () => {
     expect(
       document.getElementById("react-canvas-theme-preset-fonts")
     ).toMatchObject({
-      href: expect.stringContaining("family=Architects+Daughter"),
+      href: expect.stringContaining("family%3DArchitects%2BDaughter"),
       rel: "stylesheet",
     })
     expect(
@@ -206,7 +209,7 @@ describe("canvas theme preset layout", () => {
       )
     ).toMatchObject({
       href: "/__agent-html/font-stylesheet?url=https%3A%2F%2Ffontsapi.zeoseven.com%2F250%2Fmain%2Fresult.css",
-      rel: "preload",
+      rel: "stylesheet",
     })
   })
 

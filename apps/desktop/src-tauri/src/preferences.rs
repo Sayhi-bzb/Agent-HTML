@@ -33,6 +33,8 @@ impl Default for Preferences {
 pub struct CanvasThemeSnapshot {
     pub dark_css_variables: BTreeMap<String, String>,
     pub draft_css_variables: BTreeMap<String, String>,
+    #[serde(default)]
+    pub font_stylesheet_paths: Vec<String>,
     pub light_css_variables: BTreeMap<String, String>,
     pub mode: String,
     pub preset_id: String,
@@ -86,13 +88,28 @@ mod tests {
     #[test]
     fn round_trips_canvas_theme_snapshot() {
         let stored: StoredDesktopState = serde_json::from_str(
-            r##"{"canvasTheme":{"version":1,"mode":"system","presetId":"claude-plus","lightCssVariables":{"--background":"#fff"},"darkCssVariables":{"--background":"#111"},"draftCssVariables":{}},"preferences":{"language":"en","pipeline":"codex","externalEditor":"","automaticUpdates":false},"recents":[]}"##,
+            r##"{"canvasTheme":{"version":1,"mode":"system","presetId":"claude-plus","lightCssVariables":{"--background":"#fff"},"darkCssVariables":{"--background":"#111"},"draftCssVariables":{},"fontStylesheetPaths":["/__agent-html/font-stylesheet?url=https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DInter"]},"preferences":{"language":"en","pipeline":"codex","externalEditor":"","automaticUpdates":false},"recents":[]}"##,
         )
         .expect("canvas theme snapshot should deserialize");
 
         let theme = stored.canvas_theme.expect("canvas theme should exist");
         assert_eq!(theme.preset_id, "claude-plus");
         assert_eq!(theme.dark_css_variables["--background"], "#111");
+        assert_eq!(theme.font_stylesheet_paths.len(), 1);
+    }
+
+    #[test]
+    fn reads_legacy_canvas_theme_without_font_stylesheets() {
+        let stored: StoredDesktopState = serde_json::from_str(
+            r##"{"canvasTheme":{"version":1,"mode":"system","presetId":"claude-plus","lightCssVariables":{"--background":"#fff"},"darkCssVariables":{},"draftCssVariables":{}},"preferences":{"language":"en","pipeline":"codex","externalEditor":"","automaticUpdates":false},"recents":[]}"##,
+        )
+        .expect("legacy canvas theme should deserialize");
+
+        assert!(stored
+            .canvas_theme
+            .expect("canvas theme should exist")
+            .font_stylesheet_paths
+            .is_empty());
     }
 
     #[test]

@@ -72,6 +72,13 @@ export function runtimeBundleRoot(paths, fingerprint) {
 export function runtimeBundlePaths(root, nodeFileName) {
   return {
     cliEntry: path.join(root, "node_modules", "agent-html", "bin", "agent-html.mjs"),
+    kernelManifest: path.join(
+      root,
+      "node_modules",
+      "@agent-html",
+      "kernel",
+      "package.json"
+    ),
     manifestPath: path.join(root, "runtime-manifest.json"),
     nodeEntry: path.join(root, "bin", nodeFileName),
     reactManifest: path.join(
@@ -168,6 +175,7 @@ export async function isRuntimeBundleReady({
     const bundle = runtimeBundlePaths(root, nodeFileName)
     await Promise.all([
       fs.access(bundle.cliEntry),
+      fs.access(bundle.kernelManifest),
       fs.access(bundle.nodeEntry),
       fs.access(bundle.reactManifest),
       fs.access(bundle.templateEntry),

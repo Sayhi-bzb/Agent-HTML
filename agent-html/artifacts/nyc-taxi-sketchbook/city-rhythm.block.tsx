@@ -70,7 +70,7 @@ export default function CityRhythmBlock() {
           <div className="canvas-frame-wide">
             <HeatmapChart
               aspectRatio="4 / 1"
-              className="min-w-[760px]"
+              className="canvas-chart-wide"
               colorKey={(cell) => getTripDensityKey(cell, peak.trips)}
               config={{
                 high: {
@@ -93,7 +93,7 @@ export default function CityRhythmBlock() {
               data={hourDay}
               renderTooltip={({ datum }) => (
                 <div className="canvas-stack-xs">
-                  <strong className="canvas-text-body font-mono">
+                  <strong className="canvas-text-body canvas-text-mono">
                     {dayLabels[datum.day]} {formatHour(datum.hour)}
                   </strong>
                   <span>trips {datum.trips.toLocaleString()}</span>
@@ -119,7 +119,7 @@ export default function CityRhythmBlock() {
 
         <div className="canvas-grid-main-aside-lg">
           <SketchAnnotation label="peak cell">
-            <p className="canvas-text-heading font-mono">
+            <p className="canvas-text-heading canvas-text-mono">
               {dayLabels[peak.day]} {peak.hour}:00
             </p>
             <p className="canvas-text-caption text-muted-foreground">

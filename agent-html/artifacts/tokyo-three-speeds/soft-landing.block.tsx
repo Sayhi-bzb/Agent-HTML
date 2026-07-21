@@ -29,7 +29,7 @@ const landingNotes = [
 export default function SoftLandingBlock() {
   return (
     <section>
-      <div className="canvas-grid-gap grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+      <div className="canvas-grid-balanced canvas-grid-gap">
         <div className="canvas-stack-md">
           <div className="canvas-wrap-sm items-center">
             <Badge variant="secondary">soft landing</Badge>

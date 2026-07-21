@@ -9,6 +9,8 @@ read it for ordinary artifact authoring.
 
 ## Ownership
 
+- `@agent-html/kernel` owns machine-verifiable protocol, dependency, workspace,
+  and visual rules plus their stable diagnostic codes.
 - `AGENTS.md` owns hard rules and default behavior.
 - `README.md` owns conditional reading routes.
 - `TASTE.md` owns artifact design judgment.
@@ -18,6 +20,10 @@ read it for ordinary artifact authoring.
 
 Do not duplicate the same rule across these files. Link to the owner or move
 the rule to the owner.
+
+Machine rules must be implemented once in Kernel policy or validation. Docs
+state ownership and agent action; they do not copy match patterns or dependency
+versions.
 
 ## Rule Placement
 

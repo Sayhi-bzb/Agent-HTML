@@ -49,6 +49,15 @@ describe("desktop package boundary", () => {
     )
 
     expect(config.app.windows[0].decorations).toBe(false)
+    expect(config.app.security.csp).toContain(
+      "style-src 'self' 'unsafe-inline' http://127.0.0.1:*"
+    )
+    expect(config.app.security.csp).toContain(
+      "font-src 'self' data: http://127.0.0.1:*"
+    )
+    expect(config.app.security.csp).not.toContain("fonts.googleapis.com")
+    expect(config.app.security.csp).not.toContain("fonts.gstatic.com")
+    expect(config.app.security.csp).not.toContain("fontsapi.zeoseven.com")
     expect(capability.permissions).toEqual(
       expect.arrayContaining([
         "core:window:allow-close",

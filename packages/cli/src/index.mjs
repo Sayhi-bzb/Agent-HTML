@@ -1,7 +1,7 @@
 import { startDevHost } from "./dev-host.mjs"
 import { buildDemoHost } from "./demo-build.mjs"
 import { runInitCommand } from "./init.mjs"
-import { runGuardCommand } from "./react-canvas/guard.mjs"
+import { runValidateCommand } from "./react-canvas/guard.mjs"
 import { runRuntimeSidecar } from "./dev-server/runtime-command.mjs"
 import { runRuntimePrepareCommand } from "./dev-server/runtime-prepare.mjs"
 
@@ -13,8 +13,8 @@ export async function runAgentHtmlCli(args) {
     return
   }
 
-  if (command === "guard") {
-    const result = await runGuardCommand({ args: rest, cwd: process.cwd() })
+  if (command === "validate") {
+    const result = await runValidateCommand({ args: rest, cwd: process.cwd() })
     if (result.issueCount > 0) {
       process.exitCode = 1
     }
@@ -45,7 +45,7 @@ export async function runAgentHtmlCli(args) {
     [
       "Usage:",
       "  agent-html init [--root <path>]",
-      "  agent-html guard [--root <path>]",
+      "  agent-html validate [--root <path>]",
       "  agent-html dev [--root <path>] [--port <port>] [--pipeline codex|example]",
       "  agent-html runtime [--root <path>] [--pipeline codex|example]",
       "  agent-html runtime-prepare [--root <path>]",

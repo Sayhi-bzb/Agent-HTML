@@ -25,7 +25,7 @@ export function CaseSection({
         ) : null}
         <div className="canvas-stack-xs">
           <Badge variant="secondary">{badge}</Badge>
-          <h2 className="canvas-text-heading font-semibold">{title}</h2>
+          <h2 className="canvas-text-heading canvas-text-strong">{title}</h2>
         </div>
       </div>
       <p className="canvas-text-body text-muted-foreground md:max-w-3xl">
@@ -63,11 +63,11 @@ export function MechanismRows({
     <div className="canvas-stack-xs">
       {items.map((item) => (
         <div
-          className="grid gap-2 md:grid-cols-[minmax(0,0.36fr)_minmax(0,0.64fr)]"
+          className="canvas-grid-sidebar grid gap-2"
           key={String(item.label)}
         >
           <div className="canvas-stack-xs">
-            <span className="canvas-text-body font-medium text-foreground">
+            <span className="canvas-text-body canvas-text-medium text-foreground">
               {item.label}
             </span>
             {item.note ? (
@@ -92,11 +92,11 @@ export function OpenRows({
     <div className="canvas-stack-sm">
       {items.map((item) => (
         <div
-          className="grid gap-2 md:grid-cols-[minmax(0,0.34fr)_minmax(0,0.66fr)]"
+          className="canvas-grid-sidebar grid gap-2"
           key={String(item.label)}
         >
           <div className="canvas-stack-xs">
-            <span className="canvas-text-body font-medium text-foreground">
+            <span className="canvas-text-body canvas-text-medium text-foreground">
               {item.label}
             </span>
             {item.meta ? (
@@ -127,8 +127,8 @@ export function RouteStepCard({
 }) {
   return (
     <div className="canvas-stack-xs pl-4">
-      <span className="canvas-text-caption font-semibold text-primary">{step}</span>
-      <h3 className="canvas-text-body font-medium text-foreground">{title}</h3>
+      <span className="canvas-text-caption canvas-text-strong text-primary">{step}</span>
+      <h3 className="canvas-text-body canvas-text-medium text-foreground">{title}</h3>
       <span className="canvas-text-caption text-foreground">{action}</span>
       <p className="canvas-text-caption text-muted-foreground">{value}</p>
     </div>
@@ -147,14 +147,14 @@ export function ChecklistItem({
   onCheckedChange?: (checked: boolean) => void
 }) {
   return (
-    <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+    <div className="canvas-grid-label grid gap-3">
       <Checkbox
         aria-label={label}
         checked={checked}
         onCheckedChange={(value) => onCheckedChange?.(value === true)}
       />
       <div className="canvas-stack-xs">
-        <span className="canvas-text-body font-medium text-foreground">{label}</span>
+        <span className="canvas-text-body canvas-text-medium text-foreground">{label}</span>
         <span className="canvas-text-caption text-muted-foreground">
           {hint}
         </span>
@@ -190,12 +190,12 @@ export function TopicSampleCard({
       target="_blank"
     >
       <div className="canvas-wrap-sm items-center justify-between">
-        <span className="canvas-text-caption font-medium text-primary">
+        <span className="canvas-text-caption canvas-text-medium text-primary">
           {rank} / {category}
         </span>
         <Badge variant="outline">{signal}</Badge>
       </div>
-      <h3 className="canvas-text-body font-medium text-foreground">{title}</h3>
+      <h3 className="canvas-text-body canvas-text-medium text-foreground">{title}</h3>
       <p className="canvas-text-caption text-muted-foreground">
         {author} · {publishedAt}
       </p>

@@ -7,6 +7,11 @@ description: Canvas constitution.
 
 Canvas governs the isolated React artifact workspace for agents.
 
+`@agent-html/kernel` owns the versioned, framework-neutral authoring contract:
+protocol constants, source and dependency policy, diagnostics, and the Canvas
+runtime dependency catalog. React, CLI, Host, and workspace resources consume
+that contract; they do not redefine it.
+
 Canvas governs `agent-html`, React artifact composition, local resources,
 block prompts, and host inspection. Retired App and Runtime docs live under
 `_archive/docs` for historical reference only.

@@ -176,7 +176,7 @@ export default function RoutePlannerBlock() {
         </h1>
       </div>
 
-      <div className="grid overflow-hidden rounded-md md:min-h-[680px] md:grid-cols-[0.78fr_1.22fr]">
+      <div className="canvas-route-workbench grid overflow-hidden rounded-md">
         <div className="canvas-stack-lg p-5 md:p-6">
           <div className="canvas-stack-md">
             <InspectorPhoto assetKey={selectedRoute.evidenceKey} />
@@ -248,7 +248,7 @@ export default function RoutePlannerBlock() {
         </div>
 
         <div className="p-3 md:p-4">
-          <div className="relative h-[520px] overflow-hidden rounded-md border md:h-full">
+          <div className="canvas-route-map relative overflow-hidden rounded-md border">
             <Map
               center={tokyoMap.center}
               className="h-full"

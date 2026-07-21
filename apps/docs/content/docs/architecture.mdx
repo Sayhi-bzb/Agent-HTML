@@ -6,8 +6,11 @@ description: Canvas layer model and ownership boundaries.
 Canvas is organized as an isolated agent workspace topology:
 
 ```text
+@agent-html/kernel
+  -> framework-neutral protocol, policy, validation, diagnostics, and runtime catalog
+
 @agent-html/react
-  -> headless collaboration protocol and interaction events
+  -> React rendering adapter and interaction provider
 
 agent-html/*
   -> agent operating context and reusable resources
@@ -35,6 +38,10 @@ context agents can read and reuse. Artifacts compose those resources into UI.
 The CLI discovers, guards, serves, and routes artifacts through Vite middleware.
 The host observes and operates on rendered metadata.
 
+Kernel rules are non-overridable. All machine-verifiable protocol, dependency,
+workspace, and visual violations are blocking errors. Subjective composition
+judgment remains in `TASTE.md` and is not represented as a machine rule.
+
 ## Desktop
 
 `apps/desktop` is the packaged product shell. Its React renderer owns
@@ -50,8 +57,11 @@ Canvas Style is the single theme authority. The Host publishes a versioned,
 allowlisted snapshot of its active mode, preset variables, and live draft to
 its Desktop parent. Desktop accepts messages only from the active runtime
 frame and origin, applies the snapshot to its own root, and persists the last
-valid snapshot for Workspace Home before Canvas starts. Theme state flows from
-Canvas to Desktop only; Desktop does not send a competing theme into Canvas.
+valid snapshot globally for Workspace Home and future Canvas sessions. A Canvas
+host requests that snapshot before publishing its initial theme; Desktop sends
+it only to the active runtime frame and origin. Canvas validates and applies the
+bootstrap, then resumes publishing canonical theme changes. Standalone hosts
+retain local preference persistence.
 
 Desktop resolves packaged runtime resources through a versioned manifest. Its
 runtime supervisor is the only owner of child-process path projection, command
@@ -221,9 +231,10 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Workspace source | `agent-html` | artifact entries, split block files, local resources | portable source workspace | generated bundles, lockfiles, vendored installs | `workspace-contract.test.mjs` |
 | Workspace file/path helpers | `react-canvas/paths.mjs` + `react-canvas/workspace-file.mjs` | root path or source file path | POSIX workspace path or text source | generic filesystem abstraction, mutation APIs, host state | `pipeline-ownership-contract.test.mjs`, `workspace-contract.test.mjs` |
 | Artifact discovery | `react-canvas/paths.mjs` | `agent-html/artifacts/*.artifact.tsx` | artifact entry file paths | app shell, runtime parser, host UI | `dev-host.test.mjs`, `pipeline-ownership-contract.test.mjs` |
-| Artifact entry protocol guard | `react-canvas/guard.mjs` | artifact entry source | issues scoped as `artifact-entry-protocol` | layout or style props on `Artifact` or `Block` | `guard.test.mjs` |
-| Block implementation source guard | `react-canvas/guard.mjs` | `agent-html/artifacts/**/*.block.tsx` | issues scoped as `block-implementation-source` | raw visual classes, native primitive bypasses | `guard.test.mjs`, `style-ownership-contract.test.mjs` |
+| Artifact entry validation | Kernel validator + CLI file adapter | artifact entry source | versioned blocking diagnostics | duplicated protocol parsing in CLI or Host | Kernel validation tests, `guard.test.mjs` |
+| Block implementation validation | Kernel validator + CLI file adapter | `agent-html/artifacts/**/*.block.tsx` | versioned blocking diagnostics | raw visual classes, native primitive bypasses | Kernel validation tests, `guard.test.mjs`, `style-ownership-contract.test.mjs` |
 | Workspace boundary guard | `react-canvas/guard.mjs` | artifact and block source imports | issues scoped as `workspace-boundary` | app imports, old runtime imports, public-file imports | `guard.test.mjs`, `workspace-contract.test.mjs`, `architecture-boundaries.test.mjs` |
+| Dependency ownership | Kernel runtime catalog + generated manifests | Canvas source package import | one CLI-supplied version | hand-maintained workspace dependency versions | Kernel policy tests, `package-runtime-contract.test.mjs` |
 | Dependency resolution | `dev-server/vite.mjs` | source import specifier | CLI-provided runtime module | `agent-html/node_modules`, source-owned runtime installs | `runtime-resolution-contract.test.mjs` |
 | Module transform and render | Vite middleware + host artifact runtime | artifact entry file path | mounted artifact DOM with HMR-capable module graph | app shell, old runtime render APIs | `dev-host.test.mjs`, `artifact-runtime.test.ts` |
 | Public/static asset serving | `dev-server/routes.mjs` + `host/api` URL helpers | public asset path or proxied font URL | served asset response or host URL | direct Host endpoint strings outside `host/api` | `dev-host.test.mjs`, `routes.test.mjs`, `api.test.ts`, `architecture-boundaries.test.mjs` |
@@ -270,8 +281,13 @@ the host interaction store, Canvas styles/resources, and the prompt pipeline.
 Canvas boundary checks follow the layer topology:
 
 ```text
+packages/kernel
+  -> framework-neutral contract and policy; no React, filesystem, Host,
+     workspace, docs, app, or archive imports
+
 packages/react
-  -> protocol only; no host, workspace, docs, app, or archive imports
+  -> React adapter only; imports Kernel but no host, workspace, docs, app,
+     or archive code
 
 packages/cli/src/react-canvas
   -> discovery, guard, prompt, and workspace path orchestration

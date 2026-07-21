@@ -36,6 +36,7 @@
   },
   "homepage": "https://github.com/Sayhi-bzb/Agent-HTML#readme",
   "dependencies": {
+    "@agent-html/kernel": "0.2.1",
     "@agent-html/react": "0.2.1",
     "@base-ui/react": "^1.5.0",
     "@dnd-kit/core": "^6.3.1",

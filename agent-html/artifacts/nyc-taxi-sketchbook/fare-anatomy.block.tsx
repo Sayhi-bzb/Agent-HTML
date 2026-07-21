@@ -52,7 +52,7 @@ export default function FareAnatomyBlock() {
         <SketchPanel className="p-5">
           <BarChart
             aspectRatio="16 / 9"
-            className="min-h-[360px]"
+            className="canvas-chart-sm"
             data={components}
             minHeight={320}
             renderer="rough"
@@ -71,7 +71,7 @@ export default function FareAnatomyBlock() {
             <span className="canvas-text-caption text-muted-foreground">
               average trip total
             </span>
-            <strong className="canvas-text-title font-mono">
+            <strong className="canvas-text-title canvas-text-mono">
               {formatCurrency(taxiKpis.averageTotal)}
             </strong>
           </div>
@@ -82,7 +82,7 @@ export default function FareAnatomyBlock() {
               <span className="canvas-text-caption text-muted-foreground">
                 meter
               </span>
-              <p className="canvas-text-body font-mono">
+              <p className="canvas-text-body canvas-text-mono">
                 {formatCurrency(meterComponent?.value ?? 0)}
               </p>
             </div>
@@ -90,7 +90,7 @@ export default function FareAnatomyBlock() {
               <span className="canvas-text-caption text-muted-foreground">
                 tip
               </span>
-              <p className="canvas-text-body font-mono">
+              <p className="canvas-text-body canvas-text-mono">
                 {formatCurrency(tipComponent?.value ?? 0)}
               </p>
             </div>
@@ -98,14 +98,14 @@ export default function FareAnatomyBlock() {
               <span className="canvas-text-caption text-muted-foreground">
                 fees
               </span>
-              <p className="canvas-text-body font-mono">
+              <p className="canvas-text-body canvas-text-mono">
                 {formatCurrency(feeTotal)}
               </p>
             </div>
           </div>
 
           <SketchAnnotation label="largest component">
-            <strong className="canvas-text-heading font-mono">
+            <strong className="canvas-text-heading canvas-text-mono">
               {largestComponent.label} {formatCurrency(largestComponent.value)}
             </strong>
             <p className="canvas-text-caption text-muted-foreground">
@@ -114,7 +114,7 @@ export default function FareAnatomyBlock() {
             </p>
           </SketchAnnotation>
 
-          <div className="grid gap-4 sm:grid-cols-[minmax(220px,0.48fr)_minmax(0,0.52fr)] lg:grid-cols-1 xl:grid-cols-[minmax(200px,0.48fr)_minmax(0,0.52fr)]">
+          <div className="canvas-grid-detail grid gap-4">
             <PieChart
               aspectRatio="1 / 1"
               data={payment}
@@ -130,7 +130,7 @@ export default function FareAnatomyBlock() {
                 <span className="canvas-text-caption text-muted-foreground">
                   card share
                 </span>
-                <p className="canvas-text-body font-mono">
+                <p className="canvas-text-body canvas-text-mono">
                   {cardPayment?.share}%
                 </p>
                 <p className="canvas-text-caption text-muted-foreground">
@@ -142,7 +142,7 @@ export default function FareAnatomyBlock() {
                 <span className="canvas-text-caption text-muted-foreground">
                   cash share
                 </span>
-                <p className="canvas-text-body font-mono">
+                <p className="canvas-text-body canvas-text-mono">
                   {cashPayment?.share}%
                 </p>
                 <p className="canvas-text-caption text-muted-foreground">

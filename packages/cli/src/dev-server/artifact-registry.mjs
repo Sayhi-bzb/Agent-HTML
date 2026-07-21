@@ -7,7 +7,7 @@ import {
 } from "../react-canvas/guard.mjs"
 import {
   discoverReactArtifacts,
-  discoverReactBlockImplementations,
+  discoverReactImplementationSources,
   workspaceRelativePath,
 } from "../react-canvas/paths.mjs"
 import { collectStaticArtifactMetadata } from "../react-canvas/block-tags.mjs"
@@ -59,7 +59,6 @@ function snapshotContentEquals(left, right) {
 export function createArtifactRegistry({ root, vite }) {
   const workspaceRoot = path.join(path.resolve(root), "agent-html")
   const artifactsRoot = path.join(workspaceRoot, "artifacts")
-  const examplesRoot = path.join(workspaceRoot, "examples")
   const artifacts = new Map()
   const artifactIssues = new Map()
   const blockIssues = new Map()
@@ -78,13 +77,13 @@ export function createArtifactRegistry({ root, vite }) {
     )
   }
 
-  function isBlockImplementation(filePath) {
+  function isImplementationSource(filePath) {
     const absolutePath = normalizePath(filePath)
 
     return (
-      absolutePath.endsWith(".block.tsx") &&
-      (absolutePath.startsWith(`${artifactsRoot}${path.sep}`) ||
-        absolutePath.startsWith(`${examplesRoot}${path.sep}`))
+      absolutePath.endsWith(".tsx") &&
+      !absolutePath.endsWith(".artifact.tsx") &&
+      absolutePath.startsWith(`${artifactsRoot}${path.sep}`)
     )
   }
 
@@ -153,7 +152,7 @@ export function createArtifactRegistry({ root, vite }) {
     )
   }
 
-  async function indexBlockImplementation(filePath) {
+  async function indexImplementationSource(filePath) {
     const absolutePath = normalizePath(filePath)
     let source
 
@@ -185,7 +184,7 @@ export function createArtifactRegistry({ root, vite }) {
 
     const [artifactPaths, blockImplementationPaths] = await Promise.all([
       discoverReactArtifacts(root),
-      discoverReactBlockImplementations(root),
+      discoverReactImplementationSources(root),
     ])
 
     artifacts.clear()
@@ -194,7 +193,7 @@ export function createArtifactRegistry({ root, vite }) {
 
     await Promise.all([
       ...artifactPaths.map(indexArtifact),
-      ...blockImplementationPaths.map(indexBlockImplementation),
+      ...blockImplementationPaths.map(indexImplementationSource),
     ])
 
     publishSnapshot({ broadcast, reason })
@@ -214,8 +213,8 @@ export function createArtifactRegistry({ root, vite }) {
           return
         }
 
-        if (isBlockImplementation(absolutePath)) {
-          await indexBlockImplementation(absolutePath)
+        if (isImplementationSource(absolutePath)) {
+          await indexImplementationSource(absolutePath)
         }
       })
     )
@@ -248,12 +247,11 @@ export function createArtifactRegistry({ root, vite }) {
   function watch() {
     vite.watcher.add([
       path.join(artifactsRoot, "**", "*.artifact.tsx"),
-      path.join(artifactsRoot, "**", "*.block.tsx"),
-      path.join(examplesRoot, "**", "*.block.tsx"),
+      path.join(artifactsRoot, "**", "*.tsx"),
     ])
 
     const handleChange = (filePath) => {
-      if (!isArtifactEntry(filePath) && !isBlockImplementation(filePath)) {
+      if (!isArtifactEntry(filePath) && !isImplementationSource(filePath)) {
         return
       }
 

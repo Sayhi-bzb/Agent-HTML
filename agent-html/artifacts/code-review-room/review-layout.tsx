@@ -47,7 +47,7 @@ export function ReviewMetricValue({
   return (
     <p
       className={cn(
-        "canvas-text-heading font-mono tabular-nums text-foreground",
+        "canvas-text-heading canvas-text-mono tabular-nums text-foreground",
         className
       )}
       {...props}

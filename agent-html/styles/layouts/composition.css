@@ -84,4 +84,125 @@
     font-size: var(--canvas-content-caption-font-size);
     line-height: var(--canvas-content-caption-line-height);
   }
+
+  .canvas-text-medium {
+    font-weight: 500;
+  }
+
+  .canvas-text-strong {
+    font-weight: 600;
+  }
+
+  .canvas-text-mono {
+    font-family: var(--font-mono);
+  }
+
+  .canvas-floating-panel {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .canvas-media-fade {
+    background: linear-gradient(180deg, transparent 55%, var(--background) 100%);
+  }
+
+  .canvas-grid-metrics {
+    grid-template-columns: minmax(180px, 1.2fr) repeat(4, minmax(90px, 1fr));
+  }
+
+  .canvas-grid-balanced {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  }
+
+  .canvas-grid-label {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .canvas-table-wide {
+    min-width: 620px;
+  }
+
+  .canvas-chart-wide {
+    min-width: 760px;
+  }
+
+  .canvas-chart-sm {
+    min-height: 360px;
+  }
+
+  .canvas-chart-md {
+    min-height: 420px;
+  }
+
+  .canvas-frame-tall {
+    min-height: 26.25rem;
+  }
+
+  .canvas-route-map {
+    height: 520px;
+  }
+
+  .canvas-media-overview {
+    min-height: 420px;
+  }
+
+  .canvas-frame-media-8-5 {
+    aspect-ratio: 8 / 5;
+  }
+
+  .canvas-table-clean-header thead tr {
+    border-width: 0;
+  }
+
+  @media (min-width: 40rem) {
+    .canvas-grid-analysis {
+      grid-template-columns: 0.72fr 1fr;
+    }
+
+    .canvas-grid-detail {
+      grid-template-columns: minmax(220px, 0.48fr) minmax(0, 0.52fr);
+    }
+
+    .canvas-grid-value {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .canvas-grid-sidebar {
+      grid-template-columns: minmax(0, 0.35fr) minmax(0, 0.65fr);
+    }
+
+    .canvas-grid-summary {
+      grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
+    }
+
+    .canvas-grid-report {
+      grid-template-columns: minmax(12rem, 0.48fr) minmax(0, 1.52fr);
+    }
+
+    .canvas-route-workbench {
+      min-height: 680px;
+      grid-template-columns: 0.78fr 1.22fr;
+    }
+
+    .canvas-route-map {
+      height: 100%;
+    }
+
+    .canvas-media-overview {
+      min-height: 520px;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .canvas-grid-detail {
+      grid-template-columns: none;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    .canvas-grid-detail {
+      grid-template-columns: minmax(200px, 0.48fr) minmax(0, 0.52fr);
+    }
+  }
 }

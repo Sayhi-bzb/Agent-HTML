@@ -84,7 +84,7 @@ export function SectionIntro({
 }) {
   return (
     <div className="canvas-stack-xs">
-      <div className="grid gap-3 md:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)] md:items-end">
+      <div className="canvas-grid-summary grid gap-3 md:items-end">
         <div className="canvas-stack-xs">
           <Badge variant="secondary">{badge}</Badge>
           <h2 className="canvas-text-heading">{title}</h2>
@@ -292,7 +292,7 @@ export function LedgerRows({
               tone="table"
             />
           ) : null}
-          <div className="grid gap-2 py-2 text-foreground sm:grid-cols-[minmax(0,1fr)_auto] sm:items-baseline">
+          <div className="canvas-grid-value grid gap-2 py-2 text-foreground sm:items-baseline">
             <div className="canvas-stack-xs">
               <span className="canvas-text-caption text-muted-foreground">
                 {item.label}
@@ -303,7 +303,7 @@ export function LedgerRows({
                 </span>
               ) : null}
             </div>
-            <strong className="canvas-text-body font-mono">
+            <strong className="canvas-text-body canvas-text-mono">
               {item.value}
             </strong>
           </div>

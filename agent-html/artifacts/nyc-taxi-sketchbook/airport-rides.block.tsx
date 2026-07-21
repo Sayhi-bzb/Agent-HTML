@@ -78,8 +78,8 @@ export default function AirportRidesBlock() {
         </SketchPanel>
 
         <div className="canvas-frame-wide">
-          <div className="min-w-[620px]">
-            <div className="grid grid-cols-[minmax(180px,1.2fr)_repeat(4,minmax(90px,1fr))] gap-3 px-3 py-2">
+          <div className="canvas-table-wide">
+            <div className="canvas-grid-metrics grid gap-3 px-3 py-2">
               <span className="canvas-text-caption text-muted-foreground">
                 airport
               </span>
@@ -99,20 +99,20 @@ export default function AirportRidesBlock() {
             <RoughRule seed={72} tone="section" />
             {airport.map((airportRide, index) => (
               <div className="canvas-stack-xs" key={airportRide.airport}>
-                <div className="grid grid-cols-[minmax(180px,1.2fr)_repeat(4,minmax(90px,1fr))] items-center gap-3 px-3 py-3">
+                <div className="canvas-grid-metrics grid items-center gap-3 px-3 py-3">
                   <span>
                     <Badge variant="outline">{airportRide.airport}</Badge>
                   </span>
-                  <span className="canvas-text-body text-right font-mono">
+                  <span className="canvas-text-body canvas-text-mono text-right">
                     {formatCompact(airportRide.trips)}
                   </span>
-                  <span className="canvas-text-body text-right font-mono">
+                  <span className="canvas-text-body canvas-text-mono text-right">
                     {formatCurrency(airportRide.averageTotal)}
                   </span>
-                  <span className="canvas-text-body text-right font-mono">
+                  <span className="canvas-text-body canvas-text-mono text-right">
                     {airportRide.averageDistance} mi
                   </span>
-                  <span className="canvas-text-body text-right font-mono">
+                  <span className="canvas-text-body canvas-text-mono text-right">
                     {formatCurrency(airportRide.averageTip)}
                   </span>
                 </div>

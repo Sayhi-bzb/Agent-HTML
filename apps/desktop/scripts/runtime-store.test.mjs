@@ -105,12 +105,14 @@ describe("runtime publication", () => {
     const bundle = runtimeBundlePaths(root, nodeFileName)
     await Promise.all([
       fs.mkdir(path.dirname(bundle.cliEntry), { recursive: true }),
+      fs.mkdir(path.dirname(bundle.kernelManifest), { recursive: true }),
       fs.mkdir(path.dirname(bundle.nodeEntry), { recursive: true }),
       fs.mkdir(path.dirname(bundle.reactManifest), { recursive: true }),
       fs.mkdir(path.dirname(bundle.templateEntry), { recursive: true }),
     ])
     await Promise.all([
       fs.writeFile(bundle.cliEntry, ""),
+      fs.writeFile(bundle.kernelManifest, "{}"),
       fs.writeFile(bundle.nodeEntry, ""),
       fs.writeFile(bundle.reactManifest, "{}"),
       fs.writeFile(bundle.templateEntry, ""),
@@ -140,6 +142,11 @@ describe("runtime publication", () => {
     await expect(
       isRuntimeBundleReady({ fingerprint, nodeFileName, root })
     ).resolves.toBe(true)
+
+    await fs.rm(bundle.kernelManifest)
+    await expect(
+      isRuntimeBundleReady({ fingerprint, nodeFileName, root })
+    ).resolves.toBe(false)
   })
 
   it("serializes concurrent builders", async () => {

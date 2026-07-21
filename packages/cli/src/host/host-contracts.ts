@@ -10,10 +10,14 @@ export type ArtifactBlock = {
 }
 
 export type GuardIssue = {
+  category?: "dependency" | "manifest" | "protocol" | "style" | "workspace"
+  code?: string
+  column?: number
   filePath: string
   guardScope?: string
-  line?: number
+  line: number
   message: string
+  policyVersion?: number
   severity: string
   suggestion?: string
 }

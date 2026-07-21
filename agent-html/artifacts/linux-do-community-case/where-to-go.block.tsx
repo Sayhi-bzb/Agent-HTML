@@ -33,7 +33,7 @@ export default function WhereToGoBlock() {
 
       <HandbookPanel>
         <div className="canvas-wrap-sm items-center justify-between">
-          <h3 className="canvas-text-heading font-semibold">按目标选入口</h3>
+          <h3 className="canvas-text-heading canvas-text-strong">按目标选入口</h3>
           <Badge variant="outline">按目标找</Badge>
         </div>
         <Tabs defaultValue={entryRows[0]?.need} className="canvas-stack-md">
@@ -52,12 +52,12 @@ export default function WhereToGoBlock() {
                 </span>
                 <h3 className="canvas-text-heading">{row.need}</h3>
               </div>
-              <div className="grid gap-4 md:grid-cols-[minmax(0,0.34fr)_minmax(0,0.66fr)]">
+              <div className="canvas-grid-sidebar grid gap-4">
                 <div className="canvas-stack-xs">
                   <span className="canvas-text-caption text-muted-foreground">
                     建议入口
                   </span>
-                  <p className="canvas-text-body font-medium text-primary">{row.go}</p>
+                  <p className="canvas-text-body canvas-text-medium text-primary">{row.go}</p>
                 </div>
                 <p className="canvas-text-body text-muted-foreground">
                   {row.reason}
@@ -70,7 +70,7 @@ export default function WhereToGoBlock() {
 
       <HandbookPanel>
         <div className="canvas-wrap-sm items-center justify-between">
-          <h3 className="canvas-text-heading font-semibold">常见情况推荐</h3>
+          <h3 className="canvas-text-heading canvas-text-strong">常见情况推荐</h3>
           <Badge variant="outline">先走这几步</Badge>
         </div>
         <OpenRows
@@ -96,7 +96,7 @@ export default function WhereToGoBlock() {
 
       <HandbookPanel>
         <div className="canvas-wrap-sm items-center justify-between">
-          <h3 className="canvas-text-heading font-semibold">完整入口表</h3>
+          <h3 className="canvas-text-heading canvas-text-strong">完整入口表</h3>
           <Badge variant="outline">对照</Badge>
         </div>
         <Table>
@@ -111,7 +111,7 @@ export default function WhereToGoBlock() {
             {entryRows.map((row) => (
               <TableRow key={row.need}>
                 <TableCell>{row.need}</TableCell>
-                <TableCell className="font-medium text-foreground">{row.go}</TableCell>
+                <TableCell className="canvas-text-medium text-foreground">{row.go}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {row.reason}
                 </TableCell>
@@ -124,7 +124,7 @@ export default function WhereToGoBlock() {
       <div className="canvas-grid-2">
         {navigationGroups.map((group) => (
           <HandbookPanel key={group.id}>
-            <h3 className="canvas-text-heading font-semibold">{group.label}</h3>
+            <h3 className="canvas-text-heading canvas-text-strong">{group.label}</h3>
             <OpenRows
               items={group.rows.map((row) => ({
                 label: row.target,

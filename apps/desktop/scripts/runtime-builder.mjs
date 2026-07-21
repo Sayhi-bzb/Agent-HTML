@@ -75,6 +75,7 @@ function listRuntimeInputs() {
       "apps/desktop/scripts/runtime-builder.mjs",
       "apps/desktop/scripts/runtime-prepare-cache.mjs",
       "apps/desktop/scripts/runtime-store.mjs",
+      "packages/kernel",
       "packages/react",
       "packages/cli",
       "package.json",
@@ -124,6 +125,10 @@ async function installRuntimeModules(stagingRoot, lease) {
       return path.join(packRoot, output.stdout.trim().split("\n").at(-1))
     }
 
+    const kernelSource = await stagePackageSource(
+      path.join(repoRoot, "packages", "kernel"),
+      packRoot
+    )
     const reactSource = await stagePackageSource(
       path.join(repoRoot, "packages", "react"),
       packRoot
@@ -132,6 +137,7 @@ async function installRuntimeModules(stagingRoot, lease) {
       path.join(repoRoot, "packages", "cli"),
       packRoot
     )
+    const kernelPackage = await pack(kernelSource)
     const reactPackage = await pack(reactSource)
     const cliPackage = await pack(cliSource, {
       ...process.env,
@@ -149,6 +155,7 @@ async function installRuntimeModules(stagingRoot, lease) {
         "--no-audit",
         "--no-fund",
         "--loglevel=error",
+        kernelPackage,
         reactPackage,
         cliPackage,
       ],

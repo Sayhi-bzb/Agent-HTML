@@ -13,6 +13,11 @@ describe("publish canvas theme", () => {
         id: "test-preset",
         label: "Test",
         lightCssVariables: { "--background": "#ffffff" },
+        layout: {
+          fonts: [
+            { family: "Inter", provider: "google", variable: "--font-sans" },
+          ],
+        },
       },
       target: { postMessage } as unknown as Window,
     })
@@ -21,6 +26,11 @@ describe("publish canvas theme", () => {
     expect(message.snapshot).toMatchObject({
       darkCssVariables: { "--background": "#111111" },
       draftCssVariables: { "--radius": "0.8rem" },
+      fontStylesheetPaths: [
+        expect.stringMatching(
+          /^\/__agent-html\/font-stylesheet\?url=https%3A%2F%2Ffonts\.googleapis\.com%2Fcss2/
+        ),
+      ],
       lightCssVariables: { "--background": "#ffffff" },
       mode: "dark",
       presetId: "test-preset",

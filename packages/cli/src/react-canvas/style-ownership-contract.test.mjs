@@ -1,22 +1,12 @@
 import { describe, expect, it } from "vitest"
 
+import { validateBlockImplementation } from "@agent-html/kernel/validate"
+
 import {
   filesMatching,
-  filesMatchingAny,
+  implementationFilesUnder,
   readSource,
 } from "./test-contract-helpers.mjs"
-
-const artifactFixedFormatLayoutExceptions = [
-  "agent-html/artifacts/nasa-artemis-ii/crew-manifest.block.tsx",
-  "agent-html/artifacts/nasa-artemis-ii/lunar-flyby.block.tsx",
-  "agent-html/artifacts/nasa-artemis-ii/mission-route.block.tsx",
-  "agent-html/artifacts/nasa-artemis-ii/orion-window.block.tsx",
-  "agent-html/artifacts/nasa-artemis-ii/system-ignition.block.tsx",
-  "agent-html/artifacts/tokyo-three-speeds/density-layer.block.tsx",
-  "agent-html/artifacts/tokyo-three-speeds/header.block.tsx",
-  "agent-html/artifacts/tokyo-three-speeds/quiet-layer.block.tsx",
-  "agent-html/artifacts/tokyo-three-speeds/route-console.block.tsx",
-]
 
 describe("React Canvas style ownership contract", { timeout: 15000 }, () => {
   it("keeps React Canvas surfaces from bypassing local primitives", () => {
@@ -27,22 +17,17 @@ describe("React Canvas style ownership contract", { timeout: 15000 }, () => {
   })
 
   it("keeps artifact source on semantic token classes", () => {
-    const rawArtifactVisualClass =
-      /className=["'][^"']*(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|className=["'][^"']*(?:shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl)|text-(?:[3-9]xl|[1-9][0-9]xl)|font-\w+|tracking-\w+|\[[^\]]+\])/
-
-    expect(filesMatching("agent-html/artifacts", rawArtifactVisualClass)).toEqual(
-      artifactFixedFormatLayoutExceptions
-    )
-    expect(
-      filesMatchingAny(
-        [
-          "agent-html/components/code-block.tsx",
-          "agent-html/components/data-table.tsx",
-          "agent-html/components/kanban.tsx",
-        ],
-        rawArtifactVisualClass
+    const issues = implementationFilesUnder("agent-html/artifacts")
+      .filter((filePath) => filePath.endsWith(".tsx"))
+      .flatMap((filePath) =>
+        validateBlockImplementation({
+          filePath,
+          source: readSource(filePath),
+        })
       )
-    ).toEqual([])
+      .filter((issue) => issue.category === "style")
+
+    expect(issues).toEqual([])
   })
 
   it("keeps host and workspace style ownership boundaries", () => {

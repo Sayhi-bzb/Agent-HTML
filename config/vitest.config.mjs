@@ -24,6 +24,7 @@ export default defineConfig({
     include: [
       "packages/react/src/**/*.test.ts",
       "packages/react/src/**/*.test.tsx",
+      "packages/kernel/src/**/*.test.mjs",
       "packages/cli/src/**/*.test.mjs",
       "packages/cli/src/**/*.test.ts",
       "packages/cli/src/**/*.test.tsx",

@@ -95,7 +95,6 @@ Chart exports are grouped by public role to distinguish components, props, and a
 | `public-url.ts` | `artifactPublicUrl`, `artifactPublicUrlFactory`, `sharedPublicUrl` |
 | `rough-svg.tsx` | `RoughCircle`, `RoughPath`, `RoughPolygon`, `RoughRect`, `RoughSvgDraw`, `RoughSvgLayer`, `defaultRoughSvgOptions` |
 | `shiki-highlighter.ts` | `CodeBlockLanguage`, `ShikiLanguage`, `ShikiTheme`, `highlightCode`, `normalizeLanguage` |
-| `utils.ts` | `cn` |
 
 ## agent-html/schema/
 

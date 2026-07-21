@@ -10,6 +10,8 @@
   --canvas-desktop-touch-target-min: 2.75rem;
   --canvas-desktop-titlebar-height: 2.75rem;
   --canvas-desktop-titlebar-control-width: 2.75rem;
+  --canvas-desktop-titlebar-icon-plate-size: 1.75rem;
+  --canvas-desktop-titlebar-navigation-font-size: var(--font-size-xs);
   --canvas-desktop-radius: var(--radius);
   --canvas-desktop-space-1: 0.375rem;
   --canvas-desktop-space-2: 0.625rem;
@@ -60,12 +62,21 @@ body {
   user-select: none;
 }
 
+.desktop-titlebar[data-navigation="workspace"] {
+  grid-template-columns: minmax(0, 1fr) minmax(1rem, 0.15fr) auto auto;
+}
+
 .desktop-titlebar__brand {
   align-items: center;
   display: flex;
   gap: var(--agent-html-brand-gap);
   min-width: 0;
   padding-inline: var(--canvas-desktop-space-3);
+}
+
+.desktop-titlebar__brand--compact {
+  justify-content: center;
+  padding-inline: var(--canvas-desktop-space-2);
 }
 
 .desktop-titlebar__brand-icon {
@@ -88,6 +99,178 @@ body {
 
 .desktop-titlebar__drag-space {
   min-width: 0;
+}
+
+.desktop-titlebar__navigation {
+  align-items: stretch;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.desktop-titlebar__artifacts {
+  align-items: stretch;
+  display: flex;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.desktop-titlebar__artifacts::-webkit-scrollbar {
+  display: none;
+}
+
+.desktop-titlebar__artifact-label,
+.desktop-titlebar__navigation-action {
+  align-items: center;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: default;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-family: var(--font-sans);
+  font-size: var(--canvas-desktop-titlebar-navigation-font-size);
+  height: var(--canvas-desktop-titlebar-height);
+  justify-content: center;
+  min-width: 0;
+  padding: 0;
+}
+
+.desktop-titlebar__artifact {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  height: var(--canvas-desktop-titlebar-height);
+  max-width: 12rem;
+  overflow: hidden;
+  color: var(--muted-foreground);
+}
+
+.desktop-titlebar__artifact-label {
+  color: inherit;
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  overflow: hidden;
+  padding-inline-start: var(--canvas-desktop-space-3);
+  padding-inline-end: var(--canvas-desktop-space-1);
+}
+
+.desktop-titlebar__artifact-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-titlebar__artifact-close {
+  align-items: center;
+  background: transparent;
+  border-radius: var(--canvas-desktop-radius);
+  color: currentColor;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 1.5rem;
+  justify-content: center;
+  margin-inline-end: var(--canvas-desktop-space-1);
+  opacity: 0;
+  padding: 0;
+  pointer-events: none;
+  width: 1.5rem;
+}
+
+.desktop-titlebar__artifact-close svg {
+  height: 0.75rem;
+  stroke-width: 2;
+  width: 0.75rem;
+}
+
+.desktop-titlebar__artifact:hover .desktop-titlebar__artifact-close,
+.desktop-titlebar__artifact-close:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.desktop-titlebar__artifact-close:hover {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+.desktop-titlebar__navigation-action {
+  position: relative;
+  width: var(--canvas-desktop-titlebar-control-width);
+}
+
+.desktop-titlebar__navigation-action::before {
+  background: transparent;
+  border-radius: var(--canvas-desktop-radius);
+  content: "";
+  height: var(--canvas-desktop-titlebar-icon-plate-size);
+  inset: 50% auto auto 50%;
+  pointer-events: none;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: var(--canvas-desktop-titlebar-icon-plate-size);
+}
+
+.desktop-titlebar__navigation-action svg {
+  height: 1rem;
+  position: relative;
+  stroke-width: 1.75;
+  width: 1rem;
+  z-index: 1;
+}
+
+.desktop-titlebar__navigation-action:not(:disabled),
+.desktop-titlebar__artifact-close {
+  cursor: pointer;
+}
+
+.desktop-titlebar__artifact:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.desktop-titlebar__artifact[data-active] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.desktop-titlebar__navigation-action:hover:not(:disabled),
+.desktop-titlebar__navigation-action[data-active] {
+  color: var(--accent-foreground);
+}
+
+.desktop-titlebar__navigation-action:hover:not(:disabled)::before,
+.desktop-titlebar__navigation-action[data-active]::before {
+  background: var(--accent);
+}
+
+.desktop-titlebar__artifact:hover .desktop-titlebar__artifact-title {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.desktop-titlebar__navigation-action:disabled {
+  opacity: 0.45;
+}
+
+.desktop-titlebar__artifact-placeholder {
+  align-self: center;
+  background: var(--muted);
+  border-radius: var(--canvas-desktop-radius);
+  height: 1.25rem;
+  margin-inline: var(--canvas-desktop-space-2);
+  width: 5rem;
+}
+
+.desktop-titlebar__artifact-label:focus-visible,
+.desktop-titlebar__artifact-close:focus-visible,
+.desktop-titlebar__navigation-action:focus-visible,
+.desktop-titlebar__control:focus-visible {
+  outline-offset: -0.15rem;
 }
 
 .desktop-titlebar__controls {
@@ -126,6 +309,10 @@ body {
   grid-template-columns: auto auto minmax(0, 1fr);
 }
 
+.desktop-titlebar[data-navigation="workspace"][data-platform="macos"] {
+  grid-template-columns: auto minmax(0, 1fr) minmax(1rem, 0.15fr) auto;
+}
+
 .desktop-titlebar[data-platform="macos"] .desktop-titlebar__controls {
   order: 1;
 }
@@ -137,6 +324,16 @@ body {
 
 .desktop-titlebar[data-platform="macos"] .desktop-titlebar__drag-space {
   order: 3;
+}
+
+.desktop-titlebar[data-navigation="workspace"][data-platform="macos"]
+  .desktop-titlebar__navigation {
+  order: 2;
+}
+
+.desktop-titlebar[data-navigation="workspace"][data-platform="macos"]
+  .desktop-titlebar__brand {
+  order: 4;
 }
 
 button,

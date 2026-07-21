@@ -47,7 +47,7 @@ export default function ReportTriageBlock() {
         </p>
       </div>
 
-      <div className="canvas-grid-gap w-full min-w-0 md:grid-cols-[minmax(12rem,0.48fr)_minmax(0,1.52fr)]">
+      <div className="canvas-grid-report canvas-grid-gap w-full min-w-0">
         <aside className="canvas-stack-md w-full min-w-0 border-b md:border-b-0">
           <div className="canvas-stack-xs">
             <Badge variant="secondary">这次先看</Badge>

@@ -55,6 +55,15 @@ describe("host i18n", () => {
     expect(createHostTranslator("en")("sidebar.newArtifact")).toBe(
       "New Artifact"
     )
+    expect(
+      createHostTranslator("en")("sidebar.deleteArtifactTitle", {
+        label: "Report",
+      })
+    ).toBe("Delete “Report”?")
+    expect(
+      createHostTranslator("zh")("sidebar.deleteArtifactTitle", {
+        label: "报告",
+      })
+    ).toBe("删除“报告”？")
   })
 })
-

@@ -72,6 +72,16 @@ export function getCanvasThemePresetFontUrl(preset: CanvasThemePreset) {
   return `https://fonts.googleapis.com/css2?${familyQuery}&display=swap`
 }
 
+export function getCanvasThemePresetFontStylesheetPaths(
+  preset: CanvasThemePreset
+) {
+  const googleFontUrl = getCanvasThemePresetFontUrl(preset)
+  return [
+    ...(googleFontUrl ? [googleFontUrl] : []),
+    ...getCanvasThemePresetZeosevenFontUrls(preset),
+  ].map(fontStylesheetUrl)
+}
+
 function getCanvasThemePresetZeosevenFontUrls(preset: CanvasThemePreset) {
   return Array.from(
     new Set(
@@ -118,24 +128,13 @@ function getOrCreateFontLink(id: string) {
   return linkElement
 }
 
-function configureGoogleFontLink(id: string, href: string) {
+function configureFontLink(id: string, href: string) {
   const linkElement = getOrCreateFontLink(id)
   linkElement.rel = "stylesheet"
   linkElement.href = href
   linkElement.removeAttribute("as")
-  linkElement.removeAttribute("crossorigin")
-  linkElement.onload = null
-}
-
-function configureZeosevenFontLink(id: string, href: string) {
-  const linkElement = getOrCreateFontLink(id)
-  linkElement.rel = "preload"
-  linkElement.as = "style"
-  linkElement.href = fontStylesheetUrl(href)
   linkElement.crossOrigin = "anonymous"
-  linkElement.onload = () => {
-    linkElement.rel = "stylesheet"
-  }
+  linkElement.onload = null
 }
 
 function applyCanvasThemePresetFonts(preset: CanvasThemePreset) {
@@ -145,13 +144,16 @@ function applyCanvasThemePresetFonts(preset: CanvasThemePreset) {
 
   if (googleFontUrl) {
     nextIds.add(canvasThemePresetFontLinkId)
-    configureGoogleFontLink(canvasThemePresetFontLinkId, googleFontUrl)
+    configureFontLink(
+      canvasThemePresetFontLinkId,
+      fontStylesheetUrl(googleFontUrl)
+    )
   }
 
   zeosevenFontUrls.forEach((fontUrl, index) => {
     const id = `${canvasThemePresetFontLinkIdPrefix}zeoseven-${index}`
     nextIds.add(id)
-    configureZeosevenFontLink(id, fontUrl)
+    configureFontLink(id, fontStylesheetUrl(fontUrl))
   })
 
   removeStaleFontLinks(nextIds)

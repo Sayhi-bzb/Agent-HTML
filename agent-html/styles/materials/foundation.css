@@ -58,6 +58,8 @@
   --font-heading: var(--font-sans);
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
   --tracking-normal: 0em;
   --shadow-2xs: 0px 1px 3px 0px rgb(0 0 0 / 0.05);
   --shadow-xs: 0px 1px 3px 0px rgb(0 0 0 / 0.05);

@@ -8,7 +8,9 @@ For cold start, read `agent-html/README.md` first, then this file. This file own
 - Do not add `node_modules`, lockfiles, generated bundles, `.vite`, `dist`, `build`, vendored dependency folders, full graphs, declaration rollups, or tool dumps inside `agent-html`.
 - Keep `AGENTS.md`, `components.json`, and `tsconfig.json` at the workspace root for agent, shadcn, TypeScript, and editor discovery.
 - Use `index/*` only as generated decision context. Do not edit generated index files by hand.
-- Use `package.json` only as source dependency metadata. New third-party dependencies need an explicit source or host owner.
+- `package.json` is generated source dependency metadata. Change the Kernel
+  runtime catalog, then run `npm run canvas:catalog:sync`; do not edit dependency
+  versions here by hand.
 - Use `GOVERNANCE.md` before changing workspace conventions, route files, generated indexes, artifact or data patterns, or copyable examples.
 
 ## Artifact Protocol
@@ -42,6 +44,8 @@ For cold start, read `agent-html/README.md` first, then this file. This file own
 - Use `styles/layouts/index.css` L2 composition classes when they fit ordinary artifact content styling.
 - Do not use raw palette classes, arbitrary value classes, or inline visual styles in artifacts.
 - Do not recreate root reading width, block hover highlighting, toolbar placement, sidebar chrome, or theme editor chrome in artifact source.
+- Treat every `agent-html validate` diagnostic as blocking. Kernel rules cannot
+  be disabled or suppressed from workspace source.
 - Use `TASTE.md` before changing artifact visual composition, media-heavy blocks, layout density, component choice, source placement, or narrative UI.
 
 ## Forbidden Imports And Actions

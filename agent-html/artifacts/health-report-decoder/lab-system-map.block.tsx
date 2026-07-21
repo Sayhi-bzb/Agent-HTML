@@ -136,12 +136,12 @@ function SystemRadarPanel() {
         renderTooltip={({ datum, label, value }) => (
           <div className="canvas-stack-xs">
             <div className="canvas-wrap-sm items-center">
-              <span className="font-medium">{label}</span>
+              <span className="canvas-text-medium">{label}</span>
               <StatusBadge status={statusFor(datum.status).status}>
                 {datum.statusLabel}
               </StatusBadge>
             </div>
-            <p className="font-mono text-foreground tabular-nums">
+            <p className="canvas-text-mono text-foreground tabular-nums">
               {value}/100
             </p>
             <p className="text-muted-foreground">

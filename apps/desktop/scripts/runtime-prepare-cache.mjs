@@ -100,6 +100,11 @@ export function isRuntimeInput(filePath) {
       .some((segment) => templateExcludedSegments.has(segment))
   }
 
+  if (normalized === "packages/kernel/package.json") return true
+  if (normalized.startsWith("packages/kernel/src/")) {
+    return !isTestSource(normalized)
+  }
+
   if (normalized === "packages/react/package.json") return true
   if (normalized.startsWith("packages/react/src/")) {
     return !isTestSource(normalized)

@@ -14,6 +14,9 @@
   "exports": {
     ".": "./src/index.tsx"
   },
+  "dependencies": {
+    "@agent-html/kernel": "0.2.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Sayhi-bzb/Agent-HTML.git",

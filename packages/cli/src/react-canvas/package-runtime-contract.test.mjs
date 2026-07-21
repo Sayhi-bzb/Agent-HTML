@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 
+import { canvasRuntimeCatalog } from "@agent-html/kernel"
+
 import {
   readSource,
   workspaceRuntimeImports,
@@ -42,6 +44,15 @@ describe("React Canvas package runtime contract", { timeout: 15000 }, () => {
     expect(missingRuntimeDeps).toEqual([])
     expect(workspaceDepsWithoutRuntime).toEqual([])
     expect(unresolvableRuntimeImports).toEqual([])
+    expect(playgroundPackage.dependencies).toEqual(canvasRuntimeCatalog)
+    expect(
+      Object.fromEntries(
+        Object.keys(canvasRuntimeCatalog).map((dependency) => [
+          dependency,
+          cliPackage.dependencies[dependency],
+        ])
+      )
+    ).toEqual(canvasRuntimeCatalog)
   })
 
   it("keeps package publication boundaries explicit", () => {
@@ -49,6 +60,7 @@ describe("React Canvas package runtime contract", { timeout: 15000 }, () => {
     const reactPackage = JSON.parse(readSource("packages/react/package.json"))
 
     expect(cliPackage.dependencies["@agent-html/react"]).toBe("0.2.1")
+    expect(cliPackage.dependencies["@agent-html/kernel"]).toBe("0.2.1")
     expect(cliPackage.dependencies["@shikijs/transformers"]).toBeTruthy()
     expect(cliPackage.dependencies["@tanstack/react-table"]).toBeTruthy()
     expect(cliPackage.dependencies.esbuild).toBeUndefined()

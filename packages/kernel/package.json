@@ -1,0 +1,27 @@
+{
+  "name": "@agent-html/kernel",
+  "version": "0.2.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.d.mts",
+      "default": "./src/index.mjs"
+    },
+    "./policy": "./src/policy.mjs",
+    "./validate": "./src/validate.mjs",
+    "./runtime-catalog": "./src/runtime-catalog.mjs"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.29.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sayhi-bzb/Agent-HTML.git",
+    "directory": "packages/kernel"
+  }
+}

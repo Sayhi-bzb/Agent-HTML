@@ -6,10 +6,7 @@ import { describe, expect, it } from "vitest"
 const sourceRoot = path.resolve(import.meta.dirname)
 const productSources = fs
   .readdirSync(sourceRoot)
-  .filter(
-    (file) =>
-      /\.(css|tsx?)$/.test(file) && !file.endsWith(".test.ts")
-  )
+  .filter((file) => /\.(css|tsx?)$/.test(file) && !file.endsWith(".test.ts"))
   .map((file) => ({
     content: fs.readFileSync(path.join(sourceRoot, file), "utf8"),
     file,
@@ -61,13 +58,14 @@ describe("desktop visual ownership", () => {
       "ring",
     ]
 
-    expect(css).toContain(
-      '@import "../../../agent-html/styles/foundation.css"'
-    )
+    expect(css).toContain('@import "../../../agent-html/styles/foundation.css"')
     expect(css).toContain(
       '@import "../../../packages/cli/src/shared/brand.css"'
     )
     expect(css).toContain("--canvas-desktop-radius: var(--radius)")
+    expect(css).toContain(
+      "--canvas-desktop-titlebar-navigation-font-size: var(--font-size-xs)"
+    )
     expect(css).toContain("background: var(--primary)")
     expect(css).toContain("color: var(--primary-foreground)")
     expect(css).toMatch(
@@ -84,9 +82,7 @@ describe("desktop visual ownership", () => {
     expect(css).not.toContain("--canvas-desktop-titlebar-title-font-size")
 
     for (const token of semanticTokenDefinitions) {
-      expect(css).not.toMatch(
-        new RegExp(`^\\s*--${token}\\s*:`, "m")
-      )
+      expect(css).not.toMatch(new RegExp(`^\\s*--${token}\\s*:`, "m"))
     }
   })
 })

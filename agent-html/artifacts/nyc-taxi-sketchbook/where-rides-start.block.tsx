@@ -54,7 +54,7 @@ const pickupZoneColumns: ColumnDef<PickupZoneRow>[] = [
   {
     accessorKey: "trips",
     cell: ({ row }) => (
-      <span className="canvas-text-body font-mono">{formatCompact(row.original.trips)}</span>
+      <span className="canvas-text-body canvas-text-mono">{formatCompact(row.original.trips)}</span>
     ),
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="trips" />
@@ -63,7 +63,7 @@ const pickupZoneColumns: ColumnDef<PickupZoneRow>[] = [
   {
     accessorKey: "averageTotal",
     cell: ({ row }) => (
-      <span className="canvas-text-body font-mono">${row.original.averageTotal}</span>
+      <span className="canvas-text-body canvas-text-mono">${row.original.averageTotal}</span>
     ),
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="avg total" />
@@ -72,7 +72,7 @@ const pickupZoneColumns: ColumnDef<PickupZoneRow>[] = [
   {
     accessorKey: "averageDistance",
     cell: ({ row }) => (
-      <span className="canvas-text-body font-mono">{row.original.averageDistance} mi</span>
+      <span className="canvas-text-body canvas-text-mono">{row.original.averageDistance} mi</span>
     ),
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="avg distance" />
@@ -93,7 +93,7 @@ export default function WhereRidesStartBlock() {
         <SketchPanel>
           <BarHChart
             aspectRatio="4 / 3"
-            className="min-h-[420px]"
+            className="canvas-chart-md"
             data={zoneRows}
             minHeight={420}
             renderer="rough"
@@ -133,7 +133,7 @@ export default function WhereRidesStartBlock() {
         </div>
         <RoughTableShell>
           <DataTable
-            className="[&_thead_tr]:border-0"
+            className="canvas-table-clean-header"
             columns={pickupZoneColumns}
             data={pickupZoneTableRows}
             emptyLabel="No pickup zones."

@@ -13,6 +13,7 @@ import { parsePipelineArg } from "./dev-server/server.mjs"
 import { createHostEntryModule } from "./dev-server/vite.mjs"
 
 const reactPackageRoot = path.resolve(packageRoot, "..", "react")
+const kernelPackageRoot = path.resolve(packageRoot, "..", "kernel")
 const execFileAsync = promisify(execFile)
 
 async function execNpm(args, options) {
@@ -417,6 +418,10 @@ describe("React Canvas dev host", () => {
       `${JSON.stringify({ private: true, type: "module" }, null, 2)}\n`
     )
 
+    const kernelTarballPath = await packPackage({
+      cwd: kernelPackageRoot,
+      packDirectory,
+    })
     const reactTarballPath = await packPackage({
       cwd: reactPackageRoot,
       packDirectory,
@@ -426,7 +431,7 @@ describe("React Canvas dev host", () => {
       packDirectory,
     })
 
-    await execNpm(["install", reactTarballPath, cliTarballPath], {
+    await execNpm(["install", kernelTarballPath, reactTarballPath, cliTarballPath], {
       cwd: projectRoot,
     })
     await execFileAsync(

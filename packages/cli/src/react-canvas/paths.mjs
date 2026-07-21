@@ -78,15 +78,10 @@ async function discoverFilesBySuffix(directory, suffix) {
   return files.flat().sort((left, right) => left.localeCompare(right))
 }
 
-export async function discoverReactBlockImplementations(root) {
-  const workspaceRoot = path.join(root, "agent-html")
-  const roots = [
-    path.join(workspaceRoot, "artifacts"),
-    path.join(workspaceRoot, "examples"),
-  ]
-  const files = await Promise.all(
-    roots.map((sourceRoot) => discoverFilesBySuffix(sourceRoot, ".block.tsx"))
+export async function discoverReactImplementationSources(root) {
+  const files = await discoverFilesBySuffix(
+    path.join(root, "agent-html", "artifacts"),
+    ".tsx"
   )
-
-  return files.flat().sort((left, right) => left.localeCompare(right))
+  return files.filter((filePath) => !filePath.endsWith(".artifact.tsx"))
 }

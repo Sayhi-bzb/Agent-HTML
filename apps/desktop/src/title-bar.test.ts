@@ -7,6 +7,10 @@ import {
   type DesktopWindowControls,
 } from "./desktop-window"
 import { DesktopTitleBar } from "./title-bar"
+import {
+  canvasNavigationSnapshotVersion,
+  type CanvasNavigationSnapshot,
+} from "../../../packages/cli/src/host/navigation/navigation-sync-contract"
 
 const windowControls: DesktopWindowControls = {
   close: vi.fn(() => Promise.resolve()),
@@ -17,9 +21,34 @@ const windowControls: DesktopWindowControls = {
   toggleMaximize: vi.fn(() => Promise.resolve()),
 }
 
-function renderTitleBar(platform: "linux" | "macos" | "windows") {
+const navigation: CanvasNavigationSnapshot = {
+  activeFilePath: "agent-html/artifacts/artifact-2.artifact.tsx",
+  artifacts: [
+    {
+      filePath: "agent-html/artifacts/artifact-1.artifact.tsx",
+      title: "Artifact 1",
+    },
+    {
+      filePath: "agent-html/artifacts/artifact-2.artifact.tsx",
+      title: "Artifact 2",
+    },
+  ],
+  artifactsLoading: false,
+  createArtifactActive: false,
+  leftSidebarOpen: true,
+  version: canvasNavigationSnapshotVersion,
+}
+
+function renderTitleBar(
+  platform: "linux" | "macos" | "windows",
+  workspaceNavigation?: CanvasNavigationSnapshot | null
+) {
   return renderToStaticMarkup(
-    createElement(DesktopTitleBar, { platform, windowControls })
+    createElement(DesktopTitleBar, {
+      navigation: workspaceNavigation,
+      platform,
+      windowControls,
+    })
   )
 }
 
@@ -41,6 +70,56 @@ describe("desktop title bar", () => {
     expect(markup.indexOf("Minimize window")).toBeLessThan(
       markup.indexOf("Maximize window")
     )
+  })
+
+  it("renders the brand-only title bar outside a workspace", () => {
+    const markup = renderTitleBar("windows")
+
+    expect(markup).toContain('data-navigation="brand"')
+    expect(markup).toContain("Agent-HTML")
+    expect(markup).not.toContain('aria-label="Artifacts"')
+  })
+
+  it("renders ordered Artifact navigation and its active state", () => {
+    const markup = renderTitleBar("windows", navigation)
+
+    expect(markup).toContain('data-navigation="workspace"')
+    expect(markup).toContain('aria-label="Artifacts"')
+    expect(markup.indexOf("Artifact 1")).toBeLessThan(
+      markup.indexOf("Artifact 2")
+    )
+    expect(markup).toContain(
+      'class="desktop-titlebar__artifact" data-active=""'
+    )
+    expect(markup).toContain(
+      'aria-current="page" class="desktop-titlebar__artifact-label"'
+    )
+    expect(markup).toContain('class="desktop-titlebar__artifact-title"')
+    expect(
+      markup.match(/class="desktop-titlebar__artifact-close"/g)
+    ).toHaveLength(navigation.artifacts.length)
+    expect(markup).toContain('aria-label="Delete Artifact 1"')
+    expect(markup).toContain('aria-label="Delete Artifact 2"')
+    expect(markup).toContain('aria-expanded="true"')
+    expect(markup).toContain('aria-label="New Artifact"')
+  })
+
+  it("shows a loading placeholder before the first runtime snapshot", () => {
+    const markup = renderTitleBar("windows", null)
+
+    expect(markup).toContain('aria-busy="true"')
+    expect(markup).toContain("desktop-titlebar__artifact-placeholder")
+    expect(markup).toContain("disabled")
+  })
+
+  it("marks only New Artifact active in create mode", () => {
+    const markup = renderTitleBar("windows", {
+      ...navigation,
+      createArtifactActive: true,
+    })
+
+    expect(markup).not.toContain('aria-current="page"')
+    expect(markup).toContain('aria-label="New Artifact" aria-pressed="true"')
   })
 
   it.each(["windows", "linux"] as const)(

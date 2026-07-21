@@ -58,7 +58,7 @@ export default function PostingChecklistBlock() {
 
       <HandbookPanel>
         <div className="canvas-wrap-sm items-center justify-between">
-          <h3 className="canvas-text-heading font-semibold">五项自检</h3>
+          <h3 className="canvas-text-heading canvas-text-strong">五项自检</h3>
           <StatusBadge status={readyCount === postingChecklist.length ? "success" : "default"}>
             {readyCount}/{postingChecklist.length} {readyLabel}
           </StatusBadge>
@@ -109,7 +109,7 @@ export default function PostingChecklistBlock() {
                 <AccordionTrigger>
                   <span className="canvas-wrap-sm items-center">
                     <StatusBadge>检查</StatusBadge>
-                    <span className="font-medium">{item.label}</span>
+                    <span className="canvas-text-medium">{item.label}</span>
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>

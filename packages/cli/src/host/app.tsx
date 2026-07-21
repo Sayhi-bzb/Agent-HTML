@@ -3,6 +3,7 @@ import * as React from "react"
 import type { CodexThread } from "./api/api"
 import { createArtifact } from "./api/api"
 import { CreateArtifactSurface } from "./artifact/create-artifact-surface"
+import { ArtifactDeleteDialog } from "./artifact/artifact-delete-dialog"
 import { ArtifactSurface } from "./artifact/artifact-surface"
 import {
   createArtifactPendingTimeoutMs,
@@ -29,6 +30,17 @@ import {
   fetchPipelineThreads,
 } from "./pipeline"
 import { ReactCanvasSidebar } from "./navigation/sidebar"
+import {
+  applyCanvasNavigationCommand,
+  publishCanvasNavigation,
+  readTrustedCanvasNavigationCommand,
+  readTrustedCanvasNavigationRequest,
+} from "./navigation/desktop-navigation"
+import {
+  canvasNavigationSnapshotVersion,
+  type CanvasNavigationArtifact,
+  type CanvasNavigationSnapshot,
+} from "./navigation/navigation-sync-contract"
 import {
   canvasHostMobileDocsUrl,
   shouldRedirectCanvasHostToDocs,
@@ -113,6 +125,9 @@ function ReactCanvasHostWorkbench() {
   const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(
     initialPreferences.leftSidebarOpen
   )
+  const [desktopNavigationOrigin, setDesktopNavigationOrigin] = React.useState<
+    string | null
+  >(null)
   const [leftSidebarAutoCollapsed, setLeftSidebarAutoCollapsed] =
     React.useState(() =>
       shouldAutoCollapseCanvasHostSidebar(
@@ -146,6 +161,19 @@ function ReactCanvasHostWorkbench() {
     React.useState<CanvasThemePresetId>(initialPreferences.activeThemePresetId)
   const [activeThemeMode, setActiveThemeMode] =
     React.useState<CanvasHostThemeMode>(initialPreferences.activeThemeMode)
+  const restoreThemeSelection = React.useCallback(
+    ({
+      mode,
+      presetId,
+    }: {
+      mode: CanvasHostThemeMode
+      presetId: CanvasThemePresetId
+    }) => {
+      setActiveThemeMode(mode)
+      setActiveThemePresetId(presetId)
+    },
+    []
+  )
   const [activeLanguage, setActiveLanguage] =
     React.useState<CanvasHostLanguage>(initialPreferences.activeLanguage)
   const [activeSidebarView, setActiveSidebarView] =
@@ -154,14 +182,20 @@ function ReactCanvasHostWorkbench() {
     React.useState<CanvasThemeEditorSectionId>(
       initialPreferences.activeThemeEditorSectionId
     )
-  const [activeCodexThreadId, setActiveCodexThreadId] =
-    React.useState<string | null>(initialPreferences.activeCodexThreadId)
+  const [activeCodexThreadId, setActiveCodexThreadId] = React.useState<
+    string | null
+  >(initialPreferences.activeCodexThreadId)
   const [codexThreads, setCodexThreads] = React.useState<CodexThread[]>([])
   const [codexThreadsLoading, setCodexThreadsLoading] = React.useState(true)
-  const [codexThreadsError, setCodexThreadsError] =
-    React.useState<string | null>(null)
+  const [codexThreadsError, setCodexThreadsError] = React.useState<
+    string | null
+  >(null)
+  const [pendingDeleteArtifact, setPendingDeleteArtifact] =
+    React.useState<CanvasNavigationArtifact | null>(null)
   const activeFilePathRef = React.useRef<string | null>(null)
-  const createArtifactJobRef = React.useRef<CanvasCreateArtifactJob | null>(null)
+  const createArtifactJobRef = React.useRef<CanvasCreateArtifactJob | null>(
+    null
+  )
   const t = React.useMemo(
     () =>
       createHostTranslator(
@@ -175,8 +209,7 @@ function ReactCanvasHostWorkbench() {
   const selectArtifactMode = React.useCallback(() => {
     setActiveHostMode("artifact")
   }, [])
-  const effectiveLeftSidebarOpen =
-    leftSidebarOpen && !leftSidebarAutoCollapsed
+  const effectiveLeftSidebarOpen = leftSidebarOpen && !leftSidebarAutoCollapsed
   const setEffectiveLeftSidebarOpen = React.useCallback((open: boolean) => {
     setLeftSidebarAutoCollapsed(false)
     setLeftSidebarOpen(open)
@@ -229,6 +262,17 @@ function ReactCanvasHostWorkbench() {
         ? createArtifactJob.filePath
         : null,
   })
+  const requestDeleteArtifact = React.useCallback(
+    (filePath: string) => {
+      const artifact = artifacts.find(
+        (candidate) => candidate.filePath === filePath
+      )
+      setPendingDeleteArtifact(
+        artifact ? { filePath: artifact.filePath, title: artifact.title } : null
+      )
+    },
+    [artifacts]
+  )
   const {
     resetThemePreview,
     themeDraft,
@@ -238,6 +282,7 @@ function ReactCanvasHostWorkbench() {
   } = useCanvasHostTheme({
     activeThemeMode,
     activeThemePresetId,
+    restoreThemeSelection,
   })
 
   activeFilePathRef.current = resolvedActiveFilePath
@@ -293,7 +338,8 @@ function ReactCanvasHostWorkbench() {
     }
     const remainingMs = Math.max(
       0,
-      createArtifactPendingTimeoutMs - (Date.now() - createArtifactJob.startedAt)
+      createArtifactPendingTimeoutMs -
+        (Date.now() - createArtifactJob.startedAt)
     )
     const timeoutId = window.setTimeout(failExpiredJob, remainingMs)
 
@@ -309,7 +355,9 @@ function ReactCanvasHostWorkbench() {
       setCodexThreads(data.threads ?? [])
       setCodexThreadsError(null)
     } catch (error) {
-      setCodexThreadsError(error instanceof Error ? error.message : String(error))
+      setCodexThreadsError(
+        error instanceof Error ? error.message : String(error)
+      )
     } finally {
       setCodexThreadsLoading(false)
     }
@@ -319,10 +367,7 @@ function ReactCanvasHostWorkbench() {
     void refreshCodexThreads()
   }, [refreshCodexThreads])
 
-  const {
-    setPromptStatus,
-    setPromptTarget,
-  } = useCanvasPromptLifecycle({
+  const { setPromptStatus, setPromptTarget } = useCanvasPromptLifecycle({
     activeCodexThreadId,
     onCodexThreadChange: setActiveCodexThreadId,
     onThreadsRefresh: refreshCodexThreads,
@@ -371,62 +416,144 @@ function ReactCanvasHostWorkbench() {
     setActiveHostMode("create-artifact")
   }, [])
 
-  const submitCreateArtifactPrompt = React.useCallback(async (request: string) => {
-    const artifactFilePath = createArtifactFilePathForRequest({
-      existingFilePaths: artifacts.map((artifact) => artifact.filePath),
-      request,
-    })
-    const nextJob: CanvasCreateArtifactJob = {
-      filePath: artifactFilePath,
-      phase: "starting",
-      request,
-      startedAt: Date.now(),
+  const desktopNavigationSnapshot = React.useMemo<CanvasNavigationSnapshot>(
+    () => ({
+      activeFilePath: resolvedActiveFilePath,
+      artifacts: artifacts.map(({ filePath, title }) => ({ filePath, title })),
+      artifactsLoading,
+      createArtifactActive: activeHostMode === "create-artifact",
+      leftSidebarOpen: effectiveLeftSidebarOpen,
+      version: canvasNavigationSnapshotVersion,
+    }),
+    [
+      activeHostMode,
+      artifacts,
+      artifactsLoading,
+      effectiveLeftSidebarOpen,
+      resolvedActiveFilePath,
+    ]
+  )
+  React.useEffect(() => {
+    if (window.parent === window || !desktopNavigationOrigin) {
+      return
     }
 
-    try {
-      createArtifactJobRef.current = nextJob
-      setCreateArtifactJob(nextJob)
-      setCreateArtifactStatus(t("app.creatingArtifact"))
-      const createdArtifact = await createArtifact({
-        filePath: artifactFilePath,
-        request,
+    publishCanvasNavigation({
+      snapshot: desktopNavigationSnapshot,
+      targetOrigin: desktopNavigationOrigin,
+    })
+  }, [desktopNavigationOrigin, desktopNavigationSnapshot])
+
+  React.useEffect(() => {
+    if (window.parent === window) {
+      return
+    }
+
+    const parentWindow = window.parent
+    const handleDesktopNavigationMessage = (event: MessageEvent<unknown>) => {
+      const request = readTrustedCanvasNavigationRequest({
+        event,
+        parentWindow,
       })
-      const waitingJob: CanvasCreateArtifactJob = {
-        ...nextJob,
-        phase: "waiting-for-artifact",
+      if (request) {
+        setDesktopNavigationOrigin(event.origin)
+        publishCanvasNavigation({
+          snapshot: desktopNavigationSnapshot,
+          targetOrigin: event.origin,
+        })
+        return
       }
 
-      createArtifactJobRef.current = waitingJob
-      setCreateArtifactJob(waitingJob)
-      setCreateArtifactStatus(t("app.waitingForArtifact"))
-      await refreshArtifacts({
-        currentFilePath: createdArtifact.filePath,
-        forceRefresh: true,
+      const message = readTrustedCanvasNavigationCommand({
+        event,
+        parentWindow,
       })
-      createArtifactJobRef.current = null
-      setCreateArtifactJob(null)
-      setCreateArtifactDraft("")
-      setActiveHostMode("artifact")
-      setCreateArtifactStatus(t("app.artifactReady"))
-    } catch (submitError: unknown) {
-      const errorMessage =
-        submitError instanceof Error ? submitError.message : String(submitError)
-      const failedJob: CanvasCreateArtifactJob = {
-        ...nextJob,
-        error: errorMessage,
-        phase: "failed",
+      if (!message) {
+        return
       }
 
-      createArtifactJobRef.current = failedJob
-      setCreateArtifactJob(failedJob)
-      setCreateArtifactStatus(errorMessage)
-      throw submitError
+      setDesktopNavigationOrigin(event.origin)
+
+      applyCanvasNavigationCommand({
+        artifactFilePaths: artifacts.map((artifact) => artifact.filePath),
+        command: message.command,
+        onCreateArtifact: selectCreateArtifact,
+        onRequestDeleteArtifact: requestDeleteArtifact,
+        onSelectArtifact: selectArtifact,
+        onSetSidebarOpen: setEffectiveLeftSidebarOpen,
+      })
+    }
+
+    window.addEventListener("message", handleDesktopNavigationMessage)
+    return () => {
+      window.removeEventListener("message", handleDesktopNavigationMessage)
     }
   }, [
     artifacts,
-    refreshArtifacts,
-    t,
+    desktopNavigationSnapshot,
+    requestDeleteArtifact,
+    selectArtifact,
+    selectCreateArtifact,
+    setEffectiveLeftSidebarOpen,
   ])
+
+  const submitCreateArtifactPrompt = React.useCallback(
+    async (request: string) => {
+      const artifactFilePath = createArtifactFilePathForRequest({
+        existingFilePaths: artifacts.map((artifact) => artifact.filePath),
+        request,
+      })
+      const nextJob: CanvasCreateArtifactJob = {
+        filePath: artifactFilePath,
+        phase: "starting",
+        request,
+        startedAt: Date.now(),
+      }
+
+      try {
+        createArtifactJobRef.current = nextJob
+        setCreateArtifactJob(nextJob)
+        setCreateArtifactStatus(t("app.creatingArtifact"))
+        const createdArtifact = await createArtifact({
+          filePath: artifactFilePath,
+          request,
+        })
+        const waitingJob: CanvasCreateArtifactJob = {
+          ...nextJob,
+          phase: "waiting-for-artifact",
+        }
+
+        createArtifactJobRef.current = waitingJob
+        setCreateArtifactJob(waitingJob)
+        setCreateArtifactStatus(t("app.waitingForArtifact"))
+        await refreshArtifacts({
+          currentFilePath: createdArtifact.filePath,
+          forceRefresh: true,
+        })
+        createArtifactJobRef.current = null
+        setCreateArtifactJob(null)
+        setCreateArtifactDraft("")
+        setActiveHostMode("artifact")
+        setCreateArtifactStatus(t("app.artifactReady"))
+      } catch (submitError: unknown) {
+        const errorMessage =
+          submitError instanceof Error
+            ? submitError.message
+            : String(submitError)
+        const failedJob: CanvasCreateArtifactJob = {
+          ...nextJob,
+          error: errorMessage,
+          phase: "failed",
+        }
+
+        createArtifactJobRef.current = failedJob
+        setCreateArtifactJob(failedJob)
+        setCreateArtifactStatus(errorMessage)
+        throw submitError
+      }
+    },
+    [artifacts, refreshArtifacts, t]
+  )
 
   useCanvasHostPreferencesPersistence({
     activeCodexThreadId,
@@ -443,96 +570,109 @@ function ReactCanvasHostWorkbench() {
   return (
     <TooltipProvider>
       <HostI18nProvider language={activeLanguage}>
-        <div className="canvas-host-shell">
-          <SidebarProvider
-            className="contents"
-            keyboardShortcut={false}
-            open={effectiveLeftSidebarOpen}
-            onOpenChange={setEffectiveLeftSidebarOpen}
-          >
-            <ReactCanvasSidebar
-              activeFilePath={resolvedActiveFilePath}
-              activeSectionId={activeThemeEditorSectionId}
-              activeCodexThreadId={activeCodexThreadId}
-              activeLanguage={activeLanguage}
-              activeSidebarView={activeSidebarView}
-              activeThemeMode={activeThemeMode}
-              activeThemePresetId={activeThemePresetId}
-              createArtifactActive={activeHostMode === "create-artifact"}
-              createArtifactPending={
-                createArtifactJob !== null && createArtifactJob.phase !== "failed"
-              }
-              artifactsLoading={artifactsLoading}
-              artifacts={artifacts}
-              codexThreads={codexThreads}
-              codexThreadsError={codexThreadsError}
-              codexThreadsLoading={codexThreadsLoading}
-              guardIssues={guardIssues}
-              onDeleteArtifact={deleteExistingArtifact}
-              onRenameArtifact={renameExistingArtifact}
-              onSelectArtifact={selectArtifact}
-              onSelectCodexThread={setActiveCodexThreadId}
-              onSelectCreateArtifact={selectCreateArtifact}
-              onSelectLanguage={setActiveLanguage}
-              onSelectSection={setActiveThemeEditorSectionId}
-              onSelectSidebarView={setActiveSidebarView}
-              onSelectThemeMode={setActiveThemeMode}
-              onSelectThemePreset={selectThemePreset}
-              onThemeVariableChange={updateThemeVariable}
-              onResetThemePreview={resetThemePreview}
-              themeDraft={themeDraft}
-              themePreviewDirty={isCanvasThemeDraftDirty(themeDraft)}
-              themePresets={themePresets}
-              themeRuntimeVariables={themeRuntimeVariables}
-            />
-          </SidebarProvider>
-          <SidebarInset className="h-full min-h-0 min-w-0 overflow-hidden">
-            <div className="canvas-host-toolbar">
-              <HostIconButton
-                icon={PanelLeftIcon}
-                label={
-                  effectiveLeftSidebarOpen
-                    ? t("app.collapseArtifactSidebar")
-                    : t("app.expandArtifactSidebar")
-                }
-                onClick={() =>
-                  setEffectiveLeftSidebarOpen(!effectiveLeftSidebarOpen)
-                }
-                placement="toolbar"
-                size="icon-sm"
-                tone="neutral"
-                variant="ghost"
-              />
-            </div>
-            {activeHostMode === "create-artifact" ? (
-              <CreateArtifactSurface
-                disabled={
-                  createArtifactJob !== null &&
-                  createArtifactJob.phase !== "failed"
-                }
-                draft={createArtifactDraft}
-                onClearPending={clearCreateArtifactJob}
-                onDraftChange={setCreateArtifactDraft}
-                onSubmit={submitCreateArtifactPrompt}
-                pending={
-                  createArtifactJob !== null &&
-                  createArtifactJob.phase !== "failed"
-                }
-                status={createArtifactStatus}
-              />
-            ) : (
-              <ArtifactSurface
+        <>
+          <div className="canvas-host-shell">
+            <SidebarProvider
+              className="contents"
+              keyboardShortcut={false}
+              open={effectiveLeftSidebarOpen}
+              onOpenChange={setEffectiveLeftSidebarOpen}
+            >
+              <ReactCanvasSidebar
                 activeFilePath={resolvedActiveFilePath}
-                blocks={activeArtifact?.blocks}
-                artifactCount={artifacts.length}
-                artifactRegistryVersion={artifactRegistryVersion}
+                activeSectionId={activeThemeEditorSectionId}
+                activeCodexThreadId={activeCodexThreadId}
+                activeLanguage={activeLanguage}
+                activeSidebarView={activeSidebarView}
+                activeThemeMode={activeThemeMode}
+                activeThemePresetId={activeThemePresetId}
+                createArtifactActive={activeHostMode === "create-artifact"}
+                createArtifactPending={
+                  createArtifactJob !== null &&
+                  createArtifactJob.phase !== "failed"
+                }
                 artifactsLoading={artifactsLoading}
-                guardIssues={activeIssues}
-                loadError={loadError}
+                artifacts={artifacts}
+                codexThreads={codexThreads}
+                codexThreadsError={codexThreadsError}
+                codexThreadsLoading={codexThreadsLoading}
+                guardIssues={guardIssues}
+                onRequestDeleteArtifact={requestDeleteArtifact}
+                onRenameArtifact={renameExistingArtifact}
+                onSelectArtifact={selectArtifact}
+                onSelectCodexThread={setActiveCodexThreadId}
+                onSelectCreateArtifact={selectCreateArtifact}
+                onSelectLanguage={setActiveLanguage}
+                onSelectSection={setActiveThemeEditorSectionId}
+                onSelectSidebarView={setActiveSidebarView}
+                onSelectThemeMode={setActiveThemeMode}
+                onSelectThemePreset={selectThemePreset}
+                onThemeVariableChange={updateThemeVariable}
+                onResetThemePreview={resetThemePreview}
+                themeDraft={themeDraft}
+                themePreviewDirty={isCanvasThemeDraftDirty(themeDraft)}
+                themePresets={themePresets}
+                themeRuntimeVariables={themeRuntimeVariables}
               />
-            )}
-          </SidebarInset>
-        </div>
+            </SidebarProvider>
+            <SidebarInset className="h-full min-h-0 min-w-0 overflow-hidden">
+              {!desktopNavigationOrigin ? (
+                <div className="canvas-host-toolbar">
+                  <HostIconButton
+                    icon={PanelLeftIcon}
+                    label={
+                      effectiveLeftSidebarOpen
+                        ? t("app.collapseArtifactSidebar")
+                        : t("app.expandArtifactSidebar")
+                    }
+                    onClick={() =>
+                      setEffectiveLeftSidebarOpen(!effectiveLeftSidebarOpen)
+                    }
+                    placement="toolbar"
+                    size="icon-sm"
+                    tone="neutral"
+                    variant="ghost"
+                  />
+                </div>
+              ) : null}
+              {activeHostMode === "create-artifact" ? (
+                <CreateArtifactSurface
+                  disabled={
+                    createArtifactJob !== null &&
+                    createArtifactJob.phase !== "failed"
+                  }
+                  draft={createArtifactDraft}
+                  onClearPending={clearCreateArtifactJob}
+                  onDraftChange={setCreateArtifactDraft}
+                  onSubmit={submitCreateArtifactPrompt}
+                  pending={
+                    createArtifactJob !== null &&
+                    createArtifactJob.phase !== "failed"
+                  }
+                  status={createArtifactStatus}
+                />
+              ) : (
+                <ArtifactSurface
+                  activeFilePath={resolvedActiveFilePath}
+                  blocks={activeArtifact?.blocks}
+                  artifactCount={artifacts.length}
+                  artifactRegistryVersion={artifactRegistryVersion}
+                  artifactsLoading={artifactsLoading}
+                  guardIssues={activeIssues}
+                  loadError={loadError}
+                />
+              )}
+            </SidebarInset>
+          </div>
+          {pendingDeleteArtifact ? (
+            <ArtifactDeleteDialog
+              artifact={pendingDeleteArtifact}
+              key={pendingDeleteArtifact.filePath}
+              onDelete={deleteExistingArtifact}
+              onDismiss={() => setPendingDeleteArtifact(null)}
+            />
+          ) : null}
+        </>
       </HostI18nProvider>
     </TooltipProvider>
   )
