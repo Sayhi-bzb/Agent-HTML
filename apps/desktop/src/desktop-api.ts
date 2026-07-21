@@ -19,8 +19,6 @@ export interface DesktopSnapshot {
   canvasTheme: CanvasThemeSnapshot | null
   preferences: DesktopPreferences
   recents: RecentWorkspace[]
-  version: string
-  logPath: string
 }
 
 export async function selectWorkspaceFolder(): Promise<string | null> {
@@ -37,9 +35,6 @@ export const desktopApi = {
   openWorkspace: (request: OpenWorkspaceRequest) =>
     invoke<RuntimeReady>("open_workspace", { request }),
   closeWorkspace: () => invoke<void>("close_workspace"),
-  savePreferences: (preferences: DesktopPreferences) =>
-    invoke<void>("save_preferences", { preferences }),
   saveCanvasTheme: (canvasTheme: CanvasThemeSnapshot) =>
     invoke<void>("save_canvas_theme", { canvasTheme }),
-  showLog: () => invoke<void>("show_runtime_log"),
 }

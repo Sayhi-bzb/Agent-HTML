@@ -23,8 +23,6 @@ struct DesktopSnapshot {
     canvas_theme: Option<CanvasThemeSnapshot>,
     preferences: Preferences,
     recents: Vec<RecentWorkspace>,
-    version: String,
-    log_path: String,
 }
 
 #[derive(Clone, Serialize)]
@@ -45,10 +43,7 @@ fn emit_workspace_progress(app: &AppHandle, status: &'static str, root: &Path) {
 }
 
 #[tauri::command]
-fn desktop_snapshot(
-    app: AppHandle,
-    store: State<'_, DesktopStore>,
-) -> Result<DesktopSnapshot, String> {
+fn desktop_snapshot(store: State<'_, DesktopStore>) -> Result<DesktopSnapshot, String> {
     let mut stored = store
         .0
         .lock()
@@ -58,8 +53,6 @@ fn desktop_snapshot(
         canvas_theme: stored.canvas_theme.clone(),
         preferences: stored.preferences.clone(),
         recents: stored.recents.clone(),
-        version: app.package_info().version.to_string(),
-        log_path: runtime::log_path(&app),
     })
 }
 
@@ -123,26 +116,6 @@ async fn close_workspace(runtime_state: State<'_, RuntimeState>) -> Result<(), D
     Ok(())
 }
 
-#[tauri::command]
-fn save_preferences(
-    app: AppHandle,
-    store: State<'_, DesktopStore>,
-    preferences: Preferences,
-) -> Result<(), String> {
-    let mut stored = store
-        .0
-        .lock()
-        .map_err(|_| "Desktop settings are unavailable")?;
-    stored.preferences = preferences;
-    preferences::save(&app, &stored)
-}
-
-#[tauri::command]
-fn show_runtime_log(app: AppHandle) -> Result<(), String> {
-    let path = runtime::log_path(&app);
-    open::that(path).map_err(|error| error.to_string())
-}
-
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -157,8 +130,6 @@ pub fn run() {
             desktop_snapshot,
             open_workspace,
             save_canvas_theme,
-            save_preferences,
-            show_runtime_log
         ])
         .build(tauri::generate_context!())
         .expect("failed to build AHTML Desktop")

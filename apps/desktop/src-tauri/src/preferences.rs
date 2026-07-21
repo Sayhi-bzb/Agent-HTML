@@ -99,8 +99,8 @@ mod tests {
     fn migrates_and_deduplicates_windows_verbatim_recents() {
         let mut state = StoredDesktopState {
             recents: vec![
-                recent(r"\\?\D:\new\tmp", 30),
-                recent(r"D:\new\tmp", 20),
+                recent(r"\\?\D:\new\tmp", 20),
+                recent(r"D:\new\tmp", 30),
                 recent(r"\\?\UNC\server\share\demo", 10),
             ],
             ..StoredDesktopState::default()
@@ -211,9 +211,6 @@ pub fn remember_workspace(state: &mut StoredDesktopState, root: &Path) {
 
 pub fn refresh_availability(state: &mut StoredDesktopState) {
     normalize_recents(state);
-    for recent in &mut state.recents {
-        recent.available = Path::new(&recent.path).join("agent-html").is_dir();
-    }
 }
 
 fn recent_path_identity(path: &str) -> String {
@@ -228,8 +225,16 @@ fn normalize_recents(state: &mut StoredDesktopState) -> bool {
     let mut changed = false;
     let mut seen = HashSet::new();
     let mut normalized = Vec::with_capacity(state.recents.len().min(12));
+    let mut recents = std::mem::take(&mut state.recents);
+    if recents
+        .windows(2)
+        .any(|pair| pair[0].last_opened_at < pair[1].last_opened_at)
+    {
+        recents.sort_by(|left, right| right.last_opened_at.cmp(&left.last_opened_at));
+        changed = true;
+    }
 
-    for mut recent in std::mem::take(&mut state.recents) {
+    for mut recent in recents {
         let path = workspace::user_facing_path(Path::new(&recent.path));
         if path != recent.path {
             recent.path = path;
@@ -243,6 +248,11 @@ fn normalize_recents(state: &mut StoredDesktopState) -> bool {
                 recent.name = name.to_string();
                 changed = true;
             }
+        }
+        let available = Path::new(&recent.path).join("agent-html").is_dir();
+        if available != recent.available {
+            recent.available = available;
+            changed = true;
         }
 
         if !seen.insert(recent_path_identity(&recent.path)) {

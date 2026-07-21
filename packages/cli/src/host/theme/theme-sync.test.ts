@@ -21,7 +21,7 @@ const snapshot: CanvasThemeSnapshot = {
 
 describe("canvas theme sync contract", () => {
   it("keeps the runtime protocol aligned with Canvas theme variables", () => {
-    expect(canvasThemeSyncVariableNames).toEqual(canvasThemeVariableNames)
+    expect(canvasThemeSyncVariableNames).toBe(canvasThemeVariableNames)
   })
 
   it("round-trips a canonical theme snapshot", () => {

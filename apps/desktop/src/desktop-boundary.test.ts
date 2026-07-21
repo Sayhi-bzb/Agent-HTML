@@ -58,4 +58,26 @@ describe("desktop package boundary", () => {
       ])
     )
   })
+
+  it("does not expose the removed settings surface or its IPC commands", () => {
+    const appSource = fs.readFileSync(path.join(appRoot, "src/App.tsx"), "utf8")
+    const apiSource = fs.readFileSync(
+      path.join(appRoot, "src/desktop-api.ts"),
+      "utf8"
+    )
+    const rustSource = fs.readFileSync(
+      path.join(appRoot, "src-tauri/src/lib.rs"),
+      "utf8"
+    )
+
+    for (const source of [appSource, apiSource, rustSource]) {
+      expect(source).not.toContain("save_preferences")
+      expect(source).not.toContain("show_runtime_log")
+    }
+    expect(appSource).not.toContain("SettingsDialog")
+    expect(apiSource).not.toContain("savePreferences")
+    expect(apiSource).not.toContain("showLog")
+    expect(apiSource).not.toContain("logPath")
+    expect(apiSource).not.toContain("version: string")
+  })
 })

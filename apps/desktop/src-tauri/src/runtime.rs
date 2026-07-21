@@ -874,13 +874,6 @@ pub async fn stop_runtime(state: &RuntimeState) {
     }
 }
 
-pub fn log_path(app: &AppHandle) -> String {
-    runtime_log_path(app, "runtime-start")
-        .ok()
-        .and_then(|path| child_path_argument(&path, "runtime-start").ok())
-        .unwrap_or_default()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

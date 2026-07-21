@@ -33,18 +33,3 @@ export function Status({
     </span>
   )
 }
-
-export function Field({
-  children,
-  label,
-}: {
-  children: ReactNode
-  label: string
-}) {
-  return (
-    <label className="desktop-field">
-      <span>{label}</span>
-      {children}
-    </label>
-  )
-}

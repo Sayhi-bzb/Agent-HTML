@@ -12,14 +12,8 @@ const uiSource = fs.readFileSync(path.resolve(import.meta.dirname, "ui.tsx"), "u
 const styles = fs.readFileSync(path.resolve(import.meta.dirname, "styles.css"), "utf8")
 
 describe("desktop accessibility contract", () => {
-  it("names frames, dialogs, icon-only controls, status, and recovery", () => {
+  it("names frames, icon-only controls, status, and recovery", () => {
     expect(appSource).toContain('title={`${title} Canvas`}')
-    expect(appSource).toContain("dialog?.showModal()")
-    expect(appSource).toContain("onCancel=")
-    expect(appSource).toContain("autoFocus")
-    expect(appSource).toContain('aria-label="Close settings"')
-    expect(appSource.match(/aria-label="Workspace settings"/g)).toHaveLength(1)
-    expect(appSource).toContain('className="desktop-home__settings"')
     expect(appSource).toContain('role="alert"')
     expect(uiSource).toContain('role="status"')
     expect(titleBarSource).toContain('aria-label="Application title bar"')
@@ -37,6 +31,9 @@ describe("desktop accessibility contract", () => {
     expect(appSource).not.toContain("Open a project. Shape the artifact.")
     expect(appSource).not.toContain("No recent projects yet.")
     expect(appSource).not.toContain('<Field label="Theme">')
+    expect(appSource).not.toContain("SettingsDialog")
+    expect(appSource).not.toContain("Workspace settings")
+    expect(appSource).not.toContain("desktop-dialog")
   })
 
   it("renders the ready Canvas without runtime-specific chrome", () => {

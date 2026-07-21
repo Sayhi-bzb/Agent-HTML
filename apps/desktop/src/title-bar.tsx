@@ -1,6 +1,7 @@
 import { Copy, Minus, Square, X } from "lucide-react"
 import { useEffect, useMemo, useState, type MouseEvent } from "react"
 
+import { agentHtmlBrandName } from "../../../packages/cli/src/shared/brand"
 import { AgentHtmlGhostIcon } from "../../../packages/cli/src/shared/brand-icons"
 import {
   createDesktopWindowControls,
@@ -149,7 +150,7 @@ export function DesktopTitleBar({
           aria-hidden="true"
           className="desktop-titlebar__brand-icon"
         />
-        <span className="desktop-titlebar__title">Agent-HTML</span>
+        <span className="desktop-titlebar__title">{agentHtmlBrandName}</span>
       </div>
       <div aria-hidden="true" className="desktop-titlebar__drag-space" />
       <div className="desktop-titlebar__controls">{windowActions}</div>

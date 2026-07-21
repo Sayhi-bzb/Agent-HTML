@@ -44,7 +44,7 @@ describe("desktop visual ownership", () => {
     const shadows = [...css.matchAll(/^\s*box-shadow:\s*([^;]+);/gm)].map(
       (match) => match[1]
     )
-    expect(shadows).toEqual(["var(--canvas-desktop-overlay-shadow)"])
+    expect(shadows).toEqual([])
   })
 
   it("consumes Canvas foundation without redefining semantic theme tokens", () => {
@@ -64,19 +64,24 @@ describe("desktop visual ownership", () => {
     expect(css).toContain(
       '@import "../../../agent-html/styles/foundation.css"'
     )
-    expect(css).toContain("--canvas-desktop-radius: var(--radius)")
     expect(css).toContain(
-      "--canvas-desktop-overlay-shadow: var(--shadow-2xl)"
+      '@import "../../../packages/cli/src/shared/brand.css"'
     )
+    expect(css).toContain("--canvas-desktop-radius: var(--radius)")
     expect(css).toContain("background: var(--primary)")
     expect(css).toContain("color: var(--primary-foreground)")
     expect(css).toMatch(
       /\.desktop-titlebar__control\[data-kind="close"\]:hover\s*\{[^}]*background: var\(--destructive\)[^}]*color: var\(--destructive-foreground\)/s
     )
     expect(css).not.toContain("packages/cli/src/host/styles")
-    expect(css).toMatch(
-      /\.desktop-dialog\s*\{[^}]*background: var\(--popover\)[^}]*color: var\(--popover-foreground\)/s
-    )
+    expect(css).not.toContain("desktop-dialog")
+    expect(css).not.toContain("--canvas-desktop-scrim")
+    expect(css).not.toContain("--canvas-desktop-overlay-shadow")
+    expect(css).toContain("font-size: var(--agent-html-brand-font-size)")
+    expect(css).toContain("height: var(--agent-html-brand-icon-size)")
+    expect(css).toContain("gap: var(--agent-html-brand-gap)")
+    expect(css).not.toMatch(/--canvas-desktop-titlebar-brand-[\w-]+\s*:/)
+    expect(css).not.toContain("--canvas-desktop-titlebar-title-font-size")
 
     for (const token of semanticTokenDefinitions) {
       expect(css).not.toMatch(

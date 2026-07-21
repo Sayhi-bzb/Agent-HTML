@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import * as React from "react"
 
+import { agentHtmlBrandName } from "../../shared/brand"
 import { artifactLabel } from "../api/api"
 import type { CodexThread } from "../api/api"
 import {
@@ -207,7 +208,7 @@ export function ReactCanvasSidebar({
                   className="canvas-sidebar-brand-icon"
                 />
                 <span className="canvas-sidebar-title min-w-0 truncate">
-                  Agent-HTML
+                  {agentHtmlBrandName}
                 </span>
               </div>
             </div>

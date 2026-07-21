@@ -226,6 +226,68 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(packageHostSurfaceStyles).not.toContain("touch-action:")
   })
 
+  it("shares product brand roles without exposing host chrome to Canvas", () => {
+    const brandStyles = readSource("packages/cli/src/shared/brand.css")
+    const packageHostStyles = readSource("packages/cli/src/host/styles.css")
+    const packageHostSidebarStyles = readSource(
+      "packages/cli/src/host/styles/sidebar.css"
+    )
+    const packageHostTokens = readSource(
+      "packages/cli/src/host/styles/tokens/host.css"
+    )
+    const playgroundFoundationEntry = readSource(
+      "agent-html/styles/foundation.css"
+    )
+    const playgroundSidebarPrimitive = readSource(
+      "agent-html/components/ui/sidebar.tsx"
+    )
+
+    expect(packageHostStyles).toContain('@import "../shared/brand.css"')
+    expect(brandStyles).toContain(
+      "--agent-html-brand-font-family: var(--font-sans)"
+    )
+    expect(brandStyles).toContain("--agent-html-brand-font-size: 1rem")
+    expect(brandStyles).toContain("--agent-html-brand-font-weight: 600")
+    expect(brandStyles).toContain("--agent-html-brand-line-height: 1.25")
+    expect(brandStyles).toContain(
+      "--agent-html-brand-letter-spacing: var(--tracking-normal)"
+    )
+    expect(brandStyles).toContain("--agent-html-brand-icon-size: 1.25rem")
+    expect(brandStyles).toContain("--agent-html-brand-gap: 0.5rem")
+    expect(packageHostSidebarStyles).toContain(
+      "font-family: var(--agent-html-brand-font-family)"
+    )
+    expect(packageHostSidebarStyles).toContain(
+      "font-size: var(--agent-html-brand-font-size)"
+    )
+    expect(packageHostSidebarStyles).toContain(
+      "font-weight: var(--agent-html-brand-font-weight)"
+    )
+    expect(packageHostSidebarStyles).toContain(
+      "letter-spacing: var(--agent-html-brand-letter-spacing)"
+    )
+    expect(packageHostSidebarStyles).toContain(
+      "line-height: var(--agent-html-brand-line-height)"
+    )
+    expect(packageHostSidebarStyles).toContain(
+      "height: var(--agent-html-brand-icon-size)"
+    )
+    expect(packageHostSidebarStyles).toContain(
+      "gap: var(--agent-html-brand-gap)"
+    )
+    expect(packageHostTokens).not.toContain("--canvas-sidebar-title-font-size")
+    expect(playgroundFoundationEntry).not.toContain("--agent-html-brand-")
+    expect(playgroundSidebarPrimitive).toContain(
+      "data-active:font-medium"
+    )
+    expect(playgroundSidebarPrimitive).toMatch(
+      /sidebarMenuButtonVariants = cva\([\s\S]*?\btext-sm\b/
+    )
+    expect(playgroundSidebarPrimitive).not.toContain(
+      "data-active:font-semibold"
+    )
+  })
+
   it("keeps material kits and internal styles scoped", () => {
     const playgroundArtifactTokens = readSource(
       "agent-html/styles/kits/artifact.css"

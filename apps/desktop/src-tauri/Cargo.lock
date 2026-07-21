@@ -22,7 +22,6 @@ name = "ahtml-desktop"
 version = "0.1.0"
 dependencies = [
  "libc",
- "open",
  "rand 0.8.7",
  "reqwest 0.12.28",
  "serde",
