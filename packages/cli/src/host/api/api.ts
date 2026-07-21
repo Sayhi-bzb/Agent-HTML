@@ -1,4 +1,6 @@
-import type { Artifact, CanvasDiagnostic } from "../host-contracts"
+import type { CanvasLayoutDocument } from "@agent-html/kernel"
+
+import type { Artifact, CanvasDiagnostic, CanvasEntry } from "../host-contracts"
 
 export type CodexThread = {
   createdAt?: string
@@ -16,6 +18,9 @@ export const hostApiRoutes = {
   artifactRename: "/__agent-html/artifact/rename",
   artifactTitle: "/__agent-html/artifact/title",
   artifacts: "/__agent-html/artifacts",
+  canvasBundle: "/__agent-html/canvas.js",
+  canvasLayout: "/__agent-html/canvas/layout",
+  canvases: "/__agent-html/canvases",
   blockImplementation: "/__agent-html/block-implementation",
   codexThreads: "/__agent-html/codex/threads",
   codexTranscript: "/__agent-html/codex/transcript",
@@ -112,6 +117,48 @@ export async function fetchArtifacts({
     status?: "checking" | "ready"
     version?: number
   }>(url)
+}
+
+export async function fetchCanvases({
+  refresh = false,
+}: {
+  refresh?: boolean
+} = {}) {
+  const url = refresh
+    ? `${hostApiRoutes.canvases}?refresh=1`
+    : hostApiRoutes.canvases
+
+  return fetchJson<{
+    canvases: CanvasEntry[]
+    status?: "checking" | "ready"
+    version?: number
+  }>(url)
+}
+
+export async function fetchCanvasLayout(filePath: string) {
+  const params = new URLSearchParams({ filePath })
+  return fetchJson<{
+    layout: CanvasLayoutDocument
+    layoutPath: string
+  }>(`${hostApiRoutes.canvasLayout}?${params}`)
+}
+
+export async function saveCanvasLayout({
+  filePath,
+  layout,
+}: {
+  filePath: string
+  layout: CanvasLayoutDocument
+}) {
+  const response = await fetch(hostApiRoutes.canvasLayout, {
+    body: JSON.stringify({ filePath, layout }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+  })
+  return readHostJsonResponse<{
+    layout: CanvasLayoutDocument
+    layoutPath: string
+  }>(response, hostApiRoutes.canvasLayout)
 }
 
 export async function fetchBlockImplementation({
@@ -235,6 +282,17 @@ export function artifactBundleUrl(
     v: String(version),
   })
   return `${hostApiRoutes.artifactBundle}?${params}`
+}
+
+export function canvasBundleUrl(
+  filePath: string,
+  version: string | number = 0
+) {
+  const params = new URLSearchParams({
+    filePath,
+    v: String(version),
+  })
+  return `${hostApiRoutes.canvasBundle}?${params}`
 }
 
 export function isArtifactBundleUrl(url: string) {

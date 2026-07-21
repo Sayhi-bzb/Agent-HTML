@@ -30,6 +30,23 @@ describe("Canvas sidebar composition", () => {
     expect(appSource).toContain("showArtifactSearchAction={")
     expect(appSource).toContain("window.parent === window")
     expect(appSource).toContain("isArtifactSearchShortcut(event)")
-    expect(appSource).toContain('onOpenArtifactSearch: () =>')
+    expect(appSource).toContain("onOpenArtifactSearch: () =>")
+  })
+
+  it("keeps only Gallery in the standard sidebar footer", () => {
+    expect(sidebarSource).toContain('label={t("sidebar.gallery")}')
+    expect(sidebarSource).not.toContain('label={t("sidebar.newArtifact")}')
+    expect(sidebarSource).not.toContain("canvas-sidebar-footer-icon-group")
+    expect(appSource).not.toContain("showFooterIconGroup={")
+    expect(appSource).toContain("onToggleThemeMode: () =>")
+    expect(appSource).toContain("onSetThemeMode: setActiveThemeMode")
+    expect(appSource).toContain("onSetLanguage: setActiveLanguage")
+  })
+
+  it("does not own Codex thread navigation", () => {
+    expect(sidebarSource).not.toContain("ReactCanvasCodexThreadSelect")
+    expect(sidebarSource).not.toContain("activeCodexThreadId")
+    expect(sidebarSource).not.toContain("onSelectCodexThread")
+    expect(appSource).toContain("<CodexThreadManagerSurface")
   })
 })

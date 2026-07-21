@@ -23,7 +23,7 @@ describe("desktop visual ownership", () => {
     }
   })
 
-  it("keeps structural values in owned tokens and borders behavior-only", () => {
+  it("keeps structural values in owned tokens and borders limited to menus", () => {
     const css = fs.readFileSync(path.join(sourceRoot, "styles.css"), "utf8")
     const borders = [...css.matchAll(/^\s*border:\s*([^;]+);/gm)].map(
       (match) => match[1]
@@ -32,7 +32,9 @@ describe("desktop visual ownership", () => {
       (match) => match[1]
     )
 
-    expect(borders.every((value) => value === "0")).toBe(true)
+    expect(borders.filter((value) => value !== "0")).toEqual([
+      "1px solid var(--input)",
+    ])
     expect(
       radii.every(
         (value) => value === "50%" || value === "var(--canvas-desktop-radius)"
@@ -75,7 +77,9 @@ describe("desktop visual ownership", () => {
     expect(css).not.toContain("desktop-dialog")
     expect(css).not.toContain("--canvas-desktop-scrim")
     expect(css).not.toContain("--canvas-desktop-overlay-shadow")
-    expect(css).toContain("font-size: var(--agent-html-brand-font-size)")
+    expect(css).toContain("font-size: clamp(2rem, 5vw, 3rem)")
+    expect(css).toContain("line-height: 1")
+    expect(css).toContain("height: 0.9em")
     expect(css).toContain("gap: var(--agent-html-brand-gap)")
     expect(css).not.toMatch(/--canvas-desktop-titlebar-brand-[\w-]+\s*:/)
     expect(css).not.toContain("--canvas-desktop-titlebar-title-font-size")

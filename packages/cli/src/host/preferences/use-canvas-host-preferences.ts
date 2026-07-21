@@ -8,7 +8,7 @@ import {
   type CanvasSidebarView,
 } from "./canvas-host-preferences"
 import type { CanvasThemePresetId } from "#agent-html-playground/theme/presets"
-import type { CanvasThemeEditorSectionId } from "../theme/theme-editor-sections"
+import type { CanvasThemeEditorSectionId } from "../theme/theme-editor-contract"
 
 export type CanvasHostPreferenceState = {
   activeCodexThreadId: string | null

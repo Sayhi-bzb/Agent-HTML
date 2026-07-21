@@ -32,14 +32,22 @@ describe("desktop accessibility contract", () => {
     expect(titleBarSource).toContain("aria-label={`Delete ${displayedTitle}`}")
     expect(titleBarSource).toContain('aria-label="Agent menu"')
     expect(titleBarSource).toContain('aria-keyshortcuts="Meta+K Control+K"')
-    expect(titleBarSource).toContain("Search Artifacts")
+    expect(titleBarSource).toContain("<span>Search</span>")
+    expect(titleBarSource).not.toContain("Search Artifacts")
+    expect(titleBarSource).not.toContain("<kbd")
     expect(titleBarSource).toContain("disabled={!onSearchArtifacts}")
+    expect(titleBarSource).toContain(
+      'title={activeCodexThreadLabel ?? "New thread"}'
+    )
   })
 
   it("keeps the workspace home concise and hides an empty recent list", () => {
-    expect(appSource).toContain("<h1>AHTML</h1>")
+    expect(appSource).toContain('<h1 className="desktop-home__brand">')
+    expect(appSource).toContain("<AgentHtmlGhostIcon")
+    expect(appSource).toContain("{agentHtmlBrandName}")
     expect(appSource).toContain("Open project")
     expect(appSource).toContain("Create workspace")
+    expect(appSource).not.toContain("Preparing ")
     expect(appSource).toContain("snapshot.recents.length > 0")
     expect(appSource).not.toContain("Artifact workbench")
     expect(appSource).not.toContain("Open a project. Shape the artifact.")
@@ -65,14 +73,80 @@ describe("desktop accessibility contract", () => {
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)")
   })
 
+  it("keeps project loading feedback inside stable control slots", () => {
+    expect(appSource).toContain("pendingWorkspaceAction")
+    expect(appSource).toContain("desktop-button__icon-slot")
+    expect(appSource).toContain("desktop-button__trailing-slot")
+    expect(appSource).toContain('className="desktop-spinner"')
+    expect(appSource).toContain("aria-busy={pendingWorkspaceAction")
+    expect(styles).toMatch(
+      /\.desktop-button__icon-slot,[\s\S]*\.desktop-button__trailing-slot\s*\{[^}]*height: 1\.0625rem[^}]*min-width: 1\.0625rem/s
+    )
+    expect(styles).toMatch(
+      /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.desktop-spinner\s*\{[^}]*animation: none/s
+    )
+  })
+
   it("routes Artifact search through the Ghost menu and global shortcut", () => {
     expect(appSource).toContain("isArtifactSearchShortcut(event)")
     expect(appSource).toContain('type: "open-artifact-search"')
     expect(appSource).toContain("onSearchArtifacts={() =>")
-    expect(titleBarSource).toContain("<Popover.Close asChild>")
-    expect(titleBarSource).toContain('platform === "macos" ? "⌘ K" : "Ctrl K"')
+    expect(titleBarSource).toContain("<DropdownMenu.Item")
+    expect(titleBarSource).not.toContain("shortcutLabel")
     expect(styles).toMatch(
-      /\.desktop-titlebar__agent-menu-action:hover:not\(:disabled\)\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
+      /\.desktop-titlebar__agent-menu-item\[data-highlighted\],[\s\S]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
+    )
+  })
+
+  it("organizes embedded Canvas utility actions as a standard menu", () => {
+    expect(titleBarSource).toContain("<DropdownMenu.Root>")
+    expect(titleBarSource).toContain("desktop-titlebar__agent-menu-separator")
+    expect(titleBarSource).toContain("<DropdownMenu.Sub>")
+    expect(titleBarSource).toContain("<DropdownMenu.RadioGroup")
+    expect(titleBarSource).toContain("<DropdownMenu.RadioItem")
+    expect(titleBarSource).not.toContain("<DropdownMenu.ItemIndicator>")
+    expect(titleBarSource).toContain('aria-label="Theme"')
+    expect(titleBarSource).toContain('aria-label="Language"')
+    expect(titleBarSource).toContain('href="https://agent-html.org/docs"')
+    expect(titleBarSource).toContain(
+      'href="https://github.com/Sayhi-bzb/Agent-HTML"'
+    )
+    expect(appSource).toContain('type: "set-theme-mode"')
+    expect(appSource).toContain('type: "set-language"')
+    expect(titleBarSource.indexOf("<span>Search</span>")).toBeLessThan(
+      titleBarSource.indexOf("<MessageSquareText")
+    )
+    expect(titleBarSource.indexOf("<MessageSquareText")).toBeLessThan(
+      titleBarSource.indexOf("<span>Theme</span>")
+    )
+    expect(titleBarSource.indexOf("<span>Theme</span>")).toBeLessThan(
+      titleBarSource.indexOf("<span>Language</span>")
+    )
+    expect(titleBarSource.indexOf("<span>Language</span>")).toBeLessThan(
+      titleBarSource.indexOf("<span>Documentation</span>")
+    )
+    expect(titleBarSource.indexOf("<span>Documentation</span>")).toBeLessThan(
+      titleBarSource.indexOf("<span>GitHub</span>")
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__agent-menu-separator\s*\{[^}]*background: var\(--border\)/s
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__agent-menu-item\s*\{[^}]*display: grid[^}]*min-height: 1\.75rem[^}]*width: 100%/s
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__agent-menu-content,\s*\.desktop-titlebar__agent-menu-subcontent\s*\{[^}]*border: 1px solid var\(--input\)[^}]*outline: none/s
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__agent-menu-radio-item\[data-state="checked"\]\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__agent-menu-radio-item\s*\{[^}]*grid-template-columns: minmax\(0, 1fr\)/s
+    )
+    expect(styles).not.toContain("desktop-titlebar__agent-menu-footer")
+    expect(styles).not.toContain("desktop-titlebar__agent-menu-icon-action")
+    expect(styles).not.toContain(
+      "desktop-titlebar__agent-menu-language-popover"
     )
   })
 
@@ -148,6 +222,10 @@ describe("desktop accessibility contract", () => {
       ".desktop-titlebar__artifact:hover .desktop-titlebar__artifact-close"
     )
     expect(styles).toContain(".desktop-titlebar__artifact-close:focus-visible")
+    expect(styles).toContain(
+      ".desktop-titlebar__artifact:hover .desktop-titlebar__thread-close"
+    )
+    expect(styles).toContain(".desktop-titlebar__thread-close:focus-visible")
     expect(styles).not.toContain(
       ".desktop-titlebar__artifact:focus-within .desktop-titlebar__artifact-close"
     )

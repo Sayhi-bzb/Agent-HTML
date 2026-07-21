@@ -1,8 +1,8 @@
 import type { Artifact } from "../host-contracts"
 import {
-  canvasThemeEditorSections,
+  isCanvasThemeEditorSectionId,
   type CanvasThemeEditorSectionId,
-} from "../theme/theme-editor-sections"
+} from "../theme/theme-editor-contract"
 import {
   canvasThemePresets,
   type CanvasThemePresetId,
@@ -77,12 +77,6 @@ function readSidebarView(value: unknown): CanvasSidebarView {
   return isSidebarView(value)
     ? value
     : defaultCanvasHostPreferences.activeSidebarView
-}
-
-function isThemeEditorSectionId(
-  value: unknown
-): value is CanvasThemeEditorSectionId {
-  return canvasThemeEditorSections.some((section) => section.id === value)
 }
 
 function isThemePresetId(value: unknown): value is CanvasThemePresetId {
@@ -232,7 +226,7 @@ export function readCanvasHostPreferences({
       ? stored.activeLanguage
       : defaultCanvasHostPreferences.activeLanguage,
     activeSidebarView: readSidebarView(stored.activeSidebarView),
-    activeThemeEditorSectionId: isThemeEditorSectionId(
+    activeThemeEditorSectionId: isCanvasThemeEditorSectionId(
       stored.activeThemeEditorSectionId
     )
       ? stored.activeThemeEditorSectionId
@@ -270,9 +264,7 @@ export function readCanvasMessageDraft({
   filePath: string
 }) {
   const preferences = readCanvasHostPreferences()
-  return (
-    preferences.messageDrafts[messageDraftKey({ blockId, filePath })] ?? ""
-  )
+  return preferences.messageDrafts[messageDraftKey({ blockId, filePath })] ?? ""
 }
 
 export function writeCanvasMessageDraft({

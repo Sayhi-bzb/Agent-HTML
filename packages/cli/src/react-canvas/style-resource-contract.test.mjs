@@ -264,19 +264,15 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(desktopStyles).toContain(
       "font-family: var(--agent-html-brand-font-family)"
     )
-    expect(desktopStyles).toContain(
-      "font-size: var(--agent-html-brand-font-size)"
-    )
+    expect(desktopStyles).toContain("font-size: clamp(2rem, 5vw, 3rem)")
     expect(desktopStyles).toContain(
       "font-weight: var(--agent-html-brand-font-weight)"
     )
     expect(desktopStyles).toContain(
       "letter-spacing: var(--agent-html-brand-letter-spacing)"
     )
-    expect(desktopStyles).toContain(
-      "line-height: var(--agent-html-brand-line-height)"
-    )
-    expect(desktopStyles).toContain("height: var(--agent-html-brand-icon-size)")
+    expect(desktopStyles).toContain("line-height: 1")
+    expect(desktopStyles).toContain("height: 0.9em")
     expect(desktopStyles).toContain("gap: var(--agent-html-brand-gap)")
     expect(packageHostSidebarStyles).not.toContain("--agent-html-brand-")
     expect(packageHostTokens).not.toContain("--canvas-sidebar-title-font-size")
@@ -480,5 +476,42 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(floatingPrompt).toContain("value: string")
     expect(floatingPrompt).toContain("onDraftChange: (draft: string) => void")
     expect(floatingPrompt).not.toContain('React.useState("")')
+  })
+
+  it("keeps Canvas drag chrome outside directly interactive Node content", () => {
+    const canvasStyles = readSource(
+      "packages/cli/src/host/styles/canvas.css"
+    )
+
+    expect(canvasStyles).toMatch(
+      /\.canvas-node-shell\s*\{[^}]*display: grid;[^}]*grid-template-rows: 22px minmax\(0, 1fr\);/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-node-drag-handle\s*\{[^}]*position: relative;/s
+    )
+    expect(canvasStyles).not.toMatch(
+      /\.canvas-node-drag-handle\s*\{[^}]*position: absolute;/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-node-content\s*\{[^}]*min-height: 0;/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-workspace \.react-flow__resize-control\.line\s*\{[^}]*z-index: 3;/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-workspace \.react-flow__resize-control\.handle\s*\{[^}]*z-index: 4;/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.left\s*\{[^}]*left: 8px;/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.right\s*\{[^}]*left: calc\(100% - 8px\);/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.top\s*\{[^}]*top: 8px;/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.bottom\s*\{[^}]*top: calc\(100% - 8px\);/s
+    )
   })
 })

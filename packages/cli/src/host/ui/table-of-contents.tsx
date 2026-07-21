@@ -1,15 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { ChevronDown, ListTree } from "lucide-react"
+import { ListTree } from "lucide-react"
 
-import { Button } from "#agent-html-playground/components/ui/button"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "#agent-html-playground/components/ui/collapsible"
-import { ScrollArea } from "#agent-html-playground/components/ui/scroll-area"
 import { Separator } from "#agent-html-playground/components/ui/separator"
 import { type TableOfContentsItem as TocItemData } from "./use-table-of-contents"
 import {
@@ -42,17 +35,10 @@ const tableOfContentsStyles = {
   separator: "mb-3 opacity-30",
   track: "text-muted-foreground/25",
   activeTrack: "text-foreground",
-  item:
-    "relative z-[1] block w-fit scroll-m-4 rounded-sm py-1 pr-2 text-[0.8125rem] leading-5 transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+  item: "relative z-[1] block w-fit scroll-m-4 rounded-sm py-1 pr-2 text-[0.8125rem] leading-5 transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
   itemActive: "text-foreground",
   itemTrail: "text-foreground",
   itemIdle: "text-muted-foreground/60 hover:text-muted-foreground",
-  mobileHeader: "border-b bg-background/80 backdrop-blur-sm transition-colors",
-  mobileHeaderOpen: "shadow-lg",
-  mobileButton:
-    "flex h-11 w-full items-center gap-2.5 px-4 py-2.5 text-start text-sm font-normal text-muted-foreground [&_svg]:size-4",
-  mobileScrollArea: "max-h-[50vh] px-4 pb-4",
-  mobileList: "pt-2 [&_a]:w-full [&_a]:py-2",
 }
 
 function useTableOfContentsContext() {
@@ -100,9 +86,7 @@ function TableOfContents({
         className={cn("relative w-full", className)}
         {...props}
       >
-        {children ?? (
-          <TableOfContentsContent />
-        )}
+        {children ?? <TableOfContentsContent />}
       </nav>
     </TableOfContentsContext.Provider>
   )
@@ -129,13 +113,7 @@ function TableOfContentsHeader({
   ...props
 }: TableOfContentsHeaderProps) {
   return (
-    <div
-      className={cn(
-        tableOfContentsStyles.header,
-        className
-      )}
-      {...props}
-    >
+    <div className={cn(tableOfContentsStyles.header, className)} {...props}>
       {children ?? (
         <>
           <TableOfContentsIcon className={tableOfContentsStyles.icon} />
@@ -423,11 +401,7 @@ function TableOfContentsList({
 
       <TableOfContentsItemGroup>
         {items.map((item, index) => (
-          <TableOfContentsItem
-            key={item.id}
-            item={item}
-            index={index}
-          />
+          <TableOfContentsItem key={item.id} item={item} index={index} />
         ))}
       </TableOfContentsItemGroup>
     </div>
@@ -497,235 +471,12 @@ function TableOfContentsItem({
   )
 }
 
-type TableOfContentsProgressProps = React.ComponentProps<"svg"> & {
-  value: number
-}
-
-function TableOfContentsProgress({
-  value,
-  className,
-  ...props
-}: TableOfContentsProgressProps) {
-  const strokeWidth = 2
-  const size = 16
-  const clamped = Math.min(1, Math.max(0, value))
-  const radius = (size - strokeWidth) / 2
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference - clamped * circumference
-
-  return (
-    <svg
-      role="progressbar"
-      viewBox={`0 0 ${size} ${size}`}
-      aria-valuenow={Math.round(clamped * 100)}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      className={cn("size-4 shrink-0", className)}
-      {...props}
-    >
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        strokeWidth={strokeWidth}
-        strokeDasharray="1 3"
-        strokeLinecap="round"
-        className="stroke-current/25"
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        strokeWidth={strokeWidth}
-        stroke="currentColor"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        className="transition-all duration-300"
-      />
-    </svg>
-  )
-}
-
-type TableOfContentsMobileProps = React.ComponentProps<"div"> & {
-  items: TocItemData[]
-  activeId?: string
-  onItemClick?: (id: string) => void
-  title?: string
-}
-
-function TableOfContentsMobile({
-  items,
-  activeId,
-  onItemClick,
-  title = "On this page",
-  className,
-  ...props
-}: TableOfContentsMobileProps) {
-  const [open, setOpen] = React.useState(false)
-  const mobileRef = React.useRef<HTMLDivElement>(null)
-
-  const activeIndex = activeId
-    ? items.findIndex((item) => item.id === activeId)
-    : -1
-  const activeItem = activeIndex >= 0 ? items[activeIndex] : undefined
-  const progress =
-    activeIndex >= 0 ? (activeIndex + 1) / Math.max(1, items.length) : 0
-  const showActiveTitle = activeIndex >= 0 && !open
-
-  const handleItemClick = React.useCallback(
-    (id: string) => {
-      onItemClick?.(id)
-      setOpen(false)
-    },
-    [onItemClick]
-  )
-
-  React.useEffect(() => {
-    if (!open) {
-      return
-    }
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target
-
-      if (
-        target instanceof HTMLElement &&
-        mobileRef.current &&
-        !mobileRef.current.contains(target)
-      ) {
-        setOpen(false)
-      }
-    }
-
-    window.addEventListener("click", handleClickOutside)
-
-    return () => window.removeEventListener("click", handleClickOutside)
-  }, [open])
-
-  const contextValue = React.useMemo(
-    () => ({
-      items,
-      activeId,
-      activeIndex,
-      onItemClick: handleItemClick,
-    }),
-    [items, activeId, activeIndex, handleItemClick]
-  )
-
-  return (
-    <TableOfContentsContext.Provider value={contextValue}>
-      <Collapsible
-        ref={mobileRef}
-        open={open}
-        onOpenChange={setOpen}
-        data-toc-mobile=""
-        className={cn("sticky top-0 z-10 lg:hidden", className)}
-        {...props}
-      >
-        <TableOfContentsMobileContent
-          activeItemTitle={activeItem?.title}
-          open={open}
-          progress={progress}
-          showActiveTitle={showActiveTitle}
-          title={title}
-        />
-      </Collapsible>
-    </TableOfContentsContext.Provider>
-  )
-}
-
-type TableOfContentsMobileContentProps = {
-  activeItemTitle?: string
-  open: boolean
-  progress: number
-  showActiveTitle: boolean
-  title: string
-}
-
-function TableOfContentsMobileContent({
-  activeItemTitle,
-  open,
-  progress,
-  showActiveTitle,
-  title,
-}: TableOfContentsMobileContentProps) {
-  return (
-    <header
-      className={cn(
-        tableOfContentsStyles.mobileHeader,
-        open && tableOfContentsStyles.mobileHeaderOpen
-      )}
-    >
-      <CollapsibleTrigger asChild>
-        <Button
-          variant="ghost"
-          aria-label={
-            activeItemTitle && !open
-              ? `${title}: ${activeItemTitle}`
-              : title
-          }
-          className={tableOfContentsStyles.mobileButton}
-        >
-          <TableOfContentsProgress
-            value={progress}
-            className={open ? "text-foreground" : undefined}
-          />
-          <span className="grid flex-1 *:col-start-1 *:row-start-1 *:my-auto">
-            <span
-              className={cn(
-                "truncate transition-[opacity,translate,color]",
-                open && "text-foreground",
-                showActiveTitle &&
-                  "pointer-events-none -translate-y-full opacity-0"
-              )}
-              aria-hidden={showActiveTitle}
-            >
-              {title}
-            </span>
-            <span
-              className={cn(
-                "truncate transition-[opacity,translate]",
-                !showActiveTitle &&
-                  "pointer-events-none translate-y-full opacity-0"
-              )}
-              aria-hidden={!showActiveTitle}
-            >
-              {activeItemTitle}
-            </span>
-          </span>
-          <ChevronDown
-            className={cn(
-              "mx-0.5 shrink-0 transition-transform",
-              open && "rotate-180"
-            )}
-          />
-        </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent data-toc-mobile-content="">
-        <div>
-          <ScrollArea className={tableOfContentsStyles.mobileScrollArea}>
-            <TableOfContentsList
-              className={tableOfContentsStyles.mobileList}
-            />
-          </ScrollArea>
-        </div>
-      </CollapsibleContent>
-    </header>
-  )
-}
-
 export {
   TableOfContents,
   TableOfContentsHeader,
   TableOfContentsIcon,
   TableOfContentsItem,
   TableOfContentsList,
-  TableOfContentsMobile,
-  TableOfContentsProgress,
 }
 
 export type { TableOfContentsItem as TocItem } from "./use-table-of-contents"

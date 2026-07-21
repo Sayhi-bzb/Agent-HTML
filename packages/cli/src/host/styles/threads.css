@@ -1,0 +1,154 @@
+@layer components {
+  .canvas-thread-manager {
+    overflow: auto;
+  }
+
+  .canvas-thread-manager-frame {
+    width: min(100%, 46rem);
+    margin-inline: auto;
+    padding: var(--canvas-surface-padding-block-start)
+      var(--canvas-surface-padding-inline)
+      var(--canvas-surface-padding-block-end);
+  }
+
+  .canvas-thread-manager-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block-end: 1.5rem;
+  }
+
+  .canvas-thread-manager-header h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .canvas-thread-manager-header p {
+    margin: 0.25rem 0 0;
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+  }
+
+  .canvas-thread-manager-spinner {
+    animation: canvas-thread-manager-spin 0.8s linear infinite;
+  }
+
+  .canvas-thread-manager-list {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .canvas-thread-manager-row {
+    display: grid;
+    grid-template-columns: 1rem minmax(0, 1fr) 1rem;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--foreground);
+    cursor: pointer;
+    text-align: start;
+  }
+
+  .canvas-thread-manager-row:hover,
+  .canvas-thread-manager-row:focus-visible {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  .canvas-thread-manager-row[data-active] {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+
+  .canvas-thread-manager-row-icon,
+  .canvas-thread-manager-row-check {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+    stroke-width: 1.75;
+  }
+
+  .canvas-thread-manager-row-content {
+    display: grid;
+    min-width: 0;
+    gap: 0.125rem;
+  }
+
+  .canvas-thread-manager-row-label,
+  .canvas-thread-manager-row-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .canvas-thread-manager-row-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .canvas-thread-manager-row-description {
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+  }
+
+  .canvas-thread-manager-row-check {
+    justify-self: end;
+  }
+
+  .canvas-thread-manager-error {
+    display: grid;
+    justify-items: start;
+    gap: 0.5rem;
+    margin-block-end: 1rem;
+    padding: 0.75rem;
+    border: 1px solid var(--destructive);
+    border-radius: var(--radius);
+    color: var(--destructive);
+  }
+
+  .canvas-thread-manager-error small {
+    overflow-wrap: anywhere;
+  }
+
+  .canvas-thread-manager-skeleton {
+    display: grid;
+    gap: 0.25rem;
+    margin-block-start: 0.25rem;
+  }
+
+  .canvas-thread-manager-skeleton span {
+    height: 2.75rem;
+    border-radius: var(--radius);
+    background: var(--muted);
+    opacity: 0.6;
+  }
+
+  .canvas-thread-manager-empty {
+    margin: 1rem 0 0;
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+    text-align: center;
+  }
+
+  @keyframes canvas-thread-manager-spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .canvas-thread-manager-spinner {
+      animation: none;
+    }
+  }
+}

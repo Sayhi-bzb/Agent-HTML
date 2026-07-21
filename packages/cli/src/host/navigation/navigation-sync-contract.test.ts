@@ -14,7 +14,9 @@ import {
 } from "./navigation-sync-contract"
 
 const snapshot: CanvasNavigationSnapshot = {
+  activeCodexThreadLabel: "Build navigation",
   activeFilePath: "agent-html/artifacts/one.artifact.tsx",
+  activeLanguage: "system",
   artifacts: [
     {
       filePath: "agent-html/artifacts/one.artifact.tsx",
@@ -22,6 +24,14 @@ const snapshot: CanvasNavigationSnapshot = {
     },
   ],
   artifactsLoading: false,
+  canvases: [
+    {
+      filePath: "agent-html/canvases/operations.canvas.tsx",
+      title: "Operations",
+    },
+  ],
+  canvasesLoading: false,
+  codexThreadManagerActive: false,
   createArtifactActive: false,
   leftSidebarOpen: true,
   version: canvasNavigationSnapshotVersion,
@@ -42,6 +52,14 @@ describe("Canvas navigation sync contract", () => {
         })
       )
     ).toBeNull()
+  })
+
+  it("accepts an active path from the published Canvas registry", () => {
+    const message = createCanvasNavigationSnapshotMessage({
+      ...snapshot,
+      activeFilePath: snapshot.canvases?.[0].filePath ?? null,
+    })
+    expect(readCanvasNavigationSnapshotMessage(message)).toEqual(message)
   })
 
   it("rejects duplicate Artifacts and malformed labels", () => {
@@ -73,11 +91,22 @@ describe("Canvas navigation sync contract", () => {
     for (const command of [
       { filePath: snapshot.artifacts[0].filePath, type: "select-artifact" },
       {
+        filePath: snapshot.canvases?.[0].filePath ?? "",
+        type: "select-canvas",
+      },
+      {
         filePath: snapshot.artifacts[0].filePath,
         type: "request-delete-artifact",
       },
       { type: "create-artifact" },
+      { type: "open-codex-thread-manager" },
+      { type: "close-codex-thread-manager" },
       { type: "open-artifact-search" },
+      { mode: "system", type: "set-theme-mode" },
+      { mode: "light", type: "set-theme-mode" },
+      { mode: "dark", type: "set-theme-mode" },
+      { type: "toggle-theme-mode" },
+      { language: "zh", type: "set-language" },
       { open: false, type: "set-sidebar-open" },
       {
         filePath: snapshot.artifacts[0].filePath,
@@ -150,6 +179,20 @@ describe("Canvas navigation sync contract", () => {
     ).toBeNull()
     expect(
       readCanvasNavigationCommandMessage({
+        command: { language: "fr", type: "set-language" },
+        type: "agent-html:canvas-navigation-command",
+        version: canvasNavigationSnapshotVersion,
+      })
+    ).toBeNull()
+    expect(
+      readCanvasNavigationCommandMessage({
+        command: { mode: "sepia", type: "set-theme-mode" },
+        type: "agent-html:canvas-navigation-command",
+        version: canvasNavigationSnapshotVersion,
+      })
+    ).toBeNull()
+    expect(
+      readCanvasNavigationCommandMessage({
         command: { open: "yes", type: "set-sidebar-open" },
         type: "agent-html:canvas-navigation-command",
         version: canvasNavigationSnapshotVersion,
@@ -164,6 +207,21 @@ describe("Canvas navigation sync contract", () => {
       readCanvasNavigationRequestMessage({
         ...createCanvasNavigationRequestMessage("desktop-navigation-request-1"),
         version: 2,
+      })
+    ).toBeNull()
+  })
+
+  it("rejects malformed thread manager snapshot state", () => {
+    expect(
+      readCanvasNavigationSnapshotMessage({
+        snapshot: { ...snapshot, activeCodexThreadLabel: " " },
+        type: "agent-html:canvas-navigation-snapshot",
+      })
+    ).toBeNull()
+    expect(
+      readCanvasNavigationSnapshotMessage({
+        snapshot: { ...snapshot, codexThreadManagerActive: "yes" },
+        type: "agent-html:canvas-navigation-snapshot",
       })
     ).toBeNull()
   })

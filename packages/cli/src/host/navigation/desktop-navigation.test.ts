@@ -16,21 +16,73 @@ import {
 describe("Canvas Desktop navigation bridge", () => {
   it("maps commands to existing Canvas actions and rejects missing Artifacts", () => {
     const onCreateArtifact = vi.fn()
+    const onCloseCodexThreadManager = vi.fn()
     const onOpenArtifactSearch = vi.fn()
+    const onOpenCodexThreadManager = vi.fn()
     const onRequestDeleteArtifact = vi.fn()
     const onRenameArtifactTitle = vi.fn()
     const onSelectArtifact = vi.fn()
+    const onSelectCanvas = vi.fn()
+    const onSetLanguage = vi.fn()
     const onSetSidebarOpen = vi.fn()
+    const onSetThemeMode = vi.fn()
+    const onToggleThemeMode = vi.fn()
     const options = {
       artifactFilePaths: ["agent-html/artifacts/one.artifact.tsx"],
+      canvasFilePaths: ["agent-html/canvases/operations.canvas.tsx"],
+      onCloseCodexThreadManager,
       onCreateArtifact,
       onOpenArtifactSearch,
+      onOpenCodexThreadManager,
       onRequestDeleteArtifact,
       onRenameArtifactTitle,
       onSelectArtifact,
+      onSelectCanvas,
+      onSetLanguage,
       onSetSidebarOpen,
+      onSetThemeMode,
+      onToggleThemeMode,
     }
 
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { type: "open-codex-thread-manager" },
+      })
+    ).toBe(true)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { type: "close-codex-thread-manager" },
+      })
+    ).toBe(true)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { type: "toggle-theme-mode" },
+      })
+    ).toBe(true)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { mode: "system", type: "set-theme-mode" },
+      })
+    ).toBe(true)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: {
+          filePath: "agent-html/canvases/operations.canvas.tsx",
+          type: "select-canvas",
+        },
+      })
+    ).toBe(true)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { language: "zh", type: "set-language" },
+      })
+    ).toBe(true)
     expect(
       applyCanvasNavigationCommand({
         ...options,
@@ -98,7 +150,12 @@ describe("Canvas Desktop navigation bridge", () => {
     ).toBe(false)
 
     expect(onCreateArtifact).toHaveBeenCalledOnce()
+    expect(onOpenCodexThreadManager).toHaveBeenCalledOnce()
+    expect(onCloseCodexThreadManager).toHaveBeenCalledOnce()
     expect(onOpenArtifactSearch).toHaveBeenCalledOnce()
+    expect(onToggleThemeMode).toHaveBeenCalledOnce()
+    expect(onSetThemeMode).toHaveBeenCalledWith("system")
+    expect(onSetLanguage).toHaveBeenCalledWith("zh")
     expect(onRequestDeleteArtifact).toHaveBeenCalledOnce()
     expect(onRenameArtifactTitle).toHaveBeenCalledWith({
       filePath: "agent-html/artifacts/one.artifact.tsx",
@@ -111,6 +168,9 @@ describe("Canvas Desktop navigation bridge", () => {
     )
     expect(onSetSidebarOpen).toHaveBeenCalledWith(false)
     expect(onSelectArtifact).toHaveBeenCalledOnce()
+    expect(onSelectCanvas).toHaveBeenCalledWith(
+      "agent-html/canvases/operations.canvas.tsx"
+    )
   })
 
   it("publishes title rename results to the exact target origin", () => {

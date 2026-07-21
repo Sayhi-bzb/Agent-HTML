@@ -68,6 +68,7 @@
     "@visx/vendor": "^4.0.0-alpha.0",
     "@visx/xychart": "^4.0.1-alpha.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "@xyflow/react": "^12.11.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

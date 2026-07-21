@@ -1,0 +1,183 @@
+.canvas-surface-root--infinite {
+  position: relative;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.canvas-workspace,
+.canvas-workspace > .react-flow {
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-workspace {
+  --canvas-grid-dot: color-mix(in srgb, var(--foreground) 18%, transparent);
+  --xy-background-color: var(--background);
+  --xy-edge-stroke: color-mix(in srgb, var(--foreground) 32%, transparent);
+  --xy-edge-stroke-selected: var(--ring);
+  --xy-controls-button-background-color: color-mix(
+    in srgb,
+    var(--background) 92%,
+    transparent
+  );
+  --xy-controls-button-background-color-hover: var(--accent);
+  --xy-controls-button-color: var(--foreground);
+  --xy-controls-button-border-color: var(--border);
+}
+
+.canvas-node-shell {
+  position: relative;
+  display: grid;
+  grid-template-rows: 22px minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-radius: 12px;
+  background: var(--background);
+  box-shadow: 0 10px 30px color-mix(in srgb, black 8%, transparent);
+}
+
+.canvas-node-shell[data-selected] {
+  border-color: color-mix(in srgb, var(--ring) 72%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ring) 24%, transparent),
+    0 12px 34px color-mix(in srgb, black 10%, transparent);
+}
+
+.canvas-node-drag-handle {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 22px;
+  align-items: center;
+  padding: 0 9px;
+  cursor: grab;
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+  background: color-mix(in srgb, var(--background) 84%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  backdrop-filter: blur(10px);
+}
+
+.canvas-node-shell:hover .canvas-node-drag-handle,
+.canvas-node-shell[data-selected] .canvas-node-drag-handle {
+  opacity: 1;
+}
+
+.canvas-node-drag-handle:active {
+  cursor: grabbing;
+}
+
+.canvas-node-drag-handle span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.canvas-node-content {
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.canvas-node-handle {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--background);
+  background: color-mix(in srgb, var(--foreground) 48%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.canvas-node-shell:hover .canvas-node-handle,
+.canvas-node-shell[data-selected] .canvas-node-handle {
+  opacity: 1;
+}
+
+.canvas-workspace .react-flow__resize-control.line {
+  z-index: 3;
+  border-color: var(--ring);
+}
+
+.canvas-workspace .react-flow__resize-control.handle {
+  z-index: 4;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--background);
+  border-radius: 999px;
+  background: var(--ring);
+}
+
+.canvas-workspace .canvas-node-shell .react-flow__resize-control.handle.left {
+  left: 8px;
+}
+
+.canvas-workspace .canvas-node-shell .react-flow__resize-control.handle.right {
+  left: calc(100% - 8px);
+}
+
+.canvas-workspace .canvas-node-shell .react-flow__resize-control.handle.top {
+  top: 8px;
+}
+
+.canvas-workspace .canvas-node-shell .react-flow__resize-control.handle.bottom {
+  top: calc(100% - 8px);
+}
+
+.canvas-workspace .react-flow__controls {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent);
+}
+
+.canvas-persist-error {
+  position: absolute;
+  z-index: 20;
+  top: 12px;
+  left: 50%;
+  max-width: min(520px, calc(100% - 24px));
+  padding: 8px 12px;
+  transform: translateX(-50%);
+  border: 1px solid color-mix(in srgb, var(--destructive) 35%, transparent);
+  border-radius: 8px;
+  color: var(--destructive);
+  background: color-mix(in srgb, var(--background) 94%, transparent);
+  font-size: 12px;
+  box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.canvas-surface-status {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  place-content: center;
+  gap: 6px;
+  padding: 24px;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.canvas-surface-status strong {
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.canvas-surface-status span {
+  max-width: 560px;
+  font-size: 12px;
+}
+
+.canvas-surface-status--error span {
+  color: var(--destructive);
+}

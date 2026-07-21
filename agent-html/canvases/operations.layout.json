@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "nodes": {
+    "planning-space": {
+      "x": 0,
+      "y": 0,
+      "width": 920,
+      "height": 610
+    },
+    "intake": {
+      "x": 28,
+      "y": 68,
+      "width": 360,
+      "height": 500
+    },
+    "activity": {
+      "x": 416,
+      "y": 68,
+      "width": 476,
+      "height": 500
+    },
+    "throughput": {
+      "x": 1040,
+      "y": 40,
+      "width": 560,
+      "height": 390
+    },
+    "decision": {
+      "x": 1700,
+      "y": 112,
+      "width": 380,
+      "height": 260
+    }
+  }
+}

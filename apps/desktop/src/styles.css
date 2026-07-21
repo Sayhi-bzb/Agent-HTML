@@ -66,6 +66,10 @@ body {
   grid-template-columns: minmax(0, 1fr) minmax(1rem, 0.15fr) auto auto;
 }
 
+.desktop-titlebar[data-navigation="home"] {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .desktop-titlebar__brand {
   align-items: center;
   display: flex;
@@ -77,17 +81,6 @@ body {
 .desktop-titlebar__brand--compact {
   justify-content: center;
   padding-inline: var(--canvas-desktop-space-2);
-}
-
-.desktop-titlebar__title {
-  font-family: var(--agent-html-brand-font-family);
-  font-size: var(--agent-html-brand-font-size);
-  font-weight: var(--agent-html-brand-font-weight);
-  letter-spacing: var(--agent-html-brand-letter-spacing);
-  line-height: var(--agent-html-brand-line-height);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .desktop-titlebar__drag-space {
@@ -178,7 +171,8 @@ body {
 
 .desktop-titlebar__context-menu,
 .desktop-titlebar__rename-error,
-.desktop-titlebar__agent-menu-popover {
+.desktop-titlebar__agent-menu-content,
+.desktop-titlebar__agent-menu-subcontent {
   background: var(--popover);
   border: 0;
   border-radius: var(--canvas-desktop-radius);
@@ -216,46 +210,77 @@ body {
   padding: var(--canvas-desktop-space-1) var(--canvas-desktop-space-2);
 }
 
-.desktop-titlebar__agent-menu-popover {
+.desktop-titlebar__agent-menu-content {
   padding: 0.25rem;
   width: 12rem;
 }
 
-.desktop-titlebar__agent-menu-action {
+.desktop-titlebar__agent-menu-content,
+.desktop-titlebar__agent-menu-subcontent {
+  border: 1px solid var(--input);
+  outline: none;
+}
+
+.desktop-titlebar__agent-menu-subcontent {
+  min-width: 8.5rem;
+  padding: 0.25rem;
+}
+
+.desktop-titlebar__agent-menu-separator {
+  background: var(--border);
+  height: 1px;
+  margin-block: 0.25rem;
+}
+
+.desktop-titlebar__agent-menu-item {
   align-items: center;
   background: transparent;
   border-radius: var(--canvas-desktop-radius);
   color: var(--popover-foreground);
   cursor: pointer;
-  display: flex;
+  display: grid;
   gap: var(--canvas-desktop-space-2);
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
   min-height: 1.75rem;
+  outline: none;
   padding-inline: var(--canvas-desktop-space-2);
-  text-align: start;
+  text-decoration: none;
+  user-select: none;
   width: 100%;
 }
 
-.desktop-titlebar__agent-menu-action svg {
-  flex: 0 0 auto;
+.desktop-titlebar__agent-menu-item svg {
   height: 1rem;
   stroke-width: 1.75;
   width: 1rem;
 }
 
-.desktop-titlebar__agent-menu-action kbd {
-  color: var(--muted-foreground);
-  font-family: var(--font-mono);
-  margin-inline-start: auto;
+.desktop-titlebar__agent-menu-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.desktop-titlebar__agent-menu-action:hover:not(:disabled) {
+.desktop-titlebar__agent-menu-item[data-highlighted],
+.desktop-titlebar__agent-menu-item[data-state="open"],
+.desktop-titlebar__agent-menu-radio-item[data-state="checked"] {
   background: var(--accent);
   color: var(--accent-foreground);
 }
 
-.desktop-titlebar__agent-menu-action:disabled {
+.desktop-titlebar__agent-menu-item[data-disabled] {
   cursor: default;
   opacity: 0.45;
+}
+
+.desktop-titlebar__agent-menu-radio-item {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.desktop-titlebar__agent-menu-chevron {
+  color: var(--muted-foreground);
+  justify-self: end;
 }
 
 .desktop-titlebar__artifact-close {
@@ -289,6 +314,41 @@ body {
 .desktop-titlebar__artifact-close:hover {
   background: var(--destructive);
   color: var(--destructive-foreground);
+}
+
+.desktop-titlebar__thread-close {
+  align-items: center;
+  background: transparent;
+  border-radius: var(--canvas-desktop-radius);
+  color: currentColor;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 1.5rem;
+  justify-content: center;
+  margin-inline-end: var(--canvas-desktop-space-1);
+  opacity: 0;
+  padding: 0;
+  pointer-events: none;
+  width: 1.5rem;
+}
+
+.desktop-titlebar__thread-close svg {
+  height: 0.75rem;
+  stroke-width: 2;
+  width: 0.75rem;
+}
+
+.desktop-titlebar__artifact:hover .desktop-titlebar__thread-close,
+.desktop-titlebar__thread-close:focus-visible,
+.desktop-titlebar__artifact:focus-within .desktop-titlebar__thread-close {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.desktop-titlebar__thread-close:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 
 .desktop-titlebar__navigation-action {
@@ -357,7 +417,7 @@ body {
 
 .desktop-titlebar__artifact-label:focus-visible,
 .desktop-titlebar__artifact-close:focus-visible,
-.desktop-titlebar__agent-menu-action:focus-visible,
+.desktop-titlebar__thread-close:focus-visible,
 .desktop-titlebar__navigation-action:focus-visible,
 .desktop-titlebar__control:focus-visible {
   outline-offset: -0.15rem;
@@ -401,6 +461,10 @@ body {
 
 .desktop-titlebar[data-navigation="workspace"][data-platform="macos"] {
   grid-template-columns: auto minmax(0, 1fr) minmax(1rem, 0.15fr) auto;
+}
+
+.desktop-titlebar[data-navigation="home"][data-platform="macos"] {
+  grid-template-columns: auto minmax(0, 1fr);
 }
 
 .desktop-titlebar[data-platform="macos"] .desktop-titlebar__controls {
@@ -474,11 +538,23 @@ code {
   gap: var(--canvas-desktop-space-2);
 }
 
-.desktop-home__heading h1 {
+.desktop-home__brand {
+  align-items: center;
+  display: flex;
+  font-family: var(--agent-html-brand-font-family);
   font-size: clamp(2rem, 5vw, 3rem);
-  letter-spacing: -0.045em;
+  font-weight: var(--agent-html-brand-font-weight);
+  gap: var(--agent-html-brand-gap);
+  letter-spacing: var(--agent-html-brand-letter-spacing);
   line-height: 1;
   margin: 0;
+}
+
+.desktop-home__brand svg {
+  flex: 0 0 auto;
+  height: 0.9em;
+  stroke-width: 1.75;
+  width: 0.9em;
 }
 
 .desktop-home__heading p,
@@ -538,6 +614,32 @@ code {
   opacity: 0.45;
 }
 
+.desktop-button__icon-slot,
+.desktop-button__trailing-slot {
+  align-items: center;
+  display: inline-grid;
+  flex: 0 0 auto;
+  height: 1.0625rem;
+  justify-items: center;
+  min-width: 1.0625rem;
+}
+
+.desktop-button__icon-slot svg,
+.desktop-button__trailing-slot svg {
+  height: 1.0625rem;
+  width: 1.0625rem;
+}
+
+.desktop-spinner {
+  animation: desktop-spinner 0.8s linear infinite;
+}
+
+@keyframes desktop-spinner {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 .desktop-status {
   align-items: center;
   color: var(--muted-foreground);
@@ -583,9 +685,13 @@ code {
   width: 100%;
 }
 
-.desktop-recents .desktop-button span {
+.desktop-recents .desktop-button > span:first-child {
   display: grid;
   gap: 0.12rem;
+}
+
+.desktop-recents .desktop-button__trailing-slot {
+  margin-inline-start: var(--canvas-desktop-space-2);
 }
 
 .desktop-recents small {
@@ -613,6 +719,10 @@ code {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .desktop-spinner {
+    animation: none;
   }
 }
 

@@ -20,7 +20,10 @@ export type ArtifactStateChange = {
   timestamp: number
 }
 
-export type ArtifactStateChangeInput = Omit<ArtifactStateChange, "timestamp"> & {
+export type ArtifactStateChangeInput = Omit<
+  ArtifactStateChange,
+  "timestamp"
+> & {
   timestamp?: number
 }
 
@@ -46,6 +49,18 @@ export type NormalizedArtifactDefinition = {
   title: string
 }
 
+export type CanvasNodeGeometry = {
+  height: number
+  width: number
+  x: number
+  y: number
+}
+
+export type CanvasLayoutDocument = {
+  nodes: Record<string, CanvasNodeGeometry>
+  version: 1
+}
+
 export type KernelDiagnostic = {
   category: "dependency" | "manifest" | "protocol" | "style" | "workspace"
   code: string
@@ -58,11 +73,14 @@ export type KernelDiagnostic = {
 }
 
 export const CANVAS_POLICY_VERSION: number
+export const CANVAS_LAYOUT_VERSION: 1
 export const canvasInteractionEventName: string
 export const canvasDomAttributes: Readonly<Record<string, string>>
 export const canvasDiagnosticCategories: Readonly<Record<string, string>>
 export const canvasDiagnosticCodes: Readonly<Record<string, string>>
-export const canvasSourceLayers: ReadonlyArray<Readonly<{ name: string; path: string }>>
+export const canvasSourceLayers: ReadonlyArray<
+  Readonly<{ name: string; path: string }>
+>
 export const canvasRuntimeCatalog: Readonly<Record<string, string>>
 export const canvasRuntimeDependencyNames: readonly string[]
 export function canvasWorkspaceDependenciesMatchCatalog(
@@ -75,3 +93,5 @@ export function titleizeBlockId(id: string): string
 export function normalizeArtifactDefinition(
   definition: ArtifactDefinition
 ): NormalizedArtifactDefinition
+export function createEmptyCanvasLayout(): CanvasLayoutDocument
+export function normalizeCanvasLayout(value: unknown): CanvasLayoutDocument

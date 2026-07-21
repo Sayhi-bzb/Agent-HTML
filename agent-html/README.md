@@ -2,8 +2,7 @@
 
 `agent-html` is a portable Canvas source workspace. It contains durable artifact source, local primitives, styles, public static files, and source dependency metadata. It does not contain runtime install artifacts.
 
-The Agent HTML CLI supplies dependencies declared in `package.json`; do not
-install dependencies inside this directory.
+The Agent HTML CLI supplies dependencies declared in `package.json`; do not install dependencies inside this directory.
 
 ## Read Route
 
@@ -16,6 +15,12 @@ When authoring an artifact:
 
 - `artifacts/README.md`
 - `TASTE.md` for artifact composition and visual judgment.
+
+When authoring an infinite Canvas:
+
+- `../INFINITE_CANVAS_DESIGN.md`
+- `canvases/*.canvas.tsx` for Node/Edge intent
+- the colocated `*.layout.json` is machine-managed geometry
 
 When using or changing primitives, hooks, helpers, or theme exports:
 

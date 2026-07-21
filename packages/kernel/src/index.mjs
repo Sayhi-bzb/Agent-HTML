@@ -1,18 +1,20 @@
+export { normalizeArtifactDefinition, titleizeBlockId } from "./artifact.mjs"
 export {
-  normalizeArtifactDefinition,
-  titleizeBlockId
-} from "./artifact.mjs"
+  CANVAS_LAYOUT_VERSION,
+  createEmptyCanvasLayout,
+  normalizeCanvasLayout,
+} from "./canvas.mjs"
 export {
   CANVAS_POLICY_VERSION,
   canvasDiagnosticCategories,
   canvasDiagnosticCodes,
   canvasDomAttributes,
   canvasInteractionEventName,
-  canvasSourceLayers
+  canvasSourceLayers,
 } from "./policy.mjs"
 export {
   canvasRuntimeCatalog,
   canvasRuntimeDependencyNames,
   canvasRuntimeProviderMatchesCatalog,
-  canvasWorkspaceDependenciesMatchCatalog
+  canvasWorkspaceDependenciesMatchCatalog,
 } from "./runtime-catalog.mjs"

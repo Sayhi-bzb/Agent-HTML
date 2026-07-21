@@ -86,9 +86,7 @@ describe("create artifact workflow state", () => {
       job: { error: "Timed out", phase: "failed" },
       status: { kind: "failed", message: "Timed out" },
     })
-    expect(
-      reduceCreateArtifactWorkflow(failed, { type: "ready" })
-    ).toBe(failed)
+    expect(reduceCreateArtifactWorkflow(failed, { type: "ready" })).toBe(failed)
   })
 
   it("translates semantic status at render time", () => {

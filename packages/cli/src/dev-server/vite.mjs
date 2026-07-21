@@ -29,6 +29,7 @@ import { resolveBlockImplementationPath } from "../react-canvas/block-implementa
 
 export const hostEntryModulePath = "/__agent-html/host-entry.js"
 export const artifactEntryModulePath = "/__agent-html/vite-artifact-entry.js"
+export const canvasEntryModulePath = "/__agent-html/vite-canvas-entry.js"
 
 export function toViteFsPath(filePath) {
   return `/@fs/${path.resolve(filePath).replaceAll(path.sep, "/")}`
@@ -186,14 +187,36 @@ export function cacheDirForRoot(
   const cacheKey = createHash("sha256").update(identity).digest("hex")
   const manifestPath = process.env.AGENT_HTML_RUNTIME_MANIFEST
   const selectedRuntimeRoot = manifestPath && path.dirname(manifestPath)
-  const selectedRuntimesRoot = selectedRuntimeRoot && path.dirname(selectedRuntimeRoot)
-  const selectedStoreRoot = selectedRuntimesRoot && path.dirname(selectedRuntimesRoot)
+  const selectedRuntimesRoot =
+    selectedRuntimeRoot && path.dirname(selectedRuntimeRoot)
+  const selectedStoreRoot =
+    selectedRuntimesRoot && path.dirname(selectedRuntimesRoot)
   const isSelectedRuntime =
     selectedRuntimesRoot && path.basename(selectedRuntimesRoot) === "runtimes"
   const cacheHome =
     process.env.AGENT_HTML_RUNTIME_CACHE_HOME ||
     (isSelectedRuntime ? path.join(selectedStoreRoot, "cache") : os.tmpdir())
   return path.join(cacheHome, "agent-html-vite-v6", cacheKey)
+}
+
+export function createCanvasEntryModule({ filePath, root, version = 0 }) {
+  const absolutePath = path.resolve(root, filePath)
+  const canvasesRoot = path.resolve(root, "agent-html", "canvases")
+  const relativePath = path.relative(canvasesRoot, absolutePath)
+  if (
+    !relativePath ||
+    relativePath.startsWith("..") ||
+    path.isAbsolute(relativePath) ||
+    !absolutePath.endsWith(".canvas.tsx")
+  ) {
+    throw new Error(
+      "Canvas file must be an agent-html/canvases/**/*.canvas.tsx file"
+    )
+  }
+  const sourceUrl = `${toViteFsPath(absolutePath)}?v=${encodeURIComponent(
+    String(version)
+  )}`
+  return `export { default } from ${JSON.stringify(sourceUrl)}\n`
 }
 
 const optimizedDependencyCachePattern =
@@ -312,7 +335,8 @@ function runtimePackageAsset(specifier) {
   const packageName = packageNameFromImport(specifier)
   const packageRoot = packageName && runtimePackageRoot(packageName)
   if (!packageRoot) return null
-  const subpath = specifier === packageName ? "" : specifier.slice(packageName.length + 1)
+  const subpath =
+    specifier === packageName ? "" : specifier.slice(packageName.length + 1)
   const manifest = JSON.parse(
     readFileSync(path.join(packageRoot, "package.json"), "utf8")
   )
@@ -347,7 +371,9 @@ export function createPlaygroundDependencyResolver(
   }
   const dependencyNames = new Set(runtimeContract.canvasDependencies)
   if (
-    canvasRuntimeDependencyNames.some((dependencyName) => !dependencyNames.has(dependencyName)) ||
+    canvasRuntimeDependencyNames.some(
+      (dependencyName) => !dependencyNames.has(dependencyName)
+    ) ||
     dependencyNames.size !== canvasRuntimeDependencyNames.length
   ) {
     throw new Error(
@@ -401,7 +427,8 @@ export function createPlaygroundOptimizeDepsInclude(
   runtimeContract = readRuntimeDependencyContract()
 ) {
   return runtimeContract.browserEntries.filter(
-    (specifier) => !canonicalRendererPackages.has(packageNameFromImport(specifier))
+    (specifier) =>
+      !canonicalRendererPackages.has(packageNameFromImport(specifier))
   )
 }
 
@@ -410,12 +437,11 @@ export function createPlaygroundDependencyAliases(
 ) {
   return [...runtimeContract.browserEntries, ...runtimeContract.styleEntries]
     .filter(
-      (specifier) => !canonicalRendererPackages.has(packageNameFromImport(specifier))
+      (specifier) =>
+        !canonicalRendererPackages.has(packageNameFromImport(specifier))
     )
     .map((specifier) => ({
-      find: new RegExp(
-        `^${specifier.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&")}$`
-      ),
+      find: new RegExp(`^${specifier.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&")}$`),
       replacement: resolvePackageImportModule(specifier),
     }))
 }
@@ -469,7 +495,8 @@ async function isOptimizedDependencyCacheReady(cacheDir, runtimeContract) {
 }
 
 async function acquireOptimizedDependencyCache(cacheDir, runtimeContract) {
-  if (await isOptimizedDependencyCacheReady(cacheDir, runtimeContract)) return null
+  if (await isOptimizedDependencyCacheReady(cacheDir, runtimeContract))
+    return null
   const lockPath = `${cacheDir}.lock`
   const deadline = Date.now() + optimizedDependencyStartupTimeoutMs
   await fs.mkdir(path.dirname(cacheDir), { recursive: true })
@@ -480,13 +507,16 @@ async function acquireOptimizedDependencyCache(cacheDir, runtimeContract) {
       return async () => fs.rm(lockPath, { force: true, recursive: true })
     } catch (error) {
       if (error?.code !== "EEXIST") throw error
-      if (await isOptimizedDependencyCacheReady(cacheDir, runtimeContract)) return null
+      if (await isOptimizedDependencyCacheReady(cacheDir, runtimeContract))
+        return null
       const stat = await fs.stat(lockPath).catch(() => null)
       if (stat && Date.now() - stat.mtimeMs > optimizedDependencyLockStaleMs) {
         await fs.rm(lockPath, { force: true, recursive: true })
         continue
       }
-      await new Promise((resolve) => setTimeout(resolve, optimizedDependencyLockPollMs))
+      await new Promise((resolve) =>
+        setTimeout(resolve, optimizedDependencyLockPollMs)
+      )
     }
   }
 
@@ -501,9 +531,7 @@ async function publishOptimizedDependencyCacheReady(cacheDir, runtimeContract) {
     ...Object.keys(metadata.discovered ?? {}),
   ])
   const optimizedEntries = createPlaygroundOptimizeDepsInclude(runtimeContract)
-  const missing = optimizedEntries.filter(
-    (entry) => !optimized.has(entry)
-  )
+  const missing = optimizedEntries.filter((entry) => !optimized.has(entry))
   if (missing.length > 0) {
     throw new Error(
       `Canvas dependency cache is incomplete: ${missing.join(", ")}`
@@ -618,10 +646,14 @@ function createAgentHtmlVitePlugin({ pipeline, root }) {
     name: "agent-html-dev-host",
     async resolveId(id, importer, options) {
       if (id.startsWith("@/")) {
-        return this.resolve(path.join(root, "agent-html", id.slice(2)), importer, {
-          ...options,
-          skipSelf: true,
-        })
+        return this.resolve(
+          path.join(root, "agent-html", id.slice(2)),
+          importer,
+          {
+            ...options,
+            skipSelf: true,
+          }
+        )
       }
       if (
         id.startsWith("#agent-html-playground/") ||
@@ -635,7 +667,8 @@ function createAgentHtmlVitePlugin({ pipeline, root }) {
       }
       if (
         id === hostEntryModulePath ||
-        id.startsWith(`${artifactEntryModulePath}?`)
+        id.startsWith(`${artifactEntryModulePath}?`) ||
+        id.startsWith(`${canvasEntryModulePath}?`)
       ) {
         return id
       }
@@ -656,6 +689,17 @@ function createAgentHtmlVitePlugin({ pipeline, root }) {
         }
 
         return createArtifactEntryModule({ filePath, root })
+      }
+
+      if (id.startsWith(`${canvasEntryModulePath}?`)) {
+        const url = new URL(id, "http://agent-html.local")
+        const filePath = url.searchParams.get("filePath")
+        if (!filePath) throw new Error("filePath is required")
+        return createCanvasEntryModule({
+          filePath,
+          root,
+          version: url.searchParams.get("v") ?? 0,
+        })
       }
 
       return null
@@ -682,9 +726,8 @@ export async function createAgentHtmlViteServer({
   const reactProtocolEntry = resolvePackageModule("@agent-html/react")
   const fsAllow = createViteFsAllowList({ reactProtocolEntry, root })
   const reactModuleResolutionAliases = createReactModuleResolutionAliases()
-  const playgroundDependencyAliases = createPlaygroundDependencyAliases(
-    runtimeContract
-  )
+  const playgroundDependencyAliases =
+    createPlaygroundDependencyAliases(runtimeContract)
   const playgroundDependencyResolver = createPlaygroundDependencyResolver(
     root,
     runtimeContract

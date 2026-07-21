@@ -7,13 +7,9 @@ import {
 } from "lucide-react"
 import type * as React from "react"
 import type { HostMessageKey } from "../i18n/messages"
+import type { CanvasThemeEditorSectionId } from "./theme-editor-contract"
 
-export type CanvasThemeEditorSectionId =
-  | "color"
-  | "typography"
-  | "radius"
-  | "spacing"
-  | "canvas"
+export type { CanvasThemeEditorSectionId } from "./theme-editor-contract"
 
 export const canvasThemeEditorSections = [
   {

@@ -6,6 +6,8 @@ import { ArtifactDeleteDialog } from "./artifact/artifact-delete-dialog"
 import { ArtifactSurface } from "./artifact/artifact-surface"
 import { useCreateArtifactWorkflow } from "./artifact/use-create-artifact-workflow"
 import { useArtifactRegistry } from "./artifact/use-artifact-registry"
+import { CanvasSurface } from "./canvas/canvas-surface"
+import { useCanvasRegistry } from "./canvas/use-canvas-registry"
 import {
   readCanvasHostPreferences,
   type CanvasHostLanguage,
@@ -45,7 +47,7 @@ import {
   HostI18nProvider,
   resolveCanvasHostLocale,
 } from "./i18n/host-i18n"
-import type { CanvasThemeEditorSectionId } from "./theme/theme-editor-sections"
+import type { CanvasThemeEditorSectionId } from "./theme/theme-editor-contract"
 import {
   SidebarInset,
   SidebarProvider,
@@ -54,6 +56,8 @@ import { TooltipProvider } from "#agent-html-playground/components/ui/tooltip"
 import type { CanvasThemePresetId } from "#agent-html-playground/theme/presets"
 import { PanelLeftIcon } from "lucide-react"
 import { HostIconButton } from "./ui/icon-button"
+import { CodexThreadManagerSurface } from "./thread/thread-manager-surface"
+import { resolveActiveCodexThreadLabel } from "./thread/thread-label"
 
 export { resolveInitialCanvasHostMode } from "./artifact/use-create-artifact-workflow"
 
@@ -102,6 +106,8 @@ function ReactCanvasHostWorkbench() {
     initialPreferences.leftSidebarOpen
   )
   const [artifactSearchOpen, setArtifactSearchOpen] = React.useState(false)
+  const [codexThreadManagerOpen, setCodexThreadManagerOpen] =
+    React.useState(false)
   const [desktopNavigationOrigin, setDesktopNavigationOrigin] = React.useState<
     string | null
   >(null)
@@ -146,6 +152,9 @@ function ReactCanvasHostWorkbench() {
   >(null)
   const [pendingDeleteArtifact, setPendingDeleteArtifact] =
     React.useState<CanvasNavigationArtifact | null>(null)
+  const [activeCanvasFilePath, setActiveCanvasFilePath] = React.useState<
+    string | null
+  >(null)
   const activeFilePathRef = React.useRef<string | null>(null)
   const t = React.useMemo(
     () =>
@@ -199,6 +208,25 @@ function ReactCanvasHostWorkbench() {
         ? createArtifactJob.filePath
         : null,
   })
+  const { canvasLoadError, canvasRegistryVersion, canvases, canvasesLoading } =
+    useCanvasRegistry()
+  const selectArtifactSurface = React.useCallback(
+    (filePath: string) => {
+      setCodexThreadManagerOpen(false)
+      setActiveCanvasFilePath(null)
+      selectArtifact(filePath)
+    },
+    [selectArtifact]
+  )
+  React.useEffect(() => {
+    if (
+      activeCanvasFilePath &&
+      !canvasesLoading &&
+      !canvases.some((canvas) => canvas.filePath === activeCanvasFilePath)
+    ) {
+      setActiveCanvasFilePath(null)
+    }
+  }, [activeCanvasFilePath, canvases, canvasesLoading])
   const requestDeleteArtifact = React.useCallback(
     (filePath: string) => {
       const artifact = artifacts.find(
@@ -269,6 +297,17 @@ function ReactCanvasHostWorkbench() {
     resolvedActiveFilePath,
     t,
   })
+  const selectCanvas = React.useCallback(
+    (filePath: string) => {
+      if (!canvases.some((canvas) => canvas.filePath === filePath)) return
+      setCodexThreadManagerOpen(false)
+      setPromptTarget(null)
+      setPromptStatus("")
+      selectArtifactMode()
+      setActiveCanvasFilePath(filePath)
+    },
+    [canvases, selectArtifactMode, setPromptStatus, setPromptTarget]
+  )
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -320,6 +359,8 @@ function ReactCanvasHostWorkbench() {
   }
 
   const selectCreateArtifact = React.useCallback(() => {
+    setCodexThreadManagerOpen(false)
+    setActiveCanvasFilePath(null)
     setPromptTarget(null)
     setPromptStatus("")
     selectCreateArtifactMode()
@@ -327,18 +368,36 @@ function ReactCanvasHostWorkbench() {
 
   const desktopNavigationSnapshot = React.useMemo<CanvasNavigationSnapshot>(
     () => ({
-      activeFilePath: resolvedActiveFilePath,
+      activeCodexThreadLabel: resolveActiveCodexThreadLabel({
+        activeThreadId: activeCodexThreadId,
+        threads: codexThreads,
+      }),
+      activeFilePath: codexThreadManagerOpen
+        ? null
+        : (activeCanvasFilePath ?? resolvedActiveFilePath),
+      activeLanguage,
       artifacts: artifacts.map(({ filePath, title }) => ({ filePath, title })),
       artifactsLoading,
-      createArtifactActive: activeHostMode === "create-artifact",
+      canvases: canvases.map(({ filePath, title }) => ({ filePath, title })),
+      canvasesLoading,
+      codexThreadManagerActive: codexThreadManagerOpen,
+      createArtifactActive:
+        !codexThreadManagerOpen && activeHostMode === "create-artifact",
       leftSidebarOpen: effectiveLeftSidebarOpen,
       version: canvasNavigationSnapshotVersion,
     }),
     [
       activeHostMode,
+      activeCodexThreadId,
+      activeLanguage,
       artifacts,
       artifactsLoading,
+      canvases,
+      canvasesLoading,
+      codexThreadManagerOpen,
+      codexThreads,
       effectiveLeftSidebarOpen,
+      activeCanvasFilePath,
       resolvedActiveFilePath,
     ]
   )
@@ -385,9 +444,12 @@ function ReactCanvasHostWorkbench() {
 
       applyCanvasNavigationCommand({
         artifactFilePaths: artifacts.map((artifact) => artifact.filePath),
+        canvasFilePaths: canvases.map((canvas) => canvas.filePath),
         command: message.command,
+        onCloseCodexThreadManager: () => setCodexThreadManagerOpen(false),
         onCreateArtifact: selectCreateArtifact,
         onOpenArtifactSearch: () => setArtifactSearchOpen(true),
+        onOpenCodexThreadManager: () => setCodexThreadManagerOpen(true),
         onRequestDeleteArtifact: requestDeleteArtifact,
         onRenameArtifactTitle: ({ filePath, requestId, title }) => {
           void renameExistingArtifactTitle({ filePath, title })
@@ -419,8 +481,17 @@ function ReactCanvasHostWorkbench() {
               })
             })
         },
-        onSelectArtifact: selectArtifact,
+        onSelectArtifact: selectArtifactSurface,
+        onSelectCanvas: selectCanvas,
+        onSetLanguage: setActiveLanguage,
         onSetSidebarOpen: setEffectiveLeftSidebarOpen,
+        onSetThemeMode: setActiveThemeMode,
+        onToggleThemeMode: () =>
+          setActiveThemeMode(
+            document.documentElement.classList.contains("dark")
+              ? "light"
+              : "dark"
+          ),
       })
     }
 
@@ -430,10 +501,12 @@ function ReactCanvasHostWorkbench() {
     }
   }, [
     artifacts,
+    canvases,
     desktopNavigationSnapshot,
     requestDeleteArtifact,
     renameExistingArtifactTitle,
-    selectArtifact,
+    selectArtifactSurface,
+    selectCanvas,
     selectCreateArtifact,
     setEffectiveLeftSidebarOpen,
   ])
@@ -474,28 +547,15 @@ function ReactCanvasHostWorkbench() {
               <ReactCanvasSidebar
                 artifactSearchOpen={artifactSearchOpen}
                 activeSectionId={activeThemeEditorSectionId}
-                activeCodexThreadId={activeCodexThreadId}
-                activeLanguage={activeLanguage}
                 activeSidebarView={activeSidebarView}
-                activeThemeMode={activeThemeMode}
                 activeThemePresetId={activeThemePresetId}
-                createArtifactActive={activeHostMode === "create-artifact"}
-                createArtifactPending={
-                  createArtifactJob !== null &&
-                  createArtifactJob.phase !== "failed"
-                }
                 artifacts={artifacts}
-                codexThreads={codexThreads}
-                codexThreadsError={codexThreadsError}
-                codexThreadsLoading={codexThreadsLoading}
-                onSelectArtifact={selectArtifact}
+                canvases={canvases}
+                onSelectArtifact={selectArtifactSurface}
+                onSelectCanvas={selectCanvas}
                 onArtifactSearchOpenChange={setArtifactSearchOpen}
-                onSelectCodexThread={setActiveCodexThreadId}
-                onSelectCreateArtifact={selectCreateArtifact}
-                onSelectLanguage={setActiveLanguage}
                 onSelectSection={setActiveThemeEditorSectionId}
                 onSelectSidebarView={setActiveSidebarView}
-                onSelectThemeMode={setActiveThemeMode}
                 onSelectThemePreset={selectThemePreset}
                 onThemeVariableChange={updateThemeVariable}
                 onResetThemePreview={resetThemePreview}
@@ -528,7 +588,16 @@ function ReactCanvasHostWorkbench() {
                   />
                 </div>
               ) : null}
-              {activeHostMode === "create-artifact" ? (
+              {codexThreadManagerOpen ? (
+                <CodexThreadManagerSurface
+                  activeThreadId={activeCodexThreadId}
+                  error={codexThreadsError}
+                  loading={codexThreadsLoading}
+                  onRefresh={() => void refreshCodexThreads()}
+                  onSelectThread={setActiveCodexThreadId}
+                  threads={codexThreads}
+                />
+              ) : activeHostMode === "create-artifact" ? (
                 <CreateArtifactSurface
                   disabled={
                     createArtifactJob !== null &&
@@ -543,6 +612,14 @@ function ReactCanvasHostWorkbench() {
                     createArtifactJob.phase !== "failed"
                   }
                   status={createArtifactStatus}
+                />
+              ) : activeCanvasFilePath ? (
+                <CanvasSurface
+                  activeFilePath={activeCanvasFilePath}
+                  canvasCount={canvases.length}
+                  canvasRegistryVersion={canvasRegistryVersion}
+                  canvasesLoading={canvasesLoading}
+                  loadError={canvasLoadError}
                 />
               ) : (
                 <ArtifactSurface

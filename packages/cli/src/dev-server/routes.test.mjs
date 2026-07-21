@@ -50,9 +50,23 @@ function createArtifactRegistryMock(
   }
 }
 
+function createCanvasRegistryMock(
+  snapshot = {
+    canvases: [],
+    status: "ready",
+    version: 1,
+  }
+) {
+  return {
+    getSnapshot: vi.fn(() => snapshot),
+    refresh: vi.fn(async () => {}),
+  }
+}
+
 function handleRoute(options) {
   return handleRequest({
     artifactRegistry: createArtifactRegistryMock(),
+    canvasRegistry: createCanvasRegistryMock(),
     ...options,
   })
 }
@@ -71,6 +85,7 @@ describe("dev server routes", () => {
       "public-asset",
       "artifact-registry-and-validation-report",
       "artifact-source-mutation",
+      "canvas-registry-and-layout",
       "block-lookup",
       "codex-bridge",
       "runtime-control",
@@ -96,6 +111,12 @@ describe("dev server routes", () => {
     ).toBe("public-asset")
     expect(classifyDevServerRoute(hostRoutes.artifacts)).toBe(
       "artifact-registry-and-validation-report"
+    )
+    expect(classifyDevServerRoute(hostRoutes.canvases)).toBe(
+      "canvas-registry-and-layout"
+    )
+    expect(classifyDevServerRoute(hostRoutes.canvasLayout)).toBe(
+      "canvas-registry-and-layout"
     )
     expect(classifyDevServerRoute(hostRoutes.artifactRename)).toBe(
       "artifact-source-mutation"
@@ -511,6 +532,151 @@ describe("dev server routes", () => {
     expect(handled).toBe(true)
     expect(artifactRegistry.getSnapshot).toHaveBeenCalledOnce()
     expect(JSON.parse(response.body)).toEqual(snapshot)
+  })
+
+  it("serves canvases from the dedicated registry snapshot", async () => {
+    const response = createResponseMock()
+    const snapshot = {
+      canvases: [
+        {
+          filePath: "agent-html/canvases/demo.canvas.tsx",
+          layoutPath: "agent-html/canvases/demo.layout.json",
+          title: "Demo",
+        },
+      ],
+      status: "ready",
+      version: 3,
+    }
+    const canvasRegistry = createCanvasRegistryMock(snapshot)
+
+    await handleRequest({
+      artifactRegistry: createArtifactRegistryMock(),
+      canvasRegistry,
+      request: { method: "GET", url: hostRoutes.canvases },
+      response,
+      root: process.cwd(),
+      vite: {},
+    })
+
+    expect(canvasRegistry.getSnapshot).toHaveBeenCalledOnce()
+    expect(JSON.parse(response.body)).toEqual(snapshot)
+  })
+
+  it("returns an empty layout then persists a Canvas layout round trip", async () => {
+    const root = await createTestTempDir("canvas-layout")
+    const canvasesRoot = path.join(root, "agent-html", "canvases")
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+    await fs.mkdir(canvasesRoot, { recursive: true })
+    await fs.writeFile(
+      path.join(canvasesRoot, "demo.canvas.tsx"),
+      "export default function Demo() { return null }\n"
+    )
+
+    const missingResponse = createResponseMock()
+    await handleRoute({
+      request: {
+        method: "GET",
+        url: `${hostRoutes.canvasLayout}?filePath=${encodeURIComponent(filePath)}`,
+      },
+      response: missingResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(missingResponse.body)).toEqual({
+      layout: { nodes: {}, version: 1 },
+      layoutPath: "agent-html/canvases/demo.layout.json",
+    })
+
+    const layout = {
+      nodes: {
+        card: { height: 240, width: 360, x: -20, y: 48 },
+      },
+      version: 1,
+    }
+    const saveResponse = createResponseMock()
+    await handleRoute({
+      request: createJsonRequest({
+        body: { filePath, layout },
+        url: hostRoutes.canvasLayout,
+      }),
+      response: saveResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(saveResponse.body).layout).toEqual(layout)
+
+    const updatedLayout = {
+      nodes: {
+        card: { height: 280, width: 400, x: 72, y: -16 },
+      },
+      version: 1,
+    }
+    const updateResponse = createResponseMock()
+    await handleRoute({
+      request: createJsonRequest({
+        body: { filePath, layout: updatedLayout },
+        url: hostRoutes.canvasLayout,
+      }),
+      response: updateResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(updateResponse.body).layout).toEqual(updatedLayout)
+
+    const restartResponse = createResponseMock()
+    await handleRoute({
+      request: {
+        method: "GET",
+        url: `${hostRoutes.canvasLayout}?filePath=${encodeURIComponent(filePath)}`,
+      },
+      response: restartResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(restartResponse.body).layout).toEqual(updatedLayout)
+  })
+
+  it("rejects Canvas layout traversal outside agent-html/canvases", async () => {
+    const response = createResponseMock()
+    await handleRoute({
+      request: {
+        method: "GET",
+        url: `${hostRoutes.canvasLayout}?filePath=${encodeURIComponent(
+          "agent-html/canvases/../escape.canvas.tsx"
+        )}`,
+      },
+      response,
+      root: process.cwd(),
+      vite: {},
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(JSON.parse(response.body).error).toContain(
+      "agent-html/canvases/**/*.canvas.tsx"
+    )
+  })
+
+  it("transforms Canvas bundles through the private Vite entry", async () => {
+    const response = createResponseMock()
+    const transformRequest = vi.fn(async () => ({ code: "export default 1" }))
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+
+    await handleRoute({
+      request: {
+        method: "GET",
+        url: `${hostRoutes.canvasBundle}?filePath=${encodeURIComponent(filePath)}&v=7`,
+      },
+      response,
+      root: process.cwd(),
+      vite: { transformRequest },
+    })
+
+    expect(transformRequest).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "/__agent-html/vite-canvas-entry.js?filePath=agent-html%2Fcanvases%2Fdemo.canvas.tsx&v=7"
+      )
+    )
+    expect(response.body).toBe("export default 1")
   })
 
   it("refreshes the artifact registry before serving pending polling snapshots", async () => {

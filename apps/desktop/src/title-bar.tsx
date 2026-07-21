@@ -1,5 +1,18 @@
-import { Copy, Minus, PanelLeft, Plus, Search, Square, X } from "lucide-react"
-import { ContextMenu, Popover } from "radix-ui"
+import {
+  BookOpenText,
+  ChevronRight,
+  Copy,
+  Languages,
+  MessageSquareText,
+  Minus,
+  Moon,
+  PanelLeft,
+  Plus,
+  Search,
+  Square,
+  X,
+} from "lucide-react"
+import { ContextMenu, DropdownMenu, Popover } from "radix-ui"
 import {
   useEffect,
   useMemo,
@@ -9,12 +22,14 @@ import {
   type WheelEvent,
 } from "react"
 
-import { agentHtmlBrandName } from "../../../packages/cli/src/shared/brand"
 import { AgentHtmlGhostIcon } from "../../../packages/cli/src/shared/brand-icons"
+import { GithubMarkIcon } from "../../../packages/cli/src/host/ui/brand-icons"
 import type {
   ArtifactTitleRenameResult,
+  CanvasNavigationLanguage,
   CanvasNavigationSnapshot,
 } from "../../../packages/cli/src/host/navigation/navigation-sync-contract"
+import type { CanvasThemeMode } from "../../../packages/cli/src/host/theme/theme-sync-contract"
 import {
   createDesktopWindowControls,
   resolveDesktopPlatform,
@@ -44,33 +59,29 @@ type ArtifactTitleEditor = {
 }
 
 function AgentMenuButton({
+  activeCodexThreadLabel,
+  activeLanguage,
   align,
   className,
   onSearchArtifacts,
-  shortcutLabel,
+  onOpenCodexThreadManager,
+  onSelectLanguage,
+  onSelectThemeMode,
+  themeMode,
 }: {
+  activeCodexThreadLabel?: string | null
+  activeLanguage?: CanvasNavigationLanguage
   align: "start" | "end"
   className: string
   onSearchArtifacts?: () => void
-  shortcutLabel: string
+  onOpenCodexThreadManager?: () => void
+  onSelectLanguage?: (language: CanvasNavigationLanguage) => void
+  onSelectThemeMode?: (mode: CanvasThemeMode) => void
+  themeMode?: CanvasThemeMode
 }) {
-  const searchAction = (
-    <button
-      aria-keyshortcuts="Meta+K Control+K"
-      className="desktop-titlebar__agent-menu-action"
-      disabled={!onSearchArtifacts}
-      onClick={onSearchArtifacts}
-      type="button"
-    >
-      <Search aria-hidden="true" />
-      <span>Search Artifacts</span>
-      <kbd aria-hidden="true">{shortcutLabel}</kbd>
-    </button>
-  )
-
   return (
-    <Popover.Root>
-      <Popover.Trigger asChild>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
         <button
           aria-label="Agent menu"
           className={className}
@@ -79,25 +90,161 @@ function AgentMenuButton({
         >
           <AgentHtmlGhostIcon aria-hidden="true" />
         </button>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
           align={align}
           aria-label="Agent menu"
-          className="desktop-titlebar__agent-menu-popover"
+          className="desktop-titlebar__agent-menu-content"
           collisionPadding={8}
-          onOpenAutoFocus={(event) => event.preventDefault()}
           side="bottom"
           sideOffset={6}
         >
-          {onSearchArtifacts ? (
-            <Popover.Close asChild>{searchAction}</Popover.Close>
-          ) : (
-            searchAction
-          )}
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+          <DropdownMenu.Item
+            aria-keyshortcuts="Meta+K Control+K"
+            className="desktop-titlebar__agent-menu-item"
+            disabled={!onSearchArtifacts}
+            onSelect={onSearchArtifacts}
+          >
+            <Search aria-hidden="true" />
+            <span>Search</span>
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator className="desktop-titlebar__agent-menu-separator" />
+          <DropdownMenu.Item
+            className="desktop-titlebar__agent-menu-item"
+            disabled={!onOpenCodexThreadManager}
+            onSelect={onOpenCodexThreadManager}
+            title={activeCodexThreadLabel ?? "New thread"}
+          >
+            <MessageSquareText aria-hidden="true" />
+            <span className="desktop-titlebar__agent-menu-label">
+              {activeCodexThreadLabel ?? "New thread"}
+            </span>
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator className="desktop-titlebar__agent-menu-separator" />
+          <DropdownMenu.Sub>
+            <DropdownMenu.SubTrigger
+              className="desktop-titlebar__agent-menu-item"
+              disabled={!onSelectThemeMode}
+            >
+              <Moon aria-hidden="true" />
+              <span>Theme</span>
+              <ChevronRight
+                aria-hidden="true"
+                className="desktop-titlebar__agent-menu-chevron"
+              />
+            </DropdownMenu.SubTrigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.SubContent
+                aria-label="Theme"
+                className="desktop-titlebar__agent-menu-subcontent"
+                collisionPadding={8}
+                sideOffset={6}
+              >
+                <DropdownMenu.RadioGroup
+                  onValueChange={(mode) =>
+                    onSelectThemeMode?.(mode as CanvasThemeMode)
+                  }
+                  value={themeMode ?? "system"}
+                >
+                  {(
+                    [
+                      ["system", "System"],
+                      ["light", "Light"],
+                      ["dark", "Dark"],
+                    ] as const satisfies readonly (readonly [
+                      CanvasThemeMode,
+                      string,
+                    ])[]
+                  ).map(([mode, label]) => (
+                    <DropdownMenu.RadioItem
+                      className="desktop-titlebar__agent-menu-item desktop-titlebar__agent-menu-radio-item"
+                      key={mode}
+                      value={mode}
+                    >
+                      <span>{label}</span>
+                    </DropdownMenu.RadioItem>
+                  ))}
+                </DropdownMenu.RadioGroup>
+              </DropdownMenu.SubContent>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Sub>
+          <DropdownMenu.Sub>
+            <DropdownMenu.SubTrigger
+              className="desktop-titlebar__agent-menu-item"
+              disabled={!activeLanguage || !onSelectLanguage}
+            >
+              <Languages aria-hidden="true" />
+              <span>Language</span>
+              <ChevronRight
+                aria-hidden="true"
+                className="desktop-titlebar__agent-menu-chevron"
+              />
+            </DropdownMenu.SubTrigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.SubContent
+                aria-label="Language"
+                className="desktop-titlebar__agent-menu-subcontent"
+                collisionPadding={8}
+                sideOffset={6}
+              >
+                <DropdownMenu.RadioGroup
+                  onValueChange={(language) =>
+                    onSelectLanguage?.(language as CanvasNavigationLanguage)
+                  }
+                  value={activeLanguage ?? "system"}
+                >
+                  {(
+                    [
+                      ["system", "System"],
+                      ["zh", "中文"],
+                      ["en", "English"],
+                    ] as const satisfies readonly (readonly [
+                      CanvasNavigationLanguage,
+                      string,
+                    ])[]
+                  ).map(([language, label]) => (
+                    <DropdownMenu.RadioItem
+                      className="desktop-titlebar__agent-menu-item desktop-titlebar__agent-menu-radio-item"
+                      key={language}
+                      value={language}
+                    >
+                      <span>{label}</span>
+                    </DropdownMenu.RadioItem>
+                  ))}
+                </DropdownMenu.RadioGroup>
+              </DropdownMenu.SubContent>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Sub>
+          <DropdownMenu.Item
+            asChild
+            className="desktop-titlebar__agent-menu-item"
+          >
+            <a
+              href="https://agent-html.org/docs"
+              rel="noreferrer"
+              target="_blank"
+            >
+              <BookOpenText aria-hidden="true" />
+              <span>Documentation</span>
+            </a>
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            asChild
+            className="desktop-titlebar__agent-menu-item"
+          >
+            <a
+              href="https://github.com/Sayhi-bzb/Agent-HTML"
+              rel="noreferrer"
+              target="_blank"
+            >
+              <GithubMarkIcon aria-hidden="true" />
+              <span>GitHub</span>
+            </a>
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   )
 }
 
@@ -129,18 +276,26 @@ function WindowControl({
 export function DesktopTitleBar({
   artifactTitleRenameResult,
   navigation,
+  onCloseCodexThreadManager = () => {},
   onCreateArtifact = () => {},
+  onOpenCodexThreadManager,
   onRequestDeleteArtifact = () => {},
   onRenameArtifactTitle = () => {},
   onSearchArtifacts,
+  onSelectLanguage,
   onSelectArtifact = () => {},
+  onSelectCanvas = () => {},
+  onSelectThemeMode,
   onSetSidebarOpen = () => {},
   platform = readDesktopPlatform(),
+  themeMode,
   windowControls,
 }: {
   artifactTitleRenameResult?: ArtifactTitleRenameResult | null
   navigation?: CanvasNavigationSnapshot | null
+  onCloseCodexThreadManager?: () => void
   onCreateArtifact?: () => void
+  onOpenCodexThreadManager?: () => void
   onRequestDeleteArtifact?: (filePath: string) => void
   onRenameArtifactTitle?: (input: {
     filePath: string
@@ -148,9 +303,13 @@ export function DesktopTitleBar({
     title: string
   }) => void
   onSearchArtifacts?: () => void
+  onSelectLanguage?: (language: CanvasNavigationLanguage) => void
   onSelectArtifact?: (filePath: string) => void
+  onSelectCanvas?: (filePath: string) => void
+  onSelectThemeMode?: (mode: CanvasThemeMode) => void
   onSetSidebarOpen?: (open: boolean) => void
   platform?: DesktopPlatform
+  themeMode?: CanvasThemeMode
   windowControls?: DesktopWindowControls
 }) {
   const controls = useMemo(
@@ -167,7 +326,6 @@ export function DesktopTitleBar({
     ? null
     : titleEditor?.filePath
   const showsWorkspaceNavigation = navigation !== undefined
-  const searchShortcutLabel = platform === "macos" ? "⌘ K" : "Ctrl K"
 
   useEffect(() => {
     let active = true
@@ -201,7 +359,11 @@ export function DesktopTitleBar({
       block: "nearest",
       inline: "nearest",
     })
-  }, [navigation?.activeFilePath, navigation?.createArtifactActive])
+  }, [
+    navigation?.activeFilePath,
+    navigation?.codexThreadManagerActive,
+    navigation?.createArtifactActive,
+  ])
 
   useEffect(() => {
     if (!editingFilePath) return
@@ -332,13 +494,13 @@ export function DesktopTitleBar({
     <header
       aria-label="Application title bar"
       className="desktop-titlebar"
-      data-navigation={showsWorkspaceNavigation ? "workspace" : "brand"}
+      data-navigation={showsWorkspaceNavigation ? "workspace" : "home"}
       data-platform={platform}
       onDoubleClick={handleDoubleClick}
       onMouseDown={handleDragStart}
     >
       {showsWorkspaceNavigation ? (
-        <nav aria-label="Artifacts" className="desktop-titlebar__navigation">
+        <nav aria-label="Workspace" className="desktop-titlebar__navigation">
           <button
             aria-label={
               navigation?.leftSidebarOpen
@@ -361,13 +523,17 @@ export function DesktopTitleBar({
             <PanelLeft aria-hidden="true" />
           </button>
           <div
-            aria-busy={navigation?.artifactsLoading ?? true}
+            aria-busy={
+              (navigation?.artifactsLoading ?? true) ||
+              (navigation?.canvasesLoading ?? false)
+            }
             className="desktop-titlebar__artifacts"
             onWheel={handleArtifactWheel}
           >
             {navigation?.artifacts.map((artifact) => {
               const active =
                 !navigation.createArtifactActive &&
+                !navigation.codexThreadManagerActive &&
                 artifact.filePath === navigation.activeFilePath
               const editor =
                 titleEditor?.filePath === artifact.filePath ? titleEditor : null
@@ -537,6 +703,61 @@ export function DesktopTitleBar({
                 </ContextMenu.Root>
               )
             })}
+            {navigation?.canvases?.map((canvas) => {
+              const active =
+                !navigation.createArtifactActive &&
+                !navigation.codexThreadManagerActive &&
+                canvas.filePath === navigation.activeFilePath
+              return (
+                <div
+                  className="desktop-titlebar__artifact"
+                  data-active={active ? "" : undefined}
+                  data-kind="canvas"
+                  key={canvas.filePath}
+                >
+                  <button
+                    aria-current={active ? "page" : undefined}
+                    className="desktop-titlebar__artifact-label"
+                    onClick={() => onSelectCanvas(canvas.filePath)}
+                    ref={active ? activeArtifactRef : undefined}
+                    title={canvas.title}
+                    type="button"
+                  >
+                    <span className="desktop-titlebar__artifact-title">
+                      {canvas.title}
+                    </span>
+                  </button>
+                </div>
+              )
+            })}
+            {navigation?.codexThreadManagerActive ? (
+              <div
+                className="desktop-titlebar__artifact"
+                data-active=""
+                data-kind="threads"
+              >
+                <button
+                  aria-current="page"
+                  className="desktop-titlebar__artifact-label"
+                  ref={activeArtifactRef}
+                  title="Threads"
+                  type="button"
+                >
+                  <span className="desktop-titlebar__artifact-title">
+                    Threads
+                  </span>
+                </button>
+                <button
+                  aria-label="Close Threads"
+                  className="desktop-titlebar__thread-close"
+                  onClick={onCloseCodexThreadManager}
+                  title="Close Threads"
+                  type="button"
+                >
+                  <X aria-hidden="true" />
+                </button>
+              </div>
+            ) : null}
             {!navigation && (
               <span
                 aria-hidden="true"
@@ -557,24 +778,19 @@ export function DesktopTitleBar({
             <Plus aria-hidden="true" />
           </button>
         </nav>
-      ) : (
-        <div className="desktop-titlebar__brand desktop-titlebar__brand--full">
-          <AgentMenuButton
-            align="start"
-            className="desktop-titlebar__navigation-action desktop-titlebar__agent-menu-trigger"
-            onSearchArtifacts={onSearchArtifacts}
-            shortcutLabel={searchShortcutLabel}
-          />
-          <span className="desktop-titlebar__title">{agentHtmlBrandName}</span>
-        </div>
-      )}
+      ) : null}
       <div aria-hidden="true" className="desktop-titlebar__drag-space" />
       {showsWorkspaceNavigation && (
         <AgentMenuButton
+          activeCodexThreadLabel={navigation?.activeCodexThreadLabel}
+          activeLanguage={navigation?.activeLanguage}
           align="end"
           className="desktop-titlebar__brand desktop-titlebar__brand--compact desktop-titlebar__navigation-action desktop-titlebar__agent-menu-trigger"
           onSearchArtifacts={onSearchArtifacts}
-          shortcutLabel={searchShortcutLabel}
+          onOpenCodexThreadManager={onOpenCodexThreadManager}
+          onSelectLanguage={onSelectLanguage}
+          onSelectThemeMode={onSelectThemeMode}
+          themeMode={themeMode}
         />
       )}
       <div className="desktop-titlebar__controls">{windowActions}</div>

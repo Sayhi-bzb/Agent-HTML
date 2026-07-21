@@ -1,3 +1,5 @@
+import type { CanvasThemeMode } from "../theme/theme-sync-contract"
+
 export const canvasNavigationSnapshotMessageType =
   "agent-html:canvas-navigation-snapshot"
 export const canvasNavigationRequestMessageType =
@@ -13,10 +15,22 @@ export type CanvasNavigationArtifact = {
   title: string
 }
 
+export type CanvasNavigationCanvas = {
+  filePath: string
+  title: string
+}
+
+export type CanvasNavigationLanguage = "en" | "system" | "zh"
+
 export type CanvasNavigationSnapshot = {
+  activeCodexThreadLabel?: string | null
   activeFilePath: string | null
+  activeLanguage?: CanvasNavigationLanguage
   artifacts: CanvasNavigationArtifact[]
   artifactsLoading: boolean
+  canvases?: CanvasNavigationCanvas[]
+  canvasesLoading?: boolean
+  codexThreadManagerActive?: boolean
   createArtifactActive: boolean
   leftSidebarOpen: boolean
   version: typeof canvasNavigationSnapshotVersion
@@ -24,6 +38,7 @@ export type CanvasNavigationSnapshot = {
 
 export type CanvasNavigationCommand =
   | { filePath: string; type: "select-artifact" }
+  | { filePath: string; type: "select-canvas" }
   | { filePath: string; type: "request-delete-artifact" }
   | {
       filePath: string
@@ -32,7 +47,12 @@ export type CanvasNavigationCommand =
       type: "rename-artifact-title"
     }
   | { type: "create-artifact" }
+  | { type: "close-codex-thread-manager" }
   | { type: "open-artifact-search" }
+  | { type: "open-codex-thread-manager" }
+  | { mode: CanvasThemeMode; type: "set-theme-mode" }
+  | { type: "toggle-theme-mode" }
+  | { language: CanvasNavigationLanguage; type: "set-language" }
   | { open: boolean; type: "set-sidebar-open" }
 
 export type CanvasNavigationSnapshotMessage = {
@@ -110,6 +130,14 @@ function readArtifact(value: unknown): CanvasNavigationArtifact | null {
   return { filePath, title: value.title }
 }
 
+const readCanvas = readArtifact
+
+function isCanvasNavigationLanguage(
+  value: unknown
+): value is CanvasNavigationLanguage {
+  return value === "system" || value === "zh" || value === "en"
+}
+
 export function createCanvasNavigationSnapshotMessage(
   snapshot: CanvasNavigationSnapshot
 ): CanvasNavigationSnapshotMessage {
@@ -154,7 +182,14 @@ export function readCanvasNavigationSnapshot(
     value.version !== canvasNavigationSnapshotVersion ||
     !Array.isArray(value.artifacts) ||
     value.artifacts.length > maximumArtifactCount ||
+    (value.canvases !== undefined && !Array.isArray(value.canvases)) ||
+    (Array.isArray(value.canvases) &&
+      value.canvases.length > maximumArtifactCount) ||
     typeof value.artifactsLoading !== "boolean" ||
+    (value.canvasesLoading !== undefined &&
+      typeof value.canvasesLoading !== "boolean") ||
+    (value.codexThreadManagerActive !== undefined &&
+      typeof value.codexThreadManagerActive !== "boolean") ||
     typeof value.createArtifactActive !== "boolean" ||
     typeof value.leftSidebarOpen !== "boolean"
   ) {
@@ -172,19 +207,68 @@ export function readCanvasNavigationSnapshot(
     filePaths.add(artifact.filePath)
   }
 
+  const canvases: CanvasNavigationCanvas[] = []
+  const canvasFilePaths = new Set<string>()
+  for (const valueCanvas of value.canvases ?? []) {
+    const canvas = readCanvas(valueCanvas)
+    if (
+      !canvas ||
+      filePaths.has(canvas.filePath) ||
+      canvasFilePaths.has(canvas.filePath)
+    ) {
+      return null
+    }
+    canvases.push(canvas)
+    canvasFilePaths.add(canvas.filePath)
+  }
+
   const activeFilePath =
     value.activeFilePath === null ? null : readFilePath(value.activeFilePath)
   if (
     value.activeFilePath !== null &&
-    (!activeFilePath || !filePaths.has(activeFilePath))
+    (!activeFilePath ||
+      (!filePaths.has(activeFilePath) && !canvasFilePaths.has(activeFilePath)))
   ) {
     return null
   }
 
+  const activeLanguage =
+    value.activeLanguage === undefined
+      ? undefined
+      : isCanvasNavigationLanguage(value.activeLanguage)
+        ? value.activeLanguage
+        : null
+  if (activeLanguage === null) {
+    return null
+  }
+
+  const activeCodexThreadLabel =
+    value.activeCodexThreadLabel === undefined ||
+    value.activeCodexThreadLabel === null
+      ? value.activeCodexThreadLabel
+      : typeof value.activeCodexThreadLabel === "string" &&
+          value.activeCodexThreadLabel.length > 0 &&
+          value.activeCodexThreadLabel.length <= maximumTitleLength &&
+          value.activeCodexThreadLabel === value.activeCodexThreadLabel.trim()
+        ? value.activeCodexThreadLabel
+        : false
+  if (activeCodexThreadLabel === false) {
+    return null
+  }
+
   return {
+    ...(activeCodexThreadLabel === undefined ? {} : { activeCodexThreadLabel }),
     activeFilePath,
+    ...(activeLanguage === undefined ? {} : { activeLanguage }),
     artifacts,
     artifactsLoading: value.artifactsLoading,
+    ...(value.canvases === undefined ? {} : { canvases }),
+    ...(value.canvasesLoading === undefined
+      ? {}
+      : { canvasesLoading: value.canvasesLoading }),
+    ...(value.codexThreadManagerActive === undefined
+      ? {}
+      : { codexThreadManagerActive: value.codexThreadManagerActive }),
     createArtifactActive: value.createArtifactActive,
     leftSidebarOpen: value.leftSidebarOpen,
     version: canvasNavigationSnapshotVersion,
@@ -232,12 +316,51 @@ export function readCanvasNavigationCommandMessage(
   if (command.type === "create-artifact") {
     return createCanvasNavigationCommandMessage({ type: "create-artifact" })
   }
+  if (command.type === "open-codex-thread-manager") {
+    return createCanvasNavigationCommandMessage({
+      type: "open-codex-thread-manager",
+    })
+  }
+  if (command.type === "close-codex-thread-manager") {
+    return createCanvasNavigationCommandMessage({
+      type: "close-codex-thread-manager",
+    })
+  }
   if (command.type === "open-artifact-search") {
     return createCanvasNavigationCommandMessage({
       type: "open-artifact-search",
     })
   }
+  if (command.type === "toggle-theme-mode") {
+    return createCanvasNavigationCommandMessage({ type: "toggle-theme-mode" })
+  }
+  if (
+    command.type === "set-theme-mode" &&
+    (command.mode === "system" ||
+      command.mode === "light" ||
+      command.mode === "dark")
+  ) {
+    return createCanvasNavigationCommandMessage({
+      mode: command.mode,
+      type: "set-theme-mode",
+    })
+  }
+  if (
+    command.type === "set-language" &&
+    isCanvasNavigationLanguage(command.language)
+  ) {
+    return createCanvasNavigationCommandMessage({
+      language: command.language,
+      type: "set-language",
+    })
+  }
   if (command.type === "select-artifact") {
+    const filePath = readFilePath(command.filePath)
+    return filePath
+      ? createCanvasNavigationCommandMessage({ filePath, type: command.type })
+      : null
+  }
+  if (command.type === "select-canvas") {
     const filePath = readFilePath(command.filePath)
     return filePath
       ? createCanvasNavigationCommandMessage({ filePath, type: command.type })

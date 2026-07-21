@@ -1,11 +1,16 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
+import {
+  createEmptyCanvasLayout,
+  normalizeCanvasLayout,
+} from "@agent-html/kernel"
 import { replaceArtifactTitle } from "@agent-html/kernel/validate"
 import { workspaceRelativePath } from "../react-canvas/paths.mjs"
 import { createArtifactScaffold } from "../react-canvas/artifact-scaffold.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
 import { readTextFile } from "../react-canvas/workspace-file.mjs"
+import { canvasLayoutPathForEntry } from "./canvas-registry.mjs"
 import {
   listCodexThreads,
   readCodexThreadTranscript,
@@ -19,7 +24,11 @@ import {
   runtimeProtocolVersion,
 } from "./runtime-session.mjs"
 import { assertInsideAgentHtmlWorkspace } from "./workspace.mjs"
-import { artifactEntryModulePath, hostEntryModulePath } from "./vite.mjs"
+import {
+  artifactEntryModulePath,
+  canvasEntryModulePath,
+  hostEntryModulePath,
+} from "./vite.mjs"
 
 export const hostRoutes = {
   artifactBundle: "/__agent-html/artifact.js",
@@ -29,6 +38,9 @@ export const hostRoutes = {
   artifactTitle: "/__agent-html/artifact/title",
   artifacts: "/__agent-html/artifacts",
   artifactPublicAsset: "/__agent-html/artifacts/",
+  canvasBundle: "/__agent-html/canvas.js",
+  canvasLayout: "/__agent-html/canvas/layout",
+  canvases: "/__agent-html/canvases",
   blockImplementation: "/__agent-html/block-implementation",
   codexThreads: "/__agent-html/codex/threads",
   codexTranscript: "/__agent-html/codex/transcript",
@@ -49,12 +61,68 @@ export const devServerRoutePipelines = [
   "public-asset",
   "artifact-registry-and-validation-report",
   "artifact-source-mutation",
+  "canvas-registry-and-layout",
   "block-lookup",
   "codex-bridge",
   "runtime-control",
 ]
 
 const forbiddenRootAssetPattern = /^\/[^/]+\.(?:css|js)$/
+
+function resolveCanvasEntryPath({ filePath, root }) {
+  const canvasesRoot = path.resolve(root, "agent-html", "canvases")
+  const entryPath = path.resolve(root, filePath)
+  const relativePath = path.relative(canvasesRoot, entryPath)
+  if (
+    !relativePath ||
+    relativePath.startsWith("..") ||
+    path.isAbsolute(relativePath) ||
+    !entryPath.endsWith(".canvas.tsx")
+  ) {
+    throw new Error(
+      "Canvas file must be an agent-html/canvases/**/*.canvas.tsx file"
+    )
+  }
+  return entryPath
+}
+
+async function readCanvasLayout({ filePath, root }) {
+  const entryPath = resolveCanvasEntryPath({ filePath, root })
+  await fs.access(entryPath)
+  const layoutPath = canvasLayoutPathForEntry(entryPath)
+  try {
+    return {
+      layout: normalizeCanvasLayout(
+        JSON.parse(await fs.readFile(layoutPath, "utf8"))
+      ),
+      layoutPath,
+    }
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return { layout: createEmptyCanvasLayout(), layoutPath }
+    }
+    throw error
+  }
+}
+
+async function writeCanvasLayout({ filePath, layout, root }) {
+  const entryPath = resolveCanvasEntryPath({ filePath, root })
+  await fs.access(entryPath)
+  const layoutPath = canvasLayoutPathForEntry(entryPath)
+  const normalized = normalizeCanvasLayout(layout)
+  const temporaryPath = `${layoutPath}.${process.pid}.${Date.now()}.tmp`
+  await fs.mkdir(path.dirname(layoutPath), { recursive: true })
+  try {
+    await fs.writeFile(
+      temporaryPath,
+      `${JSON.stringify(normalized, null, 2)}\n`
+    )
+    await fs.rename(temporaryPath, layoutPath)
+  } finally {
+    await fs.rm(temporaryPath, { force: true })
+  }
+  return { layout: normalized, layoutPath }
+}
 
 const publicContentTypes = new Map([
   [".avif", "image/avif"],
@@ -444,8 +512,10 @@ export function classifyDevServerRoute(pathname) {
   if (
     pathname === hostRoutes.hostEntry ||
     pathname === artifactEntryModulePath ||
+    pathname === canvasEntryModulePath ||
     forbiddenRootAssetPattern.test(pathname) ||
-    pathname === hostRoutes.artifactBundle
+    pathname === hostRoutes.artifactBundle ||
+    pathname === hostRoutes.canvasBundle
   ) {
     return "runtime-module"
   }
@@ -467,6 +537,13 @@ export function classifyDevServerRoute(pathname) {
 
   if (pathname === hostRoutes.artifacts) {
     return "artifact-registry-and-validation-report"
+  }
+
+  if (
+    pathname === hostRoutes.canvases ||
+    pathname === hostRoutes.canvasLayout
+  ) {
+    return "canvas-registry-and-layout"
   }
 
   if (
@@ -535,6 +612,11 @@ async function handleRuntimeModuleRoute({ requestUrl, response, root, vite }) {
     return true
   }
 
+  if (requestUrl.pathname === canvasEntryModulePath) {
+    sendNotFound(response)
+    return true
+  }
+
   if (forbiddenRootAssetPattern.test(requestUrl.pathname)) {
     sendNotFound(response)
     return true
@@ -559,6 +641,29 @@ async function handleRuntimeModuleRoute({ requestUrl, response, root, vite }) {
       response,
       url:
         `${artifactEntryModulePath}?filePath=${encodeURIComponent(filePath)}` +
+        (version ? `&v=${encodeURIComponent(version)}` : ""),
+      vite,
+    })
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.canvasBundle) {
+    const filePath = requestUrl.searchParams.get("filePath")
+    const version = requestUrl.searchParams.get("v")
+    if (!filePath) {
+      sendError(response, "filePath is required", 400)
+      return true
+    }
+    try {
+      resolveCanvasEntryPath({ filePath, root })
+    } catch (error) {
+      sendError(response, error, 400)
+      return true
+    }
+    await sendTransformedModule({
+      response,
+      url:
+        `${canvasEntryModulePath}?filePath=${encodeURIComponent(filePath)}` +
         (version ? `&v=${encodeURIComponent(version)}` : ""),
       vite,
     })
@@ -638,6 +743,63 @@ async function handleArtifactRegistryRoute({
   }
 
   return false
+}
+
+async function handleCanvasRegistryAndLayoutRoute({
+  canvasRegistry,
+  request,
+  requestUrl,
+  response,
+  root,
+}) {
+  if (requestUrl.pathname === hostRoutes.canvases) {
+    if (requestUrl.searchParams.get("refresh") === "1") {
+      await canvasRegistry.refresh({ broadcast: false, reason: "canvas-poll" })
+    }
+    sendJson(response, canvasRegistry.getSnapshot())
+    return true
+  }
+
+  if (requestUrl.pathname !== hostRoutes.canvasLayout) return false
+
+  if (request.method === "GET") {
+    const filePath = requestUrl.searchParams.get("filePath")
+    if (!filePath) {
+      sendError(response, "filePath is required", 400)
+      return true
+    }
+    try {
+      const result = await readCanvasLayout({ filePath, root })
+      sendJson(response, {
+        layout: result.layout,
+        layoutPath: workspaceRelativePath(root, result.layoutPath),
+      })
+    } catch (error) {
+      sendError(response, error, 400)
+    }
+    return true
+  }
+
+  if (request.method === "POST") {
+    try {
+      const body = await readJsonBody(request)
+      const result = await writeCanvasLayout({
+        filePath: body.filePath,
+        layout: body.layout,
+        root,
+      })
+      sendJson(response, {
+        layout: result.layout,
+        layoutPath: workspaceRelativePath(root, result.layoutPath),
+      })
+    } catch (error) {
+      sendError(response, error, 400)
+    }
+    return true
+  }
+
+  sendError(response, "GET or POST is required", 405)
+  return true
 }
 
 async function handleArtifactSourceMutationRoute({
@@ -920,6 +1082,7 @@ async function handleRuntimeControlRoute({
 const routePipelineHandlers = {
   "artifact-registry-and-validation-report": handleArtifactRegistryRoute,
   "artifact-source-mutation": handleArtifactSourceMutationRoute,
+  "canvas-registry-and-layout": handleCanvasRegistryAndLayoutRoute,
   "block-lookup": handleBlockLookupRoute,
   "codex-bridge": handleCodexBridgeRoute,
   "host-shell": handleHostShellRoute,
@@ -931,6 +1094,7 @@ const routePipelineHandlers = {
 
 export async function handleRequest({
   artifactRegistry,
+  canvasRegistry,
   request,
   response,
   root,
@@ -951,6 +1115,7 @@ export async function handleRequest({
 
   return routePipelineHandlers[pipeline]({
     artifactRegistry,
+    canvasRegistry,
     request,
     requestUrl,
     response,

@@ -4,26 +4,38 @@ import {
   readCanvasNavigationCommandMessage,
   readCanvasNavigationRequestMessage,
   type CanvasNavigationCommand,
+  type CanvasNavigationLanguage,
   type CanvasNavigationSnapshot,
   type ArtifactTitleRenameResult,
 } from "./navigation-sync-contract"
+import type { CanvasThemeMode } from "../theme/theme-sync-contract"
 
 type NavigationMessageTarget = Pick<Window, "postMessage">
 
 export function applyCanvasNavigationCommand({
   artifactFilePaths,
+  canvasFilePaths,
   command,
+  onCloseCodexThreadManager,
   onCreateArtifact,
   onOpenArtifactSearch,
+  onOpenCodexThreadManager,
   onRequestDeleteArtifact,
   onRenameArtifactTitle,
   onSelectArtifact,
+  onSelectCanvas,
+  onSetLanguage,
   onSetSidebarOpen,
+  onSetThemeMode,
+  onToggleThemeMode,
 }: {
   artifactFilePaths: readonly string[]
+  canvasFilePaths: readonly string[]
   command: CanvasNavigationCommand
+  onCloseCodexThreadManager: () => void
   onCreateArtifact: () => void
   onOpenArtifactSearch: () => void
+  onOpenCodexThreadManager: () => void
   onRequestDeleteArtifact: (filePath: string) => void
   onRenameArtifactTitle: (input: {
     filePath: string
@@ -31,8 +43,20 @@ export function applyCanvasNavigationCommand({
     title: string
   }) => void
   onSelectArtifact: (filePath: string) => void
+  onSelectCanvas: (filePath: string) => void
+  onSetLanguage: (language: CanvasNavigationLanguage) => void
   onSetSidebarOpen: (open: boolean) => void
+  onSetThemeMode: (mode: CanvasThemeMode) => void
+  onToggleThemeMode: () => void
 }) {
+  if (command.type === "open-codex-thread-manager") {
+    onOpenCodexThreadManager()
+    return true
+  }
+  if (command.type === "close-codex-thread-manager") {
+    onCloseCodexThreadManager()
+    return true
+  }
   if (command.type === "create-artifact") {
     onCreateArtifact()
     return true
@@ -41,8 +65,27 @@ export function applyCanvasNavigationCommand({
     onOpenArtifactSearch()
     return true
   }
+  if (command.type === "toggle-theme-mode") {
+    onToggleThemeMode()
+    return true
+  }
+  if (command.type === "set-theme-mode") {
+    onSetThemeMode(command.mode)
+    return true
+  }
+  if (command.type === "set-language") {
+    onSetLanguage(command.language)
+    return true
+  }
   if (command.type === "set-sidebar-open") {
     onSetSidebarOpen(command.open)
+    return true
+  }
+  if (command.type === "select-canvas") {
+    if (!canvasFilePaths.includes(command.filePath)) {
+      return false
+    }
+    onSelectCanvas(command.filePath)
     return true
   }
   if (command.type === "request-delete-artifact") {

@@ -136,10 +136,7 @@ export function useArtifactRegistry({
   pendingFilePath,
 }: {
   onPendingArtifactReady: (event: { filePath: string }) => void
-  onPendingArtifactFailure: (event: {
-    error: string
-    filePath: string
-  }) => void
+  onPendingArtifactFailure: (event: { error: string; filePath: string }) => void
   onSelectArtifactMode: () => void
   pendingFilePath: string | null
 }) {

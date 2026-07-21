@@ -18,12 +18,12 @@ function shortcutInput(
 
 describe("Artifact search shortcut", () => {
   it("accepts Cmd/Ctrl K", () => {
-    expect(
-      isArtifactSearchShortcut(shortcutInput({ metaKey: true }))
-    ).toBe(true)
-    expect(
-      isArtifactSearchShortcut(shortcutInput({ ctrlKey: true }))
-    ).toBe(true)
+    expect(isArtifactSearchShortcut(shortcutInput({ metaKey: true }))).toBe(
+      true
+    )
+    expect(isArtifactSearchShortcut(shortcutInput({ ctrlKey: true }))).toBe(
+      true
+    )
   })
 
   it("rejects modified, composing, and unrelated shortcuts", () => {
@@ -39,9 +39,7 @@ describe("Artifact search shortcut", () => {
       )
     ).toBe(false)
     expect(
-      isArtifactSearchShortcut(
-        shortcutInput({ key: "p", metaKey: true })
-      )
+      isArtifactSearchShortcut(shortcutInput({ key: "p", metaKey: true }))
     ).toBe(false)
   })
 })

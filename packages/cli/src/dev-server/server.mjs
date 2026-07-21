@@ -3,6 +3,7 @@ import http from "node:http"
 import { parseRootArg } from "../react-canvas/paths.mjs"
 import { stopCodexBridge } from "./codex-bridge.mjs"
 import { createArtifactRegistry } from "./artifact-registry.mjs"
+import { createCanvasRegistry } from "./canvas-registry.mjs"
 import { sendError } from "./http.mjs"
 import { handleRequest } from "./routes.mjs"
 import {
@@ -112,7 +113,8 @@ export async function startDevHost({ args, cwd, runtime = {} }) {
   const server = http.createServer()
   const vite = await createAgentHtmlViteServer({ pipeline, root, server })
   const artifactRegistry = createArtifactRegistry({ root, vite })
-  await artifactRegistry.start()
+  const canvasRegistry = createCanvasRegistry({ root, vite })
+  await Promise.all([artifactRegistry.start(), canvasRegistry.start()])
   const closeHttpServer = server.close.bind(server)
   let closeRuntimePromise = null
   let resolveRuntimeClosed
@@ -123,7 +125,7 @@ export async function startDevHost({ args, cwd, runtime = {} }) {
   function closeRuntime() {
     if (!closeRuntimePromise) {
       closeRuntimePromise = (async () => {
-        await artifactRegistry.close()
+        await Promise.all([artifactRegistry.close(), canvasRegistry.close()])
         let closeTimeout
         await Promise.race([
           vite.close(),
@@ -174,6 +176,7 @@ export async function startDevHost({ args, cwd, runtime = {} }) {
 
     handleRequest({
       artifactRegistry,
+      canvasRegistry,
       request,
       response,
       root,

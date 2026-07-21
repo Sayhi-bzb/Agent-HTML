@@ -85,3 +85,10 @@ export async function discoverReactImplementationSources(root) {
   )
   return files.filter((filePath) => !filePath.endsWith(".artifact.tsx"))
 }
+
+export async function discoverReactCanvases(root) {
+  return discoverFilesBySuffix(
+    path.join(root, "agent-html", "canvases"),
+    ".canvas.tsx"
+  )
+}

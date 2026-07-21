@@ -14,6 +14,17 @@ import type {
   ArtifactStateChangeKind,
 } from "@agent-html/kernel"
 
+export { Canvas, CanvasIntentProvider, Edge, Node } from "./canvas"
+export type {
+  CanvasDefinition,
+  CanvasEdgeIntent,
+  CanvasIntentRuntime,
+  CanvasNodeIntent,
+  CanvasProps,
+  EdgeProps,
+  NodeProps,
+} from "./canvas"
+
 export type {
   ArtifactBlockDefinition,
   ArtifactDefinition,
@@ -42,7 +53,6 @@ const noopInteractionRuntime: ArtifactInteractionRuntime = {
 
 const ArtifactInteractionContext =
   React.createContext<ArtifactInteractionRuntime>(noopInteractionRuntime)
-
 
 export type ArtifactProps = {
   children?: ReactNode
@@ -89,7 +99,9 @@ export function InteractionProvider({
   children?: ReactNode
   onChange?: (change: ArtifactStateChange) => void
 }) {
-  const snapshotsRef = React.useRef(new Map<string, ArtifactInteractionSnapshot>())
+  const snapshotsRef = React.useRef(
+    new Map<string, ArtifactInteractionSnapshot>()
+  )
 
   const emitChange = React.useCallback(
     (input: ArtifactStateChangeInput) => {
@@ -147,9 +159,7 @@ export function findNearestBlockId(element: Element | null | undefined) {
   )
 }
 
-export function useNearestBlockId<T extends Element>(
-  ref: RefObject<T | null>
-) {
+export function useNearestBlockId<T extends Element>(ref: RefObject<T | null>) {
   const [blockId, setBlockId] = React.useState<string | undefined>()
 
   React.useLayoutEffect(() => {
@@ -169,10 +179,13 @@ export function useEmitArtifactStateChange({
   const runtime = useArtifactInteraction()
 
   return React.useCallback(
-    (change: Omit<ArtifactStateChangeInput, "blockId"> & { blockId?: string }) => {
+    (
+      change: Omit<ArtifactStateChangeInput, "blockId"> & { blockId?: string }
+    ) => {
       runtime.emitChange({
         ...change,
-        blockId: change.blockId ?? blockId ?? findNearestBlockId(elementRef?.current),
+        blockId:
+          change.blockId ?? blockId ?? findNearestBlockId(elementRef?.current),
       })
     },
     [blockId, elementRef, runtime]

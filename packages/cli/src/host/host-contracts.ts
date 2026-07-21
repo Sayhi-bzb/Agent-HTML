@@ -9,6 +9,12 @@ export type ArtifactBlock = {
   title: string
 }
 
+export type CanvasEntry = {
+  filePath: string
+  layoutPath: string
+  title: string
+}
+
 export type CanvasDiagnostic = KernelDiagnostic
 
 export type ArtifactModule = {

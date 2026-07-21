@@ -7,55 +7,36 @@ description: Canvas constitution.
 
 Canvas governs the isolated React artifact workspace for agents.
 
-`@agent-html/kernel` owns the versioned, framework-neutral authoring contract:
-protocol constants, source and dependency policy, diagnostics, and the Canvas
-runtime dependency catalog. React, CLI, Host, and workspace resources consume
-that contract; they do not redefine it.
+`@agent-html/kernel` owns the versioned, framework-neutral authoring contract: protocol constants, source and dependency policy, diagnostics, and the Canvas runtime dependency catalog. React, CLI, Host, and workspace resources consume that contract; they do not redefine it.
 
-Canvas governs `agent-html`, React artifact composition, local resources,
-block prompts, and host inspection. Retired App and Runtime docs live under
-`_archive/docs` for historical reference only.
+Canvas governs `agent-html`, React artifact composition, local resources, block prompts, and host inspection. Retired App and Runtime docs live under `_archive/docs` for historical reference only.
 
-AHTML Desktop selects a project and supervises Canvas; it does not change
-workspace or artifact ownership. Desktop boundaries live in
-[Architecture](/docs/architecture).
+The parallel Infinite Canvas surface uses `Canvas / Node / Edge`, a Canonical Store, and colocated machine geometry. Its architecture and implementation map live in [Infinite Canvas Design](https://github.com/Sayhi-bzb/Agent-HTML/blob/main/INFINITE_CANVAS_DESIGN.md).
 
-This docs system is part of Canvas operating context, not a separate human
-manual.
+AHTML Desktop selects a project and supervises Canvas; it does not change workspace or artifact ownership. Desktop boundaries live in [Architecture](/docs/architecture).
+
+This docs system is part of Canvas operating context, not a separate human manual.
 
 ## Constitution
 
 ### Agent Operating Context
 
-Canvas turns a filesystem directory into durable operating context for agents.
-Rules, resources, data, assets, and artifacts live in `agent-html` so agents can
-read, compose, revise, and continue work without depending on chat state.
+Canvas turns a filesystem directory into durable operating context for agents. Rules, resources, data, assets, and artifacts live in `agent-html` so agents can read, compose, revise, and continue work without depending on chat state.
 
 ### Isolated Artifact Workbench
 
-Canvas gives agents a bounded place to generate, preview, validate, and revise
-React artifacts without importing application or Host internals.
+Canvas gives agents a bounded place to generate, preview, validate, and revise React artifacts without importing application or Host internals.
 
 ### Headless Protocol
 
-`Artifact` and `Block` mark collaboration boundaries. They provide rendered
-metadata, host anchors, and accessibility minimums. `Artifact` owns the
-readable root container, accepts only `title` and children, and reads layout
-values from Canvas CSS tokens. `Block` is protocol-only: it accepts `id`,
-`title`, and children, and does not accept styling or layout props.
+`Artifact` and `Block` mark collaboration boundaries. They provide rendered metadata, host anchors, and accessibility minimums. `Artifact` owns the readable root container, accepts only `title` and children, and reads layout values from Canvas CSS tokens. `Block` is protocol-only: it accepts `id`, `title`, and children, and does not accept styling or layout props.
 
-`@agent-html/react` also exposes interaction-state helpers for instrumented
-controls. They emit `agent-html:state-change` events without giving artifact
-source privileged host access.
+`@agent-html/react` also exposes interaction-state helpers for instrumented controls. They emit `agent-html:state-change` events without giving artifact source privileged host access.
 
 ### Local Resource Consumption
 
-Artifacts consume local workspace resources: UI primitives, hooks, helpers,
-schemas, data, assets, and semantic token classes.
+Artifacts consume local workspace resources: UI primitives, hooks, helpers, schemas, data, assets, and semantic token classes.
 
 ### Inspectable Host Boundary
 
-The host discovers artifacts, renders Vite-served modules, overlays blocks,
-shows validation diagnostics, handles floating block prompts, applies theme presets, and
-loads the Canvas stylesheet. It observes artifact metadata instead of owning
-artifact layout.
+The host discovers artifacts, renders Vite-served modules, overlays blocks, shows validation diagnostics, handles floating block prompts, applies theme presets, and loads the Canvas stylesheet. It observes artifact metadata instead of owning artifact layout.

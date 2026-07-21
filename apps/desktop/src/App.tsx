@@ -1,10 +1,11 @@
-import { FolderOpen, Plus, RotateCcw } from "lucide-react"
+import { FolderOpen, LoaderCircle, Plus, RotateCcw } from "lucide-react"
 import { listen } from "@tauri-apps/api/event"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import {
   createCanvasThemeBootstrapMessage,
   readCanvasThemeSnapshot,
   type CanvasThemeSnapshot,
+  type CanvasThemeMode,
 } from "../../../packages/cli/src/host/theme/theme-sync-contract"
 import {
   createCanvasNavigationCommandMessage,
@@ -14,6 +15,8 @@ import {
   type CanvasNavigationSnapshot,
 } from "../../../packages/cli/src/host/navigation/navigation-sync-contract"
 import { isArtifactSearchShortcut } from "../../../packages/cli/src/host/navigation/artifact-search-shortcut"
+import { agentHtmlBrandName } from "../../../packages/cli/src/shared/brand"
+import { AgentHtmlGhostIcon } from "../../../packages/cli/src/shared/brand-icons"
 
 import {
   desktopApi,
@@ -46,6 +49,11 @@ const emptySnapshot: DesktopSnapshot = {
   recents: [],
 }
 
+type PendingWorkspaceAction =
+  | "create"
+  | "open"
+  | { path: string; type: "recent" }
+
 function normalizeDesktopSnapshot(snapshot: DesktopSnapshot): DesktopSnapshot {
   return {
     ...snapshot,
@@ -60,6 +68,8 @@ export default function App() {
     useState<CanvasNavigationSnapshot | null>(null)
   const [artifactTitleRenameResult, setArtifactTitleRenameResult] =
     useState<ArtifactTitleRenameResult | null>(null)
+  const [pendingWorkspaceAction, setPendingWorkspaceAction] =
+    useState<PendingWorkspaceAction | null>(null)
   const runtimeFrameRef = useRef<HTMLIFrameElement>(null)
   const canvasThemeRef = useRef<CanvasThemeSnapshot | null>(null)
   const themeSaveTimerRef = useRef<number | null>(null)
@@ -71,7 +81,6 @@ export default function App() {
     session.status === "ready"
       ? resolveDesktopRuntimeOrigin(session.bootstrapUrl)
       : null
-
   useEffect(() => {
     desktopApi
       .snapshot()
@@ -258,7 +267,12 @@ export default function App() {
     )
   }
 
-  async function openWorkspace(path: string, initialize = false) {
+  async function openWorkspace(
+    path: string,
+    initialize = false,
+    pendingAction: PendingWorkspaceAction = initialize ? "create" : "open"
+  ) {
+    setPendingWorkspaceAction(pendingAction)
     setCanvasNavigation(null)
     setSession({ status: initialize ? "initializing" : "opening", root: path })
     try {
@@ -272,12 +286,16 @@ export default function App() {
       setSession(readySession(runtime))
     } catch (error) {
       setSession({ status: "failed", root: path, error: workspaceError(error) })
+    } finally {
+      setPendingWorkspaceAction(null)
     }
   }
 
   async function chooseWorkspace(initialize: boolean) {
     const path = await selectWorkspaceFolder()
-    if (path) await openWorkspace(path, initialize)
+    if (path) {
+      await openWorkspace(path, initialize, initialize ? "create" : "open")
+    }
   }
 
   if (session.status === "ready") {
@@ -285,8 +303,15 @@ export default function App() {
       <DesktopShell
         navigation={canvasNavigation}
         artifactTitleRenameResult={artifactTitleRenameResult}
+        themeMode={snapshot.canvasTheme?.mode ?? "system"}
         onCreateArtifact={() =>
           postCanvasNavigationCommand({ type: "create-artifact" })
+        }
+        onCloseCodexThreadManager={() =>
+          postCanvasNavigationCommand({ type: "close-codex-thread-manager" })
+        }
+        onOpenCodexThreadManager={() =>
+          postCanvasNavigationCommand({ type: "open-codex-thread-manager" })
         }
         onRequestDeleteArtifact={(filePath) =>
           postCanvasNavigationCommand({
@@ -305,8 +330,17 @@ export default function App() {
         onSearchArtifacts={() =>
           postCanvasNavigationCommand({ type: "open-artifact-search" })
         }
+        onSelectLanguage={(language) =>
+          postCanvasNavigationCommand({ language, type: "set-language" })
+        }
+        onSelectThemeMode={(mode) =>
+          postCanvasNavigationCommand({ mode, type: "set-theme-mode" })
+        }
         onSelectArtifact={(filePath) =>
           postCanvasNavigationCommand({ filePath, type: "select-artifact" })
+        }
+        onSelectCanvas={(filePath) =>
+          postCanvasNavigationCommand({ filePath, type: "select-canvas" })
         }
         onSetSidebarOpen={(open) =>
           postCanvasNavigationCommand({ open, type: "set-sidebar-open" })
@@ -330,7 +364,10 @@ export default function App() {
       <main className="desktop-home">
         <div className="desktop-home__content">
           <header className="desktop-home__heading">
-            <h1>AHTML</h1>
+            <h1 className="desktop-home__brand">
+              <AgentHtmlGhostIcon aria-hidden="true" />
+              <span>{agentHtmlBrandName}</span>
+            </h1>
             <p>
               Open or create an <code>agent-html/</code> workspace.
             </p>
@@ -339,19 +376,35 @@ export default function App() {
           <section aria-label="Workspace" className="desktop-section">
             <div className="desktop-actions">
               <Button
+                aria-busy={pendingWorkspaceAction === "open"}
                 disabled={busy}
                 intent="primary"
                 onClick={() => chooseWorkspace(false)}
               >
-                <FolderOpen aria-hidden="true" size={17} />
+                <span aria-hidden="true" className="desktop-button__icon-slot">
+                  {pendingWorkspaceAction === "open" ? (
+                    <LoaderCircle className="desktop-spinner" />
+                  ) : (
+                    <FolderOpen />
+                  )}
+                </span>
                 Open project
               </Button>
-              <Button disabled={busy} onClick={() => chooseWorkspace(true)}>
-                <Plus aria-hidden="true" size={17} />
+              <Button
+                aria-busy={pendingWorkspaceAction === "create"}
+                disabled={busy}
+                onClick={() => chooseWorkspace(true)}
+              >
+                <span aria-hidden="true" className="desktop-button__icon-slot">
+                  {pendingWorkspaceAction === "create" ? (
+                    <LoaderCircle className="desktop-spinner" />
+                  ) : (
+                    <Plus />
+                  )}
+                </span>
                 Create workspace
               </Button>
             </div>
-            {busy && <Status>Preparing {title}…</Status>}
             {session.status === "failed" && (
               <div className="desktop-recovery" role="alert">
                 <Status kind="error">{session.error.message}</Status>
@@ -362,18 +415,43 @@ export default function App() {
                 <div className="desktop-actions">
                   {session.root && session.error.recoverable && (
                     <Button
+                      aria-busy={pendingWorkspaceAction === "open"}
                       intent="primary"
-                      onClick={() => openWorkspace(session.root!)}
+                      onClick={() =>
+                        openWorkspace(session.root!, false, "open")
+                      }
                     >
-                      <RotateCcw aria-hidden="true" size={16} />
+                      <span
+                        aria-hidden="true"
+                        className="desktop-button__icon-slot"
+                      >
+                        {pendingWorkspaceAction === "open" ? (
+                          <LoaderCircle className="desktop-spinner" />
+                        ) : (
+                          <RotateCcw />
+                        )}
+                      </span>
                       Retry
                     </Button>
                   )}
                   {session.error.code === "missing-workspace" &&
                     session.root && (
                       <Button
-                        onClick={() => openWorkspace(session.root!, true)}
+                        aria-busy={pendingWorkspaceAction === "create"}
+                        onClick={() =>
+                          openWorkspace(session.root!, true, "create")
+                        }
                       >
+                        <span
+                          aria-hidden="true"
+                          className="desktop-button__icon-slot"
+                        >
+                          {pendingWorkspaceAction === "create" ? (
+                            <LoaderCircle className="desktop-spinner" />
+                          ) : (
+                            <Plus />
+                          )}
+                        </span>
                         Initialize agent-html/
                       </Button>
                     )}
@@ -392,21 +470,44 @@ export default function App() {
                 {snapshot.recents.map((workspace) => (
                   <li key={workspace.path}>
                     <Button
+                      aria-busy={
+                        typeof pendingWorkspaceAction === "object" &&
+                        pendingWorkspaceAction !== null &&
+                        pendingWorkspaceAction.type === "recent" &&
+                        pendingWorkspaceAction.path === workspace.path
+                      }
                       aria-describedby={
                         workspace.available
                           ? undefined
                           : `missing-${workspace.path}`
                       }
                       disabled={!workspace.available || busy}
-                      onClick={() => openWorkspace(workspace.path)}
+                      onClick={() =>
+                        openWorkspace(workspace.path, false, {
+                          path: workspace.path,
+                          type: "recent",
+                        })
+                      }
                     >
                       <span>
                         <strong>{workspace.name}</strong>
                         <small>{workspace.path}</small>
                       </span>
-                      {!workspace.available && (
-                        <small id={`missing-${workspace.path}`}>Missing</small>
-                      )}
+                      <span className="desktop-button__trailing-slot">
+                        {typeof pendingWorkspaceAction === "object" &&
+                        pendingWorkspaceAction !== null &&
+                        pendingWorkspaceAction.type === "recent" &&
+                        pendingWorkspaceAction.path === workspace.path ? (
+                          <LoaderCircle
+                            aria-hidden="true"
+                            className="desktop-spinner"
+                          />
+                        ) : !workspace.available ? (
+                          <small id={`missing-${workspace.path}`}>
+                            Missing
+                          </small>
+                        ) : null}
+                      </span>
                     </Button>
                   </li>
                 ))}
@@ -424,16 +525,24 @@ function DesktopShell({
   artifactTitleRenameResult,
   navigation,
   onCreateArtifact,
+  onCloseCodexThreadManager,
+  onOpenCodexThreadManager,
   onRequestDeleteArtifact,
   onRenameArtifactTitle,
   onSearchArtifacts,
+  onSelectLanguage,
   onSelectArtifact,
+  onSelectCanvas,
+  onSelectThemeMode,
   onSetSidebarOpen,
+  themeMode,
 }: {
   children: React.ReactNode
   artifactTitleRenameResult?: ArtifactTitleRenameResult | null
   navigation?: CanvasNavigationSnapshot | null
   onCreateArtifact?: () => void
+  onCloseCodexThreadManager?: () => void
+  onOpenCodexThreadManager?: () => void
   onRequestDeleteArtifact?: (filePath: string) => void
   onRenameArtifactTitle?: (input: {
     filePath: string
@@ -441,8 +550,12 @@ function DesktopShell({
     title: string
   }) => void
   onSearchArtifacts?: () => void
+  onSelectLanguage?: (language: "en" | "system" | "zh") => void
   onSelectArtifact?: (filePath: string) => void
+  onSelectCanvas?: (filePath: string) => void
+  onSelectThemeMode?: (mode: CanvasThemeMode) => void
   onSetSidebarOpen?: (open: boolean) => void
+  themeMode?: CanvasThemeMode
 }) {
   return (
     <div className="desktop-shell">
@@ -450,11 +563,17 @@ function DesktopShell({
         artifactTitleRenameResult={artifactTitleRenameResult}
         navigation={navigation}
         onCreateArtifact={onCreateArtifact}
+        onCloseCodexThreadManager={onCloseCodexThreadManager}
+        onOpenCodexThreadManager={onOpenCodexThreadManager}
         onRequestDeleteArtifact={onRequestDeleteArtifact}
         onRenameArtifactTitle={onRenameArtifactTitle}
         onSearchArtifacts={onSearchArtifacts}
+        onSelectLanguage={onSelectLanguage}
         onSelectArtifact={onSelectArtifact}
+        onSelectCanvas={onSelectCanvas}
+        onSelectThemeMode={onSelectThemeMode}
         onSetSidebarOpen={onSetSidebarOpen}
+        themeMode={themeMode}
       />
       {children}
     </div>

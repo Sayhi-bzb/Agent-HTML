@@ -22,6 +22,7 @@ const windowControls: DesktopWindowControls = {
 }
 
 const navigation: CanvasNavigationSnapshot = {
+  activeCodexThreadLabel: "Navigation polish",
   activeFilePath: "agent-html/artifacts/artifact-2.artifact.tsx",
   artifacts: [
     {
@@ -34,6 +35,14 @@ const navigation: CanvasNavigationSnapshot = {
     },
   ],
   artifactsLoading: false,
+  canvases: [
+    {
+      filePath: "agent-html/canvases/operations.canvas.tsx",
+      title: "Operations",
+    },
+  ],
+  canvasesLoading: false,
+  codexThreadManagerActive: false,
   createArtifactActive: false,
   leftSidebarOpen: true,
   version: canvasNavigationSnapshotVersion,
@@ -62,7 +71,7 @@ describe("desktop title bar", () => {
   it("uses macOS window action order", () => {
     const markup = renderTitleBar("macos")
 
-    expect(markup).toContain("Agent-HTML")
+    expect(markup).not.toContain("Agent-HTML")
     expect(markup).toContain('data-platform="macos"')
     expect(markup.indexOf("Close window")).toBeLessThan(
       markup.indexOf("Minimize window")
@@ -72,22 +81,26 @@ describe("desktop title bar", () => {
     )
   })
 
-  it("renders the brand-only title bar outside a workspace", () => {
+  it("renders a drag-only title bar outside a workspace", () => {
     const markup = renderTitleBar("windows")
 
-    expect(markup).toContain('data-navigation="brand"')
-    expect(markup).toContain("Agent-HTML")
-    expect(markup).toContain('aria-label="Agent menu"')
-    expect(markup).not.toContain('aria-label="Artifacts"')
+    expect(markup).toContain('data-navigation="home"')
+    expect(markup).not.toContain("Agent-HTML")
+    expect(markup).not.toContain('aria-label="Agent menu"')
+    expect(markup).not.toContain('aria-label="Workspace"')
+    expect(markup).toContain("desktop-titlebar__drag-space")
   })
 
-  it("renders ordered Artifact navigation and its active state", () => {
+  it("renders ordered workspace navigation and its active state", () => {
     const markup = renderTitleBar("windows", navigation)
 
     expect(markup).toContain('data-navigation="workspace"')
-    expect(markup).toContain('aria-label="Artifacts"')
+    expect(markup).toContain('aria-label="Workspace"')
     expect(markup.indexOf("Artifact 1")).toBeLessThan(
       markup.indexOf("Artifact 2")
+    )
+    expect(markup.indexOf("Artifact 2")).toBeLessThan(
+      markup.indexOf("Operations")
     )
     expect(markup).toContain(
       'class="desktop-titlebar__artifact" data-active=""'
@@ -99,6 +112,7 @@ describe("desktop title bar", () => {
     expect(
       markup.match(/class="desktop-titlebar__artifact-close"/g)
     ).toHaveLength(navigation.artifacts.length)
+    expect(markup).toContain('data-kind="canvas"')
     expect(markup).toContain('aria-label="Delete Artifact 1"')
     expect(markup).toContain('aria-label="Delete Artifact 2"')
     expect(markup).toContain('aria-expanded="true"')
@@ -123,6 +137,19 @@ describe("desktop title bar", () => {
 
     expect(markup).not.toContain('aria-current="page"')
     expect(markup).toContain('aria-label="New Artifact" aria-pressed="true"')
+  })
+
+  it("renders a temporary active Threads tab with a non-destructive close", () => {
+    const markup = renderTitleBar("windows", {
+      ...navigation,
+      activeFilePath: null,
+      codexThreadManagerActive: true,
+    })
+
+    expect(markup).toContain('data-kind="threads"')
+    expect(markup).toContain('aria-label="Close Threads"')
+    expect(markup).toContain('aria-current="page"')
+    expect(markup).not.toContain('aria-label="Delete Threads"')
   })
 
   it.each(["windows", "linux"] as const)(

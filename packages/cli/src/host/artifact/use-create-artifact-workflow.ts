@@ -74,7 +74,10 @@ export function reduceCreateArtifactWorkflow(
       return state.job
         ? {
             ...state,
-            job: failCreateArtifactJob({ error: action.message, job: state.job }),
+            job: failCreateArtifactJob({
+              error: action.message,
+              job: state.job,
+            }),
             status: { kind: "failed", message: action.message },
           }
         : state
@@ -141,7 +144,6 @@ export function useCreateArtifactWorkflow({
   )
   const activeAttemptRef = React.useRef(0)
   const activeJobRef = React.useRef(state.job)
-  activeJobRef.current = state.job
 
   React.useEffect(() => {
     const job = state.job
@@ -159,11 +161,16 @@ export function useCreateArtifactWorkflow({
         return
       }
 
+      const error = t("app.artifactCreationTimedOut", {
+        filePath: job.filePath,
+      })
       activeAttemptRef.current += 1
+      activeJobRef.current = failCreateArtifactJob({
+        error,
+        job,
+      })
       dispatch({
-        message: t("app.artifactCreationTimedOut", {
-          filePath: job.filePath,
-        }),
+        message: error,
         type: "failed",
       })
     }
@@ -178,32 +185,34 @@ export function useCreateArtifactWorkflow({
 
   const clear = React.useCallback(() => {
     activeAttemptRef.current += 1
+    activeJobRef.current = null
     dispatch({ type: "clear" })
   }, [])
   const onPendingArtifactFailure = React.useCallback(
     ({ error, filePath }: { error: string; filePath: string }) => {
-      if (
-        activeJobRef.current?.filePath !== filePath ||
-        activeJobRef.current.phase === "failed"
-      ) {
+      const job = activeJobRef.current
+      if (job?.filePath !== filePath || job.phase === "failed") {
         return
       }
 
       activeAttemptRef.current += 1
+      activeJobRef.current = failCreateArtifactJob({
+        error,
+        job,
+      })
       dispatch({ message: error, type: "failed" })
     },
     []
   )
   const onPendingArtifactReady = React.useCallback(
     ({ filePath }: { filePath: string }) => {
-      if (
-        activeJobRef.current?.filePath !== filePath ||
-        activeJobRef.current.phase === "failed"
-      ) {
+      const job = activeJobRef.current
+      if (job?.filePath !== filePath || job.phase === "failed") {
         return
       }
 
       activeAttemptRef.current += 1
+      activeJobRef.current = null
       dispatch({ type: "ready" })
     },
     []
@@ -243,6 +252,7 @@ export function useCreateArtifactWorkflow({
       }
       const attempt = activeAttemptRef.current + 1
       activeAttemptRef.current = attempt
+      activeJobRef.current = startedJob
       dispatch({ job: startedJob, type: "started" })
 
       try {
@@ -256,6 +266,7 @@ export function useCreateArtifactWorkflow({
           filePath: createdArtifact.filePath,
           phase: "waiting-for-artifact",
         }
+        activeJobRef.current = waitingJob
         dispatch({ job: waitingJob, type: "waiting" })
         await refreshArtifacts({
           currentFilePath: createdArtifact.filePath,
@@ -271,6 +282,10 @@ export function useCreateArtifactWorkflow({
 
         const message = error instanceof Error ? error.message : String(error)
         activeAttemptRef.current += 1
+        activeJobRef.current = failCreateArtifactJob({
+          error: message,
+          job: activeJobRef.current ?? startedJob,
+        })
         dispatch({ message, type: "failed" })
         throw error
       }

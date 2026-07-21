@@ -45,25 +45,28 @@ export function ArtifactSurface({
     React.useState<HTMLElement | null>(null)
   const [tocVisibleByScroll, setTocVisibleByScroll] = React.useState(false)
   const tocItems = React.useMemo(
-    () => blocks?.map((block) => ({
-      depth: 2,
-      id: block.id,
-      title: block.title,
-    })) ?? [],
+    () =>
+      blocks?.map((block) => ({
+        depth: 2,
+        id: block.id,
+        title: block.title,
+      })) ?? [],
     [blocks]
   )
-  const activeTocId = useScrollSpy(
-    tocItems.map((item) => item.id),
-    {
-      root: scrollViewport,
-      rootMargin: "-24px 0px -80% 0px",
-    }
+  const tocItemIds = React.useMemo(
+    () => tocItems.map((item) => item.id),
+    [tocItems]
   )
+  const activeTocId = useScrollSpy(tocItemIds, {
+    root: scrollViewport,
+    rootMargin: "-24px 0px -80% 0px",
+  })
   const setScrollAreaElement = React.useCallback(
     (element: HTMLDivElement | null) => {
       setScrollViewport(
-        element?.querySelector<HTMLElement>("[data-slot='scroll-area-viewport']") ??
-          null
+        element?.querySelector<HTMLElement>(
+          "[data-slot='scroll-area-viewport']"
+        ) ?? null
       )
     },
     []
@@ -197,5 +200,3 @@ export function ArtifactSurface({
     </main>
   )
 }
-
-
