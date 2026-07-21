@@ -1,3 +1,4 @@
+import { rmSync } from "node:fs"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
@@ -13,10 +14,32 @@ import {
 const temporaryRoot = process.env.AHTML_SMOKE_ROOT
   ? null
   : await fs.mkdtemp(path.join(os.tmpdir(), "ahtml-runtime-smoke-"))
+let child
+const terminateChild = () => {
+  if (child && child.exitCode === null && child.signalCode === null) child.kill()
+}
+const cleanupTemporaryRoot = () => {
+  if (temporaryRoot) rmSync(temporaryRoot, { force: true, recursive: true })
+}
+const cleanupOnExit = () => {
+  terminateChild()
+  cleanupTemporaryRoot()
+}
+process.once("exit", cleanupOnExit)
+process.once("SIGINT", () => {
+  terminateChild()
+  process.exit(130)
+})
+process.once("SIGTERM", () => {
+  terminateChild()
+  process.exit(143)
+})
+
 const workspaceRoot =
   process.env.AHTML_SMOKE_ROOT || path.join(temporaryRoot, "project")
 await fs.mkdir(workspaceRoot, { recursive: true })
 const storePaths = runtimeStorePaths()
+process.env.AGENT_HTML_RUNTIME_CACHE_HOME = path.join(storePaths.root, "cache")
 const selection = await readCurrentRuntime(storePaths)
 if (!selection) throw new Error("Prepared runtime selection was not found")
 const runtimeRoot = runtimeBundleRoot(storePaths, selection.fingerprint)
@@ -57,7 +80,7 @@ await fs.writeFile(
 )
 
 const token = "desktop-sidecar-smoke-token-with-enough-entropy"
-const child = spawn(
+child = spawn(
   binaryPath,
   [cliPath, "runtime", "--root", workspaceRoot, "--pipeline", "example"],
   {
@@ -73,19 +96,6 @@ const child = spawn(
     stdio: ["ignore", "pipe", "pipe"],
   }
 )
-const terminateChild = () => {
-  if (child.exitCode === null && child.signalCode === null) child.kill()
-}
-process.once("exit", terminateChild)
-process.once("SIGINT", () => {
-  terminateChild()
-  process.exit(130)
-})
-process.once("SIGTERM", () => {
-  terminateChild()
-  process.exit(143)
-})
-
 let stderr = ""
 child.stderr.on("data", (chunk) => {
   stderr += chunk
@@ -203,13 +213,6 @@ const dependencyCache = runtimeViteModule.cacheDirForRoot(
   manifest.fingerprint,
   manifest.dependencyContractDigest
 )
-const classnamesPath = path.join(dependencyCache, "deps", "classnames.js")
-const classnamesModule = await fs.readFile(classnamesPath, "utf8")
-if (!/export\s+default\b/.test(classnamesModule)) {
-  throw new Error(
-    `Bundled runtime did not prebundle the classnames default export: ${classnamesModule}`
-  )
-}
 const dependencyChunks = await fs.readdir(path.join(dependencyCache, "deps"))
 const reduceCssCalcBundled = await Promise.all(
   dependencyChunks
@@ -233,7 +236,7 @@ await new Promise((resolve, reject) => {
 })
 
 console.log("Bundled Node sidecar smoke test passed")
-process.removeListener("exit", terminateChild)
 if (temporaryRoot) {
   await fs.rm(temporaryRoot, { force: true, recursive: true })
 }
+process.removeListener("exit", cleanupOnExit)

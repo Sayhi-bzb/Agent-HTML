@@ -5,7 +5,7 @@ import ts from "typescript"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const workspaceRoot = path.join(root, "agent-html")
-const tmpRoot = path.join(root, "node_modules", ".tmp", "agent-html-index-dts")
+const tmpRoot = path.join(root, ".tmp", "cache", "canvas-index-dts")
 const dtsWorkspaceRoot = path.join(tmpRoot, "agent-html")
 const shouldCheck = process.argv.includes("--check")
 const ignoredWorkspaceDirectories = new Set([
@@ -684,7 +684,7 @@ function buildReadme() {
     "- `api-surface.md` maps compact exported API surfaces.",
     "- `style-surface.md` maps generated artifact CSS class names.",
     "",
-    "Full declarations are temporary machine inputs under `node_modules/.tmp`, not committed agent context. Regenerate with `npm run canvas:index`.",
+    "Full declarations are temporary machine inputs under `.tmp/cache`, not committed agent context. Regenerate with `npm run canvas:index`.",
   ].join("\n")
 }
 

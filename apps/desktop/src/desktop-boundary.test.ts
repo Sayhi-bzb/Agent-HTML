@@ -10,6 +10,8 @@ describe("desktop package boundary", () => {
     const files = [
       "src/App.tsx",
       "src/desktop-api.ts",
+      "src/desktop-window.ts",
+      "src/title-bar.tsx",
       "src/ui.tsx",
       "src-tauri/src/lib.rs",
       "src-tauri/src/runtime.rs",
@@ -33,5 +35,27 @@ describe("desktop package boundary", () => {
       "npm run runtime:ensure && npm run dev"
     )
     expect(config.build.beforeBuildCommand).toContain("npm run runtime:stage")
+  })
+
+  it("uses a custom title bar with the minimum window permissions", () => {
+    const config = JSON.parse(
+      fs.readFileSync(path.join(appRoot, "src-tauri/tauri.conf.json"), "utf8")
+    )
+    const capability = JSON.parse(
+      fs.readFileSync(
+        path.join(appRoot, "src-tauri/capabilities/default.json"),
+        "utf8"
+      )
+    )
+
+    expect(config.app.windows[0].decorations).toBe(false)
+    expect(capability.permissions).toEqual(
+      expect.arrayContaining([
+        "core:window:allow-close",
+        "core:window:allow-minimize",
+        "core:window:allow-start-dragging",
+        "core:window:allow-toggle-maximize",
+      ])
+    )
   })
 })

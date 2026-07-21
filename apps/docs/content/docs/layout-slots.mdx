@@ -11,7 +11,7 @@ A layout slot is documentation vocabulary. It is not a React prop, a DOM `slot` 
 
 ```text
 AHTMLDesktop
-├── NativeTitleBar
+├── DesktopTitleBar
 └── DesktopContent
     ├── WorkspaceHome
     │   ├── WorkspaceHomeHeader
@@ -47,8 +47,8 @@ AHTMLDesktop
 ```
 
 ```text
-╭─ NativeTitleBar ─────────────────────────────────────╮
-│ AHTML                                                │
+╭─ DesktopTitleBar ────────────────────────────────────╮
+│ Agent-HTML                                           │
 ├─ CanvasSidebar ────────┬─ CanvasMain ────────────────┤
 │ CanvasSidebarHeader    │ CanvasToolbar               │
 │                        │  └── SidebarToggle          │
@@ -75,7 +75,8 @@ AHTMLDesktop
 
 | Slots | Source owner |
 | --- | --- |
-| NativeTitleBar, DesktopContent, WorkspaceHome, DesktopCanvasFrame | `apps/desktop/src-tauri/tauri.conf.json`, `apps/desktop/src/App.tsx` |
+| DesktopTitleBar | `apps/desktop/src/title-bar.tsx`, `apps/desktop/src-tauri/tauri.conf.json` |
+| DesktopContent, WorkspaceHome, DesktopCanvasFrame | `apps/desktop/src/App.tsx` |
 | CanvasHost, CanvasMain, CanvasToolbar, SidebarToggle | `packages/cli/src/host/app.tsx` |
 | CanvasSidebar and its Header, Content, Footer | `packages/cli/src/host/navigation/sidebar.tsx` |
 | ArtifactSurface, ArtifactScrollArea, ArtifactViewport, overlays | `packages/cli/src/host/artifact/artifact-surface.tsx` |

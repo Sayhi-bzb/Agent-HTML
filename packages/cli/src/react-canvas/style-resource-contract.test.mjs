@@ -207,6 +207,13 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
       /\.canvas-surface-scroll \[data-slot="scroll-area-viewport"\] > div\s*\{[^}]*display: block !important;[^}]*min-width: 0 !important;[^}]*width: 100%;[^}]*\}/
     )
     expect(packageHostSurfaceStyles).toContain("overscroll-behavior: none")
+    expect(packageHostSurfaceStyles).toMatch(
+      /\.canvas-host-status\s*\{[^}]*max-width: var\(--canvas-artifact-max-width\);[^}]*min-width: 0;/
+    )
+    expect(packageHostSurfaceStyles).toContain(
+      ".canvas-host-status-description"
+    )
+    expect(packageHostSurfaceStyles).toContain("overflow-wrap: anywhere")
     expect(packageHostSurfaceStyles).not.toContain("100svh")
     expect(packageHostTokens).toContain(
       "--canvas-host-touch-target-min: 2.75rem"

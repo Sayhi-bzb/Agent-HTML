@@ -20,6 +20,7 @@ export const canvasThemeVariableNames = [
   "--info",
   "--info-foreground",
   "--destructive",
+  "--destructive-foreground",
   "--border",
   "--input",
   "--ring",

@@ -1,8 +1,8 @@
 import fs from "node:fs/promises"
-import os from "node:os"
 import path from "node:path"
 import { describe, expect, it } from "vitest"
 
+import { createTestTempDir } from "../../../config/test-temp.mjs"
 import { initializeAgentHtmlWorkspace } from "./init.mjs"
 
 async function exists(filePath) {
@@ -19,7 +19,7 @@ async function exists(filePath) {
 }
 
 async function createTemplateRoot() {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-template-"))
+  const root = await createTestTempDir("template")
   const templateRoot = path.join(root, "agent-html")
 
   await fs.mkdir(path.join(templateRoot, "artifacts"), { recursive: true })
@@ -46,7 +46,7 @@ async function createTemplateRoot() {
 
 describe("agent-html init", () => {
   it("creates an agent-html workspace from the template", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-init-"))
+    const root = await createTestTempDir("init")
     const templateRoot = await createTemplateRoot()
 
     const result = await initializeAgentHtmlWorkspace({ root, templateRoot })
@@ -70,7 +70,7 @@ describe("agent-html init", () => {
   })
 
   it("fails without changing files when agent-html already exists", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-init-"))
+    const root = await createTestTempDir("init")
     const templateRoot = await createTemplateRoot()
     const existingReadme = path.join(root, "agent-html", "README.md")
 
@@ -86,7 +86,7 @@ describe("agent-html init", () => {
   })
 
   it("removes staging output when the template copy fails", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-init-"))
+    const root = await createTestTempDir("init")
     const templateRoot = await createTemplateRoot()
 
     await expect(

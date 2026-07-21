@@ -71,6 +71,10 @@ describe("desktop visual ownership", () => {
     expect(css).toContain("background: var(--primary)")
     expect(css).toContain("color: var(--primary-foreground)")
     expect(css).toMatch(
+      /\.desktop-titlebar__control\[data-kind="close"\]:hover\s*\{[^}]*background: var\(--destructive\)[^}]*color: var\(--destructive-foreground\)/s
+    )
+    expect(css).not.toContain("packages/cli/src/host/styles")
+    expect(css).toMatch(
       /\.desktop-dialog\s*\{[^}]*background: var\(--popover\)[^}]*color: var\(--popover-foreground\)/s
     )
 

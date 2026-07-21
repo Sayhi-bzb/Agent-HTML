@@ -28,12 +28,12 @@
     min-width: 0;
     flex: 1 1 auto;
     align-items: center;
-    gap: var(--canvas-sidebar-control-gap);
+    gap: var(--agent-html-brand-gap);
   }
 
   .canvas-sidebar-brand-icon {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: var(--agent-html-brand-icon-size);
+    height: var(--agent-html-brand-icon-size);
     flex-shrink: 0;
     color: var(--sidebar-foreground);
   }
@@ -349,8 +349,11 @@
   }
 
   .canvas-sidebar-title {
-    font-size: var(--canvas-sidebar-title-font-size);
-    font-weight: 600;
+    font-family: var(--agent-html-brand-font-family);
+    font-size: var(--agent-html-brand-font-size);
+    font-weight: var(--agent-html-brand-font-weight);
+    letter-spacing: var(--agent-html-brand-letter-spacing);
+    line-height: var(--agent-html-brand-line-height);
   }
 
   .canvas-sidebar-body {

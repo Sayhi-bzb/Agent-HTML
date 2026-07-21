@@ -1,9 +1,9 @@
 import fs from "node:fs"
-import os from "node:os"
 import path from "node:path"
 
 import { afterEach, describe, expect, it, vi } from "vitest"
 
+import { createTestTempDirSync } from "../../../../config/test-temp.mjs"
 import {
   createInitializeParams,
   createCodexSpawnOptions,
@@ -50,7 +50,7 @@ describe("React Canvas Codex bridge", () => {
   })
 
   it("spawns the Codex JavaScript entry instead of the Windows cmd shim", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "agent-html-codex-"))
+    const root = createTestTempDirSync("codex")
     const npmBin = path.join(root, "npm")
     const codexScript = path.join(
       npmBin,
@@ -73,7 +73,7 @@ describe("React Canvas Codex bridge", () => {
   })
 
   it("falls back to the resolved command when the Windows shim script is missing", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "agent-html-codex-"))
+    const root = createTestTempDirSync("codex")
     const npmBin = path.join(root, "npm")
     const codexCommand = path.join(npmBin, "codex.cmd")
 

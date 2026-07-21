@@ -17,6 +17,20 @@ pub fn normalize_project_root(selected: &Path) -> Result<PathBuf, String> {
     Ok(root)
 }
 
+pub fn simplify_windows_verbatim_path(value: &str) -> String {
+    if let Some(rest) = value.strip_prefix(r"\\?\UNC\") {
+        format!(r"\\{rest}")
+    } else if let Some(rest) = value.strip_prefix(r"\\?\") {
+        rest.to_string()
+    } else {
+        value.to_string()
+    }
+}
+
+pub fn user_facing_path(path: &Path) -> String {
+    simplify_windows_verbatim_path(&path.to_string_lossy())
+}
+
 pub fn validate_workspace(root: &Path) -> Result<(), String> {
     let workspace = root.join("agent-html");
     if !workspace.is_dir() {
@@ -64,5 +78,21 @@ mod tests {
         );
         assert!(validate_workspace(&root).is_ok());
         let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn simplifies_windows_verbatim_paths_at_user_boundaries() {
+        assert_eq!(
+            simplify_windows_verbatim_path(r"\\?\D:\projects\demo"),
+            r"D:\projects\demo"
+        );
+        assert_eq!(
+            simplify_windows_verbatim_path(r"\\?\UNC\server\share\demo"),
+            r"\\server\share\demo"
+        );
+        assert_eq!(
+            simplify_windows_verbatim_path(r"/projects/demo"),
+            r"/projects/demo"
+        );
     }
 }

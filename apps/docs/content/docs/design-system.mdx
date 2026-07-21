@@ -35,7 +35,8 @@ packages/cli/src/host/styles/*
      implementation styles that consume Canvas tokens
 
 apps/desktop/src/styles.css
-  -> shared foundation consumer plus centrally owned --canvas-desktop-* values
+  -> shared foundation consumer plus Desktop title bar and centrally owned
+     --canvas-desktop-* values
 
 theme/*
   -> host-owned theme preset registry and shadcn CSS sources
@@ -125,6 +126,11 @@ packaged app source and never import a selected workspace's
 Desktop consumes Canvas foundation variables for semantic color, font, radius,
 and depth. Desktop-only geometry and product chrome values remain under
 `--canvas-desktop-*`; Desktop must not redefine shared theme primitives.
+
+`DesktopTitleBar` is Desktop React chrome, not an operating-system-owned title
+bar. It consumes the same semantic theme snapshot as DesktopContent, keeps
+platform-specific window-control order, and owns only `--canvas-desktop-*`
+geometry. It does not import Canvas Host styles.
 
 ## Viewport And Touch Ownership
 

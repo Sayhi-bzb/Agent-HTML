@@ -15,4 +15,4 @@ Use this directory to choose the next file to open. It is an agent-facing index 
 - `api-surface.md` maps compact exported API surfaces.
 - `style-surface.md` maps generated artifact CSS class names.
 
-Full declarations are temporary machine inputs under `node_modules/.tmp`, not committed agent context. Regenerate with `npm run canvas:index`.
+Full declarations are temporary machine inputs under `.tmp/cache`, not committed agent context. Regenerate with `npm run canvas:index`.

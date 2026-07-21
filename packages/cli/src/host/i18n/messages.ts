@@ -13,10 +13,15 @@ const en = {
   "artifact.clearPending": "Clear pending state",
   "artifact.guardIssues": "Guard issues",
   "artifact.loadIssue": "Artifact load issue",
+  "artifact.loadIssueMessage":
+    "The current Artifact remains visible, but its latest update could not load.",
   "artifact.noArtifactsMessage":
     "Create an agent-html/artifacts/*.artifact.tsx file to preview it here.",
   "artifact.noArtifactsTitle": "No artifacts found",
+  "artifact.previousVisible": "The previous Artifact remains visible below.",
+  "artifact.technicalDetails": "Technical details",
   "artifact.unavailable": "Artifact unavailable",
+  "artifact.unavailableMessage": "The selected Artifact could not load.",
   "block.agentAccepted": "Agent accepted this Block request.",
   "block.done": "Done",
   "block.failed": "Failed",
@@ -144,10 +149,15 @@ const zh = {
   "artifact.clearPending": "清除 pending 状态",
   "artifact.guardIssues": "Guard issues",
   "artifact.loadIssue": "Artifact 加载问题",
+  "artifact.loadIssueMessage":
+    "当前 Artifact 仍然可见，但它的最新更新无法加载。",
   "artifact.noArtifactsMessage":
     "创建 agent-html/artifacts/*.artifact.tsx 文件后可在这里预览。",
   "artifact.noArtifactsTitle": "未找到 Artifacts",
+  "artifact.previousVisible": "下方继续显示上一个 Artifact。",
+  "artifact.technicalDetails": "技术详情",
   "artifact.unavailable": "Artifact 不可用",
+  "artifact.unavailableMessage": "所选 Artifact 无法加载。",
   "block.agentAccepted": "Agent 已接受此 Block 请求。",
   "block.done": "完成",
   "block.failed": "失败",

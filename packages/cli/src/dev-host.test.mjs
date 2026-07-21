@@ -1,12 +1,12 @@
 import fs from "node:fs/promises"
 import { execFile, spawn } from "node:child_process"
 import http from "node:http"
-import os from "node:os"
 import path from "node:path"
 import { promisify } from "node:util"
 
 import { describe, expect, it } from "vitest"
 
+import { createTestTempDir } from "../../../config/test-temp.mjs"
 import { startDevHost } from "./dev-host.mjs"
 import { hostRoot, packageRoot } from "./dev-server/context.mjs"
 import { parsePipelineArg } from "./dev-server/server.mjs"
@@ -371,7 +371,7 @@ describe("React Canvas dev host", () => {
   }, 30_000)
 
   it("serves dependency modules without allowing project source", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-deps-"))
+    const root = await createTestTempDir("deps")
     const dependencyPath = path.join(
       root,
       "node_modules",
@@ -403,7 +403,7 @@ describe("React Canvas dev host", () => {
   }, 30_000)
 
   it("runs from the packed npm package in a fresh project", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-package-"))
+    const root = await createTestTempDir("package")
     const packDirectory = path.join(root, "pack")
     const projectRoot = path.join(root, "project")
     const reservedPort = await listenOnFreePort()
@@ -485,7 +485,7 @@ describe("React Canvas dev host", () => {
       const bundleUrl = new URL(`${url}/__agent-html/artifact.js`)
       bundleUrl.searchParams.set(
         "filePath",
-        "agent-html/artifacts/example.artifact.tsx"
+        "agent-html/artifacts/code-review-room.artifact.tsx"
       )
       const bundle = await fetch(bundleUrl).then((response) => response.text())
       expect(bundle).toContain("function mount")

@@ -20,6 +20,7 @@ import {
 } from "./session"
 import { Button, Field, Status } from "./ui"
 import { readTrustedDesktopThemeMessage, watchDesktopTheme } from "./theme"
+import { DesktopTitleBar } from "./title-bar"
 
 const emptySnapshot: DesktopSnapshot = {
   canvasTheme: null,
@@ -165,120 +166,136 @@ export default function App() {
 
   if (session.status === "ready") {
     return (
-      <main className="desktop-runtime">
-        <iframe
-          className="desktop-runtime__canvas"
-          ref={runtimeFrameRef}
-          src={session.bootstrapUrl}
-          title={`${title} Canvas`}
-        />
-      </main>
+      <DesktopShell>
+        <main className="desktop-runtime">
+          <iframe
+            className="desktop-runtime__canvas"
+            ref={runtimeFrameRef}
+            src={session.bootstrapUrl}
+            title={`${title} Canvas`}
+          />
+        </main>
+      </DesktopShell>
     )
   }
 
   return (
-    <main className="desktop-home">
-      <Button
-        aria-label="Workspace settings"
-        className="desktop-home__settings"
-        onClick={() => setSettingsOpen(true)}
-      >
-        <Settings aria-hidden="true" size={17} />
-      </Button>
+    <DesktopShell>
+      <main className="desktop-home">
+        <Button
+          aria-label="Workspace settings"
+          className="desktop-home__settings"
+          onClick={() => setSettingsOpen(true)}
+        >
+          <Settings aria-hidden="true" size={17} />
+        </Button>
 
-      <div className="desktop-home__content">
-        <header className="desktop-home__heading">
-          <h1>AHTML</h1>
-          <p>
-            Open or create an <code>agent-html/</code> workspace.
-          </p>
-        </header>
+        <div className="desktop-home__content">
+          <header className="desktop-home__heading">
+            <h1>AHTML</h1>
+            <p>
+              Open or create an <code>agent-html/</code> workspace.
+            </p>
+          </header>
 
-        <section aria-label="Workspace" className="desktop-section">
-          <div className="desktop-actions">
-            <Button
-              disabled={busy}
-              intent="primary"
-              onClick={() => chooseWorkspace(false)}
-            >
-              <FolderOpen aria-hidden="true" size={17} />
-              Open project
-            </Button>
-            <Button disabled={busy} onClick={() => chooseWorkspace(true)}>
-              <Plus aria-hidden="true" size={17} />
-              Create workspace
-            </Button>
-          </div>
-          {busy && <Status>Preparing {title}…</Status>}
-          {session.status === "failed" && (
-            <div className="desktop-recovery" role="alert">
-              <Status kind="error">{session.error.message}</Status>
-              <p>
-                Check access to the selected project, then retry or initialize
-                its Canvas workspace.
-              </p>
-              <div className="desktop-actions">
-                {session.root && session.error.recoverable && (
-                  <Button
-                    intent="primary"
-                    onClick={() => openWorkspace(session.root!)}
-                  >
-                    <RotateCcw aria-hidden="true" size={16} />
-                    Retry
-                  </Button>
-                )}
-                {session.error.code === "missing-workspace" && session.root && (
-                  <Button onClick={() => openWorkspace(session.root!, true)}>
-                    Initialize agent-html/
-                  </Button>
-                )}
-              </div>
+          <section aria-label="Workspace" className="desktop-section">
+            <div className="desktop-actions">
+              <Button
+                disabled={busy}
+                intent="primary"
+                onClick={() => chooseWorkspace(false)}
+              >
+                <FolderOpen aria-hidden="true" size={17} />
+                Open project
+              </Button>
+              <Button disabled={busy} onClick={() => chooseWorkspace(true)}>
+                <Plus aria-hidden="true" size={17} />
+                Create workspace
+              </Button>
             </div>
-          )}
-        </section>
-
-        {snapshot.recents.length > 0 && (
-          <section
-            aria-labelledby="recent-workspaces"
-            className="desktop-section"
-          >
-            <h2 id="recent-workspaces">Recent</h2>
-            <ul className="desktop-recents">
-              {snapshot.recents.map((workspace) => (
-                <li key={workspace.path}>
-                  <Button
-                    aria-describedby={
-                      workspace.available
-                        ? undefined
-                        : `missing-${workspace.path}`
-                    }
-                    disabled={!workspace.available || busy}
-                    onClick={() => openWorkspace(workspace.path)}
-                  >
-                    <span>
-                      <strong>{workspace.name}</strong>
-                      <small>{workspace.path}</small>
-                    </span>
-                    {!workspace.available && (
-                      <small id={`missing-${workspace.path}`}>Missing</small>
+            {busy && <Status>Preparing {title}…</Status>}
+            {session.status === "failed" && (
+              <div className="desktop-recovery" role="alert">
+                <Status kind="error">{session.error.message}</Status>
+                <p>
+                  Check access to the selected project, then retry or initialize
+                  its Canvas workspace.
+                </p>
+                <div className="desktop-actions">
+                  {session.root && session.error.recoverable && (
+                    <Button
+                      intent="primary"
+                      onClick={() => openWorkspace(session.root!)}
+                    >
+                      <RotateCcw aria-hidden="true" size={16} />
+                      Retry
+                    </Button>
+                  )}
+                  {session.error.code === "missing-workspace" &&
+                    session.root && (
+                      <Button
+                        onClick={() => openWorkspace(session.root!, true)}
+                      >
+                        Initialize agent-html/
+                      </Button>
                     )}
-                  </Button>
-                </li>
-              ))}
-            </ul>
+                </div>
+              </div>
+            )}
           </section>
-        )}
-      </div>
 
-      {settingsOpen && (
-        <SettingsDialog
-          close={() => setSettingsOpen(false)}
-          preferences={snapshot.preferences}
-          save={savePreferences}
-          snapshot={snapshot}
-        />
-      )}
-    </main>
+          {snapshot.recents.length > 0 && (
+            <section
+              aria-labelledby="recent-workspaces"
+              className="desktop-section"
+            >
+              <h2 id="recent-workspaces">Recent</h2>
+              <ul className="desktop-recents">
+                {snapshot.recents.map((workspace) => (
+                  <li key={workspace.path}>
+                    <Button
+                      aria-describedby={
+                        workspace.available
+                          ? undefined
+                          : `missing-${workspace.path}`
+                      }
+                      disabled={!workspace.available || busy}
+                      onClick={() => openWorkspace(workspace.path)}
+                    >
+                      <span>
+                        <strong>{workspace.name}</strong>
+                        <small>{workspace.path}</small>
+                      </span>
+                      {!workspace.available && (
+                        <small id={`missing-${workspace.path}`}>Missing</small>
+                      )}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+
+        {settingsOpen && (
+          <SettingsDialog
+            close={() => setSettingsOpen(false)}
+            preferences={snapshot.preferences}
+            save={savePreferences}
+            snapshot={snapshot}
+          />
+        )}
+      </main>
+    </DesktopShell>
+  )
+}
+
+function DesktopShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="desktop-shell">
+      <DesktopTitleBar />
+      {children}
+    </div>
   )
 }
 

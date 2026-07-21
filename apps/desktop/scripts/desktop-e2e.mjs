@@ -141,6 +141,20 @@ try {
     "Workspace Home",
     15_000
   )
+  const titleBarLabel = await execute(
+    "return document.querySelector('.desktop-titlebar')?.getAttribute('aria-label')"
+  )
+  const titleBarText = await execute(
+    "return document.querySelector('.desktop-titlebar__title')?.textContent"
+  )
+  if (
+    titleBarLabel !== "Application title bar" ||
+    titleBarText !== "Agent-HTML"
+  ) {
+    throw new Error(
+      `Desktop title bar was unavailable: ${JSON.stringify({ titleBarLabel, titleBarText })}`
+    )
+  }
 
   await click("css selector", "button[aria-label='Workspace settings']")
   await waitFor(
@@ -203,6 +217,14 @@ try {
   if (!frameTitle?.endsWith(" Canvas")) {
     throw new Error(
       `Canvas iframe was not named: ${JSON.stringify(frameTitle)}`
+    )
+  }
+  const runtimeTitleBarCount = await execute(
+    "return document.querySelectorAll('.desktop-titlebar').length"
+  )
+  if (runtimeTitleBarCount !== 1) {
+    throw new Error(
+      `Desktop title bar did not persist around Canvas: ${runtimeTitleBarCount}`
     )
   }
 

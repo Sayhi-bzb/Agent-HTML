@@ -1,10 +1,10 @@
 import fs from "node:fs/promises"
-import os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { describe, expect, it } from "vitest"
 
+import { createTestTempDir } from "../../../config/test-temp.mjs"
 import { buildDemoHost } from "./demo-build.mjs"
 
 const repoRoot = path.resolve(
@@ -32,8 +32,27 @@ async function builtJavascriptIncludes(outDir, pattern) {
 }
 
 describe("demo-build", () => {
+  it("removes its build workspace when output preparation fails", async () => {
+    const tempRoot = path.join(repoRoot, ".tmp", "build")
+    const readTempEntries = () =>
+      fs.readdir(tempRoot).catch((error) => {
+        if (error?.code === "ENOENT") return []
+        throw error
+      })
+    const before = await readTempEntries()
+
+    await expect(
+      buildDemoHost({
+        args: ["--root", repoRoot, "--out-dir", "invalid\0output"],
+        cwd: process.cwd(),
+      })
+    ).rejects.toBeDefined()
+
+    await expect(readTempEntries()).resolves.toEqual(before)
+  })
+
   it("writes an example pipeline manifest from artifact content", async () => {
-    const outRoot = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-demo-"))
+    const outRoot = await createTestTempDir("demo")
     const outDir = path.join(outRoot, "dist-demo")
 
     const result = await buildDemoHost({
@@ -103,6 +122,9 @@ describe("demo-build", () => {
       fs.stat(path.join(outDir, "__agent-html", "public", "assets", "blocks.png"))
     ).resolves.toMatchObject({
       size: expect.any(Number),
+    })
+    await expect(fs.access(path.join(outDir, ".tmp"))).rejects.toMatchObject({
+      code: "ENOENT",
     })
     expect(css).toContain(".canvas-host-shell")
   }, 120000)

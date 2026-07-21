@@ -256,7 +256,7 @@ function createIndexHtml() {
 }
 
 async function createBuildWorkspace({ artifacts, root }) {
-  const tempParent = path.join(root, ".tmp")
+  const tempParent = path.join(root, ".tmp", "build")
 
   await fs.mkdir(tempParent, { recursive: true })
   const tempRoot = await fs.mkdtemp(
@@ -304,83 +304,97 @@ export async function buildDemoHost({ args, cwd }) {
   const outDir = parseOutDirArg({ args, cwd })
   const artifacts = await readArtifactManifest(root)
   const buildRoot = await createBuildWorkspace({ artifacts, root })
-  const reactProtocolEntry = resolvePackageModule("@agent-html/react")
-  const reactEntry = resolvePackageModule("react")
-  const reactDomClientEntry = resolvePackageModule("react-dom/client")
-  const reactJsxRuntimeEntry = resolvePackageModule("react/jsx-runtime")
-  const reactJsxDevRuntimeEntry = resolvePackageModule("react/jsx-dev-runtime")
-
-  await fs.rm(outDir, { force: true, recursive: true })
-  await viteBuild({
-    base: "./",
-    build: {
-      emptyOutDir: true,
-      outDir,
-      rollupOptions: {
-        input: path.join(buildRoot, "index.html"),
-      },
-    },
-    configFile: false,
-    publicDir: false,
-    root,
-    plugins: [react()],
-    resolve: {
-      alias: [
-        { find: "@", replacement: path.join(root, "agent-html") },
-        {
-          find: "#agent-html-playground",
-          replacement: path.join(root, "agent-html"),
-        },
-        { find: "@agent-html/react", replacement: reactProtocolEntry },
-        { find: "react-dom/client", replacement: reactDomClientEntry },
-        { find: "react/jsx-runtime", replacement: reactJsxRuntimeEntry },
-        { find: "react/jsx-dev-runtime", replacement: reactJsxDevRuntimeEntry },
-        { find: /^react$/, replacement: reactEntry },
-      ],
-    },
-    server: {
-      fs: {
-        allow: createViteFsAllowList({ reactProtocolEntry, root }),
-      },
-    },
-  })
-  const buildRootOutDir = path.join(outDir, path.relative(root, buildRoot))
-  const builtIndexPath = path.join(buildRootOutDir, "index.html")
-  const builtIndexHtml = await fs.readFile(builtIndexPath, "utf8")
-  await fs.writeFile(
-    path.join(outDir, "index.html"),
-    builtIndexHtml.replace(
-      /\b(src|href)="(?:\.\.\/)+(?:\.\/)?assets\//g,
-      '$1="./assets/'
+  try {
+    const reactProtocolEntry = resolvePackageModule("@agent-html/react")
+    const reactEntry = resolvePackageModule("react")
+    const reactDomClientEntry = resolvePackageModule("react-dom/client")
+    const reactJsxRuntimeEntry = resolvePackageModule("react/jsx-runtime")
+    const reactJsxDevRuntimeEntry = resolvePackageModule(
+      "react/jsx-dev-runtime"
     )
-  )
-  await fs.rm(buildRootOutDir, {
-    force: true,
-    recursive: true,
-  })
-  await fs.writeFile(
-    path.join(outDir, "artifacts.json"),
-    `${JSON.stringify({
-      artifacts: artifacts.map(({ blockImplementations: _unused, ...artifact }) => ({
-        ...artifact,
-        thumbnailUrl: defaultSiteThumbnailUrl,
-      })),
-      contentSource: "artifacts",
-      description: defaultSiteDescription,
-      pipeline: "example",
-      thumbnailUrl: defaultSiteThumbnailUrl,
-      title: defaultSiteTitle,
-    }, null, 2)}\n`
-  )
-  await copyPublicAssets({ outDir, root })
-  await fs.rm(buildRoot, { force: true, recursive: true })
 
-  console.log(`Built AgentHTML example demo at ${outDir}`)
-  console.log(`Artifacts: ${artifacts.length}`)
+    await fs.rm(outDir, { force: true, recursive: true })
+    await viteBuild({
+      base: "./",
+      build: {
+        emptyOutDir: true,
+        outDir,
+        rollupOptions: {
+          input: path.join(buildRoot, "index.html"),
+        },
+      },
+      configFile: false,
+      publicDir: false,
+      root,
+      plugins: [react()],
+      resolve: {
+        alias: [
+          { find: "@", replacement: path.join(root, "agent-html") },
+          {
+            find: "#agent-html-playground",
+            replacement: path.join(root, "agent-html"),
+          },
+          { find: "@agent-html/react", replacement: reactProtocolEntry },
+          { find: "react-dom/client", replacement: reactDomClientEntry },
+          { find: "react/jsx-runtime", replacement: reactJsxRuntimeEntry },
+          {
+            find: "react/jsx-dev-runtime",
+            replacement: reactJsxDevRuntimeEntry,
+          },
+          { find: /^react$/, replacement: reactEntry },
+        ],
+      },
+      server: {
+        fs: {
+          allow: createViteFsAllowList({ reactProtocolEntry, root }),
+        },
+      },
+    })
+    const buildRootOutDir = path.join(outDir, path.relative(root, buildRoot))
+    const builtIndexPath = path.join(buildRootOutDir, "index.html")
+    const builtIndexHtml = await fs.readFile(builtIndexPath, "utf8")
+    await fs.writeFile(
+      path.join(outDir, "index.html"),
+      builtIndexHtml.replace(
+        /\b(src|href)="(?:\.\.\/)+(?:\.\/)?assets\//g,
+        '$1="./assets/'
+      )
+    )
+    await fs.rm(path.join(outDir, ".tmp"), {
+      force: true,
+      recursive: true,
+    })
+    await fs.writeFile(
+      path.join(outDir, "artifacts.json"),
+      `${JSON.stringify(
+        {
+          artifacts: artifacts.map(
+            ({ blockImplementations: _unused, ...artifact }) => ({
+              ...artifact,
+              thumbnailUrl: defaultSiteThumbnailUrl,
+            })
+          ),
+          contentSource: "artifacts",
+          description: defaultSiteDescription,
+          pipeline: "example",
+          thumbnailUrl: defaultSiteThumbnailUrl,
+          title: defaultSiteTitle,
+        },
+        null,
+        2
+      )}\n`
+    )
+    await copyPublicAssets({ outDir, root })
 
-  return {
-    artifactCount: artifacts.length,
-    outDir,
-    root,
+    console.log(`Built AgentHTML example demo at ${outDir}`)
+    console.log(`Artifacts: ${artifacts.length}`)
+
+    return {
+      artifactCount: artifacts.length,
+      outDir,
+      root,
+    }
+  } finally {
+    await fs.rm(buildRoot, { force: true, recursive: true })
   }
 }

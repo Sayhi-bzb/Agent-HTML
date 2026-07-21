@@ -39,7 +39,7 @@ fn emit_workspace_progress(app: &AppHandle, status: &'static str, root: &Path) {
         "desktop://workspace-progress",
         WorkspaceProgress {
             status,
-            root: root.to_string_lossy().to_string(),
+            root: workspace::user_facing_path(root),
         },
     );
 }

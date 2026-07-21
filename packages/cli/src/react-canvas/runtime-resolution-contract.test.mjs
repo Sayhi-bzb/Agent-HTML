@@ -1,9 +1,9 @@
 import fs from "node:fs/promises"
-import os from "node:os"
 import path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { createTestTempDir } from "../../../../config/test-temp.mjs"
 import {
   cacheDirForRoot,
   clearInvalidOptimizedDependencyCache,
@@ -116,7 +116,7 @@ describe("React Canvas runtime resolution contract", () => {
   })
 
   it("keeps older workspaces compatible with canonical template dependencies", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-legacy-"))
+    const root = await createTestTempDir("legacy")
     const canvasRoot = path.join(root, "agent-html")
     await fs.mkdir(canvasRoot, { recursive: true })
     await fs.writeFile(
@@ -215,7 +215,7 @@ describe("React Canvas runtime resolution contract", () => {
   })
 
   it("loads dependency ownership and prebundling from the runtime manifest", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "ahtml-manifest-"))
+    const root = await createTestTempDir("manifest")
     const manifestPath = path.join(root, "runtime-manifest.json")
     await fs.writeFile(
       manifestPath,
@@ -255,9 +255,7 @@ describe("React Canvas runtime resolution contract", () => {
   })
 
   it("finds invalid optimized dependency files only under deps", async () => {
-    const cacheDir = await fs.mkdtemp(
-      path.join(os.tmpdir(), "agent-html-cache-")
-    )
+    const cacheDir = await createTestTempDir("cache")
     await fs.mkdir(path.join(cacheDir, "deps"), { recursive: true })
     await fs.writeFile(
       path.join(cacheDir, "deps", "react_jsx-dev-runtime.js"),
@@ -277,11 +275,9 @@ describe("React Canvas runtime resolution contract", () => {
   })
 
   it("clears only the current root optimized dependency cache when corrupt", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-root-"))
+    const root = await createTestTempDir("root")
     const currentCacheDir = cacheDirForRoot(root)
-    const siblingCacheDir = await fs.mkdtemp(
-      path.join(os.tmpdir(), "agent-html-cache-sibling-")
-    )
+    const siblingCacheDir = await createTestTempDir("cache-sibling")
     await fs.mkdir(path.join(currentCacheDir, "deps"), { recursive: true })
     await fs.writeFile(
       path.join(currentCacheDir, "deps", "react_jsx-dev-runtime.js"),
@@ -316,10 +312,13 @@ describe("React Canvas runtime resolution contract", () => {
     expect(cacheDirForRoot("D:\\workspace-a", "source")).not.toBe(
       cacheDirForRoot("D:\\workspace-b", "source")
     )
+    expect(
+      path.basename(cacheDirForRoot("D:\\workspace-a", "runtime-a"))
+    ).toMatch(/^[a-f\d]{64}$/)
   })
 
   it("allows workspace, package, and dependency roots without exposing project root", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-deps-"))
+    const root = await createTestTempDir("deps")
     const reactProtocolEntry = path.join(
       root,
       "node_modules",

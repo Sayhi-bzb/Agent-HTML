@@ -11,12 +11,11 @@
     "test": "vitest run",
     "tauri": "tauri",
     "runtime:build": "node scripts/runtime-build.mjs",
-    "runtime:concurrency-smoke": "node scripts/runtime-concurrency-smoke.mjs",
     "runtime:ensure": "node scripts/runtime-ensure.mjs",
-    "runtime:interruption-smoke": "node scripts/runtime-interruption-smoke.mjs",
     "runtime:stage": "node scripts/runtime-stage.mjs",
     "runtime:start": "node scripts/runtime-start.mjs",
-    "runtime:smoke": "npm run runtime:ensure && node scripts/runtime-sidecar-smoke.mjs"
+    "runtime:smoke": "npm run runtime:ensure && node scripts/runtime-sidecar-smoke.mjs",
+    "runtime:verify": "npm run runtime:smoke && node scripts/runtime-concurrency-smoke.mjs && node scripts/runtime-interruption-smoke.mjs"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",

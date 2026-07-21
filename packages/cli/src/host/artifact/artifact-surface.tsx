@@ -121,6 +121,9 @@ export function ArtifactSurface({
     loadError,
     mountedFilePath: runtime.mountedFilePath,
   })
+  const showsPreviousArtifact = Boolean(
+    runtime.mountedFilePath && runtime.mountedFilePath !== activeFilePath
+  )
 
   React.useEffect(() => {
     setOverlays([])
@@ -163,12 +166,21 @@ export function ArtifactSurface({
           <GuardIssueList issues={getHumanVisibleGuardIssues(guardIssues)} />
           {loadError || blocksCurrentArtifact ? (
             <HostStatusMessage
-              message={loadError ?? error ?? ""}
+              context={
+                showsPreviousArtifact
+                  ? t("artifact.previousVisible")
+                  : undefined
+              }
+              details={loadError ?? error ?? undefined}
+              detailsLabel={t("artifact.technicalDetails")}
+              message={t("artifact.unavailableMessage")}
               title={t("artifact.unavailable")}
             />
           ) : error ? (
             <HostStatusMessage
-              message={error}
+              details={error}
+              detailsLabel={t("artifact.technicalDetails")}
+              message={t("artifact.loadIssueMessage")}
               title={t("artifact.loadIssue")}
             />
           ) : showSkeleton ? (

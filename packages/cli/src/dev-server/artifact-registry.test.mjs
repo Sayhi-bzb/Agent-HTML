@@ -1,10 +1,10 @@
 import EventEmitter from "node:events"
 import fs from "node:fs/promises"
-import os from "node:os"
 import path from "node:path"
 
 import { describe, expect, it, vi } from "vitest"
 
+import { createTestTempDir } from "../../../../config/test-temp.mjs"
 import {
   artifactsUpdatedEventName,
   createArtifactRegistry,
@@ -24,7 +24,7 @@ function createViteMock() {
 }
 
 async function createArtifactWorkspace() {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-registry-"))
+  const root = await createTestTempDir("registry")
   const artifactsRoot = path.join(root, "agent-html", "artifacts")
   await fs.mkdir(artifactsRoot, { recursive: true })
 

@@ -25,6 +25,7 @@ export const canvasThemeSyncVariableNames = [
   "--info",
   "--info-foreground",
   "--destructive",
+  "--destructive-foreground",
   "--border",
   "--input",
   "--ring",

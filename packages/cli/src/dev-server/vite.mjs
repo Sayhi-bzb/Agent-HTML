@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { existsSync, readFileSync } from "node:fs"
 import fs from "node:fs/promises"
 import os from "node:os"
@@ -170,9 +171,7 @@ export function cacheDirForRoot(
     runtimeFingerprint === "source"
       ? `${path.resolve(root)}\0${runtimeFingerprint}\0${contractDigest}`
       : `${path.resolve(packageRoot)}\0${runtimeFingerprint}\0${contractDigest}`
-  const cacheKey = Buffer.from(
-    identity
-  ).toString("base64url")
+  const cacheKey = createHash("sha256").update(identity).digest("hex")
   const manifestPath = process.env.AGENT_HTML_RUNTIME_MANIFEST
   const selectedRuntimeRoot = manifestPath && path.dirname(manifestPath)
   const selectedRuntimesRoot = selectedRuntimeRoot && path.dirname(selectedRuntimeRoot)

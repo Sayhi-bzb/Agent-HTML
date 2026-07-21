@@ -1,4 +1,5 @@
 @import "../../../agent-html/styles/foundation.css";
+@import "../../../packages/cli/src/shared/brand.css";
 
 :root {
   color-scheme: light;
@@ -9,6 +10,8 @@
   --canvas-desktop-dialog-width: 32rem;
   --canvas-desktop-control-height: 2.25rem;
   --canvas-desktop-touch-target-min: 2.75rem;
+  --canvas-desktop-titlebar-height: 2.75rem;
+  --canvas-desktop-titlebar-control-width: 2.75rem;
   --canvas-desktop-radius: var(--radius);
   --canvas-desktop-space-1: 0.375rem;
   --canvas-desktop-space-2: 0.625rem;
@@ -41,6 +44,103 @@ body {
   background: var(--background);
   color: var(--foreground);
   overflow: hidden;
+}
+
+.desktop-shell {
+  display: grid;
+  grid-template-rows: var(--canvas-desktop-titlebar-height) minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.desktop-titlebar {
+  align-items: stretch;
+  background: var(--background);
+  color: var(--foreground);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  height: var(--canvas-desktop-titlebar-height);
+  user-select: none;
+}
+
+.desktop-titlebar__brand {
+  align-items: center;
+  display: flex;
+  gap: var(--agent-html-brand-gap);
+  min-width: 0;
+  padding-inline: var(--canvas-desktop-space-3);
+}
+
+.desktop-titlebar__brand-icon {
+  color: var(--foreground);
+  flex: 0 0 auto;
+  height: var(--agent-html-brand-icon-size);
+  width: var(--agent-html-brand-icon-size);
+}
+
+.desktop-titlebar__title {
+  font-family: var(--agent-html-brand-font-family);
+  font-size: var(--agent-html-brand-font-size);
+  font-weight: var(--agent-html-brand-font-weight);
+  letter-spacing: var(--agent-html-brand-letter-spacing);
+  line-height: var(--agent-html-brand-line-height);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-titlebar__drag-space {
+  min-width: 0;
+}
+
+.desktop-titlebar__controls {
+  display: flex;
+}
+
+.desktop-titlebar__control {
+  align-items: center;
+  background: transparent;
+  color: var(--foreground);
+  cursor: default;
+  display: inline-flex;
+  height: var(--canvas-desktop-titlebar-height);
+  justify-content: center;
+  padding: 0;
+  width: var(--canvas-desktop-titlebar-control-width);
+}
+
+.desktop-titlebar__control svg {
+  height: 1rem;
+  stroke-width: 1.75;
+  width: 1rem;
+}
+
+.desktop-titlebar__control:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.desktop-titlebar__control[data-kind="close"]:hover {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+.desktop-titlebar[data-platform="macos"] {
+  grid-template-columns: auto auto minmax(0, 1fr);
+}
+
+.desktop-titlebar[data-platform="macos"] .desktop-titlebar__controls {
+  order: 1;
+}
+
+.desktop-titlebar[data-platform="macos"] .desktop-titlebar__brand {
+  order: 2;
+  padding-inline-start: var(--canvas-desktop-space-2);
+}
+
+.desktop-titlebar[data-platform="macos"] .desktop-titlebar__drag-space {
+  order: 3;
 }
 
 button,

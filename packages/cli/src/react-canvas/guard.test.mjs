@@ -1,8 +1,8 @@
 import fs from "node:fs/promises"
-import os from "node:os"
 import path from "node:path"
 import { describe, expect, it } from "vitest"
 
+import { createTestTempDir } from "../../../../config/test-temp.mjs"
 import {
   analyzeBlockImplementationSource,
   analyzeReactCanvasArtifact,
@@ -83,7 +83,7 @@ describe("React Canvas Guard", () => {
   })
 
   it("runs artifact entry protocol guard and block implementation source guard", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-guard-"))
+    const root = await createTestTempDir("guard")
     await fs.mkdir(path.join(root, "agent-html", "artifacts", "demo"), {
       recursive: true,
     })

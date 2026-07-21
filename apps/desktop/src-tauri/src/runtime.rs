@@ -1,4 +1,4 @@
-use crate::desktop_error::DesktopError;
+use crate::{desktop_error::DesktopError, workspace};
 use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -468,17 +468,7 @@ fn child_path_argument(path: &Path, phase: &'static str) -> Result<String, Deskt
             false,
         )
     })?;
-    Ok(simplify_windows_verbatim_path(value))
-}
-
-fn simplify_windows_verbatim_path(value: &str) -> String {
-    if let Some(rest) = value.strip_prefix(r"\\?\UNC\") {
-        format!(r"\\{rest}")
-    } else if let Some(rest) = value.strip_prefix(r"\\?\") {
-        rest.to_string()
-    } else {
-        value.to_string()
-    }
+    Ok(workspace::simplify_windows_verbatim_path(value))
 }
 
 fn runtime_log_path(app: &AppHandle, phase: &'static str) -> Result<PathBuf, DesktopError> {
@@ -905,22 +895,6 @@ mod tests {
                 .unwrap()
                 .as_nanos()
         ))
-    }
-
-    #[test]
-    fn simplifies_windows_verbatim_paths_for_child_processes() {
-        assert_eq!(
-            simplify_windows_verbatim_path(r"\\?\D:\projects\demo"),
-            r"D:\projects\demo"
-        );
-        assert_eq!(
-            simplify_windows_verbatim_path(r"\\?\UNC\server\share\demo"),
-            r"\\server\share\demo"
-        );
-        assert_eq!(
-            simplify_windows_verbatim_path(r"/projects/demo"),
-            r"/projects/demo"
-        );
     }
 
     #[test]

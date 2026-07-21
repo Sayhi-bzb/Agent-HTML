@@ -15,7 +15,7 @@
     "dev": "npm run canvas:dev",
     "build": "npm run typecheck && npm run docs:build && npm run desktop:build",
     "test": "npm run canvas:test && npm run desktop:test",
-    "typecheck": "tsc --noEmit && npm --workspace @agent-html/docs run typecheck && npm --workspace @agent-html/desktop run typecheck",
+    "typecheck": "npm run canvas:typecheck && npm --workspace @agent-html/docs run typecheck && npm --workspace @agent-html/desktop run typecheck",
     "lint": "eslint agent-html apps/desktop packages tools config --config config/eslint.config.js && npm --workspace @agent-html/docs run lint",
     "format": "prettier --write \"agent-html/**/*.{ts,tsx}\" \"packages/**/*.{ts,tsx}\" \"apps/desktop/**/*.{ts,tsx}\" \"config/**/*.{ts,tsx}\" && npm --workspace @agent-html/docs run format",
     "canvas:dev": "node packages/cli/bin/agent-html.mjs dev",
@@ -34,8 +34,7 @@
     "desktop:dev": "npm --workspace @agent-html/desktop run tauri dev",
     "desktop:e2e": "npm --workspace @agent-html/desktop run e2e",
     "desktop:package": "npm --workspace @agent-html/desktop run tauri -- build",
-    "desktop:test": "npm --workspace @agent-html/desktop run test",
-    "knip": "knip"
+    "desktop:test": "npm --workspace @agent-html/desktop run test"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -48,7 +47,6 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^16.5.0",
-    "knip": "^6.14.2",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "shadcn": "^4.10.0",

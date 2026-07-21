@@ -1,9 +1,9 @@
 import fs from "node:fs/promises"
-import os from "node:os"
 import path from "node:path"
 
 import { afterEach, describe, expect, it, vi } from "vitest"
 
+import { createTestTempDir } from "../../../../config/test-temp.mjs"
 import {
   classifyDevServerRoute,
   devServerRoutePipelines,
@@ -157,7 +157,7 @@ describe("dev server routes", () => {
   })
 
   it("serves global and artifact-local public assets", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     await fs.mkdir(path.join(root, "agent-html", "public"), { recursive: true })
     await fs.mkdir(
       path.join(root, "agent-html", "artifacts", "demo", "public"),
@@ -203,7 +203,7 @@ describe("dev server routes", () => {
   })
 
   it("returns 404 for missing artifact-local public assets", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     const response = createResponseMock()
 
     const handled = await handleRoute({
@@ -221,7 +221,7 @@ describe("dev server routes", () => {
   })
 
   it("rejects artifact-local public asset traversal", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     const response = createResponseMock()
 
     const handled = await handleRoute({
@@ -481,7 +481,7 @@ describe("dev server routes", () => {
   })
 
   it("creates artifact entry files inside agent-html/artifacts", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     const artifactRegistry = createArtifactRegistryMock()
     const response = createResponseMock()
 
@@ -527,7 +527,7 @@ describe("dev server routes", () => {
   })
 
   it("rejects artifact create when the target file exists", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     const artifactsRoot = path.join(root, "agent-html", "artifacts")
     await fs.mkdir(artifactsRoot, { recursive: true })
     await fs.writeFile(
@@ -667,7 +667,7 @@ describe("dev server routes", () => {
   })
 
   it("renames artifact entry files inside agent-html/artifacts", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     const artifactsRoot = path.join(root, "agent-html", "artifacts")
     await fs.mkdir(artifactsRoot, { recursive: true })
     await fs.writeFile(
@@ -699,7 +699,7 @@ describe("dev server routes", () => {
   })
 
   it("renames matching artifact block directories", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     const artifactsRoot = path.join(root, "agent-html", "artifacts")
     const sourceBlockDirectory = path.join(artifactsRoot, "old-name")
     const targetBlockDirectory = path.join(artifactsRoot, "new-name")
@@ -738,7 +738,7 @@ describe("dev server routes", () => {
   })
 
   it("rejects artifact rename when the target block directory exists", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     const artifactsRoot = path.join(root, "agent-html", "artifacts")
     await fs.mkdir(path.join(artifactsRoot, "new-name"), { recursive: true })
     await fs.writeFile(
@@ -794,7 +794,7 @@ describe("dev server routes", () => {
   })
 
   it("deletes artifact entry files inside agent-html/artifacts", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     const artifactsRoot = path.join(root, "agent-html", "artifacts")
     const artifactPath = path.join(artifactsRoot, "delete-me.artifact.tsx")
     await fs.mkdir(artifactsRoot, { recursive: true })
@@ -819,7 +819,7 @@ describe("dev server routes", () => {
   })
 
   it("deletes matching artifact block directories", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "agent-html-routes-"))
+    const root = await createTestTempDir("routes")
     const artifactsRoot = path.join(root, "agent-html", "artifacts")
     const artifactPath = path.join(artifactsRoot, "delete-me.artifact.tsx")
     const blockDirectory = path.join(artifactsRoot, "delete-me")
