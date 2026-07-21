@@ -16,6 +16,7 @@ import {
 describe("Canvas Desktop navigation bridge", () => {
   it("maps commands to existing Canvas actions and rejects missing Artifacts", () => {
     const onCreateArtifact = vi.fn()
+    const onOpenArtifactSearch = vi.fn()
     const onRequestDeleteArtifact = vi.fn()
     const onRenameArtifactTitle = vi.fn()
     const onSelectArtifact = vi.fn()
@@ -23,6 +24,7 @@ describe("Canvas Desktop navigation bridge", () => {
     const options = {
       artifactFilePaths: ["agent-html/artifacts/one.artifact.tsx"],
       onCreateArtifact,
+      onOpenArtifactSearch,
       onRequestDeleteArtifact,
       onRenameArtifactTitle,
       onSelectArtifact,
@@ -44,6 +46,12 @@ describe("Canvas Desktop navigation bridge", () => {
       applyCanvasNavigationCommand({
         ...options,
         command: { type: "create-artifact" },
+      })
+    ).toBe(true)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { type: "open-artifact-search" },
       })
     ).toBe(true)
     expect(
@@ -90,6 +98,7 @@ describe("Canvas Desktop navigation bridge", () => {
     ).toBe(false)
 
     expect(onCreateArtifact).toHaveBeenCalledOnce()
+    expect(onOpenArtifactSearch).toHaveBeenCalledOnce()
     expect(onRequestDeleteArtifact).toHaveBeenCalledOnce()
     expect(onRenameArtifactTitle).toHaveBeenCalledWith({
       filePath: "agent-html/artifacts/one.artifact.tsx",

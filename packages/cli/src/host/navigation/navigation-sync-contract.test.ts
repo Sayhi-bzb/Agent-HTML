@@ -77,6 +77,7 @@ describe("Canvas navigation sync contract", () => {
         type: "request-delete-artifact",
       },
       { type: "create-artifact" },
+      { type: "open-artifact-search" },
       { open: false, type: "set-sidebar-open" },
       {
         filePath: snapshot.artifacts[0].filePath,

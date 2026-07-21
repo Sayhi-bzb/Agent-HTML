@@ -18,6 +18,19 @@ A Folder is the durable project space and may contain multiple independent
 Canvases. Canvas occupies the document role currently held by Artifact. It
 describes a spatial composition of Nodes and Edges.
 
+The logical Canvas combines authored intent with resolved layout:
+
+```text
+Canvas
+├── Intent (*.canvas.tsx)
+├── Layout (*.layout.json)
+└── Resolved Canvas Store
+```
+
+Intent describes content and relationships. Layout records the concrete
+geometry produced by direct manipulation. The resolved Store combines both for
+rendering and inspection.
+
 A Node is a spatial instance: it connects Canvas identity, placement, and
 hierarchy to React content. The content may be a primitive, compound component,
 chart, iframe, or complete application. An Edge expresses a relationship
@@ -33,6 +46,7 @@ workspace/
 ├── canvases/
 │   └── dashboard/
 │       ├── dashboard.canvas.tsx
+│       ├── dashboard.layout.json
 │       └── content/
 │           ├── profile.tsx
 │           └── revenue-chart.tsx
@@ -53,7 +67,8 @@ Canvas
 ```
 
 `*.canvas.tsx` is the global intent view: it shows the Nodes in a Canvas, their
-content references, spatial intent, hierarchy, and Edge relationships. A
+content references, spatial intent, hierarchy, and Edge relationships.
+`*.layout.json` is machine-managed resolved geometry keyed by Node identity. A
 Canvas-specific content file contains the React content selected by a Node.
 Reusable implementations remain ordinary Components.
 
@@ -95,6 +110,24 @@ can be resolved from layout intent and stored as concrete spatial facts for
 rendering and inspection. The Canvas model stays open to arbitrary Node content
 and does not define semantic categories or a minimum coordinate unit.
 
+## Rendering Boundary
+
+```text
+Canvas intent + layout state
+            ↓
+    Canonical Canvas Store
+            ↓
+     React Flow Adapter
+            ↓
+       @xyflow/react
+```
+
+The Canonical Store is the product model. The React Flow adapter projects its
+Nodes and Edges into the viewport and translates selection, movement, and
+resize interactions back into layout transactions. React Flow supplies the
+initial viewport and interaction foundation without defining Canvas source,
+persistence, or public record types.
+
 ## Progressive Disclosure
 
 Source reading follows content ownership:
@@ -118,6 +151,17 @@ The Canvas file provides the global intent. A map-style viewport query provides
 resolved Nodes, Edges, geometry, and source references for one region. This
 Tile view is derived from Canvas data rather than being another content file.
 Small Canvases can move directly from the global intent to selected content.
+
+## Initial Slice
+
+The first Canvas surface runs beside the current Artifact surface. It supports
+position, size, parent-local placement, authored Edges, direct interaction with
+React content, and persisted move/resize results. Canvas structure continues to
+come from TSX while the UI changes layout geometry. The performance baseline is
+1,000 total Nodes with up to 100 visible Nodes.
+
+This vertical slice validates the full source, runtime, Host, HMR, and Desktop
+path before Artifact and Block are migrated.
 
 ## Open Questions
 

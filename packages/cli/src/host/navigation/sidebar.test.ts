@@ -7,6 +7,10 @@ const sidebarSource = fs.readFileSync(
   path.resolve(import.meta.dirname, "sidebar.tsx"),
   "utf8"
 )
+const appSource = fs.readFileSync(
+  path.resolve(import.meta.dirname, "../app.tsx"),
+  "utf8"
+)
 
 describe("Canvas sidebar composition", () => {
   it("keeps Artifact search without rendering an Artifact content list", () => {
@@ -18,5 +22,14 @@ describe("Canvas sidebar composition", () => {
     expect(sidebarSource).not.toContain("canvas-sidebar-artifact-list")
     expect(sidebarSource).not.toContain("onRenameArtifact")
     expect(sidebarSource).not.toContain("onRequestDeleteArtifact")
+  })
+
+  it("keeps the Search trigger in standalone Canvas and hides it in Desktop", () => {
+    expect(sidebarSource).toContain("showTrigger")
+    expect(sidebarSource).toContain("onOpenChange")
+    expect(appSource).toContain("showArtifactSearchAction={")
+    expect(appSource).toContain("window.parent === window")
+    expect(appSource).toContain("isArtifactSearchShortcut(event)")
+    expect(appSource).toContain('onOpenArtifactSearch: () =>')
   })
 })

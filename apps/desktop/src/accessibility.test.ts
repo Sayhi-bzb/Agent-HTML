@@ -30,6 +30,10 @@ describe("desktop accessibility contract", () => {
     expect(titleBarSource).toContain('"Maximize window"')
     expect(titleBarSource).toContain('label="Close window"')
     expect(titleBarSource).toContain("aria-label={`Delete ${displayedTitle}`}")
+    expect(titleBarSource).toContain('aria-label="Agent menu"')
+    expect(titleBarSource).toContain('aria-keyshortcuts="Meta+K Control+K"')
+    expect(titleBarSource).toContain("Search Artifacts")
+    expect(titleBarSource).toContain("disabled={!onSearchArtifacts}")
   })
 
   it("keeps the workspace home concise and hides an empty recent list", () => {
@@ -59,6 +63,17 @@ describe("desktop accessibility contract", () => {
     expect(styles).toContain(":focus-visible")
     expect(styles).toContain("outline:")
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)")
+  })
+
+  it("routes Artifact search through the Ghost menu and global shortcut", () => {
+    expect(appSource).toContain("isArtifactSearchShortcut(event)")
+    expect(appSource).toContain('type: "open-artifact-search"')
+    expect(appSource).toContain("onSearchArtifacts={() =>")
+    expect(titleBarSource).toContain("<Popover.Close asChild>")
+    expect(titleBarSource).toContain('platform === "macos" ? "⌘ K" : "Ctrl K"')
+    expect(styles).toMatch(
+      /\.desktop-titlebar__agent-menu-action:hover:not\(:disabled\)\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
+    )
   })
 
   it("keeps tab hover feedback free of decorative lines", () => {
@@ -93,7 +108,13 @@ describe("desktop accessibility contract", () => {
       /\.desktop-titlebar__navigation-action::before\s*\{[^}]*height: var\(--canvas-desktop-titlebar-icon-plate-size\)[^}]*width: var\(--canvas-desktop-titlebar-icon-plate-size\)/s
     )
     expect(styles).toMatch(
-      /\.desktop-titlebar__navigation-action:hover:not\(:disabled\)::before,\s*\.desktop-titlebar__navigation-action\[data-active\]::before\s*\{[^}]*background: var\(--accent\)/s
+      /\.desktop-titlebar__navigation-action svg\s*\{[^}]*height: 1rem[^}]*width: 1rem/s
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__agent-menu-trigger\[data-state="open"\]::before\s*\{[^}]*background: var\(--accent\)/s
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__navigation-action:hover:not\(:disabled\)::before,\s*\.desktop-titlebar__navigation-action\[data-active\]::before,\s*\.desktop-titlebar__agent-menu-trigger\[data-state="open"\]::before\s*\{[^}]*background: var\(--accent\)/s
     )
     expect(styles).not.toMatch(
       /\.desktop-titlebar__navigation-action:hover:not\(:disabled\)\s*\{[^}]*background:/s
@@ -111,7 +132,8 @@ describe("desktop accessibility contract", () => {
     expect(styles).toMatch(/\.desktop-home\s*\{[^}]*overflow: auto/s)
     expect(styles).toMatch(/\.desktop-runtime\s*\{[^}]*overflow: hidden/s)
     expect(styles).toContain("--canvas-desktop-touch-target-min: 2.75rem")
-    expect(styles).toContain("--canvas-desktop-titlebar-height: 2.75rem")
+    expect(styles).toContain("--canvas-desktop-titlebar-height: 2.25rem")
+    expect(styles).toContain("--canvas-desktop-titlebar-control-width: 2.5rem")
     expect(styles).not.toContain("touch-action:")
     expect(styles).toMatch(
       /\.desktop-titlebar__artifact-title\s*\{[^}]*min-width: 0[^}]*overflow: hidden[^}]*text-overflow: ellipsis[^}]*white-space: nowrap/s

@@ -11,7 +11,6 @@ import {
   SparklesIcon,
   SunIcon,
 } from "lucide-react"
-import * as React from "react"
 
 import { artifactLabel } from "../api/api"
 import type { CodexThread } from "../api/api"
@@ -67,6 +66,7 @@ import type { HostSelectOption } from "../ui/select"
 import { HostSelect } from "../ui/select"
 
 export function ReactCanvasSidebar({
+  artifactSearchOpen,
   activeCodexThreadId,
   activeLanguage,
   activeSectionId,
@@ -79,6 +79,7 @@ export function ReactCanvasSidebar({
   codexThreads,
   codexThreadsError,
   codexThreadsLoading,
+  onArtifactSearchOpenChange,
   onSelectArtifact,
   onSelectCodexThread,
   onSelectLanguage,
@@ -93,7 +94,9 @@ export function ReactCanvasSidebar({
   themePreviewDirty,
   themePresets,
   themeRuntimeVariables,
+  showArtifactSearchAction,
 }: {
+  artifactSearchOpen: boolean
   activeCodexThreadId: string | null
   activeLanguage: CanvasHostLanguage
   activeSectionId: CanvasThemeEditorSectionId
@@ -106,6 +109,7 @@ export function ReactCanvasSidebar({
   codexThreads: CodexThread[]
   codexThreadsError: string | null
   codexThreadsLoading: boolean
+  onArtifactSearchOpenChange: (open: boolean) => void
   onSelectArtifact: (filePath: string) => void
   onSelectCodexThread: (threadId: string | null) => void
   onSelectLanguage: (language: CanvasHostLanguage) => void
@@ -120,6 +124,7 @@ export function ReactCanvasSidebar({
   themePreviewDirty: boolean
   themePresets: readonly CanvasThemePreset[]
   themeRuntimeVariables: CanvasThemeResolvedVariables
+  showArtifactSearchAction: boolean
 }) {
   const { t } = useHostI18n()
   const activeThemePreset =
@@ -131,6 +136,14 @@ export function ReactCanvasSidebar({
   return (
     <Sidebar className="border-transparent" collapsible="offcanvas">
       <SidebarHeader className="canvas-sidebar-pad canvas-sidebar-header-stack">
+        <ReactCanvasArtifactSearch
+          artifacts={artifacts}
+          onOpenChange={onArtifactSearchOpenChange}
+          onSelectArtifact={onSelectArtifact}
+          onSelectSidebarView={onSelectSidebarView}
+          open={artifactSearchOpen}
+          showTrigger={!isGalleryView && showArtifactSearchAction}
+        />
         {isGalleryView ? (
           <SidebarMenu className="canvas-sidebar-menu">
             <HostSidebarAction
@@ -142,11 +155,6 @@ export function ReactCanvasSidebar({
           </SidebarMenu>
         ) : (
           <>
-            <ReactCanvasArtifactSearch
-              artifacts={artifacts}
-              onSelectArtifact={onSelectArtifact}
-              onSelectSidebarView={onSelectSidebarView}
-            />
             <ReactCanvasCodexThreadSelect
               activeThreadId={activeCodexThreadId}
               error={codexThreadsError}
@@ -424,30 +432,37 @@ function ReactCanvasCodexThreadSelect({
 
 function ReactCanvasArtifactSearch({
   artifacts,
+  onOpenChange,
   onSelectArtifact,
   onSelectSidebarView,
+  open,
+  showTrigger,
 }: {
   artifacts: Artifact[]
+  onOpenChange: (open: boolean) => void
   onSelectArtifact: (filePath: string) => void
   onSelectSidebarView: (view: CanvasSidebarView) => void
+  open: boolean
+  showTrigger: boolean
 }) {
   const { t } = useHostI18n()
-  const [open, setOpen] = React.useState(false)
 
   return (
     <>
-      <SidebarMenu className="canvas-sidebar-menu">
-        <HostSidebarAction
-          icon={SearchIcon}
-          label={t("sidebar.search")}
-          onClick={() => setOpen(true)}
-          type="button"
-        />
-      </SidebarMenu>
+      {showTrigger ? (
+        <SidebarMenu className="canvas-sidebar-menu">
+          <HostSidebarAction
+            icon={SearchIcon}
+            label={t("sidebar.search")}
+            onClick={() => onOpenChange(true)}
+            type="button"
+          />
+        </SidebarMenu>
+      ) : null}
       <HostCommandDialog
         className="sm:max-w-md"
         description={t("sidebar.searchDescription")}
-        onOpenChange={setOpen}
+        onOpenChange={onOpenChange}
         open={open}
         title={t("sidebar.searchTitle")}
       >
@@ -471,7 +486,7 @@ function ReactCanvasArtifactSearch({
                     onSelect={() => {
                       onSelectArtifact(artifact.filePath)
                       onSelectSidebarView("artifacts")
-                      setOpen(false)
+                      onOpenChange(false)
                     }}
                     value={artifact.filePath}
                   />

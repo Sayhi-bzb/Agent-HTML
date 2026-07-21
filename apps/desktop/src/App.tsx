@@ -13,6 +13,7 @@ import {
   type CanvasNavigationCommand,
   type CanvasNavigationSnapshot,
 } from "../../../packages/cli/src/host/navigation/navigation-sync-contract"
+import { isArtifactSearchShortcut } from "../../../packages/cli/src/host/navigation/artifact-search-shortcut"
 
 import {
   desktopApi,
@@ -205,6 +206,30 @@ export default function App() {
     document.documentElement.lang = snapshot.preferences.language
   }, [snapshot.preferences.language])
 
+  useEffect(() => {
+    if (!runtimeOrigin) {
+      return
+    }
+
+    const targetOrigin = runtimeOrigin
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isArtifactSearchShortcut(event)) {
+        return
+      }
+
+      event.preventDefault()
+      runtimeFrameRef.current?.contentWindow?.postMessage(
+        createCanvasNavigationCommandMessage({
+          type: "open-artifact-search",
+        }),
+        targetOrigin
+      )
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [runtimeOrigin])
+
   const activeRoot = "root" in session ? session.root : undefined
   const title = useMemo(
     () => activeRoot?.split(/[\\/]/).filter(Boolean).at(-1) ?? "AHTML",
@@ -276,6 +301,9 @@ export default function App() {
             title,
             type: "rename-artifact-title",
           })
+        }
+        onSearchArtifacts={() =>
+          postCanvasNavigationCommand({ type: "open-artifact-search" })
         }
         onSelectArtifact={(filePath) =>
           postCanvasNavigationCommand({ filePath, type: "select-artifact" })
@@ -398,6 +426,7 @@ function DesktopShell({
   onCreateArtifact,
   onRequestDeleteArtifact,
   onRenameArtifactTitle,
+  onSearchArtifacts,
   onSelectArtifact,
   onSetSidebarOpen,
 }: {
@@ -411,6 +440,7 @@ function DesktopShell({
     requestId: string
     title: string
   }) => void
+  onSearchArtifacts?: () => void
   onSelectArtifact?: (filePath: string) => void
   onSetSidebarOpen?: (open: boolean) => void
 }) {
@@ -422,6 +452,7 @@ function DesktopShell({
         onCreateArtifact={onCreateArtifact}
         onRequestDeleteArtifact={onRequestDeleteArtifact}
         onRenameArtifactTitle={onRenameArtifactTitle}
+        onSearchArtifacts={onSearchArtifacts}
         onSelectArtifact={onSelectArtifact}
         onSetSidebarOpen={onSetSidebarOpen}
       />

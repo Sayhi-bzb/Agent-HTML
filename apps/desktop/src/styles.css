@@ -8,8 +8,8 @@
   --canvas-desktop-home-width: 32rem;
   --canvas-desktop-control-height: 2.25rem;
   --canvas-desktop-touch-target-min: 2.75rem;
-  --canvas-desktop-titlebar-height: 2.75rem;
-  --canvas-desktop-titlebar-control-width: 2.75rem;
+  --canvas-desktop-titlebar-height: 2.25rem;
+  --canvas-desktop-titlebar-control-width: 2.5rem;
   --canvas-desktop-titlebar-icon-plate-size: 1.75rem;
   --canvas-desktop-titlebar-navigation-font-size: var(--font-size-xs);
   --canvas-desktop-radius: var(--radius);
@@ -77,13 +77,6 @@ body {
 .desktop-titlebar__brand--compact {
   justify-content: center;
   padding-inline: var(--canvas-desktop-space-2);
-}
-
-.desktop-titlebar__brand-icon {
-  color: var(--foreground);
-  flex: 0 0 auto;
-  height: var(--agent-html-brand-icon-size);
-  width: var(--agent-html-brand-icon-size);
 }
 
 .desktop-titlebar__title {
@@ -184,7 +177,8 @@ body {
 }
 
 .desktop-titlebar__context-menu,
-.desktop-titlebar__rename-error {
+.desktop-titlebar__rename-error,
+.desktop-titlebar__agent-menu-popover {
   background: var(--popover);
   border: 0;
   border-radius: var(--canvas-desktop-radius);
@@ -220,6 +214,48 @@ body {
   color: var(--destructive);
   max-width: 18rem;
   padding: var(--canvas-desktop-space-1) var(--canvas-desktop-space-2);
+}
+
+.desktop-titlebar__agent-menu-popover {
+  padding: 0.25rem;
+  width: 12rem;
+}
+
+.desktop-titlebar__agent-menu-action {
+  align-items: center;
+  background: transparent;
+  border-radius: var(--canvas-desktop-radius);
+  color: var(--popover-foreground);
+  cursor: pointer;
+  display: flex;
+  gap: var(--canvas-desktop-space-2);
+  min-height: 1.75rem;
+  padding-inline: var(--canvas-desktop-space-2);
+  text-align: start;
+  width: 100%;
+}
+
+.desktop-titlebar__agent-menu-action svg {
+  flex: 0 0 auto;
+  height: 1rem;
+  stroke-width: 1.75;
+  width: 1rem;
+}
+
+.desktop-titlebar__agent-menu-action kbd {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  margin-inline-start: auto;
+}
+
+.desktop-titlebar__agent-menu-action:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.desktop-titlebar__agent-menu-action:disabled {
+  cursor: default;
+  opacity: 0.45;
 }
 
 .desktop-titlebar__artifact-close {
@@ -295,12 +331,14 @@ body {
 }
 
 .desktop-titlebar__navigation-action:hover:not(:disabled),
-.desktop-titlebar__navigation-action[data-active] {
+.desktop-titlebar__navigation-action[data-active],
+.desktop-titlebar__agent-menu-trigger[data-state="open"] {
   color: var(--accent-foreground);
 }
 
 .desktop-titlebar__navigation-action:hover:not(:disabled)::before,
-.desktop-titlebar__navigation-action[data-active]::before {
+.desktop-titlebar__navigation-action[data-active]::before,
+.desktop-titlebar__agent-menu-trigger[data-state="open"]::before {
   background: var(--accent);
 }
 
@@ -319,6 +357,7 @@ body {
 
 .desktop-titlebar__artifact-label:focus-visible,
 .desktop-titlebar__artifact-close:focus-visible,
+.desktop-titlebar__agent-menu-action:focus-visible,
 .desktop-titlebar__navigation-action:focus-visible,
 .desktop-titlebar__control:focus-visible {
   outline-offset: -0.15rem;

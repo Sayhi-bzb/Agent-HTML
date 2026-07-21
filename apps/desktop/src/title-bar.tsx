@@ -1,4 +1,4 @@
-import { Copy, Minus, PanelLeft, Plus, Square, X } from "lucide-react"
+import { Copy, Minus, PanelLeft, Plus, Search, Square, X } from "lucide-react"
 import { ContextMenu, Popover } from "radix-ui"
 import {
   useEffect,
@@ -43,6 +43,64 @@ type ArtifactTitleEditor = {
   submittedTitle: string | null
 }
 
+function AgentMenuButton({
+  align,
+  className,
+  onSearchArtifacts,
+  shortcutLabel,
+}: {
+  align: "start" | "end"
+  className: string
+  onSearchArtifacts?: () => void
+  shortcutLabel: string
+}) {
+  const searchAction = (
+    <button
+      aria-keyshortcuts="Meta+K Control+K"
+      className="desktop-titlebar__agent-menu-action"
+      disabled={!onSearchArtifacts}
+      onClick={onSearchArtifacts}
+      type="button"
+    >
+      <Search aria-hidden="true" />
+      <span>Search Artifacts</span>
+      <kbd aria-hidden="true">{shortcutLabel}</kbd>
+    </button>
+  )
+
+  return (
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <button
+          aria-label="Agent menu"
+          className={className}
+          title="Agent menu"
+          type="button"
+        >
+          <AgentHtmlGhostIcon aria-hidden="true" />
+        </button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          align={align}
+          aria-label="Agent menu"
+          className="desktop-titlebar__agent-menu-popover"
+          collisionPadding={8}
+          onOpenAutoFocus={(event) => event.preventDefault()}
+          side="bottom"
+          sideOffset={6}
+        >
+          {onSearchArtifacts ? (
+            <Popover.Close asChild>{searchAction}</Popover.Close>
+          ) : (
+            searchAction
+          )}
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  )
+}
+
 function WindowControl({
   action,
   children,
@@ -74,6 +132,7 @@ export function DesktopTitleBar({
   onCreateArtifact = () => {},
   onRequestDeleteArtifact = () => {},
   onRenameArtifactTitle = () => {},
+  onSearchArtifacts,
   onSelectArtifact = () => {},
   onSetSidebarOpen = () => {},
   platform = readDesktopPlatform(),
@@ -88,6 +147,7 @@ export function DesktopTitleBar({
     requestId: string
     title: string
   }) => void
+  onSearchArtifacts?: () => void
   onSelectArtifact?: (filePath: string) => void
   onSetSidebarOpen?: (open: boolean) => void
   platform?: DesktopPlatform
@@ -107,6 +167,7 @@ export function DesktopTitleBar({
     ? null
     : titleEditor?.filePath
   const showsWorkspaceNavigation = navigation !== undefined
+  const searchShortcutLabel = platform === "macos" ? "⌘ K" : "Ctrl K"
 
   useEffect(() => {
     let active = true
@@ -498,26 +559,23 @@ export function DesktopTitleBar({
         </nav>
       ) : (
         <div className="desktop-titlebar__brand desktop-titlebar__brand--full">
-          <AgentHtmlGhostIcon
-            aria-hidden="true"
-            className="desktop-titlebar__brand-icon"
+          <AgentMenuButton
+            align="start"
+            className="desktop-titlebar__navigation-action desktop-titlebar__agent-menu-trigger"
+            onSearchArtifacts={onSearchArtifacts}
+            shortcutLabel={searchShortcutLabel}
           />
           <span className="desktop-titlebar__title">{agentHtmlBrandName}</span>
         </div>
       )}
       <div aria-hidden="true" className="desktop-titlebar__drag-space" />
       {showsWorkspaceNavigation && (
-        <div
-          aria-label={agentHtmlBrandName}
-          className="desktop-titlebar__brand desktop-titlebar__brand--compact"
-          role="img"
-          title={agentHtmlBrandName}
-        >
-          <AgentHtmlGhostIcon
-            aria-hidden="true"
-            className="desktop-titlebar__brand-icon"
-          />
-        </div>
+        <AgentMenuButton
+          align="end"
+          className="desktop-titlebar__brand desktop-titlebar__brand--compact desktop-titlebar__navigation-action desktop-titlebar__agent-menu-trigger"
+          onSearchArtifacts={onSearchArtifacts}
+          shortcutLabel={searchShortcutLabel}
+        />
       )}
       <div className="desktop-titlebar__controls">{windowActions}</div>
     </header>

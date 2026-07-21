@@ -32,6 +32,7 @@ export type CanvasNavigationCommand =
       type: "rename-artifact-title"
     }
   | { type: "create-artifact" }
+  | { type: "open-artifact-search" }
   | { open: boolean; type: "set-sidebar-open" }
 
 export type CanvasNavigationSnapshotMessage = {
@@ -230,6 +231,11 @@ export function readCanvasNavigationCommandMessage(
   const command = value.command
   if (command.type === "create-artifact") {
     return createCanvasNavigationCommandMessage({ type: "create-artifact" })
+  }
+  if (command.type === "open-artifact-search") {
+    return createCanvasNavigationCommandMessage({
+      type: "open-artifact-search",
+    })
   }
   if (command.type === "select-artifact") {
     const filePath = readFilePath(command.filePath)

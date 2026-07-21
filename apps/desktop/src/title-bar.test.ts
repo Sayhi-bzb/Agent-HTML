@@ -77,6 +77,7 @@ describe("desktop title bar", () => {
 
     expect(markup).toContain('data-navigation="brand"')
     expect(markup).toContain("Agent-HTML")
+    expect(markup).toContain('aria-label="Agent menu"')
     expect(markup).not.toContain('aria-label="Artifacts"')
   })
 
@@ -102,6 +103,8 @@ describe("desktop title bar", () => {
     expect(markup).toContain('aria-label="Delete Artifact 2"')
     expect(markup).toContain('aria-expanded="true"')
     expect(markup).toContain('aria-label="New Artifact"')
+    expect(markup).toContain('aria-label="Agent menu"')
+    expect(markup).not.toContain('role="img"')
   })
 
   it("shows a loading placeholder before the first runtime snapshot", () => {

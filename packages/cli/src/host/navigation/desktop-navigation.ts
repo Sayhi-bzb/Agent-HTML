@@ -14,6 +14,7 @@ export function applyCanvasNavigationCommand({
   artifactFilePaths,
   command,
   onCreateArtifact,
+  onOpenArtifactSearch,
   onRequestDeleteArtifact,
   onRenameArtifactTitle,
   onSelectArtifact,
@@ -22,6 +23,7 @@ export function applyCanvasNavigationCommand({
   artifactFilePaths: readonly string[]
   command: CanvasNavigationCommand
   onCreateArtifact: () => void
+  onOpenArtifactSearch: () => void
   onRequestDeleteArtifact: (filePath: string) => void
   onRenameArtifactTitle: (input: {
     filePath: string
@@ -33,6 +35,10 @@ export function applyCanvasNavigationCommand({
 }) {
   if (command.type === "create-artifact") {
     onCreateArtifact()
+    return true
+  }
+  if (command.type === "open-artifact-search") {
+    onOpenArtifactSearch()
     return true
   }
   if (command.type === "set-sidebar-open") {

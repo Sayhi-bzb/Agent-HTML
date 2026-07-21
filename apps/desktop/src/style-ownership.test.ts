@@ -76,10 +76,10 @@ describe("desktop visual ownership", () => {
     expect(css).not.toContain("--canvas-desktop-scrim")
     expect(css).not.toContain("--canvas-desktop-overlay-shadow")
     expect(css).toContain("font-size: var(--agent-html-brand-font-size)")
-    expect(css).toContain("height: var(--agent-html-brand-icon-size)")
     expect(css).toContain("gap: var(--agent-html-brand-gap)")
     expect(css).not.toMatch(/--canvas-desktop-titlebar-brand-[\w-]+\s*:/)
     expect(css).not.toContain("--canvas-desktop-titlebar-title-font-size")
+    expect(css).not.toContain("var(--agent-html-brand-icon-size)")
 
     for (const token of semanticTokenDefinitions) {
       expect(css).not.toMatch(new RegExp(`^\\s*--${token}\\s*:`, "m"))

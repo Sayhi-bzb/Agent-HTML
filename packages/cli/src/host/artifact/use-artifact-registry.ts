@@ -135,8 +135,11 @@ export function useArtifactRegistry({
   onSelectArtifactMode,
   pendingFilePath,
 }: {
-  onPendingArtifactReady: () => void
-  onPendingArtifactFailure: (error: string) => void
+  onPendingArtifactReady: (event: { filePath: string }) => void
+  onPendingArtifactFailure: (event: {
+    error: string
+    filePath: string
+  }) => void
   onSelectArtifactMode: () => void
   pendingFilePath: string | null
 }) {
@@ -190,8 +193,8 @@ export function useArtifactRegistry({
         setLoadError(null)
         setActiveFilePath(refreshState.activeFilePath)
 
-        if (refreshState.pendingReady) {
-          onPendingArtifactReady()
+        if (refreshState.pendingReady && pendingFilePath) {
+          onPendingArtifactReady({ filePath: pendingFilePath })
         }
       } finally {
         setArtifactsLoading(false)
@@ -233,7 +236,7 @@ export function useArtifactRegistry({
   }, [refreshArtifacts])
 
   React.useEffect(() => {
-    if (!shouldPollPendingArtifact(pendingFilePath)) {
+    if (!pendingFilePath) {
       return
     }
 
@@ -245,7 +248,8 @@ export function useArtifactRegistry({
     }
 
     return startPendingArtifactPolling({
-      onPollingFailed: onPendingArtifactFailure,
+      onPollingFailed: (error) =>
+        onPendingArtifactFailure({ error, filePath: pendingFilePath }),
       pendingFilePath,
       refresh: refreshPendingArtifact,
     })
