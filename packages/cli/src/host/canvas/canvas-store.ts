@@ -1,14 +1,31 @@
-import { CANVAS_LAYOUT_VERSION } from "@agent-html/kernel"
+import {
+  CANVAS_LAYOUT_VERSION,
+  defaultCanvasNodeGeometry,
+} from "@agent-html/kernel"
 import type {
+  CanvasInspectionDocument,
   CanvasLayoutDocument,
   CanvasNodeGeometry,
 } from "@agent-html/kernel"
 import type {
   CanvasDefinition,
-  CanvasEdgeIntent,
   CanvasIntentRuntime,
   CanvasNodeIntent,
 } from "@agent-html/react"
+import {
+  createCanvasInspectionDocument,
+  inspectCanvasNode,
+  inspectCanvasOverview,
+  inspectCanvasViewport,
+  resolveCanvasNodeSource,
+} from "./canvas-inspection"
+import type {
+  CanvasNodeDetailInspection,
+  CanvasNodeSourceReference,
+  CanvasOverviewInspection,
+  CanvasViewportBounds,
+  CanvasViewportInspection,
+} from "./canvas-inspection"
 
 export type ResolvedCanvasNode = CanvasNodeIntent &
   CanvasNodeGeometry & {
@@ -17,40 +34,32 @@ export type ResolvedCanvasNode = CanvasNodeIntent &
 
 export type CanvasStoreSnapshot = {
   canvas: CanvasDefinition | null
-  edges: CanvasEdgeIntent[]
   nodes: ResolvedCanvasNode[]
 }
 
 export type CanvasStore = {
+  getInspectionDocument: () => CanvasInspectionDocument
   getLayout: () => CanvasLayoutDocument
+  getLayoutNodeIds: () => string[]
   getSnapshot: () => CanvasStoreSnapshot
   hydrateLayout: (layout: CanvasLayoutDocument) => void
+  inspectNode: (nodeId: string) => CanvasNodeDetailInspection | null
+  inspectOverview: () => CanvasOverviewInspection
+  inspectViewport: (bounds: CanvasViewportBounds) => CanvasViewportInspection
+  resolveNodeSource: (nodeId: string) => CanvasNodeSourceReference | null
+  removeLayoutNodes: (nodeIds: readonly string[]) => void
   runtime: CanvasIntentRuntime
   setNodeGeometry: (id: string, geometry: CanvasNodeGeometry) => void
   setNodeTarget: (id: string, target: HTMLElement | null) => void
+  sourceFilePath: string
   subscribe: (listener: () => void) => () => void
-}
-
-const defaultNodeWidth = 320
-const defaultNodeHeight = 180
-const defaultNodeGap = 48
-const defaultColumns = 4
-
-function defaultGeometry(order: number): CanvasNodeGeometry {
-  return {
-    height: defaultNodeHeight,
-    width: defaultNodeWidth,
-    x: (order % defaultColumns) * (defaultNodeWidth + defaultNodeGap),
-    y:
-      Math.floor(order / defaultColumns) * (defaultNodeHeight + defaultNodeGap),
-  }
 }
 
 function sourceGeometry(
   node: CanvasNodeIntent,
   order: number
 ): CanvasNodeGeometry {
-  const fallback = defaultGeometry(order)
+  const fallback = defaultCanvasNodeGeometry(order)
   return {
     height: node.height ?? fallback.height,
     width: node.width ?? fallback.width,
@@ -79,26 +88,23 @@ function sortResolvedNodes(nodes: ResolvedCanvasNode[]) {
   )
 }
 
-export function createCanvasStore(): CanvasStore {
+export function createCanvasStore(sourceFilePath: string): CanvasStore {
   let canvas: CanvasDefinition | null = null
   let layout: CanvasLayoutDocument = {
     nodes: {},
     version: CANVAS_LAYOUT_VERSION,
   }
   let nextOrder = 0
-  let snapshot: CanvasStoreSnapshot = { canvas, edges: [], nodes: [] }
+  let snapshot: CanvasStoreSnapshot = { canvas, nodes: [] }
   const nodes = new Map<string, CanvasNodeIntent & { order: number }>()
-  const edges = new Map<string, CanvasEdgeIntent>()
   const targets = new Map<string, HTMLElement>()
   const listeners = new Set<() => void>()
   const targetListeners = new Set<() => void>()
   const nodeRemovalTokens = new Map<string, symbol>()
-  const edgeRemovalTokens = new Map<string, symbol>()
 
   const rebuild = () => {
     snapshot = {
       canvas,
-      edges: [...edges.values()],
       nodes: sortResolvedNodes(
         [...nodes.values()].map((node) => ({
           ...node,
@@ -109,17 +115,15 @@ export function createCanvasStore(): CanvasStore {
     listeners.forEach((listener) => listener())
   }
 
+  const getInspectionDocument = () =>
+    createCanvasInspectionDocument({
+      canvas: snapshot.canvas,
+      nodes: snapshot.nodes,
+      sourceFilePath,
+    })
+
   const runtime: CanvasIntentRuntime = {
     getNodeTarget: (id) => targets.get(id) ?? null,
-    removeEdge(id) {
-      const token = Symbol(id)
-      edgeRemovalTokens.set(id, token)
-      queueMicrotask(() => {
-        if (edgeRemovalTokens.get(id) !== token) return
-        edgeRemovalTokens.delete(id)
-        if (edges.delete(id)) rebuild()
-      })
-    },
     removeNode(id) {
       const token = Symbol(id)
       nodeRemovalTokens.set(id, token)
@@ -137,11 +141,6 @@ export function createCanvasStore(): CanvasStore {
       targetListeners.add(listener)
       return () => targetListeners.delete(listener)
     },
-    upsertEdge(edge) {
-      edgeRemovalTokens.delete(edge.id)
-      edges.set(edge.id, edge)
-      rebuild()
-    },
     upsertNode(node) {
       nodeRemovalTokens.delete(node.id)
       const current = nodes.get(node.id)
@@ -154,6 +153,7 @@ export function createCanvasStore(): CanvasStore {
   }
 
   return {
+    getInspectionDocument,
     getLayout() {
       const activeNodes = Object.fromEntries(
         snapshot.nodes.map((node) => [
@@ -168,6 +168,7 @@ export function createCanvasStore(): CanvasStore {
       )
       return { nodes: activeNodes, version: CANVAS_LAYOUT_VERSION }
     },
+    getLayoutNodeIds: () => Object.keys(layout.nodes),
     getSnapshot: () => snapshot,
     hydrateLayout(nextLayout) {
       layout = {
@@ -180,6 +181,30 @@ export function createCanvasStore(): CanvasStore {
         version: CANVAS_LAYOUT_VERSION,
       }
       rebuild()
+    },
+    inspectNode(nodeId) {
+      return inspectCanvasNode(getInspectionDocument(), nodeId)
+    },
+    inspectOverview() {
+      return inspectCanvasOverview(getInspectionDocument())
+    },
+    inspectViewport(bounds) {
+      return inspectCanvasViewport(getInspectionDocument(), bounds)
+    },
+    resolveNodeSource(nodeId) {
+      return resolveCanvasNodeSource(getInspectionDocument(), nodeId)
+    },
+    removeLayoutNodes(nodeIds) {
+      const nextNodes = { ...layout.nodes }
+      let changed = false
+      for (const nodeId of nodeIds) {
+        if (!Object.hasOwn(nextNodes, nodeId)) continue
+        delete nextNodes[nodeId]
+        changed = true
+      }
+      if (changed) {
+        layout = { nodes: nextNodes, version: CANVAS_LAYOUT_VERSION }
+      }
     },
     runtime,
     setNodeGeometry(id, geometry) {
@@ -198,6 +223,7 @@ export function createCanvasStore(): CanvasStore {
       else targets.delete(id)
       targetListeners.forEach((listener) => listener())
     },
+    sourceFilePath,
     subscribe(listener) {
       listeners.add(listener)
       return () => listeners.delete(listener)

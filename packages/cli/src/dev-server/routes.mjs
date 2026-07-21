@@ -2,8 +2,10 @@ import fs from "node:fs/promises"
 import path from "node:path"
 
 import {
-  createEmptyCanvasLayout,
-  normalizeCanvasLayout,
+  inspectCanvasNode,
+  inspectCanvasOverview,
+  inspectCanvasViewport,
+  resolveCanvasNodeSource,
 } from "@agent-html/kernel"
 import { replaceArtifactTitle } from "@agent-html/kernel/validate"
 import { workspaceRelativePath } from "../react-canvas/paths.mjs"
@@ -11,6 +13,12 @@ import { createArtifactScaffold } from "../react-canvas/artifact-scaffold.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
 import { readTextFile } from "../react-canvas/workspace-file.mjs"
 import { canvasLayoutPathForEntry } from "./canvas-registry.mjs"
+import { readColdCanvasInspectionDocument } from "./canvas-cold-inspection.mjs"
+import {
+  patchStoredCanvasLayout,
+  readStoredCanvasLayout,
+  writeStoredCanvasLayout,
+} from "./canvas-layout-storage.mjs"
 import {
   listCodexThreads,
   readCodexThreadTranscript,
@@ -39,6 +47,7 @@ export const hostRoutes = {
   artifacts: "/__agent-html/artifacts",
   artifactPublicAsset: "/__agent-html/artifacts/",
   canvasBundle: "/__agent-html/canvas.js",
+  canvasInspection: "/__agent-html/canvas/inspection",
   canvasLayout: "/__agent-html/canvas/layout",
   canvases: "/__agent-html/canvases",
   blockImplementation: "/__agent-html/block-implementation",
@@ -62,6 +71,7 @@ export const devServerRoutePipelines = [
   "artifact-registry-and-validation-report",
   "artifact-source-mutation",
   "canvas-registry-and-layout",
+  "canvas-inspection",
   "block-lookup",
   "codex-bridge",
   "runtime-control",
@@ -90,38 +100,31 @@ async function readCanvasLayout({ filePath, root }) {
   const entryPath = resolveCanvasEntryPath({ filePath, root })
   await fs.access(entryPath)
   const layoutPath = canvasLayoutPathForEntry(entryPath)
-  try {
-    return {
-      layout: normalizeCanvasLayout(
-        JSON.parse(await fs.readFile(layoutPath, "utf8"))
-      ),
-      layoutPath,
-    }
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      return { layout: createEmptyCanvasLayout(), layoutPath }
-    }
-    throw error
-  }
+  return { ...(await readStoredCanvasLayout(layoutPath)), layoutPath }
 }
 
 async function writeCanvasLayout({ filePath, layout, root }) {
   const entryPath = resolveCanvasEntryPath({ filePath, root })
   await fs.access(entryPath)
   const layoutPath = canvasLayoutPathForEntry(entryPath)
-  const normalized = normalizeCanvasLayout(layout)
-  const temporaryPath = `${layoutPath}.${process.pid}.${Date.now()}.tmp`
-  await fs.mkdir(path.dirname(layoutPath), { recursive: true })
-  try {
-    await fs.writeFile(
-      temporaryPath,
-      `${JSON.stringify(normalized, null, 2)}\n`
-    )
-    await fs.rename(temporaryPath, layoutPath)
-  } finally {
-    await fs.rm(temporaryPath, { force: true })
+  return {
+    ...(await writeStoredCanvasLayout({ layout, layoutPath })),
+    layoutPath,
   }
-  return { layout: normalized, layoutPath }
+}
+
+async function patchCanvasLayout({ filePath, nodes, removedNodeIds, root }) {
+  const entryPath = resolveCanvasEntryPath({ filePath, root })
+  await fs.access(entryPath)
+  const layoutPath = canvasLayoutPathForEntry(entryPath)
+  return {
+    ...(await patchStoredCanvasLayout({
+      layoutPath,
+      nodes,
+      removedNodeIds,
+    })),
+    layoutPath,
+  }
 }
 
 const publicContentTypes = new Map([
@@ -546,6 +549,10 @@ export function classifyDevServerRoute(pathname) {
     return "canvas-registry-and-layout"
   }
 
+  if (pathname === hostRoutes.canvasInspection) {
+    return "canvas-inspection"
+  }
+
   if (
     pathname === hostRoutes.artifactCreate ||
     pathname === hostRoutes.artifactRename ||
@@ -773,6 +780,7 @@ async function handleCanvasRegistryAndLayoutRoute({
       sendJson(response, {
         layout: result.layout,
         layoutPath: workspaceRelativePath(root, result.layoutPath),
+        storage: result.storage,
       })
     } catch (error) {
       sendError(response, error, 400)
@@ -783,15 +791,34 @@ async function handleCanvasRegistryAndLayoutRoute({
   if (request.method === "POST") {
     try {
       const body = await readJsonBody(request)
-      const result = await writeCanvasLayout({
-        filePath: body.filePath,
-        layout: body.layout,
-        root,
-      })
-      sendJson(response, {
-        layout: result.layout,
-        layoutPath: workspaceRelativePath(root, result.layoutPath),
-      })
+      const isPatch = Boolean(body.nodes) || Array.isArray(body.removedNodeIds)
+      const result = isPatch
+        ? await patchCanvasLayout({
+            filePath: body.filePath,
+            nodes: body.nodes,
+            removedNodeIds: body.removedNodeIds,
+            root,
+          })
+        : await writeCanvasLayout({
+            filePath: body.filePath,
+            layout: body.layout,
+            root,
+          })
+      sendJson(
+        response,
+        isPatch
+          ? {
+              nodes: result.nodes,
+              removedNodeIds: result.removedNodeIds,
+              layoutPath: workspaceRelativePath(root, result.layoutPath),
+              storage: result.storage,
+            }
+          : {
+              layout: result.layout,
+              layoutPath: workspaceRelativePath(root, result.layoutPath),
+              storage: result.storage,
+            }
+      )
     } catch (error) {
       sendError(response, error, 400)
     }
@@ -799,6 +826,95 @@ async function handleCanvasRegistryAndLayoutRoute({
   }
 
   sendError(response, "GET or POST is required", 405)
+  return true
+}
+
+function readCanvasInspectionViewport(requestUrl) {
+  const bounds = {}
+  for (const field of ["x", "y", "width", "height"]) {
+    if (!requestUrl.searchParams.has(field)) {
+      throw new Error(`Canvas inspection viewport ${field} is required`)
+    }
+    bounds[field] = Number(requestUrl.searchParams.get(field))
+  }
+  return bounds
+}
+
+async function handleCanvasInspectionRoute({
+  canvasInspectionRegistry,
+  request,
+  requestUrl,
+  response,
+  root,
+}) {
+  if (request.method === "POST") {
+    try {
+      const body = await readJsonBody(request)
+      const filePath = body.document?.sourceFilePath
+      const entryPath = resolveCanvasEntryPath({ filePath, root })
+      await fs.access(entryPath)
+      const document = canvasInspectionRegistry.publish(body.document)
+      sendJson(response, {
+        ok: true,
+        sourceFilePath: document.sourceFilePath,
+      })
+    } catch (error) {
+      sendError(response, error, 400)
+    }
+    return true
+  }
+
+  if (request.method !== "GET") {
+    sendError(response, "GET or POST is required", 405)
+    return true
+  }
+
+  const filePath = requestUrl.searchParams.get("filePath")
+  if (!filePath) {
+    sendError(response, "filePath is required", 400)
+    return true
+  }
+
+  try {
+    const entryPath = resolveCanvasEntryPath({ filePath, root })
+    await fs.access(entryPath)
+    const liveDocument = canvasInspectionRegistry.getDocument(filePath)
+    const document =
+      liveDocument ??
+      (await readColdCanvasInspectionDocument({
+        entryPath,
+        sourceFilePath: filePath,
+      }))
+    const origin = liveDocument ? "live" : "cold"
+
+    const kind = requestUrl.searchParams.get("kind") ?? "overview"
+    let result
+    if (kind === "overview") {
+      result = inspectCanvasOverview(document)
+    } else if (kind === "viewport") {
+      result = inspectCanvasViewport(
+        document,
+        readCanvasInspectionViewport(requestUrl)
+      )
+    } else if (kind === "node" || kind === "source") {
+      const nodeId = requestUrl.searchParams.get("nodeId")
+      if (!nodeId) throw new Error("Canvas inspection nodeId is required")
+      result =
+        kind === "node"
+          ? inspectCanvasNode(document, nodeId)
+          : resolveCanvasNodeSource(document, nodeId)
+      if (!result) {
+        sendError(response, `Canvas Node ${nodeId} was not found`, 404)
+        return true
+      }
+    } else {
+      throw new Error(`Unsupported Canvas inspection kind: ${kind}`)
+    }
+
+    sendJson(response, { kind, origin, result, sourceFilePath: filePath })
+  } catch (error) {
+    sendError(response, error, 400)
+  }
   return true
 }
 
@@ -1083,6 +1199,7 @@ const routePipelineHandlers = {
   "artifact-registry-and-validation-report": handleArtifactRegistryRoute,
   "artifact-source-mutation": handleArtifactSourceMutationRoute,
   "canvas-registry-and-layout": handleCanvasRegistryAndLayoutRoute,
+  "canvas-inspection": handleCanvasInspectionRoute,
   "block-lookup": handleBlockLookupRoute,
   "codex-bridge": handleCodexBridgeRoute,
   "host-shell": handleHostShellRoute,
@@ -1094,6 +1211,7 @@ const routePipelineHandlers = {
 
 export async function handleRequest({
   artifactRegistry,
+  canvasInspectionRegistry,
   canvasRegistry,
   request,
   response,
@@ -1115,6 +1233,7 @@ export async function handleRequest({
 
   return routePipelineHandlers[pipeline]({
     artifactRegistry,
+    canvasInspectionRegistry,
     canvasRegistry,
     request,
     requestUrl,

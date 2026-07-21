@@ -10,9 +10,11 @@ import {
   fontStylesheetUrl,
   hostApiRoutes,
   isArtifactBundleUrl,
+  publishCanvasInspection,
   publicAssetUrl,
   renameArtifact,
   renameArtifactTitle,
+  saveCanvasLayoutPatch,
 } from "./api"
 
 describe("artifactLabel", () => {
@@ -162,6 +164,65 @@ describe("fetchCodexThreads", () => {
         },
       ],
     })
+  })
+})
+
+describe("Canvas inspection transport", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it("publishes the versioned Canonical Store document", async () => {
+    const document = {
+      canvas: { id: "demo", title: "Demo" },
+      nodes: [{ height: 80, id: "card", width: 100, x: 0, y: 0 }],
+      sourceFilePath: "agent-html/canvases/demo.canvas.tsx",
+      version: 1 as const,
+    }
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      expect(url).toBe(hostApiRoutes.canvasInspection)
+      expect(init?.method).toBe("POST")
+      expect(JSON.parse(String(init?.body))).toEqual({ document })
+      return new Response(
+        JSON.stringify({ ok: true, sourceFilePath: document.sourceFilePath }),
+        { headers: { "Content-Type": "application/json" } }
+      )
+    })
+
+    await expect(publishCanvasInspection(document)).resolves.toEqual({
+      ok: true,
+      sourceFilePath: document.sourceFilePath,
+    })
+  })
+
+  it("persists dirty Canvas Node geometry as a patch", async () => {
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+    const nodes = {
+      card: { height: 180, width: 320, x: 40, y: 60 },
+    }
+    const removedNodeIds = ["old-card"]
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      expect(url).toBe(hostApiRoutes.canvasLayout)
+      expect(init?.method).toBe("POST")
+      expect(JSON.parse(String(init?.body))).toEqual({
+        filePath,
+        nodes,
+        removedNodeIds,
+      })
+      return new Response(
+        JSON.stringify({
+          layoutPath: "agent-html/canvases/demo.layout.json",
+          nodes,
+          removedNodeIds,
+          storage: "monolithic",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      )
+    })
+
+    await expect(
+      saveCanvasLayoutPatch({ filePath, nodes, removedNodeIds })
+    ).resolves.toMatchObject({ storage: "monolithic" })
   })
 })
 

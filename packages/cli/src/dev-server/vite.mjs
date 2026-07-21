@@ -21,6 +21,7 @@ import {
   resolveWorkspaceTemplateRoot,
 } from "./context.mjs"
 import {
+  createHostBrowserDependencyContract,
   createRuntimeDependencyContract,
   packageNameFromImport,
   RUNTIME_DEPENDENCY_CONTRACT_VERSION,
@@ -178,12 +179,12 @@ export async function createArtifactEntryModule({ filePath, root }) {
 export function cacheDirForRoot(
   root,
   runtimeFingerprint = process.env.AGENT_HTML_RUNTIME_FINGERPRINT || "source",
-  contractDigest = readRuntimeDependencyContract().digest
+  dependencyPlanDigest = createBrowserOptimizationPlan().digest
 ) {
   const identity =
     runtimeFingerprint === "source"
-      ? `${path.resolve(root)}\0${runtimeFingerprint}\0${contractDigest}`
-      : `${path.resolve(packageRoot)}\0${runtimeFingerprint}\0${contractDigest}`
+      ? `${path.resolve(root)}\0${runtimeFingerprint}\0${dependencyPlanDigest}`
+      : `${path.resolve(packageRoot)}\0${runtimeFingerprint}\0${dependencyPlanDigest}`
   const cacheKey = createHash("sha256").update(identity).digest("hex")
   const manifestPath = process.env.AGENT_HTML_RUNTIME_MANIFEST
   const selectedRuntimeRoot = manifestPath && path.dirname(manifestPath)
@@ -196,7 +197,7 @@ export function cacheDirForRoot(
   const cacheHome =
     process.env.AGENT_HTML_RUNTIME_CACHE_HOME ||
     (isSelectedRuntime ? path.join(selectedStoreRoot, "cache") : os.tmpdir())
-  return path.join(cacheHome, "agent-html-vite-v6", cacheKey)
+  return path.join(cacheHome, "agent-html-vite-v7", cacheKey)
 }
 
 export function createCanvasEntryModule({ filePath, root, version = 0 }) {
@@ -220,7 +221,8 @@ export function createCanvasEntryModule({ filePath, root, version = 0 }) {
 }
 
 const optimizedDependencyCachePattern =
-  /[\\/]agent-html-vite-v6[\\/].*[\\/]deps[\\/]/
+  /[\\/]agent-html-vite-v7[\\/].*[\\/]deps[\\/]/
+const optimizedDependencyCacheMarkerVersion = 2
 const optimizedDependencyHeaderBytes = 256
 const optimizedDependencyStartupTimeoutMs = 30_000
 const optimizedDependencyLockStaleMs = 60_000
@@ -432,6 +434,39 @@ export function createPlaygroundOptimizeDepsInclude(
   )
 }
 
+export function createBrowserOptimizationPlan(
+  runtimeContract = readRuntimeDependencyContract(),
+  hostContract = createHostBrowserDependencyContract({
+    packagePath: path.join(packageRoot, "package.json"),
+    root: hostRoot,
+  })
+) {
+  const include = [
+    ...new Set([
+      ...createPlaygroundOptimizeDepsInclude(runtimeContract),
+      ...hostContract.browserEntries.filter(
+        (specifier) => packageNameFromImport(specifier) !== "@agent-html/react"
+      ),
+    ]),
+  ].sort()
+  const expectedOptimizedEntryDigest = createHash("sha256")
+    .update(JSON.stringify(include))
+    .digest("hex")
+  const identity = {
+    canvasDependencyContractDigest: runtimeContract.digest,
+    expectedOptimizedEntryDigest,
+    hostDependencyContractDigest: hostContract.digest,
+    version: optimizedDependencyCacheMarkerVersion,
+  }
+
+  return {
+    digest: createHash("sha256").update(JSON.stringify(identity)).digest("hex"),
+    expectedOptimizedEntries: include,
+    expectedOptimizedEntryDigest,
+    include,
+  }
+}
+
 export function createPlaygroundDependencyAliases(
   runtimeContract = readRuntimeDependencyContract()
 ) {
@@ -446,7 +481,7 @@ export function createPlaygroundDependencyAliases(
     }))
 }
 
-async function prebundlePlaygroundDependencies(vite) {
+async function prebundleBrowserDependencies(vite) {
   const optimizer = vite.environments.client.depsOptimizer
   let timeout
   try {
@@ -462,7 +497,7 @@ async function prebundlePlaygroundDependencies(vite) {
       })(),
       new Promise((_, reject) => {
         timeout = setTimeout(
-          () => reject(new Error("Canvas dependency prebundle timed out")),
+          () => reject(new Error("Browser dependency prebundle timed out")),
           optimizedDependencyStartupTimeoutMs
         )
       }),
@@ -476,16 +511,40 @@ function optimizedDependencyReadyPath(cacheDir) {
   return path.join(cacheDir, ".agent-html-ready.json")
 }
 
-async function isOptimizedDependencyCacheReady(cacheDir, runtimeContract) {
+async function readOptimizedDependencyMetadata(cacheDir) {
+  return JSON.parse(
+    await fs.readFile(path.join(cacheDir, "deps", "_metadata.json"), "utf8")
+  )
+}
+
+function optimizedDependencyNames(metadata) {
+  return new Set([
+    ...Object.keys(metadata.optimized ?? {}),
+    ...Object.keys(metadata.discovered ?? {}),
+  ])
+}
+
+function missingOptimizedDependencies(metadata, optimizationPlan) {
+  const optimized = optimizedDependencyNames(metadata)
+  return optimizationPlan.expectedOptimizedEntries.filter(
+    (entry) => !optimized.has(entry)
+  )
+}
+
+async function isOptimizedDependencyCacheReady(cacheDir, optimizationPlan) {
   try {
-    const marker = JSON.parse(
-      await fs.readFile(optimizedDependencyReadyPath(cacheDir), "utf8")
-    )
+    const [marker, metadata] = await Promise.all([
+      fs
+        .readFile(optimizedDependencyReadyPath(cacheDir), "utf8")
+        .then(JSON.parse),
+      readOptimizedDependencyMetadata(cacheDir),
+    ])
     return (
-      marker.digest === runtimeContract.digest &&
-      marker.version === RUNTIME_DEPENDENCY_CONTRACT_VERSION &&
-      marker.browserEntryCount ===
-        createPlaygroundOptimizeDepsInclude(runtimeContract).length &&
+      marker.planDigest === optimizationPlan.digest &&
+      marker.version === optimizedDependencyCacheMarkerVersion &&
+      marker.optimizedEntryDigest ===
+        optimizationPlan.expectedOptimizedEntryDigest &&
+      missingOptimizedDependencies(metadata, optimizationPlan).length === 0 &&
       (await findInvalidOptimizedDependencyCacheFiles(cacheDir)).length === 0
     )
   } catch (error) {
@@ -494,8 +553,8 @@ async function isOptimizedDependencyCacheReady(cacheDir, runtimeContract) {
   }
 }
 
-async function acquireOptimizedDependencyCache(cacheDir, runtimeContract) {
-  if (await isOptimizedDependencyCacheReady(cacheDir, runtimeContract))
+async function acquireOptimizedDependencyCache(cacheDir, optimizationPlan) {
+  if (await isOptimizedDependencyCacheReady(cacheDir, optimizationPlan))
     return null
   const lockPath = `${cacheDir}.lock`
   const deadline = Date.now() + optimizedDependencyStartupTimeoutMs
@@ -507,7 +566,7 @@ async function acquireOptimizedDependencyCache(cacheDir, runtimeContract) {
       return async () => fs.rm(lockPath, { force: true, recursive: true })
     } catch (error) {
       if (error?.code !== "EEXIST") throw error
-      if (await isOptimizedDependencyCacheReady(cacheDir, runtimeContract))
+      if (await isOptimizedDependencyCacheReady(cacheDir, optimizationPlan))
         return null
       const stat = await fs.stat(lockPath).catch(() => null)
       if (stat && Date.now() - stat.mtimeMs > optimizedDependencyLockStaleMs) {
@@ -523,26 +582,23 @@ async function acquireOptimizedDependencyCache(cacheDir, runtimeContract) {
   throw new Error("Timed out waiting for Canvas dependency cache lock")
 }
 
-async function publishOptimizedDependencyCacheReady(cacheDir, runtimeContract) {
-  const metadataPath = path.join(cacheDir, "deps", "_metadata.json")
-  const metadata = JSON.parse(await fs.readFile(metadataPath, "utf8"))
-  const optimized = new Set([
-    ...Object.keys(metadata.optimized ?? {}),
-    ...Object.keys(metadata.discovered ?? {}),
-  ])
-  const optimizedEntries = createPlaygroundOptimizeDepsInclude(runtimeContract)
-  const missing = optimizedEntries.filter((entry) => !optimized.has(entry))
+async function publishOptimizedDependencyCacheReady(
+  cacheDir,
+  optimizationPlan
+) {
+  const metadata = await readOptimizedDependencyMetadata(cacheDir)
+  const missing = missingOptimizedDependencies(metadata, optimizationPlan)
   if (missing.length > 0) {
     throw new Error(
-      `Canvas dependency cache is incomplete: ${missing.join(", ")}`
+      `Browser dependency cache is incomplete: ${missing.join(", ")}`
     )
   }
   await fs.writeFile(
     optimizedDependencyReadyPath(cacheDir),
     `${JSON.stringify({
-      browserEntryCount: optimizedEntries.length,
-      digest: runtimeContract.digest,
-      version: RUNTIME_DEPENDENCY_CONTRACT_VERSION,
+      optimizedEntryDigest: optimizationPlan.expectedOptimizedEntryDigest,
+      planDigest: optimizationPlan.digest,
+      version: optimizedDependencyCacheMarkerVersion,
     })}\n`
   )
 }
@@ -713,15 +769,16 @@ export async function createAgentHtmlViteServer({
   server,
 }) {
   const runtimeContract = readRuntimeDependencyContract()
+  const optimizationPlan = createBrowserOptimizationPlan(runtimeContract)
   const cacheDir = cacheDirForRoot(
     root,
     process.env.AGENT_HTML_RUNTIME_FINGERPRINT || "source",
-    runtimeContract.digest
+    optimizationPlan.digest
   )
   await ensureValidOptimizedDependencyCache(cacheDir)
   const releaseDependencyCache = await acquireOptimizedDependencyCache(
     cacheDir,
-    runtimeContract
+    optimizationPlan
   )
   const reactProtocolEntry = resolvePackageModule("@agent-html/react")
   const fsAllow = createViteFsAllowList({ reactProtocolEntry, root })
@@ -739,7 +796,8 @@ export async function createAgentHtmlViteServer({
     configFile: false,
     logLevel: "error",
     optimizeDeps: {
-      include: createPlaygroundOptimizeDepsInclude(runtimeContract),
+      include: optimizationPlan.include,
+      noDiscovery: true,
     },
     publicDir: false,
     root: packageRoot,
@@ -776,9 +834,9 @@ export async function createAgentHtmlViteServer({
   })
 
   try {
-    await prebundlePlaygroundDependencies(vite)
+    await prebundleBrowserDependencies(vite)
     if (releaseDependencyCache) {
-      await publishOptimizedDependencyCacheReady(cacheDir, runtimeContract)
+      await publishOptimizedDependencyCacheReady(cacheDir, optimizationPlan)
     }
     return vite
   } catch (error) {

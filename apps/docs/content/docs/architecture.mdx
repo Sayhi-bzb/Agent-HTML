@@ -91,13 +91,14 @@ development startup path. Cache hits do not run `npm install`; Canvas `init`
 never installs project dependencies.
 
 The manifest owns Node and CLI entries, protocol and schema versions, the
-dependency-lock hash, Canvas dependency names, and Vite prebundle entries.
+dependency-lock hash, Canvas dependency names, and Canvas browser entries.
 The fingerprint covers runtime source, dependency closure, Node binary, target,
 and the runtime build recipe.
 Rust passes its path and runtime fingerprint to the CLI. Vite keys optimized
-dependencies by runtime fingerprint plus workspace root and reads dependency
-ownership from the manifest. Runtime publication never replaces a directory
-used by a running sidecar.
+dependencies by runtime fingerprint, workspace root, and a browser optimization
+plan. That plan combines manifest-owned Canvas entries with Host entries derived
+from production Host source and disables undeclared dependency discovery.
+Runtime publication never replaces a directory used by a running sidecar.
 
 The Rust supervisor owns the full runtime process tree. Windows assigns it to a
 kill-on-close Job Object. Unix launches it through a new-session supervisor
@@ -331,6 +332,13 @@ React and React DOM stay pinned through dedicated aliases so the host and
 artifacts share one renderer instance. Named exports used by workspace source
 must be present on the resolved runtime entries; this catches ESM/CJS mismatch
 before browser module loading fails.
+
+Host browser dependencies are a separate CLI-owned contract. The dev server
+derives its entries from production Host imports, requires their packages in the
+CLI production manifest, and combines them with Canvas entries only for Vite
+optimization. Host entries do not expand the dependency surface available to
+Canvas source. The combined plan digest owns cache identity and completeness, so
+changing an entry cannot reuse a cache prepared for a different browser graph.
 
 The dependency contract is executable: `workspace-contract.test.mjs` checks
 source-only workspace files, source metadata, and forbidden vendored installs.

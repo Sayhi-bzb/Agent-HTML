@@ -200,9 +200,19 @@ describe("React Canvas dev host", () => {
           path.join(process.cwd(), "agent-html", "components", "chart", "area-chart.tsx")
         )}`
       ).then((response) => response.text())
-      expect(areaChart).toContain("agent-html-vite-v6")
+      expect(areaChart).toContain("agent-html-vite-v7")
       expect(areaChart).toContain("@visx_xychart.js")
       expect(areaChart).not.toContain("node_modules/reduce-css-calc/index.js")
+
+      const canvasSurface = await fetch(
+        `${url}${viteFsPath(
+          path.join(hostRoot, "canvas", "canvas-surface.tsx")
+        )}`
+      ).then((response) => response.text())
+      expect(canvasSurface).toContain("agent-html-vite-v7")
+      expect(canvasSurface).toContain("@xyflow_react.js")
+      expect(canvasSurface).not.toContain("node_modules/zustand")
+      expect(canvasSurface).not.toContain("use-sync-external-store")
 
       const removedBundle = await fetch(`${url}/__agent-html/client-bundle`)
       expect(removedBundle.status).toBe(404)

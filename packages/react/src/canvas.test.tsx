@@ -7,7 +7,6 @@ import { afterEach, describe, expect, it } from "vitest"
 import {
   Canvas,
   CanvasIntentProvider,
-  Edge,
   Node,
   type CanvasIntentRuntime,
   type CanvasNodeIntent,
@@ -22,17 +21,14 @@ afterEach(() => {
 
 function createRuntime(target: HTMLElement) {
   const nodes = new Map<string, CanvasNodeIntent>()
-  const edges = new Map<string, unknown>()
   const runtime: CanvasIntentRuntime = {
     getNodeTarget: () => target,
-    removeEdge: (id) => edges.delete(id),
     removeNode: (id) => nodes.delete(id),
     setCanvas: () => {},
     subscribeTargets: () => () => {},
-    upsertEdge: (edge) => edges.set(edge.id, edge),
     upsertNode: (node) => nodes.set(node.id, node),
   }
-  return { edges, nodes, runtime }
+  return { nodes, runtime }
 }
 
 describe("Canvas authoring components", () => {
@@ -40,17 +36,23 @@ describe("Canvas authoring components", () => {
     const host = document.createElement("div")
     const target = document.createElement("div")
     document.body.append(host, target)
-    const { edges, nodes, runtime } = createRuntime(target)
+    const { nodes, runtime } = createRuntime(target)
     const root = createRoot(host)
     roots.push(root)
 
     root.render(
       <CanvasIntentProvider runtime={runtime}>
         <Canvas id="dashboard">
-          <Node height={180} id="profile" width={320} x={20} y={40}>
+          <Node
+            height={180}
+            id="profile"
+            sourcePath="./content/profile.tsx"
+            width={320}
+            x={20}
+            y={40}
+          >
             <input aria-label="Profile" defaultValue="Ada" />
           </Node>
-          <Edge id="profile-loop" source="profile" target="profile" />
         </Canvas>
       </CanvasIntentProvider>
     )
@@ -58,11 +60,11 @@ describe("Canvas authoring components", () => {
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(nodes.get("profile")).toMatchObject({
       height: 180,
+      sourcePath: "./content/profile.tsx",
       width: 320,
       x: 20,
       y: 40,
     })
-    expect(edges.has("profile-loop")).toBe(true)
     expect(target.querySelector("input")?.getAttribute("value")).toBe("Ada")
   })
 

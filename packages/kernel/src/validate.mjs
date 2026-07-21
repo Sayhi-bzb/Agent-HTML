@@ -112,6 +112,548 @@ function jsxName(node) {
   return node?.type === "JSXIdentifier" ? node.name : null
 }
 
+const canvasIntentPropTypes = {
+  Canvas: {
+    id: "string",
+    title: "string",
+  },
+  Node: {
+    height: "number",
+    id: "string",
+    index: "string",
+    parentId: "string",
+    sourcePath: "string",
+    title: "string",
+    type: "string",
+    width: "number",
+    x: "number",
+    y: "number",
+  },
+}
+
+function canvasIntentBindings(ast) {
+  const bindings = new Map()
+  const namespaces = new Set()
+  for (const node of ast.program.body) {
+    if (
+      node.type !== "ImportDeclaration" ||
+      node.source.value !== "@agent-html/react"
+    ) {
+      continue
+    }
+    for (const specifier of node.specifiers) {
+      if (specifier.type === "ImportNamespaceSpecifier") {
+        namespaces.add(specifier.local.name)
+        continue
+      }
+      if (specifier.type !== "ImportSpecifier") continue
+      const imported =
+        specifier.imported.type === "Identifier"
+          ? specifier.imported.name
+          : specifier.imported.value
+      if (canvasIntentPropTypes[imported]) {
+        bindings.set(specifier.local.name, imported)
+      }
+    }
+  }
+  return { bindings, namespaces }
+}
+
+function canvasIntentElementKind(name, intentBindings) {
+  if (name?.type === "JSXIdentifier") {
+    return intentBindings.bindings.get(name.name) ?? null
+  }
+  if (
+    name?.type === "JSXMemberExpression" &&
+    name.object.type === "JSXIdentifier" &&
+    name.property.type === "JSXIdentifier" &&
+    intentBindings.namespaces.has(name.object.name) &&
+    canvasIntentPropTypes[name.property.name]
+  ) {
+    return name.property.name
+  }
+  return null
+}
+
+function staticCanvasExpressionValue(expression) {
+  if (
+    expression?.type === "StringLiteral" ||
+    expression?.type === "NumericLiteral"
+  ) {
+    return expression.value
+  }
+  if (
+    expression?.type === "TemplateLiteral" &&
+    expression.expressions.length === 0
+  ) {
+    return expression.quasis
+      .map((part) => part.value.cooked ?? part.value.raw)
+      .join("")
+  }
+  if (
+    expression?.type === "UnaryExpression" &&
+    (expression.operator === "-" || expression.operator === "+") &&
+    expression.argument.type === "NumericLiteral"
+  ) {
+    return expression.operator === "-"
+      ? -expression.argument.value
+      : expression.argument.value
+  }
+  return undefined
+}
+
+function staticCanvasAttributeValue(attribute) {
+  if (!attribute.value) return true
+  if (attribute.value.type === "StringLiteral") return attribute.value.value
+  if (attribute.value.type === "JSXExpressionContainer") {
+    return staticCanvasExpressionValue(attribute.value.expression)
+  }
+  return undefined
+}
+
+function readStaticCanvasProps({ element, filePath, kind }) {
+  const propTypes = canvasIntentPropTypes[kind]
+  const props = {}
+  for (const attribute of element.openingElement.attributes) {
+    if (attribute.type === "JSXSpreadAttribute") {
+      throw new TypeError(
+        `${filePath}: cold Canvas inspection does not support spread ${kind} props`
+      )
+    }
+    const name = jsxName(attribute.name)
+    const expectedType = propTypes[name]
+    if (!expectedType) continue
+    const value = staticCanvasAttributeValue(attribute)
+    if (typeof value !== expectedType) {
+      throw new TypeError(
+        `${filePath}: cold Canvas inspection requires static ${kind}.${name}`
+      )
+    }
+    props[name] = value
+  }
+  return props
+}
+
+function collectStaticCanvasChildren({
+  children,
+  filePath,
+  intentBindings,
+  nodes,
+}) {
+  for (const child of children) {
+    if (child.type === "JSXText") continue
+    if (child.type === "JSXFragment") {
+      collectStaticCanvasChildren({
+        children: child.children,
+        filePath,
+        intentBindings,
+        nodes,
+      })
+      continue
+    }
+    if (child.type === "JSXExpressionContainer") {
+      if (child.expression.type === "JSXElement") {
+        collectStaticCanvasChildren({
+          children: [child.expression],
+          filePath,
+          intentBindings,
+          nodes,
+        })
+        continue
+      }
+      if (child.expression.type === "JSXFragment") {
+        collectStaticCanvasChildren({
+          children: child.expression.children,
+          filePath,
+          intentBindings,
+          nodes,
+        })
+        continue
+      }
+      if (child.expression.type === "JSXEmptyExpression") continue
+      throw new TypeError(
+        `${filePath}: cold Canvas inspection requires static Canvas children`
+      )
+    }
+    if (child.type !== "JSXElement") continue
+
+    const kind = canvasIntentElementKind(
+      child.openingElement.name,
+      intentBindings
+    )
+    if (kind === "Node") {
+      nodes.push(readStaticCanvasProps({ element: child, filePath, kind }))
+      continue
+    }
+    if (kind === "Canvas") {
+      throw new TypeError(`${filePath}: nested Canvas intent is not supported`)
+    }
+
+    const name = jsxName(child.openingElement.name)
+    if (name && name[0] === name[0]?.toLowerCase()) {
+      collectStaticCanvasChildren({
+        children: child.children,
+        filePath,
+        intentBindings,
+        nodes,
+      })
+      continue
+    }
+    throw new TypeError(
+      `${filePath}: cold Canvas inspection cannot expand component ${name ?? "child"}`
+    )
+  }
+}
+
+export function extractStaticCanvasIntent({ filePath, source }) {
+  const { ast, diagnostics } = parseSource({ filePath, source })
+  if (!ast) {
+    throw new TypeError(
+      diagnostics[0]?.message ??
+        `${filePath}: Canvas source could not be parsed`
+    )
+  }
+  const intentBindings = canvasIntentBindings(ast)
+  const canvasElements = []
+  walk(ast, (node) => {
+    if (
+      node.type === "JSXElement" &&
+      canvasIntentElementKind(node.openingElement.name, intentBindings) ===
+        "Canvas"
+    ) {
+      canvasElements.push(node)
+    }
+  })
+  if (canvasElements.length !== 1) {
+    throw new TypeError(
+      `${filePath}: cold Canvas inspection requires exactly one static Canvas element`
+    )
+  }
+
+  const canvasElement = canvasElements[0]
+  const canvas = readStaticCanvasProps({
+    element: canvasElement,
+    filePath,
+    kind: "Canvas",
+  })
+  const nodes = []
+  collectStaticCanvasChildren({
+    children: canvasElement.children,
+    filePath,
+    intentBindings,
+    nodes,
+  })
+  return { canvas, nodes }
+}
+
+function localCanvasComponentBindings(ast) {
+  const bindings = new Map()
+  for (const node of ast.program.body) {
+    if (
+      node.type !== "ImportDeclaration" ||
+      typeof node.source.value !== "string" ||
+      !node.source.value.startsWith(".")
+    ) {
+      continue
+    }
+    for (const specifier of node.specifiers) {
+      if (specifier.type === "ImportDefaultSpecifier") {
+        bindings.set(specifier.local.name, {
+          exportName: "default",
+          specifier: node.source.value,
+        })
+      } else if (specifier.type === "ImportSpecifier") {
+        bindings.set(specifier.local.name, {
+          exportName:
+            specifier.imported.type === "Identifier"
+              ? specifier.imported.name
+              : specifier.imported.value,
+          specifier: node.source.value,
+        })
+      }
+    }
+  }
+  return bindings
+}
+
+function topLevelBinding(ast, name) {
+  for (const statement of ast.program.body) {
+    const declaration =
+      statement.type === "ExportNamedDeclaration"
+        ? statement.declaration
+        : statement
+    if (
+      declaration?.type === "FunctionDeclaration" &&
+      declaration.id?.name === name
+    ) {
+      return declaration
+    }
+    if (declaration?.type === "VariableDeclaration") {
+      for (const item of declaration.declarations) {
+        if (item.id.type === "Identifier" && item.id.name === name) {
+          return item.init
+        }
+      }
+    }
+  }
+  return null
+}
+
+function exportedCanvasComponent(ast, exportName) {
+  if (exportName === "default") {
+    const statement = ast.program.body.find(
+      (node) => node.type === "ExportDefaultDeclaration"
+    )
+    if (!statement) return null
+    return statement.declaration.type === "Identifier"
+      ? topLevelBinding(ast, statement.declaration.name)
+      : statement.declaration
+  }
+
+  for (const statement of ast.program.body) {
+    if (statement.type !== "ExportNamedDeclaration") continue
+    if (
+      statement.declaration?.type === "FunctionDeclaration" &&
+      statement.declaration.id?.name === exportName
+    ) {
+      return statement.declaration
+    }
+    if (statement.declaration?.type === "VariableDeclaration") {
+      const binding = statement.declaration.declarations.find(
+        (item) => item.id.type === "Identifier" && item.id.name === exportName
+      )
+      if (binding) return binding.init
+    }
+    const specifier = statement.specifiers.find((item) => {
+      const exported =
+        item.exported.type === "Identifier"
+          ? item.exported.name
+          : item.exported.value
+      return exported === exportName
+    })
+    if (specifier?.local.type === "Identifier") {
+      return topLevelBinding(ast, specifier.local.name)
+    }
+  }
+  return null
+}
+
+function staticComponentRoot(component, filePath, exportName) {
+  if (
+    !component ||
+    ![
+      "ArrowFunctionExpression",
+      "FunctionDeclaration",
+      "FunctionExpression",
+    ].includes(component.type)
+  ) {
+    throw new TypeError(
+      `${filePath}: cold Canvas inspection cannot read component export ${exportName}`
+    )
+  }
+  if (component.params.length > 0) {
+    throw new TypeError(
+      `${filePath}: cold Canvas intent component ${exportName} must not accept props`
+    )
+  }
+  if (
+    component.body.type === "JSXElement" ||
+    component.body.type === "JSXFragment"
+  ) {
+    return component.body
+  }
+  if (component.body.type !== "BlockStatement") {
+    throw new TypeError(
+      `${filePath}: cold Canvas intent component ${exportName} needs one static JSX return`
+    )
+  }
+  const returns = component.body.body.filter(
+    (statement) => statement.type === "ReturnStatement" && statement.argument
+  )
+  const root = returns.length === 1 ? returns[0].argument : null
+  if (root?.type !== "JSXElement" && root?.type !== "JSXFragment") {
+    throw new TypeError(
+      `${filePath}: cold Canvas intent component ${exportName} needs one static JSX return`
+    )
+  }
+  return root
+}
+
+async function collectStaticCanvasGraphChildren({
+  children,
+  filePath,
+  intentBindings,
+  loadModule,
+  localBindings,
+  moduleStack,
+  nodes,
+}) {
+  for (const child of children) {
+    if (child.type === "JSXText") continue
+    if (child.type === "JSXFragment") {
+      await collectStaticCanvasGraphChildren({
+        children: child.children,
+        filePath,
+        intentBindings,
+        loadModule,
+        localBindings,
+        moduleStack,
+        nodes,
+      })
+      continue
+    }
+    if (child.type === "JSXExpressionContainer") {
+      if (
+        child.expression.type === "JSXElement" ||
+        child.expression.type === "JSXFragment"
+      ) {
+        await collectStaticCanvasGraphChildren({
+          children:
+            child.expression.type === "JSXFragment"
+              ? child.expression.children
+              : [child.expression],
+          filePath,
+          intentBindings,
+          loadModule,
+          localBindings,
+          moduleStack,
+          nodes,
+        })
+        continue
+      }
+      if (child.expression.type === "JSXEmptyExpression") continue
+      throw new TypeError(
+        `${filePath}: cold Canvas inspection requires static Canvas children`
+      )
+    }
+    if (child.type !== "JSXElement") continue
+
+    const kind = canvasIntentElementKind(
+      child.openingElement.name,
+      intentBindings
+    )
+    if (kind === "Node") {
+      nodes.push(readStaticCanvasProps({ element: child, filePath, kind }))
+      continue
+    }
+    if (kind === "Canvas") {
+      throw new TypeError(`${filePath}: nested Canvas intent is not supported`)
+    }
+
+    const name = jsxName(child.openingElement.name)
+    if (name && name[0] === name[0]?.toLowerCase()) {
+      await collectStaticCanvasGraphChildren({
+        children: child.children,
+        filePath,
+        intentBindings,
+        loadModule,
+        localBindings,
+        moduleStack,
+        nodes,
+      })
+      continue
+    }
+
+    const binding = name ? localBindings.get(name) : null
+    if (!binding) {
+      throw new TypeError(
+        `${filePath}: cold Canvas inspection cannot expand component ${name ?? "child"}`
+      )
+    }
+    if (child.openingElement.attributes.length > 0) {
+      throw new TypeError(
+        `${filePath}: cold Canvas intent component ${name} must not receive props`
+      )
+    }
+    const loaded = await loadModule({
+      fromFilePath: filePath,
+      specifier: binding.specifier,
+    })
+    const moduleKey = `${loaded.filePath}#${binding.exportName}`
+    if (moduleStack.has(moduleKey)) {
+      throw new TypeError(
+        `${filePath}: cold Canvas intent component cycle detected`
+      )
+    }
+    const parsed = parseSource(loaded)
+    if (!parsed.ast) {
+      throw new TypeError(
+        parsed.diagnostics[0]?.message ??
+          `${loaded.filePath}: Canvas source could not be parsed`
+      )
+    }
+    const component = exportedCanvasComponent(parsed.ast, binding.exportName)
+    const root = staticComponentRoot(
+      component,
+      loaded.filePath,
+      binding.exportName
+    )
+    const nextStack = new Set(moduleStack).add(moduleKey)
+    await collectStaticCanvasGraphChildren({
+      children: root.type === "JSXFragment" ? root.children : [root],
+      filePath: loaded.filePath,
+      intentBindings: canvasIntentBindings(parsed.ast),
+      loadModule,
+      localBindings: localCanvasComponentBindings(parsed.ast),
+      moduleStack: nextStack,
+      nodes,
+    })
+  }
+}
+
+export async function extractStaticCanvasIntentGraph({
+  filePath,
+  loadModule,
+  source,
+}) {
+  if (typeof loadModule !== "function") {
+    throw new TypeError("cold Canvas inspection loadModule is required")
+  }
+  const { ast, diagnostics } = parseSource({ filePath, source })
+  if (!ast) {
+    throw new TypeError(
+      diagnostics[0]?.message ??
+        `${filePath}: Canvas source could not be parsed`
+    )
+  }
+  const intentBindings = canvasIntentBindings(ast)
+  const canvasElements = []
+  walk(ast, (node) => {
+    if (
+      node.type === "JSXElement" &&
+      canvasIntentElementKind(node.openingElement.name, intentBindings) ===
+        "Canvas"
+    ) {
+      canvasElements.push(node)
+    }
+  })
+  if (canvasElements.length !== 1) {
+    throw new TypeError(
+      `${filePath}: cold Canvas inspection requires exactly one static Canvas element`
+    )
+  }
+
+  const canvasElement = canvasElements[0]
+  const nodes = []
+  await collectStaticCanvasGraphChildren({
+    children: canvasElement.children,
+    filePath,
+    intentBindings,
+    loadModule,
+    localBindings: localCanvasComponentBindings(ast),
+    moduleStack: new Set([`${filePath}#default`]),
+    nodes,
+  })
+  return {
+    canvas: readStaticCanvasProps({
+      element: canvasElement,
+      filePath,
+      kind: "Canvas",
+    }),
+    nodes,
+  }
+}
+
 function staticClassValues(node) {
   if (!node) return []
   if (node.type === "StringLiteral") return [node.value]

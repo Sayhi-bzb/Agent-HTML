@@ -14,14 +14,12 @@ import type {
   ArtifactStateChangeKind,
 } from "@agent-html/kernel"
 
-export { Canvas, CanvasIntentProvider, Edge, Node } from "./canvas"
+export { Canvas, CanvasIntentProvider, Node } from "./canvas"
 export type {
   CanvasDefinition,
-  CanvasEdgeIntent,
   CanvasIntentRuntime,
   CanvasNodeIntent,
   CanvasProps,
-  EdgeProps,
   NodeProps,
 } from "./canvas"
 

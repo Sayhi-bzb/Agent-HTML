@@ -12,6 +12,7 @@ export type CanvasNodeIntent = {
   id: string
   index?: string
   parentId?: string
+  sourcePath?: string
   title?: string
   type?: string
   width?: number
@@ -19,20 +20,11 @@ export type CanvasNodeIntent = {
   y?: number
 }
 
-export type CanvasEdgeIntent = {
-  id: string
-  source: string
-  target: string
-  type?: string
-}
-
 export type CanvasIntentRuntime = {
   getNodeTarget: (id: string) => HTMLElement | null
-  removeEdge: (id: string) => void
   removeNode: (id: string) => void
   setCanvas: (definition: CanvasDefinition | null) => void
   subscribeTargets: (listener: () => void) => () => void
-  upsertEdge: (edge: CanvasEdgeIntent) => void
   upsertNode: (node: CanvasNodeIntent) => void
 }
 
@@ -83,6 +75,7 @@ export function Node({
   id,
   index,
   parentId,
+  sourcePath,
   title,
   type,
   width,
@@ -98,6 +91,7 @@ export function Node({
       id,
       index,
       parentId,
+      sourcePath,
       title,
       type,
       width,
@@ -105,7 +99,19 @@ export function Node({
       y,
     })
     return () => runtime.removeNode(id)
-  }, [height, id, index, parentId, runtime, title, type, width, x, y])
+  }, [
+    height,
+    id,
+    index,
+    parentId,
+    runtime,
+    sourcePath,
+    title,
+    type,
+    width,
+    x,
+    y,
+  ])
 
   const target = React.useSyncExternalStore(
     runtime?.subscribeTargets ?? emptySubscribe,
@@ -118,20 +124,6 @@ export function Node({
   }
 
   return target ? createPortal(children, target) : null
-}
-
-export type EdgeProps = CanvasEdgeIntent
-
-export function Edge({ id, source, target, type }: EdgeProps) {
-  const runtime = React.useContext(CanvasIntentRuntimeContext)
-
-  React.useLayoutEffect(() => {
-    if (!runtime) return
-    runtime.upsertEdge({ id, source, target, type })
-    return () => runtime.removeEdge(id)
-  }, [id, runtime, source, target, type])
-
-  return null
 }
 
 function emptySubscribe() {

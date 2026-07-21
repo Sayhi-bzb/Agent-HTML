@@ -43,8 +43,9 @@ process.env.AGENT_HTML_RUNTIME_CACHE_HOME = path.join(storePaths.root, "cache")
 const selection = await readCurrentRuntime(storePaths)
 if (!selection) throw new Error("Prepared runtime selection was not found")
 const runtimeRoot = runtimeBundleRoot(storePaths, selection.fingerprint)
+const manifestPath = path.join(runtimeRoot, "runtime-manifest.json")
 const manifest = JSON.parse(
-  await fs.readFile(path.join(runtimeRoot, "runtime-manifest.json"), "utf8")
+  await fs.readFile(manifestPath, "utf8")
 )
 if (manifest.schemaVersion !== 2 || manifest.runtimeProtocolVersion !== 1) {
   throw new Error(`Unexpected runtime manifest: ${JSON.stringify(manifest)}`)
@@ -60,7 +61,7 @@ const initialized = spawnSync(
 )
 if (initialized.status !== 0) {
   throw new Error(
-    `Bundled workspace initializer failed: ${initialized.stderr || initialized.stdout}`
+    `Bundled workspace initializer failed: ${initialized.error?.message || initialized.stderr || initialized.stdout}`
   )
 }
 const canvasRoot = path.join(workspaceRoot, "agent-html")
@@ -71,14 +72,6 @@ if (
 ) {
   throw new Error("Bundled workspace initializer installed project dependencies")
 }
-const canvasManifestPath = path.join(canvasRoot, "package.json")
-const canvasManifest = JSON.parse(await fs.readFile(canvasManifestPath, "utf8"))
-canvasManifest.dependencies = { clsx: canvasManifest.dependencies.clsx }
-await fs.writeFile(
-  canvasManifestPath,
-  `${JSON.stringify(canvasManifest, null, 2)}\n`
-)
-
 const token = "desktop-sidecar-smoke-token-with-enough-entropy"
 child = spawn(
   binaryPath,
@@ -190,7 +183,7 @@ if (!areaChartResponse.ok) {
   )
 }
 if (
-  !areaChartModule.includes("agent-html-vite-v6") ||
+  !areaChartModule.includes("agent-html-vite-v7") ||
   !areaChartModule.includes("@visx_xychart.js") ||
   areaChartModule.includes("node_modules/reduce-css-calc/index.js")
 ) {
@@ -208,12 +201,19 @@ const runtimeViteModule = await import(
     )
   ).href
 )
+const runtimeContract =
+  runtimeViteModule.readRuntimeDependencyContract(manifestPath)
+const optimizationPlan =
+  runtimeViteModule.createBrowserOptimizationPlan(runtimeContract)
 const dependencyCache = runtimeViteModule.cacheDirForRoot(
   workspaceRoot,
   manifest.fingerprint,
-  manifest.dependencyContractDigest
+  optimizationPlan.digest
 )
 const dependencyChunks = await fs.readdir(path.join(dependencyCache, "deps"))
+if (!dependencyChunks.includes("@xyflow_react.js")) {
+  throw new Error("Bundled runtime did not prebundle the Host React Flow entry")
+}
 const reduceCssCalcBundled = await Promise.all(
   dependencyChunks
     .filter((entry) => entry.endsWith(".js"))

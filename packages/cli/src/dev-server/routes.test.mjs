@@ -4,6 +4,7 @@ import path from "node:path"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { createTestTempDir } from "../../../../config/test-temp.mjs"
+import { createCanvasInspectionRegistry } from "./canvas-inspection-registry.mjs"
 import {
   classifyDevServerRoute,
   devServerRoutePipelines,
@@ -66,6 +67,7 @@ function createCanvasRegistryMock(
 function handleRoute(options) {
   return handleRequest({
     artifactRegistry: createArtifactRegistryMock(),
+    canvasInspectionRegistry: createCanvasInspectionRegistry(),
     canvasRegistry: createCanvasRegistryMock(),
     ...options,
   })
@@ -86,6 +88,7 @@ describe("dev server routes", () => {
       "artifact-registry-and-validation-report",
       "artifact-source-mutation",
       "canvas-registry-and-layout",
+      "canvas-inspection",
       "block-lookup",
       "codex-bridge",
       "runtime-control",
@@ -117,6 +120,9 @@ describe("dev server routes", () => {
     )
     expect(classifyDevServerRoute(hostRoutes.canvasLayout)).toBe(
       "canvas-registry-and-layout"
+    )
+    expect(classifyDevServerRoute(hostRoutes.canvasInspection)).toBe(
+      "canvas-inspection"
     )
     expect(classifyDevServerRoute(hostRoutes.artifactRename)).toBe(
       "artifact-source-mutation"
@@ -585,6 +591,7 @@ describe("dev server routes", () => {
     expect(JSON.parse(missingResponse.body)).toEqual({
       layout: { nodes: {}, version: 1 },
       layoutPath: "agent-html/canvases/demo.layout.json",
+      storage: "monolithic",
     })
 
     const layout = {
@@ -623,6 +630,43 @@ describe("dev server routes", () => {
     })
     expect(JSON.parse(updateResponse.body).layout).toEqual(updatedLayout)
 
+    const patchResponse = createResponseMock()
+    await handleRoute({
+      request: createJsonRequest({
+        body: {
+          filePath,
+          nodes: {
+            card: { ...updatedLayout.nodes.card, x: 144 },
+          },
+        },
+        url: hostRoutes.canvasLayout,
+      }),
+      response: patchResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(patchResponse.body)).toMatchObject({
+      nodes: { card: { x: 144 } },
+      removedNodeIds: [],
+      storage: "monolithic",
+    })
+
+    const removalResponse = createResponseMock()
+    await handleRoute({
+      request: createJsonRequest({
+        body: { filePath, nodes: {}, removedNodeIds: ["card"] },
+        url: hostRoutes.canvasLayout,
+      }),
+      response: removalResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(removalResponse.body)).toMatchObject({
+      nodes: {},
+      removedNodeIds: ["card"],
+      storage: "monolithic",
+    })
+
     const restartResponse = createResponseMock()
     await handleRoute({
       request: {
@@ -633,7 +677,206 @@ describe("dev server routes", () => {
       root,
       vite: {},
     })
-    expect(JSON.parse(restartResponse.body).layout).toEqual(updatedLayout)
+    expect(JSON.parse(restartResponse.body).layout.nodes).toEqual({})
+  })
+
+  it("publishes and queries the rendered Canonical Store inspection", async () => {
+    const root = await createTestTempDir("canvas-inspection")
+    const canvasesRoot = path.join(root, "agent-html", "canvases")
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+    await fs.mkdir(canvasesRoot, { recursive: true })
+    await fs.writeFile(
+      path.join(canvasesRoot, "demo.canvas.tsx"),
+      "export default function Demo() { return null }\n"
+    )
+    const canvasInspectionRegistry = createCanvasInspectionRegistry()
+    const document = {
+      canvas: { id: "demo", title: "Demo" },
+      nodes: [
+        { height: 80, id: "a", width: 100, x: 0, y: 0 },
+        {
+          height: 80,
+          id: "b",
+          sourcePath: "./content/b.tsx",
+          width: 100,
+          x: 200,
+          y: 0,
+        },
+      ],
+      sourceFilePath: filePath,
+      version: 1,
+    }
+
+    const publishResponse = createResponseMock()
+    await handleRoute({
+      canvasInspectionRegistry,
+      request: createJsonRequest({
+        body: { document },
+        url: hostRoutes.canvasInspection,
+      }),
+      response: publishResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(publishResponse.body)).toEqual({
+      ok: true,
+      sourceFilePath: filePath,
+    })
+
+    const overviewResponse = createResponseMock()
+    await handleRoute({
+      canvasInspectionRegistry,
+      request: {
+        method: "GET",
+        url: `${hostRoutes.canvasInspection}?filePath=${encodeURIComponent(filePath)}`,
+      },
+      response: overviewResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(overviewResponse.body)).toMatchObject({
+      kind: "overview",
+      origin: "live",
+      result: { nodeCount: 2 },
+      sourceFilePath: filePath,
+    })
+
+    const viewportResponse = createResponseMock()
+    await handleRoute({
+      canvasInspectionRegistry,
+      request: {
+        method: "GET",
+        url:
+          `${hostRoutes.canvasInspection}?filePath=${encodeURIComponent(filePath)}` +
+          "&kind=viewport&x=0&y=0&width=120&height=100",
+      },
+      response: viewportResponse,
+      root,
+      vite: {},
+    })
+    expect(
+      JSON.parse(viewportResponse.body).result.nodes.map((node) => node.id)
+    ).toEqual(["a"])
+
+    for (const [kind, expected] of [
+      ["node", { node: { id: "b" }, parentId: null }],
+      [
+        "source",
+        {
+          canvasFilePath: filePath,
+          contentFilePath: "./content/b.tsx",
+          nodeId: "b",
+        },
+      ],
+    ]) {
+      const response = createResponseMock()
+      await handleRoute({
+        canvasInspectionRegistry,
+        request: {
+          method: "GET",
+          url:
+            `${hostRoutes.canvasInspection}?filePath=${encodeURIComponent(filePath)}` +
+            `&kind=${kind}&nodeId=b`,
+        },
+        response,
+        root,
+        vite: {},
+      })
+      expect(JSON.parse(response.body).result).toMatchObject(expected)
+    }
+  })
+
+  it("serves cold inspection before a Canvas is rendered", async () => {
+    const root = await createTestTempDir("canvas-inspection-cold")
+    const canvasesRoot = path.join(root, "agent-html", "canvases")
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+    await fs.mkdir(canvasesRoot, { recursive: true })
+    await fs.writeFile(
+      path.join(canvasesRoot, "demo.canvas.tsx"),
+      `
+        import { Canvas, Node } from "@agent-html/react"
+        export default function Demo() {
+          return (
+            <Canvas id="demo" title="Cold demo">
+              <Node id="a" />
+              <Node id="b" sourcePath="./content/b.tsx" />
+            </Canvas>
+          )
+        }
+      `
+    )
+    const response = createResponseMock()
+    await handleRoute({
+      request: {
+        method: "GET",
+        url: `${hostRoutes.canvasInspection}?filePath=${encodeURIComponent(filePath)}`,
+      },
+      response,
+      root,
+      vite: {},
+    })
+    expect(response.statusCode).toBe(200)
+    expect(JSON.parse(response.body)).toMatchObject({
+      kind: "overview",
+      origin: "cold",
+      result: {
+        canvas: { id: "demo", title: "Cold demo" },
+        nodeCount: 2,
+      },
+      sourceFilePath: filePath,
+    })
+
+    const sourceResponse = createResponseMock()
+    await handleRoute({
+      request: {
+        method: "GET",
+        url:
+          `${hostRoutes.canvasInspection}?filePath=${encodeURIComponent(filePath)}` +
+          "&kind=source&nodeId=b",
+      },
+      response: sourceResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(sourceResponse.body)).toMatchObject({
+      kind: "source",
+      origin: "cold",
+      result: {
+        canvasFilePath: filePath,
+        contentFilePath: "./content/b.tsx",
+        nodeId: "b",
+      },
+    })
+  })
+
+  it("rejects dynamic cold intent with an actionable error", async () => {
+    const root = await createTestTempDir("canvas-inspection-dynamic")
+    const canvasesRoot = path.join(root, "agent-html", "canvases")
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+    await fs.mkdir(canvasesRoot, { recursive: true })
+    await fs.writeFile(
+      path.join(canvasesRoot, "demo.canvas.tsx"),
+      `
+        import { Canvas, Node } from "@agent-html/react"
+        export default function Demo({ nodes }) {
+          return <Canvas id="demo">{nodes.map((node) => <Node {...node} />)}</Canvas>
+        }
+      `
+    )
+    const response = createResponseMock()
+    await handleRoute({
+      request: {
+        method: "GET",
+        url: `${hostRoutes.canvasInspection}?filePath=${encodeURIComponent(filePath)}`,
+      },
+      response,
+      root,
+      vite: {},
+    })
+    expect(response.statusCode).toBe(400)
+    expect(JSON.parse(response.body).error).toContain(
+      "requires static Canvas children"
+    )
   })
 
   it("rejects Canvas layout traversal outside agent-html/canvases", async () => {

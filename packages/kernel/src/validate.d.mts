@@ -11,6 +11,39 @@ export type ArtifactInspection = {
   }
 }
 
+export type StaticCanvasIntent = {
+  canvas: {
+    id: string
+    title?: string
+  }
+  nodes: Array<{
+    height?: number
+    id: string
+    index?: string
+    parentId?: string
+    sourcePath?: string
+    title?: string
+    type?: string
+    width?: number
+    x?: number
+    y?: number
+  }>
+}
+
+export function extractStaticCanvasIntent(input: {
+  filePath: string
+  source: string
+}): StaticCanvasIntent
+
+export function extractStaticCanvasIntentGraph(input: {
+  filePath: string
+  loadModule: (input: {
+    fromFilePath: string
+    specifier: string
+  }) => Promise<{ filePath: string; source: string }>
+  source: string
+}): Promise<StaticCanvasIntent>
+
 export function inspectArtifactEntry(input: {
   filePath: string
   source: string

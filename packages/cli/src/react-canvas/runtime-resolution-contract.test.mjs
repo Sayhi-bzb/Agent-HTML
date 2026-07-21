@@ -7,6 +7,7 @@ import { createTestTempDir } from "../../../../config/test-temp.mjs"
 import {
   cacheDirForRoot,
   clearInvalidOptimizedDependencyCache,
+  createBrowserOptimizationPlan,
   createPlaygroundDependencyAliases,
   createPlaygroundDependencyResolver,
   createPlaygroundOptimizeDepsInclude,
@@ -17,7 +18,10 @@ import {
   readRuntimeDependencyContract,
   resolvePackageImportModule,
 } from "../dev-server/vite.mjs"
-import { packageNameFromImport } from "../dev-server/runtime-dependency-contract.mjs"
+import {
+  createHostBrowserDependencyContract,
+  packageNameFromImport,
+} from "../dev-server/runtime-dependency-contract.mjs"
 
 describe("React Canvas runtime resolution contract", () => {
   it("pins React module resolution to one canonical renderer instance", () => {
@@ -189,6 +193,89 @@ describe("React Canvas runtime resolution contract", () => {
     )
   })
 
+  it("derives Host browser dependencies from production source", async () => {
+    const root = await createTestTempDir("host-dependencies")
+    await fs.writeFile(
+      path.join(root, "surface.tsx"),
+      [
+        'import type { ZodType } from "zod"',
+        'import { ReactFlow } from "@xyflow/react"',
+        'export { CircleIcon } from "lucide-react"',
+        'const primitive = import("radix-ui")',
+        'import "@xyflow/react/dist/style.css"',
+        'export { ReactFlow, primitive }',
+        "",
+      ].join("\n")
+    )
+    await fs.writeFile(
+      path.join(root, "surface.test.tsx"),
+      'import { Command } from "cmdk"\n'
+    )
+
+    const contract = createHostBrowserDependencyContract({
+      packagePath: path.resolve("packages/cli/package.json"),
+      root,
+    })
+
+    expect(contract.browserEntries).toEqual([
+      "@xyflow/react",
+      "lucide-react",
+      "radix-ui",
+    ])
+    expect(contract.styleEntries).toEqual(["@xyflow/react/dist/style.css"])
+    expect(contract.digest).toMatch(/^[a-f\d]{64}$/)
+  })
+
+  it("rejects undeclared and Node-only Host browser dependencies", async () => {
+    const undeclaredRoot = await createTestTempDir("host-undeclared")
+    await fs.writeFile(
+      path.join(undeclaredRoot, "surface.ts"),
+      'import "not-a-declared-package"\n'
+    )
+    expect(() =>
+      createHostBrowserDependencyContract({
+        packagePath: path.resolve("packages/cli/package.json"),
+        root: undeclaredRoot,
+      })
+    ).toThrow("Host browser source imports undeclared dependency")
+
+    const nodeRoot = await createTestTempDir("host-node")
+    await fs.writeFile(path.join(nodeRoot, "surface.ts"), 'import "node:fs"\n')
+    expect(() =>
+      createHostBrowserDependencyContract({
+        packagePath: path.resolve("packages/cli/package.json"),
+        root: nodeRoot,
+      })
+    ).toThrow('Host browser source imports Node built-in "node:fs"')
+  })
+
+  it("combines Canvas and Host entries into one cache identity", () => {
+    const canvasContract = {
+      browserEntries: ["clsx", "react"],
+      digest: "canvas-digest",
+    }
+    const hostContract = {
+      browserEntries: ["@xyflow/react", "react-dom/client"],
+      digest: "host-digest",
+    }
+    const changedHostContract = {
+      browserEntries: ["lucide-react", "react-dom/client"],
+      digest: "changed-host-digest",
+    }
+
+    const plan = createBrowserOptimizationPlan(canvasContract, hostContract)
+    const changedPlan = createBrowserOptimizationPlan(
+      canvasContract,
+      changedHostContract
+    )
+
+    expect(plan.include).toEqual(["@xyflow/react", "clsx", "react-dom/client"])
+    expect(plan.expectedOptimizedEntries).toEqual(plan.include)
+    expect(plan.expectedOptimizedEntryDigest).toMatch(/^[a-f\d]{64}$/)
+    expect(changedPlan.include).toHaveLength(plan.include.length)
+    expect(changedPlan.digest).not.toBe(plan.digest)
+  })
+
   it("classifies every declared Canvas dependency into the browser contract", () => {
     const contract = readRuntimeDependencyContract()
     const coveredPackages = new Set(
@@ -289,7 +376,7 @@ describe("React Canvas runtime resolution contract", () => {
 
   it("versions the Vite cache when dependency interop changes", () => {
     expect(cacheDirForRoot(process.cwd()).replaceAll("\\", "/")).toContain(
-      "/agent-html-vite-v6/"
+      "/agent-html-vite-v7/"
     )
     expect(cacheDirForRoot(process.cwd(), "runtime-a")).not.toBe(
       cacheDirForRoot(process.cwd(), "runtime-b")

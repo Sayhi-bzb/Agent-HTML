@@ -2,8 +2,22 @@ export { normalizeArtifactDefinition, titleizeBlockId } from "./artifact.mjs"
 export {
   CANVAS_LAYOUT_VERSION,
   createEmptyCanvasLayout,
+  defaultCanvasNodeGeometry,
+  DEFAULT_CANVAS_NODE_COLUMNS,
+  DEFAULT_CANVAS_NODE_GAP,
+  DEFAULT_CANVAS_NODE_HEIGHT,
+  DEFAULT_CANVAS_NODE_WIDTH,
   normalizeCanvasLayout,
 } from "./canvas.mjs"
+export {
+  CANVAS_INSPECTION_VERSION,
+  createCanvasInspectionDocument,
+  inspectCanvasNode,
+  inspectCanvasOverview,
+  inspectCanvasViewport,
+  normalizeCanvasInspectionDocument,
+  resolveCanvasNodeSource,
+} from "./canvas-inspection.mjs"
 export {
   CANVAS_POLICY_VERSION,
   canvasDiagnosticCategories,

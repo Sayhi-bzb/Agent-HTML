@@ -7,12 +7,11 @@ Status: initial vertical slice implemented beside `Artifact / Block`. The curren
 ```text
 Folder / Workspace
 └── Canvas 1..n
-    ├── Node 0..n
-    │   └── React content
-    └── Edge 0..n
+    └── Node 0..n
+        └── React content
 ```
 
-A Folder is the durable project space and may contain multiple independent Canvases. Canvas occupies the document role currently held by Artifact. It describes a spatial composition of Nodes and Edges.
+A Folder is the durable project space and may contain multiple independent Canvases. Canvas occupies the document role currently held by Artifact. It describes a spatial composition of Nodes.
 
 The logical Canvas combines authored intent with resolved layout:
 
@@ -23,9 +22,9 @@ Canvas
 └── Resolved Canvas Store
 ```
 
-Intent describes content and relationships. Layout records the concrete geometry produced by direct manipulation. The resolved Store combines both for rendering and inspection.
+Intent describes Node identity, content, hierarchy, and optional source geometry. Layout records the concrete geometry produced by direct manipulation. The resolved Store combines both for rendering and inspection.
 
-A Node is a spatial instance: it connects Canvas identity, placement, and hierarchy to React content. The content may be a primitive, compound component, chart, iframe, or complete application. An Edge expresses a relationship between Nodes. In this target model, Node provides the instance boundary, so a separate Block layer is unnecessary.
+A Node is a spatial instance: it connects Canvas identity, placement, and hierarchy to React content. The content may be a primitive, compound component, chart, iframe, or complete application. Node provides the instance boundary, so a separate Block layer is unnecessary. Canvas does not model arbitrary cross-Node relationships; spatial proximity and `parentId` are its only built-in relationships. Data flow, navigation, and domain relationships belong to Node content or a future model with explicit behavior.
 
 ## Two Hierarchies
 
@@ -50,37 +49,34 @@ The React Slot hierarchy describes how content composes:
 
 ```text
 Canvas
-├── Node
-│   └── React content / Component
-│       └── components/ui
-└── Edge
+└── Node
+    └── React content / Component
+        └── components/ui
 ```
 
-`*.canvas.tsx` is the global intent view: it shows the Nodes in a Canvas, their content references, spatial intent, hierarchy, and Edge relationships. `*.layout.json` is machine-managed resolved geometry keyed by Node identity. A Canvas-specific content file contains the React content selected by a Node. Reusable implementations remain ordinary Components.
+`*.canvas.tsx` is the global intent view: it shows the Nodes in a Canvas, their content references, spatial intent, and hierarchy. `*.layout.json` is machine-managed resolved geometry keyed by Node identity. A Canvas-specific content file contains the React content selected by a Node. Reusable implementations remain ordinary Components.
 
-This keeps the global composition readable without placing geometry and Edge relationships inside content modules. It also avoids requiring one `*.node.tsx` file for every Node.
+This keeps the global composition readable without placing machine geometry inside content modules. It also avoids requiring one `*.node.tsx` file for every Node.
 
 ## Authoring Direction
 
-Canvas authoring reuses React and JSX, adding only the spatial concepts `Canvas`, `Node`, and `Edge`:
+Canvas authoring reuses React and JSX, adding only the spatial concepts `Canvas` and `Node`:
 
 ```tsx
-import { Canvas, Edge, Node } from "@agent-html/react"
+import { Canvas, Node } from "@agent-html/react"
 import { Profile } from "./content/profile"
 import { RevenueChart } from "./content/revenue-chart"
 
 export default function DashboardCanvas() {
   return (
     <Canvas id="dashboard">
-      <Node id="profile">
+      <Node id="profile" sourcePath="./content/profile.tsx">
         <Profile />
       </Node>
 
       <Node id="revenue">
         <RevenueChart />
       </Node>
-
-      <Edge id="profile-revenue" source="profile" target="revenue" />
     </Canvas>
   )
 }
@@ -100,7 +96,7 @@ Canvas intent + layout state
        @xyflow/react
 ```
 
-The Canonical Store is the product model. The React Flow adapter projects its Nodes and Edges into the viewport and translates selection, movement, and resize interactions back into layout transactions. React Flow supplies the initial viewport and interaction foundation without defining Canvas source, persistence, or public record types.
+The Canonical Store is the product model. The React Flow adapter projects its Nodes into the viewport and translates selection, movement, and resize interactions back into layout transactions. React Flow supplies the initial viewport and interaction foundation without defining Canvas source, persistence, or public record types.
 
 ## Progressive Disclosure
 
@@ -121,23 +117,34 @@ Canvas overview
     └── Node detail
 ```
 
-The Canvas file provides the global intent. A map-style viewport query provides resolved Nodes, Edges, geometry, and source references for one region. This Tile view is derived from Canvas data rather than being another content file. Small Canvases can move directly from the global intent to selected content.
+The Canvas file provides the global intent. A map-style viewport query provides resolved Nodes, geometry, hierarchy, and source references for one region. This Tile view is derived from Canvas data rather than being another content file. Small Canvases can move directly from the global intent to selected content.
+
+The Canonical Store exposes overview, viewport, Node detail, and source resolution queries. Viewport results use absolute geometry while layout remains parent-local and retain the total Node count. `sourcePath` optionally identifies the content module selected by a Node; the Canvas source remains the fallback reference. The active Host publishes a versioned inspection document to an authenticated HTTP route for UI-independent agent inspection.
+
+The same route provides cold inspection before a Canvas renders by extracting static `Canvas / Node` intent and merging the colocated layout with Kernel-owned default geometry. Responses identify `live` or `cold` origin. Dynamic Canvas children, spread intent props, and non-static spatial props require the live Store; cold inspection rejects them instead of returning partial data.
 
 ## Initial Slice
 
-The Canvas surface runs beside the current Artifact surface. It supports position, size, parent-local placement, authored Edges, direct interaction with React content, and persisted move/resize results. Canvas structure continues to come from TSX while the UI changes layout geometry. The performance baseline is 1,000 total Nodes with up to 100 visible Nodes.
+The Canvas surface runs beside the current Artifact surface. It supports position, size, parent-local placement, direct interaction with React content, and persisted move/resize results. Canvas structure continues to come from TSX while the UI changes layout geometry. The performance baseline is 1,000 total Nodes with up to 100 visible Nodes.
 
 `@xyflow/react` is private Host infrastructure. Public Canvas records contain no React Flow types. The Host keeps one Canonical Store per selected Canvas, preserves it across source HMR, and hydrates the colocated layout after restart. The Desktop navigation snapshot carries Artifact and Canvas entries.
 
 Implementation owners:
 
-- `packages/react/src/canvas.tsx`: authored `Canvas / Node / Edge` intent and portal projection.
+- `packages/react/src/canvas.tsx`: authored `Canvas / Node` intent and portal projection.
 - `packages/kernel/src/canvas.mjs`: versioned layout document.
 - `packages/cli/src/host/canvas`: Canonical Store and React Flow adapter.
 - `packages/cli/src/dev-server/canvas-registry.mjs`: discovery and registry.
 - `agent-html/canvases`: Canvas sources and machine-managed layouts.
 
-## Open Questions
+## Large Canvas Storage
 
-- Physical storage for very large Canvases while retaining a readable global intent view.
-- Inspection interfaces for overview, viewport, Node detail, and source resolution.
+Small Canvases keep the colocated `*.layout.json` document. Above a Host-owned size threshold, the physical layout becomes a manifest plus deterministic Node-ID shards. The manifest maps each shard to an immutable generation so changed shards can be written before one atomic pointer replacement. Node-ID sharding keeps parent-local records stable when geometry moves; spatial Tiles are derived query indexes, not primary storage.
+
+The layout HTTP and Canonical Store contracts remain independent of the physical representation. Host interaction persists only dirty Node geometry; monolithic storage merges the patch, while sharded storage copy-on-writes only affected shards. Authored Node removal emits an ID tombstone that removes the corresponding layout record. After each atomic manifest replacement, the Host removes generation directories no longer referenced by any shard. Hydration reconstructs the same versioned layout document.
+
+The root `*.canvas.tsx` remains the ownership and global intent route. Large semantic regions may move into zero-prop named local React components without adding another product-model primitive. Cold inspection recursively expands their static relative imports in source order while treating content inside a Node as opaque React content.
+
+## Remaining Validation
+
+- Exercise the 1,000-total / 100-visible performance baseline in the packaged Desktop runtime.

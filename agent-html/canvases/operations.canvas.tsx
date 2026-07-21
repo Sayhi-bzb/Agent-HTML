@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Canvas, Edge, Node } from "@agent-html/react"
+import { Canvas, Node } from "@agent-html/react"
 
 import { AreaChart } from "@/components/chart/area-chart"
 import {
@@ -159,9 +159,6 @@ export default function OperationsCanvas() {
           </CardContent>
         </Card>
       </Node>
-
-      <Edge id="intake-to-throughput" source="intake" target="throughput" />
-      <Edge id="throughput-to-decision" source="throughput" target="decision" />
     </Canvas>
   )
 }

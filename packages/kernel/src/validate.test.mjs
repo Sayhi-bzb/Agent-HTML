@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  extractStaticCanvasIntent,
+  extractStaticCanvasIntentGraph,
   inspectArtifactEntry,
   replaceArtifactTitle,
   validateArtifactEntry,
@@ -8,6 +10,99 @@ import {
 } from "./validate.mjs"
 
 describe("Canvas Kernel validation", () => {
+  it("extracts aliased static Canvas intent without expanding Node content", () => {
+    expect(
+      extractStaticCanvasIntent({
+        filePath: "agent-html/canvases/demo.canvas.tsx",
+        source: `
+          import { Canvas as Map, Node as Item } from "@agent-html/react"
+          export default function Demo() {
+            return (
+              <Map id="demo" title="Demo map">
+                <>
+                  <Item id="profile" sourcePath="./content/profile.tsx" x={-20} width={400}>
+                    <Profile />
+                  </Item>
+                </>
+                <Item id="revenue" />
+              </Map>
+            )
+          }
+        `,
+      })
+    ).toEqual({
+      canvas: { id: "demo", title: "Demo map" },
+      nodes: [
+        {
+          id: "profile",
+          sourcePath: "./content/profile.tsx",
+          width: 400,
+          x: -20,
+        },
+        { id: "revenue" },
+      ],
+    })
+  })
+
+  it("refuses dynamic Canvas intent instead of returning partial cold data", () => {
+    expect(() =>
+      extractStaticCanvasIntent({
+        filePath: "agent-html/canvases/demo.canvas.tsx",
+        source: `
+          import { Canvas, Node } from "@agent-html/react"
+          export default function Demo({ nodes }) {
+            return <Canvas id="demo">{nodes.map((node) => <Node {...node} />)}</Canvas>
+          }
+        `,
+      })
+    ).toThrow("requires static Canvas children")
+  })
+
+  it("recursively expands ordered static local intent components", async () => {
+    const modules = new Map([
+      [
+        "/canvas/region.tsx",
+        `
+          import { Node } from "@agent-html/react"
+          import Nested from "./nested"
+          export default function Region() {
+            return <><Node id="region" /><Nested /></>
+          }
+        `,
+      ],
+      [
+        "/canvas/nested.tsx",
+        `
+          import { Node } from "@agent-html/react"
+          export default function Nested() { return <Node id="nested" /> }
+        `,
+      ],
+    ])
+    const result = await extractStaticCanvasIntentGraph({
+      filePath: "/canvas/demo.canvas.tsx",
+      loadModule: async ({ fromFilePath, specifier }) => {
+        const filePath = `/canvas/${specifier.replace(/^\.\//, "")}.tsx`
+        const source = modules.get(filePath)
+        if (!source) throw new Error(`missing ${fromFilePath} ${specifier}`)
+        return { filePath, source }
+      },
+      source: `
+        import { Canvas, Node } from "@agent-html/react"
+        import Region from "./region"
+        export default function Demo() {
+          return <Canvas id="demo"><Node id="start" /><Region /><Node id="end" /></Canvas>
+        }
+      `,
+    })
+
+    expect(result.nodes.map((node) => node.id)).toEqual([
+      "start",
+      "region",
+      "nested",
+      "end",
+    ])
+  })
+
   it("extracts normalized metadata with the same AST used for validation", () => {
     const inspection = inspectArtifactEntry({
       filePath: "agent-html/artifacts/demo.artifact.tsx",

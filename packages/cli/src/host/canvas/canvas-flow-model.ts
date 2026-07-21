@@ -1,6 +1,7 @@
-import { Position, type Node as FlowNode, type NodeChange } from "@xyflow/react"
+import { type Node as FlowNode, type NodeChange } from "@xyflow/react"
 
 import { createCanvasStore } from "./canvas-store"
+import type { PersistCanvasLayoutNodes } from "./canvas-layout-persister"
 import type {
   CanvasStore,
   CanvasStoreSnapshot,
@@ -8,15 +9,15 @@ import type {
 } from "./canvas-store"
 
 export type CanvasFlowNodeData = {
-  persistLayout: () => void
-  requestPersistLayout: () => void
+  persistLayout: PersistCanvasLayoutNodes
+  requestPersistLayout: PersistCanvasLayoutNodes
   store: CanvasStore
   title?: string
 }
 
 export type CanvasFlowNode = FlowNode<CanvasFlowNodeData, "canvas-node">
 
-const ignorePersistLayout = () => {}
+const ignorePersistLayout: PersistCanvasLayoutNodes = () => {}
 
 export function shouldCullCanvasElements(nodeCount: number) {
   return nodeCount > 100
@@ -28,7 +29,7 @@ export function getOrCreateCanvasStore(
 ) {
   const current = stores.get(filePath)
   if (current) return current
-  const next = createCanvasStore()
+  const next = createCanvasStore(filePath)
   stores.set(filePath, next)
   return next
 }
@@ -37,10 +38,9 @@ export function projectCanvasSnapshot(
   snapshot: CanvasStoreSnapshot,
   store: CanvasStore,
   selectedNodeIds: ReadonlySet<string>,
-  persistLayout = ignorePersistLayout,
+  persistLayout: PersistCanvasLayoutNodes = ignorePersistLayout,
   requestPersistLayout = persistLayout
 ) {
-  const nodeIds = new Set(snapshot.nodes.map((node) => node.id))
   const nodes: CanvasFlowNode[] = snapshot.nodes.map((node) => ({
     data: {
       persistLayout,
@@ -50,26 +50,6 @@ export function projectCanvasSnapshot(
     },
     dragHandle: ".canvas-node-drag-handle",
     height: node.height,
-    handles: [
-      {
-        height: 7,
-        id: "default",
-        position: Position.Left,
-        type: "target",
-        width: 7,
-        x: -3.5,
-        y: node.height / 2 - 3.5,
-      },
-      {
-        height: 7,
-        id: "default",
-        position: Position.Right,
-        type: "source",
-        width: 7,
-        x: node.width - 3.5,
-        y: node.height / 2 - 3.5,
-      },
-    ],
     id: node.id,
     parentId: node.parentId,
     position: { x: node.x, y: node.y },
@@ -77,18 +57,7 @@ export function projectCanvasSnapshot(
     type: "canvas-node",
     width: node.width,
   }))
-  const edges = snapshot.edges
-    .filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
-    .map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      sourceHandle: "default",
-      target: edge.target,
-      targetHandle: "default",
-      type: edge.type ?? "smoothstep",
-    }))
-
-  return { edges, nodes }
+  return { nodes }
 }
 
 function resolvedGeometry(node: ResolvedCanvasNode) {

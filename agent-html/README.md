@@ -19,7 +19,7 @@ When authoring an artifact:
 When authoring an infinite Canvas:
 
 - `../INFINITE_CANVAS_DESIGN.md`
-- `canvases/*.canvas.tsx` for Node/Edge intent
+- `canvases/*.canvas.tsx` for Node intent
 - the colocated `*.layout.json` is machine-managed geometry
 
 When using or changing primitives, hooks, helpers, or theme exports:

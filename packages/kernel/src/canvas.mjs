@@ -1,4 +1,24 @@
 export const CANVAS_LAYOUT_VERSION = 1
+export const DEFAULT_CANVAS_NODE_WIDTH = 320
+export const DEFAULT_CANVAS_NODE_HEIGHT = 180
+export const DEFAULT_CANVAS_NODE_GAP = 48
+export const DEFAULT_CANVAS_NODE_COLUMNS = 4
+
+export function defaultCanvasNodeGeometry(order) {
+  if (!Number.isInteger(order) || order < 0) {
+    throw new TypeError("Canvas Node order must be a non-negative integer")
+  }
+  return {
+    height: DEFAULT_CANVAS_NODE_HEIGHT,
+    width: DEFAULT_CANVAS_NODE_WIDTH,
+    x:
+      (order % DEFAULT_CANVAS_NODE_COLUMNS) *
+      (DEFAULT_CANVAS_NODE_WIDTH + DEFAULT_CANVAS_NODE_GAP),
+    y:
+      Math.floor(order / DEFAULT_CANVAS_NODE_COLUMNS) *
+      (DEFAULT_CANVAS_NODE_HEIGHT + DEFAULT_CANVAS_NODE_GAP),
+  }
+}
 
 export function createEmptyCanvasLayout() {
   return {

@@ -2,6 +2,7 @@ import React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
+import * as PublicApi from "./index"
 import {
   Artifact,
   Block,
@@ -11,6 +12,12 @@ import {
 } from "./index"
 
 describe("@agent-html/react", () => {
+  it("exposes Canvas as a Node-only authoring model", () => {
+    expect(PublicApi).toHaveProperty("Canvas")
+    expect(PublicApi).toHaveProperty("Node")
+    expect(PublicApi).not.toHaveProperty("Edge")
+  })
+
   it("renders normal React children with host metadata", () => {
     const html = renderToStaticMarkup(
       <Artifact title="Demo">

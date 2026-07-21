@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   CANVAS_LAYOUT_VERSION,
   createEmptyCanvasLayout,
+  defaultCanvasNodeGeometry,
   normalizeCanvasLayout,
 } from "./index.mjs"
 
@@ -34,5 +35,21 @@ describe("Canvas layout contract", () => {
         version: 1,
       })
     ).toThrow("positive")
+  })
+
+  it("owns deterministic default Node geometry", () => {
+    expect(defaultCanvasNodeGeometry(0)).toEqual({
+      height: 180,
+      width: 320,
+      x: 0,
+      y: 0,
+    })
+    expect(defaultCanvasNodeGeometry(4)).toEqual({
+      height: 180,
+      width: 320,
+      x: 0,
+      y: 228,
+    })
+    expect(() => defaultCanvasNodeGeometry(-1)).toThrow("non-negative")
   })
 })

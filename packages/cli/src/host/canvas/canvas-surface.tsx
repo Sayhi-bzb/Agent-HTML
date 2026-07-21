@@ -2,9 +2,7 @@ import {
   Background,
   BackgroundVariant,
   Controls,
-  Handle,
   NodeResizer,
-  Position,
   ReactFlow,
   type NodeProps,
   type OnNodesChange,
@@ -14,11 +12,10 @@ import "@xyflow/react/dist/style.css"
 import * as React from "react"
 import { CanvasIntentProvider } from "@agent-html/react"
 
-import {
-  canvasBundleUrl,
-  fetchCanvasLayout,
-  saveCanvasLayout,
-} from "../api/api"
+import { canvasBundleUrl, fetchCanvasLayout } from "../api/api"
+import { HostButton } from "../ui/button"
+import { createCanvasInspectionPublisher } from "./canvas-inspection-publisher"
+import { createLayoutPersister } from "./canvas-layout-persister"
 import {
   applyCanvasNodeChanges,
   getOrCreateCanvasStore,
@@ -35,8 +32,6 @@ type CanvasModule = {
 const canvasNodeTypes = {
   "canvas-node": CanvasNodeShell,
 }
-
-const ignoreEdgeChanges = () => {}
 
 function useCanvasStoreSnapshot(store: CanvasStore) {
   return React.useSyncExternalStore(
@@ -55,16 +50,43 @@ function CanvasNodeShell({ data, id, selected }: NodeProps<CanvasFlowNode>) {
   const setGeometry = React.useCallback(
     (_event: unknown, geometry: ResizeParams) => {
       store.setNodeGeometry(id, geometry)
-      requestPersistLayout()
+      requestPersistLayout([id])
     },
     [id, requestPersistLayout, store]
   )
   const finishResize = React.useCallback(
     (_event: unknown, geometry: ResizeParams) => {
       store.setNodeGeometry(id, geometry)
-      persistLayout()
+      persistLayout([id])
     },
     [id, persistLayout, store]
+  )
+  const moveWithKeyboard = React.useCallback(
+    (event: React.KeyboardEvent<HTMLButtonElement>) => {
+      const direction = {
+        ArrowDown: [0, 1],
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0],
+        ArrowUp: [0, -1],
+      }[event.key]
+      if (!direction) return
+
+      event.preventDefault()
+      event.stopPropagation()
+      const node = store
+        .getSnapshot()
+        .nodes.find((candidate) => candidate.id === id)
+      if (!node) return
+      const step = event.shiftKey ? 1 : 8
+      store.setNodeGeometry(id, {
+        height: node.height,
+        width: node.width,
+        x: node.x + direction[0] * step,
+        y: node.y + direction[1] * step,
+      })
+      requestPersistLayout([id])
+    },
+    [id, requestPersistLayout, store]
   )
 
   return (
@@ -79,24 +101,20 @@ function CanvasNodeShell({ data, id, selected }: NodeProps<CanvasFlowNode>) {
         onResize={setGeometry}
         onResizeEnd={finishResize}
       />
-      <div className="canvas-node-drag-handle" title={title ?? id}>
+      <HostButton
+        aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
+        aria-label={`Move ${title ?? id}. Use arrow keys; hold Shift for one pixel.`}
+        className="canvas-node-drag-handle"
+        onKeyDown={moveWithKeyboard}
+        title={title ?? id}
+        type="button"
+        variant="ghost"
+      >
         <span>{title ?? id}</span>
-      </div>
+      </HostButton>
       <div
         className="canvas-node-content nodrag nowheel nopan"
         ref={setTarget}
-      />
-      <Handle
-        className="canvas-node-handle"
-        id="default"
-        position={Position.Left}
-        type="target"
-      />
-      <Handle
-        className="canvas-node-handle"
-        id="default"
-        position={Position.Right}
-        type="source"
       />
     </div>
   )
@@ -148,49 +166,6 @@ function useCanvasModule({
   return { ...state, loading: false }
 }
 
-function createLayoutPersister({
-  filePath,
-  onPersistError,
-  store,
-}: {
-  filePath: string
-  onPersistError: (error: string | null) => void
-  store: CanvasStore
-}) {
-  let saveQueue = Promise.resolve()
-  let timer: ReturnType<typeof setTimeout> | null = null
-  const persist = () => {
-    const layout = store.getLayout()
-    saveQueue = saveQueue
-      .catch(() => undefined)
-      .then(() => saveCanvasLayout({ filePath, layout }))
-      .then(
-        () => onPersistError(null),
-        (error: unknown) =>
-          onPersistError(error instanceof Error ? error.message : String(error))
-      )
-  }
-
-  return {
-    commit() {
-      if (timer) clearTimeout(timer)
-      timer = null
-      persist()
-    },
-    dispose() {
-      if (timer) clearTimeout(timer)
-      timer = null
-    },
-    request() {
-      if (timer) clearTimeout(timer)
-      timer = setTimeout(() => {
-        timer = null
-        persist()
-      }, 120)
-    },
-  }
-}
-
 function CanvasWorkspace({
   component: Source,
   filePath,
@@ -210,7 +185,20 @@ function CanvasWorkspace({
     () => createLayoutPersister({ filePath, onPersistError, store }),
     [filePath, onPersistError, store]
   )
+  const inspectionPublisher = React.useMemo(
+    () => createCanvasInspectionPublisher({ store }),
+    [store]
+  )
   React.useEffect(() => () => persister.dispose(), [persister])
+  React.useEffect(
+    () => () => inspectionPublisher.dispose(),
+    [inspectionPublisher]
+  )
+  React.useEffect(() => {
+    if (!snapshot.canvas) return
+    persister.reconcile()
+    inspectionPublisher.request()
+  }, [inspectionPublisher, persister, snapshot])
   const projection = React.useMemo(
     () =>
       projectCanvasSnapshot(
@@ -246,7 +234,14 @@ function CanvasWorkspace({
             (change.type === "dimensions" && change.resizing === false)
         )
       ) {
-        persister.commit()
+        persister.commit(
+          changes.flatMap((change) =>
+            (change.type === "position" && change.dragging === false) ||
+            (change.type === "dimensions" && change.resizing === false)
+              ? [change.id]
+              : []
+          )
+        )
       }
     },
     [persister, snapshot, store]
@@ -255,9 +250,7 @@ function CanvasWorkspace({
   return (
     <div
       className="canvas-workspace"
-      data-edge-count={snapshot.edges.length}
       data-node-count={snapshot.nodes.length}
-      data-projected-edge-count={projection.edges.length}
       data-testid="canvas-workspace"
     >
       <CanvasIntentProvider runtime={store.runtime}>
@@ -266,17 +259,14 @@ function CanvasWorkspace({
       {snapshot.canvas ? (
         <ReactFlow<CanvasFlowNode>
           deleteKeyCode={null}
-          edges={projection.edges}
           elementsSelectable
           fitView
           fitViewOptions={{ padding: 0.18 }}
           minZoom={0.08}
           nodeTypes={canvasNodeTypes}
           nodes={projection.nodes}
-          nodesConnectable={false}
           nodesDraggable
-          onEdgesChange={ignoreEdgeChanges}
-          onNodeDragStop={persister.commit}
+          onNodeDragStop={(_event, node) => persister.commit([node.id])}
           onNodesChange={onNodesChange}
           onlyRenderVisibleElements={shouldCullCanvasElements(
             snapshot.nodes.length

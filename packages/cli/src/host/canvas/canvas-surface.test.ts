@@ -10,7 +10,7 @@ import { createCanvasStore } from "./canvas-store"
 
 describe("React Flow Canvas adapter", () => {
   it("keeps parent-local geometry and parent-first projection", () => {
-    const store = createCanvasStore()
+    const store = createCanvasStore("demo.canvas.tsx")
     store.runtime.upsertNode({ id: "child", parentId: "parent" })
     store.runtime.upsertNode({ id: "parent" })
     store.setNodeGeometry("parent", {
@@ -32,6 +32,8 @@ describe("React Flow Canvas adapter", () => {
       new Set()
     )
     expect(projection.nodes.map((node) => node.id)).toEqual(["parent", "child"])
+    expect(projection).not.toHaveProperty("edges")
+    expect(projection.nodes[0]).not.toHaveProperty("handles")
     expect(projection.nodes[1]).toMatchObject({
       parentId: "parent",
       position: { x: 32, y: 48 },
@@ -39,7 +41,7 @@ describe("React Flow Canvas adapter", () => {
   })
 
   it("injects the layout commit boundary into private React Flow Node data", () => {
-    const store = createCanvasStore()
+    const store = createCanvasStore("demo.canvas.tsx")
     const persistLayout = () => {}
     const requestPersistLayout = () => {}
     store.runtime.upsertNode({ id: "card" })
@@ -71,6 +73,7 @@ describe("React Flow Canvas adapter", () => {
 
     const afterHmr = getOrCreateCanvasStore(stores, "demo.canvas.tsx")
     expect(afterHmr).toBe(first)
+    expect(afterHmr.sourceFilePath).toBe("demo.canvas.tsx")
     expect(afterHmr.getLayout().nodes.card).toEqual({
       height: 200,
       width: 320,
@@ -80,7 +83,7 @@ describe("React Flow Canvas adapter", () => {
   })
 
   it("translates controlled move and resize changes into one resolved geometry", () => {
-    const store = createCanvasStore()
+    const store = createCanvasStore("demo.canvas.tsx")
     store.runtime.upsertNode({ id: "card" })
 
     applyCanvasNodeChanges({
@@ -111,7 +114,7 @@ describe("React Flow Canvas adapter", () => {
   })
 
   it("projects 1000 Nodes while delegating offscreen culling to React Flow", () => {
-    const store = createCanvasStore()
+    const store = createCanvasStore("demo.canvas.tsx")
     for (let index = 0; index < 1_000; index += 1) {
       store.runtime.upsertNode({ id: `node-${index}` })
     }

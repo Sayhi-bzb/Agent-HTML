@@ -1,4 +1,7 @@
-import type { CanvasLayoutDocument } from "@agent-html/kernel"
+import type {
+  CanvasInspectionDocument,
+  CanvasLayoutDocument,
+} from "@agent-html/kernel"
 
 import type { Artifact, CanvasDiagnostic, CanvasEntry } from "../host-contracts"
 
@@ -19,6 +22,7 @@ export const hostApiRoutes = {
   artifactTitle: "/__agent-html/artifact/title",
   artifacts: "/__agent-html/artifacts",
   canvasBundle: "/__agent-html/canvas.js",
+  canvasInspection: "/__agent-html/canvas/inspection",
   canvasLayout: "/__agent-html/canvas/layout",
   canvases: "/__agent-html/canvases",
   blockImplementation: "/__agent-html/block-implementation",
@@ -140,6 +144,7 @@ export async function fetchCanvasLayout(filePath: string) {
   return fetchJson<{
     layout: CanvasLayoutDocument
     layoutPath: string
+    storage: "monolithic" | "sharded"
   }>(`${hostApiRoutes.canvasLayout}?${params}`)
 }
 
@@ -158,7 +163,48 @@ export async function saveCanvasLayout({
   return readHostJsonResponse<{
     layout: CanvasLayoutDocument
     layoutPath: string
+    storage: "monolithic" | "sharded"
   }>(response, hostApiRoutes.canvasLayout)
+}
+
+export async function saveCanvasLayoutPatch({
+  filePath,
+  nodes = {},
+  removedNodeIds = [],
+}: {
+  filePath: string
+  nodes?: CanvasLayoutDocument["nodes"]
+  removedNodeIds?: readonly string[]
+}) {
+  const response = await fetch(hostApiRoutes.canvasLayout, {
+    body: JSON.stringify({
+      filePath,
+      nodes,
+      ...(removedNodeIds.length > 0 ? { removedNodeIds } : {}),
+    }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+  })
+  return readHostJsonResponse<{
+    layoutPath: string
+    nodes: CanvasLayoutDocument["nodes"]
+    removedNodeIds: string[]
+    storage: "monolithic" | "sharded"
+  }>(response, hostApiRoutes.canvasLayout)
+}
+
+export async function publishCanvasInspection(
+  document: CanvasInspectionDocument
+) {
+  const response = await fetch(hostApiRoutes.canvasInspection, {
+    body: JSON.stringify({ document }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+  })
+  return readHostJsonResponse<{
+    ok: true
+    sourceFilePath: string
+  }>(response, hostApiRoutes.canvasInspection)
 }
 
 export async function fetchBlockImplementation({
