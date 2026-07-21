@@ -43,9 +43,13 @@ describe("React Canvas style ownership contract", { timeout: 15000 }, () => {
     )
 
     const hostSurface = readSource("packages/cli/src/host/styles/surface.css")
-    expect(hostSurface).toContain("--sidebar: var(--background)")
-    expect(hostSurface).toContain("--sidebar-foreground: var(--foreground)")
-    expect(hostSurface).toContain("--sidebar-accent: var(--accent)")
+    expect(hostSurface).toContain("--canvas-host-sidebar: var(--background)")
+    expect(hostSurface).toContain(
+      "--canvas-host-sidebar-foreground: var(--foreground)"
+    )
+    expect(hostSurface).toContain(
+      "--canvas-host-sidebar-accent: var(--accent)"
+    )
   })
 
   it("keeps shadcn and TypeScript aliases scoped to their owners", () => {

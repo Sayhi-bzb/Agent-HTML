@@ -73,7 +73,7 @@ describe("canvas theme draft", () => {
       "--success": " oklch(0.62 0.17 145) ",
       "--font-sans-source": " ignored ",
       "--shadow-opacity": " 0.5 ",
-      "--sidebar": " ignored ",
+      "--unsupported-theme-token": " ignored ",
     }
     const style = {
       getPropertyValue(name: string) {

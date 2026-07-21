@@ -46,9 +46,9 @@ export const diffEvidenceTabs = [
   },
   {
     caption:
-      "The required gate stays package-level: typecheck, dependency guard, generated index check, and dependency summary must agree.",
+      "The required gate stays package-level: validation, typecheck, generated index check, and diff integrity must agree.",
     code: `npm run canvas:typecheck
-npm run canvas:deps
+npm run canvas:validate
 npm run canvas:index:check
 git diff --check`,
     language: "bash",

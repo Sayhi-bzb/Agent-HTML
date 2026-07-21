@@ -9,6 +9,7 @@ import {
 import {
   createCanvasNavigationCommandMessage,
   createCanvasNavigationRequestMessage,
+  type ArtifactTitleRenameResult,
   type CanvasNavigationCommand,
   type CanvasNavigationSnapshot,
 } from "../../../packages/cli/src/host/navigation/navigation-sync-contract"
@@ -26,7 +27,10 @@ import {
   type WorkspaceSession,
 } from "./session"
 import { Button, Status } from "./ui"
-import { readTrustedDesktopNavigationSnapshot } from "./navigation"
+import {
+  readTrustedDesktopArtifactTitleRenameResult,
+  readTrustedDesktopNavigationSnapshot,
+} from "./navigation"
 import {
   readTrustedDesktopThemeMessage,
   readTrustedDesktopThemeRequest,
@@ -53,6 +57,8 @@ export default function App() {
   const [session, setSession] = useState<WorkspaceSession>({ status: "idle" })
   const [canvasNavigation, setCanvasNavigation] =
     useState<CanvasNavigationSnapshot | null>(null)
+  const [artifactTitleRenameResult, setArtifactTitleRenameResult] =
+    useState<ArtifactTitleRenameResult | null>(null)
   const runtimeFrameRef = useRef<HTMLIFrameElement>(null)
   const canvasThemeRef = useRef<CanvasThemeSnapshot | null>(null)
   const themeSaveTimerRef = useRef<number | null>(null)
@@ -142,6 +148,16 @@ export default function App() {
         return
       }
 
+      const titleRenameResult = readTrustedDesktopArtifactTitleRenameResult({
+        event,
+        expectedOrigin,
+        expectedSource: runtimeFrameRef.current?.contentWindow ?? null,
+      })
+      if (titleRenameResult) {
+        setArtifactTitleRenameResult(titleRenameResult)
+        return
+      }
+
       const themeRequest = readTrustedDesktopThemeRequest({
         event,
         expectedOrigin,
@@ -210,6 +226,7 @@ export default function App() {
       return
     }
     setCanvasNavigation(null)
+    setArtifactTitleRenameResult(null)
     runtimeFrameRef.current?.contentWindow?.postMessage(
       createCanvasNavigationRequestMessage(crypto.randomUUID()),
       runtimeOrigin
@@ -242,6 +259,7 @@ export default function App() {
     return (
       <DesktopShell
         navigation={canvasNavigation}
+        artifactTitleRenameResult={artifactTitleRenameResult}
         onCreateArtifact={() =>
           postCanvasNavigationCommand({ type: "create-artifact" })
         }
@@ -249,6 +267,14 @@ export default function App() {
           postCanvasNavigationCommand({
             filePath,
             type: "request-delete-artifact",
+          })
+        }
+        onRenameArtifactTitle={({ filePath, requestId, title }) =>
+          postCanvasNavigationCommand({
+            filePath,
+            requestId,
+            title,
+            type: "rename-artifact-title",
           })
         }
         onSelectArtifact={(filePath) =>
@@ -367,25 +393,35 @@ export default function App() {
 
 function DesktopShell({
   children,
+  artifactTitleRenameResult,
   navigation,
   onCreateArtifact,
   onRequestDeleteArtifact,
+  onRenameArtifactTitle,
   onSelectArtifact,
   onSetSidebarOpen,
 }: {
   children: React.ReactNode
+  artifactTitleRenameResult?: ArtifactTitleRenameResult | null
   navigation?: CanvasNavigationSnapshot | null
   onCreateArtifact?: () => void
   onRequestDeleteArtifact?: (filePath: string) => void
+  onRenameArtifactTitle?: (input: {
+    filePath: string
+    requestId: string
+    title: string
+  }) => void
   onSelectArtifact?: (filePath: string) => void
   onSetSidebarOpen?: (open: boolean) => void
 }) {
   return (
     <div className="desktop-shell">
       <DesktopTitleBar
+        artifactTitleRenameResult={artifactTitleRenameResult}
         navigation={navigation}
         onCreateArtifact={onCreateArtifact}
         onRequestDeleteArtifact={onRequestDeleteArtifact}
+        onRenameArtifactTitle={onRenameArtifactTitle}
         onSelectArtifact={onSelectArtifact}
         onSetSidebarOpen={onSetSidebarOpen}
       />

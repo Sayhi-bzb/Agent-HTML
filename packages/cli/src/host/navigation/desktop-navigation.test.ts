@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest"
 import {
   applyCanvasNavigationCommand,
   isTrustedDesktopNavigationOrigin,
+  publishArtifactTitleRenameResult,
   publishCanvasNavigation,
   readTrustedCanvasNavigationCommand,
   readTrustedCanvasNavigationRequest,
@@ -16,16 +17,29 @@ describe("Canvas Desktop navigation bridge", () => {
   it("maps commands to existing Canvas actions and rejects missing Artifacts", () => {
     const onCreateArtifact = vi.fn()
     const onRequestDeleteArtifact = vi.fn()
+    const onRenameArtifactTitle = vi.fn()
     const onSelectArtifact = vi.fn()
     const onSetSidebarOpen = vi.fn()
     const options = {
       artifactFilePaths: ["agent-html/artifacts/one.artifact.tsx"],
       onCreateArtifact,
       onRequestDeleteArtifact,
+      onRenameArtifactTitle,
       onSelectArtifact,
       onSetSidebarOpen,
     }
 
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: {
+          filePath: "agent-html/artifacts/one.artifact.tsx",
+          requestId: "desktop-title-rename-request-1",
+          title: "Renamed Artifact",
+          type: "rename-artifact-title",
+        },
+      })
+    ).toBe(true)
     expect(
       applyCanvasNavigationCommand({
         ...options,
@@ -77,11 +91,37 @@ describe("Canvas Desktop navigation bridge", () => {
 
     expect(onCreateArtifact).toHaveBeenCalledOnce()
     expect(onRequestDeleteArtifact).toHaveBeenCalledOnce()
+    expect(onRenameArtifactTitle).toHaveBeenCalledWith({
+      filePath: "agent-html/artifacts/one.artifact.tsx",
+      requestId: "desktop-title-rename-request-1",
+      title: "Renamed Artifact",
+      type: "rename-artifact-title",
+    })
     expect(onRequestDeleteArtifact).toHaveBeenCalledWith(
       "agent-html/artifacts/one.artifact.tsx"
     )
     expect(onSetSidebarOpen).toHaveBeenCalledWith(false)
     expect(onSelectArtifact).toHaveBeenCalledOnce()
+  })
+
+  it("publishes title rename results to the exact target origin", () => {
+    const target = { postMessage: vi.fn() }
+    const result = {
+      filePath: "agent-html/artifacts/one.artifact.tsx",
+      ok: true as const,
+      requestId: "desktop-title-rename-request-1",
+      title: "Renamed Artifact",
+    }
+    const message = publishArtifactTitleRenameResult({
+      result,
+      target,
+      targetOrigin: "http://127.0.0.1:1420",
+    })
+
+    expect(target.postMessage).toHaveBeenCalledWith(
+      message,
+      "http://127.0.0.1:1420"
+    )
   })
 
   it("allows only Desktop development and Tauri application origins", () => {

@@ -94,10 +94,4 @@ Current renderer support:
 - Concrete charts that render datum-level tooltips should expose
   `renderTooltip`, `tooltipFields`, and `tooltipLabel`. Custom renderers win,
   declarative fields are the structured path, and chart defaults stay as the
-  compatibility fallback.
-
-## Migration Notes
-
-- `rough-viz` bar and pie wrappers are retired.
-- `borough-flow-network.block.tsx` uses `NetworkChart` instead of importing
-  `rough-viz` directly.
+  built-in fallback.

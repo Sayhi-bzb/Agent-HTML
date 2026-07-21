@@ -24,31 +24,6 @@ export function runtimeFingerprintMetadata({
   }
 }
 
-export function legacyRuntimeFingerprintMetadata({
-  arch,
-  npmUserAgent,
-  platform,
-}) {
-  const userAgent = npmUserAgent || "unknown"
-  const userAgents = new Set([userAgent])
-
-  if (/\bworkspaces\/(?:true|false)\b/.test(userAgent)) {
-    userAgents.add(
-      userAgent.replace(/\bworkspaces\/(?:true|false)\b/, "workspaces/true")
-    )
-    userAgents.add(
-      userAgent.replace(/\bworkspaces\/(?:true|false)\b/, "workspaces/false")
-    )
-  }
-
-  return [...userAgents].map((npm) => ({
-    arch,
-    npm,
-    platform,
-    version: PREPARE_STATE_VERSION,
-  }))
-}
-
 const templateExcludedSegments = new Set([
   ".git",
   ".vite",
@@ -212,21 +187,6 @@ export function fingerprintFileEntries(files, metadata = {}) {
   }
 
   return hash.digest("hex")
-}
-
-export function withCompatibleBundleFingerprint(
-  state,
-  bundleFingerprint,
-  compatibleFingerprints = []
-) {
-  if (
-    state?.bundleFingerprint === bundleFingerprint ||
-    compatibleFingerprints.includes(state?.bundleFingerprint)
-  ) {
-    return { ...state, bundleFingerprint }
-  }
-
-  return state
 }
 
 export async function hashFiles(root, filePaths, metadata = {}) {

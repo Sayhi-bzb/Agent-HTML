@@ -4,6 +4,8 @@ export const canvasNavigationRequestMessageType =
   "agent-html:canvas-navigation-request"
 export const canvasNavigationCommandMessageType =
   "agent-html:canvas-navigation-command"
+export const artifactTitleRenameResultMessageType =
+  "agent-html:artifact-title-rename-result"
 export const canvasNavigationSnapshotVersion = 1
 
 export type CanvasNavigationArtifact = {
@@ -23,6 +25,12 @@ export type CanvasNavigationSnapshot = {
 export type CanvasNavigationCommand =
   | { filePath: string; type: "select-artifact" }
   | { filePath: string; type: "request-delete-artifact" }
+  | {
+      filePath: string
+      requestId: string
+      title: string
+      type: "rename-artifact-title"
+    }
   | { type: "create-artifact" }
   | { open: boolean; type: "set-sidebar-open" }
 
@@ -43,9 +51,30 @@ export type CanvasNavigationCommandMessage = {
   version: typeof canvasNavigationSnapshotVersion
 }
 
+export type ArtifactTitleRenameResult =
+  | {
+      filePath: string
+      ok: true
+      requestId: string
+      title: string
+    }
+  | {
+      error: string
+      filePath: string
+      ok: false
+      requestId: string
+    }
+
+export type ArtifactTitleRenameResultMessage = {
+  result: ArtifactTitleRenameResult
+  type: typeof artifactTitleRenameResultMessageType
+  version: typeof canvasNavigationSnapshotVersion
+}
+
 const maximumArtifactCount = 1_000
 const maximumFilePathLength = 4_096
 const maximumTitleLength = 512
+const maximumErrorLength = 2_048
 const validRequestId = /^[a-zA-Z0-9_-]{16,128}$/
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -102,6 +131,16 @@ export function createCanvasNavigationCommandMessage(
   return {
     command,
     type: canvasNavigationCommandMessageType,
+    version: canvasNavigationSnapshotVersion,
+  }
+}
+
+export function createArtifactTitleRenameResultMessage(
+  result: ArtifactTitleRenameResult
+): ArtifactTitleRenameResultMessage {
+  return {
+    result,
+    type: artifactTitleRenameResultMessageType,
     version: canvasNavigationSnapshotVersion,
   }
 }
@@ -204,6 +243,27 @@ export function readCanvasNavigationCommandMessage(
       ? createCanvasNavigationCommandMessage({ filePath, type: command.type })
       : null
   }
+  if (command.type === "rename-artifact-title") {
+    const filePath = readFilePath(command.filePath)
+    const title =
+      typeof command.title === "string" &&
+      command.title.length > 0 &&
+      command.title.length <= maximumTitleLength &&
+      command.title === command.title.trim()
+        ? command.title
+        : null
+    return filePath &&
+      title &&
+      typeof command.requestId === "string" &&
+      validRequestId.test(command.requestId)
+      ? createCanvasNavigationCommandMessage({
+          filePath,
+          requestId: command.requestId,
+          title,
+          type: command.type,
+        })
+      : null
+  }
   if (
     command.type === "set-sidebar-open" &&
     typeof command.open === "boolean"
@@ -215,4 +275,62 @@ export function readCanvasNavigationCommandMessage(
   }
 
   return null
+}
+
+export function readArtifactTitleRenameResultMessage(
+  value: unknown
+): ArtifactTitleRenameResultMessage | null {
+  if (
+    !isRecord(value) ||
+    value.type !== artifactTitleRenameResultMessageType ||
+    value.version !== canvasNavigationSnapshotVersion ||
+    !isRecord(value.result)
+  ) {
+    return null
+  }
+
+  const result = value.result
+  const filePath = readFilePath(result.filePath)
+  const requestId =
+    typeof result.requestId === "string" &&
+    validRequestId.test(result.requestId)
+      ? result.requestId
+      : null
+  if (!filePath || !requestId || typeof result.ok !== "boolean") {
+    return null
+  }
+
+  if (result.ok) {
+    const title =
+      typeof result.title === "string" &&
+      result.title.length > 0 &&
+      result.title.length <= maximumTitleLength &&
+      result.title === result.title.trim()
+        ? result.title
+        : null
+    return title
+      ? createArtifactTitleRenameResultMessage({
+          filePath,
+          ok: true,
+          requestId,
+          title,
+        })
+      : null
+  }
+
+  const error =
+    typeof result.error === "string" &&
+    result.error.length > 0 &&
+    result.error.length <= maximumErrorLength &&
+    result.error === result.error.trim()
+      ? result.error
+      : null
+  return error
+    ? createArtifactTitleRenameResultMessage({
+        error,
+        filePath,
+        ok: false,
+        requestId,
+      })
+    : null
 }

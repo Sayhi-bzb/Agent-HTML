@@ -9,18 +9,7 @@ export type ArtifactBlock = {
   title: string
 }
 
-export type GuardIssue = {
-  category?: "dependency" | "manifest" | "protocol" | "style" | "workspace"
-  code?: string
-  column?: number
-  filePath: string
-  guardScope?: string
-  line: number
-  message: string
-  policyVersion?: number
-  severity: string
-  suggestion?: string
-}
+export type CanvasDiagnostic = KernelDiagnostic
 
 export type ArtifactModule = {
   mount: (element: HTMLElement) => () => void
@@ -93,3 +82,4 @@ export type FloatingPromptTarget = PromptTarget & {
   anchorElement: HTMLElement
   triggerElement: HTMLElement
 }
+import type { KernelDiagnostic } from "@agent-html/kernel"

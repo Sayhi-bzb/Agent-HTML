@@ -49,7 +49,7 @@ describe("React Canvas block implementation lookup", () => {
     ).resolves.toBeNull()
   })
 
-  it("does not resolve legacy agent entry suffixes", async () => {
+  it("resolves only the canonical block implementation suffix", async () => {
     const root = await createTestTempDir("source")
     await fs.mkdir(path.join(root, "agent-html", "artifacts", "demo"), {
       recursive: true,

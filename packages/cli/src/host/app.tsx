@@ -32,6 +32,7 @@ import {
 import { ReactCanvasSidebar } from "./navigation/sidebar"
 import {
   applyCanvasNavigationCommand,
+  publishArtifactTitleRenameResult,
   publishCanvasNavigation,
   readTrustedCanvasNavigationCommand,
   readTrustedCanvasNavigationRequest,
@@ -242,15 +243,14 @@ function ReactCanvasHostWorkbench() {
   }, [])
   const {
     activeArtifact,
-    activeIssues,
+    activeDiagnostics,
     artifactRegistryVersion,
     artifacts,
     artifactsLoading,
     deleteExistingArtifact,
-    guardIssues,
     loadError,
     refreshArtifacts,
-    renameExistingArtifact,
+    renameExistingArtifactTitle,
     resolvedActiveFilePath,
     selectArtifact,
   } = useArtifactRegistry({
@@ -479,6 +479,36 @@ function ReactCanvasHostWorkbench() {
         command: message.command,
         onCreateArtifact: selectCreateArtifact,
         onRequestDeleteArtifact: requestDeleteArtifact,
+        onRenameArtifactTitle: ({ filePath, requestId, title }) => {
+          void renameExistingArtifactTitle({ filePath, title })
+            .then((renamed) => {
+              publishArtifactTitleRenameResult({
+                result: {
+                  filePath: renamed.filePath,
+                  ok: true,
+                  requestId,
+                  title: renamed.title,
+                },
+                target: parentWindow,
+                targetOrigin: event.origin,
+              })
+            })
+            .catch((error: unknown) => {
+              publishArtifactTitleRenameResult({
+                result: {
+                  error:
+                    (error instanceof Error ? error.message : String(error))
+                      .trim()
+                      .slice(0, 2_048) || "Unable to rename Artifact title",
+                  filePath,
+                  ok: false,
+                  requestId,
+                },
+                target: parentWindow,
+                targetOrigin: event.origin,
+              })
+            })
+        },
         onSelectArtifact: selectArtifact,
         onSetSidebarOpen: setEffectiveLeftSidebarOpen,
       })
@@ -492,6 +522,7 @@ function ReactCanvasHostWorkbench() {
     artifacts,
     desktopNavigationSnapshot,
     requestDeleteArtifact,
+    renameExistingArtifactTitle,
     selectArtifact,
     selectCreateArtifact,
     setEffectiveLeftSidebarOpen,
@@ -579,7 +610,6 @@ function ReactCanvasHostWorkbench() {
               onOpenChange={setEffectiveLeftSidebarOpen}
             >
               <ReactCanvasSidebar
-                activeFilePath={resolvedActiveFilePath}
                 activeSectionId={activeThemeEditorSectionId}
                 activeCodexThreadId={activeCodexThreadId}
                 activeLanguage={activeLanguage}
@@ -591,14 +621,10 @@ function ReactCanvasHostWorkbench() {
                   createArtifactJob !== null &&
                   createArtifactJob.phase !== "failed"
                 }
-                artifactsLoading={artifactsLoading}
                 artifacts={artifacts}
                 codexThreads={codexThreads}
                 codexThreadsError={codexThreadsError}
                 codexThreadsLoading={codexThreadsLoading}
-                guardIssues={guardIssues}
-                onRequestDeleteArtifact={requestDeleteArtifact}
-                onRenameArtifact={renameExistingArtifact}
                 onSelectArtifact={selectArtifact}
                 onSelectCodexThread={setActiveCodexThreadId}
                 onSelectCreateArtifact={selectCreateArtifact}
@@ -658,7 +684,7 @@ function ReactCanvasHostWorkbench() {
                   artifactCount={artifacts.length}
                   artifactRegistryVersion={artifactRegistryVersion}
                   artifactsLoading={artifactsLoading}
-                  guardIssues={activeIssues}
+                  diagnostics={activeDiagnostics}
                   loadError={loadError}
                 />
               )}

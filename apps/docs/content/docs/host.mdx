@@ -9,7 +9,7 @@ It owns:
 
 - artifact discovery
 - artifact rendering
-- guard issue display
+- validation diagnostic display
 - block overlay
 - block implementation lookup
 - prompt disclosure
@@ -55,8 +55,8 @@ import { Button } from "#agent-html-playground/components/ui/button"
 import { canvasThemePresets } from "#agent-html-playground/theme/presets"
 ```
 
-The host must not import the app shell, old runtime UI, old render APIs, or a
-host-local primitive layer. It must not use `@/app/*`,
+The host must not import application internals or define a host-local primitive
+layer. It must not use `@/app/*`,
 `@agent-html-playground/*`, or `#agent-html-playground/*` outside
 `components/ui/*` and `theme/*`.
 

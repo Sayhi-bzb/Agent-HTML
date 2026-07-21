@@ -8,8 +8,11 @@ use std::{
 };
 use tauri::{AppHandle, Manager};
 
+const CANVAS_THEME_SNAPSHOT_VERSION: u8 = 2;
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
 pub struct Preferences {
     pub language: String,
     pub pipeline: String,
@@ -30,10 +33,10 @@ impl Default for Preferences {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
 pub struct CanvasThemeSnapshot {
     pub dark_css_variables: BTreeMap<String, String>,
     pub draft_css_variables: BTreeMap<String, String>,
-    #[serde(default)]
     pub font_stylesheet_paths: Vec<String>,
     pub light_css_variables: BTreeMap<String, String>,
     pub mode: String,
@@ -52,13 +55,18 @@ pub struct RecentWorkspace {
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
 pub struct StoredDesktopState {
-    #[serde(default)]
     pub canvas_theme: Option<CanvasThemeSnapshot>,
-    #[serde(default)]
     pub preferences: Preferences,
-    #[serde(default)]
     pub recents: Vec<RecentWorkspace>,
+}
+
+fn has_current_schema(state: &StoredDesktopState) -> bool {
+    state
+        .canvas_theme
+        .as_ref()
+        .map_or(true, |theme| theme.version == CANVAS_THEME_SNAPSHOT_VERSION)
 }
 
 #[cfg(test)]
@@ -75,20 +83,18 @@ mod tests {
     }
 
     #[test]
-    fn reads_legacy_preferences_without_requiring_desktop_theme() {
-        let stored: StoredDesktopState = serde_json::from_str(
+    fn rejects_preferences_with_removed_fields() {
+        let stored = serde_json::from_str::<StoredDesktopState>(
             r#"{"preferences":{"language":"en","theme":"dark","pipeline":"codex","externalEditor":"","automaticUpdates":false},"recents":[]}"#,
-        )
-        .expect("legacy desktop state should remain readable");
+        );
 
-        assert_eq!(stored.preferences.language, "en");
-        assert!(stored.canvas_theme.is_none());
+        assert!(stored.is_err());
     }
 
     #[test]
     fn round_trips_canvas_theme_snapshot() {
         let stored: StoredDesktopState = serde_json::from_str(
-            r##"{"canvasTheme":{"version":1,"mode":"system","presetId":"claude-plus","lightCssVariables":{"--background":"#fff"},"darkCssVariables":{"--background":"#111"},"draftCssVariables":{},"fontStylesheetPaths":["/__agent-html/font-stylesheet?url=https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DInter"]},"preferences":{"language":"en","pipeline":"codex","externalEditor":"","automaticUpdates":false},"recents":[]}"##,
+            r##"{"canvasTheme":{"version":2,"mode":"system","presetId":"claude-plus","lightCssVariables":{"--background":"#fff"},"darkCssVariables":{"--background":"#111"},"draftCssVariables":{},"fontStylesheetPaths":["/__agent-html/font-stylesheet?url=https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DInter"]},"preferences":{"language":"en","pipeline":"codex","externalEditor":"","automaticUpdates":false},"recents":[]}"##,
         )
         .expect("canvas theme snapshot should deserialize");
 
@@ -99,17 +105,12 @@ mod tests {
     }
 
     #[test]
-    fn reads_legacy_canvas_theme_without_font_stylesheets() {
-        let stored: StoredDesktopState = serde_json::from_str(
+    fn rejects_canvas_theme_without_font_stylesheets() {
+        let stored = serde_json::from_str::<StoredDesktopState>(
             r##"{"canvasTheme":{"version":1,"mode":"system","presetId":"claude-plus","lightCssVariables":{"--background":"#fff"},"darkCssVariables":{},"draftCssVariables":{}},"preferences":{"language":"en","pipeline":"codex","externalEditor":"","automaticUpdates":false},"recents":[]}"##,
-        )
-        .expect("legacy canvas theme should deserialize");
+        );
 
-        assert!(stored
-            .canvas_theme
-            .expect("canvas theme should exist")
-            .font_stylesheet_paths
-            .is_empty());
+        assert!(stored.is_err());
     }
 
     #[test]
@@ -184,6 +185,7 @@ pub fn load(app: &AppHandle) -> StoredDesktopState {
         .ok()
         .and_then(|path| fs::read_to_string(path).ok())
         .and_then(|json| serde_json::from_str(&json).ok())
+        .filter(has_current_schema)
         .unwrap_or_default();
     if normalize_recents(&mut state) {
         let _ = save(app, &state);

@@ -404,10 +404,17 @@ function extractExportedNames(content) {
 
 function buildStyleSurfaceMarkdown() {
   const rows = styleUsageRows()
+  const unusedClasses = rows.filter(({ tier }) => tier === "unused")
+  if (unusedClasses.length > 0) {
+    throw new Error(
+      `Unused public Canvas style classes: ${unusedClasses
+        .map(({ className }) => className)
+        .join(", ")}`
+    )
+  }
   const defaultClasses = rows.filter(({ tier }) => tier === "default")
   const rareClasses = rows.filter(({ tier }) => tier === "rare")
-  const legacyClasses = rows.filter(({ tier }) => tier === "legacy")
-  const sections = [
+  return [
     "<!-- generated: do not edit -->",
     "",
     "# React Canvas Style Surface",
@@ -422,16 +429,7 @@ function buildStyleSurfaceMarkdown() {
     "## Rare Classes",
     "",
     buildStyleSurfaceFamilyList(rareClasses),
-  ]
-
-  if (legacyClasses.length > 0) {
-    sections.push("")
-    sections.push("## Legacy Classes")
-    sections.push("")
-    sections.push(buildStyleSurfaceFamilyList(legacyClasses))
-  }
-
-  return sections.join("\n")
+  ].join("\n")
 }
 
 function readWorkspaceText(relativePath) {
@@ -605,7 +603,7 @@ function styleClassFamilyLabel(family) {
 
 function styleClassTier(uses) {
   if (uses === 0) {
-    return "legacy"
+    return "unused"
   }
 
   if (uses <= 2) {

@@ -66,21 +66,21 @@ describe("canvas theme sync contract", () => {
     expect(
       readCanvasThemeBootstrapMessage({
         ...createCanvasThemeBootstrapMessage({ requestId, snapshot }),
-        snapshot: { ...snapshot, version: 2 },
+        snapshot: { ...snapshot, version: 3 },
       })
     ).toBeNull()
   })
 
-  it("normalizes legacy snapshots without font stylesheets", () => {
-    const legacySnapshot: Partial<CanvasThemeSnapshot> = { ...snapshot }
-    delete legacySnapshot.fontStylesheetPaths
+  it("rejects snapshots without font stylesheet metadata", () => {
+    const incompleteSnapshot: Partial<CanvasThemeSnapshot> = { ...snapshot }
+    delete incompleteSnapshot.fontStylesheetPaths
 
     expect(
       readCanvasThemeChangeMessage({
-        snapshot: legacySnapshot,
+        snapshot: incompleteSnapshot,
         type: canvasThemeChangeMessageType,
-      })?.snapshot.fontStylesheetPaths
-    ).toEqual([])
+      })
+    ).toBeNull()
   })
 
   it("rejects unsafe or unsupported font stylesheet paths", () => {
@@ -138,7 +138,7 @@ describe("canvas theme sync contract", () => {
   it("rejects incompatible versions and preset identifiers", () => {
     expect(
       readCanvasThemeChangeMessage({
-        snapshot: { ...snapshot, version: 2 },
+        snapshot: { ...snapshot, version: 1 },
         type: canvasThemeChangeMessageType,
       })
     ).toBeNull()

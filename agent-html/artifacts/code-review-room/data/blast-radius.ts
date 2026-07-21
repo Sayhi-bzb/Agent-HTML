@@ -9,7 +9,7 @@ export const blastRadiusNodes = [
   { cx: 30, cy: 34, label: "artifacts" },
   { cx: 71, cy: 32, label: "components/ui" },
   { cx: 24, cy: 72, label: "styles/theme" },
-  { cx: 76, cy: 70, label: "cli guards" },
+  { cx: 76, cy: 70, label: "cli validation" },
 ] satisfies BlastRadiusNode[]
 
 export const blastRadiusLayers = [
@@ -31,8 +31,8 @@ export const blastRadiusLayers = [
   },
   {
     items: [
+      ["canvas:validate", "validates protocol, style, dependency, and workspace boundaries"],
       ["canvas:typecheck", "validates the React Canvas TS surface"],
-      ["canvas:guard", "checks host boundary and artifact import rules"],
       ["canvas:index:check", "keeps generated decision routes current"],
     ],
     value: "gates",
@@ -46,8 +46,8 @@ export const packageSankeyData = {
     { category: "landing", name: "components/ui" },
     { category: "landing", name: "rich components" },
     { category: "landing", name: "styles + theme" },
+    { category: "outcome", name: "canvas:validate" },
     { category: "outcome", name: "canvas:typecheck" },
-    { category: "outcome", name: "canvas:guard" },
     { category: "outcome", name: "canvas:index:check" },
     { category: "outcome", name: "review signal" },
     { category: "outcome", name: "package route" },

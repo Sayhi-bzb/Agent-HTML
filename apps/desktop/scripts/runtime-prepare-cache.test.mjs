@@ -7,15 +7,12 @@ import { afterEach, describe, expect, it } from "vitest"
 import {
   PREPARE_STATE_VERSION,
   decidePreparation,
-  fingerprintFileEntries,
   fingerprintFiles,
   hashFile,
   hashFiles,
   isRuntimeInput,
-  legacyRuntimeFingerprintMetadata,
   readPrepareState,
   runtimeFingerprintMetadata,
-  withCompatibleBundleFingerprint,
 } from "./runtime-prepare-cache.mjs"
 
 const temporaryRoots = []
@@ -52,7 +49,7 @@ describe("runtime input selection", () => {
     expect(isRuntimeInput("packages/kernel/src/policy.test.mjs")).toBe(false)
     expect(isRuntimeInput("packages/react/src/index.test.tsx")).toBe(false)
     expect(isRuntimeInput("packages/cli/src/index.test.mjs")).toBe(false)
-    expect(isRuntimeInput("packages/cli/agent-html-0.2.1.tgz")).toBe(false)
+    expect(isRuntimeInput("packages/cli/agent-html-0.3.0.tgz")).toBe(false)
   })
 })
 
@@ -115,61 +112,6 @@ describe("runtime content fingerprints", () => {
     )
   })
 
-  it("recognizes both legacy workspace fingerprints", () => {
-    const files = [{ path: "input.txt", digest: "content" }]
-    const environment = {
-      arch: "x64",
-      npmUserAgent: workspaceFalseUserAgent,
-      platform: "win32",
-    }
-    const legacyFingerprints = legacyRuntimeFingerprintMetadata(
-      environment
-    ).map((metadata) => fingerprintFileEntries(files, metadata))
-
-    const workspaceTrueFingerprint = fingerprintFileEntries(files, {
-      arch: "x64",
-      npm: workspaceTrueUserAgent,
-      platform: "win32",
-      version: PREPARE_STATE_VERSION,
-    })
-    const workspaceFalseFingerprint = fingerprintFileEntries(files, {
-      arch: "x64",
-      npm: workspaceFalseUserAgent,
-      platform: "win32",
-      version: PREPARE_STATE_VERSION,
-    })
-
-    expect(legacyFingerprints).toContain(workspaceTrueFingerprint)
-    expect(legacyFingerprints).toContain(workspaceFalseFingerprint)
-  })
-
-  it("migrates a legacy fingerprint without rebuilding complete outputs", () => {
-    const legacyFingerprint = "legacy"
-    const bundleFingerprint = "stable"
-    const state = withCompatibleBundleFingerprint(
-      {
-        version: PREPARE_STATE_VERSION,
-        bundleFingerprint: legacyFingerprint,
-        nodeFingerprint: "node",
-        target: "target",
-      },
-      bundleFingerprint,
-      [legacyFingerprint]
-    )
-
-    expect(state.bundleFingerprint).toBe(bundleFingerprint)
-    expect(
-      decidePreparation({
-        bundleFingerprint,
-        bundleOutputsReady: true,
-        force: false,
-        nodeFingerprint: "node",
-        nodeOutputFingerprint: "node",
-        state,
-        target: "target",
-      })
-    ).toEqual({ prepareBundle: false, prepareNode: false })
-  })
 })
 
 describe("runtime preparation decisions", () => {

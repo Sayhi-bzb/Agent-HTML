@@ -1,26 +1,49 @@
 import { parse } from "@babel/parser"
 
+import { titleizeBlockId } from "./artifact.mjs"
 import {
   CANVAS_POLICY_VERSION,
   canvasDiagnosticCategories,
   canvasDiagnosticCodes,
-  canvasUnsafeClassPatterns
+  canvasUnsafeClassPatterns,
 } from "./policy.mjs"
 
-const unsafeClassPatterns = canvasUnsafeClassPatterns.map((pattern) => new RegExp(pattern))
+const unsafeClassPatterns = canvasUnsafeClassPatterns.map(
+  (pattern) => new RegExp(pattern)
+)
 const nativeControls = new Set(["button", "input"])
-const nativeTableElements = new Set(["table", "thead", "tbody", "tr", "th", "td"])
-const legacyRuntimeNames = new Set(["renderAgentHtml", "renderInteractiveAgentHtml"])
-const unstableBlockIds = new Set(["block1", "block2", "section1", "section2", "temp", "top"])
+const nativeTableElements = new Set([
+  "table",
+  "thead",
+  "tbody",
+  "tr",
+  "th",
+  "td",
+])
+const unstableBlockIds = new Set([
+  "block1",
+  "block2",
+  "section1",
+  "section2",
+  "temp",
+  "top",
+])
 
 function locationOf(node) {
   return {
     column: (node?.loc?.start?.column ?? 0) + 1,
-    line: node?.loc?.start?.line ?? 1
+    line: node?.loc?.start?.line ?? 1,
   }
 }
 
-function createDiagnostic({ category, code, filePath, message, node, suggestion }) {
+function createDiagnostic({
+  category,
+  code,
+  filePath,
+  message,
+  node,
+  suggestion,
+}) {
   return {
     category,
     code,
@@ -28,7 +51,7 @@ function createDiagnostic({ category, code, filePath, message, node, suggestion 
     filePath,
     message,
     policyVersion: CANVAS_POLICY_VERSION,
-    ...(suggestion ? { suggestion } : {})
+    ...(suggestion ? { suggestion } : {}),
   }
 }
 
@@ -39,18 +62,18 @@ function parseSource({ filePath, source }) {
         errorRecovery: false,
         plugins: ["jsx", "typescript"],
         sourceFilename: filePath,
-        sourceType: "module"
+        sourceType: "module",
       }),
-      diagnostics: []
+      diagnostics: [],
     }
   } catch (error) {
     const node = {
       loc: {
         start: {
           column: error.loc?.column ?? 0,
-          line: error.loc?.line ?? 1
-        }
-      }
+          line: error.loc?.line ?? 1,
+        },
+      },
     }
     return {
       ast: null,
@@ -61,9 +84,9 @@ function parseSource({ filePath, source }) {
           filePath,
           message: `Canvas source could not be parsed: ${error.message}`,
           node,
-          suggestion: "Fix the TypeScript or JSX syntax before validation."
-        })
-      ]
+          suggestion: "Fix the TypeScript or JSX syntax before validation.",
+        }),
+      ],
     }
   }
 }
@@ -75,7 +98,11 @@ function walk(node, visitor) {
     if (key === "loc" || key === "start" || key === "end") continue
     if (Array.isArray(value)) {
       for (const child of value) walk(child, visitor)
-    } else if (value && typeof value === "object" && typeof value.type === "string") {
+    } else if (
+      value &&
+      typeof value === "object" &&
+      typeof value.type === "string"
+    ) {
       walk(value, visitor)
     }
   }
@@ -89,13 +116,19 @@ function staticClassValues(node) {
   if (!node) return []
   if (node.type === "StringLiteral") return [node.value]
   if (node.type === "TemplateLiteral" && node.expressions.length === 0) {
-    return [node.quasis.map((part) => part.value.cooked ?? part.value.raw).join("")]
+    return [
+      node.quasis.map((part) => part.value.cooked ?? part.value.raw).join(""),
+    ]
   }
-  if (node.type === "JSXExpressionContainer") return staticClassValues(node.expression)
+  if (node.type === "JSXExpressionContainer")
+    return staticClassValues(node.expression)
   if (node.type === "CallExpression") {
     return node.arguments.flatMap((argument) => staticClassValues(argument))
   }
-  if (node.type === "LogicalExpression" || node.type === "ConditionalExpression") {
+  if (
+    node.type === "LogicalExpression" ||
+    node.type === "ConditionalExpression"
+  ) {
     return Object.values(node).flatMap((value) =>
       value && typeof value === "object" ? staticClassValues(value) : []
     )
@@ -114,16 +147,14 @@ function importDiagnostics({ ast, filePath }) {
   const diagnostics = []
   let reportedControl = false
   let reportedTable = false
-  let reportedLegacyRuntime = false
 
   walk(ast, (node) => {
     if (node.type === "ImportDeclaration") {
       const specifier = node.source.value
       if (
         specifier.startsWith("@/app/") ||
-        specifier.includes("apps/agent-html-app") ||
-        specifier === "@/agent-html/runtime" ||
-        specifier.startsWith("@/agent-html/runtime/")
+        specifier.startsWith("@/agent-html/") ||
+        /(?:^|\/)apps\//.test(specifier)
       ) {
         diagnostics.push(
           createDiagnostic({
@@ -132,7 +163,8 @@ function importDiagnostics({ ast, filePath }) {
             filePath,
             message: "Import crosses the React Canvas boundary.",
             node,
-            suggestion: "Import from @agent-html/react or local agent-html source."
+            suggestion:
+              "Import from @agent-html/react or local agent-html source.",
           })
         )
       }
@@ -144,23 +176,7 @@ function importDiagnostics({ ast, filePath }) {
             filePath,
             message: "Public files must be referenced by URL, not imported.",
             node,
-            suggestion: "Use agent-html/lib/public-url helpers."
-          })
-        )
-      }
-      if (
-        !reportedLegacyRuntime &&
-        node.specifiers.some((item) => legacyRuntimeNames.has(item.imported?.name))
-      ) {
-        reportedLegacyRuntime = true
-        diagnostics.push(
-          createDiagnostic({
-            category: canvasDiagnosticCategories.workspace,
-            code: canvasDiagnosticCodes.legacyRuntime,
-            filePath,
-            message: "Old AHTML render API is not allowed in React Canvas artifacts.",
-            node,
-            suggestion: "Render normal React through Artifact and Block markers."
+            suggestion: "Use agent-html/lib/public-url helpers.",
           })
         )
       }
@@ -177,7 +193,7 @@ function importDiagnostics({ ast, filePath }) {
             filePath,
             message: "Native form control bypasses local UI primitives.",
             node,
-            suggestion: "Use the matching agent-html/components/ui primitive."
+            suggestion: "Use the matching agent-html/components/ui primitive.",
           })
         )
       }
@@ -190,7 +206,7 @@ function importDiagnostics({ ast, filePath }) {
             filePath,
             message: "Native table bypasses local UI table primitives.",
             node,
-            suggestion: "Use agent-html/components/ui/table."
+            suggestion: "Use agent-html/components/ui/table.",
           })
         )
       }
@@ -211,9 +227,10 @@ function visualDiagnostics({ ast, filePath }) {
           category: canvasDiagnosticCategories.style,
           code: canvasDiagnosticCodes.inlineStyle,
           filePath,
-          message: "Inline visual style is not allowed in React Canvas artifacts.",
+          message:
+            "Inline visual style is not allowed in React Canvas artifacts.",
           node,
-          suggestion: "Move visual treatment into local UI primitives."
+          suggestion: "Move visual treatment into local UI primitives.",
         })
       )
       return
@@ -228,7 +245,7 @@ function visualDiagnostics({ ast, filePath }) {
           filePath,
           message: `Unsafe className: ${compactClassName(value)}`,
           node,
-          suggestion: "Use semantic token classes."
+          suggestion: "Use semantic token classes.",
         })
       )
     }
@@ -246,14 +263,26 @@ function propertyByName(objectNode, name) {
 }
 
 function blockDefinition(item) {
-  if (item?.type === "StringLiteral") return { id: item.value, node: item }
+  if (item?.type === "StringLiteral") {
+    return { id: item.value, node: item, title: titleizeBlockId(item.value) }
+  }
   if (item?.type !== "ObjectExpression") return null
   const id = propertyByName(item, "id")?.value
-  return id?.type === "StringLiteral" ? { id: id.value, node: id } : null
+  if (id?.type !== "StringLiteral") return null
+  const title = propertyByName(item, "title")?.value
+  return {
+    id: id.value,
+    node: id,
+    title:
+      title?.type === "StringLiteral" && title.value.trim()
+        ? title.value
+        : titleizeBlockId(id.value),
+  }
 }
 
-function artifactProtocolDiagnostics({ ast, filePath }) {
+function inspectArtifactProtocol({ ast, filePath }) {
   const diagnostics = []
+  const metadata = { blocks: [], title: null }
   let defaultExport = null
   let definitionCall = null
 
@@ -277,7 +306,7 @@ function artifactProtocolDiagnostics({ ast, filePath }) {
         filePath,
         message: "Artifact file must have a default export.",
         node: ast.program,
-        suggestion: "Default export defineArtifact({ title, blocks })."
+        suggestion: "Default export defineArtifact({ title, blocks }).",
       })
     )
   }
@@ -289,14 +318,18 @@ function artifactProtocolDiagnostics({ ast, filePath }) {
         filePath,
         message: "Artifact entry must use defineArtifact.",
         node: defaultExport ?? ast.program,
-        suggestion: 'Default export defineArtifact({ title: "...", blocks: ["summary"] }).'
+        suggestion:
+          'Default export defineArtifact({ title: "...", blocks: ["summary"] }).',
       })
     )
-    return diagnostics
+    return { diagnostics, metadata }
   }
 
   const definition = definitionCall.arguments[0]
-  const title = definition?.type === "ObjectExpression" ? propertyByName(definition, "title") : null
+  const title =
+    definition?.type === "ObjectExpression"
+      ? propertyByName(definition, "title")
+      : null
   if (title?.value?.type !== "StringLiteral" || !title.value.value.trim()) {
     diagnostics.push(
       createDiagnostic({
@@ -305,16 +338,23 @@ function artifactProtocolDiagnostics({ ast, filePath }) {
         filePath,
         message: "Artifact definition is missing a static title.",
         node: title ?? definitionCall,
-        suggestion: "Set title to a non-empty string literal."
+        suggestion: "Set title to a non-empty string literal.",
       })
     )
+  } else {
+    metadata.title = title.value.value
   }
 
   const blocksProperty =
-    definition?.type === "ObjectExpression" ? propertyByName(definition, "blocks") : null
+    definition?.type === "ObjectExpression"
+      ? propertyByName(definition, "blocks")
+      : null
   const blockItems =
-    blocksProperty?.value?.type === "ArrayExpression" ? blocksProperty.value.elements : []
+    blocksProperty?.value?.type === "ArrayExpression"
+      ? blocksProperty.value.elements
+      : []
   const blocks = blockItems.map(blockDefinition).filter(Boolean)
+  metadata.blocks = blocks.map(({ id, title }) => ({ id, title }))
   if (blocks.length === 0) {
     diagnostics.push(
       createDiagnostic({
@@ -323,16 +363,20 @@ function artifactProtocolDiagnostics({ ast, filePath }) {
         filePath,
         message: "Artifact definition must contain at least one block id.",
         node: blocksProperty ?? definitionCall,
-        suggestion: 'Add a readable block id such as "summary".'
+        suggestion: 'Add a readable block id such as "summary".',
       })
     )
-    return diagnostics
+    return { diagnostics, metadata }
   }
 
   const counts = new Map()
-  for (const block of blocks) counts.set(block.id, (counts.get(block.id) ?? 0) + 1)
+  for (const block of blocks)
+    counts.set(block.id, (counts.get(block.id) ?? 0) + 1)
   for (const block of blocks) {
-    if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(block.id) || unstableBlockIds.has(block.id)) {
+    if (
+      !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(block.id) ||
+      unstableBlockIds.has(block.id)
+    ) {
       diagnostics.push(
         createDiagnostic({
           category: canvasDiagnosticCategories.protocol,
@@ -340,7 +384,8 @@ function artifactProtocolDiagnostics({ ast, filePath }) {
           filePath,
           message: `Block id "${block.id}" must be stable, readable kebab-case.`,
           node: block.node,
-          suggestion: "Use a subject-specific id such as summary or trip-volume."
+          suggestion:
+            "Use a subject-specific id such as summary or trip-volume.",
         })
       )
     }
@@ -352,21 +397,86 @@ function artifactProtocolDiagnostics({ ast, filePath }) {
           filePath,
           message: `Duplicate Block id: ${block.id}.`,
           node: block.node,
-          suggestion: "Use a unique id for every block."
+          suggestion: "Use a unique id for every block.",
         })
       )
     }
   }
-  return diagnostics
+  return { diagnostics, metadata }
 }
 
-export function validateArtifactEntry({ filePath, source }) {
+export function replaceArtifactTitle({ filePath, source, title }) {
+  const normalizedTitle = typeof title === "string" ? title.trim() : ""
+  if (!normalizedTitle) {
+    throw new Error("Artifact title is required")
+  }
+  if (normalizedTitle.length > 512) {
+    throw new Error("Artifact title must be 512 characters or fewer")
+  }
+
   const { ast, diagnostics } = parseSource({ filePath, source })
-  if (!ast) return diagnostics
-  return [
-    ...artifactProtocolDiagnostics({ ast, filePath }),
-    ...importDiagnostics({ ast, filePath })
-  ]
+  if (!ast) {
+    throw new Error(
+      diagnostics[0]?.message ?? "Canvas source could not be parsed"
+    )
+  }
+
+  let titleNode = null
+  for (const node of ast.program.body) {
+    if (
+      node.type !== "ExportDefaultDeclaration" ||
+      node.declaration.type !== "CallExpression" ||
+      node.declaration.callee.type !== "Identifier" ||
+      node.declaration.callee.name !== "defineArtifact"
+    ) {
+      continue
+    }
+
+    const definition = node.declaration.arguments[0]
+    const titleProperty =
+      definition?.type === "ObjectExpression"
+        ? propertyByName(definition, "title")
+        : null
+    titleNode =
+      titleProperty?.value?.type === "StringLiteral"
+        ? titleProperty.value
+        : null
+  }
+
+  if (
+    !titleNode ||
+    !Number.isInteger(titleNode.start) ||
+    !Number.isInteger(titleNode.end)
+  ) {
+    throw new Error("Artifact definition is missing a static title")
+  }
+
+  return {
+    source:
+      source.slice(0, titleNode.start) +
+      JSON.stringify(normalizedTitle) +
+      source.slice(titleNode.end),
+    title: normalizedTitle,
+  }
+}
+
+export function inspectArtifactEntry({ filePath, source }) {
+  const { ast, diagnostics } = parseSource({ filePath, source })
+  if (!ast) {
+    return { diagnostics, metadata: { blocks: [], title: null } }
+  }
+  const inspection = inspectArtifactProtocol({ ast, filePath })
+  return {
+    diagnostics: [
+      ...inspection.diagnostics,
+      ...importDiagnostics({ ast, filePath }),
+    ],
+    metadata: inspection.metadata,
+  }
+}
+
+export function validateArtifactEntry(input) {
+  return inspectArtifactEntry(input).diagnostics
 }
 
 export function validateBlockImplementation({ filePath, source }) {
@@ -374,6 +484,6 @@ export function validateBlockImplementation({ filePath, source }) {
   if (!ast) return diagnostics
   return [
     ...importDiagnostics({ ast, filePath }),
-    ...visualDiagnostics({ ast, filePath })
+    ...visualDiagnostics({ ast, filePath }),
   ]
 }

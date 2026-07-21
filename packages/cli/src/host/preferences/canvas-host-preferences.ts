@@ -9,7 +9,7 @@ import {
 } from "#agent-html-playground/theme/presets"
 
 export const CANVAS_HOST_PREFERENCES_STORAGE_KEY =
-  "agent-html:react-canvas:host-preferences:v1"
+  "agent-html:react-canvas:host-preferences:v2"
 
 export type CanvasSidebarView = "artifacts" | "gallery"
 export type CanvasHostLanguage = "en" | "system" | "zh"
@@ -74,10 +74,6 @@ function isHostThemeMode(value: unknown): value is CanvasHostThemeMode {
 }
 
 function readSidebarView(value: unknown): CanvasSidebarView {
-  if (value === "theme") {
-    return "gallery"
-  }
-
   return isSidebarView(value)
     ? value
     : defaultCanvasHostPreferences.activeSidebarView

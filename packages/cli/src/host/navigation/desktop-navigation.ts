@@ -1,9 +1,11 @@
 import {
+  createArtifactTitleRenameResultMessage,
   createCanvasNavigationSnapshotMessage,
   readCanvasNavigationCommandMessage,
   readCanvasNavigationRequestMessage,
   type CanvasNavigationCommand,
   type CanvasNavigationSnapshot,
+  type ArtifactTitleRenameResult,
 } from "./navigation-sync-contract"
 
 type NavigationMessageTarget = Pick<Window, "postMessage">
@@ -13,6 +15,7 @@ export function applyCanvasNavigationCommand({
   command,
   onCreateArtifact,
   onRequestDeleteArtifact,
+  onRenameArtifactTitle,
   onSelectArtifact,
   onSetSidebarOpen,
 }: {
@@ -20,6 +23,11 @@ export function applyCanvasNavigationCommand({
   command: CanvasNavigationCommand
   onCreateArtifact: () => void
   onRequestDeleteArtifact: (filePath: string) => void
+  onRenameArtifactTitle: (input: {
+    filePath: string
+    requestId: string
+    title: string
+  }) => void
   onSelectArtifact: (filePath: string) => void
   onSetSidebarOpen: (open: boolean) => void
 }) {
@@ -38,11 +46,32 @@ export function applyCanvasNavigationCommand({
     onRequestDeleteArtifact(command.filePath)
     return true
   }
+  if (command.type === "rename-artifact-title") {
+    if (!artifactFilePaths.includes(command.filePath)) {
+      return false
+    }
+    onRenameArtifactTitle(command)
+    return true
+  }
   if (artifactFilePaths.includes(command.filePath)) {
     onSelectArtifact(command.filePath)
     return true
   }
   return false
+}
+
+export function publishArtifactTitleRenameResult({
+  result,
+  target = window.parent,
+  targetOrigin,
+}: {
+  result: ArtifactTitleRenameResult
+  target?: NavigationMessageTarget
+  targetOrigin: string
+}) {
+  const message = createArtifactTitleRenameResultMessage(result)
+  target.postMessage(message, targetOrigin)
+  return message
 }
 
 export function isTrustedDesktopNavigationOrigin(origin: string) {

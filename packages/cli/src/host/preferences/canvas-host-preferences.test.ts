@@ -156,14 +156,14 @@ describe("canvas host preferences", () => {
     })
   })
 
-  it("maps the legacy theme sidebar view to gallery", () => {
+  it("rejects unknown sidebar views", () => {
     stubStorage(
       JSON.stringify({
         activeSidebarView: "theme",
       })
     )
 
-    expect(readCanvasHostPreferences().activeSidebarView).toBe("gallery")
+    expect(readCanvasHostPreferences().activeSidebarView).toBe("artifacts")
   })
 
   it("restores an active file only when it still exists", () => {

@@ -68,7 +68,7 @@ describe("artifact registry", () => {
           title: "Demo",
         },
       ],
-      guardIssues: [],
+      diagnostics: [],
       status: "ready",
       version: 1,
     })

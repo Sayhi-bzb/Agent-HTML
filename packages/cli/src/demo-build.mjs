@@ -3,8 +3,8 @@ import path from "node:path"
 
 import react from "@vitejs/plugin-react"
 import { build as viteBuild } from "vite"
+import { inspectArtifactEntry } from "@agent-html/kernel/validate"
 
-import { collectStaticArtifactMetadata } from "./react-canvas/block-tags.mjs"
 import { resolveBlockImplementationPath } from "./react-canvas/block-implementation.mjs"
 import {
   discoverReactArtifacts,
@@ -48,7 +48,18 @@ async function readArtifactManifest(root) {
     artifacts.map(async (filePath) => {
       const source = await fs.readFile(filePath, "utf8")
       const relativeFilePath = workspaceRelativePath(root, filePath)
-      const metadata = collectStaticArtifactMetadata(source)
+      const inspection = inspectArtifactEntry({
+        filePath: relativeFilePath,
+        source,
+      })
+      if (inspection.diagnostics.length > 0) {
+        throw new Error(
+          inspection.diagnostics
+            .map((diagnostic) => `${diagnostic.code}: ${diagnostic.message}`)
+            .join("\n")
+        )
+      }
+      const metadata = inspection.metadata
       const blocks = metadata.blocks
       const blockImplementations = Object.fromEntries(
         await Promise.all(
@@ -88,7 +99,7 @@ function createStaticApiModule({ artifacts }) {
     artifacts: artifactManifest,
     contentSource: "artifacts",
     description: defaultSiteDescription,
-    guardIssues: [],
+    diagnostics: [],
     pipeline: "example",
     status: "ready",
     thumbnailUrl: defaultSiteThumbnailUrl,

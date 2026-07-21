@@ -27,7 +27,6 @@ export const canvasDiagnosticCodes = Object.freeze({
   blockIdDuplicate: "canvas/protocol/block-id-duplicate",
   forbiddenImport: "canvas/workspace/forbidden-import",
   publicImport: "canvas/workspace/public-import",
-  legacyRuntime: "canvas/workspace/legacy-runtime",
   nativeControl: "canvas/workspace/native-control",
   nativeTable: "canvas/workspace/native-table",
   inlineStyle: "canvas/style/inline-style",

@@ -1,6 +1,6 @@
 {
   "name": "@agent-html/kernel",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -13,7 +13,10 @@
       "default": "./src/index.mjs"
     },
     "./policy": "./src/policy.mjs",
-    "./validate": "./src/validate.mjs",
+    "./validate": {
+      "types": "./src/validate.d.mts",
+      "default": "./src/validate.mjs"
+    },
     "./runtime-catalog": "./src/runtime-catalog.mjs"
   },
   "dependencies": {

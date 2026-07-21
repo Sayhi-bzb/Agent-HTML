@@ -10,8 +10,7 @@ import {
 } from "./artifact-surface-state"
 import { BlockOverlayLayer } from "../overlay/block-overlay"
 import { useBlockOverlays } from "../overlay/block-overlay-geometry"
-import { GuardIssueList, HostStatusMessage } from "./status-surface"
-import { getHumanVisibleGuardIssues } from "../guard-visibility"
+import { HostStatusMessage, ValidationIssueList } from "./status-surface"
 import { useHostI18n } from "../i18n/host-i18n"
 import { ScrollArea } from "#agent-html-playground/components/ui/scroll-area"
 import {
@@ -19,7 +18,7 @@ import {
   TableOfContentsList,
   useScrollSpy,
 } from "../ui/table-of-contents"
-import type { ArtifactBlock, GuardIssue } from "../host-contracts"
+import type { ArtifactBlock, CanvasDiagnostic } from "../host-contracts"
 import { HostSurfaceSkeleton } from "../ui/surface-skeleton"
 
 export function ArtifactSurface({
@@ -28,7 +27,7 @@ export function ArtifactSurface({
   artifactCount,
   artifactRegistryVersion,
   artifactsLoading,
-  guardIssues,
+  diagnostics,
   loadError,
 }: {
   activeFilePath: string | null
@@ -36,7 +35,7 @@ export function ArtifactSurface({
   artifactCount: number
   artifactRegistryVersion: number
   artifactsLoading: boolean
-  guardIssues: GuardIssue[]
+  diagnostics: CanvasDiagnostic[]
   loadError: string | null
 }) {
   const { t } = useHostI18n()
@@ -163,7 +162,7 @@ export function ArtifactSurface({
           onTransitionEnd={scheduleGeometryUpdate}
           ref={overlayRootRef}
         >
-          <GuardIssueList issues={getHumanVisibleGuardIssues(guardIssues)} />
+          <ValidationIssueList diagnostics={diagnostics} />
           {loadError || blocksCurrentArtifact ? (
             <HostStatusMessage
               context={

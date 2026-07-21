@@ -1,4 +1,4 @@
-import type { GuardIssue } from "../host-contracts"
+import type { CanvasDiagnostic } from "../host-contracts"
 
 export type SubmitBlockPromptInput = {
   activeThreadId: string | null
@@ -13,8 +13,8 @@ export type SubmitBlockPromptResult = {
   turnId?: string | null
 }
 
-export type SubmitGuardFixRequestInput = {
+export type SubmitValidationFixRequestInput = {
   activeThreadId: string | null
   filePath: string
-  issues: GuardIssue[]
+  diagnostics: CanvasDiagnostic[]
 }

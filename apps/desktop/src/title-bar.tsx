@@ -1,4 +1,5 @@
 import { Copy, Minus, PanelLeft, Plus, Square, X } from "lucide-react"
+import { ContextMenu, Popover } from "radix-ui"
 import {
   useEffect,
   useMemo,
@@ -10,7 +11,10 @@ import {
 
 import { agentHtmlBrandName } from "../../../packages/cli/src/shared/brand"
 import { AgentHtmlGhostIcon } from "../../../packages/cli/src/shared/brand-icons"
-import type { CanvasNavigationSnapshot } from "../../../packages/cli/src/host/navigation/navigation-sync-contract"
+import type {
+  ArtifactTitleRenameResult,
+  CanvasNavigationSnapshot,
+} from "../../../packages/cli/src/host/navigation/navigation-sync-contract"
 import {
   createDesktopWindowControls,
   resolveDesktopPlatform,
@@ -25,6 +29,18 @@ function readDesktopPlatform() {
 
 function runWindowAction(action: () => Promise<void>) {
   void action().catch(() => {})
+}
+
+const artifactTitleRenameTimeoutMs = 10_000
+
+type ArtifactTitleEditor = {
+  attempted: boolean
+  draft: string
+  error: string | null
+  filePath: string
+  pending: boolean
+  requestId: string | null
+  submittedTitle: string | null
 }
 
 function WindowControl({
@@ -53,17 +69,25 @@ function WindowControl({
 }
 
 export function DesktopTitleBar({
+  artifactTitleRenameResult,
   navigation,
   onCreateArtifact = () => {},
   onRequestDeleteArtifact = () => {},
+  onRenameArtifactTitle = () => {},
   onSelectArtifact = () => {},
   onSetSidebarOpen = () => {},
   platform = readDesktopPlatform(),
   windowControls,
 }: {
+  artifactTitleRenameResult?: ArtifactTitleRenameResult | null
   navigation?: CanvasNavigationSnapshot | null
   onCreateArtifact?: () => void
   onRequestDeleteArtifact?: (filePath: string) => void
+  onRenameArtifactTitle?: (input: {
+    filePath: string
+    requestId: string
+    title: string
+  }) => void
   onSelectArtifact?: (filePath: string) => void
   onSetSidebarOpen?: (open: boolean) => void
   platform?: DesktopPlatform
@@ -74,7 +98,14 @@ export function DesktopTitleBar({
     [windowControls]
   )
   const [maximized, setMaximized] = useState(false)
+  const [titleEditor, setTitleEditor] = useState<ArtifactTitleEditor | null>(
+    null
+  )
   const activeArtifactRef = useRef<HTMLButtonElement | null>(null)
+  const titleInputRef = useRef<HTMLInputElement | null>(null)
+  const editingFilePath = titleEditor?.submittedTitle
+    ? null
+    : titleEditor?.filePath
   const showsWorkspaceNavigation = navigation !== undefined
 
   useEffect(() => {
@@ -110,6 +141,72 @@ export function DesktopTitleBar({
       inline: "nearest",
     })
   }, [navigation?.activeFilePath, navigation?.createArtifactActive])
+
+  useEffect(() => {
+    if (!editingFilePath) return
+    titleInputRef.current?.focus()
+    titleInputRef.current?.select()
+  }, [editingFilePath])
+
+  useEffect(() => {
+    if (!artifactTitleRenameResult) return
+    // The versioned iframe response is the external completion signal for this editor.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTitleEditor((current) => {
+      if (
+        !current ||
+        current.filePath !== artifactTitleRenameResult.filePath ||
+        current.requestId !== artifactTitleRenameResult.requestId
+      ) {
+        return current
+      }
+      if (artifactTitleRenameResult.ok) {
+        return {
+          ...current,
+          draft: artifactTitleRenameResult.title,
+          error: null,
+          pending: false,
+          submittedTitle: artifactTitleRenameResult.title,
+        }
+      }
+      return {
+        ...current,
+        error: artifactTitleRenameResult.error,
+        pending: false,
+      }
+    })
+  }, [artifactTitleRenameResult])
+
+  useEffect(() => {
+    // Registry acknowledgement ends the optimistic title handoff.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTitleEditor((current) => {
+      if (!current?.submittedTitle || !navigation) return current
+      const artifact = navigation.artifacts.find(
+        (candidate) => candidate.filePath === current.filePath
+      )
+      return artifact?.title === current.submittedTitle || !artifact
+        ? null
+        : current
+    })
+  }, [navigation])
+
+  useEffect(() => {
+    if (!titleEditor?.pending || !titleEditor.requestId) return
+    const requestId = titleEditor.requestId
+    const timeout = window.setTimeout(() => {
+      setTitleEditor((current) =>
+        current?.pending && current.requestId === requestId
+          ? {
+              ...current,
+              error: "Rename timed out. Try again.",
+              pending: false,
+            }
+          : current
+      )
+    }, artifactTitleRenameTimeoutMs)
+    return () => window.clearTimeout(timeout)
+  }, [titleEditor?.pending, titleEditor?.requestId])
 
   const minimize = (
     <WindowControl
@@ -153,14 +250,14 @@ export function DesktopTitleBar({
     if (
       event.button !== 0 ||
       event.detail > 1 ||
-      (event.target as HTMLElement).closest("button")
+      (event.target as HTMLElement).closest("button, input")
     ) {
       return
     }
     runWindowAction(controls.startDragging)
   }
   const handleDoubleClick = (event: MouseEvent<HTMLElement>) => {
-    if ((event.target as HTMLElement).closest("button")) return
+    if ((event.target as HTMLElement).closest("button, input")) return
     runWindowAction(controls.toggleMaximize)
   }
   const handleArtifactWheel = (event: WheelEvent<HTMLElement>) => {
@@ -211,34 +308,172 @@ export function DesktopTitleBar({
               const active =
                 !navigation.createArtifactActive &&
                 artifact.filePath === navigation.activeFilePath
+              const editor =
+                titleEditor?.filePath === artifact.filePath ? titleEditor : null
+              const editing = Boolean(editor && !editor.submittedTitle)
+              const displayedTitle = editor?.submittedTitle ?? artifact.title
+
+              const beginRename = () => {
+                setTitleEditor({
+                  attempted: false,
+                  draft: artifact.title,
+                  error: null,
+                  filePath: artifact.filePath,
+                  pending: false,
+                  requestId: null,
+                  submittedTitle: null,
+                })
+              }
+              const submitRename = () => {
+                if (!editor || editor.pending) return
+                const title = editor.draft.trim()
+                if (!title) {
+                  setTitleEditor((current) =>
+                    current?.filePath === artifact.filePath
+                      ? { ...current, error: "Artifact title is required" }
+                      : current
+                  )
+                  return
+                }
+                const requestId = crypto.randomUUID()
+                setTitleEditor((current) =>
+                  current?.filePath === artifact.filePath
+                    ? {
+                        ...current,
+                        attempted: true,
+                        draft: title,
+                        error: null,
+                        pending: true,
+                        requestId,
+                      }
+                    : current
+                )
+                onRenameArtifactTitle({
+                  filePath: artifact.filePath,
+                  requestId,
+                  title,
+                })
+              }
               return (
-                <div
-                  className="desktop-titlebar__artifact"
-                  data-active={active ? "" : undefined}
-                  key={artifact.filePath}
-                >
-                  <button
-                    aria-current={active ? "page" : undefined}
-                    className="desktop-titlebar__artifact-label"
-                    onClick={() => onSelectArtifact(artifact.filePath)}
-                    ref={active ? activeArtifactRef : undefined}
-                    title={artifact.title}
-                    type="button"
-                  >
-                    <span className="desktop-titlebar__artifact-title">
-                      {artifact.title}
-                    </span>
-                  </button>
-                  <button
-                    aria-label={`Delete ${artifact.title}`}
-                    className="desktop-titlebar__artifact-close"
-                    onClick={() => onRequestDeleteArtifact(artifact.filePath)}
-                    title={`Delete ${artifact.title}`}
-                    type="button"
-                  >
-                    <X aria-hidden="true" />
-                  </button>
-                </div>
+                <ContextMenu.Root key={artifact.filePath}>
+                  <ContextMenu.Trigger asChild>
+                    <div
+                      className="desktop-titlebar__artifact"
+                      data-active={active ? "" : undefined}
+                      data-editing={editing ? "" : undefined}
+                    >
+                      {editing && editor ? (
+                        <Popover.Root open={Boolean(editor.error)}>
+                          <Popover.Anchor asChild>
+                            <input
+                              aria-busy={editor.pending}
+                              aria-describedby={
+                                editor.error
+                                  ? `artifact-title-error-${artifact.filePath}`
+                                  : undefined
+                              }
+                              aria-invalid={editor.error ? true : undefined}
+                              aria-label={`Rename ${artifact.title}`}
+                              className="desktop-titlebar__artifact-input"
+                              maxLength={512}
+                              onBlur={() => {
+                                if (!editor.attempted && !editor.pending) {
+                                  setTitleEditor(null)
+                                }
+                              }}
+                              onChange={(event) =>
+                                setTitleEditor((current) =>
+                                  current?.filePath === artifact.filePath
+                                    ? {
+                                        ...current,
+                                        draft: event.target.value,
+                                        error: null,
+                                      }
+                                    : current
+                                )
+                              }
+                              onKeyDown={(event) => {
+                                event.stopPropagation()
+                                if (event.key === "Enter") {
+                                  event.preventDefault()
+                                  submitRename()
+                                } else if (
+                                  event.key === "Escape" &&
+                                  !editor.attempted &&
+                                  !editor.pending
+                                ) {
+                                  event.preventDefault()
+                                  setTitleEditor(null)
+                                }
+                              }}
+                              readOnly={editor.pending}
+                              ref={titleInputRef}
+                              value={editor.draft}
+                            />
+                          </Popover.Anchor>
+                          <Popover.Portal>
+                            <Popover.Content
+                              align="start"
+                              className="desktop-titlebar__rename-error"
+                              onOpenAutoFocus={(event) =>
+                                event.preventDefault()
+                              }
+                              side="bottom"
+                              sideOffset={6}
+                            >
+                              <span
+                                id={`artifact-title-error-${artifact.filePath}`}
+                                role="alert"
+                              >
+                                {editor.error}
+                              </span>
+                            </Popover.Content>
+                          </Popover.Portal>
+                        </Popover.Root>
+                      ) : (
+                        <button
+                          aria-current={active ? "page" : undefined}
+                          className="desktop-titlebar__artifact-label"
+                          onClick={() => onSelectArtifact(artifact.filePath)}
+                          ref={active ? activeArtifactRef : undefined}
+                          title={displayedTitle}
+                          type="button"
+                        >
+                          <span className="desktop-titlebar__artifact-title">
+                            {displayedTitle}
+                          </span>
+                        </button>
+                      )}
+                      {!editing && (
+                        <button
+                          aria-label={`Delete ${displayedTitle}`}
+                          className="desktop-titlebar__artifact-close"
+                          onClick={() =>
+                            onRequestDeleteArtifact(artifact.filePath)
+                          }
+                          title={`Delete ${displayedTitle}`}
+                          type="button"
+                        >
+                          <X aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                  </ContextMenu.Trigger>
+                  <ContextMenu.Portal>
+                    <ContextMenu.Content
+                      className="desktop-titlebar__context-menu"
+                      collisionPadding={8}
+                      onCloseAutoFocus={(event) => event.preventDefault()}
+                    >
+                      <ContextMenu.Item
+                        className="desktop-titlebar__context-menu-item"
+                        onSelect={beginRename}
+                      >
+                        Rename
+                      </ContextMenu.Item>
+                    </ContextMenu.Content>
+                  </ContextMenu.Portal>
+                </ContextMenu.Root>
               )
             })}
             {!navigation && (

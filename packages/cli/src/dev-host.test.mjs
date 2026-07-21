@@ -168,11 +168,11 @@ describe("React Canvas dev host", () => {
       const removedShell = await fetch(`${url}/__agent-html/host-shell`)
       expect(removedShell.status).toBe(404)
 
-      const removedClient = await fetch(`${url}/client.js`)
-      expect(removedClient.status).toBe(404)
+      const rootScript = await fetch(`${url}/unexpected.js`)
+      expect(rootScript.status).toBe(404)
 
-      const removedStyles = await fetch(`${url}/styles.css`)
-      expect(removedStyles.status).toBe(404)
+      const rootStyles = await fetch(`${url}/unexpected.css`)
+      expect(rootStyles.status).toBe(404)
 
       const html = await fetch(url).then((response) => response.text())
       expect(html).toContain("<title>Agent-HTML</title>")
@@ -266,10 +266,10 @@ describe("React Canvas dev host", () => {
         response.text()
       )
       expect(css).toContain("--primary")
-      expect(css).toContain("--sidebar-primary")
+      expect(css).toContain("--canvas-host-sidebar-primary")
       expect(css).not.toContain("--window-chrome-radius")
       expect(css).toContain(".bg-primary")
-      expect(css).toContain(".bg-sidebar")
+      expect(css).toContain(".bg-canvas-host-sidebar")
       expect(css).toContain("--canvas-artifact-max-width")
       expect(css).toContain("--canvas-artifact-block-gap")
       expect(css).toContain("--canvas-surface-padding-inline")

@@ -1,6 +1,7 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
+import { replaceArtifactTitle } from "@agent-html/kernel/validate"
 import { workspaceRelativePath } from "../react-canvas/paths.mjs"
 import { createArtifactScaffold } from "../react-canvas/artifact-scaffold.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
@@ -25,6 +26,7 @@ export const hostRoutes = {
   artifactCreate: "/__agent-html/artifact/create",
   artifactDelete: "/__agent-html/artifact/delete",
   artifactRename: "/__agent-html/artifact/rename",
+  artifactTitle: "/__agent-html/artifact/title",
   artifacts: "/__agent-html/artifacts",
   artifactPublicAsset: "/__agent-html/artifacts/",
   blockImplementation: "/__agent-html/block-implementation",
@@ -45,14 +47,14 @@ export const devServerRoutePipelines = [
   "runtime-module",
   "styles-and-assets",
   "public-asset",
-  "artifact-registry-and-guard-report",
+  "artifact-registry-and-validation-report",
   "artifact-source-mutation",
   "block-lookup",
   "codex-bridge",
   "runtime-control",
 ]
 
-const removedLegacyRoutes = new Set(["/client.js", "/styles.css"])
+const forbiddenRootAssetPattern = /^\/[^/]+\.(?:css|js)$/
 
 const publicContentTypes = new Map([
   [".avif", "image/avif"],
@@ -72,8 +74,10 @@ const publicContentTypes = new Map([
 ])
 
 function contentTypeForPublicAsset(filePath) {
-  return publicContentTypes.get(path.extname(filePath).toLowerCase()) ??
+  return (
+    publicContentTypes.get(path.extname(filePath).toLowerCase()) ??
     "application/octet-stream"
+  )
 }
 
 function resolvePublicAssetPath({ root, requestPathname }) {
@@ -123,7 +127,9 @@ function resolveArtifactPublicAssetPath({ root, requestPathname }) {
     resolvedPath !== publicRoot &&
     !resolvedPath.startsWith(`${publicRoot}${path.sep}`)
   ) {
-    throw new Error("Artifact public asset path must stay inside artifact public directory")
+    throw new Error(
+      "Artifact public asset path must stay inside artifact public directory"
+    )
   }
 
   return resolvedPath
@@ -141,7 +147,9 @@ function assertArtifactEntryPath(root, filePath) {
     !absolutePath.startsWith(`${artifactsRoot}${path.sep}`) ||
     !filePath.replaceAll("\\", "/").endsWith(".artifact.tsx")
   ) {
-    throw new Error("Artifact file must be an agent-html/artifacts/*.artifact.tsx file")
+    throw new Error(
+      "Artifact file must be an agent-html/artifacts/*.artifact.tsx file"
+    )
   }
 
   return absolutePath
@@ -261,7 +269,10 @@ async function sendTransformedModule({ response, url, vite }) {
     result = await vite.transformRequest(url)
   } catch (error) {
     const transformError = new Error(formatTransformError({ error, url }))
-    console.error("[agent-html] module transform failed\n%s", transformError.message)
+    console.error(
+      "[agent-html] module transform failed\n%s",
+      transformError.message
+    )
     sendError(response, transformError)
     return
   }
@@ -433,7 +444,7 @@ export function classifyDevServerRoute(pathname) {
   if (
     pathname === hostRoutes.hostEntry ||
     pathname === artifactEntryModulePath ||
-    removedLegacyRoutes.has(pathname) ||
+    forbiddenRootAssetPattern.test(pathname) ||
     pathname === hostRoutes.artifactBundle
   ) {
     return "runtime-module"
@@ -455,12 +466,13 @@ export function classifyDevServerRoute(pathname) {
   }
 
   if (pathname === hostRoutes.artifacts) {
-    return "artifact-registry-and-guard-report"
+    return "artifact-registry-and-validation-report"
   }
 
   if (
     pathname === hostRoutes.artifactCreate ||
     pathname === hostRoutes.artifactRename ||
+    pathname === hostRoutes.artifactTitle ||
     pathname === hostRoutes.artifactDelete
   ) {
     return "artifact-source-mutation"
@@ -523,7 +535,7 @@ async function handleRuntimeModuleRoute({ requestUrl, response, root, vite }) {
     return true
   }
 
-  if (removedLegacyRoutes.has(requestUrl.pathname)) {
+  if (forbiddenRootAssetPattern.test(requestUrl.pathname)) {
     sendNotFound(response)
     return true
   }
@@ -608,7 +620,11 @@ async function handlePublicAssetRoute({ requestUrl, response, root }) {
   return false
 }
 
-async function handleArtifactRegistryRoute({ artifactRegistry, requestUrl, response }) {
+async function handleArtifactRegistryRoute({
+  artifactRegistry,
+  requestUrl,
+  response,
+}) {
   if (requestUrl.pathname === hostRoutes.artifacts) {
     if (requestUrl.searchParams.get("refresh") === "1") {
       await artifactRegistry.refresh({
@@ -701,12 +717,15 @@ async function handleArtifactSourceMutationRoute({
         root,
         sourceFilePath: body.filePath,
       })
-      const [targetExists, sourceBlockDirectoryExists, targetBlockDirectoryExists] =
-        await Promise.all([
-          pathExists(targetPath),
-          pathExists(sourceBlockDirectoryPath),
-          pathExists(targetBlockDirectoryPath),
-        ])
+      const [
+        targetExists,
+        sourceBlockDirectoryExists,
+        targetBlockDirectoryExists,
+      ] = await Promise.all([
+        pathExists(targetPath),
+        pathExists(sourceBlockDirectoryPath),
+        pathExists(targetBlockDirectoryPath),
+      ])
 
       if (targetExists) {
         throw new Error("Artifact filename already exists")
@@ -723,6 +742,35 @@ async function handleArtifactSourceMutationRoute({
       await artifactRegistry.refresh({ reason: "artifact-rename" })
       sendJson(response, {
         filePath: workspaceRelativePath(root, targetPath),
+      })
+    } catch (error) {
+      sendError(response, error, 400)
+    }
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.artifactTitle) {
+    if (request.method !== "POST") {
+      sendError(response, "POST is required", 405)
+      return true
+    }
+
+    try {
+      const body = await readJsonBody(request)
+      const filePath = typeof body.filePath === "string" ? body.filePath : ""
+      const { entryPath } = resolveArtifactSourceUnit({ filePath, root })
+      const source = await readTextFile(entryPath)
+      const replacement = replaceArtifactTitle({
+        filePath: workspaceRelativePath(root, entryPath),
+        source,
+        title: body.title,
+      })
+
+      await fs.writeFile(entryPath, replacement.source, "utf8")
+      await artifactRegistry.refresh({ reason: "artifact-title-rename" })
+      sendJson(response, {
+        filePath: workspaceRelativePath(root, entryPath),
+        title: replacement.title,
       })
     } catch (error) {
       sendError(response, error, 400)
@@ -870,7 +918,7 @@ async function handleRuntimeControlRoute({
 }
 
 const routePipelineHandlers = {
-  "artifact-registry-and-guard-report": handleArtifactRegistryRoute,
+  "artifact-registry-and-validation-report": handleArtifactRegistryRoute,
   "artifact-source-mutation": handleArtifactSourceMutationRoute,
   "block-lookup": handleBlockLookupRoute,
   "codex-bridge": handleCodexBridgeRoute,

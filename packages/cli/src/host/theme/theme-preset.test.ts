@@ -81,13 +81,13 @@ describe("canvas theme preset", () => {
       :root {
         --background: #ffffff;
         --foreground: #111111;
-        --sidebar: #eeeeee;
+        --unsupported-theme-token: #eeeeee;
         --radius: 0.5rem;
       }
 
       .dark {
         --background: #111111;
-        --sidebar: #000000;
+        --unsupported-theme-token: #000000;
       }
 
       @theme inline {

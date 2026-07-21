@@ -1,7 +1,7 @@
 import { startDevHost } from "./dev-host.mjs"
 import { buildDemoHost } from "./demo-build.mjs"
 import { runInitCommand } from "./init.mjs"
-import { runValidateCommand } from "./react-canvas/guard.mjs"
+import { runValidateCommand } from "./react-canvas/validation.mjs"
 import { runRuntimeSidecar } from "./dev-server/runtime-command.mjs"
 import { runRuntimePrepareCommand } from "./dev-server/runtime-prepare.mjs"
 
@@ -15,7 +15,7 @@ export async function runAgentHtmlCli(args) {
 
   if (command === "validate") {
     const result = await runValidateCommand({ args: rest, cwd: process.cwd() })
-    if (result.issueCount > 0) {
+    if (result.diagnosticCount > 0) {
       process.exitCode = 1
     }
     return

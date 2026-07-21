@@ -1,6 +1,6 @@
 ---
 title: Reference
-description: Canvas import boundaries and guard rules.
+description: Canvas import boundaries and validation rules.
 ---
 
 Canvas keeps artifact code, local resources, and host code separated.
@@ -32,10 +32,8 @@ importing `clsx` directly.
 
 Artifact and example code must not consume:
 
-- retired app shell source
+- application source
 - `packages/cli/src/host/*`
-- old runtime UI
-- old render APIs
 - `#agent-html-playground/*`
 - `@agent-html-playground/*`
 - `../public/*`
@@ -57,9 +55,7 @@ Host code may consume:
 Host code must not consume:
 
 - `@/app/*`
-- retired app shell source
-- old runtime UI
-- old render APIs
+- application source
 - `@agent-html-playground/*`
 - `#agent-html-playground/*` outside `#agent-html-playground/components/ui/*` and
   `#agent-html-playground/theme/*`

@@ -68,7 +68,7 @@ the Canvas surface, including text selection colors.
 
 `agent-html/styles/materials/*` owns raw material values and Tailwind mapping.
 Read `materials/foundation.css` for base color, font, radius, chart, and
-shadcn compatibility values.
+shared theme values.
 
 `agent-html/styles/kits/*` owns artifact-facing standard kits. Read
 `kits/artifact.css`, `kits/content.css`, and `kits/code-block.css` for artifact
@@ -110,9 +110,10 @@ pipeline. Canvas-specific host tokens and host styles live under
 Canvas Style owns theme mode, preset selection, and live editor variables for
 both Canvas and Desktop. Canvas Host, sidebar, toolbar, artifact surface, and
 Desktop page structure share `--background` and its foreground/action pairs.
-Sidebar variables are compatibility aliases to the same semantic tokens, not
-an independent structural palette. Only transient overlays such as dialogs,
-popovers, and floating prompts use `--popover` or another elevated surface.
+The Host surface derives its namespaced sidebar tokens from those primitives;
+sidebar color is not an independent theme axis. Only transient overlays such
+as dialogs, popovers, and floating prompts use `--popover` or another elevated
+surface.
 
 Desktop chrome is borderless by default. Establish groups with spacing,
 alignment, typography, density, and foreground emphasis. Use token-driven
@@ -210,9 +211,8 @@ in `styles/materials/tailwind.css`:
   -> --radius-sm/md/lg/xl/2xl/3xl/4xl
 ```
 
-Sidebar color variables remain shadcn compatibility aliases derived from the
-base color pipeline. They are not independent theme editor controls unless the
-host intentionally adds a separate sidebar theme axis.
+`--canvas-host-sidebar-*` is owned and derived by the Host surface. Foundation
+and preset files do not define a second sidebar palette.
 
 Shadow uses the static shadcn-style shadow scale. Source-like shadow knobs are
 not part of the Canvas theme editor unless they drive the full scale.

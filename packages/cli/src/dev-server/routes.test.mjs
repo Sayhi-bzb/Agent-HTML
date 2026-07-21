@@ -36,12 +36,14 @@ function createJsonRequest({ body, url }) {
   }
 }
 
-function createArtifactRegistryMock(snapshot = {
-  artifacts: [],
-  guardIssues: [],
-  status: "ready",
-  version: 1,
-}) {
+function createArtifactRegistryMock(
+  snapshot = {
+    artifacts: [],
+    diagnostics: [],
+    status: "ready",
+    version: 1,
+  }
+) {
   return {
     getSnapshot: vi.fn(() => snapshot),
     refresh: vi.fn(async () => {}),
@@ -67,7 +69,7 @@ describe("dev server routes", () => {
       "runtime-module",
       "styles-and-assets",
       "public-asset",
-      "artifact-registry-and-guard-report",
+      "artifact-registry-and-validation-report",
       "artifact-source-mutation",
       "block-lookup",
       "codex-bridge",
@@ -93,9 +95,12 @@ describe("dev server routes", () => {
       )
     ).toBe("public-asset")
     expect(classifyDevServerRoute(hostRoutes.artifacts)).toBe(
-      "artifact-registry-and-guard-report"
+      "artifact-registry-and-validation-report"
     )
     expect(classifyDevServerRoute(hostRoutes.artifactRename)).toBe(
+      "artifact-source-mutation"
+    )
+    expect(classifyDevServerRoute(hostRoutes.artifactTitle)).toBe(
       "artifact-source-mutation"
     )
     expect(classifyDevServerRoute(hostRoutes.artifactCreate)).toBe(
@@ -161,9 +166,14 @@ describe("dev server routes", () => {
     await fs.mkdir(path.join(root, "agent-html", "public"), { recursive: true })
     await fs.mkdir(
       path.join(root, "agent-html", "artifacts", "demo", "public"),
-      { recursive: true }
+      {
+        recursive: true,
+      }
     )
-    await fs.writeFile(path.join(root, "agent-html", "public", "global.txt"), "global")
+    await fs.writeFile(
+      path.join(root, "agent-html", "public", "global.txt"),
+      "global"
+    )
     await fs.writeFile(
       path.join(root, "agent-html", "artifacts", "demo", "public", "local.svg"),
       "<svg />"
@@ -384,9 +394,7 @@ describe("dev server routes", () => {
 
     const handled = await handleRoute({
       request: {
-        url: `${hostRoutes.fontAsset}?url=${encodeURIComponent(
-          "https://example.com/font.woff2"
-        )}`,
+        url: `${hostRoutes.fontAsset}?url=${encodeURIComponent("https://example.com/font.woff2")}`,
       },
       response,
       root: process.cwd(),
@@ -486,7 +494,7 @@ describe("dev server routes", () => {
           filePath: "agent-html/artifacts/demo.artifact.tsx",
         },
       ],
-      guardIssues: [],
+      diagnostics: [],
       status: "ready",
       version: 7,
     }
@@ -514,7 +522,7 @@ describe("dev server routes", () => {
           filePath: "agent-html/artifacts/pending.artifact.tsx",
         },
       ],
-      guardIssues: [],
+      diagnostics: [],
       status: "ready",
       version: 8,
     }
@@ -562,7 +570,12 @@ describe("dev server routes", () => {
     })
     await expect(
       fs.readFile(
-        path.join(root, "agent-html", "artifacts", "build-dashboard.artifact.tsx"),
+        path.join(
+          root,
+          "agent-html",
+          "artifacts",
+          "build-dashboard.artifact.tsx"
+        ),
         "utf8"
       )
     ).resolves.toContain("defineArtifact")
@@ -753,6 +766,80 @@ describe("dev server routes", () => {
     await expect(
       fs.readFile(path.join(artifactsRoot, "new-name.artifact.tsx"), "utf8")
     ).resolves.toContain("export default")
+  })
+
+  it("renames an artifact title without renaming its source unit", async () => {
+    const root = await createTestTempDir("routes")
+    const artifactsRoot = path.join(root, "agent-html", "artifacts")
+    const artifactPath = path.join(artifactsRoot, "demo.artifact.tsx")
+    const source = [
+      'const untouched = "Old title"',
+      'export default defineArtifact({ title: "Old title", blocks: ["summary"] })',
+      "",
+    ].join("\n")
+    await fs.mkdir(path.join(artifactsRoot, "demo"), { recursive: true })
+    await fs.writeFile(artifactPath, source)
+
+    const artifactRegistry = createArtifactRegistryMock()
+    const response = createResponseMock()
+    const handled = await handleRoute({
+      artifactRegistry,
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/artifacts/demo.artifact.tsx",
+          title: "  New title  ",
+        },
+        url: hostRoutes.artifactTitle,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(JSON.parse(response.body)).toEqual({
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
+      title: "New title",
+    })
+    await expect(fs.readFile(artifactPath, "utf8")).resolves.toBe(
+      source.replace('title: "Old title"', 'title: "New title"')
+    )
+    await expect(
+      fs.stat(path.join(artifactsRoot, "demo"))
+    ).resolves.toBeDefined()
+    expect(artifactRegistry.refresh).toHaveBeenCalledWith({
+      reason: "artifact-title-rename",
+    })
+  })
+
+  it("rejects a dynamic artifact title without writing the file", async () => {
+    const root = await createTestTempDir("routes")
+    const artifactsRoot = path.join(root, "agent-html", "artifacts")
+    const artifactPath = path.join(artifactsRoot, "demo.artifact.tsx")
+    const source =
+      'export default defineArtifact({ title: artifactTitle, blocks: ["summary"] })\n'
+    await fs.mkdir(artifactsRoot, { recursive: true })
+    await fs.writeFile(artifactPath, source)
+
+    const response = createResponseMock()
+    const handled = await handleRoute({
+      artifactRegistry: createArtifactRegistryMock(),
+      request: createJsonRequest({
+        body: {
+          filePath: "agent-html/artifacts/demo.artifact.tsx",
+          title: "New title",
+        },
+        url: hostRoutes.artifactTitle,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(400)
+    expect(JSON.parse(response.body).error).toContain("missing a static title")
+    await expect(fs.readFile(artifactPath, "utf8")).resolves.toBe(source)
   })
 
   it("renames matching artifact block directories", async () => {

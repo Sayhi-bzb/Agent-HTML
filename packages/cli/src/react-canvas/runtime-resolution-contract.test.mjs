@@ -115,8 +115,8 @@ describe("React Canvas runtime resolution contract", () => {
     )
   })
 
-  it("keeps older workspaces compatible with canonical template dependencies", async () => {
-    const root = await createTestTempDir("legacy")
+  it("rejects workspaces that differ from the Kernel runtime catalog", async () => {
+    const root = await createTestTempDir("catalog-drift")
     const canvasRoot = path.join(root, "agent-html")
     await fs.mkdir(canvasRoot, { recursive: true })
     await fs.writeFile(
@@ -127,21 +127,9 @@ describe("React Canvas runtime resolution contract", () => {
         },
       })
     )
-    const resolver = createPlaygroundDependencyResolver(root)
-    const context = {
-      resolve: async (source) => ({
-        id: resolvePackageImportModule(source),
-      }),
-    }
-
-    await expect(
-      resolver.resolveId.call(
-        context,
-        "@visx/curve",
-        path.join(canvasRoot, "components", "chart", "area-chart.tsx"),
-        {}
-      )
-    ).resolves.toBeNull()
+    expect(() => createPlaygroundDependencyResolver(root)).toThrow(
+      "Canvas workspace dependencies differ from the Kernel runtime catalog"
+    )
   })
 
   it("resolves playground package imports with ESM import entries first", () => {

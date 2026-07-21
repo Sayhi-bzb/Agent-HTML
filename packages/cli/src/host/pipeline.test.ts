@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   fetchPipelineThreads,
   submitBlockPromptToPipeline,
-  submitGuardFixRequestToPipeline,
+  submitValidationFixRequestToPipeline,
 } from "./pipeline"
 import { hostApiRoutes } from "./api/api"
 
@@ -108,26 +108,23 @@ describe("host pipeline adapters", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
-  it("returns deterministic example guard fix turns without calling Codex routes", async () => {
+  it("returns deterministic example validation fix turns without calling Codex routes", async () => {
     const fetchMock = vi.fn()
     vi.stubGlobal("fetch", fetchMock)
 
     await expect(
-      submitGuardFixRequestToPipeline({
+      submitValidationFixRequestToPipeline({
         activeThreadId: null,
         filePath: "agent-html/artifacts/demo.artifact.tsx",
-        issues: [
+        diagnostics: [
           {
+            category: "workspace",
+            code: "canvas/workspace/forbidden-import",
+            column: 3,
             filePath: "agent-html/artifacts/demo.artifact.tsx",
-            message: "Unsafe className.",
-            severity: "warning",
-          },
-          {
-            filePath: "agent-html/artifacts/demo.artifact.tsx",
-            guardScope: "workspace-boundary",
             line: 4,
             message: "Import crosses the React Canvas boundary.",
-            severity: "error",
+            policyVersion: 1,
             suggestion: "Import from local agent-html source.",
           },
         ],
@@ -136,12 +133,12 @@ describe("host pipeline adapters", () => {
     ).resolves.toEqual({
       startedNewThread: true,
       threadId: "example-thread",
-      turnId: "example-guard-fix-turn",
+      turnId: "example-validation-fix-turn",
     })
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it("sends only guard errors to Codex guard fix requests", async () => {
+  it("sends validation diagnostics to Codex fix requests", async () => {
     vi.stubGlobal("CustomEvent", class {
       detail: unknown
 
@@ -160,18 +157,17 @@ describe("host pipeline adapters", () => {
       expect(init?.method).toBe("POST")
       const body = JSON.parse(String(init?.body))
       expect(body.threadId).toBe("thread-1")
-      expect(body.prompt).toContain("task: fix-canvas-guard-errors")
+      expect(body.prompt).toContain("task: fix-canvas-validation-errors")
       expect(body.prompt).toContain("agent-html/artifacts/demo.artifact.tsx")
-      expect(body.prompt).toContain("workspace-boundary line 4")
+      expect(body.prompt).toContain("canvas/workspace/forbidden-import workspace line 4:3")
       expect(body.prompt).toContain("Import crosses the React Canvas boundary.")
       expect(body.prompt).toContain("Import from local agent-html source.")
-      expect(body.prompt).not.toContain("Unsafe className.")
 
       return {
         json: async () => ({
           startedNewThread: false,
           threadId: "thread-1",
-          turnId: "guard-turn-1",
+          turnId: "validation-turn-1",
         }),
         ok: true,
       } as Response
@@ -179,21 +175,18 @@ describe("host pipeline adapters", () => {
     vi.stubGlobal("fetch", fetchMock)
 
     await expect(
-      submitGuardFixRequestToPipeline({
+      submitValidationFixRequestToPipeline({
         activeThreadId: "thread-1",
         filePath: "agent-html/artifacts/demo.artifact.tsx",
-        issues: [
+        diagnostics: [
           {
+            category: "workspace",
+            code: "canvas/workspace/forbidden-import",
+            column: 3,
             filePath: "agent-html/artifacts/demo.artifact.tsx",
-            message: "Unsafe className.",
-            severity: "warning",
-          },
-          {
-            filePath: "agent-html/artifacts/demo.artifact.tsx",
-            guardScope: "workspace-boundary",
             line: 4,
             message: "Import crosses the React Canvas boundary.",
-            severity: "error",
+            policyVersion: 1,
             suggestion: "Import from local agent-html source.",
           },
         ],
@@ -202,7 +195,7 @@ describe("host pipeline adapters", () => {
     ).resolves.toEqual({
       startedNewThread: false,
       threadId: "thread-1",
-      turnId: "guard-turn-1",
+      turnId: "validation-turn-1",
     })
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })

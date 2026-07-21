@@ -19,7 +19,7 @@ agent-html/artifacts/*
   -> durable artifact composition and content
 
 packages/cli/src/*
-  -> Vite middleware dev host, guard, and stylesheet entrypoints
+  -> Vite middleware dev host, validation, and stylesheet entrypoints
 
 packages/cli/src/host/*
   -> sandbox host, inspector, and prompt bridge
@@ -35,7 +35,7 @@ apps/desktop
 Each layer owns one decision. The protocol marks stable regions and emits
 instrumented state changes. The `agent-html` workspace provides durable
 context agents can read and reuse. Artifacts compose those resources into UI.
-The CLI discovers, guards, serves, and routes artifacts through Vite middleware.
+The CLI discovers, validates, serves, and routes artifacts through Vite middleware.
 The host observes and operates on rendered metadata.
 
 Kernel rules are non-overridable. All machine-verifiable protocol, dependency,
@@ -173,7 +173,7 @@ Do not put layout classes on `Block`; put layout inside the block content.
 
 ## Host
 
-The host renders artifacts, discovers blocks, displays guard issues, overlays
+The host renders artifacts, discovers blocks, displays validation diagnostics, overlays
 block prompt actions, handles floating prompts, applies theme presets, and
 loads Canvas stylesheets. Host controls use Canvas UI primitives and theme
 resources through `#agent-html-playground/components/ui/*` and
@@ -231,19 +231,19 @@ artifactEntry + blockId + implementationPath + interactionSnapshot
 | Workspace source | `agent-html` | artifact entries, split block files, local resources | portable source workspace | generated bundles, lockfiles, vendored installs | `workspace-contract.test.mjs` |
 | Workspace file/path helpers | `react-canvas/paths.mjs` + `react-canvas/workspace-file.mjs` | root path or source file path | POSIX workspace path or text source | generic filesystem abstraction, mutation APIs, host state | `pipeline-ownership-contract.test.mjs`, `workspace-contract.test.mjs` |
 | Artifact discovery | `react-canvas/paths.mjs` | `agent-html/artifacts/*.artifact.tsx` | artifact entry file paths | app shell, runtime parser, host UI | `dev-host.test.mjs`, `pipeline-ownership-contract.test.mjs` |
-| Artifact entry validation | Kernel validator + CLI file adapter | artifact entry source | versioned blocking diagnostics | duplicated protocol parsing in CLI or Host | Kernel validation tests, `guard.test.mjs` |
-| Block implementation validation | Kernel validator + CLI file adapter | `agent-html/artifacts/**/*.block.tsx` | versioned blocking diagnostics | raw visual classes, native primitive bypasses | Kernel validation tests, `guard.test.mjs`, `style-ownership-contract.test.mjs` |
-| Workspace boundary guard | `react-canvas/guard.mjs` | artifact and block source imports | issues scoped as `workspace-boundary` | app imports, old runtime imports, public-file imports | `guard.test.mjs`, `workspace-contract.test.mjs`, `architecture-boundaries.test.mjs` |
+| Artifact entry validation | Kernel validator + CLI file adapter | artifact entry source | versioned blocking diagnostics | duplicated protocol parsing in CLI or Host | Kernel validation tests, `validation.test.mjs` |
+| Block implementation validation | Kernel validator + CLI file adapter | `agent-html/artifacts/**/*.block.tsx` | versioned blocking diagnostics | raw visual classes, native primitive bypasses | Kernel validation tests, `validation.test.mjs`, `style-ownership-contract.test.mjs` |
+| Workspace boundary validation | Kernel validator + `react-canvas/validation.mjs` | artifact and block source imports | `workspace` diagnostics | application imports, public-file imports | `validation.test.mjs`, `workspace-contract.test.mjs`, `architecture-boundaries.test.mjs` |
 | Dependency ownership | Kernel runtime catalog + generated manifests | Canvas source package import | one CLI-supplied version | hand-maintained workspace dependency versions | Kernel policy tests, `package-runtime-contract.test.mjs` |
 | Dependency resolution | `dev-server/vite.mjs` | source import specifier | CLI-provided runtime module | `agent-html/node_modules`, source-owned runtime installs | `runtime-resolution-contract.test.mjs` |
-| Module transform and render | Vite middleware + host artifact runtime | artifact entry file path | mounted artifact DOM with HMR-capable module graph | app shell, old runtime render APIs | `dev-host.test.mjs`, `artifact-runtime.test.ts` |
+| Module transform and render | Vite middleware + host artifact runtime | artifact entry file path | mounted artifact DOM with HMR-capable module graph | application shell and Host internals | `dev-host.test.mjs`, `artifact-runtime.test.ts` |
 | Public/static asset serving | `dev-server/routes.mjs` + `host/api` URL helpers | public asset path or proxied font URL | served asset response or host URL | direct Host endpoint strings outside `host/api` | `dev-host.test.mjs`, `routes.test.mjs`, `api.test.ts`, `architecture-boundaries.test.mjs` |
-| Artifact registry consumption | `host/artifact/use-artifact-registry.ts` | artifact registry response and pending artifact path | active artifact, guard issues, registry refresh operations | dev-server route implementation, workspace validation | `app.test.tsx`, `pipeline-ownership-contract.test.mjs` |
+| Artifact registry consumption | `host/artifact/use-artifact-registry.ts` | artifact registry response and pending artifact path | active artifact, diagnostics, registry refresh operations | dev-server route implementation, workspace validation | `app.test.tsx`, `pipeline-ownership-contract.test.mjs` |
 | Block overlay | `packages/react` + host overlay | rendered `data-agent-html-block-*` metadata | hover highlight and prompt target | artifact source mutation, host APIs in artifacts | `block-overlay.test.ts`, `index.test.tsx` |
 | Block implementation lookup | dev server + host API | `artifactEntry`, `blockId` | `implementationPath` | selected source payloads, implementation source payloads | `block-implementation.test.mjs`, `dev-host.test.mjs` |
 | Block prompt | `react-canvas/prompt.mjs` | `artifactEntry`, `blockId`, optional `implementationPath`, host `interactionSnapshot` | minimal prompt packet | selected source payloads, implementation source payloads | `prompt.test.mjs` |
 | Create artifact | `host/pipeline` + `react-canvas/prompt.mjs` | create request and generated artifact file path | Codex/example turn request | dev-server implementation, artifact source mutation in Host | `pipeline.test.ts`, `app.test.tsx` |
-| Guard fix | `host/pipeline` + `react-canvas/prompt.mjs` | guard errors for one artifact | Codex/example turn request | warnings-only prompt payloads, host UI state payloads | `pipeline.test.ts`, `prompt.test.mjs` |
+| Validation fix | `host/pipeline` + `react-canvas/prompt.mjs` | blocking diagnostics for one artifact | Codex/example turn request | warnings-only prompt payloads, host UI state payloads | `pipeline.test.ts`, `prompt.test.mjs` |
 | Interaction state | `packages/react` event protocol + host store | artifact-local control changes | host prompt interaction snapshot | filesystem, shell, MCP, privileged host APIs in artifact code | `index.test.tsx`, `interaction-store.test.ts`, `prompt.test.mjs` |
 | Preferences persistence | `host/preferences` | local host preference state | persisted host preference patch | artifact source state, dev-server state | `canvas-host-preferences.test.ts`, `use-canvas-host-preferences.test.ts` |
 | CSS/theme | `agent-html/styles` + package host styles + host theme owner | CSS tokens, content classes, theme presets, host chrome CSS | stylesheet and runtime variables | artifact-owned root chrome, sidebar token overrides, host chrome implementation in artifact context | `style-ownership-contract.test.mjs`, `style-resource-contract.test.mjs`, `theme-preset.test.ts`, `theme-layout.test.ts` |
@@ -259,7 +259,7 @@ host-shell
 runtime-module
 styles-and-assets
 public-asset
-artifact-registry-and-guard-report
+artifact-registry-and-validation-report
 artifact-source-mutation
 block-lookup
 codex-bridge
@@ -268,7 +268,7 @@ runtime-control
 
 The dev server owns server lifecycle, route dispatch, Vite runtime creation,
 dependency supply, and asset serving. Host shell, artifact module, stylesheet,
-public asset, artifact registry and guard report, artifact mutation, block
+public asset, artifact registry and validation report, artifact mutation, block
 lookup, and Codex bridge requests enter through those named pipelines. The dev
 server delegates host and artifact module transforms to Vite.
 
@@ -290,7 +290,7 @@ packages/react
      or archive code
 
 packages/cli/src/react-canvas
-  -> discovery, guard, prompt, and workspace path orchestration
+  -> discovery, validation, prompt, and workspace path orchestration
   -> no host UI, artifact source, Canvas UI, theme, docs, app, or archive imports
 
 packages/cli/src/host
@@ -305,7 +305,7 @@ agent-html/artifacts
 
 `packages/cli/src/react-canvas/architecture-boundaries.test.mjs` owns the
 topology checks. Use it as the executable boundary matrix before adding new
-guard behavior. Workspace source constraints live in
+validation behavior. Workspace source constraints live in
 `workspace-contract.test.mjs`, package/runtime ownership lives in
 `package-runtime-contract.test.mjs`, pipeline ownership lives in
 `pipeline-ownership-contract.test.mjs`, archive separation lives in
@@ -341,20 +341,14 @@ import entries, runtime exports, React singleton resolution, explicit
 route pipeline ownership. `dev-host.test.mjs` checks artifact rendering and
 fresh-project startup through the real dev host.
 
-## Guard Scopes
+## Diagnostic Categories
 
-Canvas guard reports one issue list with explicit scopes:
-
-- `artifact-entry-protocol`: validates the artifact entry, including
-  default export, `Artifact`, `Block`, stable `blockId`, and protocol-only
-  marker props.
-- `block-implementation-source`: validates split block implementation source
-  for source-level visual and primitive boundaries.
-- `workspace-boundary`: validates imports and workspace access boundaries
-  across artifact entries and block implementations.
-
-The dev host treats all guard issues as preview feedback, but the scope names
-identify which pipeline owns the failure.
+Canvas validation returns one versioned diagnostic list. `protocol`, `style`,
+and `workspace` diagnostics are produced from source; `dependency` and
+`manifest` diagnostics enforce the Kernel runtime catalog. Every diagnostic is
+blocking and identifies its code, file, location, message, policy version, and
+optional fix suggestion. The dev host displays the same contract returned by
+the CLI validation pipeline.
 
 ## Interaction Source Of Truth
 

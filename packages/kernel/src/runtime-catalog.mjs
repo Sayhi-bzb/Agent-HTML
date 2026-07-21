@@ -1,5 +1,5 @@
 export const canvasRuntimeCatalog = Object.freeze({
-  "@agent-html/react": "0.2.1",
+  "@agent-html/react": "0.3.0",
   "@base-ui/react": "^1.5.0",
   "@dnd-kit/core": "^6.3.1",
   "@dnd-kit/modifiers": "^9.0.0",
@@ -56,3 +56,20 @@ export const canvasRuntimeCatalog = Object.freeze({
 export const canvasRuntimeDependencyNames = Object.freeze(
   Object.keys(canvasRuntimeCatalog).sort()
 )
+
+export function canvasWorkspaceDependenciesMatchCatalog(dependencies = {}) {
+  const names = Object.keys(dependencies).sort()
+  return (
+    names.length === canvasRuntimeDependencyNames.length &&
+    canvasRuntimeDependencyNames.every(
+      (name, index) =>
+        names[index] === name && dependencies[name] === canvasRuntimeCatalog[name]
+    )
+  )
+}
+
+export function canvasRuntimeProviderMatchesCatalog(dependencies = {}) {
+  return canvasRuntimeDependencyNames.every(
+    (name) => dependencies[name] === canvasRuntimeCatalog[name]
+  )
+}

@@ -70,11 +70,11 @@
     min-height: var(--canvas-theme-editor-control-min-height);
     height: auto;
     padding-block: var(--canvas-theme-editor-row-padding-block);
-    color: color-mix(in oklab, var(--sidebar-foreground) 70%, transparent);
+    color: color-mix(in oklab, var(--canvas-host-sidebar-foreground) 70%, transparent);
   }
 
   .canvas-theme-editor-popover-button:hover {
-    color: var(--sidebar-foreground);
+    color: var(--canvas-host-sidebar-foreground);
   }
 
   .canvas-theme-editor-control-button {
@@ -96,7 +96,7 @@
 
   .canvas-theme-editor-caption {
     font-size: var(--canvas-sidebar-caption-font-size);
-    color: color-mix(in oklab, var(--sidebar-foreground) 45%, transparent);
+    color: color-mix(in oklab, var(--canvas-host-sidebar-foreground) 45%, transparent);
   }
 
   .canvas-theme-editor-muted-caption {

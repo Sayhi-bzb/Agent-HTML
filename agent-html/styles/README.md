@@ -58,8 +58,9 @@ Rich component tokens stay in matching token files such as
 
 Host chrome tokens and implementation styles live in
 `packages/cli/src/host/styles`. They consume this workspace material pipeline, but
-they are not artifact authoring context.
+they are not artifact authoring context. The Host surface derives and owns its
+`--canvas-host-sidebar-*` tokens from the base theme primitives.
 
 Artifact source should not recreate system responsibilities such as root reading width, block hover highlighting, toolbar placement, or sidebar chrome.
 Artifact source should not consume sidebar chrome utilities such as
-`bg-sidebar`, `text-sidebar-*`, `border-sidebar-*`, or `ring-sidebar-*`.
+`bg-canvas-host-sidebar`, `text-canvas-host-sidebar-*`, `border-canvas-host-sidebar-*`, or `ring-canvas-host-sidebar-*`.

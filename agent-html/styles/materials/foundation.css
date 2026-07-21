@@ -70,16 +70,6 @@
   --shadow-xl: 0px 8px 10px -1px rgb(0 0 0 / 0.10);
   --shadow-2xl: 0px 16px 24px -1px rgb(0 0 0 / 0.16);
 
-  /* Shadcn compatibility aliases */
-  --sidebar: var(--background);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--ring);
-
   /* Canvas base affordances */
   --canvas-text-selection-background: color-mix(
     in oklab,
@@ -141,16 +131,6 @@
   --chart-marker-foreground: oklch(0.9 0 0);
   --chart-ring-background: oklch(0.35 0.01 260 / 0.25);
   --chart-label: oklch(0.75 0.01 260);
-
-  /* Shadcn compatibility aliases */
-  --sidebar: var(--background);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--ring);
 
   /* Canvas base affordances */
   --canvas-text-selection-background: color-mix(

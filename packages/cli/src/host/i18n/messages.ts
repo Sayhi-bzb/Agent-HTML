@@ -11,7 +11,7 @@ const en = {
   "artifact.createPending": "Creating artifact",
   "artifact.createPlaceholder": "Describe the artifact to build...",
   "artifact.clearPending": "Clear pending state",
-  "artifact.guardIssues": "Guard issues",
+  "artifact.validationIssues": "Validation issues",
   "artifact.loadIssue": "Artifact load issue",
   "artifact.loadIssueMessage":
     "The current Artifact remains visible, but its latest update could not load.",
@@ -147,7 +147,7 @@ const zh = {
   "artifact.createPending": "正在创建 Artifact",
   "artifact.createPlaceholder": "描述要构建的 Artifact...",
   "artifact.clearPending": "清除 pending 状态",
-  "artifact.guardIssues": "Guard issues",
+  "artifact.validationIssues": "校验问题",
   "artifact.loadIssue": "Artifact 加载问题",
   "artifact.loadIssueMessage":
     "当前 Artifact 仍然可见，但它的最新更新无法加载。",

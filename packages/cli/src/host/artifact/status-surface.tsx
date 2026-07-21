@@ -1,4 +1,4 @@
-import type { GuardIssue } from "../host-contracts"
+import type { CanvasDiagnostic } from "../host-contracts"
 import { useHostI18n } from "../i18n/host-i18n"
 import {
   HostStatusDetails,
@@ -7,22 +7,22 @@ import {
   HostStatusSurface,
 } from "../ui/status"
 
-export function GuardIssueList({ issues }: { issues: GuardIssue[] }) {
+export function ValidationIssueList({ diagnostics }: { diagnostics: CanvasDiagnostic[] }) {
   const { t } = useHostI18n()
 
-  if (issues.length === 0) {
+  if (diagnostics.length === 0) {
     return null
   }
 
   return (
-    <HostStatusSurface className="canvas-status" title={t("artifact.guardIssues")}>
+    <HostStatusSurface className="canvas-status" title={t("artifact.validationIssues")}>
       <HostStatusList>
-        {issues.map((issue, index) => (
+        {diagnostics.map((diagnostic, index) => (
           <HostStatusItem
-            badge={issue.severity}
-            key={`${issue.filePath}:${issue.line ?? 0}:${index}`}
+            badge={diagnostic.code}
+            key={`${diagnostic.filePath}:${diagnostic.line}:${index}`}
           >
-            {issue.message}
+            {diagnostic.message}
           </HostStatusItem>
         ))}
       </HostStatusList>

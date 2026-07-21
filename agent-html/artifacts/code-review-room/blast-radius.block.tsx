@@ -40,7 +40,7 @@ function nodeColorKey(category: unknown) {
 const blastRadiusSummary = [
   ["source", "artifact source and shared primitives"],
   ["surface", "components/ui, styles, and theme presets"],
-  ["gates", "typecheck, guard, index, and dependency checks"],
+  ["gates", "validation, typecheck, index, and diff checks"],
 ] as const
 const blastRadiusSummaryIcons: Record<
   (typeof blastRadiusSummary)[number][0],

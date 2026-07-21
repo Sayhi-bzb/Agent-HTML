@@ -10,7 +10,7 @@ import { formatBlockPrompt } from "../../react-canvas/prompt.mjs"
 import type {
   SubmitBlockPromptInput,
   SubmitBlockPromptResult,
-  SubmitGuardFixRequestInput,
+  SubmitValidationFixRequestInput,
 } from "./types"
 
 export async function fetchCodexPipelineThreads(): Promise<{
@@ -48,47 +48,47 @@ export async function submitCodexBlockPrompt({
   })
 }
 
-function formatGuardFixPrompt({
+function formatValidationFixPrompt({
   filePath,
-  issues,
-}: Omit<SubmitGuardFixRequestInput, "activeThreadId">) {
+  diagnostics,
+}: Omit<SubmitValidationFixRequestInput, "activeThreadId">) {
   const lines = [
     "---",
-    "task: fix-canvas-guard-errors",
+    "task: fix-canvas-validation-errors",
     `filePath: ${filePath}`,
     "---",
     "",
-    "Fix the Canvas guard errors listed below.",
+    "Fix the Canvas validation errors listed below.",
     "",
     "Constraints:",
     "- Edit only the affected Canvas artifact source.",
     "- Preserve artifact intent and Block ids unless the issue requires changing them.",
-    "- Do not downgrade or ignore guard errors.",
+    "- Do not downgrade or ignore validation errors.",
     "",
-    "Guard errors:",
+    "Validation errors:",
   ]
 
-  for (const issue of issues) {
+  for (const diagnostic of diagnostics) {
     lines.push(
-      `- ${issue.guardScope ?? "guard"}${issue.line ? ` line ${issue.line}` : ""}: ${issue.message}`
+      `- ${diagnostic.code} ${diagnostic.category} line ${diagnostic.line}:${diagnostic.column}: ${diagnostic.message}`
     )
 
-    if (issue.suggestion) {
-      lines.push(`  Suggestion: ${issue.suggestion}`)
+    if (diagnostic.suggestion) {
+      lines.push(`  Suggestion: ${diagnostic.suggestion}`)
     }
   }
 
   return lines.join("\n")
 }
 
-export async function submitCodexGuardFixRequest({
+export async function submitCodexValidationFixRequest({
   activeThreadId,
   filePath,
-  issues,
-}: SubmitGuardFixRequestInput): Promise<SubmitBlockPromptResult> {
-  const prompt = formatGuardFixPrompt({
+  diagnostics,
+}: SubmitValidationFixRequestInput): Promise<SubmitBlockPromptResult> {
+  const prompt = formatValidationFixPrompt({
     filePath,
-    issues,
+    diagnostics,
   })
 
   publishCanvasPromptDebug(prompt)

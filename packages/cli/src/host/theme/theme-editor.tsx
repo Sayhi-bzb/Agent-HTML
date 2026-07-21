@@ -219,7 +219,7 @@ const editorPopoverButtonClassName =
   "canvas-theme-editor-popover-button"
 
 const editorSectionTriggerClassName =
-  "group/label canvas-sidebar-body text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+  "group/label canvas-sidebar-body text-canvas-host-sidebar-foreground hover:bg-canvas-host-sidebar-accent hover:text-canvas-host-sidebar-accent-foreground"
 
 function getThemePresetSwatchColor(preset: CanvasThemePreset) {
   return (

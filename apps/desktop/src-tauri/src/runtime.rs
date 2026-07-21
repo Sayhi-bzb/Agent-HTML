@@ -18,8 +18,7 @@ use tauri_plugin_shell::{
 };
 
 pub const RUNTIME_PROTOCOL_VERSION: u32 = 1;
-const RUNTIME_MANIFEST_VERSION: u32 = 1;
-const IMMUTABLE_RUNTIME_MANIFEST_VERSION: u32 = 2;
+const RUNTIME_MANIFEST_VERSION: u32 = 2;
 const DIAGNOSTIC_TAIL_BYTES: usize = 16 * 1024;
 #[cfg(unix)]
 const UNIX_RUNTIME_SUPERVISOR_ARG: &str = "--ahtml-runtime-supervisor";
@@ -60,10 +59,8 @@ struct RuntimeManifest {
     runtime_protocol_version: u32,
     cli_entry: String,
     workspace_template: String,
-    #[serde(default)]
-    fingerprint: Option<String>,
-    #[serde(default)]
-    node_entry: Option<String>,
+    fingerprint: String,
+    node_entry: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -77,9 +74,9 @@ struct RuntimeSelection {
 
 struct RuntimeBundle {
     cli_entry: PathBuf,
-    fingerprint: Option<String>,
+    fingerprint: String,
     manifest_path: PathBuf,
-    node_entry: Option<PathBuf>,
+    node_entry: PathBuf,
 }
 
 impl RuntimeBundle {
@@ -198,8 +195,7 @@ impl RuntimeBundle {
                 )
             })?;
 
-        let is_legacy_manifest = manifest.schema_version == RUNTIME_MANIFEST_VERSION;
-        if !is_legacy_manifest && manifest.schema_version != IMMUTABLE_RUNTIME_MANIFEST_VERSION {
+        if manifest.schema_version != RUNTIME_MANIFEST_VERSION {
             return Err(DesktopError::new(
                 "runtime-bundle-invalid",
                 phase,
@@ -222,7 +218,7 @@ impl RuntimeBundle {
             ));
         }
         if let Some(expected) = selected_fingerprint {
-            if manifest.fingerprint.as_deref() != Some(expected) {
+            if manifest.fingerprint != expected {
                 return Err(DesktopError::new(
                     "runtime-bundle-invalid",
                     phase,
@@ -234,19 +230,7 @@ impl RuntimeBundle {
 
         let cli_entry = resolve_bundle_member(&runtime_root, &manifest.cli_entry, phase)?;
         resolve_bundle_member(&runtime_root, &manifest.workspace_template, phase)?;
-        let node_entry = manifest
-            .node_entry
-            .as_deref()
-            .map(|entry| resolve_bundle_member(runtime_root, entry, phase))
-            .transpose()?;
-        if !is_legacy_manifest && node_entry.is_none() {
-            return Err(DesktopError::new(
-                "runtime-bundle-invalid",
-                phase,
-                "Immutable runtime manifest does not declare Node",
-                true,
-            ));
-        }
+        let node_entry = resolve_bundle_member(runtime_root, &manifest.node_entry, phase)?;
         Ok(Self {
             cli_entry,
             fingerprint: manifest.fingerprint,
@@ -544,47 +528,28 @@ impl SidecarSupervisor {
         args.extend(command_args);
 
         let shell = app.shell();
-        let mut command = if let Some(node_entry) = &self.bundle.node_entry {
-            #[cfg(windows)]
-            {
-                shell.command(node_entry).args(args)
-            }
-            #[cfg(unix)]
-            {
-                let executable = std::env::current_exe().map_err(|error| {
-                    DesktopError::new(
-                        error_code,
-                        phase,
-                        format!("Unable to locate the runtime supervisor: {error}"),
-                        true,
-                    )
-                    .with_log(&self.log_path)
-                })?;
-                let mut supervisor_args = vec![
-                    UNIX_RUNTIME_SUPERVISOR_ARG.to_string(),
-                    child_path_argument(node_entry, phase)?,
-                ];
-                supervisor_args.extend(args);
-                shell.command(executable).args(supervisor_args)
-            }
-        } else {
-            shell
-                .sidecar("agent-html-runtime")
-                .map_err(|error| {
-                    DesktopError::new(
-                        error_code,
-                        phase,
-                        format!("Unable to configure the bundled runtime: {error}"),
-                        true,
-                    )
-                    .with_log(&self.log_path)
-                })?
-                .args(args)
+        #[cfg(windows)]
+        let mut command = shell.command(&self.bundle.node_entry).args(args);
+        #[cfg(unix)]
+        let mut command = {
+            let executable = std::env::current_exe().map_err(|error| {
+                DesktopError::new(
+                    error_code,
+                    phase,
+                    format!("Unable to locate the runtime supervisor: {error}"),
+                    true,
+                )
+                .with_log(&self.log_path)
+            })?;
+            let mut supervisor_args = vec![
+                UNIX_RUNTIME_SUPERVISOR_ARG.to_string(),
+                child_path_argument(&self.bundle.node_entry, phase)?,
+            ];
+            supervisor_args.extend(args);
+            shell.command(executable).args(supervisor_args)
         };
-        if let Some(fingerprint) = &self.bundle.fingerprint {
-            command = command.env("AGENT_HTML_RUNTIME_FINGERPRINT", fingerprint);
-            command = command.env("AGENT_HTML_RUNTIME_MANIFEST", &self.bundle.manifest_path);
-        }
+        command = command.env("AGENT_HTML_RUNTIME_FINGERPRINT", &self.bundle.fingerprint);
+        command = command.env("AGENT_HTML_RUNTIME_MANIFEST", &self.bundle.manifest_path);
         if let Some(token) = token {
             command = command.env("AGENT_HTML_RUNTIME_TOKEN", token);
         }
@@ -940,8 +905,31 @@ mod tests {
         .unwrap();
 
         let bundle = RuntimeBundle::resolve_root(&root, Some(&fingerprint), "test").unwrap();
-        assert_eq!(bundle.fingerprint.as_deref(), Some(fingerprint.as_str()));
-        assert!(bundle.node_entry.is_some());
+        assert_eq!(bundle.fingerprint, fingerprint);
+        assert!(bundle.node_entry.is_file());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn rejects_runtime_manifest_schema_one() {
+        let root = temporary_runtime_root();
+        fs::create_dir_all(&root).unwrap();
+        fs::write(
+            root.join("runtime-manifest.json"),
+            serde_json::json!({
+                "schemaVersion": 1,
+                "runtimeProtocolVersion": 1,
+                "cliEntry": "node_modules/agent-html/bin/agent-html.mjs",
+                "workspaceTemplate": "node_modules/agent-html/template/agent-html"
+            })
+            .to_string(),
+        )
+        .unwrap();
+
+        let error = RuntimeBundle::resolve_root(&root, None, "test")
+            .err()
+            .expect("schema one must be rejected");
+        assert_eq!(error.code, "runtime-bundle-invalid");
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -992,10 +980,7 @@ mod tests {
         let bundle = RuntimeBundle::resolve_selection(&root, "test")
             .unwrap()
             .unwrap();
-        assert_eq!(
-            bundle.fingerprint.as_deref(),
-            Some(previous_fingerprint.as_str())
-        );
+        assert_eq!(bundle.fingerprint, previous_fingerprint);
         fs::remove_dir_all(root).unwrap();
     }
 

@@ -12,6 +12,7 @@ import {
   isArtifactBundleUrl,
   publicAssetUrl,
   renameArtifact,
+  renameArtifactTitle,
 } from "./api"
 
 describe("artifactLabel", () => {
@@ -38,7 +39,10 @@ describe("artifactLabel", () => {
 
 describe("host API route helpers", () => {
   it("owns artifact bundle URLs", () => {
-    const url = artifactBundleUrl("agent-html/artifacts/example.artifact.tsx", 3)
+    const url = artifactBundleUrl(
+      "agent-html/artifacts/example.artifact.tsx",
+      3
+    )
 
     expect(url).toBe(
       "/__agent-html/artifact.js?filePath=agent-html%2Fartifacts%2Fexample.artifact.tsx&v=3"
@@ -72,7 +76,7 @@ describe("fetchArtifacts", () => {
       return {
         json: async () => ({
           artifacts: [],
-          guardIssues: [],
+          diagnostics: [],
           status: "ready",
           version: 1,
         }),
@@ -82,7 +86,7 @@ describe("fetchArtifacts", () => {
 
     await expect(fetchArtifacts()).resolves.toMatchObject({
       artifacts: [],
-      guardIssues: [],
+      diagnostics: [],
     })
   })
 
@@ -92,7 +96,7 @@ describe("fetchArtifacts", () => {
       return {
         json: async () => ({
           artifacts: [],
-          guardIssues: [],
+          diagnostics: [],
           status: "ready",
           version: 2,
         }),
@@ -106,12 +110,16 @@ describe("fetchArtifacts", () => {
   })
 
   it("reports HTML responses from host API routes explicitly", async () => {
-    vi.stubGlobal("fetch", async () => new Response("<!doctype html><html></html>", {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
-      status: 200,
-    }))
+    vi.stubGlobal(
+      "fetch",
+      async () =>
+        new Response("<!doctype html><html></html>", {
+          headers: {
+            "Content-Type": "text/html; charset=utf-8",
+          },
+          status: 200,
+        })
+    )
 
     await expect(fetchArtifacts()).rejects.toThrow(
       "Host API route returned HTML instead of JSON: /__agent-html/artifacts"
@@ -187,6 +195,36 @@ describe("artifact file operations", () => {
     ).resolves.toEqual({
       filePath: "agent-html/artifacts/new.artifact.tsx",
     })
+  })
+
+  it("renames artifact titles through the host API", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async (url, init) => {
+        expect(url).toBe(hostApiRoutes.artifactTitle)
+        expect(JSON.parse(String(init?.body))).toEqual({
+          filePath: "agent-html/artifacts/demo.artifact.tsx",
+          title: "New title",
+        })
+        return new Response(
+          JSON.stringify({
+            filePath: "agent-html/artifacts/demo.artifact.tsx",
+            title: "New title",
+          }),
+          { headers: { "Content-Type": "application/json" } }
+        )
+      })
+
+    await expect(
+      renameArtifactTitle({
+        filePath: "agent-html/artifacts/demo.artifact.tsx",
+        title: "New title",
+      })
+    ).resolves.toEqual({
+      filePath: "agent-html/artifacts/demo.artifact.tsx",
+      title: "New title",
+    })
+    fetchMock.mockRestore()
   })
 
   it("creates artifacts through the host API", async () => {

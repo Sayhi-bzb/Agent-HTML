@@ -1,4 +1,8 @@
 export {
+  normalizeArtifactDefinition,
+  titleizeBlockId
+} from "./artifact.mjs"
+export {
   CANVAS_POLICY_VERSION,
   canvasDiagnosticCategories,
   canvasDiagnosticCodes,
@@ -8,5 +12,7 @@ export {
 } from "./policy.mjs"
 export {
   canvasRuntimeCatalog,
-  canvasRuntimeDependencyNames
+  canvasRuntimeDependencyNames,
+  canvasRuntimeProviderMatchesCatalog,
+  canvasWorkspaceDependenciesMatchCatalog
 } from "./runtime-catalog.mjs"

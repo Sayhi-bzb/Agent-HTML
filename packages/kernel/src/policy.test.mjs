@@ -22,7 +22,7 @@ describe("Canvas Kernel policy", () => {
 
   it("owns versioned protocol policy and runtime versions", () => {
     expect(CANVAS_POLICY_VERSION).toBe(1)
-    expect(canvasRuntimeCatalog["@agent-html/react"]).toBe("0.2.1")
+    expect(canvasRuntimeCatalog["@agent-html/react"]).toBe("0.3.0")
     expect(canvasRuntimeCatalog["lucide-react"]).toBe("^1.16.0")
   })
 })

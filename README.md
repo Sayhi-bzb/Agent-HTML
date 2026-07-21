@@ -20,7 +20,7 @@ Agent-HTML is for that richer expression layer: the point where an answer should
 
 - `agent-html` is the portable source workspace where agents write React and TypeScript artifacts.
 - `@agent-html/react` provides the headless `Artifact` and `Block` protocol so rich HTML surfaces have stable, addressable regions.
-- The Canvas host discovers artifacts, renders them through Vite, shows guard feedback, overlays block inspection controls, routes block prompts, and applies theme presets.
+- The Canvas host discovers artifacts, renders them through Vite, shows validation diagnostics, overlays block inspection controls, routes block prompts, and applies theme presets.
 - Local Canvas resources keep the expression system coherent: UI primitives, hooks, helpers, schemas, fixtures, assets, semantic CSS classes, examples, and source rules live beside the artifacts that use them.
 
 ## Canvas Preview
@@ -74,7 +74,7 @@ Canvas prompt routing uses artifact metadata, block ids, optional implementation
 - Rich expression: artifacts can combine text, data, layout, media, controls, charts, and themed presentation.
 - Focused revision: blocks give agents and humans stable handles for targeted feedback.
 - Local reuse: Canvas makes the nearest correct primitive, hook, helper, schema, fixture, or asset easier to find.
-- Guarded boundaries: artifact source stays separate from host internals, old runtime surfaces, generated bundles, and privileged APIs.
+- Validated boundaries: artifact source stays separate from application and host internals, generated bundles, and privileged APIs.
 
 ## Quick Start
 

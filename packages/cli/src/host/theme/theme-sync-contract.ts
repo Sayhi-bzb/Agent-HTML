@@ -7,7 +7,7 @@ export const canvasThemeChangeMessageType = "agent-html:canvas-theme-change"
 export const canvasThemeRequestMessageType = "agent-html:canvas-theme-request"
 export const canvasThemeBootstrapMessageType =
   "agent-html:canvas-theme-bootstrap"
-export const canvasThemeSnapshotVersion = 1
+export const canvasThemeSnapshotVersion = 2
 
 export const canvasThemeSyncVariableNames = canvasThemeVariableNames
 export const canvasThemeFontStylesheetPath = hostApiRoutes.fontStylesheet
@@ -108,9 +108,6 @@ function isAllowedFontStylesheetSource(value: string) {
 }
 
 function readFontStylesheetPaths(value: unknown): string[] | null {
-  if (value === undefined) {
-    return []
-  }
   if (!Array.isArray(value) || value.length > maximumFontStylesheetPathCount) {
     return null
   }

@@ -4,9 +4,9 @@ import type { ReactNode, RefObject } from "react"
 import {
   canvasDomAttributes,
   canvasInteractionEventName,
+  normalizeArtifactDefinition,
 } from "@agent-html/kernel"
 import type {
-  ArtifactBlockDefinition,
   ArtifactDefinition,
   ArtifactInteractionSnapshot,
   ArtifactStateChange,
@@ -56,28 +56,6 @@ export type BlockProps = {
 }
 
 export type ArtifactBlockComponentMap = Record<string, React.ComponentType>
-
-function titleizeBlockId(id: string) {
-  return id
-    .split("-")
-    .filter(Boolean)
-    .map((part) => `${part[0].toUpperCase()}${part.slice(1)}`)
-    .join(" ")
-}
-
-function normalizeBlockDefinition(block: ArtifactBlockDefinition) {
-  if (typeof block === "string") {
-    return {
-      id: block,
-      title: titleizeBlockId(block),
-    }
-  }
-
-  return {
-    id: block.id,
-    title: block.title ?? titleizeBlockId(block.id),
-  }
-}
 
 export function createArtifactStateChange(
   change: ArtifactStateChangeInput
@@ -280,15 +258,16 @@ export function Block({ children, id, title }: BlockProps) {
 }
 
 export function defineArtifact(definition: ArtifactDefinition) {
+  const normalizedDefinition = normalizeArtifactDefinition(definition)
+
   return function DefinedArtifact({
     components = {},
   }: {
     components?: ArtifactBlockComponentMap
   } = {}) {
     return (
-      <Artifact title={definition.title}>
-        {definition.blocks.map((block) => {
-          const { id, title } = normalizeBlockDefinition(block)
+      <Artifact title={normalizedDefinition.title}>
+        {normalizedDefinition.blocks.map(({ id, title }) => {
           const Component = components[id]
 
           return (

@@ -164,6 +164,64 @@ body {
   white-space: nowrap;
 }
 
+.desktop-titlebar__artifact-input {
+  background: var(--background);
+  border: 0;
+  border-radius: var(--canvas-desktop-radius);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: var(--canvas-desktop-titlebar-navigation-font-size);
+  height: var(--canvas-desktop-titlebar-icon-plate-size);
+  margin-inline: var(--canvas-desktop-space-1);
+  min-width: 5rem;
+  outline: 1px solid var(--input);
+  padding-inline: var(--canvas-desktop-space-1);
+  width: 10rem;
+}
+
+.desktop-titlebar__artifact-input[aria-invalid="true"] {
+  outline-color: var(--destructive);
+}
+
+.desktop-titlebar__context-menu,
+.desktop-titlebar__rename-error {
+  background: var(--popover);
+  border: 0;
+  border-radius: var(--canvas-desktop-radius);
+  color: var(--popover-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--canvas-desktop-titlebar-navigation-font-size);
+  outline: 1px solid var(--border);
+  z-index: 50;
+}
+
+.desktop-titlebar__context-menu {
+  min-width: 9rem;
+  padding: 0.25rem;
+}
+
+.desktop-titlebar__context-menu-item {
+  align-items: center;
+  border-radius: var(--canvas-desktop-radius);
+  cursor: pointer;
+  display: flex;
+  min-height: 1.75rem;
+  outline: none;
+  padding-inline: var(--canvas-desktop-space-2);
+  user-select: none;
+}
+
+.desktop-titlebar__context-menu-item[data-highlighted] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.desktop-titlebar__rename-error {
+  color: var(--destructive);
+  max-width: 18rem;
+  padding: var(--canvas-desktop-space-1) var(--canvas-desktop-space-2);
+}
+
 .desktop-titlebar__artifact-close {
   align-items: center;
   background: transparent;
@@ -227,12 +285,11 @@ body {
   cursor: pointer;
 }
 
-.desktop-titlebar__artifact:hover {
-  background: var(--accent);
-  color: var(--accent-foreground);
+.desktop-titlebar__artifact[data-active] {
+  color: var(--foreground);
 }
 
-.desktop-titlebar__artifact[data-active] {
+.desktop-titlebar__artifact:hover {
   background: var(--accent);
   color: var(--accent-foreground);
 }
@@ -245,12 +302,6 @@ body {
 .desktop-titlebar__navigation-action:hover:not(:disabled)::before,
 .desktop-titlebar__navigation-action[data-active]::before {
   background: var(--accent);
-}
-
-.desktop-titlebar__artifact:hover .desktop-titlebar__artifact-title {
-  text-decoration-line: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
 }
 
 .desktop-titlebar__navigation-action:disabled {

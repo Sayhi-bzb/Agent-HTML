@@ -2,15 +2,14 @@ import fs from "node:fs/promises"
 import path from "node:path"
 
 import {
-  analyzeBlockImplementationSource,
-  analyzeReactCanvasArtifact,
-} from "../react-canvas/guard.mjs"
+  inspectArtifactEntry,
+  validateBlockImplementation,
+} from "@agent-html/kernel/validate"
 import {
   discoverReactArtifacts,
   discoverReactImplementationSources,
   workspaceRelativePath,
 } from "../react-canvas/paths.mjs"
-import { collectStaticArtifactMetadata } from "../react-canvas/block-tags.mjs"
 import { readTextFile } from "../react-canvas/workspace-file.mjs"
 
 export const artifactsUpdatedEventName = "agent-html:artifacts-updated"
@@ -37,7 +36,7 @@ function isMissingFileError(error) {
 function createEmptySnapshot() {
   return {
     artifacts: [],
-    guardIssues: [],
+    diagnostics: [],
     status: "checking",
     version: 0,
   }
@@ -47,11 +46,11 @@ function snapshotContentEquals(left, right) {
   return (
     JSON.stringify({
       artifacts: left.artifacts,
-      guardIssues: left.guardIssues,
+      diagnostics: left.diagnostics,
     }) ===
     JSON.stringify({
       artifacts: right.artifacts,
-      guardIssues: right.guardIssues,
+      diagnostics: right.diagnostics,
     })
   )
 }
@@ -60,8 +59,8 @@ export function createArtifactRegistry({ root, vite }) {
   const workspaceRoot = path.join(path.resolve(root), "agent-html")
   const artifactsRoot = path.join(workspaceRoot, "artifacts")
   const artifacts = new Map()
-  const artifactIssues = new Map()
-  const blockIssues = new Map()
+  const artifactDiagnostics = new Map()
+  const implementationDiagnostics = new Map()
   const pendingPaths = new Set()
   let snapshot = createEmptySnapshot()
   let refreshPromise = null
@@ -88,14 +87,14 @@ export function createArtifactRegistry({ root, vite }) {
   }
 
   function publishSnapshot({ broadcast = true, reason }) {
-    const guardIssues = [
-      ...artifactIssues.values(),
-      ...blockIssues.values(),
+    const diagnostics = [
+      ...artifactDiagnostics.values(),
+      ...implementationDiagnostics.values(),
     ].flat()
 
     const nextSnapshot = {
       artifacts: [...artifacts.values()].sort(sortByFilePath),
-      guardIssues,
+      diagnostics,
       status: "ready",
       version: snapshot.version + 1,
     }
@@ -128,7 +127,7 @@ export function createArtifactRegistry({ root, vite }) {
     } catch (error) {
       if (isMissingFileError(error)) {
         artifacts.delete(absolutePath)
-        artifactIssues.delete(absolutePath)
+        artifactDiagnostics.delete(absolutePath)
         return
       }
 
@@ -136,20 +135,14 @@ export function createArtifactRegistry({ root, vite }) {
     }
 
     const relativePath = workspaceRelativePath(root, absolutePath)
-    const metadata = collectStaticArtifactMetadata(source)
+    const inspection = inspectArtifactEntry({ filePath: relativePath, source })
+    const metadata = inspection.metadata
     artifacts.set(absolutePath, {
       blocks: metadata.blocks,
       filePath: relativePath,
       title: metadata.title ?? artifactLabelFromFilePath(relativePath),
     })
-    artifactIssues.set(
-      absolutePath,
-      analyzeReactCanvasArtifact({
-        filePath: absolutePath,
-        relativePath,
-        source,
-      })
-    )
+    artifactDiagnostics.set(absolutePath, inspection.diagnostics)
   }
 
   async function indexImplementationSource(filePath) {
@@ -160,17 +153,17 @@ export function createArtifactRegistry({ root, vite }) {
       source = await readTextFile(absolutePath)
     } catch (error) {
       if (isMissingFileError(error)) {
-        blockIssues.delete(absolutePath)
+        implementationDiagnostics.delete(absolutePath)
         return
       }
 
       throw error
     }
 
-    blockIssues.set(
+    implementationDiagnostics.set(
       absolutePath,
-      analyzeBlockImplementationSource({
-        relativePath: workspaceRelativePath(root, absolutePath),
+      validateBlockImplementation({
+        filePath: workspaceRelativePath(root, absolutePath),
         source,
       })
     )
@@ -188,8 +181,8 @@ export function createArtifactRegistry({ root, vite }) {
     ])
 
     artifacts.clear()
-    artifactIssues.clear()
-    blockIssues.clear()
+    artifactDiagnostics.clear()
+    implementationDiagnostics.clear()
 
     await Promise.all([
       ...artifactPaths.map(indexArtifact),

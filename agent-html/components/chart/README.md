@@ -54,5 +54,5 @@ Concrete charts should keep the artifact-facing surface predictable:
   rows, and the chart default remains the fallback.
 - Domain props name the scale they control: `valueDomain`, `xDomain`, or
   `yDomain`.
-- Existing public props stay compatible. Add aliases or additive props before
-  renaming an artifact-facing API.
+- Remove superseded props in the owning package's next breaking version; do
+  not retain deprecated aliases in the active API.

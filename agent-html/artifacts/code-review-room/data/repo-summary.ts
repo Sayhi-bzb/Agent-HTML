@@ -6,7 +6,7 @@ export const reviewSubject = {
   evidenceNote:
     "Readiness combines GitNexus structure, local TypeScript/TSX metrics, Canvas package scripts, and artifact protocol rules from agent-html.",
   subtitle:
-    "A review surface for the React Canvas workspace package: artifact source, local primitives, rich workflow components, theme tokens, and CLI guard rails.",
+    "A review surface for the React Canvas workspace package: artifact source, local primitives, rich workflow components, theme tokens, and CLI validation.",
   title: "Code Review Room",
 }
 
@@ -24,7 +24,7 @@ export const intakeItems = [
   },
   {
     label: "required gates",
-    value: "canvas:typecheck, canvas:guard, canvas:index:check, canvas:deps",
+    value: "canvas:validate, canvas:typecheck, canvas:index:check",
   },
   {
     label: "review focus",

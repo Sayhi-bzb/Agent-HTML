@@ -36,6 +36,16 @@ export type ArtifactDefinition = {
   title: string
 }
 
+export type NormalizedArtifactBlockDefinition = {
+  id: string
+  title: string
+}
+
+export type NormalizedArtifactDefinition = {
+  blocks: NormalizedArtifactBlockDefinition[]
+  title: string
+}
+
 export type KernelDiagnostic = {
   category: "dependency" | "manifest" | "protocol" | "style" | "workspace"
   code: string
@@ -55,3 +65,13 @@ export const canvasDiagnosticCodes: Readonly<Record<string, string>>
 export const canvasSourceLayers: ReadonlyArray<Readonly<{ name: string; path: string }>>
 export const canvasRuntimeCatalog: Readonly<Record<string, string>>
 export const canvasRuntimeDependencyNames: readonly string[]
+export function canvasWorkspaceDependenciesMatchCatalog(
+  dependencies?: Record<string, string>
+): boolean
+export function canvasRuntimeProviderMatchesCatalog(
+  dependencies?: Record<string, string>
+): boolean
+export function titleizeBlockId(id: string): string
+export function normalizeArtifactDefinition(
+  definition: ArtifactDefinition
+): NormalizedArtifactDefinition

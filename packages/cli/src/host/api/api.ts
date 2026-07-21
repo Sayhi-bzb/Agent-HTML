@@ -1,7 +1,4 @@
-import type {
-  Artifact,
-  GuardIssue,
-} from "../host-contracts"
+import type { Artifact, CanvasDiagnostic } from "../host-contracts"
 
 export type CodexThread = {
   createdAt?: string
@@ -17,6 +14,7 @@ export const hostApiRoutes = {
   artifactCreate: "/__agent-html/artifact/create",
   artifactDelete: "/__agent-html/artifact/delete",
   artifactRename: "/__agent-html/artifact/rename",
+  artifactTitle: "/__agent-html/artifact/title",
   artifacts: "/__agent-html/artifacts",
   blockImplementation: "/__agent-html/block-implementation",
   codexThreads: "/__agent-html/codex/threads",
@@ -35,7 +33,8 @@ async function readHostJsonResponse<T>(
   const contentType = response.headers?.get("Content-Type") ?? ""
 
   if (contentType && !contentType.includes("application/json")) {
-    const body = typeof response.text === "function" ? await response.text() : ""
+    const body =
+      typeof response.text === "function" ? await response.text() : ""
     const returnedHtml =
       contentType.includes("text/html") ||
       body.trimStart().toLowerCase().startsWith("<!doctype html")
@@ -109,7 +108,7 @@ export async function fetchArtifacts({
 
   return fetchJson<{
     artifacts: Artifact[]
-    guardIssues: GuardIssue[]
+    diagnostics: CanvasDiagnostic[]
     status?: "checking" | "ready"
     version?: number
   }>(url)
@@ -125,9 +124,7 @@ export async function fetchBlockImplementation({
   const params = new URLSearchParams({ blockId, filePath })
   return fetchJson<{
     implementationPath: string | null
-  }>(
-    `${hostApiRoutes.blockImplementation}?${params}`
-  )
+  }>(`${hostApiRoutes.blockImplementation}?${params}`)
 }
 
 export async function fetchCodexThreads() {
@@ -177,6 +174,26 @@ export async function renameArtifact({
   }>(response, hostApiRoutes.artifactRename)
 }
 
+export async function renameArtifactTitle({
+  filePath,
+  title,
+}: {
+  filePath: string
+  title: string
+}) {
+  const response = await fetch(hostApiRoutes.artifactTitle, {
+    body: JSON.stringify({ filePath, title }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  })
+  return readHostJsonResponse<{
+    filePath: string
+    title: string
+  }>(response, hostApiRoutes.artifactTitle)
+}
+
 export async function createArtifact({
   filePath,
   request,
@@ -209,7 +226,10 @@ export async function deleteArtifact({ filePath }: { filePath: string }) {
   }>(response, hostApiRoutes.artifactDelete)
 }
 
-export function artifactBundleUrl(filePath: string, version: string | number = 0) {
+export function artifactBundleUrl(
+  filePath: string,
+  version: string | number = 0
+) {
   const params = new URLSearchParams({
     filePath,
     v: String(version),

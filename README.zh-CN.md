@@ -20,7 +20,7 @@ Agent-HTML 面向的就是这一层更丰富的表达：当一个回答应该变
 
 - `agent-html` 是可移植源码工作区，agent 在这里编写 React 和 TypeScript artifacts。
 - `@agent-html/react` 提供 headless `Artifact` 和 `Block` protocol，让丰富的 HTML surface 拥有稳定、可寻址的区域。
-- Canvas host 发现 artifacts，通过 Vite 渲染，显示 guard 反馈，叠加 block 检查控件，路由 block prompts，并应用 theme presets。
+- Canvas host 发现 artifacts，通过 Vite 渲染，显示 validation diagnostics，叠加 block 检查控件，路由 block prompts，并应用 theme presets。
 - 本地 Canvas 资源让表达系统保持一致：UI primitives、hooks、helpers、schemas、fixtures、assets、semantic CSS classes、examples 和源码规则都与使用它们的 artifacts 放在一起。
 
 ## Canvas 预览
@@ -74,7 +74,7 @@ Canvas prompt routing 使用 artifact metadata、block ids、可选 implementati
 - 丰富表达：artifacts 可以组合文本、数据、布局、媒体、控件、图表和主题化呈现。
 - 聚焦修订：blocks 给 agent 和人提供稳定的反馈定位点。
 - 本地复用：Canvas 让最近的正确 primitive、hook、helper、schema、fixture 或 asset 更容易被找到。
-- 边界保护：artifact source 与 host internals、old runtime surfaces、generated bundles 和 privileged APIs 保持分离。
+- 边界校验：artifact source 与 application/host internals、generated bundles 和 privileged APIs 保持分离。
 
 ## 快速开始
 

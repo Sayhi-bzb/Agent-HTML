@@ -29,7 +29,7 @@ describe("desktop accessibility contract", () => {
     expect(titleBarSource).toContain('label="Minimize window"')
     expect(titleBarSource).toContain('"Maximize window"')
     expect(titleBarSource).toContain('label="Close window"')
-    expect(titleBarSource).toContain("aria-label={`Delete ${artifact.title}`}")
+    expect(titleBarSource).toContain("aria-label={`Delete ${displayedTitle}`}")
   })
 
   it("keeps the workspace home concise and hides an empty recent list", () => {
@@ -61,18 +61,24 @@ describe("desktop accessibility contract", () => {
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)")
   })
 
-  it("keeps hover feedback and underline on the tab title", () => {
+  it("keeps tab hover feedback free of decorative lines", () => {
+    expect(styles).toMatch(
+      /\.desktop-titlebar__artifact\[data-active\]\s*\{[^}]*color: var\(--foreground\)[^}]*\}\s*\.desktop-titlebar__artifact:hover\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
+    )
+    expect(styles).not.toMatch(
+      /\.desktop-titlebar__artifact\[data-active\]\s*\{[^}]*(?:background|border|box-shadow):/s
+    )
     expect(styles).toMatch(
       /\.desktop-titlebar__artifact:hover\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
     )
     expect(styles).not.toMatch(
       /\.desktop-titlebar__artifact:hover[^{}]*\{[^}]*background-image:/s
     )
-    expect(styles).toMatch(
-      /\.desktop-titlebar__artifact:hover \.desktop-titlebar__artifact-title\s*\{[^}]*text-decoration-line: underline[^}]*text-decoration-thickness: 1px[^}]*text-underline-offset: 0\.2em/s
+    expect(styles).not.toMatch(
+      /\.desktop-titlebar__artifact:(?:hover|focus-within)[^{]*\.desktop-titlebar__artifact-title\s*\{[^}]*text-decoration/s
     )
     expect(styles).not.toMatch(
-      /\.desktop-titlebar__artifact\[data-active\] \.desktop-titlebar__artifact-title\s*\{/
+      /\.desktop-titlebar__artifact\[data-active\][^{]*\.desktop-titlebar__artifact-title\s*\{[^}]*text-decoration/s
     )
   })
 

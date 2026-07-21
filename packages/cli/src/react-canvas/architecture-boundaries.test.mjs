@@ -15,7 +15,7 @@ describe("React Canvas architecture boundaries", { timeout: 15000 }, () => {
     expect(filesMatching("packages/kernel/src", forbidden)).toEqual([])
   })
 
-  it("keeps the CLI off app, docs, example, and legacy runtime imports", () => {
+  it("keeps the CLI off application and runtime implementation internals", () => {
     const forbidden =
       /from\s+["'](?:apps\/|@\/app\b|@\/app\/|@\/agent-html\b|@\/agent-html\/|packages\/agent-html\/|@example\b|@example\/)|Codex app-server|__agent-html\/render|new Function|transpileModule/
 

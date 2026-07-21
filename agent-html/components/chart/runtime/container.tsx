@@ -29,8 +29,7 @@ export function ChartContainer({
   children,
   className,
   config,
-  empty: legacyEmpty,
-  emptyData = legacyEmpty ?? null,
+  emptyData = null,
   emptySize = null,
   id,
   isEmpty = false,
@@ -42,8 +41,6 @@ export function ChartContainer({
   children: (bounds: ChartBounds) => React.ReactNode
   className?: string
   config: ChartConfig
-  /** @deprecated Use emptyData for data fallback or emptySize for measurement fallback. */
-  empty?: React.ReactNode
   emptyData?: React.ReactNode
   emptySize?: React.ReactNode
   id?: string

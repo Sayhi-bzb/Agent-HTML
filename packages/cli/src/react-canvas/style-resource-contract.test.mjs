@@ -82,7 +82,7 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
       "--font-heading: var(--font-heading)"
     )
     expect(playgroundTailwindTokens).toContain("--color-background")
-    expect(playgroundTailwindTokens).toContain("--color-sidebar")
+    expect(playgroundTailwindTokens).toContain("--color-canvas-host-sidebar")
     expect(playgroundTailwindTokens).toContain(
       "--color-success: var(--success)"
     )
@@ -158,8 +158,8 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundFoundationTokens).toContain("/* Theme primitives */")
     expect(playgroundFoundationTokens).toContain("/* Status primitives */")
     expect(playgroundFoundationTokens).toContain("/* Chart primitives */")
-    expect(playgroundFoundationTokens).toContain(
-      "/* Shadcn compatibility aliases */"
+    expect(playgroundFoundationTokens).not.toContain(
+      "--canvas-host-sidebar"
     )
     expect(playgroundFoundationTokens).toContain(
       "/* Canvas base affordances */"

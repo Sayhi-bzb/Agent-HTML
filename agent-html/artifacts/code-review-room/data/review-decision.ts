@@ -109,7 +109,7 @@ export const reviewChecks = [
   "Artifact and Block usage stays inside @agent-html/react protocol",
   "Block files import artifact-local data instead of defining large arrays",
   "No artifact imports Canvas host internals or app-server APIs",
-  "canvas:typecheck, canvas:guard, canvas:index:check, and canvas:deps stay green",
+  "canvas:validate, canvas:typecheck, and canvas:index:check stay green",
 ]
 
 export const releaseRoutes = [

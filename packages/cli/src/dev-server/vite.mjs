@@ -7,6 +7,11 @@ import { fileURLToPath } from "node:url"
 
 import react from "@vitejs/plugin-react"
 import { createServer as createViteServer } from "vite"
+import {
+  canvasRuntimeDependencyNames,
+  canvasWorkspaceDependenciesMatchCatalog,
+} from "@agent-html/kernel"
+import { inspectArtifactEntry } from "@agent-html/kernel/validate"
 
 import {
   hostRoot,
@@ -20,7 +25,6 @@ import {
   packageNameFromImport,
   RUNTIME_DEPENDENCY_CONTRACT_VERSION,
 } from "./runtime-dependency-contract.mjs"
-import { collectStaticBlockMetadata } from "../react-canvas/block-tags.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
 
 export const hostEntryModulePath = "/__agent-html/host-entry.js"
@@ -45,7 +49,15 @@ export function createHostEntryModule({ pipeline = "codex" } = {}) {
 export async function createArtifactEntryModule({ filePath, root }) {
   const artifactPath = toViteFsPath(path.resolve(root, filePath))
   const artifactSource = await fs.readFile(path.resolve(root, filePath), "utf8")
-  const blocks = collectStaticBlockMetadata(artifactSource)
+  const inspection = inspectArtifactEntry({ filePath, source: artifactSource })
+  if (inspection.diagnostics.length > 0) {
+    throw new Error(
+      inspection.diagnostics
+        .map((diagnostic) => `${diagnostic.code}: ${diagnostic.message}`)
+        .join("\n")
+    )
+  }
+  const blocks = inspection.metadata.blocks
   const componentEntries = await Promise.all(
     blocks.map(async (block, index) => {
       const implementationPath = await resolveBlockImplementationPath({
@@ -260,13 +272,13 @@ const canonicalRendererPackages = new Set([
   "react-dom",
 ])
 
-function readDependencyNames(packagePath) {
+function readDependencies(packagePath) {
   if (!existsSync(packagePath)) {
-    return []
+    return {}
   }
 
   const manifest = JSON.parse(readFileSync(packagePath, "utf8"))
-  return Object.keys(manifest.dependencies ?? {})
+  return manifest.dependencies ?? {}
 }
 
 export function readRuntimeDependencyContract(
@@ -327,14 +339,19 @@ export function createPlaygroundDependencyResolver(
     return null
   }
 
-  const workspaceDependencies = readDependencyNames(playgroundPackagePath)
-  const dependencyNames = new Set(runtimeContract.canvasDependencies)
-  const undeclaredRuntimeDependencies = workspaceDependencies.filter(
-    (dependencyName) => !dependencyNames.has(dependencyName)
-  )
-  if (undeclaredRuntimeDependencies.length > 0) {
+  const workspaceDependencies = readDependencies(playgroundPackagePath)
+  if (!canvasWorkspaceDependenciesMatchCatalog(workspaceDependencies)) {
     throw new Error(
-      `Canvas runtime does not provide declared dependencies: ${undeclaredRuntimeDependencies.join(", ")}`
+      "Canvas workspace dependencies differ from the Kernel runtime catalog; update to the 0.3 Canvas template"
+    )
+  }
+  const dependencyNames = new Set(runtimeContract.canvasDependencies)
+  if (
+    canvasRuntimeDependencyNames.some((dependencyName) => !dependencyNames.has(dependencyName)) ||
+    dependencyNames.size !== canvasRuntimeDependencyNames.length
+  ) {
+    throw new Error(
+      "Canvas runtime dependency contract differs from the Kernel runtime catalog"
     )
   }
   const missingDependencies = [...dependencyNames].filter(

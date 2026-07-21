@@ -4,13 +4,11 @@ import {
   deleteArtifact,
   fetchArtifacts,
   renameArtifact,
+  renameArtifactTitle,
 } from "../api/api"
 import { readCanvasHostPreferences } from "../preferences/canvas-host-preferences"
 import { resolveArtifactRefreshState } from "./artifact-refresh-state"
-import type {
-  Artifact,
-  GuardIssue,
-} from "../host-contracts"
+import type { Artifact, CanvasDiagnostic } from "../host-contracts"
 
 export const artifactsUpdatedEventName = "agent-html:artifacts-updated"
 export const pendingArtifactPollFailureLimit = 3
@@ -52,7 +50,6 @@ export function startPendingArtifactPolling({
     clearIntervalFn ?? globalThis.clearInterval.bind(globalThis)
   let consecutiveFailures = 0
   let stopped = false
-  let intervalId: ReturnType<typeof globalThis.setInterval>
   const stop = () => {
     if (stopped) {
       return
@@ -107,7 +104,7 @@ export function startPendingArtifactPolling({
   }
 
   runRefresh()
-  intervalId = scheduleInterval(runRefresh, intervalMs)
+  const intervalId = scheduleInterval(runRefresh, intervalMs)
 
   return stop
 }
@@ -143,10 +140,13 @@ export function useArtifactRegistry({
   onSelectArtifactMode: () => void
   pendingFilePath: string | null
 }) {
-  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(null)
+  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(
+    null
+  )
   const [artifacts, setArtifacts] = React.useState<Artifact[]>([])
-  const [artifactRegistryVersion, setArtifactRegistryVersion] = React.useState(0)
-  const [guardIssues, setGuardIssues] = React.useState<GuardIssue[]>([])
+  const [artifactRegistryVersion, setArtifactRegistryVersion] =
+    React.useState(0)
+  const [diagnostics, setDiagnostics] = React.useState<CanvasDiagnostic[]>([])
   const [artifactsLoading, setArtifactsLoading] = React.useState(true)
   const [loadError, setLoadError] = React.useState<string | null>(null)
   const activeFilePathRef = React.useRef<string | null>(null)
@@ -155,44 +155,50 @@ export function useArtifactRegistry({
     artifacts.find((artifact) => artifact.filePath === activeFilePath) ??
     artifacts[0] ??
     null
-  const resolvedActiveFilePath = activeFilePath ?? activeArtifact?.filePath ?? null
-  const activeIssues = resolvedActiveFilePath
-    ? guardIssues.filter((issue) => issue.filePath === resolvedActiveFilePath)
+  const resolvedActiveFilePath =
+    activeFilePath ?? activeArtifact?.filePath ?? null
+  const activeDiagnostics = resolvedActiveFilePath
+    ? diagnostics.filter(
+        (diagnostic) => diagnostic.filePath === resolvedActiveFilePath
+      )
     : []
 
   activeFilePathRef.current = activeFilePath
 
-  const refreshArtifacts = React.useCallback(async ({
-    currentFilePath = activeFilePathRef.current,
-    forceRefresh = false,
-  }: {
-    currentFilePath?: string | null
-    forceRefresh?: boolean
-  } = {}) => {
-    try {
-      const data = await fetchArtifacts({ refresh: forceRefresh })
-      const refreshState = resolveArtifactRefreshState({
-        artifacts: data.artifacts ?? [],
-        currentFilePath,
-        pendingFilePath,
-        storedFilePath: readCanvasHostPreferences({
-          artifacts: data.artifacts,
-        }).activeFilePath,
-      })
+  const refreshArtifacts = React.useCallback(
+    async ({
+      currentFilePath = activeFilePathRef.current,
+      forceRefresh = false,
+    }: {
+      currentFilePath?: string | null
+      forceRefresh?: boolean
+    } = {}) => {
+      try {
+        const data = await fetchArtifacts({ refresh: forceRefresh })
+        const refreshState = resolveArtifactRefreshState({
+          artifacts: data.artifacts ?? [],
+          currentFilePath,
+          pendingFilePath,
+          storedFilePath: readCanvasHostPreferences({
+            artifacts: data.artifacts,
+          }).activeFilePath,
+        })
 
-      setArtifacts(data.artifacts ?? [])
-      setArtifactRegistryVersion(data.version ?? 0)
-      setGuardIssues(data.guardIssues ?? [])
-      setLoadError(null)
-      setActiveFilePath(refreshState.activeFilePath)
+        setArtifacts(data.artifacts ?? [])
+        setArtifactRegistryVersion(data.version ?? 0)
+        setDiagnostics(data.diagnostics ?? [])
+        setLoadError(null)
+        setActiveFilePath(refreshState.activeFilePath)
 
-      if (refreshState.pendingReady) {
-        onPendingArtifactReady()
+        if (refreshState.pendingReady) {
+          onPendingArtifactReady()
+        }
+      } finally {
+        setArtifactsLoading(false)
       }
-    } finally {
-      setArtifactsLoading(false)
-    }
-  }, [onPendingArtifactReady, pendingFilePath])
+    },
+    [onPendingArtifactReady, pendingFilePath]
+  )
 
   React.useEffect(() => {
     void refreshArtifacts().catch((refreshError: unknown) => {
@@ -245,42 +251,61 @@ export function useArtifactRegistry({
     })
   }, [onPendingArtifactFailure, pendingFilePath, refreshArtifacts])
 
-  const selectArtifact = React.useCallback((filePath: string) => {
-    onSelectArtifactMode()
-    setActiveFilePath(filePath)
-  }, [onSelectArtifactMode])
+  const selectArtifact = React.useCallback(
+    (filePath: string) => {
+      onSelectArtifactMode()
+      setActiveFilePath(filePath)
+    },
+    [onSelectArtifactMode]
+  )
 
-  const renameExistingArtifact = React.useCallback(async ({
-    filePath,
-    nextFileName,
-  }: {
-    filePath: string
-    nextFileName: string
-  }) => {
-    const renamed = await renameArtifact({ filePath, nextFileName })
-    onSelectArtifactMode()
-    setActiveFilePath(renamed.filePath)
-    await refreshArtifacts({ currentFilePath: renamed.filePath })
-  }, [onSelectArtifactMode, refreshArtifacts])
+  const renameExistingArtifact = React.useCallback(
+    async ({
+      filePath,
+      nextFileName,
+    }: {
+      filePath: string
+      nextFileName: string
+    }) => {
+      const renamed = await renameArtifact({ filePath, nextFileName })
+      onSelectArtifactMode()
+      setActiveFilePath(renamed.filePath)
+      await refreshArtifacts({ currentFilePath: renamed.filePath })
+    },
+    [onSelectArtifactMode, refreshArtifacts]
+  )
 
-  const deleteExistingArtifact = React.useCallback(async (filePath: string) => {
-    await deleteArtifact({ filePath })
-    setActiveFilePath((current) => (current === filePath ? null : current))
-    await refreshArtifacts()
-  }, [refreshArtifacts])
+  const renameExistingArtifactTitle = React.useCallback(
+    async ({ filePath, title }: { filePath: string; title: string }) => {
+      const renamed = await renameArtifactTitle({ filePath, title })
+      await refreshArtifacts({ currentFilePath: activeFilePathRef.current })
+      return renamed
+    },
+    [refreshArtifacts]
+  )
+
+  const deleteExistingArtifact = React.useCallback(
+    async (filePath: string) => {
+      await deleteArtifact({ filePath })
+      setActiveFilePath((current) => (current === filePath ? null : current))
+      await refreshArtifacts()
+    },
+    [refreshArtifacts]
+  )
 
   return {
     activeArtifact,
     activeFilePath,
-    activeIssues,
+    activeDiagnostics,
     artifactRegistryVersion,
     artifacts,
     artifactsLoading,
     deleteExistingArtifact,
-    guardIssues,
+    diagnostics,
     loadError,
     refreshArtifacts,
     renameExistingArtifact,
+    renameExistingArtifactTitle,
     resolvedActiveFilePath,
     selectArtifact,
   }
