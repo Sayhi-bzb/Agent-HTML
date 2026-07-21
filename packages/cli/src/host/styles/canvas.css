@@ -15,11 +15,6 @@
   outline-offset: -2px;
 }
 
-.canvas-workspace[data-space-pan] .react-flow__node,
-.canvas-workspace[data-space-pan] .react-flow__resize-control {
-  pointer-events: none !important;
-}
-
 .canvas-workspace[data-space-pan] .react-flow__pane {
   cursor: grab;
 }

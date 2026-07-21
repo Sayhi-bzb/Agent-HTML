@@ -88,6 +88,10 @@ body {
   min-width: 0;
 }
 
+.desktop-titlebar__drag-space--navigation {
+  flex: 1 1 auto;
+}
+
 .desktop-titlebar__navigation {
   align-items: stretch;
   display: flex;
@@ -353,6 +357,7 @@ body {
 }
 
 .desktop-titlebar__tab[data-active] {
+  background: var(--canvas-workspace-tab-active-background);
   color: var(--foreground);
 }
 

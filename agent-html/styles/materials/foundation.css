@@ -71,6 +71,11 @@
   --shadow-2xl: 0px 16px 24px -1px rgb(0 0 0 / 0.16);
 
   /* Canvas base affordances */
+  --canvas-workspace-tab-active-background: color-mix(
+    in oklab,
+    var(--accent) 70%,
+    var(--background)
+  );
   --canvas-text-selection-background: color-mix(
     in oklab,
     var(--primary) 18%,

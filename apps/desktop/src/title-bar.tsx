@@ -906,6 +906,12 @@ export function DesktopTitleBar({
           >
             <Plus aria-hidden="true" />
           </button>
+          <div
+            aria-hidden="true"
+            className="desktop-titlebar__drag-space desktop-titlebar__drag-space--navigation"
+            onDoubleClick={handleDoubleClick}
+            onMouseDown={handleDragStart}
+          />
         </nav>
       ) : null}
       <div

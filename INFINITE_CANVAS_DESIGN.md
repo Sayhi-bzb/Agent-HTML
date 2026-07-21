@@ -96,7 +96,7 @@ Canvas intent + layout state
        @xyflow/react
 ```
 
-The Canonical Store is the product model. The React Flow adapter projects its Nodes into the viewport and translates selection, movement, and resize interactions back into layout transactions. React Flow supplies the initial viewport and interaction foundation without defining Canvas source, persistence, or public record types.
+The Canonical Store is the product model. The React Flow adapter projects its Nodes into the viewport and translates selection, movement, and resize interactions back into layout transactions. `@use-gesture/react` normalizes Host pan input while React Flow owns viewport coordinates and zoom. Neither defines Canvas source, persistence, or public record types.
 
 ## Interaction Contract
 
@@ -145,7 +145,7 @@ The same route provides cold inspection before a Canvas renders by extracting st
 
 The Canvas surface runs beside the current Artifact surface. It supports position, size, parent-local placement, viewport state, direct interaction with React content, and persisted move/resize/viewport results. Canvas structure continues to come from TSX while the UI changes layout geometry. The performance baseline is 1,000 total Nodes with up to 100 visible Nodes.
 
-`@xyflow/react` is private Host infrastructure. Public Canvas records contain no React Flow types. The Host keeps one Canonical Store per selected Canvas, preserves it across source HMR, and hydrates the colocated layout after restart. The Desktop navigation snapshot carries Artifact and Canvas entries.
+`@xyflow/react` and `@use-gesture/react` are private Host infrastructure. Public Canvas records contain no library types. The Host keeps one Canonical Store per selected Canvas, preserves it across source HMR, and hydrates the colocated layout after restart. The Desktop navigation snapshot carries Artifact and Canvas entries.
 
 Implementation owners:
 

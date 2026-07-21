@@ -1,35 +1,40 @@
 {
-  "version": 2,
   "nodes": {
     "planning-space": {
-      "x": 0,
-      "y": 0,
+      "height": 610,
       "width": 920,
-      "height": 610
+      "x": 0,
+      "y": 0
     },
     "intake": {
-      "x": 28,
-      "y": 68,
+      "height": 500,
       "width": 360,
-      "height": 500
+      "x": 28,
+      "y": 68
     },
     "activity": {
-      "x": 416,
-      "y": 68,
+      "height": 500,
       "width": 476,
-      "height": 500
+      "x": 416,
+      "y": 68
     },
     "throughput": {
-      "x": 1040,
-      "y": 40,
+      "height": 390,
       "width": 560,
-      "height": 390
+      "x": 1040,
+      "y": 40
     },
     "decision": {
-      "x": 1700,
-      "y": 112,
+      "height": 260,
       "width": 380,
-      "height": 260
+      "x": 1700,
+      "y": 112
     }
-  }
+  },
+  "viewport": {
+    "x": 110,
+    "y": 257.49278846153845,
+    "zoom": 0.5918269230769231
+  },
+  "version": 2
 }

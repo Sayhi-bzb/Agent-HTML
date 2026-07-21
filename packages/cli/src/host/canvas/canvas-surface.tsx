@@ -43,14 +43,12 @@ import {
   isCanvasShortcutBlocked,
   resolveCanvasShortcut,
 } from "./canvas-shortcuts"
-import {
-  createCanvasWheelPanController,
-  isCanvasSpaceKey,
-  isCanvasWheelPanBlocked,
-  shouldActivateCanvasSpacePan,
-  type CanvasWheelPanController,
-} from "./canvas-pan"
 import type { CanvasStore } from "./canvas-store"
+import {
+  isCanvasSpaceKey,
+  shouldActivateCanvasSpacePan,
+  useCanvasPanGestures,
+} from "./use-canvas-pan-gestures"
 
 type CanvasModule = {
   default: React.ComponentType
@@ -110,10 +108,7 @@ function CanvasNodeShell({ data, id, selected }: NodeProps<CanvasFlowNode>) {
       >
         <span>{title ?? id}</span>
       </HostButton>
-      <div
-        className="canvas-node-content nodrag nowheel nopan"
-        ref={setTarget}
-      />
+      <div className="canvas-node-content nodrag nowheel" ref={setTarget} />
     </div>
   )
 }
@@ -294,11 +289,7 @@ function CanvasWorkspace({
   const reactFlowRef = React.useRef<ReactFlowInstance<CanvasFlowNode> | null>(
     null
   )
-  const wheelPanControllerRef = React.useRef<CanvasWheelPanController | null>(
-    null
-  )
-  const [reactFlowElement, setReactFlowElement] =
-    React.useState<HTMLDivElement | null>(null)
+  const reactFlowElementRef = React.useRef<HTMLDivElement>(null)
   const [spacePanActive, setSpacePanActive] = React.useState(false)
   const [selectedNodeIds, setSelectedNodeIds] = React.useState<Set<string>>(
     () => new Set()
@@ -339,48 +330,16 @@ function CanvasWorkspace({
       window.removeEventListener("blur", resetSpacePan)
     }
   }, [])
-  React.useEffect(() => {
-    if (!reactFlowElement) return
-    const controller = createCanvasWheelPanController({
-      applyViewport: (viewport) => {
-        void reactFlowRef.current?.setViewport(viewport)
-      },
-      cancelFrame: (handle) => window.cancelAnimationFrame(handle),
-      cancelGestureEnd: (handle) => window.clearTimeout(handle),
-      getViewport: () =>
-        reactFlowRef.current?.getViewport() ?? { x: 0, y: 0, zoom: 1 },
-      onGestureEnd: (viewport) => persister.commitViewport(viewport),
-      requestFrame: (callback) => window.requestAnimationFrame(callback),
-      scheduleGestureEnd: (callback, delay) =>
-        window.setTimeout(callback, delay),
-    })
-    wheelPanControllerRef.current = controller
-    const handleWheel = (event: WheelEvent) => {
-      if (
-        event.ctrlKey ||
-        event.metaKey ||
-        isCanvasWheelPanBlocked(event.target)
-      ) {
-        controller.finish()
-        return
-      }
-      if (!controller.pan(event.deltaX, event.deltaY, event.deltaMode)) return
-      event.preventDefault()
-      event.stopImmediatePropagation()
-    }
-
-    reactFlowElement.addEventListener("wheel", handleWheel, {
-      capture: true,
-      passive: false,
-    })
-    return () => {
-      reactFlowElement.removeEventListener("wheel", handleWheel, true)
-      controller.dispose()
-      if (wheelPanControllerRef.current === controller) {
-        wheelPanControllerRef.current = null
-      }
-    }
-  }, [persister, reactFlowElement])
+  const panGestureActiveRef = useCanvasPanGestures({
+    applyViewport: (viewport) => {
+      void reactFlowRef.current?.setViewport(viewport)
+    },
+    getViewport: () =>
+      reactFlowRef.current?.getViewport() ?? { x: 0, y: 0, zoom: 1 },
+    onGestureEnd: (viewport) => persister.commitViewport(viewport),
+    spacePanActive,
+    target: reactFlowElementRef,
+  })
   const inspectionPublisher = React.useMemo(
     () => createCanvasInspectionPublisher({ store }),
     [store]
@@ -567,7 +526,7 @@ function CanvasWorkspace({
             reactFlowRef.current = instance
           }}
           onMoveEnd={(_event, viewport) => {
-            if (wheelPanControllerRef.current?.isActive()) return
+            if (panGestureActiveRef.current) return
             persister.commitViewport(viewport)
           }}
           onNodeDragStop={(_event, node) => persister.commit([node.id])}
@@ -576,8 +535,8 @@ function CanvasWorkspace({
             snapshot.nodes.length
           )}
           panActivationKeyCode={null}
-          panOnDrag={spacePanActive ? [0, 1] : [1]}
-          ref={setReactFlowElement}
+          panOnDrag={[1]}
+          ref={reactFlowElementRef}
           selectionKeyCode={null}
           selectionOnDrag
           tabIndex={0}

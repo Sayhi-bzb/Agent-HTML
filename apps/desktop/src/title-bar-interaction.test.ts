@@ -149,18 +149,35 @@ describe("desktop title bar interactions", () => {
   it("starts window actions only from the dedicated drag region", async () => {
     await renderTitleBar({})
 
-    const dragRegion = container.querySelector<HTMLElement>(
-      ".desktop-titlebar__drag-space"
+    const navigationDragRegion = container.querySelector<HTMLElement>(
+      ".desktop-titlebar__drag-space--navigation"
     )
-    expect(dragRegion).not.toBeNull()
+    const headerDragRegion = Array.from(
+      container.querySelectorAll<HTMLElement>(".desktop-titlebar__drag-space")
+    ).find(
+      (region) =>
+        !region.classList.contains("desktop-titlebar__drag-space--navigation")
+    )
+    expect(navigationDragRegion).not.toBeNull()
+    expect(headerDragRegion).toBeDefined()
 
-    dragRegion!.dispatchEvent(
+    for (const dragRegion of [navigationDragRegion!, headerDragRegion!]) {
+      dragRegion.dispatchEvent(
+        new MouseEvent("mousedown", { bubbles: true, button: 0, detail: 1 })
+      )
+      dragRegion.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }))
+    }
+
+    const newArtifact = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="New Artifact"]'
+    )
+    expect(newArtifact).not.toBeNull()
+    newArtifact!.dispatchEvent(
       new MouseEvent("mousedown", { bubbles: true, button: 0, detail: 1 })
     )
-    dragRegion!.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }))
 
-    expect(windowControls.startDragging).toHaveBeenCalledOnce()
-    expect(windowControls.toggleMaximize).toHaveBeenCalledOnce()
+    expect(windowControls.startDragging).toHaveBeenCalledTimes(2)
+    expect(windowControls.toggleMaximize).toHaveBeenCalledTimes(2)
   })
 
   it.each([

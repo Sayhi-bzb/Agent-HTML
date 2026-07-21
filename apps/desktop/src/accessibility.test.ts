@@ -19,6 +19,13 @@ const styles = fs.readFileSync(
   path.resolve(import.meta.dirname, "styles.css"),
   "utf8"
 )
+const foundationStyles = fs.readFileSync(
+  path.resolve(
+    import.meta.dirname,
+    "../../../agent-html/styles/materials/foundation.css"
+  ),
+  "utf8"
+)
 
 describe("desktop accessibility contract", () => {
   it("names frames, icon-only controls, status, and recovery", () => {
@@ -153,12 +160,12 @@ describe("desktop accessibility contract", () => {
     )
   })
 
-  it("keeps tab hover feedback free of decorative lines", () => {
+  it("keeps tab state feedback free of decorative lines", () => {
     expect(styles).toMatch(
-      /\.desktop-titlebar__tab\[data-active\]\s*\{[^}]*color: var\(--foreground\)[^}]*\}\s*\.desktop-titlebar__tab:hover\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
+      /\.desktop-titlebar__tab\[data-active\]\s*\{[^}]*background: var\(--canvas-workspace-tab-active-background\)[^}]*color: var\(--foreground\)[^}]*\}\s*\.desktop-titlebar__tab:hover\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
     )
     expect(styles).not.toMatch(
-      /\.desktop-titlebar__tab\[data-active\]\s*\{[^}]*(?:background|border|box-shadow):/s
+      /\.desktop-titlebar__tab\[data-active\]\s*\{[^}]*(?:border|box-shadow):/s
     )
     expect(styles).toMatch(
       /\.desktop-titlebar__tab:hover\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
@@ -241,6 +248,27 @@ describe("desktop accessibility contract", () => {
     )
     expect(styles).toMatch(
       /\.desktop-titlebar__tab-input\s*\{[^}]*box-sizing: border-box[^}]*min-width: 0[^}]*width: calc\(100% - 2 \* var\(--canvas-desktop-space-1\)\)/s
+    )
+  })
+
+  it("fills navigation whitespace with a dedicated drag region", () => {
+    expect(titleBarSource).toContain(
+      'className="desktop-titlebar__drag-space desktop-titlebar__drag-space--navigation"'
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__drag-space--navigation\s*\{[^}]*flex: 1 1 auto/s
+    )
+  })
+
+  it("gives the active workspace tab a subtle semantic background", () => {
+    expect(foundationStyles).toMatch(
+      /--canvas-workspace-tab-active-background:\s*color-mix\(\s*in oklab,\s*var\(--accent\) 70%,\s*var\(--background\)\s*\)/s
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__tab\[data-active\]\s*\{[^}]*background: var\(--canvas-workspace-tab-active-background\)[^}]*color: var\(--foreground\)/s
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__tab:hover\s*\{[^}]*background: var\(--accent\)/s
     )
   })
 })
