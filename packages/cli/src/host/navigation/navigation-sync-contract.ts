@@ -1,4 +1,9 @@
 import type { CanvasThemeMode } from "../theme/theme-sync-contract"
+import {
+  readWorkspaceTabSession,
+  type WorkspaceTabSession,
+  type WorkspaceTabTarget,
+} from "./workspace-tabs"
 
 export const canvasNavigationSnapshotMessageType =
   "agent-html:canvas-navigation-snapshot"
@@ -8,7 +13,7 @@ export const canvasNavigationCommandMessageType =
   "agent-html:canvas-navigation-command"
 export const artifactTitleRenameResultMessageType =
   "agent-html:artifact-title-rename-result"
-export const canvasNavigationSnapshotVersion = 1
+export const canvasNavigationSnapshotVersion = 2
 
 export type CanvasNavigationArtifact = {
   filePath: string
@@ -17,6 +22,11 @@ export type CanvasNavigationArtifact = {
 
 export type CanvasNavigationCanvas = {
   filePath: string
+  title: string
+}
+
+export type CanvasNavigationThread = {
+  id: string
   title: string
 }
 
@@ -33,10 +43,16 @@ export type CanvasNavigationSnapshot = {
   codexThreadManagerActive?: boolean
   createArtifactActive: boolean
   leftSidebarOpen: boolean
+  tabSession: WorkspaceTabSession
+  threads: CanvasNavigationThread[]
+  threadsLoading: boolean
   version: typeof canvasNavigationSnapshotVersion
 }
 
 export type CanvasNavigationCommand =
+  | { tab: WorkspaceTabTarget; type: "open-tab" }
+  | { tabId: string; type: "activate-tab" }
+  | { tabId: string; type: "close-tab" }
   | { filePath: string; type: "select-artifact" }
   | { filePath: string; type: "select-canvas" }
   | { filePath: string; type: "request-delete-artifact" }
@@ -62,6 +78,7 @@ export type CanvasNavigationSnapshotMessage = {
 
 export type CanvasNavigationRequestMessage = {
   requestId: string
+  session?: WorkspaceTabSession
   type: typeof canvasNavigationRequestMessageType
   version: typeof canvasNavigationSnapshotVersion
 }
@@ -93,6 +110,7 @@ export type ArtifactTitleRenameResultMessage = {
 }
 
 const maximumArtifactCount = 1_000
+const maximumThreadCount = 1_000
 const maximumFilePathLength = 4_096
 const maximumTitleLength = 512
 const maximumErrorLength = 2_048
@@ -130,6 +148,35 @@ function readArtifact(value: unknown): CanvasNavigationArtifact | null {
   return { filePath, title: value.title }
 }
 
+function readThread(value: unknown): CanvasNavigationThread | null {
+  if (!isRecord(value)) return null
+  const id = readFilePath(value.id)
+  if (
+    !id ||
+    typeof value.title !== "string" ||
+    value.title.length === 0 ||
+    value.title.length > maximumTitleLength ||
+    value.title !== value.title.trim()
+  ) {
+    return null
+  }
+  return { id, title: value.title }
+}
+
+function readWorkspaceTabTarget(value: unknown): WorkspaceTabTarget | null {
+  if (!isRecord(value)) return null
+  if (value.kind === "thread-manager") return { kind: "thread-manager" }
+  if (value.kind === "artifact" || value.kind === "canvas") {
+    const filePath = readFilePath(value.filePath)
+    return filePath ? { filePath, kind: value.kind } : null
+  }
+  if (value.kind === "thread") {
+    const threadId = readFilePath(value.threadId)
+    return threadId ? { kind: "thread", threadId } : null
+  }
+  return null
+}
+
 const readCanvas = readArtifact
 
 function isCanvasNavigationLanguage(
@@ -145,10 +192,12 @@ export function createCanvasNavigationSnapshotMessage(
 }
 
 export function createCanvasNavigationRequestMessage(
-  requestId: string
+  requestId: string,
+  session?: WorkspaceTabSession
 ): CanvasNavigationRequestMessage {
   return {
     requestId,
+    ...(session ? { session } : {}),
     type: canvasNavigationRequestMessageType,
     version: canvasNavigationSnapshotVersion,
   }
@@ -185,6 +234,9 @@ export function readCanvasNavigationSnapshot(
     (value.canvases !== undefined && !Array.isArray(value.canvases)) ||
     (Array.isArray(value.canvases) &&
       value.canvases.length > maximumArtifactCount) ||
+    !Array.isArray(value.threads) ||
+    value.threads.length > maximumThreadCount ||
+    typeof value.threadsLoading !== "boolean" ||
     typeof value.artifactsLoading !== "boolean" ||
     (value.canvasesLoading !== undefined &&
       typeof value.canvasesLoading !== "boolean") ||
@@ -220,6 +272,27 @@ export function readCanvasNavigationSnapshot(
     }
     canvases.push(canvas)
     canvasFilePaths.add(canvas.filePath)
+  }
+
+  const threads: CanvasNavigationThread[] = []
+  const threadIds = new Set<string>()
+  for (const valueThread of value.threads) {
+    const thread = readThread(valueThread)
+    if (!thread || threadIds.has(thread.id)) return null
+    threads.push(thread)
+    threadIds.add(thread.id)
+  }
+
+  const tabSession = readWorkspaceTabSession(value.tabSession)
+  if (!tabSession) return null
+  if (
+    tabSession.tabs.some(
+      (tab) =>
+        (tab.kind === "artifact" && !filePaths.has(tab.filePath)) ||
+        (tab.kind === "canvas" && !canvasFilePaths.has(tab.filePath))
+    )
+  ) {
+    return null
   }
 
   const activeFilePath =
@@ -271,6 +344,9 @@ export function readCanvasNavigationSnapshot(
       : { codexThreadManagerActive: value.codexThreadManagerActive }),
     createArtifactActive: value.createArtifactActive,
     leftSidebarOpen: value.leftSidebarOpen,
+    tabSession,
+    threads,
+    threadsLoading: value.threadsLoading,
     version: canvasNavigationSnapshotVersion,
   }
 }
@@ -297,7 +373,13 @@ export function readCanvasNavigationRequestMessage(
   ) {
     return null
   }
-  return createCanvasNavigationRequestMessage(value.requestId)
+  const session =
+    value.session === undefined
+      ? undefined
+      : (readWorkspaceTabSession(value.session) ?? null)
+  return session === null
+    ? null
+    : createCanvasNavigationRequestMessage(value.requestId, session)
 }
 
 export function readCanvasNavigationCommandMessage(
@@ -313,6 +395,18 @@ export function readCanvasNavigationCommandMessage(
   }
 
   const command = value.command
+  if (command.type === "open-tab") {
+    const tab = readWorkspaceTabTarget(command.tab)
+    return tab
+      ? createCanvasNavigationCommandMessage({ tab, type: "open-tab" })
+      : null
+  }
+  if (command.type === "activate-tab" || command.type === "close-tab") {
+    const tabId = readFilePath(command.tabId)
+    return tabId
+      ? createCanvasNavigationCommandMessage({ tabId, type: command.type })
+      : null
+  }
   if (command.type === "create-artifact") {
     return createCanvasNavigationCommandMessage({ type: "create-artifact" })
   }

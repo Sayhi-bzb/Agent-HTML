@@ -228,6 +228,38 @@ try {
     )
   }
 
+  await waitFor(
+    () =>
+      execute(
+        "return Boolean(document.querySelector('button[aria-label=\"Agent menu\"]'))"
+      ),
+    "Agent menu trigger"
+  )
+  await click("css selector", "button[aria-label='Agent menu']")
+  await waitFor(
+    () => execute("return Boolean(document.querySelector('[role=menu]'))"),
+    "open Agent menu"
+  )
+  await click(
+    "xpath",
+    "//*[@role='menuitem'][.//span[normalize-space(.)='New thread']]"
+  )
+  await waitFor(
+    () =>
+      execute(
+        "return Boolean(document.querySelector('.desktop-titlebar__artifact[data-kind=\"threads\"][data-active]'))"
+      ),
+    "Threads surface navigation"
+  )
+  await click("css selector", "button[aria-label='Close Threads']")
+  await waitFor(
+    () =>
+      execute(
+        "return !document.querySelector('.desktop-titlebar__artifact[data-kind=\"threads\"]')"
+      ),
+    "close Threads surface"
+  )
+
   const runtimeProcess = execFileSync("ps", ["-eo", "pid=,args="], {
     encoding: "utf8",
   })

@@ -1,4 +1,5 @@
 import { saveCanvasLayoutPatch } from "../api/api"
+import type { CanvasViewport } from "@agent-html/kernel"
 import type { CanvasStore } from "./canvas-store"
 
 export type PersistCanvasLayoutNodes = (nodeIds: readonly string[]) => void
@@ -20,6 +21,7 @@ export function createLayoutPersister({
   let timer: ReturnType<typeof setTimeout> | null = null
   const pendingNodeIds = new Set<string>()
   const pendingRemovedNodeIds = new Set<string>()
+  let pendingViewport: CanvasViewport | undefined
 
   const markPending = (nodeIds: readonly string[]) => {
     for (const nodeId of nodeIds) pendingNodeIds.add(nodeId)
@@ -36,17 +38,31 @@ export function createLayoutPersister({
     ].filter((nodeId) => !activeNodeIds.has(nodeId))
     pendingRemovedNodeIds.clear()
     const layout = store.getLayout()
+    const viewport = pendingViewport
+    pendingViewport = undefined
     const nodes = Object.fromEntries(
       nodeIds.flatMap((nodeId) => {
         const geometry = layout.nodes[nodeId]
         return geometry ? [[nodeId, geometry]] : []
       })
     )
-    if (Object.keys(nodes).length === 0 && removedNodeIds.length === 0) return
+    if (
+      Object.keys(nodes).length === 0 &&
+      removedNodeIds.length === 0 &&
+      !viewport
+    )
+      return
 
     saveQueue = saveQueue
       .catch(() => undefined)
-      .then(() => save({ filePath, nodes, removedNodeIds }))
+      .then(() =>
+        save({
+          filePath,
+          nodes,
+          removedNodeIds,
+          ...(viewport ? { viewport } : {}),
+        })
+      )
       .then(
         () => {
           const activeAfterSave = new Set(
@@ -70,6 +86,8 @@ export function createLayoutPersister({
           for (const nodeId of removedNodeIds) {
             pendingRemovedNodeIds.add(nodeId)
           }
+          pendingViewport =
+            pendingViewport ?? store.getSnapshot().viewport ?? viewport
           onPersistError(error instanceof Error ? error.message : String(error))
         }
       )
@@ -78,6 +96,13 @@ export function createLayoutPersister({
   return {
     commit(nodeIds: readonly string[]) {
       markPending(nodeIds)
+      if (timer) clearTimeout(timer)
+      timer = null
+      persist()
+    },
+    commitViewport(viewport: CanvasViewport) {
+      store.setViewport(viewport)
+      pendingViewport = viewport
       if (timer) clearTimeout(timer)
       timer = null
       persist()

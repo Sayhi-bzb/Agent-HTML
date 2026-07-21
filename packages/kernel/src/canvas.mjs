@@ -1,4 +1,4 @@
-export const CANVAS_LAYOUT_VERSION = 1
+export const CANVAS_LAYOUT_VERSION = 2
 export const DEFAULT_CANVAS_NODE_WIDTH = 320
 export const DEFAULT_CANVAS_NODE_HEIGHT = 180
 export const DEFAULT_CANVAS_NODE_GAP = 48
@@ -34,6 +34,22 @@ function readFiniteNumber(value, field) {
   return value
 }
 
+export function normalizeCanvasViewport(value) {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== "object" || Array.isArray(value)) {
+    throw new TypeError("Canvas layout viewport must be an object")
+  }
+  const zoom = readFiniteNumber(value.zoom, "viewport.zoom")
+  if (zoom <= 0) {
+    throw new TypeError("Canvas layout viewport zoom must be positive")
+  }
+  return {
+    x: readFiniteNumber(value.x, "viewport.x"),
+    y: readFiniteNumber(value.y, "viewport.y"),
+    zoom,
+  }
+}
+
 export function normalizeCanvasLayout(value) {
   if (value === undefined || value === null) {
     return createEmptyCanvasLayout()
@@ -41,9 +57,9 @@ export function normalizeCanvasLayout(value) {
   if (typeof value !== "object" || Array.isArray(value)) {
     throw new TypeError("Canvas layout must be an object")
   }
-  if (value.version !== CANVAS_LAYOUT_VERSION) {
+  if (value.version !== 1 && value.version !== CANVAS_LAYOUT_VERSION) {
     throw new TypeError(
-      `Canvas layout version must be ${CANVAS_LAYOUT_VERSION}`
+      `Canvas layout version must be 1 or ${CANVAS_LAYOUT_VERSION}`
     )
   }
   if (
@@ -74,8 +90,10 @@ export function normalizeCanvasLayout(value) {
     }
   }
 
+  const viewport = normalizeCanvasViewport(value.viewport)
   return {
     nodes,
+    ...(viewport ? { viewport } : {}),
     version: CANVAS_LAYOUT_VERSION,
   }
 }

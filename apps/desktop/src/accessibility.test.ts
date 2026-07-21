@@ -29,7 +29,10 @@ describe("desktop accessibility contract", () => {
     expect(titleBarSource).toContain('label="Minimize window"')
     expect(titleBarSource).toContain('"Maximize window"')
     expect(titleBarSource).toContain('label="Close window"')
-    expect(titleBarSource).toContain("aria-label={`Delete ${displayedTitle}`}")
+    expect(titleBarSource).toContain("aria-label={`Close ${displayedTitle}`}")
+    expect(titleBarSource).toContain(
+      "onRequestDeleteArtifact(artifact.filePath)"
+    )
     expect(titleBarSource).toContain('aria-label="Agent menu"')
     expect(titleBarSource).toContain('aria-keyshortcuts="Meta+K Control+K"')
     expect(titleBarSource).toContain("<span>Search</span>")
@@ -152,22 +155,22 @@ describe("desktop accessibility contract", () => {
 
   it("keeps tab hover feedback free of decorative lines", () => {
     expect(styles).toMatch(
-      /\.desktop-titlebar__artifact\[data-active\]\s*\{[^}]*color: var\(--foreground\)[^}]*\}\s*\.desktop-titlebar__artifact:hover\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
+      /\.desktop-titlebar__tab\[data-active\]\s*\{[^}]*color: var\(--foreground\)[^}]*\}\s*\.desktop-titlebar__tab:hover\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
     )
     expect(styles).not.toMatch(
-      /\.desktop-titlebar__artifact\[data-active\]\s*\{[^}]*(?:background|border|box-shadow):/s
+      /\.desktop-titlebar__tab\[data-active\]\s*\{[^}]*(?:background|border|box-shadow):/s
     )
     expect(styles).toMatch(
-      /\.desktop-titlebar__artifact:hover\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
+      /\.desktop-titlebar__tab:hover\s*\{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-foreground\)/s
     )
     expect(styles).not.toMatch(
-      /\.desktop-titlebar__artifact:hover[^{}]*\{[^}]*background-image:/s
+      /\.desktop-titlebar__tab:hover[^{}]*\{[^}]*background-image:/s
     )
     expect(styles).not.toMatch(
-      /\.desktop-titlebar__artifact:(?:hover|focus-within)[^{]*\.desktop-titlebar__artifact-title\s*\{[^}]*text-decoration/s
+      /\.desktop-titlebar__tab:(?:hover|focus-within)[^{]*\.desktop-titlebar__tab-title\s*\{[^}]*text-decoration/s
     )
     expect(styles).not.toMatch(
-      /\.desktop-titlebar__artifact\[data-active\][^{]*\.desktop-titlebar__artifact-title\s*\{[^}]*text-decoration/s
+      /\.desktop-titlebar__tab\[data-active\][^{]*\.desktop-titlebar__tab-title\s*\{[^}]*text-decoration/s
     )
   })
 
@@ -194,7 +197,7 @@ describe("desktop accessibility contract", () => {
       /\.desktop-titlebar__navigation-action:hover:not\(:disabled\)\s*\{[^}]*background:/s
     )
     expect(styles).toMatch(
-      /\.desktop-titlebar__navigation-action:not\(:disabled\),\s*\.desktop-titlebar__artifact-close\s*\{[^}]*cursor: pointer/s
+      /\.desktop-titlebar__navigation-action:not\(:disabled\),\s*\.desktop-titlebar__tab-close\s*\{[^}]*cursor: pointer/s
     )
     expect(styles).toMatch(
       /\.desktop-titlebar__control\s*\{[^}]*cursor: default/s
@@ -210,27 +213,34 @@ describe("desktop accessibility contract", () => {
     expect(styles).toContain("--canvas-desktop-titlebar-control-width: 2.5rem")
     expect(styles).not.toContain("touch-action:")
     expect(styles).toMatch(
-      /\.desktop-titlebar__artifact-title\s*\{[^}]*min-width: 0[^}]*overflow: hidden[^}]*text-overflow: ellipsis[^}]*white-space: nowrap/s
+      /\.desktop-titlebar__tab-title\s*\{[^}]*min-width: 0[^}]*overflow: hidden[^}]*text-overflow: ellipsis[^}]*white-space: nowrap/s
     )
     expect(styles).toMatch(
-      /\.desktop-titlebar__artifacts\s*\{[^}]*overflow-x: auto/s
+      /\.desktop-titlebar__tabs\s*\{[^}]*overflow-x: auto/s
     )
     expect(styles).toMatch(
-      /\.desktop-titlebar__artifact-close\s*\{[^}]*opacity: 0[^}]*pointer-events: none/s
+      /\.desktop-titlebar__tab-close\s*\{[^}]*opacity: 0[^}]*pointer-events: none/s
     )
     expect(styles).toContain(
-      ".desktop-titlebar__artifact:hover .desktop-titlebar__artifact-close"
+      ".desktop-titlebar__tab:hover .desktop-titlebar__tab-close"
     )
-    expect(styles).toContain(".desktop-titlebar__artifact-close:focus-visible")
-    expect(styles).toContain(
-      ".desktop-titlebar__artifact:hover .desktop-titlebar__thread-close"
-    )
-    expect(styles).toContain(".desktop-titlebar__thread-close:focus-visible")
+    expect(styles).toContain(".desktop-titlebar__tab-close:focus-visible")
     expect(styles).not.toContain(
-      ".desktop-titlebar__artifact:focus-within .desktop-titlebar__artifact-close"
+      ".desktop-titlebar__tab:focus-within .desktop-titlebar__tab-close"
     )
     expect(styles).not.toContain(
-      ".desktop-titlebar__artifact[data-active] .desktop-titlebar__artifact-close"
+      ".desktop-titlebar__tab[data-active] .desktop-titlebar__tab-close"
+    )
+    expect(styles).not.toContain("desktop-titlebar__thread-close")
+  })
+
+  it("uses one fixed geometry for every workspace tab kind", () => {
+    expect(styles).toContain("--canvas-desktop-workspace-tab-width: 10rem")
+    expect(styles).toMatch(
+      /\.desktop-titlebar__tab\s*\{[^}]*flex: 0 0 var\(--canvas-desktop-workspace-tab-width\)[^}]*max-width: var\(--canvas-desktop-workspace-tab-width\)[^}]*min-width: var\(--canvas-desktop-workspace-tab-width\)[^}]*width: var\(--canvas-desktop-workspace-tab-width\)/s
+    )
+    expect(styles).toMatch(
+      /\.desktop-titlebar__tab-input\s*\{[^}]*box-sizing: border-box[^}]*min-width: 0[^}]*width: calc\(100% - 2 \* var\(--canvas-desktop-space-1\)\)/s
     )
   })
 })

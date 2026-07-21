@@ -1,7 +1,9 @@
 import {
   fetchBlockImplementation,
   fetchCodexThreads,
+  fetchCodexTranscript,
   startCodexTurn,
+  type CodexTranscript,
   type CodexThread,
 } from "../api/api"
 import { getCanvasInteractionSnapshot } from "../interaction/interaction-store"
@@ -18,6 +20,12 @@ export async function fetchCodexPipelineThreads(): Promise<{
   threads: CodexThread[]
 }> {
   return fetchCodexThreads()
+}
+
+export function fetchCodexPipelineTranscript(
+  threadId: string
+): Promise<CodexTranscript> {
+  return fetchCodexTranscript(threadId)
 }
 
 export async function submitCodexBlockPrompt({

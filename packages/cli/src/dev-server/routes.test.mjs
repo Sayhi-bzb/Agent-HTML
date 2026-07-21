@@ -589,7 +589,7 @@ describe("dev server routes", () => {
       vite: {},
     })
     expect(JSON.parse(missingResponse.body)).toEqual({
-      layout: { nodes: {}, version: 1 },
+      layout: { nodes: {}, version: 2 },
       layoutPath: "agent-html/canvases/demo.layout.json",
       storage: "monolithic",
     })
@@ -598,7 +598,8 @@ describe("dev server routes", () => {
       nodes: {
         card: { height: 240, width: 360, x: -20, y: 48 },
       },
-      version: 1,
+      viewport: { x: 20, y: -10, zoom: 0.75 },
+      version: 2,
     }
     const saveResponse = createResponseMock()
     await handleRoute({
@@ -616,7 +617,8 @@ describe("dev server routes", () => {
       nodes: {
         card: { height: 280, width: 400, x: 72, y: -16 },
       },
-      version: 1,
+      viewport: { x: 20, y: -10, zoom: 0.75 },
+      version: 2,
     }
     const updateResponse = createResponseMock()
     await handleRoute({
@@ -651,6 +653,19 @@ describe("dev server routes", () => {
       storage: "monolithic",
     })
 
+    const viewport = { x: -80, y: 32, zoom: 1.25 }
+    const viewportResponse = createResponseMock()
+    await handleRoute({
+      request: createJsonRequest({
+        body: { filePath, viewport },
+        url: hostRoutes.canvasLayout,
+      }),
+      response: viewportResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(viewportResponse.body)).toMatchObject({ viewport })
+
     const removalResponse = createResponseMock()
     await handleRoute({
       request: createJsonRequest({
@@ -677,7 +692,11 @@ describe("dev server routes", () => {
       root,
       vite: {},
     })
-    expect(JSON.parse(restartResponse.body).layout.nodes).toEqual({})
+    expect(JSON.parse(restartResponse.body).layout).toMatchObject({
+      nodes: {},
+      viewport,
+      version: 2,
+    })
   })
 
   it("publishes and queries the rendered Canonical Store inspection", async () => {

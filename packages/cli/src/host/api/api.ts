@@ -1,6 +1,7 @@
 import type {
   CanvasInspectionDocument,
   CanvasLayoutDocument,
+  CanvasViewport,
 } from "@agent-html/kernel"
 
 import type { Artifact, CanvasDiagnostic, CanvasEntry } from "../host-contracts"
@@ -12,6 +13,35 @@ export type CodexThread = {
   preview?: string
   status: string | null
   updatedAt?: string
+}
+
+export type CodexTranscriptItem = {
+  aggregatedOutput?: string
+  argumentsText?: string
+  command?: string
+  contentText?: string
+  cwd?: string
+  id: string
+  phase?: string
+  query?: string
+  resultText?: string
+  server?: string
+  status?: string
+  summaryText?: string
+  tool?: string
+  type: string
+}
+
+export type CodexTranscriptTurn = {
+  id: string
+  items: CodexTranscriptItem[]
+  status?: string
+}
+
+export type CodexTranscript = {
+  notifications: unknown[]
+  threadId: string
+  turns: CodexTranscriptTurn[]
 }
 
 export const hostApiRoutes = {
@@ -171,16 +201,19 @@ export async function saveCanvasLayoutPatch({
   filePath,
   nodes = {},
   removedNodeIds = [],
+  viewport,
 }: {
   filePath: string
   nodes?: CanvasLayoutDocument["nodes"]
   removedNodeIds?: readonly string[]
+  viewport?: CanvasViewport
 }) {
   const response = await fetch(hostApiRoutes.canvasLayout, {
     body: JSON.stringify({
       filePath,
       nodes,
       ...(removedNodeIds.length > 0 ? { removedNodeIds } : {}),
+      ...(viewport ? { viewport } : {}),
     }),
     headers: { "Content-Type": "application/json" },
     method: "POST",
@@ -190,6 +223,7 @@ export async function saveCanvasLayoutPatch({
     nodes: CanvasLayoutDocument["nodes"]
     removedNodeIds: string[]
     storage: "monolithic" | "sharded"
+    viewport?: CanvasViewport
   }>(response, hostApiRoutes.canvasLayout)
 }
 
@@ -225,6 +259,13 @@ export async function fetchCodexThreads() {
     cwd: string
     threads: CodexThread[]
   }>(hostApiRoutes.codexThreads)
+}
+
+export async function fetchCodexTranscript(threadId: string) {
+  const params = new URLSearchParams({ threadId })
+  return fetchJson<CodexTranscript>(
+    `${hostApiRoutes.codexTranscript}?${params}`
+  )
 }
 
 export async function startCodexTurn({

@@ -1,5 +1,11 @@
 import type { Artifact } from "../host-contracts"
 import {
+  createEmptyWorkspaceTabSession,
+  createWorkspaceTab,
+  readWorkspaceTabSession,
+  type WorkspaceTabSession,
+} from "../navigation/workspace-tabs"
+import {
   isCanvasThemeEditorSectionId,
   type CanvasThemeEditorSectionId,
 } from "../theme/theme-editor-contract"
@@ -9,6 +15,8 @@ import {
 } from "#agent-html-playground/theme/presets"
 
 export const CANVAS_HOST_PREFERENCES_STORAGE_KEY =
+  "agent-html:react-canvas:host-preferences:v3"
+const LEGACY_CANVAS_HOST_PREFERENCES_STORAGE_KEY =
   "agent-html:react-canvas:host-preferences:v2"
 
 export type CanvasSidebarView = "artifacts" | "gallery"
@@ -38,6 +46,7 @@ export type CanvasHostPreferences = {
   createArtifactJob: CanvasCreateArtifactJob | null
   leftSidebarOpen: boolean
   messageDrafts: Record<string, string>
+  workspaceTabSession: WorkspaceTabSession
 }
 
 const defaultCanvasHostPreferences: CanvasHostPreferences = {
@@ -51,6 +60,7 @@ const defaultCanvasHostPreferences: CanvasHostPreferences = {
   createArtifactJob: null,
   leftSidebarOpen: true,
   messageDrafts: {},
+  workspaceTabSession: createEmptyWorkspaceTabSession(),
 }
 
 function hasBrowserStorage() {
@@ -99,9 +109,9 @@ function readStoredCanvasHostPreferences() {
   }
 
   try {
-    const rawPreferences = localStorage.getItem(
-      CANVAS_HOST_PREFERENCES_STORAGE_KEY
-    )
+    const rawPreferences =
+      localStorage.getItem(CANVAS_HOST_PREFERENCES_STORAGE_KEY) ??
+      localStorage.getItem(LEGACY_CANVAS_HOST_PREFERENCES_STORAGE_KEY)
     if (!rawPreferences) {
       return null
     }
@@ -206,6 +216,27 @@ function readActiveFilePath({
     : null
 }
 
+function readStoredWorkspaceTabSession({
+  activeFilePath,
+  value,
+}: {
+  activeFilePath: string | null
+  value: unknown
+}) {
+  const session = readWorkspaceTabSession(value)
+  if (session) return session
+  if (!activeFilePath) return createEmptyWorkspaceTabSession()
+  const tab = createWorkspaceTab({
+    filePath: activeFilePath,
+    kind: "artifact",
+  })
+  return {
+    activeTabId: tab.id,
+    tabs: [tab],
+    version: 1 as const,
+  }
+}
+
 export function readCanvasHostPreferences({
   artifacts,
 }: {
@@ -216,12 +247,13 @@ export function readCanvasHostPreferences({
     return defaultCanvasHostPreferences
   }
 
+  const activeFilePath = readActiveFilePath({
+    artifacts,
+    value: stored.activeFilePath,
+  })
   return {
     activeCodexThreadId: readOptionalString(stored.activeCodexThreadId),
-    activeFilePath: readActiveFilePath({
-      artifacts,
-      value: stored.activeFilePath,
-    }),
+    activeFilePath,
     activeLanguage: isHostLanguage(stored.activeLanguage)
       ? stored.activeLanguage
       : defaultCanvasHostPreferences.activeLanguage,
@@ -243,6 +275,10 @@ export function readCanvasHostPreferences({
         ? stored.leftSidebarOpen
         : defaultCanvasHostPreferences.leftSidebarOpen,
     messageDrafts: readMessageDrafts(stored.messageDrafts),
+    workspaceTabSession: readStoredWorkspaceTabSession({
+      activeFilePath,
+      value: stored.workspaceTabSession,
+    }),
   }
 }
 

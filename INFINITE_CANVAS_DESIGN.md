@@ -98,6 +98,24 @@ Canvas intent + layout state
 
 The Canonical Store is the product model. The React Flow adapter projects its Nodes into the viewport and translates selection, movement, and resize interactions back into layout transactions. React Flow supplies the initial viewport and interaction foundation without defining Canvas source, persistence, or public record types.
 
+## Interaction Contract
+
+The viewport follows design-tool conventions: two-finger wheel input pans both axes; `Ctrl/Cmd + wheel` and trackpad pinch zoom; `Space + primary drag` temporarily pans across Node surfaces; middle-button drag pans; primary drag on empty space selects a rectangle; `Shift + click` extends selection. Editable and activatable focused controls retain Space, and ordinary wheel input inside `.nowheel` Node content retains native content scrolling.
+
+Canvas shortcuts apply only when focus is outside Node content and editable controls:
+
+- `+ / -`: zoom in / out.
+- `0`: reset zoom to 100%.
+- `1 / 2`: fit all / fit selection.
+- `Ctrl/Cmd + A`: select all Nodes.
+- `Arrow`: move selected Nodes by 1 px; `Shift + Arrow`: move by 10 px.
+- `Esc`: clear selection or close shortcut help.
+- `?`: show shortcut help.
+
+Bottom-right controls expose zoom out, current percentage / 100% reset, zoom in, fit all, and shortcut help. Canvas does not expose a map panel.
+
+Layout document v2 adds optional `{ x, y, zoom }` viewport state. Move-end persists the viewport through the same serialized layout queue as Node geometry. Loading v1 migrates to v2; a Canvas without persisted viewport starts fitted to all Nodes.
+
 ## Progressive Disclosure
 
 Source reading follows content ownership:
@@ -125,7 +143,7 @@ The same route provides cold inspection before a Canvas renders by extracting st
 
 ## Initial Slice
 
-The Canvas surface runs beside the current Artifact surface. It supports position, size, parent-local placement, direct interaction with React content, and persisted move/resize results. Canvas structure continues to come from TSX while the UI changes layout geometry. The performance baseline is 1,000 total Nodes with up to 100 visible Nodes.
+The Canvas surface runs beside the current Artifact surface. It supports position, size, parent-local placement, viewport state, direct interaction with React content, and persisted move/resize/viewport results. Canvas structure continues to come from TSX while the UI changes layout geometry. The performance baseline is 1,000 total Nodes with up to 100 visible Nodes.
 
 `@xyflow/react` is private Host infrastructure. Public Canvas records contain no React Flow types. The Host keeps one Canonical Store per selected Canvas, preserves it across source HMR, and hydrates the colocated layout after restart. The Desktop navigation snapshot carries Artifact and Canvas entries.
 

@@ -57,7 +57,14 @@ import type { CanvasThemePresetId } from "#agent-html-playground/theme/presets"
 import { PanelLeftIcon } from "lucide-react"
 import { HostIconButton } from "./ui/icon-button"
 import { CodexThreadManagerSurface } from "./thread/thread-manager-surface"
+import { CodexThreadSurface } from "./thread/thread-surface"
+import { codexThreadLabel } from "./thread/thread-label"
 import { resolveActiveCodexThreadLabel } from "./thread/thread-label"
+import {
+  createWorkspaceTab,
+  workspaceTabReducer,
+  type WorkspaceTabTarget,
+} from "./navigation/workspace-tabs"
 
 export { resolveInitialCanvasHostMode } from "./artifact/use-create-artifact-workflow"
 
@@ -106,8 +113,10 @@ function ReactCanvasHostWorkbench() {
     initialPreferences.leftSidebarOpen
   )
   const [artifactSearchOpen, setArtifactSearchOpen] = React.useState(false)
-  const [codexThreadManagerOpen, setCodexThreadManagerOpen] =
-    React.useState(false)
+  const [workspaceTabSession, dispatchWorkspaceTab] = React.useReducer(
+    workspaceTabReducer,
+    initialPreferences.workspaceTabSession
+  )
   const [desktopNavigationOrigin, setDesktopNavigationOrigin] = React.useState<
     string | null
   >(null)
@@ -152,9 +161,15 @@ function ReactCanvasHostWorkbench() {
   >(null)
   const [pendingDeleteArtifact, setPendingDeleteArtifact] =
     React.useState<CanvasNavigationArtifact | null>(null)
-  const [activeCanvasFilePath, setActiveCanvasFilePath] = React.useState<
-    string | null
-  >(null)
+  const workspaceTabsInitializedRef = React.useRef(false)
+  const activeWorkspaceTab =
+    workspaceTabSession.tabs.find(
+      (tab) => tab.id === workspaceTabSession.activeTabId
+    ) ?? null
+  const selectedCodexThreadId =
+    activeWorkspaceTab?.kind === "thread"
+      ? activeWorkspaceTab.threadId
+      : activeCodexThreadId
   const activeFilePathRef = React.useRef<string | null>(null)
   const t = React.useMemo(
     () =>
@@ -187,13 +202,22 @@ function ReactCanvasHostWorkbench() {
     setLeftSidebarAutoCollapsed(false)
     setLeftSidebarOpen(open)
   }, [])
+  const handleWorkspacePendingArtifactReady = React.useCallback(
+    (event: { filePath: string }) => {
+      handlePendingArtifactReady(event)
+      dispatchWorkspaceTab({
+        tab: { filePath: event.filePath, kind: "artifact" },
+        type: "open",
+      })
+    },
+    [handlePendingArtifactReady]
+  )
   const {
-    activeArtifact,
-    activeDiagnostics,
     artifactRegistryVersion,
     artifacts,
     artifactsLoading,
     deleteExistingArtifact,
+    diagnostics,
     loadError,
     refreshArtifacts,
     renameExistingArtifactTitle,
@@ -201,32 +225,38 @@ function ReactCanvasHostWorkbench() {
     selectArtifact,
   } = useArtifactRegistry({
     onPendingArtifactFailure: handlePendingArtifactFailure,
-    onPendingArtifactReady: handlePendingArtifactReady,
+    onPendingArtifactReady: handleWorkspacePendingArtifactReady,
     onSelectArtifactMode: selectArtifactMode,
     pendingFilePath:
       createArtifactJob && createArtifactJob.phase !== "failed"
         ? createArtifactJob.filePath
         : null,
   })
+  const activeArtifact =
+    activeWorkspaceTab?.kind === "artifact"
+      ? (artifacts.find(
+          (artifact) => artifact.filePath === activeWorkspaceTab.filePath
+        ) ?? null)
+      : null
+  const activeDiagnostics =
+    activeWorkspaceTab?.kind === "artifact"
+      ? diagnostics.filter(
+          (diagnostic) => diagnostic.filePath === activeWorkspaceTab.filePath
+        )
+      : []
   const { canvasLoadError, canvasRegistryVersion, canvases, canvasesLoading } =
     useCanvasRegistry()
   const selectArtifactSurface = React.useCallback(
     (filePath: string) => {
-      setCodexThreadManagerOpen(false)
-      setActiveCanvasFilePath(null)
-      selectArtifact(filePath)
+      if (!artifacts.some((artifact) => artifact.filePath === filePath)) return
+      selectArtifactMode()
+      dispatchWorkspaceTab({
+        tab: { filePath, kind: "artifact" },
+        type: "open",
+      })
     },
-    [selectArtifact]
+    [artifacts, selectArtifactMode]
   )
-  React.useEffect(() => {
-    if (
-      activeCanvasFilePath &&
-      !canvasesLoading &&
-      !canvases.some((canvas) => canvas.filePath === activeCanvasFilePath)
-    ) {
-      setActiveCanvasFilePath(null)
-    }
-  }, [activeCanvasFilePath, canvases, canvasesLoading])
   const requestDeleteArtifact = React.useCallback(
     (filePath: string) => {
       const artifact = artifacts.find(
@@ -250,7 +280,9 @@ function ReactCanvasHostWorkbench() {
     restoreThemeSelection,
   })
 
-  activeFilePathRef.current = resolvedActiveFilePath
+  React.useEffect(() => {
+    activeFilePathRef.current = resolvedActiveFilePath
+  }, [resolvedActiveFilePath])
 
   React.useEffect(() => {
     const listener = createCanvasInteractionEventListener({
@@ -287,7 +319,8 @@ function ReactCanvasHostWorkbench() {
   }, [])
 
   React.useEffect(() => {
-    void refreshCodexThreads()
+    const timeoutId = window.setTimeout(() => void refreshCodexThreads(), 0)
+    return () => window.clearTimeout(timeoutId)
   }, [refreshCodexThreads])
 
   const { setPromptStatus, setPromptTarget } = useCanvasPromptLifecycle({
@@ -300,14 +333,88 @@ function ReactCanvasHostWorkbench() {
   const selectCanvas = React.useCallback(
     (filePath: string) => {
       if (!canvases.some((canvas) => canvas.filePath === filePath)) return
-      setCodexThreadManagerOpen(false)
-      setPromptTarget(null)
-      setPromptStatus("")
       selectArtifactMode()
-      setActiveCanvasFilePath(filePath)
+      dispatchWorkspaceTab({
+        tab: { filePath, kind: "canvas" },
+        type: "open",
+      })
     },
-    [canvases, selectArtifactMode, setPromptStatus, setPromptTarget]
+    [canvases, selectArtifactMode]
   )
+
+  const openWorkspaceTab = React.useCallback(
+    (tab: WorkspaceTabTarget) => {
+      selectArtifactMode()
+      dispatchWorkspaceTab({ tab, type: "open" })
+    },
+    [selectArtifactMode]
+  )
+
+  const openCodexThreadManager = React.useCallback(() => {
+    openWorkspaceTab({ kind: "thread-manager" })
+  }, [openWorkspaceTab])
+
+  const selectCodexThread = React.useCallback(
+    (threadId: string | null) => {
+      setActiveCodexThreadId(threadId)
+      if (threadId) {
+        openWorkspaceTab({ kind: "thread", threadId })
+      }
+    },
+    [openWorkspaceTab]
+  )
+
+  React.useEffect(() => {
+    if (!activeWorkspaceTab) return
+    setPromptTarget(null)
+    setPromptStatus("")
+    selectArtifactMode()
+
+    if (activeWorkspaceTab.kind === "artifact") {
+      selectArtifact(activeWorkspaceTab.filePath)
+    }
+  }, [
+    activeWorkspaceTab,
+    selectArtifact,
+    selectArtifactMode,
+    setPromptStatus,
+    setPromptTarget,
+  ])
+
+  React.useEffect(() => {
+    if (artifactsLoading || canvasesLoading) return
+
+    dispatchWorkspaceTab({
+      artifactFilePaths: new Set(
+        artifacts.map((artifact) => artifact.filePath)
+      ),
+      canvasFilePaths: new Set(canvases.map((canvas) => canvas.filePath)),
+      ...(codexThreadsLoading || codexThreadsError
+        ? {}
+        : { threadIds: new Set(codexThreads.map((thread) => thread.id)) }),
+      type: "reconcile",
+    })
+
+    if (!workspaceTabsInitializedRef.current) {
+      workspaceTabsInitializedRef.current = true
+      if (workspaceTabSession.tabs.length === 0 && resolvedActiveFilePath) {
+        dispatchWorkspaceTab({
+          tab: { filePath: resolvedActiveFilePath, kind: "artifact" },
+          type: "open",
+        })
+      }
+    }
+  }, [
+    artifacts,
+    artifactsLoading,
+    canvases,
+    canvasesLoading,
+    codexThreads,
+    codexThreadsError,
+    codexThreadsLoading,
+    resolvedActiveFilePath,
+    workspaceTabSession.tabs,
+  ])
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -359,8 +466,6 @@ function ReactCanvasHostWorkbench() {
   }
 
   const selectCreateArtifact = React.useCallback(() => {
-    setCodexThreadManagerOpen(false)
-    setActiveCanvasFilePath(null)
     setPromptTarget(null)
     setPromptStatus("")
     selectCreateArtifactMode()
@@ -369,36 +474,43 @@ function ReactCanvasHostWorkbench() {
   const desktopNavigationSnapshot = React.useMemo<CanvasNavigationSnapshot>(
     () => ({
       activeCodexThreadLabel: resolveActiveCodexThreadLabel({
-        activeThreadId: activeCodexThreadId,
+        activeThreadId: selectedCodexThreadId,
         threads: codexThreads,
       }),
-      activeFilePath: codexThreadManagerOpen
-        ? null
-        : (activeCanvasFilePath ?? resolvedActiveFilePath),
+      activeFilePath:
+        activeWorkspaceTab?.kind === "artifact" ||
+        activeWorkspaceTab?.kind === "canvas"
+          ? activeWorkspaceTab.filePath
+          : null,
       activeLanguage,
       artifacts: artifacts.map(({ filePath, title }) => ({ filePath, title })),
       artifactsLoading,
       canvases: canvases.map(({ filePath, title }) => ({ filePath, title })),
       canvasesLoading,
-      codexThreadManagerActive: codexThreadManagerOpen,
-      createArtifactActive:
-        !codexThreadManagerOpen && activeHostMode === "create-artifact",
+      codexThreadManagerActive: activeWorkspaceTab?.kind === "thread-manager",
+      createArtifactActive: activeHostMode === "create-artifact",
       leftSidebarOpen: effectiveLeftSidebarOpen,
+      tabSession: workspaceTabSession,
+      threads: codexThreads.map((thread) => ({
+        id: thread.id,
+        title: codexThreadLabel(thread),
+      })),
+      threadsLoading: codexThreadsLoading,
       version: canvasNavigationSnapshotVersion,
     }),
     [
       activeHostMode,
-      activeCodexThreadId,
       activeLanguage,
       artifacts,
       artifactsLoading,
       canvases,
       canvasesLoading,
-      codexThreadManagerOpen,
       codexThreads,
+      codexThreadsLoading,
       effectiveLeftSidebarOpen,
-      activeCanvasFilePath,
-      resolvedActiveFilePath,
+      activeWorkspaceTab,
+      selectedCodexThreadId,
+      workspaceTabSession,
     ]
   )
   React.useEffect(() => {
@@ -425,6 +537,10 @@ function ReactCanvasHostWorkbench() {
       })
       if (request) {
         setDesktopNavigationOrigin(event.origin)
+        if (request.session) {
+          dispatchWorkspaceTab({ session: request.session, type: "hydrate" })
+          return
+        }
         publishCanvasNavigation({
           snapshot: desktopNavigationSnapshot,
           targetOrigin: event.origin,
@@ -446,10 +562,17 @@ function ReactCanvasHostWorkbench() {
         artifactFilePaths: artifacts.map((artifact) => artifact.filePath),
         canvasFilePaths: canvases.map((canvas) => canvas.filePath),
         command: message.command,
-        onCloseCodexThreadManager: () => setCodexThreadManagerOpen(false),
+        onActivateTab: (tabId) => {
+          selectArtifactMode()
+          dispatchWorkspaceTab({ tabId, type: "activate" })
+        },
+        onCloseCodexThreadManager: () =>
+          dispatchWorkspaceTab({ tabId: "threads", type: "close" }),
+        onCloseTab: (tabId) => dispatchWorkspaceTab({ tabId, type: "close" }),
         onCreateArtifact: selectCreateArtifact,
         onOpenArtifactSearch: () => setArtifactSearchOpen(true),
-        onOpenCodexThreadManager: () => setCodexThreadManagerOpen(true),
+        onOpenCodexThreadManager: openCodexThreadManager,
+        onOpenTab: openWorkspaceTab,
         onRequestDeleteArtifact: requestDeleteArtifact,
         onRenameArtifactTitle: ({ filePath, requestId, title }) => {
           void renameExistingArtifactTitle({ filePath, title })
@@ -508,6 +631,9 @@ function ReactCanvasHostWorkbench() {
     selectArtifactSurface,
     selectCanvas,
     selectCreateArtifact,
+    selectArtifactMode,
+    openCodexThreadManager,
+    openWorkspaceTab,
     setEffectiveLeftSidebarOpen,
   ])
 
@@ -531,6 +657,7 @@ function ReactCanvasHostWorkbench() {
     activeThemePresetId,
     createArtifactJob,
     leftSidebarOpen,
+    workspaceTabSession,
   })
 
   return (
@@ -588,16 +715,7 @@ function ReactCanvasHostWorkbench() {
                   />
                 </div>
               ) : null}
-              {codexThreadManagerOpen ? (
-                <CodexThreadManagerSurface
-                  activeThreadId={activeCodexThreadId}
-                  error={codexThreadsError}
-                  loading={codexThreadsLoading}
-                  onRefresh={() => void refreshCodexThreads()}
-                  onSelectThread={setActiveCodexThreadId}
-                  threads={codexThreads}
-                />
-              ) : activeHostMode === "create-artifact" ? (
+              {activeHostMode === "create-artifact" ? (
                 <CreateArtifactSurface
                   disabled={
                     createArtifactJob !== null &&
@@ -613,17 +731,39 @@ function ReactCanvasHostWorkbench() {
                   }
                   status={createArtifactStatus}
                 />
-              ) : activeCanvasFilePath ? (
+              ) : activeWorkspaceTab?.kind === "thread-manager" ? (
+                <CodexThreadManagerSurface
+                  activeThreadId={selectedCodexThreadId}
+                  error={codexThreadsError}
+                  loading={codexThreadsLoading}
+                  onRefresh={() => void refreshCodexThreads()}
+                  onSelectThread={selectCodexThread}
+                  threads={codexThreads}
+                />
+              ) : activeWorkspaceTab?.kind === "thread" ? (
+                <CodexThreadSurface
+                  key={activeWorkspaceTab.threadId}
+                  thread={
+                    codexThreads.find(
+                      (thread) => thread.id === activeWorkspaceTab.threadId
+                    ) ?? {
+                      id: activeWorkspaceTab.threadId,
+                      name: null,
+                      status: null,
+                    }
+                  }
+                />
+              ) : activeWorkspaceTab?.kind === "canvas" ? (
                 <CanvasSurface
-                  activeFilePath={activeCanvasFilePath}
+                  activeFilePath={activeWorkspaceTab.filePath}
                   canvasCount={canvases.length}
                   canvasRegistryVersion={canvasRegistryVersion}
                   canvasesLoading={canvasesLoading}
                   loadError={canvasLoadError}
                 />
-              ) : (
+              ) : activeWorkspaceTab?.kind === "artifact" ? (
                 <ArtifactSurface
-                  activeFilePath={resolvedActiveFilePath}
+                  activeFilePath={activeWorkspaceTab.filePath}
                   blocks={activeArtifact?.blocks}
                   artifactCount={artifacts.length}
                   artifactRegistryVersion={artifactRegistryVersion}
@@ -631,6 +771,10 @@ function ReactCanvasHostWorkbench() {
                   diagnostics={activeDiagnostics}
                   loadError={loadError}
                 />
+              ) : (
+                <main className="canvas-surface-root canvas-workspace-empty">
+                  <p>{t("artifact.noArtifactsTitle")}</p>
+                </main>
               )}
             </SidebarInset>
           </div>
@@ -638,7 +782,16 @@ function ReactCanvasHostWorkbench() {
             <ArtifactDeleteDialog
               artifact={pendingDeleteArtifact}
               key={pendingDeleteArtifact.filePath}
-              onDelete={deleteExistingArtifact}
+              onDelete={async (filePath) => {
+                await deleteExistingArtifact(filePath)
+                dispatchWorkspaceTab({
+                  tabId: createWorkspaceTab({
+                    filePath,
+                    kind: "artifact",
+                  }).id,
+                  type: "close",
+                })
+              }}
               onDismiss={() => setPendingDeleteArtifact(null)}
             />
           ) : null}

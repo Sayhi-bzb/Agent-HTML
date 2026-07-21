@@ -17,13 +17,16 @@ export function applyCanvasNavigationCommand({
   canvasFilePaths,
   command,
   onCloseCodexThreadManager,
+  onCloseTab,
   onCreateArtifact,
   onOpenArtifactSearch,
   onOpenCodexThreadManager,
+  onOpenTab,
   onRequestDeleteArtifact,
   onRenameArtifactTitle,
   onSelectArtifact,
   onSelectCanvas,
+  onActivateTab,
   onSetLanguage,
   onSetSidebarOpen,
   onSetThemeMode,
@@ -33,9 +36,13 @@ export function applyCanvasNavigationCommand({
   canvasFilePaths: readonly string[]
   command: CanvasNavigationCommand
   onCloseCodexThreadManager: () => void
+  onCloseTab: (tabId: string) => void
   onCreateArtifact: () => void
   onOpenArtifactSearch: () => void
   onOpenCodexThreadManager: () => void
+  onOpenTab: (
+    tab: Extract<CanvasNavigationCommand, { type: "open-tab" }>["tab"]
+  ) => void
   onRequestDeleteArtifact: (filePath: string) => void
   onRenameArtifactTitle: (input: {
     filePath: string
@@ -44,11 +51,32 @@ export function applyCanvasNavigationCommand({
   }) => void
   onSelectArtifact: (filePath: string) => void
   onSelectCanvas: (filePath: string) => void
+  onActivateTab: (tabId: string) => void
   onSetLanguage: (language: CanvasNavigationLanguage) => void
   onSetSidebarOpen: (open: boolean) => void
   onSetThemeMode: (mode: CanvasThemeMode) => void
   onToggleThemeMode: () => void
 }) {
+  if (command.type === "open-tab") {
+    if (
+      (command.tab.kind === "artifact" &&
+        !artifactFilePaths.includes(command.tab.filePath)) ||
+      (command.tab.kind === "canvas" &&
+        !canvasFilePaths.includes(command.tab.filePath))
+    ) {
+      return false
+    }
+    onOpenTab(command.tab)
+    return true
+  }
+  if (command.type === "activate-tab") {
+    onActivateTab(command.tabId)
+    return true
+  }
+  if (command.type === "close-tab") {
+    onCloseTab(command.tabId)
+    return true
+  }
   if (command.type === "open-codex-thread-manager") {
     onOpenCodexThreadManager()
     return true

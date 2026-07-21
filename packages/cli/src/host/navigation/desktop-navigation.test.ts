@@ -16,9 +16,12 @@ import {
 describe("Canvas Desktop navigation bridge", () => {
   it("maps commands to existing Canvas actions and rejects missing Artifacts", () => {
     const onCreateArtifact = vi.fn()
+    const onActivateTab = vi.fn()
+    const onCloseTab = vi.fn()
     const onCloseCodexThreadManager = vi.fn()
     const onOpenArtifactSearch = vi.fn()
     const onOpenCodexThreadManager = vi.fn()
+    const onOpenTab = vi.fn()
     const onRequestDeleteArtifact = vi.fn()
     const onRenameArtifactTitle = vi.fn()
     const onSelectArtifact = vi.fn()
@@ -30,10 +33,13 @@ describe("Canvas Desktop navigation bridge", () => {
     const options = {
       artifactFilePaths: ["agent-html/artifacts/one.artifact.tsx"],
       canvasFilePaths: ["agent-html/canvases/operations.canvas.tsx"],
+      onActivateTab,
+      onCloseTab,
       onCloseCodexThreadManager,
       onCreateArtifact,
       onOpenArtifactSearch,
       onOpenCodexThreadManager,
+      onOpenTab,
       onRequestDeleteArtifact,
       onRenameArtifactTitle,
       onSelectArtifact,
@@ -43,6 +49,31 @@ describe("Canvas Desktop navigation bridge", () => {
       onSetThemeMode,
       onToggleThemeMode,
     }
+
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: {
+          tab: {
+            filePath: "agent-html/canvases/operations.canvas.tsx",
+            kind: "canvas",
+          },
+          type: "open-tab",
+        },
+      })
+    ).toBe(true)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { tabId: "threads", type: "activate-tab" },
+      })
+    ).toBe(true)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { tabId: "threads", type: "close-tab" },
+      })
+    ).toBe(true)
 
     expect(
       applyCanvasNavigationCommand({
@@ -151,6 +182,12 @@ describe("Canvas Desktop navigation bridge", () => {
 
     expect(onCreateArtifact).toHaveBeenCalledOnce()
     expect(onOpenCodexThreadManager).toHaveBeenCalledOnce()
+    expect(onOpenTab).toHaveBeenCalledWith({
+      filePath: "agent-html/canvases/operations.canvas.tsx",
+      kind: "canvas",
+    })
+    expect(onActivateTab).toHaveBeenCalledWith("threads")
+    expect(onCloseTab).toHaveBeenCalledWith("threads")
     expect(onCloseCodexThreadManager).toHaveBeenCalledOnce()
     expect(onOpenArtifactSearch).toHaveBeenCalledOnce()
     expect(onToggleThemeMode).toHaveBeenCalledOnce()

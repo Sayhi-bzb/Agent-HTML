@@ -9,6 +9,7 @@ import {
 } from "./canvas-host-preferences"
 import type { CanvasThemePresetId } from "#agent-html-playground/theme/presets"
 import type { CanvasThemeEditorSectionId } from "../theme/theme-editor-contract"
+import type { WorkspaceTabSession } from "../navigation/workspace-tabs"
 
 export type CanvasHostPreferenceState = {
   activeCodexThreadId: string | null
@@ -20,6 +21,7 @@ export type CanvasHostPreferenceState = {
   activeThemePresetId: CanvasThemePresetId
   createArtifactJob: CanvasCreateArtifactJob | null
   leftSidebarOpen: boolean
+  workspaceTabSession: WorkspaceTabSession
 }
 
 export function useCanvasHostPreferencesPersistence({
@@ -32,6 +34,7 @@ export function useCanvasHostPreferencesPersistence({
   activeThemePresetId,
   createArtifactJob,
   leftSidebarOpen,
+  workspaceTabSession,
 }: CanvasHostPreferenceState) {
   React.useEffect(() => {
     writeCanvasHostPreferences(
@@ -45,6 +48,7 @@ export function useCanvasHostPreferencesPersistence({
         activeThemePresetId,
         createArtifactJob,
         leftSidebarOpen,
+        workspaceTabSession,
       })
     )
   }, [
@@ -57,6 +61,7 @@ export function useCanvasHostPreferencesPersistence({
     activeThemePresetId,
     createArtifactJob,
     leftSidebarOpen,
+    workspaceTabSession,
   ])
 }
 
@@ -70,6 +75,7 @@ export function createCanvasHostPreferencesPatch({
   activeThemePresetId,
   createArtifactJob,
   leftSidebarOpen,
+  workspaceTabSession,
 }: CanvasHostPreferenceState) {
   const activeFilePathPatch =
     activeFilePath === undefined ? {} : { activeFilePath }
@@ -84,5 +90,6 @@ export function createCanvasHostPreferencesPatch({
     activeThemePresetId,
     createArtifactJob,
     leftSidebarOpen,
+    workspaceTabSession,
   }
 }

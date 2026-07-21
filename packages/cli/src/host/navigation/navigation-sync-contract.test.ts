@@ -34,6 +34,24 @@ const snapshot: CanvasNavigationSnapshot = {
   codexThreadManagerActive: false,
   createArtifactActive: false,
   leftSidebarOpen: true,
+  tabSession: {
+    activeTabId: "artifact:agent-html/artifacts/one.artifact.tsx",
+    tabs: [
+      {
+        filePath: "agent-html/artifacts/one.artifact.tsx",
+        id: "artifact:agent-html/artifacts/one.artifact.tsx",
+        kind: "artifact",
+      },
+      {
+        filePath: "agent-html/canvases/operations.canvas.tsx",
+        id: "canvas:agent-html/canvases/operations.canvas.tsx",
+        kind: "canvas",
+      },
+    ],
+    version: 1,
+  },
+  threads: [],
+  threadsLoading: false,
   version: canvasNavigationSnapshotVersion,
 }
 
@@ -84,11 +102,31 @@ describe("Canvas navigation sync contract", () => {
 
   it("validates requests and all supported commands", () => {
     const request = createCanvasNavigationRequestMessage(
-      "desktop-navigation-request-1"
+      "desktop-navigation-request-1",
+      snapshot.tabSession
     )
     expect(readCanvasNavigationRequestMessage(request)).toEqual(request)
 
     for (const command of [
+      {
+        tab: {
+          filePath: snapshot.artifacts[0].filePath,
+          kind: "artifact",
+        },
+        type: "open-tab",
+      },
+      {
+        tab: { kind: "thread-manager" },
+        type: "open-tab",
+      },
+      {
+        tabId: snapshot.tabSession.tabs[0].id,
+        type: "activate-tab",
+      },
+      {
+        tabId: snapshot.tabSession.tabs[0].id,
+        type: "close-tab",
+      },
       { filePath: snapshot.artifacts[0].filePath, type: "select-artifact" },
       {
         filePath: snapshot.canvases?.[0].filePath ?? "",
@@ -171,6 +209,12 @@ describe("Canvas navigation sync contract", () => {
 
   it("rejects unknown commands and incompatible versions", () => {
     expect(
+      readCanvasNavigationRequestMessage({
+        ...createCanvasNavigationRequestMessage("desktop-navigation-request-1"),
+        session: { ...snapshot.tabSession, activeTabId: "missing" },
+      })
+    ).toBeNull()
+    expect(
       readCanvasNavigationCommandMessage({
         command: { type: "delete-artifact" },
         type: "agent-html:canvas-navigation-command",
@@ -206,7 +250,7 @@ describe("Canvas navigation sync contract", () => {
     expect(
       readCanvasNavigationRequestMessage({
         ...createCanvasNavigationRequestMessage("desktop-navigation-request-1"),
-        version: 2,
+        version: 3,
       })
     ).toBeNull()
   })

@@ -113,7 +113,13 @@ async function writeCanvasLayout({ filePath, layout, root }) {
   }
 }
 
-async function patchCanvasLayout({ filePath, nodes, removedNodeIds, root }) {
+async function patchCanvasLayout({
+  filePath,
+  nodes,
+  removedNodeIds,
+  root,
+  viewport,
+}) {
   const entryPath = resolveCanvasEntryPath({ filePath, root })
   await fs.access(entryPath)
   const layoutPath = canvasLayoutPathForEntry(entryPath)
@@ -122,6 +128,7 @@ async function patchCanvasLayout({ filePath, nodes, removedNodeIds, root }) {
       layoutPath,
       nodes,
       removedNodeIds,
+      viewport,
     })),
     layoutPath,
   }
@@ -791,13 +798,17 @@ async function handleCanvasRegistryAndLayoutRoute({
   if (request.method === "POST") {
     try {
       const body = await readJsonBody(request)
-      const isPatch = Boolean(body.nodes) || Array.isArray(body.removedNodeIds)
+      const isPatch =
+        Boolean(body.nodes) ||
+        Array.isArray(body.removedNodeIds) ||
+        Object.hasOwn(body, "viewport")
       const result = isPatch
         ? await patchCanvasLayout({
             filePath: body.filePath,
             nodes: body.nodes,
             removedNodeIds: body.removedNodeIds,
             root,
+            viewport: body.viewport,
           })
         : await writeCanvasLayout({
             filePath: body.filePath,
@@ -810,6 +821,7 @@ async function handleCanvasRegistryAndLayoutRoute({
           ? {
               nodes: result.nodes,
               removedNodeIds: result.removedNodeIds,
+              viewport: result.viewport,
               layoutPath: workspaceRelativePath(root, result.layoutPath),
               storage: result.storage,
             }

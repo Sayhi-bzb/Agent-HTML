@@ -28,13 +28,14 @@ function ThreadManagerRow({
 
   return (
     <li>
-      <button
+      <HostButton
         aria-pressed={active}
         className="canvas-thread-manager-row"
         data-active={active ? "" : undefined}
         onClick={onSelect}
         title={label}
         type="button"
+        variant="ghost"
       >
         <Icon aria-hidden="true" className="canvas-thread-manager-row-icon" />
         <span className="canvas-thread-manager-row-content">
@@ -51,7 +52,7 @@ function ThreadManagerRow({
             className="canvas-thread-manager-row-check"
           />
         ) : null}
-      </button>
+      </HostButton>
     </li>
   )
 }

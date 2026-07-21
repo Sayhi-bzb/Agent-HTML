@@ -45,6 +45,29 @@ const navigation: CanvasNavigationSnapshot = {
   codexThreadManagerActive: false,
   createArtifactActive: false,
   leftSidebarOpen: true,
+  tabSession: {
+    activeTabId: "artifact:agent-html/artifacts/artifact-2.artifact.tsx",
+    tabs: [
+      {
+        filePath: "agent-html/artifacts/artifact-1.artifact.tsx",
+        id: "artifact:agent-html/artifacts/artifact-1.artifact.tsx",
+        kind: "artifact",
+      },
+      {
+        filePath: "agent-html/artifacts/artifact-2.artifact.tsx",
+        id: "artifact:agent-html/artifacts/artifact-2.artifact.tsx",
+        kind: "artifact",
+      },
+      {
+        filePath: "agent-html/canvases/operations.canvas.tsx",
+        id: "canvas:agent-html/canvases/operations.canvas.tsx",
+        kind: "canvas",
+      },
+    ],
+    version: 1,
+  },
+  threads: [],
+  threadsLoading: false,
   version: canvasNavigationSnapshotVersion,
 }
 
@@ -102,19 +125,17 @@ describe("desktop title bar", () => {
     expect(markup.indexOf("Artifact 2")).toBeLessThan(
       markup.indexOf("Operations")
     )
+    expect(markup).toContain('class="desktop-titlebar__tab" data-active=""')
     expect(markup).toContain(
-      'class="desktop-titlebar__artifact" data-active=""'
+      'aria-selected="true" aria-posinset="2" aria-setsize="3" class="desktop-titlebar__tab-label"'
     )
-    expect(markup).toContain(
-      'aria-current="page" class="desktop-titlebar__artifact-label"'
+    expect(markup).toContain('class="desktop-titlebar__tab-title"')
+    expect(markup.match(/class="desktop-titlebar__tab-close"/g)).toHaveLength(
+      navigation.artifacts.length + 1
     )
-    expect(markup).toContain('class="desktop-titlebar__artifact-title"')
-    expect(
-      markup.match(/class="desktop-titlebar__artifact-close"/g)
-    ).toHaveLength(navigation.artifacts.length)
     expect(markup).toContain('data-kind="canvas"')
-    expect(markup).toContain('aria-label="Delete Artifact 1"')
-    expect(markup).toContain('aria-label="Delete Artifact 2"')
+    expect(markup).toContain('aria-label="Close Artifact 1"')
+    expect(markup).toContain('aria-label="Close Artifact 2"')
     expect(markup).toContain('aria-expanded="true"')
     expect(markup).toContain('aria-label="New Artifact"')
     expect(markup).toContain('aria-label="Agent menu"')
@@ -125,7 +146,7 @@ describe("desktop title bar", () => {
     const markup = renderTitleBar("windows", null)
 
     expect(markup).toContain('aria-busy="true"')
-    expect(markup).toContain("desktop-titlebar__artifact-placeholder")
+    expect(markup).toContain("desktop-titlebar__tab-placeholder")
     expect(markup).toContain("disabled")
   })
 
@@ -135,21 +156,50 @@ describe("desktop title bar", () => {
       createArtifactActive: true,
     })
 
-    expect(markup).not.toContain('aria-current="page"')
+    expect(markup).not.toContain('aria-selected="true"')
     expect(markup).toContain('aria-label="New Artifact" aria-pressed="true"')
   })
 
-  it("renders a temporary active Threads tab with a non-destructive close", () => {
+  it("renders a persistent active Threads tab with a non-destructive close", () => {
     const markup = renderTitleBar("windows", {
       ...navigation,
       activeFilePath: null,
       codexThreadManagerActive: true,
+      tabSession: {
+        activeTabId: "threads",
+        tabs: [
+          ...navigation.tabSession.tabs,
+          { id: "threads", kind: "thread-manager" },
+        ],
+        version: 1,
+      },
     })
 
     expect(markup).toContain('data-kind="threads"')
     expect(markup).toContain('aria-label="Close Threads"')
-    expect(markup).toContain('aria-current="page"')
+    expect(markup).toContain('aria-selected="true"')
     expect(markup).not.toContain('aria-label="Delete Threads"')
+  })
+
+  it("renders an individual thread as a persistent workspace tab", () => {
+    const markup = renderTitleBar("windows", {
+      ...navigation,
+      activeFilePath: null,
+      tabSession: {
+        activeTabId: "thread:thread-1",
+        tabs: [
+          ...navigation.tabSession.tabs,
+          { id: "thread:thread-1", kind: "thread", threadId: "thread-1" },
+        ],
+        version: 1,
+      },
+      threads: [{ id: "thread-1", title: "Persistent tabs" }],
+    })
+
+    expect(markup).toContain("Persistent tabs")
+    expect(markup).toContain('data-kind="thread"')
+    expect(markup).toContain('aria-label="Close Persistent tabs"')
+    expect(markup).toContain('aria-selected="true"')
   })
 
   it.each(["windows", "linux"] as const)(

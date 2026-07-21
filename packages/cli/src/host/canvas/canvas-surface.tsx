@@ -1,28 +1,55 @@
 import {
   Background,
   BackgroundVariant,
+  ControlButton,
   Controls,
   NodeResizer,
   ReactFlow,
   type NodeProps,
   type OnNodesChange,
+  type ReactFlowInstance,
   type ResizeParams,
+  useReactFlow,
+  useViewport,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import * as React from "react"
 import { CanvasIntentProvider } from "@agent-html/react"
+import {
+  CircleHelpIcon,
+  Maximize2Icon,
+  MinusIcon,
+  PlusIcon,
+} from "lucide-react"
+import {
+  Popover,
+  PopoverTrigger,
+} from "#agent-html-playground/components/ui/popover"
 
 import { canvasBundleUrl, fetchCanvasLayout } from "../api/api"
 import { HostButton } from "../ui/button"
+import { HostPopoverContent } from "../ui/popover"
 import { createCanvasInspectionPublisher } from "./canvas-inspection-publisher"
 import { createLayoutPersister } from "./canvas-layout-persister"
 import {
   applyCanvasNodeChanges,
   getOrCreateCanvasStore,
+  moveCanvasNodes,
   projectCanvasSnapshot,
   shouldCullCanvasElements,
   type CanvasFlowNode,
 } from "./canvas-flow-model"
+import {
+  isCanvasShortcutBlocked,
+  resolveCanvasShortcut,
+} from "./canvas-shortcuts"
+import {
+  createCanvasWheelPanController,
+  isCanvasSpaceKey,
+  isCanvasWheelPanBlocked,
+  shouldActivateCanvasSpacePan,
+  type CanvasWheelPanController,
+} from "./canvas-pan"
 import type { CanvasStore } from "./canvas-store"
 
 type CanvasModule = {
@@ -61,34 +88,6 @@ function CanvasNodeShell({ data, id, selected }: NodeProps<CanvasFlowNode>) {
     },
     [id, persistLayout, store]
   )
-  const moveWithKeyboard = React.useCallback(
-    (event: React.KeyboardEvent<HTMLButtonElement>) => {
-      const direction = {
-        ArrowDown: [0, 1],
-        ArrowLeft: [-1, 0],
-        ArrowRight: [1, 0],
-        ArrowUp: [0, -1],
-      }[event.key]
-      if (!direction) return
-
-      event.preventDefault()
-      event.stopPropagation()
-      const node = store
-        .getSnapshot()
-        .nodes.find((candidate) => candidate.id === id)
-      if (!node) return
-      const step = event.shiftKey ? 1 : 8
-      store.setNodeGeometry(id, {
-        height: node.height,
-        width: node.width,
-        x: node.x + direction[0] * step,
-        y: node.y + direction[1] * step,
-      })
-      requestPersistLayout([id])
-    },
-    [id, requestPersistLayout, store]
-  )
-
   return (
     <div
       className="canvas-node-shell"
@@ -102,10 +101,9 @@ function CanvasNodeShell({ data, id, selected }: NodeProps<CanvasFlowNode>) {
         onResizeEnd={finishResize}
       />
       <HostButton
-        aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
-        aria-label={`Move ${title ?? id}. Use arrow keys; hold Shift for one pixel.`}
+        aria-keyshortcuts="Enter ArrowUp ArrowDown ArrowLeft ArrowRight"
+        aria-label={`Select and move ${title ?? id}. Use arrow keys; hold Shift for ten pixels.`}
         className="canvas-node-drag-handle"
-        onKeyDown={moveWithKeyboard}
         title={title ?? id}
         type="button"
         variant="ghost"
@@ -117,6 +115,121 @@ function CanvasNodeShell({ data, id, selected }: NodeProps<CanvasFlowNode>) {
         ref={setTarget}
       />
     </div>
+  )
+}
+
+const canvasFitViewPadding = 0.18
+const canvasMinZoom = 0.08
+const canvasMaxZoom = 2
+
+function canvasViewportAnimationDuration() {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ? 0
+    : 180
+}
+
+function CanvasViewportControls({
+  helpOpen,
+  onHelpOpenChange,
+}: {
+  helpOpen: boolean
+  onHelpOpenChange: (open: boolean) => void
+}) {
+  const { fitView, zoomIn, zoomOut, zoomTo } = useReactFlow<CanvasFlowNode>()
+  const { zoom } = useViewport()
+  const duration = canvasViewportAnimationDuration()
+  const zoomPercent = Math.round(zoom * 100)
+
+  return (
+    <Controls
+      aria-label="Canvas viewport controls"
+      orientation="horizontal"
+      position="bottom-right"
+      showFitView={false}
+      showInteractive={false}
+      showZoom={false}
+    >
+      <ControlButton
+        aria-label="Zoom out"
+        disabled={zoom <= canvasMinZoom}
+        onClick={() => void zoomOut({ duration })}
+        title="Zoom out (−)"
+      >
+        <MinusIcon />
+      </ControlButton>
+      <ControlButton
+        aria-label={`Zoom ${zoomPercent}%. Reset to 100%`}
+        className="canvas-zoom-value"
+        onClick={() => void zoomTo(1, { duration })}
+        title="Reset zoom to 100% (0)"
+      >
+        {zoomPercent}%
+      </ControlButton>
+      <ControlButton
+        aria-label="Zoom in"
+        disabled={zoom >= canvasMaxZoom}
+        onClick={() => void zoomIn({ duration })}
+        title="Zoom in (+)"
+      >
+        <PlusIcon />
+      </ControlButton>
+      <ControlButton
+        aria-label="Fit all Nodes"
+        onClick={() =>
+          void fitView({ duration, padding: canvasFitViewPadding })
+        }
+        title="Fit all Nodes (1)"
+      >
+        <Maximize2Icon />
+      </ControlButton>
+      <Popover onOpenChange={onHelpOpenChange} open={helpOpen}>
+        <PopoverTrigger asChild>
+          <ControlButton
+            aria-label="Canvas keyboard shortcuts"
+            title="Keyboard shortcuts (?)"
+          >
+            <CircleHelpIcon />
+          </ControlButton>
+        </PopoverTrigger>
+        <HostPopoverContent
+          align="end"
+          className="canvas-shortcut-help"
+          side="top"
+        >
+          <strong>Canvas shortcuts</strong>
+          <dl>
+            <div>
+              <dt>Zoom</dt>
+              <dd>+ / −</dd>
+            </div>
+            <div>
+              <dt>100%</dt>
+              <dd>0</dd>
+            </div>
+            <div>
+              <dt>Fit all / selection</dt>
+              <dd>1 / 2</dd>
+            </div>
+            <div>
+              <dt>Pan</dt>
+              <dd>Space + drag</dd>
+            </div>
+            <div>
+              <dt>Select all</dt>
+              <dd>Ctrl/⌘ A</dd>
+            </div>
+            <div>
+              <dt>Move 1 / 10 px</dt>
+              <dd>Arrow / Shift + Arrow</dd>
+            </div>
+            <div>
+              <dt>Clear selection</dt>
+              <dd>Esc</dd>
+            </div>
+          </dl>
+        </HostPopoverContent>
+      </Popover>
+    </Controls>
   )
 }
 
@@ -178,13 +291,96 @@ function CanvasWorkspace({
   store: CanvasStore
 }) {
   const snapshot = useCanvasStoreSnapshot(store)
+  const reactFlowRef = React.useRef<ReactFlowInstance<CanvasFlowNode> | null>(
+    null
+  )
+  const wheelPanControllerRef = React.useRef<CanvasWheelPanController | null>(
+    null
+  )
+  const [reactFlowElement, setReactFlowElement] =
+    React.useState<HTMLDivElement | null>(null)
+  const [spacePanActive, setSpacePanActive] = React.useState(false)
   const [selectedNodeIds, setSelectedNodeIds] = React.useState<Set<string>>(
     () => new Set()
   )
+  const [shortcutHelpOpen, setShortcutHelpOpen] = React.useState(false)
   const persister = React.useMemo(
     () => createLayoutPersister({ filePath, onPersistError, store }),
     [filePath, onPersistError, store]
   )
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        !shouldActivateCanvasSpacePan({
+          altKey: event.altKey,
+          code: event.code,
+          ctrlKey: event.ctrlKey,
+          isComposing: event.isComposing,
+          key: event.key,
+          metaKey: event.metaKey,
+          target: event.target,
+        })
+      )
+        return
+      event.preventDefault()
+      setSpacePanActive(true)
+    }
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (isCanvasSpaceKey(event)) setSpacePanActive(false)
+    }
+    const resetSpacePan = () => setSpacePanActive(false)
+
+    window.addEventListener("keydown", handleKeyDown, true)
+    window.addEventListener("keyup", handleKeyUp, true)
+    window.addEventListener("blur", resetSpacePan)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, true)
+      window.removeEventListener("keyup", handleKeyUp, true)
+      window.removeEventListener("blur", resetSpacePan)
+    }
+  }, [])
+  React.useEffect(() => {
+    if (!reactFlowElement) return
+    const controller = createCanvasWheelPanController({
+      applyViewport: (viewport) => {
+        void reactFlowRef.current?.setViewport(viewport)
+      },
+      cancelFrame: (handle) => window.cancelAnimationFrame(handle),
+      cancelGestureEnd: (handle) => window.clearTimeout(handle),
+      getViewport: () =>
+        reactFlowRef.current?.getViewport() ?? { x: 0, y: 0, zoom: 1 },
+      onGestureEnd: (viewport) => persister.commitViewport(viewport),
+      requestFrame: (callback) => window.requestAnimationFrame(callback),
+      scheduleGestureEnd: (callback, delay) =>
+        window.setTimeout(callback, delay),
+    })
+    wheelPanControllerRef.current = controller
+    const handleWheel = (event: WheelEvent) => {
+      if (
+        event.ctrlKey ||
+        event.metaKey ||
+        isCanvasWheelPanBlocked(event.target)
+      ) {
+        controller.finish()
+        return
+      }
+      if (!controller.pan(event.deltaX, event.deltaY, event.deltaMode)) return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+    }
+
+    reactFlowElement.addEventListener("wheel", handleWheel, {
+      capture: true,
+      passive: false,
+    })
+    return () => {
+      reactFlowElement.removeEventListener("wheel", handleWheel, true)
+      controller.dispose()
+      if (wheelPanControllerRef.current === controller) {
+        wheelPanControllerRef.current = null
+      }
+    }
+  }, [persister, reactFlowElement])
   const inspectionPublisher = React.useMemo(
     () => createCanvasInspectionPublisher({ store }),
     [store]
@@ -246,34 +442,147 @@ function CanvasWorkspace({
     },
     [persister, snapshot, store]
   )
+  const onKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (isCanvasShortcutBlocked(event.target)) return
+      const action = resolveCanvasShortcut({
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey,
+        isComposing: event.nativeEvent.isComposing,
+        key: event.key,
+        metaKey: event.metaKey,
+        shiftKey: event.shiftKey,
+      })
+      if (!action) return
+
+      const instance = reactFlowRef.current
+      if (
+        !instance &&
+        [
+          "fit-all",
+          "fit-selection",
+          "zoom-in",
+          "zoom-out",
+          "zoom-reset",
+        ].includes(action.type)
+      )
+        return
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (action.type === "clear-selection") {
+        setSelectedNodeIds(new Set())
+        setShortcutHelpOpen(false)
+        return
+      }
+      if (action.type === "select-all") {
+        setSelectedNodeIds(new Set(snapshot.nodes.map((node) => node.id)))
+        return
+      }
+      if (action.type === "open-shortcuts") {
+        setShortcutHelpOpen(true)
+        return
+      }
+      if (action.type === "move") {
+        const focusedNodeId =
+          event.target instanceof Element
+            ? event.target.closest(".react-flow__node")?.getAttribute("data-id")
+            : null
+        const movingNodeIds =
+          focusedNodeId && !selectedNodeIds.has(focusedNodeId)
+            ? new Set([focusedNodeId])
+            : selectedNodeIds
+        if (movingNodeIds.size === 0) return
+        if (movingNodeIds !== selectedNodeIds) {
+          setSelectedNodeIds(movingNodeIds)
+        }
+        const movedNodeIds = moveCanvasNodes({
+          dx: action.dx,
+          dy: action.dy,
+          nodeIds: movingNodeIds,
+          snapshot,
+          store,
+        })
+        persister.commit(movedNodeIds)
+        return
+      }
+
+      const duration = canvasViewportAnimationDuration()
+      if (action.type === "zoom-in") {
+        void instance!.zoomIn({ duration })
+      } else if (action.type === "zoom-out") {
+        void instance!.zoomOut({ duration })
+      } else if (action.type === "zoom-reset") {
+        void instance!.zoomTo(1, { duration })
+      } else if (action.type === "fit-all") {
+        void instance!.fitView({ duration, padding: canvasFitViewPadding })
+      } else if (selectedNodeIds.size > 0) {
+        void instance!.fitView({
+          duration,
+          nodes: [...selectedNodeIds].map((id) => ({ id })),
+          padding: canvasFitViewPadding,
+        })
+      }
+    },
+    [persister, selectedNodeIds, snapshot, store]
+  )
+  const initialViewport = snapshot.viewport
+    ? {
+        ...snapshot.viewport,
+        zoom: Math.min(
+          canvasMaxZoom,
+          Math.max(canvasMinZoom, snapshot.viewport.zoom)
+        ),
+      }
+    : undefined
 
   return (
     <div
       className="canvas-workspace"
       data-node-count={snapshot.nodes.length}
+      data-space-pan={spacePanActive ? "" : undefined}
       data-testid="canvas-workspace"
+      onKeyDown={onKeyDown}
     >
       <CanvasIntentProvider runtime={store.runtime}>
         <Source />
       </CanvasIntentProvider>
       {snapshot.canvas ? (
         <ReactFlow<CanvasFlowNode>
+          aria-label="Infinite Canvas"
+          defaultViewport={initialViewport}
           deleteKeyCode={null}
           elementsSelectable
-          fitView
+          fitView={!initialViewport}
           fitViewOptions={{ padding: 0.18 }}
-          minZoom={0.08}
+          maxZoom={canvasMaxZoom}
+          minZoom={canvasMinZoom}
+          multiSelectionKeyCode="Shift"
           nodeTypes={canvasNodeTypes}
           nodes={projection.nodes}
-          nodesDraggable
+          nodesDraggable={!spacePanActive}
+          nodesFocusable={false}
+          onInit={(instance) => {
+            reactFlowRef.current = instance
+          }}
+          onMoveEnd={(_event, viewport) => {
+            if (wheelPanControllerRef.current?.isActive()) return
+            persister.commitViewport(viewport)
+          }}
           onNodeDragStop={(_event, node) => persister.commit([node.id])}
           onNodesChange={onNodesChange}
           onlyRenderVisibleElements={shouldCullCanvasElements(
             snapshot.nodes.length
           )}
-          panOnDrag
+          panActivationKeyCode={null}
+          panOnDrag={spacePanActive ? [0, 1] : [1]}
+          ref={setReactFlowElement}
+          selectionKeyCode={null}
           selectionOnDrag
+          tabIndex={0}
           zoomOnDoubleClick={false}
+          zoomOnScroll={false}
         >
           <Background
             color="var(--canvas-grid-dot)"
@@ -281,7 +590,10 @@ function CanvasWorkspace({
             size={1.25}
             variant={BackgroundVariant.Dots}
           />
-          <Controls position="bottom-right" showInteractive={false} />
+          <CanvasViewportControls
+            helpOpen={shortcutHelpOpen}
+            onHelpOpenChange={setShortcutHelpOpen}
+          />
         </ReactFlow>
       ) : null}
     </div>
@@ -397,6 +709,7 @@ export function CanvasSurface({
       <CanvasWorkspace
         component={moduleState.component}
         filePath={activeFilePath}
+        key={activeFilePath}
         onPersistError={handlePersistError}
         store={store}
       />

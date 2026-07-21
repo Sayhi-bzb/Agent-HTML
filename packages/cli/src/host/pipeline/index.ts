@@ -1,15 +1,14 @@
 import type { CodexThread } from "../api/api"
-import {
-  canvasPipelineConfig,
-  type CanvasHostPipeline,
-} from "./config"
+import { canvasPipelineConfig, type CanvasHostPipeline } from "./config"
 import {
   fetchCodexPipelineThreads,
+  fetchCodexPipelineTranscript,
   submitCodexBlockPrompt,
   submitCodexValidationFixRequest,
 } from "./codex"
 import {
   fetchExamplePipelineThreads,
+  fetchExamplePipelineTranscript,
   submitExampleBlockPrompt,
   submitExampleValidationFixRequest,
 } from "./example"
@@ -45,6 +44,19 @@ export async function fetchPipelineThreads({
   }
 
   return fetchCodexPipelineThreads()
+}
+
+export function fetchPipelineTranscript(
+  threadId: string,
+  {
+    pipeline = canvasPipelineConfig.pipeline,
+  }: {
+    pipeline?: CanvasHostPipeline
+  } = {}
+) {
+  return pipeline === "example"
+    ? fetchExamplePipelineTranscript(threadId)
+    : fetchCodexPipelineTranscript(threadId)
 }
 
 export async function submitBlockPromptToPipeline({

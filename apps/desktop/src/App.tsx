@@ -17,6 +17,7 @@ import {
 import { isArtifactSearchShortcut } from "../../../packages/cli/src/host/navigation/artifact-search-shortcut"
 import { agentHtmlBrandName } from "../../../packages/cli/src/shared/brand"
 import { AgentHtmlGhostIcon } from "../../../packages/cli/src/shared/brand-icons"
+import type { WorkspaceTabSession } from "../../../packages/cli/src/host/navigation/workspace-tabs"
 
 import {
   desktopApi,
@@ -68,6 +69,8 @@ export default function App() {
     useState<CanvasNavigationSnapshot | null>(null)
   const [artifactTitleRenameResult, setArtifactTitleRenameResult] =
     useState<ArtifactTitleRenameResult | null>(null)
+  const [restoredTabSession, setRestoredTabSession] =
+    useState<WorkspaceTabSession | null>(null)
   const [pendingWorkspaceAction, setPendingWorkspaceAction] =
     useState<PendingWorkspaceAction | null>(null)
   const runtimeFrameRef = useRef<HTMLIFrameElement>(null)
@@ -81,6 +84,7 @@ export default function App() {
     session.status === "ready"
       ? resolveDesktopRuntimeOrigin(session.bootstrapUrl)
       : null
+  const activeRoot = "root" in session ? session.root : undefined
   useEffect(() => {
     desktopApi
       .snapshot()
@@ -212,6 +216,16 @@ export default function App() {
   }, [runtimeOrigin, session])
 
   useEffect(() => {
+    if (!activeRoot || !canvasNavigation) return
+    const timeoutId = window.setTimeout(() => {
+      void desktopApi
+        .saveWorkspaceTabSession(activeRoot, canvasNavigation.tabSession)
+        .catch(() => {})
+    }, 250)
+    return () => window.clearTimeout(timeoutId)
+  }, [activeRoot, canvasNavigation])
+
+  useEffect(() => {
     document.documentElement.lang = snapshot.preferences.language
   }, [snapshot.preferences.language])
 
@@ -239,7 +253,6 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [runtimeOrigin])
 
-  const activeRoot = "root" in session ? session.root : undefined
   const title = useMemo(
     () => activeRoot?.split(/[\\/]/).filter(Boolean).at(-1) ?? "AHTML",
     [activeRoot]
@@ -262,7 +275,10 @@ export default function App() {
     setCanvasNavigation(null)
     setArtifactTitleRenameResult(null)
     runtimeFrameRef.current?.contentWindow?.postMessage(
-      createCanvasNavigationRequestMessage(crypto.randomUUID()),
+      createCanvasNavigationRequestMessage(
+        crypto.randomUUID(),
+        restoredTabSession ?? undefined
+      ),
       runtimeOrigin
     )
   }
@@ -274,6 +290,7 @@ export default function App() {
   ) {
     setPendingWorkspaceAction(pendingAction)
     setCanvasNavigation(null)
+    setRestoredTabSession(null)
     setSession({ status: initialize ? "initializing" : "opening", root: path })
     try {
       const runtime = await desktopApi.openWorkspace({
@@ -281,6 +298,9 @@ export default function App() {
         path,
         pipeline: snapshot.preferences.pipeline,
       })
+      setRestoredTabSession(
+        await desktopApi.loadWorkspaceTabSession(path).catch(() => null)
+      )
       const nextSnapshot = normalizeDesktopSnapshot(await desktopApi.snapshot())
       setSnapshot(nextSnapshot)
       setSession(readySession(runtime))
@@ -307,11 +327,17 @@ export default function App() {
         onCreateArtifact={() =>
           postCanvasNavigationCommand({ type: "create-artifact" })
         }
-        onCloseCodexThreadManager={() =>
-          postCanvasNavigationCommand({ type: "close-codex-thread-manager" })
+        onActivateTab={(tabId) =>
+          postCanvasNavigationCommand({ tabId, type: "activate-tab" })
+        }
+        onCloseTab={(tabId) =>
+          postCanvasNavigationCommand({ tabId, type: "close-tab" })
         }
         onOpenCodexThreadManager={() =>
-          postCanvasNavigationCommand({ type: "open-codex-thread-manager" })
+          postCanvasNavigationCommand({
+            tab: { kind: "thread-manager" },
+            type: "open-tab",
+          })
         }
         onRequestDeleteArtifact={(filePath) =>
           postCanvasNavigationCommand({
@@ -335,12 +361,6 @@ export default function App() {
         }
         onSelectThemeMode={(mode) =>
           postCanvasNavigationCommand({ mode, type: "set-theme-mode" })
-        }
-        onSelectArtifact={(filePath) =>
-          postCanvasNavigationCommand({ filePath, type: "select-artifact" })
-        }
-        onSelectCanvas={(filePath) =>
-          postCanvasNavigationCommand({ filePath, type: "select-canvas" })
         }
         onSetSidebarOpen={(open) =>
           postCanvasNavigationCommand({ open, type: "set-sidebar-open" })
@@ -524,15 +544,14 @@ function DesktopShell({
   children,
   artifactTitleRenameResult,
   navigation,
+  onActivateTab,
   onCreateArtifact,
-  onCloseCodexThreadManager,
+  onCloseTab,
   onOpenCodexThreadManager,
   onRequestDeleteArtifact,
   onRenameArtifactTitle,
   onSearchArtifacts,
   onSelectLanguage,
-  onSelectArtifact,
-  onSelectCanvas,
   onSelectThemeMode,
   onSetSidebarOpen,
   themeMode,
@@ -540,8 +559,9 @@ function DesktopShell({
   children: React.ReactNode
   artifactTitleRenameResult?: ArtifactTitleRenameResult | null
   navigation?: CanvasNavigationSnapshot | null
+  onActivateTab?: (tabId: string) => void
   onCreateArtifact?: () => void
-  onCloseCodexThreadManager?: () => void
+  onCloseTab?: (tabId: string) => void
   onOpenCodexThreadManager?: () => void
   onRequestDeleteArtifact?: (filePath: string) => void
   onRenameArtifactTitle?: (input: {
@@ -551,8 +571,6 @@ function DesktopShell({
   }) => void
   onSearchArtifacts?: () => void
   onSelectLanguage?: (language: "en" | "system" | "zh") => void
-  onSelectArtifact?: (filePath: string) => void
-  onSelectCanvas?: (filePath: string) => void
   onSelectThemeMode?: (mode: CanvasThemeMode) => void
   onSetSidebarOpen?: (open: boolean) => void
   themeMode?: CanvasThemeMode
@@ -562,15 +580,14 @@ function DesktopShell({
       <DesktopTitleBar
         artifactTitleRenameResult={artifactTitleRenameResult}
         navigation={navigation}
+        onActivateTab={onActivateTab}
         onCreateArtifact={onCreateArtifact}
-        onCloseCodexThreadManager={onCloseCodexThreadManager}
+        onCloseTab={onCloseTab}
         onOpenCodexThreadManager={onOpenCodexThreadManager}
         onRequestDeleteArtifact={onRequestDeleteArtifact}
         onRenameArtifactTitle={onRenameArtifactTitle}
         onSearchArtifacts={onSearchArtifacts}
         onSelectLanguage={onSelectLanguage}
-        onSelectArtifact={onSelectArtifact}
-        onSelectCanvas={onSelectCanvas}
         onSelectThemeMode={onSelectThemeMode}
         onSetSidebarOpen={onSetSidebarOpen}
         themeMode={themeMode}

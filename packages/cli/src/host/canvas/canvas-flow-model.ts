@@ -107,3 +107,44 @@ export function applyCanvasNodeChanges({
     store.setNodeGeometry(id, geometry)
   }
 }
+
+export function moveCanvasNodes({
+  dx,
+  dy,
+  nodeIds,
+  snapshot,
+  store,
+}: {
+  dx: number
+  dy: number
+  nodeIds: ReadonlySet<string>
+  snapshot: CanvasStoreSnapshot
+  store: CanvasStore
+}) {
+  const byId = new Map(snapshot.nodes.map((node) => [node.id, node]))
+  const movedNodeIds = [...nodeIds].filter((id) => {
+    let parentId = byId.get(id)?.parentId
+    while (parentId) {
+      if (nodeIds.has(parentId)) return false
+      parentId = byId.get(parentId)?.parentId
+    }
+    return byId.has(id)
+  })
+  store.setNodeGeometries(
+    Object.fromEntries(
+      movedNodeIds.map((id) => {
+        const node = byId.get(id)!
+        return [
+          id,
+          {
+            height: node.height,
+            width: node.width,
+            x: node.x + dx,
+            y: node.y + dy,
+          },
+        ]
+      })
+    )
+  )
+  return movedNodeIds
+}

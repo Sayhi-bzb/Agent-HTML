@@ -5,10 +5,11 @@ import path from "node:path"
 import {
   createEmptyCanvasLayout,
   normalizeCanvasLayout,
+  normalizeCanvasViewport,
 } from "@agent-html/kernel"
 
 export const canvasLayoutShardFormat = "agent-html/canvas-layout-shards"
-export const canvasLayoutShardStorageVersion = 1
+export const canvasLayoutShardStorageVersion = 2
 export const defaultCanvasLayoutShardCount = 64
 export const defaultCanvasLayoutShardThreshold = 4_096
 
@@ -42,7 +43,8 @@ function normalizeShardManifest(value) {
     typeof value !== "object" ||
     Array.isArray(value) ||
     value.format !== canvasLayoutShardFormat ||
-    value.version !== canvasLayoutShardStorageVersion ||
+    (value.version !== 1 &&
+      value.version !== canvasLayoutShardStorageVersion) ||
     !Number.isInteger(value.nodeCount) ||
     value.nodeCount < 0 ||
     !Number.isInteger(value.shardCount) ||
@@ -69,11 +71,13 @@ function normalizeShardManifest(value) {
     shards[key] = generation
   }
 
+  const viewport = normalizeCanvasViewport(value.viewport)
   return {
     format: canvasLayoutShardFormat,
     nodeCount: value.nodeCount,
     shardCount: value.shardCount,
     shards,
+    ...(viewport ? { viewport } : {}),
     version: canvasLayoutShardStorageVersion,
   }
 }
@@ -125,7 +129,11 @@ async function readShardedLayout(layoutPath, rawManifest) {
     throw new TypeError("Canvas layout shard manifest node count is stale")
   }
   return {
-    layout: normalizeCanvasLayout({ nodes, version: 1 }),
+    layout: normalizeCanvasLayout({
+      nodes,
+      ...(manifest.viewport ? { viewport: manifest.viewport } : {}),
+      version: 2,
+    }),
     manifest,
     storage: "sharded",
   }
@@ -214,7 +222,7 @@ async function writeGeneration({ layout, layoutPath, shardCount }) {
       await fs.mkdir(path.dirname(filePath), { recursive: true })
       await fs.writeFile(
         filePath,
-        `${JSON.stringify({ nodes, version: 1 }, null, 2)}\n`
+        `${JSON.stringify({ nodes, version: 2 }, null, 2)}\n`
       )
     })
   )
@@ -225,6 +233,7 @@ async function writeGeneration({ layout, layoutPath, shardCount }) {
     shards: Object.fromEntries(
       [...shards.keys()].map((key) => [key, generation])
     ),
+    ...(layout.viewport ? { viewport: layout.viewport } : {}),
     version: canvasLayoutShardStorageVersion,
   }
 }
@@ -295,6 +304,7 @@ async function patchShardedLayout({
   manifest,
   nodes,
   removedNodeIds,
+  viewport,
 }) {
   const patches = new Map()
   for (const [id, geometry] of Object.entries(nodes)) {
@@ -332,7 +342,7 @@ async function patchShardedLayout({
         await fs.mkdir(path.dirname(filePath), { recursive: true })
         await fs.writeFile(
           filePath,
-          `${JSON.stringify({ nodes: nextNodes, version: 1 }, null, 2)}\n`
+          `${JSON.stringify({ nodes: nextNodes, version: 2 }, null, 2)}\n`
         )
       }
       return {
@@ -354,6 +364,7 @@ async function patchShardedLayout({
       manifest.nodeCount +
       results.reduce((total, result) => total + result.nodeCountDelta, 0),
     shards: nextShards,
+    ...(viewport === undefined ? {} : { viewport }),
   }
   await replaceJsonFile(layoutPath, nextManifest)
   const garbageCollectedGenerations = await collectGarbageGenerationsBestEffort(
@@ -365,13 +376,15 @@ async function patchShardedLayout({
 
 export function patchStoredCanvasLayout({
   layoutPath,
-  nodes,
+  nodes = {},
   removedNodeIds = [],
+  viewport,
   shardCount = defaultCanvasLayoutShardCount,
   shardThreshold = defaultCanvasLayoutShardThreshold,
 }) {
   return queueLayoutWrite(layoutPath, async () => {
-    const patch = normalizeCanvasLayout({ nodes, version: 1 }).nodes
+    const patch = normalizeCanvasLayout({ nodes, version: 2 }).nodes
+    const normalizedViewport = normalizeCanvasViewport(viewport)
     const removals = normalizeRemovedNodeIds(removedNodeIds)
     const conflicts = removals.filter((nodeId) => patch[nodeId])
     if (conflicts.length > 0) {
@@ -379,11 +392,16 @@ export function patchStoredCanvasLayout({
         `Canvas layout patch cannot update and remove Node ${conflicts[0]}`
       )
     }
-    if (Object.keys(patch).length === 0 && removals.length === 0) {
+    if (
+      Object.keys(patch).length === 0 &&
+      removals.length === 0 &&
+      normalizedViewport === undefined
+    ) {
       const stored = await readLayoutFile(layoutPath)
       return {
         nodes: patch,
         removedNodeIds: removals,
+        viewport: undefined,
         storage:
           stored?.format === canvasLayoutShardFormat ? "sharded" : "monolithic",
       }
@@ -396,11 +414,13 @@ export function patchStoredCanvasLayout({
         manifest,
         nodes: patch,
         removedNodeIds: removals,
+        viewport: normalizedViewport,
       })
       return {
         nodes: patch,
         removedNodeIds: removals,
         storage: "sharded",
+        viewport: normalizedViewport,
       }
     }
 
@@ -409,10 +429,12 @@ export function patchStoredCanvasLayout({
       : createEmptyCanvasLayout()
     const nextNodes = { ...current.nodes, ...patch }
     for (const nodeId of removals) delete nextNodes[nodeId]
+    const nextViewport = normalizedViewport ?? current.viewport
     const result = await writeStoredCanvasLayoutNow({
       layout: {
         nodes: nextNodes,
-        version: 1,
+        ...(nextViewport ? { viewport: nextViewport } : {}),
+        version: 2,
       },
       layoutPath,
       shardCount,
@@ -422,6 +444,7 @@ export function patchStoredCanvasLayout({
       nodes: patch,
       removedNodeIds: removals,
       storage: result.storage,
+      viewport: normalizedViewport,
     }
   })
 }

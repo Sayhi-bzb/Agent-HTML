@@ -105,6 +105,17 @@ describe("canvas host preferences", () => {
       messageDrafts: {
         valid: "draft",
       },
+      workspaceTabSession: {
+        activeTabId: "artifact:agent-html/artifacts/example.artifact.tsx",
+        tabs: [
+          {
+            filePath: "agent-html/artifacts/example.artifact.tsx",
+            id: "artifact:agent-html/artifacts/example.artifact.tsx",
+            kind: "artifact",
+          },
+        ],
+        version: 1,
+      },
     })
   })
 
@@ -213,7 +224,9 @@ describe("canvas host preferences", () => {
       leftSidebarOpen: false,
       messageDrafts: expect.any(Object),
     })
-    expect(Object.keys(readStored(values).messageDrafts as object)).toHaveLength(1)
+    expect(
+      Object.keys(readStored(values).messageDrafts as object)
+    ).toHaveLength(1)
   })
 
   it("persists and clears message drafts per artifact block", () => {

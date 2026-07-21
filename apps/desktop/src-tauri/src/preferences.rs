@@ -53,6 +53,71 @@ pub struct RecentWorkspace {
     pub last_opened_at: u64,
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    tag = "kind"
+)]
+pub enum WorkspaceTab {
+    #[serde(rename = "artifact")]
+    Artifact { file_path: String, id: String },
+    #[serde(rename = "canvas")]
+    Canvas { file_path: String, id: String },
+    #[serde(rename = "thread-manager")]
+    ThreadManager { id: String },
+    #[serde(rename = "thread")]
+    Thread { id: String, thread_id: String },
+}
+
+impl WorkspaceTab {
+    fn id(&self) -> &str {
+        match self {
+            Self::Artifact { id, .. }
+            | Self::Canvas { id, .. }
+            | Self::ThreadManager { id }
+            | Self::Thread { id, .. } => id,
+        }
+    }
+
+    fn has_valid_id(&self) -> bool {
+        match self {
+            Self::Artifact { file_path, id } => id == &format!("artifact:{file_path}"),
+            Self::Canvas { file_path, id } => id == &format!("canvas:{file_path}"),
+            Self::ThreadManager { id } => id == "threads",
+            Self::Thread { id, thread_id } => id == &format!("thread:{thread_id}"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct WorkspaceTabSession {
+    pub active_tab_id: Option<String>,
+    pub tabs: Vec<WorkspaceTab>,
+    pub version: u8,
+}
+
+impl WorkspaceTabSession {
+    pub fn is_valid(&self) -> bool {
+        if self.version != 1 || self.tabs.len() > 100 {
+            return false;
+        }
+        let mut ids = HashSet::new();
+        if self
+            .tabs
+            .iter()
+            .any(|tab| !tab.has_valid_id() || !ids.insert(tab.id()))
+        {
+            return false;
+        }
+        match &self.active_tab_id {
+            Some(active) => !self.tabs.is_empty() && ids.contains(active.as_str()),
+            None => self.tabs.is_empty(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
@@ -60,6 +125,8 @@ pub struct StoredDesktopState {
     pub canvas_theme: Option<CanvasThemeSnapshot>,
     pub preferences: Preferences,
     pub recents: Vec<RecentWorkspace>,
+    #[serde(default)]
+    pub workspace_tab_sessions: BTreeMap<String, WorkspaceTabSession>,
 }
 
 fn has_current_schema(state: &StoredDesktopState) -> bool {
@@ -156,6 +223,44 @@ mod tests {
         assert_eq!(state.recents[0].path, r"D:\new\tmp");
     }
 
+    #[test]
+    fn stores_valid_workspace_tab_sessions_per_workspace() {
+        let mut state = StoredDesktopState::default();
+        let session = WorkspaceTabSession {
+            active_tab_id: Some("canvas:agent-html/canvases/main.canvas.tsx".into()),
+            tabs: vec![WorkspaceTab::Canvas {
+                file_path: "agent-html/canvases/main.canvas.tsx".into(),
+                id: "canvas:agent-html/canvases/main.canvas.tsx".into(),
+            }],
+            version: 1,
+        };
+
+        save_workspace_tab_session(&mut state, Path::new(r"D:\projects\demo"), session.clone())
+            .expect("valid session should save");
+
+        assert_eq!(
+            load_workspace_tab_session(&state, Path::new(r"D:\projects\demo"))
+                .expect("session should load")
+                .active_tab_id,
+            session.active_tab_id
+        );
+    }
+
+    #[test]
+    fn rejects_workspace_tab_sessions_with_unstable_ids() {
+        let mut state = StoredDesktopState::default();
+        let session = WorkspaceTabSession {
+            active_tab_id: Some("wrong".into()),
+            tabs: vec![WorkspaceTab::ThreadManager { id: "wrong".into() }],
+            version: 1,
+        };
+
+        assert!(
+            save_workspace_tab_session(&mut state, Path::new(r"D:\projects\demo"), session)
+                .is_err()
+        );
+    }
+
     #[cfg(windows)]
     #[test]
     fn recent_migration_deduplicates_windows_paths_case_insensitively() {
@@ -226,6 +331,31 @@ pub fn remember_workspace(state: &mut StoredDesktopState, root: &Path) {
         },
     );
     state.recents.truncate(12);
+}
+
+pub fn load_workspace_tab_session(
+    state: &StoredDesktopState,
+    root: &Path,
+) -> Option<WorkspaceTabSession> {
+    state
+        .workspace_tab_sessions
+        .get(&workspace::user_facing_path(root))
+        .filter(|session| session.is_valid())
+        .cloned()
+}
+
+pub fn save_workspace_tab_session(
+    state: &mut StoredDesktopState,
+    root: &Path,
+    session: WorkspaceTabSession,
+) -> Result<(), String> {
+    if !session.is_valid() {
+        return Err("Workspace tab session is invalid".into());
+    }
+    state
+        .workspace_tab_sessions
+        .insert(workspace::user_facing_path(root), session);
+    Ok(())
 }
 
 pub fn refresh_availability(state: &mut StoredDesktopState) {

@@ -12,6 +12,11 @@ describe("createCanvasHostPreferencesPatch", () => {
     activeThemePresetId: "claude-plus" as const,
     createArtifactJob: null,
     leftSidebarOpen: false,
+    workspaceTabSession: {
+      activeTabId: "threads",
+      tabs: [{ id: "threads" as const, kind: "thread-manager" as const }],
+      version: 1 as const,
+    },
   }
 
   it("omits activeFilePath when there are no artifacts to persist", () => {

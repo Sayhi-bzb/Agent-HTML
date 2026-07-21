@@ -1,4 +1,4 @@
-import type { CodexThread } from "../api/api"
+import type { CodexThread, CodexTranscript } from "../api/api"
 import type {
   SubmitBlockPromptInput,
   SubmitBlockPromptResult,
@@ -17,6 +17,28 @@ export async function fetchExamplePipelineThreads(): Promise<{
         name: "Example session",
         preview: "Local preview pipeline",
         status: null,
+      },
+    ],
+  }
+}
+
+export async function fetchExamplePipelineTranscript(
+  threadId: string
+): Promise<CodexTranscript> {
+  return {
+    notifications: [],
+    threadId,
+    turns: [
+      {
+        id: "example-turn",
+        items: [
+          {
+            contentText: "Example pipeline transcript",
+            id: "example-message",
+            type: "agentMessage",
+          },
+        ],
+        status: "completed",
       },
     ],
   }

@@ -7,7 +7,9 @@ mod workspace;
 pub use runtime::run_runtime_supervisor_if_requested;
 
 use desktop_error::DesktopError;
-use preferences::{CanvasThemeSnapshot, Preferences, RecentWorkspace, StoredDesktopState};
+use preferences::{
+    CanvasThemeSnapshot, Preferences, RecentWorkspace, StoredDesktopState, WorkspaceTabSession,
+};
 use runtime::{OpenWorkspaceRequest, RuntimeReady, RuntimeState};
 use serde::Serialize;
 use std::path::Path;
@@ -71,6 +73,36 @@ fn save_canvas_theme(
 }
 
 #[tauri::command]
+fn load_workspace_tab_session(
+    store: State<'_, DesktopStore>,
+    root: String,
+) -> Result<Option<WorkspaceTabSession>, String> {
+    let stored = store
+        .0
+        .lock()
+        .map_err(|_| "Desktop settings are unavailable")?;
+    Ok(preferences::load_workspace_tab_session(
+        &stored,
+        Path::new(&root),
+    ))
+}
+
+#[tauri::command]
+fn save_workspace_tab_session(
+    app: AppHandle,
+    store: State<'_, DesktopStore>,
+    root: String,
+    session: WorkspaceTabSession,
+) -> Result<(), String> {
+    let mut stored = store
+        .0
+        .lock()
+        .map_err(|_| "Desktop settings are unavailable")?;
+    preferences::save_workspace_tab_session(&mut stored, Path::new(&root), session)?;
+    preferences::save(&app, &stored)
+}
+
+#[tauri::command]
 async fn open_workspace(
     app: AppHandle,
     runtime_state: State<'_, RuntimeState>,
@@ -130,6 +162,8 @@ pub fn run() {
             desktop_snapshot,
             open_workspace,
             save_canvas_theme,
+            load_workspace_tab_session,
+            save_workspace_tab_session,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build AHTML Desktop")

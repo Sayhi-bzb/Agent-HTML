@@ -6,6 +6,7 @@ import type {
   CanvasInspectionDocument,
   CanvasLayoutDocument,
   CanvasNodeGeometry,
+  CanvasViewport,
 } from "@agent-html/kernel"
 import type {
   CanvasDefinition,
@@ -35,6 +36,7 @@ export type ResolvedCanvasNode = CanvasNodeIntent &
 export type CanvasStoreSnapshot = {
   canvas: CanvasDefinition | null
   nodes: ResolvedCanvasNode[]
+  viewport?: CanvasViewport
 }
 
 export type CanvasStore = {
@@ -49,8 +51,12 @@ export type CanvasStore = {
   resolveNodeSource: (nodeId: string) => CanvasNodeSourceReference | null
   removeLayoutNodes: (nodeIds: readonly string[]) => void
   runtime: CanvasIntentRuntime
+  setNodeGeometries: (
+    geometries: Readonly<Record<string, CanvasNodeGeometry>>
+  ) => void
   setNodeGeometry: (id: string, geometry: CanvasNodeGeometry) => void
   setNodeTarget: (id: string, target: HTMLElement | null) => void
+  setViewport: (viewport: CanvasViewport) => void
   sourceFilePath: string
   subscribe: (listener: () => void) => () => void
 }
@@ -111,6 +117,7 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
           ...(layout.nodes[node.id] ?? sourceGeometry(node, node.order)),
         }))
       ),
+      ...(layout.viewport ? { viewport: { ...layout.viewport } } : {}),
     }
     listeners.forEach((listener) => listener())
   }
@@ -121,6 +128,24 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
       nodes: snapshot.nodes,
       sourceFilePath,
     })
+
+  const setNodeGeometries = (
+    geometries: Readonly<Record<string, CanvasNodeGeometry>>
+  ) => {
+    const nextGeometries = Object.fromEntries(
+      Object.entries(geometries).filter(([id]) => nodes.has(id))
+    )
+    if (Object.keys(nextGeometries).length === 0) return
+    layout = {
+      nodes: {
+        ...layout.nodes,
+        ...nextGeometries,
+      },
+      ...(layout.viewport ? { viewport: layout.viewport } : {}),
+      version: CANVAS_LAYOUT_VERSION,
+    }
+    rebuild()
+  }
 
   const runtime: CanvasIntentRuntime = {
     getNodeTarget: (id) => targets.get(id) ?? null,
@@ -166,7 +191,11 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
           },
         ])
       )
-      return { nodes: activeNodes, version: CANVAS_LAYOUT_VERSION }
+      return {
+        nodes: activeNodes,
+        ...(layout.viewport ? { viewport: { ...layout.viewport } } : {}),
+        version: CANVAS_LAYOUT_VERSION,
+      }
     },
     getLayoutNodeIds: () => Object.keys(layout.nodes),
     getSnapshot: () => snapshot,
@@ -178,6 +207,9 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
             { ...geometry },
           ])
         ),
+        ...(nextLayout.viewport
+          ? { viewport: { ...nextLayout.viewport } }
+          : {}),
         version: CANVAS_LAYOUT_VERSION,
       }
       rebuild()
@@ -203,25 +235,30 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
         changed = true
       }
       if (changed) {
-        layout = { nodes: nextNodes, version: CANVAS_LAYOUT_VERSION }
+        layout = {
+          nodes: nextNodes,
+          ...(layout.viewport ? { viewport: layout.viewport } : {}),
+          version: CANVAS_LAYOUT_VERSION,
+        }
       }
     },
     runtime,
+    setNodeGeometries,
     setNodeGeometry(id, geometry) {
-      if (!nodes.has(id)) return
-      layout = {
-        nodes: {
-          ...layout.nodes,
-          [id]: { ...geometry },
-        },
-        version: CANVAS_LAYOUT_VERSION,
-      }
-      rebuild()
+      setNodeGeometries({ [id]: geometry })
     },
     setNodeTarget(id, target) {
       if (target) targets.set(id, target)
       else targets.delete(id)
       targetListeners.forEach((listener) => listener())
+    },
+    setViewport(viewport) {
+      layout = {
+        ...layout,
+        viewport: { ...viewport },
+        version: CANVAS_LAYOUT_VERSION,
+      }
+      rebuild()
     },
     sourceFilePath,
     subscribe(listener) {

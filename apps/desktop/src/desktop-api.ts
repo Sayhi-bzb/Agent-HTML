@@ -1,12 +1,10 @@
 import { invoke } from "@tauri-apps/api/core"
 import { open } from "@tauri-apps/plugin-dialog"
 
-import type {
-  OpenWorkspaceRequest,
-  RuntimeReady,
-} from "./session"
+import type { OpenWorkspaceRequest, RuntimeReady } from "./session"
 import type { DesktopPreferences } from "./preferences"
 import type { CanvasThemeSnapshot } from "../../../packages/cli/src/host/theme/theme-sync-contract"
+import type { WorkspaceTabSession } from "../../../packages/cli/src/host/navigation/workspace-tabs"
 
 export interface RecentWorkspace {
   name: string
@@ -35,6 +33,10 @@ export const desktopApi = {
   openWorkspace: (request: OpenWorkspaceRequest) =>
     invoke<RuntimeReady>("open_workspace", { request }),
   closeWorkspace: () => invoke<void>("close_workspace"),
+  loadWorkspaceTabSession: (root: string) =>
+    invoke<WorkspaceTabSession | null>("load_workspace_tab_session", { root }),
   saveCanvasTheme: (canvasTheme: CanvasThemeSnapshot) =>
     invoke<void>("save_canvas_theme", { canvasTheme }),
+  saveWorkspaceTabSession: (root: string, session: WorkspaceTabSession) =>
+    invoke<void>("save_workspace_tab_session", { root, session }),
 }

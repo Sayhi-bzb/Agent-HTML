@@ -10,6 +10,24 @@
   height: 100%;
 }
 
+.canvas-workspace > .react-flow:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.canvas-workspace[data-space-pan] .react-flow__node,
+.canvas-workspace[data-space-pan] .react-flow__resize-control {
+  pointer-events: none !important;
+}
+
+.canvas-workspace[data-space-pan] .react-flow__pane {
+  cursor: grab;
+}
+
+.canvas-workspace[data-space-pan] .react-flow__pane:active {
+  cursor: grabbing;
+}
+
 .canvas-workspace {
   --canvas-grid-dot: color-mix(in srgb, var(--foreground) 18%, transparent);
   --xy-background-color: var(--background);
@@ -125,10 +143,80 @@
 }
 
 .canvas-workspace .react-flow__controls {
+  display: flex;
+  flex-direction: row;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent);
+}
+
+.canvas-workspace .react-flow__controls-button {
+  width: var(--canvas-host-touch-target-min);
+  height: var(--canvas-host-touch-target-min);
+  border-right: 1px solid var(--border);
+  border-bottom: 0;
+}
+
+.canvas-workspace .react-flow__controls-button svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+.canvas-workspace .react-flow__controls-button:last-child {
+  border-right: 0;
+}
+
+.canvas-workspace .react-flow__controls-button:focus-visible {
+  position: relative;
+  outline: 2px solid var(--ring);
+  outline-offset: -3px;
+}
+
+.canvas-workspace .canvas-zoom-value {
+  width: 3.75rem;
+  color: var(--foreground);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.canvas-shortcut-help {
+  width: min(22rem, calc(100vw - 2rem));
+}
+
+.canvas-shortcut-help > strong {
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.canvas-shortcut-help dl {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0;
+}
+
+.canvas-shortcut-help dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 1rem;
+  min-height: 1.75rem;
+  padding: 0.25rem 0;
+}
+
+.canvas-shortcut-help dt {
+  color: var(--muted-foreground);
+}
+
+.canvas-shortcut-help dd {
+  margin: 0;
+  color: var(--foreground);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .canvas-persist-error {

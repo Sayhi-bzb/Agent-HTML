@@ -49,8 +49,25 @@ describe("Canonical Canvas Store", () => {
       nodes: {
         profile: { height: 200, width: 360, x: -40, y: 80 },
       },
-      version: 1,
+      version: 2,
     })
+  })
+
+  it("hydrates and updates the persisted viewport", () => {
+    const store = createCanvasStore("demo.canvas.tsx")
+    store.hydrateLayout({
+      nodes: {},
+      viewport: { x: 40, y: -20, zoom: 0.75 },
+      version: 2,
+    })
+    expect(store.getSnapshot().viewport).toEqual({
+      x: 40,
+      y: -20,
+      zoom: 0.75,
+    })
+
+    store.setViewport({ x: -10, y: 16, zoom: 1.2 })
+    expect(store.getLayout().viewport).toEqual({ x: -10, y: 16, zoom: 1.2 })
   })
 
   it("removes stale layout records without changing active intent", () => {

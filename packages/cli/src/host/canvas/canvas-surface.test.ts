@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   applyCanvasNodeChanges,
   getOrCreateCanvasStore,
+  moveCanvasNodes,
   projectCanvasSnapshot,
   shouldCullCanvasElements,
 } from "./canvas-flow-model"
@@ -110,6 +111,29 @@ describe("React Flow Canvas adapter", () => {
       width: 440,
       x: -24,
       y: 96,
+    })
+  })
+
+  it("moves a selected hierarchy once at its highest selected ancestor", () => {
+    const store = createCanvasStore("demo.canvas.tsx")
+    store.runtime.upsertNode({ id: "parent" })
+    store.runtime.upsertNode({ id: "child", parentId: "parent" })
+    const snapshot = store.getSnapshot()
+    const childBefore = snapshot.nodes.find((node) => node.id === "child")!
+
+    expect(
+      moveCanvasNodes({
+        dx: 10,
+        dy: -4,
+        nodeIds: new Set(["parent", "child"]),
+        snapshot,
+        store,
+      })
+    ).toEqual(["parent"])
+    expect(store.getLayout().nodes.parent).toMatchObject({ x: 10, y: -4 })
+    expect(store.getLayout().nodes.child).toMatchObject({
+      x: childBefore.x,
+      y: childBefore.y,
     })
   })
 

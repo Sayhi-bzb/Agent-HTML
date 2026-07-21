@@ -8,6 +8,7 @@ export {
   DEFAULT_CANVAS_NODE_HEIGHT,
   DEFAULT_CANVAS_NODE_WIDTH,
   normalizeCanvasLayout,
+  normalizeCanvasViewport,
 } from "./canvas.mjs"
 export {
   CANVAS_INSPECTION_VERSION,

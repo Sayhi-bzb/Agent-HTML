@@ -56,9 +56,16 @@ export type CanvasNodeGeometry = {
   y: number
 }
 
+export type CanvasViewport = {
+  x: number
+  y: number
+  zoom: number
+}
+
 export type CanvasLayoutDocument = {
   nodes: Record<string, CanvasNodeGeometry>
-  version: 1
+  viewport?: CanvasViewport
+  version: 2
 }
 
 export type CanvasInspectionCanvas = {
@@ -127,7 +134,7 @@ export type KernelDiagnostic = {
 }
 
 export const CANVAS_POLICY_VERSION: number
-export const CANVAS_LAYOUT_VERSION: 1
+export const CANVAS_LAYOUT_VERSION: 2
 export const CANVAS_INSPECTION_VERSION: 1
 export const DEFAULT_CANVAS_NODE_COLUMNS: 4
 export const DEFAULT_CANVAS_NODE_GAP: 48
@@ -155,6 +162,9 @@ export function normalizeArtifactDefinition(
 export function createEmptyCanvasLayout(): CanvasLayoutDocument
 export function defaultCanvasNodeGeometry(order: number): CanvasNodeGeometry
 export function normalizeCanvasLayout(value: unknown): CanvasLayoutDocument
+export function normalizeCanvasViewport(
+  value: unknown
+): CanvasViewport | undefined
 export function normalizeCanvasInspectionDocument(
   value: unknown
 ): CanvasInspectionDocument

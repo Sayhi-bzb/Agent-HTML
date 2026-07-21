@@ -19,6 +19,7 @@ import {
   useRef,
   useState,
   type MouseEvent,
+  type KeyboardEvent,
   type WheelEvent,
 } from "react"
 
@@ -276,15 +277,14 @@ function WindowControl({
 export function DesktopTitleBar({
   artifactTitleRenameResult,
   navigation,
-  onCloseCodexThreadManager = () => {},
+  onActivateTab = () => {},
+  onCloseTab = () => {},
   onCreateArtifact = () => {},
   onOpenCodexThreadManager,
   onRequestDeleteArtifact = () => {},
   onRenameArtifactTitle = () => {},
   onSearchArtifacts,
   onSelectLanguage,
-  onSelectArtifact = () => {},
-  onSelectCanvas = () => {},
   onSelectThemeMode,
   onSetSidebarOpen = () => {},
   platform = readDesktopPlatform(),
@@ -293,7 +293,8 @@ export function DesktopTitleBar({
 }: {
   artifactTitleRenameResult?: ArtifactTitleRenameResult | null
   navigation?: CanvasNavigationSnapshot | null
-  onCloseCodexThreadManager?: () => void
+  onActivateTab?: (tabId: string) => void
+  onCloseTab?: (tabId: string) => void
   onCreateArtifact?: () => void
   onOpenCodexThreadManager?: () => void
   onRequestDeleteArtifact?: (filePath: string) => void
@@ -304,8 +305,6 @@ export function DesktopTitleBar({
   }) => void
   onSearchArtifacts?: () => void
   onSelectLanguage?: (language: CanvasNavigationLanguage) => void
-  onSelectArtifact?: (filePath: string) => void
-  onSelectCanvas?: (filePath: string) => void
   onSelectThemeMode?: (mode: CanvasThemeMode) => void
   onSetSidebarOpen?: (open: boolean) => void
   platform?: DesktopPlatform
@@ -359,11 +358,7 @@ export function DesktopTitleBar({
       block: "nearest",
       inline: "nearest",
     })
-  }, [
-    navigation?.activeFilePath,
-    navigation?.codexThreadManagerActive,
-    navigation?.createArtifactActive,
-  ])
+  }, [navigation?.tabSession.activeTabId, navigation?.createArtifactActive])
 
   useEffect(() => {
     if (!editingFilePath) return
@@ -470,17 +465,12 @@ export function DesktopTitleBar({
       : [minimize, maximize, close]
 
   const handleDragStart = (event: MouseEvent<HTMLElement>) => {
-    if (
-      event.button !== 0 ||
-      event.detail > 1 ||
-      (event.target as HTMLElement).closest("button, input")
-    ) {
+    if (event.button !== 0 || event.detail > 1) {
       return
     }
     runWindowAction(controls.startDragging)
   }
-  const handleDoubleClick = (event: MouseEvent<HTMLElement>) => {
-    if ((event.target as HTMLElement).closest("button, input")) return
+  const handleDoubleClick = () => {
     runWindowAction(controls.toggleMaximize)
   }
   const handleArtifactWheel = (event: WheelEvent<HTMLElement>) => {
@@ -489,6 +479,39 @@ export function DesktopTitleBar({
     }
     event.currentTarget.scrollLeft += event.deltaY
   }
+  const handleWorkspaceTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (
+      event.key !== "ArrowLeft" &&
+      event.key !== "ArrowRight" &&
+      event.key !== "Home" &&
+      event.key !== "End"
+    ) {
+      return
+    }
+    const tabs = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+    ).sort(
+      (left, right) =>
+        Number(left.dataset.tabOrder) - Number(right.dataset.tabOrder)
+    )
+    const currentIndex = tabs.indexOf(
+      document.activeElement as HTMLButtonElement
+    )
+    if (currentIndex === -1 || tabs.length === 0) return
+    event.preventDefault()
+    const nextIndex =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? tabs.length - 1
+          : event.key === "ArrowRight"
+            ? (currentIndex + 1) % tabs.length
+            : (currentIndex - 1 + tabs.length) % tabs.length
+    tabs[nextIndex]?.focus()
+  }
+  const workspaceTabCount = navigation?.tabSession.tabs.length ?? 0
+  const workspaceTabOrder = (tabId: string) =>
+    navigation?.tabSession.tabs.findIndex((tab) => tab.id === tabId) ?? -1
 
   return (
     <header
@@ -496,8 +519,6 @@ export function DesktopTitleBar({
       className="desktop-titlebar"
       data-navigation={showsWorkspaceNavigation ? "workspace" : "home"}
       data-platform={platform}
-      onDoubleClick={handleDoubleClick}
-      onMouseDown={handleDragStart}
     >
       {showsWorkspaceNavigation ? (
         <nav aria-label="Workspace" className="desktop-titlebar__navigation">
@@ -527,230 +548,291 @@ export function DesktopTitleBar({
               (navigation?.artifactsLoading ?? true) ||
               (navigation?.canvasesLoading ?? false)
             }
-            className="desktop-titlebar__artifacts"
+            className="desktop-titlebar__tabs"
+            onKeyDown={handleWorkspaceTabKeyDown}
             onWheel={handleArtifactWheel}
+            role="tablist"
+            aria-label="Open workspace tabs"
           >
-            {navigation?.artifacts.map((artifact) => {
-              const active =
-                !navigation.createArtifactActive &&
-                !navigation.codexThreadManagerActive &&
-                artifact.filePath === navigation.activeFilePath
-              const editor =
-                titleEditor?.filePath === artifact.filePath ? titleEditor : null
-              const editing = Boolean(editor && !editor.submittedTitle)
-              const displayedTitle = editor?.submittedTitle ?? artifact.title
+            {navigation?.tabSession.tabs
+              .filter((tab) => tab.kind === "artifact")
+              .map((tab) => {
+                const artifact = navigation.artifacts.find(
+                  (candidate) => candidate.filePath === tab.filePath
+                )
+                if (!artifact) return null
+                const active =
+                  !navigation.createArtifactActive &&
+                  tab.id === navigation.tabSession.activeTabId
+                const editor =
+                  titleEditor?.filePath === artifact.filePath
+                    ? titleEditor
+                    : null
+                const editing = Boolean(editor && !editor.submittedTitle)
+                const displayedTitle = editor?.submittedTitle ?? artifact.title
 
-              const beginRename = () => {
-                setTitleEditor({
-                  attempted: false,
-                  draft: artifact.title,
-                  error: null,
-                  filePath: artifact.filePath,
-                  pending: false,
-                  requestId: null,
-                  submittedTitle: null,
-                })
-              }
-              const submitRename = () => {
-                if (!editor || editor.pending) return
-                const title = editor.draft.trim()
-                if (!title) {
+                const beginRename = () => {
+                  setTitleEditor({
+                    attempted: false,
+                    draft: artifact.title,
+                    error: null,
+                    filePath: artifact.filePath,
+                    pending: false,
+                    requestId: null,
+                    submittedTitle: null,
+                  })
+                }
+                const submitRename = () => {
+                  if (!editor || editor.pending) return
+                  const title = editor.draft.trim()
+                  if (!title) {
+                    setTitleEditor((current) =>
+                      current?.filePath === artifact.filePath
+                        ? { ...current, error: "Artifact title is required" }
+                        : current
+                    )
+                    return
+                  }
+                  const requestId = crypto.randomUUID()
                   setTitleEditor((current) =>
                     current?.filePath === artifact.filePath
-                      ? { ...current, error: "Artifact title is required" }
+                      ? {
+                          ...current,
+                          attempted: true,
+                          draft: title,
+                          error: null,
+                          pending: true,
+                          requestId,
+                        }
                       : current
                   )
-                  return
+                  onRenameArtifactTitle({
+                    filePath: artifact.filePath,
+                    requestId,
+                    title,
+                  })
                 }
-                const requestId = crypto.randomUUID()
-                setTitleEditor((current) =>
-                  current?.filePath === artifact.filePath
-                    ? {
-                        ...current,
-                        attempted: true,
-                        draft: title,
-                        error: null,
-                        pending: true,
-                        requestId,
-                      }
-                    : current
-                )
-                onRenameArtifactTitle({
-                  filePath: artifact.filePath,
-                  requestId,
-                  title,
-                })
-              }
-              return (
-                <ContextMenu.Root key={artifact.filePath}>
-                  <ContextMenu.Trigger asChild>
-                    <div
-                      className="desktop-titlebar__artifact"
-                      data-active={active ? "" : undefined}
-                      data-editing={editing ? "" : undefined}
-                    >
-                      {editing && editor ? (
-                        <Popover.Root open={Boolean(editor.error)}>
-                          <Popover.Anchor asChild>
-                            <input
-                              aria-busy={editor.pending}
-                              aria-describedby={
-                                editor.error
-                                  ? `artifact-title-error-${artifact.filePath}`
-                                  : undefined
-                              }
-                              aria-invalid={editor.error ? true : undefined}
-                              aria-label={`Rename ${artifact.title}`}
-                              className="desktop-titlebar__artifact-input"
-                              maxLength={512}
-                              onBlur={() => {
-                                if (!editor.attempted && !editor.pending) {
-                                  setTitleEditor(null)
+                return (
+                  <ContextMenu.Root key={artifact.filePath}>
+                    <ContextMenu.Trigger asChild>
+                      <div
+                        className="desktop-titlebar__tab"
+                        data-active={active ? "" : undefined}
+                        data-editing={editing ? "" : undefined}
+                        style={{ order: workspaceTabOrder(tab.id) }}
+                      >
+                        {editing && editor ? (
+                          <Popover.Root open={Boolean(editor.error)}>
+                            <Popover.Anchor asChild>
+                              <input
+                                aria-busy={editor.pending}
+                                aria-describedby={
+                                  editor.error
+                                    ? `artifact-title-error-${artifact.filePath}`
+                                    : undefined
                                 }
-                              }}
-                              onChange={(event) =>
-                                setTitleEditor((current) =>
-                                  current?.filePath === artifact.filePath
-                                    ? {
-                                        ...current,
-                                        draft: event.target.value,
-                                        error: null,
-                                      }
-                                    : current
-                                )
-                              }
-                              onKeyDown={(event) => {
-                                event.stopPropagation()
-                                if (event.key === "Enter") {
-                                  event.preventDefault()
-                                  submitRename()
-                                } else if (
-                                  event.key === "Escape" &&
-                                  !editor.attempted &&
-                                  !editor.pending
-                                ) {
-                                  event.preventDefault()
-                                  setTitleEditor(null)
+                                aria-invalid={editor.error ? true : undefined}
+                                aria-label={`Rename ${artifact.title}`}
+                                className="desktop-titlebar__tab-input"
+                                maxLength={512}
+                                onBlur={() => {
+                                  if (!editor.attempted && !editor.pending) {
+                                    setTitleEditor(null)
+                                  }
+                                }}
+                                onChange={(event) =>
+                                  setTitleEditor((current) =>
+                                    current?.filePath === artifact.filePath
+                                      ? {
+                                          ...current,
+                                          draft: event.target.value,
+                                          error: null,
+                                        }
+                                      : current
+                                  )
                                 }
-                              }}
-                              readOnly={editor.pending}
-                              ref={titleInputRef}
-                              value={editor.draft}
-                            />
-                          </Popover.Anchor>
-                          <Popover.Portal>
-                            <Popover.Content
-                              align="start"
-                              className="desktop-titlebar__rename-error"
-                              onOpenAutoFocus={(event) =>
-                                event.preventDefault()
-                              }
-                              side="bottom"
-                              sideOffset={6}
-                            >
-                              <span
-                                id={`artifact-title-error-${artifact.filePath}`}
-                                role="alert"
+                                onKeyDown={(event) => {
+                                  event.stopPropagation()
+                                  if (event.key === "Enter") {
+                                    event.preventDefault()
+                                    submitRename()
+                                  } else if (
+                                    event.key === "Escape" &&
+                                    !editor.attempted &&
+                                    !editor.pending
+                                  ) {
+                                    event.preventDefault()
+                                    setTitleEditor(null)
+                                  }
+                                }}
+                                readOnly={editor.pending}
+                                ref={titleInputRef}
+                                value={editor.draft}
+                              />
+                            </Popover.Anchor>
+                            <Popover.Portal>
+                              <Popover.Content
+                                align="start"
+                                className="desktop-titlebar__rename-error"
+                                onOpenAutoFocus={(event) =>
+                                  event.preventDefault()
+                                }
+                                side="bottom"
+                                sideOffset={6}
                               >
-                                {editor.error}
-                              </span>
-                            </Popover.Content>
-                          </Popover.Portal>
-                        </Popover.Root>
-                      ) : (
-                        <button
-                          aria-current={active ? "page" : undefined}
-                          className="desktop-titlebar__artifact-label"
-                          onClick={() => onSelectArtifact(artifact.filePath)}
-                          ref={active ? activeArtifactRef : undefined}
-                          title={displayedTitle}
-                          type="button"
+                                <span
+                                  id={`artifact-title-error-${artifact.filePath}`}
+                                  role="alert"
+                                >
+                                  {editor.error}
+                                </span>
+                              </Popover.Content>
+                            </Popover.Portal>
+                          </Popover.Root>
+                        ) : (
+                          <button
+                            aria-selected={active}
+                            aria-posinset={workspaceTabOrder(tab.id) + 1}
+                            aria-setsize={workspaceTabCount}
+                            className="desktop-titlebar__tab-label"
+                            onClick={() => onActivateTab(tab.id)}
+                            ref={active ? activeArtifactRef : undefined}
+                            role="tab"
+                            data-tab-order={workspaceTabOrder(tab.id)}
+                            tabIndex={active ? 0 : -1}
+                            title={displayedTitle}
+                            type="button"
+                          >
+                            <span className="desktop-titlebar__tab-title">
+                              {displayedTitle}
+                            </span>
+                          </button>
+                        )}
+                        {!editing && (
+                          <button
+                            aria-label={`Close ${displayedTitle}`}
+                            className="desktop-titlebar__tab-close"
+                            onClick={() => onCloseTab(tab.id)}
+                            title={`Close ${displayedTitle}`}
+                            type="button"
+                          >
+                            <X aria-hidden="true" />
+                          </button>
+                        )}
+                      </div>
+                    </ContextMenu.Trigger>
+                    <ContextMenu.Portal>
+                      <ContextMenu.Content
+                        className="desktop-titlebar__context-menu"
+                        collisionPadding={8}
+                        onCloseAutoFocus={(event) => event.preventDefault()}
+                      >
+                        <ContextMenu.Item
+                          className="desktop-titlebar__context-menu-item"
+                          onSelect={beginRename}
                         >
-                          <span className="desktop-titlebar__artifact-title">
-                            {displayedTitle}
-                          </span>
-                        </button>
-                      )}
-                      {!editing && (
-                        <button
-                          aria-label={`Delete ${displayedTitle}`}
-                          className="desktop-titlebar__artifact-close"
-                          onClick={() =>
+                          Rename
+                        </ContextMenu.Item>
+                        <ContextMenu.Item
+                          className="desktop-titlebar__context-menu-item"
+                          onSelect={() =>
                             onRequestDeleteArtifact(artifact.filePath)
                           }
-                          title={`Delete ${displayedTitle}`}
-                          type="button"
                         >
-                          <X aria-hidden="true" />
-                        </button>
-                      )}
-                    </div>
-                  </ContextMenu.Trigger>
-                  <ContextMenu.Portal>
-                    <ContextMenu.Content
-                      className="desktop-titlebar__context-menu"
-                      collisionPadding={8}
-                      onCloseAutoFocus={(event) => event.preventDefault()}
-                    >
-                      <ContextMenu.Item
-                        className="desktop-titlebar__context-menu-item"
-                        onSelect={beginRename}
-                      >
-                        Rename
-                      </ContextMenu.Item>
-                    </ContextMenu.Content>
-                  </ContextMenu.Portal>
-                </ContextMenu.Root>
-              )
-            })}
-            {navigation?.canvases?.map((canvas) => {
-              const active =
-                !navigation.createArtifactActive &&
-                !navigation.codexThreadManagerActive &&
-                canvas.filePath === navigation.activeFilePath
-              return (
-                <div
-                  className="desktop-titlebar__artifact"
-                  data-active={active ? "" : undefined}
-                  data-kind="canvas"
-                  key={canvas.filePath}
-                >
-                  <button
-                    aria-current={active ? "page" : undefined}
-                    className="desktop-titlebar__artifact-label"
-                    onClick={() => onSelectCanvas(canvas.filePath)}
-                    ref={active ? activeArtifactRef : undefined}
-                    title={canvas.title}
-                    type="button"
+                          Delete
+                        </ContextMenu.Item>
+                      </ContextMenu.Content>
+                    </ContextMenu.Portal>
+                  </ContextMenu.Root>
+                )
+              })}
+            {navigation?.tabSession.tabs
+              .filter((tab) => tab.kind === "canvas")
+              .map((tab) => {
+                const canvas = navigation.canvases?.find(
+                  (candidate) => candidate.filePath === tab.filePath
+                )
+                if (!canvas) return null
+                const active =
+                  !navigation.createArtifactActive &&
+                  tab.id === navigation.tabSession.activeTabId
+                return (
+                  <div
+                    className="desktop-titlebar__tab"
+                    data-active={active ? "" : undefined}
+                    data-kind="canvas"
+                    key={canvas.filePath}
+                    style={{ order: workspaceTabOrder(tab.id) }}
                   >
-                    <span className="desktop-titlebar__artifact-title">
-                      {canvas.title}
-                    </span>
-                  </button>
-                </div>
-              )
-            })}
-            {navigation?.codexThreadManagerActive ? (
+                    <button
+                      aria-selected={active}
+                      aria-posinset={workspaceTabOrder(tab.id) + 1}
+                      aria-setsize={workspaceTabCount}
+                      className="desktop-titlebar__tab-label"
+                      onClick={() => onActivateTab(tab.id)}
+                      ref={active ? activeArtifactRef : undefined}
+                      role="tab"
+                      data-tab-order={workspaceTabOrder(tab.id)}
+                      tabIndex={active ? 0 : -1}
+                      title={canvas.title}
+                      type="button"
+                    >
+                      <span className="desktop-titlebar__tab-title">
+                        {canvas.title}
+                      </span>
+                    </button>
+                    <button
+                      aria-label={`Close ${canvas.title}`}
+                      className="desktop-titlebar__tab-close"
+                      onClick={() => onCloseTab(tab.id)}
+                      title={`Close ${canvas.title}`}
+                      type="button"
+                    >
+                      <X aria-hidden="true" />
+                    </button>
+                  </div>
+                )
+              })}
+            {navigation?.tabSession.tabs.some(
+              (tab) => tab.kind === "thread-manager"
+            ) ? (
               <div
-                className="desktop-titlebar__artifact"
-                data-active=""
+                className="desktop-titlebar__tab"
+                data-active={
+                  navigation.tabSession.activeTabId === "threads"
+                    ? ""
+                    : undefined
+                }
                 data-kind="threads"
+                style={{ order: workspaceTabOrder("threads") }}
               >
                 <button
-                  aria-current="page"
-                  className="desktop-titlebar__artifact-label"
-                  ref={activeArtifactRef}
+                  aria-selected={
+                    navigation.tabSession.activeTabId === "threads"
+                  }
+                  aria-posinset={workspaceTabOrder("threads") + 1}
+                  aria-setsize={workspaceTabCount}
+                  className="desktop-titlebar__tab-label"
+                  onClick={() => onActivateTab("threads")}
+                  ref={
+                    navigation.tabSession.activeTabId === "threads"
+                      ? activeArtifactRef
+                      : undefined
+                  }
+                  role="tab"
+                  data-tab-order={workspaceTabOrder("threads")}
+                  tabIndex={
+                    navigation.tabSession.activeTabId === "threads" ? 0 : -1
+                  }
                   title="Threads"
                   type="button"
                 >
-                  <span className="desktop-titlebar__artifact-title">
-                    Threads
-                  </span>
+                  <span className="desktop-titlebar__tab-title">Threads</span>
                 </button>
                 <button
                   aria-label="Close Threads"
-                  className="desktop-titlebar__thread-close"
-                  onClick={onCloseCodexThreadManager}
+                  className="desktop-titlebar__tab-close"
+                  onClick={() => onCloseTab("threads")}
                   title="Close Threads"
                   type="button"
                 >
@@ -758,10 +840,57 @@ export function DesktopTitleBar({
                 </button>
               </div>
             ) : null}
+            {navigation?.tabSession.tabs
+              .filter((tab) => tab.kind === "thread")
+              .map((tab) => {
+                const title =
+                  navigation.threads.find(
+                    (thread) => thread.id === tab.threadId
+                  )?.title ?? tab.threadId.slice(0, 8)
+                const active =
+                  !navigation.createArtifactActive &&
+                  navigation.tabSession.activeTabId === tab.id
+                return (
+                  <div
+                    className="desktop-titlebar__tab"
+                    data-active={active ? "" : undefined}
+                    data-kind="thread"
+                    key={tab.id}
+                    style={{ order: workspaceTabOrder(tab.id) }}
+                  >
+                    <button
+                      aria-selected={active}
+                      aria-posinset={workspaceTabOrder(tab.id) + 1}
+                      aria-setsize={workspaceTabCount}
+                      className="desktop-titlebar__tab-label"
+                      onClick={() => onActivateTab(tab.id)}
+                      ref={active ? activeArtifactRef : undefined}
+                      role="tab"
+                      data-tab-order={workspaceTabOrder(tab.id)}
+                      tabIndex={active ? 0 : -1}
+                      title={title}
+                      type="button"
+                    >
+                      <span className="desktop-titlebar__tab-title">
+                        {title}
+                      </span>
+                    </button>
+                    <button
+                      aria-label={`Close ${title}`}
+                      className="desktop-titlebar__tab-close"
+                      onClick={() => onCloseTab(tab.id)}
+                      title={`Close ${title}`}
+                      type="button"
+                    >
+                      <X aria-hidden="true" />
+                    </button>
+                  </div>
+                )
+              })}
             {!navigation && (
               <span
                 aria-hidden="true"
-                className="desktop-titlebar__artifact-placeholder"
+                className="desktop-titlebar__tab-placeholder"
               />
             )}
           </div>
@@ -779,7 +908,12 @@ export function DesktopTitleBar({
           </button>
         </nav>
       ) : null}
-      <div aria-hidden="true" className="desktop-titlebar__drag-space" />
+      <div
+        aria-hidden="true"
+        className="desktop-titlebar__drag-space"
+        onDoubleClick={handleDoubleClick}
+        onMouseDown={handleDragStart}
+      />
       {showsWorkspaceNavigation && (
         <AgentMenuButton
           activeCodexThreadLabel={navigation?.activeCodexThreadLabel}

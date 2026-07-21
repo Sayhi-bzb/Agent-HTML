@@ -7,6 +7,7 @@ import {
   deleteArtifact,
   fetchArtifacts,
   fetchCodexThreads,
+  fetchCodexTranscript,
   fontStylesheetUrl,
   hostApiRoutes,
   isArtifactBundleUrl,
@@ -167,6 +168,42 @@ describe("fetchCodexThreads", () => {
   })
 })
 
+describe("fetchCodexTranscript", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it("loads the normalized read-only thread history", async () => {
+    vi.stubGlobal("fetch", async (url: string) => {
+      expect(url).toBe(`${hostApiRoutes.codexTranscript}?threadId=thread-1`)
+      return new Response(
+        JSON.stringify({
+          notifications: [],
+          threadId: "thread-1",
+          turns: [
+            {
+              id: "turn-1",
+              items: [
+                {
+                  contentText: "Build the workspace tabs",
+                  id: "item-1",
+                  type: "userMessage",
+                },
+              ],
+            },
+          ],
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      )
+    })
+
+    await expect(fetchCodexTranscript("thread-1")).resolves.toMatchObject({
+      threadId: "thread-1",
+      turns: [{ id: "turn-1" }],
+    })
+  })
+})
+
 describe("Canvas inspection transport", () => {
   afterEach(() => {
     vi.unstubAllGlobals()
@@ -223,6 +260,33 @@ describe("Canvas inspection transport", () => {
     await expect(
       saveCanvasLayoutPatch({ filePath, nodes, removedNodeIds })
     ).resolves.toMatchObject({ storage: "monolithic" })
+  })
+
+  it("persists a Canvas viewport as a patch", async () => {
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+    const viewport = { x: 24, y: -16, zoom: 0.8 }
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      expect(url).toBe(hostApiRoutes.canvasLayout)
+      expect(JSON.parse(String(init?.body))).toEqual({
+        filePath,
+        nodes: {},
+        viewport,
+      })
+      return new Response(
+        JSON.stringify({
+          layoutPath: "agent-html/canvases/demo.layout.json",
+          nodes: {},
+          removedNodeIds: [],
+          storage: "monolithic",
+          viewport,
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      )
+    })
+
+    await expect(
+      saveCanvasLayoutPatch({ filePath, viewport })
+    ).resolves.toMatchObject({ viewport })
   })
 })
 
