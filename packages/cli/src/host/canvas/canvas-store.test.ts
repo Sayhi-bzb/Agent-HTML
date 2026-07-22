@@ -32,6 +32,35 @@ describe("Canonical Canvas Store", () => {
     })
   })
 
+  it("applies and rolls back a hierarchy mutation atomically", () => {
+    const store = createCanvasStore("demo.canvas.tsx")
+    store.runtime.upsertNode({ id: "parent" })
+    store.runtime.upsertNode({ id: "child", parentId: "parent" })
+    store.runtime.upsertNode({ id: "target" })
+    store.setNodeGeometry("child", {
+      height: 50,
+      width: 60,
+      x: 20,
+      y: 30,
+    })
+
+    const rollback = store.applyReparenting({
+      geometries: {
+        child: { height: 50, width: 60, x: -380, y: -90 },
+      },
+      nodeIds: ["child"],
+      parentId: "target",
+    })
+    expect(
+      store.getSnapshot().nodes.find((node) => node.id === "child")
+    ).toMatchObject({ parentId: "target", x: -380, y: -90 })
+
+    store.restoreHierarchy(rollback)
+    expect(
+      store.getSnapshot().nodes.find((node) => node.id === "child")
+    ).toMatchObject({ parentId: "parent", x: 20, y: 30 })
+  })
+
   it("persists resolved geometry for active nodes", () => {
     const store = createCanvasStore("demo.canvas.tsx")
     store.runtime.upsertNode({ id: "profile" })

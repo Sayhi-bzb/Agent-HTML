@@ -16,6 +16,28 @@ vi.mock("@xyflow/react", () => ({
   ),
 }))
 
+vi.mock("../ui/context-menu", () => ({
+  HostContextMenu: ({
+    children,
+    onOpenChange,
+  }: React.PropsWithChildren<{
+    onOpenChange?: (open: boolean) => void
+  }>) => (
+    <div data-context-menu-root="" onContextMenu={() => onOpenChange?.(true)}>
+      {children}
+    </div>
+  ),
+  HostContextMenuContent: ({ children }: React.PropsWithChildren) => children,
+  HostContextMenuGroup: ({ children }: React.PropsWithChildren) => children,
+  HostContextMenuItem: ({
+    children,
+    onSelect,
+  }: React.PropsWithChildren<{ onSelect?: () => void }>) => (
+    <button onClick={onSelect}>{children}</button>
+  ),
+  HostContextMenuTrigger: ({ children }: React.PropsWithChildren) => children,
+}))
+
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 describe("Canvas Node interaction boundary", () => {
@@ -57,6 +79,41 @@ describe("Canvas Node interaction boundary", () => {
     expect(statefulChild.value).toBe("retained")
     expect(container.querySelector(".canvas-node-hit-layer")).toBeNull()
     expect(container.querySelector("[data-resizer-visible]")).toBeNull()
+    act(() => root.unmount())
+  })
+
+  it("opens hierarchy actions in Pointer mode", () => {
+    const container = document.createElement("div")
+    const root = createRoot(container)
+    const store = createCanvasStore("demo.canvas.tsx")
+    store.runtime.upsertNode({ id: "card" })
+    const onChooseParent = vi.fn()
+    const onContextMenuOpen = vi.fn()
+    const props = {
+      data: {
+        contentInteractive: false,
+        moveToLabel: "Move to…",
+        onChooseParent,
+        onContextMenuOpen,
+        persistLayout: vi.fn(),
+        requestPersistLayout: vi.fn(),
+        store,
+      },
+      id: "card",
+      selected: true,
+    } as unknown as NodeProps<CanvasFlowNode>
+
+    act(() => root.render(<CanvasNodeShell {...props} />))
+    act(() => {
+      container
+        .querySelector("[data-context-menu-root]")!
+        .dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }))
+    })
+    expect(onContextMenuOpen).toHaveBeenCalledWith("card")
+    act(() =>
+      container.querySelector("button:not(.canvas-node-hit-layer)")!.click()
+    )
+    expect(onChooseParent).toHaveBeenCalledWith("card")
     act(() => root.unmount())
   })
 })

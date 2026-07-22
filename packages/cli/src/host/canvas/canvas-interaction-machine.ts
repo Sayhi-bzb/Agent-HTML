@@ -8,15 +8,18 @@ export type CanvasFocusOwner =
   | "none"
   | "overlay"
 export type CanvasInteractionPhase =
+  | "choosingParent"
   | "idle"
   | "interacting"
   | "marquee"
   | "moving"
   | "panning"
   | "resizing"
+  | "reparenting"
 
 export type CanvasInteractionContext = {
   focusOwner: CanvasFocusOwner
+  reparentingNodeIds: readonly string[]
   selectedNodeIds: readonly string[]
   spacePressed: boolean
   tool: CanvasTool
@@ -24,6 +27,10 @@ export type CanvasInteractionContext = {
 
 export type CanvasInteractionEvent =
   | { type: "FOCUS.CHANGED"; owner: CanvasFocusOwner }
+  | { type: "HIERARCHY.CANCEL" }
+  | { type: "HIERARCHY.CHOOSE.START"; nodeIds: readonly string[] }
+  | { type: "HIERARCHY.COMMIT.START" }
+  | { type: "HIERARCHY.COMMIT.END" }
   | { type: "PHASE.END" }
   | { type: "PHASE.INTERACT.START" }
   | { type: "PHASE.MARQUEE.START" }
@@ -56,22 +63,36 @@ export const canvasInteractionMachine = setup({
     events: {} as CanvasInteractionEvent,
   },
   actions: {
+    clearHierarchy: assign({ reparentingNodeIds: [] }),
     clearSpace: assign({ spacePressed: false }),
     resetTransient: assign({
+      focusOwner: "none" as const,
+      reparentingNodeIds: [],
+      spacePressed: false,
+    }),
+    resetFocusTransient: assign({
       focusOwner: "none" as const,
       spacePressed: false,
     }),
     selectNavigateTool: assign({
+      reparentingNodeIds: [],
       spacePressed: false,
       tool: "navigate" as const,
     }),
     selectPointerTool: assign({
+      reparentingNodeIds: [],
       spacePressed: false,
       tool: "select" as const,
     }),
     setFocusOwner: assign({
       focusOwner: ({ event }) =>
         event.type === "FOCUS.CHANGED" ? event.owner : "none",
+    }),
+    setHierarchySelection: assign({
+      reparentingNodeIds: ({ event }) =>
+        event.type === "HIERARCHY.CHOOSE.START"
+          ? [...new Set(event.nodeIds)]
+          : [],
     }),
     setSelection: assign({
       selectedNodeIds: ({ event }) =>
@@ -92,6 +113,7 @@ export const canvasInteractionMachine = setup({
   id: "canvas-interaction",
   context: {
     focusOwner: "none",
+    reparentingNodeIds: [],
     selectedNodeIds: [],
     spacePressed: false,
     tool: "select",
@@ -99,6 +121,10 @@ export const canvasInteractionMachine = setup({
   initial: "idle",
   on: {
     "FOCUS.CHANGED": { actions: "setFocusOwner" },
+    "HIERARCHY.CHOOSE.START": {
+      actions: "setHierarchySelection",
+      target: ".choosingParent",
+    },
     "SELECTION.CHANGED": { actions: "setSelection" },
     "SPACE.DOWN": {
       actions: "setSpace",
@@ -119,6 +145,15 @@ export const canvasInteractionMachine = setup({
     },
   },
   states: {
+    choosingParent: {
+      on: {
+        "HIERARCHY.CANCEL": {
+          actions: "clearHierarchy",
+          target: "idle",
+        },
+        "HIERARCHY.COMMIT.START": "reparenting",
+      },
+    },
     idle: {
       on: {
         "PHASE.INTERACT.START": {
@@ -148,5 +183,16 @@ export const canvasInteractionMachine = setup({
     moving: { on: { "PHASE.END": "idle" } },
     panning: { on: { "PHASE.END": "idle" } },
     resizing: { on: { "PHASE.END": "idle" } },
+    reparenting: {
+      on: {
+        "HIERARCHY.COMMIT.END": {
+          actions: "clearHierarchy",
+          target: "idle",
+        },
+        "TOOL.NAVIGATE": {},
+        "TOOL.SELECT": {},
+        "TRANSIENT.RESET": { actions: "resetFocusTransient" },
+      },
+    },
   },
 })

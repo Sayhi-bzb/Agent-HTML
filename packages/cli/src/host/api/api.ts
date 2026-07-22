@@ -1,6 +1,7 @@
 import type {
   CanvasInspectionDocument,
   CanvasLayoutDocument,
+  CanvasNodeGeometry,
   CanvasViewport,
 } from "@agent-html/kernel"
 
@@ -54,6 +55,7 @@ export const hostApiRoutes = {
   canvasBundle: "/__agent-html/canvas.js",
   canvasInspection: "/__agent-html/canvas/inspection",
   canvasLayout: "/__agent-html/canvas/layout",
+  canvasReparent: "/__agent-html/canvas/reparent",
   canvases: "/__agent-html/canvases",
   blockImplementation: "/__agent-html/block-implementation",
   codexThreads: "/__agent-html/codex/threads",
@@ -216,6 +218,27 @@ export async function saveCanvasLayoutPatch({
     nodes: CanvasLayoutDocument["nodes"]
     removedNodeIds: string[]
   }>(response, hostApiRoutes.canvasLayout)
+}
+
+export async function reparentCanvasNodes({
+  filePath,
+  nodeIds,
+  parentId,
+}: {
+  filePath: string
+  nodeIds: readonly string[]
+  parentId: string | null
+}) {
+  const response = await fetch(hostApiRoutes.canvasReparent, {
+    body: JSON.stringify({ filePath, nodeIds, parentId }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+  })
+  return readHostJsonResponse<{
+    geometries: Record<string, CanvasNodeGeometry>
+    movedNodeIds: string[]
+    parentId: string | null
+  }>(response, hostApiRoutes.canvasReparent)
 }
 
 export async function publishCanvasInspection(

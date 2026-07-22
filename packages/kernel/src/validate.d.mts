@@ -35,6 +35,12 @@ export function extractStaticCanvasIntentGraph(input: {
   source: string
 }): Promise<StaticCanvasIntent>
 
+export function reparentStaticCanvasNodes(input: {
+  nodeIds: string[]
+  parentId?: string | null
+  source: string
+}): { source: string }
+
 export function inspectArtifactEntry(input: {
   filePath: string
   source: string

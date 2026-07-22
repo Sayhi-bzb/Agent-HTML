@@ -2,6 +2,13 @@ import { NodeResizer, type NodeProps, type ResizeParams } from "@xyflow/react"
 import * as React from "react"
 
 import { HostButton } from "../ui/button"
+import {
+  HostContextMenu,
+  HostContextMenuContent,
+  HostContextMenuGroup,
+  HostContextMenuItem,
+  HostContextMenuTrigger,
+} from "../ui/context-menu"
 import type { CanvasFlowNode } from "./canvas-flow-model"
 
 export function CanvasNodeShell({
@@ -9,8 +16,18 @@ export function CanvasNodeShell({
   id,
   selected,
 }: NodeProps<CanvasFlowNode>) {
-  const { contentInteractive, persistLayout, requestPersistLayout, store } =
-    data
+  const {
+    contentInteractive,
+    hierarchyMenuDisabled,
+    hierarchyLocked,
+    moveToLabel,
+    onChooseParent,
+    onContextMenuOpen,
+    parentTargetState,
+    persistLayout,
+    requestPersistLayout,
+    store,
+  } = data
   const setTarget = React.useCallback(
     (target: HTMLDivElement | null) => store.setNodeTarget(id, target),
     [id, store]
@@ -29,13 +46,14 @@ export function CanvasNodeShell({
     },
     [id, persistLayout, store]
   )
-  return (
+  const shell = (
     <div
       className="canvas-node-shell"
+      data-parent-target={parentTargetState}
       data-selected={selected ? "" : undefined}
     >
       <NodeResizer
-        isVisible={selected && !contentInteractive}
+        isVisible={selected && !contentInteractive && !hierarchyLocked}
         minHeight={40}
         minWidth={80}
         onResize={setGeometry}
@@ -58,5 +76,28 @@ export function CanvasNodeShell({
         ref={setTarget}
       />
     </div>
+  )
+  if (
+    contentInteractive ||
+    hierarchyMenuDisabled ||
+    !moveToLabel ||
+    !onChooseParent
+  )
+    return shell
+  return (
+    <HostContextMenu
+      onOpenChange={(open) => {
+        if (open) onContextMenuOpen?.(id)
+      }}
+    >
+      <HostContextMenuTrigger asChild>{shell}</HostContextMenuTrigger>
+      <HostContextMenuContent>
+        <HostContextMenuGroup>
+          <HostContextMenuItem onSelect={() => onChooseParent(id)}>
+            {moveToLabel}
+          </HostContextMenuItem>
+        </HostContextMenuGroup>
+      </HostContextMenuContent>
+    </HostContextMenu>
   )
 }

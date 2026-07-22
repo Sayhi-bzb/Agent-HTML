@@ -1,4 +1,5 @@
 import { parse } from "@babel/parser"
+export { reparentStaticCanvasNodes } from "./canvas-hierarchy-source.mjs"
 
 import { titleizeBlockId } from "./artifact.mjs"
 import {

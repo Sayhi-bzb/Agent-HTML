@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import {
   applyCanvasNodeChanges,
   getOrCreateCanvasStore,
+  invalidCanvasParentIds,
   moveCanvasNodes,
   projectCanvasSnapshot,
   shouldCullCanvasElements,
@@ -18,6 +19,19 @@ const canvasSurfaceSource = fs.readFileSync(
 )
 
 describe("React Flow Canvas adapter", () => {
+  it("excludes selected Nodes and their descendants as parent targets", () => {
+    expect(
+      invalidCanvasParentIds({
+        nodeIds: new Set(["parent"]),
+        nodes: [
+          { id: "parent" },
+          { id: "child", parentId: "parent" },
+          { id: "other" },
+        ],
+      })
+    ).toEqual(new Set(["parent", "child"]))
+  })
+
   it("hides React Flow attribution through its supported option", () => {
     expect(canvasSurfaceSource).toContain(
       "const canvasReactFlowProOptions = { hideAttribution: true }"

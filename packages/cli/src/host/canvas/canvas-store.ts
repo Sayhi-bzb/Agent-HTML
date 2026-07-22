@@ -37,7 +37,21 @@ export type CanvasStoreSnapshot = {
   viewport?: CanvasViewport
 }
 
+export type CanvasHierarchyRollback = {
+  nodes: Array<{
+    geometry: CanvasNodeGeometry
+    id: string
+    order: number
+    parentId?: string
+  }>
+}
+
 export type CanvasStore = {
+  applyReparenting: (input: {
+    geometries: Readonly<Record<string, CanvasNodeGeometry>>
+    nodeIds: readonly string[]
+    parentId: string | null
+  }) => CanvasHierarchyRollback
   getInspectionDocument: () => CanvasInspectionDocument
   getLayout: () => CanvasLayoutDocument
   getLayoutNodeIds: () => string[]
@@ -48,6 +62,7 @@ export type CanvasStore = {
   inspectViewport: (bounds: CanvasViewportBounds) => CanvasViewportInspection
   resolveNodeSource: (nodeId: string) => CanvasNodeSourceReference | null
   removeLayoutNodes: (nodeIds: readonly string[]) => void
+  restoreHierarchy: (rollback: CanvasHierarchyRollback) => void
   runtime: CanvasIntentRuntime
   setNodeGeometries: (
     geometries: Readonly<Record<string, CanvasNodeGeometry>>
@@ -182,6 +197,37 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
   }
 
   return {
+    applyReparenting({ geometries, nodeIds, parentId }) {
+      const rollback: CanvasHierarchyRollback = { nodes: [] }
+      for (const id of nodeIds) {
+        const node = nodes.get(id)
+        const nextGeometry = geometries[id]
+        if (!node || !nextGeometry) {
+          throw new Error(`Canvas hierarchy Node ${id} is unavailable`)
+        }
+        rollback.nodes.push({
+          geometry: {
+            ...(layout.nodes[id] ?? defaultCanvasNodeGeometry(node.order)),
+          },
+          id,
+          order: node.order,
+          ...(node.parentId ? { parentId: node.parentId } : {}),
+        })
+      }
+      for (const id of nodeIds) {
+        nodes.set(id, {
+          id,
+          ...(parentId ? { parentId } : {}),
+          order: nextOrder++,
+        })
+      }
+      layout = {
+        nodes: { ...layout.nodes, ...geometries },
+        version: CANVAS_LAYOUT_VERSION,
+      }
+      rebuild()
+      return rollback
+    },
     getInspectionDocument,
     getLayout() {
       return {
@@ -236,6 +282,22 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
       if (changed) {
         layout = { nodes: nextNodes, version: CANVAS_LAYOUT_VERSION }
       }
+    },
+    restoreHierarchy(rollback) {
+      const restoredGeometries: Record<string, CanvasNodeGeometry> = {}
+      for (const node of rollback.nodes) {
+        nodes.set(node.id, {
+          id: node.id,
+          ...(node.parentId ? { parentId: node.parentId } : {}),
+          order: node.order,
+        })
+        restoredGeometries[node.id] = { ...node.geometry }
+      }
+      layout = {
+        nodes: { ...layout.nodes, ...restoredGeometries },
+        version: CANVAS_LAYOUT_VERSION,
+      }
+      rebuild()
     },
     runtime,
     setNodeGeometries,

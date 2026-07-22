@@ -131,6 +131,7 @@ The bottom Dock selects Pointer (`V`) or Hand (`H`).
 - Pointer selects, moves, resizes, and marquee-selects Nodes. Node content is `inert` behind an invisible focusable hit layer.
 - Hand pans while Node React content retains native focus, controls, and scrolling.
 - Space temporarily activates Hand; middle drag pans; `Ctrl/Cmd + wheel` and pinch zoom.
+- Pointer context actions enter parent-pick mode. A Node selects the new parent, Canvas blank space selects the root, and `Esc` cancels.
 
 The Node shell has no visible window title bar. Its invisible Pointer hit layer provides drag targeting, keyboard movement, focus, and an accessible name derived from `id` without consuming Canvas space.
 
@@ -159,7 +160,7 @@ Overview returns Canvas source, Node count, and root IDs. A viewport query retur
 
 `sources[]` is derived from JSX and imports, stopping at nested Node boundaries; the Canvas file is the fallback. The active Host publishes live Store geometry. Cold inspection extracts static intent and merges shared geometry before render. Dynamic structural JSX requires the live Store rather than producing a partial cold result.
 
-Human structural edits change JSX through an AST operation. Geometry never stores a second hierarchy. A future reparent gesture must move JSX and convert parent-local coordinates in one transaction.
+Human reparenting moves static Node JSX and converts parent-local coordinates in one transaction. The Host rejects dynamic or ambiguous source instead of writing a partial hierarchy. Geometry never stores a second hierarchy.
 
 ## Persistence And Migration
 

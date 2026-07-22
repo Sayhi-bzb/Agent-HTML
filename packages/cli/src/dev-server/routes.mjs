@@ -5,9 +5,14 @@ import {
   inspectCanvasNode,
   inspectCanvasOverview,
   inspectCanvasViewport,
+  resolveCanvasReparenting,
   resolveCanvasNodeSource,
 } from "@agent-html/kernel"
-import { replaceArtifactTitle } from "@agent-html/kernel/validate"
+import {
+  extractStaticCanvasIntent,
+  reparentStaticCanvasNodes,
+  replaceArtifactTitle,
+} from "@agent-html/kernel/validate"
 import { workspaceRelativePath } from "../react-canvas/paths.mjs"
 import { createArtifactScaffold } from "../react-canvas/artifact-scaffold.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
@@ -52,6 +57,7 @@ export const hostRoutes = {
   canvasBundle: "/__agent-html/canvas.js",
   canvasInspection: "/__agent-html/canvas/inspection",
   canvasLayout: "/__agent-html/canvas/layout",
+  canvasReparent: "/__agent-html/canvas/reparent",
   canvases: "/__agent-html/canvases",
   blockImplementation: "/__agent-html/block-implementation",
   codexThreads: "/__agent-html/codex/threads",
@@ -120,6 +126,87 @@ async function patchCanvasLayout({ filePath, nodes, removedNodeIds, root }) {
   await fs.access(entryPath)
   const layoutPath = canvasLayoutPathForEntry(entryPath)
   return patchStoredCanvasLayout({ layoutPath, nodes, removedNodeIds })
+}
+
+const canvasHierarchyMutationQueues = new Map()
+
+function queueCanvasHierarchyMutation(entryPath, operation) {
+  const previous =
+    canvasHierarchyMutationQueues.get(entryPath) ?? Promise.resolve()
+  const next = previous.catch(() => undefined).then(operation)
+  canvasHierarchyMutationQueues.set(entryPath, next)
+  return next.finally(() => {
+    if (canvasHierarchyMutationQueues.get(entryPath) === next) {
+      canvasHierarchyMutationQueues.delete(entryPath)
+    }
+  })
+}
+
+async function replaceTextFile(filePath, source) {
+  const temporaryPath = `${filePath}.${process.pid}.${Date.now()}.tmp`
+  try {
+    await fs.writeFile(temporaryPath, source, "utf8")
+    await fs.rename(temporaryPath, filePath)
+  } finally {
+    await fs.rm(temporaryPath, { force: true }).catch(() => undefined)
+  }
+}
+
+async function reparentCanvasNodes({ filePath, nodeIds, parentId, root }) {
+  const entryPath = resolveCanvasEntryPath({ filePath, root })
+  await fs.access(entryPath)
+  return queueCanvasHierarchyMutation(entryPath, async () => {
+    const sourceFilePath = workspaceRelativePath(root, entryPath)
+    const source = await readTextFile(entryPath)
+    const intent = extractStaticCanvasIntent({
+      filePath: sourceFilePath,
+      source,
+    })
+    const layoutPath = canvasLayoutPathForEntry(entryPath)
+    const stored = await readStoredCanvasLayout(layoutPath, {
+      legacyLayoutPath: legacyCanvasLayoutPathForEntry(entryPath),
+    })
+    const reparenting = resolveCanvasReparenting({
+      layout: stored.layout,
+      nodeIds,
+      nodes: intent.nodes,
+      parentId,
+    })
+    const replacement = reparentStaticCanvasNodes({
+      nodeIds: reparenting.movedNodeIds,
+      parentId: reparenting.parentId,
+      source,
+    })
+    const currentSource = await readTextFile(entryPath)
+    if (currentSource !== source) {
+      const error = new Error(
+        "Canvas source changed while the hierarchy operation was prepared"
+      )
+      error.code = "CANVAS_SOURCE_CHANGED"
+      throw error
+    }
+
+    const nextLayout = {
+      nodes: { ...stored.layout.nodes, ...reparenting.geometries },
+      version: stored.layout.version,
+    }
+    await writeStoredCanvasLayout({ layout: nextLayout, layoutPath })
+    try {
+      await replaceTextFile(entryPath, replacement.source)
+    } catch (error) {
+      try {
+        await writeStoredCanvasLayout({ layout: stored.layout, layoutPath })
+      } catch (rollbackError) {
+        throw new AggregateError(
+          [error, rollbackError],
+          "Canvas hierarchy source write and layout rollback both failed"
+        )
+      }
+      throw error
+    }
+
+    return reparenting
+  })
 }
 
 const publicContentTypes = new Map([
@@ -539,7 +626,8 @@ export function classifyDevServerRoute(pathname) {
 
   if (
     pathname === hostRoutes.canvases ||
-    pathname === hostRoutes.canvasLayout
+    pathname === hostRoutes.canvasLayout ||
+    pathname === hostRoutes.canvasReparent
   ) {
     return "canvas-registry-and-layout"
   }
@@ -759,6 +847,30 @@ async function handleCanvasRegistryAndLayoutRoute({
       await canvasRegistry.refresh({ broadcast: false, reason: "canvas-poll" })
     }
     sendJson(response, canvasRegistry.getSnapshot())
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.canvasReparent) {
+    if (request.method !== "POST") {
+      sendError(response, "POST is required", 405)
+      return true
+    }
+    try {
+      const body = await readJsonBody(request)
+      const result = await reparentCanvasNodes({
+        filePath: body.filePath,
+        nodeIds: body.nodeIds,
+        parentId: body.parentId,
+        root,
+      })
+      sendJson(response, result)
+    } catch (error) {
+      sendError(
+        response,
+        error,
+        error?.code === "CANVAS_SOURCE_CHANGED" ? 409 : 400
+      )
+    }
     return true
   }
 

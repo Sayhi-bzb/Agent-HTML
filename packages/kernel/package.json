@@ -20,7 +20,8 @@
     "./runtime-catalog": "./src/runtime-catalog.mjs"
   },
   "dependencies": {
-    "@babel/parser": "^7.29.3"
+    "@babel/parser": "^7.29.3",
+    "recast": "^0.23.11"
   },
   "repository": {
     "type": "git",

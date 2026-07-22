@@ -121,6 +121,9 @@ describe("dev server routes", () => {
     expect(classifyDevServerRoute(hostRoutes.canvasLayout)).toBe(
       "canvas-registry-and-layout"
     )
+    expect(classifyDevServerRoute(hostRoutes.canvasReparent)).toBe(
+      "canvas-registry-and-layout"
+    )
     expect(classifyDevServerRoute(hostRoutes.canvasInspection)).toBe(
       "canvas-inspection"
     )
@@ -675,6 +678,83 @@ describe("dev server routes", () => {
     expect(JSON.parse(restartResponse.body).layout).toMatchObject({
       nodes: {},
       version: 3,
+    })
+  })
+
+  it("reparents static Canvas JSX and preserves absolute geometry", async () => {
+    const root = await createTestTempDir("canvas-reparent")
+    const canvasesRoot = path.join(root, "agent-html", "canvases")
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+    const entryPath = path.join(canvasesRoot, "demo.canvas.tsx")
+    await fs.mkdir(canvasesRoot, { recursive: true })
+    await fs.writeFile(
+      entryPath,
+      [
+        'import { Canvas, Node } from "@agent-html/react"',
+        "export default function Demo() {",
+        "  return <Canvas>",
+        '    <Node id="parent"><Node id="child">Child</Node></Node>',
+        '    <Node id="target">Target</Node>',
+        "  </Canvas>",
+        "}",
+        "",
+      ].join("\n")
+    )
+    await handleRoute({
+      request: createJsonRequest({
+        body: {
+          filePath,
+          layout: {
+            nodes: {
+              parent: { height: 200, width: 300, x: 100, y: 80 },
+              child: { height: 50, width: 60, x: 20, y: 30 },
+              target: { height: 200, width: 300, x: 500, y: 200 },
+            },
+            version: 3,
+          },
+        },
+        url: hostRoutes.canvasLayout,
+      }),
+      response: createResponseMock(),
+      root,
+      vite: {},
+    })
+
+    const response = createResponseMock()
+    await handleRoute({
+      request: createJsonRequest({
+        body: { filePath, nodeIds: ["child"], parentId: "target" },
+        url: hostRoutes.canvasReparent,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(JSON.parse(response.body)).toEqual({
+      geometries: {
+        child: { height: 50, width: 60, x: -380, y: -90 },
+      },
+      movedNodeIds: ["child"],
+      parentId: "target",
+    })
+    const rewritten = await fs.readFile(entryPath, "utf8")
+    expect(rewritten.indexOf('<Node id="target">')).toBeLessThan(
+      rewritten.indexOf('<Node id="child">')
+    )
+    const layoutResponse = createResponseMock()
+    await handleRoute({
+      request: {
+        method: "GET",
+        url: `${hostRoutes.canvasLayout}?filePath=${encodeURIComponent(filePath)}`,
+      },
+      response: layoutResponse,
+      root,
+      vite: {},
+    })
+    expect(JSON.parse(layoutResponse.body).layout.nodes.child).toMatchObject({
+      x: -380,
+      y: -90,
     })
   })
 

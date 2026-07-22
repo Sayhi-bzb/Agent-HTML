@@ -10,6 +10,12 @@ import type {
 
 export type CanvasFlowNodeData = {
   contentInteractive: boolean
+  hierarchyMenuDisabled?: boolean
+  hierarchyLocked?: boolean
+  moveToLabel?: string
+  onChooseParent?: (id: string) => void
+  onContextMenuOpen?: (id: string) => void
+  parentTargetState?: "invalid" | "valid"
   persistLayout: PersistCanvasLayoutNodes
   requestPersistLayout: PersistCanvasLayoutNodes
   store: CanvasStore
@@ -18,6 +24,26 @@ export type CanvasFlowNodeData = {
 export type CanvasFlowNode = FlowNode<CanvasFlowNodeData, "canvas-node">
 
 const ignorePersistLayout: PersistCanvasLayoutNodes = () => {}
+
+export function invalidCanvasParentIds({
+  nodeIds,
+  nodes,
+}: {
+  nodeIds: ReadonlySet<string>
+  nodes: readonly { id: string; parentId?: string }[]
+}) {
+  const byId = new Map(nodes.map((node) => [node.id, node]))
+  return new Set(
+    nodes.flatMap((node) => {
+      let currentId: string | undefined = node.id
+      while (currentId) {
+        if (nodeIds.has(currentId)) return [node.id]
+        currentId = byId.get(currentId)?.parentId
+      }
+      return []
+    })
+  )
+}
 
 export function shouldCullCanvasElements(nodeCount: number) {
   return nodeCount > 100
@@ -40,11 +66,36 @@ export function projectCanvasSnapshot(
   selectedNodeIds: ReadonlySet<string>,
   persistLayout: PersistCanvasLayoutNodes = ignorePersistLayout,
   requestPersistLayout = persistLayout,
-  contentInteractive = false
+  contentInteractive = false,
+  hierarchy?: {
+    disabled: boolean
+    invalidParentIds: ReadonlySet<string>
+    moveToLabel: string
+    locked: boolean
+    onChooseParent: (id: string) => void
+    onContextMenuOpen: (id: string) => void
+    picking: boolean
+  }
 ) {
   const nodes: CanvasFlowNode[] = snapshot.nodes.map((node) => ({
     data: {
       contentInteractive,
+      ...(hierarchy
+        ? {
+            hierarchyMenuDisabled: hierarchy.disabled,
+            hierarchyLocked: hierarchy.locked,
+            moveToLabel: hierarchy.moveToLabel,
+            onChooseParent: hierarchy.onChooseParent,
+            onContextMenuOpen: hierarchy.onContextMenuOpen,
+            ...(hierarchy.picking
+              ? {
+                  parentTargetState: hierarchy.invalidParentIds.has(node.id)
+                    ? ("invalid" as const)
+                    : ("valid" as const),
+                }
+              : {}),
+          }
+        : {}),
       persistLayout,
       requestPersistLayout,
       store,

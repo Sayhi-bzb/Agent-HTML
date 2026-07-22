@@ -20,6 +20,8 @@ export function createLayoutPersister({
 }) {
   let saveQueue = Promise.resolve()
   let timer: ReturnType<typeof setTimeout> | null = null
+  let suspended = false
+  let lastError: unknown = null
   const pendingNodeIds = new Set<string>()
   const pendingRemovedNodeIds = new Set<string>()
 
@@ -44,8 +46,11 @@ export function createLayoutPersister({
         return geometry ? [[nodeId, geometry]] : []
       })
     )
-    if (Object.keys(nodes).length === 0 && removedNodeIds.length === 0) return
+    if (Object.keys(nodes).length === 0 && removedNodeIds.length === 0) {
+      return saveQueue
+    }
 
+    lastError = null
     saveQueue = saveQueue
       .catch(() => undefined)
       .then(() =>
@@ -74,6 +79,7 @@ export function createLayoutPersister({
           onPersistError(null)
         },
         (error: unknown) => {
+          lastError = error
           markPending(nodeIds)
           for (const nodeId of removedNodeIds) {
             pendingRemovedNodeIds.add(nodeId)
@@ -81,6 +87,15 @@ export function createLayoutPersister({
           onPersistError(error instanceof Error ? error.message : String(error))
         }
       )
+    return saveQueue
+  }
+
+  const flush = async () => {
+    if (timer) clearTimeout(timer)
+    timer = null
+    persist()
+    await saveQueue
+    if (lastError) throw lastError
   }
 
   return {
@@ -88,6 +103,7 @@ export function createLayoutPersister({
       markPending(nodeIds)
       if (timer) clearTimeout(timer)
       timer = null
+      if (suspended) return
       persist()
     },
     commitViewport(viewport: CanvasViewport) {
@@ -98,9 +114,14 @@ export function createLayoutPersister({
       if (timer) clearTimeout(timer)
       timer = null
     },
+    flush,
     request(nodeIds: readonly string[]) {
       markPending(nodeIds)
       if (timer) clearTimeout(timer)
+      if (suspended) {
+        timer = null
+        return
+      }
       timer = setTimeout(() => {
         timer = null
         persist()
@@ -108,10 +129,23 @@ export function createLayoutPersister({
     },
     reconcile() {
       if (timer) clearTimeout(timer)
+      if (suspended) {
+        timer = null
+        return
+      }
       timer = setTimeout(() => {
         timer = null
         persist()
       }, delay)
+    },
+    async runExclusive<T>(operation: () => Promise<T>) {
+      await flush()
+      suspended = true
+      try {
+        return await operation()
+      } finally {
+        suspended = false
+      }
     },
   }
 }

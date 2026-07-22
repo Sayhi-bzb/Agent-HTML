@@ -41,6 +41,30 @@ describe("Canvas layout persister", () => {
     })
   })
 
+  it("flushes geometry before an exclusive hierarchy operation", async () => {
+    const store = createCanvasStore("agent-html/canvases/demo.canvas.tsx")
+    store.runtime.upsertNode({ id: "a" })
+    const calls: string[] = []
+    const persister = createLayoutPersister({
+      filePath: store.sourceFilePath,
+      onPersistError: vi.fn(),
+      save: vi.fn(async () => {
+        calls.push("save")
+        return { nodes: {}, removedNodeIds: [] }
+      }),
+      store,
+    })
+    persister.request(["a"])
+
+    await persister.runExclusive(async () => {
+      calls.push("operation")
+      persister.reconcile()
+    })
+
+    expect(calls).toEqual(["save", "operation"])
+    persister.dispose()
+  })
+
   it("commits immediately and reports failures", async () => {
     const store = createCanvasStore("agent-html/canvases/demo.canvas.tsx")
     store.runtime.upsertNode({ id: "a" })

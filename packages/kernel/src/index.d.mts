@@ -67,6 +67,17 @@ export type CanvasLayoutDocument = {
   version: 3
 }
 
+export type CanvasHierarchyNode = {
+  id: string
+  parentId?: string
+}
+
+export type CanvasReparentingResult = {
+  geometries: Record<string, CanvasNodeGeometry>
+  movedNodeIds: string[]
+  parentId: string | null
+}
+
 export type CanvasInspectionNodeRecord = CanvasNodeGeometry & {
   id: string
   parentId?: string
@@ -135,6 +146,12 @@ export const DEFAULT_CANVAS_NODE_COLUMNS: 4
 export const DEFAULT_CANVAS_NODE_GAP: 48
 export const DEFAULT_CANVAS_NODE_HEIGHT: 180
 export const DEFAULT_CANVAS_NODE_WIDTH: 320
+export function resolveCanvasReparenting(input: {
+  layout: CanvasLayoutDocument
+  nodeIds: readonly string[]
+  nodes: readonly CanvasHierarchyNode[]
+  parentId?: string | null
+}): CanvasReparentingResult
 export const canvasInteractionEventName: string
 export const canvasDomAttributes: Readonly<Record<string, string>>
 export const canvasDiagnosticCategories: Readonly<Record<string, string>>

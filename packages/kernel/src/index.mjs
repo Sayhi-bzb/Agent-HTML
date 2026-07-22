@@ -10,6 +10,7 @@ export {
   normalizeCanvasLayout,
   normalizeCanvasViewport,
 } from "./canvas.mjs"
+export { resolveCanvasReparenting } from "./canvas-hierarchy.mjs"
 export {
   CANVAS_INSPECTION_VERSION,
   createCanvasInspectionDocument,

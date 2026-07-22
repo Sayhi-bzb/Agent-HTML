@@ -1,0 +1,56 @@
+:root {
+  --canvas-host-chrome-control-size: 2rem;
+  --canvas-host-chrome-control-size-coarse: 2.75rem;
+  --canvas-host-chrome-icon-size: var(--canvas-host-item-icon-size);
+  --canvas-host-chrome-surface-padding: 0.1875rem;
+  --canvas-host-chrome-surface-radius: var(--radius-lg);
+  --canvas-host-chrome-control-radius: var(--radius-md);
+  --canvas-host-chrome-surface-background: color-mix(
+    in oklab,
+    var(--background) 94%,
+    transparent
+  );
+  --canvas-host-chrome-surface-border: var(--border);
+  --canvas-host-chrome-surface-shadow: var(--shadow-md);
+  --canvas-host-chrome-surface-blur: 0.75rem;
+  --canvas-host-chrome-inset: 1rem;
+  --canvas-host-chrome-zoom-width: 3.5rem;
+  --canvas-host-chrome-focus-width: 0.125rem;
+  --canvas-host-chrome-focus-inset: -0.1875rem;
+  --canvas-host-chrome-shortcut-width: 22rem;
+  --canvas-host-chrome-context-menu-min-width: 10rem;
+  --canvas-host-chrome-viewport-gutter: 2rem;
+  --canvas-host-chrome-feedback-max-width: 32.5rem;
+  --canvas-host-chrome-feedback-padding-block: 0.5rem;
+  --canvas-host-chrome-feedback-padding-inline: 0.75rem;
+  --canvas-host-chrome-status-max-width: 35rem;
+  --canvas-host-node-radius: var(--radius-xl);
+  --canvas-host-node-border: color-mix(
+    in oklab,
+    var(--foreground) 12%,
+    transparent
+  );
+  --canvas-host-node-shadow: var(--shadow-sm);
+  --canvas-host-node-selected-border: color-mix(
+    in oklab,
+    var(--ring) 72%,
+    transparent
+  );
+  --canvas-host-node-selected-shadow:
+    0 0 0 1px color-mix(in oklab, var(--ring) 24%, transparent),
+    var(--shadow-md);
+  --canvas-host-node-parent-target-shadow: 0 0 0
+    var(--canvas-host-chrome-focus-width)
+    color-mix(in oklab, var(--ring) 24%, transparent);
+  --canvas-host-node-invalid-opacity: 0.58;
+  --canvas-host-node-resize-handle-size: 0.5rem;
+  --canvas-host-node-resize-handle-offset: 0.5rem;
+}
+
+@media (any-pointer: coarse) {
+  :root {
+    --canvas-host-chrome-control-size: var(
+      --canvas-host-chrome-control-size-coarse
+    );
+  }
+}

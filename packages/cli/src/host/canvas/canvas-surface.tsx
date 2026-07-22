@@ -11,6 +11,7 @@ import {
   useViewport,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
+import { resolveCanvasReparenting } from "@agent-html/kernel"
 import * as React from "react"
 import { CanvasIntentProvider } from "@agent-html/react"
 import { useMachine } from "@xstate/react"
@@ -25,7 +26,12 @@ import {
   PopoverTrigger,
 } from "#agent-html-playground/components/ui/popover"
 
-import { canvasBundleUrl, fetchCanvasLayout } from "../api/api"
+import {
+  canvasBundleUrl,
+  fetchCanvasLayout,
+  reparentCanvasNodes as requestCanvasReparenting,
+} from "../api/api"
+import { useHostI18n } from "../i18n/host-i18n"
 import {
   readCanvasViewport,
   writeCanvasViewport,
@@ -47,6 +53,7 @@ import { CanvasNodeShell } from "./canvas-node-shell"
 import {
   applyCanvasNodeChanges,
   getOrCreateCanvasStore,
+  invalidCanvasParentIds,
   moveCanvasNodes,
   projectCanvasSnapshot,
   shouldCullCanvasElements,
@@ -257,6 +264,7 @@ function CanvasWorkspace({
   onPersistError: (error: string | null) => void
   store: CanvasStore
 }) {
+  const { t } = useHostI18n()
   const snapshot = useCanvasStoreSnapshot(store)
   const reactFlowRef = React.useRef<ReactFlowInstance<CanvasFlowNode> | null>(
     null
@@ -265,9 +273,23 @@ function CanvasWorkspace({
   const [interaction, sendInteraction] = useMachine(canvasInteractionMachine)
   const navigateMode = isCanvasNavigateMode(interaction.context)
   const interactionPhase = canvasInteractionPhase(interaction.value)
+  const choosingParent = interactionPhase === "choosingParent"
+  const hierarchyPending = interactionPhase === "reparenting"
   const selectedNodeIds = React.useMemo(
     () => new Set(interaction.context.selectedNodeIds),
     [interaction.context.selectedNodeIds]
+  )
+  const reparentingNodeIds = React.useMemo(
+    () => new Set(interaction.context.reparentingNodeIds),
+    [interaction.context.reparentingNodeIds]
+  )
+  const invalidParentIds = React.useMemo(
+    () =>
+      invalidCanvasParentIds({
+        nodeIds: reparentingNodeIds,
+        nodes: snapshot.nodes,
+      }),
+    [reparentingNodeIds, snapshot.nodes]
   )
   const [shortcutHelpOpen, setShortcutHelpOpen] = React.useState(false)
   const persister = React.useMemo(
@@ -341,6 +363,76 @@ function CanvasWorkspace({
     persister.reconcile()
     inspectionPublisher.request()
   }, [inspectionPublisher, persister, snapshot])
+  const openNodeContextMenu = React.useCallback(
+    (id: string) => {
+      if (selectedNodeIds.has(id)) return
+      sendInteraction({ nodeIds: [id], type: "SELECTION.CHANGED" })
+    },
+    [selectedNodeIds, sendInteraction]
+  )
+  const chooseParentForNode = React.useCallback(
+    (id: string) => {
+      const nodeIds = selectedNodeIds.has(id) ? [...selectedNodeIds] : [id]
+      if (!selectedNodeIds.has(id)) {
+        sendInteraction({ nodeIds, type: "SELECTION.CHANGED" })
+      }
+      sendInteraction({ nodeIds, type: "HIERARCHY.CHOOSE.START" })
+    },
+    [selectedNodeIds, sendInteraction]
+  )
+  const commitParent = React.useCallback(
+    async (parentId: string | null) => {
+      const nodeIds = interaction.context.reparentingNodeIds
+      if (
+        nodeIds.length === 0 ||
+        (parentId && invalidParentIds.has(parentId))
+      ) {
+        return
+      }
+      sendInteraction({ type: "HIERARCHY.COMMIT.START" })
+      try {
+        await persister.runExclusive(async () => {
+          const preview = resolveCanvasReparenting({
+            layout: store.getLayout(),
+            nodeIds,
+            nodes: snapshot.nodes,
+            parentId,
+          })
+          const rollback = store.applyReparenting({
+            geometries: preview.geometries,
+            nodeIds: preview.movedNodeIds,
+            parentId: preview.parentId,
+          })
+          try {
+            const committed = await requestCanvasReparenting({
+              filePath,
+              nodeIds: preview.movedNodeIds,
+              parentId: preview.parentId,
+            })
+            store.setNodeGeometries(committed.geometries)
+          } catch (error) {
+            store.restoreHierarchy(rollback)
+            throw error
+          }
+        })
+        onPersistError(null)
+      } catch (error) {
+        onPersistError(error instanceof Error ? error.message : String(error))
+      } finally {
+        sendInteraction({ type: "HIERARCHY.COMMIT.END" })
+      }
+    },
+    [
+      filePath,
+      interaction.context.reparentingNodeIds,
+      invalidParentIds,
+      onPersistError,
+      persister,
+      sendInteraction,
+      snapshot.nodes,
+      store,
+    ]
+  )
   const projection = React.useMemo(
     () =>
       projectCanvasSnapshot(
@@ -349,9 +441,31 @@ function CanvasWorkspace({
         selectedNodeIds,
         persister.commit,
         persister.request,
-        navigateMode
+        navigateMode,
+        {
+          disabled: navigateMode || interactionPhase !== "idle",
+          invalidParentIds,
+          locked: choosingParent || hierarchyPending,
+          moveToLabel: t("canvas.moveTo"),
+          onChooseParent: chooseParentForNode,
+          onContextMenuOpen: openNodeContextMenu,
+          picking: choosingParent,
+        }
       ),
-    [navigateMode, persister, selectedNodeIds, snapshot, store]
+    [
+      chooseParentForNode,
+      choosingParent,
+      hierarchyPending,
+      interactionPhase,
+      invalidParentIds,
+      navigateMode,
+      openNodeContextMenu,
+      persister,
+      selectedNodeIds,
+      snapshot,
+      store,
+      t,
+    ]
   )
   const onNodesChange = React.useCallback<OnNodesChange<CanvasFlowNode>>(
     (changes) => {
@@ -405,6 +519,16 @@ function CanvasWorkspace({
   )
   const onKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (hierarchyPending) {
+        event.preventDefault()
+        return
+      }
+      if (choosingParent && event.key === "Escape") {
+        event.preventDefault()
+        event.stopPropagation()
+        sendInteraction({ type: "HIERARCHY.CANCEL" })
+        return
+      }
       if (isCanvasShortcutBlocked(event.target)) return
       const action = resolveCanvasShortcut({
         altKey: event.altKey,
@@ -500,7 +624,15 @@ function CanvasWorkspace({
         })
       }
     },
-    [persister, selectedNodeIds, sendInteraction, snapshot, store]
+    [
+      choosingParent,
+      hierarchyPending,
+      persister,
+      selectedNodeIds,
+      sendInteraction,
+      snapshot,
+      store,
+    ]
   )
   const selectTool = React.useCallback(
     (tool: CanvasTool) => {
@@ -535,6 +667,11 @@ function CanvasWorkspace({
           type: "FOCUS.CHANGED",
         })
       }
+      onContextMenuCapture={(event) => {
+        if (!choosingParent) return
+        event.preventDefault()
+        sendInteraction({ type: "HIERARCHY.CANCEL" })
+      }}
       onFocusCapture={(event) =>
         sendInteraction({
           owner: canvasFocusOwnerFromTarget(event.target),
@@ -571,7 +708,9 @@ function CanvasWorkspace({
           aria-label="Infinite Canvas"
           defaultViewport={initialViewport}
           deleteKeyCode={null}
-          elementsSelectable={!navigateMode}
+          elementsSelectable={
+            !navigateMode && !choosingParent && !hierarchyPending
+          }
           fitView={!initialViewport}
           fitViewOptions={{ padding: 0.18 }}
           maxZoom={canvasMaxZoom}
@@ -579,7 +718,7 @@ function CanvasWorkspace({
           multiSelectionKeyCode="Shift"
           nodeTypes={canvasNodeTypes}
           nodes={projection.nodes}
-          nodesDraggable={!navigateMode}
+          nodesDraggable={!navigateMode && !choosingParent && !hierarchyPending}
           nodesFocusable={false}
           onInit={(instance) => {
             reactFlowRef.current = instance
@@ -587,6 +726,9 @@ function CanvasWorkspace({
           onMoveStart={() => {
             if (panGestureActiveRef.current) return
             sendInteraction({ type: "PHASE.PAN.START", source: "middle" })
+          }}
+          onNodeClick={(_event, node) => {
+            if (choosingParent) void commitParent(node.id)
           }}
           onMoveEnd={(_event, viewport) => {
             if (panGestureActiveRef.current) return
@@ -599,6 +741,9 @@ function CanvasWorkspace({
             persister.commit([node.id])
           }}
           onNodesChange={onNodesChange}
+          onPaneClick={() => {
+            if (choosingParent) void commitParent(null)
+          }}
           onlyRenderVisibleElements={shouldCullCanvasElements(
             snapshot.nodes.length
           )}
@@ -607,7 +752,9 @@ function CanvasWorkspace({
           proOptions={canvasReactFlowProOptions}
           ref={reactFlowElementRef}
           selectionKeyCode={null}
-          selectionOnDrag={!navigateMode}
+          selectionOnDrag={
+            !navigateMode && !choosingParent && !hierarchyPending
+          }
           onSelectionEnd={() => sendInteraction({ type: "PHASE.END" })}
           onSelectionStart={() =>
             sendInteraction({ type: "PHASE.MARQUEE.START" })
@@ -622,6 +769,17 @@ function CanvasWorkspace({
             size={1.25}
             variant={BackgroundVariant.Dots}
           />
+          {choosingParent || hierarchyPending ? (
+            <Panel className="canvas-hierarchy-status" position="top-center">
+              <div role="status">
+                {t(
+                  hierarchyPending
+                    ? "canvas.reparenting"
+                    : "canvas.chooseParent"
+                )}
+              </div>
+            </Panel>
+          ) : null}
           <Panel className="canvas-tool-panel" position="bottom-center">
             <CanvasToolDock
               onToolChange={selectTool}

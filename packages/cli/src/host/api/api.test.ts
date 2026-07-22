@@ -15,6 +15,7 @@ import {
   publicAssetUrl,
   renameArtifact,
   renameArtifactTitle,
+  reparentCanvasNodes,
   saveCanvasLayoutPatch,
 } from "./api"
 
@@ -268,6 +269,31 @@ describe("Canvas inspection transport", () => {
     await expect(
       saveCanvasLayoutPatch({ filePath, nodes, removedNodeIds })
     ).resolves.toEqual({ nodes, removedNodeIds })
+  })
+
+  it("reparents Canvas Nodes through the hierarchy route", async () => {
+    const request = {
+      filePath: "agent-html/canvases/demo.canvas.tsx",
+      nodeIds: ["card"],
+      parentId: "group",
+    }
+    const result = {
+      geometries: {
+        card: { height: 180, width: 320, x: -40, y: 20 },
+      },
+      movedNodeIds: ["card"],
+      parentId: "group",
+    }
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      expect(url).toBe(hostApiRoutes.canvasReparent)
+      expect(init?.method).toBe("POST")
+      expect(JSON.parse(String(init?.body))).toEqual(request)
+      return new Response(JSON.stringify(result), {
+        headers: { "Content-Type": "application/json" },
+      })
+    })
+
+    await expect(reparentCanvasNodes(request)).resolves.toEqual(result)
   })
 })
 

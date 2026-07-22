@@ -225,7 +225,6 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     const packageHostTokens = readSource(
       "packages/cli/src/host/styles/tokens/host.css"
     )
-
     expect(playgroundBaseStyles).toContain("overscroll-behavior: none")
     expect(canvasHostApp).toContain('className="canvas-host-workspace"')
     expect(packageHostSurfaceStyles).toMatch(
@@ -344,6 +343,9 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     const packageHostThemeEditorTokens = readSource(
       "packages/cli/src/host/styles/tokens/theme-editor.css"
     )
+    const packageCanvasChromeTokens = readSource(
+      "packages/cli/src/host/styles/tokens/canvas-chrome.css"
+    )
     const playgroundArtifactInternal = readSource(
       "agent-html/styles/internal/artifact.css"
     )
@@ -414,11 +416,27 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     )
     expect(packageHostTokenImports).toContain('@import "./tokens/host.css"')
     expect(packageHostTokenImports).toContain(
+      '@import "./tokens/canvas-chrome.css"'
+    )
+    expect(packageHostTokenImports).toContain(
       '@import "./tokens/theme-editor.css"'
     )
     expect(packageHostTokens).toContain("--canvas-surface-padding-inline")
     expect(packageHostTokens).toContain("--canvas-floating-prompt-width")
     expect(packageHostTokens).toContain("--canvas-host-body-font-size")
+    expect(packageCanvasChromeTokens).toContain(
+      "--canvas-host-chrome-control-size: 2rem"
+    )
+    expect(packageCanvasChromeTokens).toContain(
+      "--canvas-host-chrome-control-size-coarse: 2.75rem"
+    )
+    expect(packageCanvasChromeTokens).toContain(
+      "--canvas-host-chrome-surface-shadow: var(--shadow-md)"
+    )
+    expect(packageCanvasChromeTokens).toContain("@media (any-pointer: coarse)")
+    expect(packageCanvasChromeTokens).toContain(
+      "--canvas-host-node-radius: var(--radius-xl)"
+    )
     expect(packageHostTokens).toContain("--canvas-block-action-badge-offset")
     expect(packageHostTokens).not.toContain("--canvas-block-reply-badge-offset")
     expect(packageHostTokens).not.toContain("--canvas-block-highlight-radius")
@@ -544,16 +562,27 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
       /\.canvas-workspace \.react-flow__resize-control\.handle\s*\{[^}]*z-index: 4;/s
     )
     expect(canvasStyles).toMatch(
-      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.left\s*\{[^}]*left: 8px;/s
+      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.left\s*\{[^}]*left: var\(--canvas-host-node-resize-handle-offset\);/s
     )
     expect(canvasStyles).toMatch(
-      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.right\s*\{[^}]*left: calc\(100% - 8px\);/s
+      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.right\s*\{[^}]*left: calc\(100% - var\(--canvas-host-node-resize-handle-offset\)\);/s
     )
     expect(canvasStyles).toMatch(
-      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.top\s*\{[^}]*top: 8px;/s
+      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.top\s*\{[^}]*top: var\(--canvas-host-node-resize-handle-offset\);/s
     )
     expect(canvasStyles).toMatch(
-      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.bottom\s*\{[^}]*top: calc\(100% - 8px\);/s
+      /\.canvas-workspace \.canvas-node-shell \.react-flow__resize-control\.handle\.bottom\s*\{[^}]*top: calc\(100% - var\(--canvas-host-node-resize-handle-offset\)\);/s
     )
+    expect(canvasStyles).toContain(
+      "width: var(--canvas-host-chrome-control-size)"
+    )
+    expect(canvasStyles).toContain(
+      "box-shadow: var(--canvas-host-chrome-surface-shadow)"
+    )
+    expect(canvasStyles).not.toMatch(/border-radius: (?:7|8|10|12)px/)
+    expect(canvasStyles).not.toContain(
+      "box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent)"
+    )
+    expect(canvasStyles).not.toContain("backdrop-filter: blur(12px)")
   })
 })

@@ -69,4 +69,20 @@ describe("Canvas interaction machine", () => {
     })
     expect(canvasInteractionPhase(actor.getSnapshot().value)).toBe("idle")
   })
+
+  it("owns parent picking and protects a pending hierarchy commit", () => {
+    const actor = startInteractionActor()
+    actor.send({ nodeIds: ["card"], type: "HIERARCHY.CHOOSE.START" })
+    expect(actor.getSnapshot().value).toBe("choosingParent")
+    expect(actor.getSnapshot().context.reparentingNodeIds).toEqual(["card"])
+
+    actor.send({ type: "HIERARCHY.COMMIT.START" })
+    actor.send({ type: "TOOL.NAVIGATE" })
+    actor.send({ type: "TRANSIENT.RESET" })
+    expect(actor.getSnapshot().value).toBe("reparenting")
+
+    actor.send({ type: "HIERARCHY.COMMIT.END" })
+    expect(actor.getSnapshot().value).toBe("idle")
+    expect(actor.getSnapshot().context.reparentingNodeIds).toEqual([])
+  })
 })

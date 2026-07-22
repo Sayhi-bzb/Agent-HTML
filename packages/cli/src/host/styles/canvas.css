@@ -35,6 +35,29 @@
   cursor: move;
 }
 
+.canvas-workspace[data-phase="choosingParent"]
+  .canvas-node-shell[data-parent-target="valid"]
+  .canvas-node-hit-layer {
+  cursor: crosshair;
+}
+
+.canvas-workspace[data-phase="choosingParent"]
+  .canvas-node-shell[data-parent-target="invalid"]
+  .canvas-node-hit-layer {
+  cursor: not-allowed;
+}
+
+.canvas-workspace[data-phase="choosingParent"]
+  .canvas-node-shell[data-parent-target="valid"]:hover {
+  border-color: var(--ring);
+  box-shadow: var(--canvas-host-node-parent-target-shadow);
+}
+
+.canvas-workspace[data-phase="choosingParent"]
+  .canvas-node-shell[data-parent-target="invalid"] {
+  opacity: var(--canvas-host-node-invalid-opacity);
+}
+
 .canvas-workspace[data-pan-active]
   .canvas-node-content
   :where(
@@ -60,12 +83,8 @@
   --xy-background-color: var(--background);
   --xy-edge-stroke: color-mix(in srgb, var(--foreground) 32%, transparent);
   --xy-edge-stroke-selected: var(--ring);
-  --xy-controls-button-background-color: color-mix(
-    in srgb,
-    var(--background) 92%,
-    transparent
-  );
-  --xy-controls-button-background-color-hover: var(--accent);
+  --xy-controls-button-background-color: transparent;
+  --xy-controls-button-background-color-hover: var(--muted);
   --xy-controls-button-color: var(--foreground);
   --xy-controls-button-border-color: var(--border);
 }
@@ -76,17 +95,15 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
-  border-radius: 12px;
+  border: 1px solid var(--canvas-host-node-border);
+  border-radius: var(--canvas-host-node-radius);
   background: var(--background);
-  box-shadow: 0 10px 30px color-mix(in srgb, black 8%, transparent);
+  box-shadow: var(--canvas-host-node-shadow);
 }
 
 .canvas-node-shell[data-selected] {
-  border-color: color-mix(in srgb, var(--ring) 72%, transparent);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--ring) 24%, transparent),
-    0 12px 34px color-mix(in srgb, black 10%, transparent);
+  border-color: var(--canvas-host-node-selected-border);
+  box-shadow: var(--canvas-host-node-selected-shadow);
 }
 
 .canvas-node-hit-layer.canvas-host-button {
@@ -121,59 +138,111 @@
 
 .canvas-workspace .react-flow__resize-control.handle {
   z-index: 4;
-  width: 8px;
-  height: 8px;
+  width: var(--canvas-host-node-resize-handle-size);
+  height: var(--canvas-host-node-resize-handle-size);
   border: 1px solid var(--background);
   border-radius: 999px;
   background: var(--ring);
 }
 
 .canvas-workspace .canvas-node-shell .react-flow__resize-control.handle.left {
-  left: 8px;
+  left: var(--canvas-host-node-resize-handle-offset);
 }
 
 .canvas-workspace .canvas-node-shell .react-flow__resize-control.handle.right {
-  left: calc(100% - 8px);
+  left: calc(100% - var(--canvas-host-node-resize-handle-offset));
 }
 
 .canvas-workspace .canvas-node-shell .react-flow__resize-control.handle.top {
-  top: 8px;
+  top: var(--canvas-host-node-resize-handle-offset);
 }
 
 .canvas-workspace .canvas-node-shell .react-flow__resize-control.handle.bottom {
-  top: calc(100% - 8px);
+  top: calc(100% - var(--canvas-host-node-resize-handle-offset));
 }
 
 .canvas-workspace .react-flow__controls {
   display: flex;
   flex-direction: row;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent);
+  margin: var(--canvas-host-chrome-inset);
+  padding: var(--canvas-host-chrome-surface-padding);
+  border: 1px solid var(--canvas-host-chrome-surface-border);
+  border-radius: var(--canvas-host-chrome-surface-radius);
+  background: var(--canvas-host-chrome-surface-background);
+  box-shadow: var(--canvas-host-chrome-surface-shadow);
+  backdrop-filter: blur(var(--canvas-host-chrome-surface-blur));
 }
 
 .canvas-workspace .canvas-tool-panel {
-  margin-bottom: 16px;
+  margin: var(--canvas-host-chrome-inset);
+}
+
+.canvas-hierarchy-status {
+  pointer-events: none;
+  margin-top: var(--canvas-host-chrome-inset);
+}
+
+.canvas-hierarchy-status > div {
+  padding: var(--canvas-host-menu-gap) var(--canvas-host-section-padding);
+  border: 1px solid var(--canvas-host-chrome-surface-border);
+  border-radius: 999px;
+  color: var(--foreground);
+  background: var(--canvas-host-chrome-surface-background);
+  box-shadow: var(--canvas-host-chrome-surface-shadow);
+  backdrop-filter: blur(var(--canvas-host-chrome-surface-blur));
+  font-size: var(--canvas-host-caption-font-size);
+  line-height: var(--canvas-host-caption-line-height);
+}
+
+.canvas-host-context-menu-content {
+  min-width: var(--canvas-host-chrome-context-menu-min-width);
+  max-height: var(--radix-context-menu-content-available-height);
+  overflow: auto;
+  padding: var(--canvas-host-menu-gap);
+  border: 1px solid var(--canvas-host-chrome-surface-border);
+  border-radius: var(--canvas-host-chrome-surface-radius);
+  background: var(--canvas-host-chrome-surface-background);
+  box-shadow: var(--canvas-host-chrome-surface-shadow);
+  backdrop-filter: blur(var(--canvas-host-chrome-surface-blur));
+  outline: none;
+}
+
+.canvas-host-context-menu-content .canvas-host-dropdown-item {
+  display: flex;
+  align-items: center;
+  border-radius: var(--canvas-host-chrome-control-radius);
+  outline: none;
+  user-select: none;
+}
+
+.canvas-host-context-menu-content .canvas-host-dropdown-item[data-highlighted] {
+  color: var(--accent-foreground);
+  background: var(--accent);
 }
 
 .canvas-tool-dock {
   display: flex;
   overflow: hidden;
-  padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--background) 92%, transparent);
-  box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent);
-  backdrop-filter: blur(12px);
+  padding: var(--canvas-host-chrome-surface-padding);
+  border: 1px solid var(--canvas-host-chrome-surface-border);
+  border-radius: var(--canvas-host-chrome-surface-radius);
+  background: var(--canvas-host-chrome-surface-background);
+  box-shadow: var(--canvas-host-chrome-surface-shadow);
+  backdrop-filter: blur(var(--canvas-host-chrome-surface-blur));
 }
 
 .canvas-tool-dock__button.canvas-host-button {
-  width: var(--canvas-host-touch-target-min);
-  min-width: var(--canvas-host-touch-target-min);
-  height: var(--canvas-host-touch-target-min);
+  width: var(--canvas-host-chrome-control-size);
+  min-width: var(--canvas-host-chrome-control-size);
+  height: var(--canvas-host-chrome-control-size);
   padding: 0;
-  border-radius: 7px;
+  border-radius: var(--canvas-host-chrome-control-radius);
+}
+
+.canvas-tool-dock__button.canvas-host-button svg {
+  width: var(--canvas-host-chrome-icon-size);
+  height: var(--canvas-host-chrome-icon-size);
 }
 
 .canvas-tool-dock__button[aria-pressed="true"] {
@@ -182,29 +251,27 @@
 }
 
 .canvas-workspace .react-flow__controls-button {
-  width: var(--canvas-host-touch-target-min);
-  height: var(--canvas-host-touch-target-min);
-  border-right: 1px solid var(--border);
-  border-bottom: 0;
+  width: var(--canvas-host-chrome-control-size);
+  height: var(--canvas-host-chrome-control-size);
+  border: 0;
+  border-radius: var(--canvas-host-chrome-control-radius);
 }
 
 .canvas-workspace .react-flow__controls-button svg {
+  width: var(--canvas-host-chrome-icon-size);
+  height: var(--canvas-host-chrome-icon-size);
   fill: none;
   stroke: currentColor;
 }
 
-.canvas-workspace .react-flow__controls-button:last-child {
-  border-right: 0;
-}
-
 .canvas-workspace .react-flow__controls-button:focus-visible {
   position: relative;
-  outline: 2px solid var(--ring);
-  outline-offset: -3px;
+  outline: var(--canvas-host-chrome-focus-width) solid var(--ring);
+  outline-offset: var(--canvas-host-chrome-focus-inset);
 }
 
 .canvas-workspace .canvas-zoom-value {
-  width: 3.75rem;
+  width: var(--canvas-host-chrome-zoom-width);
   color: var(--foreground);
   font-size: var(--canvas-host-micro-font-size);
   line-height: var(--canvas-host-micro-line-height);
@@ -213,7 +280,15 @@
 }
 
 .canvas-shortcut-help {
-  width: min(22rem, calc(100vw - 2rem));
+  width: min(
+    var(--canvas-host-chrome-shortcut-width),
+    calc(100vw - var(--canvas-host-chrome-viewport-gutter))
+  );
+  border-color: var(--canvas-host-chrome-surface-border);
+  border-radius: var(--canvas-host-chrome-surface-radius);
+  background: var(--canvas-host-chrome-surface-background);
+  box-shadow: var(--canvas-host-chrome-surface-shadow);
+  backdrop-filter: blur(var(--canvas-host-chrome-surface-blur));
 }
 
 .canvas-shortcut-help > strong {
@@ -255,19 +330,25 @@
 .canvas-persist-error {
   position: absolute;
   z-index: 20;
-  top: 12px;
+  top: var(--canvas-host-chrome-inset);
   left: 50%;
-  max-width: min(520px, calc(100% - 24px));
-  padding: 8px 12px;
+  max-width: min(
+    var(--canvas-host-chrome-feedback-max-width),
+    calc(
+      100% - var(--canvas-host-chrome-inset) - var(--canvas-host-chrome-inset)
+    )
+  );
+  padding: var(--canvas-host-chrome-feedback-padding-block)
+    var(--canvas-host-chrome-feedback-padding-inline);
   transform: translateX(-50%);
   border: 1px solid color-mix(in srgb, var(--destructive) 35%, transparent);
-  border-radius: 8px;
+  border-radius: var(--canvas-host-chrome-surface-radius);
   color: var(--destructive);
-  background: color-mix(in srgb, var(--background) 94%, transparent);
+  background: var(--canvas-host-chrome-surface-background);
   font-size: var(--canvas-host-caption-font-size);
   line-height: var(--canvas-host-caption-line-height);
-  box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent);
-  backdrop-filter: blur(12px);
+  box-shadow: var(--canvas-host-chrome-surface-shadow);
+  backdrop-filter: blur(var(--canvas-host-chrome-surface-blur));
 }
 
 .canvas-surface-status {
@@ -276,8 +357,10 @@
   min-height: 0;
   flex: 1;
   place-content: center;
-  gap: 6px;
-  padding: 24px;
+  gap: var(--canvas-host-menu-gap);
+  padding: calc(
+    var(--canvas-host-section-padding) + var(--canvas-host-section-padding)
+  );
   color: var(--muted-foreground);
   text-align: center;
 }
@@ -290,7 +373,7 @@
 }
 
 .canvas-surface-status span {
-  max-width: 560px;
+  max-width: var(--canvas-host-chrome-status-max-width);
   font-size: var(--canvas-host-caption-font-size);
   line-height: var(--canvas-host-caption-line-height);
 }
