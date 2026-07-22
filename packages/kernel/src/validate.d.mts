@@ -12,21 +12,12 @@ export type ArtifactInspection = {
 }
 
 export type StaticCanvasIntent = {
-  canvas: {
-    id: string
-    title?: string
-  }
+  canvas: Record<string, never>
   nodes: Array<{
-    height?: number
     id: string
-    index?: string
     parentId?: string
-    sourcePath?: string
-    title?: string
-    type?: string
-    width?: number
-    x?: number
-    y?: number
+    siblingOrder: number
+    sources: string[]
   }>
 }
 

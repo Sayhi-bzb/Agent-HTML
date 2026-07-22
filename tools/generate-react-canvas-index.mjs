@@ -9,6 +9,7 @@ const tmpRoot = path.join(root, ".tmp", "cache", "canvas-index-dts")
 const dtsWorkspaceRoot = path.join(tmpRoot, "agent-html")
 const shouldCheck = process.argv.includes("--check")
 const ignoredWorkspaceDirectories = new Set([
+  ".layout",
   ".vite",
   "build",
   "dist",

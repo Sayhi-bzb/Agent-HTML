@@ -11,17 +11,13 @@ describe("Canonical Canvas Store", () => {
       nodes: {
         child: { height: 240, width: 420, x: 36, y: 48 },
       },
-      version: 1,
+      version: 3,
     })
     store.runtime.upsertNode({
-      height: 100,
       id: "child",
       parentId: "parent",
-      width: 200,
-      x: 0,
-      y: 0,
     })
-    store.runtime.upsertNode({ id: "parent", x: 100, y: 100 })
+    store.runtime.upsertNode({ id: "parent" })
 
     expect(store.getSnapshot().nodes.map((node) => node.id)).toEqual([
       "parent",
@@ -49,25 +45,19 @@ describe("Canonical Canvas Store", () => {
       nodes: {
         profile: { height: 200, width: 360, x: -40, y: 80 },
       },
-      version: 2,
+      version: 3,
     })
   })
 
-  it("hydrates and updates the persisted viewport", () => {
+  it("keeps local viewport outside persisted layout", () => {
     const store = createCanvasStore("demo.canvas.tsx")
     store.hydrateLayout({
       nodes: {},
-      viewport: { x: 40, y: -20, zoom: 0.75 },
-      version: 2,
+      version: 3,
     })
-    expect(store.getSnapshot().viewport).toEqual({
-      x: 40,
-      y: -20,
-      zoom: 0.75,
-    })
-
     store.setViewport({ x: -10, y: 16, zoom: 1.2 })
-    expect(store.getLayout().viewport).toEqual({ x: -10, y: 16, zoom: 1.2 })
+    expect(store.getSnapshot().viewport).toEqual({ x: -10, y: 16, zoom: 1.2 })
+    expect(store.getLayout()).not.toHaveProperty("viewport")
   })
 
   it("removes stale layout records without changing active intent", () => {
@@ -77,7 +67,7 @@ describe("Canonical Canvas Store", () => {
         active: { height: 100, width: 200, x: 0, y: 0 },
         removed: { height: 100, width: 200, x: 20, y: 20 },
       },
-      version: 1,
+      version: 3,
     })
     store.runtime.upsertNode({ id: "active" })
 
@@ -99,7 +89,7 @@ describe("Canonical Canvas Store", () => {
 
   it("keeps persisted geometry when HMR cleanup and remount cross a microtask", async () => {
     const store = createCanvasStore("demo.canvas.tsx")
-    store.runtime.upsertNode({ id: "profile", title: "Before" })
+    store.runtime.upsertNode({ id: "profile" })
     store.setNodeGeometry("profile", {
       height: 240,
       width: 420,
@@ -108,14 +98,13 @@ describe("Canonical Canvas Store", () => {
     })
 
     store.runtime.removeNode("profile")
-    store.runtime.upsertNode({ id: "profile", title: "After", x: 999 })
+    store.runtime.upsertNode({ id: "profile" })
     await Promise.resolve()
 
     expect(store.getSnapshot().nodes).toEqual([
       expect.objectContaining({
         height: 240,
         id: "profile",
-        title: "After",
         width: 420,
         x: 64,
         y: -32,

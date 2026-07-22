@@ -158,9 +158,7 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundTailwindTokens).toContain(
       "--text-2xs: var(--font-size-2xs)"
     )
-    expect(playgroundTailwindTokens).toContain(
-      "--text-sm: var(--font-size-sm)"
-    )
+    expect(playgroundTailwindTokens).toContain("--text-sm: var(--font-size-sm)")
     expect(playgroundTailwindTokens).toContain(
       "--text-base: var(--font-size-base)"
     )
@@ -527,17 +525,14 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(floatingPrompt).not.toContain('React.useState("")')
   })
 
-  it("keeps Canvas drag chrome outside directly interactive Node content", () => {
+  it("keeps Canvas spatial hit testing invisible and outside Node content", () => {
     const canvasStyles = readSource("packages/cli/src/host/styles/canvas.css")
 
     expect(canvasStyles).toMatch(
-      /\.canvas-node-shell\s*\{[^}]*display: grid;[^}]*grid-template-rows: 22px minmax\(0, 1fr\);/s
+      /\.canvas-node-shell\s*\{[^}]*display: block;/s
     )
     expect(canvasStyles).toMatch(
-      /\.canvas-node-drag-handle\s*\{[^}]*position: relative;/s
-    )
-    expect(canvasStyles).not.toMatch(
-      /\.canvas-node-drag-handle\s*\{[^}]*position: absolute;/s
+      /\.canvas-node-hit-layer\.canvas-host-button\s*\{[^}]*position: absolute;[^}]*background: transparent;/s
     )
     expect(canvasStyles).toMatch(
       /\.canvas-node-content\s*\{[^}]*min-height: 0;/s

@@ -546,7 +546,6 @@ describe("dev server routes", () => {
       canvases: [
         {
           filePath: "agent-html/canvases/demo.canvas.tsx",
-          layoutPath: "agent-html/canvases/demo.layout.json",
           title: "Demo",
         },
       ],
@@ -589,17 +588,14 @@ describe("dev server routes", () => {
       vite: {},
     })
     expect(JSON.parse(missingResponse.body)).toEqual({
-      layout: { nodes: {}, version: 2 },
-      layoutPath: "agent-html/canvases/demo.layout.json",
-      storage: "monolithic",
+      layout: { nodes: {}, version: 3 },
     })
 
     const layout = {
       nodes: {
         card: { height: 240, width: 360, x: -20, y: 48 },
       },
-      viewport: { x: 20, y: -10, zoom: 0.75 },
-      version: 2,
+      version: 3,
     }
     const saveResponse = createResponseMock()
     await handleRoute({
@@ -617,8 +613,7 @@ describe("dev server routes", () => {
       nodes: {
         card: { height: 280, width: 400, x: 72, y: -16 },
       },
-      viewport: { x: 20, y: -10, zoom: 0.75 },
-      version: 2,
+      version: 3,
     }
     const updateResponse = createResponseMock()
     await handleRoute({
@@ -650,21 +645,7 @@ describe("dev server routes", () => {
     expect(JSON.parse(patchResponse.body)).toMatchObject({
       nodes: { card: { x: 144 } },
       removedNodeIds: [],
-      storage: "monolithic",
     })
-
-    const viewport = { x: -80, y: 32, zoom: 1.25 }
-    const viewportResponse = createResponseMock()
-    await handleRoute({
-      request: createJsonRequest({
-        body: { filePath, viewport },
-        url: hostRoutes.canvasLayout,
-      }),
-      response: viewportResponse,
-      root,
-      vite: {},
-    })
-    expect(JSON.parse(viewportResponse.body)).toMatchObject({ viewport })
 
     const removalResponse = createResponseMock()
     await handleRoute({
@@ -679,7 +660,6 @@ describe("dev server routes", () => {
     expect(JSON.parse(removalResponse.body)).toMatchObject({
       nodes: {},
       removedNodeIds: ["card"],
-      storage: "monolithic",
     })
 
     const restartResponse = createResponseMock()
@@ -694,8 +674,7 @@ describe("dev server routes", () => {
     })
     expect(JSON.parse(restartResponse.body).layout).toMatchObject({
       nodes: {},
-      viewport,
-      version: 2,
+      version: 3,
     })
   })
 
@@ -710,20 +689,29 @@ describe("dev server routes", () => {
     )
     const canvasInspectionRegistry = createCanvasInspectionRegistry()
     const document = {
-      canvas: { id: "demo", title: "Demo" },
+      active: true,
       nodes: [
-        { height: 80, id: "a", width: 100, x: 0, y: 0 },
+        {
+          height: 80,
+          id: "a",
+          siblingOrder: 0,
+          sources: [filePath],
+          width: 100,
+          x: 0,
+          y: 0,
+        },
         {
           height: 80,
           id: "b",
-          sourcePath: "./content/b.tsx",
+          siblingOrder: 1,
+          sources: [filePath],
           width: 100,
           x: 200,
           y: 0,
         },
       ],
       sourceFilePath: filePath,
-      version: 1,
+      version: 2,
     }
 
     const publishResponse = createResponseMock()
@@ -783,8 +771,8 @@ describe("dev server routes", () => {
         "source",
         {
           canvasFilePath: filePath,
-          contentFilePath: "./content/b.tsx",
           nodeId: "b",
+          sources: [filePath],
         },
       ],
     ]) {
@@ -816,9 +804,9 @@ describe("dev server routes", () => {
         import { Canvas, Node } from "@agent-html/react"
         export default function Demo() {
           return (
-            <Canvas id="demo" title="Cold demo">
+            <Canvas>
               <Node id="a" />
-              <Node id="b" sourcePath="./content/b.tsx" />
+              <Node id="b" />
             </Canvas>
           )
         }
@@ -839,7 +827,6 @@ describe("dev server routes", () => {
       kind: "overview",
       origin: "cold",
       result: {
-        canvas: { id: "demo", title: "Cold demo" },
         nodeCount: 2,
       },
       sourceFilePath: filePath,
@@ -862,8 +849,8 @@ describe("dev server routes", () => {
       origin: "cold",
       result: {
         canvasFilePath: filePath,
-        contentFilePath: "./content/b.tsx",
         nodeId: "b",
+        sources: [filePath],
       },
     })
   })
@@ -878,7 +865,7 @@ describe("dev server routes", () => {
       `
         import { Canvas, Node } from "@agent-html/react"
         export default function Demo({ nodes }) {
-          return <Canvas id="demo">{nodes.map((node) => <Node {...node} />)}</Canvas>
+          return <Canvas>{nodes.map((node) => <Node {...node} />)}</Canvas>
         }
       `
     )

@@ -16,7 +16,7 @@
 }
 
 .canvas-workspace[data-pan-active] .react-flow__pane,
-.canvas-workspace[data-pan-active] .canvas-node-drag-handle,
+.canvas-workspace[data-pan-active] .canvas-node-hit-layer,
 .canvas-workspace[data-pan-active] .canvas-node-content {
   cursor: grab;
 }
@@ -26,13 +26,12 @@
 }
 
 .canvas-workspace[data-phase="panning"] .react-flow__pane,
-.canvas-workspace[data-phase="panning"] .canvas-node-drag-handle,
+.canvas-workspace[data-phase="panning"] .canvas-node-hit-layer,
 .canvas-workspace[data-phase="panning"] .canvas-node-content {
   cursor: grabbing;
 }
 
-.canvas-workspace[data-tool="select"] .canvas-node-drag-handle,
-.canvas-node-interaction-layer {
+.canvas-workspace[data-tool="select"] .canvas-node-hit-layer {
   cursor: move;
 }
 
@@ -73,8 +72,7 @@
 
 .canvas-node-shell {
   position: relative;
-  display: grid;
-  grid-template-rows: 22px minmax(0, 1fr);
+  display: block;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -91,46 +89,18 @@
     0 12px 34px color-mix(in srgb, black 10%, transparent);
 }
 
-.canvas-node-drag-handle {
-  position: relative;
+.canvas-node-hit-layer.canvas-host-button {
+  position: absolute;
   z-index: 2;
-  display: flex;
-  height: 22px;
-  align-items: center;
-  padding: 0 9px;
-  cursor: grab;
-  color: color-mix(in srgb, var(--foreground) 58%, transparent);
-  background: color-mix(in srgb, var(--background) 84%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent);
-  font-size: var(--canvas-host-micro-font-size);
-  line-height: var(--canvas-host-micro-line-height);
-  letter-spacing: 0.02em;
-  opacity: 0;
-  transition: opacity 120ms ease;
-  backdrop-filter: blur(10px);
-}
-
-.canvas-node-drag-handle.canvas-host-button {
-  width: 100%;
+  inset: 0;
+  width: auto;
+  height: auto;
   min-width: 0;
-  border-radius: 0;
-  justify-content: flex-start;
-}
-
-.canvas-node-shell:hover .canvas-node-drag-handle,
-.canvas-node-shell[data-selected] .canvas-node-drag-handle,
-.canvas-node-drag-handle:focus-visible {
-  opacity: 1;
-}
-
-.canvas-node-drag-handle:active {
-  cursor: grabbing;
-}
-
-.canvas-node-drag-handle span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 0;
+  border-radius: inherit;
+  color: transparent;
+  background: transparent;
+  touch-action: none;
 }
 
 .canvas-node-content {
@@ -142,13 +112,6 @@
 
 .canvas-node-content[inert] {
   user-select: none;
-}
-
-.canvas-node-interaction-layer {
-  position: absolute;
-  z-index: 2;
-  inset: 22px 0 0;
-  touch-action: none;
 }
 
 .canvas-workspace .react-flow__resize-control.line {

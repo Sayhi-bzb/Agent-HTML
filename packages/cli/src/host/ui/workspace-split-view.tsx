@@ -12,6 +12,7 @@ export function WorkspaceSplitView({
   narrowPanel,
   onNarrowPanelChange,
   pane,
+  paneFooter,
   paneLabel,
 }: {
   main: React.ReactNode
@@ -19,6 +20,7 @@ export function WorkspaceSplitView({
   narrowPanel: WorkspaceSplitViewPanel
   onNarrowPanelChange: (panel: WorkspaceSplitViewPanel) => void
   pane: React.ReactNode
+  paneFooter?: React.ReactNode
   paneLabel: string
 }) {
   return (
@@ -40,6 +42,11 @@ export function WorkspaceSplitView({
           <ScrollArea className="workspace-split-view__pane-content">
             {pane}
           </ScrollArea>
+          {paneFooter ? (
+            <footer className="workspace-split-view__pane-footer">
+              {paneFooter}
+            </footer>
+          ) : null}
         </aside>
         <section aria-label={mainLabel} className="workspace-split-view__main">
           <div className="workspace-split-view__narrow-navigation">

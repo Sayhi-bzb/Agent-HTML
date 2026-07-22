@@ -19,7 +19,6 @@ describe("Canvas registry hook contract", () => {
       canvases: [
         {
           filePath: "agent-html/canvases/demo/demo.canvas.tsx",
-          layoutPath: "agent-html/canvases/demo/demo.layout.json",
           title: "Demo",
         },
       ],

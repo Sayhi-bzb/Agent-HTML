@@ -12,19 +12,36 @@ import {
 
 function createDocument() {
   return createCanvasInspectionDocument({
-    canvas: { id: "dashboard", title: "Dashboard" },
+    active: true,
     nodes: [
-      { height: 300, id: "group", width: 400, x: -100, y: 50 },
+      {
+        height: 300,
+        id: "group",
+        siblingOrder: 0,
+        sources: ["agent-html/canvases/dashboard.canvas.tsx"],
+        width: 400,
+        x: -100,
+        y: 50,
+      },
       {
         height: 80,
         id: "card",
         parentId: "group",
-        sourcePath: "./content/card.tsx",
+        siblingOrder: 0,
+        sources: ["agent-html/canvases/content/card.tsx"],
         width: 120,
         x: 40,
         y: 30,
       },
-      { height: 100, id: "chart", width: 160, x: 500, y: 80 },
+      {
+        height: 100,
+        id: "chart",
+        siblingOrder: 1,
+        sources: ["agent-html/canvases/dashboard.canvas.tsx"],
+        width: 160,
+        x: 500,
+        y: 80,
+      },
     ],
     sourceFilePath: "agent-html/canvases/dashboard.canvas.tsx",
   })
@@ -38,7 +55,8 @@ describe("Canvas inspection contract", () => {
       height: 80,
       id: "card",
       parentId: "group",
-      sourcePath: "./content/card.tsx",
+      siblingOrder: 0,
+      sources: ["agent-html/canvases/content/card.tsx"],
       width: 120,
       x: 40,
       y: 30,
@@ -49,7 +67,6 @@ describe("Canvas inspection contract", () => {
   it("provides overview, viewport, Node detail, and source queries", () => {
     const document = createDocument()
     expect(inspectCanvasOverview(document)).toMatchObject({
-      bounds: { height: 300, width: 760, x: -100, y: 50 },
       nodeCount: 3,
       rootNodeIds: ["group", "chart"],
     })
@@ -67,14 +84,14 @@ describe("Canvas inspection contract", () => {
     })
     expect(resolveCanvasNodeSource(document, "card")).toEqual({
       canvasFilePath: "agent-html/canvases/dashboard.canvas.tsx",
-      contentFilePath: "./content/card.tsx",
       nodeId: "card",
+      sources: ["agent-html/canvases/content/card.tsx"],
     })
   })
 
   it("rejects invalid versions, duplicate ids, and invalid geometry", () => {
     expect(() =>
-      normalizeCanvasInspectionDocument({ ...createDocument(), version: 2 })
+      normalizeCanvasInspectionDocument({ ...createDocument(), version: 3 })
     ).toThrow("version")
     expect(() =>
       createCanvasInspectionDocument({

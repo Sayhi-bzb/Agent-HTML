@@ -17,6 +17,25 @@ function canvasLabelFromFilePath(filePath) {
 }
 
 export function canvasLayoutPathForEntry(filePath) {
+  const normalized = path.resolve(filePath)
+  const marker = `${path.sep}agent-html${path.sep}canvases${path.sep}`
+  const markerIndex = normalized.toLowerCase().lastIndexOf(marker.toLowerCase())
+  if (markerIndex < 0) {
+    return path.join(
+      path.dirname(normalized),
+      ".layout",
+      `${path.basename(normalized)}.json`
+    )
+  }
+  const canvasesRoot = normalized.slice(
+    0,
+    markerIndex + marker.length - path.sep.length
+  )
+  const relativePath = normalized.slice(markerIndex + marker.length)
+  return path.join(canvasesRoot, ".layout", `${relativePath}.json`)
+}
+
+export function legacyCanvasLayoutPathForEntry(filePath) {
   return filePath.replace(/\.canvas\.tsx$/, ".layout.json")
 }
 
@@ -60,10 +79,6 @@ export function createCanvasRegistry({ root, vite }) {
         const filePath = workspaceRelativePath(root, entryPath)
         return {
           filePath,
-          layoutPath: workspaceRelativePath(
-            root,
-            canvasLayoutPathForEntry(entryPath)
-          ),
           title: canvasLabelFromFilePath(filePath),
         }
       }),

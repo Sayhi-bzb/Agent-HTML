@@ -26,6 +26,10 @@ import {
 } from "#agent-html-playground/components/ui/popover"
 
 import { canvasBundleUrl, fetchCanvasLayout } from "../api/api"
+import {
+  readCanvasViewport,
+  writeCanvasViewport,
+} from "../preferences/canvas-host-preferences"
 import { HostPopoverContent } from "../ui/popover"
 import { createCanvasInspectionPublisher } from "./canvas-inspection-publisher"
 import {
@@ -333,7 +337,7 @@ function CanvasWorkspace({
     [inspectionPublisher]
   )
   React.useEffect(() => {
-    if (!snapshot.canvas) return
+    if (!snapshot.active) return
     persister.reconcile()
     inspectionPublisher.request()
   }, [inspectionPublisher, persister, snapshot])
@@ -562,7 +566,7 @@ function CanvasWorkspace({
       <CanvasIntentProvider runtime={store.runtime}>
         <Source />
       </CanvasIntentProvider>
-      {snapshot.canvas ? (
+      {snapshot.active ? (
         <ReactFlow<CanvasFlowNode>
           aria-label="Infinite Canvas"
           defaultViewport={initialViewport}
@@ -677,9 +681,15 @@ export function CanvasSurface({
     let current = true
 
     void fetchCanvasLayout(activeFilePath).then(
-      ({ layout }) => {
+      ({ layout, legacyViewport }) => {
         if (!current) return
         store.hydrateLayout(layout)
+        const localViewport = readCanvasViewport(activeFilePath)
+        const initialViewport = localViewport ?? legacyViewport
+        store.setViewport(initialViewport)
+        if (!localViewport && legacyViewport) {
+          writeCanvasViewport(activeFilePath, legacyViewport)
+        }
         setLayoutState({ error: null, filePath: activeFilePath, ready: true })
       },
       (error: unknown) => {

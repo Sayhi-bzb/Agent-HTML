@@ -47,9 +47,23 @@ describe("React Canvas style ownership contract", { timeout: 15000 }, () => {
     ).toEqual([])
 
     const hostSurface = readSource("packages/cli/src/host/styles/surface.css")
+    const workspaceSplitView = readSource(
+      "packages/cli/src/host/styles/workspace-split-view.css"
+    )
+    const themeEditor = readSource(
+      "packages/cli/src/host/styles/theme-editor.css"
+    )
     expect(hostSurface).not.toContain("--canvas-host-sidebar")
     expect(hostSurface).toContain("background: var(--background)")
     expect(hostSurface).toContain("color: var(--foreground)")
+    expect(workspaceSplitView).toContain(
+      ".workspace-split-view__pane-footer"
+    )
+    expect(workspaceSplitView).not.toContain("border-inline-end")
+    expect(themeEditor).toMatch(
+      /\.appearance-surface__reset-preview\s*\{[^}]*width: 100%;[^}]*justify-content: flex-start;/
+    )
+    expect(themeEditor).not.toContain("appearance-surface__clean-status")
   })
 
   it("keeps shadcn and TypeScript aliases scoped to their owners", () => {

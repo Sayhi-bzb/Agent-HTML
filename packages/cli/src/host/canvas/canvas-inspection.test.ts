@@ -7,7 +7,7 @@ const canvasFilePath = "agent-html/canvases/dashboard/dashboard.canvas.tsx"
 describe("Canvas inspection", () => {
   it("summarizes absolute bounds across parent-local geometry", () => {
     const store = createCanvasStore(canvasFilePath)
-    store.runtime.setCanvas({ id: "dashboard", title: "Dashboard" })
+    store.runtime.setCanvasActive(true)
     store.runtime.upsertNode({ id: "group" })
     store.runtime.upsertNode({ id: "child", parentId: "group" })
     store.setNodeGeometry("group", {
@@ -24,8 +24,6 @@ describe("Canvas inspection", () => {
     })
 
     expect(store.inspectOverview()).toEqual({
-      bounds: { height: 300, width: 400, x: -100, y: 50 },
-      canvas: { id: "dashboard", title: "Dashboard" },
       nodeCount: 2,
       rootNodeIds: ["group"],
       sourceFilePath: canvasFilePath,
@@ -78,7 +76,6 @@ describe("Canvas inspection", () => {
     store.runtime.upsertNode({
       id: "profile",
       parentId: "parent",
-      sourcePath: "./content/profile.tsx",
     })
     store.runtime.upsertNode({ id: "child", parentId: "profile" })
 
@@ -89,8 +86,8 @@ describe("Canvas inspection", () => {
     })
     expect(store.resolveNodeSource("profile")).toEqual({
       canvasFilePath,
-      contentFilePath: "./content/profile.tsx",
       nodeId: "profile",
+      sources: [canvasFilePath],
     })
     expect(store.resolveNodeSource("missing")).toBeNull()
   })

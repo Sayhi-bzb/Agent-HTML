@@ -211,10 +211,20 @@ describe("Canvas inspection transport", () => {
 
   it("publishes the versioned Canonical Store document", async () => {
     const document = {
-      canvas: { id: "demo", title: "Demo" },
-      nodes: [{ height: 80, id: "card", width: 100, x: 0, y: 0 }],
+      active: true,
+      nodes: [
+        {
+          height: 80,
+          id: "card",
+          siblingOrder: 0,
+          sources: ["agent-html/canvases/demo.canvas.tsx"],
+          width: 100,
+          x: 0,
+          y: 0,
+        },
+      ],
       sourceFilePath: "agent-html/canvases/demo.canvas.tsx",
-      version: 1 as const,
+      version: 2 as const,
     }
     vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
       expect(url).toBe(hostApiRoutes.canvasInspection)
@@ -248,10 +258,8 @@ describe("Canvas inspection transport", () => {
       })
       return new Response(
         JSON.stringify({
-          layoutPath: "agent-html/canvases/demo.layout.json",
           nodes,
           removedNodeIds,
-          storage: "monolithic",
         }),
         { headers: { "Content-Type": "application/json" } }
       )
@@ -259,34 +267,7 @@ describe("Canvas inspection transport", () => {
 
     await expect(
       saveCanvasLayoutPatch({ filePath, nodes, removedNodeIds })
-    ).resolves.toMatchObject({ storage: "monolithic" })
-  })
-
-  it("persists a Canvas viewport as a patch", async () => {
-    const filePath = "agent-html/canvases/demo.canvas.tsx"
-    const viewport = { x: 24, y: -16, zoom: 0.8 }
-    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
-      expect(url).toBe(hostApiRoutes.canvasLayout)
-      expect(JSON.parse(String(init?.body))).toEqual({
-        filePath,
-        nodes: {},
-        viewport,
-      })
-      return new Response(
-        JSON.stringify({
-          layoutPath: "agent-html/canvases/demo.layout.json",
-          nodes: {},
-          removedNodeIds: [],
-          storage: "monolithic",
-          viewport,
-        }),
-        { headers: { "Content-Type": "application/json" } }
-      )
-    })
-
-    await expect(
-      saveCanvasLayoutPatch({ filePath, viewport })
-    ).resolves.toMatchObject({ viewport })
+    ).resolves.toEqual({ nodes, removedNodeIds })
   })
 })
 

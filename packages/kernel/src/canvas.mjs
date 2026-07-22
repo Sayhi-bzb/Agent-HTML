@@ -1,4 +1,4 @@
-export const CANVAS_LAYOUT_VERSION = 2
+export const CANVAS_LAYOUT_VERSION = 3
 export const DEFAULT_CANVAS_NODE_WIDTH = 320
 export const DEFAULT_CANVAS_NODE_HEIGHT = 180
 export const DEFAULT_CANVAS_NODE_GAP = 48
@@ -57,9 +57,13 @@ export function normalizeCanvasLayout(value) {
   if (typeof value !== "object" || Array.isArray(value)) {
     throw new TypeError("Canvas layout must be an object")
   }
-  if (value.version !== 1 && value.version !== CANVAS_LAYOUT_VERSION) {
+  if (
+    value.version !== 1 &&
+    value.version !== 2 &&
+    value.version !== CANVAS_LAYOUT_VERSION
+  ) {
     throw new TypeError(
-      `Canvas layout version must be 1 or ${CANVAS_LAYOUT_VERSION}`
+      `Canvas layout version must be 1, 2, or ${CANVAS_LAYOUT_VERSION}`
     )
   }
   if (
@@ -90,10 +94,8 @@ export function normalizeCanvasLayout(value) {
     }
   }
 
-  const viewport = normalizeCanvasViewport(value.viewport)
   return {
     nodes,
-    ...(viewport ? { viewport } : {}),
     version: CANVAS_LAYOUT_VERSION,
   }
 }

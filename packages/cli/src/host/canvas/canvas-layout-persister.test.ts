@@ -20,10 +20,8 @@ describe("Canvas layout persister", () => {
       y: 60,
     })
     const save = vi.fn(async () => ({
-      layoutPath: "agent-html/canvases/demo.layout.json",
       nodes: { a: store.getLayout().nodes.a },
       removedNodeIds: [],
-      storage: "monolithic" as const,
     }))
     const persister = createLayoutPersister({
       delay: 20,
@@ -62,15 +60,9 @@ describe("Canvas layout persister", () => {
     )
   })
 
-  it("commits viewport changes without requiring dirty Nodes", async () => {
+  it("keeps viewport changes local without writing shared layout", async () => {
     const store = createCanvasStore("agent-html/canvases/demo.canvas.tsx")
-    const save = vi.fn(async ({ nodes, removedNodeIds, viewport }) => ({
-      layoutPath: "agent-html/canvases/demo.layout.json",
-      nodes,
-      removedNodeIds: [...(removedNodeIds ?? [])],
-      storage: "monolithic" as const,
-      viewport,
-    }))
+    const save = vi.fn()
     const persister = createLayoutPersister({
       filePath: store.sourceFilePath,
       onPersistError: vi.fn(),
@@ -80,55 +72,9 @@ describe("Canvas layout persister", () => {
     const viewport = { x: 40, y: -20, zoom: 0.8 }
 
     persister.commitViewport(viewport)
-    await vi.waitFor(() => expect(save).toHaveBeenCalledOnce())
-
-    expect(save).toHaveBeenCalledWith({
-      filePath: store.sourceFilePath,
-      nodes: {},
-      removedNodeIds: [],
-      viewport,
-    })
-    expect(store.getLayout().viewport).toEqual(viewport)
-  })
-
-  it("retries the latest viewport after an older save fails", async () => {
-    const store = createCanvasStore("agent-html/canvases/demo.canvas.tsx")
-    let rejectFirstSave: ((error: Error) => void) | undefined
-    const save = vi.fn(
-      ({ viewport }: { viewport?: { x: number; y: number; zoom: number } }) => {
-        if (save.mock.calls.length === 1) {
-          return new Promise<never>((_resolve, reject) => {
-            rejectFirstSave = reject
-          })
-        }
-        return Promise.resolve({
-          layoutPath: "agent-html/canvases/demo.layout.json",
-          nodes: {},
-          removedNodeIds: [],
-          storage: "monolithic" as const,
-          viewport,
-        })
-      }
-    )
-    const persister = createLayoutPersister({
-      filePath: store.sourceFilePath,
-      onPersistError: vi.fn(),
-      save,
-      store,
-    })
-    const first = { x: 10, y: 20, zoom: 0.8 }
-    const latest = { x: 30, y: 40, zoom: 1.2 }
-
-    persister.commitViewport(first)
-    await vi.waitFor(() => expect(save).toHaveBeenCalledOnce())
-    persister.commitViewport(latest)
-    rejectFirstSave?.(new Error("temporary failure"))
-    await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(2))
-
-    persister.commit([])
-    await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(3))
-
-    expect(save.mock.calls[2]?.[0].viewport).toEqual(latest)
+    expect(save).not.toHaveBeenCalled()
+    expect(store.getSnapshot().viewport).toEqual(viewport)
+    expect(store.getLayout()).not.toHaveProperty("viewport")
   })
 
   it("reconciles removed authored Nodes as tombstones", async () => {
@@ -139,14 +85,12 @@ describe("Canvas layout persister", () => {
         active: { height: 100, width: 200, x: 0, y: 0 },
         removed: { height: 100, width: 200, x: 20, y: 20 },
       },
-      version: 1,
+      version: 3,
     })
     store.runtime.upsertNode({ id: "active" })
     const save = vi.fn(async ({ nodes, removedNodeIds }) => ({
-      layoutPath: "agent-html/canvases/demo.layout.json",
       nodes,
       removedNodeIds: [...(removedNodeIds ?? [])],
-      storage: "monolithic" as const,
     }))
     const persister = createLayoutPersister({
       delay: 20,

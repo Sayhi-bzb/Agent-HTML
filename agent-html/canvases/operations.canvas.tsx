@@ -81,46 +81,45 @@ function IntakeForm() {
 
 export default function OperationsCanvas() {
   return (
-    <Canvas id="operations" title="Operations map">
-      <Node id="planning-space" title="Planning space" type="group">
+    <Canvas>
+      <Node id="planning-space">
         <div className="h-full bg-muted/25 p-5">
           <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
             Planning space
           </p>
         </div>
+        <Node id="intake">
+          <IntakeForm />
+        </Node>
+
+        <Node id="activity">
+          <Card className="h-full rounded-none border-0 shadow-none ring-0">
+            <CardHeader>
+              <CardTitle>Activity stream</CardTitle>
+              <CardDescription>Live operational changes.</CardDescription>
+            </CardHeader>
+            <CardContent className="min-h-0 flex-1">
+              <ScrollArea className="h-full pr-3">
+                <div className="grid gap-2">
+                  {activity.map((item, index) => (
+                    <div
+                      className="rounded-lg border bg-background p-3 text-xs leading-relaxed"
+                      key={item}
+                    >
+                      <span className="mr-2 text-muted-foreground">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </Node>
       </Node>
 
-      <Node id="intake" parentId="planning-space" title="Intake form">
-        <IntakeForm />
-      </Node>
-
-      <Node id="activity" parentId="planning-space" title="Activity stream">
-        <Card className="h-full rounded-none border-0 shadow-none ring-0">
-          <CardHeader>
-            <CardTitle>Activity stream</CardTitle>
-            <CardDescription>Live operational changes.</CardDescription>
-          </CardHeader>
-          <CardContent className="min-h-0 flex-1">
-            <ScrollArea className="h-full pr-3">
-              <div className="grid gap-2">
-                {activity.map((item, index) => (
-                  <div
-                    className="rounded-lg border bg-background p-3 text-xs leading-relaxed"
-                    key={item}
-                  >
-                    <span className="mr-2 text-muted-foreground">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </Node>
-
-      <Node id="throughput" title="Throughput chart">
+      <Node id="throughput">
         <Card className="h-full rounded-none border-0 shadow-none ring-0">
           <CardHeader>
             <CardTitle>Weekly throughput</CardTitle>
@@ -139,7 +138,7 @@ export default function OperationsCanvas() {
         </Card>
       </Node>
 
-      <Node id="decision" title="Decision card">
+      <Node id="decision">
         <Card className="h-full rounded-none border-0 shadow-none ring-0">
           <CardHeader>
             <CardTitle>Release decision</CardTitle>

@@ -24,7 +24,7 @@ function createRuntime(target: HTMLElement) {
   const runtime: CanvasIntentRuntime = {
     getNodeTarget: () => target,
     removeNode: (id) => nodes.delete(id),
-    setCanvas: () => {},
+    setCanvasActive: () => {},
     subscribeTargets: () => () => {},
     upsertNode: (node) => nodes.set(node.id, node),
   }
@@ -42,15 +42,8 @@ describe("Canvas authoring components", () => {
 
     root.render(
       <CanvasIntentProvider runtime={runtime}>
-        <Canvas id="dashboard">
-          <Node
-            height={180}
-            id="profile"
-            sourcePath="./content/profile.tsx"
-            width={320}
-            x={20}
-            y={40}
-          >
+        <Canvas>
+          <Node id="profile">
             <input aria-label="Profile" defaultValue="Ada" />
           </Node>
         </Canvas>
@@ -58,14 +51,44 @@ describe("Canvas authoring components", () => {
     )
 
     await new Promise((resolve) => setTimeout(resolve, 0))
-    expect(nodes.get("profile")).toMatchObject({
-      height: 180,
-      sourcePath: "./content/profile.tsx",
-      width: 320,
-      x: 20,
-      y: 40,
-    })
+    expect(nodes.get("profile")).toEqual({ id: "profile" })
     expect(target.querySelector("input")?.getAttribute("value")).toBe("Ada")
+  })
+
+  it("derives hierarchy from nested JSX while keeping separate portals", async () => {
+    const host = document.createElement("div")
+    const parentTarget = document.createElement("div")
+    const childTarget = document.createElement("div")
+    document.body.append(host, parentTarget, childTarget)
+    const nodes = new Map<string, CanvasNodeIntent>()
+    const runtime: CanvasIntentRuntime = {
+      getNodeTarget: (id) =>
+        id === "parent" ? parentTarget : id === "child" ? childTarget : null,
+      removeNode: (id) => nodes.delete(id),
+      setCanvasActive: () => {},
+      subscribeTargets: () => () => {},
+      upsertNode: (node) => nodes.set(node.id, node),
+    }
+    const root = createRoot(host)
+    roots.push(root)
+
+    root.render(
+      <CanvasIntentProvider runtime={runtime}>
+        <Canvas>
+          <Node id="parent">
+            <span>Parent</span>
+            <Node id="child">
+              <span>Child</span>
+            </Node>
+          </Node>
+        </Canvas>
+      </CanvasIntentProvider>
+    )
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(nodes.get("child")).toEqual({ id: "child", parentId: "parent" })
+    expect(parentTarget.textContent).toBe("Parent")
+    expect(childTarget.textContent).toBe("Child")
   })
 
   it("keeps React context and state interactive through the Node portal", async () => {
@@ -90,7 +113,7 @@ describe("Canvas authoring components", () => {
     root.render(
       <LabelContext.Provider value="portal">
         <CanvasIntentProvider runtime={runtime}>
-          <Canvas id="interactive">
+          <Canvas>
             <Node id="form">
               <InteractiveContent />
             </Node>

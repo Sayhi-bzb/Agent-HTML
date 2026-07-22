@@ -3,9 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   CANVAS_HOST_PREFERENCES_STORAGE_KEY,
   readCanvasHostPreferences,
+  readCanvasViewport,
   readCanvasMessageDraft,
   writeCanvasHostPreferences,
   writeCanvasMessageDraft,
+  writeCanvasViewport,
 } from "./canvas-host-preferences"
 import type { Artifact } from "../host-contracts"
 
@@ -90,6 +92,7 @@ describe("canvas host preferences", () => {
       activeThemeEditorSectionId: "color",
       activeThemeMode: "system",
       activeThemePresetId: "claude-plus",
+      canvasViewports: {},
       createArtifactJob: {
         filePath: "agent-html/artifacts/new.artifact.tsx",
         phase: "waiting-for-artifact",
@@ -148,6 +151,19 @@ describe("canvas host preferences", () => {
     expect(readCanvasHostPreferences()).toMatchObject({
       activeLanguage: "zh",
       activeThemeMode: "dark",
+    })
+  })
+
+  it("stores local viewport state per Canvas", () => {
+    stubStorage()
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+    const viewport = { x: 10.25, y: -20.5, zoom: 0.8 }
+
+    writeCanvasViewport(filePath, viewport)
+
+    expect(readCanvasViewport(filePath)).toEqual(viewport)
+    expect(readCanvasHostPreferences().canvasViewports).toEqual({
+      [filePath]: viewport,
     })
   })
 

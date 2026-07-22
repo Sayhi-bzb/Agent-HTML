@@ -13,7 +13,7 @@ describe("Canvas inspection publisher", () => {
     }))
     const publisher = createCanvasInspectionPublisher({ publish, store })
 
-    store.runtime.setCanvas({ id: "demo", title: "Demo" })
+    store.runtime.setCanvasActive(true)
     store.runtime.upsertNode({ id: "first" })
     publisher.request()
     store.runtime.upsertNode({ id: "second" })
@@ -22,10 +22,10 @@ describe("Canvas inspection publisher", () => {
     await vi.advanceTimersByTimeAsync(80)
     expect(publish).toHaveBeenCalledOnce()
     expect(publish.mock.calls[0]?.[0]).toMatchObject({
-      canvas: { id: "demo", title: "Demo" },
+      active: true,
       nodes: [{ id: "first" }, { id: "second" }],
       sourceFilePath: store.sourceFilePath,
-      version: 1,
+      version: 2,
     })
     vi.useRealTimers()
   })

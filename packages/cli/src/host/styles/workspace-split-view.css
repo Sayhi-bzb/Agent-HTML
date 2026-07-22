@@ -29,10 +29,6 @@
     background: var(--background);
   }
 
-  .workspace-split-view__pane {
-    border-inline-end: 1px solid var(--border);
-  }
-
   .workspace-split-view__pane-content,
   .workspace-split-view__main-content {
     min-width: 0;
@@ -51,6 +47,13 @@
   .workspace-split-view__pane-content [data-slot="scroll-area-viewport"] > div {
     display: block !important;
     min-width: 0 !important;
+  }
+
+  .workspace-split-view__pane-footer {
+    min-width: 0;
+    flex: 0 0 auto;
+    padding: var(--canvas-host-section-padding);
+    padding-block-start: 0;
   }
 
   .workspace-split-view__main-content {

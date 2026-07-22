@@ -13,7 +13,6 @@ export type CanvasFlowNodeData = {
   persistLayout: PersistCanvasLayoutNodes
   requestPersistLayout: PersistCanvasLayoutNodes
   store: CanvasStore
-  title?: string
 }
 
 export type CanvasFlowNode = FlowNode<CanvasFlowNodeData, "canvas-node">
@@ -49,9 +48,8 @@ export function projectCanvasSnapshot(
       persistLayout,
       requestPersistLayout,
       store,
-      title: node.title,
     },
-    dragHandle: ".canvas-node-drag-handle, .canvas-node-interaction-layer",
+    dragHandle: ".canvas-node-hit-layer",
     height: node.height,
     id: node.id,
     parentId: node.parentId,

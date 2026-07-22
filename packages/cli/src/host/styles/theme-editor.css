@@ -17,18 +17,9 @@
     padding-block-start: var(--canvas-surface-padding-block-start);
   }
 
-  .appearance-surface__status {
-    display: flex;
-    min-height: 2.25rem;
-    align-items: center;
-  }
-
-  .appearance-surface__clean-status {
-    display: flex;
-    min-width: 0;
-    padding: 0.5rem 0.75rem;
-    font-size: var(--canvas-host-body-font-size);
-    color: var(--muted-foreground);
+  .appearance-surface__reset-preview {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .canvas-theme-editor-header-stack,

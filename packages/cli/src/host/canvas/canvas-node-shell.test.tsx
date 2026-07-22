@@ -23,7 +23,7 @@ describe("Canvas Node interaction boundary", () => {
     const container = document.createElement("div")
     const root = createRoot(container)
     const store = createCanvasStore("demo.canvas.tsx")
-    store.runtime.upsertNode({ id: "card", title: "Card" })
+    store.runtime.upsertNode({ id: "card" })
 
     const props = (contentInteractive: boolean) =>
       ({
@@ -32,7 +32,6 @@ describe("Canvas Node interaction boundary", () => {
           persistLayout: vi.fn(),
           requestPersistLayout: vi.fn(),
           store,
-          title: "Card",
         },
         id: "card",
         selected: true,
@@ -46,9 +45,7 @@ describe("Canvas Node interaction boundary", () => {
     statefulChild.value = "retained"
     content.append(statefulChild)
     expect(content.hasAttribute("inert")).toBe(true)
-    expect(
-      container.querySelector(".canvas-node-interaction-layer")
-    ).not.toBeNull()
+    expect(container.querySelector(".canvas-node-hit-layer")).not.toBeNull()
     expect(container.querySelector("[data-resizer-visible]")).not.toBeNull()
 
     act(() => root.render(<CanvasNodeShell {...props(true)} />))
@@ -58,7 +55,7 @@ describe("Canvas Node interaction boundary", () => {
     expect(interactiveContent).toBe(content)
     expect(interactiveContent.hasAttribute("inert")).toBe(false)
     expect(statefulChild.value).toBe("retained")
-    expect(container.querySelector(".canvas-node-interaction-layer")).toBeNull()
+    expect(container.querySelector(".canvas-node-hit-layer")).toBeNull()
     expect(container.querySelector("[data-resizer-visible]")).toBeNull()
     act(() => root.unmount())
   })

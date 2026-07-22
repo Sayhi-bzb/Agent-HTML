@@ -16,13 +16,12 @@ function geometry(index) {
 }
 
 describe("Canvas layout storage", () => {
-  it("keeps small layouts as the readable colocated document", async () => {
+  it("keeps small layouts as a readable geometry document", async () => {
     const root = await createTestTempDir("canvas-layout-monolithic")
     const layoutPath = path.join(root, "demo.layout.json")
     const layout = {
       nodes: { a: geometry(1) },
-      viewport: { x: 10, y: -20, zoom: 0.8 },
-      version: 2,
+      version: 3,
     }
 
     await expect(
@@ -40,8 +39,7 @@ describe("Canvas layout storage", () => {
     const layoutPath = path.join(root, "demo.layout.json")
     const layout = {
       nodes: { a: geometry(1), b: geometry(2), c: geometry(3) },
-      viewport: { x: -40, y: 60, zoom: 0.5 },
-      version: 2,
+      version: 3,
     }
 
     await expect(
@@ -51,8 +49,7 @@ describe("Canvas layout storage", () => {
     expect(manifest).toMatchObject({
       format: canvasLayoutShardFormat,
       nodeCount: 3,
-      viewport: layout.viewport,
-      version: 2,
+      version: 3,
     })
     expect(Object.keys(manifest.shards).length).toBeGreaterThan(0)
     await expect(readStoredCanvasLayout(layoutPath)).resolves.toMatchObject({
@@ -98,28 +95,28 @@ describe("Canvas layout storage", () => {
     ).toBe(999)
   })
 
-  it("patches a sharded viewport without rewriting Node shards", async () => {
-    const root = await createTestTempDir("canvas-layout-viewport-patch")
-    const layoutPath = path.join(root, "demo.layout.json")
-    await writeStoredCanvasLayout({
-      layout: {
-        nodes: { a: geometry(1), b: geometry(2) },
-        version: 2,
-      },
-      layoutPath,
-      shardCount: 4,
-      shardThreshold: 2,
-    })
-    const before = JSON.parse(await fs.readFile(layoutPath, "utf8"))
+  it("migrates legacy colocated layout and returns its local viewport", async () => {
+    const root = await createTestTempDir("canvas-layout-migration")
+    const legacyLayoutPath = path.join(root, "demo.layout.json")
+    const layoutPath = path.join(root, ".layout", "demo.canvas.tsx.json")
     const viewport = { x: 80, y: -32, zoom: 1.25 }
+    await fs.writeFile(
+      legacyLayoutPath,
+      JSON.stringify({ nodes: { a: geometry(1) }, version: 2, viewport })
+    )
 
-    await patchStoredCanvasLayout({ layoutPath, nodes: {}, viewport })
-
-    const after = JSON.parse(await fs.readFile(layoutPath, "utf8"))
-    expect(after.shards).toEqual(before.shards)
-    expect(after.viewport).toEqual(viewport)
-    await expect(readStoredCanvasLayout(layoutPath)).resolves.toMatchObject({
-      layout: { viewport },
+    await expect(
+      readStoredCanvasLayout(layoutPath, { legacyLayoutPath })
+    ).resolves.toMatchObject({
+      layout: { nodes: { a: geometry(1) }, version: 3 },
+      legacyViewport: viewport,
+    })
+    await expect(fs.access(legacyLayoutPath)).rejects.toMatchObject({
+      code: "ENOENT",
+    })
+    expect(JSON.parse(await fs.readFile(layoutPath, "utf8"))).toEqual({
+      nodes: { a: geometry(1) },
+      version: 3,
     })
   })
 
@@ -147,7 +144,7 @@ describe("Canvas layout storage", () => {
       storage: "monolithic",
     })
     await expect(readStoredCanvasLayout(layoutPath)).resolves.toMatchObject({
-      layout: { nodes: { b: geometry(2) }, version: 2 },
+      layout: { nodes: { b: geometry(2) }, version: 3 },
     })
   })
 

@@ -12,7 +12,10 @@ import { workspaceRelativePath } from "../react-canvas/paths.mjs"
 import { createArtifactScaffold } from "../react-canvas/artifact-scaffold.mjs"
 import { resolveBlockImplementationPath } from "../react-canvas/block-implementation.mjs"
 import { readTextFile } from "../react-canvas/workspace-file.mjs"
-import { canvasLayoutPathForEntry } from "./canvas-registry.mjs"
+import {
+  canvasLayoutPathForEntry,
+  legacyCanvasLayoutPathForEntry,
+} from "./canvas-registry.mjs"
 import { readColdCanvasInspectionDocument } from "./canvas-cold-inspection.mjs"
 import {
   patchStoredCanvasLayout,
@@ -100,38 +103,23 @@ async function readCanvasLayout({ filePath, root }) {
   const entryPath = resolveCanvasEntryPath({ filePath, root })
   await fs.access(entryPath)
   const layoutPath = canvasLayoutPathForEntry(entryPath)
-  return { ...(await readStoredCanvasLayout(layoutPath)), layoutPath }
+  return readStoredCanvasLayout(layoutPath, {
+    legacyLayoutPath: legacyCanvasLayoutPathForEntry(entryPath),
+  })
 }
 
 async function writeCanvasLayout({ filePath, layout, root }) {
   const entryPath = resolveCanvasEntryPath({ filePath, root })
   await fs.access(entryPath)
   const layoutPath = canvasLayoutPathForEntry(entryPath)
-  return {
-    ...(await writeStoredCanvasLayout({ layout, layoutPath })),
-    layoutPath,
-  }
+  return writeStoredCanvasLayout({ layout, layoutPath })
 }
 
-async function patchCanvasLayout({
-  filePath,
-  nodes,
-  removedNodeIds,
-  root,
-  viewport,
-}) {
+async function patchCanvasLayout({ filePath, nodes, removedNodeIds, root }) {
   const entryPath = resolveCanvasEntryPath({ filePath, root })
   await fs.access(entryPath)
   const layoutPath = canvasLayoutPathForEntry(entryPath)
-  return {
-    ...(await patchStoredCanvasLayout({
-      layoutPath,
-      nodes,
-      removedNodeIds,
-      viewport,
-    })),
-    layoutPath,
-  }
+  return patchStoredCanvasLayout({ layoutPath, nodes, removedNodeIds })
 }
 
 const publicContentTypes = new Map([
@@ -786,8 +774,9 @@ async function handleCanvasRegistryAndLayoutRoute({
       const result = await readCanvasLayout({ filePath, root })
       sendJson(response, {
         layout: result.layout,
-        layoutPath: workspaceRelativePath(root, result.layoutPath),
-        storage: result.storage,
+        ...(result.legacyViewport
+          ? { legacyViewport: result.legacyViewport }
+          : {}),
       })
     } catch (error) {
       sendError(response, error, 400)
@@ -798,17 +787,13 @@ async function handleCanvasRegistryAndLayoutRoute({
   if (request.method === "POST") {
     try {
       const body = await readJsonBody(request)
-      const isPatch =
-        Boolean(body.nodes) ||
-        Array.isArray(body.removedNodeIds) ||
-        Object.hasOwn(body, "viewport")
+      const isPatch = Boolean(body.nodes) || Array.isArray(body.removedNodeIds)
       const result = isPatch
         ? await patchCanvasLayout({
             filePath: body.filePath,
             nodes: body.nodes,
             removedNodeIds: body.removedNodeIds,
             root,
-            viewport: body.viewport,
           })
         : await writeCanvasLayout({
             filePath: body.filePath,
@@ -821,14 +806,9 @@ async function handleCanvasRegistryAndLayoutRoute({
           ? {
               nodes: result.nodes,
               removedNodeIds: result.removedNodeIds,
-              viewport: result.viewport,
-              layoutPath: workspaceRelativePath(root, result.layoutPath),
-              storage: result.storage,
             }
           : {
               layout: result.layout,
-              layoutPath: workspaceRelativePath(root, result.layoutPath),
-              storage: result.storage,
             }
       )
     } catch (error) {
@@ -891,12 +871,36 @@ async function handleCanvasInspectionRoute({
     const entryPath = resolveCanvasEntryPath({ filePath, root })
     await fs.access(entryPath)
     const liveDocument = canvasInspectionRegistry.getDocument(filePath)
-    const document =
-      liveDocument ??
-      (await readColdCanvasInspectionDocument({
+    let coldDocument = null
+    try {
+      coldDocument = await readColdCanvasInspectionDocument({
         entryPath,
+        root,
         sourceFilePath: filePath,
-      }))
+      })
+    } catch (error) {
+      if (!liveDocument) throw error
+    }
+    const staticNodes = new Map(
+      coldDocument?.nodes.map((node) => [node.id, node]) ?? []
+    )
+    const document = liveDocument
+      ? {
+          ...liveDocument,
+          nodes: liveDocument.nodes.map((node) => {
+            const staticNode = staticNodes.get(node.id)
+            if (!staticNode) return node
+            return {
+              ...node,
+              ...(staticNode.parentId
+                ? { parentId: staticNode.parentId }
+                : { parentId: undefined }),
+              siblingOrder: staticNode.siblingOrder,
+              sources: staticNode.sources,
+            }
+          }),
+        }
+      : coldDocument
     const origin = liveDocument ? "live" : "cold"
 
     const kind = requestUrl.searchParams.get("kind") ?? "overview"

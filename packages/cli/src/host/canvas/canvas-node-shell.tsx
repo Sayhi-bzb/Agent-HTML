@@ -9,13 +9,8 @@ export function CanvasNodeShell({
   id,
   selected,
 }: NodeProps<CanvasFlowNode>) {
-  const {
-    contentInteractive,
-    persistLayout,
-    requestPersistLayout,
-    store,
-    title,
-  } = data
+  const { contentInteractive, persistLayout, requestPersistLayout, store } =
+    data
   const setTarget = React.useCallback(
     (target: HTMLDivElement | null) => store.setNodeTarget(id, target),
     [id, store]
@@ -46,32 +41,14 @@ export function CanvasNodeShell({
         onResize={setGeometry}
         onResizeEnd={finishResize}
       />
-      {contentInteractive ? (
-        <div
-          className="canvas-node-drag-handle"
-          data-canvas-region="node-chrome"
-          title={title ?? id}
-        >
-          <span>{title ?? id}</span>
-        </div>
-      ) : (
+      {!contentInteractive ? (
         <HostButton
           aria-keyshortcuts="Enter ArrowUp ArrowDown ArrowLeft ArrowRight"
-          aria-label={`Select and move ${title ?? id}. Use arrow keys; hold Shift for ten pixels.`}
-          className="canvas-node-drag-handle"
+          aria-label={`Select and move ${id}. Use arrow keys; hold Shift for ten pixels.`}
+          className="canvas-node-hit-layer"
           data-canvas-region="node-chrome"
-          title={title ?? id}
           type="button"
           variant="ghost"
-        >
-          <span>{title ?? id}</span>
-        </HostButton>
-      )}
-      {!contentInteractive ? (
-        <div
-          aria-hidden="true"
-          className="canvas-node-interaction-layer"
-          data-canvas-region="node-chrome"
         />
       ) : null}
       <div

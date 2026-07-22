@@ -57,7 +57,6 @@ describe("Canvas registry", () => {
       canvases: [
         {
           filePath: "agent-html/canvases/dashboard/team-health.canvas.tsx",
-          layoutPath: "agent-html/canvases/dashboard/team-health.layout.json",
           title: "Team Health",
         },
       ],
@@ -69,9 +68,9 @@ describe("Canvas registry", () => {
     await registry.close()
   })
 
-  it("derives a colocated layout path", () => {
+  it("derives a hidden machine layout path", () => {
     expect(canvasLayoutPathForEntry("x/dashboard.canvas.tsx")).toBe(
-      "x/dashboard.layout.json"
+      path.resolve("x/.layout/dashboard.canvas.tsx.json")
     )
   })
 

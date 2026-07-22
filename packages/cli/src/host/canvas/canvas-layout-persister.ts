@@ -1,5 +1,6 @@
 import { saveCanvasLayoutPatch } from "../api/api"
 import type { CanvasViewport } from "@agent-html/kernel"
+import { writeCanvasViewport } from "../preferences/canvas-host-preferences"
 import type { CanvasStore } from "./canvas-store"
 
 export type PersistCanvasLayoutNodes = (nodeIds: readonly string[]) => void
@@ -21,7 +22,6 @@ export function createLayoutPersister({
   let timer: ReturnType<typeof setTimeout> | null = null
   const pendingNodeIds = new Set<string>()
   const pendingRemovedNodeIds = new Set<string>()
-  let pendingViewport: CanvasViewport | undefined
 
   const markPending = (nodeIds: readonly string[]) => {
     for (const nodeId of nodeIds) pendingNodeIds.add(nodeId)
@@ -38,20 +38,13 @@ export function createLayoutPersister({
     ].filter((nodeId) => !activeNodeIds.has(nodeId))
     pendingRemovedNodeIds.clear()
     const layout = store.getLayout()
-    const viewport = pendingViewport
-    pendingViewport = undefined
     const nodes = Object.fromEntries(
       nodeIds.flatMap((nodeId) => {
         const geometry = layout.nodes[nodeId]
         return geometry ? [[nodeId, geometry]] : []
       })
     )
-    if (
-      Object.keys(nodes).length === 0 &&
-      removedNodeIds.length === 0 &&
-      !viewport
-    )
-      return
+    if (Object.keys(nodes).length === 0 && removedNodeIds.length === 0) return
 
     saveQueue = saveQueue
       .catch(() => undefined)
@@ -60,7 +53,6 @@ export function createLayoutPersister({
           filePath,
           nodes,
           removedNodeIds,
-          ...(viewport ? { viewport } : {}),
         })
       )
       .then(
@@ -86,8 +78,6 @@ export function createLayoutPersister({
           for (const nodeId of removedNodeIds) {
             pendingRemovedNodeIds.add(nodeId)
           }
-          pendingViewport =
-            pendingViewport ?? store.getSnapshot().viewport ?? viewport
           onPersistError(error instanceof Error ? error.message : String(error))
         }
       )
@@ -102,10 +92,7 @@ export function createLayoutPersister({
     },
     commitViewport(viewport: CanvasViewport) {
       store.setViewport(viewport)
-      pendingViewport = viewport
-      if (timer) clearTimeout(timer)
-      timer = null
-      persist()
+      writeCanvasViewport(filePath, viewport)
     },
     dispose() {
       if (timer) clearTimeout(timer)

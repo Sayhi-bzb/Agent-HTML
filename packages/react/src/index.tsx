@@ -16,7 +16,6 @@ import type {
 
 export { Canvas, CanvasIntentProvider, Node } from "./canvas"
 export type {
-  CanvasDefinition,
   CanvasIntentRuntime,
   CanvasNodeIntent,
   CanvasProps,

@@ -18,9 +18,9 @@ describe("Canvas Kernel validation", () => {
           import { Canvas as Map, Node as Item } from "@agent-html/react"
           export default function Demo() {
             return (
-              <Map id="demo" title="Demo map">
+              <Map>
                 <>
-                  <Item id="profile" sourcePath="./content/profile.tsx" x={-20} width={400}>
+                  <Item id="profile">
                     <Profile />
                   </Item>
                 </>
@@ -31,15 +31,18 @@ describe("Canvas Kernel validation", () => {
         `,
       })
     ).toEqual({
-      canvas: { id: "demo", title: "Demo map" },
+      canvas: {},
       nodes: [
         {
           id: "profile",
-          sourcePath: "./content/profile.tsx",
-          width: 400,
-          x: -20,
+          siblingOrder: 0,
+          sources: ["agent-html/canvases/demo.canvas.tsx"],
         },
-        { id: "revenue" },
+        {
+          id: "revenue",
+          siblingOrder: 1,
+          sources: ["agent-html/canvases/demo.canvas.tsx"],
+        },
       ],
     })
   })
@@ -51,7 +54,7 @@ describe("Canvas Kernel validation", () => {
         source: `
           import { Canvas, Node } from "@agent-html/react"
           export default function Demo({ nodes }) {
-            return <Canvas id="demo">{nodes.map((node) => <Node {...node} />)}</Canvas>
+            return <Canvas>{nodes.map((node) => <Node {...node} />)}</Canvas>
           }
         `,
       })
@@ -90,7 +93,7 @@ describe("Canvas Kernel validation", () => {
         import { Canvas, Node } from "@agent-html/react"
         import Region from "./region"
         export default function Demo() {
-          return <Canvas id="demo"><Node id="start" /><Region /><Node id="end" /></Canvas>
+          return <Canvas><Node id="start" /><Region /><Node id="end" /></Canvas>
         }
       `,
     })

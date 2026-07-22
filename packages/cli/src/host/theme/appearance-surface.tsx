@@ -1,13 +1,11 @@
 import * as React from "react"
-import { SparklesIcon } from "lucide-react"
+import { RotateCcwIcon } from "lucide-react"
 
-import { Separator } from "#agent-html-playground/components/ui/separator"
 import type {
   CanvasThemePreset,
   CanvasThemePresetId,
 } from "#agent-html-playground/theme/presets"
 import { useHostI18n } from "../i18n/host-i18n"
-import { HostItemContent } from "../ui/item-content"
 import { HostButton } from "../ui/button"
 import { WorkspaceSplitView } from "../ui/workspace-split-view"
 import {
@@ -68,24 +66,21 @@ export function AppearanceSurface({
         preset={activePreset}
         runtimeVariables={runtimeVariables}
       />
-      <Separator />
-      <div className="appearance-surface__status">
-        {previewDirty ? (
-          <HostButton onClick={onResetPreview} type="button" variant="ghost">
-            <SparklesIcon data-icon="inline-start" />
-            {t("sidebar.resetPreview")}
-          </HostButton>
-        ) : (
-          <div className="appearance-surface__clean-status" role="status">
-            <HostItemContent
-              icon={SparklesIcon}
-              label={t("sidebar.previewClean")}
-            />
-          </div>
-        )}
-      </div>
     </div>
   )
+
+  const footer = previewDirty ? (
+    <HostButton
+      className="appearance-surface__reset-preview"
+      onClick={onResetPreview}
+      size="sm"
+      type="button"
+      variant="ghost"
+    >
+      <RotateCcwIcon data-icon="inline-start" />
+      {t("sidebar.resetPreview")}
+    </HostButton>
+  ) : undefined
 
   return (
     <WorkspaceSplitView
@@ -94,6 +89,7 @@ export function AppearanceSurface({
       narrowPanel={narrowPanel}
       onNarrowPanelChange={setNarrowPanel}
       pane={controls}
+      paneFooter={footer}
       paneLabel={t("appearance.controls")}
     />
   )

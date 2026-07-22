@@ -19,6 +19,7 @@ function SplitViewHarness() {
       narrowPanel={narrowPanel}
       onNarrowPanelChange={setNarrowPanel}
       pane={<input aria-label="Theme value" defaultValue="retained" />}
+      paneFooter={<div>Reset preview</div>}
       paneLabel="Controls"
     />
   )
@@ -34,13 +35,23 @@ describe("WorkspaceSplitView", () => {
       ".workspace-split-view"
     )!
     const input = container.querySelector<HTMLInputElement>("input")!
-    const buttons = container.querySelectorAll<HTMLButtonElement>("button")
+    const navigationButtons = container.querySelectorAll<HTMLButtonElement>(
+      ".workspace-split-view__narrow-action"
+    )
 
     expect(splitView.dataset.narrowPanel).toBe("pane")
     expect(container.querySelector("[data-slot='scroll-area']")).not.toBeNull()
     expect(
       container.querySelector("[data-slot='scroll-area-viewport']")
     ).not.toBeNull()
+    const paneFooter = container.querySelector<HTMLElement>(
+      ".workspace-split-view__pane-footer"
+    )!
+    const paneViewport = container.querySelector<HTMLElement>(
+      "[data-slot='scroll-area-viewport']"
+    )!
+    expect(paneFooter.textContent).toContain("Reset preview")
+    expect(paneViewport.contains(paneFooter)).toBe(false)
     expect(container.querySelector("aside")?.getAttribute("aria-label")).toBe(
       "Controls"
     )
@@ -48,13 +59,16 @@ describe("WorkspaceSplitView", () => {
       "Preview"
     )
 
-    act(() => buttons[0].click())
+    act(() => navigationButtons[0].click())
     expect(splitView.dataset.narrowPanel).toBe("main")
     expect(container.querySelector("input")).toBe(input)
 
-    act(() => buttons[1].click())
+    act(() => navigationButtons[1].click())
     expect(splitView.dataset.narrowPanel).toBe("pane")
     expect(container.querySelector("input")).toBe(input)
+    expect(
+      container.querySelector(".workspace-split-view__pane-footer")
+    ).toBe(paneFooter)
 
     act(() => root.unmount())
   })

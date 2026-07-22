@@ -11,7 +11,6 @@ export type ArtifactBlock = {
 
 export type CanvasEntry = {
   filePath: string
-  layoutPath: string
   title: string
 }
 

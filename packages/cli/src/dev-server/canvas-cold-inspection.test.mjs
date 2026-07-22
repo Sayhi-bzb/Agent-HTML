@@ -22,9 +22,9 @@ describe("cold Canvas inspection", () => {
         import { Canvas, Node } from "@agent-html/react"
         export default function Demo() {
           return (
-            <Canvas id="demo">
-              <Node id="authored" x={20} />
-              <Node id="persisted" sourcePath="./persisted.tsx" />
+            <Canvas>
+              <Node id="authored" />
+              <Node id="persisted" />
             </Canvas>
           )
         }
@@ -42,15 +42,25 @@ describe("cold Canvas inspection", () => {
 
     const document = await readColdCanvasInspectionDocument({
       entryPath,
+      root,
       sourceFilePath: "agent-html/canvases/demo.canvas.tsx",
     })
 
     expect(document.nodes).toEqual([
-      { height: 180, id: "authored", width: 320, x: 20, y: 0 },
+      {
+        height: 180,
+        id: "authored",
+        siblingOrder: 0,
+        sources: ["agent-html/canvases/demo.canvas.tsx"],
+        width: 320,
+        x: 0,
+        y: 0,
+      },
       {
         height: 240,
         id: "persisted",
-        sourcePath: "./persisted.tsx",
+        siblingOrder: 1,
+        sources: ["agent-html/canvases/demo.canvas.tsx"],
         width: 400,
         x: -30,
         y: 80,
@@ -74,7 +84,7 @@ describe("cold Canvas inspection", () => {
         import { Canvas, Node } from "@agent-html/react"
         import Region from "./region"
         export default function Demo() {
-          return <Canvas id="demo"><Node id="start" /><Region /></Canvas>
+          return <Canvas><Node id="start" /><Region /></Canvas>
         }
       `
     )
@@ -90,6 +100,7 @@ describe("cold Canvas inspection", () => {
 
     const document = await readColdCanvasInspectionDocument({
       entryPath,
+      root,
       sourceFilePath: "agent-html/canvases/demo/demo.canvas.tsx",
     })
     expect(document.nodes.map((node) => node.id)).toEqual([

@@ -1,5 +1,9 @@
 import type { Artifact } from "../host-contracts"
 import {
+  normalizeCanvasViewport,
+  type CanvasViewport,
+} from "@agent-html/kernel"
+import {
   createEmptyWorkspaceTabSession,
   createWorkspaceTab,
   readWorkspaceTabSession,
@@ -15,8 +19,10 @@ import {
 } from "#agent-html-playground/theme/presets"
 
 export const CANVAS_HOST_PREFERENCES_STORAGE_KEY =
+  "agent-html:react-canvas:host-preferences:v4"
+const LEGACY_V3_CANVAS_HOST_PREFERENCES_STORAGE_KEY =
   "agent-html:react-canvas:host-preferences:v3"
-const LEGACY_CANVAS_HOST_PREFERENCES_STORAGE_KEY =
+const LEGACY_V2_CANVAS_HOST_PREFERENCES_STORAGE_KEY =
   "agent-html:react-canvas:host-preferences:v2"
 
 export type CanvasHostLanguage = "en" | "system" | "zh"
@@ -42,6 +48,7 @@ export type CanvasHostPreferences = {
   activeThemeMode: CanvasHostThemeMode
   activeThemePresetId: CanvasThemePresetId
   createArtifactJob: CanvasCreateArtifactJob | null
+  canvasViewports: Record<string, CanvasViewport>
   messageDrafts: Record<string, string>
   workspaceTabSession: WorkspaceTabSession
 }
@@ -54,6 +61,7 @@ const defaultCanvasHostPreferences: CanvasHostPreferences = {
   activeThemeMode: "system",
   activeThemePresetId: "claude-plus",
   createArtifactJob: null,
+  canvasViewports: {},
   messageDrafts: {},
   workspaceTabSession: createEmptyWorkspaceTabSession(),
 }
@@ -96,7 +104,8 @@ function readStoredCanvasHostPreferences() {
   try {
     const rawPreferences =
       localStorage.getItem(CANVAS_HOST_PREFERENCES_STORAGE_KEY) ??
-      localStorage.getItem(LEGACY_CANVAS_HOST_PREFERENCES_STORAGE_KEY)
+      localStorage.getItem(LEGACY_V3_CANVAS_HOST_PREFERENCES_STORAGE_KEY) ??
+      localStorage.getItem(LEGACY_V2_CANVAS_HOST_PREFERENCES_STORAGE_KEY)
     if (!rawPreferences) {
       return null
     }
@@ -133,6 +142,20 @@ function readMessageDrafts(value: unknown) {
       (entry): entry is [string, string] =>
         typeof entry[0] === "string" && typeof entry[1] === "string"
     )
+  )
+}
+
+function readCanvasViewports(value: unknown) {
+  if (!isRecord(value)) return {}
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([filePath, viewport]) => {
+      try {
+        const normalized = normalizeCanvasViewport(viewport)
+        return normalized ? [[filePath, normalized] as const] : []
+      } catch {
+        return []
+      }
+    })
   )
 }
 
@@ -254,6 +277,7 @@ export function readCanvasHostPreferences({
       ? stored.activeThemePresetId
       : defaultCanvasHostPreferences.activeThemePresetId,
     createArtifactJob: readCreateArtifactJob(stored.createArtifactJob),
+    canvasViewports: readCanvasViewports(stored.canvasViewports),
     messageDrafts: readMessageDrafts(stored.messageDrafts),
     workspaceTabSession: readStoredWorkspaceTabSession({
       activeFilePath,
@@ -269,6 +293,24 @@ export function writeCanvasHostPreferences(
   writeStoredCanvasHostPreferences({
     ...current,
     ...patch,
+  })
+}
+
+export function readCanvasViewport(filePath: string) {
+  return readCanvasHostPreferences().canvasViewports[filePath]
+}
+
+export function writeCanvasViewport(
+  filePath: string,
+  viewport: CanvasViewport
+) {
+  const preferences = readCanvasHostPreferences()
+  writeStoredCanvasHostPreferences({
+    ...preferences,
+    canvasViewports: {
+      ...preferences.canvasViewports,
+      [filePath]: normalizeCanvasViewport(viewport)!,
+    },
   })
 }
 

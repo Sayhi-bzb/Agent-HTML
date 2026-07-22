@@ -64,37 +64,29 @@ export type CanvasViewport = {
 
 export type CanvasLayoutDocument = {
   nodes: Record<string, CanvasNodeGeometry>
-  viewport?: CanvasViewport
-  version: 2
-}
-
-export type CanvasInspectionCanvas = {
-  id: string
-  title?: string
+  version: 3
 }
 
 export type CanvasInspectionNodeRecord = CanvasNodeGeometry & {
   id: string
-  index?: string
   parentId?: string
-  sourcePath?: string
-  title?: string
-  type?: string
+  siblingOrder: number
+  sources: string[]
 }
 
 export type CanvasInspectionDocument = {
-  canvas: CanvasInspectionCanvas | null
+  active: boolean
   nodes: CanvasInspectionNodeRecord[]
   sourceFilePath: string
-  version: 1
+  version: 2
 }
 
 export type CanvasViewportBounds = CanvasNodeGeometry
 
 export type CanvasNodeSourceReference = {
   canvasFilePath: string
-  contentFilePath: string | null
   nodeId: string
+  sources: string[]
 }
 
 export type CanvasInspectionNode = CanvasInspectionNodeRecord & {
@@ -103,8 +95,6 @@ export type CanvasInspectionNode = CanvasInspectionNodeRecord & {
 }
 
 export type CanvasOverviewInspection = {
-  bounds: CanvasNodeGeometry | null
-  canvas: CanvasInspectionCanvas | null
   nodeCount: number
   rootNodeIds: string[]
   sourceFilePath: string
@@ -112,7 +102,12 @@ export type CanvasOverviewInspection = {
 
 export type CanvasViewportInspection = {
   bounds: CanvasViewportBounds
-  nodes: CanvasInspectionNode[]
+  nodes: Array<
+    Pick<
+      CanvasInspectionNodeRecord,
+      "id" | "parentId" | "siblingOrder" | "sources"
+    >
+  >
   totalNodeCount: number
 }
 
@@ -134,8 +129,8 @@ export type KernelDiagnostic = {
 }
 
 export const CANVAS_POLICY_VERSION: number
-export const CANVAS_LAYOUT_VERSION: 2
-export const CANVAS_INSPECTION_VERSION: 1
+export const CANVAS_LAYOUT_VERSION: 3
+export const CANVAS_INSPECTION_VERSION: 2
 export const DEFAULT_CANVAS_NODE_COLUMNS: 4
 export const DEFAULT_CANVAS_NODE_GAP: 48
 export const DEFAULT_CANVAS_NODE_HEIGHT: 180

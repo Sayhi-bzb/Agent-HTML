@@ -173,8 +173,7 @@ export async function fetchCanvasLayout(filePath: string) {
   const params = new URLSearchParams({ filePath })
   return fetchJson<{
     layout: CanvasLayoutDocument
-    layoutPath: string
-    storage: "monolithic" | "sharded"
+    legacyViewport?: CanvasViewport
   }>(`${hostApiRoutes.canvasLayout}?${params}`)
 }
 
@@ -192,8 +191,6 @@ export async function saveCanvasLayout({
   })
   return readHostJsonResponse<{
     layout: CanvasLayoutDocument
-    layoutPath: string
-    storage: "monolithic" | "sharded"
   }>(response, hostApiRoutes.canvasLayout)
 }
 
@@ -201,29 +198,23 @@ export async function saveCanvasLayoutPatch({
   filePath,
   nodes = {},
   removedNodeIds = [],
-  viewport,
 }: {
   filePath: string
   nodes?: CanvasLayoutDocument["nodes"]
   removedNodeIds?: readonly string[]
-  viewport?: CanvasViewport
 }) {
   const response = await fetch(hostApiRoutes.canvasLayout, {
     body: JSON.stringify({
       filePath,
       nodes,
       ...(removedNodeIds.length > 0 ? { removedNodeIds } : {}),
-      ...(viewport ? { viewport } : {}),
     }),
     headers: { "Content-Type": "application/json" },
     method: "POST",
   })
   return readHostJsonResponse<{
-    layoutPath: string
     nodes: CanvasLayoutDocument["nodes"]
     removedNodeIds: string[]
-    storage: "monolithic" | "sharded"
-    viewport?: CanvasViewport
   }>(response, hostApiRoutes.canvasLayout)
 }
 

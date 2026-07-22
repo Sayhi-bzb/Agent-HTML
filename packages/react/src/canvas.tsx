@@ -2,34 +2,22 @@ import * as React from "react"
 import { createPortal } from "react-dom"
 import type { ReactNode } from "react"
 
-export type CanvasDefinition = {
-  id: string
-  title?: string
-}
-
 export type CanvasNodeIntent = {
-  height?: number
   id: string
-  index?: string
   parentId?: string
-  sourcePath?: string
-  title?: string
-  type?: string
-  width?: number
-  x?: number
-  y?: number
 }
 
 export type CanvasIntentRuntime = {
   getNodeTarget: (id: string) => HTMLElement | null
   removeNode: (id: string) => void
-  setCanvas: (definition: CanvasDefinition | null) => void
+  setCanvasActive: (active: boolean) => void
   subscribeTargets: (listener: () => void) => () => void
   upsertNode: (node: CanvasNodeIntent) => void
 }
 
 const CanvasIntentRuntimeContext =
   React.createContext<CanvasIntentRuntime | null>(null)
+const ParentNodeContext = React.createContext<string | undefined>(undefined)
 
 export function CanvasIntentProvider({
   children,
@@ -45,85 +33,58 @@ export function CanvasIntentProvider({
   )
 }
 
-export type CanvasProps = CanvasDefinition & {
+export type CanvasProps = {
   children?: ReactNode
 }
 
-export function Canvas({ children, id, title }: CanvasProps) {
+export function Canvas({ children }: CanvasProps) {
   const runtime = React.useContext(CanvasIntentRuntimeContext)
 
   React.useLayoutEffect(() => {
     if (!runtime) return
-    runtime.setCanvas({ id, title })
-    return () => runtime.setCanvas(null)
-  }, [id, runtime, title])
+    runtime.setCanvasActive(true)
+    return () => runtime.setCanvasActive(false)
+  }, [runtime])
 
   if (!runtime) {
     return <div className="agent-html-canvas">{children}</div>
   }
 
-  return <div hidden>{children}</div>
+  return (
+    <ParentNodeContext.Provider value={undefined}>
+      <div hidden>{children}</div>
+    </ParentNodeContext.Provider>
+  )
 }
 
-export type NodeProps = CanvasNodeIntent & {
+export type NodeProps = {
   children?: ReactNode
+  id: string
 }
 
-export function Node({
-  children,
-  height,
-  id,
-  index,
-  parentId,
-  sourcePath,
-  title,
-  type,
-  width,
-  x,
-  y,
-}: NodeProps) {
+export function Node({ children, id }: NodeProps) {
   const runtime = React.useContext(CanvasIntentRuntimeContext)
+  const parentId = React.useContext(ParentNodeContext)
 
   React.useLayoutEffect(() => {
     if (!runtime) return
-    runtime.upsertNode({
-      height,
-      id,
-      index,
-      parentId,
-      sourcePath,
-      title,
-      type,
-      width,
-      x,
-      y,
-    })
+    runtime.upsertNode({ id, parentId })
     return () => runtime.removeNode(id)
-  }, [
-    height,
-    id,
-    index,
-    parentId,
-    runtime,
-    sourcePath,
-    title,
-    type,
-    width,
-    x,
-    y,
-  ])
+  }, [id, parentId, runtime])
 
   const target = React.useSyncExternalStore(
     runtime?.subscribeTargets ?? emptySubscribe,
     () => runtime?.getNodeTarget(id) ?? null,
     () => null
   )
+  const content = (
+    <ParentNodeContext.Provider value={id}>
+      {children}
+    </ParentNodeContext.Provider>
+  )
 
-  if (!runtime) {
-    return <>{children}</>
-  }
-
-  return target ? createPortal(children, target) : null
+  if (!runtime) return content
+  return target ? createPortal(content, target) : null
 }
 
 function emptySubscribe() {

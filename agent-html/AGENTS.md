@@ -5,6 +5,7 @@ For cold start, read `agent-html/README.md` first, then this file. This file own
 ## Workspace Boundaries
 
 - Keep `agent-html` as a portable source workspace.
+- Treat `canvases/.layout/**` as generated geometry; inspect it only through an explicit spatial query.
 - Do not add `node_modules`, lockfiles, generated bundles, `.vite`, `dist`, `build`, vendored dependency folders, full graphs, declaration rollups, or tool dumps inside `agent-html`.
 - Keep `AGENTS.md`, `components.json`, and `tsconfig.json` at the workspace root for agent, shadcn, TypeScript, and editor discovery.
 - Use `index/*` only as generated decision context. Do not edit generated index files by hand.

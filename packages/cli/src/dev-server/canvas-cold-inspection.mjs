@@ -6,8 +6,12 @@ import {
   defaultCanvasNodeGeometry,
 } from "@agent-html/kernel"
 import { extractStaticCanvasIntentGraph } from "@agent-html/kernel/validate"
+import { workspaceRelativePath } from "../react-canvas/paths.mjs"
 
-import { canvasLayoutPathForEntry } from "./canvas-registry.mjs"
+import {
+  canvasLayoutPathForEntry,
+  legacyCanvasLayoutPathForEntry,
+} from "./canvas-registry.mjs"
 import { readStoredCanvasLayout } from "./canvas-layout-storage.mjs"
 
 const localIntentExtensions = [".tsx", ".ts", ".jsx", ".js"]
@@ -53,18 +57,12 @@ export function createColdCanvasInspectionDocument({
   sourceFilePath,
 }) {
   return createCanvasInspectionDocument({
-    canvas: intent.canvas,
+    active: true,
     nodes: intent.nodes.map((node, order) => {
       const fallback = defaultCanvasNodeGeometry(order)
-      const sourceGeometry = {
-        height: node.height ?? fallback.height,
-        width: node.width ?? fallback.width,
-        x: node.x ?? fallback.x,
-        y: node.y ?? fallback.y,
-      }
       return {
         ...node,
-        ...(layout.nodes[node.id] ?? sourceGeometry),
+        ...(layout.nodes[node.id] ?? fallback),
       }
     }),
     sourceFilePath,
@@ -73,13 +71,14 @@ export function createColdCanvasInspectionDocument({
 
 export async function readColdCanvasInspectionDocument({
   entryPath,
+  root,
   sourceFilePath,
 }) {
   const [source, layout] = await Promise.all([
     fs.readFile(entryPath, "utf8"),
-    readStoredCanvasLayout(canvasLayoutPathForEntry(entryPath)).then(
-      (stored) => stored.layout
-    ),
+    readStoredCanvasLayout(canvasLayoutPathForEntry(entryPath), {
+      legacyLayoutPath: legacyCanvasLayoutPathForEntry(entryPath),
+    }).then((stored) => stored.layout),
   ])
   const intent = await extractStaticCanvasIntentGraph({
     filePath: entryPath,
@@ -91,6 +90,14 @@ export async function readColdCanvasInspectionDocument({
       }),
     source,
   })
+  if (root) {
+    intent.nodes = intent.nodes.map((node) => ({
+      ...node,
+      sources: node.sources.map((source) =>
+        path.isAbsolute(source) ? workspaceRelativePath(root, source) : source
+      ),
+    }))
+  }
   return createColdCanvasInspectionDocument({
     intent,
     layout,

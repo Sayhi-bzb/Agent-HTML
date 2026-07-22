@@ -113,21 +113,9 @@ function jsxName(node) {
 }
 
 const canvasIntentPropTypes = {
-  Canvas: {
-    id: "string",
-    title: "string",
-  },
+  Canvas: {},
   Node: {
-    height: "number",
     id: "string",
-    index: "string",
-    parentId: "string",
-    sourcePath: "string",
-    title: "string",
-    type: "string",
-    width: "number",
-    x: "number",
-    y: "number",
   },
 }
 
@@ -222,7 +210,11 @@ function readStaticCanvasProps({ element, filePath, kind }) {
     }
     const name = jsxName(attribute.name)
     const expectedType = propTypes[name]
-    if (!expectedType) continue
+    if (!expectedType) {
+      throw new TypeError(
+        `${filePath}: ${kind}.${name ?? "attribute"} is not part of the Canvas authoring contract`
+      )
+    }
     const value = staticCanvasAttributeValue(attribute)
     if (typeof value !== expectedType) {
       throw new TypeError(
@@ -239,6 +231,8 @@ function collectStaticCanvasChildren({
   filePath,
   intentBindings,
   nodes,
+  parentId,
+  siblingCounters,
 }) {
   for (const child of children) {
     if (child.type === "JSXText") continue
@@ -248,6 +242,8 @@ function collectStaticCanvasChildren({
         filePath,
         intentBindings,
         nodes,
+        parentId,
+        siblingCounters,
       })
       continue
     }
@@ -258,6 +254,8 @@ function collectStaticCanvasChildren({
           filePath,
           intentBindings,
           nodes,
+          parentId,
+          siblingCounters,
         })
         continue
       }
@@ -267,6 +265,8 @@ function collectStaticCanvasChildren({
           filePath,
           intentBindings,
           nodes,
+          parentId,
+          siblingCounters,
         })
         continue
       }
@@ -282,7 +282,24 @@ function collectStaticCanvasChildren({
       intentBindings
     )
     if (kind === "Node") {
-      nodes.push(readStaticCanvasProps({ element: child, filePath, kind }))
+      const props = readStaticCanvasProps({ element: child, filePath, kind })
+      const siblingOrder = siblingCounters.get(parentId) ?? 0
+      siblingCounters.set(parentId, siblingOrder + 1)
+      const node = {
+        id: props.id,
+        ...(parentId ? { parentId } : {}),
+        siblingOrder,
+        sources: [filePath],
+      }
+      nodes.push(node)
+      collectStaticCanvasChildren({
+        children: child.children,
+        filePath,
+        intentBindings,
+        nodes,
+        parentId: props.id,
+        siblingCounters,
+      })
       continue
     }
     if (kind === "Canvas") {
@@ -296,9 +313,12 @@ function collectStaticCanvasChildren({
         filePath,
         intentBindings,
         nodes,
+        parentId,
+        siblingCounters,
       })
       continue
     }
+    if (parentId) continue
     throw new TypeError(
       `${filePath}: cold Canvas inspection cannot expand component ${name ?? "child"}`
     )
@@ -342,6 +362,8 @@ export function extractStaticCanvasIntent({ filePath, source }) {
     filePath,
     intentBindings,
     nodes,
+    parentId: undefined,
+    siblingCounters: new Map(),
   })
   return { canvas, nodes }
 }
@@ -351,8 +373,7 @@ function localCanvasComponentBindings(ast) {
   for (const node of ast.program.body) {
     if (
       node.type !== "ImportDeclaration" ||
-      typeof node.source.value !== "string" ||
-      !node.source.value.startsWith(".")
+      typeof node.source.value !== "string"
     ) {
       continue
     }
@@ -481,24 +502,30 @@ function staticComponentRoot(component, filePath, exportName) {
 
 async function collectStaticCanvasGraphChildren({
   children,
+  currentSources,
   filePath,
   intentBindings,
   loadModule,
   localBindings,
   moduleStack,
   nodes,
+  parentId,
+  siblingCounters,
 }) {
   for (const child of children) {
     if (child.type === "JSXText") continue
     if (child.type === "JSXFragment") {
       await collectStaticCanvasGraphChildren({
         children: child.children,
+        currentSources,
         filePath,
         intentBindings,
         loadModule,
         localBindings,
         moduleStack,
         nodes,
+        parentId,
+        siblingCounters,
       })
       continue
     }
@@ -512,12 +539,15 @@ async function collectStaticCanvasGraphChildren({
             child.expression.type === "JSXFragment"
               ? child.expression.children
               : [child.expression],
+          currentSources,
           filePath,
           intentBindings,
           loadModule,
           localBindings,
           moduleStack,
           nodes,
+          parentId,
+          siblingCounters,
         })
         continue
       }
@@ -533,7 +563,30 @@ async function collectStaticCanvasGraphChildren({
       intentBindings
     )
     if (kind === "Node") {
-      nodes.push(readStaticCanvasProps({ element: child, filePath, kind }))
+      const props = readStaticCanvasProps({ element: child, filePath, kind })
+      const siblingOrder = siblingCounters.get(parentId) ?? 0
+      siblingCounters.set(parentId, siblingOrder + 1)
+      const sources = new Set()
+      const node = {
+        id: props.id,
+        ...(parentId ? { parentId } : {}),
+        siblingOrder,
+        sources: [],
+      }
+      nodes.push(node)
+      await collectStaticCanvasGraphChildren({
+        children: child.children,
+        currentSources: sources,
+        filePath,
+        intentBindings,
+        loadModule,
+        localBindings,
+        moduleStack,
+        nodes,
+        parentId: props.id,
+        siblingCounters,
+      })
+      node.sources = sources.size > 0 ? [...sources] : [filePath]
       continue
     }
     if (kind === "Canvas") {
@@ -544,21 +597,28 @@ async function collectStaticCanvasGraphChildren({
     if (name && name[0] === name[0]?.toLowerCase()) {
       await collectStaticCanvasGraphChildren({
         children: child.children,
+        currentSources,
         filePath,
         intentBindings,
         loadModule,
         localBindings,
         moduleStack,
         nodes,
+        parentId,
+        siblingCounters,
       })
       continue
     }
 
     const binding = name ? localBindings.get(name) : null
+    if (currentSources) {
+      currentSources.add(binding?.specifier ?? filePath)
+    }
     if (!binding) {
-      throw new TypeError(
-        `${filePath}: cold Canvas inspection cannot expand component ${name ?? "child"}`
-      )
+      continue
+    }
+    if (!binding.specifier.startsWith(".")) {
+      continue
     }
     if (child.openingElement.attributes.length > 0) {
       throw new TypeError(
@@ -569,6 +629,10 @@ async function collectStaticCanvasGraphChildren({
       fromFilePath: filePath,
       specifier: binding.specifier,
     })
+    if (currentSources) {
+      currentSources.delete(binding.specifier)
+      currentSources.add(loaded.filePath)
+    }
     const moduleKey = `${loaded.filePath}#${binding.exportName}`
     if (moduleStack.has(moduleKey)) {
       throw new TypeError(
@@ -591,12 +655,15 @@ async function collectStaticCanvasGraphChildren({
     const nextStack = new Set(moduleStack).add(moduleKey)
     await collectStaticCanvasGraphChildren({
       children: root.type === "JSXFragment" ? root.children : [root],
+      currentSources,
       filePath: loaded.filePath,
       intentBindings: canvasIntentBindings(parsed.ast),
       loadModule,
       localBindings: localCanvasComponentBindings(parsed.ast),
       moduleStack: nextStack,
       nodes,
+      parentId,
+      siblingCounters,
     })
   }
 }
@@ -637,12 +704,15 @@ export async function extractStaticCanvasIntentGraph({
   const nodes = []
   await collectStaticCanvasGraphChildren({
     children: canvasElement.children,
+    currentSources: null,
     filePath,
     intentBindings,
     loadModule,
     localBindings: localCanvasComponentBindings(ast),
     moduleStack: new Set([`${filePath}#default`]),
     nodes,
+    parentId: undefined,
+    siblingCounters: new Map(),
   })
   return {
     canvas: readStaticCanvasProps({
