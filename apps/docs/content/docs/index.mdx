@@ -11,7 +11,7 @@ Canvas governs the isolated React artifact workspace for agents.
 
 Canvas governs `agent-html`, React artifact composition, local resources, block prompts, and host inspection. Retired App and Runtime docs live under `_archive/docs` for historical reference only.
 
-The parallel Infinite Canvas surface uses minimal `Canvas / Node` JSX, a Canonical Store, hidden shared geometry, and local Host viewport state. Pointer context actions edit static JSX hierarchy while preserving absolute Node position. Its architecture and implementation map live in [Infinite Canvas Design](https://github.com/Sayhi-bzb/Agent-HTML/blob/main/INFINITE_CANVAS_DESIGN.md).
+The parallel Infinite Canvas surface uses minimal `Canvas / Node` JSX, a Canonical Store, hidden shared geometry, and local Host viewport state. Pointer context actions edit static JSX hierarchy and sibling paint order; selection and focus never define persistent layering. Its architecture and implementation map live in [Infinite Canvas Design](https://github.com/Sayhi-bzb/Agent-HTML/blob/main/INFINITE_CANVAS_DESIGN.md).
 
 AHTML Desktop selects a project and supervises Canvas; it does not change workspace or artifact ownership. Desktop boundaries live in [Architecture](/docs/architecture).
 

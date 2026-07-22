@@ -15,6 +15,7 @@ import {
   publicAssetUrl,
   renameArtifact,
   renameArtifactTitle,
+  reorderCanvasNodes,
   reparentCanvasNodes,
   saveCanvasLayoutPatch,
 } from "./api"
@@ -294,6 +295,28 @@ describe("Canvas inspection transport", () => {
     })
 
     await expect(reparentCanvasNodes(request)).resolves.toEqual(result)
+  })
+
+  it("reorders Canvas Nodes through the layer route", async () => {
+    const request = {
+      action: "bring-to-front" as const,
+      filePath: "agent-html/canvases/demo.canvas.tsx",
+      nodeIds: ["a"],
+    }
+    const result = {
+      action: "bring-to-front" as const,
+      groups: [{ nodeIds: ["b", "a"], parentId: null }],
+    }
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      expect(url).toBe(hostApiRoutes.canvasReorder)
+      expect(init?.method).toBe("POST")
+      expect(JSON.parse(String(init?.body))).toEqual(request)
+      return new Response(JSON.stringify(result), {
+        headers: { "Content-Type": "application/json" },
+      })
+    })
+
+    await expect(reorderCanvasNodes(request)).resolves.toEqual(result)
   })
 })
 

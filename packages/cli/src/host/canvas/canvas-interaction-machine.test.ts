@@ -85,4 +85,17 @@ describe("Canvas interaction machine", () => {
     expect(actor.getSnapshot().value).toBe("idle")
     expect(actor.getSnapshot().context.reparentingNodeIds).toEqual([])
   })
+
+  it("protects a pending layer commit", () => {
+    const actor = createActor(canvasInteractionMachine).start()
+    actor.send({ type: "LAYER.COMMIT.START" })
+    expect(actor.getSnapshot().value).toBe("reordering")
+
+    actor.send({ type: "TOOL.NAVIGATE" })
+    actor.send({ type: "TRANSIENT.RESET" })
+    expect(actor.getSnapshot().value).toBe("reordering")
+
+    actor.send({ type: "LAYER.COMMIT.END" })
+    expect(actor.getSnapshot().value).toBe("idle")
+  })
 })

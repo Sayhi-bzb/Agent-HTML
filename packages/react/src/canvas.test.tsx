@@ -86,7 +86,10 @@ describe("Canvas authoring components", () => {
     )
 
     await new Promise((resolve) => setTimeout(resolve, 0))
-    expect(nodes.get("child")).toEqual({ id: "child", parentId: "parent" })
+    expect(nodes.get("child")).toMatchObject({
+      id: "child",
+      parentId: "parent",
+    })
     expect(parentTarget.textContent).toBe("Parent")
     expect(childTarget.textContent).toBe("Child")
   })

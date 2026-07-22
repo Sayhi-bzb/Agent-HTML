@@ -7,6 +7,7 @@ import {
   HostContextMenuContent,
   HostContextMenuGroup,
   HostContextMenuItem,
+  HostContextMenuSeparator,
   HostContextMenuTrigger,
 } from "../ui/context-menu"
 import type { CanvasFlowNode } from "./canvas-flow-model"
@@ -20,9 +21,11 @@ export function CanvasNodeShell({
     contentInteractive,
     hierarchyMenuDisabled,
     hierarchyLocked,
+    layerActions,
     moveToLabel,
     onChooseParent,
     onContextMenuOpen,
+    onReorder,
     parentTargetState,
     persistLayout,
     requestPersistLayout,
@@ -97,6 +100,22 @@ export function CanvasNodeShell({
             {moveToLabel}
           </HostContextMenuItem>
         </HostContextMenuGroup>
+        {layerActions && layerActions.length > 0 && onReorder ? (
+          <>
+            <HostContextMenuSeparator />
+            <HostContextMenuGroup>
+              {layerActions.map((item) => (
+                <HostContextMenuItem
+                  disabled={item.disabled}
+                  key={item.action}
+                  onSelect={() => onReorder(id, item.action)}
+                >
+                  {item.label}
+                </HostContextMenuItem>
+              ))}
+            </HostContextMenuGroup>
+          </>
+        ) : null}
       </HostContextMenuContent>
     </HostContextMenu>
   )

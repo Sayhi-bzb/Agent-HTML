@@ -65,10 +65,16 @@ function collectEditableElements(ast) {
 
   const canvases = []
   const nodes = new Map()
+  const nodeRecords = new Map()
+  const semanticParents = []
   visit(ast, {
     visitJSXElement(path) {
       const name = jsxName(path.node)
-      if (name && bindings.Canvas.has(name)) canvases.push(path.node)
+      let semanticParent = null
+      if (name && bindings.Canvas.has(name)) {
+        canvases.push(path.node)
+        semanticParent = { id: null, kind: "canvas" }
+      }
       if (name && bindings.Node.has(name)) {
         const id = staticNodeId(path.node)
         if (!id) {
@@ -80,6 +86,21 @@ function collectEditableElements(ast) {
           throw new TypeError(`Canvas hierarchy Node id ${id} must be unique`)
         }
         nodes.set(id, path.node)
+        const container = semanticParents.at(-1) ?? null
+        nodeRecords.set(id, {
+          container,
+          element: path.node,
+          id,
+          parentId: container?.kind === "node" ? container.id : null,
+          path,
+        })
+        semanticParent = { id, kind: "node" }
+      }
+      if (semanticParent) {
+        semanticParents.push(semanticParent)
+        this.traverse(path)
+        semanticParents.pop()
+        return false
       }
       this.traverse(path)
     },
@@ -89,7 +110,7 @@ function collectEditableElements(ast) {
       "Canvas hierarchy editing requires exactly one static Canvas element"
     )
   }
-  return { canvas: canvases[0], nodes }
+  return { canvas: canvases[0], nodeRecords, nodes }
 }
 
 function removeElements(root, movedElements) {
@@ -148,5 +169,83 @@ export function reparentStaticCanvasNodes({
   const movedElements = new Set(elements)
   removeElements(ast, movedElements)
   appendElements(target, elements)
+  return { source: recast.print(ast).code }
+}
+
+function recordDepth(record, records) {
+  let depth = 0
+  let parentId = record.parentId
+  const visited = new Set()
+  while (parentId && !visited.has(parentId)) {
+    visited.add(parentId)
+    depth += 1
+    parentId = records.get(parentId)?.parentId ?? null
+  }
+  return depth
+}
+
+export function reorderStaticCanvasNodes({ groups, source }) {
+  if (typeof source !== "string") {
+    throw new TypeError("Canvas layer source must be a string")
+  }
+  if (!Array.isArray(groups) || groups.length === 0) {
+    throw new TypeError("Canvas layer groups must not be empty")
+  }
+  const ast = parseSource(source)
+  const editable = collectEditableElements(ast)
+  const prepared = groups.map((group, groupIndex) => {
+    if (!group || typeof group !== "object") {
+      throw new TypeError(`Canvas layer groups.${groupIndex} must be an object`)
+    }
+    const parentId = group.parentId ?? null
+    if (parentId !== null && typeof parentId !== "string") {
+      throw new TypeError(
+        `Canvas layer groups.${groupIndex}.parentId must be a string or null`
+      )
+    }
+    if (!Array.isArray(group.nodeIds) || group.nodeIds.length === 0) {
+      throw new TypeError(
+        `Canvas layer groups.${groupIndex}.nodeIds must not be empty`
+      )
+    }
+    const siblings = [...editable.nodeRecords.values()].filter(
+      (record) => record.container && record.parentId === parentId
+    )
+    const expectedIds = new Set(siblings.map((record) => record.id))
+    const orderedIds = [...new Set(group.nodeIds)]
+    if (
+      orderedIds.length !== siblings.length ||
+      orderedIds.some((id) => !expectedIds.has(id))
+    ) {
+      throw new TypeError(
+        `Canvas layer group ${parentId ?? "root"} must contain every static sibling Node`
+      )
+    }
+    return { orderedIds, parentId, siblings }
+  })
+
+  prepared.sort((left, right) => {
+    const leftRecord =
+      left.parentId === null
+        ? { parentId: null }
+        : editable.nodeRecords.get(left.parentId)
+    const rightRecord =
+      right.parentId === null
+        ? { parentId: null }
+        : editable.nodeRecords.get(right.parentId)
+    return (
+      recordDepth(rightRecord, editable.nodeRecords) -
+      recordDepth(leftRecord, editable.nodeRecords)
+    )
+  })
+
+  for (const group of prepared) {
+    const elements = group.orderedIds.map(
+      (id) => editable.nodeRecords.get(id).element
+    )
+    group.siblings.forEach((record, index) =>
+      record.path.replace(elements[index])
+    )
+  }
   return { source: recast.print(ast).code }
 }

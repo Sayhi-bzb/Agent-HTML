@@ -70,7 +70,28 @@ describe("React Flow Canvas adapter", () => {
     expect(projection.nodes[1]).toMatchObject({
       parentId: "parent",
       position: { x: 32, y: 48 },
+      zIndex: 1,
     })
+  })
+
+  it("uses manual paint order instead of selection-driven elevation", () => {
+    expect(canvasSurfaceSource).toContain("elevateNodesOnSelect={false}")
+    expect(canvasSurfaceSource).toContain('zIndexMode="manual"')
+
+    const store = createCanvasStore("demo.canvas.tsx")
+    store.runtime.upsertNode({ id: "a" })
+    store.runtime.upsertNode({ id: "a-child", parentId: "a" })
+    store.runtime.upsertNode({ id: "b" })
+    const selected = projectCanvasSnapshot(
+      store.getSnapshot(),
+      store,
+      new Set(["a"])
+    )
+    expect(selected.nodes.map(({ id, zIndex }) => ({ id, zIndex }))).toEqual([
+      { id: "a", zIndex: 0 },
+      { id: "a-child", zIndex: 1 },
+      { id: "b", zIndex: 2 },
+    ])
   })
 
   it("injects the layout commit boundary into private React Flow Node data", () => {

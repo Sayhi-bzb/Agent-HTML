@@ -5,11 +5,13 @@ import {
   inspectCanvasNode,
   inspectCanvasOverview,
   inspectCanvasViewport,
+  resolveCanvasLayerOrder,
   resolveCanvasReparenting,
   resolveCanvasNodeSource,
 } from "@agent-html/kernel"
 import {
   extractStaticCanvasIntent,
+  reorderStaticCanvasNodes,
   reparentStaticCanvasNodes,
   replaceArtifactTitle,
 } from "@agent-html/kernel/validate"
@@ -57,6 +59,7 @@ export const hostRoutes = {
   canvasBundle: "/__agent-html/canvas.js",
   canvasInspection: "/__agent-html/canvas/inspection",
   canvasLayout: "/__agent-html/canvas/layout",
+  canvasReorder: "/__agent-html/canvas/reorder",
   canvasReparent: "/__agent-html/canvas/reparent",
   canvases: "/__agent-html/canvases",
   blockImplementation: "/__agent-html/block-implementation",
@@ -206,6 +209,39 @@ async function reparentCanvasNodes({ filePath, nodeIds, parentId, root }) {
     }
 
     return reparenting
+  })
+}
+
+async function reorderCanvasNodes({ action, filePath, nodeIds, root }) {
+  const entryPath = resolveCanvasEntryPath({ filePath, root })
+  await fs.access(entryPath)
+  return queueCanvasHierarchyMutation(entryPath, async () => {
+    const sourceFilePath = workspaceRelativePath(root, entryPath)
+    const source = await readTextFile(entryPath)
+    const intent = extractStaticCanvasIntent({
+      filePath: sourceFilePath,
+      source,
+    })
+    const ordering = resolveCanvasLayerOrder({
+      action,
+      nodeIds,
+      nodes: intent.nodes,
+    })
+    if (ordering.groups.length === 0) return ordering
+    const replacement = reorderStaticCanvasNodes({
+      groups: ordering.groups,
+      source,
+    })
+    const currentSource = await readTextFile(entryPath)
+    if (currentSource !== source) {
+      const error = new Error(
+        "Canvas source changed while the layer operation was prepared"
+      )
+      error.code = "CANVAS_SOURCE_CHANGED"
+      throw error
+    }
+    await replaceTextFile(entryPath, replacement.source)
+    return ordering
   })
 }
 
@@ -627,6 +663,7 @@ export function classifyDevServerRoute(pathname) {
   if (
     pathname === hostRoutes.canvases ||
     pathname === hostRoutes.canvasLayout ||
+    pathname === hostRoutes.canvasReorder ||
     pathname === hostRoutes.canvasReparent
   ) {
     return "canvas-registry-and-layout"
@@ -765,7 +802,11 @@ async function handleRuntimeModuleRoute({ requestUrl, response, root, vite }) {
 
 async function handleStylesAndAssetsRoute({ requestUrl, response, root }) {
   if (requestUrl.pathname === hostRoutes.hostStyles) {
-    sendText(response, await loadHostStyles(root), "text/css; charset=utf-8")
+    response.writeHead(200, {
+      "Cache-Control": "no-store",
+      "Content-Type": "text/css; charset=utf-8",
+    })
+    response.end(await loadHostStyles(root))
     return true
   }
 
@@ -861,6 +902,30 @@ async function handleCanvasRegistryAndLayoutRoute({
         filePath: body.filePath,
         nodeIds: body.nodeIds,
         parentId: body.parentId,
+        root,
+      })
+      sendJson(response, result)
+    } catch (error) {
+      sendError(
+        response,
+        error,
+        error?.code === "CANVAS_SOURCE_CHANGED" ? 409 : 400
+      )
+    }
+    return true
+  }
+
+  if (requestUrl.pathname === hostRoutes.canvasReorder) {
+    if (request.method !== "POST") {
+      sendError(response, "POST is required", 405)
+      return true
+    }
+    try {
+      const body = await readJsonBody(request)
+      const result = await reorderCanvasNodes({
+        action: body.action,
+        filePath: body.filePath,
+        nodeIds: body.nodeIds,
         root,
       })
       sendJson(response, result)

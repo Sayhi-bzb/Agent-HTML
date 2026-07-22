@@ -86,7 +86,7 @@
   --xy-controls-button-background-color: transparent;
   --xy-controls-button-background-color-hover: var(--muted);
   --xy-controls-button-color: var(--foreground);
-  --xy-controls-button-border-color: var(--border);
+  --xy-controls-button-border-color: transparent;
 }
 
 .canvas-node-shell {
@@ -221,6 +221,16 @@
   background: var(--accent);
 }
 
+.canvas-host-context-menu-content .canvas-host-dropdown-item[data-disabled] {
+  opacity: 0.45;
+}
+
+.canvas-host-context-menu-separator {
+  height: 1px;
+  margin: var(--canvas-host-menu-gap) 0;
+  background: var(--canvas-host-chrome-surface-border);
+}
+
 .canvas-tool-dock {
   display: flex;
   overflow: hidden;
@@ -237,7 +247,14 @@
   min-width: var(--canvas-host-chrome-control-size);
   height: var(--canvas-host-chrome-control-size);
   padding: 0;
+  border: 0;
   border-radius: var(--canvas-host-chrome-control-radius);
+  background: transparent;
+  box-shadow: none;
+}
+
+.canvas-tool-dock__button.canvas-host-button:hover {
+  background: var(--muted);
 }
 
 .canvas-tool-dock__button.canvas-host-button svg {
@@ -250,11 +267,22 @@
   background: var(--accent);
 }
 
-.canvas-workspace .react-flow__controls-button {
+.canvas-workspace
+  .react-flow__controls.horizontal
+  .react-flow__controls-button {
   width: var(--canvas-host-chrome-control-size);
   height: var(--canvas-host-chrome-control-size);
   border: 0;
+  border-right: 0;
   border-radius: var(--canvas-host-chrome-control-radius);
+  background: transparent;
+  box-shadow: none;
+}
+
+.canvas-workspace
+  .react-flow__controls.horizontal
+  .react-flow__controls-button:hover {
+  background: var(--muted);
 }
 
 .canvas-workspace .react-flow__controls-button svg {

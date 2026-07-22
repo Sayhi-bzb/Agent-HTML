@@ -41,6 +41,14 @@ export function reparentStaticCanvasNodes(input: {
   source: string
 }): { source: string }
 
+export function reorderStaticCanvasNodes(input: {
+  groups: Array<{
+    nodeIds: string[]
+    parentId: string | null
+  }>
+  source: string
+}): { source: string }
+
 export function inspectArtifactEntry(input: {
   filePath: string
   source: string

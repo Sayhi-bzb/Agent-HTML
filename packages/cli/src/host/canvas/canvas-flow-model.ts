@@ -1,4 +1,5 @@
 import { type Node as FlowNode, type NodeChange } from "@xyflow/react"
+import type { CanvasLayerAction } from "@agent-html/kernel"
 
 import { createCanvasStore } from "./canvas-store"
 import type { PersistCanvasLayoutNodes } from "./canvas-layout-persister"
@@ -12,9 +13,15 @@ export type CanvasFlowNodeData = {
   contentInteractive: boolean
   hierarchyMenuDisabled?: boolean
   hierarchyLocked?: boolean
+  layerActions?: readonly {
+    action: CanvasLayerAction
+    disabled: boolean
+    label: string
+  }[]
   moveToLabel?: string
   onChooseParent?: (id: string) => void
   onContextMenuOpen?: (id: string) => void
+  onReorder?: (id: string, action: CanvasLayerAction) => void
   parentTargetState?: "invalid" | "valid"
   persistLayout: PersistCanvasLayoutNodes
   requestPersistLayout: PersistCanvasLayoutNodes
@@ -70,10 +77,12 @@ export function projectCanvasSnapshot(
   hierarchy?: {
     disabled: boolean
     invalidParentIds: ReadonlySet<string>
+    layerActions: (id: string) => CanvasFlowNodeData["layerActions"]
     moveToLabel: string
     locked: boolean
     onChooseParent: (id: string) => void
     onContextMenuOpen: (id: string) => void
+    onReorder: (id: string, action: CanvasLayerAction) => void
     picking: boolean
   }
 ) {
@@ -84,9 +93,11 @@ export function projectCanvasSnapshot(
         ? {
             hierarchyMenuDisabled: hierarchy.disabled,
             hierarchyLocked: hierarchy.locked,
+            layerActions: hierarchy.layerActions(node.id),
             moveToLabel: hierarchy.moveToLabel,
             onChooseParent: hierarchy.onChooseParent,
             onContextMenuOpen: hierarchy.onContextMenuOpen,
+            onReorder: hierarchy.onReorder,
             ...(hierarchy.picking
               ? {
                   parentTargetState: hierarchy.invalidParentIds.has(node.id)
@@ -109,6 +120,7 @@ export function projectCanvasSnapshot(
     style: contentInteractive ? { pointerEvents: "all" } : undefined,
     type: "canvas-node",
     width: node.width,
+    zIndex: node.paintOrder,
   }))
   return { nodes }
 }

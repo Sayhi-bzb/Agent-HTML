@@ -34,7 +34,7 @@ export default function OperationsCanvas() {
 }
 ```
 
-The public shape is `Canvas { children }` and `Node { id, children }`. JSX nesting derives `parentId`; source order derives `siblingOrder`; `id` derives the Host label. A Node containing child Nodes is a container. Geometry, titles, types, indexes, and source paths are not authored props.
+The public shape is `Canvas { children }` and `Node { id, children }`. JSX nesting derives `parentId`; source order derives `siblingOrder` and stable paint order; `id` derives the Host label. Later sibling subtrees paint above earlier sibling subtrees. A Node containing child Nodes is a container. Geometry, titles, types, indexes, and source paths are not authored props.
 
 ## Two Hierarchies
 
@@ -67,7 +67,7 @@ The Canvas file is the global semantic view. Canvas-local content files hold lar
 
 | Plane | Owner | State |
 | --- | --- | --- |
-| Semantic source | Workspace author | `*.canvas.tsx`, React content, JSX hierarchy |
+| Semantic source | Workspace author | `*.canvas.tsx`, React content, JSX hierarchy and sibling order |
 | Shared geometry | Canvas Host | `canvases/.layout/<relative-canvas-path>.json` |
 | Local session/view | Host preferences and XState | viewport, tool, selection, focus, phase |
 
@@ -122,7 +122,7 @@ type NodeGeometry = {
 
 React context supplies the nearest parent Node at runtime. Each Node owns a portal target, so nested Nodes remain spatial siblings in the rendered viewport rather than becoming DOM layout children. Cold inspection performs the same hierarchy derivation with a static JSX DFS.
 
-React Flow is a private geometry and viewport engine. `@use-gesture/react` normalizes Host pan input. XState owns discrete interaction state. No dependency type enters public Canvas records.
+React Flow is a private geometry and viewport engine. The adapter projects a manual depth-first paint order and disables selection elevation; focus and selection never mutate document layering. `@use-gesture/react` normalizes Host pan input. XState owns discrete interaction state. No dependency type enters public Canvas records.
 
 ## Interaction
 
@@ -131,7 +131,7 @@ The bottom Dock selects Pointer (`V`) or Hand (`H`).
 - Pointer selects, moves, resizes, and marquee-selects Nodes. Node content is `inert` behind an invisible focusable hit layer.
 - Hand pans while Node React content retains native focus, controls, and scrolling.
 - Space temporarily activates Hand; middle drag pans; `Ctrl/Cmd + wheel` and pinch zoom.
-- Pointer context actions enter parent-pick mode. A Node selects the new parent, Canvas blank space selects the root, and `Esc` cancels.
+- Pointer context actions enter parent-pick mode or reorder selected siblings. Parent-pick uses a Node as the new parent, Canvas blank space as the root, and `Esc` to cancel. Layer actions move each selected sibling group forward, backward, front, or back while preserving relative order.
 
 The Node shell has no visible window title bar. Its invisible Pointer hit layer provides drag targeting, keyboard movement, focus, and an accessible name derived from `id` without consuming Canvas space.
 
@@ -160,7 +160,7 @@ Overview returns Canvas source, Node count, and root IDs. A viewport query retur
 
 `sources[]` is derived from JSX and imports, stopping at nested Node boundaries; the Canvas file is the fallback. The active Host publishes live Store geometry. Cold inspection extracts static intent and merges shared geometry before render. Dynamic structural JSX requires the live Store rather than producing a partial cold result.
 
-Human reparenting moves static Node JSX and converts parent-local coordinates in one transaction. The Host rejects dynamic or ambiguous source instead of writing a partial hierarchy. Geometry never stores a second hierarchy.
+Human reparenting moves static Node JSX and converts parent-local coordinates in one transaction. Human layer changes reorder static sibling JSX without touching geometry. Both operations serialize per Canvas and reject dynamic, ambiguous, or concurrently changed source instead of writing partial intent. Geometry never stores hierarchy or layer state.
 
 ## Persistence And Migration
 

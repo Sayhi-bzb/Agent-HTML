@@ -11,7 +11,11 @@ import {
   useViewport,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { resolveCanvasReparenting } from "@agent-html/kernel"
+import {
+  resolveCanvasLayerOrder,
+  resolveCanvasReparenting,
+  type CanvasLayerAction,
+} from "@agent-html/kernel"
 import * as React from "react"
 import { CanvasIntentProvider } from "@agent-html/react"
 import { useMachine } from "@xstate/react"
@@ -29,6 +33,7 @@ import {
 import {
   canvasBundleUrl,
   fetchCanvasLayout,
+  reorderCanvasNodes as requestCanvasReordering,
   reparentCanvasNodes as requestCanvasReparenting,
 } from "../api/api"
 import { useHostI18n } from "../i18n/host-i18n"
@@ -275,6 +280,7 @@ function CanvasWorkspace({
   const interactionPhase = canvasInteractionPhase(interaction.value)
   const choosingParent = interactionPhase === "choosingParent"
   const hierarchyPending = interactionPhase === "reparenting"
+  const layerPending = interactionPhase === "reordering"
   const selectedNodeIds = React.useMemo(
     () => new Set(interaction.context.selectedNodeIds),
     [interaction.context.selectedNodeIds]
@@ -433,6 +439,71 @@ function CanvasWorkspace({
       store,
     ]
   )
+  const commitLayerOrder = React.useCallback(
+    async (id: string, action: CanvasLayerAction) => {
+      const nodeIds = selectedNodeIds.has(id) ? [...selectedNodeIds] : [id]
+      const preview = resolveCanvasLayerOrder({
+        action,
+        nodeIds,
+        nodes: snapshot.nodes,
+      })
+      if (preview.groups.length === 0) return
+      sendInteraction({ type: "LAYER.COMMIT.START" })
+      try {
+        await persister.runExclusive(async () => {
+          const rollback = store.applyLayerOrder(preview.groups)
+          try {
+            const committed = await requestCanvasReordering({
+              action,
+              filePath,
+              nodeIds,
+            })
+            if (committed.groups.length > 0) {
+              store.applyLayerOrder(committed.groups)
+            }
+          } catch (error) {
+            store.restoreLayerOrder(rollback)
+            throw error
+          }
+        })
+        onPersistError(null)
+      } catch (error) {
+        onPersistError(error instanceof Error ? error.message : String(error))
+      } finally {
+        sendInteraction({ type: "LAYER.COMMIT.END" })
+      }
+    },
+    [
+      filePath,
+      onPersistError,
+      persister,
+      selectedNodeIds,
+      sendInteraction,
+      snapshot.nodes,
+      store,
+    ]
+  )
+  const layerActionsForNode = React.useCallback(
+    (id: string) => {
+      const nodeIds = selectedNodeIds.has(id) ? [...selectedNodeIds] : [id]
+      const actions: Array<{ action: CanvasLayerAction; label: string }> = [
+        { action: "bring-to-front", label: t("canvas.bringToFront") },
+        { action: "bring-forward", label: t("canvas.bringForward") },
+        { action: "send-backward", label: t("canvas.sendBackward") },
+        { action: "send-to-back", label: t("canvas.sendToBack") },
+      ]
+      return actions.map((item) => ({
+        ...item,
+        disabled:
+          resolveCanvasLayerOrder({
+            action: item.action,
+            nodeIds,
+            nodes: snapshot.nodes,
+          }).groups.length === 0,
+      }))
+    },
+    [selectedNodeIds, snapshot.nodes, t]
+  )
   const projection = React.useMemo(
     () =>
       projectCanvasSnapshot(
@@ -445,19 +516,24 @@ function CanvasWorkspace({
         {
           disabled: navigateMode || interactionPhase !== "idle",
           invalidParentIds,
-          locked: choosingParent || hierarchyPending,
+          layerActions: layerActionsForNode,
+          locked: choosingParent || hierarchyPending || layerPending,
           moveToLabel: t("canvas.moveTo"),
           onChooseParent: chooseParentForNode,
           onContextMenuOpen: openNodeContextMenu,
+          onReorder: commitLayerOrder,
           picking: choosingParent,
         }
       ),
     [
       chooseParentForNode,
       choosingParent,
+      commitLayerOrder,
       hierarchyPending,
       interactionPhase,
       invalidParentIds,
+      layerActionsForNode,
+      layerPending,
       navigateMode,
       openNodeContextMenu,
       persister,
@@ -519,7 +595,7 @@ function CanvasWorkspace({
   )
   const onKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (hierarchyPending) {
+      if (hierarchyPending || layerPending) {
         event.preventDefault()
         return
       }
@@ -627,6 +703,7 @@ function CanvasWorkspace({
     [
       choosingParent,
       hierarchyPending,
+      layerPending,
       persister,
       selectedNodeIds,
       sendInteraction,
@@ -709,8 +786,12 @@ function CanvasWorkspace({
           defaultViewport={initialViewport}
           deleteKeyCode={null}
           elementsSelectable={
-            !navigateMode && !choosingParent && !hierarchyPending
+            !navigateMode &&
+            !choosingParent &&
+            !hierarchyPending &&
+            !layerPending
           }
+          elevateNodesOnSelect={false}
           fitView={!initialViewport}
           fitViewOptions={{ padding: 0.18 }}
           maxZoom={canvasMaxZoom}
@@ -718,7 +799,12 @@ function CanvasWorkspace({
           multiSelectionKeyCode="Shift"
           nodeTypes={canvasNodeTypes}
           nodes={projection.nodes}
-          nodesDraggable={!navigateMode && !choosingParent && !hierarchyPending}
+          nodesDraggable={
+            !navigateMode &&
+            !choosingParent &&
+            !hierarchyPending &&
+            !layerPending
+          }
           nodesFocusable={false}
           onInit={(instance) => {
             reactFlowRef.current = instance
@@ -753,7 +839,10 @@ function CanvasWorkspace({
           ref={reactFlowElementRef}
           selectionKeyCode={null}
           selectionOnDrag={
-            !navigateMode && !choosingParent && !hierarchyPending
+            !navigateMode &&
+            !choosingParent &&
+            !hierarchyPending &&
+            !layerPending
           }
           onSelectionEnd={() => sendInteraction({ type: "PHASE.END" })}
           onSelectionStart={() =>
@@ -762,6 +851,7 @@ function CanvasWorkspace({
           tabIndex={0}
           zoomOnDoubleClick={false}
           zoomOnScroll={false}
+          zIndexMode="manual"
         >
           <Background
             color="var(--canvas-grid-dot)"
@@ -769,13 +859,15 @@ function CanvasWorkspace({
             size={1.25}
             variant={BackgroundVariant.Dots}
           />
-          {choosingParent || hierarchyPending ? (
+          {choosingParent || hierarchyPending || layerPending ? (
             <Panel className="canvas-hierarchy-status" position="top-center">
               <div role="status">
                 {t(
-                  hierarchyPending
-                    ? "canvas.reparenting"
-                    : "canvas.chooseParent"
+                  layerPending
+                    ? "canvas.layerReordering"
+                    : hierarchyPending
+                      ? "canvas.reparenting"
+                      : "canvas.chooseParent"
                 )}
               </div>
             </Panel>

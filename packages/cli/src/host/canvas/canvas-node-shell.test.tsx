@@ -31,10 +31,17 @@ vi.mock("../ui/context-menu", () => ({
   HostContextMenuGroup: ({ children }: React.PropsWithChildren) => children,
   HostContextMenuItem: ({
     children,
+    disabled,
     onSelect,
-  }: React.PropsWithChildren<{ onSelect?: () => void }>) => (
-    <button onClick={onSelect}>{children}</button>
+  }: React.PropsWithChildren<{
+    disabled?: boolean
+    onSelect?: () => void
+  }>) => (
+    <button disabled={disabled} onClick={onSelect}>
+      {children}
+    </button>
   ),
+  HostContextMenuSeparator: () => <hr />,
   HostContextMenuTrigger: ({ children }: React.PropsWithChildren) => children,
 }))
 
@@ -114,6 +121,53 @@ describe("Canvas Node interaction boundary", () => {
       container.querySelector("button:not(.canvas-node-hit-layer)")!.click()
     )
     expect(onChooseParent).toHaveBeenCalledWith("card")
+    act(() => root.unmount())
+  })
+
+  it("exposes stable layer actions after the hierarchy action", () => {
+    const container = document.createElement("div")
+    const root = createRoot(container)
+    const store = createCanvasStore("demo.canvas.tsx")
+    store.runtime.upsertNode({ id: "card" })
+    const onReorder = vi.fn()
+    const props = {
+      data: {
+        contentInteractive: false,
+        layerActions: [
+          {
+            action: "bring-to-front",
+            disabled: false,
+            label: "Bring to Front",
+          },
+          {
+            action: "bring-forward",
+            disabled: true,
+            label: "Bring Forward",
+          },
+        ],
+        moveToLabel: "Move to…",
+        onChooseParent: vi.fn(),
+        onReorder,
+        persistLayout: vi.fn(),
+        requestPersistLayout: vi.fn(),
+        store,
+      },
+      id: "card",
+      selected: true,
+    } as unknown as NodeProps<CanvasFlowNode>
+
+    act(() => root.render(<CanvasNodeShell {...props} />))
+    const buttons = [...container.querySelectorAll("button")].filter(
+      (button) => !button.classList.contains("canvas-node-hit-layer")
+    )
+    expect(buttons.map((button) => button.textContent)).toEqual([
+      "Move to…",
+      "Bring to Front",
+      "Bring Forward",
+    ])
+    expect(buttons[2].disabled).toBe(true)
+    act(() => buttons[1].click())
+    expect(onReorder).toHaveBeenCalledWith("card", "bring-to-front")
     act(() => root.unmount())
   })
 })

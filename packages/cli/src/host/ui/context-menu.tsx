@@ -51,3 +51,15 @@ export function HostContextMenuItem({
     />
   )
 }
+
+export function HostContextMenuSeparator({
+  className,
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Separator>) {
+  return (
+    <ContextMenuPrimitive.Separator
+      className={cn("canvas-host-context-menu-separator", className)}
+      {...props}
+    />
+  )
+}

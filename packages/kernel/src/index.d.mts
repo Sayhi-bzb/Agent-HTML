@@ -78,6 +78,26 @@ export type CanvasReparentingResult = {
   parentId: string | null
 }
 
+export type CanvasLayerAction =
+  | "bring-to-front"
+  | "bring-forward"
+  | "send-backward"
+  | "send-to-back"
+
+export type CanvasLayerNode = CanvasHierarchyNode & {
+  siblingOrder: number
+}
+
+export type CanvasLayerGroup = {
+  nodeIds: string[]
+  parentId: string | null
+}
+
+export type CanvasLayerOrderResult = {
+  action: CanvasLayerAction
+  groups: CanvasLayerGroup[]
+}
+
 export type CanvasInspectionNodeRecord = CanvasNodeGeometry & {
   id: string
   parentId?: string
@@ -152,6 +172,12 @@ export function resolveCanvasReparenting(input: {
   nodes: readonly CanvasHierarchyNode[]
   parentId?: string | null
 }): CanvasReparentingResult
+export const canvasLayerActions: readonly CanvasLayerAction[]
+export function resolveCanvasLayerOrder(input: {
+  action: CanvasLayerAction
+  nodeIds: readonly string[]
+  nodes: readonly CanvasLayerNode[]
+}): CanvasLayerOrderResult
 export const canvasInteractionEventName: string
 export const canvasDomAttributes: Readonly<Record<string, string>>
 export const canvasDiagnosticCategories: Readonly<Record<string, string>>

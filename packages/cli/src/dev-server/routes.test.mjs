@@ -124,6 +124,9 @@ describe("dev server routes", () => {
     expect(classifyDevServerRoute(hostRoutes.canvasReparent)).toBe(
       "canvas-registry-and-layout"
     )
+    expect(classifyDevServerRoute(hostRoutes.canvasReorder)).toBe(
+      "canvas-registry-and-layout"
+    )
     expect(classifyDevServerRoute(hostRoutes.canvasInspection)).toBe(
       "canvas-inspection"
     )
@@ -150,6 +153,27 @@ describe("dev server routes", () => {
       "runtime-control"
     )
     expect(classifyDevServerRoute("/unknown")).toBe(null)
+  })
+
+  it("serves generated Host styles without browser caching", async () => {
+    const response = createResponseMock()
+
+    const handled = await handleRoute({
+      request: { method: "GET", url: hostRoutes.hostStyles },
+      response,
+      root: path.resolve(import.meta.dirname, "../../../.."),
+      vite: {},
+    })
+
+    expect(handled).toBe(true)
+    expect(response.statusCode).toBe(200)
+    expect(response.headers).toMatchObject({
+      "Cache-Control": "no-store",
+      "Content-Type": "text/css; charset=utf-8",
+    })
+    expect(response.body).toContain(
+      "--xy-controls-button-border-color: transparent"
+    )
   })
 
   it("reports runtime health and supervises shutdown", async () => {
@@ -756,6 +780,52 @@ describe("dev server routes", () => {
       x: -380,
       y: -90,
     })
+  })
+
+  it("reorders static Canvas siblings without changing layout geometry", async () => {
+    const root = await createTestTempDir("canvas-reorder")
+    const canvasesRoot = path.join(root, "agent-html", "canvases")
+    const filePath = "agent-html/canvases/demo.canvas.tsx"
+    const entryPath = path.join(canvasesRoot, "demo.canvas.tsx")
+    await fs.mkdir(canvasesRoot, { recursive: true })
+    await fs.writeFile(
+      entryPath,
+      [
+        'import { Canvas, Node } from "@agent-html/react"',
+        "export default function Demo() {",
+        "  return <Canvas>",
+        '    <Node id="a">A</Node>',
+        '    <Node id="b">B</Node>',
+        '    <Node id="c">C</Node>',
+        "  </Canvas>",
+        "}",
+        "",
+      ].join("\n")
+    )
+
+    const response = createResponseMock()
+    await handleRoute({
+      request: createJsonRequest({
+        body: {
+          action: "bring-to-front",
+          filePath,
+          nodeIds: ["a"],
+        },
+        url: hostRoutes.canvasReorder,
+      }),
+      response,
+      root,
+      vite: {},
+    })
+
+    expect(JSON.parse(response.body)).toEqual({
+      action: "bring-to-front",
+      groups: [{ nodeIds: ["b", "c", "a"], parentId: null }],
+    })
+    const rewritten = await fs.readFile(entryPath, "utf8")
+    expect(rewritten.indexOf('id="c"')).toBeLessThan(
+      rewritten.indexOf('id="a"')
+    )
   })
 
   it("publishes and queries the rendered Canonical Store inspection", async () => {

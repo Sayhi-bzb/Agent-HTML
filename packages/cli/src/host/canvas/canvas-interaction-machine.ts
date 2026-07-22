@@ -14,6 +14,7 @@ export type CanvasInteractionPhase =
   | "marquee"
   | "moving"
   | "panning"
+  | "reordering"
   | "resizing"
   | "reparenting"
 
@@ -31,6 +32,8 @@ export type CanvasInteractionEvent =
   | { type: "HIERARCHY.CHOOSE.START"; nodeIds: readonly string[] }
   | { type: "HIERARCHY.COMMIT.START" }
   | { type: "HIERARCHY.COMMIT.END" }
+  | { type: "LAYER.COMMIT.START" }
+  | { type: "LAYER.COMMIT.END" }
   | { type: "PHASE.END" }
   | { type: "PHASE.INTERACT.START" }
   | { type: "PHASE.MARQUEE.START" }
@@ -176,6 +179,7 @@ export const canvasInteractionMachine = setup({
           guard: "selectModeActive",
           target: "resizing",
         },
+        "LAYER.COMMIT.START": "reordering",
       },
     },
     interacting: { on: { "PHASE.END": "idle" } },
@@ -183,6 +187,14 @@ export const canvasInteractionMachine = setup({
     moving: { on: { "PHASE.END": "idle" } },
     panning: { on: { "PHASE.END": "idle" } },
     resizing: { on: { "PHASE.END": "idle" } },
+    reordering: {
+      on: {
+        "LAYER.COMMIT.END": "idle",
+        "TOOL.NAVIGATE": {},
+        "TOOL.SELECT": {},
+        "TRANSIENT.RESET": { actions: "resetFocusTransient" },
+      },
+    },
     reparenting: {
       on: {
         "HIERARCHY.COMMIT.END": {

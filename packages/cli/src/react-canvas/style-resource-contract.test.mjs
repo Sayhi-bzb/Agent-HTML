@@ -579,6 +579,21 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(canvasStyles).toContain(
       "box-shadow: var(--canvas-host-chrome-surface-shadow)"
     )
+    expect(canvasStyles).toContain(
+      "--xy-controls-button-border-color: transparent"
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-tool-dock__button\.canvas-host-button\s*\{[^}]*border: 0;[^}]*background: transparent;[^}]*box-shadow: none;/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-tool-dock__button\.canvas-host-button:hover\s*\{[^}]*background: var\(--muted\);/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-workspace\s+\.react-flow__controls\.horizontal\s+\.react-flow__controls-button\s*\{[^}]*border: 0;[^}]*border-right: 0;[^}]*background: transparent;[^}]*box-shadow: none;/s
+    )
+    expect(canvasStyles).toMatch(
+      /\.canvas-workspace\s+\.react-flow__controls\.horizontal\s+\.react-flow__controls-button:hover\s*\{[^}]*background: var\(--muted\);/s
+    )
     expect(canvasStyles).not.toMatch(/border-radius: (?:7|8|10|12)px/)
     expect(canvasStyles).not.toContain(
       "box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent)"

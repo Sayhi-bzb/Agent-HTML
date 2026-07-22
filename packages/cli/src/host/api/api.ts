@@ -1,5 +1,7 @@
 import type {
   CanvasInspectionDocument,
+  CanvasLayerAction,
+  CanvasLayerGroup,
   CanvasLayoutDocument,
   CanvasNodeGeometry,
   CanvasViewport,
@@ -55,6 +57,7 @@ export const hostApiRoutes = {
   canvasBundle: "/__agent-html/canvas.js",
   canvasInspection: "/__agent-html/canvas/inspection",
   canvasLayout: "/__agent-html/canvas/layout",
+  canvasReorder: "/__agent-html/canvas/reorder",
   canvasReparent: "/__agent-html/canvas/reparent",
   canvases: "/__agent-html/canvases",
   blockImplementation: "/__agent-html/block-implementation",
@@ -239,6 +242,26 @@ export async function reparentCanvasNodes({
     movedNodeIds: string[]
     parentId: string | null
   }>(response, hostApiRoutes.canvasReparent)
+}
+
+export async function reorderCanvasNodes({
+  action,
+  filePath,
+  nodeIds,
+}: {
+  action: CanvasLayerAction
+  filePath: string
+  nodeIds: readonly string[]
+}) {
+  const response = await fetch(hostApiRoutes.canvasReorder, {
+    body: JSON.stringify({ action, filePath, nodeIds }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+  })
+  return readHostJsonResponse<{
+    action: CanvasLayerAction
+    groups: CanvasLayerGroup[]
+  }>(response, hostApiRoutes.canvasReorder)
 }
 
 export async function publishCanvasInspection(

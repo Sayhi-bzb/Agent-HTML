@@ -29,7 +29,13 @@ type CanvasNodeRecord = CanvasNodeIntent & {
   siblingOrder: number
 }
 
-export type ResolvedCanvasNode = CanvasNodeRecord & CanvasNodeGeometry
+type CanvasStoredNode = CanvasNodeIntent & {
+  order: number
+  orderMarker?: HTMLElement
+}
+
+export type ResolvedCanvasNode = CanvasNodeRecord &
+  CanvasNodeGeometry & { paintOrder: number }
 
 export type CanvasStoreSnapshot = {
   active: boolean
@@ -46,7 +52,17 @@ export type CanvasHierarchyRollback = {
   }>
 }
 
+export type CanvasLayerRollback = {
+  groups: Array<{
+    nodeIds?: string[]
+    parentId: string | null
+  }>
+}
+
 export type CanvasStore = {
+  applyLayerOrder: (
+    groups: readonly CanvasLayerOrderGroup[]
+  ) => CanvasLayerRollback
   applyReparenting: (input: {
     geometries: Readonly<Record<string, CanvasNodeGeometry>>
     nodeIds: readonly string[]
@@ -63,6 +79,7 @@ export type CanvasStore = {
   resolveNodeSource: (nodeId: string) => CanvasNodeSourceReference | null
   removeLayoutNodes: (nodeIds: readonly string[]) => void
   restoreHierarchy: (rollback: CanvasHierarchyRollback) => void
+  restoreLayerOrder: (rollback: CanvasLayerRollback) => void
   runtime: CanvasIntentRuntime
   setNodeGeometries: (
     geometries: Readonly<Record<string, CanvasNodeGeometry>>
@@ -74,37 +91,99 @@ export type CanvasStore = {
   subscribe: (listener: () => void) => () => void
 }
 
+export type CanvasLayerOrderGroup = {
+  nodeIds: readonly string[]
+  parentId: string | null
+}
+
 function sortResolvedNodes(nodes: ResolvedCanvasNode[]) {
-  const byId = new Map(nodes.map((node) => [node.id, node]))
-  const depth = (node: ResolvedCanvasNode) => {
-    let value = 0
-    let parentId = node.parentId
-    const visited = new Set<string>()
-    while (parentId && !visited.has(parentId)) {
-      visited.add(parentId)
-      const parent = byId.get(parentId)
-      if (!parent) break
-      value += 1
-      parentId = parent.parentId
-    }
-    return value
+  const byParent = new Map<string | null, ResolvedCanvasNode[]>()
+  for (const node of nodes) {
+    const parentId = node.parentId ?? null
+    const siblings = byParent.get(parentId) ?? []
+    siblings.push(node)
+    byParent.set(parentId, siblings)
   }
-  return nodes.sort(
-    (left, right) => depth(left) - depth(right) || left.order - right.order
-  )
+  for (const siblings of byParent.values()) {
+    siblings.sort(
+      (left, right) =>
+        left.siblingOrder - right.siblingOrder || left.order - right.order
+    )
+  }
+  const ordered: ResolvedCanvasNode[] = []
+  const visited = new Set<string>()
+  const visit = (node: ResolvedCanvasNode) => {
+    if (visited.has(node.id)) return
+    visited.add(node.id)
+    ordered.push(node)
+    for (const child of byParent.get(node.id) ?? []) visit(child)
+  }
+  for (const root of byParent.get(null) ?? []) visit(root)
+  for (const node of nodes) visit(node)
+  return ordered.map((node, paintOrder) => ({ ...node, paintOrder }))
 }
 
 function deriveSiblingOrders(
-  nodes: ReadonlyMap<string, CanvasNodeIntent & { order: number }>
+  nodes: ReadonlyMap<string, CanvasStoredNode>,
+  layerOrderOverrides: ReadonlyMap<string | null, readonly string[]>
 ) {
-  const nextByParent = new Map<string | undefined, number>()
-  return [...nodes.values()]
-    .sort((left, right) => left.order - right.order)
-    .map((node): CanvasNodeRecord => {
-      const siblingOrder = nextByParent.get(node.parentId) ?? 0
-      nextByParent.set(node.parentId, siblingOrder + 1)
-      return { ...node, siblingOrder }
+  const byParent = new Map<string | null, CanvasStoredNode[]>()
+  for (const node of nodes.values()) {
+    const parentId = node.parentId ?? null
+    const siblings = byParent.get(parentId) ?? []
+    siblings.push(node)
+    byParent.set(parentId, siblings)
+  }
+  const records: CanvasNodeRecord[] = []
+  for (const [parentId, siblings] of byParent) {
+    siblings.sort((left, right) => {
+      if (left.orderMarker && right.orderMarker) {
+        const position = left.orderMarker.compareDocumentPosition(
+          right.orderMarker
+        )
+        if (position & 4) return -1
+        if (position & 2) return 1
+      }
+      return left.order - right.order
     })
+    const override = layerOrderOverrides.get(parentId)
+    if (
+      override &&
+      override.length === siblings.length &&
+      override.every((id) => siblings.some((node) => node.id === id))
+    ) {
+      const byId = new Map(siblings.map((node) => [node.id, node]))
+      siblings.splice(
+        0,
+        siblings.length,
+        ...override.map((id) => byId.get(id)!)
+      )
+    }
+    siblings.forEach((node, siblingOrder) => {
+      records.push({
+        id: node.id,
+        order: node.order,
+        ...(node.parentId ? { parentId: node.parentId } : {}),
+        siblingOrder,
+      })
+    })
+  }
+  return records
+}
+
+function renderedOrderSignature(nodes: ReadonlyMap<string, CanvasStoredNode>) {
+  const groups = new Map<string | null, string[]>()
+  for (const node of deriveSiblingOrders(nodes, new Map())) {
+    const parentId = node.parentId ?? null
+    const ids = groups.get(parentId) ?? []
+    ids.push(node.id)
+    groups.set(parentId, ids)
+  }
+  return JSON.stringify(
+    [...groups].sort(([left], [right]) =>
+      String(left ?? "").localeCompare(String(right ?? ""))
+    )
+  )
 }
 
 export function createCanvasStore(sourceFilePath: string): CanvasStore {
@@ -115,8 +194,10 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
   }
   let viewport: CanvasViewport | undefined
   let nextOrder = 0
+  let lastRenderedOrderSignature = "[]"
   let snapshot: CanvasStoreSnapshot = { active, nodes: [] }
-  const nodes = new Map<string, CanvasNodeIntent & { order: number }>()
+  const nodes = new Map<string, CanvasStoredNode>()
+  const layerOrderOverrides = new Map<string | null, string[]>()
   const targets = new Map<string, HTMLElement>()
   const listeners = new Set<() => void>()
   const targetListeners = new Set<() => void>()
@@ -126,9 +207,10 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
     snapshot = {
       active,
       nodes: sortResolvedNodes(
-        deriveSiblingOrders(nodes).map((node) => ({
+        deriveSiblingOrders(nodes, layerOrderOverrides).map((node) => ({
           ...node,
           ...(layout.nodes[node.id] ?? defaultCanvasNodeGeometry(node.order)),
+          paintOrder: 0,
         }))
       ),
       ...(viewport ? { viewport: { ...viewport } } : {}),
@@ -174,7 +256,10 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
       queueMicrotask(() => {
         if (nodeRemovalTokens.get(id) !== token) return
         nodeRemovalTokens.delete(id)
-        if (nodes.delete(id)) rebuild()
+        if (nodes.delete(id)) {
+          lastRenderedOrderSignature = renderedOrderSignature(nodes)
+          rebuild()
+        }
       })
     },
     setCanvasActive(nextActive) {
@@ -185,6 +270,19 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
       targetListeners.add(listener)
       return () => targetListeners.delete(listener)
     },
+    syncNodeOrder(id, orderMarker) {
+      const current = nodes.get(id)
+      if (!current) return
+      nodes.set(id, {
+        ...current,
+        orderMarker: orderMarker ?? undefined,
+      })
+      const nextRenderedOrderSignature = renderedOrderSignature(nodes)
+      if (lastRenderedOrderSignature === nextRenderedOrderSignature) return
+      lastRenderedOrderSignature = nextRenderedOrderSignature
+      layerOrderOverrides.clear()
+      rebuild()
+    },
     upsertNode(node) {
       nodeRemovalTokens.delete(node.id)
       const current = nodes.get(node.id)
@@ -192,11 +290,43 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
         ...node,
         order: current?.order ?? nextOrder++,
       })
+      const nextRenderedOrderSignature = renderedOrderSignature(nodes)
+      const renderedOrderChanged =
+        lastRenderedOrderSignature !== nextRenderedOrderSignature
+      if (renderedOrderChanged) layerOrderOverrides.clear()
+      const unchanged =
+        current && current.parentId === node.parentId && !renderedOrderChanged
+      lastRenderedOrderSignature = nextRenderedOrderSignature
+      if (unchanged) return
       rebuild()
     },
   }
 
   return {
+    applyLayerOrder(groups) {
+      const rollback: CanvasLayerRollback = { groups: [] }
+      for (const group of groups) {
+        const parentId = group.parentId ?? null
+        const siblings = snapshot.nodes.filter(
+          (node) => (node.parentId ?? null) === parentId
+        )
+        if (
+          group.nodeIds.length !== siblings.length ||
+          group.nodeIds.some((id) => !siblings.some((node) => node.id === id))
+        ) {
+          throw new Error(
+            `Canvas layer group ${parentId ?? "root"} does not match active siblings`
+          )
+        }
+        rollback.groups.push({
+          nodeIds: layerOrderOverrides.get(parentId),
+          parentId,
+        })
+        layerOrderOverrides.set(parentId, [...group.nodeIds])
+      }
+      rebuild()
+      return rollback
+    },
     applyReparenting({ geometries, nodeIds, parentId }) {
       const rollback: CanvasHierarchyRollback = { nodes: [] }
       for (const id of nodeIds) {
@@ -296,6 +426,16 @@ export function createCanvasStore(sourceFilePath: string): CanvasStore {
       layout = {
         nodes: { ...layout.nodes, ...restoredGeometries },
         version: CANVAS_LAYOUT_VERSION,
+      }
+      rebuild()
+    },
+    restoreLayerOrder(rollback) {
+      for (const group of rollback.groups) {
+        if (group.nodeIds) {
+          layerOrderOverrides.set(group.parentId, [...group.nodeIds])
+        } else {
+          layerOrderOverrides.delete(group.parentId)
+        }
       }
       rebuild()
     },

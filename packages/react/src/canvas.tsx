@@ -12,6 +12,7 @@ export type CanvasIntentRuntime = {
   removeNode: (id: string) => void
   setCanvasActive: (active: boolean) => void
   subscribeTargets: (listener: () => void) => () => void
+  syncNodeOrder?: (id: string, orderMarker: HTMLElement | null) => void
   upsertNode: (node: CanvasNodeIntent) => void
 }
 
@@ -65,12 +66,18 @@ export type NodeProps = {
 export function Node({ children, id }: NodeProps) {
   const runtime = React.useContext(CanvasIntentRuntimeContext)
   const parentId = React.useContext(ParentNodeContext)
+  const orderMarkerRef = React.useRef<HTMLSpanElement>(null)
 
   React.useLayoutEffect(() => {
     if (!runtime) return
     runtime.upsertNode({ id, parentId })
     return () => runtime.removeNode(id)
   }, [id, parentId, runtime])
+
+  React.useLayoutEffect(() => {
+    if (!runtime) return
+    runtime.syncNodeOrder?.(id, orderMarkerRef.current)
+  })
 
   const target = React.useSyncExternalStore(
     runtime?.subscribeTargets ?? emptySubscribe,
@@ -84,7 +91,12 @@ export function Node({ children, id }: NodeProps) {
   )
 
   if (!runtime) return content
-  return target ? createPortal(content, target) : null
+  return (
+    <>
+      <span hidden ref={orderMarkerRef} />
+      {target ? createPortal(content, target) : null}
+    </>
+  )
 }
 
 function emptySubscribe() {

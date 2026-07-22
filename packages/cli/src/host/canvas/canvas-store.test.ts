@@ -54,6 +54,10 @@ describe("Canonical Canvas Store", () => {
     expect(
       store.getSnapshot().nodes.find((node) => node.id === "child")
     ).toMatchObject({ parentId: "target", x: -380, y: -90 })
+    store.runtime.syncNodeOrder?.("child", document.createElement("span"))
+    expect(
+      store.getSnapshot().nodes.find((node) => node.id === "child")
+    ).toMatchObject({ parentId: "target" })
 
     store.restoreHierarchy(rollback)
     expect(
@@ -114,6 +118,61 @@ describe("Canonical Canvas Store", () => {
     store.setNodeTarget("profile", target)
     expect(store.runtime.getNodeTarget("profile")).toBe(target)
     expect(listener).toHaveBeenCalledOnce()
+  })
+
+  it("derives sibling and paint order from rendered intent markers", () => {
+    const store = createCanvasStore("demo.canvas.tsx")
+    const host = document.createElement("div")
+    const first = document.createElement("span")
+    const second = document.createElement("span")
+    host.append(second, first)
+    store.runtime.upsertNode({ id: "first", orderMarker: first })
+    store.runtime.upsertNode({ id: "second", orderMarker: second })
+
+    expect(
+      store.getSnapshot().nodes.map(({ id, paintOrder, siblingOrder }) => ({
+        id,
+        paintOrder,
+        siblingOrder,
+      }))
+    ).toEqual([
+      { id: "second", paintOrder: 0, siblingOrder: 0 },
+      { id: "first", paintOrder: 1, siblingOrder: 1 },
+    ])
+
+    host.append(first, second)
+    store.runtime.syncNodeOrder?.("first", first)
+    expect(store.getSnapshot().nodes.map((node) => node.id)).toEqual([
+      "first",
+      "second",
+    ])
+  })
+
+  it("applies and rolls back layer order independently for each parent", () => {
+    const store = createCanvasStore("demo.canvas.tsx")
+    store.runtime.upsertNode({ id: "a" })
+    store.runtime.upsertNode({ id: "b" })
+    store.runtime.upsertNode({ id: "a1", parentId: "a" })
+    store.runtime.upsertNode({ id: "a2", parentId: "a" })
+
+    const rollback = store.applyLayerOrder([
+      { nodeIds: ["b", "a"], parentId: null },
+      { nodeIds: ["a2", "a1"], parentId: "a" },
+    ])
+    expect(store.getSnapshot().nodes.map((node) => node.id)).toEqual([
+      "b",
+      "a",
+      "a2",
+      "a1",
+    ])
+
+    store.restoreLayerOrder(rollback)
+    expect(store.getSnapshot().nodes.map((node) => node.id)).toEqual([
+      "a",
+      "a1",
+      "a2",
+      "b",
+    ])
   })
 
   it("keeps persisted geometry when HMR cleanup and remount cross a microtask", async () => {
