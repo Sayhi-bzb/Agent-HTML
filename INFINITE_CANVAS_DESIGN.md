@@ -100,10 +100,15 @@ The Canonical Store is the product model. The React Flow adapter projects its No
 
 ## Interaction Contract
 
-The viewport follows design-tool conventions: two-finger wheel input pans both axes; `Ctrl/Cmd + wheel` and trackpad pinch zoom; `Space + primary drag` temporarily pans across Node surfaces; middle-button drag pans; primary drag on empty space selects a rectangle; `Shift + click` extends selection. Editable and activatable focused controls retain Space, and ordinary wheel input inside `.nowheel` Node content retains native content scrolling.
+The bottom-center Dock selects Pointer (`V`) or Hand (`H`). Pointer is the default spatial-edit tool: Node drag moves, handles resize, and empty-space drag selects. Node content is `inert` behind a Host hit layer. Hand is the navigate/use tool: primary drag pans while embedded controls and scrollable content retain native interaction. Space temporarily activates Hand from Pointer; middle drag pans and `Ctrl/Cmd + wheel` or pinch zooms in either tool.
+
+A Host-private XState actor owns persistent tool, transient phase, focus owner, and selection. The Canonical Store does not contain interaction-session state. React Flow remains the geometry and viewport engine; `@use-gesture/react` owns wheel pan and Hand primary drag. High-frequency coordinates bypass the actor.
+
+Input routing classifies Canvas pane, Node chrome, Node content, Dock, and overlays. Pointer makes Node content unfocusable through native `inert`; switching tools does not unmount its React subtree. Hand preserves wheel input only while a scrollable content ancestor can consume it. Cursor derives from effective tool, phase, and input region.
 
 Canvas shortcuts apply only when focus is outside Node content and editable controls:
 
+- `V / H`: Pointer / Hand.
 - `+ / -`: zoom in / out.
 - `0`: reset zoom to 100%.
 - `1 / 2`: fit all / fit selection.
@@ -145,7 +150,7 @@ The same route provides cold inspection before a Canvas renders by extracting st
 
 The Canvas surface runs beside the current Artifact surface. It supports position, size, parent-local placement, viewport state, direct interaction with React content, and persisted move/resize/viewport results. Canvas structure continues to come from TSX while the UI changes layout geometry. The performance baseline is 1,000 total Nodes with up to 100 visible Nodes.
 
-`@xyflow/react` and `@use-gesture/react` are private Host infrastructure. Public Canvas records contain no library types. The Host keeps one Canonical Store per selected Canvas, preserves it across source HMR, and hydrates the colocated layout after restart. The Desktop navigation snapshot carries Artifact and Canvas entries.
+`@xyflow/react`, `@use-gesture/react`, XState, and its React adapter are private Host infrastructure. Public Canvas records contain no library types. The Host keeps one Canonical Store per selected Canvas, preserves it across source HMR, and hydrates the colocated layout after restart. The Desktop navigation snapshot carries Artifact and Canvas entries.
 
 Implementation owners:
 

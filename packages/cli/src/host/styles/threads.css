@@ -25,7 +25,8 @@
 
   .canvas-thread-transcript-header h1 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-xl);
     font-weight: 600;
     letter-spacing: -0.02em;
   }
@@ -33,7 +34,8 @@
   .canvas-thread-transcript-header p {
     margin: 0.25rem 0 0;
     color: var(--muted-foreground);
-    font-size: 0.8125rem;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-sm);
   }
 
   .canvas-thread-transcript-turn {
@@ -61,7 +63,8 @@
     align-items: center;
     gap: 0.5rem;
     color: var(--muted-foreground);
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
   }
 
   .canvas-thread-transcript-item header svg {
@@ -81,13 +84,15 @@
   }
 
   .canvas-thread-transcript-item p {
-    line-height: 1.6;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
   }
 
   .canvas-thread-transcript-item pre {
     max-height: 24rem;
     overflow: auto;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
   }
 
   .canvas-thread-manager-frame {
@@ -108,7 +113,8 @@
 
   .canvas-thread-manager-header h1 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-xl);
     font-weight: 600;
     letter-spacing: -0.02em;
   }
@@ -116,7 +122,8 @@
   .canvas-thread-manager-header p {
     margin: 0.25rem 0 0;
     color: var(--muted-foreground);
-    font-size: 0.8125rem;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-sm);
   }
 
   .canvas-thread-manager-spinner {
@@ -179,13 +186,15 @@
   }
 
   .canvas-thread-manager-row-label {
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-sm);
     font-weight: 500;
   }
 
   .canvas-thread-manager-row-description {
     color: var(--muted-foreground);
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
   }
 
   .canvas-thread-manager-row-check {
@@ -223,7 +232,8 @@
   .canvas-thread-manager-empty {
     margin: 1rem 0 0;
     color: var(--muted-foreground);
-    font-size: 0.8125rem;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-sm);
     text-align: center;
   }
 

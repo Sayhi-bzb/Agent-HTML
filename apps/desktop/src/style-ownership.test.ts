@@ -66,7 +66,7 @@ describe("desktop visual ownership", () => {
     )
     expect(css).toContain("--canvas-desktop-radius: var(--radius)")
     expect(css).toContain(
-      "--canvas-desktop-titlebar-navigation-font-size: var(--font-size-xs)"
+      "--canvas-desktop-titlebar-navigation-font-size: var(--font-size-sm)"
     )
     expect(css).toContain("background: var(--primary)")
     expect(css).toContain("color: var(--primary-foreground)")

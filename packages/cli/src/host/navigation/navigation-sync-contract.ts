@@ -13,7 +13,7 @@ export const canvasNavigationCommandMessageType =
   "agent-html:canvas-navigation-command"
 export const artifactTitleRenameResultMessageType =
   "agent-html:artifact-title-rename-result"
-export const canvasNavigationSnapshotVersion = 2
+export const canvasNavigationSnapshotVersion = 4
 
 export type CanvasNavigationArtifact = {
   filePath: string
@@ -32,18 +32,24 @@ export type CanvasNavigationThread = {
 
 export type CanvasNavigationLanguage = "en" | "system" | "zh"
 
+export type CanvasNavigationThemePreset = {
+  id: string
+  label: string
+}
+
 export type CanvasNavigationSnapshot = {
   activeCodexThreadLabel?: string | null
   activeFilePath: string | null
   activeLanguage?: CanvasNavigationLanguage
+  activeThemePresetId: string
   artifacts: CanvasNavigationArtifact[]
   artifactsLoading: boolean
   canvases?: CanvasNavigationCanvas[]
   canvasesLoading?: boolean
   codexThreadManagerActive?: boolean
   createArtifactActive: boolean
-  leftSidebarOpen: boolean
   tabSession: WorkspaceTabSession
+  themePresets: CanvasNavigationThemePreset[]
   threads: CanvasNavigationThread[]
   threadsLoading: boolean
   version: typeof canvasNavigationSnapshotVersion
@@ -67,9 +73,9 @@ export type CanvasNavigationCommand =
   | { type: "open-artifact-search" }
   | { type: "open-codex-thread-manager" }
   | { mode: CanvasThemeMode; type: "set-theme-mode" }
+  | { presetId: string; type: "set-theme-preset" }
   | { type: "toggle-theme-mode" }
   | { language: CanvasNavigationLanguage; type: "set-language" }
-  | { open: boolean; type: "set-sidebar-open" }
 
 export type CanvasNavigationSnapshotMessage = {
   snapshot: CanvasNavigationSnapshot
@@ -111,6 +117,7 @@ export type ArtifactTitleRenameResultMessage = {
 
 const maximumArtifactCount = 1_000
 const maximumThreadCount = 1_000
+const maximumThemePresetCount = 100
 const maximumFilePathLength = 4_096
 const maximumTitleLength = 512
 const maximumErrorLength = 2_048
@@ -163,8 +170,25 @@ function readThread(value: unknown): CanvasNavigationThread | null {
   return { id, title: value.title }
 }
 
+function readThemePreset(value: unknown): CanvasNavigationThemePreset | null {
+  if (!isRecord(value)) return null
+  const id = readFilePath(value.id)
+  if (
+    !id ||
+    !/^[a-z0-9][a-z0-9-]{0,63}$/.test(id) ||
+    typeof value.label !== "string" ||
+    value.label.length === 0 ||
+    value.label.length > maximumTitleLength ||
+    value.label !== value.label.trim()
+  ) {
+    return null
+  }
+  return { id, label: value.label }
+}
+
 function readWorkspaceTabTarget(value: unknown): WorkspaceTabTarget | null {
   if (!isRecord(value)) return null
+  if (value.kind === "appearance") return { kind: "appearance" }
   if (value.kind === "thread-manager") return { kind: "thread-manager" }
   if (value.kind === "artifact" || value.kind === "canvas") {
     const filePath = readFilePath(value.filePath)
@@ -236,14 +260,16 @@ export function readCanvasNavigationSnapshot(
       value.canvases.length > maximumArtifactCount) ||
     !Array.isArray(value.threads) ||
     value.threads.length > maximumThreadCount ||
+    !Array.isArray(value.themePresets) ||
+    value.themePresets.length === 0 ||
+    value.themePresets.length > maximumThemePresetCount ||
     typeof value.threadsLoading !== "boolean" ||
     typeof value.artifactsLoading !== "boolean" ||
     (value.canvasesLoading !== undefined &&
       typeof value.canvasesLoading !== "boolean") ||
     (value.codexThreadManagerActive !== undefined &&
       typeof value.codexThreadManagerActive !== "boolean") ||
-    typeof value.createArtifactActive !== "boolean" ||
-    typeof value.leftSidebarOpen !== "boolean"
+    typeof value.createArtifactActive !== "boolean"
   ) {
     return null
   }
@@ -282,6 +308,21 @@ export function readCanvasNavigationSnapshot(
     threads.push(thread)
     threadIds.add(thread.id)
   }
+
+  const themePresets: CanvasNavigationThemePreset[] = []
+  const themePresetIds = new Set<string>()
+  for (const valueThemePreset of value.themePresets) {
+    const themePreset = readThemePreset(valueThemePreset)
+    if (!themePreset || themePresetIds.has(themePreset.id)) return null
+    themePresets.push(themePreset)
+    themePresetIds.add(themePreset.id)
+  }
+  const activeThemePresetId =
+    typeof value.activeThemePresetId === "string" &&
+    themePresetIds.has(value.activeThemePresetId)
+      ? value.activeThemePresetId
+      : null
+  if (!activeThemePresetId) return null
 
   const tabSession = readWorkspaceTabSession(value.tabSession)
   if (!tabSession) return null
@@ -333,6 +374,7 @@ export function readCanvasNavigationSnapshot(
     ...(activeCodexThreadLabel === undefined ? {} : { activeCodexThreadLabel }),
     activeFilePath,
     ...(activeLanguage === undefined ? {} : { activeLanguage }),
+    activeThemePresetId,
     artifacts,
     artifactsLoading: value.artifactsLoading,
     ...(value.canvases === undefined ? {} : { canvases }),
@@ -343,8 +385,8 @@ export function readCanvasNavigationSnapshot(
       ? {}
       : { codexThreadManagerActive: value.codexThreadManagerActive }),
     createArtifactActive: value.createArtifactActive,
-    leftSidebarOpen: value.leftSidebarOpen,
     tabSession,
+    themePresets,
     threads,
     threadsLoading: value.threadsLoading,
     version: canvasNavigationSnapshotVersion,
@@ -440,6 +482,16 @@ export function readCanvasNavigationCommandMessage(
     })
   }
   if (
+    command.type === "set-theme-preset" &&
+    typeof command.presetId === "string" &&
+    /^[a-z0-9][a-z0-9-]{0,63}$/.test(command.presetId)
+  ) {
+    return createCanvasNavigationCommandMessage({
+      presetId: command.presetId,
+      type: "set-theme-preset",
+    })
+  }
+  if (
     command.type === "set-language" &&
     isCanvasNavigationLanguage(command.language)
   ) {
@@ -487,16 +539,6 @@ export function readCanvasNavigationCommandMessage(
         })
       : null
   }
-  if (
-    command.type === "set-sidebar-open" &&
-    typeof command.open === "boolean"
-  ) {
-    return createCanvasNavigationCommandMessage({
-      open: command.open,
-      type: command.type,
-    })
-  }
-
   return null
 }
 

@@ -11,7 +11,7 @@
   --canvas-desktop-titlebar-height: 2.25rem;
   --canvas-desktop-titlebar-control-width: 2.5rem;
   --canvas-desktop-titlebar-icon-plate-size: 1.75rem;
-  --canvas-desktop-titlebar-navigation-font-size: var(--font-size-xs);
+  --canvas-desktop-titlebar-navigation-font-size: var(--font-size-sm);
   --canvas-desktop-workspace-tab-width: 10rem;
   --canvas-desktop-radius: var(--radius);
   --canvas-desktop-space-1: 0.375rem;
@@ -267,6 +267,22 @@ body {
 
 .desktop-titlebar__agent-menu-label {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-titlebar__agent-menu-trailing {
+  align-items: center;
+  display: flex;
+  gap: var(--canvas-desktop-space-1);
+  justify-self: end;
+  min-width: 0;
+}
+
+.desktop-titlebar__agent-menu-value {
+  color: var(--muted-foreground);
+  max-width: 7rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -545,7 +561,8 @@ code {
 }
 
 .desktop-section h2 {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
   letter-spacing: -0.01em;
   margin: 0;
 }
@@ -619,7 +636,8 @@ code {
   align-items: center;
   color: var(--muted-foreground);
   display: inline-flex;
-  font-size: 0.82rem;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
   gap: var(--canvas-desktop-space-1);
 }
 

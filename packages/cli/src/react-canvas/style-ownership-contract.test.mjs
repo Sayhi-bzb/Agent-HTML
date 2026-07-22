@@ -35,21 +35,21 @@ describe("React Canvas style ownership contract", { timeout: 15000 }, () => {
       /className=["'][^"']*(?:bg|text|border|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|className=["'][^"']*(?:shadow-(?:lg|xl|2xl)|rounded-(?:xl|2xl|3xl))/
     const textSelectionOverride = /selection:(?:bg|text)-/
 
-    expect(filesMatching("packages/cli/src/host", rawSurfaceVisualClass)).toEqual([])
+    expect(
+      filesMatching("packages/cli/src/host", rawSurfaceVisualClass)
+    ).toEqual([])
     expect(filesMatching("agent-html", textSelectionOverride)).toEqual([])
-    expect(filesMatching("packages/cli/src/host", textSelectionOverride)).toEqual([])
-    expect(filesMatching("agent-html/theme", /"--sidebar(?:-[\w-]+)?"/)).toEqual(
-      []
-    )
+    expect(
+      filesMatching("packages/cli/src/host", textSelectionOverride)
+    ).toEqual([])
+    expect(
+      filesMatching("agent-html/theme", /"--sidebar(?:-[\w-]+)?"/)
+    ).toEqual([])
 
     const hostSurface = readSource("packages/cli/src/host/styles/surface.css")
-    expect(hostSurface).toContain("--canvas-host-sidebar: var(--background)")
-    expect(hostSurface).toContain(
-      "--canvas-host-sidebar-foreground: var(--foreground)"
-    )
-    expect(hostSurface).toContain(
-      "--canvas-host-sidebar-accent: var(--accent)"
-    )
+    expect(hostSurface).not.toContain("--canvas-host-sidebar")
+    expect(hostSurface).toContain("background: var(--background)")
+    expect(hostSurface).toContain("color: var(--foreground)")
   })
 
   it("keeps shadcn and TypeScript aliases scoped to their owners", () => {
@@ -71,7 +71,9 @@ describe("React Canvas style ownership contract", { timeout: 15000 }, () => {
       reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/*"]
     ).toEqual(["./agent-html/*"])
     expect(
-      reactCanvasTsconfig.compilerOptions.paths["#agent-html-playground/theme/*"]
+      reactCanvasTsconfig.compilerOptions.paths[
+        "#agent-html-playground/theme/*"
+      ]
     ).toEqual(["./agent-html/theme/*"])
     expect(
       reactCanvasTsconfig.compilerOptions.paths[

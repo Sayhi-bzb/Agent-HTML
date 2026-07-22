@@ -22,7 +22,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-function renderGestureHarness(spacePanActive = false) {
+function renderGestureHarness(panActive = false) {
   let viewport = { x: 100, y: 80, zoom: 1 }
   const applyViewport = vi.fn((next) => {
     viewport = next
@@ -35,7 +35,7 @@ function renderGestureHarness(spacePanActive = false) {
       applyViewport,
       getViewport: () => viewport,
       onGestureEnd,
-      spacePanActive,
+      panActive,
       target,
     })
     return (
@@ -171,13 +171,29 @@ describe("Canvas pan gestures", () => {
       )
     })
 
-    expect(harness.getViewport()).toEqual({ x: 147, y: 107, zoom: 1 })
+    expect(harness.getViewport()).toEqual({ x: 150, y: 110, zoom: 1 })
     expect(harness.onGestureEnd).toHaveBeenCalledOnce()
     expect(harness.onGestureEnd).toHaveBeenCalledWith({
-      x: 147,
-      y: 107,
+      x: 150,
+      y: 110,
       zoom: 1,
     })
+  })
+
+  it("does not consume clicks from interactive Node content", () => {
+    const harness = renderGestureHarness(true)
+    const onSubmit = vi.fn((event: Event) => event.preventDefault())
+    const form = document.createElement("form")
+    const button = document.createElement("button")
+    button.type = "submit"
+    form.append(button)
+    form.addEventListener("submit", onSubmit)
+    harness.target.append(form)
+
+    act(() => button.click())
+
+    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(harness.applyViewport).not.toHaveBeenCalled()
   })
 
   it("preserves Space for interactive controls", () => {

@@ -137,8 +137,36 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundKitImports).not.toContain('@import "./host.css"')
     expect(playgroundKitImports).not.toContain('@import "./theme-editor.css"')
     expect(playgroundFoundationTokens).toContain("--font-sans")
+    expect(playgroundFoundationTokens).toContain("--font-size-2xs: 0.6875rem")
     expect(playgroundFoundationTokens).toContain("--font-size-xs: 0.75rem")
-    expect(playgroundFoundationTokens).toContain("--font-size-sm: 0.875rem")
+    expect(playgroundFoundationTokens).toContain("--font-size-sm: 0.8125rem")
+    expect(playgroundFoundationTokens).toContain("--font-size-body: 0.875rem")
+    expect(playgroundFoundationTokens).toContain("--font-size-base: 1rem")
+    expect(playgroundFoundationTokens).toContain("--font-size-lg: 1.125rem")
+    expect(playgroundFoundationTokens).toContain("--font-size-xl: 1.25rem")
+    expect(playgroundFoundationTokens).toContain("--font-size-2xl: 1.5rem")
+    expect(playgroundFoundationTokens).toContain("--line-height-2xs: 1rem")
+    expect(playgroundFoundationTokens).toContain("--line-height-xs: 1rem")
+    expect(playgroundFoundationTokens).toContain("--line-height-sm: 1.25rem")
+    expect(playgroundFoundationTokens).toContain(
+      "--line-height-body: 1.3125rem"
+    )
+    expect(playgroundFoundationTokens).toContain("--line-height-base: 1.5rem")
+    expect(playgroundFoundationTokens).toContain("--line-height-lg: 1.5rem")
+    expect(playgroundFoundationTokens).toContain("--line-height-xl: 1.75rem")
+    expect(playgroundFoundationTokens).toContain("--line-height-2xl: 2rem")
+    expect(playgroundTailwindTokens).toContain(
+      "--text-2xs: var(--font-size-2xs)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--text-sm: var(--font-size-sm)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--text-base: var(--font-size-base)"
+    )
+    expect(playgroundTailwindTokens).toContain(
+      "--text-2xl--line-height: var(--line-height-2xl)"
+    )
     expect(playgroundFoundationTokens).toContain("--font-heading")
     expect(playgroundFoundationTokens).toContain("--success")
     expect(playgroundFoundationTokens).toContain("--warning")
@@ -158,9 +186,7 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(playgroundFoundationTokens).toContain("/* Theme primitives */")
     expect(playgroundFoundationTokens).toContain("/* Status primitives */")
     expect(playgroundFoundationTokens).toContain("/* Chart primitives */")
-    expect(playgroundFoundationTokens).not.toContain(
-      "--canvas-host-sidebar"
-    )
+    expect(playgroundFoundationTokens).not.toContain("--canvas-host-sidebar")
     expect(playgroundFoundationTokens).toContain(
       "/* Canvas base affordances */"
     )
@@ -203,8 +229,9 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     )
 
     expect(playgroundBaseStyles).toContain("overscroll-behavior: none")
-    expect(canvasHostApp).toContain(
-      'className="h-full min-h-0 min-w-0 overflow-hidden"'
+    expect(canvasHostApp).toContain('className="canvas-host-workspace"')
+    expect(packageHostSurfaceStyles).toMatch(
+      /\.canvas-host-workspace\s*\{[^}]*height: 100%;[^}]*min-width: 0;[^}]*min-height: 0;[^}]*overflow: hidden;/
     )
     expect(packageHostSurfaceStyles).toContain(
       '.canvas-surface-scroll [data-slot="scroll-area-viewport"]'
@@ -253,9 +280,13 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(brandStyles).toContain(
       "--agent-html-brand-font-family: var(--font-sans)"
     )
-    expect(brandStyles).toContain("--agent-html-brand-font-size: 1rem")
+    expect(brandStyles).toContain(
+      "--agent-html-brand-font-size: var(--font-size-base)"
+    )
     expect(brandStyles).toContain("--agent-html-brand-font-weight: 600")
-    expect(brandStyles).toContain("--agent-html-brand-line-height: 1.25")
+    expect(brandStyles).toContain(
+      "--agent-html-brand-line-height: var(--line-height-base)"
+    )
     expect(brandStyles).toContain(
       "--agent-html-brand-letter-spacing: var(--tracking-normal)"
     )
@@ -277,7 +308,13 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     expect(packageHostSidebarStyles).not.toContain("--agent-html-brand-")
     expect(packageHostTokens).not.toContain("--canvas-sidebar-title-font-size")
     expect(packageHostTokens).toContain(
-      "--canvas-sidebar-caption-font-size: var(--font-size-xs)"
+      "--canvas-host-caption-font-size: var(--font-size-xs)"
+    )
+    expect(packageHostTokens).toContain(
+      "--canvas-host-body-font-size: var(--font-size-sm)"
+    )
+    expect(packageHostTokens).toContain(
+      "--canvas-host-micro-font-size: var(--font-size-2xs)"
     )
     expect(playgroundFoundationEntry).not.toContain("--agent-html-brand-")
     expect(playgroundSidebarPrimitive).toContain("data-active:font-medium")
@@ -383,7 +420,7 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     )
     expect(packageHostTokens).toContain("--canvas-surface-padding-inline")
     expect(packageHostTokens).toContain("--canvas-floating-prompt-width")
-    expect(packageHostTokens).toContain("--canvas-sidebar-body-font-size")
+    expect(packageHostTokens).toContain("--canvas-host-body-font-size")
     expect(packageHostTokens).toContain("--canvas-block-action-badge-offset")
     expect(packageHostTokens).not.toContain("--canvas-block-reply-badge-offset")
     expect(packageHostTokens).not.toContain("--canvas-block-highlight-radius")
@@ -395,6 +432,18 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
     )
     expect(packageHostTokens).not.toContain("--canvas-block-action-shadow")
     expect(playgroundContentTokens).toContain("--canvas-content-gap-md")
+    expect(playgroundContentTokens).toContain(
+      "--canvas-content-title-font-size: var(--font-size-2xl)"
+    )
+    expect(playgroundContentTokens).toContain(
+      "--canvas-content-heading-font-size: var(--font-size-lg)"
+    )
+    expect(playgroundContentTokens).toContain(
+      "--canvas-content-body-font-size: var(--font-size-body)"
+    )
+    expect(playgroundContentTokens).toContain(
+      "--canvas-content-caption-font-size: var(--font-size-xs)"
+    )
     expect(playgroundContentTokens).not.toContain("--canvas-content-diff")
     expect(playgroundContentTokens).not.toContain(
       "--canvas-content-panel-radius"
@@ -433,7 +482,7 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
       "var(--canvas-surface-padding-inline)"
     )
     expect(packageHostSidebarStyles).toContain(
-      "var(--canvas-sidebar-body-font-size)"
+      "var(--canvas-host-body-font-size)"
     )
     expect(packageHostBlockOverlayStyles).toContain(
       "var(--canvas-block-highlight-border)"
@@ -479,9 +528,7 @@ describe("React Canvas style resource contract", { timeout: 15000 }, () => {
   })
 
   it("keeps Canvas drag chrome outside directly interactive Node content", () => {
-    const canvasStyles = readSource(
-      "packages/cli/src/host/styles/canvas.css"
-    )
+    const canvasStyles = readSource("packages/cli/src/host/styles/canvas.css")
 
     expect(canvasStyles).toMatch(
       /\.canvas-node-shell\s*\{[^}]*display: grid;[^}]*grid-template-rows: 22px minmax\(0, 1fr\);/s

@@ -5,8 +5,8 @@
   padding: 1rem;
   background-color: transparent !important;
   font-family: var(--font-mono);
-  font-size: 0.875rem;
-  line-height: 1.45;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
 }
 
 .canvas-code-block .shiki code {

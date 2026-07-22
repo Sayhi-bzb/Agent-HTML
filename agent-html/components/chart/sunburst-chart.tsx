@@ -388,7 +388,7 @@ export function SunburstChart<T extends SunburstDatum>({
                     ) : null}
                     {centerLabel ? (
                       <text
-                        className="fill-muted-foreground text-[10px] uppercase tracking-normal"
+                        className="fill-muted-foreground text-2xs uppercase tracking-normal"
                         dominantBaseline={renderedCenterValue ? "hanging" : "middle"}
                         y={renderedCenterValue ? 8 : 0}
                       >

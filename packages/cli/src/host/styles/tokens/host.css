@@ -1,6 +1,14 @@
 :root {
-  --canvas-block-highlight-background: color-mix(in oklab, var(--ring) 5%, transparent);
-  --canvas-block-highlight-border: color-mix(in oklab, var(--ring) 32%, transparent);
+  --canvas-block-highlight-background: color-mix(
+    in oklab,
+    var(--ring) 5%,
+    transparent
+  );
+  --canvas-block-highlight-border: color-mix(
+    in oklab,
+    var(--ring) 32%,
+    transparent
+  );
   --canvas-block-highlight-padding: 0.375rem;
   --canvas-block-action-badge-offset: 0.625rem;
   --canvas-block-action-badge-touch-offset: 1.125rem;
@@ -11,18 +19,22 @@
   --canvas-toolbar-inset-block-start: 1rem;
   --canvas-toolbar-inset-inline: 1rem;
   --canvas-toolbar-z-index: 20;
-  --canvas-sidebar-section-padding: 0.75rem;
-  --canvas-sidebar-content-padding-inline: 0.5rem;
-  --canvas-sidebar-stack-gap: 0.25rem;
-  --canvas-sidebar-header-gap: 0.625rem;
-  --canvas-sidebar-menu-gap: 0.375rem;
-  --canvas-sidebar-control-gap: 0.5rem;
-  --canvas-sidebar-body-font-size: var(--font-size-sm);
-  --canvas-sidebar-caption-font-size: var(--font-size-xs);
+  --canvas-host-section-padding: 0.75rem;
+  --canvas-host-content-padding-inline: 0.5rem;
+  --canvas-host-stack-gap: 0.25rem;
+  --canvas-host-menu-gap: 0.375rem;
+  --canvas-host-control-gap: 0.5rem;
+  --canvas-host-body-font-size: var(--font-size-sm);
+  --canvas-host-caption-font-size: var(--font-size-xs);
+  --canvas-host-micro-font-size: var(--font-size-2xs);
+  --canvas-host-body-line-height: var(--line-height-sm);
+  --canvas-host-caption-line-height: var(--line-height-xs);
+  --canvas-host-micro-line-height: var(--line-height-2xs);
   --canvas-host-item-icon-size: 1rem;
   --canvas-host-swatch-size-xs: 0.625rem;
   --canvas-host-swatch-size-sm: 0.75rem;
   --canvas-host-select-content-max-height: 18rem;
+  --canvas-workspace-pane-width: 16rem;
   --canvas-create-artifact-composer-width: 44rem;
   --canvas-floating-prompt-width: 22.5rem;
   --canvas-floating-prompt-z-index: 50;

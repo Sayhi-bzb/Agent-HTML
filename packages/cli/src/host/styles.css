@@ -1,5 +1,6 @@
 @import "./styles/tokens.css";
 @import "./styles/surface.css";
+@import "./styles/workspace-split-view.css";
 @import "./styles/sidebar.css";
 @import "./styles/threads.css";
 @import "./styles/block-overlay.css";

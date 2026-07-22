@@ -19,7 +19,6 @@ export const CANVAS_HOST_PREFERENCES_STORAGE_KEY =
 const LEGACY_CANVAS_HOST_PREFERENCES_STORAGE_KEY =
   "agent-html:react-canvas:host-preferences:v2"
 
-export type CanvasSidebarView = "artifacts" | "gallery"
 export type CanvasHostLanguage = "en" | "system" | "zh"
 export type CanvasHostThemeMode = "dark" | "light" | "system"
 export type CanvasCreateArtifactJobPhase =
@@ -39,12 +38,10 @@ export type CanvasHostPreferences = {
   activeCodexThreadId: string | null
   activeFilePath: string | null
   activeLanguage: CanvasHostLanguage
-  activeSidebarView: CanvasSidebarView
   activeThemeEditorSectionId: CanvasThemeEditorSectionId
   activeThemeMode: CanvasHostThemeMode
   activeThemePresetId: CanvasThemePresetId
   createArtifactJob: CanvasCreateArtifactJob | null
-  leftSidebarOpen: boolean
   messageDrafts: Record<string, string>
   workspaceTabSession: WorkspaceTabSession
 }
@@ -53,12 +50,10 @@ const defaultCanvasHostPreferences: CanvasHostPreferences = {
   activeCodexThreadId: null,
   activeFilePath: null,
   activeLanguage: "system",
-  activeSidebarView: "artifacts",
   activeThemeEditorSectionId: "color",
   activeThemeMode: "system",
   activeThemePresetId: "claude-plus",
   createArtifactJob: null,
-  leftSidebarOpen: true,
   messageDrafts: {},
   workspaceTabSession: createEmptyWorkspaceTabSession(),
 }
@@ -71,22 +66,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }
 
-function isSidebarView(value: unknown): value is CanvasSidebarView {
-  return value === "artifacts" || value === "gallery"
-}
-
 function isHostLanguage(value: unknown): value is CanvasHostLanguage {
   return value === "system" || value === "zh" || value === "en"
 }
 
 function isHostThemeMode(value: unknown): value is CanvasHostThemeMode {
   return value === "system" || value === "light" || value === "dark"
-}
-
-function readSidebarView(value: unknown): CanvasSidebarView {
-  return isSidebarView(value)
-    ? value
-    : defaultCanvasHostPreferences.activeSidebarView
 }
 
 function isThemePresetId(value: unknown): value is CanvasThemePresetId {
@@ -257,7 +242,6 @@ export function readCanvasHostPreferences({
     activeLanguage: isHostLanguage(stored.activeLanguage)
       ? stored.activeLanguage
       : defaultCanvasHostPreferences.activeLanguage,
-    activeSidebarView: readSidebarView(stored.activeSidebarView),
     activeThemeEditorSectionId: isCanvasThemeEditorSectionId(
       stored.activeThemeEditorSectionId
     )
@@ -270,10 +254,6 @@ export function readCanvasHostPreferences({
       ? stored.activeThemePresetId
       : defaultCanvasHostPreferences.activeThemePresetId,
     createArtifactJob: readCreateArtifactJob(stored.createArtifactJob),
-    leftSidebarOpen:
-      typeof stored.leftSidebarOpen === "boolean"
-        ? stored.leftSidebarOpen
-        : defaultCanvasHostPreferences.leftSidebarOpen,
     messageDrafts: readMessageDrafts(stored.messageDrafts),
     workspaceTabSession: readStoredWorkspaceTabSession({
       activeFilePath,

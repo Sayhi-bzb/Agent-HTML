@@ -1,41 +1,10 @@
 @layer components {
-  .canvas-sidebar-pad {
-    padding: var(--canvas-sidebar-section-padding);
-  }
-
-  .canvas-sidebar-header-stack {
-    display: flex;
-    flex-direction: column;
-    gap: var(--canvas-sidebar-header-gap);
-  }
-
-  .canvas-sidebar-menu {
-    gap: var(--canvas-sidebar-menu-gap);
-  }
-
-  .canvas-sidebar-copy {
-    padding-inline: var(--canvas-sidebar-content-padding-inline);
-    font-size: var(--canvas-sidebar-body-font-size);
-  }
-
-  .canvas-sidebar-stack {
-    display: flex;
-    flex-direction: column;
-    gap: var(--canvas-sidebar-stack-gap);
-  }
-
-  .canvas-sidebar-control-row {
-    display: flex;
-    gap: var(--canvas-sidebar-control-gap);
-    padding-inline: var(--canvas-sidebar-content-padding-inline);
-  }
-
   .canvas-host-item-content {
     display: flex;
     min-width: 0;
     flex: 1 1 0%;
     align-items: center;
-    gap: var(--canvas-sidebar-control-gap);
+    gap: var(--canvas-host-control-gap);
   }
 
   .canvas-host-item-text {
@@ -43,13 +12,13 @@
     min-width: 0;
     flex: 1 1 0%;
     flex-direction: column;
-    gap: var(--canvas-sidebar-stack-gap);
+    gap: var(--canvas-host-stack-gap);
   }
 
   .canvas-host-item-content[data-layout="inline"] .canvas-host-item-text {
     flex-direction: row;
     align-items: center;
-    gap: var(--canvas-sidebar-control-gap);
+    gap: var(--canvas-host-control-gap);
   }
 
   .canvas-host-item-label {
@@ -69,12 +38,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--canvas-sidebar-caption-font-size);
-    color: color-mix(
-      in oklab,
-      var(--canvas-host-sidebar-foreground) 45%,
-      transparent
-    );
+    font-size: var(--canvas-host-caption-font-size);
+    color: var(--muted-foreground);
   }
 
   .canvas-host-item-content[data-layout="inline"] .canvas-host-item-caption {
@@ -97,7 +62,7 @@
   }
 
   .canvas-host-item-shortcut {
-    font-size: var(--canvas-sidebar-caption-font-size);
+    font-size: var(--canvas-host-caption-font-size);
     color: var(--muted-foreground);
   }
 
@@ -106,7 +71,7 @@
     height: var(--canvas-host-swatch-size-xs);
     flex-shrink: 0;
     border-radius: 9999px;
-    box-shadow: 0 0 0 1px var(--canvas-host-sidebar-border);
+    box-shadow: 0 0 0 1px var(--border);
   }
 
   .canvas-host-swatch[data-size="sm"] {
@@ -119,8 +84,8 @@
   }
 
   .canvas-host-control-trigger[data-state="open"] {
-    background: var(--canvas-host-sidebar-accent);
-    color: var(--canvas-host-sidebar-accent-foreground);
+    background: var(--accent);
+    color: var(--accent-foreground);
   }
 
   .canvas-host-floating-content
@@ -194,8 +159,8 @@
 
   .canvas-host-dropdown-label {
     padding-block: 0.375rem;
-    padding-inline: var(--canvas-sidebar-content-padding-inline);
-    font-size: var(--canvas-sidebar-caption-font-size);
+    padding-inline: var(--canvas-host-content-padding-inline);
+    font-size: var(--canvas-host-caption-font-size);
     font-weight: 500;
     color: var(--muted-foreground);
   }
@@ -204,29 +169,14 @@
     display: flex;
     min-width: 0;
     padding-block: 0.375rem;
-    padding-inline: var(--canvas-sidebar-content-padding-inline);
-    font-size: var(--canvas-sidebar-body-font-size);
+    padding-inline: var(--canvas-host-content-padding-inline);
+    font-size: var(--canvas-host-body-font-size);
     color: var(--popover-foreground);
   }
 
-  .canvas-host-sidebar-status {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    border-radius: var(--radius-sm);
-    padding-block: 0.375rem;
-    padding-inline: var(--canvas-sidebar-content-padding-inline);
-    font-size: var(--canvas-sidebar-body-font-size);
-    color: color-mix(
-      in oklab,
-      var(--canvas-host-sidebar-foreground) 60%,
-      transparent
-    );
-  }
-
-  .canvas-sidebar-dialog-status {
+  .canvas-host-dialog-status {
     margin-block-start: 0.5rem;
-    font-size: var(--canvas-sidebar-caption-font-size);
+    font-size: var(--canvas-host-caption-font-size);
     color: var(--destructive);
   }
 
@@ -240,7 +190,7 @@
 
   .canvas-host-command-empty {
     padding-block: 1.5rem;
-    font-size: var(--canvas-sidebar-body-font-size);
+    font-size: var(--canvas-host-body-font-size);
     color: var(--muted-foreground);
   }
 
@@ -248,11 +198,11 @@
   .canvas-host-dropdown-item,
   .canvas-host-command-item,
   .canvas-host-popover-action {
-    gap: var(--canvas-sidebar-control-gap);
+    gap: var(--canvas-host-control-gap);
     padding-block: 0.375rem;
-    padding-inline-start: var(--canvas-sidebar-content-padding-inline);
-    padding-inline-end: calc(var(--canvas-sidebar-content-padding-inline) * 4);
-    font-size: var(--canvas-sidebar-body-font-size);
+    padding-inline-start: var(--canvas-host-content-padding-inline);
+    padding-inline-end: calc(var(--canvas-host-content-padding-inline) * 4);
+    font-size: var(--canvas-host-body-font-size);
   }
 
   .canvas-host-select-item {
@@ -280,6 +230,10 @@
     width: 100%;
   }
 
+  .canvas-host-dropdown-item {
+    cursor: pointer;
+  }
+
   .canvas-host-popover-action {
     display: flex;
     justify-content: flex-start;
@@ -288,13 +242,5 @@
   .canvas-host-popover-action[data-active="true"] {
     background: var(--accent);
     color: var(--accent-foreground);
-  }
-
-  .canvas-sidebar-body {
-    font-size: var(--canvas-sidebar-body-font-size);
-  }
-
-  .canvas-sidebar-caption {
-    font-size: var(--canvas-sidebar-caption-font-size);
   }
 }

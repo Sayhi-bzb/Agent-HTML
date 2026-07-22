@@ -200,7 +200,7 @@ function BarXAxisLabels<T>({
 
         return (
           <text
-            className="fill-muted-foreground text-[0.68rem]"
+            className="fill-muted-foreground text-2xs"
             key={value}
             textAnchor="middle"
             x={x(datum)}
@@ -386,7 +386,7 @@ function BarChartCore<T>({
 
                       return (
                         <text
-                          className="fill-muted-foreground text-[0.68rem]"
+                          className="fill-muted-foreground text-2xs"
                           dy="0.32em"
                           key={label}
                           textAnchor="end"

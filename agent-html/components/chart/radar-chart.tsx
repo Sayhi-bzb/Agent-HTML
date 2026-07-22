@@ -194,7 +194,7 @@ function RadarAxisLabels<T>({
 
         return (
           <text
-            className="fill-muted-foreground text-[0.68rem]"
+            className="fill-muted-foreground text-2xs"
             dominantBaseline="middle"
             key={point.key}
             textAnchor={horizontal}

@@ -9,6 +9,7 @@ import type {
 } from "./canvas-store"
 
 export type CanvasFlowNodeData = {
+  contentInteractive: boolean
   persistLayout: PersistCanvasLayoutNodes
   requestPersistLayout: PersistCanvasLayoutNodes
   store: CanvasStore
@@ -39,21 +40,24 @@ export function projectCanvasSnapshot(
   store: CanvasStore,
   selectedNodeIds: ReadonlySet<string>,
   persistLayout: PersistCanvasLayoutNodes = ignorePersistLayout,
-  requestPersistLayout = persistLayout
+  requestPersistLayout = persistLayout,
+  contentInteractive = false
 ) {
   const nodes: CanvasFlowNode[] = snapshot.nodes.map((node) => ({
     data: {
+      contentInteractive,
       persistLayout,
       requestPersistLayout,
       store,
       title: node.title,
     },
-    dragHandle: ".canvas-node-drag-handle",
+    dragHandle: ".canvas-node-drag-handle, .canvas-node-interaction-layer",
     height: node.height,
     id: node.id,
     parentId: node.parentId,
     position: { x: node.x, y: node.y },
     selected: selectedNodeIds.has(node.id),
+    style: contentInteractive ? { pointerEvents: "all" } : undefined,
     type: "canvas-node",
     width: node.width,
   }))

@@ -60,6 +60,8 @@ pub struct RecentWorkspace {
     tag = "kind"
 )]
 pub enum WorkspaceTab {
+    #[serde(rename = "appearance")]
+    Appearance { id: String },
     #[serde(rename = "artifact")]
     Artifact { file_path: String, id: String },
     #[serde(rename = "canvas")]
@@ -73,7 +75,8 @@ pub enum WorkspaceTab {
 impl WorkspaceTab {
     fn id(&self) -> &str {
         match self {
-            Self::Artifact { id, .. }
+            Self::Appearance { id }
+            | Self::Artifact { id, .. }
             | Self::Canvas { id, .. }
             | Self::ThreadManager { id }
             | Self::Thread { id, .. } => id,
@@ -82,6 +85,7 @@ impl WorkspaceTab {
 
     fn has_valid_id(&self) -> bool {
         match self {
+            Self::Appearance { id } => id == "appearance",
             Self::Artifact { file_path, id } => id == &format!("artifact:{file_path}"),
             Self::Canvas { file_path, id } => id == &format!("canvas:{file_path}"),
             Self::ThreadManager { id } => id == "threads",
@@ -258,6 +262,29 @@ mod tests {
         assert!(
             save_workspace_tab_session(&mut state, Path::new(r"D:\projects\demo"), session)
                 .is_err()
+        );
+    }
+
+    #[test]
+    fn stores_appearance_workspace_tabs_with_a_stable_id() {
+        let mut state = StoredDesktopState::default();
+        let session = WorkspaceTabSession {
+            active_tab_id: Some("appearance".into()),
+            tabs: vec![WorkspaceTab::Appearance {
+                id: "appearance".into(),
+            }],
+            version: 1,
+        };
+
+        save_workspace_tab_session(&mut state, Path::new(r"D:\projects\demo"), session)
+            .expect("Appearance session should save");
+
+        assert_eq!(
+            load_workspace_tab_session(&state, Path::new(r"D:\projects\demo"))
+                .expect("Appearance session should load")
+                .active_tab_id
+                .as_deref(),
+            Some("appearance")
         );
     }
 

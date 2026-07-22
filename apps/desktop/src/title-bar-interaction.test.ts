@@ -15,6 +15,7 @@ const navigation: CanvasNavigationSnapshot = {
   activeCodexThreadLabel: "Navigation polish",
   activeFilePath: "agent-html/artifacts/artifact.artifact.tsx",
   activeLanguage: "system",
+  activeThemePresetId: "claude-plus",
   artifacts: [
     {
       filePath: "agent-html/artifacts/artifact.artifact.tsx",
@@ -26,7 +27,6 @@ const navigation: CanvasNavigationSnapshot = {
   canvasesLoading: false,
   codexThreadManagerActive: false,
   createArtifactActive: false,
-  leftSidebarOpen: true,
   tabSession: {
     activeTabId: "artifact:agent-html/artifacts/artifact.artifact.tsx",
     tabs: [
@@ -38,6 +38,10 @@ const navigation: CanvasNavigationSnapshot = {
     ],
     version: 1,
   },
+  themePresets: [
+    { id: "default", label: "Default" },
+    { id: "claude-plus", label: "Claude +" },
+  ],
   threads: [],
   threadsLoading: false,
   version: canvasNavigationSnapshotVersion,
@@ -84,6 +88,7 @@ afterEach(async () => {
 async function renderTitleBar(props: {
   navigation?: CanvasNavigationSnapshot
   onActivateTab?: (tabId: string) => void
+  onOpenAppearance?: () => void
   onOpenCodexThreadManager?: () => void
   onSearchArtifacts?: () => void
 }) {
@@ -118,6 +123,32 @@ function findMenuItem(label: string) {
 }
 
 describe("desktop title bar interactions", () => {
+  it("activates the Appearance workspace tab on click", async () => {
+    const onActivateTab = vi.fn()
+    await renderTitleBar({
+      navigation: {
+        ...navigation,
+        tabSession: {
+          activeTabId: navigation.tabSession.activeTabId,
+          tabs: [
+            ...navigation.tabSession.tabs,
+            { id: "appearance", kind: "appearance" },
+          ],
+          version: 1,
+        },
+      },
+      onActivateTab,
+    })
+
+    const appearanceTab = container.querySelector<HTMLButtonElement>(
+      'button[role="tab"][title="Appearance"]'
+    )
+    expect(appearanceTab).not.toBeNull()
+    await act(async () => appearanceTab!.click())
+
+    expect(onActivateTab).toHaveBeenCalledWith("appearance")
+  })
+
   it("activates an individual thread tab on click", async () => {
     const onActivateTab = vi.fn()
     await renderTitleBar({
@@ -183,12 +214,18 @@ describe("desktop title bar interactions", () => {
   it.each([
     ["Search", "onSearchArtifacts"],
     ["Navigation polish", "onOpenCodexThreadManager"],
+    ["Appearance", "onOpenAppearance"],
   ] as const)(
     "selects %s without starting a window drag",
     async (label, callbackName) => {
       const onOpenCodexThreadManager = vi.fn()
+      const onOpenAppearance = vi.fn()
       const onSearchArtifacts = vi.fn()
-      await renderTitleBar({ onOpenCodexThreadManager, onSearchArtifacts })
+      await renderTitleBar({
+        onOpenAppearance,
+        onOpenCodexThreadManager,
+        onSearchArtifacts,
+      })
       await openAgentMenu()
 
       const item = findMenuItem(label)
@@ -205,7 +242,9 @@ describe("desktop title bar interactions", () => {
       })
 
       expect(
-        { onOpenCodexThreadManager, onSearchArtifacts }[callbackName]
+        { onOpenAppearance, onOpenCodexThreadManager, onSearchArtifacts }[
+          callbackName
+        ]
       ).toHaveBeenCalledOnce()
       expect(windowControls.startDragging).not.toHaveBeenCalled()
       expect(document.querySelector('[role="menu"]')).toBeNull()

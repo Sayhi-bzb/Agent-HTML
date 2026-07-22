@@ -86,7 +86,7 @@ export function ChartYAxisGrid({
         scale={scale}
         tickFormat={(value) => String(formatTick(Number(value)))}
         tickLabelProps={() => ({
-          className: "fill-muted-foreground text-[0.68rem]",
+          className: "fill-muted-foreground text-2xs",
           dx: -8,
           dy: "0.32em",
           textAnchor: "end",
@@ -124,7 +124,7 @@ export function ChartXAxisGrid({
         scale={scale}
         tickFormat={(value) => String(formatTick(Number(value)))}
         tickLabelProps={() => ({
-          className: "fill-muted-foreground text-[0.68rem]",
+          className: "fill-muted-foreground text-2xs",
           dy: "0.72em",
           textAnchor: "middle",
         })}

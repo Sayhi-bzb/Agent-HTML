@@ -9,12 +9,6 @@ import {
   SelectValue,
 } from "#agent-html-playground/components/ui/select"
 import { Button } from "#agent-html-playground/components/ui/button"
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "#agent-html-playground/components/ui/sidebar"
-import { HostControlTrigger } from "./control-trigger"
 import { HostItemContent, type HostItemIcon } from "./item-content"
 
 function cn(...classes: (false | null | string | undefined)[]) {
@@ -29,12 +23,12 @@ export type HostSelectOption = {
   value: string
 }
 
-type HostSelectLayout = "compact" | "floating" | "sidebar"
+type HostSelectLayout = "compact" | "floating"
 
 export function HostSelect({
   disabled = false,
   label,
-  layout = "sidebar",
+  layout = "floating",
   onValueChange,
   options,
   triggerLabel,
@@ -61,13 +55,7 @@ export function HostSelect({
 
   return (
     <Select onValueChange={onValueChange} value={value}>
-      {layout === "sidebar" ? (
-        <SidebarMenu>
-          <SidebarMenuItem>{trigger}</SidebarMenuItem>
-        </SidebarMenu>
-      ) : (
-        trigger
-      )}
+      {trigger}
       <HostSelectContent>
         {options.map((option) => (
           <HostSelectItem
@@ -102,7 +90,12 @@ function HostSelectTriggerRow({
         <HostItemContent
           caption={triggerLabel ? activeOption?.label : undefined}
           icon={activeOption?.icon}
-          label={triggerLabel ?? activeOption?.triggerLabel ?? activeOption?.label ?? label}
+          label={
+            triggerLabel ??
+            activeOption?.triggerLabel ??
+            activeOption?.label ??
+            label
+          }
           swatchColor={activeOption?.swatchColor}
         />
       </SelectValue>
@@ -122,13 +115,7 @@ function HostSelectTriggerRow({
 
   return (
     <SelectTrigger asChild>
-      {layout === "sidebar" ? (
-        <HostControlTrigger asChild>
-          <SidebarMenuButton aria-label={label} disabled={disabled} type="button">
-            {rowContent}
-          </SidebarMenuButton>
-        </HostControlTrigger>
-      ) : layout === "compact" ? (
+      {layout === "compact" ? (
         <Button
           aria-label={label}
           className="canvas-host-select-compact-trigger"
@@ -184,7 +171,10 @@ function HostSelectItem({
   value,
 }: HostSelectOption & { className?: string }) {
   return (
-    <SelectItem className={cn("canvas-host-select-item", className)} value={value}>
+    <SelectItem
+      className={cn("canvas-host-select-item", className)}
+      value={value}
+    >
       <span className="canvas-host-select-item-text">
         <HostItemContent icon={icon} label={label} swatchColor={swatchColor} />
       </span>

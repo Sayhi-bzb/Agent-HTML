@@ -12,7 +12,6 @@ import {
   readCanvasHostPreferences,
   type CanvasHostLanguage,
   type CanvasHostThemeMode,
-  type CanvasSidebarView,
 } from "./preferences/canvas-host-preferences"
 import { useCanvasHostPreferencesPersistence } from "./preferences/use-canvas-host-preferences"
 import { useCanvasPromptLifecycle } from "./prompt/use-canvas-prompt-lifecycle"
@@ -22,7 +21,8 @@ import {
   createCanvasInteractionEventListener,
 } from "./interaction/interaction-store"
 import { fetchPipelineThreads } from "./pipeline"
-import { ReactCanvasSidebar } from "./navigation/sidebar"
+import { HostAgentMenu } from "./navigation/agent-menu"
+import { ArtifactSearchDialog } from "./navigation/artifact-search-dialog"
 import {
   applyCanvasNavigationCommand,
   publishArtifactTitleRenameResult,
@@ -41,6 +41,7 @@ import {
   shouldRedirectCanvasHostToDocs,
 } from "./mobile-docs-redirect"
 import { isCanvasThemeDraftDirty } from "./theme/theme-draft"
+import { AppearanceSurface } from "./theme/appearance-surface"
 import { useCanvasHostTheme } from "./theme/use-canvas-host-theme"
 import {
   createHostTranslator,
@@ -48,14 +49,8 @@ import {
   resolveCanvasHostLocale,
 } from "./i18n/host-i18n"
 import type { CanvasThemeEditorSectionId } from "./theme/theme-editor-contract"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "#agent-html-playground/components/ui/sidebar"
 import { TooltipProvider } from "#agent-html-playground/components/ui/tooltip"
 import type { CanvasThemePresetId } from "#agent-html-playground/theme/presets"
-import { PanelLeftIcon } from "lucide-react"
-import { HostIconButton } from "./ui/icon-button"
 import { CodexThreadManagerSurface } from "./thread/thread-manager-surface"
 import { CodexThreadSurface } from "./thread/thread-surface"
 import { codexThreadLabel } from "./thread/thread-label"
@@ -67,22 +62,6 @@ import {
 } from "./navigation/workspace-tabs"
 
 export { resolveInitialCanvasHostMode } from "./artifact/use-create-artifact-workflow"
-
-export const canvasHostCompactDesktopMediaQuery =
-  "(min-width: 768px) and (max-width: 1099px)"
-
-export function shouldAutoCollapseCanvasHostSidebar(
-  viewport:
-    | {
-        matchMedia?: (query: string) => { matches: boolean }
-      }
-    | null
-    | undefined
-) {
-  return Boolean(
-    viewport?.matchMedia?.(canvasHostCompactDesktopMediaQuery).matches
-  )
-}
 
 export function ReactCanvasHostApp() {
   if (
@@ -109,9 +88,6 @@ function ReactCanvasHostWorkbench() {
     () => readCanvasHostPreferences(),
     []
   )
-  const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(
-    initialPreferences.leftSidebarOpen
-  )
   const [artifactSearchOpen, setArtifactSearchOpen] = React.useState(false)
   const [workspaceTabSession, dispatchWorkspaceTab] = React.useReducer(
     workspaceTabReducer,
@@ -120,12 +96,6 @@ function ReactCanvasHostWorkbench() {
   const [desktopNavigationOrigin, setDesktopNavigationOrigin] = React.useState<
     string | null
   >(null)
-  const [leftSidebarAutoCollapsed, setLeftSidebarAutoCollapsed] =
-    React.useState(() =>
-      shouldAutoCollapseCanvasHostSidebar(
-        typeof window === "undefined" ? null : window
-      )
-    )
   const [activeThemePresetId, setActiveThemePresetId] =
     React.useState<CanvasThemePresetId>(initialPreferences.activeThemePresetId)
   const [activeThemeMode, setActiveThemeMode] =
@@ -145,8 +115,6 @@ function ReactCanvasHostWorkbench() {
   )
   const [activeLanguage, setActiveLanguage] =
     React.useState<CanvasHostLanguage>(initialPreferences.activeLanguage)
-  const [activeSidebarView, setActiveSidebarView] =
-    React.useState<CanvasSidebarView>(initialPreferences.activeSidebarView)
   const [activeThemeEditorSectionId, setActiveThemeEditorSectionId] =
     React.useState<CanvasThemeEditorSectionId>(
       initialPreferences.activeThemeEditorSectionId
@@ -197,11 +165,6 @@ function ReactCanvasHostWorkbench() {
     status: createArtifactStatus,
     submit: submitCreateArtifact,
   } = createArtifactWorkflow
-  const effectiveLeftSidebarOpen = leftSidebarOpen && !leftSidebarAutoCollapsed
-  const setEffectiveLeftSidebarOpen = React.useCallback((open: boolean) => {
-    setLeftSidebarAutoCollapsed(false)
-    setLeftSidebarOpen(open)
-  }, [])
   const handleWorkspacePendingArtifactReady = React.useCallback(
     (event: { filePath: string }) => {
       handlePendingArtifactReady(event)
@@ -244,6 +207,15 @@ function ReactCanvasHostWorkbench() {
           (diagnostic) => diagnostic.filePath === activeWorkspaceTab.filePath
         )
       : []
+  const previewArtifact =
+    artifacts.find(
+      (artifact) => artifact.filePath === resolvedActiveFilePath
+    ) ?? null
+  const previewDiagnostics = resolvedActiveFilePath
+    ? diagnostics.filter(
+        (diagnostic) => diagnostic.filePath === resolvedActiveFilePath
+      )
+    : []
   const { canvasLoadError, canvasRegistryVersion, canvases, canvasesLoading } =
     useCanvasRegistry()
   const selectArtifactSurface = React.useCallback(
@@ -354,6 +326,10 @@ function ReactCanvasHostWorkbench() {
     openWorkspaceTab({ kind: "thread-manager" })
   }, [openWorkspaceTab])
 
+  const openAppearance = React.useCallback(() => {
+    openWorkspaceTab({ kind: "appearance" })
+  }, [openWorkspaceTab])
+
   const selectCodexThread = React.useCallback(
     (threadId: string | null) => {
       setActiveCodexThreadId(threadId)
@@ -430,40 +406,13 @@ function ReactCanvasHostWorkbench() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [])
 
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "b" || (!event.metaKey && !event.ctrlKey)) {
-        return
-      }
-
-      event.preventDefault()
-      setEffectiveLeftSidebarOpen(!effectiveLeftSidebarOpen)
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [effectiveLeftSidebarOpen, setEffectiveLeftSidebarOpen])
-
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia(canvasHostCompactDesktopMediaQuery)
-    const syncCompactSidebar = () => {
-      if (mediaQuery.matches) {
-        setLeftSidebarAutoCollapsed(true)
-      }
-    }
-
-    syncCompactSidebar()
-    mediaQuery.addEventListener("change", syncCompactSidebar)
-
-    return () => {
-      mediaQuery.removeEventListener("change", syncCompactSidebar)
-    }
-  }, [])
-
-  function selectThemePreset(presetId: CanvasThemePresetId) {
-    setActiveThemePresetId(presetId)
-    resetThemePreview()
-  }
+  const selectThemePreset = React.useCallback(
+    (presetId: CanvasThemePresetId) => {
+      setActiveThemePresetId(presetId)
+      resetThemePreview()
+    },
+    [resetThemePreview]
+  )
 
   const selectCreateArtifact = React.useCallback(() => {
     setPromptTarget(null)
@@ -483,14 +432,15 @@ function ReactCanvasHostWorkbench() {
           ? activeWorkspaceTab.filePath
           : null,
       activeLanguage,
+      activeThemePresetId,
       artifacts: artifacts.map(({ filePath, title }) => ({ filePath, title })),
       artifactsLoading,
       canvases: canvases.map(({ filePath, title }) => ({ filePath, title })),
       canvasesLoading,
       codexThreadManagerActive: activeWorkspaceTab?.kind === "thread-manager",
       createArtifactActive: activeHostMode === "create-artifact",
-      leftSidebarOpen: effectiveLeftSidebarOpen,
       tabSession: workspaceTabSession,
+      themePresets: themePresets.map(({ id, label }) => ({ id, label })),
       threads: codexThreads.map((thread) => ({
         id: thread.id,
         title: codexThreadLabel(thread),
@@ -501,15 +451,16 @@ function ReactCanvasHostWorkbench() {
     [
       activeHostMode,
       activeLanguage,
+      activeThemePresetId,
       artifacts,
       artifactsLoading,
       canvases,
       canvasesLoading,
       codexThreads,
       codexThreadsLoading,
-      effectiveLeftSidebarOpen,
       activeWorkspaceTab,
       selectedCodexThreadId,
+      themePresets,
       workspaceTabSession,
     ]
   )
@@ -607,14 +558,16 @@ function ReactCanvasHostWorkbench() {
         onSelectArtifact: selectArtifactSurface,
         onSelectCanvas: selectCanvas,
         onSetLanguage: setActiveLanguage,
-        onSetSidebarOpen: setEffectiveLeftSidebarOpen,
         onSetThemeMode: setActiveThemeMode,
+        onSetThemePreset: (presetId) =>
+          selectThemePreset(presetId as CanvasThemePresetId),
         onToggleThemeMode: () =>
           setActiveThemeMode(
             document.documentElement.classList.contains("dark")
               ? "light"
               : "dark"
           ),
+        themePresetIds: themePresets.map((preset) => preset.id),
       })
     }
 
@@ -631,10 +584,11 @@ function ReactCanvasHostWorkbench() {
     selectArtifactSurface,
     selectCanvas,
     selectCreateArtifact,
+    selectThemePreset,
     selectArtifactMode,
     openCodexThreadManager,
     openWorkspaceTab,
-    setEffectiveLeftSidebarOpen,
+    themePresets,
   ])
 
   const submitCreateArtifactPrompt = React.useCallback(
@@ -651,70 +605,44 @@ function ReactCanvasHostWorkbench() {
     activeCodexThreadId,
     activeFilePath: artifacts.length === 0 ? undefined : resolvedActiveFilePath,
     activeLanguage,
-    activeSidebarView,
     activeThemeEditorSectionId,
     activeThemeMode,
     activeThemePresetId,
     createArtifactJob,
-    leftSidebarOpen,
     workspaceTabSession,
+  })
+
+  const activeCodexThreadLabel = resolveActiveCodexThreadLabel({
+    activeThreadId: selectedCodexThreadId,
+    threads: codexThreads,
   })
 
   return (
     <TooltipProvider>
       <HostI18nProvider language={activeLanguage}>
         <>
-          <div className="canvas-host-shell">
-            <SidebarProvider
-              className="contents"
-              keyboardShortcut={false}
-              open={effectiveLeftSidebarOpen}
-              onOpenChange={setEffectiveLeftSidebarOpen}
-            >
-              <ReactCanvasSidebar
-                artifactSearchOpen={artifactSearchOpen}
-                activeSectionId={activeThemeEditorSectionId}
-                activeSidebarView={activeSidebarView}
-                activeThemePresetId={activeThemePresetId}
-                artifacts={artifacts}
-                canvases={canvases}
-                onSelectArtifact={selectArtifactSurface}
-                onSelectCanvas={selectCanvas}
-                onArtifactSearchOpenChange={setArtifactSearchOpen}
-                onSelectSection={setActiveThemeEditorSectionId}
-                onSelectSidebarView={setActiveSidebarView}
-                onSelectThemePreset={selectThemePreset}
-                onThemeVariableChange={updateThemeVariable}
-                onResetThemePreview={resetThemePreview}
-                themeDraft={themeDraft}
-                themePreviewDirty={isCanvasThemeDraftDirty(themeDraft)}
-                themePresets={themePresets}
-                themeRuntimeVariables={themeRuntimeVariables}
-                showArtifactSearchAction={
-                  typeof window === "undefined" || window.parent === window
-                }
-              />
-            </SidebarProvider>
-            <SidebarInset className="h-full min-h-0 min-w-0 overflow-hidden">
-              {!desktopNavigationOrigin ? (
-                <div className="canvas-host-toolbar">
-                  <HostIconButton
-                    icon={PanelLeftIcon}
-                    label={
-                      effectiveLeftSidebarOpen
-                        ? t("app.collapseArtifactSidebar")
-                        : t("app.expandArtifactSidebar")
-                    }
-                    onClick={() =>
-                      setEffectiveLeftSidebarOpen(!effectiveLeftSidebarOpen)
-                    }
-                    placement="toolbar"
-                    size="icon-sm"
-                    tone="neutral"
-                    variant="ghost"
-                  />
-                </div>
-              ) : null}
+          <div
+            className="canvas-host-shell"
+            data-toolbar={desktopNavigationOrigin ? "absent" : "present"}
+          >
+            {!desktopNavigationOrigin ? (
+              <div className="canvas-host-toolbar">
+                <HostAgentMenu
+                  activeLanguage={activeLanguage}
+                  activeThemePresetId={activeThemePresetId}
+                  activeThemeMode={activeThemeMode}
+                  activeThreadLabel={activeCodexThreadLabel}
+                  onOpenAppearance={openAppearance}
+                  onOpenSearch={() => setArtifactSearchOpen(true)}
+                  onOpenThreads={openCodexThreadManager}
+                  onSelectLanguage={setActiveLanguage}
+                  onSelectThemeMode={setActiveThemeMode}
+                  onSelectThemePreset={selectThemePreset}
+                  themePresets={themePresets}
+                />
+              </div>
+            ) : null}
+            <div className="canvas-host-workspace">
               {activeHostMode === "create-artifact" ? (
                 <CreateArtifactSurface
                   disabled={
@@ -730,6 +658,30 @@ function ReactCanvasHostWorkbench() {
                     createArtifactJob.phase !== "failed"
                   }
                   status={createArtifactStatus}
+                />
+              ) : activeWorkspaceTab?.kind === "appearance" ? (
+                <AppearanceSurface
+                  activePresetId={activeThemePresetId}
+                  activeSectionId={activeThemeEditorSectionId}
+                  draft={themeDraft}
+                  onResetPreview={resetThemePreview}
+                  onSelectPreset={selectThemePreset}
+                  onSelectSection={setActiveThemeEditorSectionId}
+                  onVariableChange={updateThemeVariable}
+                  presets={themePresets}
+                  preview={
+                    <ArtifactSurface
+                      activeFilePath={resolvedActiveFilePath}
+                      artifactCount={artifacts.length}
+                      artifactRegistryVersion={artifactRegistryVersion}
+                      artifactsLoading={artifactsLoading}
+                      blocks={previewArtifact?.blocks}
+                      diagnostics={previewDiagnostics}
+                      loadError={loadError}
+                    />
+                  }
+                  previewDirty={isCanvasThemeDraftDirty(themeDraft)}
+                  runtimeVariables={themeRuntimeVariables}
                 />
               ) : activeWorkspaceTab?.kind === "thread-manager" ? (
                 <CodexThreadManagerSurface
@@ -776,8 +728,16 @@ function ReactCanvasHostWorkbench() {
                   <p>{t("artifact.noArtifactsTitle")}</p>
                 </main>
               )}
-            </SidebarInset>
+            </div>
           </div>
+          <ArtifactSearchDialog
+            artifacts={artifacts}
+            canvases={canvases}
+            onOpenChange={setArtifactSearchOpen}
+            onSelectArtifact={selectArtifactSurface}
+            onSelectCanvas={selectCanvas}
+            open={artifactSearchOpen}
+          />
           {pendingDeleteArtifact ? (
             <ArtifactDeleteDialog
               artifact={pendingDeleteArtifact}

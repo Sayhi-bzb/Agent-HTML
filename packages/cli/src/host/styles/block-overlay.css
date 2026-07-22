@@ -79,7 +79,8 @@
     height: 0.875rem;
   }
 
-  .canvas-block-action-badge[data-state="running"] .canvas-block-action-badge-icon {
+  .canvas-block-action-badge[data-state="running"]
+    .canvas-block-action-badge-icon {
     animation: canvas-block-message-spin 0.85s linear infinite;
   }
 
@@ -106,7 +107,7 @@
 
   .canvas-block-message-item-summary {
     overflow-wrap: anywhere;
-    font-size: var(--canvas-sidebar-caption-font-size);
+    font-size: var(--canvas-host-caption-font-size);
     color: var(--muted-foreground);
   }
 
@@ -122,7 +123,7 @@
     color: var(--muted-foreground);
     cursor: pointer;
     font: inherit;
-    font-size: var(--canvas-sidebar-caption-font-size);
+    font-size: var(--canvas-host-caption-font-size);
   }
 
   .canvas-block-message-tab[data-active="true"],

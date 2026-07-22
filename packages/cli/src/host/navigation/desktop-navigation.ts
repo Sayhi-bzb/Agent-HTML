@@ -28,9 +28,10 @@ export function applyCanvasNavigationCommand({
   onSelectCanvas,
   onActivateTab,
   onSetLanguage,
-  onSetSidebarOpen,
   onSetThemeMode,
+  onSetThemePreset,
   onToggleThemeMode,
+  themePresetIds,
 }: {
   artifactFilePaths: readonly string[]
   canvasFilePaths: readonly string[]
@@ -53,9 +54,15 @@ export function applyCanvasNavigationCommand({
   onSelectCanvas: (filePath: string) => void
   onActivateTab: (tabId: string) => void
   onSetLanguage: (language: CanvasNavigationLanguage) => void
-  onSetSidebarOpen: (open: boolean) => void
   onSetThemeMode: (mode: CanvasThemeMode) => void
+  onSetThemePreset: (
+    presetId: Extract<
+      CanvasNavigationCommand,
+      { type: "set-theme-preset" }
+    >["presetId"]
+  ) => void
   onToggleThemeMode: () => void
+  themePresetIds: readonly string[]
 }) {
   if (command.type === "open-tab") {
     if (
@@ -101,12 +108,15 @@ export function applyCanvasNavigationCommand({
     onSetThemeMode(command.mode)
     return true
   }
-  if (command.type === "set-language") {
-    onSetLanguage(command.language)
+  if (command.type === "set-theme-preset") {
+    if (!themePresetIds.includes(command.presetId)) {
+      return false
+    }
+    onSetThemePreset(command.presetId)
     return true
   }
-  if (command.type === "set-sidebar-open") {
-    onSetSidebarOpen(command.open)
+  if (command.type === "set-language") {
+    onSetLanguage(command.language)
     return true
   }
   if (command.type === "select-canvas") {

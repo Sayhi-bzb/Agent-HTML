@@ -13,6 +13,11 @@ export type CanvasWorkspaceTab = {
   kind: "canvas"
 }
 
+export type AppearanceWorkspaceTab = {
+  id: "appearance"
+  kind: "appearance"
+}
+
 export type ThreadManagerWorkspaceTab = {
   id: "threads"
   kind: "thread-manager"
@@ -25,12 +30,14 @@ export type ThreadWorkspaceTab = {
 }
 
 export type WorkspaceTab =
+  | AppearanceWorkspaceTab
   | ArtifactWorkspaceTab
   | CanvasWorkspaceTab
   | ThreadManagerWorkspaceTab
   | ThreadWorkspaceTab
 
 export type WorkspaceTabTarget =
+  | { kind: "appearance" }
   | { filePath: string; kind: "artifact" }
   | { filePath: string; kind: "canvas" }
   | { kind: "thread-manager" }
@@ -70,6 +77,9 @@ function readIdentity(value: unknown) {
 }
 
 export function createWorkspaceTab(target: WorkspaceTabTarget): WorkspaceTab {
+  if (target.kind === "appearance") {
+    return { id: "appearance", kind: "appearance" }
+  }
   if (target.kind === "artifact") {
     return {
       filePath: target.filePath,
@@ -105,6 +115,9 @@ export function createEmptyWorkspaceTabSession(): WorkspaceTabSession {
 function readWorkspaceTab(value: unknown): WorkspaceTab | null {
   if (!isRecord(value)) return null
 
+  if (value.kind === "appearance" && value.id === "appearance") {
+    return { id: "appearance", kind: "appearance" }
+  }
   if (value.kind === "thread-manager" && value.id === "threads") {
     return { id: "threads", kind: "thread-manager" }
   }

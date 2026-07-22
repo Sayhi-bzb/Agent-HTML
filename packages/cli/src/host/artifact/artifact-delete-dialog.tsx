@@ -56,9 +56,7 @@ export function ArtifactDeleteDialog({
             {t("sidebar.deleteArtifactDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {status ? (
-          <p className="canvas-sidebar-dialog-status">{status}</p>
-        ) : null}
+        {status ? <p className="canvas-host-dialog-status">{status}</p> : null}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={deleting}>
             {t("sidebar.cancel")}

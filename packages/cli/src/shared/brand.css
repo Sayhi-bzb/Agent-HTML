@@ -1,8 +1,8 @@
 :root {
   --agent-html-brand-font-family: var(--font-sans);
-  --agent-html-brand-font-size: 1rem;
+  --agent-html-brand-font-size: var(--font-size-base);
   --agent-html-brand-font-weight: 600;
-  --agent-html-brand-line-height: 1.25;
+  --agent-html-brand-line-height: var(--line-height-base);
   --agent-html-brand-letter-spacing: var(--tracking-normal);
   --agent-html-brand-icon-size: 1.25rem;
   --agent-html-brand-gap: 0.5rem;

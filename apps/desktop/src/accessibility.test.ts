@@ -116,17 +116,31 @@ describe("desktop accessibility contract", () => {
     expect(titleBarSource).toContain("<DropdownMenu.RadioItem")
     expect(titleBarSource).not.toContain("<DropdownMenu.ItemIndicator>")
     expect(titleBarSource).toContain('aria-label="Theme"')
+    expect(titleBarSource).toContain('aria-label="Preset"')
     expect(titleBarSource).toContain('aria-label="Language"')
+    expect(titleBarSource).toContain("<span>Appearance</span>")
+    expect(titleBarSource).toContain("<span>Preset</span>")
+    expect(titleBarSource).toContain(
+      "activeThemePreset?.label ?? activeThemePresetId"
+    )
+    expect(titleBarSource).not.toContain("Customize…")
     expect(titleBarSource).toContain('href="https://agent-html.org/docs"')
     expect(titleBarSource).toContain(
       'href="https://github.com/Sayhi-bzb/Agent-HTML"'
     )
     expect(appSource).toContain('type: "set-theme-mode"')
+    expect(appSource).toContain('type: "set-theme-preset"')
     expect(appSource).toContain('type: "set-language"')
     expect(titleBarSource.indexOf("<span>Search</span>")).toBeLessThan(
       titleBarSource.indexOf("<MessageSquareText")
     )
     expect(titleBarSource.indexOf("<MessageSquareText")).toBeLessThan(
+      titleBarSource.indexOf("<span>Appearance</span>")
+    )
+    expect(titleBarSource.indexOf("<span>Appearance</span>")).toBeLessThan(
+      titleBarSource.indexOf("<span>Preset</span>")
+    )
+    expect(titleBarSource.indexOf("<span>Preset</span>")).toBeLessThan(
       titleBarSource.indexOf("<span>Theme</span>")
     )
     expect(titleBarSource.indexOf("<span>Theme</span>")).toBeLessThan(

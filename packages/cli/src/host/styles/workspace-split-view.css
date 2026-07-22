@@ -1,0 +1,102 @@
+@layer components {
+  .workspace-split-view {
+    container-name: workspace-split-view;
+    container-type: inline-size;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0%;
+    overflow: hidden;
+  }
+
+  .workspace-split-view__layout {
+    display: grid;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns:
+      var(--canvas-workspace-pane-width)
+      minmax(0, 1fr);
+  }
+
+  .workspace-split-view__pane,
+  .workspace-split-view__main {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--background);
+  }
+
+  .workspace-split-view__pane {
+    border-inline-end: 1px solid var(--border);
+  }
+
+  .workspace-split-view__pane-content,
+  .workspace-split-view__main-content {
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0%;
+  }
+
+  .workspace-split-view__pane-content {
+    height: 100%;
+  }
+
+  .workspace-split-view__pane-content [data-slot="scroll-area-viewport"] {
+    overscroll-behavior: contain;
+  }
+
+  .workspace-split-view__pane-content [data-slot="scroll-area-viewport"] > div {
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .workspace-split-view__main-content {
+    display: flex;
+    overflow: hidden;
+  }
+
+  .workspace-split-view__narrow-navigation {
+    display: none;
+  }
+
+  @container workspace-split-view (max-width: 48rem) {
+    .workspace-split-view__layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .workspace-split-view__pane,
+    .workspace-split-view__main {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .workspace-split-view[data-narrow-panel="pane"] .workspace-split-view__main,
+    .workspace-split-view[data-narrow-panel="main"]
+      .workspace-split-view__pane {
+      display: none;
+    }
+
+    .workspace-split-view__narrow-navigation {
+      display: flex;
+      flex: 0 0 auto;
+      padding-block-start: var(--canvas-surface-padding-block-start);
+      padding-inline: var(--canvas-host-section-padding);
+    }
+
+    .workspace-split-view__narrow-action {
+      max-width: 100%;
+    }
+
+    .workspace-split-view__main-content {
+      --canvas-surface-padding-block-start: 1rem;
+    }
+  }
+
+  .canvas-host-shell[data-toolbar="absent"]
+    .workspace-split-view__narrow-navigation {
+    padding-block-start: var(--canvas-host-section-padding);
+  }
+}

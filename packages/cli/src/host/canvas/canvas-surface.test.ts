@@ -77,6 +77,20 @@ describe("React Flow Canvas adapter", () => {
     expect(projection.nodes[0]?.data.requestPersistLayout).toBe(
       requestPersistLayout
     )
+    expect(projection.nodes[0]?.data.contentInteractive).toBe(false)
+
+    const navigateProjection = projectCanvasSnapshot(
+      store.getSnapshot(),
+      store,
+      new Set(),
+      persistLayout,
+      requestPersistLayout,
+      true
+    )
+    expect(navigateProjection.nodes[0]?.data.contentInteractive).toBe(true)
+    expect(navigateProjection.nodes[0]?.style).toEqual({
+      pointerEvents: "all",
+    })
   })
 
   it("preserves a Store across source module versions", () => {

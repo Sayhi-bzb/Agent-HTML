@@ -16,6 +16,7 @@ describe("Desktop Canvas navigation bridge", () => {
     const source = {} as MessageEventSource
     const snapshot: CanvasNavigationSnapshot = {
       activeFilePath: "agent-html/artifacts/one.artifact.tsx",
+      activeThemePresetId: "default",
       artifacts: [
         {
           filePath: "agent-html/artifacts/one.artifact.tsx",
@@ -24,7 +25,6 @@ describe("Desktop Canvas navigation bridge", () => {
       ],
       artifactsLoading: false,
       createArtifactActive: false,
-      leftSidebarOpen: true,
       tabSession: {
         activeTabId: "artifact:agent-html/artifacts/one.artifact.tsx",
         tabs: [
@@ -36,6 +36,7 @@ describe("Desktop Canvas navigation bridge", () => {
         ],
         version: 1,
       },
+      themePresets: [{ id: "default", label: "Default" }],
       threads: [],
       threadsLoading: false,
       version: canvasNavigationSnapshotVersion,

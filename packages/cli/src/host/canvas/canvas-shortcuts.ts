@@ -5,6 +5,8 @@ export type CanvasShortcutAction =
   | { type: "move"; dx: number; dy: number }
   | { type: "open-shortcuts" }
   | { type: "select-all" }
+  | { type: "tool-navigate" }
+  | { type: "tool-select" }
   | { type: "zoom-in" }
   | { type: "zoom-out" }
   | { type: "zoom-reset" }
@@ -30,7 +32,7 @@ export function isCanvasShortcutBlocked(target: EventTarget | null) {
     target instanceof Element &&
     Boolean(
       target.closest(
-        ".canvas-node-content, input, textarea, select, [contenteditable='true']"
+        "[data-canvas-region='node-content'], [data-canvas-region='dock'], [data-canvas-region='overlay'], input, textarea, select, [contenteditable]:not([contenteditable='false'])"
       )
     )
   )
@@ -70,5 +72,7 @@ export function resolveCanvasShortcut({
   if (key === "2") return { type: "fit-selection" }
   if (key === "?") return { type: "open-shortcuts" }
   if (key === "Escape") return { type: "clear-selection" }
+  if (key.toLowerCase() === "h") return { type: "tool-navigate" }
+  if (key.toLowerCase() === "v") return { type: "tool-select" }
   return null
 }

@@ -11,6 +11,10 @@ describe("workspace tabs", () => {
   it("opens resources once and activates an existing tab", () => {
     let session = createEmptyWorkspaceTabSession()
     session = workspaceTabReducer(session, {
+      tab: { kind: "appearance" },
+      type: "open",
+    })
+    session = workspaceTabReducer(session, {
       tab: { filePath: "one.artifact.tsx", kind: "artifact" },
       type: "open",
     })
@@ -23,7 +27,7 @@ describe("workspace tabs", () => {
       type: "open",
     })
 
-    expect(session.tabs).toHaveLength(2)
+    expect(session.tabs).toHaveLength(3)
     expect(session.activeTabId).toBe("artifact:one.artifact.tsx")
   })
 
@@ -32,13 +36,18 @@ describe("workspace tabs", () => {
       createWorkspaceTab({ filePath: "one", kind: "artifact" }),
       createWorkspaceTab({ filePath: "two", kind: "canvas" }),
       createWorkspaceTab({ kind: "thread-manager" }),
+      createWorkspaceTab({ kind: "appearance" }),
     ]
     const session = workspaceTabReducer(
       { activeTabId: tabs[1].id, tabs, version: 1 },
       { tabId: tabs[1].id, type: "close" }
     )
 
-    expect(session.tabs.map((tab) => tab.id)).toEqual([tabs[0].id, tabs[2].id])
+    expect(session.tabs.map((tab) => tab.id)).toEqual([
+      tabs[0].id,
+      tabs[2].id,
+      tabs[3].id,
+    ])
     expect(session.activeTabId).toBe("threads")
   })
 
@@ -68,6 +77,20 @@ describe("workspace tabs", () => {
         version: 1,
       })
     ).not.toBeNull()
+    expect(
+      readWorkspaceTabSession({
+        activeTabId: "appearance",
+        tabs: [{ id: "appearance", kind: "appearance" }],
+        version: 1,
+      })
+    ).not.toBeNull()
+    expect(
+      readWorkspaceTabSession({
+        activeTabId: "wrong",
+        tabs: [{ id: "wrong", kind: "appearance" }],
+        version: 1,
+      })
+    ).toBeNull()
     expect(
       readWorkspaceTabSession({
         activeTabId: "wrong",

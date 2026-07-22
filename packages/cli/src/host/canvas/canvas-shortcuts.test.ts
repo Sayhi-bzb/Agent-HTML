@@ -36,6 +36,12 @@ describe("Canvas shortcuts", () => {
     expect(
       resolveCanvasShortcut(shortcut({ ctrlKey: true, key: "a" }))
     ).toEqual({ type: "select-all" })
+    expect(resolveCanvasShortcut(shortcut({ key: "v" }))).toEqual({
+      type: "tool-select",
+    })
+    expect(resolveCanvasShortcut(shortcut({ key: "H" }))).toEqual({
+      type: "tool-navigate",
+    })
   })
 
   it("preserves modified, composing, and unrelated shortcuts", () => {
@@ -52,13 +58,21 @@ describe("Canvas shortcuts", () => {
 
   it("blocks shortcuts owned by Node content and editable controls", () => {
     const content = document.createElement("div")
-    content.className = "canvas-node-content"
+    content.dataset.canvasRegion = "node-content"
     const button = document.createElement("button")
     content.append(button)
     expect(isCanvasShortcutBlocked(button)).toBe(true)
 
     const input = document.createElement("input")
     expect(isCanvasShortcutBlocked(input)).toBe(true)
+
+    const editor = document.createElement("div")
+    editor.setAttribute("contenteditable", "")
+    expect(isCanvasShortcutBlocked(editor)).toBe(true)
+
+    const dock = document.createElement("div")
+    dock.dataset.canvasRegion = "dock"
+    expect(isCanvasShortcutBlocked(dock)).toBe(true)
 
     const pane = document.createElement("div")
     pane.className = "react-flow__pane"

@@ -24,6 +24,7 @@ const windowControls: DesktopWindowControls = {
 const navigation: CanvasNavigationSnapshot = {
   activeCodexThreadLabel: "Navigation polish",
   activeFilePath: "agent-html/artifacts/artifact-2.artifact.tsx",
+  activeThemePresetId: "claude-plus",
   artifacts: [
     {
       filePath: "agent-html/artifacts/artifact-1.artifact.tsx",
@@ -44,7 +45,6 @@ const navigation: CanvasNavigationSnapshot = {
   canvasesLoading: false,
   codexThreadManagerActive: false,
   createArtifactActive: false,
-  leftSidebarOpen: true,
   tabSession: {
     activeTabId: "artifact:agent-html/artifacts/artifact-2.artifact.tsx",
     tabs: [
@@ -63,9 +63,14 @@ const navigation: CanvasNavigationSnapshot = {
         id: "canvas:agent-html/canvases/operations.canvas.tsx",
         kind: "canvas",
       },
+      { id: "appearance", kind: "appearance" },
     ],
     version: 1,
   },
+  themePresets: [
+    { id: "default", label: "Default" },
+    { id: "claude-plus", label: "Claude +" },
+  ],
   threads: [],
   threadsLoading: false,
   version: canvasNavigationSnapshotVersion,
@@ -127,16 +132,18 @@ describe("desktop title bar", () => {
     )
     expect(markup).toContain('class="desktop-titlebar__tab" data-active=""')
     expect(markup).toContain(
-      'aria-selected="true" aria-posinset="2" aria-setsize="3" class="desktop-titlebar__tab-label"'
+      'aria-selected="true" aria-posinset="2" aria-setsize="4" class="desktop-titlebar__tab-label"'
     )
     expect(markup).toContain('class="desktop-titlebar__tab-title"')
     expect(markup.match(/class="desktop-titlebar__tab-close"/g)).toHaveLength(
-      navigation.artifacts.length + 1
+      navigation.artifacts.length + 2
     )
     expect(markup).toContain('data-kind="canvas"')
     expect(markup).toContain('aria-label="Close Artifact 1"')
     expect(markup).toContain('aria-label="Close Artifact 2"')
-    expect(markup).toContain('aria-expanded="true"')
+    expect(markup).toContain('title="Appearance"')
+    expect(markup).toContain('aria-label="Close Appearance"')
+    expect(markup).not.toContain("Collapse sidebar")
     expect(markup).toContain('aria-label="New Artifact"')
     expect(markup).toContain('aria-label="Agent menu"')
     expect(markup).not.toContain('role="img"')

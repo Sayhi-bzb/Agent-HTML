@@ -3,18 +3,17 @@ import {
   BackgroundVariant,
   ControlButton,
   Controls,
-  NodeResizer,
+  Panel,
   ReactFlow,
-  type NodeProps,
   type OnNodesChange,
   type ReactFlowInstance,
-  type ResizeParams,
   useReactFlow,
   useViewport,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import * as React from "react"
 import { CanvasIntentProvider } from "@agent-html/react"
+import { useMachine } from "@xstate/react"
 import {
   CircleHelpIcon,
   Maximize2Icon,
@@ -27,10 +26,20 @@ import {
 } from "#agent-html-playground/components/ui/popover"
 
 import { canvasBundleUrl, fetchCanvasLayout } from "../api/api"
-import { HostButton } from "../ui/button"
 import { HostPopoverContent } from "../ui/popover"
 import { createCanvasInspectionPublisher } from "./canvas-inspection-publisher"
+import {
+  canvasInteractionMachine,
+  canvasInteractionPhase,
+  isCanvasNavigateMode,
+  type CanvasTool,
+} from "./canvas-interaction-machine"
+import {
+  canvasFocusOwnerFromTarget,
+  isCanvasInteractiveTarget,
+} from "./canvas-input-router"
 import { createLayoutPersister } from "./canvas-layout-persister"
+import { CanvasNodeShell } from "./canvas-node-shell"
 import {
   applyCanvasNodeChanges,
   getOrCreateCanvasStore,
@@ -44,6 +53,7 @@ import {
   resolveCanvasShortcut,
 } from "./canvas-shortcuts"
 import type { CanvasStore } from "./canvas-store"
+import { CanvasToolDock } from "./canvas-tool-dock"
 import {
   isCanvasSpaceKey,
   shouldActivateCanvasSpacePan,
@@ -63,53 +73,6 @@ function useCanvasStoreSnapshot(store: CanvasStore) {
     store.subscribe,
     store.getSnapshot,
     store.getSnapshot
-  )
-}
-
-function CanvasNodeShell({ data, id, selected }: NodeProps<CanvasFlowNode>) {
-  const { persistLayout, requestPersistLayout, store, title } = data
-  const setTarget = React.useCallback(
-    (target: HTMLDivElement | null) => store.setNodeTarget(id, target),
-    [id, store]
-  )
-  const setGeometry = React.useCallback(
-    (_event: unknown, geometry: ResizeParams) => {
-      store.setNodeGeometry(id, geometry)
-      requestPersistLayout([id])
-    },
-    [id, requestPersistLayout, store]
-  )
-  const finishResize = React.useCallback(
-    (_event: unknown, geometry: ResizeParams) => {
-      store.setNodeGeometry(id, geometry)
-      persistLayout([id])
-    },
-    [id, persistLayout, store]
-  )
-  return (
-    <div
-      className="canvas-node-shell"
-      data-selected={selected ? "" : undefined}
-    >
-      <NodeResizer
-        isVisible={selected}
-        minHeight={40}
-        minWidth={80}
-        onResize={setGeometry}
-        onResizeEnd={finishResize}
-      />
-      <HostButton
-        aria-keyshortcuts="Enter ArrowUp ArrowDown ArrowLeft ArrowRight"
-        aria-label={`Select and move ${title ?? id}. Use arrow keys; hold Shift for ten pixels.`}
-        className="canvas-node-drag-handle"
-        title={title ?? id}
-        type="button"
-        variant="ghost"
-      >
-        <span>{title ?? id}</span>
-      </HostButton>
-      <div className="canvas-node-content nodrag nowheel" ref={setTarget} />
-    </div>
   )
 }
 
@@ -194,6 +157,10 @@ function CanvasViewportControls({
         >
           <strong>Canvas shortcuts</strong>
           <dl>
+            <div>
+              <dt>Pointer / Hand</dt>
+              <dd>V / H</dd>
+            </div>
             <div>
               <dt>Zoom</dt>
               <dd>+ / −</dd>
@@ -291,9 +258,12 @@ function CanvasWorkspace({
     null
   )
   const reactFlowElementRef = React.useRef<HTMLDivElement>(null)
-  const [spacePanActive, setSpacePanActive] = React.useState(false)
-  const [selectedNodeIds, setSelectedNodeIds] = React.useState<Set<string>>(
-    () => new Set()
+  const [interaction, sendInteraction] = useMachine(canvasInteractionMachine)
+  const navigateMode = isCanvasNavigateMode(interaction.context)
+  const interactionPhase = canvasInteractionPhase(interaction.value)
+  const selectedNodeIds = React.useMemo(
+    () => new Set(interaction.context.selectedNodeIds),
+    [interaction.context.selectedNodeIds]
   )
   const [shortcutHelpOpen, setShortcutHelpOpen] = React.useState(false)
   const persister = React.useMemo(
@@ -314,31 +284,43 @@ function CanvasWorkspace({
         })
       )
         return
+      const focusOwner = canvasFocusOwnerFromTarget(event.target)
+      if (focusOwner === "nodeContent" || focusOwner === "overlay") return
       event.preventDefault()
-      setSpacePanActive(true)
+      sendInteraction({ type: "SPACE.DOWN" })
     }
     const handleKeyUp = (event: KeyboardEvent) => {
-      if (isCanvasSpaceKey(event)) setSpacePanActive(false)
+      if (isCanvasSpaceKey(event)) sendInteraction({ type: "SPACE.UP" })
     }
-    const resetSpacePan = () => setSpacePanActive(false)
+    const resetTransient = () => sendInteraction({ type: "TRANSIENT.RESET" })
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") resetTransient()
+    }
 
     window.addEventListener("keydown", handleKeyDown, true)
     window.addEventListener("keyup", handleKeyUp, true)
-    window.addEventListener("blur", resetSpacePan)
+    window.addEventListener("blur", resetTransient)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
     return () => {
       window.removeEventListener("keydown", handleKeyDown, true)
       window.removeEventListener("keyup", handleKeyUp, true)
-      window.removeEventListener("blur", resetSpacePan)
+      window.removeEventListener("blur", resetTransient)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
-  }, [])
+  }, [sendInteraction])
   const panGestureActiveRef = useCanvasPanGestures({
     applyViewport: (viewport) => {
       void reactFlowRef.current?.setViewport(viewport)
     },
     getViewport: () =>
       reactFlowRef.current?.getViewport() ?? { x: 0, y: 0, zoom: 1 },
-    onGestureEnd: (viewport) => persister.commitViewport(viewport),
-    spacePanActive,
+    onGestureEnd: (viewport) => {
+      sendInteraction({ type: "PHASE.END" })
+      persister.commitViewport(viewport)
+    },
+    onGestureStart: (source) =>
+      sendInteraction({ type: "PHASE.PAN.START", source }),
+    panActive: navigateMode,
     target: reactFlowElementRef,
   })
   const inspectionPublisher = React.useMemo(
@@ -362,9 +344,10 @@ function CanvasWorkspace({
         store,
         selectedNodeIds,
         persister.commit,
-        persister.request
+        persister.request,
+        navigateMode
       ),
-    [persister, selectedNodeIds, snapshot, store]
+    [navigateMode, persister, selectedNodeIds, snapshot, store]
   )
   const onNodesChange = React.useCallback<OnNodesChange<CanvasFlowNode>>(
     (changes) => {
@@ -373,16 +356,23 @@ function CanvasWorkspace({
         (change) => change.type === "select"
       )
       if (selectionChanges.length > 0) {
-        setSelectedNodeIds((current) => {
-          const next = new Set(current)
-          for (const change of selectionChanges) {
-            if (change.type !== "select") continue
-            if (change.selected) next.add(change.id)
-            else next.delete(change.id)
-          }
-          return next
+        const next = new Set(interaction.context.selectedNodeIds)
+        for (const change of selectionChanges) {
+          if (change.type !== "select") continue
+          if (change.selected) next.add(change.id)
+          else next.delete(change.id)
+        }
+        sendInteraction({
+          nodeIds: [...next],
+          type: "SELECTION.CHANGED",
         })
       }
+      if (
+        changes.some(
+          (change) => change.type === "dimensions" && change.resizing === true
+        )
+      )
+        sendInteraction({ type: "PHASE.RESIZE.START" })
       if (
         changes.some(
           (change) =>
@@ -398,9 +388,16 @@ function CanvasWorkspace({
               : []
           )
         )
+        sendInteraction({ type: "PHASE.END" })
       }
     },
-    [persister, snapshot, store]
+    [
+      interaction.context.selectedNodeIds,
+      persister,
+      sendInteraction,
+      snapshot,
+      store,
+    ]
   )
   const onKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -431,13 +428,24 @@ function CanvasWorkspace({
       event.preventDefault()
       event.stopPropagation()
 
+      if (action.type === "tool-navigate") {
+        sendInteraction({ type: "TOOL.NAVIGATE" })
+        return
+      }
+      if (action.type === "tool-select") {
+        sendInteraction({ type: "TOOL.SELECT" })
+        return
+      }
       if (action.type === "clear-selection") {
-        setSelectedNodeIds(new Set())
+        sendInteraction({ nodeIds: [], type: "SELECTION.CHANGED" })
         setShortcutHelpOpen(false)
         return
       }
       if (action.type === "select-all") {
-        setSelectedNodeIds(new Set(snapshot.nodes.map((node) => node.id)))
+        sendInteraction({
+          nodeIds: snapshot.nodes.map((node) => node.id),
+          type: "SELECTION.CHANGED",
+        })
         return
       }
       if (action.type === "open-shortcuts") {
@@ -455,7 +463,10 @@ function CanvasWorkspace({
             : selectedNodeIds
         if (movingNodeIds.size === 0) return
         if (movingNodeIds !== selectedNodeIds) {
-          setSelectedNodeIds(movingNodeIds)
+          sendInteraction({
+            nodeIds: [...movingNodeIds],
+            type: "SELECTION.CHANGED",
+          })
         }
         const movedNodeIds = moveCanvasNodes({
           dx: action.dx,
@@ -485,7 +496,15 @@ function CanvasWorkspace({
         })
       }
     },
-    [persister, selectedNodeIds, snapshot, store]
+    [persister, selectedNodeIds, sendInteraction, snapshot, store]
+  )
+  const selectTool = React.useCallback(
+    (tool: CanvasTool) => {
+      sendInteraction({
+        type: tool === "select" ? "TOOL.SELECT" : "TOOL.NAVIGATE",
+      })
+    },
+    [sendInteraction]
   )
   const initialViewport = snapshot.viewport
     ? {
@@ -500,10 +519,45 @@ function CanvasWorkspace({
   return (
     <div
       className="canvas-workspace"
+      data-canvas-region="canvas"
       data-node-count={snapshot.nodes.length}
-      data-space-pan={spacePanActive ? "" : undefined}
+      data-pan-active={navigateMode ? "" : undefined}
+      data-phase={interactionPhase}
       data-testid="canvas-workspace"
+      data-tool={interaction.context.tool}
+      onBlurCapture={(event) =>
+        sendInteraction({
+          owner: canvasFocusOwnerFromTarget(event.relatedTarget),
+          type: "FOCUS.CHANGED",
+        })
+      }
+      onFocusCapture={(event) =>
+        sendInteraction({
+          owner: canvasFocusOwnerFromTarget(event.target),
+          type: "FOCUS.CHANGED",
+        })
+      }
       onKeyDown={onKeyDown}
+      onLostPointerCapture={() => sendInteraction({ type: "TRANSIENT.RESET" })}
+      onPointerCancel={() => sendInteraction({ type: "TRANSIENT.RESET" })}
+      onPointerDownCapture={(event) => {
+        const focusOwner = canvasFocusOwnerFromTarget(event.target)
+        if (focusOwner === "canvas") {
+          reactFlowElementRef.current?.focus({ preventScroll: true })
+        }
+        if (
+          navigateMode &&
+          focusOwner === "nodeContent" &&
+          isCanvasInteractiveTarget(event.target)
+        ) {
+          sendInteraction({ type: "PHASE.INTERACT.START" })
+        }
+      }}
+      onPointerUpCapture={() => {
+        if (interactionPhase === "interacting") {
+          sendInteraction({ type: "PHASE.END" })
+        }
+      }}
     >
       <CanvasIntentProvider runtime={store.runtime}>
         <Source />
@@ -513,7 +567,7 @@ function CanvasWorkspace({
           aria-label="Infinite Canvas"
           defaultViewport={initialViewport}
           deleteKeyCode={null}
-          elementsSelectable
+          elementsSelectable={!navigateMode}
           fitView={!initialViewport}
           fitViewOptions={{ padding: 0.18 }}
           maxZoom={canvasMaxZoom}
@@ -521,16 +575,25 @@ function CanvasWorkspace({
           multiSelectionKeyCode="Shift"
           nodeTypes={canvasNodeTypes}
           nodes={projection.nodes}
-          nodesDraggable={!spacePanActive}
+          nodesDraggable={!navigateMode}
           nodesFocusable={false}
           onInit={(instance) => {
             reactFlowRef.current = instance
           }}
+          onMoveStart={() => {
+            if (panGestureActiveRef.current) return
+            sendInteraction({ type: "PHASE.PAN.START", source: "middle" })
+          }}
           onMoveEnd={(_event, viewport) => {
             if (panGestureActiveRef.current) return
+            sendInteraction({ type: "PHASE.END" })
             persister.commitViewport(viewport)
           }}
-          onNodeDragStop={(_event, node) => persister.commit([node.id])}
+          onNodeDragStart={() => sendInteraction({ type: "PHASE.MOVE.START" })}
+          onNodeDragStop={(_event, node) => {
+            sendInteraction({ type: "PHASE.END" })
+            persister.commit([node.id])
+          }}
           onNodesChange={onNodesChange}
           onlyRenderVisibleElements={shouldCullCanvasElements(
             snapshot.nodes.length
@@ -540,7 +603,11 @@ function CanvasWorkspace({
           proOptions={canvasReactFlowProOptions}
           ref={reactFlowElementRef}
           selectionKeyCode={null}
-          selectionOnDrag
+          selectionOnDrag={!navigateMode}
+          onSelectionEnd={() => sendInteraction({ type: "PHASE.END" })}
+          onSelectionStart={() =>
+            sendInteraction({ type: "PHASE.MARQUEE.START" })
+          }
           tabIndex={0}
           zoomOnDoubleClick={false}
           zoomOnScroll={false}
@@ -551,6 +618,12 @@ function CanvasWorkspace({
             size={1.25}
             variant={BackgroundVariant.Dots}
           />
+          <Panel className="canvas-tool-panel" position="bottom-center">
+            <CanvasToolDock
+              onToolChange={selectTool}
+              tool={interaction.context.tool}
+            />
+          </Panel>
           <CanvasViewportControls
             helpOpen={shortcutHelpOpen}
             onHelpOpenChange={setShortcutHelpOpen}

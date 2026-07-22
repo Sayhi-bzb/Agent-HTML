@@ -2,6 +2,11 @@ import { useGesture } from "@use-gesture/react"
 import type { Viewport } from "@xyflow/react"
 import * as React from "react"
 
+import {
+  isCanvasPrimaryPanBlocked,
+  shouldCanvasPreserveWheel,
+} from "./canvas-input-router"
+
 export type CanvasSpacePanInput = {
   altKey: boolean
   code: string
@@ -16,23 +21,23 @@ type UseCanvasPanGesturesOptions = {
   applyViewport: (viewport: Viewport) => void
   getViewport: () => Viewport
   onGestureEnd: (viewport: Viewport) => void
-  spacePanActive: boolean
+  onGestureStart?: (source: "primary" | "wheel") => void
+  panActive: boolean
   target: React.RefObject<HTMLElement | null>
 }
 
 const canvasWheelPanSpeed = 0.5
-const canvasPanDragBlockedSelector =
-  "input, textarea, select, [contenteditable]:not([contenteditable='false']), button, a[href], [role='button'], [role='link']"
 
-export function isCanvasWheelPanBlocked(target: EventTarget | null) {
-  return target instanceof Element && Boolean(target.closest(".nowheel"))
+export function isCanvasWheelPanBlocked(
+  target: EventTarget | null,
+  deltaX = 0,
+  deltaY = 0
+) {
+  return shouldCanvasPreserveWheel(target, deltaX, deltaY)
 }
 
 export function isCanvasPanDragBlocked(target: EventTarget | null) {
-  return (
-    target instanceof Element &&
-    Boolean(target.closest(canvasPanDragBlockedSelector))
-  )
+  return isCanvasPrimaryPanBlocked(target)
 }
 
 export function isCanvasSpaceKey({
@@ -65,7 +70,8 @@ export function useCanvasPanGestures({
   applyViewport,
   getViewport,
   onGestureEnd,
-  spacePanActive,
+  onGestureStart,
+  panActive,
   target,
 }: UseCanvasPanGesturesOptions) {
   const dragActiveRef = React.useRef(false)
@@ -115,13 +121,18 @@ export function useCanvasPanGestures({
         dragActiveRef.current = true
         dragViewportRef.current = getViewport()
         syncGestureActive()
+        onGestureStart?.("primary")
       },
       onWheel: ({ delta: [deltaX, deltaY], event }) => {
         const wheelEvent = event as WheelEvent
         if (
           wheelEvent.ctrlKey ||
           wheelEvent.metaKey ||
-          isCanvasWheelPanBlocked(wheelEvent.target)
+          isCanvasWheelPanBlocked(
+            wheelEvent.target,
+            wheelEvent.deltaX,
+            wheelEvent.deltaY
+          )
         ) {
           finishWheel()
           return
@@ -131,6 +142,7 @@ export function useCanvasPanGestures({
         if (!wheelActiveRef.current) {
           wheelActiveRef.current = true
           syncGestureActive()
+          onGestureStart?.("wheel")
         }
         const current = getViewport()
         const viewport = {
@@ -145,8 +157,7 @@ export function useCanvasPanGestures({
     },
     {
       drag: {
-        enabled: spacePanActive,
-        filterTaps: true,
+        enabled: panActive,
         from: () => {
           const { x, y } = getViewport()
           return [x, y]
@@ -160,8 +171,8 @@ export function useCanvasPanGestures({
   )
 
   React.useEffect(() => {
-    if (!spacePanActive) finishDrag()
-  }, [finishDrag, spacePanActive])
+    if (!panActive) finishDrag()
+  }, [finishDrag, panActive])
   React.useEffect(
     () => () => {
       dragActiveRef.current = false

@@ -18,16 +18,16 @@ import {
   type CanvasThemeVariableName,
   type TailwindColorTokenValue,
 } from "./theme-draft"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#agent-html-playground/components/ui/collapsible"
-import { Input } from "#agent-html-playground/components/ui/input"
-import { Popover, PopoverTrigger } from "#agent-html-playground/components/ui/popover"
 import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
-} from "#agent-html-playground/components/ui/sidebar"
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "#agent-html-playground/components/ui/collapsible"
+import { Input } from "#agent-html-playground/components/ui/input"
+import {
+  Popover,
+  PopoverTrigger,
+} from "#agent-html-playground/components/ui/popover"
 import type {
   CanvasThemePreset,
   CanvasThemePresetId,
@@ -36,7 +36,8 @@ import type { HostMessageKey } from "../i18n/messages"
 import { useHostI18n } from "../i18n/host-i18n"
 import { HostPopoverAction, HostPopoverContent } from "../ui/popover"
 import { HostSelect, type HostSelectOption } from "../ui/select"
-import { HostSidebarActionButton } from "../ui/sidebar-action"
+import { HostItemContent } from "../ui/item-content"
+import { HostButton } from "../ui/button"
 import { hostSwatchFallbackColor, HostSwatch } from "../ui/swatch"
 
 type ColorTokenItem = {
@@ -140,7 +141,8 @@ const fontOptions = [
   },
   {
     labelKey: "theme.system",
-    value: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+    value:
+      "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
   },
   {
     labelKey: "theme.serif",
@@ -148,8 +150,7 @@ const fontOptions = [
   },
   {
     labelKey: "theme.mono",
-    value:
-      "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+    value: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
   },
 ] as const satisfies readonly ThemeSelectOptionDefinition[]
 
@@ -215,11 +216,9 @@ const canvasRangeTokens: readonly NumericTokenItem[] = [
   },
 ]
 
-const editorPopoverButtonClassName =
-  "canvas-theme-editor-popover-button"
+const editorPopoverButtonClassName = "canvas-theme-editor-popover-button"
 
-const editorSectionTriggerClassName =
-  "group/label canvas-sidebar-body text-canvas-host-sidebar-foreground hover:bg-canvas-host-sidebar-accent hover:text-canvas-host-sidebar-accent-foreground"
+const editorSectionTriggerClassName = "canvas-theme-editor-section-trigger"
 
 function getThemePresetSwatchColor(preset: CanvasThemePreset) {
   return (
@@ -261,29 +260,31 @@ function EditorSection({
 }) {
   if (!collapsible) {
     return (
-      <SidebarGroup className="canvas-theme-editor-section">
-        <SidebarGroupLabel>{label}</SidebarGroupLabel>
-        <SidebarGroupContent>{children}</SidebarGroupContent>
-      </SidebarGroup>
+      <section className="canvas-theme-editor-section">
+        <div className="canvas-theme-editor-section-label">{label}</div>
+        <div className="canvas-theme-editor-section-content">{children}</div>
+      </section>
     )
   }
 
   return (
     <Collapsible className="group/collapsible" defaultOpen={defaultOpen}>
-      <SidebarGroup className="canvas-theme-editor-section">
-        <SidebarGroupLabel
-          asChild
-          className={editorSectionTriggerClassName}
-        >
-          <CollapsibleTrigger className="cursor-pointer">
+      <section className="canvas-theme-editor-section">
+        <CollapsibleTrigger asChild>
+          <HostButton
+            className={editorSectionTriggerClassName}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
             {label}
             <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-          </CollapsibleTrigger>
-        </SidebarGroupLabel>
+          </HostButton>
+        </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarGroupContent>{children}</SidebarGroupContent>
+          <div className="canvas-theme-editor-section-content">{children}</div>
         </CollapsibleContent>
-      </SidebarGroup>
+      </section>
     </Collapsible>
   )
 }
@@ -302,18 +303,22 @@ function EditorPopoverItem({
   valueLabel: React.ReactNode
 }) {
   return (
-    <SidebarMenuItem>
+    <div className="canvas-theme-editor-item">
       <Popover>
         <PopoverTrigger asChild>
-          <HostSidebarActionButton
-            caption={valueLabel}
+          <HostButton
             className={editorPopoverButtonClassName}
-            itemLayout="inline"
-            label={label}
-            size="sm"
-            trailing={trailing}
+            size="default"
             type="button"
-          />
+            variant="ghost"
+          >
+            <HostItemContent
+              caption={valueLabel}
+              label={label}
+              layout="inline"
+              trailing={trailing}
+            />
+          </HostButton>
         </PopoverTrigger>
         <HostPopoverContent
           align="start"
@@ -324,7 +329,7 @@ function EditorPopoverItem({
           {children}
         </HostPopoverContent>
       </Popover>
-    </SidebarMenuItem>
+    </div>
   )
 }
 
@@ -401,10 +406,7 @@ function TailwindColorEditor({
   return (
     <div className="canvas-theme-editor-color-picker">
       <div className="canvas-theme-editor-picker-preview">
-        <HostSwatch
-          color={getTailwindColorValue(token)}
-          size="sm"
-        />
+        <HostSwatch color={getTailwindColorValue(token)} size="sm" />
         <span className="min-w-0 flex-1 truncate">
           {token.family} / {token.step}
         </span>
@@ -447,9 +449,9 @@ function TailwindColorEditor({
                   label={family}
                   onClick={() => onValueChange({ ...token, family })}
                   swatchColor={getTailwindColorValue({
-                      family,
-                      step: token.step,
-                    })}
+                    family,
+                    step: token.step,
+                  })}
                 />
               )
             })
@@ -463,9 +465,9 @@ function TailwindColorEditor({
                   label={step}
                   onClick={() => onValueChange({ ...token, step })}
                   swatchColor={getTailwindColorValue({
-                      family: token.family,
-                      step,
-                    })}
+                    family: token.family,
+                    step,
+                  })}
                 />
               )
             })}
@@ -624,11 +626,11 @@ function ColorSection(props: {
           key={group.id}
           label={t(group.labelKey)}
         >
-          <SidebarMenu className="canvas-theme-editor-menu">
+          <div className="canvas-theme-editor-menu">
             {group.items.map((item) => (
               <ColorTokenRow key={item.name} item={item} {...props} />
             ))}
-          </SidebarMenu>
+          </div>
         </EditorSection>
       ))}
     </div>
@@ -650,7 +652,7 @@ function TypographySection(props: {
   return (
     <div className="canvas-theme-editor-section-stack">
       <EditorSection label={t("theme.typography")}>
-        <SidebarMenu className="canvas-theme-editor-menu">
+        <div className="canvas-theme-editor-menu">
           <ThemeSelectItem
             label={t("theme.sans")}
             onValueChange={(value) =>
@@ -679,7 +681,9 @@ function TypographySection(props: {
           />
           <ThemeSelectItem
             label={t("theme.mono")}
-            onValueChange={(value) => props.onVariableChange("--font-mono", value)}
+            onValueChange={(value) =>
+              props.onVariableChange("--font-mono", value)
+            }
             options={translatedFontOptions}
             value={getVariableValue({
               draft: props.draft,
@@ -691,7 +695,7 @@ function TypographySection(props: {
           {typographyRangeTokens.map((item) => (
             <RangeTokenRow key={item.name} item={item} {...props} />
           ))}
-        </SidebarMenu>
+        </div>
       </EditorSection>
     </div>
   )
@@ -712,11 +716,11 @@ function NumericSection({
   return (
     <div className="canvas-theme-editor-section-stack">
       <EditorSection label={label}>
-        <SidebarMenu className="canvas-theme-editor-menu">
+        <div className="canvas-theme-editor-menu">
           {items.map((item) => (
             <RangeTokenRow key={item.name} item={item} {...props} />
           ))}
-        </SidebarMenu>
+        </div>
       </EditorSection>
     </div>
   )
@@ -733,11 +737,11 @@ function CanvasSection(props: {
   return (
     <div className="canvas-theme-editor-section-stack">
       <EditorSection label={t("theme.readingLayout")}>
-        <SidebarMenu className="canvas-theme-editor-menu">
+        <div className="canvas-theme-editor-menu">
           {canvasRangeTokens.map((item) => (
             <RangeTokenRow key={item.name} item={item} {...props} />
           ))}
-        </SidebarMenu>
+        </div>
       </EditorSection>
     </div>
   )
@@ -757,6 +761,7 @@ export function ReactCanvasThemePresetSelect({
   return (
     <HostSelect
       label={t("theme.themePreset")}
+      layout="floating"
       onValueChange={(value) => onSelectPreset(value as CanvasThemePresetId)}
       options={presets.map((preset) => ({
         label: preset.label,
@@ -792,14 +797,18 @@ export function ReactCanvasThemeEditorHeader({
       />
       <HostSelect
         label={t("theme.themeSection")}
+        layout="floating"
         onValueChange={(value) =>
           onSelectSection(value as CanvasThemeEditorSectionId)
         }
-        options={canvasThemeEditorSections.map((section) => ({
-          icon: section.icon,
-          label: t(section.labelKey),
-          value: section.id,
-        } satisfies HostSelectOption))}
+        options={canvasThemeEditorSections.map(
+          (section) =>
+            ({
+              icon: section.icon,
+              label: t(section.labelKey),
+              value: section.id,
+            }) satisfies HostSelectOption
+        )}
         value={activeSectionId}
       />
     </div>
@@ -832,11 +841,23 @@ export function ReactCanvasThemeEditor({
   }
 
   if (activeSectionId === "radius") {
-    return <NumericSection items={radiusTokens} label={t("theme.radius")} {...props} />
+    return (
+      <NumericSection
+        items={radiusTokens}
+        label={t("theme.radius")}
+        {...props}
+      />
+    )
   }
 
   if (activeSectionId === "spacing") {
-    return <NumericSection items={spacingTokens} label={t("theme.spacing")} {...props} />
+    return (
+      <NumericSection
+        items={spacingTokens}
+        label={t("theme.spacing")}
+        {...props}
+      />
+    )
   }
 
   if (activeSectionId === "canvas") {

@@ -140,9 +140,9 @@ export const chartXYTheme = buildChartTheme({
     strokeDasharray: "3 3",
   },
   svgLabelSmall: {
-    className: "fill-muted-foreground text-[0.68rem]",
+    className: "fill-muted-foreground text-2xs",
     fill: "var(--muted-foreground)",
-    fontSize: 10.88,
+    fontSize: 11,
     fontWeight: 400,
     letterSpacing: 0,
   },

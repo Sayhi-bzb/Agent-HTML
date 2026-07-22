@@ -46,11 +46,9 @@ describe("canvas host preferences", () => {
       activeCodexThreadId: null,
       activeFilePath: null,
       activeLanguage: "system",
-      activeSidebarView: "artifacts",
       activeThemeEditorSectionId: "color",
       activeThemeMode: "system",
       activeThemePresetId: "claude-plus",
-      leftSidebarOpen: true,
       messageDrafts: {},
     })
   })
@@ -58,7 +56,7 @@ describe("canvas host preferences", () => {
   it("falls back from malformed storage values", () => {
     stubStorage("{bad")
 
-    expect(readCanvasHostPreferences().leftSidebarOpen).toBe(true)
+    expect(readCanvasHostPreferences().activeThemeMode).toBe("system")
   })
 
   it("validates stored preference values", () => {
@@ -67,7 +65,6 @@ describe("canvas host preferences", () => {
         activeFilePath: "agent-html/artifacts/example.artifact.tsx",
         activeCodexThreadId: 42,
         activeLanguage: "bad",
-        activeSidebarView: "bad",
         activeThemeEditorSectionId: "missing",
         activeThemeMode: "bad",
         activeThemePresetId: "missing",
@@ -79,7 +76,6 @@ describe("canvas host preferences", () => {
           threadId: "thread-1",
           turnId: "turn-1",
         },
-        leftSidebarOpen: false,
         messageDrafts: {
           valid: "draft",
           invalid: 42,
@@ -91,7 +87,6 @@ describe("canvas host preferences", () => {
       activeCodexThreadId: null,
       activeFilePath: "agent-html/artifacts/example.artifact.tsx",
       activeLanguage: "system",
-      activeSidebarView: "artifacts",
       activeThemeEditorSectionId: "color",
       activeThemeMode: "system",
       activeThemePresetId: "claude-plus",
@@ -101,7 +96,6 @@ describe("canvas host preferences", () => {
         request: "Build a dashboard",
         startedAt: 123,
       },
-      leftSidebarOpen: false,
       messageDrafts: {
         valid: "draft",
       },
@@ -117,16 +111,6 @@ describe("canvas host preferences", () => {
         version: 1,
       },
     })
-  })
-
-  it("restores the gallery sidebar view", () => {
-    stubStorage(
-      JSON.stringify({
-        activeSidebarView: "gallery",
-      })
-    )
-
-    expect(readCanvasHostPreferences().activeSidebarView).toBe("gallery")
   })
 
   it("restores an active Codex thread id", () => {
@@ -167,14 +151,19 @@ describe("canvas host preferences", () => {
     })
   })
 
-  it("rejects unknown sidebar views", () => {
+  it("ignores removed Sidebar preferences", () => {
     stubStorage(
       JSON.stringify({
-        activeSidebarView: "theme",
+        activeSidebarView: "gallery",
+        activeThemeMode: "dark",
+        leftSidebarOpen: false,
       })
     )
 
-    expect(readCanvasHostPreferences().activeSidebarView).toBe("artifacts")
+    const preferences = readCanvasHostPreferences()
+    expect(preferences.activeThemeMode).toBe("dark")
+    expect(preferences).not.toHaveProperty("activeSidebarView")
+    expect(preferences).not.toHaveProperty("leftSidebarOpen")
   })
 
   it("restores an active file only when it still exists", () => {
@@ -202,18 +191,15 @@ describe("canvas host preferences", () => {
     })
     writeCanvasHostPreferences({
       activeCodexThreadId: "thread-2",
-      activeSidebarView: "gallery",
       createArtifactJob: {
         filePath: "agent-html/artifacts/new.artifact.tsx",
         phase: "starting",
         request: "Build a dashboard",
         startedAt: 456,
       },
-      leftSidebarOpen: false,
     })
 
     expect(readCanvasHostPreferences()).toMatchObject({
-      activeSidebarView: "gallery",
       activeCodexThreadId: "thread-2",
       createArtifactJob: {
         filePath: "agent-html/artifacts/new.artifact.tsx",
@@ -221,7 +207,6 @@ describe("canvas host preferences", () => {
         request: "Build a dashboard",
         startedAt: 456,
       },
-      leftSidebarOpen: false,
       messageDrafts: expect.any(Object),
     })
     expect(

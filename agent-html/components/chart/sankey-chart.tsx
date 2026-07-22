@@ -726,7 +726,7 @@ function SankeyNodeShape({
       </ChartMotionGroup>
       <ChartMotionText
         animate={{ opacity: nodeOpacity, x: labelX }}
-        className="fill-foreground font-medium text-[13px]"
+        className="fill-foreground font-medium text-sm"
         dy="0.35em"
         initial={false}
         textAnchor={isLeftSide ? "end" : "start"}
@@ -737,7 +737,7 @@ function SankeyNodeShape({
       </ChartMotionText>
       <ChartMotionText
         animate={{ opacity: valueOpacity, x: labelX }}
-        className="fill-foreground text-[11px]"
+        className="fill-foreground text-2xs"
         dy="0.35em"
         initial={false}
         textAnchor={isLeftSide ? "end" : "start"}

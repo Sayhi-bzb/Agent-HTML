@@ -11,6 +11,7 @@ import {
 import {
   createCanvasNavigationCommandMessage,
   createCanvasNavigationRequestMessage,
+  canvasNavigationSnapshotVersion,
 } from "./navigation-sync-contract"
 
 describe("Canvas Desktop navigation bridge", () => {
@@ -27,8 +28,8 @@ describe("Canvas Desktop navigation bridge", () => {
     const onSelectArtifact = vi.fn()
     const onSelectCanvas = vi.fn()
     const onSetLanguage = vi.fn()
-    const onSetSidebarOpen = vi.fn()
     const onSetThemeMode = vi.fn()
+    const onSetThemePreset = vi.fn()
     const onToggleThemeMode = vi.fn()
     const options = {
       artifactFilePaths: ["agent-html/artifacts/one.artifact.tsx"],
@@ -45,9 +46,10 @@ describe("Canvas Desktop navigation bridge", () => {
       onSelectArtifact,
       onSelectCanvas,
       onSetLanguage,
-      onSetSidebarOpen,
       onSetThemeMode,
+      onSetThemePreset,
       onToggleThemeMode,
+      themePresetIds: ["default", "claude-plus"],
     }
 
     expect(
@@ -60,6 +62,25 @@ describe("Canvas Desktop navigation bridge", () => {
           },
           type: "open-tab",
         },
+      })
+    ).toBe(true)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { presetId: "claude-plus", type: "set-theme-preset" },
+      })
+    ).toBe(true)
+    expect(onSetThemePreset).toHaveBeenCalledWith("claude-plus")
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { presetId: "manga", type: "set-theme-preset" },
+      })
+    ).toBe(false)
+    expect(
+      applyCanvasNavigationCommand({
+        ...options,
+        command: { tab: { kind: "appearance" }, type: "open-tab" },
       })
     ).toBe(true)
     expect(
@@ -149,12 +170,6 @@ describe("Canvas Desktop navigation bridge", () => {
     expect(
       applyCanvasNavigationCommand({
         ...options,
-        command: { open: false, type: "set-sidebar-open" },
-      })
-    ).toBe(true)
-    expect(
-      applyCanvasNavigationCommand({
-        ...options,
         command: {
           filePath: "agent-html/artifacts/one.artifact.tsx",
           type: "select-artifact",
@@ -186,6 +201,7 @@ describe("Canvas Desktop navigation bridge", () => {
       filePath: "agent-html/canvases/operations.canvas.tsx",
       kind: "canvas",
     })
+    expect(onOpenTab).toHaveBeenCalledWith({ kind: "appearance" })
     expect(onActivateTab).toHaveBeenCalledWith("threads")
     expect(onCloseTab).toHaveBeenCalledWith("threads")
     expect(onCloseCodexThreadManager).toHaveBeenCalledOnce()
@@ -203,7 +219,6 @@ describe("Canvas Desktop navigation bridge", () => {
     expect(onRequestDeleteArtifact).toHaveBeenCalledWith(
       "agent-html/artifacts/one.artifact.tsx"
     )
-    expect(onSetSidebarOpen).toHaveBeenCalledWith(false)
     expect(onSelectArtifact).toHaveBeenCalledOnce()
     expect(onSelectCanvas).toHaveBeenCalledWith(
       "agent-html/canvases/operations.canvas.tsx"
@@ -249,11 +264,17 @@ describe("Canvas Desktop navigation bridge", () => {
     const target = { postMessage: vi.fn() }
     const snapshot = {
       activeFilePath: null,
+      activeThemePresetId: "default" as const,
       artifacts: [],
       artifactsLoading: true,
+      canvases: [],
+      canvasesLoading: false,
       createArtifactActive: false,
-      leftSidebarOpen: true,
-      version: 1 as const,
+      tabSession: { activeTabId: null, tabs: [], version: 1 as const },
+      themePresets: [{ id: "default" as const, label: "Default" }],
+      threads: [],
+      threadsLoading: false,
+      version: canvasNavigationSnapshotVersion,
     }
 
     const message = publishCanvasNavigation({

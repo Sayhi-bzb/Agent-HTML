@@ -15,16 +15,45 @@
   outline-offset: -2px;
 }
 
-.canvas-workspace[data-space-pan] .react-flow__pane {
+.canvas-workspace[data-pan-active] .react-flow__pane,
+.canvas-workspace[data-pan-active] .canvas-node-drag-handle,
+.canvas-workspace[data-pan-active] .canvas-node-content {
   cursor: grab;
 }
 
-.canvas-workspace[data-space-pan] .react-flow {
+.canvas-workspace[data-pan-active] .react-flow {
   touch-action: none;
 }
 
-.canvas-workspace[data-space-pan] .react-flow__pane:active {
+.canvas-workspace[data-phase="panning"] .react-flow__pane,
+.canvas-workspace[data-phase="panning"] .canvas-node-drag-handle,
+.canvas-workspace[data-phase="panning"] .canvas-node-content {
   cursor: grabbing;
+}
+
+.canvas-workspace[data-tool="select"] .canvas-node-drag-handle,
+.canvas-node-interaction-layer {
+  cursor: move;
+}
+
+.canvas-workspace[data-pan-active]
+  .canvas-node-content
+  :where(
+    a[href],
+    button,
+    [role="button"],
+    [role="link"],
+    [role="checkbox"],
+    [role="radio"],
+    [role="switch"]
+  ) {
+  cursor: pointer;
+}
+
+.canvas-workspace[data-pan-active]
+  .canvas-node-content
+  :where(input, textarea, select, [contenteditable="true"]) {
+  cursor: text;
 }
 
 .canvas-workspace {
@@ -73,8 +102,8 @@
   color: color-mix(in srgb, var(--foreground) 58%, transparent);
   background: color-mix(in srgb, var(--background) 84%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent);
-  font-size: 10px;
-  line-height: 1;
+  font-size: var(--canvas-host-micro-font-size);
+  line-height: var(--canvas-host-micro-line-height);
   letter-spacing: 0.02em;
   opacity: 0;
   transition: opacity 120ms ease;
@@ -109,6 +138,17 @@
   width: 100%;
   height: 100%;
   overflow: auto;
+}
+
+.canvas-node-content[inert] {
+  user-select: none;
+}
+
+.canvas-node-interaction-layer {
+  position: absolute;
+  z-index: 2;
+  inset: 22px 0 0;
+  touch-action: none;
 }
 
 .canvas-workspace .react-flow__resize-control.line {
@@ -150,6 +190,34 @@
   box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent);
 }
 
+.canvas-workspace .canvas-tool-panel {
+  margin-bottom: 16px;
+}
+
+.canvas-tool-dock {
+  display: flex;
+  overflow: hidden;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--background) 92%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.canvas-tool-dock__button.canvas-host-button {
+  width: var(--canvas-host-touch-target-min);
+  min-width: var(--canvas-host-touch-target-min);
+  height: var(--canvas-host-touch-target-min);
+  padding: 0;
+  border-radius: 7px;
+}
+
+.canvas-tool-dock__button[aria-pressed="true"] {
+  color: var(--accent-foreground);
+  background: var(--accent);
+}
+
 .canvas-workspace .react-flow__controls-button {
   width: var(--canvas-host-touch-target-min);
   height: var(--canvas-host-touch-target-min);
@@ -175,7 +243,8 @@
 .canvas-workspace .canvas-zoom-value {
   width: 3.75rem;
   color: var(--foreground);
-  font-size: 0.6875rem;
+  font-size: var(--canvas-host-micro-font-size);
+  line-height: var(--canvas-host-micro-line-height);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
@@ -186,7 +255,8 @@
 
 .canvas-shortcut-help > strong {
   color: var(--foreground);
-  font-size: 0.8125rem;
+  font-size: var(--canvas-host-body-font-size);
+  line-height: var(--canvas-host-body-line-height);
   font-weight: 600;
 }
 
@@ -213,7 +283,8 @@
   margin: 0;
   color: var(--foreground);
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 0.6875rem;
+  font-size: var(--canvas-host-micro-font-size);
+  line-height: var(--canvas-host-micro-line-height);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -230,7 +301,8 @@
   border-radius: 8px;
   color: var(--destructive);
   background: color-mix(in srgb, var(--background) 94%, transparent);
-  font-size: 12px;
+  font-size: var(--canvas-host-caption-font-size);
+  line-height: var(--canvas-host-caption-line-height);
   box-shadow: 0 8px 24px color-mix(in srgb, black 10%, transparent);
   backdrop-filter: blur(12px);
 }
@@ -249,13 +321,15 @@
 
 .canvas-surface-status strong {
   color: var(--foreground);
-  font-size: 14px;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
   font-weight: 600;
 }
 
 .canvas-surface-status span {
   max-width: 560px;
-  font-size: 12px;
+  font-size: var(--canvas-host-caption-font-size);
+  line-height: var(--canvas-host-caption-line-height);
 }
 
 .canvas-surface-status--error span {

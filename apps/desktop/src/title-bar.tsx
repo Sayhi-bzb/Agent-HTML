@@ -6,10 +6,11 @@ import {
   MessageSquareText,
   Minus,
   Moon,
-  PanelLeft,
+  Palette,
   Plus,
   Search,
   Square,
+  SwatchBook,
   X,
 } from "lucide-react"
 import { ContextMenu, DropdownMenu, Popover } from "radix-ui"
@@ -29,6 +30,7 @@ import type {
   ArtifactTitleRenameResult,
   CanvasNavigationLanguage,
   CanvasNavigationSnapshot,
+  CanvasNavigationThemePreset,
 } from "../../../packages/cli/src/host/navigation/navigation-sync-contract"
 import type { CanvasThemeMode } from "../../../packages/cli/src/host/theme/theme-sync-contract"
 import {
@@ -62,24 +64,38 @@ type ArtifactTitleEditor = {
 function AgentMenuButton({
   activeCodexThreadLabel,
   activeLanguage,
+  activeThemePresetId,
   align,
   className,
   onSearchArtifacts,
+  onOpenAppearance,
   onOpenCodexThreadManager,
   onSelectLanguage,
   onSelectThemeMode,
+  onSelectThemePreset,
+  themePresets,
   themeMode,
 }: {
   activeCodexThreadLabel?: string | null
   activeLanguage?: CanvasNavigationLanguage
+  activeThemePresetId?: CanvasNavigationThemePreset["id"]
   align: "start" | "end"
   className: string
   onSearchArtifacts?: () => void
+  onOpenAppearance?: () => void
   onOpenCodexThreadManager?: () => void
   onSelectLanguage?: (language: CanvasNavigationLanguage) => void
   onSelectThemeMode?: (mode: CanvasThemeMode) => void
+  onSelectThemePreset?: (
+    presetId: CanvasNavigationThemePreset["id"]
+  ) => void
+  themePresets?: readonly CanvasNavigationThemePreset[]
   themeMode?: CanvasThemeMode
 }) {
+  const activeThemePreset = themePresets?.find(
+    (preset) => preset.id === activeThemePresetId
+  )
+
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
@@ -123,6 +139,61 @@ function AgentMenuButton({
             </span>
           </DropdownMenu.Item>
           <DropdownMenu.Separator className="desktop-titlebar__agent-menu-separator" />
+          <DropdownMenu.Item
+            className="desktop-titlebar__agent-menu-item"
+            disabled={!onOpenAppearance}
+            onSelect={onOpenAppearance}
+          >
+            <Palette aria-hidden="true" />
+            <span>Appearance</span>
+          </DropdownMenu.Item>
+          <DropdownMenu.Sub>
+            <DropdownMenu.SubTrigger
+              className="desktop-titlebar__agent-menu-item"
+              disabled={
+                !activeThemePresetId || !onSelectThemePreset || !themePresets
+              }
+            >
+              <SwatchBook aria-hidden="true" />
+              <span>Preset</span>
+              <span className="desktop-titlebar__agent-menu-trailing">
+                <span className="desktop-titlebar__agent-menu-value">
+                  {activeThemePreset?.label ?? activeThemePresetId}
+                </span>
+                <ChevronRight
+                  aria-hidden="true"
+                  className="desktop-titlebar__agent-menu-chevron"
+                />
+              </span>
+            </DropdownMenu.SubTrigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.SubContent
+                aria-label="Preset"
+                className="desktop-titlebar__agent-menu-subcontent"
+                collisionPadding={8}
+                sideOffset={6}
+              >
+                <DropdownMenu.RadioGroup
+                  onValueChange={(presetId) =>
+                    onSelectThemePreset?.(
+                      presetId as CanvasNavigationThemePreset["id"]
+                    )
+                  }
+                  value={activeThemePresetId}
+                >
+                  {themePresets?.map((preset) => (
+                    <DropdownMenu.RadioItem
+                      className="desktop-titlebar__agent-menu-item desktop-titlebar__agent-menu-radio-item"
+                      key={preset.id}
+                      value={preset.id}
+                    >
+                      <span>{preset.label}</span>
+                    </DropdownMenu.RadioItem>
+                  ))}
+                </DropdownMenu.RadioGroup>
+              </DropdownMenu.SubContent>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Sub>
           <DropdownMenu.Sub>
             <DropdownMenu.SubTrigger
               className="desktop-titlebar__agent-menu-item"
@@ -281,12 +352,13 @@ export function DesktopTitleBar({
   onCloseTab = () => {},
   onCreateArtifact = () => {},
   onOpenCodexThreadManager,
+  onOpenAppearance,
   onRequestDeleteArtifact = () => {},
   onRenameArtifactTitle = () => {},
   onSearchArtifacts,
   onSelectLanguage,
   onSelectThemeMode,
-  onSetSidebarOpen = () => {},
+  onSelectThemePreset,
   platform = readDesktopPlatform(),
   themeMode,
   windowControls,
@@ -297,6 +369,7 @@ export function DesktopTitleBar({
   onCloseTab?: (tabId: string) => void
   onCreateArtifact?: () => void
   onOpenCodexThreadManager?: () => void
+  onOpenAppearance?: () => void
   onRequestDeleteArtifact?: (filePath: string) => void
   onRenameArtifactTitle?: (input: {
     filePath: string
@@ -306,7 +379,9 @@ export function DesktopTitleBar({
   onSearchArtifacts?: () => void
   onSelectLanguage?: (language: CanvasNavigationLanguage) => void
   onSelectThemeMode?: (mode: CanvasThemeMode) => void
-  onSetSidebarOpen?: (open: boolean) => void
+  onSelectThemePreset?: (
+    presetId: CanvasNavigationThemePreset["id"]
+  ) => void
   platform?: DesktopPlatform
   themeMode?: CanvasThemeMode
   windowControls?: DesktopWindowControls
@@ -522,27 +597,6 @@ export function DesktopTitleBar({
     >
       {showsWorkspaceNavigation ? (
         <nav aria-label="Workspace" className="desktop-titlebar__navigation">
-          <button
-            aria-label={
-              navigation?.leftSidebarOpen
-                ? "Collapse sidebar"
-                : "Expand sidebar"
-            }
-            aria-expanded={navigation?.leftSidebarOpen ?? false}
-            className="desktop-titlebar__navigation-action"
-            disabled={!navigation}
-            onClick={() =>
-              onSetSidebarOpen(!(navigation?.leftSidebarOpen ?? false))
-            }
-            title={
-              navigation?.leftSidebarOpen
-                ? "Collapse sidebar"
-                : "Expand sidebar"
-            }
-            type="button"
-          >
-            <PanelLeft aria-hidden="true" />
-          </button>
           <div
             aria-busy={
               (navigation?.artifactsLoading ?? true) ||
@@ -794,6 +848,55 @@ export function DesktopTitleBar({
                 )
               })}
             {navigation?.tabSession.tabs.some(
+              (tab) => tab.kind === "appearance"
+            ) ? (
+              <div
+                className="desktop-titlebar__tab"
+                data-active={
+                  navigation.tabSession.activeTabId === "appearance"
+                    ? ""
+                    : undefined
+                }
+                key="appearance"
+                style={{ order: workspaceTabOrder("appearance") }}
+              >
+                <button
+                  aria-posinset={workspaceTabOrder("appearance") + 1}
+                  aria-selected={
+                    navigation.tabSession.activeTabId === "appearance"
+                  }
+                  aria-setsize={workspaceTabCount}
+                  className="desktop-titlebar__tab-label"
+                  data-tab-order={workspaceTabOrder("appearance")}
+                  onClick={() => onActivateTab("appearance")}
+                  ref={
+                    navigation.tabSession.activeTabId === "appearance"
+                      ? activeArtifactRef
+                      : undefined
+                  }
+                  role="tab"
+                  tabIndex={
+                    navigation.tabSession.activeTabId === "appearance" ? 0 : -1
+                  }
+                  title="Appearance"
+                  type="button"
+                >
+                  <span className="desktop-titlebar__tab-title">
+                    Appearance
+                  </span>
+                </button>
+                <button
+                  aria-label="Close Appearance"
+                  className="desktop-titlebar__tab-close"
+                  onClick={() => onCloseTab("appearance")}
+                  title="Close Appearance"
+                  type="button"
+                >
+                  <X aria-hidden="true" />
+                </button>
+              </div>
+            ) : null}
+            {navigation?.tabSession.tabs.some(
               (tab) => tab.kind === "thread-manager"
             ) ? (
               <div
@@ -924,12 +1027,16 @@ export function DesktopTitleBar({
         <AgentMenuButton
           activeCodexThreadLabel={navigation?.activeCodexThreadLabel}
           activeLanguage={navigation?.activeLanguage}
+          activeThemePresetId={navigation?.activeThemePresetId}
           align="end"
           className="desktop-titlebar__brand desktop-titlebar__brand--compact desktop-titlebar__navigation-action desktop-titlebar__agent-menu-trigger"
           onSearchArtifacts={onSearchArtifacts}
+          onOpenAppearance={onOpenAppearance}
           onOpenCodexThreadManager={onOpenCodexThreadManager}
           onSelectLanguage={onSelectLanguage}
           onSelectThemeMode={onSelectThemeMode}
+          onSelectThemePreset={onSelectThemePreset}
+          themePresets={navigation?.themePresets}
           themeMode={themeMode}
         />
       )}

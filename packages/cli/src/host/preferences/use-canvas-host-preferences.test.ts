@@ -6,12 +6,10 @@ describe("createCanvasHostPreferencesPatch", () => {
   const baseState = {
     activeCodexThreadId: "thread-1",
     activeLanguage: "zh" as const,
-    activeSidebarView: "gallery" as const,
     activeThemeEditorSectionId: "color" as const,
     activeThemeMode: "dark" as const,
     activeThemePresetId: "claude-plus" as const,
     createArtifactJob: null,
-    leftSidebarOpen: false,
     workspaceTabSession: {
       activeTabId: "threads",
       tabs: [{ id: "threads" as const, kind: "thread-manager" as const }],

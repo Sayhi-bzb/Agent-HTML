@@ -339,6 +339,12 @@ export default function App() {
             type: "open-tab",
           })
         }
+        onOpenAppearance={() =>
+          postCanvasNavigationCommand({
+            tab: { kind: "appearance" },
+            type: "open-tab",
+          })
+        }
         onRequestDeleteArtifact={(filePath) =>
           postCanvasNavigationCommand({
             filePath,
@@ -362,8 +368,8 @@ export default function App() {
         onSelectThemeMode={(mode) =>
           postCanvasNavigationCommand({ mode, type: "set-theme-mode" })
         }
-        onSetSidebarOpen={(open) =>
-          postCanvasNavigationCommand({ open, type: "set-sidebar-open" })
+        onSelectThemePreset={(presetId) =>
+          postCanvasNavigationCommand({ presetId, type: "set-theme-preset" })
         }
       >
         <main className="desktop-runtime">
@@ -548,12 +554,13 @@ function DesktopShell({
   onCreateArtifact,
   onCloseTab,
   onOpenCodexThreadManager,
+  onOpenAppearance,
   onRequestDeleteArtifact,
   onRenameArtifactTitle,
   onSearchArtifacts,
   onSelectLanguage,
   onSelectThemeMode,
-  onSetSidebarOpen,
+  onSelectThemePreset,
   themeMode,
 }: {
   children: React.ReactNode
@@ -563,6 +570,7 @@ function DesktopShell({
   onCreateArtifact?: () => void
   onCloseTab?: (tabId: string) => void
   onOpenCodexThreadManager?: () => void
+  onOpenAppearance?: () => void
   onRequestDeleteArtifact?: (filePath: string) => void
   onRenameArtifactTitle?: (input: {
     filePath: string
@@ -572,7 +580,9 @@ function DesktopShell({
   onSearchArtifacts?: () => void
   onSelectLanguage?: (language: "en" | "system" | "zh") => void
   onSelectThemeMode?: (mode: CanvasThemeMode) => void
-  onSetSidebarOpen?: (open: boolean) => void
+  onSelectThemePreset?: (
+    presetId: CanvasNavigationSnapshot["activeThemePresetId"]
+  ) => void
   themeMode?: CanvasThemeMode
 }) {
   return (
@@ -584,12 +594,13 @@ function DesktopShell({
         onCreateArtifact={onCreateArtifact}
         onCloseTab={onCloseTab}
         onOpenCodexThreadManager={onOpenCodexThreadManager}
+        onOpenAppearance={onOpenAppearance}
         onRequestDeleteArtifact={onRequestDeleteArtifact}
         onRenameArtifactTitle={onRenameArtifactTitle}
         onSearchArtifacts={onSearchArtifacts}
         onSelectLanguage={onSelectLanguage}
         onSelectThemeMode={onSelectThemeMode}
-        onSetSidebarOpen={onSetSidebarOpen}
+        onSelectThemePreset={onSelectThemePreset}
         themeMode={themeMode}
       />
       {children}

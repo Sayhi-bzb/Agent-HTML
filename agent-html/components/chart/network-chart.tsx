@@ -483,7 +483,7 @@ function NetworkNodeMark<TNode extends NetworkNodeDatum>({
       />
       {node.label ? (
         <text
-          className="fill-foreground text-[0.68rem]"
+          className="fill-foreground text-2xs"
           dy={node.radius + 14}
           textAnchor="middle"
         >

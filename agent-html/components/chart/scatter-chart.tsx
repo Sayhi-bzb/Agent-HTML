@@ -226,7 +226,7 @@ function ScatterAxisLabels({
     <>
       {xAxisLabel ? (
         <text
-          className="fill-muted-foreground text-[0.75rem]"
+          className="fill-muted-foreground text-xs"
           textAnchor="middle"
           x={(margin.left + width - margin.right) / 2}
           y={height - 7}
@@ -236,7 +236,7 @@ function ScatterAxisLabels({
       ) : null}
       {yAxisLabel ? (
         <text
-          className="fill-muted-foreground text-[0.75rem]"
+          className="fill-muted-foreground text-xs"
           textAnchor="middle"
           transform={`rotate(-90 16 ${height / 2})`}
           x={16}

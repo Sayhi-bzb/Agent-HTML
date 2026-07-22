@@ -30,12 +30,12 @@ const TableOfContentsContext =
 const tableOfContentsStyles = {
   shell: "relative pl-1",
   header:
-    "mb-3 flex items-center gap-2 font-mono text-[0.6875rem] leading-4 tracking-wide text-muted-foreground uppercase",
+    "mb-3 flex items-center gap-2 font-mono text-2xs tracking-wide text-muted-foreground uppercase",
   icon: "size-3.5 shrink-0",
   separator: "mb-3 opacity-30",
   track: "text-muted-foreground/25",
   activeTrack: "text-foreground",
-  item: "relative z-[1] block w-fit scroll-m-4 rounded-sm py-1 pr-2 text-[0.8125rem] leading-5 transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+  item: "relative z-[1] block w-fit scroll-m-4 rounded-sm py-1 pr-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
   itemActive: "text-foreground",
   itemTrail: "text-foreground",
   itemIdle: "text-muted-foreground/60 hover:text-muted-foreground",

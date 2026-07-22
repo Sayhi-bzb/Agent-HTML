@@ -17,6 +17,7 @@ const snapshot: CanvasNavigationSnapshot = {
   activeCodexThreadLabel: "Build navigation",
   activeFilePath: "agent-html/artifacts/one.artifact.tsx",
   activeLanguage: "system",
+  activeThemePresetId: "default",
   artifacts: [
     {
       filePath: "agent-html/artifacts/one.artifact.tsx",
@@ -33,7 +34,6 @@ const snapshot: CanvasNavigationSnapshot = {
   canvasesLoading: false,
   codexThreadManagerActive: false,
   createArtifactActive: false,
-  leftSidebarOpen: true,
   tabSession: {
     activeTabId: "artifact:agent-html/artifacts/one.artifact.tsx",
     tabs: [
@@ -50,6 +50,10 @@ const snapshot: CanvasNavigationSnapshot = {
     ],
     version: 1,
   },
+  themePresets: [
+    { id: "default", label: "Default" },
+    { id: "claude-plus", label: "Claude +" },
+  ],
   threads: [],
   threadsLoading: false,
   version: canvasNavigationSnapshotVersion,
@@ -80,6 +84,23 @@ describe("Canvas navigation sync contract", () => {
     expect(readCanvasNavigationSnapshotMessage(message)).toEqual(message)
   })
 
+  it("accepts Appearance as a registry-independent workspace tab", () => {
+    const message = createCanvasNavigationSnapshotMessage({
+      ...snapshot,
+      activeFilePath: null,
+      tabSession: {
+        activeTabId: "appearance",
+        tabs: [
+          ...snapshot.tabSession.tabs,
+          { id: "appearance", kind: "appearance" },
+        ],
+        version: 1,
+      },
+    })
+
+    expect(readCanvasNavigationSnapshotMessage(message)).toEqual(message)
+  })
+
   it("rejects duplicate Artifacts and malformed labels", () => {
     expect(
       readCanvasNavigationSnapshotMessage(
@@ -100,6 +121,25 @@ describe("Canvas navigation sync contract", () => {
     ).toBeNull()
   })
 
+  it("requires a valid active preset from the published preset registry", () => {
+    expect(
+      readCanvasNavigationSnapshotMessage(
+        createCanvasNavigationSnapshotMessage({
+          ...snapshot,
+          themePresets: [snapshot.themePresets[0], snapshot.themePresets[0]],
+        })
+      )
+    ).toBeNull()
+    expect(
+      readCanvasNavigationSnapshotMessage(
+        createCanvasNavigationSnapshotMessage({
+          ...snapshot,
+          activeThemePresetId: "manga",
+        })
+      )
+    ).toBeNull()
+  })
+
   it("validates requests and all supported commands", () => {
     const request = createCanvasNavigationRequestMessage(
       "desktop-navigation-request-1",
@@ -113,6 +153,10 @@ describe("Canvas navigation sync contract", () => {
           filePath: snapshot.artifacts[0].filePath,
           kind: "artifact",
         },
+        type: "open-tab",
+      },
+      {
+        tab: { kind: "appearance" },
         type: "open-tab",
       },
       {
@@ -143,9 +187,9 @@ describe("Canvas navigation sync contract", () => {
       { mode: "system", type: "set-theme-mode" },
       { mode: "light", type: "set-theme-mode" },
       { mode: "dark", type: "set-theme-mode" },
+      { presetId: "claude-plus", type: "set-theme-preset" },
       { type: "toggle-theme-mode" },
       { language: "zh", type: "set-language" },
-      { open: false, type: "set-sidebar-open" },
       {
         filePath: snapshot.artifacts[0].filePath,
         requestId: "desktop-title-rename-request-1",
@@ -237,7 +281,14 @@ describe("Canvas navigation sync contract", () => {
     ).toBeNull()
     expect(
       readCanvasNavigationCommandMessage({
-        command: { open: "yes", type: "set-sidebar-open" },
+        command: { presetId: "Invalid preset", type: "set-theme-preset" },
+        type: "agent-html:canvas-navigation-command",
+        version: canvasNavigationSnapshotVersion,
+      })
+    ).toBeNull()
+    expect(
+      readCanvasNavigationCommandMessage({
+        command: { type: "set-sidebar-open" },
         type: "agent-html:canvas-navigation-command",
         version: canvasNavigationSnapshotVersion,
       })
@@ -250,7 +301,7 @@ describe("Canvas navigation sync contract", () => {
     expect(
       readCanvasNavigationRequestMessage({
         ...createCanvasNavigationRequestMessage("desktop-navigation-request-1"),
-        version: 3,
+        version: 2,
       })
     ).toBeNull()
   })

@@ -3,6 +3,34 @@
     padding-inline: 0;
   }
 
+  .appearance-surface__controls {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--canvas-theme-editor-section-gap);
+    padding-block: var(--canvas-host-section-padding) 1rem;
+    padding-inline: var(--canvas-host-section-padding);
+  }
+
+  .canvas-host-shell[data-toolbar="present"] .appearance-surface__controls {
+    padding-block-start: var(--canvas-surface-padding-block-start);
+  }
+
+  .appearance-surface__status {
+    display: flex;
+    min-height: 2.25rem;
+    align-items: center;
+  }
+
+  .appearance-surface__clean-status {
+    display: flex;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: var(--canvas-host-body-font-size);
+    color: var(--muted-foreground);
+  }
+
   .canvas-theme-editor-header-stack,
   .canvas-theme-editor-field-stack,
   .canvas-theme-editor-section-stack,
@@ -12,13 +40,13 @@
   }
 
   .canvas-theme-editor-header-stack {
-    gap: var(--canvas-sidebar-menu-gap);
+    gap: var(--canvas-host-menu-gap);
   }
 
   .canvas-theme-editor-section-stack {
     flex: 1 1 0%;
     gap: var(--canvas-theme-editor-section-gap);
-    padding: var(--canvas-sidebar-content-padding-inline);
+    padding: 0;
   }
 
   .canvas-theme-editor-field-stack {
@@ -61,7 +89,7 @@
   .canvas-theme-editor-popover-label {
     padding-block: var(--canvas-theme-editor-option-padding-block);
     padding-inline: var(--canvas-theme-editor-option-padding-inline);
-    font-size: var(--canvas-sidebar-caption-font-size);
+    font-size: var(--canvas-host-caption-font-size);
     font-weight: 500;
     color: var(--muted-foreground);
   }
@@ -69,12 +97,14 @@
   .canvas-theme-editor-popover-button {
     min-height: var(--canvas-theme-editor-control-min-height);
     height: auto;
+    width: 100%;
+    justify-content: flex-start;
     padding-block: var(--canvas-theme-editor-row-padding-block);
-    color: color-mix(in oklab, var(--canvas-host-sidebar-foreground) 70%, transparent);
+    color: color-mix(in oklab, var(--foreground) 70%, transparent);
   }
 
   .canvas-theme-editor-popover-button:hover {
-    color: var(--canvas-host-sidebar-foreground);
+    color: var(--foreground);
   }
 
   .canvas-theme-editor-control-button {
@@ -86,7 +116,7 @@
     background: transparent;
     padding-block: var(--canvas-theme-editor-control-padding-block);
     padding-inline: var(--canvas-theme-editor-control-padding-inline);
-    font-size: var(--canvas-sidebar-body-font-size);
+    font-size: var(--canvas-host-body-font-size);
   }
 
   .canvas-theme-editor-control-button:hover {
@@ -95,12 +125,12 @@
   }
 
   .canvas-theme-editor-caption {
-    font-size: var(--canvas-sidebar-caption-font-size);
-    color: color-mix(in oklab, var(--canvas-host-sidebar-foreground) 45%, transparent);
+    font-size: var(--canvas-host-caption-font-size);
+    color: color-mix(in oklab, var(--foreground) 45%, transparent);
   }
 
   .canvas-theme-editor-muted-caption {
-    font-size: var(--canvas-sidebar-caption-font-size);
+    font-size: var(--canvas-host-caption-font-size);
     color: var(--muted-foreground);
   }
 
@@ -124,7 +154,7 @@
   .canvas-theme-editor-number-row {
     display: flex;
     align-items: center;
-    gap: var(--canvas-sidebar-control-gap);
+    gap: var(--canvas-host-control-gap);
   }
 
   .canvas-theme-editor-color-picker {
@@ -151,7 +181,7 @@
     border: 1px solid var(--border);
     padding-block: var(--canvas-theme-editor-option-padding-block);
     padding-inline: var(--canvas-theme-editor-option-padding-inline);
-    font-size: var(--canvas-sidebar-caption-font-size);
+    font-size: var(--canvas-host-caption-font-size);
   }
 
   .canvas-theme-editor-picker-tab[data-active="true"] {
@@ -162,11 +192,38 @@
   .canvas-theme-editor-unit {
     width: var(--canvas-theme-editor-unit-width);
     flex-shrink: 0;
-    font-size: var(--canvas-sidebar-caption-font-size);
+    font-size: var(--canvas-host-caption-font-size);
     color: var(--muted-foreground);
   }
 
   .canvas-theme-editor-menu {
+    display: flex;
+    flex-direction: column;
     gap: var(--canvas-theme-editor-row-gap);
+  }
+
+  .canvas-theme-editor-section-label {
+    padding: 0.5rem;
+    font-size: var(--canvas-host-caption-font-size);
+    font-weight: 500;
+    color: var(--muted-foreground);
+  }
+
+  .canvas-theme-editor-section-trigger {
+    width: 100%;
+    justify-content: flex-start;
+    font-size: var(--canvas-host-body-font-size);
+  }
+
+  .canvas-theme-editor-section-content,
+  .canvas-theme-editor-item {
+    min-width: 0;
+  }
+
+  @container workspace-split-view (max-width: 48rem) {
+    .appearance-surface__controls,
+    .canvas-host-shell[data-toolbar="present"] .appearance-surface__controls {
+      padding-block-start: 1rem;
+    }
   }
 }
